@@ -26,3 +26,15 @@
 *.exe
 *.out
 *.app
+
+# Other compiler/linker outputs
+*.elf
+*.bin
+*.map
+*.lst
+
+# Debugging
+.gdbinit*
+
+# Host OS turds
+.DS_Store
