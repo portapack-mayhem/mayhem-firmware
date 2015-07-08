@@ -40,7 +40,7 @@ namespace rf {
 namespace rssi {
 
 constexpr uint32_t adc1_sel = (1U << portapack::adc1_rssi_input);
-const auto adc1_interrupt_mask = 0;
+const auto adc1_interrupt_mask = flp2(adc1_sel);
 
 //constexpr uint32_t adc1_clkdiv = base_apb3_clk_f / adc::clock_rate_max;
 constexpr adc::CR adc1_cr {
