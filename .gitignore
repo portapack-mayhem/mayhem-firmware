@@ -32,6 +32,8 @@
 *.bin
 *.map
 *.lst
+.dep/
+build/
 
 # Debugging
 .gdbinit*
