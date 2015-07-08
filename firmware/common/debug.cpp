@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include "debug.hpp"
+
+#include <ch.h>
+
+static void runtime_error() {
+	debug_indicate_error_init();
+
+	while(true) {
+		volatile size_t n = 1000000U;
+		while(n--);
+		debug_indicate_error_update();
+	}
+}
+
+extern "C" {
+
+void __early_init(void) {
+	/* Enable unaligned exception handler */
+	SCB_CCR |= (1 << 3);
+
+#if defined(LPC43XX_M4)
+	/* Enable MemManage, BusFault, UsageFault exception handlers */
+	SCB_SHCSR |= (1 << 16);
+	SCB_SHCSR |= (1 << 17);
+	SCB_SHCSR |= (1 << 18);
+#endif
+}
+
+void port_halt(void) {
+	port_disable();
+	runtime_error();
+}
+
+#if defined(LPC43XX_M4)
+CH_IRQ_HANDLER(MemManageVector) {
+	CH_IRQ_PROLOGUE();
+	chSysHalt();
+}
+
+CH_IRQ_HANDLER(BusFaultVector) {
+	CH_IRQ_PROLOGUE();
+	chSysHalt();
+}
+
+CH_IRQ_HANDLER(UsageFaultVector) {
+	CH_IRQ_PROLOGUE();
+	chSysHalt();
+}
+#endif
+
+}
