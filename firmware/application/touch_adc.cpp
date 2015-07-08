@@ -29,8 +29,6 @@
 #include "hal.h"
 using namespace lpc43xx;
 
-// #include "hackrf_gpio.hpp"
-
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
@@ -63,8 +61,6 @@ void init() {
 	adc0.interrupts_disable();
 	adc0.power_up(adc0_config);
 	adc0.interrupts_enable(adc0_interrupt_mask);
-
-	//nvicEnableVector(ADC0_IRQn, CORTEX_PRIORITY_MASK(LPC_ADC0_IRQ_PRIORITY));
 }
 
 void start() {

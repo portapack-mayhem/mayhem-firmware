@@ -28,7 +28,6 @@
 #include "utility.hpp"
 
 #include "hal.h"
-
 using namespace lpc43xx;
 
 #include "hackrf_hal.hpp"
@@ -39,10 +38,9 @@ using namespace hackrf::one;
 namespace rf {
 namespace rssi {
 
-constexpr uint32_t adc1_sel = (1U << portapack::adc1_rssi_input);
+constexpr uint8_t adc1_sel = (1 << portapack::adc1_rssi_input);
 const auto adc1_interrupt_mask = flp2(adc1_sel);
 
-//constexpr uint32_t adc1_clkdiv = base_apb3_clk_f / adc::clock_rate_max;
 constexpr adc::CR adc1_cr {
 	.sel = adc1_sel,
 	.clkdiv = 49,		/* 400kHz sample rate, 2.5us/sample @ 200MHz PCLK */
@@ -53,28 +51,13 @@ constexpr adc::Config adc1_config {
 	.cr = adc1_cr,
 };
 
-// volatile size_t rssi_buffer_available_count = 0;
-// volatile size_t rssi_buffer_error_count = 0;
-
-// static void rssi_buffer_available() {
-// 	rssi_buffer_available_count++;
-// }
-
-// static void rssi_buffer_error() {
-// 	rssi_buffer_error_count++;
-// }
-
 void init() {
 	adc1.clock_enable();
-	//adc1.interrupts_disable();
+	adc1.interrupts_disable();
 	adc1.power_up(adc1_config);
-
-	/* An interrupt must be enabled within peripheral to issue request to
-	 *GPDMA */
 	adc1.interrupts_enable(adc1_interrupt_mask);
 
 	dma::init();
-//	dma::set_handlers(rssi_buffer_available, rssi_buffer_error);
 }
 
 void start() {
