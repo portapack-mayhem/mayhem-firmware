@@ -1,0 +1,233 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup ARM ARM7/9
+ * @details ARM7/9 port for the GCC compiler.
+ *
+ * @section ARM_INTRO Introduction
+ * The ARM7/9-GCC port supports the ARM7/9 core in the following three modes:
+ * - <b>Pure ARM</b> mode, this is the preferred mode for code speed, this
+ *   mode increases the memory footprint however. This mode is enabled when
+ *   all the modules are compiled in ARM mode, see the Makefiles.
+ * - <b>Pure THUMB</b> mode, this is the preferred mode for code size. In
+ *   this mode the execution speed is slower than the ARM mode. This mode
+ *   is enabled when all the modules are compiled in THUMB mode, see the
+ *   Makefiles.
+ * - <b>Interworking</b> mode, when in the system there are ARM modules mixed
+ *   with THUMB modules then the interworking compiler option is enabled.
+ *   This is usually the slowest mode and the code size is not as good as
+ *   in pure THUMB mode.
+ * .
+ * @section ARM_STATES Mapping of the System States in the ARM7/9 port
+ * The ChibiOS/RT logical system states are mapped as follow in the ARM7/9
+ * port:
+ * - <b>Init</b>. This state is represented by the startup code and the
+ *   initialization code before @p chSysInit() is executed. It has not a
+ *   special hardware state associated, usually the CPU goes through several
+ *   hardware states during the startup phase.
+ * - <b>Normal</b>. This is the state the system has after executing
+ *   @p chSysInit(). In this state the CPU has both the interrupt sources
+ *   (IRQ and FIQ) enabled and is running in ARM System Mode.
+ * - <b>Suspended</b>. In this state the IRQ sources are disabled but the FIQ
+ *   sources are served, the core is running in ARM System Mode.
+ * - <b>Disabled</b>. Both the IRQ and FIQ sources are disabled, the core is
+ *   running in ARM System Mode.
+ * - <b>Sleep</b>. ARM7/9 cores does not have an explicit built-in low power
+ *   mode but there are clock stop modes implemented in custom ways by the
+ *   various silicon vendors. This state is implemented in each microcontroller
+ *   support code in a different way, the core is running (or freezed...)
+ *   in ARM System Mode.
+ * - <b>S-Locked</b>. IRQ sources disabled, core running in ARM System Mode.
+ * - <b>I-Locked</b>. IRQ sources disabled, core running in ARM IRQ Mode. Note
+ *   that this state is not different from the SRI state in this port, the
+ *   @p chSysLockI() and @p chSysUnlockI() APIs do nothing (still use them in
+ *   order to formally change state because this may change).
+ * - <b>Serving Regular Interrupt</b>. IRQ sources disabled, core running in
+ *   ARM IRQ Mode. See also the I-Locked state.
+ * - <b>Serving Fast Interrupt</b>. IRQ and FIQ sources disabled, core running
+ *   in ARM FIQ Mode.
+ * - <b>Serving Non-Maskable Interrupt</b>. There are no asynchronous NMI
+ *   sources in ARM7/9 architecture but synchronous SVC, ABT and UND exception
+ *   handlers can be seen as belonging to this category.
+ * - <b>Halted</b>. Implemented as an infinite loop after disabling both IRQ
+ *   and FIQ sources. The ARM state is whatever the processor was running when
+ *   @p chSysHalt() was invoked.
+ * .
+ * @section ARM_NOTES The ARM7/9 port notes
+ * The ARM7/9 port is organized as follow:
+ * - The @p main() function is invoked in system mode.
+ * - Each thread has a private user/system stack, the system has a single
+ *   interrupt stack where all the interrupts are processed.
+ * - The threads are started in system mode.
+ * - The threads code can run in system mode or user mode, however the
+ *   code running in user mode cannot invoke the ChibiOS/RT APIs directly
+ *   because privileged instructions are used inside.<br>
+ *   The kernel APIs can be eventually invoked by using a SWI entry point
+ *   that handles the switch in system mode and the return in user mode.
+ * - Other modes are not preempt-able because the system code assumes the
+ *   threads running in system mode. When running in supervisor or other
+ *   modes make sure that the interrupts are globally disabled.
+ * - Interrupts nesting is not supported in the ARM7/9 port because their
+ *   implementation, even if possible, is not really efficient in this
+ *   architecture.
+ * - FIQ sources can preempt the kernel (by design) so it is not possible to
+ *   invoke the kernel APIs from inside a FIQ handler. FIQ handlers are not
+ *   affected by the kernel activity so there is not added jitter.
+ * .
+ * @section ARM_IH ARM7/9 Interrupt Handlers
+ * In the current implementation the ARM7/9 Interrupt handlers do not save
+ * function-saved registers so you need to make sure your code saves them
+ * or does not use them (this happens because in the ARM7/9 port all the
+ * OS interrupt handler functions are declared naked).<br>
+ * Function-trashed registers (R0-R3, R12, LR, SR) are saved/restored by the
+ * system macros @p CH_IRQ_PROLOGUE() and @p CH_IRQ_EPILOGUE().<br>
+ * The easiest way to ensure this is to just invoke a normal function from
+ * within the interrupt handler, the function code will save all the required
+ * registers.<br>
+ * Example:
+ * @code
+ * CH_IRQ_HANDLER(irq_handler) {
+ *   CH_IRQ_PROLOGUE();
+ *
+ *   serve_interrupt();
+ *
+ *   VICVectAddr = 0; // This is LPC214x-specific.
+ *   CH_IRQ_EPILOGUE();
+ * }
+ * @endcode
+ * This is not a bug but an implementation choice, this solution allows to
+ * have interrupt handlers compiled in thumb mode without have to use an
+ * interworking mode (the mode switch is hidden in the macros), this
+ * greatly improves code efficiency and size. You can look at the serial
+ * driver for real examples of interrupt handlers.<br>
+ * It is important that the serve_interrupt() interrupt function is not
+ * inlined by the compiler into the ISR or the code could still modify
+ * the unsaved registers, this can be accomplished using GCC by adding
+ * the attribute "noinline" to the function:
+ * @code
+ * #if defined(__GNUC__)
+ * __attribute__((noinline))
+ * #endif
+ * static void serve_interrupt(void) {
+ * }
+ * @endcode
+ * Note that several commercial compilers support a GNU-like functions
+ * attribute mechanism.<br>
+ * Alternative ways are to use an appropriate pragma directive or disable
+ * inlining optimizations in the modules containing the interrupt handlers.
+ *
+ * @ingroup gcc
+ */
+
+/**
+ * @defgroup ARM_CONF Configuration Options
+ * @details ARM7/9 specific configuration options. The ARM7/9 port allows some
+ * architecture-specific configurations settings that can be overridden by
+ * redefining them in @p chconf.h. Usually there is no need to change the
+ * default values.
+ * - @p INT_REQUIRED_STACK, this value represent the amount of stack space used
+ *   by an interrupt handler between the @p extctx and @p intctx
+ *   structures.<br>
+ *   In practice this value is the stack space used by the chSchDoReschedule()
+ *   stack frame.<br>
+ *   This value can be affected by a variety of external things like compiler
+ *   version, compiler options, kernel settings (speed/size) and so on.<br>
+ *   The default for this value is @p 0x10 which should be a safe value, you
+ *   can trim this down by defining the macro externally. This would save
+ *   some valuable RAM space for each thread present in the system.<br>
+ *   The default value is set into <b>./os/ports/GCC/ARM/chcore.h</b>.
+ * - @p IDLE_THREAD_STACK_SIZE, stack area size to be assigned to the IDLE
+ *   thread. Usually there is no need to change this value unless inserting
+ *   code in the IDLE thread using the @p IDLE_LOOP_HOOK hook macro.
+ * - @p ARM_ENABLE_WFI_IDLE, if set to @p TRUE enables the use of the
+ *   an implementation-specific clock stop mode from within the idle loop.
+ *   This option is defaulted to FALSE because it can create problems with
+ *   some debuggers. Setting this option to TRUE reduces the system power
+ *   requirements.
+ * .
+ * @ingroup ARM
+ */
+
+/**
+ * @defgroup ARM_CORE Core Port Implementation
+ * @details ARM7/9 specific port code, structures and macros.
+ *
+ * @ingroup ARM
+ */
+
+/**
+ * @defgroup ARM_STARTUP Startup Support
+ * @details ARM7/9 startup code support. ChibiOS/RT provides its own generic
+ * startup file for the ARM7/9 port. Of course it is not mandatory to use it
+ * but care should be taken about the startup phase details.
+ *
+ * @section ARM_STARTUP_1 Startup Process
+ * The startup process, as implemented, is the following:
+ * -# The stacks are initialized by assigning them the sizes defined in the
+ *    linker script (usually named @p ch.ld). Stack areas are allocated from
+ *    the highest RAM location downward.
+ * -# The ARM state is switched to System with both IRQ and FIQ sources
+ *    disabled.
+ * -# An early initialization routine @p hwinit0 is invoked, if the symbol is
+ *    not defined then an empty default routine is executed (weak symbol).
+ * -# DATA and BSS segments are initialized.
+ * -# A late initialization routine @p hwinit1 is invoked, if the symbol not
+ *    defined then an empty default routine is executed (weak symbol).<br>
+ *    This late initialization function is also the proper place for a
+ *    @a bootloader, if your application requires one.
+ * -# The @p main() function is invoked with the parameters @p argc and @p argv
+ *    set to zero.
+ * -# Should the @p main() function return a branch is performed to the weak
+ *    symbol _main_exit_handler. The default code is an endless empty loop.
+ * .
+ * @section ARM_STARTUP_2 Expected linker symbols
+ * The startup code starts at the symbol @p ResetHandler and expects the
+ * following symbols to be defined in the linker script:
+ * - @p __ram_end__ RAM end location +1.
+ * - @p __und_stack_size__ Undefined Instruction stack size.
+ * - @p __abt_stack_size__ Memory Abort stack size.
+ * - @p __fiq_stack_size__ FIQ service stack size.
+ * - @p __irq_stack_size__ IRQ service stack size.
+ * - @p __svc_stack_size__ SVC service stack size.
+ * - @p __sys_stack_size__ System/User stack size. This is the stack area used
+ *      by the @p main() function.
+ * - @p _textdata address of the data segment source read only data.
+ * - @p _data data segment start location.
+ * - @p _edata data segment end location +1.
+ * - @p _bss_start BSS start location.
+ * - @p _bss_end BSS end location +1.
+ * .
+ * @ingroup ARM
+ */
+
+/**
+ * @defgroup ARM_SPECIFIC Specific Implementations
+ * @details Platform-specific port code.
+ *
+ * @ingroup ARM
+ */

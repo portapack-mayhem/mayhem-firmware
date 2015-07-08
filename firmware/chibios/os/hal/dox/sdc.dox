@@ -1,0 +1,44 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup SDC SDC Driver
+ * @brief   Generic SD Card Driver.
+ * @details This module implements a generic SDC (Secure Digital Card) driver.
+ * @pre     In order to use the SDC driver the @p HAL_USE_SDC option
+ *          must be enabled in @p halconf.h.
+ *
+ * @section sdc_1 Driver State Machine
+ * This driver implements a state machine internally, see the @ref IO_BLOCK
+ * module documentation for details.
+ *
+ * @section sdc_2 Driver Operations
+ * This driver allows to read or write single or multiple 512 bytes blocks
+ * on a SD Card.
+ *
+ * @ingroup IO
+ */

@@ -1,0 +1,45 @@
+Default maximum settings
+  * Building...OK
+  * Testing...OK
+CH_OPTIMIZE_SPEED=FALSE
+  * Building...OK
+  * Testing...OK
+CH_TIME_QUANTUM=0
+  * Building...OK
+  * Testing...OK
+CH_USE_REGISTRY=FALSE
+  * Building...OK
+  * Testing...OK
+CH_USE_SEMAPHORES_PRIORITY=TRUE
+  * Building...OK
+  * Testing...OK
+CH_USE_CONDVARS_TIMEOUT=FALSE
+  * Building...OK
+  * Testing...OK
+CH_USE_EVENTS_TIMEOUT=FALSE
+  * Building...OK
+  * Testing...OK
+CH_USE_MESSAGES_PRIORITY=TRUE
+  * Building...OK
+  * Testing...OK
+CH_USE_DYNAMIC=FALSE
+  * Building...OK
+  * Testing...OK
+CH_DBG_SYSTEM_STATE_CHECK=TRUE
+  * Building...OK
+  * Testing...OK
+CH_DBG_ENABLE_CHECKS=TRUE
+  * Building...OK
+  * Testing...OK
+CH_DBG_ENABLE_ASSERTS=TRUE
+  * Building...OK
+  * Testing...OK
+CH_DBG_ENABLE_TRACE=TRUE
+  * Building...OK
+  * Testing...OK
+CH_DBG_FILL_THREADS=TRUE
+  * Building...OK
+  * Testing...OK
+CH_DBG_THREADS_PROFILING=FALSE
+  * Building...OK
+  * Testing...OK

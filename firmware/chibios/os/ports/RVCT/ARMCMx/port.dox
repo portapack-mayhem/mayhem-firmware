@@ -1,0 +1,240 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup RVCT_ARMCMx ARM Cortex-Mx
+ * @details ARM Cortex-Mx port for the RVCT compiler.
+ 
+ * @section RVCT_ARMCMx_INTRO Introduction
+ * This port supports all the cores implementing the ARMv6-M and ARMv7-M
+ * architectures.
+ *
+ * @section RVCT_ARMCMx_MODES Kernel Modes
+ * The Cortex-Mx port supports two distinct kernel modes:
+ * - <b>Advanced Kernel</b> mode. In this mode the kernel only masks
+ *   interrupt sources with priorities below or equal to the
+ *   @p CORTEX_BASEPRI_KERNEL level. Higher priorities are not affected by
+ *   the kernel critical sections and can be used for fast interrupts.
+ *   This mode is not available in the ARMv6-M architecture which does not
+ *   support priority masking.
+ * - <b>Compact Kernel</b> mode. In this mode the kernel handles IRQ priorities
+ *   in a simplified way, all interrupt sources are disabled when the kernel
+ *   enters into a critical zone and re-enabled on exit. This is simple and
+ *   adequate for most applications, this mode results in a more compact and
+ *   faster kernel.
+ * .
+ * The selection of the mode is performed using the port configuration option
+ * @p CORTEX_SIMPLIFIED_PRIORITY. Apart from the different handling of
+ * interrupts there are no other differences between the two modes. The
+ * kernel API is exactly the same.
+ *
+ * @section RVCT_ARMCMx_STATES_A System logical states in Compact Kernel mode
+ * The ChibiOS/RT logical @ref system_states are mapped as follow in Compact
+ * Kernel mode:
+ * - <b>Init</b>. This state is represented by the startup code and the
+ *   initialization code before @p chSysInit() is executed. It has not a
+ *   special hardware state associated.
+ * - <b>Normal</b>. This is the state the system has after executing
+ *   @p chSysInit(). In this state interrupts are enabled. The processor
+ *   is running in thread-privileged mode.
+ * - <b>Suspended</b>. In this state the interrupt sources are globally
+ *   disabled. The processor is running in thread-privileged mode. In this
+ *   mode this state is not different from the <b>Disabled</b> state.
+ * - <b>Disabled</b>. In this state the interrupt sources are globally
+ *   disabled. The processor is running in thread-privileged mode. In this
+ *   mode this state is not different from the <b>Suspended</b> state.
+ * - <b>Sleep</b>. This state is entered with the execution of the specific
+ *   instruction @p <b>wfi</b>.
+ * - <b>S-Locked</b>. In this state the interrupt sources are globally
+ *   disabled. The processor is running in thread-privileged mode.
+ * - <b>I-Locked</b>. In this state the interrupt sources are globally
+ *   disabled. The processor is running in exception-privileged mode.
+ * - <b>Serving Regular Interrupt</b>. In this state the interrupt sources are
+ *   not globally masked but only interrupts with higher priority can preempt
+ *   the current handler. The processor is running in exception-privileged
+ *   mode.
+ * - <b>Serving Fast Interrupt</b>. Not implemented in compact kernel mode.
+ * - <b>Serving Non-Maskable Interrupt</b>. The Cortex-Mx has a specific
+ *   asynchronous NMI vector and several synchronous fault vectors that can
+ *   be considered belonging to this category.
+ * - <b>Halted</b>. Implemented as an infinite loop after globally masking all
+ *   the maskable interrupt sources. The ARM state is whatever the processor
+ *   was running when @p chSysHalt() was invoked.
+ *
+ * @section RVCT_ARMCMx_STATES_B System logical states in Advanced Kernel mode
+ * The ChibiOS/RT logical @ref system_states are mapped as follow in the
+ * Advanced Kernel mode:
+ * - <b>Init</b>. This state is represented by the startup code and the
+ *   initialization code before @p chSysInit() is executed. It has not a
+ *   special hardware state associated.
+ * - <b>Normal</b>. This is the state the system has after executing
+ *   @p chSysInit(). In this state the ARM Cortex-Mx has the BASEPRI register
+ *   set at @p CORTEX_BASEPRI_USER level, interrupts are not masked. The
+ *   processor is running in thread-privileged mode.
+ * - <b>Suspended</b>. In this state the interrupt sources are not globally
+ *   masked but the BASEPRI register is set to @p CORTEX_BASEPRI_KERNEL thus
+ *   masking any interrupt source with lower or equal priority. The processor
+ *   is running in thread-privileged mode.
+ * - <b>Disabled</b>. Interrupt sources are globally masked. The processor
+ *   is running in thread-privileged mode.
+ * - <b>Sleep</b>. This state is entered with the execution of the specific
+ *   instruction @p <b>wfi</b>.
+ * - <b>S-Locked</b>. In this state the interrupt sources are not globally
+ *   masked but the BASEPRI register is set to @p CORTEX_BASEPRI_KERNEL thus
+ *   masking any interrupt source with lower or equal priority. The processor
+ *   is running in thread-privileged mode.
+ * - <b>I-Locked</b>. In this state the interrupt sources are not globally
+ *   masked but the BASEPRI register is set to @p CORTEX_BASEPRI_KERNEL thus
+ *   masking any interrupt source with lower or equal priority. The processor
+ *   is running in exception-privileged mode.
+ * - <b>Serving Regular Interrupt</b>. In this state the interrupt sources are
+ *   not globally masked but only interrupts with higher priority can preempt
+ *   the current handler. The processor is running in exception-privileged
+ *   mode.
+ * - <b>Serving Fast Interrupt</b>. Fast interrupts are defined as interrupt
+ *   sources having higher priority level than the kernel
+ *   (@p CORTEX_BASEPRI_KERNEL). In this state is not possible to switch to
+ *   the I-Locked state because fast interrupts can preempt the kernel
+ *   critical zone.<br>
+ *   This state is not implemented in the ARMv6-M implementation because
+ *   priority masking is not present in this architecture.
+ * - <b>Serving Non-Maskable Interrupt</b>. The Cortex-Mx has a specific
+ *   asynchronous NMI vector and several synchronous fault vectors that can
+ *   be considered belonging to this category.
+ * - <b>Halted</b>. Implemented as an infinite loop after globally masking all
+ *   the maskable interrupt sources. The ARM state is whatever the processor
+ *   was running when @p chSysHalt() was invoked.
+ * .
+ * @section RVCT_ARMCMx_NOTES ARM Cortex-Mx/RVCT port notes
+ * The ARM Cortex-Mx port is organized as follow:
+ * - The @p main() function is invoked in thread-privileged mode.
+ * - Each thread has a private process stack, the system has a single main
+ *   stack where all the interrupts and exceptions are processed.
+ * - The threads are started in thread-privileged mode.
+ * - Interrupt nesting and the other advanced core/NVIC features are supported.
+ * - The Cortex-Mx port is perfectly generic, support for more devices can be
+ *   easily added by adding a subdirectory under <tt>./os/ports/RVCT/ARMCMx</tt>
+ *   and giving it the name of the new device, then copy the files from another
+ *   device into the new directory and customize them for the new device.
+ * - The free uVision is not able to handle scatter files, the following
+ *   options are required in the project options under "Preprocesso symbols"
+ *   in order to use the unused RAM as heap automatically:
+ *   <tt>__heap_base__=Image$$RW_IRAM1$$ZI$$Limit
+ *   __heap_end__=Image$$RW_IRAM2$$Base</tt>
+ * .
+ * @ingroup rvct
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_CONF Configuration Options
+ * @details ARM Cortex-Mx Configuration Options. The ARMCMx port allows some
+ * architecture-specific configurations settings that can be overridden
+ * by redefining them in @p chconf.h. Usually there is no need to change
+ * the default values.
+ * - @p INT_REQUIRED_STACK, this value represent the amount of stack space used
+ *   by an interrupt handler between the @p extctx and @p intctx
+ *   structures.
+ * - @p IDLE_THREAD_STACK_SIZE, stack area size to be assigned to the IDLE
+ *   thread. Usually there is no need to change this value unless inserting
+ *   code in the IDLE thread using the @p IDLE_LOOP_HOOK hook macro.
+ * - @p CORTEX_PRIORITY_SYSTICK, priority of the SYSTICK handler.
+ * - @p CORTEX_PRIORITY_PENDSV, priority of the PENDSV handler.
+ * - @p CORTEX_ENABLE_WFI_IDLE, if set to @p TRUE enables the use of the
+ *   @p <b>wfi</b> instruction from within the idle loop. This option is
+ *   defaulted to FALSE because it can create problems with some debuggers.
+ *   Setting this option to TRUE reduces the system power requirements.
+ * .
+ * @section RVCT_ARMCMx_CONF_1 ARMv6-M specific options
+ * The following options are specific for the ARMv6-M architecture:
+ * - @p CORTEX_ALTERNATE_SWITCH, when activated makes the OS use the PendSV
+ *   exception instead of NMI as preemption handler.
+ * .
+ * @section RVCT_ARMCMx_CONF_2 ARMv7-M specific options
+ * The following options are specific for the ARMv6-M architecture:
+ * - @p CORTEX_PRIORITY_SVCALL, priority of the SVCALL handler.
+ * - @p CORTEX_SIMPLIFIED_PRIORITY, when enabled activates the Compact kernel
+ *   mode.
+ * .
+ * @ingroup RVCT_ARMCMx
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_CORE Core Port Implementation
+ * @details ARM Cortex-Mx specific port code, structures and macros.
+ *
+ * @ingroup RVCT_ARMCMx
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_V6M_CORE ARMv6-M Specific Implementation
+ * @details ARMv6-M specific port code, structures and macros.
+ *
+ * @ingroup RVCT_ARMCMx_CORE
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_V7M_CORE ARMv7-M Specific Implementation
+ * @details ARMv7-M specific port code, structures and macros.
+ *
+ * @ingroup RVCT_ARMCMx_CORE
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_STARTUP Startup Support
+ * @details ChibiOS/RT provides its own generic startup file for the ARM
+ * Cortex-Mx port.
+ * Of course it is not mandatory to use it but care should be taken about the
+ * startup phase details.
+ *
+ * @section RVCT_ARMCMx_STARTUP_1 Startup Process
+ * The startup process, as implemented, is the following:
+ * -# Interrupts are masked globally.
+ * -# The two stacks are initialized by assigning them the sizes defined in
+ *    <tt>cstartup.s</tt> file and accessible through the configuration wizard.
+ * -# The CPU state is switched to Privileged and the PSP stack is used.
+ * -# An early initialization routine @p __early_init() is invoked, if the
+ *    symbol is not defined then an empty default routine is executed
+ *    (weak symbol).
+ * -# Control is passed to the C runtime entry point @p __main that performs
+ *    the required initializations before invoking the @p main() function.
+ * .
+ * @ingroup RVCT_ARMCMx
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_NVIC NVIC Support
+ * @details ARM Cortex-Mx NVIC support.
+ *
+ * @ingroup RVCT_ARMCMx
+ */
+
+/**
+ * @defgroup RVCT_ARMCMx_SPECIFIC Specific Implementations
+ * @details Platform-specific port code.
+ *
+ * @ingroup RVCT_ARMCMx
+ */

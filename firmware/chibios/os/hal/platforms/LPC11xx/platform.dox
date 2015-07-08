@@ -1,0 +1,136 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup LPC11xx LPC11xx Drivers
+ * @details This section describes all the supported drivers on the LPC11xx
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup LPC11xx_HAL LPC11xx Initialization Support
+ * @details The LPC11xx HAL support is responsible for system initialization.
+ *
+ * @section lpc11xx_hal_1 Supported HW resources
+ * - SYSCON.
+ * - Flash.
+ * .
+ * @section lpc11xx_hal_2 LPC11xx HAL driver implementation features
+ * - Clock tree initialization.
+ * - Clock source selection.
+ * - Flash controller initialization.
+ * - SYSTICK initialization based on current clock and kernel required rate.
+ * .
+ * @ingroup LPC11xx
+ */
+
+/**
+ * @defgroup LPC11xx_GPT LPC11xx GPT Support
+ * @details The LPC11xx GPT driver uses the CTxxBy peripherals.
+ *
+ * @section lpc11xx_gpt_1 Supported HW resources
+ * - CT16B0.
+ * - CT16B1.
+ * - CT32B0.
+ * - CT32B1.
+ * .
+ * @section lpc11xx_gpt_2 LPC11xx GPT driver implementation features
+ * - Each timer can be independently enabled and programmed. Unused
+ *   peripherals are left in low power mode.
+ * - Programmable CTxxBy interrupts priority level.
+ * .
+ * @ingroup LPC11xx
+ */
+
+/**
+ * @defgroup LPC11xx_PAL LPC11xx PAL Support
+ * @details The LPC11xx PAL driver uses the GPIO peripherals.
+ *
+ * @section lpc11xx_pal_1 Supported HW resources
+ * - GPIO0.
+ * - GPIO1.
+ * - GPIO2.
+ * - GPIO3.
+ * .
+ * @section lpc11xx_pal_2 LPC11xx PAL driver implementation features
+ * - 12 bits wide ports.
+ * - Atomic set/reset functions.
+ * - Atomic set+reset function (atomic bus operations).
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section lpc11xx_pal_3 Supported PAL setup modes
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section lpc11xx_pal_4 Suboptimal behavior
+ * Some GPIO features are less than optimal:
+ * - Pad/port toggling operations are not atomic.
+ * - Pull-up and Pull-down resistors cannot be programmed through the PAL
+ *   driver and must be programmed separately using the IOCON peripheral.
+ * - Reading of the output latch for pads programmed as input is not possible,
+ *   the input pin value is returned instead.
+ * .
+ * @ingroup LPC11xx
+ */
+
+/**
+ * @defgroup LPC11xx_SERIAL LPC11xx Serial Support
+ * @details The LPC11xx Serial driver uses the UART peripheral in a
+ *          buffered, interrupt driven, implementation. The serial driver
+ *          also takes advantage of the LPC11xx UARTs deep hardware buffers.
+ *
+ * @section lpc11xx_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - UART.
+ * .
+ * @section lpc11xx_serial_2 LPC11xx Serial driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Fully interrupt driven.
+ * - Programmable priority level.
+ * - Takes advantage of the input and output FIFOs.
+ * .
+ * @ingroup LPC11xx
+ */
+
+/**
+ * @defgroup LPC11xx_SPI LPC11xx SPI Support
+ * @details The SPI driver supports the LPC11xx SSP peripherals in an interrupt
+ *          driven implementation.
+ * @note    Being the SPI a fast peripheral, much care must be taken to
+ *          not saturate the CPU bandwidth with an excessive IRQ rate. The
+ *          maximum transfer bit rate is likely limited by the IRQ
+ *          handling.
+ *
+ * @section lpc11xx_spi_1 Supported HW resources
+ * - SSP0.
+ * - SSP1 (where present).
+ * .
+ * @section lpc11xx_spi_2 LPC11xx SPI driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Each SSP can be independently enabled and programmed. Unused
+ *   peripherals are left in low power mode.
+ * - Fully interrupt driven.
+ * - Programmable interrupt priority levels for each SSP.
+ * .
+ * @ingroup LPC11xx
+ */

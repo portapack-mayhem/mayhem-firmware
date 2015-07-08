@@ -1,0 +1,146 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup PPC Power Architecture
+ * @details Power Architecture port for the GCC compiler.
+ *
+ * @section PPC_INTRO Introduction
+ * This port supports cores implementing a 32 bits Power Architecture.
+ *
+ * @section PPC_STATES Mapping of the System States in the Power Architecture port
+ * The ChibiOS/RT logical @ref system_states are mapped as follow in the
+ * PowerPC port:
+ * - <b>Init</b>. This state is represented by the startup code and the
+ *   initialization code before @p chSysInit() is executed. It has not a
+ *   special hardware state associated.
+ * - <b>Normal</b>. This is the state the system has after executing
+ *   @p chSysInit(). Interrupts are enabled.
+ * - <b>Suspended</b>. Interrupts are disabled.
+ * - <b>Disabled</b>. Interrupts are disabled. This state is equivalent to the
+ *   Suspended state because there are no fast interrupts in this architecture.
+ * - <b>Sleep</b>. This state is entered with the execution of the specific
+ *   instruction @p <b>wait</b>.
+ * - <b>S-Locked</b>. Interrupts are disabled.
+ * - <b>I-Locked</b>. This state is equivalent to the SRI state, the
+ *   @p chSysLockI() and @p chSysUnlockI() APIs do nothing (still use them in
+ *   order to formally change state because this may change).
+ * - <b>Serving Regular Interrupt</b>. Normal interrupt service code.
+ * - <b>Serving Fast Interrupt</b>. Not present in this architecture.
+ * - <b>Serving Non-Maskable Interrupt</b>. The PowerPC has several non
+ *   maskable interrupt sources that can be associated to this state.
+ * - <b>Halted</b>. Implemented as an infinite loop with interrupts disabled.
+ * .
+ * @section PPC_NOTES The PowerPC port notes
+ * The PowerPC port is organized as follow:
+ * - The @p main() function is invoked in privileged mode.
+ * - Each thread has a private stack with extra storage for interrupts
+ *   servicing.
+ * - The Book-E Decrementer Timer, mapped on IVOR10, is used for system tick.
+ * - Interrupt nesting is not currently supported.
+ * .
+ * @ingroup gcc
+ */
+
+/**
+ * @defgroup PPC_CONF Configuration Options
+ * @details PowerPC Configuration Options. The PowerPC port allows some
+ * architecture-specific configurations settings that can be overridden by
+ * redefining them in @p chconf.h. Usually there is no need to change the
+ * default values.
+ * - @p INT_REQUIRED_STACK, this value represent the amount of stack space used
+ *   by an interrupt handler between the @p extctx and @p intctx
+ *   structures.
+ *   The default for this value is @p 128 bytes, this space is allocated for
+ *   each thread so be careful in order to not waste precious RAM space.
+ * - @p IDLE_THREAD_STACK_SIZE, stack area size to be assigned to the IDLE
+ *   thread. Usually there is no need to change this value unless inserting
+ *   code in the IDLE thread hook macro.
+ * - @p ENABLE_WFI_IDLE, if set to @p TRUE enables the use of the @p <b>wait</b>
+ *   instruction from within the idle loop. This is defaulted to 0 because
+ *   it can create problems with some debuggers. Setting this option to 1
+ *   reduces the system power requirements.
+ * .
+ * @ingroup PPC
+ */
+
+/**
+ * @defgroup PPC_CORE Core Port Implementation
+ * @brief PowerPC specific port code, structures and macros.
+ *
+ * @ingroup PPC
+ */
+
+/**
+ * @defgroup PPC_STARTUP Startup Support
+ * @brief 
+ * @details PPC startup code support. ChibiOS/RT provides its own generic
+ * startup file for the PowerPC port.
+ * Of course it is not mandatory to use it but care should be taken about the
+ * startup phase details.
+ *
+ * @section PPC_STARTUP_1 Startup Process
+ * The startup process, as implemented, is the following:
+ * -# The stacks pointer is initialized into the area defined in the linker
+ *    script.
+ * -# The IVPR register is setup according to the linker script.
+ * -# The R2 and R13 registers are set to pointer to the SDA areas according
+ *    to the EABI specification.
+ * -# An early initialization routine @p hwinit0 is invoked, if the symbol is
+ *    not defined then an empty default routine is executed (weak symbol).
+ * -# DATA and BSS segments are initialized.
+ * -# A late initialization routine @p hwinit1 is invoked, if the symbol not
+ *    defined then an empty default routine is executed (weak symbol).<br>
+ *    This late initialization function is also the proper place for a
+ *    @a bootloader, if your application requires one.
+ * -# The @p main() function is invoked with the parameters @p argc and @p argv
+ *    set to zero.
+ * -# Should the @p main() function return a branch is performed to the weak
+ *    symbol @p _main_exit_handler. The default code is an endless empty loop.
+ * .
+ * @section PPC_STARTUP_2 Expected linker symbols
+ * The startup code starts at the symbol @p _boot_address and expects the
+ * following symbols to be defined in the linker script:
+ * - @p __ram_end__ RAM end location +1.
+ * - @p __sdata2_start__ small constants data area
+ * - @p __sdata_start__ small variables data area
+ * - @p __romdata_start__ address of the data segment source read only data.
+ * - @p __data_start__ data segment start location.
+ * - @p __data_end__ data segment end location +1.
+ * - @p __bss_start__ BSS start location.
+ * - @p __bss_end__ BSS end location +1.
+ * - @p __ivpr_base__ IVPR register initialization address.
+ * .
+ * @ingroup PPC
+ */
+
+/**
+ * @defgroup PPC_SPECIFIC Specific Implementations
+ * @details Platform-specific port code.
+ *
+ * @ingroup PPC
+ */

@@ -1,0 +1,136 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup AT91SAM7 AT91SAM7 Drivers
+ * @details This section describes all the supported drivers on the AT91SAM7
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup AT91SAM7_HAL AT91SAM7 Initialization Support
+ * @details The AT91SAM7 HAL support is responsible for system initialization.
+ *
+ * @section at91sam7_hal_1 Supported HW resources
+ * - MC.
+ * - PMC.
+ * .
+ * @section at91sam7_hal_2 AT91SAM7 HAL driver implementation features
+ * - PLLs startup and stabilization.
+ * - Clock source selection.
+ * - Flash wait states.
+ * .
+* @ingroup AT91SAM7
+ */
+
+/**
+ * @defgroup AT91SAM7_MAC AT91SAM7 MAC Support
+ * @details The AT91SAM7 MAC driver supports the EMAC peripheral.
+ *
+ * @section at91sam7_mac_1 Supported HW resources
+ * - EMAC.
+ * .
+ * @ingroup AT91SAM7
+ */
+
+/**
+ * @defgroup AT91SAM7_MII AT91SAM7 MII Support
+ * @details This driver supports the AT91SAM7 EMAC peripheral communicating
+ *          with an external PHY transceiver. The driver currently supports
+ *          the Micrel KS8721 PHY and the Davicom DV9161 modules. This driver
+ *          is used internally by the MAC driver.
+ *
+ * @ingroup AT91SAM7
+ */
+
+/**
+ * @defgroup AT91SAM7_PAL AT91SAM7 PAL Support
+ * @details The AT91SAM7 PAL driver supports the PIO peripherals.
+ *
+ * @section at91sam7_pal_1 Supported HW resources
+ * - PIOA.
+ * - PIOB.
+ * .
+ * @section at91sam7_pal_2 AT91SAM7 PAL driver implementation features
+ * The PAL driver implementation fully supports the following hardware
+ * capabilities:
+ * - 32 bits wide ports.
+ * - Atomic set/reset functions.
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section at91sam7_pal_3 Supported PAL setup modes
+ * The AT91SAM7 PAL driver supports the following I/O modes:
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_INPUT_ANALOG (same as @p PAL_MODE_INPUT).
+ * - @p PAL_MODE_INPUT_PULLUP.
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * - @p PAL_MODE_OUTPUT_OPENDRAIN.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section at91sam7_pal_4 Suboptimal behavior
+ * The AT91SAM7 PIO is less than optimal in several areas, the limitations
+ * should be taken in account while using the PAL driver:
+ * - Pad/port toggling operations are not atomic.
+ * - Pad/group mode setup is not atomic.
+ * .
+ * @ingroup AT91SAM7
+ */
+
+/**
+ * @defgroup AT91SAM7_SERIAL AT91SAM7 Serial Support
+ * @details The AT91SAM7 Serial driver uses the USART/UART peripherals in a
+ *          buffered, interrupt driven, implementation.
+ *
+ * @section at91sam7_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - USART1.
+ * - USART2.
+ * - DBGU.
+ * .
+ * @section at91sam7_serial_2 AT91SAM7 Serial driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Each USART can be independently enabled and programmed. Unused
+ *   peripherals are left in low power mode.
+ * - Fully interrupt driven.
+ * - Programmable priority levels for each USART.
+ * .
+ * @ingroup AT91SAM7
+ */
+
+/**
+ * @defgroup AT91SAM7_SPI AT91SAM7 SPI Support
+ * @details The SPI driver supports the AT91SAM7 SPI peripherals using DMA
+ *          channels for maximum performance.
+ *
+ * @section at91sam7_spi_1 Supported HW resources
+ * - SPI1.
+ * - SPI2.
+ * .
+ * @section at91sam7_spi_2 AT91SAM7 SPI driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Each SPI can be independently enabled and programmed. Unused
+ *   peripherals are left in low power mode.
+ * - Programmable interrupt priority levels for each SPI.
+ * - DMA is used for receiving and transmitting.
+ * .
+ * @ingroup AT91SAM7
+ */

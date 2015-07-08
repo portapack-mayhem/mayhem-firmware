@@ -1,0 +1,111 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup IO_BLOCK Abstract I/O Block Device
+ * @ingroup IO
+ *
+ * @section io_block_1 Driver State Machine
+ * The drivers implementing this interface shall implement the following
+ * state machine internally. Not all the driver functionalities can be used
+ * in any moment, any transition not explicitly shown in the following
+ * diagram has to be considered an error and shall be captured by an
+ * assertion (if enabled).
+ * @if LATEX_PDF
+ * @dot
+  digraph example {
+    size="5, 7";
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    stop  [label="BLK_STOP\nLow Power"];
+    uninit [label="BLK_UNINIT", style="bold"];
+    active [label="BLK_ACTIVE\nClock Enabled"];
+    connecting [label="BLK_CONN.ING\nConnecting"];
+    disconnecting [label="BLK_DISC.ING\nDisconnecting"];
+    ready [label="BLK_READY\nCard Ready"];
+    reading [label="BLK_READING\nReading"];
+    writing [label="BLK_WRITING\nWriting"];
+
+    uninit -> stop [label=" blkInit()", constraint=false];
+    stop -> stop [label="\nblkStop()"];
+    stop -> active [label="\nblkStart()"];
+    active -> stop [label="\nblkStop()"];
+    active -> active [label="\nblkStart()\nblkDisconnect()"];
+    active -> connecting [label="\nblkConnect()"];
+    connecting -> ready [label="\nconnection\nsuccessful"];
+    connecting -> ready [label="\nblkConnect()", dir="back"];
+    connecting -> active [label="\nconnection\nfailed"];
+    disconnecting -> ready [label="\nblkDisconnect()", dir="back"];
+    active -> disconnecting [label="\ndisconnection\nfinished", dir="back"];
+    ready -> reading [label="\nblkRead()"];
+    reading -> ready [label="\nread finished\nread error"];
+    ready -> writing [label="\nblkWrite()"];
+    writing -> ready [label="\nwrite finished\nwrite error"];
+  }
+ * @enddot
+ * @else
+ * @dot
+  digraph example {
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    stop  [label="BLK_STOP\nLow Power"];
+    uninit [label="BLK_UNINIT", style="bold"];
+    active [label="BLK_ACTIVE\nClock Enabled"];
+    connecting [label="BLK_CONN.ING\nConnecting"];
+    disconnecting [label="BLK_DISC.ING\nDisconnecting"];
+    ready [label="BLK_READY\nCard Ready"];
+    reading [label="BLK_READING\nReading"];
+    writing [label="BLK_WRITING\nWriting"];
+    syncing [label="BLK_SYNCING\nSynchronizing"];
+
+    uninit -> stop [label=" blkInit()", constraint=false];
+    stop -> stop [label="\nblkStop()"];
+    stop -> active [label="\nblkStart()"];
+    active -> stop [label="\nblkStop()"];
+    active -> active [label="\nblkStart()\nblkDisconnect()"];
+    active -> connecting [label="\nblkConnect()"];
+    connecting -> ready [label="\nconnection\nsuccessful"];
+    connecting -> ready [label="\nblkConnect()", dir="back"];
+    connecting -> active [label="\nconnection\nfailed"];
+    disconnecting -> ready [label="\nblkDisconnect()", dir="back"];
+    active -> disconnecting [label="\ndisconnection\nfinished", dir="back"];
+    ready -> reading [label="\nblkRead()"];
+    reading -> ready [label="\nread finished\nread error"];
+    ready -> writing [label="\nblkWrite()"];
+    writing -> ready [label="\nwrite finished\nwrite error"];
+    ready -> syncing [label="\nblkSync()"];
+    syncing -> ready [label="\nsynchronization finished"];
+  }
+ * @enddot
+ * @endif
+ */

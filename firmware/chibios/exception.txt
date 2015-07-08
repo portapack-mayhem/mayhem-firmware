@@ -1,0 +1,48 @@
+                             GPL Exception Text
+
+  In addition, as a special exception, the copyright holder of ChibiOS/RT,
+gives You the additional right to link the unmodified code of this Program with
+code not covered under the GNU General Public License ("Non-GPL Code") and to
+distribute linked combinations including the two, subject to the limitations
+in this paragraph.
+
+   1. Non-GPL Code permitted under this exception must only link to the
+      unmodified code of this Program through those well defined interfaces
+      identified as "Approved Interfaces".
+   2. Every copy of the combined work is accompanied by a written statement
+      that details to the recipient the version of ChibiOS/RT used and an
+      offer by yourself to provide the ChibiOS/RT source code should the
+      recipient request it.
+   3. The combined work is not itself an RTOS, scheduler, kernel or related
+      product.
+   4. The combined work is not itself a binary library intended for linking
+      into other software applications.
+
+                           The Approved Interfaces
+
+   1. The files of Non-GPL Code may include the unmodified ChibiOS/RT
+      distribution header files contained under:
+        ./os/kernel/include
+        ./os/ports
+        ./os/hal/include
+      without causing the resulting work to be covered by the GNU General
+      Public License.
+   2. The files of Non-GPL Code may link to the unmodified ChibiOS/RT
+      distribution files contained under:
+        ./os/kernel/src
+        ./os/ports
+        ./os/hal/src
+      without causing the resulting work to be covered by the GNU General
+      Public License.
+   3. The files of Non-GPL Code may link to, or include, the modified or
+      unmodified ChibiOS/RT distribution files contained under:
+        ./os/kernel/templates
+      without causing the resulting work to be covered by the GNU General
+      Public License.
+
+  Only the copyright holder of ChibiOS/RT may make changes or additions to the
+list of Approved Interfaces.
+
+  You must obey the GNU General Public License in all respects for all of the
+Program code and other code used in conjunction with the Program except the
+Non-GPL Code covered by this exception.

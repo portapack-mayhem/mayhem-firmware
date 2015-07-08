@@ -1,0 +1,118 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup LPC214x LPC214x Drivers
+ * @details This section describes all the supported drivers on the LPC214x
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup LPC214x_HAL LPC214x Initialization Support
+ * @details The LPC214x HAL support is responsible for system initialization.
+ *
+ * @section lpc214x_hal_1 Supported HW resources
+ * - PLL0.
+ * - MAM.
+ * - VPBDIV.
+ * .
+ * @section lpc214x_hal_2 LPC214x HAL driver implementation features
+ * - Clock tree initialization.
+ * - Clock source selection.
+ * - MAM initialization.
+ * .
+ * @ingroup LPC214x
+ */
+
+/**
+ * @defgroup LPC214x_PAL LPC214x PAL Support
+ * @details The LPC214x PAL driver uses the FIO peripherals.
+ *
+ * @section lpc214x_pal_1 Supported HW resources
+ * - FIO0.
+ * - FIO1.
+ * .
+ * @section lpc214x_pal_2 LPC214x PAL driver implementation features
+ * - 32 bits wide ports.
+ * - Atomic set/reset functions.
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section lpc214x_pal_3 Supported PAL setup modes
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_INPUT_ANALOG (same as @p PAL_MODE_INPUT).
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section lpc214x_pal_4 Suboptimal behavior
+ * Some FIO features are less than optimal:
+ * - Pad/port toggling operations are not atomic.
+ * - Pad/group mode setup is not atomic.
+ * .
+ * @ingroup LPC214x
+ */
+
+/**
+ * @defgroup LPC214x_SERIAL LPC214x Serial Support
+ * @details The LPC214x Serial driver uses the UART peripherals in a
+ *          buffered, interrupt driven, implementation. The serial driver
+ *          also takes advantage of the LPC214x UARTs deep hardware buffers.
+ *
+ * @section lpc214x_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - UART0.
+ * - UART1.
+ * .
+ * @section lpc214x_serial_2 LPC214x Serial driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Fully interrupt driven.
+ * - Programmable interrupt priority levels for each UART.
+ * - Takes advantage of the input and output FIFOs.
+ * .
+ * @ingroup LPC214x
+ */
+
+/**
+ * @defgroup LPC214x_SPI LPC214x SPI Support
+ * @details The SPI driver supports the LPC214x SSP peripheral in an interrupt
+ *          driven implementation.
+ * @note    Being the SPI a fast peripheral, much care must be taken to
+ *          not saturate the CPU bandwidth with an excessive IRQ rate. The
+ *          maximum transfer bit rate is likely limited by the IRQ
+ *          handling.
+ *
+ * @section lpc214x_spi_1 Supported HW resources
+ * - SSP (SPI0).
+ * .
+ * @section lpc214x_spi_2 LPC214x SPI driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Programmable interrupt priority level.
+ * .
+ * @ingroup LPC214x
+ */
+
+/**
+ * @defgroup LPC214x_VIC LPC214x VIC Support
+ * @details This VIC helper driver is used by the other drivers in order to
+ *          access the shared VIC resources in a consistent way.
+ *
+ * @ingroup LPC214x
+ */

@@ -1,0 +1,110 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup AVR_DRIVERS AVR Drivers
+ * @details This section describes all the supported drivers on the AVR
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup AVR_HAL AVR Initialization Support
+ * @details On the AVR platform the HAL driver is a stub and does not perform
+ *          any platform-specific initialization, it still performs the
+ *          initialization of the other drivers.
+ *
+ * @ingroup AVR_DRIVERS
+ */
+
+/**
+ * @defgroup AVR_PAL AVR PAL Support
+ * @details The AVR PAL driver uses the PORT peripherals.
+ *
+ * @section avr_pal_1 Supported HW resources
+ * - PORTA.
+ * - PORTB.
+ * - PORTC.
+ * - PORTD.
+ * - PORTE.
+ * - PORTF.
+ * - PORTG.
+ * .
+ * @section avr_pal_2 AVR PAL driver implementation features
+ * The AVR PAL driver implementation fully supports the following hardware
+ * capabilities:
+ * - 8 bits wide ports.
+ * - Atomic set/reset functions.
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section avr_pal_3 Supported PAL setup modes
+ * The AVR PAL driver supports the following I/O modes:
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_INPUT_PULLUP.
+ * - @p PAL_MODE_INPUT_ANALOG.
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section avr_pal_4 Suboptimal behavior
+ * The AVR PORT is less than optimal in several areas, the limitations
+ * should be taken in account while using the PAL driver:
+ * - Pad/port toggling operations are not atomic.
+ * - Pad/group mode setup is not atomic.
+ * - Group set+reset function is not atomic.
+ * - Writing on pads/groups/ports programmed as input with pull-up
+ *   resistor changes the resistor setting because the output latch is
+ *   used for resistor selection.
+ * - The PORT registers layout on some devices is not regular (it does
+ *   not have contiguous PIN, DDR, PORT registers in this order), such
+ *   ports cannot be accessed using the PAL driver. For example, PORT F
+ *   on ATmega128. Verify the user manual of your device.
+ * .
+ * @ingroup AVR_DRIVERS
+ */
+
+/**
+ * @defgroup AVR_SERIAL AVR Serial Support
+ * @details The AVR Serial driver uses the USART peripherals in a
+ *          buffered, interrupt driven, implementation.
+ *
+ * @section avr_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - USART0.
+ * - USART1.
+ * .
+ * @section avr_serial_2 AVR Serial driver implementation features
+ * - Each USART can be independently enabled and programmed.
+ * - Fully interrupt driven.
+ * .
+ * @ingroup AVR_DRIVERS
+ */
+
+/**
+ * @defgroup AVR_I2C AVR I2C Support
+ * @details The AVR I2C driver uses the TWI peripheral in an interrupt
+ *          driven, implementation.
+ *
+ * @section avr_i2c Supported HW resources
+ * The i2c driver can support the following hardware resource:
+ * - I2C.
+ * .
+ * @ingroup AVR_DRIVERS
+ */

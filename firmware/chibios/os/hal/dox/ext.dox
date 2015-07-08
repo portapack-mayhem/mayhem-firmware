@@ -1,0 +1,91 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup EXT EXT Driver
+ * @brief   Generic EXT Driver.
+ * @details This module implements a generic EXT (EXTernal) driver.
+ * @pre     In order to use the EXT driver the @p HAL_USE_EXT option
+ *          must be enabled in @p halconf.h.
+ *
+ * @section ext_1 Driver State Machine
+ * The driver implements a state machine internally, not all the driver
+ * functionalities can be used in any moment, any transition not explicitly
+ * shown in the following diagram has to be considered an error and shall
+ * be captured by an assertion (if enabled).
+ * @if LATEX_PDF
+ * @dot
+  digraph example {
+    size="5, 7";
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    uninit [label="EXT_UNINIT", style="bold"];
+    stop  [label="EXT_STOP\nLow Power"];
+    active [label="EXT_ACTIVE"];
+
+    uninit -> stop [label="extInit()"];
+    stop -> stop [label="\nextStop()"];
+    stop -> active [label="\nextStart()"];
+    active -> stop [label="\nextStop()"];
+    active -> active [label="\nextStart()"];
+  }
+ * @enddot
+ * @else
+ * @dot
+  digraph example {
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    uninit [label="EXT_UNINIT", style="bold"];
+    stop  [label="EXT_STOP\nLow Power"];
+    active [label="EXT_ACTIVE"];
+
+    uninit -> stop [label="extInit()"];
+    stop -> stop [label="\nextStop()"];
+    stop -> active [label="\nextStart()"];
+    active -> stop [label="\nextStop()"];
+    active -> active [label="\nextStart()"];
+  }
+ * @enddot
+ * @endif
+ *
+ * @section ext_2 EXT Operations.
+ * This driver abstracts generic external interrupt sources, a callback
+ * is invoked when a programmable transition is detected on one of the
+ * configured channels. Several channel modes are possible.
+ * - <b>EXT_CH_MODE_DISABLED</b>, channel not used.
+ * - <b>EXT_CH_MODE_RISING_EDGE</b>, callback on a rising edge.
+ * - <b>EXT_CH_MODE_FALLING_EDGE</b>, callback on a falling edge.
+ * - <b>EXT_CH_MODE_BOTH_EDGES</b>, callback on a both edges.
+ * .
+ * @ingroup IO
+ */

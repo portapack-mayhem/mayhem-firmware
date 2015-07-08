@@ -1,0 +1,64 @@
+/*
+ * Licensed under ST Liberty SW License Agreement V2, (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *        http://www.st.com/software_license_agreement_liberty_v2
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @defgroup SPC563 SPC563Mx Drivers
+ * @details This section describes all the supported drivers on the
+ *          SPC563Mx/MPC563xM platform and the implementation details
+ *          of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup SPC563_HAL SPC563Mx Initialization Support
+ * @details The SPC563Mx/MPC563xM HAL support is responsible for system
+ *          initialization.
+ *
+ * @section spc563_hal_1 Supported HW resources
+ * - FMPLL.
+ * - INTC.
+ * - XBAR.
+ * - CFLASH0.
+ * .
+ * @section spc563_hal_2 SPC563Mx HAL driver implementation features
+ * - FMPLL startup and stabilization.
+ * - Clock tree initialization.
+ * - Clock source selection.
+ * - Flash wait states initialization based on the selected clock options.
+ * - SYSTICK initialization based on current clock and kernel required rate.
+ * - DMA support initialization.
+ * .
+ * @ingroup SPC563
+ */
+
+/**
+ * @defgroup SPC563_SERIAL SPC563Mx Serial Support
+ * @details The SPC563Mx/MPC563xM Serial driver uses the ESCI peripherals
+ *          in a buffered, interrupt driven, implementation.
+ *
+ * @section spc563_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - ESCIA.
+ * - ESCIB.
+ * .
+ * @section spc563_serial_2 SPC563Mx Serial driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Each ESCI can be independently enabled and programmed. Unused
+ *   peripherals are left in low power mode.
+ * - Fully interrupt driven.
+ * - Programmable priority levels for each ESCI.
+ * .
+ * @ingroup SPC563
+ */

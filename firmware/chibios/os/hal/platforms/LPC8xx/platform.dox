@@ -1,0 +1,104 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup LPC8xx LPC8xx Drivers
+ * @details This section describes all the supported drivers on the LPC8xx
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup LPC8xx_HAL LPC8xx Initialization Support
+ * @details The LPC8xx HAL support is responsible for system initialization.
+ *
+ * @section lpc8xx_hal_1 Supported HW resources
+ * - SYSCON.
+ * - Flash.
+ * .
+ * @section lpc8xx_hal_2 LPC8xx HAL driver implementation features
+ * - Clock tree initialization.
+ * - Clock source selection.
+ * - Flash controller initialization.
+ * - SYSTICK initialization based on current clock and kernel required rate.
+ * .
+ * @ingroup LPC8xx
+ */
+
+/**
+ * @defgroup LPC8xx_GPT LPC8xx GPT Support
+ * @details The LPC8xx GPT driver uses the MRT peripheral.
+ *
+ * @section lpc8xx_gpt_1 Supported HW resources
+ * - MRT.
+ * .
+ * @section lpc8xx_gpt_2 LPC8xx GPT driver implementation features
+ * - Each timer can be independently enabled and programmed.
+ * - Programmable MRT interrupt priority level.
+ * .
+ * @ingroup LPC8xx
+ */
+
+/**
+ * @defgroup LPC8xx_PAL LPC8xx PAL Support
+ * @details The LPC8xx PAL driver uses the GPIO peripheral.
+ *
+ * @section lpc8xx_pal_1 Supported HW resources
+ * - GPIO_PORT.
+ * .
+ * @section lpc8xx_pal_2 LPC8xx PAL driver implementation features
+ * - 18 bits wide ports.
+ * - Atomic set/reset functions.
+ * - Atomic Toggle functions.
+ * - Atomic set+reset function (atomic bus operations).
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section lpc8xx_pal_3 Supported PAL setup modes
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section lpc8xx_pal_4 Suboptimal behavior
+ * Some GPIO features are less than optimal:
+ * - Group operations are not atomic.
+ * - Pull-up and Pull-down resistors cannot be programmed through the PAL
+ *   driver and must be programmed separately using the IOCON peripheral.
+ * .
+ * @ingroup LPC8xx
+ */
+
+/**
+ * @defgroup LPC8xx_SERIAL LPC8xx Serial Support
+ * @details The LPC8xx Serial driver uses the UART peripheral in a
+ *          buffered, interrupt driven, implementation.
+ *
+ * @section lpc8xx_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - UART.
+ * .
+ * @section lpc8xx_serial_2 LPC8xx Serial driver implementation features
+ * - Clock stop for reduced power usage when the driver is in stop state.
+ * - Fully interrupt driven.
+ * - Programmable priority level.
+ * .
+ * @ingroup LPC8xx
+ */
+

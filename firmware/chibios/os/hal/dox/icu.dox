@@ -1,0 +1,117 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+ * @defgroup ICU ICU Driver
+ * @brief   Generic ICU Driver.
+ * @details This module implements a generic ICU (Input Capture Unit) driver.
+ * @pre     In order to use the ICU driver the @p HAL_USE_ICU option
+ *          must be enabled in @p halconf.h.
+ *
+ * @section icu_1 Driver State Machine
+ * The driver implements a state machine internally, not all the driver
+ * functionalities can be used in any moment, any transition not explicitly
+ * shown in the following diagram has to be considered an error and shall
+ * be captured by an assertion (if enabled).
+ * @if LATEX_PDF
+ * @dot
+  digraph example {
+    size="5, 7";
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    stop  [label="ICU_STOP\nLow Power"];
+    uninit [label="ICU_UNINIT", style="bold"];
+    ready [label="ICU_READY\nClock Enabled"];
+    waiting [label="ICU_WAITING"];
+    active [label="ICU_ACTIVE"];
+    idle [label="ICU_IDLE"];
+
+    uninit -> stop [label=" icuInit()", constraint=false];
+    stop -> stop [label="\nicuStop()"];
+    stop -> ready [label="\nicuStart()"];
+    ready -> stop [label="\nicuStop()"];
+    ready -> ready [label="\nicuStart()\nicuDisable()"];
+    ready -> waiting [label="\nicuEnable()"];
+    waiting -> active [label="\nStart Front"];
+    waiting -> ready [label="\nicuDisable()"];
+    waiting -> waiting [label="\nStop Front"];
+    active -> idle [label="\nStop Front\n>width_cb<"];
+    active -> ready [label="\nicuDisable()\nicuDisableI()"];
+    idle -> active [label="\nStart Front\n>period_cb<"];
+    idle -> ready [label="\nicuDisable()\nicuDisableI()"];
+  }
+ * @enddot
+ * @else
+ * @dot
+  digraph example {
+    rankdir="LR";
+
+    node [shape=circle, fontname=Sans, fontsize=8, fixedsize="true", width="0.9", height="0.9"];
+    edge [fontname=Sans, fontsize=8];
+
+    stop  [label="ICU_STOP\nLow Power"];
+    uninit [label="ICU_UNINIT", style="bold"];
+    ready [label="ICU_READY\nClock Enabled"];
+    waiting [label="ICU_WAITING"];
+    active [label="ICU_ACTIVE"];
+    idle [label="ICU_IDLE"];
+
+    uninit -> stop [label=" icuInit()", constraint=false];
+    stop -> stop [label="\nicuStop()"];
+    stop -> ready [label="\nicuStart()"];
+    ready -> stop [label="\nicuStop()"];
+    ready -> ready [label="\nicuStart()\nicuDisable()"];
+    ready -> waiting [label="\nicuEnable()"];
+    waiting -> active [label="\nStart Front"];
+    waiting -> ready [label="\nicuDisable()"];
+    waiting -> waiting [label="\nStop Front"];
+    active -> idle [label="\nStop Front\n>width_cb<"];
+    active -> ready [label="\nicuDisable()\nicuDisableI()"];
+    idle -> active [label="\nStart Front\n>period_cb<"];
+    idle -> ready [label="\nicuDisable()\nicuDisableI()"];
+  }
+ * @enddot
+ * @endif
+ *
+ * @section icu_2 ICU Operations.
+ * This driver abstracts a generic Input Capture Unit composed of:
+ * - A clock prescaler.
+ * - A main up counter.
+ * - Two capture registers triggered by the rising and falling edges on
+ *   the sampled input.
+ * .
+ * The ICU unit can be programmed to synchronize on the rising or falling
+ * edge of the sample input:
+ * - <b>ICU_INPUT_ACTIVE_HIGH</b>, a rising edge is the start signal.
+ * - <b>ICU_INPUT_ACTIVE_LOW</b>, a falling edge is the start signal.
+ * .
+ * After the activation the ICU unit can be in one of the following
+ * states at any time:
+ * - <b>ICU_WAITING</b>, waiting the first start signal.
+ * - <b>ICU_ACTIVE</b>, after a start signal.
+ * - <b>ICU_IDLE</b>, after a stop signal.
+ * .
+ * Callbacks are invoked when start or stop signals occur.
+ *
+ * @ingroup IO
+ */

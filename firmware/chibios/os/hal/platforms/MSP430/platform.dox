@@ -1,0 +1,93 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+/**
+ * @defgroup MSP430_DRIVERS MSP430 Drivers
+ * @details This section describes all the supported drivers on the MSP430
+ *          platform and the implementation details of the single drivers.
+ *
+ * @ingroup platforms
+ */
+
+/**
+ * @defgroup MSP430_HAL MSP430 Initialization Support
+ * @details The MSP430 HAL support is responsible for system initialization.
+ *
+ * @section msp430_hal_1 Supported HW resources
+ * - DCOCTL.
+ * - BCSCTL1.
+ * - BCSCTL2.
+ * .
+ * @section msp430_hal_2 MSP430 HAL driver implementation features
+ * - Clock source selection.
+ * .
+ * @ingroup MSP430_DRIVERS
+ */
+
+/**
+ * @defgroup MSP430_PAL MSP430 PAL Support
+ * @details The MSP430 PAL driver uses the PORT peripherals.
+ *
+ * @section msp430_pal_1 Supported HW resources
+ * - PORT1 (where present).
+ * - PORT2 (where present).
+ * - PORT3 (where present).
+ * - PORT4 (where present).
+ * - PORT5 (where present).
+ * - PORT6 (where present).
+ * .
+ * @section msp430_pal_2 MSP430 PAL driver implementation features
+ * The PAL driver implementation fully supports the following hardware
+ * capabilities:
+ * - 8 bits wide ports.
+ * - Atomic set/reset/toggle functions because special MSP430 instruction set.
+ * - Output latched regardless of the pad setting.
+ * - Direct read of input pads regardless of the pad setting.
+ * .
+ * @section msp430_pal_3 Supported PAL setup modes
+ * The MSP430 PAL driver supports the following I/O modes:
+ * - @p PAL_MODE_RESET.
+ * - @p PAL_MODE_UNCONNECTED.
+ * - @p PAL_MODE_INPUT.
+ * - @p PAL_MODE_OUTPUT_PUSHPULL.
+ * .
+ * Any attempt to setup an invalid mode is ignored.
+ *
+ * @section msp430_pal_4 Suboptimal behavior
+ * The MSP430 PORT is less than optimal in several areas, the limitations
+ * should be taken in account while using the PAL driver:
+ * - Bus/group writes is not atomic.
+ * - Pad/group mode setup is not atomic.
+ * .
+ * @ingroup MSP430_DRIVERS
+ */
+
+/**
+ * @defgroup MSP430_SERIAL MSP430 Serial Support
+ * @details The MSP430 Serial driver uses the USART peripherals in a
+ *          buffered, interrupt driven, implementation.
+ *
+ * @section msp430_serial_1 Supported HW resources
+ * The serial driver can support any of the following hardware resources:
+ * - USART0.
+ * - USART1.
+ * .
+ * @section msp430_serial_2 MSP430 Serial driver implementation features
+ * - Each USART can be independently enabled and programmed.
+ * - Fully interrupt driven.
+ * .
+ * @ingroup MSP430_DRIVERS
+ */

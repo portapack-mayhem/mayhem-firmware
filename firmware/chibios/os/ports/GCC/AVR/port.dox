@@ -1,0 +1,94 @@
+/*
+    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+                 2011,2012,2013 Giovanni Di Sirio.
+
+    This file is part of ChibiOS/RT.
+
+    ChibiOS/RT is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    ChibiOS/RT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                                      ---
+
+    A special exception to the GPL can be applied should you wish to distribute
+    a combined work that includes ChibiOS/RT, without being obliged to provide
+    the source code for any proprietary components. See the file exception.txt
+    for full details of how and when the exception can be applied.
+*/
+
+/**
+ * @defgroup AVR MegaAVR
+ * @details AVR port for the GCC compiler.
+ *
+ * @section AVR_STATES Mapping of the System States in the AVR port
+ * The ChibiOS/RT logical @ref system_states are mapped as follow in the AVR
+ * port:
+ * - <b>Init</b>. This state is represented by the startup code and the
+ *   initialization code before @p chSysInit() is executed. It has not a
+ *   special hardware state associated.
+ * - <b>Normal</b>. This is the state the system has after executing
+ *   @p chSysInit(). Interrupts are enabled.
+ * - <b>Suspended</b>. Interrupts are disabled.
+ * - <b>Disabled</b>. Interrupts are disabled. This state is equivalent to the
+ *   Suspended state because there are no fast interrupts in this architecture.
+ * - <b>Sleep</b>. This state is entered with the execution of the specific
+ *   instruction @p <b>sleep</b>.
+ * - <b>S-Locked</b>. Interrupts are disabled.
+ * - <b>I-Locked</b>. This state is equivalent to the SRI state, the
+ *   @p chSysLockI() and @p chSysUnlockI() APIs do nothing (still use them in
+ *   order to formally change state because this may change).
+ * - <b>Serving Regular Interrupt</b>. Normal interrupt service code.
+ * - <b>Serving Fast Interrupt</b>. Not present in this architecture.
+ * - <b>Serving Non-Maskable Interrupt</b>. Not present in this architecture.
+ * - <b>Halted</b>. Implemented as an infinite loop with interrupts disabled.
+ * .
+ * @section AVR_NOTES The AVR port notes
+ * - The AVR does not have a dedicated interrupt stack, make sure to reserve
+ *   enough stack space for interrupts in each thread stack. This can be done
+ *   by modifying the @p INT_REQUIRED_STACK macro into
+ *   <b>./ports/AVR/chcore.h</b>.
+ * .
+ * @ingroup gcc
+ */
+
+/**
+ * @defgroup AVR_CONF Configuration Options
+ * @details AVR Configuration Options. The AVR port allows some
+ * architecture-specific configurations settings that can be overridden
+ * by redefining them in @p chconf.h. Usually there is no need to change
+ * the default values.
+ * - @p INT_REQUIRED_STACK, this value represent the amount of stack space
+ *   used by the interrupt handlers.<br>
+ *   The default for this value is @p 32, this space is allocated for each
+ *   thread so be careful in order to not waste precious RAM space.
+ * - @p IDLE_THREAD_STACK_SIZE, stack area size to be assigned to the IDLE
+ *   thread. Usually there is no need to change this value unless inserting
+ *   code in the IDLE thread hook macro.
+ * .
+ * @ingroup AVR
+ */
+
+/**
+ * @defgroup AVR_CORE Core Port Implementation
+ * @details AVR specific port code, structures and macros.
+ *
+ * @ingroup AVR
+ */
+
+ /**
+ * @defgroup AVR_STARTUP Startup Support
+ * @details ChibiOS/RT doed not provide startup files for the AVR, there
+ * are no special startup requirement so the normal toolchain-provided
+ * startup files can be used.
+ *
+ * @ingroup AVR
+ */

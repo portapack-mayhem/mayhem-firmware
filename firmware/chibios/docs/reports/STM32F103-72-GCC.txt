@@ -1,0 +1,164 @@
+***************************************************************************
+Options:  -O2 -fomit-frame-pointer -falign-functions=16
+Settings: SYSCLK=72, ACR=0x12 (2 wait states)
+***************************************************************************
+
+*** ChibiOS/RT test suite
+***
+*** Kernel:       2.6.0
+*** Compiled:     May 12 2013 - 09:26:51
+*** Compiler:     GCC 4.7.3 20130312 (release) [ARM/embedded-4_7-branch revision 196615]
+*** Architecture: ARMv7-M
+*** Core Variant: Cortex-M3
+*** Port Info:    Advanced kernel mode
+*** Platform:     STM32F10x Performance Line Medium Density
+*** Test Board:   Olimex STM32-P103
+
+----------------------------------------------------------------------------
+--- Test Case 1.1 (Threads, enqueuing test #1)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 1.2 (Threads, enqueuing test #2)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 1.3 (Threads, priority change)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 1.4 (Threads, delays)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 2.1 (Semaphores, enqueuing)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 2.2 (Semaphores, timeout)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 2.3 (Semaphores, atomic signal-wait)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 2.4 (Binary Semaphores, functionality)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.1 (Mutexes, priority enqueuing test)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.2 (Mutexes, priority inheritance, simple case)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.3 (Mutexes, priority inheritance, complex case)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.4 (Mutexes, priority return)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.5 (Mutexes, status)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.6 (CondVar, signal test)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.7 (CondVar, broadcast test)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 3.8 (CondVar, boost test)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 4.1 (Messages, loop)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 5.1 (Mailboxes, queuing and timeouts)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 6.1 (Events, registration and dispatch)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 6.2 (Events, wait and broadcast)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 6.3 (Events, timeouts)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 7.1 (Heap, allocation and fragmentation test)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 8.1 (Memory Pools, queue/dequeue)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 9.1 (Dynamic APIs, threads creation from heap)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 9.2 (Dynamic APIs, threads creation from memory pool)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 9.3 (Dynamic APIs, registry and references)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 10.1 (Queues, input queues)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 10.2 (Queues, output queues)
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.1 (Benchmark, messages #1)
+--- Score : 260232 msgs/S, 520464 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.2 (Benchmark, messages #2)
+--- Score : 206998 msgs/S, 413996 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.3 (Benchmark, messages #3)
+--- Score : 206998 msgs/S, 413996 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.4 (Benchmark, context switch)
+--- Score : 919384 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.5 (Benchmark, threads, full cycle)
+--- Score : 155806 threads/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.6 (Benchmark, threads, create only)
+--- Score : 229479 threads/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.7 (Benchmark, mass reschedule, 5 threads)
+--- Score : 63169 reschedules/S, 379014 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.8 (Benchmark, round robin context switching)
+--- Score : 476440 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.9 (Benchmark, I/O Queues throughput)
+--- Score : 632128 bytes/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.10 (Benchmark, virtual timers set/reset)
+--- Score : 641298 timers/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.11 (Benchmark, semaphores wait/signal)
+--- Score : 778600 wait+signal/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.12 (Benchmark, mutexes lock/unlock)
+--- Score : 572316 lock+unlock/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 11.13 (Benchmark, RAM footprint)
+--- System: 404 bytes
+--- Thread: 72 bytes
+--- Timer : 20 bytes
+--- Semaph: 12 bytes
+--- EventS: 4 bytes
+--- EventL: 16 bytes
+--- Mutex : 16 bytes
+--- CondV.: 8 bytes
+--- Queue : 36 bytes
+--- MailB.: 40 bytes
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+
+Final result: SUCCESS
