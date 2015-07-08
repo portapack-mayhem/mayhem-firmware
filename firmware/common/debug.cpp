@@ -22,6 +22,33 @@
 #include "debug.hpp"
 
 #include <ch.h>
+#include <hal.h>
+
+#if defined(LPC43XX_M0)
+static void debug_indicate_error_init() {
+	// TODO: Get knowledge of LED GPIO port/bit from shared place.
+	LPC_GPIO->CLR[2] = (1 << 2);
+}
+
+static void debug_indicate_error_update() {
+	// Flash RX (yellow) LED to indicate baseband error.
+	// TODO: Get knowledge of LED GPIO port/bit from shared place.
+	LPC_GPIO->NOT[2] = (1 << 2);
+}
+#endif
+
+#if defined(LPC43XX_M4)
+static void debug_indicate_error_init() {
+	// TODO: Get knowledge of LED GPIO port/bit from shared place.
+	LPC_GPIO->CLR[2] = (1 << 8);
+}
+
+static void debug_indicate_error_update() {
+	// Flash TX (red) LED to indicate baseband error.
+	// TODO: Get knowledge of LED GPIO port/bit from shared place.
+	LPC_GPIO->NOT[2] = (1 << 8);
+}
+#endif
 
 static void runtime_error() {
 	debug_indicate_error_init();

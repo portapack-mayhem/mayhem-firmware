@@ -22,8 +22,4 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-// Defined by application to indicate error in board/hardware-specific manner.
-void debug_indicate_error_init();
-void debug_indicate_error_update();
-
 #endif/*__DEBUG_H__*/

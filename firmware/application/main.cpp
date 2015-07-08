@@ -657,15 +657,3 @@ context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
 
 	return 0;
 }
-
-void debug_indicate_error_init() {
-	// TODO: Indicate M4 error.
-	// led_usb.off();
-	// led_tx.off();
-}
-
-void debug_indicate_error_update() {
-	// TODO: Indicate M4 error.
-	// led_usb.toggle();
-	// led_tx.toggle();
-}

@@ -972,15 +972,3 @@ int main(void) {
 #endif
 	return 0;
 }
-
-void debug_indicate_error_init() {
-	// TODO: Indicate error, but don't import all of PAL (with init)
-	// led_rx.off();
-	// led_tx.off();
-}
-
-void debug_indicate_error_update() {
-	// TODO: Indicate error, but don't import all of PAL (with init)
-	// led_rx.toggle();
-	// led_tx.toggle();
-}
