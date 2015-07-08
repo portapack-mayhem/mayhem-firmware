@@ -63,7 +63,7 @@ all: image.bin
 list: $(TARGET).lst $(TARGET_M4).lst $(TARGET_M0).lst
 
 program: image.bin
-	dfu-util --device 1fc9 --download ~/Desktop/binaries/hackrf-2014.08.1/firmware-bin/hackrf_one_usb_ram.dfu --reset
+	dfu-util --device 1fc9 --download hackrf_one_usb_ram.dfu --reset
 	sleep 1s
 	hackrf_spiflash -w image.bin
 
