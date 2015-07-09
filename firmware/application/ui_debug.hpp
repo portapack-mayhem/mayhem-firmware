@@ -32,6 +32,27 @@
 
 namespace ui {
 
+class BasebandStatsView : public View {
+public:
+	BasebandStatsView();
+
+	void on_show() override;
+	void on_hide() override;
+
+private:
+	Text text_used {
+		{ 0, 0, 7 * 8, 1 * 16 },
+		"",
+	};
+
+	Text text_idle {
+		{ 8 * 8, 0, 7 * 8, 1 * 16 },
+		"",
+	};
+
+	void on_statistics_update(const BasebandStatistics& statistics);
+};
+
 class DebugMemoryView : public View {
 public:
 	DebugMemoryView(NavigationView& nav);

@@ -25,7 +25,42 @@
 
 #include "radio.hpp"
 
+#include "hackrf_hal.hpp"
+using namespace hackrf::one;
+
 namespace ui {
+
+/* BasebandStatsView *****************************************************/
+
+BasebandStatsView::BasebandStatsView() {
+	add_children({ {
+		&text_used,
+		&text_idle,
+	} });
+}
+
+void BasebandStatsView::on_show() {
+	context().message_map[Message::ID::BasebandStatistics] = [this](const Message* const p) {
+		this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
+	};
+}
+
+void BasebandStatsView::on_hide() {
+	context().message_map[Message::ID::BasebandStatistics] = nullptr;
+}
+
+
+static std::string ticks_to_percent_string(const uint32_t ticks) {
+ 	const uint32_t percent_x100 = ticks / (base_m4_clk_f / 10000);
+	return
+		to_string_dec_uint(percent_x100 / 100, 3) + "." +
+		to_string_dec_uint(percent_x100 % 100, 2, '0') + "%";
+}
+
+void BasebandStatsView::on_statistics_update(const BasebandStatistics& statistics) {
+	text_used.set(ticks_to_percent_string(statistics.baseband_ticks));
+	text_idle.set(ticks_to_percent_string(statistics.idle_ticks));
+}
 
 DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 	add_children({ {

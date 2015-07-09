@@ -39,9 +39,6 @@ class SystemStatusView : public View {
 public:
 	SystemStatusView();
 
-	void on_show() override;
-	void on_hide() override;
-
 private:
 	Text portapack {
 		{ 0, 0, 9 * 8, 1 * 16 },
@@ -58,11 +55,6 @@ private:
 		"---",
 	};
 	*/
-	Text text_ticks {
-		{ 9 * 8, 0, 7 * 8, 1 * 16 },
-		"",
-	};
-
 	RSSI rssi {
 		{ 19 * 8, 0, 11 * 8, 4 },
 	};
@@ -74,8 +66,6 @@ private:
 	Audio audio {
 		{ 19 * 8, 10, 11 * 8, 4 },
 	};
-
-	void on_statistics_update(const BasebandStatistics& statistics);
 };
 
 class NavigationView : public View {
