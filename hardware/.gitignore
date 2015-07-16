@@ -1,0 +1,14 @@
+# Common
+*.bak
+
+# CPLD tool
+*.bsd
+*.rpt
+tb2_ie_info.xml
+**/cpld/db/
+**/cpld/incremental_db/
+**/cpld/output_files/
+**/cpld/simulation/
+
+# KiCad
+*.kicad_pcb-bak
