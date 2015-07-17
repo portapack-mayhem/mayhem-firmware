@@ -409,6 +409,14 @@ protected:
 		for(size_t i=0; i<audio_buffer.count; i++) {
 			audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
 		}
+
+		i2s::i2s0::tx_unmute();
+	}
+
+	void mute_audio() {
+		// TODO: Feed audio stats? What if baseband never produces audio?
+		// TODO: How should audio stats behave if I *sometimes* mute audio?
+		i2s::i2s0::tx_mute();
 	}
 };
 
@@ -632,6 +640,8 @@ public:
 
 		auto demodulated = demod.execute(channel, work_demod_buffer);
 
+		mute_audio();
+
 		for(size_t i=0; i<demodulated.count; i++) {
 			clock_recovery.execute(demodulated.p[i], symbol_handler_fn);
 		}
@@ -764,7 +774,6 @@ static void init() {
 
 	i2s::i2s0::tx_start();
 	i2s::i2s0::rx_start();
-	i2s::i2s0::tx_unmute();
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
