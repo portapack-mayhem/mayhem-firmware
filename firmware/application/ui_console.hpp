@@ -38,7 +38,7 @@ public:
 		const Rect parent_rect,
 		lcd::ILI9341& display
 	) : Widget { parent_rect },
-		display { display }
+		display(display)
 	{
 	}
 

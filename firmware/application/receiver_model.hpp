@@ -35,7 +35,7 @@ class ReceiverModel {
 public:
 	constexpr ReceiverModel(
 		ClockManager& clock_manager
-	) : clock_manager { clock_manager }
+	) : clock_manager(clock_manager)
 	{
 	}
 

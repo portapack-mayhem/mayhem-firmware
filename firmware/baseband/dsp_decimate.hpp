@@ -60,7 +60,7 @@ public:
 
 	FIR64AndDecimateBy2Real(
 		const std::array<int16_t, taps_count>& taps
-	) : taps { taps }
+	) : taps(taps)
 	{
 	}
 

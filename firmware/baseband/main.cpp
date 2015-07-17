@@ -582,7 +582,7 @@ class FSKProcessor : public BasebandProcessor {
 public:
 	FSKProcessor(
 		MessageHandlerMap& message_handlers
-	) : message_handlers { message_handlers }
+	) : message_handlers(message_handlers)
 	{
 		message_handlers[Message::ID::FSKConfiguration] = [this](const Message* const p) {
 			auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);

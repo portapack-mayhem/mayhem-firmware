@@ -119,7 +119,7 @@ SystemView::SystemView(
 	Context& context,
 	const Rect parent_rect
 ) : View { parent_rect },
-	context_ { context }
+	context_(context)
 {
 	style_ = &style_default;
 

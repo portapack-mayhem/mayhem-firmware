@@ -376,7 +376,7 @@ void LNAGainField::on_focus() {
 ReceiverView::ReceiverView(
 	NavigationView& nav,
 	ReceiverModel& receiver_model
-) : receiver_model { receiver_model }
+) : receiver_model(receiver_model)
 {
 	add_children({ {
 		&button_done,

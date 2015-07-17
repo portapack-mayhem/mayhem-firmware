@@ -43,7 +43,7 @@ class Painter {
 public:
 	Painter(
 		lcd::ILI9341& display
-	) : display_ { display }
+	) : display_(display)
 	{
 	}
 

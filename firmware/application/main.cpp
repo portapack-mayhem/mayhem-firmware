@@ -281,8 +281,8 @@ public:
 		ui::Painter& painter,
 		ui::Context& context
 	) : top_widget { top_widget },
-		painter { painter },
-		context { context }
+		painter(painter),
+		context(context)
 	{
 		// touch_manager.on_started = [this](const ui::TouchEvent event) {
 		// 	this->context.focus_manager.update(this->top_widget, event);
