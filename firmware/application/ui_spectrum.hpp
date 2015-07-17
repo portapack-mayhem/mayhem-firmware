@@ -37,16 +37,11 @@ namespace spectrum {
 
 class FrequencyScale : public Widget {
 public:
-	void set_scale(const uint32_t new_hz_per_pixel) {
-		if( hz_per_pixel != new_hz_per_pixel ) {
-			hz_per_pixel = new_hz_per_pixel;
-			set_dirty();
-		}
-	}
-
-	void set_spectrum_bandwidth(const uint32_t new_bandwidth) {
-		if( spectrum_bandwidth != new_bandwidth ) {
+	void set_spectrum_bandwidth(const uint32_t new_bandwidth, const size_t new_spectrum_bins) {
+		if( (spectrum_bandwidth != new_bandwidth) ||
+			(spectrum_bins != new_spectrum_bins) ) {
 			spectrum_bandwidth = new_bandwidth;
+			spectrum_bins = new_spectrum_bins;
 			set_dirty();
 		}
 	}
@@ -64,7 +59,7 @@ public:
 	}
 
 	void paint(Painter& painter) override {
-		if( !hz_per_pixel ) {
+		if( !spectrum_bandwidth || !spectrum_bins ) {
 			// Can't draw without non-zero scale.
 			return;
 		}
@@ -83,8 +78,8 @@ public:
 		*/
 
 		if( channel_filter_pass_bandwidth ) {
-			const auto pass_width = channel_filter_pass_bandwidth / hz_per_pixel;
-			const auto stop_width = channel_filter_stop_bandwidth / hz_per_pixel;
+			const auto pass_width = channel_filter_pass_bandwidth * spectrum_bins / spectrum_bandwidth;
+			const auto stop_width = channel_filter_stop_bandwidth * spectrum_bins / spectrum_bandwidth;
 
 			const auto pass_x_lo = x_center - pass_width / 2;
 			const auto pass_x_hi = x_center + pass_width / 2;
@@ -137,9 +132,9 @@ public:
 
 private:
 	uint32_t spectrum_bandwidth { 0 };
+	size_t spectrum_bins { 0 };
 	uint32_t channel_filter_pass_bandwidth { 0 };
 	uint32_t channel_filter_stop_bandwidth { 0 };
-	uint32_t hz_per_pixel { 0 };
 };
 
 class WaterfallView : public Widget {
@@ -230,11 +225,11 @@ private:
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		waterfall_view.on_channel_spectrum(spectrum);
-		frequency_scale.set_scale(spectrum.bandwidth / spectrum.db_count);
+		frequency_scale.set_spectrum_bandwidth(spectrum.bandwidth, spectrum.db_count);
 
 		// TODO: Set with actual information.
 		//taps_64_lp_042_078_tfilter
-		frequency_scale.set_channel_filter(spectrum.bandwidth * 42 / 1000, spectrum.bandwidth * 78 / 1000);
+		frequency_scale.set_channel_filter(spectrum.bandwidth * 2 * 42 / 1000, spectrum.bandwidth * 2 * 78 / 1000);
 	}
 };
 

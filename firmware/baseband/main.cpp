@@ -380,7 +380,7 @@ protected:
 		if( !channel_spectrum_request_update ) {
 			channel_spectrum_request_update = true;
 			std::copy(&data.p[0], &data.p[data.count], channel_spectrum.begin());
-			channel_spectrum_bandwidth = data.sampling_rate * 2;
+			channel_spectrum_bandwidth = data.sampling_rate;
 			events_flag(EVT_MASK_SPECTRUM);
 		}
 	}
