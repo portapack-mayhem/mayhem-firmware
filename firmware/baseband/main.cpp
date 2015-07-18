@@ -338,6 +338,8 @@ private:
 static volatile bool channel_spectrum_request_update { false };
 static std::array<complex16_t, 256> channel_spectrum;
 static uint32_t channel_spectrum_sampling_rate { 0 };
+static uint32_t channel_filter_pass_frequency { 0 };
+static uint32_t channel_filter_stop_frequency { 0 };
 
 class BasebandProcessor {
 public:
@@ -434,6 +436,9 @@ public:
 		 * -> FIR filter, <?kHz (0.???fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
+		// TODO: Set with information determined from filter taps.
+		channel_filter_pass_frequency = decimator_out.sampling_rate * 31 / 1000;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * 70 / 1000;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
@@ -480,6 +485,9 @@ public:
 		 * -> FIR filter, <6kHz (0.063fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
+		// TODO: Set with information determined from filter taps.
+		channel_filter_pass_frequency = decimator_out.sampling_rate * 42 / 1000;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * 78 / 1000;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
@@ -620,6 +628,9 @@ public:
 		 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
 		 * -> 76.8kHz int16_t[64] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
+		// TODO: Set with information determined from filter taps.
+		channel_filter_pass_frequency = decimator_out.sampling_rate * 31 / 1000;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * 70 / 1000;
 
 		/* 76.8kHz, 64 samples */
 		feed_channel_stats(channel);
@@ -862,6 +873,8 @@ private:
 				spectrum_message.spectrum.db = &spectrum_db;
 				spectrum_message.spectrum.db_count = spectrum_db.size();
 				spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
+				spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
+				spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
 				shared_memory.application_queue.push(&spectrum_message);
 			}
 		}

@@ -226,17 +226,9 @@ private:
 	void on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		waterfall_view.on_channel_spectrum(spectrum);
 		frequency_scale.set_spectrum_sampling_rate(spectrum.sampling_rate, spectrum.db_count);
-
-		// TODO: Set with actual information.
-		//taps_64_lp_042_078_tfilter
-		// TODO: Pass these details, don't hard-code them.
-		// Channel spectrum is channel filter input, decimated by 2 by the
-		// channel filter, then by 4 by the channel spectrum decimator.
-		constexpr size_t channel_spectrum_decimation = 2 * 4;
-		// TODO: Rename spectrum.bandwidth to spectrum.sampling_rate so this makes sense. */
 		frequency_scale.set_channel_filter(
-			spectrum.sampling_rate * channel_spectrum_decimation * 42 / 1000,
-			spectrum.sampling_rate * channel_spectrum_decimation * 78 / 1000
+			spectrum.channel_filter_pass_frequency,
+			spectrum.channel_filter_stop_frequency
 		);
 	}
 };
