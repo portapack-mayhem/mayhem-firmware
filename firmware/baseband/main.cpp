@@ -436,9 +436,8 @@ public:
 		 * -> FIR filter, <?kHz (0.???fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		// TODO: Set with information determined from filter taps.
-		channel_filter_pass_frequency = decimator_out.sampling_rate * 31 / 1000;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * 70 / 1000;
+		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
@@ -461,7 +460,8 @@ public:
 
 private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { taps_64_lp_031_070_tfilter };
+	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
+	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::AM demod;
 	IIRBiquadFilter audio_hpf {
 		{  0.93346032f, -1.86687724f,  0.93346032f },
@@ -485,9 +485,8 @@ public:
 		 * -> FIR filter, <6kHz (0.063fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		// TODO: Set with information determined from filter taps.
-		channel_filter_pass_frequency = decimator_out.sampling_rate * 42 / 1000;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * 78 / 1000;
+		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
@@ -510,7 +509,8 @@ public:
 
 private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { taps_64_lp_042_078_tfilter };
+	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
+	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::FM demod { 48000, 7500 };
 
 	IIRBiquadFilter audio_hpf {
@@ -578,7 +578,8 @@ private:
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_3;
-	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { taps_64_lp_156_198 };
+	const fir_taps_real<64>& audio_filter_taps = taps_64_lp_156_198;
+	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
 
 	IIRBiquadFilter audio_hpf {
 		{  0.93346032f, -1.86687724f,  0.93346032f },
@@ -628,9 +629,8 @@ public:
 		 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
 		 * -> 76.8kHz int16_t[64] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		// TODO: Set with information determined from filter taps.
-		channel_filter_pass_frequency = decimator_out.sampling_rate * 31 / 1000;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * 70 / 1000;
+		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
+		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		/* 76.8kHz, 64 samples */
 		feed_channel_stats(channel);
@@ -660,7 +660,8 @@ public:
 
 private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { taps_64_lp_031_070_tfilter };
+	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
+	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::FM demod { 76800, 9600 * 2 };
 
 	ClockRecovery clock_recovery;

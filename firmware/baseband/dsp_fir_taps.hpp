@@ -27,8 +27,18 @@
 
 #include "complex.hpp"
 
+template<size_t N>
+struct fir_taps_real {
+	float pass_frequency_normalized;
+	float stop_frequency_normalized; 
+	std::array<int16_t, N> taps;
+};
+
 /* 3kHz/6.7kHz @ 96kHz. sum(abs(taps)): 89429 */
-constexpr std::array<int16_t, 64> taps_64_lp_031_070_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_031_070_tfilter {
+	.pass_frequency_normalized = 0.031f,
+	.stop_frequency_normalized = 0.070f,
+	.taps = { {
 	    56,     58,     81,    100,    113,    112,     92,     49,
 	   -21,   -120,   -244,   -389,   -543,   -692,   -819,   -903,
 	  -923,   -861,   -698,   -424,    -34,    469,   1073,   1756,
@@ -37,10 +47,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_031_070_tfilter { {
 	  1073,    469,    -34,   -424,   -698,   -861,   -923,   -903,
 	  -819,   -692,   -543,   -389,   -244,   -120,    -21,     49,
 	    92,    112,    113,    100,     81,     58,     56,      0,
-} };
+	} },
+};
 
 /* 4kHz/7.5kHz @ 96kHz. sum(abs(taps)): 96783 */
-constexpr std::array<int16_t, 64> taps_64_lp_042_078_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_042_078_tfilter {
+	.pass_frequency_normalized = 0.042f,
+	.stop_frequency_normalized = 0.078f,
+	.taps = { {
 	   -19,     39,     72,    126,    197,    278,    360,    432,
 	   478,    485,    438,    327,    152,    -82,   -359,   -651,
 	  -922,  -1132,  -1236,  -1192,   -968,   -545,     81,    892,
@@ -49,10 +63,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_042_078_tfilter { {
 	    81,   -545,   -968,  -1192,  -1236,  -1132,   -922,   -651,
 	  -359,    -82,    152,    327,    438,    485,    478,    432,
 	   360,    278,    197,    126,     72,     39,    -19,      0,
-} };
+	} },
+};
 
 /* 5kHz/8.5kHz @ 96kHz. sum(abs(taps)): 101312 */
-constexpr std::array<int16_t, 64> taps_64_lp_052_089_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_052_089_tfilter {
+	.pass_frequency_normalized = 0.052f,
+	.stop_frequency_normalized = 0.089f,
+	.taps = { {
 	   -65,    -88,   -129,   -163,   -178,   -160,   -100,      9,
 	   160,    340,    523,    675,    758,    738,    591,    313,
 	   -76,   -533,   -987,  -1355,  -1544,  -1472,  -1077,   -335,
@@ -61,10 +79,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_052_089_tfilter { {
 	 -1077,  -1472,  -1544,  -1355,   -987,   -533,    -76,    313,
 	   591,    738,    758,    675,    523,    340,    160,      9,
 	  -100,   -160,   -178,   -163,   -129,    -88,    -65,      0,
-} };
+	} },
+};
 
 /* 6kHz/9.6kHz @ 96kHz. sum(abs(taps)): 105088 */
-constexpr std::array<int16_t, 64> taps_64_lp_063_100_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_063_100_tfilter {
+	.pass_frequency_normalized = 0.063f,
+	.stop_frequency_normalized = 0.100f,
+	.taps = { {
 	    43,     21,     -2,    -54,   -138,   -245,   -360,   -453,
 	  -493,   -451,   -309,    -73,    227,    535,    776,    876,
 	   773,    443,    -86,   -730,  -1357,  -1801,  -1898,  -1515,
@@ -73,10 +95,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_063_100_tfilter { {
 	 -1898,  -1801,  -1357,   -730,    -86,    443,    773,    876,
 	   776,    535,    227,    -73,   -309,   -451,   -493,   -453,
 	  -360,   -245,   -138,    -54,     -2,     21,     43,      0,
-} };
+	} },
+};
 
 /* 7kHz/10.4kHz @ 96kHz: sum(abs(taps)): 110157 */
-constexpr std::array<int16_t, 64> taps_64_lp_073_108_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_073_108_tfilter {
+	.pass_frequency_normalized = 0.073f,
+	.stop_frequency_normalized = 0.108f,
+	.taps = { {
 	    79,    145,    241,    334,    396,    394,    306,    130,
 	  -109,   -360,   -550,   -611,   -494,   -197,    229,    677,
 	  1011,   1096,    846,    257,   -570,  -1436,  -2078,  -2225,
@@ -85,10 +111,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_073_108_tfilter { {
 	 -2078,  -1436,   -570,    257,    846,   1096,   1011,    677,
 	   229,   -197,   -494,   -611,   -550,   -360,   -109,    130,
 	   306,    394,    396,    334,    241,    145,     79,      0,
-} };
+	} },
+};
 
 /* 8kHz/11.5kHz @ 96kHz. sum(abs(taps)): 112092 */
-constexpr std::array<int16_t, 64> taps_64_lp_083_120_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_083_120_tfilter {
+	.pass_frequency_normalized = 0.083f,
+	.stop_frequency_normalized = 0.120f,
+	.taps = { {
 	   -63,    -72,    -71,    -21,     89,    248,    417,    537,
 	   548,    407,    124,   -237,   -563,   -723,   -621,   -238,
 	   337,    919,   1274,   1201,    617,   -382,  -1514,  -2364,
@@ -97,10 +127,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_083_120_tfilter { {
 	 -1514,   -382,    617,   1201,   1274,    919,    337,   -238,
 	  -621,   -723,   -563,   -237,    124,    407,    548,    537,
 	   417,    248,     89,    -21,    -71,    -72,    -63,      0,
-} };
+	} },
+};
 
 /* 9kHz/12.4kHz @ 96kHz. sum(abs(taps)): 116249 */
-constexpr std::array<int16_t, 64> taps_64_lp_094_129_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_094_129_tfilter {
+	.pass_frequency_normalized = 0.094f,
+	.stop_frequency_normalized = 0.129f,
+	.taps = { {
 	     5,    -93,   -198,   -335,   -449,   -478,   -378,   -144,
 	   166,    444,    563,    440,     82,   -395,   -788,   -892,
 	  -589,     73,    859,   1421,   1431,    734,   -530,  -1919,
@@ -109,10 +143,14 @@ constexpr std::array<int16_t, 64> taps_64_lp_094_129_tfilter { {
 	  -530,    734,   1431,   1421,    859,     73,   -589,   -892,
 	  -788,   -395,     82,    440,    563,    444,    166,   -144,
 	  -378,   -478,   -449,   -335,   -198,    -93,      5,      0,
-} };
+	} },
+};
 
 /* 10kHz/13.4kHz @ 96kHz. sum(abs(taps)): 118511 */
-constexpr std::array<int16_t, 64> taps_64_lp_104_140_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_104_140_tfilter {
+	.pass_frequency_normalized = 0.104f,
+	.stop_frequency_normalized = 0.140f,
+	.taps = { {
 	    89,    159,    220,    208,     84,   -147,   -412,   -597,
 	  -588,   -345,     58,    441,    595,    391,   -128,   -730,
 	 -1080,   -914,   -198,    793,   1558,   1594,    678,   -942,
@@ -121,12 +159,16 @@ constexpr std::array<int16_t, 64> taps_64_lp_104_140_tfilter { {
 	   678,   1594,   1558,    793,   -198,   -914,  -1080,   -730,
 	  -128,    391,    595,    441,     58,   -345,   -588,   -597,
 	  -412,   -147,     84,    208,    220,    159,     89,      0,
-} };
+	} },
+};
 
 /* Wideband FM channel filter
  * 103kHz/128kHz @ 768kHz
  */
-constexpr std::array<int16_t, 64> taps_64_lp_130_169_tfilter { {
+constexpr fir_taps_real<64> taps_64_lp_130_169_tfilter {
+	.pass_frequency_normalized = 0.130f,
+	.stop_frequency_normalized = 0.169f,
+	.taps = { {
 	   100,    127,     62,   -157,   -470,   -707,   -678,   -332,
 	   165,    494,    400,    -85,   -610,   -729,   -253,    535,
 	  1026,    734,   -263,  -1264,  -1398,   -332,   1316,   2259,
@@ -135,7 +177,8 @@ constexpr std::array<int16_t, 64> taps_64_lp_130_169_tfilter { {
 	  2259,   1316,   -332,  -1398,  -1264,   -263,    734,   1026,
 	   535,   -253,   -729,   -610,    -85,    400,    494,    165,
 	  -332,   -678,   -707,   -470,   -157,     62,    127,    100,
-} };
+	} },
+};
 
 /* Wideband audio filter */
 /* 96kHz int16_t input
@@ -144,7 +187,10 @@ constexpr std::array<int16_t, 64> taps_64_lp_130_169_tfilter { {
  * Padded to multiple of four taps for unrolled FIR code.
  * sum(abs(taps)): 125270
  */
-constexpr std::array<int16_t, 64> taps_64_lp_156_198 { {
+constexpr fir_taps_real<64> taps_64_lp_156_198 {
+	.pass_frequency_normalized = 0.156f,
+	.stop_frequency_normalized = 0.196f,
+	.taps = { {
 	   -27,    166,    104,    -36,   -174,   -129,    109,    287,
 	   148,   -232,   -430,   -130,    427,    597,     49,   -716,
 	  -778,    137,   1131,    957,   -493,  -1740,  -1121,   1167,
@@ -153,133 +199,7 @@ constexpr std::array<int16_t, 64> taps_64_lp_156_198 { {
 	 -1121,  -1740,   -493,    957,   1131,    137,   -778,   -716,
 	    49,    597,    427,   -130,   -430,   -232,    148,    287,
 	   109,   -129,   -174,    -36,    104,    166,    -27,      0,
-} };
-
-/* Narrowband FM filter */
-/* 96kHz int16_t input
- * -> FIR filter, <4kHz (0.042fs) pass, Hamming window.
- * -> 48kHz int16_t output, gain of 1.0.
- * Padded to multiple of four taps for unrolled FIR code.
- * sum(abs(taps)): 81493
- */
-constexpr std::array<int16_t, 64> taps_64_lp_042_hamming { {
-	    51,     57,     61,     65,     63,     55,     35,      0,
-	   -52,   -122,   -207,   -304,   -402,   -491,   -556,   -582,
-	  -552,   -453,   -271,      0,    363,    815,   1343,   1930,
-	  2553,   3183,   3788,   4338,   4802,   5154,   5374,   5449,
-	  5374,   5154,   4802,   4338,   3788,   3183,   2553,   1930,
-	  1343,    815,    363,      0,   -271,   -453,   -552,   -582,
-	  -556,   -491,   -402,   -304,   -207,   -122,    -52,      0,
-	    35,     55,     63,     65,     61,     57,     51,      0
-} };
-
-/* Narrowband FM filter */
-/* 96kHz int16_t input
- * -> FIR filter, <6kHz (0.063fs) pass, Hamming window.
- * -> 48kHz int16_t output, gain of 1.0.
- * Padded to multiple of four taps for unrolled FIR code.
- * sum(abs(taps)): 92477
- */
-constexpr std::array<int16_t, 64> taps_64_lp_063_hamming { {
-	   -20,    -40,    -59,    -75,    -83,    -78,    -52,      0,
-	    77,    173,    272,    352,    386,    348,    221,      0,
-	  -300,   -644,   -974,  -1219,  -1304,  -1158,   -730,      0,
-	  1016,   2261,   3641,   5034,   6305,   7325,   7985,   8213,
-	  7985,   7325,   6305,   5034,   3641,   2261,   1016,      0,
-	  -730,  -1158,  -1304,  -1219,   -974,   -644,   -300,      0,
-	   221,    348,    386,    352,    272,    173,     77,      0,
-	   -52,    -78,    -83,    -75,    -59,    -40,    -20,      0
-} };
-
-/* sum(abs(taps)): 85241 */
-constexpr std::array<int16_t, 64> taps_64_lp_063_blackman { {
-	     0,      0,     -2,     -6,    -11,    -14,    -11,      0,
-	    24,     62,    110,    157,    188,    184,    125,      0,
-	  -194,   -441,   -704,   -926,  -1035,   -957,   -626,      0,
-	   925,   2109,   3466,   4872,   6182,   7249,   7946,   8189,
-	  7946,   7249,   6182,   4872,   3466,   2109,    925,      0,
-	  -626,   -957,  -1035,   -926,   -704,   -441,   -194,      0,
-	   125,    184,    188,    157,    110,     62,     24,      0,
-	   -11,    -14,    -11,     -6,     -2,      0,      0,      0
-} };
-
-/* Narrowband FM filter */
-/* 96kHz int16_t input
- * -> FIR filter, <8kHz (0.083fs) pass, Hamming window.
- * -> 48kHz int16_t output, gain of 1.0.
- * Padded to multiple of four taps for unrolled FIR code.
- * sum(abs(taps)): 99180
- */
-constexpr std::array<int16_t, 64> taps_64_lp_083_hamming { {
-	   -26,      0,     32,     65,     90,     95,     67,      0,
-	  -100,   -211,   -294,   -304,   -208,      0,    288,    582,
-	   782,    785,    524,      0,   -702,  -1412,  -1901,  -1931,
-	 -1322,      0,   1962,   4340,   6795,   8932,  10388,  10904,
-	 10388,   8932,   6795,   4340,   1962,      0,  -1322,  -1931,
-	 -1901,  -1412,   -702,      0,    524,    785,    782,    582,
-	   288,      0,   -208,   -304,   -294,   -211,   -100,      0,
-	    67,     95,     90,     65,     32,      0,    -26,      0
-} };
-
-/* sum(abs(taps)): 92568 */
-constexpr std::array<int16_t, 64> taps_64_lp_083_blackman { {
-	     0,      0,      1,      5,     12,     17,     15,      0,
-	   -32,    -77,   -119,   -136,   -101,      0,    164,    355,
-	   508,    541,    381,      0,   -560,  -1173,  -1636,  -1717,
-	 -1209,      0,   1876,   4221,   6695,   8883,  10388,  10924,
-	 10388,   8883,   6695,   4221,   1876,      0,  -1209,  -1717,
-	 -1636,  -1173,   -560,      0,    381,    541,    508,    355,
-	   164,      0,   -101,   -136,   -119,    -77,    -32,      0,
-	    15,     17,     12,      5,      1,      0,      0,      0
-} };
-
-/* Narrowband FM filter */
-/* 96kHz int16_t input
- * -> FIR filter, <10kHz (0.104fs) pass, Hamming window.
- * -> 48kHz int16_t output, gain of 1.0.
- * Padded to multiple of four taps for unrolled FIR code.
- * sum(abs(taps)): 106396
- */
-constexpr std::array<int16_t, 64> taps_64_lp_104_hamming { {
-	    53,     40,      8,    -37,    -83,   -106,    -82,      0,
-	   123,    236,    272,    175,    -54,   -347,   -571,   -583,
-	  -299,    235,    833,   1215,   1116,    422,   -728,  -1934,
-	 -2625,  -2254,   -512,   2509,   6285,   9975,  12663,  13646,
-	 12663,   9975,   6285,   2509,   -512,  -2254,  -2625,  -1934,
-	  -728,    422,   1116,   1215,    833,    235,   -299,   -583,
-	  -571,   -347,    -54,    175,    272,    236,    123,      0,
-	   -82,   -106,    -83,    -37,      8,     40,     53,      0
-} };
-
-/* sum(abs(taps)): 99426 */
-constexpr std::array<int16_t, 64> taps_64_lp_104_blackman { {
-	     0,      0,      0,     -3,    -11,    -19,    -18,      0,
-	    39,     85,    110,     78,    -26,   -184,   -325,   -355,
-	  -194,    161,    605,    926,    889,    350,   -626,  -1717,
-	 -2397,  -2109,   -489,   2436,   6184,   9906,  12645,  13652,
-	 12645,   9906,   6184,   2436,   -489,  -2109,  -2397,  -1717,
-	  -626,    350,    889,    926,    605,    161,   -194,   -355,
-	  -325,   -184,    -26,     78,    110,     85,     39,      0,
-	   -18,    -19,    -11,     -3,      0,      0,      0,      0
-} };
-
-/* Narrowband AM audio filter */
-/* 96kHz int16_t input
- * -> FIR filter, <3kHz (0.031fs) pass, >6kHz (0.063fs) stop
- * -> 48kHz int16_t output, gain of 1.0 (I think).
- * Padded to multiple of four taps for unrolled FIR code.
- * sum(abs(taps)): 94053
- */
-/* TODO: Review this filter, it's very quick and dirty. */
-constexpr std::array<int16_t, 64> taps_64_lp_031_063 { {
-	  -254,    255,    244,    269,    302,    325,    325,    290,
-	   215,     99,    -56,   -241,   -442,   -643,   -820,   -950,
-	 -1009,   -974,   -828,   -558,   -160,    361,    992,   1707,
-	  2477,   3264,   4027,   4723,   5312,   5761,   6042,   6203,
-	  6042,   5761,   5312,   4723,   4027,   3264,   2477,   1707,
-	   992,    361,   -160,   -558,   -828,   -974,  -1009,   -950,
-	  -820,   -643,   -442,   -241,    -56,     99,    215,    290,
-	   325,    325,    302,    269,    244,    255,   -254,      0,
-} };
+	} },
+};
 
 #endif/*__DSP_FIR_TAPS_H__*/
