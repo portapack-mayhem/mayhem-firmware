@@ -337,7 +337,7 @@ private:
 
 static volatile bool channel_spectrum_request_update { false };
 static std::array<complex16_t, 256> channel_spectrum;
-static uint32_t channel_spectrum_bandwidth { 0 };
+static uint32_t channel_spectrum_sampling_rate { 0 };
 
 class BasebandProcessor {
 public:
@@ -380,7 +380,7 @@ protected:
 		if( !channel_spectrum_request_update ) {
 			channel_spectrum_request_update = true;
 			std::copy(&data.p[0], &data.p[data.count], channel_spectrum.begin());
-			channel_spectrum_bandwidth = data.sampling_rate;
+			channel_spectrum_sampling_rate = data.sampling_rate;
 			events_flag(EVT_MASK_SPECTRUM);
 		}
 	}
@@ -860,8 +860,8 @@ private:
 
 				/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
 				spectrum_message.spectrum.db = &spectrum_db;
-				//spectrum_message.spectrum.db_count = 256;
-				spectrum_message.spectrum.bandwidth = channel_spectrum_bandwidth;
+				spectrum_message.spectrum.db_count = spectrum_db.size();
+				spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
 				shared_memory.application_queue.push(&spectrum_message);
 			}
 		}

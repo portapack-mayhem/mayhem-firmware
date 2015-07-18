@@ -37,29 +37,29 @@ namespace spectrum {
 
 class FrequencyScale : public Widget {
 public:
-	void set_spectrum_bandwidth(const uint32_t new_bandwidth, const size_t new_spectrum_bins) {
-		if( (spectrum_bandwidth != new_bandwidth) ||
+	void set_spectrum_sampling_rate(const uint32_t new_sampling_rate, const size_t new_spectrum_bins) {
+		if( (spectrum_sampling_rate != new_sampling_rate) ||
 			(spectrum_bins != new_spectrum_bins) ) {
-			spectrum_bandwidth = new_bandwidth;
+			spectrum_sampling_rate = new_sampling_rate;
 			spectrum_bins = new_spectrum_bins;
 			set_dirty();
 		}
 	}
 
 	void set_channel_filter(
-		const uint32_t pass_bandwidth,
-		const uint32_t stop_bandwidth
+		const uint32_t pass_frequency,
+		const uint32_t stop_frequency
 	) {
-		if( (channel_filter_pass_bandwidth != pass_bandwidth) ||
-			(channel_filter_stop_bandwidth != stop_bandwidth) ) {
-			channel_filter_pass_bandwidth = pass_bandwidth;
-			channel_filter_stop_bandwidth = stop_bandwidth;
+		if( (channel_filter_pass_frequency != pass_frequency) ||
+			(channel_filter_stop_frequency != stop_frequency) ) {
+			channel_filter_pass_frequency = pass_frequency;
+			channel_filter_stop_frequency = stop_frequency;
 			set_dirty();
 		}
 	}
 
 	void paint(Painter& painter) override {
-		if( !spectrum_bandwidth || !spectrum_bins ) {
+		if( !spectrum_sampling_rate || !spectrum_bins ) {
 			// Can't draw without non-zero scale.
 			return;
 		}
@@ -77,16 +77,16 @@ public:
 		);
 		*/
 
-		if( channel_filter_pass_bandwidth ) {
-			const auto pass_width = channel_filter_pass_bandwidth * spectrum_bins / spectrum_bandwidth;
-			const auto stop_width = channel_filter_stop_bandwidth * spectrum_bins / spectrum_bandwidth;
+		if( channel_filter_pass_frequency ) {
+			const auto pass_offset = channel_filter_pass_frequency * spectrum_bins / spectrum_sampling_rate;
+			const auto stop_offset = channel_filter_stop_frequency * spectrum_bins / spectrum_sampling_rate;
 
-			const auto pass_x_lo = x_center - pass_width / 2;
-			const auto pass_x_hi = x_center + pass_width / 2;
+			const auto pass_x_lo = x_center - pass_offset;
+			const auto pass_x_hi = x_center + pass_offset;
 
-			if( channel_filter_stop_bandwidth ) {
-				const auto stop_x_lo = x_center - stop_width / 2;
-				const auto stop_x_hi = x_center + stop_width / 2;
+			if( channel_filter_stop_frequency ) {
+				const auto stop_x_lo = x_center - stop_offset;
+				const auto stop_x_hi = x_center + stop_offset;
 
 				const Rect r_stop_lo {
 					static_cast<Coord>(r.left() + stop_x_lo), r.top(),
@@ -131,10 +131,10 @@ public:
 	}
 
 private:
-	uint32_t spectrum_bandwidth { 0 };
+	uint32_t spectrum_sampling_rate { 0 };
 	size_t spectrum_bins { 0 };
-	uint32_t channel_filter_pass_bandwidth { 0 };
-	uint32_t channel_filter_stop_bandwidth { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
 };
 
 class WaterfallView : public Widget {
@@ -225,11 +225,19 @@ private:
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		waterfall_view.on_channel_spectrum(spectrum);
-		frequency_scale.set_spectrum_bandwidth(spectrum.bandwidth, spectrum.db_count);
+		frequency_scale.set_spectrum_sampling_rate(spectrum.sampling_rate, spectrum.db_count);
 
 		// TODO: Set with actual information.
 		//taps_64_lp_042_078_tfilter
-		frequency_scale.set_channel_filter(spectrum.bandwidth * 2 * 42 / 1000, spectrum.bandwidth * 2 * 78 / 1000);
+		// TODO: Pass these details, don't hard-code them.
+		// Channel spectrum is channel filter input, decimated by 2 by the
+		// channel filter, then by 4 by the channel spectrum decimator.
+		constexpr size_t channel_spectrum_decimation = 2 * 4;
+		// TODO: Rename spectrum.bandwidth to spectrum.sampling_rate so this makes sense. */
+		frequency_scale.set_channel_filter(
+			spectrum.sampling_rate * channel_spectrum_decimation * 42 / 1000,
+			spectrum.sampling_rate * channel_spectrum_decimation * 78 / 1000
+		);
 	}
 };
 

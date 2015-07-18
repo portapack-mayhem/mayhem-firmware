@@ -185,7 +185,7 @@ public:
 struct ChannelSpectrum {
 	std::array<uint8_t, 256>* db { nullptr };
 	size_t db_count { 256 };
-	uint32_t bandwidth { 0 };
+	uint32_t sampling_rate { 0 };
 };
 
 class ChannelSpectrumMessage : public Message {
