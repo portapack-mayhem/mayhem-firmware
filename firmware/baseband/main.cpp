@@ -453,7 +453,7 @@ public:
 		 * -> 48kHz int16_t[32] */
 		auto audio = demod.execute(channel, work_audio_buffer);
 
-		audio_hpf.execute(audio);
+		audio_hpf.execute_in_place(audio);
 		feed_audio_stats(audio);
 		fill_audio_buffer(audio);
 	}
@@ -502,7 +502,7 @@ public:
 		 * -> 48kHz int16_t[32] */
 		auto audio = demod.execute(channel, work_audio_buffer);
 
-		audio_hpf.execute(audio);
+		audio_hpf.execute_in_place(audio);
 		feed_audio_stats(audio);
 		fill_audio_buffer(audio);
 	}
@@ -565,7 +565,7 @@ public:
 		auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
 		/* -> 48kHz int16_t[32] */
-		audio_hpf.execute(audio);
+		audio_hpf.execute_in_place(audio);
 		feed_audio_stats(audio);
 		fill_audio_buffer(audio);
 	}

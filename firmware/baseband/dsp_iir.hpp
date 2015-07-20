@@ -39,10 +39,15 @@ public:
 	{
 	}
 
-	void execute(buffer_s16_t buffer) {
-		for(size_t i=0; i<buffer.count; i++) {
-			buffer.p[i] = execute_sample(buffer.p[i]);
+	void execute(buffer_s16_t buffer_in, buffer_s16_t buffer_out) {
+		// TODO: Assert that buffer_out.count == buffer_in.count.
+		for(size_t i=0; i<buffer_out.count; i++) {
+			buffer_out.p[i] = execute_sample(buffer_in.p[i]);
 		}
+	}
+
+	void execute_in_place(buffer_s16_t buffer) {
+		execute(buffer, buffer);
 	}
 
 private:
