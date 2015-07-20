@@ -335,6 +335,40 @@ private:
 	}
 };
 
+class FMSquelch {
+public:
+	bool execute(buffer_s16_t audio) {
+		// TODO: No hard-coded array size.
+		std::array<int16_t, N> squelch_energy_buffer;
+		const buffer_s16_t squelch_energy {
+			squelch_energy_buffer.data(),
+			squelch_energy_buffer.size()
+		};
+		non_audio_hpf.execute(audio, squelch_energy);
+
+		uint64_t max_squared = 0;
+		for(const auto sample : squelch_energy_buffer) {
+			const uint64_t sample_squared = sample * sample;
+			if( sample_squared > max_squared ) {
+				max_squared = sample_squared;
+			}
+		}
+
+		return (max_squared < (threshold * threshold));
+	}
+
+private:
+	static constexpr size_t N = 32;
+	static constexpr int16_t threshold = 3072;
+
+	// nyquist = 48000 / 2.0
+	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
+	IIRBiquadFilter non_audio_hpf {
+		{  0.51891061f, -0.95714180f,  0.51891061f },
+		{  1.0f       , -0.79878302f,  0.43960231f }
+	};
+};
+
 static volatile bool channel_spectrum_request_update { false };
 static std::array<complex16_t, 256> channel_spectrum;
 static uint32_t channel_spectrum_sampling_rate { 0 };
@@ -502,9 +536,17 @@ public:
 		 * -> 48kHz int16_t[32] */
 		auto audio = demod.execute(channel, work_audio_buffer);
 
-		audio_hpf.execute_in_place(audio);
-		feed_audio_stats(audio);
-		fill_audio_buffer(audio);
+		static uint64_t audio_present_history = 0;
+		const auto audio_present = squelch.execute(audio);
+		audio_present_history = (audio_present_history << 1) | (audio_present ? 1 : 0);
+
+		if( audio_present_history ) {
+			audio_hpf.execute_in_place(audio);
+			feed_audio_stats(audio);
+			fill_audio_buffer(audio);
+		} else {
+			mute_audio();
+		}
 	}
 
 private:
@@ -517,6 +559,7 @@ private:
 		{  0.93346032f, -1.86687724f,  0.93346032f },
 		{  1.0f       , -1.97730264f,  0.97773668f }
 	};
+	FMSquelch squelch;
 };
 
 class WidebandFMAudio : public BasebandProcessor {
