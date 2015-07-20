@@ -382,11 +382,6 @@ public:
 	virtual void execute(buffer_c8_t buffer) = 0;
 
 protected:
-	BlockDecimator<256> channel_spectrum_decimator { 4 };
-
-	ChannelStatsCollector channel_stats;
-	ChannelStatisticsMessage channel_stats_message;
-
 	void feed_channel_stats(const buffer_c16_t channel) {
 		channel_stats.feed(
 			channel,
@@ -394,13 +389,6 @@ protected:
 				this->post_channel_stats_message(statistics);
 			}
 		);
-	}
-
-	void post_channel_stats_message(const ChannelStatistics statistics) {
-		if( channel_stats_message.is_free() ) {
-			channel_stats_message.statistics = statistics;
-			shared_memory.application_queue.push(&channel_stats_message);
-		}
 	}
 
 	void feed_channel_spectrum(const buffer_c16_t channel) {
@@ -412,6 +400,39 @@ protected:
 		);
 	}
 
+	void fill_audio_buffer(const buffer_s16_t audio) {
+		auto audio_buffer = audio::dma::tx_empty_buffer();;
+		for(size_t i=0; i<audio_buffer.count; i++) {
+			audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
+		}
+
+		i2s::i2s0::tx_unmute();
+
+		feed_audio_stats(audio);
+	}
+
+	void mute_audio() {
+		// TODO: Feed audio stats? What if baseband never produces audio?
+		// TODO: How should audio stats behave if I *sometimes* mute audio?
+		i2s::i2s0::tx_mute();
+	}
+
+private:
+	BlockDecimator<256> channel_spectrum_decimator { 4 };
+
+	ChannelStatsCollector channel_stats;
+	ChannelStatisticsMessage channel_stats_message;
+
+	AudioStatsCollector audio_stats;
+	AudioStatisticsMessage audio_stats_message;
+
+	void post_channel_stats_message(const ChannelStatistics statistics) {
+		if( channel_stats_message.is_free() ) {
+			channel_stats_message.statistics = statistics;
+			shared_memory.application_queue.push(&channel_stats_message);
+		}
+	}
+
 	void post_channel_spectrum_message(const buffer_c16_t data) {
 		if( !channel_spectrum_request_update ) {
 			channel_spectrum_request_update = true;
@@ -420,9 +441,6 @@ protected:
 			events_flag(EVT_MASK_SPECTRUM);
 		}
 	}
-
-	AudioStatsCollector audio_stats;
-	AudioStatisticsMessage audio_stats_message;
 
 	void feed_audio_stats(const buffer_s16_t audio) {
 		audio_stats.feed(
@@ -438,21 +456,6 @@ protected:
 			audio_stats_message.statistics = statistics;
 			shared_memory.application_queue.push(&audio_stats_message);
 		}
-	}
-
-	void fill_audio_buffer(const buffer_s16_t audio) {
-		auto audio_buffer = audio::dma::tx_empty_buffer();;
-		for(size_t i=0; i<audio_buffer.count; i++) {
-			audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
-		}
-
-		i2s::i2s0::tx_unmute();
-	}
-
-	void mute_audio() {
-		// TODO: Feed audio stats? What if baseband never produces audio?
-		// TODO: How should audio stats behave if I *sometimes* mute audio?
-		i2s::i2s0::tx_mute();
 	}
 };
 
@@ -488,7 +491,6 @@ public:
 		auto audio = demod.execute(channel, work_audio_buffer);
 
 		audio_hpf.execute_in_place(audio);
-		feed_audio_stats(audio);
 		fill_audio_buffer(audio);
 	}
 
@@ -542,7 +544,6 @@ public:
 
 		if( audio_present_history ) {
 			audio_hpf.execute_in_place(audio);
-			feed_audio_stats(audio);
 			fill_audio_buffer(audio);
 		} else {
 			mute_audio();
@@ -609,7 +610,6 @@ public:
 
 		/* -> 48kHz int16_t[32] */
 		audio_hpf.execute_in_place(audio);
-		feed_audio_stats(audio);
 		fill_audio_buffer(audio);
 	}
 
