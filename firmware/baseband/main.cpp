@@ -194,6 +194,29 @@ class AudioStatsCollector {
 public:
 	template<typename Callback>
 	void feed(buffer_s16_t src, Callback callback) {
+		consume_audio_buffer(src);
+
+		if( update_stats(src.count, src.sampling_rate) ) {
+			callback(statistics);
+		}
+	}
+
+	template<typename Callback>
+	void mute(const size_t sample_count, const size_t sampling_rate, Callback callback) {
+		if( update_stats(sample_count, sampling_rate) ) {
+			callback(statistics);
+		}
+	}
+
+private:
+	static constexpr float update_interval { 0.1f };
+	uint64_t squared_sum { 0 };
+	uint32_t max_squared { 0 };
+	size_t count { 0 };
+
+	AudioStatistics statistics;
+
+	void consume_audio_buffer(buffer_s16_t src) {
 		auto src_p = src.p;
 		const auto src_end = &src.p[src.count];
 		while(src_p < src_end) {
@@ -204,34 +227,30 @@ public:
 				max_squared = sample_squared;
 			}
 		}
-		count += src.count;
+	}
 
-		const size_t samples_per_update = src.sampling_rate * update_interval;
+	bool update_stats(const size_t sample_count, const size_t sampling_rate) {
+		count += sample_count;
+
+		const size_t samples_per_update = sampling_rate * update_interval;
 
 		if( count >= samples_per_update ) {
 			const float squared_sum_f = squared_sum;
 			const float max_squared_f = max_squared;
 			const float squared_avg_f = squared_sum_f / count;
-			const int32_t rms_db = complex16_mag_squared_to_dbv_norm(squared_avg_f);
-			const int32_t max_db = complex16_mag_squared_to_dbv_norm(max_squared_f);
-			const AudioStatistics statistics {
-				.rms_db = rms_db,
-				.max_db = max_db,
-				.count = count,
-			};
-			callback(statistics);
+			statistics.rms_db = complex16_mag_squared_to_dbv_norm(squared_avg_f);
+			statistics.max_db = complex16_mag_squared_to_dbv_norm(max_squared_f);
+			statistics.count = count;
 
 			squared_sum = 0;
 			max_squared = 0;
 			count = 0;
+
+			return true;
+		} else {
+			return false;
 		}
 	}
-
-private:
-	static constexpr float update_interval { 0.1f };
-	uint64_t squared_sum { 0 };
-	uint32_t max_squared { 0 };
-	size_t count { 0 };
 };
 
 class ChannelDecimator {
@@ -405,16 +424,20 @@ protected:
 		for(size_t i=0; i<audio_buffer.count; i++) {
 			audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
 		}
-
 		i2s::i2s0::tx_unmute();
 
 		feed_audio_stats(audio);
 	}
 
-	void mute_audio() {
-		// TODO: Feed audio stats? What if baseband never produces audio?
-		// TODO: How should audio stats behave if I *sometimes* mute audio?
-		i2s::i2s0::tx_mute();
+	void mute_audio_buffer() {
+		auto audio_buffer = audio::dma::tx_empty_buffer();;
+		for(size_t i=0; i<audio_buffer.count; i++) {
+			audio_buffer.p[i].left = audio_buffer.p[i].right = 0;
+		}
+		i2s::i2s0::tx_unmute();
+
+		// TODO: No hard-coded audio sampling rate!
+		mute_audio_stats(audio_buffer.count, 48000);
 	}
 
 private:
@@ -445,6 +468,16 @@ private:
 	void feed_audio_stats(const buffer_s16_t audio) {
 		audio_stats.feed(
 			audio,
+			[this](const AudioStatistics statistics) {
+				this->post_audio_stats_message(statistics);
+			}
+		);
+	}
+
+	void mute_audio_stats(const size_t count, const size_t sampling_rate) {
+		audio_stats.mute(
+			count,
+			sampling_rate,
 			[this](const AudioStatistics statistics) {
 				this->post_audio_stats_message(statistics);
 			}
@@ -546,7 +579,7 @@ public:
 			audio_hpf.execute_in_place(audio);
 			fill_audio_buffer(audio);
 		} else {
-			mute_audio();
+			mute_audio_buffer();
 		}
 	}
 
@@ -694,7 +727,7 @@ public:
 
 		auto demodulated = demod.execute(channel, work_demod_buffer);
 
-		mute_audio();
+		mute_audio_buffer();
 
 		for(size_t i=0; i<demodulated.count; i++) {
 			clock_recovery.execute(demodulated.p[i], symbol_handler_fn);
