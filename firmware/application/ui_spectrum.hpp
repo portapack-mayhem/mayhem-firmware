@@ -30,6 +30,7 @@
 #include "message.hpp"
 
 #include <cstdint>
+#include <cmath>
 #include <array>
 
 namespace ui {
@@ -59,25 +60,81 @@ public:
 	}
 
 	void paint(Painter& painter) override {
+		const auto r = screen_rect();
+
+		clear_background(painter, r);
+
 		if( !spectrum_sampling_rate || !spectrum_bins ) {
 			// Can't draw without non-zero scale.
 			return;
 		}
 
-		const auto r = screen_rect();
+		draw_filter_ranges(painter, r);
+		draw_frequency_ticks(painter, r);
+	}
+
+private:
+	static constexpr Dim filter_band_height = 4;
+
+	uint32_t spectrum_sampling_rate { 0 };
+	size_t spectrum_bins { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
+
+	void clear_background(Painter& painter, const Rect r) {
+		painter.fill_rectangle(r, Color::black());
+	}
+
+	void draw_frequency_ticks(Painter& painter, const Rect r) {
 		const auto x_center = r.width() / 2;
 
-		/*
-		const auto text = to_string_dec_int(bandwidth, 6);
+		const Rect tick {
+			static_cast<Coord>(r.left() + x_center), r.top(),
+			1, r.height()
+		};
+		painter.fill_rectangle(tick, Color::white());
 
-		painter.draw_string(
-			r.pos,
-			style(),
-			text
-		);
-		*/
+		constexpr uint32_t tick_count_max = 4;
+		float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
+		size_t magnitude = 1;
+		size_t magnitude_n = 0;
+		while(rough_tick_interval >= 10.0f) {
+			rough_tick_interval /= 10;
+			magnitude *= 10;
+			magnitude_n += 1;
+		}
+		const size_t tick_interval = std::ceil(rough_tick_interval);
 
+		size_t tick_offset = tick_interval;
+		while((tick_offset * magnitude) < spectrum_sampling_rate / 2) {
+			const Dim pixel_offset = tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
+
+			const std::string zero_pad =
+				((magnitude_n % 3) == 0) ? "" :
+				((magnitude_n % 3) == 1) ? "0" : "00";
+			const std::string unit =
+				(magnitude_n >= 6) ? "M" :
+				(magnitude_n >= 3) ? "k" : "";
+			const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
+			
+			const Coord offset_low = static_cast<Coord>(r.left() + x_center - pixel_offset);
+			const Rect tick_low { offset_low, r.top(), 1, r.height() };
+			painter.fill_rectangle(tick_low, Color::white());
+			painter.draw_string({ static_cast<Coord>(offset_low + 2), r.top() }, style(), label );
+
+			const Coord offset_high = static_cast<Coord>(r.left() + x_center + pixel_offset);
+			const Rect tick_high { offset_high, r.top(), 1, r.height() };
+			painter.fill_rectangle(tick_high, Color::white());
+			painter.draw_string({ static_cast<Coord>(offset_high + 2), r.top() }, style(), label );
+
+			tick_offset += tick_interval;
+		}
+	}
+
+	void draw_filter_ranges(Painter& painter, const Rect r) {
 		if( channel_filter_pass_frequency ) {
+			const auto x_center = r.width() / 2;
+
 			const auto pass_offset = channel_filter_pass_frequency * spectrum_bins / spectrum_sampling_rate;
 			const auto stop_offset = channel_filter_stop_frequency * spectrum_bins / spectrum_sampling_rate;
 
@@ -89,8 +146,8 @@ public:
 				const auto stop_x_hi = x_center + stop_offset;
 
 				const Rect r_stop_lo {
-					static_cast<Coord>(r.left() + stop_x_lo), r.top(),
-					static_cast<Dim>(pass_x_lo - stop_x_lo), r.height()
+					static_cast<Coord>(r.left() + stop_x_lo), static_cast<Coord>(r.bottom() - filter_band_height),
+					static_cast<Dim>(pass_x_lo - stop_x_lo), filter_band_height
 				};
 				painter.fill_rectangle(
 					r_stop_lo,
@@ -98,8 +155,8 @@ public:
 				);
 
 				const Rect r_stop_hi {
-					static_cast<Coord>(r.left() + pass_x_hi), r.top(),
-					static_cast<Dim>(stop_x_hi - pass_x_hi), r.height()
+					static_cast<Coord>(r.left() + pass_x_hi), static_cast<Coord>(r.bottom() - filter_band_height),
+					static_cast<Dim>(stop_x_hi - pass_x_hi), filter_band_height
 				};
 				painter.fill_rectangle(
 					r_stop_hi,
@@ -108,33 +165,15 @@ public:
 			}
 
 			const Rect r_pass {
-				static_cast<Coord>(r.left() + pass_x_lo), r.top(),
-				static_cast<Dim>(pass_x_hi - pass_x_lo), r.height()
+				static_cast<Coord>(r.left() + pass_x_lo), static_cast<Coord>(r.bottom() - filter_band_height),
+				static_cast<Dim>(pass_x_hi - pass_x_lo), filter_band_height
 			};
 			painter.fill_rectangle(
 				r_pass,
 				Color::green()
 			);
 		}
-
-		const Rect tick {
-			static_cast<Coord>(r.left() + x_center), r.top(),
-			1, r.height()
-		};
-		painter.fill_rectangle(tick, Color::white());
-
-		const Rect bottom_separator {
-			r.left(), static_cast<Coord>(r.bottom() - 1),
-			r.width(), 1
-		};
-		painter.fill_rectangle(bottom_separator, Color::white());
 	}
-
-private:
-	uint32_t spectrum_sampling_rate { 0 };
-	size_t spectrum_bins { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
 };
 
 class WaterfallView : public Widget {
@@ -203,7 +242,7 @@ public:
 	}
 
 	void set_parent_rect(const Rect new_parent_rect) override {
-		constexpr Dim scale_height = 16;
+		constexpr Dim scale_height = 20;
 
 		View::set_parent_rect(new_parent_rect);
 		frequency_scale.set_parent_rect({ 0, 0, new_parent_rect.width(), scale_height });
