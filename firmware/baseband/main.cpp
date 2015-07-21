@@ -429,17 +429,6 @@ protected:
 		feed_audio_stats(audio);
 	}
 
-	void mute_audio_buffer() {
-		auto audio_buffer = audio::dma::tx_empty_buffer();;
-		for(size_t i=0; i<audio_buffer.count; i++) {
-			audio_buffer.p[i].left = audio_buffer.p[i].right = 0;
-		}
-		i2s::i2s0::tx_unmute();
-
-		// TODO: No hard-coded audio sampling rate!
-		mute_audio_stats(audio_buffer.count, 48000);
-	}
-
 private:
 	BlockDecimator<256> channel_spectrum_decimator { 4 };
 
@@ -468,16 +457,6 @@ private:
 	void feed_audio_stats(const buffer_s16_t audio) {
 		audio_stats.feed(
 			audio,
-			[this](const AudioStatistics statistics) {
-				this->post_audio_stats_message(statistics);
-			}
-		);
-	}
-
-	void mute_audio_stats(const size_t count, const size_t sampling_rate) {
-		audio_stats.mute(
-			count,
-			sampling_rate,
 			[this](const AudioStatistics statistics) {
 				this->post_audio_stats_message(statistics);
 			}
@@ -572,15 +551,19 @@ public:
 		auto audio = demod.execute(channel, work_audio_buffer);
 
 		static uint64_t audio_present_history = 0;
-		const auto audio_present = squelch.execute(audio);
-		audio_present_history = (audio_present_history << 1) | (audio_present ? 1 : 0);
+		const auto audio_present_now = squelch.execute(audio);
+		audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
+		const bool audio_present = (audio_present_history != 0);
 
-		if( audio_present_history ) {
-			audio_hpf.execute_in_place(audio);
-			fill_audio_buffer(audio);
-		} else {
-			mute_audio_buffer();
+		if( !audio_present ) {
+			// Zero audio buffer.
+			for(size_t i=0; i<audio.count; i++) {
+				audio.p[i] = 0;
+			}
 		}
+
+		audio_hpf.execute_in_place(audio);
+		fill_audio_buffer(audio);
 	}
 
 private:
@@ -727,7 +710,7 @@ public:
 
 		auto demodulated = demod.execute(channel, work_demod_buffer);
 
-		mute_audio_buffer();
+		i2s::i2s0::tx_mute();
 
 		for(size_t i=0; i<demodulated.count; i++) {
 			clock_recovery.execute(demodulated.p[i], symbol_handler_fn);
