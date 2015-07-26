@@ -19,15 +19,6 @@
 # Boston, MA 02110-1301, USA.
 #
 
-PATH_COMMON=../common
-PATH_APP_M0=../application
-TARGET_M0=$(PATH_APP_M0)/build/application
-APP_M0_SRC=$(PATH_APP_M0)/*.cpp $(PATH_APP_M0)/*.hpp $(PATH_COMMON)/*.cpp $(PATH_COMMON)/*.hpp
-
-PATH_APP_M4=../baseband
-TARGET_M4=$(PATH_APP_M4)/build/baseband
-APP_M4_SRC=$(PATH_APP_M4)/*.cpp $(PATH_APP_M4)/*.hpp $(PATH_COMMON)/*.cpp $(PATH_COMMON)/*.hpp
-
 TARGET=bootstrap
 
 CC=arm-none-eabi-gcc
@@ -58,20 +49,7 @@ LDOPT=-nostartfiles \
 	  -D__START=main \
 	  -Wl,-Map=$(TARGET).map,--cref,--no-warn-mismatch,--library-path=.,--script=m4.ld,--gc-sections
 
-all: image.bin
-
-list: $(TARGET).lst $(TARGET_M4).lst $(TARGET_M0).lst
-
-program: image.bin
-	dfu-util --device 1fc9 --download hackrf_one_usb_ram.dfu --reset
-	sleep 1s
-	hackrf_spiflash -w image.bin
-
-image.bin: $(TARGET).elf $(TARGET_M4).elf $(TARGET_M0).elf
-	$(CP) -O binary --pad-to 0x10000 $(TARGET).elf $(TARGET).bin
-	$(CP) -O binary --pad-to 0x10000 $(TARGET_M4).elf m4.bin
-	$(CP) -O binary $(TARGET_M0).elf m0.bin
-	cat $(TARGET).bin m4.bin m0.bin >image.bin
+all: $(TARGET).elf
 
 $(TARGET).lst: $(TARGET).elf
 	$(OBJDUMP) -S $(TARGET).elf >$(TARGET).lst
@@ -82,22 +60,5 @@ $(TARGET).elf: $(TARGET).o startup_ARMCM4.S
 $(TARGET).o: $(TARGET).c
 	$(CC) $(COPT) $(INCLUDE) -c -o $(TARGET).o $(TARGET).c
 
-$(TARGET_M4).lst: $(TARGET_M4).elf
-	$(OBJDUMP) -S $(TARGET_M4).elf >$(TARGET_M4).lst
-
-$(TARGET_M4).elf: $(PATH_APP_M4)/Makefile $(APP_M4_SRC)
-	$(MAKE) -C $(PATH_APP_M4) -f Makefile
-
-$(TARGET_M0).lst: $(TARGET_M0).elf
-	$(OBJDUMP) -S $(TARGET_M0).elf >$(TARGET_M0).lst
-
-$(TARGET_M0).elf: $(PATH_APP_M0)/Makefile $(APP_M0_SRC)
-	$(MAKE) -C $(PATH_APP_M0) -f Makefile
-
 clean:
-	rm -f image.bin m0.bin m4.bin
 	rm -f $(TARGET).o $(TARGET).elf $(TARGET).bin $(TARGET).lst $(TARGET).map
-	$(MAKE) -C $(PATH_APP_M4) -f Makefile clean
-	rm -f $(TARGET_M4).lst
-	$(MAKE) -C $(PATH_APP_M0) -f Makefile clean
-	rm -f $(TARGET_M0).lst
