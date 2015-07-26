@@ -26,6 +26,7 @@
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 #include "baseband_sgpio.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "tuning.hpp"
 
@@ -117,7 +118,7 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
-	rf::Frequency corrected_frequency = frequency * (1000000 - 10) / 1000000;
+	rf::Frequency corrected_frequency = frequency * (1000000 + shared_memory.correction_ppm) / 1000000;
 	const auto tuning_config = tuning::config::create(corrected_frequency);
 	if( tuning_config.is_valid() ) {
 		first_if.disable();
