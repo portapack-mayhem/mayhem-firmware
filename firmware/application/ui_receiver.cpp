@@ -295,7 +295,12 @@ FrequencyOptionsView::FrequencyOptionsView(
 	add_children({ {
 		&text_step,
 		&options_step,
+		&text_correction,
+		&field_ppm,
+		&text_ppm,
 	} });
+
+	field_ppm.set_value(0);
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {

@@ -283,6 +283,24 @@ private:
 	};
 
 	void on_step_changed(rf::Frequency v);
+
+	Text text_correction {
+		{ 17 * 8, 0 * 16, 5 * 8, 16 },
+		"Corr.",
+	};
+
+	NumberField field_ppm {
+		{ 23 * 8, 0 * 16 },
+		3,
+		{ -99, 99 },
+		1,
+		'0',
+	};
+
+	Text text_ppm {
+		{ 27 * 8, 0 * 16, 3 * 8, 16 },
+		"PPM",
+	};
 };
 
 class RadioGainOptionsView : public View {
