@@ -98,6 +98,47 @@ SetDateTimeModel SetDateTimeView::form_collect() {
 	};
 }
 
+SetFrequencyCorrectionView::SetFrequencyCorrectionView(
+	NavigationView& nav
+) {
+	button_ok.on_select = [&nav, this](Button&){
+		const auto model = this->form_collect();
+		nav.pop();
+	},
+
+	button_cancel.on_select = [&nav](Button&){
+		nav.pop();
+	},
+
+	add_children({ {
+		&text_title,
+		&field_ppm,
+		&text_ppm,
+		&button_ok,
+		&button_cancel,
+	} });
+
+	SetFrequencyCorrectionModel model {
+		0
+	};
+
+	form_init(model);
+}
+
+void SetFrequencyCorrectionView::focus() {
+	button_cancel.focus();
+}
+
+void SetFrequencyCorrectionView::form_init(const SetFrequencyCorrectionModel model) {
+	field_ppm.set_value(model.ppm);
+}
+
+SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
+	return {
+		.ppm = static_cast<int8_t>(field_ppm.value()),
+	};
+}
+
 AboutView::AboutView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
@@ -115,8 +156,9 @@ void AboutView::focus() {
 }
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<2>({ {
+	add_items<3>({ {
 		{ "Date/Time", [&nav](){ nav.push(new SetDateTimeView { nav }); } },
+		{ "Frequency Correction", [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
 		{ "Touch",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };

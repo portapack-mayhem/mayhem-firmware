@@ -117,7 +117,8 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
-	const auto tuning_config = tuning::config::create(frequency);
+	rf::Frequency corrected_frequency = frequency * (1000000 - 10) / 1000000;
+	const auto tuning_config = tuning::config::create(corrected_frequency);
 	if( tuning_config.is_valid() ) {
 		first_if.disable();
 

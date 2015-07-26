@@ -132,6 +132,50 @@ private:
 	SetDateTimeModel form_collect();
 };
 
+struct SetFrequencyCorrectionModel {
+	int8_t ppm;
+};
+
+class SetFrequencyCorrectionView : public View {
+public:
+	std::function<void(SetFrequencyCorrectionModel)> on_ok;
+	std::function<void()> on_cancel;
+
+	SetFrequencyCorrectionView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	Text text_title {
+		{ 5 * 8, 7 * 16, 20 * 8, 16 },
+		"Frequency Correction"
+	};
+
+	NumberField field_ppm {
+		{ 11 * 8, 9 * 16 },
+		3,
+		{ -50, 50 },
+		1,
+		'0',
+	};
+	Text text_ppm {
+		{ 15 * 8, 9 * 16, 3 * 8, 16 },
+		"PPM",
+	};
+
+	Button button_ok {
+		{ 4 * 8, 13 * 16, 8 * 8, 24 },
+		"OK",
+	};
+	Button button_cancel {
+		{ 18 * 8, 13 * 16, 8 * 8, 24 },
+		"Cancel",
+	};
+
+	void form_init(const SetFrequencyCorrectionModel model);
+	SetFrequencyCorrectionModel form_collect();
+};
+
 class AboutView : public View {
 public:
 	AboutView(NavigationView& nav);
