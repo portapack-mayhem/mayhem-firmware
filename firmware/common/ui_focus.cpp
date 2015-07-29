@@ -100,7 +100,7 @@ void FocusManager::update(
 		const auto test_fn = [&center, event](ui::Widget* const w) -> test_result_t {
 			// if( w->visible() && w->focusable() ) {
 			if( w->focusable() ) {
-				const Point p = w->screen_rect().center() - center;
+				const Point delta = w->screen_rect().center() - center;
 
 				/* Heuristic to compute closeness. */
 				/* TODO: Look at metric involving overlap of current
@@ -109,26 +109,42 @@ void FocusManager::update(
 				 */
 				switch(event) {
 				case KeyEvent::Right:
-					if( p.x > 0 ) {
-						return { w, p.x * (abs(p.y) + 1) };
+					if( delta.x > 0 ) {
+						if( delta.y == 0 ) {
+							return { w, delta.x };
+						} else {
+							return { w, delta.x * abs(delta.y) + 1000 };
+						}
 					}
 					break;
 
 				case KeyEvent::Left:
-					if( p.x < 0 ) {
-						return { w, -p.x * (abs(p.y) + 1) };
+					if( delta.x < 0 ) {
+						if( delta.y == 0 ) {
+							return { w, -delta.x };
+						} else {
+							return { w, -delta.x * abs(delta.y) + 1000 };
+						}
 					}
 					break;
 
 				case KeyEvent::Down:
-					if( p.y > 0 ) {
-						return { w, p.y * (abs(p.x) + 1) };
+					if( delta.y > 0 ) {
+						if( delta.x == 0 ) {
+							return { w, delta.y };
+						} else {
+							return { w, delta.y * abs(delta.x) + 1000 };
+						}
 					}
 					break;
 
 				case KeyEvent::Up:
-					if( p.y < 0 ) {
-						return { w, -p.y * (abs(p.x) + 1) };
+					if( delta.y < 0 ) {
+						if( delta.x == 0 ) {
+							return { w, -delta.y };
+						} else {
+							return { w, -delta.y * abs(delta.x) + 1000 };
+						}
 					}
 					break;
 
