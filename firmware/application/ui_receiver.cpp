@@ -292,6 +292,10 @@ FrequencyOptionsView::FrequencyOptionsView(
 		this->on_step_changed(v);
 	};
 
+	field_ppm.on_change = [this](int32_t v) {
+		this->on_reference_ppm_correction_changed(v);
+	};
+
 	add_children({ {
 		&text_step,
 		&options_step,
@@ -299,18 +303,25 @@ FrequencyOptionsView::FrequencyOptionsView(
 		&field_ppm,
 		&text_ppm,
 	} });
-
-	field_ppm.set_value(0);
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
 	options_step.set_by_value(f);
 }
 
+void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {
+	field_ppm.set_value(v);
+}
 
 void FrequencyOptionsView::on_step_changed(rf::Frequency v) {
 	if( on_change_step ) {
 		on_change_step(v);
+	}
+}
+
+void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
+	if( on_change_reference_ppm_correction ) {
+		on_change_reference_ppm_correction(v);
 	}
 }
 
@@ -468,6 +479,10 @@ ReceiverView::ReceiverView(
 	view_frequency_options.on_change_step = [this](rf::Frequency f) {
 		this->on_frequency_step_changed(f);
 	};
+	view_frequency_options.set_reference_ppm_correction(receiver_model.reference_ppm_correction());
+	view_frequency_options.on_change_reference_ppm_correction = [this](int32_t v) {
+		this->on_reference_ppm_correction_changed(v);
+	};
 
 	view_rf_gain_options.hidden(true);
 	view_rf_gain_options.set_rf_amp(receiver_model.rf_amp());
@@ -548,6 +563,10 @@ void ReceiverView::on_show_options_rf_gain() {
 void ReceiverView::on_frequency_step_changed(rf::Frequency f) {
 	receiver_model.set_frequency_step(f);
 	field_frequency.set_step(f);
+}
+
+void ReceiverView::on_reference_ppm_correction_changed(int32_t v) {
+	receiver_model.set_reference_ppm_correction(v);
 }
 
 void ReceiverView::on_headphone_volume_changed(int32_t v) {

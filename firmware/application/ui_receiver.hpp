@@ -256,10 +256,12 @@ private:
 class FrequencyOptionsView : public View {
 public:
 	std::function<void(rf::Frequency)> on_change_step;
+	std::function<void(int32_t)> on_change_reference_ppm_correction;
 
 	FrequencyOptionsView(const Rect parent_rect, const Style* const style);
 
 	void set_step(rf::Frequency f);
+	void set_reference_ppm_correction(int32_t v);
 
 private:
 	Text text_step {
@@ -283,6 +285,7 @@ private:
 	};
 
 	void on_step_changed(rf::Frequency v);
+	void on_reference_ppm_correction_changed(int32_t v);
 
 	Text text_correction {
 		{ 17 * 8, 0 * 16, 5 * 8, 16 },
@@ -451,6 +454,7 @@ private:
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
 	void on_frequency_step_changed(rf::Frequency f);
+	void on_reference_ppm_correction_changed(int32_t v);
 	void on_headphone_volume_changed(int32_t v);
 //	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
