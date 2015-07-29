@@ -21,9 +21,6 @@
 
 #include "ui_receiver.hpp"
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
-
 // TODO: Nasty. Put this in an #include somewhere, or a shared system state
 // object?
 
@@ -402,7 +399,6 @@ ReceiverView::ReceiverView(
 		&field_vga,
 		&options_modulation,
 		//&options_baseband_oversampling,
-		&field_vregmode,
 		&field_volume,
 		&view_frequency_options,
 		&view_rf_gain_options,
@@ -462,13 +458,6 @@ ReceiverView::ReceiverView(
 		this->on_baseband_oversampling_changed(v);
 	};
 */
-	field_vregmode.set_value(0);
-	field_vregmode.on_change = [](int32_t v) {
-		gpio_vregmode.write(v);
-		gpio_vregmode.output();
-		led_rx.write(v);
-	};
-
 	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
