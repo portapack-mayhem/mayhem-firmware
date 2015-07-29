@@ -47,6 +47,15 @@ void ReceiverModel::set_frequency_step(rf::Frequency f) {
 	frequency_step_ = f;
 }
 
+int32_t ReceiverModel::reference_ppm_correction() const {
+	return shared_memory.correction_ppm;
+}
+
+void ReceiverModel::set_reference_ppm_correction(int32_t v) {
+	shared_memory.correction_ppm = v;
+	update_tuning_frequency();
+}
+
 bool ReceiverModel::rf_amp() const {
 	return rf_amp_;
 }

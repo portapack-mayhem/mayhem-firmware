@@ -45,6 +45,9 @@ public:
 	rf::Frequency frequency_step() const;
 	void set_frequency_step(rf::Frequency f);
 
+	int32_t reference_ppm_correction() const;
+	void set_reference_ppm_correction(int32_t v);
+
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
