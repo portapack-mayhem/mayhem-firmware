@@ -49,7 +49,7 @@ release: $(TARGET).bin $(DFU_HACKRF) $(LICENSE)
 	rm -f LICENSE
 
 program: $(TARGET).bin
-	dfu-util --device 1fc9 --download hackrf_one_usb_ram.dfu --reset
+	dfu-util --device 1fc9:000c --download hackrf_one_usb_ram.dfu --reset
 	sleep 1s
 	hackrf_spiflash -w $(TARGET).bin
 
