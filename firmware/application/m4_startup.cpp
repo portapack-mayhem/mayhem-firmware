@@ -27,7 +27,7 @@
 #include <cstddef>
 #include <cstring>
 
-static constexpr uint32_t m4_text_flash_image_offset = 0x10000;
+static constexpr uint32_t m4_text_flash_image_offset = 0x20000;
 static constexpr size_t m4_text_size = 0x8000;
 static constexpr uint32_t m4_text_flash_base = LPC_SPIFI_DATA_CACHED_BASE + m4_text_flash_image_offset;
 static constexpr uint32_t m4_text_ram_base = 0x10080000;

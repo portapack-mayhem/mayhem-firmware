@@ -99,7 +99,7 @@ int main(void) {
 	/* NOTE: MEMMAP registers are ORed with the shadow address to create the
 	 * actual address.
 	 */
-	LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x20000;
+	LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x40000;
 
 	/* Change M0APP_RST to 0 */
 	LPC_RGU->RESET_CTRL[1] = 0;
