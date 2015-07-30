@@ -65,14 +65,14 @@ $(TARGET_M4)_pad.bin: $(TARGET_M4).elf
 $(TARGET_M0).bin: $(TARGET_M0).elf
 	$(CP) -O binary $(TARGET_M0).elf $(TARGET_M0).bin
 
-$(TARGET_M4).elf:
-	$(MAKE) -C $(PATH_APP_M4)
+$(TARGET_M4).elf: always_check
+	@$(MAKE) -s -C $(PATH_APP_M4)
 
-$(TARGET_M0).elf:
-	$(MAKE) -C $(PATH_APP_M0)
+$(TARGET_M0).elf: always_check
+	@$(MAKE) -s -C $(PATH_APP_M0)
 
-$(TARGET_BOOTSTRAP).elf:
-	$(MAKE) -C $(PATH_BOOTSTRAP)
+$(TARGET_BOOTSTRAP).elf: always_check
+	@$(MAKE) -s -C $(PATH_BOOTSTRAP)
 
 clean:
 	rm -f $(TARGET).bin
@@ -82,3 +82,6 @@ clean:
 	$(MAKE) -C $(PATH_APP_M4) clean
 	$(MAKE) -C $(PATH_APP_M0) clean
 	$(MAKE) -C $(PATH_BOOTSTRAP) clean
+
+always_check:
+	@true
