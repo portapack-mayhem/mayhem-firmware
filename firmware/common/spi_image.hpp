@@ -45,7 +45,7 @@ constexpr region_t bootstrap {
 };
 
 constexpr region_t hackrf {
-	.offset = 0x10000,
+	.offset = 0x10010,	// Image starts at 0x10 into .dfu file.
 	.size = 0x8000,
 };
 
