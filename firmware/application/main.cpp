@@ -59,6 +59,7 @@ using namespace hackrf::one;
 #include "spi_pp.hpp"
 
 #include "m4_startup.hpp"
+#include "spi_image.hpp"
 
 #include "debug.hpp"
 #include "led.hpp"
@@ -649,7 +650,8 @@ context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
 };
 
 	m4txevent_interrupt_enable();
-	m4_init();
+
+	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
 
 	while(true) {
 		const auto events = event_dispatcher.wait();

@@ -22,6 +22,10 @@
 #ifndef __M4_STARTUP_H__
 #define __M4_STARTUP_H__
 
-void m4_init();
+#include <cstddef>
+
+#include "spi_image.hpp"
+
+void m4_init(const portapack::spi_flash::region_t from, void* const to);
 
 #endif/*__M4_STARTUP_H__*/

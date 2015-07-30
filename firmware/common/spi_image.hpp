@@ -19,28 +19,50 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "m4_startup.hpp"
+#ifndef __SPI_IMAGE_H__
+#define __SPI_IMAGE_H__
+
+#include <cstdint>
+#include <cstddef>
 
 #include "hal.h"
 
-#include <cstring>
+namespace portapack {
+namespace spi_flash {
 
-/* TODO: OK, this is cool, but how do I put the M4 to sleep so I can switch to
- * a different image? Other than asking the old image to sleep while the M0
- * makes changes?
- *
- * I suppose I could force M4MEMMAP to an invalid memory reason which would
- * cause an exception and effectively halt the M4. But that feels gross.
- */
-void m4_init(const portapack::spi_flash::region_t from, void* const to) {
-	/* Initialize M4 code RAM */
-	std::memcpy(to, from.base_address(), from.size);
+struct region_t {
+	const size_t offset;
+	const size_t size;
 
-	/* M4 core is assumed to be sleeping with interrupts off, so we can mess
-	 * with its address space and RAM without concern.
-	 */
-	LPC_CREG->M4MEMMAP = reinterpret_cast<uint32_t>(to);
+	constexpr const void* base_address() {
+		return reinterpret_cast<void*>(LPC_SPIFI_DATA_CACHED_BASE + offset);
+	}
+};
 
-	/* Reset M4 core */
-	LPC_RGU->RESET_CTRL[0] = (1 << 13);
-}
+constexpr region_t bootstrap {
+	.offset = 0x00000,
+	.size = 0x10000,
+};
+
+constexpr region_t hackrf {
+	.offset = 0x10000,
+	.size = 0x8000,
+};
+
+constexpr region_t baseband {
+	.offset = 0x20000,
+	.size = 0x8000,
+};
+
+constexpr region_t application {
+	.offset = 0x40000,
+	.size = 0x40000,
+};
+
+// TODO: Refactor into another header that defines memory regions.
+constexpr void* m4_text_ram_base = reinterpret_cast<void*>(0x10080000);
+
+} /* namespace spi_flash */
+} /* namespace portapack */
+
+#endif/*__SPI_IMAGE_H__*/
