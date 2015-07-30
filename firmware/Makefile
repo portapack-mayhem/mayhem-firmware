@@ -20,17 +20,17 @@
 #
 
 PATH_BOOTSTRAP=bootstrap
-PATH_APP_M0=application
-PATH_APP_M4=baseband
+PATH_APPLICATION=application
+PATH_BASEBAND=baseband
 
 PAD_BOOTSTRAP=0x10000
-PAD_M4=0x10000
+PAD_BASEBAND=0x10000
 
 TARGET=portapack-h1-firmware
 
 TARGET_BOOTSTRAP=$(PATH_BOOTSTRAP)/bootstrap
-TARGET_M0=$(PATH_APP_M0)/build/application
-TARGET_M4=$(PATH_APP_M4)/build/baseband
+TARGET_APPLICATION=$(PATH_APPLICATION)/build/application
+TARGET_BASEBAND=$(PATH_BASEBAND)/build/baseband
 
 DFU_HACKRF=hackrf_one_usb_ram.dfu
 LICENSE=../LICENSE
@@ -53,23 +53,23 @@ program: $(TARGET).bin
 	sleep 1s
 	hackrf_spiflash -w $(TARGET).bin
 
-$(TARGET).bin: $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_M4)_pad.bin $(TARGET_M0).bin
-	cat $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_M4)_pad.bin $(TARGET_M0).bin >$(TARGET).bin
+$(TARGET).bin: $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin
+	cat $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin >$(TARGET).bin
 
 $(TARGET_BOOTSTRAP)_pad.bin: $(TARGET_BOOTSTRAP).elf
 	$(CP) -O binary --pad-to $(PAD_BOOTSTRAP) $(TARGET_BOOTSTRAP).elf $(TARGET_BOOTSTRAP)_pad.bin
 
-$(TARGET_M4)_pad.bin: $(TARGET_M4).elf
-	$(CP) -O binary --pad-to $(PAD_M4) $(TARGET_M4).elf $(TARGET_M4)_pad.bin
+$(TARGET_BASEBAND)_pad.bin: $(TARGET_BASEBAND).elf
+	$(CP) -O binary --pad-to $(PAD_BASEBAND) $(TARGET_BASEBAND).elf $(TARGET_BASEBAND)_pad.bin
 
-$(TARGET_M0).bin: $(TARGET_M0).elf
-	$(CP) -O binary $(TARGET_M0).elf $(TARGET_M0).bin
+$(TARGET_APPLICATION).bin: $(TARGET_APPLICATION).elf
+	$(CP) -O binary $(TARGET_APPLICATION).elf $(TARGET_APPLICATION).bin
 
-$(TARGET_M4).elf: always_check
-	@$(MAKE) -s -C $(PATH_APP_M4)
+$(TARGET_BASEBAND).elf: always_check
+	@$(MAKE) -s -C $(PATH_BASEBAND)
 
-$(TARGET_M0).elf: always_check
-	@$(MAKE) -s -C $(PATH_APP_M0)
+$(TARGET_APPLICATION).elf: always_check
+	@$(MAKE) -s -C $(PATH_APPLICATION)
 
 $(TARGET_BOOTSTRAP).elf: always_check
 	@$(MAKE) -s -C $(PATH_BOOTSTRAP)
@@ -77,10 +77,10 @@ $(TARGET_BOOTSTRAP).elf: always_check
 clean:
 	rm -f $(TARGET).bin
 	rm -f $(TARGET_BOOTSTRAP)_pad.bin
-	rm -f $(TARGET_M4)_pad.bin
-	rm -f $(TARGET_M0).bin
-	$(MAKE) -C $(PATH_APP_M4) clean
-	$(MAKE) -C $(PATH_APP_M0) clean
+	rm -f $(TARGET_BASEBAND)_pad.bin
+	rm -f $(TARGET_APPLICATION).bin
+	$(MAKE) -C $(PATH_BASEBAND) clean
+	$(MAKE) -C $(PATH_APPLICATION) clean
 	$(MAKE) -C $(PATH_BOOTSTRAP) clean
 
 always_check:
