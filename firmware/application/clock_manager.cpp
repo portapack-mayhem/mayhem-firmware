@@ -296,6 +296,11 @@ void ClockManager::init() {
 	clock_generator.reset_plls();
 }
 
+void ClockManager::shutdown() {
+	run_from_irc();
+	clock_generator.reset();
+}
+
 void ClockManager::run_from_irc() {
 	change_clock_configuration(cgu::CLK_SEL::IRC);
 }
