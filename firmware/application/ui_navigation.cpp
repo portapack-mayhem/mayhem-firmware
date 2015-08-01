@@ -97,13 +97,14 @@ void NavigationView::focus() {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<6>({ {
-		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
+	add_items<7>({ {
+		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, portapack::receiver_model }); } },
 		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
 		{ "About",    [&nav](){ nav.push(new AboutView          { nav }); } },
 		{ "Debug",    [&nav](){ nav.push(new DebugMenuView      { nav }); } },
+		{ "HackRF",   [&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
 	} });
 }
 
@@ -144,6 +145,29 @@ SystemView::SystemView(
 
 Context& SystemView::context() const {
 	return context_;
+}
+
+/* HackRFFirmwareView ****************************************************/
+
+HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
+	button_yes.on_select = [&nav](Button&){
+		// TODO: Clear screen?
+		portapack::shutdown();
+	};
+
+	button_no.on_select = [&nav](Button&){
+		nav.pop();
+	};
+
+	add_children({ {
+		&text_title,
+		&button_yes,
+		&button_no,
+	} });
+}
+
+void HackRFFirmwareView::focus() {
+	button_no.focus();
 }
 
 /* NotImplementedView ****************************************************/
