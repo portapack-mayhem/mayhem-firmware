@@ -115,8 +115,8 @@ public:
 
 private:
 	Text text_title {
-		{ 5 * 8, 7 * 16, 19 * 8, 16 },
-		"Execute HackRF Firmware?"
+		{ 6 * 8, 7 * 16, 19 * 8, 16 },
+		"Enter HackRF Mode?"
 	};
 
 	Button button_yes {
