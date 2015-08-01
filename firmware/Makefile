@@ -23,12 +23,15 @@ PATH_BOOTSTRAP=bootstrap
 PATH_APPLICATION=application
 PATH_BASEBAND=baseband
 
+# TODO: Pass these (as #defines?) to Makefiles, use values in code.
 PAD_BOOTSTRAP=0x10000
-PAD_BASEBAND=0x10000
+PAD_HACKRF_FIRMWARE=0x10000
+PAD_BASEBAND=0x20000
 
 TARGET=portapack-h1-firmware
 
 TARGET_BOOTSTRAP=$(PATH_BOOTSTRAP)/bootstrap
+TARGET_HACKRF_FIRMWARE=hackrf_one_usb_ram
 TARGET_APPLICATION=$(PATH_APPLICATION)/build/application
 TARGET_BASEBAND=$(PATH_BASEBAND)/build/baseband
 
@@ -53,11 +56,16 @@ program: $(TARGET).bin
 	sleep 1s
 	hackrf_spiflash -w $(TARGET).bin
 
-$(TARGET).bin: $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin
-	cat $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin >$(TARGET).bin
+$(TARGET).bin: $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_HACKRF_FIRMWARE)_dfu_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin
+	cat $(TARGET_BOOTSTRAP)_pad.bin $(TARGET_HACKRF_FIRMWARE)_dfu_pad.bin $(TARGET_BASEBAND)_pad.bin $(TARGET_APPLICATION).bin >$(TARGET).bin
 
 $(TARGET_BOOTSTRAP)_pad.bin: $(TARGET_BOOTSTRAP).elf
 	$(CP) -O binary --pad-to $(PAD_BOOTSTRAP) $(TARGET_BOOTSTRAP).elf $(TARGET_BOOTSTRAP)_pad.bin
+
+$(TARGET_HACKRF_FIRMWARE)_dfu_pad.bin: $(TARGET_HACKRF_FIRMWARE).dfu
+	# TODO: Not confident this is reliable. It certainly won't work on Windows.
+	cp $(TARGET_HACKRF_FIRMWARE).dfu $(TARGET_HACKRF_FIRMWARE)_dfu_pad.bin
+	dd if=/dev/null of=$(TARGET_HACKRF_FIRMWARE)_dfu_pad.bin bs=1 count=1 seek=$(PAD_HACKRF_FIRMWARE)
 
 $(TARGET_BASEBAND)_pad.bin: $(TARGET_BASEBAND).elf
 	$(CP) -O binary --pad-to $(PAD_BASEBAND) $(TARGET_BASEBAND).elf $(TARGET_BASEBAND)_pad.bin

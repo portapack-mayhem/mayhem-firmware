@@ -107,6 +107,29 @@ private:
 	Context& context_;
 };
 
+class HackRFFirmwareView : public View {
+public:
+	HackRFFirmwareView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	Text text_title {
+		{ 6 * 8, 7 * 16, 19 * 8, 16 },
+		"Enter HackRF Mode?"
+	};
+
+	Button button_yes {
+		{ 4 * 8, 13 * 16, 8 * 8, 24 },
+		"Yes",
+	};
+
+	Button button_no {
+		{ 18 * 8, 13 * 16, 8 * 8, 24 },
+		"No",
+	};
+};
+
 class NotImplementedView : public View {
 public:
 	NotImplementedView(NavigationView& nav);

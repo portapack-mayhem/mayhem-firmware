@@ -29,7 +29,6 @@
 
 #include "utility.hpp"
 
-#include "lcd_ili9341.hpp"
 #include "message.hpp"
 
 #include <memory>
@@ -48,7 +47,6 @@ std::string to_string_hex(const uint32_t n, const int32_t l = 0);
 
 struct Context {
 	FocusManager focus_manager;
-	lcd::ILI9341 display;
 	MessageHandlerMap message_map;
 };
 

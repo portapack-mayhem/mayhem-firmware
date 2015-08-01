@@ -22,13 +22,8 @@
 #include "receiver_model.hpp"
 
 #include "portapack_shared_memory.hpp"
-#include "radio.hpp"
-#include "wm8731.hpp"
-
-// TODO: Nasty. Put this in an #include somewhere, or a shared system state
-// object?
-
-extern wolfson::wm8731::WM8731 audio_codec;
+#include "portapack.hpp"
+using namespace portapack;
 
 rf::Frequency ReceiverModel::tuning_frequency() const {
 	return tuning_frequency_;

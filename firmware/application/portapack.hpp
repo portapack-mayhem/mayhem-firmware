@@ -19,43 +19,30 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_PAINTER_H__
-#define __UI_PAINTER_H__
+#include "portapack_io.hpp"
 
-#include "ui.hpp"
-#include "ui_text.hpp"
+#include "receiver_model.hpp"
 
-#include <string>
+#include "spi_pp.hpp"
+#include "wm8731.hpp"
+#include "lcd_ili9341.hpp"
 
-namespace ui {
+#include "radio.hpp"
 
-struct Style {
-	const Font& font;
-	const Color background;
-	const Color foreground;
+namespace portapack {
 
-	Style invert() const;
-};
+extern portapack::IO io;
 
-class Painter {
-public:
-	Painter() { };
+extern lcd::ILI9341 display;
 
-	Painter(const Painter&) = delete;
-	Painter(Painter&&) = delete;
+extern SPI ssp0;
+extern SPI ssp1;
 
-	size_t draw_char(const Point p, const Style& style, const char c);
+extern wolfson::wm8731::WM8731 audio_codec;
 
-	size_t draw_string(Point p, const Style& style, const std::string text);
+extern ReceiverModel receiver_model;
 
-	void draw_rectangle(const Rect r, const Color c);
-	void fill_rectangle(const Rect r, const Color c);
+void init();
+void shutdown();
 
-private:
-	void draw_hline(Point p, size_t width, const Color c);
-	void draw_vline(Point p, size_t height, const Color c);
-};
-
-} /* namespace ui */
-
-#endif/*__UI_PAINTER_H__*/
+} /* namespace portapack */

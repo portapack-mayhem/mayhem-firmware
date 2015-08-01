@@ -22,32 +22,20 @@
 #include "ch.h"
 #include "test.h"
 
-#include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
 
+#include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
-#include "portapack_hal.hpp"
-#include "portapack_io.hpp"
 
 #include "cpld_update.hpp"
 
 #include "message_queue.hpp"
 
-#include "si5351.hpp"
-#include "clock_manager.hpp"
-
-#include "wm8731.hpp"
-#include "radio.hpp"
-#include "touch.hpp"
-#include "touch_adc.hpp"
-
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_navigation.hpp"
-
-#include "receiver_model.hpp"
 
 #include "irq_ipc.hpp"
 #include "irq_lcd_frame.hpp"
@@ -55,10 +43,8 @@ using namespace hackrf::one;
 
 #include "event.hpp"
 
-#include "i2c_pp.hpp"
-#include "spi_pp.hpp"
-
 #include "m4_startup.hpp"
+#include "spi_image.hpp"
 
 #include "debug.hpp"
 #include "led.hpp"
@@ -66,12 +52,6 @@ using namespace hackrf::one;
 #include "gcc.hpp"
 
 #include <string.h>
-
-I2C i2c0(&I2CD0);
-SPI ssp0(&SPID1);
-SPI ssp1(&SPID2);
-
-wolfson::wm8731::WM8731 audio_codec { i2c0, portapack::wm8731_i2c_address };
 
 /* From ChibiOS crt0.c:
  * Two stacks available for Cortex-M, main stack or process stack.
@@ -145,112 +125,6 @@ static spi_bus_t ssp0 = {
  *		Destructors
  *		_default_exit() (default is infinite loop)
  */
-
-si5351::Si5351 clock_generator {
-	i2c0, si5351_i2c_address
-};
-
-ClockManager clock_manager {
-	i2c0, clock_generator
-};
-
-ReceiverModel receiver_model {
-	clock_manager
-};
-
-class Power {
-public:
-	void init() {
-		/* VAA powers:
-		 * MAX5864 analog section.
-		 * MAX2837 registers and other functions.
-		 * RFFC5072 analog section.
-		 *
-		 * Beware that power applied to pins of the MAX2837 may
-		 * show up on VAA and start powering other components on the
-		 * VAA net. So turn on VAA before driving pins from MCU to
-		 * MAX2837.
-		 */
-		/* Turn on VAA */
-		gpio_vaa_disable.clear();
-		gpio_vaa_disable.output();
-
-		/* 1V8 powers CPLD internals.
-		 */
-		/* Turn on 1V8 */
-		gpio_1v8_enable.set();
-		gpio_1v8_enable.output();
-
-		/* Set VREGMODE for switching regulator on HackRF One */
-		gpio_vregmode.set();
-		gpio_vregmode.output();
-	}
-
-private:
-};
-
-static Power power;
-
-static void init() {
-	for(const auto& pin : pins) {
-		pin.init();
-	}
-
-	/* Configure other pins */
-	LPC_SCU->SFSI2C0 =
-		  (1U <<  3)
-		| (1U << 11)
-		;
-
-	power.init();
-
-	gpio_max5864_select.set();
-	gpio_max5864_select.output();
-
-	gpio_max2837_select.set();
-	gpio_max2837_select.output();
-
-	led_usb.setup();
-	led_rx.setup();
-	led_tx.setup();
-
-	clock_manager.init();
-	clock_manager.run_at_full_speed();
-
-	clock_manager.start_audio_pll();
-	audio_codec.init();
-
-	clock_manager.enable_first_if_clock();
-	clock_manager.enable_second_if_clock();
-	clock_manager.enable_codec_clocks();
-	radio::init();
-
-	touch::adc::init();
-}
-
-extern "C" {
-
-void __late_init(void) {
-
-	reset();
-
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
-
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
-}
-
-}
 
 extern "C" {
 
@@ -600,18 +474,8 @@ message_handlers[Message::ID::TestResults] = [&system_view](const Message* const
 };
 */
 
-portapack::IO portapack::io {
-	portapack::gpio_dir,
-	portapack::gpio_lcd_rd,
-	portapack::gpio_lcd_wr,
-	portapack::gpio_io_stbx,
-	portapack::gpio_addr,
-	portapack::gpio_lcd_te,
-	portapack::gpio_unused,
-};
-
 int main(void) {
-	init();
+	portapack::init();
 
 	if( !cpld_update_if_necessary() ) {
 		chSysHalt();
@@ -622,7 +486,7 @@ int main(void) {
 
 	portapack::io.init();
 	ui::Context context;
-	context.display.init();
+	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
 
@@ -639,17 +503,17 @@ int main(void) {
 		context,
 		{ 0, 0, 240, 320 }
 	};
-	ui::Painter painter { context.display };
+	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
 context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
 	const auto message = static_cast<const FSKPacketMessage*>(p);
 	(void)message;
-	led_usb.toggle();
 };
 
 	m4txevent_interrupt_enable();
-	m4_init();
+
+	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
 
 	while(true) {
 		const auto events = event_dispatcher.wait();

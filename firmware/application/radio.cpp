@@ -36,8 +36,7 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
-#include "spi_pp.hpp"
-extern SPI ssp1;
+#include "portapack.hpp"
 
 namespace radio {
 
@@ -75,7 +74,7 @@ static constexpr SPIConfig ssp_config_max5864 = {
 	.cpsr = ssp1_cpsr,
 };
 
-static spi::arbiter::Arbiter ssp1_arbiter(ssp1);
+static spi::arbiter::Arbiter ssp1_arbiter(portapack::ssp1);
 
 static spi::arbiter::Target ssp1_target_max2837 {
 	ssp1_arbiter,

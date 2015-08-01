@@ -26,7 +26,9 @@
 #include "ui_widget.hpp"
 #include "spectrum_color_lut.hpp"
 
-#include "lcd_ili9341.hpp"
+#include "portapack.hpp"
+using namespace portapack;
+
 #include "message.hpp"
 
 #include <cstdint>
@@ -180,14 +182,14 @@ class WaterfallView : public Widget {
 public:
 	void on_show() override {
 		const auto screen_r = screen_rect();
-		context().display.scroll_set_area(screen_r.top(), screen_r.bottom());
+		display.scroll_set_area(screen_r.top(), screen_r.bottom());
 	}
 
 	void on_hide() override {
 		/* TODO: Clear region to eliminate brief flash of content at un-shifted
 		 * position?
 		 */
-		context().display.scroll_disable();
+		display.scroll_disable();
 	}
 
 	void paint(Painter& painter) override {
@@ -212,7 +214,6 @@ public:
 			pixel_row[i] = pixel_color;
 		}
 
-		auto& display = context().display;
 		const auto draw_y = display.scroll(1);
 
 		display.draw_pixels(

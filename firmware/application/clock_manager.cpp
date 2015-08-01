@@ -296,6 +296,11 @@ void ClockManager::init() {
 	clock_generator.reset_plls();
 }
 
+void ClockManager::shutdown() {
+	run_from_irc();
+	clock_generator.reset();
+}
+
 void ClockManager::run_from_irc() {
 	change_clock_configuration(cgu::CLK_SEL::IRC);
 }
@@ -377,13 +382,13 @@ void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {
 
 	set_m4_clock_to_irc();
 
+	update_peripheral_clocks(clk_sel);
+
 	if( clk_sel == cgu::CLK_SEL::PLL1 ) {
 		set_m4_clock_to_pll1();
 	} else {
 		power_down_pll1();
 	}
-
-	update_peripheral_clocks(clk_sel);
 
 	start_peripherals(clk_sel);
 
@@ -393,6 +398,7 @@ void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {
 
 	/* If not using PLL1, disable clock feeding GP_CLKIN */
 	if( clk_sel != cgu::CLK_SEL::PLL1 ) {
+		stop_audio_pll();
 		disable_gp_clkin_source();
 	}
 }

@@ -43,6 +43,7 @@ public:
 	}
 
 	void init();
+	void shutdown();
 
 	void run_from_irc();
 	void run_at_full_speed();

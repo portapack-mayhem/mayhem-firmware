@@ -21,6 +21,9 @@
 
 #include "ui_painter.hpp"
 
+#include "portapack.hpp"
+using namespace portapack;
+
 namespace ui {
 
 Style Style::invert() const {
@@ -33,7 +36,7 @@ Style Style::invert() const {
 
 size_t Painter::draw_char(const Point p, const Style& style, const char c) {
 	const auto glyph = style.font.glyph(c);
-	display_.draw_glyph(p, glyph, style.foreground, style.background);
+	display.draw_glyph(p, glyph, style.foreground, style.background);
 	return glyph.advance().x;
 }
 
@@ -41,7 +44,7 @@ size_t Painter::draw_string(Point p, const Style& style, const std::string text)
 	size_t width = 0;
 	for(const auto c : text) {
 		const auto glyph = style.font.glyph(c);
-		display_.draw_glyph(p, glyph, style.foreground, style.background);
+		display.draw_glyph(p, glyph, style.foreground, style.background);
 		const auto advance = glyph.advance();
 		p += advance;
 		width += advance.x;
@@ -50,11 +53,11 @@ size_t Painter::draw_string(Point p, const Style& style, const std::string text)
 }
 
 void Painter::draw_hline(Point p, size_t width, const Color c) {
-	display_.fill_rectangle({ p, { static_cast<Dim>(width), 1 } }, c);
+	display.fill_rectangle({ p, { static_cast<Dim>(width), 1 } }, c);
 }
 
 void Painter::draw_vline(Point p, size_t height, const Color c) {
-	display_.fill_rectangle({ p, { 1, static_cast<Dim>(height) } }, c);
+	display.fill_rectangle({ p, { 1, static_cast<Dim>(height) } }, c);
 }
 
 void Painter::draw_rectangle(const Rect r, const Color c) {
@@ -65,7 +68,7 @@ void Painter::draw_rectangle(const Rect r, const Color c) {
 }
 
 void Painter::fill_rectangle(const Rect r, const Color c) {
-	display_.fill_rectangle(r, c);
+	display.fill_rectangle(r, c);
 }
 
 } /* namespace ui */

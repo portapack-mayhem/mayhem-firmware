@@ -23,14 +23,7 @@
 
 #include "hal.h"
 
-#include <cstdint>
-#include <cstddef>
 #include <cstring>
-
-static constexpr uint32_t m4_text_flash_image_offset = 0x10000;
-static constexpr size_t m4_text_size = 0x8000;
-static constexpr uint32_t m4_text_flash_base = LPC_SPIFI_DATA_CACHED_BASE + m4_text_flash_image_offset;
-static constexpr uint32_t m4_text_ram_base = 0x10080000;
 
 /* TODO: OK, this is cool, but how do I put the M4 to sleep so I can switch to
  * a different image? Other than asking the old image to sleep while the M0
@@ -39,14 +32,14 @@ static constexpr uint32_t m4_text_ram_base = 0x10080000;
  * I suppose I could force M4MEMMAP to an invalid memory reason which would
  * cause an exception and effectively halt the M4. But that feels gross.
  */
-void m4_init() {
+void m4_init(const portapack::spi_flash::region_t from, void* const to) {
 	/* Initialize M4 code RAM */
-	std::memcpy((void*)m4_text_ram_base, (void*)m4_text_flash_base, m4_text_size);
+	std::memcpy(to, from.base_address(), from.size);
 
 	/* M4 core is assumed to be sleeping with interrupts off, so we can mess
 	 * with its address space and RAM without concern.
 	 */
-	LPC_CREG->M4MEMMAP = m4_text_ram_base;
+	LPC_CREG->M4MEMMAP = reinterpret_cast<uint32_t>(to);
 
 	/* Reset M4 core */
 	LPC_RGU->RESET_CTRL[0] = (1 << 13);
