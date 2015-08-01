@@ -44,17 +44,7 @@ private:
 		{ 0, 0, 9 * 8, 1 * 16 },
 		"PortaPack",
 	};
-	/*
-	Text text_app_fifo_n {
-		{ 12 * 8, 0, 3 * 8, 1 * 16 },
-		"---",
-	};
 
-	Text text_baseband_fifo_n {
-		{ 16 * 8, 0, 3 * 8, 1 * 16 },
-		"---",
-	};
-	*/
 	RSSI rssi {
 		{ 19 * 8, 0, 11 * 8, 4 },
 	};

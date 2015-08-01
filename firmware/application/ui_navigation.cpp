@@ -39,8 +39,6 @@ namespace ui {
 SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&portapack,
-		//&text_app_fifo_n,
-		//&text_baseband_fifo_n,
 		&rssi,
 		&channel,
 		&audio,
