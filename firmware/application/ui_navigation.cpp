@@ -28,6 +28,9 @@
 #include "ui_receiver.hpp"
 
 #include "portapack.hpp"
+#include "m4_startup.hpp"
+#include "spi_image.hpp"
+using namespace portapack;
 
 namespace ui {
 
@@ -98,7 +101,7 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, portapack::receiver_model }); } },
+		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
 		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
@@ -151,7 +154,13 @@ Context& SystemView::context() const {
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 	button_yes.on_select = [&nav](Button&){
-		portapack::shutdown();
+		shutdown();
+
+		m4_init(spi_flash::hackrf, reinterpret_cast<void*>(0x10000000));
+
+		while(true) {
+			__WFE();
+		}
 	};
 
 	button_no.on_select = [&nav](Button&){

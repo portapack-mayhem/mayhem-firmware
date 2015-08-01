@@ -33,9 +33,6 @@ using namespace hackrf::one;
 
 #include "touch_adc.hpp"
 
-#include "m4_startup.hpp"
-#include "spi_image.hpp"
-
 namespace portapack {
 
 portapack::IO io {
@@ -157,11 +154,6 @@ void shutdown() {
 
 	chSysDisable();
 	hackrf::one::reset();
-	m4_init(portapack::spi_flash::hackrf, reinterpret_cast<void*>(0x10000000));
-
-	while(true) {
-		__WFE();
-	}
 }
 
 extern "C" {
