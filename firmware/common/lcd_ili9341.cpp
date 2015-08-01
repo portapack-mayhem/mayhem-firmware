@@ -225,6 +225,11 @@ void ILI9341::init() {
 	io.lcd_backlight(1);
 }
 
+void ILI9341::shutdown() {
+	io.lcd_backlight(0);
+	lcd_reset();
+}
+
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
 	if( !r_clipped.is_empty() ) {

@@ -42,6 +42,7 @@ public:
 	void operator=(const ILI9341&) = delete;
 
 	void init();
+	void shutdown();
 
 	void fill_rectangle(ui::Rect r, const ui::Color c);
 	void fill_circle(
