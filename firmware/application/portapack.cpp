@@ -146,6 +146,8 @@ void init() {
 void shutdown() {
 	sdcStop(&SDCD1);
 
+	display.shutdown();
+	
 	radio::disable();
 	audio_codec.reset();
 	clock_manager.shutdown();

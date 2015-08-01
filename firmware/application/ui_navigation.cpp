@@ -151,7 +151,6 @@ Context& SystemView::context() const {
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 	button_yes.on_select = [&nav](Button&){
-		// TODO: Clear screen?
 		portapack::shutdown();
 	};
 
