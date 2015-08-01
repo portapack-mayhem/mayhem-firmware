@@ -382,13 +382,13 @@ void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {
 
 	set_m4_clock_to_irc();
 
+	update_peripheral_clocks(clk_sel);
+
 	if( clk_sel == cgu::CLK_SEL::PLL1 ) {
 		set_m4_clock_to_pll1();
 	} else {
 		power_down_pll1();
 	}
-
-	update_peripheral_clocks(clk_sel);
 
 	start_peripherals(clk_sel);
 
