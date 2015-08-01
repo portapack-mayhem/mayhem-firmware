@@ -124,6 +124,7 @@ CPPSRC = main.cpp \
          event.cpp \
          message_queue.cpp \
          hackrf_hal.cpp \
+         portapack.cpp \
          portapack_shared_memory.cpp \
          portapack_io.cpp \
          i2c_pp.cpp \

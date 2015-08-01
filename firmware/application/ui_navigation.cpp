@@ -27,7 +27,7 @@
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
 
-extern ReceiverModel receiver_model;
+#include "portapack.hpp"
 
 namespace ui {
 

@@ -21,11 +21,8 @@
 
 #include "ui_receiver.hpp"
 
-// TODO: Nasty. Put this in an #include somewhere, or a shared system state
-// object?
-
-#include "wm8731.hpp"
-extern wolfson::wm8731::WM8731 audio_codec;
+#include "portapack.hpp"
+using namespace portapack;
 
 namespace ui {
 
