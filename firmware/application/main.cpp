@@ -486,7 +486,7 @@ int main(void) {
 
 	portapack::io.init();
 	ui::Context context;
-	context.display.init();
+	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
 
@@ -503,7 +503,7 @@ int main(void) {
 		context,
 		{ 0, 0, 240, 320 }
 	};
-	ui::Painter painter { context.display };
+	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
 context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {

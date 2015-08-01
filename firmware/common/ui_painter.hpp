@@ -25,8 +25,6 @@
 #include "ui.hpp"
 #include "ui_text.hpp"
 
-#include "lcd_ili9341.hpp"
-
 #include <string>
 
 namespace ui {
@@ -41,11 +39,7 @@ struct Style {
 
 class Painter {
 public:
-	Painter(
-		lcd::ILI9341& display
-	) : display_(display)
-	{
-	}
+	Painter() { };
 
 	Painter(const Painter&) = delete;
 	Painter(Painter&&) = delete;
@@ -58,8 +52,6 @@ public:
 	void fill_rectangle(const Rect r, const Color c);
 
 private:
-	lcd::ILI9341& display_;
-
 	void draw_hline(Point p, size_t width, const Color c);
 	void draw_vline(Point p, size_t height, const Color c);
 };

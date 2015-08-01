@@ -48,6 +48,8 @@ portapack::IO io {
 	portapack::gpio_unused,
 };
 
+lcd::ILI9341 display;
+
 I2C i2c0(&I2CD0);
 SPI ssp0(&SPID1);
 SPI ssp1(&SPID2);

@@ -26,8 +26,6 @@
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 
-#include "lcd_ili9341.hpp"
-
 #include <string>
 
 namespace ui {
@@ -35,10 +33,8 @@ namespace ui {
 class Console : public Widget {
 public:
 	constexpr Console(
-		const Rect parent_rect,
-		lcd::ILI9341& display
-	) : Widget { parent_rect },
-		display(display)
+		const Rect parent_rect
+	) : Widget { parent_rect }
 	{
 	}
 
@@ -52,7 +48,6 @@ private:
 	static constexpr Color foreground { Color::white() };
 
 	Point pos { 0, 0 };
-	lcd::ILI9341& display;
 
 	void crlf();
 };

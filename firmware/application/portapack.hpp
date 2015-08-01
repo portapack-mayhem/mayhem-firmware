@@ -25,12 +25,15 @@
 
 #include "spi_pp.hpp"
 #include "wm8731.hpp"
+#include "lcd_ili9341.hpp"
 
 #include "radio.hpp"
 
 namespace portapack {
 
 extern portapack::IO io;
+
+extern lcd::ILI9341 display;
 
 extern SPI ssp0;
 extern SPI ssp1;

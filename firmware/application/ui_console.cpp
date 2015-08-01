@@ -21,6 +21,9 @@
 
 #include "ui_console.hpp"
 
+#include "portapack.hpp"
+using namespace portapack;
+
 namespace ui {
 
 void Console::write(const std::string message) {
