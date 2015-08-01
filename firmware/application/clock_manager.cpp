@@ -398,6 +398,7 @@ void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {
 
 	/* If not using PLL1, disable clock feeding GP_CLKIN */
 	if( clk_sel != cgu::CLK_SEL::PLL1 ) {
+		stop_audio_pll();
 		disable_gp_clkin_source();
 	}
 }
