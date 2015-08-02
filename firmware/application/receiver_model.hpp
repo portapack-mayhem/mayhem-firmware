@@ -85,7 +85,7 @@ private:
 		858752000
 	};
 	rf::Frequency frequency_step_ { 25000 };
-	bool rf_amp_ { true };
+	bool rf_amp_ { false };
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
