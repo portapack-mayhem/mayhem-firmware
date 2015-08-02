@@ -44,18 +44,6 @@ private:
 		{ 0, 0, 9 * 8, 1 * 16 },
 		"PortaPack",
 	};
-
-	RSSI rssi {
-		{ 19 * 8, 0, 11 * 8, 4 },
-	};
-
-	Channel channel {
-		{ 19 * 8, 5, 11 * 8, 4 },
-	};
-
-	Audio audio {
-		{ 19 * 8, 10, 11 * 8, 4 },
-	};
 };
 
 class NavigationView : public View {

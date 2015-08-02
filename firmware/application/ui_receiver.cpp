@@ -389,6 +389,9 @@ ReceiverView::ReceiverView(
 ) : receiver_model(receiver_model)
 {
 	add_children({ {
+		&rssi,
+		&channel,
+		&audio,
 		&button_done,
 		&field_frequency,
 		&field_lna,
@@ -488,7 +491,7 @@ ReceiverView::~ReceiverView() {
 }
 
 void ReceiverView::set_parent_rect(const Rect new_parent_rect) {
-	const ui::Dim header_height = 2 * 16;
+	const ui::Dim header_height = 3 * 16;
 
 	waterfall.set_parent_rect({
 		0, header_height,

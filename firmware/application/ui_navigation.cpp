@@ -39,9 +39,6 @@ namespace ui {
 SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&portapack,
-		&rssi,
-		&channel,
-		&audio,
 	} });
 }
 

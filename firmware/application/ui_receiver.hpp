@@ -370,25 +370,37 @@ public:
 private:
 	ReceiverModel& receiver_model;
 
+	RSSI rssi {
+		{ 19 * 8, 0, 11 * 8, 4 },
+	};
+
+	Channel channel {
+		{ 19 * 8, 5, 11 * 8, 4 },
+	};
+
+	Audio audio {
+		{ 19 * 8, 10, 11 * 8, 4 },
+	};
+
 	Button button_done {
-		{ 0 * 8, 0 * 16, 3 * 8, 16 },
+		{ 0 * 8, 1 * 16, 3 * 8, 16 },
 		" < ",
 	};
 
 	FrequencyField field_frequency {
-		{ 3 * 8, 0 * 16 },
+		{ 3 * 8, 1 * 16 },
 	};
 
 	LNAGainField field_lna {
-		{ 13 * 8, 0 * 16 }
+		{ 13 * 8, 1 * 16 }
 	};
 	/*
 	BasebandBandwidthField options_baseband_bandwidth {
-		{ 15 * 8, 0 * 16 },
+		{ 15 * 8, 1 * 16 },
 	};
 	*/
 	NumberField field_vga {
-		{ 16 * 8, 0 * 16},
+		{ 16 * 8, 1 * 16},
 		2,
 		{ max2837::vga::gain_db_min, max2837::vga::gain_db_max },
 		max2837::vga::gain_db_step,
@@ -396,7 +408,7 @@ private:
 	};
 
 	OptionsField options_modulation {
-		{ 19 * 8, 0 * 16 },
+		{ 19 * 8, 1 * 16 },
 		4,
 		{
 			// TODO: Put ordinals in here...
@@ -408,7 +420,7 @@ private:
 	};
 /*
 	OptionsField options_baseband_oversampling {
-		{ 24 * 8, 0 * 16 },
+		{ 24 * 8, 1 * 16 },
 		1,
 		{
 			{ "4", 4 },
@@ -418,7 +430,7 @@ private:
 	};
 */
 	NumberField field_vregmode {
-		{ 24 * 8, 0 * 16 },
+		{ 24 * 8, 1 * 16 },
 		1,
 		{ 0, 1 },
 		1,
@@ -426,7 +438,7 @@ private:
 	};
 
 	NumberField field_volume {
-		{ 28 * 8, 0 * 16 },
+		{ 28 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -434,12 +446,12 @@ private:
 	};
 
 	FrequencyOptionsView view_frequency_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
 
 	RadioGainOptionsView view_rf_gain_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
 
