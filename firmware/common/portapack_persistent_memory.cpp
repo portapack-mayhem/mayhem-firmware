@@ -52,7 +52,7 @@ constexpr ppb_range_t ppb_range { -99000, 99000 };
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
-	ppb_t correction_ppb;
+	int32_t correction_ppb;
 };
 
 static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large for VBAT-maintained region");
