@@ -175,6 +175,16 @@ private:
 	}
 };
 
+static constexpr iir_biquad_config_t audio_hpf_config {
+	{  0.93346032f, -1.86687724f,  0.93346032f },
+	{  1.0f       , -1.97730264f,  0.97773668f }
+};
+
+static constexpr iir_biquad_config_t non_audio_hpf_config {
+	{  0.51891061f, -0.95714180f,  0.51891061f },
+	{  1.0f       , -0.79878302f,  0.43960231f }
+};
+
 class FMSquelch {
 public:
 	bool execute(buffer_s16_t audio) {
@@ -203,10 +213,7 @@ private:
 
 	// nyquist = 48000 / 2.0
 	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
-	IIRBiquadFilter non_audio_hpf {
-		{  0.51891061f, -0.95714180f,  0.51891061f },
-		{  1.0f       , -0.79878302f,  0.43960231f }
-	};
+	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
 
 static volatile bool channel_spectrum_request_update { false };
@@ -332,10 +339,7 @@ private:
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::AM demod;
-	IIRBiquadFilter audio_hpf {
-		{  0.93346032f, -1.86687724f,  0.93346032f },
-		{  1.0f       , -1.97730264f,  0.97773668f }
-	};
+	IIRBiquadFilter audio_hpf { audio_hpf_config };
 };
 
 class NarrowbandFMAudio : public BasebandProcessor {
@@ -393,10 +397,7 @@ private:
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::FM demod { 48000, 7500 };
 
-	IIRBiquadFilter audio_hpf {
-		{  0.93346032f, -1.86687724f,  0.93346032f },
-		{  1.0f       , -1.97730264f,  0.97773668f }
-	};
+	IIRBiquadFilter audio_hpf { audio_hpf_config };
 	FMSquelch squelch;
 };
 
@@ -461,10 +462,7 @@ private:
 	const fir_taps_real<64>& audio_filter_taps = taps_64_lp_156_198;
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
 
-	IIRBiquadFilter audio_hpf {
-		{  0.93346032f, -1.86687724f,  0.93346032f },
-		{  1.0f       , -1.97730264f,  0.97773668f }
-	};
+	IIRBiquadFilter audio_hpf { audio_hpf_config };
 };
 
 class FSKProcessor : public BasebandProcessor {

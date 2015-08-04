@@ -26,16 +26,19 @@
 
 #include "dsp_types.hpp"
 
+struct iir_biquad_config_t {
+	const std::array<float, 3> b;
+	const std::array<float, 3> a;
+};
+
 class IIRBiquadFilter {
 public:
 	// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 
 	// Assume all coefficients are normalized so that a0=1.0
 	constexpr IIRBiquadFilter(
-		std::array<float, 3> b,
-		std::array<float, 3> a
-	) : b(b),
-		a(a)
+		const iir_biquad_config_t& config
+	) : config(config)
 	{
 	}
 
@@ -51,8 +54,7 @@ public:
 	}
 
 private:
-	const std::array<float, 3> b;
-	const std::array<float, 3> a;
+	const iir_biquad_config_t config;
 	std::array<float, 3> x { { 0.0f, 0.0f, 0.0f } };
 	std::array<float, 3> y { { 0.0f, 0.0f, 0.0f } };
 
@@ -63,8 +65,8 @@ private:
 
 		y[0] = y[1];
 		y[1] = y[2];
-		y[2] = b[0] * x[2] + b[1] * x[1] + b[2] * x[0]
-		                   - a[1] * y[1] - a[2] * y[0];
+		y[2] = config.b[0] * x[2] + config.b[1] * x[1] + config.b[2] * x[0]
+		                          - config.a[1] * y[1] - config.a[2] * y[0];
 
 		return y[2];
 	}
