@@ -27,11 +27,11 @@
 using namespace portapack;
 
 rf::Frequency ReceiverModel::tuning_frequency() const {
-	return tuning_frequency_;
+	return persistent_memory::tuned_frequency();
 }
 
 void ReceiverModel::set_tuning_frequency(rf::Frequency f) {
-	tuning_frequency_ = f;
+	persistent_memory::set_tuned_frequency(f);
 	update_tuning_frequency();
 }
 
@@ -158,7 +158,7 @@ int32_t ReceiverModel::tuning_offset() {
 }
 
 void ReceiverModel::update_tuning_frequency() {
-	radio::set_tuning_frequency(tuning_frequency_ + tuning_offset());
+	radio::set_tuning_frequency(persistent_memory::tuned_frequency() + tuning_offset());
 }
 
 void ReceiverModel::update_rf_amp() {

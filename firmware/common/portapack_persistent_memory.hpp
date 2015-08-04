@@ -24,10 +24,15 @@
 
 #include <cstdint>
 
+#include "rf_path.hpp"
+
 namespace portapack {
 namespace persistent_memory {
 
 using ppb_t = int32_t;
+
+rf::Frequency tuned_frequency();
+void set_tuned_frequency(const rf::Frequency new_value);
 
 ppb_t correction_ppb();
 void set_correction_ppb(const ppb_t new_value);

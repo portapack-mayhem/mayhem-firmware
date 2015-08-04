@@ -47,18 +47,32 @@ struct range_t {
 	}
 };
 
+using tuned_frequency_range_t = range_t<rf::Frequency>;
+constexpr tuned_frequency_range_t tuned_frequency_range { rf::tuning_range.min, rf::tuning_range.max };
+constexpr rf::Frequency tuned_frequency_reset_value { 858750000 };
+
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
 constexpr ppb_t ppb_reset_value { 0 };
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
+	int64_t tuned_frequency;
 	int32_t correction_ppb;
 };
 
 static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large for VBAT-maintained region");
 
 static data_t* const data = reinterpret_cast<data_t*>(LPC_BACKUP_REG_BASE);
+
+rf::Frequency tuned_frequency() {
+	tuned_frequency_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
+	return data->tuned_frequency;
+}
+
+void set_tuned_frequency(const rf::Frequency new_value) {
+	data->tuned_frequency = tuned_frequency_range.clip(new_value);
+}
 
 ppb_t correction_ppb() {
 	ppb_range.reset_if_outside(data->correction_ppb, ppb_reset_value);

@@ -76,7 +76,6 @@ public:
 	void disable();
 
 private:
-	rf::Frequency tuning_frequency_ { 858750000 };
 	rf::Frequency frequency_step_ { 25000 };
 	bool rf_amp_ { false };
 	int32_t lna_gain_db_ { 32 };
