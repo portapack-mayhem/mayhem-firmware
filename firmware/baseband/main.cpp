@@ -783,23 +783,9 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 
 }
 
-//#define TEST_DSP 1
-
-#if defined(TEST_DSP)
-#include "test_dsp.h"
-#endif
-
 static constexpr auto direction = baseband::Direction::Receive;
 
 int main(void) {
-
-#if defined(TEST_DSP)
-	static TestResultsMessage test_results_message;
-	test_results_message.results = test_dsp();
-	application_queue.push(&test_results_message);
-	while(1);
-#else
-
 	init();
 
 	events_initialize(chThdSelf());
@@ -873,6 +859,6 @@ int main(void) {
 		const auto events = event_dispatcher.wait();
 		event_dispatcher.dispatch(events);
 	}
-#endif
+	
 	return 0;
 }
