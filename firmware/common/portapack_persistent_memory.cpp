@@ -49,6 +49,7 @@ struct range_t {
 
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
+constexpr ppb_t ppb_reset_value { 0 };
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
@@ -60,7 +61,7 @@ static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large fo
 static data_t* const data = reinterpret_cast<data_t*>(LPC_BACKUP_REG_BASE);
 
 ppb_t correction_ppb() {
-	ppb_range.reset_if_outside(data->correction_ppb, 0);
+	ppb_range.reset_if_outside(data->correction_ppb, ppb_reset_value);
 	return data->correction_ppb;
 }
 
