@@ -30,7 +30,7 @@ namespace persistent_memory {
 using ppb_t = int32_t;
 
 ppb_t correction_ppb();
-void set_correction_ppb(ppb_t new_value);
+void set_correction_ppb(const ppb_t new_value);
 
 } /* namespace persistent_memory */
 } /* namespace portapack */

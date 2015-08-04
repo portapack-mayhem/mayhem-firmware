@@ -64,7 +64,7 @@ ppb_t correction_ppb() {
 	return data->correction_ppb;
 }
 
-void set_correction_ppb(ppb_t new_value) {
+void set_correction_ppb(const ppb_t new_value) {
 	data->correction_ppb = ppb_range.clip(new_value);
 }
 
