@@ -67,7 +67,6 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <complex>
 #include <array>
 #include <string>
 #include <bitset>
@@ -686,14 +685,6 @@ static void init() {
 		rssi_thread_priority, rssi_fn,
 		nullptr
 	);
-}
-
-static inline float magnitude_squared(const std::complex<float> c) {
-	const auto r = c.real();
-	const auto r2 = r * r;
-	const auto i = c.imag();
-	const auto i2 = i * i;
-	return r2 + i2;
 }
 
 class EventDispatcher {
