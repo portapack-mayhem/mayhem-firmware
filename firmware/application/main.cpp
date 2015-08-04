@@ -482,7 +482,6 @@ int main(void) {
 	}
 
 	init_message_queues();
-	shared_memory.correction_ppm = 0;
 
 	portapack::io.init();
 	ui::Context context;

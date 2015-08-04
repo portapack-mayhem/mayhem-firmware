@@ -37,6 +37,7 @@
 using namespace hackrf::one;
 
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 namespace radio {
 
@@ -117,7 +118,8 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
-	rf::Frequency corrected_frequency = frequency * (1000000 + shared_memory.correction_ppm) / 1000000;
+	const int32_t frequency_correction = frequency * portapack::persistent_memory::correction_ppb() / 1000000000;
+	rf::Frequency corrected_frequency = frequency + frequency_correction;
 	const auto tuning_config = tuning::config::create(corrected_frequency);
 	if( tuning_config.is_valid() ) {
 		first_if.disable();

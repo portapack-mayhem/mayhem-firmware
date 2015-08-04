@@ -21,7 +21,7 @@
 
 #include "ui_setup.hpp"
 
-#include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
@@ -104,7 +104,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(
 ) {
 	button_ok.on_select = [&nav, this](Button&){
 		const auto model = this->form_collect();
-		shared_memory.correction_ppm = model.ppm;
+		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
 		nav.pop();
 	},
 
@@ -121,7 +121,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(
 	} });
 
 	SetFrequencyCorrectionModel model {
-		shared_memory.correction_ppm
+		portapack::persistent_memory::correction_ppb() / 1000
 	};
 
 	form_init(model);

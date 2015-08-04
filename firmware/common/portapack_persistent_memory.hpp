@@ -19,34 +19,20 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PORTAPACK_SHARED_MEMORY_H__
-#define __PORTAPACK_SHARED_MEMORY_H__
+#ifndef __PORTAPACK_PERSISTENT_MEMORY_H__
+#define __PORTAPACK_PERSISTENT_MEMORY_H__
 
 #include <cstdint>
 
-#include "message_queue.hpp"
+namespace portapack {
+namespace persistent_memory {
 
-struct TouchADCFrame {
-	uint32_t dr[8];
-};
+using ppb_t = int32_t;
 
-/* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
-struct SharedMemory {
-	MessageQueue baseband_queue;
-	MessageQueue application_queue;
+ppb_t correction_ppb();
+void set_correction_ppb(ppb_t new_value);
 
-	// TODO: M0 should directly configure and control DMA channel that is
-	// acquiring ADC samples.
-	TouchADCFrame touch_adc_frame;
-};
+} /* namespace persistent_memory */
+} /* namespace portapack */
 
-extern SharedMemory& shared_memory;
-
-#if defined(LPC43XX_M0)
-inline void init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue();
-	new (&shared_memory.application_queue) MessageQueue();
-}
-#endif
-
-#endif/*__PORTAPACK_SHARED_MEMORY_H__*/
+#endif/*__PORTAPACK_PERSISTENT_MEMORY_H__*/
