@@ -238,7 +238,13 @@ protected:
 		);
 	}
 
-	void feed_channel_spectrum(const buffer_c16_t channel) {
+	void feed_channel_spectrum(
+		const buffer_c16_t channel,
+		const uint32_t filter_pass_frequency,
+		const uint32_t filter_stop_frequency
+	) {
+		channel_filter_pass_frequency = filter_pass_frequency;
+		channel_filter_stop_frequency = filter_stop_frequency;
 		channel_spectrum_decimator.feed(
 			channel,
 			[this](const buffer_c16_t data) {
@@ -313,12 +319,14 @@ public:
 		 * -> FIR filter, <?kHz (0.???fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
-		feed_channel_spectrum(channel);
+		feed_channel_spectrum(
+			channel,
+			decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
+			decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
+		);
 
 		const buffer_s16_t work_audio_buffer {
 			(int16_t*)decimator_out.p,
@@ -358,12 +366,14 @@ public:
 		 * -> FIR filter, <6kHz (0.063fs) pass, gain 1.0
 		 * -> 48kHz int16_t[32] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		// TODO: Feed channel_stats post-decimation data?
 		feed_channel_stats(channel);
-		feed_channel_spectrum(channel);
+		feed_channel_spectrum(
+			channel,
+			decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
+			decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
+		);
 
 		const buffer_s16_t work_audio_buffer {
 			(int16_t*)decimator_out.p,
@@ -507,12 +517,14 @@ public:
 		 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
 		 * -> 76.8kHz int16_t[64] */
 		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-		channel_filter_pass_frequency = decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized;
-		channel_filter_stop_frequency = decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized;
 
 		/* 76.8kHz, 64 samples */
 		feed_channel_stats(channel);
-		feed_channel_spectrum(channel);
+		feed_channel_spectrum(
+			channel,
+			decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
+			decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
+		);
 
 		const auto symbol_handler_fn = [this](const float value) {
 			const uint_fast8_t symbol = (value >= 0.0f) ? 1 : 0;
