@@ -70,13 +70,6 @@
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
 
-static float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
-	constexpr float mag2_max = -32768.0f * -32768.0f + -32768.0f * -32768.0f;
-	constexpr float mag2_log10_max = std::log10(mag2_max);
-	constexpr float mag2_to_db_factor = 20.0f / 2.0f;
-	return (std::log10(c16_mag_squared) - mag2_log10_max) * mag2_to_db_factor;
-}
-
 class BasebandStatsCollector {
 public:
 	template<typename Callback>

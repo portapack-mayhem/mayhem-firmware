@@ -24,6 +24,7 @@
 #include "utility.hpp"
 
 #include <cstdint>
+#include <cmath>
 
 #if 0
 uint32_t gcd(const uint32_t u, const uint32_t v) {
@@ -60,6 +61,13 @@ uint32_t gcd(const uint32_t u, const uint32_t v) {
 	return gcd((v - u) >> 1, u);
 }
 #endif
+
+float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
+	constexpr float mag2_max = -32768.0f * -32768.0f + -32768.0f * -32768.0f;
+	constexpr float mag2_log10_max = std::log10(mag2_max);
+	constexpr float mag2_to_db_factor = 20.0f / 2.0f;
+	return (std::log10(c16_mag_squared) - mag2_log10_max) * mag2_to_db_factor;
+}
 
 /* GCD implementation derived from recursive implementation at
  * http://en.wikipedia.org/wiki/Binary_GCD_algorithm

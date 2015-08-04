@@ -65,6 +65,8 @@ static inline void clear_m4_flag_saturation() {
 
 #endif
 
+float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared);
+
 /* Override new/delete to use Chibi/OS heap functions */
 /* NOTE: Do not inline these, it doesn't work. ;-) */
 void* operator new(size_t size);
