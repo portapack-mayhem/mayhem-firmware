@@ -427,25 +427,6 @@ private:
 			"back" item, no matter where you're coming from?
 */
 
-/*
-message_handlers[Message::ID::FSKPacket] = [](const Message* const p) {
-	const auto message = static_cast<const FSKPacketMessage*>(p);
-	fsk_packet(message);
-};
-
-message_handlers[Message::ID::TestResults] = [&system_view](const Message* const p) {
-	const auto message = static_cast<const TestResultsMessage*>(p);
-	char c[10];
-	c[0] = message->results.translate_by_fs_over_4_and_decimate_by_2_cic3 ? '+' : '-';
-	c[1] = message->results.fir_cic3_decim_2_s16_s16 ? '+' : '-';
-	c[2] = message->results.fir_64_and_decimate_by_2_complex ? '+' : '-';
-	c[3] = message->results.fxpt_atan2 ? '+' : '-';
-	c[4] = message->results.multiply_conjugate_s16_s32 ? '+' : '-';
-	c[5] = 0;
-	system_view.status_view.portapack.set(c);
-};
-*/
-
 int main(void) {
 	portapack::init();
 
