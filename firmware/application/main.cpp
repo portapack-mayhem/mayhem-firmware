@@ -456,7 +456,6 @@ int main(void) {
 	init_message_queues();
 
 	portapack::io.init();
-	ui::Context context;
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
@@ -470,9 +469,10 @@ int main(void) {
 
  	events_initialize(chThdSelf());
 
+	ui::Context context;
 	ui::SystemView system_view {
 		context,
-		{ 0, 0, 240, 320 }
+		portapack::display.screen_rect()
 	};
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
