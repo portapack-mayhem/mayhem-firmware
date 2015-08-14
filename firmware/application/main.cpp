@@ -458,11 +458,6 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
-context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
-	const auto message = static_cast<const FSKPacketMessage*>(p);
-	(void)message;
-};
-
 	m4txevent_interrupt_enable();
 
 	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);

@@ -480,9 +480,16 @@ ReceiverView::ReceiverView(
 	};
 
 	receiver_model.enable();
+
+	context().message_map[Message::ID::FSKPacket] = [](const Message* const p) {
+		const auto message = static_cast<const FSKPacketMessage*>(p);
+		(void)message;
+	};
 }
 
 ReceiverView::~ReceiverView() {
+	context().message_map[Message::ID::FSKPacket] = nullptr;
+	
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
 	audio_codec.headphone_mute();
