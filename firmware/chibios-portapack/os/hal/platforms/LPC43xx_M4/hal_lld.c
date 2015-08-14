@@ -41,7 +41,7 @@
 /* TODO: Somehow share this value between the M4 and M0 cores. The M0 always
  * runs at the same speed as the M4 core.
  */
-static halclock_t hal_clock_f = LPC43XX_M4_CLK_IRC;
+static halclock_t hal_clock_f = LPC43XX_M4_CLK;
 
 /*===========================================================================*/
 /* Driver local functions.                                                   */
@@ -74,7 +74,7 @@ void systick_adjust_period(const uint32_t counts_per_tick) {
  */
 void hal_lld_init(void) {
   LPC_CGU->BASE_M4_CLK.AUTOBLOCK = 1;
-  LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;
+  LPC_CGU->BASE_M4_CLK.CLK_SEL = LPC43XX_M4_CLK_SRC;
 
   /* SysTick initialization using the system clock.*/
   systick_adjust_period(halLPCGetSystemClock() / CH_FREQUENCY - 1);
