@@ -220,26 +220,6 @@ private:
 		};
 		*/
 	}
-/*
-	void paint_widget(ui::Widget* const w) {
-		if( w->visible() ) {
-			if( w->dirty() ) {
-				w->paint(painter);
-				// Force-paint all children.
-				for(const auto child : w->children()) {
-					child->set_dirty();
-					paint_widget(child);
-				}
-				w->set_clean();
-			} else {
-				// Selectively paint all children.
-				for(const auto child : w->children()) {
-					paint_widget(child);
-				}
-			}
-		}
-	}
-*/
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
 		if( !w->hidden() ) {
