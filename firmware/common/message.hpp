@@ -246,12 +246,19 @@ class MessageHandlerMap {
 public:
 	using MessageHandler = std::function<void(const Message* const p)>;
 
-	MessageHandler& operator[](Message::ID n) {
-		return map_[toUType(n)];
+	void register_handler(const Message::ID id, MessageHandler&& handler) {
+		map_[toUType(id)] = std::move(handler);
 	}
 
-	const MessageHandler& operator[](Message::ID n) const {
-		return map_[toUType(n)];
+	void unregister_handler(const Message::ID id) {
+		map_[toUType(id)] = nullptr;
+	}
+
+	void send(const Message* const message) {
+		auto& fn = map_[toUType(message->id)];
+		if( fn ) {
+			fn(message);
+		}
 	}
 
 private:

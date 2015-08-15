@@ -184,10 +184,7 @@ private:
 		while( !shared_memory.application_queue.is_empty() ) {
 			auto message = shared_memory.application_queue.pop();
 
-			auto& fn = context.message_map[message->id];
-			if( fn ) {
-				fn(message);
-			}
+			context.message_map.send(message);
 
 			message->state = Message::State::Free;
 		}

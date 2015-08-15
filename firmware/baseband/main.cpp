@@ -481,14 +481,16 @@ public:
 		MessageHandlerMap& message_handlers
 	) : message_handlers(message_handlers)
 	{
-		message_handlers[Message::ID::FSKConfiguration] = [this](const Message* const p) {
-			auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);
-			this->configure(m->configuration);
-		};
+		message_handlers.register_handler(Message::ID::FSKConfiguration,
+			[this](const Message* const p) {
+				auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);
+				this->configure(m->configuration);
+			}
+		);
 	}
 
 	~FSKProcessor() {
-		message_handlers[Message::ID::FSKConfiguration] = nullptr;
+		message_handlers.unregister_handler(Message::ID::FSKConfiguration);
 	}
 
 	void configure(const FSKConfiguration new_configuration) {
@@ -736,10 +738,7 @@ private:
 		while( !shared_memory.baseband_queue.is_empty() ) {
 			auto message = shared_memory.baseband_queue.pop();
 
-			auto& fn = message_map[message->id];
-			if( fn ) {
-				fn(message);
-			}
+			message_map.send(message);
 
 			message->state = Message::State::Free;
 		}
@@ -804,49 +803,51 @@ int main(void) {
 	EventDispatcher event_dispatcher;
 	auto& message_handlers = event_dispatcher.message_handlers();
 
-	message_handlers[Message::ID::BasebandConfiguration] = [&message_handlers](const Message* const p) {
-		auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-		if( message->configuration.mode != baseband_configuration.mode ) {
+	message_handlers.register_handler(Message::ID::BasebandConfiguration,
+		[&message_handlers](const Message* const p) {
+			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
+			if( message->configuration.mode != baseband_configuration.mode ) {
 
-			// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-			auto old_p = baseband_processor;
-			baseband_processor = nullptr;
-			delete old_p;
+				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
+				auto old_p = baseband_processor;
+				baseband_processor = nullptr;
+				delete old_p;
 
-			switch(message->configuration.mode) {
-			case 0:
-				baseband_processor = new NarrowbandAMAudio();
-				break;
+				switch(message->configuration.mode) {
+				case 0:
+					baseband_processor = new NarrowbandAMAudio();
+					break;
 
-			case 1:
-				baseband_processor = new NarrowbandFMAudio();
-				break;
+				case 1:
+					baseband_processor = new NarrowbandFMAudio();
+					break;
 
-			case 2:
-				baseband_processor = new WidebandFMAudio();
-				break;
+				case 2:
+					baseband_processor = new WidebandFMAudio();
+					break;
 
-			case 3:
-				baseband_processor = new FSKProcessor(message_handlers);
-				break;
+				case 3:
+					baseband_processor = new FSKProcessor(message_handlers);
+					break;
 
-			default:
-				break;
-			}
-
-			if( baseband_processor ) {
-				if( direction == baseband::Direction::Receive ) {
-					rf::rssi::start();
+				default:
+					break;
 				}
-				baseband::dma::enable(direction);
-			} else {
-				baseband::dma::disable();
-				rf::rssi::stop();
-			}
-		}
 
-		baseband_configuration = message->configuration;
-	};
+				if( baseband_processor ) {
+					if( direction == baseband::Direction::Receive ) {
+						rf::rssi::start();
+					}
+					baseband::dma::enable(direction);
+				} else {
+					baseband::dma::disable();
+					rf::rssi::stop();
+				}
+			}
+
+			baseband_configuration = message->configuration;
+		}
+	);
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 

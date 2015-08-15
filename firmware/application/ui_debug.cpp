@@ -40,13 +40,15 @@ BasebandStatsView::BasebandStatsView() {
 }
 
 void BasebandStatsView::on_show() {
-	context().message_map[Message::ID::BasebandStatistics] = [this](const Message* const p) {
-		this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
-	};
+	context().message_map.register_handler(Message::ID::BasebandStatistics,
+		[this](const Message* const p) {
+			this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
+		}
+	);
 }
 
 void BasebandStatsView::on_hide() {
-	context().message_map[Message::ID::BasebandStatistics] = nullptr;
+	context().message_map.unregister_handler(Message::ID::BasebandStatistics);
 }
 
 

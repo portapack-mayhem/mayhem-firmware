@@ -233,13 +233,15 @@ public:
 	}
 
 	void on_show() override {
-		context().message_map[Message::ID::ChannelSpectrum] = [this](const Message* const p) {
-			this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
-		};
+		context().message_map.register_handler(Message::ID::ChannelSpectrum,
+			[this](const Message* const p) {
+				this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
+			}
+		);
 	}
 
 	void on_hide() override {
-		context().message_map[Message::ID::ChannelSpectrum] = nullptr;
+		context().message_map.unregister_handler(Message::ID::ChannelSpectrum);
 	}
 
 	void set_parent_rect(const Rect new_parent_rect) override {
