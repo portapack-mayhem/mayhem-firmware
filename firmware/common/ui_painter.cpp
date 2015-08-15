@@ -73,6 +73,13 @@ void Painter::fill_rectangle(const Rect r, const Color c) {
 	display.fill_rectangle(r, c);
 }
 
+void Painter::paint_widget_tree(Widget* const w) {
+	if( ui::is_dirty() ) {
+		paint_widget(w);
+		ui::dirty_clear();
+	}
+}
+
 void Painter::paint_widget(Widget* const w) {
 	if( w->hidden() ) {
 		// Mark widget (and all children) as invisible.

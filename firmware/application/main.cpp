@@ -266,10 +266,7 @@ private:
 	}
 
 	void handle_lcd_frame_sync() {
-		if( ui::is_dirty() ) {
-			painter.paint_widget(top_widget);
-			ui::dirty_clear();
-		}
+		painter.paint_widget_tree(top_widget);
 	}
 
 	void handle_sd_card_detect() {
