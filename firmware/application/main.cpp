@@ -51,29 +51,6 @@
 
 #include <string.h>
 
-#if 0
-static const SPIConfig ssp_config_w25q80bv = {
-	.end_cb = NULL,
-	.ssport = ?,
-	.sspad = ?,
-	.cr0 =
-			CR0_CLOCKRATE()
-		| ?
-		| ?
-		,
-	.cpsr = ?,
-};
-
-static spi_bus_t ssp0 = {
-	.obj = &SPID1,
-	.config = &ssp_config_w25q80bv,
-	.start = spi_chibi_start,
-	.stop = spi_chibi_stop,
-	.transfer = spi_chibi_transfer,
-	.transfer_gather = spi_chibi_transfer_gather,
-};
-#endif
-
 class EventDispatcher {
 public:
 	EventDispatcher(
@@ -84,10 +61,6 @@ public:
 		painter(painter),
 		context(context)
 	{
-		// touch_manager.on_started = [this](const ui::TouchEvent event) {
-		// 	this->context.focus_manager.update(this->top_widget, event);
-		// };
-
 		touch_manager.on_event = [this](const ui::TouchEvent event) {
 			this->on_touch_event(event);
 		};
@@ -145,58 +118,7 @@ private:
 	}
 
 	void handle_rtc_tick() {
-		/*
-		if( shared_memory.application_queue.push(&rssi_request) ) {
-			led_rx.on();
-		}
-		*/
-		/*
-		if( callback_second_tick ) {
-			rtc::RTC datetime;
-			rtcGetTime(&RTCD1, &datetime);
 
-			callback_second_tick(datetime);
-		}
-		*/
-		//static std::function<void(size_t app_n, size_t baseband_n)> callback_fifos_state;
-		//static std::function<void(systime_t ticks)> callback_cpu_ticks;
-		/*
-		if( callback_fifos_state ) {
-			callback_fifos_state(shared_memory.application_queue.len(), baseband_queue.len());
-		}
-		*/
-		/*
-		if( callback_cpu_ticks ) {
-			//const auto thread_self = chThdSelf();
-			const auto thread = chSysGetIdleThread();
-			//const auto ticks = chThdGetTicks(thread);
-
-			callback_cpu_ticks(thread->total_ticks);
-		}
-		*/
-
-		/*
-		callback_fifos_state = [&system_view](size_t app_n, size_t baseband_n) {
-			system_view.status_view.text_app_fifo_n.set(
-				ui::to_string_dec_uint(app_n, 3)
-			);
-			system_view.status_view.text_baseband_fifo_n.set(
-				ui::to_string_dec_uint(baseband_n, 3)
-			);
-		};
-		*/
-		/*
-		callback_cpu_ticks = [&system_view](systime_t ticks) {
-			static systime_t last_ticks = 0;
-			const auto delta_ticks = ticks - last_ticks;
-			last_ticks = ticks;
-
-			const auto text_pct = ui::to_string_dec_uint(delta_ticks / 2000000, 3) + "% idle";
-			system_view.status_view.text_ticks.set(
-				text_pct
-			);
-		};
-		*/
 	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
@@ -293,43 +215,6 @@ private:
 		}
 	}
 };
-
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-
-/* Thinking things through a bit:
-
-	main() produces UI events.
-		Touch events:
-			Hit test entire screen hierarchy and send to hit widget.
-			If modal view shown, block UI events destined outside.
-		Navigation events:
-			Move from current focus widget to "nearest" focusable widget.
-			If current view is modal, don't allow events to bubble outside
-			of modal view.
-		System events:
-			Power off from WWDT provides enough time to flush changes to
-				VBAT RAM?
-			SD card events? Insert/eject/error.
-
-
-	View stack:
-		Views that are hidden should deconstruct their widgets?
-		Views that are shown after being hidden will reconstruct their
-			widgets from data in their model?
-		Hence, hidden views will not eat up memory beyond their model?
-		Beware loops where the stack can get wildly deep?
-		Breaking out data models from views should allow some amount of
-			power-off persistence in the VBAT RAM area. In fact, the data
-			models could be instantiated there? But then, how to protect
-			from corruption if power is pulled? Does WWDT provide enough
-			warning to flush changes?
-
-	Navigation...
-		If you move off the left side of the screen, move to breadcrumb
-			"back" item, no matter where you're coming from?
-*/
 
 int main(void) {
 	portapack::init();
