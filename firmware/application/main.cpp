@@ -66,6 +66,20 @@ public:
 		};
 	}
 
+	void run() {
+		while(true) {
+			const auto events = wait();
+			dispatch(events);
+		}
+	}
+
+private:
+	touch::Manager touch_manager;
+	ui::Widget* const top_widget;
+	ui::Painter& painter;
+	ui::Context& context;
+	uint32_t encoder_last = 0;
+
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
 	}
@@ -99,13 +113,6 @@ public:
 			handle_touch();
 		}
 	}
-
-private:
-	touch::Manager touch_manager;
-	ui::Widget* const top_widget;
-	ui::Painter& painter;
-	ui::Context& context;
-	uint32_t encoder_last = 0;
 
 	void handle_application_queue() {
 		while( !shared_memory.application_queue.is_empty() ) {
@@ -250,10 +257,7 @@ int main(void) {
 
 	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
 
-	while(true) {
-		const auto events = event_dispatcher.wait();
-		event_dispatcher.dispatch(events);
-	}
+	event_dispatcher.run();
 
 	return 0;
 }
