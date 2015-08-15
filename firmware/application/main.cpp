@@ -240,30 +240,6 @@ private:
 		}
 	}
 */
-	void paint_widget(ui::Widget* const w) {
-		if( w->hidden() ) {
-			// Mark widget (and all children) as invisible.
-			w->visible(false);
-		} else {
-			// Mark this widget as visible and recurse.
-			w->visible(true);
-
-			if( w->dirty() ) {
-				w->paint(painter);
-				// Force-paint all children.
-				for(const auto child : w->children()) {
-					child->set_dirty();
-					paint_widget(child);
-				}
-				w->set_clean();
-			} else {
-				// Selectively paint all children.
-				for(const auto child : w->children()) {
-					paint_widget(child);
-				}
-			}
-		}
-	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
 		if( !w->hidden() ) {
@@ -311,7 +287,7 @@ private:
 
 	void handle_lcd_frame_sync() {
 		if( ui::is_dirty() ) {
-			paint_widget(top_widget);
+			painter.paint_widget(top_widget);
 			ui::dirty_clear();
 		}
 	}
