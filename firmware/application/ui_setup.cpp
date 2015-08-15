@@ -121,7 +121,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(
 	} });
 
 	SetFrequencyCorrectionModel model {
-		(int8_t) (portapack::persistent_memory::correction_ppb() / 1000)
+		static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000)
 	};
 
 	form_init(model);
