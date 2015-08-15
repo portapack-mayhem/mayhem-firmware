@@ -22,9 +22,6 @@
 #include "ch.h"
 #include "test.h"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
 
@@ -40,6 +37,7 @@ using namespace lpc43xx;
 #include "irq_ipc.hpp"
 #include "irq_lcd_frame.hpp"
 #include "irq_controls.hpp"
+#include "irq_rtc.hpp"
 
 #include "event.hpp"
 
@@ -97,22 +95,6 @@ static spi_bus_t ssp0 = {
 	.transfer_gather = spi_chibi_transfer_gather,
 };
 #endif
-
-extern "C" {
-
-CH_IRQ_HANDLER(RTC_IRQHandler) {
-	CH_IRQ_PROLOGUE();
-
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_RTC_TICK);
-	chSysUnlockFromIsr();
-
-	rtc::interrupt::clear_all();
-
-	CH_IRQ_EPILOGUE();
-}
-
-}
 
 static bool ui_dirty = true;
 
@@ -438,8 +420,7 @@ int main(void) {
 
 	sdcStart(&SDCD1, nullptr);
 
-	rtc::interrupt::enable_second_inc();
-	nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
+	rtc_interrupt_enable();
 
 	controls_init();
 
