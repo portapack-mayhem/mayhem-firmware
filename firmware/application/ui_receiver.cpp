@@ -480,7 +480,18 @@ ReceiverView::ReceiverView(
 	};
 
 	receiver_model.enable();
+}
 
+ReceiverView::~ReceiverView() {
+
+	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
+	// both?
+	audio_codec.headphone_mute();
+
+	receiver_model.disable();
+}
+
+void ReceiverView::on_show() {
 	context().message_map.register_handler(Message::ID::FSKPacket,
 		[](const Message* const p) {
 			const auto message = static_cast<const FSKPacketMessage*>(p);
@@ -489,14 +500,8 @@ ReceiverView::ReceiverView(
 	);
 }
 
-ReceiverView::~ReceiverView() {
+void ReceiverView::on_hide() {
 	context().message_map.unregister_handler(Message::ID::FSKPacket);
-
-	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
-	// both?
-	audio_codec.headphone_mute();
-
-	receiver_model.disable();
 }
 
 void ReceiverView::set_parent_rect(const Rect new_parent_rect) {

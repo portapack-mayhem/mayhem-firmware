@@ -367,6 +367,9 @@ public:
 
 	void focus() override;
 
+	void on_show() override;
+	void on_hide() override;
+
 private:
 	ReceiverModel& receiver_model;
 
