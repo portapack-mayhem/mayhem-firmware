@@ -28,6 +28,20 @@
 
 namespace ui {
 
+static bool ui_dirty = true;
+
+void dirty_set() {
+	ui_dirty = true;
+}
+
+void dirty_clear() {
+	ui_dirty = false;
+}
+
+bool is_dirty() {
+	return ui_dirty;
+}
+
 constexpr size_t to_string_max_length = 16;
 
 static char* to_string_dec_uint_internal(
@@ -155,7 +169,7 @@ void Widget::set_parent(Widget* const widget) {
 
 void Widget::set_dirty() {
 	flags.dirty = true;
-	dirty_event();
+	dirty_set();
 }
 
 bool Widget::dirty() const {

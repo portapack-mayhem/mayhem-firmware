@@ -37,7 +37,9 @@
 
 namespace ui {
 
-extern void dirty_event();
+void dirty_set();
+void dirty_clear();
+bool is_dirty();
 
 // TODO: Move these somewhere else!
 // TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...

@@ -96,12 +96,6 @@ static spi_bus_t ssp0 = {
 };
 #endif
 
-static bool ui_dirty = true;
-
-void ui::dirty_event() {
-	ui_dirty = true;
-}
-
 class EventDispatcher {
 public:
 	EventDispatcher(
@@ -316,9 +310,9 @@ private:
 	}
 
 	void handle_lcd_frame_sync() {
-		if( ui_dirty ) {
+		if( ui::is_dirty() ) {
 			paint_widget(top_widget);
-			ui_dirty = false;
+			ui::dirty_clear();
 		}
 	}
 
