@@ -230,20 +230,13 @@ int main(void) {
 		chSysHalt();
 	}
 
-	init_message_queues();
-
 	portapack::io.init();
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
 
-	rtc_interrupt_enable();
-
-	controls_init();
-
-	lcd_frame_sync_configure();
-
- 	events_initialize(chThdSelf());
+	events_initialize(chThdSelf());
+	init_message_queues();
 
 	ui::Context context;
 	ui::SystemView system_view {
@@ -253,9 +246,12 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
-	m4txevent_interrupt_enable();
-
 	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
+
+	controls_init();
+	lcd_frame_sync_configure();
+	rtc_interrupt_enable();
+	m4txevent_interrupt_enable();
 
 	event_dispatcher.run();
 
