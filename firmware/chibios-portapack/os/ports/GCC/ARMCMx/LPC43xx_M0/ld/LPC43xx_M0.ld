@@ -25,7 +25,6 @@ MEMORY
 {
     flash   : org = 0x00000000, len = 128k  /* SPIFI flash @ 0x140????? */
     ram     : org = 0x20000000, len = 64k   /* AHB SRAM @ 0x20000000 */
-    nvram   : org = 0x10088000, len = 8k    /* Local SRAM, VBAT domain */
 }
 
 __ram_start__           = ORIGIN(ram);
