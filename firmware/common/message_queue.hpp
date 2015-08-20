@@ -27,6 +27,10 @@
 #include "message.hpp"
 #include "fifo.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
+template<size_t K>
 class MessageQueue {
 public:
 	template<typename T>
@@ -37,7 +41,9 @@ public:
 		return push(&message, sizeof(message));
 	}
 
-	size_t pop(void* const buf, const size_t len);
+	size_t pop(void* const buf, const size_t len) {
+		return fifo.out_r(buf, len);
+	}
 
 	size_t len() const {
 		return fifo.len();
@@ -48,11 +54,29 @@ public:
 	}
 
 private:
-	FIFO<uint8_t, 11> fifo;
+	FIFO<uint8_t, K> fifo;
 
-	bool push(const void* const buf, const size_t len);
+	bool push(const void* const buf, const size_t len) {
+		const auto result = fifo.in_r(buf, len);
+		const bool success = (result == len);
+		if( success ) {
+			signal();
+		}
+		return success;
+	}
 
-	void signal();
+
+#if defined(LPC43XX_M0)
+	void signal() {
+		creg::m0apptxevent::assert();
+	}
+#endif
+
+#if defined(LPC43XX_M4)
+	void signal() {
+		creg::m4txevent::assert();
+	}
+#endif
 };
 
 #endif/*__MESSAGE_QUEUE_H__*/

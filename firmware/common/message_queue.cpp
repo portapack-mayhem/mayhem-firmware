@@ -20,33 +20,3 @@
  */
 
 #include "message_queue.hpp"
-
-#include "ch.h"
-#include "lpc43xx_cpp.hpp"
-
-using namespace lpc43xx;
-
-bool MessageQueue::push(const void* const buf, const size_t len) {
-	const auto result = fifo.in_r(buf, len);
-	const bool success = (result == len);
-	if( success ) {
-		signal();
-	}
-	return success;
-}
-
-size_t MessageQueue::pop(void* const buf, const size_t len) {
-	return fifo.out_r(buf, len);
-}
-
-#if defined(LPC43XX_M0)
-void MessageQueue::signal() {
-	creg::m0apptxevent::assert();
-}
-#endif
-
-#if defined(LPC43XX_M4)
-void MessageQueue::signal() {
-	creg::m4txevent::assert();
-}
-#endif

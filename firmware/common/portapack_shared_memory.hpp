@@ -32,8 +32,8 @@ struct TouchADCFrame {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
-	MessageQueue baseband_queue;
-	MessageQueue application_queue;
+	MessageQueue<12> baseband_queue;
+	MessageQueue<11> application_queue;
 
 	// TODO: M0 should directly configure and control DMA channel that is
 	// acquiring ADC samples.
@@ -44,8 +44,8 @@ extern SharedMemory& shared_memory;
 
 #if defined(LPC43XX_M0)
 inline void init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue();
-	new (&shared_memory.application_queue) MessageQueue();
+	new (&shared_memory.baseband_queue) MessageQueue<12>();
+	new (&shared_memory.application_queue) MessageQueue<11>();
 }
 #endif
 
