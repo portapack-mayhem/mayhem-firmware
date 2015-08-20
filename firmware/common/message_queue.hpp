@@ -29,9 +29,15 @@
 
 class MessageQueue {
 public:
-	bool push(Message* const message);
+	template<typename T>
+	bool push(const T& message) {
+		static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
+		static_assert(std::is_base_of<Message, T>::value, "type is not based on Message");
 
-	Message* pop();
+		return push(&message, sizeof(message));
+	}
+
+	size_t pop(void* const buf, const size_t len);
 
 	size_t len() const {
 		return fifo.len();
@@ -42,9 +48,10 @@ public:
 	}
 
 private:
-	FIFO<Message*, 8> fifo;
+	FIFO<uint8_t, 11> fifo;
 
-	bool enqueue(Message* const message);
+	bool push(const void* const buf, const size_t len);
+
 	void signal();
 };
 

@@ -147,8 +147,7 @@ void ReceiverModel::disable() {
 			.decimation_factor = 1,
 		}
 	};
-	shared_memory.baseband_queue.push(&message);
-	while( !message.is_free() );
+	shared_memory.baseband_queue.push(message);
 
 	radio::disable();
 }
@@ -187,10 +186,7 @@ void ReceiverModel::update_baseband_configuration() {
 	radio::set_baseband_decimation_by(baseband_oversampling());
 
 	BasebandConfigurationMessage message { baseband_configuration };
-	shared_memory.baseband_queue.push(&message);
-
-	// Block until message is consumed, since we allocated it on the stack.
-	while( !message.is_free() );
+	shared_memory.baseband_queue.push(message);
 
 	if( baseband_configuration.mode == 3 ) {
 		update_fsk_configuration();
@@ -222,8 +218,5 @@ static constexpr FSKConfiguration fsk_configuration_tpms_a = {
 
 void ReceiverModel::update_fsk_configuration() {
 	FSKConfigurationMessage message { fsk_configuration_ais };
-	shared_memory.baseband_queue.push(&message);
-
-	// Block until message is consumed, since we allocated it on the stack.
-	while( !message.is_free() );
+	shared_memory.baseband_queue.push(message);
 }

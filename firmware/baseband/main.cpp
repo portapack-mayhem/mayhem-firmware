@@ -273,10 +273,8 @@ private:
 	AudioStatisticsMessage audio_stats_message;
 
 	void post_channel_stats_message(const ChannelStatistics statistics) {
-		if( channel_stats_message.is_free() ) {
-			channel_stats_message.statistics = statistics;
-			shared_memory.application_queue.push(&channel_stats_message);
-		}
+		channel_stats_message.statistics = statistics;
+		shared_memory.application_queue.push(channel_stats_message);
 	}
 
 	void post_channel_spectrum_message(const buffer_c16_t data) {
@@ -298,10 +296,8 @@ private:
 	}
 
 	void post_audio_stats_message(const AudioStatistics statistics) {
-		if( audio_stats_message.is_free() ) {
-			audio_stats_message.statistics = statistics;
-			shared_memory.application_queue.push(&audio_stats_message);
-		}
+		audio_stats_message.statistics = statistics;
+		shared_memory.application_queue.push(audio_stats_message);
 	}
 };
 
@@ -585,11 +581,9 @@ private:
 		const std::bitset<256>& payload,
 		const size_t bits_received
 	) {
-		if( message.is_free() ) {
-			message.packet.payload = payload;
-			message.packet.bits_received = bits_received;
-			shared_memory.application_queue.push(&message);
-		}
+		message.packet.payload = payload;
+		message.packet.bits_received = bits_received;
+		shared_memory.application_queue.push(message);
 	}
 };
 
@@ -602,7 +596,6 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 	chRegSetThreadName("baseband");
 
 	BasebandStatsCollector stats;
-	BasebandStatisticsMessage message;
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
@@ -616,11 +609,10 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 		}
 
 		stats.process(buffer,
-			[&message](const BasebandStatistics statistics) {
-				if( message.is_free() ) {
-					message.statistics = statistics;
-					shared_memory.application_queue.push(&message);
-				}
+			[](const BasebandStatistics statistics) {
+				BasebandStatisticsMessage message;
+				message.statistics = statistics;
+				shared_memory.application_queue.push(message);
 			}
 		);
 	}
@@ -632,7 +624,6 @@ static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
 	chRegSetThreadName("rssi");
 
 	RSSIStatisticsCollector stats;
-	RSSIStatisticsMessage message;
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
@@ -643,11 +634,10 @@ static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
 
 		stats.process(
 			buffer,
-			[&message](const RSSIStatistics statistics) {
-				if( message.is_free() ) {
-					message.statistics = statistics;
-					shared_memory.application_queue.push(&message);
-				}
+			[](const RSSIStatistics statistics) {
+				RSSIStatisticsMessage message;
+				message.statistics = statistics;
+				shared_memory.application_queue.push(message);
 			}
 		);
 	}
@@ -731,43 +721,40 @@ public:
 private:
 	MessageHandlerMap message_map;
 
-	ChannelSpectrumMessage spectrum_message;
-	std::array<uint8_t, 256> spectrum_db;
-
 	void handle_baseband_queue() {
 		while( !shared_memory.baseband_queue.is_empty() ) {
-			auto message = shared_memory.baseband_queue.pop();
-
-			message_map.send(message);
-
-			message->state = Message::State::Free;
+			std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+			const Message* const message = reinterpret_cast<Message*>(message_buffer.data());
+			const auto message_size = shared_memory.baseband_queue.pop(message_buffer.data(), message_buffer.size());
+			if( message_size ) {
+				message_map.send(message);
+			}
 		}
 	}
 
 	void handle_spectrum() {
 		if( channel_spectrum_request_update ) {
 			/* Decimated buffer is full. Compute spectrum. */
-			std::array<std::complex<float>, 256> samples_swapped;
+			std::array<std::complex<float>, channel_spectrum.size()> samples_swapped;
 			fft_swap(channel_spectrum, samples_swapped);
 			channel_spectrum_request_update = false;
 			fft_c_preswapped(samples_swapped);
-			if( spectrum_message.is_free() ) {
-				for(size_t i=0; i<spectrum_db.size(); i++) {
-					const auto mag2 = magnitude_squared(samples_swapped[i]);
-					const float db = complex16_mag_squared_to_dbv_norm(mag2);
-					constexpr float mag_scale = 5.0f;
-					const unsigned int v = (db * mag_scale) + 255.0f;
-					spectrum_db[i] = std::max(0U, std::min(255U, v));
-				}
 
-				/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
-				spectrum_message.spectrum.db = &spectrum_db;
-				spectrum_message.spectrum.db_count = spectrum_db.size();
-				spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
-				spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
-				spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
-				shared_memory.application_queue.push(&spectrum_message);
+			ChannelSpectrumMessage spectrum_message;
+			for(size_t i=0; i<spectrum_message.spectrum.db.size(); i++) {
+				const auto mag2 = magnitude_squared(samples_swapped[i]);
+				const float db = complex16_mag_squared_to_dbv_norm(mag2);
+				constexpr float mag_scale = 5.0f;
+				const unsigned int v = (db * mag_scale) + 255.0f;
+				spectrum_message.spectrum.db[i] = std::max(0U, std::min(255U, v));
 			}
+
+			/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
+			spectrum_message.spectrum.db_count = spectrum_message.spectrum.db.size();
+			spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
+			spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
+			spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
+			shared_memory.application_queue.push(spectrum_message);
 		}
 	}
 };

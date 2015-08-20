@@ -31,7 +31,9 @@
 
 class Message {
 public:
-	enum class ID : uint16_t {
+	static constexpr size_t MAX_SIZE = 276;
+
+	enum class ID : uint32_t {
 		/* Assign consecutive IDs. IDs are used to index array. */
 		RSSIStatistics = 0,
 		BasebandStatistics = 1,
@@ -47,22 +49,11 @@ public:
 
 	constexpr Message(
 		ID id
-	) : id { id },
-		state { State::Free }
+	) : id { id }
 	{
 	}
 
-	enum class State : uint16_t {
-		Free,
-		InUse,
-	};
-
-	bool is_free() const {
-		return state == State::Free;
-	}
-
 	const ID id;
-	volatile State state;
 };
 
 struct RSSIStatistics {
@@ -183,7 +174,7 @@ public:
 };
 
 struct ChannelSpectrum {
-	std::array<uint8_t, 256>* db { nullptr };
+	std::array<uint8_t, 256> db { { 0 } };
 	size_t db_count { 256 };
 	uint32_t sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
@@ -255,9 +246,11 @@ public:
 	}
 
 	void send(const Message* const message) {
-		auto& fn = map_[toUType(message->id)];
-		if( fn ) {
-			fn(message);
+		if( message->id < Message::ID::MAX ) {
+			auto& fn = map_[toUType(message->id)];
+			if( fn ) {
+				fn(message);
+			}
 		}
 	}
 

@@ -201,16 +201,15 @@ public:
 		const ChannelSpectrum& spectrum
 	) {
 		/* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
-		const auto& db = *spectrum.db;
 
 		std::array<Color, 240> pixel_row;
 		for(size_t i=0; i<120; i++) {
-			const auto pixel_color = spectrum_rgb3_lut[db[256 - 120 + i]];
+			const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
 			pixel_row[i] = pixel_color;
 		}
 
 		for(size_t i=120; i<240; i++) {
-			const auto pixel_color = spectrum_rgb3_lut[db[i - 120]];
+			const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
 			pixel_row[i] = pixel_color;
 		}
 

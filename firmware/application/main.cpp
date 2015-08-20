@@ -116,11 +116,12 @@ private:
 
 	void handle_application_queue() {
 		while( !shared_memory.application_queue.is_empty() ) {
-			auto message = shared_memory.application_queue.pop();
-
-			context.message_map.send(message);
-
-			message->state = Message::State::Free;
+			std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+			const Message* const message = reinterpret_cast<Message*>(message_buffer.data());
+			const auto message_size = shared_memory.application_queue.pop(message_buffer.data(), message_buffer.size());
+			if( message_size ) {
+				context.message_map.send(message);
+			}
 		}
 	}
 
