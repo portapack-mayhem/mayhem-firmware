@@ -27,10 +27,7 @@
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
 
-#include "portapack.hpp"
 #include "m4_startup.hpp"
-#include "spi_image.hpp"
-using namespace portapack;
 
 namespace ui {
 
@@ -149,13 +146,7 @@ Context& SystemView::context() const {
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 	button_yes.on_select = [&nav](Button&){
-		shutdown();
-
-		m4_init(spi_flash::hackrf, memory::map::m4_code_hackrf);
-
-		while(true) {
-			__WFE();
-		}
+		m4_request_shutdown();
 	};
 
 	button_no.on_select = [&nav](Button&){

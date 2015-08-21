@@ -43,7 +43,7 @@ public:
 		BasebandConfiguration = 5,
 		FSKConfiguration = 6,
 		FSKPacket = 7,
-		TestResults = 8,
+		Shutdown = 8,
 		MAX
 	};
 
@@ -231,6 +231,14 @@ public:
 	}
 
 	FSKPacket packet;
+};
+
+class ShutdownMessage : public Message {
+public:
+	constexpr ShutdownMessage(
+	) : Message { ID::Shutdown }
+	{
+	}
 };
 
 class MessageHandlerMap {

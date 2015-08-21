@@ -252,6 +252,13 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
+	auto& message_handlers = context.message_map;
+	message_handlers.register_handler(Message::ID::Shutdown,
+		[&event_dispatcher](const Message* const) {
+			event_dispatcher.request_stop();
+		}
+	);
+
 	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
 
 	controls_init();
@@ -261,5 +268,7 @@ int main(void) {
 
 	event_dispatcher.run();
 
+	portapack::shutdown();
+	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);	
 	return 0;
 }

@@ -23,6 +23,9 @@
 
 #include "hal.h"
 
+#include "message.hpp"
+#include "portapack_shared_memory.hpp"
+
 #include <cstring>
 
 /* TODO: OK, this is cool, but how do I put the M4 to sleep so I can switch to
@@ -43,4 +46,9 @@ void m4_init(const portapack::spi_flash::region_t from, const portapack::memory:
 
 	/* Reset M4 core */
 	LPC_RGU->RESET_CTRL[0] = (1 << 13);
+}
+
+void m4_request_shutdown() {
+	ShutdownMessage shutdown_message;
+	shared_memory.baseband_queue.push(shutdown_message);
 }

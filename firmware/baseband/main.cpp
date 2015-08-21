@@ -776,6 +776,10 @@ static void m0apptxevent_interrupt_enable() {
 	nvicEnableVector(M0CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M0APPTXEVENT_IRQ_PRIORITY));
 }
 
+static void m0apptxevent_interrupt_disable() {
+	nvicDisableVector(M0CORE_IRQn);
+}
+
 extern "C" {
 
 CH_IRQ_HANDLER(MAPP_IRQHandler) {
@@ -790,6 +794,18 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 	CH_IRQ_EPILOGUE();
 }
 
+}
+
+static void shutdown() {
+	// TODO: Is this complete?
+	
+	nvicDisableVector(DMA_IRQn);
+
+	m0apptxevent_interrupt_disable();
+	
+	chSysDisable();
+
+	systick_stop();
 }
 
 static constexpr auto direction = baseband::Direction::Receive;
@@ -849,6 +865,12 @@ int main(void) {
 		}
 	);
 
+	message_handlers.register_handler(Message::ID::Shutdown,
+		[&event_dispatcher](const Message* const) {
+			event_dispatcher.request_stop();
+		}
+	);
+
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
 	if( direction == baseband::Direction::Receive ) {
@@ -867,6 +889,11 @@ int main(void) {
 	//baseband::dma::allocate(4, 2048);
 
 	event_dispatcher.run();
+
+	shutdown();
+
+	ShutdownMessage shutdown_message;
+	shared_memory.application_queue.push(shutdown_message);
 
 	return 0;
 }

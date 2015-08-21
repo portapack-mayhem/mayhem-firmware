@@ -153,6 +153,9 @@ void shutdown() {
 	// TODO: Wait a bit for supplies to discharge?
 
 	chSysDisable();
+
+	systick_stop();
+
 	hackrf::one::reset();
 }
 

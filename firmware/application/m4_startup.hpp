@@ -28,5 +28,6 @@
 #include "spi_image.hpp"
 
 void m4_init(const portapack::spi_flash::region_t from, const portapack::memory::region_t to);
+void m4_request_shutdown();
 
 #endif/*__M4_STARTUP_H__*/
