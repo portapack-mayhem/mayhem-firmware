@@ -33,6 +33,8 @@
 
 #include "event_m4.hpp"
 
+#include "irq_ipc_m4.hpp"
+
 #include "rssi.hpp"
 #include "rssi_dma.hpp"
 
@@ -771,30 +773,6 @@ private:
 		}
 	}
 };
-
-static void m0apptxevent_interrupt_enable() {
-	nvicEnableVector(M0CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M0APPTXEVENT_IRQ_PRIORITY));
-}
-
-static void m0apptxevent_interrupt_disable() {
-	nvicDisableVector(M0CORE_IRQn);
-}
-
-extern "C" {
-
-CH_IRQ_HANDLER(MAPP_IRQHandler) {
-	CH_IRQ_PROLOGUE();
-
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_BASEBAND);
-	chSysUnlockFromIsr();
-
-	creg::m0apptxevent::clear();
-
-	CH_IRQ_EPILOGUE();
-}
-
-}
 
 static void shutdown() {
 	// TODO: Is this complete?

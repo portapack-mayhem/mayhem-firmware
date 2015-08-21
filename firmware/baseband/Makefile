@@ -125,6 +125,7 @@ CSRC = $(PORTSRC) \
 CPPSRC = main.cpp \
          message_queue.cpp \
          event_m4.cpp \
+         irq_ipc_m4.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          portapack_shared_memory.cpp \
