@@ -59,9 +59,6 @@ constexpr region_t application {
 	.size = 0x40000,
 };
 
-// TODO: Refactor into another header that defines memory regions.
-constexpr void* m4_text_ram_base = reinterpret_cast<void*>(0x10080000);
-
 } /* namespace spi_flash */
 } /* namespace portapack */
 
