@@ -49,6 +49,9 @@
 
 #include "gcc.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 #include <string.h>
 
 class EventDispatcher {
@@ -269,6 +272,9 @@ int main(void) {
 	event_dispatcher.run();
 
 	portapack::shutdown();
-	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);	
+	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
+
+	rgu::reset(rgu::Reset::M0APP);
+
 	return 0;
 }
