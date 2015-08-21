@@ -63,6 +63,10 @@ void halLPCSetSystemClock(const halclock_t new_frequency) {
   hal_clock_f = new_frequency;
 }
 
+void systick_stop() {
+  SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_TICKINT_Msk);
+}
+
 void systick_adjust_period(const uint32_t counts_per_tick) {
   SysTick->LOAD = counts_per_tick;
 }
