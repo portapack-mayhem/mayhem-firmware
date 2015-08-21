@@ -492,6 +492,7 @@ public:
 	}
 
 	void configure(const FSKConfiguration new_configuration) {
+		demod.configure(76800, 2 * new_configuration.symbol_rate);
 		clock_recovery.configure(new_configuration.symbol_rate, 76800);
 		access_code_correlator.configure(
 			new_configuration.access_code,
