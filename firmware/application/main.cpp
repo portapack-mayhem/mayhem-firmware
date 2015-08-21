@@ -67,10 +67,14 @@ public:
 	}
 
 	void run() {
-		while(true) {
+		while(is_running) {
 			const auto events = wait();
 			dispatch(events);
 		}
+	}
+
+	void request_stop() {
+		is_running = false;
 	}
 
 private:
@@ -79,6 +83,7 @@ private:
 	ui::Painter& painter;
 	ui::Context& context;
 	uint32_t encoder_last = 0;
+	bool is_running = true;
 
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
