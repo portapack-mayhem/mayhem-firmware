@@ -28,6 +28,8 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "utility.hpp"
+
 namespace portapack {
 namespace memory {
 
@@ -57,14 +59,6 @@ private:
 	const uint32_t base_;
 	const size_t size_;
 };
-
-constexpr size_t operator "" _KiB(unsigned long long v) {
-	return v * 1024;
-}
-
-constexpr size_t operator "" _MiB(unsigned long long v) {
-	return v * 1024 * 1024;
-}
 
 namespace map {
 

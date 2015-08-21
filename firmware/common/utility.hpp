@@ -32,6 +32,14 @@
 
 #define LOCATE_IN_RAM __attribute__((section(".ramtext")))
 
+constexpr size_t operator "" _KiB(unsigned long long v) {
+	return v * 1024;
+}
+
+constexpr size_t operator "" _MiB(unsigned long long v) {
+	return v * 1024 * 1024;
+}
+
 template<typename E>
 constexpr typename std::underlying_type<E>::type toUType(E enumerator) noexcept {
 	/* Thanks, Scott Meyers! */
