@@ -3,7 +3,7 @@ LIBS:hackrf_expansion
 LIBS:wolfson
 LIBS:passive
 LIBS:lcd_kingtech
-LIBS:power
+LIBS:supply
 LIBS:io_expander
 LIBS:trs_jack
 LIBS:battery
@@ -19,16 +19,16 @@ LIBS:hole
 LIBS:sharebrained
 LIBS:fiducial
 LIBS:portapack_h1-cache
-EELAYER 24 0
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 4
 Title "PortaPack H1"
-Date "13 Oct 2014"
-Rev "20140826"
+Date "21 Aug 2015"
+Rev "20150821"
 Comp "ShareBrained Technology, Inc."
-Comment1 "Copyright © 2014 Jared Boone"
+Comment1 "Copyright © 2014, 2015 Jared Boone"
 Comment2 "License: GNU General Public License, version 2"
 Comment3 ""
 Comment4 ""
