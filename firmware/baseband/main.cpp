@@ -704,6 +704,17 @@ public:
 		return message_map;
 	}
 
+	void run() {
+		while(is_running) {
+			const auto events = wait();
+			dispatch(events);
+		}
+	}
+
+	void request_stop() {
+		is_running = false;
+	}
+
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
 	}
@@ -720,6 +731,8 @@ public:
 
 private:
 	MessageHandlerMap message_map;
+
+	bool is_running = true;
 
 	void handle_baseband_queue() {
 		while( !shared_memory.baseband_queue.is_empty() ) {
@@ -853,10 +866,7 @@ int main(void) {
 	);
 	//baseband::dma::allocate(4, 2048);
 
-	while(true) {
-		const auto events = event_dispatcher.wait();
-		event_dispatcher.dispatch(events);
-	}
-	
+	event_dispatcher.run();
+
 	return 0;
 }
