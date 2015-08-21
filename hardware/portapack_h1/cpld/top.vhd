@@ -111,10 +111,8 @@ begin
 
 	io_strobe <= (MCU_IO_STBX = '0');
 	io_read_strobe <= io_strobe and dir_read;
-	io_write_strobe <= io_strobe and dir_write;
 
 	lcd_read_strobe <= (MCU_LCD_RD = '1');
-	lcd_write_strobe <= (MCU_LCD_WR = '1');
 	lcd_write <= not lcd_read_strobe;
 
 	-- LCD interface
