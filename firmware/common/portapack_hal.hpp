@@ -36,8 +36,8 @@ namespace portapack {
 constexpr GPIO gpio_io_stbx		= gpio[GPIO5_0];	/* P2_0 */
 constexpr GPIO gpio_addr		= gpio[GPIO5_1];	/* P2_1 */
 constexpr GPIO gpio_lcd_te		= gpio[GPIO5_3];	/* P2_3 */
-constexpr GPIO gpio_unused		= gpio[GPIO5_4];	/* P2_4 */
-constexpr GPIO gpio_lcd_rd		= gpio[GPIO5_7];	/* P2_8 */
+constexpr GPIO gpio_unused		= gpio[GPIO5_7];	/* P2_8 */
+constexpr GPIO gpio_lcd_rd		= gpio[GPIO5_4];	/* P2_4 */
 constexpr GPIO gpio_lcd_wr		= gpio[GPIO1_10];	/* P2_9 */
 constexpr GPIO gpio_dir			= gpio[GPIO1_13];	/* P2_13 */
 constexpr std::array<GPIO, 8> gpios_data {

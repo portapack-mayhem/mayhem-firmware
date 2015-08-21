@@ -166,10 +166,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_U
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_ROT_B
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_SEL
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_ROT_A
-set_location_assignment PIN_31 -to MCU_ROT_A
-set_location_assignment PIN_30 -to MCU_ROT_B
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_ROT_A
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_ROT_B
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[15]
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[14]
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[13]
@@ -201,8 +197,6 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[2
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[1]
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[0]
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_DIR
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_ROT_A
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_ROT_B
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_D
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_L
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_R
@@ -245,8 +239,6 @@ set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[2]
 set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[1]
 set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[0]
 set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_DIR
-set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_ROT_A
-set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_ROT_B
 set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_D
 set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_L
 set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_R
@@ -268,11 +260,10 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_BACKLIGHT
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_BACKLIGHT
 set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_BACKLIGHT
 set_instance_assignment -name PCI_IO OFF -to LCD_BACKLIGHT
-set_location_assignment PIN_34 -to MCU_LCD_RD
+set_location_assignment PIN_30 -to MCU_LCD_RD
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RD
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RD
 set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_RD
-set_instance_assignment -name PCI_IO OFF -to MCU_LCD_RD
 set_location_assignment PIN_40 -to MCU_LCD_WR
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_WR
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_WR
@@ -286,3 +277,12 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_R
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_D
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_L
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_U
+set_location_assignment PIN_31 -to MCU_LCD_TE
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_TE
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_TE
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_TE
+set_location_assignment PIN_34 -to MCU_P2_8
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_P2_8
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_P2_8
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_P2_8
+set_instance_assignment -name PCI_IO OFF -to MCU_P2_8

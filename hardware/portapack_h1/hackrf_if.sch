@@ -34,7 +34,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 Text Label 1300 2600 0    60   ~ 0
-P2_4
+MCU_LCD_RD
 $Comp
 L GND #PWR059
 U 1 1 53A8CD34
@@ -164,21 +164,21 @@ NoConn ~ 3400 2700
 NoConn ~ 1800 2700
 NoConn ~ 1800 2800
 Text Label 3500 1000 0    60   ~ 0
-GPIO3_9
+MCU_D1
 Text Label 3500 1100 0    60   ~ 0
-GPIO3_11
+MCU_D3
 Text Label 3500 1200 0    60   ~ 0
-GPIO3_13
+MCU_D5
 Text Label 3500 1300 0    60   ~ 0
-GPIO3_15
+MCU_D7
 Text Label 1100 1300 0    60   ~ 0
-GPIO3_14
+MCU_D6
 Text Label 1100 1200 0    60   ~ 0
-GPIO3_12
+MCU_D4
 Text Label 1100 1100 0    60   ~ 0
-GPIO3_10
+MCU_D2
 Text Label 1100 1000 0    60   ~ 0
-GPIO3_8
+MCU_D0
 NoConn ~ 1800 3600
 NoConn ~ 3400 5000
 NoConn ~ 3400 5100
@@ -191,13 +191,13 @@ NoConn ~ 3400 4900
 Text Label 1100 5100 0    60   ~ 0
 CPLD_TDI
 Text Label 3700 3300 0    60   ~ 0
-P2_0
+MCU_IO_STBX
 Text Label 1500 3300 0    60   ~ 0
-P2_1
+MCU_ADDR
 Text Label 1500 3400 0    60   ~ 0
-P2_9
+MCU_LCD_WR
 Text Label 3700 3400 0    60   ~ 0
-P2_13
+MCU_DIR
 Text Label 3500 4500 0    60   ~ 0
 P1_8
 Text Label 1500 3500 0    60   ~ 0
@@ -398,25 +398,25 @@ LCD_DB14
 Text Label 9950 2600 0    60   ~ 0
 LCD_DB15
 Text Label 4600 5900 0    60   ~ 0
-GPIO3_8
+MCU_D0
 Text Label 4600 6000 0    60   ~ 0
-GPIO3_9
+MCU_D1
 Text Label 4600 5800 0    60   ~ 0
-GPIO3_10
+MCU_D2
 Text Label 4600 5700 0    60   ~ 0
-GPIO3_11
+MCU_D3
 Text Label 4600 5000 0    60   ~ 0
-GPIO3_12
+MCU_D4
 Text Label 4600 5100 0    60   ~ 0
-GPIO3_13
+MCU_D5
 Text Label 4600 4900 0    60   ~ 0
-GPIO3_14
+MCU_D6
 Text Label 4600 4800 0    60   ~ 0
-GPIO3_15
+MCU_D7
 Text Label 4600 1000 0    60   ~ 0
-P2_9
+MCU_LCD_WR
 Text Label 4600 1100 0    60   ~ 0
-P2_13
+MCU_DIR
 Text Label 6100 3700 0    60   ~ 0
 P1_8
 $Comp
@@ -477,13 +477,13 @@ $EndComp
 Text Label 8700 5350 1    60   ~ 0
 RESET#
 Text Label 8800 5350 1    60   ~ 0
-P2_4_R
+MCU_LCD_RD_R
 Text Label 6100 3800 0    60   ~ 0
 CPLD_TDI
 Text Label 10050 4000 0    60   ~ 0
-P2_1_R
+MCU_ADDR_R
 Text Label 9000 5350 1    60   ~ 0
-P2_0_R
+MCU_IO_STBX_R
 Text Label 7600 1450 1    60   ~ 0
 LCD_TE
 $Comp
@@ -1154,9 +1154,9 @@ Wire Wire Line
 Wire Wire Line
 	8900 5450 8900 4750
 Text Label 3700 2600 0    60   ~ 0
-P2_3
+MCU_LCD_TE
 Text Label 8900 5350 1    60   ~ 0
-P2_3_R
+MCU_LCD_TE_R
 Wire Wire Line
 	6000 800  5400 800 
 Wire Wire Line
@@ -1164,13 +1164,13 @@ Wire Wire Line
 Wire Wire Line
 	6000 1100 5400 1100
 Text Label 5500 1100 0    60   ~ 0
-P2_13_R
+MCU_DIR_R
 Text Label 5500 1000 0    60   ~ 0
-P2_9_R
+MCU_LCD_WR_R
 Text Label 9950 3000 0    60   ~ 0
-P2_13_R
+MCU_DIR_R
 Text Label 9950 3200 0    60   ~ 0
-P2_9_R
+MCU_LCD_WR_R
 Wire Wire Line
 	4500 1700 5000 1700
 Wire Wire Line
@@ -1184,37 +1184,37 @@ Wire Wire Line
 Wire Wire Line
 	6100 2100 5500 2100
 Text Label 4600 1700 0    60   ~ 0
-P2_4
+MCU_LCD_RD
 Text Label 4600 1900 0    60   ~ 0
-P2_3
+MCU_LCD_TE
 Text Label 4600 800  0    60   ~ 0
-P2_1
+MCU_ADDR
 Text Label 4600 2100 0    60   ~ 0
-P2_0
+MCU_IO_STBX
 Text Label 5600 1700 0    60   ~ 0
-P2_4_R
+MCU_LCD_RD_R
 Text Label 5600 1900 0    60   ~ 0
-P2_3_R
+MCU_LCD_TE_R
 Text Label 5500 800  0    60   ~ 0
-P2_1_R
+MCU_ADDR_R
 Text Label 5600 2100 0    60   ~ 0
-P2_0_R
+MCU_IO_STBX_R
 Text Label 7600 5350 1    60   ~ 0
-GPIO3_15_R
+MCU_D7_R
 Text Label 7700 5350 1    60   ~ 0
-GPIO3_14_R
+MCU_D6_R
 Text Label 7800 5350 1    60   ~ 0
-GPIO3_12_R
+MCU_D4_R
 Text Label 7900 5350 1    60   ~ 0
-GPIO3_13_R
+MCU_D5_R
 Text Label 8000 5350 1    60   ~ 0
-GPIO3_11_R
+MCU_D3_R
 Text Label 8200 5350 1    60   ~ 0
-GPIO3_10_R
+MCU_D2_R
 Text Label 8400 5350 1    60   ~ 0
-GPIO3_8_R
+MCU_D0_R
 Text Label 8500 5350 1    60   ~ 0
-GPIO3_9_R
+MCU_D1_R
 Wire Wire Line
 	6300 4800 5500 4800
 Wire Wire Line
@@ -1232,21 +1232,21 @@ Wire Wire Line
 Wire Wire Line
 	6300 6000 5500 6000
 Text Label 5600 4800 0    60   ~ 0
-GPIO3_15_R
+MCU_D7_R
 Text Label 5600 4900 0    60   ~ 0
-GPIO3_14_R
+MCU_D6_R
 Text Label 5600 5000 0    60   ~ 0
-GPIO3_12_R
+MCU_D4_R
 Text Label 5600 5100 0    60   ~ 0
-GPIO3_13_R
+MCU_D5_R
 Text Label 5600 5700 0    60   ~ 0
-GPIO3_11_R
+MCU_D3_R
 Text Label 5600 5800 0    60   ~ 0
-GPIO3_10_R
+MCU_D2_R
 Text Label 5600 5900 0    60   ~ 0
-GPIO3_8_R
+MCU_D0_R
 Text Label 5600 6000 0    60   ~ 0
-GPIO3_9_R
+MCU_D1_R
 $Comp
 L R R22
 U 1 1 53A915E9

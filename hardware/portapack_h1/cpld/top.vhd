@@ -28,9 +28,9 @@ entity top is
 		MCU_IO_STBX		:	in		std_logic;
 		MCU_LCD_WR		:	in		std_logic;
 		MCU_ADDR			:	in		std_logic;
-		MCU_ROT_A		:	out	std_logic;
-		MCU_ROT_B		:	out	std_logic;
-		MCU_LCD_RD	:	in		std_logic;
+		MCU_LCD_TE		:	out	std_logic;
+		MCU_P2_8			:	in		std_logic;
+		MCU_LCD_RD		:	in		std_logic;
 		
 		TP_U				:	out	std_logic;
 		TP_D				:	out	std_logic;
@@ -102,8 +102,7 @@ begin
 	
 	LCD_BACKLIGHT <= lcd_backlight_q;
 	
-	MCU_ROT_A <= LCD_TE;	-- not SW_ROT_A;
-	MCU_ROT_B <= '0';		-- not SW_ROT_B;
+	MCU_LCD_TE <= LCD_TE;
 	
 	-- State management
 	data_dir <= to_mcu when MCU_DIR = '1' else from_mcu;
