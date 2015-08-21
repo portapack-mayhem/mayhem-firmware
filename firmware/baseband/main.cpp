@@ -558,7 +558,6 @@ private:
 	AccessCodeCorrelator access_code_correlator;
 	PacketBuilder packet_builder;
 
-	FSKPacketMessage message;
 	MessageHandlerMap& message_handlers;
 
 	void consume_symbol(
@@ -583,6 +582,7 @@ private:
 		const std::bitset<256>& payload,
 		const size_t bits_received
 	) {
+		FSKPacketMessage message;
 		message.packet.payload = payload;
 		message.packet.bits_received = bits_received;
 		shared_memory.application_queue.push(message);
