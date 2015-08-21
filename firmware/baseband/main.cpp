@@ -715,6 +715,11 @@ public:
 		is_running = false;
 	}
 
+private:
+	MessageHandlerMap message_map;
+
+	bool is_running = true;
+
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
 	}
@@ -728,11 +733,6 @@ public:
 			handle_spectrum();
 		}
 	}
-
-private:
-	MessageHandlerMap message_map;
-
-	bool is_running = true;
 
 	void handle_baseband_queue() {
 		while( !shared_memory.baseband_queue.is_empty() ) {
