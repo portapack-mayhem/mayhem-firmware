@@ -700,6 +700,18 @@ static void init() {
 	);
 }
 
+static void shutdown() {
+	// TODO: Is this complete?
+	
+	nvicDisableVector(DMA_IRQn);
+
+	m0apptxevent_interrupt_disable();
+	
+	chSysDisable();
+
+	systick_stop();
+}
+
 class EventDispatcher {
 public:
 	MessageHandlerMap& message_handlers() {
@@ -773,18 +785,6 @@ private:
 		}
 	}
 };
-
-static void shutdown() {
-	// TODO: Is this complete?
-	
-	nvicDisableVector(DMA_IRQn);
-
-	m0apptxevent_interrupt_disable();
-	
-	chSysDisable();
-
-	systick_stop();
-}
 
 static constexpr auto direction = baseband::Direction::Receive;
 
