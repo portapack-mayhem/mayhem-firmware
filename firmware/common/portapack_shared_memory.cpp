@@ -21,4 +21,13 @@
 
 #include "portapack_shared_memory.hpp"
 
-SharedMemory& shared_memory = *reinterpret_cast<SharedMemory*>(0x10088000);
+#include "memory_map.hpp"
+
+SharedMemory& shared_memory = *reinterpret_cast<SharedMemory*>(
+	portapack::memory::map::shared_memory.base()
+);
+
+static_assert(
+	sizeof(SharedMemory) <= portapack::memory::map::shared_memory.size(),
+	"SharedMemory is too large"
+);

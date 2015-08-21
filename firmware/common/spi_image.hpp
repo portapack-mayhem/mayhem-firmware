@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "hal.h"
+#include "memory_map.hpp"
 
 namespace portapack {
 namespace spi_flash {
@@ -34,8 +34,8 @@ struct region_t {
 	const size_t offset;
 	const size_t size;
 
-	constexpr const void* base_address() {
-		return reinterpret_cast<void*>(LPC_SPIFI_DATA_CACHED_BASE + offset);
+	constexpr const void* base() {
+		return reinterpret_cast<void*>(portapack::memory::map::spifi_cached.base() + offset);
 	}
 };
 

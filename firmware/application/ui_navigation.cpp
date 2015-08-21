@@ -151,7 +151,7 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 	button_yes.on_select = [&nav](Button&){
 		shutdown();
 
-		m4_init(spi_flash::hackrf, reinterpret_cast<void*>(0x10000000));
+		m4_init(spi_flash::hackrf, memory::map::m4_code_hackrf);
 
 		while(true) {
 			__WFE();

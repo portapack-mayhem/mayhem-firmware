@@ -247,7 +247,7 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
-	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
+	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
 
 	controls_init();
 	lcd_frame_sync_configure();
