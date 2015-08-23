@@ -36,6 +36,7 @@ enum class Direction {
 };
 
 buffer_t wait_for_rx_buffer();
+buffer_t wait_for_tx_buffer();
 
 } /* namespace baseband */
 

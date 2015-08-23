@@ -282,6 +282,7 @@ struct TouchEvent {
 
 	Point point;
 	Type type;
+	Point rawpoint;
 };
 
 } /* namespace ui */

@@ -209,6 +209,34 @@ private:
 	};
 };
 
+class SetTouchCalibView : public View {
+public:
+	SetTouchCalibView(NavigationView& nav);
+	void focus() override;
+	bool on_touch(const TouchEvent event) override;
+private:
+	
+	Text text_title {
+		{ 64, 32, 40, 16 },
+		"UL,UR,DL,DR !",
+	};
+	
+	Text text_debugx {
+		{ 64, 64, 40, 16 },
+		"X",
+	};
+	
+	Text text_debugy {
+		{ 64, 80, 40, 16 },
+		"Y",
+	};
+	
+	Button button_ok {
+		{ 72, 192, 96, 24 },
+		"OK"
+	};
+};
+
 class SetupMenuView : public MenuView {
 public:
 	SetupMenuView(NavigationView& nav);

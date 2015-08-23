@@ -163,6 +163,31 @@ private:
 	};
 };
 
+class DebugSDView : public View {
+public:
+	DebugSDView(NavigationView& nav);
+
+	void focus() override;
+
+	void paint(Painter& painter) override;
+
+private:
+	Text text_title {
+		{ 32, 16, 128, 16 },
+		"SD card debug",
+	};
+
+	Button button_makefile {
+		{ 72, 192, 96, 24 },
+		"Play file"
+	};
+	
+	Button button_done {
+		{ 72, 240, 96, 24 },
+		"Done"
+	};
+};
+
 class DebugMenuView : public MenuView {
 public:
 	DebugMenuView(NavigationView& nav);

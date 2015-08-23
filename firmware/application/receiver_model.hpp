@@ -64,7 +64,7 @@ public:
 	void set_sampling_rate(uint32_t hz);
 
 	uint32_t modulation() const;
-	void set_modulation(uint32_t v);
+	void set_modulation(int32_t v);
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
@@ -82,7 +82,7 @@ private:
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
 	BasebandConfiguration baseband_configuration {
-		.mode = 1,			/* TODO: Enum! */
+		.mode = 1,
 		.sampling_rate = 3072000,
 		.decimation_factor = 4,
 	};

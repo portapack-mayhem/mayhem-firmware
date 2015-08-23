@@ -22,10 +22,12 @@
 #include "ui_navigation.hpp"
 
 #include "receiver_model.hpp"
+#include "transmitter_model.hpp"
 
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
+#include "ui_rds.hpp"
 
 #include "portapack.hpp"
 #include "m4_startup.hpp"
@@ -95,10 +97,11 @@ void NavigationView::focus() {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<8>({ {
 		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
 		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "RDS toolbox",[&nav](){ nav.push(new RDSView          { nav, transmitter_model }); } },
 		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
 		{ "About",    [&nav](){ nav.push(new AboutView          { nav }); } },
 		{ "Debug",    [&nav](){ nav.push(new DebugMenuView      { nav }); } },

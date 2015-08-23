@@ -65,6 +65,10 @@ ReceiverModel receiver_model {
 	clock_manager
 };
 
+TransmitterModel transmitter_model {
+	clock_manager
+};
+
 class Power {
 public:
 	void init() {

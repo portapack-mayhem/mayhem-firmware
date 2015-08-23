@@ -22,6 +22,9 @@
 #include "touch.hpp"
 
 namespace touch {
+	
+float Manager::cmx;
+float Manager::cmy;
 
 struct Metrics {
 	const float x;
@@ -66,6 +69,13 @@ static Metrics calculate_metrics(const Frame frame) {
 	};
 }
 
+ui::Point Manager::raw_point() const {
+	return {
+		static_cast<ui::Coord>(cmx),
+		static_cast<ui::Coord>(cmy)
+	};
+}
+
 void Manager::feed(const Frame frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
@@ -81,6 +91,9 @@ void Manager::feed(const Frame frame) {
 		// TODO: Add touch pressure hysteresis?
 		touch_pressure = (metrics.r < r_touch_threshold);
 		if( touch_pressure ) {
+			cmx = metrics.x*100;
+			cmy = metrics.y*100;
+			
 			const float x = width_pixels * (metrics.x - calib_x_low) / calib_x_range;
 			filter_x.feed(x);
 			const float y = height_pixels * (calib_y_high - metrics.y) / calib_y_range;

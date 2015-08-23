@@ -356,14 +356,23 @@ void Button::set_text(const std::string value) {
 	set_dirty();
 }
 
+void Button::set_style(const Style* new_style) {
+	if( new_style != style_ ) {
+		style_ = new_style;
+		set_dirty();
+	}
+}
+
 std::string Button::text() const {
 	return text_;
 }
 
 void Button::paint(Painter& painter) {
 	const auto r = screen_rect();
+	
+	if (style_ == nullptr) style_ = &style();
 
-	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	const auto paint_style = (has_focus() || flags.highlighted) ? style_->invert() : *(style_);
 
 	painter.draw_rectangle(r, style().foreground);
 

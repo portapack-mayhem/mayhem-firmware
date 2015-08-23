@@ -228,6 +228,7 @@ public:
 	}
 
 	void set_text(const std::string value);
+	void set_style(const Style* new_style);
 	std::string text() const;
 
 	void paint(Painter& painter) override;
@@ -237,6 +238,7 @@ public:
 
 private:
 	std::string text_;
+	const Style* style_ { nullptr };
 };
 
 class OptionsField : public Widget {

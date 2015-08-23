@@ -23,12 +23,19 @@
 
 #include "ch.h"
 
+#include "ff.h"
+#include "led.hpp"
+#include "hackrf_gpio.hpp"
+#include "portapack.hpp"
+
 #include "radio.hpp"
 
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
 namespace ui {
+	
+FRESULT fr;         /* FatFs function common result code */
 
 /* BasebandStatsView *****************************************************/
 
@@ -154,11 +161,79 @@ void DebugRFFC5072View::focus() {
 	button_done.focus();
 }
 
+void DebugSDView::paint(Painter& painter) {
+	const Point offset = {
+		static_cast<Coord>(32),
+		static_cast<Coord>(32)
+	};
+	
+	const auto text = to_string_hex(fr, 2);
+	painter.draw_string(
+		screen_pos() + offset,
+		style(),
+		text
+	);
+}
+
+DebugSDView::DebugSDView(NavigationView& nav) {
+	add_children({ {
+		&text_title,
+		&button_makefile,
+		&button_done
+	} });
+	
+	button_makefile.on_select = [this](Button&){
+ 		FATFS fs;         	/* Work area (file system object) for logical drives */
+		FIL fdst;      		/* File objects */
+		int16_t buffer[512];  	/* File copy buffer */
+		UINT bw;    /* File read/write count */
+		
+		sdcConnect(&SDCD1);
+
+		fr = f_mount(&fs, "", 1);
+
+		fr = f_open(&fdst, "TST.SND", FA_OPEN_EXISTING | FA_READ);
+		
+		if (!fr) led_rx.on();
+		
+		/*fr = f_read(&fdst, buffer, 512*2, &bw);
+		
+		Coord oy,ny;
+		
+		oy = 128;
+		
+		for (int c=0;c<512;c++) {
+			ny = 128+32-(buffer[c]>>10);
+			portapack::display.draw_line({static_cast<Coord>(c/3),oy},{static_cast<Coord>((c+1)/3),ny},{255,127,0});
+			oy = ny;
+		}*/
+	
+		/*
+		//if (fr) return;
+
+		fr = f_write(&fdst, buffer, br, &bw);
+		//if (fr || bw < br) return;*/
+
+		//set_dirty();
+		
+		f_close(&fdst);
+
+		f_mount(NULL, "", 0);
+		
+	};
+	
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void DebugSDView::focus() {
+	button_done.focus();
+}
+
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<7>({ {
 		{ "Memory",      [&nav](){ nav.push(new DebugMemoryView    { nav }); } },
 		{ "Radio State", [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "SD Card",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "SD Card",     [&nav](){ nav.push(new DebugSDView        { nav }); } },
 		{ "RFFC5072",    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
 		{ "MAX2837",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Si5351C",     [&nav](){ nav.push(new NotImplementedView { nav }); } },

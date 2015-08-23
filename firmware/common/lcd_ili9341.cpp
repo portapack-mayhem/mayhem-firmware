@@ -28,6 +28,8 @@ using namespace portapack;
 
 #include "ch.h"
 
+#include <complex>
+
 namespace lcd {
 
 namespace {
@@ -236,6 +238,25 @@ void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 		lcd_start_ram_write(r_clipped);
 		size_t count = r_clipped.size.w * r_clipped.size.h;
 		io.lcd_write_pixels(c, count);
+	}
+}
+
+void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Color color) {
+	int x0 = start.x;
+	int y0 = start.y;
+	int x1 = end.x;
+	int y1 = end.y;
+	
+	int dx = std::abs(x1-x0), sx = x0<x1 ? 1 : -1;
+	int dy = std::abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+	int err = (dx>dy ? dx : -dy)/2, e2;
+ 
+	for(;;){
+		draw_pixel({static_cast<ui::Coord>(x0), static_cast<ui::Coord>(y0)}, color);
+		if (x0==x1 && y0==y1) break;
+		e2 = err;
+		if (e2 >-dx) { err -= dy; x0 += sx; }
+		if (e2 < dy) { err += dx; y0 += sy; }
 	}
 }
 

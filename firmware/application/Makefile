@@ -160,10 +160,12 @@ CPPSRC = main.cpp \
          ui_font_fixed_8x16.cpp \
          ui_setup.cpp \
          ui_debug.cpp \
+         ui_rds.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
          receiver_model.cpp \
+         transmitter_model.cpp \
          spectrum_color_lut.cpp \
          ../common/utility.cpp \
          ../common/debug.cpp \

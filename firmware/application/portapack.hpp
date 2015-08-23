@@ -22,6 +22,7 @@
 #include "portapack_io.hpp"
 
 #include "receiver_model.hpp"
+#include "transmitter_model.hpp"
 
 #include "spi_pp.hpp"
 #include "wm8731.hpp"
@@ -41,6 +42,7 @@ extern SPI ssp1;
 extern wolfson::wm8731::WM8731 audio_codec;
 
 extern ReceiverModel receiver_model;
+extern TransmitterModel transmitter_model;
 
 void init();
 void shutdown();

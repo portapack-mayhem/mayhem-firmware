@@ -20,6 +20,7 @@
  */
 
 #include "baseband_dma.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -34,6 +35,8 @@ using namespace lpc43xx;
 
 namespace baseband {
 namespace dma {
+	
+	int quitt = 0;
 
 constexpr uint32_t gpdma_ahb_master_sgpio = 0;
 constexpr uint32_t gpdma_ahb_master_memory = 1;
@@ -105,8 +108,14 @@ static Semaphore semaphore;
 
 static volatile const gpdma::channel::LLI* next_lli = nullptr;
 
-static void transfer_complete() {
+void test() {
+	quitt = 1;
+	chSemSignalI(&semaphore);
+}
+
+void transfer_complete() {
 	next_lli = gpdma_channel_sgpio.next_lli();
+	quitt = 0;
 	/* TODO: Is Mailbox the proper synchronization mechanism for this? */
 	//chMBPostI(&mailbox, 0);
 	chSemSignalI(&semaphore);
@@ -162,12 +171,31 @@ baseband::buffer_t wait_for_rx_buffer() {
 	//msg_t msg;
 	//const auto status = chMBFetch(&mailbox, &msg, TIME_INFINITE);
 	const auto status = chSemWait(&semaphore);
+	if (quitt) return { nullptr, 0 };
 	if( status == RDY_OK ) {
 		const auto next = next_lli;
 		if( next ) {
 			const size_t next_index = next - &lli_loop[0];
 			const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 			return { reinterpret_cast<sample_t*>(lli_loop[free_index].destaddr), transfer_samples };
+		} else {
+			return { nullptr, 0 };
+		}
+	} else {
+		return { nullptr, 0 };
+	}
+}
+
+baseband::buffer_t wait_for_tx_buffer() {
+	//msg_t msg;
+	//const auto status = chMBFetch(&mailbox, &msg, TIME_INFINITE);
+	const auto status = chSemWait(&semaphore);
+	if( status == RDY_OK ) {
+		const auto next = next_lli;
+		if( next ) {
+			const size_t next_index = next - &lli_loop[0];
+			const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
+			return { reinterpret_cast<sample_t*>(lli_loop[free_index].srcaddr), transfer_samples };
 		} else {
 			return { nullptr, 0 };
 		}

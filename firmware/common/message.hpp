@@ -164,6 +164,15 @@ public:
 	AudioStatistics statistics;
 };
 
+/*enum bbmode {
+	RxNBAM = 1,
+	RxNBFM = 2,
+	RxWBFM = 3,
+	RxFSK = 4,
+	TxRDS = 15,
+	BBOff = 255
+};*/
+
 struct BasebandConfiguration {
 	int32_t mode;
 	uint32_t sampling_rate;

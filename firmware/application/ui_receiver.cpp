@@ -524,7 +524,7 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 }
 
 void ReceiverView::on_modulation_changed(int32_t modulation) {
-	if( modulation == 3 ) {
+	if( modulation == 4 ) {
 		/* TODO: This is TERRIBLE!!! */
 		receiver_model.set_sampling_rate(2457600);
 	} else {

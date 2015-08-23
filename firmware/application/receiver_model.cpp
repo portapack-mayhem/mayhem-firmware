@@ -101,7 +101,7 @@ uint32_t ReceiverModel::modulation() const {
 	return baseband_configuration.mode;
 }
 
-void ReceiverModel::set_modulation(uint32_t v) {
+void ReceiverModel::set_modulation(int32_t v) {
 	baseband_configuration.mode = v;
 	update_modulation();
 }
