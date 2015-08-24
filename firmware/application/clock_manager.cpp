@@ -232,7 +232,7 @@ constexpr ClockControls si5351_clock_control_common {
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
+	ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Fractional | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 };
 
@@ -366,6 +366,22 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 	 * is divided by two.
 	 */
 	clock_generator.set_ms_frequency(clock_generator_output_codec, frequency * 2, si5351_vco_f, 1);
+}
+
+void ClockManager::set_reference_ppb(const int32_t ppb) {
+	constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
+	const uint32_t new_a = (ppb >= 0) ? pll_multiplier : (pll_multiplier - 1);
+	const uint32_t new_b = (ppb >= 0) ? (ppb * pll_multiplier / 1000) : (1000000 + (ppb * pll_multiplier / 1000));
+	const uint32_t new_c = (ppb == 0) ? 1 : 1000000;
+
+	const si5351::PLL pll {
+		.f_in = si5351_inputs.f_xtal,
+		.a = new_a,
+		.b = new_b,
+		.c = new_c,
+	};
+	const auto pll_a_reg = pll.reg(0);
+	clock_generator.write(pll_a_reg);
 }
 
 void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {

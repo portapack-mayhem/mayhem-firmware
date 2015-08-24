@@ -62,6 +62,8 @@ public:
 
 	void set_sampling_frequency(const uint32_t frequency);
 
+	void set_reference_ppb(const int32_t ppb);
+
 private:
 	I2C& i2c0;
 	si5351::Si5351& clock_generator;
