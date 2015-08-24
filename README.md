@@ -2,6 +2,17 @@
 
 The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup. The PortaPack firmware provides a user interface and necessary signal processing to do many useful things without computer.
 
+Fork features:
+* RDS (Radio Data System) group forming and transmit
+Todo:
+* Whistle (do NOT use near French railroads)
+* Signal drowner (jammer)
+* Wireless microphone transmit
+* CTCSS talkie transmit
+* Play wave files from µSD
+* EPAR/Xylos transmit (French public lighting control)
+* Detect/decode/play/replay PT2262 and friends (doorbells, cheap remotes... )
+
 Visit the [wiki](https://github.com/sharebrained/portapack-hackrf/wiki) for more details.
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
