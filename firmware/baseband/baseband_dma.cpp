@@ -108,11 +108,6 @@ static Semaphore semaphore;
 
 static volatile const gpdma::channel::LLI* next_lli = nullptr;
 
-void test() {
-	quitt = 1;
-	chSemSignalI(&semaphore);
-}
-
 void transfer_complete() {
 	next_lli = gpdma_channel_sgpio.next_lli();
 	quitt = 0;

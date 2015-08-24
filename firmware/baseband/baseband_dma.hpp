@@ -39,8 +39,6 @@ void configure(
 	const baseband::Direction direction
 );
 
-void test();
-
 void enable(const baseband::Direction direction);
 bool is_enabled();
 
