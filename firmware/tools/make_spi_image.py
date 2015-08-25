@@ -36,6 +36,11 @@ def read_image(path):
 	f.close()
 	return data
 
+def read_image_from_dfu(path):
+	data = read_image(path)
+	# Strip DFU header from file to get binary image.
+	return data[16:]
+
 def write_image(data, path):
 	f = open(path, 'wb')
 	f.write(data)
@@ -45,9 +50,12 @@ if len(sys.argv) != 6:
 	print(usage_message)
 	sys.exit(-1)
 
-input_paths = sys.argv[1:5]
+bootstrap_image = read_image(sys.argv[1])
+hackrf_image = read_image_from_dfu(sys.argv[2])
+baseband_image = read_image(sys.argv[3])
+application_image = read_image(sys.argv[4])
 output_path = sys.argv[5]
-bootstrap_image, hackrf_image, baseband_image, application_image = map(read_image, input_paths)
+
 spi_size = 1048576
 
 images = (
