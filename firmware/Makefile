@@ -35,7 +35,7 @@ MAKE_SPI_IMAGE=tools/make_spi_image.py
 DFU_HACKRF=hackrf_one_usb_ram.dfu
 LICENSE=../LICENSE
 
-REVISION=$(shell git log -n 1 --format=%h)
+GIT_REVISION=$(shell git log -n 1 --format=%h)
 
 CP=arm-none-eabi-objcopy
 
@@ -66,13 +66,13 @@ $(TARGET_APPLICATION).bin: $(TARGET_APPLICATION).elf
 	$(CP) -O binary $(TARGET_APPLICATION).elf $(TARGET_APPLICATION).bin
 
 $(TARGET_BASEBAND).elf: always_check
-	@$(MAKE) -s -C $(PATH_BASEBAND)
+	@$(MAKE) -s -e GIT_REVISION=$(GIT_REVISION) -C $(PATH_BASEBAND)
 
 $(TARGET_APPLICATION).elf: always_check
-	@$(MAKE) -s -C $(PATH_APPLICATION)
+	@$(MAKE) -s -e GIT_REVISION=$(GIT_REVISION) -C $(PATH_APPLICATION)
 
 $(TARGET_BOOTSTRAP).elf: always_check
-	@$(MAKE) -s -C $(PATH_BOOTSTRAP)
+	@$(MAKE) -s -e GIT_REVISION=$(GIT_REVISION) -C $(PATH_BOOTSTRAP)
 
 clean:
 	rm -f $(TARGET).bin
