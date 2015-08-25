@@ -73,8 +73,8 @@ images = (
 	}
 )
 
-spi_image = []
-spi_image_default_byte = '\xff'
+spi_image = bytearray()
+spi_image_default_byte = bytearray((255,))
 
 for image in images:
 	if len(image['data']) > image['size']:
@@ -83,7 +83,6 @@ for image in images:
 	padded_data = image['data'] + (spi_image_default_byte * pad_size)
 	spi_image += padded_data
 
-spi_image = ''.join(spi_image)
 if len(spi_image) > spi_size:
 	raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image), spi_size))
 
