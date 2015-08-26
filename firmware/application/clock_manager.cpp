@@ -370,9 +370,10 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 
 void ClockManager::set_reference_ppb(const int32_t ppb) {
 	constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
+	constexpr uint32_t denominator = 1000000 / pll_multiplier;
 	const uint32_t new_a = (ppb >= 0) ? pll_multiplier : (pll_multiplier - 1);
-	const uint32_t new_b = (ppb >= 0) ? (ppb * pll_multiplier / 1000) : (1000000 + (ppb * pll_multiplier / 1000));
-	const uint32_t new_c = (ppb == 0) ? 1 : 1000000;
+	const uint32_t new_b = (ppb >= 0) ? (ppb / 1000) : (denominator + (ppb / 1000));
+	const uint32_t new_c = (ppb == 0) ? 1 : denominator;
 
 	const si5351::PLL pll {
 		.f_in = si5351_inputs.f_xtal,
