@@ -139,7 +139,7 @@ private:
 	}
 
 	void smp_wmb() {
-		/*__DMB();*/
+		__DMB();
 	}
 
 	size_t peek_n() {
