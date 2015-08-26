@@ -30,9 +30,15 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include <ch.h>
+
 template<size_t K>
 class MessageQueue {
 public:
+	MessageQueue() {
+		chMtxInit(&mutex_write);
+	}
+
 	template<typename T>
 	bool push(const T& message) {
 		static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
@@ -55,9 +61,13 @@ public:
 
 private:
 	FIFO<uint8_t, K> fifo;
+	Mutex mutex_write;
 
 	bool push(const void* const buf, const size_t len) {
+		chMtxLock(&mutex_write);
 		const auto result = fifo.in_r(buf, len);
+		chMtxUnlock();
+
 		const bool success = (result == len);
 		if( success ) {
 			signal();
