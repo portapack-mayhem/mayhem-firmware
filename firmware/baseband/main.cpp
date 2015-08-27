@@ -242,15 +242,9 @@ private:
 	}
 
 	void handle_baseband_queue() {
-		while(true) {
-			std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-			const Message* const message = reinterpret_cast<Message*>(message_buffer.data());
-			const auto message_size = shared_memory.baseband_queue.pop(message_buffer.data(), message_buffer.size());
-			if( message_size ) {
-				message_map.send(message);
-			} else {
-				break;
-			}
+		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+		while(const Message* const message = shared_memory.baseband_queue.pop(message_buffer)) {
+			message_map.send(message);
 		}
 	}
 
