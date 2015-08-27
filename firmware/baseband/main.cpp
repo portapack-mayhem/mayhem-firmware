@@ -51,6 +51,8 @@
 #include "channel_stats_collector.hpp"
 #include "audio_stats_collector.hpp"
 
+#include "channel_decimator.hpp"
+
 #include "block_decimator.hpp"
 #include "clock_recovery.hpp"
 #include "access_code_correlator.hpp"
@@ -75,107 +77,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-class ChannelDecimator {
-public:
-	enum class DecimationFactor {
-		By4,
-		By8,
-		By16,
-		By32,
-	};
-
-	ChannelDecimator(
-		DecimationFactor f
-	) : decimation_factor { f }
-	{
-	}
-
-	void set_decimation_factor(const DecimationFactor f) {
-		decimation_factor = f;
-	}
-
-	buffer_c16_t execute(buffer_c8_t buffer) {
-		auto decimated = execute_decimation(buffer);
-
-		return decimated;
-	}
-
-private:
-	std::array<complex16_t, 1024> work_baseband;
-
-	const buffer_c16_t work_baseband_buffer {
-		work_baseband.data(),
-		work_baseband.size()
-	};
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)work_baseband.data(),
-		sizeof(work_baseband) / sizeof(int16_t)
-	};
-
-	//const bool fs_over_4_downconvert = true;
-
-	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate;
-	//dsp::decimate::DecimateBy2CIC3 cic_0;
-	dsp::decimate::DecimateBy2CIC3 cic_1;
-	dsp::decimate::DecimateBy2CIC3 cic_2;
-	dsp::decimate::DecimateBy2CIC3 cic_3;
-	dsp::decimate::DecimateBy2CIC3 cic_4;
-
-	DecimationFactor decimation_factor { DecimationFactor::By32 };
-
-	buffer_c16_t execute_decimation(buffer_c8_t buffer) {
-		/* 3.072MHz complex<int8_t>[2048], [-128, 127]
-		 * -> Shift by -fs/4
-		 * -> 3rd order CIC: -0.1dB @ 0.028fs, -1dB @ 0.088fs, -60dB @ 0.468fs
-		 *                   -0.1dB @ 86kHz,   -1dB @ 270kHz,  -60dB @ 1.44MHz
-		 * -> gain of 256
-		 * -> decimation by 2
-		 * -> 1.544MHz complex<int16_t>[1024], [-32768, 32512] */
-		const auto stage_0_out = translate.execute(buffer, work_baseband_buffer);
-
-		//if( fs_over_4_downconvert ) {
-		//	// TODO:
-		//} else {
-		// Won't work until cic_0 will accept input type of buffer_c8_t.
-		//	stage_0_out = cic_0.execute(buffer, work_baseband_buffer);
-		//}
-
-		/* 1.536MHz complex<int16_t>[1024], [-32768, 32512]
-		 * -> 3rd order CIC: -0.1dB @ 0.028fs, -1dB @ 0.088fs, -60dB @ 0.468fs
-		 *                   -0.1dB @ 43kHz,   -1dB @ 136kHz,  -60dB @ 723kHz
-		 * -> gain of 8
-		 * -> decimation by 2
-		 * -> 768kHz complex<int16_t>[512], [-8192, 8128] */
-		auto cic_1_out = cic_1.execute(stage_0_out, work_baseband_buffer);
-		if( decimation_factor == DecimationFactor::By4 ) {
-			return cic_1_out;
-		}
-
-		/* 768kHz complex<int16_t>[512], [-32768, 32512]
-		 * -> 3rd order CIC decimation by 2, gain of 1
-		 * -> 384kHz complex<int16_t>[256], [-32768, 32512] */
-		auto cic_2_out = cic_2.execute(cic_1_out, work_baseband_buffer);
-		if( decimation_factor == DecimationFactor::By8 ) {
-			return cic_2_out;
-		}
-
-		/* 384kHz complex<int16_t>[256], [-32768, 32512]
-		 * -> 3rd order CIC decimation by 2, gain of 1
-		 * -> 192kHz complex<int16_t>[128], [-32768, 32512] */
-		auto cic_3_out = cic_3.execute(cic_2_out, work_baseband_buffer);
-		if( decimation_factor == DecimationFactor::By16 ) {
-			return cic_3_out;
-		}
-
-		/* 192kHz complex<int16_t>[128], [-32768, 32512]
-		 * -> 3rd order CIC decimation by 2, gain of 1
-		 * -> 96kHz complex<int16_t>[64], [-32768, 32512] */
-		auto cic_4_out = cic_4.execute(cic_3_out, work_baseband_buffer);
-
-		return cic_4_out;
-	}
-};
 
 static constexpr iir_biquad_config_t audio_hpf_config {
 	{  0.93346032f, -1.86687724f,  0.93346032f },

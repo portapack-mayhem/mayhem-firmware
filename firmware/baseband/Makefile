@@ -129,6 +129,7 @@ CPPSRC = main.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          portapack_shared_memory.cpp \
+         channel_decimator.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
          clock_recovery.cpp \
