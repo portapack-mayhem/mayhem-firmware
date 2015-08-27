@@ -24,7 +24,9 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <array>
 
+#include "dsp_types.hpp"
 #include "complex.hpp"
 
 template<size_t N>
