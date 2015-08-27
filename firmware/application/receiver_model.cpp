@@ -171,6 +171,8 @@ void ReceiverModel::set_baseband_configuration(const BasebandConfiguration confi
 }
 
 void ReceiverModel::update_baseband_configuration() {
+	radio::streaming_disable();
+
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
@@ -181,6 +183,8 @@ void ReceiverModel::update_baseband_configuration() {
 	if( baseband_configuration.mode == 3 ) {
 		update_fsk_configuration();
 	}
+
+	radio::streaming_enable();
 }
 
 void ReceiverModel::update_headphone_volume() {

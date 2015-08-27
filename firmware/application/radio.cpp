@@ -161,6 +161,10 @@ void streaming_enable() {
 	baseband_sgpio.streaming_enable();
 }
 
+void streaming_disable() {
+	baseband_sgpio.streaming_disable();
+}
+
 void disable() {
 	baseband_sgpio.streaming_disable();
 	baseband_codec.set_mode(max5864::Mode::Shutdown);

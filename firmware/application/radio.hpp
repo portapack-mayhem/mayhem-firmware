@@ -43,6 +43,7 @@ void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
 void set_baseband_decimation_by(const size_t n);
 
 void streaming_enable();
+void streaming_disable();
 void disable();
 
 extern rffc507x::RFFC507x first_if;
