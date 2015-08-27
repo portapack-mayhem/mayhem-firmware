@@ -46,6 +46,7 @@
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
+#include "dsp_squelch.hpp"
 
 #include "baseband_stats_collector.hpp"
 #include "rssi_stats_collector.hpp"
@@ -78,37 +79,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-class FMSquelch {
-public:
-	bool execute(buffer_s16_t audio) {
-		// TODO: No hard-coded array size.
-		std::array<int16_t, N> squelch_energy_buffer;
-		const buffer_s16_t squelch_energy {
-			squelch_energy_buffer.data(),
-			squelch_energy_buffer.size()
-		};
-		non_audio_hpf.execute(audio, squelch_energy);
-
-		uint64_t max_squared = 0;
-		for(const auto sample : squelch_energy_buffer) {
-			const uint64_t sample_squared = sample * sample;
-			if( sample_squared > max_squared ) {
-				max_squared = sample_squared;
-			}
-		}
-
-		return (max_squared < (threshold * threshold));
-	}
-
-private:
-	static constexpr size_t N = 32;
-	static constexpr int16_t threshold = 3072;
-
-	// nyquist = 48000 / 2.0
-	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
-	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
-};
 
 static volatile bool channel_spectrum_request_update { false };
 static std::array<complex16_t, 256> channel_spectrum;
