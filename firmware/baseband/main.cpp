@@ -55,6 +55,7 @@
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
 #include "proc_wfm_audio.hpp"
+#include "proc_fsk.hpp"
 
 #include "clock_recovery.hpp"
 #include "access_code_correlator.hpp"
@@ -79,123 +80,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-class FSKProcessor : public BasebandProcessor {
-public:
-	FSKProcessor(
-		MessageHandlerMap& message_handlers
-	) : message_handlers(message_handlers)
-	{
-		message_handlers.register_handler(Message::ID::FSKConfiguration,
-			[this](const Message* const p) {
-				auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);
-				this->configure(m->configuration);
-			}
-		);
-	}
-
-	~FSKProcessor() {
-		message_handlers.unregister_handler(Message::ID::FSKConfiguration);
-	}
-
-	void configure(const FSKConfiguration new_configuration) {
-		demod.configure(76800, 2 * new_configuration.symbol_rate);
-		clock_recovery.configure(new_configuration.symbol_rate, 76800);
-		access_code_correlator.configure(
-			new_configuration.access_code,
-			new_configuration.access_code_length,
-			new_configuration.access_code_tolerance
-		);
-		packet_builder.configure(new_configuration.packet_length);
-	}
-
-	void execute(buffer_c8_t buffer) override {
-		/* 2.4576MHz, 2048 samples */
-
-		auto decimator_out = decimator.execute(buffer);
-
-		/* 153.6kHz, 128 samples */
-
-		const buffer_c16_t work_baseband_buffer {
-			(complex16_t*)decimator_out.p,
-			decimator_out.count
-		};
-
-		/* 153.6kHz complex<int16_t>[128]
-		 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
-		 * -> 76.8kHz int16_t[64] */
-		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-
-		/* 76.8kHz, 64 samples */
-		feed_channel_stats(channel);
-		feed_channel_spectrum(
-			channel,
-			decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
-			decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
-		);
-
-		const auto symbol_handler_fn = [this](const float value) {
-			const uint_fast8_t symbol = (value >= 0.0f) ? 1 : 0;
-			const bool access_code_found = this->access_code_correlator.execute(symbol);
-			this->consume_symbol(symbol, access_code_found);
-		};
-
-		// 76.8k
-
-		const buffer_s16_t work_demod_buffer {
-			(int16_t*)decimator_out.p,
-			decimator_out.count * sizeof(*decimator_out.p) / sizeof(int16_t)
-		};
-
-		auto demodulated = demod.execute(channel, work_demod_buffer);
-
-		i2s::i2s0::tx_mute();
-
-		for(size_t i=0; i<demodulated.count; i++) {
-			clock_recovery.execute(demodulated.p[i], symbol_handler_fn);
-		}
-	}
-
-private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
-	dsp::demodulate::FM demod { 76800, 9600 * 2 };
-
-	ClockRecovery clock_recovery;
-	AccessCodeCorrelator access_code_correlator;
-	PacketBuilder packet_builder;
-
-	MessageHandlerMap& message_handlers;
-
-	void consume_symbol(
-		const uint_fast8_t symbol,
-		const bool access_code_found
-	) {
-		const auto payload_handler_fn = [this](
-			const std::bitset<256>& payload,
-			const size_t bits_received
-		) {
-			this->payload_handler(payload, bits_received);
-		};
-
-		packet_builder.execute(
-			symbol,
-			access_code_found,
-			payload_handler_fn
-		);
-	}
-
-	void payload_handler(
-		const std::bitset<256>& payload,
-		const size_t bits_received
-	) {
-		FSKPacketMessage message;
-		message.packet.payload = payload;
-		message.packet.bits_received = bits_received;
-		shared_memory.application_queue.push(message);
-	}
-};
 
 static BasebandProcessor* baseband_processor { nullptr };
 static BasebandConfiguration baseband_configuration;
