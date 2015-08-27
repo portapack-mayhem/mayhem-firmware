@@ -137,6 +137,7 @@ CPPSRC = main.cpp \
          proc_nfm_audio.cpp \
          proc_wfm_audio.cpp \
          proc_fsk.cpp \
+         proc_wideband_spectrum.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          access_code_correlator.cpp \

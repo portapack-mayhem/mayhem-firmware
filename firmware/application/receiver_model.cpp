@@ -92,18 +92,8 @@ uint32_t ReceiverModel::sampling_rate() const {
 	return baseband_configuration.sampling_rate;
 }
 
-void ReceiverModel::set_sampling_rate(uint32_t hz) {
-	baseband_configuration.sampling_rate = hz;
-	update_baseband_configuration();
-}
-
 uint32_t ReceiverModel::modulation() const {
 	return baseband_configuration.mode;
-}
-
-void ReceiverModel::set_modulation(uint32_t v) {
-	baseband_configuration.mode = v;
-	update_modulation();
 }
 
 volume_t ReceiverModel::headphone_volume() const {
@@ -118,11 +108,6 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
 uint32_t ReceiverModel::baseband_oversampling() const {
 	// TODO: Rename decimation_factor.
 	return baseband_configuration.decimation_factor;
-}
-
-void ReceiverModel::set_baseband_oversampling(uint32_t v) {
-	baseband_configuration.decimation_factor = v;
-	update_baseband_configuration();
 }
 
 void ReceiverModel::enable() {
@@ -153,7 +138,11 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	return -(sampling_rate() / 4);
+	if( baseband_configuration.mode == 4 ) {
+		return 0;
+	} else {
+		return -(sampling_rate() / 4);
+	}
 }
 
 void ReceiverModel::update_tuning_frequency() {
@@ -176,7 +165,8 @@ void ReceiverModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-void ReceiverModel::update_modulation() {
+void ReceiverModel::set_baseband_configuration(const BasebandConfiguration config) {
+	baseband_configuration = config;
 	update_baseband_configuration();
 }
 

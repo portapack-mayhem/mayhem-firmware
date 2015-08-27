@@ -56,6 +56,7 @@
 #include "proc_nfm_audio.hpp"
 #include "proc_wfm_audio.hpp"
 #include "proc_fsk.hpp"
+#include "proc_wideband_spectrum.hpp"
 
 #include "clock_recovery.hpp"
 #include "access_code_correlator.hpp"
@@ -294,6 +295,10 @@ int main(void) {
 
 				case 3:
 					baseband_processor = new FSKProcessor(message_handlers);
+					break;
+
+				case 4:
+					baseband_processor = new WidebandSpectrum();
 					break;
 
 				default:

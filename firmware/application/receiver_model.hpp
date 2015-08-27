@@ -61,19 +61,18 @@ public:
 	void set_vga(int32_t v_db);
 
 	uint32_t sampling_rate() const;
-	void set_sampling_rate(uint32_t hz);
 
 	uint32_t modulation() const;
-	void set_modulation(uint32_t v);
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
 
 	uint32_t baseband_oversampling() const;
-	void set_baseband_oversampling(uint32_t v);
 
 	void enable();
 	void disable();
+
+	void set_baseband_configuration(const BasebandConfiguration config);
 
 private:
 	rf::Frequency frequency_step_ { 25000 };
@@ -96,7 +95,6 @@ private:
 	void update_lna();
 	void update_baseband_bandwidth();
 	void update_vga();
-	void update_modulation();
 	void update_baseband_configuration();
 	void update_headphone_volume();
 

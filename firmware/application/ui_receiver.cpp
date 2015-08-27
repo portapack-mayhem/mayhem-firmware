@@ -538,13 +538,35 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 }
 
 void ReceiverView::on_modulation_changed(int32_t modulation) {
-	if( modulation == 3 ) {
-		/* TODO: This is TERRIBLE!!! */
-		receiver_model.set_sampling_rate(2457600);
-	} else {
-		receiver_model.set_sampling_rate(3072000);
+	/* TODO: This is TERRIBLE!!! */
+	switch(modulation) {
+	case 3:
+		receiver_model.set_baseband_configuration({
+			.mode = modulation,
+			.sampling_rate = 2457600,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+		break;
+
+	case 4:
+		receiver_model.set_baseband_configuration({
+			.mode = modulation,
+			.sampling_rate = 20000000,
+			.decimation_factor = 1,
+		});
+		receiver_model.set_baseband_bandwidth(12000000);
+		break;
+
+	default:
+		receiver_model.set_baseband_configuration({
+			.mode = modulation,
+			.sampling_rate = 3072000,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+		break;
 	}
-	receiver_model.set_modulation(modulation);
 }
 
 void ReceiverView::on_show_options_frequency() {
