@@ -53,6 +53,7 @@
 #include "channel_decimator.hpp"
 #include "baseband_processor.hpp"
 #include "proc_am_audio.hpp"
+#include "proc_nfm_audio.hpp"
 
 #include "clock_recovery.hpp"
 #include "access_code_correlator.hpp"
@@ -77,67 +78,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-class NarrowbandFMAudio : public BasebandProcessor {
-public:
-	void execute(buffer_c8_t buffer) override {
-		/* Called every 2048/3072000 second -- 1500Hz. */
-
-		auto decimator_out = decimator.execute(buffer);
-
-		const buffer_c16_t work_baseband_buffer {
-			(complex16_t*)decimator_out.p,
-			sizeof(*decimator_out.p) * decimator_out.count
-		};
-
-		/* 96kHz complex<int16_t>[64]
-		 * -> FIR filter, <6kHz (0.063fs) pass, gain 1.0
-		 * -> 48kHz int16_t[32] */
-		auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-
-		// TODO: Feed channel_stats post-decimation data?
-		feed_channel_stats(channel);
-		feed_channel_spectrum(
-			channel,
-			decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
-			decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
-		);
-
-		const buffer_s16_t work_audio_buffer {
-			(int16_t*)decimator_out.p,
-			sizeof(*decimator_out.p) * decimator_out.count
-		};
-
-		/* 48kHz complex<int16_t>[32]
-		 * -> FM demodulation
-		 * -> 48kHz int16_t[32] */
-		auto audio = demod.execute(channel, work_audio_buffer);
-
-		static uint64_t audio_present_history = 0;
-		const auto audio_present_now = squelch.execute(audio);
-		audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-		const bool audio_present = (audio_present_history != 0);
-
-		if( !audio_present ) {
-			// Zero audio buffer.
-			for(size_t i=0; i<audio.count; i++) {
-				audio.p[i] = 0;
-			}
-		}
-
-		audio_hpf.execute_in_place(audio);
-		fill_audio_buffer(audio);
-	}
-
-private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
-	dsp::demodulate::FM demod { 48000, 7500 };
-
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
-	FMSquelch squelch;
-};
 
 class WidebandFMAudio : public BasebandProcessor {
 public:
