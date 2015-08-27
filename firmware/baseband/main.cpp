@@ -80,17 +80,38 @@
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
 
-static volatile bool channel_spectrum_request_update { false };
-static std::array<complex16_t, 256> channel_spectrum;
-static uint32_t channel_spectrum_sampling_rate { 0 };
-static uint32_t channel_filter_pass_frequency { 0 };
-static uint32_t channel_filter_stop_frequency { 0 };
-
 class BasebandProcessor {
 public:
 	virtual ~BasebandProcessor() = default;
 
 	virtual void execute(buffer_c8_t buffer) = 0;
+
+	void update_spectrum() {
+		// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
+		if( channel_spectrum_request_update ) {
+			/* Decimated buffer is full. Compute spectrum. */
+			std::array<std::complex<float>, 256> samples_swapped;
+			fft_swap(channel_spectrum, samples_swapped);
+			channel_spectrum_request_update = false;
+			fft_c_preswapped(samples_swapped);
+
+			ChannelSpectrumMessage spectrum_message;
+			for(size_t i=0; i<spectrum_message.spectrum.db.size(); i++) {
+				const auto mag2 = magnitude_squared(samples_swapped[i]);
+				const float db = complex16_mag_squared_to_dbv_norm(mag2);
+				constexpr float mag_scale = 5.0f;
+				const unsigned int v = (db * mag_scale) + 255.0f;
+				spectrum_message.spectrum.db[i] = std::max(0U, std::min(255U, v));
+			}
+
+			/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
+			spectrum_message.spectrum.db_count = spectrum_message.spectrum.db.size();
+			spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
+			spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
+			spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
+			shared_memory.application_queue.push(spectrum_message);
+		}
+	}
 
 protected:
 	void feed_channel_stats(const buffer_c16_t channel) {
@@ -135,6 +156,12 @@ private:
 
 	AudioStatsCollector audio_stats;
 	AudioStatisticsMessage audio_stats_message;
+
+	volatile bool channel_spectrum_request_update { false };
+	std::array<complex16_t, 256> channel_spectrum;
+	uint32_t channel_spectrum_sampling_rate { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
 
 	void post_channel_stats_message(const ChannelStatistics statistics) {
 		channel_stats_message.statistics = statistics;
@@ -623,28 +650,8 @@ private:
 	}
 
 	void handle_spectrum() {
-		if( channel_spectrum_request_update ) {
-			/* Decimated buffer is full. Compute spectrum. */
-			std::array<std::complex<float>, channel_spectrum.size()> samples_swapped;
-			fft_swap(channel_spectrum, samples_swapped);
-			channel_spectrum_request_update = false;
-			fft_c_preswapped(samples_swapped);
-
-			ChannelSpectrumMessage spectrum_message;
-			for(size_t i=0; i<spectrum_message.spectrum.db.size(); i++) {
-				const auto mag2 = magnitude_squared(samples_swapped[i]);
-				const float db = complex16_mag_squared_to_dbv_norm(mag2);
-				constexpr float mag_scale = 5.0f;
-				const unsigned int v = (db * mag_scale) + 255.0f;
-				spectrum_message.spectrum.db[i] = std::max(0U, std::min(255U, v));
-			}
-
-			/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
-			spectrum_message.spectrum.db_count = spectrum_message.spectrum.db.size();
-			spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
-			spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
-			spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
-			shared_memory.application_queue.push(spectrum_message);
+		if( baseband_processor ) {
+			baseband_processor->update_spectrum();
 		}
 	}
 };
