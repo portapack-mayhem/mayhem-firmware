@@ -54,6 +54,7 @@
 #include "baseband_processor.hpp"
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
+#include "proc_wfm_audio.hpp"
 
 #include "clock_recovery.hpp"
 #include "access_code_correlator.hpp"
@@ -78,70 +79,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-class WidebandFMAudio : public BasebandProcessor {
-public:
-	void execute(buffer_c8_t buffer) override {
-		auto decimator_out = decimator.execute(buffer);
-
-		const buffer_s16_t work_audio_buffer {
-			(int16_t*)decimator_out.p,
-			sizeof(*decimator_out.p) * decimator_out.count
-		};
-
-		auto channel = decimator_out;
-
-		// TODO: Feed channel_stats post-decimation data?
-		feed_channel_stats(channel);
-		//feed_channel_spectrum(channel);
-
-		/* 768kHz complex<int16_t>[512]
-		 * -> FM demodulation
-		 * -> 768kHz int16_t[512] */
-		/* TODO: To improve adjacent channel rejection, implement complex channel filter:
-		 *		pass < +/- 100kHz, stop > +/- 200kHz
-		 */
-
-		auto audio_oversampled = demod.execute(decimator_out, work_audio_buffer);
-
-		/* 768kHz int16_t[512]
-		 * -> 4th order CIC decimation by 2, gain of 1
-		 * -> 384kHz int16_t[256] */
-		auto audio_8fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
-
-		/* 384kHz int16_t[256]
-		 * -> 4th order CIC decimation by 2, gain of 1
-		 * -> 192kHz int16_t[128] */
-		auto audio_4fs = audio_dec_2.execute(audio_8fs, work_audio_buffer);
-
-		/* 192kHz int16_t[128]
-		 * -> 4th order CIC decimation by 2, gain of 1
-		 * -> 96kHz int16_t[64] */
-		auto audio_2fs = audio_dec_3.execute(audio_4fs, work_audio_buffer);
-
-		/* 96kHz int16_t[64]
-		 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
-		 * -> 48kHz int16_t[32] */
-		auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
-
-		/* -> 48kHz int16_t[32] */
-		audio_hpf.execute_in_place(audio);
-		fill_audio_buffer(audio);
-	}
-
-private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By4 };
-
-	//dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { taps_64_lp_031_070_tfilter };
-	dsp::demodulate::FM demod { 768000, 75000 };
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_3;
-	const fir_taps_real<64>& audio_filter_taps = taps_64_lp_156_198;
-	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
-
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
-};
 
 class FSKProcessor : public BasebandProcessor {
 public:
