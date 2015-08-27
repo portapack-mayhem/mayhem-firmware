@@ -171,6 +171,7 @@ void WidebandSpectrum::execute(buffer_c8_t buffer) {
 		if( channel_spectrum_request_update == false ) {
 			channel_spectrum_request_update = true;
 
+      constexpr int32_t k = 128 * 4 * 8;
 			for(size_t i=0; i<channel_spectrum.size(); i++) {
 				int32_t real = 0;
 				int32_t imag = 0;
@@ -182,8 +183,8 @@ void WidebandSpectrum::execute(buffer_c8_t buffer) {
 				imag += buffer.p[i + 512].imag() * window_blackmanharris_1024[i + 512];
 				real += buffer.p[i + 768].real() * window_blackmanharris_1024[i + 768];
 				imag += buffer.p[i + 768].imag() * window_blackmanharris_1024[i + 768];
-				channel_spectrum[i].real(real / 512);
-				channel_spectrum[i].imag(imag / 512);
+				channel_spectrum[i].real(real / k);
+				channel_spectrum[i].imag(imag / k);
 			}
 
 			channel_spectrum_sampling_rate = buffer.sampling_rate;
