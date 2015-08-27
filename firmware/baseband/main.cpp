@@ -45,6 +45,7 @@
 #include "dsp_fft.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
+#include "dsp_iir_config.hpp"
 
 #include "baseband_stats_collector.hpp"
 #include "rssi_stats_collector.hpp"
@@ -77,16 +78,6 @@
 
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
-
-static constexpr iir_biquad_config_t audio_hpf_config {
-	{  0.93346032f, -1.86687724f,  0.93346032f },
-	{  1.0f       , -1.97730264f,  0.97773668f }
-};
-
-static constexpr iir_biquad_config_t non_audio_hpf_config {
-	{  0.51891061f, -0.95714180f,  0.51891061f },
-	{  1.0f       , -0.79878302f,  0.43960231f }
-};
 
 class FMSquelch {
 public:
