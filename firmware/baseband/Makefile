@@ -133,6 +133,7 @@ CPPSRC = main.cpp \
          channel_decimator.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
+         proc_am_audio.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          access_code_correlator.cpp \
