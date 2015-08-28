@@ -760,6 +760,65 @@ private:
 	int32_t k;
 };
 
+class LCRFSKProcessor : public BasebandProcessor {
+public:
+	void execute(buffer_c8_t buffer) override {
+        
+		for (size_t i = 0; i<buffer.count; i++) {
+			
+			//Sample generation 2.28M/10=228kHz
+			if(s >= 9) {
+				s = 0;
+				fsk_samples_per_bit = shared_memory.fskspb;
+				if(sample_count >= fsk_samples_per_bit) {
+					cur_byte = shared_memory.lcrdata[bit_pos / 8];
+					if (!cur_byte) {
+						//TransmitterModel::disable();
+						bit_pos = 0;
+						cur_byte = shared_memory.lcrdata[0];
+					}
+					cur_bit = cur_byte >> (7-(bit_pos % 8)) & 1;
+
+					bit_pos++;
+					sample_count = 0;
+				}
+				sample_count++;
+				
+				if (cur_bit)
+					aphase += 267187;
+				else
+					aphase += 489844;
+					
+				sample = sintab[(aphase & 0x03FF0000)>>16];
+			} else {
+				s++;
+			}
+			
+			//FM
+			frq = sample * 967;
+			
+			phase = (phase + frq);
+			sphase = phase + (256<<16);
+
+			re = sintab[(sphase & 0x03FF0000)>>16];
+			im = sintab[(phase & 0x03FF0000)>>16];
+			
+			buffer.p[i] = {(int8_t)re,(int8_t)im};
+		}
+	}
+
+private:
+	uint32_t fsk_samples_per_bit;
+	int8_t re, im;
+	uint8_t s;
+    uint32_t bit_pos;
+    uint8_t cur_byte = 0;
+    uint8_t cur_bit = 0;
+    uint32_t sample_count;
+	uint32_t aphase, phase, sphase;
+	int32_t sample, sig, frq;
+};
+
 static BasebandProcessor* baseband_processor { nullptr };
 static BasebandConfiguration baseband_configuration;
 
@@ -1023,6 +1082,11 @@ int main(void) {
 			case 15:
 				direction = baseband::Direction::Transmit;
 				baseband_processor = new RDSProcessor();
+				break;
+				
+			case 16:
+				direction = baseband::Direction::Transmit;
+				baseband_processor = new LCRFSKProcessor();
 				break;
 
 			default:

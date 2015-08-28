@@ -42,6 +42,8 @@ struct SharedMemory {
 	int test;
 	
 	uint32_t rdsdata[16];
+	char lcrdata[256];
+	uint32_t fskspb;
 };
 
 extern SharedMemory& shared_memory;

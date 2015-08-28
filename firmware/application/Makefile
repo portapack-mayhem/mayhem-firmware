@@ -161,6 +161,7 @@ CPPSRC = main.cpp \
          ui_setup.cpp \
          ui_debug.cpp \
          ui_rds.cpp \
+         ui_lcr.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \

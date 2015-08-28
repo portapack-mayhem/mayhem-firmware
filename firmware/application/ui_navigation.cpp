@@ -28,6 +28,7 @@
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rds.hpp"
+#include "ui_lcr.hpp"
 
 #include "portapack.hpp"
 #include "m4_startup.hpp"
@@ -97,11 +98,12 @@ void NavigationView::focus() {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<8>({ {
+	add_items<9>({ {
 		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
 		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "RDS toolbox",[&nav](){ nav.push(new RDSView          { nav, transmitter_model }); } },
+		{ "RDS TX",	  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
+		{ "LCR TX",   [&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
 		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
 		{ "About",    [&nav](){ nav.push(new AboutView          { nav }); } },
 		{ "Debug",    [&nav](){ nav.push(new DebugMenuView      { nav }); } },
@@ -160,6 +162,8 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 			__WFE();
 		}
 	};
+	
+	//377.6M: bouts de musique
 
 	button_no.on_select = [&nav](Button&){
 		nav.pop();
