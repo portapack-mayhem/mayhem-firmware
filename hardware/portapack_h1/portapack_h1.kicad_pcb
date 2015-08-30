@@ -985,6 +985,7 @@
   (module molex:MOLEX_54132-40XX_LR locked (layer 4_bot) (tedit 53B09BB0) (tstamp 53AA2868)
     (at 82.5 137.5 90)
     (path /53A9129D/53A91651)
+    (solder_mask_margin 0.0492)
     (attr smd)
     (fp_text reference J3 (at -13.1 2.1 90) (layer B.SilkS)
       (effects (font (size 0.6096 0.6096) (thickness 0.1524)) (justify mirror))
