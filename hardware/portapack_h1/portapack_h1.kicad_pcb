@@ -2619,17 +2619,17 @@
       (net 63 GND) (solder_mask_margin 0.0762) (solder_paste_margin_ratio -0.1))
   )
 
-  (gr_text 4 (at 77.8 167.3) (layer 4_bot)
-    (effects (font (size 1.5 1.5) (thickness 0.3)))
+  (gr_text 4 (at 76.5 139 90) (layer 4_bot)
+    (effects (font (size 1.016 1.016) (thickness 0.2032)) (justify mirror))
   )
-  (gr_text 3 (at 75.8 167.3) (layer 3_gnd)
-    (effects (font (size 1.5 1.5) (thickness 0.3)))
+  (gr_text 3 (at 76.5 138 90) (layer 3_gnd)
+    (effects (font (size 1.016 1.016) (thickness 0.2032)) (justify mirror))
   )
-  (gr_text 2 (at 73.8 167.3) (layer 2_pwr) (tstamp 53AE501D)
-    (effects (font (size 1.5 1.5) (thickness 0.3)))
+  (gr_text 2 (at 76.5 137 90) (layer 2_pwr) (tstamp 53AE501D)
+    (effects (font (size 1.016 1.016) (thickness 0.2032)) (justify mirror))
   )
-  (gr_text 1 (at 71.8 167.3) (layer 1_top) (tstamp 53AE4FEC)
-    (effects (font (size 1.5 1.5) (thickness 0.3072)))
+  (gr_text 1 (at 76.5 136 90) (layer 1_top) (tstamp 53AE4FEC)
+    (effects (font (size 1.016 1.016) (thickness 0.2032)) (justify mirror))
   )
   (gr_line (start 60 104) (end 60 121.5) (angle 90) (layer Edge.Cuts) (width 0.381))
   (gr_line (start 60 171) (end 60 159) (angle 90) (layer Edge.Cuts) (width 0.381))
@@ -4254,7 +4254,7 @@
     (fill (arc_segments 16) (thermal_gap 0.2) (thermal_bridge_width 0.3))
     (polygon
       (pts
-        (xy 70.2 165.6) (xy 79.4 165.6) (xy 79.4 168.8) (xy 70.2 168.8)
+        (xy 75.2 140) (xy 75.2 135) (xy 77.8 135) (xy 77.8 140)
       )
     )
   )
@@ -4265,7 +4265,7 @@
     (fill (arc_segments 16) (thermal_gap 0.2) (thermal_bridge_width 0.3))
     (polygon
       (pts
-        (xy 70.2 165.6) (xy 79.4 165.6) (xy 79.4 168.8) (xy 70.2 168.8)
+        (xy 75.2 140) (xy 75.2 135) (xy 77.8 135) (xy 77.8 140)
       )
     )
   )
@@ -4315,7 +4315,7 @@
     (fill (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
-        (xy 70.2 165.6) (xy 79.4 165.6) (xy 79.4 168.8) (xy 70.2 168.8)
+        (xy 75.2 140) (xy 75.2 135) (xy 77.8 135) (xy 77.8 140)
       )
     )
   )
@@ -4325,7 +4325,7 @@
     (fill (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
-        (xy 70.2 165.6) (xy 79.4 165.6) (xy 79.4 168.8) (xy 70.2 168.8)
+        (xy 75.2 140) (xy 75.2 135) (xy 77.8 135) (xy 77.8 140)
       )
     )
   )
