@@ -2629,6 +2629,9 @@
       (net 63 GND) (solder_mask_margin 0.0762) (solder_paste_margin_ratio -0.1))
   )
 
+  (gr_text "Drills are in two files, one for PTH, one for NPTH." (at 20 63) (layer Dwgs.User)
+    (effects (font (size 1.5 1.5) (thickness 0.3)) (justify left))
+  )
   (gr_text "Dimensions in inches, unless otherwise specified." (at 205 168) (layer Dwgs.User)
     (effects (font (size 1.5 1.5) (thickness 0.3)) (justify left))
   )
