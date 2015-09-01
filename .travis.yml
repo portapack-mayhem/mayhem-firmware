@@ -1,4 +1,4 @@
-language: c++
+language: cpp
 
 before_script:
 	- sudo apt-get update -qq
