@@ -1,11 +1,4 @@
-# sudo: false
-
 language: cpp
-
-# addons:
-#   apt:
-#     packages:
-#       - gcc-arm-none-eabi
 
 cache: apt
 
