@@ -205,6 +205,13 @@ static void shutdown() {
 	systick_stop();
 }
 
+static void halt() {
+	port_disable();
+	while(true) {
+		port_wait_for_interrupt();
+	}
+}
+
 class EventDispatcher {
 public:
 	MessageHandlerMap& message_handlers() {
@@ -345,6 +352,8 @@ int main(void) {
 
 	ShutdownMessage shutdown_message;
 	shared_memory.application_queue.push(shutdown_message);
+
+	halt();
 
 	return 0;
 }
