@@ -44,8 +44,8 @@ all: $(TARGET).bin
 release: $(TARGET).bin $(DFU_HACKRF) $(LICENSE)
 	# TODO: Bad hack to fix location of LICENSE file for tar.
 	cp $(LICENSE) LICENSE
-	tar -c -j -f $(TARGET)-$(REVISION).tar.bz2 $(TARGET).bin $(DFU_HACKRF) LICENSE
-	zip -9 -q $(TARGET)-$(REVISION).zip $(TARGET).bin $(DFU_HACKRF) LICENSE
+	tar -c -j -f $(TARGET)-$(GIT_REVISION).tar.bz2 $(TARGET).bin $(DFU_HACKRF) LICENSE
+	zip -9 -q $(TARGET)-$(GIT_REVISION).zip $(TARGET).bin $(DFU_HACKRF) LICENSE
 	rm -f LICENSE
 
 program: $(TARGET).bin
