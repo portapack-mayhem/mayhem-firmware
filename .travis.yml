@@ -12,8 +12,10 @@ before_script:
   - export CXX="arm-none-eabi-g++"
 
 script:
-  - cd firmware/
+  # TODO: Introduce top-level Makefile, this is lame.
+  - pushd firmware/
   - make release
+  - popd
 
 addons:
   artifacts:
