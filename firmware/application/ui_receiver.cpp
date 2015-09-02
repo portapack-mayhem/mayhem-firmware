@@ -567,6 +567,8 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 		receiver_model.set_baseband_bandwidth(1750000);
 		break;
 	}
+
+	waterfall.clear();
 }
 
 void ReceiverView::on_show_options_frequency() {

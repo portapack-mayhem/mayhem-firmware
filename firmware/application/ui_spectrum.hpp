@@ -75,6 +75,12 @@ public:
 		draw_frequency_ticks(painter, r);
 	}
 
+	void clear() {
+		spectrum_sampling_rate = 0;
+		spectrum_bins = 0;
+		set_dirty();
+	}
+
 private:
 	static constexpr Dim filter_band_height = 4;
 
@@ -197,6 +203,13 @@ public:
 		(void)painter;
 	}
 
+	void clear() {
+		display.fill_rectangle(
+			screen_rect(),
+			Color::black()
+		);
+	}
+
 	void on_channel_spectrum(
 		const ChannelSpectrum& spectrum
 	) {
@@ -258,6 +271,11 @@ public:
 	void paint(Painter& painter) override {
 		// TODO:
 		(void)painter;
+	}
+
+	void clear() {
+		waterfall_view.clear();
+		frequency_scale.clear();
 	}
 
 private:
