@@ -279,6 +279,7 @@ int main(void) {
 			if( message->configuration.mode != baseband_configuration.mode ) {
 
 				if( baseband_processor ) {
+					i2s::i2s0::tx_mute();
 					baseband::dma::disable();
 					rf::rssi::stop();
 				}
