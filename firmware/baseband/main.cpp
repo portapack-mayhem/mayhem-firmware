@@ -278,6 +278,11 @@ int main(void) {
 			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
 			if( message->configuration.mode != baseband_configuration.mode ) {
 
+				if( baseband_processor ) {
+					baseband::dma::disable();
+					rf::rssi::stop();
+				}
+
 				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
 				auto old_p = baseband_processor;
 				baseband_processor = nullptr;
@@ -313,9 +318,6 @@ int main(void) {
 						rf::rssi::start();
 					}
 					baseband::dma::enable(direction);
-				} else {
-					baseband::dma::disable();
-					rf::rssi::stop();
 				}
 			}
 
