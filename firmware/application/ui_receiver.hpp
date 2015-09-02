@@ -386,12 +386,12 @@ private:
 	};
 
 	Button button_done {
-		{ 0 * 8, 1 * 16, 3 * 8, 16 },
+		{ 0 * 8, 0 * 16, 3 * 8, 16 },
 		" < ",
 	};
 
 	FrequencyField field_frequency {
-		{ 3 * 8, 1 * 16 },
+		{ 0 * 8, 1 * 16 },
 	};
 
 	LNAGainField field_lna {
