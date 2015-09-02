@@ -155,6 +155,10 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 
 	add_children({ {
 		&text_title,
+		&text_description_1,
+		&text_description_2,
+		&text_description_3,
+		&text_description_4,
 		&button_yes,
 		&button_no,
 	} });

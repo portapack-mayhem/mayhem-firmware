@@ -93,8 +93,28 @@ public:
 
 private:
 	Text text_title {
-		{ 6 * 8, 7 * 16, 19 * 8, 16 },
-		"Enter HackRF Mode?"
+		{ 76, 4 * 16, 19 * 8, 16 },
+		"HackRF Mode"
+	};
+
+	Text text_description_1 {
+		{  4, 7 * 16, 19 * 8, 16 },
+		"Run stock HackRF firmware and"
+	};
+
+	Text text_description_2 {
+		{ 12, 8 * 16, 19 * 8, 16 },
+		"disable PortaPack until the"
+	};
+
+	Text text_description_3 {
+		{  4, 9 * 16, 19 * 8, 16 },
+		"unit is reset or disconnected"
+	};
+
+	Text text_description_4 {
+		{ 76, 10 * 16, 19 * 8, 16 },
+		"from power?"
 	};
 
 	Button button_yes {
