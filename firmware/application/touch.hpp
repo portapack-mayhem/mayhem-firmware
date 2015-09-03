@@ -38,7 +38,7 @@ using sample_t = uint16_t;
 
 constexpr sample_t sample_max = 1023;
 
-constexpr sample_t touch_threshold = sample_max * 0.3f;
+constexpr sample_t touch_threshold = sample_max * 0.5f;
 
 struct Samples {
 	sample_t xp;
