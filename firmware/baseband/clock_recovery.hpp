@@ -38,13 +38,15 @@ public:
 	) {
 		const bool phase_0 = (phase_last >> 31) & (!(phase >> 31));
 		const bool phase_180 = (!(phase_last >> 31)) & (phase >> 31);
-		phase_last = phase;
-		phase += phase_increment + phase_adjustment;
 
 		if( phase_0 || phase_180 ) {
 			t2 = t1;
 			t1 = t0;
-			t0 = in;
+
+			const uint32_t phase_boundary = phase_180 ? (1U << 31) : 0;
+			const float alpha = (phase_boundary - phase_last) / float(phase_increment + phase_adjustment);
+			const float t = last_sample + alpha * (in - last_sample);
+			t0 = t;
 		}
 
 		if( phase_0 ) {
@@ -59,6 +61,10 @@ public:
 			// Correct phase (don't change frequency!)
 			phase_adjustment = -phase_increment * error_filtered / 200.0f;
 		}
+
+		phase_last = phase;
+		phase += phase_increment + phase_adjustment;
+		last_sample = in;
 	}
 
 private:
@@ -66,6 +72,7 @@ private:
 	uint32_t phase_last { 0 };
 	uint32_t phase_adjustment { 0 };
 	uint32_t phase_increment { 0 };
+	float last_sample { 0 };
 	float t0 { 0 };
 	float t1 { 0 };
 	float t2 { 0 };
