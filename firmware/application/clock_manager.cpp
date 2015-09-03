@@ -163,24 +163,16 @@ constexpr si5351::MultisynthFractional si5351_ms_10m {
 };
 constexpr auto si5351_ms_3_10m_reg = si5351_ms_10m.reg(3);
 
-constexpr si5351::MultisynthFractional si5351_ms_50m {
+constexpr si5351::MultisynthFractional si5351_ms_40m {
 	.f_src = si5351_vco_f,
-	.a = 16,
+	.a = 20,
 	.b = 0,
 	.c = 1,
 	.r_div = 0,
 };
 
-// constexpr si5351::MultisynthFractional si5351_ms_40m {
-// 	.f_src = si5351_vco_f,
-// 	.a = 20,
-// 	.b = 0,
-// 	.c = 1,
-// 	.r_div = 0,
-// };
-
-constexpr auto si5351_ms_rffc5072 = si5351_ms_50m;
-constexpr auto si5351_ms_max2837 = si5351_ms_50m;
+constexpr auto si5351_ms_rffc5072 = si5351_ms_40m;
+constexpr auto si5351_ms_max2837 = si5351_ms_40m;
 
 constexpr auto si5351_ms_4_reg = si5351_ms_rffc5072.reg(clock_generator_output_first_if);
 constexpr auto si5351_ms_5_reg = si5351_ms_max2837.reg(clock_generator_output_second_if);

@@ -49,8 +49,8 @@ constexpr ClockFrequency ssp1_pclk_f		= base_m4_clk_f;
 constexpr ClockFrequency max5864_spi_f		= 20000000U;
 constexpr ClockFrequency max2837_spi_f 		= 20000000U;
 
-constexpr ClockFrequency rffc5072_reference_f	= 50000000U;
-constexpr ClockFrequency max2837_reference_f	= 50000000U;
+constexpr ClockFrequency rffc5072_reference_f	= 40000000U;
+constexpr ClockFrequency max2837_reference_f	= 40000000U;
 constexpr ClockFrequency mcu_clkin_f			= 40000000U;
 
 constexpr uint8_t si5351_i2c_address = 0x60;
