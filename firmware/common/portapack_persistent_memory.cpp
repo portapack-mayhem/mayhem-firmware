@@ -55,10 +55,26 @@ using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
 constexpr ppb_t ppb_reset_value { 0 };
 
+using afsk_freq_range_t = range_t<int16_t>;
+constexpr afsk_freq_range_t afsk_freq_range { 100, 32000 };
+constexpr int16_t afsk_mark_reset_value { 1200 };
+constexpr int16_t afsk_space_reset_value { 2200 };
+
+using afsk_bitrate_range_t = range_t<int16_t>;
+constexpr afsk_bitrate_range_t afsk_bitrate_range { 600, 9600 };
+constexpr int16_t afsk_bitrate_reset_value { 1200 };
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
+	// General config
 	int64_t tuned_frequency;
 	int32_t correction_ppb;
+	
+	// AFSK modem
+	int16_t afsk_mark_freq;
+	int16_t afsk_space_freq;
+	int16_t afsk_bitrate;
+	uint8_t afsk_config;
 };
 
 static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large for VBAT-maintained region");
@@ -81,6 +97,41 @@ ppb_t correction_ppb() {
 
 void set_correction_ppb(const ppb_t new_value) {
 	data->correction_ppb = ppb_range.clip(new_value);
+}
+
+int16_t afsk_mark_freq() {
+	afsk_freq_range.reset_if_outside(data->afsk_mark_freq, afsk_mark_reset_value);
+	return data->correction_ppb;
+}
+
+void set_afsk_mark(const int16_t new_value) {
+	data->afsk_mark_freq = afsk_freq_range.clip(new_value);
+}
+
+int16_t afsk_space_freq() {
+	afsk_freq_range.reset_if_outside(data->afsk_space_freq, afsk_space_reset_value);
+	return data->correction_ppb;
+}
+
+void set_afsk_space(const int16_t new_value) {
+	data->afsk_space_freq = afsk_freq_range.clip(new_value);
+}
+
+int16_t afsk_bitrate() {
+	afsk_bitrate_range.reset_if_outside(data->afsk_bitrate, afsk_bitrate_reset_value);
+	return data->correction_ppb;
+}
+
+void set_afsk_bitrate(const int16_t new_value) {
+	data->afsk_bitrate = afsk_bitrate_range.clip(new_value);
+}
+
+uint8_t afsk_config() {
+	return data->afsk_config;
+}
+
+void set_afsk_config(const uint8_t new_value) {
+	data->afsk_config = new_value;
 }
 
 } /* namespace persistent_memory */

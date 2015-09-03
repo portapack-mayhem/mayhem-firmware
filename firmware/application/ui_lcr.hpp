@@ -44,53 +44,72 @@ public:
 	void paint(Painter& painter) override;
 
 private:
+	const char RGSB_list[37][5] = {
+		"EAA0", "EAB0",	"EAC0",	"EAD0",
+		"EbA0",	"EbB0",	"EbC0",	"EbD0",
+		"EbE0",	"EbF0",	"EbG0",	"EbH0",
+		"EbI0",	"EbJ0",	"EbK0",	"EbL0",
+		"EbM0",	"EbN0",	"EbO0",	"EbP0",
+		"EbS0",	"EAD0",	"AI10",	"AI20",
+		"AI30",	"AI40",	"AI50",	"AI60",
+		"AI70",	"AJ10",	"AJ20",	"AJ30",
+		"AJ40",	"AJ50",	"AJ60",	"AJ70",
+		"AK10"
+	};
 	char litteral[4][8];
 	char rgsb[5];
 	char lcrframe[256];
-	uint16_t baudrate = 1200;
-	rf::Frequency f = 160000000;
+	rf::Frequency f = 162950000;
 	TransmitterModel& transmitter_model;
 
 	Button button_setrgsb {
 		{ 16, 24, 96, 32 },
 		"Set RGSB"
 	};
+	Button button_txsetup {
+		{ 120, 24, 96, 32 },
+		"TX setup"
+	};
 
 	Button button_setam_a {
-		{ 16, 64, 96, 32 },
+		{ 16, 64, 48, 32 },
 		"AM 1"
 	};
 	
 	Button button_setam_b {
-		{ 16, 64+40, 96, 32 },
+		{ 16, 64+40, 48, 32 },
 		"AM 2"
 	};
 	
 	Button button_setam_c {
-		{ 16, 64+40+40, 96, 32 },
+		{ 16, 64+40+40, 48, 32 },
 		"AM 3"
 	};
 	
 	Button button_setam_d {
-		{ 16, 64+40+40+40, 96, 32 },
+		{ 16, 64+40+40+40, 48, 32 },
 		"AM 4"
 	};
 	
 	Button button_setfreq {
-		{ 4, 232, 96, 32 },
-		"160.0000"
+		{ 8, 232, 96, 32 },
+		"162.9500"
 	};
-	Button button_setbaud {
-		{ 4, 270, 96, 32 },
+	Button button_setbps {
+		{ 128, 232, 96, 32 },
 		"1200bps"
 	};
 	
 	Button button_transmit {
-		{ 120, 232, 96, 32 },
-		"Transmit"
+		{ 8, 270, 48, 32 },
+		"TX"
+	};
+	Button button_transmit_scan {
+		{ 60, 270, 64, 32 },
+		"SCAN TX"
 	};
 	Button button_exit {
-		{ 120, 270, 96, 32 },
+		{ 176, 270, 48, 32 },
 		"Exit"
 	};
 };

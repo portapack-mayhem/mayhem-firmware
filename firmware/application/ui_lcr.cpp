@@ -32,6 +32,7 @@
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -57,23 +58,23 @@ void LCRView::paint(Painter& painter) {
 	char eom[3] = { 3, 0, 0 };
 	uint8_t checksum = 0, i;
 	char teststr[16];
+	uint16_t dp;
+	uint8_t cp, pp, cur_byte, new_byte;
+	
+	static constexpr Style style_orange {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::orange(),
+	};
 	
 	Point offset = {
-		static_cast<Coord>(120),
-		static_cast<Coord>(32)
+		static_cast<Coord>(72),
+		static_cast<Coord>(72)
 	};
 	
 	painter.draw_string(
 		screen_pos() + offset,
-		style(),
-		rgsb
-	);
-	
-	offset.y += 40;
-	
-	painter.draw_string(
-		screen_pos() + offset,
-		style(),
+		style_orange,
 		litteral[0]
 	);
 	
@@ -81,7 +82,7 @@ void LCRView::paint(Painter& painter) {
 	
 	painter.draw_string(
 		screen_pos() + offset,
-		style(),
+		style_orange,
 		litteral[1]
 	);
 	
@@ -89,7 +90,7 @@ void LCRView::paint(Painter& painter) {
 	
 	painter.draw_string(
 		screen_pos() + offset,
-		style(),
+		style_orange,
 		litteral[2]
 	);
 	
@@ -97,10 +98,11 @@ void LCRView::paint(Painter& painter) {
 	
 	painter.draw_string(
 		screen_pos() + offset,
-		style(),
+		style_orange,
 		litteral[3]
 	);
 	
+	// Testing: 7 char pad for litterals
 	for (i = 0; i < 4; i++) {
 		while (strlen(litteral[i]) < 7) {
 			strcat(litteral[i], " ");
@@ -114,7 +116,9 @@ void LCRView::paint(Painter& painter) {
 	lcrframe[2] = 127;
 	lcrframe[3] = 127;
 	lcrframe[4] = 127;
-	lcrframe[5] = 15;
+	lcrframe[5] = 127;
+	lcrframe[6] = 127;
+	lcrframe[7] = 15;
 	strcat(lcrframe, rgsb);
 	strcat(lcrframe, "PA AM=1 AF=\"");
 	strcat(lcrframe, litteral[0]);
@@ -124,10 +128,10 @@ void LCRView::paint(Painter& painter) {
 	strcat(lcrframe, litteral[2]);
 	strcat(lcrframe, "\" CL=0 AM=4 AF=\"");
 	strcat(lcrframe, litteral[3]);
-	strcat(lcrframe, "\" CL=0 EC=A SAB=0");
+	strcat(lcrframe, "\" CL=0 EC=A SAB=0");		//TODO: EC=A,J,N
 	
 	//Checksum
-	i = 5;
+	i = 7;
 	while (lcrframe[i]) {
 		checksum ^= lcrframe[i];
 		i++;
@@ -137,6 +141,17 @@ void LCRView::paint(Painter& painter) {
 	eom[1] = checksum;
 	
 	strcat(lcrframe, eom);
+	
+	for (dp=0;dp<strlen(lcrframe);dp++) {
+		pp = 0;
+		new_byte = 0;
+		cur_byte = lcrframe[dp];
+		for (cp=0;cp<7;cp++) {
+			if ((cur_byte>>cp)&1) pp++;
+			new_byte |= ((cur_byte>>cp)&1)<<(7-cp);
+		}
+		lcrframe[dp] = new_byte|(pp&1);
+	}
 	
 	teststr[0] = hexify(eom[1] >> 4);
 	teststr[1] = hexify(eom[1] & 15);
@@ -163,8 +178,6 @@ void LCRView::updfreq(rf::Frequency f) {
 	this->button_setfreq.set_text(finalstr);
 }
 
-//TODO: 7 char pad for litterals
-
 LCRView::LCRView(
 	NavigationView& nav,
 	TransmitterModel& transmitter_model
@@ -175,25 +188,27 @@ LCRView::LCRView(
 	memset(litteral, 0, 4*8);
 	memset(rgsb, 0, 5);
 	
-	rgsb[0] = 'E';
-	rgsb[1] = 'b';
-	rgsb[2] = 'G';
-	rgsb[3] = '0';			// Predef.
+	strcpy(rgsb, RGSB_list[0]);
 	
 	add_children({ {
 		&button_setrgsb,
+		&button_txsetup,
 		&button_setam_a,
 		&button_setam_b,
 		&button_setam_c,
 		&button_setam_d,
 		&button_setfreq,
-		&button_setbaud,
+		&button_setbps,
 		&button_transmit,
+		&button_transmit_scan,
 		&button_exit
 	} });
 	
 	button_setrgsb.on_select = [this,&nav](Button&){
 		auto an_view = new AlphanumView { nav, rgsb, 4 };
+		an_view->on_changed = [this](char *rgsb) {
+			button_setrgsb.set_text(rgsb);
+		};
 		nav.push(an_view);
 	};
 	button_setfreq.on_select = [this,&nav](Button&){
@@ -206,36 +221,40 @@ LCRView::LCRView(
 	
 	button_setam_a.on_select = [this,&nav](Button&){
 		auto an_view = new AlphanumView { nav, litteral[0], 7 };
+		an_view->on_changed = [this](char *) {};
 		nav.push(an_view);
 	};
 	button_setam_b.on_select = [this,&nav](Button&){
 		auto an_view = new AlphanumView { nav, litteral[1], 7 };
+		an_view->on_changed = [this](char *) {};
 		nav.push(an_view);
 	};
 	button_setam_c.on_select = [this,&nav](Button&){
 		auto an_view = new AlphanumView { nav, litteral[2], 7 };
+		an_view->on_changed = [this](char *) {};
 		nav.push(an_view);
 	};
 	button_setam_d.on_select = [this,&nav](Button&){
 		auto an_view = new AlphanumView { nav, litteral[3], 7 };
+		an_view->on_changed = [this](char *) {};
 		nav.push(an_view);
 	};
-	button_setbaud.on_select = [this](Button&){
-		if (baudrate == 1200) {
-			baudrate = 2400;
-			button_setbaud.set_text("2400 bps");
+	button_setbps.on_select = [this](Button&){
+		if (persistent_memory::afsk_bitrate() == 1200) {
+			persistent_memory::set_afsk_bitrate(2400);
+			button_setbps.set_text("2400 bps");
 		} else {
-			baudrate = 1200;
-			button_setbaud.set_text("1200 bps");
+			persistent_memory::set_afsk_bitrate(1200);
+			button_setbps.set_text("1200 bps");
 		}
 	};
 	
 	button_transmit.on_select = [this,&transmitter_model](Button&){
 		uint16_t c;
-		if (baudrate == 1200)
-			shared_memory.fskspb = 190;
-		else
-			shared_memory.fskspb = 95;
+			
+		shared_memory.afsk_samples_per_bit = 228000/persistent_memory::afsk_bitrate();
+		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/228000;
+		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/228000;
 
 		for (c = 0; c < 256; c++) {
 			shared_memory.lcrdata[c] = this->lcrframe[c];

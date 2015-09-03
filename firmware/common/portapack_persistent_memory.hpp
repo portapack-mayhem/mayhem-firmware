@@ -37,6 +37,18 @@ void set_tuned_frequency(const rf::Frequency new_value);
 ppb_t correction_ppb();
 void set_correction_ppb(const ppb_t new_value);
 
+int16_t afsk_mark_freq();
+void set_afsk_mark(const int16_t new_value);
+
+int16_t afsk_space_freq();
+void set_afsk_space(const int16_t new_value);
+
+int16_t afsk_bitrate();
+void set_afsk_bitrate(const int16_t new_value);
+
+uint8_t afsk_config();
+void set_afsk_config(const uint8_t new_value);
+
 } /* namespace persistent_memory */
 } /* namespace portapack */
 

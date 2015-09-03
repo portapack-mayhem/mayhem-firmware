@@ -36,7 +36,7 @@ namespace ui {
 
 class AlphanumView : public View {
 public:
-	//std::function<void(rf::Frequency)> on_changed;
+	std::function<void(char *)> on_changed;
 
 	AlphanumView(NavigationView& nav, char txt[], uint8_t max_len);
 

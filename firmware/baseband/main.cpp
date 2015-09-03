@@ -762,40 +762,65 @@ private:
 
 class LCRFSKProcessor : public BasebandProcessor {
 public:
+	void BasebandProcessor() {
+		afsk_samples_per_bit = shared_memory.afsk_samples_per_bit;
+		phase_inc_mark = shared_memory.afsk_phase_inc_mark;
+		phase_inc_space = shared_memory.afsk_phase_inc_space;
+	}
+	
 	void execute(buffer_c8_t buffer) override {
         
 		for (size_t i = 0; i<buffer.count; i++) {
 			
-			//Sample generation 2.28M/10=228kHz
-			if(s >= 9) {
+			//Sample generation 2.28M/10 = 228kHz
+			if (s >= 9) {
 				s = 0;
-				fsk_samples_per_bit = shared_memory.fskspb;
-				if(sample_count >= fsk_samples_per_bit) {
-					cur_byte = shared_memory.lcrdata[bit_pos / 8];
+				
+				if (sample_count >= afsk_samples_per_bit) {
+					cur_byte = shared_memory.lcrdata[byte_pos];
 					if (!cur_byte) {
-						//TransmitterModel::disable();
 						bit_pos = 0;
+						byte_pos = 0;
 						cur_byte = shared_memory.lcrdata[0];
 					}
-					cur_bit = cur_byte >> (7-(bit_pos % 8)) & 1;
+					cur_byte = (0x55<<1);	//DEBUG
+					
+					//SdddddddpD
+					//0dddddddp1
+					
+					gbyte = 0;
+					gbyte = cur_byte << 1;
+					gbyte |= 1;
+					
+					cur_bit = gbyte >> (9-bit_pos) & 1;
 
-					bit_pos++;
+					if (bit_pos == 9) {
+						bit_pos = 0;
+						byte_pos++;
+					} else {
+						bit_pos++;
+					}
+					
+					//aphase = 0x2FFFFFF;
+					
 					sample_count = 0;
+				} else {
+					sample_count++;
 				}
-				sample_count++;
-				
 				if (cur_bit)
-					aphase += 267187;
+					aphase += phase_inc_mark; //(353205)
 				else
-					aphase += 489844;
+					aphase += phase_inc_space; //(647542)
 					
 				sample = sintab[(aphase & 0x03FF0000)>>16];
 			} else {
 				s++;
 			}
 			
+			sample = sintab[(aphase & 0x03FF0000)>>16];
+			
 			//FM
-			frq = sample * 967;
+			frq = sample * 850; //TODO: Put in config (channel bandwidth)
 			
 			phase = (phase + frq);
 			sphase = phase + (256<<16);
@@ -808,11 +833,13 @@ public:
 	}
 
 private:
-	uint32_t fsk_samples_per_bit;
+	uint32_t afsk_samples_per_bit;
+	uint32_t phase_inc_mark, phase_inc_space;
 	int8_t re, im;
 	uint8_t s;
-    uint32_t bit_pos;
+    uint8_t bit_pos, byte_pos;
     uint8_t cur_byte = 0;
+    uint16_t gbyte;
     uint8_t cur_bit = 0;
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
