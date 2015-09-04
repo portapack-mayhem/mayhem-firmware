@@ -401,6 +401,11 @@ bool Button::on_key(const KeyEvent key) {
 			on_select(*this);
 			return true;
 		}
+	} else {
+		if( on_dir ) {
+			on_dir(*this, key);
+			return false;
+		}
 	}
 
 	return false;

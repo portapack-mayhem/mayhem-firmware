@@ -47,6 +47,8 @@ struct SharedMemory {
 	uint32_t afsk_samples_per_bit;
 	uint32_t afsk_phase_inc_mark;
 	uint32_t afsk_phase_inc_space;
+	uint8_t afsk_repeat;
+	bool afsk_transmit_done;
 };
 
 extern SharedMemory& shared_memory;

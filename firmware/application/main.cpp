@@ -475,6 +475,8 @@ message_handlers[Message::ID::TestResults] = [&system_view](const Message* const
 */
 
 int main(void) {
+	ui::Context context;
+	
 	portapack::init();
 
 	if( !cpld_update_if_necessary() ) {
@@ -484,7 +486,7 @@ int main(void) {
 	init_message_queues();
 
 	portapack::io.init();
-	ui::Context context;
+	
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
@@ -503,12 +505,18 @@ int main(void) {
 		{ 0, 0, 240, 320 }
 	};
 	ui::Painter painter;
-	EventDispatcher event_dispatcher { &system_view, painter, context };
-
+	
 context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
 	const auto message = static_cast<const FSKPacketMessage*>(p);
 	(void)message;
 };
+
+context.message_map[Message::ID::TXDone] = [](const Message* const p) {
+	const auto message = static_cast<const TXDoneMessage*>(p);
+	(void)message;
+};
+
+	EventDispatcher event_dispatcher { &system_view, painter, context };
 
 	m4txevent_interrupt_enable();
 

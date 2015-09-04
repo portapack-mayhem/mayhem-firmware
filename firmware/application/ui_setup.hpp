@@ -25,6 +25,7 @@
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include <cstdint>
 
@@ -190,7 +191,7 @@ private:
 
 	Text text_firmware {
 		{ 0, 128, 240, 16 },
-		"Firmware Version    git-??????",
+		"Firmware Version    HAVOC 0.10",
 	};
 
 	Text text_cpld_hackrf {
@@ -234,6 +235,31 @@ private:
 	Button button_ok {
 		{ 72, 192, 96, 24 },
 		"OK"
+	};
+};
+
+class SetPlayDeadView : public View {
+public:
+	SetPlayDeadView(NavigationView& nav);
+	void focus() override;
+private:
+	bool entermode = false;
+	uint32_t sequence = 0;
+	uint8_t keycount, key_code;
+	char sequence_txt[11];
+	
+	Text text_sequence {
+		{ 64, 32, 14 * 8, 16 },
+		"Enter sequence",
+	};
+	
+	Button button_enter {
+		{ 16, 192, 96, 24 },
+		"Enter"
+	};
+	Button button_cancel {
+		{ 128, 192, 96, 24 },
+		"Cancel"
 	};
 };
 

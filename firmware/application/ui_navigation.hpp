@@ -41,8 +41,8 @@ public:
 
 private:
 	Text portapack {
-		{ 0, 0, 9 * 8, 1 * 16 },
-		"PortaPack",
+		{ 0, 0, 15 * 8, 1 * 16 },
+		"PortaPack/HAVOC"
 	};
 };
 
@@ -70,6 +70,25 @@ public:
 	SystemMenuView(NavigationView& nav);
 };
 
+class BMPView : public View {
+public:
+	BMPView(NavigationView& nav);
+	void paint(Painter& painter) override;
+	void focus() override;
+
+private:
+	Text text_info {
+		{ 5 * 8, 284, 20 * 8, 16 },
+		"shrbrnd-sig-ftk 2015"
+	};
+	
+	Button button_done {
+		{ 240, 0, 1, 1 },
+		""
+	};
+};
+
+
 class SystemView : public View {
 public:
 	SystemView(
@@ -83,6 +102,28 @@ private:
 	SystemStatusView status_view;
 	NavigationView navigation_view;
 	Context& context_;
+};
+
+class PlayDeadView : public View {
+public:
+	PlayDeadView(NavigationView& nav);
+	void focus() override;
+
+private:
+	uint32_t sequence = 0;
+	Text text_playdead1 {
+		{ 6 * 8, 7 * 16, 14 * 8, 16 },
+		"Firmware error"
+	};
+	Text text_playdead2 {
+		{ 6 * 8, 9 * 16, 16 * 8, 16 },
+		"0x1400_0000 : 2C"
+	};
+	
+	Button button_done {
+		{ 240, 0, 1, 1 },
+		""
+	};
 };
 
 class HackRFFirmwareView : public View {

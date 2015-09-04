@@ -188,6 +188,51 @@ private:
 	};
 };
 
+class DebugLCRView : public View {
+public:
+	DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksum);
+
+	void focus() override;
+
+	void paint(Painter& painter) override;
+
+private:
+	Text text_lcr1 {
+		{ 16, 32, 208, 8 },
+		""
+	};
+	Text text_lcr2 {
+		{ 16, 32+16, 208, 8 },
+		""
+	};
+	Text text_lcr3 {
+		{ 16, 32+16+16, 208, 8 },
+		""
+	};
+	Text text_lcr4 {
+		{ 16, 32+16+16+16, 208, 8 },
+		""
+	};
+	Text text_lcr5 {
+		{ 16, 32+16+16+16+16, 208, 8 },
+		""
+	};
+	Text text_lcr6 {
+		{ 16, 32+16+16+16+16+16, 208, 8 },
+		""
+	};
+	
+	Text text_checksum {
+		{ 16, 32+16+16+16+16+16+32, 208, 8 },
+		""
+	};
+	
+	Button button_done {
+		{ 72, 240, 96, 24 },
+		"Done"
+	};
+};
+
 class DebugMenuView : public MenuView {
 public:
 	DebugMenuView(NavigationView& nav);

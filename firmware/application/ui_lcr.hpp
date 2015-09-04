@@ -39,7 +39,7 @@ public:
 	LCRView(NavigationView& nav, TransmitterModel& transmitter_model);
 	~LCRView();
 	
-	void updfreq(rf::Frequency f);
+	void make_frame();
 	void focus() override;
 	void paint(Painter& painter) override;
 
@@ -56,11 +56,24 @@ private:
 		"AJ40",	"AJ50",	"AJ60",	"AJ70",
 		"AK10"
 	};
-	char litteral[4][8];
+	char litteral[5][8];
 	char rgsb[5];
+	char lcrstring[256];
+	char checksum = 0;
 	char lcrframe[256];
+	char lcrframe_f[256];
 	rf::Frequency f = 162950000;
 	TransmitterModel& transmitter_model;
+
+	Text text_status {
+		{ 136, 128, 64, 16 },
+		"Ready"
+	};
+
+	Text text_recap {
+		{ 32, 6, 192, 16 },
+		"-"
+	};
 
 	Button button_setrgsb {
 		{ 16, 24, 96, 32 },
@@ -91,21 +104,22 @@ private:
 		"AM 4"
 	};
 	
-	Button button_setfreq {
-		{ 8, 232, 96, 32 },
-		"162.9500"
+	Button button_setam_e {
+		{ 16, 64+40+40+40+40, 48, 32 },
+		"AM 5"
 	};
-	Button button_setbps {
-		{ 128, 232, 96, 32 },
-		"1200bps"
+	
+	Button button_lcrdebug {
+		{ 152, 224, 64, 32 },
+		"DEBUG"
 	};
 	
 	Button button_transmit {
-		{ 8, 270, 48, 32 },
+		{ 24, 270, 48, 32 },
 		"TX"
 	};
 	Button button_transmit_scan {
-		{ 60, 270, 64, 32 },
+		{ 76, 270, 72, 32 },
 		"SCAN TX"
 	};
 	Button button_exit {

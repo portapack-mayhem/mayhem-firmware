@@ -212,6 +212,7 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
+	std::function<void(Button&,KeyEvent)> on_dir;
 
 	Button(
 		Rect parent_rect,

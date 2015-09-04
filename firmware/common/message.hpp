@@ -42,6 +42,7 @@ public:
 		FSKConfiguration = 6,
 		FSKPacket = 7,
 		TestResults = 8,
+		TXDone = 9,
 		MAX
 	};
 
@@ -249,6 +250,14 @@ public:
 	}
 
 	FSKPacket packet;
+};
+
+class TXDoneMessage : public Message {
+public:
+	TXDoneMessage(
+	) : Message { ID::TXDone }
+	{
+	}
 };
 
 class MessageHandlerMap {

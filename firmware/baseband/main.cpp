@@ -762,12 +762,6 @@ private:
 
 class LCRFSKProcessor : public BasebandProcessor {
 public:
-	void BasebandProcessor() {
-		afsk_samples_per_bit = shared_memory.afsk_samples_per_bit;
-		phase_inc_mark = shared_memory.afsk_phase_inc_mark;
-		phase_inc_space = shared_memory.afsk_phase_inc_space;
-	}
-	
 	void execute(buffer_c8_t buffer) override {
         
 		for (size_t i = 0; i<buffer.count; i++) {
@@ -776,14 +770,22 @@ public:
 			if (s >= 9) {
 				s = 0;
 				
-				if (sample_count >= afsk_samples_per_bit) {
-					cur_byte = shared_memory.lcrdata[byte_pos];
+				if (sample_count >= shared_memory.afsk_samples_per_bit) {
+					if (shared_memory.afsk_transmit_done == false)
+						cur_byte = shared_memory.lcrdata[byte_pos];
 					if (!cur_byte) {
-						bit_pos = 0;
-						byte_pos = 0;
-						cur_byte = shared_memory.lcrdata[0];
+						if (shared_memory.afsk_repeat) {
+							shared_memory.afsk_repeat--;
+							bit_pos = 0;
+							byte_pos = 0;
+							cur_byte = shared_memory.lcrdata[0];
+						} else {
+							shared_memory.afsk_transmit_done = true;	// TODO: Remove, unused
+							//shared_memory.application_queue.push(&message);
+							cur_byte = 0;
+						}
 					}
-					cur_byte = (0x55<<1);	//DEBUG
+					//cur_byte = (0x55<<1);	//DEBUG
 					
 					//SdddddddpD
 					//0dddddddp1
@@ -808,9 +810,9 @@ public:
 					sample_count++;
 				}
 				if (cur_bit)
-					aphase += phase_inc_mark; //(353205)
+					aphase += shared_memory.afsk_phase_inc_mark; //(353205)
 				else
-					aphase += phase_inc_space; //(647542)
+					aphase += shared_memory.afsk_phase_inc_space; //(647542)
 					
 				sample = sintab[(aphase & 0x03FF0000)>>16];
 			} else {
@@ -833,8 +835,6 @@ public:
 	}
 
 private:
-	uint32_t afsk_samples_per_bit;
-	uint32_t phase_inc_mark, phase_inc_space;
 	int8_t re, im;
 	uint8_t s;
     uint8_t bit_pos, byte_pos;
@@ -844,6 +844,7 @@ private:
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
 	int32_t sample, sig, frq;
+	TXDoneMessage message;
 };
 
 static BasebandProcessor* baseband_processor { nullptr };

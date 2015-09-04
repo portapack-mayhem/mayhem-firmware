@@ -23,6 +23,9 @@
 
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
+#include "portapack_persistent_memory.hpp"
+
+#include "splash.hpp"
 
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
@@ -98,16 +101,17 @@ void NavigationView::focus() {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<9>({ {
-		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
-		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "RDS TX",	  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
-		{ "LCR TX",   [&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
-		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
-		{ "About",    [&nav](){ nav.push(new AboutView          { nav }); } },
-		{ "Debug",    [&nav](){ nav.push(new DebugMenuView      { nav }); } },
-		{ "HackRF",   [&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
+	add_items<10>({ {
+		{ "Play dead", ui::Color::red(),  [&nav](){ nav.push(new PlayDeadView 		{ nav }); } },
+		{ "Receiver", ui::Color::white(), [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
+		{ "Capture", ui::Color::white(),  [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Analyze", ui::Color::white(),  [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "RDS TX", ui::Color::orange(),  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
+		{ "LCR TX", ui::Color::orange(),  [&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
+		{ "Setup", ui::Color::white(),    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
+		{ "About", ui::Color::white(),    [&nav](){ nav.push(new AboutView          { nav }); } },
+		{ "Debug", ui::Color::white(),    [&nav](){ nav.push(new DebugMenuView      { nav }); } },
+		{ "HackRF", ui::Color::white(),   [&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
 	} });
 }
 
@@ -143,11 +147,102 @@ SystemView::SystemView(
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
-	navigation_view.push(new SystemMenuView { navigation_view });
+	navigation_view.push(new BMPView { navigation_view }); //SystemMenuView
 }
 
 Context& SystemView::context() const {
 	return context_;
+}
+
+/* ***********************************************************************/
+
+void BMPView::focus() {
+	button_done.focus();
+}
+
+BMPView::BMPView(NavigationView& nav) {
+	add_children({ {
+		&text_info,
+		&button_done
+	} });
+	
+	button_done.on_select = [this,&nav](Button&){
+		nav.pop();
+		nav.push(new SystemMenuView { nav });
+	};
+}
+
+void BMPView::paint(Painter& painter) {
+	uint32_t pixel_data;
+	uint8_t p, by, c, count;
+	ui::Color linebuffer[185];
+	ui::Coord px = 0, py = 302;
+	ui::Color palette[16];
+	
+	// RLE_4 BMP loader with hardcoded size and no delta :(
+	
+	pixel_data = splash_bmp[0x0A];
+	p = 0;
+	for (c = 0x36; c < (0x36+(16*4)); c+=4) {
+		palette[p++] = ui::Color(splash_bmp[c+2], splash_bmp[c+1], splash_bmp[c]);
+	}
+	
+	do {
+		by = splash_bmp[pixel_data++];
+		if (by) {
+			count = by;
+			by = splash_bmp[pixel_data++];
+			for (c = 0; c < count; c+=2) {
+				linebuffer[px++] = palette[by >> 4];
+				if (px < 185) linebuffer[px++] = palette[by & 15];
+			}
+			if (pixel_data & 1) pixel_data++;
+		} else {
+			by = splash_bmp[pixel_data++];
+			if (by == 0) {
+				portapack::display.render_line({27, py}, 185, linebuffer);
+				py--;
+				px = 0;
+			} else if (by == 1) {
+				break;
+			} else if (by == 2) {
+				// Delta
+			} else {
+				count = by;
+				for (c = 0; c < count; c+=2) {
+					by = splash_bmp[pixel_data++];
+					linebuffer[px++] = palette[by >> 4];
+					if (px < 185) linebuffer[px++] = palette[by & 15];
+				}
+				if (pixel_data & 1) pixel_data++;
+			}
+		}
+	} while (1);
+}
+
+/* PlayDeadView **********************************************************/
+
+void PlayDeadView::focus() {
+	button_done.focus();
+}
+
+PlayDeadView::PlayDeadView(NavigationView& nav) {
+	add_children({ {
+		&text_playdead1,
+		&text_playdead2,
+		&button_done,
+	} });
+	
+	button_done.on_dir = [this,&nav](Button&, KeyEvent key){
+		sequence = (sequence<<3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
+	};
+	
+	button_done.on_select = [this,&nav](Button&){
+		if (sequence == persistent_memory::playdead_sequence())
+			nav.pop();
+		else
+			sequence = 0;
+	};
 }
 
 /* HackRFFirmwareView ****************************************************/

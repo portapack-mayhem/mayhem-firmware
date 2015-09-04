@@ -27,6 +27,7 @@
 #include "led.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "radio.hpp"
 
@@ -229,15 +230,71 @@ void DebugSDView::focus() {
 	button_done.focus();
 }
 
+// LCR debug view
+
+void DebugLCRView::paint(Painter& painter) {
+	const Point offset = {
+		static_cast<Coord>(32),
+		static_cast<Coord>(32)
+	};
+	
+	const auto text = to_string_hex(fr, 2);
+	painter.draw_string(
+		screen_pos() + offset,
+		style(),
+		text
+	);
+}
+
+char hexify(char in) {
+	if (in > 9) in += 7;
+	return in + 0x30;
+}
+
+DebugLCRView::DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksum) {
+	char cstr[15] = "Checksum: 0x  ";
+	
+	add_children({ {
+		&text_lcr1,
+		&text_lcr2,
+		&text_lcr3,
+		&text_lcr4,
+		&text_lcr5,
+		&text_lcr6,
+		&text_checksum,
+		&button_done
+	} });
+	
+	std::string b = std::string(lcrstring);
+	
+	text_lcr1.set(b.substr(8+(0*26),26));
+	text_lcr2.set(b.substr(8+(1*26),26));
+	text_lcr3.set(b.substr(8+(2*26),26));
+	text_lcr4.set(b.substr(8+(3*26),26));
+	text_lcr5.set(b.substr(8+(4*26),26));
+	text_lcr6.set(b.substr(8+(5*26),26));
+	
+	cstr[12] = hexify(checksum >> 4);
+	cstr[13] = hexify(checksum & 15);
+	
+	text_checksum.set(cstr);
+	
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void DebugLCRView::focus() {
+	button_done.focus();
+}
+
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Memory",      [&nav](){ nav.push(new DebugMemoryView    { nav }); } },
-		{ "Radio State", [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "SD Card",     [&nav](){ nav.push(new DebugSDView        { nav }); } },
-		{ "RFFC5072",    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
-		{ "MAX2837",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Si5351C",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "WM8731",      [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Memory", ui::Color::white(),      [&nav](){ nav.push(new DebugMemoryView    { nav }); } },
+		{ "Radio State", ui::Color::white(), [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "SD Card", ui::Color::white(),     [&nav](){ nav.push(new DebugSDView        { nav }); } },
+		{ "RFFC5072", ui::Color::white(),    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
+		{ "MAX2837", ui::Color::white(),     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Si5351C", ui::Color::white(),     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "WM8731", ui::Color::white(),      [&nav](){ nav.push(new NotImplementedView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

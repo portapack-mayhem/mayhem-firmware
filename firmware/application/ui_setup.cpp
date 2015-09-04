@@ -26,8 +26,10 @@
 #include "lpc43xx_cpp.hpp"
 
 #include <math.h>
+#include <cstring>
 
 using namespace lpc43xx;
+using namespace portapack;
 
 namespace ui {
 
@@ -184,11 +186,56 @@ bool SetTouchCalibView::on_touch(const TouchEvent event) {
 	return true;
 }
 
+SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
+	add_children({{
+		&text_sequence,
+		&button_enter,
+		&button_cancel
+		}});
+
+	button_enter.on_select = [this,&nav](Button&){
+		if (entermode == false) {
+			sequence = 0;
+			memset(sequence_txt,0,11);
+			text_sequence.set("");
+			keycount = 0;
+			entermode = true;
+			button_cancel.hidden(true);
+		} else {
+			persistent_memory::set_playdead_sequence(sequence);
+			nav.pop();
+		}
+	};
+	button_enter.on_dir = [this,&nav](Button&, KeyEvent key){
+		if ((entermode == true) && (keycount < 10)) {
+			key_code = static_cast<std::underlying_type<KeyEvent>::type>(key);
+			if (key_code == 0)
+				sequence_txt[keycount] = 'R';
+			else if (key_code == 1)
+				sequence_txt[keycount] = 'L';
+			else if (key_code == 2)
+				sequence_txt[keycount] = 'D';
+			else if (key_code == 3)
+				sequence_txt[keycount] = 'U';
+			text_sequence.set(sequence_txt);
+			sequence = (sequence<<3) | key_code;
+			keycount++;
+			
+		}
+	};
+	button_cancel.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void SetPlayDeadView::focus() {
+	button_enter.focus();
+}
+
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<3>({ {
-		{ "Date/Time", [&nav](){ nav.push(new SetDateTimeView { nav }); } },
-		{ "Frequency Correction", [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
-		{ "Touch",     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
+	add_items<4>({ {
+		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push(new SetDateTimeView { nav }); } },
+		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
+		{ "Touch", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
+		{ "Play dead", ui::Color::white(), [&nav](){ nav.push(new SetPlayDeadView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
