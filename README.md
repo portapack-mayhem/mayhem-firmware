@@ -4,6 +4,9 @@ The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscott
 
 Fork features:
 * RDS (Radio Data System) group forming and transmit
+* LCR (Language de Commande Routier) basic message forming
+* AFSK transmit
+
 Todo:
 * Whistle (do NOT use near French railroads)
 * Signal drowner (jammer)
