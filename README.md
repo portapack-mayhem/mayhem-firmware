@@ -1,11 +1,12 @@
-# portapack-hackrf
+# portapack-hackrf / HAVOC
 
 The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup. The PortaPack firmware provides a user interface and necessary signal processing to do many useful things without computer.
 
 Fork features:
-* RDS (Radio Data System) group forming and transmit
+* RDS (Radio Data System) basic group forming and transmit
 * LCR (Language de Commande Routier) basic message forming
-* AFSK transmit
+* Fully configurable AFSK transmit
+* "Play Dead" in case of emergency
 
 Todo:
 * Whistle (do NOT use near French railroads)
