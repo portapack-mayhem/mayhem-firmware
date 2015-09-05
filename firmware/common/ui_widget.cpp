@@ -21,6 +21,7 @@
 
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "portapack.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -347,6 +348,132 @@ void Text::paint(Painter& painter) {
 		style(),
 		text
 	);
+}
+
+/* Checkbox **************************************************************/
+
+void Checkbox::set_text(const std::string value) {
+	text_ = value;
+	set_dirty();
+}
+
+std::string Checkbox::text() const {
+	return text_;
+}
+
+void Checkbox::set_value(const bool value) {
+	value_ = value;
+	set_dirty();
+}
+
+bool Checkbox::value() const {
+	return value_;
+}
+
+void Checkbox::paint(Painter& painter) {
+	const auto r = screen_rect();
+	
+	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	
+	painter.draw_rectangle({ r.pos.x, r.pos.y, 24, 24 }, style().foreground);
+
+	painter.fill_rectangle(
+		{
+			static_cast<Coord>(r.pos.x + 1), static_cast<Coord>(r.pos.y + 1),
+			static_cast<Dim>(24 - 2), static_cast<Dim>(24 - 2)
+		},
+		style().background
+	);
+	
+	painter.draw_rectangle({ r.pos.x+2, r.pos.y+2, 24-4, 24-4 }, paint_style.background);
+	
+	if (value_ == true) {
+		// Check
+		portapack::display.draw_line( {r.pos.x+2, r.pos.y+14}, {r.pos.x+6, r.pos.y+18}, ui::Color::green());
+		portapack::display.draw_line( {r.pos.x+6, r.pos.y+18}, {r.pos.x+20, r.pos.y+4}, ui::Color::green());
+	} else {
+		// Cross
+		portapack::display.draw_line( {r.pos.x+1, r.pos.y+1}, {r.pos.x+24-2, r.pos.y+24-2}, ui::Color::red());
+		portapack::display.draw_line( {r.pos.x+24-2, r.pos.y+1}, {r.pos.x+1, r.pos.y+24-2}, ui::Color::red());
+	}
+	
+	const auto label_r = paint_style.font.size_of(text_);
+	painter.draw_string(
+		{
+			static_cast<Coord>(r.pos.x + 24 + 4),
+			static_cast<Coord>(r.pos.y + (24 - label_r.h) / 2)
+		},
+		paint_style,
+		text_
+	);
+}
+
+bool Checkbox::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		value_ = not value_;
+		set_dirty();
+		
+		if( on_select ) {
+			on_select(*this);
+			
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Checkbox::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+
+	case TouchEvent::Type::End:
+		flags.highlighted = false;
+		value_ = not value_;
+		set_dirty();
+		if( on_select ) {
+			on_select(*this);
+		}
+		return true;
+
+	default:
+		return false;
+	}
+#if 0
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+	case TouchEvent::Type::Move:
+		{
+			const bool new_highlighted = screen_rect().contains(event.point);
+			if( flags.highlighted != new_highlighted ) {
+				flags.highlighted = new_highlighted;
+				set_dirty();
+			}
+		}
+		return true;
+
+	case TouchEvent::Type::End:
+		if( flags.highlighted ) {
+			flags.highlighted = false;
+			set_dirty();
+			if( on_select ) {
+				on_select(*this);
+			}
+		}
+		return true;
+
+	default:
+		return false;
+	}
+#endif
 }
 
 /* Button ****************************************************************/

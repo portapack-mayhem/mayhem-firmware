@@ -56,6 +56,12 @@ public:
 	) : parent_rect { }
 	{
 	}
+	
+	constexpr Widget(
+		Point parent_point
+	) : parent_rect { parent_point, { 24, 24 } }
+	{
+	}
 
 	constexpr Widget(
 		Rect parent_rect
@@ -207,6 +213,41 @@ public:
 
 private:
 	std::string text;
+};
+
+class Checkbox : public Widget {
+public:
+	std::function<void(Checkbox&)> on_select;
+
+	Checkbox(
+		Point parent_point,
+		std::string text
+	) : Widget { parent_point },
+		text_ { text }
+	{
+		flags.focusable = true;
+	}
+
+	Checkbox(
+	) : Checkbox { { }, { } }
+	{
+	}
+
+	void set_text(const std::string value);
+	void set_style(const Style* new_style);
+	std::string text() const;
+	void set_value(const bool value);
+	bool value() const;
+
+	void paint(Painter& painter) override;
+	
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+
+private:
+	std::string text_;
+	bool value_ = false;
+	const Style* style_ { nullptr };
 };
 
 class Button : public Widget {

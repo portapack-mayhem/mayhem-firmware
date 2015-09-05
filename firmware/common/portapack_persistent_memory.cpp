@@ -72,9 +72,9 @@ struct data_t {
 	
 	// AFSK modem
 	int32_t afsk_mark_freq;
-	int32_t afsk_space_freq;
+	int32_t afsk_space_freq;		// Todo: optimize size, only 256 bytes of NVRAM !
 	int32_t afsk_bitrate;
-	uint8_t afsk_config;
+	uint32_t afsk_config;
 	
 	// Play dead unlock
 	bool playing_dead;
@@ -130,11 +130,11 @@ void set_afsk_bitrate(const int32_t new_value) {
 	data->afsk_bitrate = afsk_bitrate_range.clip(new_value);
 }
 
-uint8_t afsk_config() {
+uint32_t afsk_config() {
 	return data->afsk_config;
 }
 
-void set_afsk_config(const uint8_t new_value) {
+void set_afsk_config(const uint32_t new_value) {
 	data->afsk_config = new_value;
 }
 

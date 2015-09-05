@@ -79,8 +79,15 @@ AFSKSetupView::AFSKSetupView(
 		&field_mark,
 		&text_space,
 		&field_space,
+		&checkbox_lsb,
+		&checkbox_parity,
+		&checkbox_datasize,
 		&button_done
 	} });
+	
+	if (persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
+	if (persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
+	if (persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
 	
 	updfreq(persistent_memory::tuned_frequency());
 	
@@ -112,8 +119,16 @@ AFSKSetupView::AFSKSetupView(
 	};
 
 	button_done.on_select = [this,&nav](Button&){
+		uint8_t afsk_config = 0;
+		
 		persistent_memory::set_afsk_mark(field_mark.value()/100);
 		persistent_memory::set_afsk_space(field_space.value()/100);
+		
+		if (checkbox_lsb.value() == true) afsk_config |= 1;
+		if (checkbox_parity.value() == true) afsk_config |= 2;
+		if (checkbox_datasize.value() == true) afsk_config |= 4;
+		persistent_memory::set_afsk_config(afsk_config);
+		
 		nav.pop();
 	};
 }

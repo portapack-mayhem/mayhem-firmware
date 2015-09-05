@@ -230,8 +230,6 @@ void DebugSDView::focus() {
 	button_done.focus();
 }
 
-// LCR debug view
-
 void DebugLCRView::paint(Painter& painter) {
 	const Point offset = {
 		static_cast<Coord>(32),
@@ -260,7 +258,6 @@ DebugLCRView::DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksu
 		&text_lcr3,
 		&text_lcr4,
 		&text_lcr5,
-		&text_lcr6,
 		&text_checksum,
 		&button_done
 	} });
@@ -268,11 +265,10 @@ DebugLCRView::DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksu
 	std::string b = std::string(lcrstring);
 	
 	text_lcr1.set(b.substr(8+(0*26),26));
-	text_lcr2.set(b.substr(8+(1*26),26));
-	text_lcr3.set(b.substr(8+(2*26),26));
-	text_lcr4.set(b.substr(8+(3*26),26));
-	text_lcr5.set(b.substr(8+(4*26),26));
-	text_lcr6.set(b.substr(8+(5*26),26));
+	if (strlen(b > 34)) text_lcr2.set(b.substr(8+(1*26),26));
+	if (strlen(b > 34+26)) text_lcr3.set(b.substr(8+(2*26),26));
+	if (strlen(b > 34+26+26)) text_lcr4.set(b.substr(8+(3*26),26));
+	if (strlen(b > 34+26+26+26)) text_lcr5.set(b.substr(8+(4*26),26));
 	
 	cstr[12] = hexify(checksum >> 4);
 	cstr[13] = hexify(checksum & 15);

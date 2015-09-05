@@ -62,11 +62,11 @@ private:
 	char checksum = 0;
 	char lcrframe[256];
 	char lcrframe_f[256];
-	rf::Frequency f = 162950000;
+	rf::Frequency f;
 	TransmitterModel& transmitter_model;
 
 	Text text_status {
-		{ 136, 128, 64, 16 },
+		{ 172, 196, 64, 16 },
 		"Ready"
 	};
 
@@ -83,34 +83,50 @@ private:
 		{ 120, 24, 96, 32 },
 		"TX setup"
 	};
-
+	
+	Checkbox checkbox_am_a {
+		{ 16, 68 },
+		""
+	};
 	Button button_setam_a {
-		{ 16, 64, 48, 32 },
+		{ 48, 64, 48, 32 },
 		"AM 1"
 	};
-	
+	Checkbox checkbox_am_b {
+		{ 16, 68+40 },
+		""
+	};
 	Button button_setam_b {
-		{ 16, 64+40, 48, 32 },
+		{ 48, 64+40, 48, 32 },
 		"AM 2"
 	};
-	
+	Checkbox checkbox_am_c {
+		{ 16, 68+40+40 },
+		""
+	};
 	Button button_setam_c {
-		{ 16, 64+40+40, 48, 32 },
+		{ 48, 64+40+40, 48, 32 },
 		"AM 3"
 	};
-	
+	Checkbox checkbox_am_d {
+		{ 16, 68+40+40+40 },
+		""
+	};
 	Button button_setam_d {
-		{ 16, 64+40+40+40, 48, 32 },
+		{ 48, 64+40+40+40, 48, 32 },
 		"AM 4"
 	};
-	
+	Checkbox checkbox_am_e {
+		{ 16, 68+40+40+40+40 },
+		""
+	};
 	Button button_setam_e {
-		{ 16, 64+40+40+40+40, 48, 32 },
+		{ 48, 64+40+40+40+40, 48, 32 },
 		"AM 5"
 	};
 	
 	Button button_lcrdebug {
-		{ 152, 224, 64, 32 },
+		{ 166, 224, 56, 32 },
 		"DEBUG"
 	};
 	

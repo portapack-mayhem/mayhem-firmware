@@ -43,7 +43,6 @@ public:
 	void paint(Painter& painter) override;
 
 private:
-	//rf::Frequency f = 162950000;
 	TransmitterModel& transmitter_model;
 	
 	Text text_title {
@@ -84,8 +83,21 @@ private:
 		' '
 	};
 	
+	Checkbox checkbox_lsb {
+		{ 8, 150 },
+		"LSB first"
+	};
+	Checkbox checkbox_parity {
+		{ 8, 180 },
+		"Even parity"
+	};
+	Checkbox checkbox_datasize {
+		{ 8, 210 },
+		"8 bits"
+	};
+	
 	Button button_done {
-		{ 72, 200, 96, 48 },
+		{ 72, 250, 96, 48 },
 		"Save"
 	};
 };
