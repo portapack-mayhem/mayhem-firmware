@@ -55,11 +55,14 @@ public:
 
 private:
 	uint8_t _max_len;
-	bool _lowercase;
+	bool _lowercase = false;
 	static constexpr size_t button_w = 240 / 5;
 	static constexpr size_t button_h = 28;
 	char txtinput[9];
-
+	
+	void set_lowercase();
+	void set_uppercase();
+	
 	Text text_input {
 		{ 88, 0, 240, 16 }
 	};
@@ -68,7 +71,7 @@ private:
 
 	Button button_lowercase {
 		{ 88+64+16, 270, 32, 24 },
-		"LC"
+		"UC"
 	};
 
 	Button button_done {

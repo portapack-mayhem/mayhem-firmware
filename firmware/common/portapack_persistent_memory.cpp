@@ -77,7 +77,7 @@ struct data_t {
 	uint32_t afsk_config;
 	
 	// Play dead unlock
-	bool playing_dead;
+	uint32_t playing_dead;
 	uint32_t playdead_sequence;
 };
 
@@ -138,11 +138,11 @@ void set_afsk_config(const uint32_t new_value) {
 	data->afsk_config = new_value;
 }
 
-bool playing_dead() {
+uint32_t playing_dead() {
 	return data->playing_dead;
 }
 
-void set_playing_dead(const bool new_value) {
+void set_playing_dead(const uint32_t new_value) {
 	data->playing_dead = new_value;
 }
 

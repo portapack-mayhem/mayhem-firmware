@@ -249,7 +249,7 @@ char hexify(char in) {
 	return in + 0x30;
 }
 
-DebugLCRView::DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksum) {
+DebugLCRView::DebugLCRView(NavigationView& nav, char * lcrstring, uint8_t checksum) {
 	char cstr[15] = "Checksum: 0x  ";
 	
 	add_children({ {
@@ -265,10 +265,10 @@ DebugLCRView::DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksu
 	std::string b = std::string(lcrstring);
 	
 	text_lcr1.set(b.substr(8+(0*26),26));
-	if (strlen(b > 34)) text_lcr2.set(b.substr(8+(1*26),26));
-	if (strlen(b > 34+26)) text_lcr3.set(b.substr(8+(2*26),26));
-	if (strlen(b > 34+26+26)) text_lcr4.set(b.substr(8+(3*26),26));
-	if (strlen(b > 34+26+26+26)) text_lcr5.set(b.substr(8+(4*26),26));
+	if (strlen(lcrstring) > 34) text_lcr2.set(b.substr(8+(1*26),26));
+	if (strlen(lcrstring) > 34+26) text_lcr3.set(b.substr(8+(2*26),26));
+	if (strlen(lcrstring) > 34+26+26) text_lcr4.set(b.substr(8+(3*26),26));
+	if (strlen(lcrstring) > 34+26+26+26) text_lcr5.set(b.substr(8+(4*26),26));
 	
 	cstr[12] = hexify(checksum >> 4);
 	cstr[13] = hexify(checksum & 15);

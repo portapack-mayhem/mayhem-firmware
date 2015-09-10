@@ -43,7 +43,7 @@ struct SharedMemory {
 	
 	uint32_t rdsdata[16];
 	
-	char lcrdata[256];
+	uint8_t lcrdata[256];
 	uint32_t afsk_samples_per_bit;
 	uint32_t afsk_phase_inc_mark;
 	uint32_t afsk_phase_inc_space;

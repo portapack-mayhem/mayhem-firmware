@@ -269,7 +269,7 @@ void FrequencyKeypadView::field_toggle() {
 
 void FrequencyKeypadView::update_text() {
 	const auto s = mhz.as_string() + "." + submhz.as_string();
-	text_value.set(s);
+	text_value.set(s.c_str());
 }
 
 /* FrequencyOptionsView **************************************************/

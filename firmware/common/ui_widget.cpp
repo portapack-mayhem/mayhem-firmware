@@ -483,6 +483,11 @@ void Button::set_text(const std::string value) {
 	set_dirty();
 }
 
+void Button::set_text(const int value) {	//std::string
+	text_ = value;
+	set_dirty();
+}
+
 void Button::set_style(const Style* new_style) {
 	if( new_style != style_ ) {
 		style_ = new_style;

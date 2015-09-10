@@ -19,6 +19,26 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//Reims ANFR 	822519
+//TODO: UC/LC update buttons in keyboard view
+//TODO: Dynamically load baseband code depending on mode (disable M4 & interrupts, load, reset)
+//TODO: Bodet :)
+//TODO: Whistler
+//TODO: Setup: Play dead by default ? Enable/disable ?
+//TODO: Hide statusview when playing dead
+//TODO: Persistent playdead !
+//TODO: LCR EC=A,J,N
+//TODO: LCR full message former (see norm)
+//TODO: See if receive still works
+//TODO: LCR repeats
+//TODO: LCR shared memory semaphore for doing/done
+//TODO: LCR address scan
+//TODO: LCR text showing status in LCRView
+//TODO: AFSK NRZI
+//TODO: AFSK volume
+//TODO: AFSK channel bandwidth
+//TODO: TX power
+
 #include "ch.h"
 #include "test.h"
 
@@ -506,15 +526,15 @@ int main(void) {
 	};
 	ui::Painter painter;
 	
-context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
-	const auto message = static_cast<const FSKPacketMessage*>(p);
-	(void)message;
-};
+	context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
+		const auto message = static_cast<const FSKPacketMessage*>(p);
+		(void)message;
+	};
 
-context.message_map[Message::ID::TXDone] = [](const Message* const p) {
-	const auto message = static_cast<const TXDoneMessage*>(p);
-	(void)message;
-};
+	context.message_map[Message::ID::TXDone] = [](const Message* const p) {
+		const auto message = static_cast<const TXDoneMessage*>(p);
+		(void)message;
+	};
 
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 

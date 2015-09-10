@@ -33,6 +33,10 @@ void m4txevent_interrupt_enable() {
 	nvicEnableVector(M4CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M4TXEVENT_IRQ_PRIORITY));
 }
 
+void m4txevent_interrupt_disable() {
+	nvicDisableVector(M4CORE_IRQn);
+}
+
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {

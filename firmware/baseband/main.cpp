@@ -678,6 +678,7 @@ static int32_t waveform_biphase[] = {
 	-157,-160,-163,-166,-167,-168,-168,-167
 };
 
+/*
 class RDSProcessor : public BasebandProcessor {
 public:
 	void execute(buffer_c8_t buffer) override {
@@ -758,7 +759,7 @@ private:
 	uint32_t phase, sphase;
 	int32_t sig, frq, frq_im, rdsc;
 	int32_t k;
-};
+};*/
 
 class LCRFSKProcessor : public BasebandProcessor {
 public:
@@ -779,22 +780,25 @@ public:
 							bit_pos = 0;
 							byte_pos = 0;
 							cur_byte = shared_memory.lcrdata[0];
+							if( message.is_free() ) {
+								message.n = shared_memory.afsk_repeat;
+								shared_memory.application_queue.push(&message);
+							}
 						} else {
-							shared_memory.afsk_transmit_done = true;	// TODO: Remove, unused
-							//shared_memory.application_queue.push(&message);
+							if( message.is_free() ) {
+								message.n = 0;
+								shared_memory.afsk_transmit_done = true;
+								shared_memory.application_queue.push(&message);
+							}
 							cur_byte = 0;
 						}
 					}
-					//cur_byte = (0x55<<1);	//DEBUG
-					
-					//SdddddddpD
-					//0dddddddp1
 					
 					gbyte = 0;
 					gbyte = cur_byte << 1;
 					gbyte |= 1;
 					
-					cur_bit = gbyte >> (9-bit_pos) & 1;
+					cur_bit = (gbyte >> (9-bit_pos)) & 1;
 
 					if (bit_pos == 9) {
 						bit_pos = 0;
@@ -822,7 +826,7 @@ public:
 			sample = sintab[(aphase & 0x03FF0000)>>16];
 			
 			//FM
-			frq = sample * 850; //TODO: Put in config (channel bandwidth)
+			frq = sample * 500;
 			
 			phase = (phase + frq);
 			sphase = phase + (256<<16);
@@ -837,14 +841,52 @@ public:
 private:
 	int8_t re, im;
 	uint8_t s;
-    uint8_t bit_pos, byte_pos;
-    uint8_t cur_byte = 0;
+    uint8_t bit_pos, byte_pos = 0;
+    char cur_byte = 0;
     uint16_t gbyte;
     uint8_t cur_bit = 0;
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
 	int32_t sample, sig, frq;
 	TXDoneMessage message;
+};
+
+class ToneProcessor : public BasebandProcessor {
+public:
+	void execute(buffer_c8_t buffer) override {
+        
+		for (size_t i = 0; i<buffer.count; i++) {
+			
+			//Sample generation 2.28M/10 = 228kHz
+			if (s >= 9) {
+				s = 0;
+				aphase += 353205;	// DEBUG
+				sample = sintab[(aphase & 0x03FF0000)>>16];
+			} else {
+				s++;
+			}
+			
+			sample = sintab[(aphase & 0x03FF0000)>>16];
+			
+			//FM
+			frq = sample * 500;		// DEBUG
+			
+			phase = (phase + frq);
+			sphase = phase + (256<<16);
+
+			re = sintab[(sphase & 0x03FF0000)>>16];
+			im = sintab[(phase & 0x03FF0000)>>16];
+			
+			buffer.p[i] = {(int8_t)re,(int8_t)im};
+		}
+	}
+
+private:
+	int8_t re, im;
+	uint8_t s;
+    uint32_t sample_count;
+	uint32_t aphase, phase, sphase;
+	int32_t sample, sig, frq;
 };
 
 static BasebandProcessor* baseband_processor { nullptr };
@@ -1107,14 +1149,19 @@ int main(void) {
 				baseband_processor = new FSKProcessor(message_handlers);
 				break;
 				
-			case 15:
+			/*case 15:
 				direction = baseband::Direction::Transmit;
 				baseband_processor = new RDSProcessor();
-				break;
+				break;*/
 				
 			case 16:
 				direction = baseband::Direction::Transmit;
 				baseband_processor = new LCRFSKProcessor();
+				break;
+			
+			case 17:
+				direction = baseband::Direction::Transmit;
+				baseband_processor = new ToneProcessor();
 				break;
 
 			default:

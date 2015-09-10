@@ -33,6 +33,8 @@
  * cause an exception and effectively halt the M4. But that feels gross.
  */
 void m4_init(const portapack::spi_flash::region_t from, void* const to) {
+	//m4txevent_interrupt_disable();
+	
 	/* Initialize M4 code RAM */
 	std::memcpy(to, from.base_address(), from.size);
 

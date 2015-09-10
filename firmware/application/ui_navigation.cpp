@@ -32,6 +32,7 @@
 #include "ui_receiver.hpp"
 #include "ui_rds.hpp"
 #include "ui_lcr.hpp"
+#include "ui_whistle.hpp"
 
 #include "portapack.hpp"
 #include "m4_startup.hpp"
@@ -102,11 +103,11 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<10>({ {
-		{ "Play dead", ui::Color::red(),  [&nav](){ nav.push(new PlayDeadView 		{ nav }); } },
+		{ "Play dead", ui::Color::red(),  [&nav](){ nav.push(new PlayDeadView 		{ nav, false }); } },
 		{ "Receiver", ui::Color::white(), [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
 		{ "Capture", ui::Color::white(),  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Analyze", ui::Color::white(),  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "RDS TX", ui::Color::orange(),  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
+		{ "Whistle", ui::Color::white(),  [&nav](){ nav.push(new WhistleView 		{ nav, transmitter_model }); } },
+		{ "RDS TX", ui::Color::yellow(),  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
 		{ "LCR TX", ui::Color::orange(),  [&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
 		{ "Setup", ui::Color::white(),    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
 		{ "About", ui::Color::white(),    [&nav](){ nav.push(new AboutView          { nav }); } },
@@ -147,7 +148,10 @@ SystemView::SystemView(
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
-	navigation_view.push(new BMPView { navigation_view }); //SystemMenuView
+	if (persistent_memory::playing_dead())
+		navigation_view.push(new PlayDeadView { navigation_view, true });
+	else
+		navigation_view.push(new BMPView { navigation_view });
 }
 
 Context& SystemView::context() const {
@@ -226,7 +230,10 @@ void PlayDeadView::focus() {
 	button_done.focus();
 }
 
-PlayDeadView::PlayDeadView(NavigationView& nav) {
+PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
+	_booting = booting;
+	persistent_memory::set_playing_dead(1);
+	
 	add_children({ {
 		&text_playdead1,
 		&text_playdead2,
@@ -238,10 +245,17 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 	};
 	
 	button_done.on_select = [this,&nav](Button&){
-		if (sequence == persistent_memory::playdead_sequence())
-			nav.pop();
-		else
+		if (sequence == persistent_memory::playdead_sequence()) {
+			persistent_memory::set_playing_dead(0);
+			if (_booting) {
+				nav.pop();
+				nav.push(new SystemMenuView { nav });
+			} else {
+				nav.pop();
+			}
+		} else {
 			sequence = 0;
+		}
 	};
 }
 

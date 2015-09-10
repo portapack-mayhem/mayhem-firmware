@@ -258,6 +258,8 @@ public:
 	) : Message { ID::TXDone }
 	{
 	}
+	
+	int n = 0;
 };
 
 class MessageHandlerMap {

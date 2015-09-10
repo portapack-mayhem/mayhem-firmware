@@ -34,110 +34,56 @@
 
 namespace ui {
 
-class LCRView : public View {
+class WhistleView : public View {
 public:
-	LCRView(NavigationView& nav, TransmitterModel& transmitter_model);
-	~LCRView();
+	WhistleView(NavigationView& nav, TransmitterModel& transmitter_model);
+	~WhistleView();
 	
-	void make_frame();
 	void focus() override;
 	void paint(Painter& painter) override;
+	static void whistle_th(void *p);
 
 private:
-	const char RGSB_list[37][5] = {
-		"EAA0", "EAB0",	"EAC0",	"EAD0",
-		"EbA0",	"EbB0",	"EbC0",	"EbD0",
-		"EbE0",	"EbF0",	"EbG0",	"EbH0",
-		"EbI0",	"EbJ0",	"EbK0",	"EbL0",
-		"EbM0",	"EbN0",	"EbO0",	"EbP0",
-		"EbS0",	"EAD0",	"AI10",	"AI20",
-		"AI30",	"AI40",	"AI50",	"AI60",
-		"AI70",	"AJ10",	"AJ20",	"AJ30",
-		"AJ40",	"AJ50",	"AJ60",	"AJ70",
-		"AK10"
+	typedef struct rstchs {
+		rf::Frequency out[3];
+		rf::Frequency in;
+	} rstchs;
+	rstchs whistle_chs[14] = {
+		{{ 467650000, 467700000, 467750000 }, 457700000}, 
+		{{ 467750000, 467825000, 467875000 }, 457825000}, 
+		{{ 467875000, 467925000, 467975000 }, 457925000}, 
+		{{ 467950000, 468000000, 468050000 }, 457800000}, 
+		{{ 467625000, 467675000, 467725000 }, 457675000}, 
+		{{ 467700000, 467750000, 467800000 }, 457750000}, 
+		{{ 467750000, 467800000, 467850000 }, 457800000}, 
+		{{ 467825000, 467875000, 467925000 }, 457875000}, 
+		{{ 467900000, 467950000, 468000000 }, 457950000}, 
+		{{ 468025000, 468075000, 468125000 }, 458075000}, 
+		{{ 468100000, 468150000, 468200000 }, 458150000}, 
+		{{ 468075000, 468125000, 468175000 }, 458125000}, 
+		{{ 468175000, 468225000, 468275000 }, 458225000}, 
+		{{ 468225000, 468275000, 468325000 }, 458275000}
 	};
-	char litteral[5][8];
-	char rgsb[5];
-	char lcrstring[256];
-	char checksum = 0;
-	char lcrframe[256];
-	char lcrframe_f[256];
 	rf::Frequency f;
 	TransmitterModel& transmitter_model;
 
 	Text text_status {
-		{ 168, 196, 64, 16 },
+		{ 172, 196, 64, 16 },
 		"Ready"
-	};
-
-	Text text_recap {
-		{ 32, 6, 192, 16 },
-		"-"
-	};
-
-	Button button_setrgsb {
-		{ 16, 24, 96, 32 },
-		"Set RGSB"
-	};
-	Button button_txsetup {
-		{ 120, 24, 96, 32 },
-		"TX setup"
 	};
 	
 	Checkbox checkbox_am_a {
 		{ 16, 68 },
 		""
 	};
-	Button button_setam_a {
-		{ 48, 64, 48, 32 },
-		"AM 1"
-	};
-	Checkbox checkbox_am_b {
-		{ 16, 68+40 },
-		""
-	};
-	Button button_setam_b {
-		{ 48, 64+40, 48, 32 },
-		"AM 2"
-	};
-	Checkbox checkbox_am_c {
-		{ 16, 68+40+40 },
-		""
-	};
-	Button button_setam_c {
-		{ 48, 64+40+40, 48, 32 },
-		"AM 3"
-	};
-	Checkbox checkbox_am_d {
-		{ 16, 68+40+40+40 },
-		""
-	};
-	Button button_setam_d {
-		{ 48, 64+40+40+40, 48, 32 },
-		"AM 4"
-	};
-	Checkbox checkbox_am_e {
-		{ 16, 68+40+40+40+40 },
-		""
-	};
-	Button button_setam_e {
-		{ 48, 64+40+40+40+40, 48, 32 },
-		"AM 5"
-	};
-	
-	Button button_lcrdebug {
-		{ 166, 224, 56, 32 },
-		"DEBUG"
-	};
 	
 	Button button_transmit {
 		{ 24, 270, 48, 32 },
 		"TX"
 	};
-	Button button_transmit_scan {
-		{ 76, 270, 72, 32 },
-		"SCAN TX"
-	};
+	
+	static Button button_scan;
+	
 	Button button_exit {
 		{ 176, 270, 48, 32 },
 		"Exit"

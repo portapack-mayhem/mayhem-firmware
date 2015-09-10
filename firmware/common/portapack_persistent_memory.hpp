@@ -49,8 +49,8 @@ void set_afsk_bitrate(const int32_t new_value);
 uint32_t afsk_config();
 void set_afsk_config(const uint32_t new_value);
 
-bool playing_dead();
-void set_playing_dead(const bool new_value);
+uint32_t playing_dead();
+void set_playing_dead(const uint32_t new_value);
 
 uint32_t playdead_sequence();
 void set_playdead_sequence(const uint32_t new_value);

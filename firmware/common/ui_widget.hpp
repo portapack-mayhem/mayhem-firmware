@@ -270,6 +270,7 @@ public:
 	}
 
 	void set_text(const std::string value);
+	void set_text(const int value);
 	void set_style(const Style* new_style);
 	std::string text() const;
 

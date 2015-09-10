@@ -112,7 +112,8 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(FATFSSRC)
+       $(FATFSSRC) \
+       $(CHIBIOS)/os/various/evtimer.c
 
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -162,6 +163,7 @@ CPPSRC = main.cpp \
          ui_debug.cpp \
          ui_rds.cpp \
          ui_lcr.cpp \
+         ui_whistle.cpp \
          ui_afsksetup.cpp \
          ui_console.cpp \
          ui_receiver.cpp \

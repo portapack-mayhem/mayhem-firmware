@@ -66,36 +66,33 @@ AlphanumView::AlphanumView(
 		this->on_button(button);
 	};
 
-	const char* const key_caps = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
-
 	size_t n = 0;
 	for(auto& button : buttons) {
 		add_child(&button);
-		const std::string label {
-			key_caps[n]
-		};
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * button_w),
 			static_cast<Coord>((n / 5) * button_h + 18),
 			button_w, button_h
 		});
-		button.set_text(label);
 		if ((n < 10) || (n == 39))
 			button.set_style(&style_num);
 		else
 			button.set_style(&style_alpha);
 		n++;
 	}
+	set_uppercase();
 	
 	add_child(&button_lowercase);
 	button_lowercase.on_select = [this, &nav, txt, max_len](Button&) {
 		if (_lowercase == true) {
 			_lowercase = false;
-			button_lowercase.set_text("LC");
+			button_lowercase.set_text("UC");
+			set_uppercase();
 		} else {
 			_lowercase = true;
-			button_lowercase.set_text("UC");
+			button_lowercase.set_text("LC");
+			set_lowercase();
 		}
 	};
 
@@ -107,6 +104,35 @@ AlphanumView::AlphanumView(
 	};
 
 	update_text();
+}
+
+void AlphanumView::set_uppercase() {
+	const char* const key_caps = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
+
+	size_t n = 0;
+	for(auto& button : buttons) {
+		add_child(&button);
+		const std::string label {
+			key_caps[n]
+		};
+		button.set_text(label);
+		n++;
+	}
+}
+
+
+void AlphanumView::set_lowercase() {
+	const char* const key_caps = "0123456789abcdefghijklmnopqrstuvwxyz. !<";
+
+	size_t n = 0;
+	for(auto& button : buttons) {
+		add_child(&button);
+		const std::string label {
+			key_caps[n]
+		};
+		button.set_text(label);
+		n++;
+	}
 }
 
 void AlphanumView::focus() {
@@ -122,10 +148,7 @@ void AlphanumView::on_button(Button& button) {
 	if( s == "<" ) {
 		char_delete();
 	} else {
-		if (_lowercase == true)
-			char_add(s[0] + 32);
-		else
-			char_add(s[0]);
+		char_add(s[0]);
 	}
 	update_text();
 }

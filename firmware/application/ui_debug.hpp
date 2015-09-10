@@ -31,6 +31,8 @@
 #include "rffc507x.hpp"
 
 namespace ui {
+	
+char hexify(char in);
 
 class BasebandStatsView : public View {
 public:

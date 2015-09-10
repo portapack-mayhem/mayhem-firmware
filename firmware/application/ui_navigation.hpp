@@ -106,10 +106,11 @@ private:
 
 class PlayDeadView : public View {
 public:
-	PlayDeadView(NavigationView& nav);
+	PlayDeadView(NavigationView& nav, bool booting);
 	void focus() override;
 
 private:
+	bool _booting;
 	uint32_t sequence = 0;
 	Text text_playdead1 {
 		{ 6 * 8, 7 * 16, 14 * 8, 16 },

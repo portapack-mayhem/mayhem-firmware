@@ -39,12 +39,6 @@
 #include <cstring>
 #include <stdio.h>
 
-//TODO: Repeats
-//TODO: Shared memory semaphore for doing/done
-//TODO: Scan
-//TODO: Text showing status in LCRView
-//TODO: Checkboxes for AMs
-
 using namespace hackrf::one;
 
 namespace ui {
@@ -107,7 +101,7 @@ void LCRView::make_frame() {
 		strcat(lcrframe, litteral[4]);
 		strcat(lcrframe, "\" CL=0 ");
 	}
-	strcat(lcrframe, "EC=A SAB=0");		//TODO: EC=A,J,N
+	strcat(lcrframe, "EC=A SAB=0");
 	
 	memcpy(lcrstring, lcrframe, 256);
 	
@@ -124,12 +118,12 @@ void LCRView::make_frame() {
 	
 	strcat(lcrframe, eom);
 	
-	if (persistent_memory::afsk_config() & 2)
+	//if (persistent_memory::afsk_config() & 2)
 		pm = 0; // Even parity
-	else
-		pm = 1; // Odd parity
+	//else
+	//	pm = 1; // Odd parity
 
-	if (persistent_memory::afsk_config() & 1) {
+	//if (persistent_memory::afsk_config() & 1) {
 		// LSB first
 		for (dp=0;dp<strlen(lcrframe);dp++) {
 			pp = pm;
@@ -137,15 +131,11 @@ void LCRView::make_frame() {
 			cur_byte = lcrframe[dp];
 			for (cp=0;cp<7;cp++) {
 				if ((cur_byte>>cp)&1) pp++;
-				new_byte |= ((cur_byte>>cp)&1)<<(6-cp);
+				new_byte |= (((cur_byte>>cp)&1)<<(7-cp));
 			}
-			// 8/7 bit
-			if (persistent_memory::afsk_config() & 4)
-				lcrframe_f[dp] = new_byte;
-			else
-				lcrframe_f[dp] = (new_byte<<1)|(pp&1);
+			lcrframe_f[dp] = new_byte|(pp&1);
 		}
-	} else {
+	/*} else {
 		// MSB first
 		for (dp=0;dp<strlen(lcrframe);dp++) {
 			pp = pm;
@@ -153,16 +143,16 @@ void LCRView::make_frame() {
 			for (cp=0;cp<7;cp++) {
 				if ((cur_byte>>cp)&1) pp++;
 			}
-			// 8/7 bit
-			if (persistent_memory::afsk_config() & 4)
-				lcrframe_f[dp] = cur_byte;
-			else
-				lcrframe_f[dp] = (cur_byte<<1)|(pp&1);
+			lcrframe_f[dp] = (cur_byte<<1)|(pp&1);
 		}
-	}
+	}*/
+	
+	lcrframe_f[dp] = 0;
 }
 
 void LCRView::paint(Painter& painter) {
+	uint8_t i;
+	
 	static constexpr Style style_orange {
 		.font = font::fixed_8x16,
 		.background = Color::black(),
@@ -174,43 +164,14 @@ void LCRView::paint(Painter& painter) {
 		static_cast<Coord>(72)
 	};
 	
-	painter.draw_string(
-		screen_pos() + offset,
-		style_orange,
-		litteral[0]
-	);
-	
-	offset.y += 40;
-	
-	painter.draw_string(
-		screen_pos() + offset,
-		style_orange,
-		litteral[1]
-	);
-	
-	offset.y += 40;
-	
-	painter.draw_string(
-		screen_pos() + offset,
-		style_orange,
-		litteral[2]
-	);
-	
-	offset.y += 40;
-	
-	painter.draw_string(
-		screen_pos() + offset,
-		style_orange,
-		litteral[3]
-	);
-	
-	offset.y += 40;
-	
-	painter.draw_string(
-		screen_pos() + offset,
-		style_orange,
-		litteral[4]
-	);
+	for (i = 0; i < 5; i++) {
+		painter.draw_string(
+			screen_pos() + offset,
+			style_orange,
+			litteral[i]
+		);
+		offset.y += 40;
+	}
 }
 
 LCRView::LCRView(
@@ -315,7 +276,6 @@ LCRView::LCRView(
 	
 	button_transmit.on_select = [this,&transmitter_model](Button&){
 		uint16_t c;
-		ui::Context context;
 		
 		make_frame();
 			
@@ -323,18 +283,25 @@ LCRView::LCRView(
 		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
 		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
 
-		for (c = 0; c < 256; c++) {
-			shared_memory.lcrdata[c] = this->lcrframe[c];
-		}
+		memset(shared_memory.lcrdata, 0, 256);
+		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
 		
 		shared_memory.afsk_transmit_done = false;
 		shared_memory.afsk_repeat = 5;		// DEFAULT
 
-		/*context.message_map[Message::ID::TXDone] = [this](const Message* const p) {
-			text_status.set("Sent ! ");
-		};*/
+		context().message_map[Message::ID::TXDone] = [this, &transmitter_model](const Message* const p) {
+			const auto message = static_cast<const TXDoneMessage*>(p);
+			if (message->n > 0) {
+				char str[8] = "0/5... ";
+				str[0] = hexify(5-message->n);
+				text_status.set(str);
+			} else {
+				text_status.set("Done ! ");
+				transmitter_model.disable();
+			}
+		};
 
-		text_status.set("Send...");
+		text_status.set("0/5... ");
 		
 		transmitter_model.enable();
 	};
