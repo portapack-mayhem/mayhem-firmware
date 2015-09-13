@@ -1,6 +1,8 @@
-# portapack-hackrf / HAVOC
+# portapack-HAVOC
 
-The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup. The PortaPack firmware provides a user interface and necessary signal processing to do many useful things without computer.
+The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup.
+
+As it name implies, HAVOC is a firmware aimed towards serious fun. Don't use it. In fact, we never did.
 
 Fork features:
 * RDS (Radio Data System) basic group forming and transmit
@@ -9,7 +11,9 @@ Fork features:
 * "Play Dead" in case of emergency
 
 Todo:
-* Whistle (do NOT use near French railroads)
+* AFSK receiver
+* Moltonel (tone detector/scanner)
+* Whistle (tone generator)
 * Signal drowner (jammer)
 * Wireless microphone transmit
 * CTCSS talkie transmit
@@ -17,7 +21,7 @@ Todo:
 * EPAR/Xylos transmit (French public lighting control)
 * Detect/decode/play/replay PT2262 and friends (doorbells, cheap remotes... )
 
-Visit the [wiki](https://github.com/sharebrained/portapack-hackrf/wiki) for more details.
+Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
