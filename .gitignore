@@ -29,7 +29,6 @@
 
 # Other compiler/linker outputs
 *.elf
-*.bin
 *.map
 *.lst
 .dep/

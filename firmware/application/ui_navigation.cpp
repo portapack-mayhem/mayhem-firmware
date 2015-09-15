@@ -148,7 +148,8 @@ SystemView::SystemView(
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
-	if (persistent_memory::playing_dead())
+	
+	if (persistent_memory::playing_dead() == 0x59)
 		navigation_view.push(new PlayDeadView { navigation_view, true });
 	else
 		navigation_view.push(new BMPView { navigation_view });
@@ -232,7 +233,7 @@ void PlayDeadView::focus() {
 
 PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
 	_booting = booting;
-	persistent_memory::set_playing_dead(1);
+	persistent_memory::set_playing_dead(0x59);
 	
 	add_children({ {
 		&text_playdead1,
