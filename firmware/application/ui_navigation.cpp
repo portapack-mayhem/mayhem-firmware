@@ -149,9 +149,9 @@ SystemView::SystemView(
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
 	
-	if (persistent_memory::playing_dead() == 0x59)
-		navigation_view.push(new PlayDeadView { navigation_view, true });
-	else
+	//if (persistent_memory::playing_dead() == 0x59)
+	//	navigation_view.push(new PlayDeadView { navigation_view, true });
+	//else
 		navigation_view.push(new BMPView { navigation_view });
 }
 

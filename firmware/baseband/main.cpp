@@ -826,7 +826,7 @@ public:
 			sample = sintab[(aphase & 0x03FF0000)>>16];
 			
 			//FM
-			frq = sample * 500;
+			frq = sample * shared_memory.afsk_fmmod;
 			
 			phase = (phase + frq);
 			sphase = phase + (256<<16);

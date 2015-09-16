@@ -49,6 +49,9 @@ void set_afsk_bitrate(const int32_t new_value);
 uint32_t afsk_config();
 void set_afsk_config(const uint32_t new_value);
 
+int32_t afsk_bw();
+void set_afsk_bw(const int32_t new_value);
+
 uint32_t playing_dead();
 void set_playing_dead(const uint32_t new_value);
 

@@ -70,6 +70,7 @@ AFSKSetupView::AFSKSetupView(
 	TransmitterModel& transmitter_model
 ) : transmitter_model(transmitter_model)
 {
+	uint8_t rpt;
 	
 	add_children({ {
 		&text_title,
@@ -79,6 +80,10 @@ AFSKSetupView::AFSKSetupView(
 		&field_mark,
 		&text_space,
 		&field_space,
+		&text_bw,
+		&field_bw,
+		&text_repeat,
+		&field_repeat,
 		&checkbox_lsb,
 		&checkbox_parity,
 		&checkbox_datasize,
@@ -93,7 +98,11 @@ AFSKSetupView::AFSKSetupView(
 	
 	field_mark.set_value(persistent_memory::afsk_mark_freq()*100);
 	field_space.set_value(persistent_memory::afsk_space_freq()*100);
-
+	field_bw.set_value(persistent_memory::afsk_bw());
+	rpt = (persistent_memory::afsk_config() >> 8) & 0xFF;
+	if (rpt > 99) rpt = 5;
+	field_repeat.set_value(rpt);
+	
 	button_setfreq.on_select = [this,&nav](Button&){
 		auto new_view = new FrequencyKeypadView { nav, this->transmitter_model.tuning_frequency() };
 		new_view->on_changed = [this](rf::Frequency f) {
@@ -119,14 +128,16 @@ AFSKSetupView::AFSKSetupView(
 	};
 
 	button_done.on_select = [this,&nav](Button&){
-		uint8_t afsk_config = 0;
+		uint32_t afsk_config = 0;
 		
 		persistent_memory::set_afsk_mark(field_mark.value()/100);
 		persistent_memory::set_afsk_space(field_space.value()/100);
+		persistent_memory::set_afsk_bw(field_bw.value());
 		
 		if (checkbox_lsb.value() == true) afsk_config |= 1;
 		if (checkbox_parity.value() == true) afsk_config |= 2;
 		if (checkbox_datasize.value() == true) afsk_config |= 4;
+		afsk_config |= (field_repeat.value() << 8);
 		persistent_memory::set_afsk_config(afsk_config);
 		
 		nav.pop();

@@ -64,6 +64,10 @@ using afsk_bitrate_range_t = range_t<int32_t>;
 constexpr afsk_bitrate_range_t afsk_bitrate_range { 600, 9600 };
 constexpr int32_t afsk_bitrate_reset_value { 1200 };
 
+using afsk_bw_range_t = range_t<int32_t>;
+constexpr afsk_bw_range_t afsk_bw_range { 1, 40 };
+constexpr int32_t afsk_bw_reset_value { 15 };
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	// General config
@@ -74,6 +78,7 @@ struct data_t {
 	int32_t afsk_mark_freq;
 	int32_t afsk_space_freq;		// Todo: optimize size, only 256 bytes of NVRAM !
 	int32_t afsk_bitrate;
+	int32_t afsk_bw;
 	uint32_t afsk_config;
 	
 	// Play dead unlock
@@ -128,6 +133,15 @@ int32_t afsk_bitrate() {
 
 void set_afsk_bitrate(const int32_t new_value) {
 	data->afsk_bitrate = afsk_bitrate_range.clip(new_value);
+}
+
+int32_t afsk_bw() {
+	afsk_bw_range.reset_if_outside(data->afsk_bw, afsk_bw_reset_value);
+	return data->afsk_bw;
+}
+
+void set_afsk_bw(const int32_t new_value) {
+	data->afsk_bw = afsk_bw_range.clip(new_value);
 }
 
 uint32_t afsk_config() {

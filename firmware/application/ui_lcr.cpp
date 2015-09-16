@@ -283,17 +283,19 @@ LCRView::LCRView(
 		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
 		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
 
+		shared_memory.afsk_fmmod = persistent_memory::afsk_bw()*33; // ?
+
 		memset(shared_memory.lcrdata, 0, 256);
 		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
 		
 		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5;		// DEFAULT
+		shared_memory.afsk_repeat = ((persistent_memory::afsk_config() >> 8) & 0xFF);
 
 		context().message_map[Message::ID::TXDone] = [this, &transmitter_model](const Message* const p) {
 			const auto message = static_cast<const TXDoneMessage*>(p);
 			if (message->n > 0) {
-				char str[8] = "0/5... ";
-				str[0] = hexify(5-message->n);
+				char str[8] = "0... ";
+				str[0] = hexify(message->n);
 				text_status.set(str);
 			} else {
 				text_status.set("Done ! ");
@@ -301,7 +303,7 @@ LCRView::LCRView(
 			}
 		};
 
-		text_status.set("0/5... ");
+		text_status.set("0... ");
 		
 		transmitter_model.enable();
 	};
