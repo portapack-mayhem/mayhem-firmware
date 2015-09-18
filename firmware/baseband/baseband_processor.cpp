@@ -38,14 +38,12 @@ void BasebandProcessor::update_spectrum() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
 	if( channel_spectrum_request_update ) {
 		/* Decimated buffer is full. Compute spectrum. */
-		std::array<std::complex<float>, 256> samples_swapped;
-		fft_swap(channel_spectrum, samples_swapped);
 		channel_spectrum_request_update = false;
-		fft_c_preswapped(samples_swapped);
+		fft_c_preswapped(channel_spectrum);
 
 		ChannelSpectrumMessage spectrum_message;
 		for(size_t i=0; i<spectrum_message.spectrum.db.size(); i++) {
-			const auto mag2 = magnitude_squared(samples_swapped[i]);
+			const auto mag2 = magnitude_squared(channel_spectrum[i]);
 			const float db = complex16_mag_squared_to_dbv_norm(mag2);
 			constexpr float mag_scale = 5.0f;
 			const unsigned int v = (db * mag_scale) + 255.0f;
@@ -102,9 +100,9 @@ void BasebandProcessor::post_channel_stats_message(const ChannelStatistics stati
 
 void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t data) {
 	if( !channel_spectrum_request_update ) {
-		channel_spectrum_request_update = true;
-		std::copy(&data.p[0], &data.p[data.count], channel_spectrum.begin());
+		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
+		channel_spectrum_request_update = true;
 		events_flag(EVT_MASK_SPECTRUM);
 	}
 }

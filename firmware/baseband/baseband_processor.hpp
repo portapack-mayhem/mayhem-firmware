@@ -31,6 +31,7 @@
 
 #include <array>
 #include <cstdint>
+#include <complex>
 
 class BasebandProcessor {
 public:
@@ -52,7 +53,7 @@ protected:
 	void fill_audio_buffer(const buffer_s16_t audio);
 
 	volatile bool channel_spectrum_request_update { false };
-	std::array<complex16_t, 256> channel_spectrum;
+	std::array<std::complex<float>, 256> channel_spectrum;
 	uint32_t channel_spectrum_sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
 	uint32_t channel_filter_stop_frequency { 0 };

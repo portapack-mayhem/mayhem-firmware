@@ -25,6 +25,8 @@
 #include "baseband_processor.hpp"
 
 #include <cstddef>
+#include <array>
+#include <complex>
 
 class WidebandSpectrum : public BasebandProcessor {
 public:
@@ -32,6 +34,8 @@ public:
 
 private:
 	size_t sample_count = 0;
+
+	std::array<std::complex<float>, 256> spectrum;
 };
 
 #endif/*__PROC_WIDEBAND_SPECTRUM_H__*/
