@@ -199,6 +199,8 @@ static constexpr FSKConfiguration fsk_configuration_ais = {
 	.access_code = 0b01010101010101010101111110,
 	.access_code_length = 26,
 	.access_code_tolerance = 1,
+	.unstuffing_pattern = 0b111110,
+	.unstuffing_length = 6,
 	.packet_length = 256,
 };
 
@@ -207,6 +209,8 @@ static constexpr FSKConfiguration fsk_configuration_tpms_a = {
 	.access_code = 0b0101010101010101010101010110,
 	.access_code_length = 28,
 	.access_code_tolerance = 1,
+	.unstuffing_pattern = 0,
+	.unstuffing_length = 0,
 	.packet_length = 160,
 };
 

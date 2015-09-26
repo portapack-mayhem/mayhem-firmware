@@ -30,7 +30,11 @@
 
 class PacketBuilder {
 public:
-	void configure(size_t new_payload_length);
+	void configure(
+		uint32_t unstuffing_pattern,
+		size_t unstuffing_length,
+		size_t new_payload_length
+	);
 
 	template<typename PayloadHandler>
 	void execute(

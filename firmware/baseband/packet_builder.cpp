@@ -21,11 +21,18 @@
 
 #include "packet_builder.hpp"
 
-void PacketBuilder::configure(size_t new_payload_length) {
+void PacketBuilder::configure(
+	uint32_t unstuffing_pattern,
+	size_t unstuffing_length,
+	size_t new_payload_length
+) {
+	unstuff.configure(unstuffing_pattern, unstuffing_length);
+
 	if( new_payload_length <= payload.size() ) {
 		payload_length = new_payload_length;
-		reset_state();
 	}
+
+	reset_state();
 }
 
 void PacketBuilder::reset_state() {

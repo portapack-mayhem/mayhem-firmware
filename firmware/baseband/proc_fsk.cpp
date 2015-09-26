@@ -50,7 +50,11 @@ void FSKProcessor::configure(const FSKConfiguration new_configuration) {
 		new_configuration.access_code_length,
 		new_configuration.access_code_tolerance
 	);
-	packet_builder.configure(new_configuration.packet_length);
+	packet_builder.configure(
+		new_configuration.unstuffing_pattern,
+		new_configuration.unstuffing_length,
+		new_configuration.packet_length
+	);
 }
 
 void FSKProcessor::execute(buffer_c8_t buffer) {

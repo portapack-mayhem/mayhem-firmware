@@ -198,6 +198,8 @@ struct FSKConfiguration {
 	uint32_t access_code;
 	size_t access_code_length;
 	size_t access_code_tolerance;
+	uint32_t unstuffing_pattern;
+	size_t unstuffing_length;
 	size_t packet_length;
 };
 
