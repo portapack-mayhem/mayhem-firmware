@@ -26,8 +26,31 @@ using namespace portapack;
 
 namespace ui {
 
+void Console::clear() {
+	display.fill_rectangle(
+		screen_rect(),
+		Color::black()
+	);
+	pos = { 0, 0 };
+}
+
 void Console::write(const std::string message) {
-	(void)message;
+	const Style& s = style();
+	const Font& font = s.font;
+	const auto rect = screen_rect();
+	for(const auto c : message) {
+		const auto glyph = font.glyph(c);
+		const auto advance = glyph.advance();
+		if( (pos.x + advance.x) > rect.width() ) {
+			crlf();
+		}
+		const Point pos_glyph {
+			static_cast<Coord>(rect.pos.x + pos.x),
+			display.scroll_area_y(pos.y)
+		};
+		display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
+		pos.x += advance.x;
+	}
 }
 
 void Console::writeln(const std::string message) {
@@ -36,33 +59,37 @@ void Console::writeln(const std::string message) {
 }
 
 void Console::paint(Painter& painter) {
+	// Do nothing.
 	(void)painter;
-	/*
-	if( visible() ) {
-		const auto r = screen_rect();
-		display.scroll_set_area(r.top(), r.bottom());
-		display.scroll_set_position(0);
-		painter.fill_rectangle(
-			r,
-			background
-		);
-	} else {
-		display.scroll_disable();
-	}
-	*/
+}
+
+void Console::on_show() {
+	clear();
+
+	const auto screen_r = screen_rect();
+	display.scroll_set_area(screen_r.top(), screen_r.bottom());
+}
+
+void Console::on_hide() {
+	/* TODO: Clear region to eliminate brief flash of content at un-shifted
+	 * position?
+	 */
+	display.scroll_disable();
 }
 
 void Console::crlf() {
-	const auto line_height = style().font.line_height();
+	const Style& s = style();
+	const auto sr = screen_rect();
+	const auto line_height = s.font.line_height();
 	pos.x = 0;
 	pos.y += line_height;
-	const int32_t y_excess = pos.y + line_height - size().h;
+	const int32_t y_excess = pos.y + line_height - sr.height();
 	if( y_excess > 0 ) {
-		display.scroll(-line_height);
+		display.scroll(-y_excess);
 		pos.y -= y_excess;
 
-		const Rect dirty { 0, display.scroll_area_y(pos.y), size().w, line_height };
-		display.fill_rectangle(dirty, background);
+		const Rect dirty { sr.left(), display.scroll_area_y(pos.y), sr.width(), line_height };
+		display.fill_rectangle(dirty, s.background);
 	}
 }
 
