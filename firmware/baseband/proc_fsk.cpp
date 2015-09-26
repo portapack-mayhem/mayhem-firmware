@@ -107,7 +107,7 @@ void FSKProcessor::consume_symbol(
 
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	const auto decoded_symbol = nrzi_decode(sliced_symbol);
-	const bool access_code_found = access_code_correlator.execute(decoded_symbol);
+	const bool access_code_found = access_code_correlator(decoded_symbol);
 
 	packet_builder.execute(
 		decoded_symbol,

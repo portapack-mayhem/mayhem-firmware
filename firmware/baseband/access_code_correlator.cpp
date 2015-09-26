@@ -32,13 +32,3 @@ void AccessCodeCorrelator::configure(
 		maximum_hamming_distance = new_maximum_hamming_distance;
 	}
 }
-
-bool AccessCodeCorrelator::execute(
-	const uint_fast8_t in
-) {
-	history = (history << 1) | (in & 1);
-	const auto delta_bits = (history ^ code) & mask;
-	//const size_t count = __builtin_popcountll(delta_bits);
-	const size_t count = __builtin_popcountl(delta_bits);
-	return (count <= maximum_hamming_distance);
-}

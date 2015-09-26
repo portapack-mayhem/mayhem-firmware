@@ -33,7 +33,15 @@ public:
 		const size_t new_maximum_hamming_distance
 	);
 
-	bool execute(const uint_fast8_t in);
+	bool operator()(
+		const uint_fast8_t in
+	) {
+		history = (history << 1) | (in & 1);
+		const auto delta_bits = (history ^ code) & mask;
+		//const size_t count = __builtin_popcountll(delta_bits);
+		const size_t count = __builtin_popcountl(delta_bits);
+		return (count <= maximum_hamming_distance);
+	}
 
 private:
 	uint32_t code { 0 };
