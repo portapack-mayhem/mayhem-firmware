@@ -213,6 +213,9 @@ INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
+# TODO: Entertain using MCU=cortex-m0.small-multiply for LPC43xx M0 core.
+# However, on GCC-ARM-Embedded 4.9 2015q2, it seems to produce non-functional
+# binaries.
 MCU  = cortex-m0
 
 #TRGT = arm-elf-
