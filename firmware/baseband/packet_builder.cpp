@@ -30,5 +30,6 @@ void PacketBuilder::configure(size_t new_payload_length) {
 
 void PacketBuilder::reset_state() {
 	bits_received = 0;
+	unstuff.reset();
 	state = State::AccessCodeSearch;
 }

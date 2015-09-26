@@ -26,6 +26,8 @@
 #include <cstddef>
 #include <bitset>
 
+#include "symbol_coding.hpp"
+
 class PacketBuilder {
 public:
 	void configure(size_t new_payload_length);
@@ -45,7 +47,9 @@ public:
 
 		case State::Payload:
 			if( bits_received < payload_length ) {
-				payload[bits_received++] = symbol;
+				if( !unstuff.is_stuffing_bit(symbol) ) {
+					payload[bits_received++] = symbol;
+				}
 			} else {
 				payload_handler(payload, bits_received);
 				reset_state();
@@ -68,6 +72,7 @@ private:
 	size_t bits_received { 0 };
 	State state { State::AccessCodeSearch };
 	std::bitset<256> payload;
+	symbol_coding::Unstuff unstuff;
 
 	void reset_state();
 };
