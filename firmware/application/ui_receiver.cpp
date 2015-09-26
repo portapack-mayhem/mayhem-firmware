@@ -493,8 +493,8 @@ ReceiverView::~ReceiverView() {
 
 void ReceiverView::on_show() {
 	context().message_map.register_handler(Message::ID::FSKPacket,
-		[](const Message* const p) {
-			const auto message = static_cast<const FSKPacketMessage*>(p);
+		[this](Message* const p) {
+			auto message = static_cast<FSKPacketMessage*>(p);
 			(void)message;
 		}
 	);

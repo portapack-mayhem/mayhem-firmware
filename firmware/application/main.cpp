@@ -124,7 +124,7 @@ private:
 
 	void handle_application_queue() {
 		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(const Message* const message = shared_memory.application_queue.pop(message_buffer)) {
+		while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
 			context.message_map.send(message);
 		}
 	}

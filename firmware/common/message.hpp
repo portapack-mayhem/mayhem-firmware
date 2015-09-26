@@ -245,7 +245,7 @@ public:
 
 class MessageHandlerMap {
 public:
-	using MessageHandler = std::function<void(const Message* const p)>;
+	using MessageHandler = std::function<void(Message* const p)>;
 
 	void register_handler(const Message::ID id, MessageHandler&& handler) {
 		map_[toUType(id)] = std::move(handler);
@@ -255,7 +255,7 @@ public:
 		map_[toUType(id)] = nullptr;
 	}
 
-	void send(const Message* const message) {
+	void send(Message* const message) {
 		if( message->id < Message::ID::MAX ) {
 			auto& fn = map_[toUType(message->id)];
 			if( fn ) {

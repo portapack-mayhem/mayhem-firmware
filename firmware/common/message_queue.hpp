@@ -47,8 +47,8 @@ public:
 		return push(&message, sizeof(message));
 	}
 
-	const Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
-		const Message* const p = reinterpret_cast<Message*>(buf.data());
+	Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
+		Message* const p = reinterpret_cast<Message*>(buf.data());
 		return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;
 	}
 
