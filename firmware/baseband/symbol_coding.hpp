@@ -50,7 +50,8 @@ public:
 		const uint32_t pattern,
 		const size_t length
 	) {
-		match = pattern;
+		// Ensure that length=0 (unstuffing disabled) never matches.
+		match = length ? pattern : 1;
 		mask = (1U << length) - 1;
 		reset();
 	}
