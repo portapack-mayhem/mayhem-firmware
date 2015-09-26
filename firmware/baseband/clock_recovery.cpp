@@ -20,12 +20,3 @@
  */
 
 #include "clock_recovery.hpp"
-
-void ClockRecovery::configure(
-	const uint32_t symbol_rate,
-	const uint32_t sampling_rate
-) {
-	phase_increment = phase_increment_u32(
-		fractional_symbol_rate(symbol_rate, sampling_rate)
-	);
-}

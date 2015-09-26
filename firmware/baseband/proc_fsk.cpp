@@ -43,8 +43,8 @@ FSKProcessor::~FSKProcessor() {
 }
 
 void FSKProcessor::configure(const FSKConfiguration new_configuration) {
-	demod.configure(76800, 2 * new_configuration.symbol_rate);
-	clock_recovery.configure(new_configuration.symbol_rate, 76800);
+	demod.configure(sampling_rate, 2 * new_configuration.symbol_rate);
+	clock_recovery.configure(sampling_rate / 4, new_configuration.symbol_rate);
 	access_code_correlator.configure(
 		new_configuration.access_code,
 		new_configuration.access_code_length,
@@ -78,12 +78,6 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
 	);
 
-	const auto symbol_handler_fn = [this](const float value) {
-		const uint_fast8_t symbol = (value >= 0.0f) ? 1 : 0;
-		const bool access_code_found = this->access_code_correlator.execute(symbol);
-		this->consume_symbol(symbol, access_code_found);
-	};
-
 	// 76.8k
 
 	const buffer_s16_t work_demod_buffer {
@@ -93,16 +87,16 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	auto demodulated = demod.execute(channel, work_demod_buffer);
 
-	i2s::i2s0::tx_mute();
-
-	for(size_t i=0; i<demodulated.count; i++) {
-		clock_recovery.execute(demodulated.p[i], symbol_handler_fn);
+	// TODO: Factor out this hidden decimation magic.
+	for(size_t i=0; i<demodulated.count; i+=4) {
+		clock_recovery(demodulated.p[i] / 32768.0f);
 	}
+
+	i2s::i2s0::tx_mute();
 }
 
 void FSKProcessor::consume_symbol(
-	const uint_fast8_t symbol,
-	const bool access_code_found
+	const float raw_symbol
 ) {
 	const auto payload_handler_fn = [this](
 		const std::bitset<256>& payload,
@@ -111,8 +105,12 @@ void FSKProcessor::consume_symbol(
 		this->payload_handler(payload, bits_received);
 	};
 
+	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+	const auto decoded_symbol = nrzi_decode(sliced_symbol);
+	const bool access_code_found = access_code_correlator.execute(decoded_symbol);
+
 	packet_builder.execute(
-		symbol,
+		decoded_symbol,
 		access_code_found,
 		payload_handler_fn
 	);

@@ -30,6 +30,7 @@
 #include "dsp_fir_taps.hpp"
 
 #include "clock_recovery.hpp"
+#include "symbol_coding.hpp"
 #include "access_code_correlator.hpp"
 #include "packet_builder.hpp"
 
@@ -49,18 +50,25 @@ public:
 	void execute(buffer_c8_t buffer) override;
 
 private:
+	const size_t sampling_rate = 76800;
+	
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
-	dsp::demodulate::FM demod { 76800, 9600 * 2 };
+	dsp::demodulate::FM demod { sampling_rate, 9600 * 2 };
 
-	ClockRecovery clock_recovery;
+	clock_recovery::ClockRecovery clock_recovery {
+		sampling_rate / 4,
+		9600,
+		[this](const float symbol) { this->consume_symbol(symbol); }
+	};
+	symbol_coding::NRZIDecoder nrzi_decode;
 	AccessCodeCorrelator access_code_correlator;
 	PacketBuilder packet_builder;
 
 	MessageHandlerMap& message_handlers;
 
-	void consume_symbol(const uint_fast8_t symbol, const bool access_code_found);
+	void consume_symbol(const float symbol);
 	void payload_handler(const std::bitset<256>& payload, const size_t bits_received);
 };
 

@@ -22,72 +22,125 @@
 #ifndef __CLOCK_RECOVERY_H__
 #define __CLOCK_RECOVERY_H__
 
-#include <cstdint>
+#include <cstddef>
+#include <array>
+#include <functional>
 
-class ClockRecovery {
+#include "linear_resampler.hpp"
+
+namespace clock_recovery {
+
+class GardnerTimingErrorDetector {
 public:
-	void configure(
-		const uint32_t symbol_rate,
-		const uint32_t sampling_rate
-	);
+	static constexpr size_t samples_per_symbol { 2 };
 
+	/*
+	Expects retimed samples at a rate of twice the expected symbol rate.
+	Calculates timing error, sends symbol and error to handler.
+	*/
 	template<typename SymbolHandler>
-	void execute(
+	void operator()(
 		const float in,
 		SymbolHandler symbol_handler
 	) {
-		const bool phase_0 = (phase_last >> 31) & (!(phase >> 31));
-		const bool phase_180 = (!(phase_last >> 31)) & (phase >> 31);
+		/* NOTE: Algorithm is sensitive to input magnitude. Timing error value
+		 * will scale proportionally. Best practice is to use error sign only.
+		 */
+		t[2] = t[1];
+		t[1] = t[0];
+		t[0] = in;
 
-		if( phase_0 || phase_180 ) {
-			t2 = t1;
-			t1 = t0;
-
-			const uint32_t phase_boundary = phase_180 ? (1U << 31) : 0;
-			const float alpha = (phase_boundary - phase_last) / float(phase_increment + phase_adjustment);
-			const float t = last_sample + alpha * (in - last_sample);
-			t0 = t;
+		if( symbol_phase == 0 ) {
+			const auto symbol = t[0];
+			const float lateness = (t[0] - t[2]) * t[1];
+			symbol_handler(symbol, lateness);
 		}
 
-		if( phase_0 ) {
-			symbol_handler(t0);
-
-			const float error = (t0 - t2) * t1;
-			// + error == late == decrease/slow phase
-			// - error == early == increase/fast phase
-
-			error_filtered = 0.75f * error_filtered + 0.25f * error;
-
-			// Correct phase (don't change frequency!)
-			phase_adjustment = -phase_increment * error_filtered / 200.0f;
-		}
-
-		phase_last = phase;
-		phase += phase_increment + phase_adjustment;
-		last_sample = in;
+		symbol_phase = (symbol_phase + 1) % samples_per_symbol;
 	}
 
 private:
-	uint32_t phase { 0 };
-	uint32_t phase_last { 0 };
-	uint32_t phase_adjustment { 0 };
-	uint32_t phase_increment { 0 };
-	float last_sample { 0 };
-	float t0 { 0 };
-	float t1 { 0 };
-	float t2 { 0 };
-	float error_filtered { 0 };
+	std::array<float, 3> t { { 0.0f, 0.0f, 0.0f } };
+	size_t symbol_phase { 0 };
+};
 
-	static constexpr float fractional_symbol_rate(
-		const uint32_t symbol_rate,
-		const uint32_t sampling_rate
+class LinearErrorFilter {
+public:
+	float operator()(
+		const float error
 	) {
-		return float(symbol_rate) / float(sampling_rate);
+		error_filtered = filter_alpha * error_filtered + (1.0f - filter_alpha) * error;
+		return error_filtered * error_weight;
 	}
 
-	static constexpr uint32_t phase_increment_u32(const float fractional_symbol_rate) {
-		return 4294967296.0f * fractional_symbol_rate;
+private:
+	float filter_alpha { 0.95f };
+	float error_filtered { 0.0f };
+	float error_weight { 0.5f };
+};
+
+class FixedErrorFilter {
+public:
+	float operator()(
+		const float lateness
+	) {
+		return (lateness < 0.0f) ? weight : -weight;
+	}
+
+private:
+	float weight { 1.0f / 16.0f };
+};
+
+class ClockRecovery {
+public:
+	ClockRecovery(
+		const float sampling_rate,
+		const float symbol_rate,
+		std::function<void(const float)> symbol_handler
+	) : resampler(sampling_rate, symbol_rate * timing_error_detector.samples_per_symbol),
+		symbol_handler { symbol_handler }
+	{
+	}
+
+	void configure(
+		const float sampling_rate,
+		const float symbol_rate
+	) {
+		resampler.configure(sampling_rate, symbol_rate * timing_error_detector.samples_per_symbol);
+	}
+
+	void operator()(
+		const float baseband_sample
+	) {
+		resampler(baseband_sample,
+			[this](const float interpolated_sample) {
+				this->resampler_callback(interpolated_sample);
+			}
+		);
+	}
+
+private:
+	dsp::interpolation::LinearResampler resampler;
+	GardnerTimingErrorDetector timing_error_detector;
+	FixedErrorFilter error_filter;
+	std::function<void(const float)> symbol_handler;
+
+	void resampler_callback(const float interpolated_sample) {
+		timing_error_detector(interpolated_sample,
+			[this](const float symbol, const float lateness) {
+				this->symbol_callback(symbol, lateness);
+			}
+		);
+	}
+
+	void symbol_callback(const float symbol, const float lateness) {
+		symbol_handler(symbol);
+
+		const float adjustment = error_filter(lateness);
+		resampler.advance(adjustment);
 	}
 };
+
+} /* namespace clock_recovery */
 
 #endif/*__CLOCK_RECOVERY_H__*/
