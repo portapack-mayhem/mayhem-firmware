@@ -26,7 +26,7 @@
 
 #include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
+#include "matched_filter.hpp"
 #include "dsp_fir_taps.hpp"
 
 #include "clock_recovery.hpp"
@@ -39,6 +39,20 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
+
+constexpr std::array<std::complex<float>, 8> ais_taps_n { {
+	{  0.00533687f,  0.00000000f }, { -0.00667109f, -0.00667109f },
+	{ -0.00000000f, -0.01334218f }, { -0.05145006f,  0.05145006f },
+	{ -0.14292666f,  0.00000000f }, { -0.05145006f, -0.05145006f },
+	{  0.00000000f,  0.01334218f }, { -0.00667109f,  0.00667109f },
+} };
+
+constexpr std::array<std::complex<float>, 8> ais_taps_p { {
+	{  0.00533687f,  0.00000000f }, { -0.00667109f,  0.00667109f },
+	{ -0.00000000f,  0.01334218f }, { -0.05145006f, -0.05145006f },
+	{ -0.14292666f, -0.00000000f }, { -0.05145006f,  0.05145006f },
+	{  0.00000000f, -0.01334218f }, { -0.00667109f, -0.00667109f },
+} };
 
 class FSKProcessor : public BasebandProcessor {
 public:
@@ -55,7 +69,15 @@ private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
-	dsp::demodulate::FM demod { sampling_rate, 9600 * 2 };
+
+	dsp::matched_filter::MatchedFilter mf_0 {
+		ais_taps_n,
+		1
+	};
+	dsp::matched_filter::MatchedFilter mf_1 {
+		ais_taps_p,
+		1
+	};
 
 	clock_recovery::ClockRecovery clock_recovery {
 		sampling_rate / 4,

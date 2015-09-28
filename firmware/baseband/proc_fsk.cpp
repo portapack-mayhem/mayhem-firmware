@@ -43,7 +43,7 @@ FSKProcessor::~FSKProcessor() {
 }
 
 void FSKProcessor::configure(const FSKConfiguration new_configuration) {
-	demod.configure(sampling_rate, 2 * new_configuration.symbol_rate);
+	// TODO: Matched filter characteristics are hard-coded for the moment. YUCK!
 	clock_recovery.configure(sampling_rate / 4, new_configuration.symbol_rate);
 	access_code_correlator.configure(
 		new_configuration.access_code,
@@ -84,16 +84,18 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	// 76.8k
 
-	const buffer_s16_t work_demod_buffer {
-		(int16_t*)decimator_out.p,
-		decimator_out.count * sizeof(*decimator_out.p) / sizeof(int16_t)
-	};
-
-	auto demodulated = demod.execute(channel, work_demod_buffer);
-
 	// TODO: Factor out this hidden decimation magic.
-	for(size_t i=0; i<demodulated.count; i+=4) {
-		clock_recovery(demodulated.p[i] / 32768.0f);
+	for(size_t i=0; i<channel.count; i+=4) {
+		std::complex<float> sample { channel.p[i].real(), channel.p[i].imag() };
+		mf_0.execute_once(sample);
+		if( mf_1.execute_once(sample) ) {
+			const auto value_0 = mf_0.get_output();
+			const float mag_0 = std::sqrt(value_0.real() * value_0.real() + value_0.imag() * value_0.imag());
+			const auto value_1 = mf_1.get_output();
+			const float mag_1 = std::sqrt(value_1.real() * value_1.real() + value_1.imag() * value_1.imag());
+			const float diff = mag_1 - mag_0;
+			clock_recovery(diff);
+		}
 	}
 
 	i2s::i2s0::tx_mute();
