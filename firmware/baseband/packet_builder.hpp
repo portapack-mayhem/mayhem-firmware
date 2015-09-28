@@ -25,21 +25,29 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
+#include <functional>
 
 #include "bit_pattern.hpp"
 
 class PacketBuilder {
 public:
+	using PayloadType = std::bitset<256>;
+	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
+
+	PacketBuilder(
+		const PayloadHandlerFunc payload_handler
+	) : payload_handler { payload_handler }
+	{
+	}
+
 	void configure(
 		const BitPattern preamble,
 		const BitPattern unstuffing,
 		size_t new_payload_length
 	);
 
-	template<typename PayloadHandler>
 	void execute(
-		const uint_fast8_t symbol,
-		PayloadHandler payload_handler
+		const uint_fast8_t symbol
 	) {
 		bit_history.add(symbol);
 
@@ -89,6 +97,8 @@ private:
 		return bit_history.matches(end_flag_pattern);
 	}
 
+	const PayloadHandlerFunc payload_handler;
+
 	BitHistory bit_history;
 	BitPattern preamble_pattern { 0b01010101010101010101111110, 26, 1 };
 	BitPattern unstuff_pattern { 0b111110, 6 };
@@ -97,7 +107,7 @@ private:
 	size_t payload_length { 0 };
 	size_t bits_received { 0 };
 	State state { State::Preamble };
-	std::bitset<256> payload;
+	PayloadType payload;
 
 	void reset_state();
 };

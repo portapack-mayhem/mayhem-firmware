@@ -84,7 +84,11 @@ private:
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
 	symbol_coding::NRZIDecoder nrzi_decode;
-	PacketBuilder packet_builder;
+	PacketBuilder packet_builder {
+		[this](const PacketBuilder::PayloadType& payload, const size_t bits_received) {
+			this->payload_handler(payload, bits_received);
+		}
+	};
 
 	MessageHandlerMap& message_handlers;
 

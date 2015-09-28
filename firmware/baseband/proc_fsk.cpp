@@ -103,20 +103,10 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 void FSKProcessor::consume_symbol(
 	const float raw_symbol
 ) {
-	const auto payload_handler_fn = [this](
-		const std::bitset<256>& payload,
-		const size_t bits_received
-	) {
-		this->payload_handler(payload, bits_received);
-	};
-
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	const auto decoded_symbol = nrzi_decode(sliced_symbol);
 
-	packet_builder.execute(
-		decoded_symbol,
-		payload_handler_fn
-	);
+	packet_builder.execute(decoded_symbol);
 }
 
 void FSKProcessor::payload_handler(
