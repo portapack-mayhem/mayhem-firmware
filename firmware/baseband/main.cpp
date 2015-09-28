@@ -59,7 +59,6 @@
 #include "proc_wideband_spectrum.hpp"
 
 #include "clock_recovery.hpp"
-#include "access_code_correlator.hpp"
 #include "packet_builder.hpp"
 
 #include "message_queue.hpp"

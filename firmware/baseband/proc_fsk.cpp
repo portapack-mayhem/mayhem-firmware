@@ -45,14 +45,9 @@ FSKProcessor::~FSKProcessor() {
 void FSKProcessor::configure(const FSKConfiguration new_configuration) {
 	// TODO: Matched filter characteristics are hard-coded for the moment. YUCK!
 	clock_recovery.configure(sampling_rate / 4, new_configuration.symbol_rate);
-	access_code_correlator.configure(
-		new_configuration.access_code,
-		new_configuration.access_code_length,
-		new_configuration.access_code_tolerance
-	);
 	packet_builder.configure(
-		new_configuration.unstuffing_pattern,
-		new_configuration.unstuffing_length,
+		{ new_configuration.access_code, new_configuration.access_code_length, new_configuration.access_code_tolerance },
+		{ new_configuration.unstuffing_pattern, new_configuration.unstuffing_length },
 		new_configuration.packet_length
 	);
 }
@@ -117,11 +112,9 @@ void FSKProcessor::consume_symbol(
 
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	const auto decoded_symbol = nrzi_decode(sliced_symbol);
-	const bool access_code_found = access_code_correlator(decoded_symbol);
 
 	packet_builder.execute(
 		decoded_symbol,
-		access_code_found,
 		payload_handler_fn
 	);
 }

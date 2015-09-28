@@ -140,7 +140,6 @@ CPPSRC = main.cpp \
          proc_wideband_spectrum.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
-         access_code_correlator.cpp \
          packet_builder.cpp \
          dsp_fft.cpp \
          dsp_fir_taps.cpp \

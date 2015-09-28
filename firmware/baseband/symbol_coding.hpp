@@ -39,33 +39,6 @@ private:
 	uint_fast8_t last { 0 };
 };
 
-class Unstuff {
-public:
-	uint_fast8_t is_stuffing_bit(const uint_fast8_t symbol) {
-		history = (history << 1) | (symbol & 1);
-		return (history & mask) == match;
-	}
-
-	void configure(
-		const uint32_t pattern,
-		const size_t length
-	) {
-		// Ensure that length=0 (unstuffing disabled) never matches.
-		match = length ? pattern : 1;
-		mask = (1U << length) - 1;
-		reset();
-	}
-
-	void reset() {
-		history = 0;
-	}
-
-private:
-	uint32_t history { 0 };
-	uint32_t match { 0b111110 };
-	uint32_t mask  { 0b111111 };
-};
-
 } /* namespace symbol_coding */
 
 #endif/*__SYMBOL_CODING_H__*/

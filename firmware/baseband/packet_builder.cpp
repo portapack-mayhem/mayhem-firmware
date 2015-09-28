@@ -22,11 +22,12 @@
 #include "packet_builder.hpp"
 
 void PacketBuilder::configure(
-	uint32_t unstuffing_pattern,
-	size_t unstuffing_length,
+	const BitPattern preamble,
+	const BitPattern unstuff,
 	size_t new_payload_length
 ) {
-	unstuff.configure(unstuffing_pattern, unstuffing_length);
+	preamble_pattern = preamble;
+	unstuff_pattern = unstuff;
 
 	if( new_payload_length <= payload.size() ) {
 		payload_length = new_payload_length;
@@ -37,6 +38,5 @@ void PacketBuilder::configure(
 
 void PacketBuilder::reset_state() {
 	bits_received = 0;
-	unstuff.reset();
-	state = State::AccessCodeSearch;
+	state = State::Preamble;
 }

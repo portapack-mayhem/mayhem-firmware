@@ -31,7 +31,6 @@
 
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
-#include "access_code_correlator.hpp"
 #include "packet_builder.hpp"
 
 #include "message.hpp"
@@ -85,7 +84,6 @@ private:
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
 	symbol_coding::NRZIDecoder nrzi_decode;
-	AccessCodeCorrelator access_code_correlator;
 	PacketBuilder packet_builder;
 
 	MessageHandlerMap& message_handlers;

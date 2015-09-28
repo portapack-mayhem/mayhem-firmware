@@ -26,37 +26,38 @@
 #include <cstddef>
 #include <bitset>
 
-#include "symbol_coding.hpp"
+#include "bit_pattern.hpp"
 
 class PacketBuilder {
 public:
 	void configure(
-		uint32_t unstuffing_pattern,
-		size_t unstuffing_length,
+		const BitPattern preamble,
+		const BitPattern unstuffing,
 		size_t new_payload_length
 	);
 
 	template<typename PayloadHandler>
 	void execute(
 		const uint_fast8_t symbol,
-		const bool access_code_found,
 		PayloadHandler payload_handler
 	) {
+		bit_history.add(symbol);
+
 		switch(state) {
-		case State::AccessCodeSearch:
-			if( access_code_found ) {
+		case State::Preamble:
+			if( found_preamble() ) {
 				state = State::Payload;
 			}
 			break;
 
 		case State::Payload:
-			if( bits_received < payload_length ) {
-				if( !unstuff.is_stuffing_bit(symbol) ) {
-					payload[bits_received++] = symbol;
-				}
-			} else {
+			if( found_end_flag() || packet_truncated() ) {
 				payload_handler(payload, bits_received);
 				reset_state();
+			} else {
+				if( !found_stuffing_bit() ) {
+					payload[bits_received++] = symbol;
+				}
 			}
 			break;
 
@@ -68,15 +69,35 @@ public:
 
 private:
 	enum State {
-		AccessCodeSearch,
+		Preamble,
 		Payload,
 	};
 
+	bool packet_truncated() const {
+		return bits_received > payload.size();
+	}
+
+	bool found_preamble() const {
+		return bit_history.matches(preamble_pattern);
+	}
+
+	bool found_stuffing_bit() const {
+		return bit_history.matches(unstuff_pattern);
+	}
+
+	bool found_end_flag() const {
+		return bit_history.matches(end_flag_pattern);
+	}
+
+	BitHistory bit_history;
+	BitPattern preamble_pattern { 0b01010101010101010101111110, 26, 1 };
+	BitPattern unstuff_pattern { 0b111110, 6 };
+	BitPattern end_flag_pattern { 0b01111110, 8 };
+
 	size_t payload_length { 0 };
 	size_t bits_received { 0 };
-	State state { State::AccessCodeSearch };
+	State state { State::Preamble };
 	std::bitset<256> payload;
-	symbol_coding::Unstuff unstuff;
 
 	void reset_state();
 };
