@@ -51,13 +51,13 @@ public:
 			break;
 
 		case State::Payload:
+			if( !found_stuffing_bit() ) {
+				payload[bits_received++] = symbol;
+			}
+
 			if( found_end_flag() || packet_truncated() ) {
 				payload_handler(payload, bits_received);
 				reset_state();
-			} else {
-				if( !found_stuffing_bit() ) {
-					payload[bits_received++] = symbol;
-				}
 			}
 			break;
 
@@ -74,7 +74,7 @@ private:
 	};
 
 	bool packet_truncated() const {
-		return bits_received > payload.size();
+		return bits_received >= payload.size();
 	}
 
 	bool found_preamble() const {
