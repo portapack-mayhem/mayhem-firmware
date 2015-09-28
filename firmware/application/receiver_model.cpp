@@ -201,7 +201,7 @@ static constexpr FSKConfiguration fsk_configuration_ais = {
 	.access_code_tolerance = 1,
 	.unstuffing_pattern = 0b111110,
 	.unstuffing_length = 6,
-	.packet_length = 256,
+	.packet_length = 168 + 16 + 8,
 };
 
 static constexpr FSKConfiguration fsk_configuration_tpms_a = {
