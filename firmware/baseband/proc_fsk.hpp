@@ -80,7 +80,7 @@ private:
 	};
 
 	clock_recovery::ClockRecovery clock_recovery {
-		sampling_rate / 4,
+		static_cast<float>(sampling_rate / 4),
 		9600,
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};

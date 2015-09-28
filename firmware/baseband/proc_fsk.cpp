@@ -86,7 +86,11 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	// TODO: Factor out this hidden decimation magic.
 	for(size_t i=0; i<channel.count; i+=4) {
-		std::complex<float> sample { channel.p[i].real(), channel.p[i].imag() };
+		// TODO: No idea why implicit cast int16_t->float is not allowed.
+		const std::complex<float> sample {
+			static_cast<float>(channel.p[i].real()),
+			static_cast<float>(channel.p[i].imag())
+		};
 		mf_0.execute_once(sample);
 		if( mf_1.execute_once(sample) ) {
 			const auto value_0 = mf_0.get_output();
