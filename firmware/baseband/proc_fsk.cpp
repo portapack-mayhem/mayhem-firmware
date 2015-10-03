@@ -47,8 +47,7 @@ void FSKProcessor::configure(const FSKConfiguration new_configuration) {
 	clock_recovery.configure(sampling_rate / 4, new_configuration.symbol_rate);
 	packet_builder.configure(
 		{ new_configuration.access_code, new_configuration.access_code_length, new_configuration.access_code_tolerance },
-		{ new_configuration.unstuffing_pattern, new_configuration.unstuffing_length },
-		new_configuration.packet_length
+		{ new_configuration.unstuffing_pattern, new_configuration.unstuffing_length }
 	);
 }
 

@@ -23,15 +23,10 @@
 
 void PacketBuilder::configure(
 	const BitPattern preamble,
-	const BitPattern unstuff,
-	size_t new_payload_length
+	const BitPattern unstuff
 ) {
 	preamble_pattern = preamble;
 	unstuff_pattern = unstuff;
-
-	if( new_payload_length <= payload.size() ) {
-		payload_length = new_payload_length;
-	}
 
 	reset_state();
 }

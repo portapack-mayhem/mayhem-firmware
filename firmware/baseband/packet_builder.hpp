@@ -42,8 +42,7 @@ public:
 
 	void configure(
 		const BitPattern preamble,
-		const BitPattern unstuffing,
-		size_t new_payload_length
+		const BitPattern unstuffing
 	);
 
 	void execute(
@@ -104,7 +103,6 @@ private:
 	BitPattern unstuff_pattern { 0b111110, 6 };
 	BitPattern end_flag_pattern { 0b01111110, 8 };
 
-	size_t payload_length { 0 };
 	size_t bits_received { 0 };
 	State state { State::Preamble };
 	PayloadType payload;
