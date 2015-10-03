@@ -54,18 +54,7 @@ public:
 
 	bool execute_once(
 		const sample_t input
-	) {
-		samples[samples.size() - decimation_factor + decimation_phase] = input;
-
-		advance_decimation_phase();
-		if( is_new_decimation_cycle() ) {
-			output = std::inner_product(samples.cbegin(), samples.cend(), taps.cbegin(), sample_t { 0.0f, 0.0f });
-			shift_by_decimation_factor();
-			return true;
-		} else {
-			return false;
-		}
-	}
+	);
 
 	sample_t get_output() const {
 		return output;
@@ -80,9 +69,7 @@ private:
 	size_t decimation_phase { 0 };
 	sample_t output;
 
-	void shift_by_decimation_factor() {
-		std::rotate(samples.begin(), samples.begin() + decimation_factor, samples.end());
-	}
+	void shift_by_decimation_factor();
 
 	void advance_decimation_phase() {
 		decimation_phase = (decimation_phase + 1) % decimation_factor;
