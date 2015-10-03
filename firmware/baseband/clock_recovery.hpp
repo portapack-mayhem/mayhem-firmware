@@ -91,7 +91,7 @@ class FixedErrorFilter {
 public:
 	float operator()(
 		const float lateness
-	) {
+	) const {
 		return (lateness < 0.0f) ? weight : -weight;
 	}
 
