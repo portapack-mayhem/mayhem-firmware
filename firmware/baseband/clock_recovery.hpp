@@ -91,18 +91,22 @@ class FixedErrorFilter {
 public:
 	FixedErrorFilter(
 		const float weight = (1.0f / 16.0f)
-	) : weight { weight }
+	) : weight_ { weight }
 	{
 	}
 
 	float operator()(
 		const float lateness
 	) const {
-		return (lateness < 0.0f) ? weight : -weight;
+		return (lateness < 0.0f) ? weight() : -weight();
+	}
+
+	float weight() const {
+		return weight_;
 	}
 
 private:
-	const float weight;
+	const float weight_;
 };
 
 template<typename ErrorFilter>
