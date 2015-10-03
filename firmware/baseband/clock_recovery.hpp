@@ -66,6 +66,14 @@ private:
 
 class LinearErrorFilter {
 public:
+	LinearErrorFilter(
+		const float filter_alpha = 0.95f,
+		const float error_weight = -1.0f
+	) : filter_alpha { filter_alpha },
+		error_weight { error_weight }
+	{
+	}
+
 	float operator()(
 		const float error
 	) {
@@ -74,9 +82,9 @@ public:
 	}
 
 private:
-	float filter_alpha { 0.95f };
+	const float filter_alpha;
+	const float error_weight;
 	float error_filtered { 0.0f };
-	float error_weight { 0.5f };
 };
 
 class FixedErrorFilter {
