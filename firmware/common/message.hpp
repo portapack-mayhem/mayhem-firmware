@@ -217,7 +217,7 @@ public:
 #include <bitset>
 
 struct FSKPacket {
-	std::bitset<256> payload;
+	std::bitset<1024> payload;
 	size_t bits_received;
 
 	FSKPacket(

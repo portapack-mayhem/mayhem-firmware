@@ -55,6 +55,8 @@ constexpr std::array<std::complex<float>, 8> ais_taps_p { {
 
 class FSKProcessor : public BasebandProcessor {
 public:
+	using payload_t = std::bitset<1024>;
+
 	FSKProcessor(MessageHandlerMap& message_handlers);
 	~FSKProcessor();
 
@@ -94,7 +96,7 @@ private:
 	MessageHandlerMap& message_handlers;
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const std::bitset<256>& payload, const size_t bits_received);
+	void payload_handler(const payload_t& payload, const size_t bits_received);
 };
 
 #endif/*__PROC_FSK_H__*/

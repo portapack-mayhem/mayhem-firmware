@@ -109,7 +109,7 @@ void FSKProcessor::consume_symbol(
 }
 
 void FSKProcessor::payload_handler(
-	const std::bitset<256>& payload,
+	const std::bitset<1024>& payload,
 	const size_t bits_received
 ) {
 	FSKPacketMessage message;

@@ -31,7 +31,7 @@
 
 class PacketBuilder {
 public:
-	using PayloadType = std::bitset<256>;
+	using PayloadType = std::bitset<1024>;
 	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
 
 	PacketBuilder(
