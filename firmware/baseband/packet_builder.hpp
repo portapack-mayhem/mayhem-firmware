@@ -99,7 +99,7 @@ private:
 	const PayloadHandlerFunc payload_handler;
 
 	BitHistory bit_history;
-	BitPattern preamble_pattern { 0b01010101010101010101111110, 26, 1 };
+	BitPattern preamble_pattern { 0b0101010101111110, 16, 1 };
 	BitPattern unstuff_pattern { 0b111110, 6 };
 	BitPattern end_flag_pattern { 0b01111110, 8 };
 
