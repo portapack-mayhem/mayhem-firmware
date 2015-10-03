@@ -105,13 +105,16 @@ private:
 	const float weight;
 };
 
+template<typename ErrorFilter>
 class ClockRecovery {
 public:
 	ClockRecovery(
 		const float sampling_rate,
 		const float symbol_rate,
+		const ErrorFilter error_filter,
 		std::function<void(const float)> symbol_handler
 	) : resampler(sampling_rate, symbol_rate * timing_error_detector.samples_per_symbol),
+		error_filter { error_filter },
 		symbol_handler { symbol_handler }
 	{
 	}
@@ -136,7 +139,7 @@ public:
 private:
 	dsp::interpolation::LinearResampler resampler;
 	GardnerTimingErrorDetector timing_error_detector;
-	FixedErrorFilter error_filter;
+	ErrorFilter error_filter;
 	std::function<void(const float)> symbol_handler;
 
 	void resampler_callback(const float interpolated_sample) {
