@@ -62,10 +62,15 @@ public:
 				payload[bits_received++] = symbol;
 			}
 
-			if( found_end_flag() || packet_truncated() ) {
-				payload_handler(payload, bits_received);
+			if( found_end_flag() ) {
+				payload_handler(payload, bits_received - 7);
 				reset_state();
+			} else {
+				if( packet_truncated() ) {
+					reset_state();
+				}
 			}
+
 			break;
 
 		default:
