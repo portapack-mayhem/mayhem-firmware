@@ -89,6 +89,12 @@ private:
 
 class FixedErrorFilter {
 public:
+	FixedErrorFilter(
+		const float weight = (1.0f / 16.0f)
+	) : weight { weight }
+	{
+	}
+
 	float operator()(
 		const float lateness
 	) const {
@@ -96,7 +102,7 @@ public:
 	}
 
 private:
-	float weight { 1.0f / 16.0f };
+	const float weight;
 };
 
 class ClockRecovery {
