@@ -32,7 +32,7 @@ public:
 		const size_t code_length,
 		const size_t maximum_hanning_distance = 0
 	) : code_ { code },
-		mask_ { (1UL << code_length) - 1UL },
+		mask_ { (1U << code_length) - 1U },
 		maximum_hanning_distance_ { maximum_hanning_distance }
 	{
 	}
