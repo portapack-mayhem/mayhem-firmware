@@ -39,20 +39,6 @@
 #include <cstddef>
 #include <bitset>
 
-constexpr std::array<std::complex<float>, 8> ais_taps_n { {
-	{  0.00533687f,  0.00000000f }, { -0.00667109f, -0.00667109f },
-	{ -0.00000000f, -0.01334218f }, { -0.05145006f,  0.05145006f },
-	{ -0.14292666f,  0.00000000f }, { -0.05145006f, -0.05145006f },
-	{  0.00000000f,  0.01334218f }, { -0.00667109f,  0.00667109f },
-} };
-
-constexpr std::array<std::complex<float>, 8> ais_taps_p { {
-	{  0.00533687f,  0.00000000f }, { -0.00667109f,  0.00667109f },
-	{ -0.00000000f,  0.01334218f }, { -0.05145006f, -0.05145006f },
-	{ -0.14292666f, -0.00000000f }, { -0.05145006f,  0.05145006f },
-	{  0.00000000f, -0.01334218f }, { -0.00667109f, -0.00667109f },
-} };
-
 class FSKProcessor : public BasebandProcessor {
 public:
 	using payload_t = std::bitset<1024>;
@@ -72,11 +58,11 @@ private:
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 
 	dsp::matched_filter::MatchedFilter mf_0 {
-		ais_taps_n,
+		baseband::ais::rrc_taps_8_n,
 		1
 	};
 	dsp::matched_filter::MatchedFilter mf_1 {
-		ais_taps_p,
+		baseband::ais::rrc_taps_8_p,
 		1
 	};
 
