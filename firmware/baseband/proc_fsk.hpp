@@ -57,14 +57,8 @@ private:
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
 	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
 
-	dsp::matched_filter::MatchedFilter mf_0 {
-		baseband::ais::rrc_taps_8_n,
-		1
-	};
-	dsp::matched_filter::MatchedFilter mf_1 {
-		baseband::ais::rrc_taps_8_p,
-		1
-	};
+	dsp::matched_filter::MatchedFilter mf_0 { 1 };
+	dsp::matched_filter::MatchedFilter mf_1 { 1 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		static_cast<float>(sampling_rate / 4),

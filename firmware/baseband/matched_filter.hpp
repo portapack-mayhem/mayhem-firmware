@@ -42,14 +42,19 @@ public:
 
 	using taps_t = std::vector<tap_t>;
 
-	template<size_t N>
 	MatchedFilter(
-		const std::array<tap_t, N>& taps,
 		size_t decimation_factor = 1
-	) : taps(taps.cbegin(), taps.cend()),
-		decimation_factor { decimation_factor }
+	) : decimation_factor { decimation_factor }
 	{
-		samples.assign(taps.size(), 0.0f);
+	}
+
+	template<typename T>
+	void set_taps(const T& new_taps) {
+		taps.assign(new_taps.cbegin(), new_taps.cend());
+		taps.shrink_to_fit();
+		
+		samples.assign(new_taps.size(), 0);		
+		samples.shrink_to_fit();
 	}
 
 	bool execute_once(
