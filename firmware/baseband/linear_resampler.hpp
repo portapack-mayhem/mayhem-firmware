@@ -52,13 +52,13 @@ public:
 		while( phase < 1.0f ) {
 			const float interpolated_value = last_sample + phase * sample_delta;
 			interpolated_sample_handler(interpolated_value);
-			advance();
+			phase += phase_increment;
 		}
 		last_sample = sample;
 		phase -= 1.0f;
 	}
 
-	void advance(const float fraction = 1.0f) {
+	void advance(const float fraction) {
 		phase += (fraction * phase_increment);
 	}
 
