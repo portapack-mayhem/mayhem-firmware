@@ -202,6 +202,8 @@ struct FSKConfiguration {
 	size_t unstuffing_length;
 };
 
+static_assert(sizeof(FSKConfiguration) == (6 * 4), "sizeof(FSKConfiguration) is wild");
+
 class FSKConfigurationMessage : public Message {
 public:
 	constexpr FSKConfigurationMessage(
