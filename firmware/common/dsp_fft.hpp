@@ -31,6 +31,7 @@
 
 #include "dsp_types.hpp"
 #include "complex.hpp"
+#include "sine_table.hpp"
 #include "hal.h"
 
 namespace std {
@@ -113,10 +114,10 @@ void fft_c_preswapped(std::array<T, N>& data) {
 	/* Provide data to this function, pre-swapped. */
 	for(size_t mmax = 1; N > mmax; mmax <<= 1) {
 		const float theta = -pi / mmax;
-		const float wtemp = std::sin(0.5f * theta);
+		const float wtemp = sin_f32(0.5f * theta);
 		const T wp {
 			-2.0f * wtemp * wtemp,
-			std::sin(theta)
+			sin_f32(theta)
 		};
 		T w { 1.0f, 0.0f };
 		for(size_t m = 0; m < mmax; ++m) {
