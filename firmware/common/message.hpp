@@ -76,6 +76,8 @@ public:
 
 struct BasebandStatistics {
 	uint32_t idle_ticks { 0 };
+	uint32_t main_ticks { 0 };
+	uint32_t rssi_ticks { 0 };
 	uint32_t baseband_ticks { 0 };
 	bool saturation { false };
 };

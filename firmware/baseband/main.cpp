@@ -82,6 +82,9 @@
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
 
+const Thread* thread_main;
+const Thread* thread_rssi;
+
 static BasebandProcessor* baseband_processor { nullptr };
 static BasebandConfiguration baseband_configuration;
 
@@ -90,7 +93,12 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 	(void)arg;
 	chRegSetThreadName("baseband");
 
-	BasebandStatsCollector stats;
+	BasebandStatsCollector stats {
+		chSysGetIdleThread(),
+		thread_main,
+		thread_rssi,
+		chThdSelf()
+	};
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
@@ -182,13 +190,15 @@ static void init() {
 	rf::rssi::init();
 	touch::dma::init();
 
-	chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
-		baseband_thread_priority, baseband_fn,
+	thread_main = chThdSelf();
+	
+	thread_rssi = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
+		rssi_thread_priority, rssi_fn,
 		nullptr
 	);
 
-	chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
-		rssi_thread_priority, rssi_fn,
+	chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
+		baseband_thread_priority, baseband_fn,
 		nullptr
 	);
 }
