@@ -30,9 +30,6 @@ FSKProcessor::FSKProcessor(
 	MessageHandlerMap& message_handlers
 ) : message_handlers(message_handlers)
 {
-	mf_0.set_taps(baseband::ais::rrc_taps_8_n);
-	mf_1.set_taps(baseband::ais::rrc_taps_8_p);
-
 	message_handlers.register_handler(Message::ID::FSKConfiguration,
 		[this](const Message* const p) {
 			auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);

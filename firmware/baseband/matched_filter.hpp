@@ -22,11 +22,12 @@
 #ifndef __MATCHED_FILTER_H__
 #define __MATCHED_FILTER_H__
 
+#include "baseband_ais.hpp"
+
 #include <cstddef>
 
 #include <complex>
 #include <array>
-#include <vector>
 #include <memory>
 
 #include <algorithm>
@@ -35,46 +36,53 @@
 namespace dsp {
 namespace matched_filter {
 
+template<size_t N>
 class MatchedFilter {
 public:
 	using sample_t = std::complex<float>;
 	using tap_t = std::complex<float>;
 
-	using taps_t = std::vector<tap_t>;
+	using taps_t = std::array<tap_t, N>;
 
 	MatchedFilter(
+		const taps_t& taps,
 		size_t decimation_factor = 1
-	) : decimation_factor { decimation_factor }
+	) : taps(taps),
+		decimation_factor { decimation_factor }
 	{
-	}
-
-	template<typename T>
-	void set_taps(const T& new_taps) {
-		taps.assign(new_taps.cbegin(), new_taps.cend());
-		taps.shrink_to_fit();
-		
-		samples.assign(new_taps.size(), 0);		
-		samples.shrink_to_fit();
 	}
 
 	bool execute_once(
 		const sample_t input
-	);
+	) {
+		samples[samples.size() - decimation_factor + decimation_phase] = input;
+
+		advance_decimation_phase();
+		if( is_new_decimation_cycle() ) {
+			output = std::inner_product(samples.cbegin(), samples.cend(), taps.cbegin(), sample_t { 0.0f, 0.0f });
+			shift_by_decimation_factor();
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	sample_t get_output() const {
 		return output;
 	}
 
 private:
-	using samples_t = std::vector<sample_t>;
+	using samples_t = std::array<sample_t, N>;
 
 	samples_t samples;
-	taps_t taps;
+	const taps_t taps;
 	size_t decimation_factor { 1 };
 	size_t decimation_phase { 0 };
 	sample_t output;
 
-	void shift_by_decimation_factor();
+	void shift_by_decimation_factor() {
+		std::rotate(samples.begin(), samples.begin() + decimation_factor, samples.end());
+	}
 
 	void advance_decimation_phase() {
 		decimation_phase = (decimation_phase + 1) % decimation_factor;
