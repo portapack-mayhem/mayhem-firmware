@@ -34,10 +34,6 @@ bool MatchedFilter::execute_once(
 
 	advance_decimation_phase();
 	if( is_new_decimation_cycle() ) {
-		// const sample_t* first1 = &samples_[0];
-		// const sample_t* const last1 = &samples_[taps_count_];
-		// const sample_t* first2 = &taps_[0];
-
 		float r_n = 0.0f;
 		float i_n = 0.0f;
 		float r_p = 0.0f;
