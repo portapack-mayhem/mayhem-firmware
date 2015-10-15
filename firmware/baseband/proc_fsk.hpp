@@ -62,7 +62,7 @@ private:
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		static_cast<float>(sampling_rate / 4),
 		9600,
-		{ 0.0012f },
+		{ 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
 	symbol_coding::NRZIDecoder nrzi_decode;
