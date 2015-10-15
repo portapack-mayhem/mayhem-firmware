@@ -85,14 +85,8 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 			static_cast<float>(channel.p[i].real()),
 			static_cast<float>(channel.p[i].imag())
 		};
-		mf_0.execute_once(sample);
-		if( mf_1.execute_once(sample) ) {
-			const auto value_0 = mf_0.get_output();
-			const float mag_0 = std::sqrt(value_0.real() * value_0.real() + value_0.imag() * value_0.imag());
-			const auto value_1 = mf_1.get_output();
-			const float mag_1 = std::sqrt(value_1.real() * value_1.real() + value_1.imag() * value_1.imag());
-			const float diff = mag_1 - mag_0;
-			clock_recovery(diff);
+		if( mf.execute_once(sample) ) {
+			clock_recovery(mf.get_output());
 		}
 	}
 

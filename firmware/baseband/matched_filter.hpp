@@ -49,11 +49,11 @@ public:
 		const size_t taps_count,
 		size_t decimation_factor = 1
 	) : samples_ { std::make_unique<samples_t>(taps_count) },
-		taps_ { std::make_unique<taps_t>(taps_count) },
+		taps_reversed_ { std::make_unique<taps_t>(taps_count) },
 		taps_count_ { taps_count },
 		decimation_factor { decimation_factor }
 	{
-		std::copy(&taps[0], &taps[taps_count], &taps_[0]);
+		std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
 	}
 
 	template<typename T>
@@ -66,7 +66,7 @@ public:
 
 	bool execute_once(const sample_t input);
 
-	sample_t get_output() const {
+	float get_output() const {
 		return output;
 	}
 
@@ -74,11 +74,11 @@ private:
 	using samples_t = sample_t[];
 
 	const std::unique_ptr<samples_t> samples_;
-	const std::unique_ptr<taps_t> taps_;
+	const std::unique_ptr<taps_t> taps_reversed_;
 	const size_t taps_count_;
 	size_t decimation_factor { 1 };
 	size_t decimation_phase { 0 };
-	sample_t output;
+	float output;
 
 	void shift_by_decimation_factor();
 

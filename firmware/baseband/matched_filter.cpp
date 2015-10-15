@@ -21,6 +21,9 @@
 
 #include "matched_filter.hpp"
 
+// TODO: Move the fast complex multiply code to another place.
+#include "dsp_fft.hpp"
+
 namespace dsp {
 namespace matched_filter {
 
@@ -31,7 +34,36 @@ bool MatchedFilter::execute_once(
 
 	advance_decimation_phase();
 	if( is_new_decimation_cycle() ) {
-		output = std::inner_product(&samples_[0], &samples_[taps_count_], &taps_[0], sample_t { 0.0f, 0.0f });
+		// const sample_t* first1 = &samples_[0];
+		// const sample_t* const last1 = &samples_[taps_count_];
+		// const sample_t* first2 = &taps_[0];
+
+		float r_n = 0.0f;
+		float i_n = 0.0f;
+		float r_p = 0.0f;
+		float i_p = 0.0f;
+		for(size_t n=0; n<taps_count_; n++) {
+			const auto sample = samples_[n];
+			const auto tap = taps_reversed_[n];
+
+			// N: complex multiple of samples and taps (conjugate, tap.i negated).
+			// P: complex multiply of samples and taps.
+			r_n += sample.real() * tap.real();
+			i_n -= sample.real() * tap.imag();
+			r_n += sample.imag() * tap.imag();
+			i_n += sample.imag() * tap.real();
+
+			r_p += sample.real() * tap.real();
+			i_p += sample.real() * tap.imag();
+			r_p -= sample.imag() * tap.imag();
+			i_p += sample.imag() * tap.real();
+		}
+
+		const auto mag_n = std::sqrt(r_n * r_n + i_n * i_n);
+		const auto mag_p = std::sqrt(r_p * r_p + i_p * i_p);
+		const auto diff = mag_p - mag_n;
+		output = diff;
+
 		shift_by_decimation_factor();
 		return true;
 	} else {
