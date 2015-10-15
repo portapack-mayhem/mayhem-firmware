@@ -40,7 +40,7 @@ bool MatchedFilter::execute_once(
 }
 
 void MatchedFilter::shift_by_decimation_factor() {
-	std::rotate(&samples_[0], &samples_[decimation_factor], &samples_[taps_count_]);
+	std::move(&samples_[decimation_factor], &samples_[taps_count_], &samples_[0]);
 }
 
 } /* namespace matched_filter */
