@@ -168,6 +168,7 @@ CPPSRC = main.cpp \
          receiver_model.cpp \
          spectrum_color_lut.cpp \
          ../common/utility.cpp \
+         ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp \
          m4_startup.cpp \

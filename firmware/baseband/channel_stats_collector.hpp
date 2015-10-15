@@ -29,6 +29,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include <hal.h>
+
 class ChannelStatsCollector {
 public:
 	template<typename Callback>

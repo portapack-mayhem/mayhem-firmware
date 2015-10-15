@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <cstring>
 
+#include <hal.h>
+
 /* FIFO implementation inspired by Linux kfifo. */
 
 template<typename T, size_t K>

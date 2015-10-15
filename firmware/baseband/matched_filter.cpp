@@ -21,9 +21,6 @@
 
 #include "matched_filter.hpp"
 
-// TODO: Move the fast complex multiply code to another place.
-#include "dsp_fft.hpp"
-
 namespace dsp {
 namespace matched_filter {
 

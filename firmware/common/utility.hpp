@@ -28,8 +28,6 @@
 #include <complex>
 #include <memory>
 
-#include <hal.h>
-
 #define LOCATE_IN_RAM __attribute__((section(".ramtext")))
 
 constexpr size_t operator "" _KiB(unsigned long long v) {
@@ -62,18 +60,6 @@ inline constexpr T pow(const T base, unsigned const exponent) {
 	return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
 }
 
-#if defined(LPC43XX_M4)
-static inline bool m4_flag_saturation() {
-	return __get_APSR() & (1U << 27);
-}
-
-static inline void clear_m4_flag_saturation() {
-	uint32_t flags = 1;
-	__asm volatile ("MSR APSR_nzcvqg, %0" : : "r" (flags));
-}
-
-#endif
-
 float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared);
 
 inline float magnitude_squared(const std::complex<float> c) {
@@ -83,13 +69,6 @@ inline float magnitude_squared(const std::complex<float> c) {
 	const auto i2 = i * i;
 	return r2 + i2;
 }
-
-/* Override new/delete to use Chibi/OS heap functions */
-/* NOTE: Do not inline these, it doesn't work. ;-) */
-void* operator new(size_t size);
-void* operator new[](size_t size);
-void operator delete(void* p);
-void operator delete[](void* p);
 
 namespace std {
 

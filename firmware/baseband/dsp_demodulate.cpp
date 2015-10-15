@@ -23,6 +23,7 @@
 
 #include "complex.hpp"
 #include "fxpt_atan2.hpp"
+#include "utility_m4.hpp"
 
 #include <hal.h>
 

@@ -26,7 +26,7 @@
 
 #include "dsp_types.hpp"
 #include "message.hpp"
-#include "utility.hpp"
+#include "utility_m4.hpp"
 
 #include <cstdint>
 #include <cstddef>

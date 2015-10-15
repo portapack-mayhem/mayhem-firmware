@@ -151,6 +151,7 @@ CPPSRC = main.cpp \
          audio_dma.cpp \
          touch_dma.cpp \
          ../common/utility.cpp \
+         ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp
 
