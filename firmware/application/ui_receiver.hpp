@@ -363,8 +363,6 @@ public:
 	ReceiverView(NavigationView& nav, ReceiverModel& receiver_model);
 	~ReceiverView();
 
-	void set_parent_rect(const Rect new_parent_rect) override;
-
 	void focus() override;
 
 	void on_show() override;

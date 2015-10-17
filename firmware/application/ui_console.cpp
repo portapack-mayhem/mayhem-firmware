@@ -32,6 +32,7 @@ void Console::clear() {
 		Color::black()
 	);
 	pos = { 0, 0 };
+	display.scroll_set_position(0);
 }
 
 void Console::write(const std::string message) {
@@ -64,10 +65,10 @@ void Console::paint(Painter& painter) {
 }
 
 void Console::on_show() {
-	clear();
-
 	const auto screen_r = screen_rect();
 	display.scroll_set_area(screen_r.top(), screen_r.bottom());
+
+	clear();
 }
 
 void Console::on_hide() {

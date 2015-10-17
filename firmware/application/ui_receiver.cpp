@@ -504,13 +504,7 @@ void ReceiverView::on_hide() {
 	context().message_map.unregister_handler(Message::ID::FSKPacket);
 }
 
-void ReceiverView::set_parent_rect(const Rect new_parent_rect) {
-	const ui::Dim header_height = 3 * 16;
 
-	waterfall.set_parent_rect({
-		0, header_height,
-		new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height)
-	});
 }
 
 void ReceiverView::focus() {
@@ -568,7 +562,6 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 		break;
 	}
 
-	waterfall.clear();
 }
 
 void ReceiverView::on_show_options_frequency() {

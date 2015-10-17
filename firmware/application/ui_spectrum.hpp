@@ -40,6 +40,10 @@ namespace spectrum {
 
 class FrequencyScale : public Widget {
 public:
+	void on_show() override {
+		clear();
+	}
+
 	void set_spectrum_sampling_rate(const uint32_t new_sampling_rate, const size_t new_spectrum_bins) {
 		if( (spectrum_sampling_rate != new_sampling_rate) ||
 			(spectrum_bins != new_spectrum_bins) ) {
@@ -75,12 +79,6 @@ public:
 		draw_frequency_ticks(painter, r);
 	}
 
-	void clear() {
-		spectrum_sampling_rate = 0;
-		spectrum_bins = 0;
-		set_dirty();
-	}
-
 private:
 	static constexpr Dim filter_band_height = 4;
 
@@ -88,6 +86,12 @@ private:
 	size_t spectrum_bins { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
 	uint32_t channel_filter_stop_frequency { 0 };
+
+	void clear() {
+		spectrum_sampling_rate = 0;
+		spectrum_bins = 0;
+		set_dirty();
+	}
 
 	void clear_background(Painter& painter, const Rect r) {
 		painter.fill_rectangle(r, Color::black());
@@ -187,6 +191,8 @@ private:
 class WaterfallView : public Widget {
 public:
 	void on_show() override {
+		clear();
+
 		const auto screen_r = screen_rect();
 		display.scroll_set_area(screen_r.top(), screen_r.bottom());
 	}
@@ -201,13 +207,6 @@ public:
 	void paint(Painter& painter) override {
 		// Do nothing.
 		(void)painter;
-	}
-
-	void clear() {
-		display.fill_rectangle(
-			screen_rect(),
-			Color::black()
-		);
 	}
 
 	void on_channel_spectrum(
@@ -231,6 +230,14 @@ public:
 		display.draw_pixels(
 			{ { 0, draw_y }, { pixel_row.size(), 1 } },
 			pixel_row
+		);
+	}
+
+private:
+	void clear() {
+		display.fill_rectangle(
+			screen_rect(),
+			Color::black()
 		);
 	}
 };
@@ -271,11 +278,6 @@ public:
 	void paint(Painter& painter) override {
 		// TODO:
 		(void)painter;
-	}
-
-	void clear() {
-		waterfall_view.clear();
-		frequency_scale.clear();
 	}
 
 private:
