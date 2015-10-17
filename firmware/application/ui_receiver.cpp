@@ -21,6 +21,9 @@
 
 #include "ui_receiver.hpp"
 
+#include "ui_spectrum.hpp"
+#include "ui_console.hpp"
+
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -402,7 +405,6 @@ ReceiverView::ReceiverView(
 		&field_volume,
 		&view_frequency_options,
 		&view_rf_gain_options,
-		&waterfall,
 	} });
 
 	button_done.on_select = [&nav](Button&){
@@ -562,6 +564,26 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 		break;
 	}
 
+	remove_child(widget_content.get());
+	widget_content.reset();
+	
+	switch(modulation) {
+	case 3:
+		widget_content = std::make_unique<Console>();
+		add_child(widget_content.get());
+		break;
+
+	default:
+		widget_content = std::make_unique<spectrum::WaterfallWidget>();
+		add_child(widget_content.get());
+		break;
+	}
+	
+	if( widget_content ) {
+		const ui::Dim header_height = 3 * 16;
+		const ui::Rect rect { 0, header_height, parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - header_height) };
+		widget_content->set_parent_rect(rect);
+	}
 }
 
 void ReceiverView::on_show_options_frequency() {

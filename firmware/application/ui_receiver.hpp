@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
-#include "ui_spectrum.hpp"
 
 #include "utility.hpp"
 
@@ -456,7 +455,7 @@ private:
 		&style_options_group
 	};
 
-	spectrum::WaterfallWidget waterfall;
+	std::unique_ptr<Widget> widget_content;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

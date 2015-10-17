@@ -21,6 +21,7 @@
 
 #include "ui_navigation.hpp"
 
+#include "portapack.hpp"
 #include "receiver_model.hpp"
 
 #include "ui_setup.hpp"
@@ -93,7 +94,7 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
+		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, portapack::receiver_model }); } },
 		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
