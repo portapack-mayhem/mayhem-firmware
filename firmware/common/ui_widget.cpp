@@ -304,10 +304,12 @@ void View::paint(Painter& painter) {
 }
 
 void View::add_child(Widget* const widget) {
-	if( widget->parent() == nullptr ) {
-		widget->set_parent(this);
-		children_.push_back(widget);
-		widget->set_dirty();
+	if( widget ) {
+		if( widget->parent() == nullptr ) {
+			widget->set_parent(this);
+			children_.push_back(widget);
+			widget->set_dirty();
+		}
 	}
 }
 
@@ -318,11 +320,13 @@ void View::add_children(const std::vector<Widget*>& children) {
 }
 
 void View::remove_child(Widget* const widget) {
-	children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-	dirty_screen_rect += widget->screen_rect();
-	widget->set_parent(nullptr);
-	if( dirty_screen_rect ) {
-		set_dirty();
+	if( widget ) {
+		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
+		dirty_screen_rect += widget->screen_rect();
+		widget->set_parent(nullptr);
+		if( dirty_screen_rect ) {
+			set_dirty();
+		}
 	}
 }
 
