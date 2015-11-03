@@ -74,15 +74,6 @@ private:
 	const std::array<int16_t, taps_count>& taps;
 };
 
-size_t fir_and_decimate_by_2_complex(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count
-);
-
 size_t fir_and_decimate_by_2_complex_fast(
 	const complex16_t* const src_start,
 	const size_t src_count,
