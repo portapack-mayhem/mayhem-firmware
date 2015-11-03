@@ -55,7 +55,7 @@ private:
 	
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
+	dsp::decimate::FIRAndDecimateBy2Complex channel_filter { channel_filter_taps.taps };
 
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_128_decim_4_p, 1 };
 

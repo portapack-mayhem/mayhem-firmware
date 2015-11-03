@@ -39,7 +39,7 @@ public:
 private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateBy2Complex<64> channel_filter { channel_filter_taps.taps };
+	dsp::decimate::FIRAndDecimateBy2Complex channel_filter { channel_filter_taps.taps };
 	dsp::demodulate::FM demod { 48000, 7500 };
 
 	IIRBiquadFilter audio_hpf { audio_hpf_config };
