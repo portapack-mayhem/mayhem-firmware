@@ -78,17 +78,7 @@ private:
 	const std::array<int16_t, taps_count>& taps;
 };
 
-size_t fir_and_decimate_by_2_complex_fast(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count,
-	const size_t decimation_factor
-);
-
-class FIRAndDecimateBy2Complex {
+class FIRAndDecimateComplex {
 public:
 	using sample_t = complex16_t;
 	using tap_t = complex16_t;
@@ -98,18 +88,21 @@ public:
 	/* NOTE! Current code makes an assumption that block of samples to be
 	 * processed will be a multiple of the taps_count.
 	 */
-	FIRAndDecimateBy2Complex(
-	 	const size_t taps_count
+	FIRAndDecimateComplex(
+	 	const size_t taps_count,
+	 	const size_t decimation_factor
 	) : samples_ { std::make_unique<samples_t>(taps_count) },
 		taps_reversed_ { std::make_unique<taps_t>(taps_count) },
-		taps_count_ { taps_count }
+		taps_count_ { taps_count },
+		decimation_factor_ { decimation_factor }
 	{
 	}
 
 	template<typename T>
-	FIRAndDecimateBy2Complex(
-		const T& taps
-	) : FIRAndDecimateBy2Complex(taps.size())
+	FIRAndDecimateComplex(
+		const T& taps,
+		const size_t decimation_factor
+	) : FIRAndDecimateComplex(taps.size(), decimation_factor)
 	{
 		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
 	}
@@ -117,18 +110,15 @@ public:
 	buffer_c16_t execute(
 		buffer_c16_t src,
 		buffer_c16_t dst
-	) {
-		const auto dst_count = fir_and_decimate_by_2_complex_fast(src.p, src.count, dst.p, &samples_[0], &taps_reversed_[0], taps_count_, decimation_factor);
-		return { dst.p, dst_count, src.sampling_rate / decimation_factor };
-	}
-
+	);
+	
 private:
 	using samples_t = sample_t[];
 
 	const std::unique_ptr<samples_t> samples_;
 	const std::unique_ptr<taps_t> taps_reversed_;
 	const size_t taps_count_;
-	const size_t decimation_factor { 2 };
+	const size_t decimation_factor_;
 };
 
 class DecimateBy2CIC4Real {

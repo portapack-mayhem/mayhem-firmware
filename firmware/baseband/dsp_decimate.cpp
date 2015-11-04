@@ -197,32 +197,27 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
 }
 
-size_t fir_and_decimate_by_2_complex_fast(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count,
-	const size_t decimation_factor
+buffer_c16_t FIRAndDecimateComplex::execute(
+	buffer_c16_t src,
+	buffer_c16_t dst
 ) {
 	/* int16_t input (sample count "n" must be multiple of decimation_factor)
 	 * -> int16_t output, decimated by decimation_factor.
 	 * taps are normalized to 1 << 16 == 1.0.
 	 */
-	const auto src_p = src_start;
-	auto dst_p = dst_start;
+	const sample_t* src_p = src.p;
+	sample_t* dst_p = dst.p;
 
-	while(src_p < &src_start[src_count]) {
+	while(src_p < &src.p[src.count]) {
 		/* Put two new samples into delay buffer */
-		auto z_new_p = &z[taps_count - decimation_factor];
-		for(size_t i=0; i<decimation_factor; i++) {
+		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
+		for(size_t i=0; i<decimation_factor_; i++) {
 			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
 		}
 
-		size_t loop_count = taps_count / 8;
-		auto t_p = &taps[0];
-		auto z_p = &z[0];
+		size_t loop_count = taps_count_ / 8;
+		auto t_p = &taps_reversed_[0];
+		auto z_p = &samples_[0];
 
 		int64_t t_real = 0;
 		int64_t t_imag = 0;
@@ -282,10 +277,10 @@ size_t fir_and_decimate_by_2_complex_fast(
 
 		/* Shift sample buffer left/down by decimation factor. */
 		const size_t unroll_factor = 4;
-		size_t shift_count = (taps_count - 1) / unroll_factor;
+		size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;
 
-		auto t = &z[0];
-		auto s = &z[decimation_factor];
+		sample_t* t = &samples_[0];
+		const sample_t* s = &samples_[decimation_factor_];
 		
 		while(shift_count > 0) {
 			*__SIMD32(t)++ = *__SIMD32(s)++;
@@ -295,14 +290,14 @@ size_t fir_and_decimate_by_2_complex_fast(
 			shift_count--;
 		}
 
-		shift_count = (taps_count - 1) % unroll_factor;
+		shift_count = (taps_count_ - decimation_factor_) % unroll_factor;
 		while(shift_count > 0) {
 			*(t++) = *(s++);
 			shift_count--;
 		}
 	}
 
-	return src_count / decimation_factor;
+	return { dst.p, src.count / decimation_factor_, src.sampling_rate / decimation_factor_ };
 }
 
 buffer_s16_t DecimateBy2CIC4Real::execute(
