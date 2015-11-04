@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BASEBAND_AIS_H__
-#define __BASEBAND_AIS_H__
+#ifndef __AIS_BASEBAND_H__
+#define __AIS_BASEBAND_H__
 
 #include "crc.hpp"
 
@@ -335,4 +335,4 @@ struct CRCCheck {
 } /* namespace ais */
 } /* namespace baseband */
 
-#endif/*__BASEBAND_AIS_H__*/
+#endif/*__AIS_BASEBAND_H__*/
