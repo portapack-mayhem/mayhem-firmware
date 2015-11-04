@@ -22,7 +22,6 @@
 #ifndef __MATCHED_FILTER_H__
 #define __MATCHED_FILTER_H__
 
-#include "baseband_ais.hpp"
 #include "utility.hpp"
 
 #include <cstddef>

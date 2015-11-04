@@ -39,6 +39,8 @@
 #include <cstddef>
 #include <bitset>
 
+#include "ais_baseband.hpp"
+
 class FSKProcessor : public BasebandProcessor {
 public:
 	using payload_t = std::bitset<1024>;
