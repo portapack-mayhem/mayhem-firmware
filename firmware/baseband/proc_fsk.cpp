@@ -65,7 +65,7 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	/* 153.6kHz complex<int16_t>[128]
 	 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
-	 * -> 76.8kHz int16_t[64] */
+	 * -> 19.2kHz int16_t[16] */
 	auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
 
 	/* 76.8kHz, 64 samples */
@@ -79,7 +79,7 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 	// 76.8k
 
 	// TODO: Factor out this hidden decimation magic.
-	for(size_t i=0; i<channel.count; i+=4) {
+	for(size_t i=0; i<channel.count; i++) {
 		// TODO: No idea why implicit cast int16_t->float is not allowed.
 		const std::complex<float> sample {
 			static_cast<float>(channel.p[i].real()),
