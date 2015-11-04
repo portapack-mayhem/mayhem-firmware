@@ -205,10 +205,15 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 	 * -> int16_t output, decimated by decimation_factor.
 	 * taps are normalized to 1 << 16 == 1.0.
 	 */
-	const sample_t* src_p = src.p;
+	const auto output_sampling_rate = src.sampling_rate / decimation_factor_;
+	const size_t output_samples = src.count / decimation_factor_;
+	
 	sample_t* dst_p = dst.p;
+	const buffer_c16_t result { dst.p, output_samples, output_sampling_rate };
 
-	while(src_p < &src.p[src.count]) {
+	const sample_t* src_p = src.p;
+	size_t outer_count = output_samples;
+	while(outer_count > 0) {
 		/* Put two new samples into delay buffer */
 		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
 		for(size_t i=0; i<decimation_factor_; i++) {
@@ -295,9 +300,11 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 			*(t++) = *(s++);
 			shift_count--;
 		}
+
+		outer_count--;
 	}
 
-	return { dst.p, src.count / decimation_factor_, src.sampling_rate / decimation_factor_ };
+	return result;
 }
 
 buffer_s16_t DecimateBy2CIC4Real::execute(
