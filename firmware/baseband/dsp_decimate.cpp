@@ -203,33 +203,31 @@ size_t fir_and_decimate_by_2_complex_fast(
 	complex16_t* const dst_start,
 	complex16_t* const z,
 	const complex16_t* const taps,
-	const size_t taps_count
+	const size_t taps_count,
+	const size_t decimation_factor
 ) {
-	/* int16_t input (sample count "n" must be multiple of 4)
-	 * -> int16_t output, decimated by 2.
+	/* int16_t input (sample count "n" must be multiple of decimation_factor)
+	 * -> int16_t output, decimated by decimation_factor.
 	 * taps are normalized to 1 << 16 == 1.0.
 	 */
-	auto src_p = src_start;
+	const auto src_p = src_start;
 	auto dst_p = dst_start;
-	auto z_new_p = &z[0];
-	auto t_p = &taps[taps_count * 2];
 
 	while(src_p < &src_start[src_count]) {
 		/* Put two new samples into delay buffer */
-		*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
-		*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
-
-		t_p -= (taps_count + 2);
-		if( z_new_p == &z[taps_count] ) {
-			z_new_p = &z[0];
-			t_p = &taps[taps_count];
+		auto z_new_p = &z[taps_count - decimation_factor];
+		for(size_t i=0; i<decimation_factor; i++) {
+			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
 		}
+
+		size_t loop_count = taps_count / 8;
+		auto t_p = &taps[0];
+		auto z_p = &z[0];
 
 		int64_t t_real = 0;
 		int64_t t_imag = 0;
 
-		auto z_p = &z[0];
-		while(z_p < &z[taps_count]) {
+		while(loop_count > 0) {
 			const auto tap0 = *__SIMD32(t_p)++;
 			const auto sample0 = *__SIMD32(z_p)++;
 			const auto tap1 = *__SIMD32(t_p)++;
@@ -265,6 +263,8 @@ size_t fir_and_decimate_by_2_complex_fast(
 			t_imag = __SMLALDX(sample6, tap6, t_imag);
 			t_real = __SMLSLD(sample7, tap7, t_real);
 			t_imag = __SMLALDX(sample7, tap7, t_imag);
+
+			loop_count--;
 		}
 
 		/* TODO: Re-evaluate whether saturation is performed, normalization,
@@ -279,9 +279,30 @@ size_t fir_and_decimate_by_2_complex_fast(
 			i_sat,
 			16
 		);
+
+		/* Shift sample buffer left/down by decimation factor. */
+		const size_t unroll_factor = 4;
+		size_t shift_count = (taps_count - 1) / unroll_factor;
+
+		auto t = &z[0];
+		auto s = &z[decimation_factor];
+		
+		while(shift_count > 0) {
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			shift_count--;
+		}
+
+		shift_count = (taps_count - 1) % unroll_factor;
+		while(shift_count > 0) {
+			*(t++) = *(s++);
+			shift_count--;
+		}
 	}
 
-	return src_count / 2;
+	return src_count / decimation_factor;
 }
 
 buffer_s16_t DecimateBy2CIC4Real::execute(
