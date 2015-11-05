@@ -41,7 +41,7 @@ public:
 	{
 	}
 
-	uint32_t read(const size_t start_bit, const size_t length) {
+	uint32_t read(const size_t start_bit, const size_t length) const {
 		uint32_t value = 0;
 		for(size_t i=start_bit; i<(start_bit + length); i++) {
 			value = (value << 1) | data[bit_remap(i)];
