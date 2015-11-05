@@ -90,7 +90,11 @@ private:
 class FixedErrorFilter {
 public:
 	FixedErrorFilter(
-		const float weight = (1.0f / 16.0f)
+	) {
+	}
+
+	FixedErrorFilter(
+		const float weight
 	) : weight_ { weight }
 	{
 	}
@@ -106,28 +110,25 @@ public:
 	}
 
 private:
-	const float weight_;
+	float weight_ { 1.0f / 16.0f };
 };
 
 template<typename ErrorFilter>
 class ClockRecovery {
 public:
 	ClockRecovery(
-		const float sampling_rate,
-		const float symbol_rate,
-		const ErrorFilter error_filter,
 		std::function<void(const float)> symbol_handler
-	) : resampler(sampling_rate, symbol_rate * timing_error_detector.samples_per_symbol),
-		error_filter { error_filter },
-		symbol_handler { symbol_handler }
+	) : symbol_handler { symbol_handler }
 	{
 	}
 
 	void configure(
 		const float sampling_rate,
-		const float symbol_rate
+		const float symbol_rate,
+		ErrorFilter error_filter
 	) {
 		resampler.configure(sampling_rate, symbol_rate * timing_error_detector.samples_per_symbol);
+		error_filter = error_filter;
 	}
 
 	void operator()(

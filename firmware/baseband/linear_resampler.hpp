@@ -27,15 +27,6 @@ namespace interpolation {
 
 class LinearResampler {
 public:
-	constexpr LinearResampler(
-		const float input_rate,
-		const float output_rate
-	) : last_sample { 0.0f },
-		phase { 0.0f },
-		phase_increment { calculate_increment(input_rate, output_rate) }
-	{
-	}
-
 	void configure(
 		const float input_rate,
 		const float output_rate
@@ -63,9 +54,9 @@ public:
 	}
 
 private:
-	float last_sample;
-	float phase;
-	float phase_increment;
+	float last_sample { 0.0f };
+	float phase { 0.0f };
+	float phase_increment { 0.0f };
 
 	static constexpr float calculate_increment(const float input_rate, const float output_rate) {
 		return input_rate / output_rate;

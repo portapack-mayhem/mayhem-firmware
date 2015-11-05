@@ -53,18 +53,12 @@ public:
 	void execute(buffer_c8_t buffer) override;
 
 private:
-	const size_t sampling_rate = 76800;
-	
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
-	dsp::decimate::FIRAndDecimateComplex channel_filter { channel_filter_taps.taps, 8 };
-
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_128_decim_4_p, 1 };
+	ChannelDecimator decimator;
+	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
+	dsp::decimate::FIRAndDecimateComplex channel_filter;
+	dsp::matched_filter::MatchedFilter mf;
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
-		static_cast<float>(sampling_rate / 4),
-		9600,
-		{ 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
 	symbol_coding::NRZIDecoder nrzi_decode;

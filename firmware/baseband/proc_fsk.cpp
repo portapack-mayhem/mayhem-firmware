@@ -44,7 +44,10 @@ FSKProcessor::~FSKProcessor() {
 
 void FSKProcessor::configure(const FSKConfiguration new_configuration) {
 	// TODO: Matched filter characteristics are hard-coded for the moment. YUCK!
-	clock_recovery.configure(sampling_rate / 4, new_configuration.symbol_rate);
+	decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By16);
+	channel_filter.configure(channel_filter_taps.taps, 8);
+	mf.configure(baseband::ais::rrc_taps_128_decim_4_p, 1);
+	clock_recovery.configure(new_configuration.symbol_rate * 2, new_configuration.symbol_rate, { 0.0555f });
 	packet_builder.configure(
 		{ new_configuration.access_code, new_configuration.access_code_length, new_configuration.access_code_tolerance },
 		{ new_configuration.unstuffing_pattern, new_configuration.unstuffing_length }

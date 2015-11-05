@@ -89,21 +89,20 @@ public:
 	 * processed will be a multiple of the taps_count.
 	 */
 	FIRAndDecimateComplex(
-	 	const size_t taps_count,
-	 	const size_t decimation_factor
-	) : samples_ { std::make_unique<samples_t>(taps_count) },
-		taps_reversed_ { std::make_unique<taps_t>(taps_count) },
-		taps_count_ { taps_count },
-		decimation_factor_ { decimation_factor }
+	) : taps_count_ { 0 },
+		decimation_factor_ { 1 }
 	{
 	}
 
 	template<typename T>
-	FIRAndDecimateComplex(
+	void configure(
 		const T& taps,
 		const size_t decimation_factor
-	) : FIRAndDecimateComplex(taps.size(), decimation_factor)
-	{
+	) {
+		samples_ = std::make_unique<samples_t>(taps.size());
+		taps_reversed_ = std::make_unique<taps_t>(taps.size());
+		taps_count_ = taps.size();
+		decimation_factor_ = decimation_factor;
 		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
 	}
 
@@ -115,10 +114,10 @@ public:
 private:
 	using samples_t = sample_t[];
 
-	const std::unique_ptr<samples_t> samples_;
-	const std::unique_ptr<taps_t> taps_reversed_;
-	const size_t taps_count_;
-	const size_t decimation_factor_;
+	std::unique_ptr<samples_t> samples_;
+	std::unique_ptr<taps_t> taps_reversed_;
+	size_t taps_count_;
+	size_t decimation_factor_;
 };
 
 class DecimateBy2CIC4Real {

@@ -43,25 +43,17 @@ public:
 
 	using taps_t = tap_t[];
 
-	MatchedFilter(
-		const tap_t* const taps,
-		const size_t taps_count,
-		size_t decimation_factor = 1
-	) : samples_ { std::make_unique<samples_t>(taps_count) },
-		taps_reversed_ { std::make_unique<taps_t>(taps_count) },
-		taps_count_ { taps_count },
-		decimation_factor { decimation_factor }
-	{
-		std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
-	}
-
-	template<typename T>
-	MatchedFilter(
+	template<class T>
+	void configure(
 		const T& taps,
 		size_t decimation_factor = 1
-	) : MatchedFilter(taps.data(), taps.size(), decimation_factor)
-	{
-	}
+	) {
+		samples_ = std::make_unique<samples_t>(taps.size());
+		taps_reversed_ = std::make_unique<taps_t>(taps.size());
+		taps_count_ = taps.size();
+		decimation_factor = decimation_factor;
+		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
+ 	}
 
 	bool execute_once(const sample_t input);
 
@@ -72,9 +64,9 @@ public:
 private:
 	using samples_t = sample_t[];
 
-	const std::unique_ptr<samples_t> samples_;
-	const std::unique_ptr<taps_t> taps_reversed_;
-	const size_t taps_count_;
+	std::unique_ptr<samples_t> samples_;
+	std::unique_ptr<taps_t> taps_reversed_;
+	size_t taps_count_ { 0 };
 	size_t decimation_factor { 1 };
 	size_t decimation_phase { 0 };
 	float output;

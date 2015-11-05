@@ -34,12 +34,17 @@
 
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
+	NarrowbandFMAudio() {
+		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
+		channel_filter.configure(channel_filter_taps.taps, 2);
+	}
+
 	void execute(buffer_c8_t buffer) override;
 
 private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
+	ChannelDecimator decimator;
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateComplex channel_filter { channel_filter_taps.taps, 2 };
+	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	dsp::demodulate::FM demod { 48000, 7500 };
 
 	IIRBiquadFilter audio_hpf { audio_hpf_config };
