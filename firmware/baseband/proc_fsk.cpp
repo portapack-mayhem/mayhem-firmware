@@ -73,12 +73,13 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	/* 76.8kHz, 64 samples */
 	feed_channel_stats(channel);
+	/* No spectrum display while FSK decoding.
 	feed_channel_spectrum(
 		channel,
 		decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
 		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
 	);
-
+	*/
 	// 76.8k
 
 	// TODO: Factor out this hidden decimation magic.
