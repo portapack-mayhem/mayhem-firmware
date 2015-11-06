@@ -77,7 +77,7 @@ private:
 		decimation_phase = (decimation_phase + 1) % decimation_factor_;
 	}
 
-	bool is_new_decimation_cycle() {
+	bool is_new_decimation_cycle() const {
 		return (decimation_phase == 0);
 	}
 };
