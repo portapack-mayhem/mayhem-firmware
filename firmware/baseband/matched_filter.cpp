@@ -65,7 +65,24 @@ bool MatchedFilter::execute_once(
 }
 
 void MatchedFilter::shift_by_decimation_factor() {
-	std::move(&samples_[decimation_factor_], &samples_[taps_count_], &samples_[0]);
+	const sample_t* s = &samples_[decimation_factor_];
+	sample_t* t = &samples_[0];
+	
+	const size_t unroll_factor = 4;
+	size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;	
+	while(shift_count > 0) {
+		*t++ = *s++;
+		*t++ = *s++;
+		*t++ = *s++;
+		*t++ = *s++;
+		shift_count--;
+	}
+
+	shift_count = (taps_count_ - decimation_factor_) % unroll_factor;
+	while(shift_count > 0) {
+		*t++ = *s++;
+		shift_count--;
+	}
 }
 
 } /* namespace matched_filter */
