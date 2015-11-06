@@ -214,7 +214,7 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 	const sample_t* src_p = src.p;
 	size_t outer_count = output_samples;
 	while(outer_count > 0) {
-		/* Put two new samples into delay buffer */
+		/* Put new samples into delay buffer */
 		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
 		for(size_t i=0; i<decimation_factor_; i++) {
 			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
