@@ -27,6 +27,8 @@
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "ais_baseband.hpp"
+
 namespace ui {
 
 /* BasebandBandwidthField ************************************************/
@@ -496,8 +498,8 @@ ReceiverView::~ReceiverView() {
 void ReceiverView::on_show() {
 	context().message_map.register_handler(Message::ID::FSKPacket,
 		[this](Message* const p) {
-			auto message = static_cast<FSKPacketMessage*>(p);
-			(void)message;
+			const auto message = static_cast<const FSKPacketMessage*>(p);
+			this->on_packet_ais(*message);
 		}
 	);
 }
@@ -506,7 +508,13 @@ void ReceiverView::on_hide() {
 	context().message_map.unregister_handler(Message::ID::FSKPacket);
 }
 
+void ReceiverView::on_packet_ais(const FSKPacketMessage& message) {
+	const auto result = baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
 
+	auto console = reinterpret_cast<Console*>(widget_content.get());
+	if( result.first == "OK" ) {
+		console->writeln(result.second);
+	}
 }
 
 void ReceiverView::focus() {

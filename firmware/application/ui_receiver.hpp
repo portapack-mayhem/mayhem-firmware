@@ -415,6 +415,7 @@ private:
 			{ " AM ", 0 },
 			{ "NFM ", 1 },
 			{ "WFM ", 2 },
+			{ "AIS ", 3 },
 			{ "SPEC", 4 },
 		}
 	};
@@ -470,6 +471,8 @@ private:
 	void on_headphone_volume_changed(int32_t v);
 //	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
+
+	void on_packet_ais(const FSKPacketMessage& message);
 };
 
 } /* namespace ui */

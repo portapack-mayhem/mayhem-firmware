@@ -167,6 +167,7 @@ CPPSRC = main.cpp \
          ui_spectrum.cpp \
          receiver_model.cpp \
          spectrum_color_lut.cpp \
+         ais_baseband.cpp \
          ../common/utility.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
