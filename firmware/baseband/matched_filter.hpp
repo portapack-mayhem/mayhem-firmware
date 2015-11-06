@@ -51,7 +51,7 @@ public:
 		samples_ = std::make_unique<samples_t>(taps.size());
 		taps_reversed_ = std::make_unique<taps_t>(taps.size());
 		taps_count_ = taps.size();
-		decimation_factor = decimation_factor;
+		decimation_factor_ = decimation_factor;
 		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
  	}
 
@@ -67,14 +67,14 @@ private:
 	std::unique_ptr<samples_t> samples_;
 	std::unique_ptr<taps_t> taps_reversed_;
 	size_t taps_count_ { 0 };
-	size_t decimation_factor { 1 };
+	size_t decimation_factor_ { 1 };
 	size_t decimation_phase { 0 };
 	float output;
 
 	void shift_by_decimation_factor();
 
 	void advance_decimation_phase() {
-		decimation_phase = (decimation_phase + 1) % decimation_factor;
+		decimation_phase = (decimation_phase + 1) % decimation_factor_;
 	}
 
 	bool is_new_decimation_cycle() {

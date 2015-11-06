@@ -27,7 +27,7 @@ namespace matched_filter {
 bool MatchedFilter::execute_once(
 	const sample_t input
 ) {
-	samples_[taps_count_ - decimation_factor + decimation_phase] = input;
+	samples_[taps_count_ - decimation_factor_ + decimation_phase] = input;
 
 	advance_decimation_phase();
 	if( is_new_decimation_cycle() ) {
@@ -65,7 +65,7 @@ bool MatchedFilter::execute_once(
 }
 
 void MatchedFilter::shift_by_decimation_factor() {
-	std::move(&samples_[decimation_factor], &samples_[taps_count_], &samples_[0]);
+	std::move(&samples_[decimation_factor_], &samples_[taps_count_], &samples_[0]);
 }
 
 } /* namespace matched_filter */
