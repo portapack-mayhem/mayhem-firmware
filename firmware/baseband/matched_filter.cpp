@@ -31,26 +31,26 @@ bool MatchedFilter::execute_once(
 
 	advance_decimation_phase();
 	if( is_new_decimation_cycle() ) {
-		float r_n = 0.0f;
-		float i_n = 0.0f;
-		float r_p = 0.0f;
-		float i_p = 0.0f;
+		float sr_tr = 0.0f;
+		float si_tr = 0.0f;
+		float si_ti = 0.0f;
+		float sr_ti = 0.0f;
 		for(size_t n=0; n<taps_count_; n++) {
 			const auto sample = samples_[n];
 			const auto tap = taps_reversed_[n];
 
-			// N: complex multiple of samples and taps (conjugate, tap.i negated).
-			// P: complex multiply of samples and taps.
-			r_n += sample.real() * tap.real();
-			i_n -= sample.real() * tap.imag();
-			r_n += sample.imag() * tap.imag();
-			i_n += sample.imag() * tap.real();
-
-			r_p += sample.real() * tap.real();
-			i_p += sample.real() * tap.imag();
-			r_p -= sample.imag() * tap.imag();
-			i_p += sample.imag() * tap.real();
+			sr_tr += sample.real() * tap.real();
+			si_ti += sample.imag() * tap.imag();
+			si_tr += sample.imag() * tap.real();
+			sr_ti += sample.real() * tap.imag();
 		}
+
+		// N: complex multiple of samples and taps (conjugate, tap.i negated).
+		// P: complex multiply of samples and taps.
+		const auto r_n = sr_tr + si_ti;
+		const auto r_p = sr_tr - si_ti;
+		const auto i_n = si_tr - sr_ti;
+		const auto i_p = si_tr + sr_ti;
 
 		const auto mag_n = std::sqrt(r_n * r_n + i_n * i_n);
 		const auto mag_p = std::sqrt(r_p * r_p + i_p * i_p);
