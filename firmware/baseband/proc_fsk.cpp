@@ -21,6 +21,8 @@
 
 #include "proc_fsk.hpp"
 
+#include "ais_baseband.hpp"
+
 #include "portapack_shared_memory.hpp"
 
 #include "i2s.hpp"
@@ -43,10 +45,8 @@ FSKProcessor::~FSKProcessor() {
 }
 
 void FSKProcessor::configure(const FSKConfiguration new_configuration) {
-	// TODO: Matched filter characteristics are hard-coded for the moment. YUCK!
-	decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By16);
-	channel_filter.configure(channel_filter_taps.taps, 8);
-	mf.configure(baseband::ais::rrc_taps_128_decim_4_p, 1);
+	decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
+	mf.configure(baseband::ais::rrc_taps_76k8_4t_p, 4);
 	clock_recovery.configure(new_configuration.symbol_rate * 2, new_configuration.symbol_rate, { 0.0555f });
 	packet_builder.configure(
 		{ new_configuration.access_code, new_configuration.access_code_length, new_configuration.access_code_tolerance },
@@ -59,20 +59,8 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 
 	auto decimator_out = decimator.execute(buffer);
 
-	/* 153.6kHz, 128 samples */
-
-	const buffer_c16_t work_baseband_buffer {
-		(complex16_t*)decimator_out.p,
-		decimator_out.count
-	};
-
-	/* 153.6kHz complex<int16_t>[128]
-	 * -> FIR filter, <?kHz (?fs) pass, gain 1.0
-	 * -> 19.2kHz int16_t[16] */
-	auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-
 	/* 76.8kHz, 64 samples */
-	feed_channel_stats(channel);
+	feed_channel_stats(decimator_out);
 	/* No spectrum display while FSK decoding.
 	feed_channel_spectrum(
 		channel,
@@ -80,14 +68,12 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
 	);
 	*/
-	// 76.8k
 
-	// TODO: Factor out this hidden decimation magic.
-	for(size_t i=0; i<channel.count; i++) {
+	for(size_t i=0; i<decimator_out.count; i++) {
 		// TODO: No idea why implicit cast int16_t->float is not allowed.
 		const std::complex<float> sample {
-			static_cast<float>(channel.p[i].real()),
-			static_cast<float>(channel.p[i].imag())
+			static_cast<float>(decimator_out.p[i].real()),
+			static_cast<float>(decimator_out.p[i].imag())
 		};
 		if( mf.execute_once(sample) ) {
 			clock_recovery(mf.get_output());

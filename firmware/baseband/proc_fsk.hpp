@@ -25,9 +25,7 @@
 #include "baseband_processor.hpp"
 
 #include "channel_decimator.hpp"
-#include "dsp_decimate.hpp"
 #include "matched_filter.hpp"
-#include "dsp_fir_taps.hpp"
 
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
@@ -38,8 +36,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
-
-#include "ais_baseband.hpp"
 
 class FSKProcessor : public BasebandProcessor {
 public:
@@ -54,8 +50,6 @@ public:
 
 private:
 	ChannelDecimator decimator;
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	dsp::matched_filter::MatchedFilter mf;
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
