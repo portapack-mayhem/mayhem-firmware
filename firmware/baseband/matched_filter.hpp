@@ -36,6 +36,11 @@
 namespace dsp {
 namespace matched_filter {
 
+// This filter contains "magic" (optimizations) that expect the taps to
+// combine a low-pass filter with a complex sinusoid that performs shifting of
+// the input signal to 0Hz/DC. This also means that the taps length must be
+// a multiple of the complex sinusoid period.
+
 class MatchedFilter {
 public:
 	using sample_t = std::complex<float>;
