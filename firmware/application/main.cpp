@@ -125,7 +125,7 @@ private:
 	void handle_application_queue() {
 		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
 		while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
-			context.message_map.send(message);
+			context.message_map().send(message);
 		}
 	}
 
@@ -192,7 +192,7 @@ private:
 			if( switches_state[i] ) {
 				const auto event = static_cast<ui::KeyEvent>(i);
 				if( !event_bubble_key(event) ) {
-					context.focus_manager.update(top_widget, event);
+					context.focus_manager().update(top_widget, event);
 				}
 			}
 		}
@@ -211,7 +211,7 @@ private:
 	}
 
 	bool event_bubble_key(const ui::KeyEvent event) {
-		auto target = context.focus_manager.focus_widget();
+		auto target = context.focus_manager().focus_widget();
 		while( (target != nullptr) && !target->on_key(event) ) {
 			target = target->parent();
 		}
@@ -221,7 +221,7 @@ private:
 	}
 
 	void event_bubble_encoder(const ui::EncoderEvent event) {
-		auto target = context.focus_manager.focus_widget();
+		auto target = context.focus_manager().focus_widget();
 		while( (target != nullptr) && !target->on_encoder(event) ) {
 			target = target->parent();
 		}
@@ -251,7 +251,7 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
-	auto& message_handlers = context.message_map;
+	auto& message_handlers = context.message_map();
 	message_handlers.register_handler(Message::ID::Shutdown,
 		[&event_dispatcher](const Message* const) {
 			event_dispatcher.request_stop();

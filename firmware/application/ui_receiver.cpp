@@ -496,7 +496,8 @@ ReceiverView::~ReceiverView() {
 }
 
 void ReceiverView::on_show() {
-	context().message_map.register_handler(Message::ID::FSKPacket,
+	auto& message_map = context().message_map();
+	message_map.register_handler(Message::ID::FSKPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const FSKPacketMessage*>(p);
 			this->on_packet_ais(*message);
@@ -505,7 +506,8 @@ void ReceiverView::on_show() {
 }
 
 void ReceiverView::on_hide() {
-	context().message_map.unregister_handler(Message::ID::FSKPacket);
+	auto& message_map = context().message_map();
+	message_map.unregister_handler(Message::ID::FSKPacket);
 }
 
 void ReceiverView::on_packet_ais(const FSKPacketMessage& message) {

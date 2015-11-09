@@ -26,7 +26,7 @@
 namespace ui {
 
 void Channel::on_show() {
-	context().message_map.register_handler(Message::ID::ChannelStatistics,
+	context().message_map().register_handler(Message::ID::ChannelStatistics,
 		[this](const Message* const p) {
 			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
 		}
@@ -34,7 +34,7 @@ void Channel::on_show() {
 }
 
 void Channel::on_hide() {
-	context().message_map.unregister_handler(Message::ID::ChannelStatistics);
+	context().message_map().unregister_handler(Message::ID::ChannelStatistics);
 }
 
 void Channel::paint(Painter& painter) {

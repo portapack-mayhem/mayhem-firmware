@@ -200,7 +200,7 @@ void Widget::hidden(bool hide) {
 }
 
 void Widget::focus() {
-	context().focus_manager.set_focus_widget(this);
+	context().focus_manager().set_focus_widget(this);
 }
 
 void Widget::on_focus() {
@@ -208,7 +208,7 @@ void Widget::on_focus() {
 }
 
 void Widget::blur() {
-	context().focus_manager.set_focus_widget(nullptr);
+	context().focus_manager().set_focus_widget(nullptr);
 }
 
 void Widget::on_blur() {
@@ -220,7 +220,7 @@ bool Widget::focusable() const {
 }
 
 bool Widget::has_focus() {
-	return (context().focus_manager.focus_widget() == this);
+	return (context().focus_manager().focus_widget() == this);
 }
 
 Widget* Widget::last_child_focus() const {

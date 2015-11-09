@@ -47,9 +47,19 @@ std::string to_string_dec_uint(const uint32_t n, const int32_t l = 0, const char
 std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char fill = 0);
 std::string to_string_hex(const uint32_t n, const int32_t l = 0);
 
-struct Context {
-	FocusManager focus_manager;
-	MessageHandlerMap message_map;
+class Context {
+public:
+	FocusManager& focus_manager() {
+		return focus_manager_;
+	}
+
+	MessageHandlerMap& message_map() {
+		return message_map_;
+	}
+
+private:
+	FocusManager focus_manager_;
+	MessageHandlerMap message_map_;
 };
 
 class Widget {
