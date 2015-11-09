@@ -296,28 +296,32 @@ static std::string ais_format_navigational_status(const unsigned int value) {
 	}
 }
 
-decoded_packet packet_decode(const std::bitset<1024>& data, const size_t data_length) {
-	if( data_length < 38 ) {
-		return { "short " + ui::to_string_dec_uint(data_length, 3), "" };
+decoded_packet packet_decode(const std::bitset<1024>& payload, const size_t payload_length) {
+	// TODO: Unstuff here, not in baseband!
+
+	const size_t data_and_fcs_length = payload_length;
+
+	if( data_and_fcs_length < 38 ) {
+		return { "short " + ui::to_string_dec_uint(data_and_fcs_length, 3), "" };
 	}
 
-	const size_t extra_bits = data_length & 7;
+	const size_t extra_bits = data_and_fcs_length & 7;
 	if( extra_bits != 0 ) {
-		return { "extra bits " + ui::to_string_dec_uint(data_length, 3), "" };
+		return { "extra bits " + ui::to_string_dec_uint(data_and_fcs_length, 3), "" };
 	}
 
-	FieldReader field { data };
+	FieldReader field { payload };
 
 	const auto message_id = field.read(0, 6);
 
-	const size_t payload_length = data_length - 16;
+	const size_t data_length = data_and_fcs_length - 16;
 	PacketLengthValidator packet_length_valid;
-	if( !packet_length_valid(message_id, payload_length) ) {
-		return { "bad length " + ui::to_string_dec_uint(payload_length, 3), "" };
+	if( !packet_length_valid(message_id, data_length) ) {
+		return { "bad length " + ui::to_string_dec_uint(data_length, 3), "" };
 	}
 
 	CRCCheck crc_ok;
-	if( !crc_ok(data, payload_length) ) {
+	if( !crc_ok(payload, data_length) ) {
 		return { "crc", "" };
 	}
 
