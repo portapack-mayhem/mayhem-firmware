@@ -142,8 +142,7 @@ inline float sin_f32(const float w) {
 	const float p0 = sine_table_f32[n_int + 0];
 	const float p1 = sine_table_f32[n_int + 1];
 	const float diff = p1 - p0;
-	//const float result = p0 + n_frac * diff;
-	const float result = std::fma(n_frac, diff, p0);
+	const float result = p0 + n_frac * diff;
 	return result;
 }
 
