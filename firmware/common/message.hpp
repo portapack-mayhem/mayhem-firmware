@@ -29,6 +29,8 @@
 
 #include "utility.hpp"
 
+#include "ch.h"
+
 class Message {
 public:
 	static constexpr size_t MAX_SIZE = 276;
@@ -251,6 +253,9 @@ public:
 	using MessageHandler = std::function<void(Message* const p)>;
 
 	void register_handler(const Message::ID id, MessageHandler&& handler) {
+		if( map_[toUType(id)] != nullptr ) {
+			chDbgPanic("MsgDblReg");
+		}
 		map_[toUType(id)] = std::move(handler);
 	}
 
