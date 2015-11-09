@@ -20,18 +20,3 @@
  */
 
 #include "packet_builder.hpp"
-
-void PacketBuilder::configure(
-	const BitPattern preamble,
-	const BitPattern unstuff
-) {
-	preamble_pattern = preamble;
-	unstuff_pattern = unstuff;
-
-	reset_state();
-}
-
-void PacketBuilder::reset_state() {
-	bits_received = 0;
-	state = State::Preamble;
-}

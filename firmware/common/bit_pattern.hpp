@@ -25,8 +25,29 @@
 #include <cstdint>
 #include <cstddef>
 
+class BitHistory {
+public:
+	void add(const uint_fast8_t bit) {
+		history = (history << 1) | (bit & 1);
+	}
+
+	uint32_t value() const {
+		return history;
+	}
+
+private:
+	uint32_t history { 0 };
+};
+
 class BitPattern {
 public:
+	constexpr BitPattern(
+	) : code_ { 0 },
+		mask_ { 0 },
+		maximum_hanning_distance_ { 0 }
+	{
+	}
+	
 	constexpr BitPattern(
 		const uint32_t code,
 		const size_t code_length,
@@ -37,38 +58,16 @@ public:
 	{
 	}
 
-	uint32_t code() const {
-		return code_;
-	}
-
-	uint32_t mask() const {
-		return mask_;
-	}
-
-	size_t maximum_hanning_distance() const {
-		return maximum_hanning_distance_;
+	bool operator()(const BitHistory& history, const size_t) const {
+		const auto delta_bits = (history.value() ^ code_) & mask_;
+		const size_t count = __builtin_popcountl(delta_bits);
+		return (count <= maximum_hanning_distance_);
 	}
 
 private:
 	uint32_t code_;
 	uint32_t mask_;
 	size_t maximum_hanning_distance_;
-};
-
-class BitHistory {
-public:
-	void add(const uint_fast8_t bit) {
-		history = (history << 1) | (bit & 1);
-	}
-
-	bool matches(const BitPattern& pattern) const {
-		const auto delta_bits = (history ^ pattern.code()) & pattern.mask();
-		const size_t count = __builtin_popcountl(delta_bits);
-		return (count <= pattern.maximum_hanning_distance());
-	}
-
-private:
-	uint32_t history { 0 };
 };
 
 #endif/*__BIT_PATTERN_H__*/

@@ -29,21 +29,33 @@
 
 #include "bit_pattern.hpp"
 
+template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
 	using PayloadType = std::bitset<1024>;
 	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
 
 	PacketBuilder(
+		const PreambleMatcher preamble_matcher,
+		const UnstuffMatcher unstuff_matcher,
+		const EndMatcher end_matcher,
 		const PayloadHandlerFunc payload_handler
-	) : payload_handler { payload_handler }
+	) : payload_handler { payload_handler },
+		preamble(preamble_matcher),
+		unstuff(unstuff_matcher),
+		end(end_matcher)
 	{
 	}
 
 	void configure(
-		const BitPattern preamble,
-		const BitPattern unstuffing
-	);
+		const PreambleMatcher preamble_matcher,
+		const UnstuffMatcher unstuff_matcher
+	) {
+		preamble = preamble_matcher;
+		unstuff = unstuff_matcher;
+
+		reset_state();
+	}
 
 	void execute(
 		const uint_fast8_t symbol
@@ -52,25 +64,24 @@ public:
 
 		switch(state) {
 		case State::Preamble:
-			if( found_preamble() ) {
+			if( preamble(bit_history, bits_received) ) {
 				state = State::Payload;
 			}
 			break;
 
 		case State::Payload:
-			if( !found_stuffing_bit() ) {
+			if( !unstuff(bit_history, bits_received) ) {
 				payload[bits_received++] = symbol;
 			}
 
-			if( found_end_flag() ) {
-				payload_handler(payload, bits_received - 7);
+			if( end(bit_history, bits_received) ) {
+				payload_handler(payload, bits_received);
 				reset_state();
 			} else {
 				if( packet_truncated() ) {
 					reset_state();
 				}
 			}
-
 			break;
 
 		default:
@@ -89,30 +100,21 @@ private:
 		return bits_received >= payload.size();
 	}
 
-	bool found_preamble() const {
-		return bit_history.matches(preamble_pattern);
-	}
-
-	bool found_stuffing_bit() const {
-		return bit_history.matches(unstuff_pattern);
-	}
-
-	bool found_end_flag() const {
-		return bit_history.matches(end_flag_pattern);
-	}
-
 	const PayloadHandlerFunc payload_handler;
 
 	BitHistory bit_history;
-	BitPattern preamble_pattern { 0b0101010101111110, 16, 1 };
-	BitPattern unstuff_pattern { 0b111110, 6 };
-	BitPattern end_flag_pattern { 0b01111110, 8 };
+	PreambleMatcher preamble;
+	UnstuffMatcher unstuff;
+	EndMatcher end;
 
 	size_t bits_received { 0 };
 	State state { State::Preamble };
 	PayloadType payload;
 
-	void reset_state();
+	void reset_state() {
+		bits_received = 0;
+		state = State::Preamble;
+	}
 };
 
 #endif/*__PACKET_BUILDER_H__*/

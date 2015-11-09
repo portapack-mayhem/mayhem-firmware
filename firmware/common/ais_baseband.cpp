@@ -299,7 +299,8 @@ static std::string ais_format_navigational_status(const unsigned int value) {
 decoded_packet packet_decode(const std::bitset<1024>& payload, const size_t payload_length) {
 	// TODO: Unstuff here, not in baseband!
 
-	const size_t data_and_fcs_length = payload_length;
+	// Subtract end flag (6 bits) + one unstuffing bit (occurs during end flag).
+	const size_t data_and_fcs_length = payload_length - 7;
 
 	if( data_and_fcs_length < 38 ) {
 		return { "short " + ui::to_string_dec_uint(data_and_fcs_length, 3), "" };
