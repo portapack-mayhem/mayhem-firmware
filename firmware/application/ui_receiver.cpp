@@ -29,6 +29,8 @@ using namespace portapack;
 
 #include "ais_baseband.hpp"
 
+#include "ff.h"
+
 namespace ui {
 
 /* BasebandBandwidthField ************************************************/
@@ -509,10 +511,17 @@ void ReceiverView::on_show() {
 			this->on_packet_tpms(*message);
 		}
 	);
+	message_map.register_handler(Message::ID::SDCardStatus,
+		[this](Message* const p) {
+			const auto message = static_cast<const SDCardStatusMessage*>(p);
+			this->on_sd_card_mounted(message->is_mounted);
+		}
+	);
 }
 
 void ReceiverView::on_hide() {
 	auto& message_map = context().message_map();
+	message_map.unregister_handler(Message::ID::SDCardStatus);
 	message_map.unregister_handler(Message::ID::TPMSPacket);
 	message_map.unregister_handler(Message::ID::AISPacket);
 }
@@ -525,6 +534,8 @@ void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
 		console->writeln(result.second);
 	}
 }
+
+static FIL fil_tpms;
 
 void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	auto payload = message.packet.payload;
@@ -549,6 +560,37 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());
 	console->writeln(hex);
+
+	if( !f_error(&fil_tpms) ) {
+		rtc::RTC datetime;
+		rtcGetTime(&RTCD1, &datetime);
+		std::string timestamp = 
+			to_string_dec_uint(datetime.year(), 4) +
+			to_string_dec_uint(datetime.month(), 2, '0') +
+			to_string_dec_uint(datetime.day(), 2, '0') +
+			to_string_dec_uint(datetime.hour(), 2, '0') +
+			to_string_dec_uint(datetime.minute(), 2, '0') +
+			to_string_dec_uint(datetime.second(), 2, '0');
+
+		std::string log = timestamp + " " + hex + "\r\n";
+		f_puts(log.c_str(), &fil_tpms);
+		f_sync(&fil_tpms);
+	}
+}
+
+void ReceiverView::on_sd_card_mounted(const bool is_mounted) {
+	if( is_mounted ) {
+		const auto open_result = f_open(&fil_tpms, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
+		if( open_result == FR_OK ) {
+			const auto fil_size = f_size(&fil_tpms);
+			const auto seek_result = f_lseek(&fil_tpms, fil_size);
+			if( seek_result != FR_OK ) {
+				f_close(&fil_tpms);
+			}
+		} else {
+			// TODO: Error, indicate somehow.
+		}
+	}
 }
 
 void ReceiverView::focus() {
