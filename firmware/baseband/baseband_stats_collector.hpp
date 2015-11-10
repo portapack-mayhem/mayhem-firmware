@@ -52,6 +52,8 @@ public:
 		const size_t report_samples = buffer.sampling_rate * report_interval;
 		const auto report_delta = samples - samples_last_report;
 		if( report_delta >= report_samples ) {
+			BasebandStatistics statistics;
+
 			const auto idle_ticks = thread_idle->total_ticks;
 			statistics.idle_ticks = (idle_ticks - last_idle_ticks);
 			last_idle_ticks = idle_ticks;
@@ -79,7 +81,6 @@ public:
 
 private:
 	static constexpr float report_interval { 1.0f };
-	BasebandStatistics statistics;
 	size_t samples { 0 };
 	size_t samples_last_report { 0 };
 	const Thread* const thread_idle;
