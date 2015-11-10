@@ -26,7 +26,6 @@
 
 constexpr auto EVT_MASK_RTC_TICK		= EVENT_MASK(0);
 constexpr auto EVT_MASK_LCD_FRAME_SYNC	= EVENT_MASK(1);
-constexpr auto EVT_MASK_SD_CARD_PRESENT = EVENT_MASK(2);
 constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
 constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);

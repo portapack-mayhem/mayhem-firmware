@@ -52,6 +52,8 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "sd_card.hpp"
+
 #include <string.h>
 
 class EventDispatcher {
@@ -87,6 +89,7 @@ private:
 	ui::Context& context;
 	uint32_t encoder_last = 0;
 	bool is_running = true;
+	bool sd_card_present = false;
 
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
@@ -103,10 +106,6 @@ private:
 
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
-		}
-
-		if( events & EVT_MASK_SD_CARD_PRESENT ) {
-			handle_sd_card_detect();
 		}
 
 		if( events & EVT_MASK_SWITCHES ) {
@@ -130,7 +129,28 @@ private:
 	}
 
 	void handle_rtc_tick() {
+		const auto sd_card_present_now = sdc_lld_is_card_inserted(&SDCD1);
+		if( sd_card_present_now != sd_card_present ) {
+			sd_card_present = sd_card_present_now;
 
+			if( sd_card_present ) {
+				if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
+					if( sd_card::filesystem::mount() == FR_OK ) {
+						SDCardStatusMessage message { true };
+						context.message_map().send(&message);
+					} else {
+						// TODO: Error, modal warning?
+					}
+				} else {
+					// TODO: Error, modal warning?
+				}
+			} else {
+				sdcDisconnect(&SDCD1);
+
+				SDCardStatusMessage message { false };
+				context.message_map().send(&message);
+			}
+		}
 	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
@@ -179,10 +199,6 @@ private:
 
 	void handle_lcd_frame_sync() {
 		painter.paint_widget_tree(top_widget);
-	}
-
-	void handle_sd_card_detect() {
-
 	}
 
 	void handle_switches() {

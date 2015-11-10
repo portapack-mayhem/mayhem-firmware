@@ -46,6 +46,7 @@ public:
 		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
+		SDCardStatus = 10,
 		MAX
 	};
 
@@ -243,6 +244,18 @@ public:
 	) : Message { ID::Shutdown }
 	{
 	}
+};
+
+class SDCardStatusMessage : public Message {
+public:
+	constexpr SDCardStatusMessage(
+		bool is_mounted
+	) : Message { ID::SDCardStatus },
+		is_mounted { is_mounted }
+	{
+	}
+
+	const bool is_mounted;
 };
 
 class MessageHandlerMap {
