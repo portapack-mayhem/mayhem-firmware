@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_FSK_H__
-#define __PROC_FSK_H__
+#ifndef __PROC_AIS_H__
+#define __PROC_AIS_H__
 
 #include "baseband_processor.hpp"
 
@@ -39,14 +39,9 @@
 
 #include "ais_baseband.hpp"
 
-class FSKProcessor : public BasebandProcessor {
+class AISProcessor : public BasebandProcessor {
 public:
 	using payload_t = std::bitset<1024>;
-
-	FSKProcessor(MessageHandlerMap& message_handlers);
-	~FSKProcessor();
-
-	void configure(const FSKConfiguration new_configuration);
 
 	void execute(buffer_c8_t buffer) override;
 
@@ -68,10 +63,8 @@ private:
 		}
 	};
 
-	MessageHandlerMap& message_handlers;
-
 	void consume_symbol(const float symbol);
 	void payload_handler(const payload_t& payload, const size_t bits_received);
 };
 
-#endif/*__PROC_FSK_H__*/
+#endif/*__PROC_AIS_H__*/

@@ -44,8 +44,8 @@ public:
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
 		FSKConfiguration = 6,
-		FSKPacket = 7,
 		Shutdown = 8,
+		AISPacket = 7,
 		MAX
 	};
 
@@ -207,7 +207,6 @@ struct FSKConfiguration {
 static_assert(sizeof(FSKConfiguration) == (6 * 4), "sizeof(FSKConfiguration) is wild");
 
 class FSKConfigurationMessage : public Message {
-public:
 	constexpr FSKConfigurationMessage(
 		FSKConfiguration configuration
 	) : Message { ID::FSKConfiguration },
@@ -220,24 +219,24 @@ public:
 
 #include <bitset>
 
-struct FSKPacket {
+struct AISPacket {
 	std::bitset<1024> payload;
 	size_t bits_received;
 
-	FSKPacket(
+	AISPacket(
 	) : bits_received { 0 }
 	{
 	}
 };
 
-class FSKPacketMessage : public Message {
+class AISPacketMessage : public Message {
 public:
-	FSKPacketMessage(
-	) : Message { ID::FSKPacket }
+	AISPacketMessage(
+	) : Message { ID::AISPacket }
 	{
 	}
 
-	FSKPacket packet;
+	AISPacket packet;
 };
 
 class ShutdownMessage : public Message {

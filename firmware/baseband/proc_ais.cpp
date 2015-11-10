@@ -19,49 +19,21 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_fsk.hpp"
-
-#include "ais_baseband.hpp"
+#include "proc_ais.hpp"
 
 #include "portapack_shared_memory.hpp"
 
 #include "i2s.hpp"
 using namespace lpc43xx;
 
-FSKProcessor::FSKProcessor(
-	MessageHandlerMap& message_handlers
-) : message_handlers(message_handlers)
-{
-	message_handlers.register_handler(Message::ID::FSKConfiguration,
-		[this](const Message* const p) {
-			auto m = reinterpret_cast<const FSKConfigurationMessage*>(p);
-			this->configure(m->configuration);
-		}
-	);
-}
-
-FSKProcessor::~FSKProcessor() {
-	message_handlers.unregister_handler(Message::ID::FSKConfiguration);
-}
-
-void FSKProcessor::configure(const FSKConfiguration new_configuration) {
-	decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
-	mf.configure(baseband::ais::rrc_taps_76k8_4t_p, 4);
-	clock_recovery.configure(new_configuration.symbol_rate * 2, new_configuration.symbol_rate, { 0.0555f });
-	packet_builder.configure(
-		{ new_configuration.access_code, new_configuration.access_code_length, new_configuration.access_code_tolerance },
-		{ new_configuration.unstuffing_pattern, new_configuration.unstuffing_length }
-	);
-}
-
-void FSKProcessor::execute(buffer_c8_t buffer) {
+void AISProcessor::execute(buffer_c8_t buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	auto decimator_out = decimator.execute(buffer);
 
 	/* 76.8kHz, 64 samples */
 	feed_channel_stats(decimator_out);
-	/* No spectrum display while FSK decoding.
+	/* No spectrum display while AIS decoding.
 	feed_channel_spectrum(
 		channel,
 		decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
@@ -83,7 +55,7 @@ void FSKProcessor::execute(buffer_c8_t buffer) {
 	i2s::i2s0::tx_mute();
 }
 
-void FSKProcessor::consume_symbol(
+void AISProcessor::consume_symbol(
 	const float raw_symbol
 ) {
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
@@ -92,11 +64,11 @@ void FSKProcessor::consume_symbol(
 	packet_builder.execute(decoded_symbol);
 }
 
-void FSKProcessor::payload_handler(
+void AISProcessor::payload_handler(
 	const std::bitset<1024>& payload,
 	const size_t bits_received
 ) {
-	FSKPacketMessage message;
+	AISPacketMessage message;
 	message.packet.payload = payload;
 	message.packet.bits_received = bits_received;
 	shared_memory.application_queue.push(message);

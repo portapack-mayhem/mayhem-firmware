@@ -497,9 +497,9 @@ ReceiverView::~ReceiverView() {
 
 void ReceiverView::on_show() {
 	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::FSKPacket,
+	message_map.register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
-			const auto message = static_cast<const FSKPacketMessage*>(p);
+			const auto message = static_cast<const AISPacketMessage*>(p);
 			this->on_packet_ais(*message);
 		}
 	);
@@ -507,10 +507,10 @@ void ReceiverView::on_show() {
 
 void ReceiverView::on_hide() {
 	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::FSKPacket);
+	message_map.unregister_handler(Message::ID::AISPacket);
 }
 
-void ReceiverView::on_packet_ais(const FSKPacketMessage& message) {
+void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
 	const auto result = baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());

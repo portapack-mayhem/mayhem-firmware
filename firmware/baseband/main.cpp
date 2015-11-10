@@ -55,7 +55,7 @@
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
 #include "proc_wfm_audio.hpp"
-#include "proc_fsk.hpp"
+#include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
 
 #include "clock_recovery.hpp"
@@ -312,7 +312,7 @@ int main(void) {
 					break;
 
 				case 3:
-					baseband_processor = new FSKProcessor(message_handlers);
+					baseband_processor = new AISProcessor();
 					break;
 
 				case 4:

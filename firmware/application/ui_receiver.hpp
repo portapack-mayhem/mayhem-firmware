@@ -472,7 +472,7 @@ private:
 //	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
 
-	void on_packet_ais(const FSKPacketMessage& message);
+	void on_packet_ais(const AISPacketMessage& message);
 };
 
 } /* namespace ui */
