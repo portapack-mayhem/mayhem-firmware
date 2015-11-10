@@ -49,9 +49,17 @@ public:
 	using taps_t = tap_t[];
 
 	template<class T>
-	void configure(
+	MatchedFilter(
 		const T& taps,
 		size_t decimation_factor = 1
+	) {
+		configure(taps, decimation_factor);
+	}
+
+	template<class T>
+	void configure(
+		const T& taps,
+		size_t decimation_factor
 	) {
 		samples_ = std::make_unique<samples_t>(taps.size());
 		taps_reversed_ = std::make_unique<taps_t>(taps.size());

@@ -117,6 +117,16 @@ template<typename ErrorFilter>
 class ClockRecovery {
 public:
 	ClockRecovery(
+		const float sampling_rate,
+		const float symbol_rate,
+		ErrorFilter error_filter,
+		std::function<void(const float)> symbol_handler
+	) : symbol_handler { symbol_handler }
+	{
+		configure(sampling_rate, symbol_rate, error_filter);
+	}
+
+	ClockRecovery(
 		std::function<void(const float)> symbol_handler
 	) : symbol_handler { symbol_handler }
 	{

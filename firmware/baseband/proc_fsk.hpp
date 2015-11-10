@@ -37,6 +37,8 @@
 #include <cstddef>
 #include <bitset>
 
+#include "ais_baseband.hpp"
+
 class FSKProcessor : public BasebandProcessor {
 public:
 	using payload_t = std::bitset<1024>;
@@ -49,10 +51,11 @@ public:
 	void execute(buffer_c8_t buffer) override;
 
 private:
-	ChannelDecimator decimator;
-	dsp::matched_filter::MatchedFilter mf;
+	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
+	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_76k8_4t_p, 4 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
+		19200, 9600, { 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
 	symbol_coding::NRZIDecoder nrzi_decode;

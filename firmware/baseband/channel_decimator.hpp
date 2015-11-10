@@ -38,6 +38,17 @@ public:
 		By32,
 	};
 
+	constexpr ChannelDecimator(
+	) : decimation_factor { DecimationFactor::By32 }
+	{
+	}
+	
+	constexpr ChannelDecimator(
+		const DecimationFactor decimation_factor
+	) : decimation_factor { decimation_factor }
+	{
+	}
+
 	void set_decimation_factor(const DecimationFactor f) {
 		decimation_factor = f;
 	}
@@ -69,7 +80,7 @@ private:
 	dsp::decimate::DecimateBy2CIC3 cic_3;
 	dsp::decimate::DecimateBy2CIC3 cic_4;
 
-	DecimationFactor decimation_factor = DecimationFactor::By32;
+	DecimationFactor decimation_factor;
 
 	buffer_c16_t execute_decimation(buffer_c8_t buffer);
 };
