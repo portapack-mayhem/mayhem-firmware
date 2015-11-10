@@ -43,7 +43,6 @@ public:
 		ChannelSpectrum = 3,
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
-		FSKConfiguration = 6,
 		Shutdown = 8,
 		AISPacket = 7,
 		MAX
@@ -193,28 +192,6 @@ public:
 	}
 
 	ChannelSpectrum spectrum;
-};
-
-struct FSKConfiguration {
-	uint32_t symbol_rate;
-	uint32_t access_code;
-	size_t access_code_length;
-	size_t access_code_tolerance;
-	uint32_t unstuffing_pattern;
-	size_t unstuffing_length;
-};
-
-static_assert(sizeof(FSKConfiguration) == (6 * 4), "sizeof(FSKConfiguration) is wild");
-
-class FSKConfigurationMessage : public Message {
-	constexpr FSKConfigurationMessage(
-		FSKConfiguration configuration
-	) : Message { ID::FSKConfiguration },
-		configuration(configuration)
-	{
-	}
-
-	FSKConfiguration configuration;
 };
 
 #include <bitset>

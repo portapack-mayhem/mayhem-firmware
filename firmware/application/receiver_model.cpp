@@ -180,10 +180,6 @@ void ReceiverModel::update_baseband_configuration() {
 	BasebandConfigurationMessage message { baseband_configuration };
 	shared_memory.baseband_queue.push(message);
 
-	if( baseband_configuration.mode == 3 ) {
-		update_fsk_configuration();
-	}
-
 	radio::streaming_enable();
 }
 
@@ -192,27 +188,4 @@ void ReceiverModel::update_headphone_volume() {
 	// both?
 
 	audio_codec.set_headphone_volume(headphone_volume_);
-}
-
-static constexpr FSKConfiguration fsk_configuration_ais = {
-	.symbol_rate = 9600,
-	.access_code = 0b0101010101111110,
-	.access_code_length = 16,
-	.access_code_tolerance = 0,
-	.unstuffing_pattern = 0b111110,
-	.unstuffing_length = 6,
-};
-
-static constexpr FSKConfiguration fsk_configuration_tpms_a = {
-	.symbol_rate = 19200,
-	.access_code = 0b0101010101010101010101010110,
-	.access_code_length = 28,
-	.access_code_tolerance = 1,
-	.unstuffing_pattern = 0,
-	.unstuffing_length = 0,
-};
-
-void ReceiverModel::update_fsk_configuration() {
-	FSKConfigurationMessage message { fsk_configuration_ais };
-	shared_memory.baseband_queue.push(message);
 }
