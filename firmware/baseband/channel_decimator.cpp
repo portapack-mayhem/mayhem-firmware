@@ -22,6 +22,16 @@
 #include "channel_decimator.hpp"
 
 buffer_c16_t ChannelDecimator::execute_decimation(buffer_c8_t buffer) {
+	const buffer_c16_t work_baseband_buffer {
+		work_baseband.data(),
+		work_baseband.size()
+	};
+
+	const buffer_s16_t work_audio_buffer {
+		(int16_t*)work_baseband.data(),
+		sizeof(work_baseband) / sizeof(int16_t)
+	};
+
 	/* 3.072MHz complex<int8_t>[2048], [-128, 127]
 	 * -> Shift by -fs/4
 	 * -> 3rd order CIC: -0.1dB @ 0.028fs, -1dB @ 0.088fs, -60dB @ 0.468fs

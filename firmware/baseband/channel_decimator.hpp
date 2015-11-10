@@ -62,15 +62,6 @@ public:
 private:
 	std::array<complex16_t, 1024> work_baseband;
 
-	const buffer_c16_t work_baseband_buffer {
-		work_baseband.data(),
-		work_baseband.size()
-	};
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)work_baseband.data(),
-		sizeof(work_baseband) / sizeof(int16_t)
-	};
-
 	//const bool fs_over_4_downconvert = true;
 
 	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate;
