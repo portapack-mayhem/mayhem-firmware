@@ -416,6 +416,7 @@ private:
 			{ "NFM ", 1 },
 			{ "WFM ", 2 },
 			{ "AIS ", 3 },
+			{ "TPMS", 5 },
 			{ "SPEC", 4 },
 		}
 	};
@@ -473,6 +474,7 @@ private:
 	void on_edit_frequency();
 
 	void on_packet_ais(const AISPacketMessage& message);
+	void on_packet_tpms(const TPMSPacketMessage& message);
 };
 
 } /* namespace ui */

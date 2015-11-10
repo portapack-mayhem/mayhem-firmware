@@ -43,6 +43,7 @@ public:
 		ChannelSpectrum = 3,
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
+		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
 		MAX
@@ -214,6 +215,26 @@ public:
 	}
 
 	AISPacket packet;
+};
+
+struct TPMSPacket {
+	std::bitset<1024> payload;
+	size_t bits_received;
+
+	TPMSPacket(
+	) : bits_received { 0 }
+	{
+	}
+};
+
+class TPMSPacketMessage : public Message {
+public:
+	TPMSPacketMessage(
+	) : Message { ID::TPMSPacket }
+	{
+	}
+
+	TPMSPacket packet;
 };
 
 class ShutdownMessage : public Message {

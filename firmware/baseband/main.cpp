@@ -57,6 +57,7 @@
 #include "proc_wfm_audio.hpp"
 #include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
+#include "proc_tpms.hpp"
 
 #include "clock_recovery.hpp"
 #include "packet_builder.hpp"
@@ -317,6 +318,10 @@ int main(void) {
 
 				case 4:
 					baseband_processor = new WidebandSpectrum();
+					break;
+
+				case 5:
+					baseband_processor = new TPMSProcessor();
 					break;
 
 				default:

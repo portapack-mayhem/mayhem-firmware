@@ -503,10 +503,17 @@ void ReceiverView::on_show() {
 			this->on_packet_ais(*message);
 		}
 	);
+	message_map.register_handler(Message::ID::TPMSPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const TPMSPacketMessage*>(p);
+			this->on_packet_tpms(*message);
+		}
+	);
 }
 
 void ReceiverView::on_hide() {
 	auto& message_map = context().message_map();
+	message_map.unregister_handler(Message::ID::TPMSPacket);
 	message_map.unregister_handler(Message::ID::AISPacket);
 }
 
@@ -517,6 +524,31 @@ void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
 	if( result.first == "OK" ) {
 		console->writeln(result.second);
 	}
+}
+
+void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
+	auto payload = message.packet.payload;
+	auto payload_length = message.packet.bits_received;
+
+	for(size_t i=0; i<payload_length; i+=2) {
+		if( payload[i+0] != payload[i+1] ) {
+			payload[i>>1] = payload[i+1];
+		} else {
+			payload[i>>1] = 0;
+		}
+	}
+
+	std::string hex;
+	uint8_t c = 0;
+	for(size_t i=0; i<15*8; i++) {
+		c = (c << 1) | payload[i];
+		if( (i & 7) == 7 ) {
+			hex += to_string_hex(c, 2);
+		}
+	}
+
+	auto console = reinterpret_cast<Console*>(widget_content.get());
+	console->writeln(hex);
 }
 
 void ReceiverView::focus() {
@@ -547,6 +579,7 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 	/* TODO: This is TERRIBLE!!! */
 	switch(modulation) {
 	case 3:
+	case 5:
 		receiver_model.set_baseband_configuration({
 			.mode = modulation,
 			.sampling_rate = 2457600,
@@ -579,6 +612,7 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 	
 	switch(modulation) {
 	case 3:
+	case 5:
 		widget_content = std::make_unique<Console>();
 		add_child(widget_content.get());
 		break;

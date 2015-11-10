@@ -139,6 +139,7 @@ CPPSRC = main.cpp \
          proc_wfm_audio.cpp \
          proc_ais.cpp \
          proc_wideband_spectrum.cpp \
+         proc_tpms.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \
