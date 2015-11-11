@@ -541,25 +541,29 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	auto payload = message.packet.payload;
 	auto payload_length = message.packet.bits_received;
 
+	std::string hex_data;
+	std::string hex_error;
+	uint8_t byte_data = 0;
+	uint8_t byte_error = 0;
 	for(size_t i=0; i<payload_length; i+=2) {
-		if( payload[i+0] != payload[i+1] ) {
-			payload[i>>1] = payload[i+1];
-		} else {
-			payload[i>>1] = 0;
-		}
-	}
+		const auto bit_data = payload[i+1];
+		const auto bit_error = (payload[i+0] == payload[i+1]);
 
-	std::string hex;
-	uint8_t c = 0;
-	for(size_t i=0; i<15*8; i++) {
-		c = (c << 1) | payload[i];
-		if( (i & 7) == 7 ) {
-			hex += to_string_hex(c, 2);
+		byte_data <<= 1;
+		byte_data |= bit_data ? 1 : 0;
+
+		byte_error <<= 1;
+		byte_error |= bit_error ? 1 : 0;
+
+		if( ((i >> 1) & 7) == 7 ) {
+			hex_data += to_string_hex(byte_data, 2);
+			hex_error += to_string_hex(byte_error, 2);
 		}
 	}
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());
-	console->writeln(hex);
+	console->writeln(hex_data);
+	console->writeln(hex_error);
 
 	if( !f_error(&fil_tpms) ) {
 		rtc::RTC datetime;
@@ -572,7 +576,7 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 			to_string_dec_uint(datetime.minute(), 2, '0') +
 			to_string_dec_uint(datetime.second(), 2, '0');
 
-		std::string log = timestamp + " " + hex + "\r\n";
+		std::string log = timestamp + " " + hex_data + "/" + hex_error + "\r\n";
 		f_puts(log.c_str(), &fil_tpms);
 		f_sync(&fil_tpms);
 	}
