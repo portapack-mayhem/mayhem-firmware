@@ -562,8 +562,7 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	}
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());
-	console->writeln(hex_data);
-	console->writeln(hex_error);
+	console->writeln(hex_data.substr(0, 240 / 8));
 
 	if( !f_error(&fil_tpms) ) {
 		rtc::RTC datetime;
