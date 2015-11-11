@@ -575,7 +575,11 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 			to_string_dec_uint(datetime.minute(), 2, '0') +
 			to_string_dec_uint(datetime.second(), 2, '0');
 
-		std::string log = timestamp + " " + hex_data + "/" + hex_error + "\r\n";
+		const auto tuning_frequency = receiver_model.tuning_frequency();
+		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
+		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
+
+		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_data + "/" + hex_error + "\r\n";
 		f_puts(log.c_str(), &fil_tpms);
 		f_sync(&fil_tpms);
 	}
