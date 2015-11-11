@@ -82,21 +82,22 @@
 constexpr auto baseband_thread_priority = NORMALPRIO + 20;
 constexpr auto rssi_thread_priority = NORMALPRIO + 10;
 
-const Thread* thread_main;
-const Thread* thread_rssi;
-
-static BasebandProcessor* baseband_processor { nullptr };
-static BasebandConfiguration baseband_configuration;
+struct baseband_thread_data_t {
+	Thread* thread_main { nullptr };
+	Thread* thread_rssi { nullptr };
+	BasebandProcessor* baseband_processor { nullptr };
+	BasebandConfiguration baseband_configuration;
+};
 
 static WORKING_AREA(baseband_thread_wa, 8192);
 static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
-	(void)arg;
+	auto thread_data = static_cast<const baseband_thread_data_t*>(arg);
 	chRegSetThreadName("baseband");
 
 	BasebandStatsCollector stats {
 		chSysGetIdleThread(),
-		thread_main,
-		thread_rssi,
+		thread_data->thread_main,
+		thread_data->thread_rssi,
 		chThdSelf()
 	};
 
@@ -104,11 +105,11 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
 		const buffer_c8_t buffer {
-			buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
+			buffer_tmp.p, buffer_tmp.count, thread_data->baseband_configuration.sampling_rate
 		};
 
-		if( baseband_processor ) {
-			baseband_processor->execute(buffer);
+		if( thread_data->baseband_processor ) {
+			thread_data->baseband_processor->execute(buffer);
 		}
 
 		stats.process(buffer,
@@ -165,6 +166,8 @@ void __late_init(void) {
 
 }
 
+static baseband_thread_data_t baseband_thread_data;
+
 static void init() {
 	i2s::i2s0::configure(
 		audio::i2s0_config_tx,
@@ -188,16 +191,19 @@ static void init() {
 	rf::rssi::init();
 	touch::dma::init();
 
-	thread_main = chThdSelf();
+	const auto thread_main = chThdSelf();
 	
-	thread_rssi = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
+	const auto thread_rssi = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
 		rssi_thread_priority, rssi_fn,
 		nullptr
 	);
 
+	baseband_thread_data.thread_main = thread_main;
+	baseband_thread_data.thread_rssi = thread_rssi;
+
 	chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		baseband_thread_priority, baseband_fn,
-		nullptr
+		&baseband_thread_data
 	);
 }
 
@@ -264,8 +270,8 @@ private:
 	}
 
 	void handle_spectrum() {
-		if( baseband_processor ) {
-			baseband_processor->update_spectrum();
+		if( baseband_thread_data.baseband_processor ) {
+			baseband_thread_data.baseband_processor->update_spectrum();
 		}
 	}
 };
@@ -284,49 +290,49 @@ int main(void) {
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
 		[&message_handlers](const Message* const p) {
 			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-			if( message->configuration.mode != baseband_configuration.mode ) {
+			if( message->configuration.mode != baseband_thread_data.baseband_configuration.mode ) {
 
-				if( baseband_processor ) {
+				if( baseband_thread_data.baseband_processor ) {
 					i2s::i2s0::tx_mute();
 					baseband::dma::disable();
 					rf::rssi::stop();
 				}
 
 				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-				auto old_p = baseband_processor;
-				baseband_processor = nullptr;
+				auto old_p = baseband_thread_data.baseband_processor;
+				baseband_thread_data.baseband_processor = nullptr;
 				delete old_p;
 
 				switch(message->configuration.mode) {
 				case 0:
-					baseband_processor = new NarrowbandAMAudio();
+					baseband_thread_data.baseband_processor = new NarrowbandAMAudio();
 					break;
 
 				case 1:
-					baseband_processor = new NarrowbandFMAudio();
+					baseband_thread_data.baseband_processor = new NarrowbandFMAudio();
 					break;
 
 				case 2:
-					baseband_processor = new WidebandFMAudio();
+					baseband_thread_data.baseband_processor = new WidebandFMAudio();
 					break;
 
 				case 3:
-					baseband_processor = new AISProcessor();
+					baseband_thread_data.baseband_processor = new AISProcessor();
 					break;
 
 				case 4:
-					baseband_processor = new WidebandSpectrum();
+					baseband_thread_data.baseband_processor = new WidebandSpectrum();
 					break;
 
 				case 5:
-					baseband_processor = new TPMSProcessor();
+					baseband_thread_data.baseband_processor = new TPMSProcessor();
 					break;
 
 				default:
 					break;
 				}
 
-				if( baseband_processor ) {
+				if( baseband_thread_data.baseband_processor ) {
 					if( direction == baseband::Direction::Receive ) {
 						rf::rssi::start();
 					}
@@ -334,7 +340,7 @@ int main(void) {
 				}
 			}
 
-			baseband_configuration = message->configuration;
+			baseband_thread_data.baseband_configuration = message->configuration;
 		}
 	);
 
