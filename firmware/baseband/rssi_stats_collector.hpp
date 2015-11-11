@@ -37,6 +37,12 @@ public:
 			return;
 		}
 
+		if( statistics.count == 0 ) {
+			const auto value_0 = *p;
+			statistics.min = value_0;
+			statistics.max = value_0;
+		}
+		
 		const auto end = &p[buffer.count];
 		while(p < end) {
 			const uint32_t value = *(p++);
@@ -58,9 +64,6 @@ public:
 			callback(statistics);
 			statistics.accumulator = 0;
 			statistics.count = 0;
-			const auto value_0 = *p;
-			statistics.min = value_0;
-			statistics.max = value_0;
 		}
 	}
 
