@@ -79,75 +79,118 @@
 #include <string>
 #include <bitset>
 
-constexpr auto baseband_thread_priority = NORMALPRIO + 20;
-constexpr auto rssi_thread_priority = NORMALPRIO + 10;
+class ThreadBase {
+public:
+	constexpr ThreadBase(
+		const char* const name
+	) : name { name }
+	{
+	}
 
-struct baseband_thread_data_t {
+	static msg_t fn(void* arg) {
+		auto obj = static_cast<ThreadBase*>(arg);
+		chRegSetThreadName(obj->name);
+		obj->run();
+
+		return 0;
+	}
+
+	virtual void run() = 0;
+
+private:
+	const char* const name;
+};
+
+class BasebandThread : public ThreadBase {
+public:
+	BasebandThread(
+	) : ThreadBase { "baseband" }
+	{
+	}
+
+	Thread* start(const tprio_t priority) {
+		return chThdCreateStatic(wa, sizeof(wa),
+			priority, ThreadBase::fn,
+			this
+		);
+	}
+
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
 	BasebandProcessor* baseband_processor { nullptr };
 	BasebandConfiguration baseband_configuration;
-};
 
-static WORKING_AREA(baseband_thread_wa, 8192);
-static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
-	auto thread_data = static_cast<const baseband_thread_data_t*>(arg);
-	chRegSetThreadName("baseband");
+private:
+	WORKING_AREA(wa, 2048);
 
-	BasebandStatsCollector stats {
-		chSysGetIdleThread(),
-		thread_data->thread_main,
-		thread_data->thread_rssi,
-		chThdSelf()
-	};
-
-	while(true) {
-		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-		const buffer_c8_t buffer {
-			buffer_tmp.p, buffer_tmp.count, thread_data->baseband_configuration.sampling_rate
+	void run() override {
+		BasebandStatsCollector stats {
+			chSysGetIdleThread(),
+			thread_main,
+			thread_rssi,
+			chThdSelf()
 		};
 
-		if( thread_data->baseband_processor ) {
-			thread_data->baseband_processor->execute(buffer);
+		while(true) {
+			// TODO: Place correct sampling rate into buffer returned here:
+			const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
+			const buffer_c8_t buffer {
+				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
+			};
+
+			if( baseband_processor ) {
+				baseband_processor->execute(buffer);
+			}
+
+			stats.process(buffer,
+				[](const BasebandStatistics statistics) {
+					const BasebandStatisticsMessage message { statistics };
+					shared_memory.application_queue.push(message);
+				}
+			);
 		}
-
-		stats.process(buffer,
-			[](const BasebandStatistics statistics) {
-				const BasebandStatisticsMessage message { statistics };
-				shared_memory.application_queue.push(message);
-			}
-		);
 	}
-}
-
-struct rssi_thread_data_t {
-	uint32_t sampling_rate;
 };
 
-static WORKING_AREA(rssi_thread_wa, 128);
-static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
-	auto thread_data = static_cast<const rssi_thread_data_t*>(arg);
-	chRegSetThreadName("rssi");
+class RSSIThread : public ThreadBase {
+public:
+	RSSIThread(
+	) : ThreadBase { "rssi" }
+	{
+	}
 
-	RSSIStatisticsCollector stats;
-
-	while(true) {
-		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
-		const rf::rssi::buffer_t buffer {
-			buffer_tmp.p, buffer_tmp.count, thread_data->sampling_rate
-		};
-
-		stats.process(
-			buffer,
-			[](const RSSIStatistics statistics) {
-				const RSSIStatisticsMessage message { statistics };
-				shared_memory.application_queue.push(message);
-			}
+	Thread* start(const tprio_t priority) {
+		return chThdCreateStatic(wa, sizeof(wa),
+			priority, ThreadBase::fn,
+			this
 		);
 	}
-}
+
+	uint32_t sampling_rate { 400000 };
+
+private:
+	WORKING_AREA(wa, 128);
+
+	void run() override {
+		RSSIStatisticsCollector stats;
+
+		while(true) {
+			// TODO: Place correct sampling rate into buffer returned here:
+			const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
+			const rf::rssi::buffer_t buffer {
+				buffer_tmp.p, buffer_tmp.count, sampling_rate
+			};
+
+			stats.process(
+				buffer,
+				[](const RSSIStatistics statistics) {
+					const RSSIStatisticsMessage message { statistics };
+					shared_memory.application_queue.push(message);
+				}
+			);
+		}
+	}
+};
 
 extern "C" {
 
@@ -170,8 +213,8 @@ void __late_init(void) {
 
 }
 
-static baseband_thread_data_t baseband_thread_data;
-static rssi_thread_data_t rssi_thread_data { 400000 };
+static BasebandThread baseband_thread;
+static RSSIThread rssi_thread;
 
 static void init() {
 	i2s::i2s0::configure(
@@ -198,18 +241,12 @@ static void init() {
 
 	const auto thread_main = chThdSelf();
 	
-	const auto thread_rssi = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
-		rssi_thread_priority, rssi_fn,
-		&rssi_thread_data
-	);
+	const auto thread_rssi = rssi_thread.start(NORMALPRIO + 10);
 
-	baseband_thread_data.thread_main = thread_main;
-	baseband_thread_data.thread_rssi = thread_rssi;
+	baseband_thread.thread_main = thread_main;
+	baseband_thread.thread_rssi = thread_rssi;
 
-	chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
-		baseband_thread_priority, baseband_fn,
-		&baseband_thread_data
-	);
+	baseband_thread.start(NORMALPRIO + 20);
 }
 
 static void shutdown() {
@@ -275,8 +312,8 @@ private:
 	}
 
 	void handle_spectrum() {
-		if( baseband_thread_data.baseband_processor ) {
-			baseband_thread_data.baseband_processor->update_spectrum();
+		if( baseband_thread.baseband_processor ) {
+			baseband_thread.baseband_processor->update_spectrum();
 		}
 	}
 };
@@ -295,49 +332,49 @@ int main(void) {
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
 		[&message_handlers](const Message* const p) {
 			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-			if( message->configuration.mode != baseband_thread_data.baseband_configuration.mode ) {
+			if( message->configuration.mode != baseband_thread.baseband_configuration.mode ) {
 
-				if( baseband_thread_data.baseband_processor ) {
+				if( baseband_thread.baseband_processor ) {
 					i2s::i2s0::tx_mute();
 					baseband::dma::disable();
 					rf::rssi::stop();
 				}
 
 				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-				auto old_p = baseband_thread_data.baseband_processor;
-				baseband_thread_data.baseband_processor = nullptr;
+				auto old_p = baseband_thread.baseband_processor;
+				baseband_thread.baseband_processor = nullptr;
 				delete old_p;
 
 				switch(message->configuration.mode) {
 				case 0:
-					baseband_thread_data.baseband_processor = new NarrowbandAMAudio();
+					baseband_thread.baseband_processor = new NarrowbandAMAudio();
 					break;
 
 				case 1:
-					baseband_thread_data.baseband_processor = new NarrowbandFMAudio();
+					baseband_thread.baseband_processor = new NarrowbandFMAudio();
 					break;
 
 				case 2:
-					baseband_thread_data.baseband_processor = new WidebandFMAudio();
+					baseband_thread.baseband_processor = new WidebandFMAudio();
 					break;
 
 				case 3:
-					baseband_thread_data.baseband_processor = new AISProcessor();
+					baseband_thread.baseband_processor = new AISProcessor();
 					break;
 
 				case 4:
-					baseband_thread_data.baseband_processor = new WidebandSpectrum();
+					baseband_thread.baseband_processor = new WidebandSpectrum();
 					break;
 
 				case 5:
-					baseband_thread_data.baseband_processor = new TPMSProcessor();
+					baseband_thread.baseband_processor = new TPMSProcessor();
 					break;
 
 				default:
 					break;
 				}
 
-				if( baseband_thread_data.baseband_processor ) {
+				if( baseband_thread.baseband_processor ) {
 					if( direction == baseband::Direction::Receive ) {
 						rf::rssi::start();
 					}
@@ -345,7 +382,7 @@ int main(void) {
 				}
 			}
 
-			baseband_thread_data.baseband_configuration = message->configuration;
+			baseband_thread.baseband_configuration = message->configuration;
 		}
 	);
 
