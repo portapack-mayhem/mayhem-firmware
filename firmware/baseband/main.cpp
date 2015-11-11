@@ -121,9 +121,13 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 	}
 }
 
+struct rssi_thread_data_t {
+	uint32_t sampling_rate;
+};
+
 static WORKING_AREA(rssi_thread_wa, 128);
 static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
-	(void)arg;
+	auto thread_data = static_cast<const rssi_thread_data_t*>(arg);
 	chRegSetThreadName("rssi");
 
 	RSSIStatisticsCollector stats;
@@ -132,7 +136,7 @@ static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
 		const rf::rssi::buffer_t buffer {
-			buffer_tmp.p, buffer_tmp.count, 400000
+			buffer_tmp.p, buffer_tmp.count, thread_data->sampling_rate
 		};
 
 		stats.process(
@@ -167,6 +171,7 @@ void __late_init(void) {
 }
 
 static baseband_thread_data_t baseband_thread_data;
+static rssi_thread_data_t rssi_thread_data { 400000 };
 
 static void init() {
 	i2s::i2s0::configure(
@@ -195,7 +200,7 @@ static void init() {
 	
 	const auto thread_rssi = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
 		rssi_thread_priority, rssi_fn,
-		nullptr
+		&rssi_thread_data
 	);
 
 	baseband_thread_data.thread_main = thread_main;
