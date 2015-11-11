@@ -69,7 +69,9 @@ struct RSSIStatistics {
 class RSSIStatisticsMessage : public Message {
 public:
 	constexpr RSSIStatisticsMessage(
-	) : Message { ID::RSSIStatistics }
+		const RSSIStatistics& statistics
+	) : Message { ID::RSSIStatistics },
+		statistics { statistics }
 	{
 	}
 
@@ -87,7 +89,9 @@ struct BasebandStatistics {
 class BasebandStatisticsMessage : public Message {
 public:
 	constexpr BasebandStatisticsMessage(
-	) : Message { ID::BasebandStatistics }
+		const BasebandStatistics& statistics
+	) : Message { ID::BasebandStatistics },
+		statistics { statistics }
 	{
 	}
 

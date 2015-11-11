@@ -113,8 +113,7 @@ static __attribute__((noreturn)) msg_t baseband_fn(void *arg) {
 
 		stats.process(buffer,
 			[](const BasebandStatistics statistics) {
-				BasebandStatisticsMessage message;
-				message.statistics = statistics;
+				const BasebandStatisticsMessage message { statistics };
 				shared_memory.application_queue.push(message);
 			}
 		);
@@ -138,8 +137,7 @@ static __attribute__((noreturn)) msg_t rssi_fn(void *arg) {
 		stats.process(
 			buffer,
 			[](const RSSIStatistics statistics) {
-				RSSIStatisticsMessage message;
-				message.statistics = statistics;
+				const RSSIStatisticsMessage message { statistics };
 				shared_memory.application_queue.push(message);
 			}
 		);
