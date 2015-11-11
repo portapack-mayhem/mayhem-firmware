@@ -69,8 +69,7 @@ struct RSSIStatistics {
 class RSSIStatisticsMessage : public Message {
 public:
 	constexpr RSSIStatisticsMessage(
-	) : Message { ID::RSSIStatistics },
-		statistics { }
+	) : Message { ID::RSSIStatistics }
 	{
 	}
 
@@ -88,8 +87,7 @@ struct BasebandStatistics {
 class BasebandStatisticsMessage : public Message {
 public:
 	constexpr BasebandStatisticsMessage(
-	) : Message { ID::BasebandStatistics },
-		statistics { }
+	) : Message { ID::BasebandStatistics }
 	{
 	}
 
@@ -101,14 +99,8 @@ struct ChannelStatistics {
 	size_t count;
 
 	constexpr ChannelStatistics(
-	) : max_db { -120 },
-		count { 0 }
-	{
-	}
-
-	constexpr ChannelStatistics(
-		int32_t max_db,
-		size_t count
+		int32_t max_db = -120,
+		size_t count = 0
 	) : max_db { max_db },
 		count { count }
 	{
@@ -118,8 +110,7 @@ struct ChannelStatistics {
 class ChannelStatisticsMessage : public Message {
 public:
 	constexpr ChannelStatisticsMessage(
-	) : Message { ID::ChannelStatistics },
-		statistics { }
+	) : Message { ID::ChannelStatistics }
 	{
 	}
 
@@ -200,17 +191,12 @@ public:
 
 struct AISPacket {
 	std::bitset<1024> payload;
-	size_t bits_received;
-
-	AISPacket(
-	) : bits_received { 0 }
-	{
-	}
+	size_t bits_received { 0 };
 };
 
 class AISPacketMessage : public Message {
 public:
-	AISPacketMessage(
+	constexpr AISPacketMessage(
 	) : Message { ID::AISPacket }
 	{
 	}
@@ -220,17 +206,12 @@ public:
 
 struct TPMSPacket {
 	std::bitset<1024> payload;
-	size_t bits_received;
-
-	TPMSPacket(
-	) : bits_received { 0 }
-	{
-	}
+	size_t bits_received { 0 };
 };
 
 class TPMSPacketMessage : public Message {
 public:
-	TPMSPacketMessage(
+	constexpr TPMSPacketMessage(
 	) : Message { ID::TPMSPacket }
 	{
 	}

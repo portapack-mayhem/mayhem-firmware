@@ -49,13 +49,8 @@ public:
 
 		if( count >= samples_per_update ) {
 			const float max_squared_f = max_squared;
-			const float max_db_f = complex16_mag_squared_to_dbv_norm(max_squared_f);
-			const int32_t max_db = max_db_f;
-			const ChannelStatistics statistics {
-				.max_db = max_db,
-				.count = count,
-			};
-			callback(statistics);
+			const int32_t max_db = complex16_mag_squared_to_dbv_norm(max_squared_f);
+			callback({ max_db, count });
 
 			max_squared = 0;
 			count = 0;
