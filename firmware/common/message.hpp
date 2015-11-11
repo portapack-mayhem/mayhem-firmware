@@ -159,6 +159,16 @@ struct BasebandConfiguration {
 	int32_t mode;
 	uint32_t sampling_rate;
 	size_t decimation_factor;
+
+	constexpr BasebandConfiguration(
+		int32_t mode = -1,
+		uint32_t sampling_rate = 0,
+		size_t decimation_factor = 1
+	) : mode { mode },
+		sampling_rate { sampling_rate },
+		decimation_factor { decimation_factor }
+	{
+	}
 };
 
 class BasebandConfigurationMessage : public Message {
