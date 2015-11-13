@@ -143,8 +143,6 @@ void init() {
 }
 
 void shutdown() {
-	sdcStop(&SDCD1);
-
 	display.shutdown();
 	
 	radio::disable();

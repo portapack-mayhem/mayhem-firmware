@@ -283,6 +283,8 @@ int main(void) {
 
 	event_dispatcher.run();
 
+	sdcStop(&SDCD1);
+
 	portapack::shutdown();
 	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
 
