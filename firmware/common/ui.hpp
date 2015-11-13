@@ -83,6 +83,10 @@ struct Color {
 	static constexpr Color white() {
 		return { 255, 255, 255 };
 	}
+	
+	static constexpr Color grey() {
+		return { 127, 127, 127 };
+	}
 };
 #if 0
 enum class CardinalDirection : uint8_t {

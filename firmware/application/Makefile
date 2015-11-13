@@ -164,6 +164,7 @@ CPPSRC = main.cpp \
          ui_rds.cpp \
          ui_lcr.cpp \
          ui_whistle.cpp \
+         ui_jammer.cpp \
          ui_afsksetup.cpp \
          ui_console.cpp \
          ui_receiver.cpp \

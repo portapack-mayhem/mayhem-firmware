@@ -76,7 +76,6 @@ WhistleView::WhistleView(
 	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
 	
 	add_children({ {
-		&button_scan,
 		&button_transmit,
 		&button_exit
 	} });
@@ -98,17 +97,17 @@ WhistleView::WhistleView(
 		shared_memory.afsk_transmit_done = false;
 		shared_memory.afsk_repeat = 5;		// DEFAULT
 
-		text_status.set("Send...");
+		text_status.set("Send...");*/
 		
-		transmitter_model.enable();*/
+		transmitter_model.enable();
 	};
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();
 	};
 
-	static VirtualTimer vt1;
-	msg_t msg, result;
+	//static VirtualTimer vt1;
+	//msg_t msg, result;
 
 	/*static EvTimer evt;
 	static EventListener el0;
@@ -119,14 +118,14 @@ WhistleView::WhistleView(
 	
 	//chVTSet(&vt1, MS2ST(2000), whistle_th, (void *)&mbox);
 	
-    while(1) {
+    //while(1) {
         /*result = chMBFetch(&mbox, &msg, TIME_INFINITE);
         if(result == RDY_OK) {
             if(msg & 1)
                 button_scan.set_text("POUET");
         }*/
-        chThdSleepMilliseconds(500);
-    }
+        //chThdSleepMilliseconds(500);
+    //}
 	
 }
 

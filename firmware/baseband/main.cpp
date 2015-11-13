@@ -889,6 +889,71 @@ private:
 	int32_t sample, sig, frq;
 };
 
+#define POLY_MASK_32 0xB4BCD35C
+
+class JammerProcessor : public BasebandProcessor {
+public:
+	void execute(buffer_c8_t buffer) override {
+        
+		for (size_t i = 0; i<buffer.count; i++) {
+
+			/*if (s > 3000000) {
+				s = 0;
+				feedback = lfsr & 1;
+				lfsr >>= 1;
+				if (feedback == 1)
+					lfsr ^= POLY_MASK_32;
+			} else {
+				s++;
+			}
+
+			aphase += lfsr;*/
+			
+			/*if (s >= 10) {
+				s = 0;
+				aphase += 353205;	// DEBUG
+			} else {
+				s++;
+			}
+			
+			sample = sintab[(aphase & 0x03FF0000)>>16];*/
+			
+			if (s >= 10) {
+				if (sample < 128)
+					sample++;
+				else
+					sample = -127;
+				s = 0;
+			} else {
+				s++;
+			}
+			
+			//FM
+			frq = sample << 17;		// Bandwidth
+			
+			//65536 -> 0.6M
+			//131072 -> 1.2M
+			
+			phase = (phase + frq);
+			sphase = phase + (256<<16);
+
+			re = sintab[(sphase & 0x03FF0000)>>16];
+			im = sintab[(phase & 0x03FF0000)>>16];
+			
+			buffer.p[i] = {(int8_t)re,(int8_t)im};
+		}
+	}
+
+private:
+    int32_t s, lfsr32 = 0xABCDE;
+	int8_t re, im;
+	int feedback;
+	int32_t lfsr;
+    uint32_t sample_count;
+	uint32_t aphase, phase, sphase;
+	int32_t sample, frq;
+};
+
 static BasebandProcessor* baseband_processor { nullptr };
 static BasebandConfiguration baseband_configuration;
 
@@ -1162,6 +1227,11 @@ int main(void) {
 			case 17:
 				direction = baseband::Direction::Transmit;
 				baseband_processor = new ToneProcessor();
+				break;
+				
+			case 18:
+				direction = baseband::Direction::Transmit;
+				baseband_processor = new JammerProcessor();
 				break;
 
 			default:

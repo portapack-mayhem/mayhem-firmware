@@ -33,6 +33,7 @@
 #include "ui_rds.hpp"
 #include "ui_lcr.hpp"
 #include "ui_whistle.hpp"
+#include "ui_jammer.hpp"
 
 #include "portapack.hpp"
 #include "m4_startup.hpp"
@@ -105,7 +106,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<10>({ {
 		{ "Play dead", ui::Color::red(),  [&nav](){ nav.push(new PlayDeadView 		{ nav, false }); } },
 		{ "Receiver", ui::Color::white(), [&nav](){ nav.push(new ReceiverView       { nav, receiver_model }); } },
-		{ "Capture", ui::Color::white(),  [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Jammer", ui::Color::white(),   [&nav](){ nav.push(new JammerView			{ nav, transmitter_model }); } },
 		{ "Whistle", ui::Color::white(),  [&nav](){ nav.push(new WhistleView 		{ nav, transmitter_model }); } },
 		{ "RDS TX", ui::Color::yellow(),  [&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
 		{ "LCR TX", ui::Color::orange(),  [&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
