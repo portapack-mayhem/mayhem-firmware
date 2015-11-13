@@ -283,6 +283,7 @@ int main(void) {
 
 	event_dispatcher.run();
 
+	sdcDisconnect(&SDCD1);
 	sdcStop(&SDCD1);
 
 	portapack::shutdown();
