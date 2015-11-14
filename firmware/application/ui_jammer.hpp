@@ -51,13 +51,20 @@ private:
 	rf::Frequency range3_min;
 	rf::Frequency range3_max;
 	
+	rf::Frequency range1_center;
+	rf::Frequency range1_width;
+	rf::Frequency range2_center;
+	rf::Frequency range2_width;
+	rf::Frequency range3_center;
+	rf::Frequency range3_width;
+	
 	typedef struct rangepreset {
 		bool active;
 		rf::Frequency min;
 		rf::Frequency max;
 	} rangepreset;
 	
-	const rangepreset range_presets[8][3] = {
+	const rangepreset range_presets[9][3] = {
 		// Orange
 		{{ true, 935000000, 945000000 },	// GSM 900
 		{ true, 1808000000, 1832000000 },	// GSM 1800
@@ -98,6 +105,11 @@ private:
 		
 		// ISM 433
 		{{ true, 433050000, 434790000 },	// BW: 0.2%
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		
+		// Reims 164
+		{{ true, 164000000 - 200000, 164000000 + 200000},	// BW: 400kHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }}
 		
@@ -164,7 +176,7 @@ private:
 	};
 	OptionsField options_preset {
 		{ 10 * 8, 3 * 16 },
-		8,
+		9,
 		{
 			{ "Orange  ", 0 },
 			{ "SFR     ", 1 },
@@ -174,6 +186,7 @@ private:
 			{ "DECT    ", 5 },
 			{ "Optifib ", 6 },
 			{ "ISM 433 ", 7 },
+			{ "Reims   ", 8 },
 		}
 	};
 	

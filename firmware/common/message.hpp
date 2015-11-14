@@ -43,6 +43,7 @@ public:
 		FSKPacket = 7,
 		TestResults = 8,
 		TXDone = 9,
+		Retune = 10,
 		MAX
 	};
 
@@ -260,6 +261,16 @@ public:
 	}
 	
 	int n = 0;
+};
+
+class RetuneMessage : public Message {
+public:
+	RetuneMessage(
+	) : Message { ID::Retune }
+	{
+	}
+	
+	int64_t freq = 0;
 };
 
 class MessageHandlerMap {

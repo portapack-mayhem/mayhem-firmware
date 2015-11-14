@@ -535,6 +535,11 @@ int main(void) {
 		const auto message = static_cast<const TXDoneMessage*>(p);
 		(void)message;
 	};
+	
+	context.message_map[Message::ID::Retune] = [](const Message* const p) {
+		const auto message = static_cast<const RetuneMessage*>(p);
+		(void)message;
+	};
 
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 

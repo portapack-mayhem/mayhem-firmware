@@ -30,6 +30,13 @@ struct TouchADCFrame {
 	uint32_t dr[8];
 };
 
+struct JammerRange {
+	bool active;
+	int64_t center;
+	int64_t width;
+	uint32_t duration;
+};
+
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
 	MessageQueue baseband_queue;
@@ -50,6 +57,8 @@ struct SharedMemory {
 	uint8_t afsk_repeat;
 	uint32_t afsk_fmmod;
 	bool afsk_transmit_done;
+	
+	JammerRange jammer_ranges[16];
 };
 
 extern SharedMemory& shared_memory;

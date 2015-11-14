@@ -98,13 +98,31 @@ void JammerView::updfreq(uint8_t id, rf::Frequency f) {
 	std::string bw;
 	
 	for (c = 0; c < 3; c++) {
-		if (c == 0)	center = (range1_min + range1_max) / 2;
-		if (c == 1)	center = (range2_min + range2_max) / 2;
-		if (c == 2)	center = (range3_min + range3_max) / 2;
+		if (c == 0)	{
+			center = (range1_min + range1_max) / 2;
+			range1_center = center;
+		}
+		if (c == 1)	{
+			center = (range2_min + range2_max) / 2;
+			range2_center = center;
+		}
+		if (c == 2)	{
+			center = (range3_min + range3_max) / 2;
+			range3_center = center;
+		}
 		
-		if (c == 0)	bw = to_string_dec_int(abs(range1_max - range1_min) / 1000, 5);
-		if (c == 1)	bw = to_string_dec_int(abs(range2_max - range2_min) / 1000, 5);
-		if (c == 2)	bw = to_string_dec_int(abs(range3_max - range3_min) / 1000, 5);
+		if (c == 0)	{
+			range1_width = abs(range1_max - range1_min) / 1000;
+			bw = to_string_dec_int(range1_width, 5);
+		}
+		if (c == 1)	{
+			range2_width = abs(range2_max - range2_min) / 1000;
+			bw = to_string_dec_int(range2_width, 5);
+		}
+		if (c == 2)	{
+			range3_width = abs(range3_max - range3_min) / 1000;
+			bw = to_string_dec_int(range3_width, 5);
+		}
 		
 		auto center_mhz = to_string_dec_int(center / 1000000, 4);
 		auto center_hz100 = to_string_dec_int((center / 100) % 10000, 4, '0');
@@ -132,6 +150,7 @@ JammerView::JammerView(
 	TransmitterModel& transmitter_model
 ) : transmitter_model(transmitter_model)
 {
+	
 	static constexpr Style style_val {
 		.font = font::fixed_8x16,
 		.background = Color::green(),
@@ -151,7 +170,6 @@ JammerView::JammerView(
 	};
 	
 	transmitter_model.set_modulation(18);
-	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
 	
 	add_children({ {
 		&text_type,
@@ -211,24 +229,45 @@ JammerView::JammerView(
 		nav.push(new_view);
 	};
 	
-	button_transmit.on_select = [this,&transmitter_model](Button&){
-		/*uint16_t c;
-		ui::Context context;
+	button_transmit.on_select = [this,&transmitter_model](Button&) {
+		uint8_t i = 0;
+		rf::Frequency t, range_lower;
 		
-		make_frame();
-			
-		shared_memory.afsk_samples_per_bit = 228000/persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
-		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
-
-		for (c = 0; c < 256; c++) {
-			shared_memory.lcrdata[c] = this->lcrframe[c];
+		context().message_map[Message::ID::Retune] = [this, &transmitter_model](const Message* const p) {
+			const auto message = static_cast<const RetuneMessage*>(p);
+			if (message->freq > 0) {
+				transmitter_model.set_tuning_frequency(message->freq);
+			}
+		};
+		
+		for (i = 0; i < 16; i++) {
+			shared_memory.jammer_ranges[i].active = false;
 		}
 		
-		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5;		// DEFAULT
-
-		text_status.set("Send...");*/
+		if (range1_min > range1_max) {
+			t = range1_min;
+			range1_min = range1_max;
+			range1_max = t;
+		}
+		range_lower = range1_min;
+		for (i = 0;;) {
+			if (range1_max - range_lower > 1000000) {
+				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
+				shared_memory.jammer_ranges[i].width = 1000000 / 10;
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000/10;
+				range_lower += 1000000;
+			} else {
+				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
+				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000/10;
+				break;
+			}
+			i++;
+		}
+		
+		transmitter_model.set_tuning_frequency(shared_memory.jammer_ranges[0].center);
 		
 		if (jamming == true) {
 			jamming = false;

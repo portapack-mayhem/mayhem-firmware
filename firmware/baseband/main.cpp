@@ -851,7 +851,7 @@ private:
 	TXDoneMessage message;
 };
 
-class ToneProcessor : public BasebandProcessor {
+/*class ToneProcessor : public BasebandProcessor {
 public:
 	void execute(buffer_c8_t buffer) override {
         
@@ -887,7 +887,7 @@ private:
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
 	int32_t sample, sig, frq;
-};
+};*/
 
 #define POLY_MASK_32 0xB4BCD35C
 
@@ -918,19 +918,50 @@ public:
 			
 			sample = sintab[(aphase & 0x03FF0000)>>16];*/
 			
-			if (s >= 10) {
-				if (sample < 128)
-					sample++;
-				else
-					sample = -127;
+			// Duration timer
+			// 
+			if (s >= 10000) { //shared_memory.jammer_ranges[ir].duration
 				s = 0;
+				for (;;) {
+					ir++;
+					if (ir > 15) ir = 0;
+					if (shared_memory.jammer_ranges[ir].active == true) break;
+				}
+				jammer_bw = shared_memory.jammer_ranges[ir].width;
+				
+				if( message.is_free() ) {
+					message.freq = shared_memory.jammer_ranges[ir].center;
+					shared_memory.application_queue.push(&message);
+				}
 			} else {
 				s++;
 			}
 			
-			//FM
-			frq = sample << 17;		// Bandwidth
+			// Ramp
+			/*if (r >= 10) {
+				if (sample < 128)
+					sample++;
+				else
+					sample = -127;
+				r = 0;
+			} else {
+				r++;
+			}*/
 			
+			// Phase
+			if (r >= 70) {
+				aphase += ((aphase>>4) ^ 0x4573) << 14;
+				r = 0;
+			} else {
+				r++;
+			}
+			
+			aphase += 35320;
+			sample = sintab[(aphase & 0x03FF0000)>>16];
+			
+			//FM
+			frq = sample * jammer_bw;		// Bandwidth
+
 			//65536 -> 0.6M
 			//131072 -> 1.2M
 			
@@ -945,13 +976,16 @@ public:
 	}
 
 private:
-    int32_t s, lfsr32 = 0xABCDE;
-	int8_t re, im;
+    int32_t lfsr32 = 0xABCDE;
+    uint32_t s;
+	int8_t r, ir, re, im;
+	int64_t jammer_bw, jammer_center;
 	int feedback;
 	int32_t lfsr;
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
 	int32_t sample, frq;
+	RetuneMessage message;
 };
 
 static BasebandProcessor* baseband_processor { nullptr };
@@ -1224,10 +1258,10 @@ int main(void) {
 				baseband_processor = new LCRFSKProcessor();
 				break;
 			
-			case 17:
+			/*case 17:
 				direction = baseband::Direction::Transmit;
 				baseband_processor = new ToneProcessor();
-				break;
+				break;*/
 				
 			case 18:
 				direction = baseband::Direction::Transmit;
