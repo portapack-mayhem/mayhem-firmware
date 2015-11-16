@@ -31,12 +31,12 @@ public:
 		history = (history << 1) | (bit & 1);
 	}
 
-	uint32_t value() const {
+	uint64_t value() const {
 		return history;
 	}
 
 private:
-	uint32_t history { 0 };
+	uint64_t history { 0 };
 };
 
 class BitPattern {
@@ -49,24 +49,24 @@ public:
 	}
 	
 	constexpr BitPattern(
-		const uint32_t code,
+		const uint64_t code,
 		const size_t code_length,
 		const size_t maximum_hanning_distance = 0
 	) : code_ { code },
-		mask_ { (1U << code_length) - 1U },
+		mask_ { (1ULL << code_length) - 1ULL },
 		maximum_hanning_distance_ { maximum_hanning_distance }
 	{
 	}
 
 	bool operator()(const BitHistory& history, const size_t) const {
 		const auto delta_bits = (history.value() ^ code_) & mask_;
-		const size_t count = __builtin_popcountl(delta_bits);
+		const size_t count = __builtin_popcountll(delta_bits);
 		return (count <= maximum_hanning_distance_);
 	}
 
 private:
-	uint32_t code_;
-	uint32_t mask_;
+	uint64_t code_;
+	uint64_t mask_;
 	size_t maximum_hanning_distance_;
 };
 
