@@ -26,34 +26,13 @@
 #include <cstdlib>
 #include <string>
 
+#include "field_reader.hpp"
 #include "crc.hpp"
 
 // TODO: Move string formatting elsewhere!!!
 #include "ui_widget.hpp"
 
 namespace baseband {
-
-template<typename T, typename BitRemap>
-class FieldReader {
-public:
-	constexpr FieldReader(
-		const T& data
-	) : data { data }
-	{
-	}
-
-	uint32_t read(const size_t start_bit, const size_t length) const {
-		uint32_t value = 0;
-		for(size_t i=start_bit; i<(start_bit + length); i++) {
-			value = (value << 1) | data[bit_remap(i)];
-		}
-		return value;
-	}
-
-private:
-	const T& data;
-	const BitRemap bit_remap { };
-};
 
 namespace ais {
 
@@ -69,8 +48,8 @@ struct CRCBitRemap {
 	}
 };
 
-using FieldReader = baseband::FieldReader<std::bitset<1024>, BitRemap>;
-using CRCFieldReader = baseband::FieldReader<std::bitset<1024>, CRCBitRemap>;
+using FieldReader = ::FieldReader<std::bitset<1024>, BitRemap>;
+using CRCFieldReader = ::FieldReader<std::bitset<1024>, CRCBitRemap>;
 
 struct PacketLengthRange {
 	constexpr PacketLengthRange(
