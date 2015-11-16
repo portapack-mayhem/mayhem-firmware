@@ -37,20 +37,6 @@
 #include <cstddef>
 #include <bitset>
 
-struct NeverMatch {
-	bool operator()(const BitHistory&, const size_t) const {
-		return false;
-	}
-};
-
-struct FixedLength {
-	bool operator()(const BitHistory&, const size_t symbols_received) const {
-		return symbols_received >= length;
-	}
-
-	const size_t length;
-};
-
 // Translate+rectangular filter
 // sample=153.6k, deviation=38400, symbol=19200
 // Length: 8 taps, 1 symbols, 2 cycles of sinusoid

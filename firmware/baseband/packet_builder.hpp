@@ -29,6 +29,20 @@
 
 #include "bit_pattern.hpp"
 
+struct NeverMatch {
+	bool operator()(const BitHistory&, const size_t) const {
+		return false;
+	}
+};
+
+struct FixedLength {
+	bool operator()(const BitHistory&, const size_t symbols_received) const {
+		return symbols_received >= length;
+	}
+
+	const size_t length;
+};
+
 template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
