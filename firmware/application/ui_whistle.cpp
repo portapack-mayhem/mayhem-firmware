@@ -73,7 +73,7 @@ WhistleView::WhistleView(
     chMBInit(&mbox, mbox_buffer, 3);
 	
 	transmitter_model.set_modulation(17);
-	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
+	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	
 	add_children({ {
 		&button_transmit,

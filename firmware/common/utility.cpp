@@ -19,8 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <ch.h>
-
 #include "utility.hpp"
 
 #include <cstdint>
@@ -114,23 +112,4 @@ static constexpr uint32_t gcd_top(const uint32_t u, const uint32_t v) {
 
 uint32_t gcd(const uint32_t u, const uint32_t v) {
 	return gcd_top(u, v);
-}
-
-/* Memory management, overriding toolchain new, which uses malloc */
-/* TODO: Move to something like "memory.cpp"! Not utility.cpp. */
-
-void* operator new(size_t size) {
-	return chHeapAlloc(0x0, size);
-}
-
-void* operator new[](size_t size) {
-	return chHeapAlloc(0x0, size);
-}
-
-void operator delete(void* p) noexcept {
-	chHeapFree(p);
-}
-
-void operator delete[](void* p) noexcept {
-	chHeapFree(p);
 }

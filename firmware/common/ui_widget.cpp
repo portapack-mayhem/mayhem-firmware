@@ -29,6 +29,20 @@
 
 namespace ui {
 
+static bool ui_dirty = true;
+
+void dirty_set() {
+	ui_dirty = true;
+}
+
+void dirty_clear() {
+	ui_dirty = false;
+}
+
+bool is_dirty() {
+	return ui_dirty;
+}
+
 constexpr size_t to_string_max_length = 16;
 
 static char* to_string_dec_uint_internal(
@@ -156,7 +170,7 @@ void Widget::set_parent(Widget* const widget) {
 
 void Widget::set_dirty() {
 	flags.dirty = true;
-	dirty_event();
+	dirty_set();
 }
 
 bool Widget::dirty() const {
@@ -187,7 +201,7 @@ void Widget::hidden(bool hide) {
 }
 
 void Widget::focus() {
-	context().focus_manager.set_focus_widget(this);
+	context().focus_manager().set_focus_widget(this);
 }
 
 void Widget::on_focus() {
@@ -195,7 +209,7 @@ void Widget::on_focus() {
 }
 
 void Widget::blur() {
-	context().focus_manager.set_focus_widget(nullptr);
+	context().focus_manager().set_focus_widget(nullptr);
 }
 
 void Widget::on_blur() {
@@ -207,7 +221,7 @@ bool Widget::focusable() const {
 }
 
 bool Widget::has_focus() {
-	return (context().focus_manager.focus_widget() == this);
+	return (context().focus_manager().focus_widget() == this);
 }
 
 Widget* Widget::last_child_focus() const {
@@ -291,10 +305,12 @@ void View::paint(Painter& painter) {
 }
 
 void View::add_child(Widget* const widget) {
-	if( widget->parent() == nullptr ) {
-		widget->set_parent(this);
-		children_.push_back(widget);
-		widget->set_dirty();
+	if( widget ) {
+		if( widget->parent() == nullptr ) {
+			widget->set_parent(this);
+			children_.push_back(widget);
+			widget->set_dirty();
+		}
 	}
 }
 
@@ -305,11 +321,13 @@ void View::add_children(const std::vector<Widget*>& children) {
 }
 
 void View::remove_child(Widget* const widget) {
-	children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-	dirty_screen_rect += widget->screen_rect();
-	widget->set_parent(nullptr);
-	if( dirty_screen_rect ) {
-		set_dirty();
+	if( widget ) {
+		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
+		dirty_screen_rect += widget->screen_rect();
+		widget->set_parent(nullptr);
+		if( dirty_screen_rect ) {
+			set_dirty();
+		}
 	}
 }
 

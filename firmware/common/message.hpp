@@ -29,8 +29,12 @@
 
 #include "utility.hpp"
 
+#include "ch.h"
+
 class Message {
 public:
+	static constexpr size_t MAX_SIZE = 276;
+	
 	enum class ID : uint16_t {
 		/* Assign consecutive IDs. IDs are used to index array. */
 		RSSIStatistics = 0,
@@ -39,32 +43,22 @@ public:
 		ChannelSpectrum = 3,
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
-		FSKConfiguration = 6,
-		FSKPacket = 7,
-		TestResults = 8,
+		TPMSPacket = 6,
+		Shutdown = 8,
+		AISPacket = 7,
 		TXDone = 9,
-		Retune = 10,
+		SDCardStatus = 10,
+		Retune = 11,
 		MAX
 	};
 
 	constexpr Message(
 		ID id
-	) : id { id },
-		state { State::Free }
+	) : id { id }
 	{
 	}
 
-	enum class State : uint16_t {
-		Free,
-		InUse,
-	};
-
-	bool is_free() const {
-		return state == State::Free;
-	}
-
 	const ID id;
-	volatile State state;
 };
 
 struct RSSIStatistics {
@@ -77,8 +71,9 @@ struct RSSIStatistics {
 class RSSIStatisticsMessage : public Message {
 public:
 	constexpr RSSIStatisticsMessage(
+		const RSSIStatistics& statistics
 	) : Message { ID::RSSIStatistics },
-		statistics { }
+		statistics { statistics }
 	{
 	}
 
@@ -87,6 +82,8 @@ public:
 
 struct BasebandStatistics {
 	uint32_t idle_ticks { 0 };
+	uint32_t main_ticks { 0 };
+	uint32_t rssi_ticks { 0 };
 	uint32_t baseband_ticks { 0 };
 	bool saturation { false };
 };
@@ -94,8 +91,9 @@ struct BasebandStatistics {
 class BasebandStatisticsMessage : public Message {
 public:
 	constexpr BasebandStatisticsMessage(
+		const BasebandStatistics& statistics
 	) : Message { ID::BasebandStatistics },
-		statistics { }
+		statistics { statistics }
 	{
 	}
 
@@ -107,14 +105,8 @@ struct ChannelStatistics {
 	size_t count;
 
 	constexpr ChannelStatistics(
-	) : max_db { -120 },
-		count { 0 }
-	{
-	}
-
-	constexpr ChannelStatistics(
-		int32_t max_db,
-		size_t count
+		int32_t max_db = -120,
+		size_t count = 0
 	) : max_db { max_db },
 		count { count }
 	{
@@ -124,8 +116,7 @@ struct ChannelStatistics {
 class ChannelStatisticsMessage : public Message {
 public:
 	constexpr ChannelStatisticsMessage(
-	) : Message { ID::ChannelStatistics },
-		statistics { }
+	) : Message { ID::ChannelStatistics }
 	{
 	}
 
@@ -166,19 +157,20 @@ public:
 	AudioStatistics statistics;
 };
 
-/*enum bbmode {
-	RxNBAM = 1,
-	RxNBFM = 2,
-	RxWBFM = 3,
-	RxFSK = 4,
-	TxRDS = 15,
-	BBOff = 255
-};*/
-
 struct BasebandConfiguration {
 	int32_t mode;
 	uint32_t sampling_rate;
 	size_t decimation_factor;
+
+	constexpr BasebandConfiguration(
+		int32_t mode = -1,
+		uint32_t sampling_rate = 0,
+		size_t decimation_factor = 1
+	) : mode { mode },
+		sampling_rate { sampling_rate },
+		decimation_factor { decimation_factor }
+	{
+	}
 };
 
 class BasebandConfigurationMessage : public Message {
@@ -194,7 +186,7 @@ public:
 };
 
 struct ChannelSpectrum {
-	std::array<uint8_t, 256>* db { nullptr };
+	std::array<uint8_t, 256> db { { 0 } };
 	size_t db_count { 256 };
 	uint32_t sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
@@ -211,46 +203,56 @@ public:
 	ChannelSpectrum spectrum;
 };
 
-struct FSKConfiguration {
-	uint32_t symbol_rate;
-	uint32_t access_code;
-	size_t access_code_length;
-	size_t access_code_tolerance;
-	size_t packet_length;
-};
-
-class FSKConfigurationMessage : public Message {
-public:
-	constexpr FSKConfigurationMessage(
-		FSKConfiguration configuration
-	) : Message { ID::FSKConfiguration },
-		configuration(configuration)
-	{
-	}
-
-	FSKConfiguration configuration;
-};
-
 #include <bitset>
 
-struct FSKPacket {
-	std::bitset<256> payload;
-	size_t bits_received;
+struct AISPacket {
+	std::bitset<1024> payload;
+	size_t bits_received { 0 };
+};
 
-	FSKPacket(
-	) : bits_received { 0 }
+class AISPacketMessage : public Message {
+public:
+	constexpr AISPacketMessage(
+	) : Message { ID::AISPacket }
+	{
+	}
+
+	AISPacket packet;
+};
+
+struct TPMSPacket {
+	std::bitset<1024> payload;
+	size_t bits_received { 0 };
+};
+
+class TPMSPacketMessage : public Message {
+public:
+	constexpr TPMSPacketMessage(
+	) : Message { ID::TPMSPacket }
+	{
+	}
+
+	TPMSPacket packet;
+};
+
+class ShutdownMessage : public Message {
+public:
+	constexpr ShutdownMessage(
+	) : Message { ID::Shutdown }
 	{
 	}
 };
 
-class FSKPacketMessage : public Message {
+class SDCardStatusMessage : public Message {
 public:
-	FSKPacketMessage(
-	) : Message { ID::FSKPacket }
+	constexpr SDCardStatusMessage(
+		bool is_mounted
+	) : Message { ID::SDCardStatus },
+		is_mounted { is_mounted }
 	{
 	}
 
-	FSKPacket packet;
+	const bool is_mounted;
 };
 
 class TXDoneMessage : public Message {
@@ -275,14 +277,26 @@ public:
 
 class MessageHandlerMap {
 public:
-	using MessageHandler = std::function<void(const Message* const p)>;
+	using MessageHandler = std::function<void(Message* const p)>;
 
-	MessageHandler& operator[](Message::ID n) {
-		return map_[toUType(n)];
+	void register_handler(const Message::ID id, MessageHandler&& handler) {
+		if( map_[toUType(id)] != nullptr ) {
+			chDbgPanic("MsgDblReg");
+		}
+		map_[toUType(id)] = std::move(handler);
 	}
 
-	const MessageHandler& operator[](Message::ID n) const {
-		return map_[toUType(n)];
+	void unregister_handler(const Message::ID id) {
+		map_[toUType(id)] = nullptr;
+	}
+
+	void send(Message* const message) {
+		if( message->id < Message::ID::MAX ) {
+			auto& fn = map_[toUType(message->id)];
+			if( fn ) {
+				fn(message);
+			}
+		}
 	}
 
 private:

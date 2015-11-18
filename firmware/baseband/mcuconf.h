@@ -41,3 +41,7 @@
 //#define LPC_ADC1_IRQ_PRIORITY               4
 
 #define LPC43XX_M0APPTXEVENT_IRQ_PRIORITY   4
+
+/* M4 is initialized by M0, which has already started PLL1 */
+#define LPC43XX_M4_CLK                      200000000
+#define LPC43XX_M4_CLK_SRC                  0x09

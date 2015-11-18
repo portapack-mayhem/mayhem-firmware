@@ -119,8 +119,7 @@ void TransmitterModel::disable() {
 			.decimation_factor = 1,
 		}
 	};
-	shared_memory.baseband_queue.push(&message);
-	while( !message.is_free() );
+	shared_memory.baseband_queue.push(message);
 
 	radio::disable();
 }
@@ -154,13 +153,14 @@ void TransmitterModel::update_modulation() {
 }
 
 void TransmitterModel::update_baseband_configuration() {
+	radio::streaming_disable();
+
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
 
 	BasebandConfigurationMessage message { baseband_configuration };
-	shared_memory.baseband_queue.push(&message);
+	shared_memory.baseband_queue.push(message);
 
-	// Block until message is consumed, since we allocated it on the stack.
-	while( !message.is_free() );
+	radio::streaming_enable();
 }

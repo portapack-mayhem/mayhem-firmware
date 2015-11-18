@@ -21,6 +21,7 @@
 
 #include "portapack.hpp"
 #include "portapack_hal.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
@@ -131,6 +132,7 @@ void init() {
 	led_tx.setup();
 
 	clock_manager.init();
+	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 
 	clock_manager.start_audio_pll();
@@ -145,8 +147,6 @@ void init() {
 }
 
 void shutdown() {
-	sdcStop(&SDCD1);
-
 	display.shutdown();
 	
 	radio::disable();
@@ -157,6 +157,9 @@ void shutdown() {
 	// TODO: Wait a bit for supplies to discharge?
 
 	chSysDisable();
+
+	systick_stop();
+
 	hackrf::one::reset();
 }
 

@@ -188,7 +188,7 @@ LCRView::LCRView(
 	};
 	
 	transmitter_model.set_modulation(16);
-	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
+	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	memset(litteral, 0, 5*8);
 	memset(rgsb, 0, 5);
 	
@@ -222,8 +222,8 @@ LCRView::LCRView(
 	checkbox_am_e.set_value(true);
 	
 	// Recap: tx freq @ bps
-	auto fstr = to_string_dec_int(persistent_memory::tuned_frequency() / 1000, 6);
-	auto bstr = to_string_dec_int(persistent_memory::afsk_bitrate(), 4);
+	auto fstr = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
+	auto bstr = to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
 
 	strcat(finalstr, fstr.c_str());
 	strcat(finalstr, " @ ");
@@ -277,31 +277,35 @@ LCRView::LCRView(
 	button_transmit.on_select = [this,&transmitter_model](Button&){
 		uint16_t c;
 		
+		auto& message_map = context().message_map();
+		
 		make_frame();
 			
-		shared_memory.afsk_samples_per_bit = 228000/persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
-		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
+		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
+		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
+		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(65536*1024)/2280;
 
-		shared_memory.afsk_fmmod = persistent_memory::afsk_bw()*33; // ?
+		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw()*33;
 
 		memset(shared_memory.lcrdata, 0, 256);
 		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
 		
 		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = ((persistent_memory::afsk_config() >> 8) & 0xFF);
+		shared_memory.afsk_repeat = ((portapack::persistent_memory::afsk_config() >> 8) & 0xFF);
 
-		context().message_map[Message::ID::TXDone] = [this, &transmitter_model](const Message* const p) {
-			const auto message = static_cast<const TXDoneMessage*>(p);
-			if (message->n > 0) {
-				char str[8] = "0... ";
-				str[0] = hexify(message->n);
-				text_status.set(str);
-			} else {
-				text_status.set("Done ! ");
-				transmitter_model.disable();
+		message_map.register_handler(Message::ID::TXDone,
+			[this,&transmitter_model](Message* const p) {
+				const auto message = static_cast<const TXDoneMessage*>(p);
+				if (message->n > 0) {
+					char str[8] = "0... ";
+					str[0] = hexify(message->n);
+					text_status.set(str);
+				} else {
+					text_status.set("Done ! ");
+					transmitter_model.disable();
+				}
 			}
-		};
+		);
 
 		text_status.set("0... ");
 		

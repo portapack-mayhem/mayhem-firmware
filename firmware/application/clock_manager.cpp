@@ -163,24 +163,16 @@ constexpr si5351::MultisynthFractional si5351_ms_10m {
 };
 constexpr auto si5351_ms_3_10m_reg = si5351_ms_10m.reg(3);
 
-constexpr si5351::MultisynthFractional si5351_ms_50m {
+constexpr si5351::MultisynthFractional si5351_ms_40m {
 	.f_src = si5351_vco_f,
-	.a = 16,
+	.a = 20,
 	.b = 0,
 	.c = 1,
 	.r_div = 0,
 };
 
-// constexpr si5351::MultisynthFractional si5351_ms_40m {
-// 	.f_src = si5351_vco_f,
-// 	.a = 20,
-// 	.b = 0,
-// 	.c = 1,
-// 	.r_div = 0,
-// };
-
-constexpr auto si5351_ms_rffc5072 = si5351_ms_50m;
-constexpr auto si5351_ms_max2837 = si5351_ms_50m;
+constexpr auto si5351_ms_rffc5072 = si5351_ms_40m;
+constexpr auto si5351_ms_max2837 = si5351_ms_40m;
 
 constexpr auto si5351_ms_4_reg = si5351_ms_rffc5072.reg(clock_generator_output_first_if);
 constexpr auto si5351_ms_5_reg = si5351_ms_max2837.reg(clock_generator_output_second_if);
@@ -232,7 +224,7 @@ constexpr ClockControls si5351_clock_control_common {
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
+	ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Fractional | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 };
 
@@ -366,6 +358,23 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 	 * is divided by two.
 	 */
 	clock_generator.set_ms_frequency(clock_generator_output_codec, frequency * 2, si5351_vco_f, 1);
+}
+
+void ClockManager::set_reference_ppb(const int32_t ppb) {
+	constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
+	constexpr uint32_t denominator = 1000000 / pll_multiplier;
+	const uint32_t new_a = (ppb >= 0) ? pll_multiplier : (pll_multiplier - 1);
+	const uint32_t new_b = (ppb >= 0) ? (ppb / 1000) : (denominator + (ppb / 1000));
+	const uint32_t new_c = (ppb == 0) ? 1 : denominator;
+
+	const si5351::PLL pll {
+		.f_in = si5351_inputs.f_xtal,
+		.a = new_a,
+		.b = new_b,
+		.c = new_c,
+	};
+	const auto pll_a_reg = pll.reg(0);
+	clock_generator.write(pll_a_reg);
 }
 
 void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {

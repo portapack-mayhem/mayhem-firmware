@@ -23,6 +23,9 @@
 
 #include "hal.h"
 
+#include "message.hpp"
+#include "portapack_shared_memory.hpp"
+
 #include <cstring>
 
 /* TODO: OK, this is cool, but how do I put the M4 to sleep so I can switch to
@@ -32,17 +35,20 @@
  * I suppose I could force M4MEMMAP to an invalid memory reason which would
  * cause an exception and effectively halt the M4. But that feels gross.
  */
-void m4_init(const portapack::spi_flash::region_t from, void* const to) {
-	//m4txevent_interrupt_disable();
-	
+void m4_init(const portapack::spi_flash::region_t from, const portapack::memory::region_t to) {
 	/* Initialize M4 code RAM */
-	std::memcpy(to, from.base_address(), from.size);
+	std::memcpy(reinterpret_cast<void*>(to.base()), from.base(), from.size);
 
 	/* M4 core is assumed to be sleeping with interrupts off, so we can mess
 	 * with its address space and RAM without concern.
 	 */
-	LPC_CREG->M4MEMMAP = reinterpret_cast<uint32_t>(to);
+	LPC_CREG->M4MEMMAP = to.base();
 
 	/* Reset M4 core */
 	LPC_RGU->RESET_CTRL[0] = (1 << 13);
+}
+
+void m4_request_shutdown() {
+	ShutdownMessage shutdown_message;
+	shared_memory.baseband_queue.push(shutdown_message);
 }

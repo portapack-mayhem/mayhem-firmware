@@ -1,0 +1,24 @@
+language: cpp
+
+cache: apt
+
+before_install:
+  - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -y gcc-arm-none-eabi
+
+before_script:
+  - export CC="arm-none-eabi-gcc"
+  - export CXX="arm-none-eabi-g++"
+
+script:
+  # TODO: Introduce top-level Makefile, this is lame.
+  - pushd firmware/
+  - make release
+  - popd
+
+addons:
+  artifacts:
+    paths:
+      - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
+      - $(ls firmware/portapack-h1-firmware-*.zip | tr "\n" ":")

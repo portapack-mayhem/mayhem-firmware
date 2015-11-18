@@ -21,6 +21,7 @@
 
 #include "ui_navigation.hpp"
 
+#include "portapack.hpp"
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -265,16 +266,8 @@ PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 	button_yes.on_select = [&nav](Button&){
-		shutdown();
-
-		m4_init(spi_flash::hackrf, reinterpret_cast<void*>(0x10000000));
-
-		while(true) {
-			__WFE();
-		}
+		m4_request_shutdown();
 	};
-	
-	//377.6M: bouts de musique
 
 	button_no.on_select = [&nav](Button&){
 		nav.pop();
@@ -282,6 +275,10 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 
 	add_children({ {
 		&text_title,
+		&text_description_1,
+		&text_description_2,
+		&text_description_3,
+		&text_description_4,
 		&button_yes,
 		&button_no,
 	} });

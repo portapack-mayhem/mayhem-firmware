@@ -79,43 +79,48 @@ static touch::Frame touch_frame;
 
 static uint32_t touch_debounce = 0;
 static uint32_t touch_debounce_mask = (1U << 1) - 1;
-static bool touch_stable = false;
+static bool touch_detected = false;
+static bool touch_cycle = false;
 
 static bool touch_update() {
 	const auto samples = touch::adc::get();
 	const auto current_phase = touch_pins_configs[touch_phase];
 
-	if( current_phase == portapack::IO::TouchPinsConfig::WaitTouch ) {
-		/* Debounce touches. */
-		const bool touch_raw = (samples.yp < touch::touch_threshold) && (samples.yn < touch::touch_threshold);
-		touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
-		touch_stable = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
-	} else {
-		if( touch_stable ) {
-			switch(current_phase) {
-			case portapack::IO::TouchPinsConfig::SensePressure:
-				temp_frame.pressure += samples;
-				break;
-
-			case portapack::IO::TouchPinsConfig::SenseX:
-				temp_frame.x += samples;
-				break;
-
-			case portapack::IO::TouchPinsConfig::SenseY:
-				temp_frame.y += samples;
-				break;
-
-			default:
-				break;
+	switch(current_phase) {
+	case portapack::IO::TouchPinsConfig::WaitTouch:
+		{
+			/* Debounce touches. */
+			const bool touch_raw = (samples.yp < touch::touch_threshold) && (samples.yn < touch::touch_threshold);
+			touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
+			touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
+			if( !touch_detected && !touch_cycle ) {
+				return false;
 			}
 		}
+		break;
+
+	case portapack::IO::TouchPinsConfig::SensePressure:
+		temp_frame.pressure += samples;
+		break;
+
+	case portapack::IO::TouchPinsConfig::SenseX:
+		temp_frame.x += samples;
+		break;
+
+	case portapack::IO::TouchPinsConfig::SenseY:
+		temp_frame.y += samples;
+		break;
+
+	default:
+		break;
 	}
 
 	touch_phase++;
 	if( touch_phase >= touch_pins_configs.size() ) {
 		/* New iteration, calculate values and flag touch event */
 		touch_phase = 0;
-		temp_frame.touch = touch_stable;
+		temp_frame.touch = touch_detected;
+		touch_cycle = touch_detected;
 		touch_frame = temp_frame;
 		temp_frame = {};
 		return true;

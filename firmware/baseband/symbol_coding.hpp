@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,31 +19,26 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __ACCESS_CODE_CORRELATOR_H__
-#define __ACCESS_CODE_CORRELATOR_H__
+#ifndef __SYMBOL_CODING_H__
+#define __SYMBOL_CODING_H__
 
 #include <cstdint>
 #include <cstddef>
 
-class AccessCodeCorrelator {
-public:
-	void configure(
-		const uint32_t new_code,
-		const size_t new_code_length,
-		const size_t new_maximum_hamming_distance
-	);
+namespace symbol_coding {
 
-	bool execute(const uint_fast8_t in);
+class NRZIDecoder {
+public:
+	uint_fast8_t operator()(const uint_fast8_t symbol) {
+		const auto out = (~(symbol ^ last)) & 1;
+		last = symbol;
+		return out;
+	}
 
 private:
-	uint32_t code { 0 };
-	uint32_t mask { 0 };
-	uint32_t history { 0 };
-	size_t maximum_hamming_distance { 0 };
-
-	static constexpr uint32_t mask_value(const size_t n) {
-		return static_cast<uint32_t>((1ULL << n) - 1ULL);
-	}
+	uint_fast8_t last { 0 };
 };
 
-#endif/*__ACCESS_CODE_CORRELATOR_H__*/
+} /* namespace symbol_coding */
+
+#endif/*__SYMBOL_CODING_H__*/

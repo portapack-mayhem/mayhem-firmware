@@ -164,6 +164,7 @@ typedef uint32_t halrtcnt_t;
 extern "C" {
 #endif
   void hal_lld_init(void);
+  void systick_stop(void);
   void systick_adjust_period(const uint32_t counts_per_tick);
   halclock_t halLPCGetSystemClock(void);
   void halLPCSetSystemClock(const halclock_t new_frequency);

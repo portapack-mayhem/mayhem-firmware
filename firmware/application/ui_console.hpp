@@ -32,21 +32,16 @@ namespace ui {
 
 class Console : public Widget {
 public:
-	constexpr Console(
-		const Rect parent_rect
-	) : Widget { parent_rect }
-	{
-	}
-
+	void clear();
 	void write(const std::string message);
 	void writeln(const std::string message);
 
 	void paint(Painter& painter) override;
+	
+	void on_show() override;
+	void on_hide() override;
 
 private:
-	static constexpr Color background { Color::black() };
-	static constexpr Color foreground { Color::white() };
-
 	Point pos { 0, 0 };
 
 	void crlf();

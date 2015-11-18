@@ -29,7 +29,9 @@
 #include <type_traits>
 #include <array>
 
+#include "dsp_types.hpp"
 #include "complex.hpp"
+#include "sine_table.hpp"
 #include "hal.h"
 
 namespace std {
@@ -55,6 +57,20 @@ constexpr size_t log_2(const size_t n, const size_t p = 0) {
 }
 
 template<typename T, size_t N>
+void fft_swap(const buffer_c16_t src, std::array<T, N>& dst) {
+	static_assert(power_of_two(N), "only defined for N == power of two");
+
+	for(size_t i=0; i<N; i++) {
+		const size_t i_rev = __RBIT(i) >> (32 - log_2(N));
+		const auto s = src.p[i];
+		dst[i_rev] = {
+			static_cast<typename T::value_type>(s.real()),
+			static_cast<typename T::value_type>(s.imag())
+		};
+	}
+}
+
+template<typename T, size_t N>
 void fft_swap(const std::array<complex16_t, N>& src, std::array<T, N>& dst) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
 
@@ -69,10 +85,20 @@ void fft_swap(const std::array<complex16_t, N>& src, std::array<T, N>& dst) {
 }
 
 template<typename T, size_t N>
-void fft_swap_in_place(std::array<T, N>& data) {
+void fft_swap(const std::array<T, N>& src, std::array<T, N>& dst) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
 
 	for(size_t i=0; i<N; i++) {
+		const size_t i_rev = __RBIT(i) >> (32 - log_2(N));
+		dst[i_rev] = src[i];
+	}
+}
+
+template<typename T, size_t N>
+void fft_swap_in_place(std::array<T, N>& data) {
+	static_assert(power_of_two(N), "only defined for N == power of two");
+
+	for(size_t i=0; i<N/2; i++) {
 		const size_t i_rev = __RBIT(i) >> (32 - log_2(N));
 		std::swap(data[i], data[i_rev]);
 	}
@@ -88,10 +114,10 @@ void fft_c_preswapped(std::array<T, N>& data) {
 	/* Provide data to this function, pre-swapped. */
 	for(size_t mmax = 1; N > mmax; mmax <<= 1) {
 		const float theta = -pi / mmax;
-		const float wtemp = std::sin(0.5f * theta);
+		const float wtemp = sin_f32(0.5f * theta);
 		const T wp {
 			-2.0f * wtemp * wtemp,
-			std::sin(theta)
+			sin_f32(theta)
 		};
 		T w { 1.0f, 0.0f };
 		for(size_t m = 0; m < mmax; ++m) {

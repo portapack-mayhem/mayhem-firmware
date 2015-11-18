@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,26 +19,27 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "access_code_correlator.hpp"
+#ifndef __DSP_SQUELCH_H__
+#define __DSP_SQUELCH_H__
 
-void AccessCodeCorrelator::configure(
-	const uint32_t new_code,
-	const size_t new_code_length,
-	const size_t new_maximum_hamming_distance
-) {
-	if( new_code_length <= 32 ) {
-		code = new_code;
-		mask = mask_value(new_code_length);
-		maximum_hamming_distance = new_maximum_hamming_distance;
-	}
-}
+#include "buffer.hpp"
+#include "dsp_iir.hpp"
+#include "dsp_iir_config.hpp"
 
-bool AccessCodeCorrelator::execute(
-	const uint_fast8_t in
-) {
-	history = (history << 1) | (in & 1);
-	const auto delta_bits = (history ^ code) & mask;
-	//const size_t count = __builtin_popcountll(delta_bits);
-	const size_t count = __builtin_popcountl(delta_bits);
-	return (count <= maximum_hamming_distance);
-}
+#include <cstdint>
+#include <cstddef>
+
+class FMSquelch {
+public:
+	bool execute(buffer_s16_t audio);
+
+private:
+	static constexpr size_t N = 32;
+	static constexpr int16_t threshold = 3072;
+
+	// nyquist = 48000 / 2.0
+	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
+	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
+};
+
+#endif/*__DSP_SQUELCH_H__*/

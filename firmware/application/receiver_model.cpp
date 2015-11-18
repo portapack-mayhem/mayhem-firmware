@@ -49,7 +49,7 @@ int32_t ReceiverModel::reference_ppm_correction() const {
 
 void ReceiverModel::set_reference_ppm_correction(int32_t v) {
 	persistent_memory::set_correction_ppb(v * 1000);
-	update_tuning_frequency();
+	clock_manager.set_reference_ppb(v * 1000);
 }
 
 bool ReceiverModel::rf_amp() const {
@@ -92,19 +92,11 @@ uint32_t ReceiverModel::sampling_rate() const {
 	return baseband_configuration.sampling_rate;
 }
 
-void ReceiverModel::set_sampling_rate(uint32_t hz) {
-	baseband_configuration.sampling_rate = hz;
-	update_baseband_configuration();
-}
 
 uint32_t ReceiverModel::modulation() const {
 	return baseband_configuration.mode;
 }
 
-void ReceiverModel::set_modulation(int32_t v) {
-	baseband_configuration.mode = v;
-	update_modulation();
-}
 
 volume_t ReceiverModel::headphone_volume() const {
 	return headphone_volume_;
@@ -120,10 +112,6 @@ uint32_t ReceiverModel::baseband_oversampling() const {
 	return baseband_configuration.decimation_factor;
 }
 
-void ReceiverModel::set_baseband_oversampling(uint32_t v) {
-	baseband_configuration.decimation_factor = v;
-	update_baseband_configuration();
-}
 
 void ReceiverModel::enable() {
 	radio::set_direction(rf::Direction::Receive);
@@ -147,14 +135,17 @@ void ReceiverModel::disable() {
 			.decimation_factor = 1,
 		}
 	};
-	shared_memory.baseband_queue.push(&message);
-	while( !message.is_free() );
+	shared_memory.baseband_queue.push(message);
 
 	radio::disable();
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	return -(sampling_rate() / 4);
+	if( baseband_configuration.mode == 4 ) {
+		return 0;
+	} else {
+		return -(sampling_rate() / 4);
+	}
 }
 
 void ReceiverModel::update_tuning_frequency() {
@@ -177,24 +168,22 @@ void ReceiverModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-void ReceiverModel::update_modulation() {
+void ReceiverModel::set_baseband_configuration(const BasebandConfiguration config) {
+	baseband_configuration = config;
 	update_baseband_configuration();
 }
 
 void ReceiverModel::update_baseband_configuration() {
+	radio::streaming_disable();
+
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
 
 	BasebandConfigurationMessage message { baseband_configuration };
-	shared_memory.baseband_queue.push(&message);
+	shared_memory.baseband_queue.push(message);
 
-	// Block until message is consumed, since we allocated it on the stack.
-	while( !message.is_free() );
-
-	if( baseband_configuration.mode == 3 ) {
-		update_fsk_configuration();
-	}
+	radio::streaming_enable();
 }
 
 void ReceiverModel::update_headphone_volume() {
@@ -202,28 +191,4 @@ void ReceiverModel::update_headphone_volume() {
 	// both?
 
 	audio_codec.set_headphone_volume(headphone_volume_);
-}
-
-static constexpr FSKConfiguration fsk_configuration_ais = {
-	.symbol_rate = 9600,
-	.access_code = 0b01010101010101010101111110,
-	.access_code_length = 26,
-	.access_code_tolerance = 1,
-	.packet_length = 256,
-};
-
-static constexpr FSKConfiguration fsk_configuration_tpms_a = {
-	.symbol_rate = 19200,
-	.access_code = 0b0101010101010101010101010110,
-	.access_code_length = 28,
-	.access_code_tolerance = 1,
-	.packet_length = 160,
-};
-
-void ReceiverModel::update_fsk_configuration() {
-	FSKConfigurationMessage message { fsk_configuration_ais };
-	shared_memory.baseband_queue.push(&message);
-
-	// Block until message is consumed, since we allocated it on the stack.
-	while( !message.is_free() );
 }

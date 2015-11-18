@@ -232,13 +232,16 @@ JammerView::JammerView(
 	button_transmit.on_select = [this,&transmitter_model](Button&) {
 		uint8_t i = 0;
 		rf::Frequency t, range_lower;
+		auto& message_map = context().message_map();
 		
-		context().message_map[Message::ID::Retune] = [this, &transmitter_model](const Message* const p) {
-			const auto message = static_cast<const RetuneMessage*>(p);
-			if (message->freq > 0) {
-				transmitter_model.set_tuning_frequency(message->freq);
+		message_map.register_handler(Message::ID::Retune,
+			[this,&transmitter_model](Message* const p) {
+				const auto message = static_cast<const RetuneMessage*>(p);
+				if (message->freq > 0) {
+					transmitter_model.set_tuning_frequency(message->freq);
+				}
 			}
-		};
+		);
 		
 		for (i = 0; i < 16; i++) {
 			shared_memory.jammer_ranges[i].active = false;

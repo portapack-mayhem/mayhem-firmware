@@ -26,8 +26,6 @@
 #include <complex>
 #include <cmath>
 
-#include <hal.h>
-
 constexpr float pi { 3.141592653589793238462643383279502884f };
 
 namespace std {
@@ -123,21 +121,5 @@ using complex32_t = std::complex<int32_t>;
 static_assert(sizeof(complex8_t) == 2, "complex8_t size wrong");
 static_assert(sizeof(complex16_t) == 4, "complex16_t size wrong");
 static_assert(sizeof(complex32_t) == 8, "complex32_t size wrong");
-
-#if defined(LPC43XX_M4)
-static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type a, const complex16_t::rep_type b) {
-	// conjugate: conj(a + bj) = a - bj
-	// multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j
-	// conjugate-multiply: (ac + bd) + (bc - ad)j
-	//return { a.real() * b.real() + a.imag() * b.imag(), a.imag() * b.real() - a.real() * b.imag() };
-	const int32_t rr = __SMULBB(a, b);
-	const int32_t ii = __SMULTT(a, b);
-	const int32_t r = __QADD(rr, ii);
-	const int32_t ir = __SMULTB(a, b);
-	const int32_t ri = __SMULBT(a, b);
-	const int32_t i = __QSUB(ir, ri);
-	return { r, i };
-}
-#endif
 
 #endif/*__COMPLEX_H__*/

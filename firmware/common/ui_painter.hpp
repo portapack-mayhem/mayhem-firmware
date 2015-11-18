@@ -37,6 +37,8 @@ struct Style {
 	Style invert() const;
 };
 
+class Widget;
+
 class Painter {
 public:
 	Painter() { };
@@ -51,9 +53,13 @@ public:
 	void draw_rectangle(const Rect r, const Color c);
 	void fill_rectangle(const Rect r, const Color c);
 
+	void paint_widget_tree(Widget* const w);
+	
 private:
 	void draw_hline(Point p, size_t width, const Color c);
 	void draw_vline(Point p, size_t height, const Color c);
+
+	void paint_widget(Widget* const w);
 };
 
 } /* namespace ui */

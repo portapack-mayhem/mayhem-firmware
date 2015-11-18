@@ -196,120 +196,38 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
 }
-#if 0
-size_t fir_and_decimate_by_2_complex(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count
+
+buffer_c16_t FIRAndDecimateComplex::execute(
+	buffer_c16_t src,
+	buffer_c16_t dst
 ) {
-	/* int16_t input (sample count "n" must be multiple of 4)
-	 * -> int16_t output, decimated by 2.
+	/* int16_t input (sample count "n" must be multiple of decimation_factor)
+	 * -> int16_t output, decimated by decimation_factor.
 	 * taps are normalized to 1 << 16 == 1.0.
 	 */
-	auto src_p = src_start;
-	const auto src_end = &src_start[src_count];
-	auto dst_p = dst_start;
+	const auto output_sampling_rate = src.sampling_rate / decimation_factor_;
+	const size_t output_samples = src.count / decimation_factor_;
+	
+	sample_t* dst_p = dst.p;
+	const buffer_c16_t result { dst.p, output_samples, output_sampling_rate };
 
-	auto z_p = &z[0];
+	const sample_t* src_p = src.p;
+	size_t outer_count = output_samples;
+	while(outer_count > 0) {
+		/* Put new samples into delay buffer */
+		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
+		for(size_t i=0; i<decimation_factor_; i++) {
+			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
+		}
 
-	while(src_p < src_end) {
-		/* Put two new samples into delay buffer */
-		*__SIMD32(z_p)++ = *__SIMD32(src_p)++;
-		*__SIMD32(z_p)++ = *__SIMD32(src_p)++;
+		size_t loop_count = taps_count_ / 8;
+		auto t_p = &taps_reversed_[0];
+		auto z_p = &samples_[0];
 
 		int64_t t_real = 0;
 		int64_t t_imag = 0;
 
-		auto t_p = &taps[0];
-
-		const auto z_end = &z[taps_count];
-		while(z_p < z_end) {
-			const auto tap0 = *__SIMD32(t_p)++;
-			const auto sample0 = *__SIMD32(z_p)++;
-			t_real = __SMLSLD(sample0, tap0, t_real);
-			t_imag = __SMLALDX(sample0, tap0, t_imag);
-
-			const auto tap1 = *__SIMD32(t_p)++;
-			const auto sample1 = *__SIMD32(z_p)++;
-			t_real = __SMLSLD(sample1, tap1, t_real);
-			t_imag = __SMLALDX(sample1, tap1, t_imag);
-		}
-
-		z_p = &z[0];
-
-		const auto t_end = &taps[taps_count];
-		while(t_p < t_end) {
-			const auto tap0 = *__SIMD32(t_p)++;
-			const auto sample0 = *__SIMD32(z_p)++;
-			t_real = __SMLSLD(sample0, tap0, t_real);
-			t_imag = __SMLALDX(sample0, tap0, t_imag);
-
-			const auto tap1 = *__SIMD32(t_p)++;
-			const auto sample1 = *__SIMD32(z_p)++;
-			t_real = __SMLSLD(sample1, tap1, t_real);
-			t_imag = __SMLALDX(sample1, tap1, t_imag);
-		}
-
-		if( z_p == z_end ) {
-			z_p = &z[0];
-		}
-
-		/* TODO: No rounding taking place here, so might be adding a bit of
-		 * noise. Enough to be significant?
-		 */
-		*__SIMD32(dst_p)++ = __PKHBT(
-			t_real / 131072,
-			t_imag / 131072,
-			16
-		);
-		/*
-		*__SIMD32(dst_p)++ = __PKHBT(
-			__SSAT((t_real / 131072), 16),
-			__SSAT((t_imag / 131072), 16),
-			16
-		);
-		*/
-	}
-
-	return src_count / 2;
-}
-#endif
-size_t fir_and_decimate_by_2_complex_fast(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count
-) {
-	/* int16_t input (sample count "n" must be multiple of 4)
-	 * -> int16_t output, decimated by 2.
-	 * taps are normalized to 1 << 16 == 1.0.
-	 */
-	auto src_p = src_start;
-	auto dst_p = dst_start;
-	auto z_new_p = &z[0];
-	auto t_p = &taps[taps_count * 2];
-
-	while(src_p < &src_start[src_count]) {
-		/* Put two new samples into delay buffer */
-		*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
-		*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
-
-		t_p -= (taps_count + 2);
-		if( z_new_p == &z[taps_count] ) {
-			z_new_p = &z[0];
-			t_p = &taps[taps_count];
-		}
-
-		int64_t t_real = 0;
-		int64_t t_imag = 0;
-
-		auto z_p = &z[0];
-		while(z_p < &z[taps_count]) {
+		while(loop_count > 0) {
 			const auto tap0 = *__SIMD32(t_p)++;
 			const auto sample0 = *__SIMD32(z_p)++;
 			const auto tap1 = *__SIMD32(t_p)++;
@@ -345,6 +263,8 @@ size_t fir_and_decimate_by_2_complex_fast(
 			t_imag = __SMLALDX(sample6, tap6, t_imag);
 			t_real = __SMLSLD(sample7, tap7, t_real);
 			t_imag = __SMLALDX(sample7, tap7, t_imag);
+
+			loop_count--;
 		}
 
 		/* TODO: Re-evaluate whether saturation is performed, normalization,
@@ -359,9 +279,32 @@ size_t fir_and_decimate_by_2_complex_fast(
 			i_sat,
 			16
 		);
+
+		/* Shift sample buffer left/down by decimation factor. */
+		const size_t unroll_factor = 4;
+		size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;
+
+		sample_t* t = &samples_[0];
+		const sample_t* s = &samples_[decimation_factor_];
+		
+		while(shift_count > 0) {
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*__SIMD32(t)++ = *__SIMD32(s)++;
+			shift_count--;
+		}
+
+		shift_count = (taps_count_ - decimation_factor_) % unroll_factor;
+		while(shift_count > 0) {
+			*(t++) = *(s++);
+			shift_count--;
+		}
+
+		outer_count--;
 	}
 
-	return src_count / 2;
+	return result;
 }
 
 buffer_s16_t DecimateBy2CIC4Real::execute(

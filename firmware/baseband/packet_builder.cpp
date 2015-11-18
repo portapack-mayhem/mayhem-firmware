@@ -20,15 +20,3 @@
  */
 
 #include "packet_builder.hpp"
-
-void PacketBuilder::configure(size_t new_payload_length) {
-	if( new_payload_length <= payload.size() ) {
-		payload_length = new_payload_length;
-		reset_state();
-	}
-}
-
-void PacketBuilder::reset_state() {
-	bits_received = 0;
-	state = State::AccessCodeSearch;
-}

@@ -26,13 +26,15 @@
 namespace ui {
 
 void RSSI::on_show() {
-	context().message_map[Message::ID::RSSIStatistics] = [this](const Message* const p) {
-		this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
-	};
+	context().message_map().register_handler(Message::ID::RSSIStatistics,
+		[this](const Message* const p) {
+			this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
+		}
+	);
 }
 
 void RSSI::on_hide() {
-	context().message_map[Message::ID::RSSIStatistics] = nullptr;
+	context().message_map().unregister_handler(Message::ID::RSSIStatistics);
 }
 
 void RSSI::paint(Painter& painter) {

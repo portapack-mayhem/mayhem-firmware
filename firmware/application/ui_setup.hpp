@@ -25,7 +25,6 @@
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
-#include "portapack_persistent_memory.hpp"
 
 #include <cstdint>
 
@@ -191,7 +190,7 @@ private:
 
 	Text text_firmware {
 		{ 0, 128, 240, 16 },
-		"Firmware Version    HAVOC 0.10",
+		"Git Commit Hash        " GIT_REVISION,
 	};
 
 	Text text_cpld_hackrf {

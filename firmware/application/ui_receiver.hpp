@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
-#include "ui_spectrum.hpp"
 
 #include "utility.hpp"
 
@@ -363,9 +362,10 @@ public:
 	ReceiverView(NavigationView& nav, ReceiverModel& receiver_model);
 	~ReceiverView();
 
-	void set_parent_rect(const Rect new_parent_rect) override;
-
 	void focus() override;
+
+	void on_show() override;
+	void on_hide() override;
 
 private:
 	ReceiverModel& receiver_model;
@@ -383,12 +383,12 @@ private:
 	};
 
 	Button button_done {
-		{ 0 * 8, 1 * 16, 3 * 8, 16 },
+		{ 0 * 8, 0 * 16, 3 * 8, 16 },
 		" < ",
 	};
 
 	FrequencyField field_frequency {
-		{ 3 * 8, 1 * 16 },
+		{ 0 * 8, 1 * 16 },
 	};
 
 	LNAGainField field_lna {
@@ -415,7 +415,9 @@ private:
 			{ " AM ", 0 },
 			{ "NFM ", 1 },
 			{ "WFM ", 2 },
-			{ "FSK ", 3 },
+			{ "AIS ", 3 },
+			{ "TPMS", 5 },
+			{ "SPEC", 4 },
 		}
 	};
 /*
@@ -455,7 +457,7 @@ private:
 		&style_options_group
 	};
 
-	spectrum::WaterfallWidget waterfall;
+	std::unique_ptr<Widget> widget_content;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
@@ -470,6 +472,10 @@ private:
 	void on_headphone_volume_changed(int32_t v);
 //	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
+
+	void on_packet_ais(const AISPacketMessage& message);
+	void on_packet_tpms(const TPMSPacketMessage& message);
+	void on_sd_card_mounted(const bool is_mounted);
 };
 
 } /* namespace ui */

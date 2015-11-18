@@ -60,6 +60,7 @@ using namespace lpc43xx;
 #include "irq_ipc.hpp"
 #include "irq_lcd_frame.hpp"
 #include "irq_controls.hpp"
+#include "irq_rtc.hpp"
 
 #include "event.hpp"
 
@@ -73,100 +74,9 @@ using namespace lpc43xx;
 
 #include <string.h>
 
-/* From ChibiOS crt0.c:
- * Two stacks available for Cortex-M, main stack or process stack.
- *
- * Thread mode:		Used to execute application software. The processor
- *					enters Thread mode when it comes out of reset.
- * Handler mode:	Used to handle exceptions. The processor returns to
- *					Thread mode when it has finished all exception processing.
- *
- * ChibiOS configures the Cortex-M in dual-stack mode. (CONTROL[1]=1)
- * When CONTROL[1]=1, PSP is used when the processor is in Thread mode.
- *
- * MSP is always used when the processor is in Handler mode.
- *
- * __main_stack_size__		:	0x2000???? - 0x2000???? =
- *		Used for exception handlers. Yes, really.
- * __process_stack_size__	:	0x2000???? - 0x2000???? =
- *		Used by main().
- *
- * After chSysInit(), the current instructions stream (usually main())
- * becomes the main thread.
- */
+#include "sd_card.hpp"
 
-#if 0
-static const SPIConfig ssp_config_w25q80bv = {
-	.end_cb = NULL,
-	.ssport = ?,
-	.sspad = ?,
-	.cr0 =
-			CR0_CLOCKRATE()
-		| ?
-		| ?
-		,
-	.cpsr = ?,
-};
-
-static spi_bus_t ssp0 = {
-	.obj = &SPID1,
-	.config = &ssp_config_w25q80bv,
-	.start = spi_chibi_start,
-	.stop = spi_chibi_stop,
-	.transfer = spi_chibi_transfer,
-	.transfer_gather = spi_chibi_transfer_gather,
-};
-#endif
-
-/* ChibiOS initialization sequence:
- * ResetHandler:
- *		Initialize FPU (if present)
- *		Initialize stacks (fill with pattern)
- *		__early_init()
- *			Enable extra processor exceptions for debugging
- *		Init data segment (flash -> data)
- *		Initialize BSS (fill with 0)
- *		__late_init()
- *			reset_peripherals()
- *			halInit()
- *				hal_lld_init()
- *					Init timer 3 as cycle counter
- *					Init RIT as SysTick
- *				palInit()
- *				gptInit()
- *				i2cInit()
- *				sdcInit()
- *				spiInit()
- *				rtcInit()
- *				boardInit()
- *			chSysInit()
- *		Constructors
- *		main()
- *		Destructors
- *		_default_exit() (default is infinite loop)
- */
-
-extern "C" {
-
-CH_IRQ_HANDLER(RTC_IRQHandler) {
-	CH_IRQ_PROLOGUE();
-
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_RTC_TICK);
-	chSysUnlockFromIsr();
-
-	rtc::interrupt::clear_all();
-
-	CH_IRQ_EPILOGUE();
-}
-
-}
-
-static bool ui_dirty = true;
-
-void ui::dirty_event() {
-	ui_dirty = true;
-}
+#include <string.h>
 
 class EventDispatcher {
 public:
@@ -187,6 +97,26 @@ public:
 		};
 	}
 
+	void run() {
+		while(is_running) {
+			const auto events = wait();
+			dispatch(events);
+		}
+	}
+
+	void request_stop() {
+		is_running = false;
+	}
+
+private:
+	touch::Manager touch_manager;
+	ui::Widget* const top_widget;
+	ui::Painter& painter;
+	ui::Context& context;
+	uint32_t encoder_last = 0;
+	bool is_running = true;
+	bool sd_card_present = false;
+
 	eventmask_t wait() {
 		return chEvtWaitAny(ALL_EVENTS);
 	}
@@ -204,10 +134,6 @@ public:
 			handle_lcd_frame_sync();
 		}
 
-		if( events & EVT_MASK_SD_CARD_PRESENT ) {
-			handle_sd_card_detect();
-		}
-
 		if( events & EVT_MASK_SWITCHES ) {
 			handle_switches();
 		}
@@ -221,121 +147,34 @@ public:
 		}
 	}
 
-private:
-	touch::Manager touch_manager;
-	ui::Widget* const top_widget;
-	ui::Painter& painter;
-	ui::Context& context;
-	uint32_t encoder_last = 0;
-
 	void handle_application_queue() {
-		while( !shared_memory.application_queue.is_empty() ) {
-			auto message = shared_memory.application_queue.pop();
-
-			auto& fn = context.message_map[message->id];
-			if( fn ) {
-				fn(message);
-			}
-
-			message->state = Message::State::Free;
+		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+		while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
+			context.message_map().send(message);
 		}
 	}
 
 	void handle_rtc_tick() {
-		/*
-		if( shared_memory.application_queue.push(&rssi_request) ) {
-			led_rx.on();
-		}
-		*/
-		/*
-		if( callback_second_tick ) {
-			rtc::RTC datetime;
-			rtcGetTime(&RTCD1, &datetime);
+		const auto sd_card_present_now = sdc_lld_is_card_inserted(&SDCD1);
+		if( sd_card_present_now != sd_card_present ) {
+			sd_card_present = sd_card_present_now;
 
-			callback_second_tick(datetime);
-		}
-		*/
-		//static std::function<void(size_t app_n, size_t baseband_n)> callback_fifos_state;
-		//static std::function<void(systime_t ticks)> callback_cpu_ticks;
-		/*
-		if( callback_fifos_state ) {
-			callback_fifos_state(shared_memory.application_queue.len(), baseband_queue.len());
-		}
-		*/
-		/*
-		if( callback_cpu_ticks ) {
-			//const auto thread_self = chThdSelf();
-			const auto thread = chSysGetIdleThread();
-			//const auto ticks = chThdGetTicks(thread);
-
-			callback_cpu_ticks(thread->total_ticks);
-		}
-		*/
-
-		/*
-		callback_fifos_state = [&system_view](size_t app_n, size_t baseband_n) {
-			system_view.status_view.text_app_fifo_n.set(
-				ui::to_string_dec_uint(app_n, 3)
-			);
-			system_view.status_view.text_baseband_fifo_n.set(
-				ui::to_string_dec_uint(baseband_n, 3)
-			);
-		};
-		*/
-		/*
-		callback_cpu_ticks = [&system_view](systime_t ticks) {
-			static systime_t last_ticks = 0;
-			const auto delta_ticks = ticks - last_ticks;
-			last_ticks = ticks;
-
-			const auto text_pct = ui::to_string_dec_uint(delta_ticks / 2000000, 3) + "% idle";
-			system_view.status_view.text_ticks.set(
-				text_pct
-			);
-		};
-		*/
-	}
-/*
-	void paint_widget(ui::Widget* const w) {
-		if( w->visible() ) {
-			if( w->dirty() ) {
-				w->paint(painter);
-				// Force-paint all children.
-				for(const auto child : w->children()) {
-					child->set_dirty();
-					paint_widget(child);
+			if( sd_card_present ) {
+				if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
+					if( sd_card::filesystem::mount() == FR_OK ) {
+						SDCardStatusMessage message { true };
+						context.message_map().send(&message);
+					} else {
+						// TODO: Error, modal warning?
+					}
+				} else {
+					// TODO: Error, modal warning?
 				}
-				w->set_clean();
 			} else {
-				// Selectively paint all children.
-				for(const auto child : w->children()) {
-					paint_widget(child);
-				}
-			}
-		}
-	}
-*/
-	void paint_widget(ui::Widget* const w) {
-		if( w->hidden() ) {
-			// Mark widget (and all children) as invisible.
-			w->visible(false);
-		} else {
-			// Mark this widget as visible and recurse.
-			w->visible(true);
+				sdcDisconnect(&SDCD1);
 
-			if( w->dirty() ) {
-				w->paint(painter);
-				// Force-paint all children.
-				for(const auto child : w->children()) {
-					child->set_dirty();
-					paint_widget(child);
-				}
-				w->set_clean();
-			} else {
-				// Selectively paint all children.
-				for(const auto child : w->children()) {
-					paint_widget(child);
-				}
+				SDCardStatusMessage message { false };
+				context.message_map().send(&message);
 			}
 		}
 	}
@@ -385,14 +224,7 @@ private:
 	}
 
 	void handle_lcd_frame_sync() {
-		if( ui_dirty ) {
-			paint_widget(top_widget);
-			ui_dirty = false;
-		}
-	}
-
-	void handle_sd_card_detect() {
-
+		painter.paint_widget_tree(top_widget);
 	}
 
 	void handle_switches() {
@@ -402,7 +234,7 @@ private:
 			if( switches_state[i] ) {
 				const auto event = static_cast<ui::KeyEvent>(i);
 				if( !event_bubble_key(event) ) {
-					context.focus_manager.update(top_widget, event);
+					context.focus_manager().update(top_widget, event);
 				}
 			}
 		}
@@ -421,7 +253,7 @@ private:
 	}
 
 	bool event_bubble_key(const ui::KeyEvent event) {
-		auto target = context.focus_manager.focus_widget();
+		auto target = context.focus_manager().focus_widget();
 		while( (target != nullptr) && !target->on_key(event) ) {
 			target = target->parent();
 		}
@@ -431,7 +263,7 @@ private:
 	}
 
 	void event_bubble_encoder(const ui::EncoderEvent event) {
-		auto target = context.focus_manager.focus_widget();
+		auto target = context.focus_manager().focus_widget();
 		while( (target != nullptr) && !target->on_encoder(event) ) {
 			target = target->parent();
 		}
@@ -495,8 +327,6 @@ message_handlers[Message::ID::TestResults] = [&system_view](const Message* const
 */
 
 int main(void) {
-	ui::Context context;
-	
 	portapack::init();
 
 	if( !cpld_update_if_necessary() ) {
@@ -506,51 +336,44 @@ int main(void) {
 	init_message_queues();
 
 	portapack::io.init();
-	
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
 
-	rtc::interrupt::enable_second_inc();
-	nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
+	events_initialize(chThdSelf());
+	init_message_queues();
 
-	controls_init();
-
-	lcd_frame_sync_configure();
-
- 	events_initialize(chThdSelf());
-
+	ui::Context context;
 	ui::SystemView system_view {
 		context,
-		{ 0, 0, 240, 320 }
+		portapack::display.screen_rect()
 	};
 	ui::Painter painter;
-	
-	context.message_map[Message::ID::FSKPacket] = [](const Message* const p) {
-		const auto message = static_cast<const FSKPacketMessage*>(p);
-		(void)message;
-	};
-
-	context.message_map[Message::ID::TXDone] = [](const Message* const p) {
-		const auto message = static_cast<const TXDoneMessage*>(p);
-		(void)message;
-	};
-	
-	context.message_map[Message::ID::Retune] = [](const Message* const p) {
-		const auto message = static_cast<const RetuneMessage*>(p);
-		(void)message;
-	};
-
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
+	auto& message_handlers = context.message_map();
+	message_handlers.register_handler(Message::ID::Shutdown,
+		[&event_dispatcher](const Message* const) {
+			event_dispatcher.request_stop();
+		}
+	);
+
+	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
+
+	controls_init();
+	lcd_frame_sync_configure();
+	rtc_interrupt_enable();
 	m4txevent_interrupt_enable();
 
-	m4_init(portapack::spi_flash::baseband, portapack::spi_flash::m4_text_ram_base);
+	event_dispatcher.run();
 
-	while(true) {
-		const auto events = event_dispatcher.wait();
-		event_dispatcher.dispatch(events);
-	}
+	sdcDisconnect(&SDCD1);
+	sdcStop(&SDCD1);
+
+	portapack::shutdown();
+	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
+
+	rgu::reset(rgu::Reset::M0APP);
 
 	return 0;
 }

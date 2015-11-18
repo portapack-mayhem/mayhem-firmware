@@ -39,6 +39,7 @@ COPT=-std=gnu99 \
 	 -Wall -Wextra -Wstrict-prototypes \
 	 $(CPUFLAGS) \
 	 -DLPC43XX -DLPC43XX_M4 \
+	 -DGIT_REVISION=\"$(GIT_REVISION)\" \
 	 -Os \
 	 -ffunction-sections \
 	 -fdata-sections \

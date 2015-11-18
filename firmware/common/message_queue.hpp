@@ -27,11 +27,30 @@
 #include "message.hpp"
 #include "fifo.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
+#include <ch.h>
+
+template<size_t K>
 class MessageQueue {
 public:
-	bool push(Message* const message);
+	MessageQueue() {
+		chMtxInit(&mutex_write);
+	}
 
-	Message* pop();
+	template<typename T>
+	bool push(const T& message) {
+		static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
+		static_assert(std::is_base_of<Message, T>::value, "type is not based on Message");
+
+		return push(&message, sizeof(message));
+	}
+
+	Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
+		Message* const p = reinterpret_cast<Message*>(buf.data());
+		return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;
+	}
 
 	size_t len() const {
 		return fifo.len();
@@ -42,10 +61,33 @@ public:
 	}
 
 private:
-	FIFO<Message*, 8> fifo;
+	FIFO<uint8_t, K> fifo;
+	Mutex mutex_write;
 
-	bool enqueue(Message* const message);
-	void signal();
+	bool push(const void* const buf, const size_t len) {
+		chMtxLock(&mutex_write);
+		const auto result = fifo.in_r(buf, len);
+		chMtxUnlock();
+
+		const bool success = (result == len);
+		if( success ) {
+			signal();
+		}
+		return success;
+	}
+
+
+#if defined(LPC43XX_M0)
+	void signal() {
+		creg::m0apptxevent::assert();
+	}
+#endif
+
+#if defined(LPC43XX_M4)
+	void signal() {
+		creg::m4txevent::assert();
+	}
+#endif
 };
 
 #endif/*__MESSAGE_QUEUE_H__*/

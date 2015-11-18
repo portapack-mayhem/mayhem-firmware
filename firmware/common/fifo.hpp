@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <cstring>
 
+#include <hal.h>
+
 /* FIFO implementation inspired by Linux kfifo. */
 
 template<typename T, size_t K>
@@ -139,7 +141,7 @@ private:
 	}
 
 	void smp_wmb() {
-		/*__DMB();*/
+		__DMB();
 	}
 
 	size_t peek_n() {

@@ -112,8 +112,7 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(FATFSSRC) \
-       $(CHIBIOS)/os/various/evtimer.c
+       $(FATFSSRC)
 
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -122,6 +121,7 @@ CPPSRC = main.cpp \
          irq_ipc.cpp \
          irq_lcd_frame.cpp \
          irq_controls.cpp \
+         irq_rtc.cpp \
          event.cpp \
          message_queue.cpp \
          hackrf_hal.cpp \
@@ -166,13 +166,16 @@ CPPSRC = main.cpp \
          ui_whistle.cpp \
          ui_jammer.cpp \
          ui_afsksetup.cpp \
+         ui_baseband_stats_view.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
          receiver_model.cpp \
          transmitter_model.cpp \
          spectrum_color_lut.cpp \
+         ais_baseband.cpp \
          ../common/utility.cpp \
+         ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp \
          m4_startup.cpp \
@@ -218,6 +221,9 @@ INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
+# TODO: Entertain using MCU=cortex-m0.small-multiply for LPC43xx M0 core.
+# However, on GCC-ARM-Embedded 4.9 2015q2, it seems to produce non-functional
+# binaries.
 MCU  = cortex-m0
 
 #TRGT = arm-elf-
@@ -260,7 +266,8 @@ CPPWARN = -Wall -Wextra
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
 DDEFS = -DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE \
-        -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0
+        -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 \
+        -DGIT_REVISION=\"$(GIT_REVISION)\"
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =

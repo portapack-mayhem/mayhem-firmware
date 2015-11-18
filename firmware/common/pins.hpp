@@ -69,7 +69,7 @@ constexpr Pin pins[] = {
 	[P2_2]  = {  2,  2, PinConfig::sgpio_inout_fast(0) }, /* SGPIO6/BANK2F3M16: CPLD.61/HOST_DATA6(IO) */
 	[P2_3]  = {  2,  3, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
 	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/<unused> */
-	[P2_5]  = {  2,  5, { .mode=4, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
+	[P2_5]  = {  2,  5, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
 	[P2_6]  = {  2,  6, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
 	[P2_7]  = {  2,  7, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* ISP: 10K PU, Unused */
 	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/LCD_RD */
@@ -87,7 +87,7 @@ constexpr Pin pins[] = {
 	//[P3_6]  = {  3,  6, { .mode=3, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SPIFI_MISO: W25Q80BV.DO(IO) */
 	//[P3_7]  = {  3,  7, { .mode=3, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SPIFI_MOSI: W25Q80BV.DI(IO) */
 	//[P3_8]  = {  3,  8, { .mode=3, .pd=0, .pu=1, .fast=1, .input=0, .ifilt=1 } }, /* SPIFI_CS/P68: W25Q80BV.CS(I) */
-	[P4_0]  = {  4,  0, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* HP/P44: U6.VCTL1(I), U5.VCTL2(I) */
+	[P4_0]  = {  4,  0, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* HP/P44: U6.VCTL1(I), U5.VCTL2(I) */
 	[P4_1]  = {  4,  1, PinConfig::gpio_led(0) }, /* LED1: LED1.A(I) */
 	[P4_2]  = {  4,  2, PinConfig::gpio_led(0) }, /* LED2: LED2.A(I) */
 	[P4_3]  = {  4,  3, PinConfig::sgpio_in_fast(7) }, /* SGPIO9/P77/BANK2F3M1: CPLD.91/HOST_CAPTURE(O) */
@@ -100,8 +100,8 @@ constexpr Pin pins[] = {
 	[P4_10] = {  4, 10, PinConfig::gpio_out_with_pullup(4) }, /* SGPIO15/BANK2F3M6: CPLD.78/HOST_DECIM_SEL2(I) */
 	[P5_0]  = {  5,  0, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
 	[P5_1]  = {  5,  1, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* LP/P45: U6.VCTL2(I), U5.VCTL1(I) */
-	[P5_2]  = {  5,  2, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* TX_MIX_BP/P46: U9.V1(I) */
-	[P5_3]  = {  5,  3, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_MIX_BP/P47: U9.V3(I) */
+	[P5_2]  = {  5,  2, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* TX_MIX_BP/P46: U9.V1(I) */
+	[P5_3]  = {  5,  3, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* RX_MIX_BP/P47: U9.V3(I) */
 	[P5_4]  = {  5,  4, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_ENX/P32: 10K PU, 33pF, RFFC5072.ENX(I) */
 	[P5_5]  = {  5,  5, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_RESETX/P33: 10K PU, 33pF, RFFC5072.RESETX(I) */
 	[P5_6]  = {  5,  6, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* TX_AMP/P48: U12.V3(I), U14.V1(I) */
@@ -113,7 +113,7 @@ constexpr Pin pins[] = {
 	[P6_4]  = {  6,  4, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* MIXER_SDATA/P27: 33pF, RFFC5072.SDATA(IO) */
 	[P6_5]  = {  6,  5, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* CPLD_TMS: CPLD.TMS(I) */
 	[P6_6]  = {  6,  6, PinConfig::sgpio_inout_fast(2) }, /* SGPIO5/BANK2F3M15: CPLD.64/HOST_DATA5(IO) */
-	[P6_7]  = {  6,  7, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
+	[P6_7]  = {  6,  7, { .mode=4, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
 	[P6_8]  = {  6,  8, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* MIX_BYPASS/P34: U1.VCTL2(I), U11.VCTL1(I) */
 	[P6_9]  = {  6,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !TX_AMP_PWR/P51: 10K PU, Q2.G(I), power to U25 (TX amp) */
 	[P6_10] = {  6, 10, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* EN1V8/P70: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */

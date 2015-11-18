@@ -24,6 +24,10 @@
 
 #include <cstdint>
 #include <array>
+#include <memory>
+#include <algorithm>
+
+#include "utility.hpp"
 
 #include "dsp_types.hpp"
 
@@ -74,50 +78,46 @@ private:
 	const std::array<int16_t, taps_count>& taps;
 };
 
-size_t fir_and_decimate_by_2_complex(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count
-);
-
-size_t fir_and_decimate_by_2_complex_fast(
-	const complex16_t* const src_start,
-	const size_t src_count,
-	complex16_t* const dst_start,
-	complex16_t* const z,
-	const complex16_t* const taps,
-	const size_t taps_count
-);
-
-template<size_t taps_count>
-class FIRAndDecimateBy2Complex {
+class FIRAndDecimateComplex {
 public:
+	using sample_t = complex16_t;
+	using tap_t = complex16_t;
+
+	using taps_t = tap_t[];
+
 	/* NOTE! Current code makes an assumption that block of samples to be
 	 * processed will be a multiple of the taps_count.
 	 */
-	FIRAndDecimateBy2Complex(
-		const std::array<int16_t, taps_count>& real_taps
+	FIRAndDecimateComplex(
+	) : taps_count_ { 0 },
+		decimation_factor_ { 1 }
+	{
+	}
+
+	template<typename T>
+	void configure(
+		const T& taps,
+		const size_t decimation_factor
 	) {
-		for(size_t i=0; i<taps_count; i++) {
-			taps[             i] = real_taps[i];
-			taps[taps_count + i] = real_taps[i];
-		}
+		samples_ = std::make_unique<samples_t>(taps.size());
+		taps_reversed_ = std::make_unique<taps_t>(taps.size());
+		taps_count_ = taps.size();
+		decimation_factor_ = decimation_factor;
+		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
 	}
 
 	buffer_c16_t execute(
 		buffer_c16_t src,
 		buffer_c16_t dst
-	) {
-		const auto dst_count = fir_and_decimate_by_2_complex_fast(src.p, src.count, dst.p, z.data(), taps.data(), taps_count);
-		return { dst.p, dst_count, src.sampling_rate / 2 };
-	}
-
+	);
+	
 private:
-	std::array<complex16_t, taps_count * 2> taps;
-	std::array<complex16_t, taps_count> z;
+	using samples_t = sample_t[];
+
+	std::unique_ptr<samples_t> samples_;
+	std::unique_ptr<taps_t> taps_reversed_;
+	size_t taps_count_;
+	size_t decimation_factor_;
 };
 
 class DecimateBy2CIC4Real {

@@ -2,19 +2,19 @@
 
 The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup.
 
-As it name implies, HAVOC is a firmware aimed towards serious fun. Don't use it. In fact, we never did.
+As its name implies, HAVOC is a firmware aimed towards serious fun. Don't use it. We never did.
 
 Fork features:
 * RDS (Radio Data System) basic group forming and transmit
 * LCR (Language de Commande Routier) basic message forming
 * Fully configurable AFSK transmit
 * "Play Dead" in case of emergency
+* Fully configurable Jammer
 
 Todo:
 * AFSK receiver
 * Moltonel (tone detector/scanner)
 * Whistle (tone generator)
-* Signal drowner (jammer)
 * Wireless microphone transmit
 * CTCSS talkie transmit
 * Play wave files from µSD

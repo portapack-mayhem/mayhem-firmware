@@ -55,9 +55,13 @@ public:
 		buffer_s16_t dst
 	);
 
+	void configure(const float sampling_rate, const float deviation_hz) {
+		k = static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate));
+	}
+
 private:
 	complex16_t::rep_type z_;
-	const float k;
+	float k;
 };
 
 } /* namespace demodulate */

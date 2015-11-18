@@ -21,6 +21,8 @@
 
 #include "ui_painter.hpp"
 
+#include "ui_widget.hpp"
+
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -69,6 +71,38 @@ void Painter::draw_rectangle(const Rect r, const Color c) {
 
 void Painter::fill_rectangle(const Rect r, const Color c) {
 	display.fill_rectangle(r, c);
+}
+
+void Painter::paint_widget_tree(Widget* const w) {
+	if( ui::is_dirty() ) {
+		paint_widget(w);
+		ui::dirty_clear();
+	}
+}
+
+void Painter::paint_widget(Widget* const w) {
+	if( w->hidden() ) {
+		// Mark widget (and all children) as invisible.
+		w->visible(false);
+	} else {
+		// Mark this widget as visible and recurse.
+		w->visible(true);
+
+		if( w->dirty() ) {
+			w->paint(*this);
+			// Force-paint all children.
+			for(const auto child : w->children()) {
+				child->set_dirty();
+				paint_widget(child);
+			}
+			w->set_clean();
+		} else {
+			// Selectively paint all children.
+			for(const auto child : w->children()) {
+				paint_widget(child);
+			}
+		}
+	}
 }
 
 } /* namespace ui */

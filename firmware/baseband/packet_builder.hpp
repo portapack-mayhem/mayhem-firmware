@@ -25,30 +25,62 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
+#include <functional>
 
+#include "bit_pattern.hpp"
+
+template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
-	void configure(size_t new_payload_length);
+	using PayloadType = std::bitset<1024>;
+	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
 
-	template<typename PayloadHandler>
-	void execute(
-		const uint_fast8_t symbol,
-		const bool access_code_found,
-		PayloadHandler payload_handler
+	PacketBuilder(
+		const PreambleMatcher preamble_matcher,
+		const UnstuffMatcher unstuff_matcher,
+		const EndMatcher end_matcher,
+		const PayloadHandlerFunc payload_handler
+	) : payload_handler { payload_handler },
+		preamble(preamble_matcher),
+		unstuff(unstuff_matcher),
+		end(end_matcher)
+	{
+	}
+
+	void configure(
+		const PreambleMatcher preamble_matcher,
+		const UnstuffMatcher unstuff_matcher
 	) {
+		preamble = preamble_matcher;
+		unstuff = unstuff_matcher;
+
+		reset_state();
+	}
+
+	void execute(
+		const uint_fast8_t symbol
+	) {
+		bit_history.add(symbol);
+
 		switch(state) {
-		case State::AccessCodeSearch:
-			if( access_code_found ) {
+		case State::Preamble:
+			if( preamble(bit_history, bits_received) ) {
 				state = State::Payload;
 			}
 			break;
 
 		case State::Payload:
-			if( bits_received < payload_length ) {
+			if( !unstuff(bit_history, bits_received) ) {
 				payload[bits_received++] = symbol;
-			} else {
+			}
+
+			if( end(bit_history, bits_received) ) {
 				payload_handler(payload, bits_received);
 				reset_state();
+			} else {
+				if( packet_truncated() ) {
+					reset_state();
+				}
 			}
 			break;
 
@@ -60,16 +92,29 @@ public:
 
 private:
 	enum State {
-		AccessCodeSearch,
+		Preamble,
 		Payload,
 	};
 
-	size_t payload_length { 0 };
-	size_t bits_received { 0 };
-	State state { State::AccessCodeSearch };
-	std::bitset<256> payload;
+	bool packet_truncated() const {
+		return bits_received >= payload.size();
+	}
 
-	void reset_state();
+	const PayloadHandlerFunc payload_handler;
+
+	BitHistory bit_history;
+	PreambleMatcher preamble;
+	UnstuffMatcher unstuff;
+	EndMatcher end;
+
+	size_t bits_received { 0 };
+	State state { State::Preamble };
+	PayloadType payload;
+
+	void reset_state() {
+		bits_received = 0;
+		state = State::Preamble;
+	}
 };
 
 #endif/*__PACKET_BUILDER_H__*/

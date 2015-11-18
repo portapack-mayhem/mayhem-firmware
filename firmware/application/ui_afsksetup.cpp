@@ -52,7 +52,7 @@ void AFSKSetupView::paint(Painter& painter) {
 void AFSKSetupView::updfreq(rf::Frequency f) {
 	char finalstr[9] = {0};
 	
-	persistent_memory::set_tuned_frequency(f);
+	portapack::persistent_memory::set_tuned_frequency(f);
 	transmitter_model.set_tuning_frequency(f);
 	
 	auto mhz = to_string_dec_int(f / 1000000, 3);
@@ -90,16 +90,16 @@ AFSKSetupView::AFSKSetupView(
 		&button_done
 	} });
 	
-	if (persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
-	if (persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
-	if (persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
+	if (portapack::persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
+	if (portapack::persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
+	if (portapack::persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
 	
-	updfreq(persistent_memory::tuned_frequency());
+	updfreq(portapack::persistent_memory::tuned_frequency());
 	
-	field_mark.set_value(persistent_memory::afsk_mark_freq()*100);
-	field_space.set_value(persistent_memory::afsk_space_freq()*100);
-	field_bw.set_value(persistent_memory::afsk_bw());
-	rpt = (persistent_memory::afsk_config() >> 8) & 0xFF;
+	field_mark.set_value(portapack::persistent_memory::afsk_mark_freq()*100);
+	field_space.set_value(portapack::persistent_memory::afsk_space_freq()*100);
+	field_bw.set_value(portapack::persistent_memory::afsk_bw());
+	rpt = (portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
 	if (rpt > 99) rpt = 5;
 	field_repeat.set_value(rpt);
 	
@@ -111,18 +111,18 @@ AFSKSetupView::AFSKSetupView(
 		nav.push(new_view);
 	};
 	
-	if (persistent_memory::afsk_bitrate() == 1200) {
+	if (portapack::persistent_memory::afsk_bitrate() == 1200) {
 		button_setbps.set_text("1200 bps");
 	} else {
 		button_setbps.set_text("2400 bps");
 	}
 	
 	button_setbps.on_select = [this](Button&){
-		if (persistent_memory::afsk_bitrate() == 1200) {
-			persistent_memory::set_afsk_bitrate(2400);
+		if (portapack::persistent_memory::afsk_bitrate() == 1200) {
+			portapack::persistent_memory::set_afsk_bitrate(2400);
 			button_setbps.set_text("2400 bps");
 		} else {
-			persistent_memory::set_afsk_bitrate(1200);
+			portapack::persistent_memory::set_afsk_bitrate(1200);
 			button_setbps.set_text("1200 bps");
 		}
 	};
@@ -130,15 +130,15 @@ AFSKSetupView::AFSKSetupView(
 	button_done.on_select = [this,&nav](Button&){
 		uint32_t afsk_config = 0;
 		
-		persistent_memory::set_afsk_mark(field_mark.value()/100);
-		persistent_memory::set_afsk_space(field_space.value()/100);
-		persistent_memory::set_afsk_bw(field_bw.value());
+		portapack::persistent_memory::set_afsk_mark(field_mark.value()/100);
+		portapack::persistent_memory::set_afsk_space(field_space.value()/100);
+		portapack::persistent_memory::set_afsk_bw(field_bw.value());
 		
 		if (checkbox_lsb.value() == true) afsk_config |= 1;
 		if (checkbox_parity.value() == true) afsk_config |= 2;
 		if (checkbox_datasize.value() == true) afsk_config |= 4;
 		afsk_config |= (field_repeat.value() << 8);
-		persistent_memory::set_afsk_config(afsk_config);
+		portapack::persistent_memory::set_afsk_config(afsk_config);
 		
 		nav.pop();
 	};

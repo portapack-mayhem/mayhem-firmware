@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "hal.h"
+#include "memory_map.hpp"
 
 namespace portapack {
 namespace spi_flash {
@@ -34,8 +34,8 @@ struct region_t {
 	const size_t offset;
 	const size_t size;
 
-	constexpr const void* base_address() {
-		return reinterpret_cast<void*>(LPC_SPIFI_DATA_CACHED_BASE + offset);
+	constexpr const void* base() {
+		return reinterpret_cast<void*>(portapack::memory::map::spifi_cached.base() + offset);
 	}
 };
 
@@ -45,7 +45,7 @@ constexpr region_t bootstrap {
 };
 
 constexpr region_t hackrf {
-	.offset = 0x10010,	// Image starts at 0x10 into .dfu file.
+	.offset = 0x10000,
 	.size = 0x8000,
 };
 
@@ -58,9 +58,6 @@ constexpr region_t application {
 	.offset = 0x40000,
 	.size = 0x40000,
 };
-
-// TODO: Refactor into another header that defines memory regions.
-constexpr void* m4_text_ram_base = reinterpret_cast<void*>(0x10080000);
 
 } /* namespace spi_flash */
 } /* namespace portapack */

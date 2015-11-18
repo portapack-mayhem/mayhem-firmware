@@ -1,0 +1,70 @@
+/*
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#ifndef __PROC_AIS_H__
+#define __PROC_AIS_H__
+
+#include "baseband_processor.hpp"
+
+#include "channel_decimator.hpp"
+#include "matched_filter.hpp"
+
+#include "clock_recovery.hpp"
+#include "symbol_coding.hpp"
+#include "packet_builder.hpp"
+
+#include "message.hpp"
+
+#include <cstdint>
+#include <cstddef>
+#include <bitset>
+
+#include "ais_baseband.hpp"
+
+class AISProcessor : public BasebandProcessor {
+public:
+	using payload_t = std::bitset<1024>;
+
+	void execute(buffer_c8_t buffer) override;
+
+private:
+	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
+	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_76k8_4t_p, 4 };
+
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
+		19200, 9600, { 0.0555f },
+		[this](const float symbol) { this->consume_symbol(symbol); }
+	};
+	symbol_coding::NRZIDecoder nrzi_decode;
+	PacketBuilder<BitPattern, BitPattern, BitPattern> packet_builder {
+		{ 0b0101010101111110, 16, 1 },
+		{ 0b111110, 6 },
+		{ 0b01111110, 8 },
+		[this](const payload_t& payload, const size_t bits_received) {
+			this->payload_handler(payload, bits_received);
+		}
+	};
+
+	void consume_symbol(const float symbol);
+	void payload_handler(const payload_t& payload, const size_t bits_received);
+};
+
+#endif/*__PROC_AIS_H__*/

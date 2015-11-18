@@ -89,6 +89,10 @@ void systick_adjust_period(const uint32_t counts_per_tick) {
   ritimer_start();
 }
 
+void systick_stop() {
+  ritimer_stop();
+}
+
 /**
  * @brief   Low level HAL driver initialization.
  *

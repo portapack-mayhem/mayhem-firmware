@@ -26,13 +26,25 @@
 
 #include "dsp_types.hpp"
 #include "message.hpp"
-#include "utility.hpp"
+#include "utility_m4.hpp"
 
 #include <cstdint>
 #include <cstddef>
 
 class BasebandStatsCollector {
 public:
+	BasebandStatsCollector(
+		const Thread* const thread_idle,
+		const Thread* const thread_main,
+		const Thread* const thread_rssi,
+		const Thread* const thread_baseband
+	) : thread_idle { thread_idle },
+		thread_main { thread_main },
+		thread_rssi { thread_rssi },
+		thread_baseband { thread_baseband }
+	{
+	}
+
 	template<typename Callback>
 	void process(buffer_c8_t buffer, Callback callback) {
 		samples += buffer.count;
@@ -40,11 +52,21 @@ public:
 		const size_t report_samples = buffer.sampling_rate * report_interval;
 		const auto report_delta = samples - samples_last_report;
 		if( report_delta >= report_samples ) {
-			const auto idle_ticks = chSysGetIdleThread()->total_ticks;
+			BasebandStatistics statistics;
+
+			const auto idle_ticks = thread_idle->total_ticks;
 			statistics.idle_ticks = (idle_ticks - last_idle_ticks);
 			last_idle_ticks = idle_ticks;
 
-			const auto baseband_ticks = chThdSelf()->total_ticks;
+			const auto main_ticks = thread_main->total_ticks;
+			statistics.main_ticks = (main_ticks - last_main_ticks);
+			last_main_ticks = main_ticks;
+
+			const auto rssi_ticks = thread_rssi->total_ticks;
+			statistics.rssi_ticks = (rssi_ticks - last_rssi_ticks);
+			last_rssi_ticks = rssi_ticks;
+
+			const auto baseband_ticks = thread_baseband->total_ticks;
 			statistics.baseband_ticks = (baseband_ticks - last_baseband_ticks);
 			last_baseband_ticks = baseband_ticks;
 
@@ -59,10 +81,15 @@ public:
 
 private:
 	static constexpr float report_interval { 1.0f };
-	BasebandStatistics statistics;
 	size_t samples { 0 };
 	size_t samples_last_report { 0 };
+	const Thread* const thread_idle;
 	uint32_t last_idle_ticks { 0 };
+	const Thread* const thread_main;
+	uint32_t last_main_ticks { 0 };
+	const Thread* const thread_rssi;
+	uint32_t last_rssi_ticks { 0 };
+	const Thread* const thread_baseband;
 	uint32_t last_baseband_ticks { 0 };
 };
 

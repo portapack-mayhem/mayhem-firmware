@@ -125,13 +125,23 @@ CSRC = $(PORTSRC) \
 CPPSRC = main.cpp \
          message_queue.cpp \
          event_m4.cpp \
+         irq_ipc_m4.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          portapack_shared_memory.cpp \
+         baseband_processor.cpp \
+         channel_decimator.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
+         matched_filter.cpp \
+         proc_am_audio.cpp \
+         proc_nfm_audio.cpp \
+         proc_wfm_audio.cpp \
+         proc_ais.cpp \
+         proc_wideband_spectrum.cpp \
+         proc_tpms.cpp \
+         dsp_squelch.cpp \
          clock_recovery.cpp \
-         access_code_correlator.cpp \
          packet_builder.cpp \
          dsp_fft.cpp \
          dsp_fir_taps.cpp \
@@ -142,6 +152,7 @@ CPPSRC = main.cpp \
          audio_dma.cpp \
          touch_dma.cpp \
          ../common/utility.cpp \
+         ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp
 
@@ -222,7 +233,8 @@ CPPWARN = -Wall -Wextra
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
 DDEFS = -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE \
-        -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0
+        -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 \
+        -DGIT_REVISION=\"$(GIT_REVISION)\"
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
