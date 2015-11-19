@@ -34,6 +34,18 @@
 namespace dsp {
 namespace decimate {
 
+class Complex8DecimateBy2CIC3 {
+public:
+	buffer_c16_t execute(
+		buffer_c8_t src,
+		buffer_c16_t dst
+	);
+
+private:
+	uint32_t _i1_i0 { 0 };
+	uint32_t _q1_q0 { 0 };
+};
+
 class TranslateByFSOver4AndDecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(

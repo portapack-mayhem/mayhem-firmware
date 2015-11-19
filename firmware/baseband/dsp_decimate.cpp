@@ -26,6 +26,63 @@
 namespace dsp {
 namespace decimate {
 
+buffer_c16_t Complex8DecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst) {
+	/* Decimates by two using a non-recursive third-order CIC filter.
+	 */
+
+	/* CIC filter (decimating by two):
+	 * 	D_I0 = i3 * 1 + i2 * 3 + i1 * 3 + i0 * 1
+	 * 	D_Q0 = q3 * 1 + q2 * 3 + q1 * 3 + q0 * 1
+	 *
+	 * 	D_I1 = i5 * 1 + i4 * 3 + i3 * 3 + i2 * 1
+	 * 	D_Q1 = q5 * 1 + q4 * 3 + q3 * 3 + q2 * 1
+	 */
+
+	uint32_t i1_i0 = _i1_i0;
+	uint32_t q1_q0 = _q1_q0;
+
+	/* 3:1 Scaled by 32 to normalize output to +/-32768-ish. */
+	constexpr uint32_t scale_factor = 32;
+	constexpr uint32_t k_3_1 = 0x00030001 * scale_factor;
+	uint32_t* src_p = reinterpret_cast<uint32_t*>(&src.p[0]);
+	uint32_t* const src_end = reinterpret_cast<uint32_t*>(&src.p[src.count]);
+	uint32_t* dst_p = reinterpret_cast<uint32_t*>(&dst.p[0]);
+	while(src_p < src_end) {
+		const uint32_t q3_i3_q2_i2 = *(src_p++);						// 3
+		const uint32_t q5_i5_q4_i4 = *(src_p++);
+
+		const uint32_t d_i0_partial = __SMUAD(k_3_1, i1_i0);			// 1: = 3 * i1 + 1 * i0
+		const uint32_t i3_i2 = __SXTB16(q3_i3_q2_i2,  0);				// 1: (q3_i3_q2_i2 ror  0)[23:16]:(q3_i3_q2_i2 ror  0)[7:0]
+		const uint32_t d_i0 = __SMLADX(k_3_1, i3_i2, d_i0_partial);		// 1: + 3 * i2 + 1 * i3
+
+		const uint32_t d_q0_partial = __SMUAD(k_3_1, q1_q0);			// 1: = 3 * q1 * 1 * q0
+		const uint32_t q3_q2 = __SXTB16(q3_i3_q2_i2,  8);				// 1: (q3_i3_q2_i2 ror  8)[23:16]:(q3_i3_q2_i2 ror  8)[7:0]
+		const uint32_t d_q0 = __SMLADX(k_3_1, q3_q2, d_q0_partial);		// 1: + 3 * q2 + 1 * q3 
+
+		const uint32_t d_q0_i0 = __PKHBT(d_i0, d_q0, 16);				// 1: (Rm<<16)[31:16]:Rn[15:0]
+
+		const uint32_t d_i1_partial = __SMUAD(k_3_1, i3_i2);			// 1: = 3 * i3 + 1 * i2
+		const uint32_t i5_i4 = __SXTB16(q5_i5_q4_i4,  0);				// 1: (q5_i5_q4_i4 ror  0)[23:16]:(q5_i5_q4_i4 ror  0)[7:0]
+		const uint32_t d_i1 = __SMLADX(k_3_1, i5_i4, d_i1_partial);		// 1: + 1 * i5 + 3 * i4
+
+		const uint32_t d_q1_partial = __SMUAD(k_3_1, q3_q2);			// 1: = 3 * q3 * 1 * q2
+		const uint32_t q5_q4 = __SXTB16(q5_i5_q4_i4,  8);				// 1: (q5_i5_q4_i4 ror  8)[23:16]:(q5_i5_q4_i4 ror  8)[7:0]
+		const uint32_t d_q1 = __SMLADX(k_3_1, q5_q4, d_q1_partial);		// 1: + 1 * q5 + 3 * q4 
+
+		const uint32_t d_q1_i1 = __PKHBT(d_i1, d_q1, 16);				// 1: (Rm<<16)[31:16]:Rn[15:0]
+
+		*(dst_p++) = d_q0_i0;											// 3
+		*(dst_p++) = d_q1_i1;
+
+		i1_i0 = i5_i4;
+		q1_q0 = q5_q4;
+	}
+	_i1_i0 = i1_i0;
+	_q1_q0 = q1_q0;
+
+	return { dst.p, src.count / 2, src.sampling_rate / 2 };
+}
+
 buffer_c16_t TranslateByFSOver4AndDecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst) {
 	/* Translates incoming complex<int8_t> samples by -fs/4,
 	 * decimates by two using a non-recursive third-order CIC filter.
