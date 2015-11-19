@@ -39,14 +39,10 @@ buffer_c16_t ChannelDecimator::execute_decimation(buffer_c8_t buffer) {
 	 * -> gain of 256
 	 * -> decimation by 2
 	 * -> 1.544MHz complex<int16_t>[1024], [-32768, 32512] */
-	const auto stage_0_out = translate.execute(buffer, work_baseband_buffer);
-
-	//if( fs_over_4_downconvert ) {
-	//	// TODO:
-	//} else {
-	// Won't work until cic_0 will accept input type of buffer_c8_t.
-	//	stage_0_out = cic_0.execute(buffer, work_baseband_buffer);
-	//}
+	auto stage_0_out = execute_stage_0(buffer, work_baseband_buffer);
+	if( decimation_factor == DecimationFactor::By2 ) {
+		return stage_0_out;
+	}
 
 	/* 1.536MHz complex<int16_t>[1024], [-32768, 32512]
 	 * -> 3rd order CIC: -0.1dB @ 0.028fs, -1dB @ 0.088fs, -60dB @ 0.468fs
@@ -81,4 +77,15 @@ buffer_c16_t ChannelDecimator::execute_decimation(buffer_c8_t buffer) {
 	auto cic_4_out = cic_4.execute(cic_3_out, work_baseband_buffer);
 
 	return cic_4_out;
+}
+
+buffer_c16_t ChannelDecimator::execute_stage_0(
+	buffer_c8_t buffer,
+	buffer_c16_t work_baseband_buffer
+) {
+	if( fs_over_4_downconvert ) {
+		return translate.execute(buffer, work_baseband_buffer);
+	} else {
+		return cic_0.execute(buffer, work_baseband_buffer);
+	}
 }
