@@ -47,7 +47,7 @@ void WidebandSpectrum::execute(buffer_c8_t buffer) {
 		// TODO: Removed window-presum windowing, due to lack of available code RAM.
 		// TODO: Apply window to improve spectrum bin sidelobes.
 		for(size_t i=0; i<channel_spectrum.size(); i++) {
-			spectrum[i] += std::complex<float> { buffer.p[i].real(), buffer.p[i].imag() };
+			spectrum[i] += buffer.p[i];
 		}
 	}
 
