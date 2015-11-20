@@ -155,7 +155,12 @@ public:
 private:
 	Text text_title {
 		{ 32, 16, 128, 16 },
-		"SD card debug",
+		"SD card debug"
+	};
+	
+	Text text_modules {
+		{ 8, 32, 28 * 8, 16 },
+		"TESTTESTTESTTESTTESTTESTTEST"
 	};
 
 	Button button_makefile {

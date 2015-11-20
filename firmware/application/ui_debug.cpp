@@ -144,9 +144,29 @@ void DebugSDView::paint(Painter& painter) {
 DebugSDView::DebugSDView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
+		&text_modules,
 		&button_makefile,
 		&button_done
 	} });
+	
+	FIL fdst;
+	char buffer[256];
+	uint8_t mods_version, mods_count;
+	UINT bw;
+
+	const auto open_result = f_open(&fdst, "ppmods.bin", FA_OPEN_EXISTING | FA_READ);
+	if (open_result == FR_OK) {
+		f_read(&fdst, &mods_version, 1, &bw);
+		if (mods_version == 1) {
+			f_read(&fdst, &mods_count, 1, &bw);
+			f_read(&fdst, buffer, 8, &bw);
+			f_read(&fdst, buffer, 16, &bw);
+			buffer[16] = 0;
+			text_modules.set(buffer);
+		} else {
+			text_modules.set("Bad version");
+		}
+	}
 	
 	button_makefile.on_select = [this](Button&){
  		FATFS fs;         	/* Work area (file system object) for logical drives */

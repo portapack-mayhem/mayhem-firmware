@@ -19,8 +19,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-//Reims ANFR 	822519
-//TODO: UC/LC update buttons in keyboard view
+//TODO: Reset baseband if module not found (instead of lockup in RAM loop)
+//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found
+//TODO: LCD backlight PWM
+//TODO: BUG: Crash after TX stop
+//TODO: Check bw setting in LCR TX
+//TODO: BUG: Crash after PSN entry in RDS TX
 //TODO: Dynamically load baseband code depending on mode (disable M4 & interrupts, load, reset)
 //TODO: Bodet :)
 //TODO: Whistler
@@ -29,14 +33,8 @@
 //TODO: Persistent playdead !
 //TODO: LCR EC=A,J,N
 //TODO: LCR full message former (see norm)
-//TODO: See if receive still works
-//TODO: LCR repeats
-//TODO: LCR shared memory semaphore for doing/done
 //TODO: LCR address scan
-//TODO: LCR text showing status in LCRView
 //TODO: AFSK NRZI
-//TODO: AFSK volume
-//TODO: AFSK channel bandwidth
 //TODO: TX power
 
 #include "ch.h"

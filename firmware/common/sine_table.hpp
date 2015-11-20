@@ -39,7 +39,7 @@ constexpr size_t sine_table_f32_period_log2 = 8;
 constexpr size_t sine_table_f32_period = 1 << sine_table_f32_period_log2;
 constexpr uint32_t sine_table_f32_index_mask = sine_table_f32_period - 1;
 
-constexpr std::array<float, sine_table_f32_period + 1> sine_table_f32 { {
+static constexpr std::array<float, sine_table_f32_period + 1> sine_table_f32 { {
 	 0.00000000e+00,   2.45412285e-02,   4.90676743e-02,
 	 7.35645636e-02,   9.80171403e-02,   1.22410675e-01,
 	 1.46730474e-01,   1.70961889e-01,   1.95090322e-01,

@@ -49,6 +49,7 @@ public:
 		TXDone = 9,
 		SDCardStatus = 10,
 		Retune = 11,
+		ReadyForSwitch = 12,
 		MAX
 	};
 
@@ -263,6 +264,17 @@ public:
 	}
 	
 	int n = 0;
+};
+
+class ReadyForSwitchMessage : public Message {
+public:
+	ReadyForSwitchMessage(
+		bool ok
+	) : Message { ID::ReadyForSwitch }
+	{
+	}
+	
+	const bool ok = false;
 };
 
 class RetuneMessage : public Message {

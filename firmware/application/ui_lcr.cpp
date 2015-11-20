@@ -192,7 +192,8 @@ LCRView::LCRView(
 	memset(litteral, 0, 5*8);
 	memset(rgsb, 0, 5);
 	
-	strcpy(rgsb, RGSB_list[0]);
+	strcpy(rgsb, RGSB_list[29]);
+	button_setrgsb.set_text(rgsb);
 	
 	add_children({ {
 		&text_recap,
@@ -282,10 +283,10 @@ LCRView::LCRView(
 		make_frame();
 			
 		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
-		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(65536*1024)/2280;
+		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x10000*256)/2280;
+		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x10000*256)/2280;
 
-		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw()*33;
+		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
 
 		memset(shared_memory.lcrdata, 0, 256);
 		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
@@ -297,8 +298,10 @@ LCRView::LCRView(
 			[this,&transmitter_model](Message* const p) {
 				const auto message = static_cast<const TXDoneMessage*>(p);
 				if (message->n > 0) {
-					char str[8] = "0... ";
-					str[0] = hexify(message->n);
+					char str[8];
+					strcpy(str, to_string_dec_int(message->n).c_str());
+					strcat(str, "/");
+					strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
 					text_status.set(str);
 				} else {
 					text_status.set("Done ! ");
@@ -307,7 +310,10 @@ LCRView::LCRView(
 			}
 		);
 
-		text_status.set("0... ");
+		char str[8];
+		strcpy(str, "0/");
+		strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
+		text_status.set(str);
 		
 		transmitter_model.enable();
 	};

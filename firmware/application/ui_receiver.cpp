@@ -24,12 +24,13 @@
 #include "ui_spectrum.hpp"
 #include "ui_console.hpp"
 
+#include "ff.h"
+
 #include "portapack.hpp"
 using namespace portapack;
 
 #include "ais_baseband.hpp"
-
-#include "ff.h"
+#include "m4_startup.hpp"
 
 namespace ui {
 

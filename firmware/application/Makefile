@@ -149,6 +149,7 @@ CPPSRC = main.cpp \
          encoder.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
+         ui_alphanum.cpp \
          ui_text.cpp \
          ui_widget.cpp \
          ui_painter.cpp \
@@ -170,6 +171,7 @@ CPPSRC = main.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
+         ui_loadmodule.cpp \
          receiver_model.cpp \
          transmitter_model.cpp \
          spectrum_color_lut.cpp \
