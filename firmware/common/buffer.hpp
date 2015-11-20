@@ -38,7 +38,7 @@ struct buffer_t {
 		count { count },
 		sampling_rate { 0 }
 	{
-	};
+	}
 
 	constexpr buffer_t(
 		T* const p,
@@ -48,7 +48,7 @@ struct buffer_t {
 		count { count },
 		sampling_rate { sampling_rate }
 	{
-	};
+	}
 };
 
 #endif/*__BUFFER_H__*/
