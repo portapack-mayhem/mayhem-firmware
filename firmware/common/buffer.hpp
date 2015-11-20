@@ -32,18 +32,24 @@ struct buffer_t {
 	const uint32_t sampling_rate;
 
 	constexpr buffer_t(
-		T* const p,
-		const size_t count
-	) : p { p },
-		count { count },
+	) : p { nullptr },
+		count { 0 },
 		sampling_rate { 0 }
+	{
+	}
+
+	constexpr buffer_t(
+		const buffer_t<T>& other
+	) : p { other.p },
+		count { other.count },
+		sampling_rate { other.sampling_rate }
 	{
 	}
 
 	constexpr buffer_t(
 		T* const p,
 		const size_t count,
-		const uint32_t sampling_rate
+		const uint32_t sampling_rate = 0
 	) : p { p },
 		count { count },
 		sampling_rate { sampling_rate }

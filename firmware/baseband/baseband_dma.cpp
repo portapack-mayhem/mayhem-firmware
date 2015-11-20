@@ -169,10 +169,10 @@ baseband::buffer_t wait_for_rx_buffer() {
 			const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 			return { reinterpret_cast<sample_t*>(lli_loop[free_index].destaddr), transfer_samples };
 		} else {
-			return { nullptr, 0 };
+			return { };
 		}
 	} else {
-		return { nullptr, 0 };
+		return { };
 	}
 }
 
