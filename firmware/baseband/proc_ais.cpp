@@ -42,12 +42,7 @@ void AISProcessor::execute(buffer_c8_t buffer) {
 	*/
 
 	for(size_t i=0; i<decimator_out.count; i++) {
-		// TODO: No idea why implicit cast int16_t->float is not allowed.
-		const std::complex<float> sample {
-			static_cast<float>(decimator_out.p[i].real()),
-			static_cast<float>(decimator_out.p[i].imag())
-		};
-		if( mf.execute_once(sample) ) {
+		if( mf.execute_once(decimator_out.p[i]) ) {
 			clock_recovery(mf.get_output());
 		}
 	}

@@ -105,6 +105,13 @@ public:
 		return _rep;
 	}
 
+	constexpr operator std::complex<float>() const {
+		return {
+			static_cast<float>(_v[0]),
+			static_cast<float>(_v[1])
+		};
+	}
+
 private:
 	union {
 		int16_t _v[2];
