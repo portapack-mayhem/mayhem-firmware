@@ -128,29 +128,29 @@ private:
 		}
 	}
 
-	void handle_rtc_tick() {
+	void update_sd_card_status() {
 		const auto sd_card_present_now = sdc_lld_is_card_inserted(&SDCD1);
 		if( sd_card_present_now != sd_card_present ) {
 			sd_card_present = sd_card_present_now;
 
+			SDCardStatusMessage message { false };
+
 			if( sd_card_present ) {
 				if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
 					if( sd_card::filesystem::mount() == FR_OK ) {
-						SDCardStatusMessage message { true };
-						context.message_map().send(&message);
-					} else {
-						// TODO: Error, modal warning?
+						message.is_mounted = true;
 					}
-				} else {
-					// TODO: Error, modal warning?
 				}
 			} else {
 				sdcDisconnect(&SDCD1);
-
-				SDCardStatusMessage message { false };
-				context.message_map().send(&message);
 			}
+
+			context.message_map().send(&message);
 		}
+	}
+
+	void handle_rtc_tick() {
+		update_sd_card_status();
 	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {

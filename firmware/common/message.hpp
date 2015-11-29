@@ -250,7 +250,7 @@ public:
 	{
 	}
 
-	const bool is_mounted;
+	bool is_mounted;
 };
 
 class MessageHandlerMap {
