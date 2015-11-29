@@ -475,7 +475,7 @@ private:
 
 	void on_packet_ais(const AISPacketMessage& message);
 	void on_packet_tpms(const TPMSPacketMessage& message);
-	void on_sd_card_mounted(const bool is_mounted);
+	void on_sd_card_status(const SDCardStatusMessage& message);
 };
 
 } /* namespace ui */

@@ -243,14 +243,23 @@ public:
 
 class SDCardStatusMessage : public Message {
 public:
+	enum class State : int32_t {
+		IOError = -3,
+		MountError = -2,
+		ConnectError = -1,
+		NotPresent = 0,
+		Present = 1,
+		Mounted = 2,
+	};
+
 	constexpr SDCardStatusMessage(
-		bool is_mounted
+		State state
 	) : Message { ID::SDCardStatus },
-		is_mounted { is_mounted }
+		state { state }
 	{
 	}
 
-	bool is_mounted;
+	State state;
 };
 
 class MessageHandlerMap {

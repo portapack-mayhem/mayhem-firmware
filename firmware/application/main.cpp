@@ -133,13 +133,17 @@ private:
 		if( sd_card_present_now != sd_card_present ) {
 			sd_card_present = sd_card_present_now;
 
-			SDCardStatusMessage message { false };
+			SDCardStatusMessage message { sd_card_present ? SDCardStatusMessage::State::Present : SDCardStatusMessage::State::NotPresent };
 
 			if( sd_card_present ) {
 				if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
 					if( sd_card::filesystem::mount() == FR_OK ) {
-						message.is_mounted = true;
+						message.state = SDCardStatusMessage::State::Mounted;
+					} else {
+						message.state = SDCardStatusMessage::State::MountError;
 					}
+				} else {
+					message.state = SDCardStatusMessage::State::ConnectError;
 				}
 			} else {
 				sdcDisconnect(&SDCD1);

@@ -514,7 +514,7 @@ void ReceiverView::on_show() {
 	message_map.register_handler(Message::ID::SDCardStatus,
 		[this](Message* const p) {
 			const auto message = static_cast<const SDCardStatusMessage*>(p);
-			this->on_sd_card_mounted(message->is_mounted);
+			this->on_sd_card_status(*message);
 		}
 	);
 }
@@ -585,8 +585,8 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	}
 }
 
-void ReceiverView::on_sd_card_mounted(const bool is_mounted) {
-	if( is_mounted ) {
+void ReceiverView::on_sd_card_status(const SDCardStatusMessage& message) {
+	if( message.state == SDCardStatusMessage::State::Mounted ) {
 		const auto open_result = f_open(&fil_tpms, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
 		if( open_result == FR_OK ) {
 			const auto fil_size = f_size(&fil_tpms);
