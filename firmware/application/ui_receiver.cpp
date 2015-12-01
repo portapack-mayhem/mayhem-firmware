@@ -29,6 +29,7 @@ using namespace portapack;
 
 #include "ais_baseband.hpp"
 
+#include "sd_card.hpp"
 #include "ff.h"
 
 namespace ui {
@@ -511,17 +512,16 @@ void ReceiverView::on_show() {
 			this->on_packet_tpms(*message);
 		}
 	);
-	message_map.register_handler(Message::ID::SDCardStatus,
-		[this](Message* const p) {
-			const auto message = static_cast<const SDCardStatusMessage*>(p);
-			this->on_sd_card_status(*message);
-		}
-	);
+
+	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
+		this->on_sd_card_status(status);
+	};
 }
 
 void ReceiverView::on_hide() {
+	sd_card::status_signal -= sd_card_status_signal_token;
+
 	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::SDCardStatus);
 	message_map.unregister_handler(Message::ID::TPMSPacket);
 	message_map.unregister_handler(Message::ID::AISPacket);
 }
@@ -585,18 +585,23 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	}
 }
 
-void ReceiverView::on_sd_card_status(const SDCardStatusMessage& message) {
-	if( message.state == SDCardStatusMessage::State::Mounted ) {
+void ReceiverView::on_sd_card_status(const sd_card::Status status) {
+	if( status == sd_card::Status::Mounted ) {
 		const auto open_result = f_open(&fil_tpms, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
 		if( open_result == FR_OK ) {
 			const auto fil_size = f_size(&fil_tpms);
 			const auto seek_result = f_lseek(&fil_tpms, fil_size);
 			if( seek_result != FR_OK ) {
 				f_close(&fil_tpms);
+				// TODO: Error, indicate somehow.
+			} else {
+				// TODO: Indicate success.
 			}
 		} else {
 			// TODO: Error, indicate somehow.
 		}
+	} else {
+		// TODO: Indicate unmounted.
 	}
 }
 

@@ -46,7 +46,6 @@ public:
 		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
-		SDCardStatus = 10,
 		MAX
 	};
 
@@ -239,27 +238,6 @@ public:
 	) : Message { ID::Shutdown }
 	{
 	}
-};
-
-class SDCardStatusMessage : public Message {
-public:
-	enum class State : int32_t {
-		IOError = -3,
-		MountError = -2,
-		ConnectError = -1,
-		NotPresent = 0,
-		Present = 1,
-		Mounted = 2,
-	};
-
-	constexpr SDCardStatusMessage(
-		State state
-	) : Message { ID::SDCardStatus },
-		state { state }
-	{
-	}
-
-	State state;
 };
 
 class MessageHandlerMap {

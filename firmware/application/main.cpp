@@ -128,33 +128,8 @@ private:
 		}
 	}
 
-	void update_sd_card_status() {
-		const auto sd_card_present_now = sdc_lld_is_card_inserted(&SDCD1);
-		if( sd_card_present_now != sd_card_present ) {
-			sd_card_present = sd_card_present_now;
-
-			SDCardStatusMessage message { sd_card_present ? SDCardStatusMessage::State::Present : SDCardStatusMessage::State::NotPresent };
-
-			if( sd_card_present ) {
-				if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
-					if( sd_card::filesystem::mount() == FR_OK ) {
-						message.state = SDCardStatusMessage::State::Mounted;
-					} else {
-						message.state = SDCardStatusMessage::State::MountError;
-					}
-				} else {
-					message.state = SDCardStatusMessage::State::ConnectError;
-				}
-			} else {
-				sdcDisconnect(&SDCD1);
-			}
-
-			context.message_map().send(&message);
-		}
-	}
-
 	void handle_rtc_tick() {
-		update_sd_card_status();
+		sd_card::poll_inserted();
 	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
