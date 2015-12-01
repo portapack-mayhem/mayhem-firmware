@@ -46,6 +46,7 @@ public:
 		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
+		ERTPacket = 9,
 		MAX
 	};
 
@@ -238,6 +239,22 @@ public:
 	) : Message { ID::Shutdown }
 	{
 	}
+};
+
+struct ERTPacket {
+	uint64_t preamble { 0 };
+	std::bitset<1024> payload;
+	size_t bits_received { 0 };
+};
+
+class ERTPacketMessage : public Message {
+public:
+	constexpr ERTPacketMessage(
+	) : Message { ID::ERTPacket }
+	{
+	}
+
+	ERTPacket packet;
 };
 
 class MessageHandlerMap {

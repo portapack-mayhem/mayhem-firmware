@@ -512,6 +512,12 @@ void ReceiverView::on_show() {
 			this->on_packet_tpms(*message);
 		}
 	);
+	message_map.register_handler(Message::ID::ERTPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const ERTPacketMessage*>(p);
+			this->on_packet_ert(*message);
+		}
+	);
 
 	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
 		this->on_sd_card_status(status);
@@ -522,6 +528,7 @@ void ReceiverView::on_hide() {
 	sd_card::status_signal -= sd_card_status_signal_token;
 
 	auto& message_map = context().message_map();
+	message_map.unregister_handler(Message::ID::ERTPacket);
 	message_map.unregister_handler(Message::ID::TPMSPacket);
 	message_map.unregister_handler(Message::ID::AISPacket);
 }
@@ -537,16 +544,21 @@ void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
 
 static FIL fil_tpms;
 
-void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
-	auto payload = message.packet.payload;
-	auto payload_length = message.packet.bits_received;
+static std::pair<std::string, std::string> format_manchester(
+	const uint_fast8_t sense,
+	const std::bitset<1024>& payload,
+	const size_t payload_length
+) {
+	const size_t payload_length_decoded = payload_length / 2;
+	const size_t payload_length_bytes = (payload_length_decoded + 7) / 8;
+	const size_t payload_length_symbols_rounded = payload_length_bytes * 8 * 2;
 
 	std::string hex_data;
 	std::string hex_error;
 	uint8_t byte_data = 0;
 	uint8_t byte_error = 0;
-	for(size_t i=0; i<payload_length; i+=2) {
-		const auto bit_data = payload[i+1];
+	for(size_t i=0; i<payload_length_symbols_rounded; i+=2) {
+		const auto bit_data = payload[i+sense];
 		const auto bit_error = (payload[i+0] == payload[i+1]);
 
 		byte_data <<= 1;
@@ -561,8 +573,17 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 		}
 	}
 
+	return { hex_data, hex_error };
+}
+
+void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
+	auto payload = message.packet.payload;
+	auto payload_length = message.packet.bits_received;
+
+	const auto hex_formatted = format_manchester(1, payload, payload_length);
+
 	auto console = reinterpret_cast<Console*>(widget_content.get());
-	console->writeln(hex_data.substr(0, 240 / 8));
+	console->writeln(hex_formatted.first.substr(0, 240 / 8));
 
 	if( !f_error(&fil_tpms) ) {
 		rtc::RTC datetime;
@@ -579,10 +600,49 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
 		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
-		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_data + "/" + hex_error + "\r\n";
+		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.first + "/" + hex_formatted.second + "\r\n";
 		f_puts(log.c_str(), &fil_tpms);
 		f_sync(&fil_tpms);
 	}
+}
+
+static std::bitset<512> manchester_decode(
+	const size_t sense,
+	const std::bitset<1024>& encoded,
+	const size_t count
+) {
+	std::bitset<512> result;
+	for(size_t i=0; i<count; i+=2) {
+		result[i >> 1] = encoded[i+sense];
+	}
+	return result;
+}
+
+static std::bitset<512> manchester_errors(
+	const std::bitset<1024>& encoded,
+	const size_t count
+) {
+	std::bitset<512> result;
+	for(size_t i=0; i<count; i+=2) {
+		result[i >> 1] = (encoded[i+0] == encoded[i+1]);
+	}
+	return result;
+}
+
+void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
+	auto console = reinterpret_cast<Console*>(widget_content.get());
+
+	if( message.packet.preamble == 0x555516a3 ) {
+		console->writeln("IDM");
+	}
+	if( message.packet.preamble == 0x1f2a60 ) {
+		console->writeln("SCM");
+		const auto decoded = manchester_decode(0, message.packet.payload, message.packet.bits_received);
+	}
+
+	const auto hex_formatted = format_manchester(0, message.packet.payload, message.packet.bits_received);
+	console->writeln(hex_formatted.first);
+	console->writeln(hex_formatted.second);
 }
 
 void ReceiverView::on_sd_card_status(const sd_card::Status status) {
@@ -642,6 +702,15 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 		receiver_model.set_baseband_bandwidth(1750000);
 		break;
 
+	case 6:
+		receiver_model.set_baseband_configuration({
+			.mode = modulation,
+			.sampling_rate = 4194304,
+			.decimation_factor = 1,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+		break;
+
 	case 4:
 		receiver_model.set_baseband_configuration({
 			.mode = modulation,
@@ -667,6 +736,7 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 	switch(modulation) {
 	case 3:
 	case 5:
+	case 6:
 		widget_content = std::make_unique<Console>();
 		add_child(widget_content.get());
 		break;

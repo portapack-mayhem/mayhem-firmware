@@ -417,6 +417,7 @@ private:
 			{ "WFM ", 2 },
 			{ "AIS ", 3 },
 			{ "TPMS", 5 },
+			{ "ERT",  6 },
 			{ "SPEC", 4 },
 		}
 	};
@@ -475,6 +476,7 @@ private:
 
 	void on_packet_ais(const AISPacketMessage& message);
 	void on_packet_tpms(const TPMSPacketMessage& message);
+	void on_packet_ert(const ERTPacketMessage& message);
 	void on_sd_card_status(const sd_card::Status status);
 
 	SignalToken sd_card_status_signal_token;

@@ -58,6 +58,7 @@
 #include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
 #include "proc_tpms.hpp"
+#include "proc_ert.hpp"
 
 #include "clock_recovery.hpp"
 #include "packet_builder.hpp"
@@ -368,6 +369,10 @@ int main(void) {
 
 				case 5:
 					baseband_thread.baseband_processor = new TPMSProcessor();
+					break;
+
+				case 6:
+					baseband_thread.baseband_processor = new ERTProcessor();
 					break;
 
 				default:
