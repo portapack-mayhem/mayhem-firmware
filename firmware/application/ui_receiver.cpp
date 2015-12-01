@@ -544,30 +544,60 @@ void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
 
 static FIL fil_tpms;
 
+class ManchesterDecoder {
+public:
+	struct DecodedSymbol {
+		bool value;
+		bool error;
+	};
+
+	constexpr ManchesterDecoder(
+		const std::bitset<1024>& encoded,
+		const size_t count,
+		const size_t sense = 0
+	) : encoded { encoded },
+		count { count },
+		sense { sense }
+	{
+	}
+
+	DecodedSymbol operator[](const size_t index) const {
+		const auto value = encoded[index * 2 + sense];
+		const auto error = encoded[index * 2 + 0] == encoded[index * 2 + 1];
+		return { value, error };
+	}
+
+	size_t symbols_count() const {
+		return count / 2;
+	}
+
+private:
+	const std::bitset<1024>& encoded;
+	const size_t count;
+	const size_t sense;
+};
+
 static std::pair<std::string, std::string> format_manchester(
-	const uint_fast8_t sense,
-	const std::bitset<1024>& payload,
-	const size_t payload_length
+	const ManchesterDecoder& decoder
 ) {
-	const size_t payload_length_decoded = payload_length / 2;
+	const size_t payload_length_decoded = decoder.symbols_count();
 	const size_t payload_length_bytes = (payload_length_decoded + 7) / 8;
-	const size_t payload_length_symbols_rounded = payload_length_bytes * 8 * 2;
+	const size_t payload_length_symbols_rounded = payload_length_bytes * 8;
 
 	std::string hex_data;
 	std::string hex_error;
 	uint8_t byte_data = 0;
 	uint8_t byte_error = 0;
-	for(size_t i=0; i<payload_length_symbols_rounded; i+=2) {
-		const auto bit_data = payload[i+sense];
-		const auto bit_error = (payload[i+0] == payload[i+1]);
+	for(size_t i=0; i<payload_length_symbols_rounded; i++) {
+		const auto symbol = decoder[i];
 
 		byte_data <<= 1;
-		byte_data |= bit_data ? 1 : 0;
+		byte_data |= symbol.value ? 1 : 0;
 
 		byte_error <<= 1;
-		byte_error |= bit_error ? 1 : 0;
+		byte_error |= symbol.error ? 1 : 0;
 
-		if( ((i >> 1) & 7) == 7 ) {
+		if( (i & 7) == 7 ) {
 			hex_data += to_string_hex(byte_data, 2);
 			hex_error += to_string_hex(byte_error, 2);
 		}
@@ -577,10 +607,8 @@ static std::pair<std::string, std::string> format_manchester(
 }
 
 void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
-	auto payload = message.packet.payload;
-	auto payload_length = message.packet.bits_received;
-
-	const auto hex_formatted = format_manchester(1, payload, payload_length);
+	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
+	const auto hex_formatted = format_manchester(decoder);
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());
 	console->writeln(hex_formatted.first.substr(0, 240 / 8));
@@ -606,29 +634,6 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	}
 }
 
-static std::bitset<512> manchester_decode(
-	const size_t sense,
-	const std::bitset<1024>& encoded,
-	const size_t count
-) {
-	std::bitset<512> result;
-	for(size_t i=0; i<count; i+=2) {
-		result[i >> 1] = encoded[i+sense];
-	}
-	return result;
-}
-
-static std::bitset<512> manchester_errors(
-	const std::bitset<1024>& encoded,
-	const size_t count
-) {
-	std::bitset<512> result;
-	for(size_t i=0; i<count; i+=2) {
-		result[i >> 1] = (encoded[i+0] == encoded[i+1]);
-	}
-	return result;
-}
-
 void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
 	auto console = reinterpret_cast<Console*>(widget_content.get());
 
@@ -639,7 +644,9 @@ void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
 		console->writeln("SCM");
 	}
 
-	const auto hex_formatted = format_manchester(0, message.packet.payload, message.packet.bits_received);
+	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
+
+	const auto hex_formatted = format_manchester(decoder);
 	console->writeln(hex_formatted.first);
 	console->writeln(hex_formatted.second);
 }
