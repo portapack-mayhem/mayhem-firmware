@@ -586,9 +586,8 @@ static ManchesterFormatted format_manchester(
 	const ManchesterDecoder& decoder
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();
-	const size_t payload_length_bytes = (payload_length_decoded + 7) / 8;
-	const size_t payload_length_hex_characters = payload_length_bytes * 2;
-	const size_t payload_length_symbols_rounded = payload_length_bytes * 8;
+	const size_t payload_length_hex_characters = (payload_length_decoded + 3) / 4;
+	const size_t payload_length_symbols_rounded = payload_length_hex_characters * 4;
 
 	std::string hex_data;
 	std::string hex_error;
@@ -606,9 +605,9 @@ static ManchesterFormatted format_manchester(
 		error <<= 1;
 		error |= symbol.error;
 
-		if( (i & 7) == 7 ) {
-			hex_data += to_string_hex(data & 0xff, 2);
-			hex_error += to_string_hex(error & 0xff, 2);
+		if( (i & 3) == 3 ) {
+			hex_data += to_string_hex(data & 0xf, 1);
+			hex_error += to_string_hex(error & 0xf, 1);
 		}
 	}
 
