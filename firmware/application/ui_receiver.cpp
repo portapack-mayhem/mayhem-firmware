@@ -577,7 +577,12 @@ private:
 	const size_t sense;
 };
 
-static std::pair<std::string, std::string> format_manchester(
+struct ManchesterFormatted {
+	const std::string data;
+	const std::string errors;
+};
+
+static ManchesterFormatted format_manchester(
 	const ManchesterDecoder& decoder
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();
@@ -611,7 +616,7 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 	const auto hex_formatted = format_manchester(decoder);
 
 	auto console = reinterpret_cast<Console*>(widget_content.get());
-	console->writeln(hex_formatted.first.substr(0, 240 / 8));
+	console->writeln(hex_formatted.data.substr(0, 240 / 8));
 
 	if( !f_error(&fil_tpms) ) {
 		rtc::RTC datetime;
@@ -628,7 +633,7 @@ void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
 		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
-		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.first + "/" + hex_formatted.second + "\r\n";
+		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
 		f_puts(log.c_str(), &fil_tpms);
 		f_sync(&fil_tpms);
 	}
@@ -647,8 +652,8 @@ void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
 	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
 
 	const auto hex_formatted = format_manchester(decoder);
-	console->writeln(hex_formatted.first);
-	console->writeln(hex_formatted.second);
+	console->writeln(hex_formatted.data);
+	console->writeln(hex_formatted.errors);
 }
 
 void ReceiverView::on_sd_card_status(const sd_card::Status status) {
