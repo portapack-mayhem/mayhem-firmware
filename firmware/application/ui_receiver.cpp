@@ -637,7 +637,6 @@ void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
 	}
 	if( message.packet.preamble == 0x1f2a60 ) {
 		console->writeln("SCM");
-		const auto decoded = manchester_decode(0, message.packet.payload, message.packet.bits_received);
 	}
 
 	const auto hex_formatted = format_manchester(0, message.packet.payload, message.packet.bits_received);
