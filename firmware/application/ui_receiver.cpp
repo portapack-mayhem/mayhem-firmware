@@ -547,8 +547,8 @@ static FIL fil_tpms;
 class ManchesterDecoder {
 public:
 	struct DecodedSymbol {
-		bool value;
-		bool error;
+		uint_fast8_t value;
+		uint_fast8_t error;
 	};
 
 	constexpr ManchesterDecoder(
@@ -601,10 +601,10 @@ static ManchesterFormatted format_manchester(
 		const auto symbol = decoder[i];
 
 		data <<= 1;
-		data |= symbol.value ? 1 : 0;
+		data |= symbol.value;
 
 		error <<= 1;
-		error |= symbol.error ? 1 : 0;
+		error |= symbol.error;
 
 		if( (i & 7) == 7 ) {
 			hex_data += to_string_hex(data & 0xff, 2);
