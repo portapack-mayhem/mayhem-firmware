@@ -587,10 +587,14 @@ static ManchesterFormatted format_manchester(
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();
 	const size_t payload_length_bytes = (payload_length_decoded + 7) / 8;
+	const size_t payload_length_hex_characters = payload_length_bytes * 2;
 	const size_t payload_length_symbols_rounded = payload_length_bytes * 8;
 
 	std::string hex_data;
 	std::string hex_error;
+	hex_data.reserve(payload_length_hex_characters);
+	hex_error.reserve(payload_length_hex_characters);
+	
 	uint8_t byte_data = 0;
 	uint8_t byte_error = 0;
 	for(size_t i=0; i<payload_length_symbols_rounded; i++) {
