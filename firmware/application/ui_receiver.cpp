@@ -594,21 +594,21 @@ static ManchesterFormatted format_manchester(
 	std::string hex_error;
 	hex_data.reserve(payload_length_hex_characters);
 	hex_error.reserve(payload_length_hex_characters);
-	
-	uint8_t byte_data = 0;
-	uint8_t byte_error = 0;
+
+	uint_fast8_t data = 0;
+	uint_fast8_t error = 0;
 	for(size_t i=0; i<payload_length_symbols_rounded; i++) {
 		const auto symbol = decoder[i];
 
-		byte_data <<= 1;
-		byte_data |= symbol.value ? 1 : 0;
+		data <<= 1;
+		data |= symbol.value ? 1 : 0;
 
-		byte_error <<= 1;
-		byte_error |= symbol.error ? 1 : 0;
+		error <<= 1;
+		error |= symbol.error ? 1 : 0;
 
 		if( (i & 7) == 7 ) {
-			hex_data += to_string_hex(byte_data, 2);
-			hex_error += to_string_hex(byte_error, 2);
+			hex_data += to_string_hex(data & 0xff, 2);
+			hex_error += to_string_hex(error & 0xff, 2);
 		}
 	}
 
