@@ -162,6 +162,7 @@ CPPSRC = main.cpp \
          ui_setup.cpp \
          ui_debug.cpp \
          ui_baseband_stats_view.cpp \
+         ui_sd_card_status_view.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \

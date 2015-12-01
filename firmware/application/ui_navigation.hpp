@@ -30,6 +30,7 @@
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
 #include "ui_audio.hpp"
+#include "ui_sd_card_status_view.hpp"
 
 #include <vector>
 
@@ -44,6 +45,8 @@ private:
 		{ 0, 0, 9 * 8, 1 * 16 },
 		"PortaPack",
 	};
+
+	SDCardStatusView sd_card_status_view;
 };
 
 class NavigationView : public View {

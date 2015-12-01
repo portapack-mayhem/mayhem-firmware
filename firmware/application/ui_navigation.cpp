@@ -37,7 +37,9 @@ namespace ui {
 SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&portapack,
+		&sd_card_status_view,
 	} });
+	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
 }
 
 /* Navigation ************************************************************/
