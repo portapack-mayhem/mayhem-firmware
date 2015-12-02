@@ -22,7 +22,6 @@
 #ifndef __APP_AIS_H__
 #define __APP_AIS_H__
 
-#include "receiver_model.hpp"
 #include "ui_console.hpp"
 #include "message.hpp"
 
@@ -30,53 +29,22 @@
 
 class AISModel {
 public:
-	AISModel() {
-		receiver_model.set_baseband_configuration({
-			.mode = 3,
-			.sampling_rate = 2457600,
-			.decimation_factor = 4,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-	}
+	AISModel();
 
-	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message) {
-		return baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
-	}	
-
-private:
+	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message);
 };
 
 namespace ui {
 
 class AISView : public Console {
 public:
-	void on_show() override {
-		Console::on_show();
-
-		auto& message_map = context().message_map();
-		message_map.register_handler(Message::ID::AISPacket,
-			[this](Message* const p) {
-				const auto message = static_cast<const AISPacketMessage*>(p);
-				this->log(this->model.on_packet(*message));
-			}
-		);
-	}
-
-	void on_hide() override {
-		auto& message_map = context().message_map();
-		message_map.unregister_handler(Message::ID::AISPacket);
-
-		Console::on_hide();
-	}
+	void on_show() override;
+	void on_hide() override;
 
 private:
 	AISModel model;
 
-	void log(const baseband::ais::decoded_packet decoded) {
-		if( decoded.first == "OK" ) {
-			writeln(decoded.second);
-		}
-	}
+	void log(const baseband::ais::decoded_packet decoded);
 };
 
 } /* namespace ui */
