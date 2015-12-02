@@ -583,9 +583,9 @@ static ManchesterFormatted format_manchester(
 	return { hex_data, hex_error };
 }
 
-class AudioModel {
+class AnalogAudioModel {
 public:
-	AudioModel(ReceiverMode mode) {
+	AnalogAudioModel(ReceiverMode mode) {
 		receiver_model.set_baseband_configuration({
 			.mode = toUType(mode),
 			.sampling_rate = 3072000,
@@ -595,16 +595,16 @@ public:
 	}
 };
 
-class AudioView : public spectrum::WaterfallWidget {
+class AnalogAudioView : public spectrum::WaterfallWidget {
 public:
-	AudioView(
+	AnalogAudioView(
 		ReceiverMode mode
 	) : model { mode }
 	{
 	}
 
 private:
-	AudioModel model;
+	AnalogAudioModel model;
 };
 
 class AISModel {
@@ -872,7 +872,7 @@ void ReceiverView::on_modulation_changed(ReceiverMode mode) {
 	case ReceiverMode::AMAudio:
 	case ReceiverMode::NarrowbandFMAudio:
 	case ReceiverMode::WidebandFMAudio:
-		widget_content = std::make_unique<AudioView>(mode);
+		widget_content = std::make_unique<AnalogAudioView>(mode);
 		break;
 
 	case ReceiverMode::AIS:
