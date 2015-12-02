@@ -170,6 +170,7 @@ CPPSRC = main.cpp \
          spectrum_color_lut.cpp \
          ais_baseband.cpp \
          app_ais.cpp \
+         app_tpms.cpp \
          sd_card.cpp \
          manchester.cpp \
          ../common/utility.cpp \

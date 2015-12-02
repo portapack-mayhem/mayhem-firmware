@@ -22,7 +22,6 @@
 #ifndef __APP_TPMS_H__
 #define __APP_TPMS_H__
 
-#include "receiver_model.hpp"
 #include "ui_console.hpp"
 #include "message.hpp"
 
@@ -30,106 +29,30 @@
 
 #include "ff.h"
 
-#include <hal.h>
-// #include "lpc43xx_cpp.hpp"
-// using namespace lpc43xx;
-
-// TODO: SERIOUSLY!? Including this, just to use to_string_hex?! Refactor!!!1
-#include "ui_widget.hpp"
-
 class TPMSModel {
 public:
-	TPMSModel() {
-		receiver_model.set_baseband_configuration({
-			.mode = 5,
-			.sampling_rate = 2457600,
-			.decimation_factor = 4,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
+	TPMSModel();
+	~TPMSModel();
 
-		open_file();
-	}
-
-	~TPMSModel() {
-		f_close(&fil);
-	}
-
-	ManchesterFormatted on_packet(const TPMSPacketMessage& message) {
-		const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
-		const auto hex_formatted = format_manchester(decoder);
-
-		if( !f_error(&fil) ) {
-			rtc::RTC datetime;
-			rtcGetTime(&RTCD1, &datetime);
-			std::string timestamp = 
-				ui::to_string_dec_uint(datetime.year(), 4) +
-				ui::to_string_dec_uint(datetime.month(), 2, '0') +
-				ui::to_string_dec_uint(datetime.day(), 2, '0') +
-				ui::to_string_dec_uint(datetime.hour(), 2, '0') +
-				ui::to_string_dec_uint(datetime.minute(), 2, '0') +
-				ui::to_string_dec_uint(datetime.second(), 2, '0');
-
-			const auto tuning_frequency = receiver_model.tuning_frequency();
-			// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-			const auto tuning_frequency_str = ui::to_string_dec_uint(tuning_frequency, 10);
-
-			std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-			f_puts(log.c_str(), &fil);
-			f_sync(&fil);
-		}
-
-		return hex_formatted;
-	}
+	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
 
 private:
 	FIL fil;
 
-	void open_file() {
-		const auto open_result = f_open(&fil, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
-		if( open_result == FR_OK ) {
-			const auto fil_size = f_size(&fil);
-			const auto seek_result = f_lseek(&fil, fil_size);
-			if( seek_result != FR_OK ) {
-				f_close(&fil);
-				// TODO: Error, indicate somehow.
-			} else {
-				// TODO: Indicate success.
-			}
-		} else {
-			// TODO: Error, indicate somehow.
-		}
-	}
+	void open_file();
 };
 
 namespace ui {
 
 class TPMSView : public Console {
 public:
-	void on_show() override {
-		Console::on_show();
-
-		auto& message_map = context().message_map();
-		message_map.register_handler(Message::ID::TPMSPacket,
-			[this](Message* const p) {
-				const auto message = static_cast<const TPMSPacketMessage*>(p);
-				this->log(this->model.on_packet(*message));
-			}
-		);
-	}
-
-	void on_hide() override {
-		auto& message_map = context().message_map();
-		message_map.unregister_handler(Message::ID::TPMSPacket);
-
-		Console::on_hide();
-	}
+	void on_show() override;
+	void on_hide() override;
 
 private:
 	TPMSModel model;
 
-	void log(const ManchesterFormatted& formatted) {
-		writeln(formatted.data.substr(0, 240 / 8));
-	}
+	void log(const ManchesterFormatted& formatted);
 };
 
 } /* namespace ui */
