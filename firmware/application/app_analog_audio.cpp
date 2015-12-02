@@ -19,31 +19,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_ANALOG_AUDIO_H__
-#define __APP_ANALOG_AUDIO_H__
+#include "app_analog_audio.hpp"
 
-#include "receiver_model.hpp"
-#include "ui_spectrum.hpp"
+#include "portapack.hpp"
+using namespace portapack;
 
-class AnalogAudioModel {
-public:
-	AnalogAudioModel(ReceiverModel::Mode mode);
-};
+#include "utility.hpp"
 
-namespace ui {
-
-class AnalogAudioView : public spectrum::WaterfallWidget {
-public:
-	AnalogAudioView(
-		ReceiverModel::Mode mode
-	) : model { mode }
-	{
-	}
-
-private:
-	AnalogAudioModel model;
-};
-
-} /* namespace ui */
-
-#endif/*__APP_ANALOG_AUDIO_H__*/
+AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
+	receiver_model.set_baseband_configuration({
+		.mode = toUType(mode),
+		.sampling_rate = 3072000,
+		.decimation_factor = 4,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
+}

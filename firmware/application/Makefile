@@ -168,6 +168,7 @@ CPPSRC = main.cpp \
          ui_spectrum.cpp \
          receiver_model.cpp \
          spectrum_color_lut.cpp \
+         app_analog_audio.cpp \
          ais_baseband.cpp \
          app_ais.cpp \
          app_tpms.cpp \
