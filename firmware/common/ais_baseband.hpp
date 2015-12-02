@@ -57,10 +57,6 @@ constexpr std::array<std::complex<float>, 32> rrc_taps_76k8_4t_p { {
 	{  1.7970187432e-03f, -7.4434953528e-04f }, {  4.6850211151e-03f, -9.3190864122e-04f },
 } };
 
-using decoded_packet = std::pair<std::string, std::string>;
-
-decoded_packet packet_decode(const std::bitset<1024>& data, const size_t data_length);
-
 } /* namespace ais */
 } /* namespace baseband */
 

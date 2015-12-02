@@ -26,7 +26,16 @@
 #include "message.hpp"
 #include "log_file.hpp"
 
-#include "ais_baseband.hpp"
+#include <string>
+#include <utility>
+
+namespace baseband {
+namespace ais {
+
+using decoded_packet = std::pair<std::string, std::string>;
+
+} /* namespace ais */
+} /* namespace baseband */
 
 class AISModel {
 public:
