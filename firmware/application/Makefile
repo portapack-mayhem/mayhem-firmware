@@ -175,6 +175,7 @@ CPPSRC = main.cpp \
          app_ert.cpp \
          app_spectrum_analysis.cpp \
          sd_card.cpp \
+         log_file.cpp \
          manchester.cpp \
          ../common/utility.cpp \
          ../common/chibios_cpp.cpp \

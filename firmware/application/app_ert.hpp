@@ -24,6 +24,7 @@
 
 #include "ui_console.hpp"
 #include "message.hpp"
+#include "log_file.hpp"
 
 #include <string>
 
@@ -32,6 +33,9 @@ public:
 	ERTModel();
 
 	std::string on_packet(const ERTPacketMessage& message);
+
+private:
+	LogFile log_file;
 };
 
 namespace ui {

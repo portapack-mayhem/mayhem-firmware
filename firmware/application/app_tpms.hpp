@@ -26,20 +26,16 @@
 #include "message.hpp"
 
 #include "manchester.hpp"
-
-#include "ff.h"
+#include "log_file.hpp"
 
 class TPMSModel {
 public:
 	TPMSModel();
-	~TPMSModel();
 
 	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
 
 private:
-	FIL fil;
-
-	void open_file();
+	LogFile log_file;
 };
 
 namespace ui {

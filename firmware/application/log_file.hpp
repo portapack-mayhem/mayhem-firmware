@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,38 +19,24 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_AIS_H__
-#define __APP_AIS_H__
+#ifndef __LOG_FILE_H__
+#define __LOG_FILE_H__
 
-#include "ui_console.hpp"
-#include "message.hpp"
-#include "log_file.hpp"
+#include <string>
 
-#include "ais_baseband.hpp"
+#include "ff.h"
 
-class AISModel {
+class LogFile {
 public:
-	AISModel();
+	~LogFile();
 
-	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message);
+	bool open_for_append(const std::string file_path);
+	bool close();
+	bool is_ready();
+	bool write(const std::string message);
 
 private:
-	LogFile log_file;
+	FIL f;
 };
 
-namespace ui {
-
-class AISView : public Console {
-public:
-	void on_show() override;
-	void on_hide() override;
-
-private:
-	AISModel model;
-
-	void log(const baseband::ais::decoded_packet decoded);
-};
-
-} /* namespace ui */
-
-#endif/*__APP_AIS_H__*/
+#endif/*__LOG_FILE_H__*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,38 +19,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_AIS_H__
-#define __APP_AIS_H__
-
-#include "ui_console.hpp"
-#include "message.hpp"
 #include "log_file.hpp"
 
-#include "ais_baseband.hpp"
+LogFile::~LogFile() {
+	close();
+}
 
-class AISModel {
-public:
-	AISModel();
+bool LogFile::open_for_append(const std::string file_path) {
+	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
+	if( open_result == FR_OK ) {
+		const auto seek_result = f_lseek(&f, f_size(&f));
+		if( seek_result == FR_OK ) {
+			return true;
+		} else {
+			close();
+		}
+	}
 
-	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message);
+	return false;
+}
 
-private:
-	LogFile log_file;
-};
+bool LogFile::close() {
+	f_close(&f);
+	return true;
+}
 
-namespace ui {
+bool LogFile::is_ready() {
+	return !f_error(&f);
+}
 
-class AISView : public Console {
-public:
-	void on_show() override;
-	void on_hide() override;
-
-private:
-	AISModel model;
-
-	void log(const baseband::ais::decoded_packet decoded);
-};
-
-} /* namespace ui */
-
-#endif/*__APP_AIS_H__*/
+bool LogFile::write(const std::string message) {
+	const auto puts_result = f_puts(message.c_str(), &f);
+	const auto sync_result = f_sync(&f);
+	return (puts_result >= 0) && (sync_result == FR_OK);
+}

@@ -33,6 +33,8 @@ ERTModel::ERTModel() {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
+
+	log_file.open_for_append("ert.txt");
 }
 
 std::string ERTModel::on_packet(const ERTPacketMessage& message) {
@@ -52,6 +54,11 @@ std::string ERTModel::on_packet(const ERTPacketMessage& message) {
 	s += "\n";
 	s += hex_formatted.errors;
 	s += "\n";
+
+	if( log_file.is_ready() ) {
+		std::string entry = hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
+		log_file.write(entry);
+	}
 
 	return s;
 }

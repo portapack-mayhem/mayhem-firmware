@@ -39,18 +39,14 @@ TPMSModel::TPMSModel() {
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
 
-	open_file();
-}
-
-TPMSModel::~TPMSModel() {
-	f_close(&fil);
+	log_file.open_for_append("tpms.txt");
 }
 
 ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
 	const auto hex_formatted = format_manchester(decoder);
 
-	if( !f_error(&fil) ) {
+	if( log_file.is_ready() ) {
 		rtc::RTC datetime;
 		rtcGetTime(&RTCD1, &datetime);
 		std::string timestamp = 
@@ -66,27 +62,10 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 		const auto tuning_frequency_str = ui::to_string_dec_uint(tuning_frequency, 10);
 
 		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-		f_puts(log.c_str(), &fil);
-		f_sync(&fil);
+		log_file.write(log);
 	}
 
 	return hex_formatted;
-}
-
-void TPMSModel::open_file() {
-	const auto open_result = f_open(&fil, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
-	if( open_result == FR_OK ) {
-		const auto fil_size = f_size(&fil);
-		const auto seek_result = f_lseek(&fil, fil_size);
-		if( seek_result != FR_OK ) {
-			f_close(&fil);
-			// TODO: Error, indicate somehow.
-		} else {
-			// TODO: Indicate success.
-		}
-	} else {
-		// TODO: Error, indicate somehow.
-	}
 }
 
 namespace ui {

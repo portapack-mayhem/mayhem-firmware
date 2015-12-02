@@ -31,10 +31,19 @@ AISModel::AISModel() {
 		.decimation_factor = 4,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
+
+	log_file.open_for_append("ais.txt");
 }
 
 baseband::ais::decoded_packet AISModel::on_packet(const AISPacketMessage& message) {
-	return baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
+	const auto result = baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
+
+	if( log_file.is_ready() ) {
+		std::string entry = result.first + "/" + result.second + "\r\n";
+		log_file.write(entry);
+	}
+
+	return result;
 }	
 
 namespace ui {
