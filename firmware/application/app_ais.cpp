@@ -24,7 +24,6 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-#include "field_reader.hpp"
 #include "crc.hpp"
 
 // TODO: Move string formatting elsewhere!!!
@@ -33,21 +32,12 @@ using namespace portapack;
 namespace baseband {
 namespace ais {
 
-decoded_packet packet_decode(const std::bitset<1024>& data, const size_t data_length);
-
-struct BitRemap {
-	size_t operator()(const size_t bit_index) const {
-		return bit_index ^ 7;
-	}
-};
-
 struct CRCBitRemap {
 	size_t operator()(const size_t bit_index) const {
 		return bit_index;
 	}
 };
 
-using FieldReader = ::FieldReader<std::bitset<1024>, BitRemap>;
 using CRCFieldReader = ::FieldReader<std::bitset<1024>, CRCBitRemap>;
 
 struct PacketLengthRange {
@@ -158,75 +148,16 @@ struct CRCCheck {
 	}
 };
 
-static int32_t ais_latitude_normalized(
-	const FieldReader& field,
-	const size_t start_bit
-) {
-	// Shifting and dividing is to sign-extend the source field.
-	// TODO: There's probably a more elegant way to do it.
-	return static_cast<int32_t>(field.read(start_bit, 27) << 5) / 32;
-}
-
-static int32_t ais_longitude_normalized(
-	const FieldReader& field,
-	const size_t start_bit
-) {
-	// Shifting and dividing is to sign-extend the source field.
-	// TODO: There's probably a more elegant way to do it.
-	return static_cast<int32_t>(field.read(start_bit, 28) << 4) / 16;
-}
-
-static std::string ais_format_latlon_normalized(const int32_t normalized) {
+static std::string format_latlon_normalized(const int32_t normalized) {
 	const int32_t t = (normalized * 5) / 3;
 	const int32_t degrees = t / (100 * 10000);
 	const int32_t fraction = std::abs(t) % (100 * 10000);
 	return ui::to_string_dec_int(degrees) + "." + ui::to_string_dec_int(fraction, 6, '0');
 }
 
-static std::string ais_format_latitude(
-	const FieldReader& field,
-	const size_t start_bit
+static std::string format_datetime(
+	const DateTime& datetime
 ) {
-	const auto value = static_cast<int32_t>(field.read(start_bit, 27) << 5) / 32;
-	return ais_format_latlon_normalized(value);
-}
-
-static std::string ais_format_longitude(
-	const FieldReader& field,
-	const size_t start_bit
-) {
-	const auto value = static_cast<int32_t>(field.read(start_bit, 28) << 4) / 16;
-	return ais_format_latlon_normalized(value);
-}
-
-struct ais_datetime {
-	uint16_t year;
-	uint8_t month;
-	uint8_t day;
-	uint8_t hour;
-	uint8_t minute;
-	uint8_t second;
-};
-
-static ais_datetime ais_get_datetime(
-	const FieldReader& field,
-	const size_t start_bit
-) {
-	return {
-		static_cast<uint16_t>(field.read(start_bit +  0, 14)),
-		static_cast<uint8_t >(field.read(start_bit + 14,  4)),
-		static_cast<uint8_t >(field.read(start_bit + 18,  5)),
-		static_cast<uint8_t >(field.read(start_bit + 23,  5)),
-		static_cast<uint8_t >(field.read(start_bit + 28,  6)),
-		static_cast<uint8_t >(field.read(start_bit + 34,  6)),
-	};
-}
-
-static std::string ais_format_datetime(
-	const FieldReader& field,
-	const size_t start_bit
-) {
-	const auto datetime = ais_get_datetime(field, start_bit);
 	return ui::to_string_dec_uint(datetime.year, 4) + "/" +
 		ui::to_string_dec_uint(datetime.month, 2, '0') + "/" +
 		ui::to_string_dec_uint(datetime.day, 2, '0') + " " +
@@ -235,26 +166,7 @@ static std::string ais_format_datetime(
 		ui::to_string_dec_uint(datetime.second, 2, '0');
 }
 
-static char ais_char_to_ascii(const uint8_t c) {
-	return (c ^ 32) + 32;
-}
-
-static std::string ais_read_text(
-	const FieldReader& field,
-	const size_t start_bit,
-	const size_t character_count
-) {
-	std::string result;
-	const size_t character_length = 6;
-	const size_t end_bit = start_bit + character_count * character_length;
-	for(size_t i=start_bit; i<end_bit; i+=character_length) {
-		result += ais_char_to_ascii(field.read(i, character_length));
-	} 
-
-	return result;
-}
-
-static std::string ais_format_navigational_status(const unsigned int value) {
+static std::string format_navigational_status(const unsigned int value) {
 	switch(value) {
 		case 0: return "under way w/engine";
 		case 1: return "at anchor";
@@ -274,80 +186,88 @@ static std::string ais_format_navigational_status(const unsigned int value) {
 	}
 }
 
-decoded_packet packet_decode(const std::bitset<1024>& payload, const size_t payload_length) {
-	// TODO: Unstuff here, not in baseband!
+static char char_to_ascii(const uint8_t c) {
+	return (c ^ 32) + 32;
+}
 
+size_t Packet::length() const {
+	return payload_length_;
+}
+
+bool Packet::is_valid() const {
 	// Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
-	const size_t data_and_fcs_length = payload_length - 7;
+	const size_t data_and_fcs_length = payload_length_ - 7;
 
 	if( data_and_fcs_length < 38 ) {
-		return { "short " + ui::to_string_dec_uint(data_and_fcs_length, 3), "" };
+		return false;
 	}
 
 	const size_t extra_bits = data_and_fcs_length & 7;
 	if( extra_bits != 0 ) {
-		return { "extra bits " + ui::to_string_dec_uint(data_and_fcs_length, 3), "" };
+		return false;
 	}
-
-	FieldReader field { payload };
-
-	const auto message_id = field.read(0, 6);
 
 	const size_t data_length = data_and_fcs_length - 16;
 	PacketLengthValidator packet_length_valid;
-	if( !packet_length_valid(message_id, data_length) ) {
-		return { "bad length " + ui::to_string_dec_uint(data_length, 3), "" };
+	if( !packet_length_valid(message_id(), data_length) ) {
+		return false;
 	}
 
 	CRCCheck crc_ok;
-	if( !crc_ok(payload, data_length) ) {
-		return { "crc", "" };
+	if( !crc_ok(payload_, data_length) ) {
+		return false;
 	}
 
-	const auto source_id = field.read(8, 30);
-	std::string result { ui::to_string_dec_uint(message_id, 2) + " " + ui::to_string_dec_uint(source_id, 10) };
+	return true;
+}
 
-	switch(message_id) {
-	case 1:
-	case 2:
-	case 3:
-		{
-			const auto navigational_status = field.read(38, 4);
-			result += " " + ais_format_navigational_status(navigational_status);
-			result += " " + ais_format_latlon_normalized(ais_latitude_normalized(field, 89));
-			result += " " + ais_format_latlon_normalized(ais_longitude_normalized(field, 61));
-		}
-		break;
+uint32_t Packet::message_id() const {
+	return field_.read(0, 6);
+}
 
-	case 4:
-		{
-			result += " " + ais_format_datetime(field, 38);
-			result += " " + ais_format_latlon_normalized(ais_latitude_normalized(field, 107));
-			result += " " + ais_format_latlon_normalized(ais_longitude_normalized(field, 79));
-		}
-		break;
+uint32_t Packet::source_id() const {
+	return field_.read(8, 30);
+}
 
-	case 5:
-		{
-			const auto call_sign = ais_read_text(field, 70, 7);
-			const auto name = ais_read_text(field, 112, 20);
-			const auto destination = ais_read_text(field, 302, 20);
-			result += " \"" + call_sign + "\" \"" + name + "\" \"" + destination + "\""; 
-		}
-		break;
+uint32_t Packet::read(const size_t start_bit, const size_t length) const {
+	return field_.read(start_bit, length);
+}
 
-	case 21:
-		{
-			const auto name = ais_read_text(field, 43, 20);
-			result += " \"" + name + "\" " + ais_format_latitude(field, 192) + " " + ais_format_longitude(field, 164);
-		}
-		break;
+std::string Packet::text(
+	const size_t start_bit,
+	const size_t character_count
+) const {
+	std::string result;
+	const size_t character_length = 6;
+	const size_t end_bit = start_bit + character_count * character_length;
+	for(size_t i=start_bit; i<end_bit; i+=character_length) {
+		result += char_to_ascii(field_.read(i, character_length));
+	} 
 
-	default:
-		break;
-	}
+	return result;
+}
 
-	return { "OK", result };
+DateTime Packet::datetime(const size_t start_bit) const {
+	return {
+		static_cast<uint16_t>(field_.read(start_bit +  0, 14)),
+		static_cast<uint8_t >(field_.read(start_bit + 14,  4)),
+		static_cast<uint8_t >(field_.read(start_bit + 18,  5)),
+		static_cast<uint8_t >(field_.read(start_bit + 23,  5)),
+		static_cast<uint8_t >(field_.read(start_bit + 28,  6)),
+		static_cast<uint8_t >(field_.read(start_bit + 34,  6)),
+	};
+}
+
+Latitude Packet::latitude(const size_t start_bit) const {
+	// Shifting and dividing is to sign-extend the source field.
+	// TODO: There's probably a more elegant way to do it.
+	return static_cast<int32_t>(field_.read(start_bit, 27) << 5) / 32;
+}
+
+Longitude Packet::longitude(const size_t start_bit) const {
+	// Shifting and dividing is to sign-extend the source field.
+	// TODO: There's probably a more elegant way to do it.
+	return static_cast<int32_t>(field_.read(start_bit, 28) << 4) / 16;
 }
 
 } /* namespace ais */
@@ -364,15 +284,27 @@ AISModel::AISModel() {
 	log_file.open_for_append("ais.txt");
 }
 
-baseband::ais::decoded_packet AISModel::on_packet(const AISPacketMessage& message) {
-	const auto result = baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
+bool AISModel::on_packet(const baseband::ais::Packet& packet) {
+	// TODO: Unstuff here, not in baseband!
+
+	if( !packet.is_valid() ) {
+		return false;
+	}
 
 	if( log_file.is_ready() ) {
-		std::string entry = result.first + "/" + result.second + "\r\n";
+		std::string entry;
+		entry.reserve((packet.length() + 3) / 4);
+
+		for(size_t i=0; i<packet.length(); i+=4) {
+			const auto nibble = packet.read(i, 4);
+			entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
+		}
+
+		entry += "\r\n";
 		log_file.write(entry);
 	}
 
-	return result;
+	return true;
 }	
 
 namespace ui {
@@ -384,7 +316,10 @@ void AISView::on_show() {
 	message_map.register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const AISPacketMessage*>(p);
-			this->log(this->model.on_packet(*message));
+			const baseband::ais::Packet packet { message->packet.payload, message->packet.bits_received };
+			if( this->model.on_packet(packet) ) {
+				this->log(packet);
+			}
 		}
 	);
 }
@@ -396,10 +331,50 @@ void AISView::on_hide() {
 	Console::on_hide();
 }
 
-void AISView::log(const baseband::ais::decoded_packet decoded) {
-	if( decoded.first == "OK" ) {
-		writeln(decoded.second);
+void AISView::log(const baseband::ais::Packet& packet) {
+	std::string result { ui::to_string_dec_uint(packet.message_id(), 2) + " " + ui::to_string_dec_uint(packet.source_id(), 10) };
+
+	switch(packet.message_id()) {
+	case 1:
+	case 2:
+	case 3:
+		{
+			const auto navigational_status = packet.read(38, 4);
+			result += " " + baseband::ais::format_navigational_status(navigational_status);
+			result += " " + baseband::ais::format_latlon_normalized(packet.latitude(89));
+			result += " " + baseband::ais::format_latlon_normalized(packet.longitude(61));
+		}
+		break;
+
+	case 4:
+		{
+			result += " " + baseband::ais::format_datetime(packet.datetime(38));
+			result += " " + baseband::ais::format_latlon_normalized(packet.latitude(107));
+			result += " " + baseband::ais::format_latlon_normalized(packet.longitude(79));
+		}
+		break;
+
+	case 5:
+		{
+			const auto call_sign = packet.text(70, 7);
+			const auto name = packet.text(112, 20);
+			const auto destination = packet.text(302, 20);
+			result += " \"" + call_sign + "\" \"" + name + "\" \"" + destination + "\""; 
+		}
+		break;
+
+	case 21:
+		{
+			const auto name = packet.text(43, 20);
+			result += " \"" + name + "\" " + baseband::ais::format_latlon_normalized(packet.latitude(192)) + " " + baseband::ais::format_latlon_normalized(packet.longitude(164));
+		}
+		break;
+
+	default:
+		break;
 	}
+
+	writeln(result);
 }
 
 } /* namespace ui */
