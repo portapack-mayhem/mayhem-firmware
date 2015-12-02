@@ -83,7 +83,7 @@ void ERTView::on_hide() {
 }
 
 void ERTView::log(const std::string& s) {
-	write(s);
+	writeln(s);
 }
 
 } /* namespace ui */
