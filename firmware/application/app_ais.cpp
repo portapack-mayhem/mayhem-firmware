@@ -299,8 +299,7 @@ bool AISModel::on_packet(const baseband::ais::Packet& packet) {
 			entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
 		}
 
-		entry += "\r\n";
-		log_file.write(entry);
+		log_file.write_entry(entry);
 	}
 
 	return true;

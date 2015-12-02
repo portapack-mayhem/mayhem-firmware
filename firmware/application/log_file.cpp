@@ -21,6 +21,11 @@
 
 #include "log_file.hpp"
 
+#include "string_format.hpp"
+
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 LogFile::~LogFile() {
 	close();
 }
@@ -46,6 +51,20 @@ bool LogFile::close() {
 
 bool LogFile::is_ready() {
 	return !f_error(&f);
+}
+
+bool LogFile::write_entry(const std::string entry) {
+	rtc::RTC datetime;
+	rtcGetTime(&RTCD1, &datetime);
+	std::string timestamp = 
+		to_string_dec_uint(datetime.year(), 4, '0') +
+		to_string_dec_uint(datetime.month(), 2, '0') +
+		to_string_dec_uint(datetime.day(), 2, '0') +
+		to_string_dec_uint(datetime.hour(), 2, '0') +
+		to_string_dec_uint(datetime.minute(), 2, '0') +
+		to_string_dec_uint(datetime.second(), 2, '0');
+
+	return write(timestamp + " " + entry + "\r\n");
 }
 
 bool LogFile::write(const std::string message) {

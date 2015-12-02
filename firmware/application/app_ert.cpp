@@ -38,29 +38,27 @@ ERTModel::ERTModel() {
 }
 
 std::string ERTModel::on_packet(const ERTPacketMessage& message) {
-	std::string s;
+	std::string entry;
 
 	if( message.packet.preamble == 0x555516a3 ) {
-		s += "IDM\n";
+		entry += "IDM ";
 	}
 	if( message.packet.preamble == 0x1f2a60 ) {
-		s += "SCM\n";
+		entry += "SCM ";
 	}
 
 	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
 
 	const auto hex_formatted = format_manchester(decoder);
-	s += hex_formatted.data;
-	s += "\n";
-	s += hex_formatted.errors;
-	s += "\n";
+	entry += hex_formatted.data;
+	entry += "/";
+	entry += hex_formatted.errors;
 
 	if( log_file.is_ready() ) {
-		std::string entry = hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-		log_file.write(entry);
+		log_file.write_entry(entry);
 	}
 
-	return s;
+	return entry;
 }
 
 namespace ui {

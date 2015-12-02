@@ -24,10 +24,6 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-#include <hal.h>
-// #include "lpc43xx_cpp.hpp"
-// using namespace lpc43xx;
-
 #include "string_format.hpp"
 
 TPMSModel::TPMSModel() {
@@ -46,22 +42,12 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 	const auto hex_formatted = format_manchester(decoder);
 
 	if( log_file.is_ready() ) {
-		rtc::RTC datetime;
-		rtcGetTime(&RTCD1, &datetime);
-		std::string timestamp = 
-			to_string_dec_uint(datetime.year(), 4, '0') +
-			to_string_dec_uint(datetime.month(), 2, '0') +
-			to_string_dec_uint(datetime.day(), 2, '0') +
-			to_string_dec_uint(datetime.hour(), 2, '0') +
-			to_string_dec_uint(datetime.minute(), 2, '0') +
-			to_string_dec_uint(datetime.second(), 2, '0');
-
 		const auto tuning_frequency = receiver_model.tuning_frequency();
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
 		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
-		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-		log_file.write(log);
+		std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
+		log_file.write_entry(entry);
 	}
 
 	return hex_formatted;

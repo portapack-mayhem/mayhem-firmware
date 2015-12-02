@@ -33,10 +33,13 @@ public:
 	bool open_for_append(const std::string file_path);
 	bool close();
 	bool is_ready();
-	bool write(const std::string message);
+
+	bool write_entry(const std::string entry);
 
 private:
 	FIL f;
+
+	bool write(const std::string message);
 };
 
 #endif/*__LOG_FILE_H__*/
