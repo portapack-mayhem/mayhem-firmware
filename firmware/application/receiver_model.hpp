@@ -33,6 +33,16 @@
 
 class ReceiverModel {
 public:
+	enum class Mode : int32_t {
+		AMAudio = 0,
+		NarrowbandFMAudio = 1,
+		WidebandFMAudio = 2,
+		AIS = 3,
+		SpectrumAnalysis = 4,
+		TPMS = 5,
+		ERT = 6,
+	};
+
 	constexpr ReceiverModel(
 		ClockManager& clock_manager
 	) : clock_manager(clock_manager)

@@ -456,7 +456,7 @@ ReceiverView::ReceiverView(
 	options_modulation.set_by_value(receiver_model.modulation());
 	options_modulation.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
-		this->on_modulation_changed(static_cast<ReceiverMode>(v));
+		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
 /*
 	options_baseband_oversampling.set_by_value(receiver_model.baseband_oversampling());
@@ -585,7 +585,7 @@ static ManchesterFormatted format_manchester(
 
 class AnalogAudioModel {
 public:
-	AnalogAudioModel(ReceiverMode mode) {
+	AnalogAudioModel(ReceiverModel::Mode mode) {
 		receiver_model.set_baseband_configuration({
 			.mode = toUType(mode),
 			.sampling_rate = 3072000,
@@ -598,7 +598,7 @@ public:
 class AnalogAudioView : public spectrum::WaterfallWidget {
 public:
 	AnalogAudioView(
-		ReceiverMode mode
+		ReceiverModel::Mode mode
 	) : model { mode }
 	{
 	}
@@ -864,30 +864,30 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void ReceiverView::on_modulation_changed(ReceiverMode mode) {
+void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 	remove_child(widget_content.get());
 	widget_content.reset();
 	
 	switch(mode) {
-	case ReceiverMode::AMAudio:
-	case ReceiverMode::NarrowbandFMAudio:
-	case ReceiverMode::WidebandFMAudio:
+	case ReceiverModel::Mode::AMAudio:
+	case ReceiverModel::Mode::NarrowbandFMAudio:
+	case ReceiverModel::Mode::WidebandFMAudio:
 		widget_content = std::make_unique<AnalogAudioView>(mode);
 		break;
 
-	case ReceiverMode::AIS:
+	case ReceiverModel::Mode::AIS:
 		widget_content = std::make_unique<AISView>();
 		break;
 
-	case ReceiverMode::SpectrumAnalysis:
+	case ReceiverModel::Mode::SpectrumAnalysis:
 		widget_content = std::make_unique<SpectrumAnalysisView>();
 		break;
 
-	case ReceiverMode::TPMS:
+	case ReceiverModel::Mode::TPMS:
 		widget_content = std::make_unique<TPMSView>();
 		break;
 
-	case ReceiverMode::ERT:
+	case ReceiverModel::Mode::ERT:
 		widget_content = std::make_unique<ERTView>();
 		break;
 
