@@ -171,6 +171,7 @@ CPPSRC = main.cpp \
          ais_baseband.cpp \
          app_ais.cpp \
          app_tpms.cpp \
+         app_ert.cpp \
          sd_card.cpp \
          manchester.cpp \
          ../common/utility.cpp \
