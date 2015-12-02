@@ -44,20 +44,9 @@ public:
 	{
 	}
 
-	DecodedSymbol operator[](const size_t index) const {
-		const size_t encoded_index = index * 2;
-		if( (encoded_index + 1) < count ) {
-			const auto value = encoded[encoded_index + sense];
-			const auto error = encoded[encoded_index + 0] == encoded[encoded_index + 1];
-			return { value, error };
-		} else {
-			return { 0, 1 };
-		}
-	}
+	DecodedSymbol operator[](const size_t index) const;
 
-	size_t symbols_count() const {
-		return count / 2;
-	}
+	size_t symbols_count() const;
 
 private:
 	const std::bitset<1024>& encoded;
