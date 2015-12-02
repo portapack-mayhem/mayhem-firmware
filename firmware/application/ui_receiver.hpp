@@ -469,10 +469,6 @@ private:
 	void on_headphone_volume_changed(int32_t v);
 //	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
-
-	void on_packet_ais(const AISPacketMessage& message);
-	void on_packet_tpms(const TPMSPacketMessage& message);
-	void on_packet_ert(const ERTPacketMessage& message);
 };
 
 } /* namespace ui */
