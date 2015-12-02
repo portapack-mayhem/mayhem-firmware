@@ -173,6 +173,7 @@ CPPSRC = main.cpp \
          app_ais.cpp \
          app_tpms.cpp \
          app_ert.cpp \
+         app_spectrum_analysis.cpp \
          sd_card.cpp \
          manchester.cpp \
          ../common/utility.cpp \

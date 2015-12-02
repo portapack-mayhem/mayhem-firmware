@@ -19,26 +19,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_SPECTRUM_ANALYSIS_H__
-#define __APP_SPECTRUM_ANALYSIS_H__
+#include "app_spectrum_analysis.hpp"
 
-#include "receiver_model.hpp"
-#include "ui_spectrum.hpp"
+#include "portapack.hpp"
+using namespace portapack;
 
-class SpectrumAnalysisModel {
-public:
-	SpectrumAnalysisModel();
-};
-
-namespace ui {
-
-class SpectrumAnalysisView : public spectrum::WaterfallWidget {
-public:
-
-private:
-	SpectrumAnalysisModel model;
-};
-
-} /* namespace ui */
-
-#endif/*__APP_SPECTRUM_ANALYSIS_H__*/
+SpectrumAnalysisModel::SpectrumAnalysisModel() {
+	receiver_model.set_baseband_configuration({
+		.mode = 4,
+		.sampling_rate = 20000000,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(12000000);
+}
