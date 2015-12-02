@@ -29,7 +29,6 @@ using namespace portapack;
 
 #include "ais_baseband.hpp"
 
-#include "sd_card.hpp"
 #include "ff.h"
 
 namespace ui {
@@ -498,16 +497,6 @@ ReceiverView::~ReceiverView() {
 	receiver_model.disable();
 }
 
-void ReceiverView::on_show() {
-	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
-		this->on_sd_card_status(status);
-	};
-}
-
-void ReceiverView::on_hide() {
-	sd_card::status_signal -= sd_card_status_signal_token;
-}
-
 class ManchesterDecoder {
 public:
 	struct DecodedSymbol {
@@ -831,14 +820,6 @@ public:
 private:
 	SpectrumAnalysisModel model;
 };
-
-void ReceiverView::on_sd_card_status(const sd_card::Status status) {
-	if( status == sd_card::Status::Mounted ) {
-		// TODO: Something?
-	} else {
-		// TODO: Indicate unmounted.
-	}
-}
 
 void ReceiverView::focus() {
 	button_done.focus();

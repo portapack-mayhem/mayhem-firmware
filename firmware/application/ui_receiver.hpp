@@ -364,9 +364,6 @@ public:
 
 	void focus() override;
 
-	void on_show() override;
-	void on_hide() override;
-
 private:
 	ReceiverModel& receiver_model;
 
@@ -476,9 +473,6 @@ private:
 	void on_packet_ais(const AISPacketMessage& message);
 	void on_packet_tpms(const TPMSPacketMessage& message);
 	void on_packet_ert(const ERTPacketMessage& message);
-	void on_sd_card_status(const sd_card::Status status);
-
-	SignalToken sd_card_status_signal_token;
 };
 
 } /* namespace ui */
