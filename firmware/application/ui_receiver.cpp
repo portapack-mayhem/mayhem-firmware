@@ -562,9 +562,14 @@ public:
 	}
 
 	DecodedSymbol operator[](const size_t index) const {
-		const auto value = encoded[index * 2 + sense];
-		const auto error = encoded[index * 2 + 0] == encoded[index * 2 + 1];
-		return { value, error };
+		const size_t encoded_index = index * 2;
+		if( (encoded_index + 1) < count ) {
+			const auto value = encoded[encoded_index + sense];
+			const auto error = encoded[encoded_index + 0] == encoded[encoded_index + 1];
+			return { value, error };
+		} else {
+			return { 0, 1 };
+		}
 	}
 
 	size_t symbols_count() const {
