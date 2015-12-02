@@ -499,26 +499,6 @@ ReceiverView::~ReceiverView() {
 }
 
 void ReceiverView::on_show() {
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			this->on_packet_ais(*message);
-		}
-	);
-	message_map.register_handler(Message::ID::TPMSPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const TPMSPacketMessage*>(p);
-			this->on_packet_tpms(*message);
-		}
-	);
-	message_map.register_handler(Message::ID::ERTPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ERTPacketMessage*>(p);
-			this->on_packet_ert(*message);
-		}
-	);
-
 	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
 		this->on_sd_card_status(status);
 	};
@@ -526,20 +506,6 @@ void ReceiverView::on_show() {
 
 void ReceiverView::on_hide() {
 	sd_card::status_signal -= sd_card_status_signal_token;
-
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::ERTPacket);
-	message_map.unregister_handler(Message::ID::TPMSPacket);
-	message_map.unregister_handler(Message::ID::AISPacket);
-}
-
-void ReceiverView::on_packet_ais(const AISPacketMessage& message) {
-	const auto result = baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
-
-	auto console = reinterpret_cast<Console*>(widget_content.get());
-	if( result.first == "OK" ) {
-		console->writeln(result.second);
-	}
 }
 
 static FIL fil_tpms;
@@ -619,50 +585,161 @@ static ManchesterFormatted format_manchester(
 	return { hex_data, hex_error };
 }
 
-void ReceiverView::on_packet_tpms(const TPMSPacketMessage& message) {
-	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
-	const auto hex_formatted = format_manchester(decoder);
+class AISModel {
+public:
+	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message) {
+		return baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
+	}	
 
-	auto console = reinterpret_cast<Console*>(widget_content.get());
-	console->writeln(hex_formatted.data.substr(0, 240 / 8));
+private:
+};
 
-	if( !f_error(&fil_tpms) ) {
-		rtc::RTC datetime;
-		rtcGetTime(&RTCD1, &datetime);
-		std::string timestamp = 
-			to_string_dec_uint(datetime.year(), 4) +
-			to_string_dec_uint(datetime.month(), 2, '0') +
-			to_string_dec_uint(datetime.day(), 2, '0') +
-			to_string_dec_uint(datetime.hour(), 2, '0') +
-			to_string_dec_uint(datetime.minute(), 2, '0') +
-			to_string_dec_uint(datetime.second(), 2, '0');
+class AISView : public Console {
+public:
+	void on_show() override {
+		Console::on_show();
 
-		const auto tuning_frequency = receiver_model.tuning_frequency();
-		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
-
-		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-		f_puts(log.c_str(), &fil_tpms);
-		f_sync(&fil_tpms);
-	}
-}
-
-void ReceiverView::on_packet_ert(const ERTPacketMessage& message) {
-	auto console = reinterpret_cast<Console*>(widget_content.get());
-
-	if( message.packet.preamble == 0x555516a3 ) {
-		console->writeln("IDM");
-	}
-	if( message.packet.preamble == 0x1f2a60 ) {
-		console->writeln("SCM");
+		auto& message_map = context().message_map();
+		message_map.register_handler(Message::ID::AISPacket,
+			[this](Message* const p) {
+				const auto message = static_cast<const AISPacketMessage*>(p);
+				this->log(this->model.on_packet(*message));
+			}
+		);
 	}
 
-	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
+	void on_hide() override {
+		auto& message_map = context().message_map();
+		message_map.unregister_handler(Message::ID::AISPacket);
 
-	const auto hex_formatted = format_manchester(decoder);
-	console->writeln(hex_formatted.data);
-	console->writeln(hex_formatted.errors);
-}
+		Console::on_hide();
+	}
+
+private:
+	AISModel model;
+
+	void log(const baseband::ais::decoded_packet decoded) {
+		if( decoded.first == "OK" ) {
+			writeln(decoded.second);
+		}
+	}
+};
+
+class TPMSModel {
+public:
+	ManchesterFormatted on_packet(const TPMSPacketMessage& message) {
+		const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
+		const auto hex_formatted = format_manchester(decoder);
+
+		if( !f_error(&fil_tpms) ) {
+			rtc::RTC datetime;
+			rtcGetTime(&RTCD1, &datetime);
+			std::string timestamp = 
+				to_string_dec_uint(datetime.year(), 4) +
+				to_string_dec_uint(datetime.month(), 2, '0') +
+				to_string_dec_uint(datetime.day(), 2, '0') +
+				to_string_dec_uint(datetime.hour(), 2, '0') +
+				to_string_dec_uint(datetime.minute(), 2, '0') +
+				to_string_dec_uint(datetime.second(), 2, '0');
+
+			const auto tuning_frequency = receiver_model.tuning_frequency();
+			// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
+			const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
+
+			std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
+			f_puts(log.c_str(), &fil_tpms);
+			f_sync(&fil_tpms);
+		}
+
+		return hex_formatted;
+	}
+
+private:
+};
+
+class TPMSView : public Console {
+public:
+	void on_show() override {
+		Console::on_show();
+
+		auto& message_map = context().message_map();
+		message_map.register_handler(Message::ID::TPMSPacket,
+			[this](Message* const p) {
+				const auto message = static_cast<const TPMSPacketMessage*>(p);
+				this->log(this->model.on_packet(*message));
+			}
+		);
+	}
+
+	void on_hide() override {
+		auto& message_map = context().message_map();
+		message_map.unregister_handler(Message::ID::TPMSPacket);
+
+		Console::on_hide();
+	}
+
+private:
+	TPMSModel model;
+
+	void log(const ManchesterFormatted& formatted) {
+		writeln(formatted.data.substr(0, 240 / 8));
+	}
+};
+
+class ERTModel {
+public:
+	std::string on_packet(const ERTPacketMessage& message) {
+		std::string s;
+
+		if( message.packet.preamble == 0x555516a3 ) {
+			s += "IDM\n";
+		}
+		if( message.packet.preamble == 0x1f2a60 ) {
+			s += "SCM\n";
+		}
+
+		const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
+
+		const auto hex_formatted = format_manchester(decoder);
+		s += hex_formatted.data;
+		s += "\n";
+		s += hex_formatted.errors;
+		s += "\n";
+
+		return s;
+	}
+
+private:
+};
+
+class ERTView : public Console {
+public:
+	void on_show() override {
+		Console::on_show();
+
+		auto& message_map = context().message_map();
+		message_map.register_handler(Message::ID::ERTPacket,
+			[this](Message* const p) {
+				const auto message = static_cast<const ERTPacketMessage*>(p);
+				this->log(this->model.on_packet(*message));
+			}
+		);
+	}
+
+	void on_hide() override {
+		auto& message_map = context().message_map();
+		message_map.unregister_handler(Message::ID::ERTPacket);
+
+		Console::on_hide();
+	}
+
+private:
+	ERTModel model;
+
+	void log(const std::string& s) {
+		write(s);
+	}
+};
 
 void ReceiverView::on_sd_card_status(const sd_card::Status status) {
 	if( status == sd_card::Status::Mounted ) {
@@ -754,9 +831,17 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 	
 	switch(modulation) {
 	case 3:
+		widget_content = std::make_unique<AISView>();
+		add_child(widget_content.get());
+		break;
+
 	case 5:
+		widget_content = std::make_unique<TPMSView>();
+		add_child(widget_content.get());
+		break;
+
 	case 6:
-		widget_content = std::make_unique<Console>();
+		widget_content = std::make_unique<ERTView>();
 		add_child(widget_content.get());
 		break;
 
