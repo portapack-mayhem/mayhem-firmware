@@ -583,8 +583,41 @@ static ManchesterFormatted format_manchester(
 	return { hex_data, hex_error };
 }
 
+class AudioModel {
+public:
+	AudioModel(ReceiverMode mode) {
+		receiver_model.set_baseband_configuration({
+			.mode = toUType(mode),
+			.sampling_rate = 3072000,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+	}
+};
+
+class AudioView : public spectrum::WaterfallWidget {
+public:
+	AudioView(
+		ReceiverMode mode
+	) : model { mode }
+	{
+	}
+
+private:
+	AudioModel model;
+};
+
 class AISModel {
 public:
+	AISModel() {
+		receiver_model.set_baseband_configuration({
+			.mode = 3,
+			.sampling_rate = 2457600,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+	}
+
 	baseband::ais::decoded_packet on_packet(const AISPacketMessage& message) {
 		return baseband::ais::packet_decode(message.packet.payload, message.packet.bits_received);
 	}	
@@ -626,6 +659,13 @@ private:
 class TPMSModel {
 public:
 	TPMSModel() {
+		receiver_model.set_baseband_configuration({
+			.mode = 5,
+			.sampling_rate = 2457600,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+
 		open_file();
 	}
 
@@ -711,6 +751,15 @@ private:
 
 class ERTModel {
 public:
+	ERTModel() {
+		receiver_model.set_baseband_configuration({
+			.mode = 6,
+			.sampling_rate = 4194304,
+			.decimation_factor = 1,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+	}
+
 	std::string on_packet(const ERTPacketMessage& message) {
 		std::string s;
 
@@ -764,6 +813,25 @@ private:
 	}
 };
 
+class SpectrumAnalysisModel {
+public:
+	SpectrumAnalysisModel() {
+		receiver_model.set_baseband_configuration({
+			.mode = 4,
+			.sampling_rate = 20000000,
+			.decimation_factor = 1,
+		});
+		receiver_model.set_baseband_bandwidth(12000000);
+	}
+};
+
+class SpectrumAnalysisView : public spectrum::WaterfallWidget {
+public:
+
+private:
+	SpectrumAnalysisModel model;
+};
+
 void ReceiverView::on_sd_card_status(const sd_card::Status status) {
 	if( status == sd_card::Status::Mounted ) {
 		// TODO: Something?
@@ -797,72 +865,38 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 }
 
 void ReceiverView::on_modulation_changed(ReceiverMode mode) {
-	/* TODO: This is TERRIBLE!!! */
-	switch(mode) {
-	case ReceiverMode::AIS:
-	case ReceiverMode::TPMS:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 2457600,
-			.decimation_factor = 4,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		break;
-
-	case ReceiverMode::ERT:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 4194304,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		break;
-
-	case ReceiverMode::SpectrumAnalysis:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 20000000,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(12000000);
-		break;
-
-	default:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 3072000,
-			.decimation_factor = 4,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		break;
-	}
-
 	remove_child(widget_content.get());
 	widget_content.reset();
 	
 	switch(mode) {
+	case ReceiverMode::AMAudio:
+	case ReceiverMode::NarrowbandFMAudio:
+	case ReceiverMode::WidebandFMAudio:
+		widget_content = std::make_unique<AudioView>(mode);
+		break;
+
 	case ReceiverMode::AIS:
 		widget_content = std::make_unique<AISView>();
-		add_child(widget_content.get());
+		break;
+
+	case ReceiverMode::SpectrumAnalysis:
+		widget_content = std::make_unique<SpectrumAnalysisView>();
 		break;
 
 	case ReceiverMode::TPMS:
 		widget_content = std::make_unique<TPMSView>();
-		add_child(widget_content.get());
 		break;
 
 	case ReceiverMode::ERT:
 		widget_content = std::make_unique<ERTView>();
-		add_child(widget_content.get());
 		break;
 
 	default:
-		widget_content = std::make_unique<spectrum::WaterfallWidget>();
-		add_child(widget_content.get());
 		break;
 	}
 	
 	if( widget_content ) {
+		add_child(widget_content.get());
 		const ui::Dim header_height = 3 * 16;
 		const ui::Rect rect { 0, header_height, parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - header_height) };
 		widget_content->set_parent_rect(rect);
