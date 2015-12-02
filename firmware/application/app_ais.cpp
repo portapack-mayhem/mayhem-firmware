@@ -158,7 +158,7 @@ static std::string format_latlon_normalized(const int32_t normalized) {
 static std::string format_datetime(
 	const DateTime& datetime
 ) {
-	return ui::to_string_dec_uint(datetime.year, 4) + "/" +
+	return ui::to_string_dec_uint(datetime.year, 4, '0') + "/" +
 		ui::to_string_dec_uint(datetime.month, 2, '0') + "/" +
 		ui::to_string_dec_uint(datetime.day, 2, '0') + " " +
 		ui::to_string_dec_uint(datetime.hour, 2, '0') + ":" +

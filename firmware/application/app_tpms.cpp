@@ -50,7 +50,7 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 		rtc::RTC datetime;
 		rtcGetTime(&RTCD1, &datetime);
 		std::string timestamp = 
-			ui::to_string_dec_uint(datetime.year(), 4) +
+			ui::to_string_dec_uint(datetime.year(), 4, '0') +
 			ui::to_string_dec_uint(datetime.month(), 2, '0') +
 			ui::to_string_dec_uint(datetime.day(), 2, '0') +
 			ui::to_string_dec_uint(datetime.hour(), 2, '0') +
