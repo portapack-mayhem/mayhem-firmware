@@ -357,6 +357,16 @@ constexpr Style style_options_group {
 	.foreground = Color::white(),
 };
 
+enum class ReceiverMode : int32_t {
+	AMAudio = 0,
+	NarrowbandFMAudio = 1,
+	WidebandFMAudio = 2,
+	AIS = 3,
+	SpectrumAnalysis = 4,
+	TPMS = 5,
+	ERT = 6,
+};
+
 class ReceiverView : public View {
 public:
 	ReceiverView(NavigationView& nav, ReceiverModel& receiver_model);
@@ -411,14 +421,13 @@ private:
 		{ 19 * 8, 1 * 16 },
 		4,
 		{
-			// TODO: Put ordinals in here...
-			{ " AM ", 0 },
-			{ "NFM ", 1 },
-			{ "WFM ", 2 },
-			{ "AIS ", 3 },
-			{ "TPMS", 5 },
-			{ "ERT",  6 },
-			{ "SPEC", 4 },
+			{ " AM ", toUType(ReceiverMode::AMAudio) },
+			{ "NFM ", toUType(ReceiverMode::NarrowbandFMAudio) },
+			{ "WFM ", toUType(ReceiverMode::WidebandFMAudio) },
+			{ "AIS ", toUType(ReceiverMode::AIS) },
+			{ "TPMS", toUType(ReceiverMode::TPMS) },
+			{ "ERT",  toUType(ReceiverMode::ERT) },
+			{ "SPEC", toUType(ReceiverMode::SpectrumAnalysis) },
 		}
 	};
 /*
@@ -465,7 +474,7 @@ private:
 	void on_rf_amp_changed(bool v);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-	void on_modulation_changed(int32_t modulation);
+	void on_modulation_changed(ReceiverMode mode);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
 	void on_frequency_step_changed(rf::Frequency f);

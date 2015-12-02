@@ -456,7 +456,7 @@ ReceiverView::ReceiverView(
 	options_modulation.set_by_value(receiver_model.modulation());
 	options_modulation.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
-		this->on_modulation_changed(v);
+		this->on_modulation_changed(static_cast<ReceiverMode>(v));
 	};
 /*
 	options_baseband_oversampling.set_by_value(receiver_model.baseband_oversampling());
@@ -796,31 +796,31 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void ReceiverView::on_modulation_changed(int32_t modulation) {
+void ReceiverView::on_modulation_changed(ReceiverMode mode) {
 	/* TODO: This is TERRIBLE!!! */
-	switch(modulation) {
-	case 3:
-	case 5:
+	switch(mode) {
+	case ReceiverMode::AIS:
+	case ReceiverMode::TPMS:
 		receiver_model.set_baseband_configuration({
-			.mode = modulation,
+			.mode = toUType(mode),
 			.sampling_rate = 2457600,
 			.decimation_factor = 4,
 		});
 		receiver_model.set_baseband_bandwidth(1750000);
 		break;
 
-	case 6:
+	case ReceiverMode::ERT:
 		receiver_model.set_baseband_configuration({
-			.mode = modulation,
+			.mode = toUType(mode),
 			.sampling_rate = 4194304,
 			.decimation_factor = 1,
 		});
 		receiver_model.set_baseband_bandwidth(1750000);
 		break;
 
-	case 4:
+	case ReceiverMode::SpectrumAnalysis:
 		receiver_model.set_baseband_configuration({
-			.mode = modulation,
+			.mode = toUType(mode),
 			.sampling_rate = 20000000,
 			.decimation_factor = 1,
 		});
@@ -829,7 +829,7 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 
 	default:
 		receiver_model.set_baseband_configuration({
-			.mode = modulation,
+			.mode = toUType(mode),
 			.sampling_rate = 3072000,
 			.decimation_factor = 4,
 		});
@@ -840,18 +840,18 @@ void ReceiverView::on_modulation_changed(int32_t modulation) {
 	remove_child(widget_content.get());
 	widget_content.reset();
 	
-	switch(modulation) {
-	case 3:
+	switch(mode) {
+	case ReceiverMode::AIS:
 		widget_content = std::make_unique<AISView>();
 		add_child(widget_content.get());
 		break;
 
-	case 5:
+	case ReceiverMode::TPMS:
 		widget_content = std::make_unique<TPMSView>();
 		add_child(widget_content.get());
 		break;
 
-	case 6:
+	case ReceiverMode::ERT:
 		widget_content = std::make_unique<ERTView>();
 		add_child(widget_content.get());
 		break;
