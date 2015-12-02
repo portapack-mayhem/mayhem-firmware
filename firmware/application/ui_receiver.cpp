@@ -508,8 +508,6 @@ void ReceiverView::on_hide() {
 	sd_card::status_signal -= sd_card_status_signal_token;
 }
 
-static FIL fil_tpms;
-
 class ManchesterDecoder {
 public:
 	struct DecodedSymbol {
@@ -627,11 +625,19 @@ private:
 
 class TPMSModel {
 public:
+	TPMSModel() {
+		open_file();
+	}
+
+	~TPMSModel() {
+		f_close(&fil);
+	}
+
 	ManchesterFormatted on_packet(const TPMSPacketMessage& message) {
 		const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
 		const auto hex_formatted = format_manchester(decoder);
 
-		if( !f_error(&fil_tpms) ) {
+		if( !f_error(&fil) ) {
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
 			std::string timestamp = 
@@ -647,14 +653,31 @@ public:
 			const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
 			std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
-			f_puts(log.c_str(), &fil_tpms);
-			f_sync(&fil_tpms);
+			f_puts(log.c_str(), &fil);
+			f_sync(&fil);
 		}
 
 		return hex_formatted;
 	}
 
 private:
+	FIL fil;
+
+	void open_file() {
+		const auto open_result = f_open(&fil, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
+		if( open_result == FR_OK ) {
+			const auto fil_size = f_size(&fil);
+			const auto seek_result = f_lseek(&fil, fil_size);
+			if( seek_result != FR_OK ) {
+				f_close(&fil);
+				// TODO: Error, indicate somehow.
+			} else {
+				// TODO: Indicate success.
+			}
+		} else {
+			// TODO: Error, indicate somehow.
+		}
+	}
 };
 
 class TPMSView : public Console {
@@ -743,19 +766,7 @@ private:
 
 void ReceiverView::on_sd_card_status(const sd_card::Status status) {
 	if( status == sd_card::Status::Mounted ) {
-		const auto open_result = f_open(&fil_tpms, "tpms.txt", FA_WRITE | FA_OPEN_ALWAYS);
-		if( open_result == FR_OK ) {
-			const auto fil_size = f_size(&fil_tpms);
-			const auto seek_result = f_lseek(&fil_tpms, fil_size);
-			if( seek_result != FR_OK ) {
-				f_close(&fil_tpms);
-				// TODO: Error, indicate somehow.
-			} else {
-				// TODO: Indicate success.
-			}
-		} else {
-			// TODO: Error, indicate somehow.
-		}
+		// TODO: Something?
 	} else {
 		// TODO: Indicate unmounted.
 	}
