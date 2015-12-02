@@ -24,6 +24,7 @@
 #include "ch.h"
 
 #include "radio.hpp"
+#include "string_format.hpp"
 
 namespace ui {
 

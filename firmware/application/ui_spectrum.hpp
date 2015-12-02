@@ -35,6 +35,8 @@ using namespace portapack;
 #include <cmath>
 #include <array>
 
+#include "string_format.hpp"
+
 namespace ui {
 namespace spectrum {
 

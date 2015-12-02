@@ -26,6 +26,8 @@
 #include <cstddef>
 #include <algorithm>
 
+#include "string_format.hpp"
+
 namespace ui {
 
 static bool ui_dirty = true;
@@ -40,99 +42,6 @@ void dirty_clear() {
 
 bool is_dirty() {
 	return ui_dirty;
-}
-
-constexpr size_t to_string_max_length = 16;
-
-static char* to_string_dec_uint_internal(
-	char* p,
-	uint32_t n
-) {
-	*p = 0;
-	auto q = p;
-
-	do {
-		const uint32_t d = n % 10;
-		const char c = d + 48;
-		*(--q) = c;
-		n /= 10;
-	} while( n != 0 );
-
-	return q;
-}
-
-static char* to_string_dec_uint_pad_internal(
-	char* const term,
-	const uint32_t n,
-	const int32_t l,
-	const char fill
-) {
-	auto q = to_string_dec_uint_internal(term, n);
-
-	if( fill ) {
-		while( (term - q) < l ) {
-			*(--q) = fill;
-		}
-	}
-
-	return q;
-}
-
-std::string to_string_dec_uint(
-	const uint32_t n,
-	const int32_t l,
-	const char fill
-) {
-	char p[16];
-	auto term = p + sizeof(p) - 1;
-	auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
-
-	// Right justify.
-	while( (term - q) < l ) {
-		*(--q) = ' ';
-	}
-
-	return q;
-}
-
-std::string to_string_dec_int(
-	const int32_t n,
-	const int32_t l,
-	const char fill
-) {
-	const size_t negative = (n < 0) ? 1 : 0;
-	uint32_t n_abs = negative ? -n : n;
-
-	char p[16];
-	auto term = p + sizeof(p) - 1;
-	auto q = to_string_dec_uint_pad_internal(term, n_abs, l - negative, fill);
-
-	// Add sign.
-	if( negative ) {
-		*(--q) = '-';
-	}
-
-	// Right justify.
-	while( (term - q) < l ) {
-		*(--q) = ' ';
-	}
-
-	return q;
-}
-
-static void to_string_hex_internal(char* p, const uint32_t n, const int32_t l) {
-	const uint32_t d = n & 0xf;
-	p[l] = (d > 9) ? (d + 87) : (d + 48);
-	if( l > 0 ) {
-		to_string_hex_internal(p, n >> 4, l - 1);
-	}
-}
-
-std::string to_string_hex(const uint32_t n, const int32_t l) {
-	char p[16];
-	to_string_hex_internal(p, n, l - 1);
-	p[l] = 0;
-	return p;
 }
 
 /* Widget ****************************************************************/

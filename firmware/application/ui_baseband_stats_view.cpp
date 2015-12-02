@@ -27,6 +27,8 @@
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
+#include "string_format.hpp"
+
 namespace ui {
 
 /* BasebandStatsView *****************************************************/

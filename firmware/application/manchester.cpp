@@ -21,8 +21,7 @@
 
 #include "manchester.hpp"
 
-// TODO: SERIOUSLY!? Including this, just to use to_string_hex?! Refactor!!!1
-#include "ui_widget.hpp"
+#include "string_format.hpp"
 
 ManchesterDecoder::DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
 	const size_t encoded_index = index * 2;
@@ -63,8 +62,8 @@ ManchesterFormatted format_manchester(
 		error |= symbol.error;
 
 		if( (i & 3) == 3 ) {
-			hex_data += ui::to_string_hex(data & 0xf, 1);
-			hex_error += ui::to_string_hex(error & 0xf, 1);
+			hex_data += to_string_hex(data & 0xf, 1);
+			hex_error += to_string_hex(error & 0xf, 1);
 		}
 	}
 

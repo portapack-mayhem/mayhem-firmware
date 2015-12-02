@@ -28,8 +28,7 @@ using namespace portapack;
 // #include "lpc43xx_cpp.hpp"
 // using namespace lpc43xx;
 
-// TODO: SERIOUSLY!? Including this, just to use to_string_hex?! Refactor!!!1
-#include "ui_widget.hpp"
+#include "string_format.hpp"
 
 TPMSModel::TPMSModel() {
 	receiver_model.set_baseband_configuration({
@@ -50,16 +49,16 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 		rtc::RTC datetime;
 		rtcGetTime(&RTCD1, &datetime);
 		std::string timestamp = 
-			ui::to_string_dec_uint(datetime.year(), 4, '0') +
-			ui::to_string_dec_uint(datetime.month(), 2, '0') +
-			ui::to_string_dec_uint(datetime.day(), 2, '0') +
-			ui::to_string_dec_uint(datetime.hour(), 2, '0') +
-			ui::to_string_dec_uint(datetime.minute(), 2, '0') +
-			ui::to_string_dec_uint(datetime.second(), 2, '0');
+			to_string_dec_uint(datetime.year(), 4, '0') +
+			to_string_dec_uint(datetime.month(), 2, '0') +
+			to_string_dec_uint(datetime.day(), 2, '0') +
+			to_string_dec_uint(datetime.hour(), 2, '0') +
+			to_string_dec_uint(datetime.minute(), 2, '0') +
+			to_string_dec_uint(datetime.second(), 2, '0');
 
 		const auto tuning_frequency = receiver_model.tuning_frequency();
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-		const auto tuning_frequency_str = ui::to_string_dec_uint(tuning_frequency, 10);
+		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
 		std::string log = timestamp + " " + tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors + "\r\n";
 		log_file.write(log);

@@ -26,8 +26,7 @@ using namespace portapack;
 
 #include "crc.hpp"
 
-// TODO: Move string formatting elsewhere!!!
-#include "ui_widget.hpp"
+#include "string_format.hpp"
 
 namespace baseband {
 namespace ais {
@@ -152,18 +151,18 @@ static std::string format_latlon_normalized(const int32_t normalized) {
 	const int32_t t = (normalized * 5) / 3;
 	const int32_t degrees = t / (100 * 10000);
 	const int32_t fraction = std::abs(t) % (100 * 10000);
-	return ui::to_string_dec_int(degrees) + "." + ui::to_string_dec_int(fraction, 6, '0');
+	return to_string_dec_int(degrees) + "." + to_string_dec_int(fraction, 6, '0');
 }
 
 static std::string format_datetime(
 	const DateTime& datetime
 ) {
-	return ui::to_string_dec_uint(datetime.year, 4, '0') + "/" +
-		ui::to_string_dec_uint(datetime.month, 2, '0') + "/" +
-		ui::to_string_dec_uint(datetime.day, 2, '0') + " " +
-		ui::to_string_dec_uint(datetime.hour, 2, '0') + ":" +
-		ui::to_string_dec_uint(datetime.minute, 2, '0') + ":" +
-		ui::to_string_dec_uint(datetime.second, 2, '0');
+	return to_string_dec_uint(datetime.year, 4, '0') + "/" +
+		to_string_dec_uint(datetime.month, 2, '0') + "/" +
+		to_string_dec_uint(datetime.day, 2, '0') + " " +
+		to_string_dec_uint(datetime.hour, 2, '0') + ":" +
+		to_string_dec_uint(datetime.minute, 2, '0') + ":" +
+		to_string_dec_uint(datetime.second, 2, '0');
 }
 
 static std::string format_navigational_status(const unsigned int value) {
@@ -332,7 +331,7 @@ void AISView::on_hide() {
 }
 
 void AISView::log(const baseband::ais::Packet& packet) {
-	std::string result { ui::to_string_dec_uint(packet.message_id(), 2) + " " + ui::to_string_dec_uint(packet.source_id(), 10) };
+	std::string result { to_string_dec_uint(packet.message_id(), 2) + " " + to_string_dec_uint(packet.source_id(), 10) };
 
 	switch(packet.message_id()) {
 	case 1:

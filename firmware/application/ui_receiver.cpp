@@ -24,6 +24,8 @@
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "string_format.hpp"
+
 #include "app_analog_audio.hpp"
 #include "app_ais.hpp"
 #include "app_tpms.hpp"
