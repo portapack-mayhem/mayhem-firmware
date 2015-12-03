@@ -56,6 +56,8 @@ struct DateTime {
 using Latitude = int32_t;
 using Longitude = int32_t;
 
+using MMSI = uint32_t;
+
 class Packet {
 public:
 	constexpr Packet(
@@ -72,7 +74,8 @@ public:
 	bool is_valid() const;
 
 	uint32_t message_id() const;
-	uint32_t source_id() const;
+	MMSI user_id() const;
+	MMSI source_id() const;
 
 	uint32_t read(const size_t start_bit, const size_t length) const;
 

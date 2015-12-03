@@ -224,7 +224,11 @@ uint32_t Packet::message_id() const {
 	return field_.read(0, 6);
 }
 
-uint32_t Packet::source_id() const {
+MMSI Packet::user_id() const {
+	return field_.read(8, 30);
+}
+
+MMSI Packet::source_id() const {
 	return field_.read(8, 30);
 }
 
