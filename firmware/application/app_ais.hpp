@@ -27,6 +27,9 @@
 #include "log_file.hpp"
 #include "field_reader.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 #include <cstdint>
 #include <cstddef>
 #include <string>
@@ -61,10 +64,12 @@ using MMSI = uint32_t;
 class Packet {
 public:
 	constexpr Packet(
+		const rtc::RTC& received_at,
 		const std::bitset<1024>& payload,
 		const size_t payload_length
 	) : payload_ { payload },
 		payload_length_ { payload_length },
+		received_at_ { received_at },
 		field_ { payload_ }
 	{
 	}
@@ -72,6 +77,8 @@ public:
 	size_t length() const;
 	
 	bool is_valid() const;
+
+	rtc::RTC received_at() const;
 
 	uint32_t message_id() const;
 	MMSI user_id() const;
@@ -89,6 +96,7 @@ public:
 private:
 	const std::bitset<1024> payload_;
 	const size_t payload_length_;
+	const rtc::RTC received_at_;
 	const FieldReader field_;
 };
 

@@ -26,6 +26,9 @@
 
 #include "ff.h"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 class LogFile {
 public:
 	~LogFile();
@@ -34,7 +37,7 @@ public:
 	bool close();
 	bool is_ready();
 
-	bool write_entry(const std::string entry);
+	bool write_entry(const rtc::RTC& datetime, const std::string entry);
 
 private:
 	FIL f;

@@ -26,6 +26,9 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 TPMSModel::TPMSModel() {
 	receiver_model.set_baseband_configuration({
 		.mode = 5,
@@ -38,6 +41,9 @@ TPMSModel::TPMSModel() {
 }
 
 ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
+	rtc::RTC received_at;
+	rtcGetTime(&RTCD1, &received_at);
+
 	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received, 1);
 	const auto hex_formatted = format_manchester(decoder);
 
@@ -47,7 +53,7 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
 		std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
-		log_file.write_entry(entry);
+		log_file.write_entry(received_at, entry);
 	}
 
 	return hex_formatted;

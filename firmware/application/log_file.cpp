@@ -53,9 +53,7 @@ bool LogFile::is_ready() {
 	return !f_error(&f);
 }
 
-bool LogFile::write_entry(const std::string entry) {
-	rtc::RTC datetime;
-	rtcGetTime(&RTCD1, &datetime);
+bool LogFile::write_entry(const rtc::RTC& datetime, const std::string entry) {
 	std::string timestamp = 
 		to_string_dec_uint(datetime.year(), 4, '0') +
 		to_string_dec_uint(datetime.month(), 2, '0') +

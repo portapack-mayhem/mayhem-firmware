@@ -26,6 +26,9 @@ using namespace portapack;
 
 #include "manchester.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 ERTModel::ERTModel() {
 	receiver_model.set_baseband_configuration({
 		.mode = 6,
@@ -38,6 +41,9 @@ ERTModel::ERTModel() {
 }
 
 std::string ERTModel::on_packet(const ERTPacketMessage& message) {
+	rtc::RTC received_at;
+	rtcGetTime(&RTCD1, &received_at);
+
 	std::string entry;
 
 	if( message.packet.preamble == 0x555516a3 ) {
@@ -55,7 +61,7 @@ std::string ERTModel::on_packet(const ERTPacketMessage& message) {
 	entry += hex_formatted.errors;
 
 	if( log_file.is_ready() ) {
-		log_file.write_entry(entry);
+		log_file.write_entry(received_at, entry);
 	}
 
 	return entry;

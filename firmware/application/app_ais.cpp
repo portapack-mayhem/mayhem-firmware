@@ -220,6 +220,10 @@ bool Packet::is_valid() const {
 	return true;
 }
 
+rtc::RTC Packet::received_at() const {
+	return received_at_;
+}
+
 uint32_t Packet::message_id() const {
 	return field_.read(0, 6);
 }
@@ -303,7 +307,7 @@ bool AISModel::on_packet(const baseband::ais::Packet& packet) {
 			entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
 		}
 
-		log_file.write_entry(entry);
+		log_file.write_entry(packet.received_at(), entry);
 	}
 
 	return true;
@@ -318,7 +322,9 @@ void AISView::on_show() {
 	message_map.register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const AISPacketMessage*>(p);
-			const baseband::ais::Packet packet { message->packet.payload, message->packet.bits_received };
+			rtc::RTC datetime;
+			rtcGetTime(&RTCD1, &datetime);
+			const baseband::ais::Packet packet { datetime, message->packet.payload, message->packet.bits_received };
 			if( this->model.on_packet(packet) ) {
 				this->log(packet);
 			}
