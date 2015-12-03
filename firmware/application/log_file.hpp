@@ -33,16 +33,16 @@ class LogFile {
 public:
 	~LogFile();
 
-	bool open_for_append(const std::string file_path);
+	bool open_for_append(const std::string& file_path);
 	bool close();
 	bool is_ready();
 
-	bool write_entry(const rtc::RTC& datetime, const std::string entry);
+	bool write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
 	FIL f;
 
-	bool write(const std::string message);
+	bool write(const std::string& message);
 };
 
 #endif/*__LOG_FILE_H__*/

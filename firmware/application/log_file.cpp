@@ -30,7 +30,7 @@ LogFile::~LogFile() {
 	close();
 }
 
-bool LogFile::open_for_append(const std::string file_path) {
+bool LogFile::open_for_append(const std::string& file_path) {
 	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
 	if( open_result == FR_OK ) {
 		const auto seek_result = f_lseek(&f, f_size(&f));
@@ -53,7 +53,7 @@ bool LogFile::is_ready() {
 	return !f_error(&f);
 }
 
-bool LogFile::write_entry(const rtc::RTC& datetime, const std::string entry) {
+bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
 	std::string timestamp = 
 		to_string_dec_uint(datetime.year(), 4, '0') +
 		to_string_dec_uint(datetime.month(), 2, '0') +
@@ -65,7 +65,7 @@ bool LogFile::write_entry(const rtc::RTC& datetime, const std::string entry) {
 	return write(timestamp + " " + entry + "\r\n");
 }
 
-bool LogFile::write(const std::string message) {
+bool LogFile::write(const std::string& message) {
 	const auto puts_result = f_puts(message.c_str(), &f);
 	const auto sync_result = f_sync(&f);
 	return (puts_result >= 0) && (sync_result == FR_OK);
