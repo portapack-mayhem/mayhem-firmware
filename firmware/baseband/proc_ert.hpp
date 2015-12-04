@@ -57,11 +57,11 @@ public:
 private:
 	const uint32_t baseband_sampling_rate = 4194304;
 	const size_t decimation = 1;
-	const uint32_t symbol_rate = 32768;
+	const float symbol_rate = 32768;
 
 	const uint32_t channel_sampling_rate = baseband_sampling_rate / decimation;
 	const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
-	const uint32_t clock_recovery_rate = symbol_rate * 2;
+	const float clock_recovery_rate = symbol_rate * 2;
 
 	// ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By2, false };
 
