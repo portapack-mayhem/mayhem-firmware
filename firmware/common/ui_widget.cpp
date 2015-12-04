@@ -397,7 +397,7 @@ void OptionsField::set_selected_index(const size_t new_index) {
 void OptionsField::set_by_value(value_t v) {
 	size_t new_index { 0 };
 	for(const auto& option : options) {
-		if( option.second >= v ) {
+		if( option.second == v ) {
 			set_selected_index(new_index);
 			break;
 		}
