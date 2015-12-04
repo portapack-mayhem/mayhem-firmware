@@ -362,6 +362,9 @@ public:
 	ReceiverView(NavigationView& nav, ReceiverModel& receiver_model);
 	~ReceiverView();
 
+	void on_show() override;
+	void on_hide() override;
+
 	void focus() override;
 
 private:

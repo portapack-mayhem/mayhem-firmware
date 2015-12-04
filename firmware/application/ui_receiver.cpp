@@ -498,6 +498,19 @@ ReceiverView::~ReceiverView() {
 	receiver_model.disable();
 }
 
+void ReceiverView::on_show() {
+	View::on_show();
+	
+	// TODO: Separate concepts of baseband "modulation" and receiver "mode".
+	on_modulation_changed(static_cast<ReceiverModel::Mode>(receiver_model.modulation()));
+}
+
+void ReceiverView::on_hide() {
+	on_modulation_changed(static_cast<ReceiverModel::Mode>(-1));
+
+	View::on_hide();
+}
+
 void ReceiverView::focus() {
 	button_done.focus();
 }
