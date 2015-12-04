@@ -156,6 +156,12 @@ static std::string format_latlon_normalized(const int32_t normalized) {
 	return to_string_dec_int(degrees) + "." + to_string_dec_int(fraction, 6, '0');
 }
 
+static std::string format_mmsi(
+	const MMSI& mmsi
+) {
+	return to_string_dec_uint(mmsi, 9, '0');
+}
+
 static std::string format_datetime(
 	const DateTime& datetime
 ) {
@@ -405,7 +411,7 @@ void AISView::paint(Painter& painter) {
 
 	auto p = r.pos;
 	for(const auto entry : recent) {
-		std::string line = to_string_dec_uint(entry.mmsi, 10) + " ";
+		std::string line = baseband::ais::format_mmsi(entry.mmsi) + " ";
 		if( !entry.name.empty() ) {
 			line += entry.name;
 		} else {
