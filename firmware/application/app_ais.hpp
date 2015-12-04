@@ -34,6 +34,7 @@ using namespace lpc43xx;
 #include <cstddef>
 #include <string>
 #include <bitset>
+#include <list>
 #include <utility>
 
 namespace baseband {
@@ -115,13 +116,42 @@ private:
 
 namespace ui {
 
-class AISView : public Console {
+class AISView : public View {
 public:
 	void on_show() override;
 	void on_hide() override;
 
+	void paint(Painter& painter) override;
+
 private:
 	AISModel model;
+
+	struct Position {
+		rtc::RTC timestamp { };
+		baseband::ais::Latitude latitude { 0 };
+		baseband::ais::Longitude longitude { 0 };
+	};
+
+	struct RecentEntry {
+		baseband::ais::MMSI mmsi;
+		std::string name;
+		std::string call_sign;
+		std::string destination;
+		Position last_position;
+		size_t received_count;
+		int8_t navigational_status;
+
+		RecentEntry(
+			const baseband::ais::MMSI& mmsi
+		) : mmsi { mmsi },
+			last_position { },
+			received_count { 0 },
+			navigational_status { -1 }
+		{
+		}
+	};
+
+	std::list<RecentEntry> recent;
 
 	void log(const baseband::ais::Packet& packet);
 };

@@ -28,6 +28,8 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
+#include <algorithm>
+
 namespace baseband {
 namespace ais {
 
@@ -316,7 +318,7 @@ bool AISModel::on_packet(const baseband::ais::Packet& packet) {
 namespace ui {
 
 void AISView::on_show() {
-	Console::on_show();
+	View::on_show();
 
 	auto& message_map = context().message_map();
 	message_map.register_handler(Message::ID::AISPacket,
@@ -336,53 +338,87 @@ void AISView::on_hide() {
 	auto& message_map = context().message_map();
 	message_map.unregister_handler(Message::ID::AISPacket);
 
-	Console::on_hide();
+	View::on_hide();
 }
 
 void AISView::log(const baseband::ais::Packet& packet) {
-	std::string result { to_string_dec_uint(packet.message_id(), 2) + " " + to_string_dec_uint(packet.source_id(), 10) };
+	const auto source_id = packet.source_id();
+	auto matching_recent = std::find_if(recent.begin(), recent.end(),
+		[source_id](const AISView::RecentEntry& entry) { return entry.mmsi == source_id; }
+	);
+	if( matching_recent != recent.end() ) {
+		// Found within. Move to front of list, increment counter.
+		recent.push_front(*matching_recent);
+		recent.erase(matching_recent);
+	} else {
+		recent.emplace_front(source_id);
+		while(recent.size() > 64) {
+			recent.pop_back();
+		}
+	}
+
+	auto& entry = recent.front();
+	entry.received_count++;
 
 	switch(packet.message_id()) {
 	case 1:
 	case 2:
 	case 3:
-		{
-			const auto navigational_status = packet.read(38, 4);
-			result += " " + baseband::ais::format_navigational_status(navigational_status);
-			result += " " + baseband::ais::format_latlon_normalized(packet.latitude(89));
-			result += " " + baseband::ais::format_latlon_normalized(packet.longitude(61));
-		}
+		entry.navigational_status = packet.read(38, 4);
+		entry.last_position.timestamp = packet.received_at();
+		entry.last_position.latitude = packet.latitude(89);
+		entry.last_position.longitude = packet.longitude(61);
 		break;
 
 	case 4:
-		{
-			result += " " + baseband::ais::format_datetime(packet.datetime(38));
-			result += " " + baseband::ais::format_latlon_normalized(packet.latitude(107));
-			result += " " + baseband::ais::format_latlon_normalized(packet.longitude(79));
-		}
+		// packet.datetime(38)
+		entry.last_position.timestamp = packet.received_at();
+		entry.last_position.latitude = packet.latitude(107);
+		entry.last_position.longitude = packet.longitude(79);
 		break;
 
 	case 5:
-		{
-			const auto call_sign = packet.text(70, 7);
-			const auto name = packet.text(112, 20);
-			const auto destination = packet.text(302, 20);
-			result += " \"" + call_sign + "\" \"" + name + "\" \"" + destination + "\""; 
-		}
+		entry.call_sign = packet.text(70, 7);
+		entry.name = packet.text(112, 20);
+		entry.destination = packet.text(302, 20);
 		break;
 
 	case 21:
-		{
-			const auto name = packet.text(43, 20);
-			result += " \"" + name + "\" " + baseband::ais::format_latlon_normalized(packet.latitude(192)) + " " + baseband::ais::format_latlon_normalized(packet.longitude(164));
-		}
+		entry.name = packet.text(43, 20);
+		entry.last_position.timestamp = packet.received_at();
+		entry.last_position.latitude = packet.latitude(192);
+		entry.last_position.longitude = packet.longitude(164);
 		break;
 
 	default:
 		break;
 	}
 
-	writeln(result);
+	set_dirty();
+}
+
+void AISView::paint(Painter& painter) {
+	const auto r = screen_rect();
+	const auto& s = style();
+
+	auto p = r.pos;
+	for(const auto entry : recent) {
+		std::string line = to_string_dec_uint(entry.mmsi, 10) + " ";
+		if( !entry.name.empty() ) {
+			line += entry.name;
+		} else {
+			line += entry.call_sign;
+		}
+
+		line.resize(r.width() / 8, ' ');
+
+		painter.draw_string(p, s, line);
+		p.y += s.font.line_height();
+
+		if( p.y >= r.bottom() ) {
+			break;
+		}
+	}
 }
 
 } /* namespace ui */
