@@ -247,6 +247,8 @@ std::string Packet::text(
 	const size_t character_count
 ) const {
 	std::string result;
+	result.reserve(character_count);
+	
 	const size_t character_length = 6;
 	const size_t end_bit = start_bit + character_count * character_length;
 	for(size_t i=start_bit; i<end_bit; i+=character_length) {
