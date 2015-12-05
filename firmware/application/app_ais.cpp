@@ -415,6 +415,11 @@ void AISView::on_blur() {
 	set_dirty();
 }
 
+bool AISView::on_encoder(const EncoderEvent event) {
+	advance(event);
+	return true;
+}
+
 void AISView::paint(Painter& painter) {
 	const auto r = screen_rect();
 	const auto& s = style();
@@ -430,13 +435,49 @@ void AISView::paint(Painter& painter) {
 
 		line.resize(r.width() / 8, ' ');
 
-		painter.draw_string(p, s, line);
+		if( has_focus && (selected_key == entry.mmsi) ) {
+			painter.draw_string(p, s.invert(), line);
+		} else {
+			painter.draw_string(p, s, line);
+		}
+
 		p.y += s.font.line_height();
 
 		if( p.y >= r.bottom() ) {
 			break;
 		}
 	}
+}
+
+AISView::RecentEntries::iterator AISView::selected_entry() {
+	const auto key = selected_key;
+	return std::find_if(std::begin(recent), std::end(recent), [key](const RecentEntry& e) { return e.mmsi == key; });
+}
+
+void AISView::advance(const int32_t amount) {
+	auto selected = selected_entry();
+	if( selected == std::end(recent) ) {
+		if( recent.empty() ) {
+			selected_key = invalid_key;
+		} else {
+			selected_key = recent.front().mmsi;
+		}
+	} else {
+		if( amount < 0 ) {
+			if( selected != std::begin(recent) ) {
+				std::advance(selected, -1);
+			}
+		}
+		if( amount > 0 ) {
+			std::advance(selected, 1);
+			if( selected == std::end(recent) ) {
+				return;
+			}
+		}
+		selected_key = selected->mmsi;
+	}
+
+	set_dirty();
 }
 
 } /* namespace ui */

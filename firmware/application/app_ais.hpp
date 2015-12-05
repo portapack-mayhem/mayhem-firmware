@@ -37,6 +37,8 @@ using namespace lpc43xx;
 #include <list>
 #include <utility>
 
+#include <iterator>
+
 namespace baseband {
 namespace ais {
 
@@ -130,8 +132,14 @@ public:
 	void on_focus() override;
 	void on_blur() override;
 
+	bool on_encoder(const EncoderEvent event) override;
+
 private:
 	AISModel model;
+
+	using EntryKey = baseband::ais::MMSI;
+	EntryKey selected_key;
+	const EntryKey invalid_key = 0xffffffff;
 
 	bool has_focus = false;
 
@@ -160,9 +168,14 @@ private:
 		}
 	};
 
-	std::list<RecentEntry> recent;
+	using RecentEntries = std::list<RecentEntry>;
+	RecentEntries recent;
+
 	void on_packet(const baseband::ais::Packet& packet);
 
+	RecentEntries::iterator selected_entry();
+
+	void advance(const int32_t amount);
 };
 
 } /* namespace ui */
