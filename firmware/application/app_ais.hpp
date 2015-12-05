@@ -118,13 +118,22 @@ namespace ui {
 
 class AISView : public View {
 public:
+	AISView() {
+		flags.focusable = true;
+	}
+
 	void on_show() override;
 	void on_hide() override;
 
 	void paint(Painter& painter) override;
 
+	void on_focus() override;
+	void on_blur() override;
+
 private:
 	AISModel model;
+
+	bool has_focus = false;
 
 	struct Position {
 		rtc::RTC timestamp { };

@@ -405,6 +405,16 @@ void AISView::on_packet(const baseband::ais::Packet& packet) {
 	set_dirty();
 }
 
+void AISView::on_focus() {
+	has_focus = true;
+	set_dirty();
+}
+
+void AISView::on_blur() {
+	has_focus = false;
+	set_dirty();
+}
+
 void AISView::paint(Painter& painter) {
 	const auto r = screen_rect();
 	const auto& s = style();
