@@ -336,7 +336,7 @@ void AISView::on_show() {
 			rtcGetTime(&RTCD1, &datetime);
 			const baseband::ais::Packet packet { datetime, message->packet.payload, message->packet.bits_received };
 			if( this->model.on_packet(packet) ) {
-				this->log(packet);
+				this->on_packet(packet);
 			}
 		}
 	);
@@ -349,7 +349,7 @@ void AISView::on_hide() {
 	View::on_hide();
 }
 
-void AISView::log(const baseband::ais::Packet& packet) {
+void AISView::on_packet(const baseband::ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = std::find_if(recent.begin(), recent.end(),
 		[source_id](const AISView::RecentEntry& entry) { return entry.mmsi == source_id; }

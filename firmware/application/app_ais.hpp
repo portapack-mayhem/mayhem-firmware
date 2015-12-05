@@ -152,8 +152,8 @@ private:
 	};
 
 	std::list<RecentEntry> recent;
+	void on_packet(const baseband::ais::Packet& packet);
 
-	void log(const baseband::ais::Packet& packet);
 };
 
 } /* namespace ui */
