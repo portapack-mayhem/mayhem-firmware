@@ -173,6 +173,8 @@ private:
 
 	void on_packet(const baseband::ais::Packet& packet);
 
+	void truncate_entries();
+
 	RecentEntries::iterator selected_entry();
 
 	void advance(const int32_t amount);

@@ -349,6 +349,12 @@ void AISView::on_hide() {
 	View::on_hide();
 }
 
+void AISView::truncate_entries() {
+	while(recent.size() > 64) {
+		recent.pop_back();
+	}
+}
+
 void AISView::on_packet(const baseband::ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = std::find_if(recent.begin(), recent.end(),
@@ -360,9 +366,7 @@ void AISView::on_packet(const baseband::ais::Packet& packet) {
 		recent.erase(matching_recent);
 	} else {
 		recent.emplace_front(source_id);
-		while(recent.size() > 64) {
-			recent.pop_back();
-		}
+		truncate_entries();
 	}
 
 	auto& entry = recent.front();
