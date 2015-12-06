@@ -29,6 +29,8 @@ using namespace portapack;
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "string_format.hpp"
+
 namespace ert {
 
 size_t Packet::length() const {
@@ -82,31 +84,8 @@ ERTModel::ERTModel() {
 	log_file.open_for_append("ert.txt");
 }
 
-std::string ERTModel::on_packet(const ERTPacketMessage& message) {
-	rtc::RTC received_at;
-	rtcGetTime(&RTCD1, &received_at);
-
-	std::string entry;
-
-	if( message.packet.preamble == 0x555516a3 ) {
-		entry += "IDM ";
-	}
-	if( message.packet.preamble == 0x1f2a60 ) {
-		entry += "SCM ";
-	}
-
-	const ManchesterDecoder decoder(message.packet.payload, message.packet.bits_received);
-
-	const auto hex_formatted = format_manchester(decoder);
-	entry += hex_formatted.data;
-	entry += "/";
-	entry += hex_formatted.errors;
-
-	if( log_file.is_ready() ) {
-		log_file.write_entry(received_at, entry);
-	}
-
-	return entry;
+bool ERTModel::on_packet(const ert::Packet&) {
+	return true;
 }
 
 namespace ui {
@@ -118,7 +97,12 @@ void ERTView::on_show() {
 	message_map.register_handler(Message::ID::ERTPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
-			this->log(this->model.on_packet(*message));
+			rtc::RTC datetime;
+			rtcGetTime(&RTCD1, &datetime);
+			const ert::Packet packet { datetime, message->packet.preamble, message->packet.payload, message->packet.bits_received };
+			if( this->model.on_packet(packet) ) {
+				this->on_packet(packet);
+			}
 		}
 	);
 }
@@ -130,8 +114,29 @@ void ERTView::on_hide() {
 	Console::on_hide();
 }
 
-void ERTView::log(const std::string& s) {
-	writeln(s);
+void ERTView::on_packet(const ert::Packet& packet) {
+	std::string msg;
+	switch(packet.type()) {
+	case ert::Packet::Type::SCM:
+		msg += "SCM ";
+		msg += to_string_dec_uint(packet.id(), 10);
+		msg += " ";
+		msg += to_string_dec_uint(packet.consumption(), 10);
+		break;
+
+	case ert::Packet::Type::IDM:
+		msg += "IDM ";
+		msg += to_string_dec_uint(packet.id(), 10);
+		msg += " ";
+		msg += to_string_dec_uint(packet.consumption(), 10);
+		break;
+
+	default:
+		msg += "???";
+		break;
+	}
+
+	writeln(msg);
 }
 
 } /* namespace ui */

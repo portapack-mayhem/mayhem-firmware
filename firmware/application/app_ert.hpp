@@ -103,7 +103,7 @@ class ERTModel {
 public:
 	ERTModel();
 
-	std::string on_packet(const ERTPacketMessage& message);
+	bool on_packet(const ert::Packet& packet);
 
 private:
 	LogFile log_file;
@@ -119,7 +119,7 @@ public:
 private:
 	ERTModel model;
 
-	void log(const std::string& s);
+	void on_packet(const ert::Packet& packet);
 };
 
 } /* namespace ui */
