@@ -29,6 +29,48 @@ using namespace portapack;
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+namespace ert {
+
+size_t Packet::length() const {
+	return payload_length_;
+}
+
+bool Packet::is_valid() const {
+	return true;
+}
+
+rtc::RTC Packet::received_at() const {
+	return received_at_;
+}
+
+Packet::Type Packet::type() const {
+	return type_;
+}
+
+ID Packet::id() const {
+	if( type() == Packet::Type::SCM ) {
+		const auto msb = reader_.read(0, 2);
+		const auto lsb = reader_.read(35, 24);
+		return (msb << 24) | lsb;
+	}
+	if( type() == Packet::Type::IDM ) {
+		return reader_.read(5 * 8, 32);
+	}
+	return invalid_id;
+}
+
+Consumption Packet::consumption() const {
+	if( type() == Packet::Type::SCM ) {
+		return reader_.read(11, 24);
+	}
+	if( type() == Packet::Type::IDM ) {
+		return reader_.read(25 * 8, 32);
+	}
+	return invalid_consumption;
+}
+
+} /* namespace ert */
+
 ERTModel::ERTModel() {
 	receiver_model.set_baseband_configuration({
 		.mode = 6,

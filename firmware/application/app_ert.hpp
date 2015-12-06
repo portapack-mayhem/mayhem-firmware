@@ -25,8 +25,79 @@
 #include "ui_console.hpp"
 #include "message.hpp"
 #include "log_file.hpp"
+#include "manchester.hpp"
+#include "field_reader.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
+#include <cstddef>
 #include <string>
+#include <bitset>
+
+namespace ert {
+
+struct BitRemap {
+	size_t operator()(const size_t bit_index) const {
+		return bit_index;
+	}
+};
+
+using ID = uint32_t;
+using Consumption = uint32_t;
+
+class Packet {
+public:
+	enum Type {
+		Unknown = 0,
+		IDM = 1,
+		SCM = 2,
+	};
+
+	Packet(
+		const rtc::RTC& received_at,
+		const uint64_t preamble,
+		const std::bitset<1024>& payload,
+		const size_t payload_length
+	) : payload_ { payload },
+		payload_length_ { payload_length },
+		received_at_ { received_at },
+		decoder_ { payload_, payload_length_ },
+		reader_ { decoder_ },
+		type_ { Type::Unknown  }
+	{
+		if( preamble == 0x1f2a60 ) {
+			type_ = Type::SCM;
+		} else if( preamble == 0x555516a3 ) {
+			type_ = Type::IDM;
+		}
+	}
+
+	size_t length() const;
+	
+	bool is_valid() const;
+
+	rtc::RTC received_at() const;
+
+	Type type() const;
+	ID id() const;
+	Consumption consumption() const;
+
+private:
+	using Reader = FieldReader<ManchesterDecoder, BitRemap>;
+
+	const std::bitset<1024> payload_;
+	const size_t payload_length_;
+	const rtc::RTC received_at_;
+	const ManchesterDecoder decoder_;
+	const Reader reader_;
+	Type type_;
+
+	const ID invalid_id = 0;
+	const Consumption invalid_consumption = 0;
+};
+
+} /* namespace ert */
 
 class ERTModel {
 public:
