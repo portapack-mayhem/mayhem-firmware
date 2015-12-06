@@ -424,7 +424,7 @@ bool AISView::on_encoder(const EncoderEvent event) {
 	return true;
 }
 
-bool AISView::draw_entry(
+void AISView::draw_entry(
 	const RecentEntry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -438,15 +438,7 @@ bool AISView::draw_entry(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-
-	const bool is_selected_key = (selected_key == entry.mmsi);
-	if( has_focus && is_selected_key ) {
-		painter.draw_string(target_rect.pos, s.invert(), line);
-	} else {
-		painter.draw_string(target_rect.pos, s, line);
-	}
-
-	return is_selected_key;
+	painter.draw_string(target_rect.pos, s, line);
 }
 
 void AISView::paint(Painter& painter) {
@@ -455,7 +447,9 @@ void AISView::paint(Painter& painter) {
 
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 	for(const auto entry : recent) {
-		draw_entry(entry, target_rect, painter, s);
+		const auto is_selected_key = (selected_key == entry.mmsi);
+		const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
+		draw_entry(entry, target_rect, painter, draw_style);
 
 		target_rect.pos.y += target_rect.height();
 
