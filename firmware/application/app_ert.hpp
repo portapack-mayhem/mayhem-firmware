@@ -56,7 +56,7 @@ public:
 
 	Packet(
 		const rtc::RTC& received_at,
-		const uint64_t preamble,
+		const Type type,
 		const std::bitset<1024>& payload,
 		const size_t payload_length
 	) : payload_ { payload },
@@ -64,13 +64,8 @@ public:
 		received_at_ { received_at },
 		decoder_ { payload_, payload_length_ },
 		reader_ { decoder_ },
-		type_ { Type::Unknown  }
+		type_ { type }
 	{
-		if( preamble == 0x1f2a60 ) {
-			type_ = Type::SCM;
-		} else if( preamble == 0x555516a3 ) {
-			type_ = Type::IDM;
-		}
 	}
 
 	size_t length() const;
@@ -91,7 +86,7 @@ private:
 	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
-	Type type_;
+	const Type type_;
 
 	const ID invalid_id = 0;
 	const Consumption invalid_consumption = 0;

@@ -99,7 +99,14 @@ void ERTView::on_show() {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const ert::Packet packet { datetime, message->packet.preamble, message->packet.payload, message->packet.bits_received };
+			ert::Packet::Type packet_type = ert::Packet::Type::Unknown;
+			if( message->packet.preamble == 0x1f2a60 ) {
+				packet_type = ert::Packet::Type::SCM;
+			} else if( message->packet.preamble == 0x555516a3 ) {
+				packet_type = ert::Packet::Type::IDM;
+			}
+
+			const ert::Packet packet { datetime, packet_type, message->packet.payload, message->packet.bits_received };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}
