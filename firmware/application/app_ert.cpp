@@ -45,27 +45,27 @@ rtc::RTC Packet::received_at() const {
 	return received_at_;
 }
 
-Packet::Type Packet::type() const {
+ERTPacket::Type Packet::type() const {
 	return type_;
 }
 
 ID Packet::id() const {
-	if( type() == Packet::Type::SCM ) {
+	if( type() == ERTPacket::Type::SCM ) {
 		const auto msb = reader_.read(0, 2);
 		const auto lsb = reader_.read(35, 24);
 		return (msb << 24) | lsb;
 	}
-	if( type() == Packet::Type::IDM ) {
+	if( type() == ERTPacket::Type::IDM ) {
 		return reader_.read(5 * 8, 32);
 	}
 	return invalid_id;
 }
 
 Consumption Packet::consumption() const {
-	if( type() == Packet::Type::SCM ) {
+	if( type() == ERTPacket::Type::SCM ) {
 		return reader_.read(11, 24);
 	}
-	if( type() == Packet::Type::IDM ) {
+	if( type() == ERTPacket::Type::IDM ) {
 		return reader_.read(25 * 8, 32);
 	}
 	return invalid_consumption;
@@ -99,14 +99,7 @@ void ERTView::on_show() {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			ert::Packet::Type packet_type = ert::Packet::Type::Unknown;
-			if( message->packet.preamble == 0x1f2a60 ) {
-				packet_type = ert::Packet::Type::SCM;
-			} else if( message->packet.preamble == 0x555516a3 ) {
-				packet_type = ert::Packet::Type::IDM;
-			}
-
-			const ert::Packet packet { datetime, packet_type, message->packet.payload, message->packet.bits_received };
+			const ert::Packet packet { datetime, message->packet.type, message->packet.payload, message->packet.bits_received };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}
@@ -124,14 +117,14 @@ void ERTView::on_hide() {
 void ERTView::on_packet(const ert::Packet& packet) {
 	std::string msg;
 	switch(packet.type()) {
-	case ert::Packet::Type::SCM:
+	case ERTPacket::Type::SCM:
 		msg += "SCM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
 		break;
 
-	case ert::Packet::Type::IDM:
+	case ERTPacket::Type::IDM:
 		msg += "IDM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";

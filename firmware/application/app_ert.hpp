@@ -48,15 +48,9 @@ using Consumption = uint32_t;
 
 class Packet {
 public:
-	enum Type {
-		Unknown = 0,
-		IDM = 1,
-		SCM = 2,
-	};
-
 	Packet(
 		const rtc::RTC& received_at,
-		const Type type,
+		const ERTPacket::Type type,
 		const std::bitset<1024>& payload,
 		const size_t payload_length
 	) : payload_ { payload },
@@ -74,7 +68,7 @@ public:
 
 	rtc::RTC received_at() const;
 
-	Type type() const;
+	ERTPacket::Type type() const;
 	ID id() const;
 	Consumption consumption() const;
 
@@ -86,7 +80,7 @@ private:
 	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
-	const Type type_;
+	const ERTPacket::Type type_;
 
 	const ID invalid_id = 0;
 	const Consumption invalid_consumption = 0;

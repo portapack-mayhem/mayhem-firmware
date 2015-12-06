@@ -242,7 +242,13 @@ public:
 };
 
 struct ERTPacket {
-	uint64_t preamble { 0 };
+	enum class Type : uint32_t {
+		Unknown = 0,
+		IDM = 1,
+		SCM = 2,
+	};
+
+	Type type { Type::Unknown };
 	std::bitset<1024> payload;
 	size_t bits_received { 0 };
 };

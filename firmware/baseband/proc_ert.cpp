@@ -99,7 +99,7 @@ void ERTProcessor::scm_handler(
 	const size_t bits_received
 ) {
 	ERTPacketMessage message;
-	message.packet.preamble = 0x1f2a60;
+	message.packet.type = ERTPacket::Type::SCM;
 	message.packet.payload = payload;
 	message.packet.bits_received = bits_received;
 	shared_memory.application_queue.push(message);
@@ -110,7 +110,7 @@ void ERTProcessor::idm_handler(
 	const size_t bits_received
 ) {
 	ERTPacketMessage message;
-	message.packet.preamble = 0x555516a3;
+	message.packet.type = ERTPacket::Type::IDM;
 	message.packet.payload = payload;
 	message.packet.bits_received = bits_received;
 	shared_memory.application_queue.push(message);
