@@ -446,14 +446,21 @@ void AISView::paint(Painter& painter) {
 	const auto& s = style();
 
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
+	bool found_selected_item = false;
 	for(const auto entry : recent) {
+		const auto next_y = target_rect.pos.y + target_rect.height();
+		const auto last_visible_entry = (next_y >= r.bottom());
+
 		const auto is_selected_key = (selected_key == entry.mmsi);
-		const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
-		draw_entry(entry, target_rect, painter, draw_style);
+		found_selected_item |= is_selected_key;
 
-		target_rect.pos.y += target_rect.height();
+		if( !last_visible_entry || (last_visible_entry && found_selected_item) ) {
+			const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
+			draw_entry(entry, target_rect, painter, draw_style);
+			target_rect.pos.y += target_rect.height();
+		}
 
-		if( target_rect.pos.y >= r.bottom() ) {
+		if( last_visible_entry && found_selected_item ) {
 			break;
 		}
 	}
