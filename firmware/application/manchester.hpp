@@ -54,6 +54,11 @@ private:
 	const size_t sense;
 };
 
+template<typename T>
+T operator|(const T& l, const ManchesterDecoder::DecodedSymbol& r) {
+	return l | r.value;
+}
+
 struct ManchesterFormatted {
 	const std::string data;
 	const std::string errors;
