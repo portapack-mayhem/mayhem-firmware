@@ -424,30 +424,42 @@ bool AISView::on_encoder(const EncoderEvent event) {
 	return true;
 }
 
+bool AISView::draw_entry(
+	const RecentEntry& entry,
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& s
+) {
+	std::string line = baseband::ais::format_mmsi(entry.mmsi) + " ";
+	if( !entry.name.empty() ) {
+		line += entry.name;
+	} else {
+		line += entry.call_sign;
+	}
+
+	line.resize(target_rect.width() / 8, ' ');
+
+	const bool is_selected_key = (selected_key == entry.mmsi);
+	if( has_focus && is_selected_key ) {
+		painter.draw_string(target_rect.pos, s.invert(), line);
+	} else {
+		painter.draw_string(target_rect.pos, s, line);
+	}
+
+	return is_selected_key;
+}
+
 void AISView::paint(Painter& painter) {
 	const auto r = screen_rect();
 	const auto& s = style();
 
-	auto p = r.pos;
+	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 	for(const auto entry : recent) {
-		std::string line = baseband::ais::format_mmsi(entry.mmsi) + " ";
-		if( !entry.name.empty() ) {
-			line += entry.name;
-		} else {
-			line += entry.call_sign;
-		}
+		draw_entry(entry, target_rect, painter, s);
 
-		line.resize(r.width() / 8, ' ');
+		target_rect.pos.y += target_rect.height();
 
-		if( has_focus && (selected_key == entry.mmsi) ) {
-			painter.draw_string(p, s.invert(), line);
-		} else {
-			painter.draw_string(p, s, line);
-		}
-
-		p.y += s.font.line_height();
-
-		if( p.y >= r.bottom() ) {
+		if( target_rect.pos.y >= r.bottom() ) {
 			break;
 		}
 	}

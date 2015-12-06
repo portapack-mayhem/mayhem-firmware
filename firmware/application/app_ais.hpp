@@ -173,6 +173,13 @@ private:
 
 	void on_packet(const baseband::ais::Packet& packet);
 
+	bool draw_entry(
+		const RecentEntry& entry,
+		const Rect& target_rect,
+		Painter& painter,
+		const Style& s
+	);
+
 	void truncate_entries();
 
 	RecentEntries::iterator selected_entry();
