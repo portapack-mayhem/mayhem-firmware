@@ -39,7 +39,7 @@ struct CRCBitRemap {
 	}
 };
 
-using CRCFieldReader = ::FieldReader<std::bitset<1024>, CRCBitRemap>;
+using CRCFieldReader = ::FieldReader<::Packet, CRCBitRemap>;
 
 struct PacketLengthRange {
 	constexpr PacketLengthRange(
@@ -131,8 +131,11 @@ struct PacketTooLong {
 };
 
 struct CRCCheck {
-	bool operator()(const std::bitset<1024>& payload, const size_t data_length) {
-		CRCFieldReader field_crc { payload };
+	bool operator()(const ::Packet& packet) {
+		const size_t data_and_fcs_length = packet.size() - 7;
+		const size_t data_length = data_and_fcs_length - 16;
+
+		CRCFieldReader field_crc { packet };
 		CRC<uint16_t> ais_fcs { 0x1021 };
 		
 		uint16_t crc_calculated = 0xffff;
@@ -198,12 +201,12 @@ static char char_to_ascii(const uint8_t c) {
 }
 
 size_t Packet::length() const {
-	return payload_length_;
+	return packet_.size();
 }
 
 bool Packet::is_valid() const {
 	// Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
-	const size_t data_and_fcs_length = payload_length_ - 7;
+	const size_t data_and_fcs_length = length() - 7;
 
 	if( data_and_fcs_length < 38 ) {
 		return false;
@@ -221,7 +224,7 @@ bool Packet::is_valid() const {
 	}
 
 	CRCCheck crc_ok;
-	if( !crc_ok(payload_, data_length) ) {
+	if( !crc_ok(packet_) ) {
 		return false;
 	}
 
@@ -334,7 +337,7 @@ void AISView::on_show() {
 			const auto message = static_cast<const AISPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const baseband::ais::Packet packet { datetime, message->packet.payload, message->packet.bits_received };
+			const baseband::ais::Packet packet { datetime, message->packet.packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}

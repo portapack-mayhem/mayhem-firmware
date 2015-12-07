@@ -27,6 +27,8 @@
 #include <array>
 #include <functional>
 
+#include "packet.hpp"
+
 #include "utility.hpp"
 
 #include "ch.h"
@@ -201,11 +203,8 @@ public:
 	ChannelSpectrum spectrum;
 };
 
-#include <bitset>
-
 struct AISPacket {
-	std::bitset<1024> payload;
-	size_t bits_received { 0 };
+	::Packet packet;
 };
 
 class AISPacketMessage : public Message {
@@ -219,8 +218,7 @@ public:
 };
 
 struct TPMSPacket {
-	std::bitset<1024> payload;
-	size_t bits_received { 0 };
+	::Packet packet;
 };
 
 class TPMSPacketMessage : public Message {
@@ -249,8 +247,7 @@ struct ERTPacket {
 	};
 
 	Type type { Type::Unknown };
-	std::bitset<1024> payload;
-	size_t bits_received { 0 };
+	::Packet packet;
 };
 
 class ERTPacketMessage : public Message {

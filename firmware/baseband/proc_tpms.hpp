@@ -30,6 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
+#include "packet.hpp"
 
 #include "message.hpp"
 
@@ -49,8 +50,6 @@ constexpr std::array<std::complex<float>, 8> rect_taps_153k6_1t_p { {
 
 class TPMSProcessor : public BasebandProcessor {
 public:
-	using payload_t = std::bitset<1024>;
-
 	void execute(buffer_c8_t buffer) override;
 
 private:
@@ -65,13 +64,13 @@ private:
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
 		{ 256 },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->payload_handler(payload, bits_received);
+		[this](const ::Packet& packet) {
+			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const payload_t& payload, const size_t bits_received);
+	void payload_handler(const ::Packet& packet);
 };
 
 #endif/*__PROC_TPMS_H__*/

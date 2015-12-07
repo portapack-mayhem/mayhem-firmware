@@ -60,11 +60,9 @@ void AISProcessor::consume_symbol(
 }
 
 void AISProcessor::payload_handler(
-	const std::bitset<1024>& payload,
-	const size_t bits_received
+	const ::Packet& packet
 ) {
 	AISPacketMessage message;
-	message.packet.payload = payload;
-	message.packet.bits_received = bits_received;
+	message.packet.packet = packet;
 	shared_memory.application_queue.push(message);
 }

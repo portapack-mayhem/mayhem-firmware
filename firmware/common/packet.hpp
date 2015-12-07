@@ -19,52 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MANCHESTER_H__
-#define __MANCHESTER_H__
+#ifndef __PACKET_H__
+#define __PACKET_H__
 
-#include <cstdint>
 #include <cstddef>
 #include <bitset>
-#include <string>
 
-#include "packet.hpp"
-
-class ManchesterDecoder {
+class Packet {
 public:
-	struct DecodedSymbol {
-		uint_fast8_t value;
-		uint_fast8_t error;
-	};
-
-	constexpr ManchesterDecoder(
-		const ::Packet& packet,
-		const size_t sense = 0
-	) : packet { packet },
-		sense { sense }
-	{
+	void add(const bool symbol) {
+		if( count < capacity() ) {
+			data[count++] = symbol;
+		}
 	}
 
-	DecodedSymbol operator[](const size_t index) const;
+	uint_fast8_t operator[](const size_t index) const {
+		return (index < size()) ? data[index] : 0;
+	}
 
-	size_t symbols_count() const;
+	size_t size() const {
+		return count;
+	}
+
+	size_t capacity() const {
+		return data.size();
+	}
+
+	void clear() {
+		count = 0;
+	}
 
 private:
-	const ::Packet& packet;
-	const size_t sense;
+	std::bitset<1408> data;
+	size_t count { 0 };
 };
 
-template<typename T>
-T operator|(const T& l, const ManchesterDecoder::DecodedSymbol& r) {
-	return l | r.value;
-}
-
-struct ManchesterFormatted {
-	const std::string data;
-	const std::string errors;
-};
-
-ManchesterFormatted format_manchester(
-	const ManchesterDecoder& decoder
-);
-
-#endif/*__MANCHESTER_H__*/
+#endif/*__PACKET_H__*/

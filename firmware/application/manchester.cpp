@@ -25,9 +25,9 @@
 
 ManchesterDecoder::DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
 	const size_t encoded_index = index * 2;
-	if( (encoded_index + 1) < count ) {
-		const auto value = encoded[encoded_index + sense];
-		const auto error = encoded[encoded_index + 0] == encoded[encoded_index + 1];
+	if( (encoded_index + 1) < packet.size() ) {
+		const auto value = packet[encoded_index + sense];
+		const auto error = packet[encoded_index + 0] == packet[encoded_index + 1];
 		return { value, error };
 	} else {
 		return { 0, 1 };
@@ -35,7 +35,7 @@ ManchesterDecoder::DecodedSymbol ManchesterDecoder::operator[](const size_t inde
 }
 
 size_t ManchesterDecoder::symbols_count() const {
-	return count / 2;
+	return packet.size() / 2;
 }
 
 ManchesterFormatted format_manchester(

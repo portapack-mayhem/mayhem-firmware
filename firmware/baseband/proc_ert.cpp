@@ -95,23 +95,19 @@ void ERTProcessor::consume_symbol(
 }
 
 void ERTProcessor::scm_handler(
-	const std::bitset<1024>& payload,
-	const size_t bits_received
+	const ::Packet& packet
 ) {
 	ERTPacketMessage message;
 	message.packet.type = ERTPacket::Type::SCM;
-	message.packet.payload = payload;
-	message.packet.bits_received = bits_received;
+	message.packet.packet = packet;
 	shared_memory.application_queue.push(message);
 }
 
 void ERTProcessor::idm_handler(
-	const std::bitset<1024>& payload,
-	const size_t bits_received
+	const ::Packet& packet
 ) {
 	ERTPacketMessage message;
 	message.packet.type = ERTPacket::Type::IDM;
-	message.packet.payload = payload;
-	message.packet.bits_received = bits_received;
+	message.packet.packet = packet;
 	shared_memory.application_queue.push(message);
 }

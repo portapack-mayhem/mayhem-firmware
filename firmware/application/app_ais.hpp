@@ -26,6 +26,7 @@
 #include "message.hpp"
 #include "log_file.hpp"
 #include "field_reader.hpp"
+#include "packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -48,7 +49,7 @@ struct BitRemap {
 	}
 };
 
-using FieldReader = ::FieldReader<std::bitset<1024>, BitRemap>;
+using FieldReader = ::FieldReader<::Packet, BitRemap>;
 
 struct DateTime {
 	uint16_t year;
@@ -68,12 +69,10 @@ class Packet {
 public:
 	constexpr Packet(
 		const rtc::RTC& received_at,
-		const std::bitset<1024>& payload,
-		const size_t payload_length
-	) : payload_ { payload },
-		payload_length_ { payload_length },
+		const ::Packet& packet
+	) : packet_ { packet },
 		received_at_ { received_at },
-		field_ { payload_ }
+		field_ { packet_ }
 	{
 	}
 
@@ -97,8 +96,7 @@ public:
 	Longitude longitude(const size_t start_bit) const;
 
 private:
-	const std::bitset<1024> payload_;
-	const size_t payload_length_;
+	const ::Packet packet_;
 	const rtc::RTC received_at_;
 	const FieldReader field_;
 };

@@ -28,6 +28,7 @@
 #include <functional>
 
 #include "bit_pattern.hpp"
+#include "packet.hpp"
 
 struct NeverMatch {
 	bool operator()(const BitHistory&, const size_t) const {
@@ -46,8 +47,7 @@ struct FixedLength {
 template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
-	using PayloadType = std::bitset<1024>;
-	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
+	using PayloadHandlerFunc = std::function<void(const ::Packet& packet)>;
 
 	PacketBuilder(
 		const PreambleMatcher preamble_matcher,
@@ -78,18 +78,18 @@ public:
 
 		switch(state) {
 		case State::Preamble:
-			if( preamble(bit_history, bits_received) ) {
+			if( preamble(bit_history, packet.size()) ) {
 				state = State::Payload;
 			}
 			break;
 
 		case State::Payload:
-			if( !unstuff(bit_history, bits_received) ) {
-				payload[bits_received++] = symbol;
+			if( !unstuff(bit_history, packet.size()) ) {
+				packet.add(symbol);
 			}
 
-			if( end(bit_history, bits_received) ) {
-				payload_handler(payload, bits_received);
+			if( end(bit_history, packet.size()) ) {
+				payload_handler(packet);
 				reset_state();
 			} else {
 				if( packet_truncated() ) {
@@ -111,7 +111,7 @@ private:
 	};
 
 	bool packet_truncated() const {
-		return bits_received >= payload.size();
+		return packet.size() >= packet.capacity();
 	}
 
 	const PayloadHandlerFunc payload_handler;
@@ -121,12 +121,11 @@ private:
 	UnstuffMatcher unstuff;
 	EndMatcher end;
 
-	size_t bits_received { 0 };
 	State state { State::Preamble };
-	PayloadType payload;
+	::Packet packet;
 
 	void reset_state() {
-		bits_received = 0;
+		packet.clear();
 		state = State::Preamble;
 	}
 };

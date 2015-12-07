@@ -30,6 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
+#include "packet.hpp"
 
 #include "message.hpp"
 
@@ -41,8 +42,6 @@
 
 class AISProcessor : public BasebandProcessor {
 public:
-	using payload_t = std::bitset<1024>;
-
 	void execute(buffer_c8_t buffer) override;
 
 private:
@@ -58,13 +57,13 @@ private:
 		{ 0b0101010101111110, 16, 1 },
 		{ 0b111110, 6 },
 		{ 0b01111110, 8 },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->payload_handler(payload, bits_received);
+		[this](const ::Packet& packet) {
+			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const payload_t& payload, const size_t bits_received);
+	void payload_handler(const ::Packet& packet);
 };
 
 #endif/*__PROC_AIS_H__*/

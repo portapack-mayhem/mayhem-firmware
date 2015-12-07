@@ -35,7 +35,7 @@ using namespace lpc43xx;
 namespace ert {
 
 size_t Packet::length() const {
-	return payload_length_;
+	return packet_.size();
 }
 
 bool Packet::is_valid() const {
@@ -115,7 +115,7 @@ void ERTView::on_show() {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const ert::Packet packet { datetime, message->packet.type, message->packet.payload, message->packet.bits_received };
+			const ert::Packet packet { datetime, message->packet.type, message->packet.packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}

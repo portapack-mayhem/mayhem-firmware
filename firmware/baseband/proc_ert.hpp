@@ -29,6 +29,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
+#include "packet.hpp"
 
 #include "message.hpp"
 
@@ -45,13 +46,10 @@ constexpr size_t scm_payload_length_max { 150 };
 constexpr uint64_t idm_preamble_and_sync_manchester { 0b0110011001100110011001100110011001010110011010011001100101011010 };
 constexpr size_t idm_preamble_and_sync_length { 64 - 16 };
 
-// TODO: Should be 1408, but need to widen pathway to application processor...
-constexpr size_t idm_payload_length_max { 960 };
+constexpr size_t idm_payload_length_max { 1408 };
 
 class ERTProcessor : public BasebandProcessor {
 public:
-	using payload_t = std::bitset<1024>;
-
 	void execute(buffer_c8_t buffer) override;
 
 private:
@@ -74,8 +72,8 @@ private:
 		{ scm_preamble_and_sync_manchester, scm_preamble_and_sync_length, 1 },
 		{ },
 		{ scm_payload_length_max },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->scm_handler(payload, bits_received);
+		[this](const ::Packet& packet) {
+			this->scm_handler(packet);
 		}
 	};
 
@@ -83,14 +81,14 @@ private:
 		{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
 		{ },
 		{ idm_payload_length_max },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->idm_handler(payload, bits_received);
+		[this](const ::Packet& packet) {
+			this->idm_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void scm_handler(const payload_t& payload, const size_t bits_received);
-	void idm_handler(const payload_t& payload, const size_t bits_received);
+	void scm_handler(const ::Packet& packet);
+	void idm_handler(const ::Packet& packet);
 
 	float sum_half_period[2];
 	float sum_period[3];

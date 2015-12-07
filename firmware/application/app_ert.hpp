@@ -27,6 +27,7 @@
 #include "log_file.hpp"
 #include "manchester.hpp"
 #include "field_reader.hpp"
+#include "packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -51,12 +52,10 @@ public:
 	Packet(
 		const rtc::RTC& received_at,
 		const ERTPacket::Type type,
-		const std::bitset<1024>& payload,
-		const size_t payload_length
-	) : payload_ { payload },
-		payload_length_ { payload_length },
+		const ::Packet& packet
+	) : packet_ { packet },
 		received_at_ { received_at },
-		decoder_ { payload_, payload_length_ },
+		decoder_ { packet_ },
 		reader_ { decoder_ },
 		type_ { type }
 	{
@@ -77,8 +76,7 @@ public:
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemap>;
 
-	const std::bitset<1024> payload_;
-	const size_t payload_length_;
+	const ::Packet packet_;
 	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;

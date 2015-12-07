@@ -58,11 +58,9 @@ void TPMSProcessor::consume_symbol(
 }
 
 void TPMSProcessor::payload_handler(
-	const std::bitset<1024>& payload,
-	const size_t bits_received
+	const ::Packet& packet
 ) {
 	TPMSPacketMessage message;
-	message.packet.payload = payload;
-	message.packet.bits_received = bits_received;
+	message.packet.packet = packet;
 	shared_memory.application_queue.push(message);
 }
