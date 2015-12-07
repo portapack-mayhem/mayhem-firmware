@@ -59,7 +59,7 @@ public:
 		 */
 		T remainder = crc_in;
 		remainder ^= data << (width() - 8);
-		for(size_t bit=8; bit>0; --bit) {
+		for(size_t bit=0; bit<8; bit++) {
 			if( remainder & top_bit() ) {
 				remainder = (remainder << 1) ^ polynomial;
 			} else {
