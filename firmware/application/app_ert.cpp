@@ -29,6 +29,7 @@ using namespace portapack;
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "crc.hpp"
 #include "string_format.hpp"
 
 namespace ert {
@@ -69,6 +70,21 @@ Consumption Packet::consumption() const {
 		return reader_.read(25 * 8, 32);
 	}
 	return invalid_consumption;
+}
+
+bool Packet::crc_ok() const {
+	if( type() == ERTPacket::Type::SCM ) {
+		CRC<uint16_t> ert_bch { 0x6f63 };
+		size_t start_bit = 5;
+		auto crc_calculated = ert_bch.calculate_byte(0x0000, reader_.read(0, start_bit));
+		for(size_t i=start_bit; i<length(); i+=8) {
+			const uint8_t byte = reader_.read(i, 8);
+			crc_calculated = ert_bch.calculate_byte(crc_calculated, byte);
+		}
+		return crc_calculated == 0x0000;
+	}
+
+	return false;
 }
 
 } /* namespace ert */
@@ -122,6 +138,7 @@ void ERTView::on_packet(const ert::Packet& packet) {
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
+		msg += packet.crc_ok() ? " *" : " x";
 		break;
 
 	case ERTPacket::Type::IDM:

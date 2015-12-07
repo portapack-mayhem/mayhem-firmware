@@ -72,6 +72,8 @@ public:
 	ID id() const;
 	Consumption consumption() const;
 
+	bool crc_ok() const;
+
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemap>;
 
