@@ -96,6 +96,7 @@ private:
 	float sum_period[3];
 	float manchester[3];
 
+	const size_t average_window { 2048 };
 	int32_t average_i { 0 };
 	int32_t average_q { 0 };
 	size_t average_count { 0 };

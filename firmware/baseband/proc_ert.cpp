@@ -51,9 +51,9 @@ void ERTProcessor::execute(buffer_c8_t buffer) {
 	average_i += src->real();
 	average_q += src->imag();
 	average_count++;
-	if( average_count == 2048 ) {
-		offset_i = static_cast<float>(average_i) / 2048.0f;
-		offset_q = static_cast<float>(average_q) / 2048.0f;
+	if( average_count == average_window ) {
+		offset_i = static_cast<float>(average_i) / average_window;
+		offset_q = static_cast<float>(average_q) / average_window;
 		average_i = 0;
 		average_q = 0;
 		average_count = 0;
