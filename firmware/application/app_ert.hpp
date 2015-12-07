@@ -71,6 +71,8 @@ public:
 	ID id() const;
 	Consumption consumption() const;
 
+	ManchesterFormatted symbols_formatted() const;
+
 	bool crc_ok() const;
 
 private:

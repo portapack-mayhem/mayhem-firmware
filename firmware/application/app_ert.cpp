@@ -72,6 +72,10 @@ Consumption Packet::consumption() const {
 	return invalid_consumption;
 }
 
+ManchesterFormatted Packet::symbols_formatted() const {
+	return format_manchester(decoder_);
+}
+
 bool Packet::crc_ok() const {
 	if( type() == ERTPacket::Type::SCM ) {
 		CRC<uint16_t> ert_bch { 0x6f63 };
@@ -100,7 +104,12 @@ ERTModel::ERTModel() {
 	log_file.open_for_append("ert.txt");
 }
 
-bool ERTModel::on_packet(const ert::Packet&) {
+bool ERTModel::on_packet(const ert::Packet& packet) {
+	if( log_file.is_ready() ) {
+		const auto formatted = packet.symbols_formatted();
+		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
+	}
+
 	return true;
 }
 
