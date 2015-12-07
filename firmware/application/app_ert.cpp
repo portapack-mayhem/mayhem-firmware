@@ -35,7 +35,7 @@ using namespace lpc43xx;
 namespace ert {
 
 size_t Packet::length() const {
-	return packet_.size();
+	return decoder_.symbols_count();
 }
 
 bool Packet::is_valid() const {
