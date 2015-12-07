@@ -86,6 +86,9 @@ private:
 
 	const ID invalid_id = 0;
 	const Consumption invalid_consumption = 0;
+
+	bool crc_ok_idm() const;
+	bool crc_ok_scm() const;
 };
 
 } /* namespace ert */

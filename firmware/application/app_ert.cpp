@@ -77,18 +77,32 @@ ManchesterFormatted Packet::symbols_formatted() const {
 }
 
 bool Packet::crc_ok() const {
-	if( type() == ERTPacket::Type::SCM ) {
-		CRC<uint16_t> ert_bch { 0x6f63 };
-		size_t start_bit = 5;
-		auto crc_calculated = ert_bch.calculate_byte(0x0000, reader_.read(0, start_bit));
-		for(size_t i=start_bit; i<length(); i+=8) {
-			const uint8_t byte = reader_.read(i, 8);
-			crc_calculated = ert_bch.calculate_byte(crc_calculated, byte);
-		}
-		return crc_calculated == 0x0000;
+	switch(type()) {
+	case ERTPacket::Type::SCM:	return crc_ok_scm();
+	case ERTPacket::Type::IDM:	return crc_ok_idm();
+	default:					return false;
 	}
+}
 
-	return false;
+bool Packet::crc_ok_scm() const {
+	CRC<uint16_t> ert_bch { 0x6f63 };
+	size_t start_bit = 5;
+	auto crc_calculated = ert_bch.calculate_byte(0x0000, reader_.read(0, start_bit));
+	for(size_t i=start_bit; i<length(); i+=8) {
+		const uint8_t byte = reader_.read(i, 8);
+		crc_calculated = ert_bch.calculate_byte(crc_calculated, byte);
+	}
+	return crc_calculated == 0x0000;
+}
+
+bool Packet::crc_ok_idm() const {
+	CRC<uint16_t> ert_crc_ccitt { 0x1021 };
+	uint16_t crc_calculated = 0xffff;
+	for(size_t i=0; i<length(); i+=8) {
+		const uint8_t byte = reader_.read(i, 8);
+		crc_calculated = ert_crc_ccitt.calculate_byte(crc_calculated, byte);
+	}
+	return crc_calculated == 0x1d0f;
 }
 
 } /* namespace ert */
@@ -155,6 +169,7 @@ void ERTView::on_packet(const ert::Packet& packet) {
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
+		msg += packet.crc_ok() ? " *" : " x";
 		break;
 
 	default:
