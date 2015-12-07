@@ -79,7 +79,7 @@ ERTModel::ERTModel() {
 		.sampling_rate = 4194304,
 		.decimation_factor = 1,
 	});
-	receiver_model.set_baseband_bandwidth(1750000);
+	receiver_model.set_baseband_bandwidth(2500000);
 
 	log_file.open_for_append("ert.txt");
 }
