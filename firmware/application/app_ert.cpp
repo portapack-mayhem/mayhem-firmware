@@ -124,7 +124,7 @@ bool ERTModel::on_packet(const ert::Packet& packet) {
 		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 	}
 
-	return true;
+	return packet.crc_ok();
 }
 
 namespace ui {
@@ -161,7 +161,6 @@ void ERTView::on_packet(const ert::Packet& packet) {
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
-		msg += packet.crc_ok() ? " *" : " x";
 		break;
 
 	case ERTPacket::Type::IDM:
@@ -169,7 +168,6 @@ void ERTView::on_packet(const ert::Packet& packet) {
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
-		msg += packet.crc_ok() ? " *" : " x";
 		break;
 
 	default:
