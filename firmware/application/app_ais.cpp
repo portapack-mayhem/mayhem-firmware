@@ -34,7 +34,7 @@ namespace baseband {
 namespace ais {
 
 struct CRCBitRemap {
-	size_t operator()(const size_t bit_index) const {
+	constexpr size_t operator()(const size_t& bit_index) const {
 		return bit_index;
 	}
 };
@@ -58,23 +58,23 @@ struct PacketLengthRange {
 		// static_assert((max_bits & 7) == 0, "minimum bits not a multiple of 8");
 	}
 
-	bool contains(const size_t bit_count) const {
+	constexpr bool contains(const size_t bit_count) const {
 		return !is_above(bit_count) && !is_below(bit_count);
 	}
 
-	bool is_above(const size_t bit_count) const {
+	constexpr bool is_above(const size_t bit_count) const {
 		return (min() > bit_count);
 	}
 
-	bool is_below(const size_t bit_count) const {
+	constexpr bool is_below(const size_t bit_count) const {
 		return (max() < bit_count);
 	}
 
-	size_t min() const {
+	constexpr size_t min() const {
 		return min_bytes * 8;
 	}
 	
-	size_t max() const {
+	constexpr size_t max() const {
 		return max_bytes * 8;
 	}
 
@@ -119,13 +119,13 @@ static constexpr std::array<PacketLengthRange, 64> packet_length_range { {
 } };
 
 struct PacketLengthValidator {
-	bool operator()(const uint_fast8_t message_id, const size_t length) {
+	constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
 		return packet_length_range[message_id].contains(length);
 	}
 };
 
 struct PacketTooLong {
-	bool operator()(const uint_fast8_t message_id, const size_t length) {
+	constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
 		return packet_length_range[message_id].is_below(length);
 	}
 };
@@ -174,7 +174,7 @@ static std::string format_navigational_status(const unsigned int value) {
 	}
 }
 
-static char char_to_ascii(const uint8_t c) {
+static constexpr char char_to_ascii(const uint8_t c) {
 	return (c ^ 32) + 32;
 }
 

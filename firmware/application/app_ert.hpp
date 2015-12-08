@@ -39,7 +39,7 @@ using namespace lpc43xx;
 namespace ert {
 
 struct BitRemap {
-	size_t operator()(const size_t bit_index) const {
+	constexpr size_t operator()(const size_t bit_index) const {
 		return bit_index;
 	}
 };
