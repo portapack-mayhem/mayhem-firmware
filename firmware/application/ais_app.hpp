@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_AIS_H__
-#define __APP_AIS_H__
+#ifndef __AIS_APP_H__
+#define __AIS_APP_H__
 
 #include "ui_console.hpp"
 #include "message.hpp"
@@ -190,4 +190,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__APP_AIS_H__*/
+#endif/*__AIS_APP_H__*/

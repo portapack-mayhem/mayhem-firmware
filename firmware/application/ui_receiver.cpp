@@ -26,11 +26,11 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
-#include "app_analog_audio.hpp"
-#include "app_ais.hpp"
-#include "app_tpms.hpp"
-#include "app_ert.hpp"
-#include "app_spectrum_analysis.hpp"
+#include "analog_audio_app.hpp"
+#include "ais_app.hpp"
+#include "tpms_app.hpp"
+#include "ert_app.hpp"
+#include "spectrum_analysis_app.hpp"
 
 namespace ui {
 

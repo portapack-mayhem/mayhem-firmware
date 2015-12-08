@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "app_ais.hpp"
+#include "ais_app.hpp"
 
 #include "portapack.hpp"
 using namespace portapack;

@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_ERT_H__
-#define __APP_ERT_H__
+#ifndef __ERT_APP_H__
+#define __ERT_APP_H__
 
 #include "ui_console.hpp"
 #include "message.hpp"
@@ -112,4 +112,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__APP_ERT_H__*/
+#endif/*__ERT_APP_H__*/

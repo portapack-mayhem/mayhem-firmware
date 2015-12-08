@@ -19,26 +19,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_SPECTRUM_ANALYSIS_H__
-#define __APP_SPECTRUM_ANALYSIS_H__
+#include "analog_audio_app.hpp"
 
-#include "receiver_model.hpp"
-#include "ui_spectrum.hpp"
+#include "portapack.hpp"
+using namespace portapack;
 
-class SpectrumAnalysisModel {
-public:
-	SpectrumAnalysisModel();
-};
+#include "utility.hpp"
 
-namespace ui {
-
-class SpectrumAnalysisView : public spectrum::WaterfallWidget {
-public:
-
-private:
-	SpectrumAnalysisModel model;
-};
-
-} /* namespace ui */
-
-#endif/*__APP_SPECTRUM_ANALYSIS_H__*/
+AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
+	receiver_model.set_baseband_configuration({
+		.mode = toUType(mode),
+		.sampling_rate = 3072000,
+		.decimation_factor = 4,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
+}

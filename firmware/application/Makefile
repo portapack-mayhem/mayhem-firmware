@@ -168,12 +168,12 @@ CPPSRC = main.cpp \
          ui_spectrum.cpp \
          receiver_model.cpp \
          spectrum_color_lut.cpp \
-         app_analog_audio.cpp \
+         analog_audio_app.cpp \
          ais_baseband.cpp \
-         app_ais.cpp \
-         app_tpms.cpp \
-         app_ert.cpp \
-         app_spectrum_analysis.cpp \
+         ais_app.cpp \
+         tpms_app.cpp \
+         ert_app.cpp \
+         spectrum_analysis_app.cpp \
          sd_card.cpp \
          log_file.cpp \
          manchester.cpp \

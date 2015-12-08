@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,18 +19,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "app_analog_audio.hpp"
+#ifndef __TPMS_APP_H__
+#define __TPMS_APP_H__
 
-#include "portapack.hpp"
-using namespace portapack;
+#include "ui_console.hpp"
+#include "message.hpp"
 
-#include "utility.hpp"
+#include "manchester.hpp"
+#include "log_file.hpp"
 
-AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
-	receiver_model.set_baseband_configuration({
-		.mode = toUType(mode),
-		.sampling_rate = 3072000,
-		.decimation_factor = 4,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-}
+class TPMSModel {
+public:
+	TPMSModel();
+
+	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
+
+private:
+	LogFile log_file;
+};
+
+namespace ui {
+
+class TPMSView : public Console {
+public:
+	void on_show() override;
+	void on_hide() override;
+
+private:
+	TPMSModel model;
+
+	void log(const ManchesterFormatted& formatted);
+};
+
+} /* namespace ui */
+
+#endif/*__TPMS_APP_H__*/

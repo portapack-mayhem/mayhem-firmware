@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APP_ANALOG_AUDIO_H__
-#define __APP_ANALOG_AUDIO_H__
+#ifndef __ANALOG_AUDIO_APP_H__
+#define __ANALOG_AUDIO_APP_H__
 
 #include "receiver_model.hpp"
 #include "ui_spectrum.hpp"
@@ -46,4 +46,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__APP_ANALOG_AUDIO_H__*/
+#endif/*__ANALOG_AUDIO_APP_H__*/
