@@ -22,11 +22,10 @@
 #ifndef __AIS_APP_H__
 #define __AIS_APP_H__
 
-#include "ui_console.hpp"
-#include "message.hpp"
+#include "ui_widget.hpp"
 #include "log_file.hpp"
-#include "field_reader.hpp"
-#include "baseband_packet.hpp"
+
+#include "ais_packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -34,78 +33,10 @@ using namespace lpc43xx;
 #include <cstdint>
 #include <cstddef>
 #include <string>
-#include <bitset>
 #include <list>
 #include <utility>
 
 #include <iterator>
-
-namespace baseband {
-namespace ais {
-
-struct DateTime {
-	uint16_t year;
-	uint8_t month;
-	uint8_t day;
-	uint8_t hour;
-	uint8_t minute;
-	uint8_t second;
-};
-
-using Latitude = int32_t;
-using Longitude = int32_t;
-
-using MMSI = uint32_t;
-
-class Packet {
-public:
-	constexpr Packet(
-		const rtc::RTC& received_at,
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		received_at_ { received_at },
-		field_ { packet_ }
-	{
-	}
-
-	size_t length() const;
-	
-	bool is_valid() const;
-
-	rtc::RTC received_at() const;
-
-	uint32_t message_id() const;
-	MMSI user_id() const;
-	MMSI source_id() const;
-
-	uint32_t read(const size_t start_bit, const size_t length) const;
-
-	std::string text(const size_t start_bit, const size_t character_count) const;
-
-	DateTime datetime(const size_t start_bit) const;
-
-	Latitude latitude(const size_t start_bit) const;
-	Longitude longitude(const size_t start_bit) const;
-
-	bool crc_ok() const;
-
-private:
-	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
-	
-	const baseband::Packet packet_;
-	const rtc::RTC received_at_;
-	const Reader field_;
-
-	const size_t fcs_length = 16;
-
-	size_t data_and_fcs_length() const;
-	size_t data_length() const;
-
-	bool length_valid() const;
-};
-
-} /* namespace ais */
-} /* namespace baseband */
 
 class AISModel {
 public:
