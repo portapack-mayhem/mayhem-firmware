@@ -25,6 +25,18 @@
 #include <cstdint>
 #include <cstddef>
 
+struct BitRemapNone {
+	constexpr size_t operator()(const size_t& bit_index) const {
+		return bit_index;
+	}
+};
+
+struct BitRemapByteReverse {
+	constexpr size_t operator()(const size_t bit_index) const {
+		return bit_index ^ 7;
+	}
+};
+
 template<typename T, typename BitRemap>
 class FieldReader {
 public:
@@ -34,6 +46,9 @@ public:
 	{
 	}
 
+	/* The "start_bit" winds up being the MSB of the returned field value. */
+	/* The BitRemap functor determines which bits are read from the source
+	 * packet. */
 	uint32_t read(const size_t start_bit, const size_t length) const {
 		uint32_t value = 0;
 		for(size_t i=start_bit; i<(start_bit + length); i++) {

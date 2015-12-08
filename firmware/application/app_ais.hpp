@@ -43,14 +43,6 @@ using namespace lpc43xx;
 namespace baseband {
 namespace ais {
 
-struct BitRemap {
-	constexpr size_t operator()(const size_t bit_index) const {
-		return bit_index ^ 7;
-	}
-};
-
-using FieldReader = ::FieldReader<::Packet, BitRemap>;
-
 struct DateTime {
 	uint16_t year;
 	uint8_t month;
@@ -98,9 +90,11 @@ public:
 	bool crc_ok() const;
 
 private:
+	using Reader = FieldReader<::Packet, BitRemapByteReverse>;
+	
 	const ::Packet packet_;
 	const rtc::RTC received_at_;
-	const FieldReader field_;
+	const Reader field_;
 
 	const size_t fcs_length = 16;
 

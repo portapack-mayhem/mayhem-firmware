@@ -38,12 +38,6 @@ using namespace lpc43xx;
 
 namespace ert {
 
-struct BitRemap {
-	constexpr size_t operator()(const size_t bit_index) const {
-		return bit_index;
-	}
-};
-
 using ID = uint32_t;
 using Consumption = uint32_t;
 
@@ -76,7 +70,7 @@ public:
 	bool crc_ok() const;
 
 private:
-	using Reader = FieldReader<ManchesterDecoder, BitRemap>;
+	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const ::Packet packet_;
 	const rtc::RTC received_at_;

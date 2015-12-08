@@ -33,13 +33,7 @@ using namespace portapack;
 namespace baseband {
 namespace ais {
 
-struct CRCBitRemap {
-	constexpr size_t operator()(const size_t& bit_index) const {
-		return bit_index;
-	}
-};
-
-using CRCFieldReader = ::FieldReader<::Packet, CRCBitRemap>;
+using CRCFieldReader = ::FieldReader<::Packet, BitRemapNone>;
 
 struct PacketLengthRange {
 	constexpr PacketLengthRange(
