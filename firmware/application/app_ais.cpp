@@ -432,23 +432,35 @@ void AISView::paint(Painter& painter) {
 	const auto& s = style();
 
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
-	bool found_selected_item = false;
-	for(const auto entry : recent) {
-		const auto next_y = target_rect.pos.y + target_rect.height();
-		const auto last_visible_entry = (next_y >= r.bottom());
+	const size_t visible_item_count = r.height() / s.font.line_height();
 
+	auto selected = selected_entry();
+	if( selected == std::end(recent) ) {
+		selected = std::begin(recent);
+	}
+
+	RecentEntries::iterator start = selected;
+	RecentEntries::iterator end = selected;
+	size_t i = 0;
+
+	// Move start iterator toward first entry.
+	while( (start != std::begin(recent)) && (i < visible_item_count / 2) ) {
+		std::advance(start, -1);
+		i++;
+	}
+
+	// Move end iterator toward last entry.
+	while( (end != std::end(recent)) && (i < visible_item_count) ) {
+		std::advance(end, 1);
+		i++;
+	}
+
+	for(auto p = start; p != end; p++) {
+		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.mmsi);
-		found_selected_item |= is_selected_key;
-
-		if( !last_visible_entry || (last_visible_entry && found_selected_item) ) {
-			const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
-			draw_entry(entry, target_rect, painter, draw_style);
-			target_rect.pos.y += target_rect.height();
-		}
-
-		if( last_visible_entry && found_selected_item ) {
-			break;
-		}
+		const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
+		draw_entry(entry, target_rect, painter, draw_style);
+		target_rect.pos.y += target_rect.height();
 	}
 }
 
