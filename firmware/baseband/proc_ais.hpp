@@ -30,7 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "message.hpp"
 
@@ -57,13 +57,13 @@ private:
 		{ 0b0101010101111110, 16, 1 },
 		{ 0b111110, 6 },
 		{ 0b01111110, 8 },
-		[this](const ::Packet& packet) {
+		[this](const baseband::Packet& packet) {
 			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const ::Packet& packet);
+	void payload_handler(const baseband::Packet& packet);
 };
 
 #endif/*__PROC_AIS_H__*/

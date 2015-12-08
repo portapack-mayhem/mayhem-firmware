@@ -30,7 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "message.hpp"
 
@@ -64,13 +64,13 @@ private:
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
 		{ 256 },
-		[this](const ::Packet& packet) {
+		[this](const baseband::Packet& packet) {
 			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const ::Packet& packet);
+	void payload_handler(const baseband::Packet& packet);
 };
 
 #endif/*__PROC_TPMS_H__*/

@@ -46,27 +46,27 @@ rtc::RTC Packet::received_at() const {
 	return received_at_;
 }
 
-ERTPacket::Type Packet::type() const {
+ERTPacketMessage::Type Packet::type() const {
 	return type_;
 }
 
 ID Packet::id() const {
-	if( type() == ERTPacket::Type::SCM ) {
+	if( type() == ERTPacketMessage::Type::SCM ) {
 		const auto msb = reader_.read(0, 2);
 		const auto lsb = reader_.read(35, 24);
 		return (msb << 24) | lsb;
 	}
-	if( type() == ERTPacket::Type::IDM ) {
+	if( type() == ERTPacketMessage::Type::IDM ) {
 		return reader_.read(5 * 8, 32);
 	}
 	return invalid_id;
 }
 
 Consumption Packet::consumption() const {
-	if( type() == ERTPacket::Type::SCM ) {
+	if( type() == ERTPacketMessage::Type::SCM ) {
 		return reader_.read(11, 24);
 	}
-	if( type() == ERTPacket::Type::IDM ) {
+	if( type() == ERTPacketMessage::Type::IDM ) {
 		return reader_.read(25 * 8, 32);
 	}
 	return invalid_consumption;
@@ -78,8 +78,8 @@ ManchesterFormatted Packet::symbols_formatted() const {
 
 bool Packet::crc_ok() const {
 	switch(type()) {
-	case ERTPacket::Type::SCM:	return crc_ok_scm();
-	case ERTPacket::Type::IDM:	return crc_ok_idm();
+	case ERTPacketMessage::Type::SCM:	return crc_ok_scm();
+	case ERTPacketMessage::Type::IDM:	return crc_ok_idm();
 	default:					return false;
 	}
 }
@@ -135,7 +135,7 @@ void ERTView::on_show() {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const ert::Packet packet { datetime, message->packet.type, message->packet.packet };
+			const ert::Packet packet { datetime, message->type, message->packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}
@@ -153,14 +153,14 @@ void ERTView::on_hide() {
 void ERTView::on_packet(const ert::Packet& packet) {
 	std::string msg;
 	switch(packet.type()) {
-	case ERTPacket::Type::SCM:
+	case ERTPacketMessage::Type::SCM:
 		msg += "SCM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
 		break;
 
-	case ERTPacket::Type::IDM:
+	case ERTPacketMessage::Type::IDM:
 		msg += "IDM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";

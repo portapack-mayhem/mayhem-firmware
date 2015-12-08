@@ -95,19 +95,19 @@ void ERTProcessor::consume_symbol(
 }
 
 void ERTProcessor::scm_handler(
-	const ::Packet& packet
+	const baseband::Packet& packet
 ) {
 	ERTPacketMessage message;
-	message.packet.type = ERTPacket::Type::SCM;
-	message.packet.packet = packet;
+	message.type = ERTPacketMessage::Type::SCM;
+	message.packet = packet;
 	shared_memory.application_queue.push(message);
 }
 
 void ERTProcessor::idm_handler(
-	const ::Packet& packet
+	const baseband::Packet& packet
 ) {
 	ERTPacketMessage message;
-	message.packet.type = ERTPacket::Type::IDM;
-	message.packet.packet = packet;
+	message.type = ERTPacketMessage::Type::IDM;
+	message.packet = packet;
 	shared_memory.application_queue.push(message);
 }

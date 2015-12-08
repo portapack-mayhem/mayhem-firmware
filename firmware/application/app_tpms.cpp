@@ -44,7 +44,7 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 	rtc::RTC received_at;
 	rtcGetTime(&RTCD1, &received_at);
 
-	const ManchesterDecoder decoder(message.packet.packet, 1);
+	const ManchesterDecoder decoder(message.packet, 1);
 	const auto hex_formatted = format_manchester(decoder);
 
 	if( log_file.is_ready() ) {

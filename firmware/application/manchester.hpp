@@ -27,7 +27,7 @@
 #include <bitset>
 #include <string>
 
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 class ManchesterDecoder {
 public:
@@ -37,7 +37,7 @@ public:
 	};
 
 	constexpr ManchesterDecoder(
-		const ::Packet& packet,
+		const baseband::Packet& packet,
 		const size_t sense = 0
 	) : packet { packet },
 		sense { sense }
@@ -49,7 +49,7 @@ public:
 	size_t symbols_count() const;
 
 private:
-	const ::Packet& packet;
+	const baseband::Packet& packet;
 	const size_t sense;
 };
 

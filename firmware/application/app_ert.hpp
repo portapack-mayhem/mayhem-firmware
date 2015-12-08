@@ -27,7 +27,7 @@
 #include "log_file.hpp"
 #include "manchester.hpp"
 #include "field_reader.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -45,8 +45,8 @@ class Packet {
 public:
 	Packet(
 		const rtc::RTC& received_at,
-		const ERTPacket::Type type,
-		const ::Packet& packet
+		const ERTPacketMessage::Type type,
+		const baseband::Packet& packet
 	) : packet_ { packet },
 		received_at_ { received_at },
 		decoder_ { packet_ },
@@ -61,7 +61,7 @@ public:
 
 	rtc::RTC received_at() const;
 
-	ERTPacket::Type type() const;
+	ERTPacketMessage::Type type() const;
 	ID id() const;
 	Consumption consumption() const;
 
@@ -72,11 +72,11 @@ public:
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
-	const ::Packet packet_;
+	const baseband::Packet packet_;
 	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
-	const ERTPacket::Type type_;
+	const ERTPacketMessage::Type type_;
 
 	const ID invalid_id = 0;
 	const Consumption invalid_consumption = 0;

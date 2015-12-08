@@ -33,7 +33,7 @@ using namespace portapack;
 namespace baseband {
 namespace ais {
 
-using CRCFieldReader = ::FieldReader<::Packet, BitRemapNone>;
+using CRCFieldReader = ::FieldReader<baseband::Packet, BitRemapNone>;
 
 struct PacketLengthRange {
 	constexpr PacketLengthRange(
@@ -320,7 +320,7 @@ void AISView::on_show() {
 			const auto message = static_cast<const AISPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const baseband::ais::Packet packet { datetime, message->packet.packet };
+			const baseband::ais::Packet packet { datetime, message->packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}

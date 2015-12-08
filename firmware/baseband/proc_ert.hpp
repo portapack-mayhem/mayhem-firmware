@@ -29,7 +29,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "message.hpp"
 
@@ -72,7 +72,7 @@ private:
 		{ scm_preamble_and_sync_manchester, scm_preamble_and_sync_length, 1 },
 		{ },
 		{ scm_payload_length_max },
-		[this](const ::Packet& packet) {
+		[this](const baseband::Packet& packet) {
 			this->scm_handler(packet);
 		}
 	};
@@ -81,14 +81,14 @@ private:
 		{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
 		{ },
 		{ idm_payload_length_max },
-		[this](const ::Packet& packet) {
+		[this](const baseband::Packet& packet) {
 			this->idm_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void scm_handler(const ::Packet& packet);
-	void idm_handler(const ::Packet& packet);
+	void scm_handler(const baseband::Packet& packet);
+	void idm_handler(const baseband::Packet& packet);
 
 	float sum_half_period[2];
 	float sum_period[3];

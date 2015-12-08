@@ -60,9 +60,9 @@ void AISProcessor::consume_symbol(
 }
 
 void AISProcessor::payload_handler(
-	const ::Packet& packet
+	const baseband::Packet& packet
 ) {
 	AISPacketMessage message;
-	message.packet.packet = packet;
+	message.packet = packet;
 	shared_memory.application_queue.push(message);
 }

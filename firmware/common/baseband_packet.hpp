@@ -19,11 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PACKET_H__
-#define __PACKET_H__
+#ifndef __BASEBAND_PACKET_H__
+#define __BASEBAND_PACKET_H__
 
 #include <cstddef>
 #include <bitset>
+
+namespace baseband {
 
 class Packet {
 public:
@@ -54,4 +56,6 @@ private:
 	size_t count { 0 };
 };
 
-#endif/*__PACKET_H__*/
+} /* namespace baseband */
+
+#endif/*__BASEBAND_PACKET_H__*/

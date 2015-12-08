@@ -27,7 +27,7 @@
 #include <array>
 #include <functional>
 
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "utility.hpp"
 
@@ -203,10 +203,6 @@ public:
 	ChannelSpectrum spectrum;
 };
 
-struct AISPacket {
-	::Packet packet;
-};
-
 class AISPacketMessage : public Message {
 public:
 	constexpr AISPacketMessage(
@@ -214,11 +210,7 @@ public:
 	{
 	}
 
-	AISPacket packet;
-};
-
-struct TPMSPacket {
-	::Packet packet;
+	baseband::Packet packet;
 };
 
 class TPMSPacketMessage : public Message {
@@ -228,7 +220,7 @@ public:
 	{
 	}
 
-	TPMSPacket packet;
+	baseband::Packet packet;
 };
 
 class ShutdownMessage : public Message {
@@ -239,17 +231,6 @@ public:
 	}
 };
 
-struct ERTPacket {
-	enum class Type : uint32_t {
-		Unknown = 0,
-		IDM = 1,
-		SCM = 2,
-	};
-
-	Type type { Type::Unknown };
-	::Packet packet;
-};
-
 class ERTPacketMessage : public Message {
 public:
 	constexpr ERTPacketMessage(
@@ -257,7 +238,15 @@ public:
 	{
 	}
 
-	ERTPacket packet;
+	enum class Type : uint32_t {
+		Unknown = 0,
+		IDM = 1,
+		SCM = 2,
+	};
+
+	Type type { Type::Unknown };
+
+	baseband::Packet packet;
 };
 
 class MessageHandlerMap {

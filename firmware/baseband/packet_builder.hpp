@@ -28,7 +28,7 @@
 #include <functional>
 
 #include "bit_pattern.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 struct NeverMatch {
 	bool operator()(const BitHistory&, const size_t) const {
@@ -47,7 +47,7 @@ struct FixedLength {
 template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
-	using PayloadHandlerFunc = std::function<void(const ::Packet& packet)>;
+	using PayloadHandlerFunc = std::function<void(const baseband::Packet& packet)>;
 
 	PacketBuilder(
 		const PreambleMatcher preamble_matcher,
@@ -122,7 +122,7 @@ private:
 	EndMatcher end;
 
 	State state { State::Preamble };
-	::Packet packet;
+	baseband::Packet packet;
 
 	void reset_state() {
 		packet.clear();

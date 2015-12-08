@@ -26,7 +26,7 @@
 #include "message.hpp"
 #include "log_file.hpp"
 #include "field_reader.hpp"
-#include "packet.hpp"
+#include "baseband_packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -61,7 +61,7 @@ class Packet {
 public:
 	constexpr Packet(
 		const rtc::RTC& received_at,
-		const ::Packet& packet
+		const baseband::Packet& packet
 	) : packet_ { packet },
 		received_at_ { received_at },
 		field_ { packet_ }
@@ -90,9 +90,9 @@ public:
 	bool crc_ok() const;
 
 private:
-	using Reader = FieldReader<::Packet, BitRemapByteReverse>;
+	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
 	
-	const ::Packet packet_;
+	const baseband::Packet packet_;
 	const rtc::RTC received_at_;
 	const Reader field_;
 
