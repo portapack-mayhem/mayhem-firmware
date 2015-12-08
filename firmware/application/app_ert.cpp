@@ -87,22 +87,19 @@ bool Packet::crc_ok() const {
 bool Packet::crc_ok_scm() const {
 	CRC<uint16_t> ert_bch { 0x6f63 };
 	size_t start_bit = 5;
-	auto crc_calculated = ert_bch.calculate_byte(0x0000, reader_.read(0, start_bit));
+	ert_bch.process_byte(reader_.read(0, start_bit));
 	for(size_t i=start_bit; i<length(); i+=8) {
-		const uint8_t byte = reader_.read(i, 8);
-		crc_calculated = ert_bch.calculate_byte(crc_calculated, byte);
+		ert_bch.process_byte(reader_.read(i, 8));
 	}
-	return crc_calculated == 0x0000;
+	return ert_bch.checksum() == 0x0000;
 }
 
 bool Packet::crc_ok_idm() const {
-	CRC<uint16_t> ert_crc_ccitt { 0x1021 };
-	uint16_t crc_calculated = 0xffff;
+	CRC<uint16_t> ert_crc_ccitt { 0x1021, 0xffff, 0x1d0f };
 	for(size_t i=0; i<length(); i+=8) {
-		const uint8_t byte = reader_.read(i, 8);
-		crc_calculated = ert_crc_ccitt.calculate_byte(crc_calculated, byte);
+		ert_crc_ccitt.process_byte(reader_.read(i, 8));
 	}
-	return crc_calculated == 0x1d0f;
+	return ert_crc_ccitt.checksum() == 0x0000;
 }
 
 } /* namespace ert */

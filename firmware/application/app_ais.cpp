@@ -132,23 +132,18 @@ struct PacketTooLong {
 
 struct CRCCheck {
 	bool operator()(const ::Packet& packet) {
+		const size_t fcs_length = 16;
 		const size_t data_and_fcs_length = packet.size() - 7;
-		const size_t data_length = data_and_fcs_length - 16;
+		const size_t data_length = data_and_fcs_length - fcs_length;
 
 		CRCFieldReader field_crc { packet };
-		CRC<uint16_t> ais_fcs { 0x1021 };
+		CRC<uint16_t> ais_fcs { 0x1021, 0xffff, 0xffff };
 		
-		uint16_t crc_calculated = 0xffff;
-		
-		for(size_t i=0; i<data_length + 16; i+=8) {
-			if( i == data_length ) {
-				crc_calculated ^= 0xffff;
-			}
-			const uint8_t byte = field_crc.read(i, 8);
-			crc_calculated = ais_fcs.calculate_byte(crc_calculated, byte);
+		for(size_t i=0; i<data_length; i+=8) {
+			ais_fcs.process_byte(field_crc.read(i, 8));
 		}
-
-		return crc_calculated == 0x0000;
+		
+		return ais_fcs.checksum() == field_crc.read(data_length, fcs_length);
 	}
 };
 
