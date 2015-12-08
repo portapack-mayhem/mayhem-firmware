@@ -106,6 +106,8 @@ private:
 
 	size_t data_and_fcs_length() const;
 	size_t data_length() const;
+
+	bool length_valid() const;
 };
 
 } /* namespace ais */

@@ -183,21 +183,7 @@ size_t Packet::length() const {
 }
 
 bool Packet::is_valid() const {
-	if( data_and_fcs_length() < 38 ) {
-		return false;
-	}
-
-	const size_t extra_bits = data_and_fcs_length() & 7;
-	if( extra_bits != 0 ) {
-		return false;
-	}
-
-	PacketLengthValidator packet_length_valid;
-	if( !packet_length_valid(message_id(), data_length()) ) {
-		return false;
-	}
-
-	return crc_ok();
+	return length_valid() && crc_ok();
 }
 
 rtc::RTC Packet::received_at() const {
@@ -277,6 +263,20 @@ size_t Packet::data_and_fcs_length() const {
 
 size_t Packet::data_length() const {
 	return data_and_fcs_length() - fcs_length;
+}
+
+bool Packet::length_valid() const {
+	const size_t extra_bits = data_and_fcs_length() & 7;
+	if( extra_bits != 0 ) {
+		return false;
+	}
+
+	const PacketLengthValidator packet_length_valid;
+	if( !packet_length_valid(message_id(), data_length()) ) {
+		return false;
+	}
+
+	return true;
 }
 
 } /* namespace ais */
