@@ -27,8 +27,6 @@
 
 namespace ais {
 
-using CRCFieldReader = ::FieldReader<baseband::Packet, BitRemapNone>;
-
 struct PacketLengthRange {
 	constexpr PacketLengthRange(
 	) : min_bytes { 0 },
@@ -190,7 +188,7 @@ Longitude Packet::longitude(const size_t start_bit) const {
 }
 
 bool Packet::crc_ok() const {
-	CRCFieldReader field_crc { packet_ };
+	CRCReader field_crc { packet_ };
 	CRC<uint16_t> ais_fcs { 0x1021, 0xffff, 0xffff };
 	
 	for(size_t i=0; i<data_length(); i+=8) {

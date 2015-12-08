@@ -82,6 +82,7 @@ public:
 
 private:
 	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
+	using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
 	
 	const baseband::Packet packet_;
 	const rtc::RTC received_at_;
