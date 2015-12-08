@@ -130,23 +130,6 @@ struct PacketTooLong {
 	}
 };
 
-struct CRCCheck {
-	bool operator()(const ::Packet& packet) {
-		const size_t fcs_length = 16;
-		const size_t data_and_fcs_length = packet.size() - 7;
-		const size_t data_length = data_and_fcs_length - fcs_length;
-
-		CRCFieldReader field_crc { packet };
-		CRC<uint16_t> ais_fcs { 0x1021, 0xffff, 0xffff };
-		
-		for(size_t i=0; i<data_length; i+=8) {
-			ais_fcs.process_byte(field_crc.read(i, 8));
-		}
-		
-		return ais_fcs.checksum() == field_crc.read(data_length, fcs_length);
-	}
-};
-
 static std::string format_latlon_normalized(const int32_t normalized) {
 	const int32_t t = (normalized * 5) / 3;
 	const int32_t degrees = t / (100 * 10000);
@@ -200,30 +183,21 @@ size_t Packet::length() const {
 }
 
 bool Packet::is_valid() const {
-	// Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
-	const size_t data_and_fcs_length = length() - 7;
-
-	if( data_and_fcs_length < 38 ) {
+	if( data_and_fcs_length() < 38 ) {
 		return false;
 	}
 
-	const size_t extra_bits = data_and_fcs_length & 7;
+	const size_t extra_bits = data_and_fcs_length() & 7;
 	if( extra_bits != 0 ) {
 		return false;
 	}
 
-	const size_t data_length = data_and_fcs_length - 16;
 	PacketLengthValidator packet_length_valid;
-	if( !packet_length_valid(message_id(), data_length) ) {
+	if( !packet_length_valid(message_id(), data_length()) ) {
 		return false;
 	}
 
-	CRCCheck crc_ok;
-	if( !crc_ok(packet_) ) {
-		return false;
-	}
-
-	return true;
+	return crc_ok();
 }
 
 rtc::RTC Packet::received_at() const {
@@ -283,6 +257,26 @@ Longitude Packet::longitude(const size_t start_bit) const {
 	// Shifting and dividing is to sign-extend the source field.
 	// TODO: There's probably a more elegant way to do it.
 	return static_cast<int32_t>(field_.read(start_bit, 28) << 4) / 16;
+}
+
+bool Packet::crc_ok() const {
+	CRCFieldReader field_crc { packet_ };
+	CRC<uint16_t> ais_fcs { 0x1021, 0xffff, 0xffff };
+	
+	for(size_t i=0; i<data_length(); i+=8) {
+		ais_fcs.process_byte(field_crc.read(i, 8));
+	}
+
+	return (ais_fcs.checksum() == field_crc.read(data_length(), fcs_length));
+}
+
+size_t Packet::data_and_fcs_length() const {
+	// Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
+	return length() - 7;
+}
+
+size_t Packet::data_length() const {
+	return data_and_fcs_length() - fcs_length;
 }
 
 } /* namespace ais */

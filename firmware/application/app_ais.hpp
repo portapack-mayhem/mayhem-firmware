@@ -95,10 +95,17 @@ public:
 	Latitude latitude(const size_t start_bit) const;
 	Longitude longitude(const size_t start_bit) const;
 
+	bool crc_ok() const;
+
 private:
 	const ::Packet packet_;
 	const rtc::RTC received_at_;
 	const FieldReader field_;
+
+	const size_t fcs_length = 16;
+
+	size_t data_and_fcs_length() const;
+	size_t data_length() const;
 };
 
 } /* namespace ais */
