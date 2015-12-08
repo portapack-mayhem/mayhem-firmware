@@ -39,13 +39,13 @@ static std::string latlon_normalized(const int32_t normalized) {
 }
 
 static std::string mmsi(
-	const baseband::ais::MMSI& mmsi
+	const ais::MMSI& mmsi
 ) {
 	return to_string_dec_uint(mmsi, 9, '0');
 }
 
 static std::string datetime(
-	const baseband::ais::DateTime& datetime
+	const ais::DateTime& datetime
 ) {
 	return to_string_dec_uint(datetime.year, 4, '0') + "/" +
 		to_string_dec_uint(datetime.month, 2, '0') + "/" +
@@ -89,7 +89,7 @@ AISModel::AISModel() {
 	log_file.open_for_append("ais.txt");
 }
 
-bool AISModel::on_packet(const baseband::ais::Packet& packet) {
+bool AISModel::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
 
 	if( !packet.is_valid() ) {
@@ -122,7 +122,7 @@ void AISView::on_show() {
 			const auto message = static_cast<const AISPacketMessage*>(p);
 			rtc::RTC datetime;
 			rtcGetTime(&RTCD1, &datetime);
-			const baseband::ais::Packet packet { datetime, message->packet };
+			const ais::Packet packet { datetime, message->packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}
@@ -143,7 +143,7 @@ void AISView::truncate_entries() {
 	}
 }
 
-void AISView::on_packet(const baseband::ais::Packet& packet) {
+void AISView::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = std::find_if(recent.begin(), recent.end(),
 		[source_id](const AISView::RecentEntry& entry) { return entry.mmsi == source_id; }

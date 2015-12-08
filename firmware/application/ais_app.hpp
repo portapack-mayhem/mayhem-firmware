@@ -42,7 +42,7 @@ class AISModel {
 public:
 	AISModel();
 
-	bool on_packet(const baseband::ais::Packet& packet);
+	bool on_packet(const ais::Packet& packet);
 
 private:
 	LogFile log_file;
@@ -69,7 +69,7 @@ public:
 private:
 	AISModel model;
 
-	using EntryKey = baseband::ais::MMSI;
+	using EntryKey = ais::MMSI;
 	EntryKey selected_key;
 	const EntryKey invalid_key = 0xffffffff;
 
@@ -77,12 +77,12 @@ private:
 
 	struct Position {
 		rtc::RTC timestamp { };
-		baseband::ais::Latitude latitude { 0 };
-		baseband::ais::Longitude longitude { 0 };
+		ais::Latitude latitude { 0 };
+		ais::Longitude longitude { 0 };
 	};
 
 	struct RecentEntry {
-		baseband::ais::MMSI mmsi;
+		ais::MMSI mmsi;
 		std::string name;
 		std::string call_sign;
 		std::string destination;
@@ -91,7 +91,7 @@ private:
 		int8_t navigational_status;
 
 		RecentEntry(
-			const baseband::ais::MMSI& mmsi
+			const ais::MMSI& mmsi
 		) : mmsi { mmsi },
 			last_position { },
 			received_count { 0 },
@@ -103,7 +103,7 @@ private:
 	using RecentEntries = std::list<RecentEntry>;
 	RecentEntries recent;
 
-	void on_packet(const baseband::ais::Packet& packet);
+	void on_packet(const ais::Packet& packet);
 
 	void draw_entry(
 		const RecentEntry& entry,

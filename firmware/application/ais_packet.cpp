@@ -25,7 +25,6 @@
 
 #include <cstdlib>
 
-namespace baseband {
 namespace ais {
 
 using CRCFieldReader = ::FieldReader<baseband::Packet, BitRemapNone>;
@@ -225,4 +224,3 @@ bool Packet::length_valid() const {
 }
 
 } /* namespace ais */
-} /* namespace baseband */

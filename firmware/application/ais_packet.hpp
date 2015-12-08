@@ -32,7 +32,6 @@ using namespace lpc43xx;
 #include <cstddef>
 #include <string>
 
-namespace baseband {
 namespace ais {
 
 struct DateTime {
@@ -97,6 +96,5 @@ private:
 };
 
 } /* namespace ais */
-} /* namespace baseband */
 
 #endif/*__AIS_PACKET_H__*/
