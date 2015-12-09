@@ -28,7 +28,6 @@
 #include "field_reader.hpp"
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
-#include "message.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -40,9 +39,15 @@ using Consumption = uint32_t;
 
 class Packet {
 public:
+	enum class Type : uint32_t {
+		Unknown = 0,
+		IDM = 1,
+		SCM = 2,
+	};
+
 	Packet(
 		const rtc::RTC& received_at,
-		const ERTPacketMessage::Type type,
+		const Type type,
 		const baseband::Packet& packet
 	) : packet_ { packet },
 		received_at_ { received_at },
@@ -58,7 +63,7 @@ public:
 
 	rtc::RTC received_at() const;
 
-	ERTPacketMessage::Type type() const;
+	Type type() const;
 	ID id() const;
 	Consumption consumption() const;
 
@@ -73,7 +78,7 @@ private:
 	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
-	const ERTPacketMessage::Type type_;
+	const Type type_;
 
 	const ID invalid_id = 0;
 	const Consumption invalid_consumption = 0;

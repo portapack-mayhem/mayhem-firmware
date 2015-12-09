@@ -98,7 +98,7 @@ void ERTProcessor::scm_handler(
 	const baseband::Packet& packet
 ) {
 	ERTPacketMessage message;
-	message.type = ERTPacketMessage::Type::SCM;
+	message.type = ert::Packet::Type::SCM;
 	message.packet = packet;
 	shared_memory.application_queue.push(message);
 }
@@ -107,7 +107,7 @@ void ERTProcessor::idm_handler(
 	const baseband::Packet& packet
 ) {
 	ERTPacketMessage message;
-	message.type = ERTPacketMessage::Type::IDM;
+	message.type = ert::Packet::Type::IDM;
 	message.packet = packet;
 	shared_memory.application_queue.push(message);
 }

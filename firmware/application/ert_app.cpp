@@ -81,14 +81,14 @@ void ERTView::on_hide() {
 void ERTView::on_packet(const ert::Packet& packet) {
 	std::string msg;
 	switch(packet.type()) {
-	case ERTPacketMessage::Type::SCM:
+	case ert::Packet::Type::SCM:
 		msg += "SCM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";
 		msg += to_string_dec_uint(packet.consumption(), 10);
 		break;
 
-	case ERTPacketMessage::Type::IDM:
+	case ert::Packet::Type::IDM:
 		msg += "IDM ";
 		msg += to_string_dec_uint(packet.id(), 10);
 		msg += " ";

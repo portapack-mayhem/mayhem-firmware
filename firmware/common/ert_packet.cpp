@@ -37,27 +37,27 @@ rtc::RTC Packet::received_at() const {
 	return received_at_;
 }
 
-ERTPacketMessage::Type Packet::type() const {
+Packet::Type Packet::type() const {
 	return type_;
 }
 
 ID Packet::id() const {
-	if( type() == ERTPacketMessage::Type::SCM ) {
+	if( type() == Type::SCM ) {
 		const auto msb = reader_.read(0, 2);
 		const auto lsb = reader_.read(35, 24);
 		return (msb << 24) | lsb;
 	}
-	if( type() == ERTPacketMessage::Type::IDM ) {
+	if( type() == Type::IDM ) {
 		return reader_.read(5 * 8, 32);
 	}
 	return invalid_id;
 }
 
 Consumption Packet::consumption() const {
-	if( type() == ERTPacketMessage::Type::SCM ) {
+	if( type() == Type::SCM ) {
 		return reader_.read(11, 24);
 	}
-	if( type() == ERTPacketMessage::Type::IDM ) {
+	if( type() == Type::IDM ) {
 		return reader_.read(25 * 8, 32);
 	}
 	return invalid_consumption;
@@ -69,9 +69,9 @@ ManchesterFormatted Packet::symbols_formatted() const {
 
 bool Packet::crc_ok() const {
 	switch(type()) {
-	case ERTPacketMessage::Type::SCM:	return crc_ok_scm();
-	case ERTPacketMessage::Type::IDM:	return crc_ok_idm();
-	default:					return false;
+	case Type::SCM:	return crc_ok_scm();
+	case Type::IDM:	return crc_ok_idm();
+	default:		return false;
 	}
 }
 

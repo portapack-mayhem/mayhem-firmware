@@ -28,6 +28,7 @@
 #include <functional>
 
 #include "baseband_packet.hpp"
+#include "ert_packet.hpp"
 
 #include "utility.hpp"
 
@@ -238,13 +239,7 @@ public:
 	{
 	}
 
-	enum class Type : uint32_t {
-		Unknown = 0,
-		IDM = 1,
-		SCM = 2,
-	};
-
-	Type type { Type::Unknown };
+	ert::Packet::Type type { ert::Packet::Type::Unknown };
 
 	baseband::Packet packet;
 };
