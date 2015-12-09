@@ -23,69 +23,13 @@
 #define __ERT_APP_H__
 
 #include "ui_console.hpp"
-#include "message.hpp"
 #include "log_file.hpp"
-#include "manchester.hpp"
-#include "field_reader.hpp"
-#include "baseband_packet.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#include "ert_packet.hpp"
 
 #include <cstddef>
 #include <string>
 #include <bitset>
-
-namespace ert {
-
-using ID = uint32_t;
-using Consumption = uint32_t;
-
-class Packet {
-public:
-	Packet(
-		const rtc::RTC& received_at,
-		const ERTPacketMessage::Type type,
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		received_at_ { received_at },
-		decoder_ { packet_ },
-		reader_ { decoder_ },
-		type_ { type }
-	{
-	}
-
-	size_t length() const;
-	
-	bool is_valid() const;
-
-	rtc::RTC received_at() const;
-
-	ERTPacketMessage::Type type() const;
-	ID id() const;
-	Consumption consumption() const;
-
-	ManchesterFormatted symbols_formatted() const;
-
-	bool crc_ok() const;
-
-private:
-	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
-
-	const baseband::Packet packet_;
-	const rtc::RTC received_at_;
-	const ManchesterDecoder decoder_;
-	const Reader reader_;
-	const ERTPacketMessage::Type type_;
-
-	const ID invalid_id = 0;
-	const Consumption invalid_consumption = 0;
-
-	bool crc_ok_idm() const;
-	bool crc_ok_scm() const;
-};
-
-} /* namespace ert */
 
 class ERTModel {
 public:

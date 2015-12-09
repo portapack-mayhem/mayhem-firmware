@@ -174,6 +174,7 @@ CPPSRC = main.cpp \
          ais_app.cpp \
          tpms_app.cpp \
          ert_app.cpp \
+         ert_packet.cpp \
          spectrum_analysis_app.cpp \
          sd_card.cpp \
          log_file.cpp \
