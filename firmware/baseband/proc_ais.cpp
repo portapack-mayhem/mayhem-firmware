@@ -26,7 +26,7 @@
 #include "i2s.hpp"
 using namespace lpc43xx;
 
-void AISProcessor::execute(buffer_c8_t& buffer) {
+void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	auto decimator_out = decimator.execute(buffer);

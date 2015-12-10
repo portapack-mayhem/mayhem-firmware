@@ -23,7 +23,7 @@
 
 #include <cstdint>
 
-void NarrowbandAMAudio::execute(buffer_c8_t& buffer) {
+void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	auto decimator_out = decimator.execute(buffer);
 
 	const buffer_c16_t work_baseband_buffer {

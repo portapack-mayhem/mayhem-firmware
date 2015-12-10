@@ -65,7 +65,7 @@ public:
 	}
 
 	template<typename BlockCallback>
-	void feed(const buffer_c16_t src, BlockCallback callback) {
+	void feed(const buffer_c16_t& src, BlockCallback callback) {
 		/* NOTE: Input block size must be >= factor */
 
 		set_input_sampling_rate(src.sampling_rate);

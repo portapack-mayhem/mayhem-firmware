@@ -30,7 +30,7 @@
 
 class WidebandSpectrum : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	size_t sample_count = 0;

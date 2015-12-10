@@ -21,7 +21,7 @@
 
 #include "channel_decimator.hpp"
 
-buffer_c16_t ChannelDecimator::execute_decimation(buffer_c8_t buffer) {
+buffer_c16_t ChannelDecimator::execute_decimation(const buffer_c8_t& buffer) {
 	const buffer_c16_t work_baseband_buffer {
 		work_baseband.data(),
 		work_baseband.size()
@@ -80,8 +80,8 @@ buffer_c16_t ChannelDecimator::execute_decimation(buffer_c8_t buffer) {
 }
 
 buffer_c16_t ChannelDecimator::execute_stage_0(
-	buffer_c8_t buffer,
-	buffer_c16_t work_baseband_buffer
+	const buffer_c8_t& buffer,
+	const buffer_c16_t& work_baseband_buffer
 ) {
 	if( fs_over_4_downconvert ) {
 		return translate.execute(buffer, work_baseband_buffer);

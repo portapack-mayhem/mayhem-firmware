@@ -57,7 +57,7 @@ public:
 		decimation_factor = f;
 	}
 
-	buffer_c16_t execute(buffer_c8_t buffer) {
+	buffer_c16_t execute(const buffer_c8_t& buffer) {
 		auto decimated = execute_decimation(buffer);
 
 		return decimated;
@@ -76,11 +76,11 @@ private:
 	DecimationFactor decimation_factor;
 	const bool fs_over_4_downconvert;
 
-	buffer_c16_t execute_decimation(buffer_c8_t buffer);
+	buffer_c16_t execute_decimation(const buffer_c8_t& buffer);
 
 	buffer_c16_t execute_stage_0(
-		buffer_c8_t buffer,
-		buffer_c16_t work_baseband_buffer
+		const buffer_c8_t& buffer,
+		const buffer_c16_t& work_baseband_buffer
 	);
 };
 

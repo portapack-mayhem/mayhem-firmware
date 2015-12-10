@@ -33,7 +33,7 @@ using namespace lpc43xx;
 
 #include <array>
 
-void WidebandSpectrum::execute(buffer_c8_t& buffer) {
+void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	// 2048 complex8_t samples per buffer.
 	// 102.4us per buffer. 20480 instruction cycles per buffer.
 

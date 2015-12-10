@@ -37,7 +37,7 @@ class BasebandProcessor {
 public:
 	virtual ~BasebandProcessor() = default;
 
-	virtual void execute(buffer_c8_t& buffer) = 0;
+	virtual void execute(const buffer_c8_t& buffer) = 0;
 
 	void update_spectrum();
 

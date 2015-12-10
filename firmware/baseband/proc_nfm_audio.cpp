@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <cstddef>
 
-void NarrowbandFMAudio::execute(buffer_c8_t& buffer) {
+void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	/* Called every 2048/3072000 second -- 1500Hz. */
 
 	auto decimator_out = decimator.execute(buffer);

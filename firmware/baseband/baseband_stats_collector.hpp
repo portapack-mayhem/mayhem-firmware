@@ -46,7 +46,7 @@ public:
 	}
 
 	template<typename Callback>
-	void process(buffer_c8_t buffer, Callback callback) {
+	void process(const buffer_c8_t& buffer, Callback callback) {
 		samples += buffer.count;
 
 		const size_t report_samples = buffer.sampling_rate * report_interval;

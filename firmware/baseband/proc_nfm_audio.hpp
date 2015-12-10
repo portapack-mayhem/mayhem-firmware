@@ -39,7 +39,7 @@ public:
 		channel_filter.configure(channel_filter_taps.taps, 2);
 	}
 
-	void execute(buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	ChannelDecimator decimator;

@@ -37,7 +37,7 @@ public:
 		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By4);
 	}
 
-	void execute(buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	ChannelDecimator decimator;

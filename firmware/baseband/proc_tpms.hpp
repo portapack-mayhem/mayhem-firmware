@@ -50,7 +50,7 @@ constexpr std::array<std::complex<float>, 8> rect_taps_153k6_1t_p { {
 
 class TPMSProcessor : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };

@@ -31,7 +31,7 @@
 class RSSIStatisticsCollector {
 public:
 	template<typename Callback>
-	void process(rf::rssi::buffer_t buffer, Callback callback) {
+	void process(const rf::rssi::buffer_t& buffer, Callback callback) {
 		auto p = buffer.p;
 		if( p == nullptr ) {
 			return;
