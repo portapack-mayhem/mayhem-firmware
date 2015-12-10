@@ -106,7 +106,7 @@ void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t& data) 
 void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
 	audio_stats.feed(
 		audio,
-		[this](const AudioStatistics& statistics) {
+		[](const AudioStatistics& statistics) {
 			const AudioStatisticsMessage audio_stats_message { statistics };
 			shared_memory.application_queue.push(audio_stats_message);
 		}

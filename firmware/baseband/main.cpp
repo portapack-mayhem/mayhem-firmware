@@ -365,7 +365,7 @@ int main(void) {
 	auto& message_handlers = event_dispatcher.message_handlers();
 
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
-		[&message_handlers](const Message* const p) {
+		[](const Message* const p) {
 			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
 			baseband_thread.set_configuration(message->configuration);
 		}
