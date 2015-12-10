@@ -62,10 +62,7 @@ private:
 	BlockDecimator<256> channel_spectrum_decimator { 4 };
 
 	ChannelStatsCollector channel_stats;
-	ChannelStatisticsMessage channel_stats_message;
-
 	AudioStatsCollector audio_stats;
-	AudioStatisticsMessage audio_stats_message;
 
 	void post_channel_stats_message(const ChannelStatistics& statistics);
 	void post_channel_spectrum_message(const buffer_c16_t& data);

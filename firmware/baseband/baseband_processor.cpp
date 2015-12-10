@@ -94,6 +94,7 @@ void BasebandProcessor::fill_audio_buffer(const buffer_s16_t& audio) {
 }
 
 void BasebandProcessor::post_channel_stats_message(const ChannelStatistics& statistics) {
+	ChannelStatisticsMessage channel_stats_message;
 	channel_stats_message.statistics = statistics;
 	shared_memory.application_queue.push(channel_stats_message);
 }
@@ -117,6 +118,7 @@ void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
 }
 
 void BasebandProcessor::post_audio_stats_message(const AudioStatistics& statistics) {
+	AudioStatisticsMessage audio_stats_message;
 	audio_stats_message.statistics = statistics;
 	shared_memory.application_queue.push(audio_stats_message);
 }
