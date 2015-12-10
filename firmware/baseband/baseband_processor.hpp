@@ -64,10 +64,8 @@ private:
 	ChannelStatsCollector channel_stats;
 	AudioStatsCollector audio_stats;
 
-	void post_channel_stats_message(const ChannelStatistics& statistics);
 	void post_channel_spectrum_message(const buffer_c16_t& data);
 	void feed_audio_stats(const buffer_s16_t& audio);
-	void post_audio_stats_message(const AudioStatistics& statistics);
 };
 
 #endif/*__BASEBAND_PROCESSOR_H__*/
