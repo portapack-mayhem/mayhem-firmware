@@ -117,7 +117,9 @@ struct ChannelStatistics {
 class ChannelStatisticsMessage : public Message {
 public:
 	constexpr ChannelStatisticsMessage(
-	) : Message { ID::ChannelStatistics }
+		const ChannelStatistics& statistics
+	) : Message { ID::ChannelStatistics },
+		statistics { statistics }
 	{
 	}
 
@@ -150,8 +152,9 @@ struct AudioStatistics {
 class AudioStatisticsMessage : public Message {
 public:
 	constexpr AudioStatisticsMessage(
+		const AudioStatistics& statistics
 	) : Message { ID::AudioStatistics },
-		statistics { }
+		statistics { statistics }
 	{
 	}
 
