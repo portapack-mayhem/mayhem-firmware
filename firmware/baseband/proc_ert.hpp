@@ -50,7 +50,7 @@ constexpr size_t idm_payload_length_max { 1408 };
 
 class ERTProcessor : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t buffer) override;
+	void execute(buffer_c8_t& buffer) override;
 
 private:
 	const uint32_t baseband_sampling_rate = 4194304;

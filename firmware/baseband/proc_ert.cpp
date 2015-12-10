@@ -41,7 +41,7 @@ float ERTProcessor::abs(const complex8_t& v) {
 	return std::sqrt(r2_i2);
 }
 
-void ERTProcessor::execute(buffer_c8_t buffer) {
+void ERTProcessor::execute(buffer_c8_t& buffer) {
 	/* 4.194304MHz, 2048 samples */
 	// auto decimator_out = decimator.execute(buffer);
 

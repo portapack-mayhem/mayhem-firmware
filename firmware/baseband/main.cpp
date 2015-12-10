@@ -135,7 +135,7 @@ private:
 		while(true) {
 			// TODO: Place correct sampling rate into buffer returned here:
 			const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-			const buffer_c8_t buffer {
+			buffer_c8_t buffer {
 				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
 			};
 

@@ -59,7 +59,7 @@ void BasebandProcessor::update_spectrum() {
 	}
 }
 
-void BasebandProcessor::feed_channel_stats(const buffer_c16_t channel) {
+void BasebandProcessor::feed_channel_stats(const buffer_c16_t& channel) {
 	channel_stats.feed(
 		channel,
 		[this](const ChannelStatistics statistics) {
@@ -69,7 +69,7 @@ void BasebandProcessor::feed_channel_stats(const buffer_c16_t channel) {
 }
 
 void BasebandProcessor::feed_channel_spectrum(
-	const buffer_c16_t channel,
+	const buffer_c16_t& channel,
 	const uint32_t filter_pass_frequency,
 	const uint32_t filter_stop_frequency
 ) {
@@ -83,7 +83,7 @@ void BasebandProcessor::feed_channel_spectrum(
 	);
 }
 
-void BasebandProcessor::fill_audio_buffer(const buffer_s16_t audio) {
+void BasebandProcessor::fill_audio_buffer(const buffer_s16_t& audio) {
 	auto audio_buffer = audio::dma::tx_empty_buffer();;
 	for(size_t i=0; i<audio_buffer.count; i++) {
 		audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
@@ -93,12 +93,12 @@ void BasebandProcessor::fill_audio_buffer(const buffer_s16_t audio) {
 	feed_audio_stats(audio);
 }
 
-void BasebandProcessor::post_channel_stats_message(const ChannelStatistics statistics) {
+void BasebandProcessor::post_channel_stats_message(const ChannelStatistics& statistics) {
 	channel_stats_message.statistics = statistics;
 	shared_memory.application_queue.push(channel_stats_message);
 }
 
-void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t data) {
+void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t& data) {
 	if( !channel_spectrum_request_update ) {
 		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
@@ -107,7 +107,7 @@ void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t data) {
 	}
 }
 
-void BasebandProcessor::feed_audio_stats(const buffer_s16_t audio) {
+void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
 	audio_stats.feed(
 		audio,
 		[this](const AudioStatistics statistics) {
@@ -116,7 +116,7 @@ void BasebandProcessor::feed_audio_stats(const buffer_s16_t audio) {
 	);
 }
 
-void BasebandProcessor::post_audio_stats_message(const AudioStatistics statistics) {
+void BasebandProcessor::post_audio_stats_message(const AudioStatistics& statistics) {
 	audio_stats_message.statistics = statistics;
 	shared_memory.application_queue.push(audio_stats_message);
 }

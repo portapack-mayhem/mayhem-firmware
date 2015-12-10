@@ -23,7 +23,7 @@
 
 #include <cstdint>
 
-void WidebandFMAudio::execute(buffer_c8_t buffer) {
+void WidebandFMAudio::execute(buffer_c8_t& buffer) {
 	auto decimator_out = decimator.execute(buffer);
 
 	const buffer_s16_t work_audio_buffer {

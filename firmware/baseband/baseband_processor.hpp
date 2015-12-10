@@ -37,20 +37,20 @@ class BasebandProcessor {
 public:
 	virtual ~BasebandProcessor() = default;
 
-	virtual void execute(buffer_c8_t buffer) = 0;
+	virtual void execute(buffer_c8_t& buffer) = 0;
 
 	void update_spectrum();
 
 protected:
-	void feed_channel_stats(const buffer_c16_t channel);
+	void feed_channel_stats(const buffer_c16_t& channel);
 
 	void feed_channel_spectrum(
-		const buffer_c16_t channel,
+		const buffer_c16_t& channel,
 		const uint32_t filter_pass_frequency,
 		const uint32_t filter_stop_frequency
 	);
 
-	void fill_audio_buffer(const buffer_s16_t audio);
+	void fill_audio_buffer(const buffer_s16_t& audio);
 
 	volatile bool channel_spectrum_request_update { false };
 	std::array<std::complex<float>, 256> channel_spectrum;
@@ -67,10 +67,10 @@ private:
 	AudioStatsCollector audio_stats;
 	AudioStatisticsMessage audio_stats_message;
 
-	void post_channel_stats_message(const ChannelStatistics statistics);
-	void post_channel_spectrum_message(const buffer_c16_t data);
-	void feed_audio_stats(const buffer_s16_t audio);
-	void post_audio_stats_message(const AudioStatistics statistics);
+	void post_channel_stats_message(const ChannelStatistics& statistics);
+	void post_channel_spectrum_message(const buffer_c16_t& data);
+	void feed_audio_stats(const buffer_s16_t& audio);
+	void post_audio_stats_message(const AudioStatistics& statistics);
 };
 
 #endif/*__BASEBAND_PROCESSOR_H__*/
