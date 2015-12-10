@@ -321,6 +321,19 @@ private:
 
 static constexpr auto direction = baseband::Direction::Receive;
 
+static BasebandProcessor* create_processor(const int32_t mode) {
+	switch(mode) {
+	case 0:		return new NarrowbandAMAudio();
+	case 1:		return new NarrowbandFMAudio();
+	case 2:		return new WidebandFMAudio();
+	case 3:		return new AISProcessor();
+	case 4:		return new WidebandSpectrum();
+	case 5:		return new TPMSProcessor();
+	case 6:		return new ERTProcessor();
+	default:	return nullptr;
+	}
+}
+
 int main(void) {
 	init();
 
@@ -345,39 +358,8 @@ int main(void) {
 				auto old_p = baseband_thread.baseband_processor;
 				baseband_thread.baseband_processor = nullptr;
 				delete old_p;
-
-				switch(message->configuration.mode) {
-				case 0:
-					baseband_thread.baseband_processor = new NarrowbandAMAudio();
-					break;
-
-				case 1:
-					baseband_thread.baseband_processor = new NarrowbandFMAudio();
-					break;
-
-				case 2:
-					baseband_thread.baseband_processor = new WidebandFMAudio();
-					break;
-
-				case 3:
-					baseband_thread.baseband_processor = new AISProcessor();
-					break;
-
-				case 4:
-					baseband_thread.baseband_processor = new WidebandSpectrum();
-					break;
-
-				case 5:
-					baseband_thread.baseband_processor = new TPMSProcessor();
-					break;
-
-				case 6:
-					baseband_thread.baseband_processor = new ERTProcessor();
-					break;
-
-				default:
-					break;
-				}
+				
+				baseband_thread.baseband_processor = create_processor(message->configuration.mode);
 
 				if( baseband_thread.baseband_processor ) {
 					if( direction == baseband::Direction::Receive ) {
