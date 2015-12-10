@@ -185,9 +185,9 @@ struct BasebandConfiguration {
 class BasebandConfigurationMessage : public Message {
 public:
 	constexpr BasebandConfigurationMessage(
-		BasebandConfiguration configuration
+		const BasebandConfiguration& configuration
 	) : Message { ID::BasebandConfiguration },
-		configuration(configuration)
+		configuration { configuration }
 	{
 	}
 
@@ -215,7 +215,9 @@ public:
 class AISPacketMessage : public Message {
 public:
 	constexpr AISPacketMessage(
-	) : Message { ID::AISPacket }
+		const baseband::Packet& packet
+	) : Message { ID::AISPacket },
+		packet { packet }
 	{
 	}
 
@@ -225,7 +227,9 @@ public:
 class TPMSPacketMessage : public Message {
 public:
 	constexpr TPMSPacketMessage(
-	) : Message { ID::TPMSPacket }
+		const baseband::Packet& packet
+	) : Message { ID::TPMSPacket },
+		packet { packet }
 	{
 	}
 
@@ -243,11 +247,15 @@ public:
 class ERTPacketMessage : public Message {
 public:
 	constexpr ERTPacketMessage(
-	) : Message { ID::ERTPacket }
+		const ert::Packet::Type type,
+		const baseband::Packet& packet
+	) : Message { ID::ERTPacket },
+		type { type },
+		packet { packet }
 	{
 	}
 
-	ert::Packet::Type type { ert::Packet::Type::Unknown };
+	ert::Packet::Type type;
 
 	baseband::Packet packet;
 };

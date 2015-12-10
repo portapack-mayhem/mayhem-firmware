@@ -163,7 +163,7 @@ private:
 			}
 
 			stats.process(buffer,
-				[](const BasebandStatistics statistics) {
+				[](const BasebandStatistics& statistics) {
 					const BasebandStatisticsMessage message { statistics };
 					shared_memory.application_queue.push(message);
 				}
@@ -233,7 +233,7 @@ private:
 
 			stats.process(
 				buffer,
-				[](const RSSIStatistics statistics) {
+				[](const RSSIStatistics& statistics) {
 					const RSSIStatisticsMessage message { statistics };
 					shared_memory.application_queue.push(message);
 				}

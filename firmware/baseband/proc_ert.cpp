@@ -97,17 +97,13 @@ void ERTProcessor::consume_symbol(
 void ERTProcessor::scm_handler(
 	const baseband::Packet& packet
 ) {
-	ERTPacketMessage message;
-	message.type = ert::Packet::Type::SCM;
-	message.packet = packet;
+	const ERTPacketMessage message { ert::Packet::Type::SCM, packet };
 	shared_memory.application_queue.push(message);
 }
 
 void ERTProcessor::idm_handler(
 	const baseband::Packet& packet
 ) {
-	ERTPacketMessage message;
-	message.type = ert::Packet::Type::IDM;
-	message.packet = packet;
+	const ERTPacketMessage message { ert::Packet::Type::IDM, packet };
 	shared_memory.application_queue.push(message);
 }

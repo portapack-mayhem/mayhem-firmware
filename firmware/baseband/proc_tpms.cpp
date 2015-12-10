@@ -60,7 +60,6 @@ void TPMSProcessor::consume_symbol(
 void TPMSProcessor::payload_handler(
 	const baseband::Packet& packet
 ) {
-	TPMSPacketMessage message;
-	message.packet = packet;
+	const TPMSPacketMessage message { packet };
 	shared_memory.application_queue.push(message);
 }
