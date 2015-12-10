@@ -62,7 +62,7 @@ void BasebandProcessor::update_spectrum() {
 void BasebandProcessor::feed_channel_stats(const buffer_c16_t& channel) {
 	channel_stats.feed(
 		channel,
-		[](const ChannelStatistics statistics) {
+		[](const ChannelStatistics& statistics) {
 			ChannelStatisticsMessage channel_stats_message;
 			channel_stats_message.statistics = statistics;
 			shared_memory.application_queue.push(channel_stats_message);
@@ -79,7 +79,7 @@ void BasebandProcessor::feed_channel_spectrum(
 	channel_filter_stop_frequency = filter_stop_frequency;
 	channel_spectrum_decimator.feed(
 		channel,
-		[this](const buffer_c16_t data) {
+		[this](const buffer_c16_t& data) {
 			this->post_channel_spectrum_message(data);
 		}
 	);
@@ -107,7 +107,7 @@ void BasebandProcessor::post_channel_spectrum_message(const buffer_c16_t& data) 
 void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
 	audio_stats.feed(
 		audio,
-		[this](const AudioStatistics statistics) {
+		[this](const AudioStatistics& statistics) {
 			AudioStatisticsMessage audio_stats_message;
 			audio_stats_message.statistics = statistics;
 			shared_memory.application_queue.push(audio_stats_message);
