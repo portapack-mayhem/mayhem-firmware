@@ -102,6 +102,8 @@ private:
 	const char* const name;
 };
 
+static constexpr auto direction = baseband::Direction::Receive;
+
 class BasebandThread : public ThreadBase {
 public:
 	BasebandThread(
@@ -114,6 +116,23 @@ public:
 			priority, ThreadBase::fn,
 			this
 		);
+	}
+
+	void set_configuration(const BasebandConfiguration& new_configuration) {
+		if( new_configuration.mode != baseband_configuration.mode ) {
+			disable();
+
+			// TODO: Timing problem around disabling DMA and nulling and deleting old processor
+			auto old_p = baseband_processor;
+			baseband_processor = nullptr;
+			delete old_p;
+
+			baseband_processor = create_processor(new_configuration.mode);
+
+			enable();
+		}
+
+		baseband_configuration = new_configuration;
 	}
 
 	Thread* thread_main { nullptr };
@@ -149,6 +168,36 @@ private:
 					shared_memory.application_queue.push(message);
 				}
 			);
+		}
+	}
+
+	BasebandProcessor* create_processor(const int32_t mode) {
+		switch(mode) {
+		case 0:		return new NarrowbandAMAudio();
+		case 1:		return new NarrowbandFMAudio();
+		case 2:		return new WidebandFMAudio();
+		case 3:		return new AISProcessor();
+		case 4:		return new WidebandSpectrum();
+		case 5:		return new TPMSProcessor();
+		case 6:		return new ERTProcessor();
+		default:	return nullptr;
+		}
+	}
+
+	void disable() {
+		if( baseband_processor ) {
+			i2s::i2s0::tx_mute();
+			baseband::dma::disable();
+			rf::rssi::stop();
+		}
+	}
+
+	void enable() {
+		if( baseband_processor ) {
+			if( direction == baseband::Direction::Receive ) {
+				rf::rssi::start();
+			}
+			baseband::dma::enable(direction);
 		}
 	}
 };
@@ -319,21 +368,6 @@ private:
 	}
 };
 
-static constexpr auto direction = baseband::Direction::Receive;
-
-static BasebandProcessor* create_processor(const int32_t mode) {
-	switch(mode) {
-	case 0:		return new NarrowbandAMAudio();
-	case 1:		return new NarrowbandFMAudio();
-	case 2:		return new WidebandFMAudio();
-	case 3:		return new AISProcessor();
-	case 4:		return new WidebandSpectrum();
-	case 5:		return new TPMSProcessor();
-	case 6:		return new ERTProcessor();
-	default:	return nullptr;
-	}
-}
-
 int main(void) {
 	init();
 
@@ -346,30 +380,7 @@ int main(void) {
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
 		[&message_handlers](const Message* const p) {
 			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-			if( message->configuration.mode != baseband_thread.baseband_configuration.mode ) {
-
-				if( baseband_thread.baseband_processor ) {
-					i2s::i2s0::tx_mute();
-					baseband::dma::disable();
-					rf::rssi::stop();
-				}
-
-				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-				auto old_p = baseband_thread.baseband_processor;
-				baseband_thread.baseband_processor = nullptr;
-				delete old_p;
-				
-				baseband_thread.baseband_processor = create_processor(message->configuration.mode);
-
-				if( baseband_thread.baseband_processor ) {
-					if( direction == baseband::Direction::Receive ) {
-						rf::rssi::start();
-					}
-					baseband::dma::enable(direction);
-				}
-			}
-
-			baseband_thread.baseband_configuration = message->configuration;
+			baseband_thread.set_configuration(message->configuration);
 		}
 	);
 
