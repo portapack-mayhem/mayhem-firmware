@@ -40,17 +40,9 @@
 
 #include "touch_dma.hpp"
 
-#include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
-#include "dsp_squelch.hpp"
-
 #include "baseband_stats_collector.hpp"
 #include "rssi_stats_collector.hpp"
 
-#include "channel_decimator.hpp"
 #include "baseband_processor.hpp"
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
@@ -59,9 +51,6 @@
 #include "proc_wideband_spectrum.hpp"
 #include "proc_tpms.hpp"
 #include "proc_ert.hpp"
-
-#include "clock_recovery.hpp"
-#include "packet_builder.hpp"
 
 #include "message_queue.hpp"
 
@@ -77,8 +66,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-#include <string>
-#include <bitset>
 
 class ThreadBase {
 public:
