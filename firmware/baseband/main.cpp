@@ -40,17 +40,10 @@
 
 #include "touch_dma.hpp"
 
-#include "baseband_stats_collector.hpp"
 #include "rssi_stats_collector.hpp"
 
+#include "baseband_thread.hpp"
 #include "baseband_processor.hpp"
-#include "proc_am_audio.hpp"
-#include "proc_nfm_audio.hpp"
-#include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
-#include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
-#include "proc_ert.hpp"
 
 #include "message_queue.hpp"
 
@@ -66,128 +59,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-
-class ThreadBase {
-public:
-	constexpr ThreadBase(
-		const char* const name
-	) : name { name }
-	{
-	}
-
-	static msg_t fn(void* arg) {
-		auto obj = static_cast<ThreadBase*>(arg);
-		chRegSetThreadName(obj->name);
-		obj->run();
-
-		return 0;
-	}
-
-	virtual void run() = 0;
-
-private:
-	const char* const name;
-};
-
-static constexpr auto direction = baseband::Direction::Receive;
-
-class BasebandThread : public ThreadBase {
-public:
-	BasebandThread(
-	) : ThreadBase { "baseband" }
-	{
-	}
-
-	Thread* start(const tprio_t priority) {
-		return chThdCreateStatic(wa, sizeof(wa),
-			priority, ThreadBase::fn,
-			this
-		);
-	}
-
-	void set_configuration(const BasebandConfiguration& new_configuration) {
-		if( new_configuration.mode != baseband_configuration.mode ) {
-			disable();
-
-			// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-			auto old_p = baseband_processor;
-			baseband_processor = nullptr;
-			delete old_p;
-
-			baseband_processor = create_processor(new_configuration.mode);
-
-			enable();
-		}
-
-		baseband_configuration = new_configuration;
-	}
-
-	Thread* thread_main { nullptr };
-	Thread* thread_rssi { nullptr };
-	BasebandProcessor* baseband_processor { nullptr };
-	BasebandConfiguration baseband_configuration;
-
-private:
-	WORKING_AREA(wa, 2048);
-
-	void run() override {
-		BasebandStatsCollector stats {
-			chSysGetIdleThread(),
-			thread_main,
-			thread_rssi,
-			chThdSelf()
-		};
-
-		while(true) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-			buffer_c8_t buffer {
-				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
-			};
-
-			if( baseband_processor ) {
-				baseband_processor->execute(buffer);
-			}
-
-			stats.process(buffer,
-				[](const BasebandStatistics& statistics) {
-					const BasebandStatisticsMessage message { statistics };
-					shared_memory.application_queue.push(message);
-				}
-			);
-		}
-	}
-
-	BasebandProcessor* create_processor(const int32_t mode) {
-		switch(mode) {
-		case 0:		return new NarrowbandAMAudio();
-		case 1:		return new NarrowbandFMAudio();
-		case 2:		return new WidebandFMAudio();
-		case 3:		return new AISProcessor();
-		case 4:		return new WidebandSpectrum();
-		case 5:		return new TPMSProcessor();
-		case 6:		return new ERTProcessor();
-		default:	return nullptr;
-		}
-	}
-
-	void disable() {
-		if( baseband_processor ) {
-			i2s::i2s0::tx_mute();
-			baseband::dma::disable();
-			rf::rssi::stop();
-		}
-	}
-
-	void enable() {
-		if( baseband_processor ) {
-			if( direction == baseband::Direction::Receive ) {
-				rf::rssi::start();
-			}
-			baseband::dma::enable(direction);
-		}
-	}
-};
 
 class RSSIThread : public ThreadBase {
 public:
@@ -379,7 +250,7 @@ int main(void) {
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
-	if( direction == baseband::Direction::Receive ) {
+	if( baseband_thread.direction() == baseband::Direction::Receive ) {
 		rf::rssi::dma::allocate(4, 400);
 	}
 
@@ -390,7 +261,7 @@ int main(void) {
 		new std::array<baseband::sample_t, 8192>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
-		direction
+		baseband_thread.direction()
 	);
 	//baseband::dma::allocate(4, 2048);
 
