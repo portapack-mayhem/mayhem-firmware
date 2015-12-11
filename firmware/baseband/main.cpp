@@ -127,9 +127,9 @@ public:
 
 	void run() {
 		message_map.register_handler(Message::ID::BasebandConfiguration,
-			[](const Message* const p) {
+			[this](const Message* const p) {
 				auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-				baseband_thread.set_configuration(message->configuration);
+				this->baseband_thread.set_configuration(message->configuration);
 			}
 		);
 
