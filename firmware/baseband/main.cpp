@@ -187,9 +187,8 @@ private:
 	}
 
 	void handle_spectrum() {
-		if( baseband_thread.baseband_processor ) {
-			baseband_thread.baseband_processor->update_spectrum();
-		}
+		// TODO: Send this via another message?!
+		baseband_thread.on_update_spectrum();
 	}
 };
 

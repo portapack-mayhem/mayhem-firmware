@@ -101,6 +101,13 @@ public:
 	void real(int16_t v) { _v[0] = v; }
 	void imag(int16_t v) { _v[1] = v; }
 
+	template<class X>
+	complex<int16_t>& operator+=(const complex<X>& other) {
+		_v[0] += other.real();
+		_v[1] += other.imag();
+		return *this;
+	}
+
 	constexpr uint32_t __rep() const {
 		return _rep;
 	}

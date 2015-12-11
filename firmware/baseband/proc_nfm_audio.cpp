@@ -41,7 +41,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel);
-	feed_channel_spectrum(
+	channel_spectrum.feed(
 		channel,
 		decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
 		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized

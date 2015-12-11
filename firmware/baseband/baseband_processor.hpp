@@ -25,7 +25,6 @@
 #include "dsp_types.hpp"
 #include "complex.hpp"
 
-#include "block_decimator.hpp"
 #include "channel_stats_collector.hpp"
 #include "audio_stats_collector.hpp"
 
@@ -39,32 +38,17 @@ public:
 
 	virtual void execute(const buffer_c8_t& buffer) = 0;
 
-	void update_spectrum();
+	virtual void on_update_spectrum() { };
 
 protected:
 	void feed_channel_stats(const buffer_c16_t& channel);
 
-	void feed_channel_spectrum(
-		const buffer_c16_t& channel,
-		const uint32_t filter_pass_frequency,
-		const uint32_t filter_stop_frequency
-	);
-
 	void fill_audio_buffer(const buffer_s16_t& audio);
 
-	volatile bool channel_spectrum_request_update { false };
-	std::array<std::complex<float>, 256> channel_spectrum;
-	uint32_t channel_spectrum_sampling_rate { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
-
 private:
-	BlockDecimator<256> channel_spectrum_decimator { 4 };
-
 	ChannelStatsCollector channel_stats;
 	AudioStatsCollector audio_stats;
 
-	void post_channel_spectrum_message(const buffer_c16_t& data);
 	void feed_audio_stats(const buffer_s16_t& audio);
 };
 

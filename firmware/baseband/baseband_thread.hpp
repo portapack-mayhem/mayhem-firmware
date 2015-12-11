@@ -39,6 +39,8 @@ public:
 
 	void set_configuration(const BasebandConfiguration& new_configuration);
 
+	void on_update_spectrum();
+	
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.
 	baseband::Direction direction() const {

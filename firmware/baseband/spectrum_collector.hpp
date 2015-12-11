@@ -19,28 +19,43 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_WIDEBAND_SPECTRUM_H__
-#define __PROC_WIDEBAND_SPECTRUM_H__
+#ifndef __SPECTRUM_COLLECTOR_H__
+#define __SPECTRUM_COLLECTOR_H__
 
-#include "baseband_processor.hpp"
-#include "spectrum_collector.hpp"
+#include "dsp_types.hpp"
+#include "complex.hpp"
 
-#include <cstddef>
+#include "block_decimator.hpp"
+
+#include <cstdint>
 #include <array>
-#include <complex>
 
-class WidebandSpectrum : public BasebandProcessor {
+class SpectrumCollector {
 public:
-	void execute(const buffer_c8_t& buffer) override;
+	constexpr SpectrumCollector(
+		const size_t decimation_factor = 4
+	) : channel_spectrum_decimator { decimation_factor }
+	{
+	}
 
-	void on_update_spectrum() override { channel_spectrum.update(); }
+	void update();
+
+	void feed(
+		const buffer_c16_t& channel,
+		const uint32_t filter_pass_frequency,
+		const uint32_t filter_stop_frequency
+	);
 
 private:
-	size_t sample_count = 0;
+	BlockDecimator<256> channel_spectrum_decimator;
 
-	SpectrumCollector channel_spectrum { 1 };
+	volatile bool channel_spectrum_request_update { false };
+	std::array<std::complex<float>, 256> channel_spectrum;
+	uint32_t channel_spectrum_sampling_rate { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
 
-	std::array<complex16_t, 256> spectrum;
+	void post_message(const buffer_c16_t& data);
 };
 
-#endif/*__PROC_WIDEBAND_SPECTRUM_H__*/
+#endif/*__SPECTRUM_COLLECTOR_H__*/

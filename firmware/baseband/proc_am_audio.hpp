@@ -31,6 +31,8 @@
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 
+#include "spectrum_collector.hpp"
+
 class NarrowbandAMAudio : public BasebandProcessor {
 public:
 	NarrowbandAMAudio() {
@@ -40,12 +42,16 @@ public:
 
 	void execute(const buffer_c8_t& buffer) override;
 
+	void on_update_spectrum() override { channel_spectrum.update(); }
+
 private:
 	ChannelDecimator decimator;
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	dsp::demodulate::AM demod;
 	IIRBiquadFilter audio_hpf { audio_hpf_config };
+
+	SpectrumCollector channel_spectrum;
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/

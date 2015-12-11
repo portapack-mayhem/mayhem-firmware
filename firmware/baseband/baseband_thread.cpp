@@ -68,6 +68,12 @@ void BasebandThread::set_configuration(const BasebandConfiguration& new_configur
 	baseband_configuration = new_configuration;
 }
 
+void BasebandThread::on_update_spectrum() {
+	if( baseband_processor ) {
+		baseband_processor->on_update_spectrum();
+	}	
+}
+
 void BasebandThread::run() {
 	baseband::dma::init();
 

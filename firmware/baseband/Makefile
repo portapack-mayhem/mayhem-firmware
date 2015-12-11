@@ -137,6 +137,7 @@ CPPSRC = main.cpp \
          matched_filter.cpp \
          proc_am_audio.cpp \
          proc_nfm_audio.cpp \
+         spectrum_collector.cpp \
          proc_wfm_audio.cpp \
          proc_ais.cpp \
          proc_wideband_spectrum.cpp \

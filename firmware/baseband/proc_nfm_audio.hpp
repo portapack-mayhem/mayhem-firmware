@@ -32,6 +32,8 @@
 #include "dsp_iir_config.hpp"
 #include "dsp_squelch.hpp"
 
+#include "spectrum_collector.hpp"
+
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
 	NarrowbandFMAudio() {
@@ -41,6 +43,8 @@ public:
 
 	void execute(const buffer_c8_t& buffer) override;
 
+	void on_update_spectrum() override { channel_spectrum.update(); }
+
 private:
 	ChannelDecimator decimator;
 	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
@@ -49,6 +53,8 @@ private:
 
 	IIRBiquadFilter audio_hpf { audio_hpf_config };
 	FMSquelch squelch;
+
+	SpectrumCollector channel_spectrum;
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/
