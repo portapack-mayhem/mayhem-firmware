@@ -97,6 +97,15 @@ static void init() {
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 
 	touch::dma::init();
+	touch::dma::allocate();
+	touch::dma::enable();
+}
+
+static void halt() {
+	port_disable();
+	while(true) {
+		port_wait_for_interrupt();
+	}
 }
 
 static void shutdown() {
@@ -112,13 +121,8 @@ static void shutdown() {
 
 	ShutdownMessage shutdown_message;
 	shared_memory.application_queue.push(shutdown_message);
-}
 
-static void halt() {
-	port_disable();
-	while(true) {
-		port_wait_for_interrupt();
-	}
+	halt();
 }
 
 class EventDispatcher {
@@ -152,6 +156,8 @@ public:
 			const auto events = wait();
 			dispatch(events);
 		}
+
+		shutdown();
 	}
 
 	void request_stop() {
@@ -196,15 +202,8 @@ int main(void) {
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
-	touch::dma::allocate();
-	touch::dma::enable();
-
 	EventDispatcher event_dispatcher;
 	event_dispatcher.run();
-
-	shutdown();
-
-	halt();
 
 	return 0;
 }
