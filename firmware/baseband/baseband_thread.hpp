@@ -48,10 +48,11 @@ public:
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
 	BasebandProcessor* baseband_processor { nullptr };
-	BasebandConfiguration baseband_configuration;
 
 private:
 	WORKING_AREA(wa, 2048);
+
+	BasebandConfiguration baseband_configuration;
 
 	void run() override;
 

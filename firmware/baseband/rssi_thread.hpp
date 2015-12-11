@@ -37,12 +37,12 @@ public:
 
 	Thread* start(const tprio_t priority);
 
-	uint32_t sampling_rate { 400000 };
-
 private:
 	WORKING_AREA(wa, 128);
 
 	void run() override;
+
+	const uint32_t sampling_rate { 400000 };
 };
 
 #endif/*__RSSI_THREAD_H__*/
