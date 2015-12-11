@@ -194,13 +194,12 @@ int main(void) {
 	events_initialize(chThdSelf());
 	m0apptxevent_interrupt_enable();
 
-	EventDispatcher event_dispatcher;
-
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
 	touch::dma::allocate();
 	touch::dma::enable();
 
+	EventDispatcher event_dispatcher;
 	event_dispatcher.run();
 
 	shutdown();
