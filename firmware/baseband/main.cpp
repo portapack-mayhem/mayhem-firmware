@@ -112,8 +112,6 @@ static void shutdown() {
 	// TODO: Is this complete?
 	
 	nvicDisableVector(DMA_IRQn);
-
-	m0apptxevent_interrupt_disable();
 	
 	chSysDisable();
 
@@ -157,7 +155,7 @@ public:
 			dispatch(events);
 		}
 
-		shutdown();
+		m0apptxevent_interrupt_disable();
 	}
 
 	void request_stop() {
@@ -204,6 +202,8 @@ int main(void) {
 
 	EventDispatcher event_dispatcher;
 	event_dispatcher.run();
+
+	shutdown();
 
 	return 0;
 }
