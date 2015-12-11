@@ -20,7 +20,6 @@
  */
 
 #include "ch.h"
-#include "test.h"
 
 #include "lpc43xx_cpp.hpp"
 

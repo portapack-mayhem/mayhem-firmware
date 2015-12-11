@@ -20,7 +20,6 @@
  */
 
 #include "ch.h"
-#include "test.h"
 
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
