@@ -141,6 +141,9 @@ public:
 			}
 		);
 
+		events_initialize(chThdSelf());
+		m0apptxevent_interrupt_enable();
+
 		baseband_thread.thread_main = chThdSelf();
 		baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
 		baseband_thread.start(NORMALPRIO + 20);
@@ -190,9 +193,6 @@ private:
 
 int main(void) {
 	init();
-
-	events_initialize(chThdSelf());
-	m0apptxevent_interrupt_enable();
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
