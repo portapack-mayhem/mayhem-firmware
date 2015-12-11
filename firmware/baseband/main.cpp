@@ -105,10 +105,6 @@ static void init() {
 
 	rf::rssi::init();
 	touch::dma::init();
-
-	baseband_thread.thread_main = chThdSelf();
-	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
-	baseband_thread.start(NORMALPRIO + 20);
 }
 
 static void shutdown() {
@@ -203,6 +199,9 @@ int main(void) {
 	);
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
+	baseband_thread.thread_main = chThdSelf();
+	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
+	baseband_thread.start(NORMALPRIO + 20);
 
 	if( baseband_thread.direction() == baseband::Direction::Receive ) {
 		rf::rssi::dma::allocate(4, 400);
