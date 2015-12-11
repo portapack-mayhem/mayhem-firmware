@@ -109,6 +109,9 @@ static void shutdown() {
 	chSysDisable();
 
 	systick_stop();
+
+	ShutdownMessage shutdown_message;
+	shared_memory.application_queue.push(shutdown_message);
 }
 
 static void halt() {
@@ -201,9 +204,6 @@ int main(void) {
 	event_dispatcher.run();
 
 	shutdown();
-
-	ShutdownMessage shutdown_message;
-	shared_memory.application_queue.push(shutdown_message);
 
 	halt();
 
