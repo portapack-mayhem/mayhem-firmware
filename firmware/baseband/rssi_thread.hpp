@@ -38,8 +38,6 @@ public:
 	Thread* start(const tprio_t priority);
 
 private:
-	WORKING_AREA(wa, 128);
-
 	void run() override;
 
 	const uint32_t sampling_rate { 400000 };

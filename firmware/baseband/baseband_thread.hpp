@@ -50,8 +50,6 @@ public:
 	BasebandProcessor* baseband_processor { nullptr };
 
 private:
-	WORKING_AREA(wa, 2048);
-
 	BasebandConfiguration baseband_configuration;
 
 	void run() override;

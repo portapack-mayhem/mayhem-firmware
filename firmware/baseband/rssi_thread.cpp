@@ -28,8 +28,10 @@
 #include "message.hpp"
 #include "portapack_shared_memory.hpp"
 
+WORKING_AREA(rssi_thread_wa, 128);
+
 Thread* RSSIThread::start(const tprio_t priority) {
-	return chThdCreateStatic(wa, sizeof(wa),
+	return chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
 		priority, ThreadBase::fn,
 		this
 	);

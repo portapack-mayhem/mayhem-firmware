@@ -74,9 +74,6 @@ void __late_init(void) {
 
 }
 
-static BasebandThread baseband_thread;
-static RSSIThread rssi_thread;
-
 static void init() {
 	i2s::i2s0::configure(
 		audio::i2s0_config_tx,
@@ -163,6 +160,8 @@ public:
 
 private:
 	MessageHandlerMap message_map;
+	BasebandThread baseband_thread;
+	RSSIThread rssi_thread;
 
 	bool is_running = true;
 
