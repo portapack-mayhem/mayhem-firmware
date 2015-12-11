@@ -99,16 +99,12 @@ constexpr size_t msg_count = transfers_per_buffer - 1;
 static std::array<gpdma::channel::LLI, transfers_per_buffer> lli_loop;
 static constexpr auto& gpdma_channel_sgpio = gpdma::channels[portapack::sgpio_gpdma_channel_number];
 
-//static Mailbox mailbox;
-//static std::array<msg_t, msg_count> messages;
 static Semaphore semaphore;
 
 static volatile const gpdma::channel::LLI* next_lli = nullptr;
 
 static void transfer_complete() {
 	next_lli = gpdma_channel_sgpio.next_lli();
-	/* TODO: Is Mailbox the proper synchronization mechanism for this? */
-	//chMBPostI(&mailbox, 0);
 	chSemSignalI(&semaphore);
 }
 
@@ -117,7 +113,6 @@ static void dma_error() {
 }
 
 void init() {
-	//chMBInit(&mailbox, messages.data(), messages.size());
 	chSemInit(&semaphore, 0);
 	gpdma_channel_sgpio.set_handlers(transfer_complete, dma_error);
 
@@ -144,7 +139,6 @@ void enable(const baseband::Direction direction) {
 	const auto gpdma_config = config(direction);
 	gpdma_channel_sgpio.configure(lli_loop[0], gpdma_config);
 
-	//chMBReset(&mailbox);
 	chSemReset(&semaphore, 0);
 
 	gpdma_channel_sgpio.enable();
@@ -159,8 +153,6 @@ void disable() {
 }
 
 baseband::buffer_t wait_for_rx_buffer() {
-	//msg_t msg;
-	//const auto status = chMBFetch(&mailbox, &msg, TIME_INFINITE);
 	const auto status = chSemWait(&semaphore);
 	if( status == RDY_OK ) {
 		const auto next = next_lli;
