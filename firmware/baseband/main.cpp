@@ -29,14 +29,9 @@
 
 #include "gpdma.hpp"
 
-#include "baseband_dma.hpp"
-
 #include "event_m4.hpp"
 
 #include "irq_ipc_m4.hpp"
-
-#include "rssi.hpp"
-#include "rssi_dma.hpp"
 
 #include "touch_dma.hpp"
 
@@ -101,9 +96,6 @@ static void init() {
 	gpdma::controller.enable();
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 
-	baseband::dma::init();
-
-	rf::rssi::init();
 	touch::dma::init();
 }
 
@@ -199,24 +191,13 @@ int main(void) {
 	);
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
+	
 	baseband_thread.thread_main = chThdSelf();
 	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
 	baseband_thread.start(NORMALPRIO + 20);
 
-	if( baseband_thread.direction() == baseband::Direction::Receive ) {
-		rf::rssi::dma::allocate(4, 400);
-	}
-
 	touch::dma::allocate();
 	touch::dma::enable();
-
-	const auto baseband_buffer =
-		new std::array<baseband::sample_t, 8192>();
-	baseband::dma::configure(
-		baseband_buffer->data(),
-		baseband_thread.direction()
-	);
-	//baseband::dma::allocate(4, 2048);
 
 	event_dispatcher.run();
 

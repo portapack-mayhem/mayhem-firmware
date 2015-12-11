@@ -36,6 +36,9 @@ Thread* RSSIThread::start(const tprio_t priority) {
 }
 
 void RSSIThread::run() {
+	rf::rssi::init();
+	rf::rssi::dma::allocate(4, 400);
+
 	RSSIStatisticsCollector stats;
 
 	while(true) {
@@ -53,4 +56,6 @@ void RSSIThread::run() {
 			}
 		);
 	}
+
+	rf::rssi::dma::free();
 }

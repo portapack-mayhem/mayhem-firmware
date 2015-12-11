@@ -23,6 +23,7 @@
 
 #include "dsp_types.hpp"
 
+#include "baseband.hpp"
 #include "baseband_stats_collector.hpp"
 #include "baseband_dma.hpp"
 
@@ -38,6 +39,8 @@
 #include "proc_ert.hpp"
 
 #include "portapack_shared_memory.hpp"
+
+#include <array>
 
 Thread* BasebandThread::start(const tprio_t priority) {
 	return chThdCreateStatic(wa, sizeof(wa),
@@ -64,6 +67,15 @@ void BasebandThread::set_configuration(const BasebandConfiguration& new_configur
 }
 
 void BasebandThread::run() {
+	baseband::dma::init();
+
+	const auto baseband_buffer = new std::array<baseband::sample_t, 8192>();
+	baseband::dma::configure(
+		baseband_buffer->data(),
+		direction()
+	);
+	//baseband::dma::allocate(4, 2048);
+
 	BasebandStatsCollector stats {
 		chSysGetIdleThread(),
 		thread_main,
@@ -89,6 +101,8 @@ void BasebandThread::run() {
 			}
 		);
 	}
+
+	delete baseband_buffer;
 }
 
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
