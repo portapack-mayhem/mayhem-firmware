@@ -125,6 +125,23 @@ public:
 	}
 
 	void run() {
+		message_map.register_handler(Message::ID::BasebandConfiguration,
+			[](const Message* const p) {
+				auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
+				baseband_thread.set_configuration(message->configuration);
+			}
+		);
+
+		message_map.register_handler(Message::ID::Shutdown,
+			[this](const Message* const) {
+				this->request_stop();
+			}
+		);
+
+		baseband_thread.thread_main = chThdSelf();
+		baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
+		baseband_thread.start(NORMALPRIO + 20);
+
 		while(is_running) {
 			const auto events = wait();
 			dispatch(events);
@@ -175,26 +192,8 @@ int main(void) {
 	m0apptxevent_interrupt_enable();
 
 	EventDispatcher event_dispatcher;
-	auto& message_handlers = event_dispatcher.message_handlers();
-
-	message_handlers.register_handler(Message::ID::BasebandConfiguration,
-		[](const Message* const p) {
-			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-			baseband_thread.set_configuration(message->configuration);
-		}
-	);
-
-	message_handlers.register_handler(Message::ID::Shutdown,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.request_stop();
-		}
-	);
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
-	
-	baseband_thread.thread_main = chThdSelf();
-	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
-	baseband_thread.start(NORMALPRIO + 20);
 
 	touch::dma::allocate();
 	touch::dma::enable();
