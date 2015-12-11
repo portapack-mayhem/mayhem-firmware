@@ -150,6 +150,7 @@ CPPSRC = main.cpp \
          fxpt_atan2.cpp \
          rssi.cpp \
          rssi_dma.cpp \
+         rssi_thread.cpp \
          audio.cpp \
          audio_dma.cpp \
          touch_dma.cpp \

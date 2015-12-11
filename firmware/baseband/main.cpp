@@ -40,9 +40,8 @@
 
 #include "touch_dma.hpp"
 
-#include "rssi_stats_collector.hpp"
-
 #include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 #include "baseband_processor.hpp"
 
 #include "message_queue.hpp"
@@ -59,46 +58,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-
-class RSSIThread : public ThreadBase {
-public:
-	RSSIThread(
-	) : ThreadBase { "rssi" }
-	{
-	}
-
-	Thread* start(const tprio_t priority) {
-		return chThdCreateStatic(wa, sizeof(wa),
-			priority, ThreadBase::fn,
-			this
-		);
-	}
-
-	uint32_t sampling_rate { 400000 };
-
-private:
-	WORKING_AREA(wa, 128);
-
-	void run() override {
-		RSSIStatisticsCollector stats;
-
-		while(true) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
-			const rf::rssi::buffer_t buffer {
-				buffer_tmp.p, buffer_tmp.count, sampling_rate
-			};
-
-			stats.process(
-				buffer,
-				[](const RSSIStatistics& statistics) {
-					const RSSIStatisticsMessage message { statistics };
-					shared_memory.application_queue.push(message);
-				}
-			);
-		}
-	}
-};
 
 extern "C" {
 
