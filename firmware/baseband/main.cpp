@@ -106,13 +106,8 @@ static void init() {
 	rf::rssi::init();
 	touch::dma::init();
 
-	const auto thread_main = chThdSelf();
-	
-	const auto thread_rssi = rssi_thread.start(NORMALPRIO + 10);
-
-	baseband_thread.thread_main = thread_main;
-	baseband_thread.thread_rssi = thread_rssi;
-
+	baseband_thread.thread_main = chThdSelf();
+	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
 	baseband_thread.start(NORMALPRIO + 20);
 }
 
