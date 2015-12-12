@@ -128,8 +128,8 @@ bool Packet::is_valid() const {
 	return length_valid() && crc_ok();
 }
 
-rtc::RTC Packet::received_at() const {
-	return received_at_;
+Timestamp Packet::received_at() const {
+	return packet_.timestamp();
 }
 
 uint32_t Packet::message_id() const {

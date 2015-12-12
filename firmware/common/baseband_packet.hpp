@@ -22,6 +22,8 @@
 #ifndef __BASEBAND_PACKET_H__
 #define __BASEBAND_PACKET_H__
 
+#include "baseband.hpp"
+
 #include <cstddef>
 #include <bitset>
 
@@ -29,6 +31,14 @@ namespace baseband {
 
 class Packet {
 public:
+	void set_timestamp(const Timestamp& value) {
+		timestamp_ = value;
+	}
+	
+	Timestamp timestamp() const {
+		return timestamp_;
+	}
+
 	void add(const bool symbol) {
 		if( count < capacity() ) {
 			data[count++] = symbol;
@@ -53,6 +63,7 @@ public:
 
 private:
 	std::bitset<1408> data;
+	Timestamp timestamp_ { };
 	size_t count { 0 };
 };
 

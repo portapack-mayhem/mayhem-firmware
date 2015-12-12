@@ -120,9 +120,7 @@ void AISView::on_show() {
 	message_map.register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const AISPacketMessage*>(p);
-			rtc::RTC datetime;
-			rtcGetTime(&RTCD1, &datetime);
-			const ais::Packet packet { datetime, message->packet };
+			const ais::Packet packet { message->packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}

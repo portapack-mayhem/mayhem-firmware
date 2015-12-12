@@ -89,6 +89,7 @@ public:
 			}
 
 			if( end(bit_history, packet.size()) ) {
+				packet.set_timestamp(Timestamp::now());
 				payload_handler(packet);
 				reset_state();
 			} else {

@@ -25,9 +25,6 @@
 #include "baseband_packet.hpp"
 #include "field_reader.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include <cstdint>
 #include <cstddef>
 #include <string>
@@ -51,10 +48,8 @@ using MMSI = uint32_t;
 class Packet {
 public:
 	constexpr Packet(
-		const rtc::RTC& received_at,
 		const baseband::Packet& packet
 	) : packet_ { packet },
-		received_at_ { received_at },
 		field_ { packet_ }
 	{
 	}
@@ -63,7 +58,7 @@ public:
 	
 	bool is_valid() const;
 
-	rtc::RTC received_at() const;
+	Timestamp received_at() const;
 
 	uint32_t message_id() const;
 	MMSI user_id() const;
@@ -85,7 +80,6 @@ private:
 	using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
 	
 	const baseband::Packet packet_;
-	const rtc::RTC received_at_;
 	const Reader field_;
 
 	const size_t fcs_length = 16;

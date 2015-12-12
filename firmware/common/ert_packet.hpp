@@ -29,9 +29,6 @@
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 namespace ert {
 
 using ID = uint32_t;
@@ -46,11 +43,9 @@ public:
 	};
 
 	Packet(
-		const rtc::RTC& received_at,
 		const Type type,
 		const baseband::Packet& packet
 	) : packet_ { packet },
-		received_at_ { received_at },
 		decoder_ { packet_ },
 		reader_ { decoder_ },
 		type_ { type }
@@ -61,7 +56,7 @@ public:
 	
 	bool is_valid() const;
 
-	rtc::RTC received_at() const;
+	Timestamp received_at() const;
 
 	Type type() const;
 	ID id() const;
@@ -75,7 +70,6 @@ private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
-	const rtc::RTC received_at_;
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
 	const Type type_;

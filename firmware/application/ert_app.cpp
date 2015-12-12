@@ -26,9 +26,6 @@ using namespace portapack;
 
 #include "manchester.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include "crc.hpp"
 #include "string_format.hpp"
 
@@ -61,9 +58,7 @@ void ERTView::on_show() {
 	message_map.register_handler(Message::ID::ERTPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
-			rtc::RTC datetime;
-			rtcGetTime(&RTCD1, &datetime);
-			const ert::Packet packet { datetime, message->type, message->packet };
+			const ert::Packet packet { message->type, message->packet };
 			if( this->model.on_packet(packet) ) {
 				this->on_packet(packet);
 			}
