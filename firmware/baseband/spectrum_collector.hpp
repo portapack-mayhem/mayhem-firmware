@@ -38,13 +38,13 @@ public:
 	{
 	}
 
-	void update();
-
 	void feed(
 		const buffer_c16_t& channel,
 		const uint32_t filter_pass_frequency,
 		const uint32_t filter_stop_frequency
 	);
+
+	void update();
 
 private:
 	BlockDecimator<256> channel_spectrum_decimator;

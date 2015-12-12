@@ -29,6 +29,30 @@
 
 #include <algorithm>
 
+void SpectrumCollector::feed(
+	const buffer_c16_t& channel,
+	const uint32_t filter_pass_frequency,
+	const uint32_t filter_stop_frequency
+) {
+	channel_filter_pass_frequency = filter_pass_frequency;
+	channel_filter_stop_frequency = filter_stop_frequency;
+	channel_spectrum_decimator.feed(
+		channel,
+		[this](const buffer_c16_t& data) {
+			this->post_message(data);
+		}
+	);
+}
+
+void SpectrumCollector::post_message(const buffer_c16_t& data) {
+	if( !channel_spectrum_request_update ) {
+		fft_swap(data, channel_spectrum);
+		channel_spectrum_sampling_rate = data.sampling_rate;
+		channel_spectrum_request_update = true;
+		events_flag(EVT_MASK_SPECTRUM);
+	}
+}
+
 void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
 	if( channel_spectrum_request_update ) {
@@ -51,29 +75,5 @@ void SpectrumCollector::update() {
 		spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
 		spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
 		shared_memory.application_queue.push(spectrum_message);
-	}
-}
-
-void SpectrumCollector::feed(
-	const buffer_c16_t& channel,
-	const uint32_t filter_pass_frequency,
-	const uint32_t filter_stop_frequency
-) {
-	channel_filter_pass_frequency = filter_pass_frequency;
-	channel_filter_stop_frequency = filter_stop_frequency;
-	channel_spectrum_decimator.feed(
-		channel,
-		[this](const buffer_c16_t& data) {
-			this->post_message(data);
-		}
-	);
-}
-
-void SpectrumCollector::post_message(const buffer_c16_t& data) {
-	if( !channel_spectrum_request_update ) {
-		fft_swap(data, channel_spectrum);
-		channel_spectrum_sampling_rate = data.sampling_rate;
-		channel_spectrum_request_update = true;
-		events_flag(EVT_MASK_SPECTRUM);
 	}
 }
