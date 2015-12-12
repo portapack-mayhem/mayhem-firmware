@@ -35,8 +35,6 @@ enum class Direction {
 	Transmit = 1,
 };
 
-buffer_t wait_for_rx_buffer();
-
 } /* namespace baseband */
 
 #endif/*__BASEBAND_H__*/
