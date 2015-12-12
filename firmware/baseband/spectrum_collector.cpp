@@ -29,11 +29,17 @@
 
 #include <algorithm>
 
+/* TODO: Refactor to register task with idle thread?
+ * It's sad that the idle thread has to call all the way back here just to
+ * perform the deferred task on the buffer of data we prepared.
+ */
+
 void SpectrumCollector::feed(
 	const buffer_c16_t& channel,
 	const uint32_t filter_pass_frequency,
 	const uint32_t filter_stop_frequency
 ) {
+	// Called from baseband processing thread.
 	channel_filter_pass_frequency = filter_pass_frequency;
 	channel_filter_stop_frequency = filter_stop_frequency;
 	channel_spectrum_decimator.feed(
@@ -45,6 +51,7 @@ void SpectrumCollector::feed(
 }
 
 void SpectrumCollector::post_message(const buffer_c16_t& data) {
+	// Called from baseband processing thread.
 	if( !channel_spectrum_request_update ) {
 		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
