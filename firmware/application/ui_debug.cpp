@@ -155,6 +155,54 @@ void DebugRFFC5072RegistersWidget::draw_values(
 	}
 }
 
+/* DebugSi5351CRegistersWidget ******************************************/
+
+void DebugSi5351CRegistersWidget::update() {
+	set_dirty();
+}
+
+void DebugSi5351CRegistersWidget::paint(Painter& painter) {
+	draw_legend(painter);
+
+	draw_values(painter, portapack::clock_generator);
+}
+
+void DebugSi5351CRegistersWidget::draw_legend(Painter& painter) {
+	for(size_t i=0; i<registers_count; i+=registers_per_row) {
+		const Point offset {
+			0, static_cast<Coord>((i / registers_per_row) * row_height)
+		};
+
+		const auto text = to_string_hex(i, legend_length);
+		painter.draw_string(
+			screen_pos() + offset,
+			style(),
+			text
+		);
+	}
+}
+
+void DebugSi5351CRegistersWidget::draw_values(
+	Painter& painter,
+	si5351::Si5351& device
+) {
+	for(size_t i=0; i<registers_count; i++) {
+		const Point offset = {
+			static_cast<Coord>(legend_width + 8 + (i % registers_per_row) * (value_width + 8)),
+			static_cast<Coord>((i / registers_per_row) * row_height)
+		};
+
+		const auto value = device.read_register(i);
+
+		const auto text = to_string_hex(value, value_length);
+		painter.draw_string(
+			screen_pos() + offset,
+			style(),
+			text
+		);
+	}
+}
+
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
@@ -164,7 +212,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "SD Card",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "RFFC5072",    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
 		{ "MAX2837",     [&nav](){ nav.push(new DebugMAX2837View   { nav }); } },
-		{ "Si5351C",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Si5351C",     [&nav](){ nav.push(new DebugSi5351CView   { nav }); } },
 		{ "WM8731",      [&nav](){ nav.push(new NotImplementedView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };

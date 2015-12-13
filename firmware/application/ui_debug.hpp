@@ -30,6 +30,7 @@
 
 #include "rffc507x.hpp"
 #include "max2837.hpp"
+#include "portapack.hpp"
 
 namespace ui {
 
@@ -152,6 +153,40 @@ private:
 	void draw_values(Painter& painter, const max2837::RegisterMap registers);
 };
 
+class DebugSi5351CRegistersWidget : public Widget {
+public:
+	constexpr DebugSi5351CRegistersWidget(
+		Rect parent_rect
+	) : Widget { parent_rect }
+	{
+	}
+
+	void update();
+
+	void paint(Painter& painter) override;
+
+	static constexpr const char* const name = "Si5351C";
+
+private:
+	static constexpr size_t registers_count = 96;
+
+	static constexpr size_t legend_length = 2;
+	static constexpr Dim legend_width = legend_length * 8;
+
+	static constexpr size_t value_length = 2;
+	static constexpr Dim value_width = value_length * 8;
+
+	static constexpr size_t registers_per_row = 8;
+	static constexpr size_t registers_row_length = (registers_per_row * (value_length + 1)) - 1;
+	static constexpr Dim registers_row_width = registers_row_length * 8;
+
+	static constexpr size_t rows = registers_count / registers_per_row;
+	static constexpr Dim row_height = 16;
+
+	void draw_legend(Painter& painter);
+	void draw_values(Painter& painter, si5351::Si5351& device);
+};
+
 template<class RegistersWidget>
 class RegistersView : public View {
 public:
@@ -180,22 +215,23 @@ private:
 	};
 
 	RegistersWidget widget_registers {
-		{ 32, 48, 176, 128 }
+		{ 0, 48, 240, 192 }
 	};
 
 	Button button_update {
-		{ 16, 192, 96, 24 },
+		{ 16, 256, 96, 24 },
 		"Update"
 	};
 
 	Button button_done {
-		{ 128, 192, 96, 24 },
+		{ 128, 256, 96, 24 },
 		"Done"
 	};
 };
 
 using DebugRFFC5072View = RegistersView<DebugRFFC5072RegistersWidget>;
 using DebugMAX2837View = RegistersView<DebugMAX2837RegistersWidget>;
+using DebugSi5351CView = RegistersView<DebugSi5351CRegistersWidget>;
 
 class DebugMenuView : public MenuView {
 public:

@@ -27,7 +27,6 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
-#include "si5351.hpp"
 #include "clock_manager.hpp"
 
 #include "i2c_pp.hpp"
