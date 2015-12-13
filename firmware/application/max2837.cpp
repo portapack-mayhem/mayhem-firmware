@@ -149,22 +149,22 @@ void MAX2837::flush_one(const Register reg) {
 	_dirty.clear(reg_num);
 }
 
-inline void MAX2837::write(const address_t reg_num, const reg_t value) {
+void MAX2837::write(const address_t reg_num, const reg_t value) {
 	uint16_t t = (0U << 15) | (reg_num << 10) | (value & 0x3ffU);
 	_target.transfer(&t, 1);
 }
 
-inline reg_t MAX2837::read(const address_t reg_num) {
+reg_t MAX2837::read(const address_t reg_num) {
 	uint16_t t = (1U << 15) | (reg_num << 10);
 	_target.transfer(&t, 1U);
 	return t & 0x3ffU;
 }
 
-inline void MAX2837::write(const Register reg, const reg_t value) {
+void MAX2837::write(const Register reg, const reg_t value) {
 	write(toUType(reg), value);
 }
 
-inline reg_t MAX2837::read(const Register reg) {
+reg_t MAX2837::read(const Register reg) {
 	return read(toUType(reg));
 }
 

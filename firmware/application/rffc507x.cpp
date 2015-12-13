@@ -183,23 +183,23 @@ void RFFC507x::flush() {
 	}
 }
 
-inline void RFFC507x::write(const address_t reg_num, const spi::reg_t value) {
+void RFFC507x::write(const address_t reg_num, const spi::reg_t value) {
 	_bus.write(reg_num, value);
 }
 
-inline spi::reg_t RFFC507x::read(const address_t reg_num) {
+spi::reg_t RFFC507x::read(const address_t reg_num) {
 	return _bus.read(reg_num);
 }
 
-inline void RFFC507x::write(const Register reg, const spi::reg_t value) {
+void RFFC507x::write(const Register reg, const spi::reg_t value) {
 	write(toUType(reg), value);
 }
 
-inline spi::reg_t RFFC507x::read(const Register reg) {
+spi::reg_t RFFC507x::read(const Register reg) {
 	return read(toUType(reg));
 }
 
-inline void RFFC507x::flush_one(const Register reg) {
+void RFFC507x::flush_one(const Register reg) {
 	const auto reg_num = toUType(reg);
 	write(reg_num, _map.w[reg_num]);
 	_dirty.clear(reg_num);
