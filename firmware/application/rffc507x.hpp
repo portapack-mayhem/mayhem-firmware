@@ -809,7 +809,6 @@ public:
 	void set_mixer_current(const uint8_t value);
 	void set_frequency(const rf::Frequency lo_frequency);
 
-	RegisterMap registers();
 	reg_t read(const address_t reg_num);
 
 private:

@@ -272,10 +272,6 @@ spi::reg_t RFFC507x::readback(const Readback readback) {
 	return read(Register::READBACK);
 }
 
-RegisterMap RFFC507x::registers() {
-	return _map;
-}
-
 #if 0
 /* Test of RFFC507x reset over temperature */
 while(true) {

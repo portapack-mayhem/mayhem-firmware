@@ -251,8 +251,4 @@ reg_t MAX2837::temp_sense() {
 	return value;
 }
 
-RegisterMap MAX2837::registers() {
-	return _map;
-}
-
 }

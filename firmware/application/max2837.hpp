@@ -880,7 +880,6 @@ public:
 
 	reg_t temp_sense();
 
-	RegisterMap registers();
 	reg_t read(const address_t reg_num);
 
 private:
