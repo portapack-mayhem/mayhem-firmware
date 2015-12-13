@@ -55,6 +55,53 @@ void DebugMemoryView::focus() {
 	button_done.focus();
 }
 
+void DebugMAX2837RegistersWidget::update() {
+	set_dirty();
+}
+
+void DebugMAX2837RegistersWidget::paint(Painter& painter) {
+	draw_legend(painter);
+
+	const auto registers = radio::second_if.registers();
+	draw_values(painter, registers);
+}
+
+void DebugMAX2837RegistersWidget::draw_legend(Painter& painter) {
+	for(size_t i=0; i<registers_count; i+=registers_per_row) {
+		const Point offset {
+			0, static_cast<Coord>((i / registers_per_row) * row_height)
+		};
+
+		const auto text = to_string_hex(i, legend_length);
+		painter.draw_string(
+			screen_pos() + offset,
+			style(),
+			text
+		);
+	}
+}
+
+void DebugMAX2837RegistersWidget::draw_values(
+	Painter& painter,
+	const max2837::RegisterMap registers
+) {
+	for(size_t i=0; i<registers_count; i++) {
+		const Point offset = {
+			static_cast<Coord>(legend_width + 8 + (i % registers_per_row) * (value_width + 8)),
+			static_cast<Coord>((i / registers_per_row) * row_height)
+		};
+
+		const uint16_t value = registers.w[i];
+
+		const auto text = to_string_hex(value, value_length);
+		painter.draw_string(
+			screen_pos() + offset,
+			style(),
+			text
+		);
+	}
+}
+
 void DebugRFFC5072RegistersWidget::update() {
 	set_dirty();
 }
@@ -109,7 +156,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "Radio State", [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "SD Card",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "RFFC5072",    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
-		{ "MAX2837",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "MAX2837",     [&nav](){ nav.push(new DebugMAX2837View   { nav }); } },
 		{ "Si5351C",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "WM8731",      [&nav](){ nav.push(new NotImplementedView { nav }); } },
 	} });

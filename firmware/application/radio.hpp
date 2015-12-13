@@ -28,6 +28,7 @@
 #include <cstddef>
 
 #include "rffc507x.hpp"
+#include "max2837.hpp"
 
 namespace radio {
 
@@ -47,6 +48,7 @@ void streaming_disable();
 void disable();
 
 extern rffc507x::RFFC507x first_if;
+extern max2837::MAX2837 second_if;
 
 } /* namespace radio */
 

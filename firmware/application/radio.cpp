@@ -22,7 +22,6 @@
 #include "radio.hpp"
 
 #include "rf_path.hpp"
-#include "max2837.hpp"
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 #include "baseband_sgpio.hpp"
@@ -88,7 +87,7 @@ static spi::arbiter::Target ssp1_target_max5864 {
 
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
-static max2837::MAX2837 second_if { ssp1_target_max2837 };
+max2837::MAX2837 second_if { ssp1_target_max2837 };
 static max5864::MAX5864 baseband_codec { ssp1_target_max5864 };
 static baseband::CPLD baseband_cpld;
 static baseband::SGPIO baseband_sgpio;

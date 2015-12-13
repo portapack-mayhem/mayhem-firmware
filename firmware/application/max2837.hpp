@@ -880,6 +880,8 @@ public:
 
 	reg_t temp_sense();
 
+	RegisterMap registers();
+
 private:
 	spi::arbiter::Target& _target;
 

@@ -29,6 +29,7 @@
 #include "ui_navigation.hpp"
 
 #include "rffc507x.hpp"
+#include "max2837.hpp"
 
 namespace ui {
 
@@ -117,6 +118,40 @@ private:
 	void draw_values(Painter& painter, const rffc507x::RegisterMap registers);
 };
 
+class DebugMAX2837RegistersWidget : public Widget {
+public:
+	constexpr DebugMAX2837RegistersWidget(
+		Rect parent_rect
+	) : Widget { parent_rect }
+	{
+	}
+
+	void update();
+
+	void paint(Painter& painter) override;
+
+	static constexpr const char* const name = "MAX2837";
+
+private:
+	static constexpr size_t registers_count = 32;
+
+	static constexpr size_t legend_length = 2;
+	static constexpr Dim legend_width = legend_length * 8;
+
+	static constexpr size_t value_length = 3;
+	static constexpr Dim value_width = value_length * 8;
+
+	static constexpr size_t registers_per_row = 4;
+	static constexpr size_t registers_row_length = (registers_per_row * (value_length + 1)) - 1;
+	static constexpr Dim registers_row_width = registers_row_length * 8;
+
+	static constexpr size_t rows = registers_count / registers_per_row;
+	static constexpr Dim row_height = 16;
+
+	void draw_legend(Painter& painter);
+	void draw_values(Painter& painter, const max2837::RegisterMap registers);
+};
+
 template<class RegistersWidget>
 class RegistersView : public View {
 public:
@@ -160,6 +195,7 @@ private:
 };
 
 using DebugRFFC5072View = RegistersView<DebugRFFC5072RegistersWidget>;
+using DebugMAX2837View = RegistersView<DebugMAX2837RegistersWidget>;
 
 class DebugMenuView : public MenuView {
 public:
