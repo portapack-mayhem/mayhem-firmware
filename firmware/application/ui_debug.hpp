@@ -175,7 +175,7 @@ public:
 
 private:
 	Text text_title {
-		{ 88, 16, 40, 16 },
+		{ 88, 16, 64, 16 },
 		RegistersWidget::name,
 	};
 
