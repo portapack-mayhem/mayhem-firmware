@@ -28,6 +28,8 @@
 
 namespace ui {
 
+/* DebugMemoryView *******************************************************/
+
 DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
@@ -54,6 +56,8 @@ DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 void DebugMemoryView::focus() {
 	button_done.focus();
 }
+
+/* DebugMAX2837RegistersWidget *******************************************/
 
 void DebugMAX2837RegistersWidget::update() {
 	set_dirty();
@@ -102,6 +106,8 @@ void DebugMAX2837RegistersWidget::draw_values(
 	}
 }
 
+/* DebugRFFC5072RegistersWidget ******************************************/
+
 void DebugRFFC5072RegistersWidget::update() {
 	set_dirty();
 }
@@ -149,6 +155,7 @@ void DebugRFFC5072RegistersWidget::draw_values(
 	}
 }
 
+/* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<7>({ {
