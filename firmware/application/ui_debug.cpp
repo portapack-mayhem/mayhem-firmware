@@ -102,23 +102,6 @@ void DebugRFFC5072RegistersWidget::draw_values(
 	}
 }
 
-DebugRFFC5072View::DebugRFFC5072View(NavigationView& nav) {
-	add_children({ {
-		&text_title,
-		&widget_registers,
-		&button_update,
-		&button_done,
-	} });
-
-	button_update.on_select = [this](Button&){
-		this->widget_registers.update();
-	};
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
-}
-
-void DebugRFFC5072View::focus() {
-	button_done.focus();
-}
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<7>({ {

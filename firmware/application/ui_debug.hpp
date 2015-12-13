@@ -89,6 +89,8 @@ public:
 
 	void paint(Painter& painter) override;
 
+	static constexpr const char* name = "RFFC5072";
+
 private:
 	static constexpr size_t registers_count { 31 };
 
@@ -115,19 +117,34 @@ private:
 	void draw_values(Painter& painter, const rffc507x::RegisterMap registers);
 };
 
-class DebugRFFC5072View : public View {
+template<class RegistersWidget>
+class RegistersView : public View {
 public:
-	DebugRFFC5072View(NavigationView& nav);
+	RegistersView(NavigationView& nav) {
+		add_children({ {
+			&text_title,
+			&widget_registers,
+			&button_update,
+			&button_done,
+		} });
 
-	void focus() override;
+		button_update.on_select = [this](Button&){
+			this->widget_registers.update();
+		};
+		button_done.on_select = [&nav](Button&){ nav.pop(); };
+	}
+
+	void focus() {
+		button_done.focus();
+	}
 
 private:
 	Text text_title {
 		{ 88, 16, 40, 16 },
-		"RFFC5072",
+		RegistersWidget::name,
 	};
 
-	DebugRFFC5072RegistersWidget widget_registers {
+	RegistersWidget widget_registers {
 		{ 32, 48, 176, 128 }
 	};
 
@@ -141,6 +158,8 @@ private:
 		"Done"
 	};
 };
+
+using DebugRFFC5072View = RegistersView<DebugRFFC5072RegistersWidget>;
 
 class DebugMenuView : public MenuView {
 public:
