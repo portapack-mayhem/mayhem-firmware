@@ -881,6 +881,7 @@ public:
 	reg_t temp_sense();
 
 	RegisterMap registers();
+	reg_t read(const address_t reg_num);
 
 private:
 	spi::arbiter::Target& _target;
@@ -891,7 +892,6 @@ private:
 	void flush_one(const Register reg);
 
 	void write(const address_t reg_num, const reg_t value);
-	reg_t read(const address_t reg_num);
 
 	void write(const Register reg, const reg_t value);
 	reg_t read(const Register reg);

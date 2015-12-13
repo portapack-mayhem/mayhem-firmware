@@ -810,6 +810,7 @@ public:
 	void set_frequency(const rf::Frequency lo_frequency);
 
 	RegisterMap registers();
+	reg_t read(const address_t reg_num);
 
 private:
 	spi::SPI _bus;
@@ -818,7 +819,6 @@ private:
 	DirtyRegisters<Register, reg_count> _dirty;
 
 	void write(const address_t reg_num, const reg_t value);
-	reg_t read(const address_t reg_num);
 
 	void write(const Register reg, const reg_t value);
 	reg_t read(const Register reg);
