@@ -57,26 +57,25 @@ void DebugMemoryView::focus() {
 	button_done.focus();
 }
 
-/* DebugMAX2837RegistersWidget *******************************************/
+/* RegistersWidget *******************************************************/
 
-void DebugMAX2837RegistersWidget::update() {
+void RegistersWidget::update() {
 	set_dirty();
 }
 
-void DebugMAX2837RegistersWidget::paint(Painter& painter) {
+void RegistersWidget::paint(Painter& painter) {
 	draw_legend(painter);
 
-	const auto registers = radio::second_if.registers();
-	draw_values(painter, registers);
+	draw_values(painter);
 }
 
-void DebugMAX2837RegistersWidget::draw_legend(Painter& painter) {
-	for(size_t i=0; i<registers_count; i+=registers_per_row) {
+void RegistersWidget::draw_legend(Painter& painter) {
+	for(size_t i=0; i<config.registers_count; i+=config.registers_per_row) {
 		const Point offset {
-			0, static_cast<Coord>((i / registers_per_row) * row_height)
+			0, static_cast<Coord>((i / config.registers_per_row) * row_height)
 		};
 
-		const auto text = to_string_hex(i, legend_length);
+		const auto text = to_string_hex(i, config.legend_length);
 		painter.draw_string(
 			screen_pos() + offset,
 			style(),
@@ -85,116 +84,18 @@ void DebugMAX2837RegistersWidget::draw_legend(Painter& painter) {
 	}
 }
 
-void DebugMAX2837RegistersWidget::draw_values(
-	Painter& painter,
-	const max2837::RegisterMap registers
+void RegistersWidget::draw_values(
+	Painter& painter
 ) {
-	for(size_t i=0; i<registers_count; i++) {
+	for(size_t i=0; i<config.registers_count; i++) {
 		const Point offset = {
-			static_cast<Coord>(legend_width + 8 + (i % registers_per_row) * (value_width + 8)),
-			static_cast<Coord>((i / registers_per_row) * row_height)
+			static_cast<Coord>(config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8)),
+			static_cast<Coord>((i / config.registers_per_row) * row_height)
 		};
 
-		const uint16_t value = registers.w[i];
+		const auto value = read(i);
 
-		const auto text = to_string_hex(value, value_length);
-		painter.draw_string(
-			screen_pos() + offset,
-			style(),
-			text
-		);
-	}
-}
-
-/* DebugRFFC5072RegistersWidget ******************************************/
-
-void DebugRFFC5072RegistersWidget::update() {
-	set_dirty();
-}
-
-void DebugRFFC5072RegistersWidget::paint(Painter& painter) {
-	draw_legend(painter);
-
-	const auto registers = radio::first_if.registers();
-	draw_values(painter, registers);
-}
-
-void DebugRFFC5072RegistersWidget::draw_legend(Painter& painter) {
-	for(size_t i=0; i<registers_count; i+=registers_per_row) {
-		const Point offset {
-			0, static_cast<Coord>((i / registers_per_row) * row_height)
-		};
-
-		const auto text = to_string_hex(i, legend_length);
-		painter.draw_string(
-			screen_pos() + offset,
-			style(),
-			text
-		);
-	}
-}
-
-void DebugRFFC5072RegistersWidget::draw_values(
-	Painter& painter,
-	const rffc507x::RegisterMap registers
-) {
-	for(size_t i=0; i<registers_count; i++) {
-		const Point offset = {
-			static_cast<Coord>(legend_width + 8 + (i % registers_per_row) * (value_width + 8)),
-			static_cast<Coord>((i / registers_per_row) * row_height)
-		};
-
-		const uint16_t value = registers.w[i];
-
-		const auto text = to_string_hex(value, value_length);
-		painter.draw_string(
-			screen_pos() + offset,
-			style(),
-			text
-		);
-	}
-}
-
-/* DebugSi5351CRegistersWidget ******************************************/
-
-void DebugSi5351CRegistersWidget::update() {
-	set_dirty();
-}
-
-void DebugSi5351CRegistersWidget::paint(Painter& painter) {
-	draw_legend(painter);
-
-	draw_values(painter, portapack::clock_generator);
-}
-
-void DebugSi5351CRegistersWidget::draw_legend(Painter& painter) {
-	for(size_t i=0; i<registers_count; i+=registers_per_row) {
-		const Point offset {
-			0, static_cast<Coord>((i / registers_per_row) * row_height)
-		};
-
-		const auto text = to_string_hex(i, legend_length);
-		painter.draw_string(
-			screen_pos() + offset,
-			style(),
-			text
-		);
-	}
-}
-
-void DebugSi5351CRegistersWidget::draw_values(
-	Painter& painter,
-	si5351::Si5351& device
-) {
-	for(size_t i=0; i<registers_count; i++) {
-		const Point offset = {
-			static_cast<Coord>(legend_width + 8 + (i % registers_per_row) * (value_width + 8)),
-			static_cast<Coord>((i / registers_per_row) * row_height)
-		};
-
-		const auto value = device.read_register(i);
-
-		const auto text = to_string_hex(value, value_length);
+		const auto text = to_string_hex(value, config.value_length);
 		painter.draw_string(
 			screen_pos() + offset,
 			style(),

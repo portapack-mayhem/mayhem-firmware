@@ -79,112 +79,100 @@ private:
 	};
 };
 
-class DebugRFFC5072RegistersWidget : public Widget {
+struct RegistersWidgetConfig {
+	const char* const name;
+	size_t registers_count;
+	size_t legend_length;
+	size_t value_length;
+	size_t registers_per_row;
+
+	constexpr Dim legend_width() const {
+		return legend_length * 8;
+	}
+
+	constexpr Dim value_width() const {
+		return value_length * 8;
+	}
+
+	constexpr size_t registers_row_length() const {
+		return (registers_per_row * (value_length + 1)) - 1;
+	}
+
+	constexpr Dim registers_row_width() const {
+		return registers_row_length() * 8;
+	}
+
+	constexpr size_t rows() const {
+		return registers_count / registers_per_row;
+	}
+};
+
+class RegistersWidget : public Widget {
+public:
+	constexpr RegistersWidget(
+		Rect parent_rect,
+		const RegistersWidgetConfig& config
+	) : Widget { parent_rect },
+		config(config)
+	{
+	}
+
+	std::string name() const {
+		return config.name;
+	}
+
+	virtual uint32_t read(const size_t register_number) = 0;
+
+	void update();
+
+	void paint(Painter& painter) override;
+
+private:
+	const RegistersWidgetConfig config;
+
+	static constexpr Dim row_height = 16;
+
+	void draw_legend(Painter& painter);
+	void draw_values(Painter& painter);
+};
+
+class DebugRFFC5072RegistersWidget : public RegistersWidget {
 public:
 	constexpr DebugRFFC5072RegistersWidget(
 		Rect parent_rect
-	) : Widget { parent_rect }
+	) : RegistersWidget { parent_rect, { "RFFC5072", 31, 2, 4, 4 } }
 	{
 	}
 
-	void update();
-
-	void paint(Painter& painter) override;
-
-	static constexpr const char* name = "RFFC5072";
-
-private:
-	static constexpr size_t registers_count { 31 };
-
-	static constexpr size_t legend_length { 2 };
-	static constexpr Dim legend_width { legend_length * 8 };
-
-	static constexpr size_t value_length { 4 };
-	static constexpr Dim value_width { value_length * 8 };
-
-	static constexpr size_t registers_per_row { 4 };
-	static constexpr size_t registers_row_length {
-		(registers_per_row * (value_length + 1)) - 1
-	};
-	static constexpr Dim registers_row_width {
-		registers_row_length * 8
-	};
-
-	static constexpr size_t rows {
-		registers_count / registers_per_row
-	};
-	static constexpr Dim row_height { 16 };
-
-	void draw_legend(Painter& painter);
-	void draw_values(Painter& painter, const rffc507x::RegisterMap registers);
+	uint32_t read(const size_t register_number) override {
+		return radio::first_if.read(register_number);
+	}
 };
 
-class DebugMAX2837RegistersWidget : public Widget {
+class DebugMAX2837RegistersWidget : public RegistersWidget {
 public:
 	constexpr DebugMAX2837RegistersWidget(
 		Rect parent_rect
-	) : Widget { parent_rect }
+	) : RegistersWidget { parent_rect, { "MAX2837", 32, 2, 3, 4 } }
 	{
 	}
 
-	void update();
-
-	void paint(Painter& painter) override;
-
-	static constexpr const char* const name = "MAX2837";
-
-private:
-	static constexpr size_t registers_count = 32;
-
-	static constexpr size_t legend_length = 2;
-	static constexpr Dim legend_width = legend_length * 8;
-
-	static constexpr size_t value_length = 3;
-	static constexpr Dim value_width = value_length * 8;
-
-	static constexpr size_t registers_per_row = 4;
-	static constexpr size_t registers_row_length = (registers_per_row * (value_length + 1)) - 1;
-	static constexpr Dim registers_row_width = registers_row_length * 8;
-
-	static constexpr size_t rows = registers_count / registers_per_row;
-	static constexpr Dim row_height = 16;
-
-	void draw_legend(Painter& painter);
-	void draw_values(Painter& painter, const max2837::RegisterMap registers);
+	uint32_t read(const size_t register_number) override {
+		return radio::second_if.read(register_number);
+	}
 };
 
-class DebugSi5351CRegistersWidget : public Widget {
+class DebugSi5351CRegistersWidget : public RegistersWidget {
 public:
 	constexpr DebugSi5351CRegistersWidget(
 		Rect parent_rect
-	) : Widget { parent_rect }
+	) : RegistersWidget { parent_rect, { "Si5351C", 96, 2, 2, 8 } }
 	{
 	}
 
-	void update();
-
-	void paint(Painter& painter) override;
-
-	static constexpr const char* const name = "Si5351C";
-
-private:
-	static constexpr size_t registers_count = 96;
-
-	static constexpr size_t legend_length = 2;
-	static constexpr Dim legend_width = legend_length * 8;
-
-	static constexpr size_t value_length = 2;
-	static constexpr Dim value_width = value_length * 8;
-
-	static constexpr size_t registers_per_row = 8;
-	static constexpr size_t registers_row_length = (registers_per_row * (value_length + 1)) - 1;
-	static constexpr Dim registers_row_width = registers_row_length * 8;
-
-	static constexpr size_t rows = registers_count / registers_per_row;
-	static constexpr Dim row_height = 16;
-
-	void draw_legend(Painter& painter);
-	void draw_values(Painter& painter, si5351::Si5351& device);
+	uint32_t read(const size_t register_number) override {
+		return portapack::clock_generator.read_register(register_number);
+	}
 };
 
 template<class RegistersWidget>
@@ -202,6 +190,13 @@ public:
 			this->widget_registers.update();
 		};
 		button_done.on_select = [&nav](Button&){ nav.pop(); };
+
+		const auto title = widget_registers.name();
+		text_title.set_parent_rect({
+			static_cast<Coord>((240 - title.size() * 8) / 2), 16,
+			static_cast<Dim>(title.size() * 8), 16
+		});
+		text_title.set(title);
 	}
 
 	void focus() {
@@ -209,10 +204,7 @@ public:
 	}
 
 private:
-	Text text_title {
-		{ 88, 16, 64, 16 },
-		RegistersWidget::name,
-	};
+	Text text_title;
 
 	RegistersWidget widget_registers {
 		{ 0, 48, 240, 192 }
