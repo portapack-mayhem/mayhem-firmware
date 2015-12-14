@@ -374,7 +374,7 @@ public:
 
 		write(LeftHeadphoneOut {
 			.lhpvol = static_cast<reg_t>(n),
-			.lzcen = 1,
+			.lzcen = 0,
 			.lrhpboth = 1,
 			.reserved0 = 0,
 		});
