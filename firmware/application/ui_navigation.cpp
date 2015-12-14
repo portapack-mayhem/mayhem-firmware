@@ -48,12 +48,15 @@ NavigationView::NavigationView()
 {
 }
 
-void NavigationView::push_view(View* new_view) {
+View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 	free_view();
 
-	view_stack.push_back(new_view);
+	const auto p = new_view.get();
+	view_stack.emplace_back(std::move(new_view));
 
 	update_view();
+
+	return p;
 }
 
 void NavigationView::pop() {
@@ -61,7 +64,6 @@ void NavigationView::pop() {
 	if( view_stack.size() > 1 ) {
 		free_view();
 
-		delete view_stack.back();
 		view_stack.pop_back();
 
 		update_view();
@@ -73,7 +75,7 @@ void NavigationView::free_view() {
 }
 
 void NavigationView::update_view() {
-	const auto new_view = view_stack.back();
+	const auto new_view = view_stack.back().get();
 	add_child(new_view);
 	new_view->set_parent_rect({ {0, 0}, size() });
 	focus();

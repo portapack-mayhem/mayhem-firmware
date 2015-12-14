@@ -59,9 +59,7 @@ public:
 
 	template<class T, class... Args>
 	T* push(Args&&... args) {
-		const auto new_view = new T(std::forward<Args>(args)...);
-		push_view(new_view);
-		return reinterpret_cast<T*>(new_view);
+		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(std::forward<Args>(args)...))));
 	}
 
 	void pop();
@@ -69,13 +67,13 @@ public:
 	void focus() override;
 
 private:
-	std::vector<View*> view_stack;
+	std::vector<std::unique_ptr<View>> view_stack;
 
 	Widget* view() const;
 
 	void free_view();
 	void update_view();
-	void push_view(View* new_view);
+	View* push_view(std::unique_ptr<View> new_view);
 };
 
 class SystemMenuView : public MenuView {
