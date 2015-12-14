@@ -92,13 +92,13 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push<ReceiverView>(nav, portapack::receiver_model); } },
-		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(nav); } },
-		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(nav); } },
-		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(nav); } },
-		{ "About",    [&nav](){ nav.push<AboutView>(nav); } },
-		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(nav); } },
-		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(nav); } },
+		{ "Receiver", [&nav](){ nav.push<ReceiverView>(portapack::receiver_model); } },
+		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },
+		{ "About",    [&nav](){ nav.push<AboutView>(); } },
+		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(); } },
 	} });
 }
 
@@ -134,7 +134,7 @@ SystemView::SystemView(
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
-	navigation_view.push<SystemMenuView>(navigation_view);
+	navigation_view.push<SystemMenuView>();
 }
 
 Context& SystemView::context() const {

@@ -59,7 +59,7 @@ public:
 
 	template<class T, class... Args>
 	T* push(Args&&... args) {
-		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(std::forward<Args>(args)...))));
+		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
 	}
 
 	void pop();
