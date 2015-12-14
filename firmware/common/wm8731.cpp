@@ -19,10 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <cstdint>
-#include <array>
-
 #include "wm8731.hpp"
+#include "utility.hpp"
 
 namespace wolfson {
 namespace wm8731 {

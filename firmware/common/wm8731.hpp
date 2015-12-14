@@ -23,11 +23,10 @@
 #define __WM8731_H__
 
 #include <cstdint>
+#include <array>
 
 #include "i2c_pp.hpp"
-#include "wm8731.hpp"
 
-#include "utility.hpp"
 #include "volume.hpp"
 
 namespace wolfson {
