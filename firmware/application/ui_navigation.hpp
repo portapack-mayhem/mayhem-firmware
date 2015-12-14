@@ -52,7 +52,7 @@ private:
 
 class NavigationView : public View {
 public:
-	NavigationView();
+	NavigationView() { }
 
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;

@@ -44,10 +44,6 @@ SystemStatusView::SystemStatusView() {
 
 /* Navigation ************************************************************/
 
-NavigationView::NavigationView()
-{
-}
-
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 	free_view();
 
