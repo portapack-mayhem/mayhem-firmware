@@ -114,11 +114,7 @@ public:
 	RegistersWidget(
 		RegistersWidgetConfig&& config,
 		std::function<uint32_t(const size_t register_number)>&& reader
-	) : Widget { },
-		config(std::move(config)),
-		reader(std::move(reader))
-	{
-	}
+	);
 
 	void update();
 
@@ -141,32 +137,9 @@ public:
 		const std::string& title,
 		RegistersWidgetConfig&& config,
 		std::function<uint32_t(const size_t register_number)>&& reader
-	) : registers_widget { std::move(config), std::move(reader) }
-	{
-		add_children({ {
-			&text_title,
-			&registers_widget,
-			&button_update,
-			&button_done,
-		} });
+	);
 
-		button_update.on_select = [this](Button&){
-			this->registers_widget.update();
-		};
-		button_done.on_select = [&nav](Button&){ nav.pop(); };
-
-		registers_widget.set_parent_rect({ 0, 48, 240, 192 });
-
-		text_title.set_parent_rect({
-			static_cast<Coord>((240 - title.size() * 8) / 2), 16,
-			static_cast<Dim>(title.size() * 8), 16
-		});
-		text_title.set(title);
-	}
-
-	void focus() {
-		button_done.focus();
-	}
+	void focus();
 
 private:
 	Text text_title;
