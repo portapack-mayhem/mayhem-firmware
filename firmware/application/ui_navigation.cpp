@@ -49,41 +49,39 @@ NavigationView::NavigationView()
 }
 
 void NavigationView::push_view(View* new_view) {
-	// TODO: Trap nullptr?
-	// TODO: Trap push of object already on stack?
+	free_view();
+
 	view_stack.push_back(new_view);
-	set_view(new_view);
+
+	update_view();
 }
 
 void NavigationView::pop() {
 	// Can't pop last item from stack.
 	if( view_stack.size() > 1 ) {
-		const auto old_view = view_stack.back();
+		free_view();
+
+		delete view_stack.back();
 		view_stack.pop_back();
-		const auto new_view = view_stack.back();
-		set_view(new_view);
-		delete old_view;
+
+		update_view();
 	}
+}
+
+void NavigationView::free_view() {
+	remove_child(view());
+}
+
+void NavigationView::update_view() {
+	const auto new_view = view_stack.back();
+	add_child(new_view);
+	new_view->set_parent_rect({ {0, 0}, size() });
+	focus();
+	set_dirty();
 }
 
 Widget* NavigationView::view() const {
 	return children_.empty() ? nullptr : children_[0];
-}
-
-void NavigationView::set_view(Widget* const new_view) {
-	const auto old_view = view();
-	if( old_view ) {
-		remove_child(old_view);
-	}
-
-	// TODO: Allow new_view == nullptr?!
-	if( new_view ) {
-		add_child(new_view);
-		new_view->set_parent_rect({ {0, 0}, size() });
-		focus();
-	}
-
-	set_dirty();
 }
 
 void NavigationView::focus() {

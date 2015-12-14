@@ -72,8 +72,9 @@ private:
 	std::vector<View*> view_stack;
 
 	Widget* view() const;
-	void set_view(Widget* const new_view);
 
+	void free_view();
+	void update_view();
 	void push_view(View* new_view);
 };
 
