@@ -394,6 +394,8 @@ public:
 	// 	write(Register::AnalogAudioPathControl);
 	// }
 
+	reg_t read(const address_t reg_address);
+	
 private:
 	I2C& bus;
 	const I2C::address_t bus_address;

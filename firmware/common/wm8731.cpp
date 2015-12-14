@@ -36,5 +36,9 @@ void WM8731::write(const address_t reg_address, const reg_t value) {
 	bus.transmit(bus_address, values.data(), values.size());
 }
 
+reg_t WM8731::read(const address_t reg_address) {
+	return map.w[reg_address];
+}
+
 } /* namespace wm8731 */
 } /* namespace wolfson */
