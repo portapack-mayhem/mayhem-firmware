@@ -32,6 +32,9 @@
 #include "max2837.hpp"
 #include "portapack.hpp"
 
+#include <functional>
+#include <utility>
+
 namespace ui {
 
 class DebugMemoryView : public View {
@@ -80,7 +83,6 @@ private:
 };
 
 struct RegistersWidgetConfig {
-	const char* const name;
 	size_t registers_count;
 	size_t legend_length;
 	size_t value_length;
@@ -109,19 +111,14 @@ struct RegistersWidgetConfig {
 
 class RegistersWidget : public Widget {
 public:
-	constexpr RegistersWidget(
-		Rect parent_rect,
-		const RegistersWidgetConfig& config
-	) : Widget { parent_rect },
-		config(config)
+	RegistersWidget(
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader
+	) : Widget { },
+		config(std::move(config)),
+		reader(std::move(reader))
 	{
 	}
-
-	std::string name() const {
-		return config.name;
-	}
-
-	virtual uint32_t read(const size_t register_number) = 0;
 
 	void update();
 
@@ -129,6 +126,7 @@ public:
 
 private:
 	const RegistersWidgetConfig config;
+	const std::function<uint32_t(const size_t register_number)> reader;
 
 	static constexpr Dim row_height = 16;
 
@@ -136,62 +134,29 @@ private:
 	void draw_values(Painter& painter);
 };
 
-class DebugRFFC5072RegistersWidget : public RegistersWidget {
-public:
-	constexpr DebugRFFC5072RegistersWidget(
-		Rect parent_rect
-	) : RegistersWidget { parent_rect, { "RFFC5072", 31, 2, 4, 4 } }
-	{
-	}
-
-	uint32_t read(const size_t register_number) override {
-		return radio::first_if.read(register_number);
-	}
-};
-
-class DebugMAX2837RegistersWidget : public RegistersWidget {
-public:
-	constexpr DebugMAX2837RegistersWidget(
-		Rect parent_rect
-	) : RegistersWidget { parent_rect, { "MAX2837", 32, 2, 3, 4 } }
-	{
-	}
-
-	uint32_t read(const size_t register_number) override {
-		return radio::second_if.read(register_number);
-	}
-};
-
-class DebugSi5351CRegistersWidget : public RegistersWidget {
-public:
-	constexpr DebugSi5351CRegistersWidget(
-		Rect parent_rect
-	) : RegistersWidget { parent_rect, { "Si5351C", 96, 2, 2, 8 } }
-	{
-	}
-
-	uint32_t read(const size_t register_number) override {
-		return portapack::clock_generator.read_register(register_number);
-	}
-};
-
-template<class RegistersWidget>
 class RegistersView : public View {
 public:
-	RegistersView(NavigationView& nav) {
+	RegistersView(
+		NavigationView& nav,
+		const std::string& title,
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader
+	) : registers_widget { std::move(config), std::move(reader) }
+	{
 		add_children({ {
 			&text_title,
-			&widget_registers,
+			&registers_widget,
 			&button_update,
 			&button_done,
 		} });
 
 		button_update.on_select = [this](Button&){
-			this->widget_registers.update();
+			this->registers_widget.update();
 		};
 		button_done.on_select = [&nav](Button&){ nav.pop(); };
 
-		const auto title = widget_registers.name();
+		registers_widget.set_parent_rect({ 0, 48, 240, 192 });
+
 		text_title.set_parent_rect({
 			static_cast<Coord>((240 - title.size() * 8) / 2), 16,
 			static_cast<Dim>(title.size() * 8), 16
@@ -206,9 +171,7 @@ public:
 private:
 	Text text_title;
 
-	RegistersWidget widget_registers {
-		{ 0, 48, 240, 192 }
-	};
+	RegistersWidget registers_widget;
 
 	Button button_update {
 		{ 16, 256, 96, 24 },
@@ -220,10 +183,6 @@ private:
 		"Done"
 	};
 };
-
-using DebugRFFC5072View = RegistersView<DebugRFFC5072RegistersWidget>;
-using DebugMAX2837View = RegistersView<DebugMAX2837RegistersWidget>;
-using DebugSi5351CView = RegistersView<DebugSi5351CRegistersWidget>;
 
 class DebugMenuView : public MenuView {
 public:

@@ -93,7 +93,7 @@ void RegistersWidget::draw_values(
 			static_cast<Coord>((i / config.registers_per_row) * row_height)
 		};
 
-		const auto value = read(i);
+		const auto value = reader(i);
 
 		const auto text = to_string_hex(value, config.value_length);
 		painter.draw_string(
@@ -111,9 +111,18 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "Memory",      [&nav](){ nav.push(new DebugMemoryView    { nav }); } },
 		{ "Radio State", [&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "SD Card",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "RFFC5072",    [&nav](){ nav.push(new DebugRFFC5072View  { nav }); } },
-		{ "MAX2837",     [&nav](){ nav.push(new DebugMAX2837View   { nav }); } },
-		{ "Si5351C",     [&nav](){ nav.push(new DebugSi5351CView   { nav }); } },
+		{ "RFFC5072",    [&nav](){ nav.push(new RegistersView {
+			nav, "RFFC5072", { 31, 2, 4, 4 },
+			[](const size_t register_number) { return radio::first_if.read(register_number); }
+		}); } },
+		{ "MAX2837",     [&nav](){ nav.push(new RegistersView {
+			nav, "MAX2837", { 32, 2, 3, 4 },
+			[](const size_t register_number) { return radio::second_if.read(register_number); }
+		}); } },
+		{ "Si5351C",     [&nav](){ nav.push(new RegistersView {
+			nav, "Si5351C", { 96, 2, 2, 8 },
+			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
+		}); } },
 		{ "WM8731",      [&nav](){ nav.push(new NotImplementedView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
