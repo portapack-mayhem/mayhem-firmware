@@ -73,15 +73,16 @@ void RegistersWidget::update() {
 }
 
 void RegistersWidget::paint(Painter& painter) {
-	draw_legend(painter);
+	const Coord left = (size().w - config.row_width()) / 2;
 
-	draw_values(painter);
+	draw_legend(left, painter);
+	draw_values(left, painter);
 }
 
-void RegistersWidget::draw_legend(Painter& painter) {
+void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
 	for(size_t i=0; i<config.registers_count; i+=config.registers_per_row) {
 		const Point offset {
-			0, static_cast<Coord>((i / config.registers_per_row) * row_height)
+			left, static_cast<Coord>((i / config.registers_per_row) * row_height)
 		};
 
 		const auto text = to_string_hex(i, config.legend_length);
@@ -94,11 +95,12 @@ void RegistersWidget::draw_legend(Painter& painter) {
 }
 
 void RegistersWidget::draw_values(
+	const Coord left,
 	Painter& painter
 ) {
 	for(size_t i=0; i<config.registers_count; i++) {
 		const Point offset = {
-			static_cast<Coord>(config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8)),
+			static_cast<Coord>(left + config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8)),
 			static_cast<Coord>((i / config.registers_per_row) * row_height)
 		};
 

@@ -104,6 +104,10 @@ struct RegistersWidgetConfig {
 		return registers_row_length() * 8;
 	}
 
+	constexpr Dim row_width() const {
+		return legend_width() + 8 + registers_row_width();
+	}
+
 	constexpr size_t rows() const {
 		return registers_count / registers_per_row;
 	}
@@ -126,8 +130,8 @@ private:
 
 	static constexpr Dim row_height = 16;
 
-	void draw_legend(Painter& painter);
-	void draw_values(Painter& painter);
+	void draw_legend(const Coord left, Painter& painter);
+	void draw_values(const Coord left, Painter& painter);
 };
 
 class RegistersView : public View {
