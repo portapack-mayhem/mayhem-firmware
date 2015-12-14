@@ -48,7 +48,7 @@ NavigationView::NavigationView()
 {
 }
 
-void NavigationView::push(View* new_view) {
+void NavigationView::push_view(View* new_view) {
 	// TODO: Trap nullptr?
 	// TODO: Trap push of object already on stack?
 	view_stack.push_back(new_view);
@@ -96,13 +96,13 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push(new ReceiverView       { nav, portapack::receiver_model }); } },
-		{ "Capture",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Analyze",  [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Setup",    [&nav](){ nav.push(new SetupMenuView      { nav }); } },
-		{ "About",    [&nav](){ nav.push(new AboutView          { nav }); } },
-		{ "Debug",    [&nav](){ nav.push(new DebugMenuView      { nav }); } },
-		{ "HackRF",   [&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
+		{ "Receiver", [&nav](){ nav.push<ReceiverView>(nav, portapack::receiver_model); } },
+		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(nav); } },
+		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(nav); } },
+		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(nav); } },
+		{ "About",    [&nav](){ nav.push<AboutView>(nav); } },
+		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(nav); } },
+		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(nav); } },
 	} });
 }
 
@@ -138,7 +138,7 @@ SystemView::SystemView(
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
-	navigation_view.push(new SystemMenuView { navigation_view });
+	navigation_view.push<SystemMenuView>(navigation_view);
 }
 
 Context& SystemView::context() const {

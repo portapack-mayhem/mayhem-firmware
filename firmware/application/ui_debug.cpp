@@ -108,22 +108,22 @@ void RegistersWidget::draw_values(
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Memory",      [&nav](){ nav.push(new DebugMemoryView    { nav }); } },
-		{ "Radio State", [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "SD Card",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "RFFC5072",    [&nav](){ nav.push(new RegistersView {
-			nav, "RFFC5072", { 31, 2, 4, 4 },
+		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(nav); } },
+		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(nav); } },
+		{ "SD Card",     [&nav](){ nav.push<NotImplementedView>(nav); } },
+		{ "RFFC5072",    [&nav](){ nav.push<RegistersView>(
+			nav, "RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
 			[](const size_t register_number) { return radio::first_if.read(register_number); }
-		}); } },
-		{ "MAX2837",     [&nav](){ nav.push(new RegistersView {
-			nav, "MAX2837", { 32, 2, 3, 4 },
+		); } },
+		{ "MAX2837",     [&nav](){ nav.push<RegistersView>(
+			nav, "MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
 			[](const size_t register_number) { return radio::second_if.read(register_number); }
-		}); } },
-		{ "Si5351C",     [&nav](){ nav.push(new RegistersView {
-			nav, "Si5351C", { 96, 2, 2, 8 },
+		); } },
+		{ "Si5351C",     [&nav](){ nav.push<RegistersView>(
+			nav, "Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
-		}); } },
-		{ "WM8731",      [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		); } },
+		{ "WM8731",      [&nav](){ nav.push<NotImplementedView>(nav); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

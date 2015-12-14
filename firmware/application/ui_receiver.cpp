@@ -423,12 +423,11 @@ ReceiverView::ReceiverView(
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = new FrequencyKeypadView { nav, this->receiver_model.tuning_frequency() };
+		auto new_view = nav.push<FrequencyKeypadView>(nav, this->receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			this->on_tuning_frequency_changed(f);
 			this->field_frequency.set_value(f);
 		};
-		nav.push(new_view);
 	};
 	field_frequency.on_show_options = [this]() {
 		this->on_show_options_frequency();

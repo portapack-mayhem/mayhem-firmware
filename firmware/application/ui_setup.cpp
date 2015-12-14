@@ -159,9 +159,9 @@ void AboutView::focus() {
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items<3>({ {
-		{ "Date/Time", [&nav](){ nav.push(new SetDateTimeView { nav }); } },
-		{ "Frequency Correction", [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
-		{ "Touch",     [&nav](){ nav.push(new NotImplementedView { nav }); } },
+		{ "Date/Time", [&nav](){ nav.push<SetDateTimeView>(nav); } },
+		{ "Frequency Correction", [&nav](){ nav.push<SetFrequencyCorrectionView>(nav); } },
+		{ "Touch",     [&nav](){ nav.push<NotImplementedView>(nav); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

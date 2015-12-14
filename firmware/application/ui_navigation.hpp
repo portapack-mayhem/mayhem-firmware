@@ -33,6 +33,7 @@
 #include "ui_sd_card_status_view.hpp"
 
 #include <vector>
+#include <utility>
 
 namespace ui {
 
@@ -56,7 +57,13 @@ public:
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;
 
-	void push(View* new_view);
+	template<class T, class... Args>
+	T* push(Args&&... args) {
+		const auto new_view = new T(std::forward<Args>(args)...);
+		push_view(new_view);
+		return reinterpret_cast<T*>(new_view);
+	}
+
 	void pop();
 
 	void focus() override;
@@ -66,6 +73,8 @@ private:
 
 	Widget* view() const;
 	void set_view(Widget* const new_view);
+
+	void push_view(View* new_view);
 };
 
 class SystemMenuView : public MenuView {
