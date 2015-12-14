@@ -78,7 +78,7 @@ void RegistersWidget::draw_legend(Painter& painter) {
 		const auto text = to_string_hex(i, config.legend_length);
 		painter.draw_string(
 			screen_pos() + offset,
-			style(),
+			style().invert(),
 			text
 		);
 	}
