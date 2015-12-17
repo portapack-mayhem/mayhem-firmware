@@ -345,7 +345,7 @@ void RadioGainOptionsView::on_agc_changed(bool v) {
 LNAGainField::LNAGainField(
 	Point parent_pos
 ) : NumberField {
-		{ parent_pos }, 2,
+		parent_pos, 2,
 		{ max2837::lna::gain_db_min, max2837::lna::gain_db_max },
 		max2837::lna::gain_db_step,
 		' ',
