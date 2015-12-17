@@ -44,11 +44,6 @@
 
 namespace ui {
 
-class BasebandBandwidthField : public OptionsField {
-public:
-	BasebandBandwidthField(Point parent_pos);
-};
-
 class FrequencyField : public Widget {
 public:
 	std::function<void(rf::Frequency)> on_change;

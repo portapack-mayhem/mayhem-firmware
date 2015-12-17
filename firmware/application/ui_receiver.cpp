@@ -34,35 +34,6 @@ using namespace portapack;
 
 namespace ui {
 
-/* BasebandBandwidthField ************************************************/
-
-BasebandBandwidthField::BasebandBandwidthField(
-	Point parent_pos
-) : OptionsField {
-		parent_pos,
-		4,
-		{
-			{ " 1M8",  1750000 },
-			{ " 2M5",  2500000 },
-			{ " 3M5",  3500000 },
-			{ " 5M ",  5000000 },
-			{ " 5M5",  5500000 },
-			{ " 6M ",  6000000 },
-			{ " 7M ",  7000000 },
-			{ " 8M ",  8000000 },
-			{ " 9M ",  9000000 },
-			{ "10M ", 10000000 },
-			{ "12M ", 12000000 },
-			{ "14M ", 14000000 },
-			{ "15M ", 15000000 },
-			{ "20M ", 20000000 },
-			{ "24M ", 24000000 },
-			{ "28M ", 28000000 },
-		}
-	}
-{
-}
-
 /* FrequencyField ********************************************************/
 
 FrequencyField::FrequencyField(
