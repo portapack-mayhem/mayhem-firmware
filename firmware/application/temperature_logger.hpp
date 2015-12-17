@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,36 +19,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "portapack_io.hpp"
+#ifndef __TEMPERATURE_LOGGER_H__
+#define __TEMPERATURE_LOGGER_H__
 
-#include "receiver_model.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <array>
+#include <vector>
 
-#include "spi_pp.hpp"
-#include "wm8731.hpp"
-#include "si5351.hpp"
-#include "lcd_ili9341.hpp"
+class TemperatureLogger {
+public:	
+	using sample_t = uint8_t;
 
-#include "radio.hpp"
-#include "temperature_logger.hpp"
+	void second_tick();
 
-namespace portapack {
+	size_t size() const;
 
-extern portapack::IO io;
+	std::vector<sample_t> history() const;
 
-extern lcd::ILI9341 display;
+private:
+	std::array<sample_t, 128> samples;
 
-extern SPI ssp0;
-extern SPI ssp1;
+	static constexpr size_t sample_interval = 5;
+	size_t sample_phase = 0;
+	size_t samples_count = 0;
 
-extern wolfson::wm8731::WM8731 audio_codec;
+	sample_t read_sample();
+	void push_sample(const sample_t sample);
+};
 
-extern si5351::Si5351 clock_generator;
-
-extern ReceiverModel receiver_model;
-
-extern TemperatureLogger temperature_logger;
-
-void init();
-void shutdown();
-
-} /* namespace portapack */
+#endif/*__TEMPERATURE_LOGGER_H__*/

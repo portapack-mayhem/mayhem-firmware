@@ -82,6 +82,36 @@ private:
 	};
 };
 
+class TemperatureWidget : public Widget {
+public:
+	explicit constexpr TemperatureWidget(
+		Rect parent_rect
+	) : Widget { parent_rect }
+	{
+	}
+
+	void paint(Painter& painter) override;
+
+private:
+};
+
+class TemperatureView : public View {
+public:
+	explicit TemperatureView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	TemperatureWidget temperature_widget {
+		{ 0, 16, 240, 192 },
+	};
+
+	Button button_done {
+		{ 72, 256, 96, 24 },
+		"Done"
+	};
+};
+
 struct RegistersWidgetConfig {
 	size_t registers_count;
 	size_t legend_length;

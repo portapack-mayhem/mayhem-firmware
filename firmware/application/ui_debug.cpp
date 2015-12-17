@@ -57,6 +57,50 @@ void DebugMemoryView::focus() {
 	button_done.focus();
 }
 
+/* TemperatureWidget *****************************************************/
+
+void TemperatureWidget::paint(Painter& painter) {
+	const auto history = portapack::temperature_logger.history();
+
+	const auto rect = screen_rect();
+
+	for(size_t i=0; i<history.size(); i++) {
+		const auto sample = history[i];
+		const Dim bar_height = sample * 4;
+		const Rect bar_rect {
+			static_cast<Coord>(rect.right() - (history.size() - i) * 1),
+			static_cast<Coord>(rect.bottom() - bar_height),
+			1, bar_height
+		};
+		painter.fill_rectangle(bar_rect, Color::green());
+	}
+
+	if( !history.empty() ) {
+		const int32_t temp = -45 + history.back() * 5;
+		const size_t temp_len = 3;
+		painter.draw_string(
+			{ static_cast<Coord>(rect.right() - (temp_len * 8)), rect.top() },
+			style(),
+			to_string_dec_int(temp, temp_len)
+		);
+	}
+}
+
+/* TemperatureView *******************************************************/
+
+TemperatureView::TemperatureView(NavigationView& nav) {
+	add_children({ {
+		&temperature_widget,
+		&button_done,
+	} });
+
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void TemperatureView::focus() {
+	button_done.focus();
+}
+
 /* RegistersWidget *******************************************************/
 
 RegistersWidget::RegistersWidget(
@@ -80,6 +124,8 @@ void RegistersWidget::paint(Painter& painter) {
 }
 
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
+	const auto pos = screen_pos();
+
 	for(size_t i=0; i<config.registers_count; i+=config.registers_per_row) {
 		const Point offset {
 			left, static_cast<Coord>((i / config.registers_per_row) * row_height)
@@ -87,7 +133,7 @@ void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
 
 		const auto text = to_string_hex(i, config.legend_length);
 		painter.draw_string(
-			screen_pos() + offset,
+			pos + offset,
 			style().invert(),
 			text
 		);
@@ -98,6 +144,8 @@ void RegistersWidget::draw_values(
 	const Coord left,
 	Painter& painter
 ) {
+	const auto pos = screen_pos();
+
 	for(size_t i=0; i<config.registers_count; i++) {
 		const Point offset = {
 			static_cast<Coord>(left + config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8)),
@@ -108,7 +156,7 @@ void RegistersWidget::draw_values(
 
 		const auto text = to_string_hex(value, config.value_length);
 		painter.draw_string(
-			screen_pos() + offset,
+			pos + offset,
 			style(),
 			text
 		);
@@ -152,7 +200,7 @@ void RegistersView::focus() {
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<8>({ {
 		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SD Card",     [&nav](){ nav.push<NotImplementedView>(); } },
@@ -172,6 +220,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 			"WM8731", RegistersWidgetConfig { wolfson::wm8731::reg_count, 1, 3, 4 },
 			[](const size_t register_number) { return portapack::audio_codec.read(register_number); }
 		); } },
+		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

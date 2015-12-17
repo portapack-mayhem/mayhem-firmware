@@ -65,6 +65,8 @@ ReceiverModel receiver_model {
 	clock_manager
 };
 
+TemperatureLogger temperature_logger;
+
 class Power {
 public:
 	void init() {

@@ -129,6 +129,8 @@ private:
 
 	void handle_rtc_tick() {
 		sd_card::poll_inserted();
+
+		portapack::temperature_logger.second_tick();
 	}
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {

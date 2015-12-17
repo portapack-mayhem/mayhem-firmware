@@ -180,6 +180,7 @@ CPPSRC = main.cpp \
          log_file.cpp \
          manchester.cpp \
          string_format.cpp \
+         temperature_logger.cpp \
          ../common/utility.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
