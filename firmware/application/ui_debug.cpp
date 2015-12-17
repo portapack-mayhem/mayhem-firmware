@@ -64,15 +64,17 @@ void TemperatureWidget::paint(Painter& painter) {
 
 	const auto rect = screen_rect();
 
+	const Dim bar_width = 1;
+	const Dim margin_x = (rect.width() - (logger.capacity() * bar_width)) / 2;
+	const Coord rightmost_x = rect.right() - margin_x;
+
 	const auto history = logger.history();
 	for(size_t i=0; i<history.size(); i++) {
 		const auto sample = history[i];
 		const Dim bar_height = sample * 4;
-		const Rect bar_rect {
-			static_cast<Coord>(rect.right() - (history.size() - i) * 1),
-			static_cast<Coord>(rect.bottom() - bar_height),
-			1, bar_height
-		};
+		const Coord x = rightmost_x - (history.size() - i) * bar_width;
+		const Coord y = rect.bottom() - bar_height;
+		const Rect bar_rect { x, y, bar_width, bar_height };
 		painter.fill_rectangle(bar_rect, Color::green());
 	}
 
