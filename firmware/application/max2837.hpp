@@ -576,7 +576,7 @@ constexpr RegisterMap initial_register_values { Register_Type {
 		.LNAtune	= 0,
 		.LNAde_Q	= 1,
 		.L			= 0b000,
-		.iqerr_trim	= 0b0000,
+		.iqerr_trim	= 0b00000,
 		.RESERVED0	= 0,
 	},
 	.lpf_1 = {	/* 2 */
