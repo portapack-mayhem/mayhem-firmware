@@ -60,10 +60,11 @@ void DebugMemoryView::focus() {
 /* TemperatureWidget *****************************************************/
 
 void TemperatureWidget::paint(Painter& painter) {
-	const auto history = portapack::temperature_logger.history();
+	const auto logger = portapack::temperature_logger;
 
 	const auto rect = screen_rect();
 
+	const auto history = logger.history();
 	for(size_t i=0; i<history.size(); i++) {
 		const auto sample = history[i];
 		const Dim bar_height = sample * 4;
