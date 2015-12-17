@@ -171,13 +171,7 @@ protected:
 
 class Rectangle : public Widget {
 public:
-	constexpr Rectangle(
-		const Rect parent_rect,
-		const Color c
-	) : Widget { parent_rect },
-		color { c }
-	{
-	}
+	Rectangle(Rect parent_rect, Color c);
 
 	void paint(Painter& painter) override;
 
@@ -193,19 +187,8 @@ public:
 	) : text { "" } {
 	}
 
-	Text(
-		Rect parent_rect,
-		std::string text
-	) : Widget { parent_rect },
-		text { text }
-	{
-	}
-
-	Text(
-		Rect parent_rect
-	) : Text { parent_rect, { } }
-	{
-	}
+	Text(Rect parent_rect, std::string text);
+	Text(Rect parent_rect);
 
 	void set(const std::string value);
 
@@ -219,14 +202,7 @@ class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
 
-	Button(
-		Rect parent_rect,
-		std::string text
-	) : Widget { parent_rect },
-		text_ { text }
-	{
-		flags.focusable = true;
-	}
+	Button(Rect parent_rect, std::string text);
 
 	Button(
 	) : Button { { }, { } }
@@ -254,16 +230,7 @@ public:
 
 	std::function<void(size_t, value_t)> on_change;
 
-	OptionsField(
-		Point parent_pos,
-		size_t length,
-		options_t options
-	) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-		length_ { length },
-		options { options }
-	{
-		flags.focusable = true;
-	}
+	OptionsField(Point parent_pos, size_t length, options_t options);
 
 	size_t selected_index() const;
 	void set_selected_index(const size_t new_index);
@@ -287,20 +254,7 @@ public:
 
 	using range_t = std::pair<int32_t, int32_t>;
 
-	NumberField(
-		Point parent_pos,
-		size_t length,
-		range_t range,
-		int32_t step,
-		char fill_char
-	) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-		range { range },
-		step { step },
-		length_ { length },
-		fill_char { fill_char }
-	{
-		flags.focusable = true;
-	}
+	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
 
 	NumberField(const NumberField&) = delete;
 	NumberField(NumberField&&) = delete;

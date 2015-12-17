@@ -249,6 +249,14 @@ Widget* View::initial_focus() {
 
 /* Rectangle *************************************************************/
 
+Rectangle::Rectangle(
+	Rect parent_rect,
+	Color c
+) : Widget { parent_rect },
+	color { c }
+{
+}
+
 void Rectangle::set_color(const Color c) {
 	color = c;
 	set_dirty();
@@ -262,6 +270,20 @@ void Rectangle::paint(Painter& painter) {
 }
 
 /* Text ******************************************************************/
+
+Text::Text(
+	Rect parent_rect,
+	std::string text
+) : Widget { parent_rect },
+	text { text }
+{
+}
+
+Text::Text(
+	Rect parent_rect
+) : Text { parent_rect, { } }
+{
+}
 
 void Text::set(const std::string value) {
 	text = value;
@@ -277,6 +299,15 @@ void Text::paint(Painter& painter) {
 }
 
 /* Button ****************************************************************/
+
+ Button::Button(
+	Rect parent_rect,
+	std::string text
+) : Widget { parent_rect },
+	text_ { text }
+{
+	flags.focusable = true;
+}
 
 void Button::set_text(const std::string value) {
 	text_ = value;
@@ -378,6 +409,17 @@ bool Button::on_touch(const TouchEvent event) {
 
 /* OptionsField **********************************************************/
 
+OptionsField::OptionsField(
+	Point parent_pos,
+	size_t length,
+	options_t options
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	length_ { length },
+	options { options }
+{
+	flags.focusable = true;
+}
+
 size_t OptionsField::selected_index() const {
 	return selected_index_;
 }
@@ -431,6 +473,21 @@ bool OptionsField::on_touch(const TouchEvent event) {
 }
 
 /* NumberField ***********************************************************/
+
+NumberField::NumberField(
+	Point parent_pos,
+	size_t length,
+	range_t range,
+	int32_t step,
+	char fill_char
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	range { range },
+	step { step },
+	length_ { length },
+	fill_char { fill_char }
+{
+	flags.focusable = true;
+}
 
 int32_t NumberField::value() const {
 	return value_;
