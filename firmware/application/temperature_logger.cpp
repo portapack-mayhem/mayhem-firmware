@@ -33,7 +33,11 @@ void TemperatureLogger::second_tick() {
 }
 
 size_t TemperatureLogger::size() const {
-	return std::min(samples.size(), samples_count);
+	return std::min(capacity(), samples_count);
+}
+
+size_t TemperatureLogger::capacity() const {
+	return samples.size();
 }
 
 std::vector<TemperatureLogger::sample_t> TemperatureLogger::history() const {

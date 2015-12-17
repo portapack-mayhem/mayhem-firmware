@@ -34,7 +34,8 @@ public:
 	void second_tick();
 
 	size_t size() const;
-
+	size_t capacity() const;
+	
 	std::vector<sample_t> history() const;
 
 private:
