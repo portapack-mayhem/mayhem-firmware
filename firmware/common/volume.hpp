@@ -27,15 +27,15 @@
 class volume_t {
 public:
 	constexpr volume_t operator-() const {
-		return { .cb = -cb };
+		return { -cb };
 	}
 
 	constexpr volume_t operator+(const volume_t& other) const {
-		return { .cb = cb + other.cb };
+		return { cb + other.cb };
 	}
 
 	constexpr volume_t operator-(const volume_t& other) const {
-		return { .cb = cb - other.cb };
+		return { cb - other.cb };
 	}
 
 	volume_t& operator+=(const volume_t& other) {
@@ -52,11 +52,11 @@ public:
 	}
 
 	static constexpr volume_t centibel(const int cb) {
-		return { .cb = cb };
+		return { cb };
 	}
 
 	static constexpr volume_t decibel(const int db) {
-		return { .cb = db * 10 };
+		return { db * 10 };
 	}
 
 	int32_t centibel() const {
