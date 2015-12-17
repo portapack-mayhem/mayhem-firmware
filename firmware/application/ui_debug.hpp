@@ -93,6 +93,7 @@ public:
 	void paint(Painter& painter) override;
 
 private:
+	int32_t temperature(const uint32_t sensor_value);
 };
 
 class TemperatureView : public View {

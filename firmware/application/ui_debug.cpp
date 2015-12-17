@@ -76,7 +76,7 @@ void TemperatureWidget::paint(Painter& painter) {
 	}
 
 	if( !history.empty() ) {
-		const int32_t temp = -45 + history.back() * 5;
+		const int32_t temp = temperature(history.back());
 		const size_t temp_len = 3;
 		painter.draw_string(
 			{ static_cast<Coord>(rect.right() - (temp_len * 8)), rect.top() },
@@ -84,6 +84,10 @@ void TemperatureWidget::paint(Painter& painter) {
 			to_string_dec_int(temp, temp_len)
 		);
 	}
+}
+
+int32_t TemperatureWidget::temperature(const int32_t sensor_value) {
+	return -45 + sensor_value * 5
 }
 
 /* TemperatureView *******************************************************/
