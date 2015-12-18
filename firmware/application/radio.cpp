@@ -167,7 +167,7 @@ void streaming_disable() {
 void disable() {
 	baseband_sgpio.streaming_disable();
 	baseband_codec.set_mode(max5864::Mode::Shutdown);
-	second_if.set_mode(max2837::Mode::Shutdown);
+	second_if.set_mode(max2837::Mode::Standby);
 	first_if.disable();
 	set_rf_amp(false);
 }

@@ -124,6 +124,8 @@ void MAX2837::init() {
 
 	_dirty.set();
 	flush();
+
+	set_mode(Mode::Standby);
 }
 
 void MAX2837::set_mode(const Mode mode) {
