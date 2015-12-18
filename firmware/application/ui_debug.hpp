@@ -93,7 +93,18 @@ public:
 	void paint(Painter& painter) override;
 
 private:
-	int32_t temperature(const uint32_t sensor_value);
+	using sample_t = uint32_t;
+	using temperature_t = int32_t;
+
+	temperature_t temperature(const sample_t sensor_value) const;
+	Coord screen_y(const temperature_t temperature, const Rect& screen_rect) const;
+
+	std::string temperature_str(const temperature_t temperature) const;
+
+	static constexpr temperature_t display_temp_min = 0;
+	static constexpr temperature_t display_temp_scale = 3;
+	static constexpr Dim bar_width = 1;
+	static constexpr size_t temp_len = 3;
 };
 
 class TemperatureView : public View {
@@ -103,12 +114,17 @@ public:
 	void focus() override;
 
 private:
+	Text text_title {
+		{ 76, 16, 240, 16 },
+		"Temperature",
+	};
+
 	TemperatureWidget temperature_widget {
-		{ 0, 16, 240, 192 },
+		{ 0, 40, 240, 180 },
 	};
 
 	Button button_done {
-		{ 72, 256, 96, 24 },
+		{ 72, 264, 96, 24 },
 		"Done"
 	};
 };
