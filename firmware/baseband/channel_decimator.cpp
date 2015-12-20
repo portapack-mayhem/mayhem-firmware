@@ -47,7 +47,7 @@ buffer_c16_t ChannelDecimator::execute_decimation(const buffer_c8_t& buffer) {
 	/* 1.536MHz complex<int16_t>[1024], [-32768, 32512]
 	 * -> 3rd order CIC: -0.1dB @ 0.028fs, -1dB @ 0.088fs, -60dB @ 0.468fs
 	 *                   -0.1dB @ 43kHz,   -1dB @ 136kHz,  -60dB @ 723kHz
-	 * -> gain of 8
+	 * -> gain of 1
 	 * -> decimation by 2
 	 * -> 768kHz complex<int16_t>[512], [-8192, 8128] */
 	auto cic_1_out = cic_1.execute(stage_0_out, work_baseband_buffer);
