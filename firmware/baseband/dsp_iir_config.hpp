@@ -24,9 +24,10 @@
 
 #include "dsp_iir.hpp"
 
+// scipy.signal.butter(2, 300 / 24000.0, 'highpass', analog=False)
 constexpr iir_biquad_config_t audio_hpf_config {
-	{  0.93346032f, -1.86687724f,  0.93346032f },
-	{  1.0f       , -1.97730264f,  0.97773668f }
+	{  0.97261390f, -1.94522780f,  0.97261390f, },
+	{  1.00000000f, -1.94447766f,  0.94597794f, }
 };
 
 constexpr iir_biquad_config_t non_audio_hpf_config {
