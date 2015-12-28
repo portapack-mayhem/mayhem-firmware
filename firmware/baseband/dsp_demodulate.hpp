@@ -37,6 +37,12 @@ public:
 
 class FM {
 public:
+	constexpr FM(
+	) : z_ { 0 },
+		k { 0 }
+	{
+	}
+	
 	/*
 	 * angle: -pi to pi. output range: -32768 to 32767.
 	 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
