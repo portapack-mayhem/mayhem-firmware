@@ -72,11 +72,11 @@ static inline float angle_approx_0deg27(const complex32_t t) {
 	const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
 	return x / (1.0f + 0.28086f * x * x);
 }
-/*
+
 static inline float angle_precise(const complex32_t t) {
 	return atan2f(t.imag(), t.real());
 }
-*/
+
 buffer_s16_t FM::execute(
 	buffer_c16_t src,
 	buffer_s16_t dst
