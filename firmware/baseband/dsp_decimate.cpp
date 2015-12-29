@@ -26,6 +26,284 @@
 namespace dsp {
 namespace decimate {
 
+static inline complex32_t mac_fs4_shift(
+	const vec2_s16* const z,
+	const vec2_s16* const t,
+	const size_t index,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for samples already in z buffer.
+	 * Multiply using swap/negation to achieve Fs/4 shift.
+	 * For iterations where samples are shifting out of z buffer (being discarded).
+	 * Expect negated tap t[2] to accomodate instruction set limitations.
+	 */
+	const bool negated_t2 = index & 1;
+	const auto q1_i0 = z[index*2 + 0];
+	const auto i1_q0 = z[index*2 + 1];
+	const auto t1_t0 = t[index];
+	const auto real = negated_t2 ? smlsd(q1_i0, t1_t0, accum.real()) : smlad(q1_i0, t1_t0, accum.real());
+	const auto imag = negated_t2 ? smlad(i1_q0, t1_t0, accum.imag()) : smlsd(i1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline complex32_t mac_shift(
+	const vec2_s16* const z,
+	const vec2_s16* const t,
+	const size_t index,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for samples already in z buffer.
+	 * For iterations where samples are shifting out of z buffer (being discarded).
+	 * real += i1 * t1 + i0 * t0
+	 * imag += q1 * t1 + q0 * t0
+	 */
+	const auto i1_i0 = z[index*2 + 0];
+	const auto q1_q0 = z[index*2 + 1];
+	const auto t1_t0 = t[index];
+	const auto real = smlad(i1_i0, t1_t0, accum.real());
+	const auto imag = smlad(q1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline complex32_t mac_fs4_shift_and_store(
+	vec2_s16* const z,
+	const vec2_s16* const t,
+	const size_t decimation_factor,
+	const size_t index,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for samples already in z buffer.
+	 * Place new samples into z buffer.
+	 * Expect negated tap t[2] to accomodate instruction set limitations.
+	 */
+	const bool negated_t2 = index & 1;
+	const auto q1_i0 = z[decimation_factor + index*2 + 0];
+	const auto i1_q0 = z[decimation_factor + index*2 + 1];
+	const auto t1_t0 = t[decimation_factor / 2 + index];
+	z[index*2 + 0] = q1_i0;
+	const auto real = negated_t2 ? smlsd(q1_i0, t1_t0, accum.real()) : smlad(q1_i0, t1_t0, accum.real());
+	z[index*2 + 1] = i1_q0;
+	const auto imag = negated_t2 ? smlad(i1_q0, t1_t0, accum.imag()) : smlsd(i1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline complex32_t mac_shift_and_store(
+	vec2_s16* const z,
+	const vec2_s16* const t,
+	const size_t decimation_factor,
+	const size_t index,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for samples already in z buffer.
+	 * Place new samples into z buffer.
+	 * Expect negated tap t[2] to accomodate instruction set limitations.
+	 */
+	const auto i1_i0 = z[decimation_factor + index*2 + 0];
+	const auto q1_q0 = z[decimation_factor + index*2 + 1];
+	const auto t1_t0 = t[decimation_factor / 2 + index];
+	z[index*2 + 0] = i1_i0;
+	const auto real = smlad(i1_i0, t1_t0, accum.real());
+	z[index*2 + 1] = q1_q0;
+	const auto imag = smlad(q1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline complex32_t mac_fs4_shift_and_store_new_c8_samples(
+	vec2_s16* const z,
+	const vec2_s16* const t,
+	const vec4_s8* const in,
+	const size_t decimation_factor,
+	const size_t index,
+	const size_t length,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for new samples.
+	 * Place new samples into z buffer.
+	 * Expect negated tap t[2] to accomodate instruction set limitations.
+	 */
+	const bool negated_t2 = index & 1;
+	const auto q1_i1_q0_i0 = in[index];
+	const auto t1_t0 = t[(length - decimation_factor) / 2 + index];
+	const auto i1_q1_i0_q0 = rev16(q1_i1_q0_i0);
+	const auto i1_q1_q0_i0 = pkhbt(q1_i1_q0_i0, i1_q1_i0_q0);
+	const auto q1_i0 = sxtb16(i1_q1_q0_i0);
+	const auto i1_q0 = sxtb16(i1_q1_q0_i0, 8);
+	z[length - decimation_factor * 2 + index*2 + 0] = q1_i0;
+	const auto real = negated_t2 ? smlsd(q1_i0, t1_t0, accum.real()) : smlad(q1_i0, t1_t0, accum.real());
+	z[length - decimation_factor * 2 + index*2 + 1] = i1_q0;
+	const auto imag = negated_t2 ? smlad(i1_q0, t1_t0, accum.imag()) : smlsd(i1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline complex32_t mac_shift_and_store_new_c16_samples(
+	vec2_s16* const z,
+	const vec2_s16* const t,
+	const vec2_s16* const in,
+	const size_t decimation_factor,
+	const size_t index,
+	const size_t length,
+	const complex32_t accum
+) {
+	/* Accumulate sample * tap results for new samples.
+	 * Place new samples into z buffer.
+	 * Expect negated tap t[2] to accomodate instruction set limitations.
+	 */
+	const auto q0_i0 = in[index*2+0];
+	const auto q1_i1 = in[index*2+1];
+	const auto i1_i0 = pkhbt(q0_i0, q1_i1, 16);
+	const auto q1_q0 = pkhtb(q1_i1, q0_i0, 16);
+	const auto t1_t0 = t[(length - decimation_factor) / 2 + index];
+	z[length - decimation_factor * 2 + index*2 + 0] = i1_i0;
+	const auto real = smlad(i1_i0, t1_t0, accum.real());
+	z[length - decimation_factor * 2 + index*2 + 1] = q1_q0;
+	const auto imag = smlad(q1_q0, t1_t0, accum.imag());
+	return { real, imag };
+}
+
+static inline uint32_t scale_round_and_pack(
+	const complex32_t value,
+	const int32_t scale_factor
+) {
+	/* Multiply 32-bit components of the complex<int32_t> by a scale factor,
+	 * into int64_ts, then round to nearest LSB (1 << 32), saturate to 16 bits,
+	 * and pack into a complex<int16_t>.
+	 */
+	const auto scaled_real = __SMMULR(value.real(), scale_factor);
+	const auto saturated_real = __SSAT(scaled_real, 16);
+
+	const auto scaled_imag = __SMMULR(value.imag(), scale_factor);
+	const auto saturated_imag = __SSAT(scaled_imag, 16);
+
+	return __PKHBT(saturated_real, saturated_imag, 16);
+}
+
+// FIRC8xR16x24FS4Decim8 //////////////////////////////////////////////////
+
+FIRC8xR16x24FS4Decim8::FIRC8xR16x24FS4Decim8() {
+	z_.fill({});
+}
+
+void FIRC8xR16x24FS4Decim8::configure(
+	const std::array<tap_t, taps_count>& taps,
+	const int32_t scale,
+	const Shift shift
+) {
+	const int negate_factor = (shift == Shift::Up) ? -1 : 1;
+	for(size_t i=0; i<taps.size(); i+=4) {
+		taps_[i+0] =  taps[i+0];
+		taps_[i+1] =  taps[i+1] * negate_factor;
+		taps_[i+2] = -taps[i+2];
+		taps_[i+3] =  taps[i+3] * negate_factor;
+	}
+	output_scale = scale;
+}
+
+buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
+	buffer_c8_t src,
+	buffer_c16_t dst
+) {
+	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
+	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
+	uint32_t* const d = static_cast<uint32_t*>(__builtin_assume_aligned(dst.p, 4));
+
+	const auto k = output_scale;
+
+	const size_t count = src.count / decimation_factor;
+	for(size_t i=0; i<count; i++) {
+		const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
+
+		complex32_t accum;
+
+		// Oldest samples are discarded.
+		accum = mac_fs4_shift(z, t, 0, accum);
+		accum = mac_fs4_shift(z, t, 1, accum);
+		accum = mac_fs4_shift(z, t, 2, accum);
+		accum = mac_fs4_shift(z, t, 3, accum);
+
+		// Middle samples are shifted earlier in the "z" delay buffer.
+		accum = mac_fs4_shift_and_store(z, t, decimation_factor, 0, accum);
+		accum = mac_fs4_shift_and_store(z, t, decimation_factor, 1, accum);
+		accum = mac_fs4_shift_and_store(z, t, decimation_factor, 2, accum);
+		accum = mac_fs4_shift_and_store(z, t, decimation_factor, 3, accum);
+
+		// Newest samples come from "in" buffer, are copied to "z" delay buffer.
+		accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 0, taps_count, accum);
+		accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 1, taps_count, accum);
+		accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 2, taps_count, accum);
+		accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 3, taps_count, accum);
+
+		d[i] = scale_round_and_pack(accum, k);
+	}
+
+	return {
+		dst.p,
+		count,
+		src.sampling_rate / decimation_factor
+	};
+}
+
+// FIRC16xR16x32Decim8 ////////////////////////////////////////////////////
+
+FIRC16xR16x32Decim8::FIRC16xR16x32Decim8() {
+	z_.fill({});
+}
+
+void FIRC16xR16x32Decim8::configure(
+	const std::array<tap_t, taps_count>& taps,
+	const int32_t scale
+) {
+	std::copy(taps.cbegin(), taps.cend(), taps_.begin());
+	output_scale = scale;
+}
+
+buffer_c16_t FIRC16xR16x32Decim8::execute(
+	buffer_c16_t src,
+	buffer_c16_t dst
+) {
+	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
+	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
+	uint32_t* const d = static_cast<uint32_t*>(__builtin_assume_aligned(dst.p, 4));
+
+	const auto k = output_scale;
+
+	const size_t count = src.count / decimation_factor;
+	for(size_t i=0; i<count; i++) {
+		const vec2_s16* const in = static_cast<const vec2_s16*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
+
+		complex32_t accum;
+
+		// Oldest samples are discarded.
+		accum = mac_shift(z, t, 0, accum);
+		accum = mac_shift(z, t, 1, accum);
+		accum = mac_shift(z, t, 2, accum);
+		accum = mac_shift(z, t, 3, accum);
+
+		// Middle samples are shifted earlier in the "z" delay buffer.
+		accum = mac_shift_and_store(z, t, decimation_factor, 0, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 1, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 2, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 3, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 4, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 5, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 6, accum);
+		accum = mac_shift_and_store(z, t, decimation_factor, 7, accum);
+
+		// Newest samples come from "in" buffer, are copied to "z" delay buffer.
+		accum = mac_shift_and_store_new_c16_samples(z, t, in, decimation_factor, 0, taps_count, accum);
+		accum = mac_shift_and_store_new_c16_samples(z, t, in, decimation_factor, 1, taps_count, accum);
+		accum = mac_shift_and_store_new_c16_samples(z, t, in, decimation_factor, 2, taps_count, accum);
+		accum = mac_shift_and_store_new_c16_samples(z, t, in, decimation_factor, 3, taps_count, accum);
+
+		d[i] = scale_round_and_pack(accum, k);
+	}
+
+	return {
+		dst.p,
+		count,
+		src.sampling_rate / decimation_factor
+	};
+}
+
 buffer_c16_t Complex8DecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst) {
 	/* Decimates by two using a non-recursive third-order CIC filter.
 	 */
