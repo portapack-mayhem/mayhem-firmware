@@ -69,7 +69,6 @@ void Channel::configure(
 
 extern "C" {
 
-LOCATE_IN_RAM
 CH_IRQ_HANDLER(DMA_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
