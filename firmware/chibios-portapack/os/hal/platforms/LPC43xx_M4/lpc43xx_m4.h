@@ -134,34 +134,34 @@ typedef enum IRQn {
 /* Overload of __SXTB16() to add ROR argument, since using __ROR() as an
  * argument to the existing __SXTB16() doesn't produce optimum/sane code.
  */
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SXTB16(uint32_t rm, uint32_t ror)
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SXTB16(uint32_t rm, uint32_t ror)
 {
-  uint32_t rd;
+  int32_t rd;
   __ASM volatile ("sxtb16 %0, %1, ror %2" : "=r" (rd) : "r" (rm), "I" (ror));
   return rd;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SXTH(uint32_t rm, uint32_t ror)
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SXTH(uint32_t rm, uint32_t ror)
 {
-  uint32_t rd;
+  int32_t rd;
   __ASM volatile ("sxth %0, %1, ror %2" : "=r" (rd) : "r" (rm), "I" (ror));
   return rd;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMLATB(uint32_t rm, uint32_t rs, uint32_t rn) {
-  uint32_t rd;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMLATB(uint32_t rm, uint32_t rs, uint32_t rn) {
+  int32_t rd;
   __ASM volatile ("smlatb %0, %1, %2, %3" : "=r" (rd) : "r" (rm), "r" (rs), "r" (rn));
   return rd;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMLABB(uint32_t rm, uint32_t rs, uint32_t rn) {
-  uint32_t rd;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMLABB(uint32_t rm, uint32_t rs, uint32_t rn) {
+  int32_t rd;
   __ASM volatile("smlabb %0, %1, %2, %3" : "=r" (rd) : "r" (rm), "r" (rs), "r" (rn));
   return rd;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SXTAH(uint32_t rn, uint32_t rm, uint32_t ror) {
-  uint32_t rd;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SXTAH(uint32_t rn, uint32_t rm, uint32_t ror) {
+  int32_t rd;
   __ASM volatile("sxtah %0, %1, %2, ror %3" : "=r" (rd) : "r" (rn), "r" (rm), "I" (ror));
   return rd;
 }
@@ -172,37 +172,37 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __BFI(uint32_t rd, u
   return rd;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMULBB(uint32_t op1, uint32_t op2) {
-  uint32_t result;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULBB(uint32_t op1, uint32_t op2) {
+  int32_t result;
   __ASM volatile ("smulbb %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
   return result;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMULBT(uint32_t op1, uint32_t op2) {
-  uint32_t result;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULBT(uint32_t op1, uint32_t op2) {
+  int32_t result;
   __ASM volatile ("smulbt %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
   return result;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMULTB(uint32_t op1, uint32_t op2) {
-  uint32_t result;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULTB(uint32_t op1, uint32_t op2) {
+  int32_t result;
   __ASM volatile ("smultb %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
   return result;
 }
 
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMULTT(uint32_t op1, uint32_t op2) {
-  uint32_t result;
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULTT(uint32_t op1, uint32_t op2) {
+  int32_t result;
   __ASM volatile ("smultt %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
   return result;
 }
 
 #undef __SMLALD
 
-__attribute__( ( always_inline ) ) static inline uint64_t __SMLALD (uint32_t op1, uint32_t op2, uint64_t acc)
+__attribute__( ( always_inline ) ) static inline int64_t __SMLALD (uint32_t op1, uint32_t op2, int64_t acc)
 {
   union llreg_u{
     uint32_t w32[2];
-    uint64_t w64;
+    int64_t w64;
   } llr;
   llr.w64 = acc;
 
@@ -213,11 +213,11 @@ __attribute__( ( always_inline ) ) static inline uint64_t __SMLALD (uint32_t op1
 
 #undef __SMLALDX
 
-__attribute__( ( always_inline ) ) static inline uint64_t __SMLALDX (uint32_t op1, uint32_t op2, uint64_t acc)
+__attribute__( ( always_inline ) ) static inline int64_t __SMLALDX (uint32_t op1, uint32_t op2, int64_t acc)
 {
   union llreg_u{
     uint32_t w32[2];
-    uint64_t w64;
+    int64_t w64;
   } llr;
   llr.w64 = acc;
 
@@ -228,11 +228,11 @@ __attribute__( ( always_inline ) ) static inline uint64_t __SMLALDX (uint32_t op
 
 #undef __SMLSLD
 
-__attribute__( ( always_inline ) ) static inline uint64_t __SMLSLD (uint32_t op1, uint32_t op2, uint64_t acc)
+__attribute__( ( always_inline ) ) static inline int64_t __SMLSLD (uint32_t op1, uint32_t op2, int64_t acc)
 {
   union llreg_u{
     uint32_t w32[2];
-    uint64_t w64;
+    int64_t w64;
   } llr;
   llr.w64 = acc;
 
