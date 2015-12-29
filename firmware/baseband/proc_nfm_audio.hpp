@@ -36,22 +36,33 @@
 
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
-	NarrowbandFMAudio() {
-		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
-		channel_filter.configure(channel_filter_taps.taps, 2);
-	}
+	enum class Mode {
+		Deviation5K = 0,
+		Deviation2K5Wide = 1,
+		Deviation2K5Narrow = 2,
+	};
+
+	NarrowbandFMAudio();
+
+	void set_mode(const Mode mode);
 
 	void execute(const buffer_c8_t& buffer) override;
 
 	void on_update_spectrum() override { channel_spectrum.update(); }
 
 private:
-	ChannelDecimator decimator;
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
+	std::array<complex16_t, 512> dst;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
-	dsp::demodulate::FM demod { 48000, 7500 };
+	uint32_t channel_filter_pass_f = 0;
+	uint32_t channel_filter_stop_f = 0;
+
+	dsp::demodulate::FM demod;
 
 	IIRBiquadFilter audio_hpf { audio_hpf_config };
+	IIRBiquadFilter audio_deemph { audio_deemph_300_6_config };
 	FMSquelch squelch;
 
 	SpectrumCollector channel_spectrum;

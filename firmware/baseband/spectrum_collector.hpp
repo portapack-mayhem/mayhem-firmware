@@ -33,10 +33,11 @@
 class SpectrumCollector {
 public:
 	constexpr SpectrumCollector(
-		const size_t decimation_factor = 4
-	) : channel_spectrum_decimator { decimation_factor }
+	) : channel_spectrum_decimator { 1 }
 	{
 	}
+
+	void set_decimation_factor(const size_t decimation_factor);
 
 	void feed(
 		const buffer_c16_t& channel,

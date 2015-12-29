@@ -29,6 +29,12 @@
 
 #include <algorithm>
 
+void SpectrumCollector::set_decimation_factor(
+	const size_t decimation_factor
+) {
+	channel_spectrum_decimator.set_factor(decimation_factor);
+}
+
 /* TODO: Refactor to register task with idle thread?
  * It's sad that the idle thread has to call all the way back here just to
  * perform the deferred task on the buffer of data we prepared.

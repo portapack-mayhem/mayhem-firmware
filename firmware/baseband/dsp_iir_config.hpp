@@ -34,6 +34,12 @@ constexpr iir_biquad_config_t audio_hpf_config {
 constexpr iir_biquad_config_t non_audio_hpf_config {
 	{  0.51891061f, -0.95714180f,  0.51891061f },
 	{  1.0f       , -0.79878302f,  0.43960231f }
+
+// scipy.signal.butter(1, 300 / 24000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_deemph_300_6_config {
+	{  0.01925927f,  0.01925927f,  0.00000000f, },
+	{  1.00000000f, -0.96148145f,  0.00000000f, },
 };
 
 #endif/*__DSP_IIR_CONFIG_H__*/

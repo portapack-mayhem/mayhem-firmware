@@ -38,7 +38,7 @@ public:
 private:
 	size_t sample_count = 0;
 
-	SpectrumCollector channel_spectrum { 1 };
+	SpectrumCollector channel_spectrum;
 
 	std::array<complex16_t, 256> spectrum;
 };
