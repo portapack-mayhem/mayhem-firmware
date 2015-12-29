@@ -30,6 +30,7 @@ constexpr iir_biquad_config_t audio_hpf_config {
 	{  1.00000000f, -1.94447766f,  0.94597794f, }
 };
 
+// scipy.signal.iirdesign(wp=8000 / 24000.0, ws= 4000 / 24000.0, gpass=1, gstop=18, ftype='ellip')
 constexpr iir_biquad_config_t non_audio_hpf_config {
 	{  0.51891061f, -0.95714180f,  0.51891061f },
 	{  1.0f       , -0.79878302f,  0.43960231f }

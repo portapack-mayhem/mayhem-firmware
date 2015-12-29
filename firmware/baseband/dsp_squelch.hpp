@@ -37,8 +37,6 @@ private:
 	static constexpr size_t N = 32;
 	static constexpr int16_t threshold = 3072;
 
-	// nyquist = 48000 / 2.0
-	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
 	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
 
