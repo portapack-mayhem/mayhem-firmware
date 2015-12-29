@@ -45,7 +45,9 @@ public:
 	void execute(buffer_s16_t buffer_in, buffer_s16_t buffer_out) {
 		// TODO: Assert that buffer_out.count == buffer_in.count.
 		for(size_t i=0; i<buffer_out.count; i++) {
-			buffer_out.p[i] = execute_sample(buffer_in.p[i]);
+			const int32_t output_sample = execute_sample(buffer_in.p[i]);
+			const int32_t output_sample_saturated = __SSAT(output_sample, 16);
+			buffer_out.p[i] = output_sample_saturated;
 		}
 	}
 
