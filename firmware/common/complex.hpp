@@ -66,8 +66,8 @@ public:
 
 private:
 	union {
-		int8_t _v[2];
-		uint16_t _rep;
+		value_type _v[2];
+		rep_type _rep;
 	};
 };
 
@@ -121,8 +121,8 @@ public:
 
 private:
 	union {
-		int16_t _v[2];
-		uint32_t _rep;
+		value_type _v[2];
+		rep_type _rep;
 	};
 };
 
