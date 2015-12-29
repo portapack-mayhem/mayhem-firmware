@@ -82,7 +82,7 @@ AISModel::AISModel() {
 	receiver_model.set_baseband_configuration({
 		.mode = 3,
 		.sampling_rate = 2457600,
-		.decimation_factor = 4,
+		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
 

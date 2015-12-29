@@ -93,7 +93,7 @@ private:
 	BasebandConfiguration baseband_configuration {
 		.mode = 1,			/* TODO: Enum! */
 		.sampling_rate = 3072000,
-		.decimation_factor = 4,
+		.decimation_factor = 1,
 	};
 	volume_t headphone_volume_ { -43.0_dB };
 	ClockManager& clock_manager;

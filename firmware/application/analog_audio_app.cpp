@@ -30,7 +30,7 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(mode),
 		.sampling_rate = 3072000,
-		.decimation_factor = 4,
+		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
 }
