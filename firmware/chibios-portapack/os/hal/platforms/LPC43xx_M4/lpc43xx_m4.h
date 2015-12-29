@@ -241,6 +241,14 @@ __attribute__( ( always_inline ) ) static inline int64_t __SMLSLD (uint32_t op1,
   return(llr.w64);
 }
 
+__attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMMULR (int32_t op1, int32_t op2)
+{
+  uint32_t result;
+
+  __ASM volatile ("smmulr %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
+  return(result);
+}
+
 #endif /* __cplusplus */
 
 #endif /* __LPC43XX_M4_H */
