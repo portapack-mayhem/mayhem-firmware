@@ -38,7 +38,7 @@ NarrowbandAMAudio::NarrowbandAMAudio() {
 
 	decim_0.configure(taps_6k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_6k0_decim_1.taps, 131072);
-	channel_filter.configure(taps_6k0_channel.taps, 1);
+	channel_filter.configure(taps_6k0_channel.taps, channel_filter_decimation_factor);
 	channel_filter_pass_f = taps_6k0_channel.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = taps_6k0_channel.stop_frequency_normalized * channel_filter_input_fs;
 
