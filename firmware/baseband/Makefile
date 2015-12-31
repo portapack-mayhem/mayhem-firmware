@@ -148,6 +148,7 @@ CPPSRC = main.cpp \
          packet_builder.cpp \
          dsp_fft.cpp \
          dsp_fir_taps.cpp \
+         dsp_iir.cpp \
          fxpt_atan2.cpp \
          rssi.cpp \
          rssi_dma.cpp \
