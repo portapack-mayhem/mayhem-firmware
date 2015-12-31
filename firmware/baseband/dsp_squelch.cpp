@@ -41,5 +41,5 @@ bool FMSquelch::execute(buffer_s16_t audio) {
 		}
 	}
 
-	return (max_squared < (threshold * threshold));
+	return (max_squared < threshold_squared);
 }

@@ -35,7 +35,7 @@ public:
 
 private:
 	static constexpr size_t N = 32;
-	static constexpr int16_t threshold = 3072;
+	static constexpr uint32_t threshold_squared = 8192 * 8192;
 
 	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
