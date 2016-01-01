@@ -26,10 +26,24 @@
 #include "i2s.hpp"
 using namespace lpc43xx;
 
+#include "dsp_fir_taps.hpp"
+
+AISProcessor::AISProcessor() {
+	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
+	decim_1.configure(taps_11k0_decim_1.taps, 131072);
+}
+
 void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
-	auto decimator_out = decimator.execute(buffer);
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
+	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto decimator_out = decim_1_out;
 
 	/* 76.8kHz, 64 samples */
 	feed_channel_stats(decimator_out);

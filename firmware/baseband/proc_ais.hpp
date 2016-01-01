@@ -42,11 +42,15 @@
 
 class AISProcessor : public BasebandProcessor {
 public:
+	AISProcessor();
+
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_76k8_4t_p, 4 };
+	std::array<complex16_t, 512> dst;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_38k4_4t_p, 2 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		19200, 9600, { 0.0555f },
