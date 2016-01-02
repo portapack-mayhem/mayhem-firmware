@@ -92,6 +92,38 @@ private:
 	const std::array<int16_t, taps_count>& taps;
 };
 
+class FIRC8xR16x24FS4Decim4 {
+public:
+	static constexpr size_t taps_count = 24;
+	static constexpr size_t decimation_factor = 4;
+
+	using sample_t = complex8_t;
+	using tap_t = int16_t;
+
+	enum class Shift : bool {
+		Down = true,
+		Up = false
+	};
+
+	FIRC8xR16x24FS4Decim4();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale,
+		const Shift shift = Shift::Down
+	);
+
+	buffer_c16_t execute(
+		buffer_c8_t src,
+		buffer_c16_t dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
+};
+
 class FIRC8xR16x24FS4Decim8 {
 public:
 	static constexpr size_t taps_count = 24;
@@ -115,6 +147,32 @@ public:
 
 	buffer_c16_t execute(
 		buffer_c8_t src,
+		buffer_c16_t dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
+};
+
+class FIRC16xR16x16Decim2 {
+public:
+	static constexpr size_t taps_count = 16;
+	static constexpr size_t decimation_factor = 2;
+
+	using sample_t = complex16_t;
+	using tap_t = int16_t;
+
+	FIRC16xR16x16Decim2();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale
+	);
+
+	buffer_c16_t execute(
+		buffer_c16_t src,
 		buffer_c16_t dst
 	);
 	
