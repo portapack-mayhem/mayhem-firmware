@@ -50,6 +50,7 @@ private:
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
 
 	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
+	IIRBiquadFilter audio_deemph { audio_deemph_2122_6_config };
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/

@@ -68,5 +68,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	/* -> 48kHz int16_t[32] */
 	audio_hpf.execute_in_place(audio);
+	audio_deemph.execute_in_place(audio);
+
 	fill_audio_buffer(audio);
 }
