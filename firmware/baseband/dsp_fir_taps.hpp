@@ -182,6 +182,27 @@ constexpr fir_taps_real<32> taps_6k0_channel {
 	} },
 };
 
+// WFM 200KF8E emission type //////////////////////////////////////////////
+
+constexpr fir_taps_real<24> taps_200k_wfm_decim_0 = {
+	.pass_frequency_normalized = 100000.0f / 3072000.0f,
+	.stop_frequency_normalized = 484000.0f / 3072000.0f,
+	.taps = { {
+		    48,    -18,   -151,   -364,   -557,   -548,   -139,    789,
+		  2187,   3800,   5230,   6071,   6071,   5230,   3800,   2187,
+		   789,   -139,   -548,   -557,   -364,   -151,    -18,     48,
+	} },
+};
+
+constexpr fir_taps_real<16> taps_200k_wfm_decim_1 = {
+	.pass_frequency_normalized = 100000.0f / 768000.0f,
+	.stop_frequency_normalized = 284000.0f / 768000.0f,
+	.taps = { {
+		   -67,   -123,    388,    622,  -1342,  -2185,   4599,  14486,
+		 14486,   4599,  -2185,  -1342,    622,    388,   -123,    -67,
+	} },
+};
+
 /* Wideband audio filter */
 /* 96kHz int16_t input
  * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop

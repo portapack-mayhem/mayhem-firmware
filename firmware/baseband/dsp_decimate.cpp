@@ -618,6 +618,12 @@ buffer_c16_t DecimateBy2CIC3::execute(
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
 }
 
+void FIR64AndDecimateBy2Real::configure(
+	const std::array<int16_t, taps_count>& new_taps
+) {
+	std::copy(new_taps.cbegin(), new_taps.cend(), taps.begin());
+}
+
 buffer_s16_t FIR64AndDecimateBy2Real::execute(
 	buffer_s16_t src,
 	buffer_s16_t dst

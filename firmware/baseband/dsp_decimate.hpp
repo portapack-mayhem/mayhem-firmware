@@ -76,11 +76,9 @@ class FIR64AndDecimateBy2Real {
 public:
 	static constexpr size_t taps_count = 64;
 
-	FIR64AndDecimateBy2Real(
+	void configure(
 		const std::array<int16_t, taps_count>& taps
-	) : taps(taps)
-	{
-	}
+	);
 
 	buffer_s16_t execute(
 		buffer_s16_t src,
@@ -89,7 +87,7 @@ public:
 
 private:
 	std::array<int16_t, taps_count + 2> z;
-	const std::array<int16_t, taps_count>& taps;
+	std::array<int16_t, taps_count> taps;
 };
 
 class FIRC8xR16x24FS4Decim4 {

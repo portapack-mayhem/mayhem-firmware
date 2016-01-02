@@ -33,21 +33,19 @@
 
 class WidebandFMAudio : public BasebandProcessor {
 public:
-	WidebandFMAudio() {
-		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By4);
-	}
+	WidebandFMAudio();
 
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator;
+	std::array<complex16_t, 512> dst;
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
 
-	dsp::demodulate::FM demod { 768000, 75000 };
+	dsp::demodulate::FM demod;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_3;
-	const fir_taps_real<64>& audio_filter_taps = taps_64_lp_156_198;
-	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
+	dsp::decimate::FIR64AndDecimateBy2Real audio_filter;
 
 	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
 	IIRBiquadFilter audio_deemph { audio_deemph_2122_6_config };
