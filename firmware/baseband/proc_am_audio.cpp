@@ -46,6 +46,7 @@ NarrowbandAMAudio::NarrowbandAMAudio() {
 }
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
+	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()

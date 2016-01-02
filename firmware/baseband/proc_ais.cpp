@@ -36,6 +36,7 @@ AISProcessor::AISProcessor() {
 void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
+	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()

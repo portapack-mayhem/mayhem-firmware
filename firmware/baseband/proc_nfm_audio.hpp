@@ -51,7 +51,6 @@ public:
 	void on_update_spectrum() override { channel_spectrum.update(); }
 
 private:
-	std::array<complex16_t, 512> dst;
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
 

@@ -42,7 +42,7 @@
 
 #include <array>
 
-WORKING_AREA(baseband_thread_wa, 2048);
+WORKING_AREA(baseband_thread_wa, 4096);
 
 Thread* BasebandThread::start(const tprio_t priority) {
 	return chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
