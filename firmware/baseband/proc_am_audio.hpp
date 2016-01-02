@@ -54,7 +54,7 @@ private:
 
 	dsp::demodulate::AM demod;
 
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
+	IIRBiquadFilter audio_hpf { audio_hpf_300hz_config };
 
 	SpectrumCollector channel_spectrum;
 };

@@ -61,7 +61,7 @@ private:
 
 	dsp::demodulate::FM demod;
 
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
+	IIRBiquadFilter audio_hpf { audio_hpf_300hz_config };
 	IIRBiquadFilter audio_deemph { audio_deemph_300_6_config };
 	FMSquelch squelch;
 
