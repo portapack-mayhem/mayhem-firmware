@@ -49,7 +49,7 @@ private:
 	const fir_taps_real<64>& audio_filter_taps = taps_64_lp_156_198;
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { audio_filter_taps.taps };
 
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
+	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/
