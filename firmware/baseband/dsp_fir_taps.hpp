@@ -184,6 +184,7 @@ constexpr fir_taps_real<32> taps_6k0_channel {
 
 // WFM 200KF8E emission type //////////////////////////////////////////////
 
+// IFIR image-reject filter: fs=3072000, pass=100000, stop=484000, decim=4, fout=768000
 constexpr fir_taps_real<24> taps_200k_wfm_decim_0 = {
 	.pass_frequency_normalized = 100000.0f / 3072000.0f,
 	.stop_frequency_normalized = 484000.0f / 3072000.0f,
@@ -194,6 +195,7 @@ constexpr fir_taps_real<24> taps_200k_wfm_decim_0 = {
 	} },
 };
 
+// IFIR prototype filter: fs=768000, pass=100000, stop=284000, decim=2, fout=384000
 constexpr fir_taps_real<16> taps_200k_wfm_decim_1 = {
 	.pass_frequency_normalized = 100000.0f / 768000.0f,
 	.stop_frequency_normalized = 284000.0f / 768000.0f,
