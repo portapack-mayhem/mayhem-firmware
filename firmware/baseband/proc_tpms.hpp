@@ -39,22 +39,31 @@
 #include <bitset>
 
 // Translate+rectangular filter
-// sample=153.6k, deviation=38400, symbol=19200
-// Length: 8 taps, 1 symbols, 2 cycles of sinusoid
-constexpr std::array<std::complex<float>, 8> rect_taps_153k6_1t_p { {
-	{  1.2500000000e-01f,  0.0000000000e+00f }, {  0.0000000000e+00f,  1.2500000000e-01f },
-	{ -1.2500000000e-01f,  0.0000000000e+00f }, {  0.0000000000e+00f, -1.2500000000e-01f },
-	{  1.2500000000e-01f,  0.0000000000e+00f }, {  0.0000000000e+00f,  1.2500000000e-01f },
-	{ -1.2500000000e-01f,  0.0000000000e+00f }, {  0.0000000000e+00f, -1.2500000000e-01f },
+// sample=307.2k, deviation=38400, symbol=19200
+// Length: 16 taps, 1 symbols, 2 cycles of sinusoid
+constexpr std::array<std::complex<float>, 16> rect_taps_307k2_1t_p { {
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
 } };
 
 class TPMSProcessor : public BasebandProcessor {
 public:
+	TPMSProcessor();
+
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
-	dsp::matched_filter::MatchedFilter mf { rect_taps_153k6_1t_p, 4 };
+	std::array<complex16_t, 512> dst;
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+
+	dsp::matched_filter::MatchedFilter mf { rect_taps_307k2_1t_p, 8 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		38400, 19200, { 0.0555f },

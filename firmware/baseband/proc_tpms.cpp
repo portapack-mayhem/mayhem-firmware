@@ -26,10 +26,43 @@
 #include "i2s.hpp"
 using namespace lpc43xx;
 
+#include "dsp_fir_taps.hpp"
+
+static constexpr fir_taps_real<24> taps_200k_decim_0 = {
+	.pass_frequency_normalized = 100000.0f / 2457600.0f,
+	.stop_frequency_normalized = 407200.0f / 2457600.0f,
+	.taps = { {
+	    90,     94,      4,   -240,   -570,   -776,   -563,    309,
+	  1861,   3808,   5618,   6710,   6710,   5618,   3808,   1861,
+	   309,   -563,   -776,   -570,   -240,      4,     94,     90,
+	} },
+};
+
+static constexpr fir_taps_real<16> taps_200k_decim_1 = {
+	.pass_frequency_normalized = 100000.0f / 614400.0f,
+	.stop_frequency_normalized = 207200.0f / 614400.0f,
+	.taps = { {
+		  -132,   -256,    545,    834,  -1507,  -2401,   4666,  14583,
+		 14583,   4666,  -2401,  -1507,    834,    545,   -256,   -132,
+	} },
+};
+
+TPMSProcessor::TPMSProcessor() {
+	decim_0.configure(taps_200k_decim_0.taps, 33554432);
+	decim_1.configure(taps_200k_decim_1.taps, 131072);
+}
+
 void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
-	auto decimator_out = decimator.execute(buffer);
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
+	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto decimator_out = decim_1_out;
 
 	/* 76.8kHz, 64 samples */
 	feed_channel_stats(decimator_out);
