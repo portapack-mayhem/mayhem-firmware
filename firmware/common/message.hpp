@@ -50,6 +50,7 @@ public:
 		Shutdown = 8,
 		AISPacket = 7,
 		ERTPacket = 9,
+		UpdateSpectrum = 10,
 		MAX
 	};
 
@@ -258,6 +259,14 @@ public:
 	ert::Packet::Type type;
 
 	baseband::Packet packet;
+};
+
+class UpdateSpectrumMessage : public Message {
+public:
+	constexpr UpdateSpectrumMessage(
+	) : Message { ID::UpdateSpectrum }
+	{
+	}
 };
 
 class MessageHandlerMap {

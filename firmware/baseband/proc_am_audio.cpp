@@ -71,3 +71,9 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 
 	fill_audio_buffer(audio);
 }
+
+void NarrowbandAMAudio::on_message(const Message* const message) {
+	if( message->id == Message::ID::UpdateSpectrum ) {
+		channel_spectrum.update();
+	}
+}

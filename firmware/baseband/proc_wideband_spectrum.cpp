@@ -67,3 +67,9 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 
 	i2s::i2s0::tx_mute();
 }
+
+void WidebandSpectrum::on_message(const Message* const message) {
+	if( message->id == Message::ID::UpdateSpectrum ) {
+		channel_spectrum.update();
+	}
+}

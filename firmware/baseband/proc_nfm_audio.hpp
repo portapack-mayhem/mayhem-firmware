@@ -48,7 +48,7 @@ public:
 
 	void execute(const buffer_c8_t& buffer) override;
 
-	void on_update_spectrum() override { channel_spectrum.update(); }
+	void on_message(const Message* const message) override;
 
 private:
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;

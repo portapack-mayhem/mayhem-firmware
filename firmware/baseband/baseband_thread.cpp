@@ -78,12 +78,6 @@ void BasebandThread::on_message(const Message* const message) {
 	}
 }
 
-void BasebandThread::on_update_spectrum() {
-	if( baseband_processor ) {
-		baseband_processor->on_update_spectrum();
-	}	
-}
-
 void BasebandThread::run() {
 	baseband::dma::init();
 

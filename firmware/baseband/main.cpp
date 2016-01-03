@@ -189,8 +189,8 @@ private:
 	}
 
 	void handle_spectrum() {
-		// TODO: Send this via another message?!
-		baseband_thread.on_update_spectrum();
+		const UpdateSpectrumMessage message;
+		baseband_thread.on_message(&message);
 	}
 };
 

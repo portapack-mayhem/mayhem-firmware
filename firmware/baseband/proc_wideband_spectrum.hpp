@@ -33,7 +33,7 @@ class WidebandSpectrum : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 
-	void on_update_spectrum() override { channel_spectrum.update(); }
+	void on_message(const Message* const message) override;
 
 private:
 	size_t sample_count = 0;
