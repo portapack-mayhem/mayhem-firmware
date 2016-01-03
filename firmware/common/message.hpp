@@ -54,6 +54,7 @@ public:
 		UpdateSpectrum = 10,
 		NBFMConfigure = 11,
 		WFMConfigure = 12,
+		AMConfigure = 13,
 		MAX
 	};
 
@@ -312,6 +313,24 @@ public:
 	const fir_taps_real<16> decim_1_filter;
 	const fir_taps_real<64> audio_filter;
 	const size_t deviation;
+};
+
+class AMConfigureMessage : public Message {
+public:
+	constexpr AMConfigureMessage(
+		const fir_taps_real<24>& decim_0_filter,
+		const fir_taps_real<32>& decim_1_filter,
+		const fir_taps_real<32>& channel_filter
+	) : Message { ID::AMConfigure },
+		decim_0_filter { decim_0_filter },
+		decim_1_filter { decim_1_filter },
+		channel_filter { channel_filter }
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<32> decim_1_filter;
+	const fir_taps_real<32> channel_filter;
 };
 
 class MessageHandlerMap {

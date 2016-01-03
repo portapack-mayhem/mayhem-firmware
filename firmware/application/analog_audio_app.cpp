@@ -44,6 +44,10 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 		configure_wfm();
 		break;
 
+	case ReceiverModel::Mode::AMAudio:
+		configure_am();
+		break;
+		
 	default:
 		break;
 	}
@@ -66,6 +70,15 @@ void AnalogAudioModel::configure_wfm() {
 		taps_200k_wfm_decim_1,
 		taps_64_lp_156_198,
 		75000,
+	};
+	shared_memory.baseband_queue.push(message);
+}
+
+void AnalogAudioModel::configure_am() {
+	const AMConfigureMessage message {
+		taps_6k0_decim_0,
+		taps_6k0_decim_1,
+		taps_6k0_channel,
 	};
 	shared_memory.baseband_queue.push(message);
 }

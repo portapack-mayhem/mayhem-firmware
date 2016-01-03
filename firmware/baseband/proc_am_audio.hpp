@@ -38,8 +38,6 @@
 
 class NarrowbandAMAudio : public BasebandProcessor {
 public:
-	NarrowbandAMAudio();
-	
 	void execute(const buffer_c8_t& buffer) override;
 	
 	void on_message(const Message* const message) override;
@@ -56,6 +54,9 @@ private:
 	IIRBiquadFilter audio_hpf { audio_hpf_300hz_config };
 
 	SpectrumCollector channel_spectrum;
+
+	bool configured { false };
+	void configure(const AMConfigureMessage& message);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/

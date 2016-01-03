@@ -32,6 +32,7 @@ public:
 private:
 	void configure_nbfm();
 	void configure_wfm();
+	void configure_am();
 };
 
 namespace ui {
