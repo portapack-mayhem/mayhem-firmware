@@ -29,6 +29,7 @@
 
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
+#include "dsp_fir_taps.hpp"
 
 #include "utility.hpp"
 
@@ -51,6 +52,7 @@ public:
 		AISPacket = 7,
 		ERTPacket = 9,
 		UpdateSpectrum = 10,
+		NBFMConfigure = 11,
 		MAX
 	};
 
@@ -267,6 +269,27 @@ public:
 	) : Message { ID::UpdateSpectrum }
 	{
 	}
+};
+
+class NBFMConfigureMessage : public Message {
+public:
+	constexpr NBFMConfigureMessage(
+		const fir_taps_real<24>& decim_0_filter,
+		const fir_taps_real<32>& decim_1_filter,
+		const fir_taps_real<32>& channel_filter,
+		const size_t deviation
+	) : Message { ID::NBFMConfigure },
+		decim_0_filter { decim_0_filter },
+		decim_1_filter { decim_1_filter },
+		channel_filter { channel_filter },
+		deviation { deviation }
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<32> decim_1_filter;
+	const fir_taps_real<32> channel_filter;
+	const size_t deviation;
 };
 
 class MessageHandlerMap {
