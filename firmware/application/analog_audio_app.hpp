@@ -28,6 +28,10 @@
 class AnalogAudioModel {
 public:
 	AnalogAudioModel(ReceiverModel::Mode mode);
+
+private:
+	void configure_nbfm();
+	void configure_wfm();
 };
 
 namespace ui {

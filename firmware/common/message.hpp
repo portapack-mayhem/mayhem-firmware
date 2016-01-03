@@ -53,6 +53,7 @@ public:
 		ERTPacket = 9,
 		UpdateSpectrum = 10,
 		NBFMConfigure = 11,
+		WFMConfigure = 12,
 		MAX
 	};
 
@@ -289,6 +290,27 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
+	const size_t deviation;
+};
+
+class WFMConfigureMessage : public Message {
+public:
+	constexpr WFMConfigureMessage(
+		const fir_taps_real<24>& decim_0_filter,
+		const fir_taps_real<16>& decim_1_filter,
+		const fir_taps_real<64>& audio_filter,
+		const size_t deviation
+	) : Message { ID::WFMConfigure },
+		decim_0_filter { decim_0_filter },
+		decim_1_filter { decim_1_filter },
+		audio_filter { audio_filter },
+		deviation { deviation }
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<16> decim_1_filter;
+	const fir_taps_real<64> audio_filter;
 	const size_t deviation;
 };
 

@@ -23,26 +23,11 @@
 
 #include <cstdint>
 
-WidebandFMAudio::WidebandFMAudio() {
-	constexpr size_t baseband_fs = 3072000;
-
-	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 4;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
-
-	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 2;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
-
-	constexpr size_t demod_input_fs = decim_1_output_fs;
-
-	decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
-	decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
-	demod.configure(demod_input_fs, 75000);
-	audio_filter.configure(taps_64_lp_156_198.taps);
-}
-
 void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
+	if( !configured ) {
+		return;
+	}
+
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
@@ -93,4 +78,36 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 	audio_deemph.execute_in_place(audio);
 
 	fill_audio_buffer(audio);
+}
+
+void WidebandFMAudio::on_message(const Message* const message) {
+	switch(message->id) {
+	case Message::ID::WFMConfigure:
+		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
+		break;
+
+	default:
+		break;
+	}
+}
+
+void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
+	constexpr size_t baseband_fs = 3072000;
+
+	constexpr size_t decim_0_input_fs = baseband_fs;
+	constexpr size_t decim_0_decimation_factor = 4;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+
+	constexpr size_t decim_1_input_fs = decim_0_output_fs;
+	constexpr size_t decim_1_decimation_factor = 2;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+
+	constexpr size_t demod_input_fs = decim_1_output_fs;
+
+	decim_0.configure(message.decim_0_filter.taps, 33554432);
+	decim_1.configure(message.decim_1_filter.taps, 131072);
+	demod.configure(demod_input_fs, message.deviation);
+	audio_filter.configure(message.audio_filter.taps);
+
+	configured = true;
 }

@@ -33,9 +33,9 @@
 
 class WidebandFMAudio : public BasebandProcessor {
 public:
-	WidebandFMAudio();
-
 	void execute(const buffer_c8_t& buffer) override;
+
+	void on_message(const Message* const message) override;
 
 private:
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
@@ -48,6 +48,9 @@ private:
 
 	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
 	IIRBiquadFilter audio_deemph { audio_deemph_2122_6_config };
+
+	bool configured { false };
+	void configure(const WFMConfigureMessage& message);
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/

@@ -35,13 +35,37 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
 
-	if( mode == ReceiverModel::Mode::NarrowbandFMAudio ) {
-		const NBFMConfigureMessage message {
-			taps_4k25_decim_0,
-			taps_4k25_decim_1,
-			taps_4k25_channel,
-			2500,
-		};
-		shared_memory.baseband_queue.push(message);
+	switch(mode) {
+	case ReceiverModel::Mode::NarrowbandFMAudio:
+		configure_nbfm();
+		break;
+
+	case ReceiverModel::Mode::WidebandFMAudio:
+		configure_wfm();
+		break;
+
+	default:
+		break;
 	}
+
+}
+
+void AnalogAudioModel::configure_nbfm() {
+	const NBFMConfigureMessage message {
+		taps_4k25_decim_0,
+		taps_4k25_decim_1,
+		taps_4k25_channel,
+		2500,
+	};
+	shared_memory.baseband_queue.push(message);
+}
+
+void AnalogAudioModel::configure_wfm() {
+	const WFMConfigureMessage message {
+		taps_200k_wfm_decim_0,
+		taps_200k_wfm_decim_1,
+		taps_64_lp_156_198,
+		75000,
+	};
+	shared_memory.baseband_queue.push(message);
 }
