@@ -136,6 +136,7 @@ CPPSRC = main.cpp \
          matched_filter.cpp \
          proc_jammer.cpp \
          proc_fsk_lcr.cpp \
+         proc_xylos.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

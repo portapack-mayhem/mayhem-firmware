@@ -50,6 +50,7 @@
 #include "baseband_processor.hpp"
 #include "proc_fsk_lcr.hpp"
 #include "proc_jammer.hpp"
+#include "proc_xylos.hpp"
 
 #include "clock_recovery.hpp"
 #include "packet_builder.hpp"
@@ -511,6 +512,11 @@ int main(void) {
 				case 18:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new JammerProcessor();
+					break;
+					
+				case 19:
+					direction = baseband::Direction::Transmit;
+					baseband_thread.baseband_processor = new XylosProcessor();
 					break;
 
 				default:

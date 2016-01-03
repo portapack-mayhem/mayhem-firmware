@@ -172,6 +172,9 @@ CPPSRC = main.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
          ui_loadmodule.cpp \
+         ui_afskrx.cpp \
+         ui_sigfrx.cpp \
+         ui_xylos.cpp \
          receiver_model.cpp \
          transmitter_model.cpp \
          spectrum_color_lut.cpp \

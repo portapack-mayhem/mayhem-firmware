@@ -61,7 +61,7 @@ void JammerProcessor::execute(buffer_c8_t buffer) {
 				if (ir > 15) ir = 0;
 				if (shared_memory.jammer_ranges[ir].active == true) break;
 			}
-			jammer_bw = shared_memory.jammer_ranges[ir].width / 4;
+			jammer_bw = shared_memory.jammer_ranges[ir].width / 2;
 			
 			message.freq = shared_memory.jammer_ranges[ir].center;
 			shared_memory.application_queue.push(message);
@@ -89,7 +89,7 @@ void JammerProcessor::execute(buffer_c8_t buffer) {
 		}
 		
 		aphase += 8830;
-		sample = sine_table_f32[(aphase & 0x00FF0000)>>16];
+		sample = sine_table_f32[(aphase & 0x03FF0000)>>18]*256;
 		
 		//FM
 		frq = sample * jammer_bw;		// Bandwidth
@@ -97,8 +97,8 @@ void JammerProcessor::execute(buffer_c8_t buffer) {
 		phase = (phase + frq);
 		sphase = phase + (256<<16);
 
-		re = sine_table_f32[(sphase & 0x00FF0000)>>16];
-		im = sine_table_f32[(phase & 0x00FF0000)>>16];
+		re = sine_table_f32[(sphase & 0x03FF0000)>>18]*127;
+		im = sine_table_f32[(phase & 0x03FF0000)>>18]*127;
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}

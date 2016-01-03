@@ -59,6 +59,9 @@ struct SharedMemory {
 	bool afsk_transmit_done;
 	
 	JammerRange jammer_ranges[16];
+	
+	char xylosdata[21];
+	bool xylos_transmit_done;
 };
 
 extern SharedMemory& shared_memory;

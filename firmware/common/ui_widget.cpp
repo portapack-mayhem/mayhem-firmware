@@ -433,7 +433,6 @@ bool Checkbox::on_key(const KeyEvent key) {
 		
 		if( on_select ) {
 			on_select(*this);
-			
 			return true;
 		}
 	}

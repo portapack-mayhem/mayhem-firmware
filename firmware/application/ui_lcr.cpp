@@ -283,8 +283,8 @@ LCRView::LCRView(
 		make_frame();
 			
 		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x10000*256)/2280;
-		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x10000*256)/2280;
+		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
+		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
 
 		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
 

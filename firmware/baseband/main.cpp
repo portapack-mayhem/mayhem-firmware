@@ -57,9 +57,11 @@
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
 #include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
+//#include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
+//#include "proc_tpms.hpp"
+#include "proc_afskrx.hpp"
+#include "proc_sigfrx.hpp"
 
 #include "clock_recovery.hpp"
 #include "packet_builder.hpp"
@@ -356,7 +358,7 @@ void ram_loop_fn(void) {
 void wait_for_switch(void) {
 	memcpy(&ram_loop[0], reinterpret_cast<char*>(&ram_loop_fn), 32);
 	loop_ptr = reinterpret_cast<fn_ptr>(&ram_loop[0]);
-	ReadyForSwitchMessage message { true };
+	ReadyForSwitchMessage message;
 	shared_memory.application_queue.push(message);
 	(*loop_ptr)();
 	return;
@@ -402,19 +404,29 @@ int main(void) {
 					baseband_thread.baseband_processor = new WidebandFMAudio();
 					break;
 
-				case 3:
+				/*case 3:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new AISProcessor();
-					break;
+					break;*/
 
 				case 4:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new WidebandSpectrum();
 					break;
 
-				case 5:
+				/*case 5:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new TPMSProcessor();
+					break;*/
+					
+				case 6:
+					direction = baseband::Direction::Receive;
+					baseband_thread.baseband_processor = new AFSKRXProcessor();
+					break;
+					
+				case 7:
+					direction = baseband::Direction::Receive;
+					baseband_thread.baseband_processor = new SIGFRXProcessor();
 					break;
 					
 				case 0xFF:

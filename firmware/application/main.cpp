@@ -19,8 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//TODO: check jammer bandwidths
+//TODO: GSM channel detector
+//TODO: wait_for_switch() in baseband-tx !
+//TODO: AFSK receiver
+//TODO: SIGFOX RX/TX
 //TODO: Reset baseband if module not found (instead of lockup in RAM loop)
-//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found
+//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //TODO: LCD backlight PWM
 //TODO: BUG: Crash after TX stop
 //TODO: Check bw setting in LCR TX

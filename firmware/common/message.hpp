@@ -50,6 +50,7 @@ public:
 		SDCardStatus = 10,
 		Retune = 11,
 		ReadyForSwitch = 12,
+		AFSKData = 13,
 		MAX
 	};
 
@@ -236,6 +237,16 @@ public:
 	TPMSPacket packet;
 };
 
+class AFSKDataMessage : public Message {
+public:
+	constexpr AFSKDataMessage(
+	) : Message { ID::AFSKData }
+	{
+	}
+
+	int16_t data[128] = {0};
+};
+
 class ShutdownMessage : public Message {
 public:
 	constexpr ShutdownMessage(
@@ -269,12 +280,9 @@ public:
 class ReadyForSwitchMessage : public Message {
 public:
 	ReadyForSwitchMessage(
-		bool ok
 	) : Message { ID::ReadyForSwitch }
 	{
 	}
-	
-	const bool ok = false;
 };
 
 class RetuneMessage : public Message {

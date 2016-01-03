@@ -36,6 +36,9 @@
 #include "ui_whistle.hpp"
 #include "ui_jammer.hpp"
 #include "ui_loadmodule.hpp"
+#include "ui_afskrx.hpp"
+#include "ui_xylos.hpp"
+#include "ui_sigfrx.hpp"
 
 #include "portapack.hpp"
 #include "m4_startup.hpp"
@@ -108,16 +111,19 @@ void NavigationView::focus() {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<11>({ {
+	add_items<10>({ {
 		{ "Play dead", ui::Color::red(),  		[&nav](){ nav.push(new PlayDeadView 	  { nav, false }); } },
-		{ "Receiver", ui::Color::cyan(), 		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new ReceiverView { nav, receiver_model } }); } },
+		{ "Receiver", ui::Color::cyan(), 		[&nav](){ nav.push(new ReceiverView 	  { nav, receiver_model }); } },
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Jammer", ui::Color::white(),   		[&nav](){ nav.push(new JammerView		  { nav, transmitter_model }); } },
-		{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
+		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new WhistleView 		  { nav, transmitter_model }); } },
-		{ "RDS TX", ui::Color::yellow(),  		[&nav](){ nav.push(new RDSView            { nav, transmitter_model }); } },
-		{ "TEDI/LCR TX", ui::Color::orange(),  	[&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
+		//{ "SIGFOX RX", ui::Color::orange(),  	[&nav](){ nav.push(new SIGFRXView 		  { nav, receiver_model }); } },
+		//{ "RDS TX", ui::Color::yellow(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new RDSView { nav, transmitter_model }}; } },
+		{ "Xylos TX", ui::Color::orange(),  		[&nav](){ nav.push(new XylosView         { nav, transmitter_model }); } },
+		//{ "AFSK RX", ui::Color::cyan(),  		[&nav](){ nav.push(new AFSKRXView         { nav, receiver_model }); } },
+		{ "TEDI/LCR TX", ui::Color::yellow(),  	[&nav](){ nav.push(new LCRView            { nav, transmitter_model }); } },
 		{ "Setup", ui::Color::white(),    		[&nav](){ nav.push(new SetupMenuView      { nav }); } },
 		{ "About", ui::Color::white(),    		[&nav](){ nav.push(new AboutView          { nav }); } },
 		{ "Debug", ui::Color::white(),    		[&nav](){ nav.push(new DebugMenuView      { nav }); } },
@@ -161,6 +167,8 @@ SystemView::SystemView(
 	//if (persistent_memory::playing_dead() == 0x59)
 	//	navigation_view.push(new PlayDeadView { navigation_view, true });
 	//else
+	//	navigation_view.push(new BMPView { navigation_view });
+	
 		navigation_view.push(new BMPView { navigation_view });
 }
 
@@ -187,51 +195,7 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter& painter) {
-	uint32_t pixel_data;
-	uint8_t p, by, c, count;
-	ui::Color linebuffer[185];
-	ui::Coord px = 0, py = 302;
-	ui::Color palette[16];
-	
-	// RLE_4 BMP loader with hardcoded size and no delta :(
-	
-	pixel_data = splash_bmp[0x0A];
-	p = 0;
-	for (c = 0x36; c < (0x36+(16*4)); c+=4) {
-		palette[p++] = ui::Color(splash_bmp[c+2], splash_bmp[c+1], splash_bmp[c]);
-	}
-	
-	do {
-		by = splash_bmp[pixel_data++];
-		if (by) {
-			count = by;
-			by = splash_bmp[pixel_data++];
-			for (c = 0; c < count; c+=2) {
-				linebuffer[px++] = palette[by >> 4];
-				if (px < 185) linebuffer[px++] = palette[by & 15];
-			}
-			if (pixel_data & 1) pixel_data++;
-		} else {
-			by = splash_bmp[pixel_data++];
-			if (by == 0) {
-				portapack::display.render_line({27, py}, 185, linebuffer);
-				py--;
-				px = 0;
-			} else if (by == 1) {
-				break;
-			} else if (by == 2) {
-				// Delta
-			} else {
-				count = by;
-				for (c = 0; c < count; c+=2) {
-					by = splash_bmp[pixel_data++];
-					linebuffer[px++] = palette[by >> 4];
-					if (px < 185) linebuffer[px++] = palette[by & 15];
-				}
-				if (pixel_data & 1) pixel_data++;
-			}
-		}
-	} while (1);
+	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp);
 }
 
 /* PlayDeadView **********************************************************/

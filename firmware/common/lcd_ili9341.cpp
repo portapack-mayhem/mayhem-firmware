@@ -246,6 +246,70 @@ void ILI9341::render_line(const ui::Point p, const uint8_t count, const ui::Colo
 	io.lcd_write_pixels(line_buffer, count);
 }
 
+void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap) {
+	uint32_t pixel_data, pal_data;
+	uint8_t pal, by, c, count;
+	ui::Color linebuffer[240];
+	ui::Coord px = 0, py;
+	ui::Color palette[16];
+	uint32_t bmpwidth, bmpheight;
+	
+	// RLE_4 BMP loader with hardcoded size and no delta :(
+	
+	if (bitmap[0x1E] != 2) return;	// Bad compression type
+	bmpwidth = static_cast<int32_t>(
+        (bitmap[0x12])      |
+        (bitmap[0x13] << 8) |
+        (bitmap[0x14] << 16)|
+        (bitmap[0x15] << 24) );
+	bmpheight = static_cast<int32_t>(
+        (bitmap[0x16])      |
+        (bitmap[0x17] << 8) |
+        (bitmap[0x18] << 16)|
+        (bitmap[0x19] << 24) );
+
+	pal_data = bitmap[0x0E] + 0x0E;
+
+	pixel_data = bitmap[0x0A];
+	pal = 0;
+	for (c = 0; c < (16*4); c+=4) {
+		palette[pal++] = ui::Color(bitmap[c+2+pal_data], bitmap[c+1+pal_data], bitmap[c+pal_data]);
+	}
+
+	py = bmpheight + 16;
+	do {
+		by = bitmap[pixel_data++];
+		if (by) {
+			count = by;
+			by = bitmap[pixel_data++];
+			for (c = 0; c < count; c+=2) {
+				linebuffer[px++] = palette[by >> 4];
+				if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
+			}
+			if (pixel_data & 1) pixel_data++;
+		} else {
+			by = bitmap[pixel_data++];
+			if (by == 0) {
+				render_line({p.x, p.y + py}, bmpwidth, linebuffer);
+				py--;
+				px = 0;
+			} else if (by == 1) {
+				break;
+			} else if (by == 2) {
+				// Delta
+			} else {
+				count = by;
+				for (c = 0; c < count; c+=2) {
+					by = bitmap[pixel_data++];
+					linebuffer[px++] = palette[by >> 4];
+					if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
+				}
+				if (pixel_data & 1) pixel_data++;
+			}
+		}
+	} while (1);
+}
+
 void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Color color) {
 	int x0 = start.x;
 	int y0 = start.y;

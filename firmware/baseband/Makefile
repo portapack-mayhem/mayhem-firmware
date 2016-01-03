@@ -140,6 +140,8 @@ CPPSRC = main.cpp \
          proc_ais.cpp \
          proc_wideband_spectrum.cpp \
          proc_tpms.cpp \
+         proc_afskrx.cpp \
+         proc_sigfrx.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

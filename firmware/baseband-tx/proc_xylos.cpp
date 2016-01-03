@@ -19,60 +19,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_fsk_lcr.hpp"
+#include "proc_xylos.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
 
 #include <cstdint>
 
-void LCRFSKProcessor::execute(buffer_c8_t buffer) {
+void XylosProcessor::execute(buffer_c8_t buffer) {
 	
 	for (size_t i = 0; i<buffer.count; i++) {
-		
 		//Sample generation 2.28M/10 = 228kHz
 		if (s >= 9) {
 			s = 0;
 			
-			if (sample_count >= shared_memory.afsk_samples_per_bit) {
-				if (shared_memory.afsk_transmit_done == false)
-					cur_byte = shared_memory.lcrdata[byte_pos];
-				if (!cur_byte) {
-					if (shared_memory.afsk_repeat) {
-						shared_memory.afsk_repeat--;
-						bit_pos = 0;
-						byte_pos = 0;
-						cur_byte = shared_memory.lcrdata[0];
-						message.n = shared_memory.afsk_repeat;
-						shared_memory.application_queue.push(message);
-					} else {
-						message.n = 0;
-						shared_memory.afsk_transmit_done = true;
-						shared_memory.application_queue.push(message);
-						cur_byte = 0;
-					}
+			if (sample_count >= CCIR_TONELENGTH) {
+				if (shared_memory.xylos_transmit_done == false) {
+					message.n = byte_pos;	// Progress
+					shared_memory.application_queue.push(message);
+					digit = shared_memory.xylosdata[byte_pos++];
 				}
-				
-				gbyte = 0;
-				gbyte = cur_byte << 1;
-				gbyte |= 1;
-				
-				cur_bit = (gbyte >> (9-bit_pos)) & 1;
+					
+				if (!digit) {
+					message.n = 25;	// Done code
+					shared_memory.xylos_transmit_done = true;
+					shared_memory.application_queue.push(message);
+					digit = 0;
+				}
 
-				if (bit_pos == 9) {
-					bit_pos = 0;
-					byte_pos++;
-				} else {
-					bit_pos++;
-				}
+				if (digit > '9') digit -= 7;
+				digit -= 0x30;
 				
 				sample_count = 0;
 			} else {
 				sample_count++;
 			}
-			if (cur_bit)
-				aphase += shared_memory.afsk_phase_inc_mark;
-			else
-				aphase += shared_memory.afsk_phase_inc_space;
+			
+			aphase += ccir_phases[digit];
 		} else {
 			s++;
 		}
@@ -80,7 +62,7 @@ void LCRFSKProcessor::execute(buffer_c8_t buffer) {
 		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255); 
 		
 		//FM
-		frq = sample * shared_memory.afsk_fmmod;
+		frq = sample * 160; // 20kHz wide (?)
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);
