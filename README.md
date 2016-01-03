@@ -1,6 +1,6 @@
 # portapack-HAVOC
 
-The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup.
+HAVOC is a firmware for the PortaPack H1, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
 As its name implies, HAVOC is a firmware aimed towards serious fun. Don't use it. We never did.
 
@@ -9,6 +9,7 @@ Fork features:
 * LCR (Language de Commande Routier) basic message forming
 * Fully configurable AFSK transmit
 * "Play Dead" in case of emergency
+* Dynamic baseband code loading (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 * Fully configurable Jammer
 
 Todo:
@@ -25,14 +26,12 @@ Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more detai
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
-![PortaPack H1 Back Side](https://raw.github.com/sharebrained/portapack-hackrf/master/doc/images/hardware/portapack_h1_back.jpg)
-![PortaPack H1 Front Side](https://raw.github.com/sharebrained/portapack-hackrf/master/doc/images/hardware/portapack_h1_front.jpg)
-
 # License
 
 Except where specified in subdirectories of this project, all work is offered under the following license:
 
 Copyright (C) 2013-2015 Jared Boone, ShareBrained Technology, Inc.
+Copyright (C) 2015 Furrtek
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
