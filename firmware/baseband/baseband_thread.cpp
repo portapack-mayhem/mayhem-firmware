@@ -69,8 +69,12 @@ void BasebandThread::set_configuration(const BasebandConfiguration& new_configur
 }
 
 void BasebandThread::on_message(const Message* const message) {
-	if( baseband_processor ) {
-		baseband_processor->on_message(message);
+	if( message->id == Message::ID::BasebandConfiguration ) {
+		set_configuration(reinterpret_cast<const BasebandConfigurationMessage*>(message)->configuration);
+	} else {
+		if( baseband_processor ) {
+			baseband_processor->on_message(message);
+		}
 	}
 }
 

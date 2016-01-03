@@ -170,10 +170,6 @@ private:
 
 	void on_message(const Message* const message) {
 		switch(message->id) {
-		case Message::ID::BasebandConfiguration:
-			on_message_baseband_configuration(*reinterpret_cast<const BasebandConfigurationMessage*>(message));
-			break;
-
 		case Message::ID::Shutdown:
 			on_message_shutdown(*reinterpret_cast<const ShutdownMessage*>(message));
 			break;
@@ -182,10 +178,6 @@ private:
 			on_message_default(message);
 			break;
 		}
-	}
-
-	void on_message_baseband_configuration(const BasebandConfigurationMessage& message) {
-		baseband_thread.set_configuration(message.configuration);
 	}
 
 	void on_message_shutdown(const ShutdownMessage&) {

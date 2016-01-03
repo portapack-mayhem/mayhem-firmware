@@ -37,8 +37,6 @@ public:
 
 	Thread* start(const tprio_t priority);
 
-	void set_configuration(const BasebandConfiguration& new_configuration);
-
 	void on_message(const Message* const message);
 	void on_update_spectrum();
 	
@@ -61,6 +59,8 @@ private:
 
 	void disable();
 	void enable();
+
+	void set_configuration(const BasebandConfiguration& new_configuration);
 };
 
 #endif/*__BASEBAND_THREAD_H__*/
