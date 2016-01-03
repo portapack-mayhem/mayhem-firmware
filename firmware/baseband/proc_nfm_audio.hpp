@@ -24,28 +24,18 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 #include "dsp_squelch.hpp"
+
+#include "message.hpp"
 
 #include "spectrum_collector.hpp"
 
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
-	enum class Mode {
-		Deviation5K = 0,
-		Deviation2K5Wide = 1,
-		Deviation2K5Narrow = 2,
-	};
-
-	NarrowbandFMAudio();
-
-	void set_mode(const Mode mode);
-
 	void execute(const buffer_c8_t& buffer) override;
 
 	void on_message(const Message* const message) override;
@@ -65,6 +55,9 @@ private:
 	FMSquelch squelch;
 
 	SpectrumCollector channel_spectrum;
+
+	bool configured { false };
+	void configure(const NBFMConfigureMessage& message);
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

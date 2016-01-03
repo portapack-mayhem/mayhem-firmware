@@ -24,61 +24,11 @@
 #include <cstdint>
 #include <cstddef>
 
-NarrowbandFMAudio::NarrowbandFMAudio() {
-	set_mode(Mode::Deviation2K5Narrow);
-}
-
-void NarrowbandFMAudio::set_mode(const Mode mode) {
-	constexpr size_t baseband_fs = 3072000;
-
-	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 8;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
-
-	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 8;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
-
-	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	constexpr size_t channel_filter_decimation_factor = 1;
-	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
-
-	constexpr size_t demod_input_fs = channel_filter_output_fs;
-
-	switch(mode) {
-	default:
-	case Mode::Deviation5K:
-		decim_0.configure(taps_16k0_decim_0.taps, 33554432);
-		decim_1.configure(taps_16k0_decim_1.taps, 131072);
-		channel_filter.configure(taps_16k0_channel.taps, channel_filter_decimation_factor);
-		demod.configure(demod_input_fs, 5000);
-		channel_filter_pass_f = taps_16k0_channel.pass_frequency_normalized * channel_filter_input_fs;
-		channel_filter_stop_f = taps_16k0_channel.stop_frequency_normalized * channel_filter_input_fs;
-		break;
-
-	case Mode::Deviation2K5Wide:
-		decim_0.configure(taps_11k0_decim_0.taps, 33554432);
-		decim_1.configure(taps_11k0_decim_1.taps, 131072);
-		channel_filter.configure(taps_11k0_channel.taps, channel_filter_decimation_factor);
-		demod.configure(demod_input_fs, 2500);
-		channel_filter_pass_f = taps_11k0_channel.pass_frequency_normalized * channel_filter_input_fs;
-		channel_filter_stop_f = taps_11k0_channel.stop_frequency_normalized * channel_filter_input_fs;
-		break;
-
-	case Mode::Deviation2K5Narrow:
-		decim_0.configure(taps_4k25_decim_0.taps, 33554432);
-		decim_1.configure(taps_4k25_decim_1.taps, 131072);
-		channel_filter.configure(taps_4k25_channel.taps, channel_filter_decimation_factor);
-		demod.configure(demod_input_fs, 2500);
-		channel_filter_pass_f = taps_4k25_channel.pass_frequency_normalized * channel_filter_input_fs;
-		channel_filter_stop_f = taps_4k25_channel.stop_frequency_normalized * channel_filter_input_fs;
-		break;
+void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
+	if( !configured ) {
+		return;
 	}
 
-	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
-}
-
-void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
@@ -118,7 +68,44 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {
-	if( message->id == Message::ID::UpdateSpectrum ) {
+	switch(message->id) {
+	case Message::ID::UpdateSpectrum:
 		channel_spectrum.update();
+		break;
+
+	case Message::ID::NBFMConfigure:
+		configure(*reinterpret_cast<const NBFMConfigureMessage*>(message));
+		break;
+
+	default:
+		break;
 	}
+}
+
+void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
+	constexpr size_t baseband_fs = 3072000;
+
+	constexpr size_t decim_0_input_fs = baseband_fs;
+	constexpr size_t decim_0_decimation_factor = 8;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+
+	constexpr size_t decim_1_input_fs = decim_0_output_fs;
+	constexpr size_t decim_1_decimation_factor = 8;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+
+	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+	constexpr size_t channel_filter_decimation_factor = 1;
+	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+
+	constexpr size_t demod_input_fs = channel_filter_output_fs;
+
+	decim_0.configure(message.decim_0_filter.taps, 33554432);
+	decim_1.configure(message.decim_1_filter.taps, 131072);
+	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
+	demod.configure(demod_input_fs, message.deviation);
+	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
+	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
+	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
+
+	configured = true;
 }
