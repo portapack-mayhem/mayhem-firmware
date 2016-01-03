@@ -22,6 +22,7 @@
 #include "analog_audio_app.hpp"
 
 #include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "utility.hpp"
@@ -33,4 +34,14 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
+
+	if( mode == ReceiverModel::Mode::NarrowbandFMAudio ) {
+		const NBFMConfigureMessage message {
+			taps_4k25_decim_0,
+			taps_4k25_decim_1,
+			taps_4k25_channel,
+			2500,
+		};
+		shared_memory.baseband_queue.push(message);
+	}
 }
