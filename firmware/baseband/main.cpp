@@ -192,8 +192,8 @@ private:
 		request_stop();
 	}
 
-	void on_message_default(const Message* const) {
-		// TODO: Pass to active baseband processor.
+	void on_message_default(const Message* const message) {
+		baseband_thread.on_message(message);
 	}
 
 	void handle_spectrum() {

@@ -68,6 +68,12 @@ void BasebandThread::set_configuration(const BasebandConfiguration& new_configur
 	baseband_configuration = new_configuration;
 }
 
+void BasebandThread::on_message(const Message* const message) {
+	if( baseband_processor ) {
+		baseband_processor->on_message(message);
+	}
+}
+
 void BasebandThread::on_update_spectrum() {
 	if( baseband_processor ) {
 		baseband_processor->on_update_spectrum();

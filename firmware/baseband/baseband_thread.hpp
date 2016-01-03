@@ -39,6 +39,7 @@ public:
 
 	void set_configuration(const BasebandConfiguration& new_configuration);
 
+	void on_message(const Message* const message);
 	void on_update_spectrum();
 	
 	// This getter should die, it's just here to leak information to code that
