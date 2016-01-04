@@ -39,8 +39,8 @@ namespace decimate {
 class Complex8DecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(
-		buffer_c8_t src,
-		buffer_c16_t dst
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
 	);
 
 private:
@@ -51,8 +51,8 @@ private:
 class TranslateByFSOver4AndDecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(
-		buffer_c8_t src,
-		buffer_c16_t dst
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
 	);
 
 private:
@@ -63,8 +63,8 @@ private:
 class DecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 
 private:
@@ -81,8 +81,8 @@ public:
 	);
 
 	buffer_s16_t execute(
-		buffer_s16_t src,
-		buffer_s16_t dst
+		const buffer_s16_t& src,
+		const buffer_s16_t& dst
 	);
 
 private:
@@ -112,8 +112,8 @@ public:
 	);
 
 	buffer_c16_t execute(
-		buffer_c8_t src,
-		buffer_c16_t dst
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -144,8 +144,8 @@ public:
 	);
 
 	buffer_c16_t execute(
-		buffer_c8_t src,
-		buffer_c16_t dst
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -170,8 +170,8 @@ public:
 	);
 
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -196,8 +196,8 @@ public:
 	);
 
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -235,8 +235,8 @@ public:
 	}
 
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -251,8 +251,8 @@ private:
 class DecimateBy2CIC4Real {
 public:
 	buffer_s16_t execute(
-		buffer_s16_t src,
-		buffer_s16_t dst
+		const buffer_s16_t& src,
+		const buffer_s16_t& dst
 	);
 
 private:

@@ -199,8 +199,8 @@ void FIRC8xR16x24FS4Decim4::configure(
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
-	buffer_c8_t src,
-	buffer_c16_t dst
+	const buffer_c8_t& src,
+	const buffer_c16_t& dst
 ) {
 	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
 	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
@@ -264,8 +264,8 @@ void FIRC8xR16x24FS4Decim8::configure(
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
-	buffer_c8_t src,
-	buffer_c16_t dst
+	const buffer_c8_t& src,
+	const buffer_c16_t& dst
 ) {
 	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
 	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
@@ -322,8 +322,8 @@ void FIRC16xR16x16Decim2::configure(
 }
 
 buffer_c16_t FIRC16xR16x16Decim2::execute(
-	buffer_c16_t src,
-	buffer_c16_t dst
+	const buffer_c16_t& src,
+	const buffer_c16_t& dst
 ) {
 	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
 	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
@@ -376,8 +376,8 @@ void FIRC16xR16x32Decim8::configure(
 }
 
 buffer_c16_t FIRC16xR16x32Decim8::execute(
-	buffer_c16_t src,
-	buffer_c16_t dst
+	const buffer_c16_t& src,
+	const buffer_c16_t& dst
 ) {
 	vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
 	const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
@@ -423,7 +423,7 @@ buffer_c16_t FIRC16xR16x32Decim8::execute(
 	};
 }
 
-buffer_c16_t Complex8DecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst) {
+buffer_c16_t Complex8DecimateBy2CIC3::execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
 	/* Decimates by two using a non-recursive third-order CIC filter.
 	 */
 
@@ -480,7 +480,7 @@ buffer_c16_t Complex8DecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst)
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
 }
 
-buffer_c16_t TranslateByFSOver4AndDecimateBy2CIC3::execute(buffer_c8_t src, buffer_c16_t dst) {
+buffer_c16_t TranslateByFSOver4AndDecimateBy2CIC3::execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
 	/* Translates incoming complex<int8_t> samples by -fs/4,
 	 * decimates by two using a non-recursive third-order CIC filter.
 	 */
@@ -565,8 +565,8 @@ buffer_c16_t TranslateByFSOver4AndDecimateBy2CIC3::execute(buffer_c8_t src, buff
 }
 
 buffer_c16_t DecimateBy2CIC3::execute(
-	buffer_c16_t src,
-	buffer_c16_t dst
+	const buffer_c16_t& src,
+	const buffer_c16_t& dst
 ) {
 	/* Complex non-recursive 3rd-order CIC filter (taps 1,3,3,1).
 	 * Gain of 8.
@@ -625,8 +625,8 @@ void FIR64AndDecimateBy2Real::configure(
 }
 
 buffer_s16_t FIR64AndDecimateBy2Real::execute(
-	buffer_s16_t src,
-	buffer_s16_t dst
+	const buffer_s16_t& src,
+	const buffer_s16_t& dst
 ) {
 	/* int16_t input (sample count "n" must be multiple of 4)
 	 * -> int16_t output, decimated by 2.
@@ -658,8 +658,8 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 }
 
 buffer_c16_t FIRAndDecimateComplex::execute(
-	buffer_c16_t src,
-	buffer_c16_t dst
+	const buffer_c16_t& src,
+	const buffer_c16_t& dst
 ) {
 	/* int16_t input (sample count "n" must be multiple of decimation_factor)
 	 * -> int16_t output, decimated by decimation_factor.
@@ -768,8 +768,8 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 }
 
 buffer_s16_t DecimateBy2CIC4Real::execute(
-	buffer_s16_t src,
-	buffer_s16_t dst
+	const buffer_s16_t& src,
+	const buffer_s16_t& dst
 ) {
 	auto src_p = src.p;
 	auto dst_p = dst.p;
