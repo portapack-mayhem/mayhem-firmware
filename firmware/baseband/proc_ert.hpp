@@ -61,8 +61,6 @@ private:
 	const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
 	const float clock_recovery_rate = symbol_rate * 2;
 
-	// ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By2, false };
-
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },
 		[this](const float symbol) { this->consume_symbol(symbol); }

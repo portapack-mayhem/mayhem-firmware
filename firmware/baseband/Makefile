@@ -131,7 +131,6 @@ CPPSRC = main.cpp \
          portapack_shared_memory.cpp \
          baseband_thread.cpp \
          baseband_processor.cpp \
-         channel_decimator.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
          matched_filter.cpp \
