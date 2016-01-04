@@ -227,11 +227,7 @@ public:
 		const T& taps,
 		const size_t decimation_factor
 	) {
-		samples_ = std::make_unique<samples_t>(taps.size());
-		taps_reversed_ = std::make_unique<taps_t>(taps.size());
-		taps_count_ = taps.size();
-		decimation_factor_ = decimation_factor;
-		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
+		configure(taps.data(), taps.size(), decimation_factor);
 	}
 
 	buffer_c16_t execute(
@@ -246,6 +242,12 @@ private:
 	std::unique_ptr<taps_t> taps_reversed_;
 	size_t taps_count_;
 	size_t decimation_factor_;
+
+	void configure(
+		const int16_t* const taps,
+		const size_t taps_count,
+		const size_t decimation_factor
+	);
 };
 
 class DecimateBy2CIC4Real {
