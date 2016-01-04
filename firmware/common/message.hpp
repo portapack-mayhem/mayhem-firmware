@@ -276,9 +276,9 @@ public:
 class NBFMConfigureMessage : public Message {
 public:
 	constexpr NBFMConfigureMessage(
-		const fir_taps_real<24>& decim_0_filter,
-		const fir_taps_real<32>& decim_1_filter,
-		const fir_taps_real<32>& channel_filter,
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<32> decim_1_filter,
+		const fir_taps_real<32> channel_filter,
 		const size_t deviation
 	) : Message { ID::NBFMConfigure },
 		decim_0_filter { decim_0_filter },
@@ -297,9 +297,9 @@ public:
 class WFMConfigureMessage : public Message {
 public:
 	constexpr WFMConfigureMessage(
-		const fir_taps_real<24>& decim_0_filter,
-		const fir_taps_real<16>& decim_1_filter,
-		const fir_taps_real<64>& audio_filter,
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<16> decim_1_filter,
+		const fir_taps_real<64> audio_filter,
 		const size_t deviation
 	) : Message { ID::WFMConfigure },
 		decim_0_filter { decim_0_filter },
@@ -318,9 +318,9 @@ public:
 class AMConfigureMessage : public Message {
 public:
 	constexpr AMConfigureMessage(
-		const fir_taps_real<24>& decim_0_filter,
-		const fir_taps_real<32>& decim_1_filter,
-		const fir_taps_real<32>& channel_filter
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<32> decim_1_filter,
+		const fir_taps_real<32> channel_filter
 	) : Message { ID::AMConfigure },
 		decim_0_filter { decim_0_filter },
 		decim_1_filter { decim_1_filter },
