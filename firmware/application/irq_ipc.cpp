@@ -29,10 +29,6 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-void m4txevent_interrupt_enable() {
-	nvicEnableVector(M4CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M4TXEVENT_IRQ_PRIORITY));
-}
-
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {

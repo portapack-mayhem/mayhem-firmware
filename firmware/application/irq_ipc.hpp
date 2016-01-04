@@ -22,6 +22,4 @@
 #ifndef __IRQ_IPC_H__
 #define __IRQ_IPC_H__
 
-void m4txevent_interrupt_enable();
-
 #endif/*__IRQ_IPC_H__*/

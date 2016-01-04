@@ -58,6 +58,16 @@ static_assert(offsetof(LPC_CREG_Type, USB1FLADJ) == 0x600, "USB1FLADJ offset wro
 
 namespace m4txevent {
 
+#if defined(LPC43XX_M0)
+inline void enable() {
+	nvicEnableVector(M4CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M4TXEVENT_IRQ_PRIORITY));
+}
+
+inline void disable() {
+	nvicDisableVector(M4CORE_IRQn);
+}
+#endif
+
 #if defined(LPC43XX_M4)
 inline void assert() {
 	__SEV();

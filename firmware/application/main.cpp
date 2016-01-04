@@ -259,7 +259,7 @@ int main(void) {
 	controls_init();
 	lcd_frame_sync_configure();
 	rtc_interrupt_enable();
-	m4txevent_interrupt_enable();
+	lpc43xx::creg::m4txevent::enable();
 
 	event_dispatcher.run();
 
