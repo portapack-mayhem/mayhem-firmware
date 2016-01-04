@@ -48,14 +48,12 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	static uint64_t audio_present_history = 0;
 	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
 	const bool audio_present = (audio_present_history != 0);
-	if( !audio_present ) {
-		// Zero audio buffer.
-		for(size_t i=0; i<audio.count; i++) {
-			audio.p[i] = 0;
-		}
+	
+	if( audio_present ) {
+		fill_audio_buffer(audio);
+	} else {
+		mute_audio();
 	}
-
-	fill_audio_buffer(audio);
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {

@@ -23,9 +23,6 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
-
 #include "dsp_fir_taps.hpp"
 
 // IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400
@@ -77,7 +74,7 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		}
 	}
 
-	i2s::i2s0::tx_mute();
+	mute_audio();
 }
 
 void TPMSProcessor::consume_symbol(

@@ -23,9 +23,6 @@
 
 #include "event_m4.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
-
 #include "dsp_fft.hpp"
 
 #include <cstdint>
@@ -65,7 +62,7 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 		phase++;
 	}
 
-	i2s::i2s0::tx_mute();
+	mute_audio();
 }
 
 void WidebandSpectrum::on_message(const Message* const message) {

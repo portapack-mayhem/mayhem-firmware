@@ -23,9 +23,6 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
-
 #include "dsp_fir_taps.hpp"
 
 AISProcessor::AISProcessor() {
@@ -56,7 +53,7 @@ void AISProcessor::execute(const buffer_c8_t& buffer) {
 		}
 	}
 
-	i2s::i2s0::tx_mute();
+	mute_audio();
 }
 
 void AISProcessor::consume_symbol(

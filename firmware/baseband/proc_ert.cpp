@@ -23,9 +23,6 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
-
 float ERTProcessor::abs(const complex8_t& v) {
 	// const int16_t r = v.real() - offset_i;
 	// const int16_t i = v.imag() - offset_q;
@@ -83,7 +80,7 @@ void ERTProcessor::execute(const buffer_c8_t& buffer) {
 		clock_recovery(data);
 	}
 
-	i2s::i2s0::tx_mute();
+	mute_audio();
 }
 
 void ERTProcessor::consume_symbol(
