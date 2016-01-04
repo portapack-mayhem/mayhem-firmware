@@ -118,7 +118,6 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = main.cpp \
-         irq_ipc.cpp \
          irq_lcd_frame.cpp \
          irq_controls.cpp \
          irq_rtc.cpp \

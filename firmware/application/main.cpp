@@ -33,7 +33,6 @@
 #include "ui_painter.hpp"
 #include "ui_navigation.hpp"
 
-#include "irq_ipc.hpp"
 #include "irq_lcd_frame.hpp"
 #include "irq_controls.hpp"
 #include "irq_rtc.hpp"
@@ -54,6 +53,22 @@ using namespace lpc43xx;
 #include "sd_card.hpp"
 
 #include <string.h>
+
+extern "C" {
+
+CH_IRQ_HANDLER(M4Core_IRQHandler) {
+	CH_IRQ_PROLOGUE();
+
+	chSysLockFromIsr();
+	events_flag_isr(EVT_MASK_APPLICATION);
+	chSysUnlockFromIsr();
+
+	creg::m4txevent::clear();
+
+	CH_IRQ_EPILOGUE();
+}
+
+}
 
 class EventDispatcher {
 public:
