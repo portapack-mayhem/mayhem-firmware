@@ -40,7 +40,6 @@ float ERTProcessor::abs(const complex8_t& v) {
 
 void ERTProcessor::execute(const buffer_c8_t& buffer) {
 	/* 4.194304MHz, 2048 samples */
-	// auto decimator_out = decimator.execute(buffer);
 
 	const complex8_t* src = &buffer.p[0];
 	const complex8_t* const src_end = &buffer.p[buffer.count];

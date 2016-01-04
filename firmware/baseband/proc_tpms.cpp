@@ -60,13 +60,6 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 
 	/* 307.2kHz, 256 samples */
 	feed_channel_stats(decimator_out);
-	/* No spectrum display while FSK decoding.
-	feed_channel_spectrum(
-		channel,
-		decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
-		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
-	);
-	*/
 
 	for(size_t i=0; i<decimator_out.count; i++) {
 		if( mf.execute_once(decimator_out.p[i]) ) {
