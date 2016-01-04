@@ -31,7 +31,6 @@
 
 #include "dsp_types.hpp"
 #include "complex.hpp"
-#include "sine_table.hpp"
 #include "hal.h"
 
 namespace std {
@@ -110,16 +109,24 @@ void fft_swap_in_place(std::array<T, N>& data) {
 template<typename T, size_t N>
 void fft_c_preswapped(std::array<T, N>& data) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
+	constexpr auto K = log_2(N);
+
+	static_assert(N == 256, "lame that I've hard-coded a table for K=8");
+	static constexpr std::array<std::complex<float>, K> wp_table { {
+		{ -2.00000000000000000000000000000000f,  0.00000000000000000000000000000000f },
+		{ -1.00000000000000000000000000000000f, -1.00000000000000000000000000000000f },
+		{ -0.29289321881345242726268907063059f, -0.70710678118654746171500846685376f },
+		{ -0.07612046748871323376128827931097f, -0.38268343236508978177923268049199f },
+		{ -0.01921471959676954860407604996908f, -0.19509032201612824808378832130984f },
+		{ -0.00481527332780311376897453001789f, -0.09801714032956060362877792613290f },
+		{ -0.00120454379482760713659939000308f, -0.04906767432741801493456534899451f },
+		{ -0.00030118130379577984830768988544f, -0.02454122852291228812360301958506f },
+	} };
 
 	/* Provide data to this function, pre-swapped. */
 	for(size_t k = 0; k < log_2(N); k++) {
 		const size_t mmax = 1 << k;
-		const float theta = -pi / mmax;
-		const float wtemp = sin_f32(0.5f * theta);
-		const T wp {
-			-2.0f * wtemp * wtemp,
-			sin_f32(theta)
-		};
+		const auto wp = wp_table[k];
 		T w { 1.0f, 0.0f };
 		for(size_t m = 0; m < mmax; ++m) {
 			for(size_t i = m; i < N; i += mmax * 2) {
