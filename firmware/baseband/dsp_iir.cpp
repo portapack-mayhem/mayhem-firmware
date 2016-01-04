@@ -23,7 +23,7 @@
 
 #include <hal.h>
 
-void IIRBiquadFilter::execute(buffer_s16_t buffer_in, buffer_s16_t buffer_out) {
+void IIRBiquadFilter::execute(const buffer_s16_t& buffer_in, const buffer_s16_t& buffer_out) {
 	// TODO: Assert that buffer_out.count == buffer_in.count.
 	for(size_t i=0; i<buffer_out.count; i++) {
 		const int32_t output_sample = execute_sample(buffer_in.p[i]);
@@ -32,7 +32,7 @@ void IIRBiquadFilter::execute(buffer_s16_t buffer_in, buffer_s16_t buffer_out) {
 	}
 }
 
-void IIRBiquadFilter::execute_in_place(buffer_s16_t buffer) {
+void IIRBiquadFilter::execute_in_place(const buffer_s16_t& buffer) {
 	execute(buffer, buffer);
 }
 

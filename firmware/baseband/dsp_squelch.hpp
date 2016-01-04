@@ -31,7 +31,7 @@
 
 class FMSquelch {
 public:
-	bool execute(buffer_s16_t audio);
+	bool execute(const buffer_s16_t& audio);
 
 	void set_threshold(const uint32_t new_value);
 
