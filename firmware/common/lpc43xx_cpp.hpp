@@ -57,6 +57,16 @@ inline void clear() {
 
 namespace m0apptxevent {
 
+#if defined(LPC43XX_M4)
+inline void enable() {
+	nvicEnableVector(M0CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M0APPTXEVENT_IRQ_PRIORITY));
+}
+
+inline void disable() {
+	nvicDisableVector(M0CORE_IRQn);
+}
+#endif
+
 #if defined(LPC43XX_M0)
 inline void assert() {
 	__SEV();

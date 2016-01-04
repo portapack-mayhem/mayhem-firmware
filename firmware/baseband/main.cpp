@@ -30,8 +30,6 @@
 
 #include "event_m4.hpp"
 
-#include "irq_ipc_m4.hpp"
-
 #include "touch_dma.hpp"
 
 #include "baseband_thread.hpp"
@@ -123,7 +121,7 @@ class EventDispatcher {
 public:
 	void run() {
 		events_initialize(chThdSelf());
-		m0apptxevent_interrupt_enable();
+		lpc43xx::creg::m0apptxevent::enable();
 
 		baseband_thread.thread_main = chThdSelf();
 		baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
@@ -134,7 +132,7 @@ public:
 			dispatch(events);
 		}
 
-		m0apptxevent_interrupt_disable();
+		lpc43xx::creg::m0apptxevent::disable();
 	}
 
 	void request_stop() {
