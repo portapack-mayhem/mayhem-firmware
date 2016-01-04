@@ -86,10 +86,14 @@ public:
 	}
 
 	void run() {
+		creg::m4txevent::enable();
+
 		while(is_running) {
 			const auto events = wait();
 			dispatch(events);
 		}
+
+		creg::m4txevent::disable();
 	}
 
 	void request_stop() {
@@ -274,7 +278,6 @@ int main(void) {
 	controls_init();
 	lcd_frame_sync_configure();
 	rtc_interrupt_enable();
-	lpc43xx::creg::m4txevent::enable();
 
 	event_dispatcher.run();
 
