@@ -37,37 +37,23 @@ public:
 
 class FM {
 public:
-	constexpr FM(
-	) : z_ { 0 },
-		k { 0 }
-	{
-	}
-	
-	/*
-	 * angle: -pi to pi. output range: -32768 to 32767.
-	 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
-	 * delta_theta_max = 2 * pi * deviation / sampling_rate
-	 */
-	constexpr FM(
-		const float sampling_rate,
-		const float deviation_hz
-	) : z_ { 0 },
-		k { static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate)) }
-	{
-	}
-
 	buffer_s16_t execute(
 		buffer_c16_t src,
 		buffer_s16_t dst
 	);
 
 	void configure(const float sampling_rate, const float deviation_hz) {
+		/*
+		 * angle: -pi to pi. output range: -32768 to 32767.
+		 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
+		 * delta_theta_max = 2 * pi * deviation / sampling_rate
+		 */
 		k = static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate));
 	}
 
 private:
-	complex16_t::rep_type z_;
-	float k;
+	complex16_t::rep_type z_ { 0 };
+	float k { 0 };
 };
 
 } /* namespace demodulate */
