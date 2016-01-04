@@ -36,6 +36,16 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+	const buffer_s16_t work_audio_buffer {
+		(int16_t*)dst.data(),
+		sizeof(dst) / sizeof(int16_t)
+	};
+
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
 

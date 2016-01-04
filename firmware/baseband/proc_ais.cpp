@@ -36,12 +36,6 @@ AISProcessor::AISProcessor() {
 void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
-	std::array<complex16_t, 512> dst;
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
-
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto decimator_out = decim_1_out;

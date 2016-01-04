@@ -59,6 +59,12 @@ public:
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
 

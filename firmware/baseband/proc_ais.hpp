@@ -47,6 +47,12 @@ public:
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_38k4_4t_p, 2 };

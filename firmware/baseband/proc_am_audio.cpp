@@ -28,12 +28,6 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 		return;
 	}
 
-	std::array<complex16_t, 512> dst;
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
-
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
@@ -41,11 +35,6 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
-
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)dst.data(),
-		sizeof(*dst.data()) * dst.size()
-	};
 
 	auto audio = demod.execute(channel_out, work_audio_buffer);
 
