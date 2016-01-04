@@ -38,14 +38,16 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	auto audio = demod.execute(channel_out, work_audio_buffer);
 
-	static uint64_t audio_present_history = 0;
+	// Yes, evaluate squelch here, but do audio filtering regardless to keep glitches
+	// out of the filters. Zero out audio *after* filtering, based on squelch status.
 	const auto audio_present_now = squelch.execute(audio);
-	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-	const bool audio_present = (audio_present_history != 0);
 
 	audio_hpf.execute_in_place(audio);
 	audio_deemph.execute_in_place(audio);
 
+	static uint64_t audio_present_history = 0;
+	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
+	const bool audio_present = (audio_present_history != 0);
 	if( !audio_present ) {
 		// Zero audio buffer.
 		for(size_t i=0; i<audio.count; i++) {
