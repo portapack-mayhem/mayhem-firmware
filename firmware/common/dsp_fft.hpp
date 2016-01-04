@@ -111,8 +111,9 @@ void fft_c_preswapped(std::array<T, N>& data) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
 	constexpr auto K = log_2(N);
 
-	static_assert(N == 256, "lame that I've hard-coded a table for K=8");
-	static constexpr std::array<std::complex<float>, K> wp_table { {
+	constexpr size_t K_max = 8;
+	static_assert(K <= K_max, "No FFT twiddle factors for K > 8");
+	static constexpr std::array<std::complex<float>, K_max> wp_table { {
 		{ -2.00000000000000000000000000000000f,  0.00000000000000000000000000000000f },
 		{ -1.00000000000000000000000000000000f, -1.00000000000000000000000000000000f },
 		{ -0.29289321881345242726268907063059f, -0.70710678118654746171500846685376f },
