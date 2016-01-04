@@ -24,17 +24,14 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 
 #include "spectrum_collector.hpp"
 
 #include <cstdint>
-#include <array>
 
 class NarrowbandAMAudio : public BasebandProcessor {
 public:

@@ -21,6 +21,8 @@
 
 #include "proc_am_audio.hpp"
 
+#include <array>
+
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	if( !configured ) {
 		return;

@@ -30,8 +30,6 @@
 #include "dsp_iir_config.hpp"
 #include "dsp_squelch.hpp"
 
-#include "message.hpp"
-
 #include "spectrum_collector.hpp"
 
 class NarrowbandFMAudio : public BasebandProcessor {
