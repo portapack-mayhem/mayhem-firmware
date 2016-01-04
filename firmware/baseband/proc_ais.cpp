@@ -37,7 +37,7 @@ void AISProcessor::execute(const buffer_c8_t& buffer) {
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto decimator_out = decim_1_out;
 
-	/* 76.8kHz, 64 samples */
+	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 	/* No spectrum display while AIS decoding.
 	feed_channel_spectrum(
