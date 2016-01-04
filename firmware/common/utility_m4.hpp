@@ -26,15 +26,6 @@
 
 #include <hal.h>
 
-static inline bool m4_flag_saturation() {
-	return __get_APSR() & (1U << 27);
-}
-
-static inline void clear_m4_flag_saturation() {
-	uint32_t flags = 1;
-	__asm volatile ("MSR APSR_nzcvqg, %0" : : "r" (flags));
-}
-
 static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type a, const complex16_t::rep_type b) {
 	// conjugate: conj(a + bj) = a - bj
 	// multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j

@@ -21,7 +21,7 @@
 
 #include "baseband_stats_collector.hpp"
 
-#include "utility_m4.hpp"
+#include "lpc43xx_cpp.hpp"
 
 bool BasebandStatsCollector::process(const buffer_c8_t& buffer) {
 	samples += buffer.count;
@@ -50,8 +50,8 @@ BasebandStatistics BasebandStatsCollector::capture_statistics() {
 	statistics.baseband_ticks = (baseband_ticks - last_baseband_ticks);
 	last_baseband_ticks = baseband_ticks;
 
-	statistics.saturation = m4_flag_saturation();
-	clear_m4_flag_saturation();
+	statistics.saturation = lpc43xx::m4::flag_saturation();
+	lpc43xx::m4::clear_flag_saturation();
 
 	samples_last_report = samples;
 

@@ -30,6 +30,21 @@
 
 namespace lpc43xx {
 
+#if defined(LPC43XX_M4)
+namespace m4 {
+
+static inline bool flag_saturation() {
+	return __get_APSR() & (1U << 27);
+}
+
+static inline void clear_flag_saturation() {
+	uint32_t flags = 1;
+	__asm volatile ("MSR APSR_nzcvqg, %0" : : "r" (flags));
+}
+
+} /* namespace m4 */
+#endif
+
 namespace creg {
 
 static_assert(offsetof(LPC_CREG_Type, CREG0) == 0x004, "CREG0 offset wrong");
