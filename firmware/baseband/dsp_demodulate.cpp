@@ -31,8 +31,8 @@ namespace dsp {
 namespace demodulate {
 
 buffer_s16_t AM::execute(
-	buffer_c16_t src,
-	buffer_s16_t dst
+	const buffer_c16_t& src,
+	const buffer_s16_t& dst
 ) {
 	/* Intermediate maximum value: 46341 (when input is -32768,-32768). */
 	/* Normalized to maximum 32767 for int16_t representation. */
@@ -78,8 +78,8 @@ static inline float angle_precise(const complex32_t t) {
 }
 
 buffer_s16_t FM::execute(
-	buffer_c16_t src,
-	buffer_s16_t dst
+	const buffer_c16_t& src,
+	const buffer_s16_t& dst
 ) {
 	auto z = z_;
 

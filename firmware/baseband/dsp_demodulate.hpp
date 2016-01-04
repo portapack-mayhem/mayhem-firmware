@@ -30,16 +30,16 @@ namespace demodulate {
 class AM {
 public:
 	buffer_s16_t execute(
-		buffer_c16_t src,
-		buffer_s16_t dst
+		const buffer_c16_t& src,
+		const buffer_s16_t& dst
 	);
 };
 
 class FM {
 public:
 	buffer_s16_t execute(
-		buffer_c16_t src,
-		buffer_s16_t dst
+		const buffer_c16_t& src,
+		const buffer_s16_t& dst
 	);
 
 	void configure(const float sampling_rate, const float deviation_hz) {
