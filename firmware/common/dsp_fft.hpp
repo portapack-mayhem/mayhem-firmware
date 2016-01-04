@@ -112,7 +112,8 @@ void fft_c_preswapped(std::array<T, N>& data) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
 
 	/* Provide data to this function, pre-swapped. */
-	for(size_t mmax = 1; N > mmax; mmax <<= 1) {
+	for(size_t k = 0; k < log_2(N); k++) {
+		const size_t mmax = 1 << k;
 		const float theta = -pi / mmax;
 		const float wtemp = sin_f32(0.5f * theta);
 		const T wp {
