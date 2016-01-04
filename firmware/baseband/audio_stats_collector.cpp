@@ -58,3 +58,13 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
 		return false;
 	}
 }
+
+bool AudioStatsCollector::feed(const buffer_s16_t& src) {
+	consume_audio_buffer(src);
+
+	return update_stats(src.count, src.sampling_rate);
+}
+
+bool AudioStatsCollector::mute(const size_t sample_count, const size_t sampling_rate) {
+	return update_stats(sample_count, sampling_rate);
+}
