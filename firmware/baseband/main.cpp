@@ -117,6 +117,22 @@ static void shutdown() {
 	halt();
 }
 
+extern "C" {
+
+CH_IRQ_HANDLER(MAPP_IRQHandler) {
+	CH_IRQ_PROLOGUE();
+
+	chSysLockFromIsr();
+	events_flag_isr(EVT_MASK_BASEBAND);
+	chSysUnlockFromIsr();
+
+	creg::m0apptxevent::clear();
+
+	CH_IRQ_EPILOGUE();
+}
+
+}
+
 class EventDispatcher {
 public:
 	void run() {

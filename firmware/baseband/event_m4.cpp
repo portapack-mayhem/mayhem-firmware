@@ -21,29 +21,10 @@
 
 #include "event_m4.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include "ch.h"
 
 Thread* thread_event_loop = nullptr;
 
 void events_initialize(Thread* const event_loop_thread) {
 	thread_event_loop = event_loop_thread;
-}
-
-extern "C" {
-
-CH_IRQ_HANDLER(MAPP_IRQHandler) {
-	CH_IRQ_PROLOGUE();
-
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_BASEBAND);
-	chSysUnlockFromIsr();
-
-	creg::m0apptxevent::clear();
-
-	CH_IRQ_EPILOGUE();
-}
-
 }
