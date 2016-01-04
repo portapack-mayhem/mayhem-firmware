@@ -54,6 +54,10 @@ void BasebandProcessor::fill_audio_buffer(const buffer_s16_t& audio) {
 	feed_audio_stats(audio);
 }
 
+void BasebandProcessor::mute_audio() {
+	i2s::i2s0::tx_mute();
+}
+
 void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
 	audio_stats.feed(
 		audio,
