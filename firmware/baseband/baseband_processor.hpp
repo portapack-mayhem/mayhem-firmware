@@ -39,7 +39,6 @@ public:
 	virtual void execute(const buffer_c8_t& buffer) = 0;
 
 	virtual void on_message(const Message* const) { };
-	virtual void on_update_spectrum() { };
 
 protected:
 	void feed_channel_stats(const buffer_c16_t& channel);
