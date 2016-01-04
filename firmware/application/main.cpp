@@ -37,7 +37,7 @@
 #include "irq_controls.hpp"
 #include "irq_rtc.hpp"
 
-#include "event.hpp"
+#include "event_m0.hpp"
 
 #include "m4_startup.hpp"
 #include "spi_image.hpp"

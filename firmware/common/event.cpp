@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "event_m4.hpp"
+#include "event.hpp"
 
 #include "ch.h"
 

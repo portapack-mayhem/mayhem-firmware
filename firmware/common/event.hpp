@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,12 +19,25 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "event.hpp"
+#ifndef __EVENT_H__
+#define __EVENT_H__
 
 #include "ch.h"
 
-Thread* thread_event_loop = nullptr;
+void events_initialize(Thread* const event_loop_thread);
 
-void events_initialize(Thread* const event_loop_thread) {
-	thread_event_loop = event_loop_thread;
+extern Thread* thread_event_loop;
+
+inline void events_flag(const eventmask_t events) {
+	if( thread_event_loop ) {
+		chEvtSignal(thread_event_loop, events);
+	}
 }
+
+inline void events_flag_isr(const eventmask_t events) {
+	if( thread_event_loop ) {
+		chEvtSignalI(thread_event_loop, events);
+	}
+}
+
+#endif/*__EVENT_H__*/

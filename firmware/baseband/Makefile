@@ -124,7 +124,7 @@ CSRC = $(PORTSRC) \
 # setting.
 CPPSRC = main.cpp \
          message_queue.cpp \
-         event_m4.cpp \
+         event.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          portapack_shared_memory.cpp \

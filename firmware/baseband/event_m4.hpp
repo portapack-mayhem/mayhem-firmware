@@ -22,25 +22,9 @@
 #ifndef __EVENT_M4_H__
 #define __EVENT_M4_H__
 
-#include "ch.h"
+#include "event.hpp"
 
 constexpr auto EVT_MASK_BASEBAND = EVENT_MASK(0);
 constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
-
-void events_initialize(Thread* const event_loop_thread);
-
-extern Thread* thread_event_loop;
-
-inline void events_flag(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignal(thread_event_loop, events);
-	}
-}
-
-inline void events_flag_isr(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignalI(thread_event_loop, events);
-	}
-}
 
 #endif/*__EVENT_M4_H__*/

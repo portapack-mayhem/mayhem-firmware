@@ -19,10 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __EVENT_H__
-#define __EVENT_H__
+#ifndef __EVENT_M0_H__
+#define __EVENT_M0_H__
 
-#include "ch.h"
+#include "event.hpp"
 
 constexpr auto EVT_MASK_RTC_TICK		= EVENT_MASK(0);
 constexpr auto EVT_MASK_LCD_FRAME_SYNC	= EVENT_MASK(1);
@@ -31,20 +31,4 @@ constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
 constexpr auto EVT_MASK_APPLICATION		= EVENT_MASK(6);
 
-void events_initialize(Thread* const event_loop_thread);
-
-extern Thread* thread_event_loop;
-
-inline void events_flag(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignal(thread_event_loop, events);
-	}
-}
-
-inline void events_flag_isr(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignalI(thread_event_loop, events);
-	}
-}
-
-#endif/*__EVENT_H__*/
+#endif/*__EVENT_M0_H__*/

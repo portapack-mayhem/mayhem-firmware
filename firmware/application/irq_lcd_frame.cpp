@@ -21,7 +21,7 @@
 
 #include "irq_lcd_frame.hpp"
 
-#include "event.hpp"
+#include "event_m0.hpp"
 
 #include "ch.h"
 #include "hal.h"
