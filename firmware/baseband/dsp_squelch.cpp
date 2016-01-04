@@ -43,3 +43,7 @@ bool FMSquelch::execute(buffer_s16_t audio) {
 
 	return (max_squared < threshold_squared);
 }
+
+void FMSquelch::set_threshold(const uint32_t new_value) {
+	threshold_squared = new_value * new_value;
+}

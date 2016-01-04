@@ -33,9 +33,11 @@ class FMSquelch {
 public:
 	bool execute(buffer_s16_t audio);
 
+	void set_threshold(const uint32_t new_value);
+
 private:
 	static constexpr size_t N = 32;
-	static constexpr uint32_t threshold_squared = 8192 * 8192;
+	uint32_t threshold_squared { 0 };
 
 	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
