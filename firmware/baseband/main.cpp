@@ -41,6 +41,8 @@
 
 #include "touch_dma.hpp"
 
+#include "modules.h"
+
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_fft.hpp"
@@ -57,9 +59,9 @@
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
 #include "proc_wfm_audio.hpp"
-//#include "proc_ais.hpp"
+#include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
-//#include "proc_tpms.hpp"
+#include "proc_tpms.hpp"
 #include "proc_afskrx.hpp"
 #include "proc_sigfrx.hpp"
 
@@ -390,46 +392,46 @@ int main(void) {
 				delete old_p;
 
 				switch(message->configuration.mode) {
-				case 0:
+				case RX_NBAM_AUDIO:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new NarrowbandAMAudio();
 					break;
 
-				case 1:
+				case RX_NBFM_AUDIO:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new NarrowbandFMAudio();
 					break;
 
-				case 2:
+				case RX_WBFM_AUDIO:
 					baseband_thread.baseband_processor = new WidebandFMAudio();
 					break;
 
-				/*case 3:
+				case RX_AIS:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new AISProcessor();
-					break;*/
+					break;
 
-				case 4:
+				case RX_WBSPECTRUM:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new WidebandSpectrum();
 					break;
 
-				/*case 5:
+				case RX_TPMS:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new TPMSProcessor();
-					break;*/
+					break;
 					
-				case 6:
+				case RX_AFSK:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new AFSKRXProcessor();
 					break;
 					
-				case 7:
+				case RX_SIGFOX:
 					direction = baseband::Direction::Receive;
 					baseband_thread.baseband_processor = new SIGFRXProcessor();
 					break;
 					
-				case 0xFF:
+				case SWITCH:
 					wait_for_switch();
 
 				default:

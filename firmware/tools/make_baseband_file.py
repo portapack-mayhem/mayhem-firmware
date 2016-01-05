@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 #
-# Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
-#
-# This file is part of PortaPack.
+# Copyright (C) 2016 Furrtek
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,4 +87,4 @@ for args in sys.argv:
 		md5sum += '0x' + format(byte, '02x') + ','
 	h_data += 'const char md5_' + args.replace('-','_') + '[16] = {' + md5sum + '};\n'
 
-write_file(h_data, 'application/modules.h')
+write_file(h_data, 'common/modules.h')

@@ -50,7 +50,7 @@ WhistleView::~WhistleView() {
 }
 
 void WhistleView::paint(Painter& painter) {
-
+	(void)painter;
 }
 
 void WhistleView::whistle_th(void *arg) {
@@ -72,7 +72,7 @@ WhistleView::WhistleView(
     msg_t mbox_buffer[3];
     chMBInit(&mbox, mbox_buffer, 3);
 	
-	transmitter_model.set_modulation(17);
+	transmitter_model.set_modulation(TX_TONE);
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	
 	add_children({ {

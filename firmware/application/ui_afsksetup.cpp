@@ -46,7 +46,7 @@ void AFSKSetupView::focus() {
 }
 
 void AFSKSetupView::paint(Painter& painter) {
-
+	(void)painter;
 }
 
 void AFSKSetupView::updfreq(rf::Frequency f) {

@@ -159,13 +159,33 @@ public:
 	AudioStatistics statistics;
 };
 
+typedef enum {
+	RX_NBAM_AUDIO = 0,
+	RX_NBFM_AUDIO, 
+	RX_WBFM_AUDIO,
+	RX_AIS,
+	RX_WBSPECTRUM,
+	RX_TPMS,
+	RX_AFSK,
+	RX_SIGFOX,
+	
+	TX_RDS,
+	TX_LCR,
+	TX_TONE,
+	TX_JAMMER,
+	TX_XYLOS,
+	
+	NONE,
+	SWITCH = 0xFF
+} mode_type;
+
 struct BasebandConfiguration {
-	int32_t mode;
+	mode_type mode;
 	uint32_t sampling_rate;
 	size_t decimation_factor;
 
 	constexpr BasebandConfiguration(
-		int32_t mode = -1,
+		mode_type mode = NONE,
 		uint32_t sampling_rate = 0,
 		size_t decimation_factor = 1
 	) : mode { mode },

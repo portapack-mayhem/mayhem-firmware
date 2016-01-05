@@ -38,6 +38,8 @@
 
 #include "touch_dma.hpp"
 
+#include "modules.h"
+
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_fft.hpp"
@@ -468,6 +470,23 @@ private:
 
 const auto baseband_buffer =
 	new std::array<baseband::sample_t, 8192>();
+	
+char ram_loop[32];
+typedef int (*fn_ptr)(void);
+fn_ptr loop_ptr;
+	
+void ram_loop_fn(void) {
+	while(1) {}
+}
+	
+void wait_for_switch(void) {
+	memcpy(&ram_loop[0], reinterpret_cast<char*>(&ram_loop_fn), 32);
+	loop_ptr = reinterpret_cast<fn_ptr>(&ram_loop[0]);
+	ReadyForSwitchMessage message;
+	shared_memory.application_queue.push(message);
+	(*loop_ptr)();
+	return;
+}
 		
 int main(void) {
 	init();
@@ -494,30 +513,33 @@ int main(void) {
 				delete old_p;
 
 				switch(message->configuration.mode) {
-				case 15:
+				case TX_RDS:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new RDSProcessor();
 					break;
 				
-				case 16:
+				case TX_LCR:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new LCRFSKProcessor();
 					break;
 			
-				case 17:
+				case TX_TONE:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new ToneProcessor();
 					break;
 				
-				case 18:
+				case TX_JAMMER:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new JammerProcessor();
 					break;
 					
-				case 19:
+				case TX_XYLOS:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new XylosProcessor();
 					break;
+					
+				case 0xFF:
+					wait_for_switch();
 
 				default:
 					break;

@@ -121,7 +121,7 @@ constexpr gpdma::channel::Config config_rx() {
 
 /* TODO: Clean up terminology around "buffer", "transfer", "samples" */
 
-constexpr size_t buffer_samples_log2n = 7;
+constexpr size_t buffer_samples_log2n = 8; // Bumped to 8, to allow filling at 750Hz
 constexpr size_t buffer_samples = (1 << buffer_samples_log2n);
 constexpr size_t transfers_per_buffer_log2n = 2;
 constexpr size_t transfers_per_buffer = (1 << transfers_per_buffer_log2n);

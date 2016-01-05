@@ -49,7 +49,7 @@ XylosView::~XylosView() {
 }
 
 void XylosView::paint(Painter& painter) {
-
+	(void)painter;
 }
 
 void XylosView::upd_message() {
@@ -96,7 +96,37 @@ void XylosView::upd_message() {
 	
 	ccirmessage[20] = 0;
 	
+	// Display as text
 	text_debug.set(ccirmessage);
+	
+	// ASCII to baseband frequency LUT index
+	for (c=0; c<20; c++) {
+		if (ccirmessage[c] > '9')
+			ccirmessage[c] -= 0x37;
+		else
+			ccirmessage[c] -= 0x30;
+	}
+}
+
+void XylosView::journuit() {
+	uint8_t sr;
+	
+	chThdSleepMilliseconds(1000);
+	
+	// Invert relay states
+	sr = options_ra.selected_index();
+	if (sr > 0) options_ra.set_selected_index(sr ^ 3);
+	sr = options_rb.selected_index();
+	if (sr > 0) options_rb.set_selected_index(sr ^ 3);
+	sr = options_rc.selected_index();
+	if (sr > 0) options_rc.set_selected_index(sr ^ 3);
+	
+	upd_message();
+	
+	portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+	shared_memory.xylos_transmit_done = false;
+	memcpy(shared_memory.xylosdata, ccirmessage, 21);
+	transmitter_model.enable();
 }
 
 XylosView::XylosView(
@@ -116,7 +146,13 @@ XylosView::XylosView(
 		.foreground = Color::black(),
 	};
 	
-	transmitter_model.set_modulation(19);
+	transmitter_model.set_baseband_configuration({
+		.mode = TX_XYLOS,
+		.sampling_rate = 1536000,
+		.decimation_factor = 1,
+	});
+	
+	transmitter_model.set_modulation(TX_XYLOS); // Useless ?
 	
 	add_children({ {
 		&text_title,
@@ -141,6 +177,7 @@ XylosView::XylosView(
 		&text_progress,
 		&text_debug,
 		&button_transmit,
+		&checkbox_cligno,
 		&button_exit
 	} });
 	
@@ -170,9 +207,17 @@ XylosView::XylosView(
 		XylosView::upd_message();
 	};
 	checkbox_wcsubfamily.on_select = [this](Checkbox&) {
+		if (checkbox_wcsubfamily.value() == true)
+			subfamily_code.hidden(true);
+		else
+			subfamily_code.hidden(false);
 		XylosView::upd_message();
 	};
 	checkbox_wcid.on_select = [this](Checkbox&) {
+		if (checkbox_wcid.value() == true)
+			receiver_code.hidden(true);
+		else
+			receiver_code.hidden(false);
 		XylosView::upd_message();
 	};
 	options_ra.on_change = [this](size_t n, OptionsField::value_t v) {
@@ -207,14 +252,19 @@ XylosView::XylosView(
 					char progress[21];
 					const auto message = static_cast<const TXDoneMessage*>(p);
 					if (message->n == 25) {
+						portapack::audio_codec.set_headphone_volume(volume_t::decibel(0 - 99) + wolfson::wm8731::headphone_gain_range.max);
 						transmitter_model.disable();
 						for (c=0;c<20;c++)
 							progress[c] = ' ';
 						progress[20] = 0;
 						text_progress.set(progress);
-						txing = false;
-						button_transmit.set_style(&style_val);
-						button_transmit.set_text("START");
+						if (checkbox_cligno.value() == false) {
+							txing = false;
+							button_transmit.set_style(&style_val);
+							button_transmit.set_text("START");
+						} else {
+							journuit();
+						}
 					} else {
 						for (c=0;c<message->n;c++)
 							progress[c] = ' ';
@@ -227,9 +277,11 @@ XylosView::XylosView(
 			
 			shared_memory.xylos_transmit_done = false;
 			memcpy(shared_memory.xylosdata, ccirmessage, 21);
+
+			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 			
-			transmitter_model.set_tuning_frequency(87700000); //xylos_freqs[options_freq.selected_index()]);
-			
+			portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+
 			txing = true;
 			button_transmit.set_style(&style_cancel);
 			button_transmit.set_text("Wait");

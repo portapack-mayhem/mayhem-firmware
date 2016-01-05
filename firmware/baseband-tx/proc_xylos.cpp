@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -27,27 +28,29 @@
 
 void XylosProcessor::execute(buffer_c8_t buffer) {
 	
+	// This is called at 1536000/2048 = 750Hz
+	
+	ai = 0;
+	
 	for (size_t i = 0; i<buffer.count; i++) {
-		//Sample generation 2.28M/10 = 228kHz
+		
+		// Sample generation rate: 1536000/10 = 153kHz
 		if (s >= 9) {
 			s = 0;
 			
 			if (sample_count >= CCIR_TONELENGTH) {
 				if (shared_memory.xylos_transmit_done == false) {
-					message.n = byte_pos;	// Progress
+					message.n = byte_pos;	// Inform UI about progress (just as eye candy)
 					shared_memory.application_queue.push(message);
 					digit = shared_memory.xylosdata[byte_pos++];
 				}
 					
 				if (!digit) {
-					message.n = 25;	// Done code
+					message.n = 25;	// End of message code
 					shared_memory.xylos_transmit_done = true;
 					shared_memory.application_queue.push(message);
 					digit = 0;
 				}
-
-				if (digit > '9') digit -= 7;
-				digit -= 0x30;
 				
 				sample_count = 0;
 			} else {
@@ -59,10 +62,18 @@ void XylosProcessor::execute(buffer_c8_t buffer) {
 			s++;
 		}
 		
-		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255); 
+		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
+		
+		// Audio preview sample generation: 1536000/48000 = 32
+		if (as >= 31) {
+			as = 0;
+			preview_audio_buffer.p[ai++] = sample * 128;
+		} else {
+			as++;
+		}
 		
 		//FM
-		frq = sample * 160; // 20kHz wide (?)
+		frq = sample * 300; // ~10kHz wide
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);
@@ -72,4 +83,6 @@ void XylosProcessor::execute(buffer_c8_t buffer) {
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
+	
+	fill_audio_buffer(preview_audio_buffer);
 }

@@ -50,7 +50,7 @@ JammerView::~JammerView() {
 }
 
 void JammerView::paint(Painter& painter) {
-
+	(void)painter;
 }
 
 void JammerView::updfreq(uint8_t id, rf::Frequency f) {
@@ -169,7 +169,7 @@ JammerView::JammerView(
 		.foreground = Color::grey(),
 	};
 	
-	transmitter_model.set_modulation(18);
+	transmitter_model.set_modulation(TX_JAMMER);
 	
 	add_children({ {
 		&text_type,

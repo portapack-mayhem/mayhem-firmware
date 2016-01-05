@@ -48,7 +48,7 @@ AFSKRXView::AFSKRXView(
 	};
 	
 	receiver_model.set_baseband_configuration({
-		.mode = 6,
+		.mode = RX_AFSK,
 		.sampling_rate = 3072000,
 		.decimation_factor = 4,
 	});

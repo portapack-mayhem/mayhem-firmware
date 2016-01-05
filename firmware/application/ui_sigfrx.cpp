@@ -1,0 +1,144 @@
+/*
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include "ui_sigfrx.hpp"
+#include "ui_receiver.hpp"
+
+#include "ch.h"
+#include "evtimer.h"
+
+#include "ff.h"
+#include "hackrf_gpio.hpp"
+#include "portapack.hpp"
+#include "radio.hpp"
+//#include "fox_bmp.hpp"
+
+#include "hackrf_hal.hpp"
+#include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
+
+#include <cstring>
+#include <stdio.h>
+
+using namespace hackrf::one;
+
+namespace ui {
+
+void SIGFRXView::focus() {
+	button_exit.focus();
+}
+
+SIGFRXView::~SIGFRXView() {
+	receiver_model.disable();
+}
+
+void SIGFRXView::paint(Painter& painter) {
+	uint8_t i, xp;
+	
+	//portapack::display.drawBMP({0, 302-160}, fox_bmp);
+	portapack::display.fill_rectangle({0,16,240,160-16}, ui::Color::white());
+	for (i = 0; i < 6; i++) {
+		xp = sigfrx_marks[i*3];
+		painter.draw_string({ (ui::Coord)sigfrx_marks[(i*3)+1], 144-20 }, style_white, to_string_dec_uint(sigfrx_marks[(i*3)+2]) );
+		portapack::display.draw_line({xp, 144-4}, {xp, 144}, ui::Color::black());
+	}
+}
+
+void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+	portapack::display.fill_rectangle({0, 144, 240, 4},ui::Color::white());
+	
+	uint8_t xmax = 0, imax = 0;
+	size_t i;
+	
+	for (i=0; i<120; i++) {
+		if (spectrum.db[i] > xmax) {
+			xmax = spectrum.db[i];
+			imax = i;
+		}
+	}
+	for (i=136; i<256; i++) {
+		if (spectrum.db[i-16] > xmax) {
+			xmax = spectrum.db[i-16];
+			imax = i-16;
+		}
+	}
+	
+	if ((imax >= last_channel-2) && (imax <= last_channel+2)) {
+		if (detect_counter >= 5) {
+			// Latched !
+		} else {
+			detect_counter++;
+		}
+	} else {
+		if (detect_counter >= 5) text_channel.set("...        ");
+		detect_counter = 0;
+	}
+	
+	last_channel = imax;
+	
+	portapack::display.fill_rectangle({(ui::Coord)(imax-2), 144, 4, 4}, ui::Color::red());
+}
+
+void SIGFRXView::on_show() {
+	context().message_map().register_handler(Message::ID::ChannelSpectrum,
+		[this](const Message* const p) {
+			this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
+		}
+	);
+}
+
+SIGFRXView::SIGFRXView(
+	NavigationView& nav,
+	ReceiverModel& receiver_model
+) : receiver_model(receiver_model)
+{
+	receiver_model.set_baseband_configuration({
+		.mode = RX_SIGFOX,
+		.sampling_rate = 3072000,
+		.decimation_factor = 4,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
+	
+	receiver_model.set_tuning_frequency(868110000);
+	
+	receiver_model.set_lna(0);
+	receiver_model.set_vga(0);
+	
+	add_children({ {
+		&text_type,
+		&text_channel,
+		&text_data,
+		&button_exit
+	} });
+	
+	text_type.set_style(&style_white);
+	text_channel.set_style(&style_white);
+	text_data.set_style(&style_white);
+
+	button_exit.on_select = [&nav](Button&){
+		nav.pop();
+	};
+	
+	receiver_model.enable();
+	
+}
+
+} /* namespace ui */

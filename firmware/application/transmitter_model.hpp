@@ -57,14 +57,16 @@ public:
 	uint32_t sampling_rate() const;
 	void set_sampling_rate(uint32_t hz);
 
-	uint32_t modulation() const;
-	void set_modulation(int32_t v);
+	mode_type modulation() const;
+	void set_modulation(mode_type v);
 
 	uint32_t baseband_oversampling() const;
 	void set_baseband_oversampling(uint32_t v);
 
 	void enable();
 	void disable();
+	
+	void set_baseband_configuration(const BasebandConfiguration config);
 
 private:
 	bool rf_amp_ { true };
@@ -72,7 +74,7 @@ private:
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
 	BasebandConfiguration baseband_configuration {
-		.mode = 16,
+		.mode = NONE,
 		.sampling_rate = 2280000,
 		.decimation_factor = 1,
 	};

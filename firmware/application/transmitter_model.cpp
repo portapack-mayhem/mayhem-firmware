@@ -80,11 +80,11 @@ void TransmitterModel::set_sampling_rate(uint32_t hz) {
 	update_baseband_configuration();
 }
 
-uint32_t TransmitterModel::modulation() const {
+mode_type TransmitterModel::modulation() const {
 	return baseband_configuration.mode;
 }
 
-void TransmitterModel::set_modulation(int32_t v) {
+void TransmitterModel::set_modulation(mode_type v) {
 	baseband_configuration.mode = v;
 	update_modulation();
 }
@@ -114,7 +114,7 @@ void TransmitterModel::disable() {
 	/* TODO: This is a dumb hack to stop baseband from working so hard. */
 	BasebandConfigurationMessage message {
 		.configuration = {
-			.mode = -1,
+			.mode = NONE,
 			.sampling_rate = 0,
 			.decimation_factor = 1,
 		}
@@ -152,6 +152,11 @@ void TransmitterModel::update_modulation() {
 	update_baseband_configuration();
 }
 
+void TransmitterModel::set_baseband_configuration(const BasebandConfiguration config) {
+	baseband_configuration = config;
+	update_baseband_configuration();
+}
+
 void TransmitterModel::update_baseband_configuration() {
 	radio::streaming_disable();
 
@@ -164,3 +169,4 @@ void TransmitterModel::update_baseband_configuration() {
 
 	radio::streaming_enable();
 }
+

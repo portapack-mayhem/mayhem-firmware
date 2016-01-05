@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//TODO: Enum modulation modes (baseband)
+//TODO: More gfx, cute icons :)
 //TODO: check jammer bandwidths
 //TODO: GSM channel detector
 //TODO: wait_for_switch() in baseband-tx !
@@ -27,7 +29,7 @@
 //TODO: Reset baseband if module not found (instead of lockup in RAM loop)
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //TODO: LCD backlight PWM
-//TODO: BUG: Crash after TX stop
+//TODO: BUG: Crash after TX stop (unregister message !)
 //TODO: Check bw setting in LCR TX
 //TODO: BUG: Crash after PSN entry in RDS TX
 //TODO: Dynamically load baseband code depending on mode (disable M4 & interrupts, load, reset)

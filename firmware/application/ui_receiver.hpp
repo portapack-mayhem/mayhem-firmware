@@ -411,13 +411,12 @@ private:
 		{ 19 * 8, 1 * 16 },
 		4,
 		{
-			// TODO: Put ordinals in here...
-			{ " AM ", 0 },
-			{ "NFM ", 1 },
-			{ "WFM ", 2 },
-			{ "AIS ", 3 },
-			{ "TPMS", 5 },
-			{ "SPEC", 4 },
+			{ " AM ", RX_NBAM_AUDIO },
+			{ "NFM ", RX_NBFM_AUDIO },
+			{ "WFM ", RX_WBFM_AUDIO },
+			{ "AIS ", RX_AIS },
+			{ "TPMS", RX_TPMS },
+			{ "SPEC", RX_WBSPECTRUM },
 		}
 	};
 /*
@@ -464,7 +463,7 @@ private:
 	void on_rf_amp_changed(bool v);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-	void on_modulation_changed(int32_t modulation);
+	void on_modulation_changed(mode_type modulation);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
 	void on_frequency_step_changed(rf::Frequency f);

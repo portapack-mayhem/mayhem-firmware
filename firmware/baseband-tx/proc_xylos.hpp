@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -24,35 +25,42 @@
 
 #include "baseband_processor.hpp"
 
-#define CCIR_TONELENGTH 22800
-#define PHASEV 294.34
+#define CCIR_TONELENGTH 15360-1 // 1536000/10/10
+#define PHASEV 436.91	// (65536*1024)/1536000*10
 
 class XylosProcessor : public BasebandProcessor {
 public:
 	void execute(buffer_c8_t buffer) override;
 
 private:
+	int16_t audio_data[64];
+
+	const buffer_s16_t preview_audio_buffer {
+		audio_data,
+		sizeof(int16_t)*64
+	};
+	
 	uint32_t ccir_phases[16] = {
-								1981*PHASEV,
-								1124*PHASEV,
-								1197*PHASEV,
-								1275*PHASEV,
-								1358*PHASEV,
-								1446*PHASEV,
-								1540*PHASEV,
-								1640*PHASEV,
-								1747*PHASEV,
-								1860*PHASEV,
-								2400*PHASEV,
-								930*PHASEV,
-								2247*PHASEV,
-								991*PHASEV,
-								2110*PHASEV,
-								1055*PHASEV
+								(uint32_t)(1981*PHASEV),
+								(uint32_t)(1124*PHASEV),
+								(uint32_t)(1197*PHASEV),
+								(uint32_t)(1275*PHASEV),
+								(uint32_t)(1358*PHASEV),
+								(uint32_t)(1446*PHASEV),
+								(uint32_t)(1540*PHASEV),
+								(uint32_t)(1640*PHASEV),
+								(uint32_t)(1747*PHASEV),
+								(uint32_t)(1860*PHASEV),
+								(uint32_t)(2400*PHASEV),
+								(uint32_t)(930*PHASEV),
+								(uint32_t)(2247*PHASEV),
+								(uint32_t)(991*PHASEV),
+								(uint32_t)(2110*PHASEV),
+								(uint32_t)(1055*PHASEV)
 							};
 
 	int8_t re, im;
-	uint8_t s;
+	uint8_t s, as = 0, ai;
     uint8_t byte_pos = 0;
     uint8_t digit = 0;
     uint32_t sample_count = CCIR_TONELENGTH;

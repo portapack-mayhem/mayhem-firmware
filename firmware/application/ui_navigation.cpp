@@ -195,6 +195,7 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter& painter) {
+	(void)painter;
 	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp);
 }
 

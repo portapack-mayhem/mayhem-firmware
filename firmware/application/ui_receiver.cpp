@@ -456,7 +456,7 @@ ReceiverView::ReceiverView(
 	options_modulation.set_by_value(receiver_model.modulation());
 	options_modulation.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
-		this->on_modulation_changed(v);
+		this->on_modulation_changed((mode_type)v);
 	};
 /*
 	options_baseband_oversampling.set_by_value(receiver_model.baseband_oversampling());
@@ -625,7 +625,7 @@ void ReceiverView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void ReceiverView::on_modulation_changed(int32_t modulation) {
+void ReceiverView::on_modulation_changed(mode_type modulation) {
 	/* TODO: This is TERRIBLE!!! */
 	switch(modulation) {
 	case 3:

@@ -41,7 +41,7 @@ void LoadModuleView::focus() {
 }
 
 void LoadModuleView::paint(Painter& painter) {
-
+	(void)painter;
 }
 
 void LoadModuleView::on_hide() {
@@ -53,7 +53,8 @@ void LoadModuleView::on_show() {
 	auto& message_map = context().message_map();
 	message_map.register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {
-			const auto message = static_cast<const ReadyForSwitchMessage*>(p);
+			(void)p;
+			// const auto message = static_cast<const ReadyForSwitchMessage*>(p);
 			if (m4_load_image()) {
 				text_info.set("Module loaded :)");
 				_mod_loaded = true;

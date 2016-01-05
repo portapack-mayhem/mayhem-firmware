@@ -38,6 +38,7 @@ class XylosView : public View {
 public:
 	XylosView(NavigationView& nav, TransmitterModel& transmitter_model);
 	~XylosView();
+	void journuit();
 	
 	void upd_message();
 	void focus() override;
@@ -45,7 +46,7 @@ public:
 
 private:
 	bool txing = false;
-	const rf::Frequency xylos_freqs[6] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000 };
+	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 87000000 };
 	char ccirmessage[21];
 
 	TransmitterModel& transmitter_model;
@@ -117,14 +118,15 @@ private:
 	};
 	OptionsField options_freq {
 		{ 16 * 8, 9 * 16 },
-		6,
+		7,
 		{
 			{ "31.3250", 0 },
 			{ "31.3875", 1 },
 			{ "31.4375", 2 },
 			{ "31.4750", 3 },
 			{ "31.6875", 4 },
-			{ "31.9750", 5 }
+			{ "31.9750", 5 },
+			{ "TEST 87", 6 }
 		}
 	};
 	
@@ -180,6 +182,11 @@ private:
 	Button button_transmit {
 		{ 2 * 8, 16 * 16, 64, 32 },
 		"START"
+	};
+	
+	Checkbox checkbox_cligno {
+		{ 96, 16 * 16 + 4},
+		"J/N"
 	};
 	
 	Button button_exit {

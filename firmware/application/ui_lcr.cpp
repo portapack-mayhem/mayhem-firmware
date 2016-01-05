@@ -187,7 +187,7 @@ LCRView::LCRView(
 		.foreground = Color::black(),
 	};
 	
-	transmitter_model.set_modulation(16);
+	transmitter_model.set_modulation(TX_LCR);
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	memset(litteral, 0, 5*8);
 	memset(rgsb, 0, 5);
@@ -275,9 +275,7 @@ LCRView::LCRView(
 		nav.push(new DebugLCRView { nav, lcrstring, checksum });
 	};
 	
-	button_transmit.on_select = [this,&transmitter_model](Button&){
-		uint16_t c;
-		
+	button_transmit.on_select = [this,&transmitter_model](Button&){		
 		auto& message_map = context().message_map();
 		
 		make_frame();

@@ -130,7 +130,7 @@ void ReceiverModel::disable() {
 	/* TODO: This is a dumb hack to stop baseband from working so hard. */
 	BasebandConfigurationMessage message {
 		.configuration = {
-			.mode = -1,
+			.mode = NONE,
 			.sampling_rate = 0,
 			.decimation_factor = 1,
 		}
