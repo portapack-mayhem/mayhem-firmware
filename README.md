@@ -30,6 +30,10 @@ Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more detai
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
+# Thanks
+
+Sig and cLx for discovery/research on AFSK LCR and Xylos.
+
 # License
 
 Except where specified in subdirectories of this project, all work is offered under the following license:
