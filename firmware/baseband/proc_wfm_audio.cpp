@@ -36,7 +36,12 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel);
-	//feed_channel_spectrum(channel);
+
+	spectrum_samples += channel.count;
+	if( spectrum_samples >= spectrum_interval_samples ) {
+		spectrum_samples -= spectrum_interval_samples;
+		channel_spectrum.feed(channel, channel_filter_pass_f, channel_filter_stop_f);
+	}
 
 	/* 384kHz complex<int16_t>[256]
 	 * -> FM demodulation
@@ -71,6 +76,10 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 
 void WidebandFMAudio::on_message(const Message* const message) {
 	switch(message->id) {
+	case Message::ID::UpdateSpectrum:
+		channel_spectrum.update();
+		break;
+
 	case Message::ID::WFMConfigure:
 		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
 		break;
@@ -93,10 +102,18 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 
 	constexpr size_t demod_input_fs = decim_1_output_fs;
 
+	constexpr auto spectrum_rate_hz = 50.0f;
+	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
+	spectrum_samples = 0;
+
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
+	channel_filter_pass_f = message.decim_1_filter.pass_frequency_normalized * decim_1_input_fs;
+	channel_filter_stop_f = message.decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
 	demod.configure(demod_input_fs, message.deviation);
 	audio_filter.configure(message.audio_filter.taps);
+
+	channel_spectrum.set_decimation_factor(1);
 
 	configured = true;
 }

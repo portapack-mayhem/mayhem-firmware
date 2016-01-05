@@ -29,6 +29,8 @@
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 
+#include "spectrum_collector.hpp"
+
 class WidebandFMAudio : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
@@ -48,6 +50,8 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+	uint32_t channel_filter_pass_f = 0;
+	uint32_t channel_filter_stop_f = 0;
 
 	dsp::demodulate::FM demod;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
@@ -56,6 +60,10 @@ private:
 
 	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
 	IIRBiquadFilter audio_deemph { audio_deemph_2122_6_config };
+
+	SpectrumCollector channel_spectrum;
+	size_t spectrum_interval_samples = 0;
+	size_t spectrum_samples = 0;
 
 	bool configured { false };
 	void configure(const WFMConfigureMessage& message);
