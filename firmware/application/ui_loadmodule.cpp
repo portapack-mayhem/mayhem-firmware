@@ -26,7 +26,7 @@
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-
+#include "portapack_shared_memory.hpp"
 #include "hackrf_hal.hpp"
 
 #include <cstring>
@@ -50,11 +50,39 @@ void LoadModuleView::on_hide() {
 }
 
 void LoadModuleView::on_show() {
+	// Ask for MD5 signature and compare
+	ModuleIDMessage message;
+	auto& message_map = context().message_map();
+	
+	message_map.unregister_handler(Message::ID::ModuleID);
+	
+	message_map.register_handler(Message::ID::ModuleID,
+		[this](Message* const p) {
+			uint8_t c;
+			const auto message = static_cast<const ModuleIDMessage*>(p);
+			if (message->query == false) {	// Shouldn't be needed
+				for (c=0;c<16;c++) {
+					if (message->md5_signature[c] != _hash[c]) break;
+				}
+				if (c == 16) {
+					text_info.set("Module already loaded :)");
+					_mod_loaded = true;
+				} else {
+					loadmodule();
+				}
+			}
+		}
+	);
+	
+	message.query = true;
+	shared_memory.baseband_queue.push(message);
+}
+
+void LoadModuleView::loadmodule() {
 	auto& message_map = context().message_map();
 	message_map.register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {
 			(void)p;
-			// const auto message = static_cast<const ReadyForSwitchMessage*>(p);
 			if (m4_load_image()) {
 				text_info.set("Module loaded :)");
 				_mod_loaded = true;

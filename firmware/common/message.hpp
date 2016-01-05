@@ -51,6 +51,7 @@ public:
 		Retune = 11,
 		ReadyForSwitch = 12,
 		AFSKData = 13,
+		ModuleID = 14,
 		MAX
 	};
 
@@ -295,6 +296,17 @@ public:
 	}
 	
 	int n = 0;
+};
+
+class ModuleIDMessage : public Message {
+public:
+	ModuleIDMessage(
+	) : Message { ID::ModuleID }
+	{
+	}
+	
+	bool query;
+	char md5_signature[16];
 };
 
 class ReadyForSwitchMessage : public Message {

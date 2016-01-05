@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- *
+ * 
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,11 +45,10 @@ void XylosProcessor::execute(buffer_c8_t buffer) {
 					digit = shared_memory.xylosdata[byte_pos++];
 				}
 					
-				if (!digit) {
+				if (digit == 0xFF) {
 					message.n = 25;	// End of message code
 					shared_memory.xylos_transmit_done = true;
 					shared_memory.application_queue.push(message);
-					digit = 0;
 				}
 				
 				sample_count = 0;

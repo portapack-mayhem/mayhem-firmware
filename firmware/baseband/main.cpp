@@ -348,7 +348,7 @@ private:
 
 const auto baseband_buffer =
 	new std::array<baseband::sample_t, 8192>();
-	
+
 char ram_loop[32];
 typedef int (*fn_ptr)(void);
 fn_ptr loop_ptr;
@@ -363,7 +363,6 @@ void wait_for_switch(void) {
 	ReadyForSwitchMessage message;
 	shared_memory.application_queue.push(message);
 	(*loop_ptr)();
-	return;
 }
 		
 int main(void) {
@@ -374,6 +373,18 @@ int main(void) {
 
 	EventDispatcher event_dispatcher;
 	auto& message_handlers = event_dispatcher.message_handlers();
+	
+	message_handlers.register_handler(Message::ID::ModuleID,
+		[&message_handlers](Message* p) {
+			ModuleIDMessage reply;
+			auto message = static_cast<ModuleIDMessage*>(p);
+			if (message->query == true) {	// Shouldn't be needed
+				memcpy(reply.md5_signature, (const void *)(0x10087FF0), 16);
+				reply.query = false;
+				shared_memory.application_queue.push(reply);
+			}
+		}
+	);
 
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
 		[&message_handlers](const Message* const p) {

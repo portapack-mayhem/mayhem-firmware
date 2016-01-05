@@ -32,6 +32,7 @@ namespace ui {
 class LoadModuleView : public View {
 public:
 	LoadModuleView(NavigationView& nav, const char * hash, View* new_view);
+	void loadmodule();
 	
 	void on_show() override;
 	void on_hide() override;

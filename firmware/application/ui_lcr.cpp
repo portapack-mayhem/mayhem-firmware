@@ -290,16 +290,17 @@ LCRView::LCRView(
 		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
 		
 		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = ((portapack::persistent_memory::afsk_config() >> 8) & 0xFF);
+		shared_memory.afsk_repeat = (portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
 
 		message_map.register_handler(Message::ID::TXDone,
 			[this,&transmitter_model](Message* const p) {
+				char str[8];
 				const auto message = static_cast<const TXDoneMessage*>(p);
 				if (message->n > 0) {
-					char str[8];
+					text_status.set("       ");
 					strcpy(str, to_string_dec_int(message->n).c_str());
 					strcat(str, "/");
-					strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
+					strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
 					text_status.set(str);
 				} else {
 					text_status.set("Done ! ");

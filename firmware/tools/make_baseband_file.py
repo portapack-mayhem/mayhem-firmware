@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-#
 # Copyright (C) 2016 Furrtek
 #
 # This program is free software; you can redistribute it and/or modify
@@ -56,35 +55,59 @@ sys.argv = sys.argv[1:]
 
 # Format for module file:
 # Magic (4), Version (2), Length (4), Name (16), MD5 (16), Description (214)
-# Unpadded module binary...
+# Module binary...
+# MD5 (16)
 
 for args in sys.argv:
 	data = read_image(args + '/build/' + args + '.bin')
+	data_r = data
+	
+	# Magic bytes
 	info = 'PPM '
+	
+	# Version
 	info += struct.pack('H', 1)
+	
+	# Length
 	info += struct.pack('I', len(data))
+	
+	# Module name
 	name = read_image(args + '/name')
 	if len(name) > 16:
 		name = name[0:15]
 	pad_size = 16 - len(name)
 	name += (data_default_byte * pad_size)
 	info += name
+	
+	# Module MD5 footprint
 	m.update(data)
 	digest = m.digest()
 	pad_size = 16 - len(digest)
 	digest += (data_default_byte * pad_size)
 	info += digest
+	
+	# Module description
 	description = read_image(args + '/description')
 	if len(description) > 214:
 		description = description[0:213]
 	pad_size = 214 - len(description)
 	description += (data_default_byte * pad_size)
 	info += description
+	
+	# Padding
 	data = info + data
+	pad_size = (32768 + 256 - 16) - len(data)
+	data += (data_default_byte * pad_size)
+	data += digest
 	write_file(data, args + '.bin')
+	
+	# Add to modules.h
 	md5sum = ''
 	for byte in digest:
 		md5sum += '0x' + format(byte, '02x') + ','
 	h_data += 'const char md5_' + args.replace('-','_') + '[16] = {' + md5sum + '};\n'
+	
+	# Update original binary with MD5 footprint
+	write_file(data[256:(32768+256)], args + '/build/' + args + '.bin')
 
 write_file(h_data, 'common/modules.h')

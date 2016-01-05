@@ -55,6 +55,7 @@ int m4_load_image(void) {
 	uint32_t mod_size;
 	UINT bw;
 	uint8_t i;
+	uint16_t cnt;
 	char md5sum[16];
 	FILINFO modinfo;
 	FIL modfile;
@@ -77,9 +78,11 @@ int m4_load_image(void) {
 				f_lseek(&modfile, 6);
 				f_read(&modfile, &mod_size, 4, &bw);
 				f_lseek(&modfile, 256);
-				f_read(&modfile, reinterpret_cast<void*>(portapack::memory::map::m4_code.base()), mod_size, &bw);
-				LPC_RGU->RESET_CTRL[0] = (1 << 13);
+				// For some reason, f_read > 512 bytes at once crashes everything... :/
+				for (cnt=0;cnt<256;cnt++)
+					f_read(&modfile, reinterpret_cast<void*>(portapack::memory::map::m4_code.base()+(cnt*256)), 256, &bw);
 				f_close(&modfile);
+				LPC_RGU->RESET_CTRL[0] = (1 << 13);
 				return 1;
 			}
 			f_close(&modfile);
