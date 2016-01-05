@@ -15,6 +15,8 @@ Fork features:
 * Dynamic baseband code loading (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 
 Todo:
+* Rolling-code jam and replay trick
+* Make SIGFOX interceptor work with all modules
 * AFSK receiver
 * Moltonel (tone detector/scanner)
 * Whistle (tone generator)
@@ -22,7 +24,7 @@ Todo:
 * CTCSS talkie transmit
 * Play wave files from µSD
 * EPAR transmit (old Xylos)
-* Detect/decode/play/replay PT2262 and friends (doorbells, cheap remotes... )
+* Detect/decode/play/replay OOK from PT2262 and friends (doorbells, cheap remotes... )
 
 Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.
 
