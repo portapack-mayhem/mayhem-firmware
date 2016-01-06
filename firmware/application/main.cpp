@@ -197,6 +197,8 @@ private:
 	}
 
 	void handle_lcd_frame_sync() {
+		DisplayFrameSyncMessage message;
+		context.message_map().send(&message);
 		painter.paint_widget_tree(top_widget);
 	}
 

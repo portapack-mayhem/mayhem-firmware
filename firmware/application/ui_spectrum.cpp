@@ -240,16 +240,23 @@ void WaterfallWidget::on_show() {
 	context().message_map().register_handler(Message::ID::FIFONotify,
 		[this](const Message* const p) {
 			const auto message = reinterpret_cast<const FIFONotifyMessage*>(p);
-			auto fifo = reinterpret_cast<ChannelSpectrumFIFO*>(message->fifo);
-			ChannelSpectrum channel_spectrum;
-			if( fifo->out(channel_spectrum) ) {
-				this->on_channel_spectrum(channel_spectrum);
+			this->fifo = reinterpret_cast<ChannelSpectrumFIFO*>(message->fifo);
+		}
+	);
+	context().message_map().register_handler(Message::ID::DisplayFrameSync,
+		[this](const Message* const p) {
+			if( this->fifo ) {
+				ChannelSpectrum channel_spectrum;
+				while( fifo->out(channel_spectrum) ) {
+					this->on_channel_spectrum(channel_spectrum);
+				}
 			}
 		}
 	);
 }
 
 void WaterfallWidget::on_hide() {
+	context().message_map().unregister_handler(Message::ID::DisplayFrameSync);
 	context().message_map().unregister_handler(Message::ID::FIFONotify);
 }
 

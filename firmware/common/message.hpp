@@ -45,7 +45,7 @@ public:
 		RSSIStatistics = 0,
 		BasebandStatistics = 1,
 		ChannelStatistics = 2,
-
+		DisplayFrameSync = 3,
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
 		TPMSPacket = 6,
@@ -131,6 +131,14 @@ public:
 	}
 
 	ChannelStatistics statistics;
+};
+
+class DisplayFrameSyncMessage : public Message {
+public:
+	constexpr DisplayFrameSyncMessage(
+	) : Message { ID::DisplayFrameSync }
+	{
+	}
 };
 
 struct AudioStatistics {
