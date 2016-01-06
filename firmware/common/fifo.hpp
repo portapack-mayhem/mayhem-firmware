@@ -61,7 +61,7 @@ public:
 	bool is_full() const {
 		return unused() == 0;
 	}
-/*
+
 	bool in(const T& val) {
 		const bool is_not_full = !is_full();
 		if( is_not_full ) {
@@ -71,7 +71,7 @@ public:
 		}
 		return is_not_full;
 	}
-*/
+
 	size_t in(const T* const buf, size_t len) {
 		const size_t l = unused();
 		if( len > l ) {
@@ -93,7 +93,7 @@ public:
 		_in += len + recsize();
 		return len;
 	}
-/*
+
 	bool out(T& val) {
 		if( is_empty() ) {
 			return false;
@@ -105,7 +105,7 @@ public:
 
 		return true;
 	}
-*/
+
 	size_t out(T* const buf, size_t len) {
 		len = out_peek(buf, len);
 		_out += len;
