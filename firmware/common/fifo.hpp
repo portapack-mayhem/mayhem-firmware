@@ -59,7 +59,7 @@ public:
 	}
 
 	bool is_full() const {
-		return len() > mask();
+		return unused() == 0;
 	}
 /*
 	bool in(const T& val) {
