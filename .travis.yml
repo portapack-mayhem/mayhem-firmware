@@ -18,6 +18,7 @@ script:
   - popd
 
 addons:
+  s3_region: "us-west-2"
   artifacts:
     paths:
       - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
