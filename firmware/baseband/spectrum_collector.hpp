@@ -30,6 +30,8 @@
 #include <cstdint>
 #include <array>
 
+#include "message.hpp"
+
 class SpectrumCollector {
 public:
 	constexpr SpectrumCollector(
@@ -49,6 +51,7 @@ public:
 
 private:
 	BlockDecimator<256> channel_spectrum_decimator;
+	ChannelSpectrumFIFO fifo;
 
 	volatile bool channel_spectrum_request_update { false };
 	std::array<std::complex<float>, 256> channel_spectrum;

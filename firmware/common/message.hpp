@@ -30,6 +30,7 @@
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
 #include "dsp_fir_taps.hpp"
+#include "fifo.hpp"
 
 #include "utility.hpp"
 
@@ -44,7 +45,7 @@ public:
 		RSSIStatistics = 0,
 		BasebandStatistics = 1,
 		ChannelStatistics = 2,
-		ChannelSpectrum = 3,
+
 		AudioStatistics = 4,
 		BasebandConfiguration = 5,
 		TPMSPacket = 6,
@@ -55,6 +56,7 @@ public:
 		NBFMConfigure = 11,
 		WFMConfigure = 12,
 		AMConfigure = 13,
+		FIFONotify = 14,
 		MAX
 	};
 
@@ -207,15 +209,7 @@ struct ChannelSpectrum {
 	uint32_t channel_filter_stop_frequency { 0 };
 };
 
-class ChannelSpectrumMessage : public Message {
-public:
-	constexpr ChannelSpectrumMessage(
-	) : Message { ID::ChannelSpectrum }
-	{
-	}
-
-	ChannelSpectrum spectrum;
-};
+using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
 
 class AISPacketMessage : public Message {
 public:
@@ -331,6 +325,18 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
+};
+
+class FIFONotifyMessage : public Message {
+public:
+	constexpr FIFONotifyMessage(
+		void* const fifo
+	) : Message { ID::FIFONotify },
+		fifo { fifo }
+	{
+	}
+
+	void* const fifo;
 };
 
 class MessageHandlerMap {

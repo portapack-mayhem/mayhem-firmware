@@ -73,8 +73,8 @@ void SpectrumCollector::update() {
 		channel_spectrum_request_update = false;
 		fft_c_preswapped(channel_spectrum);
 
-		ChannelSpectrumMessage spectrum_message;
-		for(size_t i=0; i<spectrum_message.spectrum.db.size(); i++) {
+		ChannelSpectrum spectrum;
+		for(size_t i=0; i<spectrum.db.size(); i++) {
 			// Three point Hamming window.
 			const auto corrected_sample = channel_spectrum[i] * 0.54f
 				+ (channel_spectrum[(i-1) & 0xff] + channel_spectrum[(i+1) & 0xff]) * -0.23f;
@@ -82,14 +82,16 @@ void SpectrumCollector::update() {
 			const float db = complex16_mag_squared_to_dbv_norm(mag2);
 			constexpr float mag_scale = 5.0f;
 			const unsigned int v = (db * mag_scale) + 255.0f;
-			spectrum_message.spectrum.db[i] = std::max(0U, std::min(255U, v));
+			spectrum.db[i] = std::max(0U, std::min(255U, v));
 		}
 
 		/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
-		spectrum_message.spectrum.db_count = spectrum_message.spectrum.db.size();
-		spectrum_message.spectrum.sampling_rate = channel_spectrum_sampling_rate;
-		spectrum_message.spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
-		spectrum_message.spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
-		shared_memory.application_queue.push(spectrum_message);
+		spectrum.db_count = spectrum.db.size();
+		spectrum.sampling_rate = channel_spectrum_sampling_rate;
+		spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
+		spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
+		fifo.in(spectrum);
+		FIFONotifyMessage message { &fifo };
+		shared_memory.application_queue.push(message);
 	}
 }
