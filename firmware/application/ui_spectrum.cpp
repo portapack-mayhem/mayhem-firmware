@@ -40,11 +40,9 @@ void FrequencyScale::on_show() {
 	clear();
 }
 
-void FrequencyScale::set_spectrum_sampling_rate(const uint32_t new_sampling_rate, const size_t new_spectrum_bins) {
-	if( (spectrum_sampling_rate != new_sampling_rate) ||
-		(spectrum_bins != new_spectrum_bins) ) {
+void FrequencyScale::set_spectrum_sampling_rate(const uint32_t new_sampling_rate) {
+	if( (spectrum_sampling_rate != new_sampling_rate) ) {
 		spectrum_sampling_rate = new_sampling_rate;
-		spectrum_bins = new_spectrum_bins;
 		set_dirty();
 	}
 }
@@ -66,7 +64,7 @@ void FrequencyScale::paint(Painter& painter) {
 
 	clear_background(painter, r);
 
-	if( !spectrum_sampling_rate || !spectrum_bins ) {
+	if( !spectrum_sampling_rate ) {
 		// Can't draw without non-zero scale.
 		return;
 	}
@@ -77,7 +75,6 @@ void FrequencyScale::paint(Painter& painter) {
 
 void FrequencyScale::clear() {
 	spectrum_sampling_rate = 0;
-	spectrum_bins = 0;
 	set_dirty();
 }
 
@@ -237,14 +234,19 @@ WaterfallWidget::WaterfallWidget() {
 }
 
 void WaterfallWidget::on_show() {
-	context().message_map().register_handler(Message::ID::FIFONotify,
+	context().message_map().register_handler(Message::ID::ChannelSpectrumConfig,
 		[this](const Message* const p) {
-			const auto message = reinterpret_cast<const FIFONotifyMessage*>(p);
-			this->fifo = reinterpret_cast<ChannelSpectrumFIFO*>(message->fifo);
+			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+			frequency_scale.set_spectrum_sampling_rate(message.sampling_rate);
+			frequency_scale.set_channel_filter(
+				message.channel_filter_pass_frequency,
+				message.channel_filter_stop_frequency
+			);
+			this->fifo = message.fifo;
 		}
 	);
 	context().message_map().register_handler(Message::ID::DisplayFrameSync,
-		[this](const Message* const p) {
+		[this](const Message* const) {
 			if( this->fifo ) {
 				ChannelSpectrum channel_spectrum;
 				while( fifo->out(channel_spectrum) ) {
@@ -257,7 +259,7 @@ void WaterfallWidget::on_show() {
 
 void WaterfallWidget::on_hide() {
 	context().message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	context().message_map().unregister_handler(Message::ID::FIFONotify);
+	context().message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
 }
 
 void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
@@ -279,11 +281,6 @@ void WaterfallWidget::paint(Painter& painter) {
 
 void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	waterfall_view.on_channel_spectrum(spectrum);
-	frequency_scale.set_spectrum_sampling_rate(spectrum.sampling_rate, spectrum.db_count);
-	frequency_scale.set_channel_filter(
-		spectrum.channel_filter_pass_frequency,
-		spectrum.channel_filter_stop_frequency
-	);
 }
 
 } /* namespace spectrum */

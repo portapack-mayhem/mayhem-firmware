@@ -60,6 +60,7 @@ private:
 	uint32_t channel_filter_stop_frequency { 0 };
 
 	void post_message(const buffer_c16_t& data);
+	void post_configuration_message();
 };
 
 #endif/*__SPECTRUM_COLLECTOR_H__*/

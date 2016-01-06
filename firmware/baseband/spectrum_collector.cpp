@@ -48,6 +48,7 @@ void SpectrumCollector::feed(
 	// Called from baseband processing thread.
 	channel_filter_pass_frequency = filter_pass_frequency;
 	channel_filter_stop_frequency = filter_stop_frequency;
+	post_configuration_message();
 	channel_spectrum_decimator.feed(
 		channel,
 		[this](const buffer_c16_t& data) {
@@ -64,6 +65,16 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 		channel_spectrum_request_update = true;
 		events_flag(EVT_MASK_SPECTRUM);
 	}
+}
+
+void SpectrumCollector::post_configuration_message() {
+	ChannelSpectrumConfigMessage message {
+		channel_spectrum_sampling_rate,
+		channel_filter_pass_frequency,
+		channel_filter_stop_frequency,
+		&fifo
+	};
+	shared_memory.application_queue.push(message);
 }
 
 void SpectrumCollector::update() {
@@ -85,13 +96,6 @@ void SpectrumCollector::update() {
 			spectrum.db[i] = std::max(0U, std::min(255U, v));
 		}
 
-		/* TODO: Rename .db -> .magnitude, or something more (less!) accurate. */
-		spectrum.db_count = spectrum.db.size();
-		spectrum.sampling_rate = channel_spectrum_sampling_rate;
-		spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
-		spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
 		fifo.in(spectrum);
-		FIFONotifyMessage message { &fifo };
-		shared_memory.application_queue.push(message);
 	}
 }

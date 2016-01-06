@@ -56,7 +56,7 @@ public:
 		NBFMConfigure = 11,
 		WFMConfigure = 12,
 		AMConfigure = 13,
-		FIFONotify = 14,
+		ChannelSpectrumConfig = 14,
 		MAX
 	};
 
@@ -211,13 +211,30 @@ public:
 
 struct ChannelSpectrum {
 	std::array<uint8_t, 256> db { { 0 } };
-	size_t db_count { 256 };
-	uint32_t sampling_rate { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
 };
 
 using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
+
+class ChannelSpectrumConfigMessage : public Message {
+public:
+	constexpr ChannelSpectrumConfigMessage(
+		uint32_t sampling_rate,
+		uint32_t channel_filter_pass_frequency,
+		uint32_t channel_filter_stop_frequency,
+		ChannelSpectrumFIFO* fifo
+	) : Message { ID::ChannelSpectrumConfig },
+		sampling_rate { sampling_rate },
+		channel_filter_pass_frequency { channel_filter_pass_frequency },
+		channel_filter_stop_frequency { channel_filter_stop_frequency },
+		fifo { fifo }
+	{
+	}
+
+	uint32_t sampling_rate { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
+	ChannelSpectrumFIFO* fifo { nullptr };
+};
 
 class AISPacketMessage : public Message {
 public:
@@ -333,18 +350,6 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
-};
-
-class FIFONotifyMessage : public Message {
-public:
-	constexpr FIFONotifyMessage(
-		void* const fifo
-	) : Message { ID::FIFONotify },
-		fifo { fifo }
-	{
-	}
-
-	void* const fifo;
 };
 
 class MessageHandlerMap {
