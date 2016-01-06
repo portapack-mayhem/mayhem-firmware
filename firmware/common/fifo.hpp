@@ -63,13 +63,15 @@ public:
 	}
 
 	bool in(const T& val) {
-		const bool is_not_full = !is_full();
-		if( is_not_full ) {
-			_data[_in & mask()] = val;
-			smp_wmb();
-			_in++;
+		if( is_full() ) {
+			return false;
 		}
-		return is_not_full;
+
+		_data[_in & mask()] = val;
+		smp_wmb();
+		_in += 1;
+		
+		return true;
 	}
 
 	size_t in(const T* const buf, size_t len) {
