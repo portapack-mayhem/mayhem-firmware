@@ -156,6 +156,7 @@ CPPSRC = main.cpp \
          ui_focus.cpp \
          ui_navigation.cpp \
          ui_menu.cpp \
+         ui_about.cpp \
          ui_rssi.cpp \
          ui_channel.cpp \
          ui_audio.cpp \

@@ -176,44 +176,12 @@ private:
 	SetFrequencyCorrectionModel form_collect();
 };
 
-class AboutView : public View {
-public:
-	AboutView(NavigationView& nav);
-
-	void focus() override;
-
-private:
-	Text text_title {
-		{ 100, 96, 40, 16 },
-		"About",
-	};
-
-	Text text_firmware {
-		{ 0, 128, 240, 16 },
-		"Git Commit Hash        " GIT_REVISION,
-	};
-
-	Text text_cpld_hackrf {
-		{ 0, 144, 240, 16 },
-		"HackRF CPLD CRC     0x????????",
-	};
-
-	Text text_cpld_portapack {
-		{ 0, 160, 240, 16 },
-		"PortaPack CPLD CRC  0x????????",
-	};
-
-	Button button_ok {
-		{ 72, 192, 96, 24 },
-		"OK"
-	};
-};
-
 class SetTouchCalibView : public View {
 public:
 	SetTouchCalibView(NavigationView& nav);
 	void focus() override;
 	bool on_touch(const TouchEvent event) override;
+	
 private:
 	
 	Text text_title {
@@ -234,6 +202,40 @@ private:
 	Button button_ok {
 		{ 72, 192, 96, 24 },
 		"OK"
+	};
+};
+
+class SetUIView : public View {
+public:
+	SetUIView(NavigationView& nav);
+	void focus() override;
+	
+private:
+	Checkbox checkbox_showsplash {
+		{ 3 * 8, 2 * 16},
+		"Show splash"
+	};
+	
+	Checkbox checkbox_bloff {
+		{ 3 * 8, 4 * 16},
+		"Backlight off after:"
+	};
+
+	OptionsField options_bloff {
+		{ 10 * 8, 5 * 16 + 4 },
+		5,
+		{
+			{ "5 seconds ", 0 },
+			{ "15 seconds", 1 },
+			{ "1 minute  ", 2 },
+			{ "5 minutes ", 3 },
+			{ "10 minutes", 4 }
+		}
+	};
+	
+	Button button_ok {
+		{ 4 * 8, 272, 64, 24 },
+		"Ok"
 	};
 };
 

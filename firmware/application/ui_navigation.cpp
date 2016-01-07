@@ -28,6 +28,7 @@
 
 #include "splash.hpp"
 
+#include "ui_about.hpp"
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
@@ -169,7 +170,10 @@ SystemView::SystemView(
 	//else
 	//	navigation_view.push(new BMPView { navigation_view });
 	
+	if (portapack::persistent_memory::ui_config() & 1)
 		navigation_view.push(new BMPView { navigation_view });
+	else
+		navigation_view.push(new SystemMenuView { navigation_view });
 }
 
 Context& SystemView::context() const {

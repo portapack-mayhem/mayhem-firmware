@@ -147,22 +147,6 @@ SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
 	};
 }
 
-AboutView::AboutView(NavigationView& nav) {
-	add_children({ {
-		&text_title,
-		&text_firmware,
-		&text_cpld_hackrf,
-		&text_cpld_portapack,
-		&button_ok,
-	} });
-
-	button_ok.on_select = [&nav](Button&){ nav.pop(); };
-}
-
-void AboutView::focus() {
-	button_ok.focus();
-}
-
 SetTouchCalibView::SetTouchCalibView(NavigationView& nav) {
 	add_children({{
 		&text_title,
@@ -230,12 +214,45 @@ void SetPlayDeadView::focus() {
 	button_enter.focus();
 }
 
+SetUIView::SetUIView(NavigationView& nav) {
+	uint32_t ui_config;
+	
+	add_children({{
+		&checkbox_showsplash,
+		&checkbox_bloff,
+		&options_bloff,
+		&button_ok
+	}});
+	
+	ui_config = portapack::persistent_memory::ui_config();
+	
+	if (ui_config & 1) checkbox_showsplash.set_value(true);
+	if (ui_config & 2) checkbox_bloff.set_value(true);
+	options_bloff.set_selected_index((ui_config >> 5) & 7);
+
+	button_ok.on_select = [&nav,this](Button&){
+		uint32_t ui_config = 0;
+		if (checkbox_showsplash.value() == true) ui_config |= 1;
+		if (checkbox_bloff.value() == true) ui_config |= 2;
+		
+		ui_config |= (options_bloff.selected_index() << 5);
+		
+		portapack::persistent_memory::set_ui_config(ui_config);
+		nav.pop();
+	};
+}
+
+void SetUIView::focus() {
+	button_ok.focus();
+}
+
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<4>({ {
+	add_items<5>({ {
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push(new SetDateTimeView { nav }); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
-		{ "Touch", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
-		{ "Play dead", ui::Color::white(), [&nav](){ nav.push(new SetPlayDeadView { nav }); } },
+		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
+		{ "Play dead", ui::Color::red(), [&nav](){ nav.push(new SetPlayDeadView { nav }); } },
+		{ "UI", ui::Color::white(), [&nav](){ nav.push(new SetUIView { nav }); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

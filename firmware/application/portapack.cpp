@@ -70,6 +70,8 @@ TransmitterModel transmitter_model {
 	clock_manager
 };
 
+uint8_t bl_tick_counter = 0;
+
 class Power {
 public:
 	void init() {

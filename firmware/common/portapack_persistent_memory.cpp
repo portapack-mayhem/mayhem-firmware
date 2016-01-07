@@ -84,6 +84,8 @@ struct data_t {
 	// Play dead unlock
 	uint32_t playing_dead;
 	uint32_t playdead_sequence;
+	
+	int32_t ui_config;
 };
 
 static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large for VBAT-maintained region");
@@ -166,6 +168,35 @@ uint32_t playdead_sequence() {
 
 void set_playdead_sequence(const uint32_t new_value) {
 	data->playdead_sequence = new_value;
+}
+
+uint32_t ui_config() {
+	uint8_t bloff_value;
+	
+	// Cap value
+	bloff_value = (data->ui_config >> 5) & 7;
+	if (bloff_value > 4) bloff_value = 1;
+
+	data->ui_config = (data->ui_config & 0x1F) | (bloff_value << 5);
+	
+	return data->ui_config;
+}
+
+uint16_t ui_config_bloff() {
+	uint8_t bloff_value;
+	uint16_t bloff_seconds[5] = { 5, 15, 60, 300, 600 };
+	
+	if (!(data->ui_config & 2)) return 0;
+
+	// Cap value
+	bloff_value = (data->ui_config >> 5) & 7;
+	if (bloff_value > 4) bloff_value = 1;
+
+	return bloff_seconds[bloff_value];
+}
+
+void set_ui_config(const uint32_t new_value) {
+	data->ui_config = new_value;
 }
 
 } /* namespace persistent_memory */

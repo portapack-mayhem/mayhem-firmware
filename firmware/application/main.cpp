@@ -19,11 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-//TODO: Enum modulation modes (baseband)
+//TODO: Playdead amnesia and login
+//TODO: Touch screen calibration
+//TODO: Display module info (name, desc) somewhere
+//TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: More gfx, cute icons :)
 //TODO: check jammer bandwidths
 //TODO: GSM channel detector
-//TODO: wait_for_switch() in baseband-tx !
 //TODO: AFSK receiver
 //TODO: SIGFOX RX/TX
 //TODO: Reset baseband if module not found (instead of lockup in RAM loop)
@@ -32,7 +34,6 @@
 //TODO: BUG: Crash after TX stop (unregister message !)
 //TODO: Check bw setting in LCR TX
 //TODO: BUG: Crash after PSN entry in RDS TX
-//TODO: Dynamically load baseband code depending on mode (disable M4 & interrupts, load, reset)
 //TODO: Bodet :)
 //TODO: Whistler
 //TODO: Setup: Play dead by default ? Enable/disable ?
@@ -51,7 +52,10 @@
 using namespace lpc43xx;
 
 #include "portapack.hpp"
+#include "portapack_io.hpp"
 #include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
+using namespace portapack;
 
 #include "cpld_update.hpp"
 
@@ -160,7 +164,17 @@ private:
 	}
 
 	void handle_rtc_tick() {
+		uint16_t bloff_time;
 		const auto sd_card_present_now = sdc_lld_is_card_inserted(&SDCD1);
+		
+		bloff_time = portapack::persistent_memory::ui_config_bloff();
+		if (bloff_time) {
+			if (portapack::bl_tick_counter >= bloff_time)
+				io.lcd_backlight(0);
+			else
+				portapack::bl_tick_counter++;
+		}
+		
 		if( sd_card_present_now != sd_card_present ) {
 			sd_card_present = sd_card_present_now;
 
@@ -234,6 +248,10 @@ private:
 
 	void handle_switches() {
 		const auto switches_state = get_switches_state();
+		
+		io.lcd_backlight(1);
+		portapack::bl_tick_counter = 0;
+		
 		for(size_t i=0; i<switches_state.size(); i++) {
 			// TODO: Ignore multiple keys at the same time?
 			if( switches_state[i] ) {
@@ -248,6 +266,10 @@ private:
 	void handle_encoder() {
 		const uint32_t encoder_now = get_encoder_position();
 		const int32_t delta = static_cast<int32_t>(encoder_now - encoder_last);
+		
+		io.lcd_backlight(1);
+		portapack::bl_tick_counter = 0;
+		
 		encoder_last = encoder_now;
 		const auto event = static_cast<ui::EncoderEvent>(delta);
 		event_bubble_encoder(event);

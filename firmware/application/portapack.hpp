@@ -44,6 +44,8 @@ extern wolfson::wm8731::WM8731 audio_codec;
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 
+extern uint8_t bl_tick_counter;
+
 void init();
 void shutdown();
 

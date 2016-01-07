@@ -58,6 +58,10 @@ void set_playing_dead(const uint32_t new_value);
 uint32_t playdead_sequence();
 void set_playdead_sequence(const uint32_t new_value);
 
+uint32_t ui_config();
+void set_ui_config(const uint32_t new_value);
+uint16_t ui_config_bloff();
+
 } /* namespace persistent_memory */
 } /* namespace portapack */
 
