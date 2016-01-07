@@ -201,8 +201,8 @@ private:
 	}
 
 	T _data[size()];
-	size_t _in;
-	size_t _out;
+	volatile size_t _in;
+	volatile size_t _out;
 };
 
 #endif/*__FIFO_H__*/
