@@ -98,20 +98,22 @@ void BasebandThread::run() {
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-		buffer_c8_t buffer {
-			buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
-		};
+		if( buffer_tmp ) {
+			buffer_c8_t buffer {
+				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
+			};
 
-		if( baseband_processor ) {
-			baseband_processor->execute(buffer);
-		}
-
-		stats.process(buffer,
-			[](const BasebandStatistics& statistics) {
-				const BasebandStatisticsMessage message { statistics };
-				shared_memory.application_queue.push(message);
+			if( baseband_processor ) {
+				baseband_processor->execute(buffer);
 			}
-		);
+
+			stats.process(buffer,
+				[](const BasebandStatistics& statistics) {
+					const BasebandStatisticsMessage message { statistics };
+					shared_memory.application_queue.push(message);
+				}
+			);
+		}
 	}
 
 	delete baseband_buffer;

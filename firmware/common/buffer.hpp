@@ -92,6 +92,10 @@ struct buffer_t {
 		timestamp { timestamp }
 	{
 	}
+
+	operator bool() const {
+		return (p != nullptr);
+	}
 };
 
 #endif/*__BUFFER_H__*/
