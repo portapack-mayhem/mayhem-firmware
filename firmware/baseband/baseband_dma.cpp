@@ -149,7 +149,7 @@ bool is_enabled() {
 }
 
 void disable() {
-	gpdma_channel_sgpio.disable_force();
+	gpdma_channel_sgpio.disable();
 }
 
 baseband::buffer_t wait_for_rx_buffer() {

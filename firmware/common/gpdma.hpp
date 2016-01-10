@@ -313,7 +313,7 @@ public:
 		return LPC_GPDMA->CH[number].CONFIG & (1U << 0);
 	}
 
-	void disable_force() const {
+	void disable() const {
 		LPC_GPDMA->CH[number].CONFIG &= ~(1U << 0);
 	}
 
@@ -349,7 +349,7 @@ public:
 
 	void disable() const {
 		for(const auto& channel : channels) {
-			channel.disable_force();
+			channel.disable();
 		}
 		LPC_GPDMA->CONFIG &= ~(1U << 0);
 	}

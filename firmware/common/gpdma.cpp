@@ -54,7 +54,7 @@ void Channel::configure(
 	const LLI& first_lli,
 	const uint32_t config
 ) const {
-	disable_force();
+	disable();
 	clear_interrupts();
 
 	LPC_GPDMA_Channel_Type* const channel = &LPC_GPDMA->CH[number];
