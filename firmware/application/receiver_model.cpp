@@ -167,6 +167,14 @@ void ReceiverModel::set_baseband_configuration(const BasebandConfiguration confi
 }
 
 void ReceiverModel::update_baseband_configuration() {
+	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
+	// synchronization for things like wideband (sweeping) spectrum analysis, and
+	// protocols that need quick RX/TX turn-around.
+
+	// Disabling baseband while changing sampling rates seems like a good idea...
+	shared_memory.baseband_queue.push_and_wait(BasebandConfigurationMessage {
+		.configuration = { },
+	});
 
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
