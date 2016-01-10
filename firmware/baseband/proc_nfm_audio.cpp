@@ -52,7 +52,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	if( audio_present ) {
 		fill_audio_buffer(audio);
 	} else {
-		mute_audio();
+		mute_audio(audio);
 	}
 }
 

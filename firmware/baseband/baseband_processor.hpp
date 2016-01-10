@@ -44,7 +44,7 @@ protected:
 	void feed_channel_stats(const buffer_c16_t& channel);
 
 	void fill_audio_buffer(const buffer_s16_t& audio);
-	void mute_audio();
+	void mute_audio(const buffer_s16_t& audio);
 
 private:
 	ChannelStatsCollector channel_stats;
