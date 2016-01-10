@@ -45,8 +45,6 @@ void AISProcessor::execute(const buffer_c8_t& buffer) {
 			clock_recovery(mf.get_output());
 		}
 	}
-
-	mute_audio();
 }
 
 void AISProcessor::consume_symbol(

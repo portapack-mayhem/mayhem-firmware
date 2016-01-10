@@ -66,8 +66,6 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 			clock_recovery(mf.get_output());
 		}
 	}
-
-	mute_audio();
 }
 
 void TPMSProcessor::consume_symbol(

@@ -61,8 +61,6 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	} else {
 		phase++;
 	}
-
-	mute_audio();
 }
 
 void WidebandSpectrum::on_message(const Message* const message) {

@@ -78,8 +78,6 @@ void ERTProcessor::execute(const buffer_c8_t& buffer) {
 
 		clock_recovery(data);
 	}
-
-	mute_audio();
 }
 
 void ERTProcessor::consume_symbol(
