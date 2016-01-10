@@ -53,6 +53,10 @@ void NarrowbandAMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
 		break;
 
+	case Message::ID::SpectrumStreamingConfig:
+		streaming_config(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
+		break;
+
 	default:
 		break;
 	}
@@ -81,4 +85,12 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
 
 	configured = true;
+}
+
+void NarrowbandAMAudio::streaming_config(const SpectrumStreamingConfigMessage& message) {
+	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+		channel_spectrum.start();
+	} else {
+		channel_spectrum.stop();
+	}
 }

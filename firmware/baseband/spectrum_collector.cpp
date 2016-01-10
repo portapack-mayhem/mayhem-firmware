@@ -29,6 +29,16 @@
 
 #include <algorithm>
 
+void SpectrumCollector::start() {
+	streaming = true;
+	ChannelSpectrumConfigMessage message { &fifo };
+	shared_memory.application_queue.push(message);
+}
+
+void SpectrumCollector::stop() {
+	streaming = false;
+}
+
 void SpectrumCollector::set_decimation_factor(
 	const size_t decimation_factor
 ) {
@@ -48,7 +58,7 @@ void SpectrumCollector::feed(
 	// Called from baseband processing thread.
 	channel_filter_pass_frequency = filter_pass_frequency;
 	channel_filter_stop_frequency = filter_stop_frequency;
-	post_configuration_message();
+
 	channel_spectrum_decimator.feed(
 		channel,
 		[this](const buffer_c16_t& data) {
@@ -59,7 +69,7 @@ void SpectrumCollector::feed(
 
 void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	// Called from baseband processing thread.
-	if( !channel_spectrum_request_update ) {
+	if( streaming && !channel_spectrum_request_update ) {
 		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
 		channel_spectrum_request_update = true;
@@ -67,24 +77,17 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	}
 }
 
-void SpectrumCollector::post_configuration_message() {
-	ChannelSpectrumConfigMessage message {
-		channel_spectrum_sampling_rate,
-		channel_filter_pass_frequency,
-		channel_filter_stop_frequency,
-		&fifo
-	};
-	shared_memory.application_queue.push(message);
-}
-
 void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
-	if( channel_spectrum_request_update ) {
+	if( streaming && channel_spectrum_request_update ) {
 		/* Decimated buffer is full. Compute spectrum. */
 		channel_spectrum_request_update = false;
 		fft_c_preswapped(channel_spectrum);
 
 		ChannelSpectrum spectrum;
+		spectrum.sampling_rate = channel_spectrum_sampling_rate;
+		spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
+		spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
 		for(size_t i=0; i<spectrum.db.size(); i++) {
 			// Three point Hamming window.
 			const auto corrected_sample = channel_spectrum[i] * 0.54f
@@ -95,7 +98,6 @@ void SpectrumCollector::update() {
 			const unsigned int v = (db * mag_scale) + 255.0f;
 			spectrum.db[i] = std::max(0U, std::min(255U, v));
 		}
-
 		fifo.in(spectrum);
 	}
 }

@@ -24,6 +24,7 @@
 #include "spectrum_color_lut.hpp"
 
 #include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "string_format.hpp"
@@ -237,11 +238,6 @@ void WaterfallWidget::on_show() {
 	context().message_map().register_handler(Message::ID::ChannelSpectrumConfig,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-			frequency_scale.set_spectrum_sampling_rate(message.sampling_rate);
-			frequency_scale.set_channel_filter(
-				message.channel_filter_pass_frequency,
-				message.channel_filter_stop_frequency
-			);
 			this->fifo = message.fifo;
 		}
 	);
@@ -255,9 +251,21 @@ void WaterfallWidget::on_show() {
 			}
 		}
 	);
+
+	shared_memory.baseband_queue.push_and_wait(
+		SpectrumStreamingConfigMessage {
+			SpectrumStreamingConfigMessage::Mode::Running
+		}
+	);
 }
 
 void WaterfallWidget::on_hide() {
+	shared_memory.baseband_queue.push_and_wait(
+		SpectrumStreamingConfigMessage {
+			SpectrumStreamingConfigMessage::Mode::Stopped
+		}
+	);
+
 	context().message_map().unregister_handler(Message::ID::DisplayFrameSync);
 	context().message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
 }
@@ -281,6 +289,11 @@ void WaterfallWidget::paint(Painter& painter) {
 
 void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	waterfall_view.on_channel_spectrum(spectrum);
+	frequency_scale.set_spectrum_sampling_rate(spectrum.sampling_rate);
+	frequency_scale.set_channel_filter(
+		spectrum.channel_filter_pass_frequency,
+		spectrum.channel_filter_stop_frequency
+	);
 }
 
 } /* namespace spectrum */

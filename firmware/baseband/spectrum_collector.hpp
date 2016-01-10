@@ -39,6 +39,9 @@ public:
 	{
 	}
 
+	void start();
+	void stop();
+
 	void set_decimation_factor(const size_t decimation_factor);
 
 	void feed(
@@ -54,13 +57,13 @@ private:
 	ChannelSpectrumFIFO fifo;
 
 	volatile bool channel_spectrum_request_update { false };
+	bool streaming { false };
 	std::array<std::complex<float>, 256> channel_spectrum;
 	uint32_t channel_spectrum_sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
 	uint32_t channel_filter_stop_frequency { 0 };
 
 	void post_message(const buffer_c16_t& data);
-	void post_configuration_message();
 };
 
 #endif/*__SPECTRUM_COLLECTOR_H__*/

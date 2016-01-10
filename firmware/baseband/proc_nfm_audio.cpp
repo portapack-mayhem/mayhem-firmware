@@ -66,6 +66,10 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const NBFMConfigureMessage*>(message));
 		break;
 
+	case Message::ID::SpectrumStreamingConfig:
+		streaming_config(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
+		break;
+
 	default:
 		break;
 	}
@@ -98,4 +102,12 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	squelch.set_threshold(6144);
 
 	configured = true;
+}
+
+void NarrowbandFMAudio::streaming_config(const SpectrumStreamingConfigMessage& message) {
+	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+		channel_spectrum.start();
+	} else {
+		channel_spectrum.stop();
+	}
 }

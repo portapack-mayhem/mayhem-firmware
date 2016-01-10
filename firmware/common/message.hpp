@@ -57,6 +57,7 @@ public:
 		WFMConfigure = 12,
 		AMConfigure = 13,
 		ChannelSpectrumConfig = 14,
+		SpectrumStreamingConfig = 15,
 		MAX
 	};
 
@@ -209,8 +210,28 @@ public:
 	BasebandConfiguration configuration;
 };
 
+class SpectrumStreamingConfigMessage : public Message {
+public:
+	enum class Mode : uint32_t {
+		Stopped = 0,
+		Running = 1,
+	};
+
+	constexpr SpectrumStreamingConfigMessage(
+		Mode mode
+	) : Message { ID::SpectrumStreamingConfig },
+		mode { mode }
+	{
+	}
+
+	Mode mode { Mode::Stopped };
+};
+
 struct ChannelSpectrum {
 	std::array<uint8_t, 256> db { { 0 } };
+	uint32_t sampling_rate { 0 };
+	uint32_t channel_filter_pass_frequency { 0 };
+	uint32_t channel_filter_stop_frequency { 0 };
 };
 
 using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
@@ -218,21 +239,12 @@ using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
 class ChannelSpectrumConfigMessage : public Message {
 public:
 	constexpr ChannelSpectrumConfigMessage(
-		uint32_t sampling_rate,
-		uint32_t channel_filter_pass_frequency,
-		uint32_t channel_filter_stop_frequency,
 		ChannelSpectrumFIFO* fifo
 	) : Message { ID::ChannelSpectrumConfig },
-		sampling_rate { sampling_rate },
-		channel_filter_pass_frequency { channel_filter_pass_frequency },
-		channel_filter_stop_frequency { channel_filter_stop_frequency },
 		fifo { fifo }
 	{
 	}
 
-	uint32_t sampling_rate { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
 	ChannelSpectrumFIFO* fifo { nullptr };
 };
 
