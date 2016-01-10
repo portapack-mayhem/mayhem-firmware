@@ -42,6 +42,10 @@ public:
 		_in = _out = 0;
 	}
 
+	void reset_in() {
+		_in = _out;
+	}
+	
 	void reset_out() {
 		_out = _in;
 	}

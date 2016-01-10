@@ -37,6 +37,7 @@ void SpectrumCollector::start() {
 
 void SpectrumCollector::stop() {
 	streaming = false;
+	fifo.reset_in();
 }
 
 void SpectrumCollector::set_decimation_factor(
