@@ -47,6 +47,25 @@ public:
 		return push(&message, sizeof(message));
 	}
 
+	template<typename T>
+	bool push_and_wait(const T& message) {
+		const bool result = push(message);
+		if( result ) {
+			// TODO: More graceful method of waiting for empty? Maybe sleep for a bit?
+			while( !is_empty() );
+		}
+		return result;
+	}
+
+	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
+		Message* const p = reinterpret_cast<Message*>(buf.data());
+		return fifo.peek_r(buf.data(), buf.size()) ? p : nullptr;
+	}
+
+	bool skip() {
+		return fifo.skip();
+	}
+
 	Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());
 		return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;

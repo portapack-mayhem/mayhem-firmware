@@ -114,6 +114,26 @@ public:
 		return len;
 	}
 
+	bool skip() {
+		if( is_empty() ) {
+			return false;
+		}
+
+		size_t len = peek_n();
+		_out += len + recsize();
+		return true;
+	}
+
+	size_t peek_r(void* const buf, size_t len) {
+		if( is_empty() ) {
+			return 0;
+		}
+
+		size_t n;
+		len = out_copy_r((T*)buf, len, &n);
+		return len;
+	}
+
 	size_t out_r(void* const buf, size_t len) {
 		if( is_empty() ) {
 			return 0;
