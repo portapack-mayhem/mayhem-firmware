@@ -127,6 +127,7 @@ CPPSRC = main.cpp \
          event.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
+         baseband_sgpio.cpp \
          portapack_shared_memory.cpp \
          baseband_thread.cpp \
          baseband_processor.cpp \

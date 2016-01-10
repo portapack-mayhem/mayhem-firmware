@@ -135,7 +135,6 @@ CPPSRC = main.cpp \
          wm8731.cpp \
          radio.cpp \
          baseband_cpld.cpp \
-         baseband_sgpio.cpp \
          tuning.cpp \
          rf_path.cpp \
          rffc507x.cpp \

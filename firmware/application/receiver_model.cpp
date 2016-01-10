@@ -118,7 +118,6 @@ void ReceiverModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_baseband_configuration();
-	radio::streaming_enable();
 
 	update_headphone_volume();
 }
@@ -168,7 +167,6 @@ void ReceiverModel::set_baseband_configuration(const BasebandConfiguration confi
 }
 
 void ReceiverModel::update_baseband_configuration() {
-	radio::streaming_disable();
 
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
@@ -176,8 +174,6 @@ void ReceiverModel::update_baseband_configuration() {
 
 	BasebandConfigurationMessage message { baseband_configuration };
 	shared_memory.baseband_queue.push(message);
-
-	radio::streaming_enable();
 }
 
 void ReceiverModel::update_headphone_volume() {

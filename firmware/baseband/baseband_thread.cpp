@@ -25,6 +25,7 @@
 
 #include "baseband.hpp"
 #include "baseband_stats_collector.hpp"
+#include "baseband_sgpio.hpp"
 #include "baseband_dma.hpp"
 
 #include "rssi.hpp"
@@ -41,6 +42,8 @@
 #include "portapack_shared_memory.hpp"
 
 #include <array>
+
+static baseband::SGPIO baseband_sgpio;
 
 WORKING_AREA(baseband_thread_wa, 4096);
 
@@ -79,6 +82,7 @@ void BasebandThread::on_message(const Message* const message) {
 }
 
 void BasebandThread::run() {
+	baseband_sgpio.init();
 	baseband::dma::init();
 
 	const auto baseband_buffer = new std::array<baseband::sample_t, 8192>();
@@ -136,6 +140,7 @@ void BasebandThread::disable() {
 	if( baseband_processor ) {
 		i2s::i2s0::tx_mute();
 		baseband::dma::disable();
+		baseband_sgpio.streaming_disable();
 		rf::rssi::stop();
 	}
 }
@@ -145,6 +150,8 @@ void BasebandThread::enable() {
 		if( direction() == baseband::Direction::Receive ) {
 			rf::rssi::start();
 		}
+		baseband_sgpio.configure(direction());
 		baseband::dma::enable(direction());
+		baseband_sgpio.streaming_enable();
 	}
 }

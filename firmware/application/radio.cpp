@@ -24,7 +24,6 @@
 #include "rf_path.hpp"
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
-#include "baseband_sgpio.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include "tuning.hpp"
@@ -90,7 +89,6 @@ rffc507x::RFFC507x first_if;
 max2837::MAX2837 second_if { ssp1_target_max2837 };
 static max5864::MAX5864 baseband_codec { ssp1_target_max5864 };
 static baseband::CPLD baseband_cpld;
-static baseband::SGPIO baseband_sgpio;
 
 static rf::Direction direction { rf::Direction::Receive };
 
@@ -100,7 +98,6 @@ void init() {
 	second_if.init();
 	baseband_codec.init();
 	baseband_cpld.init();
-	baseband_sgpio.init();
 }
 
 void set_direction(const rf::Direction new_direction) {
@@ -112,7 +109,6 @@ void set_direction(const rf::Direction new_direction) {
 	rf_path.set_direction(direction);
 
 	baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
-	baseband_sgpio.configure((direction == rf::Direction::Transmit) ? baseband::Direction::Transmit : baseband::Direction::Receive);
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -156,16 +152,7 @@ void set_baseband_decimation_by(const size_t n) {
 	baseband_cpld.set_decimation_by(n);
 }
 
-void streaming_enable() {
-	baseband_sgpio.streaming_enable();
-}
-
-void streaming_disable() {
-	baseband_sgpio.streaming_disable();
-}
-
 void disable() {
-	baseband_sgpio.streaming_disable();
 	baseband_codec.set_mode(max5864::Mode::Shutdown);
 	second_if.set_mode(max2837::Mode::Standby);
 	first_if.disable();
