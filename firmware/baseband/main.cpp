@@ -177,8 +177,9 @@ private:
 
 	void handle_baseband_queue() {
 		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(Message* const message = shared_memory.baseband_queue.pop(message_buffer)) {
+		while(Message* const message = shared_memory.baseband_queue.peek(message_buffer)) {
 			on_message(message);
+			shared_memory.baseband_queue.skip();
 		}
 	}
 
