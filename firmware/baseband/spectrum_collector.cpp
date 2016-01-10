@@ -81,7 +81,6 @@ void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
 	if( streaming && channel_spectrum_request_update ) {
 		/* Decimated buffer is full. Compute spectrum. */
-		channel_spectrum_request_update = false;
 		fft_c_preswapped(channel_spectrum);
 
 		ChannelSpectrum spectrum;
@@ -100,4 +99,6 @@ void SpectrumCollector::update() {
 		}
 		fifo.in(spectrum);
 	}
+
+	channel_spectrum_request_update = false;
 }
