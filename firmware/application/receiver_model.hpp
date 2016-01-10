@@ -107,6 +107,8 @@ private:
 	void update_vga();
 	void update_baseband_configuration();
 	void update_headphone_volume();
+
+	void baseband_disable();
 };
 
 #endif/*__RECEIVER_MODEL_H__*/

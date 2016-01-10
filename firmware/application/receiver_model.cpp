@@ -122,13 +122,16 @@ void ReceiverModel::enable() {
 	update_headphone_volume();
 }
 
-void ReceiverModel::disable() {
-	/* TODO: This is a dumb hack to stop baseband from working so hard. */
-	BasebandConfigurationMessage message {
-		.configuration = { },
-	};
-	shared_memory.baseband_queue.push(message);
+void ReceiverModel::baseband_disable() {
+	shared_memory.baseband_queue.push_and_wait(
+		BasebandConfigurationMessage {
+			.configuration = { },
+		}
+	);
+}
 
+void ReceiverModel::disable() {
+	baseband_disable();
 	radio::disable();
 }
 
@@ -172,9 +175,7 @@ void ReceiverModel::update_baseband_configuration() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	shared_memory.baseband_queue.push_and_wait(BasebandConfigurationMessage {
-		.configuration = { },
-	});
+	baseband_disable();
 
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
