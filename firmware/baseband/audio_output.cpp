@@ -48,7 +48,6 @@ void AudioOutput::write(
 	hpf.execute_in_place(audio);
 	deemph.execute_in_place(audio);
 
-	static uint64_t audio_present_history = 0;
 	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
 	const bool audio_present = (audio_present_history != 0);
 	

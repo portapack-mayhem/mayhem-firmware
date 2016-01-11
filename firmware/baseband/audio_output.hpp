@@ -48,6 +48,8 @@ private:
 
 	AudioStatsCollector audio_stats;
 
+	uint64_t audio_present_history = 0;
+
 	void fill_audio_buffer(const buffer_s16_t& audio);
 	void feed_audio_stats(const buffer_s16_t& audio);
 };
