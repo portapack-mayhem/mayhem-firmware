@@ -33,15 +33,15 @@ bool FMSquelch::execute(const buffer_s16_t& audio) {
 	};
 	non_audio_hpf.execute(audio, squelch_energy);
 
-	uint32_t max_squared = 0;
+	uint32_t non_audio_max_squared = 0;
 	for(const auto sample : squelch_energy_buffer) {
 		const uint32_t sample_squared = sample * sample;
-		if( sample_squared > max_squared ) {
-			max_squared = sample_squared;
+		if( sample_squared > non_audio_max_squared ) {
+			non_audio_max_squared = sample_squared;
 		}
 	}
 
-	return (max_squared < threshold_squared);
+	return (non_audio_max_squared < threshold_squared);
 }
 
 void FMSquelch::set_threshold(const uint32_t new_value) {
