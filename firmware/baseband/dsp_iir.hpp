@@ -65,8 +65,6 @@ private:
 	iir_biquad_config_t config;
 	std::array<float, 3> x { { 0.0f, 0.0f, 0.0f } };
 	std::array<float, 3> y { { 0.0f, 0.0f, 0.0f } };
-
-	float execute_sample(const float in);
 };
 
 #endif/*__DSP_IIR_H__*/

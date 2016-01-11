@@ -28,27 +28,32 @@ void IIRBiquadFilter::configure(const iir_biquad_config_t& new_config) {
 }
 
 void IIRBiquadFilter::execute(const buffer_s16_t& buffer_in, const buffer_s16_t& buffer_out) {
+	const auto a_ = config.a;
+	const auto b_ = config.b;
+	
+	auto x_ = x;
+	auto y_ = y;
+
 	// TODO: Assert that buffer_out.count == buffer_in.count.
 	for(size_t i=0; i<buffer_out.count; i++) {
-		const int32_t output_sample = execute_sample(buffer_in.p[i]);
+		x_[0] = x_[1];
+		x_[1] = x_[2];
+		x_[2] = buffer_in.p[i];
+
+		y_[0] = y_[1];
+		y_[1] = y_[2];
+		y_[2] = b_[0] * x_[2] + b_[1] * x_[1] + b_[2] * x_[0]
+		                      - a_[1] * y_[1] - a_[2] * y_[0];
+
+		const int32_t output_sample = y_[2];
 		const int32_t output_sample_saturated = __SSAT(output_sample, 16);
 		buffer_out.p[i] = output_sample_saturated;
 	}
+
+	x = x_;
+	y = y_;
 }
 
 void IIRBiquadFilter::execute_in_place(const buffer_s16_t& buffer) {
 	execute(buffer, buffer);
-}
-
-float IIRBiquadFilter::execute_sample(const float in) {
-	x[0] = x[1];
-	x[1] = x[2];
-	x[2] = in;
-
-	y[0] = y[1];
-	y[1] = y[2];
-	y[2] = config.b[0] * x[2] + config.b[1] * x[1] + config.b[2] * x[0]
-	                          - config.a[1] * y[1] - config.a[2] * y[0];
-
-	return y[2];
 }
