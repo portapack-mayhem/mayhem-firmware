@@ -31,12 +31,12 @@ struct iir_biquad_config_t {
 	std::array<float, 3> a;
 };
 
-constexpr iir_biquad_config_t iir_passthrough {
+constexpr iir_biquad_config_t iir_config_passthrough {
 	{ { 1.0f, 0.0f, 0.0f } },
 	{ { 0.0f, 0.0f, 0.0f } },
 };
 
-constexpr iir_biquad_config_t iir_no_pass {
+constexpr iir_biquad_config_t iir_config_no_pass {
 	{ { 0.0f, 0.0f, 0.0f } },
 	{ { 0.0f, 0.0f, 0.0f } },
 };
@@ -45,7 +45,7 @@ class IIRBiquadFilter {
 public:
 	// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 	constexpr IIRBiquadFilter(
-	) : IIRBiquadFilter(iir_no_pass)
+	) : IIRBiquadFilter(iir_config_no_pass)
 	{
 	}
 
