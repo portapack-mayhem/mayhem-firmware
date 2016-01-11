@@ -23,6 +23,10 @@
 
 #include <hal.h>
 
+void IIRBiquadFilter::configure(const iir_biquad_config_t& new_config) {
+	config = new_config;
+}
+
 void IIRBiquadFilter::execute(const buffer_s16_t& buffer_in, const buffer_s16_t& buffer_out) {
 	// TODO: Assert that buffer_out.count == buffer_in.count.
 	for(size_t i=0; i<buffer_out.count; i++) {

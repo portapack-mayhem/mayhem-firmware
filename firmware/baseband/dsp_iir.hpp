@@ -51,6 +51,8 @@ public:
 	{
 	}
 
+	void configure(const iir_biquad_config_t& new_config);
+
 	void execute(const buffer_s16_t& buffer_in, const buffer_s16_t& buffer_out);
 	void execute_in_place(const buffer_s16_t& buffer);
 
