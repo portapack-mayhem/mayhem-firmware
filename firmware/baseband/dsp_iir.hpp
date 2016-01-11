@@ -31,9 +31,18 @@ struct iir_biquad_config_t {
 	std::array<float, 3> a;
 };
 
+constexpr iir_biquad_config_t iir_no_pass {
+	{ { 0.0f, 0.0f, 0.0f } },
+	{ { 0.0f, 0.0f, 0.0f } },
+};
+
 class IIRBiquadFilter {
 public:
 	// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+	constexpr IIRBiquadFilter(
+	) : IIRBiquadFilter(iir_no_pass)
+	{
+	}
 
 	// Assume all coefficients are normalized so that a0=1.0
 	constexpr IIRBiquadFilter(
