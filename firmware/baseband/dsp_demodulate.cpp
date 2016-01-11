@@ -69,8 +69,12 @@ static inline float angle_approx_4deg0(const complex32_t t) {
 }
 */
 static inline float angle_approx_0deg27(const complex32_t t) {
-	const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
-	return x / (1.0f + 0.28086f * x * x);
+	if( t.real() ) {
+		const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
+		return x / (1.0f + 0.28086f * x * x);
+	} else {
+		return (t.imag() < 0) ? -1.5707963268f : 1.5707963268f;
+	}
 }
 
 static inline float angle_precise(const complex32_t t) {
