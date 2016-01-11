@@ -32,10 +32,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 	}
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto decimator_out = decim_1_out;
-
-	auto channel = decimator_out;
+	const auto channel = decim_1.execute(decim_0_out, dst_buffer);
 
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel);
@@ -53,7 +50,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 	 *		pass < +/- 100kHz, stop > +/- 200kHz
 	 */
 
-	auto audio_oversampled = demod.execute(decimator_out, work_audio_buffer);
+	auto audio_oversampled = demod.execute(channel, work_audio_buffer);
 
 	/* 384kHz int16_t[256]
 	 * -> 4th order CIC decimation by 2, gain of 1
