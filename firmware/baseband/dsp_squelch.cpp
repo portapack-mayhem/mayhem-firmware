@@ -25,6 +25,10 @@
 #include <array>
 
 bool FMSquelch::execute(const buffer_s16_t& audio) {
+	if( threshold_squared == 0 ) {
+		return true;
+	}
+
 	// TODO: No hard-coded array size.
 	std::array<int16_t, N> squelch_energy_buffer;
 	const buffer_s16_t squelch_energy {
