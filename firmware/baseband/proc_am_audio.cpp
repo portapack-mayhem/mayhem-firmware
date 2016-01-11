@@ -21,6 +21,9 @@
 
 #include "proc_am_audio.hpp"
 
+#include "dsp_iir_config.hpp"
+#include "audio_output.hpp"
+
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
@@ -38,9 +41,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 
 	auto audio = demod.execute(channel_out, work_audio_buffer);
 
-	audio_hpf.execute_in_place(audio);
-
-	fill_audio_buffer(audio);
+	audio_output.write(audio);
 }
 
 void NarrowbandAMAudio::on_message(const Message* const message) {
@@ -83,6 +84,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
+	audio_output.configure(audio_hpf_300hz_config);
 
 	configured = true;
 }

@@ -21,6 +21,9 @@
 
 #include "proc_wfm_audio.hpp"
 
+#include "dsp_iir_config.hpp"
+#include "audio_output.hpp"
+
 #include <cstdint>
 
 void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
@@ -68,10 +71,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 	auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
 	/* -> 48kHz int16_t[32] */
-	audio_hpf.execute_in_place(audio);
-	audio_deemph.execute_in_place(audio);
-
-	fill_audio_buffer(audio);
+	audio_output.write(audio);
 }
 
 void WidebandFMAudio::on_message(const Message* const message) {
@@ -116,6 +116,7 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 	channel_filter_stop_f = message.decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
 	demod.configure(demod_input_fs, message.deviation);
 	audio_filter.configure(message.audio_filter.taps);
+	audio_output.configure(audio_hpf_30hz_config, audio_deemph_2122_6_config);
 
 	channel_spectrum.set_decimation_factor(1);
 

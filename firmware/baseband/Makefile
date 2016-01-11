@@ -154,6 +154,7 @@ CPPSRC = main.cpp \
          rssi_dma.cpp \
          rssi_thread.cpp \
          audio.cpp \
+         audio_output.cpp \
          audio_dma.cpp \
          audio_stats_collector.cpp \
          touch_dma.cpp \

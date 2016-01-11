@@ -23,16 +23,7 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "dsp_fft.hpp"
-
-#include "audio_dma.hpp"
-
 #include "message.hpp"
-#include "event_m4.hpp"
-#include "utility.hpp"
-
-#include <cstddef>
-#include <algorithm>
 
 void BasebandProcessor::feed_channel_stats(const buffer_c16_t& channel) {
 	channel_stats.feed(
@@ -40,36 +31,6 @@ void BasebandProcessor::feed_channel_stats(const buffer_c16_t& channel) {
 		[](const ChannelStatistics& statistics) {
 			const ChannelStatisticsMessage channel_stats_message { statistics };
 			shared_memory.application_queue.push(channel_stats_message);
-		}
-	);
-}
-
-void BasebandProcessor::fill_audio_buffer(const buffer_s16_t& audio) {
-	auto audio_buffer = audio::dma::tx_empty_buffer();;
-	for(size_t i=0; i<audio_buffer.count; i++) {
-		audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
-	}
-	i2s::i2s0::tx_unmute();
-
-	feed_audio_stats(audio);
-}
-
-void BasebandProcessor::mute_audio(const buffer_s16_t& audio) {
-	i2s::i2s0::tx_mute();
-
-	for(size_t i=0; i<audio.count; i++) {
-		audio.p[i] = 0;
-	}
-
-	feed_audio_stats(audio);
-}
-
-void BasebandProcessor::feed_audio_stats(const buffer_s16_t& audio) {
-	audio_stats.feed(
-		audio,
-		[](const AudioStatistics& statistics) {
-			const AudioStatisticsMessage audio_stats_message { statistics };
-			shared_memory.application_queue.push(audio_stats_message);
 		}
 	);
 }

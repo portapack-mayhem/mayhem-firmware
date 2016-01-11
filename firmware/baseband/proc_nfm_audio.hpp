@@ -26,9 +26,6 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
-#include "dsp_squelch.hpp"
 
 #include "spectrum_collector.hpp"
 
@@ -57,10 +54,6 @@ private:
 	uint32_t channel_filter_stop_f = 0;
 
 	dsp::demodulate::FM demod;
-
-	IIRBiquadFilter audio_hpf { audio_hpf_300hz_config };
-	IIRBiquadFilter audio_deemph { audio_deemph_300_6_config };
-	FMSquelch squelch;
 
 	SpectrumCollector channel_spectrum;
 

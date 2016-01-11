@@ -19,28 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BASEBAND_PROCESSOR_H__
-#define __BASEBAND_PROCESSOR_H__
+#ifndef __AUDIO_OUTPUT_H__
+#define __AUDIO_OUTPUT_H__
 
 #include "dsp_types.hpp"
 
-#include "channel_stats_collector.hpp"
+#include "dsp_iir.hpp"
+#include "dsp_squelch.hpp"
 
-#include "message.hpp"
+#include "audio_stats_collector.hpp"
 
-class BasebandProcessor {
+#include <cstdint>
+
+class AudioOutput {
 public:
-	virtual ~BasebandProcessor() = default;
+	void configure(
+		const iir_biquad_config_t& hpf_config,
+		const iir_biquad_config_t& deemph_config = iir_config_passthrough,
+		const uint32_t squelch_threshold = 0
+	);
 
-	virtual void execute(const buffer_c8_t& buffer) = 0;
-
-	virtual void on_message(const Message* const) { };
-
-protected:
-	void feed_channel_stats(const buffer_c16_t& channel);
+	void write(const buffer_s16_t& audio);
 
 private:
-	ChannelStatsCollector channel_stats;
+	IIRBiquadFilter hpf;
+	IIRBiquadFilter deemph;
+	FMSquelch squelch;
+
+	AudioStatsCollector audio_stats;
+
+	void fill_audio_buffer(const buffer_s16_t& audio);
+	void feed_audio_stats(const buffer_s16_t& audio);
 };
 
-#endif/*__BASEBAND_PROCESSOR_H__*/
+extern AudioOutput audio_output;
+
+#endif/*__AUDIO_OUTPUT_H__*/

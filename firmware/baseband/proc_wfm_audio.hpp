@@ -26,8 +26,6 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
 
 #include "spectrum_collector.hpp"
 
@@ -57,9 +55,6 @@ private:
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter;
-
-	IIRBiquadFilter audio_hpf { audio_hpf_30hz_config };
-	IIRBiquadFilter audio_deemph { audio_deemph_2122_6_config };
 
 	SpectrumCollector channel_spectrum;
 	size_t spectrum_interval_samples = 0;

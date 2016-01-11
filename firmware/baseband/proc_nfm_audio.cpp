@@ -21,6 +21,9 @@
 
 #include "proc_nfm_audio.hpp"
 
+#include "dsp_iir_config.hpp"
+#include "audio_output.hpp"
+
 #include <cstdint>
 #include <cstddef>
 
@@ -38,22 +41,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	auto audio = demod.execute(channel_out, work_audio_buffer);
 
-	// Yes, evaluate squelch here, but do audio filtering regardless to keep glitches
-	// out of the filters. Zero out audio *after* filtering, based on squelch status.
-	const auto audio_present_now = squelch.execute(audio);
-
-	audio_hpf.execute_in_place(audio);
-	audio_deemph.execute_in_place(audio);
-
-	static uint64_t audio_present_history = 0;
-	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-	const bool audio_present = (audio_present_history != 0);
-	
-	if( audio_present ) {
-		fill_audio_buffer(audio);
-	} else {
-		mute_audio(audio);
-	}
+	audio_output.write(audio);
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {
@@ -99,7 +87,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
-	squelch.set_threshold(6144);
+	audio_output.configure(audio_hpf_300hz_config, audio_deemph_300_6_config, 6144);
 
 	configured = true;
 }
