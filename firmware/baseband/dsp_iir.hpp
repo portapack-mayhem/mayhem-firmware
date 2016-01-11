@@ -27,8 +27,8 @@
 #include "dsp_types.hpp"
 
 struct iir_biquad_config_t {
-	const std::array<float, 3> b;
-	const std::array<float, 3> a;
+	std::array<float, 3> b;
+	std::array<float, 3> a;
 };
 
 class IIRBiquadFilter {
@@ -46,7 +46,7 @@ public:
 	void execute_in_place(const buffer_s16_t& buffer);
 
 private:
-	const iir_biquad_config_t config;
+	iir_biquad_config_t config;
 	std::array<float, 3> x { { 0.0f, 0.0f, 0.0f } };
 	std::array<float, 3> y { { 0.0f, 0.0f, 0.0f } };
 
