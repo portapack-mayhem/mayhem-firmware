@@ -25,6 +25,8 @@
 #include "baseband_processor.hpp"
 #include "spectrum_collector.hpp"
 
+#include "message.hpp"
+
 #include <cstddef>
 #include <array>
 #include <complex>
@@ -39,6 +41,8 @@ private:
 	SpectrumCollector channel_spectrum;
 
 	std::array<complex16_t, 256> spectrum;
+
+	void streaming_config(const SpectrumStreamingConfigMessage& message);
 };
 
 #endif/*__PROC_WIDEBAND_SPECTRUM_H__*/
