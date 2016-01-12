@@ -34,8 +34,6 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	// 2048 complex8_t samples per buffer.
 	// 102.4us per buffer. 20480 instruction cycles per buffer.
 
-	static int phase = 0;
-
 	if( phase == 0 ) {
 		std::fill(spectrum.begin(), spectrum.end(), 0);
 	}

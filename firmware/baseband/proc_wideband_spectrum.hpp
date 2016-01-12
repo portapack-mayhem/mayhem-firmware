@@ -43,6 +43,7 @@ private:
 	std::array<complex16_t, 256> spectrum;
 
 	void streaming_config(const SpectrumStreamingConfigMessage& message);
+	size_t phase = 0;
 };
 
 #endif/*__PROC_WIDEBAND_SPECTRUM_H__*/
