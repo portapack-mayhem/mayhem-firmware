@@ -59,8 +59,6 @@ private:
 
 	bool configured { false };
 	void configure(const NBFMConfigureMessage& message);
-
-	void streaming_config(const SpectrumStreamingConfigMessage& message);
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

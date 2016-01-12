@@ -39,8 +39,7 @@ public:
 	{
 	}
 
-	void start();
-	void stop();
+	void on_message(const Message* const message);
 
 	void set_decimation_factor(const size_t decimation_factor);
 
@@ -49,8 +48,6 @@ public:
 		const uint32_t filter_pass_frequency,
 		const uint32_t filter_stop_frequency
 	);
-
-	void update();
 
 private:
 	BlockDecimator<256> channel_spectrum_decimator;
@@ -64,6 +61,12 @@ private:
 	uint32_t channel_filter_stop_frequency { 0 };
 
 	void post_message(const buffer_c16_t& data);
+
+	void set_state(const SpectrumStreamingConfigMessage& message);
+	void start();
+	void stop();
+
+	void update();
 };
 
 #endif/*__SPECTRUM_COLLECTOR_H__*/

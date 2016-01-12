@@ -47,15 +47,12 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 void NarrowbandAMAudio::on_message(const Message* const message) {
 	switch(message->id) {
 	case Message::ID::UpdateSpectrum:
-		channel_spectrum.update();
+	case Message::ID::SpectrumStreamingConfig:
+		channel_spectrum.on_message(message);
 		break;
 
 	case Message::ID::AMConfigure:
 		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
-		break;
-
-	case Message::ID::SpectrumStreamingConfig:
-		streaming_config(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
 		break;
 
 	default:
@@ -87,12 +84,4 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	audio_output.configure(audio_hpf_300hz_config);
 
 	configured = true;
-}
-
-void NarrowbandAMAudio::streaming_config(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
-		channel_spectrum.start();
-	} else {
-		channel_spectrum.stop();
-	}
 }

@@ -62,8 +62,6 @@ private:
 
 	bool configured { false };
 	void configure(const WFMConfigureMessage& message);
-
-	void streaming_config(const SpectrumStreamingConfigMessage& message);
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/

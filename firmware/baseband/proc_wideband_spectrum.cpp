@@ -64,22 +64,11 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 void WidebandSpectrum::on_message(const Message* const message) {
 	switch(message->id) {
 	case Message::ID::UpdateSpectrum:
-		channel_spectrum.update();
-		break;
-
 	case Message::ID::SpectrumStreamingConfig:
-		streaming_config(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
+		channel_spectrum.on_message(message);
 		break;
 
 	default:
 		break;
-	}
-}
-
-void WidebandSpectrum::streaming_config(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
-		channel_spectrum.start();
-	} else {
-		channel_spectrum.stop();
 	}
 }

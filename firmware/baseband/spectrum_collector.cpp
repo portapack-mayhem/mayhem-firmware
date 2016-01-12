@@ -29,6 +29,29 @@
 
 #include <algorithm>
 
+void SpectrumCollector::on_message(const Message* const message) {
+	switch(message->id) {
+	case Message::ID::UpdateSpectrum:
+		update();
+		break;
+
+	case Message::ID::SpectrumStreamingConfig:
+		set_state(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
+		break;
+
+	default:
+		break;
+	}
+}
+
+void SpectrumCollector::set_state(const SpectrumStreamingConfigMessage& message) {
+	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+		start();
+	} else {
+		stop();
+	}
+}
+
 void SpectrumCollector::start() {
 	streaming = true;
 	ChannelSpectrumConfigMessage message { &fifo };

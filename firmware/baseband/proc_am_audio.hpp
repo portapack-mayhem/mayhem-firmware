@@ -60,8 +60,6 @@ private:
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);
-
-	void streaming_config(const SpectrumStreamingConfigMessage& message);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/

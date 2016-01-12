@@ -74,15 +74,12 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 void WidebandFMAudio::on_message(const Message* const message) {
 	switch(message->id) {
 	case Message::ID::UpdateSpectrum:
-		channel_spectrum.update();
+	case Message::ID::SpectrumStreamingConfig:
+		channel_spectrum.on_message(message);
 		break;
 
 	case Message::ID::WFMConfigure:
 		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
-		break;
-
-	case Message::ID::SpectrumStreamingConfig:
-		streaming_config(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
 		break;
 
 	default:
@@ -118,12 +115,4 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 	channel_spectrum.set_decimation_factor(1);
 
 	configured = true;
-}
-
-void WidebandFMAudio::streaming_config(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
-		channel_spectrum.start();
-	} else {
-		channel_spectrum.stop();
-	}
 }
