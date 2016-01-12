@@ -29,11 +29,12 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <array>
 
 void AudioOutput::configure(
 	const iir_biquad_config_t& hpf_config,
 	const iir_biquad_config_t& deemph_config,
-	const uint32_t squelch_threshold
+	const float squelch_threshold
 ) {
 	hpf.configure(hpf_config);
 	deemph.configure(deemph_config);
@@ -42,6 +43,20 @@ void AudioOutput::configure(
 
 void AudioOutput::write(
 	const buffer_s16_t& audio
+) {
+	std::array<float, 32> audio_f;
+	for(size_t i=0; i<audio.count; i++) {
+		audio_f[i] = audio.p[i];
+	}
+	write(buffer_f32_t {
+		audio_f.data(),
+		audio.count,
+		audio.sampling_rate
+	});
+}
+
+void AudioOutput::write(
+	const buffer_f32_t& audio
 ) {
 	const auto audio_present_now = squelch.execute(audio);
 
@@ -63,16 +78,18 @@ void AudioOutput::write(
 	fill_audio_buffer(audio);
 }
 
-void AudioOutput::fill_audio_buffer(const buffer_s16_t& audio) {
+void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio) {
 	auto audio_buffer = audio::dma::tx_empty_buffer();
 	for(size_t i=0; i<audio_buffer.count; i++) {
-		audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
+		const int32_t sample_int = audio.p[i];
+		const int32_t sample_saturated = __SSAT(sample_int, 16);
+		audio_buffer.p[i].left = audio_buffer.p[i].right = sample_saturated;
 	}
 
 	feed_audio_stats(audio);
 }
 
-void AudioOutput::feed_audio_stats(const buffer_s16_t& audio) {
+void AudioOutput::feed_audio_stats(const buffer_f32_t& audio) {
 	audio_stats.feed(
 		audio,
 		[](const AudioStatistics& statistics) {

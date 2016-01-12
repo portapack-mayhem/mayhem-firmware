@@ -36,10 +36,11 @@ public:
 	void configure(
 		const iir_biquad_config_t& hpf_config,
 		const iir_biquad_config_t& deemph_config = iir_config_passthrough,
-		const uint32_t squelch_threshold = 0
+		const float squelch_threshold = 0.0f
 	);
 
 	void write(const buffer_s16_t& audio);
+	void write(const buffer_f32_t& audio);
 
 private:
 	IIRBiquadFilter hpf;
@@ -50,8 +51,8 @@ private:
 
 	uint64_t audio_present_history = 0;
 
-	void fill_audio_buffer(const buffer_s16_t& audio);
-	void feed_audio_stats(const buffer_s16_t& audio);
+	void fill_audio_buffer(const buffer_f32_t& audio);
+	void feed_audio_stats(const buffer_f32_t& audio);
 };
 
 extern AudioOutput audio_output;

@@ -23,12 +23,12 @@
 
 #include "utility.hpp"
 
-void AudioStatsCollector::consume_audio_buffer(const buffer_s16_t& src) {
+void AudioStatsCollector::consume_audio_buffer(const buffer_f32_t& src) {
 	auto src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	while(src_p < src_end) {
 		const auto sample = *(src_p++);
-		const uint64_t sample_squared = sample * sample;
+		const auto sample_squared = sample * sample;
 		squared_sum += sample_squared;
 		if( sample_squared > max_squared ) {
 			max_squared = sample_squared;
@@ -42,11 +42,8 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
 	const size_t samples_per_update = sampling_rate * update_interval;
 
 	if( count >= samples_per_update ) {
-		const float squared_sum_f = squared_sum;
-		const float max_squared_f = max_squared;
-		const float squared_avg_f = squared_sum_f / count;
-		statistics.rms_db = complex16_mag_squared_to_dbv_norm(squared_avg_f);
-		statistics.max_db = complex16_mag_squared_to_dbv_norm(max_squared_f);
+		statistics.rms_db = complex16_mag_squared_to_dbv_norm(squared_sum / count);
+		statistics.max_db = complex16_mag_squared_to_dbv_norm(max_squared);
 		statistics.count = count;
 
 		squared_sum = 0;
@@ -59,7 +56,7 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
 	}
 }
 
-bool AudioStatsCollector::feed(const buffer_s16_t& src) {
+bool AudioStatsCollector::feed(const buffer_f32_t& src) {
 	consume_audio_buffer(src);
 
 	return update_stats(src.count, src.sampling_rate);

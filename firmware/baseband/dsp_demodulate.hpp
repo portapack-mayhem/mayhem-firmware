@@ -29,14 +29,19 @@ namespace demodulate {
 
 class AM {
 public:
-	buffer_s16_t execute(
+	buffer_f32_t execute(
 		const buffer_c16_t& src,
-		const buffer_s16_t& dst
+		const buffer_f32_t& dst
 	);
 };
 
 class FM {
 public:
+	buffer_f32_t execute(
+		const buffer_c16_t& src,
+		const buffer_f32_t& dst
+	);
+
 	buffer_s16_t execute(
 		const buffer_c16_t& src,
 		const buffer_s16_t& dst

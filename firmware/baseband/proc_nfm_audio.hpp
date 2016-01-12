@@ -41,9 +41,9 @@ private:
 		dst.data(),
 		dst.size()
 	};
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)dst.data(),
-		sizeof(dst) / sizeof(int16_t)
+	const buffer_f32_t work_audio_buffer {
+		(float*)dst.data(),
+		sizeof(dst) / sizeof(float)
 	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;

@@ -31,13 +31,13 @@
 
 class FMSquelch {
 public:
-	bool execute(const buffer_s16_t& audio);
+	bool execute(const buffer_f32_t& audio);
 
-	void set_threshold(const uint32_t new_value);
+	void set_threshold(const float new_value);
 
 private:
 	static constexpr size_t N = 32;
-	uint32_t threshold_squared { 0 };
+	float threshold_squared { 0.0f };
 
 	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
