@@ -105,14 +105,6 @@ private:
 
 	void on_packet(const ais::Packet& packet);
 
-	void draw_entry(
-		const AISRecentEntry& entry,
-		const Rect& target_rect,
-		Painter& painter,
-		const Style& style,
-		const bool is_selected
-	);
-
 	void truncate_entries();
 
 	RecentEntries::iterator selected_entry();

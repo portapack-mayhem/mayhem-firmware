@@ -210,7 +210,7 @@ bool AISView::on_encoder(const EncoderEvent event) {
 	return true;
 }
 
-void AISView::draw_entry(
+static void ais_list_item_draw(
 	const AISRecentEntry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -261,7 +261,7 @@ void AISView::paint(Painter& painter) {
 	for(auto p = start; p != end; p++) {
 		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.mmsi);
-		draw_entry(entry, target_rect, painter, s, (has_focus && is_selected_key));
+		ais_list_item_draw(entry, target_rect, painter, s, (has_focus && is_selected_key));
 		target_rect.pos.y += target_rect.height();
 	}
 }
