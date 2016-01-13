@@ -32,7 +32,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_APPLICATION);
+	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
 	chSysUnlockFromIsr();
 
 	creg::m4txevent::clear();
@@ -41,3 +41,5 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 }
 
 }
+
+Thread* EventDispatcher::thread_event_loop = nullptr;

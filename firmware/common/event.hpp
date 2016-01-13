@@ -24,20 +24,4 @@
 
 #include "ch.h"
 
-void events_initialize(Thread* const event_loop_thread);
-
-extern Thread* thread_event_loop;
-
-inline void events_flag(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignal(thread_event_loop, events);
-	}
-}
-
-inline void events_flag_isr(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignalI(thread_event_loop, events);
-	}
-}
-
 #endif/*__EVENT_H__*/

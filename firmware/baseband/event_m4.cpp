@@ -32,7 +32,7 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_BASEBAND);
+	EventDispatcher::events_flag_isr(EVT_MASK_BASEBAND);
 	chSysUnlockFromIsr();
 
 	creg::m0apptxevent::clear();
@@ -41,3 +41,5 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 }
 
 }
+
+Thread* EventDispatcher::thread_event_loop = nullptr;

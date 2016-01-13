@@ -165,7 +165,7 @@ void timer0_callback(GPTDriver* const) {
 	/* Signal event loop */
 	if( event_mask ) {
 		chSysLockFromIsr();
-		events_flag_isr(event_mask);
+		EventDispatcher::events_flag_isr(event_mask);
 		chSysUnlockFromIsr();
 	}
 

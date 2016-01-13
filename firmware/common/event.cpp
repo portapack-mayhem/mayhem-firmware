@@ -22,9 +22,3 @@
 #include "event.hpp"
 
 #include "ch.h"
-
-Thread* thread_event_loop = nullptr;
-
-void events_initialize(Thread* const event_loop_thread) {
-	thread_event_loop = event_loop_thread;
-}

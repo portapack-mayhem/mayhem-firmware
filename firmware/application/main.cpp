@@ -66,7 +66,6 @@ int main(void) {
 
 	sdcStart(&SDCD1, nullptr);
 
-	events_initialize(chThdSelf());
 	init_message_queues();
 
 	ui::Context context;

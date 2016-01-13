@@ -44,7 +44,7 @@ constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 class EventDispatcher {
 public:
 	void run() {
-		events_initialize(chThdSelf());
+		thread_event_loop = chThdSelf();
 		lpc43xx::creg::m0apptxevent::enable();
 
 		baseband_thread.thread_main = chThdSelf();
@@ -63,7 +63,21 @@ public:
 		is_running = false;
 	}
 
+	static inline void events_flag(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignal(thread_event_loop, events);
+		}
+	}
+
+	static inline void events_flag_isr(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignalI(thread_event_loop, events);
+		}
+	}
+
 private:
+	static Thread* thread_event_loop;
+
 	BasebandThread baseband_thread;
 	RSSIThread rssi_thread;
 

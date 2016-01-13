@@ -66,6 +66,7 @@ public:
 		painter(painter),
 		context(context)
 	{
+		thread_event_loop = chThdSelf();
 		touch_manager.on_event = [this](const ui::TouchEvent event) {
 			this->on_touch_event(event);
 		};
@@ -86,7 +87,21 @@ public:
 		is_running = false;
 	}
 
+	static inline void events_flag(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignal(thread_event_loop, events);
+		}
+	}
+
+	static inline void events_flag_isr(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignalI(thread_event_loop, events);
+		}
+	}
+
 private:
+	static Thread* thread_event_loop;
+
 	touch::Manager touch_manager;
 	ui::Widget* const top_widget;
 	ui::Painter& painter;

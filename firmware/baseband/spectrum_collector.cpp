@@ -27,6 +27,8 @@
 #include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 
+#include "event_m4.hpp"
+
 #include <algorithm>
 
 void SpectrumCollector::on_message(const Message* const message) {
@@ -97,7 +99,7 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
 		channel_spectrum_request_update = true;
-		events_flag(EVT_MASK_SPECTRUM);
+		EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
 	}
 }
 
