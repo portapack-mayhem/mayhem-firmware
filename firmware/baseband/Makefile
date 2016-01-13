@@ -125,6 +125,7 @@ CSRC = $(PORTSRC) \
 CPPSRC = main.cpp \
          message_queue.cpp \
          event.cpp \
+         event_m4.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          baseband_sgpio.cpp \

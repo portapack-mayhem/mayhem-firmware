@@ -122,6 +122,7 @@ CPPSRC = main.cpp \
          irq_controls.cpp \
          irq_rtc.cpp \
          event.cpp \
+         event_m0.cpp \
          message_queue.cpp \
          hackrf_hal.cpp \
          portapack.cpp \
