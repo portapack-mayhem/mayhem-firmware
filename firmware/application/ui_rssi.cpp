@@ -21,12 +21,14 @@
 
 #include "ui_rssi.hpp"
 
+#include "event_m0.hpp"
+
 #include <algorithm>
 
 namespace ui {
 
 void RSSI::on_show() {
-	context().message_map().register_handler(Message::ID::RSSIStatistics,
+	EventDispatcher::message_map().register_handler(Message::ID::RSSIStatistics,
 		[this](const Message* const p) {
 			this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
 		}
@@ -34,7 +36,7 @@ void RSSI::on_show() {
 }
 
 void RSSI::on_hide() {
-	context().message_map().unregister_handler(Message::ID::RSSIStatistics);
+	EventDispatcher::message_map().unregister_handler(Message::ID::RSSIStatistics);
 }
 
 void RSSI::paint(Painter& painter) {

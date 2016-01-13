@@ -29,8 +29,6 @@
 
 #include "utility.hpp"
 
-#include "message.hpp"
-
 #include <memory>
 #include <vector>
 #include <string>
@@ -47,13 +45,8 @@ public:
 		return focus_manager_;
 	}
 
-	MessageHandlerMap& message_map() {
-		return message_map_;
-	}
-
 private:
 	FocusManager focus_manager_;
-	MessageHandlerMap message_map_;
 };
 
 class Widget {

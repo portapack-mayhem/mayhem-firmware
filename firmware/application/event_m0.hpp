@@ -27,6 +27,8 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 
+#include "message.hpp"
+
 #include "touch.hpp"
 
 #include "ch.h"
@@ -63,7 +65,12 @@ public:
 		}
 	}
 
+	static MessageHandlerMap& message_map() {
+		return message_map_;
+	}
+
 private:
+	static MessageHandlerMap message_map_;
 	static Thread* thread_event_loop;
 
 	touch::Manager touch_manager;

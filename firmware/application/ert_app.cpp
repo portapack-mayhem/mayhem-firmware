@@ -21,6 +21,8 @@
 
 #include "ert_app.hpp"
 
+#include "event_m0.hpp"
+
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -54,8 +56,7 @@ namespace ui {
 void ERTView::on_show() {
 	Console::on_show();
 
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::ERTPacket,
+	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
 			const ert::Packet packet { message->type, message->packet };
@@ -67,8 +68,7 @@ void ERTView::on_show() {
 }
 
 void ERTView::on_hide() {
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::ERTPacket);
+	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 
 	Console::on_hide();
 }

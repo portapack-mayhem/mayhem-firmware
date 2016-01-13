@@ -21,6 +21,8 @@
 
 #include "ais_app.hpp"
 
+#include "event_m0.hpp"
+
 #include "string_format.hpp"
 
 #include "portapack.hpp"
@@ -116,8 +118,7 @@ namespace ui {
 void AISView::on_show() {
 	View::on_show();
 
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::AISPacket,
+	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const AISPacketMessage*>(p);
 			const ais::Packet packet { message->packet };
@@ -129,8 +130,7 @@ void AISView::on_show() {
 }
 
 void AISView::on_hide() {
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::AISPacket);
+	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 
 	View::on_hide();
 }

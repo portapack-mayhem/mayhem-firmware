@@ -21,12 +21,14 @@
 
 #include "ui_audio.hpp"
 
+#include "event_m0.hpp"
+
 #include <algorithm>
 
 namespace ui {
 
 void Audio::on_show() {
-	context().message_map().register_handler(Message::ID::AudioStatistics,
+	EventDispatcher::message_map().register_handler(Message::ID::AudioStatistics,
 		[this](const Message* const p) {
 			this->on_statistics_update(static_cast<const AudioStatisticsMessage*>(p)->statistics);
 		}
@@ -34,7 +36,7 @@ void Audio::on_show() {
 }
 
 void Audio::on_hide() {
-	context().message_map().unregister_handler(Message::ID::AudioStatistics);
+	EventDispatcher::message_map().unregister_handler(Message::ID::AudioStatistics);
 }
 
 void Audio::paint(Painter& painter) {

@@ -76,8 +76,7 @@ int main(void) {
 	ui::Painter painter;
 	EventDispatcher event_dispatcher { &system_view, painter, context };
 
-	auto& message_handlers = context.message_map();
-	message_handlers.register_handler(Message::ID::Shutdown,
+	EventDispatcher::message_map().register_handler(Message::ID::Shutdown,
 		[&event_dispatcher](const Message* const) {
 			event_dispatcher.request_stop();
 		}

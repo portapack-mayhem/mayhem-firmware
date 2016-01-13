@@ -21,6 +21,8 @@
 
 #include "tpms_app.hpp"
 
+#include "event_m0.hpp"
+
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -58,8 +60,7 @@ namespace ui {
 void TPMSView::on_show() {
 	Console::on_show();
 
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::TPMSPacket,
+	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const TPMSPacketMessage*>(p);
 			this->log(this->model.on_packet(*message));
@@ -68,8 +69,7 @@ void TPMSView::on_show() {
 }
 
 void TPMSView::on_hide() {
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::TPMSPacket);
+	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
 
 	Console::on_hide();
 }

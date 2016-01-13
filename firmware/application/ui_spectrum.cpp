@@ -21,6 +21,8 @@
 
 #include "ui_spectrum.hpp"
 
+#include "event_m0.hpp"
+
 #include "spectrum_color_lut.hpp"
 
 #include "portapack.hpp"
@@ -235,13 +237,13 @@ WaterfallWidget::WaterfallWidget() {
 }
 
 void WaterfallWidget::on_show() {
-	context().message_map().register_handler(Message::ID::ChannelSpectrumConfig,
+	EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrumConfig,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
 			this->fifo = message.fifo;
 		}
 	);
-	context().message_map().register_handler(Message::ID::DisplayFrameSync,
+	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
 		[this](const Message* const) {
 			if( this->fifo ) {
 				ChannelSpectrum channel_spectrum;
@@ -266,8 +268,8 @@ void WaterfallWidget::on_hide() {
 		}
 	);
 
-	context().message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	context().message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
+	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
+	EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
 }
 
 void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {

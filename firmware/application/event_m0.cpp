@@ -54,6 +54,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 }
 
+MessageHandlerMap EventDispatcher::message_map_;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 
 EventDispatcher::EventDispatcher(
@@ -118,7 +119,7 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 void EventDispatcher::handle_application_queue() {
 	std::array<uint8_t, Message::MAX_SIZE> message_buffer;
 	while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
-		context.message_map().send(message);
+		message_map().send(message);
 	}
 }
 
@@ -172,7 +173,7 @@ void EventDispatcher::on_touch_event(ui::TouchEvent event) {
 
 void EventDispatcher::handle_lcd_frame_sync() {
 	DisplayFrameSyncMessage message;
-	context.message_map().send(&message);
+	message_map().send(&message);
 	painter.paint_widget_tree(top_widget);
 }
 
