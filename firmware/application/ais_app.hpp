@@ -38,6 +38,31 @@ using namespace lpc43xx;
 
 #include <iterator>
 
+struct AISPosition {
+	rtc::RTC timestamp { };
+	ais::Latitude latitude { 0 };
+	ais::Longitude longitude { 0 };
+};
+
+struct AISRecentEntry {
+	ais::MMSI mmsi;
+	std::string name;
+	std::string call_sign;
+	std::string destination;
+	AISPosition last_position;
+	size_t received_count;
+	int8_t navigational_status;
+
+	AISRecentEntry(
+		const ais::MMSI& mmsi
+	) : mmsi { mmsi },
+		last_position { },
+		received_count { 0 },
+		navigational_status { -1 }
+	{
+	}
+};
+
 class AISModel {
 public:
 	AISModel();
@@ -75,38 +100,13 @@ private:
 
 	bool has_focus = false;
 
-	struct Position {
-		rtc::RTC timestamp { };
-		ais::Latitude latitude { 0 };
-		ais::Longitude longitude { 0 };
-	};
-
-	struct RecentEntry {
-		ais::MMSI mmsi;
-		std::string name;
-		std::string call_sign;
-		std::string destination;
-		Position last_position;
-		size_t received_count;
-		int8_t navigational_status;
-
-		RecentEntry(
-			const ais::MMSI& mmsi
-		) : mmsi { mmsi },
-			last_position { },
-			received_count { 0 },
-			navigational_status { -1 }
-		{
-		}
-	};
-
-	using RecentEntries = std::list<RecentEntry>;
+	using RecentEntries = std::list<AISRecentEntry>;
 	RecentEntries recent;
 
 	void on_packet(const ais::Packet& packet);
 
 	void draw_entry(
-		const RecentEntry& entry,
+		const AISRecentEntry& entry,
 		const Rect& target_rect,
 		Painter& painter,
 		const Style& style,

@@ -144,7 +144,7 @@ void AISView::truncate_entries() {
 void AISView::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = std::find_if(recent.begin(), recent.end(),
-		[source_id](const AISView::RecentEntry& entry) { return entry.mmsi == source_id; }
+		[source_id](const AISRecentEntry& entry) { return entry.mmsi == source_id; }
 	);
 	if( matching_recent != recent.end() ) {
 		// Found within. Move to front of list, increment counter.
@@ -211,7 +211,7 @@ bool AISView::on_encoder(const EncoderEvent event) {
 }
 
 void AISView::draw_entry(
-	const RecentEntry& entry,
+	const AISRecentEntry& entry,
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style,
@@ -268,7 +268,7 @@ void AISView::paint(Painter& painter) {
 
 AISView::RecentEntries::iterator AISView::selected_entry() {
 	const auto key = selected_key;
-	return std::find_if(std::begin(recent), std::end(recent), [key](const RecentEntry& e) { return e.mmsi == key; });
+	return std::find_if(std::begin(recent), std::end(recent), [key](const AISRecentEntry& e) { return e.mmsi == key; });
 }
 
 void AISView::advance(const int32_t amount) {
