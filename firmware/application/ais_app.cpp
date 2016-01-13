@@ -214,8 +214,11 @@ void AISView::draw_entry(
 	const RecentEntry& entry,
 	const Rect& target_rect,
 	Painter& painter,
-	const Style& s
+	const Style& style,
+	const bool is_selected
 ) {
+	const auto& draw_style = is_selected ? style.invert() : style;
+
 	std::string line = ais::format::mmsi(entry.mmsi) + " ";
 	if( !entry.name.empty() ) {
 		line += entry.name;
@@ -224,7 +227,7 @@ void AISView::draw_entry(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, s, line);
+	painter.draw_string(target_rect.pos, draw_style, line);
 }
 
 void AISView::paint(Painter& painter) {
@@ -258,8 +261,7 @@ void AISView::paint(Painter& painter) {
 	for(auto p = start; p != end; p++) {
 		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.mmsi);
-		const auto& draw_style = (has_focus && is_selected_key) ? s.invert() : s;
-		draw_entry(entry, target_rect, painter, draw_style);
+		draw_entry(entry, target_rect, painter, s, (has_focus && is_selected_key));
 		target_rect.pos.y += target_rect.height();
 	}
 }

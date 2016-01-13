@@ -109,7 +109,8 @@ private:
 		const RecentEntry& entry,
 		const Rect& target_rect,
 		Painter& painter,
-		const Style& s
+		const Style& style,
+		const bool is_selected
 	);
 
 	void truncate_entries();
