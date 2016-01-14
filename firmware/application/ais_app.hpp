@@ -25,11 +25,7 @@
 #include "ui_widget.hpp"
 #include "log_file.hpp"
 
-#include "message.hpp"
-
 #include "ais_packet.hpp"
-
-#include "signal.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -70,14 +66,11 @@ struct AISRecentEntry {
 class AISModel {
 public:
 	AISModel();
-	~AISModel();
 
-	Signal<const ais::Packet&> packet_signal;
+	bool on_packet(const ais::Packet& packet);
 
 private:
 	LogFile log_file;
-
-	bool on_packet(const ais::Packet& packet);
 };
 
 namespace ui {
@@ -86,7 +79,7 @@ class AISView : public View {
 public:
 	AISView();
 	~AISView();
-	
+
 	void paint(Painter& painter) override;
 
 	void on_focus() override;
@@ -96,7 +89,6 @@ public:
 
 private:
 	AISModel model;
-	SignalToken packet_signal_token;
 
 	using EntryKey = ais::MMSI;
 	EntryKey selected_key;

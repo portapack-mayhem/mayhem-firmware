@@ -89,26 +89,10 @@ AISModel::AISModel() {
 	receiver_model.set_baseband_bandwidth(1750000);
 
 	log_file.open_for_append("ais.txt");
-
-	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			this->on_packet(packet);
-		}
-	);
-}
-
-AISModel::~AISModel() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
 bool AISModel::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
-
-	if( !packet.is_valid() ) {
-		return false;
-	}
 
 	if( log_file.is_ready() ) {
 		std::string entry;
@@ -122,8 +106,6 @@ bool AISModel::on_packet(const ais::Packet& packet) {
 		log_file.write_entry(packet.received_at(), entry);
 	}
 
-	packet_signal.emit(packet);
-
 	return true;
 }	
 
@@ -132,13 +114,20 @@ namespace ui {
 AISView::AISView() {
 	flags.focusable = true;
 
-	packet_signal_token = model.packet_signal += [this](const ais::Packet& packet) {
-		this->on_packet(packet);
-	};
+	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const AISPacketMessage*>(p);
+			const ais::Packet packet { message->packet };
+			if( packet.is_valid() ) {
+				this->model.on_packet(packet);
+				this->on_packet(packet);
+			}
+		}
+	);
 }
 
 AISView::~AISView() {
-	model.packet_signal -= packet_signal_token;
+	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
 void AISView::truncate_entries() {
