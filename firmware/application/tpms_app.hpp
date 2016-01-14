@@ -35,7 +35,7 @@ public:
 	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
 
 private:
-	LogFile log_file;
+	LogFile log_file { "tpms.txt" };
 };
 
 namespace ui {

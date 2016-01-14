@@ -38,8 +38,6 @@ ERTModel::ERTModel() {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(2500000);
-
-	log_file.open_for_append("ert.txt");
 }
 
 bool ERTModel::on_packet(const ert::Packet& packet) {

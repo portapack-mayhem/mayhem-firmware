@@ -25,24 +25,32 @@
 #include <string>
 
 #include "ff.h"
+#include "sd_card.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
 class LogFile {
 public:
+	LogFile(const std::string file_path);
 	~LogFile();
 
-	bool open_for_append(const std::string& file_path);
+	bool open();
 	bool close();
 	bool is_ready();
 
 	bool write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
+	const std::string file_path;
+	
 	FIL f;
 
+	SignalToken sd_card_status_signal_token;
+
 	bool write(const std::string& message);
+
+	void on_sd_card_status(const sd_card::Status status);
 };
 
 #endif/*__LOG_FILE_H__*/

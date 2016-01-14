@@ -98,12 +98,10 @@ private:
 
 class AISLogger {
 public:
-	AISLogger();
-
 	void on_packet(const ais::Packet& packet);
 
 private:
-	LogFile log_file;
+	LogFile log_file { "ais.txt" };
 };
 
 namespace ui {

@@ -35,8 +35,6 @@ TPMSModel::TPMSModel() {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
-
-	log_file.open_for_append("tpms.txt");
 }
 
 ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {

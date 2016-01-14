@@ -38,7 +38,7 @@ public:
 	bool on_packet(const ert::Packet& packet);
 
 private:
-	LogFile log_file;
+	LogFile log_file { "ert.txt" };
 };
 
 namespace ui {

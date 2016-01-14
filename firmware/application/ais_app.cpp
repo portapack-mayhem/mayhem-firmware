@@ -80,10 +80,6 @@ static std::string navigational_status(const unsigned int value) {
 } /* namespace format */
 } /* namespace ais */
 
-AISLogger::AISLogger() {
-	log_file.open_for_append("ais.txt");
-}
-
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
 	if( log_file.is_ready() ) {
