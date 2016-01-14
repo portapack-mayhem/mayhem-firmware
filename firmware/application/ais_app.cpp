@@ -80,20 +80,12 @@ static std::string navigational_status(const unsigned int value) {
 } /* namespace format */
 } /* namespace ais */
 
-AISModel::AISModel() {
-	receiver_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-
+AISLogger::AISLogger() {
 	log_file.open_for_append("ais.txt");
 }
 
-bool AISModel::on_packet(const ais::Packet& packet) {
+void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
-
 	if( log_file.is_ready() ) {
 		std::string entry;
 		entry.reserve((packet.length() + 3) / 4);
@@ -105,8 +97,6 @@ bool AISModel::on_packet(const ais::Packet& packet) {
 
 		log_file.write_entry(packet.received_at(), entry);
 	}
-
-	return true;
 }	
 
 namespace ui {
@@ -119,11 +109,18 @@ AISView::AISView() {
 			const auto message = static_cast<const AISPacketMessage*>(p);
 			const ais::Packet packet { message->packet };
 			if( packet.is_valid() ) {
-				this->model.on_packet(packet);
+				this->logger.on_packet(packet);
 				this->on_packet(packet);
 			}
 		}
 	);
+
+	receiver_model.set_baseband_configuration({
+		.mode = 3,
+		.sampling_rate = 2457600,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
 }
 
 AISView::~AISView() {

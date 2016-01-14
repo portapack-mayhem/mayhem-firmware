@@ -63,11 +63,11 @@ struct AISRecentEntry {
 	}
 };
 
-class AISModel {
+class AISLogger {
 public:
-	AISModel();
+	AISLogger();
 
-	bool on_packet(const ais::Packet& packet);
+	void on_packet(const ais::Packet& packet);
 
 private:
 	LogFile log_file;
@@ -88,7 +88,7 @@ public:
 	bool on_encoder(const EncoderEvent event) override;
 
 private:
-	AISModel model;
+	AISLogger logger;
 
 	using EntryKey = ais::MMSI;
 	EntryKey selected_key;
