@@ -106,10 +106,10 @@ private:
 
 namespace ui {
 
-class AISView : public View {
+class AISRecentEntriesView : public View {
 public:
-	AISView();
-	~AISView();
+	AISRecentEntriesView();
+	~AISRecentEntriesView();
 
 	void paint(Painter& painter) override;
 

@@ -163,7 +163,7 @@ void AISRecentEntries::truncate_entries() {
 
 namespace ui {
 
-AISView::AISView() {
+AISRecentEntriesView::AISRecentEntriesView() {
 	flags.focusable = true;
 
 	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
@@ -185,27 +185,27 @@ AISView::AISView() {
 	receiver_model.set_baseband_bandwidth(1750000);
 }
 
-AISView::~AISView() {
+AISRecentEntriesView::~AISRecentEntriesView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
-void AISView::on_packet(const ais::Packet& packet) {
+void AISRecentEntriesView::on_packet(const ais::Packet& packet) {
 	recent.on_packet(packet);
 
 	set_dirty();
 }
 
-void AISView::on_focus() {
+void AISRecentEntriesView::on_focus() {
 	has_focus = true;
 	set_dirty();
 }
 
-void AISView::on_blur() {
+void AISRecentEntriesView::on_blur() {
 	has_focus = false;
 	set_dirty();
 }
 
-bool AISView::on_encoder(const EncoderEvent event) {
+bool AISRecentEntriesView::on_encoder(const EncoderEvent event) {
 	advance(event);
 	return true;
 }
@@ -230,7 +230,7 @@ static void ais_list_item_draw(
 	painter.draw_string(target_rect.pos, draw_style, line);
 }
 
-void AISView::paint(Painter& painter) {
+void AISRecentEntriesView::paint(Painter& painter) {
 	const auto r = screen_rect();
 	const auto& s = style();
 
@@ -266,7 +266,7 @@ void AISView::paint(Painter& painter) {
 	}
 }
 
-void AISView::advance(const int32_t amount) {
+void AISRecentEntriesView::advance(const int32_t amount) {
 	auto selected = recent.find_by_mmsi(selected_key);
 	if( selected == std::end(recent) ) {
 		if( recent.empty() ) {

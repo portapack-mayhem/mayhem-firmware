@@ -517,7 +517,7 @@ void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 		break;
 
 	case ReceiverModel::Mode::AIS:
-		widget_content = std::make_unique<AISView>();
+		widget_content = std::make_unique<AISRecentEntriesView>();
 		break;
 
 	case ReceiverModel::Mode::SpectrumAnalysis:
