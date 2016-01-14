@@ -61,6 +61,8 @@ struct AISRecentEntry {
 		navigational_status { -1 }
 	{
 	}
+
+	void update(const ais::Packet& packet);
 };
 
 class AISRecentEntries {

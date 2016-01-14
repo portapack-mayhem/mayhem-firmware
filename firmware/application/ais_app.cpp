@@ -99,6 +99,44 @@ void AISLogger::on_packet(const ais::Packet& packet) {
 	}
 }	
 
+void AISRecentEntry::update(const ais::Packet& packet) {
+	received_count++;
+
+	switch(packet.message_id()) {
+	case 1:
+	case 2:
+	case 3:
+		navigational_status = packet.read(38, 4);
+		last_position.timestamp = packet.received_at();
+		last_position.latitude = packet.latitude(89);
+		last_position.longitude = packet.longitude(61);
+		break;
+
+	case 4:
+		// packet.datetime(38)
+		last_position.timestamp = packet.received_at();
+		last_position.latitude = packet.latitude(107);
+		last_position.longitude = packet.longitude(79);
+		break;
+
+	case 5:
+		call_sign = packet.text(70, 7);
+		name = packet.text(112, 20);
+		destination = packet.text(302, 20);
+		break;
+
+	case 21:
+		name = packet.text(43, 20);
+		last_position.timestamp = packet.received_at();
+		last_position.latitude = packet.latitude(192);
+		last_position.longitude = packet.longitude(164);
+		break;
+
+	default:
+		break;
+	}
+}
+
 void AISRecentEntries::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = find_by_mmsi(source_id);
@@ -111,42 +149,7 @@ void AISRecentEntries::on_packet(const ais::Packet& packet) {
 		truncate_entries();
 	}
 
-	auto& entry = entries.front();
-	entry.received_count++;
-
-	switch(packet.message_id()) {
-	case 1:
-	case 2:
-	case 3:
-		entry.navigational_status = packet.read(38, 4);
-		entry.last_position.timestamp = packet.received_at();
-		entry.last_position.latitude = packet.latitude(89);
-		entry.last_position.longitude = packet.longitude(61);
-		break;
-
-	case 4:
-		// packet.datetime(38)
-		entry.last_position.timestamp = packet.received_at();
-		entry.last_position.latitude = packet.latitude(107);
-		entry.last_position.longitude = packet.longitude(79);
-		break;
-
-	case 5:
-		entry.call_sign = packet.text(70, 7);
-		entry.name = packet.text(112, 20);
-		entry.destination = packet.text(302, 20);
-		break;
-
-	case 21:
-		entry.name = packet.text(43, 20);
-		entry.last_position.timestamp = packet.received_at();
-		entry.last_position.latitude = packet.latitude(192);
-		entry.last_position.longitude = packet.longitude(164);
-		break;
-
-	default:
-		break;
-	}
+	entries.front().update(packet);
 }
 
 AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find_by_mmsi(const ais::MMSI key) const {
