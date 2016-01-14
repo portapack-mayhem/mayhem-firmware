@@ -134,6 +134,16 @@ private:
 	void advance(const int32_t amount);
 };
 
+class AISAppView : public View {
+public:
+	AISAppView();
+
+	void set_parent_rect(const Rect new_parent_rect) override;
+
+private:
+	AISRecentEntriesView recent_entries_view;
+};
+
 } /* namespace ui */
 
 #endif/*__AIS_APP_H__*/

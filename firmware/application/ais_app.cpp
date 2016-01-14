@@ -292,4 +292,15 @@ void AISRecentEntriesView::advance(const int32_t amount) {
 	set_dirty();
 }
 
+AISAppView::AISAppView() {
+	add_children({ {
+		&recent_entries_view,
+	} });
+}
+
+void AISAppView::set_parent_rect(const Rect new_parent_rect) {
+	View::set_parent_rect(new_parent_rect);
+	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+}
+
 } /* namespace ui */
