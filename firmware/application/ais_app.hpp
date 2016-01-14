@@ -131,6 +131,10 @@ public:
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 
+	// Prevent painting of region covered entirely by a child.
+	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
+	void paint(Painter&) override { };
+
 private:
 	AISRecentEntries recent;
 	AISLogger logger;
