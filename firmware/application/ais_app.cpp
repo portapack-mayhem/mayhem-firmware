@@ -129,6 +129,18 @@ bool AISModel::on_packet(const ais::Packet& packet) {
 
 namespace ui {
 
+AISView::AISView() {
+	flags.focusable = true;
+
+	packet_signal_token = model.packet_signal += [this](const ais::Packet& packet) {
+		this->on_packet(packet);
+	};
+}
+
+AISView::~AISView() {
+	model.packet_signal -= packet_signal_token;
+}
+
 void AISView::truncate_entries() {
 	while(recent.size() > 64) {
 		recent.pop_back();

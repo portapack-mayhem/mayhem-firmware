@@ -84,18 +84,9 @@ namespace ui {
 
 class AISView : public View {
 public:
-	AISView() {
-		flags.focusable = true;
-
-		packet_signal_token = model.packet_signal += [this](const ais::Packet& packet) {
-			this->on_packet(packet);
-		};
-	}
-
-	~AISView() {
-		model.packet_signal -= packet_signal_token;
-	}
-
+	AISView();
+	~AISView();
+	
 	void paint(Painter& painter) override;
 
 	void on_focus() override;
