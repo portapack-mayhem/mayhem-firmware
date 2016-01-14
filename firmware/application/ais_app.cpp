@@ -163,36 +163,11 @@ void AISRecentEntries::truncate_entries() {
 
 namespace ui {
 
-AISRecentEntriesView::AISRecentEntriesView() {
+AISRecentEntriesView::AISRecentEntriesView(
+	AISRecentEntries& recent
+) : recent { recent }
+{
 	flags.focusable = true;
-
-	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			if( packet.is_valid() ) {
-				this->logger.on_packet(packet);
-				this->on_packet(packet);
-			}
-		}
-	);
-
-	receiver_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-}
-
-AISRecentEntriesView::~AISRecentEntriesView() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
-}
-
-void AISRecentEntriesView::on_packet(const ais::Packet& packet) {
-	recent.on_packet(packet);
-
-	set_dirty();
 }
 
 void AISRecentEntriesView::on_focus() {
@@ -296,11 +271,38 @@ AISAppView::AISAppView() {
 	add_children({ {
 		&recent_entries_view,
 	} });
+
+	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const AISPacketMessage*>(p);
+			const ais::Packet packet { message->packet };
+			if( packet.is_valid() ) {
+				this->on_packet(packet);
+			}
+		}
+	);
+
+	receiver_model.set_baseband_configuration({
+		.mode = 3,
+		.sampling_rate = 2457600,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
+}
+
+AISAppView::~AISAppView() {
+	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
 void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+}
+
+void AISAppView::on_packet(const ais::Packet& packet) {
+	logger.on_packet(packet);
+	recent.on_packet(packet);
+	recent_entries_view.set_dirty();
 }
 
 } /* namespace ui */

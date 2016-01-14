@@ -108,8 +108,7 @@ namespace ui {
 
 class AISRecentEntriesView : public View {
 public:
-	AISRecentEntriesView();
-	~AISRecentEntriesView();
+	AISRecentEntriesView(AISRecentEntries& recent);
 
 	void paint(Painter& painter) override;
 
@@ -119,17 +118,13 @@ public:
 	bool on_encoder(const EncoderEvent event) override;
 
 private:
-	AISLogger logger;
-
+	AISRecentEntries& recent;
+	
 	using EntryKey = ais::MMSI;
 	EntryKey selected_key;
 	const EntryKey invalid_key = 0xffffffff;
 
 	bool has_focus = false;
-
-	AISRecentEntries recent;
-
-	void on_packet(const ais::Packet& packet);
 
 	void advance(const int32_t amount);
 };
@@ -137,11 +132,17 @@ private:
 class AISAppView : public View {
 public:
 	AISAppView();
+	~AISAppView();
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 
 private:
-	AISRecentEntriesView recent_entries_view;
+	AISRecentEntries recent;
+	AISLogger logger;
+
+	AISRecentEntriesView recent_entries_view { recent };
+
+	void on_packet(const ais::Packet& packet);
 };
 
 } /* namespace ui */
