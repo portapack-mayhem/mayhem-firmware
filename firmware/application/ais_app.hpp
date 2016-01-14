@@ -112,9 +112,6 @@ public:
 
 	void paint(Painter& painter) override;
 
-	void on_focus() override;
-	void on_blur() override;
-
 	bool on_encoder(const EncoderEvent event) override;
 
 private:
@@ -123,8 +120,6 @@ private:
 	using EntryKey = ais::MMSI;
 	EntryKey selected_key;
 	const EntryKey invalid_key = 0xffffffff;
-
-	bool has_focus = false;
 
 	void advance(const int32_t amount);
 };

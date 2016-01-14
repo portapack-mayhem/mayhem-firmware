@@ -170,16 +170,6 @@ AISRecentEntriesView::AISRecentEntriesView(
 	flags.focusable = true;
 }
 
-void AISRecentEntriesView::on_focus() {
-	has_focus = true;
-	set_dirty();
-}
-
-void AISRecentEntriesView::on_blur() {
-	has_focus = false;
-	set_dirty();
-}
-
 bool AISRecentEntriesView::on_encoder(const EncoderEvent event) {
 	advance(event);
 	return true;
@@ -236,7 +226,7 @@ void AISRecentEntriesView::paint(Painter& painter) {
 	for(auto p = start; p != end; p++) {
 		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.mmsi);
-		ais_list_item_draw(entry, target_rect, painter, s, (has_focus && is_selected_key));
+		ais_list_item_draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
 		target_rect.pos.y += target_rect.height();
 	}
 }
