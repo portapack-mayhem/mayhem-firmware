@@ -63,6 +63,37 @@ struct AISRecentEntry {
 	}
 };
 
+class AISRecentEntries {
+public:
+	using ContainerType = std::list<AISRecentEntry>;
+
+	void on_packet(const ais::Packet& packet);
+
+	ContainerType::const_reference front() const {
+		return entries.front();
+	}
+
+	ContainerType::const_iterator find(const ais::MMSI key) const;
+
+	ContainerType::const_iterator begin() const {
+		return entries.begin();
+	}
+
+	ContainerType::const_iterator end() const {
+		return entries.end();
+	}
+
+	bool empty() const {
+		return entries.empty();
+	}
+
+private:
+	ContainerType entries;
+	const size_t entries_max = 64;
+
+	void truncate_entries();
+};
+
 class AISLogger {
 public:
 	AISLogger();
@@ -96,14 +127,9 @@ private:
 
 	bool has_focus = false;
 
-	using RecentEntries = std::list<AISRecentEntry>;
-	RecentEntries recent;
+	AISRecentEntries recent;
 
 	void on_packet(const ais::Packet& packet);
-
-	void truncate_entries();
-
-	RecentEntries::iterator selected_entry();
 
 	void advance(const int32_t amount);
 };

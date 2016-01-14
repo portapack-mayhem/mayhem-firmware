@@ -99,55 +99,21 @@ void AISLogger::on_packet(const ais::Packet& packet) {
 	}
 }	
 
-namespace ui {
-
-AISView::AISView() {
-	flags.focusable = true;
-
-	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			if( packet.is_valid() ) {
-				this->logger.on_packet(packet);
-				this->on_packet(packet);
-			}
-		}
-	);
-
-	receiver_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-}
-
-AISView::~AISView() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
-}
-
-void AISView::truncate_entries() {
-	while(recent.size() > 64) {
-		recent.pop_back();
-	}
-}
-
-void AISView::on_packet(const ais::Packet& packet) {
+void AISRecentEntries::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
-	auto matching_recent = std::find_if(recent.begin(), recent.end(),
+	auto matching_recent = std::find_if(entries.begin(), entries.end(),
 		[source_id](const AISRecentEntry& entry) { return entry.mmsi == source_id; }
 	);
-	if( matching_recent != recent.end() ) {
+	if( matching_recent != entries.end() ) {
 		// Found within. Move to front of list, increment counter.
-		recent.push_front(*matching_recent);
-		recent.erase(matching_recent);
+		entries.push_front(*matching_recent);
+		entries.erase(matching_recent);
 	} else {
-		recent.emplace_front(source_id);
+		entries.emplace_front(source_id);
 		truncate_entries();
 	}
 
-	auto& entry = recent.front();
+	auto& entry = entries.front();
 	entry.received_count++;
 
 	switch(packet.message_id()) {
@@ -183,6 +149,51 @@ void AISView::on_packet(const ais::Packet& packet) {
 	default:
 		break;
 	}
+}
+
+AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find(const ais::MMSI key) const {
+	return std::find_if(
+		begin(), end(),
+		[key](const AISRecentEntry& e) { return e.mmsi == key; }
+	);
+}
+
+void AISRecentEntries::truncate_entries() {
+	while(entries.size() > entries_max) {
+		entries.pop_back();
+	}
+}
+
+namespace ui {
+
+AISView::AISView() {
+	flags.focusable = true;
+
+	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const AISPacketMessage*>(p);
+			const ais::Packet packet { message->packet };
+			if( packet.is_valid() ) {
+				this->logger.on_packet(packet);
+				this->on_packet(packet);
+			}
+		}
+	);
+
+	receiver_model.set_baseband_configuration({
+		.mode = 3,
+		.sampling_rate = 2457600,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
+}
+
+AISView::~AISView() {
+	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
+}
+
+void AISView::on_packet(const ais::Packet& packet) {
+	recent.on_packet(packet);
 
 	set_dirty();
 }
@@ -229,13 +240,13 @@ void AISView::paint(Painter& painter) {
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 	const size_t visible_item_count = r.height() / s.font.line_height();
 
-	auto selected = selected_entry();
+	auto selected = recent.find(selected_key);
 	if( selected == std::end(recent) ) {
 		selected = std::begin(recent);
 	}
 
-	RecentEntries::iterator start = selected;
-	RecentEntries::iterator end = selected;
+	auto start = selected;
+	auto end = selected;
 	size_t i = 0;
 
 	// Move start iterator toward first entry.
@@ -258,13 +269,8 @@ void AISView::paint(Painter& painter) {
 	}
 }
 
-AISView::RecentEntries::iterator AISView::selected_entry() {
-	const auto key = selected_key;
-	return std::find_if(std::begin(recent), std::end(recent), [key](const AISRecentEntry& e) { return e.mmsi == key; });
-}
-
 void AISView::advance(const int32_t amount) {
-	auto selected = selected_entry();
+	auto selected = recent.find(selected_key);
 	if( selected == std::end(recent) ) {
 		if( recent.empty() ) {
 			selected_key = invalid_key;
