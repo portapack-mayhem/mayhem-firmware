@@ -151,7 +151,7 @@ void AISRecentEntries::on_packet(const ais::Packet& packet) {
 	}
 }
 
-AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find(const ais::MMSI key) const {
+AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find_by_mmsi(const ais::MMSI key) const {
 	return std::find_if(
 		begin(), end(),
 		[key](const AISRecentEntry& e) { return e.mmsi == key; }
@@ -240,7 +240,7 @@ void AISView::paint(Painter& painter) {
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 	const size_t visible_item_count = r.height() / s.font.line_height();
 
-	auto selected = recent.find(selected_key);
+	auto selected = recent.find_by_mmsi(selected_key);
 	if( selected == std::end(recent) ) {
 		selected = std::begin(recent);
 	}
@@ -270,7 +270,7 @@ void AISView::paint(Painter& painter) {
 }
 
 void AISView::advance(const int32_t amount) {
-	auto selected = recent.find(selected_key);
+	auto selected = recent.find_by_mmsi(selected_key);
 	if( selected == std::end(recent) ) {
 		if( recent.empty() ) {
 			selected_key = invalid_key;
