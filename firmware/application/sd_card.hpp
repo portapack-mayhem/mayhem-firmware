@@ -40,6 +40,7 @@ enum class Status : int32_t {
 extern Signal<Status> status_signal;
 
 void poll_inserted();
+Status status();
 
 } /* namespace sd_card */
 

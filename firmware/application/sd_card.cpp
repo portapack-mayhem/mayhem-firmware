@@ -31,6 +31,8 @@ namespace {
 
 bool card_present = false;
 
+Status status_ { Status::NotPresent };
+
 FATFS fs;
 
 FRESULT mount() {
@@ -50,24 +52,29 @@ void poll_inserted() {
 	if( card_present_now != card_present ) {
 		card_present = card_present_now;
 
-		Status status { card_present ? Status::Present : Status::NotPresent };
+		Status new_status { card_present ? Status::Present : Status::NotPresent };
 
 		if( card_present ) {
 			if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
 				if( mount() == FR_OK ) {
-					status = Status::Mounted;
+					new_status = Status::Mounted;
 				} else {
-					status = Status::MountError;
+					new_status = Status::MountError;
 				}
 			} else {
-				status = Status::ConnectError;
+				new_status = Status::ConnectError;
 			}
 		} else {
 			sdcDisconnect(&SDCD1);
 		}
 
-		status_signal.emit(status);
+		status_ = new_status;
+		status_signal.emit(status_);
 	}
+}
+
+Status status() {
+	return status_;
 }
 
 } /* namespace sd_card */
