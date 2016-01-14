@@ -102,7 +102,7 @@ void AISLogger::on_packet(const ais::Packet& packet) {
 void AISRecentEntries::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = find_by_mmsi(source_id);
-	if( matching_recent != entries.end() ) {
+	if( matching_recent != std::end(entries) ) {
 		// Found within. Move to front of list, increment counter.
 		entries.push_front(*matching_recent);
 		entries.erase(matching_recent);
@@ -151,7 +151,7 @@ void AISRecentEntries::on_packet(const ais::Packet& packet) {
 
 AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find_by_mmsi(const ais::MMSI key) const {
 	return std::find_if(
-		begin(), end(),
+		std::begin(entries), std::end(entries),
 		[key](const AISRecentEntry& e) { return e.mmsi == key; }
 	);
 }
