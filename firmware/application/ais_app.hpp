@@ -68,7 +68,8 @@ struct AISRecentEntry {
 class AISRecentEntries {
 public:
 	using ContainerType = std::list<AISRecentEntry>;
-
+	using RangeType = std::pair<ContainerType::const_iterator, ContainerType::const_iterator>;
+	
 	void on_packet(const ais::Packet& packet);
 
 	ContainerType::const_reference front() const {
@@ -88,6 +89,10 @@ public:
 	bool empty() const {
 		return entries.empty();
 	}
+
+	RangeType range_around(
+		ContainerType::const_iterator, const size_t count
+	) const;
 
 private:
 	ContainerType entries;

@@ -161,6 +161,28 @@ void AISRecentEntries::truncate_entries() {
 	}
 }
 
+AISRecentEntries::RangeType AISRecentEntries::range_around(
+	ContainerType::const_iterator item, const size_t count
+) const {
+	auto start = item;
+	auto end = item;
+	size_t i = 0;
+
+	// Move start iterator toward first entry.
+	while( (start != std::begin(entries)) && (i < count / 2) ) {
+		std::advance(start, -1);
+		i++;
+	}
+
+	// Move end iterator toward last entry.
+	while( (end != std::end(entries)) && (i < count) ) {
+		std::advance(end, 1);
+		i++;
+	}
+
+	return { start, end };
+}
+
 namespace ui {
 
 AISRecentEntriesView::AISRecentEntriesView(
@@ -207,23 +229,9 @@ void AISRecentEntriesView::paint(Painter& painter) {
 		selected = std::begin(recent);
 	}
 
-	auto start = selected;
-	auto end = selected;
-	size_t i = 0;
+	auto range = recent.range_around(selected, visible_item_count);
 
-	// Move start iterator toward first entry.
-	while( (start != std::begin(recent)) && (i < visible_item_count / 2) ) {
-		std::advance(start, -1);
-		i++;
-	}
-
-	// Move end iterator toward last entry.
-	while( (end != std::end(recent)) && (i < visible_item_count) ) {
-		std::advance(end, 1);
-		i++;
-	}
-
-	for(auto p = start; p != end; p++) {
+	for(auto p = range.first; p != range.second; p++) {
 		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.mmsi);
 		ais_list_item_draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
