@@ -157,7 +157,7 @@ private:
 	AISRecentEntry entry_;
 
 	Button button_done {
-		{ 72, 192, 96, 24 },
+		{ 72, 216, 96, 24 },
 		"Done"
 	};
 
