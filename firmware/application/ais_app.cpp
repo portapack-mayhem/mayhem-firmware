@@ -73,7 +73,7 @@ static std::string navigational_status(const unsigned int value) {
 		case 12: return "towing ahead/along";
 		case 14: return "SART/MOB/EPIRB";
 		case 15: return "undefined";
-		default: return "unexpected";
+		default: return "unknown";
 	}
 }
 
