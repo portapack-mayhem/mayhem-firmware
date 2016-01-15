@@ -146,6 +146,7 @@ public:
 	void set_entry(const AISRecentEntry& new_entry);
 
 	void focus() override;
+	void paint(Painter&) override;
 
 private:
 	AISRecentEntry entry;
@@ -154,6 +155,14 @@ private:
 		{ 72, 192, 96, 24 },
 		"Done"
 	};
+
+	Rect draw_field(
+		Painter& painter,
+		const Rect& draw_rect,
+		const Style& style,
+		const std::string& label,
+		const std::string& value
+	);
 };
 
 class AISAppView : public View {

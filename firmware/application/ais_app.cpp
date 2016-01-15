@@ -294,6 +294,42 @@ void AISRecentEntryDetailView::focus() {
 	button_done.focus();
 }
 
+Rect AISRecentEntryDetailView::draw_field(
+	Painter& painter,
+	const Rect& draw_rect,
+	const Style& style,
+	const std::string& label,
+	const std::string& value
+) {
+	const size_t label_length_max = 4;
+
+	painter.draw_string(Point { draw_rect.left(), draw_rect.top() }, style, label);
+
+	const auto length = value.length();
+	painter.draw_string(Point { draw_rect.left() + (label_length_max + 1) * 8, draw_rect.top() }, style, value);
+
+	return { draw_rect.left(), draw_rect.top() + draw_rect.height(), draw_rect.width(), draw_rect.height() };
+}
+
+void AISRecentEntryDetailView::paint(Painter& painter) {
+	View::paint(painter);
+
+	const auto s = style();
+	const auto rect = screen_rect();
+
+	auto field_rect = Rect { rect.left(), rect.top() + 16, rect.width(), 16 };
+
+	const size_t mmsi_length = 9;
+	field_rect = draw_field(painter, field_rect, s, "MMSI", to_string_dec_int(entry.mmsi, mmsi_length));
+	field_rect = draw_field(painter, field_rect, s, "Name", entry.name);
+	field_rect = draw_field(painter, field_rect, s, "Call", entry.call_sign);
+	field_rect = draw_field(painter, field_rect, s, "Dest", entry.destination);
+	field_rect = draw_field(painter, field_rect, s, "Lat ", ais::format::latlon_normalized(entry.last_position.latitude) + "N");
+	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::latlon_normalized(entry.last_position.longitude) + "E");
+	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry.navigational_status));
+	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry.received_count, 10));
+}
+
 void AISRecentEntryDetailView::set_entry(const AISRecentEntry& new_entry) {
 	entry = new_entry;
 }
