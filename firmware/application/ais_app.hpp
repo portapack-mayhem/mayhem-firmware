@@ -144,12 +144,13 @@ public:
 	AISRecentEntryDetailView();
 
 	void set_entry(const AISRecentEntry& new_entry);
+	const AISRecentEntry& entry() const { return entry_; };
 
 	void focus() override;
 	void paint(Painter&) override;
 
 private:
-	AISRecentEntry entry;
+	AISRecentEntry entry_;
 
 	Button button_done {
 		{ 72, 192, 96, 24 },
