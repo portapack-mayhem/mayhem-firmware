@@ -77,6 +77,54 @@ static std::string navigational_status(const unsigned int value) {
 	}
 }
 
+static std::string rate_of_turn(const RateOfTurn value) {
+	switch(value) {
+	case -128: return "not available";
+	case -127: return "left >5 deg/30sec";
+	case    0: return "0 deg/min";
+	case  127: return "right >5 deg/30sec";
+	default:
+		{
+			std::string result = (value < 0) ? "left " : "right ";
+			const float value_deg_sqrt = value / 4.733f;
+			const int32_t value_deg = value_deg_sqrt * value_deg_sqrt;
+			result += to_string_dec_uint(value_deg);
+			result += " deg/min";
+			return result;
+		}
+	}
+}
+
+static std::string speed_over_ground(const SpeedOverGround value) {
+	if( value == 1023 ) {
+		return "not available";
+	} else if( value == 1022 ) {
+		return ">= 102.2 knots";
+	} else {
+		return to_string_dec_uint(value / 10) + "." + to_string_dec_uint(value % 10, 1) + " knots";
+	}
+}
+
+static std::string course_over_ground(const CourseOverGround value) {
+	if( value > 3600 ) {
+		return "invalid";
+	} else if( value == 3600 ) {
+		return "not available";
+	} else {
+		return to_string_dec_uint(value / 10) + "." + to_string_dec_uint(value % 10, 1) + " deg";
+	}
+}
+
+static std::string true_heading(const TrueHeading value) {
+	if( value == 511 ) {
+		return "not available";
+	} else if( value > 359 ) {
+		return "invalid";
+	} else {
+		return to_string_dec_uint(value) + " deg";
+	}
+}
+
 } /* namespace format */
 } /* namespace ais */
 
@@ -103,9 +151,13 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 	case 2:
 	case 3:
 		navigational_status = packet.read(38, 4);
+		last_position.rate_of_turn = packet.read(42, 8);
+		last_position.speed_over_ground = packet.read(50, 10);
 		last_position.timestamp = packet.received_at();
 		last_position.latitude = packet.latitude(89);
 		last_position.longitude = packet.longitude(61);
+		last_position.course_over_ground = packet.read(116, 12);
+		last_position.true_heading = packet.read(128, 9);
 		break;
 
 	case 4:
@@ -331,6 +383,10 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::latlon_normalized(entry_.last_position.longitude) + "E");
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
 	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
+	field_rect = draw_field(painter, field_rect, s, "RoT ", ais::format::rate_of_turn(entry_.last_position.rate_of_turn));
+	field_rect = draw_field(painter, field_rect, s, "SoG ", ais::format::speed_over_ground(entry_.last_position.speed_over_ground));
+	field_rect = draw_field(painter, field_rect, s, "CoG ", ais::format::course_over_ground(entry_.last_position.course_over_ground));
+	field_rect = draw_field(painter, field_rect, s, "Head", ais::format::true_heading(entry_.last_position.true_heading));
 }
 
 void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {

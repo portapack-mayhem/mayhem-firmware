@@ -42,6 +42,10 @@ struct DateTime {
 
 using Latitude = int32_t;
 using Longitude = int32_t;
+using RateOfTurn = int8_t;
+using SpeedOverGround = uint16_t;
+using CourseOverGround = uint16_t;
+using TrueHeading = uint16_t;
 
 using MMSI = uint32_t;
 
