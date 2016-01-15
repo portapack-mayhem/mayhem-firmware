@@ -40,8 +40,54 @@ struct DateTime {
 	uint8_t second;
 };
 
-using Latitude = int32_t;
-using Longitude = int32_t;
+template<size_t FieldSize, int32_t DegMax, uint32_t NAValue>
+struct LatLonBase {
+	constexpr LatLonBase(
+	) : LatLonBase { raw_not_available }
+	{
+	}
+	
+	constexpr LatLonBase(
+		const int32_t raw
+	) : raw_ { raw }
+	{
+	}
+
+	constexpr LatLonBase(
+		const LatLonBase& other
+	) : raw_ { other.raw_ }
+	{
+	}
+
+	int32_t normalized() const {
+		return static_cast<int32_t>(raw() << sign_extend_shift) / (1 << sign_extend_shift);
+	}
+
+	int32_t raw() const {
+		return raw_;
+	}
+
+	bool is_not_available() const {
+		return raw() == raw_not_available;
+	}
+
+	bool is_valid() const {
+		return (normalized() >= raw_valid_min) && (normalized() <= raw_valid_max);
+	}
+
+private:
+	int32_t raw_;
+
+	static constexpr size_t sign_extend_shift = 32 - FieldSize;
+
+	static constexpr int32_t raw_not_available = NAValue;
+	static constexpr int32_t raw_valid_min = -DegMax * 60 * 10000;
+	static constexpr int32_t raw_valid_max =  DegMax * 60 * 10000;
+};
+
+using Latitude = LatLonBase<27, 90, 0x3412140>;
+using Longitude = LatLonBase<28, 180, 0x6791AC0>;
+
 using RateOfTurn = int8_t;
 using SpeedOverGround = uint16_t;
 using CourseOverGround = uint16_t;

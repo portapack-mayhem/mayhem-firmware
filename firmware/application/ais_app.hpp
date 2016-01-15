@@ -40,8 +40,8 @@ using namespace lpc43xx;
 
 struct AISPosition {
 	rtc::RTC timestamp { };
-	ais::Latitude latitude { 0 };
-	ais::Longitude longitude { 0 };
+	ais::Latitude latitude;
+	ais::Longitude longitude;
 	ais::RateOfTurn rate_of_turn { -128 };
 	ais::SpeedOverGround speed_over_ground { 1023 };
 	ais::CourseOverGround course_over_ground { 3600 };

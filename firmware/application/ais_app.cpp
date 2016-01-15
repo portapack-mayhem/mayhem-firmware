@@ -33,11 +33,34 @@ using namespace portapack;
 namespace ais {
 namespace format {
 
-static std::string latlon_normalized(const int32_t normalized) {
-	const int32_t t = (normalized * 5) / 3;
-	const int32_t degrees = t / (100 * 10000);
-	const int32_t fraction = std::abs(t) % (100 * 10000);
-	return to_string_dec_int(degrees) + "." + to_string_dec_int(fraction, 6, '0');
+static std::string latlon_abs_normalized(const int32_t normalized) {
+	const uint32_t normalized_abs = std::abs(normalized);
+	const uint32_t t = (normalized_abs * 5) / 3;
+	const uint32_t degrees = t / (100 * 10000);
+	const uint32_t fraction = t % (100 * 10000);
+	return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0');
+}
+
+static std::string latitude(const Latitude value) {
+	if( value.is_not_available() ) {
+		return "not available";
+	} else if( value.is_valid() ) {
+		const auto normalized = value.normalized();
+		return latlon_abs_normalized(normalized) + ((normalized < 0) ? "S" : "N");
+	} else {
+		return "invalid";
+	}
+}
+
+static std::string longitude(const Longitude value) {
+	if( value.is_not_available() ) {
+		return "not available";
+	} else if( value.is_valid() ) {
+		const auto normalized = value.normalized();
+		return latlon_abs_normalized(normalized) + ((normalized < 0) ? "W" : "E");
+	} else {
+		return "invalid";
+	}
 }
 
 static std::string mmsi(
@@ -379,8 +402,8 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
 	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
-	field_rect = draw_field(painter, field_rect, s, "Lat ", ais::format::latlon_normalized(entry_.last_position.latitude) + "N");
-	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::latlon_normalized(entry_.last_position.longitude) + "E");
+	field_rect = draw_field(painter, field_rect, s, "Lat ", ais::format::latitude(entry_.last_position.latitude));
+	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::longitude(entry_.last_position.longitude));
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
 	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 	field_rect = draw_field(painter, field_rect, s, "RoT ", ais::format::rate_of_turn(entry_.last_position.rate_of_turn));
