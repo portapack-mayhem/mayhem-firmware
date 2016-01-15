@@ -133,7 +133,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 	}
 }
 
-void AISRecentEntries::on_packet(const ais::Packet& packet) {
+const AISRecentEntry& AISRecentEntries::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
 	auto matching_recent = find_by_mmsi(source_id);
 	if( matching_recent != std::end(entries) ) {
@@ -145,7 +145,10 @@ void AISRecentEntries::on_packet(const ais::Packet& packet) {
 		truncate_entries();
 	}
 
-	entries.front().update(packet);
+	auto& entry = entries.front();
+	entry.update(packet);
+
+	return entry;
 }
 
 AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find_by_mmsi(const ais::MMSI key) const {

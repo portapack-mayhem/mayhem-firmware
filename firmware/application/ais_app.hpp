@@ -75,7 +75,7 @@ public:
 	using ContainerType = std::list<AISRecentEntry>;
 	using RangeType = std::pair<ContainerType::const_iterator, ContainerType::const_iterator>;
 	
-	void on_packet(const ais::Packet& packet);
+	const AISRecentEntry& on_packet(const ais::Packet& packet);
 
 	ContainerType::const_reference front() const {
 		return entries.front();
