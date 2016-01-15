@@ -382,8 +382,13 @@ void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 
 void AISAppView::on_packet(const ais::Packet& packet) {
 	logger.on_packet(packet);
-	recent.on_packet(packet);
+	const auto updated_entry = recent.on_packet(packet);
 	recent_entries_view.set_dirty();
+
+	// TODO: Crude hack, should be a more formal listener arrangement...
+	if( updated_entry.mmsi == recent_entry_detail_view.entry().mmsi ) {
+		recent_entry_detail_view.set_entry(updated_entry);
+	}
 }
 
 void AISAppView::on_show_list() {
