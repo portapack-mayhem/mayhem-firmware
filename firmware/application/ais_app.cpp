@@ -197,6 +197,19 @@ bool AISRecentEntriesView::on_encoder(const EncoderEvent event) {
 	return true;
 }
 
+bool AISRecentEntriesView::on_key(const ui::KeyEvent event) {
+	if( event == ui::KeyEvent::Select ) {
+		if( on_select ) {
+			const auto selected = recent.find_by_mmsi(selected_key);
+			if( selected != std::end(recent) ) {
+				on_select(*selected);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 static void ais_list_item_draw(
 	const AISRecentEntry& entry,
 	const Rect& target_rect,
@@ -265,10 +278,33 @@ void AISRecentEntriesView::advance(const int32_t amount) {
 	set_dirty();
 }
 
+AISRecentEntryDetailView::AISRecentEntryDetailView() {
+	add_children({ {
+		&button_done,
+	} });
+
+	button_done.on_select = [this](const ui::Button&) {
+		if( this->on_close ) {
+			this->on_close();
+		}
+	};
+}
+
+void AISRecentEntryDetailView::focus() {
+	button_done.focus();
+}
+
+void AISRecentEntryDetailView::set_entry(const AISRecentEntry& new_entry) {
+	entry = new_entry;
+}
+
 AISAppView::AISAppView() {
 	add_children({ {
 		&recent_entries_view,
+		&recent_entry_detail_view,
 	} });
+
+	recent_entry_detail_view.hidden(true);
 
 	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
 		[this](Message* const p) {
@@ -286,6 +322,13 @@ AISAppView::AISAppView() {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
+
+	recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
+		this->on_show_detail(entry);
+	};
+	recent_entry_detail_view.on_close = [this]() {
+		this->on_show_list();
+	};
 }
 
 AISAppView::~AISAppView() {
@@ -295,12 +338,26 @@ AISAppView::~AISAppView() {
 void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+	recent_entry_detail_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
 void AISAppView::on_packet(const ais::Packet& packet) {
 	logger.on_packet(packet);
 	recent.on_packet(packet);
 	recent_entries_view.set_dirty();
+}
+
+void AISAppView::on_show_list() {
+	recent_entries_view.hidden(false);
+	recent_entry_detail_view.hidden(true);
+	recent_entries_view.focus();
+}
+
+void AISAppView::on_show_detail(const AISRecentEntry& entry) {
+	recent_entries_view.hidden(true);
+	recent_entry_detail_view.hidden(false);
+	recent_entry_detail_view.set_entry(entry);
+	recent_entry_detail_view.focus();
 }
 
 } /* namespace ui */

@@ -54,6 +54,11 @@ struct AISRecentEntry {
 	int8_t navigational_status;
 
 	AISRecentEntry(
+	) : AISRecentEntry { 0 }
+	{
+	}
+
+	AISRecentEntry(
 		const ais::MMSI& mmsi
 	) : mmsi { mmsi },
 		last_position { },
@@ -113,11 +118,14 @@ namespace ui {
 
 class AISRecentEntriesView : public View {
 public:
+	std::function<void(const AISRecentEntry& entry)> on_select;
+
 	AISRecentEntriesView(AISRecentEntries& recent);
 
 	void paint(Painter& painter) override;
 
 	bool on_encoder(const EncoderEvent event) override;
+	bool on_key(const ui::KeyEvent event) override;
 
 private:
 	AISRecentEntries& recent;
@@ -127,6 +135,25 @@ private:
 	const EntryKey invalid_key = 0xffffffff;
 
 	void advance(const int32_t amount);
+};
+
+class AISRecentEntryDetailView : public View {
+public:
+	std::function<void(void)> on_close;
+
+	AISRecentEntryDetailView();
+
+	void set_entry(const AISRecentEntry& new_entry);
+
+	void focus() override;
+
+private:
+	AISRecentEntry entry;
+
+	Button button_done {
+		{ 72, 192, 96, 24 },
+		"Done"
+	};
 };
 
 class AISAppView : public View {
@@ -145,8 +172,11 @@ private:
 	AISLogger logger;
 
 	AISRecentEntriesView recent_entries_view { recent };
+	AISRecentEntryDetailView recent_entry_detail_view;
 
 	void on_packet(const ais::Packet& packet);
+	void on_show_list();
+	void on_show_detail(const AISRecentEntry& entry);
 };
 
 } /* namespace ui */
