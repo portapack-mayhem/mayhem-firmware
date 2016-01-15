@@ -335,6 +335,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 
 void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 	entry_ = entry;
+	set_dirty();
 }
 
 AISAppView::AISAppView() {
