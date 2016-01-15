@@ -33,7 +33,7 @@ SDCardStatusView::SDCardStatusView() {
 		&text_status,
 	} });
 
-	text_status.set("XX");
+	on_status(sd_card::status());
 }
 
 void SDCardStatusView::on_show() {
