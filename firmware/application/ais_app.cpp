@@ -33,12 +33,13 @@ using namespace portapack;
 namespace ais {
 namespace format {
 
-static std::string latlon_abs_normalized(const int32_t normalized) {
+static std::string latlon_abs_normalized(const int32_t normalized, const char suffixes[2]) {
+	const auto suffix = suffixes[(normalized < 0) ? 0 : 1];
 	const uint32_t normalized_abs = std::abs(normalized);
 	const uint32_t t = (normalized_abs * 5) / 3;
 	const uint32_t degrees = t / (100 * 10000);
 	const uint32_t fraction = t % (100 * 10000);
-	return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0');
+	return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0') + suffix;
 }
 
 static std::string latitude(const Latitude value) {
@@ -46,7 +47,7 @@ static std::string latitude(const Latitude value) {
 		return "not available";
 	} else if( value.is_valid() ) {
 		const auto normalized = value.normalized();
-		return latlon_abs_normalized(normalized) + ((normalized < 0) ? "S" : "N");
+		return latlon_abs_normalized(normalized, "SN");
 	} else {
 		return "invalid";
 	}
@@ -57,7 +58,7 @@ static std::string longitude(const Longitude value) {
 		return "not available";
 	} else if( value.is_valid() ) {
 		const auto normalized = value.normalized();
-		return latlon_abs_normalized(normalized) + ((normalized < 0) ? "W" : "E");
+		return latlon_abs_normalized(normalized, "WE");
 	} else {
 		return "invalid";
 	}
