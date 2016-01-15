@@ -330,7 +330,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Lat ", ais::format::latlon_normalized(entry_.last_position.latitude) + "N");
 	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::latlon_normalized(entry_.last_position.longitude) + "E");
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
-	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count, 10));
+	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 }
 
 void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
