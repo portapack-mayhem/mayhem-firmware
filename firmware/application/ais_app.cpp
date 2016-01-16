@@ -46,8 +46,7 @@ static std::string latitude(const Latitude value) {
 	if( value.is_not_available() ) {
 		return "not available";
 	} else if( value.is_valid() ) {
-		const auto normalized = value.normalized();
-		return latlon_abs_normalized(normalized, "SN");
+		return latlon_abs_normalized(value.normalized(), "SN");
 	} else {
 		return "invalid";
 	}
@@ -57,8 +56,7 @@ static std::string longitude(const Longitude value) {
 	if( value.is_not_available() ) {
 		return "not available";
 	} else if( value.is_valid() ) {
-		const auto normalized = value.normalized();
-		return latlon_abs_normalized(normalized, "WE");
+		return latlon_abs_normalized(value.normalized(), "WE");
 	} else {
 		return "invalid";
 	}
