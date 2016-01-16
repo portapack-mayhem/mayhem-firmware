@@ -32,6 +32,7 @@ public:
 	{
 	}
 
+protected:
 	static msg_t fn(void* arg) {
 		auto obj = static_cast<ThreadBase*>(arg);
 		chRegSetThreadName(obj->name);
@@ -40,10 +41,10 @@ public:
 		return 0;
 	}
 
-	virtual void run() = 0;
-
 private:
 	const char* const name;
+
+	virtual void run() = 0;
 };
 
 #endif/*__THREAD_BASE_H__*/
