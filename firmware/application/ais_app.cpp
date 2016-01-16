@@ -413,11 +413,11 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Last", to_string_datetime(entry_.last_position.timestamp));
 	field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
-	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 	field_rect = draw_field(painter, field_rect, s, "RoT ", ais::format::rate_of_turn(entry_.last_position.rate_of_turn));
 	field_rect = draw_field(painter, field_rect, s, "SoG ", ais::format::speed_over_ground(entry_.last_position.speed_over_ground));
 	field_rect = draw_field(painter, field_rect, s, "CoG ", ais::format::course_over_ground(entry_.last_position.course_over_ground));
 	field_rect = draw_field(painter, field_rect, s, "Head", ais::format::true_heading(entry_.last_position.true_heading));
+	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 }
 
 void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
