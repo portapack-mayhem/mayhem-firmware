@@ -62,6 +62,16 @@ static std::string longitude(const Longitude value) {
 	}
 }
 
+static std::string latlon(const Latitude latitude, const Longitude longitude) {
+	if( latitude.is_valid() && longitude.is_valid() ) {
+		return latlon_abs_normalized(latitude.normalized(), "SN") + " " + latlon_abs_normalized(longitude.normalized(), "WE");
+	} else if( latitude.is_not_available() && longitude.is_not_available() ) {
+		return "not available";
+	} else {
+		return "invalid";
+	}
+}
+
 static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
@@ -400,8 +410,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
 	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
-	field_rect = draw_field(painter, field_rect, s, "Lat ", ais::format::latitude(entry_.last_position.latitude));
-	field_rect = draw_field(painter, field_rect, s, "Lon ", ais::format::longitude(entry_.last_position.longitude));
+	field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
 	field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 	field_rect = draw_field(painter, field_rect, s, "RoT ", ais::format::rate_of_turn(entry_.last_position.rate_of_turn));
