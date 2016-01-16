@@ -27,6 +27,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
+#include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
 class WidebandFMAudio : public BasebandProcessor {
@@ -55,6 +56,8 @@ private:
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
 	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter;
+
+	AudioOutput audio_output;
 
 	SpectrumCollector channel_spectrum;
 	size_t spectrum_interval_samples = 0;

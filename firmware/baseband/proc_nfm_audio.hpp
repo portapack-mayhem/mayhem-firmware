@@ -27,6 +27,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
+#include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
 class NarrowbandFMAudio : public BasebandProcessor {
@@ -54,6 +55,8 @@ private:
 	uint32_t channel_filter_stop_f = 0;
 
 	dsp::demodulate::FM demod;
+
+	AudioOutput audio_output;
 
 	SpectrumCollector channel_spectrum;
 

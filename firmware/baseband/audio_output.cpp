@@ -98,5 +98,3 @@ void AudioOutput::feed_audio_stats(const buffer_f32_t& audio) {
 		}
 	);
 }
-
-AudioOutput audio_output;

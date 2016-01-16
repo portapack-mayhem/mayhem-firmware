@@ -55,6 +55,4 @@ private:
 	void feed_audio_stats(const buffer_f32_t& audio);
 };
 
-extern AudioOutput audio_output;
-
 #endif/*__AUDIO_OUTPUT_H__*/
