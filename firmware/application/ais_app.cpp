@@ -185,7 +185,6 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 		break;
 
 	case 4:
-		// packet.datetime(38)
 		last_position.timestamp = packet.received_at();
 		last_position.latitude = packet.latitude(107);
 		last_position.longitude = packet.longitude(79);

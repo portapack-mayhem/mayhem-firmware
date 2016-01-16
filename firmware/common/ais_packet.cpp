@@ -176,14 +176,10 @@ DateTime Packet::datetime(const size_t start_bit) const {
 }
 
 Latitude Packet::latitude(const size_t start_bit) const {
-	// Shifting and dividing is to sign-extend the source field.
-	// TODO: There's probably a more elegant way to do it.
 	return field_.read(start_bit, 27);
 }
 
 Longitude Packet::longitude(const size_t start_bit) const {
-	// Shifting and dividing is to sign-extend the source field.
-	// TODO: There's probably a more elegant way to do it.
 	return field_.read(start_bit, 28);
 }
 
