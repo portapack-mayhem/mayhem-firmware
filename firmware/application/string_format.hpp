@@ -25,10 +25,16 @@
 #include <cstdint>
 #include <string>
 
+// BARF! rtc::RTC is leaking everywhere.
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 // TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
 
 std::string to_string_dec_uint(const uint32_t n, const int32_t l = 0, const char fill = 0);
 std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char fill = 0);
 std::string to_string_hex(const uint32_t n, const int32_t l = 0);
+
+std::string to_string_timestamp(const rtc::RTC& value);
 
 #endif/*__STRING_FORMAT_H__*/

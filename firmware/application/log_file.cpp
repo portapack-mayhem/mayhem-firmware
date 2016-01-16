@@ -67,14 +67,7 @@ bool LogFile::is_ready() {
 }
 
 bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
-	std::string timestamp = 
-		to_string_dec_uint(datetime.year(), 4, '0') +
-		to_string_dec_uint(datetime.month(), 2, '0') +
-		to_string_dec_uint(datetime.day(), 2, '0') +
-		to_string_dec_uint(datetime.hour(), 2, '0') +
-		to_string_dec_uint(datetime.minute(), 2, '0') +
-		to_string_dec_uint(datetime.second(), 2, '0');
-
+	std::string timestamp = to_string_timestamp(datetime);
 	return write(timestamp + " " + entry + "\r\n");
 }
 
