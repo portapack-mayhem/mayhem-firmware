@@ -27,7 +27,7 @@
 # Compiler options here.
 ifeq ($(USE_OPT),)
   USE_OPT = -mthumb \
-            -O3 -ggdb3 \
+            -O2 -ggdb3 \
             -ffunction-sections \
             -fdata-sections \
             -fno-builtin \
