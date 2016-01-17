@@ -19,36 +19,34 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __LOG_FILE_H__
-#define __LOG_FILE_H__
+#ifndef __FILE_H__
+#define __FILE_H__
 
+#include "ff.h"
+
+#include <cstddef>
 #include <string>
 
-#include "file.hpp"
-#include "sd_card.hpp"
-
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
-class LogFile {
+class File {
 public:
-	LogFile(const std::string file_path);
-	~LogFile();
+	~File();
+
+	bool open_for_append(const std::string file_path);
+	bool close();
 
 	bool is_ready();
 
-	bool write_entry(const rtc::RTC& datetime, const std::string& entry);
+	bool read(void* const data, const size_t bytes_to_read);
+	bool write(const void* const data, const size_t bytes_to_write);
+
+	bool puts(const std::string string);
+
+	bool sync();
 
 private:
 	const std::string file_path;
 	
-	File file;
-
-	SignalToken sd_card_status_signal_token;
-
-	bool write(const std::string& message);
-
-	void on_sd_card_status(const sd_card::Status status);
+	FIL f;
 };
 
-#endif/*__LOG_FILE_H__*/
+#endif/*__FILE_H__*/

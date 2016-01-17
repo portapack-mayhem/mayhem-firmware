@@ -30,7 +30,7 @@ LogFile::LogFile(
 	const std::string file_path
 ) : file_path { file_path }
 {
-	open();
+	file.open_for_append(file_path);
 
 	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
 		this->on_sd_card_status(status);
@@ -40,30 +40,11 @@ LogFile::LogFile(
 LogFile::~LogFile() {
 	sd_card::status_signal -= sd_card_status_signal_token;
 
-	close();
-}
-
-bool LogFile::open() {
-	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
-	if( open_result == FR_OK ) {
-		const auto seek_result = f_lseek(&f, f_size(&f));
-		if( seek_result == FR_OK ) {
-			return true;
-		} else {
-			close();
-		}
-	}
-
-	return false;
-}
-
-bool LogFile::close() {
-	f_close(&f);
-	return true;
+	file.close();
 }
 
 bool LogFile::is_ready() {
-	return !f_error(&f);
+	return file.is_ready();
 }
 
 bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
@@ -72,15 +53,13 @@ bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
 }
 
 bool LogFile::write(const std::string& message) {
-	const auto puts_result = f_puts(message.c_str(), &f);
-	const auto sync_result = f_sync(&f);
-	return (puts_result >= 0) && (sync_result == FR_OK);
+	return file.puts(message) && file.sync();
 }
 
 void LogFile::on_sd_card_status(const sd_card::Status status) {
 	if( status == sd_card::Status::Mounted ) {
-		open();
+		file.open_for_append(file_path);
 	} else {
-		close();		
+		file.close();		
 	}
 }

@@ -176,6 +176,7 @@ CPPSRC = main.cpp \
          ../common/ert_packet.cpp \
          spectrum_analysis_app.cpp \
          sd_card.cpp \
+         file.cpp \
          log_file.cpp \
          manchester.cpp \
          string_format.cpp \
