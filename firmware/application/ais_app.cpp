@@ -218,7 +218,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 
 const AISRecentEntry& AISRecentEntries::on_packet(const ais::Packet& packet) {
 	const auto source_id = packet.source_id();
-	auto matching_recent = find_by_mmsi(source_id);
+	auto matching_recent = find(source_id);
 	if( matching_recent != std::end(entries) ) {
 		// Found within. Move to front of list, increment counter.
 		entries.push_front(*matching_recent);
@@ -234,7 +234,7 @@ const AISRecentEntry& AISRecentEntries::on_packet(const ais::Packet& packet) {
 	return entry;
 }
 
-AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find_by_mmsi(const ais::MMSI key) const {
+AISRecentEntries::ContainerType::const_iterator AISRecentEntries::find(const ais::MMSI key) const {
 	return std::find_if(
 		std::begin(entries), std::end(entries),
 		[key](const AISRecentEntry& e) { return e.mmsi == key; }
@@ -286,7 +286,7 @@ bool AISRecentEntriesView::on_encoder(const EncoderEvent event) {
 bool AISRecentEntriesView::on_key(const ui::KeyEvent event) {
 	if( event == ui::KeyEvent::Select ) {
 		if( on_select ) {
-			const auto selected = recent.find_by_mmsi(selected_key);
+			const auto selected = recent.find(selected_key);
 			if( selected != std::end(recent) ) {
 				on_select(*selected);
 				return true;
@@ -323,7 +323,7 @@ void AISRecentEntriesView::paint(Painter& painter) {
 	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 	const size_t visible_item_count = r.height() / s.font.line_height();
 
-	auto selected = recent.find_by_mmsi(selected_key);
+	auto selected = recent.find(selected_key);
 	if( selected == std::end(recent) ) {
 		selected = std::begin(recent);
 	}
@@ -339,7 +339,7 @@ void AISRecentEntriesView::paint(Painter& painter) {
 }
 
 void AISRecentEntriesView::advance(const int32_t amount) {
-	auto selected = recent.find_by_mmsi(selected_key);
+	auto selected = recent.find(selected_key);
 	if( selected == std::end(recent) ) {
 		if( recent.empty() ) {
 			selected_key = invalid_key;

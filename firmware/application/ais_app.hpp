@@ -85,7 +85,7 @@ public:
 		return entries.front();
 	}
 
-	ContainerType::const_iterator find_by_mmsi(const ais::MMSI key) const;
+	ContainerType::const_iterator find(const ais::MMSI key) const;
 
 	ContainerType::const_iterator begin() const {
 		return entries.begin();
