@@ -30,13 +30,13 @@
 
 namespace tpms {
 
-using Packet = ManchesterFormatted;
+using Packet = ManchesterDecoder;
 
 } /* namespace tpms */
 
-class TPMSModel {
+class TPMSLogger {
 public:
-	tpms::Packet on_packet(const TPMSPacketMessage& message);
+	void on_packet(const Timestamp& timestamp, const tpms::Packet& packet);
 
 private:
 	LogFile log_file { "tpms.txt" };
@@ -52,11 +52,12 @@ public:
 	void set_parent_rect(const Rect new_parent_rect) override;
 
 private:
-	TPMSModel model;
+	TPMSLogger logger;
 
 	Console console;
 
-	void log(const tpms::Packet& formatted);
+	void on_packet(const baseband::Packet& packet);
+	void draw(const tpms::Packet& packet);
 };
 
 } /* namespace ui */

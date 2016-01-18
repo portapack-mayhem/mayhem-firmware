@@ -28,9 +28,8 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
-tpms::Packet TPMSModel::on_packet(const TPMSPacketMessage& message) {
-	const ManchesterDecoder decoder(message.packet, 1);
-	const auto hex_formatted = format_manchester(decoder);
+void TPMSLogger::on_packet(const Timestamp& timestamp, const tpms::Packet& packet) {
+	const auto hex_formatted = format_manchester(packet);
 
 	if( log_file.is_ready() ) {
 		const auto tuning_frequency = receiver_model.tuning_frequency();
@@ -38,10 +37,8 @@ tpms::Packet TPMSModel::on_packet(const TPMSPacketMessage& message) {
 		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
 
 		std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
-		log_file.write_entry(message.packet.timestamp(), entry);
+		log_file.write_entry(timestamp, entry);
 	}
-
-	return hex_formatted;
 }
 
 namespace ui {
@@ -54,7 +51,7 @@ TPMSAppView::TPMSAppView() {
 	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const TPMSPacketMessage*>(p);
-			this->log(this->model.on_packet(*message));
+			this->on_packet(message->packet);
 		}
 	);
 
@@ -75,8 +72,15 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	console.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
-void TPMSAppView::log(const tpms::Packet& formatted) {
-	console.writeln(formatted.data.substr(0, 240 / 8));
+void TPMSAppView::on_packet(const baseband::Packet& baseband_packet) {
+	const tpms::Packet tpms_packet { baseband_packet, 1 };
+	this->logger.on_packet(baseband_packet.timestamp(), tpms_packet);
+	this->draw(tpms_packet);
+}
+
+void TPMSAppView::draw(const tpms::Packet& packet) {
+	const auto hex_formatted = format_manchester(packet);
+	console.writeln(hex_formatted.data.substr(0, 240 / 8));
 }
 
 } /* namespace ui */
