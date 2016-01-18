@@ -151,6 +151,14 @@ private:
 	const EntryKey invalid_key = 0xffffffff;
 
 	void advance(const int32_t amount);
+
+	void draw(
+		const AISRecentEntry& entry,
+		const Rect& target_rect,
+		Painter& painter,
+		const Style& style,
+		const bool is_selected
+	);
 };
 
 class AISRecentEntryDetailView : public View {

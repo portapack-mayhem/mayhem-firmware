@@ -299,7 +299,7 @@ bool AISRecentEntriesView::on_key(const ui::KeyEvent event) {
 	return false;
 }
 
-static void ais_list_item_draw(
+void AISRecentEntriesView::draw(
 	const AISRecentEntry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -336,7 +336,7 @@ void AISRecentEntriesView::paint(Painter& painter) {
 	for(auto p = range.first; p != range.second; p++) {
 		const auto& entry = *p;
 		const auto is_selected_key = (selected_key == entry.key());
-		ais_list_item_draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
+		draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
 		target_rect.pos.y += target_rect.height();
 	}
 }
