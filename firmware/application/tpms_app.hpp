@@ -30,8 +30,6 @@
 
 class TPMSModel {
 public:
-	TPMSModel();
-
 	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
 
 private:
@@ -40,13 +38,17 @@ private:
 
 namespace ui {
 
-class TPMSAppView : public Console {
+class TPMSAppView : public View {
 public:
-	void on_show() override;
-	void on_hide() override;
+	TPMSAppView();
+	~TPMSAppView();
+
+	void set_parent_rect(const Rect new_parent_rect) override;
 
 private:
 	TPMSModel model;
+
+	Console console;
 
 	void log(const ManchesterFormatted& formatted);
 };

@@ -28,15 +28,6 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
-TPMSModel::TPMSModel() {
-	receiver_model.set_baseband_configuration({
-		.mode = 5,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-}
-
 ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 	const ManchesterDecoder decoder(message.packet, 1);
 	const auto hex_formatted = format_manchester(decoder);
@@ -55,8 +46,10 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 
 namespace ui {
 
-void TPMSAppView::on_show() {
-	Console::on_show();
+TPMSAppView::TPMSAppView() {
+	add_children({ {
+		&console,
+	} });
 
 	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
 		[this](Message* const p) {
@@ -64,16 +57,26 @@ void TPMSAppView::on_show() {
 			this->log(this->model.on_packet(*message));
 		}
 	);
+
+	receiver_model.set_baseband_configuration({
+		.mode = 5,
+		.sampling_rate = 2457600,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(1750000);
 }
 
-void TPMSAppView::on_hide() {
+TPMSAppView::~TPMSAppView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
+}
 
-	Console::on_hide();
+void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
+	View::set_parent_rect(new_parent_rect);
+	console.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
 void TPMSAppView::log(const ManchesterFormatted& formatted) {
-	writeln(formatted.data.substr(0, 240 / 8));
+	console.writeln(formatted.data.substr(0, 240 / 8));
 }
 
 } /* namespace ui */
