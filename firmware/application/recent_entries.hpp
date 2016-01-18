@@ -151,6 +151,11 @@ public:
 			draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
 			target_rect.pos.y += target_rect.height();
 		}
+
+		painter.fill_rectangle(
+			{ target_rect.left(), target_rect.top(), target_rect.width(), r.bottom() - target_rect.top() },
+			style().background
+		);
 	}
 
 	bool on_encoder(const EncoderEvent event) override {
