@@ -274,19 +274,22 @@ typename RecentEntries<Packet, Entry>::RangeType RecentEntries<Packet, Entry>::r
 
 namespace ui {
 
-AISRecentEntriesView::AISRecentEntriesView(
-	AISRecentEntries& recent
+template<class Entries>
+RecentEntriesView<Entries>::RecentEntriesView(
+	Entries& recent
 ) : recent { recent }
 {
 	flags.focusable = true;
 }
 
-bool AISRecentEntriesView::on_encoder(const EncoderEvent event) {
+template<class Entries>
+bool RecentEntriesView<Entries>::on_encoder(const EncoderEvent event) {
 	advance(event);
 	return true;
 }
 
-bool AISRecentEntriesView::on_key(const ui::KeyEvent event) {
+template<class Entries>
+bool RecentEntriesView<Entries>::on_key(const ui::KeyEvent event) {
 	if( event == ui::KeyEvent::Select ) {
 		if( on_select ) {
 			const auto selected = recent.find(selected_key);
@@ -299,8 +302,9 @@ bool AISRecentEntriesView::on_key(const ui::KeyEvent event) {
 	return false;
 }
 
-void AISRecentEntriesView::draw(
-	const AISRecentEntry& entry,
+template<>
+void RecentEntriesView<AISRecentEntries>::draw(
+	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style,
@@ -319,7 +323,8 @@ void AISRecentEntriesView::draw(
 	painter.draw_string(target_rect.pos, draw_style, line);
 }
 
-void AISRecentEntriesView::paint(Painter& painter) {
+template<class Entries>
+void RecentEntriesView<Entries>::paint(Painter& painter) {
 	const auto r = screen_rect();
 	const auto& s = style();
 
@@ -341,11 +346,12 @@ void AISRecentEntriesView::paint(Painter& painter) {
 	}
 }
 
-void AISRecentEntriesView::advance(const int32_t amount) {
+template<class Entries>
+void RecentEntriesView<Entries>::advance(const int32_t amount) {
 	auto selected = recent.find(selected_key);
 	if( selected == std::end(recent) ) {
 		if( recent.empty() ) {
-			selected_key = invalid_key;
+			selected_key = Entry::invalid_key;
 		} else {
 			selected_key = recent.front().key();
 		}

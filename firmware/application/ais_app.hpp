@@ -51,6 +51,8 @@ struct AISPosition {
 struct AISRecentEntry {
 	using Key = ais::MMSI;
 
+	static constexpr Key invalid_key = 0xffffffff;
+
 	ais::MMSI mmsi;
 	std::string name;
 	std::string call_sign;
@@ -83,6 +85,7 @@ struct AISRecentEntry {
 template<class Packet, class Entry>
 class RecentEntries {
 public:
+	using EntryType = Entry;
 	using Key = typename Entry::Key;
 	using ContainerType = std::list<Entry>;
 	using const_reference = typename ContainerType::const_reference;
@@ -132,11 +135,14 @@ private:
 
 namespace ui {
 
-class AISRecentEntriesView : public View {
+template<class Entries>
+class RecentEntriesView : public View {
 public:
-	std::function<void(const AISRecentEntry& entry)> on_select;
+	using Entry = typename Entries::EntryType;
 
-	AISRecentEntriesView(AISRecentEntries& recent);
+	std::function<void(const Entry& entry)> on_select;
+
+	RecentEntriesView(Entries& recent);
 
 	void paint(Painter& painter) override;
 
@@ -144,22 +150,23 @@ public:
 	bool on_key(const ui::KeyEvent event) override;
 
 private:
-	AISRecentEntries& recent;
+	Entries& recent;
 	
-	using EntryKey = ais::MMSI;
+	using EntryKey = typename Entry::Key;
 	EntryKey selected_key;
-	const EntryKey invalid_key = 0xffffffff;
 
 	void advance(const int32_t amount);
 
 	void draw(
-		const AISRecentEntry& entry,
+		const Entry& entry,
 		const Rect& target_rect,
 		Painter& painter,
 		const Style& style,
 		const bool is_selected
 	);
 };
+
+using AISRecentEntriesView = RecentEntriesView<AISRecentEntries>;
 
 class AISRecentEntryDetailView : public View {
 public:
