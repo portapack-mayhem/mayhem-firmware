@@ -55,7 +55,7 @@ ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
 
 namespace ui {
 
-void TPMSView::on_show() {
+void TPMSAppView::on_show() {
 	Console::on_show();
 
 	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
@@ -66,13 +66,13 @@ void TPMSView::on_show() {
 	);
 }
 
-void TPMSView::on_hide() {
+void TPMSAppView::on_hide() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
 
 	Console::on_hide();
 }
 
-void TPMSView::log(const ManchesterFormatted& formatted) {
+void TPMSAppView::log(const ManchesterFormatted& formatted) {
 	writeln(formatted.data.substr(0, 240 / 8));
 }
 

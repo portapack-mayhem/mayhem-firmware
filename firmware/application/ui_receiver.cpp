@@ -525,7 +525,7 @@ void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 		break;
 
 	case ReceiverModel::Mode::TPMS:
-		widget_content = std::make_unique<TPMSView>();
+		widget_content = std::make_unique<TPMSAppView>();
 		break;
 
 	case ReceiverModel::Mode::ERT:

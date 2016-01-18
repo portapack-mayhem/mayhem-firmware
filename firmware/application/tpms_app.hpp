@@ -40,7 +40,7 @@ private:
 
 namespace ui {
 
-class TPMSView : public Console {
+class TPMSAppView : public Console {
 public:
 	void on_show() override;
 	void on_hide() override;
