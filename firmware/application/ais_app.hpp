@@ -49,6 +49,8 @@ struct AISPosition {
 };
 
 struct AISRecentEntry {
+	using Key = ais::MMSI;
+
 	ais::MMSI mmsi;
 	std::string name;
 	std::string call_sign;
@@ -71,27 +73,35 @@ struct AISRecentEntry {
 	{
 	}
 
+	Key key() const {
+		return mmsi;
+	}
+
 	void update(const ais::Packet& packet);
 };
 
-class AISRecentEntries {
+template<class Packet, class Entry>
+class RecentEntries {
 public:
-	using ContainerType = std::list<AISRecentEntry>;
-	using RangeType = std::pair<ContainerType::const_iterator, ContainerType::const_iterator>;
+	using Key = typename Entry::Key;
+	using ContainerType = std::list<Entry>;
+	using const_reference = typename ContainerType::const_reference;
+	using const_iterator = typename ContainerType::const_iterator;
+	using RangeType = std::pair<const_iterator, const_iterator>;
 	
-	const AISRecentEntry& on_packet(const ais::Packet& packet);
+	const Entry& on_packet(const Key key, const Packet& packet);
 
-	ContainerType::const_reference front() const {
+	const_reference front() const {
 		return entries.front();
 	}
 
-	ContainerType::const_iterator find(const ais::MMSI key) const;
+	const_iterator find(const Key key) const;
 
-	ContainerType::const_iterator begin() const {
+	const_iterator begin() const {
 		return entries.begin();
 	}
 
-	ContainerType::const_iterator end() const {
+	const_iterator end() const {
 		return entries.end();
 	}
 
@@ -100,7 +110,7 @@ public:
 	}
 
 	RangeType range_around(
-		ContainerType::const_iterator, const size_t count
+		const_iterator, const size_t count
 	) const;
 
 private:
@@ -109,6 +119,8 @@ private:
 
 	void truncate_entries();
 };
+
+using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
 
 class AISLogger {
 public:
