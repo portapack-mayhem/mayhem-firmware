@@ -165,6 +165,7 @@ CPPSRC = main.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
+         recent_entries.cpp \
          receiver_model.cpp \
          spectrum_color_lut.cpp \
          analog_audio_app.cpp \

@@ -38,6 +38,8 @@ using namespace lpc43xx;
 
 #include <iterator>
 
+#include "recent_entries.hpp"
+
 struct AISPosition {
 	rtc::RTC timestamp { };
 	ais::Latitude latitude;
@@ -82,47 +84,6 @@ struct AISRecentEntry {
 	void update(const ais::Packet& packet);
 };
 
-template<class Packet, class Entry>
-class RecentEntries {
-public:
-	using EntryType = Entry;
-	using Key = typename Entry::Key;
-	using ContainerType = std::list<Entry>;
-	using const_reference = typename ContainerType::const_reference;
-	using const_iterator = typename ContainerType::const_iterator;
-	using RangeType = std::pair<const_iterator, const_iterator>;
-	
-	const Entry& on_packet(const Key key, const Packet& packet);
-
-	const_reference front() const {
-		return entries.front();
-	}
-
-	const_iterator find(const Key key) const;
-
-	const_iterator begin() const {
-		return entries.begin();
-	}
-
-	const_iterator end() const {
-		return entries.end();
-	}
-
-	bool empty() const {
-		return entries.empty();
-	}
-
-	RangeType range_around(
-		const_iterator, const size_t count
-	) const;
-
-private:
-	ContainerType entries;
-	const size_t entries_max = 64;
-
-	void truncate_entries();
-};
-
 using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
 
 class AISLogger {
@@ -134,37 +95,6 @@ private:
 };
 
 namespace ui {
-
-template<class Entries>
-class RecentEntriesView : public View {
-public:
-	using Entry = typename Entries::EntryType;
-
-	std::function<void(const Entry& entry)> on_select;
-
-	RecentEntriesView(Entries& recent);
-
-	void paint(Painter& painter) override;
-
-	bool on_encoder(const EncoderEvent event) override;
-	bool on_key(const ui::KeyEvent event) override;
-
-private:
-	Entries& recent;
-	
-	using EntryKey = typename Entry::Key;
-	EntryKey selected_key;
-
-	void advance(const int32_t amount);
-
-	void draw(
-		const Entry& entry,
-		const Rect& target_rect,
-		Painter& painter,
-		const Style& style,
-		const bool is_selected
-	);
-};
 
 using AISRecentEntriesView = RecentEntriesView<AISRecentEntries>;
 

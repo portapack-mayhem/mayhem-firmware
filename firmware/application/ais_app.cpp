@@ -216,91 +216,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 	}
 }
 
-template<class Packet, class Entry>
-const Entry& RecentEntries<Packet, Entry>::on_packet(const Key key, const Packet& packet) {
-	auto matching_recent = find(key);
-	if( matching_recent != std::end(entries) ) {
-		// Found within. Move to front of list, increment counter.
-		entries.push_front(*matching_recent);
-		entries.erase(matching_recent);
-	} else {
-		entries.emplace_front(key);
-		truncate_entries();
-	}
-
-	auto& entry = entries.front();
-	entry.update(packet);
-
-	return entry;
-}
-
-template<class Packet, class Entry>
-typename RecentEntries<Packet, Entry>::const_iterator RecentEntries<Packet, Entry>::find(const Key key) const {
-	return std::find_if(
-		std::begin(entries), std::end(entries),
-		[key](const Entry& e) { return e.key() == key; }
-	);
-}
-
-template<class Packet, class Entry>
-void RecentEntries<Packet, Entry>::truncate_entries() {
-	while(entries.size() > entries_max) {
-		entries.pop_back();
-	}
-}
-
-template<class Packet, class Entry>
-typename RecentEntries<Packet, Entry>::RangeType RecentEntries<Packet, Entry>::range_around(
-	const_iterator item, const size_t count
-) const {
-	auto start = item;
-	auto end = item;
-	size_t i = 0;
-
-	// Move start iterator toward first entry.
-	while( (start != std::begin(entries)) && (i < count / 2) ) {
-		std::advance(start, -1);
-		i++;
-	}
-
-	// Move end iterator toward last entry.
-	while( (end != std::end(entries)) && (i < count) ) {
-		std::advance(end, 1);
-		i++;
-	}
-
-	return { start, end };
-}
-
 namespace ui {
-
-template<class Entries>
-RecentEntriesView<Entries>::RecentEntriesView(
-	Entries& recent
-) : recent { recent }
-{
-	flags.focusable = true;
-}
-
-template<class Entries>
-bool RecentEntriesView<Entries>::on_encoder(const EncoderEvent event) {
-	advance(event);
-	return true;
-}
-
-template<class Entries>
-bool RecentEntriesView<Entries>::on_key(const ui::KeyEvent event) {
-	if( event == ui::KeyEvent::Select ) {
-		if( on_select ) {
-			const auto selected = recent.find(selected_key);
-			if( selected != std::end(recent) ) {
-				on_select(*selected);
-				return true;
-			}
-		}
-	}
-	return false;
-}
 
 template<>
 void RecentEntriesView<AISRecentEntries>::draw(
@@ -321,56 +237,6 @@ void RecentEntriesView<AISRecentEntries>::draw(
 
 	line.resize(target_rect.width() / 8, ' ');
 	painter.draw_string(target_rect.pos, draw_style, line);
-}
-
-template<class Entries>
-void RecentEntriesView<Entries>::paint(Painter& painter) {
-	const auto r = screen_rect();
-	const auto& s = style();
-
-	Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
-	const size_t visible_item_count = r.height() / s.font.line_height();
-
-	auto selected = recent.find(selected_key);
-	if( selected == std::end(recent) ) {
-		selected = std::begin(recent);
-	}
-
-	auto range = recent.range_around(selected, visible_item_count);
-
-	for(auto p = range.first; p != range.second; p++) {
-		const auto& entry = *p;
-		const auto is_selected_key = (selected_key == entry.key());
-		draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
-		target_rect.pos.y += target_rect.height();
-	}
-}
-
-template<class Entries>
-void RecentEntriesView<Entries>::advance(const int32_t amount) {
-	auto selected = recent.find(selected_key);
-	if( selected == std::end(recent) ) {
-		if( recent.empty() ) {
-			selected_key = Entry::invalid_key;
-		} else {
-			selected_key = recent.front().key();
-		}
-	} else {
-		if( amount < 0 ) {
-			if( selected != std::begin(recent) ) {
-				std::advance(selected, -1);
-			}
-		}
-		if( amount > 0 ) {
-			std::advance(selected, 1);
-			if( selected == std::end(recent) ) {
-				return;
-			}
-		}
-		selected_key = selected->key();
-	}
-
-	set_dirty();
 }
 
 AISRecentEntryDetailView::AISRecentEntryDetailView() {
