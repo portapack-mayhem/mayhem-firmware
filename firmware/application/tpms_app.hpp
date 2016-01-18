@@ -30,13 +30,29 @@
 
 namespace tpms {
 
-using Packet = ManchesterDecoder;
+class Packet {
+public:
+	constexpr Packet(
+		const baseband::Packet& packet
+	) : packet_ { packet },
+		decoder_ { packet_, 1 }
+	{
+	}
+
+	Timestamp received_at() const;
+
+	ManchesterFormatted symbols_formatted() const;
+
+private:
+	const baseband::Packet packet_;
+	const ManchesterDecoder decoder_;
+};
 
 } /* namespace tpms */
 
 class TPMSLogger {
 public:
-	void on_packet(const Timestamp& timestamp, const tpms::Packet& packet);
+	void on_packet(const tpms::Packet& packet);
 
 private:
 	LogFile log_file { "tpms.txt" };
@@ -56,7 +72,7 @@ private:
 
 	Console console;
 
-	void on_packet(const baseband::Packet& packet);
+	void on_packet(const tpms::Packet& packet);
 	void draw(const tpms::Packet& packet);
 };
 
