@@ -28,7 +28,7 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
-ManchesterFormatted TPMSModel::on_packet(const TPMSPacketMessage& message) {
+tpms::Packet TPMSModel::on_packet(const TPMSPacketMessage& message) {
 	const ManchesterDecoder decoder(message.packet, 1);
 	const auto hex_formatted = format_manchester(decoder);
 
@@ -75,7 +75,7 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	console.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
-void TPMSAppView::log(const ManchesterFormatted& formatted) {
+void TPMSAppView::log(const tpms::Packet& formatted) {
 	console.writeln(formatted.data.substr(0, 240 / 8));
 }
 

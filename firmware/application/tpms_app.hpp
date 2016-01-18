@@ -28,9 +28,15 @@
 #include "manchester.hpp"
 #include "log_file.hpp"
 
+namespace tpms {
+
+using Packet = ManchesterFormatted;
+
+} /* namespace tpms */
+
 class TPMSModel {
 public:
-	ManchesterFormatted on_packet(const TPMSPacketMessage& message);
+	tpms::Packet on_packet(const TPMSPacketMessage& message);
 
 private:
 	LogFile log_file { "tpms.txt" };
@@ -50,7 +56,7 @@ private:
 
 	Console console;
 
-	void log(const ManchesterFormatted& formatted);
+	void log(const tpms::Packet& formatted);
 };
 
 } /* namespace ui */
