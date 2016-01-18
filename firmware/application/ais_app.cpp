@@ -75,7 +75,7 @@ static std::string latlon(const Latitude latitude, const Longitude longitude) {
 static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
-	return to_string_dec_uint(mmsi, 9, '0');
+	return to_string_dec_uint(mmsi, 9);
 }
 
 static std::string datetime(
@@ -408,8 +408,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 
 	auto field_rect = Rect { rect.left(), rect.top() + 16, rect.width(), 16 };
 
-	const size_t mmsi_length = 9;
-	field_rect = draw_field(painter, field_rect, s, "MMSI", to_string_dec_int(entry_.mmsi, mmsi_length));
+	field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
 	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
