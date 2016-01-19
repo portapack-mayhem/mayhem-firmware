@@ -28,6 +28,8 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
+#include "crc.hpp"
+
 namespace tpms {
 
 Timestamp Packet::received_at() const {
@@ -36,6 +38,46 @@ Timestamp Packet::received_at() const {
 
 ManchesterFormatted Packet::symbols_formatted() const {
 	return format_manchester(decoder_);
+}
+
+size_t Packet::crc_valid_length() const {
+	constexpr uint32_t checksum_bytes = 0b1111111;
+	constexpr uint32_t crc_72_bytes = 0b111111111;
+	constexpr uint32_t crc_80_bytes = 0b1111111110;
+
+	std::array<uint8_t, 10> bytes;
+	for(size_t i=0; i<bytes.size(); i++) {
+		bytes[i] = reader_.read(i * 8, 8);
+	}
+
+	uint32_t checksum = 6;
+	CRC<uint8_t> crc_72 { 0x01, 0xff };
+	CRC<uint8_t> crc_80 { 0x01, 0xff };
+
+	for(size_t i=0; i<bytes.size(); i++) {
+		const uint32_t byte_mask = 1 << i;
+		const auto byte = bytes[i];
+
+		if( checksum_bytes & byte_mask ) {
+			checksum += byte;
+		}
+		if( crc_72_bytes & byte_mask ) {
+			crc_72.process_byte(byte);
+		}
+		if( crc_80_bytes & byte_mask ) {
+			crc_80.process_byte(byte);
+		}
+	}
+
+	if( crc_80.checksum() == 0 ) {
+		return 80;
+	} else if( crc_72.checksum() == 0 ) {
+		return 72;
+	} else if( (checksum & 0xff) == bytes[7] ) {
+		return 64;
+	} else {
+		return 0;
+	}
 }
 
 } /* namespace tpms */
@@ -91,8 +133,12 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 }
 
 void TPMSAppView::draw(const tpms::Packet& packet) {
-	const auto hex_formatted = packet.symbols_formatted();
-	console.writeln(hex_formatted.data.substr(0, 240 / 8));
+	const auto packet_length = packet.crc_valid_length();
+	if( packet_length > 0 ) {
+		const size_t length_chars = packet_length * 2 / 8;
+		const auto hex_formatted = packet.symbols_formatted();
+		console.writeln(hex_formatted.data.substr(0, length_chars));
+	}
 }
 
 } /* namespace ui */

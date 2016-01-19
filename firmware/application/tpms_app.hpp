@@ -23,8 +23,9 @@
 #define __TPMS_APP_H__
 
 #include "ui_console.hpp"
-#include "message.hpp"
 
+#include "field_reader.hpp"
+#include "baseband_packet.hpp"
 #include "manchester.hpp"
 #include "log_file.hpp"
 
@@ -35,7 +36,8 @@ public:
 	constexpr Packet(
 		const baseband::Packet& packet
 	) : packet_ { packet },
-		decoder_ { packet_, 1 }
+		decoder_ { packet_, 1 },
+		reader_ { decoder_ }
 	{
 	}
 
@@ -43,9 +45,15 @@ public:
 
 	ManchesterFormatted symbols_formatted() const;
 
+	size_t crc_valid_length() const;
+
 private:
+	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+
 	const baseband::Packet packet_;
 	const ManchesterDecoder decoder_;
+
+	const Reader reader_;
 };
 
 } /* namespace tpms */
