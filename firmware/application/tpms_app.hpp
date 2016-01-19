@@ -49,7 +49,8 @@ private:
 class Reading {
 public:
 	constexpr Reading(
-	) : id_ { 0 },
+	) : type_ { 0 },
+		id_ { 0 },
 		value_1_ { 0 },
 		value_2_ { 0 },
 		value_3_ { 0 }
@@ -57,9 +58,11 @@ public:
 	}
 	
 	constexpr Reading(
+		uint32_t type,
 		uint32_t id,
 		uint16_t value_1
-	) : id_ { id },
+	) : type_ { type },
+		id_ { id },
 		value_1_ { value_1 },
 		value_2_ { },
 		value_3_ { }
@@ -67,15 +70,21 @@ public:
 	}
 
 	constexpr Reading(
+		uint32_t type,
 		uint32_t id,
 		uint16_t value_1,
 		uint16_t value_2,
 		uint16_t value_3
-	) : id_ { id },
+	) : type_ { type },
+		id_ { id },
 		value_1_ { value_1 },
 		value_2_ { value_2 },
 		value_3_ { value_3 }
 	{
+	}
+
+	uint32_t type() const {
+		return type_;
 	}
 
 	uint32_t id() const {
@@ -95,6 +104,7 @@ public:
 	}
 
 private:
+	uint32_t type_;
 	uint32_t id_;
 	uint16_t value_1_;
 	Optional<uint16_t> value_2_;

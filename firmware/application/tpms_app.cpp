@@ -44,9 +44,9 @@ Optional<Reading> Packet::reading() const {
 	const auto length = crc_valid_length();
 
 	switch(length) {
-	case 64:	return Reading { reader_.read(0, 32), reader_.read(32, 8) };
-	case 72:	return Reading { reader_.read(0, 32), reader_.read(40, 8), reader_.read(48, 8), reader_.read(56, 8) };
-	case 80:	return Reading { reader_.read(8, 32), reader_.read(48, 8), reader_.read(56, 8), reader_.read(64, 8) };
+	case 64:	return Reading { 64, reader_.read(0, 32), reader_.read(32, 8) };
+	case 72:	return Reading { 72, reader_.read(0, 32), reader_.read(40, 8), reader_.read(48, 8), reader_.read(56, 8) };
+	case 80:	return Reading { 80, reader_.read(8, 32), reader_.read(48, 8), reader_.read(56, 8), reader_.read(64, 8) };
 	default:	return { };
 	}
 }
@@ -147,7 +147,8 @@ void TPMSAppView::draw(const tpms::Packet& packet) {
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
-		auto s = to_string_hex(reading.id(), 8) + " " + to_string_hex(reading.value_1(), 2);
+		auto s = to_string_dec_uint(reading.type(), 2) + " " + to_string_hex(reading.id(), 8);
+		s += " " + to_string_hex(reading.value_1(), 2);
 		if( reading.value_2().is_valid() ) {
 			s += " " + to_string_hex(reading.value_2().value(), 2);
 		}
