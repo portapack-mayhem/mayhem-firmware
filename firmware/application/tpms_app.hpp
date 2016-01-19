@@ -48,8 +48,15 @@ private:
 
 class Reading {
 public:
+	enum Type {
+		None = 0,
+		FLM_64 = 1,
+		FLM_72 = 2,
+		FLM_80 = 3,
+	};
+
 	constexpr Reading(
-	) : type_ { 0 },
+	) : type_ { Type::None },
 		id_ { 0 },
 		value_1_ { 0 },
 		value_2_ { 0 },
@@ -58,7 +65,7 @@ public:
 	}
 	
 	constexpr Reading(
-		uint32_t type,
+		Type type,
 		uint32_t id,
 		uint16_t value_1
 	) : type_ { type },
@@ -70,7 +77,7 @@ public:
 	}
 
 	constexpr Reading(
-		uint32_t type,
+		Type type,
 		uint32_t id,
 		uint16_t value_1,
 		uint16_t value_2,
@@ -83,7 +90,7 @@ public:
 	{
 	}
 
-	uint32_t type() const {
+	Type type() const {
 		return type_;
 	}
 
@@ -104,7 +111,7 @@ public:
 	}
 
 private:
-	uint32_t type_;
+	Type type_;
 	uint32_t id_;
 	uint16_t value_1_;
 	Optional<uint16_t> value_2_;
