@@ -31,6 +31,76 @@
 
 namespace tpms {
 
+template<typename T>
+class Optional {
+public:
+	constexpr Optional() : value_ { }, valid_ { false } { };
+	constexpr Optional(const T& value) : value_ { value }, valid_ { true } { };
+	constexpr Optional(T&& value) : value_ { std::move(value) }, valid_ { true } { };
+
+	bool is_valid() const { return valid_; };
+	T value() const { return value_; };
+
+private:
+	const T value_;
+	const bool valid_;
+};
+
+class Reading {
+public:
+	constexpr Reading(
+	) : id_ { 0 },
+		value_1_ { 0 },
+		value_2_ { 0 },
+		value_3_ { 0 }
+	{
+	}
+	
+	constexpr Reading(
+		uint32_t id,
+		uint16_t value_1
+	) : id_ { id },
+		value_1_ { value_1 },
+		value_2_ { },
+		value_3_ { }
+	{
+	}
+
+	constexpr Reading(
+		uint32_t id,
+		uint16_t value_1,
+		uint16_t value_2,
+		uint16_t value_3
+	) : id_ { id },
+		value_1_ { value_1 },
+		value_2_ { value_2 },
+		value_3_ { value_3 }
+	{
+	}
+
+	uint32_t id() const {
+		return id_;
+	}
+
+	uint16_t value_1() const {
+		return value_1_;
+	}
+
+	Optional<uint16_t> value_2() const {
+		return value_2_;
+	}
+
+	Optional<uint16_t> value_3() const {
+		return value_3_;
+	}
+
+private:
+	uint32_t id_;
+	uint16_t value_1_;
+	Optional<uint16_t> value_2_;
+	Optional<uint16_t> value_3_;
+};
+
 class Packet {
 public:
 	constexpr Packet(
@@ -45,7 +115,7 @@ public:
 
 	ManchesterFormatted symbols_formatted() const;
 
-	size_t crc_valid_length() const;
+	Optional<Reading> reading() const;
 
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
@@ -54,6 +124,8 @@ private:
 	const ManchesterDecoder decoder_;
 
 	const Reader reader_;
+
+	size_t crc_valid_length() const;
 };
 
 } /* namespace tpms */

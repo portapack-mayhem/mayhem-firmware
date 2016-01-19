@@ -40,6 +40,17 @@ ManchesterFormatted Packet::symbols_formatted() const {
 	return format_manchester(decoder_);
 }
 
+Optional<Reading> Packet::reading() const {
+	const auto length = crc_valid_length();
+
+	switch(length) {
+	case 64:	return Reading { reader_.read(0, 32), reader_.read(32, 8) };
+	case 72:	return Reading { reader_.read(0, 32), reader_.read(40, 8), reader_.read(48, 8), reader_.read(56, 8) };
+	case 80:	return Reading { reader_.read(8, 32), reader_.read(48, 8), reader_.read(56, 8), reader_.read(64, 8) };
+	default:	return { };
+	}
+}
+
 size_t Packet::crc_valid_length() const {
 	constexpr uint32_t checksum_bytes = 0b1111111;
 	constexpr uint32_t crc_72_bytes = 0b111111111;
@@ -133,11 +144,17 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 }
 
 void TPMSAppView::draw(const tpms::Packet& packet) {
-	const auto packet_length = packet.crc_valid_length();
-	if( packet_length > 0 ) {
-		const size_t length_chars = packet_length * 2 / 8;
-		const auto hex_formatted = packet.symbols_formatted();
-		console.writeln(hex_formatted.data.substr(0, length_chars));
+	const auto reading_opt = packet.reading();
+	if( reading_opt.is_valid() ) {
+		const auto reading = reading_opt.value();
+		auto s = to_string_hex(reading.id(), 8) + " " + to_string_hex(reading.value_1(), 2);
+		if( reading.value_2().is_valid() ) {
+			s += " " + to_string_hex(reading.value_2().value(), 2);
+		}
+		if( reading.value_3().is_valid() ) {
+			s += " " + to_string_hex(reading.value_3().value(), 2);
+		}
+		console.writeln(s);
 	}
 }
 
