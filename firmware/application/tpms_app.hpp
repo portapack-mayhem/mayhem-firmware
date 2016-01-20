@@ -123,7 +123,7 @@ public:
 	constexpr Packet(
 		const baseband::Packet& packet
 	) : packet_ { packet },
-		decoder_ { packet_, 1 },
+		decoder_ { packet_, 0 },
 		reader_ { decoder_ }
 	{
 	}

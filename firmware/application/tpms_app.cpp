@@ -63,9 +63,9 @@ size_t Packet::crc_valid_length() const {
 		bytes[i] = reader_.read(i * 8, 8);
 	}
 
-	uint32_t checksum = 6;
-	CRC<uint8_t> crc_72 { 0x01, 0xff };
-	CRC<uint8_t> crc_80 { 0x01, 0xff };
+	uint32_t checksum = 0;
+	CRC<uint8_t> crc_72 { 0x01, 0x00 };
+	CRC<uint8_t> crc_80 { 0x01, 0x00 };
 
 	for(size_t i=0; i<bytes.size(); i++) {
 		const uint32_t byte_mask = 1 << i;
