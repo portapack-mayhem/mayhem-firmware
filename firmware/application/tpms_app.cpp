@@ -34,6 +34,26 @@ using namespace portapack;
 
 namespace tpms {
 
+namespace format {
+
+std::string type(Reading::Type type) {
+	return to_string_dec_uint(toUType(type), 2);
+}
+
+std::string id(TransponderID id) {
+	return to_string_hex(id.value(), 8);
+}
+
+std::string pressure(Pressure pressure) {
+	return to_string_dec_int(pressure.kilopascal(), 3);
+}
+
+std::string temperature(Temperature temperature) {
+	return to_string_dec_int(temperature.celsius(), 3);
+}
+
+} /* namespace format */
+
 Timestamp Packet::received_at() const {
 	return packet_.timestamp();
 }
@@ -130,11 +150,66 @@ void TPMSLogger::on_packet(const tpms::Packet& packet) {
 	}
 }
 
+const TPMSRecentEntry::Key TPMSRecentEntry::invalid_key = { tpms::Reading::Type::None, 0 };
+
+void TPMSRecentEntry::update(const tpms::Reading& reading) {
+	received_count++;
+
+	if( reading.pressure().is_valid() ) {
+		last_pressure = reading.pressure();
+		// pressures.emplace_back(reading.pressure().value());
+		// while( pressures.size() > 20 ) {
+		// 	pressures.pop_front();
+		// }
+	}
+	if( reading.temperature().is_valid() ) {
+		last_temperature = reading.temperature();
+		// temperatures.emplace_back(reading.temperature().value());
+		// while( temperatures.size() > 20 ) {
+		// 	temperatures.pop_front();
+		// }
+	}
+}
+
 namespace ui {
+
+template<>
+void RecentEntriesView<TPMSRecentEntries>::draw(
+	const Entry& entry,
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style,
+	const bool is_selected
+) {
+	const auto& draw_style = is_selected ? style.invert() : style;
+
+	std::string line = tpms::format::type(entry.type) + " " + tpms::format::id(entry.id);
+
+	if( entry.last_pressure.is_valid() ) {
+		line += " " + tpms::format::pressure(entry.last_pressure.value());
+	} else {
+		line += " " "   ";
+	}
+
+	if( entry.last_temperature.is_valid() ) {
+		line += " " + tpms::format::temperature(entry.last_temperature.value());
+	} else {
+		line += " " "   ";
+	}
+
+	if( entry.received_count > 999 ) {
+		line += " +++";
+	} else {
+		line += " " + to_string_dec_uint(entry.received_count, 3);
+	}
+
+	line.resize(target_rect.width() / 8, ' ');
+	painter.draw_string(target_rect.pos, draw_style, line);
+}
 
 TPMSAppView::TPMSAppView() {
 	add_children({ {
-		&console,
+		&recent_entries_view,
 	} });
 
 	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
@@ -159,27 +234,23 @@ TPMSAppView::~TPMSAppView() {
 
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	console.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
-	this->logger.on_packet(packet);
-	this->draw(packet);
-}
+	logger.on_packet(packet);
 
-void TPMSAppView::draw(const tpms::Packet& packet) {
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
-		auto s = to_string_dec_uint(toUType(reading.type()), 2) + " " + to_string_hex(reading.id().value(), 8);
-		if( reading.pressure().is_valid() ) {
-			s += " " + to_string_dec_int(reading.pressure().value().kilopascal(), 3);
-		}
-		if( reading.temperature().is_valid() ) {
-			s += " " + to_string_dec_int(reading.temperature().value().celsius(), 3);
-		}
-		console.writeln(s);
+		const auto updated_entry = recent.on_packet({ reading.type(), reading.id() }, reading);
+		recent_entries_view.set_dirty();
 	}
+}
+
+void TPMSAppView::on_show_list() {
+	recent_entries_view.hidden(false);
+	recent_entries_view.focus();
 }
 
 } /* namespace ui */

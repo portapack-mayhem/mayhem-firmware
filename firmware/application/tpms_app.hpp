@@ -22,13 +22,12 @@
 #ifndef __TPMS_APP_H__
 #define __TPMS_APP_H__
 
-#include "ui_console.hpp"
-
 #include "field_reader.hpp"
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
 #include "log_file.hpp"
 
+#include "recent_entries.hpp"
 
 template<typename T>
 class Optional {
@@ -60,7 +59,7 @@ public:
 	{
 	}
 
-	uint32_t value() const {
+	constexpr uint32_t value() const {
 		return id_;
 	}
 
@@ -204,6 +203,43 @@ private:
 
 } /* namespace tpms */
 
+namespace std {
+
+constexpr bool operator==(const tpms::TransponderID& lhs, const tpms::TransponderID& rhs) {
+	return (lhs.value() == rhs.value());
+}
+
+} /* namespace std */
+
+struct TPMSRecentEntry {
+	using Key = std::pair<tpms::Reading::Type, tpms::TransponderID>;
+
+	static const Key invalid_key;
+
+	tpms::Reading::Type type { tpms::Reading::Type::None };
+	tpms::TransponderID id { 0 };
+
+	size_t received_count { 0 };
+
+	Optional<tpms::Pressure> last_pressure;
+	Optional<tpms::Temperature> last_temperature;
+
+	TPMSRecentEntry(
+		const Key& key
+	) : type { key.first },
+		id { key.second }
+	{
+	}
+
+	Key key() const {
+		return { type, id };
+	}
+
+	void update(const tpms::Reading& reading);
+};
+
+using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
+
 class TPMSLogger {
 public:
 	void on_packet(const tpms::Packet& packet);
@@ -214,6 +250,8 @@ private:
 
 namespace ui {
 
+using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
+
 class TPMSAppView : public View {
 public:
 	TPMSAppView();
@@ -221,13 +259,18 @@ public:
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 
+	// Prevent painting of region covered entirely by a child.
+	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
+	void paint(Painter&) override { };
+
 private:
+	TPMSRecentEntries recent;
 	TPMSLogger logger;
 
-	Console console;
+	TPMSRecentEntriesView recent_entries_view { recent };
 
 	void on_packet(const tpms::Packet& packet);
-	void draw(const tpms::Packet& packet);
+	void on_show_list();
 };
 
 } /* namespace ui */
