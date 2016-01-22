@@ -46,6 +46,77 @@ private:
 	const bool valid_;
 };
 
+class TransponderID {
+public:
+	constexpr TransponderID(
+	) : id_ { 0 }
+	{
+	}
+
+	constexpr TransponderID(
+		const uint32_t id
+	) : id_ { id }
+	{
+	}
+
+	uint32_t value() const {
+		return id_;
+	}
+
+private:
+	uint32_t id_;
+};
+
+class Pressure {
+public:
+	constexpr Pressure(
+	) : kpa_ { 0 }
+	{
+	}
+
+	constexpr Pressure(
+		const int32_t kilopascal
+	) : kpa_ { static_cast<int16_t>(kilopascal) }
+	{
+	}
+
+	int16_t kilopascal() const {
+		return kpa_;
+	}
+
+	int16_t psi() const {
+		return static_cast<int32_t>(kpa_) * 1000 / 6895;
+	}
+
+private:
+	int16_t kpa_;
+};
+
+class Temperature {
+public:
+	constexpr Temperature(
+	) : c_ { 0 }
+	{
+	}
+
+	constexpr Temperature(
+		const int32_t celsius
+	) : c_ { static_cast<int16_t>(celsius) }
+	{
+	}
+
+	int16_t celsius() const {
+		return c_;
+	}
+
+	int16_t fahrenheit() const {
+		return (c_ * 9 / 5) + 32;
+	}
+
+private:
+	int16_t c_;
+};
+
 class Reading {
 public:
 	enum Type {
@@ -56,37 +127,27 @@ public:
 	};
 
 	constexpr Reading(
-	) : type_ { Type::None },
-		id_ { 0 },
-		value_1_ { 0 },
-		value_2_ { 0 },
-		value_3_ { 0 }
+	) : type_ { Type::None }
 	{
 	}
 	
 	constexpr Reading(
 		Type type,
-		uint32_t id,
-		uint16_t value_1
+		TransponderID id
 	) : type_ { type },
-		id_ { id },
-		value_1_ { value_1 },
-		value_2_ { },
-		value_3_ { }
+		id_ { id }
 	{
 	}
-
+	
 	constexpr Reading(
 		Type type,
-		uint32_t id,
-		uint16_t value_1,
-		uint16_t value_2,
-		uint16_t value_3
+		TransponderID id,
+		Optional<Pressure> pressure = { },
+		Optional<Temperature> temperature = { }
 	) : type_ { type },
 		id_ { id },
-		value_1_ { value_1 },
-		value_2_ { value_2 },
-		value_3_ { value_3 }
+		pressure_ { pressure },
+		temperature_ { temperature }
 	{
 	}
 
@@ -94,28 +155,23 @@ public:
 		return type_;
 	}
 
-	uint32_t id() const {
+	TransponderID id() const {
 		return id_;
 	}
 
-	uint16_t value_1() const {
-		return value_1_;
+	Optional<Pressure> pressure() const {
+		return pressure_;
 	}
 
-	Optional<uint16_t> value_2() const {
-		return value_2_;
-	}
-
-	Optional<uint16_t> value_3() const {
-		return value_3_;
+	Optional<Temperature> temperature() const {
+		return temperature_;
 	}
 
 private:
-	Type type_;
-	uint32_t id_;
-	uint16_t value_1_;
-	Optional<uint16_t> value_2_;
-	Optional<uint16_t> value_3_;
+	Type type_ { Type::None };
+	TransponderID id_ { 0 };
+	Optional<Pressure> pressure_ { };
+	Optional<Temperature> temperature_ { };
 };
 
 class Packet {

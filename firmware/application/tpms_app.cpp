@@ -46,10 +46,32 @@ Optional<Reading> Packet::reading() const {
 	const auto length = crc_valid_length();
 
 	switch(length) {
-	case 64:	return Reading { Reading::Type::FLM_64, reader_.read(0, 32), reader_.read(32, 8) };
-	case 72:	return Reading { Reading::Type::FLM_72, reader_.read(0, 32), reader_.read(40, 8), reader_.read(48, 8), reader_.read(56, 8) };
-	case 80:	return Reading { Reading::Type::FLM_80, reader_.read(8, 32), reader_.read(48, 8), reader_.read(56, 8), reader_.read(64, 8) };
-	default:	return { };
+	case 64:
+		return Reading {
+			Reading::Type::FLM_64,
+			reader_.read(0, 32),
+			Pressure { static_cast<int32_t>(reader_.read(32, 8)) * 4 / 3 },
+			Temperature { static_cast<int32_t>(reader_.read(40, 8) & 0x7f) - 50 }
+		};
+
+	case 72:
+		return Reading {
+			Reading::Type::FLM_72,
+			reader_.read(0, 32),
+			Pressure { static_cast<int32_t>(reader_.read(40, 8)) * 4 / 3 },
+			Temperature { static_cast<int32_t>(reader_.read(48, 8)) - 50 }
+		};
+
+	case 80:
+		return Reading {
+			Reading::Type::FLM_80,
+			reader_.read(8, 32),
+			Pressure { static_cast<int32_t>(reader_.read(48, 8)) * 4 / 3 },
+			Temperature { static_cast<int32_t>(reader_.read(56, 8)) - 50 }
+		};
+
+	default:
+		return { };
 	}
 }
 
@@ -149,13 +171,12 @@ void TPMSAppView::draw(const tpms::Packet& packet) {
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
-		auto s = to_string_dec_uint(toUType(reading.type()), 2) + " " + to_string_hex(reading.id(), 8);
-		s += " " + to_string_hex(reading.value_1(), 2);
-		if( reading.value_2().is_valid() ) {
-			s += " " + to_string_hex(reading.value_2().value(), 2);
+		auto s = to_string_dec_uint(toUType(reading.type()), 2) + " " + to_string_hex(reading.id().value(), 8);
+		if( reading.pressure().is_valid() ) {
+			s += " " + to_string_dec_int(reading.pressure().value().kilopascal(), 3);
 		}
-		if( reading.value_3().is_valid() ) {
-			s += " " + to_string_hex(reading.value_3().value(), 2);
+		if( reading.temperature().is_valid() ) {
+			s += " " + to_string_dec_int(reading.temperature().value().celsius(), 3);
 		}
 		console.writeln(s);
 	}
