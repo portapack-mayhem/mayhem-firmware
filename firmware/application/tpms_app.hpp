@@ -42,8 +42,8 @@ public:
 	T value() const { return value_; };
 
 private:
-	const T value_;
-	const bool valid_;
+	T value_;
+	bool valid_;
 };
 
 class TransponderID {
