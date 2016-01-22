@@ -29,7 +29,6 @@
 #include "manchester.hpp"
 #include "log_file.hpp"
 
-namespace tpms {
 
 template<typename T>
 class Optional {
@@ -45,6 +44,8 @@ private:
 	T value_;
 	bool valid_;
 };
+
+namespace tpms {
 
 class TransponderID {
 public:
