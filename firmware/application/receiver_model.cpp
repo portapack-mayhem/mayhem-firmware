@@ -120,6 +120,7 @@ uint32_t ReceiverModel::baseband_oversampling() const {
 }
 
 void ReceiverModel::enable() {
+	enabled_ = true;
 	radio::set_direction(rf::Direction::Receive);
 	update_tuning_frequency();
 	update_antenna_bias();
@@ -141,7 +142,12 @@ void ReceiverModel::baseband_disable() {
 }
 
 void ReceiverModel::disable() {
+	enabled_ = false;
+	update_antenna_bias();
 	baseband_disable();
+
+	// TODO: Responsibility for enabling/disabling the radio is muddy.
+	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
 }
 
@@ -159,7 +165,7 @@ void ReceiverModel::update_tuning_frequency() {
 }
 
 void ReceiverModel::update_antenna_bias() {
-	radio::set_antenna_bias(antenna_bias_);
+	radio::set_antenna_bias(antenna_bias_ && enabled_);
 }
 
 void ReceiverModel::update_rf_amp() {

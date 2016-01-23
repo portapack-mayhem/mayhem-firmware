@@ -89,6 +89,7 @@ public:
 
 private:
 	rf::Frequency frequency_step_ { 25000 };
+	bool enabled_ { false };
 	bool rf_amp_ { false };
 	bool antenna_bias_ { false };
 	int32_t lna_gain_db_ { 32 };
