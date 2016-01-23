@@ -25,6 +25,9 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "portapack.hpp"
+using portapack::receiver_model;
+
 namespace ui {
 
 SetDateTimeView::SetDateTimeView(
@@ -141,6 +144,29 @@ SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
 	};
 }
 
+AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
+	add_children({ {
+		&text_title,
+		&text_description_1,
+		&text_description_2,
+		&text_description_3,
+		&text_description_4,
+		&options_bias,
+		&button_done,
+	} });
+
+	options_bias.set_by_value(receiver_model.antenna_bias() ? 1 : 0);
+	options_bias.on_change = [this](size_t, OptionsField::value_t v) {
+		receiver_model.set_antenna_bias(v);
+	};
+
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void AntennaBiasSetupView::focus() {
+	button_done.focus();
+}
+
 AboutView::AboutView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
@@ -158,9 +184,10 @@ void AboutView::focus() {
 }
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<3>({ {
+	add_items<4>({ {
 		{ "Date/Time", [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency Correction", [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
+		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },
 		{ "Touch",     [&nav](){ nav.push<NotImplementedView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
