@@ -262,6 +262,18 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 	flush();
 }
 
+void RFFC507x::set_gpo1(const bool new_value) {
+	if( new_value ) {
+		_map.r.gpo.p2gpo |= 1;
+		_map.r.gpo.p1gpo |= 1;
+	} else {
+		_map.r.gpo.p2gpo &= ~1;
+		_map.r.gpo.p1gpo &= ~1;
+	}
+
+	flush_one(Register::GPO);
+}
+
 spi::reg_t RFFC507x::readback(const Readback readback) {
 	/* TODO: This clobbers the rest of the DEV_CTRL register
 	 * Time to implement bitfields for registers.

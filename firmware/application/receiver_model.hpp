@@ -58,6 +58,9 @@ public:
 	int32_t reference_ppm_correction() const;
 	void set_reference_ppm_correction(int32_t v);
 
+	bool antenna_bias() const;
+	void set_antenna_bias(bool enabled);
+
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
@@ -87,6 +90,7 @@ public:
 private:
 	rf::Frequency frequency_step_ { 25000 };
 	bool rf_amp_ { false };
+	bool antenna_bias_ { false };
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
@@ -101,6 +105,7 @@ private:
 	int32_t tuning_offset();
 
 	void update_tuning_frequency();
+	void update_antenna_bias();
 	void update_rf_amp();
 	void update_lna();
 	void update_baseband_bandwidth();

@@ -808,7 +808,8 @@ public:
 
 	void set_mixer_current(const uint8_t value);
 	void set_frequency(const rf::Frequency lo_frequency);
-
+	void set_gpo1(const bool new_value);
+	
 	reg_t read(const address_t reg_num);
 
 private:

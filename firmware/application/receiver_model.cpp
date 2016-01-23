@@ -52,6 +52,15 @@ void ReceiverModel::set_reference_ppm_correction(int32_t v) {
 	clock_manager.set_reference_ppb(v * 1000);
 }
 
+bool ReceiverModel::antenna_bias() const {
+	return antenna_bias_;
+}
+
+void ReceiverModel::set_antenna_bias(bool enabled) {
+	antenna_bias_ = enabled;
+	update_antenna_bias();
+}
+
 bool ReceiverModel::rf_amp() const {
 	return rf_amp_;
 }
@@ -113,6 +122,7 @@ uint32_t ReceiverModel::baseband_oversampling() const {
 void ReceiverModel::enable() {
 	radio::set_direction(rf::Direction::Receive);
 	update_tuning_frequency();
+	update_antenna_bias();
 	update_rf_amp();
 	update_lna();
 	update_vga();
@@ -146,6 +156,10 @@ int32_t ReceiverModel::tuning_offset() {
 
 void ReceiverModel::update_tuning_frequency() {
 	radio::set_tuning_frequency(persistent_memory::tuned_frequency() + tuning_offset());
+}
+
+void ReceiverModel::update_antenna_bias() {
+	radio::set_antenna_bias(antenna_bias_);
 }
 
 void ReceiverModel::update_rf_amp() {

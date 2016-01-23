@@ -152,7 +152,13 @@ void set_baseband_decimation_by(const size_t n) {
 	baseband_cpld.set_decimation_by(n);
 }
 
+void set_antenna_bias(const bool on) {
+	/* Pull MOSFET gate low to turn on antenna bias. */
+	first_if.set_gpo1(on ? 0 : 1);
+}
+
 void disable() {
+	set_antenna_bias(false);
 	baseband_codec.set_mode(max5864::Mode::Shutdown);
 	second_if.set_mode(max2837::Mode::Standby);
 	first_if.disable();
