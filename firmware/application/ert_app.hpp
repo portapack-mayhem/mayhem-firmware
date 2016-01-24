@@ -31,11 +31,9 @@
 #include <string>
 #include <bitset>
 
-class ERTModel {
+class ERTLogger {
 public:
-	ERTModel();
-
-	bool on_packet(const ert::Packet& packet);
+	void on_packet(const ert::Packet& packet);
 
 private:
 	LogFile log_file { "ert.txt" };
@@ -45,11 +43,11 @@ namespace ui {
 
 class ERTView : public Console {
 public:
-	void on_show() override;
-	void on_hide() override;
+	ERTView();
+	~ERTView();
 
 private:
-	ERTModel model;
+	ERTLogger logger;
 
 	void on_packet(const ert::Packet& packet);
 };

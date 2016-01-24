@@ -31,7 +31,24 @@ using namespace portapack;
 #include "crc.hpp"
 #include "string_format.hpp"
 
-ERTModel::ERTModel() {
+void ERTLogger::on_packet(const ert::Packet& packet) {
+	if( log_file.is_ready() ) {
+		const auto formatted = packet.symbols_formatted();
+		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
+	}
+}
+
+namespace ui {
+
+ERTView::ERTView() {
+	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const ERTPacketMessage*>(p);
+			const ert::Packet packet { message->type, message->packet };
+			this->on_packet(packet);
+		}
+	);
+
 	receiver_model.set_baseband_configuration({
 		.mode = 6,
 		.sampling_rate = 4194304,
@@ -40,60 +57,37 @@ ERTModel::ERTModel() {
 	receiver_model.set_baseband_bandwidth(2500000);
 }
 
-bool ERTModel::on_packet(const ert::Packet& packet) {
-	if( log_file.is_ready() ) {
-		const auto formatted = packet.symbols_formatted();
-		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
-	}
-
-	return packet.crc_ok();
-}
-
-namespace ui {
-
-void ERTView::on_show() {
-	Console::on_show();
-
-	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ERTPacketMessage*>(p);
-			const ert::Packet packet { message->type, message->packet };
-			if( this->model.on_packet(packet) ) {
-				this->on_packet(packet);
-			}
-		}
-	);
-}
-
-void ERTView::on_hide() {
+ERTView::~ERTView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
-
-	Console::on_hide();
 }
 
 void ERTView::on_packet(const ert::Packet& packet) {
-	std::string msg;
-	switch(packet.type()) {
-	case ert::Packet::Type::SCM:
-		msg += "SCM ";
-		msg += to_string_dec_uint(packet.id(), 10);
-		msg += " ";
-		msg += to_string_dec_uint(packet.consumption(), 10);
-		break;
+	logger.on_packet(packet);
 
-	case ert::Packet::Type::IDM:
-		msg += "IDM ";
-		msg += to_string_dec_uint(packet.id(), 10);
-		msg += " ";
-		msg += to_string_dec_uint(packet.consumption(), 10);
-		break;
+	if( packet.crc_ok() ) {
+		std::string msg;
+		switch(packet.type()) {
+		case ert::Packet::Type::SCM:
+			msg += "SCM ";
+			msg += to_string_dec_uint(packet.id(), 10);
+			msg += " ";
+			msg += to_string_dec_uint(packet.consumption(), 10);
+			break;
 
-	default:
-		msg += "???";
-		break;
+		case ert::Packet::Type::IDM:
+			msg += "IDM ";
+			msg += to_string_dec_uint(packet.id(), 10);
+			msg += " ";
+			msg += to_string_dec_uint(packet.consumption(), 10);
+			break;
+
+		default:
+			msg += "???";
+			break;
+		}
+
+		writeln(msg);
 	}
-
-	writeln(msg);
 }
 
 } /* namespace ui */
