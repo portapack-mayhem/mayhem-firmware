@@ -99,23 +99,23 @@ struct Point {
 	}
 
 	constexpr Point(
-		Coord x,
-		Coord y
-	) : x { x },
-		y { y }
+		int x,
+		int y
+	) : x { static_cast<Coord>(x) },
+		y { static_cast<Coord>(y) }
 	{
 	}
 
 	Point operator-() const {
-		return { static_cast<Coord>(-x), static_cast<Coord>(-y) };
+		return { -x, -y };
 	}
 
 	Point operator+(const Point& p) const {
-		return { static_cast<Coord>(x + p.x), static_cast<Coord>(y + p.y) };
+		return { x + p.x, y + p.y };
 	}
 
 	Point operator-(const Point& p) const {
-		return { static_cast<Coord>(x - p.x), static_cast<Coord>(y - p.y) };
+		return { x - p.x, y - p.y };
 	}
 
 	Point& operator+=(const Point& p) {
@@ -155,10 +155,7 @@ private:
 		/* Clockwise rotate (in screen coordinates), with a gain in
 		 * magnitude of sqrt(2).
 		 */
-		return {
-			static_cast<Coord>(x - y),
-			static_cast<Coord>(x + y)
-		};
+		return { x - y, x + y };
 	}
 #endif
 };
@@ -174,10 +171,10 @@ struct Size {
 	}
 
 	constexpr Size(
-		Dim w,
-		Dim h
-	) : w { w },
-		h { h }
+		int w,
+		int h
+	) : w { static_cast<Dim>(w) },
+		h { static_cast<Dim>(h) }
 	{
 	}
 
@@ -197,8 +194,8 @@ struct Rect {
 	}
 
 	constexpr Rect(
-		Coord x, Coord y,
-		Dim w, Dim h
+		int x, int y,
+		int w, int h
 	) : pos { x, y },
 		size { w, h }
 	{
@@ -237,10 +234,7 @@ struct Rect {
 	}
 
 	Point center() const {
-		return {
-			static_cast<Coord>(pos.x + size.w / 2),
-			static_cast<Coord>(pos.y + size.h / 2)
-		};
+		return { pos.x + size.w / 2, pos.y + size.h / 2 };
 	}
 
 	bool is_empty() const {

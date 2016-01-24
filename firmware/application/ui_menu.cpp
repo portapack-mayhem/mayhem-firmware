@@ -52,7 +52,7 @@ void MenuItemView::paint(Painter& painter) {
 	);
 
 	painter.draw_string(
-		{ static_cast<Coord>(r.pos.x + 8), static_cast<Coord>(r.pos.y + (r.size.h - font_height) / 2) },
+		{ r.pos.x + 8, r.pos.y + (r.size.h - font_height) / 2 },
 		paint_style,
 		item.text
 	);

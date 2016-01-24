@@ -167,8 +167,8 @@ FrequencyKeypadView::FrequencyKeypadView(
 		};
 		button.on_select = button_fn;
 		button.set_parent_rect({
-			static_cast<Coord>((n % 3) * button_w),
-			static_cast<Coord>((n / 3) * button_h + button_h),
+			(n % 3) * button_w,
+			(n / 3) * button_h + button_h,
 			button_w, button_h
 		});
 		button.set_text(label);

@@ -88,10 +88,7 @@ void FrequencyScale::clear_background(Painter& painter, const Rect r) {
 void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 	const auto x_center = r.width() / 2;
 
-	const Rect tick {
-		static_cast<Coord>(r.left() + x_center), r.top(),
-		1, r.height()
-	};
+	const Rect tick { r.left() + x_center, r.top(), 1, r.height() };
 	painter.fill_rectangle(tick, Color::white());
 
 	constexpr uint32_t tick_count_max = 4;
@@ -117,15 +114,15 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 			(magnitude_n >= 3) ? "k" : "";
 		const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
 		
-		const Coord offset_low = static_cast<Coord>(r.left() + x_center - pixel_offset);
+		const Coord offset_low = r.left() + x_center - pixel_offset;
 		const Rect tick_low { offset_low, r.top(), 1, r.height() };
 		painter.fill_rectangle(tick_low, Color::white());
-		painter.draw_string({ static_cast<Coord>(offset_low + 2), r.top() }, style(), label );
+		painter.draw_string({ offset_low + 2, r.top() }, style(), label );
 
-		const Coord offset_high = static_cast<Coord>(r.left() + x_center + pixel_offset);
+		const Coord offset_high = r.left() + x_center + pixel_offset;
 		const Rect tick_high { offset_high, r.top(), 1, r.height() };
 		painter.fill_rectangle(tick_high, Color::white());
-		painter.draw_string({ static_cast<Coord>(offset_high + 2), r.top() }, style(), label );
+		painter.draw_string({ offset_high + 2, r.top() }, style(), label );
 
 		tick_offset += tick_interval;
 	}
@@ -146,8 +143,8 @@ void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
 			const auto stop_x_hi = x_center + stop_offset;
 
 			const Rect r_stop_lo {
-				static_cast<Coord>(r.left() + stop_x_lo), static_cast<Coord>(r.bottom() - filter_band_height),
-				static_cast<Dim>(pass_x_lo - stop_x_lo), filter_band_height
+				r.left() + stop_x_lo, r.bottom() - filter_band_height,
+				pass_x_lo - stop_x_lo, filter_band_height
 			};
 			painter.fill_rectangle(
 				r_stop_lo,
@@ -155,8 +152,8 @@ void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
 			);
 
 			const Rect r_stop_hi {
-				static_cast<Coord>(r.left() + pass_x_hi), static_cast<Coord>(r.bottom() - filter_band_height),
-				static_cast<Dim>(stop_x_hi - pass_x_hi), filter_band_height
+				r.left() + pass_x_hi, r.bottom() - filter_band_height,
+				stop_x_hi - pass_x_hi, filter_band_height
 			};
 			painter.fill_rectangle(
 				r_stop_hi,
@@ -165,8 +162,8 @@ void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
 		}
 
 		const Rect r_pass {
-			static_cast<Coord>(r.left() + pass_x_lo), static_cast<Coord>(r.bottom() - filter_band_height),
-			static_cast<Dim>(pass_x_hi - pass_x_lo), filter_band_height
+			r.left() + pass_x_lo, r.bottom() - filter_band_height,
+			pass_x_hi - pass_x_lo, filter_band_height
 		};
 		painter.fill_rectangle(
 			r_pass,
@@ -280,7 +277,7 @@ void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
 	waterfall_view.set_parent_rect({
 		0, scale_height,
 		new_parent_rect.width(),
-		static_cast<Dim>(new_parent_rect.height() - scale_height)
+		new_parent_rect.height() - scale_height
 	});
 }
 

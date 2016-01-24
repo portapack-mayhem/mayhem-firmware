@@ -55,18 +55,18 @@ size_t Painter::draw_string(Point p, const Style& style, const std::string text)
 }
 
 void Painter::draw_hline(Point p, size_t width, const Color c) {
-	display.fill_rectangle({ p, { static_cast<Dim>(width), 1 } }, c);
+	display.fill_rectangle({ p, { width, 1 } }, c);
 }
 
 void Painter::draw_vline(Point p, size_t height, const Color c) {
-	display.fill_rectangle({ p, { 1, static_cast<Dim>(height) } }, c);
+	display.fill_rectangle({ p, { 1, height } }, c);
 }
 
 void Painter::draw_rectangle(const Rect r, const Color c) {
 	draw_hline(r.pos, r.size.w, c);
-	draw_vline({ r.pos.x, static_cast<Coord>(r.pos.y + 1) }, r.size.h - 2, c);
-	draw_vline({ static_cast<Coord>(r.pos.x + r.size.w - 1), static_cast<Coord>(r.pos.y + 1) }, r.size.h - 2, c);
-	draw_hline({ r.pos.x, static_cast<Coord>(r.pos.y + r.size.h - 1) }, r.size.w, c);
+	draw_vline({ r.pos.x, r.pos.y + 1 }, r.size.h - 2, c);
+	draw_vline({ r.pos.x + r.size.w - 1, r.pos.y + 1 }, r.size.h - 2, c);
+	draw_hline({ r.pos.x, r.pos.y + r.size.h - 1 }, r.size.w, c);
 }
 
 void Painter::fill_rectangle(const Rect r, const Color c) {

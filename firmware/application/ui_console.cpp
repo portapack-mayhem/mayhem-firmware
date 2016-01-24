@@ -49,7 +49,7 @@ void Console::write(const std::string message) {
 				crlf();
 			}
 			const Point pos_glyph {
-				static_cast<Coord>(rect.pos.x + pos.x),
+				rect.pos.x + pos.x,
 				display.scroll_area_y(pos.y)
 			};
 			display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
