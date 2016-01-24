@@ -31,6 +31,31 @@ using namespace portapack;
 #include "crc.hpp"
 #include "string_format.hpp"
 
+namespace ert {
+
+namespace format {
+
+std::string type(Packet::Type value) {
+	switch(value) {
+	default:
+	case Packet::Type::Unknown:	return "???";
+	case Packet::Type::IDM:		return "IDM";
+	case Packet::Type::SCM:		return "SCM";
+	}
+}
+
+std::string id(ID value) {
+	return to_string_dec_uint(value, 10);
+}
+
+std::string consumption(Consumption value) {
+	return to_string_dec_uint(value, 10);
+}
+
+} /* namespace format */
+
+} /* namespace ert */
+
 void ERTLogger::on_packet(const ert::Packet& packet) {
 	if( log_file.is_ready() ) {
 		const auto formatted = packet.symbols_formatted();
@@ -65,24 +90,16 @@ void ERTView::on_packet(const ert::Packet& packet) {
 	logger.on_packet(packet);
 
 	if( packet.crc_ok() ) {
-		std::string msg;
+		std::string msg { ert::format::type(packet.type()) };
+
 		switch(packet.type()) {
 		case ert::Packet::Type::SCM:
-			msg += "SCM ";
-			msg += to_string_dec_uint(packet.id(), 10);
-			msg += " ";
-			msg += to_string_dec_uint(packet.consumption(), 10);
-			break;
-
 		case ert::Packet::Type::IDM:
-			msg += "IDM ";
-			msg += to_string_dec_uint(packet.id(), 10);
-			msg += " ";
-			msg += to_string_dec_uint(packet.consumption(), 10);
+			msg += " " + ert::format::id(packet.id());
+			msg += " " + ert::format::consumption(packet.consumption());
 			break;
 
 		default:
-			msg += "???";
 			break;
 		}
 
