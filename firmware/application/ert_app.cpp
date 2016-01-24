@@ -63,9 +63,41 @@ void ERTLogger::on_packet(const ert::Packet& packet) {
 	}
 }
 
+void ERTRecentEntry::update(const ert::Packet& packet) {
+	received_count++;
+
+	last_consumption = packet.consumption();
+}
+
 namespace ui {
 
-ERTView::ERTView() {
+template<>
+void RecentEntriesView<ERTRecentEntries>::draw(
+	const Entry& entry,
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style,
+	const bool is_selected
+) {
+	const auto& draw_style = is_selected ? style.invert() : style;
+
+	std::string line = ert::format::id(entry.id) + " " + ert::format::consumption(entry.last_consumption);
+
+	if( entry.received_count > 999 ) {
+		line += " +++";
+	} else {
+		line += " " + to_string_dec_uint(entry.received_count, 3);
+	}
+
+	line.resize(target_rect.width() / 8, ' ');
+	painter.draw_string(target_rect.pos, draw_style, line);
+}
+
+ERTAppView::ERTAppView() {
+	add_children({ {
+		&recent_entries_view,
+	} });
+
 	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const ERTPacketMessage*>(p);
@@ -82,29 +114,27 @@ ERTView::ERTView() {
 	receiver_model.set_baseband_bandwidth(2500000);
 }
 
-ERTView::~ERTView() {
+ERTAppView::~ERTAppView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
-void ERTView::on_packet(const ert::Packet& packet) {
+void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
+	View::set_parent_rect(new_parent_rect);
+	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+}
+
+void ERTAppView::on_packet(const ert::Packet& packet) {
 	logger.on_packet(packet);
 
 	if( packet.crc_ok() ) {
-		std::string msg { ert::format::type(packet.type()) };
-
-		switch(packet.type()) {
-		case ert::Packet::Type::SCM:
-		case ert::Packet::Type::IDM:
-			msg += " " + ert::format::id(packet.id());
-			msg += " " + ert::format::consumption(packet.consumption());
-			break;
-
-		default:
-			break;
-		}
-
-		writeln(msg);
+		recent.on_packet(packet.id(), packet);
+		recent_entries_view.set_dirty();
 	}
+}
+
+void ERTAppView::on_show_list() {
+	recent_entries_view.hidden(false);
+	recent_entries_view.focus();
 }
 
 } /* namespace ui */

@@ -529,7 +529,7 @@ void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 		break;
 
 	case ReceiverModel::Mode::ERT:
-		widget_content = std::make_unique<ERTView>();
+		widget_content = std::make_unique<ERTAppView>();
 		break;
 
 	default:

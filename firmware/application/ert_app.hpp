@@ -22,14 +22,39 @@
 #ifndef __ERT_APP_H__
 #define __ERT_APP_H__
 
-#include "ui_console.hpp"
 #include "log_file.hpp"
 
 #include "ert_packet.hpp"
 
+#include "recent_entries.hpp"
+
 #include <cstddef>
 #include <string>
-#include <bitset>
+
+struct ERTRecentEntry {
+	using Key = ert::ID;
+
+	// TODO: Is this the right choice of invalid key value?
+	static constexpr Key invalid_key = 0;
+
+	ert::ID id { invalid_key };
+
+	size_t received_count { 0 };
+
+	ert::Consumption last_consumption;
+
+	ERTRecentEntry(
+		const Key& key
+	) : id { key }
+	{
+	}
+
+	Key key() const {
+		return id;
+	}
+
+	void update(const ert::Packet& packet);
+};
 
 class ERTLogger {
 public:
@@ -39,17 +64,31 @@ private:
 	LogFile log_file { "ert.txt" };
 };
 
+using ERTRecentEntries = RecentEntries<ert::Packet, ERTRecentEntry>;
+
 namespace ui {
 
-class ERTView : public Console {
+using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
+
+class ERTAppView : public View {
 public:
-	ERTView();
-	~ERTView();
+	ERTAppView();
+	~ERTAppView();
+
+	void set_parent_rect(const Rect new_parent_rect) override;
+
+	// Prevent painting of region covered entirely by a child.
+	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
+	void paint(Painter&) override { };
 
 private:
+	ERTRecentEntries recent;
 	ERTLogger logger;
 
+	ERTRecentEntriesView recent_entries_view { recent };
+
 	void on_packet(const ert::Packet& packet);
+	void on_show_list();
 };
 
 } /* namespace ui */
