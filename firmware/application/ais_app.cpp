@@ -265,8 +265,6 @@ Rect AISRecentEntryDetailView::draw_field(
 	const int label_length_max = 4;
 
 	painter.draw_string(Point { draw_rect.left(), draw_rect.top() }, style, label);
-
-	const auto length = value.length();
 	painter.draw_string(Point { draw_rect.left() + (label_length_max + 1) * 8, draw_rect.top() }, style, value);
 
 	return { draw_rect.left(), draw_rect.top() + draw_rect.height(), draw_rect.width(), draw_rect.height() };

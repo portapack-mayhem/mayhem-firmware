@@ -67,7 +67,6 @@ void TemperatureWidget::paint(Painter& painter) {
 	const Color color_foreground = Color::green();
 	const Color color_reticle { 128, 128, 128 };
 
-	const Dim graph_height = rect.height() - 16;
 	const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
 	const Rect graph_rect {
 		rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
