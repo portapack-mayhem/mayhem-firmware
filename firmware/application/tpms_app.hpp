@@ -31,6 +31,10 @@
 
 #include "optional.hpp"
 
+#include "units.hpp"
+using units::Temperature;
+using units::Pressure;
+
 namespace tpms {
 
 class TransponderID {
@@ -52,56 +56,6 @@ public:
 
 private:
 	uint32_t id_;
-};
-
-class Pressure {
-public:
-	constexpr Pressure(
-	) : kpa_ { 0 }
-	{
-	}
-
-	constexpr Pressure(
-		const int32_t kilopascal
-	) : kpa_ { static_cast<int16_t>(kilopascal) }
-	{
-	}
-
-	int kilopascal() const {
-		return kpa_;
-	}
-
-	int psi() const {
-		return static_cast<int32_t>(kpa_) * 1000 / 6895;
-	}
-
-private:
-	int16_t kpa_;
-};
-
-class Temperature {
-public:
-	constexpr Temperature(
-	) : c_ { 0 }
-	{
-	}
-
-	constexpr Temperature(
-		const int32_t celsius
-	) : c_ { static_cast<int16_t>(celsius) }
-	{
-	}
-
-	int celsius() const {
-		return c_;
-	}
-
-	int fahrenheit() const {
-		return (c_ * 9 / 5) + 32;
-	}
-
-private:
-	int16_t c_;
 };
 
 class Reading {
@@ -208,8 +162,8 @@ struct TPMSRecentEntry {
 
 	size_t received_count { 0 };
 
-	Optional<tpms::Pressure> last_pressure;
-	Optional<tpms::Temperature> last_temperature;
+	Optional<Pressure> last_pressure;
+	Optional<Temperature> last_temperature;
 
 	TPMSRecentEntry(
 		const Key& key
