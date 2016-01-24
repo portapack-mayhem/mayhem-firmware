@@ -70,24 +70,24 @@ Optional<Reading> Packet::reading() const {
 		return Reading {
 			Reading::Type::FLM_64,
 			reader_.read(0, 32),
-			Pressure { static_cast<int32_t>(reader_.read(32, 8)) * 4 / 3 },
-			Temperature { static_cast<int32_t>(reader_.read(40, 8) & 0x7f) - 50 }
+			Pressure { static_cast<int>(reader_.read(32, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 50 }
 		};
 
 	case 72:
 		return Reading {
 			Reading::Type::FLM_72,
 			reader_.read(0, 32),
-			Pressure { static_cast<int32_t>(reader_.read(40, 8)) * 4 / 3 },
-			Temperature { static_cast<int32_t>(reader_.read(48, 8)) - 50 }
+			Pressure { static_cast<int>(reader_.read(40, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(48, 8)) - 50 }
 		};
 
 	case 80:
 		return Reading {
 			Reading::Type::FLM_80,
 			reader_.read(8, 32),
-			Pressure { static_cast<int32_t>(reader_.read(48, 8)) * 4 / 3 },
-			Temperature { static_cast<int32_t>(reader_.read(56, 8)) - 50 }
+			Pressure { static_cast<int>(reader_.read(48, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(56, 8)) - 50 }
 		};
 
 	default:
