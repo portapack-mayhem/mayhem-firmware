@@ -157,8 +157,8 @@ struct TPMSRecentEntry {
 
 	static const Key invalid_key;
 
-	tpms::Reading::Type type { tpms::Reading::Type::None };
-	tpms::TransponderID id { 0 };
+	tpms::Reading::Type type { invalid_key.first };
+	tpms::TransponderID id { invalid_key.second };
 
 	size_t received_count { 0 };
 
