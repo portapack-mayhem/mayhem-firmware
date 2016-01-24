@@ -67,11 +67,11 @@ public:
 	{
 	}
 
-	int16_t kilopascal() const {
+	int kilopascal() const {
 		return kpa_;
 	}
 
-	int16_t psi() const {
+	int psi() const {
 		return static_cast<int32_t>(kpa_) * 1000 / 6895;
 	}
 
@@ -92,11 +92,11 @@ public:
 	{
 	}
 
-	int16_t celsius() const {
+	int celsius() const {
 		return c_;
 	}
 
-	int16_t fahrenheit() const {
+	int fahrenheit() const {
 		return (c_ * 9 / 5) + 32;
 	}
 
