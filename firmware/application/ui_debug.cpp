@@ -67,8 +67,8 @@ void TemperatureWidget::paint(Painter& painter) {
 	const Color color_foreground = Color::green();
 	const Color color_reticle { 128, 128, 128 };
 
-	const Dim graph_width = logger.capacity() * bar_width;
 	const Dim graph_height = rect.height() - 16;
+	const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
 	const Rect graph_rect {
 		rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
 		graph_width, rect.height()
@@ -124,7 +124,7 @@ Coord TemperatureWidget::screen_y(
 	const temperature_t temperature,
 	const Rect& rect
 ) const {
-	const Coord y_raw = rect.bottom() - ((temperature - display_temp_min) * display_temp_scale);
+	int y_raw = rect.bottom() - ((temperature - display_temp_min) * display_temp_scale);
 	const auto y_limit = std::min(rect.bottom(), std::max(rect.top(), y_raw));
 	return y_limit;
 }
@@ -170,7 +170,7 @@ void RegistersWidget::paint(Painter& painter) {
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
 	const auto pos = screen_pos();
 
-	for(size_t i=0; i<config.registers_count; i+=config.registers_per_row) {
+	for(int i=0; i<config.registers_count; i+=config.registers_per_row) {
 		const Point offset {
 			left, (i / config.registers_per_row) * row_height
 		};
@@ -190,7 +190,7 @@ void RegistersWidget::draw_values(
 ) {
 	const auto pos = screen_pos();
 
-	for(size_t i=0; i<config.registers_count; i++) {
+	for(int i=0; i<config.registers_count; i++) {
 		const Point offset = {
 			left + config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8),
 			(i / config.registers_per_row) * row_height
@@ -231,8 +231,8 @@ RegistersView::RegistersView(
 	registers_widget.set_parent_rect({ 0, 48, 240, 192 });
 
 	text_title.set_parent_rect({
-		(240 - title.size() * 8) / 2, 16,
-		title.size() * 8, 16
+		(240 - static_cast<int>(title.size()) * 8) / 2, 16,
+		static_cast<int>(title.size()) * 8, 16
 	});
 	text_title.set(title);
 }

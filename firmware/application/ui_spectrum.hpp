@@ -37,18 +37,18 @@ class FrequencyScale : public Widget {
 public:
 	void on_show() override;
 
-	void set_spectrum_sampling_rate(const uint32_t new_sampling_rate);
-	void set_channel_filter(const uint32_t pass_frequency, const uint32_t stop_frequency);
+	void set_spectrum_sampling_rate(const int new_sampling_rate);
+	void set_channel_filter(const int pass_frequency, const int stop_frequency);
 
 	void paint(Painter& painter) override;
 
 private:
-	static constexpr Dim filter_band_height = 4;
+	static constexpr int filter_band_height = 4;
 
-	uint32_t spectrum_sampling_rate { 0 };
-	const size_t spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
+	int spectrum_sampling_rate { 0 };
+	const int spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
+	int channel_filter_pass_frequency { 0 };
+	int channel_filter_stop_frequency { 0 };
 
 	void clear();
 	void clear_background(Painter& painter, const Rect r);

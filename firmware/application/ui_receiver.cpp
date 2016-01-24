@@ -159,7 +159,7 @@ FrequencyKeypadView::FrequencyKeypadView(
 
 	const char* const key_caps = "123456789<0.";
 
-	size_t n = 0;
+	int n = 0;
 	for(auto& button : buttons) {
 		add_child(&button);
 		const std::string label {

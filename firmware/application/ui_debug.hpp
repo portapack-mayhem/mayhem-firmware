@@ -103,8 +103,8 @@ private:
 
 	static constexpr temperature_t display_temp_min = 0;
 	static constexpr temperature_t display_temp_scale = 3;
-	static constexpr Dim bar_width = 1;
-	static constexpr size_t temp_len = 3;
+	static constexpr int bar_width = 1;
+	static constexpr int temp_len = 3;
 };
 
 class TemperatureView : public View {
@@ -130,32 +130,32 @@ private:
 };
 
 struct RegistersWidgetConfig {
-	size_t registers_count;
-	size_t legend_length;
-	size_t value_length;
-	size_t registers_per_row;
+	int registers_count;
+	int legend_length;
+	int value_length;
+	int registers_per_row;
 
-	constexpr Dim legend_width() const {
+	constexpr int legend_width() const {
 		return legend_length * 8;
 	}
 
-	constexpr Dim value_width() const {
+	constexpr int value_width() const {
 		return value_length * 8;
 	}
 
-	constexpr size_t registers_row_length() const {
+	constexpr int registers_row_length() const {
 		return (registers_per_row * (value_length + 1)) - 1;
 	}
 
-	constexpr Dim registers_row_width() const {
+	constexpr int registers_row_width() const {
 		return registers_row_length() * 8;
 	}
 
-	constexpr Dim row_width() const {
+	constexpr int row_width() const {
 		return legend_width() + 8 + registers_row_width();
 	}
 
-	constexpr size_t rows() const {
+	constexpr int rows() const {
 		return registers_count / registers_per_row;
 	}
 };
@@ -175,7 +175,7 @@ private:
 	const RegistersWidgetConfig config;
 	const std::function<uint32_t(const size_t register_number)> reader;
 
-	static constexpr Dim row_height = 16;
+	static constexpr int row_height = 16;
 
 	void draw_legend(const Coord left, Painter& painter);
 	void draw_values(const Coord left, Painter& painter);

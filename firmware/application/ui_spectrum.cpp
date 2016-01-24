@@ -43,7 +43,7 @@ void FrequencyScale::on_show() {
 	clear();
 }
 
-void FrequencyScale::set_spectrum_sampling_rate(const uint32_t new_sampling_rate) {
+void FrequencyScale::set_spectrum_sampling_rate(const int new_sampling_rate) {
 	if( (spectrum_sampling_rate != new_sampling_rate) ) {
 		spectrum_sampling_rate = new_sampling_rate;
 		set_dirty();
@@ -51,8 +51,8 @@ void FrequencyScale::set_spectrum_sampling_rate(const uint32_t new_sampling_rate
 }
 
 void FrequencyScale::set_channel_filter(
-	const uint32_t pass_frequency,
-	const uint32_t stop_frequency
+	const int pass_frequency,
+	const int stop_frequency
 ) {
 	if( (channel_filter_pass_frequency != pass_frequency) ||
 		(channel_filter_stop_frequency != stop_frequency) ) {
@@ -91,18 +91,18 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 	const Rect tick { r.left() + x_center, r.top(), 1, r.height() };
 	painter.fill_rectangle(tick, Color::white());
 
-	constexpr uint32_t tick_count_max = 4;
+	constexpr int tick_count_max = 4;
 	float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
-	size_t magnitude = 1;
-	size_t magnitude_n = 0;
+	int magnitude = 1;
+	int magnitude_n = 0;
 	while(rough_tick_interval >= 10.0f) {
 		rough_tick_interval /= 10;
 		magnitude *= 10;
 		magnitude_n += 1;
 	}
-	const size_t tick_interval = std::ceil(rough_tick_interval);
+	const int tick_interval = std::ceil(rough_tick_interval);
 
-	size_t tick_offset = tick_interval;
+	auto tick_offset = tick_interval;
 	while((tick_offset * magnitude) < spectrum_sampling_rate / 2) {
 		const Dim pixel_offset = tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
 

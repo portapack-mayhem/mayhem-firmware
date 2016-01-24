@@ -204,16 +204,16 @@ public:
 	void set_value(const rf::Frequency new_value);
 
 private:
-	static constexpr size_t button_w = 240 / 3;
-	static constexpr size_t button_h = 48;
+	static constexpr int button_w = 240 / 3;
+	static constexpr int button_h = 48;
 
-	static constexpr size_t mhz_digits = 4;
-	static constexpr size_t submhz_digits = 4;
+	static constexpr int mhz_digits = 4;
+	static constexpr int submhz_digits = 4;
 
-	static constexpr size_t mhz_mod = pow(10, mhz_digits);
-	static constexpr size_t submhz_base = pow(10, 6 - submhz_digits);
-	//static constexpr size_t submhz_mod = pow(10, submhz_digits);
-	static constexpr size_t text_digits = mhz_digits + 1 + submhz_digits;
+	static constexpr int mhz_mod = pow(10, mhz_digits);
+	static constexpr int submhz_base = pow(10, 6 - submhz_digits);
+	//static constexpr int submhz_mod = pow(10, submhz_digits);
+	static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
 	Text text_value {
 		{ 0, 0, text_digits * button_w, button_h }

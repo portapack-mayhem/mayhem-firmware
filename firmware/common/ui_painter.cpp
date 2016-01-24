@@ -36,13 +36,13 @@ Style Style::invert() const {
 	};
 }
 
-size_t Painter::draw_char(const Point p, const Style& style, const char c) {
+int Painter::draw_char(const Point p, const Style& style, const char c) {
 	const auto glyph = style.font.glyph(c);
 	display.draw_glyph(p, glyph, style.foreground, style.background);
 	return glyph.advance().x;
 }
 
-size_t Painter::draw_string(Point p, const Style& style, const std::string text) {
+int Painter::draw_string(Point p, const Style& style, const std::string text) {
 	size_t width = 0;
 	for(const auto c : text) {
 		const auto glyph = style.font.glyph(c);
@@ -54,11 +54,11 @@ size_t Painter::draw_string(Point p, const Style& style, const std::string text)
 	return width;
 }
 
-void Painter::draw_hline(Point p, size_t width, const Color c) {
+void Painter::draw_hline(Point p, int width, const Color c) {
 	display.fill_rectangle({ p, { width, 1 } }, c);
 }
 
-void Painter::draw_vline(Point p, size_t height, const Color c) {
+void Painter::draw_vline(Point p, int height, const Color c) {
 	display.fill_rectangle({ p, { 1, height } }, c);
 }
 

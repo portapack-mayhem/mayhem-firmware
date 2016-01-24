@@ -262,7 +262,7 @@ Rect AISRecentEntryDetailView::draw_field(
 	const std::string& label,
 	const std::string& value
 ) {
-	const size_t label_length_max = 4;
+	const int label_length_max = 4;
 
 	painter.draw_string(Point { draw_rect.left(), draw_rect.top() }, style, label);
 

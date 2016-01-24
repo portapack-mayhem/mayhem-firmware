@@ -209,27 +209,28 @@ struct Rect {
 	{
 	}
 
-	Coord top() const {
+	
+	int top() const {
 		return pos.y;
 	}
 
-	Coord bottom() const {
+	int bottom() const {
 		return pos.y + size.h;
 	}
 
-	Coord left() const {
+	int left() const {
 		return pos.x;
 	}
 
-	Coord right() const {
+	int right() const {
 		return pos.x + size.w;
 	}
 
-	Dim width() const {
+	int width() const {
 		return size.w;
 	}
 
-	Dim height() const {
+	int height() const {
 		return size.h;
 	}
 

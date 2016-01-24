@@ -46,9 +46,9 @@ public:
 	Painter(const Painter&) = delete;
 	Painter(Painter&&) = delete;
 
-	size_t draw_char(const Point p, const Style& style, const char c);
+	int draw_char(const Point p, const Style& style, const char c);
 
-	size_t draw_string(Point p, const Style& style, const std::string text);
+	int draw_string(Point p, const Style& style, const std::string text);
 
 	void draw_rectangle(const Rect r, const Color c);
 	void fill_rectangle(const Rect r, const Color c);
@@ -56,8 +56,8 @@ public:
 	void paint_widget_tree(Widget* const w);
 	
 private:
-	void draw_hline(Point p, size_t width, const Color c);
-	void draw_vline(Point p, size_t height, const Color c);
+	void draw_hline(Point p, int width, const Color c);
+	void draw_vline(Point p, int height, const Color c);
 
 	void paint_widget(Widget* const w);
 };
