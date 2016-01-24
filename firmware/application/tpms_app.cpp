@@ -157,17 +157,9 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 
 	if( reading.pressure().is_valid() ) {
 		last_pressure = reading.pressure();
-		// pressures.emplace_back(reading.pressure().value());
-		// while( pressures.size() > 20 ) {
-		// 	pressures.pop_front();
-		// }
 	}
 	if( reading.temperature().is_valid() ) {
 		last_temperature = reading.temperature();
-		// temperatures.emplace_back(reading.temperature().value());
-		// while( temperatures.size() > 20 ) {
-		// 	temperatures.pop_front();
-		// }
 	}
 }
 
