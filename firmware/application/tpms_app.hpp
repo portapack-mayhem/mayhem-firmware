@@ -29,20 +29,7 @@
 
 #include "recent_entries.hpp"
 
-template<typename T>
-class Optional {
-public:
-	constexpr Optional() : value_ { }, valid_ { false } { };
-	constexpr Optional(const T& value) : value_ { value }, valid_ { true } { };
-	constexpr Optional(T&& value) : value_ { std::move(value) }, valid_ { true } { };
-
-	bool is_valid() const { return valid_; };
-	T value() const { return value_; };
-
-private:
-	T value_;
-	bool valid_;
-};
+#include "optional.hpp"
 
 namespace tpms {
 
