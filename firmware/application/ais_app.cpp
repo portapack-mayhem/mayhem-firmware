@@ -299,6 +299,8 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 
 AISAppView::AISAppView(NavigationView&) {
 	add_children({ {
+		&label_channel,
+		&options_channel,
 		&recent_entries_view,
 		&recent_entry_detail_view,
 	} });
@@ -315,6 +317,11 @@ AISAppView::AISAppView(NavigationView&) {
 		}
 	);
 
+	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
+		this->on_frequency_changed(v);
+	};
+	options_channel.set_by_value(162025000);
+	
 	receiver_model.set_baseband_configuration({
 		.mode = 3,
 		.sampling_rate = 2457600,
@@ -324,7 +331,6 @@ AISAppView::AISAppView(NavigationView&) {
 	receiver_model.set_rf_amp(false);
 	receiver_model.set_lna(32);
 	receiver_model.set_vga(32);
-	receiver_model.set_tuning_frequency(162025000);
 	receiver_model.enable();
 
 	recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
@@ -340,10 +346,15 @@ AISAppView::~AISAppView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
+void AISAppView::focus() {
+	options_channel.focus();
+}
+
 void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
-	recent_entry_detail_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+	const Rect content_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
+	recent_entries_view.set_parent_rect(content_rect);
+	recent_entry_detail_view.set_parent_rect(content_rect);
 }
 
 void AISAppView::on_packet(const ais::Packet& packet) {
@@ -368,6 +379,10 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
 	recent_entry_detail_view.hidden(false);
 	recent_entry_detail_view.set_entry(entry);
 	recent_entry_detail_view.focus();
+}
+
+void AISAppView::on_frequency_changed(const uint32_t new_frequency) {
+	receiver_model.set_tuning_frequency(new_frequency);
 }
 
 } /* namespace ui */

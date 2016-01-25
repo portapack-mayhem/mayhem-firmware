@@ -140,6 +140,8 @@ public:
 	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
 	void paint(Painter&) override { };
 
+	void focus() override;
+
 private:
 	AISRecentEntries recent;
 	AISLogger logger;
@@ -147,9 +149,27 @@ private:
 	AISRecentEntriesView recent_entries_view { recent };
 	AISRecentEntryDetailView recent_entry_detail_view;
 
+	static constexpr auto header_height = 1 * 16;
+
+	Text label_channel {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"Ch"
+	};
+
+	OptionsField options_channel {
+		{ 3 * 8, 0 * 16 },
+		3,
+		{
+			{ "87B", 161975000 },
+			{ "88B", 162025000 },
+		}
+	};
+
 	void on_packet(const ais::Packet& packet);
 	void on_show_list();
 	void on_show_detail(const AISRecentEntry& entry);
+
+	void on_frequency_changed(const uint32_t new_frequency);
 };
 
 } /* namespace ui */
