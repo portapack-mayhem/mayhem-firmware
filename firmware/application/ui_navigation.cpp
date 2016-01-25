@@ -92,7 +92,7 @@ void NavigationView::focus() {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push<ReceiverView>(portapack::receiver_model); } },
+		{ "Receiver", [&nav](){ nav.push<ReceiverView>(); } },
 		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },

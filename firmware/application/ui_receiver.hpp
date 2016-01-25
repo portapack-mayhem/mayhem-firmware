@@ -354,7 +354,7 @@ constexpr Style style_options_group {
 
 class ReceiverView : public View {
 public:
-	ReceiverView(NavigationView& nav, ReceiverModel& receiver_model);
+	ReceiverView(NavigationView& nav);
 	~ReceiverView();
 
 	void on_show() override;
@@ -363,8 +363,6 @@ public:
 	void focus() override;
 
 private:
-	ReceiverModel& receiver_model;
-
 	RSSI rssi {
 		{ 19 * 8, 0, 11 * 8, 4 },
 	};

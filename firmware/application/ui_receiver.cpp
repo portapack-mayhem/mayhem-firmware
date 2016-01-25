@@ -363,10 +363,8 @@ void LNAGainField::on_focus() {
 /* ReceiverView **********************************************************/
 
 ReceiverView::ReceiverView(
-	NavigationView& nav,
-	ReceiverModel& receiver_model
-) : receiver_model(receiver_model)
-{
+	NavigationView& nav
+) {
 	add_children({ {
 		&rssi,
 		&channel,
@@ -394,7 +392,7 @@ ReceiverView::ReceiverView(
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(this->receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			this->on_tuning_frequency_changed(f);
 			this->field_frequency.set_value(f);
