@@ -321,6 +321,11 @@ AISAppView::AISAppView(NavigationView&) {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(1750000);
+	receiver_model.set_rf_amp(false);
+	receiver_model.set_lna(32);
+	receiver_model.set_vga(32);
+	receiver_model.set_tuning_frequency(162025000);
+	receiver_model.enable();
 
 	recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
 		this->on_show_detail(entry);
@@ -331,6 +336,7 @@ AISAppView::AISAppView(NavigationView&) {
 }
 
 AISAppView::~AISAppView() {
+	receiver_model.disable();
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 

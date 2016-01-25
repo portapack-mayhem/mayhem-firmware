@@ -112,9 +112,15 @@ ERTAppView::ERTAppView(NavigationView&) {
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(2500000);
+	receiver_model.set_rf_amp(false);
+	receiver_model.set_lna(32);
+	receiver_model.set_vga(32);
+	receiver_model.set_tuning_frequency(911600000);
+	receiver_model.enable();
 }
 
 ERTAppView::~ERTAppView() {
+	receiver_model.disable();
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
