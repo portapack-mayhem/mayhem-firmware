@@ -28,6 +28,10 @@
 #include "ui_debug.hpp"
 #include "ui_receiver.hpp"
 
+#include "ais_app.hpp"
+#include "ert_app.hpp"
+#include "tpms_app.hpp"
+
 #include "m4_startup.hpp"
 
 namespace ui {
@@ -88,11 +92,30 @@ void NavigationView::focus() {
 	}
 }
 
+/* TransceiversMenuView **************************************************/
+
+TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
+	add_items<3>({ {
+		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
+	} });
+}
+
+/* ReceiverMenuView ******************************************************/
+
+ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
+	add_items<2>({ {
+		{ "Audio",        [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
+	} });
+}
+
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Receiver", [&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },

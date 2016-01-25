@@ -199,7 +199,7 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 	painter.draw_string(target_rect.pos, draw_style, line);
 }
 
-TPMSAppView::TPMSAppView() {
+TPMSAppView::TPMSAppView(NavigationView&) {
 	add_children({ {
 		&recent_entries_view,
 	} });

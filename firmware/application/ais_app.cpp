@@ -297,7 +297,7 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 	set_dirty();
 }
 
-AISAppView::AISAppView() {
+AISAppView::AISAppView(NavigationView&) {
 	add_children({ {
 		&recent_entries_view,
 		&recent_entry_detail_view,

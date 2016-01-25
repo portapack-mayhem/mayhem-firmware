@@ -407,9 +407,6 @@ private:
 			{ " AM ", toUType(ReceiverModel::Mode::AMAudio) },
 			{ "NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio) },
 			{ "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-			{ "AIS ", toUType(ReceiverModel::Mode::AIS) },
-			{ "TPMS", toUType(ReceiverModel::Mode::TPMS) },
-			{ "ERT",  toUType(ReceiverModel::Mode::ERT) },
 			{ "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
 		}
 	};

@@ -22,6 +22,8 @@
 #ifndef __ERT_APP_H__
 #define __ERT_APP_H__
 
+#include "ui_navigation.hpp"
+
 #include "log_file.hpp"
 
 #include "ert_packet.hpp"
@@ -72,7 +74,7 @@ using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
 
 class ERTAppView : public View {
 public:
-	ERTAppView();
+	ERTAppView(NavigationView& nav);
 	~ERTAppView();
 
 	void set_parent_rect(const Rect new_parent_rect) override;

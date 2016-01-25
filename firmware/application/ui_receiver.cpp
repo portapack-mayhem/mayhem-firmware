@@ -514,20 +514,8 @@ void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 		widget_content = std::make_unique<AnalogAudioView>(mode);
 		break;
 
-	case ReceiverModel::Mode::AIS:
-		widget_content = std::make_unique<AISAppView>();
-		break;
-
 	case ReceiverModel::Mode::SpectrumAnalysis:
 		widget_content = std::make_unique<SpectrumAnalysisView>();
-		break;
-
-	case ReceiverModel::Mode::TPMS:
-		widget_content = std::make_unique<TPMSAppView>();
-		break;
-
-	case ReceiverModel::Mode::ERT:
-		widget_content = std::make_unique<ERTAppView>();
 		break;
 
 	default:

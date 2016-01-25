@@ -76,6 +76,16 @@ private:
 	View* push_view(std::unique_ptr<View> new_view);
 };
 
+class TranspondersMenuView : public MenuView {
+public:
+	TranspondersMenuView(NavigationView& nav);
+};
+
+class ReceiverMenuView : public MenuView {
+public:
+	ReceiverMenuView(NavigationView& nav);
+};
+
 class SystemMenuView : public MenuView {
 public:
 	SystemMenuView(NavigationView& nav);

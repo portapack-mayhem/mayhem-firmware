@@ -23,6 +23,8 @@
 #define __AIS_APP_H__
 
 #include "ui_widget.hpp"
+#include "ui_navigation.hpp"
+
 #include "log_file.hpp"
 
 #include "ais_packet.hpp"
@@ -129,7 +131,7 @@ private:
 
 class AISAppView : public View {
 public:
-	AISAppView();
+	AISAppView(NavigationView& nav);
 	~AISAppView();
 
 	void set_parent_rect(const Rect new_parent_rect) override;

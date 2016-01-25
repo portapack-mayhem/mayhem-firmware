@@ -22,6 +22,8 @@
 #ifndef __TPMS_APP_H__
 #define __TPMS_APP_H__
 
+#include "ui_navigation.hpp"
+
 #include "field_reader.hpp"
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
@@ -195,7 +197,7 @@ using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
 
 class TPMSAppView : public View {
 public:
-	TPMSAppView();
+	TPMSAppView(NavigationView& nav);
 	~TPMSAppView();
 
 	void set_parent_rect(const Rect new_parent_rect) override;

@@ -93,7 +93,7 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 	painter.draw_string(target_rect.pos, draw_style, line);
 }
 
-ERTAppView::ERTAppView() {
+ERTAppView::ERTAppView(NavigationView&) {
 	add_children({ {
 		&recent_entries_view,
 	} });
