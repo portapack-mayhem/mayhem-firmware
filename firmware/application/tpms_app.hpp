@@ -22,6 +22,7 @@
 #ifndef __TPMS_APP_H__
 #define __TPMS_APP_H__
 
+#include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 
 #include "field_reader.hpp"
