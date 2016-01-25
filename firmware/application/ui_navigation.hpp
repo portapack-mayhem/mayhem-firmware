@@ -39,11 +39,20 @@ namespace ui {
 
 class SystemStatusView : public View {
 public:
+	std::function<void(void)> on_back;
+
 	SystemStatusView();
 
+	void set_back_visible(bool new_value);
+
 private:
+	Button button_back {
+		{ 0 * 8, 0 * 16, 3 * 8, 16 },
+		" < ",
+	};
+
 	Text portapack {
-		{ 0, 0, 9 * 8, 1 * 16 },
+		{ 3 * 8, 0, 9 * 8, 1 * 16 },
 		"PortaPack",
 	};
 
@@ -52,10 +61,14 @@ private:
 
 class NavigationView : public View {
 public:
+	std::function<void(void)> on_view_changed;
+
 	NavigationView() { }
 
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;
+
+	bool is_top() const;
 
 	template<class T, class... Args>
 	T* push(Args&&... args) {

@@ -369,7 +369,6 @@ ReceiverView::ReceiverView(
 		&rssi,
 		&channel,
 		&audio,
-		&button_done,
 		&field_frequency,
 		&field_lna,
 		//&options_baseband_bandwidth,
@@ -380,10 +379,6 @@ ReceiverView::ReceiverView(
 		&view_frequency_options,
 		&view_rf_gain_options,
 	} });
-
-	button_done.on_select = [&nav](Button&){
-		nav.pop();
-	};
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -480,7 +475,7 @@ void ReceiverView::on_hide() {
 }
 
 void ReceiverView::focus() {
-	button_done.focus();
+	field_frequency.focus();
 }
 
 void ReceiverView::on_tuning_frequency_changed(rf::Frequency f) {

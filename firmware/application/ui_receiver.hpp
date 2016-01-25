@@ -375,11 +375,6 @@ private:
 		{ 19 * 8, 10, 11 * 8, 4 },
 	};
 
-	Button button_done {
-		{ 0 * 8, 0 * 16, 3 * 8, 16 },
-		" < ",
-	};
-
 	FrequencyField field_frequency {
 		{ 0 * 8, 1 * 16 },
 	};

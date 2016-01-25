@@ -40,13 +40,28 @@ namespace ui {
 
 SystemStatusView::SystemStatusView() {
 	add_children({ {
+		&button_back,
 		&portapack,
 		&sd_card_status_view,
 	} });
 	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
+
+	button_back.on_select = [this](Button&){
+		if( this->on_back ) {
+			this->on_back();
+		}
+	};
+}
+
+void SystemStatusView::set_back_visible(bool new_value) {
+	button_back.hidden(!new_value);
 }
 
 /* Navigation ************************************************************/
+
+bool NavigationView::is_top() const {
+	return view_stack.size() == 1;
+}
 
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 	free_view();
@@ -80,6 +95,10 @@ void NavigationView::update_view() {
 	new_view->set_parent_rect({ {0, 0}, size() });
 	focus();
 	set_dirty();
+
+	if( on_view_changed ) {
+		on_view_changed();
+	}
 }
 
 Widget* NavigationView::view() const {
@@ -148,12 +167,18 @@ SystemView::SystemView(
 		{ 0, 0 },
 		{ parent_rect.width(), status_view_height }
 	});
+	status_view.on_back = [this]() {
+		this->navigation_view.pop();
+	};
 
 	add_child(&navigation_view);
 	navigation_view.set_parent_rect({
 		{ 0, status_view_height },
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
+	navigation_view.on_view_changed = [this]() {
+		this->status_view.set_back_visible(!this->navigation_view.is_top());
+	};
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
