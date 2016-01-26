@@ -299,7 +299,6 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 
 AISAppView::AISAppView(NavigationView&) {
 	add_children({ {
-		&label_app_name,
 		&label_channel,
 		&options_channel,
 		&recent_entries_view,
