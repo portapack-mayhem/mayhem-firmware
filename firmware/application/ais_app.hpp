@@ -142,6 +142,8 @@ public:
 
 	void focus() override;
 
+	std::string title() const override { return "AIS"; };
+
 private:
 	AISRecentEntries recent;
 	AISLogger logger;

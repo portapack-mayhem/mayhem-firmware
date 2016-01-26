@@ -83,6 +83,8 @@ public:
 	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
 	void paint(Painter&) override { };
 
+	std::string title() const override { return "ERT"; };
+
 private:
 	ERTRecentEntries recent;
 	ERTLogger logger;
