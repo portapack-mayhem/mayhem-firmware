@@ -41,7 +41,7 @@ namespace ui {
 SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&button_back,
-		&portapack,
+		&title,
 		&sd_card_status_view,
 	} });
 	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
@@ -55,6 +55,14 @@ SystemStatusView::SystemStatusView() {
 
 void SystemStatusView::set_back_visible(bool new_value) {
 	button_back.hidden(!new_value);
+}
+
+void SystemStatusView::set_title(const std::string new_value) {
+	if( new_value.empty() ) {
+		title.set(default_title);
+	} else {
+		title.set(new_value);
+	}
 }
 
 /* Navigation ************************************************************/
@@ -97,7 +105,7 @@ void NavigationView::update_view() {
 	set_dirty();
 
 	if( on_view_changed ) {
-		on_view_changed();
+		on_view_changed(*new_view);
 	}
 }
 
@@ -176,8 +184,9 @@ SystemView::SystemView(
 		{ 0, status_view_height },
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
-	navigation_view.on_view_changed = [this]() {
+	navigation_view.on_view_changed = [this](const View& new_view) {
 		this->status_view.set_back_visible(!this->navigation_view.is_top());
+		this->status_view.set_title(new_view.title());
 	};
 
 	// Initial view.

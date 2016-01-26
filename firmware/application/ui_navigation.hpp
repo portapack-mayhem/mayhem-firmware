@@ -44,16 +44,19 @@ public:
 	SystemStatusView();
 
 	void set_back_visible(bool new_value);
+	void set_title(const std::string new_value);
 
 private:
+	static constexpr auto default_title = "PortaPack";
+
 	Button button_back {
 		{ 0 * 8, 0 * 16, 3 * 8, 16 },
 		" < ",
 	};
 
-	Text portapack {
-		{ 3 * 8, 0, 9 * 8, 1 * 16 },
-		"PortaPack",
+	Text title {
+		{ 3 * 8, 0, 16 * 8, 1 * 16 },
+		default_title,
 	};
 
 	SDCardStatusView sd_card_status_view;
@@ -61,7 +64,7 @@ private:
 
 class NavigationView : public View {
 public:
-	std::function<void(void)> on_view_changed;
+	std::function<void(const View&)> on_view_changed;
 
 	NavigationView() { }
 
