@@ -247,6 +247,10 @@ Widget* View::initial_focus() {
 	return nullptr;
 }
 
+std::string View::title() const {
+	return "";
+};
+
 /* Rectangle *************************************************************/
 
 Rectangle::Rectangle(

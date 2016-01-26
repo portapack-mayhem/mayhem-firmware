@@ -155,6 +155,8 @@ public:
 
 	virtual Widget* initial_focus();
 
+	virtual std::string title() const;
+
 protected:
 	std::vector<Widget*> children_;
 	Rect dirty_screen_rect;
