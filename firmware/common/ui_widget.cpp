@@ -291,9 +291,14 @@ void Text::set(const std::string value) {
 }
 
 void Text::paint(Painter& painter) {
+	const auto rect = screen_rect();
+	const auto s = style();
+
+	painter.fill_rectangle(rect, s.background);
+
 	painter.draw_string(
-		screen_pos(),
-		style(),
+		rect.pos,
+		s,
 		text
 	);
 }
