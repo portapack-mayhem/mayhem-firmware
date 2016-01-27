@@ -505,7 +505,6 @@ void ReceiverView::on_modulation_changed(ReceiverModel::Mode mode) {
 	
 	if( widget_content ) {
 		add_child(widget_content.get());
-		const ui::Dim header_height = 3 * 16;
 		const ui::Rect rect { 0, header_height, parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - header_height) };
 		widget_content->set_parent_rect(rect);
 	}
