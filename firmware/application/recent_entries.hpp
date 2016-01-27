@@ -186,11 +186,15 @@ public:
 		return false;
 	}
 
+	void on_focus() override {
+		advance(0);
+	}
+
 private:
 	Entries& recent;
 	
 	using EntryKey = typename Entry::Key;
-	EntryKey selected_key;
+	EntryKey selected_key = Entry::invalid_key;
 
 	void advance(const int32_t amount) {
 		auto selected = recent.find(selected_key);
