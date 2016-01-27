@@ -149,6 +149,10 @@ ERTAppView::~ERTAppView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
+void ERTAppView::focus() {
+	recent_entries_view.focus();
+}
+
 void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });

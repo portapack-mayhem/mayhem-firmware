@@ -257,6 +257,10 @@ TPMSAppView::~TPMSAppView() {
 	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
 }
 
+void TPMSAppView::focus() {
+	recent_entries_view.focus();
+}
+
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
