@@ -248,7 +248,6 @@ FrequencyOptionsView::FrequencyOptionsView(
 	add_children({ {
 		&text_step,
 		&options_step,
-		&text_correction,
 		&field_ppm,
 		&text_ppm,
 	} });

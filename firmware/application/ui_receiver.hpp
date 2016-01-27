@@ -271,11 +271,6 @@ private:
 	void on_step_changed(rf::Frequency v);
 	void on_reference_ppm_correction_changed(int32_t v);
 
-	Text text_correction {
-		{ 17 * 8, 0 * 16, 5 * 8, 16 },
-		"Corr.",
-	};
-
 	NumberField field_ppm {
 		{ 23 * 8, 0 * 16 },
 		3,
