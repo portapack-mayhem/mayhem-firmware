@@ -62,8 +62,7 @@ constexpr std::array<rf::FrequencyRange, 4> band { {
 
 namespace lna {
 
-constexpr int8_t gain_db_min = 0;
-constexpr int8_t gain_db_max = 40;
+constexpr range_t<int8_t> gain_db_range { 0, 40 };
 constexpr int8_t gain_db_step = 8;
 
 constexpr std::array<rf::FrequencyRange, 2> band { {
@@ -77,8 +76,7 @@ constexpr std::array<rf::FrequencyRange, 2> band { {
 
 namespace vga {
 
-constexpr int8_t gain_db_min = 0;
-constexpr int8_t gain_db_max = 62;
+constexpr range_t<int8_t> gain_db_range { 0, 62 };
 constexpr int8_t gain_db_step = 2;
 
 } /* namespace vga */

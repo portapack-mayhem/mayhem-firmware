@@ -309,7 +309,7 @@ LNAGainField::LNAGainField(
 	Point parent_pos
 ) : NumberField {
 		parent_pos, 2,
-		{ max2837::lna::gain_db_min, max2837::lna::gain_db_max },
+		{ max2837::lna::gain_db_range.minimum, max2837::lna::gain_db_range.maximum },
 		max2837::lna::gain_db_step,
 		' ',
 	}

@@ -366,7 +366,7 @@ private:
 	NumberField field_vga {
 		{ 18 * 8, 0 * 16},
 		2,
-		{ max2837::vga::gain_db_min, max2837::vga::gain_db_max },
+		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
 		max2837::vga::gain_db_step,
 		' ',
 	};

@@ -40,7 +40,7 @@ constexpr std::array<uint8_t, 8> lookup_8db_steps {
 };
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
-	int8_t db_sat = std::min(std::max(gain_db_min, db), gain_db_max);
+	const auto db_sat = gain_db_range.clip(db);
 	return lna::lookup_8db_steps[(db_sat >> 3) & 7];
 }
 
@@ -49,7 +49,7 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 namespace vga {
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
-	int8_t db_sat = std::min(std::max(gain_db_min, db), gain_db_max);
+	const auto db_sat = gain_db_range.clip(db);
 	return ((db_sat >> 1) & 0b11111) ^ 0b11111;
 }
 
