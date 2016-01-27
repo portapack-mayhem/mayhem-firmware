@@ -364,23 +364,23 @@ public:
 
 private:
 	RSSI rssi {
-		{ 19 * 8, 0, 11 * 8, 4 },
+		{ 21 * 8, 0, 6 * 8, 4 },
 	};
 
 	Channel channel {
-		{ 19 * 8, 5, 11 * 8, 4 },
+		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
 	Audio audio {
-		{ 19 * 8, 10, 11 * 8, 4 },
+		{ 21 * 8, 10, 6 * 8, 4 },
 	};
 
 	FrequencyField field_frequency {
-		{ 0 * 8, 1 * 16 },
+		{ 5 * 8, 0 * 16 },
 	};
 
 	LNAGainField field_lna {
-		{ 13 * 8, 1 * 16 }
+		{ 15 * 8, 0 * 16 }
 	};
 	/*
 	BasebandBandwidthField options_baseband_bandwidth {
@@ -388,7 +388,7 @@ private:
 	};
 	*/
 	NumberField field_vga {
-		{ 16 * 8, 1 * 16},
+		{ 18 * 8, 0 * 16},
 		2,
 		{ max2837::vga::gain_db_min, max2837::vga::gain_db_max },
 		max2837::vga::gain_db_step,
@@ -396,7 +396,7 @@ private:
 	};
 
 	OptionsField options_modulation {
-		{ 19 * 8, 1 * 16 },
+		{ 0 * 8, 0 * 16 },
 		4,
 		{
 			{ " AM ", toUType(ReceiverModel::Mode::AMAudio) },
@@ -425,7 +425,7 @@ private:
 	};
 
 	NumberField field_volume {
-		{ 28 * 8, 1 * 16 },
+		{ 28 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -433,12 +433,12 @@ private:
 	};
 
 	FrequencyOptionsView view_frequency_options {
-		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
 
 	RadioGainOptionsView view_rf_gain_options {
-		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
 
