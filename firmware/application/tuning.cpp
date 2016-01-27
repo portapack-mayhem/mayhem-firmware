@@ -83,13 +83,11 @@ Config high_band(const rf::Frequency target_frequency) {
 
 Config create(const rf::Frequency target_frequency) {
 	/* TODO: This is some lame code. */
-	if( target_frequency < rf::path::band_low.min ) {
-		return { };
-	} else if( target_frequency < rf::path::band_low.max ) {
+	if( rf::path::band_low.contains(target_frequency) ) {
 		return low_band(target_frequency);
-	} else if( target_frequency < rf::path::band_mid.max ) {
+	} else if( rf::path::band_mid.contains(target_frequency) ) {
 		return mid_band(target_frequency);
-	} else if( target_frequency < rf::path::band_high.max ) {
+	} else if( rf::path::band_high.contains(target_frequency) ) {
 		return high_band(target_frequency);
 	} else {
 		return { };

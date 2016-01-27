@@ -51,10 +51,7 @@ constexpr auto reference_frequency = rffc5072_reference_f;
 
 namespace vco {
 
-constexpr rf::FrequencyRange range {
-	.min = 2700000000U,
-	.max = 5400000000U,
-};
+constexpr rf::FrequencyRange range { 2700000000, 5400000000 };
 
 } /* namespace vco */
 
@@ -66,10 +63,7 @@ constexpr size_t divider_log2_max = 5;
 constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
-constexpr rf::FrequencyRange range {
-	.min = vco::range.min / divider_max,
-	.max = vco::range.max / divider_min,
-};
+constexpr rf::FrequencyRange range { vco::range.minimum / divider_max, vco::range.maximum / divider_min };
 
 size_t divider_log2(const rf::Frequency lo_frequency) {
 	/* TODO: Error */

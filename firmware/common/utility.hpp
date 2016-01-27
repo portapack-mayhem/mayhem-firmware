@@ -86,6 +86,20 @@ struct range_t {
 			value = reset_value;
 		}
 	}
+
+	bool below_range(const T& value) const {
+		return value < minimum;
+	}
+
+	bool contains(const T& value) const {
+		// TODO: Subtle gotcha here! Range test doesn't include maximum!
+		return (value >= minimum) && (value < maximum);
+	}
+
+	bool out_of_range(const T& value) const {
+		// TODO: Subtle gotcha here! Range test in contains() doesn't include maximum!
+		return !contains(value);
+	}
 };
 
 namespace std {

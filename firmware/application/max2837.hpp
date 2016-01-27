@@ -50,10 +50,10 @@ enum class Mode {
 namespace lo {
 
 constexpr std::array<rf::FrequencyRange, 4> band { {
-	{ .min = 2300000000, .max = 2400000000, },
-	{ .min = 2400000000, .max = 2500000000, },
-	{ .min = 2500000000, .max = 2600000000, },
-	{ .min = 2600000000, .max = 2700000000, },
+	{ 2300000000, 2400000000 },
+	{ 2400000000, 2500000000 },
+	{ 2500000000, 2600000000 },
+	{ 2600000000, 2700000000 },
 } };
 
 } /* namespace lo */
@@ -67,8 +67,8 @@ constexpr int8_t gain_db_max = 40;
 constexpr int8_t gain_db_step = 8;
 
 constexpr std::array<rf::FrequencyRange, 2> band { {
-	{ .min = 2300000000, .max = 2500000000, },
-	{ .min = 2500000000, .max = 2700000000, },
+	{ 2300000000, 2500000000 },
+	{ 2500000000, 2700000000 },
 } };
 
 } /* namespace lna */

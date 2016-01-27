@@ -118,13 +118,7 @@ void FrequencyField::on_focus() {
 }
 
 rf::Frequency FrequencyField::clamp_value(rf::Frequency value) {
-	if( value > range.max ) {
-		value = range.max;
-	}
-	if( value < range.min ) {
-		value = range.min;
-	}
-	return value;
+	return range.clip(value);
 }
 
 /* FrequencyKeypadView ***************************************************/

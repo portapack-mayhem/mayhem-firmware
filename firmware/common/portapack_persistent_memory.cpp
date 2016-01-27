@@ -31,8 +31,6 @@
 namespace portapack {
 namespace persistent_memory {
 
-using tuned_frequency_range_t = range_t<rf::Frequency>;
-constexpr tuned_frequency_range_t tuned_frequency_range { rf::tuning_range.min, rf::tuning_range.max };
 constexpr rf::Frequency tuned_frequency_reset_value { 858750000 };
 
 using ppb_range_t = range_t<ppb_t>;
@@ -50,12 +48,12 @@ static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large fo
 static data_t* const data = reinterpret_cast<data_t*>(LPC_BACKUP_REG_BASE);
 
 rf::Frequency tuned_frequency() {
-	tuned_frequency_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
+	rf::tuning_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
 	return data->tuned_frequency;
 }
 
 void set_tuned_frequency(const rf::Frequency new_value) {
-	data->tuned_frequency = tuned_frequency_range.clip(new_value);
+	data->tuned_frequency = rf::tuning_range.clip(new_value);
 }
 
 ppb_t correction_ppb() {

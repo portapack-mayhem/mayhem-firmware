@@ -196,18 +196,16 @@ void MAX2837::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
 
 bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	/* TODO: This is a sad implementation. Refactor. */
-	if( lo_frequency < lo::band[0].min ) {
-		return false;
-	} else if( lo_frequency < lo::band[0].max ) {
+	if( lo::band[0].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b00;	/* 2300 - 2399.99MHz */
 		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo_frequency < lo::band[1].max ) {
+	} else if( lo::band[1].contains(lo_frequency)  ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b01;	/* 2400 - 2499.99MHz */
 		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo_frequency < lo::band[2].max ) {
+	} else if( lo::band[2].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b10;	/* 2500 - 2599.99MHz */
 		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
-	} else if( lo_frequency < lo::band[3].max ) {
+	} else if( lo::band[3].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b11;	/* 2600 - 2700Hz */
 		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
 	} else {
