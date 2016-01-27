@@ -98,25 +98,7 @@ bool FrequencyField::on_key(const ui::KeyEvent event) {
 	}
 	return false;
 }
-/*
-bool FrequencyField::on_key(const ui::KeyEvent event) override {
-	if( event == ui::KeyEvent::Select ) {
 
-		// NOTE: For testing sampling rate / decimation combinations
-		turbo = !turbo;
-		if( turbo ) {
-			clock_manager.set_sampling_frequency(18432000);
-			radio::set_baseband_decimation_by(6);
-		} else {
-			clock_manager.set_sampling_frequency(12288000);
-			radio::set_baseband_decimation_by(4);
-		}
-		return true;
-	}
-
-	return false;
-}
-*/
 bool FrequencyField::on_encoder(const EncoderEvent delta) {
 	set_value(value() + (delta * step));
 	return true;
@@ -310,19 +292,11 @@ RadioGainOptionsView::RadioGainOptionsView(
 	add_children({ {
 		&label_rf_amp,
 		&field_rf_amp,
-		//&label_agc,
-		//&field_agc
 	} });
 
 	field_rf_amp.on_change = [this](int32_t v) {
 		this->on_rf_amp_changed(v);
 	};
-	/*
-	field_agc.set_value(receiver_model.agc());
-	field_agc.on_change = [this](int32_t v) {
-		this->on_agc_changed(v);
-	};
-	*/
 }
 
 void RadioGainOptionsView::set_rf_amp(int32_t v_db) {
@@ -334,11 +308,6 @@ void RadioGainOptionsView::on_rf_amp_changed(bool enable) {
 		on_change_rf_amp(enable);
 	}
 }
-/*
-void RadioGainOptionsView::on_agc_changed(bool v) {
-	receiver_model.set_agc(v);
-}
-*/
 
 /* LNAGainField **********************************************************/
 

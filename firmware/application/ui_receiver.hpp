@@ -72,8 +72,6 @@ private:
 	rf::Frequency value_;
 	rf::Frequency step { 25000 };
 
-	//bool turbo { false };
-
 	rf::Frequency clamp_value(rf::Frequency value);
 };
 
@@ -113,13 +111,6 @@ public:
 	}
 
 	void add_digit(const char c) {
-		/*
-		if( justify == Justify::Right ) {
-			push_right(c);
-		} else {
-			insert_right(c);
-		}
-		*/
 		insert_right(c);
 	}
 
@@ -212,7 +203,6 @@ private:
 
 	static constexpr int mhz_mod = pow(10, mhz_digits);
 	static constexpr int submhz_base = pow(10, 6 - submhz_digits);
-	//static constexpr int submhz_mod = pow(10, submhz_digits);
 	static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
 	Text text_value {
@@ -321,18 +311,6 @@ private:
 		1,
 		' ',
 	};
-	/*
-	Text label_agc {
-		{ 6 * 8, 0 * 16, 3 * 8, 1 * 16 },
-		"AGC"
-	};
-
-	NumberField field_agc {
-		{ 10 * 8, 0 * 16},
-		1,
-		{ 0, 1 }
-	};
-	*/
 
 	void on_rf_amp_changed(bool enable);
 };
