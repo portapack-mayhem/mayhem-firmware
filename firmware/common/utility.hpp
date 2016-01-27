@@ -25,6 +25,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <cstddef>
+#include <algorithm>
 #include <complex>
 #include <memory>
 
@@ -69,6 +70,23 @@ inline float magnitude_squared(const std::complex<float> c) {
 	const auto i2 = i * i;
 	return r2 + i2;
 }
+
+template<class T>
+struct range_t {
+	const T minimum;
+	const T maximum;
+
+	const T& clip(const T& value) const {
+		return std::max(std::min(value, maximum), minimum);
+	}
+
+	void reset_if_outside(T& value, const T& reset_value) const {
+		if( (value < minimum ) ||
+			(value > maximum ) ) {
+			value = reset_value;
+		}
+	}
+};
 
 namespace std {
 

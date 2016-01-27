@@ -23,29 +23,13 @@
 
 #include "hal.h"
 
+#include "utility.hpp"
+
 #include <algorithm>
 #include <utility>
 
 namespace portapack {
 namespace persistent_memory {
-
-/* TODO: This is widely applicable. Factor this to somewhere useful. */
-template<class T>
-struct range_t {
-	const T minimum;
-	const T maximum;
-
-	const T& clip(const T& value) const {
-		return std::max(std::min(value, maximum), minimum);
-	}
-
-	void reset_if_outside(T& value, const T& reset_value) const {
-		if( (value < minimum ) ||
-			(value > maximum ) ) {
-			value = reset_value;
-		}
-	}
-};
 
 using tuned_frequency_range_t = range_t<rf::Frequency>;
 constexpr tuned_frequency_range_t tuned_frequency_range { rf::tuning_range.min, rf::tuning_range.max };
