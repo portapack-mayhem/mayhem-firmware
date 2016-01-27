@@ -371,10 +371,8 @@ ReceiverView::ReceiverView(
 		&audio,
 		&field_frequency,
 		&field_lna,
-		//&options_baseband_bandwidth,
 		&field_vga,
 		&options_modulation,
-		//&options_baseband_oversampling,
 		&field_volume,
 		&view_frequency_options,
 		&view_rf_gain_options,
@@ -404,13 +402,7 @@ ReceiverView::ReceiverView(
 	field_lna.on_show_options = [this]() {
 		this->on_show_options_rf_gain();
 	};
-	/*
-	options_baseband_bandwidth.set_by_value(receiver_model.baseband_bandwidth());
-	options_baseband_bandwidth.on_change = [this](size_t n, OptionsField::value_t v) {
-		(void)n;
-		this->on_baseband_bandwidth_changed(v);
-	};
-	*/
+
 	field_vga.set_value(receiver_model.vga());
 	field_vga.on_change = [this](int32_t v_db) {
 		this->on_vga_changed(v_db);
@@ -421,13 +413,7 @@ ReceiverView::ReceiverView(
 		(void)n;
 		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
-/*
-	options_baseband_oversampling.set_by_value(receiver_model.baseband_oversampling());
-	options_baseband_oversampling.on_change = [this](size_t n, OptionsField::value_t v) {
-		(void)n;
-		this->on_baseband_oversampling_changed(v);
-	};
-*/
+
 	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
@@ -554,9 +540,5 @@ void ReceiverView::on_headphone_volume_changed(int32_t v) {
 	const auto new_volume = volume_t::decibel(v - 99) + wolfson::wm8731::headphone_gain_range.max;
 	receiver_model.set_headphone_volume(new_volume);
 }
-
-// void ReceiverView::on_baseband_oversampling_changed(int32_t v) {
-// 	receiver_model.set_baseband_oversampling(v);
-// }
 
 } /* namespace ui */

@@ -382,11 +382,7 @@ private:
 	LNAGainField field_lna {
 		{ 15 * 8, 0 * 16 }
 	};
-	/*
-	BasebandBandwidthField options_baseband_bandwidth {
-		{ 15 * 8, 1 * 16 },
-	};
-	*/
+
 	NumberField field_vga {
 		{ 18 * 8, 0 * 16},
 		2,
@@ -404,24 +400,6 @@ private:
 			{ "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
 			{ "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
 		}
-	};
-/*
-	OptionsField options_baseband_oversampling {
-		{ 24 * 8, 1 * 16 },
-		1,
-		{
-			{ "4", 4 },
-			{ "6", 6 },
-			{ "8", 8 },
-		}
-	};
-*/
-	NumberField field_vregmode {
-		{ 24 * 8, 1 * 16 },
-		1,
-		{ 0, 1 },
-		1,
-		' ',
 	};
 
 	NumberField field_volume {
@@ -455,7 +433,6 @@ private:
 	void on_frequency_step_changed(rf::Frequency f);
 	void on_reference_ppm_correction_changed(int32_t v);
 	void on_headphone_volume_changed(int32_t v);
-//	void on_baseband_oversampling_changed(int32_t v);
 	void on_edit_frequency();
 };
 
