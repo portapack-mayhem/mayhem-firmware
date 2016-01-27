@@ -218,13 +218,28 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 
 namespace ui {
 
+static const std::array<std::pair<std::string, size_t>, 2> ais_columns { {
+	{ "MMSI", 9 },
+	{ "Name/Call", 20 },
+} };
+
 template<>
 void RecentEntriesView<AISRecentEntries>::draw_header(
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style
 ) {
-	painter.draw_string(target_rect.pos, style, "  MMSI   |Name/Call           ");
+	auto x = 0;
+	for(const auto& column : ais_columns) {
+		const auto width = column.second;
+		auto text = column.first;
+		if( width > text.length() ) {
+			text.append(width - text.length(), ' ');
+		}
+
+		painter.draw_string({ x, target_rect.pos.y }, style, text);
+		x += (width * 8) + 8;
+	}
 }
 
 template<>

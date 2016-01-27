@@ -71,13 +71,29 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
+static const std::array<std::pair<std::string, size_t>, 3> ert_columns { {
+	{ "ID", 10 },
+	{ "Consumpt", 10 },
+	{ "Cnt", 3 },
+} };
+
 template<>
 void RecentEntriesView<ERTRecentEntries>::draw_header(
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style
 ) {
-	painter.draw_string(target_rect.pos, style, "    ID    | Consumpt |Cnt     ");
+	auto x = 0;
+	for(const auto& column : ert_columns) {
+		const auto width = column.second;
+		auto text = column.first;
+		if( width > text.length() ) {
+			text.append(width - text.length(), ' ');
+		}
+
+		painter.draw_string({ x, target_rect.pos.y }, style, text);
+		x += (width * 8) + 8;
+	}
 }
 
 template<>
