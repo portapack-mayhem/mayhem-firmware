@@ -23,6 +23,8 @@
 
 #include "event_m0.hpp"
 
+#include "utility.hpp"
+
 #include <algorithm>
 
 namespace ui {
@@ -42,22 +44,23 @@ void RSSI::on_hide() {
 void RSSI::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	constexpr int32_t rssi_sample_range = 256;
+	constexpr int rssi_sample_range = 256;
 	constexpr float rssi_voltage_min = 0.4;
 	constexpr float rssi_voltage_max = 2.2;
 	constexpr float adc_voltage_max = 3.3;
-	constexpr int32_t raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-	constexpr int32_t raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
-	constexpr int32_t raw_delta = raw_max - raw_min;
-	const int32_t x_0 = 0;
-	const int32_t x_lim = r.width();
-	const int32_t x_min = std::max(x_0, (min_ - raw_min) * x_lim / raw_delta);
-	const int32_t x_avg = std::max(x_min, (avg_ - raw_min) * x_lim / raw_delta);
-	const int32_t x_max = std::max(x_avg + 1, (max_ - raw_min) * x_lim / raw_delta);
+	constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+	constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
+	constexpr int raw_delta = raw_max - raw_min;
+	const range_t<int> x_avg_range { 0, r.width() - 1 };
+	const auto x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
+	const range_t<int> x_min_range { 0, x_avg };
+	const auto x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
+	const range_t<int> x_max_range { x_avg + 1, r.width() };
+	const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
 
 	const Rect r0 {
-		static_cast<ui::Coord>(r.left() + x_0), r.top(),
-		static_cast<ui::Dim>(x_min - x_0), r.height()
+		static_cast<ui::Coord>(r.left()), r.top(),
+		static_cast<ui::Dim>(x_min), r.height()
 	};
 	painter.fill_rectangle(
 		r0,
@@ -93,7 +96,7 @@ void RSSI::paint(Painter& painter) {
 
 	const Rect r4 {
 		static_cast<ui::Coord>(r.left() + x_max), r.top(),
-		static_cast<ui::Dim>(x_lim - x_max), r.height()
+		static_cast<ui::Dim>(r.width() - x_max), r.height()
 	};
 	painter.fill_rectangle(
 		r4,

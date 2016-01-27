@@ -23,6 +23,8 @@
 
 #include "event_m0.hpp"
 
+#include "utility.hpp"
+
 #include <algorithm>
 
 namespace ui {
@@ -42,15 +44,17 @@ void Audio::on_hide() {
 void Audio::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	const int32_t db_min = -r.width();
-	const int32_t x_0 = 0;
-	const int32_t x_rms = std::max(x_0, rms_db_ - db_min);
-	const int32_t x_max = std::max(x_rms + 1, max_db_ - db_min);
-	const int32_t x_lim = r.width();
+	constexpr int db_min = -96;
+	constexpr int db_max = 0;
+	constexpr int db_delta = db_max - db_min;
+	const range_t<int> x_rms_range { 0, r.width() - 1 };
+	const auto x_rms = x_rms_range.clip((rms_db_ - db_min) * r.width() / db_delta);
+	const range_t<int> x_max_range { x_rms + 1, r.width() };
+	const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
 	const Rect r0 {
-		static_cast<ui::Coord>(r.left() + x_0), r.top(),
-		static_cast<ui::Dim>(x_rms - x_0), r.height()
+		static_cast<ui::Coord>(r.left()), r.top(),
+		static_cast<ui::Dim>(x_rms), r.height()
 	};
 	painter.fill_rectangle(
 		r0,
@@ -77,7 +81,7 @@ void Audio::paint(Painter& painter) {
 
 	const Rect r3 {
 		static_cast<ui::Coord>(r.left() + x_max), r.top(),
-		static_cast<ui::Dim>(x_lim - x_max), r.height()
+		static_cast<ui::Dim>(r.width() - x_max), r.height()
 	};
 	painter.fill_rectangle(
 		r3,
