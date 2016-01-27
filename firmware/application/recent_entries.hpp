@@ -23,6 +23,7 @@
 #define __RECENT_ENTRIES_H__
 
 #include "ui_widget.hpp"
+#include "ui_font_fixed_8x16.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -138,6 +139,15 @@ public:
 		Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 		const size_t visible_item_count = r.height() / s.font.line_height();
 
+		const Style style_header {
+			.font = font::fixed_8x16,
+			.background = Color::blue(),
+			.foreground = Color::white(),
+		};
+
+		draw_header(target_rect, painter, style_header);
+		target_rect.pos.y += target_rect.height();
+
 		auto selected = recent.find(selected_key);
 		if( selected == std::end(recent) ) {
 			selected = std::begin(recent);
@@ -207,6 +217,12 @@ private:
 
 		set_dirty();
 	}
+
+	void draw_header(
+		const Rect& target_rect,
+		Painter& painter,
+		const Style& style
+	);
 
 	void draw(
 		const Entry& entry,

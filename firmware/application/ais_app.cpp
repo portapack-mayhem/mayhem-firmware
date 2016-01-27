@@ -219,6 +219,15 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 namespace ui {
 
 template<>
+void RecentEntriesView<AISRecentEntries>::draw_header(
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style
+) {
+	painter.draw_string(target_rect.pos, style, "  MMSI   |Name/Call           ");
+}
+
+template<>
 void RecentEntriesView<AISRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,

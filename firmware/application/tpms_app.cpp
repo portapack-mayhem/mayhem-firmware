@@ -166,6 +166,15 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 namespace ui {
 
 template<>
+void RecentEntriesView<TPMSRecentEntries>::draw_header(
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style
+) {
+	painter.draw_string(target_rect.pos, style, "Tp|   ID   |kPa| C |Cnt       ");
+}
+
+template<>
 void RecentEntriesView<TPMSRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,

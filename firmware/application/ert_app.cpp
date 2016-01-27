@@ -72,6 +72,15 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 namespace ui {
 
 template<>
+void RecentEntriesView<ERTRecentEntries>::draw_header(
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style
+) {
+	painter.draw_string(target_rect.pos, style, "    ID    | Consumpt |Cnt     ");
+}
+
+template<>
 void RecentEntriesView<ERTRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
