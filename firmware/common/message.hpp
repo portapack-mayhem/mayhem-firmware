@@ -58,6 +58,7 @@ public:
 		AMConfigure = 13,
 		ChannelSpectrumConfig = 14,
 		SpectrumStreamingConfig = 15,
+		DisplaySleep = 16,
 		MAX
 	};
 
@@ -161,6 +162,14 @@ struct AudioStatistics {
 	) : rms_db { rms_db },
 		max_db { max_db },
 		count { count }
+	{
+	}
+};
+
+class DisplaySleepMessage : public Message {
+public:
+	constexpr DisplaySleepMessage(
+	) : Message { ID::DisplaySleep }
 	{
 	}
 };

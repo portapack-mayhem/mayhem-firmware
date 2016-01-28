@@ -22,6 +22,7 @@
 #include "ui_navigation.hpp"
 
 #include "portapack.hpp"
+#include "event_m0.hpp"
 #include "receiver_model.hpp"
 
 #include "ui_setup.hpp"
@@ -42,6 +43,7 @@ SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&button_back,
 		&title,
+		&button_sleep,
 		&sd_card_status_view,
 	} });
 	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
@@ -50,6 +52,11 @@ SystemStatusView::SystemStatusView() {
 		if( this->on_back ) {
 			this->on_back();
 		}
+	};
+
+	button_sleep.on_select = [this](Button&) {
+		DisplaySleepMessage message;
+		EventDispatcher::message_map().send(&message);
 	};
 }
 

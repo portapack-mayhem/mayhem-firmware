@@ -81,6 +81,11 @@ int main(void) {
 			event_dispatcher.request_stop();
 		}
 	);
+	EventDispatcher::message_map().register_handler(Message::ID::DisplaySleep,
+		[&event_dispatcher](const Message* const) {
+			event_dispatcher.set_display_sleep(true);
+		}
+	);
 
 	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
 

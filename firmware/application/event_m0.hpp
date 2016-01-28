@@ -27,6 +27,8 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 
+#include "portapack.hpp"
+
 #include "message.hpp"
 
 #include "touch.hpp"
@@ -52,6 +54,11 @@ public:
 
 	void run();
 	void request_stop();
+
+	void set_display_sleep(bool new_value) {
+		portapack::io.lcd_backlight(false);
+		display_sleep = new_value;
+	};
 
 	static inline void events_flag(const eventmask_t events) {
 		if( thread_event_loop ) {
@@ -80,6 +87,7 @@ private:
 	uint32_t encoder_last = 0;
 	bool is_running = true;
 	bool sd_card_present = false;
+	bool display_sleep = false;
 
 	eventmask_t wait();
 	void dispatch(const eventmask_t events);

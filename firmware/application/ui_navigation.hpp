@@ -59,6 +59,11 @@ private:
 		default_title,
 	};
 
+	Button button_sleep {
+		{ 25 * 8, 0, 2 * 8, 1 * 16 },
+		"ZZ",
+	};
+
 	SDCardStatusView sd_card_status_view;
 };
 

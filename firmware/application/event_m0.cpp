@@ -98,21 +98,23 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 	if( events & EVT_MASK_RTC_TICK ) {
 		handle_rtc_tick();
 	}
+	
+	if( !display_sleep ) {
+		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
+			handle_lcd_frame_sync();
+		}
 
-	if( events & EVT_MASK_LCD_FRAME_SYNC ) {
-		handle_lcd_frame_sync();
-	}
+		if( events & EVT_MASK_SWITCHES ) {
+			handle_switches();
+		}
 
-	if( events & EVT_MASK_SWITCHES ) {
-		handle_switches();
-	}
+		if( events & EVT_MASK_ENCODER ) {
+			handle_encoder();
+		}
 
-	if( events & EVT_MASK_ENCODER ) {
-		handle_encoder();
-	}
-
-	if( events & EVT_MASK_TOUCH ) {
-		handle_touch();
+		if( events & EVT_MASK_TOUCH ) {
+			handle_touch();
+		}
 	}
 }
 
