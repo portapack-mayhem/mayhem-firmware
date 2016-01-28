@@ -131,6 +131,8 @@ protected:
 		.highlighted = false,
 		.visible = false,
 	};
+
+	void dirty_overlapping_children_in_rect(const Rect& child_rect);
 };
 
 class View : public Widget {

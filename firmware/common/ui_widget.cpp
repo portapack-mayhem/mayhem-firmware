@@ -95,7 +95,9 @@ void Widget::hidden(bool hide) {
 
 		// If parent is hidden, either of these is a no-op.
 		if( hide ) {
-			parent()->set_dirty();
+			// TODO: Instead of dirtying parent entirely, dirty only children
+			// that overlap with this widget.
+			parent()->dirty_overlapping_children_in_rect(parent_rect);
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -194,6 +196,14 @@ void Widget::visible(bool v) {
 			for(const auto child : children()) {
 				child->visible(false);
 			}
+		}
+	}
+}
+
+void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
+	for(auto child : children()) {
+		if( !child_rect.intersect(child->parent_rect).is_empty() ) {
+			child->set_dirty();
 		}
 	}
 }
