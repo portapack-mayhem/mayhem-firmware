@@ -19,8 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ch.h"
-
 #include "tuning.hpp"
 
 #include "utility.hpp"
