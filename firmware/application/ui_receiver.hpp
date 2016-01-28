@@ -259,6 +259,10 @@ private:
 		{
 			{ "  100",      100 },
 			{ "  1k ",     1000 },
+			{ "  3k ",     3000 },	/* Approximate SSB bandwidth */
+			{ "  5k ",     5000 },
+			{ "  6k3",     6250 },
+			{ "  9k ",     9000 },	/* channel spacing for LF, MF in some regions */
 			{ " 10k ",    10000 },
 			{ " 12k5",    12500 },
 			{ " 25k ",    25000 },
