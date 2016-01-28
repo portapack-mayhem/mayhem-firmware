@@ -41,6 +41,20 @@ void lcd_reset() {
 	chThdSleepMilliseconds(120);
 }
 
+void lcd_sleep_in() {
+	io.lcd_data_write_command_and_data(0x10, {});
+	chThdSleepMilliseconds(5);
+}
+
+void lcd_sleep_out() {
+	io.lcd_data_write_command_and_data(0x11, {});
+	chThdSleepMilliseconds(120);
+}
+
+void lcd_display_on() {
+	io.lcd_data_write_command_and_data(0x29, {});
+}
+
 void lcd_init() {
 	// LCDs are configured for IM[2:0] = 001
 	// 8080-I system, 16-bit parallel bus
@@ -147,12 +161,8 @@ void lcd_init() {
 		0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05
 	});
 
-	// Exit Sleep
-	io.lcd_data_write_command_and_data(0x11, {});
-	chThdSleepMilliseconds(120);
-
-	// Display on
-	io.lcd_data_write_command_and_data(0x29, {});
+	lcd_sleep_out();
+	lcd_display_on();
 
 	// Turn on Tearing Effect Line (TE) output signal.
 	io.lcd_data_write_command_and_data(0x35, { 0b00000000 });
@@ -228,6 +238,14 @@ void ILI9341::init() {
 void ILI9341::shutdown() {
 	io.lcd_backlight(0);
 	lcd_reset();
+}
+
+void ILI9341::sleep() {
+	lcd_sleep_in();
+}
+
+void ILI9341::wake() {
+	lcd_sleep_out();
 }
 
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {

@@ -86,6 +86,19 @@ void EventDispatcher::request_stop() {
 	is_running = false;
 }
 
+void EventDispatcher::set_display_sleep(const bool sleep) {
+	// TODO: Distribute display sleep message more broadly, shut down data generation
+	// on baseband side, since all that data is being discarded during sleep.
+	if( sleep ) {
+		portapack::io.lcd_backlight(false);
+		portapack::display.sleep();
+	} else {
+		portapack::display.wake();
+		portapack::io.lcd_backlight(true);
+	}
+	display_sleep = sleep;
+};
+
 eventmask_t EventDispatcher::wait() {
 	return chEvtWaitAny(ALL_EVENTS);
 }
@@ -99,13 +112,13 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 		handle_rtc_tick();
 	}
 	
+	if( events & EVT_MASK_SWITCHES ) {
+		handle_switches();
+	}
+
 	if( !display_sleep ) {
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
-		}
-
-		if( events & EVT_MASK_SWITCHES ) {
-			handle_switches();
 		}
 
 		if( events & EVT_MASK_ENCODER ) {
@@ -181,6 +194,15 @@ void EventDispatcher::handle_lcd_frame_sync() {
 
 void EventDispatcher::handle_switches() {
 	const auto switches_state = get_switches_state();
+
+	if( display_sleep ) {
+		// Swallow event, wake up display.
+		if( switches_state.any() ) {
+			set_display_sleep(false);
+		}
+		return;
+	}
+
 	for(size_t i=0; i<switches_state.size(); i++) {
 		// TODO: Ignore multiple keys at the same time?
 		if( switches_state[i] ) {

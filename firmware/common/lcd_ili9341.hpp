@@ -44,6 +44,9 @@ public:
 	void init();
 	void shutdown();
 
+	void sleep();
+	void wake();
+
 	void fill_rectangle(ui::Rect r, const ui::Color c);
 	void fill_circle(
 		const ui::Point center,

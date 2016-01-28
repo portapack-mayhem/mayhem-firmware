@@ -55,10 +55,7 @@ public:
 	void run();
 	void request_stop();
 
-	void set_display_sleep(bool new_value) {
-		portapack::io.lcd_backlight(false);
-		display_sleep = new_value;
-	};
+	void set_display_sleep(const bool sleep);
 
 	static inline void events_flag(const eventmask_t events) {
 		if( thread_event_loop ) {
