@@ -42,9 +42,10 @@ private:
 		dst.data(),
 		dst.size()
 	};
-	const buffer_f32_t work_audio_buffer {
-		(float*)dst.data(),
-		sizeof(dst) / sizeof(float)
+	std::array<float, 32> audio;
+	const buffer_f32_t audio_buffer {
+		audio.data(),
+		audio.size()
 	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
@@ -53,6 +54,9 @@ private:
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
+
+	static constexpr size_t post_channel_decimation_factor = 3;
+	BlockDecimator<32> channel_block_buffer { post_channel_decimation_factor };	
 
 	dsp::demodulate::FM demod;
 

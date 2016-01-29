@@ -39,9 +39,12 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
-	auto audio = demod.execute(channel_out, work_audio_buffer);
-
-	audio_output.write(audio);
+	channel_block_buffer.feed(
+		channel_out, [this](const buffer_c16_t buffer) {
+			auto audio = this->demod.execute(buffer, this->audio_buffer);
+			this->audio_output.write(audio);
+		}
+	);
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {
@@ -75,7 +78,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	constexpr size_t channel_filter_decimation_factor = 1;
 	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
-	constexpr size_t demod_input_fs = channel_filter_output_fs;
+	constexpr size_t demod_input_fs = channel_filter_output_fs / post_channel_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
@@ -84,7 +87,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
-	audio_output.configure(audio_hpf_300hz_config, audio_deemph_300_6_config, 6144);
+	audio_output.configure(audio_16k_hpf_300hz_config, audio_16k_deemph_300_6_config, 0);
 
 	configured = true;
 }
