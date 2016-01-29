@@ -516,7 +516,17 @@ void ClockManager::start_audio_pll() {
 	while( !cgu::pll0audio::is_locked() );
 	cgu::pll0audio::clock_enable();
 
-	set_clock(LPC_CGU->BASE_AUDIO_CLK, cgu::CLK_SEL::PLL0AUDIO);
+	set_base_audio_clock_divider(1);
+	set_clock(LPC_CGU->BASE_AUDIO_CLK, cgu::CLK_SEL::IDIVC);
+}
+
+void ClockManager::set_base_audio_clock_divider(const size_t divisor) {
+	LPC_CGU->IDIVC_CTRL =
+		  (0 <<  1)
+		| ((divisor - 1) <<  2)
+		| (1 << 11)
+		| (toUType(cgu::CLK_SEL::PLL0AUDIO) << 24)
+		;
 }
 
 void ClockManager::stop_audio_pll() {
