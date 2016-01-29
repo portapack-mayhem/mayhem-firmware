@@ -36,6 +36,18 @@ constexpr iir_biquad_config_t audio_48k_hpf_300hz_config {
 	{  1.00000000f, -1.94447766f,  0.94597794f }
 };
 
+// scipy.signal.butter(2, 300 / 8000.0, 'highpass', analog=False)
+constexpr iir_biquad_config_t audio_16k_hpf_300hz_config {
+	{  0.92006616f, -1.84013232f,  0.92006616f },
+	{  1.00000000f, -1.83373266f,  0.84653197f }
+};
+
+// scipy.signal.butter(2, 300 / 4000.0, 'highpass', analog=False)
+constexpr iir_biquad_config_t audio_8k_hpf_300hz_config {
+	{  0.84645925f, -1.69291851f,  0.84645925f },
+	{  1.00000000f, -1.66920314f,  0.71663387f }
+};
+
 // scipy.signal.iirdesign(wp=8000 / 24000.0, ws= 4000 / 24000.0, gpass=1, gstop=18, ftype='ellip')
 constexpr iir_biquad_config_t non_audio_hpf_config {
 	{  0.51891061f, -0.95714180f,  0.51891061f },
@@ -47,6 +59,20 @@ constexpr iir_biquad_config_t non_audio_hpf_config {
 constexpr iir_biquad_config_t audio_48k_deemph_300_6_config {
 	{  0.01925927f,  0.01925927f,  0.00000000f },
 	{  1.00000000f, -0.96148145f,  0.00000000f }
+};
+
+// scipy.signal.butter(1, 300 / 8000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_16k_deemph_300_6_config {
+	{  0.05568894f,  0.05568894f,  0.00000000f },
+	{  1.00000000f, -0.88862213f,  0.00000000f }
+};
+
+// scipy.signal.butter(1, 300 / 4000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_8k_deemph_300_6_config {
+	{  0.10583178f,  0.10583178f,  0.00000000f },
+	{  1.00000000f, -0.78833643f,  0.00000000f }
 };
 
 // 75us RC time constant, used in broadcast FM in Americas, South Korea
