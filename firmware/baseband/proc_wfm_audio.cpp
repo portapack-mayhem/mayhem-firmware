@@ -110,7 +110,7 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 	channel_filter_stop_f = message.decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
 	demod.configure(demod_input_fs, message.deviation);
 	audio_filter.configure(message.audio_filter.taps);
-	audio_output.configure(audio_hpf_30hz_config, audio_deemph_2122_6_config);
+	audio_output.configure(audio_48k_hpf_30hz_config, audio_48k_deemph_2122_6_config);
 
 	channel_spectrum.set_decimation_factor(1);
 
