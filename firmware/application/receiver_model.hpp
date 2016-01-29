@@ -25,7 +25,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "clock_manager.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max2837.hpp"
@@ -42,12 +41,6 @@ public:
 		TPMS = 5,
 		ERT = 6,
 	};
-
-	constexpr ReceiverModel(
-		ClockManager& clock_manager
-	) : clock_manager(clock_manager)
-	{
-	}
 
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
@@ -101,7 +94,6 @@ private:
 		.decimation_factor = 1,
 	};
 	volume_t headphone_volume_ { -43.0_dB };
-	ClockManager& clock_manager;
 
 	int32_t tuning_offset();
 

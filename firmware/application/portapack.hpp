@@ -29,6 +29,7 @@
 #include "lcd_ili9341.hpp"
 
 #include "radio.hpp"
+#include "clock_manager.hpp"
 #include "temperature_logger.hpp"
 
 namespace portapack {
@@ -43,6 +44,7 @@ extern SPI ssp1;
 extern wolfson::wm8731::WM8731 audio_codec;
 
 extern si5351::Si5351 clock_generator;
+extern ClockManager clock_manager;
 
 extern ReceiverModel receiver_model;
 
