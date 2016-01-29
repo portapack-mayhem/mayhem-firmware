@@ -88,6 +88,7 @@ typedef enum IRQn {
   C_CAN0_IRQn                 = 29,     /*!< 45 C_CAN0                                                         */
   SPIFI_OR_ADCHS_IRQn         = 30,     /*!< 46 SPIFI OR ADCHS interrupt                                       */
   M0SUB_IRQn                  = 31,     /*!< 47 M0SUB core                                                     */
+  TIMER1_IRQn                 = 32
 } IRQn_Type;
 
 /**

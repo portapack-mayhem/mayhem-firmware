@@ -120,3 +120,7 @@ void BasebandProcessor::post_audio_stats_message(const AudioStatistics statistic
 	audio_stats_message.statistics = statistics;
 	shared_memory.application_queue.push(audio_stats_message);
 }
+
+void BasebandProcessor::fill_buffer(int8_t * inptr) {
+	(void)inptr;
+}

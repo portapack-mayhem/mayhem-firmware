@@ -15,6 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; see the file COPYING.  If not, write to
+ * along with this program; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
@@ -53,6 +54,7 @@
 #include "proc_fsk_lcr.hpp"
 #include "proc_jammer.hpp"
 #include "proc_xylos.hpp"
+#include "proc_playaudio.hpp"
 
 #include "clock_recovery.hpp"
 #include "packet_builder.hpp"
@@ -121,7 +123,6 @@ private:
 	WORKING_AREA(wa, 2048);
 
 	void run() override {
-
 		while(true) {
 			if (direction == baseband::Direction::Transmit) {
 				const auto buffer_tmp = baseband::dma::wait_for_tx_buffer();
@@ -497,7 +498,7 @@ int main(void) {
 	auto& message_handlers = event_dispatcher.message_handlers();
 	
 	message_handlers.register_handler(Message::ID::ModuleID,
-		[&message_handlers](Message* p) {
+		[](Message* p) {
 			ModuleIDMessage reply;
 			auto message = static_cast<ModuleIDMessage*>(p);
 			if (message->query == true) {	// Shouldn't be needed
@@ -547,6 +548,17 @@ int main(void) {
 				case TX_XYLOS:
 					direction = baseband::Direction::Transmit;
 					baseband_thread.baseband_processor = new XylosProcessor();
+					break;
+					
+				case PLAY_AUDIO:
+					direction = baseband::Direction::Transmit;
+					baseband_thread.baseband_processor = new PlayAudioProcessor();
+					message_handlers.register_handler(Message::ID::FIFOData,
+						[](Message* p) {
+							auto message = static_cast<FIFODataMessage*>(p);
+							baseband_thread.baseband_processor->fill_buffer(message->data);
+						}
+					);
 					break;
 					
 				case SWITCH:

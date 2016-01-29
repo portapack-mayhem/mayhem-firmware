@@ -23,6 +23,7 @@
 
 #include "ch.h"
 
+#include "ui_alphanum.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"

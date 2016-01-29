@@ -137,6 +137,8 @@ CPPSRC = main.cpp \
          proc_jammer.cpp \
          proc_fsk_lcr.cpp \
          proc_xylos.cpp \
+         proc_audiotx.cpp \
+         proc_playaudio.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

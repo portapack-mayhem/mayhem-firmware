@@ -19,12 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//TODO: Morse coder
 //TODO: Playdead amnesia and login
 //TODO: Touch screen calibration
 //TODO: Display module info (name, desc) somewhere
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: More gfx, cute icons :)
-//TODO: check jammer bandwidths
+//TODO: Check jammer bandwidths
 //TODO: GSM channel detector
 //TODO: AFSK receiver
 //TODO: SIGFOX RX/TX
@@ -243,6 +244,8 @@ private:
 	}
 
 	void handle_lcd_frame_sync() {
+		DisplayFrameSyncMessage message;
+		context.message_map().send(&message);
 		painter.paint_widget_tree(top_widget);
 	}
 

@@ -39,7 +39,7 @@ private:
 		audio_data,
 		sizeof(int16_t)*64
 	};
-	
+
 	uint32_t ccir_phases[16] = {
 								(uint32_t)(1981*PHASEV),
 								(uint32_t)(1124*PHASEV),

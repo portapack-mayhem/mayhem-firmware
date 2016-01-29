@@ -234,6 +234,8 @@ JammerView::JammerView(
 		rf::Frequency t, range_lower;
 		auto& message_map = context().message_map();
 		
+		message_map.unregister_handler(Message::ID::Retune);
+		
 		message_map.register_handler(Message::ID::Retune,
 			[this,&transmitter_model](Message* const p) {
 				const auto message = static_cast<const RetuneMessage*>(p);

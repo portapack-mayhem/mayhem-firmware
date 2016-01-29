@@ -38,6 +38,7 @@ public:
 	virtual ~BasebandProcessor() = default;
 
 	virtual void execute(buffer_c8_t buffer) = 0;
+	virtual void fill_buffer(int8_t * inptr);
 
 	void update_spectrum();
 

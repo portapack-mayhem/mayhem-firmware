@@ -32,8 +32,113 @@
 #include "max2837.hpp"
 #include "volume.hpp"
 #include "transmitter_model.hpp"
+#include "receiver_model.hpp"
 
 namespace ui {
+
+#define XYLOS_VOICE_ZERO 0
+#define XYLOS_VOICE_HEADER 16
+#define XYLOS_VOICE_RELAYS 21
+#define XYLOS_VOICE_TRAILER 25
+
+void do_something();
+
+class XylosRXView : public View {
+public:
+	XylosRXView(NavigationView& nav, ReceiverModel& receiver_model);
+	~XylosRXView();
+	
+	void talk();
+	void on_show() override;
+	void focus() override;
+	
+	Text text_dbg {
+		{ 5 * 8, 14 * 16, 20 * 8, 16 },
+		"--------------------"
+	};
+	
+	void do_something(void *p);
+
+private:
+	uint8_t p_idx;
+	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
+	uint8_t xylos_voice_phrase[32] = { 0xFF };
+	const char * xylos_voice_filenames[26] = {	"zero.wav",
+												"one.wav",
+												"two.wav",
+												"three.wav",
+												"four.wav",
+												"five.wav",
+												"six.wav",
+												"seven.wav",
+												"eight.wav",
+												"nine.wav",
+												"a.wav",
+												"b.wav",
+												"c.wav",
+												"d.wav",
+												"e.wav",
+												"f.wav",
+												"header.wav",
+												"city.wav",
+												"family.wav",
+												"subfamily.wav",
+												"address.wav",
+												"relays.wav",
+												"ignored.wav",
+												"off.wav",
+												"on.wav",
+												"trailer.wav"
+										};
+	char ccir_received[21];
+
+	ReceiverModel& receiver_model;
+	
+	Text text_title {
+		{ 1 * 8, 1 * 16, 11, 16 },
+		"BH Xylos RX"
+	};
+	
+	Text text_city {
+		{ 4 * 8, 3 * 16, 11 * 8, 16 },
+		"Code ville:"
+	};
+	NumberField city_code {
+		{ 16 * 8, 3 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' '
+	};
+	
+	Text text_freq {
+		{ 5 * 8, 9 * 16, 10 * 8, 16 },
+		"Frequence:"
+	};
+	OptionsField options_freq {
+		{ 16 * 8, 9 * 16 },
+		7,
+		{
+			{ "31.3250", 0 },
+			{ "31.3875", 1 },
+			{ "31.4375", 2 },
+			{ "31.4750", 3 },
+			{ "31.6875", 4 },
+			{ "31.9750", 5 },
+			{ "TEST 88", 6 }
+		}
+	};
+	
+	Button button_start {
+		{ 2 * 8, 16 * 16, 64, 32 },
+		"START"
+	};
+	
+	Button button_exit {
+		{ 21 * 8, 16 * 16, 64, 32 },
+		"Exit"
+	};
+};
 
 class XylosView : public View {
 public:
@@ -41,20 +146,55 @@ public:
 	~XylosView();
 	void journuit();
 	
+	void talk();
 	void upd_message();
 	void focus() override;
 	void paint(Painter& painter) override;
 
 private:
 	bool txing = false;
-	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 87000000 };
+	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
+	uint8_t xylos_voice_phrase[32] = { 0xFF };
+	const char * xylos_voice_filenames[26] = {	"zero.wav",
+												"one.wav",
+												"two.wav",
+												"three.wav",
+												"four.wav",
+												"five.wav",
+												"six.wav",
+												"seven.wav",
+												"eight.wav",
+												"nine.wav",
+												"a.wav",
+												"b.wav",
+												"c.wav",
+												"d.wav",
+												"e.wav",
+												"f.wav",
+												"header.wav",
+												"city.wav",
+												"family.wav",
+												"subfamily.wav",
+												"address.wav",
+												"relays.wav",
+												"ignored.wav",
+												"off.wav",
+												"on.wav",
+												"trailer.wav"
+										};
 	char ccirmessage[21];
+	char ccir_received[21];
 
 	TransmitterModel& transmitter_model;
 	
 	Text text_title {
 		{ 1 * 8, 1 * 16, 11, 16 },
 		"BH Xylos TX"
+	};
+	
+	Button button_txtest {
+		{ 170, 1 * 16, 40, 24 },
+		"TEST"
 	};
 	
 	Text text_city {
@@ -127,7 +267,7 @@ private:
 			{ "31.4750", 3 },
 			{ "31.6875", 4 },
 			{ "31.9750", 5 },
-			{ "TEST 87", 6 }
+			{ "TEST 88", 6 }
 		}
 	};
 	

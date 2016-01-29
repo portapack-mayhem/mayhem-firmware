@@ -54,13 +54,13 @@ private:
 	bool _lowercase = false;
 	static constexpr size_t button_w = 240 / 5;
 	static constexpr size_t button_h = 28;
-	char txtinput[9];
+	char txtinput[21];
 	
 	void set_lowercase();
 	void set_uppercase();
 	
 	Text text_input {
-		{ 88, 0, 240, 16 }
+		{ 8, 0, 200, 16 }
 	};
 
 	std::array<Button, 40> buttons;

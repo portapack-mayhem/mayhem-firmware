@@ -26,6 +26,11 @@
 
 #include <cstdint>
 
+// 1990 1131 1201 1275 1357 ...
+
+// 14 13 12 11:
+// 2108 989 2259 931
+
 void XylosProcessor::execute(buffer_c8_t buffer) {
 	
 	// This is called at 1536000/2048 = 750Hz

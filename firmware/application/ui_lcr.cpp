@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ui_alphanum.hpp"
 #include "ui_rds.hpp"
 #include "ui_lcr.hpp"
 #include "ui_receiver.hpp"

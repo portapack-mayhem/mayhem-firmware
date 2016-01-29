@@ -40,18 +40,21 @@ public:
 		RSSIStatistics = 0,
 		BasebandStatistics = 1,
 		ChannelStatistics = 2,
-		ChannelSpectrum = 3,
-		AudioStatistics = 4,
-		BasebandConfiguration = 5,
-		TPMSPacket = 6,
+		DisplayFrameSync = 3,
+		ChannelSpectrum = 4,
+		AudioStatistics = 5,
+		BasebandConfiguration = 6,
+		TPMSPacket = 7,
 		Shutdown = 8,
-		AISPacket = 7,
-		TXDone = 9,
-		SDCardStatus = 10,
-		Retune = 11,
-		ReadyForSwitch = 12,
-		AFSKData = 13,
-		ModuleID = 14,
+		AISPacket = 9,
+		TXDone = 10,
+		SDCardStatus = 11,
+		Retune = 12,
+		ReadyForSwitch = 13,
+		AFSKData = 14,
+		ModuleID = 15,
+		FIFOSignal = 16,
+		FIFOData = 17,
 		MAX
 	};
 
@@ -175,6 +178,8 @@ typedef enum {
 	TX_TONE,
 	TX_JAMMER,
 	TX_XYLOS,
+	
+	PLAY_AUDIO,
 	
 	NONE,
 	SWITCH = 0xFF
@@ -325,6 +330,34 @@ public:
 	}
 	
 	int64_t freq = 0;
+};
+
+class DisplayFrameSyncMessage : public Message {
+public:
+	constexpr DisplayFrameSyncMessage(
+	) : Message { ID::DisplayFrameSync }
+	{
+	}
+};
+
+class FIFOSignalMessage : public Message {
+public:
+	FIFOSignalMessage(
+	) : Message { ID::FIFOSignal }
+	{
+	}
+
+	char signaltype = 0;
+};
+
+class FIFODataMessage : public Message {
+public:
+	FIFODataMessage(
+	) : Message { ID::FIFOData }
+	{
+	}
+
+	int8_t * data;
 };
 
 class MessageHandlerMap {

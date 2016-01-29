@@ -23,8 +23,9 @@
 #include "ui_xylos.hpp"
 
 #include "ch.h"
-#include "evtimer.h"
+#include "hackrf_hal.hpp"
 
+#include "ui_alphanum.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
@@ -40,6 +41,83 @@
 using namespace hackrf::one;
 
 namespace ui {
+	
+void XylosRXView::talk() {
+	uint8_t c;
+	
+	xylos_voice_phrase[0] = XYLOS_VOICE_HEADER;			// Header
+	for (c=0; c<4; c++)
+		xylos_voice_phrase[c+1] = XYLOS_VOICE_ZERO + ccir_received[c];
+	xylos_voice_phrase[5] = XYLOS_VOICE_HEADER + 1;		// City
+	xylos_voice_phrase[6] = XYLOS_VOICE_ZERO + ccir_received[4];
+	xylos_voice_phrase[7] = XYLOS_VOICE_ZERO + ccir_received[5];
+	xylos_voice_phrase[8] = XYLOS_VOICE_HEADER + 2;		// Family
+	xylos_voice_phrase[9] = XYLOS_VOICE_ZERO + ccir_received[6];
+	xylos_voice_phrase[10] = XYLOS_VOICE_HEADER + 3;	// Subfamily
+	xylos_voice_phrase[11] = XYLOS_VOICE_ZERO + ccir_received[7];
+	xylos_voice_phrase[12] = XYLOS_VOICE_HEADER + 4;	// Address
+	xylos_voice_phrase[13] = XYLOS_VOICE_ZERO + ccir_received[8];
+	xylos_voice_phrase[14] = XYLOS_VOICE_ZERO + ccir_received[9];
+	xylos_voice_phrase[15] = XYLOS_VOICE_RELAYS;		// Relays
+	for (c=0; c<4; c++) {
+		xylos_voice_phrase[(c*2)+16] = XYLOS_VOICE_ZERO + 1 + c;
+		xylos_voice_phrase[(c*2)+17] = XYLOS_VOICE_RELAYS + 1 + ccir_received[c+11];
+	}
+	xylos_voice_phrase[24] = XYLOS_VOICE_TRAILER;		// Trailer
+	for (c=0; c<4; c++)
+		xylos_voice_phrase[c+25] = XYLOS_VOICE_ZERO + ccir_received[c+16];
+	xylos_voice_phrase[29] = 0xFF;
+}
+
+void XylosRXView::focus() {
+	button_start.focus();
+}
+
+XylosRXView::~XylosRXView() {
+	receiver_model.disable();
+}
+
+/*VirtualTimer vt;
+
+void XylosRXView::do_something(void *p) {
+	//p.set(xylos_voice_filenames[xylos_voice_phrase[p_idx]]);
+	//p_idx++;
+	//} while (xylos_voice_phrase[p_idx] != 0xFF);
+	text_dbg.set("Done :)");
+}*/
+
+void XylosRXView::on_show() {
+	//chVTSet(&vt, MS2ST(1000), do_something, NULL);
+}
+
+XylosRXView::XylosRXView(
+	NavigationView& nav,
+	ReceiverModel& receiver_model
+) : receiver_model(receiver_model)
+{
+	char ccirdebug[21] = { 0,0,0,0,1,8,1,10,10,10,11,1,1,2,0,11,0,0,0,0,0xFF };
+	
+	memcpy(ccir_received, ccirdebug, 21);
+	
+	add_children({ {
+		&text_dbg,
+		&button_start,
+		&button_exit
+	} });
+
+	button_start.on_select = [this](Button&) {
+		talk();
+		p_idx = 0;
+	};
+
+	button_exit.on_select = [&nav](Button&){
+		nav.pop();
+	};
+	
+}
+
+
+
 
 void XylosView::focus() {
 	city_code.focus();
@@ -100,7 +178,7 @@ void XylosView::upd_message() {
 	// Display as text
 	text_debug.set(ccirmessage);
 	
-	// ASCII to baseband frequency LUT index
+	// ASCII to frequency LUT index
 	for (c=0; c<20; c++) {
 		if (ccirmessage[c] > '9')
 			ccirmessage[c] -= 0x37;
@@ -159,6 +237,7 @@ XylosView::XylosView(
 	
 	add_children({ {
 		&text_title,
+		&button_txtest,
 		&text_city,
 		&city_code,
 		&text_family,
@@ -241,6 +320,41 @@ XylosView::XylosView(
 	
 	button_transmit.set_style(&style_val);
 	
+	button_txtest.on_select = [this,&transmitter_model](Button&) {
+		const uint8_t ccirtest[21] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,14,13,12,11,0xFF };
+		if (txing == false) {
+			auto& message_map = context().message_map();
+			
+			message_map.unregister_handler(Message::ID::TXDone);
+			
+			message_map.register_handler(Message::ID::TXDone,
+				[this,&transmitter_model](Message* const p) {
+					const auto message = static_cast<const TXDoneMessage*>(p);
+					if (message->n == 25) {
+						portapack::audio_codec.set_headphone_volume(volume_t::decibel(0 - 99) + wolfson::wm8731::headphone_gain_range.max);
+						transmitter_model.disable();
+						txing = false;
+						button_txtest.set_style(&style_val);
+						button_txtest.set_text("TX TEST");
+					}
+				}
+			);
+			
+			memcpy(ccirmessage, ccirtest, 21);
+			shared_memory.xylos_transmit_done = false;
+			memcpy(shared_memory.xylosdata, ccirmessage, 21);
+
+			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
+			
+			portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+
+			txing = true;
+			button_txtest.set_style(&style_cancel);
+			button_txtest.set_text("Wait");
+			transmitter_model.enable();
+		}
+	};
+
 	button_transmit.on_select = [this,&transmitter_model](Button&) {
 		if (txing == false) {
 			upd_message();

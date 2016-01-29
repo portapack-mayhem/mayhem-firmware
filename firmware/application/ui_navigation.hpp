@@ -79,7 +79,7 @@ public:
 private:
 	Text text_info {
 		{ 5 * 8, 284, 20 * 8, 16 },
-		"shrbrnd-sig-ftk 2015"
+		"shrbrnd-sig-ftk 2016"
 	};
 	
 	Button button_done {

@@ -33,7 +33,7 @@
 #include "transmitter_model.hpp"
 
 namespace ui {
-
+/*
 class AlphanumView : public View {
 public:
 	std::function<void(char *)> on_changed;
@@ -83,7 +83,7 @@ private:
 
 	void update_text();
 };
-
+*/
 class RDSView : public View {
 public:
 	RDSView(NavigationView& nav, TransmitterModel& transmitter_model);

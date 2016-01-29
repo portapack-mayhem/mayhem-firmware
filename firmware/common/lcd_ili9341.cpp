@@ -246,6 +246,11 @@ void ILI9341::render_line(const ui::Point p, const uint8_t count, const ui::Colo
 	io.lcd_write_pixels(line_buffer, count);
 }
 
+void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer) {
+	lcd_start_ram_write(p, s);
+	io.lcd_write_pixels(line_buffer, s.w * s.h);
+}
+
 void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap) {
 	uint32_t pixel_data, pal_data;
 	uint8_t pal, by, c, count;
