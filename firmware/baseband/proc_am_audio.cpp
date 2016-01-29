@@ -21,7 +21,6 @@
 
 #include "proc_am_audio.hpp"
 
-#include "dsp_iir_config.hpp"
 #include "audio_output.hpp"
 
 #include <array>
@@ -84,7 +83,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
-	audio_output.configure(audio_8k_hpf_300hz_config);
+	audio_output.configure(message.audio_hpf_config);
 
 	configured = true;
 }

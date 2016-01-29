@@ -25,6 +25,9 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
+#include "dsp_fir_taps.hpp"
+#include "dsp_iir_config.hpp"
+
 #include "utility.hpp"
 
 AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
@@ -60,6 +63,8 @@ void AnalogAudioModel::configure_nbfm() {
 		taps_4k25_decim_1,
 		taps_4k25_channel,
 		2500,
+		audio_16k_hpf_300hz_config,
+		audio_16k_deemph_300_6_config
 	};
 	shared_memory.baseband_queue.push(message);
 	clock_manager.set_base_audio_clock_divider(3);
@@ -71,6 +76,8 @@ void AnalogAudioModel::configure_wfm() {
 		taps_200k_wfm_decim_1,
 		taps_64_lp_156_198,
 		75000,
+		audio_48k_hpf_30hz_config,
+		audio_48k_deemph_2122_6_config
 	};
 	shared_memory.baseband_queue.push(message);
 	clock_manager.set_base_audio_clock_divider(1);
@@ -81,6 +88,7 @@ void AnalogAudioModel::configure_am() {
 		taps_6k0_decim_0,
 		taps_6k0_decim_1,
 		taps_6k0_channel,
+		audio_8k_hpf_300hz_config
 	};
 	shared_memory.baseband_queue.push(message);
 	clock_manager.set_base_audio_clock_divider(6);

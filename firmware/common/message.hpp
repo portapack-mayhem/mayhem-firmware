@@ -30,6 +30,7 @@
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
 #include "dsp_fir_taps.hpp"
+#include "dsp_iir.hpp"
 #include "fifo.hpp"
 
 #include "utility.hpp"
@@ -38,7 +39,7 @@
 
 class Message {
 public:
-	static constexpr size_t MAX_SIZE = 276;
+	static constexpr size_t MAX_SIZE = 288;
 
 	enum class ID : uint32_t {
 		/* Assign consecutive IDs. IDs are used to index array. */
@@ -319,12 +320,16 @@ public:
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
 		const fir_taps_real<32> channel_filter,
-		const size_t deviation
+		const size_t deviation,
+		const iir_biquad_config_t audio_hpf_config,
+		const iir_biquad_config_t audio_deemph_config
 	) : Message { ID::NBFMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
 		channel_filter(channel_filter),
-		deviation { deviation }
+		deviation { deviation },
+		audio_hpf_config { audio_hpf_config },
+		audio_deemph_config { audio_deemph_config }
 	{
 	}
 
@@ -332,6 +337,8 @@ public:
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
 	const size_t deviation;
+	const iir_biquad_config_t audio_hpf_config;
+	const iir_biquad_config_t audio_deemph_config;
 };
 
 class WFMConfigureMessage : public Message {
@@ -340,12 +347,16 @@ public:
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<16> decim_1_filter,
 		const fir_taps_real<64> audio_filter,
-		const size_t deviation
+		const size_t deviation,
+		const iir_biquad_config_t audio_hpf_config,
+		const iir_biquad_config_t audio_deemph_config
 	) : Message { ID::WFMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
 		audio_filter(audio_filter),
-		deviation { deviation }
+		deviation { deviation },
+		audio_hpf_config { audio_hpf_config },
+		audio_deemph_config { audio_deemph_config }
 	{
 	}
 
@@ -353,6 +364,8 @@ public:
 	const fir_taps_real<16> decim_1_filter;
 	const fir_taps_real<64> audio_filter;
 	const size_t deviation;
+	const iir_biquad_config_t audio_hpf_config;
+	const iir_biquad_config_t audio_deemph_config;
 };
 
 class AMConfigureMessage : public Message {
@@ -360,17 +373,20 @@ public:
 	constexpr AMConfigureMessage(
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
-		const fir_taps_real<32> channel_filter
+		const fir_taps_real<32> channel_filter,
+		const iir_biquad_config_t audio_hpf_config
 	) : Message { ID::AMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
-		channel_filter(channel_filter)
+		channel_filter(channel_filter),
+		audio_hpf_config { audio_hpf_config }
 	{
 	}
 
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
+	const iir_biquad_config_t audio_hpf_config;
 };
 
 class MessageHandlerMap {
