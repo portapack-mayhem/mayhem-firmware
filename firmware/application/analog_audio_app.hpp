@@ -30,7 +30,7 @@ public:
 	AnalogAudioModel(ReceiverModel::Mode mode);
 
 private:
-	void configure_nbfm();
+	void configure_nbfm(const size_t index);
 	void configure_wfm();
 	void configure_am();
 };

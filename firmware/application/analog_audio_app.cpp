@@ -40,7 +40,7 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 
 	switch(mode) {
 	case ReceiverModel::Mode::NarrowbandFMAudio:
-		configure_nbfm();
+		configure_nbfm(2);
 		break;
 
 	case ReceiverModel::Mode::WidebandFMAudio:
@@ -57,13 +57,27 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 
 }
 
-void AnalogAudioModel::configure_nbfm() {
+struct NBFMMode {
+	const fir_taps_real<24> decim_0;
+	const fir_taps_real<32> decim_1;
+	const fir_taps_real<32> channel;
+	const size_t deviation;
+};
+
+static constexpr std::array<NBFMMode, 3> nbfm_mode_configs { {
+	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
+	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
+	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
+} };
+
+void AnalogAudioModel::configure_nbfm(const size_t index) {
+	const auto config = nbfm_mode_configs[index];
 	const NBFMConfigureMessage message {
-		taps_4k25_decim_0,
-		taps_4k25_decim_1,
-		taps_4k25_channel,
+		config.decim_0,
+		config.decim_1,
+		config.channel,
 		2,
-		2500,
+		config.deviation,
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config
 	};
