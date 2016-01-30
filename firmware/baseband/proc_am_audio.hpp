@@ -58,8 +58,6 @@ private:
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
-	BlockDecimator<32> channel_block_buffer { post_channel_decimation_factor };	
-
 	dsp::demodulate::AM demod;
 
 	AudioOutput audio_output;

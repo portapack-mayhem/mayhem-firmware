@@ -38,12 +38,8 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
-	channel_block_buffer.feed(
-		channel_out, [this](const buffer_c16_t buffer) {
-			auto audio = this->demod.execute(buffer, this->audio_buffer);
-			this->audio_output.write(audio);
-		}
-	);
+	auto audio = demod.execute(channel_out, audio_buffer);
+	audio_output.write(audio);
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {
