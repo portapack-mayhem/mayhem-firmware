@@ -36,10 +36,22 @@ constexpr iir_biquad_config_t audio_48k_hpf_300hz_config {
 	{  1.00000000f, -1.94447766f,  0.94597794f }
 };
 
+// scipy.signal.butter(2, 300 / 12000.0, 'highpass', analog=False)
+constexpr iir_biquad_config_t audio_24k_hpf_300hz_config {
+	{  0.94597686f, -1.89195371f,  0.94597686f },
+	{  1.00000000f, -1.88903308f,  0.89487434f }
+};
+
 // scipy.signal.butter(2, 300 / 8000.0, 'highpass', analog=False)
 constexpr iir_biquad_config_t audio_16k_hpf_300hz_config {
 	{  0.92006616f, -1.84013232f,  0.92006616f },
 	{  1.00000000f, -1.83373266f,  0.84653197f }
+};
+
+// scipy.signal.butter(2, 300 / 6000.0, 'highpass', analog=False)
+constexpr iir_biquad_config_t audio_12k_hpf_300hz_config {
+	{  0.89485861f, -1.78971721f,  0.89485861f },
+	{  1.00000000f, -1.77863178f,  0.80080265f }
 };
 
 // scipy.signal.butter(2, 300 / 4000.0, 'highpass', analog=False)
@@ -61,11 +73,25 @@ constexpr iir_biquad_config_t audio_48k_deemph_300_6_config {
 	{  1.00000000f, -0.96148145f,  0.00000000f }
 };
 
+// scipy.signal.butter(1, 300 / 12000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_24k_deemph_300_6_config {
+	{  0.03780475f,  0.03780475f,  0.00000000f },
+	{  1.00000000f, -0.92439049f,  0.00000000f }
+};
+
 // scipy.signal.butter(1, 300 / 8000.0, 'lowpass', analog=False)
 // NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
 constexpr iir_biquad_config_t audio_16k_deemph_300_6_config {
 	{  0.05568894f,  0.05568894f,  0.00000000f },
 	{  1.00000000f, -0.88862213f,  0.00000000f }
+};
+
+// scipy.signal.butter(1, 300 / 6000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_12k_deemph_300_6_config {
+	{  0.07295966f,  0.07295966f,  0.00000000f },
+	{  1.00000000f, -0.85408069f,  0.00000000f }
 };
 
 // scipy.signal.butter(1, 300 / 4000.0, 'lowpass', analog=False)
