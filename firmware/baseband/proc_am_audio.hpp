@@ -39,6 +39,10 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	static constexpr size_t baseband_fs = 3072000;
+	static constexpr size_t channel_filter_decimation_factor = 1;
+	static constexpr size_t post_channel_decimation_factor = 6;
+
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
@@ -56,7 +60,6 @@ private:
 	uint32_t channel_filter_pass_f;
 	uint32_t channel_filter_stop_f;
 
-	static constexpr size_t post_channel_decimation_factor = 6;
 	BlockDecimator<32> channel_block_buffer { post_channel_decimation_factor };	
 
 	dsp::demodulate::AM demod;

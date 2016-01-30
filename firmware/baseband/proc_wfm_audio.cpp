@@ -87,19 +87,14 @@ void WidebandFMAudio::on_message(const Message* const message) {
 }
 
 void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
-	constexpr size_t baseband_fs = 3072000;
-
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 4;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 2;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t demod_input_fs = decim_1_output_fs;
 
-	constexpr auto spectrum_rate_hz = 50.0f;
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
 

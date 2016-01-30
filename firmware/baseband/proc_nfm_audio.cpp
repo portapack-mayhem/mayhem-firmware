@@ -63,18 +63,13 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 }
 
 void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
-	constexpr size_t baseband_fs = 3072000;
-
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 8;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 8;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	constexpr size_t channel_filter_decimation_factor = 1;
 	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	constexpr size_t demod_input_fs = channel_filter_output_fs / post_channel_decimation_factor;
