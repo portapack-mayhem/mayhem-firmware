@@ -103,8 +103,6 @@ public:
 		Up = false
 	};
 
-	FIRC8xR16x24FS4Decim4();
-
 	void configure(
 		const std::array<tap_t, taps_count>& taps,
 		const int32_t scale,
@@ -135,8 +133,6 @@ public:
 		Up = false
 	};
 
-	FIRC8xR16x24FS4Decim8();
-
 	void configure(
 		const std::array<tap_t, taps_count>& taps,
 		const int32_t scale,
@@ -162,8 +158,6 @@ public:
 	using sample_t = complex16_t;
 	using tap_t = int16_t;
 
-	FIRC16xR16x16Decim2();
-
 	void configure(
 		const std::array<tap_t, taps_count>& taps,
 		const int32_t scale
@@ -187,8 +181,6 @@ public:
 
 	using sample_t = complex16_t;
 	using tap_t = int16_t;
-
-	FIRC16xR16x32Decim8();
 
 	void configure(
 		const std::array<tap_t, taps_count>& taps,

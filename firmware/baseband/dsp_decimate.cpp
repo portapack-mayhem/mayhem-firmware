@@ -179,10 +179,6 @@ static inline uint32_t scale_round_and_pack(
 
 // FIRC8xR16x24FS4Decim4 //////////////////////////////////////////////////
 
-FIRC8xR16x24FS4Decim4::FIRC8xR16x24FS4Decim4() {
-	z_.fill({});
-}
-
 void FIRC8xR16x24FS4Decim4::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale,
@@ -196,6 +192,7 @@ void FIRC8xR16x24FS4Decim4::configure(
 		taps_[i+3] =  taps[i+3] * negate_factor;
 	}
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
@@ -244,10 +241,6 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
 
 // FIRC8xR16x24FS4Decim8 //////////////////////////////////////////////////
 
-FIRC8xR16x24FS4Decim8::FIRC8xR16x24FS4Decim8() {
-	z_.fill({});
-}
-
 void FIRC8xR16x24FS4Decim8::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale,
@@ -261,6 +254,7 @@ void FIRC8xR16x24FS4Decim8::configure(
 		taps_[i+3] =  taps[i+3] * negate_factor;
 	}
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
@@ -309,16 +303,13 @@ buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
 
 // FIRC16xR16x16Decim2 ////////////////////////////////////////////////////
 
-FIRC16xR16x16Decim2::FIRC16xR16x16Decim2() {
-	z_.fill({});
-}
-
 void FIRC16xR16x16Decim2::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale
 ) {
 	std::copy(taps.cbegin(), taps.cend(), taps_.begin());
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC16xR16x16Decim2::execute(
@@ -363,16 +354,13 @@ buffer_c16_t FIRC16xR16x16Decim2::execute(
 
 // FIRC16xR16x32Decim8 ////////////////////////////////////////////////////
 
-FIRC16xR16x32Decim8::FIRC16xR16x32Decim8() {
-	z_.fill({});
-}
-
 void FIRC16xR16x32Decim8::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale
 ) {
 	std::copy(taps.cbegin(), taps.cend(), taps_.begin());
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC16xR16x32Decim8::execute(
