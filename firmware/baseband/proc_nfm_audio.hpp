@@ -30,6 +30,8 @@
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
+#include <cstdint>
+
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
@@ -54,7 +56,6 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
-
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
