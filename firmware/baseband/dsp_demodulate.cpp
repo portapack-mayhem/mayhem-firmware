@@ -55,6 +55,23 @@ buffer_f32_t AM::execute(
 
 	return { dst.p, src.count, src.sampling_rate };
 }
+
+buffer_f32_t SSB::execute(
+	const buffer_c16_t& src,
+	const buffer_f32_t& dst
+) {
+	const complex16_t* src_p = src.p;
+	const auto src_end = &src.p[src.count];
+	auto dst_p = dst.p;
+	while(src_p < src_end) {
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
+	}
+
+	return { dst.p, src.count, src.sampling_rate };
+}
 /*
 static inline float angle_approx_4deg0(const complex32_t t) {
 	const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
