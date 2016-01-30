@@ -34,6 +34,13 @@ struct fir_taps_real {
 	std::array<int16_t, N> taps;
 };
 
+template<size_t N>
+struct fir_taps_complex {
+	float pass_frequency_normalized;
+	float stop_frequency_normalized; 
+	std::array<complex16_t, N> taps;
+};
+
 // NBFM 16K0F3E emission type /////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=3072000, pass=8000, stop=344000, decim=8, fout=384000
