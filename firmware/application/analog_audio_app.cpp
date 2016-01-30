@@ -62,12 +62,13 @@ void AnalogAudioModel::configure_nbfm() {
 		taps_4k25_decim_0,
 		taps_4k25_decim_1,
 		taps_4k25_channel,
+		2,
 		2500,
-		audio_16k_hpf_300hz_config,
-		audio_16k_deemph_300_6_config
+		audio_24k_hpf_300hz_config,
+		audio_24k_deemph_300_6_config
 	};
 	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(3);
+	clock_manager.set_base_audio_clock_divider(2);
 }
 
 void AnalogAudioModel::configure_wfm() {
@@ -88,8 +89,9 @@ void AnalogAudioModel::configure_am() {
 		taps_6k0_decim_0,
 		taps_6k0_decim_1,
 		taps_6k0_channel,
-		audio_8k_hpf_300hz_config
+		4,
+		audio_12k_hpf_300hz_config
 	};
 	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(6);
+	clock_manager.set_base_audio_clock_divider(4);
 }

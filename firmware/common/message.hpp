@@ -320,6 +320,7 @@ public:
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
 		const fir_taps_real<32> channel_filter,
+		const size_t channel_decimation,
 		const size_t deviation,
 		const iir_biquad_config_t audio_hpf_config,
 		const iir_biquad_config_t audio_deemph_config
@@ -327,6 +328,7 @@ public:
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
 		channel_filter(channel_filter),
+		channel_decimation { channel_decimation },
 		deviation { deviation },
 		audio_hpf_config { audio_hpf_config },
 		audio_deemph_config { audio_deemph_config }
@@ -336,6 +338,7 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
+	const size_t channel_decimation;
 	const size_t deviation;
 	const iir_biquad_config_t audio_hpf_config;
 	const iir_biquad_config_t audio_deemph_config;
@@ -374,11 +377,13 @@ public:
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
 		const fir_taps_real<32> channel_filter,
+		const size_t channel_decimation,
 		const iir_biquad_config_t audio_hpf_config
 	) : Message { ID::AMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
 		channel_filter(channel_filter),
+		channel_decimation { channel_decimation },
 		audio_hpf_config { audio_hpf_config }
 	{
 	}
@@ -386,6 +391,7 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> channel_filter;
+	const size_t channel_decimation;
 	const iir_biquad_config_t audio_hpf_config;
 };
 

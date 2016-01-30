@@ -70,13 +70,13 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	const size_t channel_filter_output_fs = channel_filter_input_fs / message.channel_decimation;
 
-	constexpr size_t demod_input_fs = channel_filter_output_fs / post_channel_decimation_factor;
+	const size_t demod_input_fs = channel_filter_output_fs;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
-	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
+	channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
 	demod.configure(demod_input_fs, message.deviation);
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
