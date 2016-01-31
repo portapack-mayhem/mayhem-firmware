@@ -61,7 +61,8 @@ private:
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
-	dsp::demodulate::AM demod;
+	dsp::demodulate::AM demod_am;
+	dsp::demodulate::SSB demod_ssb;
 
 	AudioOutput audio_output;
 
