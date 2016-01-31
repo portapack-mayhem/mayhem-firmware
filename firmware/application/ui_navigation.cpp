@@ -27,8 +27,8 @@
 
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
-#include "ui_receiver.hpp"
 
+#include "analog_audio_app.hpp"
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
@@ -140,7 +140,7 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio",        [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Audio",        [&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 }

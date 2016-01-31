@@ -175,7 +175,6 @@ CPPSRC = main.cpp \
          tpms_app.cpp \
          ert_app.cpp \
          ../common/ert_packet.cpp \
-         spectrum_analysis_app.cpp \
          sd_card.cpp \
          file.cpp \
          log_file.cpp \
