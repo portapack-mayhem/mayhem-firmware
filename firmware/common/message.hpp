@@ -374,7 +374,7 @@ public:
 class AMConfigureMessage : public Message {
 public:
 	enum class Modulation : int32_t {
-		AM  = 0,
+		DSB = 0,
 		SSB = 1,
 	};
 
