@@ -40,6 +40,8 @@ public:
 
 private:
 	static constexpr size_t baseband_fs = 3072000;
+	static constexpr size_t decim_2_decimation_factor = 4;
+	static constexpr size_t channel_filter_decimation_factor = 1;
 
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {

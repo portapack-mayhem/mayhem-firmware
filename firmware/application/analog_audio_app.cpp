@@ -103,7 +103,6 @@ void AnalogAudioModel::configure_am() {
 		taps_6k0_decim_0,
 		taps_6k0_decim_1,
 		taps_6k0_channel,
-		4,
 		audio_12k_hpf_300hz_config
 	};
 	shared_memory.baseband_queue.push(message);
