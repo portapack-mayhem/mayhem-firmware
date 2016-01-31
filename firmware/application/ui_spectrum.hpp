@@ -84,7 +84,7 @@ public:
 private:
 	WaterfallView waterfall_view;
 	FrequencyScale frequency_scale;
-	ChannelSpectrumFIFO* fifo;
+	ChannelSpectrumFIFO* fifo { nullptr };
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 };
