@@ -39,7 +39,7 @@
 
 class Message {
 public:
-	static constexpr size_t MAX_SIZE = 288;
+	static constexpr size_t MAX_SIZE = 512;
 
 	enum class ID : uint32_t {
 		/* Assign consecutive IDs. IDs are used to index array. */
@@ -377,7 +377,7 @@ public:
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
 		const fir_taps_real<32> decim_2_filter,
-		const fir_taps_real<32> channel_filter,
+		const fir_taps_complex<64> channel_filter,
 		const iir_biquad_config_t audio_hpf_config
 	) : Message { ID::AMConfigure },
 		decim_0_filter(decim_0_filter),
@@ -391,7 +391,7 @@ public:
 	const fir_taps_real<24> decim_0_filter;
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> decim_2_filter;
-	const fir_taps_real<32> channel_filter;
+	const fir_taps_complex<64> channel_filter;
 	const iir_biquad_config_t audio_hpf_config;
 };
 

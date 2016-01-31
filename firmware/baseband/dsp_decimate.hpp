@@ -235,11 +235,18 @@ private:
 	size_t taps_count_;
 	size_t decimation_factor_;
 
+	template<typename T>
 	void configure(
-		const int16_t* const taps,
+		const T* const taps,
 		const size_t taps_count,
 		const size_t decimation_factor
-	);
+	) {
+		samples_ = std::make_unique<samples_t>(taps_count);
+		taps_reversed_ = std::make_unique<taps_t>(taps_count);
+		taps_count_ = taps_count;
+		decimation_factor_ = decimation_factor;
+		std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
+	}
 };
 
 class DecimateBy2CIC4Real {

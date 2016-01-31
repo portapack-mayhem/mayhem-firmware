@@ -645,18 +645,6 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
 }
 
-void FIRAndDecimateComplex::configure(
-	const int16_t* const taps,
-	const size_t taps_count,
-	const size_t decimation_factor
-) {
-	samples_ = std::make_unique<samples_t>(taps_count);
-	taps_reversed_ = std::make_unique<taps_t>(taps_count);
-	taps_count_ = taps_count;
-	decimation_factor_ = decimation_factor;
-	std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
-}
-
 buffer_c16_t FIRAndDecimateComplex::execute(
 	const buffer_c16_t& src,
 	const buffer_c16_t& dst
