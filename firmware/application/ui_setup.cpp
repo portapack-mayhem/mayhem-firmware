@@ -19,9 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ui_font_fixed_8x16.hpp"
 #include "ui_setup.hpp"
 #include "touch.hpp"
 
+#include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
 
@@ -246,8 +248,179 @@ void SetUIView::focus() {
 	button_ok.focus();
 }
 
+void ModInfoView::on_show() {
+	update_infos(0);
+}
+
+void ModInfoView::update_infos(uint8_t modn) {
+	char info_str[27];
+	char ch;
+	uint8_t c;
+	Point pos = { 0, 0 };
+	Rect rect = { { 16, 144 }, { 208, 144 } };
+	
+	info_str[0] = 0;
+	strcat(info_str, module_list[modn].name);
+	text_namestr.set(info_str);
+	
+	info_str[0] = 0;
+	strcat(info_str, to_string_dec_uint(module_list[modn].size).c_str());
+	strcat(info_str, " bytes");
+	text_sizestr.set(info_str);
+	
+	info_str[0] = 0;
+	for (c = 0; c < 8; c++)
+		strcat(info_str, to_string_hex(module_list[modn].md5[c], 2).c_str());
+	text_md5_a.set(info_str);
+
+	info_str[0] = 0;
+	for (c = 8; c < 16; c++)
+		strcat(info_str, to_string_hex(module_list[modn].md5[c], 2).c_str());
+	text_md5_b.set(info_str);
+	
+	// TODO: Use ui_console
+	display.fill_rectangle(rect, Color::black());
+	
+	const Font& font = font::fixed_8x16;
+	const auto line_height = font.line_height();
+	c = 0;
+	while((ch = module_list[modn].description[c++])) {
+		const auto glyph = font.glyph(ch);
+		const auto advance = glyph.advance();
+		if((pos.x + advance.x) > rect.width()) {
+			pos.x = 0;
+			pos.y += line_height;
+		}
+		const Point pos_glyph {
+			static_cast<Coord>(rect.pos.x + pos.x),
+			static_cast<Coord>(rect.pos.y + pos.y)
+		};
+		display.draw_glyph(pos_glyph, glyph, Color::white(), Color::black());
+		pos.x += advance.x;
+	}
+}
+
+ModInfoView::ModInfoView(NavigationView& nav) {
+	const char magic[4] = {'P', 'P', 'M', ' '};
+	UINT bw;
+	uint8_t i;
+	char read_buf[16];
+	char info_str[25];
+	FILINFO modinfo;
+	FIL modfile;
+	DIR rootdir;
+	FRESULT res;
+	
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	uint8_t c;
+	option_t opt;
+	options_t opts;
+	
+	static constexpr Style style_orange {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::orange(),
+	};
+	
+	add_children({{
+		&text_modcount,
+		&text_name,
+		&text_namestr,
+		&text_size,
+		&text_sizestr,
+		&text_md5,
+		&text_md5_a,
+		&text_md5_b,
+		&button_ok
+	}});
+	
+	text_name.set_style(&style_orange);
+	text_size.set_style(&style_orange);
+	text_md5.set_style(&style_orange);
+
+	// TODO: Find a way to merge this with m4_load_image() in m4_startup.cpp
+	
+	// Scan SD card root directory for files starting with the magic bytes
+	c = 0;
+	if (f_opendir(&rootdir, "/") == FR_OK) {
+		for (;;) {
+			res = f_readdir(&rootdir, &modinfo);
+			if (res != FR_OK || modinfo.fname[0] == 0) break;	// Reached last file, abort
+			// Only care about files with .bin extension
+			if ((!(modinfo.fattrib & AM_DIR)) && (modinfo.fname[9] == 'B') && (modinfo.fname[10] == 'I') && (modinfo.fname[11] == 'N')) {
+				f_open(&modfile, modinfo.fname, FA_OPEN_EXISTING | FA_READ);
+				// Magic bytes check
+				f_read(&modfile, &read_buf, 4, &bw);
+				for (i = 0; i < 4; i++)
+					if (read_buf[i] != magic[i]) break;
+				if (i == 4) {
+					memcpy(&module_list[c].filename, modinfo.fname, 8);
+					module_list[c].filename[8] = 0;
+					
+					f_lseek(&modfile, 4);
+					f_read(&modfile, &module_list[c].version, 2, &bw);
+					f_lseek(&modfile, 6);
+					f_read(&modfile, &module_list[c].size, 4, &bw);
+					f_lseek(&modfile, 10);
+					f_read(&modfile, &module_list[c].name, 16, &bw);
+					f_lseek(&modfile, 26);
+					f_read(&modfile, &module_list[c].md5, 16, &bw);
+					f_lseek(&modfile, 42);
+					f_read(&modfile, &module_list[c].description, 214, &bw);
+					f_lseek(&modfile, 256);
+					
+					// Sanitize
+					module_list[c].name[15] = 0;
+					module_list[c].description[213] = 0;
+					
+					memcpy(info_str, module_list[c].filename, 16);
+					strcat(info_str, "(V");
+					strcat(info_str, to_string_dec_uint(module_list[c].version, 4, '0').c_str());
+					strcat(info_str, ")");
+					while(strlen(info_str) < 24)
+						strcat(info_str, " ");
+					
+					opt = std::make_pair(info_str, c);
+					opts.insert(opts.end(), opt);
+					
+					c++;
+				}
+				f_close(&modfile);
+			}
+			if (c == 8) break;
+		}
+	}
+	f_closedir(&rootdir);
+	
+	memcpy(info_str, "Found ", 7);
+	strcat(info_str, to_string_dec_uint(c, 1).c_str());
+	strcat(info_str, " module(s)");
+
+	if (c) {
+		text_modcount.set(info_str);
+		option_modules.set_options(opts);
+		
+		add_child(&option_modules);
+		
+		option_modules.on_change = [this](size_t n, OptionsField::value_t v) {
+			(void)n;
+			update_infos(v);
+		};
+	}
+
+	button_ok.on_select = [&nav,this](Button&){
+		nav.pop();
+	};
+}
+
+void ModInfoView::focus() {
+	option_modules.focus();
+}
+
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<5>({ {
+	add_items<6>({ {
+		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push(new ModInfoView { nav }); } },
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push(new SetDateTimeView { nav }); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
 		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },

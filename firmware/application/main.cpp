@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+//BUG:  No audio in about when shown second time
+//BUG:  Description doesn't show up first time going to system>module info (UI drawn on top)
 //TODO: Morse coder
 //TODO: Playdead amnesia and login
 //TODO: Touch screen calibration

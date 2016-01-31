@@ -22,6 +22,8 @@
 #ifndef __UI_SETUP_H__
 #define __UI_SETUP_H__
 
+#include "ff.h"
+
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
@@ -223,7 +225,7 @@ private:
 
 	OptionsField options_bloff {
 		{ 10 * 8, 5 * 16 + 4 },
-		5,
+		10,
 		{
 			{ "5 seconds ", 0 },
 			{ "15 seconds", 1 },
@@ -261,6 +263,73 @@ private:
 	Button button_cancel {
 		{ 128, 192, 96, 24 },
 		"Cancel"
+	};
+};
+
+class ModInfoView : public View {
+public:
+	ModInfoView(NavigationView& nav);
+	void focus() override;
+	void on_show() override;
+	
+private:
+	void update_infos(uint8_t modn);
+	
+	typedef struct moduleinfo_t{
+		char filename[9];
+		uint16_t version;
+		uint32_t size;
+		char md5[16];
+		char name[16];
+		char description[214];
+	} moduleinfo_t;
+	
+	moduleinfo_t module_list[8];	// 8 max for now
+	
+	Text text_modcount {
+		{ 2 * 8, 1 * 16, 18 * 8, 16 },
+		"Searching..."
+	};
+	
+	OptionsField option_modules {
+		{ 2 * 8, 2 * 16 },
+		24,
+		{ { "-", 0 }
+		}
+	};
+	
+	Text text_name {
+		{ 2 * 8, 4 * 16, 5 * 8, 16 },
+		"Name:"
+	};
+	Text text_namestr {
+		{ 8 * 8, 4 * 16, 16 * 8, 16 },
+		"..."
+	};
+	Text text_size {
+		{ 2 * 8, 5 * 16, 5 * 8, 16 },
+		"Size:"
+	};
+	Text text_sizestr {
+		{ 8 * 8, 5 * 16, 16 * 8, 16 },
+		"..."
+	};
+	Text text_md5 {
+		{ 2 * 8, 6 * 16, 4 * 8, 16 },
+		"MD5:"
+	};
+	Text text_md5_a {
+		{ 7 * 8, 6 * 16, 16 * 8, 16 },
+		"..."
+	};
+	Text text_md5_b {
+		{ 7 * 8, 7 * 16, 16 * 8, 16 },
+		"..."
+	};
+	
+	Button button_ok {
+		{ 4 * 8, 272, 64, 24 },
+		"Ok"
 	};
 };
 

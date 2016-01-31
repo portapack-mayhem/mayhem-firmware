@@ -220,11 +220,13 @@ public:
 	}
 
 	void set(const std::string value);
-
+	void set_style(const Style* new_style);
+	
 	void paint(Painter& painter) override;
 
 private:
 	std::string text;
+	const Style* style_ { nullptr };
 };
 
 class Checkbox : public Widget {
@@ -315,6 +317,8 @@ public:
 	{
 		flags.focusable = true;
 	}
+	
+	void set_options(options_t new_options);
 
 	size_t selected_index() const;
 	void set_selected_index(const size_t new_index);

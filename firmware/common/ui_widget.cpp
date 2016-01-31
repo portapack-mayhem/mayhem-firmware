@@ -361,11 +361,20 @@ void Text::set(const std::string value) {
 }
 
 void Text::paint(Painter& painter) {
+	if (style_ == nullptr) style_ = &style();
+
 	painter.draw_string(
 		screen_pos(),
-		style(),
+		(*style_),
 		text
 	);
+}
+
+void Text::set_style(const Style* new_style) {
+	if( new_style != style_ ) {
+		style_ = new_style;
+		set_dirty();
+	}
 }
 
 /* Checkbox **************************************************************/
@@ -639,6 +648,12 @@ void OptionsField::set_by_value(value_t v) {
 		}
 		new_index++;
 	}
+}
+
+void OptionsField::set_options(options_t new_options) {
+	options = new_options;
+	set_by_value(0);
+	set_dirty();
 }
 
 void OptionsField::paint(Painter& painter) {
