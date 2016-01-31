@@ -373,17 +373,24 @@ public:
 
 class AMConfigureMessage : public Message {
 public:
+	enum class Modulation : int32_t {
+		AM  = 0,
+		SSB = 1,
+	};
+
 	constexpr AMConfigureMessage(
 		const fir_taps_real<24> decim_0_filter,
 		const fir_taps_real<32> decim_1_filter,
 		const fir_taps_real<32> decim_2_filter,
 		const fir_taps_complex<64> channel_filter,
+		const Modulation modulation,
 		const iir_biquad_config_t audio_hpf_config
 	) : Message { ID::AMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
 		decim_2_filter(decim_2_filter),
 		channel_filter(channel_filter),
+		modulation { modulation },
 		audio_hpf_config { audio_hpf_config }
 	{
 	}
@@ -392,6 +399,7 @@ public:
 	const fir_taps_real<32> decim_1_filter;
 	const fir_taps_real<32> decim_2_filter;
 	const fir_taps_complex<64> channel_filter;
+	const Modulation modulation;
 	const iir_biquad_config_t audio_hpf_config;
 };
 

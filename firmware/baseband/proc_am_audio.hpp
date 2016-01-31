@@ -61,6 +61,7 @@ private:
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
+	bool modulation_ssb = false;
 	dsp::demodulate::AM demod_am;
 	dsp::demodulate::SSB demod_ssb;
 
@@ -70,6 +71,8 @@ private:
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);
+
+	buffer_f32_t demodulate(const buffer_c16_t& channel);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/
