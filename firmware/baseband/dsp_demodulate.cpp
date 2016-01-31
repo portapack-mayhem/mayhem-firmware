@@ -34,17 +34,10 @@ buffer_f32_t AM::execute(
 	const buffer_c16_t& src,
 	const buffer_f32_t& dst
 ) {
-	/* Intermediate maximum value: 46341 (when input is -32768,-32768). */
-	/* Normalized to maximum 32767 for int16_t representation. */
-
 	const auto src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		// const auto s = *(src_p++);
-		// const uint32_t r_sq = s.real() * s.real();
-		// const uint32_t i_sq = s.imag() * s.imag();
-		// const uint32_t mag_sq = r_sq + i_sq;
 		const uint32_t sample0 = *__SIMD32(src_p)++;
 		const uint32_t sample1 = *__SIMD32(src_p)++;
 		const uint32_t mag_sq0 = __SMUAD(sample0, sample0);
