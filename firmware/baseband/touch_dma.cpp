@@ -122,7 +122,7 @@ bool is_enabled() {
 }
 
 void disable() {
-	gpdma_channel.disable_force();
+	gpdma_channel.disable();
 }
 
 } /* namespace dma */

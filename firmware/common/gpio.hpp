@@ -28,12 +28,12 @@
 #include "hal.h"
 
 struct PinConfig {
-	const uint32_t mode 	: 3;
-	const uint32_t pd 		: 1;
-	const uint32_t pu 		: 1;
-	const uint32_t fast 	: 1;
-	const uint32_t input 	: 1;
-	const uint32_t ifilt 	: 1;
+	const uint32_t mode;
+	const uint32_t pd;
+	const uint32_t pu;
+	const uint32_t fast;
+	const uint32_t input;
+	const uint32_t ifilt;
 
 	constexpr operator uint16_t() {
 		return

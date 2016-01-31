@@ -118,11 +118,11 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = main.cpp \
-         irq_ipc.cpp \
          irq_lcd_frame.cpp \
          irq_controls.cpp \
          irq_rtc.cpp \
          event.cpp \
+         event_m0.cpp \
          message_queue.cpp \
          hackrf_hal.cpp \
          portapack.cpp \
@@ -136,7 +136,6 @@ CPPSRC = main.cpp \
          wm8731.cpp \
          radio.cpp \
          baseband_cpld.cpp \
-         baseband_sgpio.cpp \
          tuning.cpp \
          rf_path.cpp \
          rffc507x.cpp \
@@ -149,26 +148,20 @@ CPPSRC = main.cpp \
          encoder.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
-         ui_alphanum.cpp \
          ui_text.cpp \
          ui_widget.cpp \
          ui_painter.cpp \
          ui_focus.cpp \
          ui_navigation.cpp \
          ui_menu.cpp \
-         ui_about.cpp \
          ui_rssi.cpp \
          ui_channel.cpp \
          ui_audio.cpp \
          ui_font_fixed_8x16.cpp \
          ui_setup.cpp \
          ui_debug.cpp \
-         ui_rds.cpp \
-         ui_lcr.cpp \
-         ui_whistle.cpp \
-         ui_jammer.cpp \
-         ui_afsksetup.cpp \
          ui_baseband_stats_view.cpp \
+         ui_sd_card_status_view.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
@@ -177,10 +170,24 @@ CPPSRC = main.cpp \
          ui_sigfrx.cpp \
          ui_xylos.cpp \
          ui_numbers.cpp \
+         recent_entries.cpp \
          receiver_model.cpp \
          transmitter_model.cpp \
          spectrum_color_lut.cpp \
+         analog_audio_app.cpp \
          ais_baseband.cpp \
+         ../commom/ais_packet.cpp \
+         ais_app.cpp \
+         tpms_app.cpp \
+         ert_app.cpp \
+         ../common/ert_packet.cpp \
+         spectrum_analysis_app.cpp \
+         sd_card.cpp \
+         file.cpp \
+         log_file.cpp \
+         manchester.cpp \
+         string_format.cpp \
+         temperature_logger.cpp \
          ../common/utility.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \

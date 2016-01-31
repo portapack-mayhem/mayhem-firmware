@@ -50,10 +50,10 @@ enum class Mode {
 namespace lo {
 
 constexpr std::array<rf::FrequencyRange, 4> band { {
-	{ .min = 2300000000, .max = 2400000000, },
-	{ .min = 2400000000, .max = 2500000000, },
-	{ .min = 2500000000, .max = 2600000000, },
-	{ .min = 2600000000, .max = 2700000000, },
+	{ 2300000000, 2400000000 },
+	{ 2400000000, 2500000000 },
+	{ 2500000000, 2600000000 },
+	{ 2600000000, 2700000000 },
 } };
 
 } /* namespace lo */
@@ -62,13 +62,12 @@ constexpr std::array<rf::FrequencyRange, 4> band { {
 
 namespace lna {
 
-constexpr int8_t gain_db_min = 0;
-constexpr int8_t gain_db_max = 40;
+constexpr range_t<int8_t> gain_db_range { 0, 40 };
 constexpr int8_t gain_db_step = 8;
 
 constexpr std::array<rf::FrequencyRange, 2> band { {
-	{ .min = 2300000000, .max = 2500000000, },
-	{ .min = 2500000000, .max = 2700000000, },
+	{ 2300000000, 2500000000 },
+	{ 2500000000, 2700000000 },
 } };
 
 } /* namespace lna */
@@ -77,8 +76,7 @@ constexpr std::array<rf::FrequencyRange, 2> band { {
 
 namespace vga {
 
-constexpr int8_t gain_db_min = 0;
-constexpr int8_t gain_db_max = 62;
+constexpr range_t<int8_t> gain_db_range { 0, 62 };
 constexpr int8_t gain_db_step = 2;
 
 } /* namespace vga */
@@ -576,7 +574,7 @@ constexpr RegisterMap initial_register_values { Register_Type {
 		.LNAtune	= 0,
 		.LNAde_Q	= 1,
 		.L			= 0b000,
-		.iqerr_trim	= 0b0000,
+		.iqerr_trim	= 0b00000,
 		.RESERVED0	= 0,
 	},
 	.lpf_1 = {	/* 2 */
@@ -880,6 +878,8 @@ public:
 
 	reg_t temp_sense();
 
+	reg_t read(const address_t reg_num);
+
 private:
 	spi::arbiter::Target& _target;
 
@@ -889,7 +889,6 @@ private:
 	void flush_one(const Register reg);
 
 	void write(const address_t reg_num, const reg_t value);
-	reg_t read(const address_t reg_num);
 
 	void write(const Register reg, const reg_t value);
 	reg_t read(const Register reg);

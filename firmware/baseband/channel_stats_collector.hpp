@@ -34,7 +34,7 @@
 class ChannelStatsCollector {
 public:
 	template<typename Callback>
-	void feed(buffer_c16_t src, Callback callback) {
+	void feed(const buffer_c16_t& src, Callback callback) {
 		auto src_p = src.p;
 		while(src_p < &src.p[src.count]) {
 			const uint32_t sample = *__SIMD32(src_p)++;

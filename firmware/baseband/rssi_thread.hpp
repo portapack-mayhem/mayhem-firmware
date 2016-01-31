@@ -19,36 +19,28 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "irq_ipc_m4.hpp"
+#ifndef __RSSI_THREAD_H__
+#define __RSSI_THREAD_H__
 
-#include "ch.h"
-#include "hal.h"
+#include "thread_base.hpp"
 
-#include "event_m4.hpp"
+#include <ch.h>
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#include <cstdint>
 
-void m0apptxevent_interrupt_enable() {
-	nvicEnableVector(M0CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M0APPTXEVENT_IRQ_PRIORITY));
-}
+class RSSIThread : public ThreadBase {
+public:
+	RSSIThread(
+	) : ThreadBase { "rssi" }
+	{
+	}
 
-void m0apptxevent_interrupt_disable() {
-	nvicDisableVector(M0CORE_IRQn);
-}
+	Thread* start(const tprio_t priority);
 
-extern "C" {
+private:
+	void run() override;
 
-CH_IRQ_HANDLER(MAPP_IRQHandler) {
-	CH_IRQ_PROLOGUE();
+	const uint32_t sampling_rate { 400000 };
+};
 
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_BASEBAND);
-	chSysUnlockFromIsr();
-
-	creg::m0apptxevent::clear();
-
-	CH_IRQ_EPILOGUE();
-}
-
-}
+#endif/*__RSSI_THREAD_H__*/

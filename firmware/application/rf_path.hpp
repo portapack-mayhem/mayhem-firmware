@@ -22,29 +22,14 @@
 #ifndef __RF_PATH_H__
 #define __RF_PATH_H__
 
+#include "utility.hpp"
+
 #include <cstdint>
 
 namespace rf {
 
 using Frequency = int64_t;
-
-struct FrequencyRange {
-	Frequency min;
-	Frequency max;
-	/* TODO: static_assert low < high? */
-
-	bool below_range(const Frequency f) const {
-		return f < min;
-	}
-
-	bool contains(const Frequency f) const {
-		return (f >= min) && (f < max);
-	}
-
-	bool out_of_range(const Frequency f) const {
-		return !contains(f);
-	}
-};
+using FrequencyRange = range_t<Frequency>;
 
 enum class Direction {
 	/* Zero-based, used as index into table */
@@ -54,20 +39,9 @@ enum class Direction {
 
 namespace path {
 
-constexpr FrequencyRange band_low {
-	.min = 0,
-	.max = 2150000000,
-};
-
-constexpr FrequencyRange band_high {
-	.min = 2750000000,
-	.max = 7250000000,
-};
-
-constexpr FrequencyRange band_mid {
-	.min = band_low.max,
-	.max = band_high.min,
-};
+constexpr FrequencyRange band_low  {                0,        2150000000 };
+constexpr FrequencyRange band_high {       2750000000,        7250000000 };
+constexpr FrequencyRange band_mid  { band_low.maximum, band_high.minimum };
 
 enum class Band {
 	/* Zero-based, used as index into frequency_bands table */
@@ -94,10 +68,7 @@ private:
 
 } /* path */
 
-constexpr FrequencyRange tuning_range {
-	.min = path::band_low.min,
-	.max = path::band_high.max,
-};
+constexpr FrequencyRange tuning_range { path::band_low.minimum, path::band_high.maximum };
 
 } /* rf */
 

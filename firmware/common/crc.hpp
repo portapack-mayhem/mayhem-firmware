@@ -25,61 +25,74 @@
 #include <cstddef>
 #include <cstdint>
 
+/* Inspired by
+ * http://www.barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
+ *
+ * ...then munged into a shape resembling boost::crc_basic.
+ * http://www.boost.org/doc/libs/release/libs/crc/
+ */
+
 template<typename T>
 class CRC {
 public:
 	constexpr CRC(
-		const T polynomial/*,
-		const T initial*/
-	) : polynomial { polynomial }/*,
-		initial { initial }*/
+		const T truncated_polynomial,
+		const T initial_remainder = 0,
+		const T final_xor_value = 0
+	) : truncated_polynomial { truncated_polynomial },
+		initial_remainder { initial_remainder },
+		final_xor_value { final_xor_value },
+		remainder { initial_remainder }
 	{
-		// CRC LSB must always be 1
 	}
-/*
-	template<typename U>
-	T calculate(const U& bits, const size_t length) {
-		if( length > bits.size() ) {
-			// Exception.
-			return 0;
-		}
 
-		T crc = 0;
-
-		for(size_t i=0; i<length; i++) {
-			crc = feed_bit(crc, bits[i]);
-		}
-
-		return crc;
+	T get_initial_remainder() const {
+		return initial_remainder;
 	}
-*/
-	T calculate_byte(const T crc_in, const uint8_t data) {
-		/* Inspired by
-		 * http://www.barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
-		 */
-		T remainder = crc_in;
+
+	void reset(T new_initial_remainder) {
+		remainder = new_initial_remainder;
+	}
+
+	void reset() {
+		remainder = initial_remainder;
+	}
+
+	void process_bit(bool bit) {
+		remainder ^= bit << (width() - 1);
+		if( remainder & top_bit() ) {
+			remainder = (remainder << 1) ^ truncated_polynomial;
+		} else {
+			remainder = (remainder << 1);
+		}
+	}
+
+	void process_byte(const uint8_t data) {
 		remainder ^= data << (width() - 8);
-		for(size_t bit=8; bit>0; --bit) {
+		for(size_t bit=0; bit<8; bit++) {
 			if( remainder & top_bit() ) {
-				remainder = (remainder << 1) ^ polynomial;
+				remainder = (remainder << 1) ^ truncated_polynomial;
 			} else {
 				remainder = (remainder << 1);
 			}
 		}
-		return remainder;
 	}
-/*
-	T calculate(const uint8_t* const data, const size_t length) {
-		T remainder = initial;
-		for(size_t byte=0; byte<length; ++byte) {
-			remainder = calculate_byte(remainder, data[byte]);
+
+	void process_bytes(const uint8_t* const data, const size_t length) {
+		for(size_t i=0; i<length; i++) {
+			process_byte(data[i]);
 		}
-		return remainder;
 	}
-*/
+
+	T checksum() const {
+		return remainder ^ final_xor_value;
+	}
+
 private:
-	const T polynomial;
-//	const T initial;
+	const T truncated_polynomial;
+	const T initial_remainder;
+	const T final_xor_value;
+	T remainder;
 
 	static constexpr size_t width() {
 		return 8 * sizeof(T);
@@ -88,16 +101,6 @@ private:
 	static constexpr T top_bit() {
 		return 1U << (width() - 1);
 	}
-/*
-	T feed_bit(const T crc_in, const uint_fast8_t bit) {
-		T crc_out = crc_in ^ (bit & 1);
-		if( crc_in & top_bit() ) {
-			return ((crc_in << 1) | (bit & 1)) ^ polynomial;
-		} else {
-			return (crc_in << 1) | (bit & 1);
-		}
-	}
-*/
 };
 
 

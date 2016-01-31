@@ -24,7 +24,7 @@
 #include "ch.h"
 #include "hal.h"
 
-#include "event.hpp"
+#include "event_m0.hpp"
 
 #include "touch.hpp"
 #include "touch_adc.hpp"
@@ -165,7 +165,7 @@ void timer0_callback(GPTDriver* const) {
 	/* Signal event loop */
 	if( event_mask ) {
 		chSysLockFromIsr();
-		events_flag_isr(event_mask);
+		EventDispatcher::events_flag_isr(event_mask);
 		chSysUnlockFromIsr();
 	}
 

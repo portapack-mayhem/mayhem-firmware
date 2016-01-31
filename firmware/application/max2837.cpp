@@ -40,7 +40,7 @@ constexpr std::array<uint8_t, 8> lookup_8db_steps {
 };
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
-	int8_t db_sat = std::min(std::max(gain_db_min, db), gain_db_max);
+	const auto db_sat = gain_db_range.clip(db);
 	return lna::lookup_8db_steps[(db_sat >> 3) & 7];
 }
 
@@ -49,7 +49,7 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 namespace vga {
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
-	int8_t db_sat = std::min(std::max(gain_db_min, db), gain_db_max);
+	const auto db_sat = gain_db_range.clip(db);
 	return ((db_sat >> 1) & 0b11111) ^ 0b11111;
 }
 
@@ -124,6 +124,8 @@ void MAX2837::init() {
 
 	_dirty.set();
 	flush();
+
+	set_mode(Mode::Standby);
 }
 
 void MAX2837::set_mode(const Mode mode) {
@@ -149,22 +151,22 @@ void MAX2837::flush_one(const Register reg) {
 	_dirty.clear(reg_num);
 }
 
-inline void MAX2837::write(const address_t reg_num, const reg_t value) {
+void MAX2837::write(const address_t reg_num, const reg_t value) {
 	uint16_t t = (0U << 15) | (reg_num << 10) | (value & 0x3ffU);
 	_target.transfer(&t, 1);
 }
 
-inline reg_t MAX2837::read(const address_t reg_num) {
+reg_t MAX2837::read(const address_t reg_num) {
 	uint16_t t = (1U << 15) | (reg_num << 10);
 	_target.transfer(&t, 1U);
 	return t & 0x3ffU;
 }
 
-inline void MAX2837::write(const Register reg, const reg_t value) {
+void MAX2837::write(const Register reg, const reg_t value) {
 	write(toUType(reg), value);
 }
 
-inline reg_t MAX2837::read(const Register reg) {
+reg_t MAX2837::read(const Register reg) {
 	return read(toUType(reg));
 }
 
@@ -194,18 +196,16 @@ void MAX2837::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
 
 bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	/* TODO: This is a sad implementation. Refactor. */
-	if( lo_frequency < lo::band[0].min ) {
-		return false;
-	} else if( lo_frequency < lo::band[0].max ) {
+	if( lo::band[0].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b00;	/* 2300 - 2399.99MHz */
 		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo_frequency < lo::band[1].max ) {
+	} else if( lo::band[1].contains(lo_frequency)  ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b01;	/* 2400 - 2499.99MHz */
 		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo_frequency < lo::band[2].max ) {
+	} else if( lo::band[2].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b10;	/* 2500 - 2599.99MHz */
 		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
-	} else if( lo_frequency < lo::band[3].max ) {
+	} else if( lo::band[3].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b11;	/* 2600 - 2700Hz */
 		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
 	} else {

@@ -29,39 +29,36 @@ namespace demodulate {
 
 class AM {
 public:
-	buffer_s16_t execute(
-		buffer_c16_t src,
-		buffer_s16_t dst
+	buffer_f32_t execute(
+		const buffer_c16_t& src,
+		const buffer_f32_t& dst
 	);
 };
 
 class FM {
 public:
-	/*
-	 * angle: -pi to pi. output range: -32768 to 32767.
-	 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
-	 * delta_theta_max = 2 * pi * deviation / sampling_rate
-	 */
-	constexpr FM(
-		const float sampling_rate,
-		const float deviation_hz
-	) : z_ { 0 },
-		k { static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate)) }
-	{
-	}
+	buffer_f32_t execute(
+		const buffer_c16_t& src,
+		const buffer_f32_t& dst
+	);
 
 	buffer_s16_t execute(
-		buffer_c16_t src,
-		buffer_s16_t dst
+		const buffer_c16_t& src,
+		const buffer_s16_t& dst
 	);
 
 	void configure(const float sampling_rate, const float deviation_hz) {
+		/*
+		 * angle: -pi to pi. output range: -32768 to 32767.
+		 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
+		 * delta_theta_max = 2 * pi * deviation / sampling_rate
+		 */
 		k = static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate));
 	}
 
 private:
-	complex16_t::rep_type z_;
-	float k;
+	complex16_t::rep_type z_ { 0 };
+	float k { 0 };
 };
 
 } /* namespace demodulate */

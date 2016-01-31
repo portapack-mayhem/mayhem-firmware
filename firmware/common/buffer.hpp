@@ -25,30 +25,77 @@
 #include <cstdint>
 #include <cstddef>
 
+/* LPC43xx RTC structure. Avoiding using the ChibiOS-defined structure because
+ * it pulls in all sorts of dependencies and initialization and other stuff that
+ * the M0 needs to remain in control of.
+ *
+ * But yes, this is a hack, and something better is needed. It's too tangled of
+ * a knot to tackle at the moment, though...
+ */
+#if defined(LPC43XX_M4)
+#include "lpc43xx_m4.h"
+
+struct Timestamp {
+	uint32_t tv_date { 0 };
+	uint32_t tv_time { 0 };
+
+	static Timestamp now() {
+		// Code stolen from LPC43xx rtc_lld.c
+		Timestamp timestamp;
+	    do {
+			timestamp.tv_time = LPC_RTC->CTIME0;
+			timestamp.tv_date = LPC_RTC->CTIME1;
+	    } while( (timestamp.tv_time != LPC_RTC->CTIME0) || (timestamp.tv_date != LPC_RTC->CTIME1) );
+	    return timestamp;
+	}
+};
+#endif
+
+#if defined(LPC43XX_M0)
+#include "lpc43xx_cpp.hpp"
+
+using Timestamp = lpc43xx::rtc::RTC;
+#endif
+
 template<typename T>
 struct buffer_t {
 	T* const p;
 	const size_t count;
 	const uint32_t sampling_rate;
+	const Timestamp timestamp;
 
 	constexpr buffer_t(
-		T* const p,
-		const size_t count
-	) : p { p },
-		count { count },
-		sampling_rate { 0 }
+	) : p { nullptr },
+		count { 0 },
+		sampling_rate { 0 },
+		timestamp { }
 	{
-	};
+	}
+
+	constexpr buffer_t(
+		const buffer_t<T>& other
+	) : p { other.p },
+		count { other.count },
+		sampling_rate { other.sampling_rate },
+		timestamp { other.timestamp }
+	{
+	}
 
 	constexpr buffer_t(
 		T* const p,
 		const size_t count,
-		const uint32_t sampling_rate
+		const uint32_t sampling_rate = 0,
+		const Timestamp timestamp = { }
 	) : p { p },
 		count { count },
-		sampling_rate { sampling_rate }
+		sampling_rate { sampling_rate },
+		timestamp { timestamp }
 	{
-	};
+	}
+
+	operator bool() const {
+		return (p != nullptr);
+	}
 };
 
 #endif/*__BUFFER_H__*/

@@ -51,10 +51,7 @@ constexpr auto reference_frequency = rffc5072_reference_f;
 
 namespace vco {
 
-constexpr rf::FrequencyRange range {
-	.min = 2700000000U,
-	.max = 5400000000U,
-};
+constexpr rf::FrequencyRange range { 2700000000, 5400000000 };
 
 } /* namespace vco */
 
@@ -66,10 +63,7 @@ constexpr size_t divider_log2_max = 5;
 constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
-constexpr rf::FrequencyRange range {
-	.min = vco::range.min / divider_max,
-	.max = vco::range.max / divider_min,
-};
+constexpr rf::FrequencyRange range { vco::range.minimum / divider_max, vco::range.maximum / divider_min };
 
 size_t divider_log2(const rf::Frequency lo_frequency) {
 	/* TODO: Error */
@@ -183,23 +177,23 @@ void RFFC507x::flush() {
 	}
 }
 
-inline void RFFC507x::write(const address_t reg_num, const spi::reg_t value) {
+void RFFC507x::write(const address_t reg_num, const spi::reg_t value) {
 	_bus.write(reg_num, value);
 }
 
-inline spi::reg_t RFFC507x::read(const address_t reg_num) {
+spi::reg_t RFFC507x::read(const address_t reg_num) {
 	return _bus.read(reg_num);
 }
 
-inline void RFFC507x::write(const Register reg, const spi::reg_t value) {
+void RFFC507x::write(const Register reg, const spi::reg_t value) {
 	write(toUType(reg), value);
 }
 
-inline spi::reg_t RFFC507x::read(const Register reg) {
+spi::reg_t RFFC507x::read(const Register reg) {
 	return read(toUType(reg));
 }
 
-inline void RFFC507x::flush_one(const Register reg) {
+void RFFC507x::flush_one(const Register reg) {
 	const auto reg_num = toUType(reg);
 	write(reg_num, _map.w[reg_num]);
 	_dirty.clear(reg_num);
@@ -262,6 +256,18 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 	flush();
 }
 
+void RFFC507x::set_gpo1(const bool new_value) {
+	if( new_value ) {
+		_map.r.gpo.p2gpo |= 1;
+		_map.r.gpo.p1gpo |= 1;
+	} else {
+		_map.r.gpo.p2gpo &= ~1;
+		_map.r.gpo.p1gpo &= ~1;
+	}
+
+	flush_one(Register::GPO);
+}
+
 spi::reg_t RFFC507x::readback(const Readback readback) {
 	/* TODO: This clobbers the rest of the DEV_CTRL register
 	 * Time to implement bitfields for registers.
@@ -270,10 +276,6 @@ spi::reg_t RFFC507x::readback(const Readback readback) {
 	flush_one(Register::DEV_CTRL);
 
 	return read(Register::READBACK);
-}
-
-RegisterMap RFFC507x::registers() {
-	return _map;
 }
 
 #if 0

@@ -24,31 +24,44 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
-#include "dsp_squelch.hpp"
+
+#include "audio_output.hpp"
+#include "spectrum_collector.hpp"
 
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
-	NarrowbandFMAudio() {
-		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
-		channel_filter.configure(channel_filter_taps.taps, 2);
-	}
+	void execute(const buffer_c8_t& buffer) override;
 
-	void execute(buffer_c8_t buffer) override;
+	void on_message(const Message* const message) override;
 
 private:
-	ChannelDecimator decimator;
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateComplex channel_filter;
-	dsp::demodulate::FM demod { 48000, 7500 };
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+	const buffer_f32_t work_audio_buffer {
+		(float*)dst.data(),
+		sizeof(dst) / sizeof(float)
+	};
 
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
-	FMSquelch squelch;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+
+	dsp::decimate::FIRAndDecimateComplex channel_filter;
+	uint32_t channel_filter_pass_f = 0;
+	uint32_t channel_filter_stop_f = 0;
+
+	dsp::demodulate::FM demod;
+
+	AudioOutput audio_output;
+
+	SpectrumCollector channel_spectrum;
+
+	bool configured { false };
+	void configure(const NBFMConfigureMessage& message);
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

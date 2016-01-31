@@ -22,26 +22,26 @@
 #ifndef __SD_CARD_H__
 #define __SD_CARD_H__
 
-#include "ff.h"
+#include <cstdint>
+
+#include "signal.hpp"
 
 namespace sd_card {
-namespace filesystem {
 
-namespace {
+enum class Status : int32_t {
+	IOError = -3,
+	MountError = -2,
+	ConnectError = -1,
+	NotPresent = 0,
+	Present = 1,
+	Mounted = 2,
+};
 
-FATFS fs;
+extern Signal<Status> status_signal;
 
-}
+void poll_inserted();
+Status status();
 
-FRESULT mount() {
-	return f_mount(&fs, "", 0);
-}
-
-FRESULT unmount() {
-	return f_mount(NULL, "", 0);
-}
-
-} /* namespace filesystem */
 } /* namespace sd_card */
 
 #endif/*__SD_CARD_H__*/

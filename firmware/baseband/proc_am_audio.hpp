@@ -24,28 +24,45 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
+
+#include "audio_output.hpp"
+#include "spectrum_collector.hpp"
+
+#include <cstdint>
 
 class NarrowbandAMAudio : public BasebandProcessor {
 public:
-	NarrowbandAMAudio() {
-		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
-		channel_filter.configure(channel_filter_taps.taps, 2);
-	}
-
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
+	
+	void on_message(const Message* const message) override;
 
 private:
-	ChannelDecimator decimator;
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_031_070_tfilter;
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+	const buffer_f32_t work_audio_buffer {
+		(float*)dst.data(),
+		sizeof(dst) / sizeof(float)
+	};
+
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
+	uint32_t channel_filter_pass_f;
+	uint32_t channel_filter_stop_f;
+
 	dsp::demodulate::AM demod;
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
+
+	AudioOutput audio_output;
+
+	SpectrumCollector channel_spectrum;
+
+	bool configured { false };
+	void configure(const AMConfigureMessage& message);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/

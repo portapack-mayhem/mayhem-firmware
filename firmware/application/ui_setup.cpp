@@ -19,19 +19,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_setup.hpp"
-#include "touch.hpp"
 
-#include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
-
-#include <math.h>
-#include <cstring>
-
 using namespace lpc43xx;
-using namespace portapack;
+
+#include "portapack.hpp"
+using portapack::receiver_model;
 
 namespace ui {
 
@@ -149,15 +144,33 @@ SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
 	};
 }
 
-SetTouchCalibView::SetTouchCalibView(NavigationView& nav) {
-	add_children({{
+AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
+	add_children({ {
 		&text_title,
-		&text_debugx,
-		&text_debugy,
-		&button_ok
-		}});
+		&text_description_1,
+		&text_description_2,
+		&text_description_3,
+		&text_description_4,
+		&options_bias,
+		&button_done,
+	} });
 
-	button_ok.on_select = [&nav](Button&){ nav.pop(); };
+	options_bias.set_by_value(receiver_model.antenna_bias() ? 1 : 0);
+	options_bias.on_change = [this](size_t, OptionsField::value_t v) {
+		receiver_model.set_antenna_bias(v);
+	};
+
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void AntennaBiasSetupView::focus() {
+	button_done.focus();
+}
+
+
+
+void AboutView::focus() {
+	button_ok.focus();
 }
 
 void SetTouchCalibView::focus() {
@@ -419,10 +432,11 @@ void ModInfoView::focus() {
 }
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<6>({ {
+	add_items<7>({ {
 		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push(new ModInfoView { nav }); } },
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push(new SetDateTimeView { nav }); } },
-		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push(new SetFrequencyCorrectionView { nav }); } },
+		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
+		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
 		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
 		{ "Play dead", ui::Color::red(), [&nav](){ nav.push(new SetPlayDeadView { nav }); } },
 		{ "UI", ui::Color::white(), [&nav](){ nav.push(new SetUIView { nav }); } },

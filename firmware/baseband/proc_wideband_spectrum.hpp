@@ -23,6 +23,9 @@
 #define __PROC_WIDEBAND_SPECTRUM_H__
 
 #include "baseband_processor.hpp"
+#include "spectrum_collector.hpp"
+
+#include "message.hpp"
 
 #include <cstddef>
 #include <array>
@@ -30,12 +33,16 @@
 
 class WidebandSpectrum : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
+
+	void on_message(const Message* const message) override;
 
 private:
-	size_t sample_count = 0;
+	SpectrumCollector channel_spectrum;
 
-	std::array<std::complex<float>, 256> spectrum;
+	std::array<complex16_t, 256> spectrum;
+
+	size_t phase = 0;
 };
 
 #endif/*__PROC_WIDEBAND_SPECTRUM_H__*/

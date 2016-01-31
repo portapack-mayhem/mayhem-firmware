@@ -30,6 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
+#include "baseband_packet.hpp"
 
 #include "message.hpp"
 
@@ -37,39 +38,37 @@
 #include <cstddef>
 #include <bitset>
 
-struct NeverMatch {
-	bool operator()(const BitHistory&, const size_t) const {
-		return false;
-	}
-};
-
-struct FixedLength {
-	bool operator()(const BitHistory&, const size_t symbols_received) const {
-		return symbols_received >= length;
-	}
-
-	const size_t length;
-};
-
 // Translate+rectangular filter
-// sample=153.6k, deviation=38400, symbol=19200
-// Length: 8 taps, 1 symbols, 2 cycles of sinusoid
-constexpr std::array<std::complex<float>, 8> rect_taps_153k6_1t_p { {
-	{  1.2500000000e-01f,  0.0000000000e+00f }, {  7.6540424947e-18f,  1.2500000000e-01f },
-	{ -1.2500000000e-01f,  1.5308084989e-17f }, { -2.2962127484e-17f, -1.2500000000e-01f },
-	{  1.2500000000e-01f, -3.0616169979e-17f }, {  3.8270212473e-17f,  1.2500000000e-01f },
-	{ -1.2500000000e-01f,  4.5924254968e-17f }, { -5.3578297463e-17f, -1.2500000000e-01f },
+// sample=307.2k, deviation=38400, symbol=19200
+// Length: 16 taps, 1 symbols, 2 cycles of sinusoid
+constexpr std::array<std::complex<float>, 16> rect_taps_307k2_1t_p { {
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
 } };
 
 class TPMSProcessor : public BasebandProcessor {
 public:
-	using payload_t = std::bitset<1024>;
+	TPMSProcessor();
 
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By16 };
-	dsp::matched_filter::MatchedFilter mf { rect_taps_153k6_1t_p, 4 };
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+
+	dsp::matched_filter::MatchedFilter mf { rect_taps_307k2_1t_p, 8 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		38400, 19200, { 0.0555f },
@@ -79,13 +78,13 @@ private:
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
 		{ 256 },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->payload_handler(payload, bits_received);
+		[this](const baseband::Packet& packet) {
+			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const payload_t& payload, const size_t bits_received);
+	void payload_handler(const baseband::Packet& packet);
 };
 
 #endif/*__PROC_TPMS_H__*/

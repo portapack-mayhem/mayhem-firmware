@@ -42,6 +42,10 @@ public:
 		_in = _out = 0;
 	}
 
+	void reset_in() {
+		_in = _out;
+	}
+	
 	void reset_out() {
 		_out = _in;
 	}
@@ -59,19 +63,21 @@ public:
 	}
 
 	bool is_full() const {
-		return len() > mask();
+		return unused() == 0;
 	}
-/*
+
 	bool in(const T& val) {
-		const bool is_not_full = !is_full();
-		if( is_not_full ) {
-			_data[_in & mask()] = val;
-			smp_wmb();
-			_in++;
+		if( is_full() ) {
+			return false;
 		}
-		return is_not_full;
+
+		_data[_in & mask()] = val;
+		smp_wmb();
+		_in += 1;
+		
+		return true;
 	}
-*/
+
 	size_t in(const T* const buf, size_t len) {
 		const size_t l = unused();
 		if( len > l ) {
@@ -93,7 +99,7 @@ public:
 		_in += len + recsize();
 		return len;
 	}
-/*
+
 	bool out(T& val) {
 		if( is_empty() ) {
 			return false;
@@ -105,10 +111,30 @@ public:
 
 		return true;
 	}
-*/
+
 	size_t out(T* const buf, size_t len) {
 		len = out_peek(buf, len);
 		_out += len;
+		return len;
+	}
+
+	bool skip() {
+		if( is_empty() ) {
+			return false;
+		}
+
+		size_t len = peek_n();
+		_out += len + recsize();
+		return true;
+	}
+
+	size_t peek_r(void* const buf, size_t len) {
+		if( is_empty() ) {
+			return 0;
+		}
+
+		size_t n;
+		len = out_copy_r((T*)buf, len, &n);
 		return len;
 	}
 
@@ -199,8 +225,8 @@ private:
 	}
 
 	T _data[size()];
-	size_t _in;
-	size_t _out;
+	volatile size_t _in;
+	volatile size_t _out;
 };
 
 #endif/*__FIFO_H__*/

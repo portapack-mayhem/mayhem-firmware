@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,10 +19,34 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __IRQ_IPC_M4_H__
-#define __IRQ_IPC_M4_H__
+#ifndef __TEMPERATURE_LOGGER_H__
+#define __TEMPERATURE_LOGGER_H__
 
-void m0apptxevent_interrupt_enable();
-void m0apptxevent_interrupt_disable();
+#include <cstddef>
+#include <cstdint>
+#include <array>
+#include <vector>
 
-#endif/*__IRQ_IPC_M4_H__*/
+class TemperatureLogger {
+public:	
+	using sample_t = uint8_t;
+
+	void second_tick();
+
+	size_t size() const;
+	size_t capacity() const;
+	
+	std::vector<sample_t> history() const;
+
+private:
+	std::array<sample_t, 128> samples;
+
+	static constexpr size_t sample_interval = 5;
+	size_t sample_phase = 0;
+	size_t samples_count = 0;
+
+	sample_t read_sample();
+	void push_sample(const sample_t sample);
+};
+
+#endif/*__TEMPERATURE_LOGGER_H__*/

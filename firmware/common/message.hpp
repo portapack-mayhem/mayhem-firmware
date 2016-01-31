@@ -27,6 +27,11 @@
 #include <array>
 #include <functional>
 
+#include "baseband_packet.hpp"
+#include "ert_packet.hpp"
+#include "dsp_fir_taps.hpp"
+#include "fifo.hpp"
+
 #include "utility.hpp"
 
 #include "ch.h"
@@ -34,27 +39,33 @@
 class Message {
 public:
 	static constexpr size_t MAX_SIZE = 276;
-	
-	enum class ID : uint16_t {
+
+	enum class ID : uint32_t {
 		/* Assign consecutive IDs. IDs are used to index array. */
 		RSSIStatistics = 0,
 		BasebandStatistics = 1,
 		ChannelStatistics = 2,
 		DisplayFrameSync = 3,
-		ChannelSpectrum = 4,
-		AudioStatistics = 5,
-		BasebandConfiguration = 6,
-		TPMSPacket = 7,
+		AudioStatistics = 4,
+		BasebandConfiguration = 5,
+		TPMSPacket = 6,
 		Shutdown = 8,
-		AISPacket = 9,
-		TXDone = 10,
-		SDCardStatus = 11,
-		Retune = 12,
-		ReadyForSwitch = 13,
-		AFSKData = 14,
-		ModuleID = 15,
-		FIFOSignal = 16,
-		FIFOData = 17,
+		AISPacket = 7,
+		ERTPacket = 9,
+		UpdateSpectrum = 10,
+		NBFMConfigure = 11,
+		WFMConfigure = 12,
+		AMConfigure = 13,
+		ChannelSpectrumConfig = 14,
+		SpectrumStreamingConfig = 15,
+		DisplaySleep = 16,
+		TXDone = 17,
+		Retune = 18,
+		ReadyForSwitch = 19,
+		AFSKData = 20,
+		ModuleID = 21,
+		FIFOSignal = 22,
+		FIFOData = 23,
 		MAX
 	};
 
@@ -122,11 +133,21 @@ struct ChannelStatistics {
 class ChannelStatisticsMessage : public Message {
 public:
 	constexpr ChannelStatisticsMessage(
-	) : Message { ID::ChannelStatistics }
+		const ChannelStatistics& statistics
+	) : Message { ID::ChannelStatistics },
+		statistics { statistics }
 	{
 	}
 
 	ChannelStatistics statistics;
+};
+
+class DisplayFrameSyncMessage : public Message {
+public:
+	constexpr DisplayFrameSyncMessage(
+	) : Message { ID::DisplayFrameSync }
+	{
+	}
 };
 
 struct AudioStatistics {
@@ -152,51 +173,43 @@ struct AudioStatistics {
 	}
 };
 
+class DisplaySleepMessage : public Message {
+public:
+	constexpr DisplaySleepMessage(
+	) : Message { ID::DisplaySleep }
+	{
+	}
+};
+
 class AudioStatisticsMessage : public Message {
 public:
 	constexpr AudioStatisticsMessage(
+		const AudioStatistics& statistics
 	) : Message { ID::AudioStatistics },
-		statistics { }
+		statistics { statistics }
 	{
 	}
 
 	AudioStatistics statistics;
 };
 
-typedef enum {
-	RX_NBAM_AUDIO = 0,
-	RX_NBFM_AUDIO, 
-	RX_WBFM_AUDIO,
-	RX_AIS,
-	RX_WBSPECTRUM,
-	RX_TPMS,
-	RX_AFSK,
-	RX_SIGFOX,
-	
-	TX_RDS,
-	TX_LCR,
-	TX_TONE,
-	TX_JAMMER,
-	TX_XYLOS,
-	
-	PLAY_AUDIO,
-	
-	NONE,
-	SWITCH = 0xFF
-} mode_type;
-
 struct BasebandConfiguration {
-	mode_type mode;
+	int32_t mode;
 	uint32_t sampling_rate;
 	size_t decimation_factor;
 
 	constexpr BasebandConfiguration(
-		mode_type mode = NONE,
-		uint32_t sampling_rate = 0,
+		int32_t mode,
+		uint32_t sampling_rate,
 		size_t decimation_factor = 1
 	) : mode { mode },
 		sampling_rate { sampling_rate },
 		decimation_factor { decimation_factor }
+	{
+	}
+
+	constexpr BasebandConfiguration(
+	) : BasebandConfiguration { -1, 0, 1 }
 	{
 	}
 };
@@ -204,73 +217,75 @@ struct BasebandConfiguration {
 class BasebandConfigurationMessage : public Message {
 public:
 	constexpr BasebandConfigurationMessage(
-		BasebandConfiguration configuration
+		const BasebandConfiguration& configuration
 	) : Message { ID::BasebandConfiguration },
-		configuration(configuration)
+		configuration { configuration }
 	{
 	}
 
 	BasebandConfiguration configuration;
 };
 
+class SpectrumStreamingConfigMessage : public Message {
+public:
+	enum class Mode : uint32_t {
+		Stopped = 0,
+		Running = 1,
+	};
+
+	constexpr SpectrumStreamingConfigMessage(
+		Mode mode
+	) : Message { ID::SpectrumStreamingConfig },
+		mode { mode }
+	{
+	}
+
+	Mode mode { Mode::Stopped };
+};
+
 struct ChannelSpectrum {
 	std::array<uint8_t, 256> db { { 0 } };
-	size_t db_count { 256 };
 	uint32_t sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
 	uint32_t channel_filter_stop_frequency { 0 };
 };
 
-class ChannelSpectrumMessage : public Message {
+using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
+
+class ChannelSpectrumConfigMessage : public Message {
 public:
-	constexpr ChannelSpectrumMessage(
-	) : Message { ID::ChannelSpectrum }
+	constexpr ChannelSpectrumConfigMessage(
+		ChannelSpectrumFIFO* fifo
+	) : Message { ID::ChannelSpectrumConfig },
+		fifo { fifo }
 	{
 	}
 
-	ChannelSpectrum spectrum;
-};
-
-#include <bitset>
-
-struct AISPacket {
-	std::bitset<1024> payload;
-	size_t bits_received { 0 };
+	ChannelSpectrumFIFO* fifo { nullptr };
 };
 
 class AISPacketMessage : public Message {
 public:
 	constexpr AISPacketMessage(
-	) : Message { ID::AISPacket }
+		const baseband::Packet& packet
+	) : Message { ID::AISPacket },
+		packet { packet }
 	{
 	}
 
-	AISPacket packet;
-};
-
-struct TPMSPacket {
-	std::bitset<1024> payload;
-	size_t bits_received { 0 };
+	baseband::Packet packet;
 };
 
 class TPMSPacketMessage : public Message {
 public:
 	constexpr TPMSPacketMessage(
-	) : Message { ID::TPMSPacket }
+		const baseband::Packet& packet
+	) : Message { ID::TPMSPacket },
+		packet { packet }
 	{
 	}
 
-	TPMSPacket packet;
-};
-
-class AFSKDataMessage : public Message {
-public:
-	constexpr AFSKDataMessage(
-	) : Message { ID::AFSKData }
-	{
-	}
-
-	int16_t data[128] = {0};
+	baseband::Packet packet;
 };
 
 class ShutdownMessage : public Message {
@@ -281,16 +296,88 @@ public:
 	}
 };
 
-class SDCardStatusMessage : public Message {
+class ERTPacketMessage : public Message {
 public:
-	constexpr SDCardStatusMessage(
-		bool is_mounted
-	) : Message { ID::SDCardStatus },
-		is_mounted { is_mounted }
+	constexpr ERTPacketMessage(
+		const ert::Packet::Type type,
+		const baseband::Packet& packet
+	) : Message { ID::ERTPacket },
+		type { type },
+		packet { packet }
 	{
 	}
 
-	const bool is_mounted;
+	ert::Packet::Type type;
+
+	baseband::Packet packet;
+};
+
+class UpdateSpectrumMessage : public Message {
+public:
+	constexpr UpdateSpectrumMessage(
+	) : Message { ID::UpdateSpectrum }
+	{
+	}
+};
+
+class NBFMConfigureMessage : public Message {
+public:
+	constexpr NBFMConfigureMessage(
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<32> decim_1_filter,
+		const fir_taps_real<32> channel_filter,
+		const size_t deviation
+	) : Message { ID::NBFMConfigure },
+		decim_0_filter(decim_0_filter),
+		decim_1_filter(decim_1_filter),
+		channel_filter(channel_filter),
+		deviation { deviation }
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<32> decim_1_filter;
+	const fir_taps_real<32> channel_filter;
+	const size_t deviation;
+};
+
+class WFMConfigureMessage : public Message {
+public:
+	constexpr WFMConfigureMessage(
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<16> decim_1_filter,
+		const fir_taps_real<64> audio_filter,
+		const size_t deviation
+	) : Message { ID::WFMConfigure },
+		decim_0_filter(decim_0_filter),
+		decim_1_filter(decim_1_filter),
+		audio_filter(audio_filter),
+		deviation { deviation }
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<16> decim_1_filter;
+	const fir_taps_real<64> audio_filter;
+	const size_t deviation;
+};
+
+class AMConfigureMessage : public Message {
+public:
+	constexpr AMConfigureMessage(
+		const fir_taps_real<24> decim_0_filter,
+		const fir_taps_real<32> decim_1_filter,
+		const fir_taps_real<32> channel_filter
+	) : Message { ID::AMConfigure },
+		decim_0_filter(decim_0_filter),
+		decim_1_filter(decim_1_filter),
+		channel_filter(channel_filter)
+	{
+	}
+
+	const fir_taps_real<24> decim_0_filter;
+	const fir_taps_real<32> decim_1_filter;
+	const fir_taps_real<32> channel_filter;
 };
 
 class TXDoneMessage : public Message {

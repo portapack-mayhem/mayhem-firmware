@@ -22,6 +22,7 @@
 #include "ui_navigation.hpp"
 
 #include "portapack.hpp"
+#include "event_m0.hpp"
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -42,7 +43,10 @@
 #include "ui_sigfrx.hpp"
 #include "ui_numbers.hpp"
 
-#include "portapack.hpp"
+#include "ais_app.hpp"
+#include "ert_app.hpp"
+#include "tpms_app.hpp"
+
 #include "m4_startup.hpp"
 #include "spi_image.hpp"
 
@@ -56,52 +60,83 @@ namespace ui {
 
 SystemStatusView::SystemStatusView() {
 	add_children({ {
-		&portapack,
+		&button_back,
+		&title,
+		&button_sleep,
+		&sd_card_status_view,
 	} });
+	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
+
+	button_back.on_select = [this](Button&){
+		if( this->on_back ) {
+			this->on_back();
+		}
+	};
+
+	button_sleep.on_select = [this](Button&) {
+		DisplaySleepMessage message;
+		EventDispatcher::message_map().send(&message);
+	};
+}
+
+void SystemStatusView::set_back_visible(bool new_value) {
+	button_back.hidden(!new_value);
+}
+
+void SystemStatusView::set_title(const std::string new_value) {
+	if( new_value.empty() ) {
+		title.set(default_title);
+	} else {
+		title.set(new_value);
+	}
 }
 
 /* Navigation ************************************************************/
 
-NavigationView::NavigationView()
-{
+bool NavigationView::is_top() const {
+	return view_stack.size() == 1;
 }
 
-void NavigationView::push(View* new_view) {
-	// TODO: Trap nullptr?
-	// TODO: Trap push of object already on stack?
-	view_stack.push_back(new_view);
-	set_view(new_view);
+View* NavigationView::push_view(std::unique_ptr<View> new_view) {
+	free_view();
+
+	const auto p = new_view.get();
+	view_stack.emplace_back(std::move(new_view));
+
+	update_view();
+
+	return p;
 }
 
 void NavigationView::pop() {
 	// Can't pop last item from stack.
 	if( view_stack.size() > 1 ) {
-		const auto old_view = view_stack.back();
+		free_view();
+
 		view_stack.pop_back();
-		const auto new_view = view_stack.back();
-		set_view(new_view);
-		delete old_view;
+
+		update_view();
+	}
+}
+
+void NavigationView::free_view() {
+	remove_child(view());
+}
+
+void NavigationView::update_view() {
+	const auto new_view = view_stack.back().get();
+	add_child(new_view);
+	new_view->set_parent_rect({ {0, 0}, size() });
+	focus();
+	set_dirty();
+
+	if( on_view_changed ) {
+		on_view_changed(*new_view);
 	}
 }
 
 Widget* NavigationView::view() const {
 	return children_.empty() ? nullptr : children_[0];
-}
-
-void NavigationView::set_view(Widget* const new_view) {
-	const auto old_view = view();
-	if( old_view ) {
-		remove_child(old_view);
-	}
-
-	// TODO: Allow new_view == nullptr?!
-	if( new_view ) {
-		add_child(new_view);
-		new_view->set_parent_rect({ {0, 0}, size() });
-		focus();
-	}
-
-	set_dirty();
 }
 
 void NavigationView::focus() {
@@ -110,29 +145,47 @@ void NavigationView::focus() {
 	}
 }
 
+/* TransceiversMenuView **************************************************/
+
+TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
+	add_items<3>({ {
+		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
+	} });
+}
+
+/* ReceiverMenuView ******************************************************/
+
+ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
+	add_items<2>({ {
+		{ "Audio",        [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
+	} });
+}
+
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<10>({ {
-		{ "Play dead", ui::Color::red(),  		[&nav](){ nav.push(new PlayDeadView 	  { nav, false }); } },
-		{ "Receiver", ui::Color::cyan(), 		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new ReceiverView { nav, receiver_model }}); } },
+		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push(new PlayDeadView 	  { nav, false }); } },
+		{ "Receiver", ui::Color::cyan(), 			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new ReceiverMenuView { nav, receiver_model }}); } },
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Jammer", ui::Color::white(),   		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new JammerView { nav, transmitter_model }}); } },
+		{ "Jammer", ui::Color::white(),   			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new JammerView { nav, transmitter_model }}); } },
 		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
-		//{ "SIGFOX RX", ui::Color::orange(),  	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
-		{ "RDS TX", ui::Color::yellow(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new RDSView { nav, transmitter_model }}); } },
-		{ "Xylos TX", ui::Color::orange(),  	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosView	{ nav, transmitter_model }}); } },
+		//{ "SIGFOX RX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
+		{ "RDS TX", ui::Color::yellow(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new RDSView { nav, transmitter_model }}); } },
+		{ "Xylos TX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosView	{ nav, transmitter_model }}); } },
 		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
-		//{ "AFSK RX", ui::Color::cyan(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
-		{ "TEDI/LCR TX", ui::Color::yellow(),  	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new LCRView { nav, transmitter_model }}); } },
-		//{ "Numbers station", ui::Color::purple(),[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
-		
-		{ "Setup", ui::Color::white(),    		[&nav](){ nav.push(new SetupMenuView      { nav }); } },
-		{ "About", ui::Color::white(),    		[&nav](){ nav.push(new AboutView          { nav, transmitter_model }); } },
-		{ "Debug", ui::Color::white(),    		[&nav](){ nav.push(new DebugMenuView      { nav }); } },
-		{ "HackRF", ui::Color::white(),   		[&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
+		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
+		{ "TEDI/LCR TX", ui::Color::yellow(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new LCRView { nav, transmitter_model }}); } },
+		//{ "Numbers station", ui::Color::purple(),	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
+		{ "Setup", ui::Color::white(),    			[&nav](){ nav.push(new SetupMenuView      { nav }); } },
+		{ "About", ui::Color::white(),    			[&nav](){ nav.push(new AboutView          { nav, transmitter_model }); } },
+		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push(new DebugMenuView      { nav }); } },
+		{ "HackRF", ui::Color::white(),   			[&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
 	} });
 }
 
@@ -159,12 +212,19 @@ SystemView::SystemView(
 		{ 0, 0 },
 		{ parent_rect.width(), status_view_height }
 	});
+	status_view.on_back = [this]() {
+		this->navigation_view.pop();
+	};
 
 	add_child(&navigation_view);
 	navigation_view.set_parent_rect({
 		{ 0, status_view_height },
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
+	navigation_view.on_view_changed = [this](const View& new_view) {
+		this->status_view.set_back_visible(!this->navigation_view.is_top());
+		this->status_view.set_title(new_view.title());
+	};
 
 	// Initial view.
 	// TODO: Restore from non-volatile memory?
@@ -175,71 +235,13 @@ SystemView::SystemView(
 	//	navigation_view.push(new BMPView { navigation_view });
 	
 	if (portapack::persistent_memory::ui_config() & 1)
-		navigation_view.push(new BMPView { navigation_view });
+		navigation_view.push<BMPView>();
 	else
-		navigation_view.push(new SystemMenuView { navigation_view });
+		navigation_view.push<SystemMenuView>();
 }
 
 Context& SystemView::context() const {
 	return context_;
-}
-
-/* ***********************************************************************/
-
-void BMPView::focus() {
-	button_done.focus();
-}
-
-BMPView::BMPView(NavigationView& nav) {
-	add_children({ {
-		&text_info,
-		&button_done
-	} });
-	
-	button_done.on_select = [this,&nav](Button&){
-		nav.pop();
-		nav.push(new SystemMenuView { nav });
-	};
-}
-
-void BMPView::paint(Painter& painter) {
-	(void)painter;
-	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp);
-}
-
-/* PlayDeadView **********************************************************/
-
-void PlayDeadView::focus() {
-	button_done.focus();
-}
-
-PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
-	_booting = booting;
-	persistent_memory::set_playing_dead(0x59);
-	
-	add_children({ {
-		&text_playdead1,
-		&text_playdead2,
-		&button_done,
-	} });
-	
-	button_done.on_dir = [this,&nav](Button&, KeyEvent key){
-		sequence = (sequence<<3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
-	};
-	
-	button_done.on_select = [this,&nav](Button&){
-		if (sequence == persistent_memory::playdead_sequence()) {
-			persistent_memory::set_playing_dead(0);
-			if (_booting) {
-				nav.pop();
-				nav.push(new SystemMenuView { nav });
-			} else {
-				nav.pop();
-			}
-		} else {
-			sequence = 0;
-		}
-	};
 }
 
 /* HackRFFirmwareView ****************************************************/

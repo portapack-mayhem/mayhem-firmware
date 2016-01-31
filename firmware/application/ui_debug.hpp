@@ -29,6 +29,11 @@
 #include "ui_navigation.hpp"
 
 #include "rffc507x.hpp"
+#include "max2837.hpp"
+#include "portapack.hpp"
+
+#include <functional>
+#include <utility>
 
 namespace ui {
 	
@@ -79,67 +84,128 @@ private:
 	};
 };
 
-class DebugRFFC5072RegistersWidget : public Widget {
+class TemperatureWidget : public Widget {
 public:
-	constexpr DebugRFFC5072RegistersWidget(
+	explicit constexpr TemperatureWidget(
 		Rect parent_rect
 	) : Widget { parent_rect }
 	{
 	}
+
+	void paint(Painter& painter) override;
+
+private:
+	using sample_t = uint32_t;
+	using temperature_t = int32_t;
+
+	temperature_t temperature(const sample_t sensor_value) const;
+	Coord screen_y(const temperature_t temperature, const Rect& screen_rect) const;
+
+	std::string temperature_str(const temperature_t temperature) const;
+
+	static constexpr temperature_t display_temp_min = 0;
+	static constexpr temperature_t display_temp_scale = 3;
+	static constexpr int bar_width = 1;
+	static constexpr int temp_len = 3;
+};
+
+class TemperatureView : public View {
+public:
+	explicit TemperatureView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	Text text_title {
+		{ 76, 16, 240, 16 },
+		"Temperature",
+	};
+
+	TemperatureWidget temperature_widget {
+		{ 0, 40, 240, 180 },
+	};
+
+	Button button_done {
+		{ 72, 264, 96, 24 },
+		"Done"
+	};
+};
+
+struct RegistersWidgetConfig {
+	int registers_count;
+	int legend_length;
+	int value_length;
+	int registers_per_row;
+
+	constexpr int legend_width() const {
+		return legend_length * 8;
+	}
+
+	constexpr int value_width() const {
+		return value_length * 8;
+	}
+
+	constexpr int registers_row_length() const {
+		return (registers_per_row * (value_length + 1)) - 1;
+	}
+
+	constexpr int registers_row_width() const {
+		return registers_row_length() * 8;
+	}
+
+	constexpr int row_width() const {
+		return legend_width() + 8 + registers_row_width();
+	}
+
+	constexpr int rows() const {
+		return registers_count / registers_per_row;
+	}
+};
+
+class RegistersWidget : public Widget {
+public:
+	RegistersWidget(
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader
+	);
 
 	void update();
 
 	void paint(Painter& painter) override;
 
 private:
-	static constexpr size_t registers_count { 31 };
+	const RegistersWidgetConfig config;
+	const std::function<uint32_t(const size_t register_number)> reader;
 
-	static constexpr size_t legend_length { 2 };
-	static constexpr Dim legend_width { legend_length * 8 };
+	static constexpr int row_height = 16;
 
-	static constexpr size_t value_length { 4 };
-	static constexpr Dim value_width { value_length * 8 };
-
-	static constexpr size_t registers_per_row { 4 };
-	static constexpr size_t registers_row_length {
-		(registers_per_row * (value_length + 1)) - 1
-	};
-	static constexpr Dim registers_row_width {
-		registers_row_length * 8
-	};
-
-	static constexpr size_t rows {
-		registers_count / registers_per_row
-	};
-	static constexpr Dim row_height { 16 };
-
-	void draw_legend(Painter& painter);
-	void draw_values(Painter& painter, const rffc507x::RegisterMap registers);
+	void draw_legend(const Coord left, Painter& painter);
+	void draw_values(const Coord left, Painter& painter);
 };
 
-class DebugRFFC5072View : public View {
+class RegistersView : public View {
 public:
-	DebugRFFC5072View(NavigationView& nav);
+	RegistersView(
+		NavigationView& nav,
+		const std::string& title,
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader
+	);
 
-	void focus() override;
+	void focus();
 
 private:
-	Text text_title {
-		{ 88, 16, 40, 16 },
-		"RFFC5072",
-	};
+	Text text_title;
 
-	DebugRFFC5072RegistersWidget widget_registers {
-		{ 32, 48, 176, 128 }
-	};
+	RegistersWidget registers_widget;
 
 	Button button_update {
-		{ 16, 192, 96, 24 },
+		{ 16, 256, 96, 24 },
 		"Update"
 	};
 
 	Button button_done {
-		{ 128, 192, 96, 24 },
+		{ 128, 256, 96, 24 },
 		"Done"
 	};
 };

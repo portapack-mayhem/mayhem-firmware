@@ -21,12 +21,16 @@
 
 #include "ui_channel.hpp"
 
+#include "event_m0.hpp"
+
+#include "utility.hpp"
+
 #include <algorithm>
 
 namespace ui {
 
 void Channel::on_show() {
-	context().message_map().register_handler(Message::ID::ChannelStatistics,
+	EventDispatcher::message_map().register_handler(Message::ID::ChannelStatistics,
 		[this](const Message* const p) {
 			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
 		}
@@ -34,20 +38,21 @@ void Channel::on_show() {
 }
 
 void Channel::on_hide() {
-	context().message_map().unregister_handler(Message::ID::ChannelStatistics);
+	EventDispatcher::message_map().unregister_handler(Message::ID::ChannelStatistics);
 }
 
 void Channel::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	const int32_t db_min = -r.width();
-	const int32_t x_0 = 0;
-	const int32_t x_max = std::max(x_0, max_db_ - db_min);
-	const int32_t x_lim = r.width();
+	constexpr int db_min = -96;
+	constexpr int db_max = 0;
+	constexpr int db_delta = db_max - db_min;
+	const range_t<int> x_max_range { 0, r.width() - 1 };
+	const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
 	const Rect r0 {
-		static_cast<ui::Coord>(r.left() + x_0), r.top(),
-		static_cast<ui::Dim>(x_max - x_0), r.height()
+		static_cast<ui::Coord>(r.left()), r.top(),
+		static_cast<ui::Dim>(x_max), r.height()
 	};
 	painter.fill_rectangle(
 		r0,
@@ -65,7 +70,7 @@ void Channel::paint(Painter& painter) {
 
 	const Rect r2 {
 		static_cast<ui::Coord>(r.left() + x_max + 1), r.top(),
-		static_cast<ui::Dim>(x_lim - (x_max + 1)), r.height()
+		static_cast<ui::Dim>(r.width() - (x_max + 1)), r.height()
 	};
 	painter.fill_rectangle(
 		r2,

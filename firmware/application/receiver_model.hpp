@@ -33,6 +33,16 @@
 
 class ReceiverModel {
 public:
+	enum class Mode : int32_t {
+		AMAudio = 0,
+		NarrowbandFMAudio = 1,
+		WidebandFMAudio = 2,
+		AIS = 3,
+		SpectrumAnalysis = 4,
+		TPMS = 5,
+		ERT = 6,
+	};
+
 	constexpr ReceiverModel(
 		ClockManager& clock_manager
 	) : clock_manager(clock_manager)
@@ -47,6 +57,9 @@ public:
 
 	int32_t reference_ppm_correction() const;
 	void set_reference_ppm_correction(int32_t v);
+
+	bool antenna_bias() const;
+	void set_antenna_bias(bool enabled);
 
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
@@ -76,14 +89,16 @@ public:
 
 private:
 	rf::Frequency frequency_step_ { 25000 };
+	bool enabled_ { false };
 	bool rf_amp_ { false };
+	bool antenna_bias_ { false };
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
 	BasebandConfiguration baseband_configuration {
-		.mode = NONE,
+		.mode = 1,			/* TODO: Enum! */
 		.sampling_rate = 3072000,
-		.decimation_factor = 4,
+		.decimation_factor = 1,
 	};
 	volume_t headphone_volume_ { -43.0_dB };
 	ClockManager& clock_manager;
@@ -91,6 +106,7 @@ private:
 	int32_t tuning_offset();
 
 	void update_tuning_frequency();
+	void update_antenna_bias();
 	void update_rf_amp();
 	void update_lna();
 	void update_baseband_bandwidth();
@@ -98,6 +114,7 @@ private:
 	void update_baseband_configuration();
 	void update_headphone_volume();
 
+	void baseband_disable();
 };
 
 #endif/*__RECEIVER_MODEL_H__*/

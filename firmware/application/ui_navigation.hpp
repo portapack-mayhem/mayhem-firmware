@@ -30,44 +30,76 @@
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
 #include "ui_audio.hpp"
+#include "ui_sd_card_status_view.hpp"
 
 #include <vector>
+#include <utility>
 
 namespace ui {
 
 class SystemStatusView : public View {
 public:
+	std::function<void(void)> on_back;
+
 	SystemStatusView();
 
+	void set_back_visible(bool new_value);
+	void set_title(const std::string new_value);
+
 private:
-	Text portapack {
-		{ 0, 0, 15 * 8, 1 * 16 },
-		"PortaPack/HAVOC"
+	static constexpr auto default_title = "PortaPack/HAVOC";
+
+	Button button_back {
+		{ 0 * 8, 0 * 16, 3 * 8, 16 },
+		" < ",
 	};
+
+	Text title {
+		{ 3 * 8, 0, 16 * 8, 1 * 16 },
+		default_title,
+	};
+
+	Button button_sleep {
+		{ 25 * 8, 0, 2 * 8, 1 * 16 },
+		"ZZ",
+	};
+
+	SDCardStatusView sd_card_status_view;
 };
 
 class NavigationView : public View {
 public:
-	NavigationView();
+	std::function<void(const View&)> on_view_changed;
+
+	NavigationView() { }
 
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;
 
-	void push(View* new_view);
+	bool is_top() const;
+
+	template<class T, class... Args>
+	T* push(Args&&... args) {
+		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
+	}
+
 	void pop();
 
 	void focus() override;
 
 private:
-	std::vector<View*> view_stack;
+	std::vector<std::unique_ptr<View>> view_stack;
 
 	Widget* view() const;
-	void set_view(Widget* const new_view);
+
+	void free_view();
+	void update_view();
+	View* push_view(std::unique_ptr<View> new_view);
 };
 
-class SystemMenuView : public MenuView {
+class TranspondersMenuView : public MenuView {
 public:
-	SystemMenuView(NavigationView& nav);
+	TranspondersMenuView(NavigationView& nav);
 };
 
 class BMPView : public View {
@@ -88,6 +120,15 @@ private:
 	};
 };
 
+class ReceiverMenuView : public MenuView {
+public:
+	ReceiverMenuView(NavigationView& nav);
+};
+
+class SystemMenuView : public MenuView {
+public:
+	SystemMenuView(NavigationView& nav);
+};
 
 class SystemView : public View {
 public:
@@ -102,29 +143,6 @@ private:
 	SystemStatusView status_view;
 	NavigationView navigation_view;
 	Context& context_;
-};
-
-class PlayDeadView : public View {
-public:
-	PlayDeadView(NavigationView& nav, bool booting);
-	void focus() override;
-
-private:
-	bool _booting;
-	uint32_t sequence = 0;
-	Text text_playdead1 {
-		{ 6 * 8, 7 * 16, 14 * 8, 16 },
-		"Firmware error"
-	};
-	Text text_playdead2 {
-		{ 6 * 8, 9 * 16, 16 * 8, 16 },
-		"0x1400_0000 : 2C"
-	};
-	
-	Button button_done {
-		{ 240, 0, 1, 1 },
-		""
-	};
 };
 
 class HackRFFirmwareView : public View {

@@ -40,17 +40,21 @@ void Console::write(const std::string message) {
 	const Font& font = s.font;
 	const auto rect = screen_rect();
 	for(const auto c : message) {
-		const auto glyph = font.glyph(c);
-		const auto advance = glyph.advance();
-		if( (pos.x + advance.x) > rect.width() ) {
+		if( c == '\n' ) {
 			crlf();
+		} else {
+			const auto glyph = font.glyph(c);
+			const auto advance = glyph.advance();
+			if( (pos.x + advance.x) > rect.width() ) {
+				crlf();
+			}
+			const Point pos_glyph {
+				rect.pos.x + pos.x,
+				display.scroll_area_y(pos.y)
+			};
+			display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
+			pos.x += advance.x;
 		}
-		const Point pos_glyph {
-			static_cast<Coord>(rect.pos.x + pos.x),
-			display.scroll_area_y(pos.y)
-		};
-		display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
-		pos.x += advance.x;
 	}
 }
 

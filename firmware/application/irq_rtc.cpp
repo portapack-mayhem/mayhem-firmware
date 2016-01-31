@@ -26,7 +26,7 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-#include "event.hpp"
+#include "event_m0.hpp"
  
 void rtc_interrupt_enable() {
 	rtc::interrupt::enable_second_inc();
@@ -39,7 +39,7 @@ CH_IRQ_HANDLER(RTC_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_RTC_TICK);
+	EventDispatcher::events_flag_isr(EVT_MASK_RTC_TICK);
 	chSysUnlockFromIsr();
 
 	rtc::interrupt::clear_all();

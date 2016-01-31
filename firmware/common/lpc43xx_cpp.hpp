@@ -30,6 +30,21 @@
 
 namespace lpc43xx {
 
+#if defined(LPC43XX_M4)
+namespace m4 {
+
+static inline bool flag_saturation() {
+	return __get_APSR() & (1U << 27);
+}
+
+static inline void clear_flag_saturation() {
+	uint32_t flags = 1;
+	__asm volatile ("MSR APSR_nzcvqg, %0" : : "r" (flags));
+}
+
+} /* namespace m4 */
+#endif
+
 namespace creg {
 
 static_assert(offsetof(LPC_CREG_Type, CREG0) == 0x004, "CREG0 offset wrong");
@@ -42,6 +57,16 @@ static_assert(offsetof(LPC_CREG_Type, USB0FLADJ) == 0x500, "USB0FLADJ offset wro
 static_assert(offsetof(LPC_CREG_Type, USB1FLADJ) == 0x600, "USB1FLADJ offset wrong");
 
 namespace m4txevent {
+
+#if defined(LPC43XX_M0)
+inline void enable() {
+	nvicEnableVector(M4CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M4TXEVENT_IRQ_PRIORITY));
+}
+
+inline void disable() {
+	nvicDisableVector(M4CORE_IRQn);
+}
+#endif
 
 #if defined(LPC43XX_M4)
 inline void assert() {
@@ -56,6 +81,16 @@ inline void clear() {
 } /* namespace m4txevent */
 
 namespace m0apptxevent {
+
+#if defined(LPC43XX_M4)
+inline void enable() {
+	nvicEnableVector(M0CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M0APPTXEVENT_IRQ_PRIORITY));
+}
+
+inline void disable() {
+	nvicDisableVector(M0CORE_IRQn);
+}
+#endif
 
 #if defined(LPC43XX_M0)
 inline void assert() {

@@ -29,8 +29,6 @@
 
 #include "utility.hpp"
 
-#include "message.hpp"
-
 #include <memory>
 #include <vector>
 #include <string>
@@ -41,37 +39,20 @@ void dirty_set();
 void dirty_clear();
 bool is_dirty();
 
-// TODO: Move these somewhere else!
-// TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
-std::string to_string_dec_uint(const uint32_t n, const int32_t l = 0, const char fill = 0);
-std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char fill = 0);
-std::string to_string_hex(const uint32_t n, const int32_t l = 0);
-
 class Context {
 public:
 	FocusManager& focus_manager() {
 		return focus_manager_;
 	}
 
-	MessageHandlerMap& message_map() {
-		return message_map_;
-	}
-
 private:
 	FocusManager focus_manager_;
-	MessageHandlerMap message_map_;
 };
 
 class Widget {
 public:
 	constexpr Widget(
 	) : parent_rect { }
-	{
-	}
-	
-	constexpr Widget(
-		Point parent_point
-	) : parent_rect { parent_point, { 24, 24 } }
 	{
 	}
 
@@ -150,6 +131,8 @@ protected:
 		.highlighted = false,
 		.visible = false,
 	};
+
+	void dirty_overlapping_children_in_rect(const Rect& child_rect);
 };
 
 class View : public Widget {
@@ -174,6 +157,8 @@ public:
 
 	virtual Widget* initial_focus();
 
+	virtual std::string title() const;
+
 protected:
 	std::vector<Widget*> children_;
 	Rect dirty_screen_rect;
@@ -183,13 +168,7 @@ protected:
 
 class Rectangle : public Widget {
 public:
-	constexpr Rectangle(
-		const Rect parent_rect,
-		const Color c
-	) : Widget { parent_rect },
-		color { c }
-	{
-	}
+	Rectangle(Rect parent_rect, Color c);
 
 	void paint(Painter& painter) override;
 
@@ -205,19 +184,8 @@ public:
 	) : text { "" } {
 	}
 
-	Text(
-		Rect parent_rect,
-		std::string text
-	) : Widget { parent_rect },
-		text { text }
-	{
-	}
-
-	Text(
-		Rect parent_rect
-	) : Text { parent_rect, { } }
-	{
-	}
+	Text(Rect parent_rect, std::string text);
+	Text(Rect parent_rect);
 
 	void set(const std::string value);
 	void set_style(const Style* new_style);
@@ -267,16 +235,8 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
-	std::function<void(Button&,KeyEvent)> on_dir;
 
-	Button(
-		Rect parent_rect,
-		std::string text
-	) : Widget { parent_rect },
-		text_ { text }
-	{
-		flags.focusable = true;
-	}
+	Button(Rect parent_rect, std::string text);
 
 	Button(
 	) : Button { { }, { } }
@@ -307,18 +267,7 @@ public:
 
 	std::function<void(size_t, value_t)> on_change;
 
-	OptionsField(
-		Point parent_pos,
-		size_t length,
-		options_t options
-	) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-		length_ { length },
-		options { options }
-	{
-		flags.focusable = true;
-	}
-	
-	void set_options(options_t new_options);
+	OptionsField(Point parent_pos, size_t length, options_t options);
 
 	size_t selected_index() const;
 	void set_selected_index(const size_t new_index);
@@ -342,20 +291,7 @@ public:
 
 	using range_t = std::pair<int32_t, int32_t>;
 
-	NumberField(
-		Point parent_pos,
-		size_t length,
-		range_t range,
-		int32_t step,
-		char fill_char
-	) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-		range { range },
-		step { step },
-		length_ { length },
-		fill_char { fill_char }
-	{
-		flags.focusable = true;
-	}
+	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
 
 	NumberField(const NumberField&) = delete;
 	NumberField(NumberField&&) = delete;

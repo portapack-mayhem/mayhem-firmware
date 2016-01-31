@@ -30,6 +30,7 @@
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
+#include "baseband_packet.hpp"
 
 #include "message.hpp"
 
@@ -41,13 +42,20 @@
 
 class AISProcessor : public BasebandProcessor {
 public:
-	using payload_t = std::bitset<1024>;
+	AISProcessor();
 
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator { ChannelDecimator::DecimationFactor::By32 };
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_76k8_4t_p, 4 };
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_38k4_4t_p, 2 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		19200, 9600, { 0.0555f },
@@ -58,13 +66,13 @@ private:
 		{ 0b0101010101111110, 16, 1 },
 		{ 0b111110, 6 },
 		{ 0b01111110, 8 },
-		[this](const payload_t& payload, const size_t bits_received) {
-			this->payload_handler(payload, bits_received);
+		[this](const baseband::Packet& packet) {
+			this->payload_handler(packet);
 		}
 	};
 
 	void consume_symbol(const float symbol);
-	void payload_handler(const payload_t& payload, const size_t bits_received);
+	void payload_handler(const baseband::Packet& packet);
 };
 
 #endif/*__PROC_AIS_H__*/

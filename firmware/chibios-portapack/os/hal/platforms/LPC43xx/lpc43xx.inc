@@ -1372,43 +1372,6 @@ typedef struct {
 // ------------------------------------------------------------------------------------------------
 
 
-#ifdef __cplusplus
-
-#define LPC_PERIPHERAL(_t, _i) constexpr auto const LPC_ ## _i = reinterpret_cast<LPC_ ## _t ## _Type*>(LPC_ ## _i ## _BASE)
-
-LPC_PERIPHERAL(GPDMA,   GPDMA);
-LPC_PERIPHERAL(SPIFI,   SPIFI);
-LPC_PERIPHERAL(SDMMC,   SDMMC);
-LPC_PERIPHERAL(CREG,    CREG);
-LPC_PERIPHERAL(RTC,     RTC);
-LPC_PERIPHERAL(CGU,     CGU);
-LPC_PERIPHERAL(CCU1,    CCU1);
-LPC_PERIPHERAL(CCU2,    CCU2);
-LPC_PERIPHERAL(RGU,     RGU);
-LPC_PERIPHERAL(USART,   USART0);
-LPC_PERIPHERAL(UART,    UART1);
-LPC_PERIPHERAL(SSPx,    SSP0);
-LPC_PERIPHERAL(TIMER,   TIMER0);
-LPC_PERIPHERAL(TIMER,   TIMER1);
-LPC_PERIPHERAL(SCU,     SCU);
-LPC_PERIPHERAL(GPIO_INT, GPIO_INT);
-LPC_PERIPHERAL(I2Cx,    I2C0);
-LPC_PERIPHERAL(I2S,     I2S0);
-LPC_PERIPHERAL(I2S,     I2S1);
-LPC_PERIPHERAL(RITIMER, RITIMER);
-LPC_PERIPHERAL(USART,   USART2);
-LPC_PERIPHERAL(USART,   USART3);
-LPC_PERIPHERAL(TIMER,   TIMER2);
-LPC_PERIPHERAL(TIMER,   TIMER3);
-LPC_PERIPHERAL(SSPx,    SSP1);
-LPC_PERIPHERAL(I2Cx,    I2C1);
-LPC_PERIPHERAL(ADCx,    ADC0);
-LPC_PERIPHERAL(ADCx,    ADC1);
-LPC_PERIPHERAL(GPIO,    GPIO);
-LPC_PERIPHERAL(SGPIO,   SGPIO);
-
-#else
-
 #define LPC_GPDMA                 ((LPC_GPDMA_Type          *) LPC_GPDMA_BASE)
 #define LPC_SPIFI                 ((LPC_SPIFI_Type          *) LPC_SPIFI_BASE)
 #define LPC_SDMMC                 ((LPC_SDMMC_Type          *) LPC_SDMMC_BASE)
@@ -1439,7 +1402,6 @@ LPC_PERIPHERAL(SGPIO,   SGPIO);
 #define LPC_ADC1                  ((LPC_ADCx_Type           *) LPC_ADC1_BASE)
 #define LPC_GPIO                  ((LPC_GPIO_Type           *) LPC_GPIO_BASE)
 #define LPC_SGPIO                 ((LPC_SGPIO_Type          *) LPC_SGPIO_BASE)
-#endif
 
 #ifdef __cplusplus
 }

@@ -44,6 +44,9 @@ public:
 	void init();
 	void shutdown();
 
+	void sleep();
+	void wake();
+
 	void fill_rectangle(ui::Rect r, const ui::Color c);
 	void draw_line(const ui::Point start, const ui::Point end, const ui::Color color);
 	void fill_circle(

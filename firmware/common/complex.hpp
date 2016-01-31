@@ -66,8 +66,8 @@ public:
 
 private:
 	union {
-		int8_t _v[2];
-		uint16_t _rep;
+		value_type _v[2];
+		rep_type _rep;
 	};
 };
 
@@ -101,14 +101,28 @@ public:
 	void real(int16_t v) { _v[0] = v; }
 	void imag(int16_t v) { _v[1] = v; }
 
+	template<class X>
+	complex<int16_t>& operator+=(const complex<X>& other) {
+		_v[0] += other.real();
+		_v[1] += other.imag();
+		return *this;
+	}
+
 	constexpr uint32_t __rep() const {
 		return _rep;
 	}
 
+	constexpr operator std::complex<float>() const {
+		return {
+			static_cast<float>(_v[0]),
+			static_cast<float>(_v[1])
+		};
+	}
+
 private:
 	union {
-		int16_t _v[2];
-		uint32_t _rep;
+		value_type _v[2];
+		rep_type _rep;
 	};
 };
 

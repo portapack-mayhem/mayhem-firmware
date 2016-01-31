@@ -21,10 +21,99 @@
 
 #include "event_m4.hpp"
 
+#include "portapack_shared_memory.hpp"
+
+#include "message_queue.hpp"
+
 #include "ch.h"
 
-Thread* thread_event_loop = nullptr;
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
 
-void events_initialize(Thread* const event_loop_thread) {
-	thread_event_loop = event_loop_thread;
+#include <cstdint>
+#include <array>
+
+extern "C" {
+
+CH_IRQ_HANDLER(MAPP_IRQHandler) {
+	CH_IRQ_PROLOGUE();
+
+	chSysLockFromIsr();
+	EventDispatcher::events_flag_isr(EVT_MASK_BASEBAND);
+	chSysUnlockFromIsr();
+
+	creg::m0apptxevent::clear();
+
+	CH_IRQ_EPILOGUE();
+}
+
+}
+
+Thread* EventDispatcher::thread_event_loop = nullptr;
+
+void EventDispatcher::run() {
+	thread_event_loop = chThdSelf();
+	lpc43xx::creg::m0apptxevent::enable();
+
+	baseband_thread.thread_main = chThdSelf();
+	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
+	baseband_thread.start(NORMALPRIO + 20);
+
+	while(is_running) {
+		const auto events = wait();
+		dispatch(events);
+	}
+
+	lpc43xx::creg::m0apptxevent::disable();
+}
+
+void EventDispatcher::request_stop() {
+	is_running = false;
+}
+
+eventmask_t EventDispatcher::wait() {
+	return chEvtWaitAny(ALL_EVENTS);
+}
+
+void EventDispatcher::dispatch(const eventmask_t events) {
+	if( events & EVT_MASK_BASEBAND ) {
+		handle_baseband_queue();
+	}
+
+	if( events & EVT_MASK_SPECTRUM ) {
+		handle_spectrum();
+	}
+}
+
+void EventDispatcher::handle_baseband_queue() {
+	std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+	while(Message* const message = shared_memory.baseband_queue.peek(message_buffer)) {
+		on_message(message);
+		shared_memory.baseband_queue.skip();
+	}
+}
+
+void EventDispatcher::on_message(const Message* const message) {
+	switch(message->id) {
+	case Message::ID::Shutdown:
+		on_message_shutdown(*reinterpret_cast<const ShutdownMessage*>(message));
+		break;
+
+	default:
+		on_message_default(message);
+		break;
+	}
+}
+
+void EventDispatcher::on_message_shutdown(const ShutdownMessage&) {
+	request_stop();
+}
+
+void EventDispatcher::on_message_default(const Message* const message) {
+	baseband_thread.on_message(message);
+}
+
+void EventDispatcher::handle_spectrum() {
+	const UpdateSpectrumMessage message;
+	baseband_thread.on_message(&message);
 }

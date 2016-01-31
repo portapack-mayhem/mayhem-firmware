@@ -23,36 +23,28 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
+#include "dsp_fir_taps.hpp"
 
-void AISProcessor::execute(buffer_c8_t buffer) {
+AISProcessor::AISProcessor() {
+	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
+	decim_1.configure(taps_11k0_decim_1.taps, 131072);
+}
+
+void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
-	auto decimator_out = decimator.execute(buffer);
+	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto decimator_out = decim_1_out;
 
-	/* 76.8kHz, 64 samples */
+	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
-	/* No spectrum display while AIS decoding.
-	feed_channel_spectrum(
-		channel,
-		decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
-		decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
-	);
-	*/
 
 	for(size_t i=0; i<decimator_out.count; i++) {
-		// TODO: No idea why implicit cast int16_t->float is not allowed.
-		const std::complex<float> sample {
-			static_cast<float>(decimator_out.p[i].real()),
-			static_cast<float>(decimator_out.p[i].imag())
-		};
-		if( mf.execute_once(sample) ) {
+		if( mf.execute_once(decimator_out.p[i]) ) {
 			clock_recovery(mf.get_output());
 		}
 	}
-
-	i2s::i2s0::tx_mute();
 }
 
 void AISProcessor::consume_symbol(
@@ -65,11 +57,8 @@ void AISProcessor::consume_symbol(
 }
 
 void AISProcessor::payload_handler(
-	const std::bitset<1024>& payload,
-	const size_t bits_received
+	const baseband::Packet& packet
 ) {
-	AISPacketMessage message;
-	message.packet.payload = payload;
-	message.packet.bits_received = bits_received;
+	const AISPacketMessage message { packet };
 	shared_memory.application_queue.push(message);
 }

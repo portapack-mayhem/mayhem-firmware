@@ -31,14 +31,28 @@
 
 #include "dsp_types.hpp"
 
+#include "simd.hpp"
+
 namespace dsp {
 namespace decimate {
+
+class Complex8DecimateBy2CIC3 {
+public:
+	buffer_c16_t execute(
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
+	);
+
+private:
+	uint32_t _i1_i0 { 0 };
+	uint32_t _q1_q0 { 0 };
+};
 
 class TranslateByFSOver4AndDecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(
-		buffer_c8_t src,
-		buffer_c16_t dst
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
 	);
 
 private:
@@ -49,8 +63,8 @@ private:
 class DecimateBy2CIC3 {
 public:
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 
 private:
@@ -62,20 +76,134 @@ class FIR64AndDecimateBy2Real {
 public:
 	static constexpr size_t taps_count = 64;
 
-	FIR64AndDecimateBy2Real(
+	void configure(
 		const std::array<int16_t, taps_count>& taps
-	) : taps(taps)
-	{
-	}
+	);
 
 	buffer_s16_t execute(
-		buffer_s16_t src,
-		buffer_s16_t dst
+		const buffer_s16_t& src,
+		const buffer_s16_t& dst
 	);
 
 private:
 	std::array<int16_t, taps_count + 2> z;
-	const std::array<int16_t, taps_count>& taps;
+	std::array<int16_t, taps_count> taps;
+};
+
+class FIRC8xR16x24FS4Decim4 {
+public:
+	static constexpr size_t taps_count = 24;
+	static constexpr size_t decimation_factor = 4;
+
+	using sample_t = complex8_t;
+	using tap_t = int16_t;
+
+	enum class Shift : bool {
+		Down = true,
+		Up = false
+	};
+
+	FIRC8xR16x24FS4Decim4();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale,
+		const Shift shift = Shift::Down
+	);
+
+	buffer_c16_t execute(
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
+};
+
+class FIRC8xR16x24FS4Decim8 {
+public:
+	static constexpr size_t taps_count = 24;
+	static constexpr size_t decimation_factor = 8;
+
+	using sample_t = complex8_t;
+	using tap_t = int16_t;
+
+	enum class Shift : bool {
+		Down = true,
+		Up = false
+	};
+
+	FIRC8xR16x24FS4Decim8();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale,
+		const Shift shift = Shift::Down
+	);
+
+	buffer_c16_t execute(
+		const buffer_c8_t& src,
+		const buffer_c16_t& dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
+};
+
+class FIRC16xR16x16Decim2 {
+public:
+	static constexpr size_t taps_count = 16;
+	static constexpr size_t decimation_factor = 2;
+
+	using sample_t = complex16_t;
+	using tap_t = int16_t;
+
+	FIRC16xR16x16Decim2();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale
+	);
+
+	buffer_c16_t execute(
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
+};
+
+class FIRC16xR16x32Decim8 {
+public:
+	static constexpr size_t taps_count = 32;
+	static constexpr size_t decimation_factor = 8;
+
+	using sample_t = complex16_t;
+	using tap_t = int16_t;
+
+	FIRC16xR16x32Decim8();
+
+	void configure(
+		const std::array<tap_t, taps_count>& taps,
+		const int32_t scale
+	);
+
+	buffer_c16_t execute(
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
+	);
+	
+private:
+	std::array<vec2_s16, taps_count - decimation_factor> z_;
+	std::array<tap_t, taps_count> taps_;
+	int32_t output_scale = 0;
 };
 
 class FIRAndDecimateComplex {
@@ -99,16 +227,12 @@ public:
 		const T& taps,
 		const size_t decimation_factor
 	) {
-		samples_ = std::make_unique<samples_t>(taps.size());
-		taps_reversed_ = std::make_unique<taps_t>(taps.size());
-		taps_count_ = taps.size();
-		decimation_factor_ = decimation_factor;
-		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
+		configure(taps.data(), taps.size(), decimation_factor);
 	}
 
 	buffer_c16_t execute(
-		buffer_c16_t src,
-		buffer_c16_t dst
+		const buffer_c16_t& src,
+		const buffer_c16_t& dst
 	);
 	
 private:
@@ -118,124 +242,25 @@ private:
 	std::unique_ptr<taps_t> taps_reversed_;
 	size_t taps_count_;
 	size_t decimation_factor_;
+
+	void configure(
+		const int16_t* const taps,
+		const size_t taps_count,
+		const size_t decimation_factor
+	);
 };
 
 class DecimateBy2CIC4Real {
 public:
 	buffer_s16_t execute(
-		buffer_s16_t src,
-		buffer_s16_t dst
+		const buffer_s16_t& src,
+		const buffer_s16_t& dst
 	);
 
 private:
 	int16_t z[5];
 };
-#if 0
-class DecimateBy2HBF5Complex {
-public:
-	buffer_c16_t execute(
-		buffer_c16_t const src,
-		buffer_c16_t const dst
-	);
 
-private:
-	complex16_t z[11];
-};
-
-class DecimateBy2HBF7Complex {
-public:
-	buffer_c16_t execute(
-		buffer_c16_t const src,
-		buffer_c16_t const dst
-	);
-
-private:
-	complex16_t z[11];
-};
-#endif
-/* From http://www.dspguru.com/book/export/html/3
-
-Here are several basic techniques to fake circular buffers:
-
-Split the calculation: You can split any FIR calculation into its "pre-wrap"
-and "post-wrap" parts. By splitting the calculation into these two parts, you
-essentially can do the circular logic only once, rather than once per tap.
-(See fir_double_z in FirAlgs.c above.)
-
-Duplicate the delay line: For a FIR with N taps, use a delay line of size 2N.
-Copy each sample to its proper location, as well as at location-plus-N.
-Therefore, the FIR calculation's MAC loop can be done on a flat buffer of N
-points, starting anywhere within the first set of N points. The second set of
-N delayed samples provides the "wrap around" comparable to a true circular
-buffer. (See fir_double_z in FirAlgs.c above.)
-
-Duplicate the coefficients: This is similar to the above, except that the
-duplication occurs in terms of the coefficients, not the delay line.
-Compared to the previous method, this has a calculation advantage of not
-having to store each incoming sample twice, and it also has a memory
-advantage when the same coefficient set will be used on multiple delay lines.
-(See fir_double_h in FirAlgs.c above.)
-
-Use block processing: In block processing, you use a delay line which is a
-multiple of the number of taps. You therefore only have to move the data
-once per block to implement the delay-line mechanism. When the block size
-becomes "large", the overhead of a moving the delay line once per block
-becomes negligible.
-*/
-
-#if 0
-template<size_t N>
-class FIRAndDecimateBy2Complex {
-public:
-	FIR64AndDecimateBy2Complex(
-		const std::array<int16_t, N>& taps
-	) : taps { taps }
-	{
-	}
-
-	buffer_c16_t execute(
-		buffer_c16_t const src,
-		buffer_c16_t const dst
-	) {
-		/* int16_t input (sample count "n" must be multiple of 4)
-		 * -> int16_t output, decimated by 2.
-		 * taps are normalized to 1 << 16 == 1.0.
-		 */
-
-		return { dst.p, src.count / 2 };
-	}
-
-private:
-	std::array<complex16_t, N> z;
-	const std::array<int16_t, N>& taps;
-
-	complex<int16_t> process_one(const size_t start_offset) {
-		const auto split = &z[start_offset];
-		const auto end = &z[z.size()];
-		auto tap = &taps[0];
-
-		complex<int32_t> t { 0, 0 };
-
-		auto p = split;
-		while(p < end) {
-			const auto t = *(tap++);
-			const auto c = *(p++);
-			t.real += c.real * t;
-			t.imag += c.imag * t;
-		}
-
-		p = &z[0];
-		while(p < split) {
-			const auto t = *(tap++);
-			const auto c = *(p++);
-			t.real += c.real * t;
-			t.imag += c.imag * t;
-		}
-
-		return { t.real / 65536, t.imag / 65536 };
-	}
-};
-#endif
 } /* namespace decimate */
 } /* namespace dsp */
 

@@ -208,8 +208,8 @@ void enable() {
 }
 
 void disable() {
-	gpdma_channel_i2s0_tx.disable_force();
-	gpdma_channel_i2s0_rx.disable_force();
+	gpdma_channel_i2s0_tx.disable();
+	gpdma_channel_i2s0_rx.disable();
 }
 
 buffer_t tx_empty_buffer() {

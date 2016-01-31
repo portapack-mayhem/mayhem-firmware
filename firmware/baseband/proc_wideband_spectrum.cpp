@@ -23,9 +23,6 @@
 
 #include "event_m4.hpp"
 
-#include "i2s.hpp"
-using namespace lpc43xx;
-
 #include "dsp_fft.hpp"
 
 #include <cstdint>
@@ -33,37 +30,45 @@ using namespace lpc43xx;
 
 #include <array>
 
-void WidebandSpectrum::execute(buffer_c8_t buffer) {
+void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	// 2048 complex8_t samples per buffer.
 	// 102.4us per buffer. 20480 instruction cycles per buffer.
-
-	static int phase = 0;
 
 	if( phase == 0 ) {
 		std::fill(spectrum.begin(), spectrum.end(), 0);
 	}
 
-	if( (phase & 7) == 0 ) {
+	for(size_t i=0; i<spectrum.size(); i++) {
 		// TODO: Removed window-presum windowing, due to lack of available code RAM.
 		// TODO: Apply window to improve spectrum bin sidelobes.
-		for(size_t i=0; i<channel_spectrum.size(); i++) {
-			spectrum[i] += std::complex<float> { buffer.p[i].real(), buffer.p[i].imag() };
-		}
+		spectrum[i] += buffer.p[i +    0];
+		spectrum[i] += buffer.p[i + 1024];
 	}
 
-	if( phase == 23 ) {
-		if( channel_spectrum_request_update == false ) {
-			fft_swap(spectrum, channel_spectrum);
-			channel_spectrum_sampling_rate = buffer.sampling_rate;
-			channel_filter_pass_frequency = 0;
-			channel_filter_stop_frequency = 0;
-			channel_spectrum_request_update = true;
-			events_flag(EVT_MASK_SPECTRUM);
-			phase = 0;
-		}
+	if( phase == 127 ) {
+		const buffer_c16_t buffer_c16 {
+			spectrum.data(),
+			spectrum.size(),
+			buffer.sampling_rate
+		};
+		channel_spectrum.feed(
+			buffer_c16,
+			0, 0
+		);
+		phase = 0;
 	} else {
 		phase++;
 	}
+}
 
-	i2s::i2s0::tx_mute();
+void WidebandSpectrum::on_message(const Message* const message) {
+	switch(message->id) {
+	case Message::ID::UpdateSpectrum:
+	case Message::ID::SpectrumStreamingConfig:
+		channel_spectrum.on_message(message);
+		break;
+
+	default:
+		break;
+	}
 }

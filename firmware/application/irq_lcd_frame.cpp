@@ -21,7 +21,7 @@
 
 #include "irq_lcd_frame.hpp"
 
-#include "event.hpp"
+#include "event_m0.hpp"
 
 #include "ch.h"
 #include "hal.h"
@@ -54,7 +54,7 @@ CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_LCD_FRAME_SYNC);
+	EventDispatcher::events_flag_isr(EVT_MASK_LCD_FRAME_SYNC);
 	chSysUnlockFromIsr();
 
 	LPC_GPIO_INT->IST = (1U << 4);

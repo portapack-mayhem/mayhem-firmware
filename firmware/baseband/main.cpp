@@ -20,7 +20,6 @@
  */
 
 #include "ch.h"
-#include "test.h"
 
 #include "lpc43xx_cpp.hpp"
 
@@ -29,44 +28,13 @@
 
 #include "gpdma.hpp"
 
-#include "baseband.hpp"
-#include "baseband_dma.hpp"
-
 #include "event_m4.hpp"
-
-#include "irq_ipc_m4.hpp"
-
-#include "rssi.hpp"
-#include "rssi_dma.hpp"
 
 #include "touch_dma.hpp"
 
-#include "modules.h"
-
-#include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
-#include "dsp_fft.hpp"
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
-#include "dsp_squelch.hpp"
-
-#include "baseband_stats_collector.hpp"
-#include "rssi_stats_collector.hpp"
-
-#include "channel_decimator.hpp"
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 #include "baseband_processor.hpp"
-#include "proc_am_audio.hpp"
-#include "proc_nfm_audio.hpp"
-#include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
-#include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
-#include "proc_afskrx.hpp"
-#include "proc_sigfrx.hpp"
-
-#include "clock_recovery.hpp"
-#include "packet_builder.hpp"
 
 #include "message_queue.hpp"
 
@@ -84,9 +52,6 @@
 #include <array>
 #include <string>
 #include <bitset>
-#include <math.h>
-
-static baseband::Direction direction = baseband::Direction::Receive;
 
 class ThreadBase {
 public:
@@ -141,41 +106,22 @@ private:
 		};
 
 		while(true) {
-			if (direction == baseband::Direction::Transmit) {
-				const auto buffer_tmp = baseband::dma::wait_for_tx_buffer();
-				
-				const buffer_c8_t buffer {
-					buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
-				};
+			// TODO: Place correct sampling rate into buffer returned here:
+			const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
+			const buffer_c8_t buffer {
+				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
+			};
 
-				if( baseband_processor ) {
-					baseband_processor->execute(buffer);
-				}
-
-				stats.process(buffer,
-					[](const BasebandStatistics statistics) {
-						const BasebandStatisticsMessage message { statistics };
-						shared_memory.application_queue.push(message);
-					}
-				);
-			} else {
-				const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-				
-				const buffer_c8_t buffer {
-					buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
-				};
-
-				if( baseband_processor ) {
-					baseband_processor->execute(buffer);
-				}
-
-				stats.process(buffer,
-					[](const BasebandStatistics statistics) {
-						const BasebandStatisticsMessage message { statistics };
-						shared_memory.application_queue.push(message);
-					}
-				);
+			if( baseband_processor ) {
+				baseband_processor->execute(buffer);
 			}
+
+			stats.process(buffer,
+				[](const BasebandStatistics statistics) {
+					const BasebandStatisticsMessage message { statistics };
+					shared_memory.application_queue.push(message);
+				}
+			);
 		}
 	}
 };
@@ -346,25 +292,8 @@ private:
 	}
 };
 
-const auto baseband_buffer =
-	new std::array<baseband::sample_t, 8192>();
+static constexpr auto direction = baseband::Direction::Receive;
 
-char ram_loop[32];
-typedef int (*fn_ptr)(void);
-fn_ptr loop_ptr;
-	
-void ram_loop_fn(void) {
-	while(1) {}
-}
-	
-void wait_for_switch(void) {
-	memcpy(&ram_loop[0], reinterpret_cast<char*>(&ram_loop_fn), 32);
-	loop_ptr = reinterpret_cast<fn_ptr>(&ram_loop[0]);
-	ReadyForSwitchMessage message;
-	shared_memory.application_queue.push(message);
-	(*loop_ptr)();
-}
-		
 int main(void) {
 	init();
 
@@ -373,18 +302,6 @@ int main(void) {
 
 	EventDispatcher event_dispatcher;
 	auto& message_handlers = event_dispatcher.message_handlers();
-	
-	message_handlers.register_handler(Message::ID::ModuleID,
-		[&message_handlers](Message* p) {
-			ModuleIDMessage reply;
-			auto message = static_cast<ModuleIDMessage*>(p);
-			if (message->query == true) {	// Shouldn't be needed
-				memcpy(reply.md5_signature, (const void *)(0x10087FF0), 16);
-				reply.query = false;
-				shared_memory.application_queue.push(reply);
-			}
-		}
-	);
 
 	message_handlers.register_handler(Message::ID::BasebandConfiguration,
 		[&message_handlers](const Message* const p) {
@@ -403,47 +320,29 @@ int main(void) {
 				delete old_p;
 
 				switch(message->configuration.mode) {
-				case RX_NBAM_AUDIO:
-					direction = baseband::Direction::Receive;
+				case 0:
 					baseband_thread.baseband_processor = new NarrowbandAMAudio();
 					break;
 
-				case RX_NBFM_AUDIO:
-					direction = baseband::Direction::Receive;
+				case 1:
 					baseband_thread.baseband_processor = new NarrowbandFMAudio();
 					break;
 
-				case RX_WBFM_AUDIO:
+				case 2:
 					baseband_thread.baseband_processor = new WidebandFMAudio();
 					break;
 
-				case RX_AIS:
-					direction = baseband::Direction::Receive;
+				case 3:
 					baseband_thread.baseband_processor = new AISProcessor();
 					break;
 
-				case RX_WBSPECTRUM:
-					direction = baseband::Direction::Receive;
+				case 4:
 					baseband_thread.baseband_processor = new WidebandSpectrum();
 					break;
 
-				case RX_TPMS:
-					direction = baseband::Direction::Receive;
+				case 5:
 					baseband_thread.baseband_processor = new TPMSProcessor();
 					break;
-					
-				case RX_AFSK:
-					direction = baseband::Direction::Receive;
-					baseband_thread.baseband_processor = new AFSKRXProcessor();
-					break;
-					
-				case RX_SIGFOX:
-					direction = baseband::Direction::Receive;
-					baseband_thread.baseband_processor = new SIGFRXProcessor();
-					break;
-					
-				case SWITCH:
-					wait_for_switch();
 
 				default:
 					break;
@@ -454,14 +353,8 @@ int main(void) {
 						rf::rssi::start();
 					}
 					baseband::dma::enable(direction);
-					rf::rssi::stop();
 				}
 			}
-			
-			baseband::dma::configure(
-				baseband_buffer->data(),
-				direction
-			);
 
 			baseband_thread.baseband_configuration = message->configuration;
 		}
@@ -475,26 +368,23 @@ int main(void) {
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
-	rf::rssi::dma::allocate(4, 400);
+	if( direction == baseband::Direction::Receive ) {
+		rf::rssi::dma::allocate(4, 400);
+	}
 
 	touch::dma::allocate();
 	touch::dma::enable();
-	
+
+	const auto baseband_buffer =
+		new std::array<baseband::sample_t, 8192>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
 		direction
 	);
 
-	//baseband::dma::allocate(4, 2048);
-
 	event_dispatcher.run();
 
 	shutdown();
-
-	ShutdownMessage shutdown_message;
-	shared_memory.application_queue.push(shutdown_message);
-
-	halt();
 
 	return 0;
 }

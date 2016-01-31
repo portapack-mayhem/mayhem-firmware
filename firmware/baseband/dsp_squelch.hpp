@@ -31,14 +31,14 @@
 
 class FMSquelch {
 public:
-	bool execute(buffer_s16_t audio);
+	bool execute(const buffer_f32_t& audio);
+
+	void set_threshold(const float new_value);
 
 private:
 	static constexpr size_t N = 32;
-	static constexpr int16_t threshold = 3072;
+	float threshold_squared { 0.0f };
 
-	// nyquist = 48000 / 2.0
-	// scipy.signal.iirdesign(wp=8000 / nyquist, ws= 4000 / nyquist, gpass=1, gstop=18, ftype='ellip')
 	IIRBiquadFilter non_audio_hpf { non_audio_hpf_config };
 };
 

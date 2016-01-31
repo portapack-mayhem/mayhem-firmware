@@ -23,11 +23,10 @@
 #define __WM8731_H__
 
 #include <cstdint>
+#include <array>
 
 #include "i2c_pp.hpp"
-#include "wm8731.hpp"
 
-#include "utility.hpp"
 #include "volume.hpp"
 
 namespace wolfson {
@@ -289,71 +288,9 @@ public:
 	{
 	}
 
-	void init() {
-		reset();
+	void init();
 
-		write(PowerDownControl {
-			.lineinpd = 1,
-			.micpd = 0,
-			.adcpd = 0,
-			.dacpd = 0,
-			.outpd = 0,
-			.oscpd = 1,
-			.clkoutpd = 1,
-			.poweroff = 0,
-			.reserved0 = 0,
-		});
-
-		// write(SamplingControl {
-		// 	.usb_normal = 0,
-		// 	.bosr = 0,
-		// 	.sr = 0,
-		// 	.clkidiv2 = 0,
-		// 	.clkodiv2 = 0,
-		// 	.reserved0 = 0,
-		// });
-
-		write(DigitalAudioInterfaceFormat {
-			.format = 2,
-			.iwl = 0,
-			.lrp = 0,
-			.lrswap = 0,
-			.ms = 0,
-			.bclkinv = 0,
-			.reserved0 = 0,
-		});
-
-		write(DigitalAudioPathControl {
-			.adchpd = 0,
-			.deemp = 0,
-			.dacmu = 0,
-			.hpor = 0,
-			.reserved0 = 0,
-		});
-
-		write(AnalogAudioPathControl {
-			.micboost = 1,	// Enable 20dB boost
-			.mutemic = 0,	// Disable mute (unmute)
-			.insel = 1,		// Microphone input to ADC
-			.bypass = 0,
-			.dacsel = 1,
-			.sidetone = 0,
-			.sideatt = 0,
-			.reserved0 = 0,
-		});
-
-		write(ActiveControl {
-			.active = 1,
-			.reserved0 = 0,
-		});
-
-		set_line_in_volume(0.0_dB);
-		headphone_mute();
-	}
-
-	void reset() {
-		write(0x0f, 0);
-	}
+	void reset();
 
 	void set_line_in_volume(const volume_t volume) {
 		const auto normalized = line_in_gain_range.normalize(volume);
@@ -374,7 +311,7 @@ public:
 
 		write(LeftHeadphoneOut {
 			.lhpvol = static_cast<reg_t>(n),
-			.lzcen = 1,
+			.lzcen = 0,
 			.lrhpboth = 1,
 			.reserved0 = 0,
 		});
@@ -394,66 +331,27 @@ public:
 	// 	write(Register::AnalogAudioPathControl);
 	// }
 
+	reg_t read(const address_t reg_address);
+	
 private:
 	I2C& bus;
 	const I2C::address_t bus_address;
 	RegisterMap map { default_after_reset };
 
-	void write(const Register reg) {
-		write(toUType(reg), map.w[toUType(reg)]);
-	}
-
+	void write(const Register reg);
+	
 	void write(const address_t reg_address, const reg_t value);
 
-	void write(const LeftLineIn value) {
-		map.r.left_line_in = value;
-		write(Register::LeftLineIn);
-	}
-
-	void write(const RightLineIn value) {
-		map.r.right_line_in = value;
-		write(Register::RightLineIn);
-	}
-
-	void write(const LeftHeadphoneOut value) {
-		map.r.left_headphone_out = value;
-		write(Register::LeftHeadphoneOut);
-	}
-
-	void write(const RightHeadphoneOut value) {
-		map.r.right_headphone_out = value;
-		write(Register::RightHeadphoneOut);
-	}
-
-	void write(const AnalogAudioPathControl value) {
-		map.r.analog_audio_path_control = value;
-		write(Register::AnalogAudioPathControl);
-	}
-
-	void write(const DigitalAudioPathControl value) {
-		map.r.digital_audio_path_control = value;
-		write(Register::DigitalAudioPathControl);
-	}
-
-	void write(const PowerDownControl value) {
-		map.r.power_down_control = value;
-		write(Register::PowerDownControl);
-	}
-
-	void write(const DigitalAudioInterfaceFormat value) {
-		map.r.digital_audio_interface_format = value;
-		write(Register::DigitalAudioInterfaceFormat);
-	}
-
-	void write(const SamplingControl value) {
-		map.r.sampling_control = value;
-		write(Register::SamplingControl);
-	}
-
-	void write(const ActiveControl value) {
-		map.r.active_control = value;
-		write(Register::ActiveControl);
-	}
+	void write(const LeftLineIn value);
+	void write(const RightLineIn value);
+	void write(const LeftHeadphoneOut value);
+	void write(const RightHeadphoneOut value);
+	void write(const AnalogAudioPathControl value);
+	void write(const DigitalAudioPathControl value);
+	void write(const PowerDownControl value);
+	void write(const DigitalAudioInterfaceFormat value);
+	void write(const SamplingControl value);
+	void write(const ActiveControl value);
 };
 
 } /* namespace wm8731 */

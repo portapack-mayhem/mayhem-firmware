@@ -23,54 +23,24 @@
 #define __BASEBAND_PROCESSOR_H__
 
 #include "dsp_types.hpp"
-#include "complex.hpp"
 
-#include "block_decimator.hpp"
 #include "channel_stats_collector.hpp"
-#include "audio_stats_collector.hpp"
 
-#include <array>
-#include <cstdint>
-#include <complex>
+#include "message.hpp"
 
 class BasebandProcessor {
 public:
 	virtual ~BasebandProcessor() = default;
 
-	virtual void execute(buffer_c8_t buffer) = 0;
+	virtual void execute(const buffer_c8_t& buffer) = 0;
 
-	void update_spectrum();
+	virtual void on_message(const Message* const) { };
 
 protected:
-	void feed_channel_stats(const buffer_c16_t channel);
-
-	void feed_channel_spectrum(
-		const buffer_c16_t channel,
-		const uint32_t filter_pass_frequency,
-		const uint32_t filter_stop_frequency
-	);
-
-	void fill_audio_buffer(const buffer_s16_t audio);
-
-	volatile bool channel_spectrum_request_update { false };
-	std::array<std::complex<float>, 256> channel_spectrum;
-	uint32_t channel_spectrum_sampling_rate { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
+	void feed_channel_stats(const buffer_c16_t& channel);
 
 private:
-	BlockDecimator<256> channel_spectrum_decimator { 4 };
-
 	ChannelStatsCollector channel_stats;
-	ChannelStatisticsMessage channel_stats_message;
-
-	AudioStatsCollector audio_stats;
-	AudioStatisticsMessage audio_stats_message;
-
-	void post_channel_stats_message(const ChannelStatistics statistics);
-	void post_channel_spectrum_message(const buffer_c16_t data);
-	void feed_audio_stats(const buffer_s16_t audio);
-	void post_audio_stats_message(const AudioStatistics statistics);
 };
 
 #endif/*__BASEBAND_PROCESSOR_H__*/

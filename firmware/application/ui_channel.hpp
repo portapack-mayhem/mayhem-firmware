@@ -26,6 +26,8 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 
+#include "message.hpp"
+
 #include <cstdint>
 
 namespace ui {

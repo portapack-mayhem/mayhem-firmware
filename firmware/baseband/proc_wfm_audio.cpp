@@ -21,45 +21,46 @@
 
 #include "proc_wfm_audio.hpp"
 
+#include "dsp_iir_config.hpp"
+#include "audio_output.hpp"
+
 #include <cstdint>
 
-void WidebandFMAudio::execute(buffer_c8_t buffer) {
-	auto decimator_out = decimator.execute(buffer);
+void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
+	if( !configured ) {
+		return;
+	}
 
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)decimator_out.p,
-		sizeof(*decimator_out.p) * decimator_out.count
-	};
-
-	auto channel = decimator_out;
+	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	const auto channel = decim_1.execute(decim_0_out, dst_buffer);
 
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel);
-	//feed_channel_spectrum(channel);
 
-	/* 768kHz complex<int16_t>[512]
+	spectrum_samples += channel.count;
+	if( spectrum_samples >= spectrum_interval_samples ) {
+		spectrum_samples -= spectrum_interval_samples;
+		channel_spectrum.feed(channel, channel_filter_pass_f, channel_filter_stop_f);
+	}
+
+	/* 384kHz complex<int16_t>[256]
 	 * -> FM demodulation
-	 * -> 768kHz int16_t[512] */
+	 * -> 384kHz int16_t[256] */
 	/* TODO: To improve adjacent channel rejection, implement complex channel filter:
 	 *		pass < +/- 100kHz, stop > +/- 200kHz
 	 */
 
-	auto audio_oversampled = demod.execute(decimator_out, work_audio_buffer);
-
-	/* 768kHz int16_t[512]
-	 * -> 4th order CIC decimation by 2, gain of 1
-	 * -> 384kHz int16_t[256] */
-	auto audio_8fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
+	auto audio_oversampled = demod.execute(channel, work_audio_buffer);
 
 	/* 384kHz int16_t[256]
 	 * -> 4th order CIC decimation by 2, gain of 1
 	 * -> 192kHz int16_t[128] */
-	auto audio_4fs = audio_dec_2.execute(audio_8fs, work_audio_buffer);
+	auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
 
 	/* 192kHz int16_t[128]
 	 * -> 4th order CIC decimation by 2, gain of 1
 	 * -> 96kHz int16_t[64] */
-	auto audio_2fs = audio_dec_3.execute(audio_4fs, work_audio_buffer);
+	auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
 
 	/* 96kHz int16_t[64]
 	 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
@@ -67,6 +68,51 @@ void WidebandFMAudio::execute(buffer_c8_t buffer) {
 	auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
 	/* -> 48kHz int16_t[32] */
-	audio_hpf.execute_in_place(audio);
-	fill_audio_buffer(audio);
+	audio_output.write(audio);
+}
+
+void WidebandFMAudio::on_message(const Message* const message) {
+	switch(message->id) {
+	case Message::ID::UpdateSpectrum:
+	case Message::ID::SpectrumStreamingConfig:
+		channel_spectrum.on_message(message);
+		break;
+
+	case Message::ID::WFMConfigure:
+		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
+		break;
+
+	default:
+		break;
+	}
+}
+
+void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
+	constexpr size_t baseband_fs = 3072000;
+
+	constexpr size_t decim_0_input_fs = baseband_fs;
+	constexpr size_t decim_0_decimation_factor = 4;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+
+	constexpr size_t decim_1_input_fs = decim_0_output_fs;
+	constexpr size_t decim_1_decimation_factor = 2;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+
+	constexpr size_t demod_input_fs = decim_1_output_fs;
+
+	constexpr auto spectrum_rate_hz = 50.0f;
+	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
+	spectrum_samples = 0;
+
+	decim_0.configure(message.decim_0_filter.taps, 33554432);
+	decim_1.configure(message.decim_1_filter.taps, 131072);
+	channel_filter_pass_f = message.decim_1_filter.pass_frequency_normalized * decim_1_input_fs;
+	channel_filter_stop_f = message.decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
+	demod.configure(demod_input_fs, message.deviation);
+	audio_filter.configure(message.audio_filter.taps);
+	audio_output.configure(audio_hpf_30hz_config, audio_deemph_2122_6_config);
+
+	channel_spectrum.set_decimation_factor(1);
+
+	configured = true;
 }

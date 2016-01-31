@@ -21,11 +21,12 @@
 
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "portapack.hpp"
 
 #include <cstdint>
 #include <cstddef>
 #include <algorithm>
+
+#include "string_format.hpp"
 
 namespace ui {
 
@@ -41,99 +42,6 @@ void dirty_clear() {
 
 bool is_dirty() {
 	return ui_dirty;
-}
-
-constexpr size_t to_string_max_length = 16;
-
-static char* to_string_dec_uint_internal(
-	char* p,
-	uint32_t n
-) {
-	*p = 0;
-	auto q = p;
-
-	do {
-		const uint32_t d = n % 10;
-		const char c = d + 48;
-		*(--q) = c;
-		n /= 10;
-	} while( n != 0 );
-
-	return q;
-}
-
-static char* to_string_dec_uint_pad_internal(
-	char* const term,
-	const uint32_t n,
-	const int32_t l,
-	const char fill
-) {
-	auto q = to_string_dec_uint_internal(term, n);
-
-	if( fill ) {
-		while( (term - q) < l ) {
-			*(--q) = fill;
-		}
-	}
-
-	return q;
-}
-
-std::string to_string_dec_uint(
-	const uint32_t n,
-	const int32_t l,
-	const char fill
-) {
-	char p[16];
-	auto term = p + sizeof(p) - 1;
-	auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
-
-	// Right justify.
-	while( (term - q) < l ) {
-		*(--q) = ' ';
-	}
-
-	return q;
-}
-
-std::string to_string_dec_int(
-	const int32_t n,
-	const int32_t l,
-	const char fill
-) {
-	const size_t negative = (n < 0) ? 1 : 0;
-	uint32_t n_abs = negative ? -n : n;
-
-	char p[16];
-	auto term = p + sizeof(p) - 1;
-	auto q = to_string_dec_uint_pad_internal(term, n_abs, l - negative, fill);
-
-	// Add sign.
-	if( negative ) {
-		*(--q) = '-';
-	}
-
-	// Right justify.
-	while( (term - q) < l ) {
-		*(--q) = ' ';
-	}
-
-	return q;
-}
-
-static void to_string_hex_internal(char* p, const uint32_t n, const int32_t l) {
-	const uint32_t d = n & 0xf;
-	p[l] = (d > 9) ? (d + 87) : (d + 48);
-	if( l > 0 ) {
-		to_string_hex_internal(p, n >> 4, l - 1);
-	}
-}
-
-std::string to_string_hex(const uint32_t n, const int32_t l) {
-	char p[16];
-	to_string_hex_internal(p, n, l - 1);
-	p[l] = 0;
-	return p;
 }
 
 /* Widget ****************************************************************/
@@ -187,7 +95,9 @@ void Widget::hidden(bool hide) {
 
 		// If parent is hidden, either of these is a no-op.
 		if( hide ) {
-			parent()->set_dirty();
+			// TODO: Instead of dirtying parent entirely, dirty only children
+			// that overlap with this widget.
+			parent()->dirty_overlapping_children_in_rect(parent_rect);
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -290,6 +200,14 @@ void Widget::visible(bool v) {
 	}
 }
 
+void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
+	for(auto child : children()) {
+		if( !child_rect.intersect(child->parent_rect).is_empty() ) {
+			child->set_dirty();
+		}
+	}
+}
+
 /* View ******************************************************************/
 
 void View::set_parent_rect(const Rect new_parent_rect) {
@@ -339,7 +257,19 @@ Widget* View::initial_focus() {
 	return nullptr;
 }
 
+std::string View::title() const {
+	return "";
+};
+
 /* Rectangle *************************************************************/
+
+Rectangle::Rectangle(
+	Rect parent_rect,
+	Color c
+) : Widget { parent_rect },
+	color { c }
+{
+}
 
 void Rectangle::set_color(const Color c) {
 	color = c;
@@ -355,6 +285,20 @@ void Rectangle::paint(Painter& painter) {
 
 /* Text ******************************************************************/
 
+Text::Text(
+	Rect parent_rect,
+	std::string text
+) : Widget { parent_rect },
+	text { text }
+{
+}
+
+Text::Text(
+	Rect parent_rect
+) : Text { parent_rect, { } }
+{
+}
+
 void Text::set(const std::string value) {
 	text = value;
 	set_dirty();
@@ -362,163 +306,31 @@ void Text::set(const std::string value) {
 
 void Text::paint(Painter& painter) {
 	if (style_ == nullptr) style_ = &style();
+	const auto rect = screen_rect();
+
+	painter.fill_rectangle(rect, s.background);
 
 	painter.draw_string(
-		screen_pos(),
+		rect.pos,
 		(*style_),
 		text
 	);
 }
 
-void Text::set_style(const Style* new_style) {
-	if( new_style != style_ ) {
-		style_ = new_style;
-		set_dirty();
-	}
-}
-
-/* Checkbox **************************************************************/
-
-void Checkbox::set_text(const std::string value) {
-	text_ = value;
-	set_dirty();
-}
-
-std::string Checkbox::text() const {
-	return text_;
-}
-
-void Checkbox::set_value(const bool value) {
-	value_ = value;
-	set_dirty();
-}
-
-bool Checkbox::value() const {
-	return value_;
-}
-
-void Checkbox::paint(Painter& painter) {
-	const auto r = screen_rect();
-	
-	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
-	
-	painter.draw_rectangle({ r.pos.x, r.pos.y, 24, 24 }, style().foreground);
-
-	painter.fill_rectangle(
-		{
-			static_cast<Coord>(r.pos.x + 1), static_cast<Coord>(r.pos.y + 1),
-			static_cast<Dim>(24 - 2), static_cast<Dim>(24 - 2)
-		},
-		style().background
-	);
-	
-	painter.draw_rectangle({ r.pos.x+2, r.pos.y+2, 24-4, 24-4 }, paint_style.background);
-	
-	if (value_ == true) {
-		// Check
-		portapack::display.draw_line( {r.pos.x+2, r.pos.y+14}, {r.pos.x+6, r.pos.y+18}, ui::Color::green());
-		portapack::display.draw_line( {r.pos.x+6, r.pos.y+18}, {r.pos.x+20, r.pos.y+4}, ui::Color::green());
-	} else {
-		// Cross
-		portapack::display.draw_line( {r.pos.x+1, r.pos.y+1}, {r.pos.x+24-2, r.pos.y+24-2}, ui::Color::red());
-		portapack::display.draw_line( {r.pos.x+24-2, r.pos.y+1}, {r.pos.x+1, r.pos.y+24-2}, ui::Color::red());
-	}
-	
-	const auto label_r = paint_style.font.size_of(text_);
-	painter.draw_string(
-		{
-			static_cast<Coord>(r.pos.x + 24 + 4),
-			static_cast<Coord>(r.pos.y + (24 - label_r.h) / 2)
-		},
-		paint_style,
-		text_
-	);
-}
-
-bool Checkbox::on_key(const KeyEvent key) {
-	if( key == KeyEvent::Select ) {
-		value_ = not value_;
-		set_dirty();
-		
-		if( on_select ) {
-			on_select(*this);
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool Checkbox::on_touch(const TouchEvent event) {
-	switch(event.type) {
-	case TouchEvent::Type::Start:
-		flags.highlighted = true;
-		set_dirty();
-		return true;
-
-
-	case TouchEvent::Type::End:
-		flags.highlighted = false;
-		value_ = not value_;
-		set_dirty();
-		if( on_select ) {
-			on_select(*this);
-		}
-		return true;
-
-	default:
-		return false;
-	}
-#if 0
-	switch(event.type) {
-	case TouchEvent::Type::Start:
-		flags.highlighted = true;
-		set_dirty();
-		return true;
-
-	case TouchEvent::Type::Move:
-		{
-			const bool new_highlighted = screen_rect().contains(event.point);
-			if( flags.highlighted != new_highlighted ) {
-				flags.highlighted = new_highlighted;
-				set_dirty();
-			}
-		}
-		return true;
-
-	case TouchEvent::Type::End:
-		if( flags.highlighted ) {
-			flags.highlighted = false;
-			set_dirty();
-			if( on_select ) {
-				on_select(*this);
-			}
-		}
-		return true;
-
-	default:
-		return false;
-	}
-#endif
-}
-
 /* Button ****************************************************************/
+
+ Button::Button(
+	Rect parent_rect,
+	std::string text
+) : Widget { parent_rect },
+	text_ { text }
+{
+	flags.focusable = true;
+}
 
 void Button::set_text(const std::string value) {
 	text_ = value;
 	set_dirty();
-}
-
-void Button::set_text(const int value) {	//std::string
-	text_ = value;
-	set_dirty();
-}
-
-void Button::set_style(const Style* new_style) {
-	if( new_style != style_ ) {
-		style_ = new_style;
-		set_dirty();
-	}
 }
 
 std::string Button::text() const {
@@ -535,19 +347,13 @@ void Button::paint(Painter& painter) {
 	painter.draw_rectangle(r, style().foreground);
 
 	painter.fill_rectangle(
-		{
-			static_cast<Coord>(r.pos.x + 1), static_cast<Coord>(r.pos.y + 1),
-			static_cast<Dim>(r.size.w - 2), static_cast<Dim>(r.size.h - 2)
-		},
+		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
 		paint_style.background
 	);
 
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
-		{
-			static_cast<Coord>(r.pos.x + (r.size.w - label_r.w) / 2),
-			static_cast<Coord>(r.pos.y + (r.size.h - label_r.h) / 2)
-		},
+		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
 		paint_style,
 		text_
 	);
@@ -623,6 +429,17 @@ bool Button::on_touch(const TouchEvent event) {
 
 /* OptionsField **********************************************************/
 
+OptionsField::OptionsField(
+	Point parent_pos,
+	size_t length,
+	options_t options
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	length_ { length },
+	options { options }
+{
+	flags.focusable = true;
+}
+
 size_t OptionsField::selected_index() const {
 	return selected_index_;
 }
@@ -642,18 +459,12 @@ void OptionsField::set_selected_index(const size_t new_index) {
 void OptionsField::set_by_value(value_t v) {
 	size_t new_index { 0 };
 	for(const auto& option : options) {
-		if( option.second >= v ) {
+		if( option.second == v ) {
 			set_selected_index(new_index);
 			break;
 		}
 		new_index++;
 	}
-}
-
-void OptionsField::set_options(options_t new_options) {
-	options = new_options;
-	set_by_value(0);
-	set_dirty();
 }
 
 void OptionsField::paint(Painter& painter) {
@@ -682,6 +493,21 @@ bool OptionsField::on_touch(const TouchEvent event) {
 }
 
 /* NumberField ***********************************************************/
+
+NumberField::NumberField(
+	Point parent_pos,
+	size_t length,
+	range_t range,
+	int32_t step,
+	char fill_char
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	range { range },
+	step { step },
+	length_ { length },
+	fill_char { fill_char }
+{
+	flags.focusable = true;
+}
 
 int32_t NumberField::value() const {
 	return value_;

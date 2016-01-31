@@ -36,9 +36,7 @@ Rect Rect::intersect(const Rect& o) const {
 	const auto y1 = std::max(top(), o.top());
 	const auto y2 = std::min(bottom(), o.bottom());
 	if( (x2 >= x1) && (y2 > y1) ) {
-		return {
-			x1, y1,
-			static_cast<Dim>(x2 - x1), static_cast<Dim>(y2 - y1) };
+		return { x1, y1, x2 - x1, y2 - y1 };
 	} else {
 		return { };
 	}
@@ -54,7 +52,7 @@ Rect& Rect::operator+=(const Rect& p) {
 		pos = { x1, y1 };
 		const auto x2 = std::max(right(), p.right());
 		const auto y2 = std::max(bottom(), p.bottom());
-		size = { static_cast<Dim>(x2 - x1), static_cast<Dim>(y2 - y1) };
+		size = { x2 - x1, y2 - y1 };
 	}
 	return *this;
 }
