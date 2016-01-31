@@ -177,7 +177,7 @@ constexpr fir_taps_real<32> taps_6k0_decim_1 {
 	} },
 };
 
-// Channel filter: fs=48000, pass=3000, stop=6700, decim=1, fout=48000
+// IFIR prototype filter: fs=48000, pass=3000, stop=6700, decim=4, fout=12000
 constexpr fir_taps_real<32> taps_6k0_decim_2 {
 	.pass_frequency_normalized = 3000.0f / 48000.0f,
 	.stop_frequency_normalized = 6700.0f / 48000.0f,
