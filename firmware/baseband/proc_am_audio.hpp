@@ -56,6 +56,7 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::decimate::FIRAndDecimateComplex decim_2;
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;

@@ -102,6 +102,7 @@ void AnalogAudioModel::configure_am() {
 	const AMConfigureMessage message {
 		taps_6k0_decim_0,
 		taps_6k0_decim_1,
+		taps_6k0_decim_2,
 		taps_6k0_channel,
 		audio_12k_hpf_300hz_config
 	};

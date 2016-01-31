@@ -32,7 +32,8 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+	const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
+	const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
 	// TODO: Feed channel_stats post-decimation data?
 	feed_channel_stats(channel_out);
@@ -65,11 +66,15 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
 	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
-	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+	constexpr size_t decim_2_input_fs = decim_1_output_fs;
+	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
+
+	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
 	const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
+	decim_2.configure(message.decim_2_filter.taps, decim_2_decimation_factor);
 	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
