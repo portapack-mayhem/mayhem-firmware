@@ -48,7 +48,7 @@ AnalogAudioModel::AnalogAudioModel(ReceiverModel::Mode mode) {
 		break;
 
 	case ReceiverModel::Mode::AMAudio:
-		configure_am();
+		configure_am(0);
 		break;
 		
 	default:
@@ -98,13 +98,25 @@ void AnalogAudioModel::configure_wfm() {
 	clock_manager.set_base_audio_clock_divider(1);
 }
 
-void AnalogAudioModel::configure_am() {
+struct AMMode {
+	const fir_taps_complex<64> channel;
+	const AMConfigureMessage::Modulation modulation;
+};
+
+static constexpr std::array<AMMode, 3> am_mode_configs { {
+	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
+	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
+	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
+} };
+
+void AnalogAudioModel::configure_am(const size_t index) {
+	const auto config = am_mode_configs[index];
 	const AMConfigureMessage message {
 		taps_6k0_decim_0,
 		taps_6k0_decim_1,
 		taps_6k0_decim_2,
-		taps_2k8_usb_channel,
-		AMConfigureMessage::Modulation::SSB,
+		config.channel,
+		config.modulation,
 		audio_12k_hpf_300hz_config
 	};
 	shared_memory.baseband_queue.push(message);

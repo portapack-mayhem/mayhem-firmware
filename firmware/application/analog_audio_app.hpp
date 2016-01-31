@@ -32,7 +32,7 @@ public:
 private:
 	void configure_nbfm(const size_t index);
 	void configure_wfm();
-	void configure_am();
+	void configure_am(const size_t index);
 };
 
 namespace ui {
