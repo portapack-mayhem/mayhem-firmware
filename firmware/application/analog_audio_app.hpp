@@ -93,10 +93,10 @@ private:
 		{ 0 * 8, 0 * 16 },
 		4,
 		{
-			{ " AM ", 1 },
-			{ "NFM ", 2 },
-			{ "WFM ", 3 },
-			{ "SPEC", 4 },
+			{ " AM ", toUType(ReceiverModel::Mode::AMAudio) },
+			{ "NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio) },
+			{ "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
+			{ "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
 		}
 	};
 
@@ -135,7 +135,7 @@ private:
 	void on_rf_amp_changed(bool v);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-	void on_modulation_changed(int32_t v);
+	void on_modulation_changed(const ReceiverModel::Mode mode);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
 	void on_frequency_step_changed(rf::Frequency f);

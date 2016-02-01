@@ -149,10 +149,9 @@ AnalogAudioView::AnalogAudioView(
 		this->on_vga_changed(v_db);
 	};
 
-	options_modulation.set_by_value(1);
-	options_modulation.on_change = [this](size_t n, OptionsField::value_t v) {
-		(void)n;
-		this->on_modulation_changed(v);
+	options_modulation.set_by_value(toUType(ReceiverModel::Mode::AMAudio));
+	options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
+		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
 
 	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
@@ -229,63 +228,58 @@ void AnalogAudioView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void AnalogAudioView::on_modulation_changed(int32_t mode) {
-	// remove_child(widget_content.get());
-	// widget_content.reset();
-
+void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode mode) {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
 	waterfall.on_hide();
 
 	switch(mode) {
 	default:
-	case 1:
+	case ReceiverModel::Mode::AMAudio:
 		receiver_model.set_baseband_configuration({
-			.mode = toUType(ReceiverModel::Mode::AMAudio),
+			.mode = toUType(mode),
 			.sampling_rate = 3072000,
 			.decimation_factor = 1,
 		});
 		receiver_model.set_baseband_bandwidth(1750000);
 		receiver_model.enable();
 		model.configure_am(0);
-		waterfall.on_show();	
 		break;
 
-	case 2:
+	case ReceiverModel::Mode::NarrowbandFMAudio:
 		receiver_model.set_baseband_configuration({
-			.mode = toUType(ReceiverModel::Mode::NarrowbandFMAudio),
+			.mode = toUType(mode),
 			.sampling_rate = 3072000,
 			.decimation_factor = 1,
 		});
 		receiver_model.set_baseband_bandwidth(1750000);
 		receiver_model.enable();
-		model.configure_nbfm(1);
-		waterfall.on_show();	
+		model.configure_nbfm(0);
 		break;
 
-	case 3:
+	case ReceiverModel::Mode::WidebandFMAudio:
 		receiver_model.set_baseband_configuration({
-			.mode = toUType(ReceiverModel::Mode::WidebandFMAudio),
+			.mode = toUType(mode),
 			.sampling_rate = 3072000,
 			.decimation_factor = 1,
 		});
 		receiver_model.set_baseband_bandwidth(1750000);
 		receiver_model.enable();
 		model.configure_wfm();
-		waterfall.on_show();	
 		break;
 
-	case 4:
+	case ReceiverModel::Mode::SpectrumAnalysis:
 		receiver_model.set_baseband_configuration({
-			.mode = 4,
+			.mode = toUType(mode),
 			.sampling_rate = 20000000,
 			.decimation_factor = 1,
 		});
 		receiver_model.set_baseband_bandwidth(12000000);
 		receiver_model.enable();
-		waterfall.on_show();
 		break;
 	}
+
+	waterfall.on_show();	
 }
 
 void AnalogAudioView::on_show_options_frequency() {
