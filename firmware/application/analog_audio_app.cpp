@@ -227,49 +227,30 @@ void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode mode) {
 	// it's being shown or hidden.
 	waterfall.on_hide();
 
+	const auto is_wideband_spectrum_mode = (mode == ReceiverModel::Mode::SpectrumAnalysis);
+	receiver_model.set_baseband_configuration({
+		.mode = toUType(mode),
+		.sampling_rate = is_wideband_spectrum_mode ? 20000000U : 3072000U,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
+	receiver_model.enable();
+
 	switch(mode) {
 	default:
 	case ReceiverModel::Mode::AMAudio:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 3072000,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		receiver_model.enable();
 		model.configure_am(0);
 		break;
 
 	case ReceiverModel::Mode::NarrowbandFMAudio:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 3072000,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		receiver_model.enable();
 		model.configure_nbfm(0);
 		break;
 
 	case ReceiverModel::Mode::WidebandFMAudio:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 3072000,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(1750000);
-		receiver_model.enable();
 		model.configure_wfm();
 		break;
 
 	case ReceiverModel::Mode::SpectrumAnalysis:
-		receiver_model.set_baseband_configuration({
-			.mode = toUType(mode),
-			.sampling_rate = 20000000,
-			.decimation_factor = 1,
-		});
-		receiver_model.set_baseband_bandwidth(12000000);
-		receiver_model.enable();
 		break;
 	}
 
