@@ -49,7 +49,6 @@ public:
 	AnalogAudioView(NavigationView& nav);
 	~AnalogAudioView();
 
-	void on_show() override;
 	void on_hide() override;
 
 	void set_parent_rect(const Rect new_parent_rect) override;

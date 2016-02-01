@@ -184,12 +184,6 @@ AnalogAudioView::~AnalogAudioView() {
 	receiver_model.disable();
 }
 
-void AnalogAudioView::on_show() {
-	View::on_show();
-	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
-	// it's being shown or hidden.
-}
-
 void AnalogAudioView::on_hide() {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
