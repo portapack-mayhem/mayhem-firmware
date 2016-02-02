@@ -118,7 +118,8 @@ AnalogAudioView::AnalogAudioView(
 		this->on_vga_changed(v_db);
 	};
 
-	options_modulation.set_by_value(toUType(ReceiverModel::Mode::AMAudio));
+	const auto modulation = receiver_model.modulation();
+	options_modulation.set_by_value(modulation);
 	options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
@@ -131,7 +132,7 @@ AnalogAudioView::AnalogAudioView(
 		this->on_headphone_volume_changed(v);
 	};
 
-	update_modulation(static_cast<ReceiverModel::Mode>(receiver_model.modulation()));
+	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
 }
 
 AnalogAudioView::~AnalogAudioView() {
