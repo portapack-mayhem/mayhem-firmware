@@ -29,11 +29,27 @@
 
 #include "ui_font_fixed_8x16.hpp"
 
-class AnalogAudioModel {
-public:
-	void configure_nbfm(const size_t index);
-	void configure_wfm();
-	void configure_am(const size_t index);
+#include "dsp_fir_taps.hpp"
+#include "dsp_iir.hpp"
+
+struct AMConfig {
+	const fir_taps_complex<64> channel;
+	const AMConfigureMessage::Modulation modulation;
+
+	void apply() const;
+};
+
+struct NBFMConfig {
+	const fir_taps_real<24> decim_0;
+	const fir_taps_real<32> decim_1;
+	const fir_taps_real<32> channel;
+	const size_t deviation;
+
+	void apply() const;
+};
+
+struct WFMConfig {
+	void apply() const;
 };
 
 namespace ui {
@@ -56,8 +72,6 @@ public:
 	void focus() override;
 
 private:
-	AnalogAudioModel model;
-
 	static constexpr ui::Dim header_height = 2 * 16;
 
 	RSSI rssi {
@@ -129,6 +143,10 @@ private:
 */
 	spectrum::WaterfallWidget waterfall;
 
+	size_t am_config_index = 0;
+	size_t nbfm_config_index = 0;
+	static constexpr size_t wfm_config_index = 0;
+
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
 	void on_rf_amp_changed(bool v);
@@ -141,6 +159,13 @@ private:
 	void on_reference_ppm_correction_changed(int32_t v);
 	void on_headphone_volume_changed(int32_t v);
 	void on_edit_frequency();
+
+	void on_am_config_index_changed(size_t n);
+	void on_nbfm_config_index_changed(size_t n);
+
+	void update_am_config();
+	void update_nbfm_config();
+	void update_wfm_config();
 };
 
 } /* namespace ui */

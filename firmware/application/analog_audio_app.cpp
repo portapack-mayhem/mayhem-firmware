@@ -25,32 +25,30 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir_config.hpp"
-
 #include "utility.hpp"
 
-struct NBFMMode {
-	const fir_taps_real<24> decim_0;
-	const fir_taps_real<32> decim_1;
-	const fir_taps_real<32> channel;
-	const size_t deviation;
-};
+#include "dsp_iir_config.hpp"
 
-static constexpr std::array<NBFMMode, 3> nbfm_mode_configs { {
-	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
-	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
-	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
-} };
+void AMConfig::apply() const {
+	const AMConfigureMessage message {
+		taps_6k0_decim_0,
+		taps_6k0_decim_1,
+		taps_6k0_decim_2,
+		channel,
+		modulation,
+		audio_12k_hpf_300hz_config
+	};
+	shared_memory.baseband_queue.push(message);
+	clock_manager.set_base_audio_clock_divider(4);
+}
 
-void AnalogAudioModel::configure_nbfm(const size_t index) {
-	const auto config = nbfm_mode_configs[index];
+void NBFMConfig::apply() const {
 	const NBFMConfigureMessage message {
-		config.decim_0,
-		config.decim_1,
-		config.channel,
+		decim_0,
+		decim_1,
+		channel,
 		2,
-		config.deviation,
+		deviation,
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config
 	};
@@ -58,7 +56,7 @@ void AnalogAudioModel::configure_nbfm(const size_t index) {
 	clock_manager.set_base_audio_clock_divider(2);
 }
 
-void AnalogAudioModel::configure_wfm() {
+void WFMConfig::apply() const {
 	const WFMConfigureMessage message {
 		taps_200k_wfm_decim_0,
 		taps_200k_wfm_decim_1,
@@ -71,30 +69,21 @@ void AnalogAudioModel::configure_wfm() {
 	clock_manager.set_base_audio_clock_divider(1);
 }
 
-struct AMMode {
-	const fir_taps_complex<64> channel;
-	const AMConfigureMessage::Modulation modulation;
-};
-
-static constexpr std::array<AMMode, 3> am_mode_configs { {
+static constexpr std::array<AMConfig, 3> am_configs { {
 	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
 	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
 	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
 } };
 
-void AnalogAudioModel::configure_am(const size_t index) {
-	const auto config = am_mode_configs[index];
-	const AMConfigureMessage message {
-		taps_6k0_decim_0,
-		taps_6k0_decim_1,
-		taps_6k0_decim_2,
-		config.channel,
-		config.modulation,
-		audio_12k_hpf_300hz_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(4);
-}
+static constexpr std::array<NBFMConfig, 3> nbfm_configs { {
+	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
+	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
+	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
+} };
+
+static constexpr std::array<WFMConfig, 1> wfm_configs { {
+	{ },
+} };
 
 namespace ui {
 
@@ -239,15 +228,15 @@ void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode mode) {
 	switch(mode) {
 	default:
 	case ReceiverModel::Mode::AMAudio:
-		model.configure_am(0);
+		update_am_config();
 		break;
 
 	case ReceiverModel::Mode::NarrowbandFMAudio:
-		model.configure_nbfm(0);
+		update_nbfm_config();
 		break;
 
 	case ReceiverModel::Mode::WidebandFMAudio:
-		model.configure_wfm();
+		update_wfm_config();
 		break;
 
 	case ReceiverModel::Mode::SpectrumAnalysis:
@@ -285,6 +274,32 @@ void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
 void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 	const auto new_volume = volume_t::decibel(v - 99) + wolfson::wm8731::headphone_gain_range.max;
 	receiver_model.set_headphone_volume(new_volume);
+}
+
+void AnalogAudioView::on_am_config_index_changed(size_t n) {
+	if( n < am_configs.size() ) {
+		am_config_index = n;
+		update_am_config();
+	}
+}
+
+void AnalogAudioView::on_nbfm_config_index_changed(size_t n) {
+	if( n < nbfm_configs.size() ) {
+		nbfm_config_index = n;
+		update_nbfm_config();
+	}
+}
+
+void AnalogAudioView::update_am_config() {
+	am_configs[am_config_index].apply();
+}
+
+void AnalogAudioView::update_nbfm_config() {
+	nbfm_configs[nbfm_config_index].apply();
+}
+
+void AnalogAudioView::update_wfm_config() {
+	wfm_configs[wfm_config_index].apply();
 }
 
 } /* namespace ui */
