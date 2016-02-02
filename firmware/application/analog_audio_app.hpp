@@ -37,6 +37,52 @@ constexpr Style style_options_group {
 	.foreground = Color::white(),
 };
 
+class AMOptionsView : public View {
+public:
+	std::function<void(size_t)> on_config_changed;
+
+	AMOptionsView(const Rect parent_rect, const Style* const style);
+
+private:
+	Text label_config {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"BW",
+	};
+
+	OptionsField options_config {
+		{ 3 * 8, 0 * 16 },
+		4,
+		{
+			{ "DSB ", 0 },
+			{ "USB ", 0 },
+			{ "LSB ", 0 },
+		}
+	};
+};
+
+class NBFMOptionsView : public View {
+public:
+	std::function<void(size_t)> on_config_changed;
+
+	NBFMOptionsView(const Rect parent_rect, const Style* const style);
+
+private:
+	Text label_config {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"BW",
+	};
+
+	OptionsField options_config {
+		{ 3 * 8, 0 * 16 },
+		4,
+		{
+			{ " 8k5", 0 },
+			{ "11k ", 0 },
+			{ "16k ", 0 },
+		}
+	};
+};
+
 class AnalogAudioView : public View {
 public:
 	AnalogAudioView(NavigationView& nav);
@@ -107,19 +153,18 @@ private:
 		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
-/*
-	AmplitudeModulationOptionsView view_am_modulation_options {
+
+	AMOptionsView view_am_options {
 		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
 
-	FrequencyModulationOptionsView view_fm_modulation_options {
+	NBFMOptionsView view_nbfm_options {
 		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		&style_options_group
 	};
-*/
+	
 	spectrum::WaterfallWidget waterfall;
-
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
@@ -129,6 +174,7 @@ private:
 	void on_modulation_changed(const ReceiverModel::Mode modulation);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
+	void on_show_options_modulation();
 	void on_frequency_step_changed(rf::Frequency f);
 	void on_reference_ppm_correction_changed(int32_t v);
 	void on_headphone_volume_changed(int32_t v);

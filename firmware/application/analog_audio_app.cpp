@@ -29,6 +29,46 @@ using namespace portapack;
 
 namespace ui {
 
+/* AMOptionsView *********************************************************/
+
+AMOptionsView::AMOptionsView(
+	const Rect parent_rect, const Style* const style
+) : View { parent_rect }
+{
+	set_style(style);
+
+	add_children({ {
+		&label_config,
+		&options_config,
+	} });
+
+	options_config.on_change = [this](size_t n, OptionsField::value_t) {
+		if( on_config_changed ) {
+			this->on_config_changed(n);
+		}
+	};
+}
+
+/* NBFMOptionsView *******************************************************/
+
+NBFMOptionsView::NBFMOptionsView(
+	const Rect parent_rect, const Style* const style
+) : View { parent_rect }
+{
+	set_style(style);
+
+	add_children({ {
+		&label_config,
+		&options_config,
+	} });
+
+	options_config.on_change = [this](size_t n, OptionsField::value_t) {
+		if( on_config_changed ) {
+			this->on_config_changed(n);
+		}
+	};
+}
+
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
@@ -45,6 +85,8 @@ AnalogAudioView::AnalogAudioView(
 		&field_volume,
 		&view_frequency_options,
 		&view_rf_gain_options,
+		&view_am_options,
+		&view_nbfm_options,
 		&waterfall,
 	} });
 
@@ -84,6 +126,9 @@ AnalogAudioView::AnalogAudioView(
 	options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
+	options_modulation.on_show_options = [this]() {
+		this->on_show_options_modulation();
+	};
 
 	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
@@ -104,6 +149,16 @@ AnalogAudioView::AnalogAudioView(
 	view_rf_gain_options.set_rf_amp(receiver_model.rf_amp());
 	view_rf_gain_options.on_change_rf_amp = [this](bool enable) {
 		this->on_rf_amp_changed(enable);
+	};
+
+	view_am_options.hidden(true);
+	view_am_options.on_config_changed = [this](size_t n) {
+		this->on_am_config_index_changed(n);
+	};
+
+	view_nbfm_options.hidden(true);
+	view_nbfm_options.on_config_changed = [this](size_t n) {
+		this->on_nbfm_config_index_changed(n);
 	};
 
 	update_modulation(static_cast<ReceiverModel::Mode>(receiver_model.modulation()));
@@ -160,23 +215,59 @@ void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation
 	// it's being shown or hidden.
 	waterfall.on_hide();
 	update_modulation(modulation);
+	on_show_options_modulation();
 	waterfall.on_show();
 }
 
 void AnalogAudioView::on_show_options_frequency() {
+	// TODO: This approach of managing options views is error-prone and unsustainable!
 	view_rf_gain_options.hidden(true);
+	view_am_options.hidden(true);
+	view_nbfm_options.hidden(true);
+
 	field_lna.set_style(nullptr);
+	options_modulation.set_style(nullptr);
 
 	view_frequency_options.hidden(false);
 	field_frequency.set_style(&view_frequency_options.style());
 }
 
 void AnalogAudioView::on_show_options_rf_gain() {
+	// TODO: This approach of managing options views is error-prone and unsustainable!
 	view_frequency_options.hidden(true);
+	view_am_options.hidden(true);
+	view_nbfm_options.hidden(true);
+
 	field_frequency.set_style(nullptr);
+	options_modulation.set_style(nullptr);
 
 	view_rf_gain_options.hidden(false);
 	field_lna.set_style(&view_frequency_options.style());
+}
+
+void AnalogAudioView::on_show_options_modulation() {
+	// TODO: This approach of managing options views is error-prone and unsustainable!
+	view_frequency_options.hidden(true);
+	view_rf_gain_options.hidden(true);
+
+	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
+	if( modulation != ReceiverModel::Mode::AMAudio ) {
+		view_am_options.hidden(true);
+	}
+	if( modulation != ReceiverModel::Mode::NarrowbandFMAudio ) {
+		view_nbfm_options.hidden(true);
+	}
+
+	field_frequency.set_style(nullptr);
+	field_lna.set_style(nullptr);
+
+	if( modulation == ReceiverModel::Mode::AMAudio ) {
+		view_am_options.hidden(false);
+	}
+	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
+		view_nbfm_options.hidden(false);
+	}
+	options_modulation.set_style(&view_frequency_options.style());
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
