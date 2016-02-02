@@ -80,8 +80,13 @@ public:
 
 	void set_baseband_configuration(const BasebandConfiguration config);
 
+	size_t am_configuration() const;
 	void set_am_configuration(const size_t n);
+
+	size_t nbfm_configuration() const;
 	void set_nbfm_configuration(const size_t n);
+
+	size_t wfm_configuration() const;
 	void set_wfm_configuration(const size_t n);
 
 private:

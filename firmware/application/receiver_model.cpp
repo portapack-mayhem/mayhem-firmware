@@ -337,12 +337,24 @@ void ReceiverModel::update_modulation_configuration() {
 	}
 }
 
+size_t ReceiverModel::am_configuration() const {
+	return am_config_index;
+}
+
 void ReceiverModel::update_am_configuration() {
 	am_configs[am_config_index].apply();
 }
 
+size_t ReceiverModel::nbfm_configuration() const {
+	return nbfm_config_index;
+}
+
 void ReceiverModel::update_nbfm_configuration() {
 	nbfm_configs[nbfm_config_index].apply();
+}
+
+size_t ReceiverModel::wfm_configuration() const {
+	return wfm_config_index;
 }
 
 void ReceiverModel::update_wfm_configuration() {
