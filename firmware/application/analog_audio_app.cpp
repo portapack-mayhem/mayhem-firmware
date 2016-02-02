@@ -83,10 +83,6 @@ AnalogAudioView::AnalogAudioView(
 		&field_vga,
 		&options_modulation,
 		&field_volume,
-		&view_frequency_options,
-		&view_rf_gain_options,
-		&view_am_options,
-		&view_nbfm_options,
 		&waterfall,
 	} });
 
@@ -133,32 +129,6 @@ AnalogAudioView::AnalogAudioView(
 	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
-	};
-
-	view_frequency_options.hidden(true);
-	view_frequency_options.set_step(receiver_model.frequency_step());
-	view_frequency_options.on_change_step = [this](rf::Frequency f) {
-		this->on_frequency_step_changed(f);
-	};
-	view_frequency_options.set_reference_ppm_correction(receiver_model.reference_ppm_correction());
-	view_frequency_options.on_change_reference_ppm_correction = [this](int32_t v) {
-		this->on_reference_ppm_correction_changed(v);
-	};
-
-	view_rf_gain_options.hidden(true);
-	view_rf_gain_options.set_rf_amp(receiver_model.rf_amp());
-	view_rf_gain_options.on_change_rf_amp = [this](bool enable) {
-		this->on_rf_amp_changed(enable);
-	};
-
-	view_am_options.hidden(true);
-	view_am_options.on_config_changed = [this](size_t n) {
-		this->on_am_config_index_changed(n);
-	};
-
-	view_nbfm_options.hidden(true);
-	view_nbfm_options.on_config_changed = [this](size_t n) {
-		this->on_nbfm_config_index_changed(n);
 	};
 
 	update_modulation(static_cast<ReceiverModel::Mode>(receiver_model.modulation()));
@@ -219,55 +189,93 @@ void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation
 	waterfall.on_show();
 }
 
-void AnalogAudioView::on_show_options_frequency() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	view_rf_gain_options.hidden(true);
-	view_am_options.hidden(true);
-	view_nbfm_options.hidden(true);
+void AnalogAudioView::remove_options_widget() {
+	if( options_widget ) {
+		remove_child(options_widget.get());
+		options_widget.reset();
+	}
 
 	field_lna.set_style(nullptr);
 	options_modulation.set_style(nullptr);
+	field_frequency.set_style(nullptr);
+}
 
-	view_frequency_options.hidden(false);
-	field_frequency.set_style(&view_frequency_options.style());
+void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+	if( new_widget ) {
+		options_widget = std::move(new_widget);
+		add_child(options_widget.get());
+	}
+}
+
+void AnalogAudioView::on_show_options_frequency() {
+	// TODO: This approach of managing options views is error-prone and unsustainable!
+	remove_options_widget();
+
+	field_frequency.set_style(&style_options_group);
+
+	auto widget = std::make_unique<FrequencyOptionsView>(
+		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+		&style_options_group
+	);
+
+	widget->set_step(receiver_model.frequency_step());
+	widget->on_change_step = [this](rf::Frequency f) {
+		this->on_frequency_step_changed(f);
+	};
+	widget->set_reference_ppm_correction(receiver_model.reference_ppm_correction());
+	widget->on_change_reference_ppm_correction = [this](int32_t v) {
+		this->on_reference_ppm_correction_changed(v);
+	};
+
+	set_options_widget(std::move(widget));
 }
 
 void AnalogAudioView::on_show_options_rf_gain() {
 	// TODO: This approach of managing options views is error-prone and unsustainable!
-	view_frequency_options.hidden(true);
-	view_am_options.hidden(true);
-	view_nbfm_options.hidden(true);
+	remove_options_widget();
 
-	field_frequency.set_style(nullptr);
-	options_modulation.set_style(nullptr);
+	field_lna.set_style(&style_options_group);
 
-	view_rf_gain_options.hidden(false);
-	field_lna.set_style(&view_frequency_options.style());
+	auto widget = std::make_unique<RadioGainOptionsView>(
+		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+		&style_options_group
+	);
+
+	widget->set_rf_amp(receiver_model.rf_amp());
+	widget->on_change_rf_amp = [this](bool enable) {
+		this->on_rf_amp_changed(enable);
+	};
+
+	set_options_widget(std::move(widget));
 }
 
 void AnalogAudioView::on_show_options_modulation() {
 	// TODO: This approach of managing options views is error-prone and unsustainable!
-	view_frequency_options.hidden(true);
-	view_rf_gain_options.hidden(true);
+	remove_options_widget();
 
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
-	if( modulation != ReceiverModel::Mode::AMAudio ) {
-		view_am_options.hidden(true);
-	}
-	if( modulation != ReceiverModel::Mode::NarrowbandFMAudio ) {
-		view_nbfm_options.hidden(true);
-	}
-
-	field_frequency.set_style(nullptr);
-	field_lna.set_style(nullptr);
-
 	if( modulation == ReceiverModel::Mode::AMAudio ) {
-		view_am_options.hidden(false);
+		options_modulation.set_style(&style_options_group);
+		auto widget = std::make_unique<AMOptionsView>(
+			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+			&style_options_group
+		);
+		widget->on_config_changed = [this](size_t n) {
+			this->on_am_config_index_changed(n);
+		};
+		set_options_widget(std::move(widget));
 	}
 	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
-		view_nbfm_options.hidden(false);
+		options_modulation.set_style(&style_options_group);
+		auto widget = std::make_unique<NBFMOptionsView>(
+			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+			&style_options_group
+		);
+		widget->on_config_changed = [this](size_t n) {
+			this->on_nbfm_config_index_changed(n);
+		};
+		set_options_widget(std::move(widget));
 	}
-	options_modulation.set_style(&view_frequency_options.style());
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {

@@ -144,26 +144,8 @@ private:
 		' ',
 	};
 
-	FrequencyOptionsView view_frequency_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
+	std::unique_ptr<Widget> options_widget;
 
-	RadioGainOptionsView view_rf_gain_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
-
-	AMOptionsView view_am_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
-
-	NBFMOptionsView view_nbfm_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
-	
 	spectrum::WaterfallWidget waterfall;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
@@ -182,6 +164,9 @@ private:
 
 	void on_am_config_index_changed(size_t n);
 	void on_nbfm_config_index_changed(size_t n);
+
+	void remove_options_widget();
+	void set_options_widget(std::unique_ptr<Widget> new_widget);
 
 	void update_modulation(const ReceiverModel::Mode modulation);
 };
