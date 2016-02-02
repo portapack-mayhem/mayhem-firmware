@@ -42,10 +42,9 @@ AMOptionsView::AMOptionsView(
 		&options_config,
 	} });
 
+	options_config.set_selected_index(receiver_model.am_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
-		if( on_config_changed ) {
-			this->on_config_changed(n);
-		}
+		receiver_model.set_am_configuration(n);
 	};
 }
 
@@ -62,10 +61,9 @@ NBFMOptionsView::NBFMOptionsView(
 		&options_config,
 	} });
 
+	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
-		if( on_config_changed ) {
-			this->on_config_changed(n);
-		}
+		receiver_model.set_nbfm_configuration(n);
 	};
 }
 
@@ -261,9 +259,6 @@ void AnalogAudioView::on_show_options_modulation() {
 			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 			&style_options_group
 		);
-		widget->on_config_changed = [this](size_t n) {
-			this->on_am_config_index_changed(n);
-		};
 		set_options_widget(std::move(widget));
 	}
 	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
@@ -272,9 +267,6 @@ void AnalogAudioView::on_show_options_modulation() {
 			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 			&style_options_group
 		);
-		widget->on_config_changed = [this](size_t n) {
-			this->on_nbfm_config_index_changed(n);
-		};
 		set_options_widget(std::move(widget));
 	}
 }
@@ -291,14 +283,6 @@ void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
 void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 	const auto new_volume = volume_t::decibel(v - 99) + wolfson::wm8731::headphone_gain_range.max;
 	receiver_model.set_headphone_volume(new_volume);
-}
-
-void AnalogAudioView::on_am_config_index_changed(size_t n) {
-	receiver_model.set_am_configuration(n);
-}
-
-void AnalogAudioView::on_nbfm_config_index_changed(size_t n) {
-	receiver_model.set_nbfm_configuration(n);
 }
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {

@@ -39,8 +39,6 @@ constexpr Style style_options_group {
 
 class AMOptionsView : public View {
 public:
-	std::function<void(size_t)> on_config_changed;
-
 	AMOptionsView(const Rect parent_rect, const Style* const style);
 
 private:
@@ -62,8 +60,6 @@ private:
 
 class NBFMOptionsView : public View {
 public:
-	std::function<void(size_t)> on_config_changed;
-
 	NBFMOptionsView(const Rect parent_rect, const Style* const style);
 
 private:
@@ -161,9 +157,6 @@ private:
 	void on_reference_ppm_correction_changed(int32_t v);
 	void on_headphone_volume_changed(int32_t v);
 	void on_edit_frequency();
-
-	void on_am_config_index_changed(size_t n);
-	void on_nbfm_config_index_changed(size_t n);
 
 	void remove_options_widget();
 	void set_options_widget(std::unique_ptr<Widget> new_widget);
