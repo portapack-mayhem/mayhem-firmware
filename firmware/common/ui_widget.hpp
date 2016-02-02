@@ -226,6 +226,7 @@ public:
 	using options_t = std::vector<option_t>;
 
 	std::function<void(size_t, value_t)> on_change;
+	std::function<void(void)> on_show_options;
 
 	OptionsField(Point parent_pos, size_t length, options_t options);
 
@@ -236,6 +237,7 @@ public:
 
 	void paint(Painter& painter) override;
 
+	void on_focus() override;
 	bool on_encoder(const EncoderEvent delta) override;
 	bool on_touch(const TouchEvent event) override;
 

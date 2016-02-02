@@ -473,6 +473,12 @@ void OptionsField::paint(Painter& painter) {
 	}
 }
 
+void OptionsField::on_focus() {
+	if( on_show_options ) {
+		on_show_options();
+	}
+}
+
 bool OptionsField::on_encoder(const EncoderEvent delta) {
 	set_selected_index(selected_index() + delta);
 	return true;
