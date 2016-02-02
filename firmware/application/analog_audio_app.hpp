@@ -29,29 +29,6 @@
 
 #include "ui_font_fixed_8x16.hpp"
 
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-
-struct AMConfig {
-	const fir_taps_complex<64> channel;
-	const AMConfigureMessage::Modulation modulation;
-
-	void apply() const;
-};
-
-struct NBFMConfig {
-	const fir_taps_real<24> decim_0;
-	const fir_taps_real<32> decim_1;
-	const fir_taps_real<32> channel;
-	const size_t deviation;
-
-	void apply() const;
-};
-
-struct WFMConfig {
-	void apply() const;
-};
-
 namespace ui {
 
 constexpr Style style_options_group {
@@ -143,16 +120,13 @@ private:
 */
 	spectrum::WaterfallWidget waterfall;
 
-	size_t am_config_index = 0;
-	size_t nbfm_config_index = 0;
-	static constexpr size_t wfm_config_index = 0;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
 	void on_rf_amp_changed(bool v);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-	void on_modulation_changed(const ReceiverModel::Mode mode);
+	void on_modulation_changed(const ReceiverModel::Mode modulation);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();
 	void on_frequency_step_changed(rf::Frequency f);
@@ -163,9 +137,7 @@ private:
 	void on_am_config_index_changed(size_t n);
 	void on_nbfm_config_index_changed(size_t n);
 
-	void update_am_config();
-	void update_nbfm_config();
-	void update_wfm_config();
+	void update_modulation(const ReceiverModel::Mode modulation);
 };
 
 } /* namespace ui */

@@ -27,64 +27,6 @@ using namespace portapack;
 
 #include "utility.hpp"
 
-#include "dsp_iir_config.hpp"
-
-void AMConfig::apply() const {
-	const AMConfigureMessage message {
-		taps_6k0_decim_0,
-		taps_6k0_decim_1,
-		taps_6k0_decim_2,
-		channel,
-		modulation,
-		audio_12k_hpf_300hz_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(4);
-}
-
-void NBFMConfig::apply() const {
-	const NBFMConfigureMessage message {
-		decim_0,
-		decim_1,
-		channel,
-		2,
-		deviation,
-		audio_24k_hpf_300hz_config,
-		audio_24k_deemph_300_6_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(2);
-}
-
-void WFMConfig::apply() const {
-	const WFMConfigureMessage message {
-		taps_200k_wfm_decim_0,
-		taps_200k_wfm_decim_1,
-		taps_64_lp_156_198,
-		75000,
-		audio_48k_hpf_30hz_config,
-		audio_48k_deemph_2122_6_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(1);
-}
-
-static constexpr std::array<AMConfig, 3> am_configs { {
-	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
-	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
-	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
-} };
-
-static constexpr std::array<NBFMConfig, 3> nbfm_configs { {
-	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
-	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
-	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
-} };
-
-static constexpr std::array<WFMConfig, 1> wfm_configs { {
-	{ },
-} };
-
 namespace ui {
 
 /* AnalogAudioView *******************************************************/
@@ -163,6 +105,8 @@ AnalogAudioView::AnalogAudioView(
 	view_rf_gain_options.on_change_rf_amp = [this](bool enable) {
 		this->on_rf_amp_changed(enable);
 	};
+
+	update_modulation(static_cast<ReceiverModel::Mode>(receiver_model.modulation()));
 }
 
 AnalogAudioView::~AnalogAudioView() {
@@ -211,39 +155,12 @@ void AnalogAudioView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode mode) {
+void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation) {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
 	waterfall.on_hide();
-
-	const auto is_wideband_spectrum_mode = (mode == ReceiverModel::Mode::SpectrumAnalysis);
-	receiver_model.set_baseband_configuration({
-		.mode = toUType(mode),
-		.sampling_rate = is_wideband_spectrum_mode ? 20000000U : 3072000U,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
-	receiver_model.enable();
-
-	switch(mode) {
-	default:
-	case ReceiverModel::Mode::AMAudio:
-		update_am_config();
-		break;
-
-	case ReceiverModel::Mode::NarrowbandFMAudio:
-		update_nbfm_config();
-		break;
-
-	case ReceiverModel::Mode::WidebandFMAudio:
-		update_wfm_config();
-		break;
-
-	case ReceiverModel::Mode::SpectrumAnalysis:
-		break;
-	}
-
-	waterfall.on_show();	
+	update_modulation(modulation);
+	waterfall.on_show();
 }
 
 void AnalogAudioView::on_show_options_frequency() {
@@ -277,29 +194,22 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 }
 
 void AnalogAudioView::on_am_config_index_changed(size_t n) {
-	if( n < am_configs.size() ) {
-		am_config_index = n;
-		update_am_config();
-	}
+	receiver_model.set_am_configuration(n);
 }
 
 void AnalogAudioView::on_nbfm_config_index_changed(size_t n) {
-	if( n < nbfm_configs.size() ) {
-		nbfm_config_index = n;
-		update_nbfm_config();
-	}
+	receiver_model.set_nbfm_configuration(n);
 }
 
-void AnalogAudioView::update_am_config() {
-	am_configs[am_config_index].apply();
-}
-
-void AnalogAudioView::update_nbfm_config() {
-	nbfm_configs[nbfm_config_index].apply();
-}
-
-void AnalogAudioView::update_wfm_config() {
-	wfm_configs[wfm_config_index].apply();
+void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
+	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
+	receiver_model.set_baseband_configuration({
+		.mode = toUType(modulation),
+		.sampling_rate = is_wideband_spectrum_mode ? 20000000U : 3072000U,
+		.decimation_factor = 1,
+	});
+	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
+	receiver_model.enable();
 }
 
 } /* namespace ui */

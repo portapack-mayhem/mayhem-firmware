@@ -80,6 +80,10 @@ public:
 
 	void set_baseband_configuration(const BasebandConfiguration config);
 
+	void set_am_configuration(const size_t n);
+	void set_nbfm_configuration(const size_t n);
+	void set_wfm_configuration(const size_t n);
+
 private:
 	rf::Frequency frequency_step_ { 25000 };
 	bool enabled_ { false };
@@ -93,6 +97,9 @@ private:
 		.sampling_rate = 3072000,
 		.decimation_factor = 1,
 	};
+	size_t am_config_index = 0;
+	size_t nbfm_config_index = 0;
+	size_t wfm_config_index = 0;
 	volume_t headphone_volume_ { -43.0_dB };
 
 	int32_t tuning_offset();
@@ -105,6 +112,11 @@ private:
 	void update_vga();
 	void update_baseband_configuration();
 	void update_headphone_volume();
+
+	void update_modulation_configuration();
+	void update_am_configuration();
+	void update_nbfm_configuration();
+	void update_wfm_configuration();
 
 	void baseband_disable();
 };
