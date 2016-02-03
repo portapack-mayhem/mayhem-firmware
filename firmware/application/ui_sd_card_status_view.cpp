@@ -32,14 +32,14 @@ SDCardStatusView::SDCardStatusView() {
 	add_children({ {
 		&text_status,
 	} });
-
-	on_status(sd_card::status());
 }
 
 void SDCardStatusView::on_show() {
 	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
 		this->on_status(status);
 	};
+
+	on_status(sd_card::status());
 }
 
 void SDCardStatusView::on_hide() {
