@@ -29,17 +29,12 @@ namespace ui {
 
 class SDCardStatusView : public View {
 public:
-	SDCardStatusView();
-
 	void on_show() override;
 	void on_hide() override;
 
-private:
-	Text text_status {
-		{  0 * 8, 0, 2 * 8, 1 * 16 },
-		"",
-	};
+	void paint(Painter& painter) override;
 
+private:
 	SignalToken sd_card_status_signal_token;
 
 	void on_status(const sd_card::Status status);
