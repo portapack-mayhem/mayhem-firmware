@@ -54,6 +54,10 @@ int Painter::draw_string(Point p, const Style& style, const std::string text) {
 	return width;
 }
 
+void Painter::draw_bitmap(const Point p, const Bitmap& bitmap, const Color foreground, const Color background) {
+	display.draw_bitmap(p, bitmap.size, bitmap.data, foreground, background);
+}
+
 void Painter::draw_hline(Point p, int width, const Color c) {
 	display.fill_rectangle({ p, { width, 1 } }, c);
 }
