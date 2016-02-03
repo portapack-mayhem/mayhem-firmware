@@ -99,8 +99,8 @@ buffer_f32_t FM::execute(
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
-		*(dst_p++) = angle_approx_0deg27(t0) * k;
-		*(dst_p++) = angle_approx_0deg27(t1) * k;
+		*(dst_p++) = angle_precise(t0) * k;
+		*(dst_p++) = angle_precise(t1) * k;
 	}
 	z_ = z;
 
