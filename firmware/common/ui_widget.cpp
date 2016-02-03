@@ -420,6 +420,99 @@ bool Button::on_touch(const TouchEvent event) {
 #endif
 }
 
+/* Image *****************************************************************/
+
+Image::Image(
+) : Image { { }, nullptr, Color::white(), Color::black() }
+{
+}
+
+Image::Image(
+	const Rect parent_rect,
+	const Bitmap* bitmap,
+	const Color foreground,
+	const Color background
+) : Widget { parent_rect },
+	bitmap_ { bitmap },
+	foreground_ { foreground },
+	background_ { background }
+{
+}
+
+void Image::set_bitmap(const Bitmap* bitmap) {
+	bitmap_ = bitmap;
+	set_dirty();
+}
+
+void Image::set_foreground(const Color color) {
+	foreground_ = color;
+	set_dirty();
+}
+
+void Image::set_background(const Color color) {
+	background_ = color;
+	set_dirty();
+}
+
+void Image::paint(Painter& painter) {
+	if( bitmap_ ) {
+		// Code also handles ImageButton behavior.
+		const bool selected = (has_focus() || flags.highlighted);
+		painter.draw_bitmap(
+			screen_pos(),
+			*bitmap_,
+			selected ? background_ : foreground_,
+			selected ? foreground_ : background_
+		);
+	}
+}
+
+/* ImageButton ***********************************************************/
+
+// TODO: Virtually all this code is duplicated from Button. Base class?
+
+ImageButton::ImageButton(
+	const Rect parent_rect,
+	const Bitmap* bitmap,
+	const Color foreground,
+	const Color background
+) : Image { parent_rect, bitmap, foreground, background }
+{
+	flags.focusable = true;
+}
+
+bool ImageButton::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select(*this);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ImageButton::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+
+	case TouchEvent::Type::End:
+		flags.highlighted = false;
+		set_dirty();
+		if( on_select ) {
+			on_select(*this);
+		}
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 /* OptionsField **********************************************************/
 
 OptionsField::OptionsField(

@@ -218,6 +218,43 @@ private:
 	std::string text_;
 };
 
+class Image : public Widget {
+public:
+	Image();
+	Image(
+		const Rect parent_rect,
+		const Bitmap* bitmap,
+		const Color foreground,
+		const Color background
+	);
+
+	void set_bitmap(const Bitmap* bitmap);
+	void set_foreground(const Color color);
+	void set_background(const Color color);
+
+	void paint(Painter& painter) override;
+
+private:
+	const Bitmap* bitmap_;
+	Color foreground_;
+	Color background_;
+};
+
+class ImageButton : public Image {
+public:
+	std::function<void(ImageButton&)> on_select;
+
+	ImageButton(
+		const Rect parent_rect,
+		const Bitmap* bitmap,
+		const Color foreground,
+		const Color background
+	);
+
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+};
+
 class OptionsField : public Widget {
 public:
 	using name_t = std::string;
