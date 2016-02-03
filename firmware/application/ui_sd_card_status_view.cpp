@@ -111,6 +111,12 @@ const Color color_sd_card(const sd_card::Status status) {
 
 } /* namespace detail */
 
+SDCardStatusView::SDCardStatusView(
+	const Rect parent_rect
+) : Image { parent_rect, &detail::bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::black() }
+{
+}
+
 void SDCardStatusView::on_show() {
 	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
 		this->on_status(status);
@@ -123,15 +129,14 @@ void SDCardStatusView::on_hide() {
 
 void SDCardStatusView::paint(Painter& painter) {
 	const auto status = sd_card::status();
-	painter.draw_bitmap(
-		screen_pos(),
-		detail::bitmap_sd_card(status),
-		detail::color_sd_card(status),
-		style().background
-	);
+	set_bitmap(&detail::bitmap_sd_card(status));
+	set_foreground(detail::color_sd_card(status));
+
+	Image::paint(painter);
 }
 
 void SDCardStatusView::on_status(const sd_card::Status) {
+	// Don't update image properties here, they might change. Wait until paint.
 	set_dirty();
 }
 

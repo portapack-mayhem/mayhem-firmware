@@ -64,7 +64,9 @@ private:
 		"ZZ",
 	};
 
-	SDCardStatusView sd_card_status_view;
+	SDCardStatusView sd_card_status_view {
+		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
+	};
 };
 
 class NavigationView : public View {

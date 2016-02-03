@@ -27,8 +27,10 @@
 
 namespace ui {
 
-class SDCardStatusView : public View {
+class SDCardStatusView : public Image {
 public:
+	SDCardStatusView(const Rect parent_rect);
+	
 	void on_show() override;
 	void on_hide() override;
 

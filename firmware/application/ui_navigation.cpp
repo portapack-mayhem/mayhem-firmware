@@ -46,7 +46,6 @@ SystemStatusView::SystemStatusView() {
 		&button_sleep,
 		&sd_card_status_view,
 	} });
-	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
 
 	button_back.on_select = [this](Button&){
 		if( this->on_back ) {
