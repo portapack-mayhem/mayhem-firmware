@@ -5,8 +5,9 @@ cache: apt
 before_script:
   - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
   - tar -xf /tmp/gcc-arm.tar.bz2
-  - ls -l
+  - ls -l gcc-arm-none-eabi-5_2-2015q4/bin
   - export PATH=$PWD/gcc-arm-none-eabi-5_2-2015q4/bin:$PATH
+  - echo $PATH
   - export CC="arm-none-eabi-gcc"
   - export CXX="arm-none-eabi-g++"
 
