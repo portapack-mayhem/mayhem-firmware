@@ -26,12 +26,15 @@ script:
   - make release
   - popd
 
+after_success:
+  - artifacts upload --bucket nine-piece-box firmware/portapack-h1-firmware-*.tar.bz2 firmware/portapack-h1-firmware-*.zip
+
 addons:
   apt_packages:
     - lib32bz2-1.0
     - lib32ncurses5
     - lib32z1
-  artifacts:
-    paths:
-      - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
-      - $(ls firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
+  # artifacts:
+  #   paths:
+  #     - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
+  #     - $(ls firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
