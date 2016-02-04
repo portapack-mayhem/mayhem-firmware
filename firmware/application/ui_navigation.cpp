@@ -133,6 +133,7 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
 		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
 	} });
+	on_left = [&nav](){ nav.pop(); };
 }
 
 /* ReceiverMenuView ******************************************************/
@@ -142,6 +143,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 		{ "Audio",        [&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
+	on_left = [&nav](){ nav.pop(); };
 }
 
 /* SystemMenuView ********************************************************/
