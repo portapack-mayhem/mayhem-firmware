@@ -188,48 +188,11 @@ public:
 	Text(Rect parent_rect);
 
 	void set(const std::string value);
-	void set_style(const Style* new_style);
-	
+
 	void paint(Painter& painter) override;
 
 private:
 	std::string text;
-	const Style* style_ { nullptr };
-};
-
-class Checkbox : public Widget {
-public:
-	std::function<void(Checkbox&)> on_select;
-
-	Checkbox(
-		Point parent_point,
-		std::string text
-	) : Widget { parent_point },
-		text_ { text }
-	{
-		flags.focusable = true;
-	}
-
-	Checkbox(
-	) : Checkbox { { }, { } }
-	{
-	}
-
-	void set_text(const std::string value);
-	void set_style(const Style* new_style);
-	std::string text() const;
-	void set_value(const bool value);
-	bool value() const;
-
-	void paint(Painter& painter) override;
-	
-	bool on_key(const KeyEvent key) override;
-	bool on_touch(const TouchEvent event) override;
-
-private:
-	std::string text_;
-	bool value_ = false;
-	const Style* style_ { nullptr };
 };
 
 class Button : public Widget {
@@ -244,8 +207,6 @@ public:
 	}
 
 	void set_text(const std::string value);
-	void set_text(const int value);
-	void set_style(const Style* new_style);
 	std::string text() const;
 
 	void paint(Painter& painter) override;
@@ -255,7 +216,43 @@ public:
 
 private:
 	std::string text_;
-	const Style* style_ { nullptr };
+};
+
+class Image : public Widget {
+public:
+	Image();
+	Image(
+		const Rect parent_rect,
+		const Bitmap* bitmap,
+		const Color foreground,
+		const Color background
+	);
+
+	void set_bitmap(const Bitmap* bitmap);
+	void set_foreground(const Color color);
+	void set_background(const Color color);
+
+	void paint(Painter& painter) override;
+
+private:
+	const Bitmap* bitmap_;
+	Color foreground_;
+	Color background_;
+};
+
+class ImageButton : public Image {
+public:
+	std::function<void(ImageButton&)> on_select;
+
+	ImageButton(
+		const Rect parent_rect,
+		const Bitmap* bitmap,
+		const Color foreground,
+		const Color background
+	);
+
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
 };
 
 class OptionsField : public Widget {
@@ -266,6 +263,7 @@ public:
 	using options_t = std::vector<option_t>;
 
 	std::function<void(size_t, value_t)> on_change;
+	std::function<void(void)> on_show_options;
 
 	OptionsField(Point parent_pos, size_t length, options_t options);
 
@@ -276,6 +274,7 @@ public:
 
 	void paint(Painter& painter) override;
 
+	void on_focus() override;
 	bool on_encoder(const EncoderEvent delta) override;
 	bool on_touch(const TouchEvent event) override;
 

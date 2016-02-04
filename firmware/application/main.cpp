@@ -62,7 +62,6 @@
 #include "ui_painter.hpp"
 #include "ui_navigation.hpp"
 
-#include "irq_ipc.hpp"
 #include "irq_lcd_frame.hpp"
 #include "irq_controls.hpp"
 #include "irq_rtc.hpp"

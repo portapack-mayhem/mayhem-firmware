@@ -20,13 +20,16 @@
  */
 
 #include "ui_setup.hpp"
-
+#include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_font_fixed_8x16.hpp"
+
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
 #include "portapack.hpp"
 using portapack::receiver_model;
+using namespace portapack;
 
 namespace ui {
 
@@ -165,12 +168,6 @@ AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
 
 void AntennaBiasSetupView::focus() {
 	button_done.focus();
-}
-
-
-
-void AboutView::focus() {
-	button_ok.focus();
 }
 
 void SetTouchCalibView::focus() {
@@ -433,13 +430,13 @@ void ModInfoView::focus() {
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items<7>({ {
-		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push(new ModInfoView { nav }); } },
-		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push(new SetDateTimeView { nav }); } },
+		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
+		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
-		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
-		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push(new SetTouchCalibView { nav }); } },
-		{ "Play dead", ui::Color::red(), [&nav](){ nav.push(new SetPlayDeadView { nav }); } },
-		{ "UI", ui::Color::white(), [&nav](){ nav.push(new SetUIView { nav }); } },
+		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
+		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<SetTouchCalibView>(); } },
+		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } },
+		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

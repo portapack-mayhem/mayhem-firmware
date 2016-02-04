@@ -108,6 +108,10 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 	return p;
 }
 
+void NavigationView::push(View* v) {
+	push_view(std::unique_ptr<View>(v));
+}
+
 void NavigationView::pop() {
 	// Can't pop last item from stack.
 	if( view_stack.size() > 1 ) {
@@ -149,9 +153,9 @@ void NavigationView::focus() {
 
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 	add_items<3>({ {
-		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
-		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
-		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
+		{ "AIS:  Boats",          ui::Color::white(), [&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:  Utility Meters", ui::Color::white(), [&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS: Cars",           ui::Color::white(), [&nav](){ nav.push<TPMSAppView>(); } },
 	} });
 }
 
@@ -159,8 +163,8 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio",        [&nav](){ nav.push<ReceiverView>(); } },
-		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
+		{ "Audio",        ui::Color::white(), [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Transponders", ui::Color::white(), [&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 }
 
@@ -168,24 +172,24 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<10>({ {
-		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push(new PlayDeadView 	  { nav, false }); } },
-		{ "Receiver", ui::Color::cyan(), 			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new ReceiverMenuView { nav, receiver_model }}); } },
+		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push<PlayDeadView>(false); } },
+		{ "Receiver", ui::Color::cyan(), 			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new ReceiverMenuView(nav)); } },
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Jammer", ui::Color::white(),   			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new JammerView { nav, transmitter_model }}); } },
+		{ "Jammer", ui::Color::white(),   			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
 		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
 		//{ "SIGFOX RX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
-		{ "RDS TX", ui::Color::yellow(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new RDSView { nav, transmitter_model }}); } },
-		{ "Xylos TX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosView	{ nav, transmitter_model }}); } },
+		{ "RDS TX", ui::Color::yellow(),  			[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new RDSView(nav)); } },
+		{ "Xylos TX", ui::Color::orange(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new XylosView(nav)); } },
 		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
 		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
-		{ "TEDI/LCR TX", ui::Color::yellow(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new LCRView { nav, transmitter_model }}); } },
+		{ "TEDI/LCR TX", ui::Color::yellow(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new LCRView(nav)); } },
 		//{ "Numbers station", ui::Color::purple(),	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
-		{ "Setup", ui::Color::white(),    			[&nav](){ nav.push(new SetupMenuView      { nav }); } },
-		{ "About", ui::Color::white(),    			[&nav](){ nav.push(new AboutView          { nav, transmitter_model }); } },
-		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push(new DebugMenuView      { nav }); } },
-		{ "HackRF", ui::Color::white(),   			[&nav](){ nav.push(new HackRFFirmwareView { nav }); } },
+		{ "Setup", ui::Color::white(),    			[&nav](){ nav.push<SetupMenuView>(); } },
+		{ "About", ui::Color::white(),    			[&nav](){ nav.push<AboutView>(); } },
+		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF", ui::Color::white(),   			[&nav](){ nav.push<HackRFFirmwareView>(); } },
 	} });
 }
 
@@ -264,6 +268,41 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 		&button_yes,
 		&button_no,
 	} });
+}
+
+/* PlayDeadView **********************************************************/
+
+void PlayDeadView::focus() {
+	button_done.focus();
+}
+
+PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
+	_booting = booting;
+	persistent_memory::set_playing_dead(0x59);
+	
+	add_children({ {
+		&text_playdead1,
+		&text_playdead2,
+		&button_done,
+	} });
+	
+	button_done.on_dir = [this,&nav](Button&, KeyEvent key){
+		sequence = (sequence<<3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
+	};
+	
+	button_done.on_select = [this,&nav](Button&){
+		if (sequence == persistent_memory::playdead_sequence()) {
+			persistent_memory::set_playing_dead(0);
+			if (_booting) {
+				nav.pop();
+				nav.push<SystemMenuView>();
+			} else {
+				nav.pop();
+			}
+		} else {
+			sequence = 0;
+		}
+	};
 }
 
 void HackRFFirmwareView::focus() {

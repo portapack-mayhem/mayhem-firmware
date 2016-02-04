@@ -245,20 +245,6 @@ void RegistersView::focus() {
 	button_done.focus();
 }
 
-void DebugLCRView::paint(Painter& painter) {
-	const Point offset = {
-		static_cast<Coord>(32),
-		static_cast<Coord>(32)
-	};
-	
-	const auto text = to_string_hex(fr, 2);
-	painter.draw_string(
-		screen_pos() + offset,
-		style(),
-		text
-	);
-}
-
 char hexify(char in) {
 	if (in > 9) in += 7;
 	return in + 0x30;
@@ -301,26 +287,26 @@ void DebugLCRView::focus() {
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<8>({ {
-		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
-		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",     [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "RFFC5072",    [&nav](){ nav.push<RegistersView>(
+		{ "Memory", ui::Color::white(),      [&nav](){ nav.push<DebugMemoryView>(); } },
+		{ "Radio State", ui::Color::white(), [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "SD Card", ui::Color::white(),     [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "RFFC5072", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
 			[](const size_t register_number) { return radio::first_if.read(register_number); }
 		); } },
-		{ "MAX2837",     [&nav](){ nav.push<RegistersView>(
+		{ "MAX2837", ui::Color::white(),     [&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
 			[](const size_t register_number) { return radio::second_if.read(register_number); }
 		); } },
-		{ "Si5351C",     [&nav](){ nav.push<RegistersView>(
+		{ "Si5351C", ui::Color::white(),     [&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ "WM8731",      [&nav](){ nav.push<RegistersView>(
+		{ "WM8731", ui::Color::white(),      [&nav](){ nav.push<RegistersView>(
 			"WM8731", RegistersWidgetConfig { wolfson::wm8731::reg_count, 1, 3, 4 },
 			[](const size_t register_number) { return portapack::audio_codec.read(register_number); }
 		); } },
-		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
+		{ "Temperature", ui::Color::white(), [&nav](){ nav.push<TemperatureView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

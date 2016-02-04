@@ -24,46 +24,6 @@
 #include <cstdint>
 #include <cstddef>
 
-void SIGFRXProcessor::execute(buffer_c8_t buffer) {
+void SIGFRXProcessor::execute(const buffer_c8_t& buffer) {
 	/* Called every 2048/3072000 second -- 1500Hz. */
-
-	auto decimator_out = decimator.execute(buffer);
-
-	const buffer_c16_t work_baseband_buffer {
-		(complex16_t*)decimator_out.p,
-		sizeof(*decimator_out.p) * decimator_out.count
-	};
-
-	/* 192kHz complex<int16_t>[64]
-	 * -> 96kHz int16_t[32] */
-	//auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-
-	// TODO: Feed channel_stats post-decimation data?
-	feed_channel_spectrum(
-		decimator_out,
-		41000, //decimator_out.sampling_rate * channel_filter_taps.pass_frequency_normalized,
-		70000 //decimator_out.sampling_rate * channel_filter_taps.stop_frequency_normalized
-	);
-
-	/*const buffer_s16_t work_audio_buffer {
-		(int16_t*)decimator_out.p,
-		sizeof(*decimator_out.p) * decimator_out.count
-	};
-	* 
-	auto audio = demod.execute(channel, work_audio_buffer);
-
-	static uint64_t audio_present_history = 0;
-	const auto audio_present_now = squelch.execute(audio);
-	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-	const bool audio_present = (audio_present_history != 0);
-
-	if( !audio_present ) {
-		// Zero audio buffer.
-		for(size_t i=0; i<audio.count; i++) {
-			audio.p[i] = 0;
-		}
-	}
-
-	audio_hpf.execute_in_place(audio);
-	fill_audio_buffer(audio);*/
 }

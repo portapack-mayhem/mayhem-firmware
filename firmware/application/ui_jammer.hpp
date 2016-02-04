@@ -36,7 +36,7 @@ namespace ui {
 
 class JammerView : public View {
 public:
-	JammerView(NavigationView& nav, TransmitterModel& transmitter_model);
+	JammerView(NavigationView& nav);
 	~JammerView();
 	
 	void updfreq(uint8_t id, rf::Frequency f);
@@ -117,7 +117,6 @@ private:
 	
 	bool jamming = false;
 	rf::Frequency f;
-	TransmitterModel& transmitter_model;
 	
 	Text text_type {
 		{ 1 * 8, 1 * 16, 40, 16 },

@@ -31,7 +31,10 @@
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
+#include "event_m0.hpp"
 #include "radio.hpp"
+
+#include "string_format.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -40,7 +43,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -176,9 +179,8 @@ void LCRView::paint(Painter& painter) {
 }
 
 LCRView::LCRView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	char finalstr[24] = {0};
 	
@@ -188,7 +190,12 @@ LCRView::LCRView(
 		.foreground = Color::black(),
 	};
 	
-	transmitter_model.set_modulation(TX_LCR);
+	transmitter_model.set_baseband_configuration({
+		.mode = 1,
+		.sampling_rate = 1536000,	// Is this right ?
+		.decimation_factor = 1,
+	});
+
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	memset(litteral, 0, 5*8);
 	memset(rgsb, 0, 5);
@@ -277,8 +284,6 @@ LCRView::LCRView(
 	};
 	
 	button_transmit.on_select = [this,&transmitter_model](Button&){		
-		auto& message_map = context().message_map();
-		
 		make_frame();
 			
 		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
@@ -293,7 +298,7 @@ LCRView::LCRView(
 		shared_memory.afsk_transmit_done = false;
 		shared_memory.afsk_repeat = (portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
 
-		message_map.register_handler(Message::ID::TXDone,
+		EventDispatcher::message_map().register_handler(Message::ID::TXDone,
 			[this,&transmitter_model](Message* const p) {
 				char str[8];
 				const auto message = static_cast<const TXDoneMessage*>(p);
@@ -319,7 +324,7 @@ LCRView::LCRView(
 	};
 	
 	button_txsetup.on_select = [&nav, &transmitter_model](Button&){
-		nav.push(new AFSKSetupView { nav, transmitter_model });
+		nav.push(new AFSKSetupView { nav });
 	};
 
 	button_exit.on_select = [&nav](Button&){

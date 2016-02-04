@@ -42,7 +42,7 @@ namespace ui {
 
 class AFSKRXView : public View {
 public:
-	AFSKRXView(NavigationView& nav, ReceiverModel& receiver_model);
+	AFSKRXView(NavigationView& nav);
 	~AFSKRXView();
 
 	void focus() override;
@@ -51,8 +51,6 @@ public:
 	void on_hide() override;
 
 private:
-	ReceiverModel& receiver_model;
-	
 	std::unique_ptr<Widget> widget_content;
 
 	Button button_done {

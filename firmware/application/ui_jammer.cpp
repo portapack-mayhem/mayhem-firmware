@@ -29,6 +29,8 @@
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
+#include "string_format.hpp"
+#include "event_m0.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -37,7 +39,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -146,9 +148,8 @@ void JammerView::updfreq(uint8_t id, rf::Frequency f) {
 }
 
 JammerView::JammerView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	
 	static constexpr Style style_val {
@@ -169,7 +170,11 @@ JammerView::JammerView(
 		.foreground = Color::grey(),
 	};
 	
-	transmitter_model.set_modulation(TX_JAMMER);
+	transmitter_model.set_baseband_configuration({
+		.mode = 3,
+		.sampling_rate = 1536000,	// ?
+		.decimation_factor = 1,
+	});
 	
 	add_children({ {
 		&text_type,
@@ -232,11 +237,9 @@ JammerView::JammerView(
 	button_transmit.on_select = [this,&transmitter_model](Button&) {
 		uint8_t i = 0;
 		rf::Frequency t, range_lower;
-		auto& message_map = context().message_map();
+		EventDispatcher::message_map().unregister_handler(Message::ID::Retune);
 		
-		message_map.unregister_handler(Message::ID::Retune);
-		
-		message_map.register_handler(Message::ID::Retune,
+		EventDispatcher::message_map().register_handler(Message::ID::Retune,
 			[this,&transmitter_model](Message* const p) {
 				const auto message = static_cast<const RetuneMessage*>(p);
 				if (message->freq > 0) {

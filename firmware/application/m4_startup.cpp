@@ -106,7 +106,7 @@ void m4_switch(const char * hash) {
 	
 	// Ask M4 to enter wait loop in RAM
 	BasebandConfiguration baseband_switch {
-		.mode = SWITCH,
+		.mode = 255, // DEBUG
 		.sampling_rate = 0,
 		.decimation_factor = 1,
 	};

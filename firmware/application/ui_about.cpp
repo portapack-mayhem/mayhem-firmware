@@ -26,6 +26,7 @@
 #include "ymdata.hpp"
 
 #include "portapack.hpp"
+#include "event_m0.hpp"
 
 #include "ui_about.hpp"
 #include "touch.hpp"
@@ -44,23 +45,21 @@ using namespace portapack;
 namespace ui {
 	
 void AboutView::on_show() {
-	auto& message_map = context().message_map();
-	
 	// Just in case
-	message_map.unregister_handler(Message::ID::DisplayFrameSync);
+	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 	
 	// "Vertical blank interrupt"
-	message_map.register_handler(Message::ID::DisplayFrameSync,
+	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
 		[this](const Message* const) {
 			update();
 		}
 	);
 	
 	// Just in case
-	message_map.unregister_handler(Message::ID::FIFOSignal);
+	EventDispatcher::message_map().unregister_handler(Message::ID::FIFOSignal);
 	
 	// Handle baseband asking to fill up FIFO
-	message_map.register_handler(Message::ID::FIFOSignal,
+	EventDispatcher::message_map().register_handler(Message::ID::FIFOSignal,
 		[this](Message* const p) {
 			FIFODataMessage datamessage;
 			const auto message = static_cast<const FIFOSignalMessage*>(p);
@@ -349,6 +348,7 @@ void AboutView::update() {
 		refresh_cnt++;
 	}
 	
+	// Slowly increase volume to avoid jumpscare
 	if (headphone_vol < (70<<2)) {
 		portapack::audio_codec.set_headphone_volume(volume_t::decibel((headphone_vol/4) - 99) + wolfson::wm8731::headphone_gain_range.max);
 		headphone_vol++;
@@ -370,14 +370,13 @@ void AboutView::ym_init() {
 }
 
 AboutView::AboutView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	uint8_t p, c;
 	
 	transmitter_model.set_baseband_configuration({
-		.mode = PLAY_AUDIO,
+		.mode = 5,
 		.sampling_rate = 1536000,
 		.decimation_factor = 1,
 	});
@@ -412,8 +411,7 @@ AboutView::AboutView(
 	ym_init();
 
 	button_ok.on_select = [this,&nav](Button&){
-		auto& message_map = context().message_map();
-		message_map.unregister_handler(Message::ID::DisplayFrameSync);
+		EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 		if (framebuffer) chHeapFree(framebuffer);	// Do NOT forget this
 		nav.pop();
 	};

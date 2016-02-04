@@ -19,36 +19,34 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "irq_ipc.hpp"
+#ifndef __FILE_H__
+#define __FILE_H__
 
-#include "event.hpp"
+#include "ff.h"
 
-#include "ch.h"
-#include "hal.h"
+#include <cstddef>
+#include <string>
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+class File {
+public:
+	~File();
 
-void m4txevent_interrupt_enable() {
-	nvicEnableVector(M4CORE_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_M4TXEVENT_IRQ_PRIORITY));
-}
+	bool open_for_append(const std::string file_path);
+	bool close();
 
-void m4txevent_interrupt_disable() {
-	nvicDisableVector(M4CORE_IRQn);
-}
+	bool is_ready();
 
-extern "C" {
+	bool read(void* const data, const size_t bytes_to_read);
+	bool write(const void* const data, const size_t bytes_to_write);
 
-CH_IRQ_HANDLER(M4Core_IRQHandler) {
-	CH_IRQ_PROLOGUE();
+	bool puts(const std::string string);
 
-	chSysLockFromIsr();
-	events_flag_isr(EVT_MASK_APPLICATION);
-	chSysUnlockFromIsr();
+	bool sync();
 
-	creg::m4txevent::clear();
+private:
+	const std::string file_path;
+	
+	FIL f;
+};
 
-	CH_IRQ_EPILOGUE();
-}
-
-}
+#endif/*__FILE_H__*/

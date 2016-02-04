@@ -33,7 +33,7 @@ void PlayAudioProcessor::fill_buffer(int8_t * inptr) {
 	asked = false;
 }
 
-void PlayAudioProcessor::execute(buffer_c8_t buffer) {
+void PlayAudioProcessor::execute(const buffer_c8_t& buffer){
 
 	// This is called at 1536000/2048 = 750Hz
 
@@ -69,5 +69,5 @@ void PlayAudioProcessor::execute(buffer_c8_t buffer) {
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
 	
-	fill_audio_buffer(preview_audio_buffer);
+	//fill_audio_buffer(preview_audio_buffer);
 }

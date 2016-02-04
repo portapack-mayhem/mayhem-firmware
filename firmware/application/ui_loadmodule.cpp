@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -24,10 +25,12 @@
 #include "ch.h"
 
 #include "ff.h"
+#include "event_m0.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
 #include "hackrf_hal.hpp"
+#include "string_format.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -45,18 +48,17 @@ void LoadModuleView::paint(Painter& painter) {
 }
 
 void LoadModuleView::on_hide() {
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::ReadyForSwitch);
+	EventDispatcher::message_map().unregister_handler(Message::ID::ReadyForSwitch);
+	EventDispatcher::message_map().unregister_handler(Message::ID::ModuleID);
 }
 
 void LoadModuleView::on_show() {
 	// Ask for MD5 signature and compare
 	ModuleIDMessage message;
-	auto& message_map = context().message_map();
+
+	//message_map.unregister_handler(Message::ID::ModuleID);
 	
-	message_map.unregister_handler(Message::ID::ModuleID);
-	
-	message_map.register_handler(Message::ID::ModuleID,
+	EventDispatcher::message_map().register_handler(Message::ID::ModuleID,
 		[this](Message* const p) {
 			uint8_t c;
 			const auto message = static_cast<const ModuleIDMessage*>(p);
@@ -78,13 +80,66 @@ void LoadModuleView::on_show() {
 	shared_memory.baseband_queue.push(message);
 }
 
+int LoadModuleView::load_image() {
+	const char magic[6] = {'P', 'P', 'M', ' ', 0x02, 0x00};
+	UINT bw;
+	uint8_t i;
+	uint32_t cnt;
+	char md5sum[16];
+	FILINFO modinfo;
+	FIL modfile;
+	DIR rootdir;
+	FRESULT res;
+	
+	// Scan SD card root directory for files with the right MD5 fingerprint at the right location
+	if (f_opendir(&rootdir, "/") == FR_OK) {
+		for (;;) {
+			res = f_readdir(&rootdir, &modinfo);
+			if (res != FR_OK || modinfo.fname[0] == 0) break;	// Reached last file, abort
+			// Only care about files with .bin extension
+			if ((!(modinfo.fattrib & AM_DIR)) && (modinfo.fname[9] == 'B') && (modinfo.fname[10] == 'I') && (modinfo.fname[11] == 'N')) {
+				res = f_open(&modfile, modinfo.fname, FA_OPEN_EXISTING | FA_READ);
+				if (res != FR_OK) return 0;
+				// Magic bytes and version check
+				f_read(&modfile, &md5sum, 6, &bw);
+				for (i = 0; i < 6; i++)
+					if (md5sum[i] != magic[i]) break;
+				if (i == 6) {
+					f_lseek(&modfile, 26);
+					f_read(&modfile, &md5sum, 16, &bw);
+					for (i = 0; i < 16; i++)
+						if (md5sum[i] != _hash[i]) break;
+					// f_read can't read more than 512 bytes at a time ?
+					if (i == 16) {
+						f_lseek(&modfile, 512);
+						for (cnt = 0; cnt < 64; cnt++) {
+							if (f_read(&modfile, reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + (cnt * 512)), 512, &bw)) return 0;
+						}
+						f_close(&modfile);
+						f_closedir(&rootdir);
+						LPC_RGU->RESET_CTRL[0] = (1 << 13);
+						return 1;
+					}
+				}
+				f_close(&modfile);
+			}
+		}
+		f_closedir(&rootdir);
+	}
+	
+	return 0;
+}
+
 void LoadModuleView::loadmodule() {
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::ReadyForSwitch,
+	//message_map.unregister_handler(Message::ID::ReadyForSwitch);
+	
+	EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {
 			(void)p;
-			if (m4_load_image()) {
-				text_info.set("Module loaded :)");
+			if (load_image()) {
+				text_info.set(to_string_hex(*((unsigned int*)0x10080000),8));
+				//text_infob.set(to_string_hex(*((unsigned int*)0x10080004),8));
+				text_infob.set("Module loaded :)");
 				_mod_loaded = true;
 			} else {
 				text_info.set("Module not found :(");
@@ -104,6 +159,7 @@ LoadModuleView::LoadModuleView(
 {
 	add_children({ {
 		&text_info,
+		&text_infob,
 		&button_ok
 	} });
 	

@@ -2579,7 +2579,6 @@ FRESULT f_read (
 	UINT rcnt, cc;
 	BYTE csect, *rbuff = (BYTE*)buff;
 
-
 	*br = 0;	/* Clear read byte counter */
 
 	res = validate(fp);							/* Check validity */

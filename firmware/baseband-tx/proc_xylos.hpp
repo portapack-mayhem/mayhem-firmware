@@ -25,12 +25,18 @@
 
 #include "baseband_processor.hpp"
 
+#include "dsp_decimate.hpp"
+#include "dsp_demodulate.hpp"
+
+//#include "audio_output.hpp"
+#include "baseband_processor.hpp"
+
 #define CCIR_TONELENGTH 15360-1 // 1536000/10/10
 #define PHASEV 436.91	// (65536*1024)/1536000*10
 
 class XylosProcessor : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	int16_t audio_data[64];
@@ -67,6 +73,8 @@ private:
 	uint32_t aphase, phase, sphase;
 	int32_t sample, frq;
 	TXDoneMessage message;
+	
+	//AudioOutput audio_output;
 };
 
 #endif

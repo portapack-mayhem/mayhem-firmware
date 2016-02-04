@@ -25,6 +25,7 @@
 #include "ch.h"
 #include "hackrf_hal.hpp"
 
+#include "event_m0.hpp"
 #include "ui_alphanum.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
@@ -38,7 +39,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 	
@@ -91,9 +92,8 @@ void XylosRXView::on_show() {
 }
 
 XylosRXView::XylosRXView(
-	NavigationView& nav,
-	ReceiverModel& receiver_model
-) : receiver_model(receiver_model)
+	NavigationView& nav
+)
 {
 	char ccirdebug[21] = { 0,0,0,0,1,8,1,10,10,10,11,1,1,2,0,11,0,0,0,0,0xFF };
 	
@@ -211,9 +211,8 @@ void XylosView::journuit() {
 }
 
 XylosView::XylosView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	static constexpr Style style_val {
 		.font = font::fixed_8x16,
@@ -228,13 +227,11 @@ XylosView::XylosView(
 	};
 	
 	transmitter_model.set_baseband_configuration({
-		.mode = TX_XYLOS,
+		.mode = 4,
 		.sampling_rate = 1536000,
 		.decimation_factor = 1,
 	});
-	
-	transmitter_model.set_modulation(TX_XYLOS); // Useless ?
-	
+
 	add_children({ {
 		&text_title,
 		&button_txtest,
@@ -323,11 +320,9 @@ XylosView::XylosView(
 	button_txtest.on_select = [this,&transmitter_model](Button&) {
 		const uint8_t ccirtest[21] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,14,13,12,11,0xFF };
 		if (txing == false) {
-			auto& message_map = context().message_map();
+			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
 			
-			message_map.unregister_handler(Message::ID::TXDone);
-			
-			message_map.register_handler(Message::ID::TXDone,
+			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
 				[this,&transmitter_model](Message* const p) {
 					const auto message = static_cast<const TXDoneMessage*>(p);
 					if (message->n == 25) {
@@ -359,11 +354,9 @@ XylosView::XylosView(
 		if (txing == false) {
 			upd_message();
 			
-			auto& message_map = context().message_map();
+			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
 			
-			message_map.unregister_handler(Message::ID::TXDone);
-			
-			message_map.register_handler(Message::ID::TXDone,
+			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
 				[this,&transmitter_model](Message* const p) {
 					uint8_t c;
 					char progress[21];

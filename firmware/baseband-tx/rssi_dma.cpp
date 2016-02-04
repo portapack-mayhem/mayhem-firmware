@@ -157,7 +157,7 @@ bool is_enabled() {
 }
 
 void disable() {
-	gpdma_channel.disable_force();
+	gpdma_channel.disable();
 }
 
 rf::rssi::buffer_t wait_for_buffer() {

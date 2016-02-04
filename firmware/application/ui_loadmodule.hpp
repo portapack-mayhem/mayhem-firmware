@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -31,7 +32,7 @@ namespace ui {
 
 class LoadModuleView : public View {
 public:
-	LoadModuleView(NavigationView& nav, const char * hash, View* new_view);
+	LoadModuleView(NavigationView& nav, const char * hash, View * new_view);
 	void loadmodule();
 	
 	void on_show() override;
@@ -40,12 +41,17 @@ public:
 	void paint(Painter& painter) override;
 
 private:
+	int load_image(void);
 	const char * _hash;
 	bool _mod_loaded = false;
 	
 	Text text_info {
 		{ 8, 64, 224, 16 },
-		"Searching module..."
+		"-"
+	};
+	Text text_infob {
+		{ 8, 64+16, 224, 16 },
+		"-"
 	};
 	
 	Button button_ok {

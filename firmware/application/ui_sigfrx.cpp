@@ -25,11 +25,13 @@
 #include "ch.h"
 #include "evtimer.h"
 
+#include "event_m0.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
-//#include "fox_bmp.hpp"
+
+#include "string_format.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -38,7 +40,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -98,20 +100,23 @@ void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 }
 
 void SIGFRXView::on_show() {
-	context().message_map().register_handler(Message::ID::ChannelSpectrum,
+	/*EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrum,
 		[this](const Message* const p) {
 			this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
 		}
-	);
+	);*/
+}
+
+void SIGFRXView::on_hide() {
+	//EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrum);
 }
 
 SIGFRXView::SIGFRXView(
-	NavigationView& nav,
-	ReceiverModel& receiver_model
-) : receiver_model(receiver_model)
+	NavigationView& nav
+)
 {
 	receiver_model.set_baseband_configuration({
-		.mode = RX_SIGFOX,
+		.mode = 255,	// DEBUG
 		.sampling_rate = 3072000,
 		.decimation_factor = 4,
 	});

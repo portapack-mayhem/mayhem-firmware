@@ -66,9 +66,8 @@ void AFSKSetupView::updfreq(rf::Frequency f) {
 }
 
 AFSKSetupView::AFSKSetupView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	uint8_t rpt;
 	

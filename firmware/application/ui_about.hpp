@@ -34,7 +34,7 @@ namespace ui {
 
 class AboutView : public View {
 public:
-	AboutView(NavigationView& nav, TransmitterModel& transmitter_model);
+	AboutView(NavigationView& nav);
 	~AboutView();
 	
 	void on_show() override;
@@ -53,8 +53,6 @@ private:
 		uint16_t ptr;
 		bool same;
 	} ymreg_t;
-	
-	TransmitterModel& transmitter_model;
 	
 	uint16_t headphone_vol = 5<<2;
 	

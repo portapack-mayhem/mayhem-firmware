@@ -82,6 +82,8 @@ public:
 	T* push(Args&&... args) {
 		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
 	}
+	
+	void push(View* v);
 
 	void pop();
 
@@ -112,6 +114,29 @@ private:
 	Text text_info {
 		{ 5 * 8, 284, 20 * 8, 16 },
 		"shrbrnd-sig-ftk 2016"
+	};
+	
+	Button button_done {
+		{ 240, 0, 1, 1 },
+		""
+	};
+};
+
+class PlayDeadView : public View {
+public:
+	PlayDeadView(NavigationView& nav, bool booting);
+	void focus() override;
+
+private:
+	bool _booting;
+	uint32_t sequence = 0;
+	Text text_playdead1 {
+		{ 6 * 8, 7 * 16, 14 * 8, 16 },
+		"Firmware error"
+	};
+	Text text_playdead2 {
+		{ 6 * 8, 9 * 16, 16 * 8, 16 },
+		"0x1400_0000 : 2C"
 	};
 	
 	Button button_done {

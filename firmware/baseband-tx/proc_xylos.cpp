@@ -21,6 +21,10 @@
  */
 
 #include "proc_xylos.hpp"
+
+#include "dsp_iir_config.hpp"
+//#include "audio_output.hpp"
+
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
 
@@ -31,7 +35,7 @@
 // 14 13 12 11:
 // 2108 989 2259 931
 
-void XylosProcessor::execute(buffer_c8_t buffer) {
+void XylosProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// This is called at 1536000/2048 = 750Hz
 	
@@ -88,5 +92,5 @@ void XylosProcessor::execute(buffer_c8_t buffer) {
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
 	
-	fill_audio_buffer(preview_audio_buffer);
+	//audio_output.write(preview_audio_buffer);
 }

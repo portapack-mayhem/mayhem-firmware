@@ -27,33 +27,9 @@
 
 #define POLY_MASK_32 0xB4BCD35C
 
-
-void JammerProcessor::execute(buffer_c8_t buffer) {
+void JammerProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i<buffer.count; i++) {
 
-		/*if (s > 3000000) {
-			s = 0;
-			feedback = lfsr & 1;
-			lfsr >>= 1;
-			if (feedback == 1)
-				lfsr ^= POLY_MASK_32;
-		} else {
-			s++;
-		}
-
-		aphase += lfsr;*/
-		
-		/*if (s >= 10) {
-			s = 0;
-			aphase += 353205;	// DEBUG
-		} else {
-			s++;
-		}
-		
-		sample = sintab[(aphase & 0x03FF0000)>>16];*/
-		
-		// Duration timer
-		// 
 		if (s >= 10000) { //shared_memory.jammer_ranges[ir].duration
 			s = 0;
 			for (;;) {

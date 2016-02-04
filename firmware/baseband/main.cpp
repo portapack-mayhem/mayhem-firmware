@@ -50,121 +50,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-#include <string>
-#include <bitset>
-
-class ThreadBase {
-public:
-	constexpr ThreadBase(
-		const char* const name
-	) : name { name }
-	{
-	}
-
-	static msg_t fn(void* arg) {
-		auto obj = static_cast<ThreadBase*>(arg);
-		chRegSetThreadName(obj->name);
-		obj->run();
-
-		return 0;
-	}
-
-	virtual void run() = 0;
-
-private:
-	const char* const name;
-};
-
-class BasebandThread : public ThreadBase {
-public:
-	BasebandThread(
-	) : ThreadBase { "baseband" }
-	{
-	}
-
-	Thread* start(const tprio_t priority) {
-		return chThdCreateStatic(wa, sizeof(wa),
-			priority, ThreadBase::fn,
-			this
-		);
-	}
-
-	Thread* thread_main { nullptr };
-	Thread* thread_rssi { nullptr };
-	BasebandProcessor* baseband_processor { nullptr };
-	BasebandConfiguration baseband_configuration;
-
-private:
-	WORKING_AREA(wa, 2048);
-
-	void run() override {
-		BasebandStatsCollector stats {
-			chSysGetIdleThread(),
-			thread_main,
-			thread_rssi,
-			chThdSelf()
-		};
-
-		while(true) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-			const buffer_c8_t buffer {
-				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
-			};
-
-			if( baseband_processor ) {
-				baseband_processor->execute(buffer);
-			}
-
-			stats.process(buffer,
-				[](const BasebandStatistics statistics) {
-					const BasebandStatisticsMessage message { statistics };
-					shared_memory.application_queue.push(message);
-				}
-			);
-		}
-	}
-};
-
-class RSSIThread : public ThreadBase {
-public:
-	RSSIThread(
-	) : ThreadBase { "rssi" }
-	{
-	}
-
-	Thread* start(const tprio_t priority) {
-		return chThdCreateStatic(wa, sizeof(wa),
-			priority, ThreadBase::fn,
-			this
-		);
-	}
-
-	uint32_t sampling_rate { 400000 };
-
-private:
-	WORKING_AREA(wa, 128);
-
-	void run() override {
-		RSSIStatisticsCollector stats;
-
-		while(true) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
-			const rf::rssi::buffer_t buffer {
-				buffer_tmp.p, buffer_tmp.count, sampling_rate
-			};
-
-			stats.process(
-				buffer,
-				[](const RSSIStatistics statistics) {
-					const RSSIStatisticsMessage message { statistics };
-					shared_memory.application_queue.push(message);
-				}
-			);
-		}
-	}
-};
 
 extern "C" {
 
@@ -187,9 +72,6 @@ void __late_init(void) {
 
 }
 
-static BasebandThread baseband_thread;
-static RSSIThread rssi_thread;
-
 static void init() {
 	i2s::i2s0::configure(
 		audio::i2s0_config_tx,
@@ -208,31 +90,9 @@ static void init() {
 	gpdma::controller.enable();
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 
-	baseband::dma::init();
-
-	rf::rssi::init();
 	touch::dma::init();
-
-	const auto thread_main = chThdSelf();
-	
-	const auto thread_rssi = rssi_thread.start(NORMALPRIO + 10);
-
-	baseband_thread.thread_main = thread_main;
-	baseband_thread.thread_rssi = thread_rssi;
-
-	baseband_thread.start(NORMALPRIO + 20);
-}
-
-static void shutdown() {
-	// TODO: Is this complete?
-	
-	nvicDisableVector(DMA_IRQn);
-
-	m0apptxevent_interrupt_disable();
-	
-	chSysDisable();
-
-	systick_stop();
+	touch::dma::allocate();
+	touch::dma::enable();
 }
 
 static void halt() {
@@ -242,146 +102,27 @@ static void halt() {
 	}
 }
 
-class EventDispatcher {
-public:
-	MessageHandlerMap& message_handlers() {
-		return message_map;
-	}
+static void shutdown() {
+	// TODO: Is this complete?
+	
+	nvicDisableVector(DMA_IRQn);
+	
+	chSysDisable();
 
-	void run() {
-		while(is_running) {
-			const auto events = wait();
-			dispatch(events);
-		}
-	}
+	systick_stop();
 
-	void request_stop() {
-		is_running = false;
-	}
+	ShutdownMessage shutdown_message;
+	shared_memory.application_queue.push(shutdown_message);
 
-private:
-	MessageHandlerMap message_map;
-
-	bool is_running = true;
-
-	eventmask_t wait() {
-		return chEvtWaitAny(ALL_EVENTS);
-	}
-
-	void dispatch(const eventmask_t events) {
-		if( events & EVT_MASK_BASEBAND ) {
-			handle_baseband_queue();
-		}
-
-		if( events & EVT_MASK_SPECTRUM ) {
-			handle_spectrum();
-		}
-	}
-
-	void handle_baseband_queue() {
-		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(Message* const message = shared_memory.baseband_queue.pop(message_buffer)) {
-			message_map.send(message);
-		}
-	}
-
-	void handle_spectrum() {
-		if( baseband_thread.baseband_processor ) {
-			baseband_thread.baseband_processor->update_spectrum();
-		}
-	}
-};
-
-static constexpr auto direction = baseband::Direction::Receive;
+	halt();
+}
 
 int main(void) {
 	init();
 
-	events_initialize(chThdSelf());
-	m0apptxevent_interrupt_enable();
-
-	EventDispatcher event_dispatcher;
-	auto& message_handlers = event_dispatcher.message_handlers();
-
-	message_handlers.register_handler(Message::ID::BasebandConfiguration,
-		[&message_handlers](const Message* const p) {
-			auto message = reinterpret_cast<const BasebandConfigurationMessage*>(p);
-			if( message->configuration.mode != baseband_thread.baseband_configuration.mode ) {
-
-				if( baseband_thread.baseband_processor ) {
-					i2s::i2s0::tx_mute();
-					baseband::dma::disable();
-					rf::rssi::stop();
-				}
-
-				// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-				auto old_p = baseband_thread.baseband_processor;
-				baseband_thread.baseband_processor = nullptr;
-				delete old_p;
-
-				switch(message->configuration.mode) {
-				case 0:
-					baseband_thread.baseband_processor = new NarrowbandAMAudio();
-					break;
-
-				case 1:
-					baseband_thread.baseband_processor = new NarrowbandFMAudio();
-					break;
-
-				case 2:
-					baseband_thread.baseband_processor = new WidebandFMAudio();
-					break;
-
-				case 3:
-					baseband_thread.baseband_processor = new AISProcessor();
-					break;
-
-				case 4:
-					baseband_thread.baseband_processor = new WidebandSpectrum();
-					break;
-
-				case 5:
-					baseband_thread.baseband_processor = new TPMSProcessor();
-					break;
-
-				default:
-					break;
-				}
-
-				if( baseband_thread.baseband_processor ) {
-					if( direction == baseband::Direction::Receive ) {
-						rf::rssi::start();
-					}
-					baseband::dma::enable(direction);
-				}
-			}
-
-			baseband_thread.baseband_configuration = message->configuration;
-		}
-	);
-
-	message_handlers.register_handler(Message::ID::Shutdown,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.request_stop();
-		}
-	);
-
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
-	if( direction == baseband::Direction::Receive ) {
-		rf::rssi::dma::allocate(4, 400);
-	}
-
-	touch::dma::allocate();
-	touch::dma::enable();
-
-	const auto baseband_buffer =
-		new std::array<baseband::sample_t, 8192>();
-	baseband::dma::configure(
-		baseband_buffer->data(),
-		direction
-	);
-
+	EventDispatcher event_dispatcher;
 	event_dispatcher.run();
 
 	shutdown();

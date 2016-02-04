@@ -86,7 +86,7 @@ private:
 */
 class RDSView : public View {
 public:
-	RDSView(NavigationView& nav, TransmitterModel& transmitter_model);
+	RDSView(NavigationView& nav);
 	~RDSView();
 
 	void focus() override;
@@ -94,7 +94,6 @@ public:
 
 private:
 	char psname[9];
-	TransmitterModel& transmitter_model;
 	
 	Text text_title {
 		{ 76, 16, 88, 16 },

@@ -24,38 +24,35 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_fir_taps.hpp"
-#include "dsp_iir.hpp"
-#include "dsp_iir_config.hpp"
-#include "dsp_squelch.hpp"
 
+#include "audio_output.hpp"
 #include "message.hpp"
-
-#include <cstdint>
-#include <cstddef>
-#include <bitset>
 
 class AFSKRXProcessor : public BasebandProcessor {
 public:
-	AFSKRXProcessor() {
-		decimator.set_decimation_factor(ChannelDecimator::DecimationFactor::By32);
-		channel_filter.configure(channel_filter_taps.taps, 2);
-	}
-
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	ChannelDecimator decimator;
-	const fir_taps_real<64>& channel_filter_taps = taps_64_lp_042_078_tfilter;
-	dsp::decimate::FIRAndDecimateComplex channel_filter;
-	dsp::demodulate::FM demod { 48000, 5000 };
-
-	IIRBiquadFilter audio_hpf { audio_hpf_config };
-	//FMSquelch squelch;
+	std::array<complex16_t, 512> dst;
+	const buffer_c16_t dst_buffer {
+		dst.data(),
+		dst.size()
+	};
+	const buffer_f32_t work_audio_buffer {
+		(float*)dst.data(),
+		sizeof(dst) / sizeof(float)
+	};
 	
+	dsp::decimate::FIRAndDecimateComplex channel_filter;
+	dsp::demodulate::FM demod;	// 48000 5000
+	
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+
+	AudioOutput audio_output;
+
     uint16_t bit_timer = 0, freq_timer = 0;
 	uint16_t sc;
 	uint8_t audc, spur, sign, prev_sign, bit = 0;
@@ -63,6 +60,9 @@ private:
 	int16_t aud[128];
 	
 	void data_handler(const double data);
+	
+	bool configured { false };
+	void configure(const NBFMConfigureMessage& message);
 };
 
 #endif/*__PROC_TPMS_H__*/

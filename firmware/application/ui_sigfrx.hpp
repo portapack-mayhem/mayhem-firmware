@@ -36,17 +36,16 @@ namespace ui {
 
 class SIGFRXView : public View {
 public:
-	SIGFRXView(NavigationView& nav, ReceiverModel& receiver_model);
+	SIGFRXView(NavigationView& nav);
 	~SIGFRXView();
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	
 	void on_show() override;
+	void on_hide() override;
 	void focus() override;
 	void paint(Painter& painter) override;
 
-private:
-	ReceiverModel& receiver_model;
-	
+private:	
 	uint8_t last_channel;
 	uint8_t detect_counter = 0;
 	

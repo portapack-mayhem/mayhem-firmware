@@ -22,25 +22,54 @@
 #ifndef __EVENT_M4_H__
 #define __EVENT_M4_H__
 
+#include "event.hpp"
+
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
+
+#include "message.hpp"
+
 #include "ch.h"
 
 constexpr auto EVT_MASK_BASEBAND = EVENT_MASK(0);
 constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 
-void events_initialize(Thread* const event_loop_thread);
+class EventDispatcher {
+public:
+	void run();
+	void request_stop();
 
-extern Thread* thread_event_loop;
-
-inline void events_flag(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignal(thread_event_loop, events);
+	static inline void events_flag(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignal(thread_event_loop, events);
+		}
 	}
-}
 
-inline void events_flag_isr(const eventmask_t events) {
-	if( thread_event_loop ) {
-		chEvtSignalI(thread_event_loop, events);
+	static inline void events_flag_isr(const eventmask_t events) {
+		if( thread_event_loop ) {
+			chEvtSignalI(thread_event_loop, events);
+		}
 	}
-}
+
+private:
+	static Thread* thread_event_loop;
+
+	BasebandThread baseband_thread;
+	RSSIThread rssi_thread;
+
+	bool is_running = true;
+
+	eventmask_t wait();
+
+	void dispatch(const eventmask_t events);
+
+	void handle_baseband_queue();
+
+	void on_message(const Message* const message);
+	void on_message_shutdown(const ShutdownMessage&);
+	void on_message_default(const Message* const message);
+
+	void handle_spectrum();
+};
 
 #endif/*__EVENT_M4_H__*/

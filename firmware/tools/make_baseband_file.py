@@ -55,8 +55,9 @@ sys.argv = sys.argv[1:]
 
 # Format for module file:
 # Magic (4), Version (2), Length (4), Name (16), MD5 (16), Description (214)
-# Module binary...
-# MD5 (16)
+# 0x00 pad bytes (256)
+# Module binary (padded to 32768-16)
+# MD5 (16) again, so that module code can read it (dirty...)
 
 for args in sys.argv:
 	data = read_image(args + '/build/' + args + '.bin')
@@ -66,7 +67,7 @@ for args in sys.argv:
 	info = 'PPM '
 	
 	# Version
-	info += struct.pack('H', 1)
+	info += struct.pack('H', 2)
 	
 	# Length
 	info += struct.pack('I', len(data))
@@ -94,9 +95,12 @@ for args in sys.argv:
 	description += (data_default_byte * pad_size)
 	info += description
 	
-	# Padding
+	# Header padding to fit in SD card sector
+	info += (data_default_byte * 256)
+	
+	# Binary padding
 	data = info + data
-	pad_size = (32768 + 256 - 16) - len(data)
+	pad_size = (32768 + 512 - 16) - len(data)
 	data += (data_default_byte * pad_size)
 	data += digest
 	write_file(data, args + '.bin')
@@ -108,6 +112,6 @@ for args in sys.argv:
 	h_data += 'const char md5_' + args.replace('-','_') + '[16] = {' + md5sum + '};\n'
 	
 	# Update original binary with MD5 footprint
-	write_file(data[256:(32768+256)], args + '/build/' + args + '.bin')
+	write_file(data[512:(32768+512)], args + '/build/' + args + '.bin')
 
 write_file(h_data, 'common/modules.h')

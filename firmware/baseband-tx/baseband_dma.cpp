@@ -20,7 +20,6 @@
  */
 
 #include "baseband_dma.hpp"
-#include "portapack_shared_memory.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -35,8 +34,6 @@ using namespace lpc43xx;
 
 namespace baseband {
 namespace dma {
-	
-	int quitt = 0;
 
 constexpr uint32_t gpdma_ahb_master_sgpio = 0;
 constexpr uint32_t gpdma_ahb_master_memory = 1;
@@ -102,17 +99,12 @@ constexpr size_t msg_count = transfers_per_buffer - 1;
 static std::array<gpdma::channel::LLI, transfers_per_buffer> lli_loop;
 static constexpr auto& gpdma_channel_sgpio = gpdma::channels[portapack::sgpio_gpdma_channel_number];
 
-//static Mailbox mailbox;
-//static std::array<msg_t, msg_count> messages;
 static Semaphore semaphore;
 
 static volatile const gpdma::channel::LLI* next_lli = nullptr;
 
-void transfer_complete() {
+static void transfer_complete() {
 	next_lli = gpdma_channel_sgpio.next_lli();
-	quitt = 0;
-	/* TODO: Is Mailbox the proper synchronization mechanism for this? */
-	//chMBPostI(&mailbox, 0);
 	chSemSignalI(&semaphore);
 }
 
@@ -121,7 +113,6 @@ static void dma_error() {
 }
 
 void init() {
-	//chMBInit(&mailbox, messages.data(), messages.size());
 	chSemInit(&semaphore, 0);
 	gpdma_channel_sgpio.set_handlers(transfer_complete, dma_error);
 
@@ -148,7 +139,6 @@ void enable(const baseband::Direction direction) {
 	const auto gpdma_config = config(direction);
 	gpdma_channel_sgpio.configure(lli_loop[0], gpdma_config);
 
-	//chMBReset(&mailbox);
 	chSemReset(&semaphore, 0);
 
 	gpdma_channel_sgpio.enable();
@@ -159,14 +149,11 @@ bool is_enabled() {
 }
 
 void disable() {
-	gpdma_channel_sgpio.disable_force();
+	gpdma_channel_sgpio.disable();
 }
 
 baseband::buffer_t wait_for_rx_buffer() {
-	//msg_t msg;
-	//const auto status = chMBFetch(&mailbox, &msg, TIME_INFINITE);
 	const auto status = chSemWait(&semaphore);
-	if (quitt) return { nullptr, 0 };
 	if( status == RDY_OK ) {
 		const auto next = next_lli;
 		if( next ) {
@@ -174,28 +161,10 @@ baseband::buffer_t wait_for_rx_buffer() {
 			const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 			return { reinterpret_cast<sample_t*>(lli_loop[free_index].destaddr), transfer_samples };
 		} else {
-			return { nullptr, 0 };
+			return { };
 		}
 	} else {
-		return { nullptr, 0 };
-	}
-}
-
-baseband::buffer_t wait_for_tx_buffer() {
-	//msg_t msg;
-	//const auto status = chMBFetch(&mailbox, &msg, TIME_INFINITE);
-	const auto status = chSemWait(&semaphore);
-	if( status == RDY_OK ) {
-		const auto next = next_lli;
-		if( next ) {
-			const size_t next_index = next - &lli_loop[0];
-			const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
-			return { reinterpret_cast<sample_t*>(lli_loop[free_index].srcaddr), transfer_samples };
-		} else {
-			return { nullptr, 0 };
-		}
-	} else {
-		return { nullptr, 0 };
+		return { };
 	}
 }
 

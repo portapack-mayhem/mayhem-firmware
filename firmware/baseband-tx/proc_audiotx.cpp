@@ -26,6 +26,6 @@
 
 #include <cstdint>
 
-void AudioTXProcessor::execute(buffer_c8_t buffer) {
+void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
 
 }

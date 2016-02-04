@@ -45,7 +45,7 @@ void do_something();
 
 class XylosRXView : public View {
 public:
-	XylosRXView(NavigationView& nav, ReceiverModel& receiver_model);
+	XylosRXView(NavigationView& nav);
 	~XylosRXView();
 	
 	void talk();
@@ -91,8 +91,6 @@ private:
 												"trailer.wav"
 										};
 	char ccir_received[21];
-
-	ReceiverModel& receiver_model;
 	
 	Text text_title {
 		{ 1 * 8, 1 * 16, 11, 16 },
@@ -142,7 +140,7 @@ private:
 
 class XylosView : public View {
 public:
-	XylosView(NavigationView& nav, TransmitterModel& transmitter_model);
+	XylosView(NavigationView& nav);
 	~XylosView();
 	void journuit();
 	
@@ -184,8 +182,6 @@ private:
 										};
 	char ccirmessage[21];
 	char ccir_received[21];
-
-	TransmitterModel& transmitter_model;
 	
 	Text text_title {
 		{ 1 * 8, 1 * 16, 11, 16 },

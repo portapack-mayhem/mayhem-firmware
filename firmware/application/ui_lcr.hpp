@@ -36,7 +36,7 @@ namespace ui {
 
 class LCRView : public View {
 public:
-	LCRView(NavigationView& nav, TransmitterModel& transmitter_model);
+	LCRView(NavigationView& nav);
 	~LCRView();
 	
 	void make_frame();
@@ -63,7 +63,6 @@ private:
 	char lcrframe[256];
 	char lcrframe_f[256];
 	rf::Frequency f;
-	TransmitterModel& transmitter_model;
 
 	Text text_status {
 		{ 168, 196, 64, 16 },

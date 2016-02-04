@@ -1,24 +1,3 @@
-/*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- *
- * This file is part of PortaPack.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
- */
-
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 
@@ -305,77 +284,91 @@ void Text::set(const std::string value) {
 }
 
 void Text::paint(Painter& painter) {
-	if (style_ == nullptr) style_ = &style();
 	const auto rect = screen_rect();
+	const auto s = style();
 
 	painter.fill_rectangle(rect, s.background);
 
 	painter.draw_string(
 		rect.pos,
-		(*style_),
+		s,
 		text
 	);
 }
 
-/* Button ****************************************************************/
+/* Checkbox **************************************************************/
 
- Button::Button(
-	Rect parent_rect,
-	std::string text
-) : Widget { parent_rect },
-	text_ { text }
-{
-	flags.focusable = true;
-}
-
-void Button::set_text(const std::string value) {
+void Checkbox::set_text(const std::string value) {
 	text_ = value;
 	set_dirty();
 }
 
-std::string Button::text() const {
+std::string Checkbox::text() const {
 	return text_;
 }
 
-void Button::paint(Painter& painter) {
+void Checkbox::set_value(const bool value) {
+	value_ = value;
+	set_dirty();
+}
+
+bool Checkbox::value() const {
+	return value_;
+}
+
+void Checkbox::paint(Painter& painter) {
 	const auto r = screen_rect();
 	
-	if (style_ == nullptr) style_ = &style();
-
-	const auto paint_style = (has_focus() || flags.highlighted) ? style_->invert() : *(style_);
-
-	painter.draw_rectangle(r, style().foreground);
+	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	
+	painter.draw_rectangle({ r.pos.x, r.pos.y, 24, 24 }, style().foreground);
 
 	painter.fill_rectangle(
-		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
-		paint_style.background
+		{
+			static_cast<Coord>(r.pos.x + 1), static_cast<Coord>(r.pos.y + 1),
+			static_cast<Dim>(24 - 2), static_cast<Dim>(24 - 2)
+		},
+		style().background
 	);
-
+	
+	painter.draw_rectangle({ r.pos.x+2, r.pos.y+2, 24-4, 24-4 }, paint_style.background);
+	
+	if (value_ == true) {
+		// Check
+		portapack::display.draw_line( {r.pos.x+2, r.pos.y+14}, {r.pos.x+6, r.pos.y+18}, ui::Color::green());
+		portapack::display.draw_line( {r.pos.x+6, r.pos.y+18}, {r.pos.x+20, r.pos.y+4}, ui::Color::green());
+	} else {
+		// Cross
+		portapack::display.draw_line( {r.pos.x+1, r.pos.y+1}, {r.pos.x+24-2, r.pos.y+24-2}, ui::Color::red());
+		portapack::display.draw_line( {r.pos.x+24-2, r.pos.y+1}, {r.pos.x+1, r.pos.y+24-2}, ui::Color::red());
+	}
+	
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
-		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+		{
+			static_cast<Coord>(r.pos.x + 24 + 4),
+			static_cast<Coord>(r.pos.y + (24 - label_r.h) / 2)
+		},
 		paint_style,
 		text_
 	);
 }
 
-bool Button::on_key(const KeyEvent key) {
+bool Checkbox::on_key(const KeyEvent key) {
 	if( key == KeyEvent::Select ) {
+		value_ = not value_;
+		set_dirty();
+		
 		if( on_select ) {
 			on_select(*this);
 			return true;
-		}
-	} else {
-		if( on_dir ) {
-			on_dir(*this, key);
-			return false;
 		}
 	}
 
 	return false;
 }
 
-bool Button::on_touch(const TouchEvent event) {
+bool Checkbox::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
 		flags.highlighted = true;
@@ -385,6 +378,7 @@ bool Button::on_touch(const TouchEvent event) {
 
 	case TouchEvent::Type::End:
 		flags.highlighted = false;
+		value_ = not value_;
 		set_dirty();
 		if( on_select ) {
 			on_select(*this);
@@ -425,6 +419,199 @@ bool Button::on_touch(const TouchEvent event) {
 		return false;
 	}
 #endif
+}
+
+/* Button ****************************************************************/
+
+ Button::Button(
+	Rect parent_rect,
+	std::string text
+) : Widget { parent_rect },
+	text_ { text }
+{
+	flags.focusable = true;
+}
+
+void Button::set_text(const std::string value) {
+	text_ = value;
+	set_dirty();
+}
+
+std::string Button::text() const {
+	return text_;
+}
+
+void Button::paint(Painter& painter) {
+	const auto r = screen_rect();
+
+	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+
+	painter.draw_rectangle(r, style().foreground);
+
+	painter.fill_rectangle(
+		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
+		paint_style.background
+	);
+
+	const auto label_r = paint_style.font.size_of(text_);
+	painter.draw_string(
+		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+		paint_style,
+		text_
+	);
+}
+
+bool Button::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select(*this);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Button::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+
+	case TouchEvent::Type::End:
+		flags.highlighted = false;
+		set_dirty();
+		if( on_select ) {
+			on_select(*this);
+		}
+		return true;
+
+	default:
+		return false;
+	}
+#if 0
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+	case TouchEvent::Type::Move:
+		{
+			const bool new_highlighted = screen_rect().contains(event.point);
+			if( flags.highlighted != new_highlighted ) {
+				flags.highlighted = new_highlighted;
+				set_dirty();
+			}
+		}
+		return true;
+	case TouchEvent::Type::End:
+		if( flags.highlighted ) {
+			flags.highlighted = false;
+			set_dirty();
+			if( on_select ) {
+				on_select(*this);
+			}
+		}
+		return true;
+	default:
+		return false;
+	}
+#endif
+}
+
+/* Image *****************************************************************/
+
+Image::Image(
+) : Image { { }, nullptr, Color::white(), Color::black() }
+{
+}
+
+Image::Image(
+	const Rect parent_rect,
+	const Bitmap* bitmap,
+	const Color foreground,
+	const Color background
+) : Widget { parent_rect },
+	bitmap_ { bitmap },
+	foreground_ { foreground },
+	background_ { background }
+{
+}
+
+void Image::set_bitmap(const Bitmap* bitmap) {
+	bitmap_ = bitmap;
+	set_dirty();
+}
+
+void Image::set_foreground(const Color color) {
+	foreground_ = color;
+	set_dirty();
+}
+
+void Image::set_background(const Color color) {
+	background_ = color;
+	set_dirty();
+}
+
+void Image::paint(Painter& painter) {
+	if( bitmap_ ) {
+		// Code also handles ImageButton behavior.
+		const bool selected = (has_focus() || flags.highlighted);
+		painter.draw_bitmap(
+			screen_pos(),
+			*bitmap_,
+			selected ? background_ : foreground_,
+			selected ? foreground_ : background_
+		);
+	}
+}
+
+/* ImageButton ***********************************************************/
+
+// TODO: Virtually all this code is duplicated from Button. Base class?
+
+ImageButton::ImageButton(
+	const Rect parent_rect,
+	const Bitmap* bitmap,
+	const Color foreground,
+	const Color background
+) : Image { parent_rect, bitmap, foreground, background }
+{
+	flags.focusable = true;
+}
+
+bool ImageButton::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select(*this);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ImageButton::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+
+	case TouchEvent::Type::End:
+		flags.highlighted = false;
+		set_dirty();
+		if( on_select ) {
+			on_select(*this);
+		}
+		return true;
+
+	default:
+		return false;
+	}
 }
 
 /* OptionsField **********************************************************/
@@ -477,6 +664,12 @@ void OptionsField::paint(Painter& painter) {
 			paint_style,
 			text
 		);
+	}
+}
+
+void OptionsField::on_focus() {
+	if( on_show_options ) {
+		on_show_options();
 	}
 }
 

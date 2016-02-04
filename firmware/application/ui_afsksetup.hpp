@@ -36,15 +36,13 @@ namespace ui {
 
 class AFSKSetupView : public View {
 public:
-	AFSKSetupView(NavigationView& nav, TransmitterModel& transmitter_model);
+	AFSKSetupView(NavigationView& nav);
 	
 	void updfreq(rf::Frequency f);
 	void focus() override;
 	void paint(Painter& painter) override;
 
 private:
-	TransmitterModel& transmitter_model;
-	
 	Text text_title {
 		{ 40, 32, 160, 16 },
 		"AFSK modulator setup"

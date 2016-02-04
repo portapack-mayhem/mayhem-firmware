@@ -25,7 +25,7 @@
 
 #include <cstdint>
 
-void LCRFSKProcessor::execute(buffer_c8_t buffer) {
+void LCRFSKProcessor::execute(const buffer_c8_t& buffer) {
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		

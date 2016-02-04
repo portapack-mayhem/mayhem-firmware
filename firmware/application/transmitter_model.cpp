@@ -75,31 +75,8 @@ uint32_t TransmitterModel::sampling_rate() const {
 	return baseband_configuration.sampling_rate;
 }
 
-void TransmitterModel::set_sampling_rate(uint32_t hz) {
-	baseband_configuration.sampling_rate = hz;
-	update_baseband_configuration();
-}
-
-mode_type TransmitterModel::modulation() const {
-	return baseband_configuration.mode;
-}
-
-void TransmitterModel::set_modulation(mode_type v) {
-	baseband_configuration.mode = v;
-	update_modulation();
-}
-
-uint32_t TransmitterModel::baseband_oversampling() const {
-	// TODO: Rename decimation_factor.
-	return baseband_configuration.decimation_factor;
-}
-
-void TransmitterModel::set_baseband_oversampling(uint32_t v) {
-	baseband_configuration.decimation_factor = v;
-	update_baseband_configuration();
-}
-
 void TransmitterModel::enable() {
+	enabled_ = true;
 	radio::set_direction(rf::Direction::Transmit);
 	update_tuning_frequency();
 	update_rf_amp();
@@ -107,21 +84,28 @@ void TransmitterModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_baseband_configuration();
-	radio::streaming_enable();
+}
+
+void TransmitterModel::baseband_disable() {
+	shared_memory.baseband_queue.push_and_wait(
+		BasebandConfigurationMessage {
+			.configuration = { },
+		}
+	);
 }
 
 void TransmitterModel::disable() {
-	/* TODO: This is a dumb hack to stop baseband from working so hard. */
-	BasebandConfigurationMessage message {
-		.configuration = {
-			.mode = NONE,
-			.sampling_rate = 0,
-			.decimation_factor = 1,
-		}
-	};
-	shared_memory.baseband_queue.push(message);
+	enabled_ = false;
+	baseband_disable();
 
+	// TODO: Responsibility for enabling/disabling the radio is muddy.
+	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
+}
+
+uint32_t TransmitterModel::baseband_oversampling() const {
+	// TODO: Rename decimation_factor.
+	return baseband_configuration.decimation_factor;
 }
 
 int32_t TransmitterModel::tuning_offset() {
@@ -148,8 +132,8 @@ void TransmitterModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-void TransmitterModel::update_modulation() {
-	update_baseband_configuration();
+uint32_t TransmitterModel::modulation() const {
+	return baseband_configuration.mode;
 }
 
 void TransmitterModel::set_baseband_configuration(const BasebandConfiguration config) {
@@ -158,7 +142,12 @@ void TransmitterModel::set_baseband_configuration(const BasebandConfiguration co
 }
 
 void TransmitterModel::update_baseband_configuration() {
-	radio::streaming_disable();
+	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
+	// synchronization for things like wideband (sweeping) spectrum analysis, and
+	// protocols that need quick RX/TX turn-around.
+
+	// Disabling baseband while changing sampling rates seems like a good idea...
+	baseband_disable();
 
 	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
@@ -166,7 +155,5 @@ void TransmitterModel::update_baseband_configuration() {
 
 	BasebandConfigurationMessage message { baseband_configuration };
 	shared_memory.baseband_queue.push(message);
-
-	radio::streaming_enable();
 }
 

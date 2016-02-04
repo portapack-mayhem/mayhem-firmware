@@ -34,7 +34,7 @@
 
 #include <cstring>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -134,9 +134,8 @@ void RDSView::paint(Painter& painter) {
 }
 
 RDSView::RDSView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
 	transmitter_model.set_tuning_frequency(93000000);
 	strcpy(psname, "TEST1234");

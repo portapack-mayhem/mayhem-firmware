@@ -27,7 +27,7 @@
 
 class PlayAudioProcessor : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 	void fill_buffer(int8_t * inptr);
 
 private:

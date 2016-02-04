@@ -419,12 +419,14 @@ public:
 	int64_t freq = 0;
 };
 
-class DisplayFrameSyncMessage : public Message {
+class AFSKDataMessage : public Message {
 public:
-	constexpr DisplayFrameSyncMessage(
-	) : Message { ID::DisplayFrameSync }
+	constexpr AFSKDataMessage(
+	) : Message { ID::AFSKData }
 	{
 	}
+
+	int16_t data[128] = {0};
 };
 
 class FIFOSignalMessage : public Message {

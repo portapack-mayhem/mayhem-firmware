@@ -110,7 +110,7 @@ void AlphanumView::set_uppercase() {
 
 	size_t n = 0;
 	for(auto& button : buttons) {
-		add_child(&button);
+		//add_child(&button);
 		const std::string label {
 			key_caps[n]
 		};
@@ -125,7 +125,7 @@ void AlphanumView::set_lowercase() {
 
 	size_t n = 0;
 	for(auto& button : buttons) {
-		add_child(&button);
+		//add_child(&button);
 		const std::string label {
 			key_caps[n]
 		};

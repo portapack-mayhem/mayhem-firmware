@@ -25,30 +25,17 @@
 
 using namespace lpc43xx;
 
-void AFSKRXProcessor::execute(buffer_c8_t buffer) {
+void AFSKRXProcessor::execute(const buffer_c8_t& buffer) {
+	if( !configured ) {
+		return;
+	}
 	/* Called every 2048/3072000 second -- 1500Hz. */
-
-	auto decimator_out = decimator.execute(buffer);
-
-	const buffer_c16_t work_baseband_buffer {
-		(complex16_t*)decimator_out.p,
-		sizeof(*decimator_out.p) * decimator_out.count
-	};
-
-	/* 96kHz complex<int16_t>[64]
-	 * -> FIR filter, <6kHz (0.063fs) pass, gain 1.0
-	 * -> 48kHz int16_t[32] */
-	auto channel = channel_filter.execute(decimator_out, work_baseband_buffer);
-
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)decimator_out.p,
-		sizeof(*decimator_out.p) * decimator_out.count
-	};
 	
-	/* 48kHz complex<int16_t>[32]
-	 * -> FM demodulation
-	 * -> 48kHz int16_t[32] */
-	auto audio = demod.execute(channel, work_audio_buffer);
+	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+
+	auto audio = demod.execute(channel_out, work_audio_buffer);
 
 	/*static uint64_t audio_present_history = 0;
 	const auto audio_present_now = squelch.execute(audio);
@@ -65,7 +52,7 @@ void AFSKRXProcessor::execute(buffer_c8_t buffer) {
 		}*/
 	//}
 
-	audio_hpf.execute_in_place(audio);
+	//audio_hpf.execute_in_place(audio);
 
 	for(size_t i=0; i<audio.count; i++) {
 		if (spur > 10) {
@@ -97,9 +84,9 @@ void AFSKRXProcessor::execute(buffer_c8_t buffer) {
 	
     if (sc >= 600) {
 		sc = 0;
-		AFSKDataMessage message;
-		memcpy(message.data,aud,128*2);
-		shared_memory.application_queue.push(message);
+		//AFSKDataMessage message;
+		//memcpy(message.data,aud,128*2);
+		//shared_memory.application_queue.push(message);
 		audc = 0;
 	} else {
 		sc++;
@@ -110,7 +97,7 @@ void AFSKRXProcessor::execute(buffer_c8_t buffer) {
 		audc++;
 	}
 	
-	fill_audio_buffer(audio);
+	audio_output.write(audio);
 }
 
 void AFSKRXProcessor::data_handler(

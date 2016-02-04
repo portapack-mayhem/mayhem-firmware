@@ -246,8 +246,6 @@ public:
 
 	void focus() override;
 
-	void paint(Painter& painter) override;
-
 private:
 	Text text_lcr1 {
 		{ 16, 32, 208, 8 },

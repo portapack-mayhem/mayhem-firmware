@@ -26,7 +26,7 @@
 
 class LCRFSKProcessor : public BasebandProcessor {
 public:
-	void execute(buffer_c8_t buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
 private:
 	int8_t re, im;

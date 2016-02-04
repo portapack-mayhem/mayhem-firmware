@@ -148,6 +148,8 @@ CPPSRC = main.cpp \
          encoder.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
+         ui_alphanum.cpp \
+         ui_about.cpp \
          ui_text.cpp \
          ui_widget.cpp \
          ui_painter.cpp \
@@ -157,6 +159,9 @@ CPPSRC = main.cpp \
          ui_rssi.cpp \
          ui_channel.cpp \
          ui_audio.cpp \
+         ui_lcr.cpp \
+         ui_rds.cpp \
+         ui_jammer.cpp \
          ui_font_fixed_8x16.cpp \
          ui_setup.cpp \
          ui_debug.cpp \

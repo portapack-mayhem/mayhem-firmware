@@ -38,7 +38,7 @@ public:
 	) : clock_manager(clock_manager)
 	{
 	}
-
+	
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
 
@@ -55,13 +55,10 @@ public:
 	void set_vga(int32_t v_db);
 
 	uint32_t sampling_rate() const;
-	void set_sampling_rate(uint32_t hz);
 
-	mode_type modulation() const;
-	void set_modulation(mode_type v);
-
+	uint32_t modulation() const;
+	
 	uint32_t baseband_oversampling() const;
-	void set_baseband_oversampling(uint32_t v);
 
 	void enable();
 	void disable();
@@ -69,12 +66,14 @@ public:
 	void set_baseband_configuration(const BasebandConfiguration config);
 
 private:
+	rf::Frequency frequency_step_ { 25000 };
+	bool enabled_ { false };
 	bool rf_amp_ { true };
 	int32_t lna_gain_db_ { 0 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
 	BasebandConfiguration baseband_configuration {
-		.mode = NONE,
+		.mode = 1,
 		.sampling_rate = 2280000,
 		.decimation_factor = 1,
 	};
@@ -89,6 +88,8 @@ private:
 	void update_vga();
 	void update_modulation();
 	void update_baseband_configuration();
+	
+	void baseband_disable();
 };
 
 #endif/*__TRANSMITTER_MODEL_H__*/

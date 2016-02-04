@@ -24,19 +24,17 @@
 #include "ui_spectrum.hpp"
 #include "ui_console.hpp"
 
+#include "event_m0.hpp"
 #include "ff.h"
 
 #include "portapack.hpp"
 using namespace portapack;
 
-#include "ui_receiver.hpp"
-
 namespace ui {
 
 AFSKRXView::AFSKRXView(
-	NavigationView& nav,
-	ReceiverModel& receiver_model
-) : receiver_model(receiver_model)
+	NavigationView& nav
+)
 {
 	add_children({ {
 		&button_done,
@@ -48,7 +46,7 @@ AFSKRXView::AFSKRXView(
 	};
 	
 	receiver_model.set_baseband_configuration({
-		.mode = RX_AFSK,
+		.mode = 6,
 		.sampling_rate = 3072000,
 		.decimation_factor = 4,
 	});
@@ -60,8 +58,7 @@ AFSKRXView::~AFSKRXView() {
 }
 
 void AFSKRXView::on_show() {
-	auto& message_map = context().message_map();
-	message_map.register_handler(Message::ID::AFSKData,
+	EventDispatcher::message_map().register_handler(Message::ID::AFSKData,
 		[this](Message* const p) {
 			const auto message = static_cast<const AFSKDataMessage*>(p);
 			this->on_data_afsk(*message);
@@ -72,8 +69,7 @@ void AFSKRXView::on_show() {
 }
 
 void AFSKRXView::on_hide() {
-	auto& message_map = context().message_map();
-	message_map.unregister_handler(Message::ID::AFSKData);
+	EventDispatcher::message_map().unregister_handler(Message::ID::AFSKData);
 }
 
 void AFSKRXView::on_data_afsk(const AFSKDataMessage& message) {

@@ -619,7 +619,7 @@ void sdc_lld_start_clk(SDCDriver *sdcp) {
   (void)sdcp;
   sdio_cclk_set_400khz();
   /* TODO: Reset card using CMD0 + init flag? */
-  sdio_send_command(sdcp, 0 | (1U << 15), 0);
+  if (sdio_send_command(sdcp, 0 | (1U << 15), 0) != CH_SUCCESS) for(;;);
 }
 
 /**
