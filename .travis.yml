@@ -11,6 +11,8 @@ before_script:
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
+  - ls -l /home/travis/build/sharebrained/portapack-hackrf
+  - ls -l /home/travis/build/sharebrained/portapack-hackrf/gcc-arm-none-eabi-5_2-2015q4/bin
   - /home/travis/build/sharebrained/portapack-hackrf/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-gcc -v
   - arm-none-eabi-gcc -v
   - pushd firmware/
