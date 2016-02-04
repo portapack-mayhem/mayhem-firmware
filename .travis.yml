@@ -10,7 +10,8 @@ notifications:
       - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
       - "Change view : %{compare_url}"
       - "Build details : %{build_url}"
-      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_id}/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
+      # TODO: The "build_number.1" in this URL is almost certainly wrong, but correct value not available from Travis?
+      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_number}.1/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
 
 before_script:
   - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
