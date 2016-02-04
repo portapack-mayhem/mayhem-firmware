@@ -26,6 +26,90 @@
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "dsp_fir_taps.hpp"
+#include "dsp_iir.hpp"
+#include "dsp_iir_config.hpp"
+
+namespace {
+
+struct AMConfig {
+	const fir_taps_complex<64> channel;
+	const AMConfigureMessage::Modulation modulation;
+
+	void apply() const;
+};
+
+struct NBFMConfig {
+	const fir_taps_real<24> decim_0;
+	const fir_taps_real<32> decim_1;
+	const fir_taps_real<32> channel;
+	const size_t deviation;
+
+	void apply() const;
+};
+
+struct WFMConfig {
+	void apply() const;
+};
+
+void AMConfig::apply() const {
+	const AMConfigureMessage message {
+		taps_6k0_decim_0,
+		taps_6k0_decim_1,
+		taps_6k0_decim_2,
+		channel,
+		modulation,
+		audio_12k_hpf_300hz_config
+	};
+	shared_memory.baseband_queue.push(message);
+	clock_manager.set_base_audio_clock_divider(4);
+}
+
+void NBFMConfig::apply() const {
+	const NBFMConfigureMessage message {
+		decim_0,
+		decim_1,
+		channel,
+		2,
+		deviation,
+		audio_24k_hpf_300hz_config,
+		audio_24k_deemph_300_6_config
+	};
+	shared_memory.baseband_queue.push(message);
+	clock_manager.set_base_audio_clock_divider(2);
+}
+
+void WFMConfig::apply() const {
+	const WFMConfigureMessage message {
+		taps_200k_wfm_decim_0,
+		taps_200k_wfm_decim_1,
+		taps_64_lp_156_198,
+		75000,
+		audio_48k_hpf_30hz_config,
+		audio_48k_deemph_2122_6_config
+	};
+	shared_memory.baseband_queue.push(message);
+	clock_manager.set_base_audio_clock_divider(1);
+}
+
+static constexpr std::array<AMConfig, 3> am_configs { {
+	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
+	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
+	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
+} };
+
+static constexpr std::array<NBFMConfig, 3> nbfm_configs { {
+	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
+	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
+	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
+} };
+
+static constexpr std::array<WFMConfig, 1> wfm_configs { {
+	{ },
+} };
+
+} /* namespace */
+
 rf::Frequency ReceiverModel::tuning_frequency() const {
 	return persistent_memory::tuned_frequency();
 }
@@ -129,7 +213,7 @@ void ReceiverModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_baseband_configuration();
-
+	update_modulation_configuration();
 	update_headphone_volume();
 }
 
@@ -189,6 +273,27 @@ void ReceiverModel::set_baseband_configuration(const BasebandConfiguration confi
 	update_baseband_configuration();
 }
 
+void ReceiverModel::set_am_configuration(const size_t n) {
+	if( n < am_configs.size() ) {
+		am_config_index = n;
+		update_modulation_configuration();
+	}
+}
+
+void ReceiverModel::set_nbfm_configuration(const size_t n) {
+	if( n < nbfm_configs.size() ) {
+		nbfm_config_index = n;
+		update_modulation_configuration();
+	}
+}
+
+void ReceiverModel::set_wfm_configuration(const size_t n) {
+	if( n < wfm_configs.size() ) {
+		wfm_config_index = n;
+		update_modulation_configuration();
+	}
+}
+
 void ReceiverModel::update_baseband_configuration() {
 	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
 	// synchronization for things like wideband (sweeping) spectrum analysis, and
@@ -210,4 +315,48 @@ void ReceiverModel::update_headphone_volume() {
 	// both?
 
 	audio_codec.set_headphone_volume(headphone_volume_);
+}
+
+void ReceiverModel::update_modulation_configuration() {
+	switch(static_cast<Mode>(modulation())) {
+	default:
+	case Mode::AMAudio:
+		update_am_configuration();
+		break;
+
+	case Mode::NarrowbandFMAudio:
+		update_nbfm_configuration();
+		break;
+
+	case Mode::WidebandFMAudio:
+		update_wfm_configuration();
+		break;
+
+	case Mode::SpectrumAnalysis:
+		break;
+	}
+}
+
+size_t ReceiverModel::am_configuration() const {
+	return am_config_index;
+}
+
+void ReceiverModel::update_am_configuration() {
+	am_configs[am_config_index].apply();
+}
+
+size_t ReceiverModel::nbfm_configuration() const {
+	return nbfm_config_index;
+}
+
+void ReceiverModel::update_nbfm_configuration() {
+	nbfm_configs[nbfm_config_index].apply();
+}
+
+size_t ReceiverModel::wfm_configuration() const {
+	return wfm_config_index;
+}
+
+void ReceiverModel::update_wfm_configuration() {
+	wfm_configs[wfm_config_index].apply();
 }

@@ -170,7 +170,19 @@ void AntennaBiasSetupView::focus() {
 	button_done.focus();
 }
 
-void SetTouchCalibView::focus() {
+AboutView::AboutView(NavigationView& nav) {
+	add_children({ {
+		&text_title,
+		&text_firmware,
+		&text_cpld_hackrf,
+		&text_cpld_portapack,
+		&button_ok,
+	} });
+
+	button_ok.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void AboutView::focus() {
 	button_ok.focus();
 }
 

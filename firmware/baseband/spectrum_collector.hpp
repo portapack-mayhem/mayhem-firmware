@@ -50,7 +50,7 @@ public:
 	);
 
 private:
-	BlockDecimator<256> channel_spectrum_decimator;
+	BlockDecimator<complex16_t, 256> channel_spectrum_decimator;
 	ChannelSpectrumFIFO fifo;
 
 	volatile bool channel_spectrum_request_update { false };

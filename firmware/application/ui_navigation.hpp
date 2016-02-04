@@ -37,6 +37,29 @@
 
 namespace ui {
 
+static constexpr uint8_t bitmap_sleep_data[] = {
+	0x00, 0x00,
+	0x00, 0x00,
+	0x00, 0x04,
+	0x00, 0x08,
+	0x00, 0x18,
+	0x00, 0x18,
+	0x00, 0x38,
+	0x00, 0x3c,
+	0x00, 0x3c,
+	0x00, 0x3e,
+	0x84, 0x1f,
+	0xf8, 0x1f,
+	0xf0, 0x0f,
+	0xc0, 0x03,
+	0x00, 0x00,
+	0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_sleep {
+	{ 16, 16 }, bitmap_sleep_data
+};
+
 class SystemStatusView : public View {
 public:
 	std::function<void(void)> on_back;
@@ -47,7 +70,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "PortaPack/HAVOC";
+	static constexpr auto default_title = "PortaPack";
 
 	Button button_back {
 		{ 0 * 8, 0 * 16, 3 * 8, 16 },
@@ -59,12 +82,16 @@ private:
 		default_title,
 	};
 
-	Button button_sleep {
+	ImageButton button_sleep {
 		{ 25 * 8, 0, 2 * 8, 1 * 16 },
-		"ZZ",
+		&bitmap_sleep,
+		Color::white(),
+		Color::black()
 	};
 
-	SDCardStatusView sd_card_status_view;
+	SDCardStatusView sd_card_status_view {
+		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
+	};
 };
 
 class NavigationView : public View {

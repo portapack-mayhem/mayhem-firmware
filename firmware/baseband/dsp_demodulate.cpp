@@ -34,23 +34,33 @@ buffer_f32_t AM::execute(
 	const buffer_c16_t& src,
 	const buffer_f32_t& dst
 ) {
-	/* Intermediate maximum value: 46341 (when input is -32768,-32768). */
-	/* Normalized to maximum 32767 for int16_t representation. */
-
 	const auto src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		// const auto s = *(src_p++);
-		// const uint32_t r_sq = s.real() * s.real();
-		// const uint32_t i_sq = s.imag() * s.imag();
-		// const uint32_t mag_sq = r_sq + i_sq;
 		const uint32_t sample0 = *__SIMD32(src_p)++;
 		const uint32_t sample1 = *__SIMD32(src_p)++;
 		const uint32_t mag_sq0 = __SMUAD(sample0, sample0);
 		const uint32_t mag_sq1 = __SMUAD(sample1, sample1);
 		*(dst_p++) = __builtin_sqrtf(mag_sq0);
 		*(dst_p++) = __builtin_sqrtf(mag_sq1);
+	}
+
+	return { dst.p, src.count, src.sampling_rate };
+}
+
+buffer_f32_t SSB::execute(
+	const buffer_c16_t& src,
+	const buffer_f32_t& dst
+) {
+	const complex16_t* src_p = src.p;
+	const auto src_end = &src.p[src.count];
+	auto dst_p = dst.p;
+	while(src_p < src_end) {
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real();
 	}
 
 	return { dst.p, src.count, src.sampling_rate };
@@ -89,8 +99,8 @@ buffer_f32_t FM::execute(
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
-		*(dst_p++) = angle_approx_0deg27(t0) * k;
-		*(dst_p++) = angle_approx_0deg27(t1) * k;
+		*(dst_p++) = angle_precise(t0) * k;
+		*(dst_p++) = angle_precise(t1) * k;
 	}
 	z_ = z;
 

@@ -51,6 +51,8 @@ public:
 	void start_audio_pll();
 	void stop_audio_pll();
 
+	void set_base_audio_clock_divider(const size_t divisor);
+
 	void enable_codec_clocks();
 	void disable_codec_clocks();
 

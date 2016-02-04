@@ -273,6 +273,11 @@ struct Rect {
 	}
 };
 
+struct Bitmap {
+	const Size size;
+	const uint8_t* const data;
+};
+
 enum class KeyEvent {
 	/* Ordinals map to bit positions reported by CPLD */
 	Right = 0,

@@ -58,6 +58,17 @@ void AudioOutput::write(
 void AudioOutput::write(
 	const buffer_f32_t& audio
 ) {
+	block_buffer.feed(
+		audio,
+		[this](const buffer_f32_t& buffer) {
+			this->on_block(buffer);
+		}
+	);
+}
+
+void AudioOutput::on_block(
+	const buffer_f32_t& audio
+) {
 	const auto audio_present_now = squelch.execute(audio);
 
 	hpf.execute_in_place(audio);

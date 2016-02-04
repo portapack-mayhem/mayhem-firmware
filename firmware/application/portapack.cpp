@@ -61,9 +61,9 @@ ClockManager clock_manager {
 	i2c0, clock_generator
 };
 
-ReceiverModel receiver_model {
-	clock_manager
-};
+ReceiverModel receiver_model;
+
+TemperatureLogger temperature_logger;
 
 TemperatureLogger temperature_logger;
 

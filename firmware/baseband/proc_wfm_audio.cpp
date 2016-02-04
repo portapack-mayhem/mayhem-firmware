@@ -21,7 +21,6 @@
 
 #include "proc_wfm_audio.hpp"
 
-#include "dsp_iir_config.hpp"
 #include "audio_output.hpp"
 
 #include <cstdint>
@@ -88,19 +87,14 @@ void WidebandFMAudio::on_message(const Message* const message) {
 }
 
 void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
-	constexpr size_t baseband_fs = 3072000;
-
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 4;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 2;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t demod_input_fs = decim_1_output_fs;
 
-	constexpr auto spectrum_rate_hz = 50.0f;
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
 
@@ -110,7 +104,7 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 	channel_filter_stop_f = message.decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
 	demod.configure(demod_input_fs, message.deviation);
 	audio_filter.configure(message.audio_filter.taps);
-	audio_output.configure(audio_hpf_30hz_config, audio_deemph_2122_6_config);
+	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config);
 
 	channel_spectrum.set_decimation_factor(1);
 

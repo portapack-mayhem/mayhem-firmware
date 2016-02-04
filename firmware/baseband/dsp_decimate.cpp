@@ -179,10 +179,6 @@ static inline uint32_t scale_round_and_pack(
 
 // FIRC8xR16x24FS4Decim4 //////////////////////////////////////////////////
 
-FIRC8xR16x24FS4Decim4::FIRC8xR16x24FS4Decim4() {
-	z_.fill({});
-}
-
 void FIRC8xR16x24FS4Decim4::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale,
@@ -196,6 +192,7 @@ void FIRC8xR16x24FS4Decim4::configure(
 		taps_[i+3] =  taps[i+3] * negate_factor;
 	}
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
@@ -244,10 +241,6 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
 
 // FIRC8xR16x24FS4Decim8 //////////////////////////////////////////////////
 
-FIRC8xR16x24FS4Decim8::FIRC8xR16x24FS4Decim8() {
-	z_.fill({});
-}
-
 void FIRC8xR16x24FS4Decim8::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale,
@@ -261,6 +254,7 @@ void FIRC8xR16x24FS4Decim8::configure(
 		taps_[i+3] =  taps[i+3] * negate_factor;
 	}
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
@@ -309,16 +303,13 @@ buffer_c16_t FIRC8xR16x24FS4Decim8::execute(
 
 // FIRC16xR16x16Decim2 ////////////////////////////////////////////////////
 
-FIRC16xR16x16Decim2::FIRC16xR16x16Decim2() {
-	z_.fill({});
-}
-
 void FIRC16xR16x16Decim2::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale
 ) {
 	std::copy(taps.cbegin(), taps.cend(), taps_.begin());
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC16xR16x16Decim2::execute(
@@ -363,16 +354,13 @@ buffer_c16_t FIRC16xR16x16Decim2::execute(
 
 // FIRC16xR16x32Decim8 ////////////////////////////////////////////////////
 
-FIRC16xR16x32Decim8::FIRC16xR16x32Decim8() {
-	z_.fill({});
-}
-
 void FIRC16xR16x32Decim8::configure(
 	const std::array<tap_t, taps_count>& taps,
 	const int32_t scale
 ) {
 	std::copy(taps.cbegin(), taps.cend(), taps_.begin());
 	output_scale = scale;
+	z_.fill({});
 }
 
 buffer_c16_t FIRC16xR16x32Decim8::execute(
@@ -655,18 +643,6 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 	}
 
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
-}
-
-void FIRAndDecimateComplex::configure(
-	const int16_t* const taps,
-	const size_t taps_count,
-	const size_t decimation_factor
-) {
-	samples_ = std::make_unique<samples_t>(taps_count);
-	taps_reversed_ = std::make_unique<taps_t>(taps_count);
-	taps_count_ = taps_count;
-	decimation_factor_ = decimation_factor;
-	std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
 }
 
 buffer_c16_t FIRAndDecimateComplex::execute(

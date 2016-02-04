@@ -43,6 +43,7 @@
 #include "ui_sigfrx.hpp"
 #include "ui_numbers.hpp"
 
+#include "analog_audio_app.hpp"
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
@@ -65,7 +66,6 @@ SystemStatusView::SystemStatusView() {
 		&button_sleep,
 		&sd_card_status_view,
 	} });
-	sd_card_status_view.set_parent_rect({ 28 * 8, 0 * 16,  2 * 8, 1 * 16 });
 
 	button_back.on_select = [this](Button&){
 		if( this->on_back ) {
@@ -73,7 +73,7 @@ SystemStatusView::SystemStatusView() {
 		}
 	};
 
-	button_sleep.on_select = [this](Button&) {
+	button_sleep.on_select = [this](ImageButton&) {
 		DisplaySleepMessage message;
 		EventDispatcher::message_map().send(&message);
 	};

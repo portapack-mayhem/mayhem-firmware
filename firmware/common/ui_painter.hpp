@@ -50,6 +50,8 @@ public:
 
 	int draw_string(Point p, const Style& style, const std::string text);
 
+	void draw_bitmap(const Point p, const Bitmap& bitmap, const Color background, const Color foreground);
+
 	void draw_rectangle(const Rect r, const Color c);
 	void fill_rectangle(const Rect r, const Color c);
 

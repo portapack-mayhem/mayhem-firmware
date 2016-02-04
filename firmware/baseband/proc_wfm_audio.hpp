@@ -37,6 +37,9 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	static constexpr size_t baseband_fs = 3072000;
+	static constexpr auto spectrum_rate_hz = 50.0f;
+
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),

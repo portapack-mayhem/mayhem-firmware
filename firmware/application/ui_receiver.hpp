@@ -23,19 +23,11 @@
 #define __UI_RECEIVER_H__
 
 #include "ui.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 
-#include "utility.hpp"
-
-#include "max2837.hpp"
 #include "rf_path.hpp"
-#include "volume.hpp"
-#include "wm8731.hpp"
-
-#include "receiver_model.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -321,98 +313,6 @@ public:
 	LNAGainField(Point parent_pos);
 
 	void on_focus() override;
-};
-
-constexpr Style style_options_group {
-	.font = font::fixed_8x16,
-	.background = Color::blue(),
-	.foreground = Color::white(),
-};
-
-class ReceiverView : public View {
-public:
-	ReceiverView(NavigationView& nav);
-	~ReceiverView();
-
-	void on_show() override;
-	void on_hide() override;
-
-	void focus() override;
-
-private:
-	static constexpr ui::Dim header_height = 2 * 16;
-
-	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
-	};
-
-	Channel channel {
-		{ 21 * 8, 5, 6 * 8, 4 },
-	};
-
-	Audio audio {
-		{ 21 * 8, 10, 6 * 8, 4 },
-	};
-
-	FrequencyField field_frequency {
-		{ 5 * 8, 0 * 16 },
-	};
-
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
-
-	NumberField field_vga {
-		{ 18 * 8, 0 * 16},
-		2,
-		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
-		max2837::vga::gain_db_step,
-		' ',
-	};
-
-	OptionsField options_modulation {
-		{ 0 * 8, 0 * 16 },
-		4,
-		{
-			{ " AM ", toUType(ReceiverModel::Mode::AMAudio) },
-			{ "NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio) },
-			{ "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-			{ "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
-		}
-	};
-
-	NumberField field_volume {
-		{ 28 * 8, 0 * 16 },
-		2,
-		{ 0, 99 },
-		1,
-		' ',
-	};
-
-	FrequencyOptionsView view_frequency_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
-
-	RadioGainOptionsView view_rf_gain_options {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	};
-
-	std::unique_ptr<Widget> widget_content;
-
-	void on_tuning_frequency_changed(rf::Frequency f);
-	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
-	void on_rf_amp_changed(bool v);
-	void on_lna_changed(int32_t v_db);
-	void on_vga_changed(int32_t v_db);
-	void on_modulation_changed(ReceiverModel::Mode mode);
-	void on_show_options_frequency();
-	void on_show_options_rf_gain();
-	void on_frequency_step_changed(rf::Frequency f);
-	void on_reference_ppm_correction_changed(int32_t v);
-	void on_headphone_volume_changed(int32_t v);
-	void on_edit_frequency();
 };
 
 } /* namespace ui */

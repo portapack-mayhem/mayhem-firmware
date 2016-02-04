@@ -28,12 +28,93 @@ namespace ui {
 
 /* SDCardStatusView *****************************************************/
 
-SDCardStatusView::SDCardStatusView() {
-	add_children({ {
-		&text_status,
-	} });
+namespace detail {
 
-	on_status(sd_card::status());
+static constexpr uint8_t bitmap_sd_card_ok_data[] = {
+	0x00, 0x00, 0x00, 0x00, 0xe0, 0x1f, 0xf0, 0x1f,
+	0xf8, 0x1f, 0xf8, 0x1f, 0xf8, 0x1f, 0xf8, 0x1f,
+	0xf8, 0x1f, 0xf8, 0x1f, 0xf8, 0x1f, 0xf8, 0x1f,
+	0xf8, 0x1f, 0xf8, 0x1f, 0x00, 0x00, 0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_sd_card_ok {
+	{ 16, 16 }, bitmap_sd_card_ok_data
+};
+
+static constexpr uint8_t bitmap_sd_card_unknown_data[] = {
+	0x00, 0x00, 0x00, 0x00, 0xe0, 0x1f, 0xf0, 0x1f,
+	0x38, 0x1c, 0x98, 0x19, 0xf8, 0x19, 0xf8, 0x1c,
+	0x78, 0x1e, 0x78, 0x1e, 0xf8, 0x1f, 0x78, 0x1e,
+	0xf8, 0x1f, 0xf8, 0x1f, 0x00, 0x00, 0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_sd_card_unknown {
+	{ 16, 16 }, bitmap_sd_card_unknown_data
+};
+
+static constexpr uint8_t bitmap_sd_card_error_data[] = {
+	0x00, 0x00, 0x00, 0x00, 0xe0, 0x1f, 0xf0, 0x1f,
+	0xf8, 0x1f, 0xf8, 0x1b, 0xf8, 0x19, 0xf8, 0x1c,
+	0xf8, 0x1e, 0xf8, 0x1c, 0xf8, 0x19, 0xf8, 0x1b,
+	0xf8, 0x1f, 0xf8, 0x1f, 0x00, 0x00, 0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_sd_card_error {
+	{ 16, 16 }, bitmap_sd_card_error_data
+};
+
+const Bitmap& bitmap_sd_card(const sd_card::Status status) {
+	switch(status) {
+	case sd_card::Status::IOError:
+	case sd_card::Status::MountError:
+	case sd_card::Status::ConnectError:
+		return bitmap_sd_card_error;
+
+	case sd_card::Status::NotPresent:
+		return bitmap_sd_card_unknown;
+
+	case sd_card::Status::Present:
+		return bitmap_sd_card_unknown;
+
+	case sd_card::Status::Mounted:
+		return bitmap_sd_card_ok;
+
+	default:
+		return bitmap_sd_card_unknown;
+	}
+}
+
+static constexpr Color color_sd_card_error = Color::red();
+static constexpr Color color_sd_card_unknown = Color::yellow();
+static constexpr Color color_sd_card_ok = Color::green();
+
+const Color color_sd_card(const sd_card::Status status) {
+	switch(status) {
+	case sd_card::Status::IOError:
+	case sd_card::Status::MountError:
+	case sd_card::Status::ConnectError:
+		return color_sd_card_error;
+
+	case sd_card::Status::NotPresent:
+		return color_sd_card_unknown;
+
+	case sd_card::Status::Present:
+		return color_sd_card_unknown;
+
+	case sd_card::Status::Mounted:
+		return color_sd_card_ok;
+
+	default:
+		return color_sd_card_unknown;
+	}
+}
+
+} /* namespace detail */
+
+SDCardStatusView::SDCardStatusView(
+	const Rect parent_rect
+) : Image { parent_rect, &detail::bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::black() }
+{
 }
 
 void SDCardStatusView::on_show() {
@@ -46,40 +127,17 @@ void SDCardStatusView::on_hide() {
 	sd_card::status_signal -= sd_card_status_signal_token;
 }
 
-void SDCardStatusView::on_status(const sd_card::Status status) {
-	std::string msg("??");
+void SDCardStatusView::paint(Painter& painter) {
+	const auto status = sd_card::status();
+	set_bitmap(&detail::bitmap_sd_card(status));
+	set_foreground(detail::color_sd_card(status));
 
-	switch(status) {
-	case sd_card::Status::IOError:
-		msg = "IO";
-		break;
+	Image::paint(painter);
+}
 
-	case sd_card::Status::MountError:
-		msg = "MT";
-		break;
-
-	case sd_card::Status::ConnectError:
-		msg = "CN";
-		break;
-
-	case sd_card::Status::NotPresent:
-		msg = "XX";
-		break;
-
-	case sd_card::Status::Present:
-		msg = "OO";
-		break;
-
-	case sd_card::Status::Mounted:
-		msg = "OK";
-		break;
-
-	default:
-		msg = "--";
-		break;
-	}
-
-	text_status.set(msg);
+void SDCardStatusView::on_status(const sd_card::Status) {
+	// Don't update image properties here, they might change. Wait until paint.
+	set_dirty();
 }
 
 } /* namespace ui */

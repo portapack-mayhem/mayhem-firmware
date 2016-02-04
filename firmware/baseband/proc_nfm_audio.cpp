@@ -21,7 +21,6 @@
 
 #include "proc_nfm_audio.hpp"
 
-#include "dsp_iir_config.hpp"
 #include "audio_output.hpp"
 
 #include <cstdint>
@@ -39,8 +38,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
-	auto audio = demod.execute(channel_out, work_audio_buffer);
-
+	auto audio = demod.execute(channel_out, audio_buffer);
 	audio_output.write(audio);
 }
 
@@ -61,30 +59,25 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 }
 
 void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
-	constexpr size_t baseband_fs = 3072000;
-
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_decimation_factor = 8;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0_decimation_factor;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_decimation_factor = 8;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1_decimation_factor;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	constexpr size_t channel_filter_decimation_factor = 1;
-	constexpr size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	const size_t channel_filter_output_fs = channel_filter_input_fs / message.channel_decimation;
 
-	constexpr size_t demod_input_fs = channel_filter_output_fs;
+	const size_t demod_input_fs = channel_filter_output_fs;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
-	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
+	channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
 	demod.configure(demod_input_fs, message.deviation);
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
-	audio_output.configure(audio_hpf_300hz_config, audio_deemph_300_6_config, 6144);
+	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 12288);
 
 	configured = true;
 }

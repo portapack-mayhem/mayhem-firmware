@@ -24,11 +24,14 @@
 
 #include "baseband_processor.hpp"
 
+#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
+
+#include <cstdint>
 
 class NarrowbandFMAudio : public BasebandProcessor {
 public:
@@ -37,19 +40,21 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	static constexpr size_t baseband_fs = 3072000;
+
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
-	const buffer_f32_t work_audio_buffer {
-		(float*)dst.data(),
-		sizeof(dst) / sizeof(float)
+	std::array<float, 32> audio;
+	const buffer_f32_t audio_buffer {
+		audio.data(),
+		audio.size()
 	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
-
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;

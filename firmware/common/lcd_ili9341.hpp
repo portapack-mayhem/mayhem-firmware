@@ -69,6 +69,14 @@ public:
 		draw_pixels(r, colors.data(), colors.size());
 	}
 
+	void draw_bitmap(
+		const ui::Point p,
+		const ui::Size size,
+		const uint8_t* const data,
+		const ui::Color foreground,
+		const ui::Color background
+	);
+
 	void draw_glyph(
 		const ui::Point p,
 		const ui::Glyph& glyph,

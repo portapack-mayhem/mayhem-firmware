@@ -35,6 +35,14 @@ public:
 	);
 };
 
+class SSB {
+public:
+	buffer_f32_t execute(
+		const buffer_c16_t& src,
+		const buffer_f32_t& dst
+	);
+};
+
 class FM {
 public:
 	buffer_f32_t execute(

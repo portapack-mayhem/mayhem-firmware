@@ -23,11 +23,6 @@
 
 #include "ch.h"
 
-#include "ff.h"
-#include "hackrf_gpio.hpp"
-#include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
-
 #include "radio.hpp"
 #include "string_format.hpp"
 

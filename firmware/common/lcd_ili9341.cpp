@@ -394,20 +394,29 @@ void ILI9341::draw_pixels(
 	io.lcd_write_pixels(colors, count);
 }
 
+void ILI9341::draw_bitmap(
+	const ui::Point p,
+	const ui::Size size,
+	const uint8_t* const pixels,
+	const ui::Color foreground,
+	const ui::Color background
+) {
+	lcd_start_ram_write(p, size);
+
+	const size_t count = size.w * size.h;
+	for(size_t i=0; i<count; i++) {
+		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+		io.lcd_write_pixel(pixel ? foreground : background);
+	}
+}
+
 void ILI9341::draw_glyph(
 	const ui::Point p,
 	const ui::Glyph& glyph,
 	const ui::Color foreground,
 	const ui::Color background
 ) {
-	lcd_start_ram_write(p, glyph.size());
-
-	const size_t count = glyph.w() * glyph.h();
-	const auto pixels = glyph.pixels();
-	for(size_t i=0; i<count; i++) {
-		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-		io.lcd_write_pixel(pixel ? foreground : background);
-	}
+	draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background);
 }
 
 void ILI9341::scroll_set_area(

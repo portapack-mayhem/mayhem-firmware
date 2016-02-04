@@ -39,23 +39,31 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	static constexpr size_t baseband_fs = 3072000;
+	static constexpr size_t decim_2_decimation_factor = 4;
+	static constexpr size_t channel_filter_decimation_factor = 1;
+
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
-	const buffer_f32_t work_audio_buffer {
-		(float*)dst.data(),
-		sizeof(dst) / sizeof(float)
+	std::array<float, 32> audio;
+	const buffer_f32_t audio_buffer {
+		audio.data(),
+		audio.size()
 	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::decimate::FIRAndDecimateComplex decim_2;
 	dsp::decimate::FIRAndDecimateComplex channel_filter;
-	uint32_t channel_filter_pass_f;
-	uint32_t channel_filter_stop_f;
+	uint32_t channel_filter_pass_f = 0;
+	uint32_t channel_filter_stop_f = 0;
 
-	dsp::demodulate::AM demod;
+	bool modulation_ssb = false;
+	dsp::demodulate::AM demod_am;
+	dsp::demodulate::SSB demod_ssb;
 
 	AudioOutput audio_output;
 
@@ -63,6 +71,8 @@ private:
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);
+
+	buffer_f32_t demodulate(const buffer_c16_t& channel);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/
