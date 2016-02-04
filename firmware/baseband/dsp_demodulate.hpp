@@ -55,14 +55,7 @@ public:
 		const buffer_s16_t& dst
 	);
 
-	void configure(const float sampling_rate, const float deviation_hz) {
-		/*
-		 * angle: -pi to pi. output range: -32768 to 32767.
-		 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
-		 * delta_theta_max = 2 * pi * deviation / sampling_rate
-		 */
-		k = static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate));
-	}
+	void configure(const float sampling_rate, const float deviation_hz);
 
 private:
 	complex16_t::rep_type z_ { 0 };
