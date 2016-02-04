@@ -15,12 +15,6 @@ script:
   - make release
   - popd
 
-after_success:
-  - travis/echo_download_url.sh
-
-after_deploy:
-  - travis/echo_download_url.sh
-
 addons:
   apt_packages:
     - lib32bz2-1.0
