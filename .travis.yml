@@ -3,13 +3,20 @@ language: cpp
 cache: apt
 
 before_install:
-  - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
+  # - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
+  # - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
   - sudo apt-get update -qq
-  - sudo apt-get install -y gcc-arm-none-eabi
+  # - sudo apt-get install -y gcc-arm-none-eabi
+  # - sudo apt-get install -y gcc-arm-embedded
 
 before_script:
+  - export PATH="gcc-arm-none-eabi-5_2-2015q4/bin:$PATH"
   - export CC="arm-none-eabi-gcc"
   - export CXX="arm-none-eabi-g++"
+
+install:
+  - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
+  - tar -xf gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
