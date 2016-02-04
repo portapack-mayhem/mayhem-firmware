@@ -34,7 +34,7 @@ addons:
     - lib32bz2-1.0
     - lib32ncurses5
     - lib32z1
-  # artifacts:
+  artifacts: true
   #   paths:
   #     - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
   #     - $(ls firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
