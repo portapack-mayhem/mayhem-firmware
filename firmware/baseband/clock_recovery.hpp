@@ -116,19 +116,21 @@ private:
 template<typename ErrorFilter>
 class ClockRecovery {
 public:
+	using SymbolHandler = std::function<void(const float)>;
+
 	ClockRecovery(
 		const float sampling_rate,
 		const float symbol_rate,
 		ErrorFilter error_filter,
-		std::function<void(const float)> symbol_handler
-	) : symbol_handler { symbol_handler }
+		SymbolHandler symbol_handler
+	) : symbol_handler { std::move(symbol_handler) }
 	{
 		configure(sampling_rate, symbol_rate, error_filter);
 	}
 
 	ClockRecovery(
-		std::function<void(const float)> symbol_handler
-	) : symbol_handler { symbol_handler }
+		SymbolHandler symbol_handler
+	) : symbol_handler { std::move(symbol_handler) }
 	{
 	}
 
@@ -155,7 +157,7 @@ private:
 	dsp::interpolation::LinearResampler resampler;
 	GardnerTimingErrorDetector timing_error_detector;
 	ErrorFilter error_filter;
-	std::function<void(const float)> symbol_handler;
+	const SymbolHandler symbol_handler;
 
 	void resampler_callback(const float interpolated_sample) {
 		timing_error_detector(interpolated_sample,

@@ -53,8 +53,8 @@ public:
 		const PreambleMatcher preamble_matcher,
 		const UnstuffMatcher unstuff_matcher,
 		const EndMatcher end_matcher,
-		const PayloadHandlerFunc payload_handler
-	) : payload_handler { payload_handler },
+		PayloadHandlerFunc payload_handler
+	) : payload_handler { std::move(payload_handler) },
 		preamble(preamble_matcher),
 		unstuff(unstuff_matcher),
 		end(end_matcher)
