@@ -11,7 +11,8 @@ before_script:
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
-  - echo $PATH
+  - /home/travis/build/sharebrained/portapack-hackrf/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-gcc -v
+  - arm-none-eabi-gcc -v
   - pushd firmware/
   - make release
   - popd
