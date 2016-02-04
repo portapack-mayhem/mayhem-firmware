@@ -1,7 +1,5 @@
 language: cpp
 
-cache: apt
-
 before_script:
   - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
   - tar -xf /tmp/gcc-arm.tar.bz2
@@ -11,13 +9,17 @@ before_script:
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
-  - ls -l /home/travis/build/sharebrained/portapack-hackrf
-  - ls -l /home/travis/build/sharebrained/portapack-hackrf/gcc-arm-none-eabi-5_2-2015q4/bin
-  - /home/travis/build/sharebrained/portapack-hackrf/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-gcc -v
-  - arm-none-eabi-gcc -v
   - pushd firmware/
   - make release
   - popd
+
+after_script:
+  - echo ########################################################################
+  - echo
+  - echo Correct download URL is:
+  - echo https://portapack-h1-builds.s3.amazonaws.com/$TRAVIS_REPO_SLUG/$TRAVIS_BUILD_NUMBER/$TRAVIS_JOB_NUMBER/firmware/portapack-h1-firmware-$TRAVIS_COMMIT.tar.bz2
+  - echo
+  - echo ########################################################################
 
 addons:
   apt_packages:
