@@ -330,8 +330,8 @@ public:
 		channel_filter(channel_filter),
 		channel_decimation { channel_decimation },
 		deviation { deviation },
-		audio_hpf_config { audio_hpf_config },
-		audio_deemph_config { audio_deemph_config }
+		audio_hpf_config(audio_hpf_config),
+		audio_deemph_config(audio_deemph_config)
 	{
 	}
 
@@ -358,8 +358,8 @@ public:
 		decim_1_filter(decim_1_filter),
 		audio_filter(audio_filter),
 		deviation { deviation },
-		audio_hpf_config { audio_hpf_config },
-		audio_deemph_config { audio_deemph_config }
+		audio_hpf_config(audio_hpf_config),
+		audio_deemph_config(audio_deemph_config)
 	{
 	}
 
@@ -391,7 +391,7 @@ public:
 		decim_2_filter(decim_2_filter),
 		channel_filter(channel_filter),
 		modulation { modulation },
-		audio_hpf_config { audio_hpf_config }
+		audio_hpf_config(audio_hpf_config)
 	{
 	}
 
