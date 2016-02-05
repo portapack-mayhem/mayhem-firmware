@@ -32,6 +32,8 @@ public:
 	{
 	}
 
+	virtual ~ThreadBase() = default;
+	
 protected:
 	static msg_t fn(void* arg) {
 		auto obj = static_cast<ThreadBase*>(arg);
