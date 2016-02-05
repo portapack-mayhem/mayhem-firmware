@@ -146,6 +146,7 @@ CPPSRC = main.cpp \
          touch.cpp \
          touch_adc.cpp \
          encoder.cpp \
+         audio.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
          ui_text.cpp \

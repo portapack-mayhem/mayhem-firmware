@@ -32,6 +32,7 @@ using namespace hackrf::one;
 #include "i2c_pp.hpp"
 
 #include "touch_adc.hpp"
+#include "audio.hpp"
 
 namespace portapack {
 
@@ -132,6 +133,14 @@ void init() {
 
 	clock_manager.start_audio_pll();
 	audio_codec.init();
+
+	i2s::i2s0::configure(
+		audio::i2s0_config_tx,
+		audio::i2s0_config_rx,
+		audio::i2s0_config_dma
+	);
+	i2s::i2s0::tx_start();
+	i2s::i2s0::rx_start();
 
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();

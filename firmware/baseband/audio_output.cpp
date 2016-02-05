@@ -77,10 +77,7 @@ void AudioOutput::on_block(
 	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
 	const bool audio_present = (audio_present_history != 0);
 	
-	if( audio_present ) {
-		i2s::i2s0::tx_unmute();
-	} else {
-		i2s::i2s0::tx_mute();
+	if( !audio_present ) {
 		for(size_t i=0; i<audio.count; i++) {
 			audio.p[i] = 0;
 		}

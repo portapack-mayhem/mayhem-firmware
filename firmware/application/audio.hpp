@@ -22,24 +22,10 @@
 #ifndef __AUDIO_H__
 #define __AUDIO_H__
 
-#include "buffer.hpp"
-
 #include "i2s.hpp"
 using namespace lpc43xx;
 
 namespace audio {
-
-struct sample_t {
-	union {
-		struct {
-			int16_t left;
-			int16_t right;
-		};
-		uint32_t raw;
-	};
-};
-
-using buffer_t = buffer_t<sample_t>;
 
 constexpr i2s::ConfigTX i2s0_config_tx {
 	.dao = i2s::DAO {

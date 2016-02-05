@@ -25,6 +25,9 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
+#include "i2s.hpp"
+using namespace lpc43xx;
+
 #include "utility.hpp"
 
 namespace ui {
@@ -136,6 +139,8 @@ AnalogAudioView::AnalogAudioView(
 AnalogAudioView::~AnalogAudioView() {
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
+	i2s::i2s0::tx_mute();
+
 	audio_codec.headphone_mute();
 
 	receiver_model.disable();
@@ -294,6 +299,8 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	});
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
+
+	i2s::i2s0::tx_unmute();
 }
 
 } /* namespace ui */
