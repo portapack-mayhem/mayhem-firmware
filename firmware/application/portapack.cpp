@@ -65,11 +65,7 @@ ReceiverModel receiver_model;
 
 TemperatureLogger temperature_logger;
 
-TemperatureLogger temperature_logger;
-
-TransmitterModel transmitter_model {
-	clock_manager
-};
+TransmitterModel transmitter_model;
 
 uint8_t bl_tick_counter = 0;
 

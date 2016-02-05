@@ -85,6 +85,7 @@ private:
 	
 	Checkbox checkbox_am_a {
 		{ 16, 68 },
+		20,
 		""
 	};
 	Button button_setam_a {
@@ -93,6 +94,7 @@ private:
 	};
 	Checkbox checkbox_am_b {
 		{ 16, 68+40 },
+		20,
 		""
 	};
 	Button button_setam_b {
@@ -101,7 +103,8 @@ private:
 	};
 	Checkbox checkbox_am_c {
 		{ 16, 68+40+40 },
-		""
+		20,
+		" "
 	};
 	Button button_setam_c {
 		{ 48, 64+40+40, 48, 32 },
@@ -109,6 +112,7 @@ private:
 	};
 	Checkbox checkbox_am_d {
 		{ 16, 68+40+40+40 },
+		20,
 		""
 	};
 	Button button_setam_d {
@@ -117,6 +121,7 @@ private:
 	};
 	Checkbox checkbox_am_e {
 		{ 16, 68+40+40+40+40 },
+		20,
 		""
 	};
 	Button button_setam_e {

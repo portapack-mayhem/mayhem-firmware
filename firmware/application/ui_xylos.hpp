@@ -230,6 +230,7 @@ private:
 	};
 	Checkbox checkbox_wcsubfamily {
 		{ 20 * 8, 5 * 16},
+		6,
 		"Toutes"
 	};
 	
@@ -246,6 +247,7 @@ private:
 	};
 	Checkbox checkbox_wcid {
 		{ 20 * 8, 7 * 16 + 4},
+		4,
 		"Tous"
 	};
 	
@@ -323,6 +325,7 @@ private:
 	
 	Checkbox checkbox_cligno {
 		{ 96, 16 * 16 + 4},
+		3,
 		"J/N"
 	};
 	

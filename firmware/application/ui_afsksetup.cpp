@@ -29,6 +29,7 @@
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
+#include "string_format.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -37,7 +38,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -103,7 +104,7 @@ AFSKSetupView::AFSKSetupView(
 	field_repeat.set_value(rpt);
 	
 	button_setfreq.on_select = [this,&nav](Button&){
-		auto new_view = new FrequencyKeypadView { nav, this->transmitter_model.tuning_frequency() };
+		auto new_view = new FrequencyKeypadView { nav, transmitter_model.tuning_frequency() };
 		new_view->on_changed = [this](rf::Frequency f) {
 			updfreq(f);
 		};

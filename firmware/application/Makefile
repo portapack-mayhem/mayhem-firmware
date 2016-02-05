@@ -172,6 +172,7 @@ CPPSRC = main.cpp \
          ui_spectrum.cpp \
          ui_loadmodule.cpp \
          ui_afskrx.cpp \
+         ui_afsksetup.cpp \
          ui_sigfrx.cpp \
          ui_xylos.cpp \
          ui_numbers.cpp \
@@ -246,7 +247,7 @@ INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
 MCU  = cortex-m0
 
 #TRGT = arm-elf-
-TRGT = arm-none-eabi-
+TRGT = /usr/local/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.

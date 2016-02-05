@@ -107,14 +107,17 @@ private:
 	
 	Checkbox checkbox_lsb {
 		{ 8, 150 },
+		9,
 		"LSB first"
 	};
 	Checkbox checkbox_parity {
 		{ 8, 180 },
+		11,
 		"Even parity"
 	};
 	Checkbox checkbox_datasize {
 		{ 8, 210 },
+		6,
 		"8 bits"
 	};
 	

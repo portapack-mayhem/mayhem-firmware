@@ -34,8 +34,7 @@
 class TransmitterModel {
 public:
 	constexpr TransmitterModel(
-		ClockManager& clock_manager
-	) : clock_manager(clock_manager)
+	)
 	{
 	}
 	
@@ -77,7 +76,6 @@ private:
 		.sampling_rate = 2280000,
 		.decimation_factor = 1,
 	};
-	ClockManager& clock_manager;
 
 	int32_t tuning_offset();
 

@@ -163,7 +163,7 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio",        ui::Color::white(), [&nav](){ nav.push<ReceiverView>(); } },
+		{ "Audio",        ui::Color::white(), [&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", ui::Color::white(), [&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 }
@@ -268,6 +268,29 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 		&button_yes,
 		&button_no,
 	} });
+}
+
+/* ***********************************************************************/
+
+void BMPView::focus() {
+	button_done.focus();
+}
+
+BMPView::BMPView(NavigationView& nav) {
+	add_children({ {
+		&text_info,
+		&button_done
+	} });
+	
+	button_done.on_select = [this,&nav](Button&){
+		nav.pop();
+		nav.push(new SystemMenuView { nav });
+	};
+}
+
+void BMPView::paint(Painter& painter) {
+	(void)painter;
+	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp);
 }
 
 /* PlayDeadView **********************************************************/

@@ -1,11 +1,14 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "portapack.hpp"
 
 #include <cstdint>
 #include <cstddef>
 #include <algorithm>
 
 #include "string_format.hpp"
+
+using namespace portapack;
 
 namespace ui {
 
@@ -298,6 +301,16 @@ void Text::paint(Painter& painter) {
 
 /* Checkbox **************************************************************/
 
+Checkbox::Checkbox(
+	Point parent_pos,
+	size_t length,
+	std::string text
+) : Widget { { parent_pos, { static_cast<ui::Dim>((8 * length) + 24), 24 } } },
+	text_ { text }
+{
+	flags.focusable = true;
+}
+
 void Checkbox::set_text(const std::string value) {
 	text_ = value;
 	set_dirty();
@@ -375,7 +388,6 @@ bool Checkbox::on_touch(const TouchEvent event) {
 		set_dirty();
 		return true;
 
-
 	case TouchEvent::Type::End:
 		flags.highlighted = false;
 		value_ = not value_;
@@ -423,7 +435,7 @@ bool Checkbox::on_touch(const TouchEvent event) {
 
 /* Button ****************************************************************/
 
- Button::Button(
+Button::Button(
 	Rect parent_rect,
 	std::string text
 ) : Widget { parent_rect },
@@ -466,6 +478,11 @@ bool Button::on_key(const KeyEvent key) {
 		if( on_select ) {
 			on_select(*this);
 			return true;
+		}
+	} else {
+		if( on_dir ) {
+			on_dir(*this, key);
+			return false;
 		}
 	}
 
@@ -652,6 +669,12 @@ void OptionsField::set_by_value(value_t v) {
 		}
 		new_index++;
 	}
+}
+
+void OptionsField::set_options(options_t new_options) {
+	options = new_options;
+	set_by_value(0);
+	set_dirty();
 }
 
 void OptionsField::paint(Painter& painter) {

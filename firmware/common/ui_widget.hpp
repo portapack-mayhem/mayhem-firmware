@@ -195,9 +195,33 @@ private:
 	std::string text;
 };
 
+class Checkbox : public Widget {
+public:
+	std::function<void(Checkbox&)> on_select;
+
+	Checkbox(Point parent_pos, size_t length, std::string text);
+	
+	void set_text(const std::string value);
+	void set_style(const Style* new_style);
+	std::string text() const;
+	void set_value(const bool value);
+	bool value() const;
+
+	void paint(Painter& painter) override;
+	
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+
+private:
+	std::string text_;
+	bool value_ = false;
+	const Style* style_ { nullptr };
+};
+
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
+	std::function<void(Button&,KeyEvent)> on_dir;
 
 	Button(Rect parent_rect, std::string text);
 
@@ -266,6 +290,8 @@ public:
 	std::function<void(void)> on_show_options;
 
 	OptionsField(Point parent_pos, size_t length, options_t options);
+	
+	void set_options(options_t new_options);
 
 	size_t selected_index() const;
 	void set_selected_index(const size_t new_index);

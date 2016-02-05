@@ -24,7 +24,6 @@
 
 #include "baseband_processor.hpp"
 
-#include "channel_decimator.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 

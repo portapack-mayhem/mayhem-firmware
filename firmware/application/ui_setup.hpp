@@ -261,11 +261,13 @@ public:
 private:
 	Checkbox checkbox_showsplash {
 		{ 3 * 8, 2 * 16},
+		11,
 		"Show splash"
 	};
 	
 	Checkbox checkbox_bloff {
 		{ 3 * 8, 4 * 16},
+		20,
 		"Backlight off after:"
 	};
 

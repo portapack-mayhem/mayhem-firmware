@@ -74,6 +74,7 @@ private:
 	
 	Checkbox checkbox_am_a {
 		{ 16, 68 },
+		20,
 		""
 	};
 	

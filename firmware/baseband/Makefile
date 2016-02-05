@@ -1,3 +1,4 @@
+
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
 #
@@ -144,8 +145,6 @@ CPPSRC = main.cpp \
          proc_wideband_spectrum.cpp \
          proc_tpms.cpp \
          proc_ert.cpp \
-         proc_afskrx.cpp \
-         proc_sigfrx.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \
@@ -204,7 +203,7 @@ INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
 MCU  = cortex-m4
 
 #TRGT = arm-elf-
-TRGT = arm-none-eabi-
+TRGT = /usr/local/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.

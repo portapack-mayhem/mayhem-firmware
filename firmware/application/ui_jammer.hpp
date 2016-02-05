@@ -191,14 +191,17 @@ private:
 	
 	Checkbox checkbox_range1 {
 		{ 1 * 8, 6 * 16},
+		7,
 		"Range 1"
 	};
 	Checkbox checkbox_range2 {
 		{ 1 * 8, 9 * 16 + 4},
+		7,
 		"Range 2"
 	};
 	Checkbox checkbox_range3 {
 		{ 1 * 8, 12 * 16 + 8 },
+		7,
 		"Range 3"
 	};
 	
