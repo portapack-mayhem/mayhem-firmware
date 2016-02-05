@@ -1,6 +1,6 @@
 # portapack-HAVOC
 
-**As of the 1st of February 2016, everything is broken because I committed a failed merge, I'm taking care of it. Sorry :<**
+**As of the 5th of February 2016, GCC 5.2 should be able to build all binaries, but Havoc specific things won't work. I'm taking care of it. Sorry :<**
 
 HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
