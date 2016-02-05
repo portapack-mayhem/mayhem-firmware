@@ -241,11 +241,8 @@ void View::add_children(const std::vector<Widget*>& children) {
 void View::remove_child(Widget* const widget) {
 	if( widget ) {
 		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-		dirty_screen_rect += widget->screen_rect();
+		dirty_overlapping_children_in_rect(widget->screen_rect());
 		widget->set_parent(nullptr);
-		if( dirty_screen_rect ) {
-			set_dirty();
-		}
 	}
 }
 
