@@ -105,14 +105,14 @@ void m4_switch(const char * hash) {
 	modhash = const_cast<char*>(hash);
 	
 	// Ask M4 to enter wait loop in RAM
-	BasebandConfiguration baseband_switch {
-		.mode = 255, // DEBUG
+	/*BasebandConfiguration baseband_switch {
+		.mode = 255,
 		.sampling_rate = 0,
 		.decimation_factor = 1,
 	};
 	
 	BasebandConfigurationMessage message { baseband_switch };
-	shared_memory.baseband_queue.push(message);
+	shared_memory.baseband_queue.push(message);*/
 }
 
 void m4_request_shutdown() {

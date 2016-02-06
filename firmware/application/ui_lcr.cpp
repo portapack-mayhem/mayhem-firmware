@@ -192,7 +192,7 @@ LCRView::LCRView(
 	
 	transmitter_model.set_baseband_configuration({
 		.mode = 1,
-		.sampling_rate = 1536000,	// Is this right ?
+		.sampling_rate = 2280000,	// Is this right ?
 		.decimation_factor = 1,
 	});
 
@@ -323,7 +323,7 @@ LCRView::LCRView(
 		transmitter_model.enable();
 	};
 	
-	button_txsetup.on_select = [&nav, &transmitter_model](Button&){
+	button_txsetup.on_select = [&nav](Button&){
 		nav.push(new AFSKSetupView { nav });
 	};
 

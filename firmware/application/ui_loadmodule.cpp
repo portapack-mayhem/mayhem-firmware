@@ -35,7 +35,7 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
@@ -53,31 +53,20 @@ void LoadModuleView::on_hide() {
 }
 
 void LoadModuleView::on_show() {
-	// Ask for MD5 signature and compare
-	ModuleIDMessage message;
-
-	//message_map.unregister_handler(Message::ID::ModuleID);
+	char md5_signature[16];
+	uint8_t c;
 	
-	EventDispatcher::message_map().register_handler(Message::ID::ModuleID,
-		[this](Message* const p) {
-			uint8_t c;
-			const auto message = static_cast<const ModuleIDMessage*>(p);
-			if (message->query == false) {	// Shouldn't be needed
-				for (c=0;c<16;c++) {
-					if (message->md5_signature[c] != _hash[c]) break;
-				}
-				if (c == 16) {
-					text_info.set("Module already loaded :)");
-					_mod_loaded = true;
-				} else {
-					loadmodule();
-				}
-			}
-		}
-	);
-	
-	message.query = true;
-	shared_memory.baseband_queue.push(message);
+	memcpy(md5_signature, (const void *)(0x10087FF0), 16);
+	for (c=0; c<16; c++) {
+		if (md5_signature[c] != _hash[c]) break;
+	}
+	if (c == 16) {
+		text_info.set("Module already loaded :)");
+		_mod_loaded = true;
+	} else {
+		text_info.set("Loading module");
+		loadmodule();
+	}
 }
 
 int LoadModuleView::load_image() {
@@ -133,9 +122,11 @@ int LoadModuleView::load_image() {
 void LoadModuleView::loadmodule() {
 	//message_map.unregister_handler(Message::ID::ReadyForSwitch);
 	
-	EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
+	m4_switch(_hash);
+	
+	/*EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {
-			(void)p;
+			(void)p;*/
 			if (load_image()) {
 				text_info.set(to_string_hex(*((unsigned int*)0x10080000),8));
 				//text_infob.set(to_string_hex(*((unsigned int*)0x10080004),8));
@@ -145,10 +136,9 @@ void LoadModuleView::loadmodule() {
 				text_info.set("Module not found :(");
 				_mod_loaded = false;
 			}
-		}
-	);
+	//	}
+	//);
 	
-	m4_switch(_hash);
 }
 
 LoadModuleView::LoadModuleView(
@@ -166,7 +156,7 @@ LoadModuleView::LoadModuleView(
 	_hash = hash;
 	
 	button_ok.on_select = [this,&nav,new_view](Button&){
-		nav.pop();
+		//nav.pop();
 		if (_mod_loaded == true) nav.push(new_view);
 	};
 }

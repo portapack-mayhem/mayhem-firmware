@@ -45,6 +45,8 @@ public:
 		return baseband::Direction::Receive;
 	}
 
+	void wait_for_switch(void);
+
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
 	BasebandProcessor* baseband_processor { nullptr };

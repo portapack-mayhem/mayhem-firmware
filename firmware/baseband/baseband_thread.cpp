@@ -123,6 +123,22 @@ void BasebandThread::run() {
 	delete baseband_buffer;
 }
 
+char ram_loop[32];
+typedef int (*fn_ptr)(void);
+fn_ptr loop_ptr;
+	
+void ram_loop_fn(void) {
+	while(1) {}
+}
+	
+void BasebandThread::wait_for_switch(void) {
+	memcpy(&ram_loop[0], reinterpret_cast<char*>(&ram_loop_fn), 32);
+	loop_ptr = reinterpret_cast<fn_ptr>(&ram_loop[0]);
+	ReadyForSwitchMessage message;
+	shared_memory.application_queue.push(message);
+	(*loop_ptr)();
+}
+
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	switch(mode) {
 	case 0:		return new NarrowbandAMAudio();
@@ -132,6 +148,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 4:		return new WidebandSpectrum();
 	case 5:		return new TPMSProcessor();
 	case 6:		return new ERTProcessor();
+	case 255:	wait_for_switch();
 	default:	return nullptr;
 	}
 }
