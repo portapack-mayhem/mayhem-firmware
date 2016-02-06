@@ -29,8 +29,6 @@ using namespace hackrf::one;
 
 #include "clock_manager.hpp"
 
-#include "i2c_pp.hpp"
-
 #include "touch_adc.hpp"
 #include "audio.hpp"
 

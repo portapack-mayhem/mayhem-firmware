@@ -23,6 +23,7 @@
 
 #include "receiver_model.hpp"
 
+#include "i2c_pp.hpp"
 #include "spi_pp.hpp"
 #include "wm8731.hpp"
 #include "si5351.hpp"
@@ -38,6 +39,7 @@ extern portapack::IO io;
 
 extern lcd::ILI9341 display;
 
+extern I2C i2c0;
 extern SPI ssp0;
 extern SPI ssp1;
 
