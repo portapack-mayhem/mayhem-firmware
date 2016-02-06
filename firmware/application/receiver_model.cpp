@@ -23,9 +23,9 @@
 
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "portapack.hpp"
 using namespace portapack;
 
+#include "radio.hpp"
 #include "audio.hpp"
 
 #include "dsp_fir_taps.hpp"
@@ -135,7 +135,6 @@ int32_t ReceiverModel::reference_ppm_correction() const {
 
 void ReceiverModel::set_reference_ppm_correction(int32_t v) {
 	persistent_memory::set_correction_ppb(v * 1000);
-	clock_manager.set_reference_ppb(v * 1000);
 }
 
 bool ReceiverModel::antenna_bias() const {

@@ -21,6 +21,8 @@
 
 #include "portapack_persistent_memory.hpp"
 
+#include "portapack.hpp"
+
 #include "hal.h"
 
 #include "utility.hpp"
@@ -65,7 +67,9 @@ ppb_t correction_ppb() {
 }
 
 void set_correction_ppb(const ppb_t new_value) {
-	data->correction_ppb = ppb_range.clip(new_value);
+	const auto clipped_value = ppb_range.clip(new_value);
+	data->correction_ppb = clipped_value;
+	portapack::clock_manager.set_reference_ppb(clipped_value);
 }
 
 } /* namespace persistent_memory */
