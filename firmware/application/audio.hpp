@@ -22,72 +22,47 @@
 #ifndef __AUDIO_H__
 #define __AUDIO_H__
 
-#include "i2s.hpp"
-using namespace lpc43xx;
+#include "volume.hpp"
+
+#include <cstdint>
 
 namespace audio {
 
-constexpr i2s::ConfigTX i2s0_config_tx {
-	.dao = i2s::DAO {
-		.wordwidth = i2s::WordWidth::Bits16,
-		.mono = 0,
-		.stop = 1,
-		.reset = 0,
-		.ws_sel = 0,
-		.ws_halfperiod = 0x0f,
-		.mute = 1,
-	},
-	.txrate = i2s::MCLKRate {
-		.x_divider = 0,
-		.y_divider = 0,
-	},
-	.txbitrate = i2s::BitRate {
-		.bitrate = 7,
-	},
-	.txmode = i2s::Mode {
-		.clksel = i2s::ClockSelect::BaseAudioClkOrExternalMCLK,
-		.four_pin = 0,
-		.mclk_out_en = 1,
-	},
+namespace output {
+
+void start();
+void stop();
+
+void mute();
+void unmute();
+
+} /* namespace output */
+
+namespace headphone {
+
+volume_range_t volume_range();
+
+void set_volume(const volume_t volume);
+
+} /* namespace headphone */
+
+namespace debug {
+
+int reg_count();
+uint16_t reg_read(const int register_number);
+
+} /* namespace debug */
+
+void init();
+void shutdown();
+
+enum class Rate {
+	Hz_12000 = 4,
+	Hz_24000 = 2,
+	Hz_48000 = 1,
 };
 
-constexpr i2s::ConfigRX i2s0_config_rx {
-	.dai = i2s::DAI {
-		.wordwidth = i2s::WordWidth::Bits16,
-		.mono = 0,
-		.stop = 1,
-		.reset = 0,
-		.ws_sel = 1,
-		.ws_halfperiod = 0x0f,
-	},
-	.rxrate = i2s::MCLKRate {
-		.x_divider = 0,
-		.y_divider = 0,
-	},
-	.rxbitrate = i2s::BitRate {
-		.bitrate = 7,
-	},
-	.rxmode = i2s::Mode {
-		.clksel = i2s::ClockSelect::BaseAudioClkOrExternalMCLK,
-		.four_pin = 1,
-		.mclk_out_en = 0,
-	},
-};
-
-constexpr i2s::ConfigDMA i2s0_config_dma {
-	.dma1 = i2s::DMA {
-		.rx_enable = 1,
-		.tx_enable = 0,
-		.rx_depth = 4,
-		.tx_depth = 0,
-	},
-	.dma2 = i2s::DMA {
-		.rx_enable = 0,
-		.tx_enable = 1,
-		.rx_depth = 0,
-		.tx_depth = 4,
-	},
-};
+void set_rate(const Rate rate);
 
 } /* namespace audio */
 

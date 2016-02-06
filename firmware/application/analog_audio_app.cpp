@@ -25,8 +25,7 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
-#include "i2s.hpp"
-using namespace lpc43xx;
+#include "audio.hpp"
 
 #include "utility.hpp"
 
@@ -128,10 +127,12 @@ AnalogAudioView::AnalogAudioView(
 		this->on_show_options_modulation();
 	};
 
-	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
+	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
 	};
+
+	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
 }
@@ -139,9 +140,7 @@ AnalogAudioView::AnalogAudioView(
 AnalogAudioView::~AnalogAudioView() {
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
-	i2s::i2s0::tx_mute();
-
-	audio_codec.headphone_mute();
+	audio::output::stop();
 
 	receiver_model.disable();
 }
@@ -286,11 +285,13 @@ void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
 }
 
 void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
-	const auto new_volume = volume_t::decibel(v - 99) + wolfson::wm8731::headphone_gain_range.max;
+	const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
 	receiver_model.set_headphone_volume(new_volume);
 }
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
+	audio::output::mute();
+
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(modulation),
@@ -300,7 +301,9 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
 
-	i2s::i2s0::tx_unmute();
+	if( !is_wideband_spectrum_mode ) {
+		audio::output::unmute();
+	}
 }
 
 } /* namespace ui */

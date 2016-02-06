@@ -56,10 +56,6 @@ constexpr GPIO gpio_cpld_tdo = gpio[GPIO1_8];	// P1_5
 constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];	// P6_1
 constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];	// P6_2
 
-/* I2C0 */
-
-constexpr uint8_t wm8731_i2c_address = 0x1a;
-
 } /* namespace portapack */
 
 #endif/*__PORTAPACK_HAL_H__*/

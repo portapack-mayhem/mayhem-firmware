@@ -26,6 +26,8 @@
 #include "radio.hpp"
 #include "string_format.hpp"
 
+#include "audio.hpp"
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -260,8 +262,8 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
 		{ "WM8731",      [&nav](){ nav.push<RegistersView>(
-			"WM8731", RegistersWidgetConfig { wolfson::wm8731::reg_count, 1, 3, 4 },
-			[](const size_t register_number) { return portapack::audio_codec.read(register_number); }
+			"WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 1, 3, 4 },
+			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
 		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
 	} });

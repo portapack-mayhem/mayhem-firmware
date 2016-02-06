@@ -26,6 +26,8 @@
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "audio.hpp"
+
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
@@ -62,7 +64,7 @@ void AMConfig::apply() const {
 		audio_12k_hpf_300hz_config
 	};
 	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(4);
+	audio::set_rate(audio::Rate::Hz_12000);
 }
 
 void NBFMConfig::apply() const {
@@ -76,7 +78,7 @@ void NBFMConfig::apply() const {
 		audio_24k_deemph_300_6_config
 	};
 	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(2);
+	audio::set_rate(audio::Rate::Hz_24000);
 }
 
 void WFMConfig::apply() const {
@@ -89,7 +91,7 @@ void WFMConfig::apply() const {
 		audio_48k_deemph_2122_6_config
 	};
 	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(1);
+	audio::set_rate(audio::Rate::Hz_48000);
 }
 
 static constexpr std::array<AMConfig, 3> am_configs { {
@@ -314,7 +316,7 @@ void ReceiverModel::update_headphone_volume() {
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
 
-	audio_codec.set_headphone_volume(headphone_volume_);
+	audio::headphone::set_volume(headphone_volume_);
 }
 
 void ReceiverModel::update_modulation_configuration() {
