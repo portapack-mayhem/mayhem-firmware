@@ -148,6 +148,10 @@ void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
 	second_if.set_lpf_rf_bandwidth(bandwidth_minimum);
 }
 
+void set_baseband_rate(const uint32_t rate) {
+	portapack::clock_manager.set_sampling_frequency(rate);
+}
+
 void set_baseband_decimation_by(const size_t n) {
 	baseband_cpld.set_decimation_by(n);
 }

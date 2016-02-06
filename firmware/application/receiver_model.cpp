@@ -304,7 +304,7 @@ void ReceiverModel::update_baseband_configuration() {
 	// Disabling baseband while changing sampling rates seems like a good idea...
 	baseband_disable();
 
-	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
+	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
 

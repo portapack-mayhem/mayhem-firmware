@@ -41,6 +41,7 @@ void set_lna_gain(const int_fast8_t db);
 void set_vga_gain(const int_fast8_t db);
 void set_sampling_frequency(const uint32_t frequency);
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
+void set_baseband_rate(const uint32_t rate);
 void set_baseband_decimation_by(const size_t n);
 void set_antenna_bias(const bool on);
 
