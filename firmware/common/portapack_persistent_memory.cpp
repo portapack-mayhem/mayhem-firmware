@@ -25,6 +25,9 @@
 
 #include "utility.hpp"
 
+#include "memory_map.hpp"
+using portapack::memory::map::backup_ram;
+
 #include <algorithm>
 #include <utility>
 
@@ -43,9 +46,9 @@ struct data_t {
 	int32_t correction_ppb;
 };
 
-static_assert(sizeof(data_t) <= 0x100, "Persistent memory structure too large for VBAT-maintained region");
+static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
 
-static data_t* const data = reinterpret_cast<data_t*>(LPC_BACKUP_REG_BASE);
+static data_t* const data = reinterpret_cast<data_t*>(backup_ram.base());
 
 rf::Frequency tuned_frequency() {
 	rf::tuning_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
