@@ -130,6 +130,10 @@ bool Widget::focusable() const {
 	return flags.focusable;
 }
 
+void Widget::set_focusable(const bool value) {
+	flags.focusable = value;
+}
+
 bool Widget::has_focus() {
 	return (context().focus_manager().focus_widget() == this);
 }
@@ -198,6 +202,14 @@ void Widget::visible(bool v) {
 			}
 		}
 	}
+}
+
+bool Widget::highlighted() const {
+	return flags.highlighted;
+}
+
+void Widget::set_highlighted(const bool value) {
+	flags.highlighted = value;
 }
 
 void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
@@ -322,7 +334,7 @@ void Text::paint(Painter& painter) {
 ) : Widget { parent_rect },
 	text_ { text }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 void Button::set_text(const std::string value) {
@@ -337,7 +349,7 @@ std::string Button::text() const {
 void Button::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 
 	painter.draw_rectangle(r, style().foreground);
 
@@ -368,13 +380,13 @@ bool Button::on_key(const KeyEvent key) {
 bool Button::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
-		flags.highlighted = true;
+		set_highlighted(true);
 		set_dirty();
 		return true;
 
 
 	case TouchEvent::Type::End:
-		flags.highlighted = false;
+		set_highlighted(false);
 		set_dirty();
 		if( on_select ) {
 			on_select(*this);
@@ -454,7 +466,7 @@ void Image::set_background(const Color color) {
 void Image::paint(Painter& painter) {
 	if( bitmap_ ) {
 		// Code also handles ImageButton behavior.
-		const bool selected = (has_focus() || flags.highlighted);
+		const bool selected = (has_focus() || highlighted());
 		painter.draw_bitmap(
 			screen_pos(),
 			*bitmap_,
@@ -475,7 +487,7 @@ ImageButton::ImageButton(
 	const Color background
 ) : Image { parent_rect, bitmap, foreground, background }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 bool ImageButton::on_key(const KeyEvent key) {
@@ -492,13 +504,13 @@ bool ImageButton::on_key(const KeyEvent key) {
 bool ImageButton::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
-		flags.highlighted = true;
+		set_highlighted(true);
 		set_dirty();
 		return true;
 
 
 	case TouchEvent::Type::End:
-		flags.highlighted = false;
+		set_highlighted(false);
 		set_dirty();
 		if( on_select ) {
 			on_select(*this);
@@ -520,7 +532,7 @@ OptionsField::OptionsField(
 	length_ { length },
 	options { options }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 size_t OptionsField::selected_index() const {
@@ -595,7 +607,7 @@ NumberField::NumberField(
 	length_ { length },
 	fill_char { fill_char }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 int32_t NumberField::value() const {

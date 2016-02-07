@@ -53,8 +53,6 @@ public:
 
 private:
 	const MenuItem item;
-
-	void set_highlight(const bool value);
 };
 
 class MenuView : public View {
@@ -62,7 +60,7 @@ public:
 	std::function<void(void)> on_left;
 
 	MenuView() {
-		flags.focusable = true;
+		set_focusable(true);
 	}
 
 	~MenuView();

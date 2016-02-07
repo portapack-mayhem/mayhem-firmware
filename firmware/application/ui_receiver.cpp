@@ -38,7 +38,7 @@ FrequencyField::FrequencyField(
 	length_ { 11 },
 	range(rf::tuning_range)
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 rf::Frequency FrequencyField::value() const {
