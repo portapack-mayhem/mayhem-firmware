@@ -29,7 +29,7 @@ struct Metrics {
 	const float r;
 };
 
-static Metrics calculate_metrics(const Frame frame) {
+static Metrics calculate_metrics(const Frame& frame) {
 	/* TODO: Yikes! M0 doesn't have floating point, so this code is
 	 * expensive! On the other hand, it seems to be working well (and
 	 * fast *enough*?), so maybe leave it alone at least for now.
@@ -66,7 +66,7 @@ static Metrics calculate_metrics(const Frame frame) {
 	};
 }
 
-void Manager::feed(const Frame frame) {
+void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
 	//const auto touch_stable = touch_debounce.state();

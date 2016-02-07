@@ -165,7 +165,7 @@ class Manager {
 public:
 	std::function<void(ui::TouchEvent)> on_event;
 
-	void feed(const Frame frame);
+	void feed(const Frame& frame);
 
 private:
 	enum State {
