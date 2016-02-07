@@ -59,8 +59,9 @@ SystemStatusView::SystemStatusView() {
 	};
 }
 
-void SystemStatusView::set_back_visible(bool new_value) {
-	button_back.hidden(!new_value);
+void SystemStatusView::set_back_enabled(bool new_value) {
+	button_back.set_text(new_value ? back_text_enabled : back_text_disabled);
+	button_back.set_focusable(new_value);
 }
 
 void SystemStatusView::set_title(const std::string new_value) {
@@ -193,7 +194,7 @@ SystemView::SystemView(
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
 	navigation_view.on_view_changed = [this](const View& new_view) {
-		this->status_view.set_back_visible(!this->navigation_view.is_top());
+		this->status_view.set_back_enabled(!this->navigation_view.is_top());
 		this->status_view.set_title(new_view.title());
 	};
 

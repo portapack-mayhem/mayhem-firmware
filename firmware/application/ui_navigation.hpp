@@ -66,15 +66,17 @@ public:
 
 	SystemStatusView();
 
-	void set_back_visible(bool new_value);
+	void set_back_enabled(bool new_value);
 	void set_title(const std::string new_value);
 
 private:
 	static constexpr auto default_title = "PortaPack";
+	static constexpr auto back_text_enabled = " < ";
+	static constexpr auto back_text_disabled = " * ";
 
 	Button button_back {
 		{ 0 * 8, 0 * 16, 3 * 8, 16 },
-		" < ",
+		back_text_disabled,
 	};
 
 	Text title {
