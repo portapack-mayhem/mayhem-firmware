@@ -151,8 +151,6 @@ public:
 
 	// TODO: ~View() should on_hide() all children?
 
-	void set_parent_rect(const Rect new_parent_rect) override;
-
 	void paint(Painter& painter) override;
 
 	void add_child(Widget* const widget);
@@ -164,7 +162,6 @@ public:
 
 protected:
 	std::vector<Widget*> children_;
-	Rect dirty_screen_rect;
 
 	void invalidate_child(Widget* const widget);
 };

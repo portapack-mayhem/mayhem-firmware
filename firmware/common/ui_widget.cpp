@@ -222,11 +222,6 @@ void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
 
 /* View ******************************************************************/
 
-void View::set_parent_rect(const Rect new_parent_rect) {
-	Widget::set_parent_rect(new_parent_rect);
-	dirty_screen_rect += screen_rect();
-}
-
 void View::paint(Painter& painter) {
 	painter.fill_rectangle(
 		screen_rect(),
