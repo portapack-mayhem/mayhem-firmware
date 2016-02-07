@@ -47,7 +47,7 @@ bool is_dirty() {
 /* Widget ****************************************************************/
 
 Point Widget::screen_pos() {
-	return parent() ? (parent()->screen_pos() + parent_rect.pos) : parent_rect.pos;
+	return screen_rect().pos;
 }
 
 Size Widget::size() const {
