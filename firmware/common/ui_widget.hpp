@@ -160,8 +160,6 @@ public:
 	void remove_child(Widget* const widget);
 	const std::vector<Widget*> children() const override;
 
-	virtual Widget* initial_focus();
-
 	virtual std::string title() const;
 
 protected:

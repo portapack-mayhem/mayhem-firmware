@@ -262,10 +262,6 @@ const std::vector<Widget*> View::children() const {
 	return children_;
 }
 
-Widget* View::initial_focus() {
-	return nullptr;
-}
-
 std::string View::title() const {
 	return "";
 };
