@@ -563,20 +563,18 @@ buffer_c16_t DecimateBy2CIC3::execute(
 	 */
 	uint32_t t1 = _iq0;
 	uint32_t t2 = _iq1;
-	uint32_t t3, t4;
 	const uint32_t taps = 0x00000003;
 	auto s = src.p;
 	auto d = dst.p;
 	const auto d_end = &dst.p[src.count / 2];
-	uint32_t i, q;
 	while(d < d_end) {
-		i = __SXTH(t1, 0);			/* 1: I0 */
-		q = __SXTH(t1, 16);			/* 1: Q0 */
+		uint32_t i = __SXTH(t1, 0);			/* 1: I0 */
+		uint32_t q = __SXTH(t1, 16);			/* 1: Q0 */
 		i = __SMLABB(t2, taps, i);	/* 1: I1*3 + I0 */
 		q = __SMLATB(t2, taps, q);	/* 1: Q1*3 + Q0 */
 
-		t3 = *__SIMD32(s)++;		/* 3: Q2:I2 */
-		t4 = *__SIMD32(s)++;		/*    Q3:I3 */
+		const uint32_t t3 = *__SIMD32(s)++;		/* 3: Q2:I2 */
+		const uint32_t t4 = *__SIMD32(s)++;		/*    Q3:I3 */
 
 		i = __SMLABB(t3, taps, i);	/* 1: I2*3 + I1*3 + I0 */
 		q = __SMLATB(t3, taps, q);	/* 1: Q2*3 + Q1*3 + Q0 */
