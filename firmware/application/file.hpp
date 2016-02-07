@@ -44,8 +44,6 @@ public:
 	bool sync();
 
 private:
-	const std::string file_path;
-	
 	FIL f;
 };
 

@@ -41,9 +41,6 @@ struct SetDateTimeModel {
 
 class SetDateTimeView : public View {
 public:
-	std::function<void(SetDateTimeModel)> on_ok;
-	std::function<void()> on_cancel;
-
 	SetDateTimeView(NavigationView& nav);
 
 	void focus() override;
@@ -138,9 +135,6 @@ struct SetFrequencyCorrectionModel {
 
 class SetFrequencyCorrectionView : public View {
 public:
-	std::function<void(SetFrequencyCorrectionModel)> on_ok;
-	std::function<void()> on_cancel;
-
 	SetFrequencyCorrectionView(NavigationView& nav);
 
 	void focus() override;
