@@ -94,7 +94,7 @@ public:
 	virtual bool on_key(const KeyEvent event);
 	virtual bool on_encoder(const EncoderEvent event);
 	virtual bool on_touch(const TouchEvent event);
-	virtual const std::vector<Widget*> children() const;
+	virtual const std::vector<Widget*>& children() const;
 
 	virtual Context& context() const;
 
@@ -136,6 +136,8 @@ private:
 		.highlighted = false,
 		.visible = false,
 	};
+
+	static const std::vector<Widget*> no_children;
 };
 
 class View : public Widget {
@@ -154,7 +156,7 @@ public:
 	void add_child(Widget* const widget);
 	void add_children(const std::vector<Widget*>& children);
 	void remove_child(Widget* const widget);
-	const std::vector<Widget*> children() const override;
+	const std::vector<Widget*>& children() const override;
 
 	virtual std::string title() const;
 

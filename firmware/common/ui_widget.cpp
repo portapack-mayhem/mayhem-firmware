@@ -46,6 +46,8 @@ bool is_dirty() {
 
 /* Widget ****************************************************************/
 
+const std::vector<Widget*> Widget::no_children { };
+
 Point Widget::screen_pos() {
 	return screen_rect().pos;
 }
@@ -153,8 +155,8 @@ bool Widget::on_touch(const TouchEvent event) {
 	return false;
 }
 
-const std::vector<Widget*> Widget::children() const {
-	return { };
+const std::vector<Widget*>& Widget::children() const {
+	return no_children;
 }
 
 Context& Widget::context() const {
@@ -244,7 +246,7 @@ void View::remove_child(Widget* const widget) {
 	}
 }
 
-const std::vector<Widget*> View::children() const {
+const std::vector<Widget*>& View::children() const {
 	return children_;
 }
 
