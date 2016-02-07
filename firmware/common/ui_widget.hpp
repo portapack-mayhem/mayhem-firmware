@@ -115,14 +115,14 @@ public:
 	void set_highlighted(const bool value);
 
 protected:
+	void dirty_overlapping_children_in_rect(const Rect& child_rect);
+
+private:
 	/* Widget rectangle relative to parent pos(). */
 	Rect parent_rect;
 	const Style* style_ { nullptr };
 	Widget* parent_ { nullptr };
 
-	void dirty_overlapping_children_in_rect(const Rect& child_rect);
-
-private:
 	struct flags_t {
 		bool dirty : 1;			// Widget content has changed.
 		bool hidden : 1;		// Hide widget and children.

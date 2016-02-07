@@ -175,7 +175,7 @@ SystemView::SystemView(
 ) : View { parent_rect },
 	context_(context)
 {
-	style_ = &style_default;
+	set_style(&style_default);
 
 	constexpr ui::Dim status_view_height = 16;
 
