@@ -138,15 +138,6 @@ bool Widget::has_focus() {
 	return (context().focus_manager().focus_widget() == this);
 }
 
-Widget* Widget::last_child_focus() const {
-	return nullptr;
-}
-
-void Widget::set_last_child_focus(Widget* const child) {
-	// Ignore.
-	(void)child;
-}
-
 bool Widget::on_key(const KeyEvent event) {
 	(void)event;
 	return false;

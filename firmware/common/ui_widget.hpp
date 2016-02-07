@@ -85,8 +85,6 @@ public:
 	bool focusable() const;
 	void set_focusable(const bool value);
 	bool has_focus();
-	virtual Widget* last_child_focus() const;
-	virtual void set_last_child_focus(Widget* const child);
 
 	virtual void paint(Painter& painter) = 0;
 
