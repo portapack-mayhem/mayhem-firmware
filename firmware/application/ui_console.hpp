@@ -33,8 +33,8 @@ namespace ui {
 class Console : public Widget {
 public:
 	void clear();
-	void write(const std::string message);
-	void writeln(const std::string message);
+	void write(const std::string& message);
+	void writeln(const std::string& message);
 
 	void paint(Painter& painter) override;
 	

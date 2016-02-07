@@ -31,7 +31,7 @@ class File {
 public:
 	~File();
 
-	bool open_for_append(const std::string file_path);
+	bool open_for_append(const std::string& file_path);
 	bool close();
 
 	bool is_ready();
@@ -39,7 +39,7 @@ public:
 	bool read(void* const data, const size_t bytes_to_read);
 	bool write(const void* const data, const size_t bytes_to_write);
 
-	bool puts(const std::string string);
+	bool puts(const std::string& string);
 
 	bool sync();
 

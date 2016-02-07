@@ -25,7 +25,7 @@ File::~File() {
 	close();
 }
 
-bool File::open_for_append(const std::string file_path) {
+bool File::open_for_append(const std::string& file_path) {
 	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
 	if( open_result == FR_OK ) {
 		const auto seek_result = f_lseek(&f, f_size(&f));
@@ -60,7 +60,7 @@ bool File::write(const void* const data, const size_t bytes_to_write) {
 	return (result == FR_OK) && (bytes_written == bytes_to_write);
 }
 
-bool File::puts(const std::string string) {
+bool File::puts(const std::string& string) {
 	const auto result = f_puts(string.c_str(), &f);
 	return (result >= 0);
 }

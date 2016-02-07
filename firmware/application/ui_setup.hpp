@@ -128,7 +128,7 @@ private:
 		"Cancel",
 	};
 
-	void form_init(const SetDateTimeModel model);
+	void form_init(const SetDateTimeModel& model);
 	SetDateTimeModel form_collect();
 };
 
@@ -172,7 +172,7 @@ private:
 		"Cancel",
 	};
 
-	void form_init(const SetFrequencyCorrectionModel model);
+	void form_init(const SetFrequencyCorrectionModel& model);
 	SetFrequencyCorrectionModel form_collect();
 };
 
