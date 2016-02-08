@@ -61,10 +61,14 @@ uint32_t gcd(const uint32_t u, const uint32_t v) {
 #endif
 
 float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
-	constexpr float mag2_max = -32768.0f * -32768.0f + -32768.0f * -32768.0f;
-	constexpr float mag2_log10_max = std::log10(mag2_max);
-	constexpr float mag2_to_db_factor = 20.0f / 2.0f;
-	return (std::log10(c16_mag_squared) - mag2_log10_max) * mag2_to_db_factor;
+	constexpr float input_component_max = 32768;
+	constexpr float mag2_max = (input_component_max * input_component_max) * 2;
+	constexpr float mag2_log2_max = std::log2(mag2_max);
+	constexpr float log_mag2_mag_factor = 0.5f;
+	constexpr float log2_log10_factor = std::log10(2.0f);
+	constexpr float log10_dbv_factor = 20.0f;
+	constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
+	return (std::log2(c16_mag_squared) - mag2_log2_max) * mag2_to_db_factor;
 }
 
 /* GCD implementation derived from recursive implementation at
