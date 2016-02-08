@@ -36,13 +36,7 @@ struct Color {
 	) : v { 0 }
 	{
 	}
-/*
-	explicit constexpr Color(
-		const uint32_t value
-	) : v { static_cast<uint16_t>(value) }
-	{
-	}
-*/
+
 	constexpr Color(
 		uint8_t r,
 		uint8_t g,
@@ -80,14 +74,7 @@ struct Color {
 		return { 255, 255, 255 };
 	}
 };
-#if 0
-enum class CardinalDirection : uint8_t {
-	West,
-	South,
-	North,
-	East,
-};
-#endif
+
 struct Point {
 	Coord x;
 	Coord y;
@@ -123,41 +110,6 @@ struct Point {
 		y += p.y;
 		return *this;
 	}
-#if 0
-	uint32_t magnitude_squared() const {
-		return (x * x) + (y * y);
-	}
-
-	CardinalDirection cardinal_direction() const {
-		/* TODO: Doesn't handle 0,0 */
-
-		const auto rotated = sloppy_rotate_by_45_degrees();
-
-		if( rotated.x > 0 ) {
-			if( rotated.y > 0 ) {
-				return CardinalDirection::East;
-			} else {
-				// y<=0
-				return CardinalDirection::North;
-			}
-		} else {
-			// x<=0
-			if( rotated.y > 0 ) {
-				return CardinalDirection::South;
-			} else {
-				return CardinalDirection::West;
-			}
-		}
-	}
-
-private:
-	Point sloppy_rotate_by_45_degrees() const {
-		/* Clockwise rotate (in screen coordinates), with a gain in
-		 * magnitude of sqrt(2).
-		 */
-		return { x - y, x + y };
-	}
-#endif
 };
 
 struct Size {
@@ -208,7 +160,6 @@ struct Rect {
 		size(size)
 	{
 	}
-
 	
 	int top() const {
 		return pos.y;
