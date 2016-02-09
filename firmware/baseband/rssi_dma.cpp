@@ -33,6 +33,8 @@ using namespace lpc43xx;
 #include "portapack_dma.hpp"
 #include "portapack_adc.hpp"
 
+#include "thread_wait.hpp"
+
 namespace rf {
 namespace rssi {
 namespace dma {
@@ -99,20 +101,19 @@ static buffers_config_t			buffers_config;
 static sample_t				*samples	{ nullptr };
 static gpdma::channel::LLI	*lli		{ nullptr };
 
-static Semaphore semaphore;
-static volatile const gpdma::channel::LLI* next_lli = nullptr;
+static ThreadWait thread_wait;
 
 static void transfer_complete() {
-	next_lli = gpdma_channel.next_lli();
-	chSemSignalI(&semaphore);
+	const auto next_lli_index = gpdma_channel.next_lli() - &lli[0];
+	thread_wait.wake_from_interrupt(next_lli_index);
 }
 
 static void dma_error() {
+	thread_wait.wake_from_interrupt(-1);
 	disable();
 }
 
 void init() {
-	chSemInit(&semaphore, 0);
 	gpdma_channel.set_handlers(transfer_complete, dma_error);
 
 	// LPC_GPDMA->SYNC |= (1 << gpdma_peripheral);
@@ -147,8 +148,6 @@ void free() {
 void enable() {
 	const auto gpdma_config = config();
 	gpdma_channel.configure(lli[0], gpdma_config);
-
-	chSemReset(&semaphore, 0);
 	gpdma_channel.enable();
 }
 
@@ -161,16 +160,11 @@ void disable() {
 }
 
 rf::rssi::buffer_t wait_for_buffer() {
-	const auto status = chSemWait(&semaphore);
-	if( status == RDY_OK ) {
-		const auto next = next_lli;
-		if( next ) {
-			const size_t next_index = next - &lli[0];
-			const size_t free_index = (next_index + buffers_config.count - 2) % buffers_config.count;
-			return { reinterpret_cast<sample_t*>(lli[free_index].destaddr), buffers_config.items_per_buffer };
-		} else {
-			return { nullptr, 0 };
-		}
+	const auto next_index = thread_wait.sleep();
+
+	if( next_index >= 0 ) {
+		const size_t free_index = (next_index + buffers_config.count - 2) % buffers_config.count;
+		return { reinterpret_cast<sample_t*>(lli[free_index].destaddr), buffers_config.items_per_buffer };
 	} else {
 		// TODO: Should I return here, or loop if RDY_RESET?
 		return { nullptr, 0 };

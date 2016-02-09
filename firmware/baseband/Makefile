@@ -126,6 +126,7 @@ CPPSRC = main.cpp \
          message_queue.cpp \
          event.cpp \
          event_m4.cpp \
+         thread_wait.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          baseband_sgpio.cpp \
