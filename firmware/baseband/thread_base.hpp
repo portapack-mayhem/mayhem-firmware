@@ -26,26 +26,17 @@
 
 class ThreadBase {
 public:
-	constexpr ThreadBase(
-		const char* const name
-	) : name { name }
-	{
-	}
-
 	virtual ~ThreadBase() = default;
 	
 protected:
 	static msg_t fn(void* arg) {
 		auto obj = static_cast<ThreadBase*>(arg);
-		chRegSetThreadName(obj->name);
 		obj->run();
 
 		return 0;
 	}
 
 private:
-	const char* const name;
-
 	virtual void run() = 0;
 };
 

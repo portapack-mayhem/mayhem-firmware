@@ -30,11 +30,6 @@
 
 class BasebandThread : public ThreadBase {
 public:
-	BasebandThread(
-	) : ThreadBase { "baseband" }
-	{
-	}
-
 	Thread* start(const tprio_t priority);
 
 	void on_message(const Message* const message);

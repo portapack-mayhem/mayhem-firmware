@@ -129,7 +129,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_REGISTRY) || defined(__DOXYGEN__)
-#define CH_USE_REGISTRY                 TRUE
+#define CH_USE_REGISTRY                 FALSE
 #endif
 
 /**
