@@ -244,10 +244,12 @@ struct ChannelSpectrum {
 	uint32_t channel_filter_stop_frequency { 0 };
 };
 
-using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
+using ChannelSpectrumFIFO = FIFO<ChannelSpectrum>;
 
 class ChannelSpectrumConfigMessage : public Message {
 public:
+	static constexpr size_t fifo_k = 2;
+	
 	constexpr ChannelSpectrumConfigMessage(
 		ChannelSpectrumFIFO* fifo
 	) : Message { ID::ChannelSpectrumConfig },

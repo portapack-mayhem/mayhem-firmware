@@ -22,18 +22,24 @@
 #ifndef __FIFO_H__
 #define __FIFO_H__
 
+#include <cstddef>
 #include <algorithm>
 #include <cstring>
+#include <memory>
 
 #include <hal.h>
 
 /* FIFO implementation inspired by Linux kfifo. */
 
-template<typename T, size_t K>
+template<typename T>
 class FIFO {
 public:
 	constexpr FIFO(
-	) : _in { 0 },
+		T* data,
+		size_t k
+	) : _data { data },
+		_size { 1U << k },
+		_in { 0 },
 		_out { 0 }
 	{
 	}
@@ -150,15 +156,15 @@ public:
 	}
 
 private:
-	static constexpr size_t size() {
-		return (1UL << K);
+	size_t size() const {
+		return _size;
 	}
 
 	static constexpr size_t esize() {
 		return sizeof(T);
 	}
 
-	static constexpr size_t mask() {
+	size_t mask() const {
 		return size() - 1;
 	}
 
@@ -224,7 +230,8 @@ private:
 		return buf_len;
 	}
 
-	T _data[size()];
+	T* const _data;
+	const size_t _size;
 	volatile size_t _in;
 	volatile size_t _out;
 };

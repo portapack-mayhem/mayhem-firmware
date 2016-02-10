@@ -32,10 +32,13 @@ using namespace lpc43xx;
 
 #include <ch.h>
 
-template<size_t K>
 class MessageQueue {
 public:
-	MessageQueue() {
+	MessageQueue(
+		uint8_t* const data,
+		size_t k
+	) : fifo { data, k }
+	{
 		chMtxInit(&mutex_write);
 	}
 
@@ -80,7 +83,7 @@ public:
 	}
 
 private:
-	FIFO<uint8_t, K> fifo;
+	FIFO<uint8_t> fifo;
 	Mutex mutex_write;
 
 	bool push(const void* const buf, const size_t len) {
