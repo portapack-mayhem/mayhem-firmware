@@ -61,6 +61,14 @@ inline constexpr T pow(const T base, unsigned const exponent) {
 	return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
 }
 
+constexpr bool power_of_two(const size_t n) {
+	return (n & (n - 1)) == 0;
+}
+
+constexpr size_t log_2(const size_t n, const size_t p = 0) {
+	return (n <= 1) ? p : log_2(n / 2, p + 1);
+}
+
 float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared);
 
 inline float magnitude_squared(const std::complex<float> c) {
