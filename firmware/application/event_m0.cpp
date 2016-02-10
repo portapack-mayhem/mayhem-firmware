@@ -251,4 +251,6 @@ void EventDispatcher::init_message_queues() {
 	new (&shared_memory.application_queue) MessageQueue(
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
 	);
+
+	shared_memory.FIFO_HACK = nullptr;
 }

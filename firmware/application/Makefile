@@ -183,6 +183,7 @@ CPPSRC = main.cpp \
          file.cpp \
          log_file.cpp \
          png_writer.cpp \
+         audio_thread.cpp \
          manchester.cpp \
          string_format.cpp \
          temperature_logger.cpp \

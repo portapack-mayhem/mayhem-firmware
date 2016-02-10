@@ -135,6 +135,8 @@ AnalogAudioView::AnalogAudioView(
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
+
+	audio_thread = std::make_unique<AudioThread>("audio.s16");
 }
 
 AnalogAudioView::~AnalogAudioView() {

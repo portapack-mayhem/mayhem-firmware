@@ -27,6 +27,7 @@
 #include "dsp_iir.hpp"
 #include "dsp_squelch.hpp"
 
+#include "stream_input.hpp"
 #include "block_decimator.hpp"
 #include "audio_stats_collector.hpp"
 
@@ -53,12 +54,14 @@ private:
 	IIRBiquadFilter deemph;
 	FMSquelch squelch;
 
+	StreamInput stream;
+
 	AudioStatsCollector audio_stats;
 
 	uint64_t audio_present_history = 0;
 
 	void on_block(const buffer_f32_t& audio);
-	void fill_audio_buffer(const buffer_f32_t& audio);
+	void fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo);
 	void feed_audio_stats(const buffer_f32_t& audio);
 };
 

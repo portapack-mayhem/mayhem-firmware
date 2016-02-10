@@ -40,6 +40,7 @@ struct SharedMemory {
 	uint8_t baseband_queue_data[1 << baseband_queue_k];
 	MessageQueue application_queue;
 	uint8_t application_queue_data[1 << application_queue_k];
+	void* FIFO_HACK;
 
 	// TODO: M0 should directly configure and control DMA channel that is
 	// acquiring ADC samples.

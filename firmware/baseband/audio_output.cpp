@@ -83,15 +83,21 @@ void AudioOutput::on_block(
 		}
 	}
 
-	fill_audio_buffer(audio);
+	fill_audio_buffer(audio, audio_present);
 }
 
-void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio) {
+void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo) {
+	std::array<int16_t, 32> audio_int;
+
 	auto audio_buffer = audio::dma::tx_empty_buffer();
 	for(size_t i=0; i<audio_buffer.count; i++) {
 		const int32_t sample_int = audio.p[i] * k;
 		const int32_t sample_saturated = __SSAT(sample_int, 16);
 		audio_buffer.p[i].left = audio_buffer.p[i].right = sample_saturated;
+		audio_int[i] = sample_saturated;
+	}
+	if( send_to_fifo ) {
+		stream.write(audio_int.data(), audio_int.size() * sizeof(int16_t));
 	}
 
 	feed_audio_stats(audio);

@@ -27,6 +27,8 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 
+#include "audio_thread.hpp"
+
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
@@ -145,6 +147,8 @@ private:
 	std::unique_ptr<Widget> options_widget;
 
 	spectrum::WaterfallWidget waterfall;
+
+	std::unique_ptr<AudioThread> audio_thread;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
