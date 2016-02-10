@@ -22,6 +22,7 @@
 #include "analog_audio_app.hpp"
 
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
@@ -225,7 +226,7 @@ void AnalogAudioView::on_show_options_frequency() {
 	widget->on_change_step = [this](rf::Frequency f) {
 		this->on_frequency_step_changed(f);
 	};
-	widget->set_reference_ppm_correction(receiver_model.reference_ppm_correction());
+	widget->set_reference_ppm_correction(persistent_memory::correction_ppb() / 1000);
 	widget->on_change_reference_ppm_correction = [this](int32_t v) {
 		this->on_reference_ppm_correction_changed(v);
 	};
@@ -281,7 +282,7 @@ void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
 }
 
 void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
-	receiver_model.set_reference_ppm_correction(v);
+	persistent_memory::set_correction_ppb(v * 1000);
 }
 
 void AnalogAudioView::on_headphone_volume_changed(int32_t v) {

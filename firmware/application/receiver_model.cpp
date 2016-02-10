@@ -129,14 +129,6 @@ void ReceiverModel::set_frequency_step(rf::Frequency f) {
 	frequency_step_ = f;
 }
 
-int32_t ReceiverModel::reference_ppm_correction() const {
-	return persistent_memory::correction_ppb() / 1000;
-}
-
-void ReceiverModel::set_reference_ppm_correction(int32_t v) {
-	persistent_memory::set_correction_ppb(v * 1000);
-}
-
 bool ReceiverModel::antenna_bias() const {
 	return antenna_bias_;
 }
