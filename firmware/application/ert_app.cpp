@@ -131,14 +131,14 @@ ERTAppView::ERTAppView(NavigationView&) {
 		}
 	);
 
-	radio::set_tuning_frequency(initial_target_frequency);
-	radio::set_rf_amp(false);
-	radio::set_lna_gain(32);
-	radio::set_vga_gain(32);
-	radio::set_baseband_rate(sampling_rate);
-	radio::set_baseband_decimation_by(1);
-	radio::set_baseband_filter_bandwidth(baseband_bandwidth);
-	radio::set_direction(rf::Direction::Receive);
+	radio::enable({
+		initial_target_frequency,
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Receive,
+		false, 32, 32,
+		1,
+	});
 
 	BasebandConfigurationMessage message { {
 		.mode = 6,

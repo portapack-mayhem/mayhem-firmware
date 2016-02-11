@@ -32,6 +32,17 @@
 
 namespace radio {
 
+struct Configuration {
+	rf::Frequency tuning_frequency;
+	uint32_t baseband_rate;
+	uint32_t baseband_filter_bandwidth;
+	rf::Direction direction;
+	bool rf_amp;
+	int8_t lna_gain;
+	int8_t vga_gain;
+	uint8_t baseband_decimation;
+};
+
 void init();
 
 void set_direction(const rf::Direction new_direction);
@@ -44,6 +55,8 @@ void set_baseband_rate(const uint32_t rate);
 void set_baseband_decimation_by(const size_t n);
 void set_antenna_bias(const bool on);
 
+void enable(Configuration configuration);
+void configure(Configuration configuration);
 void disable();
 
 extern rffc507x::RFFC507x first_if;

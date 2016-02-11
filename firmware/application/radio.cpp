@@ -169,4 +169,19 @@ void disable() {
 	set_rf_amp(false);
 }
 
+void enable(Configuration configuration) {
+	configure(configuration);
+}
+
+void configure(Configuration configuration) {
+	set_tuning_frequency(configuration.tuning_frequency);
+	set_rf_amp(configuration.rf_amp);
+	set_lna_gain(configuration.lna_gain);
+	set_vga_gain(configuration.vga_gain);
+	set_baseband_rate(configuration.baseband_rate);
+	set_baseband_decimation_by(configuration.baseband_decimation);
+	set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
+	set_direction(configuration.direction);
+}
+
 } /* namespace radio */
