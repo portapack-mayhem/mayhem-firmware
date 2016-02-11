@@ -24,7 +24,6 @@
 #include "rf_path.hpp"
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
-#include "portapack_shared_memory.hpp"
 
 #include "tuning.hpp"
 

@@ -23,7 +23,6 @@
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "audio.hpp"
