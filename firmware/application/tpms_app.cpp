@@ -249,7 +249,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	BasebandConfigurationMessage message { {
 		.mode = 5,
-		.sampling_rate = 2457600,
+		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	} };
 	shared_memory.baseband_queue.push(message);
