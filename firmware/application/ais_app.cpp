@@ -25,7 +25,7 @@
 
 #include "string_format.hpp"
 
-#include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include <algorithm>
@@ -340,22 +340,27 @@ AISAppView::AISAppView(NavigationView&) {
 			}
 		}
 	);
+	
+	set_target_frequency(initial_target_frequency);
+	radio::set_rf_amp(false);
+	radio::set_lna_gain(32);
+	radio::set_vga_gain(32);
+	radio::set_baseband_rate(sampling_rate);
+	radio::set_baseband_decimation_by(1);
+	radio::set_baseband_filter_bandwidth(baseband_bandwidth);
+	radio::set_direction(rf::Direction::Receive);
+
+	BasebandConfigurationMessage message { {
+		.mode = 3,
+		.sampling_rate = sampling_rate,
+		.decimation_factor = 1,
+	} };
+	shared_memory.baseband_queue.push(message);
 
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
-	options_channel.set_by_value(162025000);
-	
-	receiver_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-	receiver_model.set_rf_amp(false);
-	receiver_model.set_lna(32);
-	receiver_model.set_vga(32);
-	receiver_model.enable();
+	options_channel.set_by_value(target_frequency());
 
 	recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
 		this->on_show_detail(entry);
@@ -366,7 +371,13 @@ AISAppView::AISAppView(NavigationView&) {
 }
 
 AISAppView::~AISAppView() {
-	receiver_model.disable();
+	shared_memory.baseband_queue.push_and_wait(
+		BasebandConfigurationMessage {
+			.configuration = { },
+		}
+	);
+	radio::disable();
+
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
@@ -405,8 +416,21 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
 	recent_entry_detail_view.focus();
 }
 
-void AISAppView::on_frequency_changed(const uint32_t new_frequency) {
-	receiver_model.set_tuning_frequency(new_frequency);
+void AISAppView::on_frequency_changed(const uint32_t new_target_frequency) {
+	set_target_frequency(new_target_frequency);
+}
+
+void AISAppView::set_target_frequency(const uint32_t new_value) {
+	target_frequency_ = new_value;
+	radio::set_tuning_frequency(tuning_frequency());
+}
+
+uint32_t AISAppView::target_frequency() const {
+	return target_frequency_;
+}
+
+uint32_t AISAppView::tuning_frequency() const {
+	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

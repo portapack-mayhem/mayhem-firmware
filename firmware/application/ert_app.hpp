@@ -74,6 +74,10 @@ using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
 
 class ERTAppView : public View {
 public:
+	static constexpr uint32_t initial_target_frequency = 911600000;
+	static constexpr uint32_t sampling_rate = 4194304;
+	static constexpr uint32_t baseband_bandwidth = 2500000;
+
 	ERTAppView(NavigationView& nav);
 	~ERTAppView();
 

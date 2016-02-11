@@ -23,7 +23,7 @@
 
 #include "event_m0.hpp"
 
-#include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "string_format.hpp"
@@ -137,13 +137,12 @@ size_t Packet::crc_valid_length() const {
 
 } /* namespace tpms */
 
-void TPMSLogger::on_packet(const tpms::Packet& packet) {
+void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
 	const auto hex_formatted = packet.symbols_formatted();
 
 	if( log_file.is_ready() ) {
-		const auto tuning_frequency = receiver_model.tuning_frequency();
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-		const auto tuning_frequency_str = to_string_dec_uint(tuning_frequency, 10);
+		const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
 
 		std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
 		log_file.write_entry(packet.received_at(), entry);
@@ -239,21 +238,31 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		}
 	);
 
-	receiver_model.set_baseband_configuration({
+	radio::set_tuning_frequency(tuning_frequency());
+	radio::set_rf_amp(false);
+	radio::set_lna_gain(32);
+	radio::set_vga_gain(32);
+	radio::set_baseband_rate(sampling_rate);
+	radio::set_baseband_decimation_by(1);
+	radio::set_baseband_filter_bandwidth(baseband_bandwidth);
+	radio::set_direction(rf::Direction::Receive);
+
+	BasebandConfigurationMessage message { {
 		.mode = 5,
 		.sampling_rate = 2457600,
 		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-	receiver_model.set_rf_amp(false);
-	receiver_model.set_lna(32);
-	receiver_model.set_vga(32);
-	receiver_model.set_tuning_frequency(315000000);
-	receiver_model.enable();
+	} };
+	shared_memory.baseband_queue.push(message);
 }
 
 TPMSAppView::~TPMSAppView() {
-	receiver_model.disable();
+	shared_memory.baseband_queue.push_and_wait(
+		BasebandConfigurationMessage {
+			.configuration = { },
+		}
+	);
+	radio::disable();
+
 	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
 }
 
@@ -267,7 +276,7 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
-	logger.on_packet(packet);
+	logger.on_packet(packet, target_frequency());
 
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
@@ -280,6 +289,14 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 void TPMSAppView::on_show_list() {
 	recent_entries_view.hidden(false);
 	recent_entries_view.focus();
+}
+
+uint32_t TPMSAppView::target_frequency() const {
+	return initial_target_frequency;
+}
+
+uint32_t TPMSAppView::tuning_frequency() const {
+	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

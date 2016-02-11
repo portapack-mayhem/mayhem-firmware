@@ -23,7 +23,7 @@
 
 #include "event_m0.hpp"
 
-#include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "manchester.hpp"
@@ -131,21 +131,31 @@ ERTAppView::ERTAppView(NavigationView&) {
 		}
 	);
 
-	receiver_model.set_baseband_configuration({
+	radio::set_tuning_frequency(initial_target_frequency);
+	radio::set_rf_amp(false);
+	radio::set_lna_gain(32);
+	radio::set_vga_gain(32);
+	radio::set_baseband_rate(sampling_rate);
+	radio::set_baseband_decimation_by(1);
+	radio::set_baseband_filter_bandwidth(baseband_bandwidth);
+	radio::set_direction(rf::Direction::Receive);
+
+	BasebandConfigurationMessage message { {
 		.mode = 6,
-		.sampling_rate = 4194304,
+		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(2500000);
-	receiver_model.set_rf_amp(false);
-	receiver_model.set_lna(32);
-	receiver_model.set_vga(32);
-	receiver_model.set_tuning_frequency(911600000);
-	receiver_model.enable();
+	} };
+	shared_memory.baseband_queue.push(message);
 }
 
 ERTAppView::~ERTAppView() {
-	receiver_model.disable();
+	shared_memory.baseband_queue.push_and_wait(
+		BasebandConfigurationMessage {
+			.configuration = { },
+		}
+	);
+	radio::disable();
+
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
