@@ -32,7 +32,7 @@ using namespace lpc43xx;
 
 class LogFile {
 public:
-	LogFile(const std::string file_path);
+	LogFile(const std::string& file_path);
 	~LogFile();
 
 	bool is_ready();

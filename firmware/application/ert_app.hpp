@@ -60,10 +60,12 @@ struct ERTRecentEntry {
 
 class ERTLogger {
 public:
+	ERTLogger(const std::string& file_path);
+
 	void on_packet(const ert::Packet& packet);
 
 private:
-	LogFile log_file { "ert.txt" };
+	LogFile log_file;
 };
 
 using ERTRecentEntries = RecentEntries<ert::Packet, ERTRecentEntry>;
@@ -93,7 +95,7 @@ public:
 
 private:
 	ERTRecentEntries recent;
-	ERTLogger logger;
+	std::unique_ptr<ERTLogger> logger;
 
 	ERTRecentEntriesView recent_entries_view { recent };
 

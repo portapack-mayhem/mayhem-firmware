@@ -136,6 +136,12 @@ size_t Packet::crc_valid_length() const {
 
 } /* namespace tpms */
 
+TPMSLogger::TPMSLogger(
+	const std::string& file_path
+) : log_file { file_path }
+{
+}
+
 void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
 	const auto hex_formatted = packet.symbols_formatted();
 
@@ -251,6 +257,8 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	});
+
+	logger = std::make_unique<TPMSLogger>("tpms.txt");
 }
 
 TPMSAppView::~TPMSAppView() {
@@ -270,7 +278,9 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
-	logger.on_packet(packet, target_frequency());
+	if( logger ) {
+		logger->on_packet(packet, target_frequency());
+	}
 
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {

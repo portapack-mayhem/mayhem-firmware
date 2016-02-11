@@ -90,10 +90,12 @@ using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
 
 class AISLogger {
 public:
+	AISLogger(const std::string& file_path);
+
 	void on_packet(const ais::Packet& packet);
 
 private:
-	LogFile log_file { "ais.txt" };
+	LogFile log_file;
 };
 
 namespace ui {
@@ -150,7 +152,7 @@ private:
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	AISRecentEntries recent;
-	AISLogger logger;
+	std::unique_ptr<AISLogger> logger;
 
 	AISRecentEntriesView recent_entries_view { recent };
 	AISRecentEntryDetailView recent_entry_detail_view;

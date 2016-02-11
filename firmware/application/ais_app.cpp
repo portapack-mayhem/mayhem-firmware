@@ -159,6 +159,12 @@ static std::string true_heading(const TrueHeading value) {
 } /* namespace format */
 } /* namespace ais */
 
+AISLogger::AISLogger(
+	const std::string& file_path
+) : log_file { file_path }
+{
+}
+
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
 	if( log_file.is_ready() ) {
@@ -368,6 +374,8 @@ AISAppView::AISAppView(NavigationView&) {
 	recent_entry_detail_view.on_close = [this]() {
 		this->on_show_list();
 	};
+
+	logger = std::make_unique<AISLogger>("ais.txt");
 }
 
 AISAppView::~AISAppView() {
@@ -389,7 +397,10 @@ void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void AISAppView::on_packet(const ais::Packet& packet) {
-	logger.on_packet(packet);
+	if( logger ) {
+		logger->on_packet(packet);
+	}
+
 	const auto updated_entry = recent.on_packet(packet.source_id(), packet);
 	recent_entries_view.set_dirty();
 

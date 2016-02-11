@@ -186,10 +186,12 @@ using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
+	TPMSLogger(const std::string& file_path);
+	
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
 private:
-	LogFile log_file { "tpms.txt" };
+	LogFile log_file;
 };
 
 namespace ui {
@@ -217,7 +219,7 @@ private:
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	TPMSRecentEntries recent;
-	TPMSLogger logger;
+	std::unique_ptr<TPMSLogger> logger;
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 

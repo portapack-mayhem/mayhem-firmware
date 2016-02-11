@@ -55,6 +55,12 @@ std::string consumption(Consumption value) {
 
 } /* namespace ert */
 
+ERTLogger::ERTLogger(
+	const std::string& file_path
+) : log_file { file_path }
+{
+}
+
 void ERTLogger::on_packet(const ert::Packet& packet) {
 	if( log_file.is_ready() ) {
 		const auto formatted = packet.symbols_formatted();
@@ -144,6 +150,8 @@ ERTAppView::ERTAppView(NavigationView&) {
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	});
+
+	logger = std::make_unique<ERTLogger>("ert.txt");
 }
 
 ERTAppView::~ERTAppView() {
@@ -163,7 +171,9 @@ void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void ERTAppView::on_packet(const ert::Packet& packet) {
-	logger.on_packet(packet);
+	if( logger ) {
+		logger->on_packet(packet);
+	}
 
 	if( packet.crc_ok() ) {
 		recent.on_packet(packet.id(), packet);
