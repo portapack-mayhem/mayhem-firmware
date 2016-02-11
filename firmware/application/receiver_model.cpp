@@ -229,8 +229,7 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	if( (baseband_configuration.mode == 4) ||
-		(baseband_configuration.mode == 6) ) {
+	if( (baseband_configuration.mode == 4) ) {
 		return 0;
 	} else {
 		return -(sampling_rate() / 4);

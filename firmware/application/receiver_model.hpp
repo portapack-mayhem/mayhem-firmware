@@ -36,10 +36,7 @@ public:
 		AMAudio = 0,
 		NarrowbandFMAudio = 1,
 		WidebandFMAudio = 2,
-		AIS = 3,
 		SpectrumAnalysis = 4,
-		TPMS = 5,
-		ERT = 6,
 	};
 
 	rf::Frequency tuning_frequency() const;
