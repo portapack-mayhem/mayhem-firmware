@@ -23,8 +23,7 @@
 
 #include "event_m0.hpp"
 
-#include "portapack_shared_memory.hpp"
-using namespace portapack;
+#include "baseband_api.hpp"
 
 #include "string_format.hpp"
 
@@ -247,20 +246,15 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		1,
 	});
 
-	BasebandConfigurationMessage message { {
+	baseband::start({
 		.mode = 5,
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
-	} };
-	shared_memory.baseband_queue.push(message);
+	});
 }
 
 TPMSAppView::~TPMSAppView() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
+	baseband::stop();
 	radio::disable();
 
 	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);

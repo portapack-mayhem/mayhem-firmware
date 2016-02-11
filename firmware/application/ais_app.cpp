@@ -25,8 +25,7 @@
 
 #include "string_format.hpp"
 
-#include "portapack_shared_memory.hpp"
-using namespace portapack;
+#include "baseband_api.hpp"
 
 #include <algorithm>
 
@@ -352,12 +351,11 @@ AISAppView::AISAppView(NavigationView&) {
 		1,
 	});
 
-	BasebandConfigurationMessage message { {
+	baseband::start({
 		.mode = 3,
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
-	} };
-	shared_memory.baseband_queue.push(message);
+	});
 
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
@@ -373,11 +371,7 @@ AISAppView::AISAppView(NavigationView&) {
 }
 
 AISAppView::~AISAppView() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
+	baseband::stop();
 	radio::disable();
 
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);

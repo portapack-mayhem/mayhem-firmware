@@ -24,7 +24,7 @@
 #include "hal.h"
 
 #include "message.hpp"
-#include "portapack_shared_memory.hpp"
+#include "baseband_api.hpp"
 
 #include <cstring>
 
@@ -49,6 +49,5 @@ void m4_init(const portapack::spi_flash::region_t from, const portapack::memory:
 }
 
 void m4_request_shutdown() {
-	ShutdownMessage shutdown_message;
-	shared_memory.baseband_queue.push(shutdown_message);
+	baseband::shutdown();
 }

@@ -116,8 +116,6 @@ private:
 	void update_am_configuration();
 	void update_nbfm_configuration();
 	void update_wfm_configuration();
-
-	void baseband_disable();
 };
 
 #endif/*__RECEIVER_MODEL_H__*/

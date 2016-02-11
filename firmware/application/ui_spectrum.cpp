@@ -26,8 +26,9 @@
 #include "spectrum_color_lut.hpp"
 
 #include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
 using namespace portapack;
+
+#include "baseband_api.hpp"
 
 #include "string_format.hpp"
 
@@ -251,19 +252,11 @@ void WaterfallWidget::on_show() {
 		}
 	);
 
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Running
-		}
-	);
+	baseband::spectrum_streaming_start();
 }
 
 void WaterfallWidget::on_hide() {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Stopped
-		}
-	);
+	baseband::spectrum_streaming_stop();
 
 	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 	EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
