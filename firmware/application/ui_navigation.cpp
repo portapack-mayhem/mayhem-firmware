@@ -23,7 +23,6 @@
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
-#include "receiver_model.hpp"
 
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
