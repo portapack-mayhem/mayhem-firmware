@@ -35,8 +35,8 @@ namespace ui {
 DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
-		&text_label_m0_free,
-		&text_label_m0_free_value,
+		&text_label_m0_core_free,
+		&text_label_m0_core_free_value,
 		&text_label_m0_heap_fragmented_free,
 		&text_label_m0_heap_fragmented_free_value,
 		&text_label_m0_heap_fragments,
@@ -44,8 +44,8 @@ DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 		&button_done
 	} });
 
-	const auto m0_free = chCoreStatus();
-	text_label_m0_free_value.set(to_string_dec_uint(m0_free, 5));
+	const auto m0_core_free = chCoreStatus();
+	text_label_m0_core_free_value.set(to_string_dec_uint(m0_core_free, 5));
 
 	size_t m0_fragmented_free_space = 0;
 	const auto m0_fragments = chHeapStatus(NULL, &m0_fragmented_free_space);

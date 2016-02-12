@@ -49,12 +49,12 @@ private:
 		"Memory",
 	};
 
-	Text text_label_m0_free {
-		{ 0, 128, 104, 16 },
-		"M0 Free Bytes",
+	Text text_label_m0_core_free {
+		{ 0, 128, 144, 16 },
+		"M0 Core Free Bytes",
 	};
 
-	Text text_label_m0_free_value {
+	Text text_label_m0_core_free_value {
 		{ 200, 128, 40, 16 },
 	};
 
