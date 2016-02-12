@@ -31,4 +31,11 @@ void* operator new[](size_t size);
 void operator delete(void* p);
 void operator delete[](void* p);
 
+namespace chibios {
+
+size_t heap_size();
+size_t heap_used();
+
+} /* namespace chibios */
+
 #endif/*__CHIBIOS_CPP_H__*/
