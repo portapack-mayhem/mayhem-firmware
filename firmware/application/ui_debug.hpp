@@ -208,6 +208,11 @@ private:
 	};
 };
 
+class DebugPeripheralsMenuView : public MenuView {
+public:
+	DebugPeripheralsMenuView(NavigationView& nav);
+};
+
 class DebugMenuView : public MenuView {
 public:
 	DebugMenuView(NavigationView& nav);
