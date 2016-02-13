@@ -70,6 +70,7 @@ constexpr size_t log_2(const size_t n, const size_t p = 0) {
 }
 
 float fast_log2(const float val);
+float fast_pow2(const float val);
 
 float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared);
 

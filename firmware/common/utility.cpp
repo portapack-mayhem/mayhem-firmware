@@ -73,6 +73,15 @@ float fast_log2(const float val) {
 	return log_2;
 }
 
+float fast_pow2(const float val) {
+	union {
+		float f;
+		uint32_t n;
+	} u;
+	u.n = val * 8388608 + (0x3f800000 - 60801 * 8);
+	return u.f;
+}
+
 float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
 	constexpr float input_component_max = 32768;
 	constexpr float mag2_max = (input_component_max * input_component_max) * 2;
