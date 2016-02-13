@@ -40,6 +40,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
 	auto audio = demodulate(channel_out);
+	audio_compressor.execute_in_place(audio);
 	audio_output.write(audio);
 }
 
