@@ -59,7 +59,7 @@ uint32_t gcd(const uint32_t u, const uint32_t v) {
 }
 #endif
 
-static float fast_log2(const float val) {
+float fast_log2(const float val) {
 	// Thank you Stack Overflow!
 	// http://stackoverflow.com/questions/9411823/fast-log2float-x-implementation-c
 	union {
