@@ -46,7 +46,7 @@ void AudioOutput::write(
 ) {
 	std::array<float, 32> audio_f;
 	for(size_t i=0; i<audio.count; i++) {
-		audio_f[i] = audio.p[i];
+		audio_f[i] = audio.p[i] * ki;
 	}
 	write(buffer_f32_t {
 		audio_f.data(),
@@ -89,7 +89,7 @@ void AudioOutput::on_block(
 void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio) {
 	auto audio_buffer = audio::dma::tx_empty_buffer();
 	for(size_t i=0; i<audio_buffer.count; i++) {
-		const int32_t sample_int = audio.p[i];
+		const int32_t sample_int = audio.p[i] * k;
 		const int32_t sample_saturated = __SSAT(sample_int, 16);
 		audio_buffer.p[i].left = audio_buffer.p[i].right = sample_saturated;
 	}

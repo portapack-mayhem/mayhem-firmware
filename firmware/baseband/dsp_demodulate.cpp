@@ -42,8 +42,8 @@ buffer_f32_t AM::execute(
 		const uint32_t sample1 = *__SIMD32(src_p)++;
 		const uint32_t mag_sq0 = __SMUAD(sample0, sample0);
 		const uint32_t mag_sq1 = __SMUAD(sample1, sample1);
-		*(dst_p++) = __builtin_sqrtf(mag_sq0);
-		*(dst_p++) = __builtin_sqrtf(mag_sq1);
+		*(dst_p++) = __builtin_sqrtf(mag_sq0) * k;
+		*(dst_p++) = __builtin_sqrtf(mag_sq1) * k;
 	}
 
 	return { dst.p, src.count, src.sampling_rate };
@@ -57,10 +57,10 @@ buffer_f32_t SSB::execute(
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		*(dst_p++) = (src_p++)->real();
-		*(dst_p++) = (src_p++)->real();
-		*(dst_p++) = (src_p++)->real();
-		*(dst_p++) = (src_p++)->real();
+		*(dst_p++) = (src_p++)->real() * k;
+		*(dst_p++) = (src_p++)->real() * k;
+		*(dst_p++) = (src_p++)->real() * k;
+		*(dst_p++) = (src_p++)->real() * k;
 	}
 
 	return { dst.p, src.count, src.sampling_rate };
@@ -99,8 +99,8 @@ buffer_f32_t FM::execute(
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
-		*(dst_p++) = angle_precise(t0) * k;
-		*(dst_p++) = angle_precise(t1) * k;
+		*(dst_p++) = angle_precise(t0) * kf;
+		*(dst_p++) = angle_precise(t1) * kf;
 	}
 	z_ = z;
 
@@ -122,9 +122,9 @@ buffer_s16_t FM::execute(
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
-		const int32_t theta0_int = angle_approx_0deg27(t0) * k;
+		const int32_t theta0_int = angle_approx_0deg27(t0) * ks16;
 		const int32_t theta0_sat = __SSAT(theta0_int, 16);
-		const int32_t theta1_int = angle_approx_0deg27(t1) * k;
+		const int32_t theta1_int = angle_approx_0deg27(t1) * ks16;
 		const int32_t theta1_sat = __SSAT(theta1_int, 16);
 		*__SIMD32(dst_p)++ = __PKHBT(
 			theta0_sat,
@@ -143,7 +143,8 @@ void FM::configure(const float sampling_rate, const float deviation_hz) {
 	 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
 	 * delta_theta_max = 2 * pi * deviation / sampling_rate
 	 */
-	k = static_cast<float>(32767.0f / (2.0 * pi * deviation_hz / sampling_rate));
+	kf = static_cast<float>(1.0f / (2.0 * pi * deviation_hz / sampling_rate));
+	ks16 = 32767.0f * kf;
 }
 
 }

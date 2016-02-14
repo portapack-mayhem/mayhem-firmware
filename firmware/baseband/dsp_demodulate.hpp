@@ -33,6 +33,9 @@ public:
 		const buffer_c16_t& src,
 		const buffer_f32_t& dst
 	);
+
+private:
+	static constexpr float k = 1.0f / 32768.0f;
 };
 
 class SSB {
@@ -41,6 +44,9 @@ public:
 		const buffer_c16_t& src,
 		const buffer_f32_t& dst
 	);
+
+private:
+	static constexpr float k = 1.0f / 32768.0f;
 };
 
 class FM {
@@ -59,7 +65,8 @@ public:
 
 private:
 	complex16_t::rep_type z_ { 0 };
-	float k { 0 };
+	float kf { 0 };
+	float ks16 { 0 };
 };
 
 } /* namespace demodulate */

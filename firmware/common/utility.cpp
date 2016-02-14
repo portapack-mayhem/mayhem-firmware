@@ -82,15 +82,14 @@ float fast_pow2(const float val) {
 	return u.f;
 }
 
-float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
-	constexpr float input_component_max = 32768;
-	constexpr float mag2_max = (input_component_max * input_component_max) * 2;
+float mag2_to_dbv_norm(const float mag2) {
+	constexpr float mag2_max = 1.0f;
 	constexpr float mag2_log2_max = std::log2(mag2_max);
 	constexpr float log_mag2_mag_factor = 0.5f;
 	constexpr float log2_log10_factor = std::log10(2.0f);
 	constexpr float log10_dbv_factor = 20.0f;
 	constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
-	return (fast_log2(c16_mag_squared) - mag2_log2_max) * mag2_to_db_factor;
+	return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;
 }
 
 /* GCD implementation derived from recursive implementation at

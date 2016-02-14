@@ -44,6 +44,9 @@ public:
 	void write(const buffer_f32_t& audio);
 
 private:
+	static constexpr float k = 32768.0f;
+	static constexpr float ki = 1.0f / k;
+
 	BlockDecimator<float, 32> block_buffer { 1 };	
 
 	IIRBiquadFilter hpf;
