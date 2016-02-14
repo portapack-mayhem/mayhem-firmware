@@ -38,7 +38,7 @@ float GainComputer::operator()(const float x) const {
 }
 
 void FeedForwardCompressor::execute_in_place(const buffer_f32_t& buffer) {
-	constexpr float makeup_gain = std::pow(10.0f, (threshold - (threshold / ratio)) / 20.0f);
+	constexpr float makeup_gain = std::pow(10.0f, (threshold - (threshold / ratio)) / -20.0f);
 	for(size_t i=0; i<buffer.count; i++) {
 		// TODO: Terrible hack here due to not normalizing float samples to +/-1.0.
 		buffer.p[i] = execute_once(buffer.p[i] * (1.0f / 32768.0f)) * (makeup_gain * 32768.0f);
