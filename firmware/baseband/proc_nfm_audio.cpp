@@ -77,7 +77,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
-	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 12288);
+	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 0.5f);
 
 	configured = true;
 }
