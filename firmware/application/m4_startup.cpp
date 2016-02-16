@@ -23,6 +23,9 @@
 
 #include "hal.h"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 #include "message.hpp"
 #include "baseband_api.hpp"
 
@@ -50,4 +53,11 @@ void m4_init(const portapack::spi_flash::region_t from, const portapack::memory:
 
 void m4_request_shutdown() {
 	baseband::shutdown();
+}
+
+void m0_halt() {
+	rgu::reset(rgu::Reset::M0APP);
+	while(true) {
+		port_wait_for_interrupt();
+	}
 }

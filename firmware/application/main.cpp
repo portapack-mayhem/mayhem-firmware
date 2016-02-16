@@ -47,9 +47,6 @@
 
 #include "gcc.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include "sd_card.hpp"
 
 #include <string.h>
@@ -100,8 +97,7 @@ int main(void) {
 
 	portapack::shutdown();
 	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
-
-	rgu::reset(rgu::Reset::M0APP);
+	m0_halt();
 
 	return 0;
 }
