@@ -105,6 +105,8 @@ private:
 
 	bool event_bubble_key(const ui::KeyEvent event);
 	void event_bubble_encoder(const ui::EncoderEvent event);
+
+	void init_message_queues();
 };
 
 #endif/*__EVENT_M0_H__*/

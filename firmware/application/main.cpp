@@ -63,8 +63,6 @@ int main(void) {
 
 	sdcStart(&SDCD1, nullptr);
 
-	init_message_queues();
-
 	ui::Context context;
 	ui::SystemView system_view {
 		context,

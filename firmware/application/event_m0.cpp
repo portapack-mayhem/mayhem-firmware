@@ -65,6 +65,8 @@ EventDispatcher::EventDispatcher(
 	painter(painter),
 	context(context)
 {
+	init_message_queues();
+
 	thread_event_loop = chThdSelf();
 	touch_manager.on_event = [this](const ui::TouchEvent event) {
 		this->on_touch_event(event);
@@ -241,4 +243,13 @@ void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
 	while( (target != nullptr) && !target->on_encoder(event) ) {
 		target = target->parent();
 	}
+}
+
+void EventDispatcher::init_message_queues() {
+	new (&shared_memory.baseband_queue) MessageQueue(
+		shared_memory.baseband_queue_data, SharedMemory::baseband_queue_k
+	);
+	new (&shared_memory.application_queue) MessageQueue(
+		shared_memory.application_queue_data, SharedMemory::application_queue_k
+	);
 }

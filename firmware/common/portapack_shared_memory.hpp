@@ -48,15 +48,4 @@ struct SharedMemory {
 
 extern SharedMemory& shared_memory;
 
-#if defined(LPC43XX_M0)
-inline void init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue(
-		shared_memory.baseband_queue_data, SharedMemory::baseband_queue_k
-	);
-	new (&shared_memory.application_queue) MessageQueue(
-		shared_memory.application_queue_data, SharedMemory::application_queue_k
-	);
-}
-#endif
-
 #endif/*__PORTAPACK_SHARED_MEMORY_H__*/
