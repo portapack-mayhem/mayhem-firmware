@@ -216,10 +216,7 @@ void AnalogAudioView::on_show_options_frequency() {
 
 	field_frequency.set_style(&style_options_group);
 
-	auto widget = std::make_unique<FrequencyOptionsView>(
-		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	);
+	auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_step(receiver_model.frequency_step());
 	widget->on_change_step = [this](rf::Frequency f) {
@@ -239,10 +236,7 @@ void AnalogAudioView::on_show_options_rf_gain() {
 
 	field_lna.set_style(&style_options_group);
 
-	auto widget = std::make_unique<RadioGainOptionsView>(
-		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	);
+	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_rf_amp(receiver_model.rf_amp());
 	widget->on_change_rf_amp = [this](bool enable) {
@@ -259,18 +253,12 @@ void AnalogAudioView::on_show_options_modulation() {
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	if( modulation == ReceiverModel::Mode::AMAudio ) {
 		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<AMOptionsView>(
-			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-			&style_options_group
-		);
+		auto widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
 		set_options_widget(std::move(widget));
 	}
 	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
 		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<NBFMOptionsView>(
-			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-			&style_options_group
-		);
+		auto widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
 		set_options_widget(std::move(widget));
 	}
 }

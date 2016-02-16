@@ -93,6 +93,8 @@ public:
 private:
 	static constexpr ui::Dim header_height = 2 * 16;
 
+	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
