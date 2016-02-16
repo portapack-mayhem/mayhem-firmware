@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __M4_STARTUP_H__
-#define __M4_STARTUP_H__
+#ifndef __CORE_CONTROL_H__
+#define __CORE_CONTROL_H__
 
 #include <cstddef>
 
@@ -32,4 +32,4 @@ void m4_request_shutdown();
 
 void m0_halt();
 
-#endif/*__M4_STARTUP_H__*/
+#endif/*__CORE_CONTROL_H__*/

@@ -187,7 +187,7 @@ CPPSRC = main.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp \
-         m4_startup.cpp \
+         core_control.cpp \
          cpld_max5.cpp \
          jtag.cpp \
          cpld_update.cpp \

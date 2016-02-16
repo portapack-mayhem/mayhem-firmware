@@ -32,7 +32,7 @@
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
 
-#include "m4_startup.hpp"
+#include "core_control.hpp"
 
 namespace ui {
 

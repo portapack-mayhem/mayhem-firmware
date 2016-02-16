@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "m4_startup.hpp"
+#include "core_control.hpp"
 
 #include "hal.h"
 

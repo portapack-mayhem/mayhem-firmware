@@ -39,7 +39,7 @@
 
 #include "event_m0.hpp"
 
-#include "m4_startup.hpp"
+#include "core_control.hpp"
 #include "spi_image.hpp"
 
 #include "debug.hpp"
