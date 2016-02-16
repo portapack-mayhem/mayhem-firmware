@@ -27,9 +27,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "rffc507x.hpp"
-#include "max2837.hpp"
-
 namespace radio {
 
 struct Configuration {
@@ -59,8 +56,24 @@ void enable(Configuration configuration);
 void configure(Configuration configuration);
 void disable();
 
-extern rffc507x::RFFC507x first_if;
-extern max2837::MAX2837 second_if;
+namespace debug {
+
+namespace first_if {
+
+uint32_t register_read(const size_t register_number);
+
+} /* namespace first_if */
+
+namespace second_if {
+
+uint32_t register_read(const size_t register_number);
+
+// TODO: This belongs somewhere else.
+uint8_t temp_sense();
+
+} /* namespace second_if */
+
+} /* namespace debug */
 
 } /* namespace radio */
 

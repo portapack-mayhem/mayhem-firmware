@@ -54,7 +54,7 @@ std::vector<TemperatureLogger::sample_t> TemperatureLogger::history() const {
 
 TemperatureLogger::sample_t TemperatureLogger::read_sample() {
 	// MAX2837 does not return a valid temperature if in "shutdown" mode.
-	return radio::second_if.temp_sense() & 0x1f;
+	return radio::debug::second_if::temp_sense();
 }
 
 void TemperatureLogger::push_sample(const TemperatureLogger::sample_t sample) {

@@ -22,6 +22,9 @@
 #include "radio.hpp"
 
 #include "rf_path.hpp"
+
+#include "rffc507x.hpp"
+#include "max2837.hpp"
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 
@@ -182,5 +185,29 @@ void configure(Configuration configuration) {
 	set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
 	set_direction(configuration.direction);
 }
+
+namespace debug {
+
+namespace first_if {
+
+uint32_t register_read(const size_t register_number) {
+	return radio::first_if.read(register_number);
+}
+
+} /* namespace first_if */
+
+namespace second_if {
+
+uint32_t register_read(const size_t register_number) {
+	return radio::second_if.read(register_number);
+}
+
+uint8_t temp_sense() {
+	return radio::second_if.temp_sense() & 0x1f;
+}
+
+} /* namespace second_if */
+
+} /* namespace debug */
 
 } /* namespace radio */

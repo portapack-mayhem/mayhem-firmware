@@ -248,11 +248,11 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 	add_items<4>({ {
 		{ "RFFC5072",    [&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
-			[](const size_t register_number) { return radio::first_if.read(register_number); }
+			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
 		{ "MAX2837",     [&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
-			[](const size_t register_number) { return radio::second_if.read(register_number); }
+			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
 		{ "Si5351C",     [&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
