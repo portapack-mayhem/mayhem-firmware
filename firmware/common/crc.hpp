@@ -24,6 +24,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <array>
 
 /* Inspired by
@@ -39,13 +40,15 @@
  *
  */
 
-template<typename T, bool RevIn = false, bool RevOut = false>
+template<size_t Width, bool RevIn = false, bool RevOut = false>
 class CRC {
 public:
+	using value_type = uint32_t;
+
 	constexpr CRC(
-		const T truncated_polynomial,
-		const T initial_remainder = 0,
-		const T final_xor_value = 0
+		const value_type truncated_polynomial,
+		const value_type initial_remainder = 0,
+		const value_type final_xor_value = 0
 	) : truncated_polynomial { truncated_polynomial },
 		initial_remainder { initial_remainder },
 		final_xor_value { final_xor_value },
@@ -53,11 +56,11 @@ public:
 	{
 	}
 
-	T get_initial_remainder() const {
+	value_type get_initial_remainder() const {
 		return initial_remainder;
 	}
 
-	void reset(T new_initial_remainder) {
+	void reset(value_type new_initial_remainder) {
 		remainder = new_initial_remainder;
 	}
 
@@ -74,14 +77,17 @@ public:
 		}
 	}
 
-	void process_bits(uint8_t bits, size_t bit_count) {
-		bits <<= (8 - bit_count);
+	void process_bits(value_type bits, size_t bit_count) {
+		constexpr auto digits = std::numeric_limits<value_type>::digits;
+		constexpr auto mask = static_cast<value_type>(1) << (digits - 1);
+
+		bits <<= (std::numeric_limits<value_type>::digits - bit_count);
 		for(size_t i=bit_count; i>0; --i, bits <<= 1) {
-			process_bit(static_cast<bool>(bits & 0x80));
+			process_bit(static_cast<bool>(bits & mask));
 		}
 	}
 
-	void process_bits_lsb_first(uint8_t bits, size_t bit_count) {
+	void process_bits_lsb_first(value_type bits, size_t bit_count) {
 		for(size_t i=bit_count; i>0; --i, bits >>= 1) {
 			process_bit(static_cast<bool>(bits & 0x01));
 		}
@@ -106,26 +112,30 @@ public:
 		process_bytes(data.data(), data.size());
 	}
 
-	T checksum() const {
-		return (RevOut ? reflect(remainder) : remainder) ^ final_xor_value;
+	value_type checksum() const {
+		return ((RevOut ? reflect(remainder) : remainder) ^ final_xor_value) & mask();
 	}
 
 private:
-	const T truncated_polynomial;
-	const T initial_remainder;
-	const T final_xor_value;
-	T remainder;
+	const value_type truncated_polynomial;
+	const value_type initial_remainder;
+	const value_type final_xor_value;
+	value_type remainder;
 
 	static constexpr size_t width() {
-		return 8 * sizeof(T);
+		return Width;
 	}
 
-	static constexpr T top_bit() {
+	static constexpr value_type top_bit() {
 		return 1U << (width() - 1);
 	}
 
-	static T reflect(T x) {
-		T reflection = 0;
+	static constexpr value_type mask() {
+		return (~(~(0UL) << width()));
+	}
+
+	static value_type reflect(value_type x) {
+		value_type reflection = 0;
 		for(size_t i=0; i<width(); ++i) {
 			reflection <<= 1;
 			reflection |= (x & 1);
