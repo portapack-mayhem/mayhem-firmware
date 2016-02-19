@@ -75,6 +75,12 @@ struct Color {
 	}
 };
 
+struct ColorRGB888 {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};
+
 struct Point {
 	Coord x;
 	Coord y;
