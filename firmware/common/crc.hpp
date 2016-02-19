@@ -145,4 +145,42 @@ private:
 	}
 };
 
+class Adler32 {
+public:
+	void feed(const uint8_t v) {
+		feed_one(v);
+	}
+
+	void feed(const uint8_t* const p, const size_t n) {
+		for(size_t i=0; i<n; i++) {
+			feed_one(p[i]);
+		}
+	}
+
+	template<typename T>
+	void feed(const T& a) {
+		feed(a.data(), a.size());
+	}
+
+	std::array<uint8_t, 4> bytes() const {
+		return {
+			static_cast<uint8_t>((b >> 8) & 0xff),
+			static_cast<uint8_t>((b >> 0) & 0xff),
+			static_cast<uint8_t>((a >> 8) & 0xff),
+			static_cast<uint8_t>((a >> 0) & 0xff)
+		};
+	}
+
+private:
+	static constexpr uint32_t mod = 65521;
+
+	uint32_t a { 1 };
+	uint32_t b { 0 };
+
+	void feed_one(const uint8_t c) {
+		a = (a + c) % mod;
+		b = (b + a) % mod;
+	}
+};
+
 #endif/*__CRC_H__*/
