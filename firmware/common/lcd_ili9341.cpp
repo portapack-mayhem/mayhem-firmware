@@ -179,6 +179,11 @@ void lcd_ramwr_start() {
 	io.lcd_data_write_command_and_data(0x2c, {});
 }
 
+void lcd_ramrd_start() {
+	io.lcd_data_write_command_and_data(0x2e, {});
+	io.lcd_read_word();
+}
+
 void lcd_caset(const uint_fast16_t start_column, uint_fast16_t end_column) {
 	lcd_set(0x2a, start_column, end_column);
 }
@@ -196,10 +201,25 @@ void lcd_start_ram_write(
 	lcd_ramwr_start();
 }
 
+void lcd_start_ram_read(
+	const ui::Point p,
+	const ui::Size s
+) {
+	lcd_caset(p.x, p.x + s.w - 1);
+	lcd_paset(p.y, p.y + s.h - 1);
+	lcd_ramrd_start();
+}
+
 void lcd_start_ram_write(
 	const ui::Rect& r
 ) {
 	lcd_start_ram_write(r.pos, r.size);
+}
+
+void lcd_start_ram_read(
+	const ui::Rect& r
+) {
+	lcd_start_ram_read(r.pos, r.size);
 }
 
 void lcd_vertical_scrolling_definition(
@@ -297,6 +317,19 @@ void ILI9341::draw_pixels(
 	/* TODO: Assert that rectangle width x height < count */
 	lcd_start_ram_write(r.pos, r.size);
 	io.lcd_write_pixels(colors, count);
+}
+
+void ILI9341::read_pixels(
+	const ui::Rect r,
+	ui::ColorRGB888* const colors,
+	const size_t count
+) {
+	/* TODO: Assert that rectangle width x height < count */
+	lcd_start_ram_read(r);
+	io.lcd_read_bytes(
+		reinterpret_cast<uint8_t*>(colors),
+		count * sizeof(ui::ColorRGB888)
+	);
 }
 
 void ILI9341::draw_bitmap(
