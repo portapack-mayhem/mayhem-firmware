@@ -31,6 +31,7 @@ class File {
 public:
 	~File();
 
+	bool open(const std::string& file_path);
 	bool open_for_append(const std::string& file_path);
 	bool close();
 
