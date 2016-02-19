@@ -139,13 +139,7 @@ public:
 	uint32_t lcd_read_word() {
 		return lcd_read_data_frame_memory();
 	}
-/*
-	// NOTE: Pixels read in RGB24 format, not the RGB565 format used
-	// to write pixels to frame memory. This makes reading very tricky!
-	ui::Color lcd_read_pixel() {
-		return ui::Color { lcd_read_data_frame_memory() };
-	}
-*/
+
 	void lcd_write_pixels(const ui::Color pixel, size_t n) {
 		while(n--) {
 			lcd_write_data_fast(pixel.v);
