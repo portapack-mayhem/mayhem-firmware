@@ -24,15 +24,22 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <array>
 
 /* Inspired by
  * http://www.barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
  *
- * ...then munged into a shape resembling boost::crc_basic.
+ * ...then munged into a simplified implementation of boost::crc_basic and
+ * boost::crc_optimal.
  * http://www.boost.org/doc/libs/release/libs/crc/
+ *
+ *  Copyright 2001, 2004 Daryle Walker.  Use, modification, and distribution are
+ *  subject to the Boost Software License, Version 1.0.  (See accompanying file
+ *  LICENSE_1_0.txt or a copy at <http://www.boost.org/LICENSE_1_0.txt>.)
+ *
  */
 
-template<typename T>
+template<typename T, bool RevIn = false, bool RevOut = false>
 class CRC {
 public:
 	constexpr CRC(
@@ -59,22 +66,32 @@ public:
 	}
 
 	void process_bit(bool bit) {
-		remainder ^= bit << (width() - 1);
-		if( remainder & top_bit() ) {
-			remainder = (remainder << 1) ^ truncated_polynomial;
-		} else {
-			remainder = (remainder << 1);
+		remainder ^= (bit ? top_bit() : 0U);
+		const auto do_poly_div = static_cast<bool>(remainder & top_bit());
+		remainder <<= 1;
+		if( do_poly_div ) {
+			remainder ^= truncated_polynomial;
 		}
 	}
 
-	void process_byte(const uint8_t data) {
-		remainder ^= data << (width() - 8);
-		for(size_t bit=0; bit<8; bit++) {
-			if( remainder & top_bit() ) {
-				remainder = (remainder << 1) ^ truncated_polynomial;
-			} else {
-				remainder = (remainder << 1);
-			}
+	void process_bits(uint8_t bits, size_t bit_count) {
+		bits <<= (8 - bit_count);
+		for(size_t i=bit_count; i>0; --i, bits <<= 1) {
+			process_bit(static_cast<bool>(bits & 0x80));
+		}
+	}
+
+	void process_bits_lsb_first(uint8_t bits, size_t bit_count) {
+		for(size_t i=bit_count; i>0; --i, bits >>= 1) {
+			process_bit(static_cast<bool>(bits & 0x01));
+		}
+	}
+
+	void process_byte(const uint8_t byte) {
+		if( RevIn ) {
+			process_bits_lsb_first(byte, 8);
+		} else {
+			process_bits(byte, 8);
 		}
 	}
 
@@ -84,8 +101,13 @@ public:
 		}
 	}
 
+	template<size_t N>
+	void process_bytes(const std::array<uint8_t, N>& data) {
+		process_bytes(data.data(), data.size());
+	}
+
 	T checksum() const {
-		return remainder ^ final_xor_value;
+		return (RevOut ? reflect(remainder) : remainder) ^ final_xor_value;
 	}
 
 private:
@@ -101,7 +123,16 @@ private:
 	static constexpr T top_bit() {
 		return 1U << (width() - 1);
 	}
-};
 
+	static T reflect(T x) {
+		T reflection = 0;
+		for(size_t i=0; i<width(); ++i) {
+			reflection <<= 1;
+			reflection |= (x & 1);
+			x >>= 1;
+		}
+		return reflection;
+	}
+};
 
 #endif/*__CRC_H__*/
