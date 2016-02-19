@@ -152,6 +152,20 @@ public:
 		}
 	}
 
+	void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
+		size_t word_count = byte_count / 2;
+		while(word_count) {
+			const auto word = lcd_read_data_frame_memory();
+			*(byte++) = word >> 8;
+			*(byte++) = word >> 0;
+			word_count--;
+		}
+		if( byte_count & 1 ) {
+			const auto word = lcd_read_data_frame_memory();
+			*(byte++) = word >> 8;
+		}
+	}
+
 	uint32_t io_read() {
 		io_stb_assert();
 		dir_read();
