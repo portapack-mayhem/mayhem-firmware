@@ -35,6 +35,10 @@ namespace ui {
 struct MenuItem {
 	std::string text;
 	std::function<void(void)> on_select;
+
+	// TODO: Prevent default-constructed MenuItems.
+	// I managed to construct a menu with three extra, unspecified menu items
+	// in the array that were default constructed...
 };
 
 class MenuItemView : public Widget {

@@ -269,7 +269,7 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
-	add_items<8>({ {
+	add_items<5>({ {
 		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SD Card",     [&nav](){ nav.push<NotImplementedView>(); } },
