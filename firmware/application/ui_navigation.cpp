@@ -42,6 +42,7 @@ SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&button_back,
 		&title,
+		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
 	} });
@@ -50,6 +51,10 @@ SystemStatusView::SystemStatusView() {
 		if( this->on_back ) {
 			this->on_back();
 		}
+	};
+
+	button_camera.on_select = [this](ImageButton&) {
+		this->on_camera();
 	};
 
 	button_sleep.on_select = [this](ImageButton&) {
@@ -69,6 +74,9 @@ void SystemStatusView::set_title(const std::string new_value) {
 	} else {
 		title.set(new_value);
 	}
+}
+
+void SystemStatusView::on_camera() {
 }
 
 /* Navigation ************************************************************/

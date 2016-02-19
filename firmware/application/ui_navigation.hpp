@@ -60,6 +60,29 @@ static constexpr Bitmap bitmap_sleep {
 	{ 16, 16 }, bitmap_sleep_data
 };
 
+static constexpr uint8_t bitmap_camera_data[] = {
+	0x00, 0x00,
+	0x00, 0x00,
+	0x00, 0x00,
+	0xcc, 0x03,
+	0xe8, 0x07,
+	0xfc, 0x3f,
+	0x3c, 0x3c,
+	0x9c, 0x39,
+	0xdc, 0x3b,
+	0xdc, 0x3b,
+	0x9c, 0x39,
+	0x3c, 0x3c,
+	0xfc, 0x3f,
+	0x00, 0x00,
+	0x00, 0x00,
+	0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_camera {
+	{ 16, 16 }, bitmap_camera_data
+};
+
 class SystemStatusView : public View {
 public:
 	std::function<void(void)> on_back;
@@ -84,6 +107,13 @@ private:
 		default_title,
 	};
 
+	ImageButton button_camera {
+		{ 22 * 8, 0, 2 * 8, 1 * 16 },
+		&bitmap_camera,
+		Color::white(),
+		Color::black()
+	};
+
 	ImageButton button_sleep {
 		{ 25 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_sleep,
@@ -94,6 +124,8 @@ private:
 	SDCardStatusView sd_card_status_view {
 		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
 	};
+
+	void on_camera();
 };
 
 class NavigationView : public View {
