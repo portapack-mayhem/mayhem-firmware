@@ -34,6 +34,8 @@
 
 #include "core_control.hpp"
 
+#include "png_writer.hpp"
+
 namespace ui {
 
 /* SystemStatusView ******************************************************/
@@ -77,6 +79,13 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_camera() {
+	PNGWriter png { "capture.png" };
+
+	for(int i=0; i<320; i++) {
+		std::array<ColorRGB888, 240> row;
+		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
+		png.write_scanline(row);
+	}
 }
 
 /* Navigation ************************************************************/

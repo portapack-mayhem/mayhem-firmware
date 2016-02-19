@@ -180,6 +180,7 @@ CPPSRC = main.cpp \
          sd_card.cpp \
          file.cpp \
          log_file.cpp \
+         png_writer.cpp \
          manchester.cpp \
          string_format.cpp \
          temperature_logger.cpp \
