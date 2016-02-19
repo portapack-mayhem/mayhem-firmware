@@ -101,9 +101,10 @@ public:
 		}
 	}
 
-	void process_bytes(const uint8_t* const data, const size_t length) {
+	void process_bytes(const void* const data, const size_t length) {
+		const uint8_t* const p = reinterpret_cast<const uint8_t*>(data);
 		for(size_t i=0; i<length; i++) {
-			process_byte(data[i]);
+			process_byte(p[i]);
 		}
 	}
 
@@ -151,7 +152,8 @@ public:
 		feed_one(v);
 	}
 
-	void feed(const uint8_t* const p, const size_t n) {
+	void feed(const void* const data, const size_t n) {
+		const uint8_t* const p = reinterpret_cast<const uint8_t*>(data);
 		for(size_t i=0; i<n; i++) {
 			feed_one(p[i]);
 		}
@@ -159,7 +161,7 @@ public:
 
 	template<typename T>
 	void feed(const T& a) {
-		feed(a.data(), a.size());
+		feed(a.data(), sizeof(T));
 	}
 
 	std::array<uint8_t, 4> bytes() const {
