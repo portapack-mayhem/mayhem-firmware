@@ -26,6 +26,7 @@
 
 #include <cstddef>
 #include <string>
+#include <array>
 
 class File {
 public:
@@ -39,6 +40,11 @@ public:
 
 	bool read(void* const data, const size_t bytes_to_read);
 	bool write(const void* const data, const size_t bytes_to_write);
+
+	template<size_t N>
+	bool write(const std::array<uint8_t, N>& data) {
+		return write(data.data(), N);
+	}
 
 	bool puts(const std::string& string);
 
