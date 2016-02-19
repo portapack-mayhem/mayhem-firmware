@@ -22,6 +22,7 @@
 #include "utility.hpp"
 
 #include <cstdint>
+#include <cmath>
 
 #if 0
 uint32_t gcd(const uint32_t u, const uint32_t v) {
