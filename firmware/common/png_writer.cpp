@@ -78,7 +78,7 @@ void PNGWriter::write_scanline(const std::array<ui::ColorRGB888, 240>& scanline)
 	constexpr uint32_t deflate_block_length = 1 + sizeof(scanline);
 
 	const std::array<uint8_t, 6> deflate_and_scanline_header {
-		(scanline_count == (height - 1)) ? 0x01 : 0x00,	// DEFLATE header bits, bfinal=0, btype=00
+		static_cast<uint8_t>((scanline_count == (height - 1)) ? 0x01 : 0x00),	// DEFLATE header bits, bfinal=0, btype=00
 		static_cast<uint8_t>((deflate_block_length >> 0) & 0xff),			// Length LSB
 		static_cast<uint8_t>((deflate_block_length >> 8) & 0xff),			// Length MSB
 		static_cast<uint8_t>((deflate_block_length >> 0) & 0xff) ^ 0xff,	// ~Length LSB
