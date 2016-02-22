@@ -39,10 +39,6 @@ FRESULT mount() {
 	return f_mount(&fs, "", 0);
 }
 
-FRESULT unmount() {
-	return f_mount(NULL, "", 0);
-}
-
 } /* namespace */
 
 Signal<Status> status_signal;

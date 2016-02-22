@@ -41,26 +41,6 @@ static std::string latlon_abs_normalized(const int32_t normalized, const char su
 	return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0') + suffix;
 }
 
-static std::string latitude(const Latitude value) {
-	if( value.is_not_available() ) {
-		return "not available";
-	} else if( value.is_valid() ) {
-		return latlon_abs_normalized(value.normalized(), "SN");
-	} else {
-		return "invalid";
-	}
-}
-
-static std::string longitude(const Longitude value) {
-	if( value.is_not_available() ) {
-		return "not available";
-	} else if( value.is_valid() ) {
-		return latlon_abs_normalized(value.normalized(), "WE");
-	} else {
-		return "invalid";
-	}
-}
-
 static std::string latlon(const Latitude latitude, const Longitude longitude) {
 	if( latitude.is_valid() && longitude.is_valid() ) {
 		return latlon_abs_normalized(latitude.normalized(), "SN") + " " + latlon_abs_normalized(longitude.normalized(), "WE");
@@ -75,17 +55,6 @@ static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
 	return to_string_dec_uint(mmsi, 9);
-}
-
-static std::string datetime(
-	const ais::DateTime& datetime
-) {
-	return to_string_dec_uint(datetime.year, 4, '0') + "/" +
-		to_string_dec_uint(datetime.month, 2, '0') + "/" +
-		to_string_dec_uint(datetime.day, 2, '0') + " " +
-		to_string_dec_uint(datetime.hour, 2, '0') + ":" +
-		to_string_dec_uint(datetime.minute, 2, '0') + ":" +
-		to_string_dec_uint(datetime.second, 2, '0');
 }
 
 static std::string navigational_status(const unsigned int value) {
