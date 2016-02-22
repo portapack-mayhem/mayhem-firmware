@@ -132,7 +132,10 @@ private:
 	}
 
 	static constexpr value_type mask() {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshift-count-overflow"
 		return (~(~(0UL) << width()));
+#pragma GCC diagnostic pop
 	}
 
 	static value_type reflect(value_type x) {
