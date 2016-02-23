@@ -168,7 +168,12 @@ private:
 	}
 
 	void symbol_callback(const float symbol, const float lateness) {
-		symbol_handler(symbol);
+		// NOTE: This check is to avoid std::function nullptr check, which
+		// brings in "_ZSt25__throw_bad_function_callv" and a lot of extra code.
+		// TODO: Make symbol_handler known at compile time.
+		if( symbol_handler) {
+			symbol_handler(symbol);
+		}
 
 		const float adjustment = error_filter(lateness);
 		resampler.advance(adjustment);

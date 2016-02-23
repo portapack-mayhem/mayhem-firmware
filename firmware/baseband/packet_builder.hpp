@@ -89,8 +89,13 @@ public:
 			}
 
 			if( end(bit_history, packet.size()) ) {
-				packet.set_timestamp(Timestamp::now());
-				payload_handler(packet);
+				// NOTE: This check is to avoid std::function nullptr check, which
+				// brings in "_ZSt25__throw_bad_function_callv" and a lot of extra code.
+				// TODO: Make payload_handler known at compile time.
+				if( payload_handler ) {
+					packet.set_timestamp(Timestamp::now());
+					payload_handler(packet);
+				}
 				reset_state();
 			} else {
 				if( packet_truncated() ) {
