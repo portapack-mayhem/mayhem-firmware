@@ -177,6 +177,20 @@ static inline uint32_t scale_round_and_pack(
 	return __PKHBT(saturated_real, saturated_imag, 16);
 }
 
+template<typename Tap>
+static void taps_copy(
+	const Tap* const source,
+	Tap* const target,
+	const size_t count,
+	const bool shift_up
+) {
+	const uint32_t negate_pattern = shift_up ? 0b1110 : 0b0100;
+	for(size_t i=0; i<count; i++) {
+		const bool negate = (negate_pattern >> (i & 3)) & 1;
+		target[i] = negate ? -source[i] : source[i];
+	}
+}
+
 // FIRC8xR16x24FS4Decim4 //////////////////////////////////////////////////
 
 void FIRC8xR16x24FS4Decim4::configure(
@@ -184,13 +198,7 @@ void FIRC8xR16x24FS4Decim4::configure(
 	const int32_t scale,
 	const Shift shift
 ) {
-	const int negate_factor = (shift == Shift::Up) ? -1 : 1;
-	for(size_t i=0; i<taps.size(); i+=4) {
-		taps_[i+0] =  taps[i+0];
-		taps_[i+1] =  taps[i+1] * negate_factor;
-		taps_[i+2] = -taps[i+2];
-		taps_[i+3] =  taps[i+3] * negate_factor;
-	}
+	taps_copy(taps.data(), taps_.data(), taps_.size(), shift == Shift::Up);
 	output_scale = scale;
 	z_.fill({});
 }
@@ -246,13 +254,7 @@ void FIRC8xR16x24FS4Decim8::configure(
 	const int32_t scale,
 	const Shift shift
 ) {
-	const int negate_factor = (shift == Shift::Up) ? -1 : 1;
-	for(size_t i=0; i<taps.size(); i+=4) {
-		taps_[i+0] =  taps[i+0];
-		taps_[i+1] =  taps[i+1] * negate_factor;
-		taps_[i+2] = -taps[i+2];
-		taps_[i+3] =  taps[i+3] * negate_factor;
-	}
+	taps_copy(taps.data(), taps_.data(), taps_.size(), shift == Shift::Up);
 	output_scale = scale;
 	z_.fill({});
 }
