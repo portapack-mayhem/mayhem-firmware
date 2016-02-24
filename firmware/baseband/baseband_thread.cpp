@@ -85,7 +85,7 @@ void BasebandThread::run() {
 	baseband_sgpio.init();
 	baseband::dma::init();
 
-	const auto baseband_buffer = new std::array<baseband::sample_t, 8192>();
+	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
 		direction()
@@ -119,8 +119,6 @@ void BasebandThread::run() {
 			);
 		}
 	}
-
-	delete baseband_buffer;
 }
 
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
