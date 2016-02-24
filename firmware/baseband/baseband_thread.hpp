@@ -42,9 +42,10 @@ public:
 
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
-	BasebandProcessor* baseband_processor { nullptr };
 
 private:
+	BasebandProcessor* baseband_processor { nullptr };
+
 	BasebandConfiguration baseband_configuration;
 
 	void run() override;
