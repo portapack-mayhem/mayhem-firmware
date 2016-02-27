@@ -81,18 +81,27 @@ void port_halt(void) {
 
 #if defined(LPC43XX_M4)
 CH_IRQ_HANDLER(MemManageVector) {
-	CH_IRQ_PROLOGUE();
+#if CH_DBG_ENABLED
+	chDbgPanic("MemManage");
+#else
 	chSysHalt();
+#endif
 }
 
 CH_IRQ_HANDLER(BusFaultVector) {
-	CH_IRQ_PROLOGUE();
+#if CH_DBG_ENABLED
+	chDbgPanic("BusFault");
+#else
 	chSysHalt();
+#endif
 }
 
 CH_IRQ_HANDLER(UsageFaultVector) {
-	CH_IRQ_PROLOGUE();
+#if CH_DBG_ENABLED
+	chDbgPanic("UsageFault");
+#else
 	chSysHalt();
+#endif
 }
 #endif
 
