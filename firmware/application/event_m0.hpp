@@ -102,6 +102,7 @@ private:
 	bool is_running = true;
 	bool sd_card_present = false;
 	bool display_sleep = false;
+	bool halt = false;
 
 	eventmask_t wait();
 	void dispatch(const eventmask_t events);

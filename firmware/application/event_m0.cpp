@@ -40,6 +40,8 @@ using namespace lpc43xx;
 
 #include <array>
 
+#include "ui_font_fixed_8x16.hpp"
+
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {
@@ -133,6 +135,40 @@ eventmask_t EventDispatcher::wait() {
 }
 
 void EventDispatcher::dispatch(const eventmask_t events) {
+	if( shared_memory.m4_panic_msg[0] != 0 ) {
+		halt = true;
+	}
+
+	if( halt ) {
+		if( shared_memory.m4_panic_msg[0] != 0 ) {
+			painter.fill_rectangle(
+				{ 0, 0, portapack::display.width(), portapack::display.height() },
+				ui::Color::red()
+			);
+
+			constexpr int border = 8;
+			painter.fill_rectangle(
+				{ border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2) },
+				ui::Color::black()
+			);
+
+			painter.draw_string({ 48, 24 }, top_widget->style(), "M4 Guru Meditation");
+
+			shared_memory.m4_panic_msg[sizeof(shared_memory.m4_panic_msg) - 1] = 0;
+			const std::string message = shared_memory.m4_panic_msg;
+			const int x_offset = (portapack::display.width() - (message.size() * 8)) / 2;
+			constexpr int y_offset = (portapack::display.height() - 16) / 2;
+			painter.draw_string(
+				{ x_offset, y_offset },
+				top_widget->style(),
+				message
+			);
+
+			shared_memory.m4_panic_msg[0] = 0;
+		}
+		return;
+	}
+
 	if( events & EVT_MASK_APPLICATION ) {
 		handle_application_queue();
 	}
@@ -291,6 +327,7 @@ void EventDispatcher::init_message_queues() {
 	new (&shared_memory.app_local_queue) MessageQueue(
 		shared_memory.app_local_queue_data, SharedMemory::app_local_queue_k
 	);
+	shared_memory.m4_panic_msg[0] = 0;
 }
 
 MessageHandlerRegistration::MessageHandlerRegistration(

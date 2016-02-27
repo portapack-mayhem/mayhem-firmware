@@ -45,6 +45,8 @@ struct SharedMemory {
 	// TODO: M0 should directly configure and control DMA channel that is
 	// acquiring ADC samples.
 	TouchADCFrame touch_adc_frame;
+
+	char m4_panic_msg[32];
 };
 
 extern SharedMemory& shared_memory;
