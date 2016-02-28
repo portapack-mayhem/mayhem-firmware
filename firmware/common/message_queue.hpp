@@ -60,6 +60,19 @@ public:
 		return result;
 	}
 
+	template<typename HandlerFn>
+	void handle(HandlerFn handler) {
+		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+		while(Message* const message = peek(message_buffer)) {
+			handler(message);
+			skip();
+		}
+	}
+
+private:
+	FIFO<uint8_t> fifo;
+	Mutex mutex_write;
+
 	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());
 		return fifo.peek_r(buf.data(), buf.size()) ? p : nullptr;
@@ -81,19 +94,6 @@ public:
 	bool is_empty() const {
 		return fifo.is_empty();
 	}
-
-	template<typename HandlerFn>
-	void handle(HandlerFn handler) {
-		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(Message* const message = peek(message_buffer)) {
-			handler(message);
-			skip();
-		}
-	}
-
-private:
-	FIFO<uint8_t> fifo;
-	Mutex mutex_write;
 
 	bool push(const void* const buf, const size_t len) {
 		chMtxLock(&mutex_write);
