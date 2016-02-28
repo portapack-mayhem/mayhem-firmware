@@ -134,10 +134,9 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 }
 
 void EventDispatcher::handle_application_queue() {
-	std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-	while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
+	shared_memory.application_queue.handle([](Message* const message) {
 		message_map().send(message);
-	}
+	});
 }
 
 void EventDispatcher::handle_rtc_tick() {

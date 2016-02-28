@@ -82,6 +82,15 @@ public:
 		return fifo.is_empty();
 	}
 
+	template<typename HandlerFn>
+	void handle(HandlerFn handler) {
+		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+		while(Message* const message = peek(message_buffer)) {
+			handler(message);
+			skip();
+		}
+	}
+
 private:
 	FIFO<uint8_t> fifo;
 	Mutex mutex_write;
