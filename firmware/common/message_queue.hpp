@@ -34,6 +34,10 @@ using namespace lpc43xx;
 
 class MessageQueue {
 public:
+	MessageQueue() = delete;
+	MessageQueue(const MessageQueue&) = delete;
+	MessageQueue(MessageQueue&&) = delete;
+	
 	MessageQueue(
 		uint8_t* const data,
 		size_t k
