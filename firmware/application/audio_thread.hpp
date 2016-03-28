@@ -104,7 +104,7 @@ private:
 
 			StreamOutput stream { fifo };
 
-			if( stream.available() >= write_buffer->size() ) {
+			while( stream.available() >= write_buffer->size() ) {
 				led_usb.on();
 
 				const auto bytes_to_write = stream.read(write_buffer->data(), write_buffer->size());
