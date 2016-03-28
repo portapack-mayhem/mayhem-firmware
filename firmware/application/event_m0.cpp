@@ -31,6 +31,8 @@
 
 #include "irq_controls.hpp"
 
+#include "audio_thread.hpp"
+
 #include "ch.h"
 
 #include "lpc43xx_cpp.hpp"
@@ -44,6 +46,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
+	AudioThread::check_fifo_isr();
 	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
 	chSysUnlockFromIsr();
 
@@ -56,6 +59,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 MessageHandlerMap EventDispatcher::message_map_;
 Thread* EventDispatcher::thread_event_loop = nullptr;
+Thread* EventDispatcher::thread_record = nullptr;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,

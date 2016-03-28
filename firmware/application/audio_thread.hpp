@@ -67,11 +67,23 @@ public:
 
 	~AudioThread() {
 		chThdTerminate(thread);
+		chEvtSignal(thread, EVT_FIFO_HIGHWATER);
 		chThdWait(thread);
+	}
+
+	static void check_fifo_isr() {
+		if( (shared_memory.FIFO_HACK != nullptr) && (thread != nullptr) ) {
+			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
+			if( fifo->len() >= write_size ) {
+				chEvtSignalI(thread, EVT_FIFO_HIGHWATER);
+			}
+		}
 	}
 
 private:
 	static constexpr size_t write_size = 4096;
+	static constexpr eventmask_t EVT_FIFO_HIGHWATER = 1;
+
 	const std::string file_path;
 
 	File file;
@@ -95,7 +107,7 @@ private:
 		}
 
 		while( !chThdShouldTerminate() ) {
-			// SUCH A HACK!!!
+			chEvtWaitAny(EVT_FIFO_HIGHWATER);
 
 			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
 			if( !fifo ) {
@@ -117,8 +129,6 @@ private:
 				}
 				led_usb.off();
 			}
-
-			chThdSleepMilliseconds(25);
 		}
 
 		file.close();
