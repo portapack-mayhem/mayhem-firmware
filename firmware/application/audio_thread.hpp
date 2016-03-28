@@ -71,6 +71,7 @@ public:
 	}
 
 private:
+	static constexpr size_t write_size = 4096;
 	const std::string file_path;
 
 	File file;
@@ -84,7 +85,7 @@ private:
 	}
 
 	void run() {
-		auto write_buffer = std::make_unique<std::array<uint8_t, 4096>>();
+		auto write_buffer = std::make_unique<std::array<uint8_t, write_size>>();
 		if( !write_buffer ) {
 			return;
 		}
