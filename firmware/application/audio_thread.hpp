@@ -38,7 +38,7 @@ using namespace hackrf::one;
 class StreamOutput {
 public:
 	StreamOutput(
-		FIFO<uint8_t, 13>* const fifo
+		FIFO<uint8_t>* const fifo
 	) : fifo { fifo }
 	{
 	}
@@ -52,7 +52,7 @@ public:
 	}
 
 private:
-	FIFO<uint8_t, 13>* const fifo;
+	FIFO<uint8_t>* const fifo;
 };
 
 class AudioThread {
@@ -96,7 +96,7 @@ private:
 		while( !chThdShouldTerminate() ) {
 			// SUCH A HACK!!!
 
-			auto fifo = reinterpret_cast<FIFO<uint8_t, 13>*>(shared_memory.FIFO_HACK);
+			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
 			if( !fifo ) {
 				break;
 			}

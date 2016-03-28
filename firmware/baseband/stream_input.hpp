@@ -32,10 +32,13 @@
 
 class StreamInput {
 public:
-	StreamInput() : fifo { std::make_unique<FIFO<uint8_t, 13>>() }
+	StreamInput(const size_t K) :
+		K { K },
+		data { std::make_unique<uint8_t[]>(1UL << K) },
+		fifo { data.get(), K }
 	{
 		// TODO: Send stream creation message.
-		shared_memory.FIFO_HACK = fifo.get();
+		shared_memory.FIFO_HACK = &fifo;
 	}
 
 	~StreamInput() {
@@ -44,11 +47,13 @@ public:
 	}
 
 	size_t write(const void* const data, const size_t length) {
-		return fifo->in(reinterpret_cast<const uint8_t*>(data), length);
+		return fifo.in(reinterpret_cast<const uint8_t*>(data), length);
 	}
 
 private:
-	std::unique_ptr<FIFO<uint8_t, 13>> fifo;
+	const size_t K;
+	std::unique_ptr<uint8_t[]> data;
+	FIFO<uint8_t> fifo;
 };
 
 #endif/*__STREAM_INPUT_H__*/

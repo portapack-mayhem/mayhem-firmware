@@ -54,7 +54,7 @@ private:
 	IIRBiquadFilter deemph;
 	FMSquelch squelch;
 
-	StreamInput stream;
+	StreamInput stream { 13 };
 
 	AudioStatsCollector audio_stats;
 
