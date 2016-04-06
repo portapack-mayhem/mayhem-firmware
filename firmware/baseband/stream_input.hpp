@@ -48,7 +48,13 @@ public:
 
 	size_t write(const void* const data, const size_t length) {
 		const auto written = fifo.in(reinterpret_cast<const uint8_t*>(data), length);
+
+		const auto last_bytes_written = bytes_written;
 		bytes_written += written;
+		if( (bytes_written & event_bytes_mask) < (last_bytes_written & event_bytes_mask) ) {
+			creg::m4txevent::assert();
+		}
+
 		return written;
 	}
 
@@ -58,6 +64,7 @@ public:
 
 private:
 	const size_t K;
+	const uint64_t event_bytes_mask = (1ULL << 12) - 1;
 	uint64_t bytes_written = 0;
 	std::unique_ptr<uint8_t[]> data;
 	FIFO<uint8_t> fifo;
