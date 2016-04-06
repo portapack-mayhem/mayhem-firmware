@@ -51,6 +51,10 @@ std::string consumption(Consumption value) {
 	return to_string_dec_uint(value, 10);
 }
 
+std::string commodity_type(CommodityType value) {
+	return to_string_dec_uint(value, 2);
+}
+
 } /* namespace format */
 
 } /* namespace ert */
@@ -68,6 +72,8 @@ void ERTLogger::on_packet(const ert::Packet& packet) {
 	}
 }
 
+const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
+
 void ERTRecentEntry::update(const ert::Packet& packet) {
 	received_count++;
 
@@ -76,8 +82,9 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 3> ert_columns { {
+static const std::array<std::pair<std::string, size_t>, 4> ert_columns { {
 	{ "ID", 10 },
+	{ "Tp", 2 },
 	{ "Consumpt", 10 },
 	{ "Cnt", 3 },
 } };
@@ -111,7 +118,7 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 ) {
 	const auto& draw_style = is_selected ? style.invert() : style;
 
-	std::string line = ert::format::id(entry.id) + " " + ert::format::consumption(entry.last_consumption);
+	std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
 
 	if( entry.received_count > 999 ) {
 		line += " +++";
@@ -176,7 +183,7 @@ void ERTAppView::on_packet(const ert::Packet& packet) {
 	}
 
 	if( packet.crc_ok() ) {
-		recent.on_packet(packet.id(), packet);
+		recent.on_packet({ packet.id(), packet.commodity_type() }, packet);
 		recent_entries_view.set_dirty();
 	}
 }

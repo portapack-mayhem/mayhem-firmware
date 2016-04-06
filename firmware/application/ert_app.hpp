@@ -33,13 +33,37 @@
 #include <cstddef>
 #include <string>
 
+struct ERTKey {
+	ert::ID id;
+	ert::CommodityType commodity_type;
+
+	constexpr ERTKey(
+		ert::ID id = ert::invalid_id,
+		ert::CommodityType commodity_type = ert::invalid_commodity_type
+	) : id { id  },
+		commodity_type { commodity_type }
+	{
+	}
+
+	ERTKey& operator=(const ERTKey& other) {
+		id = other.id;
+		commodity_type = other.commodity_type;
+		return *this;
+	}
+
+	bool operator==(const ERTKey& other) const {
+		return (id == other.id) && (commodity_type == other.commodity_type);
+	}
+};
+
 struct ERTRecentEntry {
-	using Key = ert::ID;
+	using Key = ERTKey;
 
 	// TODO: Is this the right choice of invalid key value?
-	static constexpr Key invalid_key = 0;
+	static const Key invalid_key;
 
-	ert::ID id { invalid_key };
+	ert::ID id { ert::invalid_id };
+	ert::CommodityType commodity_type { ert::invalid_commodity_type };
 
 	size_t received_count { 0 };
 
@@ -47,12 +71,13 @@ struct ERTRecentEntry {
 
 	ERTRecentEntry(
 		const Key& key
-	) : id { key }
+	) : id { key.id },
+		commodity_type { key.commodity_type }
 	{
 	}
 
 	Key key() const {
-		return id;
+		return { id, commodity_type };
 	}
 
 	void update(const ert::Packet& packet);

@@ -63,6 +63,16 @@ Consumption Packet::consumption() const {
 	return invalid_consumption;
 }
 
+CommodityType Packet::commodity_type() const {
+	if( type() == Type::SCM ) {
+		return reader_.read(5, 4);
+	}
+	if( type() == Type::IDM ) {
+		return reader_.read(4 * 8 + 4, 4);
+	}
+	return invalid_commodity_type;
+}
+
 ManchesterFormatted Packet::symbols_formatted() const {
 	return format_manchester(decoder_);
 }
