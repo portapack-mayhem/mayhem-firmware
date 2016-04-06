@@ -102,23 +102,24 @@ private:
 	}
 
 	msg_t run() {
-		bool success = true;
-		while( success && !chThdShouldTerminate() ) {
+		auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
+		if( !fifo ) {
+			return false;
+		}
+
+		StreamOutput stream { fifo };
+
+		while( !chThdShouldTerminate() ) {
 			chEvtWaitAny(EVT_FIFO_HIGHWATER);
 
-			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
-			if( !fifo ) {
-				break;
-			}
-
-			StreamOutput stream { fifo };
-
-			while( success && (stream.available() >= write_buffer->size()) ) {
-				success = transfer(stream, write_buffer.get());
+			while( stream.available() >= write_buffer->size() ) {
+				if( !transfer(stream, write_buffer.get()) ) {
+					return false; 
+				}
 			}
 		}
-		
-		return success;
+
+		return true;
 	}
 
 	bool transfer(StreamOutput& stream, std::array<uint8_t, write_size>* const write_buffer) {
