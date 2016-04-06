@@ -72,7 +72,11 @@ public:
 	~AudioThread() {
 		chThdTerminate(thread);
 		chEvtSignal(thread, EVT_FIFO_HIGHWATER);
-		chThdWait(thread);
+		const auto success = chThdWait(thread);
+
+		if( !success ) {
+			led_tx.on();
+		}
 	}
 
 	static void check_fifo_isr() {
@@ -94,12 +98,10 @@ private:
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<AudioThread*>(arg);
-		obj->run();
-
-		return 0;
+		return obj->run();
 	}
 
-	void run() {
+	msg_t run() {
 		bool success = true;
 		while( success && !chThdShouldTerminate() ) {
 			chEvtWaitAny(EVT_FIFO_HIGHWATER);
@@ -115,10 +117,8 @@ private:
 				success = transfer(stream, write_buffer.get());
 			}
 		}
-
-		if( !success ) {
-			led_tx.on();
-		}
+		
+		return success;
 	}
 
 	bool transfer(StreamOutput& stream, std::array<uint8_t, write_size>* const write_buffer) {
