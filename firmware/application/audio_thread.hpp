@@ -126,6 +126,8 @@ private:
 						led_tx.on();
 						break;
 					}
+				} else {
+					break;
 				}
 				led_usb.off();
 			}
