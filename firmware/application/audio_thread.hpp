@@ -59,12 +59,9 @@ class AudioThread {
 public:
 	AudioThread(
 		std::string file_path
-	) : write_buffer { std::make_unique<std::array<uint8_t, write_size>>() }
+	) : file_path { std::move(file_path) },
+		write_buffer { std::make_unique<std::array<uint8_t, write_size>>() }
 	{
-		if( !file.open_for_append(file_path) ) {
-			return;
-		}
-
 		// Need significant stack for FATFS
 		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, AudioThread::static_fn, this);
 	}
@@ -92,6 +89,7 @@ private:
 	static constexpr size_t write_size = 4096;
 	static constexpr eventmask_t EVT_FIFO_HIGHWATER = 1;
 
+	const std::string file_path;
 	std::unique_ptr<std::array<uint8_t, write_size>> write_buffer;
 	File file;
 	static Thread* thread;
@@ -102,6 +100,10 @@ private:
 	}
 
 	msg_t run() {
+		if( !file.open_for_append(file_path) ) {
+			return false;
+		}
+
 		auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
 		if( !fifo ) {
 			return false;
