@@ -121,8 +121,8 @@ private:
 
 				const auto bytes_to_write = stream.read(write_buffer->data(), write_buffer->size());
 
-				if( bytes_to_write ) {
-					if( !file.write(write_buffer->data(), bytes_to_write) ) {
+				if( bytes_to_write == write_buffer->size() ) {
+					if( !file.write(write_buffer->data(), write_buffer->size()) ) {
 						led_tx.on();
 						break;
 					}
