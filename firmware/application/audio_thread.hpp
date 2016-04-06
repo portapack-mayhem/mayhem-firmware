@@ -106,7 +106,8 @@ private:
 			return;
 		}
 
-		while( !chThdShouldTerminate() ) {
+		bool success = true;
+		while( success && !chThdShouldTerminate() ) {
 			chEvtWaitAny(EVT_FIFO_HIGHWATER);
 
 			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
@@ -116,24 +117,33 @@ private:
 
 			StreamOutput stream { fifo };
 
-			while( stream.available() >= write_buffer->size() ) {
-				led_usb.on();
-
-				const auto bytes_to_write = stream.read(write_buffer->data(), write_buffer->size());
-
-				if( bytes_to_write == write_buffer->size() ) {
-					if( !file.write(write_buffer->data(), write_buffer->size()) ) {
-						led_tx.on();
-						break;
-					}
-				} else {
-					break;
-				}
-				led_usb.off();
+			while( success && (stream.available() >= write_buffer->size()) ) {
+				success = transfer(stream, write_buffer.get());
 			}
 		}
 
+		if( !success ) {
+			led_tx.on();
+		}
+
 		file.close();
+	}
+
+	bool transfer(StreamOutput& stream, std::array<uint8_t, write_size>* const write_buffer) {
+		bool success = false;
+
+		led_usb.on();
+
+		const auto bytes_to_write = stream.read(write_buffer->data(), write_buffer->size());
+		if( bytes_to_write == write_buffer->size() ) {
+			if( file.write(write_buffer->data(), write_buffer->size()) ) {
+				success = true;
+			}
+		}
+
+		led_usb.off();
+
+		return success;
 	}
 };
 
