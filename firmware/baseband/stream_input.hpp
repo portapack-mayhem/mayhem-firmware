@@ -47,11 +47,18 @@ public:
 	}
 
 	size_t write(const void* const data, const size_t length) {
-		return fifo.in(reinterpret_cast<const uint8_t*>(data), length);
+		const auto written = fifo.in(reinterpret_cast<const uint8_t*>(data), length);
+		bytes_written += written;
+		return written;
+	}
+
+	uint64_t written() const {
+		return bytes_written;
 	}
 
 private:
 	const size_t K;
+	uint64_t bytes_written = 0;
 	std::unique_ptr<uint8_t[]> data;
 	FIFO<uint8_t> fifo;
 };
