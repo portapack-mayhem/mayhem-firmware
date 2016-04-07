@@ -175,6 +175,7 @@ CPPSRC = main.cpp \
          ../commom/ais_packet.cpp \
          ais_app.cpp \
          tpms_app.cpp \
+         ../common/tpms_packet.cpp \
          ert_app.cpp \
          ../common/ert_packet.cpp \
          sd_card.cpp \
