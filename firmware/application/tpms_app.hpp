@@ -107,7 +107,7 @@ private:
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 
-	void on_packet(const tpms::Packet& packet);
+	void on_packet(const tpms::SignalType signal_type, const tpms::Packet& packet);
 	void on_show_list();
 
 	uint32_t target_frequency() const;

@@ -29,6 +29,7 @@
 
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
+#include "tpms_packet.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
@@ -275,12 +276,15 @@ public:
 class TPMSPacketMessage : public Message {
 public:
 	constexpr TPMSPacketMessage(
+		const tpms::SignalType signal_type,
 		const baseband::Packet& packet
 	) : Message { ID::TPMSPacket },
+		signal_type { signal_type },
 		packet { packet }
 	{
 	}
 
+	tpms::SignalType signal_type;
 	baseband::Packet packet;
 };
 
