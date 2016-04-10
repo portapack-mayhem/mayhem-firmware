@@ -537,6 +537,8 @@ void sdc_lld_init(void) {
 void sdc_lld_start(SDCDriver *sdcp) {
 
   if (sdcp->state == BLK_STOP) {
+    LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
+
     LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 1;
     LPC_CGU->BASE_SDIO_CLK.PD = 0;
 
