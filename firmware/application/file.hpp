@@ -33,6 +33,7 @@ public:
 	~File();
 
 	bool open_for_writing(const std::string& file_path);
+	bool open_for_reading(const std::string& file_path);
 	bool open_for_append(const std::string& file_path);
 	bool close();
 
