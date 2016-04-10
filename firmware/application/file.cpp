@@ -25,13 +25,13 @@ File::~File() {
 	close();
 }
 
-bool File::open(const std::string& file_path) {
+bool File::open_for_writing(const std::string& file_path) {
 	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
 	return (open_result == FR_OK);
 }
 
 bool File::open_for_append(const std::string& file_path) {
-	if( open(file_path) ) {
+	if( open_for_writing(file_path) ) {
 		const auto seek_result = f_lseek(&f, f_size(&f));
 		if( seek_result == FR_OK ) {
 			return true;

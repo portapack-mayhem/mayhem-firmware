@@ -53,7 +53,7 @@ PNGWriter::PNGWriter(
 	const std::string& filename
 )
 {
-	file.open(filename);
+	file.open_for_writing(filename);
 	file.write(png_file_header);
 	file.write(png_ihdr_screen_capture);
 	
