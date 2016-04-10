@@ -564,18 +564,6 @@ void sdc_lld_start(SDCDriver *sdcp) {
       ;
 
     sdio_cclk_set_400khz();
-    // sdio_clkdiv_set(255, 5, 0, 0);
-    // LPC_SDMMC->CLKDIV =
-    //     (255U <<  0)
-    //   | (  5U <<  8)
-    //   | (  0U << 16)
-    //   | (  0U << 24)
-    //   ;
-    // sdio_update_clock_registers_only();
-    // LPC_SDMMC->CLKSRC = 0;
-    // LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
-
-    // LPC_SDMMC->TMOUT = 0xffffff40U;
 
     /* TODO: Choose which interrupts to enable! */
     sdio_interrupts_set_mask(0);
