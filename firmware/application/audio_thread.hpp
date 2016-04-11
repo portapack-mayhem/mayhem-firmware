@@ -86,7 +86,7 @@ public:
 	}
 
 private:
-	static constexpr size_t write_size = 4096;
+	static constexpr size_t write_size = 16384;
 	static constexpr eventmask_t EVT_FIFO_HIGHWATER = 1;
 
 	const std::string file_path;
