@@ -50,7 +50,7 @@
 /  To enable it, also _FS_READONLY need to be set to 0. */
 
 
-#define	_USE_FASTSEEK	0
+#define	_USE_FASTSEEK	1
 /* This option switches fast seek feature. (0:Disable or 1:Enable) */
 
 
