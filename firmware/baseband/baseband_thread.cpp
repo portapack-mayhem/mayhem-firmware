@@ -38,6 +38,7 @@
 #include "proc_wideband_spectrum.hpp"
 #include "proc_tpms.hpp"
 #include "proc_ert.hpp"
+#include "proc_capture.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -130,6 +131,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 4:		return new WidebandSpectrum();
 	case 5:		return new TPMSProcessor();
 	case 6:		return new ERTProcessor();
+	case 7:		return new CaptureProcessor();
 	default:	return nullptr;
 	}
 }

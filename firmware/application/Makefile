@@ -179,6 +179,7 @@ CPPSRC = main.cpp \
          ../common/tpms_packet.cpp \
          ert_app.cpp \
          ../common/ert_packet.cpp \
+         capture_app.cpp \
          sd_card.cpp \
          file.cpp \
          log_file.cpp \

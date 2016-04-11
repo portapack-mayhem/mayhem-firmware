@@ -31,6 +31,7 @@
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
+#include "capture_app.hpp"
 
 #include "core_control.hpp"
 
@@ -168,7 +169,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<7>({ {
 		{ "Receiver", [&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Capture",  [&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },
 		{ "About",    [&nav](){ nav.push<AboutView>(); } },
