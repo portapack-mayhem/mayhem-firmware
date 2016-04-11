@@ -32,7 +32,10 @@
 #include "packet_builder.hpp"
 #include "baseband_packet.hpp"
 
+#include "ook.hpp"
+
 #include "message.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -83,6 +86,38 @@ private:
 		}
 	};
 
+	static constexpr float channel_rate_in = 307200.0f;
+	static constexpr size_t channel_decimation = 8;
+	static constexpr float channel_sample_rate = channel_rate_in / channel_decimation;
+	OOKSlicerMagSquaredInt ook_slicer_5sps { 5 };
+	uint32_t slicer_history { 0 };
+
+	OOKClockRecovery ook_clock_recovery_subaru {
+		channel_sample_rate / 8192.0f
+	};
+
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_subaru {
+		{ 0b010101010101010101011110, 24, 0 },
+		{ },
+		{ 80 },
+		[](const baseband::Packet& packet) {
+			const TPMSPacketMessage message { tpms::SignalType::Subaru, packet };
+			shared_memory.application_queue.push(message);
+		}
+	};
+	OOKClockRecovery ook_clock_recovery_gmc {
+		channel_sample_rate / 8400.0f
+	};
+
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_gmc {
+		{ 0b01010101010101010101010101100101, 32, 0 },
+		{ },
+		{ 192 },
+		[](const baseband::Packet& packet) {
+			const TPMSPacketMessage message { tpms::SignalType::GMC, packet };
+			shared_memory.application_queue.push(message);
+		}
+	};
 	void consume_symbol(const float symbol);
 	void payload_handler(const baseband::Packet& packet);
 };

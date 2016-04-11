@@ -21,8 +21,6 @@
 
 #include "proc_tpms.hpp"
 
-#include "portapack_shared_memory.hpp"
-
 #include "dsp_fir_taps.hpp"
 
 TPMSProcessor::TPMSProcessor() {
@@ -44,6 +42,18 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		if( mf.execute_once(decimator_out.p[i]) ) {
 			clock_recovery(mf.get_output());
 		}
+	}
+
+	for(size_t i=0; i<decim_1_out.count; i+=channel_decimation) {
+		const auto sliced = ook_slicer_5sps(decim_1_out.p[i]);
+		slicer_history = (slicer_history << 1) | sliced;
+
+		ook_clock_recovery_subaru(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_subaru.execute(symbol);
+		});
+		ook_clock_recovery_gmc(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_gmc.execute(symbol);
+		});
 	}
 }
 
