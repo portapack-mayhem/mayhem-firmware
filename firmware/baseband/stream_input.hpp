@@ -64,7 +64,7 @@ public:
 
 private:
 	const size_t K;
-	const uint64_t event_bytes_mask = (1ULL << 12) - 1;
+	const uint64_t event_bytes_mask = (1ULL << (K - 2)) - 1;
 	uint64_t bytes_written = 0;
 	std::unique_ptr<uint8_t[]> data;
 	FIFO<uint8_t> fifo;
