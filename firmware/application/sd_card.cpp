@@ -44,7 +44,7 @@ FRESULT mount() {
 Signal<Status> status_signal;
 
 void poll_inserted() {
-	const auto card_present_now = sdc_lld_is_card_inserted(&SDCD1);
+	const auto card_present_now = sdcIsCardInserted(&SDCD1);
 	if( card_present_now != card_present ) {
 		card_present = card_present_now;
 
