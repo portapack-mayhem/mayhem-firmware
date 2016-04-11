@@ -200,8 +200,8 @@ static void sdio_cclk_set_400khz(void) {
 }
 
 static void sdio_cclk_set_fast(void) {
-  /* 200MHz / (2 * 5) = 20MHz */
-  sdio_cclk_set(5);
+  /* 200MHz / (2 * 4) = 25MHz */
+  sdio_cclk_set(4);
 }
 
 static void sdio_width_set_1bit(void) {
