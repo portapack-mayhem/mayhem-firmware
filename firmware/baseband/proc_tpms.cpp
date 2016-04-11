@@ -25,27 +25,6 @@
 
 #include "dsp_fir_taps.hpp"
 
-// IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400
-static constexpr fir_taps_real<24> taps_200k_decim_0 = {
-	.pass_frequency_normalized = 100000.0f / 2457600.0f,
-	.stop_frequency_normalized = 407200.0f / 2457600.0f,
-	.taps = { {
-	    90,     94,      4,   -240,   -570,   -776,   -563,    309,
-	  1861,   3808,   5618,   6710,   6710,   5618,   3808,   1861,
-	   309,   -563,   -776,   -570,   -240,      4,     94,     90,
-	} },
-};
-
-// IFIR prototype filter: fs=614400, pass=100000, stop=207200, decim=2, fout=307200
-static constexpr fir_taps_real<16> taps_200k_decim_1 = {
-	.pass_frequency_normalized = 100000.0f / 614400.0f,
-	.stop_frequency_normalized = 207200.0f / 614400.0f,
-	.taps = { {
-		  -132,   -256,    545,    834,  -1507,  -2401,   4666,  14583,
-		 14583,   4666,  -2401,  -1507,    834,    545,   -256,   -132,
-	} },
-};
-
 TPMSProcessor::TPMSProcessor() {
 	decim_0.configure(taps_200k_decim_0.taps, 33554432);
 	decim_1.configure(taps_200k_decim_1.taps, 131072);
