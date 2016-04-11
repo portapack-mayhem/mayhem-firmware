@@ -28,6 +28,8 @@
 
 #include "audio.hpp"
 
+#include "ui_sd_card_debug.hpp"
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -272,7 +274,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<5>({ {
 		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",     [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "SD Card",     [&nav](){ nav.push<SDCardDebugView>(); } },
 		{ "Peripherals", [&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
 		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
 	} });

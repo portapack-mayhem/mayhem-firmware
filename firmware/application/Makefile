@@ -164,6 +164,7 @@ CPPSRC = main.cpp \
          ui_debug.cpp \
          ui_baseband_stats_view.cpp \
          ui_sd_card_status_view.cpp \
+         ui_sd_card_debug.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
@@ -189,6 +190,7 @@ CPPSRC = main.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp \
+         ../common/lfsr_random.cpp \
          core_control.cpp \
          cpld_max5.cpp \
          jtag.cpp \
