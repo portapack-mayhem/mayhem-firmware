@@ -28,7 +28,13 @@
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView&) {
-	capture_thread = std::make_unique<AudioThread>("baseband.c16");
+	add_children({ {
+		&button_start,
+		&button_stop,
+	} });
+
+	button_start.on_select = [this](Button&){ this->on_start(); };
+	button_stop.on_select = [this](Button&){ this->on_stop(); };
 
 	radio::enable({
 		tuning_frequency(),
@@ -49,6 +55,20 @@ CaptureAppView::CaptureAppView(NavigationView&) {
 CaptureAppView::~CaptureAppView() {
 	baseband::stop();
 	radio::disable();
+}
+
+void CaptureAppView::focus() {
+	button_start.focus();
+}
+
+void CaptureAppView::on_start() {
+	if( !capture_thread ) {
+		capture_thread = std::make_unique<AudioThread>("baseband.c16");
+	}
+}
+
+void CaptureAppView::on_stop() {
+	capture_thread.reset();
 }
 
 uint32_t CaptureAppView::target_frequency() const {

@@ -37,6 +37,8 @@ public:
 	CaptureAppView(NavigationView& nav);
 	~CaptureAppView();
 
+	void focus() override;
+
 	std::string title() const override { return "Capture"; };
 
 private:
@@ -48,6 +50,19 @@ private:
 
 	uint32_t target_frequency() const;
 	uint32_t tuning_frequency() const;
+
+	void on_start();
+	void on_stop();
+
+	Button button_start {
+		{ 16, 17 * 16, 96, 24 },
+		"Start"
+	};
+
+	Button button_stop {
+		{ 240 - 96 - 16, 17 * 16, 96, 24 },
+		"Stop"
+	};
 };
 
 } /* namespace ui */
