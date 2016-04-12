@@ -318,4 +318,24 @@ void LNAGainField::on_focus() {
 	}
 }
 
+/* VGAGainField **********************************************************/
+
+VGAGainField::VGAGainField(
+	Point parent_pos
+) : NumberField {
+		parent_pos, 2,
+		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
+		max2837::vga::gain_db_step,
+		' ',
+	}
+{
+}
+
+void VGAGainField::on_focus() {
+	//Widget::on_focus();
+	if( on_show_options ) {
+		on_show_options();
+	}
+}
+
 } /* namespace ui */

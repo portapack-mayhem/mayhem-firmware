@@ -315,6 +315,15 @@ public:
 	void on_focus() override;
 };
 
+class VGAGainField : public NumberField {
+public:
+	std::function<void(void)> on_show_options;
+
+	VGAGainField(Point parent_pos);
+
+	void on_focus() override;
+};
+
 } /* namespace ui */
 
 #endif/*__UI_RECEIVER_H__*/

@@ -117,12 +117,8 @@ private:
 		{ 15 * 8, 0 * 16 }
 	};
 
-	NumberField field_vga {
-		{ 18 * 8, 0 * 16},
-		2,
-		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
-		max2837::vga::gain_db_step,
-		' ',
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
 	};
 
 	OptionsField options_modulation {
