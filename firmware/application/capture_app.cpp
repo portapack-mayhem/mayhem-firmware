@@ -30,13 +30,12 @@ namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	add_children({ {
+		&button_start_stop,
 		&rssi,
 		&channel,
 		&field_frequency,
 		&field_lna,
 		&field_vga,
-		&button_start,
-		&button_stop,
 	} });
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
@@ -63,8 +62,9 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		this->on_vga_changed(v_db);
 	};
 
-	button_start.on_select = [this](Button&){ this->on_start(); };
-	button_stop.on_select = [this](Button&){ this->on_stop(); };
+	button_start_stop.on_select = [this](ImageButton&) {
+		this->on_start_stop();
+	};
 	
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(ReceiverModel::Mode::Capture),
@@ -80,17 +80,17 @@ CaptureAppView::~CaptureAppView() {
 }
 
 void CaptureAppView::focus() {
-	button_start.focus();
+	button_start_stop.focus();
 }
 
-void CaptureAppView::on_start() {
-	if( !capture_thread ) {
+void CaptureAppView::on_start_stop() {
+	if( capture_thread ) {
+		capture_thread.reset();
+		button_start_stop.set_bitmap(&bitmap_record);
+	} else {
 		capture_thread = std::make_unique<AudioThread>("baseband.c16");
+		button_start_stop.set_bitmap(&bitmap_stop);
 	}
-}
-
-void CaptureAppView::on_stop() {
-	capture_thread.reset();
 }
 
 void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {

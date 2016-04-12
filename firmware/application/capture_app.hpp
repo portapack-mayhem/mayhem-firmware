@@ -33,6 +33,52 @@
 
 namespace ui {
 
+static constexpr uint8_t bitmap_record_data[] = {
+	0x00, 0x00,
+	0x00, 0x00,
+	0xc0, 0x03,
+	0xf0, 0x0f,
+	0xf8, 0x1f,
+	0xf8, 0x1f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xf8, 0x1f,
+	0xf8, 0x1f,
+	0xf0, 0x0f,
+	0xc0, 0x03,
+	0x00, 0x00,
+	0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_record {
+	{ 16, 16 }, bitmap_record_data
+};
+
+static constexpr uint8_t bitmap_stop_data[] = {
+	0x00, 0x00,
+	0x00, 0x00,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0xfc, 0x3f,
+	0x00, 0x00,
+	0x00, 0x00,
+};
+
+static constexpr Bitmap bitmap_stop {
+	{ 16, 16 }, bitmap_stop_data
+};
+
 class CaptureAppView : public View {
 public:
 	CaptureAppView(NavigationView& nav);
@@ -48,12 +94,18 @@ private:
 
 	std::unique_ptr<AudioThread> capture_thread;
 
-	void on_start();
-	void on_stop();
+	void on_start_stop();
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
+
+	ImageButton button_start_stop {
+		{ 0 * 8, 0, 2 * 8, 1 * 16 },
+		&bitmap_record,
+		Color::red(),
+		Color::black()
+	};
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -73,16 +125,6 @@ private:
 
 	VGAGainField field_vga {
 		{ 18 * 8, 0 * 16 }
-	};
-
-	Button button_start {
-		{ 16, 17 * 16, 96, 24 },
-		"Start"
-	};
-
-	Button button_stop {
-		{ 240 - 96 - 16, 17 * 16, 96, 24 },
-		"Stop"
 	};
 };
 
