@@ -24,6 +24,7 @@
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
 
 #include "audio_thread.hpp"
 
@@ -42,17 +43,37 @@ public:
 	std::string title() const override { return "Capture"; };
 
 private:
-	static constexpr uint32_t initial_target_frequency = 91500000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	std::unique_ptr<AudioThread> capture_thread;
 
-	uint32_t target_frequency() const;
-	uint32_t tuning_frequency() const;
-
 	void on_start();
 	void on_stop();
+
+	void on_tuning_frequency_changed(rf::Frequency f);
+	void on_lna_changed(int32_t v_db);
+	void on_vga_changed(int32_t v_db);
+
+	RSSI rssi {
+		{ 21 * 8, 0, 6 * 8, 4 },
+	};
+
+	Channel channel {
+		{ 21 * 8, 5, 6 * 8, 4 },
+	};
+
+	FrequencyField field_frequency {
+		{ 5 * 8, 0 * 16 },
+	};
+
+	LNAGainField field_lna {
+		{ 15 * 8, 0 * 16 }
+	};
+
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
+	};
 
 	Button button_start {
 		{ 16, 17 * 16, 96, 24 },
