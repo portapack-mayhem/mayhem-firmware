@@ -42,4 +42,6 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
 		const auto result = stream->write(decimator_out.p, bytes_to_write);
 	}
+
+	feed_channel_stats(decimator_out);
 }
