@@ -117,6 +117,9 @@ AnalogAudioView::AnalogAudioView(
 	field_vga.on_change = [this](int32_t v_db) {
 		this->on_vga_changed(v_db);
 	};
+	field_vga.on_show_options = [this]() {
+		this->on_show_options_rf_gain();
+	};
 
 	const auto modulation = receiver_model.modulation();
 	options_modulation.set_by_value(modulation);
