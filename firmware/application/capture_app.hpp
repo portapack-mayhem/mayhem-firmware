@@ -25,6 +25,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_spectrum.hpp"
 
 #include "audio_thread.hpp"
 
@@ -84,11 +85,17 @@ public:
 	CaptureAppView(NavigationView& nav);
 	~CaptureAppView();
 
+	void on_hide() override;
+
+	void set_parent_rect(const Rect new_parent_rect) override;
+
 	void focus() override;
 
 	std::string title() const override { return "Capture"; };
 
 private:
+	static constexpr ui::Dim header_height = 2 * 16;
+
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
@@ -126,6 +133,8 @@ private:
 	VGAGainField field_vga {
 		{ 18 * 8, 0 * 16 }
 	};
+
+	spectrum::WaterfallWidget waterfall;
 };
 
 } /* namespace ui */

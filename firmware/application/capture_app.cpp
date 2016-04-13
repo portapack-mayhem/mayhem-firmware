@@ -36,6 +36,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_frequency,
 		&field_lna,
 		&field_vga,
+		&waterfall,
 	} });
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
@@ -77,6 +78,20 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 
 CaptureAppView::~CaptureAppView() {
 	receiver_model.disable();
+}
+
+void CaptureAppView::on_hide() {
+	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
+	// it's being shown or hidden.
+	waterfall.on_hide();
+	View::on_hide();
+}
+
+void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
+	View::set_parent_rect(new_parent_rect);
+
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height) };
+	waterfall.set_parent_rect(waterfall_rect);
 }
 
 void CaptureAppView::focus() {
