@@ -27,18 +27,18 @@ FRESULT f_open (
 <h4>Parameters</h4>
 <dl class="par">
 <dt>fp</dt>
-<dd>Pointer to the blank file object structure to be created.</dd>
+<dd>Pointer to the blank file object structure.</dd>
 <dt>path</dt>
-<dd>Pointer to a null-terminated string that specifies the <a href="filename.html">file name</a> to open or create.</dd>
+<dd>Pointer to the null-terminated string that specifies the <a href="filename.html">file name</a> to open or create.</dd>
 <dt>mode</dt>
 <dd>Mode flags that specifies the type of access and open method for the file. It is specified by a combination of following flags.<br>
 <table class="lst">
 <tr><th>Value</th><th>Description</th></tr>
-<tr><td>FA_READ</td><td>Specifies read access to the object. Data can be read from the file. Combine with <tt>FA_WRITE</tt> for read-write access.</td></tr>
+<tr><td>FA_READ</td><td>Specifies read access to the object. Data can be read from the file.</tr>
 <tr><td>FA_WRITE</td><td>Specifies write access to the object. Data can be written to the file. Combine with <tt>FA_READ</tt> for read-write access.</td></tr>
 <tr><td>FA_OPEN_EXISTING</td><td>Opens the file. The function fails if the file is not existing. (Default)</td></tr>
-<tr><td>FA_OPEN_ALWAYS</td><td>Opens the file if it is existing. If not, a new file is created.<br>
-To append data to the file, use <a href="lseek.html"><tt>f_lseek()</tt></a> function after file open in this method.</td></tr>
+<tr><td>FA_OPEN_ALWAYS</td><td>Opens the file if it is existing. If not, a new file will be created.<br>
+To append data to the file, use <a href="lseek.html"><tt>f_lseek</tt></a> function after the file open in this method.</td></tr>
 <tr><td>FA_CREATE_NEW</td><td>Creates a new file. The function fails with <tt>FR_EXIST</tt> if the file is existing.</td></tr>
 <tr><td>FA_CREATE_ALWAYS</td><td>Creates a new file. If the file is existing, it will be truncated and overwritten.</td></tr>
 </table>
@@ -74,9 +74,9 @@ To append data to the file, use <a href="lseek.html"><tt>f_lseek()</tt></a> func
 
 <div class="para desc">
 <h4>Description</h4>
-<p>After <tt>f_open()</tt> function succeeded, the file object is valid. The file object is used for subsequent read/write functions to identify the file. To close an open file, use <a href="close.html"><tt>f_close()</tt></a> function. If the file is modified and not closed properly, the file data will be collapsed.</p>
-<p>If duplicated file open is needed, read <a href="appnote.html#dup">here</a> carefully. However duplicated open of a file with write mode flag is always prohibited.</p>
-<p>Before using any file function, a work area (file system object) must be registered to the logical drive with <a href="mount.html"><tt>f_mount()</tt></a> function. All API functions except for <a href="fdisk.html"><tt>f_fdisk()</tt></a> function can work after this procedure.</p>
+<p>Before using any file function, a work area (file system object) must be registered to the logical drive with <a href="mount.html"><tt>f_mount</tt></a> function. All API functions except for <a href="fdisk.html"><tt>f_fdisk</tt></a> function can work after this procedure.</p>
+<p>After <tt>f_open</tt> function succeeded, the file object is valid. The file object is used for subsequent operations to the file to identify the file. Open file must be closed prior to power down, media removal or re-mount, or the file can be collapsed. To close an open file, use <a href="close.html"><tt>f_close</tt></a> function.</p>
+<p>If duplicated file open is needed, read <a href="appnote.html#dup">here</a> carefully. However duplicated open of a file with any write mode flag is always prohibited.</p>
 </div>
 
 
@@ -134,11 +134,11 @@ int main (void)
     f_mount(&amp;fs[1], "1:", 0);
 
     <span class="c">/* Open source file on the drive 1 */</span>
-    fr = f_open(&amp;fsrc, "1:file.bin", FA_OPEN_EXISTING | FA_READ);
+    fr = f_open(&amp;fsrc, "1:file.bin", FA_READ);
     if (fr) return (int)fr;
 
     <span class="c">/* Create destination file on the drive 0 */</span>
-    fr = f_open(&amp;fdst, "0:file.bin", FA_CREATE_ALWAYS | FA_WRITE);
+    fr = f_open(&amp;fdst, "0:file.bin", FA_WRITE | FA_CREATE_ALWAYS);
     if (fr) return (int)fr;
 
     <span class="c">/* Copy source to destination */</span>

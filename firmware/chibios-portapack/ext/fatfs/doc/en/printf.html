@@ -45,7 +45,7 @@ int f_printf (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_printf()</tt> is a wrapper function of <a href="write.html"><tt>f_write()</tt></a>. The format control directive is a sub-set of standard library shown as follos:</p>
+<p>The format control directive is a sub-set of standard library shown as follos:</p>
 <ul>
 <li>Type: <tt>c C s S d D u U x X b B</tt></li>
 <li>Size: <tt>l L</tt></li>
@@ -56,8 +56,8 @@ int f_printf (
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Available when <tt>_FS_READONLY == 0</tt> and <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\n'</tt>s contained in the output are converted to <tt>'\r'+'\n'</tt>.</p>
-<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), data types on the srting fuctions, <tt>f_putc()</tt>, <tt>f_puts()</tt>, <tt>f_printf()</tt> and <tt>f_gets()</tt>, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
+<p>This is a wrapper function of <a href="write.html"><tt>f_write</tt></a> function. Available when <tt>_FS_READONLY == 0</tt> and <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\n'</tt>s contained in the output are converted to <tt>'\r'+'\n'</tt>.</p>
+<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), data types on the srting fuctions, <tt>f_putc</tt>, <tt>f_puts</tt>, <tt>f_printf</tt> and <tt>f_gets</tt> function, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
 </div>
 
 

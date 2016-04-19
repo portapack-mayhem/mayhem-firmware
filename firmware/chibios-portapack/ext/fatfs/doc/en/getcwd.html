@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>f_getcwd</h2>
-<p>The f_getcwd function retrieves the current directory.</p>
+<p>The f_getcwd function retrieves the current directory and current drive.</p>
 <pre>
 FRESULT f_getcwd (
   TCHAR* <span class="arg">buff</span>, <span class="c">/* [OUT] Buffer to return path name */</span>
@@ -50,7 +50,7 @@ FRESULT f_getcwd (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_getcwd()</tt> function retrieves full path name of the current directory of the current drive. When <tt>_VOLUMES</tt> is larger than 1, a logical drive number is added to top of the path name.</p>
+<p>The <tt>f_getcwd</tt> function retrieves full path name of the current directory of the current drive. When <tt>_VOLUMES</tt> is larger than 1, a logical drive number is added to top of the path name.</p>
 </div>
 
 

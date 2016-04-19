@@ -36,7 +36,6 @@ FRESULT f_sync (
 <a href="rc.html#ok">FR_OK</a>,
 <a href="rc.html#de">FR_DISK_ERR</a>,
 <a href="rc.html#ie">FR_INT_ERR</a>,
-<a href="rc.html#nr">FR_NOT_READY</a>,
 <a href="rc.html#io">FR_INVALID_OBJECT</a>,
 <a href="rc.html#tm">FR_TIMEOUT</a>
 </p>
@@ -45,8 +44,8 @@ FRESULT f_sync (
 
 <div class="para desc">
 <h4>解説</h4>
-<p>この関数は<tt>f_close()</tt>と同じ処理を実行しますが、ファイルは引き続き開かれたままになり、読み書きを続行できます。ロギングなど、書き込みモードで長時間ファイルが開かれているアプリケーションにおいて、定期的または区切りの良いところでこの関数を使用することにより、不意の電源断やメディアの取り外しにより失われるデータを最小にすることができます。この背景については、<a href="appnote.html#critical">アプリケーション ノート</a>も参照してください。</p>
-<p>実際のところ、<tt>f_close()</tt>内ではこの関数を呼び出した後ファイル オブジェクトを無効化しているだけなので、<tt>f_close()</tt>直前に<tt>f_sync()</tt>を置くことは無意味です。</p>
+<p>この関数は<tt>f_close</tt>関数と同じ処理を実行しますが、ファイルは引き続き開かれたままになり、読み書きを続行できます。ロギングなど、書き込みモードで長時間ファイルが開かれているアプリケーションにおいて、定期的または区切りの良いところでこの関数を使用することにより、不意の電源断やメディアの取り外しにより失われるデータを最小にすることができます。この背景については、<a href="appnote.html#critical">アプリケーション ノート</a>も参照してください。</p>
+<p>実際のところ、<tt>f_close</tt>関数内ではこの関数を呼び出した後ファイル オブジェクトを無効化しているだけなので、<tt>f_close</tt>関数の直前に<tt>f_sync</tt>関数を置くことは無意味です。</p>
 </div>
 
 

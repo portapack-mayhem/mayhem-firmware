@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>DIR</h2>
-<p>The <tt>DIR</tt> structure is used for the work area to read a directory by <tt>f_oepndir()/f_readdir()</tt> function. Application program must not modify any member in this structure.</p>
+<p>The <tt>DIR</tt> structure is used for the work area to read a directory by <tt>f_oepndir</tt>, <tt>f_readdir</tt>, <tt>f_findfirst</tt> and <tt>f_findnext</tt> function. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
     FATFS*  fs;         <span class="c">/* Pointer to the owner file system object */</span>
@@ -30,6 +30,9 @@
 <span class="k">#if</span> _USE_LFN
     WCHAR*  lfn;        <span class="c">/* Pointer to the LFN buffer (in/out) */</span>
     WORD    lfn_idx;    <span class="c">/* Index of the LFN entris (0xFFFF:No LFN) */</span>
+<span class="k">#endif</span>
+<span class="k">#if</span> _USE_FIND
+    const TCHAR*  pat;  <span class="c">/* Ponter to the matching pattern */</span>
 <span class="k">#endif</span>
 } DIR;
 </pre>

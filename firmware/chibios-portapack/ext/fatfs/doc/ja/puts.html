@@ -42,13 +42,13 @@ int f_puts (
 
 <div class="para desc">
 <h4>解説</h4>
-<p>文字列をファイルに書き込みます。この関数は<a href="write.html"><tt>f_write()</tt></a>のラッパー関数です。</p>
+<p>文字列をファイルに書き込みます。</p>
 </div>
 
 
 <div class="para comp">
 <h4>対応情報</h4>
-<p><tt>_FS_READONLY == 0</tt>で、且つ<tt>_USE_STRFUNC</tt>が1または2のとき使用可能です。2を指定すると、文字列に含まれる<tt>'\n'</tt>は<tt>'\r'+'\n'<tt>に展開されてファイルに書き込まれます。</p>
+<p>この関数は<a href="write.html"><tt>f_write</tt></a>関数のラッパー関数です。<tt>_FS_READONLY == 0</tt>で、且つ<tt>_USE_STRFUNC</tt>が1または2のとき使用可能です。2を指定すると、文字列に含まれる<tt>'\n'</tt>は<tt>'\r'+'\n'<tt>に展開されてファイルに書き込まれます。</p>
 </div>
 
 

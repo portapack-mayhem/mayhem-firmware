@@ -34,7 +34,7 @@ DRESULT disk_write (
 <dt>sector</dt>
 <dd>Start sector number in 32-bit LBA.</dd>
 <dt>count</dt>
-<dd>Number of sectors to write in range of from 1 to 128.</dd>
+<dd>Number of sectors to write. FatFs specifies the value in range of from 1 to 128.</dd>
 </dl>
 </div>
 
@@ -58,9 +58,9 @@ DRESULT disk_write (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The specified memory address is not that always aligned to word boundary because the type of pointer is defined as <tt>BYTE*</tt>. For more information, refer to the description of <a href="dread.html"><tt>disk_read()</tt></a> function.</p>
+<p>The specified memory address is not that always aligned to word boundary because the type of pointer is defined as <tt>BYTE*</tt>. For more information, refer to the description of <a href="dread.html"><tt>disk_read</tt></a> function.</p>
 <p>Generally, a multiple sector transfer request must not be split into single sector transactions to the storage device, or you will never get good write throughput.</p>
-<p>FatFs expects delayed write feature of the disk functions. The write operation to the media need not to be completed due to write operation is in progress or only stored it into the cache buffer when return from this function. But data on the <tt class="arg">buff</tt> is invalid after return from this function. The write completion request is done by <tt>CTRL_SYNC</tt> command of <tt><a href="dioctl.html">disk_ioctl()</a></tt> function. Therefore, if delayed write feature is implemented, the write throughput may be improved.</p>
+<p>FatFs expects delayed write feature of the disk control layer. The write operation to the media need not to be completed due to write operation is in progress or data is stored into the write-back cache when return from this function. But write data on the <tt class="arg">buff</tt> is invalid after return from this function. The write completion request is done by <tt>CTRL_SYNC</tt> command of <tt><a href="dioctl.html">disk_ioctl</a></tt> function. Therefore, if a delayed write feature is implemented, the write throughput will be improved.</p>
 <p><em>Application program MUST NOT call this function, or FAT structure on the volume can be collapsed.</em></p>
 </div>
 

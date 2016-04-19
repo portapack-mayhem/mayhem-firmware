@@ -66,7 +66,7 @@ FRESULT f_chmod (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_chmod()</tt> function changes the attribute of a file or sub-directory.</p>
+<p>The <tt>f_chmod</tt> function changes the attribute of a file or sub-directory.</p>
 </div>
 
 
@@ -80,7 +80,7 @@ FRESULT f_chmod (
 <h4>Example</h4>
 <pre>
     <span class="c">/* Set read-only flag, clear archive flag and others are left unchanged. */</span>
-    f_chmod("file.txt", AR_RDO, AR_RDO | AR_ARC);
+    f_chmod("file.txt", AM_RDO, AM_RDO | AM_ARC);
 </pre>
 </div>
 

@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>f_mkfs</h2>
-<p>The f_mkfs fucntion creates an FAT file system on the logical drive.</p>
+<p>The f_mkfs fucntion creates an FAT volume on the logical drive.</p>
 <pre>
 FRESULT f_mkfs (
   const TCHAR* <span class="arg">path</span>,  <span class="c">/* [IN] Logical drive number */</span>
@@ -27,7 +27,7 @@ FRESULT f_mkfs (
 <h4>Parameters</h4>
 <dl class="par">
 <dt>path</dt>
-<dd>Pinter to the null-terminated string that specifies the <a href="filename.html">logical drive</a> to be formatted. If there is no drive number, it means the default drive.</dd>
+<dd>Pointer to the null-terminated string that specifies the <a href="filename.html">logical drive</a> to be formatted. If there is no drive number, it means the default drive.</dd>
 <dt>sfd</dt>
 <dd>Specifies partitioning rule (FDISK(0) or SFD(1)). This argument will be ignored on some case.</dd>
 <dt>au</dt>
@@ -51,8 +51,8 @@ FRESULT f_mkfs (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_mkfs()</tt> function creates an FAT volume on the specified logical drive. When FDISK format is specified, a primary partition occupies entire space of the physical drive is created and then an FAT volume is created on the partition. When SFD format is specified, the FAT volume starts from the first sector of the physical drive.</p>
-<p>If the logical drive is bound to the specific partition (1-4) by multiple partition feature (<tt>_MULTI_PARTITION</tt>), the FAT volume is created into the partition. In this case, the second argument <tt class="arg">sfd</tt> is ignored. The physical drive must have been partitioned with <tt>f_fdisk()</tt> function or any other partitioning tools prior to create the FAT volume with this function.</p>
+<p>The <tt>f_mkfs</tt> function creates an FAT volume on the specified logical drive. When FDISK format is specified, a primary partition occupies entire space of the physical drive is created and then an FAT volume is created on the partition. When SFD format is specified, the FAT volume starts from the first sector of the physical drive.</p>
+<p>If the logical drive is bound to the specific partition (1-4) by multiple partition feature (<tt><a href="config.html#multi_partition">_MULTI_PARTITION</a></tt>), the FAT volume is created into the partition. In this case, the second argument <tt class="arg">sfd</tt> is ignored. The physical drive must have been partitioned with <tt>f_fdisk</tt> function or any other partitioning tools prior to create the FAT volume with this function.</p>
 <p>Note that there are two partitioning rules, FDISK and SFD. The FDISK partitioning is usually used for harddisk, MMC, SDC, CFC and U Disk. It can divide a physical drive into one or more partitions with a partition table on the MBR. However Windows does not support multiple partition on the removable disk. The SFD is non-partitioned method. The FAT volume starts from the first sector on the physical drive without partition table. It is usually used for floppy disk, Microdrive, optical disk and any type of super-floppy media.</p>
 <p>The FAT sub-type, FAT12/FAT16/FAT32, is determined by number of clusters on the volume and nothing else, according to the FAT specification issued by Microsoft. Thus which FAT sub-type is selected, is depends on the volume size and the specified cluster size. The cluster size affects read/write throughput and space usage efficiency. Larger cluster size increases the read/write throughput and decreases the space usage efficiency of the volume.</p>
 <p>In case of the number of clusters gets near the FAT sub-type boundaries, the function can fail with <tt>FR_MKFS_ABORTED</tt>.</p>
@@ -66,7 +66,7 @@ FRESULT f_mkfs (
 <div class="para use">
 <h4>Example</h4>
 <pre>
-<span class="c">/* Format the default drive */</span>
+<span class="c">/* Format default drive and create a file */</span>
 int main (void)
 {
     FATFS fs;      <span class="c">/* File system object (volume work area) */</span>
@@ -75,7 +75,7 @@ int main (void)
     UINT bw;       <span class="c">/* Bytes written */</span>
 
 
-    <span class="c">/* Register work area */</span>
+    <span class="c">/* Register work area (do not care about error) */</span>
     f_mount(&amp;fs, "", 0);
 
     <span class="c">/* Create FAT volume with default cluster size */</span>
@@ -83,19 +83,18 @@ int main (void)
     if (res) ...
 
     <span class="c">/* Create a file as new */</span>
-    res = f_open(&fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
+    res = f_open(&amp;fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
     if (res) ...
 
     <span class="c">/* Write a message */</span>
-    f_write(&fil, "Hello, World!\r\n", 15, &bw);
+    f_write(&amp;fil, "Hello, World!\r\n", 15, &amp;bw);
     if (bw != 15) ...
 
     <span class="c">/* Close the file */</span>
-    f_close(&fil);
+    f_close(&amp;fil);
 
     <span class="c">/* Unregister work area */</span>
     f_mount(0, "", 0);
-
 </pre>
 </div>
 

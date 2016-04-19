@@ -22,7 +22,7 @@ DWORD get_fattime (void);
 
 <div class="para ret">
 <h4>Return Value</h4>
-<p>Currnet time is returned with packed into a <tt>DWORD</tt> value. The bit field is as follows:</p>
+<p>Currnet local time is returned with packed into a <tt>DWORD</tt> value. The bit field is as follows:</p>
 <dl class="ret">
 <dt>bit31:25</dt>
 <dd>Year origin from the 1980 (0..127)</dd>
@@ -42,13 +42,13 @@ DWORD get_fattime (void);
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>get_fattime()</tt> function shall return any valid time even if the system does not support a real time clock. If a zero is returned, the file will not have a valid timestamp.</p>
+<p>The <tt>get_fattime</tt> function shall return any valid time even if the system does not support a real time clock. If a zero is returned, the file will not have a valid timestamp.</p>
 </div>
 
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>This function is not needed when <tt>_FS_READONLY == 1</tt>.</p>
+<p>This function is not needed when <tt>_FS_READONLY == 1</tt> or <tt>_FS_NORTC == 1</tt>.</p>
 </div>
 
 

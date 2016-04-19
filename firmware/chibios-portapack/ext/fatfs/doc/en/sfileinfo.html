@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>FILINFO</h2>
-<p>The <tt>FILINFO</tt> structure holds a file information returned by <tt>f_readdir()</tt> and <tt>f_stat()</tt> function.</p>
+<p>The <tt>FILINFO</tt> structure holds information about the object returned by <tt>f_readdir</tt>, <tt>f_findfirst</tt>, <tt>f_findnext</tt> and <tt>f_stat</tt> function.</p>
 <pre>
 <span class="k">typedef struct</span> {
     DWORD fsize;      <span class="c">/* File size */</span>
@@ -58,9 +58,9 @@
 <dt>fattrib</dt>
 <dd>Indicates the file/directory attribute in combination of <tt>AM_DIR</tt>, <tt>AM_RDO</tt>, <tt>AM_HID</tt>, <tt>AM_SYS</tt> and <tt>AM_ARC</tt>.</dd>
 <dt>fname[]</dt>
-<dd>Indicates the file/directory name in 8.3 format null-terminated string. It is always returnd with upper case in non-LFN configuration but it can be returned with lower case in LFN configuration.</dd>
+<dd>The object name in 8.3 format (SFN) null-terminated string is stored. It is always upper case at non-LFN configuration but it can be returned with lower case at LFN configuration. A null string is stored when no item to read and this structure is invalid.</dd>
 <dt>lfname</dt>
-<dd>Pointer to the LFN buffer to store the read LFN. This member must be initialized by application program prior to use this structure. Set a null pointer if LFN is not needed. Not available at non-LFN configuration.</dd>
+<dd>Pointer to the string buffer to store the long file name (LFN). This member must be initialized by application program prior to use this structure. Set a null pointer if LFN is not needed. Not available at non-LFN configuration.</dd>
 <dt>lfsize</dt>
 <dd>Size of the LFN buffer in unit of TCHAR. This member must be initialized by application program prior to use this structure. Not available at non-LFN configuration.</dd>
 </dl>

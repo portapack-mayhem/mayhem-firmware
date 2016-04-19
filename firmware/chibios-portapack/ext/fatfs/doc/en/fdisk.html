@@ -48,7 +48,7 @@ FRESULT f_fdisk (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_fdisk()</tt> function creates a partition table into the MBR of the physical drive. The partitioning rule is in generic FDISK format, so that it can create upto four primary partitions. Logical volumes in the extended partition is not supported. The <tt class="arg">part[]</tt> with four items specifies how to divide the physical drive. The first item specifies the size of first primary partition and fourth item specifies the fourth primary partition. If the value is less than or equal to 100, it specifies percentage of the partition in the entire disk space. If it is larger than 100, it specifies the partition size in unit of sector.</p>
+<p>The <tt>f_fdisk</tt> function creates a partition table into the MBR of the physical drive. The partitioning rule is in generic FDISK format, so that it can create upto four primary partitions. Logical volumes in the extended partition is not supported. The <tt class="arg">part[]</tt> with four items specifies how to divide the physical drive. The first item specifies the size of first primary partition and fourth item specifies the fourth primary partition. If the value is less than or equal to 100, it specifies percentage of the partition in the entire disk space. If it is larger than 100, it specifies the partition size in unit of sector.</p>
 </div>
 
 <div class="para comp">

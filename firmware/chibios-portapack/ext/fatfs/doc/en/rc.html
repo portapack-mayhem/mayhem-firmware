@@ -17,7 +17,7 @@
 <dt id="ok">FR_OK (0)</dt>
 <dd>The function succeeded.</dd>
 <dt id="de">FR_DISK_ERR</dt>
-<dd>An unrecoverable hard error occured in the lower layer, <tt>disk_read()</tt>, <tt>disk_write()</tt> or <tt>disk_ioctl()</tt> function.<br>Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.</dd>
+<dd>An unrecoverable hard error occured in the lower layer, <tt>disk_read</tt>, <tt>disk_write</tt> or <tt>disk_ioctl</tt> function.<br>Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.</dd>
 <dt id="ie">FR_INT_ERR</dt>
 <dd>Assertion failed. An insanity is detected in the internal process. One of the following possibilities is suspected.
 <ul>
@@ -27,7 +27,7 @@
 Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.
 </dd>
 <dt id="nr">FR_NOT_READY</dt>
-<dd>The disk drive cannot work due to incorrect medium removal or <tt>disk_initialize()</tt> function failed.</dd>
+<dd>The storage device cannot work due to a failure of <a href="dinit.html"><tt>disk_initialize</tt></a> function due to no medium or any other reason.</dd>
 <dt id="nf">FR_NO_FILE</dt>
 <dd>Could not find the file.</dd>
 <dt id="np">FR_NO_PATH</dt>
@@ -49,39 +49,46 @@ Note that if once this error occured at any operation to an open file, the file 
 <dt id="ex">FR_EXIST</dt>
 <dd>Name collision. Any object that has the same name is already existing.</dd>
 <dt id="io">FR_INVALID_OBJECT</dt>
-<dd>The file/directory object structure is invalid or a null pointer is given. All open objects of the logical drive are invalidated by the voulme mount process.</dd>
+<dd>The file/directory object is invalid or a null pointer is given. There are some reasons as follows:
+<ul>
+<li>It has been closed, it is not opened or it can be collapsed.</li>
+<li>It has been invalidated by a voulme mount process. All open objects of the volume are invalidated as well.</li>
+<li>The corresponding physical drive is not ready due to a media removal.</li>
+</ul>
+</dd>
 <dt id="wp">FR_WRITE_PROTECTED</dt>
 <dd>Any write mode operation against the write-protected media.</dd>
 <dt id="id">FR_INVALID_DRIVE</dt>
-<dd>Invalid drive number is specified in the path name. A null pointer is given as the path name. (Related option: <tt>_VOLUMES</tt>)</dd>
+<dd>Invalid drive number is specified in the path name. A null pointer is given as the path name. (Related option: <tt><a href="config.html#volumes">_VOLUMES</a></tt>)</dd>
 <dt id="ne">FR_NOT_ENABLED</dt>
-<dd>Work area for the logical drive has not been registered by <tt>f_mount()</tt> function.</dd>
+<dd>Work area for the logical drive has not been registered by <tt>f_mount</tt> function.</dd>
 <dt id="ns">FR_NO_FILESYSTEM</dt>
 <dd>There is no valid FAT volume on the drive.</dd>
 <dt id="ma">FR_MKFS_ABORTED</dt>
-<dd>The <tt>f_mkfs()</tt> function aborted before start in format due to a reason as follows:
+<dd>The <tt>f_mkfs</tt> function aborted before start in format due to a reason as follows:
 <ul>
 <li>The disk/partition size is too small.</li>
 <li>Not allowable cluster size for this disk. This can occure when number of clusters gets near the boundaries of FAT sub-types.</li>
-<li>There is no partition related to the logical drive. (Related option: <tt>_MULTI_PARTITION</tt>)</li>
+<li>There is no partition related to the logical drive. (Related option: <tt><a href="config.html#multi_partition">_MULTI_PARTITION</a></tt>)</li>
 </ul>
 </dd>
 <dt id="tm">FR_TIMEOUT</dt>
-<dd>The function was canceled due to a timeout of <a href="appnote.html#reentrant">thread-safe control</a>. (Related option: <tt>_TIMEOUT</tt>)</dd>
+<dd>The function was canceled due to a timeout of <a href="appnote.html#reentrant">thread-safe control</a>. (Related option: <tt><a href="config.html#timeout">_TIMEOUT</a></tt>)</dd>
 <dt id="lo">FR_LOCKED</dt>
-<dd>The operation to the object was rejected by <a href="appnote.html#dup">file sharing control</a>. (Related option: <tt>_FS_LOCK</tt>)</dd>
+<dd>The operation to the object was rejected by <a href="appnote.html#dup">file sharing control</a>. (Related option: <tt><a href="config.html#fs_lock">_FS_LOCK</a></tt>)</dd>
 <dt id="nc">FR_NOT_ENOUGH_CORE</dt>
 <dd>Not enough memory for the operation. There is one of the following reasons:
 <ul>
-<li>Could not allocate a memory for LFN working buffer. (Related option: <tt>_USE_LFN</tt>)</li>
+<li>Could not allocate a memory for LFN working buffer. (Related option: <tt><a href="config.html#use_lfn">_USE_LFN</a></tt>)</li>
 <li>Size of the given buffer is insufficient for the size required.</li>
 </ul>
 </dd>
 <dt id="tf">FR_TOO_MANY_OPEN_FILES</dt>
-<dd>Number of open objects has been reached maximum value and no more object can be opened. (Related option: <tt>_FS_LOCK</tt>)</dd>
+<dd>Number of open objects has been reached maximum value and no more object can be opened. (Related option: <tt><a href="config.html#fs_lock">_FS_LOCK</a></tt>)</dd>
 <dt id="ip">FR_INVALID_PARAMETER</dt>
 <dd>The given parameter is invalid or there is any inconsistent.</dd>
 </dl>
 
+<p class="foot"><a href="../00index_e.html">Return</a></p>
 </body>
 </html>

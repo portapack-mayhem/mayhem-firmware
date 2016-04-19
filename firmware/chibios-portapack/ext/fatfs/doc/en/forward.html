@@ -45,7 +45,6 @@ FRESULT f_forward (
 <a href="rc.html#ok">FR_OK</a>,
 <a href="rc.html#de">FR_DISK_ERR</a>,
 <a href="rc.html#ie">FR_INT_ERR</a>,
-<a href="rc.html#nr">FR_NOT_READY</a>,
 <a href="rc.html#io">FR_INVALID_OBJECT</a>,
 <a href="rc.html#tm">FR_TIMEOUT</a>
 </p>
@@ -54,7 +53,7 @@ FRESULT f_forward (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_forward()</tt> function reads the data from the file and forward it to the outgoing stream without data buffer. This is suitable for small memory system because it does not require any data buffer at application module. The file pointer of the file object increases in number of bytes forwarded. In case of <tt class="arg">*bf</tt> is less than <tt class="arg">btf</tt> without error, it means the requested bytes could not be transferred due to end of file or stream goes busy during data transfer.</p>
+<p>The <tt>f_forward</tt> function reads the data from the file and forward it to the outgoing stream without data buffer. This is suitable for small memory system because it does not require any data buffer at application module. The file pointer of the file object increases in number of bytes forwarded. In case of <tt class="arg">*bf</tt> is less than <tt class="arg">btf</tt> without error, it means the requested bytes could not be transferred due to end of file or stream goes busy during data transfer.</p>
 </div>
 
 
@@ -113,7 +112,7 @@ FRESULT play_file (
     if (rc) return rc;
 
     <span class="c">/* Repeat until the file pointer reaches end of the file */</span>
-    while (rc == FR_OK &amp;&amp; fil.fptr &lt; fil.fsize) {
+    while (rc == FR_OK &amp;&amp; !f_eof(&fil)) {
 
         <span class="c">/* any other processes... */</span>
 

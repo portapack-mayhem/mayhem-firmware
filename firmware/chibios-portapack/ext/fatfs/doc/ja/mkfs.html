@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>f_mkfs</h2>
-<p>論理ドライブ上にFATボリュームを作成(フォーマット)します。</p>
+<p>論理ドライブ上にFATボリュームを作成します。</p>
 <pre>
 FRESULT f_mkfs (
   const TCHAR* <span class="arg">path</span>, <span class="c">/* [IN] 論理ドライブ番号 */</span>
@@ -27,7 +27,7 @@ FRESULT f_mkfs (
 <h4>引数</h4>
 <dl class="par">
 <dt>path</dt>
-<dd>フォーマット対象の論理ドライブを示す<a href="filename.html">パス名</a>を示すヌル文字<tt>'\0'</tt>終端の文字列へのポインタを指定します。ドライブ番号を含まない場合は、カレント ドライブを意味します。</dd>
+<dd>対象の論理ドライブを示す<a href="filename.html">パス名</a>を示すヌル文字<tt>'\0'</tt>終端の文字列へのポインタを指定します。ドライブ番号を含まない場合は、カレント ドライブを意味します。</dd>
 <dt>sfd</dt>
 <dd>パーテーション形式。(0(FDISK) または 1(SFD))</dd>
 <dt>au</dt>
@@ -49,8 +49,8 @@ FRESULT f_mkfs (
 
 <div class="para desc">
 <h4>説明</h4>
-<p>物理ドライブ上にFATボリュームを作成します。FDISK形式が指定された場合は、物理ドライブ全体を占める基本区画(パーテーション)が作成され、その中にFATボリュームが作成されます。SFD形式では、FATボリュームが物理ドライブの先頭セクタからベタで作成されます。</p>
-<p>フォーマットする論理ドライブがマルチ パーテーション機能(<tt>_MULTI_PARTITION</tt>)によって特定の区画(1～4)に結び付けられている場合は、その区画の中にFATボリュームが作成されます。<tt class="arg">sfd</tt>は無視され、また対応する物理ドライブはこれに先立ち、<tt>f_fdisk()</tt>または他のツールで適切に区画設定されている必要があります。</p>
+<p>物理ドライブ上にFATボリュームを作成(フォーマット)します。FDISK形式が指定された場合は、物理ドライブ全体を占める基本区画(パーテーション)が作成され、その中にFATボリュームが作成されます。SFD形式では、FATボリュームが物理ドライブの先頭セクタからベタで作成されます。</p>
+<p>マルチ パーテーション機能(<tt><a href="config.html#multi_partition">_MULTI_PARTITION</a></tt>)が有効で、かつフォーマット対象の論理ドライブが特定の区画(1～4)に結び付けられている場合は、その区画の中にFATボリュームが作成されます。<tt class="arg">sfd</tt>は無視され、その物理ドライブはこれに先立ち、<tt>f_fdisk</tt>関数または他のツールで適切に区画設定されている必要があります。</p>
 <p>パーテーション形式には、FDISK形式とSFD形式の二通りあります。FDISK形式は、ハードディスク、MMC、SDC、CFC、U Diskなどで標準的に使用されます。FDISK形式では一台の物理ドライブ上に一つまたは複数の区画を作成することができます。区画管理情報はMBR(物理ドライブの先頭セクタ)に記録されます。SFD形式は単に何の分割も行わない形式で、ボリュームは物理ドライブの先頭セクタから開始します。SFD形式は、フロッピー ディスク、マイクロドライブ、光学ディスク、およびその他スーパー フロッピー メディアで標準的に使用されています。</p>
 <p>FATタイプ(FAT12/FAT16/FAT32)は、そのボリューム上の<em>クラスタ数によってのみ決定</em>される決まり[FAT仕様書より]になっていて、それ以外の要因はありません。したがって、どのFATタイプになるかはボリューム サイズとクラスタ サイズに依存します。クラスタ サイズは大きくするほど性能が上がります。</p>
 <p>クラスタ数がFATタイプの境界に近くなるときは、<tt>FR_MKFS_ABORTED</tt>で関数が失敗する可能性があります。</p>
@@ -66,7 +66,7 @@ FRESULT f_mkfs (
 <div class="para use">
 <h4>使用例</h4>
 <pre>
-<span class="c">/* Format the default drive */</span>
+<span class="c">/* Format default drive and create a file */</span>
 int main (void)
 {
     FATFS fs;      <span class="c">/* File system object (volume work area) */</span>
@@ -75,7 +75,7 @@ int main (void)
     UINT bw;       <span class="c">/* Bytes written */</span>
 
 
-    <span class="c">/* Register work area */</span>
+    <span class="c">/* Register work area (do not care about error) */</span>
     f_mount(&amp;fs, "", 0);
 
     <span class="c">/* Create FAT volume with default cluster size */</span>
@@ -83,19 +83,18 @@ int main (void)
     if (res) ...
 
     <span class="c">/* Create a file as new */</span>
-    res = f_open(&fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
+    res = f_open(&amp;fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
     if (res) ...
 
     <span class="c">/* Write a message */</span>
-    f_write(&fil, "Hello, World!\r\n", 15, &bw);
+    f_write(&amp;fil, "Hello, World!\r\n", 15, &amp;bw);
     if (bw != 15) ...
 
     <span class="c">/* Close the file */</span>
-    f_close(&fil);
+    f_close(&amp;fil);
 
     <span class="c">/* Unregister work area */</span>
     f_mount(0, "", 0);
-
 </pre>
 </div>
 

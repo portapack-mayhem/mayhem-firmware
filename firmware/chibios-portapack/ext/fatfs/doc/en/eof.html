@@ -33,13 +33,13 @@ int f_eof (
 
 <div class="para ret">
 <h4>Return Values</h4>
-<p>The <tt>f_eof()</tt> function returns a non-zero value if the read/write pointer has reached end of the file; otherwise it returns a zero.</p>
+<p>The <tt>f_eof</tt> function returns a non-zero value if the read/write pointer has reached end of the file; otherwise it returns a zero.</p>
 </div>
 
 
 <div class="para desc">
 <h4>Description</h4>
-<p>In this revision, this function is implemented as a macro.</p>
+<p>In this revision, this function is implemented as a macro. It has not any validation and mutual exclusion.</p>
 <pre>
 <span class="k">#define</span> f_eof(fp) ((int)((fp)->fptr == (fp)->fsize))
 </pre>

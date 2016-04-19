@@ -27,7 +27,7 @@ DRESULT disk_ioctl (
 <h4>引数</h4>
 <dl class="par">
 <dt>pdrv</dt>
-<dd>対象のデバイスを示す物理ドライブ番号(0-9)が指定されます。</dd>
+<dd>対象のデバイスを識別する物理ドライブ番号(0-9)が指定されます。</dd>
 <dt>cmd</dt>
 <dd>制御コマンド コードが指定されます。</dd>
 <dt>buff</dt>
@@ -55,10 +55,10 @@ DRESULT disk_ioctl (
 <table class="lst">
 <caption>標準ioctlコマンド</caption>
 <tr><th>コマンド</th><th>解説</th></tr>
-<tr><td>CTRL_SYNC</td><td>デバイスのデータ書き込み処理を完了させます。ドライバがライト バック キャッシュなどを持っている場合は、書き込まれていないデータを即時書き込みます。メディア上への書き込みがそれぞれ<tt>disk_write()</tt>の中で完了する場合は、このコマンドに対してすることはありません。</td></tr>
-<tr><td>GET_SECTOR_COUNT</td><td>総セクタ数の取得。<tt class="arg">buff</tt>の指す<tt>DWORD</tt>型変数にドライブ上の総セクタ数を返します。<tt>f_mkfs()</tt>および<tt>f_fdisk()</tt>内から呼び出され、作成するボリュームのサイズを決定するために使用されます。</td></tr>
-<tr><td>GET_SECTOR_SIZE</td><td>セクタ サイズの取得。<tt class="arg">buff</tt>の指す<tt>WORD</tt>型変数にドライブのセクタ サイズを返します。有効値は512、1024、2048または4096です。セクタ サイズが固定(<tt>_MAX_SS ==_MIN_SS</tt>)のときはこのコマンドは使われることはなく、デバイスは常にそのセクタ サイズで動作しなければなりません。</td></tr>
-<tr><td>GET_BLOCK_SIZE</td><td>消去ブロック サイズの取得。<tt class="arg">buff</tt>の指す<tt>DWORD</tt>型変数にフラッシュ メモリの消去ブロック サイズ(セクタ単位)を返します。1から32768の範囲で2の累乗の値でなければなりません。ブロック サイズ不明またはフラッシュ メモリ以外のデバイスでは1を返します。<tt>f_mkfs()</tt>内でのみ使用され、作成されるボリュームのデータ領域はこの境界にアライメントされます。</td></tr>
+<tr><td>CTRL_SYNC</td><td>デバイスのデータ書き込み処理を完了させます。ドライバがライト バック キャッシュなどを持っている場合は、書き込まれていないデータを即時書き込みます。メディア上への書き込みがそれぞれ<tt>disk_write</tt>関数の中で完了する場合は、このコマンドに対してすることはありません。</td></tr>
+<tr><td>GET_SECTOR_COUNT</td><td>総セクタ数の取得。<tt class="arg">buff</tt>の指す<tt>DWORD</tt>型変数にドライブ上の総セクタ数を返します。<tt>f_mkfs, f_fdisk</tt>関数内から呼び出され、作成するボリュームのサイズを決定するために使用されます。</td></tr>
+<tr><td>GET_SECTOR_SIZE</td><td>セクタ サイズの取得。セクタ サイズ可変(<tt>_MAX_SS &gt; _MIN_SS</tt>)のとき、<tt>disk_initailize</tt>関数の成功に続き呼び出されるので、<tt class="arg">buff</tt>の指す<tt>WORD</tt>型変数に現在のセクタ サイズを返します。有効値は512、1024、2048または4096です。セクタ サイズ固定(<tt>_MAX_SS == _MIN_SS</tt>)のときはこのコマンドは使われることはなく、デバイスは常にそのセクタ サイズで動作しなければなりません。</td></tr>
+<tr><td>GET_BLOCK_SIZE</td><td>消去ブロック サイズの取得。<tt class="arg">buff</tt>の指す<tt>DWORD</tt>型変数にフラッシュ メモリの消去ブロック サイズ(セクタ単位)を返します。1から32768の範囲で2の累乗の値でなければなりません。ブロック サイズ不明またはフラッシュ メモリ以外のデバイスでは1を返します。<tt>f_mkfs</tt>関数内でのみ使用され、作成されるボリュームのデータ領域はこの境界にアライメントされます。</td></tr>
 <tr><td>CTRL_TRIM</td><td>不必要セクタの通知。<tt class="arg">buff</tt>の指す<tt>DWORD</tt>型配列には不必要になった領域 {開始セクタ,終了セクタ} を指定して呼び出されます。TRIM機能が有効(<tt>_USE_TRIM == 1</tt>)で、クラスタが解放されるとき、およびフォーマット時に呼び出されます。これは、ATAコマンド セットのTrimコマンドと等価で、この機能をサポートしないデバイスは何もする必要はありません。また、戻り値はチェックされず、結果によってFatFsの動作が影響を受けることはありません。</td></tr>
 </table>
 
@@ -68,7 +68,7 @@ DRESULT disk_ioctl (
 <tr><th>コマンド</th><th>解説</th></tr>
 <tr><td>CTRL_FORMAT</td><td>メディアの物理フォーマットを行います。<tt class="arg">buff</tt>はNULLでないとき、進行表示のためのコールバック関数のアドレスを示します。</td></tr>
 <tr><td>CTRL_POWER_IDLE</td><td>デバイスをアイドル状態にします。通常の読み書き要求でアクティブ状態に戻るなら、<tt>STA_NOINIT</tt>フラグをセットする必要はありません。</td></tr>
-<tr><td>CTRL_POWER_OFF</td><td>デバイスをシャットダウン状態にします。<tt>STA_NOINIT</tt>はセットされます。デバイスは<tt>disk_initialize()</tt>でアクティブ状態に戻ります。</td></tr>
+<tr><td>CTRL_POWER_OFF</td><td>デバイスをシャットダウン状態にします。<tt>STA_NOINIT</tt>はセットされます。デバイスは<tt>disk_initialize</tt>関数でアクティブ状態に戻ります。</td></tr>
 <tr><td>CTRL_LOCK</td><td>ユーザによるメディアの取り出しを禁止します。</td></tr>
 <tr><td>CTRL_UNLOCK</td><td>ユーザによるメディアの取り出しを許可します。</td></tr>
 <tr><td>CTRL_EJECT</td><td>メディアを排出します。完了後、<tt>STA_NOINIT</tt>と<tt>STA_NODISK</tt>フラグはセットされます。</td></tr>

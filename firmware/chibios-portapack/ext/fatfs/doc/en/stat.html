@@ -54,7 +54,7 @@ FRESULT f_stat (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_stat()</tt> function checks the existence of a file or sub-directory. If not exist, the function returns with <tt>FR_NO_FILE</tt>. If exist, the function returns with <tt>FR_OK</tt> and the informations of the object, file size, timestamp, attribute and SFN, are stored to the file information structure. For details of the file information, refer to the <tt>FILINFO</tt> structure and <a href="readdir.html"><tt>f_readdir()</tt></a> function.</p>
+<p>The <tt>f_stat</tt> function checks the existence of a file or sub-directory. If not exist, the function returns with <tt>FR_NO_FILE</tt>. If exist, the function returns with <tt>FR_OK</tt> and the informations of the object, file size, timestamp, attribute and SFN, are stored to the file information structure. For details of the file information, refer to the <tt>FILINFO</tt> structure and <a href="readdir.html"><tt>f_readdir</tt></a> function.</p>
 <p>When LFN feature is enabled, <tt>lfname</tt> in the file information structure must be NULLed prior to use it.</p>
 </div>
 

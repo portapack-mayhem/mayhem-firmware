@@ -32,13 +32,13 @@ DSTATUS disk_initialize (
 
 <div class="para ret">
 <h4>Return Values</h4>
-<p>This function returns the current drive status flags as the result. For details of the drive status, refer to the <a href="dstat.html">disk_status()</a> function.</p>
+<p>This function returns the current drive status flags as the result. For details of the drive status, refer to the <a href="dstat.html">disk_status</a> function.</p>
 </div>
 
 <div class="para desc">
 <h4>Description</h4>
 <p>This function initializes the storage device and put it ready to generic read/write. When the function succeeded, <tt>STA_NOINIT</tt> flag in the return value is cleared.</p>
-<p><em>Application program MUST NOT call this function, or FAT structure on the volume can be broken. To re-initialize the file system, use <tt>f_mount()</tt> function instead.</em> This function is called at volume mount process by FatFs module to manage the media change.</p>
+<p>This function is under control of FatFs module. <em>Application program MUST NOT call this function, or FAT structure on the volume can be broken. To re-initialize the file system, use <tt>f_mount</tt> function instead.</em></p>
 </div>
 
 <p class="foot"><a href="../00index_e.html">Return</a></p>
