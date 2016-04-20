@@ -24,6 +24,8 @@
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "file.hpp"
+
 #include "utility.hpp"
 
 namespace ui {
@@ -103,7 +105,12 @@ void CaptureAppView::on_start_stop() {
 		capture_thread.reset();
 		button_start_stop.set_bitmap(&bitmap_record);
 	} else {
-		capture_thread = std::make_unique<AudioThread>("baseband.c16");
+		const auto filename = next_filename_matching_pattern("BBD_????.C16");
+		if( filename.empty() ) {
+			return;
+		}
+
+		capture_thread = std::make_unique<AudioThread>(filename);
 		button_start_stop.set_bitmap(&bitmap_stop);
 	}
 }
