@@ -21,6 +21,8 @@
 
 #include "file.hpp"
 
+#include <algorithm>
+
 File::~File() {
 	close();
 }
@@ -77,6 +79,64 @@ bool File::puts(const std::string& string) {
 bool File::sync() {
 	const auto result = f_sync(&f);
 	return (result == FR_OK);
+}
+
+static std::string find_last_file_matching_pattern(const std::string& pattern) {
+	std::string last_match;
+	for(const auto& entry : std::filesystem::directory_iterator("", pattern.c_str())) {
+		if( std::filesystem::is_regular_file(entry.status()) ) {
+			const auto match = entry.path();
+			if( match > last_match ) {
+				last_match = match;
+			}
+		}
+	}
+	return last_match;
+}
+
+static std::string increment_filename_ordinal(const std::string& filename) {
+	std::string result { filename };
+
+	auto it = result.rbegin();
+
+	// Back up past extension.
+	for(; it != result.rend(); ++it) {
+		if( *it == '.' ) {
+			++it;
+			break;
+		}
+	}
+	if( it == result.rend() ) {
+		return { };
+	}
+
+	// Increment decimal number before the extension.
+	for(; it != result.rend(); ++it) {
+		const auto c = *it;
+		if( c < '0' ) {
+			return { };
+		} else if( c < '9' ) {
+			*it += 1;
+			break;
+		} else if( c == '9' ) {
+			*it = '0';
+		} else {
+			return { };
+		}
+	}
+
+	return result;
+}
+
+std::string next_filename_matching_pattern(const std::string& filename_pattern) {
+	auto filename = find_last_file_matching_pattern(filename_pattern);
+	if( filename.empty() ) {
+		filename = filename_pattern;
+		std::replace(std::begin(filename), std::end(filename), '?', '0');
+	} else {
+		filename = increment_filename_ordinal(filename);
+	}
+	return filename;
 }
 
 namespace std {

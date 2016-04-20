@@ -57,6 +57,8 @@ private:
 	FIL f;
 };
 
+std::string next_filename_matching_pattern(const std::string& filename_pattern);
+
 namespace std {
 namespace filesystem {
 
