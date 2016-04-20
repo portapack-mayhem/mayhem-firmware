@@ -78,3 +78,33 @@ bool File::sync() {
 	const auto result = f_sync(&f);
 	return (result == FR_OK);
 }
+
+namespace std {
+namespace filesystem {
+
+directory_iterator::directory_iterator(
+	const char* path,
+	const char* wild
+) {
+	impl = std::make_shared<Impl>();
+	const auto result = f_findfirst(&impl->dir, &impl->filinfo, path, wild);
+	if( result != FR_OK ) {
+		impl.reset();
+		// TODO: Throw exception if/when I enable exceptions...
+	}
+}
+
+directory_iterator& directory_iterator::operator++() {
+	const auto result = f_findnext(&impl->dir, &impl->filinfo);
+	if( (result != FR_OK) || (impl->filinfo.fname[0] == 0) ) {
+		impl.reset();
+	}
+	return *this;
+}
+
+bool is_regular_file(const file_status s) {
+	return !(s & AM_DIR);
+}
+
+} /* namespace filesystem */
+} /* namespace std */
