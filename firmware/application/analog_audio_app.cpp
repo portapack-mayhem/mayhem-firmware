@@ -26,6 +26,7 @@
 using namespace portapack;
 
 #include "audio.hpp"
+#include "file.hpp"
 
 #include "utility.hpp"
 
@@ -294,7 +295,10 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.enable();
 
 	if( !is_wideband_spectrum_mode ) {
-		audio_thread = std::make_unique<AudioThread>("audio.s16");
+		const auto filename = next_filename_matching_pattern("AUD_????.S16");
+		if( !filename.empty() ) {
+			audio_thread = std::make_unique<AudioThread>(filename);
+		}
 		audio::output::unmute();
 	}
 }
