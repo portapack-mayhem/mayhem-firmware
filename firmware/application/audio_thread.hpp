@@ -100,7 +100,7 @@ private:
 	}
 
 	msg_t run() {
-		if( !file.open_for_append(file_path) ) {
+		if( !file.open_for_writing(file_path) ) {
 			return false;
 		}
 
