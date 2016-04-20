@@ -96,8 +96,8 @@ public:
 private:
 	static constexpr ui::Dim header_height = 2 * 16;
 
-	static constexpr uint32_t sampling_rate = 2457600;
-	static constexpr uint32_t baseband_bandwidth = 1750000;
+	static constexpr uint32_t sampling_rate = 4000000;
+	static constexpr uint32_t baseband_bandwidth = 2500000;
 
 	std::unique_ptr<AudioThread> capture_thread;
 
