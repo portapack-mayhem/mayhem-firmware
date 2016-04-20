@@ -35,6 +35,7 @@
 
 #include "core_control.hpp"
 
+#include "file.hpp"
 #include "png_writer.hpp"
 
 namespace ui {
@@ -80,7 +81,12 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_camera() {
-	PNGWriter png { "capture.png" };
+	const auto filename = next_filename_matching_pattern("SCR_????.PNG");
+	if( filename.empty() ) {
+		return;
+	}
+
+	PNGWriter png { filename };
 
 	for(int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;
