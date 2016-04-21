@@ -94,7 +94,7 @@ public:
 	std::string title() const override { return "Capture"; };
 
 private:
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 3 * 16;
 
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
@@ -108,7 +108,7 @@ private:
 	void on_vga_changed(int32_t v_db);
 
 	ImageButton button_start_stop {
-		{ 0 * 8, 0, 2 * 8, 1 * 16 },
+		{ 0 * 8, 2 * 16, 2 * 8, 1 * 16 },
 		&bitmap_record,
 		Color::red(),
 		Color::black()
