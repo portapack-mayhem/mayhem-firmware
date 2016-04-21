@@ -38,6 +38,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_frequency,
 		&field_lna,
 		&field_vga,
+		&text_record_filename,
 		&waterfall,
 	} });
 
@@ -106,6 +107,7 @@ void CaptureAppView::on_start_stop() {
 		button_start_stop.set_bitmap(&bitmap_record);
 	} else {
 		const auto filename = next_filename_matching_pattern("BBD_????.C16");
+		text_record_filename.set(filename);
 		if( filename.empty() ) {
 			return;
 		}

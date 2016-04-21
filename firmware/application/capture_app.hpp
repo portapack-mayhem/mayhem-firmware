@@ -114,6 +114,11 @@ private:
 		Color::black()
 	};
 
+	Text text_record_filename {
+		{ 3 * 8, 2 * 16, 12 * 8, 16 },
+		"",
+	};
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
