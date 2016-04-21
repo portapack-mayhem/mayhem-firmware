@@ -28,7 +28,7 @@ FRESULT f_opendir (
 <dt>dp</dt>
 <dd>空のディレクトリ オブジェクト構造体へのポインタを指定します。</dd>
 <dt>path</dt>
-<dd>オープンするディレクトリの<a href="filename.html">パス名</a>を示すヌル文字<tt>'\0'</tt>終端の文字列へのポインタを指定します。</dd>
+<dd>開くディレクトリの<a href="filename.html">パス名</a>を示すヌル文字<tt>'\0'</tt>終端の文字列へのポインタを指定します。</dd>
 </dl>
 </div>
 
@@ -50,13 +50,12 @@ FRESULT f_opendir (
 <a href="rc.html#nc">FR_NOT_ENOUGH_CORE</a>,
 <a href="rc.html#tf">FR_TOO_MANY_OPEN_FILES</a>
 </p>
-
 </div>
 
 
 <div class="para desc">
 <h4>解説</h4>
-<p>ディレクトリを開きます。正常終了したら、作成された<tt>DIR</tt>構造体を使ってこのディレクトリの項目を順次読み出せます。</p>
+<p>ディレクトリを開きます。正常終了したら、作成されたディレクトリ オブジェクト構造体を使ってこのディレクトリの項目を順次読み出せます。</p>
 </div>
 
 

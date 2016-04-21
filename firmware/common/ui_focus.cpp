@@ -49,9 +49,6 @@ void FocusManager::set_focus_widget(Widget* const new_focus_widget) {
 		// 	return;
 		// }
 		if( !new_focus_widget->focusable() ) {
-			// New widget is not focusable. Does it have a preferred child that
-			// can receive focus?
-			set_focus_widget(new_focus_widget->last_child_focus());
 			return;
 		}
 	}
@@ -67,7 +64,6 @@ void FocusManager::set_focus_widget(Widget* const new_focus_widget) {
 	if( focus_widget() ) {
 		focus_widget()->on_focus();
 		focus_widget()->set_dirty();
-		focus_widget()->parent()->set_last_child_focus(focus_widget());
 	}
 }
 

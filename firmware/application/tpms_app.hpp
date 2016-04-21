@@ -25,127 +25,11 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 
-#include "field_reader.hpp"
-#include "baseband_packet.hpp"
-#include "manchester.hpp"
 #include "log_file.hpp"
 
 #include "recent_entries.hpp"
 
-#include "optional.hpp"
-
-#include "units.hpp"
-using units::Temperature;
-using units::Pressure;
-
-namespace tpms {
-
-class TransponderID {
-public:
-	constexpr TransponderID(
-	) : id_ { 0 }
-	{
-	}
-
-	constexpr TransponderID(
-		const uint32_t id
-	) : id_ { id }
-	{
-	}
-
-	constexpr uint32_t value() const {
-		return id_;
-	}
-
-private:
-	uint32_t id_;
-};
-
-class Reading {
-public:
-	enum Type {
-		None = 0,
-		FLM_64 = 1,
-		FLM_72 = 2,
-		FLM_80 = 3,
-	};
-
-	constexpr Reading(
-	) : type_ { Type::None }
-	{
-	}
-	
-	constexpr Reading(
-		Type type,
-		TransponderID id
-	) : type_ { type },
-		id_ { id }
-	{
-	}
-	
-	constexpr Reading(
-		Type type,
-		TransponderID id,
-		Optional<Pressure> pressure = { },
-		Optional<Temperature> temperature = { }
-	) : type_ { type },
-		id_ { id },
-		pressure_ { pressure },
-		temperature_ { temperature }
-	{
-	}
-
-	Type type() const {
-		return type_;
-	}
-
-	TransponderID id() const {
-		return id_;
-	}
-
-	Optional<Pressure> pressure() const {
-		return pressure_;
-	}
-
-	Optional<Temperature> temperature() const {
-		return temperature_;
-	}
-
-private:
-	Type type_ { Type::None };
-	TransponderID id_ { 0 };
-	Optional<Pressure> pressure_ { };
-	Optional<Temperature> temperature_ { };
-};
-
-class Packet {
-public:
-	constexpr Packet(
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		decoder_ { packet_, 0 },
-		reader_ { decoder_ }
-	{
-	}
-
-	Timestamp received_at() const;
-
-	ManchesterFormatted symbols_formatted() const;
-
-	Optional<Reading> reading() const;
-
-private:
-	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
-
-	const baseband::Packet packet_;
-	const ManchesterDecoder decoder_;
-
-	const Reader reader_;
-
-	size_t crc_valid_length() const;
-};
-
-} /* namespace tpms */
+#include "tpms_packet.hpp"
 
 namespace std {
 
@@ -186,10 +70,12 @@ using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
-	void on_packet(const tpms::Packet& packet);
+	TPMSLogger(const std::string& file_path);
+	
+	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
 private:
-	LogFile log_file { "tpms.txt" };
+	LogFile log_file;
 };
 
 namespace ui {
@@ -212,13 +98,20 @@ public:
 	std::string title() const override { return "TPMS"; };
 
 private:
+	static constexpr uint32_t initial_target_frequency = 315000000;
+	static constexpr uint32_t sampling_rate = 2457600;
+	static constexpr uint32_t baseband_bandwidth = 1750000;
+
 	TPMSRecentEntries recent;
-	TPMSLogger logger;
+	std::unique_ptr<TPMSLogger> logger;
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 
-	void on_packet(const tpms::Packet& packet);
+	void on_packet(const tpms::SignalType signal_type, const tpms::Packet& packet);
 	void on_show_list();
+
+	uint32_t target_frequency() const;
+	uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

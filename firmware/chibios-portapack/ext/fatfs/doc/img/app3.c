@@ -4,11 +4,10 @@
 / This function checks if the file is contiguous with desired size.
 / If not, a block of contiguous sectors is allocated to the file.
 / If the file has been opened without FA_WRITE flag, it only checks if
-/ the file is contiguous and returns the resulut. */
-
-#if _FATFS != 80367 /* Check if R0.10c */
-#error This function may not be compatible with this revision of FatFs module.
-#endif
+/ the file is contiguous and returns the resulut.
+/-----------------------------------------------------------------------/
+/ This function can work with FatFs R0.09 to R0.11a.
+/----------------------------------------------------------------------*/
 
 /* Declarations of FatFs internal functions accessible from applications.
 /  This is intended to be used for disk checking/fixing or dirty hacks :-) */
@@ -37,16 +36,20 @@ DWORD allocate_contiguous_clusters (    /* Returns the first sector in LBA (0:er
         do {
             cl = get_fat(fp->fs, ccl);  /* Get the cluster status */
             if (cl + 1 < 3) return 0;   /* Hard error? */
-            if (cl != ccl + 1 &&; cl < fp->fs->n_fatent) break;  /* Not contiguous? */
+            if (cl != ccl + 1 && cl < fp->fs->n_fatent) break;  /* Not contiguous? */
             ccl = cl;
         } while (++ncl < tcl);
         if (ncl == tcl)             /* Is the file contiguous? */
-            return clust2sect(fp->fs, fp->sclust);  /* Return file start sector */
+            return clust2sect(fp->fs, fp->sclust);  /* File is contiguous. Return the start sector */
     }
+
+    /* File is not contiguous */
 #if _FS_READONLY
-    return 0;
+    return 0;								/* Exit if in read-only cfg. */
 #else
-    if (f_truncate(fp)) return 0;   /* Remove the existing chain */
+    if (!(fp->flag & FA_WRITE)) return 0;   /* Exit if the file object is for read-only */
+
+    if (f_truncate(fp)) return 0;           /* Remove the non-contiguous chain */
 
     /* Find a free contiguous area */
     ccl = cl = 2; ncl = 0;
@@ -80,24 +83,23 @@ int main (void)
     DWORD org;
 
 
-    /* Open or create a file */
+    /* Open or create a file to write */
     f_mount(&fs, "", 0);
-    fr = f_open(&fil, "swapfile.sys", FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
+    fr = f_open(&fil, "fastrec.log", FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
     if (fr) return 1;
 
-    /* Check if the file is 64MB in size and occupies a contiguous area.
+    /* Check if the file is 256MB in size and occupies a contiguous area.
     /  If not, a contiguous area will be re-allocated to the file. */
-    org = allocate_contiguous_clusters(&fil, 0x4000000);
+    org = allocate_contiguous_clusters(&fil, 0x10000000);
     if (!org) {
         printf("Function failed due to any error or insufficient contiguous area.\n");
         f_close(&fil);
         return 1;
     }
 
-    /* Now you can read/write the file with disk functions bypassing the file system layer. */
-
+    /* Now you can read/write the file without file system layer. */
+    ...
     dr = disk_write(fil.fs->drv, Buff, org, 1024);   /* Write 512KiB from top of the file */
-
     ...
 
     f_close(&fil);

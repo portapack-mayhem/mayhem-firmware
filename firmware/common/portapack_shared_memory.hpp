@@ -23,6 +23,7 @@
 #define __PORTAPACK_SHARED_MEMORY_H__
 
 #include <cstdint>
+#include <cstddef>
 
 #include "message_queue.hpp"
 
@@ -39,8 +40,14 @@ struct JammerRange {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
-	MessageQueue<12> baseband_queue;
-	MessageQueue<11> application_queue;
+	static constexpr size_t baseband_queue_k = 12;
+	static constexpr size_t application_queue_k = 11;
+
+	MessageQueue baseband_queue;
+	uint8_t baseband_queue_data[1 << baseband_queue_k];
+	MessageQueue application_queue;
+	uint8_t application_queue_data[1 << application_queue_k];
+	void* FIFO_HACK;
 
 	// TODO: M0 should directly configure and control DMA channel that is
 	// acquiring ADC samples.
@@ -65,12 +72,5 @@ struct SharedMemory {
 };
 
 extern SharedMemory& shared_memory;
-
-#if defined(LPC43XX_M0)
-inline void init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue<12>();
-	new (&shared_memory.application_queue) MessageQueue<11>();
-}
-#endif
 
 #endif/*__PORTAPACK_SHARED_MEMORY_H__*/

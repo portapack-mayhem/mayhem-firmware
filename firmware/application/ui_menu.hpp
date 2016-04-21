@@ -36,6 +36,10 @@ struct MenuItem {
 	std::string text;
 	ui::Color color;
 	std::function<void(void)> on_select;
+
+	// TODO: Prevent default-constructed MenuItems.
+	// I managed to construct a menu with three extra, unspecified menu items
+	// in the array that were default constructed...
 };
 
 class MenuItemView : public Widget {
@@ -54,8 +58,6 @@ public:
 
 private:
 	const MenuItem item;
-
-	void set_highlight(const bool value);
 };
 
 class MenuView : public View {
@@ -63,7 +65,7 @@ public:
 	std::function<void(void)> on_left;
 
 	MenuView() {
-		flags.focusable = true;
+		set_focusable(true);
 	}
 
 	~MenuView();
@@ -71,7 +73,7 @@ public:
 	void add_item(const MenuItem item);
 
 	template<size_t N>
-	void add_items(const std::array<MenuItem, N> items) {
+	void add_items(const std::array<MenuItem, N>& items) {
 		for(const auto& item : items) {
 			add_item(item);
 		}

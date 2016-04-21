@@ -200,8 +200,8 @@ static void sdio_cclk_set_400khz(void) {
 }
 
 static void sdio_cclk_set_fast(void) {
-  /* 200MHz / (2 * 5) = 20MHz */
-  sdio_cclk_set(5);
+  /* 200MHz / (2 * 4) = 25MHz */
+  sdio_cclk_set(4);
 }
 
 static void sdio_width_set_1bit(void) {
@@ -239,6 +239,41 @@ static void sdio_dma_interrupts_clear(void) {
     | (1U <<  8)  /* NIS: Normal interrupt summary */
     | (1U <<  9)  /* AIS: Abnormal interrupt summary */
     ;
+}
+
+static bool_t sdc_llc_prepare_descriptors_chained(LPC_SDMMC_DESC_Type desc[],
+                                                  const uint32_t desc_count,
+                                                  const uint8_t* const buffer,
+                                                  uint32_t byte_count) {
+  const uint32_t buffer_size = LPC_SDC_SDIO_MAX_DESCRIPTOR_BYTES;
+  uint32_t p = (uint32_t)buffer;
+
+  for(uint32_t i=0; i<desc_count; i++) {
+    uint32_t buffer_1_size = (byte_count > buffer_size) ? buffer_size : byte_count;
+    desc[i].DESC2 = p; //(buffer_1_size == 0) ? 0 : p;
+    p += buffer_1_size;
+    byte_count -= buffer_1_size;
+
+    uint32_t buffer_2_size = 0;
+    desc[i].DESC1 =
+        (buffer_1_size <<  0)
+      | (buffer_2_size << 13)
+      ;
+
+    desc[i].DESC3 = (uint32_t)&desc[i+1];
+
+    const bool_t first_descriptor = (i == 0);
+    const bool_t last_descriptor = (byte_count == 0);
+    desc[i].DESC0 =
+        (last_descriptor  ? 0 : (1U << 1)) /* Disable interrupt on completion */
+      | (last_descriptor  ? (1U << 2) : 0) /* Last descriptor */
+      | (first_descriptor ? (1U << 3) : 0) /* First descriptor */
+      | (1U <<  4)  /* ! Second address chained */
+      | (1U << 31)  /* Descriptor is owned by DMA controller */
+      ;
+  }
+
+  return (byte_count == 0) ? CH_SUCCESS : CH_FAILED;
 }
 
 /**
@@ -537,6 +572,8 @@ void sdc_lld_init(void) {
 void sdc_lld_start(SDCDriver *sdcp) {
 
   if (sdcp->state == BLK_STOP) {
+    LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
+
     LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 1;
     LPC_CGU->BASE_SDIO_CLK.PD = 0;
 
@@ -562,18 +599,6 @@ void sdc_lld_start(SDCDriver *sdcp) {
       ;
 
     sdio_cclk_set_400khz();
-    // sdio_clkdiv_set(255, 5, 0, 0);
-    // LPC_SDMMC->CLKDIV =
-    //     (255U <<  0)
-    //   | (  5U <<  8)
-    //   | (  0U << 16)
-    //   | (  0U << 24)
-    //   ;
-    // sdio_update_clock_registers_only();
-    // LPC_SDMMC->CLKSRC = 0;
-    // LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
-
-    // LPC_SDMMC->TMOUT = 0xffffff40U;
 
     /* TODO: Choose which interrupts to enable! */
     sdio_interrupts_set_mask(0);
@@ -808,8 +833,7 @@ bool_t sdc_lld_send_cmd_long_crc(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
 bool_t sdc_lld_read_aligned(SDCDriver *sdcp, uint32_t startblk,
                             uint8_t *buf, uint32_t n) {
 
-  /* TODO: Documentation suggests max transfer size is 8192, but... */
-  chDbgCheck((n <= (4096 / MMCSD_BLOCK_SIZE)), "max transaction size");
+  chDbgCheck((n <= (LPC_SDC_SDIO_DESCRIPTOR_COUNT * LPC_SDC_SDIO_MAX_DESCRIPTOR_BYTES / MMCSD_BLOCK_SIZE)), "max transaction size");
 
   /* TODO: Handle SDHC block indexing? */
 
@@ -820,19 +844,10 @@ bool_t sdc_lld_read_aligned(SDCDriver *sdcp, uint32_t startblk,
   sdio_reset_dma_and_fifo();
 
   /* Prepares the DMA channel for writing.*/
-  LPC_SDMMC_DESC_Type desc;
-  desc.DESC0 =
-      (1U <<  2)  /* Last descriptor */
-    | (1U <<  3)  /* First descriptor */
-    | (1U <<  4)  /* Second address chained */
-    | (1U << 31)  /* Descriptor is owned by DMA controller */
-    ;
-  desc.DESC1 =
-      ((n * MMCSD_BLOCK_SIZE) << 0)
-    | (0U << 13)
-    ;
-  desc.DESC2 = (uint32_t)buf;
-  desc.DESC3 = 0;
+  LPC_SDMMC_DESC_Type desc[LPC_SDC_SDIO_DESCRIPTOR_COUNT];
+  if (sdc_llc_prepare_descriptors_chained(desc, sizeof(desc) / sizeof(desc[0]), buf, n * MMCSD_BLOCK_SIZE) == TRUE)
+    goto error;
+
   LPC_SDMMC->DBADDR = (uint32_t)&desc;  /* DMA is now armed? */
 
   /* Setting up data transfer.*/
@@ -883,8 +898,7 @@ error:
 bool_t sdc_lld_write_aligned(SDCDriver *sdcp, uint32_t startblk,
                              const uint8_t *buf, uint32_t n) {
 
-  /* TODO: Documentation suggests max transfer size is 8192, but... */
-  chDbgCheck((n <= (4096 / MMCSD_BLOCK_SIZE)), "max transaction size");
+  chDbgCheck((n <= (LPC_SDC_SDIO_DESCRIPTOR_COUNT * LPC_SDC_SDIO_MAX_DESCRIPTOR_BYTES / MMCSD_BLOCK_SIZE)), "max transaction size");
 
   /* Checks for errors and waits for the card to be ready for writing.*/
   if (_sdc_wait_for_transfer_state(sdcp))
@@ -893,19 +907,10 @@ bool_t sdc_lld_write_aligned(SDCDriver *sdcp, uint32_t startblk,
   sdio_reset_dma_and_fifo();
 
   /* Prepares the DMA channel for writing.*/
-  LPC_SDMMC_DESC_Type desc;
-  desc.DESC0 =
-      (1U <<  2)  /* Last descriptor */
-    | (1U <<  3)  /* First descriptor */
-    | (1U <<  4)  /* Second address chained */
-    | (1U << 31)  /* Descriptor is owned by DMA controller */
-    ;
-  desc.DESC1 =
-      ((n * MMCSD_BLOCK_SIZE) << 0)
-    | (0U << 13)
-    ;
-  desc.DESC2 = (uint32_t)buf;
-  desc.DESC3 = 0;
+  LPC_SDMMC_DESC_Type desc[LPC_SDC_SDIO_DESCRIPTOR_COUNT];
+  if (sdc_llc_prepare_descriptors_chained(desc, sizeof(desc) / sizeof(desc[0]), buf, n * MMCSD_BLOCK_SIZE) == TRUE)
+    goto error;
+
   LPC_SDMMC->DBADDR = (uint32_t)&desc;  /* DMA is now armed? */
 
   /* Setting up data transfer.*/

@@ -69,6 +69,8 @@ constexpr region_t ahb_ram_0		{ 0x20000000,  32_KiB };
 constexpr region_t ahb_ram_1		{ 0x20008000,  16_KiB };
 constexpr region_t ahb_ram_2		{ 0x2000c000,  16_KiB };
 
+constexpr region_t backup_ram		{ LPC_BACKUP_REG_BASE,        256   };
+
 constexpr region_t spifi_uncached	{ LPC_SPIFI_DATA_BASE,        1_MiB };
 constexpr region_t spifi_cached		{ LPC_SPIFI_DATA_CACHED_BASE, spifi_uncached.size() };
 

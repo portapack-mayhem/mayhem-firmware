@@ -21,30 +21,7 @@
 
 #include "proc_tpms.hpp"
 
-#include "portapack_shared_memory.hpp"
-
 #include "dsp_fir_taps.hpp"
-
-// IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400
-static constexpr fir_taps_real<24> taps_200k_decim_0 = {
-	.pass_frequency_normalized = 100000.0f / 2457600.0f,
-	.stop_frequency_normalized = 407200.0f / 2457600.0f,
-	.taps = { {
-	    90,     94,      4,   -240,   -570,   -776,   -563,    309,
-	  1861,   3808,   5618,   6710,   6710,   5618,   3808,   1861,
-	   309,   -563,   -776,   -570,   -240,      4,     94,     90,
-	} },
-};
-
-// IFIR prototype filter: fs=614400, pass=100000, stop=207200, decim=2, fout=307200
-static constexpr fir_taps_real<16> taps_200k_decim_1 = {
-	.pass_frequency_normalized = 100000.0f / 614400.0f,
-	.stop_frequency_normalized = 207200.0f / 614400.0f,
-	.taps = { {
-		  -132,   -256,    545,    834,  -1507,  -2401,   4666,  14583,
-		 14583,   4666,  -2401,  -1507,    834,    545,   -256,   -132,
-	} },
-};
 
 TPMSProcessor::TPMSProcessor() {
 	decim_0.configure(taps_200k_decim_0.taps, 33554432);
@@ -66,6 +43,18 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 			clock_recovery(mf.get_output());
 		}
 	}
+
+	for(size_t i=0; i<decim_1_out.count; i+=channel_decimation) {
+		const auto sliced = ook_slicer_5sps(decim_1_out.p[i]);
+		slicer_history = (slicer_history << 1) | sliced;
+
+		ook_clock_recovery_subaru(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_subaru.execute(symbol);
+		});
+		ook_clock_recovery_gmc(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_gmc.execute(symbol);
+		});
+	}
 }
 
 void TPMSProcessor::consume_symbol(
@@ -78,6 +67,6 @@ void TPMSProcessor::consume_symbol(
 void TPMSProcessor::payload_handler(
 	const baseband::Packet& packet
 ) {
-	const TPMSPacketMessage message { packet };
+	const TPMSPacketMessage message { tpms::SignalType::FLM, packet };
 	shared_memory.application_queue.push(message);
 }

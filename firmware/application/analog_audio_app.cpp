@@ -22,8 +22,11 @@
 #include "analog_audio_app.hpp"
 
 #include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 using namespace portapack;
+
+#include "audio.hpp"
+#include "file.hpp"
 
 #include "utility.hpp"
 
@@ -115,6 +118,9 @@ AnalogAudioView::AnalogAudioView(
 	field_vga.on_change = [this](int32_t v_db) {
 		this->on_vga_changed(v_db);
 	};
+	field_vga.on_show_options = [this]() {
+		this->on_show_options_rf_gain();
+	};
 
 	const auto modulation = receiver_model.modulation();
 	options_modulation.set_by_value(modulation);
@@ -125,10 +131,12 @@ AnalogAudioView::AnalogAudioView(
 		this->on_show_options_modulation();
 	};
 
-	field_volume.set_value((receiver_model.headphone_volume() - wolfson::wm8731::headphone_gain_range.max).decibel() + 99);
+	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
 	};
+
+	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
 }
@@ -136,7 +144,7 @@ AnalogAudioView::AnalogAudioView(
 AnalogAudioView::~AnalogAudioView() {
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
-	audio_codec.headphone_mute();
+	audio::output::stop();
 
 	receiver_model.disable();
 }
@@ -212,16 +220,13 @@ void AnalogAudioView::on_show_options_frequency() {
 
 	field_frequency.set_style(&style_options_group);
 
-	auto widget = std::make_unique<FrequencyOptionsView>(
-		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	);
+	auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_step(receiver_model.frequency_step());
 	widget->on_change_step = [this](rf::Frequency f) {
 		this->on_frequency_step_changed(f);
 	};
-	widget->set_reference_ppm_correction(receiver_model.reference_ppm_correction());
+	widget->set_reference_ppm_correction(persistent_memory::correction_ppb() / 1000);
 	widget->on_change_reference_ppm_correction = [this](int32_t v) {
 		this->on_reference_ppm_correction_changed(v);
 	};
@@ -235,10 +240,7 @@ void AnalogAudioView::on_show_options_rf_gain() {
 
 	field_lna.set_style(&style_options_group);
 
-	auto widget = std::make_unique<RadioGainOptionsView>(
-		Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		&style_options_group
-	);
+	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_rf_amp(receiver_model.rf_amp());
 	widget->on_change_rf_amp = [this](bool enable) {
@@ -255,18 +257,12 @@ void AnalogAudioView::on_show_options_modulation() {
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	if( modulation == ReceiverModel::Mode::AMAudio ) {
 		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<AMOptionsView>(
-			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-			&style_options_group
-		);
+		auto widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
 		set_options_widget(std::move(widget));
 	}
 	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
 		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<NBFMOptionsView>(
-			Rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-			&style_options_group
-		);
+		auto widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
 		set_options_widget(std::move(widget));
 	}
 }
@@ -277,15 +273,18 @@ void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
 }
 
 void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
-	receiver_model.set_reference_ppm_correction(v);
+	persistent_memory::set_correction_ppb(v * 1000);
 }
 
 void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
-	const auto new_volume = volume_t::decibel(v - 99) + wolfson::wm8731::headphone_gain_range.max;
+	const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
 	receiver_model.set_headphone_volume(new_volume);
 }
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
+	audio::output::mute();
+	audio_thread.reset();
+
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(modulation),
@@ -294,6 +293,14 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	});
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
+
+	if( !is_wideband_spectrum_mode ) {
+		const auto filename = next_filename_matching_pattern("AUD_????.S16");
+		if( !filename.empty() ) {
+			audio_thread = std::make_unique<AudioThread>(filename);
+		}
+		audio::output::unmute();
+	}
 }
 
 } /* namespace ui */

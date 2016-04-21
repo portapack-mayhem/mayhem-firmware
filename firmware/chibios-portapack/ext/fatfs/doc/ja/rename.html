@@ -56,7 +56,7 @@ FRESULT f_rename (
 
 <div class="para desc">
 <h4>解説</h4>
-<p>ファイルまたはサブ ディレクトリの名前を変更します。また、同時に別のディレクトリへの移動も可能ですが、異なるドライブへの移動はできません。<em>開かれているオブジェクトに対して使用してはなりません</em>。</p>
+<p>ファイルまたはサブ ディレクトリの名前を変更します。また、同時に別のディレクトリへの移動も可能ですが、異なるドライブ間の移動はできません。開かれているオブジェクトに対する使用は不正な操作となり、<em>FAT構造が破壊される可能性</em>があります。<a href="appnote.html#dup">多重アクセス制御</a>が有効のときは安全に拒否されます。</p>
 </div>
 
 
@@ -69,11 +69,14 @@ FRESULT f_rename (
 <div class="para use">
 <h4>使用例</h4>
 <pre>
-    <span class="c">/* ファイルまたはサブディレクトリの名前を変更する */</span>
+    <span class="c">/* デフォルト ドライブにあるオブジェクトの名前を変更 */</span>
     f_rename("oldname.txt", "newname.txt");
 
-    <span class="c">/* ファイルまたはサブディレクトリの名前の変更と別のディレクトリへの移動 */</span>
-    f_rename("oldname.txt", "dir1/newname.txt");
+    <span class="c">/* ドライブ2にあるオブジェクトの名前を変更 */</span>
+    f_rename("2:oldname.txt", "newname.txt");
+
+    <span class="c">/* 名前の変更と同時に別のディレクトリに移動 */</span>
+    f_rename("log.txt", "old/log0001.txt");
 </pre>
 </div>
 

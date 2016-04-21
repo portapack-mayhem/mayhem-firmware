@@ -28,8 +28,10 @@ bool is_dirty() {
 
 /* Widget ****************************************************************/
 
+const std::vector<Widget*> Widget::no_children { };
+
 Point Widget::screen_pos() {
-	return parent() ? (parent()->screen_pos() + parent_rect.pos) : parent_rect.pos;
+	return screen_rect().pos;
 }
 
 Size Widget::size() const {
@@ -112,17 +114,12 @@ bool Widget::focusable() const {
 	return flags.focusable;
 }
 
+void Widget::set_focusable(const bool value) {
+	flags.focusable = value;
+}
+
 bool Widget::has_focus() {
 	return (context().focus_manager().focus_widget() == this);
-}
-
-Widget* Widget::last_child_focus() const {
-	return nullptr;
-}
-
-void Widget::set_last_child_focus(Widget* const child) {
-	// Ignore.
-	(void)child;
 }
 
 bool Widget::on_key(const KeyEvent event) {
@@ -140,8 +137,8 @@ bool Widget::on_touch(const TouchEvent event) {
 	return false;
 }
 
-const std::vector<Widget*> Widget::children() const {
-	return { };
+const std::vector<Widget*>& Widget::children() const {
+	return no_children;
 }
 
 Context& Widget::context() const {
@@ -182,6 +179,14 @@ void Widget::visible(bool v) {
 	}
 }
 
+bool Widget::highlighted() const {
+	return flags.highlighted;
+}
+
+void Widget::set_highlighted(const bool value) {
+	flags.highlighted = value;
+}
+
 void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
 	for(auto child : children()) {
 		if( !child_rect.intersect(child->parent_rect).is_empty() ) {
@@ -191,11 +196,6 @@ void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
 }
 
 /* View ******************************************************************/
-
-void View::set_parent_rect(const Rect new_parent_rect) {
-	Widget::set_parent_rect(new_parent_rect);
-	dirty_screen_rect += screen_rect();
-}
 
 void View::paint(Painter& painter) {
 	painter.fill_rectangle(
@@ -223,20 +223,13 @@ void View::add_children(const std::vector<Widget*>& children) {
 void View::remove_child(Widget* const widget) {
 	if( widget ) {
 		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-		dirty_screen_rect += widget->screen_rect();
+		dirty_overlapping_children_in_rect(widget->screen_rect());
 		widget->set_parent(nullptr);
-		if( dirty_screen_rect ) {
-			set_dirty();
-		}
 	}
 }
 
-const std::vector<Widget*> View::children() const {
+const std::vector<Widget*>& View::children() const {
 	return children_;
-}
-
-Widget* View::initial_focus() {
-	return nullptr;
 }
 
 std::string View::title() const {
@@ -441,7 +434,7 @@ Button::Button(
 ) : Widget { parent_rect },
 	text_ { text }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 void Button::set_text(const std::string value) {
@@ -456,7 +449,7 @@ std::string Button::text() const {
 void Button::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 
 	painter.draw_rectangle(r, style().foreground);
 
@@ -492,13 +485,13 @@ bool Button::on_key(const KeyEvent key) {
 bool Button::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
-		flags.highlighted = true;
+		set_highlighted(true);
 		set_dirty();
 		return true;
 
 
 	case TouchEvent::Type::End:
-		flags.highlighted = false;
+		set_highlighted(false);
 		set_dirty();
 		if( on_select ) {
 			on_select(*this);
@@ -575,7 +568,7 @@ void Image::set_background(const Color color) {
 void Image::paint(Painter& painter) {
 	if( bitmap_ ) {
 		// Code also handles ImageButton behavior.
-		const bool selected = (has_focus() || flags.highlighted);
+		const bool selected = (has_focus() || highlighted());
 		painter.draw_bitmap(
 			screen_pos(),
 			*bitmap_,
@@ -596,7 +589,7 @@ ImageButton::ImageButton(
 	const Color background
 ) : Image { parent_rect, bitmap, foreground, background }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 bool ImageButton::on_key(const KeyEvent key) {
@@ -613,13 +606,13 @@ bool ImageButton::on_key(const KeyEvent key) {
 bool ImageButton::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
-		flags.highlighted = true;
+		set_highlighted(true);
 		set_dirty();
 		return true;
 
 
 	case TouchEvent::Type::End:
-		flags.highlighted = false;
+		set_highlighted(false);
 		set_dirty();
 		if( on_select ) {
 			on_select(*this);
@@ -641,7 +634,7 @@ OptionsField::OptionsField(
 	length_ { length },
 	options { options }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 size_t OptionsField::selected_index() const {
@@ -722,7 +715,7 @@ NumberField::NumberField(
 	length_ { length },
 	fill_char { fill_char }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 int32_t NumberField::value() const {

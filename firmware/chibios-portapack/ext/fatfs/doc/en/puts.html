@@ -36,19 +36,13 @@ int f_puts (
 <div class="para ret">
 <h4>Return Value</h4>
 <p>When the function succeeded, it returns number of characters written. When the write operation is aborted due to disk full or any error, an <tt>EOF (-1)</tt> will be returned.</p>
-<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), character encoding on the srting fuctions, <tt>f_putc()</tt>, <tt>f_puts()</tt>, <tt>f_printf()</tt> and <tt>f_gets()</tt>, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
-</div>
-
-
-<div class="para desc">
-<h4>Description</h4>
-<p>The <tt>f_puts()</tt> function is a wrapper function of <a href="write.html"><tt>f_write()</tt></a> function.</p>
+<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), character encoding on the srting fuctions, <tt>f_putc</tt>, <tt>f_puts</tt>, <tt>f_printf</tt> and <tt>f_gets</tt> function, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
 </div>
 
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Available when <tt>_FS_READONLY == 0</tt> and <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\n'</tt>s contained in the string are converted to <tt>'\r'+'\n'</tt>.</p>
+<p>This is a wrapper function of <a href="write.html"><tt>f_write</tt></a> function. Available when <tt>_FS_READONLY == 0</tt> and <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\n'</tt>s contained in the string are converted to <tt>'\r'+'\n'</tt>.</p>
 </div>
 
 

@@ -31,6 +31,8 @@
 
 #include "irq_controls.hpp"
 
+#include "audio_thread.hpp"
+
 #include "ch.h"
 
 #include "lpc43xx_cpp.hpp"
@@ -44,6 +46,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
+	AudioThread::check_fifo_isr();
 	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
 	chSysUnlockFromIsr();
 
@@ -56,6 +59,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 MessageHandlerMap EventDispatcher::message_map_;
 Thread* EventDispatcher::thread_event_loop = nullptr;
+Thread* EventDispatcher::thread_record = nullptr;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
@@ -65,6 +69,8 @@ EventDispatcher::EventDispatcher(
 	painter(painter),
 	context(context)
 {
+	init_message_queues();
+
 	thread_event_loop = chThdSelf();
 	touch_manager.on_event = [this](const ui::TouchEvent event) {
 		this->on_touch_event(event);
@@ -132,10 +138,9 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 }
 
 void EventDispatcher::handle_application_queue() {
-	std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-	while(Message* const message = shared_memory.application_queue.pop(message_buffer)) {
+	shared_memory.application_queue.handle([](Message* const message) {
 		message_map().send(message);
-	}
+	});
 }
 
 void EventDispatcher::handle_rtc_tick() {
@@ -241,4 +246,15 @@ void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
 	while( (target != nullptr) && !target->on_encoder(event) ) {
 		target = target->parent();
 	}
+}
+
+void EventDispatcher::init_message_queues() {
+	new (&shared_memory.baseband_queue) MessageQueue(
+		shared_memory.baseband_queue_data, SharedMemory::baseband_queue_k
+	);
+	new (&shared_memory.application_queue) MessageQueue(
+		shared_memory.application_queue_data, SharedMemory::application_queue_k
+	);
+
+	shared_memory.FIFO_HACK = nullptr;
 }

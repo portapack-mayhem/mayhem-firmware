@@ -90,10 +90,12 @@ using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
 
 class AISLogger {
 public:
+	AISLogger(const std::string& file_path);
+
 	void on_packet(const ais::Packet& packet);
 
 private:
-	LogFile log_file { "ais.txt" };
+	LogFile log_file;
 };
 
 namespace ui {
@@ -145,8 +147,12 @@ public:
 	std::string title() const override { return "AIS"; };
 
 private:
+	static constexpr uint32_t initial_target_frequency = 162025000;
+	static constexpr uint32_t sampling_rate = 2457600;
+	static constexpr uint32_t baseband_bandwidth = 1750000;
+
 	AISRecentEntries recent;
-	AISLogger logger;
+	std::unique_ptr<AISLogger> logger;
 
 	AISRecentEntriesView recent_entries_view { recent };
 	AISRecentEntryDetailView recent_entry_detail_view;
@@ -167,11 +173,18 @@ private:
 		}
 	};
 
+	uint32_t target_frequency_ = initial_target_frequency;
+
 	void on_packet(const ais::Packet& packet);
 	void on_show_list();
 	void on_show_detail(const AISRecentEntry& entry);
 
-	void on_frequency_changed(const uint32_t new_frequency);
+	void on_frequency_changed(const uint32_t new_target_frequency);
+
+	uint32_t target_frequency() const;
+	void set_target_frequency(const uint32_t new_value);
+
+	uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

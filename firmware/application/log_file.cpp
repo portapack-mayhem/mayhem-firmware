@@ -27,7 +27,7 @@
 using namespace lpc43xx;
 
 LogFile::LogFile(
-	const std::string file_path
+	const std::string& file_path
 ) : file_path { file_path }
 {
 	file.open_for_append(file_path);

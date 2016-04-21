@@ -36,10 +36,8 @@ public:
 		AMAudio = 0,
 		NarrowbandFMAudio = 1,
 		WidebandFMAudio = 2,
-		AIS = 3,
 		SpectrumAnalysis = 4,
-		TPMS = 5,
-		ERT = 6,
+		Capture = 7,
 	};
 
 	rf::Frequency tuning_frequency() const;
@@ -47,9 +45,6 @@ public:
 
 	rf::Frequency frequency_step() const;
 	void set_frequency_step(rf::Frequency f);
-
-	int32_t reference_ppm_correction() const;
-	void set_reference_ppm_correction(int32_t v);
 
 	bool antenna_bias() const;
 	void set_antenna_bias(bool enabled);
@@ -122,8 +117,6 @@ private:
 	void update_am_configuration();
 	void update_nbfm_configuration();
 	void update_wfm_configuration();
-
-	void baseband_disable();
 };
 
 #endif/*__RECEIVER_MODEL_H__*/

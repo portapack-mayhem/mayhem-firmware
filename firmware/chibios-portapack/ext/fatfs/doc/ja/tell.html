@@ -39,7 +39,7 @@ DWORD f_tell (
 
 <div class="para desc">
 <h4>解説</h4>
-<p>f_tell関数は、現リビジョンではマクロとして実装されています。</p>
+<p>f_tell関数は、現リビジョンではマクロとして実装されています。ファイル オブジェクトの正当性チェックや排他制御は行いません。</p>
 <pre>
 <span class="k">#define</span> f_tell(fp) ((fp)->fptr)
 </pre>

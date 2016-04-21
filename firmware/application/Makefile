@@ -127,6 +127,7 @@ CPPSRC = main.cpp \
          hackrf_hal.cpp \
          portapack.cpp \
          portapack_shared_memory.cpp \
+         baseband_api.cpp \
          portapack_persistent_memory.cpp \
          portapack_io.cpp \
          i2c_pp.cpp \
@@ -146,6 +147,7 @@ CPPSRC = main.cpp \
          touch.cpp \
          touch_adc.cpp \
          encoder.cpp \
+         audio.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
          ui_alphanum.cpp \
@@ -167,6 +169,7 @@ CPPSRC = main.cpp \
          ui_debug.cpp \
          ui_baseband_stats_view.cpp \
          ui_sd_card_status_view.cpp \
+         ui_sd_card_debug.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
          ui_spectrum.cpp \
@@ -185,12 +188,15 @@ CPPSRC = main.cpp \
          ../commom/ais_packet.cpp \
          ais_app.cpp \
          tpms_app.cpp \
+         ../common/tpms_packet.cpp \
          ert_app.cpp \
          ../common/ert_packet.cpp \
-         spectrum_analysis_app.cpp \
+         capture_app.cpp \
          sd_card.cpp \
          file.cpp \
          log_file.cpp \
+         png_writer.cpp \
+         audio_thread.cpp \
          manchester.cpp \
          string_format.cpp \
          temperature_logger.cpp \
@@ -198,7 +204,8 @@ CPPSRC = main.cpp \
          ../common/chibios_cpp.cpp \
          ../common/debug.cpp \
          ../common/gcc.cpp \
-         m4_startup.cpp \
+         ../common/lfsr_random.cpp \
+         core_control.cpp \
          cpld_max5.cpp \
          jtag.cpp \
          cpld_update.cpp \

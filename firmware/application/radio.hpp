@@ -27,10 +27,18 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "rffc507x.hpp"
-#include "max2837.hpp"
-
 namespace radio {
+
+struct Configuration {
+	rf::Frequency tuning_frequency;
+	uint32_t baseband_rate;
+	uint32_t baseband_filter_bandwidth;
+	rf::Direction direction;
+	bool rf_amp;
+	int8_t lna_gain;
+	int8_t vga_gain;
+	uint8_t baseband_decimation;
+};
 
 void init();
 
@@ -39,15 +47,33 @@ bool set_tuning_frequency(const rf::Frequency frequency);
 void set_rf_amp(const bool rf_amp);
 void set_lna_gain(const int_fast8_t db);
 void set_vga_gain(const int_fast8_t db);
-void set_sampling_frequency(const uint32_t frequency);
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
+void set_baseband_rate(const uint32_t rate);
 void set_baseband_decimation_by(const size_t n);
 void set_antenna_bias(const bool on);
 
+void enable(Configuration configuration);
+void configure(Configuration configuration);
 void disable();
 
-extern rffc507x::RFFC507x first_if;
-extern max2837::MAX2837 second_if;
+namespace debug {
+
+namespace first_if {
+
+uint32_t register_read(const size_t register_number);
+
+} /* namespace first_if */
+
+namespace second_if {
+
+uint32_t register_read(const size_t register_number);
+
+// TODO: This belongs somewhere else.
+uint8_t temp_sense();
+
+} /* namespace second_if */
+
+} /* namespace debug */
 
 } /* namespace radio */
 

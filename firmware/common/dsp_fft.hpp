@@ -32,6 +32,7 @@
 #include "dsp_types.hpp"
 #include "complex.hpp"
 #include "hal.h"
+#include "utility.hpp"
 
 namespace std {
 	/* https://github.com/AE9RB/fftbench/blob/master/cxlr.hpp
@@ -46,14 +47,6 @@ namespace std {
 		};
 	}
 } /* namespace std */
-
-constexpr bool power_of_two(const size_t n) {
-	return (n & (n - 1)) == 0;
-}
-
-constexpr size_t log_2(const size_t n, const size_t p = 0) {
-	return (n <= 1) ? p : log_2(n / 2, p + 1);
-}
 
 template<typename T, size_t N>
 void fft_swap(const buffer_c16_t src, std::array<T, N>& dst) {

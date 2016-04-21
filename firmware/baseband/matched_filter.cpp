@@ -38,6 +38,7 @@ void MatchedFilter::configure(
 	taps_reversed_ = std::make_unique<taps_t>(taps_count);
 	taps_count_ = taps_count;
 	decimation_factor_ = decimation_factor;
+	output = 0;
 	std::reverse_copy(&taps[0], &taps[taps_count], &taps_reversed_[0]);
 }
 

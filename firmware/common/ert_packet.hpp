@@ -33,6 +33,11 @@ namespace ert {
 
 using ID = uint32_t;
 using Consumption = uint32_t;
+using CommodityType = uint32_t;
+
+constexpr ID invalid_id = 0;
+constexpr CommodityType invalid_commodity_type = -1;
+constexpr Consumption invalid_consumption = 0;
 
 class Packet {
 public:
@@ -60,6 +65,7 @@ public:
 
 	Type type() const;
 	ID id() const;
+	CommodityType commodity_type() const;
 	Consumption consumption() const;
 
 	ManchesterFormatted symbols_formatted() const;
@@ -73,9 +79,6 @@ private:
 	const ManchesterDecoder decoder_;
 	const Reader reader_;
 	const Type type_;
-
-	const ID invalid_id = 0;
-	const Consumption invalid_consumption = 0;
 
 	bool crc_ok_idm() const;
 	bool crc_ok_scm() const;

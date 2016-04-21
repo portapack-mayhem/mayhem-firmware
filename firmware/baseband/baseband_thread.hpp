@@ -30,11 +30,6 @@
 
 class BasebandThread : public ThreadBase {
 public:
-	BasebandThread(
-	) : ThreadBase { "baseband" }
-	{
-	}
-
 	Thread* start(const tprio_t priority);
 
 	void on_message(const Message* const message);
@@ -49,9 +44,10 @@ public:
 
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
-	BasebandProcessor* baseband_processor { nullptr };
 
 private:
+	BasebandProcessor* baseband_processor { nullptr };
+
 	BasebandConfiguration baseband_configuration;
 
 	void run() override;

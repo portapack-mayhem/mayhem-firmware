@@ -29,6 +29,7 @@
 
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
+#include "tpms_packet.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
@@ -251,10 +252,12 @@ struct ChannelSpectrum {
 	uint32_t channel_filter_stop_frequency { 0 };
 };
 
-using ChannelSpectrumFIFO = FIFO<ChannelSpectrum, 2>;
+using ChannelSpectrumFIFO = FIFO<ChannelSpectrum>;
 
 class ChannelSpectrumConfigMessage : public Message {
 public:
+	static constexpr size_t fifo_k = 2;
+	
 	constexpr ChannelSpectrumConfigMessage(
 		ChannelSpectrumFIFO* fifo
 	) : Message { ID::ChannelSpectrumConfig },
@@ -280,12 +283,15 @@ public:
 class TPMSPacketMessage : public Message {
 public:
 	constexpr TPMSPacketMessage(
+		const tpms::SignalType signal_type,
 		const baseband::Packet& packet
 	) : Message { ID::TPMSPacket },
+		signal_type { signal_type },
 		packet { packet }
 	{
 	}
 
+	tpms::SignalType signal_type;
 	baseband::Packet packet;
 };
 

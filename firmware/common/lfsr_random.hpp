@@ -19,17 +19,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CPU_CLOCK_H__
-#define __CPU_CLOCK_H__
+#ifndef __LFSR_RANDOM_HPP__
+#define __LFSR_RANDOM_HPP__
 
 #include <cstdint>
+#include <cstddef>
 
-constexpr uint32_t clock_source_irc_f		=  12000000;
-constexpr uint32_t clock_source_gp_clkin	=  20000000;
-constexpr uint32_t clock_source_pll1_step_f	= 100000000;
-constexpr uint32_t clock_source_pll1_f		= 200000000;
+using lfsr_word_t = uint32_t;
 
-void cpu_clock_max_speed();
-void cpu_start_audio_pll();
+lfsr_word_t lfsr_iterate(lfsr_word_t v);
+void lfsr_fill(lfsr_word_t& v, lfsr_word_t* buffer, size_t word_count);
+bool lfsr_compare(lfsr_word_t& v, const lfsr_word_t* buffer, size_t word_count);
 
-#endif/*__CPU_CLOCK_H__*/
+#endif/*__LFSR_RANDOM_HPP__*/

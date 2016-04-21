@@ -21,6 +21,8 @@
 
 #include "chibios_cpp.hpp"
 
+#include <cstdint>
+
 #include <ch.h>
 
 void* operator new(size_t size) {
@@ -38,3 +40,21 @@ void operator delete(void* p) noexcept {
 void operator delete[](void* p) noexcept {
 	chHeapFree(p);
 }
+
+extern uint8_t __heap_base__[];
+extern uint8_t __heap_end__[];
+
+namespace chibios {
+
+size_t heap_size() {
+	return __heap_end__ - __heap_base__;
+}
+
+size_t heap_used() {
+	const auto core_free = chCoreStatus();
+	size_t heap_free = 0;
+	chHeapStatus(NULL, &heap_free);
+	return heap_size() - (core_free + heap_free);
+}
+
+} /* namespace chibios */

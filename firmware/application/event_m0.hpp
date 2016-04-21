@@ -73,6 +73,8 @@ public:
 		return message_map_;
 	}
 
+	static Thread* thread_record;
+	
 private:
 	static MessageHandlerMap message_map_;
 	static Thread* thread_event_loop;
@@ -105,6 +107,8 @@ private:
 
 	bool event_bubble_key(const ui::KeyEvent event);
 	void event_bubble_encoder(const ui::EncoderEvent event);
+
+	void init_message_queues();
 };
 
 #endif/*__EVENT_M0_H__*/

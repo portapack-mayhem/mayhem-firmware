@@ -42,7 +42,6 @@
 
 #include "debug.hpp"
 
-#include "audio.hpp"
 #include "audio_dma.hpp"
 
 #include "gcc.hpp"
@@ -73,18 +72,9 @@ void __late_init(void) {
 }
 
 static void init() {
-	i2s::i2s0::configure(
-		audio::i2s0_config_tx,
-		audio::i2s0_config_rx,
-		audio::i2s0_config_dma
-	);
-
 	audio::dma::init();
 	audio::dma::configure();
 	audio::dma::enable();
-
-	i2s::i2s0::tx_start();
-	i2s::i2s0::rx_start();
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();

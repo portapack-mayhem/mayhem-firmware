@@ -22,9 +22,6 @@
 #include "touch.hpp"
 
 namespace touch {
-	
-float Manager::cmx;
-float Manager::cmy;
 
 struct Metrics {
 	const float x;
@@ -32,7 +29,7 @@ struct Metrics {
 	const float r;
 };
 
-static Metrics calculate_metrics(const Frame frame) {
+static Metrics calculate_metrics(const Frame& frame) {
 	/* TODO: Yikes! M0 doesn't have floating point, so this code is
 	 * expensive! On the other hand, it seems to be working well (and
 	 * fast *enough*?), so maybe leave it alone at least for now.
@@ -69,14 +66,7 @@ static Metrics calculate_metrics(const Frame frame) {
 	};
 }
 
-ui::Point Manager::raw_point() const {
-	return {
-		static_cast<ui::Coord>(cmx),
-		static_cast<ui::Coord>(cmy)
-	};
-}
-
-void Manager::feed(const Frame frame) {
+void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
 	//const auto touch_stable = touch_debounce.state();
@@ -91,9 +81,6 @@ void Manager::feed(const Frame frame) {
 		// TODO: Add touch pressure hysteresis?
 		touch_pressure = (metrics.r < r_touch_threshold);
 		if( touch_pressure ) {
-			cmx = metrics.x*100;
-			cmy = metrics.y*100;
-			
 			const float x = width_pixels * (metrics.x - calib_x_low) / calib_x_range;
 			filter_x.feed(x);
 			const float y = height_pixels * (calib_y_high - metrics.y) / calib_y_range;

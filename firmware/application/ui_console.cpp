@@ -35,7 +35,7 @@ void Console::clear() {
 	display.scroll_set_position(0);
 }
 
-void Console::write(const std::string message) {
+void Console::write(const std::string& message) {
 	const Style& s = style();
 	const Font& font = s.font;
 	const auto rect = screen_rect();
@@ -58,7 +58,7 @@ void Console::write(const std::string message) {
 	}
 }
 
-void Console::writeln(const std::string message) {
+void Console::writeln(const std::string& message) {
 	write(message);
 	crlf();
 }

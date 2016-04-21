@@ -24,9 +24,22 @@
 
 #include <cstdint>
 
-#include "audio.hpp"
+#include "buffer.hpp"
 
 namespace audio {
+
+struct sample_t {
+	union {
+		struct {
+			int16_t left;
+			int16_t right;
+		};
+		uint32_t raw;
+	};
+};
+
+using buffer_t = buffer_t<sample_t>;
+
 namespace dma {
 
 void init();

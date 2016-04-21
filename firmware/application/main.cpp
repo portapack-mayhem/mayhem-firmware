@@ -68,16 +68,13 @@
 
 #include "event_m0.hpp"
 
-#include "m4_startup.hpp"
+#include "core_control.hpp"
 #include "spi_image.hpp"
 
 #include "debug.hpp"
 #include "led.hpp"
 
 #include "gcc.hpp"
-
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
 
 #include "sd_card.hpp"
 
@@ -94,8 +91,6 @@ int main(void) {
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
-
-	init_message_queues();
 
 	ui::Context context;
 	ui::SystemView system_view {
@@ -129,8 +124,7 @@ int main(void) {
 
 	portapack::shutdown();
 	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
-
-	rgu::reset(rgu::Reset::M0APP);
+	m0_halt();
 
 	return 0;
 }

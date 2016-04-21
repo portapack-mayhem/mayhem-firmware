@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,19 +19,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __M4_STARTUP_H__
-#define __M4_STARTUP_H__
+#ifndef __THREAD_WAIT_H__
+#define __THREAD_WAIT_H__
 
-#include <cstddef>
+#include <ch.h>
 
-#include "ff.h"
-#include "memory_map.hpp"
-#include "spi_image.hpp"
-#include "ui_navigation.hpp"
+class ThreadWait {
+public:
+	int sleep();
+	bool wake_from_interrupt(const int value);
 
-void m4_init(const portapack::spi_flash::region_t from, const portapack::memory::region_t to);
-void m4_request_shutdown();
-void m4_switch(const char * hash);
-int m4_load_image(void);
+private:
+	Thread* thread_to_wake { nullptr };
+};
 
-#endif/*__M4_STARTUP_H__*/
+#endif/*__THREAD_WAIT_H__*/

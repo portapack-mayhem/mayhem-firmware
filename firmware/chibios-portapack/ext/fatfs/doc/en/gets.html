@@ -44,14 +44,14 @@ TCHAR* f_gets (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_gets()</tt> function is a wrapper function of <a href="read.html"><tt>f_read()</tt></a> function. The read operation continues until a <tt>'\n'</tt> is stored, reached end of the file or the buffer is filled with <tt>len - 1</tt> characters. The read string is terminated with a <tt>'\0'</tt>. When no character to read or any error occured during read operation, it returns a null pointer. The status of EOF and error can be examined with <tt>f_eof()</tt> and <tt>f_error()</tt> macros.</p>
-<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), data types on the srting fuctions, <tt>f_putc()</tt>, <tt>f_puts()</tt>, <tt>f_printf()</tt> and <tt>f_gets()</tt>, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
+<p>The read operation continues until a <tt>'\n'</tt> is stored, reached end of the file or the buffer is filled with <tt>len - 1</tt> characters. The read string is terminated with a <tt>'\0'</tt>. When no character to read or any error occured during read operation, it returns a null pointer. The status of EOF and error can be examined with <tt>f_eof</tt> and <tt>f_error</tt> function.</p>
+<p>When FatFs is configured to Unicode API (<tt>_LFN_UNICODE == 1</tt>), data types on the srting fuctions, <tt>f_putc</tt>, <tt>f_puts</tt>, <tt>f_printf</tt> and <tt>f_gets</tt>, is also switched to Unicode. The character encoding on the file to be read/written via those functions is selected by <tt>_STRF_ENCODE</tt> option.</p>
 </div>
 
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Available when <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\r'</tt>s contained in the file are stripped out.</p>
+<p>This is a wrapper function of <a href="read.html"><tt>f_read</tt></a> function. Available when <tt>_USE_STRFUNC</tt> is 1 or 2. When it is set to 2, <tt>'\r'</tt>s contained in the file are stripped out.</p>
 </div>
 
 

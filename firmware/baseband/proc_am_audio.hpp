@@ -26,6 +26,7 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
+#include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -64,7 +65,7 @@ private:
 	bool modulation_ssb = false;
 	dsp::demodulate::AM demod_am;
 	dsp::demodulate::SSB demod_ssb;
-
+	FeedForwardCompressor audio_compressor;
 	AudioOutput audio_output;
 
 	SpectrumCollector channel_spectrum;

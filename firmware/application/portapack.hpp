@@ -24,8 +24,8 @@
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 
+#include "i2c_pp.hpp"
 #include "spi_pp.hpp"
-#include "wm8731.hpp"
 #include "si5351.hpp"
 #include "lcd_ili9341.hpp"
 
@@ -39,10 +39,9 @@ extern portapack::IO io;
 
 extern lcd::ILI9341 display;
 
+extern I2C i2c0;
 extern SPI ssp0;
 extern SPI ssp1;
-
-extern wolfson::wm8731::WM8731 audio_codec;
 
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;

@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>DIR</h2>
-<p><tt>DIR</tt>構造体は、<tt>f_opendir(), f_readdir()</tt>のワーク エリアとして使用されます。アプリケーションは、この構造体のメンバを書き換えてはなりません。</p>
+<p><tt>DIR</tt>構造体は、<tt>f_opendir/f_readdir/f_findfirst/f_findnext</tt>関数のワーク エリアとして使用されます。アプリケーションは、この構造体のメンバを書き換えてはなりません。</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
     FATFS*  fs;        <span class="c">/* 親ファイル システム オブジェクトへのポインタ */</span>
@@ -22,14 +22,17 @@
     DWORD   sclust;    <span class="c">/* テーブル開始クラスタ (0:ルート) */</span>
     DWORD   clust;     <span class="c">/* 現在のクラスタ番号 */</span>
     DWORD   sect;      <span class="c">/* 現在のセクタ番号 */</span>
-    BYTE*   dir;       <span class="c">/* 現在のSFNエントリへのポインタ */</span>
+    BYTE*   dir;       <span class="c">/* 現在のSFNエントリ(Win[]内)へのポインタ */</span>
     BYTE*   fn;        <span class="c">/* SFNバッファへのポインタ (in/out) {file[8],ext[3],status[1]} */</span>
 <span class="k">#if</span> _FS_LOCK
-    UINT    lockid;    <span class="c">/* ロックID */</span>
+    UINT    lockid;    <span class="c">/* サブ ディレクトリ ロックID (0:ルート) */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> _USE_LFN
     WCHAR*  lfn;       <span class="c">/* LFNバッファへのポインタ (in/out) */</span>
     WORD    lfn_idx;   <span class="c">/* LFNエントリの先頭インデックス (0xFFFF:無効) */</span>
+<span class="k">#endif</span>
+<span class="k">#if</span> _USE_FIND
+    const TCHAR*  pat; <span class="c">/* マッチング パターンへのポインタ */</span>
 <span class="k">#endif</span>
 } DIR;
 </pre>

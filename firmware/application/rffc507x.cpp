@@ -278,21 +278,4 @@ spi::reg_t RFFC507x::readback(const Readback readback) {
 	return read(Register::READBACK);
 }
 
-#if 0
-/* Test of RFFC507x reset over temperature */
-while(true) {
-	first_if.write(rffc507x::Register::P1_FREQ2, 0xAAAA);
-	first_if.reset();
-	const auto after_reset = first_if.read(rffc507x::Register::P1_FREQ2);
-	if( after_reset != 0x6276 ) {
-		led_usb.off();
-		led_tx.on();
-		chThdSleepMilliseconds(100);
-	} else {
-		led_usb.on();
-		led_tx.off();
-	}
-}
-#endif
-
 } /* namespace rffc507x */

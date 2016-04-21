@@ -2,12 +2,21 @@ language: cpp
 
 cache: apt
 
-before_install:
-  - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
-  - sudo apt-get update -qq
-  - sudo apt-get install -y gcc-arm-none-eabi
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#portapack"
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "Change view : %{compare_url}"
+      - "Build details : %{build_url}"
+      # TODO: The "build_number.1" in this URL is almost certainly wrong, but correct value not available from Travis?
+      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_number}.1/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
 
 before_script:
+  - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
+  - tar -xf /tmp/gcc-arm.tar.bz2
+  - export PATH=$PWD/gcc-arm-none-eabi-5_2-2015q4/bin:$PATH
   - export CC="arm-none-eabi-gcc"
   - export CXX="arm-none-eabi-g++"
 
@@ -18,6 +27,10 @@ script:
   - popd
 
 addons:
+  apt_packages:
+    - lib32bz2-1.0
+    - lib32ncurses5
+    - lib32z1
   artifacts:
     paths:
       - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")

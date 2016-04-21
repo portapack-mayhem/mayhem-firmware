@@ -13,10 +13,10 @@
 
 <div class="para">
 <h2>FATFS</h2>
-<p>The <tt>FATFS</tt> structure (file system object) holds dynamic work area of individual logical drives. It is given by application program and registerd/unregisterd to the FatFs module with <tt>f_mount()</tt> function. Initialization is done on first API call after <tt>f_mount()</tt> function or media change. Application program must not modify any member in this structure.</p>
+<p>The <tt>FATFS</tt> structure (file system object) holds dynamic work area of individual logical drives. It is given by application program and registerd/unregisterd to the FatFs module with <tt>f_mount</tt> function. Initialization is done on first API call after <tt>f_mount</tt> function or media change. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
-    BYTE    fs_type;      <span class="c">/* FAT sub-type (0:Not mounted) */</span>
+    BYTE    fs_type;      <span class="c">/* FAT sub-type (0:Not mounted, FS_FAT12/FS_FAT16/FS_FAT32) */</span>
     BYTE    drv;          <span class="c">/* Physical drive number */</span>
     BYTE    csize;        <span class="c">/* Sectors per cluster (1,2,4,...,128) */</span>
     BYTE    n_fats;       <span class="c">/* Number of FAT copies (1,2) */</span>
@@ -31,19 +31,19 @@
     _SYNC_t sobj;         <span class="c">/* Identifier of sync object */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> !_FS_READONLY
-    DWORD   last_clust;   <span class="c">/* FSINFO: Last allocated cluster */</span>
-    DWORD   free_clust;   <span class="c">/* FSINFO: Number of free clusters */</span>
+    DWORD   last_clust;   <span class="c">/* FSINFO: Last allocated cluster (0xFFFFFFFF if invalid) */</span>
+    DWORD   free_clust;   <span class="c">/* FSINFO: Number of free clusters (0xFFFFFFFF if invalid) */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> _FS_RPATH
-    DWORD   cdir;         <span class="c">/* Current directory start cluster (0:root) */</span>
+    DWORD   cdir;         <span class="c">/* Cluster number of current directory (0:root) */</span>
 <span class="k">#endif</span>
-    DWORD   n_fatent;     <span class="c">/* Number of FAT entries (== Number of clusters + 2) */</span>
+    DWORD   n_fatent;     <span class="c">/* Number of FAT entries (Number of clusters + 2) */</span>
     DWORD   fsize;        <span class="c">/* Sectors per FAT */</span>
-    DWORD   volbase;      <span class="c">/* Volume start sector */</span>
-    DWORD   fatbase;      <span class="c">/* FAT area start sector */</span>
-    DWORD   dirbase;      <span class="c">/* Root directory area start sector (FAT32: Cluster#) */</span>
-    DWORD   database;     <span class="c">/* Data area start sector */</span>
-    DWORD   winsect;      <span class="c">/* Current sector appearing in the win[] */</span>
+    DWORD   volbase;      <span class="c">/* Volume base LBA */</span>
+    DWORD   fatbase;      <span class="c">/* FAT base LBA */</span>
+    DWORD   dirbase;      <span class="c">/* Root directory base (LBA|Cluster) */</span>
+    DWORD   database;     <span class="c">/* Data base LBA */</span>
+    DWORD   winsect;      <span class="c">/* Sector LBA appearing in the win[] */</span>
     BYTE    win[_MAX_SS]; <span class="c">/* Disk access window for directory, FAT (and file data at tiny cfg) */</span>
 } FATFS;
 </pre>

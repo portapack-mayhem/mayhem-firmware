@@ -21,10 +21,13 @@
 
 #include "receiver_model.hpp"
 
-#include "portapack_shared_memory.hpp"
+#include "baseband_api.hpp"
+
 #include "portapack_persistent_memory.hpp"
-#include "portapack.hpp"
 using namespace portapack;
+
+#include "radio.hpp"
+#include "audio.hpp"
 
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
@@ -32,79 +35,19 @@ using namespace portapack;
 
 namespace {
 
-struct AMConfig {
-	const fir_taps_complex<64> channel;
-	const AMConfigureMessage::Modulation modulation;
-
-	void apply() const;
-};
-
-struct NBFMConfig {
-	const fir_taps_real<24> decim_0;
-	const fir_taps_real<32> decim_1;
-	const fir_taps_real<32> channel;
-	const size_t deviation;
-
-	void apply() const;
-};
-
-struct WFMConfig {
-	void apply() const;
-};
-
-void AMConfig::apply() const {
-	const AMConfigureMessage message {
-		taps_6k0_decim_0,
-		taps_6k0_decim_1,
-		taps_6k0_decim_2,
-		channel,
-		modulation,
-		audio_12k_hpf_300hz_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(4);
-}
-
-void NBFMConfig::apply() const {
-	const NBFMConfigureMessage message {
-		decim_0,
-		decim_1,
-		channel,
-		2,
-		deviation,
-		audio_24k_hpf_300hz_config,
-		audio_24k_deemph_300_6_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(2);
-}
-
-void WFMConfig::apply() const {
-	const WFMConfigureMessage message {
-		taps_200k_wfm_decim_0,
-		taps_200k_wfm_decim_1,
-		taps_64_lp_156_198,
-		75000,
-		audio_48k_hpf_30hz_config,
-		audio_48k_deemph_2122_6_config
-	};
-	shared_memory.baseband_queue.push(message);
-	clock_manager.set_base_audio_clock_divider(1);
-}
-
-static constexpr std::array<AMConfig, 3> am_configs { {
+static constexpr std::array<baseband::AMConfig, 3> am_configs { {
 	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
 	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
 	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
 } };
 
-static constexpr std::array<NBFMConfig, 3> nbfm_configs { {
+static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs { {
 	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
 	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
 	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
 } };
 
-static constexpr std::array<WFMConfig, 1> wfm_configs { {
+static constexpr std::array<baseband::WFMConfig, 1> wfm_configs { {
 	{ },
 } };
 
@@ -125,15 +68,6 @@ rf::Frequency ReceiverModel::frequency_step() const {
 
 void ReceiverModel::set_frequency_step(rf::Frequency f) {
 	frequency_step_ = f;
-}
-
-int32_t ReceiverModel::reference_ppm_correction() const {
-	return persistent_memory::correction_ppb() / 1000;
-}
-
-void ReceiverModel::set_reference_ppm_correction(int32_t v) {
-	persistent_memory::set_correction_ppb(v * 1000);
-	clock_manager.set_reference_ppb(v * 1000);
 }
 
 bool ReceiverModel::antenna_bias() const {
@@ -217,18 +151,10 @@ void ReceiverModel::enable() {
 	update_headphone_volume();
 }
 
-void ReceiverModel::baseband_disable() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
-}
-
 void ReceiverModel::disable() {
 	enabled_ = false;
 	update_antenna_bias();
-	baseband_disable();
+	baseband::stop();
 
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
@@ -236,8 +162,7 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	if( (baseband_configuration.mode == 4) ||
-		(baseband_configuration.mode == 6) ) {
+	if( (baseband_configuration.mode == 4) ) {
 		return 0;
 	} else {
 		return -(sampling_rate() / 4);
@@ -300,21 +225,20 @@ void ReceiverModel::update_baseband_configuration() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	baseband_disable();
+	baseband::stop();
 
-	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
+	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
 
-	BasebandConfigurationMessage message { baseband_configuration };
-	shared_memory.baseband_queue.push(message);
+	baseband::start(baseband_configuration);
 }
 
 void ReceiverModel::update_headphone_volume() {
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
 
-	audio_codec.set_headphone_volume(headphone_volume_);
+	audio::headphone::set_volume(headphone_volume_);
 }
 
 void ReceiverModel::update_modulation_configuration() {

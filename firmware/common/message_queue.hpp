@@ -32,10 +32,17 @@ using namespace lpc43xx;
 
 #include <ch.h>
 
-template<size_t K>
 class MessageQueue {
 public:
-	MessageQueue() {
+	MessageQueue() = delete;
+	MessageQueue(const MessageQueue&) = delete;
+	MessageQueue(MessageQueue&&) = delete;
+	
+	MessageQueue(
+		uint8_t* const data,
+		size_t k
+	) : fifo { data, k }
+	{
 		chMtxInit(&mutex_write);
 	}
 
@@ -56,6 +63,19 @@ public:
 		}
 		return result;
 	}
+
+	template<typename HandlerFn>
+	void handle(HandlerFn handler) {
+		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+		while(Message* const message = peek(message_buffer)) {
+			handler(message);
+			skip();
+		}
+	}
+
+private:
+	FIFO<uint8_t> fifo;
+	Mutex mutex_write;
 
 	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());
@@ -78,10 +98,6 @@ public:
 	bool is_empty() const {
 		return fifo.is_empty();
 	}
-
-private:
-	FIFO<uint8_t, K> fifo;
-	Mutex mutex_write;
 
 	bool push(const void* const buf, const size_t len) {
 		chMtxLock(&mutex_write);

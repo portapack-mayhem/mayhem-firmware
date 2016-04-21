@@ -19,27 +19,21 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __AUDIO_H__
-#define __AUDIO_H__
+#include "audio.hpp"
 
-#include "buffer.hpp"
+#include "portapack.hpp"
+using portapack::i2c0;
+using portapack::clock_manager;
+
+#include "wm8731.hpp"
+using wolfson::wm8731::WM8731;
 
 #include "i2s.hpp"
 using namespace lpc43xx;
 
 namespace audio {
 
-struct sample_t {
-	union {
-		struct {
-			int16_t left;
-			int16_t right;
-		};
-		uint32_t raw;
-	};
-};
-
-using buffer_t = buffer_t<sample_t>;
+namespace {
 
 constexpr i2s::ConfigTX i2s0_config_tx {
 	.dao = i2s::DAO {
@@ -103,6 +97,78 @@ constexpr i2s::ConfigDMA i2s0_config_dma {
 	},
 };
 
-} /* namespace audio */
+constexpr uint8_t wm8731_i2c_address = 0x1a;
 
-#endif/*__AUDIO_H__*/
+WM8731 audio_codec { i2c0, wm8731_i2c_address };
+
+} /* namespace */
+
+namespace output {
+
+void start() {
+	i2s::i2s0::tx_start();
+	unmute();
+}
+
+void stop() {
+	mute();
+	i2s::i2s0::tx_stop();
+}
+
+void mute() {
+	i2s::i2s0::tx_mute();
+
+	audio_codec.headphone_mute();
+}
+
+void unmute() {
+	i2s::i2s0::tx_unmute();
+}
+
+} /* namespace output */
+
+namespace headphone {
+
+volume_range_t volume_range() {
+	return wolfson::wm8731::headphone_gain_range;
+}
+
+void set_volume(const volume_t volume) {
+	audio_codec.set_headphone_volume(volume);
+}
+
+} /* namespace headphone */
+
+namespace debug {
+
+int reg_count() {
+	return wolfson::wm8731::reg_count;
+}
+
+uint16_t reg_read(const int register_number) {
+	return audio_codec.read(register_number);
+}
+
+} /* namespace debug */
+
+void init() {
+	clock_manager.start_audio_pll();
+	audio_codec.init();
+
+	i2s::i2s0::configure(
+		i2s0_config_tx,
+		i2s0_config_rx,
+		i2s0_config_dma
+	);
+}
+
+void shutdown() {
+	audio_codec.reset();
+	output::stop();
+}
+
+void set_rate(const Rate rate) {
+	clock_manager.set_base_audio_clock_divider(toUType(rate));
+}
+
+} /* namespace audio */

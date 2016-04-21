@@ -55,6 +55,13 @@
 #define LPC_SDC_SDIO_IRQ_PRIORITY         7
 #endif
 
+/**
+ * @brief   SDIO read/write descriptor count.
+ */
+#if !defined(LPC_SDC_SDIO_DESCRIPTOR_COUNT) || defined(__DOXYGEN__)
+#define LPC_SDC_SDIO_DESCRIPTOR_COUNT     4
+#endif
+
 /** @} */
 
 /*===========================================================================*/
@@ -177,6 +184,8 @@ struct SDCDriver {
  */
 #define MMCSD_R1_IS_CARD_LOCKED(r1)     (((r1) >> 21) & 1)
 /** @} */
+
+#define LPC_SDC_SDIO_MAX_DESCRIPTOR_BYTES 0x1000
 
 /*===========================================================================*/
 /* External declarations.                                                    */

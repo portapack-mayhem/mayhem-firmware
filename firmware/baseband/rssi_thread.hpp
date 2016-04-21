@@ -30,11 +30,6 @@
 
 class RSSIThread : public ThreadBase {
 public:
-	RSSIThread(
-	) : ThreadBase { "rssi" }
-	{
-	}
-
 	Thread* start(const tprio_t priority);
 
 private:

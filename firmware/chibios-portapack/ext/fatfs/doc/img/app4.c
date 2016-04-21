@@ -48,7 +48,6 @@ int test_diskio (
     DRESULT dr;
 
 
-
     printf("test_diskio(%u, %u, 0x%08X, 0x%08X)\n", pdrv, ncyc, (UINT)buff, sz_buff);
 
     if (sz_buff < _MAX_SS + 4) {
@@ -306,11 +305,11 @@ int main (int argc, char* argv[])
     DWORD buff[512];  /* 2048 byte working buffer */
 
     /* Check function/compatibility of the physical drive #0 */
-    rc = test_diskio(0, 1, buff, sizeof buff);
-    if (res) {
-        printf("Sorry the function/compatibility test failed.\nFatFs will not work on this disk driver.\n");
+    rc = test_diskio(0, 3, buff, sizeof buff);
+    if (rc) {
+        printf("Sorry the function/compatibility test failed. (rc=%d)\nFatFs will not work on this disk driver.\n", rc);
     } else {
-        printf("Congratulations! The disk I/O layer works well.\n");
+        printf("Congratulations! The disk driver works well.\n");
     }
 
     return rc;

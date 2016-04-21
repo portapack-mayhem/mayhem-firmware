@@ -40,6 +40,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
 	auto audio = demodulate(channel_out);
+	audio_compressor.execute_in_place(audio);
 	audio_output.write(audio);
 }
 
@@ -86,7 +87,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
-	channel_spectrum.set_decimation_factor(std::floor((channel_filter_output_fs / 2) / ((channel_filter_pass_f + channel_filter_stop_f) / 2)));
+	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
 	modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);
 	audio_output.configure(message.audio_hpf_config);
 

@@ -9,7 +9,7 @@ a:hover {background-color: #a0ffff;}
 a:active {color: darkmagenta; overflow: hidden; outline:none; position: relative; top: 1px; left: 1px;}
 abbr {border-width: 1px;}
 
-p {text-indent: 1em; margin: 0 0 0.3em 0.5em;}
+p {text-indent: 0.8em; margin: 0 0 0.3em 0.5em;}
 i {margin: 0 0.3em 0 0;}
 b {margin: 0 0.1em;}
 em {font-style: normal; font-weight: bold; margin: 0 0.1em;}
@@ -22,6 +22,7 @@ tt {margin: 0 0.2em; letter-spacing: 0; font-size: 0.85em; font-family: "Consola
 tt.arg {font-style: italic;}
 ol {margin: 0.5em 2.5em;}
 ul {margin: 0.5em 2em;}
+ul ul {margin: 0 2em 0.5em 1em;}
 dl {margin: 0.5em 1em;}
 dd {margin: 0em   2em;}
 dt {font-size: 0.85em; font-family: "Consolas", "Courier New", "ÇlÇr ÉSÉVÉbÉN", monospace;}
@@ -46,13 +47,14 @@ a.imglnk img {border: 1px solid;}
 .cal {text-align: center; }
 
 h1 {line-height: 1em; font-size: 2em; font-family: sans-serif; padding: 0.3em 0 0.3em;}
-p.hdd {float: right; text-align: right; margin-top: 0.5em;}
-hr.hds {clear: both; margin-bottom: 1em;}
-
 h2 {font-size: 2em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; background-color: #d8d8FF; padding: 0.5em 0.5em; margin: 0 0 0.5em;}
 h3 {font-size: 1.5em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; margin: 1.5em 0 0.5em;}
-h4 {font-size: 1.2em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; margin: 1em 0 0.2em;}
-h5 {font-size: 1em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; margin: 0.5em 0 0em;}
+div.doc h3 {border-color: #b0d8d8; border-style: solid; border-width: 0px 0px 4px 12px; padding: 4px; margin-top: 3em;}
+h4 {font-size: 1.2em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; margin: 2em 0 0.2em;}
+h5 {font-size: 1em; font-family: "ÇlÇr ÇoÉSÉVÉbÉN",sans-serif; margin: 1em 0 0em;}
+p.hdd {float: right; text-align: right; margin-top: 0.5em;}
+hr.hds {clear: both; margin-bottom: 1em;}
+kbd {letter-spacing: 0;}
 small {font-size: 80%;}
 .indent {margin-left: 2em;}
 

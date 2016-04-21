@@ -177,6 +177,20 @@ static inline uint32_t scale_round_and_pack(
 	return __PKHBT(saturated_real, saturated_imag, 16);
 }
 
+template<typename Tap>
+static void taps_copy(
+	const Tap* const source,
+	Tap* const target,
+	const size_t count,
+	const bool shift_up
+) {
+	const uint32_t negate_pattern = shift_up ? 0b1110 : 0b0100;
+	for(size_t i=0; i<count; i++) {
+		const bool negate = (negate_pattern >> (i & 3)) & 1;
+		target[i] = negate ? -source[i] : source[i];
+	}
+}
+
 // FIRC8xR16x24FS4Decim4 //////////////////////////////////////////////////
 
 void FIRC8xR16x24FS4Decim4::configure(
@@ -184,13 +198,7 @@ void FIRC8xR16x24FS4Decim4::configure(
 	const int32_t scale,
 	const Shift shift
 ) {
-	const int negate_factor = (shift == Shift::Up) ? -1 : 1;
-	for(size_t i=0; i<taps.size(); i+=4) {
-		taps_[i+0] =  taps[i+0];
-		taps_[i+1] =  taps[i+1] * negate_factor;
-		taps_[i+2] = -taps[i+2];
-		taps_[i+3] =  taps[i+3] * negate_factor;
-	}
+	taps_copy(taps.data(), taps_.data(), taps_.size(), shift == Shift::Up);
 	output_scale = scale;
 	z_.fill({});
 }
@@ -246,13 +254,7 @@ void FIRC8xR16x24FS4Decim8::configure(
 	const int32_t scale,
 	const Shift shift
 ) {
-	const int negate_factor = (shift == Shift::Up) ? -1 : 1;
-	for(size_t i=0; i<taps.size(); i+=4) {
-		taps_[i+0] =  taps[i+0];
-		taps_[i+1] =  taps[i+1] * negate_factor;
-		taps_[i+2] = -taps[i+2];
-		taps_[i+3] =  taps[i+3] * negate_factor;
-	}
+	taps_copy(taps.data(), taps_.data(), taps_.size(), shift == Shift::Up);
 	output_scale = scale;
 	z_.fill({});
 }
@@ -563,20 +565,18 @@ buffer_c16_t DecimateBy2CIC3::execute(
 	 */
 	uint32_t t1 = _iq0;
 	uint32_t t2 = _iq1;
-	uint32_t t3, t4;
 	const uint32_t taps = 0x00000003;
 	auto s = src.p;
 	auto d = dst.p;
 	const auto d_end = &dst.p[src.count / 2];
-	uint32_t i, q;
 	while(d < d_end) {
-		i = __SXTH(t1, 0);			/* 1: I0 */
-		q = __SXTH(t1, 16);			/* 1: Q0 */
+		uint32_t i = __SXTH(t1, 0);			/* 1: I0 */
+		uint32_t q = __SXTH(t1, 16);			/* 1: Q0 */
 		i = __SMLABB(t2, taps, i);	/* 1: I1*3 + I0 */
 		q = __SMLATB(t2, taps, q);	/* 1: Q1*3 + Q0 */
 
-		t3 = *__SIMD32(s)++;		/* 3: Q2:I2 */
-		t4 = *__SIMD32(s)++;		/*    Q3:I3 */
+		const uint32_t t3 = *__SIMD32(s)++;		/* 3: Q2:I2 */
+		const uint32_t t4 = *__SIMD32(s)++;		/*    Q3:I3 */
 
 		i = __SMLABB(t3, taps, i);	/* 1: I2*3 + I1*3 + I0 */
 		q = __SMLATB(t3, taps, q);	/* 1: Q2*3 + Q1*3 + Q0 */
@@ -643,6 +643,15 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 	}
 
 	return { dst.p, src.count / 2, src.sampling_rate / 2 };
+}
+
+void FIRAndDecimateComplex::configure_common(
+	const size_t taps_count, const size_t decimation_factor
+) {
+	samples_ = std::make_unique<samples_t>(taps_count);
+	taps_reversed_ = std::make_unique<taps_t>(taps_count);
+	taps_count_ = taps_count;
+	decimation_factor_ = decimation_factor;
 }
 
 buffer_c16_t FIRAndDecimateComplex::execute(

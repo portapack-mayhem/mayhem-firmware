@@ -117,8 +117,8 @@ void SpectrumCollector::update() {
 			// Three point Hamming window.
 			const auto corrected_sample = channel_spectrum[i] * 0.54f
 				+ (channel_spectrum[(i-1) & 0xff] + channel_spectrum[(i+1) & 0xff]) * -0.23f;
-			const auto mag2 = magnitude_squared(corrected_sample);
-			const float db = complex16_mag_squared_to_dbv_norm(mag2);
+			const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));
+			const float db = mag2_to_dbv_norm(mag2);
 			constexpr float mag_scale = 5.0f;
 			const unsigned int v = (db * mag_scale) + 255.0f;
 			spectrum.db[i] = std::max(0U, std::min(255U, v));

@@ -32,17 +32,19 @@ void MenuItemView::select() {
 }
 
 void MenuItemView::highlight() {
-	set_highlight(true);
+	set_highlighted(true);
+	set_dirty();
 }
 
 void MenuItemView::unhighlight() {
-	set_highlight(false);
+	set_highlighted(false);
+	set_dirty();
 }
 
 void MenuItemView::paint(Painter& painter) {
 	const auto r = screen_rect();
 
-	const auto paint_style = (flags.highlighted && parent()->has_focus()) ? style().invert() : style();
+	const auto paint_style = (highlighted() && parent()->has_focus()) ? style().invert() : style();
 
 	const auto font_height = paint_style.font.line_height();
 
@@ -66,11 +68,6 @@ void MenuItemView::paint(Painter& painter) {
 		text_style,
 		item.text
 	);
-}
-
-void MenuItemView::set_highlight(const bool value) {
-	flags.highlighted = value;
-	set_dirty();
 }
 
 /* MenuView **************************************************************/

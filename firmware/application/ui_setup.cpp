@@ -85,7 +85,7 @@ void SetDateTimeView::focus() {
 	button_cancel.focus();
 }
 
-void SetDateTimeView::form_init(const SetDateTimeModel model) {
+void SetDateTimeView::form_init(const SetDateTimeModel& model) {
 	field_year.set_value(model.year);
 	field_month.set_value(model.month);
 	field_day.set_value(model.day);
@@ -137,7 +137,7 @@ void SetFrequencyCorrectionView::focus() {
 	button_cancel.focus();
 }
 
-void SetFrequencyCorrectionView::form_init(const SetFrequencyCorrectionModel model) {
+void SetFrequencyCorrectionView::form_init(const SetFrequencyCorrectionModel& model) {
 	field_ppm.set_value(model.ppm);
 }
 

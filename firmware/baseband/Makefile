@@ -127,6 +127,7 @@ CPPSRC = main.cpp \
          message_queue.cpp \
          event.cpp \
          event_m4.cpp \
+         thread_wait.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          baseband_sgpio.cpp \
@@ -145,6 +146,7 @@ CPPSRC = main.cpp \
          proc_wideband_spectrum.cpp \
          proc_tpms.cpp \
          proc_ert.cpp \
+         proc_capture.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \
@@ -155,7 +157,7 @@ CPPSRC = main.cpp \
          rssi.cpp \
          rssi_dma.cpp \
          rssi_thread.cpp \
-         audio.cpp \
+         audio_compressor.cpp \
          audio_output.cpp \
          audio_dma.cpp \
          audio_stats_collector.cpp \

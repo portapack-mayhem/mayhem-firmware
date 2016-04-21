@@ -83,9 +83,8 @@ public:
 	virtual void blur();
 	virtual void on_blur();
 	bool focusable() const;
+	void set_focusable(const bool value);
 	bool has_focus();
-	virtual Widget* last_child_focus() const;
-	virtual void set_last_child_focus(Widget* const child);
 
 	virtual void paint(Painter& painter) = 0;
 
@@ -95,7 +94,7 @@ public:
 	virtual bool on_key(const KeyEvent event);
 	virtual bool on_encoder(const EncoderEvent event);
 	virtual bool on_touch(const TouchEvent event);
-	virtual const std::vector<Widget*> children() const;
+	virtual const std::vector<Widget*>& children() const;
 
 	virtual Context& context() const;
 
@@ -110,7 +109,13 @@ public:
 
 	void visible(bool v);
 
+	bool highlighted() const;
+	void set_highlighted(const bool value);
+
 protected:
+	void dirty_overlapping_children_in_rect(const Rect& child_rect);
+
+private:
 	/* Widget rectangle relative to parent pos(). */
 	Rect parent_rect;
 	const Style* style_ { nullptr };
@@ -132,7 +137,7 @@ protected:
 		.visible = false,
 	};
 
-	void dirty_overlapping_children_in_rect(const Rect& child_rect);
+	static const std::vector<Widget*> no_children;
 };
 
 class View : public Widget {
@@ -146,22 +151,17 @@ public:
 
 	// TODO: ~View() should on_hide() all children?
 
-	void set_parent_rect(const Rect new_parent_rect) override;
-
 	void paint(Painter& painter) override;
 
 	void add_child(Widget* const widget);
 	void add_children(const std::vector<Widget*>& children);
 	void remove_child(Widget* const widget);
-	const std::vector<Widget*> children() const override;
-
-	virtual Widget* initial_focus();
+	const std::vector<Widget*>& children() const override;
 
 	virtual std::string title() const;
 
 protected:
 	std::vector<Widget*> children_;
-	Rect dirty_screen_rect;
 
 	void invalidate_child(Widget* const widget);
 };

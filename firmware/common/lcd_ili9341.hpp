@@ -69,6 +69,14 @@ public:
 		draw_pixels(r, colors.data(), colors.size());
 	}
 
+	template<size_t N>
+	void read_pixels(
+		const ui::Rect r,
+		std::array<ui::ColorRGB888, N>& colors
+	) {
+		read_pixels(r, colors.data(), colors.size());
+	}
+
 	void draw_bitmap(
 		const ui::Point p,
 		const ui::Size size,
@@ -105,6 +113,7 @@ private:
 	scroll_t scroll_state;
 
 	void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
+	void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
 };
 
 } /* namespace lcd */

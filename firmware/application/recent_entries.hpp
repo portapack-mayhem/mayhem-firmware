@@ -129,7 +129,7 @@ public:
 		Entries& recent
 	) : recent { recent }
 	{
-		flags.focusable = true;
+		set_focusable(true);
 	}
 
 	void paint(Painter& painter) override {

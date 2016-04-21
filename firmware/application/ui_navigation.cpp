@@ -23,37 +23,23 @@
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
-#include "receiver_model.hpp"
-#include "transmitter_model.hpp"
-#include "portapack_persistent_memory.hpp"
 
 #include "splash.hpp"
 
 #include "ui_about.hpp"
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
-#include "ui_receiver.hpp"
-#include "ui_rds.hpp"
-#include "ui_lcr.hpp"
-#include "ui_whistle.hpp"
-#include "ui_jammer.hpp"
-#include "ui_loadmodule.hpp"
-#include "ui_afskrx.hpp"
-#include "ui_xylos.hpp"
-#include "ui_sigfrx.hpp"
-#include "ui_numbers.hpp"
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
+#include "capture_app.hpp"
 
-#include "m4_startup.hpp"
-#include "spi_image.hpp"
+#include "core_control.hpp"
 
-#include "modules.h"
-
-using namespace portapack;
+#include "file.hpp"
+#include "png_writer.hpp"
 
 namespace ui {
 
@@ -63,6 +49,7 @@ SystemStatusView::SystemStatusView() {
 	add_children({ {
 		&button_back,
 		&title,
+		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
 	} });
@@ -73,14 +60,19 @@ SystemStatusView::SystemStatusView() {
 		}
 	};
 
+	button_camera.on_select = [this](ImageButton&) {
+		this->on_camera();
+	};
+
 	button_sleep.on_select = [this](ImageButton&) {
 		DisplaySleepMessage message;
 		EventDispatcher::message_map().send(&message);
 	};
 }
 
-void SystemStatusView::set_back_visible(bool new_value) {
-	button_back.hidden(!new_value);
+void SystemStatusView::set_back_enabled(bool new_value) {
+	button_back.set_text(new_value ? back_text_enabled : back_text_disabled);
+	button_back.set_focusable(new_value);
 }
 
 void SystemStatusView::set_title(const std::string new_value) {
@@ -88,6 +80,21 @@ void SystemStatusView::set_title(const std::string new_value) {
 		title.set(default_title);
 	} else {
 		title.set(new_value);
+	}
+}
+
+void SystemStatusView::on_camera() {
+	const auto filename = next_filename_matching_pattern("SCR_????.PNG");
+	if( filename.empty() ) {
+		return;
+	}
+
+	PNGWriter png { filename };
+
+	for(int i=0; i<320; i++) {
+		std::array<ColorRGB888, 240> row;
+		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
+		png.write_scanline(row);
 	}
 }
 
@@ -106,10 +113,6 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 	update_view();
 
 	return p;
-}
-
-void NavigationView::push(View* v) {
-	push_view(std::unique_ptr<View>(v));
 }
 
 void NavigationView::pop() {
@@ -153,25 +156,37 @@ void NavigationView::focus() {
 
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 	add_items<3>({ {
-		{ "AIS:  Boats",          ui::Color::white(), [&nav](){ nav.push<AISAppView>(); } },
-		{ "ERT:  Utility Meters", ui::Color::white(), [&nav](){ nav.push<ERTAppView>(); } },
-		{ "TPMS: Cars",           ui::Color::white(), [&nav](){ nav.push<TPMSAppView>(); } },
+		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
 	} });
+	on_left = [&nav](){ nav.pop(); };
 }
 
 /* ReceiverMenuView ******************************************************/
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio",        ui::Color::white(), [&nav](){ nav.push<AnalogAudioView>(); } },
-		{ "Transponders", ui::Color::white(), [&nav](){ nav.push<TranspondersMenuView>(); } },
+		{ "Audio",        [&nav](){ nav.push<AnalogAudioView>(); } },
+		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
+	on_left = [&nav](){ nav.pop(); };
 }
 
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<10>({ {
+	add_items<7>({ {
+		{ "Receiver", [&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },
+		{ "About",    [&nav](){ nav.push<AboutView>(); } },
+		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(); } },
+	} });
+
+/*	add_items<10>({ {
 		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver", ui::Color::cyan(), 			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new ReceiverMenuView(nav)); } },
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
@@ -190,7 +205,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "About", ui::Color::white(),    			[&nav](){ nav.push<AboutView>(); } },
 		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", ui::Color::white(),   			[&nav](){ nav.push<HackRFFirmwareView>(); } },
-	} });
+	} });*/
 }
 
 /* SystemView ************************************************************/
@@ -207,7 +222,7 @@ SystemView::SystemView(
 ) : View { parent_rect },
 	context_(context)
 {
-	style_ = &style_default;
+	set_style(&style_default);
 
 	constexpr ui::Dim status_view_height = 16;
 
@@ -226,7 +241,7 @@ SystemView::SystemView(
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
 	navigation_view.on_view_changed = [this](const View& new_view) {
-		this->status_view.set_back_visible(!this->navigation_view.is_top());
+		this->status_view.set_back_enabled(!this->navigation_view.is_top());
 		this->status_view.set_title(new_view.title());
 	};
 

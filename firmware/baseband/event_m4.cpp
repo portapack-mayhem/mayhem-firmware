@@ -86,11 +86,9 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 }
 
 void EventDispatcher::handle_baseband_queue() {
-	std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-	while(Message* const message = shared_memory.baseband_queue.peek(message_buffer)) {
-		on_message(message);
-		shared_memory.baseband_queue.skip();
-	}
+	shared_memory.baseband_queue.handle([this](Message* const message) {
+		this->on_message(message);
+	});
 }
 
 void EventDispatcher::on_message(const Message* const message) {

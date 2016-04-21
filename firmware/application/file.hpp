@@ -26,12 +26,17 @@
 
 #include <cstddef>
 #include <string>
+#include <array>
+#include <memory>
+#include <iterator>
 
 class File {
 public:
 	~File();
 
-	bool open_for_append(const std::string file_path);
+	bool open_for_writing(const std::string& file_path);
+	bool open_for_reading(const std::string& file_path);
+	bool open_for_append(const std::string& file_path);
 	bool close();
 
 	bool is_ready();
@@ -39,14 +44,76 @@ public:
 	bool read(void* const data, const size_t bytes_to_read);
 	bool write(const void* const data, const size_t bytes_to_write);
 
-	bool puts(const std::string string);
+	template<size_t N>
+	bool write(const std::array<uint8_t, N>& data) {
+		return write(data.data(), N);
+	}
+
+	bool puts(const std::string& string);
 
 	bool sync();
 
 private:
-	const std::string file_path;
-	
 	FIL f;
 };
+
+std::string next_filename_matching_pattern(const std::string& filename_pattern);
+
+namespace std {
+namespace filesystem {
+
+using file_status = BYTE;
+
+struct directory_entry : public FILINFO {
+	file_status status() const {
+		return fattrib;
+	}
+
+	const std::string path() const noexcept { return fname; };
+};
+
+class directory_iterator {
+	struct Impl {
+		DIR dir;
+		directory_entry filinfo;
+
+		~Impl() {
+			f_closedir(&dir);
+		}
+	};
+
+	std::shared_ptr<Impl> impl;
+
+	friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
+
+public:
+	using difference_type = std::ptrdiff_t;
+	using value_type = directory_entry;
+	using pointer = const directory_entry*;
+	using reference = const directory_entry&;
+	using iterator_category = std::input_iterator_tag;
+
+	directory_iterator() noexcept { };
+	directory_iterator(const char* path, const char* wild);
+
+	~directory_iterator() { }
+
+	directory_iterator& operator++();
+
+	reference operator*() const {
+		// TODO: Exception or assert if impl == nullptr.
+		return impl->filinfo;
+	}
+};
+
+inline const directory_iterator& begin(const directory_iterator& iter) noexcept { return iter; };
+inline directory_iterator end(const directory_iterator&) noexcept { return { }; };
+
+inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) { return lhs.impl != rhs.impl; };
+
+bool is_regular_file(const file_status s);
+
+} /* namespace filesystem */
+} /* namespace std */
 
 #endif/*__FILE_H__*/

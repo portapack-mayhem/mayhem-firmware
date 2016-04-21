@@ -27,6 +27,8 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 
+#include "audio_thread.hpp"
+
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
@@ -93,6 +95,8 @@ public:
 private:
 	static constexpr ui::Dim header_height = 2 * 16;
 
+	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
@@ -113,12 +117,8 @@ private:
 		{ 15 * 8, 0 * 16 }
 	};
 
-	NumberField field_vga {
-		{ 18 * 8, 0 * 16},
-		2,
-		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
-		max2837::vga::gain_db_step,
-		' ',
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
 	};
 
 	OptionsField options_modulation {
@@ -143,6 +143,8 @@ private:
 	std::unique_ptr<Widget> options_widget;
 
 	spectrum::WaterfallWidget waterfall;
+
+	std::unique_ptr<AudioThread> audio_thread;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

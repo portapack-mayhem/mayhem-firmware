@@ -63,6 +63,16 @@ Consumption Packet::consumption() const {
 	return invalid_consumption;
 }
 
+CommodityType Packet::commodity_type() const {
+	if( type() == Type::SCM ) {
+		return reader_.read(5, 4);
+	}
+	if( type() == Type::IDM ) {
+		return reader_.read(4 * 8 + 4, 4);
+	}
+	return invalid_commodity_type;
+}
+
 ManchesterFormatted Packet::symbols_formatted() const {
 	return format_manchester(decoder_);
 }
@@ -76,7 +86,7 @@ bool Packet::crc_ok() const {
 }
 
 bool Packet::crc_ok_scm() const {
-	CRC<uint16_t> ert_bch { 0x6f63 };
+	CRC<16> ert_bch { 0x6f63 };
 	size_t start_bit = 5;
 	ert_bch.process_byte(reader_.read(0, start_bit));
 	for(size_t i=start_bit; i<length(); i+=8) {
@@ -86,7 +96,7 @@ bool Packet::crc_ok_scm() const {
 }
 
 bool Packet::crc_ok_idm() const {
-	CRC<uint16_t> ert_crc_ccitt { 0x1021, 0xffff, 0x1d0f };
+	CRC<16> ert_crc_ccitt { 0x1021, 0xffff, 0x1d0f };
 	for(size_t i=0; i<length(); i+=8) {
 		ert_crc_ccitt.process_byte(reader_.read(i, 8));
 	}

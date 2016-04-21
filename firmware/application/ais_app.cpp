@@ -25,8 +25,7 @@
 
 #include "string_format.hpp"
 
-#include "portapack.hpp"
-using namespace portapack;
+#include "baseband_api.hpp"
 
 #include <algorithm>
 
@@ -40,26 +39,6 @@ static std::string latlon_abs_normalized(const int32_t normalized, const char su
 	const uint32_t degrees = t / (100 * 10000);
 	const uint32_t fraction = t % (100 * 10000);
 	return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0') + suffix;
-}
-
-static std::string latitude(const Latitude value) {
-	if( value.is_not_available() ) {
-		return "not available";
-	} else if( value.is_valid() ) {
-		return latlon_abs_normalized(value.normalized(), "SN");
-	} else {
-		return "invalid";
-	}
-}
-
-static std::string longitude(const Longitude value) {
-	if( value.is_not_available() ) {
-		return "not available";
-	} else if( value.is_valid() ) {
-		return latlon_abs_normalized(value.normalized(), "WE");
-	} else {
-		return "invalid";
-	}
 }
 
 static std::string latlon(const Latitude latitude, const Longitude longitude) {
@@ -76,17 +55,6 @@ static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
 	return to_string_dec_uint(mmsi, 9);
-}
-
-static std::string datetime(
-	const ais::DateTime& datetime
-) {
-	return to_string_dec_uint(datetime.year, 4, '0') + "/" +
-		to_string_dec_uint(datetime.month, 2, '0') + "/" +
-		to_string_dec_uint(datetime.day, 2, '0') + " " +
-		to_string_dec_uint(datetime.hour, 2, '0') + ":" +
-		to_string_dec_uint(datetime.minute, 2, '0') + ":" +
-		to_string_dec_uint(datetime.second, 2, '0');
 }
 
 static std::string navigational_status(const unsigned int value) {
@@ -159,6 +127,12 @@ static std::string true_heading(const TrueHeading value) {
 
 } /* namespace format */
 } /* namespace ais */
+
+AISLogger::AISLogger(
+	const std::string& file_path
+) : log_file { file_path }
+{
+}
 
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
@@ -340,22 +314,28 @@ AISAppView::AISAppView(NavigationView&) {
 			}
 		}
 	);
+	
+	target_frequency_ = initial_target_frequency;
+
+	radio::enable({
+		tuning_frequency(),
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Receive,
+		false, 32, 32,
+		1,
+	});
+
+	baseband::start({
+		.mode = 3,
+		.sampling_rate = sampling_rate,
+		.decimation_factor = 1,
+	});
 
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
-	options_channel.set_by_value(162025000);
-	
-	receiver_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2457600,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-	receiver_model.set_rf_amp(false);
-	receiver_model.set_lna(32);
-	receiver_model.set_vga(32);
-	receiver_model.enable();
+	options_channel.set_by_value(target_frequency());
 
 	recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
 		this->on_show_detail(entry);
@@ -363,10 +343,14 @@ AISAppView::AISAppView(NavigationView&) {
 	recent_entry_detail_view.on_close = [this]() {
 		this->on_show_list();
 	};
+
+	logger = std::make_unique<AISLogger>("ais.txt");
 }
 
 AISAppView::~AISAppView() {
-	receiver_model.disable();
+	baseband::stop();
+	radio::disable();
+
 	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
@@ -382,7 +366,10 @@ void AISAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void AISAppView::on_packet(const ais::Packet& packet) {
-	logger.on_packet(packet);
+	if( logger ) {
+		logger->on_packet(packet);
+	}
+
 	const auto updated_entry = recent.on_packet(packet.source_id(), packet);
 	recent_entries_view.set_dirty();
 
@@ -405,8 +392,21 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
 	recent_entry_detail_view.focus();
 }
 
-void AISAppView::on_frequency_changed(const uint32_t new_frequency) {
-	receiver_model.set_tuning_frequency(new_frequency);
+void AISAppView::on_frequency_changed(const uint32_t new_target_frequency) {
+	set_target_frequency(new_target_frequency);
+}
+
+void AISAppView::set_target_frequency(const uint32_t new_value) {
+	target_frequency_ = new_value;
+	radio::set_tuning_frequency(tuning_frequency());
+}
+
+uint32_t AISAppView::target_frequency() const {
+	return target_frequency_;
+}
+
+uint32_t AISAppView::tuning_frequency() const {
+	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

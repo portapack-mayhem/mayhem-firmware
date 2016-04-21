@@ -23,8 +23,7 @@
 
 #include "event_m0.hpp"
 
-#include "portapack.hpp"
-using namespace portapack;
+#include "baseband_api.hpp"
 
 #include "manchester.hpp"
 
@@ -52,9 +51,19 @@ std::string consumption(Consumption value) {
 	return to_string_dec_uint(value, 10);
 }
 
+std::string commodity_type(CommodityType value) {
+	return to_string_dec_uint(value, 2);
+}
+
 } /* namespace format */
 
 } /* namespace ert */
+
+ERTLogger::ERTLogger(
+	const std::string& file_path
+) : log_file { file_path }
+{
+}
 
 void ERTLogger::on_packet(const ert::Packet& packet) {
 	if( log_file.is_ready() ) {
@@ -62,6 +71,8 @@ void ERTLogger::on_packet(const ert::Packet& packet) {
 		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 	}
 }
+
+const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
 
 void ERTRecentEntry::update(const ert::Packet& packet) {
 	received_count++;
@@ -71,8 +82,9 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 3> ert_columns { {
+static const std::array<std::pair<std::string, size_t>, 4> ert_columns { {
 	{ "ID", 10 },
+	{ "Tp", 2 },
 	{ "Consumpt", 10 },
 	{ "Cnt", 3 },
 } };
@@ -106,7 +118,7 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 ) {
 	const auto& draw_style = is_selected ? style.invert() : style;
 
-	std::string line = ert::format::id(entry.id) + " " + ert::format::consumption(entry.last_consumption);
+	std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
 
 	if( entry.received_count > 999 ) {
 		line += " +++";
@@ -131,21 +143,28 @@ ERTAppView::ERTAppView(NavigationView&) {
 		}
 	);
 
-	receiver_model.set_baseband_configuration({
+	radio::enable({
+		initial_target_frequency,
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Receive,
+		false, 32, 32,
+		1,
+	});
+
+	baseband::start({
 		.mode = 6,
-		.sampling_rate = 4194304,
+		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	});
-	receiver_model.set_baseband_bandwidth(2500000);
-	receiver_model.set_rf_amp(false);
-	receiver_model.set_lna(32);
-	receiver_model.set_vga(32);
-	receiver_model.set_tuning_frequency(911600000);
-	receiver_model.enable();
+
+	logger = std::make_unique<ERTLogger>("ert.txt");
 }
 
 ERTAppView::~ERTAppView() {
-	receiver_model.disable();
+	baseband::stop();
+	radio::disable();
+
 	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
@@ -159,10 +178,12 @@ void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void ERTAppView::on_packet(const ert::Packet& packet) {
-	logger.on_packet(packet);
+	if( logger ) {
+		logger->on_packet(packet);
+	}
 
 	if( packet.crc_ok() ) {
-		recent.on_packet(packet.id(), packet);
+		recent.on_packet({ packet.id(), packet.commodity_type() }, packet);
 		recent_entries_view.set_dirty();
 	}
 }

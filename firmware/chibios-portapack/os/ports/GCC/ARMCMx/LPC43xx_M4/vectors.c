@@ -178,9 +178,12 @@ vectors_t _vectors = {
 __attribute__ ((naked))
 #endif
 void _unhandled_exception(void) {
-
+#if CH_DBG_ENABLED
+  chDbgPanic("Unhandled");
+#else
   while (TRUE)
     ;
+#endif
 }
 
 void NMIVector(void) __attribute__((weak, alias("_unhandled_exception")));

@@ -71,7 +71,7 @@ private:
 	size_t taps_count_ { 0 };
 	size_t decimation_factor_ { 1 };
 	size_t decimation_phase { 0 };
-	float output;
+	float output { 0 };
 
 	void shift_by_decimation_factor();
 

@@ -22,7 +22,6 @@
 #include "utility.hpp"
 
 #include <cstdint>
-#include <cmath>
 
 #if 0
 uint32_t gcd(const uint32_t u, const uint32_t v) {
@@ -60,11 +59,36 @@ uint32_t gcd(const uint32_t u, const uint32_t v) {
 }
 #endif
 
-float complex16_mag_squared_to_dbv_norm(const float c16_mag_squared) {
-	constexpr float mag2_max = -32768.0f * -32768.0f + -32768.0f * -32768.0f;
-	constexpr float mag2_log10_max = std::log10(mag2_max);
-	constexpr float mag2_to_db_factor = 20.0f / 2.0f;
-	return (std::log10(c16_mag_squared) - mag2_log10_max) * mag2_to_db_factor;
+float fast_log2(const float val) {
+	// Thank you Stack Overflow!
+	// http://stackoverflow.com/questions/9411823/fast-log2float-x-implementation-c
+	union {
+		float val;
+		int32_t x;
+	} u = { val };
+	float log_2 = (((u.x >> 23) & 255) - 128);
+	u.x &= ~(255 << 23);
+	u.x +=  (127 << 23);
+	log_2 += ((-0.34484843f) * u.val + 2.02466578f) * u.val - 0.67487759f;
+	return log_2;
+}
+
+float fast_pow2(const float val) {
+	union {
+		float f;
+		uint32_t n;
+	} u;
+	u.n = val * 8388608 + (0x3f800000 - 60801 * 8);
+	return u.f;
+}
+
+float mag2_to_dbv_norm(const float mag2) {
+	constexpr float mag2_log2_max = 0.0f; //std::log2(1.0f);
+	constexpr float log_mag2_mag_factor = 0.5f;
+	constexpr float log2_log10_factor = 0.3010299956639812f; //std::log10(2.0f);
+	constexpr float log10_dbv_factor = 20.0f;
+	constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
+	return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;
 }
 
 /* GCD implementation derived from recursive implementation at

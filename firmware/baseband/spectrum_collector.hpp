@@ -35,7 +35,8 @@
 class SpectrumCollector {
 public:
 	constexpr SpectrumCollector(
-	) : channel_spectrum_decimator { 1 }
+	) : channel_spectrum_decimator { 1 },
+		fifo { fifo_data, ChannelSpectrumConfigMessage::fifo_k }
 	{
 	}
 
@@ -52,6 +53,7 @@ public:
 private:
 	BlockDecimator<complex16_t, 256> channel_spectrum_decimator;
 	ChannelSpectrumFIFO fifo;
+	ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k];
 
 	volatile bool channel_spectrum_request_update { false };
 	bool streaming { false };
