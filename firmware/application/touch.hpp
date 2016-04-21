@@ -172,9 +172,6 @@ private:
 		NoTouch,
 		TouchDetected,
 	};
-	
-	static float cmx;
-	static float cmy;
 
 	static constexpr uint32_t width_pixels = 240;
 	static constexpr uint32_t height_pixels = 320;
@@ -183,12 +180,12 @@ private:
 	static constexpr size_t touch_count_threshold { 4 };
 	static constexpr uint32_t touch_stable_bound { 4 };
 
-	static constexpr float calib_x_low = 0.15f;
-	static constexpr float calib_x_high = 0.93f;
+	static constexpr float calib_x_low = 0.07f;
+	static constexpr float calib_x_high = 0.94f;
 	static constexpr float calib_x_range = calib_x_high - calib_x_low;
 
-	static constexpr float calib_y_low = 0.05f;
-	static constexpr float calib_y_high = 0.84f;
+	static constexpr float calib_y_low = 0.04f;
+	static constexpr float calib_y_high = 0.91f;
 	static constexpr float calib_y_range = calib_y_high - calib_y_low;
 
 	// Ensure filter length is equal or less than touch_count_threshold,
@@ -212,8 +209,6 @@ private:
 		};
 	}
 
-	ui::Point raw_point() const ;
-
 	void touch_started() {
 		fire_event(ui::TouchEvent::Type::Start);
 	}
@@ -228,7 +223,7 @@ private:
 
 	void fire_event(ui::TouchEvent::Type type) {
 		if( on_event ) {
-			on_event({ filtered_point(), type, raw_point() });
+			on_event({ filtered_point(), type });
 		}
 	}
 };

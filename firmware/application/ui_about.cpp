@@ -26,6 +26,7 @@
 #include "ymdata.hpp"
 
 #include "portapack.hpp"
+#include "audio.hpp"
 #include "event_m0.hpp"
 
 #include "ui_about.hpp"
@@ -73,7 +74,7 @@ void AboutView::on_show() {
 	
 	transmitter_model.set_tuning_frequency(92200000);	// 92.2MHz, change !
 	
-	portapack::audio_codec.set_headphone_volume(volume_t::decibel(0 - 99) + wolfson::wm8731::headphone_gain_range.max);
+	audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 	transmitter_model.enable();
 }
 
@@ -350,7 +351,7 @@ void AboutView::update() {
 	
 	// Slowly increase volume to avoid jumpscare
 	if (headphone_vol < (70<<2)) {
-		portapack::audio_codec.set_headphone_volume(volume_t::decibel((headphone_vol/4) - 99) + wolfson::wm8731::headphone_gain_range.max);
+		audio::headphone::set_volume(volume_t::decibel((headphone_vol/4) - 99) + audio::headphone::volume_range().max);
 		headphone_vol++;
 	}
 }

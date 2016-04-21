@@ -42,7 +42,6 @@
 
 #include "debug.hpp"
 
-#include "audio.hpp"
 #include "audio_dma.hpp"
 
 #include "gcc.hpp"

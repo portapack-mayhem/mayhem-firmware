@@ -26,6 +26,7 @@
 #include "hackrf_hal.hpp"
 
 #include "event_m0.hpp"
+#include "audio.hpp"
 #include "ui_alphanum.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
@@ -204,7 +205,7 @@ void XylosView::journuit() {
 	
 	upd_message();
 	
-	portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 	shared_memory.xylos_transmit_done = false;
 	memcpy(shared_memory.xylosdata, ccirmessage, 21);
 	transmitter_model.enable();
@@ -326,7 +327,7 @@ XylosView::XylosView(
 				[this,&transmitter_model](Message* const p) {
 					const auto message = static_cast<const TXDoneMessage*>(p);
 					if (message->n == 25) {
-						portapack::audio_codec.set_headphone_volume(volume_t::decibel(0 - 99) + wolfson::wm8731::headphone_gain_range.max);
+						audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 						transmitter_model.disable();
 						txing = false;
 						button_txtest.set_style(&style_val);
@@ -341,7 +342,7 @@ XylosView::XylosView(
 
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 			
-			portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+			audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 
 			txing = true;
 			button_txtest.set_style(&style_cancel);
@@ -362,7 +363,7 @@ XylosView::XylosView(
 					char progress[21];
 					const auto message = static_cast<const TXDoneMessage*>(p);
 					if (message->n == 25) {
-						portapack::audio_codec.set_headphone_volume(volume_t::decibel(0 - 99) + wolfson::wm8731::headphone_gain_range.max);
+						audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 						transmitter_model.disable();
 						for (c=0;c<20;c++)
 							progress[c] = ' ';
@@ -390,7 +391,7 @@ XylosView::XylosView(
 
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 			
-			portapack::audio_codec.set_headphone_volume(volume_t::decibel(90 - 99) + wolfson::wm8731::headphone_gain_range.max);
+			audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 
 			txing = true;
 			button_transmit.set_style(&style_cancel);

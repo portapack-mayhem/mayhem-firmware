@@ -23,7 +23,7 @@
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
-
+#include "portapack_persistent_memory.hpp"
 #include "splash.hpp"
 
 #include "ui_about.hpp"
@@ -299,7 +299,7 @@ BMPView::BMPView(NavigationView& nav) {
 	
 	button_done.on_select = [this,&nav](Button&){
 		nav.pop();
-		nav.push(new SystemMenuView { nav });
+		nav.push<SystemMenuView>();
 	};
 }
 
@@ -316,7 +316,7 @@ void PlayDeadView::focus() {
 
 PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
 	_booting = booting;
-	persistent_memory::set_playing_dead(0x59);
+	portapack::persistent_memory::set_playing_dead(0x59);
 	
 	add_children({ {
 		&text_playdead1,
@@ -329,8 +329,8 @@ PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
 	};
 	
 	button_done.on_select = [this,&nav](Button&){
-		if (sequence == persistent_memory::playdead_sequence()) {
-			persistent_memory::set_playing_dead(0);
+		if (sequence == portapack::persistent_memory::playdead_sequence()) {
+			portapack::persistent_memory::set_playing_dead(0);
 			if (_booting) {
 				nav.pop();
 				nav.push<SystemMenuView>();

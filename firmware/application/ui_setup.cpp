@@ -187,8 +187,8 @@ void SetTouchCalibView::focus() {
 
 bool SetTouchCalibView::on_touch(const TouchEvent event) {
 	if (event.type == ui::TouchEvent::Type::Start) {
-		text_debugx.set(to_string_dec_uint(round(event.rawpoint.x), 4));
-		text_debugy.set(to_string_dec_uint(round(event.rawpoint.y), 4));
+		text_debugx.set(to_string_dec_uint(round(event.point.x), 4));
+		text_debugy.set(to_string_dec_uint(round(event.point.y), 4));
 	}
 	return true;
 }
@@ -441,6 +441,15 @@ void ModInfoView::focus() {
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items<7>({ {
+		{ "SD card modules", [&nav](){ nav.push<ModInfoView>(); } },
+		{ "Date/Time", [&nav](){ nav.push<SetDateTimeView>(); } },
+		{ "Frequency correction", [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
+		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
+		{ "Touch screen", [&nav](){ nav.push<SetTouchCalibView>(); } },
+		{ "Play dead", [&nav](){ nav.push<SetPlayDeadView>(); } },
+		{ "UI", [&nav](){ nav.push<SetUIView>(); } },
+	} });
+	/*add_items<7>({ {
 		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
@@ -448,7 +457,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<SetTouchCalibView>(); } },
 		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } },
 		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
-	} });
+	} });*/
 	on_left = [&nav](){ nav.pop(); };
 }
 

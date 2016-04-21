@@ -301,7 +301,7 @@ Checkbox::Checkbox(
 ) : Widget { { parent_pos, { static_cast<ui::Dim>((8 * length) + 24), 24 } } },
 	text_ { text }
 {
-	flags.focusable = true;
+	set_focusable(true);
 }
 
 void Checkbox::set_text(const std::string value) {
@@ -325,7 +325,7 @@ bool Checkbox::value() const {
 void Checkbox::paint(Painter& painter) {
 	const auto r = screen_rect();
 	
-	const auto paint_style = (has_focus() || flags.highlighted) ? style().invert() : style();
+	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 	
 	painter.draw_rectangle({ r.pos.x, r.pos.y, 24, 24 }, style().foreground);
 
@@ -377,12 +377,12 @@ bool Checkbox::on_key(const KeyEvent key) {
 bool Checkbox::on_touch(const TouchEvent event) {
 	switch(event.type) {
 	case TouchEvent::Type::Start:
-		flags.highlighted = true;
+		set_highlighted(true);
 		set_dirty();
 		return true;
 
 	case TouchEvent::Type::End:
-		flags.highlighted = false;
+		set_highlighted(false);
 		value_ = not value_;
 		set_dirty();
 		if( on_select ) {
@@ -393,37 +393,6 @@ bool Checkbox::on_touch(const TouchEvent event) {
 	default:
 		return false;
 	}
-#if 0
-	switch(event.type) {
-	case TouchEvent::Type::Start:
-		flags.highlighted = true;
-		set_dirty();
-		return true;
-
-	case TouchEvent::Type::Move:
-		{
-			const bool new_highlighted = screen_rect().contains(event.point);
-			if( flags.highlighted != new_highlighted ) {
-				flags.highlighted = new_highlighted;
-				set_dirty();
-			}
-		}
-		return true;
-
-	case TouchEvent::Type::End:
-		if( flags.highlighted ) {
-			flags.highlighted = false;
-			set_dirty();
-			if( on_select ) {
-				on_select(*this);
-			}
-		}
-		return true;
-
-	default:
-		return false;
-	}
-#endif
 }
 
 /* Button ****************************************************************/

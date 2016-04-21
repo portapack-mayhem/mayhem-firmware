@@ -120,8 +120,6 @@ void BasebandThread::run() {
 			);
 		}
 	}
-
-	delete baseband_buffer;
 }
 
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {

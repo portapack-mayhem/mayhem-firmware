@@ -34,7 +34,6 @@ namespace ui {
 
 struct MenuItem {
 	std::string text;
-	ui::Color color;
 	std::function<void(void)> on_select;
 
 	// TODO: Prevent default-constructed MenuItems.
