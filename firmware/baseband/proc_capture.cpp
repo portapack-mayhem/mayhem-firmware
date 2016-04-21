@@ -34,18 +34,13 @@ CaptureProcessor::CaptureProcessor() {
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
 	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
-	const auto& channel_filter = decim_1_filter;
-	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	constexpr size_t channel_decimation = 1;
-	const size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
-
 	decim_0.configure(decim_0_filter.taps, 33554432);
 	decim_1.configure(decim_1_filter.taps, 131072);
 
-	channel_filter_pass_f = channel_filter.pass_frequency_normalized * channel_filter_input_fs;
-	channel_filter_stop_f = channel_filter.stop_frequency_normalized * channel_filter_input_fs;
+	channel_filter_pass_f = decim_1_filter.pass_frequency_normalized * decim_1_input_fs;
+	channel_filter_stop_f = decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
 
-	spectrum_interval_samples = channel_filter_output_fs / spectrum_rate_hz;
+	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
 
 	channel_spectrum.set_decimation_factor(1);
