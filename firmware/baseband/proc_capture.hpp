@@ -41,7 +41,8 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
-	static constexpr size_t baseband_fs = 2457600;
+	// TODO: Repeated value needs to be transmitted from application side.
+	static constexpr size_t baseband_fs = 4000000;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
 	std::array<complex16_t, 512> dst;
