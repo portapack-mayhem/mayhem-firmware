@@ -34,7 +34,7 @@ namespace ui {
 
 class Channel : public Widget {
 public:
-	constexpr Channel(
+	Channel(
 		const Rect parent_rect
 	) : Widget { parent_rect },
 		max_db_ { -120 }

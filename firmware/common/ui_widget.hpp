@@ -51,12 +51,12 @@ private:
 
 class Widget {
 public:
-	constexpr Widget(
+	Widget(
 	) : parent_rect { }
 	{
 	}
 
-	constexpr Widget(
+	Widget(
 		Rect parent_rect
 	) : parent_rect { parent_rect }
 	{

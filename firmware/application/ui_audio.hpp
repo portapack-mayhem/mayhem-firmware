@@ -34,7 +34,7 @@ namespace ui {
 
 class Audio : public Widget {
 public:
-	constexpr Audio(
+	Audio(
 		const Rect parent_rect
 	) : Widget { parent_rect },
 		rms_db_ { -120 },

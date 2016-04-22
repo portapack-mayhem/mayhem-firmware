@@ -34,7 +34,7 @@ namespace ui {
 
 class RSSI : public Widget {
 public:
-	constexpr RSSI(
+	RSSI(
 		const Rect parent_rect
 	) : Widget { parent_rect },
 		min_ { 0 },
