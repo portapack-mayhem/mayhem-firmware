@@ -27,7 +27,7 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 
-#include "audio_thread.hpp"
+#include "capture_thread.hpp"
 
 #include "ui_font_fixed_8x16.hpp"
 
@@ -144,7 +144,7 @@ private:
 
 	spectrum::WaterfallWidget waterfall;
 
-	std::unique_ptr<AudioThread> audio_thread;
+	std::unique_ptr<CaptureThread> capture_thread;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

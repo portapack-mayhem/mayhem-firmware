@@ -281,7 +281,7 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
-	audio_thread.reset();
+	capture_thread.reset();
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
@@ -295,7 +295,7 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	if( !is_wideband_spectrum_mode ) {
 		const auto filename = next_filename_matching_pattern("AUD_????.S16");
 		if( !filename.empty() ) {
-			audio_thread = std::make_unique<AudioThread>(filename);
+			capture_thread = std::make_unique<CaptureThread>(filename);
 		}
 		audio::output::unmute();
 	}

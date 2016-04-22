@@ -112,7 +112,7 @@ void CaptureAppView::on_record() {
 			return;
 		}
 
-		capture_thread = std::make_unique<AudioThread>(filename);
+		capture_thread = std::make_unique<CaptureThread>(filename);
 		button_record.set_bitmap(&bitmap_stop);
 	}
 }

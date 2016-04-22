@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __AUDIO_THREAD_H__
-#define __AUDIO_THREAD_H__
+#ifndef __CAPTURE_THREAD_H__
+#define __CAPTURE_THREAD_H__
 
 #include "ch.h"
 
@@ -55,18 +55,18 @@ private:
 	FIFO<uint8_t>* const fifo;
 };
 
-class AudioThread {
+class CaptureThread {
 public:
-	AudioThread(
+	CaptureThread(
 		std::string file_path
 	) : file_path { std::move(file_path) },
 		write_buffer { std::make_unique<std::array<uint8_t, write_size>>() }
 	{
 		// Need significant stack for FATFS
-		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, AudioThread::static_fn, this);
+		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, CaptureThread::static_fn, this);
 	}
 
-	~AudioThread() {
+	~CaptureThread() {
 		chThdTerminate(thread);
 		chEvtSignal(thread, EVT_FIFO_HIGHWATER);
 		const auto success = chThdWait(thread);
@@ -95,7 +95,7 @@ private:
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
-		auto obj = static_cast<AudioThread*>(arg);
+		auto obj = static_cast<CaptureThread*>(arg);
 		return obj->run();
 	}
 
@@ -142,4 +142,4 @@ private:
 	}
 };
 
-#endif/*__AUDIO_THREAD_H__*/
+#endif/*__CAPTURE_THREAD_H__*/

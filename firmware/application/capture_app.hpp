@@ -29,7 +29,7 @@
 
 #include "bitmap.hpp"
 
-#include "audio_thread.hpp"
+#include "capture_thread.hpp"
 
 #include <string>
 #include <memory>
@@ -55,7 +55,7 @@ private:
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	std::unique_ptr<AudioThread> capture_thread;
+	std::unique_ptr<CaptureThread> capture_thread;
 
 	void on_record();
 

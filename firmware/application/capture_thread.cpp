@@ -19,6 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "audio_thread.hpp"
+#include "capture_thread.hpp"
 
-Thread* AudioThread::thread = nullptr;
+Thread* CaptureThread::thread = nullptr;

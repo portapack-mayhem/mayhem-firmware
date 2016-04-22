@@ -31,7 +31,7 @@
 
 #include "irq_controls.hpp"
 
-#include "audio_thread.hpp"
+#include "capture_thread.hpp"
 
 #include "ch.h"
 
@@ -46,7 +46,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	AudioThread::check_fifo_isr();
+	CaptureThread::check_fifo_isr();
 	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
 	chSysUnlockFromIsr();
 
