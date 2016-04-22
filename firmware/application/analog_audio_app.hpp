@@ -93,7 +93,7 @@ public:
 	void focus() override;
 
 private:
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 3 * 16;
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 
@@ -142,6 +142,18 @@ private:
 
 	std::unique_ptr<Widget> options_widget;
 
+	ImageButton button_record {
+		{ 0 * 8, 2 * 16, 2 * 8, 1 * 16 },
+		&bitmap_record,
+		Color::red(),
+		Color::black()
+	};
+
+	Text text_record_filename {
+		{ 3 * 8, 2 * 16, 12 * 8, 16 },
+		"",
+	};
+
 	spectrum::WaterfallWidget waterfall;
 
 	std::unique_ptr<CaptureThread> capture_thread;
@@ -164,6 +176,11 @@ private:
 	void set_options_widget(std::unique_ptr<Widget> new_widget);
 
 	void update_modulation(const ReceiverModel::Mode modulation);
+
+	void on_record();
+	bool is_recording() const;
+	void record_start();
+	void record_stop();
 };
 
 } /* namespace ui */

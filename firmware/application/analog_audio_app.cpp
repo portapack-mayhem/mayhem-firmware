@@ -84,6 +84,8 @@ AnalogAudioView::AnalogAudioView(
 		&field_vga,
 		&options_modulation,
 		&field_volume,
+		&button_record,
+		&text_record_filename,
 		&waterfall,
 	} });
 
@@ -136,6 +138,10 @@ AnalogAudioView::AnalogAudioView(
 		this->on_headphone_volume_changed(v);
 	};
 
+	button_record.on_select = [this](ImageButton&) {
+		this->on_record();
+	};
+	
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
@@ -281,7 +287,7 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
-	capture_thread.reset();
+	record_stop();
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
@@ -293,12 +299,36 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.enable();
 
 	if( !is_wideband_spectrum_mode ) {
-		const auto filename = next_filename_matching_pattern("AUD_????.S16");
-		if( !filename.empty() ) {
-			capture_thread = std::make_unique<CaptureThread>(filename);
-		}
 		audio::output::unmute();
 	}
+}
+
+bool AnalogAudioView::is_recording() const {
+	return (bool)capture_thread;
+}
+
+void AnalogAudioView::on_record() {
+	if( is_recording() ) {
+		record_stop();
+	} else {
+		record_start();
+	}
+}
+
+void AnalogAudioView::record_start() {
+	const auto filename = next_filename_matching_pattern("AUD_????.S16");
+	text_record_filename.set(filename);
+	if( filename.empty() ) {
+		return;
+	}
+
+	capture_thread = std::make_unique<CaptureThread>(filename);
+	button_record.set_bitmap(&bitmap_stop);
+}
+
+void AnalogAudioView::record_stop() {
+	capture_thread.reset();
+	button_record.set_bitmap(&bitmap_record);
 }
 
 } /* namespace ui */
