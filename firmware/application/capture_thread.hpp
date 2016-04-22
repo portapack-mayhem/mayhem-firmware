@@ -38,8 +38,7 @@ using namespace hackrf::one;
 class StreamOutput {
 public:
 	StreamOutput(
-		FIFO<uint8_t>* const fifo
-	) : fifo { fifo }
+	) : fifo { reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK) }
 	{
 	}
 
@@ -104,12 +103,7 @@ private:
 			return false;
 		}
 
-		auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
-		if( !fifo ) {
-			return false;
-		}
-
-		StreamOutput stream { fifo };
+		StreamOutput stream;
 
 		while( !chThdShouldTerminate() ) {
 			chEvtWaitAny(EVT_FIFO_HIGHWATER);
