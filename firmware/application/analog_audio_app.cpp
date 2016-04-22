@@ -208,6 +208,8 @@ void AnalogAudioView::remove_options_widget() {
 }
 
 void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+	remove_options_widget();
+
 	if( new_widget ) {
 		options_widget = std::move(new_widget);
 		add_child(options_widget.get());
@@ -215,9 +217,6 @@ void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 }
 
 void AnalogAudioView::on_show_options_frequency() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
-
 	field_frequency.set_style(&style_options_group);
 
 	auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group);
@@ -235,9 +234,6 @@ void AnalogAudioView::on_show_options_frequency() {
 }
 
 void AnalogAudioView::on_show_options_rf_gain() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
-
 	field_lna.set_style(&style_options_group);
 
 	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
@@ -251,9 +247,6 @@ void AnalogAudioView::on_show_options_rf_gain() {
 }
 
 void AnalogAudioView::on_show_options_modulation() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
-
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	if( modulation == ReceiverModel::Mode::AMAudio ) {
 		options_modulation.set_style(&style_options_group);
