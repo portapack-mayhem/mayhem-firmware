@@ -32,7 +32,7 @@ namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	add_children({ {
-		&button_start_stop,
+		&button_record,
 		&rssi,
 		&channel,
 		&field_frequency,
@@ -66,8 +66,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		this->on_vga_changed(v_db);
 	};
 
-	button_start_stop.on_select = [this](ImageButton&) {
-		this->on_start_stop();
+	button_record.on_select = [this](ImageButton&) {
+		this->on_record();
 	};
 	
 	receiver_model.set_baseband_configuration({
@@ -98,13 +98,13 @@ void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void CaptureAppView::focus() {
-	button_start_stop.focus();
+	button_record.focus();
 }
 
-void CaptureAppView::on_start_stop() {
+void CaptureAppView::on_record() {
 	if( capture_thread ) {
 		capture_thread.reset();
-		button_start_stop.set_bitmap(&bitmap_record);
+		button_record.set_bitmap(&bitmap_record);
 	} else {
 		const auto filename = next_filename_matching_pattern("BBD_????.C16");
 		text_record_filename.set(filename);
@@ -113,7 +113,7 @@ void CaptureAppView::on_start_stop() {
 		}
 
 		capture_thread = std::make_unique<AudioThread>(filename);
-		button_start_stop.set_bitmap(&bitmap_stop);
+		button_record.set_bitmap(&bitmap_stop);
 	}
 }
 

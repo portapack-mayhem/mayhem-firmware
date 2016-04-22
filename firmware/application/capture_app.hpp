@@ -57,13 +57,13 @@ private:
 
 	std::unique_ptr<AudioThread> capture_thread;
 
-	void on_start_stop();
+	void on_record();
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
 
-	ImageButton button_start_stop {
+	ImageButton button_record {
 		{ 0 * 8, 2 * 16, 2 * 8, 1 * 16 },
 		&bitmap_record,
 		Color::red(),
