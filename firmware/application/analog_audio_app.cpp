@@ -245,17 +245,24 @@ void AnalogAudioView::on_show_options_rf_gain() {
 }
 
 void AnalogAudioView::on_show_options_modulation() {
+	std::unique_ptr<Widget> widget;
+
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
-	if( modulation == ReceiverModel::Mode::AMAudio ) {
-		auto widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
-		set_options_widget(std::move(widget));
-		options_modulation.set_style(&style_options_group);
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:
+		widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
+		break;
+
+	case ReceiverModel::Mode::NarrowbandFMAudio:
+		widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
+		break;
+
+	default:
+		break;
 	}
-	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
-		auto widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
-		set_options_widget(std::move(widget));
-		options_modulation.set_style(&style_options_group);
-	}
+
+	set_options_widget(std::move(widget));
+	options_modulation.set_style(&style_options_group);
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
