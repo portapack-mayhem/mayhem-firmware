@@ -61,6 +61,7 @@ public:
 		ChannelSpectrumConfig = 14,
 		SpectrumStreamingConfig = 15,
 		DisplaySleep = 16,
+		CaptureConfig = 17,
 		MAX
 	};
 
@@ -407,6 +408,22 @@ public:
 	const fir_taps_complex<64> channel_filter;
 	const Modulation modulation;
 	const iir_biquad_config_t audio_hpf_config;
+};
+
+struct CaptureConfig {
+	FIFO<uint8_t>* fifo { nullptr };
+};
+
+class CaptureConfigMessage : public Message {
+public:
+	constexpr CaptureConfigMessage(
+		CaptureConfig* const config
+	) : Message { ID::CaptureConfig },
+		config { config }
+	{
+	}
+
+	CaptureConfig* const config;
 };
 
 class MessageHandlerMap {
