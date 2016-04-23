@@ -44,8 +44,6 @@ CaptureProcessor::CaptureProcessor() {
 	spectrum_samples = 0;
 
 	channel_spectrum.set_decimation_factor(1);
-
-	stream = std::make_unique<StreamInput>(15);
 }
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
@@ -76,7 +74,19 @@ void CaptureProcessor::on_message(const Message* const message) {
 		channel_spectrum.on_message(message);
 		break;
 
+	case Message::ID::CaptureConfig:
+		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		break;
+
 	default:
 		break;
+	}
+}
+
+void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
+	if( message.config ) {
+		stream = std::make_unique<StreamInput>(15, *message.config);
+	} else {
+		stream.reset();
 	}
 }

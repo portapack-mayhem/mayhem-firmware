@@ -72,6 +72,7 @@ private:
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);
+	void capture_config(const CaptureConfigMessage& message);
 
 	buffer_f32_t demodulate(const buffer_c16_t& channel);
 };

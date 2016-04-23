@@ -61,6 +61,8 @@ private:
 	SpectrumCollector channel_spectrum;
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
+
+	void capture_config(const CaptureConfigMessage& message);
 };
 
 #endif/*__PROC_CAPTURE_HPP__*/

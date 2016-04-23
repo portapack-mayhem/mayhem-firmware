@@ -53,6 +53,10 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const NBFMConfigureMessage*>(message));
 		break;
 
+	case Message::ID::CaptureConfig:
+		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		break;
+		
 	default:
 		break;
 	}
@@ -80,4 +84,12 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 0.5f);
 
 	configured = true;
+}
+
+void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {
+	if( message.config ) {
+		audio_output.set_stream(std::make_unique<StreamInput>(14, *message.config));
+	} else {
+		audio_output.set_stream(nullptr);
+	}
 }

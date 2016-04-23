@@ -37,21 +37,28 @@ using namespace hackrf::one;
 
 class StreamOutput {
 public:
-	StreamOutput(
-	) : fifo { reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK) }
-	{
+	StreamOutput() {
+		shared_memory.baseband_queue.push_and_wait(
+			CaptureConfigMessage { &config }
+		);
+	}
+
+	~StreamOutput() {
+		shared_memory.baseband_queue.push_and_wait(
+			CaptureConfigMessage { nullptr }
+		);
 	}
 
 	size_t available() {
-		return fifo->len();
+		return config.fifo->len();
 	}
 
 	size_t read(void* const data, const size_t length) {
-		return fifo->out(reinterpret_cast<uint8_t*>(data), length);
+		return config.fifo->out(reinterpret_cast<uint8_t*>(data), length);
 	}
 
 private:
-	FIFO<uint8_t>* const fifo;
+	CaptureConfig config;
 };
 
 class CaptureThread {
@@ -66,21 +73,25 @@ public:
 	}
 
 	~CaptureThread() {
-		chThdTerminate(thread);
-		chEvtSignal(thread, EVT_FIFO_HIGHWATER);
-		const auto success = chThdWait(thread);
+		const auto thread_tmp = thread;
 
-		if( !success ) {
-			led_tx.on();
+		if( thread_tmp ) {
+			thread = nullptr;
+			chThdTerminate(thread_tmp);
+			chEvtSignal(thread_tmp, EVT_FIFO_HIGHWATER);
+			const auto success = chThdWait(thread_tmp);
+
+			if( !success ) {
+				led_tx.on();
+			}
 		}
 	}
 
 	static void check_fifo_isr() {
-		if( (shared_memory.FIFO_HACK != nullptr) && (thread != nullptr) ) {
-			auto fifo = reinterpret_cast<FIFO<uint8_t>*>(shared_memory.FIFO_HACK);
-			if( fifo->len() >= write_size ) {
-				chEvtSignalI(thread, EVT_FIFO_HIGHWATER);
-			}
+		// TODO: Prevent over-signalling by transmitting a set of 
+		// flags from the baseband core.
+		if( thread ) {
+			chEvtSignalI(thread, EVT_FIFO_HIGHWATER);
 		}
 	}
 

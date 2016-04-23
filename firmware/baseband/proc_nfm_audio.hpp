@@ -66,6 +66,7 @@ private:
 
 	bool configured { false };
 	void configure(const NBFMConfigureMessage& message);
+	void capture_config(const CaptureConfigMessage& message);
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

@@ -63,6 +63,10 @@ void NarrowbandAMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
 		break;
 
+	case Message::ID::CaptureConfig:
+		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		break;
+		
 	default:
 		break;
 	}
@@ -92,4 +96,12 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	audio_output.configure(message.audio_hpf_config);
 
 	configured = true;
+}
+
+void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
+	if( message.config ) {
+		audio_output.set_stream(std::make_unique<StreamInput>(14, *message.config));
+	} else {
+		audio_output.set_stream(nullptr);
+	}
 }

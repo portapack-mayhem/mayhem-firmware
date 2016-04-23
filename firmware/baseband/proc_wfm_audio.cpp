@@ -81,6 +81,10 @@ void WidebandFMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
 		break;
 
+	case Message::ID::CaptureConfig:
+		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		break;
+		
 	default:
 		break;
 	}
@@ -109,4 +113,12 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 	channel_spectrum.set_decimation_factor(1);
 
 	configured = true;
+}
+
+void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {
+	if( message.config ) {
+		audio_output.set_stream(std::make_unique<StreamInput>(15, *message.config));
+	} else {
+		audio_output.set_stream(nullptr);
+	}
 }
