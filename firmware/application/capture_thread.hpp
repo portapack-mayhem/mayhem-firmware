@@ -78,7 +78,7 @@ public:
 		if( thread_tmp ) {
 			thread = nullptr;
 			chThdTerminate(thread_tmp);
-			chEvtSignal(thread_tmp, EVT_FIFO_HIGHWATER);
+			chEvtSignal(thread_tmp, EVT_MASK_CAPTURE_THREAD);
 			const auto success = chThdWait(thread_tmp);
 
 			if( !success ) {
@@ -91,13 +91,12 @@ public:
 		// TODO: Prevent over-signalling by transmitting a set of 
 		// flags from the baseband core.
 		if( thread ) {
-			chEvtSignalI(thread, EVT_FIFO_HIGHWATER);
+			chEvtSignalI(thread, EVT_MASK_CAPTURE_THREAD);
 		}
 	}
 
 private:
 	static constexpr size_t write_size = 16384;
-	static constexpr eventmask_t EVT_FIFO_HIGHWATER = 1;
 
 	const std::string file_path;
 	std::unique_ptr<std::array<uint8_t, write_size>> write_buffer;
@@ -117,7 +116,7 @@ private:
 		StreamOutput stream;
 
 		while( !chThdShouldTerminate() ) {
-			chEvtWaitAny(EVT_FIFO_HIGHWATER);
+			chEvtWaitAny(EVT_MASK_CAPTURE_THREAD);
 
 			while( stream.available() >= write_buffer->size() ) {
 				if( !transfer(stream, write_buffer.get()) ) {

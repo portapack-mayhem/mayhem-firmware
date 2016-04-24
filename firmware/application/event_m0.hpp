@@ -43,6 +43,7 @@ constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
 constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
 constexpr auto EVT_MASK_APPLICATION		= EVENT_MASK(6);
+constexpr auto EVT_MASK_CAPTURE_THREAD	= EVENT_MASK(7);
 
 class EventDispatcher {
 public:
