@@ -27,9 +27,6 @@
 #include "message.hpp"
 #include "fifo.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include <ch.h>
 
 class MessageQueue {
@@ -111,18 +108,7 @@ private:
 		return success;
 	}
 
-
-#if defined(LPC43XX_M0)
-	void signal() {
-		creg::m0apptxevent::assert();
-	}
-#endif
-
-#if defined(LPC43XX_M4)
-	void signal() {
-		creg::m4txevent::assert();
-	}
-#endif
+	void signal();
 };
 
 #endif/*__MESSAGE_QUEUE_H__*/
