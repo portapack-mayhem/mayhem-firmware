@@ -59,7 +59,6 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 MessageHandlerMap EventDispatcher::message_map_;
 Thread* EventDispatcher::thread_event_loop = nullptr;
-Thread* EventDispatcher::thread_record = nullptr;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,

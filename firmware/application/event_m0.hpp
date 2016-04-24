@@ -73,8 +73,6 @@ public:
 		return message_map_;
 	}
 
-	static Thread* thread_record;
-	
 private:
 	static MessageHandlerMap message_map_;
 	static Thread* thread_event_loop;
