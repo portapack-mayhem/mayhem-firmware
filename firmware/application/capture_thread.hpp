@@ -134,12 +134,12 @@ private:
 		StreamOutput stream { write_size_log2, buffer_count_log2 };
 
 		while( !chThdShouldTerminate() ) {
-			chEvtWaitAny(EVT_MASK_CAPTURE_THREAD);
-
-			while( stream.available() >= write_size ) {
+			if( stream.available() >= write_size ) {
 				if( !transfer(stream, write_buffer.get()) ) {
 					return false; 
 				}
+			} else {
+				chEvtWaitAny(EVT_MASK_CAPTURE_THREAD);
 			}
 		}
 
