@@ -427,6 +427,10 @@ struct CaptureConfig {
 		fifo { nullptr }
 	{
 	}
+
+	size_t dropped_percent() const {
+		return baseband_bytes_dropped * 100U / baseband_bytes_received;
+	}
 };
 
 class CaptureConfigMessage : public Message {
