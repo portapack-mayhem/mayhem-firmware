@@ -117,7 +117,7 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 
 void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {
 	if( message.config ) {
-		audio_output.set_stream(std::make_unique<StreamInput>(*message.config));
+		audio_output.set_stream(std::make_unique<StreamInput>(message.config));
 	} else {
 		audio_output.set_stream(nullptr);
 	}

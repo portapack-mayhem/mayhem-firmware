@@ -34,13 +34,13 @@ using namespace lpc43xx;
 
 class StreamInput {
 public:
-	StreamInput(CaptureConfig& config) :
-		K { config.write_size_log2 + config.buffer_count_log2 },
-		event_bytes_mask { (1UL << config.write_size_log2) - 1 },
+	StreamInput(CaptureConfig* const config) :
+		K { config->write_size_log2 + config->buffer_count_log2 },
+		event_bytes_mask { (1UL << config->write_size_log2) - 1 },
 		data { std::make_unique<uint8_t[]>(1UL << K) },
 		fifo { data.get(), K }
 	{
-		config.fifo = &fifo;
+		config->fifo = &fifo;
 	}
 
 	size_t write(const void* const data, const size_t length) {
