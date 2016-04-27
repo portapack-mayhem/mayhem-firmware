@@ -79,6 +79,11 @@ private:
 		"",
 	};
 
+	Text text_record_dropped {
+		{ 16 * 8, 2 * 16, 3 * 8, 16 },
+		"",
+	};
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};

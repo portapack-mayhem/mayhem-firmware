@@ -29,6 +29,8 @@ using namespace portapack;
 
 #include "utility.hpp"
 
+#include "string_format.hpp"
+
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
@@ -40,6 +42,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&text_record_filename,
+		&text_record_dropped,
 		&waterfall,
 	} });
 
@@ -114,6 +117,7 @@ void CaptureAppView::on_record() {
 	} else {
 		const auto filename = next_filename_matching_pattern("BBD_????.C16");
 		text_record_filename.set(filename);
+		text_record_dropped.set("");
 		if( filename.empty() ) {
 			return;
 		}
@@ -125,6 +129,9 @@ void CaptureAppView::on_record() {
 
 void CaptureAppView::on_tick_second() {
 	if( capture_thread ) {
+		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
+		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+		text_record_dropped.set(s);
 	}
 }
 
