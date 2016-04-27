@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <array>
 #include <functional>
+#include <algorithm>
 
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
@@ -429,7 +430,12 @@ struct CaptureConfig {
 	}
 
 	size_t dropped_percent() const {
-		return baseband_bytes_dropped * 100U / baseband_bytes_received;
+		if( baseband_bytes_dropped == 0 ) {
+			return 0;
+		} else {
+			const size_t percent = baseband_bytes_dropped * 100U / baseband_bytes_received;
+			return std::max(1U, percent);
+		}
 	}
 };
 
