@@ -35,6 +35,7 @@ using namespace lpc43xx;
 class StreamInput {
 public:
 	StreamInput(CaptureConfig* const config) :
+		config { config },
 		K { config->write_size_log2 + config->buffer_count_log2 },
 		event_bytes_mask { (1UL << config->write_size_log2) - 1 },
 		data { std::make_unique<uint8_t[]>(1UL << K) },
@@ -60,6 +61,7 @@ public:
 	}
 
 private:
+	CaptureConfig* const config;
 	const size_t K;
 	const uint64_t event_bytes_mask;
 	uint64_t bytes_written = 0;
