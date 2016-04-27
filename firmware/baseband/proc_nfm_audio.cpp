@@ -88,7 +88,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 
 void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {
 	if( message.config ) {
-		audio_output.set_stream(std::make_unique<StreamInput>(14, *message.config));
+		audio_output.set_stream(std::make_unique<StreamInput>(*message.config));
 	} else {
 		audio_output.set_stream(nullptr);
 	}

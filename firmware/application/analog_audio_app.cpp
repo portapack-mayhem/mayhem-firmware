@@ -322,7 +322,7 @@ void AnalogAudioView::record_start() {
 		return;
 	}
 
-	capture_thread = std::make_unique<CaptureThread>(filename);
+	capture_thread = std::make_unique<CaptureThread>(filename, 12, 2);
 	button_record.set_bitmap(&bitmap_stop);
 }
 

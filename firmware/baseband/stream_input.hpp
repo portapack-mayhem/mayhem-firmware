@@ -22,9 +22,11 @@
 #ifndef __STREAM_INPUT_H__
 #define __STREAM_INPUT_H__
 
-#include "portapack_shared_memory.hpp"
-
+#include "message.hpp"
 #include "fifo.hpp"
+
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
 
 #include <cstdint>
 #include <cstddef>
@@ -32,8 +34,9 @@
 
 class StreamInput {
 public:
-	StreamInput(const size_t K, CaptureConfig& config) :
-		K { K },
+	StreamInput(CaptureConfig& config) :
+		K { config.write_size_log2 + config.buffer_count_log2 },
+		event_bytes_mask { (1UL << config.write_size_log2) - 1 },
 		data { std::make_unique<uint8_t[]>(1UL << K) },
 		fifo { data.get(), K }
 	{
@@ -58,7 +61,7 @@ public:
 
 private:
 	const size_t K;
-	const uint64_t event_bytes_mask = (1ULL << (K - 2)) - 1;
+	const uint64_t event_bytes_mask;
 	uint64_t bytes_written = 0;
 	std::unique_ptr<uint8_t[]> data;
 	FIFO<uint8_t> fifo;

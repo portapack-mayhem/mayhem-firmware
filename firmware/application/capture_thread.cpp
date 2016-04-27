@@ -21,4 +21,5 @@
 
 #include "capture_thread.hpp"
 
+FIFO<uint8_t>* StreamOutput::fifo = nullptr;
 Thread* CaptureThread::thread = nullptr;

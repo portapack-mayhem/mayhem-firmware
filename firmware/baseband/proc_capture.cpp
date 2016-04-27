@@ -85,7 +85,7 @@ void CaptureProcessor::on_message(const Message* const message) {
 
 void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 	if( message.config ) {
-		stream = std::make_unique<StreamInput>(15, *message.config);
+		stream = std::make_unique<StreamInput>(*message.config);
 	} else {
 		stream.reset();
 	}

@@ -28,6 +28,7 @@
 #include "ui_painter.hpp"
 
 #include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "message.hpp"
 
@@ -57,6 +58,12 @@ public:
 	void request_stop();
 
 	void set_display_sleep(const bool sleep);
+
+	static inline void check_fifo_isr() {
+		if( !shared_memory.application_queue.is_empty() ) {
+			events_flag_isr(EVT_MASK_APPLICATION);
+		}
+	}
 
 	static inline void events_flag(const eventmask_t events) {
 		if( thread_event_loop ) {

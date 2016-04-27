@@ -411,7 +411,18 @@ public:
 };
 
 struct CaptureConfig {
-	FIFO<uint8_t>* fifo { nullptr };
+	const size_t write_size_log2;
+	const size_t buffer_count_log2;
+	FIFO<uint8_t>* fifo;
+
+	constexpr CaptureConfig(
+		const size_t write_size_log2,
+		const size_t buffer_count_log2
+	) : write_size_log2 { write_size_log2 },
+		buffer_count_log2 { buffer_count_log2 },
+		fifo { nullptr }
+	{
+	}
 };
 
 class CaptureConfigMessage : public Message {

@@ -70,6 +70,10 @@ public:
 		}
 	}
 
+	bool is_empty() const {
+		return fifo.is_empty();
+	}
+
 private:
 	FIFO<uint8_t> fifo;
 	Mutex mutex_write;
@@ -90,10 +94,6 @@ private:
 
 	size_t len() const {
 		return fifo.len();
-	}
-
-	bool is_empty() const {
-		return fifo.is_empty();
 	}
 
 	bool push(const void* const buf, const size_t len) {

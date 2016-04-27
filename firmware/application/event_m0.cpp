@@ -22,7 +22,6 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
 
 #include "sd_card.hpp"
 
@@ -47,7 +46,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 	chSysLockFromIsr();
 	CaptureThread::check_fifo_isr();
-	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
+	EventDispatcher::check_fifo_isr();
 	chSysUnlockFromIsr();
 
 	creg::m4txevent::clear();
