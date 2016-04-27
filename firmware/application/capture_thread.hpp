@@ -38,14 +38,13 @@ using namespace hackrf::one;
 class StreamOutput {
 public:
 	StreamOutput(
-		const size_t write_size_log2,
-		const size_t buffer_count_log2
-	) : config { write_size_log2, buffer_count_log2 }
+		CaptureConfig* const config
+	) : config { config }
 	{
 		shared_memory.baseband_queue.push_and_wait(
-			CaptureConfigMessage { &config }
+			CaptureConfigMessage { config }
 		);
-		fifo = config.fifo;
+		fifo = config->fifo;
 	}
 
 	~StreamOutput() {
@@ -66,7 +65,7 @@ public:
 	static FIFO<uint8_t>* fifo;
 
 private:
-	CaptureConfig config;
+	CaptureConfig* const config;
 };
 
 class CaptureThread {
@@ -75,8 +74,7 @@ public:
 		std::string file_path,
 		size_t write_size_log2,
 		size_t buffer_count_log2
-	) : write_size_log2 { write_size_log2 },
-		buffer_count_log2 { buffer_count_log2 },
+	) : config { write_size_log2, buffer_count_log2 },
 		file_path { std::move(file_path) }
 	{
 		// Need significant stack for FATFS
@@ -106,8 +104,7 @@ public:
 	}
 
 private:
-	const size_t write_size_log2;
-	const size_t buffer_count_log2;
+	CaptureConfig config;
 	const std::string file_path;
 	File file;
 	static Thread* thread;
@@ -122,13 +119,13 @@ private:
 			return false;
 		}
 
-		const size_t write_size = 1U << write_size_log2;
+		const size_t write_size = 1U << config.write_size_log2;
 		const auto write_buffer = std::make_unique<uint8_t[]>(write_size);
 		if( !write_buffer ) {
 			return false;
 		}
 
-		StreamOutput stream { write_size_log2, buffer_count_log2 };
+		StreamOutput stream { &config };
 
 		while( !chThdShouldTerminate() ) {
 			if( stream.available() >= write_size ) {
