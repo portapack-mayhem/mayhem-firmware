@@ -76,7 +76,6 @@ public:
 		size_t write_size_log2,
 		size_t buffer_count_log2
 	) : write_size_log2 { write_size_log2 },
-		write_size { 1U << write_size_log2 },
 		buffer_count_log2 { buffer_count_log2 },
 		file_path { std::move(file_path) }
 	{
@@ -108,7 +107,6 @@ public:
 
 private:
 	const size_t write_size_log2;
-	const size_t write_size;
 	const size_t buffer_count_log2;
 	const std::string file_path;
 	File file;
@@ -124,6 +122,7 @@ private:
 			return false;
 		}
 
+		const size_t write_size = 1U << write_size_log2;
 		const auto write_buffer = std::make_unique<uint8_t[]>(write_size);
 		if( !write_buffer ) {
 			return false;
@@ -133,7 +132,7 @@ private:
 
 		while( !chThdShouldTerminate() ) {
 			if( stream.available() >= write_size ) {
-				if( !transfer(stream, write_buffer.get()) ) {
+				if( !transfer(stream, write_buffer.get(), write_size) ) {
 					return false; 
 				}
 			} else {
@@ -144,7 +143,7 @@ private:
 		return true;
 	}
 
-	bool transfer(StreamOutput& stream, uint8_t* const write_buffer) {
+	bool transfer(StreamOutput& stream, uint8_t* const write_buffer, const size_t write_size) {
 		bool success = false;
 
 		led_usb.on();
