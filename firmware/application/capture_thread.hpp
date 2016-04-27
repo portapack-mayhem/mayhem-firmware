@@ -94,6 +94,10 @@ public:
 		}
 	}
 
+	const CaptureConfig& state() const {
+		return config;
+	}
+
 	static void check_fifo_isr() {
 		// TODO: Prevent over-signalling by transmitting a set of 
 		// flags from the baseband core.
