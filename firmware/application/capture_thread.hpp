@@ -56,11 +56,11 @@ public:
 	}
 
 	size_t available() {
-		return config.fifo->len();
+		return fifo->len();
 	}
 
 	size_t read(void* const data, const size_t length) {
-		return config.fifo->out(reinterpret_cast<uint8_t*>(data), length);
+		return fifo->out(reinterpret_cast<uint8_t*>(data), length);
 	}
 
 	static FIFO<uint8_t>* fifo;
