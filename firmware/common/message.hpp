@@ -413,6 +413,8 @@ public:
 struct CaptureConfig {
 	const size_t write_size_log2;
 	const size_t buffer_count_log2;
+	uint64_t baseband_bytes_received;
+	uint64_t baseband_bytes_dropped;
 	FIFO<uint8_t>* fifo;
 
 	constexpr CaptureConfig(
@@ -420,6 +422,8 @@ struct CaptureConfig {
 		const size_t buffer_count_log2
 	) : write_size_log2 { write_size_log2 },
 		buffer_count_log2 { buffer_count_log2 },
+		baseband_bytes_received { 0 },
+		baseband_bytes_dropped { 0 },
 		fifo { nullptr }
 	{
 	}

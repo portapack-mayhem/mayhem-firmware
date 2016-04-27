@@ -52,6 +52,8 @@ public:
 		if( (bytes_written & event_bytes_mask) < (last_bytes_written & event_bytes_mask) ) {
 			creg::m4txevent::assert();
 		}
+		config->baseband_bytes_received += length;
+		config->baseband_bytes_dropped = config->baseband_bytes_received - bytes_written;
 
 		return written;
 	}
