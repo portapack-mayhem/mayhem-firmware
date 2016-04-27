@@ -25,6 +25,7 @@
 using namespace portapack;
 
 #include "file.hpp"
+#include "time.hpp"
 
 #include "utility.hpp"
 
@@ -77,9 +78,14 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	});
 	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
 	receiver_model.enable();
+
+	signal_token_tick_second = time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
 }
 
 CaptureAppView::~CaptureAppView() {
+	time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 }
 
@@ -114,6 +120,11 @@ void CaptureAppView::on_record() {
 
 		capture_thread = std::make_unique<CaptureThread>(filename, 14, 1);
 		button_record.set_bitmap(&bitmap_stop);
+	}
+}
+
+void CaptureAppView::on_tick_second() {
+	if( capture_thread ) {
 	}
 }
 

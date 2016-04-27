@@ -30,6 +30,7 @@
 #include "bitmap.hpp"
 
 #include "capture_thread.hpp"
+#include "signal.hpp"
 
 #include <string>
 #include <memory>
@@ -57,7 +58,10 @@ private:
 
 	std::unique_ptr<CaptureThread> capture_thread;
 
+	SignalToken signal_token_tick_second;
+
 	void on_record();
+	void on_tick_second();
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_lna_changed(int32_t v_db);
