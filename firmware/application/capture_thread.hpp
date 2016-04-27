@@ -85,13 +85,11 @@ public:
 	}
 
 	~CaptureThread() {
-		const auto thread_tmp = thread;
-
-		if( thread_tmp ) {
+		if( thread ) {
+			chThdTerminate(thread);
+			chEvtSignal(thread, EVT_MASK_CAPTURE_THREAD);
+			const auto success = chThdWait(thread);
 			thread = nullptr;
-			chThdTerminate(thread_tmp);
-			chEvtSignal(thread_tmp, EVT_MASK_CAPTURE_THREAD);
-			const auto success = chThdWait(thread_tmp);
 
 			if( !success ) {
 				led_tx.on();
