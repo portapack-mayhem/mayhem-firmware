@@ -56,10 +56,6 @@ public:
 		return written;
 	}
 
-	uint64_t written() const {
-		return bytes_written;
-	}
-
 private:
 	CaptureConfig* const config;
 	const size_t K;
