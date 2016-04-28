@@ -30,11 +30,6 @@
 
 class BasebandThread : public ThreadBase {
 public:
-	BasebandThread(
-	) : ThreadBase { "baseband" }
-	{
-	}
-
 	Thread* start(const tprio_t priority);
 
 	void on_message(const Message* const message);
@@ -42,14 +37,17 @@ public:
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.
 	baseband::Direction direction() const {
-		return baseband::Direction::Receive;
+		return baseband::Direction::Transmit;
 	}
+
+	void wait_for_switch(void);
 
 	Thread* thread_main { nullptr };
 	Thread* thread_rssi { nullptr };
-	BasebandProcessor* baseband_processor { nullptr };
 
 private:
+	BasebandProcessor* baseband_processor { nullptr };
+
 	BasebandConfiguration baseband_configuration;
 
 	void run() override;

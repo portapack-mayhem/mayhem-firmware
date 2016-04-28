@@ -31,11 +31,8 @@
 #include "rssi.hpp"
 #include "i2s.hpp"
 
-#include "proc_xylos.hpp"
-#include "proc_fsk_lcr.hpp"
-#include "proc_jammer.hpp"
-#include "proc_rds.hpp"
 #include "proc_playaudio.hpp"
+#include "proc_audiotx.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -83,7 +80,7 @@ void BasebandThread::run() {
 	baseband_sgpio.init();
 	baseband::dma::init();
 
-	const auto baseband_buffer = new std::array<baseband::sample_t, 8192>();
+	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
 		direction()
@@ -99,7 +96,7 @@ void BasebandThread::run() {
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
+		const auto buffer_tmp = baseband::dma::wait_for_tx_buffer();
 		if( buffer_tmp ) {
 			buffer_c8_t buffer {
 				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
@@ -117,19 +114,12 @@ void BasebandThread::run() {
 			);
 		}
 	}
-
-	delete baseband_buffer;
 }
 
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	switch(mode) {
-	case 0:		return new RDSProcessor();
-	case 1:		return new LCRFSKProcessor();
-	case 2:		return nullptr; //new ToneProcessor();
-	case 3:		return new JammerProcessor();
-	case 4:		return new XylosProcessor();
-	case 5:		return new PlayAudioProcessor();
-	case 6:		return nullptr; //new AFSKRXProcessor();
+	case 0:		return new PlayAudioProcessor();
+	case 1:		return new AudioTXProcessor();
 	default:	return nullptr;
 	}
 }
@@ -145,9 +135,6 @@ void BasebandThread::disable() {
 
 void BasebandThread::enable() {
 	if( baseband_processor ) {
-		if( direction() == baseband::Direction::Receive ) {
-			rf::rssi::start();
-		}
 		baseband_sgpio.configure(direction());
 		baseband::dma::enable(direction());
 		baseband_sgpio.streaming_enable();

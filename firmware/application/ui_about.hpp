@@ -46,6 +46,7 @@ private:
 	void render_video();
 	void render_audio();
 	void draw_demoglyph(ui::Point p, char ch, ui::Color * pal);
+	uint16_t debug_cnt = 0;
 	
 	typedef struct ymreg_t {
 		uint8_t value;

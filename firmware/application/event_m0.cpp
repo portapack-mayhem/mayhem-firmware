@@ -22,7 +22,7 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "sd_card.hpp"
 
@@ -99,6 +99,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 		portapack::io.lcd_backlight(false);
 		portapack::display.sleep();
 	} else {
+		portapack::bl_tick_counter = 0;
 		portapack::display.wake();
 		portapack::io.lcd_backlight(true);
 	}
@@ -121,14 +122,14 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 	if( events & EVT_MASK_SWITCHES ) {
 		handle_switches();
 	}
+	
+	if( events & EVT_MASK_ENCODER ) {
+		handle_encoder();
+	}
 
 	if( !display_sleep ) {
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
-		}
-
-		if( events & EVT_MASK_ENCODER ) {
-			handle_encoder();
 		}
 
 		if( events & EVT_MASK_TOUCH ) {
@@ -144,9 +145,19 @@ void EventDispatcher::handle_application_queue() {
 }
 
 void EventDispatcher::handle_rtc_tick() {
+	uint16_t bloff;
+	
 	sd_card::poll_inserted();
 
 	portapack::temperature_logger.second_tick();
+	
+	bloff = portapack::persistent_memory::ui_config_bloff();
+	if (bloff) {
+		if (portapack::bl_tick_counter == bloff)
+			set_display_sleep(true);
+		else
+			portapack::bl_tick_counter++;
+	}
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {
@@ -156,6 +167,7 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 		for(const auto child : w->children()) {
 			const auto touched_widget = touch_widget(child, event);
 			if( touched_widget ) {
+				portapack::bl_tick_counter = 0;
 				return touched_widget;
 			}
 		}
@@ -164,6 +176,7 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 		if( r.contains(event.point) ) {
 			if( w->on_touch(event) ) {
 				// This widget responded. Return it up the call stack.
+				portapack::bl_tick_counter = 0;
 				return w;
 			}
 		}
@@ -200,6 +213,8 @@ void EventDispatcher::handle_lcd_frame_sync() {
 void EventDispatcher::handle_switches() {
 	const auto switches_state = get_switches_state();
 
+	portapack::bl_tick_counter = 0;
+
 	if( display_sleep ) {
 		// Swallow event, wake up display.
 		if( switches_state.any() ) {
@@ -220,6 +235,14 @@ void EventDispatcher::handle_switches() {
 }
 
 void EventDispatcher::handle_encoder() {
+	portapack::bl_tick_counter = 0;
+	
+	if( display_sleep ) {
+		// Swallow event, wake up display.
+		set_display_sleep(false);
+		return;
+	}
+	
 	const uint32_t encoder_now = get_encoder_position();
 	const int32_t delta = static_cast<int32_t>(encoder_now - encoder_last);
 	encoder_last = encoder_now;

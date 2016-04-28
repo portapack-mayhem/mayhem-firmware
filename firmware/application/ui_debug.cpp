@@ -248,19 +248,19 @@ void RegistersView::focus() {
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 	add_items<4>({ {
-		{ "RFFC5072",    [&nav](){ nav.push<RegistersView>(
+		{ "RFFC5072", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837",     [&nav](){ nav.push<RegistersView>(
+		{ "MAX2837", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C",     [&nav](){ nav.push<RegistersView>(
+		{ "Si5351C", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ "WM8731",      [&nav](){ nav.push<RegistersView>(
+		{ "WM8731",ui::Color::white(),      [&nav](){ nav.push<RegistersView>(
 			"WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 1, 3, 4 },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
@@ -272,13 +272,51 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<5>({ {
-		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
-		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",     [&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals", [&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
+		{ "Memory", ui::Color::white(),     	[&nav](){ nav.push<DebugMemoryView>(); } },
+		{ "Radio State", ui::Color::white(),	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "SD Card", ui::Color::white(),    	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "Peripherals", ui::Color::white(),	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
+		{ "Temperature", ui::Color::white(),	[&nav](){ nav.push<TemperatureView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
+}
+
+char hexify(char in) {
+	if (in > 9) in += 7;
+	return in + 0x30;
+}
+
+DebugLCRView::DebugLCRView(NavigationView& nav, char * lcrstring, uint8_t checksum) {
+	char cstr[15] = "Checksum: 0x  ";
+	
+	add_children({ {
+		&text_lcr1,
+		&text_lcr2,
+		&text_lcr3,
+		&text_lcr4,
+		&text_lcr5,
+		&text_checksum,
+		&button_done
+	} });
+	
+	std::string b = std::string(lcrstring);
+	
+	text_lcr1.set(b.substr(8+(0*26),26));
+	if (strlen(lcrstring) > 34) text_lcr2.set(b.substr(8+(1*26),26));
+	if (strlen(lcrstring) > 34+26) text_lcr3.set(b.substr(8+(2*26),26));
+	if (strlen(lcrstring) > 34+26+26) text_lcr4.set(b.substr(8+(3*26),26));
+	if (strlen(lcrstring) > 34+26+26+26) text_lcr5.set(b.substr(8+(4*26),26));
+	
+	cstr[12] = hexify(checksum >> 4);
+	cstr[13] = hexify(checksum & 15);
+	
+	text_checksum.set(cstr);
+	
+	button_done.on_select = [&nav](Button&){ nav.pop(); };
+}
+
+void DebugLCRView::focus() {
+	button_done.focus();
 }
 
 } /* namespace ui */

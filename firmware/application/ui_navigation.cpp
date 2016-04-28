@@ -20,6 +20,9 @@
  */
 
 #include "ui_navigation.hpp"
+#include "ui_loadmodule.hpp"
+
+#include "modules.h"
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -156,9 +159,9 @@ void NavigationView::focus() {
 
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 	add_items<3>({ {
-		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
-		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
-		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
+		{ "AIS:  Boats", ui::Color::white(),          [&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:  Utility Meters", ui::Color::white(), [&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS: Cars", ui::Color::white(),           [&nav](){ nav.push<TPMSAppView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -167,8 +170,8 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio",        [&nav](){ nav.push<AnalogAudioView>(); } },
-		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
+		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<AnalogAudioView>(); } },
+		{ "Transponders", ui::Color::white(), 		[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -176,36 +179,32 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<7>({ {
-		{ "Receiver", [&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture",  [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Setup",    [&nav](){ nav.push<SetupMenuView>(); } },
-		{ "About",    [&nav](){ nav.push<AboutView>(); } },
-		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(); } },
+	add_items<10>({ {
+		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push<PlayDeadView>(false); } },
+		{ "Receiver", 	ui::Color::cyan(),			[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "RDS TX", ui::Color::yellow(),  			[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 0); } },
+		{ "Xylos TX", ui::Color::yellow(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 1); } },
+		{ "TEDI/LCR TX", ui::Color::yellow(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 2); } },
+		{ "Audio TX", ui::Color::orange(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 3); } },
+		//{ "Capture", ui::Color::white(), 			[&nav](){ nav.push<NotImplementedView>(); } },
+		//{ "Analyze", ui::Color::white(),  			[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Setup", ui::Color::white(),    			[&nav](){ nav.push<SetupMenuView>(); } },
+		{ "About", ui::Color::white(),    			[&nav](){ nav.push<AboutView>(); } },
+		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF", ui::Color::white(),	   			[&nav](){ nav.push<HackRFFirmwareView>(); } },
 	} });
 
-/*	add_items<10>({ {
-		{ "Play dead",	ui::Color::red(),  			[&nav](){ nav.push<PlayDeadView>(false); } },
-		{ "Receiver", ui::Color::cyan(), 			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new ReceiverMenuView(nav)); } },
+/*
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		{ "Jammer", ui::Color::white(),   			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
 		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
 		//{ "SIGFOX RX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
-		{ "RDS TX", ui::Color::yellow(),  			[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new RDSView(nav)); } },
-		{ "Xylos TX", ui::Color::orange(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new XylosView(nav)); } },
 		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
 		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
-		{ "TEDI/LCR TX", ui::Color::yellow(),  		[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, new LCRView(nav)); } },
 		//{ "Numbers station", ui::Color::purple(),	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
-		{ "Setup", ui::Color::white(),    			[&nav](){ nav.push<SetupMenuView>(); } },
-		{ "About", ui::Color::white(),    			[&nav](){ nav.push<AboutView>(); } },
-		{ "Debug", ui::Color::white(),    			[&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF", ui::Color::white(),   			[&nav](){ nav.push<HackRFFirmwareView>(); } },
-	} });*/
+*/
 }
 
 /* SystemView ************************************************************/

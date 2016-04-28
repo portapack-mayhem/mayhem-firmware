@@ -161,6 +161,7 @@ CPPSRC = main.cpp \
          ui_rssi.cpp \
          ui_channel.cpp \
          ui_audio.cpp \
+         ui_audiotx.cpp \
          ui_lcr.cpp \
          ui_rds.cpp \
          ui_jammer.cpp \

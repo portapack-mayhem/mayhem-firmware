@@ -25,23 +25,25 @@
 
 #include "baseband_processor.hpp"
 
-#define SAMPLERATE 44100/4
+#include "dsp_decimate.hpp"
+#include "dsp_demodulate.hpp"
+
+#include "audio_output.hpp"
+#include "spectrum_collector.hpp"
+
+#include <cstdint>
 
 class AudioTXProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
-
 private:
-	int8_t audio_fifo[SAMPLERATE];
-
 	int8_t re, im;
 	uint8_t s, as = 0, ai;
     uint8_t byte_pos = 0;
     uint8_t digit = 0;
 	uint32_t aphase, phase, sphase;
-	int32_t sample, frq;
-	TXDoneMessage message;
+	int32_t sample, frq, bc;
 };
 
 #endif

@@ -52,10 +52,20 @@ void MenuItemView::paint(Painter& painter) {
 		r,
 		paint_style.background
 	);
+	
+	ui::Color final_item_color = item.color;
+
+	if (final_item_color.v == paint_style.background.v) final_item_color = paint_style.foreground;
+
+	Style text_style {
+		.font = paint_style.font,
+		.background = paint_style.background,
+		.foreground = final_item_color
+	};
 
 	painter.draw_string(
 		{ r.pos.x + 8, r.pos.y + (r.size.h - font_height) / 2 },
-		paint_style,
+		text_style,
 		item.text
 	);
 }

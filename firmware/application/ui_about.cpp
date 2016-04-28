@@ -65,17 +65,25 @@ void AboutView::on_show() {
 			FIFODataMessage datamessage;
 			const auto message = static_cast<const FIFOSignalMessage*>(p);
 			if (message->signaltype == 1) {
+				//debug_cnt++;
+				//if (debug_cnt == 250) for(;;) {}
 				render_audio();
 				datamessage.data = ym_buffer;
 				shared_memory.baseband_queue.push(datamessage);
 			}
 		}
 	);
-	
+
 	transmitter_model.set_tuning_frequency(92200000);	// 92.2MHz, change !
-	
-	audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
+	transmitter_model.set_baseband_configuration({
+		.mode = 0,
+		.sampling_rate = 1536000,
+		.decimation_factor = 1,
+	});
+	transmitter_model.set_rf_amp(true);
 	transmitter_model.enable();
+	
+	//audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }
 
 void AboutView::render_video() {
@@ -376,11 +384,13 @@ AboutView::AboutView(
 {
 	uint8_t p, c;
 	
+	/*
 	transmitter_model.set_baseband_configuration({
-		.mode = 5,
+		.mode = 0,
 		.sampling_rate = 1536000,
 		.decimation_factor = 1,
 	});
+	*/
 	
 	add_children({ {
 		&text_title,

@@ -22,7 +22,7 @@
 PATH_BOOTSTRAP=bootstrap
 PATH_APPLICATION=application
 PATH_BASEBAND=baseband
-# PATH_BASEBAND_TX=baseband-tx
+PATH_BASEBAND_TX=baseband-tx
 
 TARGET=portapack-h1-firmware
 
@@ -30,7 +30,7 @@ TARGET_BOOTSTRAP=$(PATH_BOOTSTRAP)/bootstrap
 TARGET_HACKRF_FIRMWARE=hackrf_one_usb_ram
 TARGET_APPLICATION=$(PATH_APPLICATION)/build/application
 TARGET_BASEBAND=$(PATH_BASEBAND)/build/baseband
-# TARGET_BASEBAND_TX=$(PATH_BASEBAND_TX)/build/baseband-tx
+TARGET_BASEBAND_TX=$(PATH_BASEBAND_TX)/build/baseband-tx
 
 MAKE_SPI_IMAGE=tools/make_spi_image.py
 MAKE_MODULES_FILE=tools/make_baseband_file.py
@@ -59,13 +59,13 @@ program: $(TARGET).bin modules
 	sleep 1s
 	hackrf_spiflash -w $(TARGET).bin
 	
-modules: $(TARGET_BASEBAND).bin # $(TARGET_BASEBAND_TX).bin
+modules: $(TARGET_BASEBAND).bin $(TARGET_BASEBAND_TX).bin
 	$(MAKE_MODULES_FILE) $(MODULES)
 	cp $(PATH_BASEBAND).bin ../sdcard/$(PATH_BASEBAND).bin
-	# cp $(PATH_BASEBAND_TX).bin ../sdcard/$(PATH_BASEBAND_TX).bin
+	cp $(PATH_BASEBAND_TX).bin ../sdcard/$(PATH_BASEBAND_TX).bin
 
-$(TARGET).bin: modules $(MAKE_SPI_IMAGE) $(TARGET_BOOTSTRAP).bin $(TARGET_HACKRF_FIRMWARE).dfu $(TARGET_BASEBAND).bin $(TARGET_APPLICATION).bin
-	$(MAKE_SPI_IMAGE) $(TARGET_BOOTSTRAP).bin $(TARGET_HACKRF_FIRMWARE).dfu $(TARGET_BASEBAND).bin $(TARGET_APPLICATION).bin $(TARGET).bin
+$(TARGET).bin: modules $(MAKE_SPI_IMAGE) $(TARGET_BOOTSTRAP).bin $(TARGET_HACKRF_FIRMWARE).dfu $(TARGET_BASEBAND)_inc.bin $(TARGET_APPLICATION).bin
+	$(MAKE_SPI_IMAGE) $(TARGET_BOOTSTRAP).bin $(TARGET_HACKRF_FIRMWARE).dfu $(TARGET_BASEBAND)_inc.bin $(TARGET_APPLICATION).bin $(TARGET).bin
 
 $(TARGET_BOOTSTRAP).bin: $(TARGET_BOOTSTRAP).elf
 	$(CP) -O binary $(TARGET_BOOTSTRAP).elf $(TARGET_BOOTSTRAP).bin

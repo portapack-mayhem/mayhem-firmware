@@ -33,11 +33,6 @@
 
 class TransmitterModel {
 public:
-	constexpr TransmitterModel(
-	)
-	{
-	}
-	
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
 
@@ -65,18 +60,16 @@ public:
 	void set_baseband_configuration(const BasebandConfiguration config);
 
 private:
-	rf::Frequency frequency_step_ { 25000 };
 	bool enabled_ { false };
 	bool rf_amp_ { true };
 	int32_t lna_gain_db_ { 0 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
 	BasebandConfiguration baseband_configuration {
-		.mode = 1,
-		.sampling_rate = 2280000,
+		.mode = 0,			/* TODO: Enum! */
+		.sampling_rate = 3072000,
 		.decimation_factor = 1,
 	};
-
 	int32_t tuning_offset();
 
 	void update_tuning_frequency();
@@ -86,8 +79,6 @@ private:
 	void update_vga();
 	void update_modulation();
 	void update_baseband_configuration();
-	
-	void baseband_disable();
 };
 
 #endif/*__TRANSMITTER_MODEL_H__*/

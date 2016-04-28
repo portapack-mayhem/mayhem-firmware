@@ -28,7 +28,7 @@
 class PlayAudioProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
-	void fill_buffer(int8_t * inptr);
+	void on_message(const Message* const msg) override;
 
 private:
 	int8_t audio_fifo[4096];		// Probably too much (=85ms @ 48000Hz)

@@ -42,8 +42,8 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
 	const size_t samples_per_update = sampling_rate * update_interval;
 
 	if( count >= samples_per_update ) {
-		statistics.rms_db = complex16_mag_squared_to_dbv_norm(squared_sum / count);
-		statistics.max_db = complex16_mag_squared_to_dbv_norm(max_squared);
+		statistics.rms_db = mag2_to_dbv_norm(squared_sum / count);
+		statistics.max_db = mag2_to_dbv_norm(max_squared);
 		statistics.count = count;
 
 		squared_sum = 0;

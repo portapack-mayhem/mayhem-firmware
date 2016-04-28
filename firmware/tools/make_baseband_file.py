@@ -49,7 +49,6 @@ name = bytearray()
 info = bytearray()
 description = bytearray()
 data_default_byte = bytearray((0,))
-m = md5.new()
 
 sys.argv = sys.argv[1:]
 
@@ -60,6 +59,7 @@ sys.argv = sys.argv[1:]
 # MD5 (16) again, so that module code can read it (dirty...)
 
 for args in sys.argv:
+	m = md5.new()
 	data = read_image(args + '/build/' + args + '.bin')
 	data_r = data
 	
@@ -112,6 +112,6 @@ for args in sys.argv:
 	h_data += 'const char md5_' + args.replace('-','_') + '[16] = {' + md5sum + '};\n'
 	
 	# Update original binary with MD5 footprint
-	write_file(data[512:(32768+512)], args + '/build/' + args + '.bin')
+	write_file(data[512:(32768+512)], args + '/build/' + args + '_inc.bin')
 
 write_file(h_data, 'common/modules.h')

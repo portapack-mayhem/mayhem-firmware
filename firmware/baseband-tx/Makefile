@@ -1,3 +1,4 @@
+
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
 #
@@ -126,6 +127,7 @@ CPPSRC = main.cpp \
          message_queue.cpp \
          event.cpp \
          event_m4.cpp \
+         thread_wait.cpp \
          gpdma.cpp \
          baseband_dma.cpp \
          baseband_sgpio.cpp \
@@ -136,11 +138,6 @@ CPPSRC = main.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
          matched_filter.cpp \
-         spectrum_collector.cpp \
-         proc_rds.cpp \
-         proc_jammer.cpp \
-         proc_fsk_lcr.cpp \
-         proc_xylos.cpp \
          proc_audiotx.cpp \
          proc_playaudio.cpp \
          dsp_squelch.cpp \
@@ -153,7 +150,7 @@ CPPSRC = main.cpp \
          rssi.cpp \
          rssi_dma.cpp \
          rssi_thread.cpp \
-         audio.cpp \
+         audio_compressor.cpp \
          audio_output.cpp \
          audio_dma.cpp \
          audio_stats_collector.cpp \

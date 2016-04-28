@@ -245,42 +245,36 @@ LCRView::LCRView(
 	button_transmit_scan.set_style(&style_val);
 	
 	button_setrgsb.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, rgsb, 4 };
+		auto an_view =  nav.push<AlphanumView>(rgsb, 4);
 		an_view->on_changed = [this](char *rgsb) {
 			button_setrgsb.set_text(rgsb);
 		};
-		nav.push(an_view);
 	};
 	
 	button_setam_a.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, litteral[0], 7 };
+		auto an_view = nav.push<AlphanumView>(litteral[0], 7);
 		an_view->on_changed = [this](char *) {};
-		nav.push(an_view);
 	};
 	button_setam_b.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, litteral[1], 7 };
+		auto an_view = nav.push<AlphanumView>(litteral[1], 7);
 		an_view->on_changed = [this](char *) {};
-		nav.push(an_view);
 	};
 	button_setam_c.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, litteral[2], 7 };
+		auto an_view = nav.push<AlphanumView>(litteral[2], 7);
 		an_view->on_changed = [this](char *) {};
-		nav.push(an_view);
 	};
 	button_setam_d.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, litteral[3], 7 };
+		auto an_view = nav.push<AlphanumView>(litteral[3], 7);
 		an_view->on_changed = [this](char *) {};
-		nav.push(an_view);
 	};
 	button_setam_e.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, litteral[4], 7 };
+		auto an_view = nav.push<AlphanumView>(litteral[4], 7);
 		an_view->on_changed = [this](char *) {};
-		nav.push(an_view);
 	};
 	
 	button_lcrdebug.on_select = [this,&nav](Button&){
 		make_frame();
-		nav.push(new DebugLCRView { nav, lcrstring, checksum });
+		nav.push<DebugLCRView>(lcrstring, checksum);
 	};
 	
 	button_transmit.on_select = [this,&transmitter_model](Button&){		
@@ -324,7 +318,7 @@ LCRView::LCRView(
 	};
 	
 	button_txsetup.on_select = [&nav](Button&){
-		nav.push(new AFSKSetupView { nav });
+		nav.push<AFSKSetupView>();
 	};
 
 	button_exit.on_select = [&nav](Button&){

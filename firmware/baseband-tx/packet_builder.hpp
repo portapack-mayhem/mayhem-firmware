@@ -28,19 +28,33 @@
 #include <functional>
 
 #include "bit_pattern.hpp"
+#include "baseband_packet.hpp"
+
+struct NeverMatch {
+	bool operator()(const BitHistory&, const size_t) const {
+		return false;
+	}
+};
+
+struct FixedLength {
+	bool operator()(const BitHistory&, const size_t symbols_received) const {
+		return symbols_received >= length;
+	}
+
+	const size_t length;
+};
 
 template<typename PreambleMatcher, typename UnstuffMatcher, typename EndMatcher>
 class PacketBuilder {
 public:
-	using PayloadType = std::bitset<1024>;
-	using PayloadHandlerFunc = std::function<void(const PayloadType& payload, const size_t bits_received)>;
+	using PayloadHandlerFunc = std::function<void(const baseband::Packet& packet)>;
 
 	PacketBuilder(
 		const PreambleMatcher preamble_matcher,
 		const UnstuffMatcher unstuff_matcher,
 		const EndMatcher end_matcher,
-		const PayloadHandlerFunc payload_handler
-	) : payload_handler { payload_handler },
+		PayloadHandlerFunc payload_handler
+	) : payload_handler { std::move(payload_handler) },
 		preamble(preamble_matcher),
 		unstuff(unstuff_matcher),
 		end(end_matcher)
@@ -64,18 +78,24 @@ public:
 
 		switch(state) {
 		case State::Preamble:
-			if( preamble(bit_history, bits_received) ) {
+			if( preamble(bit_history, packet.size()) ) {
 				state = State::Payload;
 			}
 			break;
 
 		case State::Payload:
-			if( !unstuff(bit_history, bits_received) ) {
-				payload[bits_received++] = symbol;
+			if( !unstuff(bit_history, packet.size()) ) {
+				packet.add(symbol);
 			}
 
-			if( end(bit_history, bits_received) ) {
-				payload_handler(payload, bits_received);
+			if( end(bit_history, packet.size()) ) {
+				// NOTE: This check is to avoid std::function nullptr check, which
+				// brings in "_ZSt25__throw_bad_function_callv" and a lot of extra code.
+				// TODO: Make payload_handler known at compile time.
+				if( payload_handler ) {
+					packet.set_timestamp(Timestamp::now());
+					payload_handler(packet);
+				}
 				reset_state();
 			} else {
 				if( packet_truncated() ) {
@@ -97,7 +117,7 @@ private:
 	};
 
 	bool packet_truncated() const {
-		return bits_received >= payload.size();
+		return packet.size() >= packet.capacity();
 	}
 
 	const PayloadHandlerFunc payload_handler;
@@ -107,12 +127,11 @@ private:
 	UnstuffMatcher unstuff;
 	EndMatcher end;
 
-	size_t bits_received { 0 };
 	State state { State::Preamble };
-	PayloadType payload;
+	baseband::Packet packet;
 
 	void reset_state() {
-		bits_received = 0;
+		packet.clear();
 		state = State::Preamble;
 	}
 };

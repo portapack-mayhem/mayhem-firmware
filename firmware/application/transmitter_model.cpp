@@ -21,10 +21,13 @@
 
 #include "transmitter_model.hpp"
 
-#include "portapack_shared_memory.hpp"
+#include "baseband_api.hpp"
+
 #include "portapack_persistent_memory.hpp"
-#include "portapack.hpp"
 using namespace portapack;
+
+#include "radio.hpp"
+#include "audio.hpp"
 
 rf::Frequency TransmitterModel::tuning_frequency() const {
 	return persistent_memory::tuned_frequency();
@@ -86,17 +89,9 @@ void TransmitterModel::enable() {
 	update_baseband_configuration();
 }
 
-void TransmitterModel::baseband_disable() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
-}
-
 void TransmitterModel::disable() {
 	enabled_ = false;
-	baseband_disable();
+	baseband::stop();
 
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
@@ -147,13 +142,11 @@ void TransmitterModel::update_baseband_configuration() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	baseband_disable();
+	baseband::stop();
 
-	clock_manager.set_sampling_frequency(sampling_rate() * baseband_oversampling());
+	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
 
-	BasebandConfigurationMessage message { baseband_configuration };
-	shared_memory.baseband_queue.push(message);
+	baseband::start(baseband_configuration);
 }
-

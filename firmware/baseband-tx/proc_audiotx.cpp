@@ -23,9 +23,84 @@
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
+#include "audio_output.hpp"
+#include "lfsr_random.hpp"
 
 #include <cstdint>
 
-void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
+uint32_t lfsr(uint32_t v) {
 
+	enum {
+		length         = 31,
+		tap_0          = 31,
+		tap_1          = 18,
+		shift_amount_0 = 12,
+		shift_amount_1 = 12,
+		shift_amount_2 =  8
+	};
+
+	const lfsr_word_t zero = 0;
+	v = (
+		(
+			v << shift_amount_0
+		) | (
+			(
+				(v >> (tap_0 - shift_amount_0)) ^
+				(v >> (tap_1 - shift_amount_0))
+			) & (
+				~(~zero << shift_amount_0)
+			)
+		)
+	);
+	v = (
+		(
+			v << shift_amount_1
+		) | (
+			(
+				(v >> (tap_0 - shift_amount_1)) ^
+				(v >> (tap_1 - shift_amount_1))
+			) & (
+				~(~zero << shift_amount_1)
+			)
+		)
+	);
+	v = (
+		(
+			v << shift_amount_2
+		) | (
+			(
+				(v >> (tap_0 - shift_amount_2)) ^
+				(v >> (tap_1 - shift_amount_2))
+			) & (
+				~(~zero << shift_amount_2)
+			)
+		)
+	);
+	
+	return v;
+}
+
+void AudioTXProcessor::execute(const buffer_c8_t& buffer){
+	
+	for (size_t i = 0; i<buffer.count; i++) {
+		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*127);	//(int8_t)lfsr(sample + i);
+
+		if (bc & 0x40)
+			aphase += 60000;
+		else
+			aphase += 90000;
+			
+		//FM
+		frq = sample * 2500;
+		
+		phase = (phase + frq);
+		sphase = phase + (256<<16);
+
+		re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
+		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+		
+		buffer.p[i] = {(int8_t)re,(int8_t)im};
+	}
+	
+	bc++;
 }

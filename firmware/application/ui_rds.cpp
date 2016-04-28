@@ -148,8 +148,7 @@ RDSView::RDSView(
 	} });
 	
 	button_setpsn.on_select = [this,&nav](Button&){
-		auto an_view = new AlphanumView { nav, psname, 8 };
-		nav.push(an_view);
+		nav.push<AlphanumView>(psname, 8);
 	};
 	
 	button_transmit.on_select = [&transmitter_model](Button&){

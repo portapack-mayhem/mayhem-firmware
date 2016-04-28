@@ -22,16 +22,9 @@
 #ifndef __MATCHED_FILTER_H__
 #define __MATCHED_FILTER_H__
 
-#include "utility.hpp"
-
 #include <cstddef>
-
 #include <complex>
-#include <array>
 #include <memory>
-
-#include <algorithm>
-#include <numeric>
 
 namespace dsp {
 namespace matched_filter {
@@ -61,11 +54,7 @@ public:
 		const T& taps,
 		size_t decimation_factor
 	) {
-		samples_ = std::make_unique<samples_t>(taps.size());
-		taps_reversed_ = std::make_unique<taps_t>(taps.size());
-		taps_count_ = taps.size();
-		decimation_factor_ = decimation_factor;
-		std::reverse_copy(taps.cbegin(), taps.cend(), &taps_reversed_[0]);
+		configure(taps.data(), taps.size(), decimation_factor);
  	}
 
 	bool execute_once(const sample_t input);
@@ -82,7 +71,7 @@ private:
 	size_t taps_count_ { 0 };
 	size_t decimation_factor_ { 1 };
 	size_t decimation_phase { 0 };
-	float output;
+	float output { 0 };
 
 	void shift_by_decimation_factor();
 
@@ -93,6 +82,12 @@ private:
 	bool is_new_decimation_cycle() const {
 		return (decimation_phase == 0);
 	}
+
+	void configure(
+		const tap_t* const taps,
+		const size_t taps_count,
+		const size_t decimation_factor
+	);
 };
 
 } /* namespace matched_filter */

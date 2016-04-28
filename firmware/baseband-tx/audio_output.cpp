@@ -46,7 +46,7 @@ void AudioOutput::write(
 ) {
 	std::array<float, 32> audio_f;
 	for(size_t i=0; i<audio.count; i++) {
-		audio_f[i] = audio.p[i];
+		audio_f[i] = audio.p[i] * ki;
 	}
 	write(buffer_f32_t {
 		audio_f.data(),
@@ -58,6 +58,17 @@ void AudioOutput::write(
 void AudioOutput::write(
 	const buffer_f32_t& audio
 ) {
+	block_buffer.feed(
+		audio,
+		[this](const buffer_f32_t& buffer) {
+			this->on_block(buffer);
+		}
+	);
+}
+
+void AudioOutput::on_block(
+	const buffer_f32_t& audio
+) {
 	const auto audio_present_now = squelch.execute(audio);
 
 	hpf.execute_in_place(audio);
@@ -66,24 +77,27 @@ void AudioOutput::write(
 	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
 	const bool audio_present = (audio_present_history != 0);
 	
-	if( audio_present ) {
-		i2s::i2s0::tx_unmute();
-	} else {
-		i2s::i2s0::tx_mute();
+	if( !audio_present ) {
 		for(size_t i=0; i<audio.count; i++) {
 			audio.p[i] = 0;
 		}
 	}
 
-	fill_audio_buffer(audio);
+	fill_audio_buffer(audio, audio_present);
 }
 
-void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio) {
+void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo) {
+	std::array<int16_t, 32> audio_int;
+
 	auto audio_buffer = audio::dma::tx_empty_buffer();
 	for(size_t i=0; i<audio_buffer.count; i++) {
-		const int32_t sample_int = audio.p[i];
+		const int32_t sample_int = audio.p[i] * k;
 		const int32_t sample_saturated = __SSAT(sample_int, 16);
 		audio_buffer.p[i].left = audio_buffer.p[i].right = sample_saturated;
+		audio_int[i] = sample_saturated;
+	}
+	if( send_to_fifo ) {
+		stream.write(audio_int.data(), audio_buffer.count * sizeof(audio_int[0]));
 	}
 
 	feed_audio_stats(audio);

@@ -23,14 +23,17 @@
 #include "proc_playaudio.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
+#include "audio_output.hpp"
 
 #include <cstdint>
 
-// This is diry :(
-void PlayAudioProcessor::fill_buffer(int8_t * inptr) {
-	memcpy(&audio_fifo[fifo_put], inptr, 1024);
-	fifo_put = (fifo_put + 1024) & 0x0FFF;
-	asked = false;
+void PlayAudioProcessor::on_message(const Message* const msg) {
+	if (msg->id == Message::ID::FIFOData) {
+		const auto message = static_cast<const FIFODataMessage*>(msg);
+		memcpy(&audio_fifo[fifo_put], message->data, 1024);
+		fifo_put = (fifo_put + 1024) & 0x0FFF;
+		asked = false;
+	}
 }
 
 void PlayAudioProcessor::execute(const buffer_c8_t& buffer){
@@ -69,5 +72,5 @@ void PlayAudioProcessor::execute(const buffer_c8_t& buffer){
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
 	
-	//fill_audio_buffer(preview_audio_buffer);
+	//AudioOutput::fill_audio_buffer(preview_audio_buffer, true);
 }

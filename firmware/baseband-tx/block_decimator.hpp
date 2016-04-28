@@ -29,7 +29,7 @@
 #include "dsp_types.hpp"
 #include "complex.hpp"
 
-template<size_t N>
+template<typename T, size_t N>
 class BlockDecimator {
 public:
 	constexpr BlockDecimator(
@@ -65,7 +65,7 @@ public:
 	}
 
 	template<typename BlockCallback>
-	void feed(const buffer_c16_t src, BlockCallback callback) {
+	void feed(const buffer_t<T>& src, BlockCallback callback) {
 		/* NOTE: Input block size must be >= factor */
 
 		set_input_sampling_rate(src.sampling_rate);
@@ -85,7 +85,7 @@ public:
 	}
 
 private:
-	std::array<complex16_t, N> buffer;
+	std::array<T, N> buffer;
 	uint32_t input_sampling_rate_ { 0 };
 	size_t factor_ { 1 };
 	size_t src_i { 0 };

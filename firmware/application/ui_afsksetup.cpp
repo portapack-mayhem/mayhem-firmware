@@ -104,11 +104,10 @@ AFSKSetupView::AFSKSetupView(
 	field_repeat.set_value(rpt);
 	
 	button_setfreq.on_select = [this,&nav](Button&){
-		auto new_view = new FrequencyKeypadView { nav, transmitter_model.tuning_frequency() };
+		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			updfreq(f);
 		};
-		nav.push(new_view);
 	};
 	
 	if (portapack::persistent_memory::afsk_bitrate() == 1200) {

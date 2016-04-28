@@ -19,39 +19,51 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "dsp_iir.hpp"
+#include "ui.hpp"
+#include "ui_widget.hpp"
+#include "ui_painter.hpp"
+#include "ui_menu.hpp"
+#include "ui_navigation.hpp"
+#include "ui_font_fixed_8x16.hpp"
+#include "clock_manager.hpp"
+#include "message.hpp"
+#include "rf_path.hpp"
+#include "max2837.hpp"
+#include "volume.hpp"
+#include "ui_receiver.hpp"
+#include "transmitter_model.hpp"
 
-#include <hal.h>
-
-void IIRBiquadFilter::configure(const iir_biquad_config_t& new_config) {
-	config = new_config;
-}
-
-void IIRBiquadFilter::execute(const buffer_f32_t& buffer_in, const buffer_f32_t& buffer_out) {
-	const auto a_ = config.a;
-	const auto b_ = config.b;
+namespace ui {
 	
-	auto x_ = x;
-	auto y_ = y;
+class AudioTXView : public View {
+public:
+	AudioTXView(NavigationView& nav);
+	~AudioTXView();
 
-	// TODO: Assert that buffer_out.count == buffer_in.count.
-	for(size_t i=0; i<buffer_out.count; i++) {
-		x_[0] = x_[1];
-		x_[1] = x_[2];
-		x_[2] = buffer_in.p[i];
 
-		y_[0] = y_[1];
-		y_[1] = y_[2];
-		y_[2] = b_[0] * x_[2] + b_[1] * x_[1] + b_[2] * x_[0]
-		                      - a_[1] * y_[1] - a_[2] * y_[0];
+	void focus() override;
 
-		buffer_out.p[i] = y_[2];
-	}
+private:
+	void on_tuning_frequency_changed(rf::Frequency f);
+	
+	FrequencyField field_frequency {
+		{ 5 * 8, 3 * 16 },
+	};
+	
+	Text text_title {
+		{ 76, 64, 88, 16 },
+		"Audio TX"
+	};
+	
+	Button button_transmit {
+		{ 72, 130, 96, 32 },
+		"Transmit"
+	};
+	
+	Button button_exit {
+		{ 72, 270, 96, 32 },
+		"Exit"
+	};
+};
 
-	x = x_;
-	y = y_;
-}
-
-void IIRBiquadFilter::execute_in_place(const buffer_f32_t& buffer) {
-	execute(buffer, buffer);
-}
+} /* namespace ui */

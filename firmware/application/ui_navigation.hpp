@@ -93,7 +93,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "PortaPack";
+	static constexpr auto default_title = "PortaPack|Havoc";
 	static constexpr auto back_text_enabled = " < ";
 	static constexpr auto back_text_disabled = " * ";
 

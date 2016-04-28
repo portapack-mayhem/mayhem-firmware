@@ -32,7 +32,7 @@ namespace ui {
 
 class LoadModuleView : public View {
 public:
-	LoadModuleView(NavigationView& nav, const char * hash, View * new_view);
+	LoadModuleView(NavigationView& nav, const char * hash, uint8_t ViewID);
 	void loadmodule();
 	
 	void on_show() override;

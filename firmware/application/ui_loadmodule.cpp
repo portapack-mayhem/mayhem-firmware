@@ -32,6 +32,12 @@
 #include "hackrf_hal.hpp"
 #include "string_format.hpp"
 
+#include "ui_rds.hpp"
+#include "ui_xylos.hpp"
+#include "ui_lcr.hpp"
+#include "ui_audiotx.hpp"
+#include "ui_debug.hpp"
+
 #include <cstring>
 #include <stdio.h>
 
@@ -60,6 +66,8 @@ void LoadModuleView::on_show() {
 	for (c=0; c<16; c++) {
 		if (md5_signature[c] != _hash[c]) break;
 	}
+	//text_info.set(to_string_hex(*((unsigned int*)0x10087FF0), 8));
+	
 	if (c == 16) {
 		text_info.set("Module already loaded :)");
 		_mod_loaded = true;
@@ -128,8 +136,6 @@ void LoadModuleView::loadmodule() {
 		[this](Message* const p) {
 			(void)p;*/
 			if (load_image()) {
-				text_info.set(to_string_hex(*((unsigned int*)0x10080000),8));
-				//text_infob.set(to_string_hex(*((unsigned int*)0x10080004),8));
 				text_infob.set("Module loaded :)");
 				_mod_loaded = true;
 			} else {
@@ -144,7 +150,7 @@ void LoadModuleView::loadmodule() {
 LoadModuleView::LoadModuleView(
 	NavigationView& nav,
 	const char * hash,
-	View* new_view
+	uint8_t ViewID
 )
 {
 	add_children({ {
@@ -155,9 +161,15 @@ LoadModuleView::LoadModuleView(
 	
 	_hash = hash;
 	
-	button_ok.on_select = [this,&nav,new_view](Button&){
-		//nav.pop();
-		if (_mod_loaded == true) nav.push(new_view);
+	button_ok.on_select = [this, &nav, ViewID](Button&){
+		if (_mod_loaded == true) {
+			if (ViewID == 0) nav.push<RDSView>();
+			if (ViewID == 1) nav.push<XylosView>();
+			if (ViewID == 2) nav.push<LCRView>();
+			if (ViewID == 3) nav.push<AudioTXView>();
+		} else {
+			nav.pop();
+		}
 	};
 }
 
