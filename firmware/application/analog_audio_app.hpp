@@ -150,7 +150,7 @@ private:
 	};
 
 	Text text_record_filename {
-		{ 3 * 8, 2 * 16, 12 * 8, 16 },
+		{ 3 * 8, 2 * 16, 8 * 8, 16 },
 		"",
 	};
 

@@ -316,13 +316,13 @@ void AnalogAudioView::on_record() {
 }
 
 void AnalogAudioView::record_start() {
-	const auto filename = next_filename_matching_pattern("AUD_????.S16");
-	text_record_filename.set(filename);
-	if( filename.empty() ) {
+	const auto filename_stem = next_filename_stem_matching_pattern("AUD_????");
+	text_record_filename.set(filename_stem);
+	if( filename_stem.empty() ) {
 		return;
 	}
 
-	capture_thread = std::make_unique<CaptureThread>(filename, 12, 2);
+	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".S16", 12, 2);
 	button_record.set_bitmap(&bitmap_stop);
 }
 

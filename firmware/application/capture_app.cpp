@@ -115,14 +115,14 @@ void CaptureAppView::on_record() {
 		capture_thread.reset();
 		button_record.set_bitmap(&bitmap_record);
 	} else {
-		const auto filename = next_filename_matching_pattern("BBD_????.C16");
-		text_record_filename.set(filename);
+		const auto filename_stem = next_filename_stem_matching_pattern("BBD_????");
+		text_record_filename.set(filename_stem);
 		text_record_dropped.set("");
-		if( filename.empty() ) {
+		if( filename_stem.empty() ) {
 			return;
 		}
 
-		capture_thread = std::make_unique<CaptureThread>(filename, 14, 1);
+		capture_thread = std::make_unique<CaptureThread>(filename_stem + ".C16", 14, 1);
 		button_record.set_bitmap(&bitmap_stop);
 	}
 }

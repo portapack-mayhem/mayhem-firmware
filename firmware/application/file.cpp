@@ -94,21 +94,15 @@ static std::string find_last_file_matching_pattern(const std::string& pattern) {
 	return last_match;
 }
 
-static std::string increment_filename_ordinal(const std::string& filename) {
-	std::string result { filename };
+static std::string remove_filename_extension(const std::string& filename) {
+	const auto extension_index = filename.find_last_of('.');
+	return filename.substr(0, extension_index);
+}
+
+static std::string increment_filename_stem_ordinal(const std::string& filename_stem) {
+	std::string result { filename_stem };
 
 	auto it = result.rbegin();
-
-	// Back up past extension.
-	for(; it != result.rend(); ++it) {
-		if( *it == '.' ) {
-			++it;
-			break;
-		}
-	}
-	if( it == result.rend() ) {
-		return { };
-	}
 
 	// Increment decimal number before the extension.
 	for(; it != result.rend(); ++it) {
@@ -128,15 +122,16 @@ static std::string increment_filename_ordinal(const std::string& filename) {
 	return result;
 }
 
-std::string next_filename_matching_pattern(const std::string& filename_pattern) {
-	auto filename = find_last_file_matching_pattern(filename_pattern);
-	if( filename.empty() ) {
-		filename = filename_pattern;
-		std::replace(std::begin(filename), std::end(filename), '?', '0');
+std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern) {
+	const auto filename = find_last_file_matching_pattern(filename_stem_pattern + ".*");
+	auto filename_stem = remove_filename_extension(filename);
+	if( filename_stem.empty() ) {
+		filename_stem = filename_stem_pattern;
+		std::replace(std::begin(filename_stem), std::end(filename_stem), '?', '0');
 	} else {
-		filename = increment_filename_ordinal(filename);
+		filename_stem = increment_filename_stem_ordinal(filename_stem);
 	}
-	return filename;
+	return filename_stem;
 }
 
 namespace std {
