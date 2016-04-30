@@ -71,11 +71,11 @@ private:
 class CaptureThread {
 public:
 	CaptureThread(
-		std::string file_path,
+		std::unique_ptr<File> file,
 		size_t write_size_log2,
 		size_t buffer_count_log2
 	) : config { write_size_log2, buffer_count_log2 },
-		file_path { std::move(file_path) }
+		file { std::move(file) }
 	{
 		// Need significant stack for FATFS
 		thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, CaptureThread::static_fn, this);
@@ -109,7 +109,7 @@ public:
 
 private:
 	CaptureConfig config;
-	const std::string file_path;
+	std::unique_ptr<File> file;
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
@@ -118,11 +118,6 @@ private:
 	}
 
 	msg_t run() {
-		File file { file_path, File::openmode::out | File::openmode::binary | File::openmode::trunc };
-		if( !file.is_open() ) {
-			return false;
-		}
-
 		const size_t write_size = 1U << config.write_size_log2;
 		const auto write_buffer = std::make_unique<uint8_t[]>(write_size);
 		if( !write_buffer ) {
@@ -133,7 +128,7 @@ private:
 
 		while( !chThdShouldTerminate() ) {
 			if( stream.available() >= write_size ) {
-				if( !transfer(stream, file, write_buffer.get(), write_size) ) {
+				if( !transfer(stream, write_buffer.get(), write_size) ) {
 					return false; 
 				}
 			} else {
@@ -144,14 +139,14 @@ private:
 		return true;
 	}
 
-	bool transfer(StreamOutput& stream, File& file, uint8_t* const write_buffer, const size_t write_size) {
+	bool transfer(StreamOutput& stream, uint8_t* const write_buffer, const size_t write_size) {
 		bool success = false;
 
 		led_usb.on();
 
 		const auto bytes_to_write = stream.read(write_buffer, write_size);
 		if( bytes_to_write == write_size ) {
-			if( file.write(write_buffer, write_size) ) {
+			if( file->write(write_buffer, write_size) ) {
 				success = true;
 			}
 		}
