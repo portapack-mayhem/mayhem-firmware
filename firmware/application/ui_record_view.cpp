@@ -96,9 +96,8 @@ void RecordView::start() {
 	write_metadata_file(filename_stem + ".TXT");
 
 	capture_thread = std::make_unique<CaptureThread>(
-		std::make_unique<File>(
-			filename_stem + filename_extension,
-			File::openmode::out | File::openmode::binary | File::openmode::trunc
+		std::make_unique<RawFileWriter>(
+			filename_stem + filename_extension
 		),
 		buffer_size_k, buffer_count_k
 	);

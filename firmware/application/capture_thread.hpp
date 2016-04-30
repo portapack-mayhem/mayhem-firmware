@@ -35,6 +35,27 @@ using namespace hackrf::one;
 
 #include <cstring>
 
+class Writer {
+public:
+	virtual bool write(const void* const write_buffer, const size_t write_size) = 0;
+};
+
+class RawFileWriter : public Writer {
+public:
+	RawFileWriter(
+		const std::string& filename
+	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
+	{
+	}
+
+	bool write(const void* const write_buffer, const size_t write_size) override {
+		return file.write(write_buffer, write_size);
+	}
+
+private:
+	File file;
+};
+
 class StreamOutput {
 public:
 	StreamOutput(
@@ -71,11 +92,11 @@ private:
 class CaptureThread {
 public:
 	CaptureThread(
-		std::unique_ptr<File> file,
+		std::unique_ptr<Writer> writer,
 		size_t write_size_log2,
 		size_t buffer_count_log2
 	) : config { write_size_log2, buffer_count_log2 },
-		file { std::move(file) }
+		writer { std::move(writer) }
 	{
 		// Need significant stack for FATFS
 		thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, CaptureThread::static_fn, this);
@@ -109,7 +130,7 @@ public:
 
 private:
 	CaptureConfig config;
-	std::unique_ptr<File> file;
+	std::unique_ptr<Writer> writer;
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
@@ -146,7 +167,7 @@ private:
 
 		const auto bytes_to_write = stream.read(write_buffer, write_size);
 		if( bytes_to_write == write_size ) {
-			if( file->write(write_buffer, write_size) ) {
+			if( writer->write(write_buffer, write_size) ) {
 				success = true;
 			}
 		}
