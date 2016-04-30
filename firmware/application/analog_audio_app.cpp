@@ -30,6 +30,8 @@ using namespace portapack;
 
 #include "utility.hpp"
 
+#include "string_format.hpp"
+
 namespace ui {
 
 /* AMOptionsView *********************************************************/
@@ -322,6 +324,8 @@ void AnalogAudioView::record_start() {
 		return;
 	}
 
+	write_metadata_file(filename_stem + ".TXT");
+
 	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".S16", 12, 2);
 	button_record.set_bitmap(&bitmap_stop);
 }
@@ -329,6 +333,24 @@ void AnalogAudioView::record_start() {
 void AnalogAudioView::record_stop() {
 	capture_thread.reset();
 	button_record.set_bitmap(&bitmap_record);
+}
+
+void AnalogAudioView::write_metadata_file(const std::string& filename) {
+	// TODO: This doesn't belong here! There's a better way.
+	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
+	size_t sampling_rate = 0;
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:				sampling_rate = 12000; break;
+	case ReceiverModel::Mode::NarrowbandFMAudio:	sampling_rate = 24000; break;
+	case ReceiverModel::Mode::WidebandFMAudio:		sampling_rate = 48000; break;
+	default:
+		return;
+	}
+
+	File file;
+	file.open_for_writing(filename);
+	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
+	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
 }
 
 } /* namespace ui */

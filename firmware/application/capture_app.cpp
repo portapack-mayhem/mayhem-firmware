@@ -130,6 +130,8 @@ void CaptureAppView::record_start() {
 		return;
 	}
 
+	write_metadata_file(filename_stem + ".TXT");
+
 	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".C16", 14, 1);
 	button_record.set_bitmap(&bitmap_stop);
 }
@@ -137,6 +139,13 @@ void CaptureAppView::record_start() {
 void CaptureAppView::record_stop() {
 	capture_thread.reset();
 	button_record.set_bitmap(&bitmap_record);
+}
+
+void CaptureAppView::write_metadata_file(const std::string& filename) {
+	File file;
+	file.open_for_writing(filename);
+	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
+	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
 }
 
 void CaptureAppView::on_tick_second() {

@@ -64,6 +64,7 @@ private:
 	bool is_recording() const;
 	void record_start();
 	void record_stop();
+	void write_metadata_file(const std::string& filename);
 
 	void on_tick_second();
 
