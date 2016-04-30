@@ -136,7 +136,7 @@ AISLogger::AISLogger(
 
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
-	if( log_file.is_ready() ) {
+	if( log_file.is_open() ) {
 		std::string entry;
 		entry.reserve((packet.length() + 3) / 4);
 

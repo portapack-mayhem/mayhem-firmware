@@ -110,7 +110,6 @@ public:
 private:
 	CaptureConfig config;
 	const std::string file_path;
-	File file;
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
@@ -119,7 +118,8 @@ private:
 	}
 
 	msg_t run() {
-		if( !file.open_for_writing(file_path) ) {
+		File file { file_path, File::openmode::out | File::openmode::binary | File::openmode::trunc };
+		if( !file.is_open() ) {
 			return false;
 		}
 
@@ -133,7 +133,7 @@ private:
 
 		while( !chThdShouldTerminate() ) {
 			if( stream.available() >= write_size ) {
-				if( !transfer(stream, write_buffer.get(), write_size) ) {
+				if( !transfer(stream, file, write_buffer.get(), write_size) ) {
 					return false; 
 				}
 			} else {
@@ -144,7 +144,7 @@ private:
 		return true;
 	}
 
-	bool transfer(StreamOutput& stream, uint8_t* const write_buffer, const size_t write_size) {
+	bool transfer(StreamOutput& stream, File& file, uint8_t* const write_buffer, const size_t write_size) {
 		bool success = false;
 
 		led_usb.on();

@@ -107,8 +107,7 @@ void RecordView::stop() {
 }
 
 void RecordView::write_metadata_file(const std::string& filename) {
-	File file;
-	file.open_for_writing(filename);
+	File file { filename, File::openmode::out | File::openmode::trunc };
 	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
 	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
 }

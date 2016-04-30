@@ -51,9 +51,8 @@ static constexpr std::array<uint8_t, 12> png_iend { {
 
 PNGWriter::PNGWriter(
 	const std::string& filename
-)
+) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
 {
-	file.open_for_writing(filename);
 	file.write(png_file_header);
 	file.write(png_ihdr_screen_capture);
 	

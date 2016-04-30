@@ -32,14 +32,21 @@
 
 class File {
 public:
+	enum openmode {
+		app = 0x100,
+		binary = 0x200,
+		in = FA_READ,
+		out = FA_WRITE,
+		trunc = FA_CREATE_ALWAYS,
+		ate = FA_OPEN_ALWAYS,
+	};
+
+	File(const std::string& filename, openmode mode);
 	~File();
 
-	bool open_for_writing(const std::string& file_path);
-	bool open_for_reading(const std::string& file_path);
-	bool open_for_append(const std::string& file_path);
-	bool close();
-
-	bool is_ready();
+	bool is_open() const {
+		return f_error(&f) == 0;
+	}
 
 	bool read(void* const data, const size_t bytes_to_read);
 	bool write(const void* const data, const size_t bytes_to_write);
@@ -56,6 +63,10 @@ public:
 private:
 	FIL f;
 };
+
+inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
+	return File::openmode(static_cast<int>(a) | static_cast<int>(b));
+}
 
 std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
 

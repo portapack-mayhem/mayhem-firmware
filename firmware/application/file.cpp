@@ -23,40 +23,32 @@
 
 #include <algorithm>
 
-File::~File() {
-	close();
-}
-
-bool File::open_for_writing(const std::string& file_path) {
-	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
-	return (open_result == FR_OK);
-}
-
-bool File::open_for_reading(const std::string& file_path) {
-	const auto open_result = f_open(&f, file_path.c_str(), FA_READ | FA_OPEN_EXISTING);
-	return (open_result == FR_OK);
-}
-
-bool File::open_for_append(const std::string& file_path) {
-	if( open_for_writing(file_path) ) {
-		const auto seek_result = f_lseek(&f, f_size(&f));
-		if( seek_result == FR_OK ) {
-			return true;
-		} else {
-			close();
-		}
+File::File(const std::string& filename, openmode mode) {
+	BYTE fatfs_mode = 0;
+	if( mode & openmode::in ) {
+		fatfs_mode |= FA_READ;
+	}
+	if( mode & openmode::out ) {
+		fatfs_mode |= FA_WRITE;
+	}
+	if( mode & openmode::trunc ) {
+		fatfs_mode |= FA_CREATE_ALWAYS;
+	}
+	if( mode & openmode::ate ) {
+		fatfs_mode |= FA_OPEN_ALWAYS;
 	}
 
-	return false;
+	if( f_open(&f, filename.c_str(), fatfs_mode) == FR_OK ) {
+		if( mode & openmode::ate ) {
+			if( f_lseek(&f, f_size(&f)) != FR_OK ) {
+				f_close(&f);
+			}
+		}
+	}
 }
 
-bool File::close() {
+File::~File() {
 	f_close(&f);
-	return true;
-}
-
-bool File::is_ready() {
-	return f_error(&f) == 0;
 }
 
 bool File::read(void* const data, const size_t bytes_to_read) {

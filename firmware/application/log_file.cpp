@@ -23,28 +23,14 @@
 
 #include "string_format.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 LogFile::LogFile(
 	const std::string& file_path
-) : file_path { file_path }
+) : file { file_path, File::openmode::out | File::openmode::ate }
 {
-	file.open_for_append(file_path);
-
-	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
-		this->on_sd_card_status(status);
-	};
 }
 
-LogFile::~LogFile() {
-	sd_card::status_signal -= sd_card_status_signal_token;
-
-	file.close();
-}
-
-bool LogFile::is_ready() {
-	return file.is_ready();
+bool LogFile::is_open() const {
+	return file.is_open();
 }
 
 bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
@@ -54,12 +40,4 @@ bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
 
 bool LogFile::write(const std::string& message) {
 	return file.puts(message) && file.sync();
-}
-
-void LogFile::on_sd_card_status(const sd_card::Status status) {
-	if( status == sd_card::Status::Mounted ) {
-		file.open_for_append(file_path);
-	} else {
-		file.close();		
-	}
 }

@@ -62,7 +62,7 @@ TPMSLogger::TPMSLogger(
 void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
 	const auto hex_formatted = packet.symbols_formatted();
 
-	if( log_file.is_ready() ) {
+	if( log_file.is_open() ) {
 		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
 		const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
 
