@@ -99,7 +99,7 @@ public:
 		writer { std::move(writer) }
 	{
 		// Need significant stack for FATFS
-		thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, CaptureThread::static_fn, this);
+		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, CaptureThread::static_fn, this);
 	}
 
 	~CaptureThread() {
