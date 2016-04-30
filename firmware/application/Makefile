@@ -167,6 +167,7 @@ CPPSRC = main.cpp \
          ui_sd_card_debug.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
+         ui_record_view.cpp \
          ui_spectrum.cpp \
          recent_entries.cpp \
          receiver_model.cpp \

@@ -24,25 +24,16 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-#include "file.hpp"
-#include "time.hpp"
-
-#include "utility.hpp"
-
-#include "string_format.hpp"
-
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	add_children({ {
-		&button_record,
 		&rssi,
 		&channel,
 		&field_frequency,
 		&field_lna,
 		&field_vga,
-		&text_record_filename,
-		&text_record_dropped,
+		&record_view,
 		&waterfall,
 	} });
 
@@ -70,10 +61,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		this->on_vga_changed(v_db);
 	};
 
-	button_record.on_select = [this](ImageButton&) {
-		this->on_record();
-	};
-	
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(ReceiverModel::Mode::Capture),
 		.sampling_rate = sampling_rate,
@@ -82,13 +69,10 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
 	receiver_model.enable();
 
-	signal_token_tick_second = time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
+	record_view.set_sampling_rate(sampling_rate / 8);
 }
 
 CaptureAppView::~CaptureAppView() {
-	time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 }
 
@@ -107,53 +91,7 @@ void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void CaptureAppView::focus() {
-	button_record.focus();
-}
-
-bool CaptureAppView::is_recording() const {
-	return (bool)capture_thread;
-}
-
-void CaptureAppView::on_record() {
-	if( is_recording() ) {
-		record_stop();
-	} else {
-		record_start();
-	}
-}
-
-void CaptureAppView::record_start() {
-	const auto filename_stem = next_filename_stem_matching_pattern("BBD_????");
-	text_record_filename.set(filename_stem);
-	text_record_dropped.set("");
-	if( filename_stem.empty() ) {
-		return;
-	}
-
-	write_metadata_file(filename_stem + ".TXT");
-
-	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".C16", 14, 1);
-	button_record.set_bitmap(&bitmap_stop);
-}
-
-void CaptureAppView::record_stop() {
-	capture_thread.reset();
-	button_record.set_bitmap(&bitmap_record);
-}
-
-void CaptureAppView::write_metadata_file(const std::string& filename) {
-	File file;
-	file.open_for_writing(filename);
-	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
-	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
-}
-
-void CaptureAppView::on_tick_second() {
-	if( capture_thread ) {
-		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
-		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
-		text_record_dropped.set(s);
-	}
+	record_view.focus();
 }
 
 void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {

@@ -25,12 +25,8 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
-
-#include "bitmap.hpp"
-
-#include "capture_thread.hpp"
-#include "signal.hpp"
 
 #include <string>
 #include <memory>
@@ -56,38 +52,9 @@ private:
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	std::unique_ptr<CaptureThread> capture_thread;
-
-	SignalToken signal_token_tick_second;
-
-	void on_record();
-	bool is_recording() const;
-	void record_start();
-	void record_stop();
-	void write_metadata_file(const std::string& filename);
-
-	void on_tick_second();
-
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-
-	ImageButton button_record {
-		{ 0 * 8, 2 * 16, 2 * 8, 1 * 16 },
-		&bitmap_record,
-		Color::red(),
-		Color::black()
-	};
-
-	Text text_record_filename {
-		{ 3 * 8, 2 * 16, 8 * 8, 16 },
-		"",
-	};
-
-	Text text_record_dropped {
-		{ 16 * 8, 2 * 16, 3 * 8, 16 },
-		"",
-	};
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -107,6 +74,11 @@ private:
 
 	VGAGainField field_vga {
 		{ 18 * 8, 0 * 16 }
+	};
+
+	RecordView record_view {
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		"BBD_????", ".C16", 14, 1,
 	};
 
 	spectrum::WaterfallWidget waterfall;

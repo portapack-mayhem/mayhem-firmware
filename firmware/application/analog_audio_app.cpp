@@ -86,8 +86,7 @@ AnalogAudioView::AnalogAudioView(
 		&field_vga,
 		&options_modulation,
 		&field_volume,
-		&button_record,
-		&text_record_filename,
+		&record_view,
 		&waterfall,
 	} });
 
@@ -140,10 +139,6 @@ AnalogAudioView::AnalogAudioView(
 		this->on_headphone_volume_changed(v);
 	};
 
-	button_record.on_select = [this](ImageButton&) {
-		this->on_record();
-	};
-	
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
@@ -289,7 +284,7 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
-	record_stop();
+	record_view.stop();
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
@@ -300,57 +295,20 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
 
-	if( !is_wideband_spectrum_mode ) {
-		audio::output::unmute();
-	}
-}
-
-bool AnalogAudioView::is_recording() const {
-	return (bool)capture_thread;
-}
-
-void AnalogAudioView::on_record() {
-	if( is_recording() ) {
-		record_stop();
-	} else {
-		record_start();
-	}
-}
-
-void AnalogAudioView::record_start() {
-	const auto filename_stem = next_filename_stem_matching_pattern("AUD_????");
-	text_record_filename.set(filename_stem);
-	if( filename_stem.empty() ) {
-		return;
-	}
-
-	write_metadata_file(filename_stem + ".TXT");
-
-	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".S16", 12, 2);
-	button_record.set_bitmap(&bitmap_stop);
-}
-
-void AnalogAudioView::record_stop() {
-	capture_thread.reset();
-	button_record.set_bitmap(&bitmap_record);
-}
-
-void AnalogAudioView::write_metadata_file(const std::string& filename) {
 	// TODO: This doesn't belong here! There's a better way.
-	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	size_t sampling_rate = 0;
 	switch(modulation) {
 	case ReceiverModel::Mode::AMAudio:				sampling_rate = 12000; break;
 	case ReceiverModel::Mode::NarrowbandFMAudio:	sampling_rate = 24000; break;
 	case ReceiverModel::Mode::WidebandFMAudio:		sampling_rate = 48000; break;
 	default:
-		return;
+		break;
 	}
+	record_view.set_sampling_rate(sampling_rate);
 
-	File file;
-	file.open_for_writing(filename);
-	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
-	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
+	if( !is_wideband_spectrum_mode ) {
+		audio::output::unmute();
+	}
 }
 
 } /* namespace ui */
