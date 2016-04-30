@@ -110,21 +110,33 @@ void CaptureAppView::focus() {
 	button_record.focus();
 }
 
-void CaptureAppView::on_record() {
-	if( capture_thread ) {
-		capture_thread.reset();
-		button_record.set_bitmap(&bitmap_record);
-	} else {
-		const auto filename_stem = next_filename_stem_matching_pattern("BBD_????");
-		text_record_filename.set(filename_stem);
-		text_record_dropped.set("");
-		if( filename_stem.empty() ) {
-			return;
-		}
+bool CaptureAppView::is_recording() const {
+	return (bool)capture_thread;
+}
 
-		capture_thread = std::make_unique<CaptureThread>(filename_stem + ".C16", 14, 1);
-		button_record.set_bitmap(&bitmap_stop);
+void CaptureAppView::on_record() {
+	if( is_recording() ) {
+		record_stop();
+	} else {
+		record_start();
 	}
+}
+
+void CaptureAppView::record_start() {
+	const auto filename_stem = next_filename_stem_matching_pattern("BBD_????");
+	text_record_filename.set(filename_stem);
+	text_record_dropped.set("");
+	if( filename_stem.empty() ) {
+		return;
+	}
+
+	capture_thread = std::make_unique<CaptureThread>(filename_stem + ".C16", 14, 1);
+	button_record.set_bitmap(&bitmap_stop);
+}
+
+void CaptureAppView::record_stop() {
+	capture_thread.reset();
+	button_record.set_bitmap(&bitmap_record);
 }
 
 void CaptureAppView::on_tick_second() {

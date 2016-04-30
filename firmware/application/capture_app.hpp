@@ -61,6 +61,10 @@ private:
 	SignalToken signal_token_tick_second;
 
 	void on_record();
+	bool is_recording() const;
+	void record_start();
+	void record_stop();
+
 	void on_tick_second();
 
 	void on_tuning_frequency_changed(rf::Frequency f);
