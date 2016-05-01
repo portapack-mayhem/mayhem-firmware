@@ -37,7 +37,7 @@ using namespace hackrf::one;
 
 class Writer {
 public:
-	virtual bool write(const void* const write_buffer, const size_t write_size) = 0;
+	virtual bool write(const void* const buffer, const size_t bytes) = 0;
 };
 
 class RawFileWriter : public Writer {
@@ -48,8 +48,8 @@ public:
 	{
 	}
 
-	bool write(const void* const write_buffer, const size_t write_size) override {
-		return file.write(write_buffer, write_size);
+	bool write(const void* const buffer, const size_t bytes) override {
+		return file.write(buffer, bytes);
 	}
 
 private:
