@@ -51,6 +51,8 @@ public:
 	bool read(void* const data, const size_t bytes_to_read);
 	bool write(const void* const data, const size_t bytes_to_write);
 
+	uint64_t seek(const uint64_t new_position);
+
 	template<size_t N>
 	bool write(const std::array<uint8_t, N>& data) {
 		return write(data.data(), N);

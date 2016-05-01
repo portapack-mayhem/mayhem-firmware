@@ -63,6 +63,17 @@ bool File::write(const void* const data, const size_t bytes_to_write) {
 	return (result == FR_OK) && (bytes_written == bytes_to_write);
 }
 
+uint64_t File::seek(const uint64_t new_position) {
+	const auto old_position = f_tell(&f);
+	if( f_lseek(&f, new_position) != FR_OK ) {
+		f_close(&f);
+	}
+	if( f_tell(&f) != new_position ) {
+		f_close(&f);
+	}
+	return old_position;
+}
+
 bool File::puts(const std::string& string) {
 	const auto result = f_puts(string.c_str(), &f);
 	return (result >= 0);
