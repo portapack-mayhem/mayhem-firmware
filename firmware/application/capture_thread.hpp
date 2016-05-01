@@ -38,6 +38,7 @@ using namespace hackrf::one;
 class Writer {
 public:
 	virtual bool write(const void* const buffer, const size_t bytes) = 0;
+	virtual ~Writer() { };
 };
 
 class RawFileWriter : public Writer {
