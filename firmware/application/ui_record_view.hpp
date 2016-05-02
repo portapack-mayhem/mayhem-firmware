@@ -29,6 +29,8 @@
 
 #include "bitmap.hpp"
 
+#include <cstddef>
+#include <string>
 #include <memory>
 
 namespace ui {
