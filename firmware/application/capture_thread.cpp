@@ -23,9 +23,6 @@
 
 #include "portapack_shared_memory.hpp"
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
-
 // StreamOutput ///////////////////////////////////////////////////////////
 
 class StreamOutput {
@@ -85,12 +82,8 @@ CaptureThread::~CaptureThread() {
 	if( thread ) {
 		chThdTerminate(thread);
 		chEvtSignal(thread, EVT_MASK_CAPTURE_THREAD);
-		const auto success = chThdWait(thread);
+		chThdWait(thread);
 		thread = nullptr;
-
-		if( !success ) {
-			led_tx.on();
-		}
 	}
 }
 
