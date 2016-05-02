@@ -35,12 +35,12 @@ namespace ui {
 RecordView::RecordView(
 	const Rect parent_rect,
 	std::string filename_stem_pattern,
-	std::string filename_extension,
+	const FileType file_type,
 	const size_t buffer_size_k,
 	const size_t buffer_count_k
 ) : View { parent_rect },
 	filename_stem_pattern { filename_stem_pattern },
-	filename_extension { filename_extension },
+	file_type { file_type },
 	buffer_size_k { buffer_size_k },
 	buffer_count_k { buffer_count_k }
 {
@@ -93,15 +93,33 @@ void RecordView::start() {
 		return;
 	}
 
-	write_metadata_file(filename_stem + ".TXT");
+	std::unique_ptr<Writer> writer;
+	switch(file_type) {
+	case FileType::WAV:
+		writer = std::make_unique<WAVFileWriter>(
+			filename_stem + ".WAV",
+			sampling_rate
+		);
+		break;
 
-	capture_thread = std::make_unique<CaptureThread>(
-		std::make_unique<RawFileWriter>(
-			filename_stem + filename_extension
-		),
-		buffer_size_k, buffer_count_k
-	);
-	button_record.set_bitmap(&bitmap_stop);
+	case FileType::RawS16:
+		write_metadata_file(filename_stem + ".TXT");
+		writer = std::make_unique<RawFileWriter>(
+			filename_stem + ".C16"
+		);
+		break;
+
+	default:
+		break;
+	};
+
+	if( writer ) {
+		capture_thread = std::make_unique<CaptureThread>(
+			std::move(writer),
+			buffer_size_k, buffer_count_k
+		);
+		button_record.set_bitmap(&bitmap_stop);
+	}
 }
 
 void RecordView::stop() {

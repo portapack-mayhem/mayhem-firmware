@@ -78,7 +78,7 @@ private:
 
 	RecordView record_view {
 		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		"BBD_????", ".C16", 14, 1,
+		"BBD_????", RecordView::FileType::RawS16, 14, 1,
 	};
 
 	spectrum::WaterfallWidget waterfall;

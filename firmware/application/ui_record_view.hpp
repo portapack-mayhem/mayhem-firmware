@@ -35,10 +35,15 @@ namespace ui {
 
 class RecordView : public View {
 public:
+	enum FileType {
+		RawS16 = 2,
+		WAV = 3,
+	};
+
 	RecordView(
 		const Rect parent_rect,
 		std::string filename_stem_pattern,
-		std::string filename_extension,
+		FileType file_type,
 		const size_t buffer_size_k,
 		const size_t buffer_count_k
 	);
@@ -65,7 +70,7 @@ private:
 	void on_tick_second();
 
 	const std::string filename_stem_pattern;
-	const std::string filename_extension;
+	const FileType file_type;
 	const size_t buffer_size_k;
 	const size_t buffer_count_k;
 	size_t sampling_rate { 0 };
