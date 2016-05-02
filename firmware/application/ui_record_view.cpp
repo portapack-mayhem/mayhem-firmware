@@ -82,13 +82,14 @@ void RecordView::toggle() {
 void RecordView::start() {
 	stop();
 
+	text_record_filename.set("");
+	text_record_dropped.set("");
+
 	if( sampling_rate == 0 ) {
 		return;
 	}
 
 	const auto filename_stem = next_filename_stem_matching_pattern(filename_stem_pattern);
-	text_record_filename.set(filename_stem);
-	text_record_dropped.set("");
 	if( filename_stem.empty() ) {
 		return;
 	}
@@ -114,11 +115,12 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
+		text_record_filename.set(filename_stem);
+		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
 			buffer_size_k, buffer_count_k
 		);
-		button_record.set_bitmap(&bitmap_stop);
 	}
 }
 
