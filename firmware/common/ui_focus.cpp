@@ -85,67 +85,78 @@ static void widget_collect_visible(Widget* const w, TestFn test, test_collection
 	}
 }
 
+static int32_t rect_distances(
+	const KeyEvent direction,
+	const Rect& rect_start,
+	const Rect& rect_end
+) {
+	Coord on_axis_max, on_axis_min;
+
+	switch(direction) {
+	case KeyEvent::Right:
+		on_axis_max = rect_end.left();
+		on_axis_min = rect_start.right();
+		break;
+
+	case KeyEvent::Left:
+		on_axis_max = rect_start.left();
+		on_axis_min = rect_end.right();
+		break;
+
+	case KeyEvent::Down:
+		on_axis_max = rect_end.top();
+		on_axis_min = rect_start.bottom();
+		break;
+
+	case KeyEvent::Up:
+		on_axis_max = rect_start.top();
+		on_axis_min = rect_end.bottom();
+		break;
+
+	default:
+		return -1;
+	}
+
+	Coord on_axis_distance = on_axis_max - on_axis_min;
+	if( on_axis_distance < 0 ) {
+		return -1;
+	}
+
+	Coord perpendicular_axis_start, perpendicular_axis_end;
+
+	switch(direction) {
+	case KeyEvent::Right:
+	case KeyEvent::Left:
+		perpendicular_axis_start = rect_start.center().y;
+		perpendicular_axis_end = rect_end.center().y;
+		break;
+
+	case KeyEvent::Up:
+	case KeyEvent::Down:
+		perpendicular_axis_start = rect_start.center().x;
+		perpendicular_axis_end = rect_end.center().x;
+		break;
+
+	default:
+		return -1;
+	}
+
+	return (std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) * (on_axis_distance + 1);
+}
+
 void FocusManager::update(
 	Widget* const top_widget,
 	const KeyEvent event
 ) {
 	if( focus_widget() ) {
 		const auto focus_screen_rect = focus_widget()->screen_rect();
-		const auto center = focus_screen_rect.center();
 
-		const auto test_fn = [&center, event](ui::Widget* const w) -> test_result_t {
+		const auto test_fn = [&focus_screen_rect, event](ui::Widget* const w) -> test_result_t {
 			// if( w->visible() && w->focusable() ) {
 			if( w->focusable() ) {
-				const Point delta = w->screen_rect().center() - center;
-
-				/* Heuristic to compute closeness. */
-				/* TODO: Look at metric involving overlap of current
-				 * widget rectangle in the direction of movement, with
-				 * all the prospective widgets.
-				 */
-				switch(event) {
-				case KeyEvent::Right:
-					if( delta.x > 0 ) {
-						if( delta.y == 0 ) {
-							return { w, delta.x };
-						} else {
-							return { w, delta.x * abs(delta.y) + 1000 };
-						}
-					}
-					break;
-
-				case KeyEvent::Left:
-					if( delta.x < 0 ) {
-						if( delta.y == 0 ) {
-							return { w, -delta.x };
-						} else {
-							return { w, -delta.x * abs(delta.y) + 1000 };
-						}
-					}
-					break;
-
-				case KeyEvent::Down:
-					if( delta.y > 0 ) {
-						if( delta.x == 0 ) {
-							return { w, delta.y };
-						} else {
-							return { w, delta.y * abs(delta.x) + 1000 };
-						}
-					}
-					break;
-
-				case KeyEvent::Up:
-					if( delta.y < 0 ) {
-						if( delta.x == 0 ) {
-							return { w, -delta.y };
-						} else {
-							return { w, -delta.y * abs(delta.x) + 1000 };
-						}
-					}
-					break;
-
-				default:
-					break;
+				const auto distance = rect_distances(event, focus_screen_rect, w->screen_rect());
+				if( distance >= 0 ) {
+					return { w, distance };
 				}
 			}
 
@@ -167,34 +178,5 @@ void FocusManager::update(
 		}
 	}
 }
-#if 0
-void FocusManager::update(
-	Widget* const top_widget,
-	const TouchEvent event
-) {
-	const auto test_fn = [event](Widget* const w) -> test_result_t {
-		if( w->focusable() ) {
-			const auto r = w->screen_rect();
-			if( r.contains(event) ) {
-				return { w, 0 };
-			}
-		}
 
-		return { nullptr, { } };
-	};
-
-	test_collection_t collection;
-	widget_collect_visible(
-		top_widget, test_fn,
-		collection
-	);
-
-	if( !collection.empty() ) {
-		// Take the last object in the collection, it will be rendered last,
-		// therefore appear "on top".
-		const auto touched = collection.back().first;
-		touched->on_touch(event);
-	}
-}
-#endif
 } /* namespace ui */
