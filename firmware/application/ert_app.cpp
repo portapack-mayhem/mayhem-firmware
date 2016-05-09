@@ -66,7 +66,7 @@ ERTLogger::ERTLogger(
 }
 
 void ERTLogger::on_packet(const ert::Packet& packet) {
-	if( log_file.is_ready() ) {
+	if( log_file.is_open() ) {
 		const auto formatted = packet.symbols_formatted();
 		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 	}

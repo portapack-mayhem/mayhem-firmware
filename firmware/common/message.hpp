@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <array>
 #include <functional>
+#include <algorithm>
 
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
@@ -61,13 +62,15 @@ public:
 		ChannelSpectrumConfig = 14,
 		SpectrumStreamingConfig = 15,
 		DisplaySleep = 16,
-		TXDone = 17,
-		Retune = 18,
-		ReadyForSwitch = 19,
-		AFSKData = 20,
-		ModuleID = 21,
-		FIFOSignal = 22,
-		FIFOData = 23,
+		CaptureConfig = 17,
+		
+		TXDone = 20,
+		Retune = 21,
+		ReadyForSwitch = 22,
+		AFSKData = 23,
+		ModuleID = 24,
+		FIFOSignal = 25,
+		FIFOData = 26,
 		MAX
 	};
 
@@ -414,6 +417,46 @@ public:
 	const fir_taps_complex<64> channel_filter;
 	const Modulation modulation;
 	const iir_biquad_config_t audio_hpf_config;
+};
+
+struct CaptureConfig {
+	const size_t write_size_log2;
+	const size_t buffer_count_log2;
+	uint64_t baseband_bytes_received;
+	uint64_t baseband_bytes_dropped;
+	FIFO<uint8_t>* fifo;
+
+	constexpr CaptureConfig(
+		const size_t write_size_log2,
+		const size_t buffer_count_log2
+	) : write_size_log2 { write_size_log2 },
+		buffer_count_log2 { buffer_count_log2 },
+		baseband_bytes_received { 0 },
+		baseband_bytes_dropped { 0 },
+		fifo { nullptr }
+	{
+	}
+
+	size_t dropped_percent() const {
+		if( baseband_bytes_dropped == 0 ) {
+			return 0;
+		} else {
+			const size_t percent = baseband_bytes_dropped * 100U / baseband_bytes_received;
+			return std::max(1U, percent);
+		}
+	}
+};
+
+class CaptureConfigMessage : public Message {
+public:
+	constexpr CaptureConfigMessage(
+		CaptureConfig* const config
+	) : Message { ID::CaptureConfig },
+		config { config }
+	{
+	}
+
+	CaptureConfig* const config;
 };
 
 class TXDoneMessage : public Message {

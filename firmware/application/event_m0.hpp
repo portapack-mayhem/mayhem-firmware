@@ -28,6 +28,7 @@
 #include "ui_painter.hpp"
 
 #include "portapack.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "message.hpp"
 
@@ -43,6 +44,7 @@ constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
 constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
 constexpr auto EVT_MASK_APPLICATION		= EVENT_MASK(6);
+constexpr auto EVT_MASK_CAPTURE_THREAD	= EVENT_MASK(7);
 
 class EventDispatcher {
 public:
@@ -56,6 +58,12 @@ public:
 	void request_stop();
 
 	void set_display_sleep(const bool sleep);
+
+	static inline void check_fifo_isr() {
+		if( !shared_memory.application_queue.is_empty() ) {
+			events_flag_isr(EVT_MASK_APPLICATION);
+		}
+	}
 
 	static inline void events_flag(const eventmask_t events) {
 		if( thread_event_loop ) {
@@ -73,8 +81,6 @@ public:
 		return message_map_;
 	}
 
-	static Thread* thread_record;
-	
 private:
 	static MessageHandlerMap message_map_;
 	static Thread* thread_event_loop;

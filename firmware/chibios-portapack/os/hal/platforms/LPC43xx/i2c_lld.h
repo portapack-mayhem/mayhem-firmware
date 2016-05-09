@@ -170,10 +170,6 @@ struct I2CDriver {
    */
   size_t                    txbytes;
   /**
-   * @brief   Current index in buffer when sending data.
-   */
-  size_t                    txidx;
-  /**
    * @brief   Pointer to the buffer to put received data.
    */
   uint8_t                   *rxbuf;
@@ -181,10 +177,6 @@ struct I2CDriver {
    * @brief   Number of bytes of data to receive.
    */
   size_t                    rxbytes;
-  /**
-   * @brief   Current index in buffer when receiving data.
-   */
-  size_t                    rxidx;
   /**
    * @brief     Pointer to the I2Cx registers block.
    */

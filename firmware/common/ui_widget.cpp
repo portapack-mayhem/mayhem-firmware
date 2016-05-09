@@ -38,7 +38,7 @@ Size Widget::size() const {
 	return parent_rect.size;
 }
 
-Rect Widget::screen_rect() {
+Rect Widget::screen_rect() const {
 	return parent() ? (parent_rect + parent()->screen_pos()) : parent_rect;
 }
 

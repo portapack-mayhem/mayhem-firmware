@@ -187,15 +187,15 @@ static void i2c_lld_abort_operation(I2CDriver *i2cp) {
 }
 
 static bool_t i2c_lld_tx_not_done(I2CDriver *i2cp) {
-  return i2cp->txidx < i2cp->txbytes;
+  return i2cp->txbytes > 0;
 }
 
 static bool_t i2c_lld_rx_not_done(I2CDriver *i2cp) {
-  return i2cp->rxbuf && i2cp->rxbytes;
+  return i2cp->rxbytes > 0;
 }
 
 static bool_t i2c_lld_rx_last_byte(I2CDriver *i2cp) {
-  return i2cp->rxidx == (i2cp->rxbytes - 1);
+  return i2cp->rxbytes == 1;
 }
 
 /**
@@ -249,7 +249,8 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
   case I2C_MASTER_TX_DATA_ACK:    /* 0x28 */
     if (i2c_lld_tx_not_done(i2cp)) {
       //i2c_periph_transmit_byte(dp, i2cp->txbuf[i2cp->txidx++]);
-      dp->DAT = i2cp->txbuf[i2cp->txidx++];
+      dp->DAT = *i2cp->txbuf++;
+      i2cp->txbytes--;
       dp->CONCLR = I2C_CONCLR_SIC;
     } else {
       if (i2c_lld_rx_not_done(i2cp)) {
@@ -266,7 +267,8 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
     break;
 
   case I2C_MASTER_RX_DATA_ACK:    /* 0x50 */
-    i2cp->rxbuf[i2cp->rxidx++] = i2c_periph_read_byte(dp);
+    *i2cp->rxbuf++ = i2c_periph_read_byte(dp);
+    i2cp->rxbytes--;
     /* fall through */
   case I2C_MASTER_RX_ADDR_ACK:    /* 0x40 */
     if (i2c_lld_rx_last_byte(i2cp)) {
@@ -277,7 +279,8 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
     break;
 
   case I2C_MASTER_RX_DATA_NACK:   /* 0x58 */
-    i2cp->rxbuf[i2cp->rxidx] = i2c_periph_read_byte(dp);
+    *i2cp->rxbuf++ = i2c_periph_read_byte(dp);
+    i2cp->rxbytes--;
     i2c_periph_stop(dp);
     wakeup_isr(i2cp, RDY_OK);
     /* fall through */
@@ -474,10 +477,8 @@ static msg_t i2c_lld_master_start(I2CDriver *i2cp, uint_fast8_t addr_r,
   i2cp->addr_r = addr_r;
   i2cp->txbuf = txbuf;
   i2cp->txbytes = txbytes;
-  i2cp->txidx = 0;
   i2cp->rxbuf = rxbuf;
   i2cp->rxbytes = rxbytes;
-  i2cp->rxidx = 0;
 
   /* Atomic check on the timer in order to make sure that a timeout didn't
      happen outside the critical zone.*/

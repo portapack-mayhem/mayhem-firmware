@@ -580,6 +580,11 @@ void sdc_lld_start(SDCDriver *sdcp) {
     sdio_reset();
     sdio_reset_card();
 
+    // UM10503 recommendation
+    LPC_SCU->SDDELAY =
+        (0x8 << 0)
+      | (0xf << 8)
+      ;
     LPC_SDMMC->CTRL =
         (1U <<  4)  /* INT_ENABLE */
       | (1U << 25)  /* USE_INTERNAL_DMAC */

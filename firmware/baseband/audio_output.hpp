@@ -32,6 +32,7 @@
 #include "audio_stats_collector.hpp"
 
 #include <cstdint>
+#include <memory>
 
 class AudioOutput {
 public:
@@ -44,6 +45,10 @@ public:
 	void write(const buffer_s16_t& audio);
 	void write(const buffer_f32_t& audio);
 
+	void set_stream(std::unique_ptr<StreamInput> new_stream) {
+		stream = std::move(new_stream);
+	}
+
 private:
 	static constexpr float k = 32768.0f;
 	static constexpr float ki = 1.0f / k;
@@ -54,7 +59,7 @@ private:
 	IIRBiquadFilter deemph;
 	FMSquelch squelch;
 
-	StreamInput stream { 14 };
+	std::unique_ptr<StreamInput> stream;
 
 	AudioStatsCollector audio_stats;
 

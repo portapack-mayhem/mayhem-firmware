@@ -19,41 +19,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_AUDIO_H__
-#define __UI_AUDIO_H__
+#ifndef __TIME_H__
+#define __TIME_H__
 
-#include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "signal.hpp"
 
-#include "message.hpp"
+namespace time {
 
-#include <cstdint>
+extern Signal<> signal_tick_second;
 
-namespace ui {
+void on_tick_second();
 
-class Audio : public Widget {
-public:
-	Audio(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		rms_db_ { -120 },
-		max_db_ { -120 }
-	{
-	}
+} /* namespace time */
 
-	void on_show() override;
-	void on_hide() override;
-
-	void paint(Painter& painter) override;
-
-private:
-	int32_t rms_db_;
-	int32_t max_db_;
-
-	void on_statistics_update(const AudioStatistics& statistics);
-};
-
-}
-
-#endif/*__UI_AUDIO_H__*/
+#endif/*__TIME_H__*/

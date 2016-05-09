@@ -26,8 +26,7 @@
 
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
-
-#include "audio_thread.hpp"
+#include "ui_record_view.hpp"
 
 #include "ui_font_fixed_8x16.hpp"
 
@@ -93,7 +92,7 @@ public:
 	void focus() override;
 
 private:
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 3 * 16;
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 
@@ -142,9 +141,12 @@ private:
 
 	std::unique_ptr<Widget> options_widget;
 
-	spectrum::WaterfallWidget waterfall;
+	RecordView record_view {
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		"AUD_????", RecordView::FileType::WAV, 12, 2,
+	};
 
-	std::unique_ptr<AudioThread> audio_thread;
+	spectrum::WaterfallWidget waterfall;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

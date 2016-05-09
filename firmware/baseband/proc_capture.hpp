@@ -41,7 +41,8 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
-	static constexpr size_t baseband_fs = 2457600;
+	// TODO: Repeated value needs to be transmitted from application side.
+	static constexpr size_t baseband_fs = 4000000;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
 	std::array<complex16_t, 512> dst;
@@ -60,6 +61,8 @@ private:
 	SpectrumCollector channel_spectrum;
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
+
+	void capture_config(const CaptureConfigMessage& message);
 };
 
 #endif/*__PROC_CAPTURE_HPP__*/

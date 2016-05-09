@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,41 +19,49 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_AUDIO_H__
-#define __UI_AUDIO_H__
+#ifndef __CAPTURE_THREAD_H__
+#define __CAPTURE_THREAD_H__
 
-#include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "ch.h"
 
-#include "message.hpp"
+#include "event_m0.hpp"
 
 #include <cstdint>
+#include <cstddef>
+#include <utility>
 
-namespace ui {
-
-class Audio : public Widget {
+class Writer {
 public:
-	Audio(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		rms_db_ { -120 },
-		max_db_ { -120 }
-	{
-	}
-
-	void on_show() override;
-	void on_hide() override;
-
-	void paint(Painter& painter) override;
-
-private:
-	int32_t rms_db_;
-	int32_t max_db_;
-
-	void on_statistics_update(const AudioStatistics& statistics);
+	virtual bool write(const void* const buffer, const size_t bytes) = 0;
+	virtual ~Writer() = default;
 };
 
-}
+class CaptureThread {
+public:
+	CaptureThread(
+		std::unique_ptr<Writer> writer,
+		size_t write_size_log2,
+		size_t buffer_count_log2
+	);
+	~CaptureThread();
 
-#endif/*__UI_AUDIO_H__*/
+	const CaptureConfig& state() const {
+		return config;
+	}
+
+	static void check_fifo_isr();
+
+private:
+	CaptureConfig config;
+	std::unique_ptr<Writer> writer;
+	static Thread* thread;
+
+	static msg_t static_fn(void* arg) {
+		auto obj = static_cast<CaptureThread*>(arg);
+		return obj->run();
+	}
+
+	msg_t run();
+};
+
+#endif/*__CAPTURE_THREAD_H__*/

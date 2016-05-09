@@ -68,6 +68,7 @@ private:
 
 	bool configured { false };
 	void configure(const WFMConfigureMessage& message);
+	void capture_config(const CaptureConfigMessage& message);
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/

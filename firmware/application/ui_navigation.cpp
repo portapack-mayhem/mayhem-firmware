@@ -90,12 +90,12 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_camera() {
-	const auto filename = next_filename_matching_pattern("SCR_????.PNG");
-	if( filename.empty() ) {
+	const auto filename_stem = next_filename_stem_matching_pattern("SCR_????");
+	if( filename_stem.empty() ) {
 		return;
 	}
 
-	PNGWriter png { filename };
+	PNGWriter png { filename_stem + ".PNG" };
 
 	for(int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;

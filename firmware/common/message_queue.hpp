@@ -27,9 +27,6 @@
 #include "message.hpp"
 #include "fifo.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include <ch.h>
 
 class MessageQueue {
@@ -73,6 +70,10 @@ public:
 		}
 	}
 
+	bool is_empty() const {
+		return fifo.is_empty();
+	}
+
 private:
 	FIFO<uint8_t> fifo;
 	Mutex mutex_write;
@@ -95,10 +96,6 @@ private:
 		return fifo.len();
 	}
 
-	bool is_empty() const {
-		return fifo.is_empty();
-	}
-
 	bool push(const void* const buf, const size_t len) {
 		chMtxLock(&mutex_write);
 		const auto result = fifo.in_r(buf, len);
@@ -111,18 +108,7 @@ private:
 		return success;
 	}
 
-
-#if defined(LPC43XX_M0)
-	void signal() {
-		creg::m0apptxevent::assert();
-	}
-#endif
-
-#if defined(LPC43XX_M4)
-	void signal() {
-		creg::m4txevent::assert();
-	}
-#endif
+	void signal();
 };
 
 #endif/*__MESSAGE_QUEUE_H__*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,6 +19,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "audio_thread.hpp"
+#include "time.hpp"
 
-Thread* AudioThread::thread = nullptr;
+namespace time {
+
+Signal<> signal_tick_second;
+
+void on_tick_second() {
+	signal_tick_second.emit();
+}
+
+} /* namespace time */

@@ -25,60 +25,13 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
-
-#include "audio_thread.hpp"
 
 #include <string>
 #include <memory>
 
 namespace ui {
-
-static constexpr uint8_t bitmap_record_data[] = {
-	0x00, 0x00,
-	0x00, 0x00,
-	0xc0, 0x03,
-	0xf0, 0x0f,
-	0xf8, 0x1f,
-	0xf8, 0x1f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xf8, 0x1f,
-	0xf8, 0x1f,
-	0xf0, 0x0f,
-	0xc0, 0x03,
-	0x00, 0x00,
-	0x00, 0x00,
-};
-
-static constexpr Bitmap bitmap_record {
-	{ 16, 16 }, bitmap_record_data
-};
-
-static constexpr uint8_t bitmap_stop_data[] = {
-	0x00, 0x00,
-	0x00, 0x00,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0xfc, 0x3f,
-	0x00, 0x00,
-	0x00, 0x00,
-};
-
-static constexpr Bitmap bitmap_stop {
-	{ 16, 16 }, bitmap_stop_data
-};
 
 class CaptureAppView : public View {
 public:
@@ -94,25 +47,14 @@ public:
 	std::string title() const override { return "Capture"; };
 
 private:
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 3 * 16;
 
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	std::unique_ptr<AudioThread> capture_thread;
-
-	void on_start_stop();
-
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-
-	ImageButton button_start_stop {
-		{ 0 * 8, 0, 2 * 8, 1 * 16 },
-		&bitmap_record,
-		Color::red(),
-		Color::black()
-	};
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -132,6 +74,11 @@ private:
 
 	VGAGainField field_vga {
 		{ 18 * 8, 0 * 16 }
+	};
+
+	RecordView record_view {
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		"BBD_????", RecordView::FileType::RawS16, 14, 1,
 	};
 
 	spectrum::WaterfallWidget waterfall;

@@ -32,18 +32,12 @@
 
 class StreamInput {
 public:
-	StreamInput(const size_t K) :
+	StreamInput(const size_t K, CaptureConfig& config) :
 		K { K },
 		data { std::make_unique<uint8_t[]>(1UL << K) },
 		fifo { data.get(), K }
 	{
-		// TODO: Send stream creation message.
-		shared_memory.FIFO_HACK = &fifo;
-	}
-
-	~StreamInput() {
-		// TODO: Send stream distruction message.
-		shared_memory.FIFO_HACK = nullptr;
+		config.fifo = &fifo;
 	}
 
 	size_t write(const void* const data, const size_t length) {

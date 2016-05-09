@@ -30,6 +30,8 @@ using namespace portapack;
 
 #include "utility.hpp"
 
+#include "string_format.hpp"
+
 namespace ui {
 
 /* AMOptionsView *********************************************************/
@@ -84,6 +86,7 @@ AnalogAudioView::AnalogAudioView(
 		&field_vga,
 		&options_modulation,
 		&field_volume,
+		&record_view,
 		&waterfall,
 	} });
 
@@ -208,6 +211,8 @@ void AnalogAudioView::remove_options_widget() {
 }
 
 void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+	remove_options_widget();
+
 	if( new_widget ) {
 		options_widget = std::move(new_widget);
 		add_child(options_widget.get());
@@ -215,11 +220,6 @@ void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 }
 
 void AnalogAudioView::on_show_options_frequency() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
-
-	field_frequency.set_style(&style_options_group);
-
 	auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_step(receiver_model.frequency_step());
@@ -232,14 +232,10 @@ void AnalogAudioView::on_show_options_frequency() {
 	};
 
 	set_options_widget(std::move(widget));
+	field_frequency.set_style(&style_options_group);
 }
 
 void AnalogAudioView::on_show_options_rf_gain() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
-
-	field_lna.set_style(&style_options_group);
-
 	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
 
 	widget->set_rf_amp(receiver_model.rf_amp());
@@ -248,23 +244,28 @@ void AnalogAudioView::on_show_options_rf_gain() {
 	};
 
 	set_options_widget(std::move(widget));
+	field_lna.set_style(&style_options_group);
 }
 
 void AnalogAudioView::on_show_options_modulation() {
-	// TODO: This approach of managing options views is error-prone and unsustainable!
-	remove_options_widget();
+	std::unique_ptr<Widget> widget;
 
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
-	if( modulation == ReceiverModel::Mode::AMAudio ) {
-		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
-		set_options_widget(std::move(widget));
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:
+		widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
+		break;
+
+	case ReceiverModel::Mode::NarrowbandFMAudio:
+		widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
+		break;
+
+	default:
+		break;
 	}
-	if( modulation == ReceiverModel::Mode::NarrowbandFMAudio ) {
-		options_modulation.set_style(&style_options_group);
-		auto widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
-		set_options_widget(std::move(widget));
-	}
+
+	set_options_widget(std::move(widget));
+	options_modulation.set_style(&style_options_group);
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
@@ -283,7 +284,7 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
-	audio_thread.reset();
+	record_view.stop();
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({
@@ -294,11 +295,18 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
 
+	// TODO: This doesn't belong here! There's a better way.
+	size_t sampling_rate = 0;
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:				sampling_rate = 12000; break;
+	case ReceiverModel::Mode::NarrowbandFMAudio:	sampling_rate = 24000; break;
+	case ReceiverModel::Mode::WidebandFMAudio:		sampling_rate = 48000; break;
+	default:
+		break;
+	}
+	record_view.set_sampling_rate(sampling_rate);
+
 	if( !is_wideband_spectrum_mode ) {
-		const auto filename = next_filename_matching_pattern("AUD_????.S16");
-		if( !filename.empty() ) {
-			audio_thread = std::make_unique<AudioThread>(filename);
-		}
 		audio::output::unmute();
 	}
 }

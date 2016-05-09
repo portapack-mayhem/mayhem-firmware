@@ -22,16 +22,17 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
-#include "portapack_persistent_memory.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "sd_card.hpp"
+#include "time.hpp"
 
 #include "message.hpp"
 #include "message_queue.hpp"
 
 #include "irq_controls.hpp"
 
-#include "audio_thread.hpp"
+#include "capture_thread.hpp"
 
 #include "ch.h"
 
@@ -46,8 +47,8 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	AudioThread::check_fifo_isr();
-	EventDispatcher::events_flag_isr(EVT_MASK_APPLICATION);
+	CaptureThread::check_fifo_isr();
+	EventDispatcher::check_fifo_isr();
 	chSysUnlockFromIsr();
 
 	creg::m4txevent::clear();
@@ -132,6 +133,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 			handle_lcd_frame_sync();
 		}
 
+		if( events & EVT_MASK_ENCODER ) {
+			handle_encoder();
+		}
+
 		if( events & EVT_MASK_TOUCH ) {
 			handle_touch();
 		}
@@ -158,6 +163,8 @@ void EventDispatcher::handle_rtc_tick() {
 		else
 			portapack::bl_tick_counter++;
 	}
+
+	time::on_tick_second();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {
@@ -278,6 +285,4 @@ void EventDispatcher::init_message_queues() {
 	new (&shared_memory.application_queue) MessageQueue(
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
 	);
-
-	shared_memory.FIFO_HACK = nullptr;
 }

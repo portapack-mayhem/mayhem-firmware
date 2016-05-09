@@ -110,9 +110,23 @@ void init() {
 	}
 
 	/* Configure other pins */
+	/* Glitch filter operates at 3ns instead of 50ns due to the WM8731
+	 * returning an ACK very fast (170ns) and confusing the I2C state
+	 * machine into thinking there was a bus error. It looks like the
+	 * MCU sees SDA fall before SCL falls, indicating a START at the
+	 * point an ACK is expected. With the glitch filter off or set to
+	 * 3ns, it's probably still a bit tight timing-wise, but improves
+	 * reliability on some problem units.
+	 */
 	LPC_SCU->SFSI2C0 =
-		  (1U <<  3)
-		| (1U << 11)
+		  (1U <<  0)	// SCL: 3ns glitch
+		| (0U <<  2)	// SCL: Standard/Fast mode
+		| (1U <<  3)	// SCL: Input enabled
+		| (0U <<  7)	// SCL: Enable input glitch filter
+		| (1U <<  8)	// SDA: 3ns glitch
+		| (0U << 10)	// SDA: Standard/Fast mode
+		| (1U << 11)	// SDA: Input enabled
+		| (0U << 15)	// SDA: Enable input glitch filter
 		;
 
 	power.init();

@@ -84,7 +84,7 @@ private:
 
 class TemperatureWidget : public Widget {
 public:
-	explicit constexpr TemperatureWidget(
+	explicit TemperatureWidget(
 		Rect parent_rect
 	) : Widget { parent_rect }
 	{

@@ -175,6 +175,7 @@ CPPSRC = main.cpp \
          ui_sd_card_debug.cpp \
          ui_console.cpp \
          ui_receiver.cpp \
+         ui_record_view.cpp \
          ui_spectrum.cpp \
          ui_loadmodule.cpp \
          ui_afskrx.cpp \
@@ -196,10 +197,11 @@ CPPSRC = main.cpp \
          ../common/ert_packet.cpp \
          capture_app.cpp \
          sd_card.cpp \
+         time.cpp \
          file.cpp \
          log_file.cpp \
          png_writer.cpp \
-         audio_thread.cpp \
+         capture_thread.cpp \
          manchester.cpp \
          string_format.cpp \
          temperature_logger.cpp \

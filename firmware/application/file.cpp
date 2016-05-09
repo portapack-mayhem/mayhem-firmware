@@ -23,40 +23,32 @@
 
 #include <algorithm>
 
-File::~File() {
-	close();
-}
-
-bool File::open_for_writing(const std::string& file_path) {
-	const auto open_result = f_open(&f, file_path.c_str(), FA_WRITE | FA_OPEN_ALWAYS);
-	return (open_result == FR_OK);
-}
-
-bool File::open_for_reading(const std::string& file_path) {
-	const auto open_result = f_open(&f, file_path.c_str(), FA_READ | FA_OPEN_EXISTING);
-	return (open_result == FR_OK);
-}
-
-bool File::open_for_append(const std::string& file_path) {
-	if( open_for_writing(file_path) ) {
-		const auto seek_result = f_lseek(&f, f_size(&f));
-		if( seek_result == FR_OK ) {
-			return true;
-		} else {
-			close();
-		}
+File::File(const std::string& filename, openmode mode) {
+	BYTE fatfs_mode = 0;
+	if( mode & openmode::in ) {
+		fatfs_mode |= FA_READ;
+	}
+	if( mode & openmode::out ) {
+		fatfs_mode |= FA_WRITE;
+	}
+	if( mode & openmode::trunc ) {
+		fatfs_mode |= FA_CREATE_ALWAYS;
+	}
+	if( mode & openmode::ate ) {
+		fatfs_mode |= FA_OPEN_ALWAYS;
 	}
 
-	return false;
+	if( f_open(&f, filename.c_str(), fatfs_mode) == FR_OK ) {
+		if( mode & openmode::ate ) {
+			if( f_lseek(&f, f_size(&f)) != FR_OK ) {
+				f_close(&f);
+			}
+		}
+	}
 }
 
-bool File::close() {
+File::~File() {
 	f_close(&f);
-	return true;
-}
-
-bool File::is_ready() {
-	return f_error(&f) == 0;
 }
 
 bool File::read(void* const data, const size_t bytes_to_read) {
@@ -69,6 +61,17 @@ bool File::write(const void* const data, const size_t bytes_to_write) {
 	UINT bytes_written = 0;
 	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
 	return (result == FR_OK) && (bytes_written == bytes_to_write);
+}
+
+uint64_t File::seek(const uint64_t new_position) {
+	const auto old_position = f_tell(&f);
+	if( f_lseek(&f, new_position) != FR_OK ) {
+		f_close(&f);
+	}
+	if( f_tell(&f) != new_position ) {
+		f_close(&f);
+	}
+	return old_position;
 }
 
 bool File::puts(const std::string& string) {
@@ -94,21 +97,15 @@ static std::string find_last_file_matching_pattern(const std::string& pattern) {
 	return last_match;
 }
 
-static std::string increment_filename_ordinal(const std::string& filename) {
-	std::string result { filename };
+static std::string remove_filename_extension(const std::string& filename) {
+	const auto extension_index = filename.find_last_of('.');
+	return filename.substr(0, extension_index);
+}
+
+static std::string increment_filename_stem_ordinal(const std::string& filename_stem) {
+	std::string result { filename_stem };
 
 	auto it = result.rbegin();
-
-	// Back up past extension.
-	for(; it != result.rend(); ++it) {
-		if( *it == '.' ) {
-			++it;
-			break;
-		}
-	}
-	if( it == result.rend() ) {
-		return { };
-	}
 
 	// Increment decimal number before the extension.
 	for(; it != result.rend(); ++it) {
@@ -128,15 +125,16 @@ static std::string increment_filename_ordinal(const std::string& filename) {
 	return result;
 }
 
-std::string next_filename_matching_pattern(const std::string& filename_pattern) {
-	auto filename = find_last_file_matching_pattern(filename_pattern);
-	if( filename.empty() ) {
-		filename = filename_pattern;
-		std::replace(std::begin(filename), std::end(filename), '?', '0');
+std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern) {
+	const auto filename = find_last_file_matching_pattern(filename_stem_pattern + ".*");
+	auto filename_stem = remove_filename_extension(filename);
+	if( filename_stem.empty() ) {
+		filename_stem = filename_stem_pattern;
+		std::replace(std::begin(filename_stem), std::end(filename_stem), '?', '0');
 	} else {
-		filename = increment_filename_ordinal(filename);
+		filename_stem = increment_filename_stem_ordinal(filename_stem);
 	}
-	return filename;
+	return filename_stem;
 }
 
 namespace std {

@@ -51,12 +51,12 @@ private:
 
 class Widget {
 public:
-	constexpr Widget(
+	Widget(
 	) : parent_rect { }
 	{
 	}
 
-	constexpr Widget(
+	Widget(
 		Rect parent_rect
 	) : parent_rect { parent_rect }
 	{
@@ -69,7 +69,7 @@ public:
 
 	Point screen_pos();
 	Size size() const;
-	Rect screen_rect();
+	Rect screen_rect() const;
 	virtual void set_parent_rect(const Rect new_parent_rect);
 
 	Widget* parent() const;

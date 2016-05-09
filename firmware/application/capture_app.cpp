@@ -24,20 +24,16 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-#include "file.hpp"
-
-#include "utility.hpp"
-
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	add_children({ {
-		&button_start_stop,
 		&rssi,
 		&channel,
 		&field_frequency,
 		&field_lna,
 		&field_vga,
+		&record_view,
 		&waterfall,
 	} });
 
@@ -65,10 +61,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		this->on_vga_changed(v_db);
 	};
 
-	button_start_stop.on_select = [this](ImageButton&) {
-		this->on_start_stop();
-	};
-	
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(ReceiverModel::Mode::Capture),
 		.sampling_rate = sampling_rate,
@@ -76,6 +68,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	});
 	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
 	receiver_model.enable();
+
+	record_view.set_sampling_rate(sampling_rate / 8);
 }
 
 CaptureAppView::~CaptureAppView() {
@@ -97,22 +91,7 @@ void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void CaptureAppView::focus() {
-	button_start_stop.focus();
-}
-
-void CaptureAppView::on_start_stop() {
-	if( capture_thread ) {
-		capture_thread.reset();
-		button_start_stop.set_bitmap(&bitmap_record);
-	} else {
-		const auto filename = next_filename_matching_pattern("BBD_????.C16");
-		if( filename.empty() ) {
-			return;
-		}
-
-		capture_thread = std::make_unique<AudioThread>(filename);
-		button_start_stop.set_bitmap(&bitmap_stop);
-	}
+	record_view.focus();
 }
 
 void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {

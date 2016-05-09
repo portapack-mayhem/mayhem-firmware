@@ -96,8 +96,8 @@ void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_t
 		audio_buffer.p[i].left = audio_buffer.p[i].right = sample_saturated;
 		audio_int[i] = sample_saturated;
 	}
-	if( send_to_fifo ) {
-		stream.write(audio_int.data(), audio_buffer.count * sizeof(audio_int[0]));
+	if( stream && send_to_fifo ) {
+		stream->write(audio_int.data(), audio_buffer.count * sizeof(audio_int[0]));
 	}
 
 	feed_audio_stats(audio);
