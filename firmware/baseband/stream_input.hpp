@@ -22,9 +22,11 @@
 #ifndef __STREAM_INPUT_H__
 #define __STREAM_INPUT_H__
 
-#include "portapack_shared_memory.hpp"
-
+#include "message.hpp"
 #include "fifo.hpp"
+
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
 
 #include <cstdint>
 #include <cstddef>
@@ -32,12 +34,14 @@
 
 class StreamInput {
 public:
-	StreamInput(const size_t K, CaptureConfig& config) :
-		K { K },
+	StreamInput(CaptureConfig* const config) :
+		config { config },
+		K { config->write_size_log2 + config->buffer_count_log2 },
+		event_bytes_mask { (1UL << config->write_size_log2) - 1 },
 		data { std::make_unique<uint8_t[]>(1UL << K) },
 		fifo { data.get(), K }
 	{
-		config.fifo = &fifo;
+		config->fifo = &fifo;
 	}
 
 	size_t write(const void* const data, const size_t length) {
@@ -48,17 +52,16 @@ public:
 		if( (bytes_written & event_bytes_mask) < (last_bytes_written & event_bytes_mask) ) {
 			creg::m4txevent::assert();
 		}
+		config->baseband_bytes_received += length;
+		config->baseband_bytes_dropped = config->baseband_bytes_received - bytes_written;
 
 		return written;
 	}
 
-	uint64_t written() const {
-		return bytes_written;
-	}
-
 private:
+	CaptureConfig* const config;
 	const size_t K;
-	const uint64_t event_bytes_mask = (1ULL << (K - 2)) - 1;
+	const uint64_t event_bytes_mask;
 	uint64_t bytes_written = 0;
 	std::unique_ptr<uint8_t[]> data;
 	FIFO<uint8_t> fifo;

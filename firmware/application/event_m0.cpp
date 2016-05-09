@@ -60,7 +60,6 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 MessageHandlerMap EventDispatcher::message_map_;
 Thread* EventDispatcher::thread_event_loop = nullptr;
-Thread* EventDispatcher::thread_record = nullptr;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
@@ -131,10 +130,6 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 	if( !display_sleep ) {
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
-		}
-
-		if( events & EVT_MASK_ENCODER ) {
-			handle_encoder();
 		}
 
 		if( events & EVT_MASK_TOUCH ) {
@@ -285,4 +280,5 @@ void EventDispatcher::init_message_queues() {
 	new (&shared_memory.application_queue) MessageQueue(
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
 	);
+
 }
