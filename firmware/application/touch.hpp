@@ -180,12 +180,12 @@ private:
 	static constexpr size_t touch_count_threshold { 4 };
 	static constexpr uint32_t touch_stable_bound { 4 };
 
-	static constexpr float calib_x_low = 0.07f;
-	static constexpr float calib_x_high = 0.94f;
+	static constexpr float calib_x_low = 0.15f;
+	static constexpr float calib_x_high = 0.98f;
 	static constexpr float calib_x_range = calib_x_high - calib_x_low;
 
 	static constexpr float calib_y_low = 0.04f;
-	static constexpr float calib_y_high = 0.91f;
+	static constexpr float calib_y_high = 0.80f; //91
 	static constexpr float calib_y_range = calib_y_high - calib_y_low;
 
 	// Ensure filter length is equal or less than touch_count_threshold,

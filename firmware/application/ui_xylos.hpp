@@ -41,8 +41,6 @@ namespace ui {
 #define XYLOS_VOICE_RELAYS 21
 #define XYLOS_VOICE_TRAILER 25
 
-void do_something();
-
 class XylosRXView : public View {
 public:
 	XylosRXView(NavigationView& nav);
@@ -152,45 +150,36 @@ public:
 private:
 	bool txing = false;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
-	uint8_t xylos_voice_phrase[32] = { 0xFF };
-	const char * xylos_voice_filenames[26] = {	"zero.wav",
-												"one.wav",
-												"two.wav",
-												"three.wav",
-												"four.wav",
-												"five.wav",
-												"six.wav",
-												"seven.wav",
-												"eight.wav",
-												"nine.wav",
-												"a.wav",
-												"b.wav",
-												"c.wav",
-												"d.wav",
-												"e.wav",
-												"f.wav",
-												"header.wav",
-												"city.wav",
-												"family.wav",
-												"subfamily.wav",
-												"address.wav",
-												"relays.wav",
-												"ignored.wav",
-												"off.wav",
-												"on.wav",
-												"trailer.wav"
-										};
 	char ccirmessage[21];
 	char ccir_received[21];
 	
 	Text text_title {
-		{ 1 * 8, 1 * 16, 11, 16 },
+		{ 8, 8, 11, 16 },
 		"BH Xylos TX"
 	};
 	
 	Button button_txtest {
-		{ 170, 1 * 16, 40, 24 },
+		{ 180, 8, 40, 24 },
 		"TEST"
+	};
+	
+	Text text_header {
+		{ 8 * 8, 2 * 16, 7 * 8, 16 },
+		"Header:"
+	};
+	NumberField header_code_a {
+		{ 16 * 8, 2 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		'0'
+	};
+	NumberField header_code_b {
+		{ 18 * 8, 2 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		'0'
 	};
 	
 	Text text_city {
@@ -256,7 +245,7 @@ private:
 		"Frequence:"
 	};
 	OptionsField options_freq {
-		{ 16 * 8, 9 * 16 },
+		{ 16 * 8, 9 * 16 + 4},
 		7,
 		{
 			{ "31.3250", 0 },

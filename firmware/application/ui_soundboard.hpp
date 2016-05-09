@@ -35,32 +35,57 @@
 
 namespace ui {
 	
-class AudioTXView : public View {
+class SoundBoardView : public View {
 public:
-	AudioTXView(NavigationView& nav);
-	~AudioTXView();
+	SoundBoardView(NavigationView& nav);
+	~SoundBoardView();
 
+	std::string title() const;
+	void on_show() override;
 	void focus() override;
-
+	
 private:
+	struct sound {
+		std::string filename;
+		std::string shortname;
+		uint8_t min;
+		uint8_t sec;
+	};
+	
+	sound sounds[12];
+
+	std::array<Button, 12> buttons;
+	void on_button(Button& button);
+	
 	void on_tuning_frequency_changed(rf::Frequency f);
 	
+	Text text_test {
+		{ 120, 4, 64, 16 }
+	};
+	
 	FrequencyField field_frequency {
-		{ 5 * 8, 3 * 16 },
+		{ 1 * 8, 4 },
 	};
 	
-	Text text_title {
-		{ 76, 64, 88, 16 },
-		"Audio TX"
+	NumberField number_bw {
+		{ 16 * 8, 4 },
+		5,
+		{1000, 50000},
+		500,
+		' '
 	};
 	
-	Button button_transmit {
-		{ 72, 130, 96, 32 },
-		"Transmit"
+	ProgressBar pbar_test {
+		{ 45, 236, 150, 16 }
+	};
+	
+	Button button_load {
+		{ 8, 270, 64, 32 },
+		"Load"
 	};
 	
 	Button button_exit {
-		{ 72, 270, 96, 32 },
+		{ 96, 270, 64, 32 },
 		"Exit"
 	};
 };

@@ -140,6 +140,8 @@ CPPSRC = main.cpp \
          matched_filter.cpp \
          proc_audiotx.cpp \
          proc_playaudio.cpp \
+         proc_xylos.cpp \
+         proc_fsk_lcr.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

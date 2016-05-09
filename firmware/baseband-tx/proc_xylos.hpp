@@ -28,7 +28,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
-//#include "audio_output.hpp"
+#include "audio_output.hpp"
 #include "baseband_processor.hpp"
 
 #define CCIR_TONELENGTH 15360-1 // 1536000/10/10
@@ -40,11 +40,12 @@ public:
 
 private:
 	int16_t audio_data[64];
-
-	const buffer_s16_t preview_audio_buffer {
-		audio_data,
-		sizeof(int16_t)*64
-	};
+	
+	std::array<int16_t, 64> audio;
+	/*const buffer_s16_t audio_buffer {
+		audio.data(),
+		audio.size()
+	};*/
 
 	uint32_t ccir_phases[16] = {
 								(uint32_t)(1981*PHASEV),
@@ -74,7 +75,7 @@ private:
 	int32_t sample, frq;
 	TXDoneMessage message;
 	
-	//AudioOutput audio_output;
+	AudioOutput audio_output;
 };
 
 #endif

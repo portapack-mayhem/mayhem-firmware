@@ -151,6 +151,7 @@ CPPSRC = main.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
          ui_alphanum.cpp \
+         ui_handwrite.cpp \
          ui_about.cpp \
          ui_text.cpp \
          ui_widget.cpp \
@@ -162,6 +163,7 @@ CPPSRC = main.cpp \
          ui_channel.cpp \
          ui_audio.cpp \
          ui_audiotx.cpp \
+         ui_soundboard.cpp \
          ui_lcr.cpp \
          ui_rds.cpp \
          ui_jammer.cpp \

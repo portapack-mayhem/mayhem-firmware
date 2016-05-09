@@ -35,8 +35,10 @@
 #include "ui_rds.hpp"
 #include "ui_xylos.hpp"
 #include "ui_lcr.hpp"
-#include "ui_audiotx.hpp"
+#include "analog_audio_app.hpp"
+#include "ui_soundboard.hpp"
 #include "ui_debug.hpp"
+#include "ui_audiotx.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -150,9 +152,12 @@ void LoadModuleView::loadmodule() {
 LoadModuleView::LoadModuleView(
 	NavigationView& nav,
 	const char * hash,
-	uint8_t ViewID
+	uint8_t ViewID,
+	bool loadplz
 )
 {
+	if (loadplz == false) nav.pop();	// Useless, remove !
+	
 	add_children({ {
 		&text_info,
 		&text_infob,
@@ -163,10 +168,11 @@ LoadModuleView::LoadModuleView(
 	
 	button_ok.on_select = [this, &nav, ViewID](Button&){
 		if (_mod_loaded == true) {
-			if (ViewID == 0) nav.push<RDSView>();
+			if (ViewID == 0) nav.push<AudioTXView>(); //nav.push<RDSView>();
 			if (ViewID == 1) nav.push<XylosView>();
 			if (ViewID == 2) nav.push<LCRView>();
-			if (ViewID == 3) nav.push<AudioTXView>();
+			if (ViewID == 3) nav.push<SoundBoardView>();
+			if (ViewID == 10) nav.push<AnalogAudioView>();
 		} else {
 			nav.pop();
 		}

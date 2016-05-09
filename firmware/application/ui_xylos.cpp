@@ -135,10 +135,10 @@ void XylosView::paint(Painter& painter) {
 void XylosView::upd_message() {
 	uint8_t c;
 		
-	ccirmessage[0] = '0';
-	ccirmessage[1] = '0';
-	ccirmessage[2] = '0';
-	ccirmessage[3] = '0';
+	ccirmessage[0] = (header_code_a.value() / 10) + 0x30;
+	ccirmessage[1] = (header_code_a.value() % 10) + 0x30;
+	ccirmessage[2] = (header_code_b.value() / 10) + 0x30;
+	ccirmessage[3] = (header_code_b.value() % 10) + 0x30;
 	
 	ccirmessage[4] = (city_code.value() / 10) + 0x30;
 	ccirmessage[5] = (city_code.value() % 10) + 0x30;
@@ -228,7 +228,7 @@ XylosView::XylosView(
 	};
 	
 	transmitter_model.set_baseband_configuration({
-		.mode = 4,
+		.mode = 2,
 		.sampling_rate = 1536000,
 		.decimation_factor = 1,
 	});
@@ -236,6 +236,9 @@ XylosView::XylosView(
 	add_children({ {
 		&text_title,
 		&button_txtest,
+		&text_header,
+		&header_code_a,
+		&header_code_b,
 		&text_city,
 		&city_code,
 		&text_family,
@@ -265,11 +268,21 @@ XylosView::XylosView(
 	family_code.set_value(1);
 	subfamily_code.set_value(1);
 	receiver_code.set_value(1);
+	header_code_a.set_value(0);
+	header_code_b.set_value(0);
 	options_freq.set_selected_index(5);
 	
 	checkbox_wcsubfamily.set_value(true);
 	checkbox_wcid.set_value(true);
 	
+	header_code_a.on_change = [this](int32_t v) {
+		(void)v;
+		XylosView::upd_message();
+	};
+	header_code_b.on_change = [this](int32_t v) {
+		(void)v;
+		XylosView::upd_message();
+	};
 	city_code.on_change = [this](int32_t v) {
 		(void)v;
 		XylosView::upd_message();

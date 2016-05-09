@@ -78,6 +78,10 @@ void LCRView::make_frame() {
 	lcrframe[5] = 127;
 	lcrframe[6] = 127;
 	lcrframe[7] = 15;			// SOM
+	
+	strcpy(rgsb, RGSB_list[adr_code.value()]);
+	button_setrgsb.set_text(rgsb);
+
 	strcat(lcrframe, rgsb);
 	strcat(lcrframe, "PA ");
 	if (checkbox_am_a.value() == true) {
@@ -191,7 +195,7 @@ LCRView::LCRView(
 	};
 	
 	transmitter_model.set_baseband_configuration({
-		.mode = 1,
+		.mode = 3,
 		.sampling_rate = 2280000,	// Is this right ?
 		.decimation_factor = 1,
 	});
@@ -200,11 +204,12 @@ LCRView::LCRView(
 	memset(litteral, 0, 5*8);
 	memset(rgsb, 0, 5);
 	
-	strcpy(rgsb, RGSB_list[29]);
+	strcpy(rgsb, RGSB_list[adr_code.value()]);
 	button_setrgsb.set_text(rgsb);
 	
 	add_children({ {
 		&text_recap,
+		&adr_code,
 		&button_setrgsb,
 		&button_txsetup,
 		&checkbox_am_a,
@@ -290,7 +295,9 @@ LCRView::LCRView(
 		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
 		
 		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = (portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
+		shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
+
+		EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
 
 		EventDispatcher::message_map().register_handler(Message::ID::TXDone,
 			[this,&transmitter_model](Message* const p) {
@@ -316,7 +323,49 @@ LCRView::LCRView(
 		
 		transmitter_model.enable();
 	};
-	
+	/*
+	button_transmit_scan.on_select() = [this,&transmitter_model](Button&){		
+		make_frame();
+			
+		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
+		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
+		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
+
+		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
+
+		memset(shared_memory.lcrdata, 0, 256);
+		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
+		
+		shared_memory.afsk_transmit_done = false;
+		shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
+
+		EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
+
+		EventDispatcher::message_map().register_handler(Message::ID::TXDone,
+			[this,&transmitter_model](Message* const p) {
+				char str[8];
+				const auto message = static_cast<const TXDoneMessage*>(p);
+				if (message->n > 0) {
+					text_status.set("       ");
+					strcpy(str, to_string_dec_int(message->n).c_str());
+					strcat(str, "/");
+					strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
+					text_status.set(str);
+				} else {
+					text_status.set("Done ! ");
+					transmitter_model.disable();
+				}
+			}
+		);
+
+		char str[8];
+		strcpy(str, "0/");
+		strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
+		text_status.set(str);
+		
+		transmitter_model.enable();
+	};
+	*/
 	button_txsetup.on_select = [&nav](Button&){
 		nav.push<AFSKSetupView>();
 	};

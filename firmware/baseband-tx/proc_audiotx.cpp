@@ -23,62 +23,8 @@
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
-#include "audio_output.hpp"
-#include "lfsr_random.hpp"
 
 #include <cstdint>
-
-uint32_t lfsr(uint32_t v) {
-
-	enum {
-		length         = 31,
-		tap_0          = 31,
-		tap_1          = 18,
-		shift_amount_0 = 12,
-		shift_amount_1 = 12,
-		shift_amount_2 =  8
-	};
-
-	const lfsr_word_t zero = 0;
-	v = (
-		(
-			v << shift_amount_0
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_0)) ^
-				(v >> (tap_1 - shift_amount_0))
-			) & (
-				~(~zero << shift_amount_0)
-			)
-		)
-	);
-	v = (
-		(
-			v << shift_amount_1
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_1)) ^
-				(v >> (tap_1 - shift_amount_1))
-			) & (
-				~(~zero << shift_amount_1)
-			)
-		)
-	);
-	v = (
-		(
-			v << shift_amount_2
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_2)) ^
-				(v >> (tap_1 - shift_amount_2))
-			) & (
-				~(~zero << shift_amount_2)
-			)
-		)
-	);
-	
-	return v;
-}
 
 void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	
@@ -91,7 +37,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			aphase += 90000;
 			
 		//FM
-		frq = sample * 2500;
+		frq = sample * 1000;
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);

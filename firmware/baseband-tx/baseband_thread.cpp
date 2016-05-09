@@ -33,6 +33,8 @@
 
 #include "proc_playaudio.hpp"
 #include "proc_audiotx.hpp"
+#include "proc_xylos.hpp"
+#include "proc_fsk_lcr.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -120,6 +122,8 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	switch(mode) {
 	case 0:		return new PlayAudioProcessor();
 	case 1:		return new AudioTXProcessor();
+	case 2:		return new XylosProcessor();
+	case 3:		return new LCRFSKProcessor();
 	default:	return nullptr;
 	}
 }

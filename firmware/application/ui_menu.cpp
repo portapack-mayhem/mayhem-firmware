@@ -53,7 +53,7 @@ void MenuItemView::paint(Painter& painter) {
 		paint_style.background
 	);
 	
-	ui::Color final_item_color = item.color;
+	ui::Color final_item_color = (highlighted() && parent()->has_focus()) ? ui::Color::black() : item.color;
 
 	if (final_item_color.v == paint_style.background.v) final_item_color = paint_style.foreground;
 

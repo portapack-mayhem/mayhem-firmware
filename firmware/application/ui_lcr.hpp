@@ -44,6 +44,7 @@ public:
 	void paint(Painter& painter) override;
 
 private:
+	uint8_t adri = 22;
 	const char RGSB_list[37][5] = {
 		"EAA0", "EAB0",	"EAC0",	"EAD0",
 		"EbA0",	"EbB0",	"EbC0",	"EbD0",
@@ -70,8 +71,16 @@ private:
 	};
 
 	Text text_recap {
-		{ 32, 6, 192, 16 },
+		{ 8, 6, 18 * 8, 16 },
 		"-"
+	};
+	
+	NumberField adr_code {
+		{ 220, 6 },
+		2,
+		{ 0, 36 },
+		1,
+		'0'
 	};
 
 	Button button_setrgsb {

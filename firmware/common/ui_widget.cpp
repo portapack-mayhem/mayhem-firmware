@@ -292,6 +292,36 @@ void Text::paint(Painter& painter) {
 	);
 }
 
+/* ProgressBar ***********************************************************/
+
+ProgressBar::ProgressBar(
+	Rect parent_rect
+) : Widget { parent_rect }
+{
+}
+
+void ProgressBar::set_value(const uint16_t value) {
+	if (value > 100)
+		_value = 100;
+	else
+		_value = value;
+	set_dirty();
+}
+
+void ProgressBar::paint(Painter& painter) {
+	uint16_t v_sized;
+	
+	const auto rect = screen_rect();
+	const auto s = style();
+
+	v_sized = (rect.size.w * _value) / 100;
+
+	painter.fill_rectangle({rect.pos, {v_sized, rect.size.h}}, ui::Color::green());
+	painter.fill_rectangle({{rect.pos.x + v_sized, rect.pos.y}, {rect.size.w - v_sized, rect.size.h}}, s.background);
+	
+	painter.draw_rectangle(rect, s.foreground);
+}
+
 /* Checkbox **************************************************************/
 
 Checkbox::Checkbox(
@@ -427,12 +457,16 @@ void Button::paint(Painter& painter) {
 		paint_style.background
 	);
 
-	const auto label_r = paint_style.font.size_of(text_);
-	painter.draw_string(
-		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
-		paint_style,
-		text_
-	);
+    //char *token = strtok(text_.c_str(), "\n");
+    //while(token) {
+		const auto label_r = paint_style.font.size_of(text_);
+		painter.draw_string(
+			{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+			paint_style,
+			text_
+		);
+    //    token = strtok(NULL, " ");
+    //}
 }
 
 bool Button::on_key(const KeyEvent key) {

@@ -23,7 +23,7 @@
 #include "proc_xylos.hpp"
 
 #include "dsp_iir_config.hpp"
-//#include "audio_output.hpp"
+#include "audio_output.hpp"
 
 #include "portapack_shared_memory.hpp"
 #include "sine_table.hpp"
@@ -75,7 +75,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		// Audio preview sample generation: 1536000/48000 = 32
 		if (as >= 31) {
 			as = 0;
-			preview_audio_buffer.p[ai++] = sample * 128;
+			audio[ai++] = sample * 128;
 		} else {
 			as++;
 		}
@@ -92,5 +92,5 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
 	
-	//audio_output.write(preview_audio_buffer);
+	//audio_output.write(audio_buffer);
 }

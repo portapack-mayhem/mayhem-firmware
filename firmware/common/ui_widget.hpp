@@ -111,6 +111,8 @@ public:
 
 	bool highlighted() const;
 	void set_highlighted(const bool value);
+	
+	uint16_t id = 0;
 
 protected:
 	void dirty_overlapping_children_in_rect(const Rect& child_rect);
@@ -193,6 +195,19 @@ public:
 
 private:
 	std::string text;
+};
+
+class ProgressBar : public Widget {
+public:
+	ProgressBar(Rect parent_rect);
+
+	void set_value(const uint16_t value);
+	uint16_t value() const;
+
+	void paint(Painter& painter) override;
+
+private:
+	uint16_t _value = 0;
 };
 
 class Checkbox : public Widget {

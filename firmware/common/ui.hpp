@@ -30,10 +30,16 @@ using Coord = int16_t;
 using Dim = int16_t;
 
 struct Color {
-	uint16_t v;
+	uint16_t v;			// rrrrrGGGGGGbbbbb
 
 	constexpr Color(
 	) : v { 0 }
+	{
+	}
+	
+	constexpr Color(
+		uint16_t v
+	) : v { v }
 	{
 	}
 
@@ -48,6 +54,10 @@ struct Color {
 			| ((b & 0xf8) >> 3)
 		)}
 	{
+	}
+	
+	Color operator-() const {
+		return (v ^ 0xffff);
 	}
 
 	static constexpr Color black() {
@@ -75,7 +85,7 @@ struct Color {
 	}
 	
 	static constexpr Color cyan() {
-		return {   0,   128, 255 };
+		return {   0,   255, 255 };
 	}
 
 	static constexpr Color white() {

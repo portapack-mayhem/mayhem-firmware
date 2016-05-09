@@ -1,7 +1,6 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
- * 
+ * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,24 +19,32 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_AUDIOTX_H__
-#define __PROC_AUDIOTX_H__
-
-#include "baseband_processor.hpp"
+#ifndef __PHASE_ACCUMULATOR_HPP__
+#define __PHASE_ACCUMULATOR_HPP__
 
 #include <cstdint>
 
-class AudioTXProcessor : public BasebandProcessor {
+class PhaseAccumulator {
 public:
-	void execute(const buffer_c8_t& buffer) override;
-	
+	constexpr PhaseAccumulator(
+		const uint32_t phase_inc
+	) : phase_inc { phase_inc }
+	{
+	}
+
+	bool operator()() {
+		const auto last_phase = phase;
+		phase += phase_inc;
+		return (phase < last_phase);
+	}
+
+	void set_inc(const uint32_t new_phase_inc) {
+		phase_inc = new_phase_inc;
+	}
+
 private:
-	int8_t re, im;
-	uint8_t s, as = 0, ai;
-    uint8_t byte_pos = 0;
-    uint8_t digit = 0;
-	uint32_t aphase, phase, sphase;
-	int32_t sample, frq, bc;
+	uint32_t phase { 0 };
+	uint32_t phase_inc;
 };
 
-#endif
+#endif/*__PHASE_ACCUMULATOR_HPP__*/
