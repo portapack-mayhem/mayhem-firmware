@@ -49,6 +49,31 @@ private:
 		"SD Card",
 	};
 
+	Text text_csd_title {
+		{ 0, 3 * 16, (8 * 8), 16 },
+		"CSD",
+	};
+
+	Text text_csd_value_3 {
+		{ 240 - ((8 + 1 + 8) * 8), 3 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_2 {
+		{ 240 - (8 * 8), 3 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_1 {
+		{ 240 - ((8 + 1 + 8) * 8), 4 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_0 {
+		{ 240 - (8 * 8), 4 * 16, (8 * 8), 16 },
+		"",
+	};
+
 	static constexpr size_t bus_width_characters = 1;
 
 	Text text_bus_width_title {
@@ -72,18 +97,6 @@ private:
 		{ 240 - (card_mode_characters * 8), 6 * 16, (card_mode_characters * 8), 16 },
 		"",
 	};
-
-	// static constexpr size_t csd_characters = 10;
-
-	// Text text_csd_title {
-	// 	{ 0, 7 * 16, (3 * 8), 16 },
-	// 	"CSD",
-	// };
-
-	// Text text_csd_value {
-	// 	{ 240 - (csd_characters * 8), 7 * 16, (csd_characters * 8), 16 },
-	// 	"",
-	// };
 
 	static constexpr size_t block_size_characters = 5;
 

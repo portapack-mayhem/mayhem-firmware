@@ -27,6 +27,7 @@
 #include "lfsr_random.hpp"
 
 #include "ff.h"
+#include "diskio.h"
 
 #include "ch.h"
 #include "hal.h"
@@ -227,12 +228,15 @@ namespace ui {
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
+		&text_csd_title,
+		&text_csd_value_3,
+		&text_csd_value_2,
+		&text_csd_value_1,
+		&text_csd_value_0,
 		&text_bus_width_title,
 		&text_bus_width_value,
 		&text_card_mode_title,
 		&text_card_mode_value,
-		// &text_csd_title,
-		// &text_csd_value,
 		&text_block_size_title,
 		&text_block_size_value,
 		&text_block_count_title,
@@ -293,7 +297,10 @@ static std::string format_bytes_size_string(uint64_t value) {
 void SDCardDebugView::on_status(const sd_card::Status) {
 	text_bus_width_value.set("");
 	text_card_mode_value.set("");
-	// text_csd_value.set("");
+	text_csd_value_0.set("");
+	text_csd_value_1.set("");
+	text_csd_value_2.set("");
+	text_csd_value_3.set("");
 	text_block_size_value.set("");
 	text_block_count_value.set("");
 	text_capacity_value.set("");
@@ -315,7 +322,13 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 
 		text_bus_width_value.set(card_width ? to_string_dec_uint(card_width, 1) : "X");
 		text_card_mode_value.set("0x" + to_string_hex(SDCD1.cardmode, 8));
-		// text_csd_value.set("0x" + to_string_hex(SDCD1.csd, 8));
+
+		std::array<uint32_t, 4> csd;
+		disk_ioctl(0, MMC_GET_CSD, csd.data());
+		text_csd_value_3.set(to_string_hex(csd[3], 8));
+		text_csd_value_2.set(to_string_hex(csd[2], 8));
+		text_csd_value_1.set(to_string_hex(csd[1], 8));
+		text_csd_value_0.set(to_string_hex(csd[0], 8));
 
 		BlockDeviceInfo block_device_info;
 		if( sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS ) {
