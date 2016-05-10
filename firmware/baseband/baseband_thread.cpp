@@ -30,6 +30,7 @@
 
 #include "rssi.hpp"
 #include "i2s.hpp"
+using namespace lpc43xx;
 
 #include "proc_am_audio.hpp"
 #include "proc_nfm_audio.hpp"
