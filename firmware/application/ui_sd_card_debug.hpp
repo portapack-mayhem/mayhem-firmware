@@ -86,15 +86,15 @@ private:
 		"",
 	};
 
-	static constexpr size_t card_mode_characters = 10;
+	static constexpr size_t card_type_characters = 13;
 
-	Text text_card_mode_title {
+	Text text_card_type_title {
 		{ 0, 6 * 16, (9 * 8), 16 },
-		"Card mode",
+		"Card type",
 	};
 
-	Text text_card_mode_value {
-		{ 240 - (card_mode_characters * 8), 6 * 16, (card_mode_characters * 8), 16 },
+	Text text_card_type_value {
+		{ 240 - (card_type_characters * 8), 6 * 16, (card_type_characters * 8), 16 },
 		"",
 	};
 

@@ -235,8 +235,8 @@ SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 		&text_csd_value_0,
 		&text_bus_width_title,
 		&text_bus_width_value,
-		&text_card_mode_title,
-		&text_card_mode_value,
+		&text_card_type_title,
+		&text_card_type_value,
 		&text_block_size_title,
 		&text_block_size_value,
 		&text_block_count_title,
@@ -296,7 +296,7 @@ static std::string format_bytes_size_string(uint64_t value) {
 
 void SDCardDebugView::on_status(const sd_card::Status) {
 	text_bus_width_value.set("");
-	text_card_mode_value.set("");
+	text_card_type_value.set("");
 	text_csd_value_0.set("");
 	text_csd_value_1.set("");
 	text_csd_value_2.set("");
@@ -321,7 +321,23 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 		}
 
 		text_bus_width_value.set(card_width ? to_string_dec_uint(card_width, 1) : "X");
-		text_card_mode_value.set("0x" + to_string_hex(SDCD1.cardmode, 8));
+
+		// TODO: Implement Text class right-justify!
+		BYTE card_type;
+		disk_ioctl(0, MMC_GET_TYPE, &card_type);
+
+		std::string formatted_card_type;
+		switch(card_type & SDC_MODE_CARDTYPE_MASK) {
+		case SDC_MODE_CARDTYPE_SDV11: formatted_card_type = "SD V1.1"; break;
+		case SDC_MODE_CARDTYPE_SDV20: formatted_card_type = "SD V2.0"; break;
+		case SDC_MODE_CARDTYPE_MMC:   formatted_card_type = "MMC";     break;
+		default: formatted_card_type = "???"; break;
+		}
+
+		if( card_type & SDC_MODE_HIGH_CAPACITY ) {
+			formatted_card_type += ", SDHC";
+		}
+		text_card_type_value.set(formatted_card_type);
 
 		std::array<uint32_t, 4> csd;
 		disk_ioctl(0, MMC_GET_CSD, csd.data());
