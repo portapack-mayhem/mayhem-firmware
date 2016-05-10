@@ -10,6 +10,8 @@
 #include "ch.h"
 #include "hal.h"
 
+#include <string.h>
+
 #include "diskio.h"
 
 #if HAL_USE_MMC_SPI && HAL_USE_SDC
@@ -212,6 +214,12 @@ DRESULT disk_ioctl (
     case GET_SECTOR_SIZE:
         *((WORD *)buff) = MMCSD_BLOCK_SIZE;
         return RES_OK;
+    case MMC_GET_TYPE:
+        *((BYTE *)buff) = SDCD1.cardmode;
+        return RES_OK;
+    case MMC_GET_CSD:
+        memcpy(buff, &SDCD1.csd, sizeof(SDCD1.csd));
+        return RES_OK;
 #if _USE_ERASE
     case CTRL_ERASE_SECTOR:
         mmcErase(&MMCD1, *((DWORD *)buff), *((DWORD *)buff + 1));
@@ -233,6 +241,12 @@ DRESULT disk_ioctl (
         return RES_OK;
     case GET_BLOCK_SIZE:
         *((DWORD *)buff) = 1; /* Unknown, TODO: implement? */
+        return RES_OK;
+    case MMC_GET_TYPE:
+        *((BYTE *)buff) = SDCD1.cardmode;
+        return RES_OK;
+    case MMC_GET_CSD:
+        memcpy(buff, &SDCD1.csd, sizeof(SDCD1.csd));
         return RES_OK;
 #if _USE_ERASE
     case CTRL_ERASE_SECTOR:
