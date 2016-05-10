@@ -272,6 +272,26 @@ void SDCardDebugView::focus() {
 	button_ok.focus();
 }
 
+static std::string format_3dot3_string(const uint32_t value_in_thousandths) {
+	if( value_in_thousandths < 1000000U ) {
+		const uint32_t thousandths_part = value_in_thousandths % 1000;
+		const uint32_t integer_part = value_in_thousandths / 1000U;
+		return to_string_dec_uint(integer_part, 3) + "." + to_string_dec_uint(thousandths_part, 3, '0');
+	} else {
+		return "HHH.HHH";
+	}
+}
+
+static std::string format_bytes_size_string(uint64_t value) {
+	static const std::array<char, 5> suffix { { ' ', 'K', 'M', 'G', 'T' } };
+	size_t suffix_index = 1;
+	while( (value >= 1000000U) && (suffix_index < suffix.size()) ) {
+		value /= 1000U;
+		suffix_index++;
+	}
+	return format_3dot3_string(value) + " " + suffix[suffix_index] + "B";
+}
+
 void SDCardDebugView::on_status(const sd_card::Status) {
 	text_bus_width_value.set("");
 	text_card_mode_value.set("");
@@ -306,48 +326,20 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 			text_block_size_value.set(to_string_dec_uint(block_device_info.blk_size, 5));
 			text_block_count_value.set(to_string_dec_uint(block_device_info.blk_num, 9));
 			const uint64_t capacity = block_device_info.blk_size * uint64_t(block_device_info.blk_num);
-			if( capacity >= 1000000000 ) {
-				const uint32_t capacity_mb = capacity / 1000000U;
-				const uint32_t fraction_gb = capacity_mb % 1000;
-				const uint32_t capacity_gb = capacity_mb / 1000U;
-				text_capacity_value.set(
-					to_string_dec_uint(capacity_gb, 3) + "." +
-					to_string_dec_uint(fraction_gb, 3, '0') + " GB"
-				);
-			} else {
-				const uint32_t capacity_kb = capacity / 1000U;
-				const uint32_t fraction_mb = capacity_kb % 1000;
-				const uint32_t capacity_mb = capacity_kb / 1000U;
-				text_capacity_value.set(
-					to_string_dec_uint(capacity_mb, 3) + "." +
-					to_string_dec_uint(fraction_mb, 3, '0') + " MB"
-				);
-			}
+			text_capacity_value.set(format_bytes_size_string(capacity));
 		}
 	}
 }
 
 static std::string format_ticks_as_ms(const halrtcnt_t value) {
 	const uint32_t us = uint64_t(value) * 1000000U / halGetCounterFrequency();
-	const uint32_t ms_frac = us % 1000U;
-	const uint32_t ms_int = us / 1000U;
-	if( ms_int < 1000 ) {
-		return to_string_dec_uint(ms_int, 3) + "." + to_string_dec_uint(ms_frac, 3, '0');
-	} else {
-		return "HHH.HHH";
-	}
+	return format_3dot3_string(us);
 }
 
 static std::string format_bytes_per_ticks_as_mib(const size_t bytes, const halrtcnt_t ticks) {
 	const uint32_t bps = uint64_t(bytes) * halGetCounterFrequency() / ticks;
 	const uint32_t kbps = bps / 1000U;
-	const uint32_t mbps_frac = kbps % 1000U;
-	const uint32_t mbps_int = kbps / 1000U;
-	if( mbps_int < 1000 ) {
-		return to_string_dec_uint(mbps_int, 3) + "." + to_string_dec_uint(mbps_frac, 3, '0');
-	} else {
-		return "HHH.HHH";
-	}
+	return format_3dot3_string(kbps);
 }
 
 void SDCardDebugView::on_test() {
