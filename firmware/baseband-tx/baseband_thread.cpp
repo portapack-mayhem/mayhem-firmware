@@ -28,13 +28,13 @@
 #include "baseband_sgpio.hpp"
 #include "baseband_dma.hpp"
 
-#include "rssi.hpp"
-#include "i2s.hpp"
-
 #include "proc_playaudio.hpp"
 #include "proc_audiotx.hpp"
 #include "proc_xylos.hpp"
 #include "proc_fsk_lcr.hpp"
+
+#include "rssi.hpp"
+#include "i2s.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -98,7 +98,7 @@ void BasebandThread::run() {
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_tx_buffer();
+		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
 		if( buffer_tmp ) {
 			buffer_c8_t buffer {
 				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate

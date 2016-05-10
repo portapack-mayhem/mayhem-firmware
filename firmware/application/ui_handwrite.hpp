@@ -36,7 +36,6 @@ public:
 	std::function<void(char *)> on_changed;
 
 	HandWriteView(NavigationView& nav, char txt[], uint8_t max_len);
-	~HandWriteView();
 
 	void on_show() override;
 	bool on_touch(const TouchEvent event) override;
@@ -49,11 +48,10 @@ public:
 	void char_delete();
 
 private:
-	SignalToken signal_token_tick_second;
-	
-	uint8_t _max_len, txt_idx = 0;
+	uint8_t _max_len;
 	uint8_t dir_cnt = 0;
 	uint8_t dir_prev;
+	bool cursor = false;
 	bool tracing = false;
 	uint8_t move_index;
 	uint8_t sample_skip, move_wait;
@@ -72,7 +70,7 @@ private:
 	void sample_pen();
 	
 	Text text_input {
-		{ 0, 0, 240, 16 }
+		{ 8, 0, 224, 16 }
 	};
 	
 	Text text_debug_x {
@@ -81,10 +79,6 @@ private:
 	Text text_debug_y {
 		{ 0, 32, 32, 16 }
 	};
-	Text text_debug_write {
-		{ 80, 24, 150, 16 }
-	};
-
 	std::array<Button, 10> num_buttons;
 
 	Button button_lowercase {

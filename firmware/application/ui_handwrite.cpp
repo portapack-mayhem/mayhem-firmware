@@ -24,6 +24,7 @@
 #include "ch.h"
 
 #include "ff.h"
+#include "unistroke.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
 #include "string_format.hpp"
@@ -36,10 +37,6 @@
 using namespace portapack;
 
 namespace ui {
-	
-HandWriteView::~HandWriteView() {
-	time::signal_tick_second -= signal_token_tick_second;
-}
 
 HandWriteView::HandWriteView(
 	NavigationView& nav,
@@ -68,7 +65,7 @@ HandWriteView::HandWriteView(
 			24, 20
 		});
 		const std::string label {
-			n + 0x30
+			(char)(n + 0x30)
 		};
 		button.set_text(label);
 		button.id = n;
@@ -91,16 +88,11 @@ HandWriteView::HandWriteView(
 
 	add_child(&text_debug_x);
 	add_child(&text_debug_y);
-	add_child(&text_debug_write);
 	add_child(&button_done);
 	button_done.on_select = [this, &nav, txt, max_len](Button&) {
 		//memcpy(txt, txtinput, max_len+1);
 		//on_changed(this->value());
 		nav.pop();
-	};
-	
-	signal_token_tick_second = time::signal_tick_second += [this]() {
-		this->on_tick_second();
 	};
 
 	//update_text();
@@ -161,7 +153,7 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 		);
 		
 		// Letter guessing
-		guess = '?';
+		guess = ' ';
 		
 		if (MM(0, 'U')) {
 			if (MM(0, 'U', '?')) {
@@ -174,7 +166,10 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 					guess = 'K';
 				} else {
 					if (MM(1, 'L')) {
-						if (txt_idx > 0) txtinput[txt_idx--] = 0;	// Erase
+						if (txtidx > 0) {
+							txtinput[--txtidx] = 0;	// Erase
+							guess = '!';
+						}
 					} else {
 						guess = 'N';
 					}
@@ -218,7 +213,7 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 				if (MI(1))
 					guess = 'E';
 				else
-					guess = 'S';
+					if (MM(1, 'R')) guess = 'S';
 			}
 		} else if (MM(0, 'R')) {
 			if (!MI(2) && (MLAST('U') || MLAST('R'))) guess = 'X';
@@ -234,9 +229,8 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 				}
 			}
 		}
-		
-		// if (guess = '?') guess = ' ';
-		if (guess != '!') txtinput[txt_idx++] = guess;
+
+		if (guess != '!') txtinput[txtidx++] = guess;
 		update_text();
 	}
 	if (event.type == ui::TouchEvent::Type::Move) {
@@ -249,7 +243,28 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 
 void HandWriteView::sample_pen() {
 	int16_t diff_x, diff_y;
-	uint8_t dir, i;
+	uint8_t dir;
+	
+	// Blink cursor
+	if (!(sample_skip & 15)) {
+		Point cursor_pos;
+		
+		cursor_pos.x = text_input.screen_rect().pos.x + (txtidx * 8);
+		cursor_pos.y = text_input.screen_rect().pos.y + 17;
+		
+		if (cursor) {
+			display.fill_rectangle(
+				{{text_input.screen_rect().pos.x, cursor_pos.y}, {text_input.screen_rect().size.w, 4}},
+				Color::black()
+			);
+		} else {
+			display.fill_rectangle(
+				{cursor_pos, {8, 4}},
+				Color::white()
+			);
+		}
+		cursor = !cursor;	
+	}
 	
 	if (!(sample_skip & 1)) {
 		if (tracing) {

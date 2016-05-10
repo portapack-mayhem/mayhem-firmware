@@ -23,6 +23,7 @@
 
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "sd_card.hpp"
 #include "time.hpp"
