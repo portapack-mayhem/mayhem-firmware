@@ -232,7 +232,7 @@ DRESULT disk_ioctl (
         *((WORD *)buff) = MMCSD_BLOCK_SIZE;
         return RES_OK;
     case GET_BLOCK_SIZE:
-        *((DWORD *)buff) = 256; /* 512b blocks in one erase block */
+        *((DWORD *)buff) = 1; /* Unknown, TODO: implement? */
         return RES_OK;
 #if _USE_ERASE
     case CTRL_ERASE_SECTOR:
