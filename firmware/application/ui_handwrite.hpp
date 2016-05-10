@@ -25,10 +25,8 @@
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
+#include "unistroke.hpp"
 #include "message.hpp"
-#include "signal.hpp"
 
 namespace ui {
 
@@ -38,6 +36,7 @@ public:
 
 	HandWriteView(NavigationView& nav, char txt[], uint8_t max_len);
 
+	void paint(Painter& painter) override;
 	void on_show() override;
 	bool on_touch(const TouchEvent event) override;
 	
@@ -46,44 +45,41 @@ public:
 	void char_add(const char c);
 
 private:
+	const HandWriting * handwriting;
+	Painter * _painter;
 	uint8_t _max_len;
 	uint8_t dir_cnt = 0;
 	uint8_t dir_prev;
-	uint8_t txtidx;
+	uint8_t flash_timer = 0;
+	uint8_t txtidx = 0;
 	bool cursor = false;
 	bool tracing = false;
-	uint8_t move_index;
+	uint8_t stroke_index;
 	uint8_t sample_skip, move_wait;
-	uint8_t move_list[8];
+	uint8_t stroke_list[8];
 	Point start_pos, current_pos, last_pos;
-	bool _lowercase = false;
-	static constexpr size_t button_w = 240 / 5;
-	static constexpr size_t button_h = 28;
+	bool _lowercase = true;
 	char txtinput[25] = {0};
 	void sample_pen();
 	void add_stroke(uint8_t dir);
 	void guess_letter();
+	void clear_zone(Color color, bool flash);
 	
 	Text text_input {
 		{ 8, 0, 224, 16 }
 	};
 	
-	Text text_debug_x {
-		{ 0, 16, 32, 16 }
-	};
-	Text text_debug_y {
-		{ 0, 32, 32, 16 }
-	};
 	std::array<Button, 10> num_buttons;
+	std::array<Button, 5> special_buttons;
 
 	Button button_case {
-		{ 88+64+16, 270, 32, 24 },
+		{ 8, 270, 32, 28 },
 		"UC"
 	};
 
-	Button button_done {
-		{ 88, 270, 64, 24 },
-		"Done"
+	Button button_ok {
+		{ 190, 270, 40, 28 },
+		"OK"
 	};
 
 	void on_button(Button& button);

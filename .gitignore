@@ -1,3 +1,6 @@
+/firmware/application/fox.bmp
+/firmware/application/fox_rle.bmp
+/firmware/test.wav
 # Compiled Object files
 *.slo
 *.lo

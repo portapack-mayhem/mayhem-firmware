@@ -174,8 +174,6 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
 		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<LoadModuleView>(md5_baseband, 10, true); } },
-		
-		//{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", ui::Color::white(), 		[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
@@ -199,9 +197,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "HackRF", 		ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
 	} });
 
-/*
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		{ "Jammer", ui::Color::white(),   			[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
+		//{ "Jammer", ui::Color::white(),   		[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
 		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
@@ -209,7 +206,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
 		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
 		//{ "Numbers station", ui::Color::purple(),	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
-*/
+
 }
 
 /* SystemView ************************************************************/
@@ -227,6 +224,8 @@ SystemView::SystemView(
 	context_(context)
 {
 	set_style(&style_default);
+	
+	char debugtxt[21];	// DEBUG
 
 	constexpr ui::Dim status_view_height = 16;
 	

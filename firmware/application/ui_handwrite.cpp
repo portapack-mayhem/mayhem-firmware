@@ -25,32 +25,39 @@
 #include "ch.h"
 
 #include "ff.h"
-#include "unistroke.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
-#include "string_format.hpp"
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
-#include "time.hpp"
 
 #include <cstring>
 
 using namespace portapack;
 
 namespace ui {
+	
+void HandWriteView::paint(Painter& painter) {
+	_painter = &painter;
+}
 
 HandWriteView::HandWriteView(
 	NavigationView& nav,
 	char txt[],
 	uint8_t max_len
 ) {
+	const char special_chars[5] = {'\'', '.', '?', '!', '='}; 
 	_max_len = max_len;
-	_lowercase = false;
 	
-	txtidx = 0;
+	// Handwriting alphabet definition here
+	handwriting = &handwriting_unistroke;
+	
 	//memcpy(txtinput, txt, max_len+1);
-	
-	add_child(&text_input);
+
+	add_children({ {
+		&text_input,
+		&button_case,
+		&button_ok
+	} });
 
 	const auto button_fn = [this](Button& button) {
 		this->on_button(button);
@@ -62,35 +69,45 @@ HandWriteView::HandWriteView(
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>(n * 24),
-			static_cast<Coord>(240),
-			24, 20
+			static_cast<Coord>(236),
+			24, 28
 		});
 		const std::string label {
 			(char)(n + 0x30)
 		};
 		button.set_text(label);
-		button.id = n;
+		button.id = n + 0x30;
 		n++;
 	}
-	//set_uppercase();
 	
-	/*add_child(&button_lowercase);
-	button_lowercase.on_select = [this, &nav, txt, max_len](Button&) {
+	n = 0;
+	for(auto& button : special_buttons) {
+		add_child(&button);
+		button.on_select = button_fn;
+		button.set_parent_rect({
+			static_cast<Coord>(50 + n * 24),
+			static_cast<Coord>(270),
+			24, 28
+		});
+		const std::string label {
+			(char)(special_chars[n])
+		};
+		button.set_text(label);
+		button.id = special_chars[n];
+		n++;
+	}
+	
+	button_case.on_select = [this, &nav](Button&) {
 		if (_lowercase == true) {
 			_lowercase = false;
-			button_lowercase.set_text("UC");
-			set_uppercase();
+			button_case.set_text("LC");
 		} else {
 			_lowercase = true;
-			button_lowercase.set_text("LC");
-			set_lowercase();
+			button_case.set_text("UC");
 		}
-	};*/
+	};
 
-	add_child(&text_debug_x);
-	add_child(&text_debug_y);
-	add_child(&button_done);
-	button_done.on_select = [this, &nav, txt, max_len](Button&) {
+	button_ok.on_select = [this, &nav, txt, max_len](Button&) {
 		//memcpy(txt, txtinput, max_len+1);
 		//on_changed(this->value());
 		nav.pop();
@@ -101,8 +118,8 @@ HandWriteView::HandWriteView(
 
 bool HandWriteView::on_touch(const TouchEvent event) {
 	if (event.type == ui::TouchEvent::Type::Start) {
-		move_index = 0;
-		move_wait = 4;
+		stroke_index = 0;
+		move_wait = 3;
 		tracing = true;
 	}
 	if (event.type == ui::TouchEvent::Type::End) {
@@ -117,39 +134,60 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 	return true;
 }
 
+void HandWriteView::clear_zone(Color color, bool flash) {
+	display.fill_rectangle(
+		{{0, 32}, {240, 216}},
+		color
+	);
+	if (flash) {
+		flash_timer = 4;
+	} else {
+		_painter->draw_rectangle(
+			{{0, 32}, {80, 216}},
+			Color::grey()
+		);
+		_painter->draw_rectangle(
+			{{80, 32}, {80, 216}},
+			Color::grey()
+		);
+		_painter->draw_rectangle(
+			{{160, 32}, {80, 216}},
+			Color::grey()
+		);
+		_painter->draw_rectangle(
+			{{0, 104}, {240, 72}},
+			Color::grey()
+		);
+	}
+}
+
 void HandWriteView::guess_letter() {
 	uint8_t symbol, match, count, stroke_idx, stroke_data;
 	Condition cond;
 	Direction dir;
 	bool matched;
 	
-	// Clear drawing zone
-	display.fill_rectangle(
-		{{0, 16}, {240, 240}},
-		Color::black()
-	);
-	
 	// Letter guessing
-	if (move_index) {
-		for (symbol = 0; symbol < handwriting_unistroke.letter_count; symbol++) {
-			count = handwriting_unistroke.letter[symbol].count;
+	if (stroke_index) {
+		for (symbol = 0; symbol < handwriting->letter_count; symbol++) {
+			count = handwriting->letter[symbol].count;
 			matched = false;
 			if (count) {
 				// We have a count match to do
-				if ((count == 1) && (move_index == 1)) matched = true;
-				if ((count == 2) && (move_index == 2)) matched = true;
-				if ((count == 3) && (move_index > 2)) matched = true;
+				if ((count == 1) && (stroke_index == 1)) matched = true;
+				if ((count == 2) && (stroke_index == 2)) matched = true;
+				if ((count == 3) && (stroke_index > 2)) matched = true;
 			} else {
 				matched = true;
 			}
 			if (matched) {
 				for (match = 0; match < 3; match++) {
-					cond = handwriting_unistroke.letter[symbol].match[match].cond;
-					dir = handwriting_unistroke.letter[symbol].match[match].dir;
+					cond = handwriting->letter[symbol].match[match].cond;
+					dir = handwriting->letter[symbol].match[match].dir;
 					if ((cond != cond_empty) && (dir != dir_empty)) {
 						if (cond == last) {
-							if (move_index)
-								stroke_idx = move_index - 1;
+							if (stroke_index)
+								stroke_idx = stroke_index - 1;
 							else
 								stroke_idx = 0;
 						} else if (cond == stroke_a)
@@ -160,7 +198,8 @@ void HandWriteView::guess_letter() {
 							stroke_idx = 2;
 						else
 							stroke_idx = 3;
-						stroke_data = move_list[stroke_idx];
+						if (stroke_idx >= stroke_index) break;
+						stroke_data = stroke_list[stroke_idx];
 						if ((dir & 0xF0) == 0xF0) {
 							if ((dir & 0x0F) != (stroke_data & 0x0F)) break;
 						} else if ((dir & 0x0F) == 0x0F) {
@@ -177,22 +216,36 @@ void HandWriteView::guess_letter() {
 			}
 		}
 		if (matched) {
-			if (symbol)
-				txtinput[txtidx++] = 'A' + symbol - 1;
-			else
-				txtinput[--txtidx] = 0;		// Erase
+			if (symbol) {
+				if (_lowercase)
+					char_add('a' + symbol - 1);
+				else
+					char_add('A' + symbol - 1);
+				clear_zone(Color::green(), true);	// Green flash
+			} else {
+				if (txtidx) {
+					txtinput[--txtidx] = 0;				// Erase
+					clear_zone(Color::yellow(), true);	// Yellow flash
+				} else {
+					clear_zone(Color::red(), true);		// Red flash
+				}
+			}
+		} else {
+			clear_zone(Color::red(), true);		// Red flash
 		}
 	} else {
+		// Short tap is space
 		txtinput[txtidx++] = ' ';
+		clear_zone(Color::green(), true);		// Green flash
 	}
 	update_text();
-	move_index = 0;
+	stroke_index = 0;
 }
 
 void HandWriteView::add_stroke(uint8_t dir) {
-	if (move_index < 8) {
-		move_list[move_index] = dir;
-		move_index++;
+	if (stroke_index < 8) {
+		stroke_list[stroke_index] = dir;
+		stroke_index++;
 	} else {
 		guess_letter();
 	}
@@ -200,18 +253,18 @@ void HandWriteView::add_stroke(uint8_t dir) {
 
 void HandWriteView::sample_pen() {
 	int16_t diff_x, diff_y;
-	uint8_t dir, dir_ud, dir_lr;
+	uint8_t dir, dir_ud, dir_lr, stroke_prev;
 	
 	// Blink cursor
 	if (!(sample_skip & 15)) {
 		Point cursor_pos;
 		
 		cursor_pos.x = text_input.screen_rect().pos.x + (txtidx * 8);
-		cursor_pos.y = text_input.screen_rect().pos.y + 17;
+		cursor_pos.y = text_input.screen_rect().pos.y + 16 - 4;
 		
 		if (cursor) {
 			display.fill_rectangle(
-				{{text_input.screen_rect().pos.x, cursor_pos.y}, {text_input.screen_rect().size.w, 4}},
+				{cursor_pos, {text_input.screen_rect().size.w - cursor_pos.x, 4}},
 				Color::black()
 			);
 		} else {
@@ -223,17 +276,19 @@ void HandWriteView::sample_pen() {
 		cursor = !cursor;	
 	}
 	
+	if (flash_timer) {
+		if (flash_timer == 1) clear_zone(Color::black(), false);
+		flash_timer--;
+	}
+	
 	if (!(sample_skip & 1)) {
 		if (tracing) {
 			if (move_wait) {
-				move_wait--;	// ~133ms delay
+				move_wait--;	// ~100ms delay to get rid of jitter from touch start
 			} else {
 				diff_x = current_pos.x - last_pos.x;
 				diff_y = current_pos.y - last_pos.y;
-				
-				text_debug_x.set(to_string_dec_int(diff_x));
-				text_debug_y.set(to_string_dec_int(diff_y));
-				
+
 				if (current_pos.y <= 240) {
 					display.fill_rectangle(
 						{{current_pos.x, current_pos.y}, {4, 4}},
@@ -241,7 +296,7 @@ void HandWriteView::sample_pen() {
 					);
 				}
 				
-				dir = 0;
+				dir = 0;				// UL by default
 				if (abs(diff_x) > 7) {
 					if (diff_x > 0)
 						dir |= 0x01;	// R
@@ -255,41 +310,48 @@ void HandWriteView::sample_pen() {
 					dir |= 0x20;		// ?
 				}
 				
+				// Need at least two identical directions to validate stroke
 				if ((dir & 0x11) == (dir_prev & 0x11))
 					dir_cnt++;
 				else
 					dir_cnt = 0;
 				dir_prev = dir;
 
-				// text_debug_d.set(to_string_dec_uint(dir));
-
 				if (dir_cnt > 1) {
 					dir_cnt = 0;
-					if (move_index) {
-						if ((move_list[move_index - 1] != dir) && (dir != 0x22)) {
+					if (stroke_index) {
+						if ((stroke_list[stroke_index - 1] != dir) && (dir != 0x22)) {
+							// Register stroke if different from last one
 							dir_ud = (dir & 0xF0);
 							dir_lr = (dir & 0x0F);
+							stroke_prev = stroke_list[stroke_index - 1];
 							if (dir_ud == 0x20) {
-								if ((move_list[move_index - 1] & 0x0F) != dir_lr) add_stroke(dir);
+								// LR changed
+								if ((stroke_prev & 0x0F) != dir_lr) add_stroke(dir);
 							} else if (dir_lr == 0x02) {
-								if ((move_list[move_index - 1] & 0xF0) != dir_ud) add_stroke(dir);
+								// UD changed
+								if ((stroke_prev & 0xF0) != dir_ud) add_stroke(dir);
 							} else {
-								// Replacement ?
-								if (((move_list[move_index - 1] & 0xF0) == 0x20) && (dir_ud != 0x20)) {
-									if ((move_list[move_index - 1] & 0x0F) == dir_lr) {
-										move_list[move_index - 1] = dir;
-									} else if ((dir & 0x0F) == 0x02) {
-										// Merge
-										move_list[move_index - 1] = dir_ud | (move_list[move_index - 1] & 0x0F);
+								// Add direction
+								if (((stroke_prev & 0xF0) == 0x20) && (dir_ud != 0x20)) {
+									// Add UD
+									if ((stroke_prev & 0x0F) == dir_lr) {
+										// Replace totally
+										stroke_list[stroke_index - 1] = dir;
+									} else if (dir_lr == 0x02) {
+										// Merge UD
+										stroke_list[stroke_index - 1] = dir_ud | (stroke_prev & 0x0F);
 									} else {
 										add_stroke(dir);
 									}
-								} else if (((move_list[move_index - 1] & 0x0F) == 0x02) && (dir_lr != 0x02)) {
-									if ((move_list[move_index - 1] & 0xF0) == dir_ud) {
-										move_list[move_index - 1] = dir;
+								} else if (((stroke_prev & 0x0F) == 0x02) && (dir_lr != 0x02)) {
+									// Add LR
+									if ((stroke_prev & 0xF0) == dir_ud) {
+										// Replace totally
+										stroke_list[stroke_index - 1] = dir;
 									} else if (dir_ud == 0x20) {
-										// Merge
-										move_list[move_index - 1] = dir_lr | (move_list[move_index - 1] & 0xF0);
+										// Merge LR
+										stroke_list[stroke_index - 1] = dir_lr | (stroke_prev & 0xF0);
 									} else {
 										add_stroke(dir);
 									}
@@ -299,6 +361,7 @@ void HandWriteView::sample_pen() {
 							}
 						}
 					} else {
+						// Register first stroke
 						if (dir != 0x22) add_stroke(dir);
 					}
 				}
@@ -319,6 +382,7 @@ void HandWriteView::on_show() {
 			sample_pen();
 		}
 	);
+	clear_zone(Color::black(), false);
 }
 
 char * HandWriteView::value() {
@@ -326,7 +390,7 @@ char * HandWriteView::value() {
 }
 
 void HandWriteView::on_button(Button& button) {
-	char_add(button.id + 0x30);
+	char_add(button.id);
 	update_text();
 }
 

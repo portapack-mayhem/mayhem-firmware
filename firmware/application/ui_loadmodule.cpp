@@ -172,6 +172,7 @@ LoadModuleView::LoadModuleView(
 			if (ViewID == 1) nav.push<XylosView>();
 			if (ViewID == 2) nav.push<LCRView>();
 			if (ViewID == 3) nav.push<SoundBoardView>();
+			
 			if (ViewID == 10) nav.push<AnalogAudioView>();
 		} else {
 			nav.pop();
