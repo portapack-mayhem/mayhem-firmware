@@ -31,20 +31,29 @@ public:
 	~StreamOutput();
 
 	size_t available() {
-		return fifo->len();
+		return fifo_buffers_full->len();
 	}
 
-	size_t read(void* const data, const size_t length) {
-		return fifo->out(reinterpret_cast<uint8_t*>(data), length);
+	StreamBuffer* get_buffer() {
+		StreamBuffer* p { nullptr };
+		fifo_buffers_full->out(p);
+		return p;
 	}
 
-	static FIFO<uint8_t>* fifo;
+	bool release_buffer(StreamBuffer* const p) {
+		p->empty();
+		return fifo_buffers_empty->in(p);
+	}
+
+	static FIFO<StreamBuffer*>* fifo_buffers_empty;
+	static FIFO<StreamBuffer*>* fifo_buffers_full;
 
 private:
 	CaptureConfig* const config;
 };
 
-FIFO<uint8_t>* StreamOutput::fifo = nullptr;
+FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_empty = nullptr;
+FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_full = nullptr;
 
 StreamOutput::StreamOutput(
 	CaptureConfig* const config
@@ -53,11 +62,13 @@ StreamOutput::StreamOutput(
 	shared_memory.baseband_queue.push_and_wait(
 		CaptureConfigMessage { config }
 	);
-	fifo = config->fifo;
+	fifo_buffers_empty = config->fifo_buffers_empty;
+	fifo_buffers_full = config->fifo_buffers_full;
 }
 
 StreamOutput::~StreamOutput() {
-	fifo = nullptr;
+	fifo_buffers_full = nullptr;
+	fifo_buffers_empty = nullptr;
 	shared_memory.baseband_queue.push_and_wait(
 		CaptureConfigMessage { nullptr }
 	);
@@ -69,9 +80,9 @@ Thread* CaptureThread::thread = nullptr;
 
 CaptureThread::CaptureThread(
 	std::unique_ptr<Writer> writer,
-	size_t write_size_log2,
-	size_t buffer_count_log2
-) : config { write_size_log2, buffer_count_log2 },
+	size_t write_size,
+	size_t buffer_count
+) : config { write_size, buffer_count },
 	writer { std::move(writer) }
 {
 	// Need significant stack for FATFS
@@ -90,29 +101,22 @@ CaptureThread::~CaptureThread() {
 void CaptureThread::check_fifo_isr() {
 	// TODO: Prevent over-signalling by transmitting a set of 
 	// flags from the baseband core.
-	const auto fifo = StreamOutput::fifo;
+	const auto fifo = StreamOutput::fifo_buffers_full;
 	if( fifo ) {
 		chEvtSignalI(thread, EVT_MASK_CAPTURE_THREAD);
 	}
 }
 
 msg_t CaptureThread::run() {
-	const size_t write_size = 1U << config.write_size_log2;
-	const auto write_buffer = std::make_unique<uint8_t[]>(write_size);
-	if( !write_buffer ) {
-		return false;
-	}
-
 	StreamOutput stream { &config };
 
 	while( !chThdShouldTerminate() ) {
-		if( stream.available() >= write_size ) {
-			if( stream.read(write_buffer.get(), write_size) != write_size ) {
+		if( stream.available() ) {
+			auto buffer = stream.get_buffer();
+			if( !writer->write(buffer->data(), buffer->size()) ) {
 				return false;
 			}
-			if( !writer->write(write_buffer.get(), write_size) ) {
-				return false;
-			}
+			stream.release_buffer(buffer);
 		} else {
 			chEvtWaitAny(EVT_MASK_CAPTURE_THREAD);
 		}

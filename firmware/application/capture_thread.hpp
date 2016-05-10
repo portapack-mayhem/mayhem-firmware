@@ -40,8 +40,8 @@ class CaptureThread {
 public:
 	CaptureThread(
 		std::unique_ptr<Writer> writer,
-		size_t write_size_log2,
-		size_t buffer_count_log2
+		size_t write_size,
+		size_t buffer_count
 	);
 	~CaptureThread();
 

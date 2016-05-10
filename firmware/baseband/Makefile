@@ -146,6 +146,7 @@ CPPSRC = main.cpp \
          proc_tpms.cpp \
          proc_ert.cpp \
          proc_capture.cpp \
+         stream_input.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

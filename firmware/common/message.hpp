@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
 #include <array>
 #include <functional>
 #include <algorithm>
@@ -411,21 +412,63 @@ public:
 	const iir_biquad_config_t audio_hpf_config;
 };
 
+// TODO: Put this somewhere else, or at least the implementation part.
+class StreamBuffer {
+	uint8_t* data_;
+	size_t used_;
+	size_t capacity_;
+
+public:
+	constexpr StreamBuffer(
+		void* const data = nullptr,
+		const size_t capacity = 0
+	) : data_ { static_cast<uint8_t*>(data) },
+		used_ { 0 },
+		capacity_ { capacity }
+	{
+	}
+
+	size_t write(const void* p, const size_t count) {
+		const auto copy_size = std::min(capacity_ - used_, count);
+		memcpy(&data_[used_], p, copy_size);
+		used_ += copy_size;
+		return copy_size;
+	}
+
+	bool is_full() const {
+		return used_ >= capacity_;
+	}
+
+	const void* data() const {
+		return data_;
+	}
+
+	size_t size() const {
+		return used_;
+	}
+
+	void empty() {
+		used_ = 0;
+	}
+};
+
 struct CaptureConfig {
-	const size_t write_size_log2;
-	const size_t buffer_count_log2;
+	const size_t write_size;
+	const size_t buffer_count;
 	uint64_t baseband_bytes_received;
 	uint64_t baseband_bytes_dropped;
-	FIFO<uint8_t>* fifo;
+	FIFO<StreamBuffer*>* fifo_buffers_empty;
+	FIFO<StreamBuffer*>* fifo_buffers_full;
 
 	constexpr CaptureConfig(
-		const size_t write_size_log2,
-		const size_t buffer_count_log2
-	) : write_size_log2 { write_size_log2 },
-		buffer_count_log2 { buffer_count_log2 },
+		const size_t write_size,
+		const size_t buffer_count
+	) : write_size { write_size },
+		buffer_count { buffer_count },
 		baseband_bytes_received { 0 },
 		baseband_bytes_dropped { 0 },
-		fifo { nullptr }
+		fifo_buffers_empty { nullptr },
+		fifo_buffers_full { nullptr }
 	{
 	}
 

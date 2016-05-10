@@ -46,8 +46,8 @@ public:
 		const Rect parent_rect,
 		std::string filename_stem_pattern,
 		FileType file_type,
-		const size_t buffer_size_k,
-		const size_t buffer_count_k
+		const size_t write_size,
+		const size_t buffer_count
 	);
 	~RecordView();
 
@@ -73,8 +73,8 @@ private:
 
 	const std::string filename_stem_pattern;
 	const FileType file_type;
-	const size_t buffer_size_k;
-	const size_t buffer_count_k;
+	const size_t write_size;
+	const size_t buffer_count;
 	size_t sampling_rate { 0 };
 	SignalToken signal_token_tick_second;
 

@@ -139,13 +139,13 @@ RecordView::RecordView(
 	const Rect parent_rect,
 	std::string filename_stem_pattern,
 	const FileType file_type,
-	const size_t buffer_size_k,
-	const size_t buffer_count_k
+	const size_t write_size,
+	const size_t buffer_count
 ) : View { parent_rect },
 	filename_stem_pattern { filename_stem_pattern },
 	file_type { file_type },
-	buffer_size_k { buffer_size_k },
-	buffer_count_k { buffer_count_k }
+	write_size { write_size },
+	buffer_count { buffer_count }
 {
 	add_children({ {
 		&button_record,
@@ -222,7 +222,7 @@ void RecordView::start() {
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
-			buffer_size_k, buffer_count_k
+			write_size, buffer_count
 		);
 	}
 }
