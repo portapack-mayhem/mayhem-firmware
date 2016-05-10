@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -42,32 +43,26 @@ public:
 	
 	char * value();
 	
-	uint8_t txtidx;
-	
 	void char_add(const char c);
-	void char_delete();
 
 private:
 	uint8_t _max_len;
 	uint8_t dir_cnt = 0;
 	uint8_t dir_prev;
+	uint8_t txtidx;
 	bool cursor = false;
 	bool tracing = false;
 	uint8_t move_index;
 	uint8_t sample_skip, move_wait;
-	uint8_t move_list[32];		// TODO: Cap !
+	uint8_t move_list[8];
 	Point start_pos, current_pos, last_pos;
 	bool _lowercase = false;
 	static constexpr size_t button_w = 240 / 5;
 	static constexpr size_t button_h = 28;
-	char txtinput[21] = {0};	// DEBUG
-	
-	bool MM(uint8_t idx, char cmp);
-	bool MM(uint8_t idx, char cmpud, char cmplr);
-	bool MI(uint8_t idx);
-	bool MLAST(char cmp);
-
+	char txtinput[25] = {0};
 	void sample_pen();
+	void add_stroke(uint8_t dir);
+	void guess_letter();
 	
 	Text text_input {
 		{ 8, 0, 224, 16 }
@@ -81,7 +76,7 @@ private:
 	};
 	std::array<Button, 10> num_buttons;
 
-	Button button_lowercase {
+	Button button_case {
 		{ 88+64+16, 270, 32, 24 },
 		"UC"
 	};

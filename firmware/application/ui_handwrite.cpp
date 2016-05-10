@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -98,47 +99,7 @@ HandWriteView::HandWriteView(
 	//update_text();
 }
 
-bool HandWriteView::MM(uint8_t idx, char cmp) {
-	if (idx < move_index) {
-		if ((cmp == 'U') && ((move_list[idx] & 0xF0) == 0x00)) return true;
-		if ((cmp == 'D') && ((move_list[idx] & 0xF0) == 0x10)) return true;
-		if ((cmp == 'L') && ((move_list[idx] & 0x0F) == 0x00)) return true;
-		if ((cmp == 'R') && ((move_list[idx] & 0x0F) == 0x01)) return true;
-	}
-	return false;
-}
-
-bool HandWriteView::MM(uint8_t idx, char cmpud, char cmplr) {
-	if (idx < move_index) {
-		if (cmpud == 'U') cmpud = 0;
-		if (cmpud == 'D') cmpud = 1;
-		if (cmpud == '?') cmpud = 2;
-		if (cmplr == 'L') cmplr = 0;
-		if (cmplr == 'R') cmplr = 1;
-		if (cmplr == '?') cmplr = 2;
-		if (((move_list[idx] >> 4) == cmpud) && ((move_list[idx] & 0x0F) == cmplr)) return true;
-	}
-	return false;
-}
-
-bool HandWriteView::MI(uint8_t idx) {
-	if (move_index - 1 < idx)
-		return true;
-	else
-		return false;
-}
-
-bool HandWriteView::MLAST(char cmp) {
-	if ((cmp == 'U') && ((move_list[move_index - 1] & 0xF0) == 0x00)) return true;
-	if ((cmp == 'D') && ((move_list[move_index - 1] & 0xF0) == 0x10)) return true;
-	if ((cmp == 'L') && ((move_list[move_index - 1] & 0x0F) == 0x00)) return true;
-	if ((cmp == 'R') && ((move_list[move_index - 1] & 0x0F) == 0x01)) return true;
-	return false;
-}
-
 bool HandWriteView::on_touch(const TouchEvent event) {
-	char guess;
-	
 	if (event.type == ui::TouchEvent::Type::Start) {
 		move_index = 0;
 		move_wait = 4;
@@ -146,92 +107,7 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 	}
 	if (event.type == ui::TouchEvent::Type::End) {
 		tracing = false;
-		
-		display.fill_rectangle(
-			{{0, 16}, {240, 230}},
-			Color::black()
-		);
-		
-		// Letter guessing
-		guess = ' ';
-		
-		if (MM(0, 'U')) {
-			if (MM(0, 'U', '?')) {
-				if (MI(1))
-					guess = 'A';
-				else
-					guess = 'F';
-			} else if (MM(0, 'U', 'R')) {
-				if (MI(1)) {
-					guess = 'K';
-				} else {
-					if (MM(1, 'L')) {
-						if (txtidx > 0) {
-							txtinput[--txtidx] = 0;	// Erase
-							guess = '!';
-						}
-					} else {
-						guess = 'N';
-					}
-				}
-			} else if (MM(0, 'U', 'L')) {
-				if (MM(1, 'U', 'R')) guess = 'C';
-				if (MM(1, 'D', 'L')) guess = 'M';
-			}
-		} else if (MM(0, 'D')) {
-			if (MM(0, 'D', 'R') || MM(1, 'R'))
-				guess = 'P';
-			else
-				guess = 'Q';
-			if (MM(0, 'D', '?')) {
-				if (MI(1)) {
-					guess = 'I';
-				} else {
-					if (MM(1, 'R') && MI(2)) {
-						guess = 'L';
-					} else if (MM(1, 'L')) {
-						if (MI(2)) guess = 'J';
-					} else if (MM(1, 'U', 'R')) {
-						if (MM(2, 'D')) guess = 'W';
-					}
-				}
-			}
-			if (MM(0, 'D', 'R')) {
-				if (MI(1)) guess = 'R';
-				if (MM(1, 'U', 'R') && MI(2)) guess = 'V';
-				if (MM(1, 'D', 'L')) guess = 'B';
-			} else if (MM(0, 'D', 'L')) {
-				if (MI(1)) guess = 'Y';
-				if (MM(1, 'U', 'L') && MI(2)) guess = 'U';
-				if (MM(1, 'D', 'R')) guess = 'D';
-			}
-		}
-		
-		if (MM(0, 'L')) {
-			if (!MI(2) && (MLAST('U') || MLAST('L'))) guess = 'O';
-			if (MM(0, '?', 'L')) {
-				if (MI(1))
-					guess = 'E';
-				else
-					if (MM(1, 'R')) guess = 'S';
-			}
-		} else if (MM(0, 'R')) {
-			if (!MI(2) && (MLAST('U') || MLAST('R'))) guess = 'X';
-			if (MM(0, '?', 'R')) {
-				if (MM(1, 'U') && MI(2)) {
-					guess = 'G';
-				} else if (MM(1, 'D', '?') && MI(2)) {
-					guess = 'H';
-				} else if (MM(1, 'L')) {
-					guess = 'Z';
-				} else if (MI(1)) {
-					guess = 'T';
-				}
-			}
-		}
-
-		if (guess != '!') txtinput[txtidx++] = guess;
-		update_text();
+		guess_letter();
 	}
 	if (event.type == ui::TouchEvent::Type::Move) {
 		if (tracing) {
@@ -241,9 +117,90 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 	return true;
 }
 
+void HandWriteView::guess_letter() {
+	uint8_t symbol, match, count, stroke_idx, stroke_data;
+	Condition cond;
+	Direction dir;
+	bool matched;
+	
+	// Clear drawing zone
+	display.fill_rectangle(
+		{{0, 16}, {240, 240}},
+		Color::black()
+	);
+	
+	// Letter guessing
+	if (move_index) {
+		for (symbol = 0; symbol < handwriting_unistroke.letter_count; symbol++) {
+			count = handwriting_unistroke.letter[symbol].count;
+			matched = false;
+			if (count) {
+				// We have a count match to do
+				if ((count == 1) && (move_index == 1)) matched = true;
+				if ((count == 2) && (move_index == 2)) matched = true;
+				if ((count == 3) && (move_index > 2)) matched = true;
+			} else {
+				matched = true;
+			}
+			if (matched) {
+				for (match = 0; match < 3; match++) {
+					cond = handwriting_unistroke.letter[symbol].match[match].cond;
+					dir = handwriting_unistroke.letter[symbol].match[match].dir;
+					if ((cond != cond_empty) && (dir != dir_empty)) {
+						if (cond == last) {
+							if (move_index)
+								stroke_idx = move_index - 1;
+							else
+								stroke_idx = 0;
+						} else if (cond == stroke_a)
+							stroke_idx = 0;
+						else if (cond == stroke_b)
+							stroke_idx = 1;
+						else if (cond == stroke_c)
+							stroke_idx = 2;
+						else
+							stroke_idx = 3;
+						stroke_data = move_list[stroke_idx];
+						if ((dir & 0xF0) == 0xF0) {
+							if ((dir & 0x0F) != (stroke_data & 0x0F)) break;
+						} else if ((dir & 0x0F) == 0x0F) {
+							if ((dir & 0xF0) != (stroke_data & 0xF0)) break;
+						} else {
+							if (dir != stroke_data) break;
+						}
+					}
+				}
+				if (match == 3)
+					break;
+				else
+					matched = false;
+			}
+		}
+		if (matched) {
+			if (symbol)
+				txtinput[txtidx++] = 'A' + symbol - 1;
+			else
+				txtinput[--txtidx] = 0;		// Erase
+		}
+	} else {
+		txtinput[txtidx++] = ' ';
+	}
+	update_text();
+	move_index = 0;
+}
+
+void HandWriteView::add_stroke(uint8_t dir) {
+	if (move_index < 8) {
+		move_list[move_index] = dir;
+		move_index++;
+	} else {
+		guess_letter();
+	}
+}
+
 void HandWriteView::sample_pen() {
 	int16_t diff_x, diff_y;
-	uint8_t dir;
+	uint8_t dir, dir_ud, dir_lr;
 	
 	// Blink cursor
 	if (!(sample_skip & 15)) {
@@ -277,10 +234,12 @@ void HandWriteView::sample_pen() {
 				text_debug_x.set(to_string_dec_int(diff_x));
 				text_debug_y.set(to_string_dec_int(diff_y));
 				
-				display.fill_rectangle(
-					{{current_pos.x, current_pos.y}, {4, 4}},
-					Color::grey()
-				);
+				if (current_pos.y <= 240) {
+					display.fill_rectangle(
+						{{current_pos.x, current_pos.y}, {4, 4}},
+						Color::grey()
+					);
+				}
 				
 				dir = 0;
 				if (abs(diff_x) > 7) {
@@ -308,67 +267,40 @@ void HandWriteView::sample_pen() {
 					dir_cnt = 0;
 					if (move_index) {
 						if ((move_list[move_index - 1] != dir) && (dir != 0x22)) {
-							if ((dir & 0xF0) == 0x20) {
-								if ((move_list[move_index - 1] & 0x0F) != (dir & 0x0F)) {
-									move_list[move_index] = dir;
-									move_index++;
-								}
-							} else if ((dir & 0x0F) == 0x02) {
-								if ((move_list[move_index - 1] & 0xF0) != (dir & 0xF0)) {
-									move_list[move_index] = dir;
-									move_index++;
-								}
+							dir_ud = (dir & 0xF0);
+							dir_lr = (dir & 0x0F);
+							if (dir_ud == 0x20) {
+								if ((move_list[move_index - 1] & 0x0F) != dir_lr) add_stroke(dir);
+							} else if (dir_lr == 0x02) {
+								if ((move_list[move_index - 1] & 0xF0) != dir_ud) add_stroke(dir);
 							} else {
 								// Replacement ?
-								if (((move_list[move_index - 1] & 0xF0) == 0x20) && ((dir & 0xF0) != 0x20)) {
-									if ((move_list[move_index - 1] & 0x0F) == (dir & 0x0F)) {
+								if (((move_list[move_index - 1] & 0xF0) == 0x20) && (dir_ud != 0x20)) {
+									if ((move_list[move_index - 1] & 0x0F) == dir_lr) {
 										move_list[move_index - 1] = dir;
 									} else if ((dir & 0x0F) == 0x02) {
 										// Merge
-										move_list[move_index - 1] = (dir & 0xF0) | (move_list[move_index - 1] & 0x0F);
+										move_list[move_index - 1] = dir_ud | (move_list[move_index - 1] & 0x0F);
 									} else {
-										move_list[move_index] = dir;
-										move_index++;
+										add_stroke(dir);
 									}
-								} else if (((move_list[move_index - 1] & 0x0F) == 0x02) && ((dir & 0x0F) != 0x02)) {
-									if ((move_list[move_index - 1] & 0xF0) == (dir & 0xF0)) {
+								} else if (((move_list[move_index - 1] & 0x0F) == 0x02) && (dir_lr != 0x02)) {
+									if ((move_list[move_index - 1] & 0xF0) == dir_ud) {
 										move_list[move_index - 1] = dir;
-									} else if ((dir & 0xF0) == 0x20) {
+									} else if (dir_ud == 0x20) {
 										// Merge
-										move_list[move_index - 1] = (dir & 0x0F) | (move_list[move_index - 1] & 0xF0);
+										move_list[move_index - 1] = dir_lr | (move_list[move_index - 1] & 0xF0);
 									} else {
-										move_list[move_index] = dir;
-										move_index++;
+										add_stroke(dir);
 									}
 								} else {
-									move_list[move_index] = dir;
-									move_index++;
+									add_stroke(dir);
 								}
 							}
 						}
 					} else {
-						if (dir != 0x22) {
-							move_list[move_index] = dir;
-							move_index++;
-						}
+						if (dir != 0x22) add_stroke(dir);
 					}
-
-					// DEBUG
-					/*if (move_index) {
-						memset(txtinput, 0, 20);
-						txtidx = 0;
-						for (i = 0; i < move_index; i++) {
-							if ((move_list[i] & 0x03) == 0) char_add('L');
-							if ((move_list[i] & 0x03) == 1) char_add('R');
-							if ((move_list[i] & 0x03) == 2) char_add('?');
-							if ((move_list[i] >> 4) == 0) char_add('U');
-							if ((move_list[i] >> 4) == 1) char_add('D');
-							if ((move_list[i] >> 4) == 2) char_add('?');
-							char_add(' ');
-						}
-						update_text();
-					}*/
-					
 				}
 			}
 		
@@ -402,13 +334,6 @@ void HandWriteView::char_add(const char c) {
 	if (txtidx < _max_len) {
 		txtinput[txtidx] = c;
 		txtidx++;
-	}
-}
-
-void HandWriteView::char_delete() {
-	if (txtidx) {
-		txtidx--;
-		txtinput[txtidx] = ' ';
 	}
 }
 

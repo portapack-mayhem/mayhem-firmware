@@ -229,7 +229,6 @@ SystemView::SystemView(
 	set_style(&style_default);
 
 	constexpr ui::Dim status_view_height = 16;
-	char debugtxt[21] = {0};
 	
 	add_child(&status_view);
 	status_view.set_parent_rect({
@@ -262,8 +261,8 @@ SystemView::SystemView(
 		navigation_view.push<BMPView>();
 	else
 		//navigation_view.push<SoundBoardView>();
-		//navigation_view.push<SystemMenuView>();
-		navigation_view.push<HandWriteView>(debugtxt, 20);
+		//navigation_view.push<HandWriteView>(debugtxt, 20);
+		navigation_view.push<SystemMenuView>();
 }
 
 Context& SystemView::context() const {

@@ -21,6 +21,10 @@
 
 //BUG:  No audio in about when shown second time
 //BUG:  Description doesn't show up first time going to system>module info (UI drawn on top)
+//TODO: Setting: Prefered input method
+//TODO: LCR emergency clear all
+//TODO: LCR receiver
+//TODO: Xylos receiver
 //TODO: Morse coder
 //TODO: Playdead amnesia and login
 //TODO: Touch screen calibration
@@ -33,8 +37,7 @@
 //TODO: SIGFOX RX/TX
 //TODO: Reset baseband if module not found (instead of lockup in RAM loop)
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
-//TODO: LCD backlight PWM
-//TODO: BUG: Crash after TX stop (unregister message !)
+//BUG: Crash after TX stop (unregister message !)
 //TODO: Check bw setting in LCR TX
 //TODO: BUG: Crash after PSN entry in RDS TX
 //TODO: Bodet :)
