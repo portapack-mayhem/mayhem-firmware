@@ -103,7 +103,9 @@ void CaptureThread::check_fifo_isr() {
 	// flags from the baseband core.
 	const auto fifo = StreamOutput::fifo_buffers_full;
 	if( fifo ) {
-		chEvtSignalI(thread, EVT_MASK_CAPTURE_THREAD);
+		if( !fifo->is_empty() ) {
+			chEvtSignalI(thread, EVT_MASK_CAPTURE_THREAD);
+		}
 	}
 }
 
