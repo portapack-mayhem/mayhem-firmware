@@ -49,18 +49,6 @@ private:
 		"SD Card",
 	};
 
-	static constexpr size_t detected_characters = 3;
-
-	Text text_detected_title {
-		{ 0, 3 * 16, (8 * 8), 16 },
-		"Detected",
-	};
-
-	Text text_detected_value {
-		{ 240 - (detected_characters * 8), 3 * 16, (detected_characters * 8), 16 },
-		"",
-	};
-
 	static constexpr size_t bus_width_characters = 1;
 
 	Text text_bus_width_title {

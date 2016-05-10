@@ -227,8 +227,6 @@ namespace ui {
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
-		&text_detected_title,
-		&text_detected_value,
 		&text_bus_width_title,
 		&text_bus_width_value,
 		&text_card_mode_title,
@@ -305,8 +303,6 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 	text_test_read_rate_value.set("");
 
 	const bool is_inserted = sdcIsCardInserted(&SDCD1);
-	text_detected_value.set(is_inserted ? "Yes" : " No");
-
 	if( is_inserted ) {
 		const auto card_width_flags = LPC_SDMMC->CTYPE & 0x10001;
 		size_t card_width = 0;
