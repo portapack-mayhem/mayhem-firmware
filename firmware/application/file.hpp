@@ -25,6 +25,7 @@
 #include "ff.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <array>
 #include <memory>
@@ -75,7 +76,16 @@ std::string next_filename_stem_matching_pattern(const std::string& filename_stem
 namespace std {
 namespace filesystem {
 
+using path = std::string;
 using file_status = BYTE;
+
+struct space_info {
+	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
+
+	std::uintmax_t capacity;
+	std::uintmax_t free;
+	std::uintmax_t available;
+};
 
 struct directory_entry : public FILINFO {
 	file_status status() const {
@@ -125,6 +135,8 @@ inline directory_iterator end(const directory_iterator&) noexcept { return { }; 
 inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) { return lhs.impl != rhs.impl; };
 
 bool is_regular_file(const file_status s);
+
+space_info space(const path& p);
 
 } /* namespace filesystem */
 } /* namespace std */

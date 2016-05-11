@@ -164,5 +164,23 @@ bool is_regular_file(const file_status s) {
 	return !(s & AM_DIR);
 }
 
+space_info space(const path& p) {
+	DWORD free_clusters { 0 };
+	FATFS* fs;
+	if( f_getfree(p.c_str(), &free_clusters, &fs) == FR_OK ) {
+#if _MAX_SS != _MIN_SS
+		static_assert(false, "FatFs not configured for fixed sector size");
+#else
+		return {
+			(fs->n_fatent - 2) * fs->csize * _MIN_SS,
+			free_clusters * fs->csize * _MIN_SS,
+			free_clusters * fs->csize * _MIN_SS,
+		};
+#endif
+	} else {
+		return { 0, 0, 0 };
+	}
+}
+
 } /* namespace filesystem */
 } /* namespace std */
