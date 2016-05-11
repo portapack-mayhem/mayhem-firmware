@@ -64,7 +64,7 @@ private:
 	NumberField field_mark {
 		{ 64, 104 },
 		5,
-		{ 100, 32000 },
+		{ 100, 15000 },
 		25,
 		' '
 	};
@@ -76,7 +76,7 @@ private:
 	NumberField field_space {
 		{ 64, 120 },
 		5,
-		{ 100, 32000 },
+		{ 100, 15000 },
 		25,
 		' '
 	};

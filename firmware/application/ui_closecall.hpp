@@ -43,7 +43,9 @@
 
 namespace ui {
 
-#define CC_SLICE_WIDTH 10000000
+#define CC_SLICE_WIDTH	5000000 //10000000
+#define CC_BIN_NB		236
+#define CC_BIN_WIDTH	CC_SLICE_WIDTH/CC_BIN_NB
 
 class CloseCallView : public View {
 public:
@@ -53,43 +55,99 @@ public:
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;
-	std::string title() const override { return "Close call"; };
+	std::string title() const override { return "Close Call"; };
 
 private:
 	Coord last_pos = 0;
 	ChannelSpectrumFIFO* fifo { nullptr };
 	uint8_t detect_counter = 0, release_counter = 0;
 	uint8_t wait = 2;
+	uint8_t slice_trim;
 	uint32_t mean = 0;
+	uint32_t min_threshold = 80;	// Todo: Put this in persistent / settings
 	rf::Frequency slice_start;
 	rf::Frequency slice_frequency;
 	uint8_t slices_max;
 	uint8_t slices_counter;
 	uint16_t last_channel;
-	rf::Frequency scan_span;
-	uint8_t slicemax_db[32];	// Todo: Cap max slices !
+	rf::Frequency scan_span, locked_frequency;
+	uint8_t slicemax_db[32];		// Todo: Cap max slices !
 	uint8_t slicemax_idx[32];
+	uint8_t scan_counter;
 	bool ignore = true;
 	bool slicing;
 	bool locked = false;
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	void on_range_changed();
 	void do_detection();
+	void on_lna_changed(int32_t v_db);
+	void on_vga_changed(int32_t v_db);
+	void update_rate();
 	
+	/* |012345678901234567890123456789|
+	 * | Min:      Max:       LNA VGA |
+	 * | 0000.0000 0000.0000  00  00  |
+	 * | Threshold: 000               |
+	 * | Slices: 00       Rate: 000Hz |
+	 * |
+	 * */
+	
+	Text text_labels_a {
+		{ 1 * 8, 0 * 16, 28 * 8, 16 },
+		"Min:      Max:       LNA VGA"
+	};
+	Text text_labels_b {
+		{ 1 * 8, 2 * 16, 10 * 8, 16 },
+		"Threshold:"
+	};
+	Text text_labels_c {
+		{ 1 * 8, 3 * 16, 28 * 8, 16 },
+		"Slices:          Rate:    Hz"
+	};
+	
+	NumberField field_threshold {
+		{ 12 * 8, 2 * 16 },
+		3,
+		{ 5, 250 },
+		5,
+		' '
+	};
+	 
 	FrequencyField field_frequency_min {
-		{ 1 * 8, 0 * 16 },
+		{ 1 * 8, 1 * 16 },
 	};
 	FrequencyField field_frequency_max {
-		{ 12 * 8, 0 * 16 },
+		{ 11 * 8, 1 * 16 },
 	};
 	
-	Text text_slice {
-		{ 23 * 8, 0 * 16, 2 * 8, 16 },
+	LNAGainField field_lna {
+		{ 22 * 8, 1 * 16 }
+	};
+	VGAGainField field_vga {
+		{ 26 * 8, 1 * 16 }
+	};
+	
+	Text text_slices {
+		{ 9 * 8, 3 * 16, 2 * 8, 16 },
 		"--"
+	};
+	Text text_rate {
+		{ 24 * 8, 3 * 16, 3 * 8, 16 },
+		"---"
 	};
 	
 	Text text_infos {
-		{ 1 * 8, 1 * 16, 18 * 8, 16 },
+		{ 1 * 8, 6 * 16, 28 * 8, 16 },
+		"..."
+	};
+	
+	BigFrequency big_display {
+		{ 4, 8 * 16, 28 * 8, 32 },
+		0
+	};
+	
+	Text text_debug {
+		{ 1 * 8, 13 * 16, 28 * 8, 16 },
 		"..."
 	};
 	

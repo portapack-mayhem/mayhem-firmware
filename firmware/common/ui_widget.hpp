@@ -26,6 +26,7 @@
 #include "ui_text.hpp"
 #include "ui_painter.hpp"
 #include "ui_focus.hpp"
+#include "radio.hpp"
 
 #include "utility.hpp"
 
@@ -195,6 +196,18 @@ public:
 
 private:
 	std::string text;
+};
+
+class BigFrequency : public Widget {
+public:
+	BigFrequency(Rect parent_rect, rf::Frequency frequency);
+
+	void set(const rf::Frequency frequency);
+
+	void paint(Painter& painter) override;
+
+private:
+	rf::Frequency _frequency;
 };
 
 class ProgressBar : public Widget {

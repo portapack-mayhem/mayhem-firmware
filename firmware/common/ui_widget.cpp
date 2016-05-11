@@ -292,6 +292,91 @@ void Text::paint(Painter& painter) {
 	);
 }
 
+/* BigFrequency **********************************************************/
+
+const uint8_t big_segment_font[11] = {
+	0b00111111,	// 0: ABCDEF
+	0b00000110,	// 1: AB
+	0b01011011,	// 2: ABDEG
+	0b01001111,	// 3: ABCDG
+	0b01100110,	// 4: BCFG
+	0b01101101,	// 5: ACDFG
+	0b01111101,	// 6: ACDEFG
+	0b00000111,	// 7: ABC
+	0b01111111,	// 8: ABCDEFG
+	0b01101111,	// 9: ABCDFG
+	0b01000000	// -: G
+};
+
+BigFrequency::BigFrequency(
+	Rect parent_rect,
+	rf::Frequency frequency
+) : Widget { parent_rect },
+	_frequency { frequency }
+{
+}
+
+void BigFrequency::set(const rf::Frequency frequency) {
+	_frequency = frequency;
+	set_dirty();
+}
+
+void BigFrequency::paint(Painter& painter) {
+	uint8_t i, digit_def;
+	char digits[7];
+	char digit;
+	Coord digit_x, digit_y;
+	
+	const auto rect = screen_rect();
+	
+	// Erase
+	painter.fill_rectangle({{0, rect.pos.y}, {240, 52}}, ui::Color::black());
+	
+	if (!_frequency) {
+		for (i = 0; i < 7; i++)
+			digits[i] = 10;
+	} else {
+		_frequency /= 1000;			// GMMM.KKKuuu
+		
+		for (i = 0; i < 7; i++) {
+			digits[6 - i] = _frequency % 10;
+			_frequency /= 10;
+		}
+		
+		// Remove leading zeros
+		for (i = 0; i < 7; i++) {
+			if (!digits[i])
+				digits[i] = 16;		// "Don't draw" code
+			else
+				break;
+		}
+	}
+
+	// Draw
+	digit_x = rect.pos.x;		// 7 * 32 + 8 = 232 (4 px margins)
+	for (i = 0; i < 7; i++) {
+		digit = digits[i];
+		digit_y = rect.pos.y;
+		if (digit < 16) {
+			digit_def = big_segment_font[digit];
+			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, digit_y}, 		{20, 4}}, 	ui::Color::white());
+			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, digit_y + 4}, 	{4, 20}}, 	ui::Color::white());
+			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, digit_y + 28}, {4, 20}}, 	ui::Color::white());
+			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, digit_y + 48}, 	{20, 4}}, 	ui::Color::white());
+			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, digit_y + 28}, 		{4, 20}}, 	ui::Color::white());
+			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, digit_y + 4}, 		{4, 20}}, 	ui::Color::white());
+			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, digit_y + 24}, 	{20, 4}}, 	ui::Color::white());
+		}
+		if (i == 3) {
+			// Dot
+			painter.fill_rectangle({{digit_x + 34, digit_y + 48}, {4, 4}}, ui::Color::white());
+			digit_x += 40;
+		} else {
+			digit_x += 32;
+		}
+	}
+}
+
 /* ProgressBar ***********************************************************/
 
 ProgressBar::ProgressBar(
