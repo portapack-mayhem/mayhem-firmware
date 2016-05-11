@@ -246,7 +246,9 @@ void RecordView::on_tick_second() {
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
 		text_record_dropped.set(s);
+	}
 
+	if( sampling_rate ) {
 		const auto space_info = std::filesystem::space("");
 		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * 4);
 		const uint32_t available_seconds = space_info.free / bytes_per_second;
