@@ -151,7 +151,7 @@ RecordView::RecordView(
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
-		&text_time_recorded,
+		&text_time_available,
 	} });
 
 	button_record.on_select = [this](ImageButton&) {
@@ -249,8 +249,8 @@ void RecordView::on_tick_second() {
 
 		const auto space_info = std::filesystem::space("");
 		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * 4);
-		const uint32_t free_seconds = space_info.free / bytes_per_second;
-		text_time_recorded.set(to_string_dec_uint(free_seconds, 6, ' ') + "s");
+		const uint32_t available_seconds = space_info.free / bytes_per_second;
+		text_time_available.set(to_string_dec_uint(available_seconds, 6, ' ') + "s");
 	}
 }
 

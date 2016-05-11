@@ -95,7 +95,7 @@ private:
 		"",
 	};
 
-	Text text_time_recorded {
+	Text text_time_available {
 		{ 23 * 8, 0 * 16, 7 * 8, 16 },
 		"",
 	};
