@@ -95,6 +95,11 @@ private:
 		"",
 	};
 
+	Text text_time_recorded {
+		{ 23 * 8, 0 * 16, 7 * 8, 16 },
+		"",
+	};
+
 	std::unique_ptr<CaptureThread> capture_thread;
 };
 
