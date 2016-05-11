@@ -132,6 +132,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 5:		return new TPMSProcessor();
 	case 6:		return new ERTProcessor();
 	case 7:		return new CaptureProcessor();
+	case 10:	return new WidebandSpectrum();	// Close call
 	default:	return nullptr;
 	}
 }

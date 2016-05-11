@@ -34,7 +34,7 @@
 #include "transmitter_model.hpp"
 
 namespace ui {
-	
+
 class AudioTXView : public View {
 public:
 	AudioTXView(NavigationView& nav);

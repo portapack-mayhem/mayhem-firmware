@@ -23,7 +23,7 @@ import struct
 import md5
 
 usage_message = """
-Baseband processors modules package file generator
+Baseband module package file generator
 
 Usage: <command> <module_name> <module_name>...
 """

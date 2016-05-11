@@ -38,6 +38,7 @@
 #include "analog_audio_app.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_debug.hpp"
+#include "ui_closecall.hpp"
 #include "ui_audiotx.hpp"
 
 #include <cstring>
@@ -49,10 +50,6 @@ namespace ui {
 
 void LoadModuleView::focus() {
 	button_ok.focus();
-}
-
-void LoadModuleView::paint(Painter& painter) {
-	(void)painter;
 }
 
 void LoadModuleView::on_hide() {
@@ -152,12 +149,10 @@ void LoadModuleView::loadmodule() {
 LoadModuleView::LoadModuleView(
 	NavigationView& nav,
 	const char * hash,
-	uint8_t ViewID,
-	bool loadplz
+	ViewID viewid
 )
 {
-	if (loadplz == false) nav.pop();	// Useless, remove !
-	
+
 	add_children({ {
 		&text_info,
 		&text_infob,
@@ -165,17 +160,18 @@ LoadModuleView::LoadModuleView(
 	} });
 	
 	_hash = hash;
-	
-	button_ok.on_select = [this, &nav, ViewID](Button&){
+
+	button_ok.on_select = [this, &nav, viewid](Button&){
+		nav.pop();
 		if (_mod_loaded == true) {
-			if (ViewID == 0) nav.push<AudioTXView>(); //nav.push<RDSView>();
-			if (ViewID == 1) nav.push<XylosView>();
-			if (ViewID == 2) nav.push<LCRView>();
-			if (ViewID == 3) nav.push<SoundBoardView>();
-			
-			if (ViewID == 10) nav.push<AnalogAudioView>();
-		} else {
-			nav.pop();
+			if (viewid == AudioTX) nav.push<AudioTXView>();
+			if (viewid == Xylos) nav.push<XylosView>();
+			if (viewid == LCR) nav.push<LCRView>();
+			if (viewid == SoundBoard) nav.push<SoundBoardView>();
+			if (viewid == AnalogAudio) nav.push<AnalogAudioView>();
+			if (viewid == RDS) nav.push<RDSView>();
+			if (viewid == CloseCall) nav.push<CloseCallView>();
+			if (viewid == Receiver) nav.push<ReceiverMenuView>();
 		}
 	};
 }

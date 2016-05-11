@@ -20,66 +20,81 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui.hpp"
+/*#include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
-#include "max2837.hpp"
 #include "volume.hpp"
+#include "receiver_model.hpp"*/
+
 #include "receiver_model.hpp"
+
+#include "spectrum_color_lut.hpp"
+
+#include "ui_receiver.hpp"
+#include "ui_spectrum.hpp"
+#include "ui_record_view.hpp"
+
+#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
-class SIGFRXView : public View {
+#define CC_SLICE_WIDTH 10000000
+
+class CloseCallView : public View {
 public:
-	SIGFRXView(NavigationView& nav);
-	~SIGFRXView();
-	void on_channel_spectrum(const ChannelSpectrum& spectrum);
+	CloseCallView(NavigationView& nav);
+	~CloseCallView();
 	
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;
-	void paint(Painter& painter) override;
+	std::string title() const override { return "Close call"; };
 
-private:	
-	uint8_t last_channel;
-	uint8_t detect_counter = 0;
+private:
+	Coord last_pos = 0;
+	ChannelSpectrumFIFO* fifo { nullptr };
+	uint8_t detect_counter = 0, release_counter = 0;
+	uint8_t wait = 2;
+	uint32_t mean = 0;
+	rf::Frequency slice_start;
+	rf::Frequency slice_frequency;
+	uint8_t slices_max;
+	uint8_t slices_counter;
+	uint16_t last_channel;
+	rf::Frequency scan_span;
+	uint8_t slicemax_db[32];	// Todo: Cap max slices !
+	uint8_t slicemax_idx[32];
+	bool ignore = true;
+	bool slicing;
+	bool locked = false;
+	void on_channel_spectrum(const ChannelSpectrum& spectrum);
+	void on_range_changed();
+	void do_detection();
 	
-	const Style style_white {
-		.font = font::fixed_8x16,
-		.background = Color::white(),
-		.foreground = Color::black()
+	FrequencyField field_frequency_min {
+		{ 1 * 8, 0 * 16 },
+	};
+	FrequencyField field_frequency_max {
+		{ 12 * 8, 0 * 16 },
 	};
 	
-	const uint16_t sigfrx_marks[18] = {
-		10,		8, 		0,
-		60,		52,		90, 
-		119, 	95,		180, 
-		121, 	122,	220, 
-		179, 	171,	310, 
-		230, 	214,	400 };
-	
-	Text text_type {
-		{ 1 * 8, 1 * 16, 28 * 8, 16 },
-		"SIGFOX interceptor. Yap !"
+	Text text_slice {
+		{ 23 * 8, 0 * 16, 2 * 8, 16 },
+		"--"
 	};
 	
-	Text text_channel {
-		{ 1 * 8, 3 * 16, 28 * 8, 16 },
-		"PL: "
-	};
-	Text text_data {
-		{ 1 * 8, 4 * 16, 28 * 8, 16 },
-		"??: "
+	Text text_infos {
+		{ 1 * 8, 1 * 16, 18 * 8, 16 },
+		"..."
 	};
 	
 	Button button_exit {
-		{ 22 * 8, 160 - 32, 56, 32 },
+		{ 92, 264, 56, 32 },
 		"Exit"
 	};
 };

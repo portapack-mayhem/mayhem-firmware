@@ -38,6 +38,7 @@ public:
 		WidebandFMAudio = 2,
 		SpectrumAnalysis = 4,
 		Capture = 7,
+		CloseCall = 10,
 	};
 
 	rf::Frequency tuning_frequency() const;

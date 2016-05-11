@@ -30,15 +30,25 @@
 
 namespace ui {
 
+enum ViewID {
+	Receiver,
+	AudioTX,
+	CloseCall,
+	Xylos,
+	LCR,
+	SoundBoard,
+	AnalogAudio,
+	RDS,
+};
+
 class LoadModuleView : public View {
 public:
-	LoadModuleView(NavigationView& nav, const char * hash, uint8_t ViewID, bool loadplz);
+	LoadModuleView(NavigationView& nav, const char * hash, ViewID viewid);
 	void loadmodule();
 	
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;
-	void paint(Painter& painter) override;
 
 private:
 	int load_image(void);

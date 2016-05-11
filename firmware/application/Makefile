@@ -150,39 +150,40 @@ CPPSRC = main.cpp \
          audio.cpp \
          lcd_ili9341.cpp \
          ui.cpp \
-         ui_alphanum.cpp \
-         ui_handwrite.cpp \
          ui_about.cpp \
-         ui_text.cpp \
-         ui_widget.cpp \
-         ui_painter.cpp \
-         ui_focus.cpp \
-         ui_navigation.cpp \
-         ui_menu.cpp \
-         ui_rssi.cpp \
-         ui_channel.cpp \
-         ui_audio.cpp \
-         ui_audiotx.cpp \
-         ui_soundboard.cpp \
-         ui_lcr.cpp \
-         ui_rds.cpp \
-         ui_jammer.cpp \
-         ui_font_fixed_8x16.cpp \
-         ui_setup.cpp \
-         ui_debug.cpp \
-         ui_baseband_stats_view.cpp \
-         ui_sd_card_status_view.cpp \
-         ui_sd_card_debug.cpp \
-         ui_console.cpp \
-         ui_receiver.cpp \
-         ui_record_view.cpp \
-         ui_spectrum.cpp \
-         ui_loadmodule.cpp \
          ui_afskrx.cpp \
          ui_afsksetup.cpp \
-         ui_sigfrx.cpp \
-         ui_xylos.cpp \
+         ui_audio.cpp \
+         ui_audiotx.cpp \
+         ui_alphanum.cpp \
+         ui_baseband_stats_view.cpp \
+         ui_channel.cpp \
+         ui_closecall.cpp \
+         ui_console.cpp \
+         ui_debug.cpp \
+         ui_focus.cpp \
+         ui_font_fixed_8x16.cpp \
+         ui_handwrite.cpp \
+         ui_jammer.cpp \
+         ui_lcr.cpp \
+         ui_loadmodule.cpp \
+         ui_menu.cpp \
+         ui_navigation.cpp \
          ui_numbers.cpp \
+         ui_painter.cpp \
+         ui_rds.cpp \
+         ui_receiver.cpp \
+         ui_record_view.cpp \
+         ui_rssi.cpp \
+         ui_sd_card_debug.cpp \
+         ui_sd_card_status_view.cpp \
+         ui_setup.cpp \
+         ui_sigfrx.cpp \
+         ui_soundboard.cpp \
+         ui_spectrum.cpp \
+         ui_text.cpp \
+         ui_widget.cpp \
+         ui_xylos.cpp \
          recent_entries.cpp \
          receiver_model.cpp \
          transmitter_model.cpp \

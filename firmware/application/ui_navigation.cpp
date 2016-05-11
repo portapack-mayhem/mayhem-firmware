@@ -173,7 +173,7 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<2>({ {
-		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<LoadModuleView>(md5_baseband, 10, true); } },
+		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", ui::Color::white(), 		[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
@@ -182,19 +182,21 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<10>({ {
+	add_items<12>({ {
 		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
-		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Soundboard                TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 3, true); } },
-		{ "Audio TX                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 0, true); } },
-		{ "Xylos                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 1, true); } },
-		{ "TEDI/LCR                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, 2, true); } },
+		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, Receiver); } },
+		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, CloseCall); } },
+		{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
+		{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
+		{ "Xylos                     TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Xylos); } },
+		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, LCR); } },
+		{ "RDS                       TX",	ui::Color::yellow(),	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, RDS); } },
 		//{ "Capture", 		ui::Color::white(), 	[&nav](){ nav.push<NotImplementedView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 			ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
-		{ "About", 			ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } },
 		{ "Debug", 			ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 		ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
+		{ "About", 			ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
 
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
@@ -225,7 +227,7 @@ SystemView::SystemView(
 {
 	set_style(&style_default);
 	
-	char debugtxt[21];	// DEBUG
+	//char debugtxt[21];	// DEBUG
 
 	constexpr ui::Dim status_view_height = 16;
 	
