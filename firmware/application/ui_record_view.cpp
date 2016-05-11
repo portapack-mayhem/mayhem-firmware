@@ -258,7 +258,7 @@ void RecordView::on_tick_second() {
 		const uint32_t hours = available_minutes / 60;
 		const std::string available_time =
 			to_string_dec_uint(hours, 3, ' ') + ":" +
-			to_string_dec_uint(minutes, 2, ' ') + ":" +
+			to_string_dec_uint(minutes, 2, '0') + ":" +
 			to_string_dec_uint(seconds, 2, '0');
 		text_time_available.set(available_time);
 	}
