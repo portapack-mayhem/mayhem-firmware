@@ -1,24 +1,26 @@
 # portapack-HAVOC
 
-**Working on making the modules work again...**
-
 HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
-As its name implies, HAVOC is a firmware for serious fun mainly involving French systems (for now).
-Don't use it, we never did.
+It is build on top of Sharebrained's firmware, meaning that the original functionalities are kept (except when I don't sync for 2 months).
+
+As its name implies, HAVOC is a firmware made to have serious fun with various radio links, mainly involving French systems (for now). Don't use it, we never did.
 
 Fork features:
-* RDS (Radio Data System) basic group forming and transmit
+* Close-Call™ style scanner
+* RDS (Radio Data System) PSN transmit
 * LCR (Language de Commande Routier) basic message forming and transmit
 * Xylos transmitter, urban lighting control (NFM CCIR tones)
 * Fully configurable AFSK transmit
-* Fully configurable Jammer
 * "Play Dead" in case of emergency
-* Dynamic baseband code loading (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
+* Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 
 Todo (highest to lowest priority):
 * Frequency manager
+* POCSAG receiver
+* POCSAG transmitter
 * Wireless microphone transmit
+* Fully configurable Jammer (fix)
 * CTCSS talkie transmit
 * Play wave files from µSD
 * Whistle (tone generator)
