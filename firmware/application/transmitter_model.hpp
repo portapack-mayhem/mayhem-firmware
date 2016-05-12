@@ -66,7 +66,7 @@ private:
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
 	BasebandConfiguration baseband_configuration {
-		.mode = 0,			/* TODO: Enum! */
+		.mode = 0,
 		.sampling_rate = 3072000,
 		.decimation_factor = 1,
 	};

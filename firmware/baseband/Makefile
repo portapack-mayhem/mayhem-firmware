@@ -144,6 +144,7 @@ CPPSRC = main.cpp \
          proc_wfm_audio.cpp \
          proc_ais.cpp \
          proc_wideband_spectrum.cpp \
+         proc_closecall.cpp \
          proc_tpms.cpp \
          proc_ert.cpp \
          proc_capture.cpp \

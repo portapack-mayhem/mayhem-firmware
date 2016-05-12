@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,46 +19,30 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BASEBAND_API_H__
-#define __BASEBAND_API_H__
+#ifndef __PROC_CLOSECALLPROCESSOR_H__
+#define __PROC_CLOSECALLPROCESSOR_H__
+
+#include "baseband_processor.hpp"
+#include "spectrum_collector.hpp"
 
 #include "message.hpp"
 
-#include "dsp_fir_taps.hpp"
-
 #include <cstddef>
+#include <array>
+#include <complex>
 
-namespace baseband {
+class CloseCallProcessor : public BasebandProcessor {
+public:
+	void execute(const buffer_c8_t& buffer) override;
 
-struct AMConfig {
-	const fir_taps_complex<64> channel;
-	const AMConfigureMessage::Modulation modulation;
+	void on_message(const Message* const message) override;
 
-	void apply() const;
+private:
+	SpectrumCollector channel_spectrum;
+
+	std::array<complex16_t, 256> spectrum;
+
+	size_t phase = 0;
 };
 
-struct NBFMConfig {
-	const fir_taps_real<24> decim_0;
-	const fir_taps_real<32> decim_1;
-	const fir_taps_real<32> channel;
-	const size_t deviation;
-
-	void apply() const;
-};
-
-struct WFMConfig {
-	void apply() const;
-};
-
-void start(BasebandConfiguration configuration);
-void stop();
-
-void shutdown();
-
-void spectrum_streaming_start(size_t decimation_factor);
-void spectrum_streaming_start();
-void spectrum_streaming_stop();
-
-} /* namespace baseband */
-
-#endif/*__BASEBAND_API_H__*/
+#endif/*__PROC_CLOSECALLPROCESSOR_H__*/

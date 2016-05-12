@@ -270,7 +270,7 @@ XylosView::XylosView(
 	receiver_code.set_value(1);
 	header_code_a.set_value(0);
 	header_code_b.set_value(0);
-	options_freq.set_selected_index(5);
+	options_freq.set_selected_index(6);		// 5 ! DEBUG
 	
 	checkbox_wcsubfamily.set_value(true);
 	checkbox_wcid.set_value(true);
@@ -331,13 +331,15 @@ XylosView::XylosView(
 	
 	button_transmit.set_style(&style_val);
 	
-	button_txtest.on_select = [this,&transmitter_model](Button&) {
+	XylosView::upd_message();
+	
+	button_txtest.on_select = [this](Button&) {
 		const uint8_t ccirtest[21] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,14,13,12,11,0xFF };
 		if (txing == false) {
 			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
 			
 			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-				[this,&transmitter_model](Message* const p) {
+				[this](Message* const p) {
 					const auto message = static_cast<const TXDoneMessage*>(p);
 					if (message->n == 25) {
 						audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
@@ -364,14 +366,14 @@ XylosView::XylosView(
 		}
 	};
 
-	button_transmit.on_select = [this,&transmitter_model](Button&) {
+	button_transmit.on_select = [this](Button&) {
 		if (txing == false) {
 			upd_message();
 			
 			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
 			
 			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-				[this,&transmitter_model](Message* const p) {
+				[this](Message* const p) {
 					uint8_t c;
 					char progress[21];
 					const auto message = static_cast<const TXDoneMessage*>(p);
@@ -390,7 +392,7 @@ XylosView::XylosView(
 							journuit();
 						}
 					} else {
-						for (c=0;c<message->n;c++)
+						for (c=0;c<message->n;c++)		// Todo: Use progressbar !
 							progress[c] = ' ';
 						progress[c] = '.';
 						progress[++c] = 0;

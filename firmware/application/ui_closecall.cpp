@@ -24,10 +24,9 @@
 #include "ui_receiver.hpp"
 
 #include "ch.h"
-#include "evtimer.h"
+#include "time.hpp"
 
 #include "event_m0.hpp"
-#include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
@@ -50,6 +49,7 @@ void CloseCallView::focus() {
 
 CloseCallView::~CloseCallView() {
 	receiver_model.disable();
+	time::signal_tick_second -= signal_token_tick_second;
 }
 
 void CloseCallView::do_detection() {
@@ -224,7 +224,7 @@ void CloseCallView::on_show() {
 		}
 	);
 
-	baseband::spectrum_streaming_start();
+	baseband::spectrum_streaming_start(1);
 }
 
 void CloseCallView::on_hide() {
@@ -286,7 +286,7 @@ void CloseCallView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void CloseCallView::update_rate() {
+void CloseCallView::on_tick_second() {
 	text_rate.set(to_string_dec_uint(scan_counter, 3));
 	scan_counter = 0;
 }
@@ -343,8 +343,8 @@ CloseCallView::CloseCallView(
 		};
 	};
 	
-	field_frequency_max.set_value(receiver_model.tuning_frequency() + 5000000);
-	field_frequency_max.set_step(200000);
+	field_frequency_max.set_value(receiver_model.tuning_frequency() + 2000000);
+	field_frequency_max.set_step(100000);
 	field_frequency_max.on_change = [this](rf::Frequency f) {
 		(void) f;
 		this->on_range_changed();
@@ -371,6 +371,10 @@ CloseCallView::CloseCallView(
 	
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();
+	};
+	
+	signal_token_tick_second = time::signal_tick_second += [this]() {
+		this->on_tick_second();
 	};
 	
 	//audio::output::mute();

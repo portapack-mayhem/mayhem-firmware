@@ -85,7 +85,7 @@ void BasebandThread::run() {
 	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
-		direction()
+		baseband::Direction::Transmit
 	);
 	//baseband::dma::allocate(4, 2048);
 
@@ -98,7 +98,7 @@ void BasebandThread::run() {
 
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
+		const auto buffer_tmp = baseband::dma::wait_for_tx_buffer();
 		if( buffer_tmp ) {
 			buffer_c8_t buffer {
 				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
@@ -139,8 +139,8 @@ void BasebandThread::disable() {
 
 void BasebandThread::enable() {
 	if( baseband_processor ) {
-		baseband_sgpio.configure(direction());
-		baseband::dma::enable(direction());
+		baseband_sgpio.configure(baseband::Direction::Transmit);
+		baseband::dma::enable(baseband::Direction::Transmit);
 		baseband_sgpio.streaming_enable();
 	}
 }

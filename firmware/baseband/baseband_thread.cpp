@@ -36,6 +36,7 @@
 #include "proc_wfm_audio.hpp"
 #include "proc_ais.hpp"
 #include "proc_wideband_spectrum.hpp"
+#include "proc_closecall.hpp"
 #include "proc_tpms.hpp"
 #include "proc_ert.hpp"
 #include "proc_capture.hpp"
@@ -132,7 +133,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 5:		return new TPMSProcessor();
 	case 6:		return new ERTProcessor();
 	case 7:		return new CaptureProcessor();
-	case 10:	return new WidebandSpectrum();	// Close call
+	case 10:	return new CloseCallProcessor();
 	default:	return nullptr;
 	}
 }

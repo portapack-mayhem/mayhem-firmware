@@ -39,10 +39,10 @@ public:
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	int16_t audio_data[64];
+	/*int16_t audio_data[64];
 	
 	std::array<int16_t, 64> audio;
-	/*const buffer_s16_t audio_buffer {
+	const buffer_s16_t audio_buffer {
 		audio.data(),
 		audio.size()
 	};*/
@@ -75,7 +75,7 @@ private:
 	int32_t sample, frq;
 	TXDoneMessage message;
 	
-	AudioOutput audio_output;
+	//AudioOutput audio_output;
 };
 
 #endif

@@ -86,6 +86,15 @@ void shutdown() {
 	shared_memory.baseband_queue.push(shutdown_message);
 }
 
+void spectrum_streaming_start(size_t decimation_factor) {
+	shared_memory.baseband_queue.push_and_wait(
+		SpectrumStreamingConfigMessage {
+			SpectrumStreamingConfigMessage::Mode::Running,
+			decimation_factor
+		}
+	);
+}
+
 void spectrum_streaming_start() {
 	shared_memory.baseband_queue.push_and_wait(
 		SpectrumStreamingConfigMessage {

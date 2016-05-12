@@ -237,15 +237,26 @@ public:
 		Stopped = 0,
 		Running = 1,
 	};
-
+	
 	constexpr SpectrumStreamingConfigMessage(
 		Mode mode
 	) : Message { ID::SpectrumStreamingConfig },
-		mode { mode }
+		mode { mode },
+		decimation_factor { 1 }
+	{
+	}
+
+	constexpr SpectrumStreamingConfigMessage(
+		Mode mode,
+		size_t decimation_factor
+	) : Message { ID::SpectrumStreamingConfig },
+		mode { mode },
+		decimation_factor { decimation_factor }
 	{
 	}
 
 	Mode mode { Mode::Stopped };
+	size_t decimation_factor = 1;
 };
 
 struct ChannelSpectrum {

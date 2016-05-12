@@ -43,7 +43,7 @@
 
 namespace ui {
 
-#define CC_SLICE_WIDTH	5000000 //10000000
+#define CC_SLICE_WIDTH	3000000 //10000000
 #define CC_BIN_NB		236
 #define CC_BIN_WIDTH	CC_SLICE_WIDTH/CC_BIN_NB
 
@@ -74,6 +74,7 @@ private:
 	uint8_t slicemax_db[32];		// Todo: Cap max slices !
 	uint8_t slicemax_idx[32];
 	uint8_t scan_counter;
+	SignalToken signal_token_tick_second;
 	bool ignore = true;
 	bool slicing;
 	bool locked = false;
@@ -82,7 +83,7 @@ private:
 	void do_detection();
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
-	void update_rate();
+	void on_tick_second();
 	
 	/* |012345678901234567890123456789|
 	 * | Min:      Max:       LNA VGA |

@@ -30,16 +30,11 @@
 
 #include <cstdint>
 
-// 1990 1131 1201 1275 1357 ...
-
-// 14 13 12 11:
-// 2108 989 2259 931
-
 void XylosProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// This is called at 1536000/2048 = 750Hz
 	
-	ai = 0;
+	// ai = 0;
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		
@@ -65,7 +60,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 				sample_count++;
 			}
 			
-			aphase += ccir_phases[digit];
+			aphase += ccir_phases[digit];		// DEBUG
 		} else {
 			s++;
 		}
@@ -73,15 +68,15 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
 		
 		// Audio preview sample generation: 1536000/48000 = 32
-		if (as >= 31) {
+		/*if (as >= 31) {
 			as = 0;
 			audio[ai++] = sample * 128;
 		} else {
 			as++;
-		}
+		}*/
 		
 		//FM
-		frq = sample * 300; // ~10kHz wide
+		frq = sample * 1000; // ~10kHz wide
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);
