@@ -50,7 +50,6 @@ class EventDispatcher {
 public:
 	EventDispatcher(
 		ui::Widget* const top_widget,
-		ui::Painter& painter,
 		ui::Context& context
 	);
 
@@ -87,7 +86,7 @@ private:
 
 	touch::Manager touch_manager;
 	ui::Widget* const top_widget;
-	ui::Painter& painter;
+	ui::Painter painter;
 	ui::Context& context;
 	uint32_t encoder_last = 0;
 	bool is_running = true;

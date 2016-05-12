@@ -62,10 +62,9 @@ Thread* EventDispatcher::thread_event_loop = nullptr;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
-	ui::Painter& painter,
 	ui::Context& context
 ) : top_widget { top_widget },
-	painter(painter),
+	painter { },
 	context(context)
 {
 	init_message_queues();

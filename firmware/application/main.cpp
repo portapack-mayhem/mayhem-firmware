@@ -57,9 +57,8 @@ static void event_loop() {
 		context,
 		portapack::display.screen_rect()
 	};
-	ui::Painter painter;
 
-	EventDispatcher event_dispatcher { &system_view, painter, context };
+	EventDispatcher event_dispatcher { &system_view, context };
 
 	MessageHandlerRegistration message_handler_shutdown {
 		Message::ID::Shutdown,
