@@ -21,8 +21,6 @@
 
 #include "ais_app.hpp"
 
-#include "event_m0.hpp"
-
 #include "string_format.hpp"
 
 #include "baseband_api.hpp"
@@ -305,16 +303,6 @@ AISAppView::AISAppView(NavigationView&) {
 
 	recent_entry_detail_view.hidden(true);
 
-	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			if( packet.is_valid() ) {
-				this->on_packet(packet);
-			}
-		}
-	);
-	
 	target_frequency_ = initial_target_frequency;
 
 	radio::enable({
@@ -350,8 +338,6 @@ AISAppView::AISAppView(NavigationView&) {
 AISAppView::~AISAppView() {
 	baseband::stop();
 	radio::disable();
-
-	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
 }
 
 void AISAppView::focus() {

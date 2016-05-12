@@ -21,8 +21,6 @@
 
 #include "ert_app.hpp"
 
-#include "event_m0.hpp"
-
 #include "baseband_api.hpp"
 
 #include "manchester.hpp"
@@ -135,14 +133,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 		&recent_entries_view,
 	} });
 
-	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ERTPacketMessage*>(p);
-			const ert::Packet packet { message->type, message->packet };
-			this->on_packet(packet);
-		}
-	);
-
 	radio::enable({
 		initial_target_frequency,
 		sampling_rate,
@@ -164,8 +154,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 ERTAppView::~ERTAppView() {
 	baseband::stop();
 	radio::disable();
-
-	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
 }
 
 void ERTAppView::focus() {

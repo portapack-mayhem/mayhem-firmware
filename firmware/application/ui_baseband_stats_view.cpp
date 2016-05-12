@@ -21,8 +21,6 @@
 
 #include "ui_baseband_stats_view.hpp"
 
-#include "event_m0.hpp"
-
 #include <string>
 #include <algorithm>
 
@@ -40,19 +38,6 @@ BasebandStatsView::BasebandStatsView() {
 		&text_stats,
 	} });
 }
-
-void BasebandStatsView::on_show() {
-	EventDispatcher::message_map().register_handler(Message::ID::BasebandStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
-		}
-	);
-}
-
-void BasebandStatsView::on_hide() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::BasebandStatistics);
-}
-
 
 static std::string ticks_to_percent_string(const uint32_t ticks) {
 	constexpr size_t decimal_digits = 1;

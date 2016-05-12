@@ -117,4 +117,23 @@ private:
 	void init_message_queues();
 };
 
+class MessageHandlerRegistration {
+public:
+	template<typename Callback>
+	MessageHandlerRegistration(
+		const Message::ID message_id,
+		Callback callback
+	) : message_id { message_id }
+	{
+		EventDispatcher::message_map().register_handler(message_id, callback);
+	}
+
+	~MessageHandlerRegistration() {
+		EventDispatcher::message_map().unregister_handler(message_id);
+	}
+
+private:
+	const Message::ID message_id;
+};
+
 #endif/*__EVENT_M0_H__*/

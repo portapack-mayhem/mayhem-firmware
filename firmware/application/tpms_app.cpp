@@ -21,8 +21,6 @@
 
 #include "tpms_app.hpp"
 
-#include "event_m0.hpp"
-
 #include "baseband_api.hpp"
 
 #include "string_format.hpp"
@@ -152,14 +150,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&recent_entries_view,
 	} });
 
-	EventDispatcher::message_map().register_handler(Message::ID::TPMSPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const TPMSPacketMessage*>(p);
-			const tpms::Packet packet { message->packet };
-			this->on_packet(message->signal_type, packet);
-		}
-	);
-
 	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
@@ -181,8 +171,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 TPMSAppView::~TPMSAppView() {
 	baseband::stop();
 	radio::disable();
-
-	EventDispatcher::message_map().unregister_handler(Message::ID::TPMSPacket);
 }
 
 void TPMSAppView::focus() {

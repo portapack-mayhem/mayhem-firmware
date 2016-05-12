@@ -25,6 +25,8 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 
+#include "event_m0.hpp"
+
 #include "log_file.hpp"
 
 #include "ais_packet.hpp"
@@ -170,6 +172,17 @@ private:
 		{
 			{ "87B", 161975000 },
 			{ "88B", 162025000 },
+		}
+	};
+
+	MessageHandlerRegistration message_handler_packet {
+		Message::ID::AISPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const AISPacketMessage*>(p);
+			const ais::Packet packet { message->packet };
+			if( packet.is_valid() ) {
+				this->on_packet(packet);
+			}
 		}
 	};
 
