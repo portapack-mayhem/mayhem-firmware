@@ -257,3 +257,15 @@ void EventDispatcher::init_message_queues() {
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
 	);
 }
+
+MessageHandlerRegistration::MessageHandlerRegistration(
+	const Message::ID message_id,
+	MessageHandlerMap::MessageHandler&& callback
+) : message_id { message_id }
+{
+	EventDispatcher::message_map().register_handler(message_id, std::move(callback));
+}
+
+MessageHandlerRegistration::~MessageHandlerRegistration() {
+	EventDispatcher::message_map().unregister_handler(message_id);
+}

@@ -119,19 +119,13 @@ private:
 
 class MessageHandlerRegistration {
 public:
-	template<typename Callback>
 	MessageHandlerRegistration(
 		const Message::ID message_id,
-		Callback callback
-	) : message_id { message_id }
-	{
-		EventDispatcher::message_map().register_handler(message_id, callback);
-	}
+		MessageHandlerMap::MessageHandler&& callback
+	);
 
-	~MessageHandlerRegistration() {
-		EventDispatcher::message_map().unregister_handler(message_id);
-	}
-
+	~MessageHandlerRegistration();
+	
 private:
 	const Message::ID message_id;
 };
