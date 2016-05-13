@@ -205,6 +205,24 @@ private:
 	};
 };
 
+class ModalMessageView : public View {
+public:
+	ModalMessageView(NavigationView& nav, std::string message);
+
+	void focus() override;
+
+private:
+	Text text_message {
+		{ 0 * 8, 7 * 16, 30 * 8, 16 },
+		""
+	};
+
+	Button button_done {
+		{ 10 * 8, 13 * 16, 10 * 8, 24 },
+		"OK",
+	};
+};
+
 } /* namespace ui */
 
 #endif/*__UI_NAVIGATION_H__*/

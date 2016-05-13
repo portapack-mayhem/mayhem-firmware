@@ -273,4 +273,23 @@ void NotImplementedView::focus() {
 	button_done.focus();
 }
 
+/* ModalMessageView ******************************************************/
+
+ModalMessageView::ModalMessageView(NavigationView& nav, std::string message) {
+	button_done.on_select = [&nav](Button&){
+		nav.pop();
+	};
+
+	add_children({ {
+		&text_message,
+		&button_done,
+	} });
+
+	text_message.set(message);
+}
+
+void ModalMessageView::focus() {
+	button_done.focus();
+}
+
 } /* namespace ui */
