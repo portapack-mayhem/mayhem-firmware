@@ -235,12 +235,19 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		text_record_filename.set(filename_stem);
-		button_record.set_bitmap(&bitmap_stop);
-		capture_thread = std::make_unique<CaptureThread>(
-			std::move(writer),
-			write_size, buffer_count
-		);
+		const auto error = writer->error();
+		if( error.is_valid() ) {
+			report_error(error.value().what());
+		} else {
+			text_record_filename.set(filename_stem);
+			button_record.set_bitmap(&bitmap_stop);
+			capture_thread = std::make_unique<CaptureThread>(
+				std::move(writer),
+				write_size, buffer_count
+			);
+		}
+	} else {
+		report_error("file type");
 	}
 }
 
@@ -259,6 +266,10 @@ void RecordView::write_metadata_file(const std::string& filename) {
 
 void RecordView::on_tick_second() {
 	if( is_active() ) {
+		const auto error = capture_thread->error();
+		if( error.is_valid() ) {
+			report_error(error.value());
+		}
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
 		text_record_dropped.set(s);
@@ -277,6 +288,12 @@ void RecordView::on_tick_second() {
 			to_string_dec_uint(minutes, 2, '0') + ":" +
 			to_string_dec_uint(seconds, 2, '0');
 		text_time_available.set(available_time);
+	}
+}
+
+void RecordView::report_error(const std::string& message) {
+	if( on_error ) {
+		on_error(message);
 	}
 }
 

@@ -37,6 +37,8 @@ namespace ui {
 
 class RecordView : public View {
 public:
+	std::function<void(std::string)> on_error;
+
 	enum FileType {
 		RawS16 = 2,
 		WAV = 3,
@@ -70,6 +72,8 @@ private:
 	void write_metadata_file(const std::string& filename);
 
 	void on_tick_second();
+
+	void report_error(const std::string& message);
 
 	const std::string filename_stem_pattern;
 	const FileType file_type;
