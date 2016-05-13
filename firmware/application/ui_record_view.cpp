@@ -32,16 +32,12 @@ using namespace portapack;
 
 #include <cstdint>
 
-class RawFileWriter : public Writer {
+class FileWriter : public Writer {
 public:
-	RawFileWriter(
+	FileWriter(
 		const std::string& filename
 	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
 	{
-	}
-
-	bool write(const void* const buffer, const size_t bytes) override {
-		return file.write(buffer, bytes);
 	}
 
 	Optional<std::filesystem::filesystem_error> error() const override {
@@ -50,25 +46,6 @@ public:
 		} else {
 			return { };
 		}
-	}
-
-private:
-	File file;
-};
-
-class WAVFileWriter : public Writer {
-public:
-	WAVFileWriter(
-		const std::string& filename,
-		size_t sampling_rate
-	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc },
-		header { sampling_rate }
-	{
-		update_header();
-	}
-
-	~WAVFileWriter() {
-		update_header();
 	}
 
 	bool write(const void* const buffer, const size_t bytes) override {
@@ -79,12 +56,26 @@ public:
 		return success;
 	}
 
-	Optional<std::filesystem::filesystem_error> error() const override {
-		if( file.bad() ) {
-			return { file.error() };
-		} else {
-			return { };
-		}
+protected:
+	File file;
+	uint64_t bytes_written { 0 };
+};
+
+using RawFileWriter = FileWriter;
+
+class WAVFileWriter : public FileWriter {
+public:
+	WAVFileWriter(
+		const std::string& filename,
+		size_t sampling_rate
+	) : RawFileWriter { filename },
+		header { sampling_rate }
+	{
+		update_header();
+	}
+
+	~WAVFileWriter() {
+		update_header();
 	}
 
 private:
@@ -137,9 +128,7 @@ private:
 		data_t data;
 	};
 
-	File file;
 	header_t header;
-	uint64_t bytes_written { 0 };
 
 	void update_header() {
 		header.set_data_size(bytes_written);
