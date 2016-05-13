@@ -31,46 +31,6 @@
 #include <memory>
 #include <iterator>
 
-class File {
-public:
-	enum openmode {
-		app = 0x100,
-		binary = 0x200,
-		in = FA_READ,
-		out = FA_WRITE,
-		trunc = FA_CREATE_ALWAYS,
-		ate = FA_OPEN_ALWAYS,
-	};
-
-	File(const std::string& filename, openmode mode);
-	~File();
-
-	bool is_open() const {
-		return f_error(&f) == 0;
-	}
-
-	bool read(void* const data, const size_t bytes_to_read);
-	bool write(const void* const data, const size_t bytes_to_write);
-
-	uint64_t seek(const uint64_t new_position);
-
-	template<size_t N>
-	bool write(const std::array<uint8_t, N>& data) {
-		return write(data.data(), N);
-	}
-
-	bool puts(const std::string& string);
-
-	bool sync();
-
-private:
-	FIL f;
-};
-
-inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
-	return File::openmode(static_cast<int>(a) | static_cast<int>(b));
-}
-
 std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
 
 namespace std {
@@ -150,5 +110,45 @@ space_info space(const path& p);
 
 } /* namespace filesystem */
 } /* namespace std */
+
+class File {
+public:
+	enum openmode {
+		app = 0x100,
+		binary = 0x200,
+		in = FA_READ,
+		out = FA_WRITE,
+		trunc = FA_CREATE_ALWAYS,
+		ate = FA_OPEN_ALWAYS,
+	};
+
+	File(const std::string& filename, openmode mode);
+	~File();
+
+	bool is_open() const {
+		return f_error(&f) == 0;
+	}
+
+	bool read(void* const data, const size_t bytes_to_read);
+	bool write(const void* const data, const size_t bytes_to_write);
+
+	uint64_t seek(const uint64_t new_position);
+
+	template<size_t N>
+	bool write(const std::array<uint8_t, N>& data) {
+		return write(data.data(), N);
+	}
+
+	bool puts(const std::string& string);
+
+	bool sync();
+
+private:
+	FIL f;
+};
+
+inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
+	return File::openmode(static_cast<int>(a) | static_cast<int>(b));
+}
 
 #endif/*__FILE_H__*/
