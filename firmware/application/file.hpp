@@ -37,11 +37,7 @@ namespace std {
 namespace filesystem {
 
 struct filesystem_error {
-	const BYTE err;
-
-	operator bool() const {
-		return err != FR_OK;
-	}
+	const uint32_t err;
 
 	std::string what() const;
 };
@@ -127,6 +123,14 @@ public:
 
 	bool is_open() const {
 		return err == FR_OK;
+	}
+
+	bool bad() const {
+		return err != FR_OK;
+	}
+
+	std::filesystem::filesystem_error error() const {
+		return { err };
 	}
 
 	bool read(void* const data, const size_t bytes_to_read);
