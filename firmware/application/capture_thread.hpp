@@ -26,6 +26,9 @@
 
 #include "event_m0.hpp"
 
+#include "file.hpp"
+#include "optional.hpp"
+
 #include <cstdint>
 #include <cstddef>
 #include <utility>
@@ -33,6 +36,7 @@
 class Writer {
 public:
 	virtual bool write(const void* const buffer, const size_t bytes) = 0;
+	virtual Optional<std::filesystem::filesystem_error> error() const = 0;
 	virtual ~Writer() = default;
 };
 

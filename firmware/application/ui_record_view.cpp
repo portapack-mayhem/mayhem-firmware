@@ -44,6 +44,14 @@ public:
 		return file.write(buffer, bytes);
 	}
 
+	Optional<std::filesystem::filesystem_error> error() const override {
+		if( file.bad() ) {
+			return { file.error() };
+		} else {
+			return { };
+		}
+	}
+
 private:
 	File file;
 };
@@ -69,6 +77,14 @@ public:
 			bytes_written += bytes;
 		}
 		return success;
+	}
+
+	Optional<std::filesystem::filesystem_error> error() const override {
+		if( file.bad() ) {
+			return { file.error() };
+		} else {
+			return { };
+		}
 	}
 
 private:
