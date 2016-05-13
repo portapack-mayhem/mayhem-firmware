@@ -139,6 +139,10 @@ AnalogAudioView::AnalogAudioView(
 		this->on_headphone_volume_changed(v);
 	};
 
+	record_view.on_error = [&nav](std::string message) {
+		nav.push<ModalMessageView>(message);
+	};
+
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));

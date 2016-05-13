@@ -70,6 +70,9 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	receiver_model.enable();
 
 	record_view.set_sampling_rate(sampling_rate / 8);
+	record_view.on_error = [&nav](std::string message) {
+		nav.push<ModalMessageView>(message);
+	};
 }
 
 CaptureAppView::~CaptureAppView() {
