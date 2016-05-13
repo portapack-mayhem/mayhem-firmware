@@ -98,6 +98,15 @@ CaptureThread::~CaptureThread() {
 	}
 }
 
+Optional<std::string> CaptureThread::error() const {
+	const auto error = writer->error();
+	if( error.is_valid() ) {
+		return { error.value().what() };
+	} else {
+		return { };
+	}
+}
+
 void CaptureThread::check_fifo_isr() {
 	// TODO: Prevent over-signalling by transmitting a set of 
 	// flags from the baseband core.

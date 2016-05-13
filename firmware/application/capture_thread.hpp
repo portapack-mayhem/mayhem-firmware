@@ -53,6 +53,8 @@ public:
 		return config;
 	}
 
+	Optional<std::string> error() const;
+	
 	static void check_fifo_isr();
 
 private:
