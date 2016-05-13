@@ -76,6 +76,16 @@ std::string next_filename_stem_matching_pattern(const std::string& filename_stem
 namespace std {
 namespace filesystem {
 
+struct filesystem_error {
+	const BYTE err;
+
+	operator bool() const {
+		return err != FR_OK;
+	}
+
+	std::string what() const;
+};
+
 using path = std::string;
 using file_status = BYTE;
 
