@@ -23,7 +23,11 @@
 
 #include <algorithm>
 
-File::File(const std::string& filename, openmode mode) {
+File::File(
+	const std::string& filename,
+	openmode mode
+) : err { FR_OK }
+{
 	BYTE fatfs_mode = 0;
 	if( mode & openmode::in ) {
 		fatfs_mode |= FA_READ;
@@ -38,9 +42,11 @@ File::File(const std::string& filename, openmode mode) {
 		fatfs_mode |= FA_OPEN_ALWAYS;
 	}
 
-	if( f_open(&f, filename.c_str(), fatfs_mode) == FR_OK ) {
+	err = f_open(&f, filename.c_str(), fatfs_mode);
+	if( err == FR_OK ) {
 		if( mode & openmode::ate ) {
-			if( f_lseek(&f, f_size(&f)) != FR_OK ) {
+			err = f_lseek(&f, f_size(&f));
+			if( err != FR_OK ) {
 				f_close(&f);
 			}
 		}
@@ -52,20 +58,33 @@ File::~File() {
 }
 
 bool File::read(void* const data, const size_t bytes_to_read) {
+	if( err != FR_OK ) {
+		return false;
+	}
+
 	UINT bytes_read = 0;
-	const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
-	return (result == FR_OK) && (bytes_read == bytes_to_read);
+	err = f_read(&f, data, bytes_to_read, &bytes_read);
+	return (err == FR_OK);
 }
 
 bool File::write(const void* const data, const size_t bytes_to_write) {
+	if( err != FR_OK ) {
+		return false;
+	}
+	
 	UINT bytes_written = 0;
-	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
-	return (result == FR_OK) && (bytes_written == bytes_to_write);
+	err = f_write(&f, data, bytes_to_write, &bytes_written);
+	return (err == FR_OK);
 }
 
 uint64_t File::seek(const uint64_t new_position) {
+	if( err != FR_OK ) {
+		return false;
+	}
+	
 	const auto old_position = f_tell(&f);
-	if( f_lseek(&f, new_position) != FR_OK ) {
+	err = f_lseek(&f, new_position);
+	if( err != FR_OK ) {
 		f_close(&f);
 	}
 	if( f_tell(&f) != new_position ) {
@@ -80,8 +99,12 @@ bool File::puts(const std::string& string) {
 }
 
 bool File::sync() {
-	const auto result = f_sync(&f);
-	return (result == FR_OK);
+	if( err != FR_OK ) {
+		return false;
+	}
+
+	err = f_sync(&f);
+	return (err == FR_OK);
 }
 
 static std::string find_last_file_matching_pattern(const std::string& pattern) {

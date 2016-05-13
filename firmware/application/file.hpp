@@ -126,7 +126,7 @@ public:
 	~File();
 
 	bool is_open() const {
-		return f_error(&f) == 0;
+		return err == FR_OK;
 	}
 
 	bool read(void* const data, const size_t bytes_to_read);
@@ -145,6 +145,7 @@ public:
 
 private:
 	FIL f;
+	uint32_t err;
 };
 
 inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
