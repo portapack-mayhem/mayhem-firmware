@@ -151,7 +151,6 @@ private:
 	bool txing = false;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char ccirmessage[21];
-	char ccir_received[21];
 	
 	Text text_title {
 		{ 8, 8, 11, 16 },

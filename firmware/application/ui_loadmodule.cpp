@@ -34,6 +34,7 @@
 
 #include "ui_rds.hpp"
 #include "ui_xylos.hpp"
+#include "ui_epar.hpp"
 #include "ui_lcr.hpp"
 #include "analog_audio_app.hpp"
 #include "ui_soundboard.hpp"
@@ -166,6 +167,7 @@ LoadModuleView::LoadModuleView(
 		if (_mod_loaded == true) {
 			if (viewid == AudioTX) nav.push<AudioTXView>();
 			if (viewid == Xylos) nav.push<XylosView>();
+			if (viewid == EPAR) nav.push<EPARView>();
 			if (viewid == LCR) nav.push<LCRView>();
 			if (viewid == SoundBoard) nav.push<SoundBoardView>();
 			if (viewid == AnalogAudio) nav.push<AnalogAudioView>();

@@ -322,6 +322,7 @@ public:
 	void set_options(options_t new_options);
 
 	size_t selected_index() const;
+	size_t selected_index_value() const;
 	void set_selected_index(const size_t new_index);
 
 	void set_by_value(value_t v);

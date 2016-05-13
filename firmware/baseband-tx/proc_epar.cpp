@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_xylos.hpp"
+#include "proc_epar.hpp"
 
 #include "dsp_iir_config.hpp"
 #include "audio_output.hpp"
@@ -30,11 +30,9 @@
 
 #include <cstdint>
 
-void XylosProcessor::execute(const buffer_c8_t& buffer) {
+void EPARProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// This is called at 1536000/2048 = 750Hz
-	
-	// ai = 0;
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		
@@ -42,17 +40,45 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		if (s >= 9) {
 			s = 0;
 			
-			if (sample_count >= CCIR_TONELENGTH) {
-				if (shared_memory.transmit_done == false) {
-					message.n = byte_pos;	// Inform UI about progress (just as eye candy)
-					shared_memory.application_queue.push(message);
-					digit = shared_memory.xylosdata[byte_pos++];
-				}
+			if (sample_count >= EPAR_TU) {
+				
+				if (state) {
+					// Send code
+					if (current_tu == 2) {
+						current_bit = shared_memory.epardata[bit_pos];
+						if (bit_pos == 12) {
+							bit_pos = 0;
+							current_tu = 0;
+							state = 0;
+						} else {
+							bit_pos++;
+						}
+
+						current_tu = 0;
+					} else {
+						current_tu++;
+					}
 					
-				if (digit == 0xFF) {
-					message.n = 25;	// End of message code
-					shared_memory.transmit_done = true;
-					shared_memory.application_queue.push(message);
+					sample = bitdef[current_bit][current_tu];
+				} else {
+					// Pause
+					if (current_tu == EPAR_SPACE) {
+						if (repeat_count == EPAR_REPEAT) {
+							message.n = 100;			// End of transmission code
+							shared_memory.transmit_done = true;
+							shared_memory.application_queue.push(message);
+						}
+						if (shared_memory.transmit_done == false) {
+							message.n = repeat_count;	// Inform UI about progress (just as eye candy)
+							shared_memory.application_queue.push(message);
+							state = 1;
+						}
+						repeat_count++;
+						current_tu = 0;
+					} else {
+						current_tu++;
+					}
+					sample = 0;
 				}
 				
 				sample_count = 0;
@@ -60,20 +86,9 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 				sample_count++;
 			}
 			
-			aphase += ccir_phases[digit];
 		} else {
 			s++;
 		}
-		
-		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
-		
-		// Audio preview sample generation: 1536000/48000 = 32
-		/*if (as >= 31) {
-			as = 0;
-			audio[ai++] = sample * 128;
-		} else {
-			as++;
-		}*/
 		
 		//FM
 		frq = sample * 1000; // ~25kHz wide
@@ -86,6 +101,4 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
-	
-	//audio_output.write(audio_buffer);
 }

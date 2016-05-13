@@ -729,6 +729,10 @@ size_t OptionsField::selected_index() const {
 	return selected_index_;
 }
 
+size_t OptionsField::selected_index_value() const {
+	return options[selected_index_].second;
+}
+
 void OptionsField::set_selected_index(const size_t new_index) {
 	if( new_index < options.size() ) {
 		if( new_index != selected_index() ) {

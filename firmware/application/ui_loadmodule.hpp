@@ -35,6 +35,7 @@ enum ViewID {
 	AudioTX,
 	CloseCall,
 	Xylos,
+	EPAR,
 	LCR,
 	SoundBoard,
 	AnalogAudio,

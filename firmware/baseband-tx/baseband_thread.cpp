@@ -31,6 +31,7 @@
 #include "proc_playaudio.hpp"
 #include "proc_audiotx.hpp"
 #include "proc_xylos.hpp"
+#include "proc_epar.hpp"
 #include "proc_fsk_lcr.hpp"
 
 #include "rssi.hpp"
@@ -124,6 +125,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 1:		return new AudioTXProcessor();
 	case 2:		return new XylosProcessor();
 	case 3:		return new LCRFSKProcessor();
+	case 4:		return new EPARProcessor();
 	default:	return nullptr;
 	}
 }

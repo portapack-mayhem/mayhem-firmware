@@ -67,7 +67,8 @@ struct SharedMemory {
 	JammerRange jammer_ranges[16];
 	
 	char xylosdata[21];
-	bool xylos_transmit_done;
+	char epardata[13];
+	bool transmit_done;
 };
 
 extern SharedMemory& shared_memory;

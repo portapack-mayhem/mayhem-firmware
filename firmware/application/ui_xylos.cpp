@@ -206,7 +206,7 @@ void XylosView::journuit() {
 	upd_message();
 	
 	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
-	shared_memory.xylos_transmit_done = false;
+	shared_memory.transmit_done = false;
 	memcpy(shared_memory.xylosdata, ccirmessage, 21);
 	transmitter_model.enable();
 }
@@ -270,7 +270,7 @@ XylosView::XylosView(
 	receiver_code.set_value(1);
 	header_code_a.set_value(0);
 	header_code_b.set_value(0);
-	options_freq.set_selected_index(6);		// 5 ! DEBUG
+	options_freq.set_selected_index(5);
 	
 	checkbox_wcsubfamily.set_value(true);
 	checkbox_wcid.set_value(true);
@@ -352,7 +352,7 @@ XylosView::XylosView(
 			);
 			
 			memcpy(ccirmessage, ccirtest, 21);
-			shared_memory.xylos_transmit_done = false;
+			shared_memory.transmit_done = false;
 			memcpy(shared_memory.xylosdata, ccirmessage, 21);
 
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
@@ -401,7 +401,7 @@ XylosView::XylosView(
 				}
 			);
 			
-			shared_memory.xylos_transmit_done = false;
+			shared_memory.transmit_done = false;
 			memcpy(shared_memory.xylosdata, ccirmessage, 21);
 
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
