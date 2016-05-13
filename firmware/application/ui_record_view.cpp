@@ -268,6 +268,7 @@ void RecordView::on_tick_second() {
 	if( is_active() ) {
 		const auto error = capture_thread->error();
 		if( error.is_valid() ) {
+			stop();
 			report_error(error.value());
 		}
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
