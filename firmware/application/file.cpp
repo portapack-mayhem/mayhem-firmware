@@ -23,6 +23,12 @@
 
 #include <algorithm>
 
+/* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
+static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
+#define FR_DISK_FULL	(0x100)
+#define FR_EOF          (0x101)
+#define FR_BAD_SEEK		(0x102)
+
 File::File(
 	const std::string& filename,
 	openmode mode
@@ -64,6 +70,9 @@ bool File::read(void* const data, const size_t bytes_to_read) {
 
 	UINT bytes_read = 0;
 	err = f_read(&f, data, bytes_to_read, &bytes_read);
+	if( bytes_read != bytes_to_read ) {
+		err = FR_EOF;
+	}
 	return (err == FR_OK);
 }
 
@@ -74,6 +83,9 @@ bool File::write(const void* const data, const size_t bytes_to_write) {
 	
 	UINT bytes_written = 0;
 	err = f_write(&f, data, bytes_to_write, &bytes_written);
+	if( bytes_written != bytes_to_write ) {
+		err = FR_DISK_FULL;
+	}
 	return (err == FR_OK);
 }
 
@@ -88,6 +100,7 @@ uint64_t File::seek(const uint64_t new_position) {
 		f_close(&f);
 	}
 	if( f_tell(&f) != new_position ) {
+		err = FR_BAD_SEEK;
 		f_close(&f);
 	}
 	return old_position;
@@ -95,6 +108,9 @@ uint64_t File::seek(const uint64_t new_position) {
 
 bool File::puts(const std::string& string) {
 	const auto result = f_puts(string.c_str(), &f);
+	if( result != (int)string.size() ) {
+		err = FR_DISK_FULL;
+	}
 	return (result >= 0);
 }
 
@@ -185,6 +201,9 @@ std::string filesystem_error::what() const {
 	case FR_NOT_ENOUGH_CORE:		return "not enough core";
 	case FR_TOO_MANY_OPEN_FILES:	return "too many open files";
 	case FR_INVALID_PARAMETER:		return "invalid parameter";
+	case FR_EOF:					return "end of file";
+	case FR_DISK_FULL:				return "disk full";
+	case FR_BAD_SEEK:				return "bad seek";
 	default:						return "unknown";
 	}
 }
