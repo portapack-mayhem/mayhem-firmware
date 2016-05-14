@@ -239,10 +239,11 @@ space_info space(const path& p) {
 #if _MAX_SS != _MIN_SS
 		static_assert(false, "FatFs not configured for fixed sector size");
 #else
+		const std::uintmax_t cluster_bytes = fs->csize * _MIN_SS;
 		return {
-			(fs->n_fatent - 2) * fs->csize * _MIN_SS,
-			free_clusters * fs->csize * _MIN_SS,
-			free_clusters * fs->csize * _MIN_SS,
+			(fs->n_fatent - 2) * cluster_bytes,
+			free_clusters * cluster_bytes,
+			free_clusters * cluster_bytes,
 		};
 #endif
 	} else {
