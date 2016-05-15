@@ -215,7 +215,6 @@ public:
 	ProgressBar(Rect parent_rect);
 
 	void set_value(const uint16_t value);
-	uint16_t value() const;
 
 	void paint(Painter& painter) override;
 
@@ -230,7 +229,6 @@ public:
 	Checkbox(Point parent_pos, size_t length, std::string text);
 	
 	void set_text(const std::string value);
-	void set_style(const Style* new_style);
 	std::string text() const;
 	void set_value(const bool value);
 	bool value() const;

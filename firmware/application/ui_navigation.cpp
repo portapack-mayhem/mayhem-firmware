@@ -35,6 +35,7 @@
 
 #include "ui_handwrite.hpp"			// DEBUG
 #include "ui_soundboard.hpp"		// DEBUG
+#include "ui_closecall.hpp"			// DEBUG
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -263,6 +264,7 @@ SystemView::SystemView(
 		navigation_view.push<BMPView>();
 	else
 		//navigation_view.push<SoundBoardView>();
+		//navigation_view.push<CloseCallView>();
 		//navigation_view.push<HandWriteView>(debugtxt, 20);
 		navigation_view.push<SystemMenuView>();
 }

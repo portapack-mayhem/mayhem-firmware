@@ -49,9 +49,9 @@ public:
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	const uint8_t bitdef[2][3] = {
-		{0, 255, 255},
-		{0, 0, 255}
+	const int8_t bitdef[2][3] = {
+		{-127, 127, 127},
+		{-127, -127, 127}
 	};
 	int8_t re, im;
 	uint8_t s;

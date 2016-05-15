@@ -96,6 +96,10 @@ void EPARView::journuit() {
 	transmitter_model.enable();
 }
 
+void EPARView::on_tuning_frequency_changed(rf::Frequency f) {
+	receiver_model.set_tuning_frequency(f);
+}
+
 EPARView::EPARView(
 	NavigationView& nav
 )
@@ -125,8 +129,10 @@ EPARView::EPARView(
 		&options_group,
 		&checkbox_ra,
 		&checkbox_rb,
+		&excur,
 		&text_freq,
-		&options_freq,
+		//&options_freq,
+		&field_frequency,
 		&progressbar,
 		&text_debug,
 		&button_transmit,
@@ -136,10 +142,31 @@ EPARView::EPARView(
 	
 	city_code.set_value(220);
 	options_group.set_selected_index(3);	// TP
-	options_freq.set_selected_index(6);		// 5 ! DEBUG
+	//options_freq.set_selected_index(6);		// 5 ! DEBUG
 	
 	checkbox_ra.set_value(true);
 	checkbox_rb.set_value(true);
+	
+	excur.set_value(500);
+	shared_memory.excursion = 500;
+	excur.on_change = [this](int32_t v) {
+		(void)v;
+		shared_memory.excursion = excur.value();
+	};
+	
+	field_frequency.set_value(31387500);	// 31.3805 receiver_model.tuning_frequency()
+	field_frequency.set_step(500);
+	field_frequency.on_change = [this](rf::Frequency f) {
+		this->on_tuning_frequency_changed(f);
+	};
+	field_frequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			this->on_tuning_frequency_changed(f);
+			this->field_frequency.set_value(f);
+		};
+	};
 
 	city_code.on_change = [this](int32_t v) {
 		(void)v;
@@ -189,7 +216,8 @@ EPARView::EPARView(
 			shared_memory.transmit_done = false;
 			memcpy(shared_memory.epardata, epar_bits, 13);
 
-			transmitter_model.set_tuning_frequency(epar_freqs[options_freq.selected_index()]);
+			transmitter_model.set_tuning_frequency(field_frequency.value());
+			//transmitter_model.set_tuning_frequency(epar_freqs[options_freq.selected_index()]);
 
 			txing = true;
 			button_transmit.set_style(&style_cancel);

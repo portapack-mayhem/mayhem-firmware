@@ -103,10 +103,6 @@ uint32_t TransmitterModel::baseband_oversampling() const {
 	return baseband_configuration.decimation_factor;
 }
 
-int32_t TransmitterModel::tuning_offset() {
-	return -(sampling_rate() / 4);
-}
-
 void TransmitterModel::update_tuning_frequency() {
 	radio::set_tuning_frequency(tuning_frequency());
 }

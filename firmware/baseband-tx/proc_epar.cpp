@@ -78,7 +78,7 @@ void EPARProcessor::execute(const buffer_c8_t& buffer) {
 					} else {
 						current_tu++;
 					}
-					sample = 0;
+					sample = -127;
 				}
 				
 				sample_count = 0;
@@ -91,7 +91,7 @@ void EPARProcessor::execute(const buffer_c8_t& buffer) {
 		}
 		
 		//FM
-		frq = sample * 1000; // ~25kHz wide
+		frq = sample * shared_memory.excursion; // 500=~3kHz wide
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);

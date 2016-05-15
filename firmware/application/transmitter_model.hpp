@@ -70,7 +70,6 @@ private:
 		.sampling_rate = 3072000,
 		.decimation_factor = 1,
 	};
-	int32_t tuning_offset();
 
 	void update_tuning_frequency();
 	void update_rf_amp();

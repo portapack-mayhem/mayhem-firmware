@@ -21,8 +21,8 @@
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-//BUG: Module load and return to systemview
-//TODO: EPAR transmit
+//TODO: SD card wiper
+//TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Use progressbars
 //TODO: Setting: Prefered input method
 //TODO: LCR emergency clear all

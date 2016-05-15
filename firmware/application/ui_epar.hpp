@@ -26,6 +26,7 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "ui_receiver.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
@@ -51,6 +52,7 @@ private:
 	bool txing = false;
 	const rf::Frequency epar_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char epar_bits[13];
+	void on_tuning_frequency_changed(rf::Frequency f);
 	
 	/* |012345678901234567890123456789|
 	 * |      Code ville: 000         |
@@ -88,7 +90,10 @@ private:
 		{ 5 * 8, 4 * 16, 10 * 8, 16 },
 		"Frequence:"
 	};
-	OptionsField options_freq {
+	FrequencyField field_frequency {
+		{ 16 * 8, 4 * 16 },
+	};
+	/*OptionsField options_freq {
 		{ 16 * 8, 4 * 16},
 		7,
 		{
@@ -100,7 +105,7 @@ private:
 			{ "31.9750", 5 },
 			{ "TEST 88", 6 }
 		}
-	};
+	};*/
 	
 	Checkbox checkbox_ra {
 		{ 7 * 8, 6 * 16 },
@@ -111,6 +116,14 @@ private:
 		{ 7 * 8, 8 * 16 },
 		8,
 		"Relais 2"
+	};
+	
+	NumberField excur {
+		{ 12 * 8, 10 * 16 },
+		4,
+		{ 0, 5000 },
+		20,
+		' '
 	};
 	
 	ProgressBar progressbar {

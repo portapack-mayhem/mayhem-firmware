@@ -68,6 +68,7 @@ struct SharedMemory {
 	
 	char xylosdata[21];
 	char epardata[13];
+	int32_t excursion;
 	bool transmit_done;
 };
 

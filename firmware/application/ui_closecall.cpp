@@ -22,6 +22,7 @@
 
 #include "ui_closecall.hpp"
 #include "ui_receiver.hpp"
+#include "msgpack.hpp"
 
 #include "ch.h"
 #include "time.hpp"
@@ -59,8 +60,6 @@ void CloseCallView::do_detection() {
 	rf::Frequency resolved_frequency;
 	size_t i;
 	
-	portapack::display.fill_rectangle({last_pos, 92, 1, 9}, Color::black());
-	
 	mean /= (CC_BIN_NB * (slices_max + 1));
 
 	for (i = 0; i < (slices_max + 1); i++) {
@@ -87,7 +86,7 @@ void CloseCallView::do_detection() {
 	
 	// Lock / release
 	if ((imax >= last_channel - 2) && (imax <= last_channel + 2) && imax) {
-		if (detect_counter == 8) {
+		if (detect_counter >= (5 / (slices_max + 1))) {
 			if (imax != locked_frequency) {
 				//char finalstr[24] = {0};
 				
@@ -100,6 +99,7 @@ void CloseCallView::do_detection() {
 				//strcat(finalstr, fstr.c_str());
 				text_infos.set("Locked !  ");
 				big_display.set(resolved_frequency);
+				big_display.set_style(&style_locked);
 				
 				locked = true;
 				locked_frequency = imax;
@@ -114,7 +114,7 @@ void CloseCallView::do_detection() {
 			if (release_counter == 8) {
 				locked = false;
 				text_infos.set("Lost      ");
-				//big_display.set(0);
+				big_display.set_style(&style_grey);
 			} else {
 				release_counter++;
 			}
@@ -124,8 +124,9 @@ void CloseCallView::do_detection() {
 	last_channel = imax;
 	scan_counter++;
 	
-	last_pos = (ui::Coord)(imax + 2);
-	portapack::display.fill_rectangle({last_pos, 92, 1, 9}, Color::red());
+	portapack::display.fill_rectangle({last_pos, 90, 1, 13}, Color::black());
+	last_pos = (ui::Coord)(imax % 240);
+	portapack::display.fill_rectangle({last_pos, 90, 1, 13}, Color::red());
 }
 
 void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
@@ -148,7 +149,7 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		}
 
 		display.draw_pixels(
-			{ { 0, 96 + slices_counter * 4 }, { pixel_row.size(), 1 } },
+			{ { 0, 96 + slices_counter * 6 }, { pixel_row.size(), 1 } },
 			pixel_row
 		);
 		
@@ -247,8 +248,18 @@ void CloseCallView::on_range_changed() {
 		// ex: 100~115 (15): 102.5(97.5~107.5) -> 112.5(107.5~117.5) = 2.5 lost left and right
 		slices_max = (scan_span + CC_SLICE_WIDTH - 1) / CC_SLICE_WIDTH;
 		slices_span = slices_max * CC_SLICE_WIDTH;
-		offset = (slices_span - scan_span) / 2;
+		offset = ((scan_span - slices_span) / 2) + (CC_SLICE_WIDTH / 2);
 		slice_start = std::min(f_min, f_max) + offset;
+		slice_trim = 0;
+		
+		/*
+		 * ----||||---- 4M -> 2*3M = 6
+		 *    AAABBB	4-6 = -2 -> -2/2 = -1 -> -1+1.5 = +0.5
+		 * 
+		 *    ----1111222233334444----
+		 *    AAAAaaaaAAAAbbbbBBBBbbbb
+		 * 
+		 */
 		
 		slices_max--;	// For slices_counter
 		slicing = true;
@@ -267,12 +278,14 @@ void CloseCallView::on_range_changed() {
 		portapack::display.fill_rectangle({0, 97, slice_trim, 4}, Color::orange());
 		portapack::display.fill_rectangle({240 - slice_trim, 97, slice_trim, 4}, Color::orange());
 		
+		set_dirty();
+		
 		slices_max = 0;
 		slices_counter = 0;
 		slicing = false;
 	}
 	
-	text_debug.set(to_string_dec_uint(slice_start));
+	//text_debug.set(to_string_dec_uint(slice_start));
 	
 	text_slices.set(to_string_dec_int(slices_max + 1));
 	slices_counter = 0;
@@ -312,12 +325,22 @@ CloseCallView::CloseCallView(
 		&button_exit
 	} });
 	
-	static constexpr Style style_grey {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::grey(),
-	};
-
+	uint8_t testbuffer[] = { 	0xDE, 0x00, 0x02,
+								0xCD, 0x00, 0x00,	// Key 0000 = False
+									0xC2,
+								0xCD, 0x00, 0x01,	// Key 0001 = True
+									0xC3
+							};
+	
+	// DEBUG
+	bool debug_v;
+	MsgPack msgpack;
+	msgpack.msgpack_get(&testbuffer, sizeof(testbuffer), MsgPack::TestList, &debug_v);		// MsgPack::FrequencyList
+	if (debug_v)
+		text_debug.set("OK!");
+	else
+		text_debug.set("NOK");
+		
 	text_labels_a.set_style(&style_grey);
 	text_labels_b.set_style(&style_grey);
 	text_labels_c.set_style(&style_grey);

@@ -138,6 +138,7 @@ CPPSRC = main.cpp \
          radio.cpp \
          baseband_cpld.cpp \
          tuning.cpp \
+         msgpack.cpp \
          rf_path.cpp \
          rffc507x.cpp \
          rffc507x_spi.cpp \

@@ -20,17 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*#include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
-#include "ui_menu.hpp"
-#include "ui_navigation.hpp"
-#include "clock_manager.hpp"
-#include "message.hpp"
-#include "rf_path.hpp"
-#include "volume.hpp"
-#include "receiver_model.hpp"*/
-
 #include "receiver_model.hpp"
 
 #include "spectrum_color_lut.hpp"
@@ -58,6 +47,17 @@ public:
 	std::string title() const override { return "Close Call"; };
 
 private:
+	const Style style_grey {		// For labels and lost signal
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::grey(),
+	};
+	
+	const Style style_locked {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::green(),
+	};
 	Coord last_pos = 0;
 	ChannelSpectrumFIFO* fifo { nullptr };
 	uint8_t detect_counter = 0, release_counter = 0;
@@ -89,7 +89,7 @@ private:
 	 * | Min:      Max:       LNA VGA |
 	 * | 0000.0000 0000.0000  00  00  |
 	 * | Threshold: 000               |
-	 * | Slices: 00       Rate: 000Hz |
+	 * | Slices: 00        Rate: 00Hz |
 	 * |
 	 * */
 	
@@ -103,7 +103,7 @@ private:
 	};
 	Text text_labels_c {
 		{ 1 * 8, 3 * 16, 28 * 8, 16 },
-		"Slices:          Rate:    Hz"
+		"Slices:           Rate:   Hz"
 	};
 	
 	NumberField field_threshold {
@@ -133,8 +133,8 @@ private:
 		"--"
 	};
 	Text text_rate {
-		{ 24 * 8, 3 * 16, 3 * 8, 16 },
-		"---"
+		{ 24 * 8, 3 * 16, 2 * 8, 16 },
+		"--2"
 	};
 	
 	Text text_infos {
