@@ -98,13 +98,8 @@ CaptureThread::~CaptureThread() {
 	}
 }
 
-Optional<std::string> CaptureThread::error() const {
-	const auto error = writer->error();
-	if( error.is_valid() ) {
-		return { error.value().what() };
-	} else {
-		return { };
-	}
+const Optional<File::Error>& CaptureThread::error() const {
+	return last_error;
 }
 
 void CaptureThread::check_fifo_isr() {
@@ -118,14 +113,15 @@ void CaptureThread::check_fifo_isr() {
 	}
 }
 
-msg_t CaptureThread::run() {
+Optional<File::Error> CaptureThread::run() {
 	StreamOutput stream { &config };
 
 	while( !chThdShouldTerminate() ) {
 		if( stream.available() ) {
 			auto buffer = stream.get_buffer();
-			if( !writer->write(buffer->data(), buffer->size()) ) {
-				return false;
+			auto write_result = writer->write(buffer->data(), buffer->size());
+			if( write_result.is_error() ) {
+				return write_result.error();
 			}
 			stream.release_buffer(buffer);
 		} else {
@@ -133,5 +129,5 @@ msg_t CaptureThread::run() {
 		}
 	}
 
-	return true;
+	return { };
 }

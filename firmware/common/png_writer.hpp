@@ -33,9 +33,10 @@
 
 class PNGWriter {
 public:
-	explicit PNGWriter(const std::string& filename);
 	~PNGWriter();
 
+	Optional<File::Error> create(const std::string& filename);
+	
 	void write_scanline(const std::array<ui::ColorRGB888, 240>& scanline);
 
 private:

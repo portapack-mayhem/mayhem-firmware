@@ -24,6 +24,8 @@
 
 #include "ff.h"
 
+#include "optional.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -37,9 +39,27 @@ namespace std {
 namespace filesystem {
 
 struct filesystem_error {
-	const uint32_t err;
+	constexpr filesystem_error(
+	) : err { FR_OK }
+	{
+	}
+
+	constexpr filesystem_error(
+		FRESULT fatfs_error
+	) : err { fatfs_error }
+	{
+	}
+
+	constexpr filesystem_error(
+		unsigned int other_error
+	) : err { other_error }
+	{
+	}
 
 	std::string what() const;
+
+private:
+	uint32_t err;
 };
 
 using path = std::string;
@@ -109,51 +129,89 @@ space_info space(const path& p);
 
 class File {
 public:
-	enum openmode {
-		app = 0x100,
-		binary = 0x200,
-		in = FA_READ,
-		out = FA_WRITE,
-		trunc = FA_CREATE_ALWAYS,
-		ate = FA_OPEN_ALWAYS,
+	using Error = std::filesystem::filesystem_error;
+
+	template<typename T>
+	struct Result {
+		enum class Type {
+			Success,
+			Error,
+		} type;
+		union {
+			T value_;
+			Error error_;
+		};
+
+		bool is_ok() const {
+			return type == Type::Success;
+		}
+
+		bool is_error() const {
+			return type == Type::Error;
+		}
+
+		const T& value() {
+			return value_;
+		}
+
+		Error error() const {
+			return error_;
+		}
+
+		Result() = delete;
+
+		constexpr Result(
+			T value
+		) : type { Type::Success },
+			value_ { value }
+		{
+		}
+
+		constexpr Result(
+			Error error
+		) : type { Type::Error },
+			error_ { error }
+		{
+		}
+
+		~Result() {
+			if( type == Type::Success ) {
+				value_.~T();
+			}
+		}
 	};
 
-	File(const std::string& filename, openmode mode);
+	File() { };
 	~File();
 
-	bool is_open() const {
-		return err == FR_OK;
-	}
+	/* Prevent copies */
+	File(const File&) = delete;
+	File& operator=(const File&) = delete;
 
-	bool bad() const {
-		return err != FR_OK;
-	}
+	// TODO: Return Result<>.
+	Optional<Error> open(const std::string& filename);
+	Optional<Error> append(const std::string& filename);
+	Optional<Error> create(const std::string& filename);
 
-	std::filesystem::filesystem_error error() const {
-		return { err };
-	}
+	Result<size_t> read(void* const data, const size_t bytes_to_read);
+	Result<size_t> write(const void* const data, const size_t bytes_to_write);
 
-	bool read(void* const data, const size_t bytes_to_read);
-	bool write(const void* const data, const size_t bytes_to_write);
-
-	uint64_t seek(const uint64_t new_position);
+	Result<uint64_t> seek(const uint64_t new_position);
 
 	template<size_t N>
-	bool write(const std::array<uint8_t, N>& data) {
+	Result<size_t> write(const std::array<uint8_t, N>& data) {
 		return write(data.data(), N);
 	}
 
-	bool puts(const std::string& string);
+	Result<size_t> puts(const std::string& string);
 
-	bool sync();
+	// TODO: Return Result<>.
+	Optional<Error> sync();
 
 private:
 	FIL f;
-	uint32_t err;
-};
 
-inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
-	return File::openmode(static_cast<int>(a) | static_cast<int>(b));
-}
+	Optional<Error> open_fatfs(const std::string& filename, BYTE mode);
+};
 
 #endif/*__FILE_H__*/

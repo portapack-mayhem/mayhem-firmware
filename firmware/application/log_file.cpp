@@ -23,21 +23,15 @@
 
 #include "string_format.hpp"
 
-LogFile::LogFile(
-	const std::string& file_path
-) : file { file_path, File::openmode::out | File::openmode::ate }
-{
-}
-
-bool LogFile::is_open() const {
-	return file.is_open();
-}
-
-bool LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
+File::Result<size_t> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
 	std::string timestamp = to_string_timestamp(datetime);
 	return write(timestamp + " " + entry + "\r\n");
 }
 
-bool LogFile::write(const std::string& message) {
-	return file.puts(message) && file.sync();
+File::Result<size_t> LogFile::write(const std::string& message) {
+	auto puts_result = file.puts(message);
+	if( puts_result.is_ok() ) {
+		file.sync();
+	}
+	return puts_result;
 }

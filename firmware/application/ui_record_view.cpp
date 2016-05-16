@@ -34,26 +34,23 @@ using namespace portapack;
 
 class FileWriter : public Writer {
 public:
-	FileWriter(
-		const std::string& filename
-	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
-	{
+	FileWriter() = default;
+
+	FileWriter(const FileWriter&) = delete;
+	FileWriter& operator=(const FileWriter&) = delete;
+	FileWriter(FileWriter&& file) = delete;
+	FileWriter& operator=(FileWriter&&) = delete;
+
+	Optional<File::Error> create(const std::string& filename) {
+		return file.create(filename);
 	}
 
-	Optional<std::filesystem::filesystem_error> error() const override {
-		if( file.bad() ) {
-			return { file.error() };
-		} else {
-			return { };
+	File::Result<size_t> write(const void* const buffer, const size_t bytes) override {
+		auto write_result = file.write(buffer, bytes) ;
+		if( write_result.is_ok() ) {
+			bytes_written += write_result.value();
 		}
-	}
-
-	bool write(const void* const buffer, const size_t bytes) override {
-		const auto success = file.write(buffer, bytes) ;
-		if( success ) {
-			bytes_written += bytes;
-		}
-		return success;
+		return write_result;
 	}
 
 protected:
@@ -66,16 +63,31 @@ using RawFileWriter = FileWriter;
 class WAVFileWriter : public FileWriter {
 public:
 	WAVFileWriter(
-		const std::string& filename,
 		size_t sampling_rate
-	) : RawFileWriter { filename },
-		header { sampling_rate }
+	) : header { sampling_rate }
 	{
-		update_header();
 	}
+
+
+	WAVFileWriter(const WAVFileWriter&) = delete;
+	WAVFileWriter& operator=(const WAVFileWriter&) = delete;
+	WAVFileWriter(WAVFileWriter&&) = delete;
+	WAVFileWriter& operator=(WAVFileWriter&&) = delete;
 
 	~WAVFileWriter() {
 		update_header();
+	}
+
+	Optional<File::Error> create(
+		const std::string& filename
+	) {
+		const auto create_error = FileWriter::create(filename);
+		if( create_error.is_valid() ) {
+			return create_error;
+		} else {
+			update_header();
+			return { };
+		}
 	}
 
 private:
@@ -132,7 +144,11 @@ private:
 
 	void update_header() {
 		header.set_data_size(bytes_written);
-		const auto old_position = file.seek(0);
+		auto seek_result = file.seek(0);
+		if( seek_result.is_error() ) {
+			return;
+		}
+		const auto old_position = seek_result.value();
 		file.write(&header, sizeof(header));
 		file.seek(old_position);
 	}
@@ -206,17 +222,39 @@ void RecordView::start() {
 	std::unique_ptr<Writer> writer;
 	switch(file_type) {
 	case FileType::WAV:
-		writer = std::make_unique<WAVFileWriter>(
-			filename_stem + ".WAV",
-			sampling_rate
-		);
+		{
+			auto p = std::make_unique<WAVFileWriter>(
+				sampling_rate
+			);
+			auto create_error = p->create(
+				filename_stem + ".WAV"
+			);
+			if( create_error.is_valid() ) {
+				report_error(create_error.value().what());
+			} else {
+				writer = std::move(p);
+			}
+		}
 		break;
 
 	case FileType::RawS16:
-		write_metadata_file(filename_stem + ".TXT");
-		writer = std::make_unique<RawFileWriter>(
-			filename_stem + ".C16"
-		);
+		{
+			const auto metadata_file_error = write_metadata_file(filename_stem + ".TXT");
+			if( metadata_file_error.is_valid() ) {
+				report_error(metadata_file_error.value().what());
+				return;
+			}
+
+			auto p = std::make_unique<RawFileWriter>();
+			auto create_error = p->create(
+				filename_stem + ".C16"
+			);
+			if( create_error.is_valid() ) {
+				report_error(create_error.value().what());
+			} else {
+				writer = std::move(p);
+			}
+		}
 		break;
 
 	default:
@@ -224,19 +262,12 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		const auto error = writer->error();
-		if( error.is_valid() ) {
-			report_error(error.value().what());
-		} else {
-			text_record_filename.set(filename_stem);
-			button_record.set_bitmap(&bitmap_stop);
-			capture_thread = std::make_unique<CaptureThread>(
-				std::move(writer),
-				write_size, buffer_count
-			);
-		}
-	} else {
-		report_error("file type");
+		text_record_filename.set(filename_stem);
+		button_record.set_bitmap(&bitmap_stop);
+		capture_thread = std::make_unique<CaptureThread>(
+			std::move(writer),
+			write_size, buffer_count
+		);
 	}
 }
 
@@ -247,10 +278,22 @@ void RecordView::stop() {
 	}
 }
 
-void RecordView::write_metadata_file(const std::string& filename) {
-	File file { filename, File::openmode::out | File::openmode::trunc };
-	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
-	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
+Optional<File::Error> RecordView::write_metadata_file(const std::string& filename) {
+	File file;
+	const auto create_error = file.create(filename);
+	if( create_error.is_valid() ) {
+		return create_error;
+	} else {
+		const auto puts_result1 = file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
+		if( puts_result1.is_error() ) {
+			return { puts_result1.error() };
+		}
+		const auto puts_result2 = file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
+		if( puts_result2.is_error() ) {
+			return { puts_result2.error() };
+		}
+		return { };
+	}
 }
 
 void RecordView::on_tick_second() {
@@ -258,7 +301,7 @@ void RecordView::on_tick_second() {
 		const auto error = capture_thread->error();
 		if( error.is_valid() ) {
 			stop();
-			report_error(error.value());
+			report_error(error.value().what());
 		}
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";

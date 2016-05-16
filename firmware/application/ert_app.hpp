@@ -87,8 +87,10 @@ struct ERTRecentEntry {
 
 class ERTLogger {
 public:
-	ERTLogger(const std::string& file_path);
-
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
+	
 	void on_packet(const ert::Packet& packet);
 
 private:

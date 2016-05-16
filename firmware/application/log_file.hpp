@@ -31,16 +31,16 @@ using namespace lpc43xx;
 
 class LogFile {
 public:
-	LogFile(const std::string& file_path);
+	Optional<File::Error> append(const std::string& filename) {
+		return file.append(filename);
+	}
 
-	bool is_open() const;
-
-	bool write_entry(const rtc::RTC& datetime, const std::string& entry);
+	File::Result<size_t> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
 	File file;
 
-	bool write(const std::string& message);
+	File::Result<size_t> write(const std::string& message);
 };
 
 #endif/*__LOG_FILE_H__*/

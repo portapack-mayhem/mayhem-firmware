@@ -86,7 +86,11 @@ void SystemStatusView::on_camera() {
 		return;
 	}
 
-	PNGWriter png { filename_stem + ".PNG" };
+	PNGWriter png;
+	auto create_error = png.create(filename_stem + ".PNG");
+	if( create_error.is_valid() ) {
+		return;
+	}
 
 	for(int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;

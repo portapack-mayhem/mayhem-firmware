@@ -126,25 +126,17 @@ static std::string true_heading(const TrueHeading value) {
 } /* namespace format */
 } /* namespace ais */
 
-AISLogger::AISLogger(
-	const std::string& file_path
-) : log_file { file_path }
-{
-}
-
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
-	if( log_file.is_open() ) {
-		std::string entry;
-		entry.reserve((packet.length() + 3) / 4);
+	std::string entry;
+	entry.reserve((packet.length() + 3) / 4);
 
-		for(size_t i=0; i<packet.length(); i+=4) {
-			const auto nibble = packet.read(i, 4);
-			entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
-		}
-
-		log_file.write_entry(packet.received_at(), entry);
+	for(size_t i=0; i<packet.length(); i+=4) {
+		const auto nibble = packet.read(i, 4);
+		entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
 	}
+
+	log_file.write_entry(packet.received_at(), entry);
 }	
 
 void AISRecentEntry::update(const ais::Packet& packet) {
@@ -332,7 +324,10 @@ AISAppView::AISAppView(NavigationView&) {
 		this->on_show_list();
 	};
 
-	logger = std::make_unique<AISLogger>("ais.txt");
+	logger = std::make_unique<AISLogger>();
+	if( logger ) {
+		logger->append("ais.txt");
+	}
 }
 
 AISAppView::~AISAppView() {

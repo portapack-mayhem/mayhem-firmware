@@ -35,8 +35,7 @@
 
 class Writer {
 public:
-	virtual bool write(const void* const buffer, const size_t bytes) = 0;
-	virtual Optional<std::filesystem::filesystem_error> error() const = 0;
+	virtual File::Result<size_t> write(const void* const buffer, const size_t bytes) = 0;
 	virtual ~Writer() = default;
 };
 
@@ -53,21 +52,23 @@ public:
 		return config;
 	}
 
-	Optional<std::string> error() const;
+	const Optional<File::Error>& error() const;
 	
 	static void check_fifo_isr();
 
 private:
 	CaptureConfig config;
 	std::unique_ptr<Writer> writer;
+	Optional<File::Error> last_error;
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<CaptureThread*>(arg);
-		return obj->run();
+		obj->last_error = obj->run();
+		return 0;
 	}
 
-	msg_t run();
+	Optional<File::Error> run();
 };
 
 #endif/*__CAPTURE_THREAD_H__*/

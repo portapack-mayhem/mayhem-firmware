@@ -134,22 +134,24 @@ private:
 			return Result::FailHeap;
 		}
 
-		File file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc };
-		if( !file.is_open() ) {
+		File file;
+		auto file_create_error = file.create(filename);
+		if( file_create_error.is_valid() ) {
 			return Result::FailFileOpenWrite;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && file.is_open() && (_stats.write_bytes < bytes_to_write) ) {
+		while( !chThdShouldTerminate() && (_stats.write_bytes < bytes_to_write) ) {
 			lfsr_fill(v,
 				reinterpret_cast<lfsr_word_t*>(buffer->data()),
 				sizeof(*buffer.get()) / sizeof(lfsr_word_t)
 			);
 
 			const halrtcnt_t write_start = halGetCounterValue();
-			if( !file.write(buffer->data(), buffer->size()) ) {
+			const auto result_write = file.write(buffer->data(), buffer->size());
+			if( result_write.is_error() ) {
 				break;
 			}
 			const halrtcnt_t write_end = halGetCounterValue();
@@ -179,17 +181,19 @@ private:
 			return Result::FailHeap;
 		}
 
-		File file { filename, File::openmode::in | File::openmode::binary };
-		if( !file.is_open() ) {
+		File file;
+		auto file_open_error = file.open(filename);
+		if( file_open_error.is_valid() ) {
 			return Result::FailFileOpenRead;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && file.is_open() && (_stats.read_bytes < bytes_to_read) ) {
+		while( !chThdShouldTerminate() && (_stats.read_bytes < bytes_to_read) ) {
 			const halrtcnt_t read_start = halGetCounterValue();
-			if( !file.read(buffer->data(), buffer->size()) ) {
+			const auto result_read = file.read(buffer->data(), buffer->size());
+			if( result_read.is_error() ) {
 				break;
 			}
 			const halrtcnt_t read_end = halGetCounterValue();

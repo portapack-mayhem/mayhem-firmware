@@ -92,8 +92,10 @@ using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
 
 class AISLogger {
 public:
-	AISLogger(const std::string& file_path);
-
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
+	
 	void on_packet(const ais::Packet& packet);
 
 private:

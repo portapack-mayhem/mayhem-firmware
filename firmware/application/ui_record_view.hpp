@@ -69,7 +69,7 @@ public:
 
 private:
 	void toggle();
-	void write_metadata_file(const std::string& filename);
+	Optional<File::Error> write_metadata_file(const std::string& filename);
 
 	void on_tick_second();
 

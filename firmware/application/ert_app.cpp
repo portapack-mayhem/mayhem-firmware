@@ -57,17 +57,9 @@ std::string commodity_type(CommodityType value) {
 
 } /* namespace ert */
 
-ERTLogger::ERTLogger(
-	const std::string& file_path
-) : log_file { file_path }
-{
-}
-
 void ERTLogger::on_packet(const ert::Packet& packet) {
-	if( log_file.is_open() ) {
-		const auto formatted = packet.symbols_formatted();
-		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
-	}
+	const auto formatted = packet.symbols_formatted();
+	log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 }
 
 const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
@@ -148,7 +140,10 @@ ERTAppView::ERTAppView(NavigationView&) {
 		.decimation_factor = 1,
 	});
 
-	logger = std::make_unique<ERTLogger>("ert.txt");
+	logger = std::make_unique<ERTLogger>();
+	if( logger ) {
+		logger->append("ert.txt");
+	}
 }
 
 ERTAppView::~ERTAppView() {

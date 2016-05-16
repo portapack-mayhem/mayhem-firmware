@@ -28,99 +28,93 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 #define FR_DISK_FULL	(0x100)
 #define FR_EOF          (0x101)
 #define FR_BAD_SEEK		(0x102)
+#define FR_UNEXPECTED	(0x103)
 
-File::File(
-	const std::string& filename,
-	openmode mode
-) : err { FR_OK }
-{
-	BYTE fatfs_mode = 0;
-	if( mode & openmode::in ) {
-		fatfs_mode |= FA_READ;
-	}
-	if( mode & openmode::out ) {
-		fatfs_mode |= FA_WRITE;
-	}
-	if( mode & openmode::trunc ) {
-		fatfs_mode |= FA_CREATE_ALWAYS;
-	}
-	if( mode & openmode::ate ) {
-		fatfs_mode |= FA_OPEN_ALWAYS;
-	}
-
-	err = f_open(&f, filename.c_str(), fatfs_mode);
-	if( err == FR_OK ) {
-		if( mode & openmode::ate ) {
-			err = f_lseek(&f, f_size(&f));
-			if( err != FR_OK ) {
+Optional<File::Error> File::open_fatfs(const std::string& filename, BYTE mode) {
+	auto result = f_open(&f, filename.c_str(), mode);
+	if( result == FR_OK ) {
+		if( mode & FA_OPEN_ALWAYS ) {
+			const auto result = f_lseek(&f, f_size(&f));
+			if( result != FR_OK ) {
 				f_close(&f);
 			}
 		}
 	}
+
+	if( result == FR_OK ) {
+		return { };
+	} else {
+		return { result };
+	}
+}
+
+Optional<File::Error> File::open(const std::string& filename) {
+	return open_fatfs(filename, FA_READ);
+}
+
+Optional<File::Error> File::append(const std::string& filename) {
+	return open_fatfs(filename, FA_WRITE | FA_OPEN_ALWAYS);
+}
+
+Optional<File::Error> File::create(const std::string& filename) {
+	return open_fatfs(filename, FA_WRITE | FA_CREATE_ALWAYS);
 }
 
 File::~File() {
 	f_close(&f);
 }
 
-bool File::read(void* const data, const size_t bytes_to_read) {
-	if( err != FR_OK ) {
-		return false;
-	}
-
+File::Result<size_t> File::read(void* const data, const size_t bytes_to_read) {
 	UINT bytes_read = 0;
-	err = f_read(&f, data, bytes_to_read, &bytes_read);
-	if( bytes_read != bytes_to_read ) {
-		err = FR_EOF;
+	const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
+	if( result == FR_OK ) {
+		return { static_cast<size_t>(bytes_read) };
+	} else {
+		return { static_cast<Error>(result) };
 	}
-	return (err == FR_OK);
 }
 
-bool File::write(const void* const data, const size_t bytes_to_write) {
-	if( err != FR_OK ) {
-		return false;
-	}
-	
+File::Result<size_t> File::write(const void* const data, const size_t bytes_to_write) {
 	UINT bytes_written = 0;
-	err = f_write(&f, data, bytes_to_write, &bytes_written);
-	if( bytes_written != bytes_to_write ) {
-		err = FR_DISK_FULL;
+	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
+	if( result == FR_OK ) {
+		return { static_cast<size_t>(bytes_written) };
+	} else {
+		return { static_cast<Error>(result) };
 	}
-	return (err == FR_OK);
 }
 
-uint64_t File::seek(const uint64_t new_position) {
-	if( err != FR_OK ) {
-		return false;
-	}
-	
+File::Result<uint64_t> File::seek(const uint64_t new_position) {
+	/* NOTE: Returns *old* position, not new position */
 	const auto old_position = f_tell(&f);
-	err = f_lseek(&f, new_position);
-	if( err != FR_OK ) {
-		f_close(&f);
+	const auto result = f_lseek(&f, new_position);
+	if( result != FR_OK ) {
+		return { static_cast<Error>(result) };
 	}
 	if( f_tell(&f) != new_position ) {
-		err = FR_BAD_SEEK;
-		f_close(&f);
+		return { static_cast<Error>(FR_BAD_SEEK) };
 	}
-	return old_position;
+	return { static_cast<uint64_t>(old_position) };
 }
 
-bool File::puts(const std::string& string) {
+File::Result<size_t> File::puts(const std::string& string) {
 	const auto result = f_puts(string.c_str(), &f);
-	if( result != (int)string.size() ) {
-		err = FR_DISK_FULL;
+	if( result >= 0 ) {
+		return { static_cast<size_t>(result) };
+	} else if( result == EOF ) {
+		return { static_cast<Error>(f_error(&f)) };
+	} else {
+		return { static_cast<Error>(FR_UNEXPECTED) };
 	}
-	return (result >= 0);
 }
 
-bool File::sync() {
-	if( err != FR_OK ) {
-		return false;
+Optional<File::Error> File::sync() {
+	const auto result = f_sync(&f);
+	if( result == FR_OK ) {
+		return { };
+	} else {
+		return { result };
 	}
-
-	err = f_sync(&f);
-	return (err == FR_OK);
 }
 
 static std::string find_last_file_matching_pattern(const std::string& pattern) {
@@ -181,7 +175,7 @@ namespace filesystem {
 
 std::string filesystem_error::what() const {
 	switch(err) {
-	case FR_OK: 					return "";
+	case FR_OK: 					return "ok";
 	case FR_DISK_ERR:				return "disk error";
 	case FR_INT_ERR:				return "insanity detected";
 	case FR_NOT_READY:				return "not ready";
@@ -204,6 +198,7 @@ std::string filesystem_error::what() const {
 	case FR_EOF:					return "end of file";
 	case FR_DISK_FULL:				return "disk full";
 	case FR_BAD_SEEK:				return "bad seek";
+	case FR_UNEXPECTED:				return "unexpected";
 	default:						return "unknown";
 	}
 }

@@ -72,7 +72,9 @@ using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
-	TPMSLogger(const std::string& file_path);
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
 	
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 

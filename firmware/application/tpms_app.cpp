@@ -51,22 +51,14 @@ std::string temperature(Temperature temperature) {
 
 } /* namespace tpms */
 
-TPMSLogger::TPMSLogger(
-	const std::string& file_path
-) : log_file { file_path }
-{
-}
-
 void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
 	const auto hex_formatted = packet.symbols_formatted();
 
-	if( log_file.is_open() ) {
-		// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-		const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
+	// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
+	const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-		std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
-		log_file.write_entry(packet.received_at(), entry);
-	}
+	std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
+	log_file.write_entry(packet.received_at(), entry);
 }
 
 const TPMSRecentEntry::Key TPMSRecentEntry::invalid_key = { tpms::Reading::Type::None, 0 };
@@ -165,7 +157,10 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		.decimation_factor = 1,
 	});
 
-	logger = std::make_unique<TPMSLogger>("tpms.txt");
+	logger = std::make_unique<TPMSLogger>();
+	if( logger ) {
+		logger->append("tpms.txt");
+	}
 }
 
 TPMSAppView::~TPMSAppView() {
