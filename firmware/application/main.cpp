@@ -21,6 +21,7 @@
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
+//TODO: Breakout game
 //TODO: SD card wiper
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Use progressbars

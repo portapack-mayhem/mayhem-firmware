@@ -70,7 +70,7 @@ private:
 	uint8_t slices_max;
 	uint8_t slices_counter;
 	uint16_t last_channel;
-	rf::Frequency scan_span, locked_frequency;
+	rf::Frequency scan_span, locked_frequency, resolved_frequency;
 	uint8_t slicemax_db[32];		// Todo: Cap max slices !
 	uint8_t slicemax_idx[32];
 	uint8_t scan_counter;
@@ -138,7 +138,7 @@ private:
 	};
 	
 	Text text_infos {
-		{ 1 * 8, 6 * 16, 28 * 8, 16 },
+		{ 1 * 8, 6 * 16, 8 * 8, 16 },
 		"..."
 	};
 	
@@ -147,9 +147,14 @@ private:
 		0
 	};
 	
+	Text text_mhz {
+		{ 26 * 8, 12 * 16, 3 * 8, 16 },
+		"MHz"
+	};
+	
 	Text text_debug {
 		{ 1 * 8, 13 * 16, 28 * 8, 16 },
-		"..."
+		"DEBUG: Error"
 	};
 	
 	Button button_exit {

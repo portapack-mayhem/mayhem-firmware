@@ -32,7 +32,7 @@
 #include "portapack.hpp"
 #include "radio.hpp"
 #include "baseband_api.hpp"
-#include "string_format.hpp"
+#include "string_format.hpp"	// DEBUG
 
 #include "hackrf_hal.hpp"
 
@@ -55,19 +55,17 @@ CloseCallView::~CloseCallView() {
 
 void CloseCallView::do_detection() {
 	uint8_t xmax = 0;
-	uint16_t imax = 0;
+	uint16_t imax = 0, c;
 	uint8_t threshold;
-	rf::Frequency resolved_frequency;
-	size_t i;
 	
 	mean /= (CC_BIN_NB * (slices_max + 1));
 
-	for (i = 0; i < (slices_max + 1); i++) {
-		threshold = slicemax_db[i];
+	for (c = 0; c < (slices_max + 1); c++) {
+		threshold = slicemax_db[c];
 		if (threshold >= min_threshold) {
 			if (((uint8_t)(threshold - min_threshold) > mean) && (threshold > xmax)) {
 				xmax = threshold;
-				imax = slicemax_idx[i] + (i * CC_BIN_NB);
+				imax = slicemax_idx[c] + (c * CC_BIN_NB);
 			}
 		}
 	}
@@ -97,9 +95,9 @@ void CloseCallView::do_detection() {
 
 				//strcat(finalstr, "Locked: ");
 				//strcat(finalstr, fstr.c_str());
-				text_infos.set("Locked !  ");
-				big_display.set(resolved_frequency);
+				text_infos.set("Locked !");
 				big_display.set_style(&style_locked);
+				big_display.set(resolved_frequency);
 				
 				locked = true;
 				locked_frequency = imax;
@@ -113,8 +111,9 @@ void CloseCallView::do_detection() {
 		if (locked == true) {
 			if (release_counter == 8) {
 				locked = false;
-				text_infos.set("Lost      ");
+				text_infos.set("Lost    ");
 				big_display.set_style(&style_grey);
+				big_display.set(resolved_frequency);
 			} else {
 				release_counter++;
 			}
@@ -319,33 +318,53 @@ CloseCallView::CloseCallView(
 		&field_threshold,
 		&text_slices,
 		&text_rate,
+		&text_mhz,
 		&text_infos,
 		&text_debug,
 		&big_display,
 		&button_exit
 	} });
 	
-	uint8_t testbuffer[] = { 	0xDE, 0x00, 0x02,
+	// DEBUG -------------------------------------------------------------------------
+	/*uint8_t testbuffer[] = { 	0xDE, 0x00, 0x02,
 								0xCD, 0x00, 0x00,	// Key 0000 = False
 									0xC2,
 								0xCD, 0x00, 0x01,	// Key 0001 = True
-									0xC3
-							};
+									0xC3,
+								0xCD, 0x00, 0x02,	// Key 0002 = False
+									0xC2,
+								0xCD, 0x00, 0x03,	// Key 0003 = fixnum 19
+									19
+							};*/
 	
-	// DEBUG
-	bool debug_v;
+	uint8_t testbuffer[100];
+	uint8_t debug_v = 7;
+	size_t bptr;
 	MsgPack msgpack;
-	msgpack.msgpack_get(&testbuffer, sizeof(testbuffer), MsgPack::TestList, &debug_v);		// MsgPack::FrequencyList
-	if (debug_v)
+	
+	bptr = 0;
+	
+	msgpack.msgpack_init(&testbuffer, &bptr);
+	msgpack.msgpack_add(&testbuffer, &bptr, MsgPack::TestListA, false);
+	msgpack.msgpack_add(&testbuffer, &bptr, MsgPack::TestListB, true);
+	msgpack.msgpack_add(&testbuffer, &bptr, MsgPack::TestListC, false);
+	msgpack.msgpack_add(&testbuffer, &bptr, MsgPack::TestListD, (uint8_t)19);
+	
+	msgpack.msgpack_get(&testbuffer, bptr, MsgPack::TestListD, &debug_v);
+	if (debug_v == 19)
 		text_debug.set("OK!");
 	else
-		text_debug.set("NOK");
+		text_debug.set(to_string_dec_uint(testbuffer[0]));
+	
+	// DEBUG -------------------------------------------------------------------------
 		
 	text_labels_a.set_style(&style_grey);
 	text_labels_b.set_style(&style_grey);
 	text_labels_c.set_style(&style_grey);
 	text_slices.set_style(&style_grey);
 	text_rate.set_style(&style_grey);
+	text_mhz.set_style(&style_grey);
+	big_display.set_style(&style_grey);
 	
 	field_threshold.set_value(80);
 	field_threshold.on_change = [this](int32_t v) {

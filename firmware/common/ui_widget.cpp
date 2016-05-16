@@ -326,6 +326,7 @@ void BigFrequency::paint(Painter& painter) {
 	char digits[7];
 	char digit;
 	Coord digit_x, digit_y;
+	ui::Color segment_color;
 	
 	const auto rect = screen_rect();
 	
@@ -333,7 +334,7 @@ void BigFrequency::paint(Painter& painter) {
 	painter.fill_rectangle({{0, rect.pos.y}, {240, 52}}, ui::Color::black());
 	
 	if (!_frequency) {
-		for (i = 0; i < 7; i++)
+		for (i = 0; i < 7; i++)		// ----.------
 			digits[i] = 10;
 	} else {
 		_frequency /= 1000;			// GMMM.KKKuuu
@@ -351,6 +352,8 @@ void BigFrequency::paint(Painter& painter) {
 				break;
 		}
 	}
+	
+	segment_color = style().foreground;
 
 	// Draw
 	digit_x = rect.pos.x;		// 7 * 32 + 8 = 232 (4 px margins)
@@ -358,18 +361,18 @@ void BigFrequency::paint(Painter& painter) {
 		digit = digits[i];
 		digit_y = rect.pos.y;
 		if (digit < 16) {
-			digit_def = big_segment_font[digit];
-			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, digit_y}, 		{20, 4}}, 	ui::Color::white());
-			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, digit_y + 4}, 	{4, 20}}, 	ui::Color::white());
-			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, digit_y + 28}, {4, 20}}, 	ui::Color::white());
-			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, digit_y + 48}, 	{20, 4}}, 	ui::Color::white());
-			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, digit_y + 28}, 		{4, 20}}, 	ui::Color::white());
-			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, digit_y + 4}, 		{4, 20}}, 	ui::Color::white());
-			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, digit_y + 24}, 	{20, 4}}, 	ui::Color::white());
+			digit_def = big_segment_font[(uint8_t)digit];
+			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, digit_y}, 		{20, 4}}, 	segment_color);
+			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, digit_y + 4}, 	{4, 20}}, 	segment_color);
+			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, digit_y + 28}, {4, 20}}, 	segment_color);
+			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, digit_y + 48}, 	{20, 4}}, 	segment_color);
+			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, digit_y + 28}, 		{4, 20}}, 	segment_color);
+			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, digit_y + 4}, 		{4, 20}}, 	segment_color);
+			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, digit_y + 24}, 	{20, 4}}, 	segment_color);
 		}
 		if (i == 3) {
 			// Dot
-			painter.fill_rectangle({{digit_x + 34, digit_y + 48}, {4, 4}}, ui::Color::white());
+			painter.fill_rectangle({{digit_x + 34, digit_y + 48}, {4, 4}}, segment_color);
 			digit_x += 40;
 		} else {
 			digit_x += 32;
@@ -401,7 +404,7 @@ void ProgressBar::paint(Painter& painter) {
 
 	v_sized = (rect.size.w * _value) / 100;
 
-	painter.fill_rectangle({rect.pos, {v_sized, rect.size.h}}, ui::Color::green());
+	painter.fill_rectangle({rect.pos, {v_sized, rect.size.h}}, style().foreground);
 	painter.fill_rectangle({{rect.pos.x + v_sized, rect.pos.y}, {rect.size.w - v_sized, rect.size.h}}, s.background);
 	
 	painter.draw_rectangle(rect, s.foreground);
