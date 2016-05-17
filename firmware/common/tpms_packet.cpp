@@ -74,7 +74,9 @@ Optional<Reading> Packet::reading(const SignalType signal_type) const {
 		return Reading {
 			Reading::Type::Schrader,
 			reader_.read(3, 24),
-			Pressure { static_cast<int>(reader_.read(27, 8)) }
+			Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
+			{ },
+			Flags { (flags << 4) | checksum }
 		};
 	}
 

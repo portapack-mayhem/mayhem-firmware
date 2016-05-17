@@ -47,6 +47,10 @@ std::string temperature(Temperature temperature) {
 	return to_string_dec_int(temperature.celsius(), 3);
 }
 
+std::string flags(Flags flags) {
+	return to_string_hex(flags, 2);
+}
+
 } /* namespace format */
 
 } /* namespace tpms */
@@ -72,16 +76,20 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 	if( reading.temperature().is_valid() ) {
 		last_temperature = reading.temperature();
 	}
+	if( reading.flags().is_valid() ) {
+		last_flags = reading.flags();
+	}
 }
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 5> tpms_columns { {
+static const std::array<std::pair<std::string, size_t>, 6> tpms_columns { {
 	{ "Tp", 2 },
 	{ "ID", 8 },
 	{ "kPa", 3 },
 	{ "C", 3 },
 	{ "Cnt", 3 },
+	{ "Fl", 2 },
 } };
 
 template<>
@@ -131,6 +139,12 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 		line += " +++";
 	} else {
 		line += " " + to_string_dec_uint(entry.received_count, 3);
+	}
+
+	if( entry.last_flags.is_valid() ) {
+		line += " " + tpms::format::flags(entry.last_flags.value());
+	} else {
+		line += " " "  ";
 	}
 
 	line.resize(target_rect.width() / 8, ' ');

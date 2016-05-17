@@ -37,6 +37,8 @@ using units::Pressure;
 
 namespace tpms {
 
+using Flags = uint8_t;
+
 enum SignalType : uint32_t {
 	FLM = 1,
 	Schrader = 2,
@@ -92,11 +94,13 @@ public:
 		Type type,
 		TransponderID id,
 		Optional<Pressure> pressure = { },
-		Optional<Temperature> temperature = { }
+		Optional<Temperature> temperature = { },
+		Optional<Flags> flags = { }
 	) : type_ { type },
 		id_ { id },
 		pressure_ { pressure },
-		temperature_ { temperature }
+		temperature_ { temperature },
+		flags_ { flags }
 	{
 	}
 
@@ -116,11 +120,16 @@ public:
 		return temperature_;
 	}
 
+	Optional<Flags> flags() const {
+		return flags_;
+	}
+
 private:
 	Type type_ { Type::None };
 	TransponderID id_ { 0 };
 	Optional<Pressure> pressure_ { };
 	Optional<Temperature> temperature_ { };
+	Optional<Flags> flags_ { };
 };
 
 class Packet {

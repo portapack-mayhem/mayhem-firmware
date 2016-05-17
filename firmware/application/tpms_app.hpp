@@ -53,6 +53,7 @@ struct TPMSRecentEntry {
 
 	Optional<Pressure> last_pressure;
 	Optional<Temperature> last_temperature;
+	Optional<tpms::Flags> last_flags;
 
 	TPMSRecentEntry(
 		const Key& key
