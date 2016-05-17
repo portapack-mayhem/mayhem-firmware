@@ -117,6 +117,10 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 }
 
 void NavigationView::pop() {
+	if( view() == modal_view ) {
+		modal_view = nullptr;
+	}
+
 	// Can't pop last item from stack.
 	if( view_stack.size() > 1 ) {
 		free_view();
@@ -124,6 +128,13 @@ void NavigationView::pop() {
 		view_stack.pop_back();
 
 		update_view();
+	}
+}
+
+void NavigationView::display_error(const std::string& message) {
+	/* If a modal view is already visible, don't display another */
+	if( !modal_view ) {
+		modal_view = push<ModalMessageView>(message);
 	}
 }
 

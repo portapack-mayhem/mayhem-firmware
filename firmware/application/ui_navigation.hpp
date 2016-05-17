@@ -102,10 +102,13 @@ public:
 
 	void pop();
 
+	void display_error(const std::string& message);
+
 	void focus() override;
 
 private:
 	std::vector<std::unique_ptr<View>> view_stack;
+	Widget* modal_view { nullptr };
 
 	Widget* view() const;
 
