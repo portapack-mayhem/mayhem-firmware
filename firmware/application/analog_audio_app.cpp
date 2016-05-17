@@ -140,7 +140,7 @@ AnalogAudioView::AnalogAudioView(
 	};
 
 	record_view.on_error = [&nav](std::string message) {
-		nav.display_error(message);
+		nav.display_modal("Error", message);
 	};
 
 	audio::output::start();

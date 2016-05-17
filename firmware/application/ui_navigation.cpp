@@ -131,10 +131,13 @@ void NavigationView::pop() {
 	}
 }
 
-void NavigationView::display_error(const std::string& message) {
+void NavigationView::display_modal(
+	const std::string& title,
+	const std::string& message
+) {
 	/* If a modal view is already visible, don't display another */
 	if( !modal_view ) {
-		modal_view = push<ModalMessageView>(message);
+		modal_view = push<ModalMessageView>(title, message);
 	}
 }
 
@@ -290,7 +293,12 @@ void NotImplementedView::focus() {
 
 /* ModalMessageView ******************************************************/
 
-ModalMessageView::ModalMessageView(NavigationView& nav, std::string message) {
+ModalMessageView::ModalMessageView(
+	NavigationView& nav,
+	const std::string& title,
+	const std::string& message
+) : title_ { title }
+{
 	button_done.on_select = [&nav](Button&){
 		nav.pop();
 	};

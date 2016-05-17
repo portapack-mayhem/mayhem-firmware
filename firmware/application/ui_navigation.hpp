@@ -102,7 +102,7 @@ public:
 
 	void pop();
 
-	void display_error(const std::string& message);
+	void display_modal(const std::string& title, const std::string& message);
 
 	void focus() override;
 
@@ -210,11 +210,19 @@ private:
 
 class ModalMessageView : public View {
 public:
-	ModalMessageView(NavigationView& nav, std::string message);
+	ModalMessageView(
+		NavigationView& nav,
+		const std::string& title,
+		const std::string& message
+	);
 
 	void focus() override;
 
+	std::string title() const override { return title_; };
+
 private:
+	const std::string title_;
+
 	Text text_message {
 		{ 0 * 8, 7 * 16, 30 * 8, 16 },
 		""

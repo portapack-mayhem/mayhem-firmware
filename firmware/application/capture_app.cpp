@@ -71,7 +71,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 
 	record_view.set_sampling_rate(sampling_rate / 8);
 	record_view.on_error = [&nav](std::string message) {
-		nav.display_error(message);
+		nav.display_modal("Error", message);
 	};
 }
 
