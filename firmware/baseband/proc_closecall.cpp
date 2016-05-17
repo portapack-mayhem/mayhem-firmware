@@ -29,21 +29,16 @@
 #include <array>
 
 void CloseCallProcessor::execute(const buffer_c8_t& buffer) {
-	// 2048 complex8_t samples per buffer.
-	// 102.4us per buffer. 20480 instruction cycles per buffer.
-
 	if( phase == 0 ) {
 		std::fill(spectrum.begin(), spectrum.end(), 0);
 	}
 
 	for(size_t i=0; i<spectrum.size(); i++) {
-		// TODO: Removed window-presum windowing, due to lack of available code RAM.
-		// TODO: Apply window to improve spectrum bin sidelobes.
 		spectrum[i] += buffer.p[i +    0];
 		spectrum[i] += buffer.p[i + 1024];
 	}
 
-	if( phase == 127 ) {
+	if( phase == 50 ) {
 		const buffer_c16_t buffer_c16 {
 			spectrum.data(),
 			spectrum.size(),

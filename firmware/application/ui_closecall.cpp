@@ -32,7 +32,7 @@
 #include "portapack.hpp"
 #include "radio.hpp"
 #include "baseband_api.hpp"
-#include "string_format.hpp"	// DEBUG
+#include "string_format.hpp"
 
 #include "hackrf_hal.hpp"
 
@@ -55,17 +55,21 @@ CloseCallView::~CloseCallView() {
 
 void CloseCallView::do_detection() {
 	uint8_t xmax = 0;
-	uint16_t imax = 0, c;
-	uint8_t threshold;
+	int64_t imax = 0;
+	uint16_t iraw = 0, c;
+	uint8_t power;
+	rf::Frequency freq_low, freq_high;
 	
-	mean /= (CC_BIN_NB * (slices_max + 1));
+	mean /= (CC_BIN_NB * slices_max);
 
-	for (c = 0; c < (slices_max + 1); c++) {
-		threshold = slicemax_db[c];
-		if (threshold >= min_threshold) {
-			if (((uint8_t)(threshold - min_threshold) > mean) && (threshold > xmax)) {
-				xmax = threshold;
+	// Find max value over threshold from all slices
+	for (c = 0; c < slices_max; c++) {
+		power = slicemax_db[c];
+		if (power >= min_threshold) {
+			if ((power - min_threshold >= mean) && (power > xmax)) {
+				xmax = power;
 				imax = slicemax_idx[c] + (c * CC_BIN_NB);
+				iraw = slicemax_idx[c];
 			}
 		}
 	}
@@ -84,23 +88,45 @@ void CloseCallView::do_detection() {
 	
 	// Lock / release
 	if ((imax >= last_channel - 2) && (imax <= last_channel + 2) && imax) {
-		if (detect_counter >= (5 / (slices_max + 1))) {
-			if (imax != locked_frequency) {
-				//char finalstr[24] = {0};
+		// Staying around the same frequency (+/- 25.4kHz)
+		if (detect_counter >= (5 / slices_max)) {
+			if ((imax != locked_imax) || (!locked)) {
+				char finalstr[29] = {0};
 				
-				// 236 steps = 5MHz
-				// Resolution = 21.2kHz
-				resolved_frequency = slice_start + (CC_BIN_WIDTH * (imax - 118));
-				//auto fstr = to_string_dec_int(resolved_frequency);
+				// 236 steps = 3MHz
+				// Resolution = 12.7kHz
+				if (locked)
+					resolved_frequency = (resolved_frequency + slice_start + (CC_BIN_WIDTH * (imax - 118))) / 2;	// Mean
+				else
+					resolved_frequency = slice_start + (CC_BIN_WIDTH * (imax - 118));	// Init
+				
+				text_debug.set(to_string_dec_int(CC_BIN_WIDTH * (imax - 118)));	//imax
+				
+				// Correct according to DC spike mask width (4 for now)
+				if (iraw > 118)
+					resolved_frequency -= (2 * CC_BIN_WIDTH);
+				else
+					resolved_frequency += (2 * CC_BIN_WIDTH);
 
-				//strcat(finalstr, "Locked: ");
-				//strcat(finalstr, fstr.c_str());
 				text_infos.set("Locked !");
 				big_display.set_style(&style_locked);
 				big_display.set(resolved_frequency);
 				
+				// Approximation/error display
+				freq_low = (resolved_frequency - 6355) / 1000;
+				freq_high = (resolved_frequency + 6355) / 1000;
+				strcat(finalstr, "~12.7kHz ");
+				strcat(finalstr, to_string_dec_uint(freq_low / 1000).c_str());
+				strcat(finalstr, ".");
+				strcat(finalstr, to_string_dec_uint(freq_low % 1000).c_str());
+				strcat(finalstr, "/");
+				strcat(finalstr, to_string_dec_uint(freq_high / 1000).c_str());
+				strcat(finalstr, ".");
+				strcat(finalstr, to_string_dec_uint(freq_high % 1000).c_str());
+				text_precision.set(finalstr);
+				
 				locked = true;
-				locked_frequency = imax;
+				locked_imax = imax;
 			}
 			release_counter = 0;
 		} else {
@@ -108,8 +134,8 @@ void CloseCallView::do_detection() {
 		}
 	} else {
 		detect_counter = 0;
-		if (locked == true) {
-			if (release_counter == 8) {
+		if (locked) {
+			if (release_counter == 6) {
 				locked = false;
 				text_infos.set("Lost    ");
 				big_display.set_style(&style_grey);
@@ -124,7 +150,7 @@ void CloseCallView::do_detection() {
 	scan_counter++;
 	
 	portapack::display.fill_rectangle({last_pos, 90, 1, 13}, Color::black());
-	last_pos = (ui::Coord)(imax % 240);
+	last_pos = (ui::Coord)(iraw);
 	portapack::display.fill_rectangle({last_pos, 90, 1, 13}, Color::red());
 }
 
@@ -152,27 +178,28 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 			pixel_row
 		);
 		
-		// Find max for this slice
+		// Find max for this slice:
+		
 		// Check if left of slice needs to be trimmed (masked)
 		if (slices_counter == 0)
 			i = slice_trim;
 		else
 			i = 0;
 		for ( ; i < 118; i++) {
-			threshold = spectrum.db[256 - 120 + i];
+			threshold = spectrum.db[256 - 120 + i];		// 128+8 = 136 ~254
 			if (threshold > xmax) {
 				xmax = threshold;
 				imax = i;
 			}
 		}
 		// Check if right of slice needs to be trimmed (masked)
-		if (slices_counter == slices_max)
+		if (slices_counter == (slices_max - 1))
 			m = 240 - slice_trim;
 		else
 			m = 240;
 		for (i = 122 ; i < m; i++) {
-			threshold = spectrum.db[i - 120];
-			if (threshold > xmax) {
+			threshold = spectrum.db[i - 120];			// 240-120 = 120 -> +8 = 128
+			if (threshold > xmax) {						// (0~2) 2~120 (120~136) 136~254 (254~256)
 				xmax = threshold;
 				imax = i - 4;
 			}
@@ -188,7 +215,7 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		
 		// Slice update
 		if (slicing) {
-			if (slices_counter >= slices_max) {
+			if (slices_counter >= (slices_max - 1)) {
 				do_detection();
 				mean = 0;
 				slices_counter = 0;
@@ -240,9 +267,12 @@ void CloseCallView::on_range_changed() {
 	rf::Frequency resolved_frequency;
 	int64_t offset;
 	
+	// DEBUG
+	/*
 	f_max = field_frequency_max.value();
 	f_min = field_frequency_min.value();
 	scan_span = abs(f_max - f_min);
+	
 	if (scan_span > CC_SLICE_WIDTH) {
 		// ex: 100~115 (15): 102.5(97.5~107.5) -> 112.5(107.5~117.5) = 2.5 lost left and right
 		slices_max = (scan_span + CC_SLICE_WIDTH - 1) / CC_SLICE_WIDTH;
@@ -250,17 +280,6 @@ void CloseCallView::on_range_changed() {
 		offset = ((scan_span - slices_span) / 2) + (CC_SLICE_WIDTH / 2);
 		slice_start = std::min(f_min, f_max) + offset;
 		slice_trim = 0;
-		
-		/*
-		 * ----||||---- 4M -> 2*3M = 6
-		 *    AAABBB	4-6 = -2 -> -2/2 = -1 -> -1+1.5 = +0.5
-		 * 
-		 *    ----1111222233334444----
-		 *    AAAAaaaaAAAAbbbbBBBBbbbb
-		 * 
-		 */
-		
-		slices_max--;	// For slices_counter
 		slicing = true;
 		
 		// Todo: trims
@@ -274,19 +293,27 @@ void CloseCallView::on_range_changed() {
 		resolved_frequency /= CC_BIN_WIDTH;							// Convert to bin span
 		slice_trim = resolved_frequency;
 		
+		portapack::display.fill_rectangle({0, 97, 240, 4}, Color::black());
 		portapack::display.fill_rectangle({0, 97, slice_trim, 4}, Color::orange());
 		portapack::display.fill_rectangle({240 - slice_trim, 97, slice_trim, 4}, Color::orange());
 		
-		set_dirty();
-		
-		slices_max = 0;
+		slices_max = 1;
 		slices_counter = 0;
 		slicing = false;
-	}
+	}*/
 	
-	//text_debug.set(to_string_dec_uint(slice_start));
-	
-	text_slices.set(to_string_dec_int(slices_max + 1));
+	f_min = field_frequency_min.value();
+	scan_span = 3000000;
+	slice_frequency = (f_min + 1500000);
+	slice_start = slice_frequency;
+	receiver_model.set_tuning_frequency(slice_frequency);
+	slice_trim = 0;
+	slices_max = 1;
+	slices_counter = 0;
+	slicing = false;
+	field_frequency_max.set_value(f_min + 3000000);
+
+	text_slices.set(to_string_dec_int(slices_max));
 	slices_counter = 0;
 }
 
@@ -299,6 +326,7 @@ void CloseCallView::on_vga_changed(int32_t v_db) {
 }
 
 void CloseCallView::on_tick_second() {
+	// Update scan rate indication
 	text_rate.set(to_string_dec_uint(scan_counter, 3));
 	scan_counter = 0;
 }
@@ -320,6 +348,7 @@ CloseCallView::CloseCallView(
 		&text_rate,
 		&text_mhz,
 		&text_infos,
+		&text_precision,
 		&text_debug,
 		&big_display,
 		&button_exit
@@ -366,13 +395,15 @@ CloseCallView::CloseCallView(
 	text_mhz.set_style(&style_grey);
 	big_display.set_style(&style_grey);
 	
+	receiver_model.set_tuning_frequency(467000000);
+	
 	field_threshold.set_value(80);
 	field_threshold.on_change = [this](int32_t v) {
 		min_threshold = v;
 	};
 
 	field_frequency_min.set_value(receiver_model.tuning_frequency());
-	field_frequency_min.set_step(200000);
+	field_frequency_min.set_step(100000);
 	field_frequency_min.on_change = [this](rf::Frequency f) {
 		(void) f;
 		this->on_range_changed();
@@ -385,9 +416,11 @@ CloseCallView::CloseCallView(
 		};
 	};
 	
-	field_frequency_max.set_value(receiver_model.tuning_frequency() + 2000000);
+	field_frequency_max.set_focusable(false);	// DEBUG
+	
+	field_frequency_max.set_value(receiver_model.tuning_frequency() + 3000000);
 	field_frequency_max.set_step(100000);
-	field_frequency_max.on_change = [this](rf::Frequency f) {
+	/*field_frequency_max.on_change = [this](rf::Frequency f) {
 		(void) f;
 		this->on_range_changed();
 	};
@@ -397,7 +430,7 @@ CloseCallView::CloseCallView(
 			this->on_range_changed();
 			this->field_frequency_max.set_value(f);
 		};
-	};
+	};*/
 	
 	field_lna.set_value(receiver_model.lna());
 	field_lna.on_change = [this](int32_t v) {
@@ -419,7 +452,6 @@ CloseCallView::CloseCallView(
 		this->on_tick_second();
 	};
 	
-	//audio::output::mute();
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(ReceiverModel::Mode::CloseCall),
 		.sampling_rate = CC_SLICE_WIDTH,
@@ -427,8 +459,6 @@ CloseCallView::CloseCallView(
 	});
 	receiver_model.set_baseband_bandwidth(CC_SLICE_WIDTH);
 	receiver_model.enable();
-	//audio::output::unmute();
-
 }
 
 } /* namespace ui */

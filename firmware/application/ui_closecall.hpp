@@ -32,8 +32,8 @@
 
 namespace ui {
 
-#define CC_SLICE_WIDTH	3000000 //10000000
-#define CC_BIN_NB		236
+#define CC_SLICE_WIDTH	3000000		// Radio bandwidth
+#define CC_BIN_NB		236			// Total power bins
 #define CC_BIN_WIDTH	CC_SLICE_WIDTH/CC_BIN_NB
 
 class CloseCallView : public View {
@@ -70,7 +70,8 @@ private:
 	uint8_t slices_max;
 	uint8_t slices_counter;
 	uint16_t last_channel;
-	rf::Frequency scan_span, locked_frequency, resolved_frequency;
+	rf::Frequency scan_span, resolved_frequency;
+	uint16_t locked_imax;
 	uint8_t slicemax_db[32];		// Todo: Cap max slices !
 	uint8_t slicemax_idx[32];
 	uint8_t scan_counter;
@@ -152,8 +153,13 @@ private:
 		"MHz"
 	};
 	
-	Text text_debug {
+	Text text_precision {
 		{ 1 * 8, 13 * 16, 28 * 8, 16 },
+		""
+	};
+	
+	Text text_debug {
+		{ 1 * 8, 14 * 16, 28 * 8, 16 },
 		"DEBUG: Error"
 	};
 	
