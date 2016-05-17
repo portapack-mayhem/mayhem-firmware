@@ -68,10 +68,13 @@ Optional<Reading> Packet::reading(const SignalType signal_type) const {
 	}
 
 	if( signal_type == SignalType::Schrader ) {
+		const auto flags = reader_.read(0, 3);
+		const auto checksum = reader_.read(35, 2);
+		
 		return Reading {
 			Reading::Type::Schrader,
-			reader_.read(3, 25),
-			Pressure { static_cast<int>(reader_.read(28, 8)) }
+			reader_.read(3, 24),
+			Pressure { static_cast<int>(reader_.read(27, 8)) }
 		};
 	}
 
