@@ -309,6 +309,12 @@ ModalMessageView::ModalMessageView(
 	} });
 
 	text_message.set(message);
+	
+	const int text_message_width = message.size() * 8;
+ 	text_message.set_parent_rect({
+ 		(240 - text_message_width) / 2, 7 * 16,
+ 		text_message_width, 16
+ 	});
 }
 
 void ModalMessageView::focus() {

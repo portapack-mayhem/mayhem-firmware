@@ -223,10 +223,7 @@ public:
 private:
 	const std::string title_;
 
-	Text text_message {
-		{ 0 * 8, 7 * 16, 30 * 8, 16 },
-		""
-	};
+	Text text_message { };
 
 	Button button_done {
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },
