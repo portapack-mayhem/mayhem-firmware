@@ -80,7 +80,7 @@ private:
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
-		{ 256 },
+		{ 160 },
 		[this](const baseband::Packet& packet) {
 			this->payload_handler(packet);
 		}
@@ -99,7 +99,7 @@ private:
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_schrader {
 		{ 0b010101010101010101011110, 24, 0 },
 		{ },
-		{ 80 },
+		{ 74 },
 		[](const baseband::Packet& packet) {
 			const TPMSPacketMessage message { tpms::SignalType::Schrader, packet };
 			shared_memory.application_queue.push(message);
