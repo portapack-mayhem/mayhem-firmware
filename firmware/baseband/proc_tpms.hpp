@@ -73,7 +73,7 @@ private:
 
 	dsp::matched_filter::MatchedFilter mf { rect_taps_307k2_1t_p, 8 };
 
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_19k2 {
 		38400, 19200, { 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
