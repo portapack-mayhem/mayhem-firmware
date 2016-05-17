@@ -48,10 +48,10 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		const auto sliced = ook_slicer_5sps(decim_1_out.p[i]);
 		slicer_history = (slicer_history << 1) | sliced;
 
-		ook_clock_recovery_subaru(slicer_history, [this](const bool symbol) {
-			this->packet_builder_ook_subaru.execute(symbol);
+		clock_recovery_ook_8k192(slicer_history, [this](const bool symbol) {
+			this->packet_builder_schrader.execute(symbol);
 		});
-		ook_clock_recovery_gmc(slicer_history, [this](const bool symbol) {
+		clock_recovery_ook_8k4(slicer_history, [this](const bool symbol) {
 			this->packet_builder_ook_gmc.execute(symbol);
 		});
 	}

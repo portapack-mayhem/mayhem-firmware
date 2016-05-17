@@ -39,7 +39,7 @@ namespace tpms {
 
 enum SignalType : uint32_t {
 	FLM = 1,
-	Subaru = 2,
+	Schrader = 2,
 	GMC = 3,
 };
 
@@ -71,7 +71,7 @@ public:
 		FLM_64 = 1,
 		FLM_72 = 2,
 		FLM_80 = 3,
-		SUB_35 = 4,
+		Schrader = 4,
 		GMC_96 = 5,
 	};
 

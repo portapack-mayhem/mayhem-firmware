@@ -67,9 +67,9 @@ Optional<Reading> Packet::reading(const SignalType signal_type) const {
 		}
 	}
 
-	if( signal_type == SignalType::Subaru ) {
+	if( signal_type == SignalType::Schrader ) {
 		return Reading {
-			Reading::Type::SUB_35,
+			Reading::Type::Schrader,
 			reader_.read(3, 25),
 			Pressure { static_cast<int>(reader_.read(28, 8)) }
 		};

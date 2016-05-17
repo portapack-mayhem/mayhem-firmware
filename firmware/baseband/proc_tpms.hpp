@@ -92,20 +92,21 @@ private:
 	OOKSlicerMagSquaredInt ook_slicer_5sps { 5 };
 	uint32_t slicer_history { 0 };
 
-	OOKClockRecovery ook_clock_recovery_subaru {
+	OOKClockRecovery clock_recovery_ook_8k192 {
 		channel_sample_rate / 8192.0f
 	};
 
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_subaru {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_schrader {
 		{ 0b010101010101010101011110, 24, 0 },
 		{ },
 		{ 80 },
 		[](const baseband::Packet& packet) {
-			const TPMSPacketMessage message { tpms::SignalType::Subaru, packet };
+			const TPMSPacketMessage message { tpms::SignalType::Schrader, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};
-	OOKClockRecovery ook_clock_recovery_gmc {
+
+	OOKClockRecovery clock_recovery_ook_8k4 {
 		channel_sample_rate / 8400.0f
 	};
 
