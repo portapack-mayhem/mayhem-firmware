@@ -44,7 +44,7 @@
 // Translate+rectangular filter
 // sample=307.2k, deviation=38400, symbol=19200
 // Length: 16 taps, 1 symbols, 2 cycles of sinusoid
-constexpr std::array<std::complex<float>, 16> rect_taps_307k2_1t_p { {
+constexpr std::array<std::complex<float>, 16> rect_taps_307k2_38k4_1t_19k2_p { {
 	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
 	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
 	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
@@ -71,16 +71,16 @@ private:
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
 
-	dsp::matched_filter::MatchedFilter mf { rect_taps_307k2_1t_p, 8 };
+	dsp::matched_filter::MatchedFilter mf_38k4_1t_19k2 { rect_taps_307k2_38k4_1t_19k2_p, 8 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_19k2 {
 		38400, 19200, { 0.0555f },
 		[this](const float raw_symbol) {
 			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder.execute(sliced_symbol);
+			this->packet_builder_fsk_19k2_schrader.execute(sliced_symbol);
 		}
 	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_19k2_schrader {
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
 		{ 160 },

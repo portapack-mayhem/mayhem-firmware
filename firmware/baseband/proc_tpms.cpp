@@ -39,8 +39,8 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(decimator_out);
 
 	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
-			clock_recovery_fsk_19k2(mf.get_output());
+		if( mf_38k4_1t_19k2.execute_once(decimator_out.p[i]) ) {
+			clock_recovery_fsk_19k2(mf_38k4_1t_19k2.get_output());
 		}
 	}
 
