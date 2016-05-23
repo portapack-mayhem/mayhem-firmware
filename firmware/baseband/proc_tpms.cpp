@@ -56,17 +56,3 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		});
 	}
 }
-
-void TPMSProcessor::consume_symbol(
-	const float raw_symbol
-) {
-	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-	packet_builder.execute(sliced_symbol);
-}
-
-void TPMSProcessor::payload_handler(
-	const baseband::Packet& packet
-) {
-	const TPMSPacketMessage message { tpms::SignalType::FLM, packet };
-	shared_memory.application_queue.push(message);
-}

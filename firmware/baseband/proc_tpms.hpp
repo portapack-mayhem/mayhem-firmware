@@ -75,14 +75,18 @@ private:
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_19k2 {
 		38400, 19200, { 0.0555f },
-		[this](const float symbol) { this->consume_symbol(symbol); }
+		[this](const float raw_symbol) {
+			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+			this->packet_builder.execute(sliced_symbol);
+		}
 	};
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
 		{ 0b010101010101010101010101010110, 30, 1 },
 		{ },
 		{ 160 },
 		[this](const baseband::Packet& packet) {
-			this->payload_handler(packet);
+			const TPMSPacketMessage message { tpms::SignalType::FLM, packet };
+			shared_memory.application_queue.push(message);
 		}
 	};
 
@@ -119,8 +123,6 @@ private:
 			shared_memory.application_queue.push(message);
 		}
 	};
-	void consume_symbol(const float symbol);
-	void payload_handler(const baseband::Packet& packet);
 };
 
 #endif/*__PROC_TPMS_H__*/
