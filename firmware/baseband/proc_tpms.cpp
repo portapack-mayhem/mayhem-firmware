@@ -49,10 +49,10 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		slicer_history = (slicer_history << 1) | sliced;
 
 		clock_recovery_ook_8k192(slicer_history, [this](const bool symbol) {
-			this->packet_builder_schrader.execute(symbol);
+			this->packet_builder_ook_8k192_schrader.execute(symbol);
 		});
 		clock_recovery_ook_8k4(slicer_history, [this](const bool symbol) {
-			this->packet_builder_ook_gmc.execute(symbol);
+			this->packet_builder_ook_8k4_schrader.execute(symbol);
 		});
 	}
 }

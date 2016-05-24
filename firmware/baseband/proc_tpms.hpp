@@ -85,7 +85,7 @@ private:
 		{ },
 		{ 160 },
 		[this](const baseband::Packet& packet) {
-			const TPMSPacketMessage message { tpms::SignalType::FLM, packet };
+			const TPMSPacketMessage message { tpms::SignalType::FSK_19k2_Schrader, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};
@@ -100,12 +100,12 @@ private:
 		channel_sample_rate / 8192.0f
 	};
 
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_schrader {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k192_schrader {
 		{ 0b010101010101010101011110, 24, 0 },
 		{ },
 		{ 74 },
 		[](const baseband::Packet& packet) {
-			const TPMSPacketMessage message { tpms::SignalType::Schrader, packet };
+			const TPMSPacketMessage message { tpms::SignalType::OOK_8k192_Schrader, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};
@@ -114,12 +114,12 @@ private:
 		channel_sample_rate / 8400.0f
 	};
 
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_gmc {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k4_schrader {
 		{ 0b01010101010101010101010101100101, 32, 0 },
 		{ },
 		{ 192 },
 		[](const baseband::Packet& packet) {
-			const TPMSPacketMessage message { tpms::SignalType::GMC, packet };
+			const TPMSPacketMessage message { tpms::SignalType::OOK_8k4_Schrader, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};

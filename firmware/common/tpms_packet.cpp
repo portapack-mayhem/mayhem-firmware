@@ -34,7 +34,7 @@ ManchesterFormatted Packet::symbols_formatted() const {
 }
 
 Optional<Reading> Packet::reading(const SignalType signal_type) const {
-	if( signal_type == SignalType::FLM ) {
+	if( signal_type == SignalType::FSK_19k2_Schrader ) {
 		const auto length = crc_valid_length();
 
 		switch(length) {
@@ -67,7 +67,7 @@ Optional<Reading> Packet::reading(const SignalType signal_type) const {
 		}
 	}
 
-	if( signal_type == SignalType::Schrader ) {
+	if( signal_type == SignalType::OOK_8k192_Schrader ) {
 		const auto flags = reader_.read(0, 3);
 		const auto checksum = reader_.read(35, 2);
 		
@@ -80,7 +80,7 @@ Optional<Reading> Packet::reading(const SignalType signal_type) const {
 		};
 	}
 
-	if( signal_type == SignalType::GMC ) {
+	if( signal_type == SignalType::OOK_8k4_Schrader ) {
 		return Reading {
 			Reading::Type::GMC_96,
 			reader_.read(20, 32),

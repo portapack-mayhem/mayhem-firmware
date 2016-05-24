@@ -40,9 +40,9 @@ namespace tpms {
 using Flags = uint8_t;
 
 enum SignalType : uint32_t {
-	FLM = 1,
-	Schrader = 2,
-	GMC = 3,
+	FSK_19k2_Schrader = 1,
+	OOK_8k192_Schrader = 2,
+	OOK_8k4_Schrader = 3,
 };
 
 class TransponderID {
