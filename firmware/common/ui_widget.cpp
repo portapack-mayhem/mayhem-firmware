@@ -257,6 +257,13 @@ std::string View::title() const {
 /* Rectangle *************************************************************/
 
 Rectangle::Rectangle(
+	Color c
+) : Widget { },
+	color { c }
+{
+}
+
+Rectangle::Rectangle(
 	Rect parent_rect,
 	Color c
 ) : Widget { parent_rect },

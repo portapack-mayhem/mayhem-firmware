@@ -168,6 +168,7 @@ protected:
 
 class Rectangle : public Widget {
 public:
+	Rectangle(Color c);
 	Rectangle(Rect parent_rect, Color c);
 
 	void paint(Painter& painter) override;
