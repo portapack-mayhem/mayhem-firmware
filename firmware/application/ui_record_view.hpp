@@ -59,6 +59,12 @@ public:
 		if( new_sampling_rate != sampling_rate ) {
 			stop();
 			sampling_rate = new_sampling_rate;
+
+			button_record.hidden(sampling_rate == 0);
+			text_record_filename.hidden(sampling_rate == 0);
+			text_record_dropped.hidden(sampling_rate == 0);
+			text_time_available.hidden(sampling_rate == 0);
+			rect_background.hidden(sampling_rate != 0);
 		}
 	}
 
@@ -81,6 +87,10 @@ private:
 	const size_t buffer_count;
 	size_t sampling_rate { 0 };
 	SignalToken signal_token_tick_second;
+
+	Rectangle rect_background {
+		Color::black()
+	};
 
 	ImageButton button_record {
 		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },

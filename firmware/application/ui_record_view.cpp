@@ -169,11 +169,14 @@ RecordView::RecordView(
 	buffer_count { buffer_count }
 {
 	add_children({ {
+		&rect_background,
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
 		&text_time_available,
 	} });
+
+	rect_background.set_parent_rect({ { 0, 0 }, size() });
 
 	button_record.on_select = [this](ImageButton&) {
 		this->toggle();
