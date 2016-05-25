@@ -219,8 +219,11 @@ void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 
 	if( new_widget ) {
 		options_widget = std::move(new_widget);
-		add_child(options_widget.get());
+	} else {
+		// TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
+		options_widget = std::make_unique<Rectangle>(options_view_rect, style_options_group.background);
 	}
+	add_child(options_widget.get());
 }
 
 void AnalogAudioView::on_show_options_frequency() {
