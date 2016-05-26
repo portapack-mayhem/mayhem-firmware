@@ -51,6 +51,15 @@ std::string flags(Flags flags) {
 	return to_string_hex(flags, 2);
 }
 
+static std::string signal_type(SignalType signal_type) {
+	switch(signal_type) {
+	case SignalType::FSK_19k2_Schrader:		return "FSK 38400 19200 Schrader";
+	case SignalType::OOK_8k192_Schrader:	return "OOK - 8192 Schrader";
+	case SignalType::OOK_8k4_Schrader:		return "OOK - 8400 Schrader";
+	default:								return "- - - -";
+	}
+}
+
 } /* namespace format */
 
 } /* namespace tpms */
@@ -61,7 +70,7 @@ void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_fre
 	// TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
 	const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-	std::string entry = tuning_frequency_str + " FSK 38.4 19.2 " + hex_formatted.data + "/" + hex_formatted.errors;
+	std::string entry = tuning_frequency_str + " " + tpms::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
 	log_file.write_entry(packet.received_at(), entry);
 }
 
