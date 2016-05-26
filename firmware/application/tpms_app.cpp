@@ -191,12 +191,12 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
 }
 
-void TPMSAppView::on_packet(const tpms::SignalType signal_type, const tpms::Packet& packet) {
+void TPMSAppView::on_packet(const tpms::Packet& packet) {
 	if( logger ) {
 		logger->on_packet(packet, target_frequency());
 	}
 
-	const auto reading_opt = packet.reading(signal_type);
+	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
 		recent.on_packet({ reading.type(), reading.id() }, reading);

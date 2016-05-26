@@ -111,8 +111,8 @@ private:
 		Message::ID::TPMSPacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const TPMSPacketMessage*>(p);
-			const tpms::Packet packet { message->packet };
-			this->on_packet(message->signal_type, packet);
+			const tpms::Packet packet { message->packet, message->signal_type };
+			this->on_packet(packet);
 		}
 	};
 
@@ -121,7 +121,7 @@ private:
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 
-	void on_packet(const tpms::SignalType signal_type, const tpms::Packet& packet);
+	void on_packet(const tpms::Packet& packet);
 	void on_show_list();
 
 	uint32_t target_frequency() const;

@@ -135,23 +135,27 @@ private:
 class Packet {
 public:
 	constexpr Packet(
-		const baseband::Packet& packet
+		const baseband::Packet& packet,
+		const SignalType signal_type
 	) : packet_ { packet },
+		signal_type_ { signal_type },
 		decoder_ { packet_, 0 },
 		reader_ { decoder_ }
 	{
 	}
 
+	SignalType signal_type() const { return signal_type_; }
 	Timestamp received_at() const;
 
 	ManchesterFormatted symbols_formatted() const;
 
-	Optional<Reading> reading(const SignalType signal_type) const;
+	Optional<Reading> reading() const;
 
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
+	const SignalType signal_type_;
 	const ManchesterDecoder decoder_;
 
 	const Reader reader_;
