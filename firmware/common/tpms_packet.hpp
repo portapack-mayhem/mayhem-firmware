@@ -160,6 +160,10 @@ private:
 
 	const Reader reader_;
 
+	Optional<Reading> reading_fsk_19k2_schrader() const;
+	Optional<Reading> reading_ook_8k192_schrader() const;
+	Optional<Reading> reading_ook_8k4_schrader() const;
+
 	size_t crc_valid_length() const;
 };
 

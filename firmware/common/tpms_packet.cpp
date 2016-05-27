@@ -33,62 +33,67 @@ ManchesterFormatted Packet::symbols_formatted() const {
 	return format_manchester(decoder_);
 }
 
+Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
+	const auto length = crc_valid_length();
+
+	switch(length) {
+	case 64:
+		return Reading {
+			Reading::Type::FLM_64,
+			reader_.read(0, 32),
+			Pressure { static_cast<int>(reader_.read(32, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 50 }
+		};
+
+	case 72:
+		return Reading {
+			Reading::Type::FLM_72,
+			reader_.read(0, 32),
+			Pressure { static_cast<int>(reader_.read(40, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(48, 8)) - 50 }
+		};
+
+	case 80:
+		return Reading {
+			Reading::Type::FLM_80,
+			reader_.read(8, 32),
+			Pressure { static_cast<int>(reader_.read(48, 8)) * 4 / 3 },
+			Temperature { static_cast<int>(reader_.read(56, 8)) - 50 }
+		};
+
+	default:
+		return { };
+	}
+}
+
+Optional<Reading> Packet::reading_ook_8k192_schrader() const {
+	const auto flags = reader_.read(0, 3);
+	const auto checksum = reader_.read(35, 2);
+	
+	return Reading {
+		Reading::Type::Schrader,
+		reader_.read(3, 24),
+		Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
+		{ },
+		Flags { (flags << 4) | checksum }
+	};
+}
+
+Optional<Reading> Packet::reading_ook_8k4_schrader() const {
+	return Reading {
+		Reading::Type::GMC_96,
+		reader_.read(20, 32),
+		Pressure { static_cast<int>(reader_.read(52, 8)) }
+	};
+}
+
 Optional<Reading> Packet::reading() const {
-	if( signal_type() == SignalType::FSK_19k2_Schrader ) {
-		const auto length = crc_valid_length();
-
-		switch(length) {
-		case 64:
-			return Reading {
-				Reading::Type::FLM_64,
-				reader_.read(0, 32),
-				Pressure { static_cast<int>(reader_.read(32, 8)) * 4 / 3 },
-				Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 50 }
-			};
-
-		case 72:
-			return Reading {
-				Reading::Type::FLM_72,
-				reader_.read(0, 32),
-				Pressure { static_cast<int>(reader_.read(40, 8)) * 4 / 3 },
-				Temperature { static_cast<int>(reader_.read(48, 8)) - 50 }
-			};
-
-		case 80:
-			return Reading {
-				Reading::Type::FLM_80,
-				reader_.read(8, 32),
-				Pressure { static_cast<int>(reader_.read(48, 8)) * 4 / 3 },
-				Temperature { static_cast<int>(reader_.read(56, 8)) - 50 }
-			};
-
-		default:
-			return { };
-		}
+	switch( signal_type() ) {
+	case SignalType::FSK_19k2_Schrader:		return reading_fsk_19k2_schrader();
+	case SignalType::OOK_8k192_Schrader:	return reading_ook_8k192_schrader();
+	case SignalType::OOK_8k4_Schrader:		return reading_ook_8k4_schrader();
+	default:								return { };
 	}
-
-	if( signal_type() == SignalType::OOK_8k192_Schrader ) {
-		const auto flags = reader_.read(0, 3);
-		const auto checksum = reader_.read(35, 2);
-		
-		return Reading {
-			Reading::Type::Schrader,
-			reader_.read(3, 24),
-			Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
-			{ },
-			Flags { (flags << 4) | checksum }
-		};
-	}
-
-	if( signal_type() == SignalType::OOK_8k4_Schrader ) {
-		return Reading {
-			Reading::Type::GMC_96,
-			reader_.read(20, 32),
-			Pressure { static_cast<int>(reader_.read(52, 8)) }
-		};
-	}
-
-	return { };
 }
 
 size_t Packet::crc_valid_length() const {
