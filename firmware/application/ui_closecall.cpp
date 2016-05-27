@@ -21,7 +21,6 @@
  */
 
 #include "ui_closecall.hpp"
-#include "ui_receiver.hpp"
 #include "msgpack.hpp"
 
 #include "ch.h"

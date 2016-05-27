@@ -163,9 +163,9 @@ void XylosView::upd_message() {
 	ccirmessage[18] = '0';
 	ccirmessage[19] = '0';
 	
-	// Stuffing
-	for (c=1; c<20; c++) {
-		if (ccirmessage[c] == ccirmessage[c-1]) ccirmessage[c] = 'E';
+	// Repeats elimination
+	for (c = 1; c < 20; c++) {
+		if (ccirmessage[c] == ccirmessage[c - 1]) ccirmessage[c] = 'E';
 	}
 	
 	ccirmessage[20] = 0;

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,11 +21,10 @@
  */
 
 #include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "ui_receiver.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
@@ -32,62 +32,19 @@
 #include "volume.hpp"
 #include "transmitter_model.hpp"
 
+#define RDS_OFFSET_A	0b0011111100
+#define RDS_OFFSET_B	0b0110011000
+#define RDS_OFFSET_C	0b0101101000
+#define RDS_OFFSET_Cp	0b1101010000
+#define RDS_OFFSET_D	0b0110110100
+
 namespace ui {
-/*
-class AlphanumView : public View {
-public:
-	std::function<void(char *)> on_changed;
 
-	AlphanumView(NavigationView& nav, char txt[], uint8_t max_len);
-
-	void focus() override;
-	
-	char * value();
-	
-	uint8_t txtidx;
-	
-	//void set_value(char * new_txtinput);
-	void char_add(const char c);
-	void char_delete();
-
-	//rf::Frequency value() const;
-	//void set_value(const rf::Frequency new_value);
-
-private:
-	uint8_t _max_len;
-	bool _lowercase = false;
-	static constexpr size_t button_w = 240 / 5;
-	static constexpr size_t button_h = 28;
-	char txtinput[9];
-	
-	void set_lowercase();
-	void set_uppercase();
-	
-	Text text_input {
-		{ 88, 0, 240, 16 }
-	};
-
-	std::array<Button, 40> buttons;
-
-	Button button_lowercase {
-		{ 88+64+16, 270, 32, 24 },
-		"UC"
-	};
-
-	Button button_done {
-		{ 88, 270, 64, 24 },
-		"Done"
-	};
-
-	void on_button(Button& button);
-
-	void update_text();
-};
-*/
 class RDSView : public View {
 public:
 	RDSView(NavigationView& nav);
 	~RDSView();
+	std::string title() const override { return "RDS transmit"; };
 
 	void focus() override;
 	void paint(Painter& painter) override;
@@ -95,9 +52,51 @@ public:
 private:
 	char psname[9];
 	
-	Text text_title {
-		{ 76, 16, 88, 16 },
-		"RDS toolbox"
+	uint8_t b2b(const bool in);
+	void make_0B_group(uint32_t group[],  const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
+						const bool MS, const bool DI, const uint8_t C, char * TWOCHARs);
+
+	FrequencyField field_frequency {
+		{ 1 * 8, 1 * 16 },
+	};
+	
+	OptionsField options_pty {
+		{ 1 * 8, 3 * 16 },
+		32,
+		{
+			{ "None    ", 0 },
+			{ "News    ", 1 },
+			{ "Affairs ", 2 },
+			{ "Info    ", 3 },
+			{ "Sport   ", 4 },
+			{ "Educate ", 5 },
+			{ "Drama   ", 6 },
+			{ "Culture ", 7 },
+			{ "Science ", 8 },
+			{ "Varied  ", 9 },
+			{ "Pop     ", 10 },
+			{ "Rock    ", 11 },
+			{ "Easy    ", 12 },
+			{ "Light   ", 13 },
+			{ "Classics", 14 },
+			{ "Other   ", 15 },
+			{ "Weather ", 16 },
+			{ "Finance ", 17 },
+			{ "Children", 18 },
+			{ "Social  ", 19 },
+			{ "Religion", 20 },
+			{ "PhoneIn ", 21 },
+			{ "Travel  ", 22 },
+			{ "Leisure ", 23 },
+			{ "Jazz    ", 24 },
+			{ "Country ", 25 },
+			{ "National", 26 },
+			{ "Oldies  ", 27 },
+			{ "Folk    ", 28 },
+			{ "Docs    ", 29 },
+			{ "AlarmTst", 30 },
+			{ "Alarm   ", 31 }
+		}
 	};
 
 	Button button_setpsn {
