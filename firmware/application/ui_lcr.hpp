@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -38,13 +39,16 @@ class LCRView : public View {
 public:
 	LCRView(NavigationView& nav);
 	~LCRView();
+	std::string title() const override { return "LCR transmit"; };
 	
-	void make_frame();
 	void focus() override;
 	void paint(Painter& painter) override;
 
 private:
-	uint8_t adri = 22;
+	bool txing = false;
+	bool scanning = false;
+	bool abort_scan = false;
+	double scan_progress;
 	const char RGSB_list[37][5] = {
 		"EAA0", "EAB0",	"EAC0",	"EAD0",
 		"EbA0",	"EbB0",	"EbC0",	"EbD0",
@@ -64,10 +68,20 @@ private:
 	char lcrframe[256];
 	char lcrframe_f[256];
 	rf::Frequency f;
-
-	Text text_status {
-		{ 168, 196, 64, 16 },
-		"Ready"
+	int scan_index;
+	
+	void make_frame();
+	void start_tx();
+	
+	const Style style_val {
+		.font = font::fixed_8x16,
+		.background = Color::green(),
+		.foreground = Color::black(),
+	};
+	const Style style_cancel {
+		.font = font::fixed_8x16,
+		.background = Color::red(),
+		.foreground = Color::black(),
 	};
 
 	Text text_recap {
@@ -88,72 +102,84 @@ private:
 		"Set RGSB"
 	};
 	Button button_txsetup {
-		{ 120, 24, 96, 32 },
+		{ 128, 24, 96, 32 },
 		"TX setup"
 	};
 	
 	Checkbox checkbox_am_a {
-		{ 16, 68 },
+		{ 16, 64 },
 		0,
 		""
 	};
 	Button button_setam_a {
-		{ 48, 64, 48, 32 },
+		{ 48, 64, 48, 24 },
 		"AM 1"
 	};
+	
 	Checkbox checkbox_am_b {
-		{ 16, 68+40 },
+		{ 16, 96 },
 		0,
 		""
 	};
 	Button button_setam_b {
-		{ 48, 64+40, 48, 32 },
+		{ 48, 96, 48, 24 },
 		"AM 2"
 	};
+	
 	Checkbox checkbox_am_c {
-		{ 16, 68+40+40 },
+		{ 16, 128 },
 		0,
-		" "
+		""
 	};
 	Button button_setam_c {
-		{ 48, 64+40+40, 48, 32 },
+		{ 48, 128, 48, 24 },
 		"AM 3"
 	};
+	
 	Checkbox checkbox_am_d {
-		{ 16, 68+40+40+40 },
+		{ 16, 160 },
 		0,
 		""
 	};
 	Button button_setam_d {
-		{ 48, 64+40+40+40, 48, 32 },
+		{ 48, 160, 48, 24 },
 		"AM 4"
 	};
+	
 	Checkbox checkbox_am_e {
-		{ 16, 68+40+40+40+40 },
+		{ 16, 192 },
 		0,
 		""
 	};
 	Button button_setam_e {
-		{ 48, 64+40+40+40+40, 48, 32 },
+		{ 48, 192, 48, 24 },
 		"AM 5"
 	};
 	
 	Button button_lcrdebug {
-		{ 166, 224, 56, 32 },
+		{ 168, 216, 56, 24 },
 		"DEBUG"
 	};
 	
+	Text text_status {
+		{ 16, 224, 128, 16 },
+		"Ready"
+	};
+	ProgressBar progress {
+		{ 16, 224 + 20, 208, 16 }
+	};
+	
 	Button button_transmit {
-		{ 24, 270, 48, 32 },
+		{ 16, 270, 64, 32 },
 		"TX"
 	};
-	Button button_transmit_scan {
-		{ 76, 270, 72, 32 },
-		"SCAN TX"
+	Button button_scan {
+		{ 88, 270, 64, 32 },
+		"SCAN"
 	};
-	Button button_exit {
-		{ 176, 270, 48, 32 },
-		"Exit"
+	Button button_clear {
+		{ 160, 270, 64, 32 },
+		"CLEAR"
 	};
 };
 

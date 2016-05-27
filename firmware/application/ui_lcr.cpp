@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -79,7 +80,6 @@ void LCRView::make_frame() {
 	lcrframe[6] = 127;
 	lcrframe[7] = 15;			// SOM
 	
-	strcpy(rgsb, RGSB_list[adr_code.value()]);
 	button_setrgsb.set_text(rgsb);
 
 	strcat(lcrframe, rgsb);
@@ -133,15 +133,15 @@ void LCRView::make_frame() {
 
 	//if (persistent_memory::afsk_config() & 1) {
 		// LSB first
-		for (dp=0;dp<strlen(lcrframe);dp++) {
+		for (dp = 0; dp < strlen(lcrframe); dp++) {
 			pp = pm;
 			new_byte = 0;
 			cur_byte = lcrframe[dp];
-			for (cp=0;cp<7;cp++) {
-				if ((cur_byte>>cp)&1) pp++;
-				new_byte |= (((cur_byte>>cp)&1)<<(7-cp));
+			for (cp = 0; cp < 7; cp++) {
+				if ((cur_byte >> cp) & 1) pp++;
+				new_byte |= (((cur_byte >> cp) & 1) << (7 - cp));
 			}
-			lcrframe_f[dp] = new_byte|(pp&1);
+			lcrframe_f[dp] = new_byte | (pp & 1);
 		}
 	/*} else {
 		// MSB first
@@ -169,7 +169,7 @@ void LCRView::paint(Painter& painter) {
 	
 	Point offset = {
 		static_cast<Coord>(104),
-		static_cast<Coord>(72)
+		static_cast<Coord>(68)
 	};
 	
 	for (i = 0; i < 5; i++) {
@@ -178,8 +178,119 @@ void LCRView::paint(Painter& painter) {
 			style_orange,
 			litteral[i]
 		);
-		offset.y += 40;
+		offset.y += 32;
 	}
+}
+
+void LCRView::start_tx() {
+	char str[16];
+	
+	if (scanning) {
+		scan_index = 0;
+		strcpy(rgsb, RGSB_list[0]);
+	}
+	
+	make_frame();
+	
+	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+		
+	shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
+	shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
+	shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
+
+	shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
+
+	memset(shared_memory.lcrdata, 0, 256);
+	memcpy(shared_memory.lcrdata, lcrframe_f, 256);
+	
+	shared_memory.afsk_transmit_done = false;
+	shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
+	
+	EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
+
+	EventDispatcher::message_map().register_handler(Message::ID::TXDone,
+		[this](Message* const p) {
+			char str[16];
+			
+			if (abort_scan) {
+				text_status.set("            ");
+				strcpy(str, "Abort @");
+				strcat(str, rgsb);
+				//strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
+				text_status.set(str);
+				progress.set_value(0);
+				transmitter_model.disable();
+				txing = false;
+				scanning = false;
+				abort_scan = false;
+				button_scan.set_style(&style_val);
+				button_scan.set_text("SCAN");
+				return;
+			}
+			
+			const auto message = static_cast<const TXDoneMessage*>(p);
+			if (message->n > 0) {
+				if (scanning) {
+					scan_progress += 0.555f;
+					progress.set_value(scan_progress);
+				} else {
+					text_status.set("            ");
+					strcpy(str, to_string_dec_int(6 - message->n).c_str());
+					strcat(str, "/5");
+					//strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
+					text_status.set(str);
+					progress.set_value((6 - message->n) * 20);
+				}
+			} else {
+				if (scanning && (scan_index < 36)) {
+					transmitter_model.disable();
+					
+					// Next address
+					strcpy(rgsb, RGSB_list[scan_index]);
+					make_frame();
+					
+					memset(shared_memory.lcrdata, 0, 256);
+					memcpy(shared_memory.lcrdata, lcrframe_f, 256);
+					shared_memory.afsk_transmit_done = false;
+					shared_memory.afsk_repeat = 5;
+					
+					text_status.set("            ");
+					strcpy(str, to_string_dec_int(scan_index).c_str());
+					strcat(str, "/36");
+					text_status.set(str);
+					scan_progress += 0.694f;
+					progress.set_value(scan_progress);
+					
+					scan_index++;
+					transmitter_model.enable();
+				} else {
+					text_status.set("Ready       ");
+					progress.set_value(0);
+					transmitter_model.disable();
+					txing = false;
+					scanning = false;
+					button_scan.set_style(&style_val);
+					button_scan.set_text("SCAN");
+				}
+			}
+		}
+	);
+
+	if (scanning) {
+		text_status.set("            ");
+		strcat(str, "1/36");
+		text_status.set(str);
+		progress.set_value(1);
+		scan_index++;
+	} else {
+		strcpy(str, "1/5         ");
+		//strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
+		text_status.set(str);
+		progress.set_value(20);
+	}
+	
+	txing = true;
+	transmitter_model.enable();
 }
 
 LCRView::LCRView(
@@ -188,28 +299,20 @@ LCRView::LCRView(
 {
 	char finalstr[24] = {0};
 	
-	static constexpr Style style_val {
-		.font = font::fixed_8x16,
-		.background = Color::green(),
-		.foreground = Color::black(),
-	};
-	
 	transmitter_model.set_baseband_configuration({
 		.mode = 3,
 		.sampling_rate = 2280000,	// Is this right ?
 		.decimation_factor = 1,
 	});
 
-	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-	memset(litteral, 0, 5*8);
+	memset(litteral, 0, 5 * 8);
 	memset(rgsb, 0, 5);
 	
-	strcpy(rgsb, RGSB_list[adr_code.value()]);
+	strcpy(rgsb, RGSB_list[0]);
 	button_setrgsb.set_text(rgsb);
 	
 	add_children({ {
 		&text_recap,
-		&adr_code,
 		&button_setrgsb,
 		&button_txsetup,
 		&checkbox_am_a,
@@ -223,155 +326,93 @@ LCRView::LCRView(
 		&checkbox_am_e,
 		&button_setam_e,
 		&text_status,
+		&progress,
 		&button_lcrdebug,
 		&button_transmit,
-		&button_transmit_scan,
-		&button_exit
+		&button_scan,
+		&button_clear
 	} });
 	
 	checkbox_am_a.set_value(true);
-	checkbox_am_b.set_value(true);
-	checkbox_am_c.set_value(true);
-	checkbox_am_d.set_value(true);
-	checkbox_am_e.set_value(true);
+	checkbox_am_b.set_value(false);
+	checkbox_am_c.set_value(false);
+	checkbox_am_d.set_value(false);
+	checkbox_am_e.set_value(false);
 	
 	// Recap: tx freq @ bps
 	auto fstr = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
 	auto bstr = to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
-
 	strcat(finalstr, fstr.c_str());
 	strcat(finalstr, " @ ");
 	strcat(finalstr, bstr.c_str());
 	strcat(finalstr, "bps");
-
 	text_recap.set(finalstr);
 	
 	button_transmit.set_style(&style_val);
-	button_transmit_scan.set_style(&style_val);
+	button_scan.set_style(&style_val);
 	
-	button_setrgsb.on_select = [this,&nav](Button&){
+	button_setrgsb.on_select = [this,&nav](Button&) {
 		auto an_view =  nav.push<AlphanumView>(rgsb, 4);
 		an_view->on_changed = [this](char *rgsb) {
 			button_setrgsb.set_text(rgsb);
 		};
 	};
 	
-	button_setam_a.on_select = [this,&nav](Button&){
+	button_setam_a.on_select = [this,&nav](Button&) {
 		auto an_view = nav.push<AlphanumView>(litteral[0], 7);
 		an_view->on_changed = [this](char *) {};
 	};
-	button_setam_b.on_select = [this,&nav](Button&){
+	button_setam_b.on_select = [this,&nav](Button&) {
 		auto an_view = nav.push<AlphanumView>(litteral[1], 7);
 		an_view->on_changed = [this](char *) {};
 	};
-	button_setam_c.on_select = [this,&nav](Button&){
+	button_setam_c.on_select = [this,&nav](Button&) {
 		auto an_view = nav.push<AlphanumView>(litteral[2], 7);
 		an_view->on_changed = [this](char *) {};
 	};
-	button_setam_d.on_select = [this,&nav](Button&){
+	button_setam_d.on_select = [this,&nav](Button&) {
 		auto an_view = nav.push<AlphanumView>(litteral[3], 7);
 		an_view->on_changed = [this](char *) {};
 	};
-	button_setam_e.on_select = [this,&nav](Button&){
+	button_setam_e.on_select = [this,&nav](Button&) {
 		auto an_view = nav.push<AlphanumView>(litteral[4], 7);
 		an_view->on_changed = [this](char *) {};
 	};
 	
-	button_lcrdebug.on_select = [this,&nav](Button&){
+	button_txsetup.on_select = [&nav](Button&) {
+		nav.push<AFSKSetupView>();
+	};
+	
+	button_lcrdebug.on_select = [this,&nav](Button&) {
 		make_frame();
 		nav.push<DebugLCRView>(lcrstring, checksum);
 	};
 	
-	button_transmit.on_select = [this,&transmitter_model](Button&){		
-		make_frame();
-			
-		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
-		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
-
-		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
-
-		memset(shared_memory.lcrdata, 0, 256);
-		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
-		
-		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
-
-		EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
-
-		EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-			[this,&transmitter_model](Message* const p) {
-				char str[8];
-				const auto message = static_cast<const TXDoneMessage*>(p);
-				if (message->n > 0) {
-					text_status.set("       ");
-					strcpy(str, to_string_dec_int(message->n).c_str());
-					strcat(str, "/");
-					strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
-					text_status.set(str);
-				} else {
-					text_status.set("Done ! ");
-					transmitter_model.disable();
-				}
-			}
-		);
-
-		char str[8];
-		strcpy(str, "0/");
-		strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
-		text_status.set(str);
-		
-		transmitter_model.enable();
+	button_transmit.on_select = [this](Button&) {
+		if (txing == false)	start_tx();
 	};
-	/*
-	button_transmit_scan.on_select() = [this,&transmitter_model](Button&){		
-		make_frame();
-			
-		shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
-		shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
-
-		shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
-
-		memset(shared_memory.lcrdata, 0, 256);
-		memcpy(shared_memory.lcrdata, lcrframe_f, 256);
-		
-		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
-
-		EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
-
-		EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-			[this,&transmitter_model](Message* const p) {
-				char str[8];
-				const auto message = static_cast<const TXDoneMessage*>(p);
-				if (message->n > 0) {
-					text_status.set("       ");
-					strcpy(str, to_string_dec_int(message->n).c_str());
-					strcat(str, "/");
-					strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
-					text_status.set(str);
-				} else {
-					text_status.set("Done ! ");
-					transmitter_model.disable();
-				}
-			}
-		);
-
-		char str[8];
-		strcpy(str, "0/");
-		strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
-		text_status.set(str);
-		
-		transmitter_model.enable();
-	};
-	*/
-	button_txsetup.on_select = [&nav](Button&){
-		nav.push<AFSKSetupView>();
+	
+	button_scan.on_select = [this](Button&) {
+		if (txing == false)	{
+			scanning = true;
+			scan_progress = 0;
+			button_scan.set_style(&style_cancel);
+			button_scan.set_text("ABORT");
+			start_tx();
+		} else {
+			abort_scan = true;
+		}
 	};
 
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
+	button_clear.on_select = [this, &nav](Button&) {
+		memset(litteral, 0, 5 * 8);
+		checkbox_am_a.set_value(true);
+		checkbox_am_b.set_value(true);
+		checkbox_am_c.set_value(true);
+		checkbox_am_d.set_value(true);
+		checkbox_am_e.set_value(true);
+		set_dirty();
+		start_tx();
 	};
 }
 

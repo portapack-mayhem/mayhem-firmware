@@ -36,6 +36,10 @@ using namespace hackrf::one;
 
 namespace ui {
 	
+void AlphanumView::paint(Painter& painter) {
+	move_cursor();
+}
+	
 AlphanumView::AlphanumView(
 	NavigationView& nav,
 	char txt[],
@@ -56,8 +60,8 @@ AlphanumView::AlphanumView(
 		.foreground = Color::black(),
 	};
 	
-	txtidx = 0;
-	memcpy(txtinput, txt, max_len+1);
+	txtidx = strlen(txt);
+	memcpy(txtinput, txt, max_len + 1);
 	
 	add_child(&text_input);
 
@@ -71,7 +75,7 @@ AlphanumView::AlphanumView(
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * button_w),
-			static_cast<Coord>((n / 5) * button_h + 18),
+			static_cast<Coord>((n / 5) * button_h + 24),
 			button_w, button_h
 		});
 		if ((n < 10) || (n == 39))
@@ -97,12 +101,28 @@ AlphanumView::AlphanumView(
 
 	add_child(&button_done);
 	button_done.on_select = [this, &nav, txt, max_len](Button&) {
-		memcpy(txt, txtinput, max_len+1);
+		memcpy(txt, txtinput, max_len + 1);
 		on_changed(this->value());
 		nav.pop();
 	};
 
 	update_text();
+}
+
+void AlphanumView::move_cursor() {
+	Point cursor_pos;
+	
+	cursor_pos.x = text_input.screen_rect().pos.x + (txtidx * 8);
+	cursor_pos.y = text_input.screen_rect().pos.y + 16;
+	
+	portapack::display.fill_rectangle(
+		{{text_input.screen_rect().pos.x, cursor_pos.y}, {text_input.screen_rect().size.w, 4}},
+		Color::black()
+	);
+	portapack::display.fill_rectangle(
+		{cursor_pos, {8, 4}},
+		Color::white()
+	);
 }
 
 void AlphanumView::set_uppercase() {
@@ -121,7 +141,7 @@ void AlphanumView::set_uppercase() {
 
 
 void AlphanumView::set_lowercase() {
-	const char* const key_caps = "0123456789abcdefghijklmnopqrstuvwxyz. !<";
+	const char* const key_caps = "0123456789abcdefghijklmnopqrstuvwxyz:=?<";
 
 	size_t n = 0;
 	for(auto& button : buttons) {
@@ -139,6 +159,7 @@ void AlphanumView::focus() {
 }
 
 char * AlphanumView::value() {
+	txtinput[txtidx] = 0;
 	return txtinput;
 }
 
@@ -168,6 +189,7 @@ void AlphanumView::char_delete() {
 
 void AlphanumView::update_text() {
 	text_input.set(txtinput);
+	move_cursor();
 }
 
 }

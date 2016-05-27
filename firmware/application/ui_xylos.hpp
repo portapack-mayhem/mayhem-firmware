@@ -148,8 +148,6 @@ public:
 	~XylosView();
 	std::string title() const override { return "Xylos transmit"; };
 	
-	void start_tx();
-	void upd_message();
 	void focus() override;
 	void paint(Painter& painter) override;
 
@@ -159,6 +157,9 @@ private:
 	bool txing = false;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char ccirmessage[21];
+	
+	void start_tx();
+	void upd_message();
 	
 	const Style style_val {
 		.font = font::fixed_8x16,

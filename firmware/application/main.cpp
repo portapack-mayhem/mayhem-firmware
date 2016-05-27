@@ -24,12 +24,12 @@
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
+//TODO: Two players tic-tac-toe
 //TODO: Breakout game
 //TODO: SD card wiper
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Use progressbars
 //TODO: Setting: Prefered input method
-//TODO: LCR emergency clear all
 //TODO: LCR receiver
 //TODO: Xylos receiver
 //TODO: Morse coder

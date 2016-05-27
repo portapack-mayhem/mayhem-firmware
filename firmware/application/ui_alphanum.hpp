@@ -40,27 +40,27 @@ public:
 
 	AlphanumView(NavigationView& nav, char txt[], uint8_t max_len);
 
+	void paint(Painter& painter) override;
 	void focus() override;
 	
 	char * value();
-	
-	uint8_t txtidx;
-	
-	void char_add(const char c);
-	void char_delete();
 
 private:
 	uint8_t _max_len;
+	uint8_t txtidx;
 	bool _lowercase = false;
 	static constexpr size_t button_w = 240 / 5;
 	static constexpr size_t button_h = 28;
-	char txtinput[21];
+	char txtinput[25] = {0};
 	
+	void char_add(const char c);
+	void char_delete();
 	void set_lowercase();
 	void set_uppercase();
+	void move_cursor();
 	
 	Text text_input {
-		{ 8, 0, 200, 16 }
+		{ 8, 0, 224, 16 }
 	};
 
 	std::array<Button, 40> buttons;

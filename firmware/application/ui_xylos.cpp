@@ -113,7 +113,7 @@ XylosRXView::XylosRXView(
 
 
 void XylosView::focus() {
-	city_code.focus();
+	options_ra.focus();
 }
 
 XylosView::~XylosView() {
