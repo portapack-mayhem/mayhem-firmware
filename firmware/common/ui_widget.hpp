@@ -305,6 +305,37 @@ public:
 	bool on_touch(const TouchEvent event) override;
 };
 
+class ImageOptionsField : public Widget {
+public:
+	using image_t = const unsigned char *;
+	using value_t = int32_t;
+	using option_t = std::pair<image_t, value_t>;
+	using options_t = std::vector<option_t>;
+
+	std::function<void(size_t, value_t)> on_change;
+	std::function<void(void)> on_show_options;
+
+	ImageOptionsField(Rect parent_rect, options_t options);
+	
+	void set_options(options_t new_options);
+
+	size_t selected_index() const;
+	size_t selected_index_value() const;
+	void set_selected_index(const size_t new_index);
+
+	void set_by_value(value_t v);
+
+	void paint(Painter& painter) override;
+
+	void on_focus() override;
+	bool on_encoder(const EncoderEvent delta) override;
+	bool on_touch(const TouchEvent event) override;
+
+private:
+	options_t options;
+	size_t selected_index_ { 0 };
+};
+
 class OptionsField : public Widget {
 public:
 	using name_t = std::string;

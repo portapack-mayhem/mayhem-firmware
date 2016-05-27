@@ -31,8 +31,9 @@
 #include "audio_output.hpp"
 #include "baseband_processor.hpp"
 
-#define CCIR_TONELENGTH 15360-1 // 1536000/10/10
-#define PHASEV 436.91	// (65536*1024)/1536000*10
+#define CCIR_TONELENGTH 15360-1		// 1536000/10/10
+#define PHASEV 436.91				// (65536*1024)/1536000*10
+#define SILENCE 61440-1				// 400ms
 
 class XylosProcessor : public BasebandProcessor {
 public:
@@ -73,6 +74,7 @@ private:
     uint32_t sample_count = CCIR_TONELENGTH;
 	uint32_t aphase, phase, sphase;
 	int32_t sample, frq;
+	bool silence = true;
 	TXDoneMessage message;
 	
 	//AudioOutput audio_output;

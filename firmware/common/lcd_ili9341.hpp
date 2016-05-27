@@ -57,7 +57,7 @@ public:
 	);
 
 	void draw_pixel(const ui::Point p, const ui::Color color);
-	void drawBMP(const ui::Point p, const uint8_t * bitmap);
+	void drawBMP(const ui::Point p, const uint8_t * bitmap, const bool transparency);
 	void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
 	void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 	

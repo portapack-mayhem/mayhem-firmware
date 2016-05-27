@@ -26,6 +26,11 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
+
+#include "bulb_on_bmp.hpp"
+#include "bulb_off_bmp.hpp"
+#include "bulb_ignore_bmp.hpp"
+
 #include "clock_manager.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
@@ -36,6 +41,7 @@
 
 namespace ui {
 
+/*
 #define XYLOS_VOICE_ZERO 0
 #define XYLOS_VOICE_HEADER 16
 #define XYLOS_VOICE_RELAYS 21
@@ -134,47 +140,61 @@ private:
 		{ 21 * 8, 16 * 16, 64, 32 },
 		"Exit"
 	};
-};
+};*/
 
 class XylosView : public View {
 public:
 	XylosView(NavigationView& nav);
 	~XylosView();
-	void journuit();
+	std::string title() const override { return "Xylos transmit"; };
 	
-	void talk();
+	void start_tx();
 	void upd_message();
 	void focus() override;
 	void paint(Painter& painter) override;
 
 private:
+	int inc_cnt;
+	int header_init;
 	bool txing = false;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char ccirmessage[21];
 	
-	Text text_title {
-		{ 8, 8, 11, 16 },
-		"BH Xylos TX"
+	const Style style_val {
+		.font = font::fixed_8x16,
+		.background = Color::green(),
+		.foreground = Color::black(),
+	};
+	const Style style_cancel {
+		.font = font::fixed_8x16,
+		.background = Color::red(),
+		.foreground = Color::black(),
+	};
+	const Style style_grey {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::grey(),
 	};
 	
-	Button button_txtest {
-		{ 180, 8, 40, 24 },
-		"TEST"
+	Checkbox checkbox_hinc {
+		{ 21 * 8, 12},
+		2,
+		"+3"
 	};
 	
 	Text text_header {
-		{ 8 * 8, 2 * 16, 7 * 8, 16 },
+		{ 8 * 8, 1 * 16, 7 * 8, 16 },
 		"Header:"
 	};
 	NumberField header_code_a {
-		{ 16 * 8, 2 * 16 },
+		{ 16 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
 		'0'
 	};
 	NumberField header_code_b {
-		{ 18 * 8, 2 * 16 },
+		{ 18 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -182,11 +202,11 @@ private:
 	};
 	
 	Text text_city {
-		{ 4 * 8, 3 * 16, 11 * 8, 16 },
+		{ 4 * 8, 2 * 16, 11 * 8, 16 },
 		"Code ville:"
 	};
 	NumberField city_code {
-		{ 16 * 8, 3 * 16 },
+		{ 16 * 8, 2 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -194,57 +214,57 @@ private:
 	};
 	
 	Text text_family {
-		{ 7 * 8, 4 * 16, 8 * 8, 16 },
+		{ 7 * 8, 3 * 16, 8 * 8, 16 },
 		"Famille:"
 	};
 	NumberField family_code {
-		{ 16 * 8, 4 * 16 },
-		2,
+		{ 16 * 8, 3 * 16 },
+		1,
 		{ 0, 9 },
 		1,
 		' '
 	};
 	
 	Text text_subfamily {
-		{ 2 * 8, 5 * 16 + 4, 13 * 8, 16 },
+		{ 2 * 8, 4 * 16 + 4, 13 * 8, 16 },
 		"Sous-famille:"
 	};
 	NumberField subfamily_code {
-		{ 16 * 8, 5 * 16 + 4 },
-		2,
+		{ 16 * 8, 4 * 16 + 4 },
+		1,
 		{ 0, 9 },
 		1,
 		' '
 	};
 	Checkbox checkbox_wcsubfamily {
-		{ 20 * 8, 5 * 16},
+		{ 20 * 8, 4 * 16},
 		6,
 		"Toutes"
 	};
 	
 	Text text_receiver {
-		{ 2 * 8, 7 * 16 + 6, 13 * 8, 16 },
+		{ 2 * 8, 6 * 16, 13 * 8, 16 },
 		"ID recepteur:"
 	};
 	NumberField receiver_code {
-		{ 16 * 8, 7 * 16 + 6 },
+		{ 16 * 8, 6 * 16 },
 		2,
 		{ 0, 99 },
 		1,
 		' '
 	};
 	Checkbox checkbox_wcid {
-		{ 20 * 8, 7 * 16 + 4},
+		{ 20 * 8, 6 * 16 },
 		4,
 		"Tous"
 	};
 	
 	Text text_freq {
-		{ 5 * 8, 9 * 16, 10 * 8, 16 },
+		{ 6 * 8, 8 * 16, 10 * 8, 16 },
 		"Frequence:"
 	};
 	OptionsField options_freq {
-		{ 16 * 8, 9 * 16 + 4},
+		{ 17 * 8, 8 * 16},
 		7,
 		{
 			{ "31.3250", 0 },
@@ -257,51 +277,48 @@ private:
 		}
 	};
 	
-	Text text_ra {
-		{ 12, 11 * 16, 8 * 8, 16 },
-		"Relais 1"
+	Text text_relais {
+		{ 8, 9 * 16 + 4, 7 * 8, 16 },
+		"Relais:"
 	};
-	OptionsField options_ra {
-		{ 16, 12 * 16 },
-		3,
+	
+	ImageOptionsField options_ra {
+		{ 26, 166, 24, 24 },
 		{
-			{ "Ignorer", 0 },
-			{ "  OFF  ", 1 },
-			{ "  ON   ", 2 }
+			{ &bulb_ignore_bmp[0], 0 },
+			{ &bulb_off_bmp[0], 1 },
+			{ &bulb_on_bmp[0], 2 }
 		}
 	};
-	Text text_rb {
-		{ 88, 11 * 16, 8 * 8, 16 },
-		"Relais 2"
-	};
-	OptionsField options_rb {
-		{ 92, 12 * 16 },
-		3,
+	ImageOptionsField options_rb {
+		{ 79, 166, 24, 24 },
 		{
-			{ "Ignorer", 0 },
-			{ "  OFF  ", 1 },
-			{ "  ON   ", 2 }
+			{ &bulb_ignore_bmp[0], 0 },
+			{ &bulb_off_bmp[0], 1 },
+			{ &bulb_on_bmp[0], 2 }
 		}
 	};
-	Text text_rc {
-		{ 164, 11 * 16, 8 * 8, 16 },
-		"Relais 3"
-	};
-	OptionsField options_rc {
-		{ 168, 12 * 16 },
-		3,
+	ImageOptionsField options_rc {
+		{ 133, 166, 24, 24 },
 		{
-			{ "Ignorer", 0 },
-			{ "  OFF  ", 1 },
-			{ "  ON   ", 2 }
+			{ &bulb_ignore_bmp[0], 0 },
+			{ &bulb_off_bmp[0], 1 },
+			{ &bulb_on_bmp[0], 2 }
+		}
+	};
+	ImageOptionsField options_rd {
+		{ 186, 166, 24, 24 },
+		{
+			{ &bulb_ignore_bmp[0], 0 },
+			{ &bulb_off_bmp[0], 1 },
+			{ &bulb_on_bmp[0], 2 }
 		}
 	};
 	
-	Text text_progress {
+	ProgressBar progress {
 		{ 5 * 8, 13 * 16, 20 * 8, 16 },
-		"                    "
 	};
-	Text text_debug {
+	Text text_message {
 		{ 5 * 8, 14 * 16, 20 * 8, 16 },
 		"--------------------"
 	};
@@ -312,14 +329,25 @@ private:
 	};
 	
 	Checkbox checkbox_cligno {
-		{ 96, 16 * 16 + 4},
+		{ 96, 16 * 16},
 		3,
 		"J/N"
 	};
+	NumberField tempo_cligno {
+		{ 104, 16 * 16 + 28 },
+		2,
+		{ 1, 99 },
+		1,
+		' '
+	};
+	Text text_cligno {
+		{ 104 + 16, 16 * 16 + 28, 2 * 8, 16 },
+		"s."
+	};
 	
-	Button button_exit {
-		{ 21 * 8, 16 * 16, 64, 32 },
-		"Exit"
+	Button button_txtest {
+		{ 20 * 8, 16 * 16, 64, 32 },
+		"TEST"
 	};
 };
 

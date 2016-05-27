@@ -42,47 +42,61 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 		if (s >= 9) {
 			s = 0;
 			
-			if (sample_count >= CCIR_TONELENGTH) {
-				if (shared_memory.transmit_done == false) {
-					message.n = byte_pos;	// Inform UI about progress (just as eye candy)
-					shared_memory.application_queue.push(message);
-					digit = shared_memory.xylosdata[byte_pos++];
+			if (silence) {
+				if (sample_count >= SILENCE) {
+					silence = false;
+					sample_count = CCIR_TONELENGTH;
+				} else {
+					sample_count++;
 				}
+			} else {
+				if (sample_count >= CCIR_TONELENGTH) {
+					if (shared_memory.transmit_done == false) {
+						message.n = byte_pos;	// Inform UI about progress (just as eye candy)
+						shared_memory.application_queue.push(message);
+						digit = shared_memory.xylosdata[byte_pos++];
+					}
+						
+					if (digit == 0xFF) {
+						message.n = 25;	// End of message code
+						shared_memory.transmit_done = true;
+						shared_memory.application_queue.push(message);
+					}
 					
-				if (digit == 0xFF) {
-					message.n = 25;	// End of message code
-					shared_memory.transmit_done = true;
-					shared_memory.application_queue.push(message);
+					sample_count = 0;
+				} else {
+					sample_count++;
 				}
 				
-				sample_count = 0;
-			} else {
-				sample_count++;
+				aphase += ccir_phases[digit];
 			}
-			
-			aphase += ccir_phases[digit];
 		} else {
 			s++;
 		}
 		
-		sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
-		
-		// Audio preview sample generation: 1536000/48000 = 32
-		/*if (as >= 31) {
-			as = 0;
-			audio[ai++] = sample * 128;
+		if (silence) {
+			re = 0;
+			im = 0;
 		} else {
-			as++;
-		}*/
-		
-		//FM
-		frq = sample * 1000; // ~25kHz wide
-		
-		phase = (phase + frq);
-		sphase = phase + (256<<16);
+			sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
+			
+			// Audio preview sample generation: 1536000/48000 = 32
+			/*if (as >= 31) {
+				as = 0;
+				audio[ai++] = sample * 128;
+			} else {
+				as++;
+			}*/
+			
+			//FM
+			frq = sample * 500;		// To check !
+			
+			phase = (phase + frq);
+			sphase = phase + (256<<16);
 
-		re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
-		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+			re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
+			im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+		}
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}

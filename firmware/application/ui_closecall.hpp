@@ -61,7 +61,6 @@ private:
 	Coord last_pos = 0;
 	ChannelSpectrumFIFO* fifo { nullptr };
 	uint8_t detect_counter = 0, release_counter = 0;
-	uint8_t wait = 2;
 	uint8_t slice_trim;
 	uint32_t mean = 0;
 	uint32_t min_threshold = 80;	// Todo: Put this in persistent / settings

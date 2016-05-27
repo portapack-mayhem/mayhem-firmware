@@ -38,7 +38,7 @@ void CloseCallProcessor::execute(const buffer_c8_t& buffer) {
 		spectrum[i] += buffer.p[i + 1024];
 	}
 
-	if( phase == 50 ) {
+	if( phase == 20 ) {
 		const buffer_c16_t buffer_c16 {
 			spectrum.data(),
 			spectrum.size(),

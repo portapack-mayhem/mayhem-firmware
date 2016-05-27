@@ -715,6 +715,83 @@ bool ImageButton::on_touch(const TouchEvent event) {
 	}
 }
 
+/* ImageOptionsField *****************************************************/
+
+ImageOptionsField::ImageOptionsField(
+	Rect parent_rect,
+	options_t options
+) : Widget { parent_rect },
+	options { options }
+{
+	set_focusable(true);
+}
+
+size_t ImageOptionsField::selected_index() const {
+	return selected_index_;
+}
+
+size_t ImageOptionsField::selected_index_value() const {
+	return options[selected_index_].second;
+}
+
+void ImageOptionsField::set_selected_index(const size_t new_index) {
+	if( new_index < options.size() ) {
+		if( new_index != selected_index() ) {
+			selected_index_ = new_index;
+			if( on_change ) {
+				on_change(selected_index(), options[selected_index()].second);
+			}
+			set_dirty();
+		}
+	}
+}
+
+void ImageOptionsField::set_by_value(value_t v) {
+	size_t new_index { 0 };
+	for(const auto& option : options) {
+		if( option.second == v ) {
+			set_selected_index(new_index);
+			break;
+		}
+		new_index++;
+	}
+}
+
+void ImageOptionsField::set_options(options_t new_options) {
+	options = new_options;
+	set_by_value(0);
+	set_dirty();
+}
+
+void ImageOptionsField::paint(Painter& painter) {
+	const auto paint_style = has_focus() ? style().invert() : style();
+
+	if( selected_index() < options.size() ) {
+		const auto bmp_ptr = options[selected_index()].first;
+		portapack::display.fill_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, ui::Color::black());
+		painter.draw_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, paint_style.background);
+		portapack::display.drawBMP({screen_pos().x + 2, screen_pos().y + 1}, bmp_ptr, true);
+	}
+}
+
+void ImageOptionsField::on_focus() {
+	if( on_show_options ) {
+		on_show_options();
+	}
+}
+
+bool ImageOptionsField::on_encoder(const EncoderEvent delta) {
+	set_selected_index(selected_index() + delta);
+	return true;
+}
+
+bool ImageOptionsField::on_touch(const TouchEvent event) {
+	if( event.type == TouchEvent::Type::Start ) {
+		focus();
+	}
+	return true;
+}
+
 /* OptionsField **********************************************************/
 
 OptionsField::OptionsField(

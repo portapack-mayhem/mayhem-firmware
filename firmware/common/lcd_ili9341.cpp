@@ -289,17 +289,18 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 	io.lcd_write_pixels(line_buffer, s.w * s.h);
 }
 
-void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap) {
+void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool transparency) {
 	uint32_t pixel_data, pal_data;
-	uint8_t pal, by, c, count;
+	uint8_t pal, by, c, count, transp_idx = 0, color_r, color_g, color_b;
 	ui::Color linebuffer[240];
 	ui::Coord px = 0, py;
 	ui::Color palette[16];
 	uint32_t bmpwidth, bmpheight;
 	
-	// RLE_4 BMP loader with hardcoded size and no delta :(
+	// RLE_4 BMP loader with no delta :(
 	
 	if (bitmap[0x1E] != 2) return;	// Bad compression type
+	
 	bmpwidth = static_cast<int32_t>(
         (bitmap[0x12])      |
         (bitmap[0x13] << 8) |
@@ -316,41 +317,88 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap) {
 	pixel_data = bitmap[0x0A];
 	pal = 0;
 	for (c = 0; c < (16*4); c+=4) {
-		palette[pal++] = ui::Color(bitmap[c+2+pal_data], bitmap[c+1+pal_data], bitmap[c+pal_data]);
+		color_r = bitmap[c+2+pal_data];
+		color_g = bitmap[c+1+pal_data];
+		color_b = bitmap[c+pal_data];
+		palette[pal] = ui::Color(color_r, color_g, color_b);
+		if ((color_r == 0xFF) && (color_g == 0x00) && (color_b == 0xFF)) transp_idx = pal;
+		pal++;
 	}
 
-	py = bmpheight + 16;
-	do {
-		by = bitmap[pixel_data++];
-		if (by) {
-			count = by;
+	if (!transparency) {
+		py = bmpheight + 16;	// +1 ?
+		do {
 			by = bitmap[pixel_data++];
-			for (c = 0; c < count; c+=2) {
-				linebuffer[px++] = palette[by >> 4];
-				if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
-			}
-			if (pixel_data & 1) pixel_data++;
-		} else {
-			by = bitmap[pixel_data++];
-			if (by == 0) {
-				render_line({p.x, p.y + py}, bmpwidth, linebuffer);
-				py--;
-				px = 0;
-			} else if (by == 1) {
-				break;
-			} else if (by == 2) {
-				// Delta
-			} else {
+			if (by) {
 				count = by;
+				by = bitmap[pixel_data++];
 				for (c = 0; c < count; c+=2) {
-					by = bitmap[pixel_data++];
 					linebuffer[px++] = palette[by >> 4];
 					if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
 				}
 				if (pixel_data & 1) pixel_data++;
+			} else {
+				by = bitmap[pixel_data++];
+				if (by == 0) {
+					render_line({p.x, p.y + py}, bmpwidth, linebuffer);
+					py--;
+					px = 0;
+				} else if (by == 1) {
+					break;
+				} else if (by == 2) {
+					// Delta
+				} else {
+					count = by;
+					for (c = 0; c < count; c+=2) {
+						by = bitmap[pixel_data++];
+						linebuffer[px++] = palette[by >> 4];
+						if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
+					}
+					if (pixel_data & 1) pixel_data++;
+				}
 			}
-		}
-	} while (1);
+		} while (1);
+	} else {
+		py = bmpheight;	// +1 ?
+		do {
+			by = bitmap[pixel_data++];
+			if (by) {
+				count = by;
+				by = bitmap[pixel_data++];
+				for (c = 0; c < count; c+=2) {
+					if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
+					px++;
+					if (px < bmpwidth) {
+						if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
+					}
+					px++;
+				}
+				if (pixel_data & 1) pixel_data++;
+			} else {
+				by = bitmap[pixel_data++];
+				if (by == 0) {
+					py--;
+					px = 0;
+				} else if (by == 1) {
+					break;
+				} else if (by == 2) {
+					// Delta
+				} else {
+					count = by;
+					for (c = 0; c < count; c+=2) {
+						by = bitmap[pixel_data++];
+						if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
+						px++;
+						if (px < bmpwidth) {
+							if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
+						}
+						px++;
+					}
+					if (pixel_data & 1) pixel_data++;
+				}
+			}
+		} while (1);
+	}
 }
 
 void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Color color) {

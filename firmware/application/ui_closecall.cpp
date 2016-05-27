@@ -100,7 +100,7 @@ void CloseCallView::do_detection() {
 				else
 					resolved_frequency = slice_start + (CC_BIN_WIDTH * (imax - 118));	// Init
 				
-				text_debug.set(to_string_dec_int(CC_BIN_WIDTH * (imax - 118)));	//imax
+				//text_debug.set(to_string_dec_int(CC_BIN_WIDTH * (imax - 118)));
 				
 				// Correct according to DC spike mask width (4 for now)
 				if (iraw > 118)
@@ -160,77 +160,76 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	uint8_t threshold;
 	size_t i, m;
 	
-	if (!wait) {
-		// Spectrum line (for debug)
-		std::array<Color, 240> pixel_row;
-		for(i = 0; i < 118; i++) {
-			const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
-			pixel_row[i + 2] = pixel_color;
-		}
-
-		for(i = 122; i < 240; i++) {
-			const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
-			pixel_row[i - 2] = pixel_color;
-		}
-
-		display.draw_pixels(
-			{ { 0, 96 + slices_counter * 6 }, { pixel_row.size(), 1 } },
-			pixel_row
-		);
-		
-		// Find max for this slice:
-		
-		// Check if left of slice needs to be trimmed (masked)
-		if (slices_counter == 0)
-			i = slice_trim;
-		else
-			i = 0;
-		for ( ; i < 118; i++) {
-			threshold = spectrum.db[256 - 120 + i];		// 128+8 = 136 ~254
-			if (threshold > xmax) {
-				xmax = threshold;
-				imax = i;
-			}
-		}
-		// Check if right of slice needs to be trimmed (masked)
-		if (slices_counter == (slices_max - 1))
-			m = 240 - slice_trim;
-		else
-			m = 240;
-		for (i = 122 ; i < m; i++) {
-			threshold = spectrum.db[i - 120];			// 240-120 = 120 -> +8 = 128
-			if (threshold > xmax) {						// (0~2) 2~120 (120~136) 136~254 (254~256)
-				xmax = threshold;
-				imax = i - 4;
-			}
-		}
-		slicemax_db[slices_counter] = xmax;
-		slicemax_idx[slices_counter] = imax;
-
-		// Add to mean
-		for (i = 136; i < 254; i++)
-			mean += spectrum.db[i];
-		for (i = 2; i < 120; i++)
-			mean += spectrum.db[i];
-		
-		// Slice update
-		if (slicing) {
-			if (slices_counter >= (slices_max - 1)) {
-				do_detection();
-				mean = 0;
-				slices_counter = 0;
-			} else {
-				slices_counter++;
-			}
-			slice_frequency = slice_start + (slices_counter * CC_SLICE_WIDTH);
-			receiver_model.set_tuning_frequency(slice_frequency);
-			wait = 1;
-		} else {
-			do_detection();
-		}
-	} else {
-		wait--;
+	baseband::spectrum_streaming_stop;
+	
+	// Spectrum line (for debug)
+	std::array<Color, 240> pixel_row;
+	for(i = 0; i < 118; i++) {
+		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
+		pixel_row[i + 2] = pixel_color;
 	}
+
+	for(i = 122; i < 240; i++) {
+		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
+		pixel_row[i - 2] = pixel_color;
+	}
+
+	display.draw_pixels(
+		{ { 0, 96 + slices_counter * 4 }, { pixel_row.size(), 1 } },
+		pixel_row
+	);
+	
+	// Find max for this slice:
+	
+	// Check if left of slice needs to be trimmed (masked)
+	if (slices_counter == 0)
+		i = slice_trim;
+	else
+		i = 0;
+	for ( ; i < 118; i++) {
+		threshold = spectrum.db[256 - 120 + i];		// 128+8 = 136 ~254
+		if (threshold > xmax) {
+			xmax = threshold;
+			imax = i;
+		}
+	}
+	// Check if right of slice needs to be trimmed (masked)
+	if (slices_counter == (slices_max - 1))
+		m = 240 - slice_trim;
+	else
+		m = 240;
+	for (i = 122 ; i < m; i++) {
+		threshold = spectrum.db[i - 120];			// 240-120 = 120 -> +8 = 128
+		if (threshold > xmax) {						// (0~2) 2~120 (120~136) 136~254 (254~256)
+			xmax = threshold;
+			imax = i - 4;
+		}
+	}
+	slicemax_db[slices_counter] = xmax;
+	slicemax_idx[slices_counter] = imax;
+
+	// Add to mean
+	for (i = 136; i < 254; i++)
+		mean += spectrum.db[i];
+	for (i = 2; i < 120; i++)
+		mean += spectrum.db[i];
+	
+	// Slice update
+	if (slicing) {
+		if (slices_counter >= (slices_max - 1)) {
+			do_detection();
+			mean = 0;
+			slices_counter = 0;
+		} else {
+			slices_counter++;
+		}
+		slice_frequency = slice_start + (slices_counter * CC_SLICE_WIDTH);
+		receiver_model.set_tuning_frequency(slice_frequency);
+	} else {
+		do_detection();
+	}
+	
+	baseband::spectrum_streaming_start(1);
 }
 
 void CloseCallView::on_show() {
@@ -266,9 +265,7 @@ void CloseCallView::on_range_changed() {
 	rf::Frequency slices_span;
 	rf::Frequency resolved_frequency;
 	int64_t offset;
-	
-	// DEBUG
-	/*
+
 	f_max = field_frequency_max.value();
 	f_min = field_frequency_min.value();
 	scan_span = abs(f_max - f_min);
@@ -288,7 +285,6 @@ void CloseCallView::on_range_changed() {
 		slice_start = slice_frequency;
 		receiver_model.set_tuning_frequency(slice_frequency);
 		
-		// DEBUG
 		resolved_frequency = (CC_SLICE_WIDTH - scan_span) / 2;		// Trim frequency span (for both sides)
 		resolved_frequency /= CC_BIN_WIDTH;							// Convert to bin span
 		slice_trim = resolved_frequency;
@@ -300,8 +296,9 @@ void CloseCallView::on_range_changed() {
 		slices_max = 1;
 		slices_counter = 0;
 		slicing = false;
-	}*/
+	}
 	
+	/*
 	f_min = field_frequency_min.value();
 	scan_span = 3000000;
 	slice_frequency = (f_min + 1500000);
@@ -312,6 +309,7 @@ void CloseCallView::on_range_changed() {
 	slices_counter = 0;
 	slicing = false;
 	field_frequency_max.set_value(f_min + 3000000);
+*/
 
 	text_slices.set(to_string_dec_int(slices_max));
 	slices_counter = 0;

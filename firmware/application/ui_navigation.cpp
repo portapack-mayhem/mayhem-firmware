@@ -183,14 +183,15 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<12>({ {
+	add_items<11>({ {
 		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, Receiver); } },
 		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, CloseCall); } },
 		{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
-		{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
-		{ "Xylos                     TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Xylos); } },
+		
+		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
+		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Xylos); } },
 		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, LCR); } },
 		{ "RDS                       TX",	ui::Color::yellow(),	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, RDS); } },
 		//{ "Capture", 		ui::Color::white(), 	[&nav](){ nav.push<NotImplementedView>(); } },
@@ -315,7 +316,7 @@ BMPView::BMPView(NavigationView& nav) {
 
 void BMPView::paint(Painter& painter) {
 	(void)painter;
-	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp);
+	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp, false);
 }
 
 /* PlayDeadView **********************************************************/
