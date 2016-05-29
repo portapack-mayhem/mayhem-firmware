@@ -435,7 +435,6 @@ XylosView::XylosView(
 			transmitter_model.enable();
 		}
 	};
-	
 }
 
 } /* namespace ui */

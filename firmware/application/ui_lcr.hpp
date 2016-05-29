@@ -25,6 +25,7 @@
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "ui_textentry.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"

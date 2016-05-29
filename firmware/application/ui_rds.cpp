@@ -23,8 +23,6 @@
 #include "ui_rds.hpp"
 
 #include "ch.h"
-
-#include "ui_alphanum.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
@@ -40,7 +38,7 @@ using namespace portapack;
 namespace ui {
 
 void RDSView::focus() {
-	button_setpsn.focus();
+	button_editpsn.focus();
 }
 
 RDSView::~RDSView() {
@@ -86,7 +84,7 @@ uint8_t RDSView::b2b(const bool in) {
 }
 
 void RDSView::make_0B_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
-							const bool MS, const bool DI, const uint8_t C, char * chars) {
+							const bool MS, const bool DI, const uint8_t C, const char * chars) {
 
 	group[0] = PI_code;
 	group[1] = (0x0 << 12) | (1 << 11) | (b2b(TP) << 10) | (PTY << 5) | (b2b(TA) << 4) | (b2b(MS) << 3) | (b2b(DI) << 2) | (C & 3);
@@ -94,14 +92,23 @@ void RDSView::make_0B_group(uint32_t group[], const uint16_t PI_code, const bool
 	group[3] = (chars[0] << 8) | chars[1];
 }
 
-void RDSView::paint(Painter& painter) {
+void RDSView::make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
+							const bool segment, const char * chars) {
+
+	group[0] = PI_code;
+	group[1] = (0x0 << 12) | (1 << 11) | (b2b(TP) << 10) | (PTY << 5) | (b2b(AB) << 4) | (segment & 15);
+	group[2] = (chars[0] << 8) | chars[1];
+	group[3] = (chars[2] << 8) | chars[3];
+}
+
+void RDSView::gen_PSN(const char * psname) {
 	uint8_t c;
 	uint32_t group[4][4] = { 0 };
 
-	make_0B_group(&group[0][0], 0xF849, true, 7, false, true, false, 0, &psname[0]);
-	make_0B_group(&group[1][0], 0xF849, true, 7, false, true, false, 1, &psname[2]);
-	make_0B_group(&group[2][0], 0xF849, true, 7, false, true, false, 2, &psname[4]);
-	make_0B_group(&group[3][0], 0xF849, true, 7, false, true, false, 3, &psname[6]);
+	make_0B_group(&group[0][0], 0xF849, true, options_pty.selected_index(), false, true, false, 0, &psname[0]);
+	make_0B_group(&group[1][0], 0xF849, true, options_pty.selected_index(), false, true, false, 1, &psname[2]);
+	make_0B_group(&group[2][0], 0xF849, true, options_pty.selected_index(), false, true, false, 2, &psname[4]);
+	make_0B_group(&group[3][0], 0xF849, true, options_pty.selected_index(), false, true, false, 3, &psname[6]);
 	
 	/*uint32_t group[4][4] = {
 		{
@@ -140,42 +147,98 @@ void RDSView::paint(Painter& painter) {
 	group[3][3] = (psname[6] << 8) | psname[7];
 	*/
 	
-	//Generate checkbits
+	// Generate checkbits
 	for (c = 0; c < 4; c++) {
 		group[c][0] = makeblock(group[c][0], RDS_OFFSET_A);
 		group[c][1] = makeblock(group[c][1], RDS_OFFSET_B);
-		group[c][2] = makeblock(group[c][2], RDS_OFFSET_Cp);	//C'
+		group[c][2] = makeblock(group[c][2], RDS_OFFSET_Cp);	// C' !
 		group[c][3] = makeblock(group[c][3], RDS_OFFSET_D);
 	}
-
-	const Point offset = {
-		static_cast<Coord>(64),
-		static_cast<Coord>(32)
-	};
-
-	const auto text = psname;
-	painter.draw_string(
-		screen_pos() + offset,
-		style(),
-		text
-	);
 	
-	for (c = 0; c < 16; c++) {
-		shared_memory.rdsdata[c] = group[c >> 2][c & 3];
+	for (c = 0; c < 16; c++)
+		shared_memory.radio_data[c] = group[c >> 2][c & 3];
+		
+	shared_memory.bit_length = 4 * 4 * 26;
+}
+
+void RDSView::gen_RadioText(const char * radiotext) {
+	size_t c, i;
+	uint32_t * group;
+	char radiotext_buffer[65] = { 0 };
+	uint8_t rtlen, groups;
+	
+	strcpy(radiotext_buffer, radiotext);
+	
+	rtlen = strlen(radiotext_buffer);
+	
+	radiotext_buffer[rtlen] = 0x0D;
+	
+	// Pad to multiple of 4
+	while(rtlen & 3) {
+		radiotext_buffer[rtlen] = ' ';
+		rtlen++;
 	}
+
+	groups = rtlen >> 2;	// 4 characters per group
+
+	group = (uint32_t*)chHeapAlloc(0x0, 4 * groups * sizeof(uint32_t));
+
+	for (c = 0; c < groups; c++)
+		make_2A_group(&group[c << 2], 0xF849, true, options_pty.selected_index(), false, c, &radiotext_buffer[c << 2]);
+
+	// Generate checkbits
+	for (c = 0; c < groups; c++) {
+		i = c * 4;
+		group[i + 0] = makeblock(group[i + 0], RDS_OFFSET_A);
+		group[i + 1] = makeblock(group[i + 1], RDS_OFFSET_B);
+		group[i + 2] = makeblock(group[i + 2], RDS_OFFSET_C);
+		group[i + 3] = makeblock(group[i + 3], RDS_OFFSET_D);
+	}
+	
+	for (c = 0; c < (groups * 4); c++)
+		shared_memory.radio_data[c] = group[c];
+	
+	shared_memory.bit_length = groups * 4 * 26;
+}
+
+void RDSView::paint(Painter& painter) {
+	char RadioTextA[17];
+	
+	(void)painter;
+	
+	text_psn.set(PSN);
+	memcpy(RadioTextA, RadioText, 16);
+	RadioTextA[16] = 0;
+	text_radiotexta.set(RadioTextA);
+	text_radiotextb.set(&RadioText[16]);
 }
 
 RDSView::RDSView(
 	NavigationView& nav
 )
 {
-	strcpy(psname, "TEST1234");
+	transmitter_model.set_baseband_configuration({
+		.mode = 5,
+		.sampling_rate = 2280000,
+		.decimation_factor = 1,
+	});
+	
+	strcpy(PSN, "TEST1234");
+	strcpy(RadioText, "Radiotext test !");
 	
 	add_children({ {
 		&field_frequency,
 		&options_pty,
-		&button_setpsn,
-		&button_transmit,
+		&options_countrycode,
+		&options_coverage,
+		&text_tx,
+		&button_editpsn,
+		&text_psn,
+		&button_txpsn,
+		&button_editradiotext,
+		&text_radiotexta,
+		&text_radiotextb,
+		&button_txradiotext,
 		&button_exit
 	} });
 	
@@ -188,17 +251,44 @@ RDSView::RDSView(
 		};
 	};
 	
-	options_pty.set_selected_index(0);
+	options_pty.set_selected_index(0);				// None
+	options_countrycode.set_selected_index(18);		// France
+	options_coverage.set_selected_index(0);			// Local
 	
-	button_setpsn.on_select = [this,&nav](Button&){
-		auto an_view =  nav.push<AlphanumView>(psname, 8);
-		an_view->on_changed = [this](char *value) {
-			memcpy(psname, value, 9);
-		};
+	button_editpsn.on_select = [this,&nav](Button&){
+		textentry(nav, PSN, 8);
+	};
+	button_txpsn.on_select = [this](Button&){
+		if (txing) {
+			transmitter_model.disable();
+			button_txpsn.set_text("PSN");
+			button_txradiotext.set_text("Radiotext");
+			txing = false;
+		} else {
+			gen_PSN(PSN);
+			transmitter_model.set_tuning_frequency(field_frequency.value());
+			button_txpsn.set_text("STOP");
+			txing = true;
+			transmitter_model.enable();
+		}
 	};
 	
-	button_transmit.on_select = [this](Button&){
-		transmitter_model.enable();
+	button_editradiotext.on_select = [this,&nav](Button&){
+		textentry(nav, RadioText, 24);
+	};
+	button_txradiotext.on_select = [this](Button&){
+		if (txing) {
+			transmitter_model.disable();
+			button_txpsn.set_text("PSN");
+			button_txradiotext.set_text("Radiotext");
+			txing = false;
+		} else {
+			gen_RadioText(RadioText);
+			transmitter_model.set_tuning_frequency(field_frequency.value());
+			button_txradiotext.set_text("STOP");
+			txing = true;
+			transmitter_model.enable();
+		}
 	};
 
 	button_exit.on_select = [&nav](Button&){

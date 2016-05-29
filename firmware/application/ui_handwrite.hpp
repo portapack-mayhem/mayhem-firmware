@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __UNISTROKE_H__
+#define __UNISTROKE_H__
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
@@ -38,6 +41,7 @@ public:
 
 	void paint(Painter& painter) override;
 	void on_show() override;
+	void on_hide() override;
 	bool on_touch(const TouchEvent event) override;
 	
 	char * value();
@@ -88,3 +92,5 @@ private:
 };
 
 } /* namespace ui */
+
+#endif/*__UNISTROKE_H__*/

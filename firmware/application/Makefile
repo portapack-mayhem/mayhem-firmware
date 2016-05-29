@@ -184,6 +184,7 @@ CPPSRC = main.cpp \
          ui_soundboard.cpp \
          ui_spectrum.cpp \
          ui_text.cpp \
+         ui_textentry.cpp \
          ui_widget.cpp \
          ui_xylos.cpp \
          recent_entries.cpp \

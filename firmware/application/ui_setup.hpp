@@ -269,17 +269,17 @@ private:
 		{ 10 * 8, 5 * 16 + 4 },
 		10,
 		{
-			{ "5 seconds ", 0 },
+			{ "5 seconds", 0 },
 			{ "15 seconds", 1 },
-			{ "1 minute  ", 2 },
-			{ "5 minutes ", 3 },
+			{ "1 minute", 2 },
+			{ "5 minutes", 3 },
 			{ "10 minutes", 4 }
 		}
 	};
 	
 	Button button_ok {
-		{ 4 * 8, 272, 64, 24 },
-		"Ok"
+		{ 72, 260, 96, 32 },
+		"OK"
 	};
 };
 
@@ -328,6 +328,8 @@ private:
 	
 	moduleinfo_t module_list[8];	// 8 max for now
 	
+	uint8_t modules_nb;
+	
 	Text text_modcount {
 		{ 2 * 8, 1 * 16, 18 * 8, 16 },
 		"Searching..."
@@ -336,7 +338,8 @@ private:
 	OptionsField option_modules {
 		{ 2 * 8, 2 * 16 },
 		24,
-		{ { "-", 0 }
+		{
+			{ "-", 0 }
 		}
 	};
 	

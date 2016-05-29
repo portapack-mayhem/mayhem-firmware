@@ -45,12 +45,12 @@ private:
     int sample_count = SAMPLES_PER_BIT;
     int in_sample_index = 0;
     int32_t sample;
-    int out_sample_index = SAMPLE_BUFFER_SIZE-1;
+    int out_sample_index = SAMPLE_BUFFER_SIZE - 1;
 	uint32_t phase, sphase;
 	int32_t sig, frq, frq_im, rdsc;
 	int32_t k;
 
-	int32_t waveform_biphase[576] = {
+	const int32_t waveform_biphase[576] = {
 		165,167,168,168,167,166,163,160,
 		157,152,147,141,134,126,118,109,
 		99,88,77,66,53,41,27,14,

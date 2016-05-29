@@ -33,6 +33,7 @@
 #include "proc_xylos.hpp"
 #include "proc_epar.hpp"
 #include "proc_fsk_lcr.hpp"
+#include "proc_rds.hpp"
 
 #include "rssi.hpp"
 #include "i2s.hpp"
@@ -126,6 +127,7 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 2:		return new XylosProcessor();
 	case 3:		return new LCRFSKProcessor();
 	case 4:		return new EPARProcessor();
+	case 5:		return new RDSProcessor();
 	default:	return nullptr;
 	}
 }

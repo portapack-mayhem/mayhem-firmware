@@ -32,7 +32,7 @@ Style Style::invert() const {
 	return {
 		.font = font,
 		.background = foreground,
-		.foreground = background,
+		.foreground = background
 	};
 }
 

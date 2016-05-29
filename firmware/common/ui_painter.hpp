@@ -60,7 +60,6 @@ public:
 private:
 	void draw_hline(Point p, int width, const Color c);
 	void draw_vline(Point p, int height, const Color c);
-
 	void paint_widget(Widget* const w);
 };
 

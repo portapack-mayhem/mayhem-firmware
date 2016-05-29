@@ -538,23 +538,19 @@ void Button::paint(Painter& painter) {
 
 	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 
-	painter.draw_rectangle(r, style().foreground);
+	painter.draw_rectangle(r, paint_style.foreground);
 
 	painter.fill_rectangle(
 		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
 		paint_style.background
 	);
 
-    //char *token = strtok(text_.c_str(), "\n");
-    //while(token) {
-		const auto label_r = paint_style.font.size_of(text_);
-		painter.draw_string(
-			{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
-			paint_style,
-			text_
-		);
-    //    token = strtok(NULL, " ");
-    //}
+	const auto label_r = paint_style.font.size_of(text_);
+	painter.draw_string(
+		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+		paint_style,
+		text_
+	);
 }
 
 bool Button::on_key(const KeyEvent key) {
@@ -735,10 +731,10 @@ size_t ImageOptionsField::selected_index_value() const {
 }
 
 void ImageOptionsField::set_selected_index(const size_t new_index) {
-	if( new_index < options.size() ) {
-		if( new_index != selected_index() ) {
+	if ( new_index < options.size() ) {
+		if ( new_index != selected_index() ) {
 			selected_index_ = new_index;
-			if( on_change ) {
+			if ( on_change ) {
 				on_change(selected_index(), options[selected_index()].second);
 			}
 			set_dirty();
@@ -768,7 +764,7 @@ void ImageOptionsField::paint(Painter& painter) {
 
 	if( selected_index() < options.size() ) {
 		const auto bmp_ptr = options[selected_index()].first;
-		portapack::display.fill_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, ui::Color::black());
+		painter.fill_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, ui::Color::black());
 		painter.draw_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, paint_style.background);
 		portapack::display.drawBMP({screen_pos().x + 2, screen_pos().y + 1}, bmp_ptr, true);
 	}
@@ -844,7 +840,9 @@ void OptionsField::set_options(options_t new_options) {
 
 void OptionsField::paint(Painter& painter) {
 	const auto paint_style = has_focus() ? style().invert() : style();
-
+	
+	painter.fill_rectangle({screen_rect().pos, {length_ * 8, 16}}, ui::Color::black());
+	
 	if( selected_index() < options.size() ) {
 		const auto text = options[selected_index()].first;
 		painter.draw_string(

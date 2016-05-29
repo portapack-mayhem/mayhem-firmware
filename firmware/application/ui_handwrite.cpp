@@ -51,7 +51,8 @@ HandWriteView::HandWriteView(
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
 	
-	//memcpy(txtinput, txt, max_len+1);
+	txtidx = strlen(txt);
+	memcpy(txtinput, txt, max_len + 1);
 
 	add_children({ {
 		&text_input,
@@ -108,12 +109,12 @@ HandWriteView::HandWriteView(
 	};
 
 	button_ok.on_select = [this, &nav, txt, max_len](Button&) {
-		//memcpy(txt, txtinput, max_len+1);
-		//on_changed(this->value());
+		memcpy(txt, txtinput, max_len + 1);
+		on_changed(this->value());
 		nav.pop();
 	};
 
-	//update_text();
+	update_text();
 }
 
 bool HandWriteView::on_touch(const TouchEvent event) {
@@ -383,6 +384,10 @@ void HandWriteView::on_show() {
 		}
 	);
 	clear_zone(Color::black(), false);
+}
+
+void HandWriteView::on_hide() {
+	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 }
 
 char * HandWriteView::value() {

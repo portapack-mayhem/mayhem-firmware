@@ -143,6 +143,7 @@ CPPSRC = main.cpp \
          proc_epar.cpp \
          proc_playaudio.cpp \
          proc_xylos.cpp \
+         proc_rds.cpp \
          dsp_squelch.cpp \
          clock_recovery.cpp \
          packet_builder.cpp \

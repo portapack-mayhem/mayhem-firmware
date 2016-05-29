@@ -37,6 +37,7 @@ using namespace hackrf::one;
 namespace ui {
 	
 void AlphanumView::paint(Painter& painter) {
+	(void)painter;
 	move_cursor();
 }
 	
@@ -51,13 +52,13 @@ AlphanumView::AlphanumView(
 	static constexpr Style style_alpha {
 		.font = font::fixed_8x16,
 		.background = Color::red(),
-		.foreground = Color::black(),
+		.foreground = Color::black()
 	};
 	
 	static constexpr Style style_num {
 		.font = font::fixed_8x16,
 		.background = Color::yellow(),
-		.foreground = Color::black(),
+		.foreground = Color::black()
 	};
 	
 	txtidx = strlen(txt);

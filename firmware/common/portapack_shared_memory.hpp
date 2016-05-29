@@ -53,10 +53,10 @@ struct SharedMemory {
 	TouchADCFrame touch_adc_frame;
 	
 	int test;
+
+	uint8_t radio_data[256];
+	size_t bit_length;
 	
-	uint32_t rdsdata[16];
-	
-	uint8_t lcrdata[256];
 	uint32_t afsk_samples_per_bit;
 	uint32_t afsk_phase_inc_mark;
 	uint32_t afsk_phase_inc_space;
@@ -69,6 +69,7 @@ struct SharedMemory {
 	char xylosdata[21];
 	char epardata[13];
 	int32_t excursion;
+	
 	bool transmit_done;
 };
 

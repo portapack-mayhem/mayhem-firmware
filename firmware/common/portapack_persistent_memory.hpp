@@ -60,7 +60,11 @@ void set_playdead_sequence(const uint32_t new_value);
 
 uint32_t ui_config();
 void set_ui_config(const uint32_t new_value);
+
 uint16_t ui_config_bloff();
+
+uint8_t ui_config_textentry();
+void set_config_textentry(uint8_t new_value);
 
 } /* namespace persistent_memory */
 } /* namespace portapack */

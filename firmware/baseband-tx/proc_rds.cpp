@@ -27,21 +27,24 @@
 #include <cstdint>
 
 void RDSProcessor::execute(const buffer_c8_t& buffer) {
+	uint32_t * rdsdata;
 	
-	for (size_t i = 0; i<buffer.count; i++) {
+	rdsdata = (uint32_t *)shared_memory.radio_data;
+	
+	for (size_t i = 0; i < buffer.count; i++) {
 		
 		//Sample generation 2.28M/10=228kHz
 		if(s >= 9) {
 			s = 0;
 			if(sample_count >= SAMPLES_PER_BIT) {
-				cur_bit = (shared_memory.rdsdata[(bit_pos / 26) & 15]>>(25-(bit_pos % 26))) & 1;
+				cur_bit = (rdsdata[(bit_pos / 26) & 15] >> (25 - (bit_pos % 26))) & 1;
 				prev_output = cur_output;
 				cur_output = prev_output ^ cur_bit;
 
-				int32_t *src = waveform_biphase;
+				const int32_t *src = waveform_biphase;	// const ok ?
 				int idx = in_sample_index;
 
-				for(int j=0; j<FILTER_SIZE; j++) {
+				for(int j = 0; j < FILTER_SIZE; j++) {
 					val = (*src++);
 					if (cur_output) val = -val;
 					sample_buffer[idx++] += val;
@@ -51,7 +54,10 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 				in_sample_index += SAMPLES_PER_BIT;
 				if (in_sample_index >= SAMPLE_BUFFER_SIZE) in_sample_index -= SAMPLE_BUFFER_SIZE;
 				
-				bit_pos++;
+				if (bit_pos < shared_memory.bit_length)
+					bit_pos++;
+				else
+					bit_pos = 0;
 				sample_count = 0;
 			}
 			
@@ -60,7 +66,7 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 			out_sample_index++;
 			if (out_sample_index >= SAMPLE_BUFFER_SIZE) out_sample_index = 0;
 			
-			//AM @ 228k/4=57kHz
+			//AM @ 228k/4 = 57kHz
 			switch (mphase) {
 				case 0:
 				case 2: sample = 0; break;
@@ -80,11 +86,10 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 		
 		phase = (phase + frq);
 		sphase = phase + (256<<16);
-
-		//re = sintab[(sphase & 0x03FF0000)>>16];
-		//im = sintab[(phase & 0x03FF0000)>>16];
+		
+		re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
+		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
 	}
 }
-	

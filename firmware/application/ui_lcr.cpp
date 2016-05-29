@@ -20,8 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_alphanum.hpp"
-#include "ui_rds.hpp"
 #include "ui_lcr.hpp"
 #include "ui_receiver.hpp"
 #include "ui_afsksetup.hpp"
@@ -180,6 +178,8 @@ void LCRView::paint(Painter& painter) {
 		);
 		offset.y += 32;
 	}
+	
+	button_setrgsb.set_text(rgsb);
 }
 
 void LCRView::start_tx() {
@@ -200,8 +200,8 @@ void LCRView::start_tx() {
 
 	shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
 
-	memset(shared_memory.lcrdata, 0, 256);
-	memcpy(shared_memory.lcrdata, lcrframe_f, 256);
+	memset(shared_memory.radio_data, 0, 256);
+	memcpy(shared_memory.radio_data, lcrframe_f, 256);
 	
 	shared_memory.afsk_transmit_done = false;
 	shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
@@ -249,8 +249,8 @@ void LCRView::start_tx() {
 					strcpy(rgsb, RGSB_list[scan_index]);
 					make_frame();
 					
-					memset(shared_memory.lcrdata, 0, 256);
-					memcpy(shared_memory.lcrdata, lcrframe_f, 256);
+					memset(shared_memory.radio_data, 0, 256);
+					memcpy(shared_memory.radio_data, lcrframe_f, 256);
 					shared_memory.afsk_transmit_done = false;
 					shared_memory.afsk_repeat = 5;
 					
@@ -352,31 +352,23 @@ LCRView::LCRView(
 	button_scan.set_style(&style_val);
 	
 	button_setrgsb.on_select = [this,&nav](Button&) {
-		auto an_view =  nav.push<AlphanumView>(rgsb, 4);
-		an_view->on_changed = [this](char *rgsb) {
-			button_setrgsb.set_text(rgsb);
-		};
+		textentry(nav, rgsb, 4);
 	};
 	
 	button_setam_a.on_select = [this,&nav](Button&) {
-		auto an_view = nav.push<AlphanumView>(litteral[0], 7);
-		an_view->on_changed = [this](char *) {};
+		textentry(nav, litteral[0], 7);
 	};
 	button_setam_b.on_select = [this,&nav](Button&) {
-		auto an_view = nav.push<AlphanumView>(litteral[1], 7);
-		an_view->on_changed = [this](char *) {};
+		textentry(nav, litteral[1], 7);
 	};
 	button_setam_c.on_select = [this,&nav](Button&) {
-		auto an_view = nav.push<AlphanumView>(litteral[2], 7);
-		an_view->on_changed = [this](char *) {};
+		textentry(nav, litteral[2], 7);
 	};
 	button_setam_d.on_select = [this,&nav](Button&) {
-		auto an_view = nav.push<AlphanumView>(litteral[3], 7);
-		an_view->on_changed = [this](char *) {};
+		textentry(nav, litteral[3], 7);
 	};
 	button_setam_e.on_select = [this,&nav](Button&) {
-		auto an_view = nav.push<AlphanumView>(litteral[4], 7);
-		an_view->on_changed = [this](char *) {};
+		textentry(nav, litteral[4], 7);
 	};
 	
 	button_txsetup.on_select = [&nav](Button&) {

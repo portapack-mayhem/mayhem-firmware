@@ -20,7 +20,7 @@
  */
 
 // Bitmaps generated with:
-// Gimp :(, then "xxd -i *.bmp"
+// Gimp :( > indexed colors, then "xxd -i *.bmp"
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
@@ -35,18 +35,14 @@
 //TODO: Morse coder
 //TODO: Playdead amnesia and login
 //TODO: Touch screen calibration
-//TODO: Display module info (name, desc) somewhere
 //TODO: Show MD5 mismatches for modules not found, etc...
-//TODO: More gfx, cute icons :)
 //TODO: Check jammer bandwidths
 //TODO: GSM channel detector
 //TODO: AFSK receiver
 //TODO: SIGFOX RX/TX
-//TODO: Reset baseband if module not found (instead of lockup in RAM loop)
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //BUG: Crash after TX stop (unregister message !)
 //TODO: Check bw setting in LCR TX
-//TODO: BUG: Crash after PSN entry in RDS TX
 //TODO: Bodet :)
 //TODO: Whistler
 //TODO: Setup: Play dead by default ? Enable/disable ?
@@ -54,7 +50,6 @@
 //TODO: Persistent playdead !
 //TODO: LCR EC=A,J,N
 //TODO: LCR full message former (see norm)
-//TODO: LCR address scan
 //TODO: AFSK NRZI
 //TODO: TX power
 

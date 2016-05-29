@@ -19,6 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __ALPHANUM_H__
+#define __ALPHANUM_H__
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
@@ -81,3 +84,5 @@ private:
 };
 
 } /* namespace ui */
+
+#endif/*__ALPHANUM_H__*/

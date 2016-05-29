@@ -53,18 +53,32 @@ namespace ui {
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView() {
+	uint8_t cfg;
+	
 	add_children({ {
 		&button_back,
 		&title,
+		&button_textentry,
 		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
 	} });
+	
+	cfg = portapack::persistent_memory::ui_config_textentry();
+	
+	if (!cfg)
+		button_textentry.set_bitmap(&bitmap_keyboard);
+	else
+		button_textentry.set_bitmap(&bitmap_unistroke);
 
 	button_back.on_select = [this](Button&){
 		if( this->on_back ) {
 			this->on_back();
 		}
+	};
+	
+	button_textentry.on_select = [this](ImageButton&) {
+		this->on_textentry();
 	};
 
 	button_camera.on_select = [this](ImageButton&) {
@@ -88,6 +102,18 @@ void SystemStatusView::set_title(const std::string new_value) {
 	} else {
 		title.set(new_value);
 	}
+}
+
+void SystemStatusView::on_textentry() {
+	uint8_t cfg;
+	
+	cfg = portapack::persistent_memory::ui_config_textentry();
+	portapack::persistent_memory::set_config_textentry(cfg ^ 1);
+	
+	if (!cfg)
+		button_textentry.set_bitmap(&bitmap_unistroke);
+	else
+		button_textentry.set_bitmap(&bitmap_keyboard);
 }
 
 void SystemStatusView::on_camera() {
@@ -219,7 +245,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 static constexpr ui::Style style_default {
 	.font = ui::font::fixed_8x16,
 	.background = ui::Color::black(),
-	.foreground = ui::Color::white(),
+	.foreground = ui::Color::white()
 };
 
 SystemView::SystemView(

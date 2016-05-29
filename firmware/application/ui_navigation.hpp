@@ -62,16 +62,23 @@ private:
 		{ 3 * 8, 0, 16 * 8, 1 * 16 },
 		default_title,
 	};
+	
+	ImageButton button_textentry {
+		{ 164, 0, 2 * 8, 1 * 16 },
+		&bitmap_unistroke,
+		Color::white(),
+		Color::black()
+	};
 
 	ImageButton button_camera {
-		{ 22 * 8, 0, 2 * 8, 1 * 16 },
+		{ 184, 0, 2 * 8, 1 * 16 },
 		&bitmap_camera,
 		Color::white(),
 		Color::black()
 	};
 
 	ImageButton button_sleep {
-		{ 25 * 8, 0, 2 * 8, 1 * 16 },
+		{ 204, 0, 2 * 8, 1 * 16 },
 		&bitmap_sleep,
 		Color::white(),
 		Color::black()
@@ -82,6 +89,7 @@ private:
 	};
 
 	void on_camera();
+	void on_textentry();
 };
 
 class NavigationView : public View {

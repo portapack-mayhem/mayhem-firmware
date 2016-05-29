@@ -72,7 +72,7 @@ struct data_t {
 	uint32_t playing_dead;
 	uint32_t playdead_sequence;
 	
-	int32_t ui_config;
+	uint32_t ui_config;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -164,7 +164,7 @@ uint32_t ui_config() {
 	
 	// Cap value
 	bloff_value = (data->ui_config >> 5) & 7;
-	if (bloff_value > 4) bloff_value = 1;
+	if (bloff_value > 4) bloff_value = 1;		// 15s default
 
 	data->ui_config = (data->ui_config & 0x1F) | (bloff_value << 5);
 	
@@ -182,6 +182,14 @@ uint16_t ui_config_bloff() {
 	if (bloff_value > 4) bloff_value = 1;
 
 	return bloff_seconds[bloff_value];
+}
+
+void set_config_textentry(uint8_t new_value) {
+	data->ui_config = (data->ui_config & ~0b1100) | ((new_value & 1) << 2);
+}
+
+uint8_t ui_config_textentry() {
+	return ((data->ui_config >> 2) & 1);
 }
 
 void set_ui_config(const uint32_t new_value) {

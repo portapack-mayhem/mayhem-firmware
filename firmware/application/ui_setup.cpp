@@ -257,7 +257,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 		uint32_t ui_config = 0;
 		if (checkbox_showsplash.value() == true) ui_config |= 1;
 		if (checkbox_bloff.value() == true) ui_config |= 2;
-		
+		ui_config |= (portapack::persistent_memory::ui_config_textentry() << 2);
 		ui_config |= (options_bloff.selected_index() << 5);
 		
 		portapack::persistent_memory::set_ui_config(ui_config);
@@ -270,7 +270,7 @@ void SetUIView::focus() {
 }
 
 void ModInfoView::on_show() {
-	update_infos(0);
+	if (modules_nb) update_infos(0);
 }
 
 void ModInfoView::update_infos(uint8_t modn) {
@@ -331,10 +331,10 @@ ModInfoView::ModInfoView(NavigationView& nav) {
 	FIL modfile;
 	DIR rootdir;
 	FRESULT res;
+	uint8_t c;
 	
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
-	uint8_t c;
 	option_t opt;
 	options_t opts;
 	
@@ -414,11 +414,13 @@ ModInfoView::ModInfoView(NavigationView& nav) {
 	}
 	f_closedir(&rootdir);
 	
-	memcpy(info_str, "Found ", 7);
-	strcat(info_str, to_string_dec_uint(c, 1).c_str());
-	strcat(info_str, " module(s)");
+	modules_nb = c;
 
-	if (c) {
+	if (modules_nb) {
+		strcpy(info_str, "Found ");
+		strcat(info_str, to_string_dec_uint(modules_nb, 1).c_str());
+		strcat(info_str, " module(s)");
+		
 		text_modcount.set(info_str);
 		option_modules.set_options(opts);
 		
@@ -428,6 +430,9 @@ ModInfoView::ModInfoView(NavigationView& nav) {
 			(void)n;
 			update_infos(v);
 		};
+	} else {
+		strcpy(info_str, "No modules found");
+		text_modcount.set(info_str);
 	}
 
 	button_ok.on_select = [&nav,this](Button&){
@@ -436,18 +441,21 @@ ModInfoView::ModInfoView(NavigationView& nav) {
 }
 
 void ModInfoView::focus() {
-	option_modules.focus();
+	if (modules_nb)
+		option_modules.focus();
+	else
+		button_ok.focus();
 }
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items<7>({ {
+		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
 		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
 		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<SetTouchCalibView>(); } },
-		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } },
-		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
+		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } }
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

@@ -35,13 +35,13 @@ void LCRFSKProcessor::execute(const buffer_c8_t& buffer) {
 			
 			if (sample_count >= shared_memory.afsk_samples_per_bit) {
 				if (shared_memory.afsk_transmit_done == false)
-					cur_byte = shared_memory.lcrdata[byte_pos];
+					cur_byte = shared_memory.radio_data[byte_pos];
 				if (!cur_byte) {
 					if (shared_memory.afsk_repeat) {
 						shared_memory.afsk_repeat--;
 						bit_pos = 0;
 						byte_pos = 0;
-						cur_byte = shared_memory.lcrdata[0];
+						cur_byte = shared_memory.radio_data[0];
 						message.n = shared_memory.afsk_repeat;
 						shared_memory.application_queue.push(message);
 					} else {
