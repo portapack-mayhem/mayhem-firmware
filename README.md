@@ -4,31 +4,33 @@ HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [Hack
 
 It is build on top of Sharebrained's firmware, meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
-As its name implies, HAVOC is a firmware made to have serious fun with various radio links, mainly involving French systems (for now). Don't use it, we never did.
+As its name implies, HAVOC is a firmware made to have serious fun with various radio systems, mainly involving French systems (for now). Don't use it, we never did.
 
 Fork features:
 * Close-Call™ style scanner
-* RDS (Radio Data System) PSN transmit
-* LCR (Language de Commande Routier) basic message forming and transmit
-* Xylos transmitter, urban lighting control (NFM CCIR tones)
+* RDS (Radio Data System) PSN and Radiotext transmit
+* LCR (Language de Commande Routier) litteral message forming and transmit
 * Fully configurable AFSK transmit
+* Xylos transmitter, urban lighting control (NFM CCIR tones)
+* Virtual keyboard or Unistroke "handwriting" text input
 * "Play Dead" in case of emergency
 * Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 
 Todo (highest to lowest priority):
+* Play wave files from µSD
+* Wireless microphone transmit
+* CTCSS talkie transmit
 * Frequency manager
+* AFSK receiver
 * POCSAG receiver
 * POCSAG transmitter
-* Wireless microphone transmit
-* Fully configurable Jammer (fix)
-* CTCSS talkie transmit
-* Play wave files from µSD
-* Whistle (tone generator)
 * EPAR transmit (old Xylos)
+* Fully configurable Jammer (fix)
+* Whistle (tone generator)
 * Detect/decode/play/replay OOK from PT2262 and friends (doorbells, cheap remotes... )
 * Make SIGFOX interceptor work with all modules
-* Moltonel (tone detector/scanner)
-* AFSK receiver
+* Number station
+* Spectrum painter
 * Rolling-code jam and replay trick
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
@@ -37,7 +39,7 @@ Hardware is available at [ShareBrained Technology](http://sharebrained.com/porta
 
 # Thanks
 
-Sig and cLx for discovery/research on AFSK LCR and Xylos.
+Sig and cLx for discovery and research on AFSK LCR and Xylos.
 
 # License
 
