@@ -38,7 +38,7 @@ size_t ManchesterDecoder::symbols_count() const {
 	return packet.size() / 2;
 }
 
-ManchesterFormatted format_manchester(
+FormattedSymbols format_symbols(
 	const ManchesterDecoder& decoder
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();

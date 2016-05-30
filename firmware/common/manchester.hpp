@@ -58,12 +58,12 @@ T operator|(const T& l, const DecodedSymbol& r) {
 	return l | r.value;
 }
 
-struct ManchesterFormatted {
+struct FormattedSymbols {
 	const std::string data;
 	const std::string errors;
 };
 
-ManchesterFormatted format_manchester(
+FormattedSymbols format_symbols(
 	const ManchesterDecoder& decoder
 );
 

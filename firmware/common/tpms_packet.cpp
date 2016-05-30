@@ -29,8 +29,8 @@ Timestamp Packet::received_at() const {
 	return packet_.timestamp();
 }
 
-ManchesterFormatted Packet::symbols_formatted() const {
-	return format_manchester(decoder_);
+FormattedSymbols Packet::symbols_formatted() const {
+	return format_symbols(decoder_);
 }
 
 Optional<Reading> Packet::reading_fsk_19k2_schrader() const {

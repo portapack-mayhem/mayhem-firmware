@@ -147,7 +147,7 @@ public:
 	SignalType signal_type() const { return signal_type_; }
 	Timestamp received_at() const;
 
-	ManchesterFormatted symbols_formatted() const;
+	FormattedSymbols symbols_formatted() const;
 
 	Optional<Reading> reading() const;
 
