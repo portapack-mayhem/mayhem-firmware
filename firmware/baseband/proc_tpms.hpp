@@ -93,7 +93,7 @@ private:
 	static constexpr float channel_rate_in = 307200.0f;
 	static constexpr size_t channel_decimation = 8;
 	static constexpr float channel_sample_rate = channel_rate_in / channel_decimation;
-	OOKSlicerMagSquaredInt ook_slicer_5sps { 5 };
+	OOKSlicerMagSquaredInt ook_slicer_5sps { channel_sample_rate / 8400 + 1};
 	uint32_t slicer_history { 0 };
 
 	OOKClockRecovery clock_recovery_ook_8k192 {
@@ -101,9 +101,13 @@ private:
 	};
 
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k192_schrader {
+		/* Preamble: 11*2, 01*14, 11, 10
+		 * Payload: 37 Manchester-encoded bits
+		 * Bit rate: 4096 Hz
+		 */
 		{ 0b010101010101010101011110, 24, 0 },
 		{ },
-		{ 74 },
+		{ 37 * 2 },
 		[](const baseband::Packet& packet) {
 			const TPMSPacketMessage message { tpms::SignalType::OOK_8k192_Schrader, packet };
 			shared_memory.application_queue.push(message);
@@ -115,9 +119,13 @@ private:
 	};
 
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k4_schrader {
+		/* Preamble: 01*40, 01, 10, 01, 01
+		 * Payload: 76 Manchester-encoded bits
+		 * Bit rate: 4200 Hz
+		 */
 		{ 0b01010101010101010101010101100101, 32, 0 },
 		{ },
-		{ 192 },
+		{ 76 * 2 },
 		[](const baseband::Packet& packet) {
 			const TPMSPacketMessage message { tpms::SignalType::OOK_8k4_Schrader, packet };
 			shared_memory.application_queue.push(message);
