@@ -39,30 +39,32 @@ public:
 	};
 
 	constexpr PhaseDetectorEarlyLateGate(
-		const float samples_per_symbol
-	) : late_mask { (1U << static_cast<size_t>(std::ceil(samples_per_symbol / 2))) - 1 },
-		early_mask { late_mask << static_cast<size_t>(std::floor(samples_per_symbol / 2)) },
-		sample_bit { static_cast<size_t>(std::floor(samples_per_symbol / 2)) }
+		const size_t samples_per_symbol
+	) : sample_threshold { samples_per_symbol / 2 },
+		late_mask { (1UL << sample_threshold) - 1UL },
+		early_mask { late_mask << sample_threshold }
 	{
 	}
 
 	result_t operator()(const history_t symbol_history) const {
+		static_assert(sizeof(history_t) == sizeof(unsigned long), "popcountl size mismatch");
+
 		// history = ...0111, early
 		// history = ...1110, late
 
-		const symbol_t symbol = (symbol_history >> sample_bit) & 1;
-		const int late_side = __builtin_popcount(symbol_history & late_mask);
-		const int early_side = __builtin_popcount(symbol_history & early_mask);
-		const int lateness = late_side - early_side;
-		const int direction = lateness; //std::min(std::max(lateness, -1), 1);
-		const error_t error = direction;
+		const size_t late_side = __builtin_popcountl(symbol_history & late_mask);
+		const size_t early_side = __builtin_popcountl(symbol_history & early_mask);
+		const size_t total_count = late_side + early_side;
+		const auto lateness = static_cast<int>(late_side) - static_cast<int>(early_side);
+		const symbol_t symbol = (total_count >= sample_threshold);
+		const error_t error = symbol ? -lateness : lateness;
 		return { symbol, error };
 	}
 
 private:
+	const size_t sample_threshold;
 	const history_t late_mask;
 	const history_t early_mask;
-	const size_t sample_bit;
 };
 
 #endif/*__PHASE_DETECTOR_HPP__*/
