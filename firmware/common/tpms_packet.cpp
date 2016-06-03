@@ -67,16 +67,32 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 }
 
 Optional<Reading> Packet::reading_ook_8k192_schrader() const {
+	/*
+	 * Preamble: 11*2, 01*14, 11, 10
+	 * Function code: 3 Manchester symbols
+	 * ID: 24 Manchester symbols (one variant seen with 21 symbols?)
+	 * Pressure: 8 Manchester symbols
+	 * Checksum: 2 Manchester symbols (2 LSBs of sum incl this field == 3)
+	 */
 	const auto flags = reader_.read(0, 3);
 	const auto checksum = reader_.read(35, 2);
 	
-	return Reading {
-		Reading::Type::Schrader,
-		reader_.read(3, 24),
-		Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
-		{ },
-		Flags { (flags << 4) | checksum }
-	};
+	uint32_t checksum_calculated = reader_.read(0, 1);
+	for(size_t i=1; i<37; i+=2) {
+		checksum_calculated += reader_.read(i, 2);
+	}
+
+	if( (checksum_calculated & 3) == 3 ) {
+		return Reading {
+			Reading::Type::Schrader,
+			reader_.read(3, 24),
+			Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
+			{ },
+			Flags { (flags << 4) | checksum }
+		};
+	} else {
+		return { };
+	}
 }
 
 Optional<Reading> Packet::reading_ook_8k4_schrader() const {
