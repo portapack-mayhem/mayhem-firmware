@@ -80,11 +80,39 @@ Optional<Reading> Packet::reading_ook_8k192_schrader() const {
 }
 
 Optional<Reading> Packet::reading_ook_8k4_schrader() const {
-	return Reading {
-		Reading::Type::GMC_96,
-		reader_.read(20, 32),
-		Pressure { static_cast<int>(reader_.read(52, 8)) }
-	};
+	/*
+	 * Preamble: 01*40
+	 * System ID: 01100101, ??*20 (not really sure what this data is)
+	 * ID: 32 Manchester symbols
+	 * Value: 8 Manchester symbols (temperature?)
+	 * Value: 8 Manchester symbols (pressure?)
+	 * Checksum: 8 Manchester symbols (uint8_t sum of bytes starting with system ID)
+	 */
+	/* NOTE: First four bits of packet are consumed in preamble detection.
+	 * Those bits assumed to be 0b0100", which may not be entirely true...
+	 */
+	constexpr uint8_t first_nibble = 0x4;
+	const auto system_id = (first_nibble << 20) | reader_.read(0, 20);
+	const auto id = reader_.read(20, 32);
+	const auto value_0 = reader_.read(52, 8);
+	const auto value_1 = reader_.read(60, 8);
+	const auto checksum = reader_.read(68, 8);
+
+	uint8_t checksum_calculated = (first_nibble << 4) | reader_.read(0, 4);
+	for(size_t i=4; i<68; i+=8) {
+		checksum_calculated += reader_.read(i, 8);
+	}
+
+	if( checksum_calculated == checksum ) {
+		return Reading {
+			Reading::Type::GMC_96,
+			id,
+			Pressure { static_cast<int>(value_1) * 4 / 3 },
+			Temperature { static_cast<int>(value_0) - 50 }
+		};
+	} else {
+		return { };
+	}
 }
 
 Optional<Reading> Packet::reading() const {
