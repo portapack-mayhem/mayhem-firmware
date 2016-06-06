@@ -51,16 +51,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		};
 	};
 
-	field_lna.set_value(receiver_model.lna());
-	field_lna.on_change = [this](int32_t v) {
-		this->on_lna_changed(v);
-	};
-
-	field_vga.set_value(receiver_model.vga());
-	field_vga.on_change = [this](int32_t v_db) {
-		this->on_vga_changed(v_db);
-	};
-
 	receiver_model.set_baseband_configuration({
 		.mode = toUType(ReceiverModel::Mode::Capture),
 		.sampling_rate = sampling_rate,
@@ -99,14 +89,6 @@ void CaptureAppView::focus() {
 
 void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {
 	receiver_model.set_tuning_frequency(f);
-}
-
-void CaptureAppView::on_lna_changed(int32_t v_db) {
-	receiver_model.set_lna(v_db);
-}
-
-void CaptureAppView::on_vga_changed(int32_t v_db) {
-	receiver_model.set_vga(v_db);
 }
 
 } /* namespace ui */

@@ -53,8 +53,6 @@ private:
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
-	void on_lna_changed(int32_t v_db);
-	void on_vga_changed(int32_t v_db);
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },

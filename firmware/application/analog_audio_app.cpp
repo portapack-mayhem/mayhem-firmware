@@ -108,19 +108,10 @@ AnalogAudioView::AnalogAudioView(
 		this->on_show_options_frequency();
 	};
 
-	field_lna.set_value(receiver_model.lna());
-	field_lna.on_change = [this](int32_t v) {
-		this->on_lna_changed(v);
-	};
-
 	field_lna.on_show_options = [this]() {
 		this->on_show_options_rf_gain();
 	};
 
-	field_vga.set_value(receiver_model.vga());
-	field_vga.on_change = [this](int32_t v_db) {
-		this->on_vga_changed(v_db);
-	};
 	field_vga.on_show_options = [this]() {
 		this->on_show_options_rf_gain();
 	};
@@ -180,14 +171,6 @@ void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
 
 void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 	receiver_model.set_baseband_bandwidth(bandwidth_hz);
-}
-
-void AnalogAudioView::on_lna_changed(int32_t v_db) {
-	receiver_model.set_lna(v_db);
-}
-
-void AnalogAudioView::on_vga_changed(int32_t v_db) {
-	receiver_model.set_vga(v_db);
 }
 
 void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation) {

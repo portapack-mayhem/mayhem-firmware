@@ -314,6 +314,11 @@ LNAGainField::LNAGainField(
 		' ',
 	}
 {
+	set_value(receiver_model.lna());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_lna(v);
+	};
 }
 
 void LNAGainField::on_focus() {
@@ -334,6 +339,11 @@ VGAGainField::VGAGainField(
 		' ',
 	}
 {
+	set_value(receiver_model.vga());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_vga(v);
+	};
 }
 
 void VGAGainField::on_focus() {
