@@ -167,6 +167,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	add_children({ {
 		&rssi,
 		&channel,
+		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&recent_entries_view,

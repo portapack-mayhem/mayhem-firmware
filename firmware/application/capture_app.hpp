@@ -63,7 +63,11 @@ private:
 	};
 
 	FrequencyField field_frequency {
-		{ 5 * 8, 0 * 16 },
+		{ 3 * 8, 0 * 16 },
+	};
+
+	RFAmpField field_rf_amp {
+		{ 13 * 8, 0 * 16 }
 	};
 
 	LNAGainField field_lna {

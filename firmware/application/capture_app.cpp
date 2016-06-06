@@ -31,6 +31,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&rssi,
 		&channel,
 		&field_frequency,
+		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&record_view,

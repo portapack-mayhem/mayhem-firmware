@@ -129,6 +129,10 @@ private:
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
+	RFAmpField field_rf_amp {
+		{ 13 * 8, 0 * 16 }
+	};
+
 	LNAGainField field_lna {
 		{ 15 * 8, 0 * 16 }
 	};
