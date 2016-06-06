@@ -23,6 +23,9 @@
 
 #include "baseband_api.hpp"
 
+#include "portapack.hpp"
+using namespace portapack;
+
 #include "string_format.hpp"
 
 #include "utility.hpp"
@@ -162,15 +165,31 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 
 TPMSAppView::TPMSAppView(NavigationView&) {
 	add_children({ {
+		&rssi,
+		&channel,
+		&field_lna,
+		&field_vga,
 		&recent_entries_view,
 	} });
+
+	field_lna.set_value(receiver_model.lna());
+	field_lna.on_change = [this](int32_t v_db) {
+		receiver_model.set_lna(v_db);
+	};
+
+	field_vga.set_value(receiver_model.vga());
+	field_vga.on_change = [this](int32_t v_db) {
+		receiver_model.set_vga(v_db);
+	};
 
 	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
 		rf::Direction::Receive,
-		false, 32, 32,
+		false,
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
 		1,
 	});
 
@@ -197,7 +216,7 @@ void TPMSAppView::focus() {
 
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
