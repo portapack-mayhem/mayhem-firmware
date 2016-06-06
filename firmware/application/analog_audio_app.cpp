@@ -182,10 +182,6 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 	receiver_model.set_baseband_bandwidth(bandwidth_hz);
 }
 
-void AnalogAudioView::on_rf_amp_changed(bool v) {
-	receiver_model.set_rf_amp(v);
-}
-
 void AnalogAudioView::on_lna_changed(int32_t v_db) {
 	receiver_model.set_lna(v_db);
 }
@@ -244,11 +240,6 @@ void AnalogAudioView::on_show_options_frequency() {
 
 void AnalogAudioView::on_show_options_rf_gain() {
 	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
-
-	widget->set_rf_amp(receiver_model.rf_amp());
-	widget->on_change_rf_amp = [this](bool enable) {
-		this->on_rf_amp_changed(enable);
-	};
 
 	set_options_widget(std::move(widget));
 	field_lna.set_style(&style_options_group);

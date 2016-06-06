@@ -281,13 +281,14 @@ private:
 	};
 };
 
+class RFAmpField : public NumberField {
+public:
+	RFAmpField(Point parent_pos);
+};
+
 class RadioGainOptionsView : public View {
 public:
-	std::function<void(bool)> on_change_rf_amp;
-
 	RadioGainOptionsView(const Rect parent_rect, const Style* const style);
-
-	void set_rf_amp(int32_t v_db);
 
 private:
 	Text label_rf_amp {
@@ -295,15 +296,9 @@ private:
 		"Amp"
 	};
 
-	NumberField field_rf_amp {
+	RFAmpField field_rf_amp {
 		{ 4 * 8, 0 * 16},
-		1,
-		{ 0, 1 },
-		1,
-		' ',
 	};
-
-	void on_rf_amp_changed(bool enable);
 };
 
 class LNAGainField : public NumberField {

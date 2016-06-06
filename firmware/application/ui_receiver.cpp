@@ -269,6 +269,25 @@ void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
 	}
 }
 
+/* RFAmpField ************************************************************/
+
+RFAmpField::RFAmpField(
+	Point parent_pos
+) : NumberField {
+		parent_pos,
+		1,
+		{ 0, 1 },
+		1,
+		' ',
+	}
+{
+	set_value(receiver_model.rf_amp());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_rf_amp(v);
+	};
+}
+
 /* RadioGainOptionsView **************************************************/
 
 RadioGainOptionsView::RadioGainOptionsView(
@@ -282,20 +301,6 @@ RadioGainOptionsView::RadioGainOptionsView(
 		&label_rf_amp,
 		&field_rf_amp,
 	} });
-
-	field_rf_amp.on_change = [this](int32_t v) {
-		this->on_rf_amp_changed(v);
-	};
-}
-
-void RadioGainOptionsView::set_rf_amp(int32_t v_db) {
-	field_rf_amp.set_value(v_db);
-}
-
-void RadioGainOptionsView::on_rf_amp_changed(bool enable) {
-	if( on_change_rf_amp ) {
-		on_change_rf_amp(enable);
-	}
 }
 
 /* LNAGainField **********************************************************/
