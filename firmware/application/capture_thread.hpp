@@ -57,6 +57,8 @@ public:
 	static void check_fifo_isr();
 
 private:
+	static constexpr auto event_mask_loop_wake = EVENT_MASK(0);
+
 	CaptureConfig config;
 	std::unique_ptr<Writer> writer;
 	Optional<File::Error> last_error;

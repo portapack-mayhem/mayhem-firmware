@@ -92,7 +92,7 @@ CaptureThread::CaptureThread(
 CaptureThread::~CaptureThread() {
 	if( thread ) {
 		chThdTerminate(thread);
-		chEvtSignal(thread, EVT_MASK_CAPTURE_THREAD);
+		chEvtSignal(thread, event_mask_loop_wake);
 		chThdWait(thread);
 		thread = nullptr;
 	}
@@ -108,7 +108,7 @@ void CaptureThread::check_fifo_isr() {
 	const auto fifo = StreamOutput::fifo_buffers_full;
 	if( fifo ) {
 		if( !fifo->is_empty() ) {
-			chEvtSignalI(thread, EVT_MASK_CAPTURE_THREAD);
+			chEvtSignalI(thread, event_mask_loop_wake);
 		}
 	}
 }
@@ -125,7 +125,7 @@ Optional<File::Error> CaptureThread::run() {
 			}
 			stream.release_buffer(buffer);
 		} else {
-			chEvtWaitAny(EVT_MASK_CAPTURE_THREAD);
+			chEvtWaitAny(event_mask_loop_wake);
 		}
 	}
 
