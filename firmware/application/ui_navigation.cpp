@@ -63,7 +63,7 @@ SystemStatusView::SystemStatusView() {
 
 	button_sleep.on_select = [this](ImageButton&) {
 		DisplaySleepMessage message;
-		EventDispatcher::message_map().send(&message);
+		EventDispatcher::send_message(&message);
 	};
 }
 

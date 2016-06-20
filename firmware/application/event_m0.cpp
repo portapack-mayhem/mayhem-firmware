@@ -57,7 +57,36 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 }
 
-MessageHandlerMap EventDispatcher::message_map_;
+class MessageHandlerMap {
+public:
+	using MessageHandler = std::function<void(Message* const p)>;
+
+	void register_handler(const Message::ID id, MessageHandler&& handler) {
+		if( map_[toUType(id)] != nullptr ) {
+			chDbgPanic("MsgDblReg");
+		}
+		map_[toUType(id)] = std::move(handler);
+	}
+
+	void unregister_handler(const Message::ID id) {
+		map_[toUType(id)] = nullptr;
+	}
+
+	void send(Message* const message) {
+		if( message->id < Message::ID::MAX ) {
+			auto& fn = map_[toUType(message->id)];
+			if( fn ) {
+				fn(message);
+			}
+		}
+	}
+
+private:
+	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
+	MapType map_;
+};
+
+static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 
 EventDispatcher::EventDispatcher(
@@ -88,6 +117,10 @@ void EventDispatcher::run() {
 
 void EventDispatcher::request_stop() {
 	is_running = false;
+}
+
+void EventDispatcher::send_message(Message* const message) {
+	message_map.send(message);
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
@@ -137,7 +170,7 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 
 void EventDispatcher::handle_application_queue() {
 	shared_memory.application_queue.handle([](Message* const message) {
-		message_map().send(message);
+		message_map.send(message);
 	});
 }
 
@@ -193,7 +226,7 @@ void EventDispatcher::on_touch_event(ui::TouchEvent event) {
 
 void EventDispatcher::handle_lcd_frame_sync() {
 	DisplayFrameSyncMessage message;
-	message_map().send(&message);
+	message_map.send(&message);
 	painter.paint_widget_tree(top_widget);
 }
 
@@ -262,9 +295,9 @@ MessageHandlerRegistration::MessageHandlerRegistration(
 	MessageHandlerMap::MessageHandler&& callback
 ) : message_id { message_id }
 {
-	EventDispatcher::message_map().register_handler(message_id, std::move(callback));
+	message_map.register_handler(message_id, std::move(callback));
 }
 
 MessageHandlerRegistration::~MessageHandlerRegistration() {
-	EventDispatcher::message_map().unregister_handler(message_id);
+	message_map.unregister_handler(message_id);
 }

@@ -80,16 +80,13 @@ public:
 		}
 	}
 
-	static MessageHandlerMap& message_map() {
-		return message_map_;
-	}
+	static void send_message(Message* const message);
 
 private:
 	static constexpr auto EVT_MASK_RTC_TICK       = EVENT_MASK(0);
 	static constexpr auto EVT_MASK_LCD_FRAME_SYNC = EVENT_MASK(1);
 	static constexpr auto EVT_MASK_APPLICATION    = EVENT_MASK(6);
 
-	static MessageHandlerMap message_map_;
 	static Thread* thread_event_loop;
 
 	touch::Manager touch_manager;
@@ -128,7 +125,7 @@ class MessageHandlerRegistration {
 public:
 	MessageHandlerRegistration(
 		const Message::ID message_id,
-		MessageHandlerMap::MessageHandler&& callback
+		std::function<void(Message* const p)>&& callback
 	);
 
 	~MessageHandlerRegistration();

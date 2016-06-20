@@ -494,33 +494,4 @@ public:
 	CaptureConfig* const config;
 };
 
-class MessageHandlerMap {
-public:
-	using MessageHandler = std::function<void(Message* const p)>;
-
-	void register_handler(const Message::ID id, MessageHandler&& handler) {
-		if( map_[toUType(id)] != nullptr ) {
-			chDbgPanic("MsgDblReg");
-		}
-		map_[toUType(id)] = std::move(handler);
-	}
-
-	void unregister_handler(const Message::ID id) {
-		map_[toUType(id)] = nullptr;
-	}
-
-	void send(Message* const message) {
-		if( message->id < Message::ID::MAX ) {
-			auto& fn = map_[toUType(message->id)];
-			if( fn ) {
-				fn(message);
-			}
-		}
-	}
-
-private:
-	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
-	MapType map_;
-};
-
 #endif/*__MESSAGE_H__*/
