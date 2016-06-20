@@ -21,7 +21,7 @@
 
 #include "capture_thread.hpp"
 
-#include "portapack_shared_memory.hpp"
+#include "baseband_api.hpp"
 
 // StreamOutput ///////////////////////////////////////////////////////////
 
@@ -59,9 +59,7 @@ StreamOutput::StreamOutput(
 	CaptureConfig* const config
 ) : config { config }
 {
-	shared_memory.baseband_queue.push_and_wait(
-		CaptureConfigMessage { config }
-	);
+	baseband::capture_start(config);
 	fifo_buffers_empty = config->fifo_buffers_empty;
 	fifo_buffers_full = config->fifo_buffers_full;
 }
@@ -69,9 +67,7 @@ StreamOutput::StreamOutput(
 StreamOutput::~StreamOutput() {
 	fifo_buffers_full = nullptr;
 	fifo_buffers_empty = nullptr;
-	shared_memory.baseband_queue.push_and_wait(
-		CaptureConfigMessage { nullptr }
-	);
+	baseband::capture_stop();
 }
 
 // CaptureThread //////////////////////////////////////////////////////////

@@ -58,6 +58,9 @@ void shutdown();
 void spectrum_streaming_start();
 void spectrum_streaming_stop();
 
+void capture_start(CaptureConfig* const config);
+void capture_stop();
+
 } /* namespace baseband */
 
 #endif/*__BASEBAND_API_H__*/

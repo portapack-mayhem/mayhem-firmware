@@ -102,4 +102,16 @@ void spectrum_streaming_stop() {
 	);
 }
 
+void capture_start(CaptureConfig* const config) {
+	shared_memory.baseband_queue.push_and_wait(
+		CaptureConfigMessage { config }
+	);
+}
+
+void capture_stop() {
+	shared_memory.baseband_queue.push_and_wait(
+		CaptureConfigMessage { nullptr }
+	);
+}
+
 } /* namespace baseband */
