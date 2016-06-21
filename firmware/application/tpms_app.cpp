@@ -167,6 +167,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	add_children({ {
 		&rssi,
 		&channel,
+		&options_band,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
@@ -189,6 +190,11 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	});
+
+	options_band.on_change = [this](size_t, OptionsField::value_t v) {
+		this->on_band_changed(v);
+	};
+	options_band.set_by_value(target_frequency());
 
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
@@ -228,8 +234,17 @@ void TPMSAppView::on_show_list() {
 	recent_entries_view.focus();
 }
 
+void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {
+	set_target_frequency(new_band_frequency);
+}
+
+void TPMSAppView::set_target_frequency(const uint32_t new_value) {
+	target_frequency_ = new_value;
+	radio::set_tuning_frequency(tuning_frequency());
+}
+
 uint32_t TPMSAppView::target_frequency() const {
-	return initial_target_frequency;
+	return target_frequency_;
 }
 
 uint32_t TPMSAppView::tuning_frequency() const {

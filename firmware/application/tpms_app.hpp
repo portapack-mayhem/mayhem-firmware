@@ -129,6 +129,15 @@ private:
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
+	OptionsField options_band {
+		{ 0 * 8, 0 * 16 },
+		3,
+		{
+			{ "315", 315000000 },
+			{ "434", 433920000 },
+		}
+	};
+
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
 	};
@@ -146,10 +155,16 @@ private:
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 
+	uint32_t target_frequency_ = initial_target_frequency;
+
 	void on_packet(const tpms::Packet& packet);
 	void on_show_list();
 
+	void on_band_changed(const uint32_t new_band_frequency);
+
 	uint32_t target_frequency() const;
+	void set_target_frequency(const uint32_t new_value);
+
 	uint32_t tuning_frequency() const;
 };
 
