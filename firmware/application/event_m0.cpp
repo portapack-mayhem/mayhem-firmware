@@ -119,10 +119,6 @@ void EventDispatcher::request_stop() {
 	is_running = false;
 }
 
-void EventDispatcher::send_message(Message* const message) {
-	message_map.send(message);
-}
-
 void EventDispatcher::set_display_sleep(const bool sleep) {
 	// TODO: Distribute display sleep message more broadly, shut down data generation
 	// on baseband side, since all that data is being discarded during sleep.

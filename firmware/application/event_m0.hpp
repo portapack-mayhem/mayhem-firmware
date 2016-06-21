@@ -80,7 +80,11 @@ public:
 		}
 	}
 
-	static void send_message(Message* const message);
+	template<typename T>
+	static void send_message(T& message) {
+		shared_memory.app_local_queue.push(message);
+		events_flag_isr(EVT_MASK_LOCAL);
+	}
 
 private:
 	static constexpr auto EVT_MASK_RTC_TICK       = EVENT_MASK(0);
