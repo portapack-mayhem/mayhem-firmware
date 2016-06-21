@@ -83,7 +83,7 @@ public:
 	template<typename T>
 	static void send_message(T& message) {
 		shared_memory.app_local_queue.push(message);
-		events_flag_isr(EVT_MASK_LOCAL);
+		events_flag(EVT_MASK_LOCAL);
 	}
 
 private:
