@@ -65,18 +65,7 @@ private:
 	std::function<void(File::Error)> error_callback;
 	static Thread* thread;
 
-	static msg_t static_fn(void* arg) {
-		auto obj = static_cast<CaptureThread*>(arg);
-		const auto error = obj->run();
-		if( error.is_valid() && obj->error_callback ) {
-			obj->error_callback(error.value());
-		} else {
-			if( obj->success_callback ) {
-				obj->success_callback();
-			}
-		}
-		return 0;
-	}
+	static msg_t static_fn(void* arg);
 
 	Optional<File::Error> run();
 };

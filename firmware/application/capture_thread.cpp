@@ -109,6 +109,19 @@ void CaptureThread::check_fifo_isr() {
 	}
 }
 
+msg_t CaptureThread::static_fn(void* arg) {
+	auto obj = static_cast<CaptureThread*>(arg);
+	const auto error = obj->run();
+	if( error.is_valid() && obj->error_callback ) {
+		obj->error_callback(error.value());
+	} else {
+		if( obj->success_callback ) {
+			obj->success_callback();
+		}
+	}
+	return 0;
+}
+
 Optional<File::Error> CaptureThread::run() {
 	StreamOutput stream { &config };
 
