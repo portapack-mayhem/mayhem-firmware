@@ -78,7 +78,7 @@ CaptureThread::CaptureThread(
 	std::unique_ptr<Writer> writer,
 	size_t write_size,
 	size_t buffer_count,
-	std::function<void(File::Error)>&& error_callback
+	std::function<void(File::Error)> error_callback
 ) : config { write_size, buffer_count },
 	writer { std::move(writer) },
 	error_callback { std::move(error_callback) }
