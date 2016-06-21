@@ -32,8 +32,7 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto decimator_out = decim_1_out;
+	const auto decimator_out = decim_1.execute(decim_0_out, dst_buffer);
 
 	/* 307.2kHz, 256 samples */
 	feed_channel_stats(decimator_out);
@@ -44,8 +43,8 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 		}
 	}
 
-	for(size_t i=0; i<decim_1_out.count; i+=channel_decimation) {
-		const auto sliced = ook_slicer_5sps(decim_1_out.p[i]);
+	for(size_t i=0; i<decimator_out.count; i+=channel_decimation) {
+		const auto sliced = ook_slicer_5sps(decimator_out.p[i]);
 		slicer_history = (slicer_history << 1) | sliced;
 
 		clock_recovery_ook_8k192(slicer_history, [this](const bool symbol) {
