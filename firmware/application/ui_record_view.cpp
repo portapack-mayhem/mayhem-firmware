@@ -205,6 +205,8 @@ void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
 		text_record_dropped.hidden(sampling_rate == 0);
 		text_time_available.hidden(sampling_rate == 0);
 		rect_background.hidden(sampling_rate != 0);
+
+		update_status_display();
 	}
 }
 
@@ -289,6 +291,8 @@ void RecordView::start() {
 			}
 		);
 	}
+
+	update_status_display();
 }
 
 void RecordView::stop() {
@@ -296,6 +300,8 @@ void RecordView::stop() {
 		capture_thread.reset();
 		button_record.set_bitmap(&bitmap_record);
 	}
+
+	update_status_display();
 }
 
 Optional<File::Error> RecordView::write_metadata_file(const std::string& filename) {
