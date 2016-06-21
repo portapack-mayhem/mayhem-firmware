@@ -285,6 +285,10 @@ void RecordView::start() {
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
 			write_size, buffer_count,
+			[]() {
+				CaptureThreadErrorMessage message { };
+				EventDispatcher::send_message(message);
+			},
 			[](File::Error error) {
 				CaptureThreadErrorMessage message { error.code() };
 				EventDispatcher::send_message(message);

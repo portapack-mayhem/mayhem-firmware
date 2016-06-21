@@ -498,7 +498,7 @@ public:
 class CaptureThreadErrorMessage : public Message {
 public:
 	constexpr CaptureThreadErrorMessage(
-		uint32_t error
+		uint32_t error = 0
 	) : Message { ID::CaptureThreadError },
 		error { error }
 	{

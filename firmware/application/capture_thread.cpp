@@ -78,9 +78,11 @@ CaptureThread::CaptureThread(
 	std::unique_ptr<Writer> writer,
 	size_t write_size,
 	size_t buffer_count,
+	std::function<void()> success_callback,
 	std::function<void(File::Error)> error_callback
 ) : config { write_size, buffer_count },
 	writer { std::move(writer) },
+	success_callback { std::move(success_callback) },
 	error_callback { std::move(error_callback) }
 {
 	// Need significant stack for FATFS

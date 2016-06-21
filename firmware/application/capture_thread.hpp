@@ -45,6 +45,7 @@ public:
 		std::unique_ptr<Writer> writer,
 		size_t write_size,
 		size_t buffer_count,
+		std::function<void()> success_callback,
 		std::function<void(File::Error)> error_callback
 	);
 	~CaptureThread();
@@ -60,6 +61,7 @@ private:
 
 	CaptureConfig config;
 	std::unique_ptr<Writer> writer;
+	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;
 	static Thread* thread;
 
@@ -68,6 +70,10 @@ private:
 		const auto error = obj->run();
 		if( error.is_valid() && obj->error_callback ) {
 			obj->error_callback(error.value());
+		} else {
+			if( obj->success_callback ) {
+				obj->success_callback();
+			}
 		}
 		return 0;
 	}
