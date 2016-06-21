@@ -86,6 +86,7 @@ private:
 	static constexpr auto EVT_MASK_RTC_TICK       = EVENT_MASK(0);
 	static constexpr auto EVT_MASK_LCD_FRAME_SYNC = EVENT_MASK(1);
 	static constexpr auto EVT_MASK_APPLICATION    = EVENT_MASK(6);
+	static constexpr auto EVT_MASK_LOCAL          = EVENT_MASK(7);
 
 	static Thread* thread_event_loop;
 
@@ -102,6 +103,7 @@ private:
 	void dispatch(const eventmask_t events);
 
 	void handle_application_queue();
+	void handle_local_queue();
 	void handle_rtc_tick();
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event);

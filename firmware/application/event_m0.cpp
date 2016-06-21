@@ -145,6 +145,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 		handle_application_queue();
 	}
 
+	if( events & EVT_MASK_LOCAL ) {
+		handle_local_queue();
+	}
+
 	if( events & EVT_MASK_RTC_TICK ) {
 		handle_rtc_tick();
 	}
@@ -170,6 +174,12 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 
 void EventDispatcher::handle_application_queue() {
 	shared_memory.application_queue.handle([](Message* const message) {
+		message_map.send(message);
+	});
+}
+
+void EventDispatcher::handle_local_queue() {
+	shared_memory.app_local_queue.handle([](Message* const message) {
 		message_map.send(message);
 	});
 }
@@ -287,6 +297,9 @@ void EventDispatcher::init_message_queues() {
 	);
 	new (&shared_memory.application_queue) MessageQueue(
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
+	);
+	new (&shared_memory.app_local_queue) MessageQueue(
+		shared_memory.app_local_queue_data, SharedMemory::app_local_queue_k
 	);
 }
 
