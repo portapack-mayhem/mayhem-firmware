@@ -286,11 +286,11 @@ void RecordView::start() {
 			std::move(writer),
 			write_size, buffer_count,
 			[]() {
-				CaptureThreadErrorMessage message { };
+				CaptureThreadDoneMessage message { };
 				EventDispatcher::send_message(message);
 			},
 			[](File::Error error) {
-				CaptureThreadErrorMessage message { error.code() };
+				CaptureThreadDoneMessage message { error.code() };
 				EventDispatcher::send_message(message);
 			}
 		);
@@ -353,8 +353,14 @@ void RecordView::update_status_display() {
 	}
 }
 
-void RecordView::handle_error(const File::Error error) {
+void RecordView::handle_capture_thread_done(const File::Error error) {
 	stop();
+	if( error.code() ) {
+		handle_error(error);
+	}
+}
+
+void RecordView::handle_error(const File::Error error) {
 	if( on_error ) {
 		on_error(error.what());
 	}

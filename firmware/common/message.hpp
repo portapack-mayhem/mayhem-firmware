@@ -64,7 +64,7 @@ public:
 		SpectrumStreamingConfig = 15,
 		DisplaySleep = 16,
 		CaptureConfig = 17,
-		CaptureThreadError = 18,
+		CaptureThreadDone = 18,
 		MAX
 	};
 
@@ -495,11 +495,11 @@ public:
 	CaptureConfig* const config;
 };
 
-class CaptureThreadErrorMessage : public Message {
+class CaptureThreadDoneMessage : public Message {
 public:
-	constexpr CaptureThreadErrorMessage(
+	constexpr CaptureThreadDoneMessage(
 		uint32_t error = 0
-	) : Message { ID::CaptureThreadError },
+	) : Message { ID::CaptureThreadDone },
 		error { error }
 	{
 	}

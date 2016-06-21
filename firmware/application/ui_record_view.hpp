@@ -69,6 +69,7 @@ private:
 	void on_tick_second();
 	void update_status_display();
 
+	void handle_capture_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
 	const std::string filename_stem_pattern;
@@ -107,10 +108,10 @@ private:
 	std::unique_ptr<CaptureThread> capture_thread;
 
 	MessageHandlerRegistration message_handler_capture_thread_error {
-		Message::ID::CaptureThreadError,
+		Message::ID::CaptureThreadDone,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const CaptureThreadErrorMessage*>(p);
-			this->handle_error(message.error);
+			const auto message = *reinterpret_cast<const CaptureThreadDoneMessage*>(p);
+			this->handle_capture_thread_done(message.error);
 		}
 	};
 };
