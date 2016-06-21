@@ -56,6 +56,10 @@ struct filesystem_error {
 	{
 	}
 
+	uint32_t code() const {
+		return err;
+	}
+	
 	std::string what() const;
 
 private:
