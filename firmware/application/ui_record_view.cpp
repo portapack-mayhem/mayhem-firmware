@@ -233,7 +233,7 @@ void RecordView::start() {
 				filename_stem + ".WAV"
 			);
 			if( create_error.is_valid() ) {
-				report_error(create_error.value().what());
+				handle_error(create_error.value());
 			} else {
 				writer = std::move(p);
 			}
@@ -244,7 +244,7 @@ void RecordView::start() {
 		{
 			const auto metadata_file_error = write_metadata_file(filename_stem + ".TXT");
 			if( metadata_file_error.is_valid() ) {
-				report_error(metadata_file_error.value().what());
+				handle_error(metadata_file_error.value());
 				return;
 			}
 
@@ -253,7 +253,7 @@ void RecordView::start() {
 				filename_stem + ".C16"
 			);
 			if( create_error.is_valid() ) {
-				report_error(create_error.value().what());
+				handle_error(create_error.value());
 			} else {
 				writer = std::move(p);
 			}
@@ -326,10 +326,10 @@ void RecordView::on_tick_second() {
 	}
 }
 
-void RecordView::report_error(const std::string& message) {
+void RecordView::handle_error(const File::Error error) {
 	stop();
 	if( on_error ) {
-		on_error(message);
+		on_error(error.what());
 	}
 }
 

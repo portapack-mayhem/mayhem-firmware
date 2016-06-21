@@ -79,7 +79,7 @@ private:
 
 	void on_tick_second();
 
-	void report_error(const std::string& message);
+	void handle_error(const File::Error error);
 
 	const std::string filename_stem_pattern;
 	const FileType file_type;
@@ -120,13 +120,9 @@ private:
 		Message::ID::CaptureThreadError,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const CaptureThreadErrorMessage*>(p);
-			this->on_capture_thread_error(message.error);
+			this->handle_error(message.error);
 		}
 	};
-
-	void on_capture_thread_error(File::Error error) {
-		report_error(error.what());
-	}
 };
 
 } /* namespace ui */
