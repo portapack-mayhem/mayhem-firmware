@@ -67,6 +67,7 @@ private:
 	Optional<File::Error> write_metadata_file(const std::string& filename);
 
 	void on_tick_second();
+	void update_status_display();
 
 	void handle_error(const File::Error error);
 

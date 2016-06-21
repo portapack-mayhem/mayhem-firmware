@@ -317,6 +317,10 @@ Optional<File::Error> RecordView::write_metadata_file(const std::string& filenam
 }
 
 void RecordView::on_tick_second() {
+	update_status_display();
+}
+
+void RecordView::update_status_display() {
 	if( is_active() ) {
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
