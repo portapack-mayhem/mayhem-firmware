@@ -195,6 +195,19 @@ void RecordView::focus() {
 	button_record.focus();
 }
 
+void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
+	if( new_sampling_rate != sampling_rate ) {
+		stop();
+		sampling_rate = new_sampling_rate;
+
+		button_record.hidden(sampling_rate == 0);
+		text_record_filename.hidden(sampling_rate == 0);
+		text_record_dropped.hidden(sampling_rate == 0);
+		text_time_available.hidden(sampling_rate == 0);
+		rect_background.hidden(sampling_rate != 0);
+	}
+}
+
 bool RecordView::is_active() const {
 	return (bool)capture_thread;
 }
