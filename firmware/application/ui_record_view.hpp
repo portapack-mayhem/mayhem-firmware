@@ -115,6 +115,18 @@ private:
 	};
 
 	std::unique_ptr<CaptureThread> capture_thread;
+
+	MessageHandlerRegistration message_handler_capture_thread_error {
+		Message::ID::CaptureThreadError,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const CaptureThreadErrorMessage*>(p);
+			this->on_capture_thread_error(message.error);
+		}
+	};
+
+	void on_capture_thread_error(File::Error error) {
+		report_error(error.what());
+	}
 };
 
 } /* namespace ui */

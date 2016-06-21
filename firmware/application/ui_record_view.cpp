@@ -269,7 +269,11 @@ void RecordView::start() {
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
-			write_size, buffer_count
+			write_size, buffer_count,
+			[](File::Error error) {
+				CaptureThreadErrorMessage message { error.code() };
+				EventDispatcher::send_message(message);
+			}
 		);
 	}
 }
@@ -301,11 +305,6 @@ Optional<File::Error> RecordView::write_metadata_file(const std::string& filenam
 
 void RecordView::on_tick_second() {
 	if( is_active() ) {
-		const auto error = capture_thread->error();
-		if( error.is_valid() ) {
-			stop();
-			report_error(error.value().what());
-		}
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
 		text_record_dropped.set(s);
@@ -328,6 +327,7 @@ void RecordView::on_tick_second() {
 }
 
 void RecordView::report_error(const std::string& message) {
+	stop();
 	if( on_error ) {
 		on_error(message);
 	}

@@ -44,7 +44,8 @@ public:
 	CaptureThread(
 		std::unique_ptr<Writer> writer,
 		size_t write_size,
-		size_t buffer_count
+		size_t buffer_count,
+		std::function<void(File::Error)>&& error_callback
 	);
 	~CaptureThread();
 
@@ -52,8 +53,6 @@ public:
 		return config;
 	}
 
-	const Optional<File::Error>& error() const;
-	
 	static void check_fifo_isr();
 
 private:
@@ -61,12 +60,15 @@ private:
 
 	CaptureConfig config;
 	std::unique_ptr<Writer> writer;
-	Optional<File::Error> last_error;
+	std::function<void(File::Error)> error_callback;
 	static Thread* thread;
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<CaptureThread*>(arg);
-		obj->last_error = obj->run();
+		const auto error = obj->run();
+		if( error.is_valid() && obj->error_callback ) {
+			obj->error_callback(error.value());
+		}
 		return 0;
 	}
 

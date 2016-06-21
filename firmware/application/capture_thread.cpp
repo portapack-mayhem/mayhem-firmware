@@ -77,9 +77,11 @@ Thread* CaptureThread::thread = nullptr;
 CaptureThread::CaptureThread(
 	std::unique_ptr<Writer> writer,
 	size_t write_size,
-	size_t buffer_count
+	size_t buffer_count,
+	std::function<void(File::Error)>&& error_callback
 ) : config { write_size, buffer_count },
-	writer { std::move(writer) }
+	writer { std::move(writer) },
+	error_callback { std::move(error_callback) }
 {
 	// Need significant stack for FATFS
 	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, CaptureThread::static_fn, this);
@@ -92,10 +94,6 @@ CaptureThread::~CaptureThread() {
 		chThdWait(thread);
 		thread = nullptr;
 	}
-}
-
-const Optional<File::Error>& CaptureThread::error() const {
-	return last_error;
 }
 
 void CaptureThread::check_fifo_isr() {

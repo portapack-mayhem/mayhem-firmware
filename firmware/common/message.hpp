@@ -64,6 +64,7 @@ public:
 		SpectrumStreamingConfig = 15,
 		DisplaySleep = 16,
 		CaptureConfig = 17,
+		CaptureThreadError = 18,
 		MAX
 	};
 
@@ -492,6 +493,18 @@ public:
 	}
 
 	CaptureConfig* const config;
+};
+
+class CaptureThreadErrorMessage : public Message {
+public:
+	constexpr CaptureThreadErrorMessage(
+		uint32_t error
+	) : Message { ID::CaptureThreadError },
+		error { error }
+	{
+	}
+
+	uint32_t error;
 };
 
 #endif/*__MESSAGE_H__*/
