@@ -32,8 +32,6 @@ namespace dma {
 using sample_t = uint32_t;
 using buffer_t = buffer_t<sample_t>;
 
-using Handler = void (*)();
-
 void init();
 
 void allocate();
