@@ -52,7 +52,12 @@ private:
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	void on_tuning_frequency_changed(rf::Frequency f);
+	void on_target_frequency_changed(rf::Frequency f);
+
+	rf::Frequency target_frequency() const;
+	void set_target_frequency(const rf::Frequency new_value);
+
+	rf::Frequency tuning_frequency() const;
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },

@@ -21,7 +21,12 @@
 
 #include "capture_app.hpp"
 
+#include "baseband_api.hpp"
+
 #include "portapack.hpp"
+using namespace portapack;
+
+#include "portapack_persistent_memory.hpp"
 using namespace portapack;
 
 namespace ui {
@@ -38,27 +43,36 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&waterfall,
 	} });
 
-	field_frequency.set_value(receiver_model.tuning_frequency());
+	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		this->on_target_frequency_changed(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
+			this->on_target_frequency_changed(f);
 			this->field_frequency.set_value(f);
 		};
 	};
 
-	receiver_model.set_baseband_configuration({
+	radio::enable({
+		tuning_frequency(),
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Receive,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
+		1,
+	});
+
+	baseband::start({
 		.mode = toUType(ReceiverModel::Mode::Capture),
 		.sampling_rate = sampling_rate,
 		.decimation_factor = 1,
 	});
-	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-	receiver_model.enable();
 
 	record_view.set_sampling_rate(sampling_rate / 8);
 	record_view.on_error = [&nav](std::string message) {
@@ -67,7 +81,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 }
 
 CaptureAppView::~CaptureAppView() {
-	receiver_model.disable();
+	baseband::stop();
+	radio::disable();
 }
 
 void CaptureAppView::on_hide() {
@@ -88,8 +103,21 @@ void CaptureAppView::focus() {
 	record_view.focus();
 }
 
-void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {
-	receiver_model.set_tuning_frequency(f);
+void CaptureAppView::on_target_frequency_changed(rf::Frequency f) {
+	set_target_frequency(f);
+}
+
+void CaptureAppView::set_target_frequency(const rf::Frequency new_value) {
+	persistent_memory::set_tuned_frequency(new_value);;
+	radio::set_tuning_frequency(tuning_frequency());
+}
+
+rf::Frequency CaptureAppView::target_frequency() const {
+	return persistent_memory::tuned_frequency();
+}
+
+rf::Frequency CaptureAppView::tuning_frequency() const {
+	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */
