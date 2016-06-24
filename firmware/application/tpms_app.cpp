@@ -208,7 +208,7 @@ TPMSAppView::~TPMSAppView() {
 }
 
 void TPMSAppView::focus() {
-	recent_entries_view.focus();
+	options_band.focus();
 }
 
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
