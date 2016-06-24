@@ -105,14 +105,10 @@ EventDispatcher::EventDispatcher(
 }
 
 void EventDispatcher::run() {
-	creg::m4txevent::enable();
-
 	while(is_running) {
 		const auto events = wait();
 		dispatch(events);
 	}
-
-	creg::m4txevent::disable();
 }
 
 void EventDispatcher::request_stop() {

@@ -85,9 +85,13 @@ void stop() {
 
 void run_image(const portapack::spi_flash::region_t image_region) {
 	m4_init(image_region, portapack::memory::map::m4_code);
+
+	creg::m4txevent::enable();
 }
 
 void shutdown() {
+	creg::m4txevent::disable();
+
 	ShutdownMessage shutdown_message;
 	shared_memory.baseband_queue.push_and_wait(shutdown_message);
 }
