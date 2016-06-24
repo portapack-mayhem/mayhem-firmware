@@ -53,11 +53,12 @@ Thread* EventDispatcher::thread_event_loop = nullptr;
 
 void EventDispatcher::run() {
 	thread_event_loop = chThdSelf();
-	lpc43xx::creg::m0apptxevent::enable();
 
 	baseband_thread.thread_main = chThdSelf();
 	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
 	baseband_thread.start(NORMALPRIO + 20);
+
+	lpc43xx::creg::m0apptxevent::enable();
 
 	while(is_running) {
 		const auto events = wait();
