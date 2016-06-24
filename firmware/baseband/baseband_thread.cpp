@@ -58,11 +58,9 @@ BasebandThread::BasebandThread(const tprio_t priority) {
 }
 
 BasebandThread::~BasebandThread() {
-	if( thread ) {
-		chThdTerminate(thread);
-		chThdWait(thread);
-		thread = nullptr;
-	}
+	chThdTerminate(thread);
+	chThdWait(thread);
+	thread = nullptr;
 }
 
 void BasebandThread::set_configuration(const BasebandConfiguration& new_configuration) {

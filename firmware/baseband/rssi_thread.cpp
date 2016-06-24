@@ -40,11 +40,9 @@ RSSIThread::RSSIThread(const tprio_t priority) {
 }
 
 RSSIThread::~RSSIThread() {
-	if( thread ) {
-		chThdTerminate(thread);
-		chThdWait(thread);
-		thread = nullptr;
-	}
+	chThdTerminate(thread);
+	chThdWait(thread);
+	thread = nullptr;
 }
 
 void RSSIThread::run() {
