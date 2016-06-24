@@ -24,7 +24,6 @@
 #include "dsp_types.hpp"
 
 #include "baseband.hpp"
-#include "baseband_stats_collector.hpp"
 #include "baseband_sgpio.hpp"
 #include "baseband_dma.hpp"
 
@@ -94,13 +93,6 @@ void BasebandThread::run() {
 	);
 	//baseband::dma::allocate(4, 2048);
 
-	BasebandStatsCollector stats {
-		chSysGetIdleThread(),
-		thread_main,
-		thread_rssi,
-		chThdSelf()
-	};
-
 	while(true) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
@@ -112,13 +104,6 @@ void BasebandThread::run() {
 			if( baseband_processor ) {
 				baseband_processor->execute(buffer);
 			}
-
-			stats.process(buffer,
-				[](const BasebandStatistics& statistics) {
-					const BasebandStatisticsMessage message { statistics };
-					shared_memory.application_queue.push(message);
-				}
-			);
 		}
 	}
 }

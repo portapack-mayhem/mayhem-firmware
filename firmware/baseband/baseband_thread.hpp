@@ -40,9 +40,6 @@ public:
 		return baseband::Direction::Receive;
 	}
 
-	Thread* thread_main { nullptr };
-	Thread* thread_rssi { nullptr };
-
 private:
 	BasebandProcessor* baseband_processor { nullptr };
 
