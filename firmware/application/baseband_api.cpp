@@ -39,7 +39,7 @@ void AMConfig::apply() const {
 		modulation,
 		audio_12k_hpf_300hz_config
 	};
-	shared_memory.baseband_queue.push(message);
+	shared_memory.baseband_queue.push_and_wait(message);
 	audio::set_rate(audio::Rate::Hz_12000);
 }
 
@@ -53,7 +53,7 @@ void NBFMConfig::apply() const {
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config
 	};
-	shared_memory.baseband_queue.push(message);
+	shared_memory.baseband_queue.push_and_wait(message);
 	audio::set_rate(audio::Rate::Hz_24000);
 }
 
@@ -66,13 +66,13 @@ void WFMConfig::apply() const {
 		audio_48k_hpf_30hz_config,
 		audio_48k_deemph_2122_6_config
 	};
-	shared_memory.baseband_queue.push(message);
+	shared_memory.baseband_queue.push_and_wait(message);
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
 void start(BasebandConfiguration configuration) {
 	BasebandConfigurationMessage message { configuration };
-	shared_memory.baseband_queue.push(message);
+	shared_memory.baseband_queue.push_and_wait(message);
 }
 
 void stop() {
@@ -89,7 +89,7 @@ void run_image(const portapack::spi_flash::region_t image_region) {
 
 void shutdown() {
 	ShutdownMessage shutdown_message;
-	shared_memory.baseband_queue.push(shutdown_message);
+	shared_memory.baseband_queue.push_and_wait(shutdown_message);
 }
 
 void spectrum_streaming_start() {
