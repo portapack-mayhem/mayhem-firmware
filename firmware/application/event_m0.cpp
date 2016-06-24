@@ -284,9 +284,7 @@ void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
 }
 
 void EventDispatcher::init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue(
-		shared_memory.baseband_queue_data, SharedMemory::baseband_queue_k
-	);
+	shared_memory.baseband_message = nullptr;
 	new (&shared_memory.application_queue) MessageQueue(
 		shared_memory.application_queue_data, SharedMemory::application_queue_k
 	);

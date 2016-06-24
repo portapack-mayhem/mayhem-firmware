@@ -33,14 +33,12 @@ struct TouchADCFrame {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
-	static constexpr size_t baseband_queue_k = 11;
 	static constexpr size_t application_queue_k = 11;
 	static constexpr size_t app_local_queue_k = 11;
 
-	uint8_t baseband_queue_data[1 << baseband_queue_k];
 	uint8_t application_queue_data[1 << application_queue_k];
 	uint8_t app_local_queue_data[1 << app_local_queue_k];
-	MessageQueue baseband_queue;
+	const Message* volatile baseband_message;
 	MessageQueue application_queue;
 	MessageQueue app_local_queue;
 

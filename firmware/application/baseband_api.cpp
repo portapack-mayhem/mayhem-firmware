@@ -30,6 +30,14 @@
 
 namespace baseband {
 
+static void send_message(const Message* const message) {
+	// If message is only sent by this function via one thread, no need to check if
+	// another message is present before setting new message.
+	shared_memory.baseband_message = message;
+	creg::m0apptxevent::assert();
+	while(shared_memory.baseband_message);
+}
+
 void AMConfig::apply() const {
 	const AMConfigureMessage message {
 		taps_6k0_decim_0,
@@ -39,7 +47,7 @@ void AMConfig::apply() const {
 		modulation,
 		audio_12k_hpf_300hz_config
 	};
-	shared_memory.baseband_queue.push_and_wait(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_12000);
 }
 
@@ -53,7 +61,7 @@ void NBFMConfig::apply() const {
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config
 	};
-	shared_memory.baseband_queue.push_and_wait(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_24000);
 }
 
@@ -66,21 +74,20 @@ void WFMConfig::apply() const {
 		audio_48k_hpf_30hz_config,
 		audio_48k_deemph_2122_6_config
 	};
-	shared_memory.baseband_queue.push_and_wait(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
 void start(BasebandConfiguration configuration) {
 	BasebandConfigurationMessage message { configuration };
-	shared_memory.baseband_queue.push_and_wait(message);
+	send_message(&message);
 }
 
 void stop() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
+	BasebandConfigurationMessage message {
+		.configuration = { },
+	};
+	send_message(&message);
 }
 
 void run_image(const portapack::spi_flash::region_t image_region) {
@@ -92,36 +99,32 @@ void run_image(const portapack::spi_flash::region_t image_region) {
 void shutdown() {
 	creg::m4txevent::disable();
 
-	ShutdownMessage shutdown_message;
-	shared_memory.baseband_queue.push_and_wait(shutdown_message);
+	ShutdownMessage message;
+	send_message(&message);
 }
 
 void spectrum_streaming_start() {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Running
-		}
-	);
+	SpectrumStreamingConfigMessage message {
+		SpectrumStreamingConfigMessage::Mode::Running
+	};
+	send_message(&message);
 }
 
 void spectrum_streaming_stop() {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Stopped
-		}
-	);
+	SpectrumStreamingConfigMessage message {
+		SpectrumStreamingConfigMessage::Mode::Stopped
+	};
+	send_message(&message);
 }
 
 void capture_start(CaptureConfig* const config) {
-	shared_memory.baseband_queue.push_and_wait(
-		CaptureConfigMessage { config }
-	);
+	CaptureConfigMessage message { config };
+	send_message(&message);
 }
 
 void capture_stop() {
-	shared_memory.baseband_queue.push_and_wait(
-		CaptureConfigMessage { nullptr }
-	);
+	CaptureConfigMessage message { nullptr };
+	send_message(&message);
 }
 
 } /* namespace baseband */

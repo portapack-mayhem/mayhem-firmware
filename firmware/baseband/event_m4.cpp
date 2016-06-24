@@ -87,9 +87,11 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 }
 
 void EventDispatcher::handle_baseband_queue() {
-	shared_memory.baseband_queue.handle([this](Message* const message) {
-		this->on_message(message);
-	});
+	const auto message = shared_memory.baseband_message;
+	if( message ) {
+		on_message(message);
+		shared_memory.baseband_message = nullptr;
+	}
 }
 
 void EventDispatcher::on_message(const Message* const message) {
