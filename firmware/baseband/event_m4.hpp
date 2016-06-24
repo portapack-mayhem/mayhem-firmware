@@ -40,15 +40,11 @@ public:
 	void request_stop();
 
 	static inline void events_flag(const eventmask_t events) {
-		if( thread_event_loop ) {
-			chEvtSignal(thread_event_loop, events);
-		}
+		chEvtSignal(thread_event_loop, events);
 	}
 
 	static inline void events_flag_isr(const eventmask_t events) {
-		if( thread_event_loop ) {
-			chEvtSignalI(thread_event_loop, events);
-		}
+		chEvtSignalI(thread_event_loop, events);
 	}
 
 private:
