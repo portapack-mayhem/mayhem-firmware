@@ -26,6 +26,8 @@
 
 #include "portapack_shared_memory.hpp"
 
+#include "core_control.hpp"
+
 namespace baseband {
 
 void AMConfig::apply() const {
@@ -79,6 +81,10 @@ void stop() {
 			.configuration = { },
 		}
 	);
+}
+
+void run_image(const portapack::spi_flash::region_t image_region) {
+	m4_init(image_region, portapack::memory::map::m4_code);
 }
 
 void shutdown() {

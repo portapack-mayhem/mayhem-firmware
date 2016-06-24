@@ -32,6 +32,8 @@ using namespace portapack;
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::baseband);
+
 	add_children({ {
 		&rssi,
 		&channel,
@@ -83,6 +85,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 CaptureAppView::~CaptureAppView() {
 	baseband::stop();
 	radio::disable();
+
+	baseband::shutdown();
 }
 
 void CaptureAppView::on_hide() {

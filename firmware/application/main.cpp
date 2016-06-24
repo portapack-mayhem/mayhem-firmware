@@ -59,13 +59,6 @@ static void event_loop() {
 	};
 
 	EventDispatcher event_dispatcher { &system_view, context };
-
-	MessageHandlerRegistration message_handler_shutdown {
-		Message::ID::Shutdown,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.request_stop();
-		}
-	};
 	MessageHandlerRegistration message_handler_display_sleep {
 		Message::ID::DisplaySleep,
 		[&event_dispatcher](const Message* const) {
@@ -87,8 +80,6 @@ int main(void) {
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
-
-	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
 
 	controls_init();
 	lcd_frame_sync_configure();

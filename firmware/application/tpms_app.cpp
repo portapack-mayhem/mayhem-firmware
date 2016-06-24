@@ -164,6 +164,8 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 }
 
 TPMSAppView::TPMSAppView(NavigationView&) {
+	baseband::run_image(portapack::spi_flash::baseband);
+
 	add_children({ {
 		&rssi,
 		&channel,
@@ -205,6 +207,8 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 TPMSAppView::~TPMSAppView() {
 	baseband::stop();
 	radio::disable();
+
+	baseband::shutdown();
 }
 
 void TPMSAppView::focus() {

@@ -26,6 +26,8 @@
 
 #include "dsp_fir_taps.hpp"
 
+#include "spi_image.hpp"
+
 #include <cstddef>
 
 namespace baseband {
@@ -53,6 +55,7 @@ struct WFMConfig {
 void start(BasebandConfiguration configuration);
 void stop();
 
+void run_image(const portapack::spi_flash::region_t image_region);
 void shutdown();
 
 void spectrum_streaming_start();

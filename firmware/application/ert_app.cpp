@@ -121,6 +121,8 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 }
 
 ERTAppView::ERTAppView(NavigationView&) {
+	baseband::run_image(portapack::spi_flash::baseband);
+
 	add_children({ {
 		&recent_entries_view,
 	} });
@@ -149,6 +151,8 @@ ERTAppView::ERTAppView(NavigationView&) {
 ERTAppView::~ERTAppView() {
 	baseband::stop();
 	radio::disable();
+
+	baseband::shutdown();
 }
 
 void ERTAppView::focus() {

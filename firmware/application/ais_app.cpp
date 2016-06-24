@@ -286,6 +286,8 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 }
 
 AISAppView::AISAppView(NavigationView&) {
+	baseband::run_image(portapack::spi_flash::baseband);
+
 	add_children({ {
 		&label_channel,
 		&options_channel,
@@ -333,6 +335,8 @@ AISAppView::AISAppView(NavigationView&) {
 AISAppView::~AISAppView() {
 	baseband::stop();
 	radio::disable();
+
+	baseband::shutdown();
 }
 
 void AISAppView::focus() {

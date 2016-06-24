@@ -21,6 +21,8 @@
 
 #include "analog_audio_app.hpp"
 
+#include "baseband_api.hpp"
+
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 using namespace portapack;
@@ -77,6 +79,8 @@ NBFMOptionsView::NBFMOptionsView(
 AnalogAudioView::AnalogAudioView(
 	NavigationView& nav
 ) {
+	baseband::run_image(portapack::spi_flash::baseband);
+
 	add_children({ {
 		&rssi,
 		&channel,
@@ -145,6 +149,8 @@ AnalogAudioView::~AnalogAudioView() {
 	audio::output::stop();
 
 	receiver_model.disable();
+
+	baseband::shutdown();
 }
 
 void AnalogAudioView::on_hide() {
