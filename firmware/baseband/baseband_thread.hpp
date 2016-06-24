@@ -30,7 +30,8 @@
 
 class BasebandThread : public ThreadBase {
 public:
-	Thread* start(const tprio_t priority);
+	BasebandThread(const tprio_t priority);
+	~BasebandThread();
 
 	void on_message(const Message* const message);
 	
@@ -41,6 +42,8 @@ public:
 	}
 
 private:
+	static Thread* thread;
+
 	BasebandProcessor* baseband_processor { nullptr };
 
 	BasebandConfiguration baseband_configuration;

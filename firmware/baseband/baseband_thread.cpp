@@ -48,11 +48,21 @@ static baseband::SGPIO baseband_sgpio;
 
 WORKING_AREA(baseband_thread_wa, 4096);
 
-Thread* BasebandThread::start(const tprio_t priority) {
-	return chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
+Thread* BasebandThread::thread = nullptr;
+
+BasebandThread::BasebandThread(const tprio_t priority) {
+	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		priority, ThreadBase::fn,
 		this
 	);
+}
+
+BasebandThread::~BasebandThread() {
+	if( thread ) {
+		chThdTerminate(thread);
+		chThdWait(thread);
+		thread = nullptr;
+	}
 }
 
 void BasebandThread::set_configuration(const BasebandConfiguration& new_configuration) {
@@ -93,7 +103,7 @@ void BasebandThread::run() {
 	);
 	//baseband::dma::allocate(4, 2048);
 
-	while(true) {
+	while( !chThdShouldTerminate() ) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
 		if( buffer_tmp ) {
@@ -127,15 +137,11 @@ void BasebandThread::disable() {
 		i2s::i2s0::tx_mute();
 		baseband::dma::disable();
 		baseband_sgpio.streaming_disable();
-		rf::rssi::stop();
 	}
 }
 
 void BasebandThread::enable() {
 	if( baseband_processor ) {
-		if( direction() == baseband::Direction::Receive ) {
-			rf::rssi::start();
-		}
 		baseband_sgpio.configure(direction());
 		baseband::dma::enable(direction());
 		baseband_sgpio.streaming_enable();
