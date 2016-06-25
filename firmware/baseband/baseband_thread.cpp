@@ -31,15 +31,6 @@
 #include "i2s.hpp"
 using namespace lpc43xx;
 
-#include "proc_am_audio.hpp"
-#include "proc_nfm_audio.hpp"
-#include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
-#include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
-#include "proc_ert.hpp"
-#include "proc_capture.hpp"
-
 #include "portapack_shared_memory.hpp"
 
 #include <array>
@@ -50,7 +41,13 @@ WORKING_AREA(baseband_thread_wa, 4096);
 
 Thread* BasebandThread::thread = nullptr;
 
-BasebandThread::BasebandThread(const tprio_t priority) {
+BasebandThread::BasebandThread(
+	uint32_t sampling_rate,
+	BasebandProcessor* const baseband_processor,
+	const tprio_t priority
+) : baseband_processor { baseband_processor },
+	sampling_rate { sampling_rate }
+{
 	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		priority, ThreadBase::fn,
 		this
@@ -61,33 +58,6 @@ BasebandThread::~BasebandThread() {
 	chThdTerminate(thread);
 	chThdWait(thread);
 	thread = nullptr;
-}
-
-void BasebandThread::set_configuration(const BasebandConfiguration& new_configuration) {
-	if( new_configuration.mode != baseband_configuration.mode ) {
-		disable();
-
-		// TODO: Timing problem around disabling DMA and nulling and deleting old processor
-		auto old_p = baseband_processor;
-		baseband_processor = nullptr;
-		delete old_p;
-
-		baseband_processor = create_processor(new_configuration.mode);
-
-		enable();
-	}
-
-	baseband_configuration = new_configuration;
-}
-
-void BasebandThread::on_message(const Message* const message) {
-	if( message->id == Message::ID::BasebandConfiguration ) {
-		set_configuration(reinterpret_cast<const BasebandConfigurationMessage*>(message)->configuration);
-	} else {
-		if( baseband_processor ) {
-			baseband_processor->on_message(message);
-		}
-	}
 }
 
 void BasebandThread::run() {
@@ -110,7 +80,7 @@ void BasebandThread::run() {
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
 		if( buffer_tmp ) {
 			buffer_c8_t buffer {
-				buffer_tmp.p, buffer_tmp.count, baseband_configuration.sampling_rate
+				buffer_tmp.p, buffer_tmp.count, sampling_rate
 			};
 
 			if( baseband_processor ) {
@@ -122,18 +92,4 @@ void BasebandThread::run() {
 	i2s::i2s0::tx_mute();
 	baseband::dma::disable();
 	baseband_sgpio.streaming_disable();
-}
-
-BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
-	switch(mode) {
-	case 0:		return new NarrowbandAMAudio();
-	case 1:		return new NarrowbandFMAudio();
-	case 2:		return new WidebandFMAudio();
-	case 3:		return new AISProcessor();
-	case 4:		return new WidebandSpectrum();
-	case 5:		return new TPMSProcessor();
-	case 6:		return new ERTProcessor();
-	case 7:		return new CaptureProcessor();
-	default:	return nullptr;
-	}
 }

@@ -30,10 +30,12 @@
 
 class BasebandThread : public ThreadBase {
 public:
-	BasebandThread(const tprio_t priority);
+	BasebandThread(
+		uint32_t sampling_rate,
+		BasebandProcessor* const baseband_processor,
+		const tprio_t priority
+	);
 	~BasebandThread();
-
-	void on_message(const Message* const message);
 	
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.
@@ -45,14 +47,9 @@ private:
 	static Thread* thread;
 
 	BasebandProcessor* baseband_processor { nullptr };
-
-	BasebandConfiguration baseband_configuration;
+	uint32_t sampling_rate;
 
 	void run() override;
-
-	BasebandProcessor* create_processor(const int32_t mode);
-
-	void set_configuration(const BasebandConfiguration& new_configuration);
 };
 
 #endif/*__BASEBAND_THREAD_H__*/
