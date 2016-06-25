@@ -101,6 +101,10 @@ void BasebandThread::run() {
 	);
 	//baseband::dma::allocate(4, 2048);
 
+	baseband_sgpio.configure(direction());
+	baseband::dma::enable(direction());
+	baseband_sgpio.streaming_enable();
+
 	while( !chThdShouldTerminate() ) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
@@ -114,6 +118,10 @@ void BasebandThread::run() {
 			}
 		}
 	}
+
+	i2s::i2s0::tx_mute();
+	baseband::dma::disable();
+	baseband_sgpio.streaming_disable();
 }
 
 BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
@@ -127,21 +135,5 @@ BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
 	case 6:		return new ERTProcessor();
 	case 7:		return new CaptureProcessor();
 	default:	return nullptr;
-	}
-}
-
-void BasebandThread::disable() {
-	if( baseband_processor ) {
-		i2s::i2s0::tx_mute();
-		baseband::dma::disable();
-		baseband_sgpio.streaming_disable();
-	}
-}
-
-void BasebandThread::enable() {
-	if( baseband_processor ) {
-		baseband_sgpio.configure(direction());
-		baseband::dma::enable(direction());
-		baseband_sgpio.streaming_enable();
 	}
 }

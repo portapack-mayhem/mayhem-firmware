@@ -52,9 +52,6 @@ private:
 
 	BasebandProcessor* create_processor(const int32_t mode);
 
-	void disable();
-	void enable();
-
 	void set_configuration(const BasebandConfiguration& new_configuration);
 };
 
