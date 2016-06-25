@@ -36,6 +36,8 @@ constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 
 class EventDispatcher {
 public:
+	EventDispatcher(std::unique_ptr<BasebandProcessor> baseband_processor);
+
 	void run();
 	void request_stop();
 
@@ -50,6 +52,7 @@ public:
 private:
 	static Thread* thread_event_loop;
 
+	std::unique_ptr<BasebandProcessor> baseband_processor;
 
 	bool is_running = true;
 

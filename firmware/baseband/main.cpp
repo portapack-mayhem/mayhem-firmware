@@ -32,9 +32,14 @@
 
 #include "touch_dma.hpp"
 
-#include "baseband_thread.hpp"
-#include "rssi_thread.hpp"
-#include "baseband_processor.hpp"
+#include "proc_am_audio.hpp"
+#include "proc_nfm_audio.hpp"
+#include "proc_wfm_audio.hpp"
+#include "proc_ais.hpp"
+#include "proc_wideband_spectrum.hpp"
+#include "proc_tpms.hpp"
+#include "proc_ert.hpp"
+#include "proc_capture.hpp"
 
 #include "message_queue.hpp"
 
@@ -85,6 +90,11 @@ static void init() {
 	touch::dma::enable();
 }
 
+static void run() {
+	EventDispatcher event_dispatcher { std::make_unique<CaptureProcessor>() };
+	event_dispatcher.run();
+}
+
 static void halt() {
 	port_disable();
 	while(true) {
@@ -109,12 +119,7 @@ static void shutdown() {
 
 int main(void) {
 	init();
-
-	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
-
-	EventDispatcher event_dispatcher;
-	event_dispatcher.run();
-
+	run();
 	shutdown();
 
 	return 0;

@@ -51,6 +51,12 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 
 Thread* EventDispatcher::thread_event_loop = nullptr;
 
+EventDispatcher::EventDispatcher(
+	std::unique_ptr<BasebandProcessor> baseband_processor
+) : baseband_processor { std::move(baseband_processor) }
+{
+}
+
 void EventDispatcher::run() {
 	thread_event_loop = chThdSelf();
 
@@ -107,10 +113,10 @@ void EventDispatcher::on_message_shutdown(const ShutdownMessage&) {
 }
 
 void EventDispatcher::on_message_default(const Message* const message) {
-	baseband_thread.on_message(message);
+	baseband_processor->on_message(message);
 }
 
 void EventDispatcher::handle_spectrum() {
 	const UpdateSpectrumMessage message;
-	baseband_thread.on_message(&message);
+	baseband_processor->on_message(&message);
 }
