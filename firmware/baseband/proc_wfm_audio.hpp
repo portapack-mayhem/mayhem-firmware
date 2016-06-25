@@ -23,6 +23,8 @@
 #define __PROC_WFM_AUDIO_H__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
@@ -39,6 +41,9 @@ public:
 private:
 	static constexpr size_t baseband_fs = 3072000;
 	static constexpr auto spectrum_rate_hz = 50.0f;
+
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {

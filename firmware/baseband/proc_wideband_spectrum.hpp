@@ -23,6 +23,9 @@
 #define __PROC_WIDEBAND_SPECTRUM_H__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
+
 #include "spectrum_collector.hpp"
 
 #include "message.hpp"
@@ -38,6 +41,11 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
+	static constexpr size_t baseband_fs = 20000000;
+
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
+
 	SpectrumCollector channel_spectrum;
 
 	std::array<complex16_t, 256> spectrum;

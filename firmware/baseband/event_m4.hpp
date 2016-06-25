@@ -50,8 +50,6 @@ public:
 private:
 	static Thread* thread_event_loop;
 
-	BasebandThread baseband_thread { NORMALPRIO + 20 };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	bool is_running = true;
 
