@@ -249,7 +249,9 @@ include_directories(. ${INCDIR})
 
 set(BASEBAND_IMAGES)
 
-macro(DeclareTargets)
+macro(DeclareTargets chunk_tag name)
+	project("baseband_${name}")
+
 	include(${RULESPATH}/rules.cmake)
 	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband> ${MODE_CPPSRC} ${LDSCRIPT})
 	add_definitions(${DEFS})
@@ -263,72 +265,70 @@ macro(DeclareTargets)
 		DEPENDS ${PROJECT_NAME}.elf
 	)
 
-	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.bin)
+	add_custom_target(
+		${PROJECT_NAME}.img
+		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.bin ${chunk_tag} ${PROJECT_NAME}.img
+		DEPENDS ${PROJECT_NAME}.bin
+	)
+
+	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 endmacro()
 
 ### AIS
 
-project(baseband_ais)
 set(MODE_CPPSRC
 	proc_ais.cpp
 )
-DeclareTargets()
+DeclareTargets(PAIS ais)
 
 ### AM Audio
 
-project(baseband_am_audio)
 set(MODE_CPPSRC
 	proc_am_audio.cpp
 )
-DeclareTargets()
+DeclareTargets(PAMA am_audio)
 
 ### Capture
 
-project(baseband_capture)
 set(MODE_CPPSRC
 	proc_capture.cpp
 )
-DeclareTargets()
+DeclareTargets(PCAP capture)
 
 ### ERT
 
-project(baseband_ert)
 set(MODE_CPPSRC
 	proc_ert.cpp
 )
-DeclareTargets()
+DeclareTargets(PERT ert)
 
 ### NFM Audio
 
-project(baseband_nfm_audio)
 set(MODE_CPPSRC
 	proc_nfm_audio.cpp
 )
-DeclareTargets()
+DeclareTargets(PNFM nfm_audio)
 
 ### TPMS
 
-project(baseband_tpms)
 set(MODE_CPPSRC
 	proc_tpms.cpp
 )
-DeclareTargets()
+DeclareTargets(PTPM tpms)
 
 ### WFM Audio
 
-project(baseband_wfm_audio)
 set(MODE_CPPSRC
 	proc_wfm_audio.cpp
 )
-DeclareTargets()
+DeclareTargets(PWFM wfm_audio)
 
 ### Wideband Spectrum
 
-project(baseband_wideband_spectrum)
 set(MODE_CPPSRC
 	proc_wideband_spectrum.cpp
 )
-DeclareTargets()
+DeclareTargets(PSPE wideband_spectrum)
 
 #######################################################################
 
