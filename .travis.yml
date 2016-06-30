@@ -22,7 +22,9 @@ before_script:
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
-  - pushd firmware/
+  - mkdir build/
+  - pushd build/
+  - cmake ..
   - make release
   - popd
 
@@ -33,5 +35,5 @@ addons:
     - lib32z1
   artifacts:
     paths:
-      - $(ls firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
-      - $(ls firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
+      - $(ls build/firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
+      - $(ls build/firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
