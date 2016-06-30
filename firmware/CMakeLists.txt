@@ -18,24 +18,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 2.8.9)
-set(CMAKE_TOOLCHAIN_FILE ../toolchain-arm-cortex-m.cmake)
-
 project(portapack-h1-firmware)
-
-execute_process(
-	COMMAND git log -n 1 --format=%h
-	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-	RESULT_VARIABLE GIT_REVISION_FOUND
-	ERROR_QUIET
-	OUTPUT_VARIABLE GIT_REVISION
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if (GIT_REVISION_FOUND)
-	set(VERSION "unknown")
-else (GIT_REVISION_FOUND)
-	set(VERSION ${GIT_REVISION})
-endif (GIT_REVISION_FOUND)
 
 set(COMMON ${PROJECT_SOURCE_DIR}/common)
 set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
@@ -44,7 +27,6 @@ set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 set(HACKRF_FIRMWARE_FILENAME hackrf_one_usb_ram.dfu)
 set(HACKRF_FIRMWARE_IMAGE ${PROJECT_SOURCE_DIR}/${HACKRF_FIRMWARE_FILENAME})
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
-set(LICENSE_PATH ${PROJECT_SOURCE_DIR}/../LICENSE)
 
 add_subdirectory(application)
 add_subdirectory(baseband)
