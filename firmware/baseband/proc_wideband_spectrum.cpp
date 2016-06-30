@@ -25,6 +25,8 @@
 
 #include "dsp_fft.hpp"
 
+#include "event_m4.hpp"
+
 #include <cstdint>
 #include <cstddef>
 
@@ -71,4 +73,9 @@ void WidebandSpectrum::on_message(const Message* const message) {
 	default:
 		break;
 	}
+}
+
+void run() {
+	EventDispatcher event_dispatcher { std::make_unique<WidebandSpectrum>() };
+	event_dispatcher.run();
 }

@@ -23,6 +23,8 @@
 
 #include "audio_output.hpp"
 
+#include "event_m4.hpp"
+
 #include <cstdint>
 #include <cstddef>
 
@@ -92,4 +94,9 @@ void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		audio_output.set_stream(nullptr);
 	}
+}
+
+void run() {
+	EventDispatcher event_dispatcher { std::make_unique<NarrowbandFMAudio>() };
+	event_dispatcher.run();
 }

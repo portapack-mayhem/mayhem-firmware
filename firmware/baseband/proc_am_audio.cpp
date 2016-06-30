@@ -23,6 +23,8 @@
 
 #include "audio_output.hpp"
 
+#include "event_m4.hpp"
+
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
@@ -104,4 +106,9 @@ void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		audio_output.set_stream(nullptr);
 	}
+}
+
+void run() {
+	EventDispatcher event_dispatcher { std::make_unique<NarrowbandAMAudio>() };
+	event_dispatcher.run();
 }

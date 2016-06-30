@@ -23,6 +23,8 @@
 
 #include "dsp_fir_taps.hpp"
 
+#include "event_m4.hpp"
+
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
@@ -89,4 +91,9 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		stream.reset();
 	}
+}
+
+void run() {
+	EventDispatcher event_dispatcher { std::make_unique<CaptureProcessor>() };
+	event_dispatcher.run();
 }

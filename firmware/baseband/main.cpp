@@ -28,18 +28,7 @@
 
 #include "gpdma.hpp"
 
-#include "event_m4.hpp"
-
 #include "touch_dma.hpp"
-
-#include "proc_am_audio.hpp"
-#include "proc_nfm_audio.hpp"
-#include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
-#include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
-#include "proc_ert.hpp"
-#include "proc_capture.hpp"
 
 #include "message_queue.hpp"
 
@@ -90,10 +79,7 @@ static void init() {
 	touch::dma::enable();
 }
 
-static void run() {
-	EventDispatcher event_dispatcher { std::make_unique<CaptureProcessor>() };
-	event_dispatcher.run();
-}
+extern void run();
 
 static void halt() {
 	port_disable();

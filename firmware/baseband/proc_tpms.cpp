@@ -23,6 +23,8 @@
 
 #include "dsp_fir_taps.hpp"
 
+#include "event_m4.hpp"
+
 TPMSProcessor::TPMSProcessor() {
 	decim_0.configure(taps_200k_decim_0.taps, 33554432);
 	decim_1.configure(taps_200k_decim_1.taps, 131072);
@@ -54,4 +56,9 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 			this->packet_builder_ook_8k4_schrader.execute(symbol);
 		});
 	}
+}
+
+void run() {
+	EventDispatcher event_dispatcher { std::make_unique<TPMSProcessor>() };
+	event_dispatcher.run();
 }
