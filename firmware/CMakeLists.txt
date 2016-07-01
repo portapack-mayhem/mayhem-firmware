@@ -36,7 +36,7 @@ add_subdirectory(bootstrap)
 
 add_custom_target(
 	${PROJECT_NAME}.bin
-	COMMAND ${MAKE_SPI_IMAGE} ${bootstrap_BINARY_DIR}/bootstrap.bin ${HACKRF_FIRMWARE_IMAGE} ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin ${PROJECT_NAME}.bin
+	COMMAND ${MAKE_SPI_IMAGE} ${bootstrap_BINARY_DIR}/bootstrap.bin ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin ${PROJECT_NAME}.bin
 	DEPENDS bootstrap.bin baseband.img application.bin
 )
 

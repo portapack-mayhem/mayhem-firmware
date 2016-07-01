@@ -32,7 +32,7 @@ using namespace portapack;
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
-	baseband::run_image(portapack::spi_flash::baseband);
+	baseband::run_image(portapack::spi_flash::image_tag_capture);
 
 	add_children({ {
 		&rssi,

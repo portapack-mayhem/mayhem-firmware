@@ -79,8 +79,6 @@ NBFMOptionsView::NBFMOptionsView(
 AnalogAudioView::AnalogAudioView(
 	NavigationView& nav
 ) {
-	baseband::run_image(portapack::spi_flash::baseband);
-
 	add_children({ {
 		&rssi,
 		&channel,
@@ -272,6 +270,18 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
 	record_view.stop();
+
+	portapack::spi_flash::image_tag_t image_tag;
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:				image_tag = portapack::spi_flash::image_tag_am_audio;			break;
+	case ReceiverModel::Mode::NarrowbandFMAudio:	image_tag = portapack::spi_flash::image_tag_nfm_audio;			break;
+	case ReceiverModel::Mode::WidebandFMAudio:		image_tag = portapack::spi_flash::image_tag_wfm_audio;			break;
+	case ReceiverModel::Mode::SpectrumAnalysis:		image_tag = portapack::spi_flash::image_tag_wideband_spectrum;	break;
+	default:
+		return;
+	}
+
+	baseband::run_image(image_tag);
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({

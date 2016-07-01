@@ -90,8 +90,8 @@ void stop() {
 	send_message(&message);
 }
 
-void run_image(const portapack::spi_flash::region_t image_region) {
-	m4_init(image_region, portapack::memory::map::m4_code);
+void run_image(const portapack::spi_flash::image_tag_t image_tag) {
+	m4_init(image_tag, portapack::memory::map::m4_code);
 
 	creg::m4txevent::enable();
 }

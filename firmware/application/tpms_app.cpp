@@ -164,7 +164,7 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 }
 
 TPMSAppView::TPMSAppView(NavigationView&) {
-	baseband::run_image(portapack::spi_flash::baseband);
+	baseband::run_image(portapack::spi_flash::image_tag_tpms);
 
 	add_children({ {
 		&rssi,

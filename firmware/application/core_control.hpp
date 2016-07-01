@@ -27,7 +27,7 @@
 #include "memory_map.hpp"
 #include "spi_image.hpp"
 
-void m4_init(const portapack::spi_flash::region_t from, const portapack::memory::region_t to);
+void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to);
 void m4_request_shutdown();
 
 void m0_halt();

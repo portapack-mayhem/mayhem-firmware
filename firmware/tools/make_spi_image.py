@@ -26,7 +26,7 @@ import sys
 usage_message = """
 PortaPack SPI flash image generator
 
-Usage: <command> <bootstrap_path> <hackrf_path> <baseband_path> <application_path> <output_path>
+Usage: <command> <bootstrap_path> <baseband_path> <application_path> <output_path>
        Where paths refer to the .bin files for each component project.
 """
 
@@ -36,25 +36,19 @@ def read_image(path):
 	f.close()
 	return data
 
-def read_image_from_dfu(path):
-	data = read_image(path)
-	# Strip DFU header from file to get binary image.
-	return data[16:]
-
 def write_image(data, path):
 	f = open(path, 'wb')
 	f.write(data)
 	f.close()
 
-if len(sys.argv) != 6:
+if len(sys.argv) != 5:
 	print(usage_message)
 	sys.exit(-1)
 
 bootstrap_image = read_image(sys.argv[1])
-hackrf_image = read_image_from_dfu(sys.argv[2])
-baseband_image = read_image(sys.argv[3])
-application_image = read_image(sys.argv[4])
-output_path = sys.argv[5]
+baseband_image = read_image(sys.argv[2])
+application_image = read_image(sys.argv[3])
+output_path = sys.argv[4]
 
 spi_size = 1048576
 
@@ -65,14 +59,9 @@ images = (
 		'size': 0x10000,
 	},
 	{
-		'name': 'hackrf',
-		'data': hackrf_image,
-		'size': 0x10000,
-	},
-	{
 		'name': 'baseband',
 		'data': baseband_image,
-		'size': 0x20000,
+		'size': 0x30000,
 	},
 	{
 		'name': 'application',

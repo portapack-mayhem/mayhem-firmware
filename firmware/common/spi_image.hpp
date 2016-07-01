@@ -96,14 +96,9 @@ constexpr region_t bootstrap {
 	.size = 0x10000,
 };
 
-constexpr region_t hackrf {
+constexpr region_t images {
 	.offset = 0x10000,
-	.size = 0x8000,
-};
-
-constexpr region_t baseband {
-	.offset = 0x20000,
-	.size = 0x8000,
+	.size = 0x30000,
 };
 
 constexpr region_t application {

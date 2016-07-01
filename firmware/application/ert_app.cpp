@@ -121,7 +121,7 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 }
 
 ERTAppView::ERTAppView(NavigationView&) {
-	baseband::run_image(portapack::spi_flash::baseband);
+	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
 	add_children({ {
 		&recent_entries_view,

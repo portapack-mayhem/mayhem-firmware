@@ -55,7 +55,7 @@ struct WFMConfig {
 void start(BasebandConfiguration configuration);
 void stop();
 
-void run_image(const portapack::spi_flash::region_t image_region);
+void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();
 
 void spectrum_streaming_start();

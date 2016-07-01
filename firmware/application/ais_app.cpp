@@ -286,7 +286,7 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 }
 
 AISAppView::AISAppView(NavigationView&) {
-	baseband::run_image(portapack::spi_flash::baseband);
+	baseband::run_image(portapack::spi_flash::image_tag_ais);
 
 	add_children({ {
 		&label_channel,
