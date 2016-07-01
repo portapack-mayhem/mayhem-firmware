@@ -330,6 +330,21 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+### HackRF "factory" firmware
+
+add_custom_target(
+	hackrf.bin
+	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_IMAGE} hackrf.bin
+)
+
+add_custom_target(
+	hackrf.img
+	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img
+	DEPENDS hackrf.bin
+)
+
+set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
+
 #######################################################################
 
 add_custom_target(
