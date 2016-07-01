@@ -345,10 +345,17 @@ add_custom_target(
 
 set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
 
+### Terminator image
+
+add_custom_target(
+	terminator.img
+	COMMAND ${MAKE_IMAGE_CHUNK} terminator.img
+)
+
 #######################################################################
 
 add_custom_target(
 	baseband.img
-	COMMAND cat ${BASEBAND_IMAGES} >baseband.img
-	DEPENDS ${BASEBAND_IMAGES}
+	COMMAND cat ${BASEBAND_IMAGES} terminator.img >baseband.img
+	DEPENDS ${BASEBAND_IMAGES} terminator.img
 )
