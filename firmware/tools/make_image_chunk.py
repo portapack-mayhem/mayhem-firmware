@@ -41,13 +41,17 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-if len(sys.argv) != 4:
+if len(sys.argv) == 4:
+	input_image = read_image(sys.argv[1])
+	tag = sys.argv[2].encode()
+	output_path = sys.argv[3]
+elif len(sys.argv) == 2:
+	input_image = bytearray()
+	tag = bytearray((0,) * 4)
+	output_path = sys.argv[1]
+else:
 	print(usage_message)
 	sys.exit(-1)
-
-input_image = read_image(sys.argv[1])
-tag = sys.argv[2].encode()
-output_path = sys.argv[3]
 
 if len(tag) != 4:
 	print(usage_message)
