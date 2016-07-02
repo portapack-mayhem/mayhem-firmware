@@ -100,6 +100,8 @@ static void shutdown() {
 	ShutdownMessage shutdown_message;
 	shared_memory.application_queue.push(shutdown_message);
 
+	shared_memory.baseband_message = nullptr;
+
 	halt();
 }
 
