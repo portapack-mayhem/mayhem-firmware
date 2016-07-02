@@ -74,6 +74,10 @@ public:
 		return fifo.is_empty();
 	}
 
+	void reset() {
+		fifo.reset();
+	}
+	
 private:
 	FIFO<uint8_t> fifo;
 	Mutex mutex_write;

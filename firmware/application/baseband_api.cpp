@@ -115,6 +115,8 @@ void shutdown() {
 	ShutdownMessage message;
 	send_message(&message);
 
+	shared_memory.application_queue.reset();
+	
 	baseband_image_running = false;
 }
 
