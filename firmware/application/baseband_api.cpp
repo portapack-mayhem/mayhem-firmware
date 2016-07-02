@@ -97,6 +97,8 @@ void run_image(const portapack::spi_flash::image_tag_t image_tag) {
 		chDbgPanic("BBRunning");
 	}
 
+	creg::m4txevent::clear();
+
 	m4_init(image_tag, portapack::memory::map::m4_code);
 	baseband_image_running = true;
 
