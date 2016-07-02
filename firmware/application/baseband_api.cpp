@@ -90,17 +90,30 @@ void stop() {
 	send_message(&message);
 }
 
+static bool baseband_image_running = false;
+
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {
+	if( baseband_image_running ) {
+		chDbgPanic("BBRunning");
+	}
+
 	m4_init(image_tag, portapack::memory::map::m4_code);
+	baseband_image_running = true;
 
 	creg::m4txevent::enable();
 }
 
 void shutdown() {
+	if( !baseband_image_running ) {
+		return;
+	}
+
 	creg::m4txevent::disable();
 
 	ShutdownMessage message;
 	send_message(&message);
+
+	baseband_image_running = false;
 }
 
 void spectrum_streaming_start() {

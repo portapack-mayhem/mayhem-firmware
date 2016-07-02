@@ -271,6 +271,8 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
 	record_view.stop();
 
+	baseband::shutdown();
+
 	portapack::spi_flash::image_tag_t image_tag;
 	switch(modulation) {
 	case ReceiverModel::Mode::AMAudio:				image_tag = portapack::spi_flash::image_tag_am_audio;			break;
