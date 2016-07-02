@@ -90,6 +90,7 @@ private:
 
 static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
+bool EventDispatcher::is_running = false;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
@@ -101,6 +102,7 @@ EventDispatcher::EventDispatcher(
 	init_message_queues();
 
 	thread_event_loop = chThdSelf();
+	is_running = true;
 	touch_manager.on_event = [this](const ui::TouchEvent event) {
 		this->on_touch_event(event);
 	};

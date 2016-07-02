@@ -50,7 +50,7 @@ public:
 	);
 
 	void run();
-	void request_stop();
+	static void request_stop();
 
 	void set_display_sleep(const bool sleep);
 
@@ -99,7 +99,7 @@ private:
 	ui::Painter painter;
 	ui::Context& context;
 	uint32_t encoder_last = 0;
-	bool is_running = true;
+	static bool is_running;
 	bool sd_card_present = false;
 	bool display_sleep = false;
 	bool halt = false;

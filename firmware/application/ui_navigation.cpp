@@ -251,8 +251,8 @@ Context& SystemView::context() const {
 /* HackRFFirmwareView ****************************************************/
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
-	button_yes.on_select = [&nav](Button&){
-		m4_request_shutdown();
+	button_yes.on_select = [](Button&){
+		EventDispatcher::request_stop();
 	};
 
 	button_no.on_select = [&nav](Button&){
