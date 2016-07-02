@@ -92,7 +92,6 @@ void EventDispatcher::handle_baseband_queue() {
 	const auto message = shared_memory.baseband_message;
 	if( message ) {
 		on_message(message);
-		shared_memory.baseband_message = nullptr;
 	}
 }
 
@@ -104,6 +103,7 @@ void EventDispatcher::on_message(const Message* const message) {
 
 	default:
 		on_message_default(message);
+		shared_memory.baseband_message = nullptr;
 		break;
 	}
 }
