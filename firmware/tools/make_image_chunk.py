@@ -43,11 +43,11 @@ def write_image(data, path):
 
 if len(sys.argv) == 4:
 	input_image = read_image(sys.argv[1])
-	tag = sys.argv[2].encode()
+	tag = tuple(map(ord, sys.argv[2]))
 	output_path = sys.argv[3]
 elif len(sys.argv) == 2:
 	input_image = bytearray()
-	tag = bytearray((0,) * 4)
+	tag = (0, 0, 0, 0)
 	output_path = sys.argv[1]
 else:
 	print(usage_message)
@@ -64,7 +64,7 @@ if (len(input_image) & 3) != 0:
 	raise RuntimeError('image size of %d is not multiple of four' % (len(input_image,)))
 
 output_image = bytearray()
-output_image += struct.pack('<4sI', tag, len(input_image))
+output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image))
 output_image += input_image
 
 write_image(output_image, output_path)
