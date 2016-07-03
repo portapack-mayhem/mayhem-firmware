@@ -33,6 +33,7 @@ addons:
     - lib32bz2-1.0
     - lib32ncurses5
     - lib32z1
+    - cmake
   artifacts:
     paths:
       - $(ls build/firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
