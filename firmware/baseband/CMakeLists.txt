@@ -259,16 +259,16 @@ macro(DeclareTargets chunk_tag name)
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 
-	add_custom_target(
-		${PROJECT_NAME}.bin
+	add_custom_command(
+		OUTPUT ${PROJECT_NAME}.bin
 		COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
 		DEPENDS ${PROJECT_NAME}.elf
 	)
 
-	add_custom_target(
-		${PROJECT_NAME}.img
+	add_custom_command(
+		OUTPUT ${PROJECT_NAME}.img
 		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.bin ${chunk_tag} ${PROJECT_NAME}.img
-		DEPENDS ${PROJECT_NAME}.bin
+		DEPENDS ${PROJECT_NAME}.bin ${MAKE_IMAGE_CHUNK}
 	)
 
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
@@ -332,24 +332,26 @@ DeclareTargets(PSPE wideband_spectrum)
 
 ### HackRF "factory" firmware
 
-add_custom_target(
-	hackrf.bin
+add_custom_command(
+	OUTPUT hackrf.bin
 	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_IMAGE} hackrf.bin
+	DEPENDS ${HACKRF_FIRMWARE_IMAGE} ${STRIP_DFU}
 )
 
-add_custom_target(
-	hackrf.img
+add_custom_command(
+	OUTPUT hackrf.img
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img
-	DEPENDS hackrf.bin
+	DEPENDS hackrf.bin ${MAKE_IMAGE_CHUNK}
 )
 
 set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
 
 ### Terminator image
 
-add_custom_target(
-	terminator.img
+add_custom_command(
+	OUTPUT terminator.img
 	COMMAND ${MAKE_IMAGE_CHUNK} terminator.img
+	DEPENDS ${MAKE_IMAGE_CHUNK}
 )
 
 #######################################################################

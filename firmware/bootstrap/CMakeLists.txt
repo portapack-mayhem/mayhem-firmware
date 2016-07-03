@@ -199,8 +199,8 @@ include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 
-add_custom_target(
-	${PROJECT_NAME}.bin
+add_custom_command(
+	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
 	DEPENDS ${PROJECT_NAME}.elf
 )
