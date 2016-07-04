@@ -305,3 +305,8 @@ add_custom_command(
 	COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
 	DEPENDS ${PROJECT_NAME}.elf
 )
+
+add_custom_target(
+	${PROJECT_NAME}
+	DEPENDS ${PROJECT_NAME}.bin
+)

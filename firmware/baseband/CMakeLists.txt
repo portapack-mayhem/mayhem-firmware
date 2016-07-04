@@ -26,7 +26,7 @@
 
 enable_language(C CXX ASM)
 
-project(baseband)
+project(baseband_shared)
 
 # Compiler options here.
 set(USE_OPT "-O3 -falign-functions=16 -fno-math-errno --specs=nano.specs")
@@ -253,22 +253,18 @@ macro(DeclareTargets chunk_tag name)
 	project("baseband_${name}")
 
 	include(${RULESPATH}/rules.cmake)
-	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband> ${MODE_CPPSRC} ${LDSCRIPT})
+	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${LDSCRIPT})
 	add_definitions(${DEFS})
 	include_directories(. ${INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 
 	add_custom_command(
-		OUTPUT ${PROJECT_NAME}.bin
+		OUTPUT ${PROJECT_NAME}.bin ${PROJECT_NAME}.img
 		COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
-		DEPENDS ${PROJECT_NAME}.elf
-	)
-
-	add_custom_command(
-		OUTPUT ${PROJECT_NAME}.img
 		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.bin ${chunk_tag} ${PROJECT_NAME}.img
-		DEPENDS ${PROJECT_NAME}.bin ${MAKE_IMAGE_CHUNK}
+		DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
+		VERBATIM
 	)
 
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
@@ -333,15 +329,11 @@ DeclareTargets(PSPE wideband_spectrum)
 ### HackRF "factory" firmware
 
 add_custom_command(
-	OUTPUT hackrf.bin
+	OUTPUT hackrf.bin hackrf.img
 	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_IMAGE} hackrf.bin
-	DEPENDS ${HACKRF_FIRMWARE_IMAGE} ${STRIP_DFU}
-)
-
-add_custom_command(
-	OUTPUT hackrf.img
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img
-	DEPENDS hackrf.bin ${MAKE_IMAGE_CHUNK}
+	DEPENDS ${HACKRF_FIRMWARE_IMAGE} ${STRIP_DFU} ${MAKE_IMAGE_CHUNK}
+	VERBATIM
 )
 
 set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
@@ -352,12 +344,23 @@ add_custom_command(
 	OUTPUT terminator.img
 	COMMAND ${MAKE_IMAGE_CHUNK} terminator.img
 	DEPENDS ${MAKE_IMAGE_CHUNK}
+	VERBATIM
 )
+
+set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
 
 #######################################################################
 
+project(baseband)
+
+add_custom_command(
+	OUTPUT ${PROJECT_NAME}.img
+	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img
+	DEPENDS ${BASEBAND_IMAGES}
+	VERBATIM
+)
+
 add_custom_target(
-	baseband.img
-	COMMAND cat ${BASEBAND_IMAGES} terminator.img >baseband.img
-	DEPENDS ${BASEBAND_IMAGES} terminator.img
+	${PROJECT_NAME}
+	DEPENDS ${PROJECT_NAME}.img
 )
