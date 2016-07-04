@@ -69,7 +69,7 @@ set(ASFLAGS "${MCFLAGS} ${ADEFS}")
 set(ASXFLAGS "${MCFLAGS} ${ADEFS}")
 set(CFLAGS "${MCFLAGS} ${OPT} ${COPT} ${CWARN}")
 set(CPPFLAGS "${MCFLAGS} ${OPT} ${CPPOPT} ${CPPWARN}")
-set(LDFLAGS "-nostartfiles -Wl,-Map=${PROJECT_NAME}.map,--cref,--no-warn-mismatch,--library-path=${RULESPATH},--script=${LDSCRIPT}${LDOPT}")
+set(LDFLAGS "-nostartfiles -Wl,--library-path=${RULESPATH},--script=${LDSCRIPT}${LDOPT}")
 
 # Thumb interwork enabled only if needed because it kills performance.
 if(DEFINED TSRC)
