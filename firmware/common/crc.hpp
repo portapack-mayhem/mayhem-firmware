@@ -78,27 +78,15 @@ public:
 	}
 
 	void process_bits(value_type bits, size_t bit_count) {
-		constexpr auto digits = std::numeric_limits<value_type>::digits;
-		constexpr auto mask = static_cast<value_type>(1) << (digits - 1);
-
-		bits <<= (std::numeric_limits<value_type>::digits - bit_count);
-		for(size_t i=bit_count; i>0; --i, bits <<= 1) {
-			process_bit(static_cast<bool>(bits & mask));
-		}
-	}
-
-	void process_bits_lsb_first(value_type bits, size_t bit_count) {
-		for(size_t i=bit_count; i>0; --i, bits >>= 1) {
-			process_bit(static_cast<bool>(bits & 0x01));
+		if( RevIn ) {
+			process_bits_lsb_first(bits, bit_count);
+		} else {
+			process_bits_msb_first(bits, bit_count);
 		}
 	}
 
 	void process_byte(const uint8_t byte) {
-		if( RevIn ) {
-			process_bits_lsb_first(byte, 8);
-		} else {
-			process_bits(byte, 8);
-		}
+		process_bits(byte, 8);
 	}
 
 	void process_bytes(const void* const data, const size_t length) {
@@ -146,6 +134,22 @@ private:
 			x >>= 1;
 		}
 		return reflection;
+	}
+
+	void process_bits_msb_first(value_type bits, size_t bit_count) {
+		constexpr auto digits = std::numeric_limits<value_type>::digits;
+		constexpr auto mask = static_cast<value_type>(1) << (digits - 1);
+
+		bits <<= (std::numeric_limits<value_type>::digits - bit_count);
+		for(size_t i=bit_count; i>0; --i, bits <<= 1) {
+			process_bit(static_cast<bool>(bits & mask));
+		}
+	}
+
+	void process_bits_lsb_first(value_type bits, size_t bit_count) {
+		for(size_t i=bit_count; i>0; --i, bits >>= 1) {
+			process_bit(static_cast<bool>(bits & 0x01));
+		}
 	}
 };
 
