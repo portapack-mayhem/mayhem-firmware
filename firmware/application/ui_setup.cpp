@@ -172,7 +172,6 @@ AboutView::AboutView(NavigationView& nav) {
 		&text_title,
 		&text_firmware,
 		&text_cpld_hackrf,
-		&text_cpld_portapack,
 		&button_ok,
 	} });
 

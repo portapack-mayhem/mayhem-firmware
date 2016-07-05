@@ -239,11 +239,6 @@ private:
 		"HackRF CPLD CRC     0x????????",
 	};
 
-	Text text_cpld_portapack {
-		{ 0, 160, 240, 16 },
-		"PortaPack CPLD CRC  0x????????",
-	};
-
 	Button button_ok {
 		{ 72, 192, 96, 24 },
 		"OK"
