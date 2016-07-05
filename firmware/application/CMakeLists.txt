@@ -71,6 +71,9 @@ set(USE_FPU no)
 # Project, sources and paths
 #
 
+set(CPLD_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/output_files/portapack_h1_cpld.svf)
+set(CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_data.cpp)
+
 # Imported source files and paths
 include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M0/platform.cmake)
@@ -180,7 +183,7 @@ set(CPPSRC
 	${COMMON}/cpld_max5.cpp
 	${COMMON}/jtag.cpp
 	cpld_update.cpp
-	${COMMON}/portapack_cpld_data.cpp
+	${CPLD_DATA_CPP}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -293,6 +296,12 @@ set(RULESPATH ${CHIBIOS}/os/ports/GCC/ARMCMx)
 include(${RULESPATH}/rules.cmake)
 
 ##############################################################################
+
+add_custom_command(
+	OUTPUT ${CPLD_DATA_CPP}
+	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH} >${CPLD_DATA_CPP}
+	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH}
+)
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})

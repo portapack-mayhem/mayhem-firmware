@@ -38,5 +38,6 @@ else (GIT_REVISION_FOUND)
 endif (GIT_REVISION_FOUND)
 
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
+set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)
 
 add_subdirectory(firmware)
