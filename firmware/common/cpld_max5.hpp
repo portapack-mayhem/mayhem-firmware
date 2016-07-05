@@ -23,6 +23,7 @@
 #define __CPLD_MAX5_H__
 
 #include "jtag.hpp"
+#include "crc.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -74,6 +75,8 @@ public:
 	);
 
 	bool is_blank();
+
+	uint32_t crc();
 
 	std::pair<bool, uint8_t> boundary_scan();
 
@@ -135,6 +138,9 @@ private:
 
 	bool is_blank_block(const uint16_t id, const size_t count);
 
+	using crc_t = CRC<32, true, true>;
+	void block_crc(const uint16_t id, const size_t count, crc_t& crc);
+	
 	const uint32_t IDCODE = 0b00000010000010100101000011011101;
 
 	const size_t IR_LENGTH = 10;
