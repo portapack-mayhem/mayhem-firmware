@@ -11,7 +11,7 @@ notifications:
       - "Change view : %{compare_url}"
       - "Build details : %{build_url}"
       # TODO: The "build_number.1" in this URL is almost certainly wrong, but correct value not available from Travis?
-      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_number}.1/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
+      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_number}.1/build/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
 
 before_script:
   - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q2-update/+download/gcc-arm-none-eabi-5_4-2016q2-20160622-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2         
