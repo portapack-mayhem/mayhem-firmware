@@ -22,26 +22,14 @@
 #ifndef __JTAG_H__
 #define __JTAG_H__
 
+#include "jtag_target.hpp"
+
 #include <cstdint>
 #include <cstddef>
 
 #include <bitset>
 
 namespace jtag {
-
-class Target {
-public:
-	using bit_t = uint_fast8_t;
-
-	virtual ~Target() {
-	}
-
-	virtual void delay(const size_t n) = 0;
-	virtual bit_t clock(
-		const bit_t tms_value,
-		const bit_t tdi_value
-	) = 0;
-};
 
 class JTAG {
 public:
