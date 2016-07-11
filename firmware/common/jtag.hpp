@@ -37,9 +37,9 @@ public:
 	}
 
 	virtual void delay(const size_t n) = 0;
-	virtual jtag::Target::bit_t clock(
-		const jtag::Target::bit_t tms_value,
-		const jtag::Target::bit_t tdi_value
+	virtual bit_t clock(
+		const bit_t tms_value,
+		const bit_t tdi_value
 	) = 0;
 };
 
