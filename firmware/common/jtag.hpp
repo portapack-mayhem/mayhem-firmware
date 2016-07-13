@@ -90,27 +90,6 @@ public:
 		return result;
 	}
 
-	template<size_t N>
-	void shift_dr(std::bitset<N>& bits) {
-		/* Run-Test/Idle -> Select-DR-Scan */
-		target.clock(1, 0);
-		/* Scan -> Capture -> Shift */
-		target.clock(0, 0);
-		target.clock(0, 0);
-
-		for(size_t i=0; i<bits.size(); i++) {
-			bits[i] = target.clock(
-				(i == (bits.size() - 1)) ? 1 : 0,
-				bits[i]
-			);
-		}
-
-		/* Exit1 -> Update */
-		target.clock(1, 0);
-		/* Update -> Run-Test/Idle */
-		target.clock(0, 0);
-	}
-
 private:
 	Target& target;
 

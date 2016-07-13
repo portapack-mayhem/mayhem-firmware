@@ -94,11 +94,6 @@ public:
 		shift_ir(static_cast<uint32_t>(instruction));
 	}
 
-	template<size_t N>
-	void shift_dr(std::bitset<N>& bits) {
-		jtag.shift_dr(bits);
-	}
-
 private:
 	jtag::JTAG& jtag;
 
