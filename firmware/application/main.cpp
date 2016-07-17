@@ -76,6 +76,10 @@ int main(void) {
 		chSysHalt();
 	}
 
+	if( !cpld_hackrf_load_sram() ) {
+		chSysHalt();
+	}
+
 	portapack::io.init();
 	portapack::display.init();
 
