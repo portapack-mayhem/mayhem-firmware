@@ -44,11 +44,11 @@ f = open(args.input_file_path, 'r')
 namespaces, variable_name = crack_variable_path(args.variable_path)
 
 def to_hex(value, length_bits):
-	return hex(value)[2:].zfill((length_bits + 3) >> 2)
+	return ('%x' % value).zfill((length_bits + 3) >> 2)
 
 def long_int_to_bytes(n, bit_count):
 	byte_count = (bit_count + 7) >> 3
-	h = hex(n)[2:].zfill(byte_count * 2)
+	h = ('%x' % n).zfill(byte_count * 2)
 	return [int(h[n:n+2], 16) for n in range(0, len(h), 2)]
 
 re_sdr = re.compile(r'^(?P<length>\d+)\s*TDI\s*\((?P<tdi>[0-9A-F]+)\)(|\s*SMASK\s*\((?P<smask>[0-9A-F]+)\))(|\s*TDO\s*\((?P<tdo>[0-9A-F]+)\))(|\s*MASK\s*\((?P<mask>[0-9A-F]+)\))\s*;$')
