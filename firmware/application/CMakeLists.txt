@@ -74,6 +74,9 @@ set(USE_FPU no)
 set(CPLD_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/output_files/portapack_h1_cpld.svf)
 set(CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_data.cpp)
 
+set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
+set(HACKRF_CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.cpp)
+
 # Imported source files and paths
 include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M0/platform.cmake)
@@ -181,9 +184,12 @@ set(CPPSRC
 	${COMMON}/lfsr_random.cpp
 	core_control.cpp
 	${COMMON}/cpld_max5.cpp
+	${COMMON}/cpld_xilinx.cpp
 	${COMMON}/jtag.cpp
+	${COMMON}/jtag_tap.cpp
 	cpld_update.cpp
 	${CPLD_DATA_CPP}
+	${HACKRF_CPLD_DATA_CPP}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -209,7 +215,7 @@ set(TCPPSRC)
 # List ASM source files here
 set(ASMSRC ${PORTASM})
 
-set(INCDIR ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
+set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
 	${FATFSINC}
 	${CHIBIOS}/os/various
@@ -301,6 +307,12 @@ add_custom_command(
 	OUTPUT ${CPLD_DATA_CPP}
 	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH} >${CPLD_DATA_CPP}
 	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH}
+)
+
+add_custom_command(
+	OUTPUT ${HACKRF_CPLD_DATA_HPP} ${HACKRF_CPLD_DATA_CPP}
+	COMMAND ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH} hackrf::one::cpld::verify_blocks ${HACKRF_CPLD_DATA_HPP} ${HACKRF_CPLD_DATA_CPP}
+	DEPENDS ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH}
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
