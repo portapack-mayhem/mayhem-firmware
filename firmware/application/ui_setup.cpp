@@ -28,6 +28,8 @@ using namespace lpc43xx;
 #include "portapack.hpp"
 using portapack::receiver_model;
 
+#include "cpld_update.hpp"
+
 namespace ui {
 
 SetDateTimeView::SetDateTimeView(
@@ -172,10 +174,17 @@ AboutView::AboutView(NavigationView& nav) {
 		&text_title,
 		&text_firmware,
 		&text_cpld_hackrf,
+		&text_cpld_hackrf_status,
 		&button_ok,
 	} });
 
 	button_ok.on_select = [&nav](Button&){ nav.pop(); };
+
+	if( cpld_hackrf_verify_eeprom() ) {
+		text_cpld_hackrf_status.set(" OK");
+	} else {
+		text_cpld_hackrf_status.set("BAD");
+	}
 }
 
 void AboutView::focus() {

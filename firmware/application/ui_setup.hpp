@@ -235,8 +235,13 @@ private:
 	};
 
 	Text text_cpld_hackrf {
-		{ 0, 144, 240, 16 },
-		"HackRF CPLD CRC     0x????????",
+		{ 0, 144, 11*8, 16 },
+		"HackRF CPLD",
+	};
+
+	Text text_cpld_hackrf_status {
+		{ 240 - 3*8, 144, 3*8, 16 },
+		"???"
 	};
 
 	Button button_ok {
