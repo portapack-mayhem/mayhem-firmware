@@ -113,3 +113,10 @@ bool cpld_hackrf_verify_eeprom() {
 	
 	return ok;
 }
+
+void cpld_hackrf_init_from_eeprom() {
+	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+	cpld::xilinx::XC2C64A hackrf_cpld { jtag_target_hackrf_cpld };
+
+	hackrf_cpld.init_from_eeprom();
+}

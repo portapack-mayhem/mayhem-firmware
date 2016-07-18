@@ -166,6 +166,9 @@ void shutdown() {
 	
 	radio::disable();
 	audio::shutdown();
+
+	cpld_hackrf_init_from_eeprom();
+
 	clock_manager.shutdown();
 
 	power.shutdown();
