@@ -32,6 +32,8 @@ using namespace hackrf::one;
 #include "touch_adc.hpp"
 #include "audio.hpp"
 
+#include "cpld_update.hpp"
+
 namespace portapack {
 
 portapack::IO io {
@@ -149,6 +151,14 @@ void init() {
 	radio::init();
 
 	touch::adc::init();
+
+	if( !cpld_update_if_necessary() ) {
+		chSysHalt();
+	}
+
+	if( !cpld_hackrf_load_sram() ) {
+		chSysHalt();
+	}
 }
 
 void shutdown() {

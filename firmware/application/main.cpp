@@ -24,8 +24,6 @@
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include "cpld_update.hpp"
-
 #include "message_queue.hpp"
 
 #include "ui.hpp"
@@ -71,14 +69,6 @@ static void event_loop() {
 
 int main(void) {
 	portapack::init();
-
-	if( !cpld_update_if_necessary() ) {
-		chSysHalt();
-	}
-
-	if( !cpld_hackrf_load_sram() ) {
-		chSysHalt();
-	}
 
 	portapack::io.init();
 	portapack::display.init();
