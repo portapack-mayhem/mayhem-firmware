@@ -67,6 +67,7 @@ public:
 	bool verify_sram(const verify_blocks_t& blocks);
 
 	bool verify_eeprom(const verify_blocks_t& blocks);
+	void init_from_eeprom();
 
 private:
 	static constexpr size_t idcode_length = 32;
@@ -112,6 +113,9 @@ private:
 
 	void reset();
 	void enable();
+	void enable_otf();
+	void discharge();
+	void init();
 	void disable();
 	bool bypass();
 };

@@ -116,6 +116,23 @@ bool XC2C64A::verify_eeprom(const verify_blocks_t& blocks) {
 	return !error;
 }
 
+void XC2C64A::init_from_eeprom() {
+	tap.set_repeat(0);
+	tap.set_end_ir(state_t::run_test_idle);
+	tap.set_end_dr(state_t::run_test_idle);
+
+	reset();
+	enable();
+
+	discharge();
+	init();
+	
+	disable();
+	bypass();
+
+	tap.state(state_t::test_logic_reset);
+}
+
 bool XC2C64A::shift_ir(const instruction_t instruction) {
 	const ir_t ir_buffer = toUType(instruction);
 	const jtag::tap::bits_t bits { &ir_buffer, ir_length };
@@ -129,6 +146,23 @@ void XC2C64A::reset() {
 
 void XC2C64A::enable() {
 	shift_ir(instruction_t::ISC_ENABLE);
+	tap.wait(state_t::run_test_idle, state_t::run_test_idle, 800);
+}
+
+void XC2C64A::enable_otf() {
+	shift_ir(instruction_t::ISC_ENABLE_OTF);
+}
+
+void XC2C64A::discharge() {
+	shift_ir(instruction_t::ISC_INIT);
+	tap.wait(state_t::run_test_idle, state_t::run_test_idle, 20);
+}
+
+void XC2C64A::init() {
+	tap.set_end_ir(state_t::update_ir);
+	shift_ir(instruction_t::ISC_INIT);
+	tap.set_end_ir(state_t::run_test_idle);
+	tap.state(state_t::capture_dr);
 	tap.wait(state_t::run_test_idle, state_t::run_test_idle, 800);
 }
 
