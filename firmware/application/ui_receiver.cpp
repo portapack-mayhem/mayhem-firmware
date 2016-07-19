@@ -232,7 +232,7 @@ FrequencyOptionsView::FrequencyOptionsView(
 {
 	set_style(style);
 
-	options_step.on_change = [this](size_t n, OptionsField::value_t v) {
+	field_step.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		this->on_step_changed(v);
 	};
@@ -243,14 +243,14 @@ FrequencyOptionsView::FrequencyOptionsView(
 
 	add_children({ {
 		&text_step,
-		&options_step,
+		&field_step,
 		&field_ppm,
 		&text_ppm,
 	} });
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
-	options_step.set_by_value(f);
+	field_step.set_by_value(f);
 }
 
 void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {

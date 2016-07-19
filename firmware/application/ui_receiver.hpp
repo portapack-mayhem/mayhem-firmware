@@ -229,6 +229,32 @@ private:
 	void update_text();
 };
 
+class FrequencyStepView : public OptionsField {
+public:
+	FrequencyStepView(
+		Point parent_pos
+	) : OptionsField {
+			parent_pos,
+			5,
+			{
+				{ "  100",      100 },
+				{ "  1k ",     1000 },
+				{ "  3k ",     3000 },	/* Approximate SSB bandwidth */
+				{ "  5k ",     5000 },
+				{ "  6k3",     6250 },
+				{ "  9k ",     9000 },	/* channel spacing for LF, MF in some regions */
+				{ " 10k ",    10000 },
+				{ " 12k5",    12500 },
+				{ " 25k ",    25000 },
+				{ "100k ",   100000 },
+				{ "  1M ",  1000000 },
+				{ " 10M ", 10000000 },
+			}
+		}
+	{
+	}
+};
+
 class FrequencyOptionsView : public View {
 public:
 	std::function<void(rf::Frequency)> on_change_step;
@@ -245,23 +271,8 @@ private:
 		"Step"
 	};
 
-	OptionsField options_step {
+	FrequencyStepView field_step {
 		{ 5 * 8, 0 * 16 },
-		5,
-		{
-			{ "  100",      100 },
-			{ "  1k ",     1000 },
-			{ "  3k ",     3000 },	/* Approximate SSB bandwidth */
-			{ "  5k ",     5000 },
-			{ "  6k3",     6250 },
-			{ "  9k ",     9000 },	/* channel spacing for LF, MF in some regions */
-			{ " 10k ",    10000 },
-			{ " 12k5",    12500 },
-			{ " 25k ",    25000 },
-			{ "100k ",   100000 },
-			{ "  1M ",  1000000 },
-			{ " 10M ", 10000000 },
-		}
 	};
 
 	void on_step_changed(rf::Frequency v);
