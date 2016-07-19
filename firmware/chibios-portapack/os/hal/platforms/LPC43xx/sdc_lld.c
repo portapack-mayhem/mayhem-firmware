@@ -200,8 +200,14 @@ static void sdio_cclk_set_400khz(void) {
 }
 
 static void sdio_cclk_set_fast(void) {
+#if defined(PORTAPACK_FAST_SDIO)
+  /* 200MHz / (2 * 2) = 50MHz */
+  /* TODO: Adjust SCU pin configurations: pull-up/down, slew, glitch filter? */
+  sdio_cclk_set(2);
+#else
   /* 200MHz / (2 * 4) = 25MHz */
   sdio_cclk_set(4);
+#endif
 }
 
 static void sdio_width_set_1bit(void) {
