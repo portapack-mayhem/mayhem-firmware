@@ -25,8 +25,6 @@
 
 #include "dsp_fft.hpp"
 
-#include "event_m4.hpp"
-
 #include <cstdint>
 #include <cstddef>
 
