@@ -47,7 +47,7 @@ public:
 	std::string title() const override { return "Capture"; };
 
 private:
-	static constexpr ui::Dim header_height = 3 * 16;
+	static constexpr ui::Dim header_height = 2 * 16;
 
 	static constexpr uint32_t sampling_rate = 4000000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
@@ -60,31 +60,35 @@ private:
 	rf::Frequency tuning_frequency() const;
 
 	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
+		{ 24 * 8, 0, 6 * 8, 4 },
 	};
 
 	Channel channel {
-		{ 21 * 8, 5, 6 * 8, 4 },
+		{ 24 * 8, 5, 6 * 8, 4 },
 	};
 
 	FrequencyField field_frequency {
-		{ 3 * 8, 0 * 16 },
+		{ 0 * 8, 0 * 16 },
+	};
+	
+	FrequencyStepView field_frequency_step {
+		{ 10 * 8, 0 * 16 },
 	};
 
 	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
+		{ 16 * 8, 0 * 16 }
 	};
 
 	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
-
-	VGAGainField field_vga {
 		{ 18 * 8, 0 * 16 }
 	};
 
+	VGAGainField field_vga {
+		{ 21 * 8, 0 * 16 }
+	};
+
 	RecordView record_view {
-		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
 		"BBD_????", RecordView::FileType::RawS16, 16384, 3
 	};
 

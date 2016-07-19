@@ -38,6 +38,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&rssi,
 		&channel,
 		&field_frequency,
+		&field_frequency_step,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
@@ -57,6 +58,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 			this->on_target_frequency_changed(f);
 			this->field_frequency.set_value(f);
 		};
+	};
+
+	field_frequency_step.set_by_value(receiver_model.frequency_step());
+	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
+		receiver_model.set_frequency_step(v);
+		this->field_frequency.set_step(v);
 	};
 
 	radio::enable({
