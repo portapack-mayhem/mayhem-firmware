@@ -187,12 +187,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		1,
 	});
 
-	baseband::start({
-		.mode = 5,
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
-	});
-
 	options_band.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_band_changed(v);
 	};
@@ -205,7 +199,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 }
 
 TPMSAppView::~TPMSAppView() {
-	baseband::stop();
 	radio::disable();
 
 	baseband::shutdown();

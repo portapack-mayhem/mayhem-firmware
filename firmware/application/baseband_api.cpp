@@ -78,18 +78,6 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void start(BasebandConfiguration configuration) {
-	BasebandConfigurationMessage message { configuration };
-	send_message(&message);
-}
-
-void stop() {
-	BasebandConfigurationMessage message {
-		.configuration = { },
-	};
-	send_message(&message);
-}
-
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {

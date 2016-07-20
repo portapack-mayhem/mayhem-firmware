@@ -154,7 +154,6 @@ void ReceiverModel::enable() {
 void ReceiverModel::disable() {
 	enabled_ = false;
 	update_antenna_bias();
-	baseband::stop();
 
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
@@ -225,13 +224,9 @@ void ReceiverModel::update_baseband_configuration() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	baseband::stop();
-
 	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
-
-	baseband::start(baseband_configuration);
 }
 
 void ReceiverModel::update_headphone_volume() {

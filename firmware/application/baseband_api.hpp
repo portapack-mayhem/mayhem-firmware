@@ -52,9 +52,6 @@ struct WFMConfig {
 	void apply() const;
 };
 
-void start(BasebandConfiguration configuration);
-void stop();
-
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();
 

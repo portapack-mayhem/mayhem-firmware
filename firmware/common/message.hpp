@@ -51,7 +51,6 @@ public:
 		ChannelStatistics = 2,
 		DisplayFrameSync = 3,
 		AudioStatistics = 4,
-		BasebandConfiguration = 5,
 		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
@@ -211,18 +210,6 @@ struct BasebandConfiguration {
 	) : BasebandConfiguration { -1, 0, 1 }
 	{
 	}
-};
-
-class BasebandConfigurationMessage : public Message {
-public:
-	constexpr BasebandConfigurationMessage(
-		const BasebandConfiguration& configuration
-	) : Message { ID::BasebandConfiguration },
-		configuration { configuration }
-	{
-	}
-
-	BasebandConfiguration configuration;
 };
 
 class SpectrumStreamingConfigMessage : public Message {

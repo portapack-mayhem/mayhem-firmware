@@ -308,12 +308,6 @@ AISAppView::AISAppView(NavigationView&) {
 		1,
 	});
 
-	baseband::start({
-		.mode = 3,
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
-	});
-
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
@@ -333,7 +327,6 @@ AISAppView::AISAppView(NavigationView&) {
 }
 
 AISAppView::~AISAppView() {
-	baseband::stop();
 	radio::disable();
 
 	baseband::shutdown();

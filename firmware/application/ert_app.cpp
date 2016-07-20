@@ -136,12 +136,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 		1,
 	});
 
-	baseband::start({
-		.mode = 6,
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
-	});
-
 	logger = std::make_unique<ERTLogger>();
 	if( logger ) {
 		logger->append("ert.txt");
@@ -149,7 +143,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 }
 
 ERTAppView::~ERTAppView() {
-	baseband::stop();
 	radio::disable();
 
 	baseband::shutdown();

@@ -77,12 +77,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		1,
 	});
 
-	baseband::start({
-		.mode = toUType(ReceiverModel::Mode::Capture),
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
-	});
-
 	record_view.set_sampling_rate(sampling_rate / 8);
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
@@ -90,7 +84,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 }
 
 CaptureAppView::~CaptureAppView() {
-	baseband::stop();
 	radio::disable();
 
 	baseband::shutdown();
