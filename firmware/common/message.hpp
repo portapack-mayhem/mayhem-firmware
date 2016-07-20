@@ -191,27 +191,6 @@ public:
 	AudioStatistics statistics;
 };
 
-struct BasebandConfiguration {
-	int32_t mode;
-	uint32_t sampling_rate;
-	size_t decimation_factor;
-
-	constexpr BasebandConfiguration(
-		int32_t mode,
-		uint32_t sampling_rate,
-		size_t decimation_factor = 1
-	) : mode { mode },
-		sampling_rate { sampling_rate },
-		decimation_factor { decimation_factor }
-	{
-	}
-
-	constexpr BasebandConfiguration(
-	) : BasebandConfiguration { -1, 0, 1 }
-	{
-	}
-};
-
 class SpectrumStreamingConfigMessage : public Message {
 public:
 	enum class Mode : uint32_t {
