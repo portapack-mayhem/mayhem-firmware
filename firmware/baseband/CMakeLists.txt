@@ -128,7 +128,6 @@ set(CPPSRC
 	audio_output.cpp
 	audio_dma.cpp
 	audio_stats_collector.cpp
-	touch_dma.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/chibios_cpp.cpp
 	${COMMON}/debug.cpp

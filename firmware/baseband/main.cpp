@@ -28,8 +28,6 @@
 
 #include "gpdma.hpp"
 
-#include "touch_dma.hpp"
-
 #include "message_queue.hpp"
 
 #include "utility.hpp"
@@ -73,10 +71,6 @@ static void init() {
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
-
-	touch::dma::init();
-	touch::dma::allocate();
-	touch::dma::enable();
 }
 
 extern void run();
