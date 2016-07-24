@@ -322,14 +322,7 @@ void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
 }
 
 void EventDispatcher::init_message_queues() {
-	shared_memory.baseband_message = nullptr;
-	new (&shared_memory.application_queue) MessageQueue(
-		shared_memory.application_queue_data, SharedMemory::application_queue_k
-	);
-	new (&shared_memory.app_local_queue) MessageQueue(
-		shared_memory.app_local_queue_data, SharedMemory::app_local_queue_k
-	);
-	shared_memory.m4_panic_msg[0] = 0;
+	new (&shared_memory) SharedMemory;
 }
 
 MessageHandlerRegistration::MessageHandlerRegistration(

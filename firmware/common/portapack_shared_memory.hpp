@@ -36,17 +36,17 @@ struct SharedMemory {
 	static constexpr size_t application_queue_k = 11;
 	static constexpr size_t app_local_queue_k = 11;
 
-	uint8_t application_queue_data[1 << application_queue_k];
-	uint8_t app_local_queue_data[1 << app_local_queue_k];
-	const Message* volatile baseband_message;
-	MessageQueue application_queue;
-	MessageQueue app_local_queue;
 
 	// TODO: M0 should directly configure and control DMA channel that is
 	// acquiring ADC samples.
 	TouchADCFrame touch_adc_frame;
+	uint8_t application_queue_data[1 << application_queue_k] { 0 };
+	uint8_t app_local_queue_data[1 << app_local_queue_k] { 0 };
+	const Message* volatile baseband_message { nullptr };
+	MessageQueue application_queue { application_queue_data, application_queue_k };
+	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
 
-	char m4_panic_msg[32];
+	char m4_panic_msg[32] { 0 };
 };
 
 extern SharedMemory& shared_memory;
