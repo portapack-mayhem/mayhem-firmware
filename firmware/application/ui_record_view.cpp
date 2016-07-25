@@ -320,13 +320,13 @@ Optional<File::Error> RecordView::write_metadata_file(const std::string& filenam
 	if( create_error.is_valid() ) {
 		return create_error;
 	} else {
-		const auto puts_result1 = file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
-		if( puts_result1.is_error() ) {
-			return { puts_result1.error() };
+		const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate));
+		if( error_line1.is_valid() ) {
+			return error_line1;
 		}
-		const auto puts_result2 = file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
-		if( puts_result2.is_error() ) {
-			return { puts_result2.error() };
+		const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
+		if( error_line2.is_valid() ) {
+			return error_line2;
 		}
 		return { };
 	}

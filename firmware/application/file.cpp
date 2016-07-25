@@ -101,13 +101,18 @@ File::Result<uint64_t> File::seek(const uint64_t new_position) {
 	return { static_cast<uint64_t>(old_position) };
 }
 
-File::Result<size_t> File::puts(const std::string& string) {
-	const auto result = f_puts(string.c_str(), &f);
-	if( result >= 0 ) {
-		return { static_cast<size_t>(result) };
-	} else {
-		return { static_cast<Error>(FR_EOF) };
+Optional<File::Error> File::write_line(const std::string& s) {
+	const auto result_s = write(s.c_str(), s.size());
+	if( result_s.is_error() ) {
+		return { result_s.error() };
 	}
+
+	const auto result_crlf = write("\r\n", 2);
+	if( result_crlf.is_error() ) {
+		return { result_crlf.error() };
+	}
+
+	return { };
 }
 
 Optional<File::Error> File::sync() {

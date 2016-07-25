@@ -35,12 +35,12 @@ public:
 		return file.append(filename);
 	}
 
-	File::Result<size_t> write_entry(const rtc::RTC& datetime, const std::string& entry);
+	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
 	File file;
 
-	File::Result<size_t> write(const std::string& message);
+	Optional<File::Error> write_line(const std::string& message);
 };
 
 #endif/*__LOG_FILE_H__*/

@@ -207,7 +207,7 @@ public:
 		return write(data.data(), N);
 	}
 
-	Result<size_t> puts(const std::string& string);
+	Optional<Error> write_line(const std::string& s);
 
 	// TODO: Return Result<>.
 	Optional<Error> sync();
