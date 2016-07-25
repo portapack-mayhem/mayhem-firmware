@@ -145,6 +145,10 @@ private:
 		{ 18 * 8, 0 * 16 }
 	};
 
+	RSSI rssi {
+		{ 21 * 8, 0, 6 * 8, 4 },
+	};
+
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::ERTPacket,
 		[this](Message* const p) {

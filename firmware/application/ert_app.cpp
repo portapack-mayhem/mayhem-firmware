@@ -130,6 +130,7 @@ ERTAppView::ERTAppView(NavigationView&) {
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
+		&rssi,
 		&recent_entries_view,
 	} });
 
