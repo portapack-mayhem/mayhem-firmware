@@ -24,6 +24,7 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 
 #include "channel_decimator.hpp"
 
@@ -63,6 +64,7 @@ private:
 	const float clock_recovery_rate = symbol_rate * 2;
 
 	BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20 };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },
