@@ -20,56 +20,61 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
-#include "ui_menu.hpp"
-#include "ui_navigation.hpp"
-#include "core_control.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_freqman.hpp"
+
+#include "ch.h"
+
+#include "ff.h"
+#include "portapack.hpp"
+#include "event_m0.hpp"
+#include "hackrf_hal.hpp"
+#include "portapack_shared_memory.hpp"
+
+#include <cstring>
+
+using namespace portapack;
 
 namespace ui {
-
-enum ViewID {
-	Receiver,
-	AudioTX,
-	CloseCall,
-	Xylos,
-	EPAR,
-	LCR,
-	SoundBoard,
-	AnalogAudio,
-	RDS,
-	Jammer
-};
-
-class LoadModuleView : public View {
-public:
-	LoadModuleView(NavigationView& nav, const char * hash, ViewID viewid);
-	void loadmodule();
 	
-	void on_show() override;
-	void on_hide() override;
-	void focus() override;
+void FreqManView::paint(Painter& painter) {
+	(void)painter;
+}
 
-private:
-	int load_image(void);
-	const char * _hash;
-	bool _mod_loaded = false;
-	
-	Text text_info {
-		{ 8, 64, 224, 16 },
-		"-"
-	};
-	Text text_infob {
-		{ 8, 64+16, 224, 16 },
-		"-"
-	};
-	
-	Button button_ok {
-		{ 88, 128, 64, 32 },
-		"OK"
-	};
-};
+FreqManView::FreqManView(
+	NavigationView& nav
+) {
 
-} /* namespace ui */
+	add_children({ {
+		&button_ok
+	} });
+
+	size_t n = 0;
+	for(auto& text : text_list) {
+		add_child(&text);
+		text.set_parent_rect({
+			static_cast<Coord>(0),
+			static_cast<Coord>(16 + (n * 16)),
+			240, 16
+		});
+		const std::string label {
+			(char)(n + 0x30)
+		};
+		text.set(label);
+		n++;
+	}
+	
+	button_ok.on_select = [this, &nav](Button&) {
+		nav.pop();
+	};
+
+}
+
+void FreqManView::on_show() {
+
+}
+
+void FreqManView::on_hide() {
+
+}
+
+}

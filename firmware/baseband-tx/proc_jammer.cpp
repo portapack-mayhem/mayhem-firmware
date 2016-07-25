@@ -30,7 +30,7 @@
 void JammerProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i<buffer.count; i++) {
 
-		if (s >= 10000) { //shared_memory.jammer_ranges[ir].duration
+		if (s >= 10000) {	//shared_memory.jammer_ranges[ir].duration
 			s = 0;
 			for (;;) {
 				ir++;

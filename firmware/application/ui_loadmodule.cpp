@@ -41,6 +41,7 @@
 #include "ui_debug.hpp"
 #include "ui_closecall.hpp"
 #include "ui_audiotx.hpp"
+#include "ui_jammer.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -174,6 +175,7 @@ LoadModuleView::LoadModuleView(
 			if (viewid == RDS) nav.push<RDSView>();
 			if (viewid == CloseCall) nav.push<CloseCallView>();
 			if (viewid == Receiver) nav.push<ReceiverMenuView>();
+			if (viewid == Jammer) nav.push<JammerView>();
 		}
 	};
 }

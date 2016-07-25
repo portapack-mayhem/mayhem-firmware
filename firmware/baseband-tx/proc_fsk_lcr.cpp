@@ -34,14 +34,17 @@ void LCRFSKProcessor::execute(const buffer_c8_t& buffer) {
 			s = 0;
 			
 			if (sample_count >= shared_memory.afsk_samples_per_bit) {
-				if (shared_memory.afsk_transmit_done == false)
+				if (shared_memory.afsk_transmit_done == false) {
 					cur_byte = shared_memory.radio_data[byte_pos];
+					ext_byte = shared_memory.radio_data[byte_pos + 1];
+				}
 				if (!cur_byte) {
 					if (shared_memory.afsk_repeat) {
 						shared_memory.afsk_repeat--;
 						bit_pos = 0;
 						byte_pos = 0;
 						cur_byte = shared_memory.radio_data[0];
+						ext_byte = shared_memory.radio_data[1];
 						message.n = shared_memory.afsk_repeat;
 						shared_memory.application_queue.push(message);
 					} else {
@@ -49,18 +52,32 @@ void LCRFSKProcessor::execute(const buffer_c8_t& buffer) {
 						shared_memory.afsk_transmit_done = true;
 						shared_memory.application_queue.push(message);
 						cur_byte = 0;
+						ext_byte = 0;
 					}
 				}
 				
-				gbyte = 0;
-				gbyte = cur_byte << 1;
-				gbyte |= 1;
+				if (shared_memory.afsk_alt_format) {
+					// 0bbbbbbbbp
+					// Start, 8-bit data, parity
+					gbyte = 0;
+					gbyte = cur_byte << 1;
+					gbyte |= (ext_byte & 1);
+				} else {
+					// 0bbbbbbbp1
+					// Start, 7-bit data, parity, stop
+					gbyte = 0;
+					gbyte = cur_byte << 1;
+					gbyte |= 1;
+				}
 				
-				cur_bit = (gbyte >> (9-bit_pos)) & 1;
+				cur_bit = (gbyte >> (9 - bit_pos)) & 1;
 
 				if (bit_pos == 9) {
 					bit_pos = 0;
-					byte_pos++;
+					if (!shared_memory.afsk_alt_format)
+						byte_pos++;
+					else
+						byte_pos += 2;
 				} else {
 					bit_pos++;
 				}

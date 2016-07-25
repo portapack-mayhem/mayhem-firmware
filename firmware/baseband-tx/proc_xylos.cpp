@@ -39,7 +39,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i<buffer.count; i++) {
 		
 		// Sample generation rate: 1536000/10 = 153kHz
-		if (s >= 9) {
+		if (s >= (5-1)) {
 			s = 0;
 			
 			if (silence) {
@@ -78,7 +78,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			re = 0;
 			im = 0;
 		} else {
-			sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*255);
+			sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*127); // 255 here before :D
 			
 			// Audio preview sample generation: 1536000/48000 = 32
 			/*if (as >= 31) {
@@ -87,15 +87,15 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			} else {
 				as++;
 			}*/
-			
+				
 			//FM
-			frq = sample * 500;		// To check !
+			frq = sample * 1000;	// 500 was here
 			
 			phase = (phase + frq);
 			sphase = phase + (256<<16);
 
-			re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
-			im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+			re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*15);
+			im = (sine_table_f32[(phase & 0x03FF0000)>>18]*15);
 		}
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};

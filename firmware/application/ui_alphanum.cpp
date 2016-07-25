@@ -51,13 +51,13 @@ AlphanumView::AlphanumView(
 	
 	static constexpr Style style_alpha {
 		.font = font::fixed_8x16,
-		.background = Color::red(),
+		.background = Color(191,31,31),
 		.foreground = Color::black()
 	};
 	
 	static constexpr Style style_num {
 		.font = font::fixed_8x16,
-		.background = Color::yellow(),
+		.background = Color(191,191,31),
 		.foreground = Color::black()
 	};
 	
@@ -99,6 +99,13 @@ AlphanumView::AlphanumView(
 			set_lowercase();
 		}
 	};
+	
+	/*add_child(&raw_char);
+	raw_char.set_value(0x30);
+	raw_char.on_select = [this, &nav, txt, max_len](Button&) {
+		char_add(raw_char.value());
+		update_text();
+	};*/
 
 	add_child(&button_done);
 	button_done.on_select = [this, &nav, txt, max_len](Button&) {

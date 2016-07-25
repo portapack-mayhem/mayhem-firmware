@@ -138,6 +138,7 @@ CPPSRC = main.cpp \
          dsp_decimate.cpp \
          dsp_demodulate.cpp \
          matched_filter.cpp \
+         proc_jammer.cpp \
          proc_audiotx.cpp \
          proc_fsk_lcr.cpp \
          proc_epar.cpp \

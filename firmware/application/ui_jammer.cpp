@@ -171,7 +171,7 @@ JammerView::JammerView(
 	};
 	
 	transmitter_model.set_baseband_configuration({
-		.mode = 3,
+		.mode = 6,
 		.sampling_rate = 1536000,	// ?
 		.decimation_factor = 1,
 	});
@@ -205,6 +205,8 @@ JammerView::JammerView(
 	text_info1.set_style(&style_info);
 	text_info2.set_style(&style_info);
 	text_info3.set_style(&style_info);
+
+	options_preset.set_selected_index(8);
 	
 	options_preset.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
@@ -220,27 +222,25 @@ JammerView::JammerView(
 	};
 	
 	button_setfreq1_min.on_select = [this,&nav](Button&){
-		auto new_view = new FrequencyKeypadView { nav, range1_min };
+		auto new_view = nav.push<FrequencyKeypadView>(range1_min);
 		new_view->on_changed = [this](rf::Frequency f) {
 			updfreq(0, f);
 		};
-		nav.push(new_view);
 	};
 	button_setfreq1_max.on_select = [this,&nav](Button&){
-		auto new_view = new FrequencyKeypadView { nav, range1_max };
+		auto new_view = nav.push<FrequencyKeypadView>(range1_max);
 		new_view->on_changed = [this](rf::Frequency f) {
-			updfreq(1, f);
+			updfreq(0, f);
 		};
-		nav.push(new_view);
 	};
 	
-	button_transmit.on_select = [this,&transmitter_model](Button&) {
+	button_transmit.on_select = [this](Button&) {
 		uint8_t i = 0;
 		rf::Frequency t, range_lower;
 		EventDispatcher::message_map().unregister_handler(Message::ID::Retune);
 		
 		EventDispatcher::message_map().register_handler(Message::ID::Retune,
-			[this,&transmitter_model](Message* const p) {
+			[this](Message* const p) {
 				const auto message = static_cast<const RetuneMessage*>(p);
 				if (message->freq > 0) {
 					transmitter_model.set_tuning_frequency(message->freq);
@@ -252,28 +252,80 @@ JammerView::JammerView(
 			shared_memory.jammer_ranges[i].active = false;
 		}
 		
+		// Swap
 		if (range1_min > range1_max) {
 			t = range1_min;
 			range1_min = range1_max;
 			range1_max = t;
 		}
+		i = 0;
 		range_lower = range1_min;
-		for (i = 0;;) {
+//		for (i = 0; i < 3; i++) {
+
 			if (range1_max - range_lower > 1000000) {
 				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
 				shared_memory.jammer_ranges[i].width = 1000000 / 10;
 				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000/10;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
 				range_lower += 1000000;
 			} else {
 				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
-				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;
+				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
 				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000/10;
-				break;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
+				//break;
 			}
-			i++;
+//		}
+
+		// Swap
+		if (range2_min > range2_max) {
+			t = range2_min;
+			range2_min = range2_max;
+			range2_max = t;
 		}
+		i = 1;
+		range_lower = range2_min;
+//		for (i = 0; i < 3; i++) {
+
+			if (range1_max - range_lower > 1000000) {
+				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
+				shared_memory.jammer_ranges[i].width = 1000000 / 10;
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
+				range_lower += 1000000;
+			} else {
+				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
+				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
+				//break;
+			}
+//		}
+
+		// Swap
+		if (range3_min > range3_max) {
+			t = range3_min;
+			range3_min = range3_max;
+			range3_max = t;
+		}
+		i = 2;
+		range_lower = range3_min;
+//		for (i = 0; i < 3; i++) {
+
+			if (range1_max - range_lower > 1000000) {
+				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
+				shared_memory.jammer_ranges[i].width = 1000000 / 10;
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
+				range_lower += 1000000;
+			} else {
+				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
+				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
+				shared_memory.jammer_ranges[i].active = true;
+				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
+				//break;
+			}
+//		}
 		
 		transmitter_model.set_tuning_frequency(shared_memory.jammer_ranges[0].center);
 		

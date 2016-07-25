@@ -916,6 +916,17 @@ void NumberField::paint(Painter& painter) {
 	);
 }
 
+bool NumberField::on_key(const KeyEvent key) {
+	/*if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select(*this);
+			return true;
+		}
+	}*/
+
+	return false;
+}
+
 bool NumberField::on_encoder(const EncoderEvent delta) {
 	set_value(value() + (delta * step));
 	return true;

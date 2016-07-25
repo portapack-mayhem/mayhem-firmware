@@ -105,6 +105,12 @@ private:
 		' '
 	};
 	
+	Checkbox checkbox_altformat {
+		{ 8, 150 },
+		11,
+		"Alt. format"
+	};
+	
 	Checkbox checkbox_lsb {
 		{ 8, 150 },
 		9,

@@ -63,6 +63,7 @@ struct SharedMemory {
 	uint8_t afsk_repeat;
 	uint32_t afsk_fmmod;
 	bool afsk_transmit_done;
+	bool afsk_alt_format;
 	
 	JammerRange jammer_ranges[16];
 	

@@ -82,17 +82,19 @@ AFSKSetupView::AFSKSetupView(
 		&field_space,
 		&text_bw,
 		&field_bw,
-		&text_repeat,
-		&field_repeat,
-		&checkbox_lsb,
-		&checkbox_parity,
-		&checkbox_datasize,
+		//&text_repeat,
+		//&field_repeat,
+		//&checkbox_lsb,
+		//&checkbox_parity,
+		//&checkbox_datasize,
+		&checkbox_altformat,
 		&button_done
 	} });
 	
-	if (portapack::persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
-	if (portapack::persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
-	if (portapack::persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
+	//if (portapack::persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
+	//if (portapack::persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
+	//if (portapack::persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
+	if (portapack::persistent_memory::afsk_config() & 8) checkbox_altformat.set_value(true);
 	
 	updfreq(portapack::persistent_memory::tuned_frequency());
 	
@@ -133,9 +135,10 @@ AFSKSetupView::AFSKSetupView(
 		portapack::persistent_memory::set_afsk_space(field_space.value()/100);
 		portapack::persistent_memory::set_afsk_bw(field_bw.value());
 		
-		if (checkbox_lsb.value() == true) afsk_config |= 1;
-		if (checkbox_parity.value() == true) afsk_config |= 2;
-		if (checkbox_datasize.value() == true) afsk_config |= 4;
+		//if (checkbox_lsb.value() == true) afsk_config |= 1;
+		//if (checkbox_parity.value() == true) afsk_config |= 2;
+		//if (checkbox_datasize.value() == true) afsk_config |= 4;
+		if (checkbox_altformat.value() == true) afsk_config |= 8;
 		afsk_config |= (field_repeat.value() << 8);
 		portapack::persistent_memory::set_afsk_config(afsk_config);
 		

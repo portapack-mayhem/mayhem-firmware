@@ -24,24 +24,24 @@
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-//TODO: Two players tic-tac-toe
-//TODO: Breakout game
+//BUG: Crash after TX stop (unregister message !)
+
+//TODO: Show MD5 mismatches for modules not found, etc...
+//TODO: Frequency manager !
+//TODO: Weird LCR AFSK scrambling ?
 //TODO: SD card wiper
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Use progressbars
-//TODO: Setting: Prefered input method
 //TODO: LCR receiver
 //TODO: Xylos receiver
 //TODO: Morse coder
 //TODO: Playdead amnesia and login
 //TODO: Touch screen calibration
-//TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Check jammer bandwidths
 //TODO: GSM channel detector
 //TODO: AFSK receiver
 //TODO: SIGFOX RX/TX
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
-//BUG: Crash after TX stop (unregister message !)
 //TODO: Check bw setting in LCR TX
 //TODO: Bodet :)
 //TODO: Whistler
@@ -51,7 +51,8 @@
 //TODO: LCR EC=A,J,N
 //TODO: LCR full message former (see norm)
 //TODO: AFSK NRZI
-//TODO: TX power
+//TODO: TX power setting
+//TODO: Two players tic-tac-toe
 
 #include "ch.h"
 

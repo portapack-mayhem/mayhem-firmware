@@ -31,8 +31,9 @@ public:
 private:
 	int8_t re, im;
 	uint8_t s;
-    uint8_t bit_pos, byte_pos = 0;
+    uint8_t bit_pos = 0, byte_pos = 0;
     char cur_byte = 0;
+    char ext_byte = 0;
     uint16_t gbyte;
     uint8_t cur_bit = 0;
     uint32_t sample_count;

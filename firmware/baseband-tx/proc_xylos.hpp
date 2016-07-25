@@ -31,23 +31,15 @@
 #include "audio_output.hpp"
 #include "baseband_processor.hpp"
 
-#define CCIR_TONELENGTH 15360-1		// 1536000/10/10
-#define PHASEV 436.91				// (65536*1024)/1536000*10
-#define SILENCE 61440-1				// 400ms
+#define CCIR_TONELENGTH (15360*2)-1		// 1536000/10/10
+#define PHASEV (436.91/2)				// (65536*1024)/1536000*10
+#define SILENCE (46080*2)-1				// 400ms
 
 class XylosProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 
 private:
-	/*int16_t audio_data[64];
-	
-	std::array<int16_t, 64> audio;
-	const buffer_s16_t audio_buffer {
-		audio.data(),
-		audio.size()
-	};*/
-
 	uint32_t ccir_phases[16] = {
 								(uint32_t)(1981*PHASEV),
 								(uint32_t)(1124*PHASEV),

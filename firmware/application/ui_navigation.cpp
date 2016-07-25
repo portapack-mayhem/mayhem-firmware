@@ -36,6 +36,7 @@
 #include "ui_handwrite.hpp"			// DEBUG
 #include "ui_soundboard.hpp"		// DEBUG
 #include "ui_closecall.hpp"			// DEBUG
+#include "ui_freqman.hpp"			// DEBUG
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -209,13 +210,14 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<11>({ {
+	add_items<12>({ {
 		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, Receiver); } },
 		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, CloseCall); } },
-		{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
+		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Jammer); } },
+		//{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
-		
+		{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
 		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Xylos); } },
 		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, LCR); } },
@@ -293,6 +295,7 @@ SystemView::SystemView(
 		//navigation_view.push<SoundBoardView>();
 		//navigation_view.push<CloseCallView>();
 		//navigation_view.push<HandWriteView>(debugtxt, 20);
+		
 		navigation_view.push<SystemMenuView>();
 }
 

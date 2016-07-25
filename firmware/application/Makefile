@@ -165,6 +165,7 @@ CPPSRC = main.cpp \
          ui_epar.cpp \
          ui_focus.cpp \
          ui_font_fixed_8x16.cpp \
+         ui_freqman.cpp \
          ui_handwrite.cpp \
          ui_jammer.cpp \
          ui_lcr.cpp \

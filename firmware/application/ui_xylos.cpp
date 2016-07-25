@@ -197,6 +197,8 @@ XylosView::XylosView(
 	NavigationView& nav
 )
 {
+	int c;
+	
 	transmitter_model.set_baseband_configuration({
 		.mode = 2,
 		.sampling_rate = 1536000,
@@ -325,7 +327,7 @@ XylosView::XylosView(
 	
 	XylosView::upd_message();
 	
-	button_txtest.on_select = [this](Button&) {
+	/*button_txtest.on_select = [this](Button&) {
 		const uint8_t ccirtest[21] = { 11, 13, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 14, 12, 10, 12, 14, 0, 9, 0xFF };
 		if (txing == false) {
 			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
@@ -350,6 +352,68 @@ XylosView::XylosView(
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 			
 			audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+
+			txing = true;
+			button_txtest.set_style(&style_cancel);
+			button_txtest.set_text("Wait");
+			transmitter_model.enable();
+		}
+	};*/
+	
+	// Sequence testing:
+	button_txtest.on_select = [this](Button&) {
+		int c;
+		
+		if (txing == false) {
+			sequence_idx = 0;
+			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
+			
+			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
+				[this](Message* const p) {
+					int c;
+					const auto message = static_cast<const TXDoneMessage*>(p);
+					if (message->n == 25) {
+						transmitter_model.disable();
+						
+						if (sequence_idx != 9) {
+							chThdSleepMilliseconds(15000);
+							memcpy(ccirmessage, &xylos_sequence[sequence_idx][0], 21);
+							// ASCII to frequency LUT index
+							for (c=0; c<20; c++) {
+								if (ccirmessage[c] > '9')
+									ccirmessage[c] -= 0x37;
+								else
+									ccirmessage[c] -= 0x30;
+							}
+							ccirmessage[20] = 0xFF;
+							shared_memory.transmit_done = false;
+							memcpy(shared_memory.xylosdata, ccirmessage, 21);
+							sequence_idx++;
+							txing = true;
+							transmitter_model.enable();
+						} else {
+							button_txtest.set_style(&style());
+							button_txtest.set_text("TEST");
+						}
+					}
+				}
+			);
+			
+			memcpy(ccirmessage, &xylos_sequence[sequence_idx][0], 21);
+			// ASCII to frequency LUT index
+			for (c=0; c<20; c++) {
+				if (ccirmessage[c] > '9')
+					ccirmessage[c] -= 0x37;
+				else
+					ccirmessage[c] -= 0x30;
+			}
+			ccirmessage[20] = 0xFF;
+			shared_memory.transmit_done = false;
+			memcpy(shared_memory.xylosdata, ccirmessage, 21);
+			
+			sequence_idx++;
+
+			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 
 			txing = true;
 			button_txtest.set_style(&style_cancel);

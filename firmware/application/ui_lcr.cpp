@@ -55,12 +55,18 @@ LCRView::~LCRView() {
 }
 
 void LCRView::make_frame() {
+	const char ec_lut[3][2] = { { 'A', 0x00 },
+								{ 'J', 0x00 },
+								{ 'N', 0x00 }
+								};
 	char eom[3] = { 3, 0, 0 };	// EOM and space for checksum
 	uint8_t i, pm;
 	uint16_t dp;
 	uint8_t cp, pp, cur_byte, new_byte;
 	
-	// Pad litterals right to 7 chars (not required ?)
+	button_setrgsb.set_text(rgsb);
+	
+	// Pad litterals to 7 chars (not required ?)
 	for (i = 0; i < 5; i++) {
 		while (strlen(litteral[i]) < 7) {
 			strcat(litteral[i], " ");
@@ -77,11 +83,10 @@ void LCRView::make_frame() {
 	lcrframe[5] = 127;
 	lcrframe[6] = 127;
 	lcrframe[7] = 15;			// SOM
-	
-	button_setrgsb.set_text(rgsb);
 
 	strcat(lcrframe, rgsb);
 	strcat(lcrframe, "PA ");
+	
 	if (checkbox_am_a.value() == true) {
 		strcat(lcrframe, "AM=1 AF=\"");
 		strcat(lcrframe, litteral[0]);
@@ -107,18 +112,20 @@ void LCRView::make_frame() {
 		strcat(lcrframe, litteral[4]);
 		strcat(lcrframe, "\" CL=0 ");
 	}
-	strcat(lcrframe, "EC=A SAB=0");
+	strcat(lcrframe, "EC=");
+	strcat(lcrframe, ec_lut[options_ec.selected_index()]);
+	strcat(lcrframe, " SAB=0");
 	
 	memcpy(lcrstring, lcrframe, 256);
 	
-	//Checksum
+	// Checksum
 	checksum = 0;
-	i = 7;
+	i = 7;						// Skip modem sync
 	while (lcrframe[i]) {
 		checksum ^= lcrframe[i];
 		i++;
 	}
-	checksum ^= eom[0];			// EOM
+	checksum ^= eom[0];			// EOM char
 	checksum &= 0x7F;
 	eom[1] = checksum;
 	
@@ -129,8 +136,8 @@ void LCRView::make_frame() {
 	//else
 	//	pm = 1; // Odd parity
 
-	//if (persistent_memory::afsk_config() & 1) {
-		// LSB first
+	if (!(persistent_memory::afsk_config() & 8)) {
+		// Clear format
 		for (dp = 0; dp < strlen(lcrframe); dp++) {
 			pp = pm;
 			new_byte = 0;
@@ -141,6 +148,24 @@ void LCRView::make_frame() {
 			}
 			lcrframe_f[dp] = new_byte | (pp & 1);
 		}
+		lcrframe_f[dp] = 0;
+	} else {
+		// Alt format
+		for (dp = 0; dp < strlen(lcrframe); dp++) {
+			pp = pm;
+			cur_byte = alt_lookup[lcrframe[dp]];
+			for (cp = 0; cp < 8; cp++) {
+				if ((cur_byte >> cp) & 1) pp++;
+			}
+			lcrframe_f[dp * 2] = cur_byte;
+			lcrframe_f[(dp * 2) + 1] = pp & 1;
+		}
+		lcrframe_f[dp * 2] = 0;
+	}
+
+	//if (persistent_memory::afsk_config() & 1) {
+		// LSB first
+		// See above
 	/*} else {
 		// MSB first
 		for (dp=0;dp<strlen(lcrframe);dp++) {
@@ -152,12 +177,11 @@ void LCRView::make_frame() {
 			lcrframe_f[dp] = (cur_byte<<1)|(pp&1);
 		}
 	}*/
-	
-	lcrframe_f[dp] = 0;
 }
 
 void LCRView::paint(Painter& painter) {
 	uint8_t i;
+	char finalstr[24] = {0};
 	
 	static constexpr Style style_orange {
 		.font = font::fixed_8x16,
@@ -180,6 +204,16 @@ void LCRView::paint(Painter& painter) {
 	}
 	
 	button_setrgsb.set_text(rgsb);
+	
+	// Recap: tx freq @ bps / ALT
+	auto fstr = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
+	auto bstr = to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
+	strcpy(finalstr, fstr.c_str());
+	strcat(finalstr, "@");
+	strcat(finalstr, bstr.c_str());
+	strcat(finalstr, "bps");
+	if (portapack::persistent_memory::afsk_config() & 8) strcat(finalstr, " ALT");
+	text_recap.set(finalstr);
 }
 
 void LCRView::start_tx() {
@@ -194,10 +228,15 @@ void LCRView::start_tx() {
 	
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 		
-	shared_memory.afsk_samples_per_bit = 228000/portapack::persistent_memory::afsk_bitrate();
-	shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq()*(0x40000*256)/2280;
-	shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq()*(0x40000*256)/2280;
+	shared_memory.afsk_samples_per_bit = 228000 / portapack::persistent_memory::afsk_bitrate();
+	shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / 2280;
+	shared_memory.afsk_phase_inc_space = portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / 2280;
 
+	if (portapack::persistent_memory::afsk_config() & 8)
+		shared_memory.afsk_alt_format = true;
+	else
+		shared_memory.afsk_alt_format = false;
+		
 	shared_memory.afsk_fmmod = portapack::persistent_memory::afsk_bw() * 8;
 
 	memset(shared_memory.radio_data, 0, 256);
@@ -216,7 +255,6 @@ void LCRView::start_tx() {
 				text_status.set("            ");
 				strcpy(str, "Abort @");
 				strcat(str, rgsb);
-				//strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
 				text_status.set(str);
 				progress.set_value(0);
 				transmitter_model.disable();
@@ -237,7 +275,6 @@ void LCRView::start_tx() {
 					text_status.set("            ");
 					strcpy(str, to_string_dec_int(6 - message->n).c_str());
 					strcat(str, "/5");
-					//strcat(str, to_string_dec_int((portapack::persistent_memory::afsk_config() >> 8) & 0xFF).c_str());
 					text_status.set(str);
 					progress.set_value((6 - message->n) * 20);
 				}
@@ -297,11 +334,9 @@ LCRView::LCRView(
 	NavigationView& nav
 )
 {
-	char finalstr[24] = {0};
-	
 	transmitter_model.set_baseband_configuration({
 		.mode = 3,
-		.sampling_rate = 2280000,	// Is this right ?
+		.sampling_rate = 2280000,
 		.decimation_factor = 1,
 	});
 
@@ -313,6 +348,7 @@ LCRView::LCRView(
 	
 	add_children({ {
 		&text_recap,
+		&options_ec,
 		&button_setrgsb,
 		&button_txsetup,
 		&checkbox_am_a,
@@ -333,20 +369,13 @@ LCRView::LCRView(
 		&button_clear
 	} });
 	
+	options_ec.set_selected_index(0);
+	
 	checkbox_am_a.set_value(true);
 	checkbox_am_b.set_value(false);
 	checkbox_am_c.set_value(false);
 	checkbox_am_d.set_value(false);
 	checkbox_am_e.set_value(false);
-	
-	// Recap: tx freq @ bps
-	auto fstr = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
-	auto bstr = to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
-	strcat(finalstr, fstr.c_str());
-	strcat(finalstr, " @ ");
-	strcat(finalstr, bstr.c_str());
-	strcat(finalstr, "bps");
-	text_recap.set(finalstr);
 	
 	button_transmit.set_style(&style_val);
 	button_scan.set_style(&style_val);
@@ -397,14 +426,18 @@ LCRView::LCRView(
 	};
 
 	button_clear.on_select = [this, &nav](Button&) {
-		memset(litteral, 0, 5 * 8);
-		checkbox_am_a.set_value(true);
-		checkbox_am_b.set_value(true);
-		checkbox_am_c.set_value(true);
-		checkbox_am_d.set_value(true);
-		checkbox_am_e.set_value(true);
-		set_dirty();
-		start_tx();
+		if (txing == false) {
+			scanning = false;
+			memset(litteral, 0, 5 * 8);
+			options_ec.set_selected_index(0);
+			checkbox_am_a.set_value(true);
+			checkbox_am_b.set_value(true);
+			checkbox_am_c.set_value(true);
+			checkbox_am_d.set_value(true);
+			checkbox_am_e.set_value(true);
+			set_dirty();
+			start_tx();
+		}
 	};
 }
 

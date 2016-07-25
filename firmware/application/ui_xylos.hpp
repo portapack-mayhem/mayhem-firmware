@@ -157,6 +157,20 @@ private:
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char ccirmessage[21];
 	
+	const char xylos_sequence[9][21] = {
+		"0E0E18920EB1E10B0E0E",
+		"0E0E1890E0B0E12B0E0E",
+		"0E0E18920EB1E20B0E0E",
+		"0E0E18920EB1210B0E0E",
+		"0E0E18920EB1E10B0E0E",
+		"0E0E18920EB1E10B0E0E",
+		"0E0E181AEAB10E0B0E0E",
+		"0E01E81AEAB10E0B0E0E",	// 2016-05-22 05:22:29 0E01E81AEA/10E0/0E0E
+		"0E03181AEAB10E0B0E0E"
+	};
+	
+	int sequence_idx;
+	
 	void start_tx();
 	void upd_message();
 	
