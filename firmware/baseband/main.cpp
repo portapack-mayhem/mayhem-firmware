@@ -42,27 +42,6 @@
 #include <cstddef>
 #include <array>
 
-extern "C" {
-
-void __late_init(void) {
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
-
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
-}
-
-}
-
 static void init() {
 	audio::dma::init();
 	audio::dma::configure();
@@ -82,7 +61,9 @@ static void halt() {
 	}
 }
 
-static void shutdown() {
+extern "C" {
+
+void _default_exit(void) {
 	// TODO: Is this complete?
 	
 	nvicDisableVector(DMA_IRQn);
@@ -99,10 +80,29 @@ static void shutdown() {
 	halt();
 }
 
-int main(void) {
-	init();
-	run();
-	shutdown();
+void __late_init(void) {
+	/*
+	 * System initializations.
+	 * - HAL initialization, this also initializes the configured device drivers
+	 *   and performs the board-specific initializations.
+	 * - Kernel initialization, the main() function becomes a thread and the
+	 *   RTOS is active.
+	 */
+	halInit();
 
+	/* After this call, scheduler, systick, heap, etc. are available. */
+	/* By doing chSysInit() here, it runs before C++ constructors, which may
+	 * require the heap.
+	 */
+	chSysInit();
+
+	/* Baseband initialization */
+	init();
+}
+
+}
+
+int main(void) {
+	run();
 	return 0;
 }
