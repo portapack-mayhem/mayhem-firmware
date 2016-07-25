@@ -98,7 +98,7 @@ private:
 	};
 
 	static constexpr float channel_rate_in = 307200.0f;
-	static constexpr size_t channel_decimation = 8;
+	static constexpr size_t channel_decimation = 2;
 	static constexpr float channel_sample_rate = channel_rate_in / channel_decimation;
 	OOKSlicerMagSquaredInt ook_slicer_5sps { channel_sample_rate / 8400 + 1};
 	uint32_t slicer_history { 0 };
