@@ -154,7 +154,7 @@ public:
 			return type == Type::Error;
 		}
 
-		const T& value() {
+		const T& value() const {
 			return value_;
 		}
 
