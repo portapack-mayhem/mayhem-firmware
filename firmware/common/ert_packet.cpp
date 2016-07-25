@@ -73,8 +73,8 @@ CommodityType Packet::commodity_type() const {
 	return invalid_commodity_type;
 }
 
-ManchesterFormatted Packet::symbols_formatted() const {
-	return format_manchester(decoder_);
+FormattedSymbols Packet::symbols_formatted() const {
+	return format_symbols(decoder_);
 }
 
 bool Packet::crc_ok() const {

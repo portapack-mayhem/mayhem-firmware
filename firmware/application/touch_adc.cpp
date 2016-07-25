@@ -70,26 +70,15 @@ void start() {
 // static constexpr bool monitor_overruns_and_not_dones = false;
 
 Samples get() {
-	const auto& frame = shared_memory.touch_adc_frame;
-	const auto xp = frame.dr[portapack::adc0_touch_xp_input];
-	const auto xn = frame.dr[portapack::adc0_touch_xn_input];
-	const auto yp = frame.dr[portapack::adc0_touch_yp_input];
-	const auto yn = frame.dr[portapack::adc0_touch_yn_input];
-
-	// if( monitor_overruns_and_not_dones ) {
-	// 	const auto dr_and = xp & xn & yp & yn;
-	// 	const auto dr_or = xp | xn | yp | yn;
-	// 	const bool done = (dr_and >> 31) & 1;
-	// 	const bool overrun = (dr_or >> 30) & 1;
-	// 	led_tx.write(overrun);
-	// 	led_rx.write(!done);
-	// }
-
+	const auto xp_reg = LPC_ADC0->DR[portapack::adc0_touch_xp_input];
+	const auto xn_reg = LPC_ADC0->DR[portapack::adc0_touch_xn_input];
+	const auto yp_reg = LPC_ADC0->DR[portapack::adc0_touch_yp_input];
+	const auto yn_reg = LPC_ADC0->DR[portapack::adc0_touch_yn_input];
 	return {
-		(xp >> 6) & 0x3ff,
-		(xn >> 6) & 0x3ff,
-		(yp >> 6) & 0x3ff,
-		(yn >> 6) & 0x3ff,
+		(xp_reg >> 6) & 0x3ff,
+		(xn_reg >> 6) & 0x3ff,
+		(yp_reg >> 6) & 0x3ff,
+		(yn_reg >> 6) & 0x3ff,
 	};
 }
 

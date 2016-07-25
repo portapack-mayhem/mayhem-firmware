@@ -36,26 +36,23 @@ constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 
 class EventDispatcher {
 public:
+	EventDispatcher(std::unique_ptr<BasebandProcessor> baseband_processor);
+
 	void run();
 	void request_stop();
 
 	static inline void events_flag(const eventmask_t events) {
-		if( thread_event_loop ) {
-			chEvtSignal(thread_event_loop, events);
-		}
+		chEvtSignal(thread_event_loop, events);
 	}
 
 	static inline void events_flag_isr(const eventmask_t events) {
-		if( thread_event_loop ) {
-			chEvtSignalI(thread_event_loop, events);
-		}
+		chEvtSignalI(thread_event_loop, events);
 	}
 
 private:
 	static Thread* thread_event_loop;
 
-	BasebandThread baseband_thread;
-	RSSIThread rssi_thread;
+	std::unique_ptr<BasebandProcessor> baseband_processor;
 
 	bool is_running = true;
 

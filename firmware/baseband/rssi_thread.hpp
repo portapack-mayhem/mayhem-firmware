@@ -30,10 +30,13 @@
 
 class RSSIThread : public ThreadBase {
 public:
-	Thread* start(const tprio_t priority);
+	RSSIThread(const tprio_t priority);
+	~RSSIThread();
 
 private:
 	void run() override;
+
+	static Thread* thread;
 
 	const uint32_t sampling_rate { 400000 };
 };

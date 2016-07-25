@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
 #include <array>
 #include <functional>
 #include <algorithm>
@@ -50,7 +51,6 @@ public:
 		ChannelStatistics = 2,
 		DisplayFrameSync = 3,
 		AudioStatistics = 4,
-		BasebandConfiguration = 5,
 		TPMSPacket = 6,
 		Shutdown = 8,
 		AISPacket = 7,
@@ -63,7 +63,8 @@ public:
 		SpectrumStreamingConfig = 15,
 		DisplaySleep = 16,
 		CaptureConfig = 17,
-		
+		CaptureThreadDone = 18,
+
 		TXDone = 20,
 		Retune = 21,
 		ReadyForSwitch = 22,
@@ -198,65 +199,21 @@ public:
 	AudioStatistics statistics;
 };
 
-struct BasebandConfiguration {
-	int32_t mode;
-	uint32_t sampling_rate;
-	size_t decimation_factor;
-
-	constexpr BasebandConfiguration(
-		int32_t mode,
-		uint32_t sampling_rate,
-		size_t decimation_factor = 1
-	) : mode { mode },
-		sampling_rate { sampling_rate },
-		decimation_factor { decimation_factor }
-	{
-	}
-
-	constexpr BasebandConfiguration(
-	) : BasebandConfiguration { -1, 0, 1 }
-	{
-	}
-};
-
-class BasebandConfigurationMessage : public Message {
-public:
-	constexpr BasebandConfigurationMessage(
-		const BasebandConfiguration& configuration
-	) : Message { ID::BasebandConfiguration },
-		configuration { configuration }
-	{
-	}
-
-	BasebandConfiguration configuration;
-};
-
 class SpectrumStreamingConfigMessage : public Message {
 public:
 	enum class Mode : uint32_t {
 		Stopped = 0,
 		Running = 1,
 	};
-	
+
 	constexpr SpectrumStreamingConfigMessage(
 		Mode mode
 	) : Message { ID::SpectrumStreamingConfig },
-		mode { mode },
-		decimation_factor { 1 }
-	{
-	}
-
-	constexpr SpectrumStreamingConfigMessage(
-		Mode mode,
-		size_t decimation_factor
-	) : Message { ID::SpectrumStreamingConfig },
-		mode { mode },
-		decimation_factor { decimation_factor }
+		mode { mode }
 	{
 	}
 
 	Mode mode { Mode::Stopped };
-	size_t decimation_factor = 1;
 };
 
 struct ChannelSpectrum {
@@ -430,21 +387,63 @@ public:
 	const iir_biquad_config_t audio_hpf_config;
 };
 
+// TODO: Put this somewhere else, or at least the implementation part.
+class StreamBuffer {
+	uint8_t* data_;
+	size_t used_;
+	size_t capacity_;
+
+public:
+	constexpr StreamBuffer(
+		void* const data = nullptr,
+		const size_t capacity = 0
+	) : data_ { static_cast<uint8_t*>(data) },
+		used_ { 0 },
+		capacity_ { capacity }
+	{
+	}
+
+	size_t write(const void* p, const size_t count) {
+		const auto copy_size = std::min(capacity_ - used_, count);
+		memcpy(&data_[used_], p, copy_size);
+		used_ += copy_size;
+		return copy_size;
+	}
+
+	bool is_full() const {
+		return used_ >= capacity_;
+	}
+
+	const void* data() const {
+		return data_;
+	}
+
+	size_t size() const {
+		return used_;
+	}
+
+	void empty() {
+		used_ = 0;
+	}
+};
+
 struct CaptureConfig {
-	const size_t write_size_log2;
-	const size_t buffer_count_log2;
+	const size_t write_size;
+	const size_t buffer_count;
 	uint64_t baseband_bytes_received;
 	uint64_t baseband_bytes_dropped;
-	FIFO<uint8_t>* fifo;
+	FIFO<StreamBuffer*>* fifo_buffers_empty;
+	FIFO<StreamBuffer*>* fifo_buffers_full;
 
 	constexpr CaptureConfig(
-		const size_t write_size_log2,
-		const size_t buffer_count_log2
-	) : write_size_log2 { write_size_log2 },
-		buffer_count_log2 { buffer_count_log2 },
+		const size_t write_size,
+		const size_t buffer_count
+	) : write_size { write_size },
+		buffer_count { buffer_count },
 		baseband_bytes_received { 0 },
 		baseband_bytes_dropped { 0 },
-		fifo { nullptr }
+		fifo_buffers_empty { nullptr },
+		fifo_buffers_full { nullptr }
 	{
 	}
 
@@ -539,33 +538,16 @@ public:
 	int8_t * data;
 };
 
-class MessageHandlerMap {
+class CaptureThreadDoneMessage : public Message {
 public:
-	using MessageHandler = std::function<void(Message* const p)>;
-
-	void register_handler(const Message::ID id, MessageHandler&& handler) {
-		if( map_[toUType(id)] != nullptr ) {
-			chDbgPanic("MsgDblReg");
-		}
-		map_[toUType(id)] = std::move(handler);
+	constexpr CaptureThreadDoneMessage(
+		uint32_t error = 0
+	) : Message { ID::CaptureThreadDone },
+		error { error }
+	{
 	}
 
-	void unregister_handler(const Message::ID id) {
-		map_[toUType(id)] = nullptr;
-	}
-
-	void send(Message* const message) {
-		if( message->id < Message::ID::MAX ) {
-			auto& fn = map_[toUType(message->id)];
-			if( fn ) {
-				fn(message);
-			}
-		}
-	}
-
-private:
-	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
-	MapType map_;
+	uint32_t error;
 };
 
 #endif/*__MESSAGE_H__*/

@@ -20,16 +20,15 @@
  */
 
 #include "ui_setup.hpp"
-#include "string_format.hpp"
-#include "portapack_persistent_memory.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
+#include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
 #include "portapack.hpp"
 using portapack::receiver_model;
-using namespace portapack;
+
+#include "cpld_update.hpp"
 
 namespace ui {
 
@@ -170,15 +169,26 @@ void AntennaBiasSetupView::focus() {
 	button_done.focus();
 }
 
-SetTouchCalibView::SetTouchCalibView(NavigationView& nav) {
-	add_children({{
+AboutView::AboutView(NavigationView& nav) {
+	add_children({ {
 		&text_title,
-		&text_debugx,
-		&text_debugy,
-		&button_ok
-		}});
+		&text_firmware,
+		&text_cpld_hackrf,
+		&text_cpld_hackrf_status,
+		&button_ok,
+	} });
 
 	button_ok.on_select = [&nav](Button&){ nav.pop(); };
+
+	if( cpld_hackrf_verify_eeprom() ) {
+		text_cpld_hackrf_status.set(" OK");
+	} else {
+		text_cpld_hackrf_status.set("BAD");
+	}
+}
+
+void AboutView::focus() {
+	button_ok.focus();
 }
 
 void SetTouchCalibView::focus() {

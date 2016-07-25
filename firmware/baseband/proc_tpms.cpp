@@ -23,6 +23,8 @@
 
 #include "dsp_fir_taps.hpp"
 
+#include "event_m4.hpp"
+
 TPMSProcessor::TPMSProcessor() {
 	decim_0.configure(taps_200k_decim_0.taps, 33554432);
 	decim_1.configure(taps_200k_decim_1.taps, 131072);
@@ -32,41 +34,32 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto decimator_out = decim_1_out;
+	const auto decimator_out = decim_1.execute(decim_0_out, dst_buffer);
 
 	/* 307.2kHz, 256 samples */
 	feed_channel_stats(decimator_out);
 
 	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
-			clock_recovery(mf.get_output());
+		if( mf_38k4_1t_19k2.execute_once(decimator_out.p[i]) ) {
+			clock_recovery_fsk_19k2(mf_38k4_1t_19k2.get_output());
 		}
 	}
 
-	for(size_t i=0; i<decim_1_out.count; i+=channel_decimation) {
-		const auto sliced = ook_slicer_5sps(decim_1_out.p[i]);
+	for(size_t i=0; i<decimator_out.count; i+=channel_decimation) {
+		const auto sliced = ook_slicer_5sps(decimator_out.p[i]);
 		slicer_history = (slicer_history << 1) | sliced;
 
-		ook_clock_recovery_subaru(slicer_history, [this](const bool symbol) {
-			this->packet_builder_ook_subaru.execute(symbol);
+		clock_recovery_ook_8k192(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_8k192_schrader.execute(symbol);
 		});
-		ook_clock_recovery_gmc(slicer_history, [this](const bool symbol) {
-			this->packet_builder_ook_gmc.execute(symbol);
+		clock_recovery_ook_8k4(slicer_history, [this](const bool symbol) {
+			this->packet_builder_ook_8k4_schrader.execute(symbol);
 		});
 	}
 }
 
-void TPMSProcessor::consume_symbol(
-	const float raw_symbol
-) {
-	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-	packet_builder.execute(sliced_symbol);
-}
-
-void TPMSProcessor::payload_handler(
-	const baseband::Packet& packet
-) {
-	const TPMSPacketMessage message { tpms::SignalType::FLM, packet };
-	shared_memory.application_queue.push(message);
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<TPMSProcessor>() };
+	event_dispatcher.run();
+	return 0;
 }

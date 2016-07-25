@@ -21,8 +21,6 @@
 
 #include "ais_app.hpp"
 
-#include "event_m0.hpp"
-
 #include "string_format.hpp"
 
 #include "baseband_api.hpp"
@@ -128,25 +126,17 @@ static std::string true_heading(const TrueHeading value) {
 } /* namespace format */
 } /* namespace ais */
 
-AISLogger::AISLogger(
-	const std::string& file_path
-) : log_file { file_path }
-{
-}
-
 void AISLogger::on_packet(const ais::Packet& packet) {
 	// TODO: Unstuff here, not in baseband!
-	if( log_file.is_open() ) {
-		std::string entry;
-		entry.reserve((packet.length() + 3) / 4);
+	std::string entry;
+	entry.reserve((packet.length() + 3) / 4);
 
-		for(size_t i=0; i<packet.length(); i+=4) {
-			const auto nibble = packet.read(i, 4);
-			entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
-		}
-
-		log_file.write_entry(packet.received_at(), entry);
+	for(size_t i=0; i<packet.length(); i+=4) {
+		const auto nibble = packet.read(i, 4);
+		entry += (nibble >= 10) ? ('W' + nibble) : ('0' + nibble);
 	}
+
+	log_file.write_entry(packet.received_at(), entry);
 }	
 
 void AISRecentEntry::update(const ais::Packet& packet) {
@@ -296,6 +286,8 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 }
 
 AISAppView::AISAppView(NavigationView&) {
+	baseband::run_image(portapack::spi_flash::image_tag_ais);
+
 	add_children({ {
 		&label_channel,
 		&options_channel,
@@ -305,16 +297,6 @@ AISAppView::AISAppView(NavigationView&) {
 
 	recent_entry_detail_view.hidden(true);
 
-	EventDispatcher::message_map().register_handler(Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			if( packet.is_valid() ) {
-				this->on_packet(packet);
-			}
-		}
-	);
-	
 	target_frequency_ = initial_target_frequency;
 
 	radio::enable({
@@ -324,12 +306,6 @@ AISAppView::AISAppView(NavigationView&) {
 		rf::Direction::Receive,
 		false, 32, 32,
 		1,
-	});
-
-	baseband::start({
-		.mode = 3,
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
 	});
 
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
@@ -344,14 +320,16 @@ AISAppView::AISAppView(NavigationView&) {
 		this->on_show_list();
 	};
 
-	logger = std::make_unique<AISLogger>("ais.txt");
+	logger = std::make_unique<AISLogger>();
+	if( logger ) {
+		logger->append("ais.txt");
+	}
 }
 
 AISAppView::~AISAppView() {
-	baseband::stop();
 	radio::disable();
 
-	EventDispatcher::message_map().unregister_handler(Message::ID::AISPacket);
+	baseband::shutdown();
 }
 
 void AISAppView::focus() {

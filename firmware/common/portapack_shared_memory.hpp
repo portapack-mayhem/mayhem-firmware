@@ -27,10 +27,6 @@
 
 #include "message_queue.hpp"
 
-struct TouchADCFrame {
-	uint32_t dr[8];
-};
-
 struct JammerRange {
 	bool active;
 	int64_t center;
@@ -40,19 +36,16 @@ struct JammerRange {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
-	static constexpr size_t baseband_queue_k = 12;
 	static constexpr size_t application_queue_k = 11;
+	static constexpr size_t app_local_queue_k = 11;
 
-	MessageQueue baseband_queue;
-	uint8_t baseband_queue_data[1 << baseband_queue_k];
-	MessageQueue application_queue;
-	uint8_t application_queue_data[1 << application_queue_k];
+	uint8_t application_queue_data[1 << application_queue_k] { 0 };
+	uint8_t app_local_queue_data[1 << app_local_queue_k] { 0 };
+	const Message* volatile baseband_message { nullptr };
+	MessageQueue application_queue { application_queue_data, application_queue_k };
+	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
 
-	// TODO: M0 should directly configure and control DMA channel that is
-	// acquiring ADC samples.
-	TouchADCFrame touch_adc_frame;
-	
-	int test;
+	char m4_panic_msg[32] { 0 };
 
 	uint8_t radio_data[256];
 	size_t bit_length;

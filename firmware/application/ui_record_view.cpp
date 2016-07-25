@@ -32,43 +32,61 @@ using namespace portapack;
 
 #include <cstdint>
 
-class RawFileWriter : public Writer {
+class FileWriter : public Writer {
 public:
-	RawFileWriter(
-		const std::string& filename
-	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
-	{
+	FileWriter() = default;
+
+	FileWriter(const FileWriter&) = delete;
+	FileWriter& operator=(const FileWriter&) = delete;
+	FileWriter(FileWriter&& file) = delete;
+	FileWriter& operator=(FileWriter&&) = delete;
+
+	Optional<File::Error> create(const std::string& filename) {
+		return file.create(filename);
 	}
 
-	bool write(const void* const buffer, const size_t bytes) override {
-		return file.write(buffer, bytes);
+	File::Result<size_t> write(const void* const buffer, const size_t bytes) override {
+		auto write_result = file.write(buffer, bytes) ;
+		if( write_result.is_ok() ) {
+			bytes_written += write_result.value();
+		}
+		return write_result;
 	}
 
-private:
+protected:
 	File file;
+	uint64_t bytes_written { 0 };
 };
 
-class WAVFileWriter : public Writer {
+using RawFileWriter = FileWriter;
+
+class WAVFileWriter : public FileWriter {
 public:
 	WAVFileWriter(
-		const std::string& filename,
 		size_t sampling_rate
-	) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc },
-		header { sampling_rate }
+	) : header { sampling_rate }
 	{
-		update_header();
 	}
+
+
+	WAVFileWriter(const WAVFileWriter&) = delete;
+	WAVFileWriter& operator=(const WAVFileWriter&) = delete;
+	WAVFileWriter(WAVFileWriter&&) = delete;
+	WAVFileWriter& operator=(WAVFileWriter&&) = delete;
 
 	~WAVFileWriter() {
 		update_header();
 	}
 
-	bool write(const void* const buffer, const size_t bytes) override {
-		const auto success = file.write(buffer, bytes) ;
-		if( success ) {
-			bytes_written += bytes;
+	Optional<File::Error> create(
+		const std::string& filename
+	) {
+		const auto create_error = FileWriter::create(filename);
+		if( create_error.is_valid() ) {
+			return create_error;
+		} else {
+			return update_header();
 		}
-		return success;
 	}
 
 private:
@@ -121,15 +139,24 @@ private:
 		data_t data;
 	};
 
-	File file;
 	header_t header;
-	uint64_t bytes_written { 0 };
 
-	void update_header() {
+	Optional<File::Error> update_header() {
 		header.set_data_size(bytes_written);
-		const auto old_position = file.seek(0);
-		file.write(&header, sizeof(header));
-		file.seek(old_position);
+		const auto seek_0_result = file.seek(0);
+		if( seek_0_result.is_error() ) {
+			return seek_0_result.error();
+		}
+		const auto old_position = seek_0_result.value();
+		const auto write_result = file.write(&header, sizeof(header));
+		if( write_result.is_error() ) {
+			return write_result.error();
+		}
+		const auto seek_old_result = file.seek(old_position);
+		if( seek_old_result.is_error() ) {
+			return seek_old_result.error();
+		}
+		return { };
 	}
 };
 
@@ -139,19 +166,23 @@ RecordView::RecordView(
 	const Rect parent_rect,
 	std::string filename_stem_pattern,
 	const FileType file_type,
-	const size_t buffer_size_k,
-	const size_t buffer_count_k
+	const size_t write_size,
+	const size_t buffer_count
 ) : View { parent_rect },
 	filename_stem_pattern { filename_stem_pattern },
 	file_type { file_type },
-	buffer_size_k { buffer_size_k },
-	buffer_count_k { buffer_count_k }
+	write_size { write_size },
+	buffer_count { buffer_count }
 {
 	add_children({ {
+		&rect_background,
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
+		&text_time_available,
 	} });
+
+	rect_background.set_parent_rect({ { 0, 0 }, size() });
 
 	button_record.on_select = [this](ImageButton&) {
 		this->toggle();
@@ -168,6 +199,21 @@ RecordView::~RecordView() {
 
 void RecordView::focus() {
 	button_record.focus();
+}
+
+void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
+	if( new_sampling_rate != sampling_rate ) {
+		stop();
+		sampling_rate = new_sampling_rate;
+
+		button_record.hidden(sampling_rate == 0);
+		text_record_filename.hidden(sampling_rate == 0);
+		text_record_dropped.hidden(sampling_rate == 0);
+		text_time_available.hidden(sampling_rate == 0);
+		rect_background.hidden(sampling_rate != 0);
+
+		update_status_display();
+	}
 }
 
 bool RecordView::is_active() const {
@@ -200,17 +246,39 @@ void RecordView::start() {
 	std::unique_ptr<Writer> writer;
 	switch(file_type) {
 	case FileType::WAV:
-		writer = std::make_unique<WAVFileWriter>(
-			filename_stem + ".WAV",
-			sampling_rate
-		);
+		{
+			auto p = std::make_unique<WAVFileWriter>(
+				sampling_rate
+			);
+			auto create_error = p->create(
+				filename_stem + ".WAV"
+			);
+			if( create_error.is_valid() ) {
+				handle_error(create_error.value());
+			} else {
+				writer = std::move(p);
+			}
+		}
 		break;
 
 	case FileType::RawS16:
-		write_metadata_file(filename_stem + ".TXT");
-		writer = std::make_unique<RawFileWriter>(
-			filename_stem + ".C16"
-		);
+		{
+			const auto metadata_file_error = write_metadata_file(filename_stem + ".TXT");
+			if( metadata_file_error.is_valid() ) {
+				handle_error(metadata_file_error.value());
+				return;
+			}
+
+			auto p = std::make_unique<RawFileWriter>();
+			auto create_error = p->create(
+				filename_stem + ".C16"
+			);
+			if( create_error.is_valid() ) {
+				handle_error(create_error.value());
+			} else {
+				writer = std::move(p);
+			}
+		}
 		break;
 
 	default:
@@ -222,9 +290,19 @@ void RecordView::start() {
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
-			buffer_size_k, buffer_count_k
+			write_size, buffer_count,
+			[]() {
+				CaptureThreadDoneMessage message { };
+				EventDispatcher::send_message(message);
+			},
+			[](File::Error error) {
+				CaptureThreadDoneMessage message { error.code() };
+				EventDispatcher::send_message(message);
+			}
 		);
 	}
+
+	update_status_display();
 }
 
 void RecordView::stop() {
@@ -232,19 +310,65 @@ void RecordView::stop() {
 		capture_thread.reset();
 		button_record.set_bitmap(&bitmap_record);
 	}
+
+	update_status_display();
 }
 
-void RecordView::write_metadata_file(const std::string& filename) {
-	File file { filename, File::openmode::out | File::openmode::trunc };
-	file.puts("sample_rate=" + to_string_dec_uint(sampling_rate) + "\n");
-	file.puts("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()) + "\n");
+Optional<File::Error> RecordView::write_metadata_file(const std::string& filename) {
+	File file;
+	const auto create_error = file.create(filename);
+	if( create_error.is_valid() ) {
+		return create_error;
+	} else {
+		const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate));
+		if( error_line1.is_valid() ) {
+			return error_line1;
+		}
+		const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
+		if( error_line2.is_valid() ) {
+			return error_line2;
+		}
+		return { };
+	}
 }
 
 void RecordView::on_tick_second() {
+	update_status_display();
+}
+
+void RecordView::update_status_display() {
 	if( is_active() ) {
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
 		text_record_dropped.set(s);
+	}
+
+	if( sampling_rate ) {
+		const auto space_info = std::filesystem::space("");
+		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * 4);
+		const uint32_t available_seconds = space_info.free / bytes_per_second;
+		const uint32_t seconds = available_seconds % 60;
+		const uint32_t available_minutes = available_seconds / 60;
+		const uint32_t minutes = available_minutes % 60;
+		const uint32_t hours = available_minutes / 60;
+		const std::string available_time =
+			to_string_dec_uint(hours, 3, ' ') + ":" +
+			to_string_dec_uint(minutes, 2, '0') + ":" +
+			to_string_dec_uint(seconds, 2, '0');
+		text_time_available.set(available_time);
+	}
+}
+
+void RecordView::handle_capture_thread_done(const File::Error error) {
+	stop();
+	if( error.code() ) {
+		handle_error(error);
+	}
+}
+
+void RecordView::handle_error(const File::Error error) {
+	if( on_error ) {
+		on_error(error.what());
 	}
 }
 

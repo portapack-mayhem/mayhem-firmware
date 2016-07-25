@@ -21,6 +21,8 @@
 
 #include "analog_audio_app.hpp"
 
+#include "baseband_api.hpp"
+
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 using namespace portapack;
@@ -108,19 +110,10 @@ AnalogAudioView::AnalogAudioView(
 		this->on_show_options_frequency();
 	};
 
-	field_lna.set_value(receiver_model.lna());
-	field_lna.on_change = [this](int32_t v) {
-		this->on_lna_changed(v);
-	};
-
 	field_lna.on_show_options = [this]() {
 		this->on_show_options_rf_gain();
 	};
 
-	field_vga.set_value(receiver_model.vga());
-	field_vga.on_change = [this](int32_t v_db) {
-		this->on_vga_changed(v_db);
-	};
 	field_vga.on_show_options = [this]() {
 		this->on_show_options_rf_gain();
 	};
@@ -139,6 +132,10 @@ AnalogAudioView::AnalogAudioView(
 		this->on_headphone_volume_changed(v);
 	};
 
+	record_view.on_error = [&nav](std::string message) {
+		nav.display_modal("Error", message);
+	};
+
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
@@ -150,6 +147,8 @@ AnalogAudioView::~AnalogAudioView() {
 	audio::output::stop();
 
 	receiver_model.disable();
+
+	baseband::shutdown();
 }
 
 void AnalogAudioView::on_hide() {
@@ -178,18 +177,6 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 	receiver_model.set_baseband_bandwidth(bandwidth_hz);
 }
 
-void AnalogAudioView::on_rf_amp_changed(bool v) {
-	receiver_model.set_rf_amp(v);
-}
-
-void AnalogAudioView::on_lna_changed(int32_t v_db) {
-	receiver_model.set_lna(v_db);
-}
-
-void AnalogAudioView::on_vga_changed(int32_t v_db) {
-	receiver_model.set_vga(v_db);
-}
-
 void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation) {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
@@ -215,8 +202,11 @@ void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 
 	if( new_widget ) {
 		options_widget = std::move(new_widget);
-		add_child(options_widget.get());
+	} else {
+		// TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
+		options_widget = std::make_unique<Rectangle>(options_view_rect, style_options_group.background);
 	}
+	add_child(options_widget.get());
 }
 
 void AnalogAudioView::on_show_options_frequency() {
@@ -237,11 +227,6 @@ void AnalogAudioView::on_show_options_frequency() {
 
 void AnalogAudioView::on_show_options_rf_gain() {
 	auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
-
-	widget->set_rf_amp(receiver_model.rf_amp());
-	widget->on_change_rf_amp = [this](bool enable) {
-		this->on_rf_amp_changed(enable);
-	};
 
 	set_options_widget(std::move(widget));
 	field_lna.set_style(&style_options_group);
@@ -285,6 +270,20 @@ void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	audio::output::mute();
 	record_view.stop();
+
+	baseband::shutdown();
+
+	portapack::spi_flash::image_tag_t image_tag;
+	switch(modulation) {
+	case ReceiverModel::Mode::AMAudio:				image_tag = portapack::spi_flash::image_tag_am_audio;			break;
+	case ReceiverModel::Mode::NarrowbandFMAudio:	image_tag = portapack::spi_flash::image_tag_nfm_audio;			break;
+	case ReceiverModel::Mode::WidebandFMAudio:		image_tag = portapack::spi_flash::image_tag_wfm_audio;			break;
+	case ReceiverModel::Mode::SpectrumAnalysis:		image_tag = portapack::spi_flash::image_tag_wideband_spectrum;	break;
+	default:
+		return;
+	}
+
+	baseband::run_image(image_tag);
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_baseband_configuration({

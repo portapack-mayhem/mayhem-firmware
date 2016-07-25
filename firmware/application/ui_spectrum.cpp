@@ -21,8 +21,6 @@
 
 #include "ui_spectrum.hpp"
 
-#include "event_m0.hpp"
-
 #include "spectrum_color_lut.hpp"
 
 #include "portapack.hpp"
@@ -236,31 +234,11 @@ WaterfallWidget::WaterfallWidget() {
 }
 
 void WaterfallWidget::on_show() {
-	EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrumConfig,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-			this->fifo = message.fifo;
-		}
-	);
-	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			if( this->fifo ) {
-				ChannelSpectrum channel_spectrum;
-				while( fifo->out(channel_spectrum) ) {
-					this->on_channel_spectrum(channel_spectrum);
-				}
-			}
-		}
-	);
-
 	baseband::spectrum_streaming_start();
 }
 
 void WaterfallWidget::on_hide() {
 	baseband::spectrum_streaming_stop();
-
-	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
 }
 
 void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {

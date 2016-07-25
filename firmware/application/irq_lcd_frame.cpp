@@ -54,7 +54,7 @@ CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	EventDispatcher::events_flag_isr(EVT_MASK_LCD_FRAME_SYNC);
+	EventDispatcher::event_isr_lcd_frame_sync();
 	chSysUnlockFromIsr();
 
 	LPC_GPIO_INT->IST = (1U << 4);

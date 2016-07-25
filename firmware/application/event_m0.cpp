@@ -22,8 +22,6 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
-#include "portapack_shared_memory.hpp"
-#include "portapack_persistent_memory.hpp"
 
 #include "sd_card.hpp"
 #include "time.hpp"
@@ -42,6 +40,8 @@ using namespace lpc43xx;
 
 #include <array>
 
+#include "ui_font_fixed_8x16.hpp"
+
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {
@@ -59,34 +59,60 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 }
 
-MessageHandlerMap EventDispatcher::message_map_;
+class MessageHandlerMap {
+public:
+	using MessageHandler = std::function<void(Message* const p)>;
+
+	void register_handler(const Message::ID id, MessageHandler&& handler) {
+		if( map_[toUType(id)] != nullptr ) {
+			chDbgPanic("MsgDblReg");
+		}
+		map_[toUType(id)] = std::move(handler);
+	}
+
+	void unregister_handler(const Message::ID id) {
+		map_[toUType(id)] = nullptr;
+	}
+
+	void send(Message* const message) {
+		if( message->id < Message::ID::MAX ) {
+			auto& fn = map_[toUType(message->id)];
+			if( fn ) {
+				fn(message);
+			}
+		}
+	}
+
+private:
+	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
+	MapType map_;
+};
+
+static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
+bool EventDispatcher::is_running = false;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
-	ui::Painter& painter,
 	ui::Context& context
 ) : top_widget { top_widget },
-	painter(painter),
+	painter { },
 	context(context)
 {
 	init_message_queues();
 
 	thread_event_loop = chThdSelf();
+	is_running = true;
 	touch_manager.on_event = [this](const ui::TouchEvent event) {
 		this->on_touch_event(event);
 	};
 }
 
 void EventDispatcher::run() {
-	creg::m4txevent::enable();
-
 	while(is_running) {
 		const auto events = wait();
 		dispatch(events);
 	}
-
-	creg::m4txevent::disable();
 }
 
 void EventDispatcher::request_stop() {
@@ -100,7 +126,6 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 		portapack::io.lcd_backlight(false);
 		portapack::display.sleep();
 	} else {
-		portapack::bl_tick_counter = 0;
 		portapack::display.wake();
 		portapack::io.lcd_backlight(true);
 	}
@@ -112,8 +137,46 @@ eventmask_t EventDispatcher::wait() {
 }
 
 void EventDispatcher::dispatch(const eventmask_t events) {
+	if( shared_memory.m4_panic_msg[0] != 0 ) {
+		halt = true;
+	}
+
+	if( halt ) {
+		if( shared_memory.m4_panic_msg[0] != 0 ) {
+			painter.fill_rectangle(
+				{ 0, 0, portapack::display.width(), portapack::display.height() },
+				ui::Color::red()
+			);
+
+			constexpr int border = 8;
+			painter.fill_rectangle(
+				{ border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2) },
+				ui::Color::black()
+			);
+
+			painter.draw_string({ 48, 24 }, top_widget->style(), "M4 Guru Meditation");
+
+			shared_memory.m4_panic_msg[sizeof(shared_memory.m4_panic_msg) - 1] = 0;
+			const std::string message = shared_memory.m4_panic_msg;
+			const int x_offset = (portapack::display.width() - (message.size() * 8)) / 2;
+			constexpr int y_offset = (portapack::display.height() - 16) / 2;
+			painter.draw_string(
+				{ x_offset, y_offset },
+				top_widget->style(),
+				message
+			);
+
+			shared_memory.m4_panic_msg[0] = 0;
+		}
+		return;
+	}
+
 	if( events & EVT_MASK_APPLICATION ) {
 		handle_application_queue();
+	}
+
+	if( events & EVT_MASK_LOCAL ) {
+		handle_local_queue();
 	}
 
 	if( events & EVT_MASK_RTC_TICK ) {
@@ -123,14 +186,14 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 	if( events & EVT_MASK_SWITCHES ) {
 		handle_switches();
 	}
-	
-	if( events & EVT_MASK_ENCODER ) {
-		handle_encoder();
-	}
 
 	if( !display_sleep ) {
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
+		}
+
+		if( events & EVT_MASK_ENCODER ) {
+			handle_encoder();
 		}
 
 		if( events & EVT_MASK_TOUCH ) {
@@ -141,7 +204,13 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 
 void EventDispatcher::handle_application_queue() {
 	shared_memory.application_queue.handle([](Message* const message) {
-		message_map().send(message);
+		message_map.send(message);
+	});
+}
+
+void EventDispatcher::handle_local_queue() {
+	shared_memory.app_local_queue.handle([](Message* const message) {
+		message_map.send(message);
 	});
 }
 
@@ -170,7 +239,6 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 		for(const auto child : w->children()) {
 			const auto touched_widget = touch_widget(child, event);
 			if( touched_widget ) {
-				portapack::bl_tick_counter = 0;
 				return touched_widget;
 			}
 		}
@@ -179,7 +247,6 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 		if( r.contains(event.point) ) {
 			if( w->on_touch(event) ) {
 				// This widget responded. Return it up the call stack.
-				portapack::bl_tick_counter = 0;
 				return w;
 			}
 		}
@@ -209,7 +276,7 @@ void EventDispatcher::on_touch_event(ui::TouchEvent event) {
 
 void EventDispatcher::handle_lcd_frame_sync() {
 	DisplayFrameSyncMessage message;
-	message_map().send(&message);
+	message_map.send(&message);
 	painter.paint_widget_tree(top_widget);
 }
 
@@ -275,11 +342,17 @@ void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
 }
 
 void EventDispatcher::init_message_queues() {
-	new (&shared_memory.baseband_queue) MessageQueue(
-		shared_memory.baseband_queue_data, SharedMemory::baseband_queue_k
-	);
-	new (&shared_memory.application_queue) MessageQueue(
-		shared_memory.application_queue_data, SharedMemory::application_queue_k
-	);
+	new (&shared_memory) SharedMemory;
+}
 
+MessageHandlerRegistration::MessageHandlerRegistration(
+	const Message::ID message_id,
+	MessageHandlerMap::MessageHandler&& callback
+) : message_id { message_id }
+{
+	message_map.register_handler(message_id, std::move(callback));
+}
+
+MessageHandlerRegistration::~MessageHandlerRegistration() {
+	message_map.unregister_handler(message_id);
 }

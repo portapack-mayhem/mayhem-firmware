@@ -49,15 +49,28 @@ private:
 		"SD Card",
 	};
 
-	static constexpr size_t detected_characters = 3;
-
-	Text text_detected_title {
+	Text text_csd_title {
 		{ 0, 3 * 16, (8 * 8), 16 },
-		"Detected",
+		"CSD",
 	};
 
-	Text text_detected_value {
-		{ 240 - (detected_characters * 8), 3 * 16, (detected_characters * 8), 16 },
+	Text text_csd_value_3 {
+		{ 240 - ((8 + 1 + 8) * 8), 3 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_2 {
+		{ 240 - (8 * 8), 3 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_1 {
+		{ 240 - ((8 + 1 + 8) * 8), 4 * 16, (8 * 8), 16 },
+		"",
+	};
+
+	Text text_csd_value_0 {
+		{ 240 - (8 * 8), 4 * 16, (8 * 8), 16 },
 		"",
 	};
 
@@ -73,29 +86,17 @@ private:
 		"",
 	};
 
-	static constexpr size_t card_mode_characters = 10;
+	static constexpr size_t card_type_characters = 13;
 
-	Text text_card_mode_title {
+	Text text_card_type_title {
 		{ 0, 6 * 16, (9 * 8), 16 },
-		"Card mode",
+		"Card type",
 	};
 
-	Text text_card_mode_value {
-		{ 240 - (card_mode_characters * 8), 6 * 16, (card_mode_characters * 8), 16 },
+	Text text_card_type_value {
+		{ 240 - (card_type_characters * 8), 6 * 16, (card_type_characters * 8), 16 },
 		"",
 	};
-
-	// static constexpr size_t csd_characters = 10;
-
-	// Text text_csd_title {
-	// 	{ 0, 7 * 16, (3 * 8), 16 },
-	// 	"CSD",
-	// };
-
-	// Text text_csd_value {
-	// 	{ 240 - (csd_characters * 8), 7 * 16, (csd_characters * 8), 16 },
-	// 	"",
-	// };
 
 	static constexpr size_t block_size_characters = 5;
 

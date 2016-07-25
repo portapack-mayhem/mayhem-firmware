@@ -49,10 +49,14 @@ static constexpr std::array<uint8_t, 12> png_iend { {
 	0xae, 0x42, 0x60, 0x82,		// CRC
 } };
 
-PNGWriter::PNGWriter(
+Optional<File::Error> PNGWriter::create(
 	const std::string& filename
-) : file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc }
-{
+) {
+	const auto create_error = file.create(filename);
+	if( create_error.is_valid() ) {
+		return create_error;
+	}
+
 	file.write(png_file_header);
 	file.write(png_ihdr_screen_capture);
 	
@@ -63,6 +67,8 @@ PNGWriter::PNGWriter(
 
 	constexpr std::array<uint8_t, 2> zlib_header { 0x78, 0x01 };	// Zlib CM, CINFO, FLG.
 	write_chunk_content(zlib_header);
+
+	return { };
 }
 
 PNGWriter::~PNGWriter() {

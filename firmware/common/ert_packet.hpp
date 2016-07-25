@@ -68,7 +68,7 @@ public:
 	CommodityType commodity_type() const;
 	Consumption consumption() const;
 
-	ManchesterFormatted symbols_formatted() const;
+	FormattedSymbols symbols_formatted() const;
 
 	bool crc_ok() const;
 

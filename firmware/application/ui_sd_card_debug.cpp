@@ -27,6 +27,7 @@
 #include "lfsr_random.hpp"
 
 #include "ff.h"
+#include "diskio.h"
 
 #include "ch.h"
 #include "hal.h"
@@ -133,22 +134,24 @@ private:
 			return Result::FailHeap;
 		}
 
-		File file { filename, File::openmode::out | File::openmode::binary | File::openmode::trunc };
-		if( !file.is_open() ) {
+		File file;
+		auto file_create_error = file.create(filename);
+		if( file_create_error.is_valid() ) {
 			return Result::FailFileOpenWrite;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && file.is_open() && (_stats.write_bytes < bytes_to_write) ) {
+		while( !chThdShouldTerminate() && (_stats.write_bytes < bytes_to_write) ) {
 			lfsr_fill(v,
 				reinterpret_cast<lfsr_word_t*>(buffer->data()),
 				sizeof(*buffer.get()) / sizeof(lfsr_word_t)
 			);
 
 			const halrtcnt_t write_start = halGetCounterValue();
-			if( !file.write(buffer->data(), buffer->size()) ) {
+			const auto result_write = file.write(buffer->data(), buffer->size());
+			if( result_write.is_error() ) {
 				break;
 			}
 			const halrtcnt_t write_end = halGetCounterValue();
@@ -178,17 +181,19 @@ private:
 			return Result::FailHeap;
 		}
 
-		File file { filename, File::openmode::in | File::openmode::binary };
-		if( !file.is_open() ) {
+		File file;
+		auto file_open_error = file.open(filename);
+		if( file_open_error.is_valid() ) {
 			return Result::FailFileOpenRead;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && file.is_open() && (_stats.read_bytes < bytes_to_read) ) {
+		while( !chThdShouldTerminate() && (_stats.read_bytes < bytes_to_read) ) {
 			const halrtcnt_t read_start = halGetCounterValue();
-			if( !file.read(buffer->data(), buffer->size()) ) {
+			const auto result_read = file.read(buffer->data(), buffer->size());
+			if( result_read.is_error() ) {
 				break;
 			}
 			const halrtcnt_t read_end = halGetCounterValue();
@@ -227,14 +232,15 @@ namespace ui {
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 	add_children({ {
 		&text_title,
-		&text_detected_title,
-		&text_detected_value,
+		&text_csd_title,
+		&text_csd_value_3,
+		&text_csd_value_2,
+		&text_csd_value_1,
+		&text_csd_value_0,
 		&text_bus_width_title,
 		&text_bus_width_value,
-		&text_card_mode_title,
-		&text_card_mode_value,
-		// &text_csd_title,
-		// &text_csd_value,
+		&text_card_type_title,
+		&text_card_type_value,
 		&text_block_size_title,
 		&text_block_size_value,
 		&text_block_count_title,
@@ -272,10 +278,33 @@ void SDCardDebugView::focus() {
 	button_ok.focus();
 }
 
+static std::string format_3dot3_string(const uint32_t value_in_thousandths) {
+	if( value_in_thousandths < 1000000U ) {
+		const uint32_t thousandths_part = value_in_thousandths % 1000;
+		const uint32_t integer_part = value_in_thousandths / 1000U;
+		return to_string_dec_uint(integer_part, 3) + "." + to_string_dec_uint(thousandths_part, 3, '0');
+	} else {
+		return "HHH.HHH";
+	}
+}
+
+static std::string format_bytes_size_string(uint64_t value) {
+	static const std::array<char, 5> suffix { { ' ', 'K', 'M', 'G', 'T' } };
+	size_t suffix_index = 1;
+	while( (value >= 1000000U) && (suffix_index < suffix.size()) ) {
+		value /= 1000U;
+		suffix_index++;
+	}
+	return format_3dot3_string(value) + " " + suffix[suffix_index] + "B";
+}
+
 void SDCardDebugView::on_status(const sd_card::Status) {
 	text_bus_width_value.set("");
-	text_card_mode_value.set("");
-	// text_csd_value.set("");
+	text_card_type_value.set("");
+	text_csd_value_0.set("");
+	text_csd_value_1.set("");
+	text_csd_value_2.set("");
+	text_csd_value_3.set("");
 	text_block_size_value.set("");
 	text_block_count_value.set("");
 	text_capacity_value.set("");
@@ -285,8 +314,6 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 	text_test_read_rate_value.set("");
 
 	const bool is_inserted = sdcIsCardInserted(&SDCD1);
-	text_detected_value.set(is_inserted ? "Yes" : " No");
-
 	if( is_inserted ) {
 		const auto card_width_flags = LPC_SDMMC->CTYPE & 0x10001;
 		size_t card_width = 0;
@@ -298,56 +325,50 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 		}
 
 		text_bus_width_value.set(card_width ? to_string_dec_uint(card_width, 1) : "X");
-		text_card_mode_value.set("0x" + to_string_hex(SDCD1.cardmode, 8));
-		// text_csd_value.set("0x" + to_string_hex(SDCD1.csd, 8));
+
+		// TODO: Implement Text class right-justify!
+		BYTE card_type;
+		disk_ioctl(0, MMC_GET_TYPE, &card_type);
+
+		std::string formatted_card_type;
+		switch(card_type & SDC_MODE_CARDTYPE_MASK) {
+		case SDC_MODE_CARDTYPE_SDV11: formatted_card_type = "SD V1.1"; break;
+		case SDC_MODE_CARDTYPE_SDV20: formatted_card_type = "SD V2.0"; break;
+		case SDC_MODE_CARDTYPE_MMC:   formatted_card_type = "MMC";     break;
+		default: formatted_card_type = "???"; break;
+		}
+
+		if( card_type & SDC_MODE_HIGH_CAPACITY ) {
+			formatted_card_type += ", SDHC";
+		}
+		text_card_type_value.set(formatted_card_type);
+
+		std::array<uint32_t, 4> csd;
+		disk_ioctl(0, MMC_GET_CSD, csd.data());
+		text_csd_value_3.set(to_string_hex(csd[3], 8));
+		text_csd_value_2.set(to_string_hex(csd[2], 8));
+		text_csd_value_1.set(to_string_hex(csd[1], 8));
+		text_csd_value_0.set(to_string_hex(csd[0], 8));
 
 		BlockDeviceInfo block_device_info;
 		if( sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS ) {
 			text_block_size_value.set(to_string_dec_uint(block_device_info.blk_size, 5));
 			text_block_count_value.set(to_string_dec_uint(block_device_info.blk_num, 9));
 			const uint64_t capacity = block_device_info.blk_size * uint64_t(block_device_info.blk_num);
-			if( capacity >= 1000000000 ) {
-				const uint32_t capacity_mb = capacity / 1000000U;
-				const uint32_t fraction_gb = capacity_mb % 1000;
-				const uint32_t capacity_gb = capacity_mb / 1000U;
-				text_capacity_value.set(
-					to_string_dec_uint(capacity_gb, 3) + "." +
-					to_string_dec_uint(fraction_gb, 3, '0') + " GB"
-				);
-			} else {
-				const uint32_t capacity_kb = capacity / 1000U;
-				const uint32_t fraction_mb = capacity_kb % 1000;
-				const uint32_t capacity_mb = capacity_kb / 1000U;
-				text_capacity_value.set(
-					to_string_dec_uint(capacity_mb, 3) + "." +
-					to_string_dec_uint(fraction_mb, 3, '0') + " MB"
-				);
-			}
+			text_capacity_value.set(format_bytes_size_string(capacity));
 		}
 	}
 }
 
 static std::string format_ticks_as_ms(const halrtcnt_t value) {
 	const uint32_t us = uint64_t(value) * 1000000U / halGetCounterFrequency();
-	const uint32_t ms_frac = us % 1000U;
-	const uint32_t ms_int = us / 1000U;
-	if( ms_int < 1000 ) {
-		return to_string_dec_uint(ms_int, 3) + "." + to_string_dec_uint(ms_frac, 3, '0');
-	} else {
-		return "HHH.HHH";
-	}
+	return format_3dot3_string(us);
 }
 
 static std::string format_bytes_per_ticks_as_mib(const size_t bytes, const halrtcnt_t ticks) {
 	const uint32_t bps = uint64_t(bytes) * halGetCounterFrequency() / ticks;
 	const uint32_t kbps = bps / 1000U;
-	const uint32_t mbps_frac = kbps % 1000U;
-	const uint32_t mbps_int = kbps / 1000U;
-	if( mbps_int < 1000 ) {
-		return to_string_dec_uint(mbps_int, 3) + "." + to_string_dec_uint(mbps_frac, 3, '0');
-	} else {
-		return "HHH.HHH";
-	}
+	return format_3dot3_string(kbps);
 }
 
 void SDCardDebugView::on_test() {

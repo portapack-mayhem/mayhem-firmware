@@ -23,7 +23,7 @@
 
 #include "string_format.hpp"
 
-ManchesterDecoder::DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
+DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
 	const size_t encoded_index = index * 2;
 	if( (encoded_index + 1) < packet.size() ) {
 		const auto value = packet[encoded_index + sense];
@@ -38,7 +38,7 @@ size_t ManchesterDecoder::symbols_count() const {
 	return packet.size() / 2;
 }
 
-ManchesterFormatted format_manchester(
+FormattedSymbols format_symbols(
 	const ManchesterDecoder& decoder
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();

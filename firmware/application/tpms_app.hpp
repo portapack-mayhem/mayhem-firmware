@@ -24,6 +24,11 @@
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
+#include "ui_rssi.hpp"
+#include "ui_channel.hpp"
+
+#include "event_m0.hpp"
 
 #include "log_file.hpp"
 
@@ -51,6 +56,7 @@ struct TPMSRecentEntry {
 
 	Optional<Pressure> last_pressure;
 	Optional<Temperature> last_temperature;
+	Optional<tpms::Flags> last_flags;
 
 	TPMSRecentEntry(
 		const Key& key
@@ -70,7 +76,9 @@ using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
-	TPMSLogger(const std::string& file_path);
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
 	
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
@@ -102,15 +110,61 @@ private:
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
+	MessageHandlerRegistration message_handler_packet {
+		Message::ID::TPMSPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const TPMSPacketMessage*>(p);
+			const tpms::Packet packet { message->packet, message->signal_type };
+			this->on_packet(packet);
+		}
+	};
+
+	static constexpr ui::Dim header_height = 2 * 16;
+
+	RSSI rssi {
+		{ 21 * 8, 0, 6 * 8, 4 },
+	};
+
+	Channel channel {
+		{ 21 * 8, 5, 6 * 8, 4 },
+	};
+
+	OptionsField options_band {
+		{ 0 * 8, 0 * 16 },
+		3,
+		{
+			{ "315", 315000000 },
+			{ "434", 433920000 },
+		}
+	};
+
+	RFAmpField field_rf_amp {
+		{ 13 * 8, 0 * 16 }
+	};
+
+	LNAGainField field_lna {
+		{ 15 * 8, 0 * 16 }
+	};
+
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
+	};
+
 	TPMSRecentEntries recent;
 	std::unique_ptr<TPMSLogger> logger;
 
 	TPMSRecentEntriesView recent_entries_view { recent };
 
-	void on_packet(const tpms::SignalType signal_type, const tpms::Packet& packet);
+	uint32_t target_frequency_ = initial_target_frequency;
+
+	void on_packet(const tpms::Packet& packet);
 	void on_show_list();
 
+	void on_band_changed(const uint32_t new_band_frequency);
+
 	uint32_t target_frequency() const;
+	void set_target_frequency(const uint32_t new_value);
+
 	uint32_t tuning_frequency() const;
 };
 

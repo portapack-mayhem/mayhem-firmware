@@ -24,58 +24,58 @@
 
 #include "ff.h"
 
+#include "optional.hpp"
+
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <array>
 #include <memory>
 #include <iterator>
-
-class File {
-public:
-	enum openmode {
-		app = 0x100,
-		binary = 0x200,
-		in = FA_READ,
-		out = FA_WRITE,
-		trunc = FA_CREATE_ALWAYS,
-		ate = FA_OPEN_ALWAYS,
-	};
-
-	File(const std::string& filename, openmode mode);
-	~File();
-
-	bool is_open() const {
-		return f_error(&f) == 0;
-	}
-
-	bool read(void* const data, const size_t bytes_to_read);
-	bool write(const void* const data, const size_t bytes_to_write);
-
-	uint64_t seek(const uint64_t new_position);
-
-	template<size_t N>
-	bool write(const std::array<uint8_t, N>& data) {
-		return write(data.data(), N);
-	}
-
-	bool puts(const std::string& string);
-
-	bool sync();
-
-private:
-	FIL f;
-};
-
-inline constexpr File::openmode operator|(File::openmode a, File::openmode b) {
-	return File::openmode(static_cast<int>(a) | static_cast<int>(b));
-}
 
 std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
 
 namespace std {
 namespace filesystem {
 
+struct filesystem_error {
+	constexpr filesystem_error(
+	) : err { FR_OK }
+	{
+	}
+
+	constexpr filesystem_error(
+		FRESULT fatfs_error
+	) : err { fatfs_error }
+	{
+	}
+
+	constexpr filesystem_error(
+		unsigned int other_error
+	) : err { other_error }
+	{
+	}
+
+	uint32_t code() const {
+		return err;
+	}
+	
+	std::string what() const;
+
+private:
+	uint32_t err;
+};
+
+using path = std::string;
 using file_status = BYTE;
+
+struct space_info {
+	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
+
+	std::uintmax_t capacity;
+	std::uintmax_t free;
+	std::uintmax_t available;
+};
 
 struct directory_entry : public FILINFO {
 	file_status status() const {
@@ -126,7 +126,96 @@ inline bool operator!=(const directory_iterator& lhs, const directory_iterator& 
 
 bool is_regular_file(const file_status s);
 
+space_info space(const path& p);
+
 } /* namespace filesystem */
 } /* namespace std */
+
+class File {
+public:
+	using Error = std::filesystem::filesystem_error;
+
+	template<typename T>
+	struct Result {
+		enum class Type {
+			Success,
+			Error,
+		} type;
+		union {
+			T value_;
+			Error error_;
+		};
+
+		bool is_ok() const {
+			return type == Type::Success;
+		}
+
+		bool is_error() const {
+			return type == Type::Error;
+		}
+
+		const T& value() const {
+			return value_;
+		}
+
+		Error error() const {
+			return error_;
+		}
+
+		Result() = delete;
+
+		constexpr Result(
+			T value
+		) : type { Type::Success },
+			value_ { value }
+		{
+		}
+
+		constexpr Result(
+			Error error
+		) : type { Type::Error },
+			error_ { error }
+		{
+		}
+
+		~Result() {
+			if( type == Type::Success ) {
+				value_.~T();
+			}
+		}
+	};
+
+	File() { };
+	~File();
+
+	/* Prevent copies */
+	File(const File&) = delete;
+	File& operator=(const File&) = delete;
+
+	// TODO: Return Result<>.
+	Optional<Error> open(const std::string& filename);
+	Optional<Error> append(const std::string& filename);
+	Optional<Error> create(const std::string& filename);
+
+	Result<size_t> read(void* const data, const size_t bytes_to_read);
+	Result<size_t> write(const void* const data, const size_t bytes_to_write);
+
+	Result<uint64_t> seek(const uint64_t new_position);
+
+	template<size_t N>
+	Result<size_t> write(const std::array<uint8_t, N>& data) {
+		return write(data.data(), N);
+	}
+
+	Optional<Error> write_line(const std::string& s);
+
+	// TODO: Return Result<>.
+	Optional<Error> sync();
+
+private:
+	FIL f;
+
+	Optional<Error> open_fatfs(const std::string& filename, BYTE mode);
+};
 
 #endif/*__FILE_H__*/

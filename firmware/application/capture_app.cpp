@@ -21,59 +21,72 @@
 
 #include "capture_app.hpp"
 
+#include "baseband_api.hpp"
+
 #include "portapack.hpp"
+using namespace portapack;
+
+#include "portapack_persistent_memory.hpp"
 using namespace portapack;
 
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_capture);
+
 	add_children({ {
 		&rssi,
 		&channel,
 		&field_frequency,
+		&field_frequency_step,
+		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&record_view,
 		&waterfall,
 	} });
 
-	field_frequency.set_value(receiver_model.tuning_frequency());
+	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		this->on_target_frequency_changed(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
+			this->on_target_frequency_changed(f);
 			this->field_frequency.set_value(f);
 		};
 	};
 
-	field_lna.set_value(receiver_model.lna());
-	field_lna.on_change = [this](int32_t v) {
-		this->on_lna_changed(v);
+	field_frequency_step.set_by_value(receiver_model.frequency_step());
+	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
+		receiver_model.set_frequency_step(v);
+		this->field_frequency.set_step(v);
 	};
 
-	field_vga.set_value(receiver_model.vga());
-	field_vga.on_change = [this](int32_t v_db) {
-		this->on_vga_changed(v_db);
-	};
-
-	receiver_model.set_baseband_configuration({
-		.mode = toUType(ReceiverModel::Mode::Capture),
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
+	radio::enable({
+		tuning_frequency(),
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Receive,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
+		1,
 	});
-	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-	receiver_model.enable();
 
 	record_view.set_sampling_rate(sampling_rate / 8);
+	record_view.on_error = [&nav](std::string message) {
+		nav.display_modal("Error", message);
+	};
 }
 
 CaptureAppView::~CaptureAppView() {
-	receiver_model.disable();
+	radio::disable();
+
+	baseband::shutdown();
 }
 
 void CaptureAppView::on_hide() {
@@ -94,16 +107,21 @@ void CaptureAppView::focus() {
 	record_view.focus();
 }
 
-void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {
-	receiver_model.set_tuning_frequency(f);
+void CaptureAppView::on_target_frequency_changed(rf::Frequency f) {
+	set_target_frequency(f);
 }
 
-void CaptureAppView::on_lna_changed(int32_t v_db) {
-	receiver_model.set_lna(v_db);
+void CaptureAppView::set_target_frequency(const rf::Frequency new_value) {
+	persistent_memory::set_tuned_frequency(new_value);;
+	radio::set_tuning_frequency(tuning_frequency());
 }
 
-void CaptureAppView::on_vga_changed(int32_t v_db) {
-	receiver_model.set_vga(v_db);
+rf::Frequency CaptureAppView::target_frequency() const {
+	return persistent_memory::tuned_frequency();
+}
+
+rf::Frequency CaptureAppView::tuning_frequency() const {
+	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

@@ -38,24 +38,19 @@
 
 #include <cstdint>
 
-constexpr auto EVT_MASK_RTC_TICK		= EVENT_MASK(0);
-constexpr auto EVT_MASK_LCD_FRAME_SYNC	= EVENT_MASK(1);
 constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
 constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
-constexpr auto EVT_MASK_APPLICATION		= EVENT_MASK(6);
-constexpr auto EVT_MASK_CAPTURE_THREAD	= EVENT_MASK(7);
 
 class EventDispatcher {
 public:
 	EventDispatcher(
 		ui::Widget* const top_widget,
-		ui::Painter& painter,
 		ui::Context& context
 	);
 
 	void run();
-	void request_stop();
+	static void request_stop();
 
 	void set_display_sleep(const bool sleep);
 
@@ -63,6 +58,14 @@ public:
 		if( !shared_memory.application_queue.is_empty() ) {
 			events_flag_isr(EVT_MASK_APPLICATION);
 		}
+	}
+
+	static inline void event_isr_rtc_tick() {
+		events_flag_isr(EVT_MASK_RTC_TICK);
+	}
+
+	static inline void event_isr_lcd_frame_sync() {
+		events_flag_isr(EVT_MASK_LCD_FRAME_SYNC);
 	}
 
 	static inline void events_flag(const eventmask_t events) {
@@ -77,27 +80,35 @@ public:
 		}
 	}
 
-	static MessageHandlerMap& message_map() {
-		return message_map_;
+	template<typename T>
+	static void send_message(T& message) {
+		shared_memory.app_local_queue.push(message);
+		events_flag(EVT_MASK_LOCAL);
 	}
 
 private:
-	static MessageHandlerMap message_map_;
+	static constexpr auto EVT_MASK_RTC_TICK       = EVENT_MASK(0);
+	static constexpr auto EVT_MASK_LCD_FRAME_SYNC = EVENT_MASK(1);
+	static constexpr auto EVT_MASK_APPLICATION    = EVENT_MASK(6);
+	static constexpr auto EVT_MASK_LOCAL          = EVENT_MASK(7);
+
 	static Thread* thread_event_loop;
 
 	touch::Manager touch_manager;
 	ui::Widget* const top_widget;
-	ui::Painter& painter;
+	ui::Painter painter;
 	ui::Context& context;
 	uint32_t encoder_last = 0;
-	bool is_running = true;
+	static bool is_running;
 	bool sd_card_present = false;
 	bool display_sleep = false;
+	bool halt = false;
 
 	eventmask_t wait();
 	void dispatch(const eventmask_t events);
 
 	void handle_application_queue();
+	void handle_local_queue();
 	void handle_rtc_tick();
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event);
@@ -115,6 +126,19 @@ private:
 	void event_bubble_encoder(const ui::EncoderEvent event);
 
 	void init_message_queues();
+};
+
+class MessageHandlerRegistration {
+public:
+	MessageHandlerRegistration(
+		const Message::ID message_id,
+		std::function<void(Message* const p)>&& callback
+	);
+
+	~MessageHandlerRegistration();
+	
+private:
+	const Message::ID message_id;
 };
 
 #endif/*__EVENT_M0_H__*/

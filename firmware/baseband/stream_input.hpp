@@ -25,46 +25,29 @@
 #include "message.hpp"
 #include "fifo.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
 #include <cstdint>
 #include <cstddef>
+#include <array>
 #include <memory>
 
 class StreamInput {
 public:
-	StreamInput(CaptureConfig* const config) :
-		config { config },
-		K { config->write_size_log2 + config->buffer_count_log2 },
-		event_bytes_mask { (1UL << config->write_size_log2) - 1 },
-		data { std::make_unique<uint8_t[]>(1UL << K) },
-		fifo { data.get(), K }
-	{
-		config->fifo = &fifo;
-	}
+	StreamInput(CaptureConfig* const config);
 
-	size_t write(const void* const data, const size_t length) {
-		const auto written = fifo.in(reinterpret_cast<const uint8_t*>(data), length);
-
-		const auto last_bytes_written = bytes_written;
-		bytes_written += written;
-		if( (bytes_written & event_bytes_mask) < (last_bytes_written & event_bytes_mask) ) {
-			creg::m4txevent::assert();
-		}
-		config->baseband_bytes_received += length;
-		config->baseband_bytes_dropped = config->baseband_bytes_received - bytes_written;
-
-		return written;
-	}
+	size_t write(const void* const data, const size_t length);
 
 private:
-	CaptureConfig* const config;
-	const size_t K;
-	const uint64_t event_bytes_mask;
-	uint64_t bytes_written = 0;
+	static constexpr size_t buffer_count_max_log2 = 3;
+	static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
+	
+	FIFO<StreamBuffer*> fifo_buffers_empty;
+	FIFO<StreamBuffer*> fifo_buffers_full;
+	std::array<StreamBuffer, buffer_count_max> buffers;
+	std::array<StreamBuffer*, buffer_count_max> buffers_empty;
+	std::array<StreamBuffer*, buffer_count_max> buffers_full;
+	StreamBuffer* active_buffer { nullptr };
+	CaptureConfig* const config { nullptr };
 	std::unique_ptr<uint8_t[]> data;
-	FIFO<uint8_t> fifo;
 };
 
 #endif/*__STREAM_INPUT_H__*/

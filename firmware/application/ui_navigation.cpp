@@ -88,7 +88,7 @@ SystemStatusView::SystemStatusView() {
 
 	button_sleep.on_select = [this](ImageButton&) {
 		DisplaySleepMessage message;
-		EventDispatcher::message_map().send(&message);
+		EventDispatcher::send_message(message);
 	};
 }
 
@@ -123,7 +123,11 @@ void SystemStatusView::on_camera() {
 		return;
 	}
 
-	PNGWriter png { filename_stem + ".PNG" };
+	PNGWriter png;
+	auto create_error = png.create(filename_stem + ".PNG");
+	if( create_error.is_valid() ) {
+		return;
+	}
 
 	for(int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;
@@ -150,6 +154,10 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 }
 
 void NavigationView::pop() {
+	if( view() == modal_view ) {
+		modal_view = nullptr;
+	}
+
 	// Can't pop last item from stack.
 	if( view_stack.size() > 1 ) {
 		free_view();
@@ -157,6 +165,16 @@ void NavigationView::pop() {
 		view_stack.pop_back();
 
 		update_view();
+	}
+}
+
+void NavigationView::display_modal(
+	const std::string& title,
+	const std::string& message
+) {
+	/* If a modal view is already visible, don't display another */
+	if( !modal_view ) {
+		modal_view = push<ModalMessageView>(title, message);
 	}
 }
 
@@ -306,8 +324,8 @@ Context& SystemView::context() const {
 /* HackRFFirmwareView ****************************************************/
 
 HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
-	button_yes.on_select = [&nav](Button&){
-		m4_request_shutdown();
+	button_yes.on_select = [](Button&){
+		EventDispatcher::request_stop();
 	};
 
 	button_no.on_select = [&nav](Button&){
@@ -401,6 +419,36 @@ NotImplementedView::NotImplementedView(NavigationView& nav) {
 }
 
 void NotImplementedView::focus() {
+	button_done.focus();
+}
+
+/* ModalMessageView ******************************************************/
+
+ModalMessageView::ModalMessageView(
+	NavigationView& nav,
+	const std::string& title,
+	const std::string& message
+) : title_ { title }
+{
+	button_done.on_select = [&nav](Button&){
+		nav.pop();
+	};
+
+	add_children({ {
+		&text_message,
+		&button_done,
+	} });
+
+	text_message.set(message);
+	
+	const int text_message_width = message.size() * 8;
+ 	text_message.set_parent_rect({
+ 		(240 - text_message_width) / 2, 7 * 16,
+ 		text_message_width, 16
+ 	});
+}
+
+void ModalMessageView::focus() {
 	button_done.focus();
 }
 

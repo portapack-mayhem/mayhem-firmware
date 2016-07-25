@@ -232,7 +232,7 @@ FrequencyOptionsView::FrequencyOptionsView(
 {
 	set_style(style);
 
-	options_step.on_change = [this](size_t n, OptionsField::value_t v) {
+	field_step.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		this->on_step_changed(v);
 	};
@@ -243,14 +243,14 @@ FrequencyOptionsView::FrequencyOptionsView(
 
 	add_children({ {
 		&text_step,
-		&options_step,
+		&field_step,
 		&field_ppm,
 		&text_ppm,
 	} });
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
-	options_step.set_by_value(f);
+	field_step.set_by_value(f);
 }
 
 void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {
@@ -269,6 +269,25 @@ void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
 	}
 }
 
+/* RFAmpField ************************************************************/
+
+RFAmpField::RFAmpField(
+	Point parent_pos
+) : NumberField {
+		parent_pos,
+		1,
+		{ 0, 1 },
+		1,
+		' ',
+	}
+{
+	set_value(receiver_model.rf_amp());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_rf_amp(v);
+	};
+}
+
 /* RadioGainOptionsView **************************************************/
 
 RadioGainOptionsView::RadioGainOptionsView(
@@ -282,20 +301,6 @@ RadioGainOptionsView::RadioGainOptionsView(
 		&label_rf_amp,
 		&field_rf_amp,
 	} });
-
-	field_rf_amp.on_change = [this](int32_t v) {
-		this->on_rf_amp_changed(v);
-	};
-}
-
-void RadioGainOptionsView::set_rf_amp(int32_t v_db) {
-	field_rf_amp.set_value(v_db);
-}
-
-void RadioGainOptionsView::on_rf_amp_changed(bool enable) {
-	if( on_change_rf_amp ) {
-		on_change_rf_amp(enable);
-	}
 }
 
 /* LNAGainField **********************************************************/
@@ -309,6 +314,11 @@ LNAGainField::LNAGainField(
 		' ',
 	}
 {
+	set_value(receiver_model.lna());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_lna(v);
+	};
 }
 
 void LNAGainField::on_focus() {
@@ -329,6 +339,11 @@ VGAGainField::VGAGainField(
 		' ',
 	}
 {
+	set_value(receiver_model.vga());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_vga(v);
+	};
 }
 
 void VGAGainField::on_focus() {

@@ -24,6 +24,8 @@
 
 #include "ui_navigation.hpp"
 
+#include "event_m0.hpp"
+
 #include "log_file.hpp"
 
 #include "ert_packet.hpp"
@@ -85,8 +87,10 @@ struct ERTRecentEntry {
 
 class ERTLogger {
 public:
-	ERTLogger(const std::string& file_path);
-
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
+	
 	void on_packet(const ert::Packet& packet);
 
 private:
@@ -123,6 +127,15 @@ private:
 	std::unique_ptr<ERTLogger> logger;
 
 	ERTRecentEntriesView recent_entries_view { recent };
+
+	MessageHandlerRegistration message_handler_packet {
+		Message::ID::ERTPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const ERTPacketMessage*>(p);
+			const ert::Packet packet { message->type, message->packet };
+			this->on_packet(packet);
+		}
+	};
 
 	void on_packet(const ert::Packet& packet);
 	void on_show_list();

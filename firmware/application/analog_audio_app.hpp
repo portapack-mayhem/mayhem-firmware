@@ -143,16 +143,13 @@ private:
 
 	RecordView record_view {
 		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		"AUD_????", RecordView::FileType::WAV, 12, 2,
+		"AUD_????", RecordView::FileType::WAV, 4096, 4
 	};
 
 	spectrum::WaterfallWidget waterfall;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
-	void on_rf_amp_changed(bool v);
-	void on_lna_changed(int32_t v_db);
-	void on_vga_changed(int32_t v_db);
 	void on_modulation_changed(const ReceiverModel::Mode modulation);
 	void on_show_options_frequency();
 	void on_show_options_rf_gain();

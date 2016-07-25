@@ -30,11 +30,19 @@
 
 WORKING_AREA(rssi_thread_wa, 128);
 
-Thread* RSSIThread::start(const tprio_t priority) {
-	return chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
+Thread* RSSIThread::thread = nullptr;
+
+RSSIThread::RSSIThread(const tprio_t priority) {
+	thread = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
 		priority, ThreadBase::fn,
 		this
 	);
+}
+
+RSSIThread::~RSSIThread() {
+	chThdTerminate(thread);
+	chThdWait(thread);
+	thread = nullptr;
 }
 
 void RSSIThread::run() {
@@ -43,7 +51,9 @@ void RSSIThread::run() {
 
 	RSSIStatisticsCollector stats;
 
-	while(true) {
+	rf::rssi::start();
+
+	while( !chThdShouldTerminate() ) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
 		const rf::rssi::buffer_t buffer {
@@ -59,5 +69,6 @@ void RSSIThread::run() {
 		);
 	}
 
+	rf::rssi::stop();
 	rf::rssi::dma::free();
 }

@@ -26,13 +26,16 @@
 
 #include "event_m0.hpp"
 
+#include "file.hpp"
+#include "optional.hpp"
+
 #include <cstdint>
 #include <cstddef>
 #include <utility>
 
 class Writer {
 public:
-	virtual bool write(const void* const buffer, const size_t bytes) = 0;
+	virtual File::Result<size_t> write(const void* const buffer, const size_t bytes) = 0;
 	virtual ~Writer() = default;
 };
 
@@ -40,8 +43,10 @@ class CaptureThread {
 public:
 	CaptureThread(
 		std::unique_ptr<Writer> writer,
-		size_t write_size_log2,
-		size_t buffer_count_log2
+		size_t write_size,
+		size_t buffer_count,
+		std::function<void()> success_callback,
+		std::function<void(File::Error)> error_callback
 	);
 	~CaptureThread();
 
@@ -52,16 +57,17 @@ public:
 	static void check_fifo_isr();
 
 private:
+	static constexpr auto event_mask_loop_wake = EVENT_MASK(0);
+
 	CaptureConfig config;
 	std::unique_ptr<Writer> writer;
+	std::function<void()> success_callback;
+	std::function<void(File::Error)> error_callback;
 	static Thread* thread;
 
-	static msg_t static_fn(void* arg) {
-		auto obj = static_cast<CaptureThread*>(arg);
-		return obj->run();
-	}
+	static msg_t static_fn(void* arg);
 
-	msg_t run();
+	Optional<File::Error> run();
 };
 
 #endif/*__CAPTURE_THREAD_H__*/

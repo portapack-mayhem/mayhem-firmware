@@ -29,13 +29,13 @@
 
 #include "baseband_packet.hpp"
 
+struct DecodedSymbol {
+	uint_fast8_t value;
+	uint_fast8_t error;
+};
+
 class ManchesterDecoder {
 public:
-	struct DecodedSymbol {
-		uint_fast8_t value;
-		uint_fast8_t error;
-	};
-
 	constexpr ManchesterDecoder(
 		const baseband::Packet& packet,
 		const size_t sense = 0
@@ -54,16 +54,16 @@ private:
 };
 
 template<typename T>
-T operator|(const T& l, const ManchesterDecoder::DecodedSymbol& r) {
+T operator|(const T& l, const DecodedSymbol& r) {
 	return l | r.value;
 }
 
-struct ManchesterFormatted {
+struct FormattedSymbols {
 	const std::string data;
 	const std::string errors;
 };
 
-ManchesterFormatted format_manchester(
+FormattedSymbols format_symbols(
 	const ManchesterDecoder& decoder
 );
 

@@ -51,13 +51,16 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 
 Thread* EventDispatcher::thread_event_loop = nullptr;
 
+EventDispatcher::EventDispatcher(
+	std::unique_ptr<BasebandProcessor> baseband_processor
+) : baseband_processor { std::move(baseband_processor) }
+{
+}
+
 void EventDispatcher::run() {
 	thread_event_loop = chThdSelf();
-	lpc43xx::creg::m0apptxevent::enable();
 
-	baseband_thread.thread_main = chThdSelf();
-	baseband_thread.thread_rssi = rssi_thread.start(NORMALPRIO + 10);
-	baseband_thread.start(NORMALPRIO + 20);
+	lpc43xx::creg::m0apptxevent::enable();
 
 	while(is_running) {
 		const auto events = wait();
@@ -86,9 +89,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 }
 
 void EventDispatcher::handle_baseband_queue() {
-	shared_memory.baseband_queue.handle([this](Message* const message) {
-		this->on_message(message);
-	});
+	const auto message = shared_memory.baseband_message;
+	if( message ) {
+		on_message(message);
+	}
 }
 
 void EventDispatcher::on_message(const Message* const message) {
@@ -99,6 +103,7 @@ void EventDispatcher::on_message(const Message* const message) {
 
 	default:
 		on_message_default(message);
+		shared_memory.baseband_message = nullptr;
 		break;
 	}
 }
@@ -108,10 +113,10 @@ void EventDispatcher::on_message_shutdown(const ShutdownMessage&) {
 }
 
 void EventDispatcher::on_message_default(const Message* const message) {
-	baseband_thread.on_message(message);
+	baseband_processor->on_message(message);
 }
 
 void EventDispatcher::handle_spectrum() {
 	const UpdateSpectrumMessage message;
-	baseband_thread.on_message(&message);
+	baseband_processor->on_message(&message);
 }

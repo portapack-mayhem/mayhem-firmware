@@ -114,6 +114,13 @@ bool CPLD::verify(
 	return block_0_success && block_1_success;
 }
 
+uint32_t CPLD::crc() {
+	crc_t crc { 0x04c11db7, 0xffffffff, 0xffffffff };
+	block_crc(0, 3328, crc);
+	block_crc(1,  512, crc);
+	return crc.checksum();
+}
+
 void CPLD::sector_select(const uint16_t id) {
 	shift_ir(0x203);			// Sector select
 	jtag.runtest_tck(93);		// 5us
@@ -217,6 +224,17 @@ bool CPLD::is_blank_block(const uint16_t id, const size_t count) {
 		}
 	}
 	return success;
+}
+
+void CPLD::block_crc(const uint16_t id, const size_t count, crc_t& crc) {
+	sector_select(id);
+	shift_ir(0x205);			// Read
+	jtag.runtest_tck(93);		// 5us
+
+	for(size_t i=0; i<count; i++) {
+		const uint16_t from_device = jtag.shift_dr(16, 0xffff);
+		crc.process_bytes(&from_device, sizeof(from_device));
+	}
 }
 
 bool CPLD::is_blank() {

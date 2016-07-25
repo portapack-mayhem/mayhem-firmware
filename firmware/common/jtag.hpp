@@ -22,26 +22,14 @@
 #ifndef __JTAG_H__
 #define __JTAG_H__
 
+#include "jtag_target.hpp"
+
 #include <cstdint>
 #include <cstddef>
 
 #include <bitset>
 
 namespace jtag {
-
-class Target {
-public:
-	using bit_t = uint_fast8_t;
-
-	virtual ~Target() {
-	}
-
-	virtual void delay(const size_t n) = 0;
-	virtual jtag::Target::bit_t clock(
-		const jtag::Target::bit_t tms_value,
-		const jtag::Target::bit_t tdi_value
-	) = 0;
-};
 
 class JTAG {
 public:
@@ -100,27 +88,6 @@ public:
 		target.clock(0, 0);
 
 		return result;
-	}
-
-	template<size_t N>
-	void shift_dr(std::bitset<N>& bits) {
-		/* Run-Test/Idle -> Select-DR-Scan */
-		target.clock(1, 0);
-		/* Scan -> Capture -> Shift */
-		target.clock(0, 0);
-		target.clock(0, 0);
-
-		for(size_t i=0; i<bits.size(); i++) {
-			bits[i] = target.clock(
-				(i == (bits.size() - 1)) ? 1 : 0,
-				bits[i]
-			);
-		}
-
-		/* Exit1 -> Update */
-		target.clock(1, 0);
-		/* Update -> Run-Test/Idle */
-		target.clock(0, 0);
 	}
 
 private:

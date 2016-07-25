@@ -23,6 +23,9 @@
 #define __PROC_CAPTURE_HPP__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
+
 #include "dsp_decimate.hpp"
 
 #include "spectrum_collector.hpp"
@@ -44,6 +47,9 @@ private:
 	// TODO: Repeated value needs to be transmitted from application side.
 	static constexpr size_t baseband_fs = 4000000;
 	static constexpr auto spectrum_rate_hz = 50.0f;
+
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {

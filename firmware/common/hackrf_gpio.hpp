@@ -78,6 +78,11 @@ constexpr std::array<GPIO, 3> gpios_baseband_decimation {
 };
 constexpr GPIO gpio_baseband_q_invert = gpio[GPIO0_13];
 
+constexpr GPIO gpio_cpld_tdo = gpio[GPIO5_18];
+constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
+constexpr GPIO gpio_cpld_tms = gpio[GPIO3_4];
+constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];
+
 /* LEDs */
 
 constexpr LED led_usb	{ gpio_led_usb };

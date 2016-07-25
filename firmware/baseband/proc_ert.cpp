@@ -23,6 +23,8 @@
 
 #include "portapack_shared_memory.hpp"
 
+#include "event_m4.hpp"
+
 float ERTProcessor::abs(const complex8_t& v) {
 	// const int16_t r = v.real() - offset_i;
 	// const int16_t i = v.imag() - offset_q;
@@ -100,4 +102,10 @@ void ERTProcessor::idm_handler(
 ) {
 	const ERTPacketMessage message { ert::Packet::Type::IDM, packet };
 	shared_memory.application_queue.push(message);
+}
+
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<ERTProcessor>() };
+	event_dispatcher.run();
+	return 0;
 }

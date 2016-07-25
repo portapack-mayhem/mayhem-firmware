@@ -22,7 +22,7 @@
 #ifndef __JTAG_TARGET_GPIO_H__
 #define __JTAG_TARGET_GPIO_H__
 
-#include "jtag.hpp"
+#include "jtag_target.hpp"
 
 #include <ch.h>
 

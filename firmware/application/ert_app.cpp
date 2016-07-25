@@ -21,8 +21,6 @@
 
 #include "ert_app.hpp"
 
-#include "event_m0.hpp"
-
 #include "baseband_api.hpp"
 
 #include "manchester.hpp"
@@ -59,17 +57,9 @@ std::string commodity_type(CommodityType value) {
 
 } /* namespace ert */
 
-ERTLogger::ERTLogger(
-	const std::string& file_path
-) : log_file { file_path }
-{
-}
-
 void ERTLogger::on_packet(const ert::Packet& packet) {
-	if( log_file.is_open() ) {
-		const auto formatted = packet.symbols_formatted();
-		log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
-	}
+	const auto formatted = packet.symbols_formatted();
+	log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 }
 
 const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
@@ -131,17 +121,11 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 }
 
 ERTAppView::ERTAppView(NavigationView&) {
+	baseband::run_image(portapack::spi_flash::image_tag_ert);
+
 	add_children({ {
 		&recent_entries_view,
 	} });
-
-	EventDispatcher::message_map().register_handler(Message::ID::ERTPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ERTPacketMessage*>(p);
-			const ert::Packet packet { message->type, message->packet };
-			this->on_packet(packet);
-		}
-	);
 
 	radio::enable({
 		initial_target_frequency,
@@ -152,20 +136,16 @@ ERTAppView::ERTAppView(NavigationView&) {
 		1,
 	});
 
-	baseband::start({
-		.mode = 6,
-		.sampling_rate = sampling_rate,
-		.decimation_factor = 1,
-	});
-
-	logger = std::make_unique<ERTLogger>("ert.txt");
+	logger = std::make_unique<ERTLogger>();
+	if( logger ) {
+		logger->append("ert.txt");
+	}
 }
 
 ERTAppView::~ERTAppView() {
-	baseband::stop();
 	radio::disable();
 
-	EventDispatcher::message_map().unregister_handler(Message::ID::ERTPacket);
+	baseband::shutdown();
 }
 
 void ERTAppView::focus() {

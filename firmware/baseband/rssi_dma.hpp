@@ -30,8 +30,6 @@ namespace rf {
 namespace rssi {
 namespace dma {
 
-using Handler = void (*)();
-
 void init();
 
 void allocate(size_t buffer_count, size_t items_per_buffer);

@@ -23,6 +23,8 @@
 
 #include "audio_output.hpp"
 
+#include "event_m4.hpp"
+
 #include <cstdint>
 
 void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
@@ -121,4 +123,10 @@ void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		audio_output.set_stream(nullptr);
 	}
+}
+
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<WidebandFMAudio>() };
+	event_dispatcher.run();
+	return 0;
 }

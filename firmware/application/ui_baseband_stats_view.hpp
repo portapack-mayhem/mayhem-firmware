@@ -23,6 +23,9 @@
 #define __UI_BASEBAND_STATS_VIEW_H__
 
 #include "ui_widget.hpp"
+
+#include "event_m0.hpp"
+
 #include "message.hpp"
 
 namespace ui {
@@ -31,13 +34,17 @@ class BasebandStatsView : public View {
 public:
 	BasebandStatsView();
 
-	void on_show() override;
-	void on_hide() override;
-
 private:
 	Text text_stats {
 		{  0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16 },
 		"",
+	};
+
+	MessageHandlerRegistration message_handler_stats {
+		Message::ID::BasebandStatistics,
+		[this](const Message* const p) {
+			this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
+		}
 	};
 
 	void on_statistics_update(const BasebandStatistics& statistics);

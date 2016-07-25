@@ -24,4 +24,8 @@
 
 bool cpld_update_if_necessary();
 
+bool cpld_hackrf_load_sram();
+bool cpld_hackrf_verify_eeprom();
+void cpld_hackrf_init_from_eeprom();
+
 #endif/*__CPLD_UPDATE_H__*/

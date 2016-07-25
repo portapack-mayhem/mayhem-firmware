@@ -59,8 +59,6 @@
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include "cpld_update.hpp"
-
 #include "message_queue.hpp"
 
 #include "ui.hpp"
@@ -86,50 +84,43 @@
 
 #include <string.h>
 
+static void event_loop() {
+	ui::Context context;
+	ui::SystemView system_view {
+		context,
+		portapack::display.screen_rect()
+	};
+
+	EventDispatcher event_dispatcher { &system_view, context };
+	MessageHandlerRegistration message_handler_display_sleep {
+		Message::ID::DisplaySleep,
+		[&event_dispatcher](const Message* const) {
+			event_dispatcher.set_display_sleep(true);
+		}
+	};
+
+	event_dispatcher.run();
+}
+
 int main(void) {
 	portapack::init();
-
-	if( !cpld_update_if_necessary() ) {
-		chSysHalt();
-	}
 
 	portapack::io.init();
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);
 
-	ui::Context context;
-	ui::SystemView system_view {
-		context,
-		portapack::display.screen_rect()
-	};
-	ui::Painter painter;
-	EventDispatcher event_dispatcher { &system_view, painter, context };
-
-	EventDispatcher::message_map().register_handler(Message::ID::Shutdown,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.request_stop();
-		}
-	);
-	EventDispatcher::message_map().register_handler(Message::ID::DisplaySleep,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.set_display_sleep(true);
-		}
-	);
-
-	m4_init(portapack::spi_flash::baseband, portapack::memory::map::m4_code);
-
 	controls_init();
 	lcd_frame_sync_configure();
 	rtc_interrupt_enable();
 
-	event_dispatcher.run();
+	event_loop();
 
 	sdcDisconnect(&SDCD1);
 	sdcStop(&SDCD1);
 
 	portapack::shutdown();
-	m4_init(portapack::spi_flash::hackrf, portapack::memory::map::m4_code_hackrf);
+	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf);
 	m0_halt();
 
 	return 0;

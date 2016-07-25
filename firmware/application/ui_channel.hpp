@@ -26,6 +26,8 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 
+#include "event_m0.hpp"
+
 #include "message.hpp"
 
 #include <cstdint>
@@ -41,13 +43,17 @@ public:
 	{
 	}
 
-	void on_show() override;
-	void on_hide() override;
-
 	void paint(Painter& painter) override;
 
 private:
 	int32_t max_db_;
+
+	MessageHandlerRegistration message_handler_stats {
+		Message::ID::ChannelStatistics,
+		[this](const Message* const p) {
+			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
+		}
+	};
 
 	void on_statistics_update(const ChannelStatistics& statistics);
 };

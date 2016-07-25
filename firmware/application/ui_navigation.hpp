@@ -112,10 +112,13 @@ public:
 
 	void pop();
 
+	void display_modal(const std::string& title, const std::string& message);
+
 	void focus() override;
 
 private:
 	std::vector<std::unique_ptr<View>> view_stack;
+	Widget* modal_view { nullptr };
 
 	Widget* view() const;
 
@@ -253,6 +256,29 @@ private:
 	Button button_done {
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },
 		"Bummer",
+	};
+};
+
+class ModalMessageView : public View {
+public:
+	ModalMessageView(
+		NavigationView& nav,
+		const std::string& title,
+		const std::string& message
+	);
+
+	void focus() override;
+
+	std::string title() const override { return title_; };
+
+private:
+	const std::string title_;
+
+	Text text_message { };
+
+	Button button_done {
+		{ 10 * 8, 13 * 16, 10 * 8, 24 },
+		"OK",
 	};
 };
 

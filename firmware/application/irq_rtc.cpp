@@ -39,7 +39,7 @@ CH_IRQ_HANDLER(RTC_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	EventDispatcher::events_flag_isr(EVT_MASK_RTC_TICK);
+	EventDispatcher::event_isr_rtc_tick();
 	chSysUnlockFromIsr();
 
 	rtc::interrupt::clear_all();

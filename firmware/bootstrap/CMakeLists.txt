@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
 #
@@ -25,53 +24,33 @@
 # NOTE: Can be overridden externally.
 #
 
+enable_language(C CXX ASM)
+
+project(bootstrap)
+
 # Compiler options here.
-ifeq ($(USE_OPT),)
-  USE_OPT = -mthumb \
-            -O3 -ggdb3 \
-            -ffunction-sections \
-            -fdata-sections \
-            -fno-builtin \
-            -falign-functions=16 \
-            -fno-math-errno \
-            --specs=nano.specs
-            #-fomit-frame-pointer
-endif
+set(USE_OPT "-Os -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
-ifeq ($(USE_COPT),)
-  USE_COPT = -std=gnu99
-endif
+set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -std=c++11 -fno-rtti -fno-exceptions
-endif
+set(USE_CPPOPT "-std=c++11 -fno-rtti -fno-exceptions")
 
 # Enable this if you want the linker to remove unused code and data
-ifeq ($(USE_LINK_GC),)
-  USE_LINK_GC = yes
-endif
+set(USE_LINK_GC yes)
 
 # Linker extra options here.
-ifeq ($(USE_LDOPT),)
-  USE_LDOPT =
-endif
+set(USE_LDOPT)
 
 # Enable this if you want link time optimizations (LTO)
-ifeq ($(USE_LTO),)
-  USE_LTO = no
-endif
+set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
-ifeq ($(USE_THUMB),)
-  USE_THUMB = yes
-endif
+set(USE_THUMB yes)
 
 # Enable this if you want to see the full log while compiling.
-ifeq ($(USE_VERBOSE_COMPILE),)
-  USE_VERBOSE_COMPILE = no
-endif
+set(USE_VERBOSE_COMPILE no)
 
 #
 # Build global options
@@ -82,9 +61,7 @@ endif
 #
 
 # Enables the use of FPU on Cortex-M4 (no, softfp, hard).
-ifeq ($(USE_FPU),)
-  USE_FPU = hard
-endif
+set(USE_FPU no)
 
 #
 # Architecture or project specific options
@@ -94,106 +71,48 @@ endif
 # Project, sources and paths
 #
 
-# Define project name here
-PROJECT = baseband
-
-# Imported source files and paths
-CHIBIOS = ../chibios
-CHIBIOS_PORTAPACK = ../chibios-portapack
-include $(CHIBIOS_PORTAPACK)/boards/GSG_HACKRF_ONE/board.mk
-include $(CHIBIOS_PORTAPACK)/os/hal/platforms/LPC43xx_M4/platform.mk
-include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS_PORTAPACK)/os/ports/GCC/ARMCMx/LPC43xx_M4/port.mk
-include $(CHIBIOS)/os/kernel/kernel.mk
-
-include $(CHIBIOS)/test/test.mk
-
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/LPC43xx_M4.ld
+set(LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/m4.ld)
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CSRC = $(PORTSRC) \
-       $(KERNSRC) \
-       $(TESTSRC) \
-       $(HALSRC) \
-       $(PLATFORMSRC) \
-       $(BOARDSRC)
-
+set(CSRC
+	bootstrap.c
+)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = main.cpp \
-         message_queue.cpp \
-         event.cpp \
-         event_m4.cpp \
-         thread_wait.cpp \
-         gpdma.cpp \
-         baseband_dma.cpp \
-         baseband_sgpio.cpp \
-         portapack_shared_memory.cpp \
-         baseband_thread.cpp \
-         baseband_processor.cpp \
-         baseband_stats_collector.cpp \
-         dsp_decimate.cpp \
-         dsp_demodulate.cpp \
-         matched_filter.cpp \
-         proc_am_audio.cpp \
-         proc_nfm_audio.cpp \
-         spectrum_collector.cpp \
-         proc_wfm_audio.cpp \
-         proc_ais.cpp \
-         proc_wideband_spectrum.cpp \
-         proc_closecall.cpp \
-         proc_tpms.cpp \
-         proc_ert.cpp \
-         proc_capture.cpp \
-         dsp_squelch.cpp \
-         clock_recovery.cpp \
-         packet_builder.cpp \
-         dsp_fft.cpp \
-         dsp_fir_taps.cpp \
-         dsp_iir.cpp \
-         fxpt_atan2.cpp \
-         rssi.cpp \
-         rssi_dma.cpp \
-         rssi_thread.cpp \
-         audio_compressor.cpp \
-         audio_output.cpp \
-         audio_dma.cpp \
-         audio_stats_collector.cpp \
-         touch_dma.cpp \
-         ../common/utility.cpp \
-         ../common/chibios_cpp.cpp \
-         ../common/debug.cpp \
-         ../common/gcc.cpp
+set(CPPSRC)
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.
-ACSRC =
+set(ACSRC)
 
 # C++ sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.
-ACPPSRC =
+set(ACPPSRC)
 
 # C sources to be compiled in THUMB mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.
-TCSRC =
+set(TCSRC)
 
 # C sources to be compiled in THUMB mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.
-TCPPSRC =
+set(TCPPSRC)
 
 # List ASM source files here
-ASMSRC = $(PORTASM)
+set(ASMSRC startup_ARMCM4.S)
 
-INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         $(CHIBIOS)/os/various
+set(INCDIR
+	${CHIBIOS}/os/ports/common/ARMCMx/CMSIS/include
+	${CHIBIOS}/os/ports/common/ARMCMx
+	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx
+	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M4
+)
 
 #
 # Project, sources and paths
@@ -203,35 +122,19 @@ INCDIR = ../common $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
-MCU  = cortex-m4
-
-#TRGT = arm-elf-
-TRGT = /usr/local/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-
-CC   = $(TRGT)gcc
-CPPC = $(TRGT)g++
-# Enable loading with g++ only if you need C++ runtime support.
-# NOTE: You can use C++ even without C++ support if you are careful. C++
-#       runtime support makes code size explode.
-#LD   = $(TRGT)gcc
-LD   = $(TRGT)g++
-CP   = $(TRGT)objcopy
-AS   = $(TRGT)gcc -x assembler-with-cpp
-OD   = $(TRGT)objdump
-SZ   = $(TRGT)size
-HEX  = $(CP) -O ihex
-BIN  = $(CP) -O binary
+set(MCU cortex-m4)
 
 # ARM-specific options here
-AOPT =
+set(AOPT)
 
 # THUMB-specific options here
-TOPT = -mthumb -DTHUMB
+set(TOPT "-mthumb -DTHUMB")
 
 # Define C warning options here
-CWARN = -Wall -Wextra -Wstrict-prototypes
+set(CWARN "-Wall -Wextra -Wstrict-prototypes")
 
 # Define C++ warning options here
-CPPWARN = -Wall -Wextra
+set(CPPWARN "-Wall -Wextra")
 
 #
 # Compiler settings
@@ -244,21 +147,19 @@ CPPWARN = -Wall -Wextra
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-DDEFS = -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE \
-        -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 \
-        -DGIT_REVISION=\"$(GIT_REVISION)\"
+set(DDEFS -DLPC43XX -DLPC43XX_M4 -D__START=main -DGIT_REVISION=\"${GIT_REVISION}\")
 
 # List all default ASM defines here, like -D_DEBUG=1
-DADEFS =
+set(DADEFS)
 
 # List all default directories to look for include files here
-DINCDIR =
+set(DINCDIR)
 
 # List the default directory to look for the libraries here
-DLIBDIR =
+set(DLIBDIR)
 
 # List all default libraries here
-DLIBS =
+set(DLIBS)
 
 #
 # End of default section
@@ -269,23 +170,43 @@ DLIBS =
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS =
+set(UDEFS)
 
 # Define ASM defines here
-UADEFS =
+set(UADEFS)
 
 # List all user directories here
-UINCDIR =
+set(UINCDIR)
 
 # List the user directory to look for the libraries here
-ULIBDIR =
+set(ULIBDIR)
 
 # List all user libraries here
-ULIBS =
+set(ULIBS)
 
 #
 # End of user defines
 ##############################################################################
 
-RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
-include $(RULESPATH)/rules.mk
+set(RULESPATH ${CHIBIOS}/os/ports/GCC/ARMCMx)
+include(${RULESPATH}/rules.cmake)
+
+##############################################################################
+
+add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
+add_definitions(${DEFS})
+include_directories(. ${INCDIR})
+link_directories(${LLIBDIR})
+target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+
+add_custom_command(
+	OUTPUT ${PROJECT_NAME}.bin
+	COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
+	DEPENDS ${PROJECT_NAME}.elf
+)
+
+add_custom_target(
+	bootstrap
+	DEPENDS ${PROJECT_NAME}.bin
+)

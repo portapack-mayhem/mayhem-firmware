@@ -23,6 +23,7 @@
 #define __PROC_ERT_H__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
 
 #include "channel_decimator.hpp"
 
@@ -60,6 +61,8 @@ private:
 	const uint32_t channel_sampling_rate = baseband_sampling_rate / decimation;
 	const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
 	const float clock_recovery_rate = symbol_rate * 2;
+
+	BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },

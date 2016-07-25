@@ -25,7 +25,6 @@
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
-#include "ff.h"
 
 #include <cstdint>
 
@@ -244,6 +243,39 @@ private:
 	Button button_done {
 		{ 72, 15 * 16, 96, 24 },
 		"Done"
+	};
+};
+
+class AboutView : public View {
+public:
+	AboutView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	Text text_title {
+		{ 100, 96, 40, 16 },
+		"About",
+	};
+
+	Text text_firmware {
+		{ 0, 128, 240, 16 },
+		"Git Commit Hash        " GIT_REVISION,
+	};
+
+	Text text_cpld_hackrf {
+		{ 0, 144, 11*8, 16 },
+		"HackRF CPLD",
+	};
+
+	Text text_cpld_hackrf_status {
+		{ 240 - 3*8, 144, 3*8, 16 },
+		"???"
+	};
+
+	Button button_ok {
+		{ 72, 192, 96, 24 },
+		"OK"
 	};
 };
 

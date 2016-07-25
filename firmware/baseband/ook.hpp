@@ -70,6 +70,7 @@ public:
 	constexpr OOKClockRecovery(
 		const float samples_per_symbol
 	) : symbol_phase_inc_nominal { static_cast<uint32_t>(std::round((1ULL << 32) / samples_per_symbol)) },
+		symbol_phase_inc_k { symbol_phase_inc_nominal * (2.0f / 8.0f) / samples_per_symbol },
 		phase_detector { samples_per_symbol },
 		phase_accumulator { symbol_phase_inc_nominal }
 	{
@@ -79,13 +80,14 @@ public:
 	void operator()(const uint32_t slicer_history, SymbolHandler symbol_handler) {
 		if( phase_accumulator() ) {
 			const auto detector_result = phase_detector(slicer_history);
-			phase_accumulator.set_inc(symbol_phase_inc_nominal + detector_result.error * (symbol_phase_inc_nominal >> 3));
+			phase_accumulator.set_inc(symbol_phase_inc_nominal + detector_result.error * symbol_phase_inc_k);
 			symbol_handler(detector_result.symbol);
 		}
 	}
 
 private:
 	const uint32_t symbol_phase_inc_nominal;
+	const uint32_t symbol_phase_inc_k;
 	PhaseDetectorEarlyLateGate phase_detector;
 	PhaseAccumulator phase_accumulator;
 };

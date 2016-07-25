@@ -28,27 +28,24 @@
 
 #include "gpdma.hpp"
 
-#include "event_m4.hpp"
-
-#include "touch_dma.hpp"
-
-#include "baseband_thread.hpp"
-#include "rssi_thread.hpp"
-#include "baseband_processor.hpp"
-
-#include "message_queue.hpp"
-
-#include "utility.hpp"
-
-#include "debug.hpp"
-
 #include "audio_dma.hpp"
 
-#include "gcc.hpp"
+static void init() {
+	audio::dma::init();
+	audio::dma::configure();
+	audio::dma::enable();
 
-#include <cstdint>
-#include <cstddef>
-#include <array>
+	LPC_CREG->DMAMUX = portapack::gpdma_mux;
+	gpdma::controller.enable();
+	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
+}
+
+static void halt() {
+	port_disable();
+	while(true) {
+		port_wait_for_interrupt();
+	}
+}
 
 extern "C" {
 
@@ -67,32 +64,12 @@ void __late_init(void) {
 	 * require the heap.
 	 */
 	chSysInit();
+
+	/* Baseband initialization */
+	init();
 }
 
-}
-
-static void init() {
-	audio::dma::init();
-	audio::dma::configure();
-	audio::dma::enable();
-
-	LPC_CREG->DMAMUX = portapack::gpdma_mux;
-	gpdma::controller.enable();
-	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
-
-	touch::dma::init();
-	touch::dma::allocate();
-	touch::dma::enable();
-}
-
-static void halt() {
-	port_disable();
-	while(true) {
-		port_wait_for_interrupt();
-	}
-}
-
-static void shutdown() {
+void _default_exit(void) {
 	// TODO: Is this complete?
 	
 	nvicDisableVector(DMA_IRQn);
@@ -104,18 +81,9 @@ static void shutdown() {
 	ShutdownMessage shutdown_message;
 	shared_memory.application_queue.push(shutdown_message);
 
+	shared_memory.baseband_message = nullptr;
+
 	halt();
 }
 
-int main(void) {
-	init();
-
-	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
-
-	EventDispatcher event_dispatcher;
-	event_dispatcher.run();
-
-	shutdown();
-
-	return 0;
 }

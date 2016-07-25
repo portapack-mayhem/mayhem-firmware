@@ -24,6 +24,8 @@
 #include <ch.h>
 #include <hal.h>
 
+#include "portapack_shared_memory.hpp"
+
 #if defined(LPC43XX_M0)
 static void debug_indicate_error_init() {
 	// TODO: Get knowledge of LED GPIO port/bit from shared place.
@@ -75,6 +77,16 @@ void __early_init(void) {
 }
 
 void port_halt(void) {
+	// Copy debug panic message to M0 region.
+	const auto* p = dbg_panic_msg;
+	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
+		if( *p == 0 ) {
+			shared_memory.m4_panic_msg[i] = 0;
+		} else {
+			shared_memory.m4_panic_msg[i] = *(p++);
+		}
+	}
+
 	port_disable();
 	runtime_error();
 }

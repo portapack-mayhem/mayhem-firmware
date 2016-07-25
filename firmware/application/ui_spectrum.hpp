@@ -25,6 +25,8 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 
+#include "event_m0.hpp"
+
 #include "message.hpp"
 
 #include <cstdint>
@@ -85,6 +87,25 @@ private:
 	WaterfallView waterfall_view;
 	FrequencyScale frequency_scale;
 	ChannelSpectrumFIFO* fifo { nullptr };
+
+	MessageHandlerRegistration message_handler_spectrum_config {
+		Message::ID::ChannelSpectrumConfig,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+			this->fifo = message.fifo;
+		}
+	};
+	MessageHandlerRegistration message_handler_frame_sync {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			if( this->fifo ) {
+				ChannelSpectrum channel_spectrum;
+				while( fifo->out(channel_spectrum) ) {
+					this->on_channel_spectrum(channel_spectrum);
+				}
+			}
+		}
+	};
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 };

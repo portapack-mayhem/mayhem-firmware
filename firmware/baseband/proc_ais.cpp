@@ -25,6 +25,8 @@
 
 #include "dsp_fir_taps.hpp"
 
+#include "event_m4.hpp"
+
 AISProcessor::AISProcessor() {
 	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
@@ -61,4 +63,10 @@ void AISProcessor::payload_handler(
 ) {
 	const AISPacketMessage message { packet };
 	shared_memory.application_queue.push(message);
+}
+
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<AISProcessor>() };
+	event_dispatcher.run();
+	return 0;
 }

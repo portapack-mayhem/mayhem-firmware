@@ -168,8 +168,6 @@ void timer0_callback(GPTDriver* const) {
 		EventDispatcher::events_flag_isr(event_mask);
 		chSysUnlockFromIsr();
 	}
-
-	touch::adc::start();
 }
 
 /* TODO: Refactor some/all of this to appropriate shared headers? */
@@ -187,6 +185,8 @@ static GPTConfig timer0_config {
 };
 
 void controls_init() {
+	touch::adc::start();
+
 	/* GPT timer 0 is used to scan user interface controls -- touch screen,
 	 * navigation switches.
 	 */

@@ -26,7 +26,17 @@
 
 #include "portapack_shared_memory.hpp"
 
+#include "core_control.hpp"
+
 namespace baseband {
+
+static void send_message(const Message* const message) {
+	// If message is only sent by this function via one thread, no need to check if
+	// another message is present before setting new message.
+	shared_memory.baseband_message = message;
+	creg::m0apptxevent::assert();
+	while(shared_memory.baseband_message);
+}
 
 void AMConfig::apply() const {
 	const AMConfigureMessage message {
@@ -37,7 +47,7 @@ void AMConfig::apply() const {
 		modulation,
 		audio_12k_hpf_300hz_config
 	};
-	shared_memory.baseband_queue.push(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_12000);
 }
 
@@ -51,7 +61,7 @@ void NBFMConfig::apply() const {
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config
 	};
-	shared_memory.baseband_queue.push(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_24000);
 }
 
@@ -64,26 +74,38 @@ void WFMConfig::apply() const {
 		audio_48k_hpf_30hz_config,
 		audio_48k_deemph_2122_6_config
 	};
-	shared_memory.baseband_queue.push(message);
+	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void start(BasebandConfiguration configuration) {
-	BasebandConfigurationMessage message { configuration };
-	shared_memory.baseband_queue.push(message);
-}
+static bool baseband_image_running = false;
 
-void stop() {
-	shared_memory.baseband_queue.push_and_wait(
-		BasebandConfigurationMessage {
-			.configuration = { },
-		}
-	);
+void run_image(const portapack::spi_flash::image_tag_t image_tag) {
+	if( baseband_image_running ) {
+		chDbgPanic("BBRunning");
+	}
+
+	creg::m4txevent::clear();
+
+	m4_init(image_tag, portapack::memory::map::m4_code);
+	baseband_image_running = true;
+
+	creg::m4txevent::enable();
 }
 
 void shutdown() {
-	ShutdownMessage shutdown_message;
-	shared_memory.baseband_queue.push(shutdown_message);
+	if( !baseband_image_running ) {
+		return;
+	}
+
+	creg::m4txevent::disable();
+
+	ShutdownMessage message;
+	send_message(&message);
+
+	shared_memory.application_queue.reset();
+	
+	baseband_image_running = false;
 }
 
 void spectrum_streaming_start(size_t decimation_factor) {
@@ -96,19 +118,27 @@ void spectrum_streaming_start(size_t decimation_factor) {
 }
 
 void spectrum_streaming_start() {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Running
-		}
-	);
+	SpectrumStreamingConfigMessage message {
+		SpectrumStreamingConfigMessage::Mode::Running
+	};
+	send_message(&message);
 }
 
 void spectrum_streaming_stop() {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Stopped
-		}
-	);
+	SpectrumStreamingConfigMessage message {
+		SpectrumStreamingConfigMessage::Mode::Stopped
+	};
+	send_message(&message);
+}
+
+void capture_start(CaptureConfig* const config) {
+	CaptureConfigMessage message { config };
+	send_message(&message);
+}
+
+void capture_stop() {
+	CaptureConfigMessage message { nullptr };
+	send_message(&message);
 }
 
 } /* namespace baseband */

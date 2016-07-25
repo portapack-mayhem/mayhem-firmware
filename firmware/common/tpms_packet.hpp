@@ -37,10 +37,12 @@ using units::Pressure;
 
 namespace tpms {
 
+using Flags = uint8_t;
+
 enum SignalType : uint32_t {
-	FLM = 1,
-	Subaru = 2,
-	GMC = 3,
+	FSK_19k2_Schrader = 1,
+	OOK_8k192_Schrader = 2,
+	OOK_8k4_Schrader = 3,
 };
 
 class TransponderID {
@@ -71,7 +73,7 @@ public:
 		FLM_64 = 1,
 		FLM_72 = 2,
 		FLM_80 = 3,
-		SUB_35 = 4,
+		Schrader = 4,
 		GMC_96 = 5,
 	};
 
@@ -92,11 +94,13 @@ public:
 		Type type,
 		TransponderID id,
 		Optional<Pressure> pressure = { },
-		Optional<Temperature> temperature = { }
+		Optional<Temperature> temperature = { },
+		Optional<Flags> flags = { }
 	) : type_ { type },
 		id_ { id },
 		pressure_ { pressure },
-		temperature_ { temperature }
+		temperature_ { temperature },
+		flags_ { flags }
 	{
 	}
 
@@ -116,36 +120,49 @@ public:
 		return temperature_;
 	}
 
+	Optional<Flags> flags() const {
+		return flags_;
+	}
+
 private:
 	Type type_ { Type::None };
 	TransponderID id_ { 0 };
 	Optional<Pressure> pressure_ { };
 	Optional<Temperature> temperature_ { };
+	Optional<Flags> flags_ { };
 };
 
 class Packet {
 public:
 	constexpr Packet(
-		const baseband::Packet& packet
+		const baseband::Packet& packet,
+		const SignalType signal_type
 	) : packet_ { packet },
+		signal_type_ { signal_type },
 		decoder_ { packet_, 0 },
 		reader_ { decoder_ }
 	{
 	}
 
+	SignalType signal_type() const { return signal_type_; }
 	Timestamp received_at() const;
 
-	ManchesterFormatted symbols_formatted() const;
+	FormattedSymbols symbols_formatted() const;
 
-	Optional<Reading> reading(const SignalType signal_type) const;
+	Optional<Reading> reading() const;
 
 private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
+	const SignalType signal_type_;
 	const ManchesterDecoder decoder_;
 
 	const Reader reader_;
+
+	Optional<Reading> reading_fsk_19k2_schrader() const;
+	Optional<Reading> reading_ook_8k192_schrader() const;
+	Optional<Reading> reading_ook_8k4_schrader() const;
 
 	size_t crc_valid_length() const;
 };
