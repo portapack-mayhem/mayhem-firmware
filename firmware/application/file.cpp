@@ -78,7 +78,11 @@ File::Result<size_t> File::write(const void* const data, const size_t bytes_to_w
 	UINT bytes_written = 0;
 	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
 	if( result == FR_OK ) {
-		return { static_cast<size_t>(bytes_written) };
+		if( bytes_to_write == bytes_written ) {
+			return { static_cast<size_t>(bytes_written) };
+		} else {
+			return Error { FR_DISK_FULL };
+		}
 	} else {
 		return { static_cast<Error>(result) };
 	}
