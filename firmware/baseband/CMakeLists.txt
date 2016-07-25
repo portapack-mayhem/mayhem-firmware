@@ -97,6 +97,7 @@ set(CSRC
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 set(CPPSRC
+	baseband.cpp
 	main.cpp
 	${COMMON}/message_queue.cpp
 	${COMMON}/event.cpp
