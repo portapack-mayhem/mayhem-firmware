@@ -119,7 +119,7 @@ private:
 		}
 	};
 
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 1 * 16;
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
