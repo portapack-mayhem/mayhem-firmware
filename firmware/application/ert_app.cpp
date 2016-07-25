@@ -152,7 +152,7 @@ ERTAppView::~ERTAppView() {
 }
 
 void ERTAppView::focus() {
-	recent_entries_view.focus();
+	field_vga.focus();
 }
 
 void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
