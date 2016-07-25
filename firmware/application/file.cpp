@@ -105,10 +105,8 @@ File::Result<size_t> File::puts(const std::string& string) {
 	const auto result = f_puts(string.c_str(), &f);
 	if( result >= 0 ) {
 		return { static_cast<size_t>(result) };
-	} else if( result == EOF ) {
-		return { static_cast<Error>(f_error(&f)) };
 	} else {
-		return { static_cast<Error>(FR_UNEXPECTED) };
+		return { static_cast<Error>(FR_EOF) };
 	}
 }
 
