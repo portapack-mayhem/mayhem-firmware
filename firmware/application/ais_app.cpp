@@ -291,6 +291,11 @@ AISAppView::AISAppView(NavigationView&) {
 	add_children({ {
 		&label_channel,
 		&options_channel,
+		&field_rf_amp,
+		&field_lna,
+		&field_vga,
+		&rssi,
+		&channel,
 		&recent_entries_view,
 		&recent_entry_detail_view,
 	} });

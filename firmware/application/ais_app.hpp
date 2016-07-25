@@ -24,6 +24,9 @@
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
+#include "ui_rssi.hpp"
+#include "ui_channel.hpp"
 
 #include "event_m0.hpp"
 
@@ -175,6 +178,26 @@ private:
 			{ "87B", 161975000 },
 			{ "88B", 162025000 },
 		}
+	};
+
+	RFAmpField field_rf_amp {
+		{ 13 * 8, 0 * 16 }
+	};
+
+	LNAGainField field_lna {
+		{ 15 * 8, 0 * 16 }
+	};
+
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
+	};
+
+	RSSI rssi {
+		{ 21 * 8, 0, 6 * 8, 4 },
+	};
+
+	Channel channel {
+		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
 	MessageHandlerRegistration message_handler_packet {
