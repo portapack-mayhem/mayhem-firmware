@@ -73,7 +73,8 @@ void WidebandSpectrum::on_message(const Message* const message) {
 	}
 }
 
-void run() {
+int main() {
 	EventDispatcher event_dispatcher { std::make_unique<WidebandSpectrum>() };
 	event_dispatcher.run();
+	return 0;
 }

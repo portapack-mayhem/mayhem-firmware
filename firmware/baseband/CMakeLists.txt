@@ -98,7 +98,6 @@ set(CSRC
 # setting.
 set(CPPSRC
 	baseband.cpp
-	main.cpp
 	${COMMON}/message_queue.cpp
 	${COMMON}/event.cpp
 	event_m4.cpp

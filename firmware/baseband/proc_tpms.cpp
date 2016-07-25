@@ -58,7 +58,8 @@ void TPMSProcessor::execute(const buffer_c8_t& buffer) {
 	}
 }
 
-void run() {
+int main() {
 	EventDispatcher event_dispatcher { std::make_unique<TPMSProcessor>() };
 	event_dispatcher.run();
+	return 0;
 }

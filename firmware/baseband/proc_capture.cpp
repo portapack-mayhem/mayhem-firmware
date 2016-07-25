@@ -93,7 +93,8 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 	}
 }
 
-void run() {
+int main() {
 	EventDispatcher event_dispatcher { std::make_unique<CaptureProcessor>() };
 	event_dispatcher.run();
+	return 0;
 }

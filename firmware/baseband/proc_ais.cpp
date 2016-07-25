@@ -65,7 +65,8 @@ void AISProcessor::payload_handler(
 	shared_memory.application_queue.push(message);
 }
 
-void run() {
+int main() {
 	EventDispatcher event_dispatcher { std::make_unique<AISProcessor>() };
 	event_dispatcher.run();
+	return 0;
 }
