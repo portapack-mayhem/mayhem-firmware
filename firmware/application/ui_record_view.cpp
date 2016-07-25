@@ -85,8 +85,7 @@ public:
 		if( create_error.is_valid() ) {
 			return create_error;
 		} else {
-			update_header();
-			return { };
+			return update_header();
 		}
 	}
 
@@ -142,15 +141,22 @@ private:
 
 	header_t header;
 
-	void update_header() {
+	Optional<File::Error> update_header() {
 		header.set_data_size(bytes_written);
-		auto seek_result = file.seek(0);
-		if( seek_result.is_error() ) {
-			return;
+		const auto seek_0_result = file.seek(0);
+		if( seek_0_result.is_error() ) {
+			return seek_0_result.error();
 		}
-		const auto old_position = seek_result.value();
-		file.write(&header, sizeof(header));
-		file.seek(old_position);
+		const auto old_position = seek_0_result.value();
+		const auto write_result = file.write(&header, sizeof(header));
+		if( write_result.is_error() ) {
+			return write_result.error();
+		}
+		const auto seek_old_result = file.seek(old_position);
+		if( seek_old_result.is_error() ) {
+			return seek_old_result.error();
+		}
+		return { };
 	}
 };
 
