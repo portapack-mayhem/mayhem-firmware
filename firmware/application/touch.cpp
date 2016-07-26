@@ -23,13 +23,7 @@
 
 namespace touch {
 
-struct Metrics {
-	const float x;
-	const float y;
-	const float r;
-};
-
-static Metrics calculate_metrics(const Frame& frame) {
+Metrics calculate_metrics(const Frame& frame) {
 	/* TODO: Yikes! M0 doesn't have floating point, so this code is
 	 * expensive! On the other hand, it seems to be working well (and
 	 * fast *enough*?), so maybe leave it alone at least for now.

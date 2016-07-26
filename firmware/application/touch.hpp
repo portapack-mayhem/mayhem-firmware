@@ -106,6 +106,14 @@ struct Frame {
 	bool touch { false };
 };
 
+struct Metrics {
+	const float x;
+	const float y;
+	const float r;
+};
+
+Metrics calculate_metrics(const Frame& frame);
+
 template<size_t N>
 class Filter {
 public:
