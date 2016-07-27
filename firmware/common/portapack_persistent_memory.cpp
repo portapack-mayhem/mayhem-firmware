@@ -36,7 +36,7 @@ using portapack::memory::map::backup_ram;
 namespace portapack {
 namespace persistent_memory {
 
-constexpr rf::Frequency tuned_frequency_reset_value { 858750000 };
+constexpr rf::Frequency tuned_frequency_reset_value { 100000000 };
 
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
