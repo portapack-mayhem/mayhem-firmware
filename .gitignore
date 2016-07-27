@@ -1,6 +1,10 @@
-/firmware/application/fox.bmp
-/firmware/application/fox_rle.bmp
-/firmware/test.wav
+/CMakeCache.txt
+/Makefile
+/firmware/baseband/Makefile
+/firmware/bootstrap/Makefile
+/firmware/application/portapack_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.hpp
 # Compiled Object files
 *.slo
 *.lo
@@ -29,13 +33,18 @@
 *.exe
 *.out
 *.app
+*.bin
+*.img
 
 # Other compiler/linker outputs
+*.cmake
+*.make
 *.elf
 *.map
 *.lst
 .dep/
 build/
+CMakeFiles/
 
 # Debugging
 .gdbinit*
