@@ -46,6 +46,8 @@ constexpr ppb_t ppb_reset_value { 0 };
 struct data_t {
 	int64_t tuned_frequency;
 	int32_t correction_ppb;
+	uint32_t touch_calibration_magic;
+	touch::Calibration touch_calibration;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -70,6 +72,20 @@ void set_correction_ppb(const ppb_t new_value) {
 	const auto clipped_value = ppb_range.clip(new_value);
 	data->correction_ppb = clipped_value;
 	portapack::clock_manager.set_reference_ppb(clipped_value);
+}
+
+static constexpr uint32_t touch_calibration_magic = 0x074af82f;
+
+void set_touch_calibration(const touch::Calibration& new_value) {
+	data->touch_calibration = new_value;
+	data->touch_calibration_magic = touch_calibration_magic;
+}
+
+const touch::Calibration& touch_calibration() {
+	if( data->touch_calibration_magic != touch_calibration_magic ) {
+		set_touch_calibration(touch::default_calibration());
+	}
+	return data->touch_calibration;
 }
 
 } /* namespace persistent_memory */

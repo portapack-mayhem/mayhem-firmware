@@ -23,6 +23,9 @@
 
 #include "irq_controls.hpp"
 
+#include "portapack_persistent_memory.hpp"
+using namespace portapack;
+
 namespace ui {
 
 TouchCalibrationView::TouchCalibrationView(
@@ -151,7 +154,7 @@ void TouchCalibrationView::touch_complete() {
 
 void TouchCalibrationView::on_ok() {
 	if( phase == Phase::Success ) {
-		touch::set_calibration(calibration);
+		persistent_memory::set_touch_calibration(calibration);
 		nav.pop();
 	}
 	if( phase == Phase::Failure ) {
