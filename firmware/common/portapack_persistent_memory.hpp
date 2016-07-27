@@ -47,6 +47,7 @@ int32_t afsk_bitrate();
 void set_afsk_bitrate(const int32_t new_value);
 
 uint32_t afsk_config();
+uint8_t afsk_repeats();
 void set_afsk_config(const uint32_t new_value);
 
 int32_t afsk_bw();

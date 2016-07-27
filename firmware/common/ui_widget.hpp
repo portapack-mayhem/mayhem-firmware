@@ -215,12 +215,14 @@ class ProgressBar : public Widget {
 public:
 	ProgressBar(Rect parent_rect);
 
+	void set_max(const uint16_t max);
 	void set_value(const uint16_t value);
 
 	void paint(Painter& painter) override;
 
 private:
 	uint16_t _value = 0;
+	uint16_t _max = 100;
 };
 
 class Checkbox : public Widget {
@@ -228,6 +230,11 @@ public:
 	std::function<void(Checkbox&)> on_select;
 
 	Checkbox(Point parent_pos, size_t length, std::string text);
+	
+	Checkbox(
+	) : Checkbox { { }, { }, { } }
+	{
+	}
 	
 	void set_text(const std::string value);
 	std::string text() const;

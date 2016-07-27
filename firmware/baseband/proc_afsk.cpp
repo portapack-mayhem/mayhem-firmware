@@ -43,22 +43,22 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 				if (configured == true) {
 					cur_byte = message_data[byte_pos];
 					ext_byte = message_data[byte_pos + 1];
-				}
-				if (!cur_byte) {
-					if (afsk_repeat) {
-						afsk_repeat--;
-						bit_pos = 0;
-						byte_pos = 0;
-						cur_byte = message_data[0];
-						ext_byte = message_data[1];
-						message.n = afsk_repeat;
-						shared_memory.application_queue.push(message);
-					} else {
-						message.n = 0;
-						configured = false;
-						shared_memory.application_queue.push(message);
-						cur_byte = 0;
-						ext_byte = 0;
+					if (!cur_byte) {
+						if (repeat_counter < afsk_repeat) {
+							bit_pos = 0;
+							byte_pos = 0;
+							cur_byte = message_data[0];
+							ext_byte = message_data[1];
+							message.n = repeat_counter + 1;
+							shared_memory.application_queue.push(message);
+							repeat_counter++;
+						} else {
+							message.n = 0;
+							shared_memory.application_queue.push(message);
+							cur_byte = 0;
+							ext_byte = 0;
+							configured = false;
+						}
 					}
 				}
 				
@@ -124,10 +124,11 @@ void AFSKProcessor::on_message(const Message* const p) {
 		afsk_samples_per_bit = message.afsk_samples_per_bit;
 		afsk_phase_inc_mark = message.afsk_phase_inc_mark;
 		afsk_phase_inc_space = message.afsk_phase_inc_space;
-		afsk_repeat = message.afsk_repeat;
+		afsk_repeat = message.afsk_repeat - 1;
 		afsk_bw = message.afsk_bw;
 		afsk_alt_format = message.afsk_alt_format;
 	
+		repeat_counter = 0;
 		bit_pos = 0;
 		byte_pos = 0;
 		cur_byte = 0;

@@ -139,6 +139,10 @@ uint32_t afsk_config() {
 	return data->afsk_config;
 }
 
+uint8_t afsk_repeats() {
+	return (data->afsk_config >> 8);
+}
+
 void set_afsk_config(const uint32_t new_value) {
 	data->afsk_config = new_value;
 }

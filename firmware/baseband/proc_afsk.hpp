@@ -45,6 +45,7 @@ private:
 	bool afsk_alt_format;
 	char message_data[256];
 	
+	uint8_t repeat_counter = 0;
 	int8_t re, im;
 	uint8_t s;
     uint8_t bit_pos = 0, byte_pos = 0;

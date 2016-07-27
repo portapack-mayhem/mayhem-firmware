@@ -54,7 +54,7 @@ private:
 		SINGLE,
 		SCAN
 	};
-	
+	// afsk_config()
 	tx_modes tx_mode = IDLE;
 	bool abort_scan = false;
 	double scan_progress;
@@ -77,11 +77,14 @@ private:
 	char lcr_message_data[256];
 	char checksum = 0;
 	rf::Frequency f;
-	int scan_index;
+	uint8_t repeat_index;
+	unsigned int scan_index;
 	
 	void generate_message();
+	void update_progress();
 	void start_tx(const bool scan);
 	void on_txdone(int n);
+	void on_button_setam(NavigationView& nav, Button& button);
 	
 	radio::Configuration lcr_radio_config = {
 		0,
@@ -118,6 +121,9 @@ private:
 		.background = Color::red(),
 		.foreground = Color::black(),
 	};
+	
+	std::array<Button, 5> buttons;
+	std::array<Checkbox, 5> checkboxes;
 
 	Text text_recap {
 		{ 8, 6, 18 * 8, 16 },
@@ -125,7 +131,7 @@ private:
 	};
 	
 	OptionsField options_ec {
-		{ 20 * 8, 6 },
+		{ 21 * 8, 6 },
 		7,
 		{
 			{ "EC:Auto", 0 },
@@ -148,19 +154,11 @@ private:
 		0,
 		""
 	};
-	Button button_setam_a {
-		{ 48, 64, 48, 24 },
-		"AM 1"
-	};
 	
 	Checkbox checkbox_am_b {
 		{ 16, 96 },
 		0,
 		""
-	};
-	Button button_setam_b {
-		{ 48, 96, 48, 24 },
-		"AM 2"
 	};
 	
 	Checkbox checkbox_am_c {
@@ -168,29 +166,17 @@ private:
 		0,
 		""
 	};
-	Button button_setam_c {
-		{ 48, 128, 48, 24 },
-		"AM 3"
-	};
 	
 	Checkbox checkbox_am_d {
 		{ 16, 160 },
 		0,
 		""
 	};
-	Button button_setam_d {
-		{ 48, 160, 48, 24 },
-		"AM 4"
-	};
 	
 	Checkbox checkbox_am_e {
 		{ 16, 192 },
 		0,
 		""
-	};
-	Button button_setam_e {
-		{ 48, 192, 48, 24 },
-		"AM 5"
 	};
 	
 	Button button_lcrdebug {

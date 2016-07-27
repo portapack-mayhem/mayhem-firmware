@@ -83,30 +83,14 @@ void LCRView::generate_message() {
 	strcat(lcr_message, rgsb);		// Address
 	strcat(lcr_message, "PA ");
 	
-	if (checkbox_am_a.value() == true) {
-		strcat(lcr_message, "AM=1 AF=\"");
-		strcat(lcr_message, litteral[0]);
-		strcat(lcr_message, "\" CL=0 ");
-	}
-	if (checkbox_am_b.value() == true) {
-		strcat(lcr_message, "AM=2 AF=\"");
-		strcat(lcr_message, litteral[1]);
-		strcat(lcr_message, "\" CL=0 ");
-	}
-	if (checkbox_am_c.value() == true) {
-		strcat(lcr_message, "AM=3 AF=\"");
-		strcat(lcr_message, litteral[2]);
-		strcat(lcr_message, "\" CL=0 ");
-	}
-	if (checkbox_am_d.value() == true) {
-		strcat(lcr_message, "AM=4 AF=\"");
-		strcat(lcr_message, litteral[3]);
-		strcat(lcr_message, "\" CL=0 ");
-	}
-	if (checkbox_am_e.value() == true) {
-		strcat(lcr_message, "AM=5 AF=\"");
-		strcat(lcr_message, litteral[4]);
-		strcat(lcr_message, "\" CL=0 ");
+	for (i = 0; i < 5; i++) {
+		if (checkboxes[i].value() == true) {
+			strcat(lcr_message, "AM=");
+			strcat(lcr_message, to_string_dec_uint(i, 1).c_str());
+			strcat(lcr_message, " AF=\"");
+			strcat(lcr_message, litteral[i]);
+			strcat(lcr_message, "\" CL=0 ");
+		}
 	}
 	strcat(lcr_message, "EC=");
 	strcat(lcr_message, ec_lut[options_ec.selected_index()]);
@@ -208,65 +192,77 @@ void LCRView::paint(Painter& painter) {
 	strcpy(finalstr, fstr.c_str());
 	strcat(finalstr, "@");
 	strcat(finalstr, bstr.c_str());
-	strcat(finalstr, "bps");
+	strcat(finalstr, "bps ");
 	if (portapack::persistent_memory::afsk_config() & 8)
-		strcat(finalstr, " ALT");
+		strcat(finalstr, "ALT");
 	else
-		strcat(finalstr, " NRM");
+		strcat(finalstr, "NRM");
 	text_recap.set(finalstr);
+}
+
+void LCRView::update_progress() {
+	char str[16];
+	
+	text_status.set("            ");
+	
+	if (tx_mode == SINGLE) {
+		strcpy(str, to_string_dec_uint(repeat_index).c_str());
+		strcat(str, "/");
+		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
+		text_status.set(str);
+		progress.set_value(repeat_index);
+	} else if (tx_mode == SCAN) {
+		strcpy(str, to_string_dec_uint(repeat_index).c_str());
+		strcat(str, "/");
+		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
+		strcat(str, " ");
+		strcat(str, to_string_dec_uint(scan_index + 1).c_str());
+		strcat(str, "/");
+		strcat(str, to_string_dec_uint(LCR_SCAN_COUNT).c_str());
+		text_status.set(str);
+		progress.set_value(scan_progress);
+	} else {
+		text_status.set("Ready");
+		progress.set_value(0);
+	}
 }
 
 void LCRView::on_txdone(int n) {
 	char str[16];
 	
-	if (abort_scan) {
-		text_status.set("            ");
-		strcpy(str, "Abort @");
-		strcat(str, rgsb);
-		text_status.set(str);
-		progress.set_value(0);
-		transmitter_model.disable();
-		tx_mode = IDLE;
-		abort_scan = false;
-		button_scan.set_style(&style_val);
-		button_scan.set_text("SCAN");
-		return;
-	}
-	
 	if (n > 0) {
+		repeat_index = n + 1;
 		if (tx_mode == SCAN) {
-			scan_progress += 0.555f;			// 100/(37*5)
-			progress.set_value(scan_progress);
+			scan_progress++;
+			update_progress();
 		} else {
-			text_status.set("            ");
-			strcpy(str, to_string_dec_int(6 - n).c_str());
-			strcat(str, "/5");
-			text_status.set(str);
-			progress.set_value((6 - n) * 20);
+			update_progress();
 		}
 	} else {
-		if ((tx_mode == SCAN) && (scan_index < LCR_SCAN_COUNT)) {
+		if ((tx_mode == SCAN) && (scan_index < (LCR_SCAN_COUNT - 1))) {
 			transmitter_model.disable();
-			
-			// Next address
-			strcpy(rgsb, RGSB_list[scan_index]);
-			generate_message();
-			
-			text_status.set("            ");
-			strcpy(str, to_string_dec_int(scan_index).c_str());
-			strcat(str, "/");
-			strcat(str, to_string_dec_uint(LCR_SCAN_COUNT).c_str());
-			text_status.set(str);
-			scan_progress += 0.694f;
-			progress.set_value(scan_progress);
-			
-			scan_index++;
-			// start_tx ?
+			if (abort_scan) {
+				strcpy(str, "Abort @");
+				strcat(str, rgsb);
+				text_status.set(str);
+				progress.set_value(0);
+				tx_mode = IDLE;
+				abort_scan = false;
+				button_scan.set_style(&style_val);
+				button_scan.set_text("SCAN");
+			} else {
+				// Next address
+				scan_index++;
+				strcpy(rgsb, RGSB_list[scan_index]);
+				scan_progress++;
+				repeat_index = 1;
+				update_progress();
+				start_tx(true);
+			}
 		} else {
-			text_status.set("Ready       ");
-			progress.set_value(0);
 			transmitter_model.disable();
 			tx_mode = IDLE;
+			update_progress();
 			button_scan.set_style(&style_val);
 			button_scan.set_text("SCAN");
 		}
@@ -274,32 +270,29 @@ void LCRView::on_txdone(int n) {
 }
 
 void LCRView::start_tx(const bool scan) {
-	char str[16];
 	bool afsk_alt_format;
+	uint8_t afsk_repeats;
+	
+	afsk_repeats = portapack::persistent_memory::afsk_repeats();
 	
 	if (scan) {
-		tx_mode = SCAN;
-		scan_index = 0;
-		strcpy(rgsb, RGSB_list[0]);
+		if (tx_mode != SCAN) {
+			scan_index = 0;
+			scan_progress = 1;
+			repeat_index = 1;
+			tx_mode = SCAN;
+			strcpy(rgsb, RGSB_list[0]);
+			progress.set_max(LCR_SCAN_COUNT * afsk_repeats);
+			update_progress();
+		}
 	} else {
 		tx_mode = SINGLE;
+		repeat_index = 1;
+		progress.set_max(afsk_repeats);
+		update_progress();
 	}
 	
 	generate_message();
-
-	if (tx_mode == SCAN) {
-		text_status.set("            ");
-		strcpy(str, "1/");
-		strcat(str, to_string_dec_uint(LCR_SCAN_COUNT).c_str());
-		text_status.set(str);
-		progress.set_value(1);
-		scan_index++;
-	} else {
-		strcpy(str, "1/5         ");
-		//strcat(str, to_string_dec_int(shared_memory.afsk_repeat).c_str());
-		text_status.set(str);
-		progress.set_value(20);
-	}
 
 	if (portapack::persistent_memory::afsk_config() & 8)
 		afsk_alt_format = true;
@@ -323,13 +316,19 @@ void LCRView::start_tx(const bool scan) {
 		228000 / portapack::persistent_memory::afsk_bitrate(),
 		portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / 2280,
 		portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / 2280,
-		5,
+		afsk_repeats,
 		portapack::persistent_memory::afsk_bw() * 115,		// See proc_fsk_lcr.cpp
 		afsk_alt_format
 	);
 }
 
+void LCRView::on_button_setam(NavigationView& nav, Button& button) {
+	textentry(nav, litteral[button.id], 7);
+}
+
 LCRView::LCRView(NavigationView& nav) {
+	std::string label;
+	
 	baseband::run_image(portapack::spi_flash::image_tag_afsk);
 
 	memset(litteral, 0, 5 * 8);
@@ -342,16 +341,6 @@ LCRView::LCRView(NavigationView& nav) {
 		&options_ec,
 		&button_setrgsb,
 		&button_txsetup,
-		&checkbox_am_a,
-		&button_setam_a,
-		&checkbox_am_b,
-		&button_setam_b,
-		&checkbox_am_c,
-		&button_setam_c,
-		&checkbox_am_d,
-		&button_setam_d,
-		&checkbox_am_e,
-		&button_setam_e,
 		&text_status,
 		&progress,
 		&button_lcrdebug,
@@ -360,37 +349,46 @@ LCRView::LCRView(NavigationView& nav) {
 		&button_clear
 	} });
 	
+	const auto button_setam_fn = [this, &nav](Button& button) {
+		this->on_button_setam(nav, button);
+	};
+	
+	size_t n = 0;
+	for(auto& button : buttons) {
+		button.on_select = button_setam_fn;
+		button.id = n;
+		label = "AM " + to_string_dec_uint(n, 1);;
+		button.set_text(label);
+		button.set_parent_rect({
+			static_cast<Coord>(48),
+			static_cast<Coord>(n * 32 + 64),
+			48, 24
+		});
+		add_child(&button);
+		n++;
+	}
+	
+	n = 0;
+	for(auto& checkbox : checkboxes) {
+		checkbox.set_parent_rect({
+			static_cast<Coord>(16),
+			static_cast<Coord>(n * 32 + 64),
+			48, 24
+		});
+		checkbox.set_value(false);
+		add_child(&checkbox);
+		n++;
+	}
+	
 	button_setrgsb.set_text(rgsb);
-	
 	options_ec.set_selected_index(0);	// Auto
-	
-	checkbox_am_a.set_value(true);
-	checkbox_am_b.set_value(false);
-	checkbox_am_c.set_value(false);
-	checkbox_am_d.set_value(false);
-	checkbox_am_e.set_value(false);
+	checkboxes[0].set_value(true);
 	
 	button_transmit.set_style(&style_val);
 	button_scan.set_style(&style_val);
 	
 	button_setrgsb.on_select = [this,&nav](Button&) {
 		textentry(nav, rgsb, 4);
-	};
-	
-	button_setam_a.on_select = [this,&nav](Button&) {
-		textentry(nav, litteral[0], 7);
-	};
-	button_setam_b.on_select = [this,&nav](Button&) {
-		textentry(nav, litteral[1], 7);
-	};
-	button_setam_c.on_select = [this,&nav](Button&) {
-		textentry(nav, litteral[2], 7);
-	};
-	button_setam_d.on_select = [this,&nav](Button&) {
-		textentry(nav, litteral[3], 7);
-	};
-	button_setam_e.on_select = [this,&nav](Button&) {
-		textentry(nav, litteral[4], 7);
 	};
 	
 	button_txsetup.on_select = [&nav](Button&) {
@@ -408,7 +406,6 @@ LCRView::LCRView(NavigationView& nav) {
 	
 	button_scan.on_select = [this](Button&) {
 		if (tx_mode == IDLE)	{
-			scan_progress = 0;
 			button_scan.set_style(&style_cancel);
 			button_scan.set_text("ABORT");
 			start_tx(true);

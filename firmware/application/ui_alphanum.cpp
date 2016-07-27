@@ -72,7 +72,6 @@ AlphanumView::AlphanumView(
 
 	size_t n = 0;
 	for(auto& button : buttons) {
-		add_child(&button);
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * button_w),
@@ -83,6 +82,7 @@ AlphanumView::AlphanumView(
 			button.set_style(&style_num);
 		else
 			button.set_style(&style_alpha);
+		add_child(&button);
 		n++;
 	}
 	set_uppercase();

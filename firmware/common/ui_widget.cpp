@@ -395,9 +395,15 @@ ProgressBar::ProgressBar(
 {
 }
 
+void ProgressBar::set_max(const uint16_t max) {
+	_value = 0;
+	_max = max;
+	set_dirty();
+}
+
 void ProgressBar::set_value(const uint16_t value) {
-	if (value > 100)
-		_value = 100;
+	if (value > _max)
+		_value = _max;
 	else
 		_value = value;
 	set_dirty();
@@ -409,7 +415,7 @@ void ProgressBar::paint(Painter& painter) {
 	const auto rect = screen_rect();
 	const auto s = style();
 
-	v_sized = (rect.size.w * _value) / 100;
+	v_sized = (rect.size.w * _value) / _max;
 
 	painter.fill_rectangle({rect.pos, {v_sized, rect.size.h}}, style().foreground);
 	painter.fill_rectangle({{rect.pos.x + v_sized, rect.pos.y}, {rect.size.w - v_sized, rect.size.h}}, s.background);
