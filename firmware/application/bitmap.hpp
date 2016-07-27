@@ -26,6 +26,8 @@
 
 namespace ui {
 
+/* Pixel data within a byte is "reversed": LSB is left-most pixel. */
+
 static constexpr uint8_t bitmap_record_data[] = {
 	0x00, 0x00,
 	0x00, 0x00,
