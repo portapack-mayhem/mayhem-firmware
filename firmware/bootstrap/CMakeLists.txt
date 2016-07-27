@@ -29,7 +29,7 @@ enable_language(C CXX ASM)
 project(bootstrap)
 
 # Compiler options here.
-set(USE_OPT "-Os -falign-functions=16 -fno-math-errno --specs=nano.specs")
+set(USE_OPT "-Os -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")

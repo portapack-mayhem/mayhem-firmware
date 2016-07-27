@@ -29,7 +29,7 @@ enable_language(C CXX ASM)
 project(application)
 
 # Compiler options here.
-set(USE_OPT "-Os --specs=nano.specs")
+set(USE_OPT "-Os -g --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
