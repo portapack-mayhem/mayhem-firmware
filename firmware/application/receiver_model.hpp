@@ -131,7 +131,7 @@ private:
 	void update_lna();
 	void update_baseband_bandwidth();
 	void update_vga();
-	void update_baseband_configuration();
+	void update_sampling_rate();
 	void update_headphone_volume();
 
 	void update_modulation();

@@ -146,7 +146,7 @@ void ReceiverModel::enable() {
 	update_lna();
 	update_vga();
 	update_baseband_bandwidth();
-	update_baseband_configuration();
+	update_sampling_rate();
 	update_modulation();
 	update_headphone_volume();
 }
@@ -218,7 +218,7 @@ void ReceiverModel::set_wfm_configuration(const size_t n) {
 	}
 }
 
-void ReceiverModel::update_baseband_configuration() {
+void ReceiverModel::update_sampling_rate() {
 	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
 	// synchronization for things like wideband (sweeping) spectrum analysis, and
 	// protocols that need quick RX/TX turn-around.
