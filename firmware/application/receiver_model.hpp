@@ -30,27 +30,6 @@
 #include "max2837.hpp"
 #include "volume.hpp"
 
-struct BasebandConfiguration {
-	int32_t mode;
-	uint32_t sampling_rate;
-	size_t decimation_factor;
-
-	constexpr BasebandConfiguration(
-		int32_t mode,
-		uint32_t sampling_rate,
-		size_t decimation_factor = 1
-	) : mode { mode },
-		sampling_rate { sampling_rate },
-		decimation_factor { decimation_factor }
-	{
-	}
-
-	constexpr BasebandConfiguration(
-	) : BasebandConfiguration { -1, 0, 1 }
-	{
-	}
-};
-
 class ReceiverModel {
 public:
 	enum class Mode : int32_t {
@@ -83,8 +62,10 @@ public:
 	void set_vga(int32_t v_db);
 
 	uint32_t sampling_rate() const;
+	void set_sampling_rate(uint32_t v);
 
 	uint32_t modulation() const;
+	void set_modulation(uint32_t v);
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
@@ -93,8 +74,6 @@ public:
 
 	void enable();
 	void disable();
-
-	void set_baseband_configuration(const BasebandConfiguration config);
 
 	size_t am_configuration() const;
 	void set_am_configuration(const size_t n);
@@ -113,11 +92,9 @@ private:
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
-	BasebandConfiguration baseband_configuration {
-		.mode = 1,			/* TODO: Enum! */
-		.sampling_rate = 3072000,
-		.decimation_factor = 1,
-	};
+	uint32_t mode_ { 1 };
+	uint32_t sampling_rate_ { 3072000 };
+	size_t decimation_factor_ { 1 };
 	size_t am_config_index = 0;
 	size_t nbfm_config_index = 0;
 	size_t wfm_config_index = 0;
