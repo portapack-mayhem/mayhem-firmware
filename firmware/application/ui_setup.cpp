@@ -21,6 +21,8 @@
 
 #include "ui_setup.hpp"
 
+#include "ui_touch_calibration.hpp"
+
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -196,7 +198,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Date/Time", [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency Correction", [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },
-		{ "Touch",     [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Touch",     [&nav](){ nav.push<TouchCalibrationView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

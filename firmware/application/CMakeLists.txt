@@ -148,6 +148,7 @@ set(CPPSRC
 	ui_audio.cpp
 	ui_font_fixed_8x16.cpp
 	ui_setup.cpp
+	ui_touch_calibration.cpp
 	ui_debug.cpp
 	ui_baseband_stats_view.cpp
 	ui_sd_card_status_view.cpp
