@@ -111,10 +111,8 @@ void Manager::feed(const Frame& frame) {
 		// TODO: Add touch pressure hysteresis?
 		touch_pressure = (metrics.r < r_touch_threshold);
 		if( touch_pressure ) {
-			const float x = width_pixels * (metrics.x - calib_x_low) / calib_x_range;
-			filter_x.feed(x);
-			const float y = height_pixels * (calib_y_high - metrics.y) / calib_y_range;
-			filter_y.feed(y);
+			filter_x.feed(metrics.x * 1024);
+			filter_y.feed(metrics.y * 1024);
 		}
 	} else {
 		filter_x.reset();
@@ -144,6 +142,10 @@ void Manager::feed(const Frame& frame) {
 		state = State::NoTouch;
 		break;
 	}
+}
+
+ui::Point Manager::filtered_point() const {
+	return calibration().translate({ filter_x.value(), filter_y.value() });
 }
 
 } /* namespace touch */
