@@ -32,12 +32,11 @@
 
 class ReceiverModel {
 public:
-	enum class Mode : int32_t {
+	enum class Mode {
 		AMAudio = 0,
 		NarrowbandFMAudio = 1,
 		WidebandFMAudio = 2,
-		SpectrumAnalysis = 4,
-		Capture = 7,
+		SpectrumAnalysis = 3,
 	};
 
 	rf::Frequency tuning_frequency() const;
