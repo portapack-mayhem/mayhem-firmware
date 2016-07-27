@@ -149,6 +149,10 @@ private:
 	int32_t f;
 };
 
+void set_calibration(const Calibration& calibration);
+const Calibration& calibration();
+const Calibration& default_calibration();
+
 template<size_t N>
 class Filter {
 public:

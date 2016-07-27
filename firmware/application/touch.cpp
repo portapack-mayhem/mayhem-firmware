@@ -74,6 +74,26 @@ ui::Point Calibration::translate(const DigitizerPoint& p) const {
 	};
 }
 
+static const Calibration _default_calibration {
+	/* Values derived from one PortaPack H1 unit. */
+	{ { { 256, 731 }, { 880, 432 }, { 568, 146 } } },
+	{ { {  32,  48 }, { 208, 168 }, { 120, 288 } } }
+};
+
+static Calibration _calibration = _default_calibration;
+
+void set_calibration(const Calibration& value) {
+	_calibration = value;
+}
+
+const Calibration& calibration() {
+	return _calibration;
+}
+
+const Calibration& default_calibration() {
+	return _default_calibration;
+}
+
 void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
