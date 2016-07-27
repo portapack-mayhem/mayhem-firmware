@@ -134,7 +134,7 @@ private:
 	void update_baseband_configuration();
 	void update_headphone_volume();
 
-	void update_modulation_configuration();
+	void update_modulation();
 	void update_am_configuration();
 	void update_nbfm_configuration();
 	void update_wfm_configuration();

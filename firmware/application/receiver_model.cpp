@@ -147,7 +147,7 @@ void ReceiverModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_baseband_configuration();
-	update_modulation_configuration();
+	update_modulation();
 	update_headphone_volume();
 }
 
@@ -200,21 +200,21 @@ void ReceiverModel::set_baseband_configuration(const BasebandConfiguration confi
 void ReceiverModel::set_am_configuration(const size_t n) {
 	if( n < am_configs.size() ) {
 		am_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
 void ReceiverModel::set_nbfm_configuration(const size_t n) {
 	if( n < nbfm_configs.size() ) {
 		nbfm_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
 void ReceiverModel::set_wfm_configuration(const size_t n) {
 	if( n < wfm_configs.size() ) {
 		wfm_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
@@ -236,7 +236,7 @@ void ReceiverModel::update_headphone_volume() {
 	audio::headphone::set_volume(headphone_volume_);
 }
 
-void ReceiverModel::update_modulation_configuration() {
+void ReceiverModel::update_modulation() {
 	switch(static_cast<Mode>(modulation())) {
 	default:
 	case Mode::AMAudio:
