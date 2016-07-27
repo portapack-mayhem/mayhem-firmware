@@ -23,10 +23,6 @@
 
 #include "irq_controls.hpp"
 
-#if defined(TOUCH_DEBUG)
-#include "string_format.hpp"
-#endif
-
 namespace ui {
 
 TouchCalibrationView::TouchCalibrationView(
