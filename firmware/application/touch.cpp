@@ -60,6 +60,20 @@ Metrics calculate_metrics(const Frame& frame) {
 	};
 }
 
+ui::Point Calibration::translate(const DigitizerPoint& p) const {
+	static constexpr range_t<int32_t> x_range { 0, 240 - 1 };
+	static constexpr range_t<int32_t> y_range { 0, 320 - 1 };
+
+	const int32_t x = (a * p.x + b * p.y + c) / k;
+	const int32_t y = (d * p.x + e * p.y + f) / k;
+	const auto x_clipped = x_range.clip(x);
+	const auto y_clipped = y_range.clip(y);
+	return {
+		static_cast<ui::Coord>(x_clipped),
+		static_cast<ui::Coord>(y_clipped)
+	};
+}
+
 void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
