@@ -42,7 +42,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i<buffer.count; i++) {
 		
 		// Sample generation rate: 1536000/10 = 153kHz
-		if (s >= (5-1)) {
+		if (s >= (2-1)) {
 			s = 0;
 			
 			if (silence) {
@@ -55,15 +55,15 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			} else {
 				if (sample_count >= CCIR_TONELENGTH) {
 					if (transmit_done == false) {
-						message.n = byte_pos;	// Inform UI about progress (just as eye candy)
-						shared_memory.application_queue.push(message);
 						digit = xylosdata[byte_pos++];
-					}
-						
-					if ((digit == 0xFF) || (byte_pos >= 21)) {
-						message.n = 25;	// End of message code
-						transmit_done = true;
-						shared_memory.application_queue.push(message);
+						if ((digit == 0xFF) || (byte_pos >= 21)) {
+							message.n = 25;			// End of message code
+							transmit_done = true;
+							shared_memory.application_queue.push(message);
+						} else {
+							message.n = byte_pos;	// Inform UI about progress (just as eye candy)
+							shared_memory.application_queue.push(message);
+						}
 					}
 					
 					sample_count = 0;
@@ -81,7 +81,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			re = 0;
 			im = 0;
 		} else {
-			sample = (sine_table_f32[(aphase & 0x03FF0000)>>18]*127); // 255 here before
+			sample = (sine_table_f32[(aphase & 0x03FC0000)>>18]*127); // 255 here before
 			
 			// Audio preview sample generation: 1536000/48000 = 32
 			/*if (as >= 31) {
@@ -92,13 +92,13 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			}*/
 				
 			//FM
-			frq = sample * 1000;	// 500 was here
+			frq = sample * 800;	// ?
 			
 			phase = (phase + frq);
 			sphase = phase + (256<<16);
 
-			re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*15);
-			im = (sine_table_f32[(phase & 0x03FF0000)>>18]*15);
+			re = (sine_table_f32[(sphase & 0x03FC0000)>>18]*127);
+			im = (sine_table_f32[(phase & 0x03FC0000)>>18]*127);
 		}
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};

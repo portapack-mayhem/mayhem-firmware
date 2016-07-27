@@ -56,12 +56,12 @@ images = (
 	{
 		'name': 'bootstrap',
 		'data': bootstrap_image,
-		'size': 0x10000,
+		'size': 0x8000,
 	},
 	{
 		'name': 'baseband',
 		'data': baseband_image,
-		'size': 0x30000,
+		'size': 0x38000,
 	},
 	{
 		'name': 'application',

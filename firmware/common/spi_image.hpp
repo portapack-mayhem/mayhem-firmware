@@ -102,12 +102,12 @@ struct region_t {
 
 constexpr region_t bootstrap {
 	.offset = 0x00000,
-	.size = 0x10000,
+	.size = 0x8000,
 };
 
 constexpr region_t images {
-	.offset = 0x10000,
-	.size = 0x30000,
+	.offset = 0x8000,
+	.size = 0x38000,
 };
 
 constexpr region_t application {

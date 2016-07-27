@@ -31,9 +31,9 @@
 #include "audio_output.hpp"
 #include "baseband_thread.hpp"
 
-#define CCIR_TONELENGTH (15360*2)-1		// 1536000/10/10
-#define PHASEV (436.91/2)				// (65536*1024)/1536000*10
-#define SILENCE (46080*2)-1				// 400ms
+#define CCIR_TONELENGTH (15360*5)-1		// 1536000/10/10
+#define PHASEV (436.91/5)				// (65536*1024)/1536000*10
+#define SILENCE (46080*5)-1				// 400ms
 
 class XylosProcessor : public BasebandProcessor {
 public:

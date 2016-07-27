@@ -138,17 +138,17 @@ private:
 	};
 
 	Text text_firmware {
-		{ 0, 128, 240, 16 },
+		{ 0, 236, 240, 16 },
 		"Git Commit Hash        " GIT_REVISION,
 	};
 
 	Text text_cpld_hackrf {
-		{ 0, 144, 11*8, 16 },
+		{ 0, 252, 11*8, 16 },
 		"HackRF CPLD",
 	};
 
 	Text text_cpld_hackrf_status {
-		{ 240 - 3*8, 144, 3*8, 16 },
+		{ 240 - 3*8, 252, 3*8, 16 },
 		"???"
 	};
 

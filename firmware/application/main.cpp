@@ -24,10 +24,8 @@
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-//BUG: Crash after TX stop (unregister message !)
 
-//TODO: Show MD5 mismatches for modules not found, etc...
-//TODO: Frequency manager !
+//TODO: Frequency manager
 //TODO: Weird LCR AFSK scrambling ?
 //TODO: SD card wiper
 //TODO: Draw on touchscreen and transmit as spectrum paint
@@ -41,6 +39,7 @@
 //TODO: GSM channel detector
 //TODO: AFSK receiver
 //TODO: SIGFOX RX/TX
+//TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //TODO: Check bw setting in LCR TX
 //TODO: Bodet :)
@@ -48,7 +47,6 @@
 //TODO: Setup: Play dead by default ? Enable/disable ?
 //TODO: Hide statusview when playing dead
 //TODO: Persistent playdead !
-//TODO: LCR EC=A,J,N
 //TODO: LCR full message former (see norm)
 //TODO: AFSK NRZI
 //TODO: TX power setting

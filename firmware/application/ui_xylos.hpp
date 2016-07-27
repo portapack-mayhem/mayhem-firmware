@@ -150,12 +150,18 @@ public:
 	void focus() override;
 
 private:
-	int inc_cnt;
-	int header_init;
-	bool txing = false;
-	bool testing = false;
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SEQUENCE,
+		TESTING
+	};
+	
+	tx_modes tx_mode = IDLE;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
-	char ccirmessage[21];
+	char ccir_message[21];
+	
+	const char ccir_base[21] = "0000000000B0000B0000";
 	
 	const char xylos_sequence[9][21] = {
 		"0E0E18920EB1E10B0E0E",
@@ -171,8 +177,9 @@ private:
 	
 	int sequence_idx;
 	
+	void ascii_to_ccir(char *ascii);
 	void start_tx();
-	void upd_message();
+	void generate_message();
 	void on_txdone(const int n);
 	
 	const Style style_val {
@@ -189,12 +196,6 @@ private:
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::grey(),
-	};
-	
-	Checkbox checkbox_hinc {
-		{ 21 * 8, 12},
-		2,
-		"+3"
 	};
 	
 	Text text_header {
