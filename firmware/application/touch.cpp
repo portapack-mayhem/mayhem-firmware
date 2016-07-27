@@ -21,6 +21,8 @@
 
 #include "touch.hpp"
 
+#include "utility.hpp"
+
 namespace touch {
 
 Metrics calculate_metrics(const Frame& frame) {
