@@ -1,0 +1,55 @@
+PortaPack H1 is portability add-on hardware for the HackRF One
+software-defined radio (SDR).
+
+Schematic
+=========
+
+The schematic was drawn using KiCad.
+
+Schematic symbols are cached in the design files, but are also
+available in a separate repository:
+
+	https://github.com/sharebrained/library-kicad/
+
+PCB
+===
+
+The circuit board was designed using KiCad.
+
+PCB footprints are cached in the design files, but are also
+avaliable in a separate repository:
+
+	https://github.com/sharebrained/library-kicad/
+	
+The PCB is a four-layer design. Services such as OSHPark.com have suitable
+four-layer stack ups.
+
+CPLD
+====
+
+The CPLD bitstream is prepared using Altera Quartus tools.
+
+The CPLD is programmed from within the PortaPack firmware, by bit-banging
+the JTAG pins from the HackRF One's microcontroller.
+
+License
+=======
+
+Copyright (C) 2013, 2014, 2015 Jared Boone, ShareBrained Technology, Inc.
+
+These files are part of PortaPack.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 51 Franklin Street,
+Boston, MA 02110-1301, USA.

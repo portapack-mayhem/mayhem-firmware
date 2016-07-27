@@ -32,6 +32,7 @@
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
+#include "baseband_api.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -117,11 +118,8 @@ void XylosView::focus() {
 }
 
 XylosView::~XylosView() {
-	transmitter_model.disable();
-}
-
-void XylosView::paint(Painter& painter) {
-	(void)painter;
+	receiver_model.disable();
+	baseband::shutdown();
 }
 
 void XylosView::upd_message() {
@@ -187,23 +185,98 @@ void XylosView::upd_message() {
 void XylosView::start_tx() {
 	upd_message();
 	
-	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
-	shared_memory.transmit_done = false;
-	memcpy(shared_memory.xylosdata, ccirmessage, 21);
-	transmitter_model.enable();
-}
-
-XylosView::XylosView(
-	NavigationView& nav
-)
-{
-	int c;
-	
+	//audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 	transmitter_model.set_baseband_configuration({
-		.mode = 2,
-		.sampling_rate = 1536000,
+		.mode = 0,
+		.sampling_rate = 1536000U,
 		.decimation_factor = 1,
 	});
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	baseband::set_xylos_data(ccirmessage);
+}
+
+void XylosView::on_txdone(const int n) {
+	int c, sr;
+	
+	if (testing == true) {
+		if (n == 25) {
+			transmitter_model.disable();
+			
+			if (sequence_idx != 9) {
+				chThdSleepMilliseconds(15000);
+				memcpy(ccirmessage, &xylos_sequence[sequence_idx][0], 21);
+				// ASCII to frequency LUT index
+				for (c=0; c<20; c++) {
+					if (ccirmessage[c] > '9')
+						ccirmessage[c] -= 0x37;
+					else
+						ccirmessage[c] -= 0x30;
+				}
+				ccirmessage[20] = 0xFF;
+				//memcpy(shared_memory.xylosdata, ccirmessage, 21);					TODO !!!
+				
+				sequence_idx++;
+				txing = true;
+				transmitter_model.enable();
+			} else {
+				button_txtest.set_style(&style());
+				button_txtest.set_text("TEST");
+				testing = false;
+			}
+		}
+	} else {
+		if (n == 25) {
+			audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
+			transmitter_model.disable();
+			progress.set_value(0);
+			
+			if (inc_cnt) {
+				chThdSleepMilliseconds(1000);
+				header_code_b.set_value(header_code_b.value() + 1);
+				
+				upd_message();
+				start_tx();
+				
+				inc_cnt--;
+			} else {
+				header_code_b.set_value(header_init);
+				if (checkbox_cligno.value() == false) {
+					txing = false;
+					button_transmit.set_style(&style_val);
+					button_transmit.set_text("START");
+				} else {
+					if (checkbox_hinc.value())
+						inc_cnt = 3;
+					else
+						inc_cnt = 0;
+					
+					chThdSleepMilliseconds(tempo_cligno.value() * 1000);
+					
+					// Invert relay states
+					sr = options_ra.selected_index();
+					if (sr > 0) options_ra.set_selected_index(sr ^ 3);
+					sr = options_rb.selected_index();
+					if (sr > 0) options_rb.set_selected_index(sr ^ 3);
+					sr = options_rc.selected_index();
+					if (sr > 0) options_rc.set_selected_index(sr ^ 3);
+					sr = options_rd.selected_index();
+					if (sr > 0) options_rd.set_selected_index(sr ^ 3);
+					
+					upd_message();
+					start_tx();
+				}
+			}
+		} else {
+			progress.set_value((n + 1) * 5);
+		}
+	}
+}
+
+XylosView::XylosView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_xylos);
 
 	add_children({ {
 		&checkbox_hinc,
@@ -366,38 +439,6 @@ XylosView::XylosView(
 		
 		if (txing == false) {
 			sequence_idx = 0;
-			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
-			
-			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-				[this](Message* const p) {
-					int c;
-					const auto message = static_cast<const TXDoneMessage*>(p);
-					if (message->n == 25) {
-						transmitter_model.disable();
-						
-						if (sequence_idx != 9) {
-							chThdSleepMilliseconds(15000);
-							memcpy(ccirmessage, &xylos_sequence[sequence_idx][0], 21);
-							// ASCII to frequency LUT index
-							for (c=0; c<20; c++) {
-								if (ccirmessage[c] > '9')
-									ccirmessage[c] -= 0x37;
-								else
-									ccirmessage[c] -= 0x30;
-							}
-							ccirmessage[20] = 0xFF;
-							shared_memory.transmit_done = false;
-							memcpy(shared_memory.xylosdata, ccirmessage, 21);
-							sequence_idx++;
-							txing = true;
-							transmitter_model.enable();
-						} else {
-							button_txtest.set_style(&style());
-							button_txtest.set_text("TEST");
-						}
-					}
-				}
-			);
 			
 			memcpy(ccirmessage, &xylos_sequence[sequence_idx][0], 21);
 			// ASCII to frequency LUT index
@@ -408,14 +449,14 @@ XylosView::XylosView(
 					ccirmessage[c] -= 0x30;
 			}
 			ccirmessage[20] = 0xFF;
-			shared_memory.transmit_done = false;
-			memcpy(shared_memory.xylosdata, ccirmessage, 21);
+			//memcpy(shared_memory.xylosdata, ccirmessage, 21);					TODO !!!
 			
 			sequence_idx++;
-
+			
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 
 			txing = true;
+			testing = true;
 			button_txtest.set_style(&style_cancel);
 			button_txtest.set_text("Wait");
 			transmitter_model.enable();
@@ -433,70 +474,18 @@ XylosView::XylosView(
 				inc_cnt = 0;
 			header_init = header_code_b.value();
 			
-			EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
-			
-			EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-				[this](Message* const p) {
-					uint8_t sr;
-					const auto message = static_cast<const TXDoneMessage*>(p);
-					if (message->n == 25) {
-						audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
-						transmitter_model.disable();
-						progress.set_value(0);
-						
-						if (inc_cnt) {
-							chThdSleepMilliseconds(1000);
-							header_code_b.set_value(header_code_b.value() + 1);
-							
-							upd_message();
-							start_tx();
-							
-							inc_cnt--;
-						} else {
-							header_code_b.set_value(header_init);
-							if (checkbox_cligno.value() == false) {
-								txing = false;
-								button_transmit.set_style(&style_val);
-								button_transmit.set_text("START");
-							} else {
-								if (checkbox_hinc.value())
-									inc_cnt = 3;
-								else
-									inc_cnt = 0;
-								
-								chThdSleepMilliseconds(tempo_cligno.value() * 1000);
-								
-								// Invert relay states
-								sr = options_ra.selected_index();
-								if (sr > 0) options_ra.set_selected_index(sr ^ 3);
-								sr = options_rb.selected_index();
-								if (sr > 0) options_rb.set_selected_index(sr ^ 3);
-								sr = options_rc.selected_index();
-								if (sr > 0) options_rc.set_selected_index(sr ^ 3);
-								sr = options_rd.selected_index();
-								if (sr > 0) options_rd.set_selected_index(sr ^ 3);
-								
-								upd_message();
-								start_tx();
-							}
-						}
-					} else {
-						progress.set_value((message->n + 1) * 5);
-					}
-				}
-			);
-			
-			shared_memory.transmit_done = false;
-			memcpy(shared_memory.xylosdata, ccirmessage, 21);
+			//shared_memory.transmit_done = false;
+			//memcpy(shared_memory.xylosdata, ccirmessage, 21);
 
 			transmitter_model.set_tuning_frequency(xylos_freqs[options_freq.selected_index()]);
 			
 			audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 
 			txing = true;
+			testing = false;
 			button_transmit.set_style(&style_cancel);
 			button_transmit.set_text("Wait");
-			transmitter_model.enable();
+			start_tx();
 		}
 	};
 }

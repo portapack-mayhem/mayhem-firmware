@@ -30,7 +30,6 @@
 #include "rf_path.hpp"
 #include "max2837.hpp"
 #include "volume.hpp"
-#include "transmitter_model.hpp"
 
 namespace ui {
 
@@ -41,9 +40,12 @@ public:
 	
 	void updfreq(uint8_t id, rf::Frequency f);
 	void focus() override;
-	void paint(Painter& painter) override;
+	
+	std::string title() const override { return "Jammer"; };
 
 private:
+	void on_retune(const int64_t freq);
+	
 	rf::Frequency range1_min;
 	rf::Frequency range1_max;
 	rf::Frequency range2_min;
@@ -253,6 +255,14 @@ private:
 		{ 21 * 8, 16 * 16, 64, 32 },
 		"Exit"
 	};
+	
+	MessageHandlerRegistration message_handler_retune {
+		Message::ID::Retune,
+		[this](Message* const p) {
+			const auto message = static_cast<const RetuneMessage*>(p);
+			this->on_retune(message->freq);
+		}
+};
 };
 
 } /* namespace ui */

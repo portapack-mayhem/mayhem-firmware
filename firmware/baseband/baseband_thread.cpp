@@ -24,21 +24,12 @@
 #include "dsp_types.hpp"
 
 #include "baseband.hpp"
-#include "baseband_stats_collector.hpp"
 #include "baseband_sgpio.hpp"
 #include "baseband_dma.hpp"
 
 #include "rssi.hpp"
 #include "i2s.hpp"
-
-/*#include "proc_am_audio.hpp"
-#include "proc_nfm_audio.hpp"
-#include "proc_wfm_audio.hpp"
-#include "proc_ais.hpp"
-#include "proc_wideband_spectrum.hpp"
-#include "proc_tpms.hpp"
-#include "proc_ert.hpp"
-#include "proc_capture.hpp"*/
+using namespace lpc43xx;
 
 #include "portapack_shared_memory.hpp"
 
@@ -53,10 +44,12 @@ Thread* BasebandThread::thread = nullptr;
 BasebandThread::BasebandThread(
 	uint32_t sampling_rate,
 	BasebandProcessor* const baseband_processor,
-	const tprio_t priority
+	const tprio_t priority,
+	const baseband::Direction dir
 ) : baseband_processor { baseband_processor },
 	sampling_rate { sampling_rate }
 {
+	direction = dir;
 	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		priority, ThreadBase::fn,
 		this
@@ -76,24 +69,40 @@ void BasebandThread::run() {
 	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
-		direction()
+		direction
 	);
 	//baseband::dma::allocate(4, 2048);
 
-	baseband_sgpio.configure(direction());
-	baseband::dma::enable(direction());
+	baseband_sgpio.configure(direction);
+	baseband::dma::enable(direction);
 	baseband_sgpio.streaming_enable();
+	
+	if (direction == baseband::Direction::Transmit) {
+		while( !chThdShouldTerminate() ) {
+			// TODO: Place correct sampling rate into buffer returned here:
+			const baseband::buffer_t buffer_tmp = baseband::dma::wait_for_tx_buffer();
+			if( buffer_tmp ) {
+				buffer_c8_t buffer {
+					buffer_tmp.p, buffer_tmp.count, sampling_rate
+				};
 
-	while( !chThdShouldTerminate() ) {
-		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
-		if( buffer_tmp ) {
-			buffer_c8_t buffer {
-				buffer_tmp.p, buffer_tmp.count, sampling_rate
-			};
+				if( baseband_processor ) {
+					baseband_processor->execute(buffer);
+				}
+			}
+		}
+	} else {
+		while( !chThdShouldTerminate() ) {
+			// TODO: Place correct sampling rate into buffer returned here:
+			const baseband::buffer_t buffer_tmp = baseband::dma::wait_for_rx_buffer();
+			if( buffer_tmp ) {
+				buffer_c8_t buffer {
+					buffer_tmp.p, buffer_tmp.count, sampling_rate
+				};
 
-			if( baseband_processor ) {
-				baseband_processor->execute(buffer);
+				if( baseband_processor ) {
+					baseband_processor->execute(buffer);
+				}
 			}
 		}
 	}
@@ -102,38 +111,3 @@ void BasebandThread::run() {
 	baseband::dma::disable();
 	baseband_sgpio.streaming_disable();
 }
-/*
-BasebandProcessor* BasebandThread::create_processor(const int32_t mode) {
-	switch(mode) {
-	case 0:		return new NarrowbandAMAudio();
-	case 1:		return new NarrowbandFMAudio();
-	case 2:		return new WidebandFMAudio();
-	case 3:		return new AISProcessor();
-	case 4:		return new WidebandSpectrum();
-	case 5:		return new TPMSProcessor();
-	case 6:		return new ERTProcessor();
-	case 7:		return new CaptureProcessor();
-	default:	return nullptr;
-	}
-}
-
-void BasebandThread::disable() {
-	if( baseband_processor ) {
-		i2s::i2s0::tx_mute();
-		baseband::dma::disable();
-		baseband_sgpio.streaming_disable();
-		rf::rssi::stop();
-	}
-}
-
-void BasebandThread::enable() {
-	if( baseband_processor ) {
-		if( direction() == baseband::Direction::Receive ) {
-			rf::rssi::start();
-		}
-		baseband_sgpio.configure(direction());
-		baseband::dma::enable(direction());
-		baseband_sgpio.streaming_enable();
-	}
-}
-*/

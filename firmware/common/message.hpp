@@ -67,7 +67,7 @@ public:
 
 		TXDone = 20,
 		Retune = 21,
-		ReadyForSwitch = 22,
+		XylosConfigure = 22,
 		AFSKData = 23,
 		ModuleID = 24,
 		FIFOSignal = 25,
@@ -490,12 +490,16 @@ public:
 	char md5_signature[16];
 };
 
-class ReadyForSwitchMessage : public Message {
+class XylosConfigureMessage : public Message {
 public:
-	ReadyForSwitchMessage(
-	) : Message { ID::ReadyForSwitch }
+	XylosConfigureMessage(
+		const char data[]
+	) : Message { ID::XylosConfigure }
 	{
+		memcpy(ccir_message, data, 21);
 	}
+
+	char ccir_message[21];
 };
 
 class RetuneMessage : public Message {

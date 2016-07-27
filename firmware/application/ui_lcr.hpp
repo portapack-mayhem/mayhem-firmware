@@ -73,6 +73,18 @@ private:
 	
 	void make_frame();
 	void start_tx();
+	void on_txdone(int n);
+	
+	radio::Configuration lcr_radio_config = {
+		0,
+		2280000,	// ?
+		2500000,	// ?
+		rf::Direction::Transmit,
+		true,
+		0,
+		0,
+		1,
+	};
 	
 	// 2: 94 ?
 	// 9: 85 ?
@@ -113,12 +125,12 @@ private:
 	};
 	
 	OptionsField options_ec {
-		{ 20 * 8, 1 * 16 },
-		4,
+		{ 19 * 8, 6 },
+		7,
 		{
-			{ "Auto", 0 },
-			{ "Jour", 1 },
-			{ "Nuit", 2 }
+			{ "EC:Auto", 0 },
+			{ "EC:Jour", 1 },
+			{ "EC:Nuit", 2 }
 		}
 	};
 
@@ -205,6 +217,14 @@ private:
 	Button button_clear {
 		{ 160, 270, 64, 32 },
 		"CLEAR"
+	};
+	
+	MessageHandlerRegistration message_handler_tx_done {
+		Message::ID::TXDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
+			this->on_txdone(message.n);
+		}
 	};
 };
 

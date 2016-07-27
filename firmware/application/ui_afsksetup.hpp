@@ -30,7 +30,6 @@
 #include "rf_path.hpp"
 #include "max2837.hpp"
 #include "volume.hpp"
-#include "transmitter_model.hpp"
 
 namespace ui {
 

@@ -27,6 +27,7 @@
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
+#include "baseband_api.hpp"
 
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -42,7 +43,8 @@ void RDSView::focus() {
 }
 
 RDSView::~RDSView() {
-	transmitter_model.disable();
+	radio::disable();
+	baseband::shutdown();
 }
 
 std::string to_string_bin(const uint32_t n, const uint8_t l) {
@@ -213,15 +215,8 @@ void RDSView::paint(Painter& painter) {
 	text_radiotextb.set(&RadioText[16]);
 }
 
-RDSView::RDSView(
-	NavigationView& nav
-)
-{
-	transmitter_model.set_baseband_configuration({
-		.mode = 5,
-		.sampling_rate = 2280000,
-		.decimation_factor = 1,
-	});
+RDSView::RDSView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_rds);
 	
 	strcpy(PSN, "TEST1234");
 	strcpy(RadioText, "Radiotext test !");
@@ -242,10 +237,10 @@ RDSView::RDSView(
 		&button_exit
 	} });
 	
-	field_frequency.set_value(transmitter_model.tuning_frequency());
+	rds_radio_config.tuning_frequency = tuning_frequency;
 	field_frequency.set_step(100000);
 	field_frequency.on_edit = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(tuning_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
 			this->field_frequency.set_value(f);
 		};
@@ -260,16 +255,16 @@ RDSView::RDSView(
 	};
 	button_txpsn.on_select = [this](Button&){
 		if (txing) {
-			transmitter_model.disable();
+			radio::disable();
 			button_txpsn.set_text("PSN");
 			button_txradiotext.set_text("Radiotext");
 			txing = false;
 		} else {
 			gen_PSN(PSN);
-			transmitter_model.set_tuning_frequency(field_frequency.value());
+			rds_radio_config.tuning_frequency = tuning_frequency;
 			button_txpsn.set_text("STOP");
 			txing = true;
-			transmitter_model.enable();
+			radio::disable();
 		}
 	};
 	
@@ -278,16 +273,16 @@ RDSView::RDSView(
 	};
 	button_txradiotext.on_select = [this](Button&){
 		if (txing) {
-			transmitter_model.disable();
+			radio::disable();
 			button_txpsn.set_text("PSN");
 			button_txradiotext.set_text("Radiotext");
 			txing = false;
 		} else {
 			gen_RadioText(RadioText);
-			transmitter_model.set_tuning_frequency(field_frequency.value());
+			rds_radio_config.tuning_frequency = tuning_frequency;
 			button_txradiotext.set_text("STOP");
 			txing = true;
-			transmitter_model.enable();
+			radio::enable(rds_radio_config);
 		}
 	};
 

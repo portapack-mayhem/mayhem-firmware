@@ -52,10 +52,11 @@ struct WFMConfig {
 	void apply() const;
 };
 
+void set_xylos_data(const char ccir_message[]);
+
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();
 
-void spectrum_streaming_start(size_t decimation_factor);
 void spectrum_streaming_start();
 void spectrum_streaming_stop();
 

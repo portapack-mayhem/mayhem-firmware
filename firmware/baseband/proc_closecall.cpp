@@ -65,3 +65,9 @@ void CloseCallProcessor::on_message(const Message* const message) {
 		break;
 	}
 }
+
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<CloseCallProcessor>() };
+	event_dispatcher.run();
+	return 0;
+}

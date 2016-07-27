@@ -49,7 +49,6 @@ public:
 	void loadmodule();
 	
 	void on_show() override;
-	void on_hide() override;
 	void focus() override;
 
 private:

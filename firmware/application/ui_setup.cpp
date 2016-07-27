@@ -27,8 +27,11 @@ using namespace lpc43xx;
 
 #include "portapack.hpp"
 using portapack::receiver_model;
+using namespace portapack;
 
-#include "cpld_update.hpp"
+#include "string_format.hpp"
+#include "portapack_persistent_memory.hpp"
+#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
@@ -167,28 +170,6 @@ AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
 
 void AntennaBiasSetupView::focus() {
 	button_done.focus();
-}
-
-AboutView::AboutView(NavigationView& nav) {
-	add_children({ {
-		&text_title,
-		&text_firmware,
-		&text_cpld_hackrf,
-		&text_cpld_hackrf_status,
-		&button_ok,
-	} });
-
-	button_ok.on_select = [&nav](Button&){ nav.pop(); };
-
-	if( cpld_hackrf_verify_eeprom() ) {
-		text_cpld_hackrf_status.set(" OK");
-	} else {
-		text_cpld_hackrf_status.set("BAD");
-	}
-}
-
-void AboutView::focus() {
-	button_ok.focus();
 }
 
 void SetTouchCalibView::focus() {
@@ -464,7 +445,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
-		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<SetTouchCalibView>(); } },
+		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } }
 	} });
 	on_left = [&nav](){ nav.pop(); };

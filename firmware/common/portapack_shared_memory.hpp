@@ -60,11 +60,8 @@ struct SharedMemory {
 	
 	JammerRange jammer_ranges[16];
 	
-	char xylosdata[21];
 	char epardata[13];
 	int32_t excursion;
-	
-	bool transmit_done;
 };
 
 extern SharedMemory& shared_memory;

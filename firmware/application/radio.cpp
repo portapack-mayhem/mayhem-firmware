@@ -106,7 +106,7 @@ void set_direction(const rf::Direction new_direction) {
 	/* TODO: Refactor all the various "Direction" enumerations into one. */
 	/* TODO: Only make changes if direction changes, but beware of clock enabling. */
 	direction = new_direction;
-
+	
 	second_if.set_mode((direction == rf::Direction::Transmit) ? max2837::Mode::Transmit : max2837::Mode::Receive);
 	rf_path.set_direction(direction);
 

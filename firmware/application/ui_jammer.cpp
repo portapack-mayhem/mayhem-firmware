@@ -24,7 +24,7 @@
 
 #include "ch.h"
 #include "evtimer.h"
-
+#include "baseband_api.hpp"
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
@@ -48,11 +48,8 @@ void JammerView::focus() {
 }
 
 JammerView::~JammerView() {
-	transmitter_model.disable();
-}
-
-void JammerView::paint(Painter& painter) {
-	(void)painter;
+	radio::disable();
+	baseband::shutdown();
 }
 
 void JammerView::updfreq(uint8_t id, rf::Frequency f) {
@@ -147,10 +144,14 @@ void JammerView::updfreq(uint8_t id, rf::Frequency f) {
 	}
 }
 
-JammerView::JammerView(
-	NavigationView& nav
-)
-{
+void JammerView::on_retune(const int64_t freq) {
+	if (freq > 0) {
+		radio::set_tuning_frequency(freq);
+	}
+}
+	
+JammerView::JammerView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_jammer);
 	
 	static constexpr Style style_val {
 		.font = font::fixed_8x16,
@@ -169,12 +170,6 @@ JammerView::JammerView(
 		.background = Color::black(),
 		.foreground = Color::grey(),
 	};
-	
-	transmitter_model.set_baseband_configuration({
-		.mode = 6,
-		.sampling_rate = 1536000,	// ?
-		.decimation_factor = 1,
-	});
 	
 	add_children({ {
 		&text_type,
@@ -237,16 +232,6 @@ JammerView::JammerView(
 	button_transmit.on_select = [this](Button&) {
 		uint8_t i = 0;
 		rf::Frequency t, range_lower;
-		EventDispatcher::message_map().unregister_handler(Message::ID::Retune);
-		
-		EventDispatcher::message_map().register_handler(Message::ID::Retune,
-			[this](Message* const p) {
-				const auto message = static_cast<const RetuneMessage*>(p);
-				if (message->freq > 0) {
-					transmitter_model.set_tuning_frequency(message->freq);
-				}
-			}
-		);
 		
 		for (i = 0; i < 16; i++) {
 			shared_memory.jammer_ranges[i].active = false;
@@ -327,18 +312,16 @@ JammerView::JammerView(
 			}
 //		}
 		
-		transmitter_model.set_tuning_frequency(shared_memory.jammer_ranges[0].center);
-		
 		if (jamming == true) {
 			jamming = false;
 			button_transmit.set_style(&style_val);
 			button_transmit.set_text("START");
-			transmitter_model.disable();
+			radio::disable();
 		} else {
 			jamming = true;
 			button_transmit.set_style(&style_cancel);
 			button_transmit.set_text("STOP");
-			transmitter_model.enable();
+			radio::disable();
 		}
 	};
 
@@ -346,6 +329,16 @@ JammerView::JammerView(
 		nav.pop();
 	};
 	
+	radio::enable({
+		shared_memory.jammer_ranges[0].center,
+		1536000,	// ?
+		2500000,	// ?
+		rf::Direction::Transmit,
+		true,
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
+		1,
+	});
 }
 
 } /* namespace ui */

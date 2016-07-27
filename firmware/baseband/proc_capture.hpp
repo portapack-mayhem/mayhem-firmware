@@ -48,7 +48,7 @@ private:
 	static constexpr size_t baseband_fs = 4000000;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	std::array<complex16_t, 512> dst;

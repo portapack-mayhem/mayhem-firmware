@@ -46,7 +46,7 @@ private:
 	static constexpr size_t decim_2_decimation_factor = 4;
 	static constexpr size_t channel_filter_decimation_factor = 1;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	std::array<complex16_t, 512> dst;

@@ -22,6 +22,7 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "sd_card.hpp"
 #include "time.hpp"

@@ -159,7 +159,7 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	uint8_t threshold;
 	size_t i, m;
 	
-	baseband::spectrum_streaming_stop;
+	baseband::spectrum_streaming_stop();
 	
 	// Spectrum line (for debug)
 	std::array<Color, 240> pixel_row;
@@ -228,35 +228,15 @@ void CloseCallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		do_detection();
 	}
 	
-	baseband::spectrum_streaming_start(1);
+	baseband::spectrum_streaming_start();
 }
 
 void CloseCallView::on_show() {
-	EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrumConfig,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-			this->fifo = message.fifo;
-		}
-	);
-	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			if( this->fifo ) {
-				ChannelSpectrum channel_spectrum;
-				while( fifo->out(channel_spectrum) ) {
-					this->on_channel_spectrum(channel_spectrum);
-				}
-			}
-		}
-	);
-
-	baseband::spectrum_streaming_start(1);
+	baseband::spectrum_streaming_start();
 }
 
 void CloseCallView::on_hide() {
 	baseband::spectrum_streaming_stop();
-
-	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrumConfig);
 }
 
 void CloseCallView::on_range_changed() {
@@ -455,7 +435,7 @@ CloseCallView::CloseCallView(
 		.decimation_factor = 1,
 	});
 	receiver_model.set_baseband_bandwidth(CC_SLICE_WIDTH);
-	receiver_model.enable();
+	//receiver_model.enable();
 }
 
 } /* namespace ui */

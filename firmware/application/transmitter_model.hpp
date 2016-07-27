@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "clock_manager.hpp"
+#include "receiver_model.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max2837.hpp"

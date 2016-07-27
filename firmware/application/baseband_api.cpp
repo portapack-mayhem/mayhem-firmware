@@ -78,6 +78,13 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
+void set_xylos_data(const char ccir_message[]) {
+	const XylosConfigureMessage message {
+		ccir_message
+	};
+	send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {
@@ -106,15 +113,6 @@ void shutdown() {
 	shared_memory.application_queue.reset();
 	
 	baseband_image_running = false;
-}
-
-void spectrum_streaming_start(size_t decimation_factor) {
-	shared_memory.baseband_queue.push_and_wait(
-		SpectrumStreamingConfigMessage {
-			SpectrumStreamingConfigMessage::Mode::Running,
-			decimation_factor
-		}
-	);
 }
 
 void spectrum_streaming_start() {

@@ -141,6 +141,7 @@ set(CPPSRC
 	${COMMON}/ui_widget.cpp
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_focus.cpp
+	${COMMON}/msgpack.cpp
 	ui_navigation.cpp
 	ui_menu.cpp
 	ui_rssi.cpp
@@ -155,9 +156,23 @@ set(CPPSRC
 	ui_console.cpp
 	ui_receiver.cpp
 	ui_record_view.cpp
+	ui_textentry.cpp
+	ui_alphanum.cpp
 	ui_spectrum.cpp
+	ui_about.cpp
+	ui_jammer.cpp
+	ui_handwrite.cpp
+	ui_afsksetup.cpp
+	ui_closecall.cpp
+	ui_soundboard.cpp
+	ui_rds.cpp
+	ui_lcr.cpp
+	ui_xylos.cpp
+	ui_freqman.cpp
+	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp
+	transmitter_model.cpp
 	spectrum_color_lut.cpp
 	analog_audio_app.cpp
 	${COMMON}/ais_baseband.cpp

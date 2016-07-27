@@ -50,7 +50,7 @@ public:
 private:
 	static constexpr size_t baseband_fs = 2457600;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {

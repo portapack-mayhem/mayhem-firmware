@@ -24,15 +24,11 @@
 
 #include <cstddef>
 
-#include "ff.h"
 #include "memory_map.hpp"
 #include "spi_image.hpp"
-#include "ui_navigation.hpp"
 
 void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to);
 void m4_request_shutdown();
-void m4_switch(const char * hash);
-int m4_load_image(void);
 
 void m0_halt();
 

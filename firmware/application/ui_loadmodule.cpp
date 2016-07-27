@@ -54,11 +54,6 @@ void LoadModuleView::focus() {
 	button_ok.focus();
 }
 
-void LoadModuleView::on_hide() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::ReadyForSwitch);
-	EventDispatcher::message_map().unregister_handler(Message::ID::ModuleID);
-}
-
 void LoadModuleView::on_show() {
 	char md5_signature[16];
 	uint8_t c;
@@ -129,9 +124,7 @@ int LoadModuleView::load_image() {
 }
 
 void LoadModuleView::loadmodule() {
-	//message_map.unregister_handler(Message::ID::ReadyForSwitch);
-	
-	m4_switch(_hash);
+	//baseband::shutdown();
 	
 	/*EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {

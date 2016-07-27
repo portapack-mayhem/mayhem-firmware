@@ -47,7 +47,6 @@ void SpectrumCollector::on_message(const Message* const message) {
 }
 
 void SpectrumCollector::set_state(const SpectrumStreamingConfigMessage& message) {
-	set_decimation_factor(message.decimation_factor);
 	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
 		start();
 	} else {

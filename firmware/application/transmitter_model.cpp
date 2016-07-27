@@ -78,6 +78,11 @@ uint32_t TransmitterModel::sampling_rate() const {
 	return baseband_configuration.sampling_rate;
 }
 
+uint32_t TransmitterModel::baseband_oversampling() const {
+	// TODO: Rename decimation_factor.
+	return baseband_configuration.decimation_factor;
+}
+
 void TransmitterModel::enable() {
 	enabled_ = true;
 	radio::set_direction(rf::Direction::Transmit);
@@ -91,20 +96,14 @@ void TransmitterModel::enable() {
 
 void TransmitterModel::disable() {
 	enabled_ = false;
-	baseband::stop();
 
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
 }
 
-uint32_t TransmitterModel::baseband_oversampling() const {
-	// TODO: Rename decimation_factor.
-	return baseband_configuration.decimation_factor;
-}
-
 void TransmitterModel::update_tuning_frequency() {
-	radio::set_tuning_frequency(tuning_frequency());
+	radio::set_tuning_frequency(persistent_memory::tuned_frequency());
 }
 
 void TransmitterModel::update_rf_amp() {
@@ -123,10 +122,6 @@ void TransmitterModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-uint32_t TransmitterModel::modulation() const {
-	return baseband_configuration.mode;
-}
-
 void TransmitterModel::set_baseband_configuration(const BasebandConfiguration config) {
 	baseband_configuration = config;
 	update_baseband_configuration();
@@ -138,11 +133,7 @@ void TransmitterModel::update_baseband_configuration() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	baseband::stop();
-
 	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
 	update_tuning_frequency();
 	radio::set_baseband_decimation_by(baseband_oversampling());
-
-	baseband::start(baseband_configuration);
 }

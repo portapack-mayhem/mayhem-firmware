@@ -166,6 +166,25 @@ private:
 		{ 92, 264, 56, 32 },
 		"Exit"
 	};
+	
+	MessageHandlerRegistration message_handler_spectrum_config {
+		Message::ID::ChannelSpectrumConfig,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+			this->fifo = message.fifo;
+		}
+	};
+	MessageHandlerRegistration message_handler_frame_sync {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			if( this->fifo ) {
+				ChannelSpectrum channel_spectrum;
+				while( fifo->out(channel_spectrum) ) {
+					this->on_channel_spectrum(channel_spectrum);
+				}
+			}
+		}
+	};
 };
 
 } /* namespace ui */

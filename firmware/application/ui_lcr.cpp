@@ -28,6 +28,7 @@
 #include "ch.h"
 
 #include "ff.h"
+#include "baseband_api.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -51,7 +52,7 @@ void LCRView::focus() {
 }
 
 LCRView::~LCRView() {
-	transmitter_model.disable();
+	radio::disable();
 }
 
 void LCRView::make_frame() {
@@ -216,6 +217,69 @@ void LCRView::paint(Painter& painter) {
 	text_recap.set(finalstr);
 }
 
+void LCRView::on_txdone(int n) {
+	char str[16];
+	
+	if (abort_scan) {
+		text_status.set("            ");
+		strcpy(str, "Abort @");
+		strcat(str, rgsb);
+		text_status.set(str);
+		progress.set_value(0);
+		radio::disable();
+		txing = false;
+		scanning = false;
+		abort_scan = false;
+		button_scan.set_style(&style_val);
+		button_scan.set_text("SCAN");
+		return;
+	}
+	
+	if (n > 0) {
+		if (scanning) {
+			scan_progress += 0.555f;
+			progress.set_value(scan_progress);
+		} else {
+			text_status.set("            ");
+			strcpy(str, to_string_dec_int(6 - n).c_str());
+			strcat(str, "/5");
+			text_status.set(str);
+			progress.set_value((6 - n) * 20);
+		}
+	} else {
+		if (scanning && (scan_index < 36)) {
+			radio::disable();
+			
+			// Next address
+			strcpy(rgsb, RGSB_list[scan_index]);
+			make_frame();
+			
+			memset(shared_memory.radio_data, 0, 256);
+			memcpy(shared_memory.radio_data, lcrframe_f, 256);
+			shared_memory.afsk_transmit_done = false;
+			shared_memory.afsk_repeat = 5;
+			
+			text_status.set("            ");
+			strcpy(str, to_string_dec_int(scan_index).c_str());
+			strcat(str, "/36");
+			text_status.set(str);
+			scan_progress += 0.694f;
+			progress.set_value(scan_progress);
+			
+			scan_index++;
+			radio::disable();
+		} else {
+			text_status.set("Ready       ");
+			progress.set_value(0);
+			radio::disable();
+			txing = false;
+			scanning = false;
+			button_scan.set_style(&style_val);
+			button_scan.set_text("SCAN");
+		}
+	}	
+}
+
 void LCRView::start_tx() {
 	char str[16];
 	
@@ -226,7 +290,7 @@ void LCRView::start_tx() {
 	
 	make_frame();
 	
-	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+	lcr_radio_config.tuning_frequency = portapack::persistent_memory::tuned_frequency();
 		
 	shared_memory.afsk_samples_per_bit = 228000 / portapack::persistent_memory::afsk_bitrate();
 	shared_memory.afsk_phase_inc_mark = portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / 2280;
@@ -244,74 +308,6 @@ void LCRView::start_tx() {
 	
 	shared_memory.afsk_transmit_done = false;
 	shared_memory.afsk_repeat = 5; //(portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
-	
-	EventDispatcher::message_map().unregister_handler(Message::ID::TXDone);
-
-	EventDispatcher::message_map().register_handler(Message::ID::TXDone,
-		[this](Message* const p) {
-			char str[16];
-			
-			if (abort_scan) {
-				text_status.set("            ");
-				strcpy(str, "Abort @");
-				strcat(str, rgsb);
-				text_status.set(str);
-				progress.set_value(0);
-				transmitter_model.disable();
-				txing = false;
-				scanning = false;
-				abort_scan = false;
-				button_scan.set_style(&style_val);
-				button_scan.set_text("SCAN");
-				return;
-			}
-			
-			const auto message = static_cast<const TXDoneMessage*>(p);
-			if (message->n > 0) {
-				if (scanning) {
-					scan_progress += 0.555f;
-					progress.set_value(scan_progress);
-				} else {
-					text_status.set("            ");
-					strcpy(str, to_string_dec_int(6 - message->n).c_str());
-					strcat(str, "/5");
-					text_status.set(str);
-					progress.set_value((6 - message->n) * 20);
-				}
-			} else {
-				if (scanning && (scan_index < 36)) {
-					transmitter_model.disable();
-					
-					// Next address
-					strcpy(rgsb, RGSB_list[scan_index]);
-					make_frame();
-					
-					memset(shared_memory.radio_data, 0, 256);
-					memcpy(shared_memory.radio_data, lcrframe_f, 256);
-					shared_memory.afsk_transmit_done = false;
-					shared_memory.afsk_repeat = 5;
-					
-					text_status.set("            ");
-					strcpy(str, to_string_dec_int(scan_index).c_str());
-					strcat(str, "/36");
-					text_status.set(str);
-					scan_progress += 0.694f;
-					progress.set_value(scan_progress);
-					
-					scan_index++;
-					transmitter_model.enable();
-				} else {
-					text_status.set("Ready       ");
-					progress.set_value(0);
-					transmitter_model.disable();
-					txing = false;
-					scanning = false;
-					button_scan.set_style(&style_val);
-					button_scan.set_text("SCAN");
-				}
-			}
-		}
-	);
 
 	if (scanning) {
 		text_status.set("            ");
@@ -327,18 +323,11 @@ void LCRView::start_tx() {
 	}
 	
 	txing = true;
-	transmitter_model.enable();
+	radio::enable(lcr_radio_config);
 }
 
-LCRView::LCRView(
-	NavigationView& nav
-)
-{
-	transmitter_model.set_baseband_configuration({
-		.mode = 3,
-		.sampling_rate = 2280000,
-		.decimation_factor = 1,
-	});
+LCRView::LCRView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_lcr);
 
 	memset(litteral, 0, 5 * 8);
 	memset(rgsb, 0, 5);

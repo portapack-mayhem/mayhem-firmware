@@ -376,18 +376,7 @@ void HandWriteView::sample_pen() {
 }
 
 void HandWriteView::on_show() {
-	// Use screen refresh rate as sampling frequency
-	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			sample_pen();
-		}
-	);
 	clear_zone(Color::black(), false);
-}
-
-void HandWriteView::on_hide() {
-	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 }
 
 char * HandWriteView::value() {

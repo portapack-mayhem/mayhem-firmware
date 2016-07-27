@@ -31,6 +31,8 @@
 namespace baseband {
 namespace dma {
 
+using Handler = void (*)();
+
 void init();
 void configure(
 	baseband::sample_t* const buffer_base,
@@ -43,6 +45,7 @@ bool is_enabled();
 void disable();
 
 baseband::buffer_t wait_for_rx_buffer();
+baseband::buffer_t wait_for_tx_buffer();
 
 } /* namespace dma */
 } /* namespace baseband */

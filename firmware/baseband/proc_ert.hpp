@@ -62,7 +62,7 @@ private:
 	const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
 	const float clock_recovery_rate = symbol_rate * 2;
 
-	BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20 };
+	BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20, baseband::Direction::Receive };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },

@@ -25,9 +25,11 @@
 #include "demofont.hpp"
 #include "ymdata.hpp"
 
+#include "cpld_update.hpp"
 #include "portapack.hpp"
 #include "audio.hpp"
 #include "event_m0.hpp"
+#include "baseband_api.hpp"
 
 #include "ui_about.hpp"
 #include "touch.hpp"
@@ -46,42 +48,8 @@ using namespace portapack;
 namespace ui {
 	
 void AboutView::on_show() {
-	// Just in case
-	EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
-	
-	// "Vertical blank interrupt"
-	EventDispatcher::message_map().register_handler(Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			update();
-		}
-	);
-	
-	// Just in case
-	EventDispatcher::message_map().unregister_handler(Message::ID::FIFOSignal);
-	
-	// Handle baseband asking to fill up FIFO
-	EventDispatcher::message_map().register_handler(Message::ID::FIFOSignal,
-		[this](Message* const p) {
-			FIFODataMessage datamessage;
-			const auto message = static_cast<const FIFOSignalMessage*>(p);
-			if (message->signaltype == 1) {
-				//debug_cnt++;
-				//if (debug_cnt == 250) for(;;) {}
-				render_audio();
-				datamessage.data = ym_buffer;
-				shared_memory.baseband_queue.push(datamessage);
-			}
-		}
-	);
-
-	transmitter_model.set_tuning_frequency(92200000);	// 92.2MHz, change !
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000,
-		.decimation_factor = 1,
-	});
-	transmitter_model.set_rf_amp(true);
-	transmitter_model.enable();
+	about_radio_config.tuning_frequency = 92200000;		// 92.2MHz, change !
+	radio::enable(about_radio_config);
 	
 	//audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }
@@ -384,21 +352,19 @@ AboutView::AboutView(
 {
 	uint8_t p, c;
 	
-	/*
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000,
-		.decimation_factor = 1,
-	});
-	*/
-	
 	add_children({ {
 		&text_title,
 		&text_firmware,
 		&text_cpld_hackrf,
-		&text_cpld_portapack,
+		&text_cpld_hackrf_status,
 		&button_ok,
 	} });
+	
+	if( cpld_hackrf_verify_eeprom() ) {
+		text_cpld_hackrf_status.set(" OK");
+	} else {
+		text_cpld_hackrf_status.set("BAD");
+	}
 	
 	// Politely ask for about 26kB
 	framebuffer = (ui::Color *)chHeapAlloc(0x0, 180 * 72 * sizeof(ui::Color));
@@ -422,14 +388,13 @@ AboutView::AboutView(
 	ym_init();
 
 	button_ok.on_select = [this,&nav](Button&){
-		EventDispatcher::message_map().unregister_handler(Message::ID::DisplayFrameSync);
 		if (framebuffer) chHeapFree(framebuffer);	// Do NOT forget this
 		nav.pop();
 	};
 }
 
 AboutView::~AboutView() {
-	transmitter_model.disable();
+	radio::disable();
 }
 
 void AboutView::focus() {

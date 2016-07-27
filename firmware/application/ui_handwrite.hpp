@@ -41,7 +41,6 @@ public:
 
 	void paint(Painter& painter) override;
 	void on_show() override;
-	void on_hide() override;
 	bool on_touch(const TouchEvent event) override;
 	
 	char * value();
@@ -89,6 +88,13 @@ private:
 	void on_button(Button& button);
 
 	void update_text();
+	
+	MessageHandlerRegistration message_handler_sample {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			this->sample_pen();
+		}
+	};
 };
 
 } /* namespace ui */

@@ -54,7 +54,6 @@ void AFSKSetupView::updfreq(rf::Frequency f) {
 	char finalstr[9] = {0};
 	
 	portapack::persistent_memory::set_tuned_frequency(f);
-	transmitter_model.set_tuning_frequency(f);
 	
 	auto mhz = to_string_dec_int(f / 1000000, 3);
 	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
@@ -106,7 +105,7 @@ AFSKSetupView::AFSKSetupView(
 	field_repeat.set_value(rpt);
 	
 	button_setfreq.on_select = [this,&nav](Button&){
-		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::tuned_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			updfreq(f);
 		};

@@ -326,6 +326,55 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+### Jammer
+
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
+
+### Audio transmit
+
+set(MODE_CPPSRC
+	proc_audiotx.cpp
+)
+DeclareTargets(PATX audio_tx)
+
+### FSK LCR
+
+set(MODE_CPPSRC
+	proc_fsk_lcr.cpp
+)
+DeclareTargets(PLCR lcr)
+
+### Epar
+
+set(MODE_CPPSRC
+	proc_epar.cpp
+)
+DeclareTargets(PEPR epar)
+
+### Play audio
+
+set(MODE_CPPSRC
+	proc_playaudio.cpp
+)
+DeclareTargets(PPAU play_audio)
+
+### Xylos
+
+set(MODE_CPPSRC
+	proc_xylos.cpp
+)
+DeclareTargets(PXYL xylos)
+
+### RDS
+
+set(MODE_CPPSRC
+	proc_rds.cpp
+)
+DeclareTargets(PRDS rds)
+
 ### HackRF "factory" firmware
 
 add_custom_command(

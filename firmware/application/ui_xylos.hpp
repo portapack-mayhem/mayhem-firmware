@@ -148,12 +148,12 @@ public:
 	std::string title() const override { return "Xylos transmit"; };
 	
 	void focus() override;
-	void paint(Painter& painter) override;
 
 private:
 	int inc_cnt;
 	int header_init;
 	bool txing = false;
+	bool testing = false;
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 	char ccirmessage[21];
 	
@@ -173,6 +173,7 @@ private:
 	
 	void start_tx();
 	void upd_message();
+	void on_txdone(const int n);
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
@@ -362,6 +363,14 @@ private:
 	Button button_txtest {
 		{ 20 * 8, 16 * 16, 64, 32 },
 		"TEST"
+	};
+	
+	MessageHandlerRegistration message_handler_tx_done {
+		Message::ID::TXDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
+			this->on_txdone(message.n);
+		}
 	};
 };
 

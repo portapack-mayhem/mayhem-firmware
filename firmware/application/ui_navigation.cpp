@@ -20,7 +20,7 @@
  */
 
 #include "ui_navigation.hpp"
-#include "ui_loadmodule.hpp"
+//#include "ui_loadmodule.hpp"
 
 #include "modules.h"
 
@@ -37,6 +37,16 @@
 #include "ui_soundboard.hpp"		// DEBUG
 #include "ui_closecall.hpp"			// DEBUG
 #include "ui_freqman.hpp"			// DEBUG
+
+#include "ui_setup.hpp"
+#include "ui_debug.hpp"
+#include "ui_rds.hpp"
+#include "ui_xylos.hpp"
+#include "ui_epar.hpp"
+#include "ui_lcr.hpp"
+#include "analog_audio_app.hpp"
+#include "ui_audiotx.hpp"
+#include "ui_jammer.hpp"
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -230,16 +240,16 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<12>({ {
 		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
-		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, Receiver); } },
-		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<LoadModuleView>(md5_baseband, CloseCall); } },
-		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Jammer); } },
+		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
+		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
 		//{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
 		{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
-		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, Xylos); } },
-		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, LCR); } },
-		{ "RDS                       TX",	ui::Color::yellow(),	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, RDS); } },
+		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
+		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LCRView>(); } },
+		{ "RDS                       TX",	ui::Color::yellow(),	[&nav](){ nav.push<RDSView>(); } },
 		//{ "Capture", 		ui::Color::white(), 	[&nav](){ nav.push<NotImplementedView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 			ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },

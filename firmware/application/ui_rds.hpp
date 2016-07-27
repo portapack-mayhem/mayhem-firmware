@@ -54,6 +54,7 @@ private:
 	char PSN[9];
 	char RadioText[25];
 	bool txing = false;
+	int64_t tuning_frequency = 92200000;	// TODO: CHANGE !
 	
 	uint8_t b2b(const bool in);
 	
@@ -64,6 +65,17 @@ private:
 						const bool MS, const bool DI, const uint8_t C, const char * chars);
 	void make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
 							const bool segment, const char * chars);
+	
+	radio::Configuration rds_radio_config = {
+		0,
+		2280000,	// ?
+		2500000,	// ?
+		rf::Direction::Transmit,
+		true,
+		0,
+		0,
+		1,
+	};
 
 	FrequencyField field_frequency {
 		{ 1 * 8, 1 * 16 },

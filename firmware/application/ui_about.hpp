@@ -48,6 +48,17 @@ private:
 	void draw_demoglyph(ui::Point p, char ch, ui::Color * pal);
 	uint16_t debug_cnt = 0;
 	
+	radio::Configuration about_radio_config = {
+		0,
+		1536000,	// ?
+		2500000,	// ?
+		rf::Direction::Transmit,
+		true,
+		0,
+		0,
+		1,
+	};
+	
 	typedef struct ymreg_t {
 		uint8_t value;
 		uint8_t cnt;
@@ -127,24 +138,47 @@ private:
 	};
 
 	Text text_firmware {
-		{ 0, 224, 240, 16 },
-		"Git Commit hash        " GIT_REVISION,
+		{ 0, 128, 240, 16 },
+		"Git Commit Hash        " GIT_REVISION,
 	};
 
 	Text text_cpld_hackrf {
-		{ 0, 240, 240, 16 },
-		"HackRF CPLD CRC     0x????????",
+		{ 0, 144, 11*8, 16 },
+		"HackRF CPLD",
 	};
 
-	Text text_cpld_portapack {
-		{ 0, 256, 240, 16 },
-		"PortaPack CPLD CRC  0x????????",
+	Text text_cpld_hackrf_status {
+		{ 240 - 3*8, 144, 3*8, 16 },
+		"???"
 	};
 
 	Button button_ok {
 		{ 72, 272, 96, 24 },
 		"OK"
 	};
+	
+	MessageHandlerRegistration message_handler_update {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			this->update();
+		}
+	};
+	
+	MessageHandlerRegistration message_handler_fifo_signal {
+		Message::ID::FIFOSignal,
+		[this](const Message* const p) {
+			FIFODataMessage datamessage;
+			const auto message = static_cast<const FIFOSignalMessage*>(p);
+			if (message->signaltype == 1) {
+				//debug_cnt++;
+				//if (debug_cnt == 250) for(;;) {}
+				this->render_audio();
+				datamessage.data = ym_buffer;
+				EventDispatcher::send_message(datamessage);
+			}
+		}
+	};
+	
 };
 
 } /* namespace ui */
