@@ -145,9 +145,10 @@ class XylosView : public View {
 public:
 	XylosView(NavigationView& nav);
 	~XylosView();
-	std::string title() const override { return "Xylos transmit"; };
 	
 	void focus() override;
+	
+	std::string title() const override { return "Xylos transmit"; };
 
 private:
 	enum tx_modes {
@@ -158,7 +159,9 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
+	
 	const rf::Frequency xylos_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
+	
 	char ccir_message[21];
 	
 	const char ccir_base[21] = "0000000000B0000B0000";
@@ -175,7 +178,7 @@ private:
 		"0E03181AEAB10E0B0E0E"
 	};
 	
-	int sequence_idx;
+	unsigned int sequence_idx;
 	
 	void ascii_to_ccir(char *ascii);
 	void start_tx();
@@ -267,7 +270,7 @@ private:
 		2,
 		{ 0, 99 },
 		1,
-		' '
+		'0'
 	};
 	Checkbox checkbox_wcid {
 		{ 20 * 8, 6 * 16 },

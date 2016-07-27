@@ -68,7 +68,7 @@ public:
 		TXDone = 20,
 		Retune = 21,
 		XylosConfigure = 22,
-		AFSKData = 23,
+		AFSKConfigure = 23,
 		ModuleID = 24,
 		FIFOSignal = 25,
 		FIFOData = 26,
@@ -512,14 +512,34 @@ public:
 	int64_t freq = 0;
 };
 
-class AFSKDataMessage : public Message {
+class AFSKConfigureMessage : public Message {
 public:
-	constexpr AFSKDataMessage(
-	) : Message { ID::AFSKData }
+	AFSKConfigureMessage(
+		const char data[],
+		const uint32_t afsk_samples_per_bit,
+		const uint32_t afsk_phase_inc_mark,
+		const uint32_t afsk_phase_inc_space,
+		const uint8_t afsk_repeat,
+		const uint32_t afsk_bw,
+		const bool afsk_alt_format
+	) : Message { ID::AFSKConfigure },
+		afsk_samples_per_bit(afsk_samples_per_bit),
+		afsk_phase_inc_mark(afsk_phase_inc_mark),
+		afsk_phase_inc_space(afsk_phase_inc_space),
+		afsk_repeat(afsk_repeat),
+		afsk_bw(afsk_bw),
+		afsk_alt_format(afsk_alt_format)
 	{
+		memcpy(message_data, data, 256);
 	}
 
-	int16_t data[128] = {0};
+	uint32_t afsk_samples_per_bit;
+	uint32_t afsk_phase_inc_mark;
+	uint32_t afsk_phase_inc_space;
+	uint8_t afsk_repeat;
+	uint32_t afsk_bw;
+	bool afsk_alt_format;
+	char message_data[256];
 };
 
 class FIFOSignalMessage : public Message {

@@ -31,7 +31,6 @@
 #include "ff.h"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
 #include "baseband_api.hpp"
 
 #include "hackrf_hal.hpp"
@@ -118,7 +117,7 @@ void XylosView::focus() {
 }
 
 XylosView::~XylosView() {
-	receiver_model.disable();
+	transmitter_model.disable();
 	baseband::shutdown();
 }
 
@@ -257,7 +256,7 @@ void XylosView::on_txdone(const int n) {
 				start_tx();
 			}
 		} else {
-			progress.set_value((n + 1) * 5);
+			progress.set_value(n * 5);
 		}
 	}
 }
@@ -313,80 +312,80 @@ XylosView::XylosView(NavigationView& nav) {
 	
 	header_code_a.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	header_code_b.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	city_code.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	family_code.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	subfamily_code.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	receiver_code.on_change = [this](int32_t v) {
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	
 	subfamily_code.hidden(true);
 	text_subfamily.set_style(&style_grey);
 	checkbox_wcsubfamily.on_select = [this](Checkbox&) {
 		if (checkbox_wcsubfamily.value() == true) {
-			subfamily_code.hidden(true);
+			receiver_code.set_focusable(false);
 			text_subfamily.set_style(&style_grey);
 		} else {
-			subfamily_code.hidden(false);
+			receiver_code.set_focusable(true);
 			text_subfamily.set_style(&style());
 		}
-		XylosView::generate_message();
+		generate_message();
 	};
 	
 	receiver_code.hidden(true);
 	text_receiver.set_style(&style_grey);
 	checkbox_wcid.on_select = [this](Checkbox&) {
 		if (checkbox_wcid.value() == true) {
-			receiver_code.hidden(true);
+			receiver_code.set_focusable(false);
 			text_receiver.set_style(&style_grey);
 		} else {
-			receiver_code.hidden(false);
+			receiver_code.set_focusable(true);
 			text_receiver.set_style(&style());
 		}
 		receiver_code.set_dirty();
-		XylosView::generate_message();
+		generate_message();
 	};
 	
 	options_ra.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	options_rb.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	options_rc.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	options_rd.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
 		(void)v;
-		XylosView::generate_message();
+		generate_message();
 	};
 	
 	button_transmit.set_style(&style_val);
 	
-	XylosView::generate_message();
+	generate_message();
 	
 	// Transmission and tones testing
 	button_txtest.on_select = [this](Button&) {

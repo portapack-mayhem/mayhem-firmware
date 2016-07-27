@@ -47,16 +47,7 @@ struct SharedMemory {
 
 	char m4_panic_msg[32] { 0 };
 
-	uint8_t radio_data[256];
 	size_t bit_length;
-	
-	uint32_t afsk_samples_per_bit;
-	uint32_t afsk_phase_inc_mark;
-	uint32_t afsk_phase_inc_space;
-	uint8_t afsk_repeat;
-	uint32_t afsk_fmmod;
-	bool afsk_transmit_done;
-	bool afsk_alt_format;
 	
 	JammerRange jammer_ranges[16];
 	

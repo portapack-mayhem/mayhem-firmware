@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,18 +20,30 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_FSK_LCR_H__
-#define __PROC_FSK_LCR_H__
+#ifndef __PROC_AFSK_H__
+#define __PROC_AFSK_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class LCRFSKProcessor : public BasebandProcessor {
+class AFSKProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
+	
+	void on_message(const Message* const p) override;
 
 private:
+	bool configured = false;
+	
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	
+	uint32_t afsk_samples_per_bit;
+	uint32_t afsk_phase_inc_mark;
+	uint32_t afsk_phase_inc_space;
+	uint8_t afsk_repeat;
+	uint32_t afsk_bw;
+	bool afsk_alt_format;
+	char message_data[256];
 	
 	int8_t re, im;
 	uint8_t s;
@@ -40,8 +53,9 @@ private:
     uint16_t gbyte;
     uint8_t cur_bit = 0;
     uint32_t sample_count;
-	uint32_t aphase, phase, sphase;
-	int32_t sample, sig, frq;
+	uint32_t tone_phase, phase, sphase;
+	int32_t tone_sample, sig, frq;
+	
 	TXDoneMessage message;
 };
 

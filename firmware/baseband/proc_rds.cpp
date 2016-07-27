@@ -30,7 +30,8 @@
 void RDSProcessor::execute(const buffer_c8_t& buffer) {
 	uint32_t * rdsdata;
 	
-	rdsdata = (uint32_t *)shared_memory.radio_data;
+	// TODO
+	//rdsdata = (uint32_t *)shared_memory.radio_data;
 	
 	for (size_t i = 0; i < buffer.count; i++) {
 		

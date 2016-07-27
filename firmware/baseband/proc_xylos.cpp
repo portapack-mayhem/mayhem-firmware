@@ -26,7 +26,7 @@
 #include "audio_output.hpp"
 
 #include "portapack_shared_memory.hpp"
-#include "sine_table.hpp"
+#include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 
 #include <cstdint>
@@ -35,18 +35,17 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// This is called at 1536000/2048 = 750Hz
 	
-	if( !configured ) {
-		return;
-	}
+	if (!configured) return;
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		// Sample generation rate: 1536000/10 = 153kHz
-		if (s >= (2-1)) {
+		// Tone generation at 1536000/5 = 307.2kHz
+		if (s >= (5 - 1)) {
 			s = 0;
 			
 			if (silence) {
-				if (sample_count >= SILENCE) {
+				// Just occupy channel with carrier
+				if (sample_count >= CCIR_SILENCE) {
 					silence = false;
 					sample_count = CCIR_TONELENGTH;
 				} else {
@@ -54,16 +53,14 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 				}
 			} else {
 				if (sample_count >= CCIR_TONELENGTH) {
-					if (transmit_done == false) {
-						digit = xylosdata[byte_pos++];
-						if ((digit == 0xFF) || (byte_pos >= 21)) {
-							message.n = 25;			// End of message code
-							transmit_done = true;
-							shared_memory.application_queue.push(message);
-						} else {
-							message.n = byte_pos;	// Inform UI about progress (just as eye candy)
-							shared_memory.application_queue.push(message);
-						}
+					digit = xylosdata[byte_pos++];
+					if ((digit == 0xFF) || (byte_pos >= 21)) {
+						configured = false;
+						message.n = 25;			// End of message code
+						shared_memory.application_queue.push(message);
+					} else {
+						message.n = byte_pos;	// Inform UI about progress (just as eye candy)
+						shared_memory.application_queue.push(message);
 					}
 					
 					sample_count = 0;
@@ -71,7 +68,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 					sample_count++;
 				}
 				
-				aphase += ccir_phases[digit];
+				tone_phase += ccir_phases[digit];
 			}
 		} else {
 			s++;
@@ -81,7 +78,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			re = 0;
 			im = 0;
 		} else {
-			sample = (sine_table_f32[(aphase & 0x03FC0000)>>18]*127); // 255 here before
+			tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000)>>18]);
 			
 			// Audio preview sample generation: 1536000/48000 = 32
 			/*if (as >= 31) {
@@ -90,15 +87,17 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			} else {
 				as++;
 			}*/
-				
-			//FM
-			frq = sample * 800;	// ?
+			
+			// FM
+			// 1<<18 = 262144
+			// m = (262144 * BW) / 1536000 / 2
+			frq = tone_sample * 853;	// 10kHz BW
 			
 			phase = (phase + frq);
-			sphase = phase + (256<<16);
+			sphase = phase + (64<<18);
 
-			re = (sine_table_f32[(sphase & 0x03FC0000)>>18]*127);
-			im = (sine_table_f32[(phase & 0x03FC0000)>>18]*127);
+			re = (sine_table_i8[(sphase & 0x03FC0000)>>18]);
+			im = (sine_table_i8[(phase & 0x03FC0000)>>18]);
 		}
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
@@ -115,7 +114,7 @@ void XylosProcessor::on_message(const Message* const p) {
 		digit = 0;
 		sample_count = CCIR_TONELENGTH;
 		as = 0;
-		transmit_done = false;
+		silence = true;
 		configured = true;
 	}
 }

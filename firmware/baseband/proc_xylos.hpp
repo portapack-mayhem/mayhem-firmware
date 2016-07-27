@@ -24,16 +24,13 @@
 #define __PROC_XYLOS_H__
 
 #include "baseband_processor.hpp"
-
-#include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
-
-#include "audio_output.hpp"
 #include "baseband_thread.hpp"
 
-#define CCIR_TONELENGTH (15360*5)-1		// 1536000/10/10
-#define PHASEV (436.91/5)				// (65536*1024)/1536000*10
-#define SILENCE (46080*5)-1				// 400ms
+//#include "audio_output.hpp"
+
+#define CCIR_TONELENGTH (15360*2)-1		// 1536000/10/10
+#define CCIR_PHASEINC (436.91/2)		// (65536*1024)/1536000*10
+#define CCIR_SILENCE (122880)-1			// 400ms
 
 class XylosProcessor : public BasebandProcessor {
 public:
@@ -43,27 +40,26 @@ public:
 
 private:
 	bool configured = false;
-	bool transmit_done = false;
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	uint32_t ccir_phases[16] = {
-								(uint32_t)(1981*PHASEV),
-								(uint32_t)(1124*PHASEV),
-								(uint32_t)(1197*PHASEV),
-								(uint32_t)(1275*PHASEV),
-								(uint32_t)(1358*PHASEV),
-								(uint32_t)(1446*PHASEV),
-								(uint32_t)(1540*PHASEV),
-								(uint32_t)(1640*PHASEV),
-								(uint32_t)(1747*PHASEV),
-								(uint32_t)(1860*PHASEV),
-								(uint32_t)(2400*PHASEV),
-								(uint32_t)(930*PHASEV),
-								(uint32_t)(2247*PHASEV),
-								(uint32_t)(991*PHASEV),
-								(uint32_t)(2110*PHASEV),
-								(uint32_t)(1055*PHASEV)
+	const uint32_t ccir_phases[16] = {
+								(uint32_t)(1981*CCIR_PHASEINC),
+								(uint32_t)(1124*CCIR_PHASEINC),
+								(uint32_t)(1197*CCIR_PHASEINC),
+								(uint32_t)(1275*CCIR_PHASEINC),
+								(uint32_t)(1358*CCIR_PHASEINC),
+								(uint32_t)(1446*CCIR_PHASEINC),
+								(uint32_t)(1540*CCIR_PHASEINC),
+								(uint32_t)(1640*CCIR_PHASEINC),
+								(uint32_t)(1747*CCIR_PHASEINC),
+								(uint32_t)(1860*CCIR_PHASEINC),
+								(uint32_t)(2400*CCIR_PHASEINC),
+								(uint32_t)(930*CCIR_PHASEINC),
+								(uint32_t)(2247*CCIR_PHASEINC),
+								(uint32_t)(991*CCIR_PHASEINC),
+								(uint32_t)(2110*CCIR_PHASEINC),
+								(uint32_t)(1055*CCIR_PHASEINC)
 							};
 
 	char xylosdata[21];
@@ -72,8 +68,8 @@ private:
     uint8_t byte_pos = 0;
     uint8_t digit = 0;
     uint32_t sample_count = CCIR_TONELENGTH;
-	uint32_t aphase, phase, sphase;
-	int32_t sample, frq;
+	uint32_t tone_phase, phase, sphase;
+	int32_t tone_sample, frq;
 	bool silence = true;
 	TXDoneMessage message;
 	

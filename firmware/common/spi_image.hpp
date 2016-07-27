@@ -73,7 +73,7 @@ constexpr image_tag_t image_tag_wideband_spectrum	{ 'P', 'S', 'P', 'E' };
 
 constexpr image_tag_t image_tag_jammer				{ 'P', 'J', 'A', 'M' };
 constexpr image_tag_t image_tag_audio_tx			{ 'P', 'A', 'T', 'X' };
-constexpr image_tag_t image_tag_lcr					{ 'P', 'L', 'C', 'R' };
+constexpr image_tag_t image_tag_afsk				{ 'P', 'A', 'F', 'S' };
 constexpr image_tag_t image_tag_epar				{ 'P', 'E', 'P', 'R' };
 constexpr image_tag_t image_tag_play_audio			{ 'P', 'P', 'A', 'U' };
 constexpr image_tag_t image_tag_xylos				{ 'P', 'X', 'Y', 'L' };

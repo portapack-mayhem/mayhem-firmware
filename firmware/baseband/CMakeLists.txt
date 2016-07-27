@@ -340,12 +340,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PATX audio_tx)
 
-### FSK LCR
+### AFSK
 
 set(MODE_CPPSRC
-	proc_fsk_lcr.cpp
+	proc_afsk.cpp
 )
-DeclareTargets(PLCR lcr)
+DeclareTargets(PAFS afsk)
 
 ### Epar
 

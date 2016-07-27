@@ -157,8 +157,9 @@ void RDSView::gen_PSN(const char * psname) {
 		group[c][3] = makeblock(group[c][3], RDS_OFFSET_D);
 	}
 	
-	for (c = 0; c < 16; c++)
-		shared_memory.radio_data[c] = group[c >> 2][c & 3];
+	// Todo
+	//for (c = 0; c < 16; c++)
+	//	shared_memory.radio_data[c] = group[c >> 2][c & 3];
 		
 	shared_memory.bit_length = 4 * 4 * 26;
 }
@@ -197,8 +198,9 @@ void RDSView::gen_RadioText(const char * radiotext) {
 		group[i + 3] = makeblock(group[i + 3], RDS_OFFSET_D);
 	}
 	
-	for (c = 0; c < (groups * 4); c++)
-		shared_memory.radio_data[c] = group[c];
+	// Todo
+	//for (c = 0; c < (groups * 4); c++)
+	//	shared_memory.radio_data[c] = group[c];
 	
 	shared_memory.bit_length = groups * 4 * 26;
 }

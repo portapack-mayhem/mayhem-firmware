@@ -36,43 +36,51 @@
 
 namespace ui {
 
+#define LCR_SCAN_COUNT 36
+
 class LCRView : public View {
 public:
 	LCRView(NavigationView& nav);
 	~LCRView();
-	std::string title() const override { return "LCR transmit"; };
 	
 	void focus() override;
 	void paint(Painter& painter) override;
+	
+	std::string title() const override { return "LCR transmit"; };
 
 private:
-	bool txing = false;
-	bool scanning = false;
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SCAN
+	};
+	
+	tx_modes tx_mode = IDLE;
 	bool abort_scan = false;
 	double scan_progress;
-	const char RGSB_list[37][5] = {
+	const char RGSB_list[LCR_SCAN_COUNT][5] = {
+		"AI10",	"AI20", "AI30",	"AI40",
+		"AI50",	"AI60", "AI70",	"AJ10",
+		"AJ20",	"AJ30", "AJ40",	"AJ50",
+		"AJ60",	"AJ70", "AK10",
 		"EAA0", "EAB0",	"EAC0",	"EAD0",
 		"EbA0",	"EbB0",	"EbC0",	"EbD0",
 		"EbE0",	"EbF0",	"EbG0",	"EbH0",
 		"EbI0",	"EbJ0",	"EbK0",	"EbL0",
 		"EbM0",	"EbN0",	"EbO0",	"EbP0",
-		"EbS0",	"EAD0",	"AI10",	"AI20",
-		"AI30",	"AI40",	"AI50",	"AI60",
-		"AI70",	"AJ10",	"AJ20",	"AJ30",
-		"AJ40",	"AJ50",	"AJ60",	"AJ70",
-		"AK10"
+		"EbS0"
 	};
 	char litteral[5][8];
 	char rgsb[5];
-	char lcrstring[256];
+	char lcr_message[256];
+	char lcr_string[256];			// For debugging, can remove
+	char lcr_message_data[256];
 	char checksum = 0;
-	char lcrframe[256];
-	char lcrframe_f[256];
 	rf::Frequency f;
 	int scan_index;
 	
-	void make_frame();
-	void start_tx();
+	void generate_message();
+	void start_tx(const bool scan);
 	void on_txdone(int n);
 	
 	radio::Configuration lcr_radio_config = {
@@ -89,7 +97,7 @@ private:
 	// 2: 94 ?
 	// 9: 85 ?
 	
-	const char alt_lookup[256] = {
+	const char alt_lookup[128] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x0F,	// 0
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 10
 		0xF8, 0, 0x99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 20  !"#$%&'()*+,-./
@@ -97,15 +105,7 @@ private:
 		0, 0x3C, 0x9C, 0x5D, 0, 0, 0, 0, 0, 0x44, 0x85, 0, 0xD5, 0x14, 0, 0,		// 40 @ABCDEFGHIJKLMNO
 		0xF0, 0, 0, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 50 PQRSTUVWXYZ[\]^_
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 60 `abcdefghijklmno
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x7F,	// 70 pqrstuvwxyz{|}~
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 80
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 90
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// A0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// B0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// C0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// D0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// E0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0		// F0
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x7F	// 70 pqrstuvwxyz{|}~
 	};
 	
 	const Style style_val {
@@ -125,7 +125,7 @@ private:
 	};
 	
 	OptionsField options_ec {
-		{ 19 * 8, 6 },
+		{ 20 * 8, 6 },
 		7,
 		{
 			{ "EC:Auto", 0 },
