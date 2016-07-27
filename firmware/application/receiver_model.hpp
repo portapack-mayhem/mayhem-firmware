@@ -64,8 +64,8 @@ public:
 	uint32_t sampling_rate() const;
 	void set_sampling_rate(uint32_t v);
 
-	uint32_t modulation() const;
-	void set_modulation(uint32_t v);
+	Mode modulation() const;
+	void set_modulation(Mode v);
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
@@ -92,7 +92,7 @@ private:
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
-	uint32_t mode_ { 1 };
+	Mode mode_ { Mode::NarrowbandFMAudio };
 	uint32_t sampling_rate_ { 3072000 };
 	size_t decimation_factor_ { 1 };
 	size_t am_config_index = 0;

@@ -124,11 +124,11 @@ void ReceiverModel::set_sampling_rate(uint32_t v) {
 	update_sampling_rate();
 }
 
-uint32_t ReceiverModel::modulation() const {
+ReceiverModel::Mode ReceiverModel::modulation() const {
 	return mode_;
 }
 
-void ReceiverModel::set_modulation(const uint32_t v) {
+void ReceiverModel::set_modulation(const Mode v) {
 	mode_ = v;
 	update_modulation();
 }
@@ -171,7 +171,7 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	if( (modulation() == 4) ) {
+	if( (modulation() == Mode::SpectrumAnalysis) ) {
 		return 0;
 	} else {
 		return -(sampling_rate() / 4);
@@ -242,7 +242,7 @@ void ReceiverModel::update_headphone_volume() {
 }
 
 void ReceiverModel::update_modulation() {
-	switch(static_cast<Mode>(modulation())) {
+	switch(modulation()) {
 	default:
 	case Mode::AMAudio:
 		update_am_configuration();
