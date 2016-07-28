@@ -218,9 +218,9 @@ private:
 		TouchDetected,
 	};
 
-	static constexpr float r_touch_threshold = 0x1000;
+	static constexpr float r_touch_threshold = 640;
 	static constexpr size_t touch_count_threshold { 3 };
-	static constexpr uint32_t touch_stable_bound { 16 };
+	static constexpr uint32_t touch_stable_bound { 8 };
 
 	// Ensure filter length is equal or less than touch_count_threshold,
 	// or coordinates from the last touch will be in the initial averages.

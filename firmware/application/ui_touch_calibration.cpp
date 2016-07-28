@@ -185,7 +185,7 @@ void TouchCalibrationView::on_frame_sync() {
 	const auto x = metrics.x * 1024;
 	const auto y = metrics.y * 1024;
 
-	if( metrics.r < 1000.0f ) {
+	if( metrics.r < 640.0f ) {
 		if( samples_count > 0 ) {
 			average.x = ((average.x * 7) + x) / 8;
 			average.y = ((average.y * 7) + y) / 8;
