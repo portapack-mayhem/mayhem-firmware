@@ -6,14 +6,15 @@ It is build on top of Sharebrained's firmware, meaning that the original functio
 
 As its name implies, HAVOC is a firmware made to have serious fun, mainly involving French systems (for now). Don't use it, we never did.
 
-**In most countries, radio transmissions are tightly regulated. Transmitting without a license or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
+**In most countries, radio transmissions are tightly regulated. Transmitting without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
 
 Fork features:
 * Close-Call™ style scanner
 * RDS (Radio Data System) PSN and Radiotext transmit
 * LCR (Language de Commande Routier) litteral message forming and transmit
 * Fully configurable AFSK transmit
-* Xylos transmitter, urban lighting control (NFM CCIR tones)
+* PWM audio RSSI output
+* Xylos transmitter, street lighting control (NFM CCIR tones)
 * Virtual keyboard or Unistroke "handwriting" text input
 * "Play Dead" in case of emergency
 * Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
