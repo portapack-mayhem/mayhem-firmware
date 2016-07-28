@@ -32,7 +32,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	if( !configured ) {
 		return;
 	}
-
+	
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
@@ -40,8 +40,23 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
-	auto audio = demod.execute(channel_out, audio_buffer);
-	audio_output.write(audio);
+	if ( !pwmrssi_enabled ) {
+		auto audio = demod.execute(channel_out, audio_buffer);
+		audio_output.write(audio);
+	} else {
+		for (c = 0; c < 32; c++) {
+			if (synth_acc < pwmrssi_avg)
+				pwmrssi_audio_buffer.p[c] = 32767;
+			else
+				pwmrssi_audio_buffer.p[c] = -32768;
+			if (synth_acc < 30)		// 24kHz / 30 = 800Hz (TODO: use pwmrssi_freq !)
+				synth_acc++;
+			else
+				synth_acc = 0;
+		}
+
+		audio_output.write(pwmrssi_audio_buffer);
+	}
 }
 
 void NarrowbandFMAudio::on_message(const Message* const message) {
@@ -57,6 +72,10 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 
 	case Message::ID::CaptureConfig:
 		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		break;
+	
+	case Message::ID::PWMRSSIConfigure:
+		pwmrssi_config(*reinterpret_cast<const PWMRSSIConfigureMessage*>(message));
 		break;
 		
 	default:
@@ -83,9 +102,17 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
-	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 0.8f);
+	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config);	// , 0.8f
 
+	synth_acc = 0;
+	
 	configured = true;
+}
+
+void NarrowbandFMAudio::pwmrssi_config(const PWMRSSIConfigureMessage& message) {
+	pwmrssi_enabled = message.enabled;
+	pwmrssi_freq = message.freq;
+	pwmrssi_avg = message.avg / 3;
 }
 
 void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {

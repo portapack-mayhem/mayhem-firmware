@@ -22,9 +22,7 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
 #include "ui_navigation.hpp"
-#include "ui_menu.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 #include "bulb_on_bmp.hpp"
@@ -32,8 +30,7 @@
 #include "bulb_ignore_bmp.hpp"
 
 #include "message.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
+//#include "volume.hpp"
 #include "transmitter_model.hpp"
 //#include "receiver_model.hpp"
 #include "portapack.hpp"

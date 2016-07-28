@@ -22,16 +22,8 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
-#include "ui_menu.hpp"
-#include "ui_navigation.hpp"
 #include "ui_textentry.hpp"
-#include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
 #include "transmitter_model.hpp"
 
 namespace ui {
@@ -147,36 +139,6 @@ private:
 	Button button_txsetup {
 		{ 128, 24, 96, 32 },
 		"TX setup"
-	};
-	
-	Checkbox checkbox_am_a {
-		{ 16, 64 },
-		0,
-		""
-	};
-	
-	Checkbox checkbox_am_b {
-		{ 16, 96 },
-		0,
-		""
-	};
-	
-	Checkbox checkbox_am_c {
-		{ 16, 128 },
-		0,
-		""
-	};
-	
-	Checkbox checkbox_am_d {
-		{ 16, 160 },
-		0,
-		""
-	};
-	
-	Checkbox checkbox_am_e {
-		{ 16, 192 },
-		0,
-		""
 	};
 	
 	Button button_lcrdebug {

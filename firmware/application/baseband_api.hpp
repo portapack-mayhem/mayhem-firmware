@@ -53,6 +53,7 @@ struct WFMConfig {
 };
 
 void set_xylos_data(const char ccir_message[]);
+void set_pwmrssi(int32_t avg, bool enabled);
 void set_afsk_data(const char message_data[], const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark,
 					const uint32_t afsk_phase_inc_space, const uint8_t afsk_repeat, const uint32_t afsk_bw,
 					const bool afsk_alt_format);

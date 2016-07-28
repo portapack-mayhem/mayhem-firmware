@@ -69,7 +69,7 @@ public:
 		Retune = 21,
 		XylosConfigure = 22,
 		AFSKConfigure = 23,
-		ModuleID = 24,
+		PWMRSSIConfigure = 24,
 		FIFOSignal = 25,
 		FIFOData = 26,
 		MAX
@@ -479,15 +479,24 @@ public:
 	int n = 0;
 };
 
-class ModuleIDMessage : public Message {
+
+
+class PWMRSSIConfigureMessage : public Message {
 public:
-	ModuleIDMessage(
-	) : Message { ID::ModuleID }
+	PWMRSSIConfigureMessage(
+		const bool enabled,
+		const uint32_t freq,
+		const int32_t avg
+	) : Message { ID::PWMRSSIConfigure },
+		enabled(enabled),
+		freq(freq),
+		avg(avg)
 	{
 	}
 	
-	bool query;
-	char md5_signature[16];
+	const bool enabled;
+	const uint32_t freq;
+	const int32_t avg;
 };
 
 class XylosConfigureMessage : public Message {

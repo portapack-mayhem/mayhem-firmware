@@ -100,6 +100,15 @@ void set_afsk_data(const char message_data[], const uint32_t afsk_samples_per_bi
 	send_message(&message);			
 }
 
+void set_pwmrssi(int32_t avg, bool enabled) {
+	const PWMRSSIConfigureMessage message {
+		enabled,
+		1000,	// 1kHz
+		avg
+	};
+	send_message(&message);	
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {

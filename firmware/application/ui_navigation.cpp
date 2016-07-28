@@ -238,14 +238,15 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<12>({ {
+	add_items<11>({ {
 		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Capture                   RX",	ui::Color::orange(),	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
-		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
+		//{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
 		//{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
-		{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
+		//{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
 		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
 		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LCRView>(); } },

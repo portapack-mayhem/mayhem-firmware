@@ -21,10 +21,6 @@
  */
 
 #include "proc_xylos.hpp"
-
-#include "dsp_iir_config.hpp"
-#include "audio_output.hpp"
-
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"

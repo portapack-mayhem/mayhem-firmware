@@ -22,6 +22,8 @@
 #include "ui_record_view.hpp"
 
 #include "portapack.hpp"
+#include "message.hpp"
+#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
 #include "file.hpp"
@@ -176,6 +178,7 @@ RecordView::RecordView(
 {
 	add_children({ {
 		&rect_background,
+		&button_pwmrssi,
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
@@ -183,6 +186,10 @@ RecordView::RecordView(
 	} });
 
 	rect_background.set_parent_rect({ { 0, 0 }, size() });
+	
+	button_pwmrssi.on_select = [this](ImageButton&) {
+		this->toggle_pwmrssi();
+	};
 
 	button_record.on_select = [this](ImageButton&) {
 		this->toggle();
@@ -225,6 +232,24 @@ void RecordView::toggle() {
 		stop();
 	} else {
 		start();
+	}
+}
+
+void RecordView::toggle_pwmrssi() {
+	pwmrssi_enabled = !pwmrssi_enabled;
+	
+	// Send to RSSI widget
+	const PWMRSSIConfigureMessage message {
+		pwmrssi_enabled,
+		1000,
+		0
+	};
+	shared_memory.application_queue.push(message);
+	
+	if( !pwmrssi_enabled ) {
+		button_pwmrssi.set_foreground(Color::orange());
+	} else {
+		button_pwmrssi.set_foreground(Color::green());
 	}
 }
 
@@ -341,6 +366,10 @@ void RecordView::update_status_display() {
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
 		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
 		text_record_dropped.set(s);
+	}
+	
+	if (pwmrssi_enabled) {
+		button_pwmrssi.invert_colors();
 	}
 
 	if( sampling_rate ) {

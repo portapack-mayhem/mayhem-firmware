@@ -289,6 +289,7 @@ public:
 	void set_bitmap(const Bitmap* bitmap);
 	void set_foreground(const Color color);
 	void set_background(const Color color);
+	void invert_colors();
 
 	void paint(Painter& painter) override;
 

@@ -64,6 +64,7 @@ public:
 
 private:
 	void toggle();
+	void toggle_pwmrssi();
 	Optional<File::Error> write_metadata_file(const std::string& filename);
 
 	void on_tick_second();
@@ -72,6 +73,7 @@ private:
 	void handle_capture_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
+	bool pwmrssi_enabled = false;
 	const std::string filename_stem_pattern;
 	const FileType file_type;
 	const size_t write_size;
@@ -82,16 +84,23 @@ private:
 	Rectangle rect_background {
 		Color::black()
 	};
+	
+	ImageButton button_pwmrssi {
+		{ 2, 0 * 16, 3 * 8, 1 * 16 },
+		&bitmap_rssipwm,
+		Color::orange(),
+		Color::black()
+	};
 
 	ImageButton button_record {
-		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
 		&bitmap_record,
 		Color::red(),
 		Color::black()
 	};
 
 	Text text_record_filename {
-		{ 3 * 8, 0 * 16, 8 * 8, 16 },
+		{ 7 * 8, 0 * 16, 8 * 8, 16 },
 		"",
 	};
 

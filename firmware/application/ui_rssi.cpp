@@ -21,6 +21,7 @@
 
 #include "ui_rssi.hpp"
 
+#include "baseband_api.hpp"
 #include "utility.hpp"
 
 #include <algorithm>
@@ -88,6 +89,17 @@ void RSSI::paint(Painter& painter) {
 		r4,
 		Color::black()
 	);
+	
+	if (pwmrssi_enabled) {
+		const range_t<int> pwmrssi_avg_range { 0, 96 };
+		const auto pwmrssi_avg = pwmrssi_avg_range.clip((avg_ - raw_min) * 96 / raw_delta);
+		baseband::set_pwmrssi(pwmrssi_avg, true);
+	}
+}
+
+void RSSI::set_pwmrssi(bool enabled) {
+	pwmrssi_enabled = enabled;
+	if (!enabled) baseband::set_pwmrssi(0, false);
 }
 
 void RSSI::on_statistics_update(const RSSIStatistics& statistics) {

@@ -46,11 +46,13 @@ public:
 	}
 
 	void paint(Painter& painter) override;
-
+	
 private:
 	int32_t min_;
 	int32_t avg_;
 	int32_t max_;
+	
+	bool pwmrssi_enabled = false;
 
 	MessageHandlerRegistration message_handler_stats {
 		Message::ID::RSSIStatistics,
@@ -58,8 +60,17 @@ private:
 			this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
 		}
 	};
+	
+	MessageHandlerRegistration message_handler_pwmrssi {
+		Message::ID::PWMRSSIConfigure,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const PWMRSSIConfigureMessage*>(p);
+			this->set_pwmrssi(message.enabled);
+		}
+	};
 
 	void on_statistics_update(const RSSIStatistics& statistics);
+	void set_pwmrssi(bool enabled);
 };
 
 }

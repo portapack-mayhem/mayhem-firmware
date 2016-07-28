@@ -56,6 +56,12 @@ private:
 		audio.data(),
 		audio.size()
 	};
+	
+	std::array<int16_t, 32> pwm;
+	const buffer_s16_t pwmrssi_audio_buffer {
+		(int16_t*)pwm.data(),
+		sizeof(pwm) / sizeof(int16_t)
+	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
@@ -68,8 +74,14 @@ private:
 	AudioOutput audio_output;
 
 	SpectrumCollector channel_spectrum;
+	
+	unsigned int c, synth_acc = 0;
+	bool pwmrssi_enabled = false;
+	uint32_t pwmrssi_freq;
+	uint32_t pwmrssi_avg;
 
 	bool configured { false };
+	void pwmrssi_config(const PWMRSSIConfigureMessage& message);
 	void configure(const NBFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
 };

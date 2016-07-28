@@ -369,13 +369,13 @@ void BigFrequency::paint(Painter& painter) {
 		digit_y = rect.pos.y;
 		if (digit < 16) {
 			digit_def = big_segment_font[(uint8_t)digit];
-			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, digit_y}, 		{20, 4}}, 	segment_color);
-			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, digit_y + 4}, 	{4, 20}}, 	segment_color);
-			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, digit_y + 28}, {4, 20}}, 	segment_color);
-			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, digit_y + 48}, 	{20, 4}}, 	segment_color);
-			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, digit_y + 28}, 		{4, 20}}, 	segment_color);
-			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, digit_y + 4}, 		{4, 20}}, 	segment_color);
-			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, digit_y + 24}, 	{20, 4}}, 	segment_color);
+			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, 	digit_y}, 		{20, 4}}, 	segment_color);
+			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, 	digit_y + 4}, 	{4, 20}}, 	segment_color);
+			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, 	digit_y + 28}, 	{4, 20}}, 	segment_color);
+			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, 	digit_y + 48}, 	{20, 4}}, 	segment_color);
+			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, 		digit_y + 28}, 	{4, 20}}, 	segment_color);
+			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, 		digit_y + 4}, 	{4, 20}}, 	segment_color);
+			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, 	digit_y + 24}, 	{20, 4}}, 	segment_color);
 		}
 		if (i == 3) {
 			// Dot
@@ -662,6 +662,15 @@ void Image::set_foreground(const Color color) {
 
 void Image::set_background(const Color color) {
 	background_ = color;
+	set_dirty();
+}
+
+void Image::invert_colors() {
+	Color temp;
+	
+	temp = background_;
+	background_ = foreground_;
+	foreground_ = temp;
 	set_dirty();
 }
 

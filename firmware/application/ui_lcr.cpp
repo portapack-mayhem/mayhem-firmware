@@ -21,22 +21,12 @@
  */
 
 #include "ui_lcr.hpp"
-#include "ui_receiver.hpp"
 #include "ui_afsksetup.hpp"
 #include "ui_debug.hpp"
 
-#include "ch.h"
-
-#include "ff.h"
 #include "baseband_api.hpp"
-#include "hackrf_gpio.hpp"
-#include "portapack.hpp"
-#include "event_m0.hpp"
-
 #include "string_format.hpp"
 
-#include "hackrf_hal.hpp"
-#include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include <cstring>
@@ -231,6 +221,7 @@ void LCRView::on_txdone(int n) {
 	char str[16];
 	
 	if (n > 0) {
+		// Repeating...
 		repeat_index = n + 1;
 		if (tx_mode == SCAN) {
 			scan_progress++;
@@ -239,9 +230,11 @@ void LCRView::on_txdone(int n) {
 			update_progress();
 		}
 	} else {
+		// Done transmitting
 		if ((tx_mode == SCAN) && (scan_index < (LCR_SCAN_COUNT - 1))) {
 			transmitter_model.disable();
 			if (abort_scan) {
+				// Kill scan process
 				strcpy(str, "Abort @");
 				strcat(str, rgsb);
 				text_status.set(str);
@@ -415,16 +408,17 @@ LCRView::LCRView(NavigationView& nav) {
 	};
 
 	button_clear.on_select = [this, &nav](Button&) {
+		uint8_t n;
+		
 		if (tx_mode == IDLE) {
 			memset(litteral, 0, 5 * 8);
-			options_ec.set_selected_index(0);
-			checkbox_am_a.set_value(true);
-			checkbox_am_b.set_value(true);
-			checkbox_am_c.set_value(true);
-			checkbox_am_d.set_value(true);
-			checkbox_am_e.set_value(true);
+			options_ec.set_selected_index(0);	// Auto
+			for (n = 0; n < 5; n++)
+				checkboxes[n].set_value(true);
 			set_dirty();
 			start_tx(false);
+		} else if (tx_mode == SCAN) {
+			abort_scan = true;
 		}
 	};
 }

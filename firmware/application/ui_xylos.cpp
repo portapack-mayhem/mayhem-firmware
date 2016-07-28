@@ -21,20 +21,11 @@
  */
 
 #include "ui_xylos.hpp"
-
-#include "ch.h"
-#include "hackrf_hal.hpp"
-
-#include "event_m0.hpp"
-#include "audio.hpp"
 #include "ui_alphanum.hpp"
-#include "ff.h"
-#include "hackrf_gpio.hpp"
+
 #include "portapack.hpp"
 #include "baseband_api.hpp"
-
-#include "hackrf_hal.hpp"
-#include "portapack_shared_memory.hpp"
+//#include "audio.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include <cstring>
