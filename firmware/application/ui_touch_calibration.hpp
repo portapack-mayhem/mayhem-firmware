@@ -71,9 +71,6 @@ private:
 
 	touch::Calibration calibration;
 
-	static constexpr ui::Coord y_touch_values = 320 - 16 - 16;
-	static constexpr ui::Coord y_xlate_values = y_touch_values - 16;
-
 	Image image_calibrate_0 {
 		{ 32 - 16, 32 - 16, 32, 32 },
 		&bitmap_target_calibrate,
