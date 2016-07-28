@@ -4,7 +4,9 @@ HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [Hack
 
 It is build on top of Sharebrained's firmware, meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
-As its name implies, HAVOC is a firmware made to have serious fun with various radio systems, mainly involving French systems (for now). Don't use it, we never did.
+As its name implies, HAVOC is a firmware made to have serious fun, mainly involving French systems (for now). Don't use it, we never did.
+
+**In most countries, radio transmissions are tightly regulated. Transmitting without a license or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
 
 Fork features:
 * Close-Call™ style scanner
