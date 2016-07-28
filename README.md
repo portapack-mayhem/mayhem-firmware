@@ -38,6 +38,8 @@ Todo (highest to lowest priority):
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
+About the PWM RSSI output: Frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output (if enabled)...
+
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
 # Thanks
