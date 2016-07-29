@@ -539,7 +539,7 @@ public:
 		afsk_bw(afsk_bw),
 		afsk_alt_format(afsk_alt_format)
 	{
-		memcpy(message_data, data, 256);
+		memcpy(message_data, data, 512);
 	}
 
 	uint32_t afsk_samples_per_bit;
@@ -548,7 +548,7 @@ public:
 	uint8_t afsk_repeat;
 	uint32_t afsk_bw;
 	bool afsk_alt_format;
-	char message_data[256];
+	char message_data[512];
 };
 
 class FIFOSignalMessage : public Message {

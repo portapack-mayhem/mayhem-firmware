@@ -67,7 +67,7 @@ void LCRView::generate_message() {
 	}
 	
 	// Compose LCR message
-	memset(lcr_message, 0, 256);
+	memset(lcr_message, 0, 512);
 	memcpy(lcr_message, lcr_init, 8);
 
 	strcat(lcr_message, rgsb);		// Address
@@ -76,7 +76,7 @@ void LCRView::generate_message() {
 	for (i = 0; i < 5; i++) {
 		if (checkboxes[i].value() == true) {
 			strcat(lcr_message, "AM=");
-			strcat(lcr_message, to_string_dec_uint(i, 1).c_str());
+			strcat(lcr_message, to_string_dec_uint(i + 1, 1).c_str());
 			strcat(lcr_message, " AF=\"");
 			strcat(lcr_message, litteral[i]);
 			strcat(lcr_message, "\" CL=0 ");
@@ -85,8 +85,6 @@ void LCRView::generate_message() {
 	strcat(lcr_message, "EC=");
 	strcat(lcr_message, ec_lut[options_ec.selected_index()]);
 	strcat(lcr_message, " SAB=0");
-	
-	memcpy(lcr_string, lcr_message, 256);
 	
 	// Checksum
 	checksum = 0;
@@ -119,6 +117,7 @@ void LCRView::generate_message() {
 			}
 			lcr_message_data[dp] = new_byte | (pp & 1);
 		}
+		lcr_message_data[dp++] = 0;
 		lcr_message_data[dp] = 0;
 	} else {
 		// Alt format
@@ -129,9 +128,10 @@ void LCRView::generate_message() {
 				if ((cur_byte >> cp) & 1) pp++;
 			}
 			lcr_message_data[dp * 2] = cur_byte;
-			lcr_message_data[(dp * 2) + 1] = pp & 1;
+			lcr_message_data[(dp * 2) + 1] = 0xFE | (pp & 1);
 		}
 		lcr_message_data[dp * 2] = 0;
+		lcr_message_data[(dp * 2) + 1] = 0;
 	}
 
 	//if (persistent_memory::afsk_config() & 1) {
@@ -350,7 +350,7 @@ LCRView::LCRView(NavigationView& nav) {
 	for(auto& button : buttons) {
 		button.on_select = button_setam_fn;
 		button.id = n;
-		label = "AM " + to_string_dec_uint(n, 1);;
+		label = "AM " + to_string_dec_uint(n + 1, 1);;
 		button.set_text(label);
 		button.set_parent_rect({
 			static_cast<Coord>(48),
@@ -373,6 +373,19 @@ LCRView::LCRView(NavigationView& nav) {
 		n++;
 	}
 	
+	n = 0;
+	for(auto& rectangle : rectangles) {
+		rectangle.set_parent_rect({
+			static_cast<Coord>(104 - 2),
+			static_cast<Coord>(n * 32 + 68 - 2),
+			56 + 4, 16 + 4
+		});
+		rectangle.set_color(ui::Color::grey());
+		rectangle.set_outline(true);
+		add_child(&rectangle);
+		n++;
+	}
+	
 	button_setrgsb.set_text(rgsb);
 	options_ec.set_selected_index(0);	// Auto
 	checkboxes[0].set_value(true);
@@ -388,9 +401,9 @@ LCRView::LCRView(NavigationView& nav) {
 		nav.push<AFSKSetupView>();
 	};
 	
-	button_lcrdebug.on_select = [this,&nav](Button&) {
+	button_lcrdebug.on_select = [this, &nav](Button&) {
 		generate_message();
-		nav.push<DebugLCRView>(lcr_string, checksum);
+		nav.push<DebugLCRView>(std::string(lcr_message), checksum);
 	};
 	
 	button_transmit.on_select = [this](Button&) {

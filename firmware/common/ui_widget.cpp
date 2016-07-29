@@ -253,16 +253,33 @@ Rectangle::Rectangle(
 {
 }
 
+Rectangle::Rectangle(
+) : Widget {  }
+{
+}
+
 void Rectangle::set_color(const Color c) {
 	color = c;
 	set_dirty();
 }
 
+void Rectangle::set_outline(const bool outline) {
+	_outline = outline;
+	set_dirty();
+}
+
 void Rectangle::paint(Painter& painter) {
-	painter.fill_rectangle(
-		screen_rect(),
-		color
-	);
+	if (!_outline) {
+		painter.fill_rectangle(
+			screen_rect(),
+			color
+		);
+	} else {
+		painter.draw_rectangle(
+			screen_rect(),
+			color
+		);
+	}
 }
 
 /* Text ******************************************************************/
@@ -421,6 +438,90 @@ void ProgressBar::paint(Painter& painter) {
 	painter.fill_rectangle({{rect.pos.x + v_sized, rect.pos.y}, {rect.size.w - v_sized, rect.size.h}}, s.background);
 	
 	painter.draw_rectangle(rect, s.foreground);
+}
+
+/* Console ***************************************************************/
+
+Console::Console(
+	Rect parent_rect
+) : Widget { parent_rect }
+{
+	display.scroll_set_position(0);
+}
+
+void Console::clear() {
+	display.fill_rectangle(
+		screen_rect(),
+		Color::black()
+	);
+	pos = { 0, 0 };
+}
+
+void Console::write(std::string message) {
+	if (visible) {
+		const Style& s = style();
+		const Font& font = s.font;
+		const auto rect = screen_rect();
+		for(const auto c : message) {
+			if( c == '\n' ) {
+				crlf();
+			} else {
+				const auto glyph = font.glyph(c);
+				const auto advance = glyph.advance();
+				if( (pos.x + advance.x) > rect.width() ) {
+					crlf();
+				}
+				const Point pos_glyph {
+					rect.pos.x + pos.x,
+					display.scroll_area_y(pos.y)
+				};
+				display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
+				pos.x += advance.x;
+			}
+		}
+		buffer = message;
+	} else {
+		buffer += message;
+	}
+}
+
+void Console::writeln(std::string message) {
+	write(message);
+	crlf();
+}
+
+void Console::paint(Painter& painter) {
+	write(buffer);
+}
+
+void Console::on_show() {
+	const auto screen_r = screen_rect();
+	display.scroll_set_area(screen_r.top(), screen_r.bottom());
+	clear();
+	visible = true;
+}
+
+void Console::on_hide() {
+	/* TODO: Clear region to eliminate brief flash of content at un-shifted
+	 * position?
+	 */
+	display.scroll_disable();
+}
+
+void Console::crlf() {
+	const Style& s = style();
+	const auto sr = screen_rect();
+	const auto line_height = s.font.line_height();
+	pos.x = 0;
+	pos.y += line_height;
+	const int32_t y_excess = pos.y + line_height - sr.height();
+	if( y_excess > 0 ) {
+		display.scroll(-y_excess);
+		pos.y -= y_excess;
+
+		const Rect dirty { sr.left(), display.scroll_area_y(pos.y), sr.width(), line_height };
+		display.fill_rectangle(dirty, s.background);
+	}
 }
 
 /* Checkbox **************************************************************/

@@ -173,13 +173,16 @@ class Rectangle : public Widget {
 public:
 	Rectangle(Color c);
 	Rectangle(Rect parent_rect, Color c);
+	Rectangle();
 
 	void paint(Painter& painter) override;
 
 	void set_color(const Color c);
+	void set_outline(const bool outline);
 
 private:
 	Color color;
+	bool _outline = false;
 };
 
 class Text : public Widget {
@@ -223,6 +226,27 @@ public:
 private:
 	uint16_t _value = 0;
 	uint16_t _max = 100;
+};
+
+class Console : public Widget {
+public:
+	Console(Rect parent_rect);
+	
+	void clear();
+	void write(std::string message);
+	void writeln(std::string message);
+
+	void paint(Painter& painter) override;
+	
+	void on_show() override;
+	void on_hide() override;
+
+private:
+	bool visible = false;
+	Point pos { 0, 0 };
+	std::string buffer;
+
+	void crlf();
 };
 
 class Checkbox : public Widget {

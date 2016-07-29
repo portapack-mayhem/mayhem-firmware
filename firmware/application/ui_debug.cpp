@@ -281,42 +281,35 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 	on_left = [&nav](){ nav.pop(); };
 }
 
-char hexify(char in) {
-	if (in > 9) in += 7;
-	return in + 0x30;
-}
-
-DebugLCRView::DebugLCRView(NavigationView& nav, char * lcrstring, uint8_t checksum) {
-	char cstr[15] = "Checksum: 0x  ";
+DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string, uint8_t checksum) {
+	
+	std::string debug_text;
 	
 	add_children({ {
-		&text_lcr1,
-		&text_lcr2,
-		&text_lcr3,
-		&text_lcr4,
-		&text_lcr5,
-		&text_checksum,
-		&button_done
+		&console,
+		&button_exit
 	} });
-	
-	std::string b = std::string(lcrstring);
-	
-	text_lcr1.set(b.substr(8+(0*26),26));
-	if (strlen(lcrstring) > 34) text_lcr2.set(b.substr(8+(1*26),26));
-	if (strlen(lcrstring) > 34+26) text_lcr3.set(b.substr(8+(2*26),26));
-	if (strlen(lcrstring) > 34+26+26) text_lcr4.set(b.substr(8+(3*26),26));
-	if (strlen(lcrstring) > 34+26+26+26) text_lcr5.set(b.substr(8+(4*26),26));
-	
-	cstr[12] = hexify(checksum >> 4);
-	cstr[13] = hexify(checksum & 15);
-	
-	text_checksum.set(cstr);
-	
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
-}
 
+	for(const auto c : lcr_string) {
+		if ((c < 32) || (c > 126))
+			debug_text += "[" + to_string_dec_uint(c) + "]";
+		else
+			debug_text += c;
+	}
+	
+	debug_text += "\n\n";
+	debug_text += "Length: " + to_string_dec_uint(lcr_string.length()) + '\n';
+	debug_text += "Checksum: " + to_string_dec_uint(checksum) + '\n';
+	
+	console.write(debug_text);
+	
+	button_exit.on_select = [this, &nav](Button&){
+		nav.pop();
+	};
+}
+	
 void DebugLCRView::focus() {
-	button_done.focus();
+	button_exit.focus();
 }
 
 } /* namespace ui */

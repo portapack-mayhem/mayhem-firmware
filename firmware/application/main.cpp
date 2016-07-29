@@ -26,9 +26,8 @@
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
 
-//TODO: ui_lcr, make arrays for litterals (checkboxes and buttons)
-//TODO: Frequency manager
 //TODO: Weird LCR AFSK scrambling ?
+//TODO: Frequency manager
 //TODO: SD card wiper
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Use progressbars

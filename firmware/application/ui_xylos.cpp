@@ -247,7 +247,7 @@ void XylosView::on_txdone(const int n) {
 				start_tx();
 			}
 		} else {
-			progress.set_value(n * 5);
+			progress.set_value(n);
 		}
 	}
 }
@@ -295,6 +295,8 @@ XylosView::XylosView(NavigationView& nav) {
 	header_code_b.set_value(0);
 	options_freq.set_selected_index(5);
 	tempo_cligno.set_value(5);
+	
+	progress.set_max(20);
 	
 	options_ra.set_selected_index(1);		// R1 OFF
 	

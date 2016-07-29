@@ -64,9 +64,8 @@ private:
 	};
 	char litteral[5][8];
 	char rgsb[5];
-	char lcr_message[256];
-	char lcr_string[256];			// For debugging, can remove
-	char lcr_message_data[256];
+	char lcr_message[512];
+	char lcr_message_data[512];
 	char checksum = 0;
 	rf::Frequency f;
 	uint8_t repeat_index;
@@ -116,6 +115,7 @@ private:
 	
 	std::array<Button, 5> buttons;
 	std::array<Checkbox, 5> checkboxes;
+	std::array<Rectangle, 5> rectangles;
 
 	Text text_recap {
 		{ 8, 6, 18 * 8, 16 },

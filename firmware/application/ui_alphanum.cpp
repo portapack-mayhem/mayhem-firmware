@@ -48,6 +48,7 @@ AlphanumView::AlphanumView(
 ) {
 	_max_len = max_len;
 	_lowercase = false;
+	size_t n;
 	
 	static constexpr Style style_alpha {
 		.font = font::fixed_8x16,
@@ -63,6 +64,11 @@ AlphanumView::AlphanumView(
 	
 	txtidx = strlen(txt);
 	memcpy(txtinput, txt, max_len + 1);
+	n = txtidx;
+	while (n && (txtinput[n - 1] == ' ')) {
+		txtinput[--n] = 0;
+		txtidx--;
+	}
 	
 	add_child(&text_input);
 
@@ -70,7 +76,7 @@ AlphanumView::AlphanumView(
 		this->on_button(button);
 	};
 
-	size_t n = 0;
+	n = 0;
 	for(auto& button : buttons) {
 		button.on_select = button_fn;
 		button.set_parent_rect({
@@ -88,7 +94,7 @@ AlphanumView::AlphanumView(
 	set_uppercase();
 	
 	add_child(&button_lowercase);
-	button_lowercase.on_select = [this, &nav, txt, max_len](Button&) {
+	button_lowercase.on_select = [this, &nav, max_len](Button&) {
 		if (_lowercase == true) {
 			_lowercase = false;
 			button_lowercase.set_text("UC");
@@ -191,12 +197,12 @@ void AlphanumView::char_add(const char c) {
 void AlphanumView::char_delete() {
 	if (txtidx) {
 		txtidx--;
-		txtinput[txtidx] = ' ';
+		txtinput[txtidx] = 0;
 	}
 }
 
 void AlphanumView::update_text() {
-	text_input.set(txtinput);
+	text_input.set(std::string(txtinput) + std::string(_max_len - strlen(txtinput), ' '));
 	move_cursor();
 }
 

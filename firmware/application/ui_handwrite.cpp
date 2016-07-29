@@ -47,12 +47,18 @@ HandWriteView::HandWriteView(
 ) {
 	const char special_chars[5] = {'\'', '.', '?', '!', '='}; 
 	_max_len = max_len;
+	size_t n;
 	
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
 	
 	txtidx = strlen(txt);
 	memcpy(txtinput, txt, max_len + 1);
+	n = txtidx;
+	while (n && (txtinput[n - 1] == ' ')) {
+		txtinput[--n] = 0;
+		txtidx--;
+	}
 
 	add_children({ {
 		&text_input,
@@ -64,7 +70,7 @@ HandWriteView::HandWriteView(
 		this->on_button(button);
 	};
 
-	size_t n = 0;
+	n = 0;
 	for(auto& button : num_buttons) {
 		add_child(&button);
 		button.on_select = button_fn;

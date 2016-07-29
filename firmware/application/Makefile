@@ -3654,30 +3654,6 @@ ui_closecall.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.s
 .PHONY : ui_closecall.cpp.s
 
-ui_console.obj: ui_console.cpp.obj
-.PHONY : ui_console.obj
-
-# target to build an object file
-ui_console.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_console.cpp.obj
-.PHONY : ui_console.cpp.obj
-
-ui_console.i: ui_console.cpp.i
-.PHONY : ui_console.i
-
-# target to preprocess a source file
-ui_console.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_console.cpp.i
-.PHONY : ui_console.cpp.i
-
-ui_console.s: ui_console.cpp.s
-.PHONY : ui_console.s
-
-# target to generate assembly for a file
-ui_console.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_console.cpp.s
-.PHONY : ui_console.cpp.s
-
 ui_debug.obj: ui_debug.cpp.obj
 .PHONY : ui_debug.obj
 
@@ -4585,9 +4561,6 @@ help:
 	@echo "... ui_closecall.obj"
 	@echo "... ui_closecall.i"
 	@echo "... ui_closecall.s"
-	@echo "... ui_console.obj"
-	@echo "... ui_console.i"
-	@echo "... ui_console.s"
 	@echo "... ui_debug.obj"
 	@echo "... ui_debug.i"
 	@echo "... ui_debug.s"

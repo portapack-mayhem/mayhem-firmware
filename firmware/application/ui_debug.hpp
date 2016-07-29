@@ -240,40 +240,20 @@ private:
 
 class DebugLCRView : public View {
 public:
-	DebugLCRView(NavigationView& nav, char* lcrstring, uint8_t checksum);
+	DebugLCRView(NavigationView& nav, std::string lcrstring, uint8_t checksum);
 
 	void focus() override;
+	
+	std::string title() const override { return "LCR debug"; };
 
 private:
-	Text text_lcr1 {
-		{ 16, 32, 208, 8 },
-		""
-	};
-	Text text_lcr2 {
-		{ 16, 32+16, 208, 8 },
-		""
-	};
-	Text text_lcr3 {
-		{ 16, 32+16+16, 208, 8 },
-		""
-	};
-	Text text_lcr4 {
-		{ 16, 32+16+16+16, 208, 8 },
-		""
-	};
-	Text text_lcr5 {
-		{ 16, 32+16+16+16+16, 208, 8 },
-		""
+	Console console {
+		{ 8, 16, 224, 240 }
 	};
 	
-	Text text_checksum {
-		{ 16, 32+16+16+16+16+16+32, 208, 8 },
-		""
-	};
-	
-	Button button_done {
-		{ 72, 240, 96, 24 },
-		"Done"
+	Button button_exit {
+		{ 72, 264, 96, 32 },
+		"Exit"
 	};
 };
 

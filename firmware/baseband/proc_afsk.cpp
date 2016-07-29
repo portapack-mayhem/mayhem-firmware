@@ -43,7 +43,7 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 				if (configured == true) {
 					cur_byte = message_data[byte_pos];
 					ext_byte = message_data[byte_pos + 1];
-					if (!cur_byte) {
+					if (!(cur_byte | ext_byte)) {
 						if (repeat_counter < afsk_repeat) {
 							bit_pos = 0;
 							byte_pos = 0;
@@ -62,18 +62,18 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 					}
 				}
 				
-				if (afsk_alt_format) {
-					// 0bbbbbbbbp
-					// Start, 8-bit data, parity
-					gbyte = 0;
-					gbyte = cur_byte << 1;
-					gbyte |= (ext_byte & 1);
-				} else {
+				if (!afsk_alt_format) {
 					// 0bbbbbbbp1
 					// Start, 7-bit data, parity, stop
 					gbyte = 0;
 					gbyte = cur_byte << 1;
 					gbyte |= 1;
+				} else {
+					// 0bbbbbbbbp
+					// Start, 8-bit data, parity
+					gbyte = 0;
+					gbyte = cur_byte << 1;
+					gbyte |= (ext_byte & 1);
 				}
 				
 				cur_bit = (gbyte >> (9 - bit_pos)) & 1;
@@ -120,7 +120,7 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 void AFSKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(p);
 	if (message.id == Message::ID::AFSKConfigure) {
-		memcpy(message_data, message.message_data, 256);
+		memcpy(message_data, message.message_data, 512);
 		afsk_samples_per_bit = message.afsk_samples_per_bit;
 		afsk_phase_inc_mark = message.afsk_phase_inc_mark;
 		afsk_phase_inc_space = message.afsk_phase_inc_space;
@@ -128,6 +128,7 @@ void AFSKProcessor::on_message(const Message* const p) {
 		afsk_bw = message.afsk_bw;
 		afsk_alt_format = message.afsk_alt_format;
 	
+		sample_count = afsk_samples_per_bit;
 		repeat_counter = 0;
 		bit_pos = 0;
 		byte_pos = 0;
