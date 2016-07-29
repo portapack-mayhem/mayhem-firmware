@@ -1194,6 +1194,7 @@ FRESULT change_bitmap (
 			} while (bm <<= 1);		/* Next bit */
 			bm = 1;
 		} while (++i < SS(fs));		/* Next byte */
+		i = 0;
 	}
 }
 
@@ -1263,7 +1264,7 @@ FRESULT remove_chain (	/* FR_OK(0):succeeded, !=0:error */
 			res = put_fat(fs, clst, 0);		/* Mark the cluster 'free' on the FAT */
 			if (res != FR_OK) return res;
 		}
-		if (fs->free_clst != 0xFFFFFFFF) {	/* Update FSINFO */
+		if (fs->free_clst < fs->n_fatent - 2) {	/* Update FSINFO */
 			fs->free_clst++;
 			fs->fsi_flag |= 1;
 		}
@@ -3566,9 +3567,8 @@ FRESULT f_write (
 	if (res != FR_OK || (res = (FRESULT)fp->err) != FR_OK) LEAVE_FF(fs, res);	/* Check validity */
 	if (!(fp->flag & FA_WRITE)) LEAVE_FF(fs, FR_DENIED);	/* Check access mode */
 
-	/* Check fptr wrap-around (file size cannot exceed the limit on each FAT specs) */
-	if ((_FS_EXFAT && fs->fs_type == FS_EXFAT && fp->fptr + btw < fp->fptr)
-		|| (DWORD)fp->fptr + btw < (DWORD)fp->fptr) {
+	/* Check fptr wrap-around (file size cannot reach 4GiB on FATxx) */
+	if ((!_FS_EXFAT || fs->fs_type != FS_EXFAT) && (DWORD)(fp->fptr + btw) < (DWORD)fp->fptr) {
 		btw = (UINT)(0xFFFFFFFF - (DWORD)fp->fptr);
 	}
 
@@ -5101,8 +5101,8 @@ FRESULT f_expand (
 		}
 		if (res == FR_OK) {
 			if (opt) {
-				for (clst = scl; tcl; clst++, tcl--) {	/* Create a cluster chain on the FAT */
-					res = put_fat(fs, clst, (tcl == 1) ? 0xFFFFFFFF : clst + 1);
+				for (clst = scl, n = tcl; n; clst++, n--) {	/* Create a cluster chain on the FAT */
+					res = put_fat(fs, clst, (n == 1) ? 0xFFFFFFFF : clst + 1);
 					if (res != FR_OK) break;
 					lclst = clst;
 				}
@@ -5112,12 +5112,18 @@ FRESULT f_expand (
 		}
 	}
 
-	if (opt && res == FR_OK) {
+	if (res == FR_OK) {
 		fs->last_clst = lclst;		/* Set suggested start cluster to start next */
-		fp->obj.sclust = scl;		/* Update object allocation information */
-		fp->obj.objsize = fsz;
-		if (_FS_EXFAT) fp->obj.stat = 2;	/* Set status 'contiguous chain' */
-		fp->flag |= FA_MODIFIED;
+		if (opt) {
+			fp->obj.sclust = scl;		/* Update object allocation information */
+			fp->obj.objsize = fsz;
+			if (_FS_EXFAT) fp->obj.stat = 2;	/* Set status 'contiguous chain' */
+			fp->flag |= FA_MODIFIED;
+			if (fs->free_clst  < fs->n_fatent - 2) {	/* Update FSINFO */
+				fs->free_clst -= tcl;
+				fs->fsi_flag |= 1;
+			}
+		}
 	}
 
 	LEAVE_FF(fs, res);
