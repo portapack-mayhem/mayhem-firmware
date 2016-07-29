@@ -39,9 +39,9 @@ int f_error (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>In this revision, this function is implemented as a macro. It has not any validation and mutual exclusion.</p>
+<p>In this revision, this function is implemented as a macro. It does not have any validation and mutual exclusion.</p>
 <pre>
-<span class="k">#define</span> f_error(fp) ((fp)->flag)
+<span class="k">#define</span> f_error(fp) ((fp)->err)
 </pre>
 </div>
 

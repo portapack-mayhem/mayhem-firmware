@@ -16,20 +16,15 @@
 <p>The <tt>DIR</tt> structure is used for the work area to read a directory by <tt>f_oepndir</tt>, <tt>f_readdir</tt>, <tt>f_findfirst</tt> and <tt>f_findnext</tt> function. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
-    FATFS*  fs;         <span class="c">/* Pointer to the owner file system object */</span>
-    WORD    id;         <span class="c">/* Owner file system mount ID */</span>
-    WORD    index;      <span class="c">/* Index of directory entry to start to search next */</span>
-    DWORD   sclust;     <span class="c">/* Table start cluster (0:Root directory) */</span>
+    _FDID   obj;        <span class="c">/* Owner file sytem object and object identifier */</span>
+    DWORD   dptr;       <span class="c">/* Current read/write offset */</span>
     DWORD   clust;      <span class="c">/* Current cluster */</span>
     DWORD   sect;       <span class="c">/* Current sector */</span>
     BYTE*   dir;        <span class="c">/* Pointer to the current SFN entry in the win[] */</span>
     BYTE*   fn;         <span class="c">/* Pointer to the SFN buffer (in/out) {file[8],ext[3],status[1]} */</span>
-<span class="k">#if</span> _FS_LOCK
-    UINT    lockid;     <span class="c">/* Sub-directory lock ID (0:Root directory) */</span>
-<span class="k">#endif</span>
 <span class="k">#if</span> _USE_LFN
-    WCHAR*  lfn;        <span class="c">/* Pointer to the LFN buffer (in/out) */</span>
-    WORD    lfn_idx;    <span class="c">/* Index of the LFN entris (0xFFFF:No LFN) */</span>
+    DWORD   blk_ofs;    <span class="c">/* Offset of the entry block (0xFFFFFFFF:Invalid) */</span>
+    WCHAR*  lfn;        <span class="c">/* Pointer to the LFN working buffer (in/out) */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> _USE_FIND
     const TCHAR*  pat;  <span class="c">/* Ponter to the matching pattern */</span>

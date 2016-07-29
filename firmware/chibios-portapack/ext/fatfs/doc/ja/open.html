@@ -37,9 +37,10 @@ FRESULT f_open (
 <tr><td>FA_READ</td><td>読み出しモードで開きます。読み書きする場合は<tt>FA_WRITE</tt>と共に指定します。</td></tr>
 <tr><td>FA_WRITE</td><td>書き込みモードで開きます。読み書きする場合は<tt>FA_READ</tt>と共に指定します。</td></tr>
 <tr><td>FA_OPEN_EXISTING</td><td>既存のファイルを開きます。ファイルが無いときはエラーになります。(デフォルト)</td></tr>
-<tr><td>FA_OPEN_ALWAYS</td><td>既存のファイルを開きます。ファイルが無いときはファイルを作成します。追記の場合は、この方法でオープンした後、<a href="lseek.html"><tt>f_lseek</tt></a>関数でファイルの最後尾に移動してください。</td></tr>
 <tr><td>FA_CREATE_NEW</td><td>ファイルを作成します。同名のファイルがある場合は、<tt>FR_EXIST</tt>で失敗します。</td></tr>
 <tr><td>FA_CREATE_ALWAYS</td><td>ファイルを作成します。同名のファイルがある場合は、サイズを0にしてから開きます。</td></tr>
+<tr><td>FA_OPEN_ALWAYS</td><td>既存のファイルを開きます。ファイルが無いときはファイルを作成します。</td></tr>
+<tr><td>FA_OPEN_APPEND</td><td><tt>FA_OPEN_ALWAYS</tt>と同じですが、リード/ライト ポインタはファイルの最後尾にセットされます。</td></tr>
 </table>
 </dd>
 </dl>
@@ -75,13 +76,13 @@ FRESULT f_open (
 <h4>解説</h4>
 <p>既存のファイルを開いたり、新しいファイルを作成します。関数が成功するとファイル オブジェクトが作成され、以降そのファイルに対するアクセスに使用します。ファイルを閉じるときは、<a href="close.html"><tt>f_close</tt></a>関数を使用します。何らかの変更が行われたファイルがその後正しく閉じられなかった場合、そのファイルが破損する場合があります。</p>
 <p>既に開かれているファイルを開く必要がある場合は、<a href="appnote.html#dup">多重アクセス制御</a>を参照してください。しかし、一つのファイルに対する書き込みモードを含む重複オープンは常に禁止です。</p>
-<p>ファイル アクセスを開始する前に、<a href="mount.html"><tt>f_mount</tt></a>関数を使ってそれぞれの論理ドライブにワーク エリア(ファイル システム オブジェクト)を与える必要があります。この初期化の後、その論理ドライブに対して全てのファイル関数が使えるようになります。</p>
+<p>ファイル アクセスを開始する前に、<a href="mount.html"><tt>f_mount</tt></a>関数を使ってそれぞれの論理ドライブにワーク エリア(ファイル システム オブジェクト)を与える必要があります。この初期化の後、その論理ドライブに対して全てのファイル関数が使えるようになります。<tt>f_mkfs</tt>関数と<tt>f_fdsk</tt>関数は、ワークエリア無しでも使えます。</p>
 </div>
 
 
 <div class="para comp">
 <h4>対応情報</h4>
-<p>全ての構成で使用可能です。<tt>_FS_READONLY == 1</tt>のときは、<tt>FA_WRITE, FA_CREATE_ALWAYS, FA_CREATE_NEW, FA_OPEN_ALWAYS</tt>の各フラグはサポートされません。</p>
+<p>全ての構成で使用可能です。<tt>_FS_READONLY == 1</tt>のときは、<tt>FA_READ</tt>と<tt>FA_OPEN_EXISTING</tt>以外の各フラグはサポートされません。</p>
 </div>
 
 

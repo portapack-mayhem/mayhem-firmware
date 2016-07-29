@@ -16,9 +16,9 @@
 <p>物理ドライブを分割します。</p>
 <pre>
 FRESULT f_fdisk (
-  BYTE  <span class="arg">pdrv</span>,         <span class="c">/* [IN] 物理ドライブ番号 */</span>
-  const DWORD <span class="arg">part[]</span>, <span class="c">/* [IN] 区画マップ テーブル */</span>
-  void* <span class="arg">work</span>          <span class="c">/* [-] ワークエリア */</span>
+  BYTE  <span class="arg">pdrv</span>,       <span class="c">/* [IN] 物理ドライブ番号 */</span>
+  const DWORD* <span class="arg">szt</span>, <span class="c">/* [IN] 区画サイズ テーブル */</span>
+  void* <span class="arg">work</span>        <span class="c">/* [-] ワークエリア */</span>
 );
 </pre>
 </div>
@@ -27,9 +27,9 @@ FRESULT f_fdisk (
 <h4>引数</h4>
 <dl class="par">
 <dt>pdrv</dt>
-<dd>分割する<em>物理ドライブ</em>のドライブ番号を指定します。</dd>
-<dt>part[]</dt>
-<dd>区画マップ テーブルへのポインタを指定します。</dd>
+<dd>分割する<em>物理ドライブ</em>を指定します。これは論理ドライブ番号ではなく、ディスク関数に渡される物理ドライブ番号です。</dd>
+<dt>szt</dt>
+<dd>区画サイズ テーブルの先頭項目へのポインタを指定します。</dd>
 <dt>work</dt>
 <dd>ワークエリアへのポインタを指定します。サイズは<tt>_MAX_SS</tt>バイト必要です。</dd>
 </dl>
@@ -48,7 +48,7 @@ FRESULT f_fdisk (
 
 <div class="para desc">
 <h4>説明</h4>
-<p>この関数は、指定された物理ドライブのMBRに区画テーブルを作成します。区画分けは一般的なFDISK形式で行うため、最大4つの基本区画を作成することができます。拡張区画には対応していません。区画マップテーブル<tt class="arg">part[]</tt>にはドライブをどのように分割するか指定して渡します。この配列は4つの項目から成り、先頭の項目が1番目の、最後の項目が4番目の区画のサイズを示します。値が100以下の場合、ドライブの総容量に対する割合をパーセント単位で指定します。100を超える値の場合はセクタ数の直接指定になります。</p>
+<p>この関数は、指定された物理ドライブのMBRに区画テーブルを作成します。区画分けは一般的なFDISK形式で行うため、最大4つの基本区画を作成することができます。拡張区画には対応していません。区画サイズ テーブルにはドライブをどのように分割するか指定します。この配列は4つの項目から成り、先頭の項目が1番目の区画のサイズを示します。項目の値が100以下の場合、その区画のドライブの総容量に対する割合をパーセント単位で指定します。100を超える値の場合はセクタ数の直接指定になります。ドライブ上への区画の配置順は、項目順になります。</p>
 </div>
 
 <div class="para comp">
@@ -71,27 +71,22 @@ FRESULT f_fdisk (
     <span class="c">/* 新しい物理ドライブ(0)の初期化 */</span>
 
     FATFS fs;
-    DWORD plist[] = {50, 50, 0, 0};  <span class="c">/* 2分割 */</span>
+    DWORD plist[] = {50, 50, 0, 0};  <span class="c">/* 第1区画,第2区画それぞれに50%ずつ割り当て */</span>
     BYTE work[_MAX_SS];
 
-    f_fdisk(0, plist, work);  <span class="c">/* 物理ドライブ 0 の分割 */</span>
+    f_fdisk(0, plist, work);                    <span class="c">/* 物理ドライブ 0 の分割 */</span>
 
-    f_mount(&amp;fs "0:", 0);
-    f_mkfs("0:", 0, 0);       <span class="c">/* 論理ドライブ 0 のフォーマット. 第二引数は無視される.  */</span>
-    f_mount(0, "0:", 0);
-
-    f_mount(&amp;fs, "1:", 0);
-    f_mkfs("1:", 0, 0);       <span class="c">/* 論理ドライブ 0 のフォーマット. 第二引数は無視される.  */</span>
-    f_mount(0, "1:", 0);
+    f_mkfs("0:", FMT_ANY, work, sizeof work);   <span class="c">/* 論理ドライブ 0: のフォーマット */</span>
+    f_mkfs("1:", FMT_ANY, work, sizeof work);   <span class="c">/* 論理ドライブ 1: のフォーマット */</span>
 
 </pre>
 </div>
 
 <div class="para ref">
-<h4>See Also</h4>
-<p><tt><a href="filename.html#vol">Volume management</a>, <a href="mkfs.html">f_mkfs</a></tt></p>
+<h4>参照</h4>
+<p><tt><a href="filename.html#vol">ボリューム管理</a>, <a href="mkfs.html">f_mkfs</a></tt></p>
 </div>
 
-<p class="foot"><a href="../00index_j.html">Return</a></p>
+<p class="foot"><a href="../00index_j.html">戻る</a></p>
 </body>
 </html>

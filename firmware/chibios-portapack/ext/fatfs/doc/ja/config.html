@@ -43,19 +43,25 @@ div.doc h4 {margin-top: 2em }
 </table>
 
 <h4 id="use_find">_USE_FIND</h4>
-<p>フィルタ付きディレクトリ読み出し機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_findfirst</tt>、<tt>f_findnext</tt>関数が利用可能になります。</p>
+<p>フィルタ付きディレクトリ読み出し機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_findfirst</tt>、<tt>f_findnext</tt>関数が利用可能になります。<tt>_FS_MINIMIZE</tt>は、1以下でなければなりません。</p>
 
 <h4 id="use_mkfs">_USE_MKFS</h4>
 <p>ボリューム作成機能の構成(0:無効 または 1:有効)。有効にすると<tt>f_mkfs</tt>関数が利用可能になります。</p>
 
 <h4 id="use_fastseek">_USE_FASTSEEK</h4>
-<p>高速シーク機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_lseek</tt>、<tt>f_read</tt>、<tt>f_write</tt>関数の高速化モードが利用可能になります。詳しくは、<a href="lseek.html">こちら</a>を参照してください。</p>
+<p>高速シーク機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_lseek</tt>、<tt>f_read</tt>、<tt>f_write</tt>関数において高速化モードが利用可能になります。詳しくは、<a href="lseek.html">こちら</a>を参照してください。</p>
+
+<h4 id="use_expand">_USE_EXPAND</h4>
+<p>連続領域割り当て機能の構成(0:無効 または 1:有効)。有効にすると<tt>f_expand</tt>関数が利用可能になります。<tt>_FS_READONLY</tt>は0でなければなりません。</p>
+
+<h4 id="use_chmod">_USE_CHMOD</h4>
+<p>メタデータ操作機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_chmod</tt>、<tt>f_utime</tt>関数が利用可能になります。<tt>_FS_READONLY</tt>は0でなければなりません。</p>
 
 <h4 id="use_label">_USE_LABEL</h4>
-<p>ボリューム ラベル操作機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_getlabel</tt>、<tt>f_setlabel</tt>関数が利用可能になります。</p>
+<p>ボリューム ラベル操作機能の構成(0:無効 または 1:有効)。有効にすると、<tt>f_getlabel</tt>、<tt>f_setlabel</tt>関数(<tt>_FS_READONLY == 0</tt>のとき)が利用可能になります。</p>
 
 <h4 id="use_forward">_USE_FORWARD</h4>
-<p>ストリーミング読み出し機能の構成(0:無効 または 1:有効)。これと<tt>_FS_TINY</tt>を有効にすると、<tt>f_forward</tt>関数が利用可能になります。</p>
+<p>ストリーミング読み出し機能(<tt>f_forward</tt>関数)の構成(0:無効 または 1:有効)。</p>
 
 </div>
 
@@ -92,13 +98,13 @@ div.doc h4 {margin-top: 2em }
 </table>
 
 <h4 id="use_lfn">_USE_LFN</h4>
-<p>LFN(長いファイル名)対応を設定します。LFN機能を有効にするときは、Unicode操作関数<tt>option/unicode.c</tt>をプロジェクトに加える必要があります。また、LFN操作バッファ(<tt>(_MAX_LFN + 1) * 2</tt>バイトを占有)を使用します。バッファをスタックに確保するときは、スタック オーバ フローに注意する必要があります。ヒープに確保するときは、メモリ操作関数、<tt>ff_memalloc</tt>と<tt>ff_memfree</tt>(<tt>option/syscall.c</tt>にサンプルあり)、をプロジェクトに加える必要があります。</p>
+<p>LFN(長いファイル名)対応を設定します。LFN機能を有効にするときは、Unicode操作関数<tt>option/unicode.c</tt>をプロジェクトに加える必要があります。また、LFN操作のワーク エリアとして<tt>(_MAX_LFN + 1) * 2</tt>バイト(exFAT構成時はさらに608バイト)を使用します。このため、バッファをスタックに確保するときは、スタック オーバ フローに注意する必要があります。ヒープに確保するときは、メモリ操作関数(<tt>ff_memalloc</tt>と<tt>ff_memfree</tt>(<tt>option/syscall.c</tt>にサンプルあり))をプロジェクトに加える必要があります。</p>
 <table class="lst1">
 <tr><th>値</th><th>解説</th></tr>
 <tr><td>0</td><td>LFN機能を使わない。8.3形式の名前のみ使用可能。</td></tr>
-<tr><td>1</td><td>LFN機能を使う。LFN操作バッファは静的に確保。常にスレッド セーフではない。</td></tr>
-<tr><td>2</td><td>LFN機能を使う。LFN操作バッファはスタックから確保。</td></tr>
-<tr><td>3</td><td>LFN機能を使う。LFN操作バッファはヒープから確保。</td></tr>
+<tr><td>1</td><td>LFN機能を使う。ワーク エリアは静的に確保。常にスレッド セーフではない。</td></tr>
+<tr><td>2</td><td>LFN機能を使う。ワーク エリアはスタックに確保。</td></tr>
+<tr><td>3</td><td>LFN機能を使う。ワーク エリアはヒープに確保。</td></tr>
 </table>
 
 <h4 id="max_lfn">_MAX_LFN</h4>
@@ -169,6 +175,9 @@ div.doc h4 {margin-top: 2em }
 <h4 id="fs_tiny">_FS_TINY</h4>
 <p>ファイル データ転送バッファの構成(0:ノーマル または 1:タイニ)。タイニ構成では、ファイル オブジェクト<tt>FIL</tt>内のプライベート セクタ バッファが削除され、<tt>_MAX_SS</tt>バイト小さくなります。ファイル データの転送には、代わりにファイル システム オブジェクト<tt>FATFS</tt>内のボリューム共有セクタ バッファが使われます。</p>
 
+<h4 id="fs_exfat">_FS_EXFAT</h4>
+<p>exFATのサポート(0:使用しない または 1:使用する)。exFATを使用するには、LFN機能を有効にしなければなりません。また、exFATの完全サポートのためには、<tt>_LFN_UNICODE = 1</tt>と<tt>_MAX_LFN = 255</tt>の設定が推奨されます。exFAT機能では64ビット整数を使用するため、これを有効にするとC89(ANSI C)互換が失われます。</p>
+
 <h4 id="fs_nortc">_FS_NORTC</h4>
 <p>RTC機能の使用の設定(0:使用する または 1:使用しない)。システムがRTC(カレンダ時計)をサポートしない場合は、1をセットします。この場合、FatFsが変更を加えたオブジェクトのタイムスタンプはデフォルトの日時を持ちます。RTCが使用可能なときは、0を設定し、<tt>get_fattime</tt>関数をプロジェクトに加えます。リード オンリ構成ではこのオプションは意味を持ちません。</p>
 
@@ -192,31 +201,6 @@ div.doc h4 {margin-top: 2em }
 
 <h4 id="sync_t">_SYNC_t</h4>
 <p>O/S定義の同期オブジェクトの型を設定します。例: <tt>HANDLE</tt>、<tt>ID</tt>、<tt>OS_EVENT*</tt>、<tt>SemaphoreHandle_t</tt>など。また、O/S機能のヘッダ ファイルを<tt>ff.c</tt>のスコープ内にインクルードする必要があります。<tt>_FS_REENTRANT</tt>が0のときは意味を持ちません。</p>
-
-<h4 id="word_access">_WORD_ACCESS</h4>
-<p>ボリューム上のワード データへのアクセス方法を設定します。唯一のプラットフォーム依存オプションです。</p>
-<table class="lst1">
-<tr><th>値</th><th>解説</th></tr>
-<tr><td>0</td><td>Byte-by-byteアクセス。全てのプラットフォームでコンパチブル。</td></tr>
-<tr><td>1</td><td>ワード アクセス。コード サイズが少し減るが、次の条件を共に満たしていない限り選択できない。<br>
-・非アライン メモリ アクセスが常に全ての命令で使用可能。<br>
-・メモリ上のバイト順がリトル エンディアン。</td></tr>
-</table>
-<p>次にいくつかのプロセッサにおける許可された設定を示します。</p>
-<pre>
-   ARM7TDMI   0   *2          ColdFire   0    *1         V850E      0    *2
-   Cortex-M3  0   *3          Z80        0/1             V850ES     0/1
-   Cortex-M0  0   *2          x86        0/1             TLCS-870   0/1
-   AVR        0/1             RX600(LE)  0/1             TLCS-900   0/1
-   AVR32      0   *1          RL78       0    *2         R32C       0    *2
-   PIC18      0/1             SH-2       0    *1         M16C       0/1
-   PIC24      0   *2          H8S        0    *1         MSP430     0    *2
-   PIC32      0   *1          H8/300H    0    *1         8051       0/1
-
-   *1:ビッグ エンディアン
-   *2:非アライン メモリ アクセス不可
-   *3:いくつかのコンパイラがmem_cpy関数にLDM/STM命令を生成する
-</pre>
 
 </div>
 

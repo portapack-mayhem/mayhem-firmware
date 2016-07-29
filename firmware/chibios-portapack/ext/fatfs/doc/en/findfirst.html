@@ -34,7 +34,7 @@ FRESULT f_findfirst (
 <dt>path</dt>
 <dd>Pointer to the null-terminated string that specifies the <a href="filename.html">directory name</a> to be opened.</dd>
 <dt>pattern</dt>
-<dd>Pointer to the null-terminated string that specifies the name matching pattern to be searched for. It is referred by also subsequent <tt>f_findnext</tt> function, so that the string must be valid while the successive function calls.</dd>
+<dd>Pointer to the nul-terminated string that specifies the name matching pattern to be searched for. It is referred by also subsequent <tt>f_findnext</tt> function, so that the string must be valid while the successive function calls.</dd>
 </dl>
 </div>
 
@@ -61,11 +61,11 @@ FRESULT f_findfirst (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>After the directory specified by <tt class="arg">path</tt> could be opened, it starts to search the directory for the item with a name specified by <tt class="arg">pattern</tt>. If found, the information about the object is stored into the file information structure. For more information about file information structure, refer to <a href="readdir.html"><tt>f_readdir</tt></a> function.</p>
-<p>The matching pattern can contain wildcard characters (<tt>?</tt> and <tt>*</tt>). A <tt>?</tt> matches an any character and an <tt>*</tt> matches an any string in length of zero or longer. At LFN configuration, both names of the item, SFN and LFN (if exist), are tested. In this revision, there are some differences listed below between FatFs and standard systems in matching condition.</p>
+<p>After the directory specified by <tt class="arg">path</tt> could be opened, it starts to search the directory for the items with a name specified by <tt class="arg">pattern</tt>. If found, the information about the object is stored into the file information structure. For more information about file information structure, refer to <a href="readdir.html"><tt>f_readdir</tt></a> function.</p>
+<p>The matching pattern can contain wildcard characters (<tt>?</tt> and <tt>*</tt>). A <tt>?</tt> matches an any character and an <tt>*</tt> matches an any string in length of zero or longer. When support of long file name is enabled, only <tt>fname[]</tt> is tested at <tt>_USE_FIND == 1</tt> and also <tt>altname[]</tt> is tested at <tt>_USE_FIND == 2</tt>. In this revision, there are some differences listed below between FatFs and standard systems in matching condition.</p>
 <ul>
-<li><tt>"*.*"</tt> never matches any name without extension. (It matches all names at the standard systems)</li>
-<li>Any pattern terminated with a period never matches any name. (It matches the names without extensiton at the standard systems)</li>
+<li><tt>"*.*"</tt> never matches any name without extension while it matches any names at the standard systems.</li>
+<li>Any patterns terminated with a period never matches any name while it matches any names without extensiton at the standard systems.</li>
 <li><a href="filename.html#case">DBCS extended characters</a> are compared in case-sensitive at LFN with non-Unicode configuration.</li>
 </ul>
 </div>
@@ -73,7 +73,7 @@ FRESULT f_findfirst (
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>This is a wrapper function of <a href="opendir.html"><tt>f_opendir</tt></a> and <a href="readdir.html"><tt>f_readdir</tt></a> function. Available when <tt>_USE_FIND == 1</tt> and <tt>_FS_MINIMIZE &lt;= 1</tt>.</p>
+<p>This is a wrapper function of <a href="opendir.html"><tt>f_opendir</tt></a> and <a href="readdir.html"><tt>f_readdir</tt></a> function. Available when <tt>_USE_FIND &gt;= 1</tt> and <tt>_FS_MINIMIZE &lt;= 1</tt>.</p>
 </div>
 
 
@@ -87,20 +87,11 @@ void find_image (void)
     FRESULT fr;     <span class="c">/* Return value */</span>
     DIR dj;         <span class="c">/* Directory search object */</span>
     FILINFO fno;    <span class="c">/* File information */</span>
-<span class="k">#if</span> _USE_LFN
-    char lfn[_MAX_LFN + 1];
-    fno.lfname = lfn;
-    fno.lfsize = _MAX_LFN + 1;
-<span class="k">#endif</span>
 
-    fr = f_findfirst(&amp;dj, &amp;fno, "", "dsc*.jpg");  <span class="c">/* Start to search for JPEG files with the name started by "dsc" */</span>
+    fr = f_findfirst(&amp;dj, &amp;fno, "", "dsc*.jpg");  <span class="c">/* Start to search for photo files */</span>
 
     while (fr == FR_OK &amp;&amp; fno.fname[0]) {         <span class="c">/* Repeat while an item is found */</span>
-<span class="k">#if</span> _USE_LFN
-        printf("%-12s  %s\n", fno.fname, fno.lfname);<span class="c">/* Display the item name */</span>
-<span class="k">#else</span>
-        printf("%s\n", fno.fname);
-<span class="k">#endif</span>
+        printf("%s\n", fno.fname);                <span class="c">/* Display the object name */</span>
         fr = f_findnext(&amp;dj, &amp;fno);               <span class="c">/* Search for next item */</span>
     }
     f_closedir(&amp;dj);

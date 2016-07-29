@@ -60,7 +60,7 @@ FRESULT f_forward (
 
 <div class="para comp">
 <h4>対応情報</h4>
-<p><tt>_USE_FORWARD == 1</tt>で、且つ<tt>_FS_TINY == 1</tt>のときに使用可能です。</p>
+<p><tt>_USE_FORWARD == 1</tt>のときに使用可能です。</p>
 </div>
 
 
@@ -113,7 +113,7 @@ FRESULT play_file (
     if (rc) return rc;
 
     <span class="c">/* 全てのデータが転送されるかエラーが発生するまで続ける */</span>
-    while (rc == FR_OK &amp;&amp; !f_eof(&fil)) {
+    while (rc == FR_OK &amp;&amp; !f_eof(&amp;fil)) {
 
         <span class="c">/* ほかの処理... */</span>
 

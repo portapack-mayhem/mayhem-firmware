@@ -17,14 +17,11 @@
 
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
-    FATFS*  fs;           <span class="c">/* 親ファイル システム オブジェクトへのポインタ */</span>
-    WORD    id;           <span class="c">/* 親ファイル システム オブジェクトのマウントID */</span>
+    _FDID   obj;          <span class="c">/* オブジェクトID */</span>
     BYTE    flag;         <span class="c">/* ファイル ステータス フラグ */</span>
     BYTE    err;          <span class="c">/* エラー中断フラグ */</span>
-    DWORD   fptr;         <span class="c">/* ファイル読み書きポインタ (ファイル先頭からのバイト オフセット) */</span>
-    DWORD   fsize;        <span class="c">/* ファイル サイズ(バイト単位) */</span>
-    DWORD   sclust;       <span class="c">/* ファイル開始クラスタ番号 (0:割り当て無し) */</span>
-    DWORD   clust;        <span class="c">/* 現在のクラスタ (fptrが0のときは無効、fptrがクラスタ境界上のときは前のクラスタ) */</span>
+    FSIZE_t fptr;         <span class="c">/* ファイル読み書きポインタ (ファイル先頭からのバイト オフセット) */</span>
+    DWORD   clust;        <span class="c">/* 現在のクラスタ (fptrがクラスタ境界上のときは前のクラスタ、fptrが0のときは無効) */</span>
     DWORD   dsect;        <span class="c">/* 現在のデータ セクタ */</span>
 <span class="k">#if</span> !_FS_READONLY
     DWORD   dir_sect;     <span class="c">/* このファイルのディレクトリ エントリのあるセクタ */</span>

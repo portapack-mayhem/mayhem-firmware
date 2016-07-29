@@ -6,7 +6,8 @@
 / If the file has been opened without FA_WRITE flag, it only checks if
 / the file is contiguous and returns the resulut.
 /-----------------------------------------------------------------------/
-/ This function can work with FatFs R0.09 to R0.11a.
+/ This function can work with FatFs R0.09 - R0.11a.
+/ It is incompatible with R0.12+. Use f_expand function instead.
 /----------------------------------------------------------------------*/
 
 /* Declarations of FatFs internal functions accessible from applications.

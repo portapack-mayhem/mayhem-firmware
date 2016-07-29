@@ -59,7 +59,7 @@ FRESULT f_forward (
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Available when <tt>_USE_FORWARD == 1</tt> and <tt>_FS_TINY == 1</tt>.</p>
+<p>Available when <tt>_USE_FORWARD == 1</tt>.</p>
 </div>
 
 
@@ -112,7 +112,7 @@ FRESULT play_file (
     if (rc) return rc;
 
     <span class="c">/* Repeat until the file pointer reaches end of the file */</span>
-    while (rc == FR_OK &amp;&amp; !f_eof(&fil)) {
+    while (rc == FR_OK &amp;&amp; !f_eof(&amp;fil)) {
 
         <span class="c">/* any other processes... */</span>
 

@@ -31,7 +31,7 @@ FRESULT f_mount (
 <dt>path</dt>
 <dd>Pointer to the null-terminated string that specifies the <a href="filename.html">logical drive</a>. The string without drive number means the default drive.</dd>
 <dt>opt</dt>
-<dd>Initialization option. 0: Do not mount now (to be mounted later), 1: Force mounted the volume to check if the FAT volume is ready to work.</dd>
+<dd>Initialization option. 0: Do not mount now (to be mounted later), 1: Force mounted the volume to check if the volume is ready to work.</dd>
 </dl>
 </div>
 
@@ -49,15 +49,15 @@ FRESULT f_mount (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_mount</tt> function registers/unregisters a file system object used for the logical drive to the FatFs module as follows:</p>
+<p>The <tt>f_mount</tt> function registers/unregisters a file system object used for the volume (logical drive) to the FatFs module as follows:</p>
 <ol>
 <li>Determines the logical drive which specified by <tt class="arg">path</tt>.</li>
-<li>Clears and unregisters the regsitered work area of the drive.</li>
+<li>Clears and unregisters the regsitered work area of the drive if exist.</li>
 <li>Clears and registers the new work area to the drive if <tt class="arg">fs</tt> is not NULL.</li>
 <li>Performs volume mount process to the drive if forced mount is specified.</li>
 </ol>
 <p>The file system object is the work area needed for each logical drive. It must be given to the logical drive with this function prior to use any other file functions except for <tt>f_fdisk</tt> function to the logical drive. To unregister the work area, specify a NULL to the <tt class="arg">fs</tt>, and then the work area can be discarded.</p>
-<p>If forced mounting is not specified, this function always succeeds regardless of the physical drive status due to delayed mount feature. It only clears (de-initializes) the given work area and registers its address to the internal table. No activity of the physical drive in this function. It can also be used to force de-initialized the registered work area of a logical drive. The volume mount processes, initialize the corresponding physical drive, find the FAT volume in it and initialize the work area, is performed in the subsequent file access functions when either or both of following condition is true.</p>
+<p>If forced mounting is not specified, this function always succeeds regardless of the physical drive status due to delayed mount feature. It only clears (de-initializes) the given work area and registers its address to the internal table. There is no activity of the physical drive in this function. It can also be used to force de-initialized the registered work area of a logical drive. The volume mount processes, initialize the corresponding physical drive, find the FAT volume in it and initialize the work area, is performed in the subsequent file access functions when either or both of following condition is true.</p>
 <ul>
 <li>File system object is not initialized. It is de-initialized by <tt>f_mount</tt> function.</li>
 <li>Physical drive is not initialized. It is de-initialized by system reset or media removal.</li>

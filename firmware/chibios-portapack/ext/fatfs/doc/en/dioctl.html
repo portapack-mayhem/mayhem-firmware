@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>disk_ioctl</h2>
-<p>The disk_ioctl function cntrols device specific features and miscellaneous functions other than generic read/write.</p>
+<p>The disk_ioctl function controls device specific features and miscellaneous functions other than generic read/write.</p>
 <pre>
 DRESULT disk_ioctl (
   BYTE <span class="arg">pdrv</span>,     <span class="c">/* [IN] Drive number */</span>
@@ -61,7 +61,7 @@ DRESULT disk_ioctl (
 <tr><td>GET_SECTOR_COUNT</td><td>Returns number of available sectors on the drive into the <tt>DWORD</tt> variable pointed by <tt class="arg">buff</tt>. This command is used by only <tt>f_mkfs</tt> and <tt>f_fdisk</tt> function to determine the volume/partition size to be created. Required at <tt>_USE_MKFS == 1</tt> or <tt>_MULTI_PARTITION == 1</tt>.</td></tr>
 <tr><td>GET_SECTOR_SIZE</td><td>Returns sector size of the media into the <tt>WORD</tt> variable pointed by <tt class="arg">buff</tt>. Valid return values of this command are 512, 1024, 2048 and 4096. This command is required only at variable sector size configuration, <tt>_MAX_SS &gt; _MIN_SS</tt>. At fixed sector size configuration, <tt>_MAX_SS == _MIN_SS</tt>, this command is not used and the device must work at that sector size.</td></tr>
 <tr><td>GET_BLOCK_SIZE</td><td>Returns erase block size of the flash memory media in unit of sector into the <tt>DWORD</tt> variable pointed by <tt class="arg">buff</tt>. The allowable value is from 1 to 32768 in power of 2. Return 1 if the erase block size is unknown or non flash memory media. This command is used by only <tt>f_mkfs</tt> function and it attempts to align data area to the erase block boundary. Required at <tt>_USE_MKFS == 1</tt>.</td></tr>
-<tr><td>CTRL_TRIM</td><td>Informs the device the data on the block of sectors that specified by <tt>DWORD</tt> array {&lt;start sector&gt;, &lt;end sector&gt;} pointed by <tt class="arg">buff</tt> is no longer needed and it may be erased. This is an identical command to Trim of ATA device. When this feature is not supported or not a flash memory device, nothing to do for this command. The FatFs does not check the result code and the file function is not affected even if the sector block was not erased well. This command is called on removing a cluster chain and <tt>f_mkfs</tt> function. Required at <tt>_USE_TRIM == 1</tt>.</td></tr>
+<tr><td>CTRL_TRIM</td><td>Informs the device the data on the block of sectors that specified by <tt>DWORD</tt> array {&lt;start sector&gt;, &lt;end sector&gt;} pointed by <tt class="arg">buff</tt> is no longer needed and it may be erased. This is an identical command to Trim of ATA device. Nothing to do for this command if this funcion is not supported or not a flash memory device. The FatFs does not check the result code and the file function is not affected even if the sector block was not erased well. This command is called on remove a cluster chain and in the <tt>f_mkfs</tt> function. Required at <tt>_USE_TRIM == 1</tt>.</td></tr>
 </table>
 
 <p>FatFs never uses any device dependent command nor user defined command. Following table shows an example of non-standard commands usable for some applications.</p>
@@ -82,6 +82,9 @@ DRESULT disk_ioctl (
 <tr><td>ATA_GET_REV</td><td>Get the revision string into a 16-byte buffer pointed by <tt class="arg">buff</tt>. (ATA/CFC specific command)</td></tr>
 <tr><td>ATA_GET_MODEL</td><td>Get the model string into a 40-byte buffer pointed by <tt class="arg">buff</tt>. (ATA/CFC specific command)</td></tr>
 <tr><td>ATA_GET_SN</td><td>Get the serial number string into a 20-byte buffer pointed by <tt class="arg">buff</tt>. (ATA/CFC specific command)</td></tr>
+<tr><td>ISDIO_READ</td><td>Read a block of iSDIO registers specified by command structure pointed by <tt class="arg">buff</tt>. (FlashAir specific command)</td></tr>
+<tr><td>ISDIO_WRITE</td><td>Write a block of data to iSDIO registers specified by command structure pointed by <tt class="arg">buff</tt>. (FlashAir specific command)</td></tr>
+<tr><td>ISDIO_MRITE</td><td>Change bits in an iSDIO register specified by command structure pointed by <tt class="arg">buff</tt>. (FlashAir specific command)</td></tr>
 </table>
 </div>
 

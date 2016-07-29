@@ -59,7 +59,7 @@ FRESULT f_unlink (
 If condition of the object to be removed is applicable to the following terms, the function will be rejected.<ul>
 <li>The file/sub-directory must not have read-only attribute (<tt>AM_RDO</tt>), or the function will be rejected with <tt>FR_DENIED</tt>.</li>
 <li>The sub-directory must be empty and must not be current directory, or the function will be rejected with <tt>FR_DENIED</tt>.</li>
-<li>The file/sub-directory must not be opened, or the <em>FAT volume can be collapsed</em>. It will be rejected safely when <a href="appnote.html#dup">file lock feature</a> is enabled.</li>
+<li>The file/sub-directory must not be opened, or the <em>FAT volume can be collapsed</em>. It will be rejected safely when <a href="appnote.html#dup">file lock function</a> is enabled.</li>
 </ul>
 </div>
 

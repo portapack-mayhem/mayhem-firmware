@@ -54,8 +54,7 @@ FRESULT f_stat (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_stat</tt> function checks the existence of a file or sub-directory. If not exist, the function returns with <tt>FR_NO_FILE</tt>. If exist, the function returns with <tt>FR_OK</tt> and the informations of the object, file size, timestamp, attribute and SFN, are stored to the file information structure. For details of the file information, refer to the <tt>FILINFO</tt> structure and <a href="readdir.html"><tt>f_readdir</tt></a> function.</p>
-<p>When LFN feature is enabled, <tt>lfname</tt> in the file information structure must be NULLed prior to use it.</p>
+<p>The <tt>f_stat</tt> function checks the existence of a file or sub-directory. If not exist, the function returns with <tt>FR_NO_FILE</tt>. If exist, the function returns with <tt>FR_OK</tt> and the informations of the object, file size, timestamp and attribute, are stored to the file information structure. For details of the file information, refer to the <tt>FILINFO</tt> structure and <a href="readdir.html"><tt>f_readdir</tt></a> function.</p>
 </div>
 
 
@@ -74,23 +73,20 @@ FRESULT f_stat (
 
     printf("Test for 'file.txt'...\n");
 
-<span class="k">#if</span> _USE_LFN
-    fno.lfname = 0;
-<span class="k">#endif</span>
     fr = f_stat("file.txt", &amp;fno);
     switch (fr) {
 
     case FR_OK:
-        printf("Size: %u\n", fno.fsize);
+        printf("Size: %lu\n", fno.fsize);
         printf("Timestamp: %u/%02u/%02u, %02u:%02u\n",
                (fno.fdate &gt;&gt; 9) + 1980, fno.fdate &gt;&gt; 5 &amp; 15, fno.fdate &amp; 31,
                fno.ftime &gt;&gt; 11, fno.ftime &gt;&gt; 5 &amp; 63);
         printf("Attributes: %c%c%c%c%c\n",
-               (fno.fattrib & AM_DIR) ? 'D' : '-',
-               (fno.fattrib & AM_RDO) ? 'R' : '-',
-               (fno.fattrib & AM_HID) ? 'H' : '-',
-               (fno.fattrib & AM_SYS) ? 'S' : '-',
-               (fno.fattrib & AM_ARC) ? 'A' : '-');
+               (fno.fattrib &amp; AM_DIR) ? 'D' : '-',
+               (fno.fattrib &amp; AM_RDO) ? 'R' : '-',
+               (fno.fattrib &amp; AM_HID) ? 'H' : '-',
+               (fno.fattrib &amp; AM_SYS) ? 'S' : '-',
+               (fno.fattrib &amp; AM_ARC) ? 'A' : '-');
         break;
 
     case FR_NO_FILE:

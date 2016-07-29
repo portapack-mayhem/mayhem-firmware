@@ -16,9 +16,9 @@
 <p>The f_fdisk fucntion divides a physical drive.</p>
 <pre>
 FRESULT f_fdisk (
-  BYTE  <span class="arg">pdrv</span>,         <span class="c">/* [IN] Physical drive number */</span>
-  const DWORD <span class="arg">part[]</span>, <span class="c">/* [IN] Partition size */</span>
-  void* <span class="arg">work</span>          <span class="c">/* [IN] Work area */</span>
+  BYTE  <span class="arg">pdrv</span>,        <span class="c">/* [IN] Physical drive number */</span>
+  const DWORD* <span class="arg">szt</span>,  <span class="c">/* [IN] Partition map table */</span>
+  void* <span class="arg">work</span>         <span class="c">/* [IN] Work area */</span>
 );
 </pre>
 </div>
@@ -27,9 +27,9 @@ FRESULT f_fdisk (
 <h4>Parameters</h4>
 <dl class="par">
 <dt>pdrv</dt>
-<dd>Specifies the <em>physical drive</em> to be divided.</dd>
-<dt>part[]</dt>
-<dd>Partition map table. It must have four items.</dd>
+<dd>Specifies the <em>physical drive</em> to be divided. This is not the logical drive number but the drive identifier passed to the low level disk functions.</dd>
+<dt>szt</dt>
+<dd>Pointer to the first item of the partition map table.</dd>
 <dt>work</dt>
 <dd>Pointer to the function work area. The size must be at least <tt>_MAX_SS</tt> bytes.</dd>
 </dl>
@@ -48,7 +48,7 @@ FRESULT f_fdisk (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_fdisk</tt> function creates a partition table into the MBR of the physical drive. The partitioning rule is in generic FDISK format, so that it can create upto four primary partitions. Logical volumes in the extended partition is not supported. The <tt class="arg">part[]</tt> with four items specifies how to divide the physical drive. The first item specifies the size of first primary partition and fourth item specifies the fourth primary partition. If the value is less than or equal to 100, it specifies percentage of the partition in the entire disk space. If it is larger than 100, it specifies the partition size in unit of sector.</p>
+<p>The <tt>f_fdisk</tt> function creates partitions on the physical drive. The partitioning format is in generic FDISK format, so that it can create upto four primary partitions. Logical volumes in the extended partition is not supported. The partition map table with four items specifies how to divide the physical drive. The first item specifies the size of first primary partition and fourth item specifies the fourth primary partition. If the value is less than or equal to 100, it specifies the partition size in percentage of the entire drive space. If it is larger than 100, it specifies the partition size in unit of sector. The partitions are located on the drive in order of from first item.</p>
 </div>
 
 <div class="para comp">
@@ -74,15 +74,10 @@ FRESULT f_fdisk (
     DWORD plist[] = {50, 50, 0, 0};  <span class="c">/* Divide drive into two partitions */</span>
     BYTE work[_MAX_SS];
 
-    f_fdisk(0, plist, work);    <span class="c">/* Divide physical drive 0 */</span>
+    f_fdisk(0, plist, work);                     <span class="c">/* Divide physical drive 0 */</span>
 
-    f_mount(&amp;fs, "0:", 0);      <span class="c">/* Register work area to the logical drive 0 */</span>
-    f_mkfs("0:", 0, 0);         <span class="c">/* Create FAT volume on the logical drive 0. 2nd argument is ignored. */</span>
-    f_mount(0, "0:", 0);        <span class="c">/* Unregister work area from the logical drive 0 */</span>
-
-    f_mount(&amp;fs, "1:", 0);      <span class="c">/* Register a work area to the logical drive 1 */</span>
-    f_mkfs("1:", 0, 0);         <span class="c">/* Create FAT volume on the logical drive 1. 2nd argument is ignored. */</span>
-    f_mount(0, "1:", 0);        <span class="c">/* Unregister work area from the logical drive 1 */</span>
+    f_mkfs("0:", FMT_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 0 */</span>
+    f_mkfs("1:", FMT_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 1 */</span>
 
 </pre>
 </div>

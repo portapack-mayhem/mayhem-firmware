@@ -51,6 +51,7 @@ FRESULT f_getcwd (
 <div class="para desc">
 <h4>Description</h4>
 <p>The <tt>f_getcwd</tt> function retrieves full path name of the current directory of the current drive. When <tt>_VOLUMES</tt> is larger than 1, a logical drive number is added to top of the path name.</p>
+<p><em>Note: In this revision, R0.12, this function cannot retrieve the current directory path on the exFAT volume. It always returns the root directory path.</em></p>
 </div>
 
 

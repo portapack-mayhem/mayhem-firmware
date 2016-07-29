@@ -18,20 +18,21 @@
 <hr>
 
 <div class="abst">
-<img src="img/layers.png" class="rset" width="245" height="255" alt="layer">
-<p>FatFsは小規模な組み込みシステム向けの汎用FATファイルシステム モジュールです。ANSI C(C89)準拠でハードウェア アーキテクチャには依存しないので、必要なワーク エリアが確保できれば、8051, PIC, AVR, SH, Z80, 68k, H8, ARMなど安価なマイコンでも使用可能です。このほか、FatFsを極小マイコン向けにシュリンクした<a href="http://elm-chan.org/fsw/ff/00index_p.html">ぷちFatFs</a>もあります。</p>
+<img src="res/layers.png" class="rset" width="245" height="255" alt="layer">
+<p>FatFsは小規模な組み込みシステム向けの汎用FAT/exFATファイルシステム モジュールです。ANSI C(C89)準拠でハードウェア アーキテクチャには依存しないので、必要なワーク エリアが確保できれば、8051, PIC, AVR, SH, Z80, 68k, H8, ARMなど安価なマイコンでも使用可能です。このほか、FatFsを極小マイコン向けにシュリンクした<a href="http://elm-chan.org/fsw/ff/00index_p.html">ぷちFatFs</a>もあります。</p>
 <h4>FatFsモジュールの特徴</h4>
 <ul>
- <li>Windows互換 FATファイル システム</li>
+ <li>Windows互換 FAT/exFATファイルシステム</li>
  <li>プラットフォーム非依存</li>
  <li>コンパクトなコードとRAM使用量</li>
  <li>多くの<a href="ja/config.html">構成オプション</a>:
   <ul>
-   <li>複数のボリューム(物理ドライブ・区画)</li>
+   <li>ボリューム構成(物理ドライブ数・区画)</li>
    <li>DBCSを含む複数のANSI/OEMコード ページの選択</li>
    <li>長いファイル名(LFN)への対応</li>
-   <li>マルチタスク関連</li>
-   <li>マルチ セクタ サイズ</li>
+   <li>exFATファイルシステムへの対応</li>
+   <li>RTOS環境への対応</li>
+   <li>セクタ サイズ(固定/可変)</li>
    <li>リード オンリー構成、一部APIの削除、バッファ構成、その他…</li>
   </ul>
  </li>
@@ -41,7 +42,7 @@
 
 <div class="para">
 <h3>上位レイヤ インターフェース</h3>
-<img src="img/layers1.png" class="rset" width="245" height="220" alt="layer">
+<img src="res/layers1.png" class="rset" width="245" height="220" alt="layer">
 <ul>
  <li>ファイル アクセス
  <ul>
@@ -53,6 +54,7 @@
   <li><a href="ja/truncate.html">f_truncate</a> - サイズの切り詰め</li>
   <li><a href="ja/sync.html">f_sync</a> - キャッシュされたデータのフラッシュ</li>
   <li><a href="ja/forward.html">f_forward</a> - データをストリーム関数に転送</li>
+  <li><a href="ja/expand.html">f_expand</a> - 連続領域の割り当て</li>
   <li><a href="ja/gets.html">f_gets</a> - 文字列の読み出し</li>
   <li><a href="ja/putc.html">f_putc</a> - 文字の書き込み</li>
   <li><a href="ja/puts.html">f_puts</a> - 文字列の書き込み</li>
@@ -101,8 +103,8 @@
 
 <div class="para">
 <h3>下位レイヤ インターフェース</h3>
-<img src="img/layers2.png" class="rset" width="245" height="220" alt="layer">
-<p>FatFsモジュールは、単なるファイル システム レイヤなので、ストレージ デバイス制御レイヤは含まれません。使用するプラットフォームやストレージ デバイスに対応した制御関数は、インプリメンタによって提供される必要があります。FatFsモジュールは、下位レイヤに対し標準的には次のインターフェースを要求します。一部の拡張機能、たとえばOS関連機能を有効にしたときは、加えてプロセス/メモリ操作関数なども必要になります。サンプル プロジェクトに下位レイヤの実装例を示します。</p>
+<img src="res/layers2.png" class="rset" width="245" height="220" alt="layer">
+<p>FatFsモジュールは、単なるファイルシステム レイヤなので、その下位のストレージ デバイス制御レイヤはそれに含まれません。それぞれのプラットフォームやストレージ デバイスに対応した制御レイヤは、インプリメンタによって提供される必要があります。FatFsモジュールは、下位レイヤに対し標準的には次のインターフェースを要求します。一部の拡張機能、たとえばOS関連機能を有効にしたときは、加えてプロセス/メモリ操作関数なども必要になります。サンプル プロジェクトに下位レイヤの実装例を示します。</p>
 <ul>
  <li><a href="ja/dstat.html">disk_status</a> - デバイスの状態取得</li>
  <li><a href="ja/dinit.html">disk_initialize</a> - デバイスの初期化</li>
@@ -118,24 +120,22 @@
 <h3>資料</h3>
 <p>FatFsモジュールはフリー ソフトウェアとして教育・研究・開発用に公開しています。どのような利用目的（個人利用から商用まで）でも使用・改変・配布について一切の制限はありませんが、全て利用者の責任の下での利用とします。詳しくはアプリケーション ノートを参照してください。</p>
 <ul>
- <li>最初に読め: <a href="ja/appnote.html">FatFsモジュール アプリケーション ノート</a> <span class="mfd">2015. 3. 18</span></li>
- <li>ダウンロード: <a href="ff11.zip">FatFs R0.11</a> | <a href="updates.txt">変更点</a> | <a href="patches.html">パッチ</a> <span class="mfd">2015. 3. 9</span></li>
- <li>ダウンロード: <a href="ffsample.zip">サンプル プロジェクト</a> <span class="mfd">2015. 2. 9</span></li>
- <li>ダウンロード: <a href="archives.html">旧バージョン</a></li>
+ <li>最初に読め: <a href="ja/appnote.html">FatFsモジュール アプリケーション ノート</a></li>
  <li>コミュニティ: <a href="http://elm-chan.org/fsw/ff/bd/">FatFsユーザ フォーラム</a></li>
- <li><a href="http://stm32f4-discovery.com/2014/07/library-21-read-sd-card-fatfs-stm32f4xx-devices/">Read SD card with FatFs on STM32F4xx devices by Tilen Majerle</a>↗ (Quick and easy implementation for STM32F4-Discovery)</li>
- <li><a href="http://nemuisan.blog.bai.ne.jp/">ねむいさんのぶろぐ</a>↗ (Well written implementations for STM32F/SDIO and LPC2300/MCI)</li>
- <li><a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/arm_memcards/index.html">ARM-Projects by Martin THOMAS</a>↗ (Examples for LPC2000, AT91SAM and STM32)</li>
- <li><a href="http://www.microsoft.com/whdc/system/platform/firmware/fatgen.mspx">FATファイルシステム仕様 by Microsoft</a>↗ (The reference document on FAT file system)</li>
+ <li><a href="https://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx">FATファイルシステム仕様 by Microsoft</a>↗ (The reference document on FAT file system)</li>
  <li><a href="http://elm-chan.org/docs/fat.html">FATファイルシステム概要</a> (↑を読むためのガイド)</li>
  <li><a href="http://elm-chan.org/docs/mmc/mmc.html">MMCの使いかた</a></li>
- <li><a href="img/rwtest.png">パフォーマンス テスト1</a> (ATmega64/9.2MHz with MMC via SPI, HDD/CFC via GPIO)</li>
- <li><a href="img/rwtest2.png">パフォーマンス テスト2</a> (LPC2368/72MHz with MMC via MCI)</li>
+ <li><a href="http://elm-chan.org/junk/fa/faff.html">FlashAirとFatFs [en]</a></li>
+ <li><a href="http://stm32f4-discovery.com/2014/07/library-21-read-sd-card-fatfs-stm32f4xx-devices/">Read SD card with FatFs on STM32F4xx devices by Tilen Majerle</a>↗ (Quick and easy implementation for STM32F4-Discovery)</li>
+ <li><a href="http://nemuisan.blog.bai.ne.jp/">ねむいさんのぶろぐ</a>↗ (Well written implementations for STM32F/SPI &amp; SDIO and LPC4088/SDMMC)</li>
+ <li><a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/arm_memcards/index.html">ARM-Projects by Martin THOMAS</a>↗ (Examples for LPC2000, AT91SAM and STM32)</li>
+ <li><a href="res/rwtest1.png">パフォーマンス テスト1</a> (ATmega1284/20MHz with MMC via USART in SPI, CFC via GPIO)</li>
+ <li><a href="res/rwtest2.png">パフォーマンス テスト2</a> (LPC2368/72MHz with MMC via MCI)</li>
 </ul>
 </div>
 
 
 <hr>
-<p class="foot"><a href="../../fsw.html">戻る</a></p>
+<p class="foot"><a href="http://elm-chan.org/fsw/ff/00index_j.html">FatFs Home Page</a></p>
 </body>
 </html>

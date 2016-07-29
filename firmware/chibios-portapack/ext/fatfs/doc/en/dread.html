@@ -34,7 +34,7 @@ DRESULT disk_read (
 <dt>sector</dt>
 <dd>Start sector number in 32-bit LBA.</dd>
 <dt>count</dt>
-<dd>Number of sectors to read. FatFs specifies the value in range of from 1 to 128.</dd>
+<dd>Number of sectors to read.</dd>
 </dl>
 </div>
 
@@ -56,12 +56,12 @@ DRESULT disk_read (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The data read/write operation to the storage devices is done in unit of <em>sector</em>. FatFs supports the sector size in range of from 512 to 4096 bytes. When FatFs is configured to fixed sector size (<tt>_MIN_SS == MAX_SS</tt>, this will be the most case), the read/write function must work at that sector size. When FatFs is configured to variable sector size (<tt>_MIN_SS &lt; MAX_SS</tt>), sector size is inquired with <tt>disk_ioctl</tt> function following <tt>disk_initialize</tt> function</tt>.
-<p>The memory address specified by <tt class="arg">buff</tt> is not that always aligned to word boundary because the argument is defined as <tt>BYTE*</tt>. The misaligned read/write request can occure at <a href="appnote.html#fs1">direct transfer</a>. If the bus architecture, especially DMA controller, does not allow misaligned memory access, it should be solved in this function. There are some workarounds described below to avoid this issue.</p>
+<p>The data read/write operation to the storage devices is done in unit of <em>sector</em>. FatFs supports the sector size in range of from 512 to 4096 bytes. When FatFs is configured to fixed sector size (<tt>_MIN_SS == MAX_SS</tt>, this will be the most case), the read/write function must work at that sector size. When FatFs is configured to variable sector size (<tt>_MIN_SS != MAX_SS</tt>), sector size is inquired with <tt>disk_ioctl</tt> function following <tt>disk_initialize</tt> function.</p>
+<p>The memory address specified by <tt class="arg">buff</tt> is not that always aligned to word boundary because the argument is defined as <tt>BYTE*</tt>. The unaligned read/write request can occure at <a href="appnote.html#fs1">direct transfer</a>. If the bus architecture, especially DMA controller, does not allow unaligned memory access, it should be solved in this function. There are some workarounds described below to avoid this issue.</p>
 <ul>
 <li>Convert word transfer to byte transfer in this function if needed. - Recommended.</li>
-<li>At the any <tt>f_read</tt> calls, avoid long read request that includes a whole of sector. - Direct transfer will never occure.</li>
-<li>At the <tt>f_read(fp, data, btr, &amp;br)</tt> call, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt>buff</tt> is guaranteed.</li>
+<li>On the <tt>f_read</tt> calls, avoid long read request that includes a whole of sector. - Any direct transfer never occures.</li>
+<li>On the <tt>f_read</tt> calls, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt>buff</tt> is guaranteed.</li>
 </ul>
 <p>Generally, a multiple sector transfer request must not be split into single sector transactions to the storage device, or you will not get good read throughput.</p>
 </div>

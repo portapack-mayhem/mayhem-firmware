@@ -49,13 +49,14 @@ FRESULT f_setlabel (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>When the string has a drive number, the volume label will be set to the volume specified by the drive number. If not, the volume label will be set to the default drive. If length of the given volume label is zero, the volume label on the volume will be removed. The format of the volume label is similar to the short file name but there are some differences shown below:</p>
+<p>When the string has a drive number, the volume label will be set to the volume specified by the drive number. If not, the volume label will be set to the default drive. If length of the given volume label is zero, the volume label on the volume will be removed. The format of the volume label on the FAT volume is similar to the file name but there are some differences shown below:</p>
 <ul>
-<li>11 bytes or less in length as conversion into OEM code page. LFN feature is not applied to the volume label.</li>
-<li>Cannot contain period.</li>
-<li>Can contain spaces anywhere in it. Trailing spaces are truncated off.</li>
+<li>Spaces can be contained anywhere in the volume label. Trailing spaces are truncated off at FAT volume.</li>
+<li>Period is not allowed.</li>
+<li>Up to 11 bytes long as conversion of OEM code page at FAT volume.</li>
+<li>Up to 11 characters long at exFAT volume. Case information is preserved.</li>
 </ul>
-<p>Remark: The standard system (Windows) has a problem on handling of the volume label with a heading <tt>\xE5</tt>. To avoid this problem, this function rejects such volume labels as invalid name.</p>
+<p>Remark: The standard system (Windows) has a problem at handling of the volume label with a heading <tt>\xE5</tt> on the FAT volume. To avoid this problem, this function rejects such volume label as invalid name.</p>
 </div>
 
 <div class="para comp">
