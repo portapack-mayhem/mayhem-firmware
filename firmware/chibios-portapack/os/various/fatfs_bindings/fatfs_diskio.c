@@ -153,7 +153,6 @@ DRESULT disk_read (
 /* Write Sector(s)                                                       */
 /*-----------------------------------------------------------------------*/
 
-#if _USE_WRITE
 DRESULT disk_write (
   BYTE pdrv,      /* Physical drive nmuber to identify the drive */
   const BYTE *buff, /* Data to be written */
@@ -190,7 +189,6 @@ DRESULT disk_write (
   }
   return RES_PARERR;
 }
-#endif /* _READONLY */
 
 
 
@@ -198,7 +196,6 @@ DRESULT disk_write (
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-#if _USE_IOCTL
 DRESULT disk_ioctl (
   BYTE pdrv,    /* Physical drive nmuber (0..) */
   BYTE cmd,     /* Control code */
@@ -260,7 +257,6 @@ DRESULT disk_ioctl (
   }
   return RES_PARERR;
 }
-#endif /* _IOCTL */
 
 DWORD get_fattime(void) {
 #if HAL_USE_RTC
