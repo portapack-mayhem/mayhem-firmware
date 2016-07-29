@@ -2430,7 +2430,7 @@ void get_fileinfo (		/* No return code */
 				}
 #endif
 				if (i >= _MAX_LFN) { i = 0; break; }	/* No LFN if buffer overflow */
-				fno->fname[i++] = (char)w;
+				fno->fname[i++] = (TCHAR)w;
 			}
 			fno->fname[i] = 0;	/* Terminate the LFN */
 		}
@@ -3680,8 +3680,9 @@ FRESULT f_sync (
 	FATFS *fs;
 	DWORD tm;
 	BYTE *dir;
+#if _FS_EXFAT
 	DEF_NAMBUF
-
+#endif
 
 	res = validate(fp, &fs);	/* Check validity of the object */
 	if (res == FR_OK) {
@@ -4008,6 +4009,9 @@ FRESULT f_lseek (
 
 	/* Normal Seek */
 	{
+#if _FS_EXFAT
+		if (fs->fs_type != FS_EXFAT && ofs >= 0x100000000) ofs = 0xFFFFFFFF;	/* Clip at 4GiB-1 if at FATxx */
+#endif
 		if (ofs > fp->obj.objsize && (_FS_READONLY || !(fp->flag & FA_WRITE))) {	/* In read-only mode, clip offset with the file size */
 			ofs = fp->obj.objsize;
 		}
