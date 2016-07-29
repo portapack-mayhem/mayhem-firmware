@@ -2266,7 +2266,7 @@ FRESULT dir_register (	/* FR_OK:succeeded, FR_DENIED:no free entry or too many S
 		if (res != FR_OK) return res;
 		dp->blk_ofs = dp->dptr - SZDIRE * (nent - 1);			/* Set block position */
 
-		if (dp->obj.stat & 4) {			/* Has the sub-directory been stretched? */
+		if (dp->obj.sclust != 0 && (dp->obj.stat & 4)) {	/* Has the sub-directory been stretched? */
 			dp->obj.stat &= 3;
 			dp->obj.objsize += (DWORD)fs->csize * SS(fs);	/* Increase object size by cluster size */
 			res = fill_fat_chain(&dp->obj);	/* Complement FAT chain if needed */
