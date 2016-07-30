@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -33,7 +34,6 @@
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 
-#include "ui_handwrite.hpp"			// DEBUG
 #include "ui_soundboard.hpp"		// DEBUG
 #include "ui_closecall.hpp"			// DEBUG
 #include "ui_freqman.hpp"			// DEBUG
@@ -238,36 +238,35 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<11>({ {
-		{ "Play dead",		ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
+	add_items<14>({ {
+		{ "Play dead",						ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture                   RX",	ui::Color::orange(),	[&nav](){ nav.push<CaptureAppView>(); } },
+		{ "Capture                   RX",	ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
-		//{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
+		{ "Numbers station           TX",	ui::Color::purple(),	[&nav](){ nav.push<NotImplementedView>(); } },	//nav.push<NumbersStationView>();
+		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
 		//{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
 		//{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
 		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
-		{ "TEDI/LCR                  TX", 	ui::Color::orange(),  	[&nav](){ nav.push<LCRView>(); } },
-		{ "RDS                       TX",	ui::Color::yellow(),	[&nav](){ nav.push<RDSView>(); } },
-		//{ "Capture", 		ui::Color::white(), 	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "TEDI/LCR                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LCRView>(); } },
+		{ "OOK encoder               TX", 	ui::Color::orange(),	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "RDS                       TX",	ui::Color::red(),		[&nav](){ nav.push<RDSView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Setup", 			ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
-		{ "Debug", 			ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF", 		ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
-		{ "About", 			ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
+		{ "Setup", 							ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
+		{ "Debug", 							ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF", 						ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
+		{ "About", 							ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
 
 		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Jammer", ui::Color::white(),   		[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
 		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		//{ "Encoder TX", ui::Color::green(),		[&nav](){ nav.push(new NotImplementedView { nav }); } },
 		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
 		//{ "SIGFOX RX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
 		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
 		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
-		//{ "Numbers station", ui::Color::purple(),	[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new NumbersStationView { nav, transmitter_model }}); } },
 
 }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,10 +21,11 @@
  */
 
 #include "ui_menu.hpp"
+#include "time.hpp"
 
 namespace ui {
 
-/* MenuViewItem **********************************************************/
+/* MenuItemView **********************************************************/
 
 void MenuItemView::select() {
 	if( item.on_select ) {
@@ -72,11 +74,34 @@ void MenuItemView::paint(Painter& painter) {
 
 /* MenuView **************************************************************/
 
+MenuView::MenuView() {
+	set_focusable(true);
+	
+	add_child(&arrow_more);
+	signal_token_tick_second = time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
+	
+	arrow_more.set_parent_rect( { 216, 320 - 16 - 24, 16, 16 } );
+	arrow_more.set_focusable(false);
+}
+
 MenuView::~MenuView() {
 	/* TODO: Double-check this */
-	for(auto child : children_) {
+	for (auto child : children_) {
 		delete child;
 	}
+}
+
+void MenuView::on_tick_second() {
+	if (more_ && blink_)
+		arrow_more.set_foreground(Color::white());
+	else
+		arrow_more.set_foreground(Color::black());
+		
+	blink_ = !blink_;
+	
+	arrow_more.set_dirty();
 }
 
 void MenuView::add_item(const MenuItem item) {
@@ -85,14 +110,31 @@ void MenuView::add_item(const MenuItem item) {
 
 void MenuView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
+	update_items();
+}
 
+void MenuView::update_items() {
 	constexpr size_t item_height = 24;
 	size_t i = 0;
-	for(auto child : children_) {
-		child->set_parent_rect({
-			{ 0, static_cast<ui::Coord>(i * item_height) },
-			{ size().w, item_height }
-		});
+	Coord y_pos;
+	
+	if (MENU_MAX + offset_ < (children_.size() - 1))
+		more_ = true;
+	else
+		more_ = false;
+	
+	for (auto child : children_) {
+		if (i) {		// Skip arrow widget
+			y_pos = (i - 1 - offset_) * item_height;
+			child->set_parent_rect({
+				{ 0, y_pos },
+				{ size().w, item_height }
+			});
+			if ((y_pos < 0) || (y_pos >= (320 - 16 - 24 - 16)))
+				child->hidden(true);
+			else
+				child->hidden(false);
+		}
 		i++;
 	}
 }
@@ -101,7 +143,7 @@ MenuItemView* MenuView::item_view(size_t index) const {
 	/* TODO: Terrible cast! Take it as a sign I must be doing something
 	 * shamefully wrong here, right?
 	 */
-	return static_cast<MenuItemView*>(children_[index]);
+	return static_cast<MenuItemView*>(children_[index + 1]);	// Skip arrow widget
 }
 
 size_t MenuView::highlighted() const {
@@ -109,8 +151,18 @@ size_t MenuView::highlighted() const {
 }
 
 bool MenuView::set_highlighted(const size_t new_value) {
-	if( new_value >= children_.size() ) {
+	if( new_value >= (children_.size() - 1) ) {					// Skip arrow widget
 		return false;
+	}
+	
+	if ((new_value - offset_ + 1) >= MENU_MAX) {
+		// Shift MenuView up
+		offset_ = new_value - MENU_MAX + 1;
+		update_items();
+	} else if (new_value < offset_) {
+		// Shift MenuView down
+		offset_ = new_value;
+		update_items();
 	}
 
 	item_view(highlighted())->unhighlight();

@@ -25,10 +25,14 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "bitmap.hpp"
+#include "signal.hpp"
 
 #include <cstddef>
 #include <string>
 #include <functional>
+
+#define MENU_MAX 11
 
 namespace ui {
 
@@ -64,23 +68,20 @@ class MenuView : public View {
 public:
 	std::function<void(void)> on_left;
 
-	MenuView() {
-		set_focusable(true);
-	}
-
+	MenuView();
 	~MenuView();
 
 	void add_item(const MenuItem item);
 
 	template<size_t N>
 	void add_items(const std::array<MenuItem, N>& items) {
-		for(const auto& item : items) {
+		for (const auto& item : items) {
 			add_item(item);
 		}
 	}
 
 	void set_parent_rect(const Rect new_parent_rect) override;
-
+	
 	MenuItemView* item_view(size_t index) const;
 
 	size_t highlighted() const;
@@ -93,7 +94,22 @@ public:
 	//bool on_touch(const TouchEvent event) override;
 
 private:
+	void update_items();
+	void on_tick_second();
+	
+	SignalToken signal_token_tick_second;
+	
+	Image arrow_more {
+		{ 216, 320 - 16 - 24, 16, 16 },
+		&bitmap_more,
+		Color::white(),
+		Color::black()
+	};
+
+	bool blink_ = false;
+	bool more_ = false;
 	size_t highlighted_ { 0 };
+	size_t offset_ { 0 };
 };
 
 } /* namespace ui */

@@ -26,31 +26,37 @@
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
 
+//TODO: Check AFSK transmit end, skips last bits ?
 //TODO: Weird LCR AFSK scrambling ?
+//TODO: Use msgpack !
 //TODO: Frequency manager
-//TODO: SD card wiper
-//TODO: Draw on touchscreen and transmit as spectrum paint
-//TODO: Use progressbars
-//TODO: LCR receiver
-//TODO: Xylos receiver
 //TODO: Morse coder
-//TODO: Playdead amnesia and login
-//TODO: Touch screen calibration
-//TODO: Check jammer bandwidths
-//TODO: GSM channel detector
+
+//Multimon-style stuff:
 //TODO: AFSK receiver
+//TODO: Xylos receiver
+
+//TODO: Check jammer bandwidths
+//TODO: Closecall wide range fix
+//TODO: SD card wiper
+//TODO: Use progressbars
+//TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
-//TODO: Show MD5 mismatches for modules not found, etc...
-//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
-//TODO: Check bw setting in LCR TX
 //TODO: Bodet :)
 //TODO: Whistler
+
+//TODO: LCR full message former (see norm)
+//TODO: AFSK NRZI, parity and format
+//TODO: TX power setting
+
+//TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
 //TODO: Hide statusview when playing dead
 //TODO: Persistent playdead !
-//TODO: LCR full message former (see norm)
-//TODO: AFSK NRZI
-//TODO: TX power setting
+//TODO: Show MD5 mismatches for modules not found, etc...
+//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
+
+//TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Two players tic-tac-toe
 
 #include "ch.h"
