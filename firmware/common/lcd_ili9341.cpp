@@ -289,58 +289,45 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 	io.lcd_write_pixels(line_buffer, s.w * s.h);
 }
 
+// RLE_4 BMP loader (delta not implemented)
 void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool transparency) {
-	uint32_t pixel_data, pal_data;
-	uint8_t pal, by, c, count, transp_idx = 0, color_r, color_g, color_b;
-	ui::Color linebuffer[240];
+	const bmp_t * bmp_header = (const bmp_t *)bitmap;
+	uint32_t data_idx;
+	uint8_t by, c, count, transp_idx = 0;
+	ui::Color line_buffer[240];
 	ui::Coord px = 0, py;
 	ui::Color palette[16];
-	uint32_t bmpwidth, bmpheight;
 	
-	// RLE_4 BMP loader with no delta :(
-	
-	if (bitmap[0x1E] != 2) return;	// Bad compression type
-	
-	bmpwidth = static_cast<int32_t>(
-        (bitmap[0x12])      |
-        (bitmap[0x13] << 8) |
-        (bitmap[0x14] << 16)|
-        (bitmap[0x15] << 24) );
-	bmpheight = static_cast<int32_t>(
-        (bitmap[0x16])      |
-        (bitmap[0x17] << 8) |
-        (bitmap[0x18] << 16)|
-        (bitmap[0x19] << 24) );
+	// Abort if bad depth or no RLE
+	if ((bmp_header->bpp != 4) ||
+		(bmp_header->compression != 2)) return;
 
-	pal_data = bitmap[0x0E] + 0x0E;
-
-	pixel_data = bitmap[0x0A];
-	pal = 0;
-	for (c = 0; c < (16*4); c+=4) {
-		color_r = bitmap[c+2+pal_data];
-		color_g = bitmap[c+1+pal_data];
-		color_b = bitmap[c+pal_data];
-		palette[pal] = ui::Color(color_r, color_g, color_b);
-		if ((color_r == 0xFF) && (color_g == 0x00) && (color_b == 0xFF)) transp_idx = pal;
-		pal++;
+	data_idx = bmp_header->image_data;
+	
+	// Convert palette and find pure magenta index (alpha color key)
+	for (c = 0; c < 16; c++) {
+		palette[c] = ui::Color(bmp_header->palette[c].R, bmp_header->palette[c].G, bmp_header->palette[c].B);
+		if ((bmp_header->palette[c].R == 0xFF) &&
+			(bmp_header->palette[c].G == 0x00) &&
+			(bmp_header->palette[c].B == 0xFF)) transp_idx = c;
 	}
 
 	if (!transparency) {
-		py = bmpheight + 16;	// +1 ?
+		py = bmp_header->height + 16;
 		do {
-			by = bitmap[pixel_data++];
+			by = bitmap[data_idx++];
 			if (by) {
-				count = by;
-				by = bitmap[pixel_data++];
-				for (c = 0; c < count; c+=2) {
-					linebuffer[px++] = palette[by >> 4];
-					if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
+				count = by >> 1;
+				by = bitmap[data_idx++];
+				for (c = 0; c < count; c++) {
+					line_buffer[px++] = palette[by >> 4];
+					if (px < bmp_header->width) line_buffer[px++] = palette[by & 15];
 				}
-				if (pixel_data & 1) pixel_data++;
+				if (data_idx & 1) data_idx++;
 			} else {
-				by = bitmap[pixel_data++];
+				by = bitmap[data_idx++];
 				if (by == 0) {
-					render_line({p.x, p.y + py}, bmpwidth, linebuffer);
+					render_line({p.x, p.y + py}, bmp_header->width, line_buffer);
 					py--;
 					px = 0;
 				} else if (by == 1) {
@@ -348,34 +335,34 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 				} else if (by == 2) {
 					// Delta
 				} else {
-					count = by;
-					for (c = 0; c < count; c+=2) {
-						by = bitmap[pixel_data++];
-						linebuffer[px++] = palette[by >> 4];
-						if (px < bmpwidth) linebuffer[px++] = palette[by & 15];
+					count = by >> 1;
+					for (c = 0; c < count; c++) {
+						by = bitmap[data_idx++];
+						line_buffer[px++] = palette[by >> 4];
+						if (px < bmp_header->width) line_buffer[px++] = palette[by & 15];
 					}
-					if (pixel_data & 1) pixel_data++;
+					if (data_idx & 1) data_idx++;
 				}
 			}
 		} while (1);
 	} else {
-		py = bmpheight;	// +1 ?
+		py = bmp_header->height;
 		do {
-			by = bitmap[pixel_data++];
+			by = bitmap[data_idx++];
 			if (by) {
-				count = by;
-				by = bitmap[pixel_data++];
-				for (c = 0; c < count; c+=2) {
+				count = by >> 1;
+				by = bitmap[data_idx++];
+				for (c = 0; c < count; c++) {
 					if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
 					px++;
-					if (px < bmpwidth) {
+					if (px < bmp_header->width) {
 						if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
 					}
 					px++;
 				}
-				if (pixel_data & 1) pixel_data++;
+				if (data_idx & 1) data_idx++;
 			} else {
-				by = bitmap[pixel_data++];
+				by = bitmap[data_idx++];
 				if (by == 0) {
 					py--;
 					px = 0;
@@ -384,17 +371,17 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 				} else if (by == 2) {
 					// Delta
 				} else {
-					count = by;
-					for (c = 0; c < count; c+=2) {
-						by = bitmap[pixel_data++];
+					count = by >> 1;
+					for (c = 0; c < count; c++) {
+						by = bitmap[data_idx++];
 						if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
 						px++;
-						if (px < bmpwidth) {
+						if (px < bmp_header->width) {
 							if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
 						}
 						px++;
 					}
-					if (pixel_data & 1) pixel_data++;
+					if (data_idx & 1) data_idx++;
 				}
 			}
 		} while (1);

@@ -21,7 +21,7 @@
  */
 
 // Bitmaps generated with:
-// Gimp :( > indexed colors, then "xxd -i *.bmp"
+// Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: No audio in about when shown second time
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)

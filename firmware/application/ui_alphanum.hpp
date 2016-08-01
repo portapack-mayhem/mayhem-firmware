@@ -73,13 +73,13 @@ private:
 		"UC"
 	};
 	
-	/*NumberField raw_char {
-		{ 16, 270, 16, 16 },
+	NumberField raw_char {
+		{ 16, 270 },
 		3,
 		{ 1, 255 },
 		1,
 		'0'
-	};*/
+	};
 
 	Button button_done {
 		{ 88, 270, 64, 24 },

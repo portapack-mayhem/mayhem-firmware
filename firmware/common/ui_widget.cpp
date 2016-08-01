@@ -820,7 +820,6 @@ bool ImageButton::on_touch(const TouchEvent event) {
 		set_dirty();
 		return true;
 
-
 	case TouchEvent::Type::End:
 		set_highlighted(false);
 		set_dirty();
@@ -1040,12 +1039,12 @@ void NumberField::paint(Painter& painter) {
 }
 
 bool NumberField::on_key(const KeyEvent key) {
-	/*if( key == KeyEvent::Select ) {
+	if( key == KeyEvent::Select ) {
 		if( on_select ) {
 			on_select(*this);
 			return true;
 		}
-	}*/
+	}
 
 	return false;
 }

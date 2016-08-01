@@ -106,12 +106,12 @@ AlphanumView::AlphanumView(
 		}
 	};
 	
-	/*add_child(&raw_char);
+	add_child(&raw_char);
 	raw_char.set_value(0x30);
-	raw_char.on_select = [this, &nav, txt, max_len](Button&) {
+	raw_char.on_select = [this, &nav, txt, max_len](NumberField&) {
 		char_add(raw_char.value());
 		update_text();
-	};*/
+	};
 
 	add_child(&button_done);
 	button_done.on_select = [this, &nav, txt, max_len](Button&) {

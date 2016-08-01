@@ -123,7 +123,11 @@ void LCRView::generate_message() {
 		// Alt format
 		for (dp = 0; dp < strlen(lcr_message); dp++) {
 			pp = pm;
-			cur_byte = alt_lookup[(uint8_t)lcr_message[dp] & 0x7F];
+			// Do not apply LUT on checksum (last byte) ?
+			if (dp != strlen(lcr_message) - 1)
+				cur_byte = alt_lookup[(uint8_t)lcr_message[dp] & 0x7F];
+			else
+				cur_byte = lcr_message[dp];
 			for (cp = 0; cp < 8; cp++) {
 				if ((cur_byte >> cp) & 1) pp++;
 			}
