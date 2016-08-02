@@ -28,8 +28,6 @@
 
 namespace ui {
 
-#define LCR_SCAN_COUNT 36
-
 class LCRView : public View {
 public:
 	LCRView(NavigationView& nav);
@@ -41,16 +39,17 @@ public:
 	std::string title() const override { return "LCR transmit"; };
 
 private:
-	enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SCAN
+	struct scan_list_t {
+		uint8_t count;
+		const char * addresses;
 	};
-	// afsk_config()
-	tx_modes tx_mode = IDLE;
-	bool abort_scan = false;
-	double scan_progress;
-	const char RGSB_list[LCR_SCAN_COUNT][5] = {
+	
+	scan_list_t scan_list[2] = {
+		{ 36, &RGSB_list_Lille[0][0] },
+		{ 23, &RGSB_list_Reims[0][0] }
+	};
+	 
+	const char RGSB_list_Lille[36][5] = {
 		"AI10",	"AI20", "AI30",	"AI40",
 		"AI50",	"AI60", "AI70",	"AJ10",
 		"AJ20",	"AJ30", "AJ40",	"AJ50",
@@ -62,14 +61,35 @@ private:
 		"EbM0",	"EbN0",	"EbO0",	"EbP0",
 		"EbS0"
 	};
-	char litteral[5][8];
-	char rgsb[5];
+	
+	const char RGSB_list_Reims[23][5] = {
+		"AI10",	"AI20", "AI30",	"AI40",
+		"AI50",	"AI60", "AI70",
+		"AJ10", "AJ20",	"AJ30", "AJ40",
+		"AJ50", "AJ60",	"AJ70",
+		"AK10", "AK20", "AK50", "AK60",
+		"AK70", 
+		"AP10"
+	};
+
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SCAN
+	};
+	
+	tx_modes tx_mode = IDLE;
+	bool abort_scan = false;
+	uint8_t scan_count;
+	double scan_progress;
+	unsigned int scan_index;
+	char litteral[5][8] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 } };
+	char rgsb[5] = { 0 };
 	char lcr_message[512];
 	char lcr_message_data[512];
 	char checksum = 0;
 	rf::Frequency f;
 	uint8_t repeat_index;
-	unsigned int scan_index;
 	
 	void generate_message();
 	void update_progress();
@@ -79,7 +99,7 @@ private:
 	
 	radio::Configuration lcr_radio_config = {
 		0,
-		2280000,	// ?
+		2280000,
 		2500000,	// ?
 		rf::Direction::Transmit,
 		true,
@@ -90,17 +110,6 @@ private:
 	
 	// 2: 94 ?
 	// 9: 85 ?
-	
-	const char alt_lookup[128] = {
-		0, 0, 0, 0x5F, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x0F,	// 0
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 10
-		0xF8, 0, 0x99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 20  !"#$%&'()*+,-./
-		0xF5, 0, 0x94, 0x55, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1C, 0, 0,		// 30 0123456789:;<=>?
-		0, 0x3C, 0x9C, 0x5D, 0, 0, 0, 0, 0, 0x44, 0x85, 0, 0xD5, 0x14, 0, 0,		// 40 @ABCDEFGHIJKLMNO
-		0xF0, 0, 0, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 50 PQRSTUVWXYZ[\]^_
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		// 60 `abcdefghijklmno
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x7F	// 70 pqrstuvwxyz{|}~
-	};
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
@@ -128,7 +137,8 @@ private:
 		{
 			{ "EC:Auto", 0 },
 			{ "EC:Jour", 1 },
-			{ "EC:Nuit", 2 }
+			{ "EC:Nuit", 2 },
+			{ "EC:S ? ", 3 }
 		}
 	};
 
@@ -146,6 +156,11 @@ private:
 		"DEBUG"
 	};
 	
+	Button button_clear {
+		{ 174, 64, 50, 9 * 16 },
+		"CLEAR"
+	};
+	
 	Text text_status {
 		{ 16, 224, 128, 16 },
 		"Ready"
@@ -158,13 +173,21 @@ private:
 		{ 16, 270, 64, 32 },
 		"TX"
 	};
-	Button button_scan {
-		{ 88, 270, 64, 32 },
-		"SCAN"
+	Text text_scanlist {
+		{ 88, 268, 80, 16 },
+		"Scan list:"
 	};
-	Button button_clear {
-		{ 160, 270, 64, 32 },
-		"CLEAR"
+	OptionsField options_scanlist {
+		{ 88, 284 },
+		6,
+		{
+			{ "Lille ", 0 },
+			{ "Reims ", 1 }
+		}
+	};
+	Button button_scan {
+		{ 168, 270, 56, 32 },
+		"SCAN"
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {

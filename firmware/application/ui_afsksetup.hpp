@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,17 +20,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "afsk.hpp"
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
-#include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
 
 namespace ui {
 
@@ -37,23 +34,36 @@ class AFSKSetupView : public View {
 public:
 	AFSKSetupView(NavigationView& nav);
 	
-	void updfreq(rf::Frequency f);
 	void focus() override;
-	void paint(Painter& painter) override;
+	
+	std::string title() const override { return "AFSK setup"; };
 
 private:
-	Text text_title {
-		{ 40, 32, 160, 16 },
-		"AFSK modulator setup"
-	};
+	void update_freq(rf::Frequency f);
 	
+	Text text_setfreq {
+		{ 8, 32, 104, 16 },
+		"Frequency:"
+	};
 	Button button_setfreq {
-		{ 8, 64, 104, 32 },
+		{ 8, 48, 104, 32 },
 		"---.----M"
 	};
-	Button button_setbps {
-		{ 128, 64, 96, 32 },
-		"----bps"
+	
+	Text text_bps {
+		{ 128, 40, 104, 16 },
+		"Speed:"
+	};
+	OptionsField options_bps {
+		{ 128, 60 },
+		7,
+		{
+			{ "600bps ", 600 },
+			{ "1200bps", 1200 },
+			{ "2400bps", 2400 },
+			{ "4800bps", 4800 },
+			{ "9600bps", 9600 }
+		}
 	};
 	
 	Text text_mark {
@@ -86,8 +96,8 @@ private:
 	};
 	NumberField field_bw {
 		{ 172, 104 },
-		3,
-		{ 1, 40 },
+		2,
+		{ 1, 50 },
 		1,
 		' '
 	};
@@ -104,30 +114,19 @@ private:
 		' '
 	};
 	
-	Checkbox checkbox_altformat {
-		{ 8, 150 },
-		11,
-		"Alt. format"
+	Text text_format {
+		{ 16, 152, 7 * 8, 16 },
+		"Format:"
+	};
+	OptionsField options_format {
+		{ 80, 152 },
+		10,
+		{
+		}
 	};
 	
-	Checkbox checkbox_lsb {
-		{ 8, 150 },
-		9,
-		"LSB first"
-	};
-	Checkbox checkbox_parity {
-		{ 8, 180 },
-		11,
-		"Even parity"
-	};
-	Checkbox checkbox_datasize {
-		{ 8, 210 },
-		6,
-		"8 bits"
-	};
-	
-	Button button_done {
-		{ 72, 250, 96, 48 },
+	Button button_save {
+		{ 72, 250, 96, 40 },
 		"Save"
 	};
 };

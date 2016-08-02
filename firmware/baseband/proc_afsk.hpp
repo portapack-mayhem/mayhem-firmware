@@ -42,12 +42,12 @@ private:
 	uint32_t afsk_phase_inc_space;
 	uint8_t afsk_repeat;
 	uint32_t afsk_bw;
-	bool afsk_alt_format;
+	uint8_t afsk_format;
 	char message_data[512];
 	
 	uint8_t repeat_counter = 0;
 	int8_t re, im;
-	uint8_t s;
+	uint8_t s = 0;
     uint8_t bit_pos = 0;
     uint16_t byte_pos = 0;
     char cur_byte = 0;

@@ -24,11 +24,9 @@
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: No audio in about when shown second time
-//BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
 
 //TODO: Check AFSK transmit end, skips last bits ?
-//TODO: Weird LCR AFSK scrambling ?
-//TODO: Use msgpack !
+//TODO: Use msgpack for settings, lists... on sd card
 //TODO: Frequency manager
 //TODO: Morse coder
 
@@ -55,6 +53,7 @@
 //TODO: Persistent playdead !
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
+//BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
 
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Two players tic-tac-toe

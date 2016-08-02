@@ -87,10 +87,7 @@ MenuView::MenuView() {
 }
 
 MenuView::~MenuView() {
-	/* TODO: Double-check this */
-	for (auto child : children_) {
-		delete child;
-	}
+	time::signal_tick_second -= signal_token_tick_second;
 }
 
 void MenuView::on_tick_second() {

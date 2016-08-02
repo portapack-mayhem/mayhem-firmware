@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,19 +20,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_rds.hpp"
 #include "ui_afsksetup.hpp"
 #include "ui_receiver.hpp"
 
 #include "ch.h"
 
-#include "ff.h"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
 #include "string_format.hpp"
 
-#include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
@@ -39,6 +35,7 @@
 #include <stdio.h>
 
 using namespace portapack;
+using namespace afsk;
 
 namespace ui {
 
@@ -46,11 +43,7 @@ void AFSKSetupView::focus() {
 	button_setfreq.focus();
 }
 
-void AFSKSetupView::paint(Painter& painter) {
-	(void)painter;
-}
-
-void AFSKSetupView::updfreq(rf::Frequency f) {
+void AFSKSetupView::update_freq(rf::Frequency f) {
 	char finalstr[9] = {0};
 	
 	portapack::persistent_memory::set_tuned_frequency(f);
@@ -69,12 +62,19 @@ AFSKSetupView::AFSKSetupView(
 	NavigationView& nav
 )
 {
+	using name_t = std::string;
+	using value_t = int32_t;
+	using option_t = std::pair<name_t, value_t>;
+	using options_t = std::vector<option_t>;
+	options_t format_options;
 	uint8_t rpt;
+	size_t i;
 	
 	add_children({ {
-		&text_title,
+		&text_setfreq,
 		&button_setfreq,
-		&button_setbps,
+		&text_bps,
+		&options_bps,
 		&text_mark,
 		&field_mark,
 		&text_space,
@@ -83,62 +83,45 @@ AFSKSetupView::AFSKSetupView(
 		&field_bw,
 		&text_repeat,
 		&field_repeat,
-		//&checkbox_lsb,
-		//&checkbox_parity,
-		//&checkbox_datasize,
-		&checkbox_altformat,
-		&button_done
+		&text_format,
+		&options_format,
+		&button_save
 	} });
 	
-	//if (portapack::persistent_memory::afsk_config() & 1) checkbox_lsb.set_value(true);
-	//if (portapack::persistent_memory::afsk_config() & 2) checkbox_parity.set_value(true);
-	//if (portapack::persistent_memory::afsk_config() & 4) checkbox_datasize.set_value(true);
-	if (portapack::persistent_memory::afsk_config() & 8) checkbox_altformat.set_value(true);
+	for (i = 0; i < AFSK_MODES_COUNT; i++)
+		format_options.emplace_back(std::make_pair(afsk_formats[i].fullname, i));
 	
-	updfreq(portapack::persistent_memory::tuned_frequency());
+	options_format.set_options(format_options);
+	options_format.set_selected_index(portapack::persistent_memory::afsk_format());
 	
-	field_mark.set_value(portapack::persistent_memory::afsk_mark_freq()*100);
-	field_space.set_value(portapack::persistent_memory::afsk_space_freq()*100);
+	update_freq(portapack::persistent_memory::tuned_frequency());
+	
+	field_mark.set_value(portapack::persistent_memory::afsk_mark_freq() * 25);
+	field_space.set_value(portapack::persistent_memory::afsk_space_freq() * 25);
 	field_bw.set_value(portapack::persistent_memory::afsk_bw());
-	rpt = (portapack::persistent_memory::afsk_config() >> 8) & 0xFF;
-	if (rpt > 99) rpt = 5;
+	rpt = portapack::persistent_memory::afsk_repeats();
+	if ((rpt > 99) || (!rpt)) rpt = 5;
 	field_repeat.set_value(rpt);
 	
-	button_setfreq.on_select = [this,&nav](Button&){
+	button_setfreq.on_select = [this,&nav](Button&) {
 		auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::tuned_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			updfreq(f);
+			update_freq(f);
 		};
 	};
 	
-	if (portapack::persistent_memory::afsk_bitrate() == 1200) {
-		button_setbps.set_text("1200 bps");
-	} else {
-		button_setbps.set_text("2400 bps");
-	}
-	
-	button_setbps.on_select = [this](Button&){
-		if (portapack::persistent_memory::afsk_bitrate() == 1200) {
-			portapack::persistent_memory::set_afsk_bitrate(2400);
-			button_setbps.set_text("2400 bps");
-		} else {
-			portapack::persistent_memory::set_afsk_bitrate(1200);
-			button_setbps.set_text("1200 bps");
-		}
-	};
+	options_bps.set_by_value(portapack::persistent_memory::afsk_bitrate());
 
-	button_done.on_select = [this,&nav](Button&){
+	button_save.on_select = [this,&nav](Button&) {
 		uint32_t afsk_config = 0;
 		
-		portapack::persistent_memory::set_afsk_mark(field_mark.value()/100);
-		portapack::persistent_memory::set_afsk_space(field_space.value()/100);
+		portapack::persistent_memory::set_afsk_bitrate(options_bps.selected_index_value());
+		portapack::persistent_memory::set_afsk_mark(field_mark.value() / 25);
+		portapack::persistent_memory::set_afsk_space(field_space.value() / 25);
 		portapack::persistent_memory::set_afsk_bw(field_bw.value());
 		
-		//if (checkbox_lsb.value() == true) afsk_config |= 1;
-		//if (checkbox_parity.value() == true) afsk_config |= 2;
-		//if (checkbox_datasize.value() == true) afsk_config |= 4;
-		if (checkbox_altformat.value() == true) afsk_config |= 8;
-		afsk_config |= (field_repeat.value() << 8);
+		afsk_config |= (options_format.selected_index() << 16);
+		afsk_config |= (field_repeat.value() << 24);
 		portapack::persistent_memory::set_afsk_config(afsk_config);
 		
 		nav.pop();

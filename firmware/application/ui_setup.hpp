@@ -308,7 +308,7 @@ private:
 	};
 };
 
-class ModInfoView : public View {
+/*class ModInfoView : public View {
 public:
 	ModInfoView(NavigationView& nav);
 	void focus() override;
@@ -376,7 +376,7 @@ private:
 		{ 4 * 8, 272, 64, 24 },
 		"Ok"
 	};
-};
+};*/
 
 class SetupMenuView : public MenuView {
 public:

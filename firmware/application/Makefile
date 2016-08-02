@@ -2454,6 +2454,30 @@ __/common/wm8731.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/wm8731.cpp.s
 .PHONY : __/common/wm8731.cpp.s
 
+afsk.obj: afsk.cpp.obj
+.PHONY : afsk.obj
+
+# target to build an object file
+afsk.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/afsk.cpp.obj
+.PHONY : afsk.cpp.obj
+
+afsk.i: afsk.cpp.i
+.PHONY : afsk.i
+
+# target to preprocess a source file
+afsk.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/afsk.cpp.i
+.PHONY : afsk.cpp.i
+
+afsk.s: afsk.cpp.s
+.PHONY : afsk.s
+
+# target to generate assembly for a file
+afsk.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/afsk.cpp.s
+.PHONY : afsk.cpp.s
+
 ais_app.obj: ais_app.cpp.obj
 .PHONY : ais_app.obj
 
@@ -4411,6 +4435,9 @@ help:
 	@echo "... __/common/wm8731.obj"
 	@echo "... __/common/wm8731.i"
 	@echo "... __/common/wm8731.s"
+	@echo "... afsk.obj"
+	@echo "... afsk.i"
+	@echo "... afsk.s"
 	@echo "... ais_app.obj"
 	@echo "... ais_app.i"
 	@echo "... ais_app.s"

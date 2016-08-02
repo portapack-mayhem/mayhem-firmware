@@ -24,6 +24,7 @@
 #include "ui_afsksetup.hpp"
 #include "ui_debug.hpp"
 
+#include "afsk.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -33,6 +34,7 @@
 #include <stdio.h>
 
 using namespace portapack;
+using namespace afsk;
 
 namespace ui {
 
@@ -46,25 +48,21 @@ LCRView::~LCRView() {
 }
 
 void LCRView::generate_message() {
-	// Modem sync and SOM
-	const char lcr_init[8] = { 127, 127, 127, 127, 127, 127, 127, 15 };
-	// Eclairage (Auto, Jour, Nuit)
-	const char ec_lut[3][2] = { { 'A', 0x00 },
+	const char lcr_init[8] = { 127, 127, 127, 127, 127, 127, 127, 15 };		// Modem sync and SOM
+	const char ec_lut[4][2] = { { 'A', 0x00 },								// Eclairage (Auto, Jour, Nuit)
 								{ 'J', 0x00 },
-								{ 'N', 0x00 } };
+								{ 'N', 0x00 },
+								{ 'S', 0x00 } };
 	char eom[3] = { 3, 0, 0 };		// EOM and space for checksum
-	uint8_t i, pm, bit;
-	uint16_t dp;
-	uint8_t cp, pp, cur_byte, new_byte;
+
+	uint8_t i;
 	
 	button_setrgsb.set_text(rgsb);
 	
 	// Pad litterals to 7 chars (not required ?)
-	for (i = 0; i < 5; i++) {
-		while (strlen(litteral[i]) < 7) {
+	for (i = 0; i < 5; i++)
+		while (strlen(litteral[i]) < 7)
 			strcat(litteral[i], " ");
-		}
-	}
 	
 	// Compose LCR message
 	memset(lcr_message, 0, 512);
@@ -89,74 +87,21 @@ void LCRView::generate_message() {
 	// Checksum
 	checksum = 0;
 	i = 7;						// Skip modem sync
-	while (lcr_message[i]) {
-		checksum ^= lcr_message[i];
-		i++;
-	}
+	while (lcr_message[i])
+		checksum ^= lcr_message[i++];
+
 	checksum ^= eom[0];			// EOM char
 	checksum &= 0x7F;			// Trim
 	eom[1] = checksum;
 	
 	strcat(lcr_message, eom);
 	
-	//if (persistent_memory::afsk_config() & 2)
-		pm = 0; // Even parity
-	//else
-	//	pm = 1; // Odd parity
-
-	if (!(persistent_memory::afsk_config() & 8)) {
-		// Normal format
-		for (dp = 0; dp < strlen(lcr_message); dp++) {
-			pp = pm;
-			new_byte = 0;
-			cur_byte = lcr_message[dp];
-			for (cp = 0; cp < 7; cp++) {
-				bit = (cur_byte >> cp) & 1;
-				pp += bit;
-				new_byte |= (bit << (7 - cp));
-			}
-			lcr_message_data[dp] = new_byte | (pp & 1);
-		}
-		lcr_message_data[dp++] = 0;
-		lcr_message_data[dp] = 0;
-	} else {
-		// Alt format
-		for (dp = 0; dp < strlen(lcr_message); dp++) {
-			pp = pm;
-			// Do not apply LUT on checksum (last byte) ?
-			if (dp != strlen(lcr_message) - 1)
-				cur_byte = alt_lookup[(uint8_t)lcr_message[dp] & 0x7F];
-			else
-				cur_byte = lcr_message[dp];
-			for (cp = 0; cp < 8; cp++) {
-				if ((cur_byte >> cp) & 1) pp++;
-			}
-			lcr_message_data[dp * 2] = cur_byte;
-			lcr_message_data[(dp * 2) + 1] = 0xFE | (pp & 1);
-		}
-		lcr_message_data[dp * 2] = 0;
-		lcr_message_data[(dp * 2) + 1] = 0;
-	}
-
-	//if (persistent_memory::afsk_config() & 1) {
-		// LSB first
-		// See above
-	/*} else {
-		// MSB first
-		for (dp=0;dp<strlen(lcr_message);dp++) {
-			pp = pm;
-			cur_byte = lcr_message[dp];
-			for (cp=0;cp<7;cp++) {
-				if ((cur_byte>>cp)&1) pp++;
-			}
-			lcr_message_data[dp] = (cur_byte<<1)|(pp&1);
-		}
-	}*/
+	afsk::generate_data(lcr_message, lcr_message_data);
 }
 
 void LCRView::paint(Painter& painter) {
 	uint8_t i;
-	char finalstr[24] = {0};
+	std::string final_str;
 	
 	static constexpr Style style_orange {
 		.font = font::fixed_8x16,
@@ -180,18 +125,13 @@ void LCRView::paint(Painter& painter) {
 	
 	button_setrgsb.set_text(rgsb);
 	
-	// Recap: freq @ bps / ALT
-	auto fstr = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
-	auto bstr = to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
-	strcpy(finalstr, fstr.c_str());
-	strcat(finalstr, "@");
-	strcat(finalstr, bstr.c_str());
-	strcat(finalstr, "bps ");
-	if (portapack::persistent_memory::afsk_config() & 8)
-		strcat(finalstr, "ALT");
-	else
-		strcat(finalstr, "NRM");
-	text_recap.set(finalstr);
+	// Recap: freq @ bps
+	final_str = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
+	final_str += '@';
+	final_str += to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
+	final_str += "bps ";
+	final_str += afsk_formats[portapack::persistent_memory::afsk_format()].shortname;
+	text_recap.set(final_str);
 }
 
 void LCRView::update_progress() {
@@ -212,7 +152,7 @@ void LCRView::update_progress() {
 		strcat(str, " ");
 		strcat(str, to_string_dec_uint(scan_index + 1).c_str());
 		strcat(str, "/");
-		strcat(str, to_string_dec_uint(LCR_SCAN_COUNT).c_str());
+		strcat(str, to_string_dec_uint(scan_count).c_str());
 		text_status.set(str);
 		progress.set_value(scan_progress);
 	} else {
@@ -235,7 +175,7 @@ void LCRView::on_txdone(int n) {
 		}
 	} else {
 		// Done transmitting
-		if ((tx_mode == SCAN) && (scan_index < (LCR_SCAN_COUNT - 1))) {
+		if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
 			transmitter_model.disable();
 			if (abort_scan) {
 				// Kill scan process
@@ -250,7 +190,7 @@ void LCRView::on_txdone(int n) {
 			} else {
 				// Next address
 				scan_index++;
-				strcpy(rgsb, RGSB_list[scan_index]);
+				strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[scan_index * 5]);
 				scan_progress++;
 				repeat_index = 1;
 				update_progress();
@@ -267,7 +207,7 @@ void LCRView::on_txdone(int n) {
 }
 
 void LCRView::start_tx(const bool scan) {
-	bool afsk_alt_format;
+	uint8_t afsk_format;
 	uint8_t afsk_repeats;
 	
 	afsk_repeats = portapack::persistent_memory::afsk_repeats();
@@ -275,11 +215,12 @@ void LCRView::start_tx(const bool scan) {
 	if (scan) {
 		if (tx_mode != SCAN) {
 			scan_index = 0;
+			scan_count = scan_list[options_scanlist.selected_index()].count;
 			scan_progress = 1;
 			repeat_index = 1;
 			tx_mode = SCAN;
-			strcpy(rgsb, RGSB_list[0]);
-			progress.set_max(LCR_SCAN_COUNT * afsk_repeats);
+			strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[0]);
+			progress.set_max(scan_count * afsk_repeats);
 			update_progress();
 		}
 	} else {
@@ -291,10 +232,21 @@ void LCRView::start_tx(const bool scan) {
 	
 	generate_message();
 
-	if (portapack::persistent_memory::afsk_config() & 8)
-		afsk_alt_format = true;
-	else
-		afsk_alt_format = false;
+	switch (portapack::persistent_memory::afsk_format()) {
+		case 0:
+		case 1:
+		case 2:
+			afsk_format = 0;
+			break;
+		
+		case 3:
+			afsk_format = 1;
+			break;
+		
+		default:
+			afsk_format = 0;
+	}
+
 	
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	transmitter_model.set_baseband_configuration({
@@ -311,11 +263,11 @@ void LCRView::start_tx(const bool scan) {
 	baseband::set_afsk_data(
 		lcr_message_data,
 		228000 / portapack::persistent_memory::afsk_bitrate(),
-		portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / 2280,
-		portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / 2280,
+		portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / (228000 / 25),
+		portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / (228000 / 25),
 		afsk_repeats,
 		portapack::persistent_memory::afsk_bw() * 115,		// See proc_fsk_lcr.cpp
-		afsk_alt_format
+		afsk_format
 	);
 }
 
@@ -327,11 +279,8 @@ LCRView::LCRView(NavigationView& nav) {
 	std::string label;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_afsk);
-
-	memset(litteral, 0, 5 * 8);
-	memset(rgsb, 0, 5);
 	
-	strcpy(rgsb, RGSB_list[0]);
+	strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[0]);
 	
 	add_children({ {
 		&text_recap,
@@ -342,6 +291,8 @@ LCRView::LCRView(NavigationView& nav) {
 		&progress,
 		&button_lcrdebug,
 		&button_transmit,
+		&text_scanlist,
+		&options_scanlist,
 		&button_scan,
 		&button_clear
 	} });

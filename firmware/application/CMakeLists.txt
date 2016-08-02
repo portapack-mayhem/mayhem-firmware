@@ -135,6 +135,7 @@ set(CPPSRC
 	touch_adc.cpp
 	encoder.cpp
 	audio.cpp
+	afsk.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp

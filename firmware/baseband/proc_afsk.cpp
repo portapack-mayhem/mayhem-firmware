@@ -29,22 +29,24 @@
 
 void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 	
-	// This is called at 2280000/2048 = 1113Hz
+	// This is called at 2.28M/2048 = 1113Hz
 	
 	if (!configured) return;
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		// Tone generation at 2280000/10 = 228kHz
-		if (s >= (10 - 1)) {
-			s = 0;
-			
+		// Tone synthesis at 2.28M/10 = 228kHz
+		if (!s) {
+			s = 10 - 1;
 			if (sample_count >= afsk_samples_per_bit) {
-				if (configured == true) {
+				if (configured) {
 					cur_byte = message_data[byte_pos];
 					ext_byte = message_data[byte_pos + 1];
+					
 					if (!(cur_byte | ext_byte)) {
+						// End of data
 						if (repeat_counter < afsk_repeat) {
+							// Repeat
 							bit_pos = 0;
 							byte_pos = 0;
 							cur_byte = message_data[0];
@@ -53,36 +55,33 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 							shared_memory.application_queue.push(message);
 							repeat_counter++;
 						} else {
-							message.n = 0;
-							shared_memory.application_queue.push(message);
+							// Stop
 							cur_byte = 0;
 							ext_byte = 0;
+							message.n = 0;
+							shared_memory.application_queue.push(message);
 							configured = false;
 						}
 					}
 				}
 				
-				if (!afsk_alt_format) {
+				if (afsk_format == 0) {
 					// 0bbbbbbbp1
 					// Start, 7-bit data, parity, stop
-					gbyte = 0;
-					gbyte = cur_byte << 1;
-					gbyte |= 1;
-				} else {
+					gbyte = (cur_byte << 1) | 1;
+				} else if (afsk_format == 1) {
 					// 0bbbbbbbbp
 					// Start, 8-bit data, parity
-					gbyte = 0;
-					gbyte = cur_byte << 1;
-					gbyte |= (ext_byte & 1);
+					gbyte = (cur_byte << 1) | (ext_byte & 1);
 				}
 				
 				cur_bit = (gbyte >> (9 - bit_pos)) & 1;
 
-				if (bit_pos == 9) {
+				if (bit_pos >= 9) {
 					bit_pos = 0;
-					if (!afsk_alt_format)
+					if (afsk_format == 0)
 						byte_pos++;
-					else
+					else if (afsk_format == 1)
 						byte_pos += 2;
 				} else {
 					bit_pos++;
@@ -97,10 +96,10 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 			else
 				tone_phase += afsk_phase_inc_space;
 		} else {
-			s++;
+			s--;
 		}
 		
-		tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000)>>18]); 
+		tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000) >> 18]); 
 		
 		// FM
 		// 1<<18 = 262144
@@ -108,17 +107,18 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 		frq = tone_sample * afsk_bw;
 		
 		phase = (phase + frq);
-		sphase = phase + (64<<18);
+		sphase = phase + (64 << 18);
 
-		re = (sine_table_i8[(sphase & 0x03FC0000)>>18]);
-		im = (sine_table_i8[(phase & 0x03FC0000)>>18]);
+		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 		
-		buffer.p[i] = {(int8_t)re,(int8_t)im};
+		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
 }
 
 void AFSKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(p);
+	
 	if (message.id == Message::ID::AFSKConfigure) {
 		memcpy(message_data, message.message_data, 512);
 		afsk_samples_per_bit = message.afsk_samples_per_bit;
@@ -126,8 +126,9 @@ void AFSKProcessor::on_message(const Message* const p) {
 		afsk_phase_inc_space = message.afsk_phase_inc_space;
 		afsk_repeat = message.afsk_repeat - 1;
 		afsk_bw = message.afsk_bw;
-		afsk_alt_format = message.afsk_alt_format;
+		afsk_format = message.afsk_format;
 	
+		s = 0;
 		sample_count = afsk_samples_per_bit;
 		repeat_counter = 0;
 		bit_pos = 0;

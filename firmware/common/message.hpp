@@ -530,14 +530,14 @@ public:
 		const uint32_t afsk_phase_inc_space,
 		const uint8_t afsk_repeat,
 		const uint32_t afsk_bw,
-		const bool afsk_alt_format
+		const uint8_t afsk_format
 	) : Message { ID::AFSKConfigure },
 		afsk_samples_per_bit(afsk_samples_per_bit),
 		afsk_phase_inc_mark(afsk_phase_inc_mark),
 		afsk_phase_inc_space(afsk_phase_inc_space),
 		afsk_repeat(afsk_repeat),
 		afsk_bw(afsk_bw),
-		afsk_alt_format(afsk_alt_format)
+		afsk_format(afsk_format)
 	{
 		memcpy(message_data, data, 512);
 	}
@@ -547,7 +547,7 @@ public:
 	uint32_t afsk_phase_inc_space;
 	uint8_t afsk_repeat;
 	uint32_t afsk_bw;
-	bool afsk_alt_format;
+	uint8_t afsk_format;
 	char message_data[512];
 };
 

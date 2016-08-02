@@ -257,10 +257,10 @@ SetUIView::SetUIView(NavigationView& nav) {
 }
 
 void SetUIView::focus() {
-	button_ok.focus();
+	checkbox_showsplash.focus();
 }
 
-void ModInfoView::on_show() {
+/*void ModInfoView::on_show() {
 	if (modules_nb) update_infos(0);
 }
 
@@ -436,12 +436,12 @@ void ModInfoView::focus() {
 		option_modules.focus();
 	else
 		button_ok.focus();
-}
+}*/
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<6>({ {
 		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
-		{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
+		//{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		

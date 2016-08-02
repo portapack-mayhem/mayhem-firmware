@@ -36,16 +36,16 @@ using portapack::memory::map::backup_ram;
 namespace portapack {
 namespace persistent_memory {
 
-constexpr rf::Frequency tuned_frequency_reset_value { 858750000 };
+constexpr rf::Frequency tuned_frequency_reset_value { 88000000 };
 
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
 constexpr ppb_t ppb_reset_value { 0 };
 
 using afsk_freq_range_t = range_t<int32_t>;
-constexpr afsk_freq_range_t afsk_freq_range { 1, 60 };
-constexpr int32_t afsk_mark_reset_value { 12 };
-constexpr int32_t afsk_space_reset_value { 22 };
+constexpr afsk_freq_range_t afsk_freq_range { 1, 400 };
+constexpr int32_t afsk_mark_reset_value { 48 };
+constexpr int32_t afsk_space_reset_value { 88 };
 
 using afsk_bitrate_range_t = range_t<int32_t>;
 constexpr afsk_bitrate_range_t afsk_bitrate_range { 600, 9600 };
@@ -63,7 +63,7 @@ struct data_t {
 	
 	// AFSK modem
 	int32_t afsk_mark_freq;
-	int32_t afsk_space_freq;		// Todo: optimize size, only 256 bytes of NVRAM !
+	int32_t afsk_space_freq;		// Todo: reduce size, only 256 bytes of NVRAM !
 	int32_t afsk_bitrate;
 	int32_t afsk_bw;
 	uint32_t afsk_config;
@@ -139,8 +139,12 @@ uint32_t afsk_config() {
 	return data->afsk_config;
 }
 
+uint8_t afsk_format() {
+	return ((data->afsk_config >> 16) & 0xFF);
+}
+
 uint8_t afsk_repeats() {
-	return (data->afsk_config >> 8);
+	return (data->afsk_config >> 24);
 }
 
 void set_afsk_config(const uint32_t new_value) {
