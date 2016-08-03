@@ -3702,6 +3702,30 @@ ui_debug.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_debug.cpp.s
 .PHONY : ui_debug.cpp.s
 
+ui_encoders.obj: ui_encoders.cpp.obj
+.PHONY : ui_encoders.obj
+
+# target to build an object file
+ui_encoders.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_encoders.cpp.obj
+.PHONY : ui_encoders.cpp.obj
+
+ui_encoders.i: ui_encoders.cpp.i
+.PHONY : ui_encoders.i
+
+# target to preprocess a source file
+ui_encoders.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_encoders.cpp.i
+.PHONY : ui_encoders.cpp.i
+
+ui_encoders.s: ui_encoders.cpp.s
+.PHONY : ui_encoders.s
+
+# target to generate assembly for a file
+ui_encoders.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_encoders.cpp.s
+.PHONY : ui_encoders.cpp.s
+
 ui_font_fixed_8x16.obj: ui_font_fixed_8x16.cpp.obj
 .PHONY : ui_font_fixed_8x16.obj
 
@@ -4591,6 +4615,9 @@ help:
 	@echo "... ui_debug.obj"
 	@echo "... ui_debug.i"
 	@echo "... ui_debug.s"
+	@echo "... ui_encoders.obj"
+	@echo "... ui_encoders.i"
+	@echo "... ui_encoders.s"
 	@echo "... ui_font_fixed_8x16.obj"
 	@echo "... ui_font_fixed_8x16.i"
 	@echo "... ui_font_fixed_8x16.s"

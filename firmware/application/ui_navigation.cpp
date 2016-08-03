@@ -38,15 +38,15 @@
 #include "ui_closecall.hpp"			// DEBUG
 #include "ui_freqman.hpp"			// DEBUG
 
-#include "ui_setup.hpp"
+#include "ui_encoders.hpp"
 #include "ui_debug.hpp"
 #include "ui_rds.hpp"
 #include "ui_xylos.hpp"
 #include "ui_epar.hpp"
 #include "ui_lcr.hpp"
 #include "analog_audio_app.hpp"
-#include "ui_audiotx.hpp"
-#include "ui_jammer.hpp"
+#include "ui_audiotx.hpp"			// DEBUG
+#include "ui_jammer.hpp"			// DEBUG
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -251,7 +251,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
 		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
 		{ "TEDI/LCR                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LCRView>(); } },
-		{ "OOK encoder               TX", 	ui::Color::orange(),	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "OOK encoders              TX", 	ui::Color::orange(),	[&nav](){ nav.push<EncodersView>(); } },
 		{ "RDS                       TX",	ui::Color::red(),		[&nav](){ nav.push<RDSView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 							ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },

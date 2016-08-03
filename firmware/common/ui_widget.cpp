@@ -1014,16 +1014,26 @@ int32_t NumberField::value() const {
 	return value_;
 }
 
-void NumberField::set_value(int32_t new_value) {
+void NumberField::set_value(int32_t new_value, bool trigger_change) {
 	new_value = clip_value(new_value);
 
 	if( new_value != value() ) {
 		value_ = new_value;
-		if( on_change ) {
+		if( on_change && trigger_change ) {
 			on_change(value_);
 		}
 		set_dirty();
 	}
+}
+
+void NumberField::set_value(int32_t new_value) {
+	set_value(new_value, true);
+}
+
+void NumberField::set_range(const int32_t min, const int32_t max) {
+	range.first = min;
+	range.second = max;
+	set_value(value(), false);
 }
 
 void NumberField::paint(Painter& painter) {

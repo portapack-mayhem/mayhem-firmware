@@ -169,6 +169,7 @@ set(CPPSRC
 	ui_lcr.cpp
 	ui_xylos.cpp
 	ui_freqman.cpp
+	ui_encoders.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp

@@ -152,7 +152,7 @@ bool MenuView::set_highlighted(const size_t new_value) {
 		return false;
 	}
 	
-	if ((new_value - offset_ + 1) >= MENU_MAX) {
+	if ((new_value > offset_) && ((new_value - offset_ + 1) >= MENU_MAX)) {
 		// Shift MenuView up
 		offset_ = new_value - MENU_MAX + 1;
 		update_items();

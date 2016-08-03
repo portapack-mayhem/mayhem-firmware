@@ -109,6 +109,7 @@ public:
 	void set_clean();
 
 	void visible(bool v);
+	bool visible() { return flags.visible; };
 
 	bool highlighted() const;
 	void set_highlighted(const bool value);
@@ -409,12 +410,18 @@ public:
 	using range_t = std::pair<int32_t, int32_t>;
 
 	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
+	NumberField(
+	) : NumberField { { }, 1, { 0, 1 }, 1, ' ' }
+	{
+	}
 
 	NumberField(const NumberField&) = delete;
 	NumberField(NumberField&&) = delete;
 
 	int32_t value() const;
 	void set_value(int32_t new_value);
+	void set_value(int32_t new_value, bool trigger_change);
+	void set_range(const int32_t min, const int32_t max);
 
 	void paint(Painter& painter) override;
 
@@ -423,7 +430,7 @@ public:
 	bool on_touch(const TouchEvent event) override;
 
 private:
-	const range_t range;
+	range_t range;
 	const int32_t step;
 	const size_t length_;
 	const char fill_char;
