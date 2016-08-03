@@ -9,28 +9,29 @@ As its name implies, HAVOC is a firmware made to have serious fun, mainly involv
 **In most countries, radio transmissions are tightly regulated. Transmitting without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
 
 Fork features:
-* Close-Call™ style scanner
-* RDS (Radio Data System) PSN and Radiotext transmit
-* LCR (Language de Commande Routier) litteral message forming and transmit
-* Fully configurable AFSK transmit
+* (Disabled for now) Close-Call™ style scanner
 * PWM audio RSSI output
+* Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, ...)
+* RDS (Radio Data System) PSN and Radiotext transmit
+* Fully configurable AFSK transmit
+* LCR (Language de Commande Routier) litteral message forming and transmit
 * Xylos transmitter, street lighting control (NFM CCIR tones)
 * Virtual keyboard or Unistroke "handwriting" text input
 * "Play Dead" in case of emergency
-* Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
+* (Disabled for now) Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 
 Todo (highest to lowest priority):
+* Fully configurable Jammer (fix)
+* Whistle (tone generator)
 * Play wave files from µSD
 * Wireless microphone transmit
 * CTCSS talkie transmit
 * Frequency manager
 * AFSK receiver
+* EPAR transmit (old Xylos)
 * POCSAG receiver
 * POCSAG transmitter
-* EPAR transmit (old Xylos)
-* Fully configurable Jammer (fix)
-* Whistle (tone generator)
-* Detect/decode/play/replay OOK from PT2262 and friends (doorbells, cheap remotes... )
+* Detect/decode OOK
 * Make SIGFOX interceptor work with all modules
 * Number station
 * Spectrum painter
