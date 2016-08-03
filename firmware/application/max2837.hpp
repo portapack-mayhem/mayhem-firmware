@@ -83,6 +83,14 @@ constexpr int8_t gain_db_step = 2;
 
 /*************************************************************************/
 
+namespace tx {
+
+constexpr range_t<int8_t> gain_db_range { 0, 47 };
+constexpr int8_t gain_db_step = 1;
+}
+
+/*************************************************************************/
+
 namespace filter {
 
 constexpr std::array<uint32_t, 16> bandwidths {
@@ -829,7 +837,7 @@ public:
 	void init();
 	void set_mode(const Mode mode);
 
-	void set_tx_vga_gain(const int_fast8_t value);
+	void set_tx_vga_gain(const int_fast8_t db);
 	void set_lna_gain(const int_fast8_t db);
 	void set_vga_gain(const int_fast8_t db);
 	void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum);

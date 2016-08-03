@@ -55,6 +55,18 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 
 } /* namespace vga */
 
+namespace tx {
+
+static uint_fast8_t gain_ordinal(const int8_t db) {
+	const auto db_sat = gain_db_range.clip(db);
+	uint8_t value = db_sat & 0x0f;
+	value = (db_sat >= 16) ? (value | 0x20) : value;
+	value = (db_sat >= 32) ? (value | 0x10) : value;
+	return (value & 0b111111) ^ 0b111111;
+}
+
+} /* namespace tx */
+
 namespace filter {
 
 static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
@@ -170,8 +182,8 @@ reg_t MAX2837::read(const Register reg) {
 	return read(toUType(reg));
 }
 
-void MAX2837::set_tx_vga_gain(const int_fast8_t value) {
-	_map.r.tx_gain.TXVGA_GAIN_SPI = value;
+void MAX2837::set_tx_vga_gain(const int_fast8_t db) {
+	_map.r.tx_gain.TXVGA_GAIN_SPI = tx::gain_ordinal(db);
 	_dirty[Register::TX_GAIN] = 1;
 	flush();
 }
