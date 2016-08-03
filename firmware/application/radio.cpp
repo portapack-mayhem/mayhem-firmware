@@ -146,6 +146,10 @@ void set_vga_gain(const int_fast8_t db) {
 	second_if.set_vga_gain(db);
 }
 
+void set_tx_gain(const int_fast8_t db) {
+	second_if.set_tx_vga_gain(db);
+}
+
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
 	second_if.set_lpf_rf_bandwidth(bandwidth_minimum);
 }
