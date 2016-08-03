@@ -375,6 +375,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PRDS rds)
 
+### OOK
+
+set(MODE_CPPSRC
+	proc_ook.cpp
+)
+DeclareTargets(POOK ook)
+
 ### HackRF "factory" firmware
 
 add_custom_command(

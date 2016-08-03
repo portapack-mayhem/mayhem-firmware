@@ -109,6 +109,16 @@ void set_pwmrssi(int32_t avg, bool enabled) {
 	send_message(&message);	
 }
 
+void set_ook_data(const char ook_bitstream[], uint32_t stream_length, uint32_t samples_per_bit, uint8_t repeat) {
+	const OOKConfigureMessage message {
+		ook_bitstream,
+		stream_length,
+		samples_per_bit,
+		repeat
+	};
+	send_message(&message);	
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {

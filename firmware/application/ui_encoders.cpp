@@ -29,6 +29,7 @@
 
 #include <cstring>
 #include <stdio.h>
+#include <math.h>
 
 using namespace portapack;
 
@@ -46,55 +47,52 @@ EncodersView::~EncodersView() {
 void EncodersView::generate_frame() {
 	uint8_t i;
 	
-	debug_text.clear();
+	debug_text = encoder_def->sync;
+	
 	i = 0;
-	for (auto c : encoder_def->format) {
+	for (auto c : encoder_def->word_def) {
 		if (c <= 'J')
 			debug_text += encoder_def->bit_format.at(bitfields[i++].value());
 	}
 	
-	//text_status.set(debug_text.substr(0, 28));
-	
 	if (visible()) parent()->set_dirty();
-	
-	//afsk::generate_data(lcr_message, lcr_message_data);
 }
 
 void EncodersView::paint(Painter& painter) {
-	Coord x = 8, x_inc;
-	Coord y, prev_y = 0;
+	float x = 0, x_inc;
+	Coord y, prev_y = 1;
+	uint8_t prelude_length = encoder_def->sync.length();
 	
-	painter.fill_rectangle( { 0, 144, 240, 24 }, Color::black() );
+	painter.fill_rectangle( { 0, 160, 240, 24 }, Color::black() );
 	
-	x_inc = 240 / debug_text.length();
+	x_inc = 230.0 / (debug_text.length() - prelude_length);
 	
-	for (auto c : debug_text) {
+	for (auto c : debug_text.substr(prelude_length)) {
 		if (c == '0')
 			y = 23;
 		else
 			y = 0;
 		
-		if (prev_y != y) painter.draw_rectangle( { x, 144, 1, 24 }, Color::yellow() );
-		painter.draw_rectangle( { x, 144 + y, x_inc, 1 }, Color::yellow() );
+		if (prev_y != y) painter.draw_rectangle( { (Coord)x, 160, 1, 24 }, Color::yellow() );
+		painter.draw_rectangle( { (Coord)x, 160 + y, ceil(x_inc), 1 }, Color::yellow() );
 		
 		prev_y = y;
 		x += x_inc;
-		if (x >= (240 - x_inc)) break;
 	}
 }
 
 void EncodersView::update_progress() {
-	/*char str[16];
+	char str[16];
 	
 	text_status.set("            ");
 	
-	if (tx_mode == SINGLE) {
+	//if (tx_mode == SINGLE) {
 		strcpy(str, to_string_dec_uint(repeat_index).c_str());
 		strcat(str, "/");
-		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
+		strcat(str, to_string_dec_uint(encoder_def->repeat_min).c_str());
 		text_status.set(str);
 		progress.set_value(repeat_index);
-	} else if (tx_mode == SCAN) {
+	/*} else if (tx_mode == SCAN) {
 		strcpy(str, to_string_dec_uint(repeat_index).c_str());
 		strcat(str, "/");
 		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
@@ -111,20 +109,20 @@ void EncodersView::update_progress() {
 }
 
 void EncodersView::on_txdone(int n) {
-	/*char str[16];
+	//char str[16];
 	
 	if (n > 0) {
 		// Repeating...
 		repeat_index = n + 1;
-		if (tx_mode == SCAN) {
+		/*if (tx_mode == SCAN) {
 			scan_progress++;
 			update_progress();
-		} else {
+		} else {*/
 			update_progress();
-		}
+		//}
 	} else {
 		// Done transmitting
-		if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
+		/*if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
 			transmitter_model.disable();
 			if (abort_scan) {
 				// Kill scan process
@@ -145,17 +143,19 @@ void EncodersView::on_txdone(int n) {
 				update_progress();
 				start_tx(true);
 			}
-		} else {
+		} else {*/
 			transmitter_model.disable();
 			tx_mode = IDLE;
-			update_progress();
-			button_scan.set_style(&style_val);
-			button_scan.set_text("SCAN");
-		}
-	}*/
+			text_status.set("Done");
+			progress.set_value(0);
+		//}
+	}
 }
 
 void EncodersView::start_tx(const bool scan) {
+	char ook_bitstream[64];
+	uint32_t ook_bitstream_length;
+	
 	/*if (scan) {
 		if (tx_mode != SCAN) {
 			scan_index = 0;
@@ -167,17 +167,28 @@ void EncodersView::start_tx(const bool scan) {
 			progress.set_max(scan_count * afsk_repeats);
 			update_progress();
 		}
-	} else {
+	} else {*/
 		tx_mode = SINGLE;
 		repeat_index = 1;
-		progress.set_max(afsk_repeats);
+		progress.set_max(encoder_def->repeat_min);
 		update_progress();
-	}*/
+	//}
 	
 	generate_frame();
+	
+	// Clear bitstream
+	memset(ook_bitstream, 0, 64);
+	
+	size_t n = 0;
+	for (auto c : debug_text) {
+		if (c != '0')
+			ook_bitstream[n >> 3] |= (1 << (7 - (n & 7)));
+		n++;
+	}
+	
+	ook_bitstream_length = n - 1;
 
-	/*
-	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+	transmitter_model.set_tuning_frequency(433920000);		// TODO: Change !
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
 		.sampling_rate = 2280000U,
@@ -189,15 +200,15 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_afsk_data(
-		lcr_message_data,
-		228000 / portapack::persistent_memory::afsk_bitrate(),
-		portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / (228000 / 25),
-		portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / (228000 / 25),
-		afsk_repeats,
-		portapack::persistent_memory::afsk_bw() * 115,		// See proc_fsk_lcr.cpp
-		afsk_format
-	);*/
+	baseband::set_ook_data(
+		ook_bitstream,
+		ook_bitstream_length,
+		// 2280000/2 = 1140000Hz = 0,877192982us
+		// numberfield_clk.value() / encoder_def->clk_per_symbol
+		// 455000 / 12 = 37917Hz = 26,37339452us
+		1140000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_symbol),
+		encoder_def->repeat_min
+	);
 }
 
 void EncodersView::on_bitfield() {
@@ -205,6 +216,10 @@ void EncodersView::on_bitfield() {
 }
 
 void EncodersView::on_type_change(size_t index) {
+	std::string word_format;
+	size_t data_length;
+	size_t address_length;
+	
 	enc_type = index;
 	
 	encoder_def = &encoder_defs[enc_type];
@@ -222,6 +237,45 @@ void EncodersView::on_type_change(size_t index) {
 		n++;
 	}
 	
+	word_format = encoder_def->word_format;
+	size_t address_start = word_format.find_first_of("A");
+	size_t data_start = word_format.find_first_of("D");	
+	size_t format_length = word_format.length();
+	
+	if (address_start == std::string::npos) address_start = format_length;
+	if (data_start == std::string::npos) data_start = format_length;
+	
+	// Never did anything so dirty :(
+	if (!address_start) {
+		address_length = data_start;
+		data_length = format_length - address_length;
+	} else {
+		data_length = address_start;
+		address_length = format_length - data_length;
+	}
+	
+	if (address_length) {
+		text_format_a.hidden(false);
+		text_format_a.set_parent_rect(
+			{ (2 + address_start) * 8, 	12 * 8, 	address_length * 8, 	16 }
+		);
+		text_format_a.set_style(&style_address);
+		text_format_a.set(std::string(address_length, 'A'));
+	} else {
+		text_format_a.hidden(true);
+	}
+	
+	if (data_length) {
+		text_format_d.hidden(false);
+		text_format_d.set_parent_rect(
+			{ (2 + data_start) * 8, 	12 * 8, 	data_length * 8, 		16 }
+		);
+		text_format_d.set_style(&style_data);
+		text_format_d.set(std::string(data_length, 'D'));
+	} else {
+		text_format_d.hidden(true);
+	}
+
 	generate_frame();
 }
 
@@ -231,12 +285,13 @@ void EncodersView::on_show() {
 }
 
 EncodersView::EncodersView(NavigationView& nav) {
-	//baseband::run_image(portapack::spi_flash::image_tag_ook);
+	baseband::run_image(portapack::spi_flash::image_tag_ook);
+	
+	encoder_def = &encoder_defs[0];
 
 	add_children({ {
 		&text_enctype,
 		&options_enctype,
-		&text_bitfield,
 		&text_clk,
 		&numberfield_clk,
 		&text_kHz,
@@ -246,6 +301,9 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&text_wordduration,
 		&numberfield_wordduration,
 		&text_us2,
+		&text_bitfield,
+		&text_format_a,
+		&text_format_d,
 		&text_waveform,
 		&text_status,
 		&progress,
@@ -300,7 +358,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 		n++;
 	}
 	
-	options_enctype.set_selected_index(0);
+	//options_enctype.set_selected_index(0);
 	
 	button_transmit.set_style(&style_val);
 

@@ -70,8 +70,10 @@ public:
 		XylosConfigure = 22,
 		AFSKConfigure = 23,
 		PWMRSSIConfigure = 24,
-		FIFOSignal = 25,
-		FIFOData = 26,
+		OOKConfigure = 25,
+		
+		FIFOSignal = 26,
+		FIFOData = 27,
 		MAX
 	};
 
@@ -509,6 +511,27 @@ public:
 	}
 
 	char ccir_message[21];
+};
+
+class OOKConfigureMessage : public Message {
+public:
+	OOKConfigureMessage(
+		const char data[],
+		const uint32_t stream_length,
+		const uint32_t samples_per_bit,
+		const uint8_t repeat
+	) : Message { ID::OOKConfigure },
+		stream_length(stream_length),
+		samples_per_bit(samples_per_bit),
+		repeat(repeat)
+	{
+		memcpy(ook_bitstream, data, 64);
+	}
+
+	char ook_bitstream[64];
+	uint32_t stream_length;
+	uint32_t samples_per_bit;
+	uint8_t repeat;
 };
 
 class RetuneMessage : public Message {
