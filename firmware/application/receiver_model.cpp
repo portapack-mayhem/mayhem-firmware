@@ -115,6 +115,15 @@ void ReceiverModel::set_vga(int32_t v_db) {
 	update_vga();
 }
 
+int32_t ReceiverModel::tx_gain() const {
+	return tx_gain_db_;
+}
+
+void ReceiverModel::set_tx_gain(int32_t v_db) {
+	tx_gain_db_ = v_db;
+	update_tx_gain();
+}
+
 uint32_t ReceiverModel::sampling_rate() const {
 	return sampling_rate_;
 }
@@ -155,6 +164,7 @@ void ReceiverModel::enable() {
 	update_rf_amp();
 	update_lna();
 	update_vga();
+	update_tx_gain();
 	update_baseband_bandwidth();
 	update_sampling_rate();
 	update_modulation();
@@ -200,6 +210,10 @@ void ReceiverModel::update_baseband_bandwidth() {
 
 void ReceiverModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
+}
+
+void ReceiverModel::update_tx_gain() {
+	radio::set_tx_gain(tx_gain_db_);
 }
 
 void ReceiverModel::set_am_configuration(const size_t n) {

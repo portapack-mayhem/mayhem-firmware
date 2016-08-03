@@ -60,6 +60,9 @@ public:
 	int32_t vga() const;
 	void set_vga(int32_t v_db);
 
+	int32_t tx_gain() const;
+	void set_tx_gain(int32_t v_db);
+	
 	uint32_t sampling_rate() const;
 	void set_sampling_rate(uint32_t v);
 
@@ -91,6 +94,7 @@ private:
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
+	int32_t tx_gain_db_ { 47 };
 	Mode mode_ { Mode::NarrowbandFMAudio };
 	uint32_t sampling_rate_ { 3072000 };
 	size_t decimation_factor_ { 1 };
@@ -107,6 +111,7 @@ private:
 	void update_lna();
 	void update_baseband_bandwidth();
 	void update_vga();
+	void update_tx_gain();
 	void update_sampling_rate();
 	void update_headphone_volume();
 
