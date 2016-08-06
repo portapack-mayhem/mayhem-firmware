@@ -50,15 +50,15 @@ void EncodersView::generate_frame() {
 	debug_text.clear();
 	
 	i = 0;
-	for (auto c : encoder_def->word_def) {
-		if (c < 'S')
-			debug_text += encoder_def->bit_format.at(bitfield.value(i));
-		else if (c == 'S')
+	for (auto c : encoder_def->word_format) {
+		if (c == 'S')
 			debug_text += encoder_def->sync;
+		else
+			debug_text += encoder_def->bit_format.at(bitfield.value(i));
 		i++;
 	}
 	
-	//if (visible()) parent()->set_dirty();	// Might be called before on_show ?
+	draw_waveform();
 }
 
 void EncodersView::draw_waveform() {
@@ -77,7 +77,9 @@ void EncodersView::draw_waveform() {
 		else
 			y = 0;
 		
+		// Edge
 		if (prev_y != y) painter_->draw_rectangle( { (Coord)x, 160, 1, 24 }, Color::yellow() );
+		// Level
 		painter_->draw_rectangle( { (Coord)x, 160 + y, ceil(x_inc), 1 }, Color::yellow() );
 		
 		prev_y = y;
@@ -87,6 +89,7 @@ void EncodersView::draw_waveform() {
 
 void EncodersView::paint(Painter& painter) {
 	painter_ = &painter;
+	draw_waveform();
 }
 
 void EncodersView::update_progress() {
@@ -215,7 +218,7 @@ void EncodersView::start_tx(const bool scan) {
 		// 2280000/2 = 1140000Hz = 0,877192982us
 		// numberfield_clk.value() / encoder_def->clk_per_symbol
 		// 455000 / 12 = 37917Hz = 26,37339452us
-		1140000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_symbol),
+		228000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_symbol),
 		encoder_def->repeat_min,
 		encoder_def->pause_symbols
 	);

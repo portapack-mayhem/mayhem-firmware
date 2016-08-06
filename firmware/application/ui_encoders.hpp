@@ -28,7 +28,7 @@
 
 namespace ui {
 
-#define ENC_TYPES_COUNT 13
+#define ENC_TYPES_COUNT 14
 
 class EncodersView : public View {
 public:
@@ -50,7 +50,6 @@ private:
 		uint16_t clk_per_symbol;		// Oscillator periods per bit fragment
 		std::vector<std::string> bit_format;
 		uint8_t word_length;			// Total # of bits
-		std::string word_def;
 		std::string word_format;
 		std::string sync;				// Like bit_format
 		uint32_t default_frequency;		// Default encoder clk frequency
@@ -59,15 +58,27 @@ private:
 	};
 
 	// S = Sync
-	// 0~9 A~R = Address/data bits
+	// A/D = Address/data bits
 	const encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
-		// PT2260
+		// PT2260-R2
 		{
-			"xx2260",
+			"2260-R2",
 			3, 2,
 			1024, 128,
 			{ "10001000", "11101110", "10001110" },
-			12,	"0123456789ABS", "AAAAAAAAAADD",
+			12,	"AAAAAAAAAADDS",
+			"10000000000000000000000000000000",
+			200000,	1,
+			10	// ?
+		},
+		
+		// PT2260-R4
+		{
+			"2260-R4",
+			3, 2,
+			1024, 128,
+			{ "10001000", "11101110", "10001110" },
+			12,	"AAAAAAAADDDDS",
 			"10000000000000000000000000000000",
 			200000,	1,
 			10	// ?
@@ -75,35 +86,35 @@ private:
 		
 		// PT2262
 		{
-			"xx2262",
+			"2262   ",
 			3, 2,
-			32, 4,
+			1024, 128,
 			{ "10001000", "11101110", "10001110" },
-			12,	"0123456789ABS", "AAAAAADDDDDD",
+			12,	"AAAAAAAAAAAAS",
 			"10000000000000000000000000000000",
-			30000,	4,
+			200000,	1,
 			10	// ?
 		},
 		
-		// 16bit?
+		// 16-bit ?
 		{
-			"16bit?",
+			"16-bit ",
 			2, 2,
 			32, 8,
 			{ "1110", "1000" },		// Opposite ?
-			16,	"0123456789ABCDEFS", "AAAAAAAAAAAAAAAA",
-			"10000000000000000000000000000000",
-			114000,	50,
-			10	// ?
+			16,	"AAAAAAAAAAAAAAAAS",
+			"100000000000000000000",
+			25000,	50,
+			0	// ?
 		},
 		
 		// RT1527
 		{
-			"xx1527",
+			"1527   ",
 			2, 2,
 			128, 32,
 			{ "1000", "1110" },
-			12,	"0123456789ABS", "AAAAAAAADD",
+			24,	"SAAAAAAAAAAAAAAAAAAAADDDD",
 			"10000000000000000000000000000000",
 			100000,	4,
 			10	// ?
@@ -111,11 +122,11 @@ private:
 		
 		// HK526E
 		{
-			"xx526 ",
+			"526    ",
 			2, 2,
 			24, 8,
 			{ "110", "100" },
-			12,	"0123456789AB", "AAAAAAAADDDD",
+			12,	"AAAAAAAAAAAA",
 			"",
 			20000, 4,
 			10	// ?
@@ -123,11 +134,11 @@ private:
 		
 		// HT12E
 		{
-			"xx12E ",
+			"12E    ",
 			2, 2,
 			3, 1,
 			{ "011", "001" },
-			12,	"S0123456789AB", "AAAAAAAADDDD",
+			12,	"SAAAAAAAADDDD",
 			"0000000000000000000000000000000000001",
 			3000, 4,
 			10	// ?
@@ -135,11 +146,11 @@ private:
 			
 		// VD5026 13 bits ?
 		{
-			"xx5026",
+			"5026   ",
 			4, 4,
 			128, 8,
 			{ "1000000010000000", "1111111011111110", "1111111010000000", "1000000011111110" },
-			12,	"S0123456789AB", "AAAAAAAADDDD",
+			12,	"SAAAAAAAAAAAA",
 			"000000000000000000000000000000000000000000000001",		// ?
 			100000,	4,
 			10	// ?
@@ -147,11 +158,11 @@ private:
 		
 		// UM3750
 		{
-			"UM3750",
+			"UM3750 ",
 			2, 2,
 			96, 32,
 			{ "011", "001" },
-			12,	"S0123456789AB", "AAAAAAAAAAAA",
+			12,	"SAAAAAAAAAAAA",
 			"1",
 			100000,	4,
 			10	// ?
@@ -159,11 +170,11 @@ private:
 		
 		// UM3758
 		{
-			"UM3758",
+			"UM3758 ",
 			3, 2,
 			96, 16,
 			{ "011011", "001001", "011001" },
-			18,	"S0123456789ABCDEFGH", "AAAAAAAAAADDDDDDDD",
+			18,	"SAAAAAAAAAADDDDDDDD",
 			"1",
 			160000,	4,
 			10	// ?
@@ -171,11 +182,11 @@ private:
 		
 		// BA5104
 		{
-			"BA5104",
+			"BA5104 ",
 			2, 2,
 			3072, 768,
 			{ "1000", "1110" },
-			9,	"S012345678", "DDAAAAAAA",
+			9,	"SDDAAAAAAA",
 			"",
 			455000,	4,
 			10	// ?
@@ -183,23 +194,23 @@ private:
 			
 		// MC145026
 		{
-			"145026",
+			"145026 ",
 			3, 2,
 			16, 1,
 			{ "0111111101111111", "0100000001000000", "0111111101000000" },
-			9,	"S012345678", "AAAAADDDD",
+			9,	"SAAAAADDDD",
 			"000000000000000000",
 			455000,	2,
 			10	// ?
 		},
 		
-		// HT6xxx
+		// HT6*** TODO: Add individual variations
 		{
-			"HT6xxx",
+			"HT6*** ",
 			3, 2,
 			198, 33,
 			{ "011011", "001001", "001011" },
-			18,	"S0123456789ABCDEFGH", "AAAAAAAAAAAADDDDDD",
+			18,	"SAAAAAAAAAAAADDDDDD",
 			"0000000000000000000000000000000000001011001011001",
 			100000,	3,
 			10	// ?
@@ -207,11 +218,11 @@ private:
 		
 		// TC9148
 		{
-			"TC9148",
+			"TC9148 ",
 			2, 2,
 			48, 12,
 			{ "1000", "1110", },
-			12,	"0123456789AB", "DDDDDDDDDDDD",
+			12,	"AAAAAAAAAAAA",
 			"",
 			455000,	3,
 			10	// ?
@@ -278,7 +289,7 @@ private:
 	};
 	OptionsField options_enctype {
 		{ 2 * 8, 5 * 8 },
-		6,
+		7,
 		{
 		}
 	};
