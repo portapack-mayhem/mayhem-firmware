@@ -1,3 +1,25 @@
+/*
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "portapack.hpp"
@@ -1026,10 +1048,6 @@ void NumberField::set_value(int32_t new_value, bool trigger_change) {
 	}
 }
 
-void NumberField::set_value(int32_t new_value) {
-	set_value(new_value, true);
-}
-
 void NumberField::set_range(const int32_t min, const int32_t max) {
 	range.first = min;
 	range.second = max;
@@ -1072,6 +1090,131 @@ bool NumberField::on_touch(const TouchEvent event) {
 }
 
 int32_t NumberField::clip_value(int32_t value) {
+	if( value > range.second ) {
+		value = range.second;
+	}
+	if( value < range.first ) {
+		value = range.first;
+	}
+	return value;
+}
+
+/* SymField **************************************************************/
+
+SymField::SymField(
+	Point parent_pos,
+	size_t length,
+	range_t range
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	range { range },
+	length_ { length }
+{
+	set_focusable(true);
+}
+
+uint32_t SymField::value(const uint32_t index) {
+	return values_[index];
+}
+
+void SymField::set_value(const uint32_t index, int32_t new_value) {
+	new_value = clip_value(new_value);
+
+	if( new_value != values_[index] ) {
+		values_[index] = new_value;
+		if( on_change ) {
+			on_change();
+		}
+		set_dirty();
+	}
+}
+
+void SymField::set_length(const uint32_t new_length) {
+	if (new_length <= 30) {
+		prev_length_ = length_;
+		length_ = new_length;
+		erase_prev_ = true;
+		set_dirty();
+	}
+}
+
+void SymField::set_range(const int32_t min, const int32_t max) {
+	size_t n;
+	
+	range.first = min;
+	range.second = max;
+	for (n = 0; n < length_; n++)
+		set_value(n, values_[n]);
+}
+
+void SymField::paint(Painter& painter) {
+	size_t n;
+	Point pt_draw = screen_pos();
+	
+	if (erase_prev_) {
+		painter.fill_rectangle( { pt_draw, { prev_length_ * 8, 16 } }, Color::black() );
+		erase_prev_ = false;
+	}
+	
+	for (n = 0; n < length_; n++) {
+		const auto text = to_string_dec_uint(values_[n], 1);
+
+		const auto paint_style = (has_focus() && (n == selected_)) ? style().invert() : style();
+
+		painter.draw_string(
+			pt_draw,
+			paint_style,
+			text
+		);
+		
+		pt_draw.x += 8;
+	}
+}
+
+bool SymField::on_key(const KeyEvent key) {
+	switch (key) {
+		case KeyEvent::Select:
+			if( on_select ) {
+				on_select(*this);
+				return true;
+			}
+			break;
+			
+		case KeyEvent::Left:
+			if (selected_ > 0) {
+				selected_--;
+				set_dirty();
+				return true;
+			}
+			break;
+			
+		case KeyEvent::Right:
+			if (selected_ < (length_ - 1)) {
+				selected_++;
+				set_dirty();
+				return true;
+			}
+			break;
+			
+		default:
+			break;
+	}
+
+	return false;
+}
+
+bool SymField::on_encoder(const EncoderEvent delta) {
+	set_value(selected_, values_[selected_] + delta);
+	return true;
+}
+
+bool SymField::on_touch(const TouchEvent event) {
+	if( event.type == TouchEvent::Type::Start ) {
+		focus();
+	}
+	return true;
+}
+
+int32_t SymField::clip_value(int32_t value) {
 	if( value > range.second ) {
 		value = range.second;
 	}

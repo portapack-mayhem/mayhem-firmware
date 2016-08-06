@@ -35,7 +35,7 @@ public:
 private:
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	uint32_t afsk_samples_per_bit;
 	uint32_t afsk_phase_inc_mark;
@@ -43,7 +43,6 @@ private:
 	uint8_t afsk_repeat;
 	uint32_t afsk_bw;
 	uint8_t afsk_format;
-	char message_data[512];
 	
 	uint8_t repeat_counter = 0;
 	int8_t re, im;

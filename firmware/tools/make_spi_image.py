@@ -56,12 +56,12 @@ images = (
 	{
 		'name': 'bootstrap',
 		'data': bootstrap_image,
-		'size': 0x8000,
+		'size': 0x10000,
 	},
 	{
 		'name': 'baseband',
 		'data': baseband_image,
-		'size': 0x38000,
+		'size': 0x70000,
 	},
 	{
 		'name': 'application',
@@ -75,7 +75,7 @@ spi_image_default_byte = bytearray((255,))
 
 for image in images:
 	if len(image['data']) > image['size']:
-		raise RuntimeError('data for image "%(name)s" is longer than 0x%(size)x bytes' % image)
+		raise RuntimeError('data for image "%(name)s" is longer than 0x%(size)x bytes 0x%(sz)x' % {'name':image['name'], 'size':image['size'], 'sz':len(image['data'])})
 	pad_size = image['size'] - len(image['data'])
 	padded_data = image['data'] + (spi_image_default_byte * pad_size)
 	spi_image += padded_data

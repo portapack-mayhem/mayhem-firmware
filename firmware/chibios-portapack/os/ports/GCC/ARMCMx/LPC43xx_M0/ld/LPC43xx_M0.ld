@@ -23,7 +23,7 @@ __process_stack_size__  = 0x1000;   /* main() stack */
 
 MEMORY
 {
-    flash   : org = 0x00000000, len = 256k  /* SPIFI flash @ 0x140????? */
+    flash   : org = 0x00000000, len = 256k	/* SPIFI flash @ 0x140????? */
     ram     : org = 0x20000000, len = 64k   /* AHB SRAM @ 0x20000000 */
 }
 

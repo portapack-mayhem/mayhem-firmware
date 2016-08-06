@@ -37,20 +37,20 @@
 //TODO: Check jammer bandwidths
 //TODO: Closecall wide range fix
 //TODO: SD card wiper
-//TODO: Use progressbars
 //TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
 //TODO: Bodet :)
 //TODO: Whistler
 
 //TODO: LCR full message former (see norm)
-//TODO: AFSK NRZI, parity and format
+//TODO: AFSK NRZI
 //TODO: TX power setting
 
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
 //TODO: Hide statusview when playing dead
 //TODO: Persistent playdead !
+
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)

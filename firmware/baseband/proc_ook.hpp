@@ -39,17 +39,17 @@ private:
 	
 	uint32_t samples_per_bit;
 	uint8_t repeat;
-	char bitstream[64];
+	uint32_t length;
+	uint32_t pause;
 	
+	uint32_t pause_counter = 0;
 	uint8_t repeat_counter = 0;
 	int8_t re, im;
 	uint8_t s = 0;
-	
     uint16_t bit_pos = 0;
     uint8_t cur_bit = 0;
     uint32_t sample_count;
-    uint32_t stream_size;
-	uint32_t phase, sphase;
+	uint32_t tone_phase, phase, sphase;
 	int32_t tone_sample, sig, frq;
 	
 	TXDoneMessage message;

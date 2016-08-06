@@ -111,7 +111,7 @@ private:
 	};
 	
 	#pragma pack(push, 1)
-	struct bmp_t {
+	struct bmp_header_t {
 		uint16_t signature;
 		uint32_t size;
 		uint16_t reserved_1;
@@ -128,15 +128,20 @@ private:
 		uint32_t v_res;
 		uint32_t colors_count;
 		uint32_t icolors_count;
-		struct palette {
+	};
+	#pragma pack(pop)
+	
+	#pragma pack(push, 1)
+	struct bmp_palette_t {
+		struct color_t {
 			uint8_t B;
 			uint8_t G;
 			uint8_t R;
 			uint8_t A;
-		} palette[16];
+		} color[16];
 	};
 	#pragma pack(pop)
-
+	
 	scroll_t scroll_state;
 
 	void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);

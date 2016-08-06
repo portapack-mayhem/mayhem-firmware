@@ -52,12 +52,12 @@ struct WFMConfig {
 	void apply() const;
 };
 
-void set_xylos_data(const char ccir_message[]);
+void set_ccir_data(	const uint32_t samples_per_tone, const uint16_t tone_count);
 void set_pwmrssi(int32_t avg, bool enabled);
-void set_afsk_data(const char message_data[], const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark,
-					const uint32_t afsk_phase_inc_space, const uint8_t afsk_repeat, const uint32_t afsk_bw,
-					const bool afsk_alt_format);
-void set_ook_data(const char ook_bitstream[], uint32_t stream_length, uint32_t samples_per_bit, uint8_t repeat);
+void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
+					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format);
+void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
+					const uint32_t pause_symbols);
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();

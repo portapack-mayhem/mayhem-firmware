@@ -251,7 +251,7 @@ void LCRView::start_tx(const bool scan) {
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
-		.sampling_rate = 2280000U,
+		.sampling_rate = 1536000,
 		.decimation_factor = 1,
 	});
 	transmitter_model.set_rf_amp(true);
@@ -259,12 +259,13 @@ void LCRView::start_tx(const bool scan) {
 	transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
+
+	memcpy(shared_memory.tx_data, lcr_message_data, 300);
 	
 	baseband::set_afsk_data(
-		lcr_message_data,
-		228000 / portapack::persistent_memory::afsk_bitrate(),
-		portapack::persistent_memory::afsk_mark_freq() * (0x40000 * 256) / (228000 / 25),
-		portapack::persistent_memory::afsk_space_freq() * (0x40000 * 256) / (228000 / 25),
+		(153600 * 5) / portapack::persistent_memory::afsk_bitrate(),
+		portapack::persistent_memory::afsk_mark_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
+		portapack::persistent_memory::afsk_space_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
 		afsk_repeats,
 		portapack::persistent_memory::afsk_bw() * 115,		// See proc_fsk_lcr.cpp
 		afsk_format

@@ -78,18 +78,17 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void set_xylos_data(const char ccir_message[]) {
-	const XylosConfigureMessage message {
-		ccir_message
+void set_ccir_data(	const uint32_t samples_per_tone, const uint16_t tone_count) {
+	const CCIRConfigureMessage message {
+		samples_per_tone,
+		tone_count
 	};
 	send_message(&message);
 }
 
-void set_afsk_data(const char message_data[], const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark,
-					const uint32_t afsk_phase_inc_space, const uint8_t afsk_repeat, const uint32_t afsk_bw,
-					const bool afsk_alt_format) {
+void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
+					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format) {
 	const AFSKConfigureMessage message {
-		message_data,
 		afsk_samples_per_bit,
 		afsk_phase_inc_mark,
 		afsk_phase_inc_space,
@@ -97,7 +96,7 @@ void set_afsk_data(const char message_data[], const uint32_t afsk_samples_per_bi
 		afsk_bw,
 		afsk_alt_format
 	};
-	send_message(&message);			
+	send_message(&message);
 }
 
 void set_pwmrssi(int32_t avg, bool enabled) {
@@ -109,14 +108,15 @@ void set_pwmrssi(int32_t avg, bool enabled) {
 	send_message(&message);	
 }
 
-void set_ook_data(const char ook_bitstream[], uint32_t stream_length, uint32_t samples_per_bit, uint8_t repeat) {
+void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
+					const uint32_t pause_symbols) {
 	const OOKConfigureMessage message {
-		ook_bitstream,
 		stream_length,
 		samples_per_bit,
-		repeat
+		repeat,
+		pause_symbols
 	};
-	send_message(&message);	
+	send_message(&message);
 }
 
 static bool baseband_image_running = false;

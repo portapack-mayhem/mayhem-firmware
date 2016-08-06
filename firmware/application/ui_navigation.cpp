@@ -34,8 +34,8 @@
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 
-#include "ui_soundboard.hpp"		// DEBUG
-#include "ui_closecall.hpp"			// DEBUG
+//#include "ui_soundboard.hpp"		// DEBUG
+//#include "ui_closecall.hpp"			// DEBUG
 #include "ui_freqman.hpp"			// DEBUG
 
 #include "ui_encoders.hpp"
@@ -46,7 +46,7 @@
 #include "ui_lcr.hpp"
 #include "analog_audio_app.hpp"
 #include "ui_audiotx.hpp"			// DEBUG
-#include "ui_jammer.hpp"			// DEBUG
+//#include "ui_jammer.hpp"			// DEBUG
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -238,13 +238,13 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<14>({ {
+	add_items<12>({ {
 		{ "Play dead",						ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture                   RX",	ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
+		//{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Numbers station           TX",	ui::Color::purple(),	[&nav](){ nav.push<NotImplementedView>(); } },	//nav.push<NumbersStationView>();
-		{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
+		//{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
 		//{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, SoundBoard); } },
 		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
 		//{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },

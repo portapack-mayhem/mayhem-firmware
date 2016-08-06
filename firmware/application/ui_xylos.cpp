@@ -173,7 +173,8 @@ void XylosView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_xylos_data(ccir_message);
+	memcpy(shared_memory.tx_data, ccir_message, 21);
+	baseband::set_ccir_data(CCIR_TONELENGTH, 20);
 }
 
 	// ASCII to frequency LUT index

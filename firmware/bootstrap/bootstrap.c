@@ -92,16 +92,12 @@ int main(void) {
 	LPC_GPIO->DIR[2] = (1 << 8) | (1 << 2) | (1 << 1);
 
 	/* Indicate M4 is working */
-	LPC_GPIO->SET[2] = (1 << 1);
+	LPC_GPIO->SET[2] = (1 << 2);
 #endif
 	configure_spifi();
 
-	/* NOTE: MEMMAP registers are ORed with the shadow address to create the
-	 * actual address.
-	 */
-	LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x40000;
+	LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x80000;
 
-	/* Change M0APP_RST to 0 */
 	LPC_RGU->RESET_CTRL[1] = 0;
 
 	while(1) {

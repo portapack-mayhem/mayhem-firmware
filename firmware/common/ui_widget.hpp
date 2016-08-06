@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -411,7 +412,7 @@ public:
 
 	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
 	NumberField(
-	) : NumberField { { }, 1, { 0, 1 }, 1, ' ' }
+	) : NumberField { { 0, 0 }, 1, { 0, 1 }, 1, ' ' }
 	{
 	}
 
@@ -419,8 +420,7 @@ public:
 	NumberField(NumberField&&) = delete;
 
 	int32_t value() const;
-	void set_value(int32_t new_value);
-	void set_value(int32_t new_value, bool trigger_change);
+	void set_value(int32_t new_value, bool trigger_change = true);
 	void set_range(const int32_t min, const int32_t max);
 
 	void paint(Painter& painter) override;
@@ -435,6 +435,39 @@ private:
 	const size_t length_;
 	const char fill_char;
 	int32_t value_;
+
+	int32_t clip_value(int32_t value);
+};
+
+class SymField : public Widget {
+public:
+	std::function<void(SymField&)> on_select;
+	std::function<void()> on_change;
+
+	using range_t = std::pair<int32_t, int32_t>;
+
+	SymField(Point parent_pos, size_t length, range_t range);
+
+	SymField(const SymField&) = delete;
+	SymField(SymField&&) = delete;
+
+	uint32_t value(const uint32_t index);
+	void set_value(const uint32_t index, int32_t new_value);
+	void set_length(const uint32_t new_length);
+	void set_range(const int32_t min, const int32_t max);
+
+	void paint(Painter& painter) override;
+
+	bool on_key(const KeyEvent key) override;
+	bool on_encoder(const EncoderEvent delta) override;
+	bool on_touch(const TouchEvent event) override;
+
+private:
+	range_t range;
+	int32_t values_[30] = { 0 };
+	uint32_t selected_ = 0;
+	size_t length_, prev_length_;
+	bool erase_prev_ = false;
 
 	int32_t clip_value(int32_t value);
 };

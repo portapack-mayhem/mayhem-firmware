@@ -35,31 +35,38 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		// Synthesis at 2.28M/2 = 1.14MHz
+		// Synthesis at 2.28M/10 = 228kHz
 		if (!s) {
-			s = 2 - 1;
+			s = 10 - 1;
 			if (sample_count >= samples_per_bit) {
 				if (configured) {
-					cur_bit = (bitstream[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
-					
-					bit_pos++;
-					
-					if (bit_pos >= stream_size) {
+					if (bit_pos >= length) {
 						// End of data
-						if (repeat_counter < repeat) {
-							// Repeat
-							bit_pos = 0;
-							cur_bit = bitstream[0] & 0x80;
-							message.n = repeat_counter + 1;
-							shared_memory.application_queue.push(message);
-							repeat_counter++;
-						} else {
-							// Stop
+						if (pause_counter == 0) {
+							pause_counter = pause;
 							cur_bit = 0;
-							message.n = 0;
-							shared_memory.application_queue.push(message);
-							configured = false;
+						} else if (pause_counter == 1) {
+							if (repeat_counter < repeat) {
+								// Repeat
+								bit_pos = 0;
+								cur_bit = shared_memory.tx_data[0] & 0x80;
+								message.n = repeat_counter + 1;
+								shared_memory.application_queue.push(message);
+								repeat_counter++;
+							} else {
+								// Stop
+								cur_bit = 0;
+								message.n = 0;
+								shared_memory.application_queue.push(message);
+								configured = false;
+							}
+							pause_counter = 0;
+						} else {
+							pause_counter--;
 						}
+					} else {
+						cur_bit = (shared_memory.tx_data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+						bit_pos++;
 					}
 				}
 				
@@ -71,13 +78,17 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 			s--;
 		}
 		
-		if (cur_bit) phase += 100;		// ?
-		
-		sphase = phase + (64 << 18);
+		if (cur_bit) {
+			phase = (phase + 200);			// What ?
+			sphase = phase + (64 << 18);
 
-		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
-		
+			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+		} else {
+			re = 0;
+			im = 0;
+		}
+	
 		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
 }
@@ -86,12 +97,12 @@ void OOKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const OOKConfigureMessage*>(p);
 	
 	if (message.id == Message::ID::OOKConfigure) {
-		//memcpy(bitstream, message.ook_bitstream, 64);
-		
 		samples_per_bit = message.samples_per_bit;
-		stream_size = message.stream_length;
 		repeat = message.repeat - 1;
+		length = message.stream_length - 1;
+		pause = message.pause_symbols + 1;
 	
+		pause_counter = 0;
 		s = 0;
 		sample_count = samples_per_bit;
 		repeat_counter = 0;

@@ -36,7 +36,7 @@ using namespace portapack;
 namespace ui {
 
 void EncodersView::focus() {
-	bitfields[0].focus();
+	bitfield.focus();
 }
 
 EncodersView::~EncodersView() {
@@ -45,48 +45,56 @@ EncodersView::~EncodersView() {
 }
 
 void EncodersView::generate_frame() {
-	uint8_t i;
+	size_t i;
 	
-	debug_text = encoder_def->sync;
+	debug_text.clear();
 	
 	i = 0;
 	for (auto c : encoder_def->word_def) {
-		if (c <= 'J')
-			debug_text += encoder_def->bit_format.at(bitfields[i++].value());
+		if (c < 'S')
+			debug_text += encoder_def->bit_format.at(bitfield.value(i));
+		else if (c == 'S')
+			debug_text += encoder_def->sync;
+		i++;
 	}
 	
-	if (visible()) parent()->set_dirty();
+	//if (visible()) parent()->set_dirty();	// Might be called before on_show ?
 }
 
-void EncodersView::paint(Painter& painter) {
+void EncodersView::draw_waveform() {
 	float x = 0, x_inc;
 	Coord y, prev_y = 1;
-	uint8_t prelude_length = encoder_def->sync.length();
+	uint8_t prelude_length = 0; 	//encoder_def->sync.length();
 	
-	painter.fill_rectangle( { 0, 160, 240, 24 }, Color::black() );
+	// Clear
+	painter_->fill_rectangle( { 0, 160, 240, 24 }, Color::black() );
 	
 	x_inc = 230.0 / (debug_text.length() - prelude_length);
 	
-	for (auto c : debug_text.substr(prelude_length)) {
+	for (auto c : debug_text) {		//.substr(prelude_length)
 		if (c == '0')
 			y = 23;
 		else
 			y = 0;
 		
-		if (prev_y != y) painter.draw_rectangle( { (Coord)x, 160, 1, 24 }, Color::yellow() );
-		painter.draw_rectangle( { (Coord)x, 160 + y, ceil(x_inc), 1 }, Color::yellow() );
+		if (prev_y != y) painter_->draw_rectangle( { (Coord)x, 160, 1, 24 }, Color::yellow() );
+		painter_->draw_rectangle( { (Coord)x, 160 + y, ceil(x_inc), 1 }, Color::yellow() );
 		
 		prev_y = y;
 		x += x_inc;
 	}
 }
 
+void EncodersView::paint(Painter& painter) {
+	painter_ = &painter;
+}
+
 void EncodersView::update_progress() {
 	char str[16];
 	
-	text_status.set("            ");
+	// text_status.set("            ");
 	
-	//if (tx_mode == SINGLE) {
+	if (tx_mode == SINGLE) {
 		strcpy(str, to_string_dec_uint(repeat_index).c_str());
 		strcat(str, "/");
 		strcat(str, to_string_dec_uint(encoder_def->repeat_min).c_str());
@@ -101,11 +109,11 @@ void EncodersView::update_progress() {
 		strcat(str, "/");
 		strcat(str, to_string_dec_uint(scan_count).c_str());
 		text_status.set(str);
-		progress.set_value(scan_progress);
+		progress.set_value(scan_progress);*/
 	} else {
 		text_status.set("Ready");
 		progress.set_value(0);
-	}*/
+	}
 }
 
 void EncodersView::on_txdone(int n) {
@@ -186,9 +194,9 @@ void EncodersView::start_tx(const bool scan) {
 		n++;
 	}
 	
-	ook_bitstream_length = n - 1;
+	ook_bitstream_length = n; // - 1;
 
-	transmitter_model.set_tuning_frequency(433920000);		// TODO: Change !
+	transmitter_model.set_tuning_frequency(433920000);		// TODO: Make modifiable !
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
 		.sampling_rate = 2280000U,
@@ -200,44 +208,34 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
+	memcpy(shared_memory.tx_data, ook_bitstream, 64);
+	
 	baseband::set_ook_data(
-		ook_bitstream,
 		ook_bitstream_length,
 		// 2280000/2 = 1140000Hz = 0,877192982us
 		// numberfield_clk.value() / encoder_def->clk_per_symbol
 		// 455000 / 12 = 37917Hz = 26,37339452us
 		1140000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_symbol),
-		encoder_def->repeat_min
+		encoder_def->repeat_min,
+		encoder_def->pause_symbols
 	);
-}
-
-void EncodersView::on_bitfield() {
-	generate_frame();
 }
 
 void EncodersView::on_type_change(size_t index) {
 	std::string word_format;
-	size_t data_length;
-	size_t address_length;
+	//size_t data_length;
+	//size_t address_length;
 	
 	enc_type = index;
-	
+
 	encoder_def = &encoder_defs[enc_type];
-	
+
 	numberfield_clk.set_value(encoder_def->default_frequency / 1000);
 	
-	size_t n = 0;
-	for (auto& bitfield : bitfields) {
-		if (n < encoder_def->word_length) {
-			bitfield.hidden(false);
-			bitfield.set_range(0, encoder_def->bit_states - 1);
-		} else {
-			bitfield.hidden(true);
-		}
-		n++;
-	}
+	bitfield.set_length(encoder_def->word_length);
+	bitfield.set_range(0, encoder_def->address_bit_states - 1);
 	
-	word_format = encoder_def->word_format;
+	/*word_format = encoder_def->word_format;
 	size_t address_start = word_format.find_first_of("A");
 	size_t data_start = word_format.find_first_of("D");	
 	size_t format_length = word_format.length();
@@ -274,7 +272,7 @@ void EncodersView::on_type_change(size_t index) {
 		text_format_d.set(std::string(data_length, 'D'));
 	} else {
 		text_format_d.hidden(true);
-	}
+	}*/
 
 	generate_frame();
 }
@@ -285,6 +283,13 @@ void EncodersView::on_show() {
 }
 
 EncodersView::EncodersView(NavigationView& nav) {
+	using name_t = std::string;
+	using value_t = int32_t;
+	using option_t = std::pair<name_t, value_t>;
+	using options_t = std::vector<option_t>;
+	options_t enc_options;
+	size_t i;
+	
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 	
 	encoder_def = &encoder_defs[0];
@@ -302,13 +307,26 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&numberfield_wordduration,
 		&text_us2,
 		&text_bitfield,
-		&text_format_a,
-		&text_format_d,
+		&bitfield,
+		//&text_format_a,	// DEBUG
+		//&text_format_d,	// DEBUG
 		&text_waveform,
 		&text_status,
 		&progress,
 		&button_transmit
 	} });
+	
+	for (i = 0; i < ENC_TYPES_COUNT; i++)
+		enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+	
+	options_enctype.set_options(enc_options);
+	options_enctype.set_selected_index(0);
+	
+	bitfield.on_change = [this]() {
+		this->generate_frame();
+	};
+	
+	button_transmit.set_style(&style_val);
 	
 	options_enctype.on_change = [this](size_t index, int32_t value) {
 		(void)value;
@@ -339,30 +357,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 		}
 	};
 
-	const auto bitfield_fn = [this](int32_t value) {
-		(void)value;
-		this->on_bitfield();
-	};
-	
-	size_t n = 0;
-	for (auto& bitfield : bitfields) {
-		bitfield.on_change = bitfield_fn;
-		bitfield.id = n;
-		bitfield.set_value(0);
-		bitfield.set_parent_rect({
-			static_cast<Coord>(16 + 8 * n),
-			static_cast<Coord>(80),
-			8, 16
-		});
-		add_child(&bitfield);
-		n++;
-	}
-	
-	//options_enctype.set_selected_index(0);
-	
-	button_transmit.set_style(&style_val);
-
-	button_transmit.on_select = [this](Button&) {
+	button_transmit.on_select = [this, &nav](Button&) {
 		if (tx_mode == IDLE) start_tx(false);
 	};
 }

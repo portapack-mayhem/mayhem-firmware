@@ -35,6 +35,8 @@
 //#include "receiver_model.hpp"
 #include "portapack.hpp"
 
+#define CCIR_TONELENGTH (15360*2)-1		// 1536000/10/10
+
 namespace ui {
 
 /*

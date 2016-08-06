@@ -3654,30 +3654,6 @@ ui_channel.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_channel.cpp.s
 .PHONY : ui_channel.cpp.s
 
-ui_closecall.obj: ui_closecall.cpp.obj
-.PHONY : ui_closecall.obj
-
-# target to build an object file
-ui_closecall.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.obj
-.PHONY : ui_closecall.cpp.obj
-
-ui_closecall.i: ui_closecall.cpp.i
-.PHONY : ui_closecall.i
-
-# target to preprocess a source file
-ui_closecall.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.i
-.PHONY : ui_closecall.cpp.i
-
-ui_closecall.s: ui_closecall.cpp.s
-.PHONY : ui_closecall.s
-
-# target to generate assembly for a file
-ui_closecall.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.s
-.PHONY : ui_closecall.cpp.s
-
 ui_debug.obj: ui_debug.cpp.obj
 .PHONY : ui_debug.obj
 
@@ -3797,30 +3773,6 @@ ui_handwrite.s: ui_handwrite.cpp.s
 ui_handwrite.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_handwrite.cpp.s
 .PHONY : ui_handwrite.cpp.s
-
-ui_jammer.obj: ui_jammer.cpp.obj
-.PHONY : ui_jammer.obj
-
-# target to build an object file
-ui_jammer.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.obj
-.PHONY : ui_jammer.cpp.obj
-
-ui_jammer.i: ui_jammer.cpp.i
-.PHONY : ui_jammer.i
-
-# target to preprocess a source file
-ui_jammer.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.i
-.PHONY : ui_jammer.cpp.i
-
-ui_jammer.s: ui_jammer.cpp.s
-.PHONY : ui_jammer.s
-
-# target to generate assembly for a file
-ui_jammer.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.s
-.PHONY : ui_jammer.cpp.s
 
 ui_lcr.obj: ui_lcr.cpp.obj
 .PHONY : ui_lcr.obj
@@ -4061,30 +4013,6 @@ ui_setup.s: ui_setup.cpp.s
 ui_setup.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_setup.cpp.s
 .PHONY : ui_setup.cpp.s
-
-ui_soundboard.obj: ui_soundboard.cpp.obj
-.PHONY : ui_soundboard.obj
-
-# target to build an object file
-ui_soundboard.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.obj
-.PHONY : ui_soundboard.cpp.obj
-
-ui_soundboard.i: ui_soundboard.cpp.i
-.PHONY : ui_soundboard.i
-
-# target to preprocess a source file
-ui_soundboard.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.i
-.PHONY : ui_soundboard.cpp.i
-
-ui_soundboard.s: ui_soundboard.cpp.s
-.PHONY : ui_soundboard.s
-
-# target to generate assembly for a file
-ui_soundboard.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.s
-.PHONY : ui_soundboard.cpp.s
 
 ui_spectrum.obj: ui_spectrum.cpp.obj
 .PHONY : ui_spectrum.obj
@@ -4609,9 +4537,6 @@ help:
 	@echo "... ui_channel.obj"
 	@echo "... ui_channel.i"
 	@echo "... ui_channel.s"
-	@echo "... ui_closecall.obj"
-	@echo "... ui_closecall.i"
-	@echo "... ui_closecall.s"
 	@echo "... ui_debug.obj"
 	@echo "... ui_debug.i"
 	@echo "... ui_debug.s"
@@ -4627,9 +4552,6 @@ help:
 	@echo "... ui_handwrite.obj"
 	@echo "... ui_handwrite.i"
 	@echo "... ui_handwrite.s"
-	@echo "... ui_jammer.obj"
-	@echo "... ui_jammer.i"
-	@echo "... ui_jammer.s"
 	@echo "... ui_lcr.obj"
 	@echo "... ui_lcr.i"
 	@echo "... ui_lcr.s"
@@ -4660,9 +4582,6 @@ help:
 	@echo "... ui_setup.obj"
 	@echo "... ui_setup.i"
 	@echo "... ui_setup.s"
-	@echo "... ui_soundboard.obj"
-	@echo "... ui_soundboard.i"
-	@echo "... ui_soundboard.s"
 	@echo "... ui_spectrum.obj"
 	@echo "... ui_spectrum.i"
 	@echo "... ui_spectrum.s"

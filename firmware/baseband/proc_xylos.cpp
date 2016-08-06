@@ -43,13 +43,13 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 				// Just occupy channel with carrier
 				if (sample_count >= CCIR_SILENCE) {
 					silence = false;
-					sample_count = CCIR_TONELENGTH;
+					sample_count = samples_per_tone;
 				} else {
 					sample_count++;
 				}
 			} else {
-				if (sample_count >= CCIR_TONELENGTH) {
-					digit = xylosdata[byte_pos++];
+				if (sample_count >= samples_per_tone) {
+					digit = shared_memory.tx_data[byte_pos++];
 					if ((digit == 0xFF) || (byte_pos >= 21)) {
 						configured = false;
 						message.n = 25;			// End of message code
@@ -103,12 +103,12 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void XylosProcessor::on_message(const Message* const p) {
-	const auto message = *reinterpret_cast<const XylosConfigureMessage*>(p);
-	if (message.id == Message::ID::XylosConfigure) {
-		memcpy(xylosdata, message.ccir_message, 21);
+	const auto message = *reinterpret_cast<const CCIRConfigureMessage*>(p);
+	if (message.id == Message::ID::CCIRConfigure) {
 		byte_pos = 0;
 		digit = 0;
-		sample_count = CCIR_TONELENGTH;
+		samples_per_tone = message.samples_per_tone;
+		sample_count = samples_per_tone;
 		as = 0;
 		silence = true;
 		configured = true;

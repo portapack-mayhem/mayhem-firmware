@@ -51,8 +51,7 @@ struct SharedMemory {
 	
 	JammerRange jammer_ranges[16];
 	
-	char epardata[13];
-	int32_t excursion;
+	char tx_data[512] { 0 };
 };
 
 extern SharedMemory& shared_memory;

@@ -326,19 +326,26 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
-### Jammer
+### OOK
 
 set(MODE_CPPSRC
-	proc_jammer.cpp
+	proc_ook.cpp
 )
-DeclareTargets(PJAM jammer)
+DeclareTargets(POOK ook)
+
+### Jammer
+
+#set(MODE_CPPSRC
+#	proc_jammer.cpp
+#)
+#DeclareTargets(PJAM jammer)
 
 ### Audio transmit
 
-set(MODE_CPPSRC
-	proc_audiotx.cpp
-)
-DeclareTargets(PATX audio_tx)
+#set(MODE_CPPSRC
+#	proc_audiotx.cpp
+#)
+#DeclareTargets(PATX audio_tx)
 
 ### AFSK
 
@@ -349,17 +356,17 @@ DeclareTargets(PAFS afsk)
 
 ### Epar
 
-set(MODE_CPPSRC
-	proc_epar.cpp
-)
-DeclareTargets(PEPR epar)
+#set(MODE_CPPSRC
+#	proc_epar.cpp
+#)
+#DeclareTargets(PEPR epar)
 
 ### Play audio
 
-set(MODE_CPPSRC
-	proc_playaudio.cpp
-)
-DeclareTargets(PPAU play_audio)
+#set(MODE_CPPSRC
+#	proc_playaudio.cpp
+#)
+#DeclareTargets(PPAU play_audio)
 
 ### Xylos
 
@@ -374,13 +381,6 @@ set(MODE_CPPSRC
 	proc_rds.cpp
 )
 DeclareTargets(PRDS rds)
-
-### OOK
-
-set(MODE_CPPSRC
-	proc_ook.cpp
-)
-DeclareTargets(POOK ook)
 
 ### HackRF "factory" firmware
 

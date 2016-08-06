@@ -291,7 +291,7 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 
 // RLE_4 BMP loader (delta not implemented)
 void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool transparency) {
-	const bmp_t * bmp_header = (const bmp_t *)bitmap;
+	const bmp_header_t * bmp_header = (const bmp_header_t *)bitmap;
 	uint32_t data_idx;
 	uint8_t by, c, count, transp_idx = 0;
 	ui::Color line_buffer[240];
@@ -303,13 +303,14 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 		(bmp_header->compression != 2)) return;
 
 	data_idx = bmp_header->image_data;
+	const bmp_palette_t * bmp_palette = (const bmp_palette_t *)&bitmap[bmp_header->BIH_size + 14];
 	
 	// Convert palette and find pure magenta index (alpha color key)
 	for (c = 0; c < 16; c++) {
-		palette[c] = ui::Color(bmp_header->palette[c].R, bmp_header->palette[c].G, bmp_header->palette[c].B);
-		if ((bmp_header->palette[c].R == 0xFF) &&
-			(bmp_header->palette[c].G == 0x00) &&
-			(bmp_header->palette[c].B == 0xFF)) transp_idx = c;
+		palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
+		if ((bmp_palette->color[c].R == 0xFF) &&
+			(bmp_palette->color[c].G == 0x00) &&
+			(bmp_palette->color[c].B == 0xFF)) transp_idx = c;
 	}
 
 	if (!transparency) {

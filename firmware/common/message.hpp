@@ -67,7 +67,7 @@ public:
 
 		TXDone = 20,
 		Retune = 21,
-		XylosConfigure = 22,
+		CCIRConfigure = 22,
 		AFSKConfigure = 23,
 		PWMRSSIConfigure = 24,
 		OOKConfigure = 25,
@@ -473,7 +473,7 @@ public:
 
 class TXDoneMessage : public Message {
 public:
-	TXDoneMessage(
+	constexpr TXDoneMessage(
 	) : Message { ID::TXDone }
 	{
 	}
@@ -485,7 +485,7 @@ public:
 
 class PWMRSSIConfigureMessage : public Message {
 public:
-	PWMRSSIConfigureMessage(
+	constexpr PWMRSSIConfigureMessage(
 		const bool enabled,
 		const uint32_t freq,
 		const int32_t avg
@@ -501,93 +501,96 @@ public:
 	const int32_t avg;
 };
 
-class XylosConfigureMessage : public Message {
+class CCIRConfigureMessage : public Message {
 public:
-	XylosConfigureMessage(
-		const char data[]
-	) : Message { ID::XylosConfigure }
+	constexpr CCIRConfigureMessage(
+		const uint32_t samples_per_tone,
+		const uint16_t tone_count
+	) : Message { ID::CCIRConfigure },
+		samples_per_tone(samples_per_tone),
+		tone_count(tone_count)
 	{
-		memcpy(ccir_message, data, 21);
 	}
 
-	char ccir_message[21];
-};
-
-class OOKConfigureMessage : public Message {
-public:
-	OOKConfigureMessage(
-		const char data[],
-		const uint32_t stream_length,
-		const uint32_t samples_per_bit,
-		const uint8_t repeat
-	) : Message { ID::OOKConfigure },
-		stream_length(stream_length),
-		samples_per_bit(samples_per_bit),
-		repeat(repeat)
-	{
-		memcpy(ook_bitstream, data, 64);
-	}
-
-	char ook_bitstream[64];
-	uint32_t stream_length;
-	uint32_t samples_per_bit;
-	uint8_t repeat;
+	const uint32_t samples_per_tone;
+	const uint16_t tone_count;
 };
 
 class RetuneMessage : public Message {
 public:
-	RetuneMessage(
-	) : Message { ID::Retune }
+	constexpr RetuneMessage(
+		const int64_t freq
+	) : Message { ID::Retune },
+		freq(freq)
 	{
 	}
 	
-	int64_t freq = 0;
+	const int64_t freq = 0;
 };
 
 class AFSKConfigureMessage : public Message {
 public:
-	AFSKConfigureMessage(
-		const char data[],
-		const uint32_t afsk_samples_per_bit,
-		const uint32_t afsk_phase_inc_mark,
-		const uint32_t afsk_phase_inc_space,
-		const uint8_t afsk_repeat,
-		const uint32_t afsk_bw,
-		const uint8_t afsk_format
+	constexpr AFSKConfigureMessage(
+		const uint32_t samples_per_bit,
+		const uint32_t phase_inc_mark,
+		const uint32_t phase_inc_space,
+		const uint8_t repeat,
+		const uint32_t bw,
+		const uint8_t format
 	) : Message { ID::AFSKConfigure },
-		afsk_samples_per_bit(afsk_samples_per_bit),
-		afsk_phase_inc_mark(afsk_phase_inc_mark),
-		afsk_phase_inc_space(afsk_phase_inc_space),
-		afsk_repeat(afsk_repeat),
-		afsk_bw(afsk_bw),
-		afsk_format(afsk_format)
+		samples_per_bit(samples_per_bit),
+		phase_inc_mark(phase_inc_mark),
+		phase_inc_space(phase_inc_space),
+		repeat(repeat),
+		bw(bw),
+		format(format)
 	{
-		memcpy(message_data, data, 512);
 	}
 
-	uint32_t afsk_samples_per_bit;
-	uint32_t afsk_phase_inc_mark;
-	uint32_t afsk_phase_inc_space;
-	uint8_t afsk_repeat;
-	uint32_t afsk_bw;
-	uint8_t afsk_format;
-	char message_data[512];
+	const uint32_t samples_per_bit;
+	const uint32_t phase_inc_mark;
+	const uint32_t phase_inc_space;
+	const uint8_t repeat;
+	const uint32_t bw;
+	const uint8_t format;
+};
+
+class OOKConfigureMessage : public Message {
+public:
+	constexpr OOKConfigureMessage(
+		const uint32_t stream_length,
+		const uint32_t samples_per_bit,
+		const uint8_t repeat,
+		const uint32_t pause_symbols
+	) : Message { ID::OOKConfigure },
+		stream_length(stream_length),
+		samples_per_bit(samples_per_bit),
+		repeat(repeat),
+		pause_symbols(pause_symbols)
+	{
+	}
+
+	const uint32_t stream_length;
+	const uint32_t samples_per_bit;
+	const uint8_t repeat;
+	const uint32_t pause_symbols;
 };
 
 class FIFOSignalMessage : public Message {
 public:
-	FIFOSignalMessage(
+	constexpr FIFOSignalMessage(
 	) : Message { ID::FIFOSignal }
 	{
 	}
 
-	char signaltype = 0;
+	const char signaltype = 0;
 };
 
 class FIFODataMessage : public Message {
 public:
-	FIFODataMessage(
-	) : Message { ID::FIFOData }
+	constexpr FIFODataMessage(
+	) : Message { ID::FIFOData },
+		data ( nullptr )
 	{
 	}
 

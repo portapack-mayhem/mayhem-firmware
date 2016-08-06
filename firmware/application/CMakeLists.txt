@@ -160,11 +160,11 @@ set(CPPSRC
 	ui_alphanum.cpp
 	ui_spectrum.cpp
 	ui_about.cpp
-	ui_jammer.cpp
+	# ui_jammer.cpp
 	ui_handwrite.cpp
 	ui_afsksetup.cpp
-	ui_closecall.cpp
-	ui_soundboard.cpp
+	# ui_closecall.cpp
+	# ui_soundboard.cpp
 	ui_rds.cpp
 	ui_lcr.cpp
 	ui_xylos.cpp

@@ -28,7 +28,6 @@
 
 //#include "audio_output.hpp"
 
-#define CCIR_TONELENGTH (15360*2)-1		// 1536000/10/10
 #define CCIR_PHASEINC (436.91/2)		// (65536*1024)/1536000*10
 #define CCIR_SILENCE (122880)-1			// 400ms
 
@@ -62,12 +61,12 @@ private:
 								(uint32_t)(1055*CCIR_PHASEINC)
 							};
 
-	char xylosdata[21];
+	uint32_t samples_per_tone;
 	int8_t re, im;
 	uint8_t s, as = 0, ai;
     uint8_t byte_pos = 0;
     uint8_t digit = 0;
-    uint32_t sample_count = CCIR_TONELENGTH;
+    uint32_t sample_count = 0;
 	uint32_t tone_phase, phase, sphase;
 	int32_t tone_sample, frq;
 	bool silence = true;

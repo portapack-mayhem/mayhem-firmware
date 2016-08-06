@@ -34,14 +34,15 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 	if (!configured) return;
 	
 	for (size_t i = 0; i<buffer.count; i++) {
-		
+
 		// Tone synthesis at 2.28M/10 = 228kHz
-		if (!s) {
-			s = 10 - 1;
+		if (s >= (5 - 1)) {
+			s = 0;
+			
 			if (sample_count >= afsk_samples_per_bit) {
 				if (configured) {
-					cur_byte = message_data[byte_pos];
-					ext_byte = message_data[byte_pos + 1];
+					cur_byte = shared_memory.tx_data[byte_pos];
+					ext_byte = shared_memory.tx_data[byte_pos + 1];
 					
 					if (!(cur_byte | ext_byte)) {
 						// End of data
@@ -49,8 +50,8 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 							// Repeat
 							bit_pos = 0;
 							byte_pos = 0;
-							cur_byte = message_data[0];
-							ext_byte = message_data[1];
+							cur_byte = shared_memory.tx_data[0];
+							ext_byte = shared_memory.tx_data[1];
 							message.n = repeat_counter + 1;
 							shared_memory.application_queue.push(message);
 							repeat_counter++;
@@ -98,6 +99,8 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 		} else {
 			s--;
 		}
+
+		//tone_phase += 432759;	// 1981Hz
 		
 		tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000) >> 18]); 
 		
@@ -120,13 +123,12 @@ void AFSKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(p);
 	
 	if (message.id == Message::ID::AFSKConfigure) {
-		memcpy(message_data, message.message_data, 512);
-		afsk_samples_per_bit = message.afsk_samples_per_bit;
-		afsk_phase_inc_mark = message.afsk_phase_inc_mark;
-		afsk_phase_inc_space = message.afsk_phase_inc_space;
-		afsk_repeat = message.afsk_repeat - 1;
-		afsk_bw = message.afsk_bw;
-		afsk_format = message.afsk_format;
+		afsk_samples_per_bit = message.samples_per_bit;
+		afsk_phase_inc_mark = message.phase_inc_mark;
+		afsk_phase_inc_space = message.phase_inc_space;
+		afsk_repeat = message.repeat - 1;
+		afsk_bw = message.bw;
+		afsk_format = message.format;
 	
 		s = 0;
 		sample_count = afsk_samples_per_bit;
