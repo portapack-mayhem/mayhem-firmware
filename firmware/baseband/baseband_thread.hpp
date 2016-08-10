@@ -33,20 +33,22 @@ public:
 	BasebandThread(
 		uint32_t sampling_rate,
 		BasebandProcessor* const baseband_processor,
-		const tprio_t priority
+		const tprio_t priority,
+		const baseband::Direction direction = baseband::Direction::Receive
 	);
 	~BasebandThread();
 	
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.
 	baseband::Direction direction() const {
-		return baseband::Direction::Receive;
+		return _direction;
 	}
 
 private:
 	static Thread* thread;
 
 	BasebandProcessor* baseband_processor { nullptr };
+	baseband::Direction _direction;
 	uint32_t sampling_rate;
 
 	void run() override;

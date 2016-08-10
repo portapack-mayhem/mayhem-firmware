@@ -44,9 +44,11 @@ Thread* BasebandThread::thread = nullptr;
 BasebandThread::BasebandThread(
 	uint32_t sampling_rate,
 	BasebandProcessor* const baseband_processor,
-	const tprio_t priority
+	const tprio_t priority,
+	baseband::Direction direction
 ) : baseband_processor { baseband_processor },
-	sampling_rate { sampling_rate }
+	sampling_rate { sampling_rate },
+	_direction { direction }
 {
 	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		priority, ThreadBase::fn,
