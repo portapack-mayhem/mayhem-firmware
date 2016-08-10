@@ -77,7 +77,7 @@ void BasebandThread::run() {
 
 	while( !chThdShouldTerminate() ) {
 		// TODO: Place correct sampling rate into buffer returned here:
-		const auto buffer_tmp = baseband::dma::wait_for_rx_buffer();
+		const auto buffer_tmp = baseband::dma::wait_for_buffer();
 		if( buffer_tmp ) {
 			buffer_c8_t buffer {
 				buffer_tmp.p, buffer_tmp.count, sampling_rate
