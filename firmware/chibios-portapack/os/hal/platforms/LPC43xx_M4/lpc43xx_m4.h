@@ -196,6 +196,20 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULTT(uint32_t op1
   return result;
 }
 
+#undef __SMULL
+
+__attribute__( ( always_inline ) ) static inline int64_t __SMULL (int32_t op1, int32_t op2)
+{
+  union llreg_u{
+    uint32_t w32[2];
+    int64_t w64;
+  } llr;
+
+  __asm volatile ("smull %0, %1, %2, %3" : "=r" (llr.w32[0]), "=r" (llr.w32[1]): "r" (op1), "r" (op2));
+
+  return(llr.w64);
+}
+
 #undef __SMLALD
 
 __attribute__( ( always_inline ) ) static inline int64_t __SMLALD (uint32_t op1, uint32_t op2, int64_t acc)
