@@ -299,7 +299,9 @@ void SGPIO::configure(const Direction direction) {
 	disable_all_slice_counters();
 
 	LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
-	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
+
+	// Set data pins as input, temporarily.
+	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(Direction::Receive);
 	LPC_SGPIO->OUT_MUX_CFG[ 8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[ 9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
@@ -313,6 +315,9 @@ void SGPIO::configure(const Direction direction) {
 	for(size_t i=0; i<8; i++) {
 		LPC_SGPIO->OUT_MUX_CFG[i] = data_out_mux_cfg;
 	}
+
+	// Now that output enable sources are set, enable data bus in correct direction.
+	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
 
 	const auto slice_gpdma = Slice::H;
 
