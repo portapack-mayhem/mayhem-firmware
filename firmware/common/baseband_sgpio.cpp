@@ -298,10 +298,12 @@ constexpr P_OUT_CFG data_p_out_cfg(
 void SGPIO::configure(const Direction direction) {
 	disable_all_slice_counters();
 
-	LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
-
 	// Set data pins as input, temporarily.
 	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(Direction::Receive);
+
+	// Now that data pins are inputs, safe to change CPLD direction.
+	LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
+
 	LPC_SGPIO->OUT_MUX_CFG[ 8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[ 9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
