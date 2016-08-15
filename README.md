@@ -88,3 +88,11 @@ ShareBrained Technology, Inc.
 
 The latest version of this repository can be found at
 https://github.com/sharebrained/portapack-hackrf/
+
+## Donations
+
+"I can't believe you like money too !"
+
+Just in case, the button's there :)
+
+| [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D3DX2393MZQY8)
