@@ -45,7 +45,7 @@ Hardware is available at [ShareBrained Technology](http://sharebrained.com/porta
 
 # Thanks
 
-Sig and cLx for discovery and research on AFSK LCR and Xylos.
+Sig and cLx for discovery and research on AFSK LCR and Xylos. Keld Norman for ideas and suggestions.
 
 # License
 
