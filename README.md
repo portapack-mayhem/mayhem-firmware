@@ -1,6 +1,6 @@
 # portapack-hackrf
 
-The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup. The PortaPack firmware provides a user interface and necessary signal processing to do many useful things without computer.
+The PortaPack H1 makes the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/) portable. It adds an LCD touchscreen, user interface navigation controls, audio output and input, micro SD card slot, and real-time clock battery backup. The PortaPack firmware provides a user interface and necessary signal processing to do many useful things without a computer.
 
 Visit the [wiki](https://github.com/sharebrained/portapack-hackrf/wiki) for more details.
 
