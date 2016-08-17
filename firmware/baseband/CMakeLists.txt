@@ -29,7 +29,7 @@ enable_language(C CXX ASM)
 project(baseband_shared)
 
 # Compiler options here.
-set(USE_OPT "-O3 -falign-functions=16 -fno-math-errno --specs=nano.specs")
+set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -342,10 +342,10 @@ DeclareTargets(POOK ook)
 
 ### Audio transmit
 
-#set(MODE_CPPSRC
-#	proc_audiotx.cpp
-#)
-#DeclareTargets(PATX audio_tx)
+set(MODE_CPPSRC
+	proc_audiotx.cpp
+)
+DeclareTargets(PATX audio_tx)
 
 ### AFSK
 
@@ -360,13 +360,6 @@ DeclareTargets(PAFS afsk)
 #	proc_epar.cpp
 #)
 #DeclareTargets(PEPR epar)
-
-### Play audio
-
-#set(MODE_CPPSRC
-#	proc_playaudio.cpp
-#)
-#DeclareTargets(PPAU play_audio)
 
 ### Xylos
 

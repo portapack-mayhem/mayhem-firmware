@@ -24,6 +24,7 @@
 #define __PROC_RDS_H__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
 
 #define SAMPLES_PER_BIT 192
 #define FILTER_SIZE 576
@@ -32,8 +33,14 @@
 class RDSProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
+	
+	void on_message(const Message* const msg) override;
 
 private:
+	uint32_t * rdsdata;
+	
+	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	
 	int8_t re, im;
 	uint8_t mphase, s;
     uint32_t bit_pos;
@@ -49,6 +56,8 @@ private:
 	uint32_t phase, sphase;
 	int32_t sig, frq, frq_im, rdsc;
 	int32_t k;
+	
+	bool configured { false };
 
 	const int32_t waveform_biphase[576] = {
 		165,167,168,168,167,166,163,160,

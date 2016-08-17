@@ -48,17 +48,6 @@ private:
 	void draw_demoglyph(ui::Point p, char ch, ui::Color * pal);
 	uint16_t debug_cnt = 0;
 	
-	radio::Configuration about_radio_config = {
-		0,
-		1536000,	// ?
-		2500000,	// ?
-		rf::Direction::Transmit,
-		true,
-		0,
-		0,
-		1,
-	};
-	
 	typedef struct ymreg_t {
 		uint8_t value;
 		uint8_t cnt;
@@ -170,8 +159,6 @@ private:
 			FIFODataMessage datamessage;
 			const auto message = static_cast<const FIFOSignalMessage*>(p);
 			if (message->signaltype == 1) {
-				//debug_cnt++;
-				//if (debug_cnt == 250) for(;;) {}
 				this->render_audio();
 				datamessage.data = ym_buffer;
 				EventDispatcher::send_message(datamessage);

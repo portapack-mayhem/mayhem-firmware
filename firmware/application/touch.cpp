@@ -21,15 +21,14 @@
 
 #include "touch.hpp"
 
+#include "portapack_persistent_memory.hpp"
+using namespace portapack;
+
+#include "utility.hpp"
+
 namespace touch {
 
-struct Metrics {
-	const float x;
-	const float y;
-	const float r;
-};
-
-static Metrics calculate_metrics(const Frame& frame) {
+Metrics calculate_metrics(const Frame& frame) {
 	/* TODO: Yikes! M0 doesn't have floating point, so this code is
 	 * expensive! On the other hand, it seems to be working well (and
 	 * fast *enough*?), so maybe leave it alone at least for now.
@@ -38,14 +37,14 @@ static Metrics calculate_metrics(const Frame& frame) {
 	const auto x_max = frame.x.xp;
 	const auto x_min = frame.x.xn;
 	const auto x_range = x_max - x_min;
-	const auto x_position = (frame.x.yp + frame.x.yn) / 2;
-	const float x_norm = float(x_position - x_min) / x_range;
+	const float x_position = (frame.x.yp + frame.x.yn) * 0.5f;
+	const float x_norm = (x_position - x_min) / x_range;
 
 	const auto y_max = frame.y.yn;
 	const auto y_min = frame.y.yp;
 	const auto y_range = y_max - y_min;
-	const auto y_position = (frame.y.xp + frame.y.xn) / 2;
-	const float y_norm = float(y_position - y_min) / y_range;
+	const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;
+	const float y_norm = (y_position - y_min) / y_range;
 
 	const auto z_max = frame.pressure.yp;
 	const auto z_min = frame.pressure.xn;
@@ -66,6 +65,28 @@ static Metrics calculate_metrics(const Frame& frame) {
 	};
 }
 
+ui::Point Calibration::translate(const DigitizerPoint& p) const {
+	static constexpr range_t<int32_t> x_range { 0, 240 - 1 };
+	static constexpr range_t<int32_t> y_range { 0, 320 - 1 };
+
+	const int32_t x = (a * p.x + b * p.y + c) / k;
+	const int32_t y = (d * p.x + e * p.y + f) / k;
+	const auto x_clipped = x_range.clip(x);
+	const auto y_clipped = y_range.clip(y);
+	return {
+		static_cast<ui::Coord>(x_clipped),
+		static_cast<ui::Coord>(y_clipped)
+	};
+}
+
+const Calibration default_calibration() {
+	/* Values derived from one PortaPack H1 unit. */
+	return {
+		{ { { 256, 731 }, { 880, 432 }, { 568, 146 } } },
+		{ { {  32,  48 }, { 208, 168 }, { 120, 288 } } }
+	};
+};
+
 void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
@@ -81,10 +102,8 @@ void Manager::feed(const Frame& frame) {
 		// TODO: Add touch pressure hysteresis?
 		touch_pressure = (metrics.r < r_touch_threshold);
 		if( touch_pressure ) {
-			const float x = width_pixels * (metrics.x - calib_x_low) / calib_x_range;
-			filter_x.feed(x);
-			const float y = height_pixels * (calib_y_high - metrics.y) / calib_y_range;
-			filter_y.feed(y);
+			filter_x.feed(metrics.x * 1024);
+			filter_y.feed(metrics.y * 1024);
 		}
 	} else {
 		filter_x.reset();
@@ -114,6 +133,10 @@ void Manager::feed(const Frame& frame) {
 		state = State::NoTouch;
 		break;
 	}
+}
+
+ui::Point Manager::filtered_point() const {
+	return persistent_memory::touch_calibration().translate({ filter_x.value(), filter_y.value() });
 }
 
 } /* namespace touch */

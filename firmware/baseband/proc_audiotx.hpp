@@ -23,22 +23,39 @@
 #ifndef __PROC_AUDIOTX_H__
 #define __PROC_AUDIOTX_H__
 
+#include "fifo.hpp"
 #include "baseband_processor.hpp"
-#include "baseband_thread.hpp"
-
-#include <cstdint>
 
 class AudioTXProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
+	void on_message(const Message* const msg) override;
+
 private:
+	bool configured = false;
+	
+	//std::unique_ptr<int8_t[]> audio_fifo_data = std::make_unique<int8_t[]>(1UL << 11);
+	//FIFO<int8_t> audio_fifo = { audio_fifo_data.get(), 11 };	// 43ms @ 48000Hz
+	
+	uint8_t as = 0, ai;
 	int8_t re, im;
-	uint8_t s, as = 0, ai;
-    uint8_t byte_pos = 0;
-    uint8_t digit = 0;
+	int8_t sample;
+	
+	int16_t st;
+	
+	bool asked = false;
+
+	//int16_t audio_data[64];
+	/*const buffer_s16_t preview_audio_buffer {
+		audio_data,
+		sizeof(int16_t)*64
+	};*/
+	
+	FIFOSignalMessage sigmessage;
+	
 	uint32_t aphase, phase, sphase;
-	int32_t sample, frq, bc;
+	int32_t frq;
 };
 
 #endif

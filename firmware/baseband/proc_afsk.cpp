@@ -119,8 +119,8 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 	}
 }
 
-void AFSKProcessor::on_message(const Message* const p) {
-	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(p);
+void AFSKProcessor::on_message(const Message* const msg) {
+	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(msg);
 	
 	if (message.id == Message::ID::AFSKConfigure) {
 		afsk_samples_per_bit = message.samples_per_bit;

@@ -25,6 +25,7 @@
 #include <cstdint>
 
 #include "rf_path.hpp"
+#include "touch.hpp"
 
 namespace portapack {
 namespace persistent_memory {
@@ -36,6 +37,9 @@ void set_tuned_frequency(const rf::Frequency new_value);
 
 ppb_t correction_ppb();
 void set_correction_ppb(const ppb_t new_value);
+
+void set_touch_calibration(const touch::Calibration& new_value);
+const touch::Calibration& touch_calibration();
 
 int32_t afsk_mark_freq();
 void set_afsk_mark(const int32_t new_value);

@@ -25,6 +25,9 @@
 
 #include "baseband_api.hpp"
 
+#include "portapack.hpp"
+using namespace portapack;
+
 #include <algorithm>
 
 namespace ais {
@@ -291,6 +294,11 @@ AISAppView::AISAppView(NavigationView&) {
 	add_children({ {
 		&label_channel,
 		&options_channel,
+		&field_rf_amp,
+		&field_lna,
+		&field_vga,
+		&rssi,
+		&channel,
 		&recent_entries_view,
 		&recent_entry_detail_view,
 	} });
@@ -304,7 +312,9 @@ AISAppView::AISAppView(NavigationView&) {
 		sampling_rate,
 		baseband_bandwidth,
 		rf::Direction::Receive,
-		false, 32, 32,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
 		1,
 	});
 

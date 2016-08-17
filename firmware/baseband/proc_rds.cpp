@@ -28,10 +28,6 @@
 #include <cstdint>
 
 void RDSProcessor::execute(const buffer_c8_t& buffer) {
-	uint32_t * rdsdata;
-	
-	// TODO
-	//rdsdata = (uint32_t *)shared_memory.radio_data;
 	
 	for (size_t i = 0; i < buffer.count; i++) {
 		
@@ -93,6 +89,14 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
 		
 		buffer.p[i] = {(int8_t)re,(int8_t)im};
+	}
+}
+
+void RDSProcessor::on_message(const Message* const msg) {
+	if (msg->id == Message::ID::RDSConfigure) {
+		//const auto message = *reinterpret_cast<const RDSConfigureMessage*>(p);
+		rdsdata = (uint32_t*)shared_memory.tx_data;
+		configured = true;
 	}
 }
 

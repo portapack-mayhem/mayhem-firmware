@@ -71,9 +71,11 @@ public:
 		AFSKConfigure = 23,
 		PWMRSSIConfigure = 24,
 		OOKConfigure = 25,
+		RDSConfigure = 26,
+		AudioTXConfig = 27,
 		
-		FIFOSignal = 26,
-		FIFOData = 27,
+		FIFOSignal = 28,
+		FIFOData = 29,
 		MAX
 	};
 
@@ -516,6 +518,18 @@ public:
 	const uint16_t tone_count;
 };
 
+class RDSConfigureMessage : public Message {
+public:
+	constexpr RDSConfigureMessage(
+		const uint32_t length
+	) : Message { ID::RDSConfigure },
+		length(length)
+	{
+	}
+	
+	const uint32_t length = 0;
+};
+
 class RetuneMessage : public Message {
 public:
 	constexpr RetuneMessage(
@@ -526,6 +540,18 @@ public:
 	}
 	
 	const int64_t freq = 0;
+};
+
+class AudioTXConfigMessage : public Message {
+public:
+	constexpr AudioTXConfigMessage(
+		const uint32_t bw
+	) : Message { ID::AudioTXConfig },
+		bw(bw)
+	{
+	}
+
+	const uint32_t bw;
 };
 
 class AFSKConfigureMessage : public Message {
@@ -576,6 +602,7 @@ public:
 	const uint32_t pause_symbols;
 };
 
+// TODO: use streaming buffer instead
 class FIFOSignalMessage : public Message {
 public:
 	constexpr FIFOSignalMessage(
@@ -583,7 +610,7 @@ public:
 	{
 	}
 
-	const char signaltype = 0;
+	char signaltype = 0;
 };
 
 class FIFODataMessage : public Message {

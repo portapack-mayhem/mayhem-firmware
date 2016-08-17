@@ -44,7 +44,7 @@ private:
 		const char * addresses;
 	};
 	
-	scan_list_t scan_list[2] = {
+	const scan_list_t scan_list[2] = {
 		{ 36, &RGSB_list_Lille[0][0] },
 		{ 23, &RGSB_list_Reims[0][0] }
 	};
@@ -80,9 +80,8 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	bool abort_scan = false;
-	uint8_t scan_count;
+	uint8_t scan_count, scan_index;
 	double scan_progress;
-	unsigned int scan_index;
 	char litteral[5][8] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 } };
 	char rgsb[5] = { 0 };
 	char lcr_message[512];
@@ -96,20 +95,6 @@ private:
 	void start_tx(const bool scan);
 	void on_txdone(int n);
 	void on_button_setam(NavigationView& nav, Button& button);
-	
-	radio::Configuration lcr_radio_config = {
-		0,
-		2280000,
-		2500000,	// ?
-		rf::Direction::Transmit,
-		true,
-		0,
-		0,
-		1,
-	};
-	
-	// 2: 94 ?
-	// 9: 85 ?
 	
 	const Style style_val {
 		.font = font::fixed_8x16,

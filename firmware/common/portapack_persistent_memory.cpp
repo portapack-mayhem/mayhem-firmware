@@ -36,7 +36,7 @@ using portapack::memory::map::backup_ram;
 namespace portapack {
 namespace persistent_memory {
 
-constexpr rf::Frequency tuned_frequency_reset_value { 88000000 };
+constexpr rf::Frequency tuned_frequency_reset_value { 100000000 };
 
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
@@ -57,9 +57,11 @@ constexpr int32_t afsk_bw_reset_value { 15 };
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
-	// General config
 	int64_t tuned_frequency;
 	int32_t correction_ppb;
+	uint32_t touch_calibration_magic;
+	touch::Calibration touch_calibration;
+
 	
 	// AFSK modem
 	int32_t afsk_mark_freq;
@@ -97,6 +99,20 @@ void set_correction_ppb(const ppb_t new_value) {
 	const auto clipped_value = ppb_range.clip(new_value);
 	data->correction_ppb = clipped_value;
 	portapack::clock_manager.set_reference_ppb(clipped_value);
+}
+
+static constexpr uint32_t touch_calibration_magic = 0x074af82f;
+
+void set_touch_calibration(const touch::Calibration& new_value) {
+	data->touch_calibration = new_value;
+	data->touch_calibration_magic = touch_calibration_magic;
+}
+
+const touch::Calibration& touch_calibration() {
+	if( data->touch_calibration_magic != touch_calibration_magic ) {
+		set_touch_calibration(touch::default_calibration());
+	}
+	return data->touch_calibration;
 }
 
 int32_t afsk_mark_freq() {

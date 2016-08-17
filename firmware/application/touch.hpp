@@ -38,7 +38,7 @@ using sample_t = uint16_t;
 
 constexpr sample_t sample_max = 1023;
 
-constexpr sample_t touch_threshold = sample_max * 0.5f;
+constexpr sample_t touch_threshold = sample_max / 5;
 
 struct Samples {
 	sample_t xp;
@@ -105,6 +105,51 @@ struct Frame {
 	Samples y { };
 	bool touch { false };
 };
+
+struct Metrics {
+	const float x;
+	const float y;
+	const float r;
+};
+
+Metrics calculate_metrics(const Frame& frame);
+
+struct DigitizerPoint {
+	int32_t x;
+	int32_t y;
+};
+
+struct Calibration {
+	/* Touch screen calibration matrix, based on article by Carlos E. Vidales:
+	 * http://www.embedded.com/design/system-integration/4023968/How-To-Calibrate-Touch-Screens
+	 */
+
+	constexpr Calibration(
+		const std::array<DigitizerPoint, 3>& s,
+		const std::array<ui::Point, 3>& d
+	) : k { (s[0].x - s[2].x) * (s[1].y - s[2].y) - (s[1].x - s[2].x) * (s[0].y - s[2].y) },
+		a { (d[0].x - d[2].x) * (s[1].y - s[2].y) - (d[1].x - d[2].x) * (s[0].y - s[2].y) },
+		b { (s[0].x - s[2].x) * (d[1].x - d[2].x) - (d[0].x - d[2].x) * (s[1].x - s[2].x) },
+		c { s[0].y * (s[2].x * d[1].x - s[1].x * d[2].x) + s[1].y * (s[0].x * d[2].x - s[2].x * d[0].x) + s[2].y * (s[1].x * d[0].x - s[0].x * d[1].x) },
+		d { (d[0].y - d[2].y) * (s[1].y - s[2].y) - (d[1].y - d[2].y) * (s[0].y - s[2].y) },
+		e { (s[0].x - s[2].x) * (d[1].y - d[2].y) - (d[0].y - d[2].y) * (s[1].x - s[2].x) },
+		f { s[0].y * (s[2].x * d[1].y - s[1].x * d[2].y) + s[1].y * (s[0].x * d[2].y - s[2].x * d[0].y) + s[2].y * (s[1].x * d[0].y - s[0].x * d[1].y) }
+	{
+	}
+
+	ui::Point translate(const DigitizerPoint& p) const;
+
+private:
+	int32_t k;
+	int32_t a;
+	int32_t b;
+	int32_t c;
+	int32_t d;
+	int32_t e;
+	int32_t f;
+};
+
+const Calibration default_calibration();
 
 template<size_t N>
 class Filter {
@@ -173,20 +218,9 @@ private:
 		TouchDetected,
 	};
 
-	static constexpr uint32_t width_pixels = 240;
-	static constexpr uint32_t height_pixels = 320;
-
-	static constexpr float r_touch_threshold = 0x1000;
-	static constexpr size_t touch_count_threshold { 4 };
-	static constexpr uint32_t touch_stable_bound { 4 };
-
-	static constexpr float calib_x_low = 0.15f;
-	static constexpr float calib_x_high = 0.98f;
-	static constexpr float calib_x_range = calib_x_high - calib_x_low;
-
-	static constexpr float calib_y_low = 0.04f;
-	static constexpr float calib_y_high = 0.80f; //91
-	static constexpr float calib_y_range = calib_y_high - calib_y_low;
+	static constexpr float r_touch_threshold = 640;
+	static constexpr size_t touch_count_threshold { 3 };
+	static constexpr uint32_t touch_stable_bound { 8 };
 
 	// Ensure filter length is equal or less than touch_count_threshold,
 	// or coordinates from the last touch will be in the initial averages.
@@ -202,12 +236,7 @@ private:
 			&& filter_y.stable(touch_stable_bound);
 	}
 
-	ui::Point filtered_point() const {
-		return {
-			static_cast<ui::Coord>(filter_x.value()),
-			static_cast<ui::Coord>(filter_y.value())
-		};
-	}
+	ui::Point filtered_point() const;
 
 	void touch_started() {
 		fire_event(ui::TouchEvent::Type::Start);

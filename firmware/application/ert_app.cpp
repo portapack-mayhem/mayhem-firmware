@@ -23,6 +23,9 @@
 
 #include "baseband_api.hpp"
 
+#include "portapack.hpp"
+using namespace portapack;
+
 #include "manchester.hpp"
 
 #include "crc.hpp"
@@ -124,6 +127,10 @@ ERTAppView::ERTAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
 	add_children({ {
+		&field_rf_amp,
+		&field_lna,
+		&field_vga,
+		&rssi,
 		&recent_entries_view,
 	} });
 
@@ -132,7 +139,9 @@ ERTAppView::ERTAppView(NavigationView&) {
 		sampling_rate,
 		baseband_bandwidth,
 		rf::Direction::Receive,
-		false, 32, 32,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
 		1,
 	});
 
@@ -149,12 +158,12 @@ ERTAppView::~ERTAppView() {
 }
 
 void ERTAppView::focus() {
-	recent_entries_view.focus();
+	field_vga.focus();
 }
 
 void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, 0, new_parent_rect.width(), new_parent_rect.height() });
+	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
 }
 
 void ERTAppView::on_packet(const ert::Packet& packet) {

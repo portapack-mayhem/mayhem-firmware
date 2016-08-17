@@ -21,6 +21,8 @@
 
 #include "ui_setup.hpp"
 
+#include "ui_touch_calibration.hpp"
+
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -32,6 +34,7 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "cpld_update.hpp"
 
 namespace ui {
 
@@ -170,18 +173,6 @@ AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
 
 void AntennaBiasSetupView::focus() {
 	button_done.focus();
-}
-
-void SetTouchCalibView::focus() {
-	button_ok.focus();
-}
-
-bool SetTouchCalibView::on_touch(const TouchEvent event) {
-	if (event.type == ui::TouchEvent::Type::Start) {
-		text_debugx.set(to_string_dec_uint(round(event.point.x), 4));
-		text_debugy.set(to_string_dec_uint(round(event.point.y), 4));
-	}
-	return true;
 }
 
 SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
@@ -445,7 +436,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
-		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<TouchCalibrationView>(); } },
 		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } }
 	} });
 	on_left = [&nav](){ nav.pop(); };

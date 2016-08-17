@@ -116,11 +116,21 @@ void ReceiverModel::set_vga(int32_t v_db) {
 }
 
 uint32_t ReceiverModel::sampling_rate() const {
-	return baseband_configuration.sampling_rate;
+	return sampling_rate_;
 }
 
-uint32_t ReceiverModel::modulation() const {
-	return baseband_configuration.mode;
+void ReceiverModel::set_sampling_rate(uint32_t v) {
+	sampling_rate_ = v;
+	update_sampling_rate();
+}
+
+ReceiverModel::Mode ReceiverModel::modulation() const {
+	return mode_;
+}
+
+void ReceiverModel::set_modulation(const Mode v) {
+	mode_ = v;
+	update_modulation();
 }
 
 volume_t ReceiverModel::headphone_volume() const {
@@ -134,7 +144,7 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
 
 uint32_t ReceiverModel::baseband_oversampling() const {
 	// TODO: Rename decimation_factor.
-	return baseband_configuration.decimation_factor;
+	return decimation_factor_;
 }
 
 void ReceiverModel::enable() {
@@ -146,8 +156,8 @@ void ReceiverModel::enable() {
 	update_lna();
 	update_vga();
 	update_baseband_bandwidth();
-	update_baseband_configuration();
-	update_modulation_configuration();
+	update_sampling_rate();
+	update_modulation();
 	update_headphone_volume();
 }
 
@@ -161,7 +171,7 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	if( (baseband_configuration.mode == 4) || (baseband_configuration.mode == 10) ) {
+	if( (modulation() == Mode::SpectrumAnalysis) ) {
 		return 0;
 	} else {
 		return -(sampling_rate() / 4);
@@ -192,33 +202,28 @@ void ReceiverModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-void ReceiverModel::set_baseband_configuration(const BasebandConfiguration config) {
-	baseband_configuration = config;
-	update_baseband_configuration();
-}
-
 void ReceiverModel::set_am_configuration(const size_t n) {
 	if( n < am_configs.size() ) {
 		am_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
 void ReceiverModel::set_nbfm_configuration(const size_t n) {
 	if( n < nbfm_configs.size() ) {
 		nbfm_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
 void ReceiverModel::set_wfm_configuration(const size_t n) {
 	if( n < wfm_configs.size() ) {
 		wfm_config_index = n;
-		update_modulation_configuration();
+		update_modulation();
 	}
 }
 
-void ReceiverModel::update_baseband_configuration() {
+void ReceiverModel::update_sampling_rate() {
 	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
 	// synchronization for things like wideband (sweeping) spectrum analysis, and
 	// protocols that need quick RX/TX turn-around.
@@ -236,8 +241,8 @@ void ReceiverModel::update_headphone_volume() {
 	audio::headphone::set_volume(headphone_volume_);
 }
 
-void ReceiverModel::update_modulation_configuration() {
-	switch(static_cast<Mode>(modulation())) {
+void ReceiverModel::update_modulation() {
+	switch(modulation()) {
 	default:
 	case Mode::AMAudio:
 		update_am_configuration();

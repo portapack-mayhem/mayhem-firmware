@@ -181,7 +181,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		sampling_rate,
 		baseband_bandwidth,
 		rf::Direction::Receive,
-		false,
+		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
 		1,

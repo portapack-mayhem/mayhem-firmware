@@ -247,7 +247,6 @@ void LCRView::start_tx(const bool scan) {
 			afsk_format = 0;
 	}
 
-	
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
@@ -281,7 +280,7 @@ LCRView::LCRView(NavigationView& nav) {
 	
 	baseband::run_image(portapack::spi_flash::image_tag_afsk);
 	
-	strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[0]);
+	strcpy(rgsb, &scan_list[0].addresses[0]);
 	
 	add_children({ {
 		&text_recap,
@@ -297,6 +296,8 @@ LCRView::LCRView(NavigationView& nav) {
 		&button_scan,
 		&button_clear
 	} });
+	
+	options_scanlist.set_selected_index(0);
 	
 	const auto button_setam_fn = [this, &nav](Button& button) {
 		this->on_button_setam(nav, button);

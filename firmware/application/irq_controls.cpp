@@ -58,18 +58,9 @@ static volatile uint32_t touch_phase { 0 };
  * Noise will only occur when the panel is being touched. Not ideal, but
  * an acceptable improvement.
  */
-static std::array<portapack::IO::TouchPinsConfig, 11> touch_pins_configs {
+static std::array<portapack::IO::TouchPinsConfig, 3> touch_pins_configs {
 	/* State machine will pause here until touch is detected. */
-	portapack::IO::TouchPinsConfig::WaitTouch,
-
 	portapack::IO::TouchPinsConfig::SensePressure,
-	portapack::IO::TouchPinsConfig::SenseX,
-	portapack::IO::TouchPinsConfig::SenseY,
-	portapack::IO::TouchPinsConfig::SenseX,
-	portapack::IO::TouchPinsConfig::SenseY,
-	portapack::IO::TouchPinsConfig::SensePressure,
-	portapack::IO::TouchPinsConfig::SenseX,
-	portapack::IO::TouchPinsConfig::SenseY,
 	portapack::IO::TouchPinsConfig::SenseX,
 	portapack::IO::TouchPinsConfig::SenseY,
 };
@@ -78,7 +69,7 @@ static touch::Frame temp_frame;
 static touch::Frame touch_frame;
 
 static uint32_t touch_debounce = 0;
-static uint32_t touch_debounce_mask = (1U << 1) - 1;
+static uint32_t touch_debounce_mask = (1U << 4) - 1;
 static bool touch_detected = false;
 static bool touch_cycle = false;
 
@@ -87,20 +78,20 @@ static bool touch_update() {
 	const auto current_phase = touch_pins_configs[touch_phase];
 
 	switch(current_phase) {
-	case portapack::IO::TouchPinsConfig::WaitTouch:
+	case portapack::IO::TouchPinsConfig::SensePressure:
 		{
-			/* Debounce touches. */
-			const bool touch_raw = (samples.yp < touch::touch_threshold) && (samples.yn < touch::touch_threshold);
+			const auto z1 = samples.xp - samples.xn;
+			const auto z2 = samples.yp - samples.yn;
+			const auto touch_raw = (z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
 			touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
 			touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
 			if( !touch_detected && !touch_cycle ) {
+				temp_frame.pressure = { };
 				return false;
+			} else {
+				temp_frame.pressure += samples;
 			}
 		}
-		break;
-
-	case portapack::IO::TouchPinsConfig::SensePressure:
-		temp_frame.pressure += samples;
 		break;
 
 	case portapack::IO::TouchPinsConfig::SenseX:

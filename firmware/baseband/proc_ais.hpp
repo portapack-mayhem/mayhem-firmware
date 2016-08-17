@@ -24,6 +24,7 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 
 #include "channel_decimator.hpp"
 #include "matched_filter.hpp"
@@ -51,6 +52,7 @@ private:
 	static constexpr size_t baseband_fs = 2457600;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	std::array<complex16_t, 512> dst;
 	const buffer_c16_t dst_buffer {

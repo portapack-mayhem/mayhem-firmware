@@ -75,7 +75,6 @@ constexpr image_tag_t image_tag_jammer				{ 'P', 'J', 'A', 'M' };
 constexpr image_tag_t image_tag_audio_tx			{ 'P', 'A', 'T', 'X' };
 constexpr image_tag_t image_tag_afsk				{ 'P', 'A', 'F', 'S' };
 constexpr image_tag_t image_tag_epar				{ 'P', 'E', 'P', 'R' };
-constexpr image_tag_t image_tag_play_audio			{ 'P', 'P', 'A', 'U' };
 constexpr image_tag_t image_tag_xylos				{ 'P', 'X', 'Y', 'L' };
 constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_ook					{ 'P', 'O', 'O', 'K' };

@@ -53,13 +53,11 @@ struct BasebandConfiguration {
 
 class ReceiverModel {
 public:
-	enum class Mode : int32_t {
+	enum class Mode {
 		AMAudio = 0,
 		NarrowbandFMAudio = 1,
 		WidebandFMAudio = 2,
-		SpectrumAnalysis = 4,
-		Capture = 7,
-		CloseCall = 10,
+		SpectrumAnalysis = 3,
 	};
 
 	rf::Frequency tuning_frequency() const;
@@ -84,8 +82,10 @@ public:
 	void set_vga(int32_t v_db);
 
 	uint32_t sampling_rate() const;
+	void set_sampling_rate(uint32_t v);
 
-	uint32_t modulation() const;
+	Mode modulation() const;
+	void set_modulation(Mode v);
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
@@ -94,8 +94,6 @@ public:
 
 	void enable();
 	void disable();
-
-	void set_baseband_configuration(const BasebandConfiguration config);
 
 	size_t am_configuration() const;
 	void set_am_configuration(const size_t n);
@@ -114,11 +112,9 @@ private:
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
-	BasebandConfiguration baseband_configuration {
-		.mode = 1,			/* TODO: Enum! */
-		.sampling_rate = 3072000,
-		.decimation_factor = 1,
-	};
+	Mode mode_ { Mode::NarrowbandFMAudio };
+	uint32_t sampling_rate_ { 3072000 };
+	size_t decimation_factor_ { 1 };
 	size_t am_config_index = 0;
 	size_t nbfm_config_index = 0;
 	size_t wfm_config_index = 0;
@@ -132,10 +128,10 @@ private:
 	void update_lna();
 	void update_baseband_bandwidth();
 	void update_vga();
-	void update_baseband_configuration();
+	void update_sampling_rate();
 	void update_headphone_volume();
 
-	void update_modulation_configuration();
+	void update_modulation();
 	void update_am_configuration();
 	void update_nbfm_configuration();
 	void update_wfm_configuration();

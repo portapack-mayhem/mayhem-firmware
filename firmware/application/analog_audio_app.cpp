@@ -119,7 +119,7 @@ AnalogAudioView::AnalogAudioView(
 	};
 
 	const auto modulation = receiver_model.modulation();
-	options_modulation.set_by_value(modulation);
+	options_modulation.set_by_value(toUType(modulation));
 	options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
@@ -286,11 +286,8 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	baseband::run_image(image_tag);
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
-	receiver_model.set_baseband_configuration({
-		.mode = toUType(modulation),
-		.sampling_rate = is_wideband_spectrum_mode ? 20000000U : 3072000U,
-		.decimation_factor = 1,
-	});
+	receiver_model.set_modulation(modulation);
+	receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? 20000000 : 3072000);
 	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
 	receiver_model.enable();
 

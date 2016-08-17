@@ -48,8 +48,21 @@ using namespace portapack;
 namespace ui {
 	
 void AboutView::on_show() {
-	about_radio_config.tuning_frequency = 92200000;		// 92.2MHz, change !
-	radio::enable(about_radio_config);
+	transmitter_model.set_tuning_frequency(92200000);
+	transmitter_model.set_baseband_configuration({
+		.mode = 0,
+		.sampling_rate = 1536000,
+		.decimation_factor = 1,
+	});
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_lna(40);
+	transmitter_model.set_vga(40);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	baseband::set_audiotx_data(
+		0
+	);
 	
 	//audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }
@@ -352,6 +365,8 @@ AboutView::AboutView(
 {
 	uint8_t p, c;
 	
+	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+	
 	add_children({ {
 		&text_title,
 		&text_firmware,
@@ -394,7 +409,8 @@ AboutView::AboutView(
 }
 
 AboutView::~AboutView() {
-	radio::disable();
+	transmitter_model.disable();
+	baseband::shutdown();
 }
 
 void AboutView::focus() {

@@ -4062,6 +4062,30 @@ ui_textentry.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_textentry.cpp.s
 .PHONY : ui_textentry.cpp.s
 
+ui_touch_calibration.obj: ui_touch_calibration.cpp.obj
+.PHONY : ui_touch_calibration.obj
+
+# target to build an object file
+ui_touch_calibration.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_touch_calibration.cpp.obj
+.PHONY : ui_touch_calibration.cpp.obj
+
+ui_touch_calibration.i: ui_touch_calibration.cpp.i
+.PHONY : ui_touch_calibration.i
+
+# target to preprocess a source file
+ui_touch_calibration.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_touch_calibration.cpp.i
+.PHONY : ui_touch_calibration.cpp.i
+
+ui_touch_calibration.s: ui_touch_calibration.cpp.s
+.PHONY : ui_touch_calibration.s
+
+# target to generate assembly for a file
+ui_touch_calibration.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_touch_calibration.cpp.s
+.PHONY : ui_touch_calibration.cpp.s
+
 ui_xylos.obj: ui_xylos.cpp.obj
 .PHONY : ui_xylos.obj
 
@@ -4588,6 +4612,9 @@ help:
 	@echo "... ui_textentry.obj"
 	@echo "... ui_textentry.i"
 	@echo "... ui_textentry.s"
+	@echo "... ui_touch_calibration.obj"
+	@echo "... ui_touch_calibration.i"
+	@echo "... ui_touch_calibration.s"
 	@echo "... ui_xylos.obj"
 	@echo "... ui_xylos.i"
 	@echo "... ui_xylos.s"
