@@ -27,6 +27,7 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "transmitter_model.hpp"
+#include "baseband_api.hpp"
 
 #include <cstdint>
 
@@ -156,12 +157,10 @@ private:
 	MessageHandlerRegistration message_handler_fifo_signal {
 		Message::ID::FIFOSignal,
 		[this](const Message* const p) {
-			FIFODataMessage datamessage;
 			const auto message = static_cast<const FIFOSignalMessage*>(p);
 			if (message->signaltype == 1) {
 				this->render_audio();
-				datamessage.data = ym_buffer;
-				EventDispatcher::send_message(datamessage);
+				baseband::set_fifo_data(ym_buffer);
 			}
 		}
 	};

@@ -106,6 +106,13 @@ void set_audiotx_data(const uint32_t bw) {
 	send_message(&message);
 }
 
+void set_fifo_data(const int8_t * data) {
+	const FIFODataMessage message {
+		data
+	};
+	send_message(&message);
+}
+
 void set_pwmrssi(int32_t avg, bool enabled) {
 	const PWMRSSIConfigureMessage message {
 		enabled,

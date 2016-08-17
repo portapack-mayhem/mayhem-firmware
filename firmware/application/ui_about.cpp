@@ -29,7 +29,6 @@
 #include "portapack.hpp"
 #include "audio.hpp"
 #include "event_m0.hpp"
-#include "baseband_api.hpp"
 
 #include "ui_about.hpp"
 #include "touch.hpp"
@@ -318,7 +317,7 @@ void AboutView::render_audio() {
 			}
 		}
 	
-		ym_buffer[ym_render_cnt] = (ym_out * 2) - 93;
+		ym_buffer[ym_render_cnt] = (ym_out * 2) - 45;
 
 		if (ym_sample_cnt < 960) {
 			ym_sample_cnt++;

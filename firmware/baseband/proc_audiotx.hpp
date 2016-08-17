@@ -25,6 +25,7 @@
 
 #include "fifo.hpp"
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
 
 class AudioTXProcessor : public BasebandProcessor {
 public:
@@ -35,14 +36,14 @@ public:
 private:
 	bool configured = false;
 	
-	//std::unique_ptr<int8_t[]> audio_fifo_data = std::make_unique<int8_t[]>(1UL << 11);
-	//FIFO<int8_t> audio_fifo = { audio_fifo_data.get(), 11 };	// 43ms @ 48000Hz
+	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	
+	int8_t audio_fifo_data[2048];
+	FIFO<int8_t> audio_fifo = { audio_fifo_data, 11 };	// 43ms @ 48000Hz
 	
 	uint8_t as = 0, ai;
 	int8_t re, im;
 	int8_t sample;
-	
-	int16_t st;
 	
 	bool asked = false;
 

@@ -616,12 +616,13 @@ public:
 class FIFODataMessage : public Message {
 public:
 	constexpr FIFODataMessage(
+		const int8_t * data
 	) : Message { ID::FIFOData },
-		data ( nullptr )
+		data ( data )
 	{
 	}
 
-	int8_t * data;
+	const int8_t * data;
 };
 
 class CaptureThreadDoneMessage : public Message {

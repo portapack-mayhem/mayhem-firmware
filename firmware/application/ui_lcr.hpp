@@ -46,7 +46,7 @@ private:
 	
 	const scan_list_t scan_list[2] = {
 		{ 36, &RGSB_list_Lille[0][0] },
-		{ 23, &RGSB_list_Reims[0][0] }
+		{ 20, &RGSB_list_Reims[0][0] }
 	};
 	 
 	const char RGSB_list_Lille[36][5] = {
@@ -62,7 +62,7 @@ private:
 		"EbS0"
 	};
 	
-	const char RGSB_list_Reims[23][5] = {
+	const char RGSB_list_Reims[20][5] = {
 		"AI10",	"AI20", "AI30",	"AI40",
 		"AI50",	"AI60", "AI70",
 		"AJ10", "AJ20",	"AJ30", "AJ40",

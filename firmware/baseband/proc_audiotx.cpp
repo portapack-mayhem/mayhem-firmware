@@ -22,7 +22,7 @@
 
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
-#include "sine_table.hpp"
+#include "sine_table_int8.hpp"
 //#include "audio_output.hpp"
 #include "event_m4.hpp"
 
@@ -37,35 +37,32 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	ai = 0;
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		//audio_fifo.out(&sample, 1);
-		
 		// Audio preview sample generation: 1536000/48000 = 32
 		if (as >= 31) {
 			as = 0;
-			//audio_fifo.out(&sample, 1);
+			audio_fifo.out(sample);
 			//preview_audio_buffer.p[ai++] = sample << 8;
 			
-			//if ((audio_fifo.len() < 1024) && (asked == false)) {
+			if ((audio_fifo.len() < 1024) && (asked == false)) {
 				// Ask application to fill up fifo
 				sigmessage.signaltype = 1;
 				shared_memory.application_queue.push(sigmessage);
 				asked = true;
-			//}
+			}
 		} else {
 			as++;
 		}
 		
-
 		// FM
-		frq = (int32_t)(sample) * 4 * 2000;
+		frq = sample * 8000;
 		
 		phase = (phase + frq);
-		sphase = phase + (256 << 16);
+		sphase = phase + (64 << 18);
 
-		re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
-		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 		
-		buffer.p[i] = { (int8_t)re, (int8_t)im };
+		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
 	
 	//AudioOutput::fill_audio_buffer(preview_audio_buffer, true);
@@ -79,7 +76,7 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 			break;
 		
 		case Message::ID::FIFOData:
-			//audio_fifo.in(static_cast<const FIFODataMessage*>(msg)->data, 1024);
+			audio_fifo.in(static_cast<const FIFODataMessage*>(msg)->data, 1024);
 			asked = false;
 			break;
 
