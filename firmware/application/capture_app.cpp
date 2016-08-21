@@ -74,7 +74,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	record_view.set_sampling_rate(sampling_rate / 8);

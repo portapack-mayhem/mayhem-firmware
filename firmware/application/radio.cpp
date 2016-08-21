@@ -158,10 +158,6 @@ void set_baseband_rate(const uint32_t rate) {
 	portapack::clock_manager.set_sampling_frequency(rate);
 }
 
-void set_baseband_decimation_by(const size_t n) {
-	baseband_cpld.set_decimation_by(n);
-}
-
 void set_antenna_bias(const bool on) {
 	/* Pull MOSFET gate low to turn on antenna bias. */
 	first_if.set_gpo1(on ? 0 : 1);
@@ -185,7 +181,6 @@ void configure(Configuration configuration) {
 	set_lna_gain(configuration.lna_gain);
 	set_vga_gain(configuration.vga_gain);
 	set_baseband_rate(configuration.baseband_rate);
-	set_baseband_decimation_by(configuration.baseband_decimation);
 	set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
 	set_direction(configuration.direction);
 }

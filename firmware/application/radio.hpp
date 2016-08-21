@@ -37,7 +37,6 @@ struct Configuration {
 	bool rf_amp;
 	int8_t lna_gain;
 	int8_t vga_gain;
-	uint8_t baseband_decimation;
 };
 
 void init();
@@ -50,7 +49,6 @@ void set_vga_gain(const int_fast8_t db);
 void set_tx_gain(const int_fast8_t db);
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
 void set_baseband_rate(const uint32_t rate);
-void set_baseband_decimation_by(const size_t n);
 void set_antenna_bias(const bool on);
 
 void enable(Configuration configuration);

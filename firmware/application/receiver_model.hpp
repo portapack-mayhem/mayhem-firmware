@@ -72,8 +72,6 @@ public:
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
 
-	uint32_t baseband_oversampling() const;
-
 	void enable();
 	void disable();
 
@@ -97,7 +95,6 @@ private:
 	int32_t tx_gain_db_ { 47 };
 	Mode mode_ { Mode::NarrowbandFMAudio };
 	uint32_t sampling_rate_ { 3072000 };
-	size_t decimation_factor_ { 1 };
 	size_t am_config_index = 0;
 	size_t nbfm_config_index = 0;
 	size_t wfm_config_index = 0;

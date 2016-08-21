@@ -184,7 +184,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	options_band.on_change = [this](size_t, OptionsField::value_t v) {

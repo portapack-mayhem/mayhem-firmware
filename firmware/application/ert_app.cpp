@@ -142,7 +142,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	logger = std::make_unique<ERTLogger>();

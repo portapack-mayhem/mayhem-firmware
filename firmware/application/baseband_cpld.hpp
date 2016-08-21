@@ -30,7 +30,6 @@ class CPLD {
 public:
 	void init();
 
-	void set_decimation_by(const uint8_t n);
 	void set_q_invert(const bool invert);
 	
 private:

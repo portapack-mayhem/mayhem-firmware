@@ -27,21 +27,8 @@ using namespace hackrf::one;
 namespace baseband {
 
 void CPLD::init() {
-	set_decimation_by(1);
-	gpios_baseband_decimation[0].output();
-	gpios_baseband_decimation[1].output();
-	gpios_baseband_decimation[2].output();
-
 	set_q_invert(false);
 	gpio_baseband_q_invert.output();
-}
-
-void CPLD::set_decimation_by(const uint8_t n) {
-	const uint8_t skip_n = n - 1;
-	const uint8_t value = skip_n ^ 7;
-	gpios_baseband_decimation[0].write(value & 1);
-	gpios_baseband_decimation[1].write(value & 2);
-	gpios_baseband_decimation[2].write(value & 4);
 }
 
 void CPLD::set_q_invert(const bool invert) {

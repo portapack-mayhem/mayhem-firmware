@@ -151,11 +151,6 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
 	update_headphone_volume();
 }
 
-uint32_t ReceiverModel::baseband_oversampling() const {
-	// TODO: Rename decimation_factor.
-	return decimation_factor_;
-}
-
 void ReceiverModel::enable() {
 	enabled_ = true;
 	radio::set_direction(rf::Direction::Receive);
@@ -243,9 +238,8 @@ void ReceiverModel::update_sampling_rate() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
+	radio::set_baseband_rate(sampling_rate());
 	update_tuning_frequency();
-	radio::set_baseband_decimation_by(baseband_oversampling());
 }
 
 void ReceiverModel::update_headphone_volume() {
