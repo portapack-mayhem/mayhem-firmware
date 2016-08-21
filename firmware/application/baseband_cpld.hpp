@@ -30,7 +30,7 @@ class CPLD {
 public:
 	void init();
 
-	void set_q_invert(const bool invert);
+	void set_invert(const bool invert);
 	
 private:
 };

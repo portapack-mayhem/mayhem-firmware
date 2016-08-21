@@ -126,7 +126,7 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 		const auto result_second_if = second_if.set_frequency(tuning_config.second_lo_frequency);
 
 		rf_path.set_band(tuning_config.rf_path_band);
-		baseband_cpld.set_q_invert(tuning_config.baseband_q_invert);
+		baseband_cpld.set_invert(tuning_config.baseband_invert);
 
 		return result_second_if;
 	} else {

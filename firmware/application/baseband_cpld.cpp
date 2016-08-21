@@ -27,12 +27,12 @@ using namespace hackrf::one;
 namespace baseband {
 
 void CPLD::init() {
-	set_q_invert(false);
-	gpio_baseband_q_invert.output();
+	set_invert(false);
+	gpio_baseband_invert.output();
 }
 
-void CPLD::set_q_invert(const bool invert) {
-	gpio_baseband_q_invert.write(invert);
+void CPLD::set_invert(const bool invert) {
+	gpio_baseband_invert.write(invert);
 }
 
 }

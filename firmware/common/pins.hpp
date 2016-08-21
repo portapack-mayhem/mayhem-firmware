@@ -61,7 +61,7 @@ constexpr Pin pins[] = {
 	[P1_15] = {  1, 15, PinConfig::sgpio_inout_fast(2) }, /* SGPIO2/BANK2F3M9: CPLD.74/HOST_DATA2(IO) */
 	[P1_16] = {  1, 16, PinConfig::sgpio_inout_fast(2) }, /* SGPIO3/BANK2F3M10: CPLD.72/HOST_DATA3(IO) */
 	[P1_17] = {  1, 17, PinConfig::sgpio_out_fast_with_pullup(6) }, /* SGPIO11/P79/BANK2F3M11: CPLD.71/HOST_DIRECTION(I) */
-	[P1_18] = {  1, 18, PinConfig::gpio_out_with_pulldown(0) }, /* SGPIO12/BANK2F3M12: CPLD.70/HOST_Q_INVERT(I) */
+	[P1_18] = {  1, 18, PinConfig::gpio_out_with_pulldown(0) }, /* SGPIO12/BANK2F3M12: CPLD.70/HOST_INVERT(I) */
 	[P1_19] = {  1, 19, { .mode=1, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* SSP1_SCK/P39: MAX2837.SCLK(I), MAX5864.SCLK(I) */
 	[P1_20] = {  1, 20, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* CS_XCVR/P53: MAX2837.CS(I) */
 	[P2_0]  = {  2,  0, { .mode=4, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
