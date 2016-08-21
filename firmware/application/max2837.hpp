@@ -884,6 +884,11 @@ public:
 
 	bool set_frequency(const rf::Frequency lo_frequency);
 
+	void set_rx_lo_iq_calibration(const size_t v);
+	void set_rx_bias_trim(const size_t v);
+	void set_vco_bias(const size_t v);
+	void set_rx_buff_vcm(const size_t v);
+
 	reg_t temp_sense();
 
 	reg_t read(const address_t reg_num);

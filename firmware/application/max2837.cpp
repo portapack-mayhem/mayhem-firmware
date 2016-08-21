@@ -242,6 +242,34 @@ bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	return true;
 }
 
+void MAX2837::set_rx_lo_iq_calibration(const size_t v) {
+	_map.r.rx_top_rx_bias.RX_IQERR_SPI_EN = 1;
+	_dirty[Register::RX_TOP_RX_BIAS] = 1;
+	_map.r.rxrf_2.iqerr_trim = v;
+	_dirty[Register::RXRF_2] = 1;
+	flush();
+}
+
+void MAX2837::set_rx_bias_trim(const size_t v) {
+	_map.r.rx_top_rx_bias.EN_Bias_Trim = 1;
+	_map.r.rx_top_rx_bias.BIAS_TRIM_SPI = v;
+	_dirty[Register::RX_TOP_RX_BIAS] = 1;
+	flush();
+}
+
+void MAX2837::set_vco_bias(const size_t v) {
+	_map.r.vco_cfg.VCO_BIAS_SPI_EN = 1;
+	_map.r.vco_cfg.VCO_BIAS_SPI = v;
+	_dirty[Register::VCO_CFG] = 1;
+	flush();
+}
+
+void MAX2837::set_rx_buff_vcm(const size_t v) {
+	_map.r.lpf_3_vga_1.BUFF_VCM = v;
+	_dirty[Register::LPF_3_VGA_1] = 1;
+	flush();
+}
+
 reg_t MAX2837::temp_sense() {
 	if( !_map.r.rx_top.ts_en ) {
 		_map.r.rx_top.ts_en = 1;
