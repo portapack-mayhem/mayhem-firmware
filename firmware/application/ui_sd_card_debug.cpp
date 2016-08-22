@@ -95,7 +95,7 @@ private:
 	}
 
 	Result run() {
-		const std::string filename { "_PPTEST_.DAT" };
+		const std::filesystem::path filename { u"_PPTEST_.DAT" };
 
 		const auto write_result = write(filename);
 		if( write_result != Result::OK ) {
@@ -115,7 +115,7 @@ private:
 			return read_result;
 		}
 
-		f_unlink(filename.c_str());
+		f_unlink(reinterpret_cast<const TCHAR*>(filename.c_str()));
 
 		if( _stats.read_bytes < bytes_to_read ) {
 			return Result::FailReadIncomplete;
@@ -128,7 +128,7 @@ private:
 		return Result::OK;
 	}
 
-	Result write(const std::string& filename) {
+	Result write(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
 		if( !buffer ) {
 			return Result::FailHeap;
@@ -175,7 +175,7 @@ private:
 		return Result::OK;
 	}
 
-	Result read(const std::string& filename) {
+	Result read(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
 		if( !buffer ) {
 			return Result::FailHeap;

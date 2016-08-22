@@ -36,7 +36,7 @@ Status status_ { Status::NotPresent };
 FATFS fs;
 
 FRESULT mount() {
-	return f_mount(&fs, "", 0);
+	return f_mount(&fs, reinterpret_cast<const TCHAR*>(_T("")), 0);
 }
 
 } /* namespace */

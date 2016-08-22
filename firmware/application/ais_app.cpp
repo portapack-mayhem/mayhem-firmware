@@ -331,7 +331,7 @@ AISAppView::AISAppView(NavigationView&) {
 
 	logger = std::make_unique<AISLogger>();
 	if( logger ) {
-		logger->append("ais.txt");
+		logger->append(u"ais.txt");
 	}
 }
 

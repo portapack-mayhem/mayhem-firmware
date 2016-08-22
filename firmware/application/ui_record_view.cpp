@@ -32,6 +32,9 @@ using namespace portapack;
 
 #include <cstdint>
 
+#include <locale>
+#include <codecvt>
+
 class FileWriter : public Writer {
 public:
 	FileWriter() = default;
@@ -41,7 +44,7 @@ public:
 	FileWriter(FileWriter&& file) = delete;
 	FileWriter& operator=(FileWriter&&) = delete;
 
-	Optional<File::Error> create(const std::string& filename) {
+	Optional<File::Error> create(const std::filesystem::path& filename) {
 		return file.create(filename);
 	}
 
@@ -79,7 +82,7 @@ public:
 	}
 
 	Optional<File::Error> create(
-		const std::string& filename
+		const std::filesystem::path& filename
 	) {
 		const auto create_error = FileWriter::create(filename);
 		if( create_error.is_valid() ) {
@@ -164,7 +167,7 @@ namespace ui {
 
 RecordView::RecordView(
 	const Rect parent_rect,
-	std::string filename_stem_pattern,
+	std::filesystem::path filename_stem_pattern,
 	const FileType file_type,
 	const size_t write_size,
 	const size_t buffer_count
@@ -251,7 +254,7 @@ void RecordView::start() {
 				sampling_rate
 			);
 			auto create_error = p->create(
-				filename_stem + ".WAV"
+				filename_stem + u".WAV"
 			);
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
@@ -263,7 +266,7 @@ void RecordView::start() {
 
 	case FileType::RawS16:
 		{
-			const auto metadata_file_error = write_metadata_file(filename_stem + ".TXT");
+			const auto metadata_file_error = write_metadata_file(filename_stem + u".TXT");
 			if( metadata_file_error.is_valid() ) {
 				handle_error(metadata_file_error.value());
 				return;
@@ -271,7 +274,7 @@ void RecordView::start() {
 
 			auto p = std::make_unique<RawFileWriter>();
 			auto create_error = p->create(
-				filename_stem + ".C16"
+				filename_stem + u".C16"
 			);
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
@@ -286,7 +289,10 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		text_record_filename.set(filename_stem);
+		std::wstring_convert<std::codecvt_utf8_utf16<std::filesystem::path::value_type>, std::filesystem::path::value_type> conv;
+		const auto filename_stem_s = conv.to_bytes(filename_stem);
+
+		text_record_filename.set(filename_stem_s);
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
@@ -314,7 +320,7 @@ void RecordView::stop() {
 	update_status_display();
 }
 
-Optional<File::Error> RecordView::write_metadata_file(const std::string& filename) {
+Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::path& filename) {
 	File file;
 	const auto create_error = file.create(filename);
 	if( create_error.is_valid() ) {
@@ -344,7 +350,7 @@ void RecordView::update_status_display() {
 	}
 
 	if( sampling_rate ) {
-		const auto space_info = std::filesystem::space("");
+		const auto space_info = std::filesystem::space(u"");
 		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * 4);
 		const uint32_t available_seconds = space_info.free / bytes_per_second;
 		const uint32_t seconds = available_seconds % 60;

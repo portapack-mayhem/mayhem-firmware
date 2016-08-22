@@ -31,7 +31,7 @@ using namespace lpc43xx;
 
 class LogFile {
 public:
-	Optional<File::Error> append(const std::string& filename) {
+	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return file.append(filename);
 	}
 

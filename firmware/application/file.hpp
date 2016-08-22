@@ -33,8 +33,6 @@
 #include <memory>
 #include <iterator>
 
-std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
-
 namespace std {
 namespace filesystem {
 
@@ -66,8 +64,11 @@ private:
 	uint32_t err;
 };
 
-using path = std::string;
+using path = std::u16string;
 using file_status = BYTE;
+
+static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
+static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
 
 struct space_info {
 	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
@@ -82,7 +83,7 @@ struct directory_entry : public FILINFO {
 		return fattrib;
 	}
 
-	const std::string path() const noexcept { return fname; };
+	const std::filesystem::path path() const noexcept { return reinterpret_cast<const std::filesystem::path::value_type*>(fname); };
 };
 
 class directory_iterator {
@@ -107,7 +108,7 @@ public:
 	using iterator_category = std::input_iterator_tag;
 
 	directory_iterator() noexcept { };
-	directory_iterator(const char* path, const char* wild);
+	directory_iterator(const std::filesystem::path::value_type* path, const std::filesystem::path::value_type* wild);
 
 	~directory_iterator() { }
 
@@ -130,6 +131,8 @@ space_info space(const path& p);
 
 } /* namespace filesystem */
 } /* namespace std */
+
+std::filesystem::path next_filename_stem_matching_pattern(const std::filesystem::path& filename_stem_pattern);
 
 class File {
 public:
@@ -193,9 +196,9 @@ public:
 	File& operator=(const File&) = delete;
 
 	// TODO: Return Result<>.
-	Optional<Error> open(const std::string& filename);
-	Optional<Error> append(const std::string& filename);
-	Optional<Error> create(const std::string& filename);
+	Optional<Error> open(const std::filesystem::path& filename);
+	Optional<Error> append(const std::filesystem::path& filename);
+	Optional<Error> create(const std::filesystem::path& filename);
 
 	Result<size_t> read(void* const data, const size_t bytes_to_read);
 	Result<size_t> write(const void* const data, const size_t bytes_to_write);
@@ -215,7 +218,7 @@ public:
 private:
 	FIL f;
 
-	Optional<Error> open_fatfs(const std::string& filename, BYTE mode);
+	Optional<Error> open_fatfs(const std::filesystem::path& filename, BYTE mode);
 };
 
 #endif/*__FILE_H__*/

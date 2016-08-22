@@ -46,7 +46,7 @@ public:
 
 	RecordView(
 		const Rect parent_rect,
-		std::string filename_stem_pattern,
+		std::filesystem::path filename_stem_pattern,
 		FileType file_type,
 		const size_t write_size,
 		const size_t buffer_count
@@ -64,7 +64,7 @@ public:
 
 private:
 	void toggle();
-	Optional<File::Error> write_metadata_file(const std::string& filename);
+	Optional<File::Error> write_metadata_file(const std::filesystem::path& filename);
 
 	void on_tick_second();
 	void update_status_display();
@@ -72,7 +72,7 @@ private:
 	void handle_capture_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
-	const std::string filename_stem_pattern;
+	const std::filesystem::path filename_stem_pattern;
 	const FileType file_type;
 	const size_t write_size;
 	const size_t buffer_count;

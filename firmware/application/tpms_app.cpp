@@ -193,7 +193,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
-		logger->append("tpms.txt");
+		logger->append(u"tpms.txt");
 	}
 }
 

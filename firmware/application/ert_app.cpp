@@ -146,7 +146,7 @@ ERTAppView::ERTAppView(NavigationView&) {
 
 	logger = std::make_unique<ERTLogger>();
 	if( logger ) {
-		logger->append("ert.txt");
+		logger->append(u"ert.txt");
 	}
 }
 

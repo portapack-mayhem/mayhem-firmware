@@ -30,8 +30,8 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 #define FR_BAD_SEEK		(0x102)
 #define FR_UNEXPECTED	(0x103)
 
-Optional<File::Error> File::open_fatfs(const std::string& filename, BYTE mode) {
-	auto result = f_open(&f, filename.c_str(), mode);
+Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
+	auto result = f_open(&f, reinterpret_cast<const TCHAR*>(filename.c_str()), mode);
 	if( result == FR_OK ) {
 		if( mode & FA_OPEN_ALWAYS ) {
 			const auto result = f_lseek(&f, f_size(&f));
@@ -48,15 +48,15 @@ Optional<File::Error> File::open_fatfs(const std::string& filename, BYTE mode) {
 	}
 }
 
-Optional<File::Error> File::open(const std::string& filename) {
+Optional<File::Error> File::open(const std::filesystem::path& filename) {
 	return open_fatfs(filename, FA_READ);
 }
 
-Optional<File::Error> File::append(const std::string& filename) {
+Optional<File::Error> File::append(const std::filesystem::path& filename) {
 	return open_fatfs(filename, FA_WRITE | FA_OPEN_ALWAYS);
 }
 
-Optional<File::Error> File::create(const std::string& filename) {
+Optional<File::Error> File::create(const std::filesystem::path& filename) {
 	return open_fatfs(filename, FA_WRITE | FA_CREATE_ALWAYS);
 }
 
@@ -124,9 +124,9 @@ Optional<File::Error> File::sync() {
 	}
 }
 
-static std::string find_last_file_matching_pattern(const std::string& pattern) {
-	std::string last_match;
-	for(const auto& entry : std::filesystem::directory_iterator("", pattern.c_str())) {
+static std::filesystem::path find_last_file_matching_pattern(const std::filesystem::path& pattern) {
+	std::filesystem::path last_match;
+	for(const auto& entry : std::filesystem::directory_iterator(u"", pattern.c_str())) {
 		if( std::filesystem::is_regular_file(entry.status()) ) {
 			const auto match = entry.path();
 			if( match > last_match ) {
@@ -137,13 +137,13 @@ static std::string find_last_file_matching_pattern(const std::string& pattern) {
 	return last_match;
 }
 
-static std::string remove_filename_extension(const std::string& filename) {
+static std::filesystem::path remove_filename_extension(const std::filesystem::path& filename) {
 	const auto extension_index = filename.find_last_of('.');
 	return filename.substr(0, extension_index);
 }
 
-static std::string increment_filename_stem_ordinal(const std::string& filename_stem) {
-	std::string result { filename_stem };
+static std::filesystem::path increment_filename_stem_ordinal(const std::filesystem::path& filename_stem) {
+	std::filesystem::path result { filename_stem };
 
 	auto it = result.rbegin();
 
@@ -165,8 +165,8 @@ static std::string increment_filename_stem_ordinal(const std::string& filename_s
 	return result;
 }
 
-std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern) {
-	const auto filename = find_last_file_matching_pattern(filename_stem_pattern + ".*");
+std::filesystem::path next_filename_stem_matching_pattern(const std::filesystem::path& filename_stem_pattern) {
+	const auto filename = find_last_file_matching_pattern(filename_stem_pattern + u".*");
 	auto filename_stem = remove_filename_extension(filename);
 	if( filename_stem.empty() ) {
 		filename_stem = filename_stem_pattern;
@@ -211,11 +211,11 @@ std::string filesystem_error::what() const {
 }
 
 directory_iterator::directory_iterator(
-	const char* path,
-	const char* wild
+	const std::filesystem::path::value_type* path,
+	const std::filesystem::path::value_type* wild
 ) {
 	impl = std::make_shared<Impl>();
-	const auto result = f_findfirst(&impl->dir, &impl->filinfo, path, wild);
+	const auto result = f_findfirst(&impl->dir, &impl->filinfo, reinterpret_cast<const TCHAR*>(path), reinterpret_cast<const TCHAR*>(wild));
 	if( result != FR_OK ) {
 		impl.reset();
 		// TODO: Throw exception if/when I enable exceptions...
@@ -237,7 +237,7 @@ bool is_regular_file(const file_status s) {
 space_info space(const path& p) {
 	DWORD free_clusters { 0 };
 	FATFS* fs;
-	if( f_getfree(p.c_str(), &free_clusters, &fs) == FR_OK ) {
+	if( f_getfree(reinterpret_cast<const TCHAR*>(p.c_str()), &free_clusters, &fs) == FR_OK ) {
 #if _MAX_SS != _MIN_SS
 		static_assert(false, "FatFs not configured for fixed sector size");
 #else

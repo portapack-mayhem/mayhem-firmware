@@ -101,7 +101,7 @@
 */
 
 
-#define	_USE_LFN	0
+#define	_USE_LFN	2
 #define	_MAX_LFN	255
 /* The _USE_LFN switches the support of long file name (LFN).
 /
@@ -119,7 +119,7 @@
 /  ff_memfree(), must be added to the project. */
 
 
-#define	_LFN_UNICODE	0
+#define	_LFN_UNICODE	1
 /* This option switches character encoding on the API. (0:ANSI/OEM or 1:UTF-16)
 /  To use Unicode string for the path name, enable LFN and set _LFN_UNICODE = 1.
 /  This option also affects behavior of string I/O functions. */

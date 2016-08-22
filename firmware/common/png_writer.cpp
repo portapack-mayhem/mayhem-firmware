@@ -50,7 +50,7 @@ static constexpr std::array<uint8_t, 12> png_iend { {
 } };
 
 Optional<File::Error> PNGWriter::create(
-	const std::string& filename
+	const std::filesystem::path& filename
 ) {
 	const auto create_error = file.create(filename);
 	if( create_error.is_valid() ) {
