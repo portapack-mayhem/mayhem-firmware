@@ -35,7 +35,7 @@
 
 class Writer {
 public:
-	virtual File::Result<size_t> write(const void* const buffer, const size_t bytes) = 0;
+	virtual File::Result<File::Size> write(const void* const buffer, const File::Size bytes) = 0;
 	virtual ~Writer() = default;
 };
 

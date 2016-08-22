@@ -136,6 +136,8 @@ std::filesystem::path next_filename_stem_matching_pattern(const std::filesystem:
 
 class File {
 public:
+	using Size = uint64_t;
+	using Offset = uint64_t;
 	using Error = std::filesystem::filesystem_error;
 
 	template<typename T>
@@ -200,13 +202,13 @@ public:
 	Optional<Error> append(const std::filesystem::path& filename);
 	Optional<Error> create(const std::filesystem::path& filename);
 
-	Result<size_t> read(void* const data, const size_t bytes_to_read);
-	Result<size_t> write(const void* const data, const size_t bytes_to_write);
+	Result<Size> read(void* const data, const Size bytes_to_read);
+	Result<Size> write(const void* const data, const Size bytes_to_write);
 
-	Result<uint64_t> seek(const uint64_t new_position);
+	Result<Offset> seek(const uint64_t Offset);
 
 	template<size_t N>
-	Result<size_t> write(const std::array<uint8_t, N>& data) {
+	Result<Size> write(const std::array<uint8_t, N>& data) {
 		return write(data.data(), N);
 	}
 

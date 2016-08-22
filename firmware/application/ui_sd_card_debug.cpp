@@ -51,13 +51,13 @@ public:
 		halrtcnt_t write_duration_min { 0 };
 		halrtcnt_t write_duration_max { 0 };
 		halrtcnt_t write_test_duration { 0 };
-		size_t write_bytes { 0 };
+		File::Size write_bytes { 0 };
 		size_t write_count { 0 };
 
 		halrtcnt_t read_duration_min { 0 };
 		halrtcnt_t read_duration_max { 0 };
 		halrtcnt_t read_test_duration { 0 };
-		size_t read_bytes { 0 };
+		File::Size read_bytes { 0 };
 		size_t read_count { 0 };
 	};
 
@@ -80,9 +80,9 @@ public:
 	}
 
 private:
-	static constexpr size_t write_size = 16384;
-	static constexpr size_t bytes_to_write = 16 * 1024 * 1024;
-	static constexpr size_t bytes_to_read = bytes_to_write;
+	static constexpr File::Size write_size = 16384;
+	static constexpr File::Size bytes_to_write = 16 * 1024 * 1024;
+	static constexpr File::Size bytes_to_read = bytes_to_write;
 
 	static Thread* thread;
 	volatile Result _result { Result::Incomplete };
@@ -365,7 +365,7 @@ static std::string format_ticks_as_ms(const halrtcnt_t value) {
 	return format_3dot3_string(us);
 }
 
-static std::string format_bytes_per_ticks_as_mib(const size_t bytes, const halrtcnt_t ticks) {
+static std::string format_bytes_per_ticks_as_mib(const File::Size bytes, const halrtcnt_t ticks) {
 	const uint32_t bps = uint64_t(bytes) * halGetCounterFrequency() / ticks;
 	const uint32_t kbps = bps / 1000U;
 	return format_3dot3_string(kbps);

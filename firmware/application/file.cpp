@@ -64,7 +64,7 @@ File::~File() {
 	f_close(&f);
 }
 
-File::Result<size_t> File::read(void* const data, const size_t bytes_to_read) {
+File::Result<File::Size> File::read(void* const data, const Size bytes_to_read) {
 	UINT bytes_read = 0;
 	const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
 	if( result == FR_OK ) {
@@ -74,12 +74,12 @@ File::Result<size_t> File::read(void* const data, const size_t bytes_to_read) {
 	}
 }
 
-File::Result<size_t> File::write(const void* const data, const size_t bytes_to_write) {
+File::Result<File::Size> File::write(const void* const data, const Size bytes_to_write) {
 	UINT bytes_written = 0;
 	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
 	if( result == FR_OK ) {
 		if( bytes_to_write == bytes_written ) {
-			return { static_cast<size_t>(bytes_written) };
+			return { static_cast<File::Size>(bytes_written) };
 		} else {
 			return Error { FR_DISK_FULL };
 		}
@@ -88,7 +88,7 @@ File::Result<size_t> File::write(const void* const data, const size_t bytes_to_w
 	}
 }
 
-File::Result<uint64_t> File::seek(const uint64_t new_position) {
+File::Result<File::Offset> File::seek(const Offset new_position) {
 	/* NOTE: Returns *old* position, not new position */
 	const auto old_position = f_tell(&f);
 	const auto result = f_lseek(&f, new_position);
@@ -98,7 +98,7 @@ File::Result<uint64_t> File::seek(const uint64_t new_position) {
 	if( f_tell(&f) != new_position ) {
 		return { static_cast<Error>(FR_BAD_SEEK) };
 	}
-	return { static_cast<uint64_t>(old_position) };
+	return { static_cast<File::Offset>(old_position) };
 }
 
 Optional<File::Error> File::write_line(const std::string& s) {

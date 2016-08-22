@@ -48,7 +48,7 @@ public:
 		return file.create(filename);
 	}
 
-	File::Result<size_t> write(const void* const buffer, const size_t bytes) override {
+	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override {
 		auto write_result = file.write(buffer, bytes) ;
 		if( write_result.is_ok() ) {
 			bytes_written += write_result.value();
