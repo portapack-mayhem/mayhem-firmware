@@ -4038,11 +4038,16 @@ FRESULT f_lseek (
 			}
 			if (clst != 0) {
 				while (ofs > bcs) {						/* Cluster following loop */
+					ofs -= bcs; fp->fptr += bcs;
 #if !_FS_READONLY
 					if (fp->flag & FA_WRITE) {			/* Check if in write mode or not */
+						if (_FS_EXFAT && fp->fptr > fp->obj.objsize) {	/* No FAT chain object needs correct objsize to generate FAT value */
+							fp->obj.objsize = fp->fptr;
+							fp->flag |= FA_MODIFIED;
+						}
 						clst = create_chain(&fp->obj, clst);	/* Force stretch if in write mode */
 						if (clst == 0) {				/* When disk gets full, clip file size */
-							ofs = bcs; break;
+							ofs = 0; break;
 						}
 					} else
 #endif
@@ -4050,8 +4055,6 @@ FRESULT f_lseek (
 					if (clst == 0xFFFFFFFF) ABORT(fs, FR_DISK_ERR);
 					if (clst <= 1 || clst >= fs->n_fatent) ABORT(fs, FR_INT_ERR);
 					fp->clust = clst;
-					fp->fptr += bcs;
-					ofs -= bcs;
 				}
 				fp->fptr += ofs;
 				if (ofs % SS(fs)) {
