@@ -170,7 +170,7 @@ set(CPPSRC
 	${COMMON}/ert_packet.cpp
 	capture_app.cpp
 	sd_card.cpp
-	time.cpp
+	rtc_time.cpp
 	file.cpp
 	log_file.cpp
 	${COMMON}/png_writer.cpp

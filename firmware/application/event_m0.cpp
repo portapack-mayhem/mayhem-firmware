@@ -24,7 +24,7 @@
 #include "portapack.hpp"
 
 #include "sd_card.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 
 #include "message.hpp"
 #include "message_queue.hpp"
@@ -219,7 +219,7 @@ void EventDispatcher::handle_rtc_tick() {
 
 	portapack::temperature_logger.second_tick();
 
-	time::on_tick_second();
+	rtc_time::on_tick_second();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {

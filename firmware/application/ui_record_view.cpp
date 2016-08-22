@@ -25,7 +25,7 @@
 using namespace portapack;
 
 #include "file.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 
 #include "string_format.hpp"
 #include "utility.hpp"
@@ -188,13 +188,13 @@ RecordView::RecordView(
 		this->toggle();
 	};
 
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 }
 
 RecordView::~RecordView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void RecordView::focus() {

@@ -19,17 +19,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __TIME_H__
-#define __TIME_H__
+#ifndef __RTC_TIME_H__
+#define __RTC_TIME_H__
 
 #include "signal.hpp"
 
-namespace time {
+namespace rtc_time {
 
 extern Signal<> signal_tick_second;
 
 void on_tick_second();
 
-} /* namespace time */
+} /* namespace rtc_time */
 
-#endif/*__TIME_H__*/
+#endif/*__RTC_TIME_H__*/

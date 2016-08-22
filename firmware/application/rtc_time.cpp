@@ -19,9 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "time.hpp"
+#include "rtc_time.hpp"
 
-namespace time {
+namespace rtc_time {
 
 Signal<> signal_tick_second;
 
@@ -29,4 +29,4 @@ void on_tick_second() {
 	signal_tick_second.emit();
 }
 
-} /* namespace time */
+} /* namespace rtc_time */
