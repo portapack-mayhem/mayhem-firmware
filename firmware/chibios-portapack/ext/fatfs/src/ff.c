@@ -5303,7 +5303,7 @@ FRESULT f_mkfs (
 
 #if _FS_EXFAT
 	if (fmt == FS_EXFAT) {	/* Create an exFAT volume */
-		DWORD sum, szb_bit, szb_case;
+		DWORD szb_bit, szb_case, sum, nb, cl;
 		WCHAR ch, si;
 		UINT j, st;
 		BYTE b;
@@ -5368,32 +5368,37 @@ FRESULT f_mkfs (
 		tbl[1] = (szb_case + au * ss - 1) / (au * ss);	/* Number of up-case clusters */
 
 		/* Initialize the allocation bitmap */
-		mem_set(buf, 0, szb_buf);	/* Set in-use flags of bitmap, up-case and root dir */
-		for (i = 0, n = tbl[0] + tbl[1] + tbl[2]; n >= 8; buf[i++] = 0xFF, n -= 8) ;
-		for (b = 1; n; buf[i] |= b, b <<= 1, n--) ;
 		sect = b_data; n = (szb_bit + ss - 1) / ss;		/* Start of bitmap and number of the sectors */
-		do {	/* Fill allocation bitmap sectors */
-			ns = (n > sz_buf) ? sz_buf : n;
+		nb = tbl[0] + tbl[1] + tbl[2];					/* Number of clusters in-use by system */
+		do {
+			mem_set(buf, 0, szb_buf);
+			for (i = 0; nb >= 8 && i < szb_buf; buf[i++] = 0xFF, nb -= 8) ;
+			for (b = 1; nb && i < szb_buf; buf[i] |= b, b <<= 1, nb--) ;
+			ns = (n > sz_buf) ? sz_buf : n;				/* Write the buffered data */
 			if (disk_write(pdrv, buf, sect, ns) != RES_OK) return FR_DISK_ERR;
-			sect += ns;
-			mem_set(buf, 0, ss);
-		} while (n -= ns);
+			sect += ns; n -= ns;
+		} while (n);
 
 		/* Initialize the FAT */
-		st_qword(buf, 0xFFFFFFFFFFFFFFF8);	/* Entry 0 and 1 */
-		for (j = 0, i = 2; j < 3; j++) {	/* Set entries of bitmap, up-case and root dir */
-			for (n = tbl[j]; n; n--) {
-				st_dword(buf + i * 4, (n >= 2) ? i + 1 : 0xFFFFFFFF);
-				i++;
-			}
-		}
 		sect = b_fat; n = sz_fat;	/* Start of FAT and number of the sectors */
-		do {	/* Fill FAT sectors */
-			ns = (n > sz_buf) ? sz_buf : n;
+		j = nb = cl = 0;
+		do {
+			mem_set(buf, 0, szb_buf); i = 0;
+			if (cl == 0) {	/* Set entry 0 and 1 */
+				st_dword(buf + i, 0xFFFFFFF8); i += 4; cl++;
+				st_dword(buf + i, 0xFFFFFFFF); i += 4; cl++;
+			}
+			do {			/* Create chains of bitmap, up-case and root dir */
+				while (nb && i < szb_buf) {			/* Create a chain */
+					st_dword(buf + i, (nb > 1) ? cl + 1 : 0xFFFFFFFF);
+					i += 4; cl++; nb--;
+				}
+				if (!nb && j < 3) nb = tbl[j++];	/* Next chain */
+			} while (nb && i < szb_buf);
+			ns = (n > sz_buf) ? sz_buf : n;			/* Write the buffered data */
 			if (disk_write(pdrv, buf, sect, ns) != RES_OK) return FR_DISK_ERR;
-			sect += ns;
-			mem_set(buf, 0, ss);
-		} while (n -= ns);
+			sect += ns; n -= ns;
+		} while (n);
 
 		/* Initialize the root directory */
 		mem_set(buf, 0, ss);
