@@ -63,7 +63,7 @@ public:
 
 	SDCardTestThread(
 	) {
-		thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
+		thread = chThdCreateFromHeap(NULL, 3072, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
 	}
 
 	Result result() const {
