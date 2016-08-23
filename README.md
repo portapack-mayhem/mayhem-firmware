@@ -9,15 +9,16 @@ As its name implies, HAVOC is a firmware made to have serious fun, mainly involv
 **In most countries, radio transmissions are tightly regulated. Transmitting without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
 
 Fork features:
-* (Disabled for now) Close-Call™ style scanner
-* PWM audio RSSI output
+* POCSAG 1200 receiver/decoder
 * Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, ...)
+* PWM audio RSSI output
 * RDS (Radio Data System) PSN and Radiotext transmit
 * Fully configurable AFSK transmit
 * LCR (Language de Commande Routier) litteral message forming and transmit
 * Xylos transmitter, street lighting control (NFM CCIR tones)
 * Virtual keyboard or Unistroke "handwriting" text input
 * "Play Dead" in case of emergency
+* (Disabled for now) Close-Call™ style scanner
 * (Disabled for now) Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
 
 Todo (highest to lowest priority):
