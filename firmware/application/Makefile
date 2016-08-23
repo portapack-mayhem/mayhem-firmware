@@ -2190,6 +2190,30 @@ __/common/png_writer.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/png_writer.cpp.s
 .PHONY : __/common/png_writer.cpp.s
 
+__/common/pocsag_packet.obj: __/common/pocsag_packet.cpp.obj
+.PHONY : __/common/pocsag_packet.obj
+
+# target to build an object file
+__/common/pocsag_packet.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag_packet.cpp.obj
+.PHONY : __/common/pocsag_packet.cpp.obj
+
+__/common/pocsag_packet.i: __/common/pocsag_packet.cpp.i
+.PHONY : __/common/pocsag_packet.i
+
+# target to preprocess a source file
+__/common/pocsag_packet.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag_packet.cpp.i
+.PHONY : __/common/pocsag_packet.cpp.i
+
+__/common/pocsag_packet.s: __/common/pocsag_packet.cpp.s
+.PHONY : __/common/pocsag_packet.s
+
+# target to generate assembly for a file
+__/common/pocsag_packet.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag_packet.cpp.s
+.PHONY : __/common/pocsag_packet.cpp.s
+
 __/common/portapack_io.obj: __/common/portapack_io.cpp.obj
 .PHONY : __/common/portapack_io.obj
 
@@ -3029,6 +3053,30 @@ max5864.s: max5864.cpp.s
 max5864.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/max5864.cpp.s
 .PHONY : max5864.cpp.s
+
+pocsag_app.obj: pocsag_app.cpp.obj
+.PHONY : pocsag_app.obj
+
+# target to build an object file
+pocsag_app.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/pocsag_app.cpp.obj
+.PHONY : pocsag_app.cpp.obj
+
+pocsag_app.i: pocsag_app.cpp.i
+.PHONY : pocsag_app.i
+
+# target to preprocess a source file
+pocsag_app.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/pocsag_app.cpp.i
+.PHONY : pocsag_app.cpp.i
+
+pocsag_app.s: pocsag_app.cpp.s
+.PHONY : pocsag_app.s
+
+# target to generate assembly for a file
+pocsag_app.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/pocsag_app.cpp.s
+.PHONY : pocsag_app.cpp.s
 
 portapack.obj: portapack.cpp.obj
 .PHONY : portapack.obj
@@ -4378,6 +4426,9 @@ help:
 	@echo "... __/common/png_writer.obj"
 	@echo "... __/common/png_writer.i"
 	@echo "... __/common/png_writer.s"
+	@echo "... __/common/pocsag_packet.obj"
+	@echo "... __/common/pocsag_packet.i"
+	@echo "... __/common/pocsag_packet.s"
 	@echo "... __/common/portapack_io.obj"
 	@echo "... __/common/portapack_io.i"
 	@echo "... __/common/portapack_io.s"
@@ -4483,6 +4534,9 @@ help:
 	@echo "... max5864.obj"
 	@echo "... max5864.i"
 	@echo "... max5864.s"
+	@echo "... pocsag_app.obj"
+	@echo "... pocsag_app.i"
+	@echo "... pocsag_app.s"
 	@echo "... portapack.obj"
 	@echo "... portapack.i"
 	@echo "... portapack.s"

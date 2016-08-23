@@ -40,6 +40,7 @@ constexpr iir_biquad_config_t audio_48k_hpf_300hz_config {
 constexpr iir_biquad_config_t audio_24k_hpf_300hz_config {
 	{  0.94597686f, -1.89195371f,  0.94597686f },
 	{  1.00000000f, -1.88903308f,  0.89487434f }
+
 };
 
 // scipy.signal.butter(2, 300 / 8000.0, 'highpass', analog=False)

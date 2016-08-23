@@ -28,7 +28,8 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "splash.hpp"
+#include "bmp_splash.hpp"
+#include "bmp_modal_warning.hpp"
 
 #include "ui_about.hpp"
 #include "ui_setup.hpp"
@@ -52,6 +53,7 @@
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
+#include "pocsag_app.hpp"
 #include "capture_app.hpp"
 
 #include "core_control.hpp"
@@ -184,7 +186,7 @@ void NavigationView::display_modal(
 ) {
 	/* If a modal view is already visible, don't display another */
 	if( !modal_view ) {
-		modal_view = push<ModalMessageView>(title, message);
+		modal_view = push<ModalMessageView>(title, message, false);
 	}
 }
 
@@ -228,9 +230,10 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 /* ReceiverMenuView ******************************************************/
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
-	add_items<2>({ {
+	add_items<3>({ {
 		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", ui::Color::white(), 		[&nav](){ nav.push<TranspondersMenuView>(); } },
+		{ "POCSAG", ui::Color::cyan(), 				[&nav](){ nav.push<POCSAGAppView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -437,17 +440,37 @@ void NotImplementedView::focus() {
 ModalMessageView::ModalMessageView(
 	NavigationView& nav,
 	const std::string& title,
-	const std::string& message
-) : title_ { title }
+	const std::string& message,
+	bool yesno
+) : title_ { title },
+	yesno_ { yesno }
 {
-	button_done.on_select = [&nav](Button&){
-		nav.pop();
-	};
 
-	add_children({ {
-		&text_message,
-		&button_done,
-	} });
+	if (!yesno) {
+		button_done.on_select = [&nav](Button&){
+			nav.pop();
+		};
+		
+		add_children({ {
+			&text_message,
+			&button_done
+		} });
+	} else {
+		button_yes.on_select = [this,&nav](Button&){
+			if (on_choice) on_choice(true);
+			nav.pop();
+		};
+		button_no.on_select = [this,&nav](Button&){
+			if (on_choice) on_choice(false);
+			nav.pop();
+		};
+		
+		add_children({ {
+			&text_message,
+			&button_yes,
+			&button_no
+		} });
+	}
 
 	text_message.set(message);
 	
@@ -458,8 +481,17 @@ ModalMessageView::ModalMessageView(
  	});
 }
 
+void ModalMessageView::paint(Painter& painter) {
+	(void)painter;
+	portapack::display.drawBMP({64, 64}, modal_warning_bmp, false);
+}
+
 void ModalMessageView::focus() {
-	button_done.focus();
+	if (!yesno_) {
+		button_done.focus();
+	} else {
+		button_yes.focus();
+	}
 }
 
 } /* namespace ui */

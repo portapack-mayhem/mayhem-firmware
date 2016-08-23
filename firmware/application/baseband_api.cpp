@@ -133,6 +133,13 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 	send_message(&message);
 }
 
+void set_pocsag() {
+	const POCSAGConfigureMessage message {
+		1200
+	};
+	send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {

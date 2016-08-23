@@ -32,6 +32,7 @@
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
 #include "tpms_packet.hpp"
+#include "pocsag_packet.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
@@ -73,9 +74,12 @@ public:
 		OOKConfigure = 25,
 		RDSConfigure = 26,
 		AudioTXConfig = 27,
+		POCSAGConfigure = 28,
 		
-		FIFOSignal = 28,
-		FIFOData = 29,
+		POCSAGPacket = 30,
+		
+		FIFOSignal = 31,
+		FIFOData = 32,
 		MAX
 	};
 
@@ -268,6 +272,18 @@ public:
 
 	tpms::SignalType signal_type;
 	baseband::Packet packet;
+};
+
+class POCSAGPacketMessage : public Message {
+public:
+	constexpr POCSAGPacketMessage(
+		const pocsag::POCSAGPacket& packet
+	) : Message { ID::POCSAGPacket },
+		packet { packet }
+	{
+	}
+	
+	pocsag::POCSAGPacket packet;
 };
 
 class ShutdownMessage : public Message {
@@ -600,6 +616,18 @@ public:
 	const uint32_t samples_per_bit;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
+};
+
+class POCSAGConfigureMessage : public Message {
+public:
+	constexpr POCSAGConfigureMessage(
+		const uint32_t rate
+	) : Message { ID::POCSAGConfigure },
+		rate(rate)
+	{
+	}
+
+	const uint32_t rate;
 };
 
 // TODO: use streaming buffer instead

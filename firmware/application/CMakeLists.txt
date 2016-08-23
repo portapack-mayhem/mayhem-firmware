@@ -179,8 +179,10 @@ set(CPPSRC
 	analog_audio_app.cpp
 	${COMMON}/ais_baseband.cpp
 	${COMMON}/ais_packet.cpp
+	${COMMON}/pocsag_packet.cpp
 	ais_app.cpp
 	tpms_app.cpp
+	pocsag_app.cpp
 	${COMMON}/tpms_packet.cpp
 	ert_app.cpp
 	${COMMON}/ert_packet.cpp
@@ -236,6 +238,7 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
 	${FATFSINC}
 	${CHIBIOS}/os/various
+	bitmaps
 )
 
 #

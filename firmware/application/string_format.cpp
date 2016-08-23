@@ -99,7 +99,7 @@ std::string to_string_dec_int(
 
 static void to_string_hex_internal(char* p, const uint32_t n, const int32_t l) {
 	const uint32_t d = n & 0xf;
-	p[l] = (d > 9) ? (d + 87) : (d + 48);
+	p[l] = (d > 9) ? (d + 55) : (d + 48);
 	if( l > 0 ) {
 		to_string_hex_internal(p, n >> 4, l - 1);
 	}

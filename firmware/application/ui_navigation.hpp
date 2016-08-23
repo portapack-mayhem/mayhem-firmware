@@ -264,21 +264,35 @@ public:
 	ModalMessageView(
 		NavigationView& nav,
 		const std::string& title,
-		const std::string& message
+		const std::string& message,
+		bool yesno
 	);
+	void paint(Painter& painter) override;
 
 	void focus() override;
 
 	std::string title() const override { return title_; };
+	
+	std::function<void(bool)> on_choice;
 
 private:
 	const std::string title_;
+	const bool yesno_;
 
 	Text text_message { };
 
 	Button button_done {
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },
 		"OK",
+	};
+	
+	Button button_yes {
+		{ 40, 13 * 16, 64, 24 },
+		"YES",
+	};
+	Button button_no {
+		{ 152, 13 * 16, 64, 24 },
+		"NO",
 	};
 };
 

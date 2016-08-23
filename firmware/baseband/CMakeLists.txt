@@ -298,6 +298,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PERT ert)
 
+### POCSAG RX
+
+set(MODE_CPPSRC
+	proc_pocsag.cpp
+)
+DeclareTargets(PPOC pocsag)
+
 ### NFM Audio
 
 set(MODE_CPPSRC

@@ -415,14 +415,19 @@ XylosView::XylosView(NavigationView& nav) {
 	};*/
 
 	// Single transmit
-	button_transmit.on_select = [this](Button&) {
+	button_transmit.on_select = [this,&nav](Button&) {
 		if (tx_mode == IDLE) {
-			// audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
-			tx_mode = SINGLE;
-			button_transmit.set_style(&style_cancel);
-			button_transmit.set_text("Wait");
-			generate_message();
-			start_tx();
+			/*auto modal_view = nav.push<ModalMessageView>("TX", "TX ?", true);
+			modal_view->on_choice = [this](bool choice) {
+				if (choice) {*/
+					// audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+					tx_mode = SINGLE;
+					button_transmit.set_style(&style_cancel);
+					button_transmit.set_text("Wait");
+					generate_message();
+					start_tx();
+				//}
+			//};
 		}
 	};
 }

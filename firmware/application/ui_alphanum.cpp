@@ -116,7 +116,7 @@ AlphanumView::AlphanumView(
 	add_child(&button_done);
 	button_done.on_select = [this, &nav, txt, max_len](Button&) {
 		memcpy(txt, txtinput, max_len + 1);
-		on_changed(this->value());
+		if (on_changed) on_changed(this->value());
 		nav.pop();
 	};
 

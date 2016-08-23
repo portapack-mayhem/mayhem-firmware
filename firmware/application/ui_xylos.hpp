@@ -25,9 +25,9 @@
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
-#include "bulb_on_bmp.hpp"
-#include "bulb_off_bmp.hpp"
-#include "bulb_ignore_bmp.hpp"
+#include "bmp_bulb_on.hpp"
+#include "bmp_bulb_off.hpp"
+#include "bmp_bulb_ignore.hpp"
 
 #include "message.hpp"
 //#include "volume.hpp"
