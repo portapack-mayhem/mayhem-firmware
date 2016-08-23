@@ -59,6 +59,10 @@ void POCSAGLogger::on_packet(const pocsag::POCSAGPacket& packet, const uint32_t 
 	log_file.write_entry(packet.timestamp(), entry);
 }
 
+void POCSAGLogger::on_decoded(const pocsag::POCSAGPacket& packet, const std::string text) {
+	log_file.write_entry(packet.timestamp(), text);
+}
+
 namespace ui {
 
 void POCSAGAppView::update_freq(rf::Frequency f) {
@@ -69,7 +73,7 @@ void POCSAGAppView::update_freq(rf::Frequency f) {
 	
 	portapack::persistent_memory::set_tuned_frequency(f);		// Maybe not ?
 	
-	auto mhz = to_string_dec_int(f / 1000000, 3);
+	auto mhz = to_string_dec_int(f / 1000000, 4);
 	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
 
 	strcat(finalstr, mhz.c_str());
@@ -141,12 +145,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	bool eom = false;
 	uint32_t codeword;
 	std::string alphanum_text = "";
-	std::string output_text = "";
+	std::string output_text = "MSG:";
 	char ascii_char;
 	
-	if( logger ) {
-		logger->on_packet(message->packet, target_frequency());
-	}
+	if( logger ) logger->on_packet(message->packet, target_frequency());
 	
 	for (size_t i = 0; i < 16; i++) {
 		codeword = message->packet[i];
@@ -187,6 +189,9 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 			}
 			
 			console.writeln(output_text);
+			
+			if (logger) logger->on_decoded(message->packet, output_text);
+			
 		} else {
 			// Address
 			if (codeword == POCSAG_IDLE) {
@@ -199,7 +204,11 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	}
 
 	if (eom) {
-		console.writeln("ADDR:" + to_string_hex(address, 6) + " F:" + to_string_dec_uint(function) + " ");
+		if (address || function)
+			console.writeln(to_string_time(message->packet.timestamp()) + " ADDR:" + to_string_hex(address, 6) + " F:" + to_string_dec_uint(function) + " ");
+		else
+			console.writeln(to_string_time(message->packet.timestamp()) + " Tone only ");
+		
 		ascii_idx = 0;
 		ascii_data = 0;
 		batch_cnt = 0;

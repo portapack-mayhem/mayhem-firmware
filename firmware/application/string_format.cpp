@@ -121,6 +121,11 @@ std::string to_string_datetime(const rtc::RTC& value) {
 		to_string_dec_uint(value.second(), 2, '0');
 }
 
+std::string to_string_time(const rtc::RTC& value) {
+	return to_string_dec_uint(value.hour(), 2, '0') + ":" +
+		to_string_dec_uint(value.minute(), 2, '0');
+}
+
 std::string to_string_timestamp(const rtc::RTC& value) {
 	return to_string_dec_uint(value.year(), 4, '0') +
 		to_string_dec_uint(value.month(), 2, '0') +

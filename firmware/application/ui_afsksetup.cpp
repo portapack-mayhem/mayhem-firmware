@@ -44,11 +44,11 @@ void AFSKSetupView::focus() {
 }
 
 void AFSKSetupView::update_freq(rf::Frequency f) {
-	char finalstr[9] = {0};
+	char finalstr[10] = {0};
 	
 	portapack::persistent_memory::set_tuned_frequency(f);
 	
-	auto mhz = to_string_dec_int(f / 1000000, 3);
+	auto mhz = to_string_dec_int(f / 1000000, 4);
 	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
 
 	strcat(finalstr, mhz.c_str());

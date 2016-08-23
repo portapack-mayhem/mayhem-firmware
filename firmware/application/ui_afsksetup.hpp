@@ -47,7 +47,7 @@ private:
 	};
 	Button button_setfreq {
 		{ 8, 48, 104, 32 },
-		"---.----M"
+		"----.----"
 	};
 	
 	Text text_bps {
