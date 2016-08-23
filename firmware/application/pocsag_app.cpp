@@ -176,6 +176,12 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 			while (ascii_idx >= 7) {
 				ascii_idx -= 7;
 				ascii_char = (ascii_data >> ascii_idx) & 0x7F;
+				
+				// Bottom's up
+				ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;	// 01234567 -> 45670123
+				ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 45670123 -> 67452301
+				ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 67452301 -> *7654321
+   
 				alphanum_text += ascii_char;
 			}
 			ascii_data = ascii_data << 20;
@@ -187,10 +193,6 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 				else
 					output_text += c;
 			}
-			
-			console.writeln(output_text);
-			
-			if (logger) logger->on_decoded(message->packet, output_text);
 			
 		} else {
 			// Address
@@ -204,10 +206,13 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	}
 
 	if (eom) {
-		if (address || function)
+		if (address || function) {
+			console.writeln(output_text);
+			if (logger) logger->on_decoded(message->packet, output_text);
 			console.writeln(to_string_time(message->packet.timestamp()) + " ADDR:" + to_string_hex(address, 6) + " F:" + to_string_dec_uint(function) + " ");
-		else
+		} else {
 			console.writeln(to_string_time(message->packet.timestamp()) + " Tone only ");
+		}
 		
 		ascii_idx = 0;
 		ascii_data = 0;
