@@ -25,6 +25,7 @@
 
 //BUG: No audio in about when shown second time
 
+//TODO: Make frequency set button in afsksetup accept GHz frequencies (longer label buffer)
 //TODO: Check AFSK transmit end, skips last bits ?
 //TODO: Use msgpack for settings, lists... on sd card
 //TODO: Frequency manager

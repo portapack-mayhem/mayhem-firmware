@@ -41,7 +41,7 @@ public:
 		return log_file.append(filename);
 	}
 	
-	void on_packet(const pocsag::POCSAGPacket& packet);
+	void on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
 
 private:
 	LogFile log_file;
@@ -69,6 +69,7 @@ private:
 
 	uint32_t batch_cnt = 0;
 	uint32_t address, function;
+	uint32_t ascii_data, ascii_idx;
 
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::POCSAGPacket,
@@ -88,10 +89,11 @@ private:
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
-	OptionsField options_band {
+	OptionsField options_freq {
 		{ 0 * 8, 0 * 16 },
-		7,
+		8,
 		{
+			{ "Entered", 0 },
 			{ "FR .025", 466025000 },
 			{ "FR .050", 466050000 },
 			{ "FR .075", 466075000 },
@@ -100,14 +102,13 @@ private:
 			{ "FR .231", 466231250 }
 		}
 	};
-	
-	Text text_debug {
-		{ 0, 40, 240, 16 },
-		"Debug..."
+	Button button_setfreq {
+		{ 0, 20, 12 * 8, 20 },
+		"---.----M"
 	};
 
 	Console console {
-		{ 0, 32, 240, 272 }
+		{ 0, 48, 240, 256 }
 	};
 
 	RFAmpField field_rf_amp {
@@ -125,6 +126,8 @@ private:
 	std::unique_ptr<POCSAGLogger> logger;
 
 	uint32_t target_frequency_ = initial_target_frequency;
+	
+	void update_freq(rf::Frequency f);
 
 	void on_packet(const POCSAGPacketMessage * message);
 	void on_show_list();

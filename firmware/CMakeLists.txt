@@ -36,7 +36,7 @@ set(STRIP_DFU ${PROJECT_SOURCE_DIR}/tools/strip_dfu.py)
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 
-set(FIRMWARE_NAME portapack-h1-firmware)
+set(FIRMWARE_NAME portapack-h1-havoc)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
 add_subdirectory(application)
