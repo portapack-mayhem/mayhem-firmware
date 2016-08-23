@@ -190,7 +190,7 @@ constexpr uint32_t gpio_outreg(const Direction direction) {
 constexpr uint32_t gpio_oenreg(const Direction direction) {
 	return
 		  (0U << PIN_DECIM2)
-		| (1U << PIN_DECIM1)
+		| (0U << PIN_DECIM1)
 		| (0U << PIN_DECIM0)
 		| (0U << PIN_INVERT)
 		| (1U << PIN_DIRECTION)
