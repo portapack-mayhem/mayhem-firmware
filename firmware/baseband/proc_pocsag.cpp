@@ -90,6 +90,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							rx_state = SYNC;
 							frame_counter = 0;
 							rx_bit = 0;
+							msg_timeout = 0;
 						} else if (rx_data == POCSAG_IDLE) {
 							rx_state = WAITING;
 						}
@@ -100,29 +101,36 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 					break;
 				
 				case SYNC:
-					rx_bit++;
-					if (rx_bit >= 32) {
-						rx_bit = 0;
-						
-						//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
-						
-						packet.set(frame_counter, rx_data);
-						
-						if (rx_data == POCSAG_IDLE) {
-							rx_state = WAITING;
+					if (msg_timeout < 600) {
+						msg_timeout++;
+						rx_bit++;
+						if (rx_bit >= 32) {
+							rx_bit = 0;
 							
-							packet.set_timestamp(Timestamp::now());
-							//packet.rate = pocsag::SignalRate::FSK1200;
-
-							const POCSAGPacketMessage message(packet);
-							shared_memory.application_queue.push(message);
+							//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
 							
-						} else {
-							if (frame_counter < 15)
-								frame_counter++;
-							else
-								rx_state = WAITING;
+							packet.set(frame_counter, rx_data);
+							
+							if (rx_data == POCSAG_IDLE) {
+								//rx_state = WAITING;		// DEBUG
+							} else {
+								if (frame_counter < 15) {
+									frame_counter++;
+								} else {
+									// DEBUG
+									packet.set_timestamp(Timestamp::now());
+									const POCSAGPacketMessage message(packet);
+									shared_memory.application_queue.push(message);
+									rx_state = WAITING;
+								}
+							}
 						}
+					} else {
+								// DEBUG
+								packet.set_timestamp(Timestamp::now());
+								const POCSAGPacketMessage message(packet);
+								shared_memory.application_queue.push(message);
+						rx_state = WAITING;		// Abort
 					}
 					break;
 

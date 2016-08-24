@@ -78,6 +78,7 @@ private:
 	dsp::demodulate::FM demod;
 
 	uint32_t sync_timeout;
+	uint32_t msg_timeout;
 
 	uint32_t dcd_shreg;
 	uint32_t sphase;

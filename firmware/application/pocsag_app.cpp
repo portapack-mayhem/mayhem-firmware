@@ -59,8 +59,13 @@ void POCSAGLogger::on_packet(const pocsag::POCSAGPacket& packet, const uint32_t 
 	log_file.write_entry(packet.timestamp(), entry);
 }
 
-void POCSAGLogger::on_decoded(const pocsag::POCSAGPacket& packet, const std::string text) {
-	log_file.write_entry(packet.timestamp(), text);
+void POCSAGLogger::on_decoded(
+	const pocsag::POCSAGPacket& packet,
+	const std::string text,
+	const uint32_t address,
+	const uint32_t function) {
+	
+	log_file.write_entry(packet.timestamp(), to_string_hex(address, 8) + "(" + to_string_dec_uint(function) + "): " + text);
 }
 
 namespace ui {
@@ -145,15 +150,12 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	bool eom = false;
 	uint32_t codeword;
 	std::string alphanum_text = "";
-	std::string output_text = "MSG:";
 	char ascii_char;
-	
-	if( logger ) logger->on_packet(message->packet, target_frequency());
 	
 	for (size_t i = 0; i < 16; i++) {
 		codeword = message->packet[i];
 		
-		if (codeword & 0x80000000) {
+		if (codeword & 0x80000000U) {
 			// Message
 			ascii_data |= ((codeword >> 11) & 0xFFFFF);		// 20 bits
 			ascii_idx += 20;
@@ -185,35 +187,39 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 				alphanum_text += ascii_char;
 			}
 			ascii_data = ascii_data << 20;
-			
-			// Todo: same code in ui_lcr, make function in string_format !
-			for(const auto c : alphanum_text) {
-				if ((c < 32) || (c > 126))
-					output_text += "[" + to_string_dec_uint(c) + "]";
-				else
-					output_text += c;
-			}
-			
 		} else {
 			// Address
 			if (codeword == POCSAG_IDLE) {
 				eom = true;
 			} else {
-				function = (codeword >> 11) & 3;
-				address  = ((codeword >> 10) & 0x1FFFF8) | ((codeword >> 1) & 7);
+				if (eom == false) {
+					function = (codeword >> 11) & 3;
+					address = ((codeword >> 10) & 0x1FFFF8) | ((codeword >> 1) & 7);
+				}
 			}
 		}
 	}
+	
+	if( logger ) logger->on_packet(message->packet, target_frequency());
+	
+	// Todo: same code in ui_lcr, make function in string_format !
+	for(const auto c : alphanum_text) {
+		if ((c < 32) || (c > 126))
+			output_text += "[" + to_string_dec_uint(c) + "]";
+		else
+			output_text += c;
+	}
 
 	if (eom) {
-		if (address || function) {
-			console.writeln(output_text);
-			if (logger) logger->on_decoded(message->packet, output_text);
+		if ((address != 0) || (function != 0)) {
+			if (logger) logger->on_decoded(message->packet, output_text, address, function);
 			console.writeln(to_string_time(message->packet.timestamp()) + " ADDR:" + to_string_hex(address, 6) + " F:" + to_string_dec_uint(function) + " ");
+			if (output_text != "") console.writeln("MSG:" + output_text);
 		} else {
 			console.writeln(to_string_time(message->packet.timestamp()) + " Tone only ");
 		}
-		
+
+		output_text = "";
 		ascii_idx = 0;
 		ascii_data = 0;
 		batch_cnt = 0;

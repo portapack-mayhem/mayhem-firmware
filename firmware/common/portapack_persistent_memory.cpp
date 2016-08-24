@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -52,7 +53,7 @@ constexpr afsk_bitrate_range_t afsk_bitrate_range { 600, 9600 };
 constexpr int32_t afsk_bitrate_reset_value { 1200 };
 
 using afsk_bw_range_t = range_t<int32_t>;
-constexpr afsk_bw_range_t afsk_bw_range { 1, 40 };
+constexpr afsk_bw_range_t afsk_bw_range { 1, 50 };
 constexpr int32_t afsk_bw_reset_value { 15 };
 
 /* struct must pack the same way on M4 and M0 cores. */
@@ -156,7 +157,7 @@ uint32_t afsk_config() {
 }
 
 uint8_t afsk_format() {
-	return ((data->afsk_config >> 16) & 0xFF);
+	return ((data->afsk_config >> 16) & 3);
 }
 
 uint8_t afsk_repeats() {

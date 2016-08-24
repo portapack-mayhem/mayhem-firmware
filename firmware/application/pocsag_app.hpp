@@ -42,7 +42,7 @@ public:
 	}
 	
 	void on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-	void on_decoded(const pocsag::POCSAGPacket& packet, const std::string text);
+	void on_decoded(const pocsag::POCSAGPacket& packet, const std::string text, const uint32_t address, const uint32_t function);
 
 private:
 	LogFile log_file;
@@ -71,6 +71,7 @@ private:
 	uint32_t batch_cnt = 0;
 	uint32_t address, function;
 	uint32_t ascii_data, ascii_idx;
+	std::string output_text = "";
 
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::POCSAGPacket,
