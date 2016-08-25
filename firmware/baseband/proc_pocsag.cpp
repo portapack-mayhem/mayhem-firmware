@@ -49,8 +49,9 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	for (c = 0; c < 32; c++) {
 		
 		// Bit = sign
-		const int32_t sample_int = audio.p[c] * 32768.0f;
-		const int32_t audio_sample = __SSAT(sample_int, 16);
+		const int32_t audio_sample = audio.p[c] * 32768.0f;	// sample_int
+		//const int32_t audio_sample = __SSAT(sample_int, 16);
+		
 		dcd_shreg <<= 1;
 		dcd_shreg |= (audio_sample < 0);
 
@@ -87,12 +88,13 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
 						if (rx_data == POCSAG_SYNC) {
 							packet.clear();
-							rx_state = SYNC;
 							frame_counter = 0;
 							rx_bit = 0;
 							msg_timeout = 0;
+							last_rx_data = rx_data;
+							rx_state = SYNC;
 						} else if (rx_data == POCSAG_IDLE) {
-							rx_state = WAITING;
+							//rx_state = WAITING;
 						}
 						
 					} else {
@@ -111,26 +113,38 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							
 							packet.set(frame_counter, rx_data);
 							
-							if (rx_data == POCSAG_IDLE) {
-								//rx_state = WAITING;		// DEBUG
+							if ((rx_data == POCSAG_IDLE) && (!(last_rx_data & 0x80000000))) {
+								// SYNC then IDLE always means end of message ?
+								packet.set_bitrate(pocsag::BitRate::FSK1200);
+								packet.set_flag(pocsag::PacketFlag::NORMAL);
+								packet.set_timestamp(Timestamp::now());
+								const POCSAGPacketMessage message(packet);
+								shared_memory.application_queue.push(message);
+								rx_state = WAITING;
 							} else {
 								if (frame_counter < 15) {
 									frame_counter++;
 								} else {
-									// DEBUG
+									// More than 17-1 codewords
+									packet.set_bitrate(pocsag::BitRate::FSK1200);
+									packet.set_flag(pocsag::PacketFlag::TOO_LONG);
 									packet.set_timestamp(Timestamp::now());
 									const POCSAGPacketMessage message(packet);
 									shared_memory.application_queue.push(message);
 									rx_state = WAITING;
 								}
 							}
+							
+							last_rx_data = rx_data;
 						}
 					} else {
-								// DEBUG
-								packet.set_timestamp(Timestamp::now());
-								const POCSAGPacketMessage message(packet);
-								shared_memory.application_queue.push(message);
-						rx_state = WAITING;		// Abort
+						// Timed out (no end of message received)
+						packet.set_bitrate(pocsag::BitRate::FSK1200);
+						packet.set_flag(pocsag::PacketFlag::TIMED_OUT);
+						packet.set_timestamp(Timestamp::now());
+						const POCSAGPacketMessage message(packet);
+						shared_memory.application_queue.push(message);
+						rx_state = WAITING;
 					}
 					break;
 

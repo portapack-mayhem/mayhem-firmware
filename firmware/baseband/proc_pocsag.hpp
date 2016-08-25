@@ -27,7 +27,6 @@
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
 
-#include "dsp_iir.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
@@ -49,11 +48,11 @@ private:
 		WAITING = 0,
 		PREAMBLE = 32,
 		SYNC = 64,
-		LOSING_SYNC = 65,
-		LOST_SYNC = 66,
-		ADDRESS = 67,
-		MESSAGE = 68,
-		END_OF_MESSAGE = 69
+		//LOSING_SYNC = 65,
+		//LOST_SYNC = 66,
+		//ADDRESS = 67,
+		//MESSAGE = 68,
+		//END_OF_MESSAGE = 69
 	};
 
 	static constexpr size_t baseband_fs = 1536000;
@@ -83,6 +82,7 @@ private:
 	uint32_t dcd_shreg;
 	uint32_t sphase;
 	uint32_t rx_data;
+	uint32_t last_rx_data;
 	uint32_t rx_bit;
 	bool configured = false;
 	rx_states rx_state;

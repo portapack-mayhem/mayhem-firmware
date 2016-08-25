@@ -32,11 +32,17 @@
 
 namespace pocsag {
 
-enum SignalRate : uint32_t {
-	FSK512 = 1,
-	FSK1200 = 2,
-	FSK2400 = 3,
-	DEBUG = 4
+enum BitRate : uint32_t {
+	UNKNOWN,
+	FSK512,
+	FSK1200,
+	FSK2400
+};
+
+enum PacketFlag : uint32_t {
+	NORMAL,
+	TIMED_OUT,
+	TOO_LONG
 };
 
 class POCSAGPacket {
@@ -58,19 +64,34 @@ public:
 		return (index < 16) ? codewords[index] : 0;
 	}
 	
-	SignalRate signal_rate() const {
-		return FSK1200;
+	void set_bitrate(const BitRate bitrate) {
+		bitrate_ = bitrate;
+	}
+	
+	BitRate bitrate() const {
+		return bitrate_;
+	}
+	
+	void set_flag(const PacketFlag flag) {
+		flag_ = flag;
+	}
+	
+	PacketFlag flag() const {
+		return flag_;
 	}
 
 	void clear() {
 		for (size_t c = 0; c < 16; c++)
 			codewords[c] = 0;
+		bitrate_ = UNKNOWN;
+		flag_ = NORMAL;
 	}
 
 private:
-	//SignalRate rate = FSK1200;
+	BitRate bitrate_;
+	PacketFlag flag_;
 	uint32_t codewords[16];
-	Timestamp timestamp_ { };
+	Timestamp timestamp_;
 };
 
 } /* namespace pocsag */

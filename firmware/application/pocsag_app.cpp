@@ -32,18 +32,28 @@ using namespace portapack;
 
 #include "utility.hpp"
 
+#define POCSAG_SYNC     0x7CD215D8
 #define POCSAG_IDLE		0x7A89C197
 
 namespace pocsag {
 
 namespace format {
 
-static std::string signal_rate_str(SignalRate signal_rate) {
-	switch(signal_rate) {
-		case SignalRate::FSK512:	return "FSK 512 ";
-		case SignalRate::FSK1200:	return "FSK 1200";
-		case SignalRate::FSK2400:	return "FSK 2400";
-		default:					return "- - - - ";
+static std::string bitrate_str(BitRate bitrate) {
+	switch (bitrate) {
+		case BitRate::FSK512:	return "F512 ";
+		case BitRate::FSK1200:	return "F1200";
+		case BitRate::FSK2400:	return "F2400";
+		default:				return "F????";
+	}
+}
+
+static std::string flag_str(PacketFlag packetflag) {
+	switch (packetflag) {
+		case PacketFlag::NORMAL:	return "NORMAL   ";
+		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
+		case PacketFlag::TOO_LONG:	return "TOO LONG ";
+		default:					return "";
 	}
 }
 
@@ -52,7 +62,9 @@ static std::string signal_rate_str(SignalRate signal_rate) {
 } /* namespace pocsag */
 
 void POCSAGLogger::on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
-	std::string entry = pocsag::format::signal_rate_str(packet.signal_rate()) + " " + to_string_dec_uint(frequency) + "Hz ";
+	std::string entry = pocsag::format::bitrate_str(packet.bitrate()) + " " + to_string_dec_uint(frequency) + "Hz ";
+	
+	// Raw hex dump of all the codewords
 	for (size_t c = 0; c < 16; c++)
 		entry += to_string_hex(packet[c], 8) + " ";
 	
@@ -61,17 +73,18 @@ void POCSAGLogger::on_packet(const pocsag::POCSAGPacket& packet, const uint32_t 
 
 void POCSAGLogger::on_decoded(
 	const pocsag::POCSAGPacket& packet,
-	const std::string text,
-	const uint32_t address,
-	const uint32_t function) {
+	const std::string info,
+	const std::string text) {
 	
-	log_file.write_entry(packet.timestamp(), to_string_hex(address, 8) + "(" + to_string_dec_uint(function) + "): " + text);
+	// Decoded address and message
+	log_file.write_entry(packet.timestamp(), info);
+	log_file.write_entry(packet.timestamp(), text);
 }
 
 namespace ui {
 
 void POCSAGAppView::update_freq(rf::Frequency f) {
-	char finalstr[10] = {0};
+	char finalstr[10] = { 0 };
 	
 	options_freq.set_selected_index(0);
 	set_target_frequency(f);
@@ -126,9 +139,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	};
 
 	logger = std::make_unique<POCSAGLogger>();
-	if( logger ) {
-		logger->append("pocsag.txt");
-	}
+	if (logger) logger->append("pocsag.txt");
 	
 	baseband::set_pocsag();
 }
@@ -157,24 +168,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		
 		if (codeword & 0x80000000U) {
 			// Message
-			ascii_data |= ((codeword >> 11) & 0xFFFFF);		// 20 bits
+			ascii_data |= ((codeword >> 11) & 0xFFFFF);
 			ascii_idx += 20;
 			
-			//           AAAAAAABBBBBBBCCCCCC     C
-			// 20 -> 13 -> 6
-			//    CCCCCC CDDDDDDDEEEEEEEFFFFF     FF
-			// 26 -> 19 -> 12 -> 5
-			//     FFFFF FFGGGGGGGHHHHHHHIIII     III
-			// 25 -> 18 -> 11 -> 4
-			//      IIII IIIJJJJJJJKKKKKKKLLL     LLLL
-			// 24 -> 17 -> 10 -> 3
-			//       LLL LLLLMMMMMMMNNNNNNNOO     OOOOO
-			// 23 -> 16 -> 9 -> 2
-			//        OO OOOOOPPPPPPPQQQQQQQR     RRRRRR
-			// 22 -> 15 -> 8 -> 1
-			//         R RRRRRRSSSSSSSTTTTTTT     UUUUUUU
-			// 21 -> 14 -> 7 -> 0
-			
+			// Packet 20 bits to 7 bit reversed ASCII
 			while (ascii_idx >= 7) {
 				ascii_idx -= 7;
 				ascii_char = (ascii_data >> ascii_idx) & 0x7F;
@@ -184,15 +181,21 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 				ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 45670123 -> 67452301
 				ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 67452301 -> *7654321
    
-				alphanum_text += ascii_char;
+				// Translate non-printable chars
+				if ((ascii_char < 32) || (ascii_char > 126))
+					output_text += "[" + to_string_dec_uint(ascii_char) + "]";
+				else
+					output_text += ascii_char;
+
 			}
 			ascii_data = ascii_data << 20;
 		} else {
 			// Address
-			if (codeword == POCSAG_IDLE) {
+			if ((codeword == POCSAG_IDLE) || (codeword == POCSAG_SYNC)) {
 				eom = true;
 			} else {
-				if (eom == false) {
+				if ((codeword) && (!address)) {
+					// Set address if none set and codeword is valid
 					function = (codeword >> 11) & 3;
 					address = ((codeword >> 10) & 0x1FFFF8) | ((codeword >> 1) & 7);
 				}
@@ -200,29 +203,36 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		}
 	}
 	
-	if( logger ) logger->on_packet(message->packet, target_frequency());
-	
-	// Todo: same code in ui_lcr, make function in string_format !
-	for(const auto c : alphanum_text) {
-		if ((c < 32) || (c > 126))
-			output_text += "[" + to_string_dec_uint(c) + "]";
-		else
-			output_text += c;
-	}
+	if (logger) logger->on_packet(message->packet, target_frequency());
 
 	if (eom) {
-		if ((address != 0) || (function != 0)) {
-			if (logger) logger->on_decoded(message->packet, output_text, address, function);
-			console.writeln(to_string_time(message->packet.timestamp()) + " ADDR:" + to_string_hex(address, 6) + " F:" + to_string_dec_uint(function) + " ");
-			if (output_text != "") console.writeln("MSG:" + output_text);
+		std::string console_info;
+		
+		console_info = to_string_time(message->packet.timestamp());
+		
+		if (address || function) {
+			console_info += pocsag::format::bitrate_str( message->packet.bitrate()) + " ";
+			console_info += pocsag::format::flag_str(message->packet.flag()) + " ";
+			console_info += " ADDR:" + to_string_dec_uint(address, 7) + " F:" + to_string_dec_uint(function);
+			
+			console.writeln(console_info);
+			
+			if (output_text != "") console.writeln("Alpha:" + output_text);
+			
+			if (logger) logger->on_decoded(message->packet, console_info, output_text);
+			
 		} else {
-			console.writeln(to_string_time(message->packet.timestamp()) + " Tone only ");
+			console_info += pocsag::format::bitrate_str(message->packet.bitrate()) + " Tone only";
+			
+			console.writeln(console_info);
 		}
 
 		output_text = "";
 		ascii_idx = 0;
 		ascii_data = 0;
 		batch_cnt = 0;
+		address = 0;
+		function = 0;
 	} else {
 		batch_cnt++;
 	}

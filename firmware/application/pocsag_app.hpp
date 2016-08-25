@@ -42,7 +42,7 @@ public:
 	}
 	
 	void on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-	void on_decoded(const pocsag::POCSAGPacket& packet, const std::string text, const uint32_t address, const uint32_t function);
+	void on_decoded(const pocsag::POCSAGPacket& packet,	const std::string info,	const std::string text);
 
 private:
 	LogFile log_file;
