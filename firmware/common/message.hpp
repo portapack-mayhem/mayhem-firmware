@@ -561,12 +561,15 @@ public:
 class AudioTXConfigMessage : public Message {
 public:
 	constexpr AudioTXConfigMessage(
+		const uint32_t divider,
 		const uint32_t bw
 	) : Message { ID::AudioTXConfig },
+		divider(divider),
 		bw(bw)
 	{
 	}
 
+	const uint32_t divider;
 	const uint32_t bw;
 };
 

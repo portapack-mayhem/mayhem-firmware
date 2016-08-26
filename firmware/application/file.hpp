@@ -35,8 +35,9 @@
 #include <iterator>
 #include <vector>
 
+std::string remove_filename_extension(const std::string& filename);
 std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
-std::vector<std::string> scan_root_files(const std::string& extension);
+std::vector<std::string> scan_root_files(const std::string& directory, const std::string& extension);
 
 namespace std {
 namespace filesystem {

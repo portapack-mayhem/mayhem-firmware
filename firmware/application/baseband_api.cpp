@@ -99,8 +99,9 @@ void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phas
 	send_message(&message);
 }
 
-void set_audiotx_data(const uint32_t bw) {
+void set_audiotx_data(const uint32_t divider, const uint32_t bw) {
 	const AudioTXConfigMessage message {
+		divider,
 		bw
 	};
 	send_message(&message);

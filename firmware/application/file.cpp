@@ -138,7 +138,7 @@ static std::string find_last_file_matching_pattern(const std::string& pattern) {
 	return last_match;
 }
 
-static std::string remove_filename_extension(const std::string& filename) {
+std::string remove_filename_extension(const std::string& filename) {
 	const auto extension_index = filename.find_last_of('.');
 	return filename.substr(0, extension_index);
 }
@@ -178,14 +178,14 @@ std::string next_filename_stem_matching_pattern(const std::string& filename_stem
 	return filename_stem;
 }
 
-std::vector<std::string> scan_root_files(const std::string& extension) {
+std::vector<std::string> scan_root_files(const std::string& directory, const std::string& extension) {
 	std::vector<std::string> file_list { };
 	std::string fname;
 	FRESULT res;
 	DIR dir;
 	static FILINFO fno;
 
-	res = f_opendir(&dir, "/");
+	res = f_opendir(&dir, directory.c_str());
 	if (res == FR_OK) {
 		for (;;) {
 			res = f_readdir(&dir, &fno);

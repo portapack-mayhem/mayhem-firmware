@@ -52,14 +52,14 @@ private:
 	tx_modes tx_mode = NORMAL;
 	
 	struct sound {
-		std::string filename;
-		std::string shortname;
-		bool stereo;
-		bool sixteenbit;
-		uint32_t sample_rate;
-		uint32_t size;
-		uint32_t sample_duration;
-		uint32_t ms_duration;
+		std::string filename = "";
+		std::string shortname = "";
+		bool stereo = false;
+		bool sixteenbit = false;
+		uint32_t sample_rate = 0;
+		uint32_t size = 0;
+		uint32_t sample_duration = 0;
+		uint32_t ms_duration = 0;
 	};
 	
 	uint32_t cnt;

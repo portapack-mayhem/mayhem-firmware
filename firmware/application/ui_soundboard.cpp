@@ -25,6 +25,7 @@
 #include "ui_soundboard.hpp"
 
 #include "ch.h"
+#include "file.hpp"
 
 #include "ui_alphanum.hpp"
 #include "ff.h"
@@ -108,7 +109,9 @@ void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
 
 void SoundBoardView::play_sound(uint16_t id) {
 
-	auto error = file.open(sounds[id].filename);
+	if (sounds[id].size == 0) return;
+
+	auto error = file.open("/wav/" + sounds[id].filename);
 	if (error.is_valid()) return;
 	
 	sample_duration = sounds[id].sample_duration;
@@ -132,7 +135,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_audiotx_data(number_bw.value());
+	baseband::set_audiotx_data(1536000 / sounds[id].sample_rate, number_bw.value());
 }
 
 void SoundBoardView::show_infos(uint16_t id) {
@@ -174,7 +177,6 @@ void SoundBoardView::change_page(Button& button, const KeyEvent key) {
 			refresh_buttons(button.id);
 		}
 	}
-	
 	if (button.screen_pos().x > 120) {
 		if ((key == KeyEvent::Right) && (page < max_page - 1)) {
 			page++;
@@ -204,12 +206,12 @@ SoundBoardView::SoundBoardView(
 	
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 
-	file_list = scan_root_files(".WAV");
+	file_list = scan_root_files("/wav", ".WAV");
 
 	c = 0;
 	for (auto& file_name : file_list) {
 		
-		auto error = file.open(file_name);
+		auto error = file.open("/wav/" + file_name);
 		
 		file.seek(40);
 		file.read(file_buffer, 4);
@@ -240,7 +242,7 @@ SoundBoardView::SoundBoardView(
 		sounds[c].sample_duration = size;
 		
 		sounds[c].filename = file_name;
-		sounds[c].shortname = file_name.substr(0, file_name.find_last_of("."));
+		sounds[c].shortname = remove_filename_extension(file_name);
 		
 		c++;
 		if (c == 100) break;
@@ -271,8 +273,6 @@ SoundBoardView::SoundBoardView(
 	};
 	
 	const auto button_dir = [this](Button& button, const KeyEvent key) {
-		(void)button;
-		
 		this->change_page(button, key);
 	};
 

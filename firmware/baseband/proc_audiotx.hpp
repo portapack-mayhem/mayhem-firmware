@@ -42,7 +42,9 @@ private:
 	FIFO<int8_t> audio_fifo = { audio_fifo_data, 11 };	// 43ms @ 48000Hz
 	
 	uint32_t bw;
-	uint8_t as = 0, ai;
+	uint32_t divider;
+	uint8_t as = 0;
+	
 	int8_t re, im;
 	int8_t sample;
 	

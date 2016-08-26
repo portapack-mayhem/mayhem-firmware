@@ -34,12 +34,12 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	
 	if (!configured) return;
 
-	ai = 0;
+	//ai = 0;
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		// Audio preview sample generation: 1536000/48000 = 32
+		// Audio preview sample generation: 1536000/divider = samplerate
 		if (!as) {
-			as = 32;
+			as = divider;
 			audio_fifo.out(sample);
 			//preview_audio_buffer.p[ai++] = sample << 8;
 			
@@ -78,6 +78,7 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 			// m = (262144 * a) / 1536000
 			// a = 262144 / 1536000 (*1000 = 171)
 			bw = 171 * (message->bw);
+			divider = message->divider;
 			as = 0;
 
 			configured = true;

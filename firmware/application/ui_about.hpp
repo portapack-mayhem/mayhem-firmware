@@ -113,7 +113,7 @@ private:
 	
 	//								  0123456789A		 0123456789A
 	const credits_t credits[10] = { {"GURUS",			"J. BOONE", 		false},
-									{"GURYS",			"M. OSSMANN", 		true},
+									{"GURUS",			"M. OSSMANN", 		true},
 									{"BUGS",			"FURRTEK", 			true},
 									{"RDS WAVE",		"C. JACQUET", 		true},
 									{"POCSAG RX",		"T. SAILER",		false},
