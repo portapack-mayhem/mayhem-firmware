@@ -2,45 +2,46 @@
 
 HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
-It is build on top of Sharebrained's firmware, meaning that the original functionalities are kept (except when I don't sync for 2 months).
+It is build on top of [Sharebrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
-As its name implies, HAVOC is a firmware made to have serious fun, mainly involving French systems (for now). Don't use it, we never did.
+As its name implies, HAVOC's functionalities can be fun (or mean). So mean, you shouldn't use them. We never did.
 
-**In most countries, radio transmissions are tightly regulated. Transmitting without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You'll be the only one responsible for what you'll do with this software.**
+**In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
 Fork features:
-* POCSAG 1200 receiver/decoder
-* Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, ...)
-* PWM audio RSSI output
+* "Soundboard" wave file player from µSD
+* POCSAG 1200 alphanumeric receiver/decoder
+* Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN and Radiotext transmit
-* Fully configurable AFSK transmit
+* Fully configurable AFSK transmit (Bell202)
+* Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) litteral message forming and transmit
 * Xylos transmitter, street lighting control (NFM CCIR tones)
-* Virtual keyboard or Unistroke "handwriting" text input
 * "Play Dead" in case of emergency
+* PWM audio RSSI output
 * (Disabled for now) Close-Call™ style scanner
-* (Disabled for now) Dynamic baseband code loading from SD card (see [wiki](https://github.com/furrtek/portapack-havoc/wiki))
+* (Disabled for now) Fully configurable jammer
+* (Not used for now) Dynamic baseband code loading from SD card
 
 Todo (highest to lowest priority):
-* Fully configurable Jammer (fix)
-* Whistle (tone generator)
-* Play wave files from µSD
-* Wireless microphone transmit
 * CTCSS talkie transmit
 * Frequency manager
-* AFSK receiver
-* EPAR transmit (old Xylos)
-* POCSAG receiver
-* POCSAG transmitter
 * Detect/decode OOK
-* Make SIGFOX interceptor work with all modules
-* Number station
-* Spectrum painter
+* Whistle (tone generator)
+* POCSAG transmitter
+* AFSK receiver
 * Rolling-code jam and replay trick
+* Make SIGFOX interceptor work with all modules
+* Wireless microphone transmit (with squelch tones)
+* Number station
+* EPAR transmit (old Xylos)
+* Spectrum painter
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
 About the PWM RSSI output: Frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output (if enabled)...
+
+TODOs are in application/main.cpp
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
@@ -73,12 +74,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 # Contact
 
-## HAVOC
-
-Furrtek <furrtek@gmail.com>
-
-<http://www.furrtek.org>
-
 ## Original firmware and hardware
 
 Jared Boone <jared@sharebrained.com>
@@ -90,10 +85,8 @@ ShareBrained Technology, Inc.
 The latest version of this repository can be found at
 https://github.com/sharebrained/portapack-hackrf/
 
-## Donations
+## HAVOC specific things
 
-"I can't believe you like money too !"
+Furrtek <furrtek@gmail.com>
 
-Just in case, the button's there :)
-
-| [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D3DX2393MZQY8)
+<http://www.furrtek.org>
