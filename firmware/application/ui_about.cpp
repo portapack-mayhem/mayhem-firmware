@@ -59,9 +59,7 @@ void AboutView::on_show() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_audiotx_data(
-		0
-	);
+	baseband::set_audiotx_data(15);
 	
 	//audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }
@@ -132,7 +130,7 @@ void AboutView::render_video() {
 	
 		// Switch to next text
 		if (anim_state == 0) {
-			if (credits_index == 7)
+			if (credits_index == 9)
 				credits_index = 0;
 			else
 				credits_index++;
@@ -221,7 +219,7 @@ void AboutView::render_audio() {
 	// Render 1024 music samples
 	for (ym_render_cnt = 0; ym_render_cnt < 1024; ym_render_cnt++) {
 
-		// Taken at 48000/960 = 50Hz
+		// Update registers at 48000/960 = 50Hz
 		if (ym_sample_cnt == 0) {
 			// "Decompress" on the fly and update YM registers
 			for (i = 0; i < 14; i++) {
@@ -338,7 +336,7 @@ void AboutView::update() {
 	}
 	
 	// Slowly increase volume to avoid jumpscare
-	if (headphone_vol < (70<<2)) {
+	if (headphone_vol < (70 << 2)) {
 		audio::headphone::set_volume(volume_t::decibel((headphone_vol/4) - 99) + audio::headphone::volume_range().max);
 		headphone_vol++;
 	}

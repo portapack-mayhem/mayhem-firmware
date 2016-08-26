@@ -434,13 +434,13 @@ ProgressBar::ProgressBar(
 {
 }
 
-void ProgressBar::set_max(const uint16_t max) {
+void ProgressBar::set_max(const uint32_t max) {
 	_value = 0;
 	_max = max;
 	set_dirty();
 }
 
-void ProgressBar::set_value(const uint16_t value) {
+void ProgressBar::set_value(const uint32_t value) {
 	if (value > _max)
 		_value = _max;
 	else
@@ -687,6 +687,11 @@ void Button::paint(Painter& painter) {
 		paint_style,
 		text_
 	);
+}
+
+void Button::on_focus() {
+	if( on_highlight )
+		on_highlight(*this);
 }
 
 bool Button::on_key(const KeyEvent key) {

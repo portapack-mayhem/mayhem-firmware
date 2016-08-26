@@ -38,8 +38,8 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	for (size_t i = 0; i<buffer.count; i++) {
 		
 		// Audio preview sample generation: 1536000/48000 = 32
-		if (as >= 31) {
-			as = 0;
+		if (!as) {
+			as = 32;
 			audio_fifo.out(sample);
 			//preview_audio_buffer.p[ai++] = sample << 8;
 			
@@ -50,11 +50,11 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 				asked = true;
 			}
 		} else {
-			as++;
+			as--;
 		}
 		
 		// FM
-		frq = sample * 8000;
+		frq = sample * bw;
 		
 		phase = (phase + frq);
 		sphase = phase + (64 << 18);
@@ -69,9 +69,17 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 }
 
 void AudioTXProcessor::on_message(const Message* const msg) {
+	const auto message = static_cast<const AudioTXConfigMessage*>(msg);
+	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-			//const auto message = static_cast<const AudioTXConfigMessage*>(msg);
+
+			// 1<<18 = 262144
+			// m = (262144 * a) / 1536000
+			// a = 262144 / 1536000 (*1000 = 171)
+			bw = 171 * (message->bw);
+			as = 0;
+
 			configured = true;
 			break;
 		

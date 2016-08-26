@@ -23,19 +23,21 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: No audio in about when shown second time
+//BUG (fixed ?): No audio in about when shown second time
+//BUG: POCSAG RX sometimes misses the first codeword after SYNC
 
-//TODO: Make frequency set button in afsksetup accept GHz frequencies (longer label buffer)
+//TODO: POCSAG 512 and 2400 (all 3 at the same time, or parameter ?)
 //TODO: Check AFSK transmit end, skips last bits ?
+//TODO: Check jammer bandwidths
 //TODO: Use msgpack for settings, lists... on sd card
 //TODO: Frequency manager
 //TODO: Morse coder
+//TODO: Replay
 
 //Multimon-style stuff:
 //TODO: AFSK receiver
-//TODO: Xylos receiver
+//TODO: Xylos (CCIR) receiver
 
-//TODO: Check jammer bandwidths
 //TODO: Closecall wide range fix
 //TODO: SD card wiper
 //TODO: GSM channel detector

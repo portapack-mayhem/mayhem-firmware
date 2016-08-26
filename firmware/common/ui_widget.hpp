@@ -220,14 +220,14 @@ class ProgressBar : public Widget {
 public:
 	ProgressBar(Rect parent_rect);
 
-	void set_max(const uint16_t max);
-	void set_value(const uint16_t value);
+	void set_max(const uint32_t max);
+	void set_value(const uint32_t value);
 
 	void paint(Painter& painter) override;
 
 private:
-	uint16_t _value = 0;
-	uint16_t _max = 100;
+	uint32_t _value = 0;
+	uint32_t _max = 100;
 };
 
 class Console : public Widget {
@@ -282,6 +282,7 @@ class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
 	std::function<void(Button&,KeyEvent)> on_dir;
+	std::function<void(Button&)> on_highlight;
 
 	Button(Rect parent_rect, std::string text);
 
@@ -295,6 +296,7 @@ public:
 
 	void paint(Painter& painter) override;
 
+	void on_focus() override;
 	bool on_key(const KeyEvent key) override;
 	bool on_touch(const TouchEvent event) override;
 

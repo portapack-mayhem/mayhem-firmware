@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -175,6 +176,28 @@ std::string next_filename_stem_matching_pattern(const std::string& filename_stem
 		filename_stem = increment_filename_stem_ordinal(filename_stem);
 	}
 	return filename_stem;
+}
+
+std::vector<std::string> scan_root_files(const std::string& extension) {
+	std::vector<std::string> file_list { };
+	std::string fname;
+	FRESULT res;
+	DIR dir;
+	static FILINFO fno;
+
+	res = f_opendir(&dir, "/");
+	if (res == FR_OK) {
+		for (;;) {
+			res = f_readdir(&dir, &fno);
+			if (res != FR_OK || fno.fname[0] == 0) break;
+			fname.assign(fno.fname);
+			if (fname.find(extension) != std::string::npos)
+				file_list.push_back(fname);
+		}
+		f_closedir(&dir);
+	}
+	
+	return file_list;
 }
 
 namespace std {

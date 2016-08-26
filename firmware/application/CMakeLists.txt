@@ -165,7 +165,7 @@ set(CPPSRC
 	ui_handwrite.cpp
 	ui_afsksetup.cpp
 	# ui_closecall.cpp
-	# ui_soundboard.cpp
+	ui_soundboard.cpp
 	ui_rds.cpp
 	ui_lcr.cpp
 	ui_xylos.cpp

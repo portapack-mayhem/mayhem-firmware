@@ -106,7 +106,8 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 		
 		// FM
 		// 1<<18 = 262144
-		// m = (262144 * BW) / 2280000 (* 115, see ui_lcr afsk_bw setting)
+		// m = (262144 * a) / 2280000
+		// a = 262144 / 2280000 (*1000 = 115, see ui_lcr afsk_bw setting)
 		frq = tone_sample * afsk_bw;
 		
 		phase = (phase + frq);

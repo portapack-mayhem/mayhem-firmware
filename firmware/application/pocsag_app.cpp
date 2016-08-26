@@ -41,18 +41,18 @@ namespace format {
 
 static std::string bitrate_str(BitRate bitrate) {
 	switch (bitrate) {
-		case BitRate::FSK512:	return "F512 ";
-		case BitRate::FSK1200:	return "F1200";
-		case BitRate::FSK2400:	return "F2400";
-		default:				return "F????";
+		case BitRate::FSK512:	return "512 ";
+		case BitRate::FSK1200:	return "1200";
+		case BitRate::FSK2400:	return "2400";
+		default:				return "????";
 	}
 }
 
 static std::string flag_str(PacketFlag packetflag) {
 	switch (packetflag) {
-		case PacketFlag::NORMAL:	return "NORMAL   ";
+		case PacketFlag::NORMAL:	return "OK";
 		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
-		case PacketFlag::TOO_LONG:	return "TOO LONG ";
+		case PacketFlag::TOO_LONG:	return "TOO LONG";
 		default:					return "";
 	}
 }
@@ -208,12 +208,12 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	if (eom) {
 		std::string console_info;
 		
-		console_info = to_string_time(message->packet.timestamp());
+		console_info = to_string_time(message->packet.timestamp()) + " ";
 		
 		if (address || function) {
 			console_info += pocsag::format::bitrate_str( message->packet.bitrate()) + " ";
 			console_info += pocsag::format::flag_str(message->packet.flag()) + " ";
-			console_info += " ADDR:" + to_string_dec_uint(address, 7) + " F:" + to_string_dec_uint(function);
+			console_info += "ADDR:" + to_string_dec_uint(address) + " F:" + to_string_dec_uint(function);
 			
 			console.writeln(console_info);
 			

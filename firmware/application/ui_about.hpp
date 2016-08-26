@@ -56,12 +56,12 @@ private:
 		bool same;
 	} ymreg_t;
 	
-	uint16_t headphone_vol = 5<<2;
+	uint16_t headphone_vol = 5 << 2;
 	
 	ymreg_t ym_regs[14];
 	uint16_t ym_frames;
 	uint16_t ym_frame;
-	uint8_t drum;
+	uint8_t drum = 0;
 	uint16_t ym_osc_cnt[3];
 	uint32_t ym_rng = 1;
 	uint16_t ym_noise_cnt;
@@ -80,8 +80,8 @@ private:
 	ui::Color paletteB[16];
 	ui::Color * framebuffer;
 	uint32_t phase = 0;
-	uint8_t copperbars[5] = {0};
-	uint8_t copperbuffer[72] = {0};
+	uint8_t copperbars[5] = { 0 };
+	uint8_t copperbuffer[72] = { 0 };
 	
 	uint8_t anim_state = 0;
 	uint8_t credits_index = 0;
@@ -98,12 +98,12 @@ private:
 									15, 16, 17, 18, 19, 20, 21, 22,
 									23, 24, 25, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 	
-	const uint8_t copperluma[16] = {8,7,6,5,4,3,2,1,1,2,3,4,5,6,7,8};
-	const uint8_t coppercolor[5][3] = {	{255,0,0},
-										{0,255,0},
-										{0,0,255},
-										{255,0,255},
-										{255,255,0} };
+	const uint8_t copperluma[16] = { 8,7,6,5,4,3,2,1,1,2,3,4,5,6,7,8 };
+	const uint8_t coppercolor[5][3] = {	{ 255,0,0 },
+										{ 0,255,0 },
+										{ 0,0,255 },
+										{ 255,0,255 },
+										{ 255,255,0 } };
 	
 	typedef struct credits_t {
 		char role[12];
@@ -112,10 +112,12 @@ private:
 	} credits_t;
 	
 	//								  0123456789A		 0123456789A
-	const credits_t credits[8] = { 	{"GURUS",			"J. BOONE", 		false},
-									{"GURUS",			"M. OSSMANN", 		true},
+	const credits_t credits[10] = { {"GURUS",			"J. BOONE", 		false},
+									{"GURYS",			"M. OSSMANN", 		true},
 									{"BUGS",			"FURRTEK", 			true},
-									{"RDS TABLE",		"C. JACQUET", 		true},
+									{"RDS WAVE",		"C. JACQUET", 		true},
+									{"POCSAG RX",		"T. SAILER",		false},
+									{"POCSAG RX",		"E. OENAL",			true},
 									{"XYLOS DATA",		"CLX", 				true},
 									{"GREETS TO",		"SIGMOUNTE", 		false},
 									{"GREETS TO",		"WINDYOONA", 		true},

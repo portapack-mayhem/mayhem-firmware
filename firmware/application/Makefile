@@ -4062,6 +4062,30 @@ ui_setup.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_setup.cpp.s
 .PHONY : ui_setup.cpp.s
 
+ui_soundboard.obj: ui_soundboard.cpp.obj
+.PHONY : ui_soundboard.obj
+
+# target to build an object file
+ui_soundboard.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.obj
+.PHONY : ui_soundboard.cpp.obj
+
+ui_soundboard.i: ui_soundboard.cpp.i
+.PHONY : ui_soundboard.i
+
+# target to preprocess a source file
+ui_soundboard.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.i
+.PHONY : ui_soundboard.cpp.i
+
+ui_soundboard.s: ui_soundboard.cpp.s
+.PHONY : ui_soundboard.s
+
+# target to generate assembly for a file
+ui_soundboard.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_soundboard.cpp.s
+.PHONY : ui_soundboard.cpp.s
+
 ui_spectrum.obj: ui_spectrum.cpp.obj
 .PHONY : ui_spectrum.obj
 
@@ -4660,6 +4684,9 @@ help:
 	@echo "... ui_setup.obj"
 	@echo "... ui_setup.i"
 	@echo "... ui_setup.s"
+	@echo "... ui_soundboard.obj"
+	@echo "... ui_soundboard.i"
+	@echo "... ui_soundboard.s"
 	@echo "... ui_spectrum.obj"
 	@echo "... ui_spectrum.i"
 	@echo "... ui_spectrum.s"

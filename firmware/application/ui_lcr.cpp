@@ -266,7 +266,7 @@ void LCRView::start_tx(const bool scan) {
 		portapack::persistent_memory::afsk_mark_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
 		portapack::persistent_memory::afsk_space_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
 		afsk_repeats,
-		portapack::persistent_memory::afsk_bw() * 115,		// See proc_fsk_lcr.cpp
+		portapack::persistent_memory::afsk_bw() * 115,		// See proc_afsk.cpp
 		afsk_format
 	);
 }

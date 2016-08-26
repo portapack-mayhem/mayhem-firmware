@@ -94,7 +94,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							last_rx_data = rx_data;
 							rx_state = SYNC;
 						} else if (rx_data == POCSAG_IDLE) {
-							//rx_state = WAITING;
+							rx_state = WAITING;
 						}
 						
 					} else {
@@ -106,6 +106,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 					if (msg_timeout < 600) {
 						msg_timeout++;
 						rx_bit++;
+						
 						if (rx_bit >= 32) {
 							rx_bit = 0;
 							

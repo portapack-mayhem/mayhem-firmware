@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -32,8 +33,10 @@
 #include <array>
 #include <memory>
 #include <iterator>
+#include <vector>
 
 std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
+std::vector<std::string> scan_root_files(const std::string& extension);
 
 namespace std {
 namespace filesystem {
