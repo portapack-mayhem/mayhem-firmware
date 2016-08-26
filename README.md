@@ -2,14 +2,17 @@
 
 HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
+Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
+
 It is build on top of [Sharebrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
 As its name implies, HAVOC's functionalities can be fun (or mean). So mean, you shouldn't use them. We never did.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
-Fork features:
-* "Soundboard" wave file player from µSD
+# Fork features
+
+* "Soundboard" wave file player from µSD (put in /wav directory)
 * POCSAG 1200 alphanumeric receiver/decoder
 * Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN and Radiotext transmit
@@ -23,7 +26,14 @@ Fork features:
 * (Disabled for now) Fully configurable jammer
 * (Not used for now) Dynamic baseband code loading from SD card
 
-Todo (highest to lowest priority):
+# Screenshots
+
+![test](pictures/ook_enc.png) ![test](pictures/pocsag.png) ![test](pictures/afsk.png)
+![test](pictures/lcr.png) ![test](pictures/rds.png) ![test](pictures/xylos.png)
+![test](pictures/soundboard.png) ![test](pictures/about.png) ![test](pictures/config.png)
+
+## Todo
+
 * CTCSS talkie transmit
 * Frequency manager
 * Detect/decode OOK
@@ -40,10 +50,6 @@ Todo (highest to lowest priority):
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
 About the PWM RSSI output: Frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output (if enabled)...
-
-TODOs are in application/main.cpp
-
-Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
 # Thanks
 
