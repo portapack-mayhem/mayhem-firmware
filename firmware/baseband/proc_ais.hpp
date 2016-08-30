@@ -62,7 +62,7 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::rrc_taps_38k4_4t_p, 2 };
+	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		19200, 9600, { 0.0555f },
