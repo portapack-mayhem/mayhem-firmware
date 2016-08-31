@@ -92,9 +92,9 @@ struct Config {
 		lp(band == Band::Low),
 		amp_bypass(!amplify),
 		tx_amp((direction == Direction::Transmit) && amplify),
-		not_tx_amp(!((direction == Direction::Transmit) && amplify)),
+		not_tx_amp(!tx_amp),
 		rx_amp((direction == Direction::Receive) && amplify),
-		not_rx_amp(!((direction == Direction::Receive) && amplify))
+		not_rx_amp(!rx_amp)
 	{
 	}
 
