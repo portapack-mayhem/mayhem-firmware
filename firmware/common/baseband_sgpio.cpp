@@ -282,7 +282,7 @@ constexpr CLK_CAPTURE_MODE data_clk_capture_mode(
 ) {
 	return (direction == Direction::Transmit)
 		? CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
-		: CLK_CAPTURE_MODE::FALLING_CLOCK_EDGE
+		: CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
 		;
 }
 
