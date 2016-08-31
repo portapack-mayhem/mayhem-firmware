@@ -184,7 +184,7 @@ constexpr Slice slice_order[] {
 };
 
 constexpr uint32_t gpio_outreg(const Direction direction) {
-	return ((direction == Direction::Transmit) ? (1U << 11) : 0U) | (1U << 10);
+	return ((direction == Direction::Transmit) ? (1U << PIN_DIRECTION) : 0U) | (1U << PIN_DISABLE);
 }
 
 constexpr uint32_t gpio_oenreg(const Direction direction) {
