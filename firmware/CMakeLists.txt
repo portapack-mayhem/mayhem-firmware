@@ -59,7 +59,7 @@ add_custom_target(
 
 add_custom_target(
 	program
-	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_IMAGE} --reset
+	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_IMAGE}
 	COMMAND sleep 1s
 	COMMAND hackrf_spiflash -w ${FIRMWARE_FILENAME}
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_FILENAME}
