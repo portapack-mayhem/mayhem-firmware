@@ -37,13 +37,13 @@ template<class Packet, class Entry>
 class RecentEntries {
 public:
 	using EntryType = Entry;
-	using Key = typename Entry::Key;
-	using ContainerType = std::list<Entry>;
+	using Key = typename EntryType::Key;
+	using ContainerType = std::list<EntryType>;
 	using const_reference = typename ContainerType::const_reference;
 	using const_iterator = typename ContainerType::const_iterator;
 	using RangeType = std::pair<const_iterator, const_iterator>;
 	
-	const Entry& on_packet(const Key key, const Packet& packet) {
+	const EntryType& on_packet(const Key key, const Packet& packet) {
 		auto matching_recent = find(key);
 		if( matching_recent != std::end(entries) ) {
 			// Found within. Move to front of list, increment counter.
@@ -67,7 +67,7 @@ public:
 	const_iterator find(const Key key) const {
 		return std::find_if(
 			std::begin(entries), std::end(entries),
-			[key](const Entry& e) { return e.key() == key; }
+			[key](const EntryType& e) { return e.key() == key; }
 		);
 	}
 
