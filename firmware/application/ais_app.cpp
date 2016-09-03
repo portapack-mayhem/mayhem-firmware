@@ -190,11 +190,8 @@ void RecentEntriesView<AISRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
-	const Style& style,
-	const bool is_selected
+	const Style& style
 ) {
-	const auto& draw_style = is_selected ? style.invert() : style;
-
 	std::string line = ais::format::mmsi(entry.mmsi) + " ";
 	if( !entry.name.empty() ) {
 		line += entry.name;
@@ -203,7 +200,7 @@ void RecentEntriesView<AISRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, draw_style, line);
+	painter.draw_string(target_rect.pos, style, line);
 }
 
 AISRecentEntryDetailView::AISRecentEntryDetailView() {

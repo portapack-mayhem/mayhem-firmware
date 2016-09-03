@@ -170,7 +170,8 @@ public:
 		for(auto p = range.first; p != range.second; p++) {
 			const auto& entry = *p;
 			const auto is_selected_key = (selected_key == entry.key());
-			draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
+			const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
+			draw(entry, target_rect, painter, item_style);
 			target_rect.pos.y += target_rect.height();
 		}
 
@@ -257,8 +258,7 @@ private:
 		const Entry& entry,
 		const Rect& target_rect,
 		Painter& painter,
-		const Style& style,
-		const bool is_selected
+		const Style& style
 	);
 };
 

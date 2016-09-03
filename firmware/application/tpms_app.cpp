@@ -100,11 +100,8 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
-	const Style& style,
-	const bool is_selected
+	const Style& style
 ) {
-	const auto& draw_style = is_selected ? style.invert() : style;
-
 	std::string line = tpms::format::type(entry.type) + " " + tpms::format::id(entry.id);
 
 	if( entry.last_pressure.is_valid() ) {
@@ -132,7 +129,7 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, draw_style, line);
+	painter.draw_string(target_rect.pos, style, line);
 }
 
 TPMSAppView::TPMSAppView(NavigationView&) {
