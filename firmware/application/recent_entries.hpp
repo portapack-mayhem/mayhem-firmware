@@ -33,7 +33,7 @@
 #include <iterator>
 #include <algorithm>
 
-template<class Packet, class Entry>
+template<class Entry>
 class RecentEntries {
 public:
 	using EntryType = Entry;
@@ -43,7 +43,7 @@ public:
 	using const_iterator = typename ContainerType::const_iterator;
 	using RangeType = std::pair<const_iterator, const_iterator>;
 	
-	const EntryType& on_packet(const Key key, const Packet& packet) {
+	EntryType& on_packet(const Key key) {
 		auto matching_recent = find(key);
 		if( matching_recent != std::end(entries) ) {
 			// Found within. Move to front of list, increment counter.
@@ -54,10 +54,7 @@ public:
 			truncate_entries();
 		}
 
-		auto& entry = entries.front();
-		entry.update(packet);
-
-		return entry;
+		return entries.front();
 	}
 
 	const_reference front() const {

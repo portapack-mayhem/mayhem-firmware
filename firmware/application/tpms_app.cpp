@@ -199,7 +199,8 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
-		recent.on_packet({ reading.type(), reading.id() }, reading);
+		auto& entry = recent.on_packet({ reading.type(), reading.id() });
+		entry.update(reading);
 		recent_entries_view.set_dirty();
 	}
 }

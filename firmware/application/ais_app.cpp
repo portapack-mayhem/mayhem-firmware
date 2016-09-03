@@ -336,12 +336,13 @@ void AISAppView::on_packet(const ais::Packet& packet) {
 		logger->on_packet(packet);
 	}
 
-	const auto updated_entry = recent.on_packet(packet.source_id(), packet);
+	auto& entry = recent.on_packet(packet.source_id());
+	entry.update(packet);
 	recent_entries_view.set_dirty();
 
 	// TODO: Crude hack, should be a more formal listener arrangement...
-	if( updated_entry.key() == recent_entry_detail_view.entry().key() ) {
-		recent_entry_detail_view.set_entry(updated_entry);
+	if( entry.key() == recent_entry_detail_view.entry().key() ) {
+		recent_entry_detail_view.set_entry(entry);
 	}
 }
 

@@ -100,7 +100,7 @@ private:
 	LogFile log_file;
 };
 
-using ERTRecentEntries = RecentEntries<ert::Packet, ERTRecentEntry>;
+using ERTRecentEntries = RecentEntries<ERTRecentEntry>;
 
 namespace ui {
 

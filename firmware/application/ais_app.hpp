@@ -91,7 +91,7 @@ struct AISRecentEntry {
 	void update(const ais::Packet& packet);
 };
 
-using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
+using AISRecentEntries = RecentEntries<AISRecentEntry>;
 
 class AISLogger {
 public:

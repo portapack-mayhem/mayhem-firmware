@@ -72,7 +72,7 @@ struct TPMSRecentEntry {
 	void update(const tpms::Reading& reading);
 };
 
-using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
+using TPMSRecentEntries = RecentEntries<TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
