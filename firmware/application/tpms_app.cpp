@@ -95,34 +95,6 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 6> tpms_columns { {
-	{ "Tp", 2 },
-	{ "ID", 8 },
-	{ "kPa", 3 },
-	{ "C", 3 },
-	{ "Cnt", 3 },
-	{ "Fl", 2 },
-} };
-
-template<>
-void RecentEntriesView<TPMSRecentEntries>::draw_header(
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style
-) {
-	auto x = 0;
-	for(const auto& column : tpms_columns) {
-		const auto width = column.second;
-		auto text = column.first;
-		if( width > text.length() ) {
-			text.append(width - text.length(), ' ');
-		}
-
-		painter.draw_string({ x, target_rect.pos.y }, style, text);
-		x += (width * 8) + 8;
-	}
-}
-
 template<>
 void RecentEntriesView<TPMSRecentEntries>::draw(
 	const Entry& entry,
@@ -175,6 +147,16 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_vga,
 		&recent_entries_view,
 	} });
+
+	const std::array<RecentEntriesColumn, 6> columns { {
+		{ "Tp", 2 },
+		{ "ID", 8 },
+		{ "kPa", 3 },
+		{ "C", 3 },
+		{ "Cnt", 3 },
+		{ "Fl", 2 },
+	} };
+	recent_entries_view.set_columns(columns);
 
 	radio::enable({
 		tuning_frequency(),

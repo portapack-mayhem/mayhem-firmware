@@ -75,32 +75,6 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 4> ert_columns { {
-	{ "ID", 10 },
-	{ "Tp", 2 },
-	{ "Consumpt", 10 },
-	{ "Cnt", 3 },
-} };
-
-template<>
-void RecentEntriesView<ERTRecentEntries>::draw_header(
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style
-) {
-	auto x = 0;
-	for(const auto& column : ert_columns) {
-		const auto width = column.second;
-		auto text = column.first;
-		if( width > text.length() ) {
-			text.append(width - text.length(), ' ');
-		}
-
-		painter.draw_string({ x, target_rect.pos.y }, style, text);
-		x += (width * 8) + 8;
-	}
-}
-
 template<>
 void RecentEntriesView<ERTRecentEntries>::draw(
 	const Entry& entry,
@@ -133,6 +107,14 @@ ERTAppView::ERTAppView(NavigationView&) {
 		&rssi,
 		&recent_entries_view,
 	} });
+
+	const std::array<RecentEntriesColumn, 4> columns { {
+		{ "ID", 10 },
+		{ "Tp", 2 },
+		{ "Consumpt", 10 },
+		{ "Cnt", 3 },
+	} };
+	recent_entries_view.set_columns(columns);
 
 	radio::enable({
 		initial_target_frequency,

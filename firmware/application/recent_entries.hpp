@@ -118,6 +118,8 @@ private:
 
 namespace ui {
 
+using RecentEntriesColumn = std::pair<std::string, size_t>;
+
 template<class Entries>
 class RecentEntriesView : public View {
 public:
@@ -130,6 +132,16 @@ public:
 	) : recent { recent }
 	{
 		set_focusable(true);
+	}
+
+	template<size_t ColumnCount>
+	void set_columns(
+		const std::array<RecentEntriesColumn, ColumnCount>& columns
+	) {
+		_columns.clear();
+		for(const auto& column : columns) {
+			_columns.emplace_back(column);
+		}
 	}
 
 	void paint(Painter& painter) override {
@@ -192,6 +204,7 @@ public:
 
 private:
 	Entries& recent;
+	std::vector<std::pair<std::string, size_t>> _columns;
 	
 	using EntryKey = typename Entry::Key;
 	EntryKey selected_key = Entry::invalid_key;
@@ -226,7 +239,19 @@ private:
 		const Rect& target_rect,
 		Painter& painter,
 		const Style& style
-	);
+	) {
+		auto x = 0;
+		for(const auto& column : _columns) {
+			const auto width = column.second;
+			auto text = column.first;
+			if( width > text.length() ) {
+				text.append(width - text.length(), ' ');
+			}
+
+			painter.draw_string({ x, target_rect.pos.y }, style, text);
+			x += (width * 8) + 8;
+		}
+	}
 
 	void draw(
 		const Entry& entry,
