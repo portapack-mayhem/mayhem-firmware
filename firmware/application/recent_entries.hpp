@@ -34,7 +34,7 @@
 #include <algorithm>
 
 template<class Entry>
-class RecentEntries {
+class RecentEntries : public std::list<Entry> {
 public:
 	using EntryType = Entry;
 	using Key = typename EntryType::Key;
@@ -44,48 +44,31 @@ public:
 	
 	EntryType& on_packet(const Key key) {
 		auto matching_recent = find(key);
-		if( matching_recent != std::end(entries) ) {
+		if( matching_recent != std::end(*this) ) {
 			// Found within. Move to front of list, increment counter.
-			entries.push_front(*matching_recent);
-			entries.erase(matching_recent);
+			this->push_front(*matching_recent);
+			this->erase(matching_recent);
 		} else {
-			entries.emplace_front(key);
+			this->emplace_front(key);
 			truncate_entries();
 		}
 
-		return entries.front();
-	}
-
-	const_reference front() const {
-		return entries.front();
+		return this->front();
 	}
 
 	const_iterator find(const Key key) const {
 		return std::find_if(
-			std::begin(entries), std::end(entries),
+			std::begin(*this), std::end(*this),
 			[key](const EntryType& e) { return e.key() == key; }
 		);
 	}
 
-	const_iterator begin() const {
-		return entries.begin();
-	}
-
-	const_iterator end() const {
-		return entries.end();
-	}
-
-	bool empty() const {
-		return entries.empty();
-	}
-
 private:
-	ContainerType entries;
 	const size_t entries_max = 64;
 
 	void truncate_entries() {
-		while(entries.size() > entries_max) {
-			entries.pop_back();
+		while(this->size() > entries_max) {
+			this->pop_back();
 		}
 	}
 };
