@@ -41,37 +41,37 @@ public:
 	using ContainerType = std::list<EntryType>;
 	using const_reference = typename ContainerType::const_reference;
 	using const_iterator = typename ContainerType::const_iterator;
-	
-	EntryType& on_packet(const Key key) {
-		auto matching_recent = find(key);
-		if( matching_recent != std::end(*this) ) {
-			// Found within. Move to front of list, increment counter.
-			this->push_front(*matching_recent);
-			this->erase(matching_recent);
-		} else {
-			this->emplace_front(key);
-			truncate_entries();
-		}
-
-		return this->front();
-	}
-
-	const_iterator find(const Key key) const {
-		return std::find_if(
-			std::begin(*this), std::end(*this),
-			[key](const EntryType& e) { return e.key() == key; }
-		);
-	}
-
-private:
-	const size_t entries_max = 64;
-
-	void truncate_entries() {
-		while(this->size() > entries_max) {
-			this->pop_back();
-		}
-	}
 };
+
+template<typename ContainerType, typename Key>
+typename ContainerType::const_iterator find(const ContainerType& entries, const Key key) {
+	return std::find_if(
+		std::begin(entries), std::end(entries),
+		[key](typename ContainerType::const_reference e) { return e.key() == key; }
+	);
+}
+
+template<typename ContainerType>
+static void truncate_entries(ContainerType& entries, const size_t entries_max = 64) {
+	while(entries.size() > entries_max) {
+		entries.pop_back();
+	}
+}
+
+template<typename ContainerType, typename Key>
+typename ContainerType::reference on_packet(ContainerType& entries, const Key key) {
+	auto matching_recent = find(entries, key);
+	if( matching_recent != std::end(entries) ) {
+		// Found within. Move to front of list, increment counter.
+		entries.push_front(*matching_recent);
+		entries.erase(matching_recent);
+	} else {
+		entries.emplace_front(key);
+		truncate_entries(entries);
+	}
+
+	return entries.front();
+}
 
 template<typename ContainerType>
 static std::pair<typename ContainerType::const_iterator, typename ContainerType::const_iterator> range_around(
@@ -142,7 +142,7 @@ public:
 		draw_header(target_rect, painter, style_header);
 		target_rect.pos.y += target_rect.height();
 
-		auto selected = recent.find(selected_key);
+		auto selected = find(recent, selected_key);
 		if( selected == std::end(recent) ) {
 			selected = std::begin(recent);
 		}
@@ -171,7 +171,7 @@ public:
 	bool on_key(const ui::KeyEvent event) override {
 		if( event == ui::KeyEvent::Select ) {
 			if( on_select ) {
-				const auto selected = recent.find(selected_key);
+				const auto selected = find(recent, selected_key);
 				if( selected != std::end(recent) ) {
 					on_select(*selected);
 					return true;
@@ -193,7 +193,7 @@ private:
 	EntryKey selected_key = Entry::invalid_key;
 
 	void advance(const int32_t amount) {
-		auto selected = recent.find(selected_key);
+		auto selected = find(recent, selected_key);
 		if( selected == std::end(recent) ) {
 			if( recent.empty() ) {
 				selected_key = Entry::invalid_key;

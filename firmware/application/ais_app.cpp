@@ -336,7 +336,7 @@ void AISAppView::on_packet(const ais::Packet& packet) {
 		logger->on_packet(packet);
 	}
 
-	auto& entry = recent.on_packet(packet.source_id());
+	auto& entry = ::on_packet(recent, packet.source_id());
 	entry.update(packet);
 	recent_entries_view.set_dirty();
 

@@ -150,7 +150,7 @@ void ERTAppView::on_packet(const ert::Packet& packet) {
 	}
 
 	if( packet.crc_ok() ) {
-		auto& entry = recent.on_packet({ packet.id(), packet.commodity_type() });
+		auto& entry = ::on_packet(recent, ERTRecentEntry::Key { packet.id(), packet.commodity_type() });
 		entry.update(packet);
 		recent_entries_view.set_dirty();
 	}
