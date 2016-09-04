@@ -34,14 +34,7 @@
 #include <algorithm>
 
 template<class Entry>
-class RecentEntries : public std::list<Entry> {
-public:
-	using EntryType = Entry;
-	using Key = typename EntryType::Key;
-	using ContainerType = std::list<EntryType>;
-	using const_reference = typename ContainerType::const_reference;
-	using const_iterator = typename ContainerType::const_iterator;
-};
+using RecentEntries = std::list<Entry>;
 
 template<typename ContainerType, typename Key>
 typename ContainerType::const_iterator find(const ContainerType& entries, const Key key) {
@@ -105,7 +98,7 @@ using RecentEntriesColumn = std::pair<std::string, size_t>;
 template<class Entries>
 class RecentEntriesView : public View {
 public:
-	using Entry = typename Entries::EntryType;
+	using Entry = typename Entries::value_type;
 
 	std::function<void(const Entry& entry)> on_select;
 
