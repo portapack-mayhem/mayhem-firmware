@@ -41,7 +41,6 @@ public:
 	using ContainerType = std::list<EntryType>;
 	using const_reference = typename ContainerType::const_reference;
 	using const_iterator = typename ContainerType::const_iterator;
-	using RangeType = std::pair<const_iterator, const_iterator>;
 	
 	EntryType& on_packet(const Key key) {
 		auto matching_recent = find(key);
@@ -80,28 +79,6 @@ public:
 		return entries.empty();
 	}
 
-	RangeType range_around(
-		const_iterator item, const size_t count
-	) const {
-		auto start = item;
-		auto end = item;
-		size_t i = 0;
-
-		// Move start iterator toward first entry.
-		while( (start != std::begin(entries)) && (i < count / 2) ) {
-			std::advance(start, -1);
-			i++;
-		}
-
-		// Move end iterator toward last entry.
-		while( (end != std::end(entries)) && (i < count) ) {
-			std::advance(end, 1);
-			i++;
-		}
-
-		return { start, end };
-	}
-
 private:
 	ContainerType entries;
 	const size_t entries_max = 64;
@@ -112,6 +89,31 @@ private:
 		}
 	}
 };
+
+template<typename ContainerType>
+static std::pair<typename ContainerType::const_iterator, typename ContainerType::const_iterator> range_around(
+	const ContainerType& entries,
+	typename ContainerType::const_iterator item,
+	const size_t count
+) {
+	auto start = item;
+	auto end = item;
+	size_t i = 0;
+
+	// Move start iterator toward first entry.
+	while( (start != std::begin(entries)) && (i < count / 2) ) {
+		std::advance(start, -1);
+		i++;
+	}
+
+	// Move end iterator toward last entry.
+	while( (end != std::end(entries)) && (i < count) ) {
+		std::advance(end, 1);
+		i++;
+	}
+
+	return { start, end };
+}
 
 namespace ui {
 
@@ -162,7 +164,7 @@ public:
 			selected = std::begin(recent);
 		}
 
-		auto range = recent.range_around(selected, visible_item_count);
+		auto range = range_around(recent, selected, visible_item_count);
 
 		for(auto p = range.first; p != range.second; p++) {
 			const auto& entry = *p;
