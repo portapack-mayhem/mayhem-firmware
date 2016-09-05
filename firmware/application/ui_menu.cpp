@@ -69,8 +69,14 @@ MenuView::~MenuView() {
 	}
 }
 
-void MenuView::add_item(const MenuItem item) {
+void MenuView::add_item(MenuItem item) {
 	add_child(new MenuItemView { item });
+}
+
+void MenuView::add_items(std::initializer_list<MenuItem> items) {
+	for(auto item : items) {
+		add_item(item);
+	}
 }
 
 void MenuView::set_parent_rect(const Rect new_parent_rect) {

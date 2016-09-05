@@ -45,7 +45,7 @@ class MenuItemView : public Widget {
 public:
 	MenuItemView(
 		MenuItem item
-	) : item(item)
+	) : item { item }
 	{
 	}
 
@@ -69,13 +69,8 @@ public:
 
 	~MenuView();
 
-	void add_item(const MenuItem item);
-
-	void add_items(const std::initializer_list<MenuItem> items) {
-		for(const auto& item : items) {
-			add_item(item);
-		}
-	}
+	void add_item(MenuItem item);
+	void add_items(std::initializer_list<MenuItem> items);
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 
