@@ -34,9 +34,9 @@ namespace ui {
 /* BasebandStatsView *****************************************************/
 
 BasebandStatsView::BasebandStatsView() {
-	add_children({ {
+	add_children({
 		&text_stats,
-	} });
+	});
 }
 
 static std::string ticks_to_percent_string(const uint32_t ticks) {

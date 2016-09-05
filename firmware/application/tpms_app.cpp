@@ -135,7 +135,7 @@ void RecentEntriesTable<TPMSRecentEntries>::draw(
 TPMSAppView::TPMSAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_tpms);
 
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&options_band,
@@ -143,7 +143,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_lna,
 		&field_vga,
 		&recent_entries_view,
-	} });
+	});
 
 	radio::enable({
 		tuning_frequency(),

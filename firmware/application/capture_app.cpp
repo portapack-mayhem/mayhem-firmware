@@ -34,7 +34,7 @@ namespace ui {
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_capture);
 
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&field_frequency,
@@ -44,7 +44,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_vga,
 		&record_view,
 		&waterfall,
-	} });
+	});
 
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());

@@ -204,9 +204,9 @@ void RecentEntriesTable<AISRecentEntries>::draw(
 }
 
 AISRecentEntryDetailView::AISRecentEntryDetailView() {
-	add_children({ {
+	add_children({
 		&button_done,
-	} });
+	});
 
 	button_done.on_select = [this](const ui::Button&) {
 		if( this->on_close ) {
@@ -264,7 +264,7 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 AISAppView::AISAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ais);
 
-	add_children({ {
+	add_children({
 		&label_channel,
 		&options_channel,
 		&field_rf_amp,
@@ -274,7 +274,7 @@ AISAppView::AISAppView(NavigationView&) {
 		&channel,
 		&recent_entries_view,
 		&recent_entry_detail_view,
-	} });
+	});
 
 	recent_entry_detail_view.hidden(true);
 

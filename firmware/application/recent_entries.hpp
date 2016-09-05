@@ -264,10 +264,10 @@ public:
 	) : _header { columns },
 		_table { recent }
 	{
-		add_children({ {
+		add_children({
 			&_header,
 			&_table,
-		} });
+		});
 
 		_table.on_select = [this](const Entry& entry) { if( this->on_select ) { this->on_select(entry); } };
 	}

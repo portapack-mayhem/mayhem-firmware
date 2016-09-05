@@ -97,13 +97,13 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
 ERTAppView::ERTAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
-	add_children({ {
+	add_children({
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&rssi,
 		&recent_entries_view,
-	} });
+	});
 
 	radio::enable({
 		initial_target_frequency,

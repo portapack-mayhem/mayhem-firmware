@@ -230,7 +230,7 @@ Thread* SDCardTestThread::thread { nullptr };
 namespace ui {
 
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_title,
 		&text_csd_title,
 		&text_csd_value_3,
@@ -257,7 +257,7 @@ SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 		&text_test_read_rate_value,
 		&button_test,
 		&button_ok,
-	} });
+	});
 
 	button_test.on_select = [this](Button&){ this->on_test(); };
 	button_ok.on_select = [&nav](Button&){ nav.pop(); };

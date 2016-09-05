@@ -33,7 +33,7 @@ TouchCalibrationView::TouchCalibrationView(
 ) : nav { nav },
 	calibration { touch::default_calibration() }
 {
-	add_children({ {
+	add_children({
 		&image_calibrate_0,
 		&image_calibrate_1,
 		&image_calibrate_2,
@@ -46,7 +46,7 @@ TouchCalibrationView::TouchCalibrationView(
 		&label_failure,
 		&button_cancel,
 		&button_ok,
-	} });
+	});
 
 	button_cancel.on_select = [this](Button&){ this->on_cancel(); };
 	button_ok.on_select = [this](Button&){ this->on_ok(); };

@@ -241,12 +241,12 @@ FrequencyOptionsView::FrequencyOptionsView(
 		this->on_reference_ppm_correction_changed(v);
 	};
 
-	add_children({ {
+	add_children({
 		&text_step,
 		&field_step,
 		&field_ppm,
 		&text_ppm,
-	} });
+	});
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
@@ -297,10 +297,10 @@ RadioGainOptionsView::RadioGainOptionsView(
 {
 	set_style(style);
 
-	add_children({ {
+	add_children({
 		&label_rf_amp,
 		&field_rf_amp,
-	} });
+	});
 }
 
 /* LNAGainField **********************************************************/

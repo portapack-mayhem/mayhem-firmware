@@ -154,7 +154,7 @@ public:
 	void paint(Painter& painter) override;
 
 	void add_child(Widget* const widget);
-	void add_children(const std::vector<Widget*>& children);
+	void add_children(const std::initializer_list<Widget*> children);
 	void remove_child(Widget* const widget);
 	const std::vector<Widget*>& children() const override;
 

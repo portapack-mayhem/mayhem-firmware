@@ -43,13 +43,13 @@ namespace ui {
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView() {
-	add_children({ {
+	add_children({
 		&button_back,
 		&title,
 		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
-	} });
+	});
 
 	button_back.on_select = [this](Button&){
 		if( this->on_back ) {
@@ -259,7 +259,7 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 		nav.pop();
 	};
 
-	add_children({ {
+	add_children({
 		&text_title,
 		&text_description_1,
 		&text_description_2,
@@ -267,7 +267,7 @@ HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
 		&text_description_4,
 		&button_yes,
 		&button_no,
-	} });
+	});
 }
 
 void HackRFFirmwareView::focus() {
@@ -281,10 +281,10 @@ NotImplementedView::NotImplementedView(NavigationView& nav) {
 		nav.pop();
 	};
 
-	add_children({ {
+	add_children({
 		&text_title,
 		&button_done,
-	} });
+	});
 }
 
 void NotImplementedView::focus() {
@@ -303,10 +303,10 @@ ModalMessageView::ModalMessageView(
 		nav.pop();
 	};
 
-	add_children({ {
+	add_children({
 		&text_message,
 		&button_done,
-	} });
+	});
 
 	text_message.set(message);
 	

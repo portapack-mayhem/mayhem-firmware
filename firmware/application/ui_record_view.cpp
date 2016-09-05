@@ -177,13 +177,13 @@ RecordView::RecordView(
 	write_size { write_size },
 	buffer_count { buffer_count }
 {
-	add_children({ {
+	add_children({
 		&rect_background,
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
 		&text_time_available,
-	} });
+	});
 
 	rect_background.set_parent_rect({ { 0, 0 }, size() });
 

@@ -232,9 +232,11 @@ void View::add_child(Widget* const widget) {
 	}
 }
 
-void View::add_children(const std::vector<Widget*>& children) {
+void View::add_children(const std::initializer_list<Widget*> children) {
+	children_.insert(std::end(children_), children);
 	for(auto child : children) {
-		add_child(child);
+		child->set_parent(this);
+		child->set_dirty();
 	}
 }
 

@@ -44,10 +44,10 @@ AMOptionsView::AMOptionsView(
 {
 	set_style(style);
 
-	add_children({ {
+	add_children({
 		&label_config,
 		&options_config,
-	} });
+	});
 
 	options_config.set_selected_index(receiver_model.am_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
@@ -63,10 +63,10 @@ NBFMOptionsView::NBFMOptionsView(
 {
 	set_style(style);
 
-	add_children({ {
+	add_children({
 		&label_config,
 		&options_config,
-	} });
+	});
 
 	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
@@ -79,7 +79,7 @@ NBFMOptionsView::NBFMOptionsView(
 AnalogAudioView::AnalogAudioView(
 	NavigationView& nav
 ) {
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&audio,
@@ -90,7 +90,7 @@ AnalogAudioView::AnalogAudioView(
 		&field_volume,
 		&record_view,
 		&waterfall,
-	} });
+	});
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());

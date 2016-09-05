@@ -35,7 +35,7 @@ namespace ui {
 /* DebugMemoryView *******************************************************/
 
 DebugMemoryView::DebugMemoryView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_title,
 		&text_label_m0_core_free,
 		&text_label_m0_core_free_value,
@@ -44,7 +44,7 @@ DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 		&text_label_m0_heap_fragments,
 		&text_label_m0_heap_fragments_value,
 		&button_done
-	} });
+	});
 
 	const auto m0_core_free = chCoreStatus();
 	text_label_m0_core_free_value.set(to_string_dec_uint(m0_core_free, 5));
@@ -135,11 +135,11 @@ Coord TemperatureWidget::screen_y(
 /* TemperatureView *******************************************************/
 
 TemperatureView::TemperatureView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_title,
 		&temperature_widget,
 		&button_done,
-	} });
+	});
 
 	button_done.on_select = [&nav](Button&){ nav.pop(); };
 }
@@ -219,12 +219,12 @@ RegistersView::RegistersView(
 	std::function<uint32_t(const size_t register_number)>&& reader
 ) : registers_widget { std::move(config), std::move(reader) }
 {
-	add_children({ {
+	add_children({
 		&text_title,
 		&registers_widget,
 		&button_update,
 		&button_done,
-	} });
+	});
 
 	button_update.on_select = [this](Button&){
 		this->registers_widget.update();
