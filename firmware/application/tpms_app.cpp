@@ -145,16 +145,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&recent_entries_view,
 	} });
 
-	const std::array<RecentEntriesColumn, 6> columns { {
-		{ "Tp", 2 },
-		{ "ID", 8 },
-		{ "kPa", 3 },
-		{ "C", 3 },
-		{ "Cnt", 3 },
-		{ "Fl", 2 },
-	} };
-	recent_entries_view.set_columns(columns);
-
 	radio::enable({
 		tuning_frequency(),
 		sampling_rate,

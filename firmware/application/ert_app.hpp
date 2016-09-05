@@ -129,7 +129,13 @@ private:
 	ERTRecentEntries recent;
 	std::unique_ptr<ERTLogger> logger;
 
-	ERTRecentEntriesView recent_entries_view { recent };
+	const RecentEntriesColumns columns { {
+		{ "ID", 10 },
+		{ "Tp", 2 },
+		{ "Consumpt", 10 },
+		{ "Cnt", 3 },
+	} };
+	ERTRecentEntriesView recent_entries_view { columns, recent };
 
 	static constexpr auto header_height = 1 * 16;
 

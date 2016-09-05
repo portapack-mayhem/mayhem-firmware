@@ -105,14 +105,6 @@ ERTAppView::ERTAppView(NavigationView&) {
 		&recent_entries_view,
 	} });
 
-	const std::array<RecentEntriesColumn, 4> columns { {
-		{ "ID", 10 },
-		{ "Tp", 2 },
-		{ "Consumpt", 10 },
-		{ "Cnt", 3 },
-	} };
-	recent_entries_view.set_columns(columns);
-
 	radio::enable({
 		initial_target_frequency,
 		sampling_rate,

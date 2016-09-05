@@ -95,17 +95,29 @@ namespace ui {
 
 using RecentEntriesColumn = std::pair<std::string, size_t>;
 
+class RecentEntriesColumns {
+public:
+	using ContainerType = std::vector<RecentEntriesColumn>;
+
+	RecentEntriesColumns(
+		const std::initializer_list<RecentEntriesColumn> columns
+	) : _columns { columns }
+	{
+	}
+
+	ContainerType::const_iterator begin() const { return std::begin(_columns); }
+	ContainerType::const_iterator end() const { return std::end(_columns); }
+
+private:
+	const ContainerType _columns;
+};
+
 class RecentEntriesHeader : public Widget {
 public:
-
-	template<size_t ColumnCount>
-	void set_columns(
-		const std::array<RecentEntriesColumn, ColumnCount>& columns
-	) {
-		_columns.clear();
-		for(const auto& column : columns) {
-			_columns.emplace_back(column);
-		}
+	RecentEntriesHeader(
+		const RecentEntriesColumns& columns
+	) : _columns { columns }
+	{
 	}
 
 	void paint(Painter& painter) override {
@@ -132,7 +144,7 @@ public:
 	}
 
 private:
-	std::vector<RecentEntriesColumn> _columns;
+	const RecentEntriesColumns& _columns;
 };
 
 template<class Entries>
@@ -247,8 +259,10 @@ public:
 	std::function<void(const Entry& entry)> on_select;
 
 	RecentEntriesView(
+		const RecentEntriesColumns& columns,
 		Entries& recent
-	) : _table { recent }
+	) : _header { columns },
+		_table { recent }
 	{
 		add_children({ {
 			&_header,
@@ -256,13 +270,6 @@ public:
 		} });
 
 		_table.on_select = [this](const Entry& entry) { if( this->on_select ) { this->on_select(entry); } };
-	}
-
-	template<size_t ColumnCount>
-	void set_columns(
-		const std::array<RecentEntriesColumn, ColumnCount>& columns
-	) {
-		_header.set_columns(columns);
 	}
 
 	void set_parent_rect(const Rect new_parent_rect) override {

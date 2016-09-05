@@ -161,7 +161,11 @@ private:
 	AISRecentEntries recent;
 	std::unique_ptr<AISLogger> logger;
 
-	AISRecentEntriesView recent_entries_view { recent };
+	const RecentEntriesColumns columns { {
+		{ "MMSI", 9 },
+		{ "Name/Call", 20 },
+	} };
+	AISRecentEntriesView recent_entries_view { columns, recent };
 	AISRecentEntryDetailView recent_entry_detail_view;
 
 	static constexpr auto header_height = 1 * 16;

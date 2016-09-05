@@ -276,12 +276,6 @@ AISAppView::AISAppView(NavigationView&) {
 		&recent_entry_detail_view,
 	} });
 
-	const std::array<RecentEntriesColumn, 2> columns { {
-		{ "MMSI", 9 },
-		{ "Name/Call", 20 },
-	} };
-	recent_entries_view.set_columns(columns);
-
 	recent_entry_detail_view.hidden(true);
 
 	target_frequency_ = initial_target_frequency;
