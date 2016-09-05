@@ -95,19 +95,8 @@ namespace ui {
 
 using RecentEntriesColumn = std::pair<std::string, size_t>;
 
-template<class Entries>
-class RecentEntriesView : public View {
+class RecentEntriesHeader : public Widget {
 public:
-	using Entry = typename Entries::value_type;
-
-	std::function<void(const Entry& entry)> on_select;
-
-	RecentEntriesView(
-		Entries& recent
-	) : recent { recent }
-	{
-		set_focusable(true);
-	}
 
 	template<size_t ColumnCount>
 	void set_columns(
@@ -121,19 +110,51 @@ public:
 
 	void paint(Painter& painter) override {
 		const auto r = screen_rect();
+		const auto& parent_style = style();
+
+		const Style style {
+			.font = parent_style.font,
+			.background = Color::blue(),
+			.foreground = parent_style.foreground,
+		};
+
+		auto p = r.pos;
+		for(const auto& column : _columns) {
+			const auto width = column.second;
+			auto text = column.first;
+			if( width > text.length() ) {
+				text.append(width - text.length(), ' ');
+			}
+
+			painter.draw_string(p, style, text);
+			p += { static_cast<Coord>((width * 8) + 8), 0 };
+		}
+	}
+
+private:
+	std::vector<RecentEntriesColumn> _columns;
+};
+
+template<class Entries>
+class RecentEntriesTable : public Widget {
+public:
+	using Entry = typename Entries::value_type;
+
+	std::function<void(const Entry& entry)> on_select;
+
+	RecentEntriesTable(
+		Entries& recent
+	) : recent { recent }
+	{
+		set_focusable(true);
+	}
+
+	void paint(Painter& painter) override {
+		const auto r = screen_rect();
 		const auto& s = style();
 
 		Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
 		const size_t visible_item_count = r.height() / s.font.line_height();
-
-		const Style style_header {
-			.font = font::fixed_8x16,
-			.background = Color::blue(),
-			.foreground = Color::white(),
-		};
-
-		draw_header(target_rect, painter, style_header);
-		target_rect.pos.y += target_rect.height();
 
 		auto selected = find(recent, selected_key);
 		if( selected == std::end(recent) ) {
@@ -180,7 +201,6 @@ public:
 
 private:
 	Entries& recent;
-	std::vector<std::pair<std::string, size_t>> _columns;
 	
 	using EntryKey = typename Entry::Key;
 	EntryKey selected_key = Entry::invalid_key;
@@ -211,30 +231,64 @@ private:
 		set_dirty();
 	}
 
-	void draw_header(
-		const Rect& target_rect,
-		Painter& painter,
-		const Style& style
-	) {
-		auto x = 0;
-		for(const auto& column : _columns) {
-			const auto width = column.second;
-			auto text = column.first;
-			if( width > text.length() ) {
-				text.append(width - text.length(), ' ');
-			}
-
-			painter.draw_string({ x, target_rect.pos.y }, style, text);
-			x += (width * 8) + 8;
-		}
-	}
-
 	void draw(
 		const Entry& entry,
 		const Rect& target_rect,
 		Painter& painter,
 		const Style& style
 	);
+};
+
+template<class Entries>
+class RecentEntriesView : public View {
+public:
+	using Entry = typename Entries::value_type;
+
+	std::function<void(const Entry& entry)> on_select;
+
+	RecentEntriesView(
+		Entries& recent
+	) : _table { recent }
+	{
+		add_children({ {
+			&_header,
+			&_table,
+		} });
+
+		_table.on_select = [this](const Entry& entry) { if( this->on_select ) { this->on_select(entry); } };
+	}
+
+	template<size_t ColumnCount>
+	void set_columns(
+		const std::array<RecentEntriesColumn, ColumnCount>& columns
+	) {
+		_header.set_columns(columns);
+	}
+
+	void set_parent_rect(const Rect new_parent_rect) override {
+		constexpr Dim scale_height = 16;
+
+		View::set_parent_rect(new_parent_rect);
+		_header.set_parent_rect({ 0, 0, new_parent_rect.width(), scale_height });
+		_table.set_parent_rect({
+			0, scale_height,
+			new_parent_rect.width(),
+			new_parent_rect.height() - scale_height
+		});
+	}
+
+	void paint(Painter&) override {
+		// Children completely cover this View, do not paint.
+		// TODO: What happens here shouldn't matter if I do proper damage detection!
+	}
+
+	void on_focus() override {
+		_table.focus();
+	}
+
+private:
+	RecentEntriesHeader _header;
+	RecentEntriesTable<Entries> _table;
 };
 
 } /* namespace ui */

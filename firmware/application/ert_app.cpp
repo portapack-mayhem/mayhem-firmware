@@ -76,7 +76,7 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 namespace ui {
 
 template<>
-void RecentEntriesView<ERTRecentEntries>::draw(
+void RecentEntriesTable<ERTRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,

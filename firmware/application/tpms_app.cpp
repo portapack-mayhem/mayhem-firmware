@@ -96,7 +96,7 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 namespace ui {
 
 template<>
-void RecentEntriesView<TPMSRecentEntries>::draw(
+void RecentEntriesTable<TPMSRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,

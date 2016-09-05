@@ -186,7 +186,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 namespace ui {
 
 template<>
-void RecentEntriesView<AISRecentEntries>::draw(
+void RecentEntriesTable<AISRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
