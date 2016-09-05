@@ -70,12 +70,19 @@ Widget* Widget::parent() const {
 }
 
 void Widget::set_parent(Widget* const widget) {
+	if( widget == parent_ ) {
+		return;
+	}
+
 	if( parent_ && !widget ) {
 		// We have a parent, but are losing it. Update visible status.
+		dirty_overlapping_children_in_rect(screen_rect());
 		visible(false);
 	}
 
 	parent_ = widget;
+
+	set_dirty();
 }
 
 void Widget::set_dirty() {
@@ -227,7 +234,6 @@ void View::add_child(Widget* const widget) {
 		if( widget->parent() == nullptr ) {
 			widget->set_parent(this);
 			children_.push_back(widget);
-			widget->set_dirty();
 		}
 	}
 }
@@ -236,14 +242,12 @@ void View::add_children(const std::initializer_list<Widget*> children) {
 	children_.insert(std::end(children_), children);
 	for(auto child : children) {
 		child->set_parent(this);
-		child->set_dirty();
 	}
 }
 
 void View::remove_child(Widget* const widget) {
 	if( widget ) {
 		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-		dirty_overlapping_children_in_rect(widget->screen_rect());
 		widget->set_parent(nullptr);
 	}
 }
