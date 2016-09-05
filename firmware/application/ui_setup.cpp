@@ -194,12 +194,12 @@ void AboutView::focus() {
 }
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<4>({ {
+	add_items({
 		{ "Date/Time", [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Frequency Correction", [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage", [&nav](){ nav.push<AntennaBiasSetupView>(); } },
 		{ "Touch",     [&nav](){ nav.push<TouchCalibrationView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 

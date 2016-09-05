@@ -170,28 +170,28 @@ void NavigationView::focus() {
 /* TransceiversMenuView **************************************************/
 
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
-	add_items<3>({ {
+	add_items({
 		{ "AIS:  Boats",          [&nav](){ nav.push<AISAppView>(); } },
 		{ "ERT:  Utility Meters", [&nav](){ nav.push<ERTAppView>(); } },
 		{ "TPMS: Cars",           [&nav](){ nav.push<TPMSAppView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* ReceiverMenuView ******************************************************/
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
-	add_items<2>({ {
+	add_items({
 		{ "Audio",        [&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Transponders", [&nav](){ nav.push<TranspondersMenuView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items({
 		{ "Receiver", [&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",  [&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Analyze",  [&nav](){ nav.push<NotImplementedView>(); } },
@@ -199,7 +199,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "About",    [&nav](){ nav.push<AboutView>(); } },
 		{ "Debug",    [&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF",   [&nav](){ nav.push<HackRFFirmwareView>(); } },
-	} });
+	});
 }
 
 /* SystemView ************************************************************/

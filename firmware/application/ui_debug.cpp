@@ -247,7 +247,7 @@ void RegistersView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
-	add_items<4>({ {
+	add_items({
 		{ "RFFC5072",    [&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
@@ -264,20 +264,20 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 			"WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 1, 3, 4 },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
-	add_items<5>({ {
+	add_items({
 		{ "Memory",      [&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State", [&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SD Card",     [&nav](){ nav.push<SDCardDebugView>(); } },
 		{ "Peripherals", [&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
 		{ "Temperature", [&nav](){ nav.push<TemperatureView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 

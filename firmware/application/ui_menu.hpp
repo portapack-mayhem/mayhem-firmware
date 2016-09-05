@@ -71,8 +71,7 @@ public:
 
 	void add_item(const MenuItem item);
 
-	template<size_t N>
-	void add_items(const std::array<MenuItem, N>& items) {
+	void add_items(const std::initializer_list<MenuItem> items) {
 		for(const auto& item : items) {
 			add_item(item);
 		}
