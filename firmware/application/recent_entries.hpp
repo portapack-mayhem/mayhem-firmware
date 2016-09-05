@@ -101,9 +101,7 @@ public:
 
 	RecentEntriesColumns(
 		const std::initializer_list<RecentEntriesColumn> columns
-	) : _columns { columns }
-	{
-	}
+	);
 
 	ContainerType::const_iterator begin() const { return std::begin(_columns); }
 	ContainerType::const_iterator end() const { return std::end(_columns); }
@@ -116,32 +114,9 @@ class RecentEntriesHeader : public Widget {
 public:
 	RecentEntriesHeader(
 		const RecentEntriesColumns& columns
-	) : _columns { columns }
-	{
-	}
+	);
 
-	void paint(Painter& painter) override {
-		const auto r = screen_rect();
-		const auto& parent_style = style();
-
-		const Style style {
-			.font = parent_style.font,
-			.background = Color::blue(),
-			.foreground = parent_style.foreground,
-		};
-
-		auto p = r.pos;
-		for(const auto& column : _columns) {
-			const auto width = column.second;
-			auto text = column.first;
-			if( width > text.length() ) {
-				text.append(width - text.length(), ' ');
-			}
-
-			painter.draw_string(p, style, text);
-			p += { static_cast<Coord>((width * 8) + 8), 0 };
-		}
-	}
+	void paint(Painter& painter) override;
 
 private:
 	const RecentEntriesColumns& _columns;
