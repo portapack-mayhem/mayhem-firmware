@@ -139,18 +139,12 @@ static std::filesystem::path find_last_file_matching_pattern(const std::filesyst
 	return last_match;
 }
 
-static std::filesystem::path remove_filename_extension(const std::filesystem::path& filename) {
-	const auto extension_index = filename.find_last_of('.');
-	return filename.substr(0, extension_index);
-}
-
-static std::filesystem::path increment_filename_stem_ordinal(const std::filesystem::path& filename_stem) {
-	std::filesystem::path result { filename_stem };
-
-	auto it = result.rbegin();
+static std::filesystem::path increment_filename_stem_ordinal(std::filesystem::path path) {
+	auto t = path.replace_extension().native();
+	auto it = t.rbegin();
 
 	// Increment decimal number before the extension.
-	for(; it != result.rend(); ++it) {
+	for(; it != t.rend(); ++it) {
 		const auto c = *it;
 		if( c < '0' ) {
 			return { };
@@ -164,19 +158,18 @@ static std::filesystem::path increment_filename_stem_ordinal(const std::filesyst
 		}
 	}
 
-	return result;
+	return t;
 }
 
-std::filesystem::path next_filename_stem_matching_pattern(const std::filesystem::path& filename_stem_pattern) {
-	const auto filename = find_last_file_matching_pattern(filename_stem_pattern + u".*");
-	auto filename_stem = remove_filename_extension(filename);
-	if( filename_stem.empty() ) {
-		filename_stem = filename_stem_pattern;
-		std::replace(std::begin(filename_stem), std::end(filename_stem), '?', '0');
+std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_pattern) {
+	const auto next_filename = find_last_file_matching_pattern(filename_pattern.replace_extension(u".*"));
+	if( next_filename.empty() ) {
+		auto pattern_s = filename_pattern.replace_extension().native();
+		std::replace(std::begin(pattern_s), std::end(pattern_s), '?', '0');
+		return pattern_s;
 	} else {
-		filename_stem = increment_filename_stem_ordinal(filename_stem);
+		return increment_filename_stem_ordinal(next_filename);
 	}
-	return filename_stem;
 }
 
 namespace std {
@@ -212,9 +205,54 @@ std::string filesystem_error::what() const {
 	}
 }
 
-std::string path_to_string(const path& p) {
+path path::extension() const {
+	const auto t = filename().native();
+	const auto index = t.find_last_of(u'.');
+	if( index == t.npos ) {
+		return { };
+	} else {
+		return t.substr(index);
+	}
+}
+
+path path::filename() const {
+	const auto index = _s.find_last_of(preferred_separator);
+	if( index == _s.npos ) {
+		return _s;
+	} else {
+		return _s.substr(index + 1);
+	}
+}
+
+path path::stem() const {
+	const auto t = filename().native();
+	const auto index = t.find_last_of(u'.');
+	if( index == t.npos ) {
+		return t;
+	} else {
+		return t.substr(0, index);
+	}
+}
+
+std::string path::string() const {
 	std::wstring_convert<std::codecvt_utf8_utf16<path::value_type>, path::value_type> conv;
-	return conv.to_bytes(p);
+	return conv.to_bytes(native());
+}
+
+path& path::replace_extension(const path& replacement) {
+	const auto t = extension().native();
+	_s.erase(_s.size() - t.size());
+	if( !replacement._s.empty() ) {
+		if( replacement._s.front() != u'.' ) {
+			_s += u'.';
+		}
+		_s += replacement._s;
+	}
+	return *this;
+}
+
+bool operator>(const path& lhs, const path& rhs) {
+	return lhs.native() > rhs.native();
 }
 
 directory_iterator::directory_iterator(

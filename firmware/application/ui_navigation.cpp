@@ -81,13 +81,13 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_camera() {
-	const auto filename_stem = next_filename_stem_matching_pattern(u"SCR_????");
-	if( filename_stem.empty() ) {
+	auto path = next_filename_stem_matching_pattern(u"SCR_????");
+	if( path.empty() ) {
 		return;
 	}
 
 	PNGWriter png;
-	auto create_error = png.create(filename_stem + u".PNG");
+	auto create_error = png.create(path.replace_extension(u".PNG"));
 	if( create_error.is_valid() ) {
 		return;
 	}

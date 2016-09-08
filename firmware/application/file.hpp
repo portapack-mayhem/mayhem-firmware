@@ -64,13 +64,106 @@ private:
 	uint32_t err;
 };
 
-using path = std::u16string;
+struct path {
+	using string_type = std::u16string;
+	using value_type = string_type::value_type;
+
+	static constexpr value_type preferred_separator = u'/';
+
+	path(
+	) : _s { }
+	{
+	}
+
+	path(
+		const path& p
+	) : _s { p._s }
+	{
+	}
+
+	path(
+		path&& p
+	) : _s { std::move(p._s) }
+	{
+	}
+
+	template<class Source>
+	path(
+		const Source& source
+	) : path { std::begin(source), std::end(source) }
+	{
+	}
+
+	template<class InputIt>
+	path(
+		InputIt first,
+		InputIt last
+	) : _s { first, last }
+	{
+	}
+
+	path(
+		const char16_t* const s
+	) : _s { s }
+	{
+	}
+
+	path(
+		const TCHAR* const s
+	) : _s { reinterpret_cast<const std::filesystem::path::value_type*>(s) }
+	{
+	}
+
+	path& operator=(const path& p) {
+		_s = p._s;
+		return *this;
+	}
+
+	path& operator=(path&& p) {
+		_s = std::move(p._s);
+		return *this;
+	}
+
+	path extension() const;
+	path filename() const;
+	path stem() const;
+
+	bool empty() const {
+		return _s.empty();
+	}
+
+	const value_type* c_str() const {
+		return native().c_str();
+	}
+
+	const string_type& native() const {
+		return _s;
+	}
+
+	std::string string() const;
+
+	path& operator+=(const path& p) {
+		_s += p._s;
+		return *this;
+	}
+
+	path& operator+=(const string_type& str) {
+		_s += str;
+		return *this;
+	}
+
+	path& replace_extension(const path& replacement = path());
+
+private:
+	string_type _s;
+};
+
+bool operator>(const path& lhs, const path& rhs);
+
 using file_status = BYTE;
 
 static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
 static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
-
-std::string path_to_string(const path& p);
 
 struct space_info {
 	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
@@ -85,7 +178,7 @@ struct directory_entry : public FILINFO {
 		return fattrib;
 	}
 
-	const std::filesystem::path path() const noexcept { return reinterpret_cast<const std::filesystem::path::value_type*>(fname); };
+	const std::filesystem::path path() const noexcept { return { fname }; };
 };
 
 class directory_iterator {
@@ -135,7 +228,7 @@ space_info space(const path& p);
 } /* namespace filesystem */
 } /* namespace std */
 
-std::filesystem::path next_filename_stem_matching_pattern(const std::filesystem::path& filename_stem_pattern);
+std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
 
 class File {
 public:

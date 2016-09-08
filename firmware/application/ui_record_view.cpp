@@ -238,8 +238,8 @@ void RecordView::start() {
 		return;
 	}
 
-	const auto filename_stem = next_filename_stem_matching_pattern(filename_stem_pattern);
-	if( filename_stem.empty() ) {
+	auto base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+	if( base_path.empty() ) {
 		return;
 	}
 
@@ -250,9 +250,7 @@ void RecordView::start() {
 			auto p = std::make_unique<WAVFileWriter>(
 				sampling_rate
 			);
-			auto create_error = p->create(
-				filename_stem + u".WAV"
-			);
+			auto create_error = p->create(base_path.replace_extension(u".WAV"));
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {
@@ -263,16 +261,14 @@ void RecordView::start() {
 
 	case FileType::RawS16:
 		{
-			const auto metadata_file_error = write_metadata_file(filename_stem + u".TXT");
+			const auto metadata_file_error = write_metadata_file(base_path.replace_extension(u".TXT"));
 			if( metadata_file_error.is_valid() ) {
 				handle_error(metadata_file_error.value());
 				return;
 			}
 
 			auto p = std::make_unique<RawFileWriter>();
-			auto create_error = p->create(
-				filename_stem + u".C16"
-			);
+			auto create_error = p->create(base_path.replace_extension(u".C16"));
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {
@@ -286,7 +282,7 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		text_record_filename.set(std::filesystem::path_to_string(filename_stem));
+		text_record_filename.set(base_path.replace_extension().string());
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
