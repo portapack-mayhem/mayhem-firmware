@@ -97,6 +97,7 @@ class directory_iterator {
 	};
 
 	std::shared_ptr<Impl> impl;
+	const path pattern;
 
 	friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
 
@@ -108,8 +109,8 @@ public:
 	using iterator_category = std::input_iterator_tag;
 
 	directory_iterator() noexcept { };
-	directory_iterator(const std::filesystem::path::value_type* path, const std::filesystem::path::value_type* wild);
-
+	directory_iterator(std::filesystem::path path, std::filesystem::path wild);
+	
 	~directory_iterator() { }
 
 	directory_iterator& operator++();

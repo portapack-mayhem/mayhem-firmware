@@ -126,7 +126,7 @@ Optional<File::Error> File::sync() {
 
 static std::filesystem::path find_last_file_matching_pattern(const std::filesystem::path& pattern) {
 	std::filesystem::path last_match;
-	for(const auto& entry : std::filesystem::directory_iterator(u"", pattern.c_str())) {
+	for(const auto& entry : std::filesystem::directory_iterator(u"", pattern)) {
 		if( std::filesystem::is_regular_file(entry.status()) ) {
 			const auto match = entry.path();
 			if( match > last_match ) {
@@ -211,11 +211,12 @@ std::string filesystem_error::what() const {
 }
 
 directory_iterator::directory_iterator(
-	const std::filesystem::path::value_type* path,
-	const std::filesystem::path::value_type* wild
-) {
+	std::filesystem::path path,
+	std::filesystem::path wild
+) : pattern { wild }
+{
 	impl = std::make_shared<Impl>();
-	const auto result = f_findfirst(&impl->dir, &impl->filinfo, reinterpret_cast<const TCHAR*>(path), reinterpret_cast<const TCHAR*>(wild));
+	const auto result = f_findfirst(&impl->dir, &impl->filinfo, reinterpret_cast<const TCHAR*>(path.c_str()), reinterpret_cast<const TCHAR*>(pattern.c_str()));
 	if( result != FR_OK ) {
 		impl.reset();
 		// TODO: Throw exception if/when I enable exceptions...
