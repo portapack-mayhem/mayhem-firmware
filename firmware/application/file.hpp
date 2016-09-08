@@ -70,6 +70,8 @@ using file_status = BYTE;
 static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
 static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
 
+std::string path_to_string(const path& p);
+
 struct space_info {
 	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
 

@@ -32,9 +32,6 @@ using namespace portapack;
 
 #include <cstdint>
 
-#include <locale>
-#include <codecvt>
-
 class FileWriter : public Writer {
 public:
 	FileWriter() = default;
@@ -289,10 +286,7 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		std::wstring_convert<std::codecvt_utf8_utf16<std::filesystem::path::value_type>, std::filesystem::path::value_type> conv;
-		const auto filename_stem_s = conv.to_bytes(filename_stem);
-
-		text_record_filename.set(filename_stem_s);
+		text_record_filename.set(std::filesystem::path_to_string(filename_stem));
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),

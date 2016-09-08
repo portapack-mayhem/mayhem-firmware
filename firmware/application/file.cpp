@@ -22,6 +22,8 @@
 #include "file.hpp"
 
 #include <algorithm>
+#include <locale>
+#include <codecvt>
 
 /* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
 static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
@@ -208,6 +210,11 @@ std::string filesystem_error::what() const {
 	case FR_UNEXPECTED:				return "unexpected";
 	default:						return "unknown";
 	}
+}
+
+std::string path_to_string(const path& p) {
+	std::wstring_convert<std::codecvt_utf8_utf16<path::value_type>, path::value_type> conv;
+	return conv.to_bytes(p);
 }
 
 directory_iterator::directory_iterator(
