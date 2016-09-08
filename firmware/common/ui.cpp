@@ -42,6 +42,8 @@ Rect Rect::intersect(const Rect& o) const {
 	}
 }
 
+// TODO: This violates the principle of least surprise!
+// This does a union, but that might not be obvious from "+=" syntax.
 Rect& Rect::operator+=(const Rect& p) {
 	if( is_empty() ) {
 		*this = p;
