@@ -57,4 +57,9 @@ Rect& Rect::operator+=(const Rect& p) {
 	return *this;
 }
 
+Rect& Rect::operator+=(const Point& p) {
+	pos += p;
+	return *this;
+}
+
 } /* namespace ui */

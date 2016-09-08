@@ -208,6 +208,7 @@ struct Rect {
 	}
 
 	Rect& operator+=(const Rect& p);
+	Rect& operator+=(const Point& p);
 
 	operator bool() const {
 		return !size.is_empty();
