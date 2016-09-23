@@ -1,3 +1,22 @@
+/firmware/baseband/baseband.img
+/firmware/baseband/baseband_afsk.img
+/firmware/baseband/baseband_ais.img
+/firmware/baseband/baseband_am_audio.img
+/firmware/baseband/baseband_audio_tx.img
+/firmware/baseband/baseband_capture.img
+/firmware/baseband/baseband_epar.img
+/firmware/baseband/baseband_ert.img
+/firmware/baseband/baseband_jammer.img
+/firmware/baseband/baseband_lcr.img
+/firmware/baseband/baseband_nfm_audio.img
+/firmware/baseband/baseband_ook.img
+/firmware/baseband/baseband_play_audio.img
+/firmware/baseband/baseband_pocsag.img
+/firmware/baseband/baseband_rds.img
+/firmware/baseband/baseband_tpms.img
+/firmware/baseband/baseband_wfm_audio.img
+/firmware/baseband/baseband_wideband_spectrum.img
+/firmware/baseband/baseband_xylos.img
 /firmware/application/application.bin
 /CMakeCache.txt
 /Makefile
@@ -34,7 +53,6 @@
 *.exe
 *.out
 *.app
-*.img
 /firmware/baseband/*.bin
 
 # Other compiler/linker outputs
