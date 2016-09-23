@@ -26,7 +26,15 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-#define DTMF_PHASEINC (436.91)		// (65536*1024)/1536000*10
+#define DTMF_PHASEINC	436.91		// (65536*1024)/1536000*10
+#define DTMF_C0			(uint32_t)(1209*DTMF_PHASEINC)
+#define DTMF_C1			(uint32_t)(1336*DTMF_PHASEINC)
+#define DTMF_C2			(uint32_t)(1477*DTMF_PHASEINC)
+#define DTMF_C3			(uint32_t)(1633*DTMF_PHASEINC)
+#define DTMF_R0			(uint32_t)(697*DTMF_PHASEINC)
+#define DTMF_R1			(uint32_t)(770*DTMF_PHASEINC)
+#define DTMF_R2			(uint32_t)(852*DTMF_PHASEINC)
+#define DTMF_R3			(uint32_t)(941*DTMF_PHASEINC)
 
 class DTMFTXProcessor : public BasebandProcessor {
 public:
@@ -41,32 +49,31 @@ private:
 	
 	// 0123456789ABCD#*
 	const uint32_t DTMF_LUT[16][2] = {
-		{ (uint32_t)(1336*DTMF_PHASEINC), (uint32_t)(941*DTMF_PHASEINC) },
-		{ (uint32_t)(1209*DTMF_PHASEINC), (uint32_t)(697*DTMF_PHASEINC) },
-		{ (uint32_t)(1336*DTMF_PHASEINC), (uint32_t)(697*DTMF_PHASEINC) },
-		{ (uint32_t)(1477*DTMF_PHASEINC), (uint32_t)(697*DTMF_PHASEINC) },
-		{ (uint32_t)(1209*DTMF_PHASEINC), (uint32_t)(770*DTMF_PHASEINC) },
-		{ (uint32_t)(1336*DTMF_PHASEINC), (uint32_t)(770*DTMF_PHASEINC) },
-		{ (uint32_t)(1477*DTMF_PHASEINC), (uint32_t)(770*DTMF_PHASEINC) },
-		{ (uint32_t)(1209*DTMF_PHASEINC), (uint32_t)(852*DTMF_PHASEINC) },
-		{ (uint32_t)(1336*DTMF_PHASEINC), (uint32_t)(852*DTMF_PHASEINC) },
-		{ (uint32_t)(1477*DTMF_PHASEINC), (uint32_t)(852*DTMF_PHASEINC) },
-		{ (uint32_t)(1633*DTMF_PHASEINC), (uint32_t)(697*DTMF_PHASEINC) },
-		{ (uint32_t)(1633*DTMF_PHASEINC), (uint32_t)(770*DTMF_PHASEINC) },
-		{ (uint32_t)(1633*DTMF_PHASEINC), (uint32_t)(852*DTMF_PHASEINC) },
-		{ (uint32_t)(1633*DTMF_PHASEINC), (uint32_t)(941*DTMF_PHASEINC) },
-		{ (uint32_t)(1477*DTMF_PHASEINC), (uint32_t)(941*DTMF_PHASEINC) },
-		{ (uint32_t)(1209*DTMF_PHASEINC), (uint32_t)(941*DTMF_PHASEINC) }
+		{ DTMF_C1, DTMF_R3 },
+		{ DTMF_C0, DTMF_R0 },
+		{ DTMF_C1, DTMF_R0 },
+		{ DTMF_C2, DTMF_R0 },
+		{ DTMF_C0, DTMF_R1 },
+		{ DTMF_C1, DTMF_R1 },
+		{ DTMF_C2, DTMF_R1 },
+		{ DTMF_C0, DTMF_R2 },
+		{ DTMF_C1, DTMF_R2 },
+		{ DTMF_C2, DTMF_R2 },
+		{ DTMF_C3, DTMF_R0 },
+		{ DTMF_C3, DTMF_R1 },
+		{ DTMF_C3, DTMF_R2 },
+		{ DTMF_C3, DTMF_R3 },
+		{ DTMF_C2, DTMF_R3 },
+		{ DTMF_C0, DTMF_R3 }
 	};
 	
 	uint32_t tone_length, pause_length;
 	uint32_t as, bw;
-	uint8_t tone_list[32];
 	uint8_t tone_idx = 0, tone_code = 0;
 
 	uint32_t timer = 0;
 	
-	bool tone = false;
+	bool tone = false;		// Tone / pause
 	
 	int8_t re, im;
 	int8_t sample;

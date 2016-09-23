@@ -28,9 +28,6 @@
 
 #include <cstdint>
 
-// 153600 = 1000ms
-// 
-
 void DTMFTXProcessor::execute(const buffer_c8_t& buffer){
 
 	// This is called at 1536000/2048 = 750Hz
@@ -38,7 +35,6 @@ void DTMFTXProcessor::execute(const buffer_c8_t& buffer){
 	
 	if (!configured) return;
 
-	//ai = 0;
 	for (size_t i = 0; i<buffer.count; i++) {
 		
 		if (!as) {
@@ -47,33 +43,21 @@ void DTMFTXProcessor::execute(const buffer_c8_t& buffer){
 			if (!timer) {
 				if (tone) {
 					tone = false;
-					timer = pause_length * 154;		// 153.6
+					timer = pause_length;
 				} else {
 					tone = true;
-					timer = tone_length * 154;		// 153.6
-					tone_code = shared_memory.tx_data[tone_idx];	//tone_list[tone_idx];
+					timer = tone_length;
+					
+					tone_code = shared_memory.tx_data[tone_idx];
+					
 					if (tone_code == 0xFF) {
-						txdone_message.n = 64;			// End of list
+						txdone_message.n = 0xFF;		// End of list
 						shared_memory.application_queue.push(txdone_message);
 						configured = false;
 						tone = false;
 					} else {
-						txdone_message.n = tone_idx;	// New tone
+						txdone_message.n = tone_idx;	// New tone (progress)
 						shared_memory.application_queue.push(txdone_message);
-						
-						if (tone_code == 'A')
-							tone_code = 10;
-						else if (tone_code == 'B')
-							tone_code = 11;
-						else if (tone_code == 'C')
-							tone_code = 12;
-						else if (tone_code == 'D')
-							tone_code = 13;
-						else if (tone_code == '#')
-							tone_code = 14;
-						else if (tone_code == '*')
-							tone_code = 15;
-						
 						tone_idx++;
 					}
 				}
@@ -109,18 +93,45 @@ void DTMFTXProcessor::execute(const buffer_c8_t& buffer){
 }
 
 void DTMFTXProcessor::on_message(const Message* const msg) {
+	char * tone_ptr;
 	const auto message = *reinterpret_cast<const DTMFTXConfigMessage*>(msg);
 	
 	if (message.id == Message::ID::DTMFTXConfig) {
+		
+		// Translate DTMF message to index in DTMF frequencies table
+		tone_ptr = &shared_memory.tx_data[0];
+		for (;;) {
+			tone_code = *tone_ptr;
+			if (tone_code == 0xFF)
+				break;				// End of message
+			else if (tone_code <= 9)
+				// That's already fine bro.
+				*tone_ptr = tone_code;
+			else if (tone_code == 'A')
+				*tone_ptr = 10;
+			else if (tone_code == 'B')
+				*tone_ptr = 11;
+			else if (tone_code == 'C')
+				*tone_ptr = 12;
+			else if (tone_code == 'D')
+				*tone_ptr = 13;
+			else if (tone_code == '#')
+				*tone_ptr = 14;
+			else if (tone_code == '*')
+				*tone_ptr = 15;
+			else {
+				*tone_ptr = 0xFF;	// Invalid character, stop here
+			}
+			tone_ptr++;
+		}
+		
 		// 1<<18 = 262144
 		// m = (262144 * a) / 1536000
 		// a = 262144 / 1536000 (*1000 = 171)
 		bw = 171 * (message.bw);
-		tone_length = message.tone_length;
-		pause_length = message.pause_length;
+		tone_length = message.tone_length * 154;		// 153.6
+		pause_length = message.pause_length * 154;		// 153.6
 		as = 0;
-		//memcpy(tone_list, shared_memory.tx_data, 32);
-		//tone_list[31] = 0;
 		tone = false;
 		timer = 0;
 		tone_idx = 0;

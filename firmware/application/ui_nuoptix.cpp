@@ -24,7 +24,7 @@
 
 #include "ch.h"
 
-//#include "lfsr_random.hpp"
+#include "lfsr_random.hpp"
 #include "ui_alphanum.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
@@ -50,15 +50,21 @@ void NuoptixView::transmit(bool setup) {
 	uint8_t mod;
 	uint8_t c;
 	
-	if (!txing) {
+	if (!tx_mode) {
 		transmitter_model.disable();
 		return;
 	}
 	
+	if (tx_mode == IMPROVISE)
+		timecode = lfsr_iterate(timecode) % 1999;	// Should be 9999 but that would be one long audio track !
+	
 	if (setup) {
 		pbar.set_max(4);
 		
-		timecode = number_timecode.value();
+		if (tx_mode == NORMAL)
+			timecode = number_timecode.value();
+		else
+			timecode = 0125;
 		
 		transmitter_model.set_baseband_configuration({
 			.mode = 0,
@@ -82,7 +88,6 @@ void NuoptixView::transmit(bool setup) {
 	
 	pbar.set_value(0);
 	
-	//strcpy("#00028", shared_memory.tx_data);
 	shared_memory.tx_data[2] = (timecode / 100) % 10;
 	shared_memory.tx_data[3] = (timecode / 10) % 10;
 	shared_memory.tx_data[4] = timecode % 10;
@@ -98,9 +103,9 @@ void NuoptixView::transmit(bool setup) {
 	
 	shared_memory.tx_data[5] = mod;
 	
-	shared_memory.tx_data[6] = 0xFF;
+	shared_memory.tx_data[6] = 0xFF;	// End of message
 	
-	baseband::set_dtmf_data(number_bw.value(), 49, 49);	// 49ms tone, 49ms space
+	baseband::set_dtmf_data(number_bw.value(), 49, 49);		// 49ms tone, 49ms space
 	
 	timecode++;
 }
@@ -109,7 +114,6 @@ NuoptixView::NuoptixView(
 	NavigationView& nav
 )
 {
-	
 	baseband::run_image(portapack::spi_flash::image_tag_dtmf_tx);
 
 	add_children({ {
@@ -121,6 +125,7 @@ NuoptixView::NuoptixView(
 		&text_mod,
 		&pbar,
 		&button_tx,
+		&button_impro,
 		&button_exit
 	} });
 	
@@ -143,10 +148,23 @@ NuoptixView::NuoptixView(
 	};
 
 	button_tx.on_select = [this](Button&){
-		if (txing) {
-			txing = false;
-		} else {
-			txing = true;
+		if (tx_mode == NORMAL) {
+			tx_mode = IDLE;
+			button_tx.set_text("TX");
+		} else if (tx_mode == IDLE) {
+			tx_mode = NORMAL;
+			button_tx.set_text("STOP");
+			transmit(true);
+		}
+	};
+	
+	button_impro.on_select = [this](Button&){
+		if (tx_mode == IMPROVISE) {
+			tx_mode = IDLE;
+			button_impro.set_text("IMPROVISE");
+		} else if (tx_mode == IDLE) {
+			tx_mode = IMPROVISE;
+			button_impro.set_text("STOP");
 			transmit(true);
 		}
 	};

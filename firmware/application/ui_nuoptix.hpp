@@ -43,17 +43,17 @@ public:
 	std::string title() const override { return "Nuoptix sync"; };
 	
 private:
-	/*enum tx_modes {
-		NORMAL = 0,
-		RANDOM
+	enum tx_modes {
+		IDLE = 0,
+		NORMAL,
+		IMPROVISE
 	};
 	
-	tx_modes tx_mode = NORMAL;*/
+	tx_modes tx_mode = IDLE;
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void transmit(bool setup);
 	
-	bool txing = false;
 	uint32_t timecode;
 	
 	FrequencyField field_frequency {
@@ -102,8 +102,13 @@ private:
 	};*/
 	
 	Button button_tx {
-		{ 32, 270, 64, 32 },
+		{ 70, 128, 100, 40 },
 		"TX"
+	};
+	
+	Button button_impro {
+		{ 70, 184, 100, 40 },
+		"IMPROVISE"
 	};
 	
 	Button button_exit {
@@ -115,7 +120,7 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			if (message.n == 64)
+			if (message.n == 0xFF)
 				transmit(false);
 			else
 				pbar.set_value(message.n);
