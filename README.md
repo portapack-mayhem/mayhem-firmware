@@ -35,13 +35,12 @@ As its name implies, HAVOC's functionalities can be fun (or mean). So mean, you 
 
 ## Todo
 
-* CTCSS talkie transmit
+* PMR446 transmit
 * Frequency manager
 * Detect/decode OOK
 * Whistle (tone generator)
 * POCSAG transmitter
 * AFSK receiver
-* Rolling-code jam and replay trick
 * Make SIGFOX interceptor work with all modules
 * Wireless microphone transmit (with squelch tones)
 * Number station
