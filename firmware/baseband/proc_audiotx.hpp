@@ -44,9 +44,11 @@ private:
 	uint32_t bw;
 	uint32_t divider;
 	uint8_t as = 0;
+	uint32_t ctcss_phase_inc;
+	bool ctcss_enabled;
 	
 	int8_t re, im;
-	int8_t sample;
+	int8_t ctcss_sample, sample;
 	
 	bool asked = false;
 
@@ -58,7 +60,7 @@ private:
 	
 	FIFOSignalMessage sigmessage;
 	
-	uint32_t aphase, phase, sphase;
+	uint32_t ctcss_phase, phase, sphase;
 	int32_t frq;
 };
 

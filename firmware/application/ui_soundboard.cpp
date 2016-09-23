@@ -96,6 +96,9 @@ void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
 }
 
 void SoundBoardView::play_sound(uint16_t id) {
+	uint32_t ctcss_option;
+	bool ctcss_enabled;
+	uint32_t divider;
 
 	if (sounds[id].size == 0) return;
 
@@ -123,7 +126,21 @@ void SoundBoardView::play_sound(uint16_t id) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_audiotx_data(1536000 / sounds[id].sample_rate, number_bw.value());
+	ctcss_option = options_ctcss.selected_index();
+	
+	if (ctcss_option)
+		ctcss_enabled = true;
+	else
+		ctcss_enabled = false;
+	
+	divider = (1536000 / sounds[id].sample_rate) - 1;
+	
+	baseband::set_audiotx_data(
+		divider,
+		number_bw.value(),
+		ctcss_enabled,
+		(67109.0 * (float)_ctcss_freq)/1536000.0	// TODO: Might not be precise enough
+	);
 }
 
 void SoundBoardView::show_infos(uint16_t id) {
@@ -179,6 +196,10 @@ uint16_t SoundBoardView::fb_to_uint16(const std::string& fb) {
 
 uint32_t SoundBoardView::fb_to_uint32(const std::string& fb) {
 	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
+}
+
+void SoundBoardView::on_ctcss_changed(uint32_t v) {
+	_ctcss_freq = v;
 }
 
 SoundBoardView::SoundBoardView(
@@ -244,6 +265,7 @@ SoundBoardView::SoundBoardView(
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
+		&options_ctcss,
 		&text_page,
 		&text_duration,
 		&pbar,
@@ -251,6 +273,12 @@ SoundBoardView::SoundBoardView(
 		&button_random,
 		&button_exit
 	} });
+	
+	options_ctcss.on_change = [this](size_t, OptionsField::value_t v) {
+		this->on_ctcss_changed(v);
+	};
+	
+	options_ctcss.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {
 		tx_mode = NORMAL;

@@ -43,6 +43,12 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			audio_fifo.out(sample);
 			//preview_audio_buffer.p[ai++] = sample << 8;
 			
+			if (ctcss_enabled) {
+				ctcss_sample = sine_table_i8[(ctcss_phase & 0x03FC0000) >> 18];
+				int16_t mix = (sample * 218) + (ctcss_sample * 37);		// ~15%
+				sample = mix >> 8;
+			}
+			
 			if ((audio_fifo.len() < 1024) && (asked == false)) {
 				// Ask application to fill up fifo
 				sigmessage.signaltype = 1;
@@ -52,6 +58,8 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 		} else {
 			as--;
 		}
+		
+		ctcss_phase += ctcss_phase_inc;
 		
 		// FM
 		frq = sample * bw;
@@ -79,6 +87,8 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 			// a = 262144 / 1536000 (*1000 = 171)
 			bw = 171 * (message->bw);
 			divider = message->divider;
+			ctcss_phase_inc = message->ctcss_phase_inc;
+			ctcss_enabled = message->ctcss_enabled;
 			as = 0;
 
 			configured = true;

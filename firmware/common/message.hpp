@@ -563,15 +563,21 @@ class AudioTXConfigMessage : public Message {
 public:
 	constexpr AudioTXConfigMessage(
 		const uint32_t divider,
-		const uint32_t bw
+		const uint32_t bw,
+		const uint32_t ctcss_phase_inc,
+		const bool ctcss_enabled
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
-		bw(bw)
+		bw(bw),
+		ctcss_phase_inc(ctcss_phase_inc),
+		ctcss_enabled(ctcss_enabled)
 	{
 	}
 
 	const uint32_t divider;
 	const uint32_t bw;
+	const uint32_t ctcss_phase_inc;
+	const bool ctcss_enabled;
 };
 
 class AFSKConfigureMessage : public Message {
