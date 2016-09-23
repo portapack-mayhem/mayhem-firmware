@@ -23,10 +23,16 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-include(CMakeForceCompiler)
+if(CMAKE_VERSION VERSION_LESS 3.6)
+	include(CMakeForceCompiler)
 
-CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
-CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
+	CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
+	CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
+else()
+	set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+	set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+endif()
 
 execute_process(
   COMMAND ${CMAKE_C_COMPILER} -print-file-name=libc.a
