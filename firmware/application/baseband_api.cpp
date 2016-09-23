@@ -141,6 +141,15 @@ void set_pocsag() {
 	send_message(&message);
 }
 
+void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length) {
+	const DTMFTXConfigMessage message {
+		bw,
+		tone_length,
+		pause_length
+	};
+	send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {

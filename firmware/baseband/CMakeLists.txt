@@ -375,6 +375,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PXYL xylos)
 
+### DTMF TX
+
+set(MODE_CPPSRC
+	proc_dtmf_tx.cpp
+)
+DeclareTargets(PDTX dtmf_tx)
+
 ### RDS
 
 set(MODE_CPPSRC

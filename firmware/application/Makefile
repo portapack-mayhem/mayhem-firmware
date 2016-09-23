@@ -3894,6 +3894,30 @@ ui_navigation.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_navigation.cpp.s
 .PHONY : ui_navigation.cpp.s
 
+ui_nuoptix.obj: ui_nuoptix.cpp.obj
+.PHONY : ui_nuoptix.obj
+
+# target to build an object file
+ui_nuoptix.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_nuoptix.cpp.obj
+.PHONY : ui_nuoptix.cpp.obj
+
+ui_nuoptix.i: ui_nuoptix.cpp.i
+.PHONY : ui_nuoptix.i
+
+# target to preprocess a source file
+ui_nuoptix.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_nuoptix.cpp.i
+.PHONY : ui_nuoptix.cpp.i
+
+ui_nuoptix.s: ui_nuoptix.cpp.s
+.PHONY : ui_nuoptix.s
+
+# target to generate assembly for a file
+ui_nuoptix.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_nuoptix.cpp.s
+.PHONY : ui_nuoptix.cpp.s
+
 ui_rds.obj: ui_rds.cpp.obj
 .PHONY : ui_rds.obj
 
@@ -4663,6 +4687,9 @@ help:
 	@echo "... ui_navigation.obj"
 	@echo "... ui_navigation.i"
 	@echo "... ui_navigation.s"
+	@echo "... ui_nuoptix.obj"
+	@echo "... ui_nuoptix.i"
+	@echo "... ui_nuoptix.s"
 	@echo "... ui_rds.obj"
 	@echo "... ui_rds.i"
 	@echo "... ui_rds.s"

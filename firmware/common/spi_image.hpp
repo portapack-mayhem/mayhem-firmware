@@ -79,6 +79,7 @@ constexpr image_tag_t image_tag_epar				{ 'P', 'E', 'P', 'R' };
 constexpr image_tag_t image_tag_xylos				{ 'P', 'X', 'Y', 'L' };
 constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_ook					{ 'P', 'O', 'O', 'K' };
+constexpr image_tag_t image_tag_dtmf_tx				{ 'P', 'D', 'T', 'X' };
 
 constexpr image_tag_t image_tag_hackrf				{ 'H', 'R', 'F', '1' };
 

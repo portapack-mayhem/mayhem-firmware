@@ -29,14 +29,9 @@
 
 #include "lfsr_random.hpp"
 #include "ui_alphanum.hpp"
-//#include "ff.h"
-//#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-//#include "radio.hpp"
-//#include "event_m0.hpp"
 #include "string_format.hpp"
 
-//#include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
@@ -206,43 +201,44 @@ SoundBoardView::SoundBoardView(
 		
 		auto error = file.open("/wav/" + file_name);
 		
-		file.seek(40);
-		file.read(file_buffer, 4);
-		size = fb_to_uint32(file_buffer);
-		sounds[c].size = size;
-		
-		file.seek(22);
-		file.read(file_buffer, 2);
-		if (fb_to_uint16(file_buffer) > 1) {
-			sounds[c].stereo = true;
-			size /= 2;
-		} else
-			sounds[c].stereo = false;
-		
-		file.seek(24);
-		file.read(file_buffer, 4);
-		sounds[c].sample_rate = fb_to_uint32(file_buffer);
-		
-		file.seek(34);
-		file.read(file_buffer, 2);
-		if (fb_to_uint16(file_buffer) > 8) {
-			sounds[c].sixteenbit = true;
-			size /= 2;
-		} else
-			sounds[c].sixteenbit = false;
-		
-		sounds[c].ms_duration = (size * 1000) / sounds[c].sample_rate;
-		sounds[c].sample_duration = size;
-		
-		sounds[c].filename = file_name;
-		sounds[c].shortname = remove_filename_extension(file_name);
-		
-		c++;
-		if (c == 100) break;
+		if (!error.is_valid()) {
+			
+			file.seek(22);
+			file.read(file_buffer, 2);
+			
+			// Is file mono ?
+			if (fb_to_uint16(file_buffer) == 1) {
+				file.seek(40);
+				file.read(file_buffer, 4);
+				size = fb_to_uint32(file_buffer);
+				sounds[c].size = size;
+				
+				file.seek(24);
+				file.read(file_buffer, 4);
+				sounds[c].sample_rate = fb_to_uint32(file_buffer);
+				
+				file.seek(34);
+				file.read(file_buffer, 2);
+				if (fb_to_uint16(file_buffer) > 8) {
+					sounds[c].sixteenbit = true;
+					size /= 2;
+				} else
+					sounds[c].sixteenbit = false;
+				
+				sounds[c].ms_duration = (size * 1000) / sounds[c].sample_rate;
+				sounds[c].sample_duration = size;
+				
+				sounds[c].filename = file_name;
+				sounds[c].shortname = remove_filename_extension(file_name);
+				
+				c++;
+				if (c == 100) break;	// Limit to 100 files
+			}
+		}
 	}
 	
 	max_sound = c;
-	max_page = max_sound / 21;
+	max_page = max_sound / 21;		// 21 buttons per page
 	
 	add_children({ {
 		&field_frequency,

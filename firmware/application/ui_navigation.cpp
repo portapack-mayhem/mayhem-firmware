@@ -37,6 +37,7 @@
 
 //#include "ui_closecall.hpp"			// DEBUG
 //#include "ui_freqman.hpp"			// DEBUG
+#include "ui_nuoptix.hpp"
 #include "ui_soundboard.hpp"
 
 #include "ui_encoders.hpp"
@@ -241,7 +242,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<12>({ {
+	add_items<13>({ {
 		{ "Play dead",						ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture                   RX",	ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
@@ -255,6 +256,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
 		{ "TEDI/LCR                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LCRView>(); } },
 		{ "OOK encoders              TX", 	ui::Color::orange(),	[&nav](){ nav.push<EncodersView>(); } },
+		{ "Nuoptix DTMF sync         TX", 	ui::Color::purple(),	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "RDS                       TX",	ui::Color::red(),		[&nav](){ nav.push<RDSView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 							ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },

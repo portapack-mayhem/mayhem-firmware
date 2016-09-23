@@ -161,6 +161,7 @@ set(CPPSRC
 	ui_alphanum.cpp
 	ui_spectrum.cpp
 	ui_about.cpp
+	ui_nuoptix.cpp
 	# ui_jammer.cpp
 	ui_handwrite.cpp
 	ui_afsksetup.cpp

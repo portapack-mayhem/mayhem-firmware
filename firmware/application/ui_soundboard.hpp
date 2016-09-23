@@ -54,7 +54,6 @@ private:
 	struct sound {
 		std::string filename = "";
 		std::string shortname = "";
-		bool stereo = false;
 		bool sixteenbit = false;
 		uint32_t sample_rate = 0;
 		uint32_t size = 0;
@@ -120,9 +119,9 @@ private:
 	};
 	
 	NumberField number_bw {
-		{ 14 * 8, 4 },
-		2,
-		{1, 50},
+		{ 13 * 8, 4 },
+		3,
+		{1, 150},
 		1,
 		' '
 	};

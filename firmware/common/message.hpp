@@ -75,6 +75,7 @@ public:
 		RDSConfigure = 26,
 		AudioTXConfig = 27,
 		POCSAGConfigure = 28,
+		DTMFTXConfig = 29,
 		
 		POCSAGPacket = 30,
 		
@@ -631,6 +632,24 @@ public:
 	}
 
 	const uint32_t rate;
+};
+
+class DTMFTXConfigMessage : public Message {
+public:
+	constexpr DTMFTXConfigMessage(
+		const uint32_t bw,
+		const uint32_t tone_length,
+		const uint32_t pause_length
+	) : Message { ID::DTMFTXConfig },
+		bw(bw),
+		tone_length(tone_length),
+		pause_length(pause_length)
+	{
+	}
+
+	const uint32_t bw;
+	const uint32_t tone_length;
+	const uint32_t pause_length;
 };
 
 // TODO: use streaming buffer instead

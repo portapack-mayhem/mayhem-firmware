@@ -61,6 +61,7 @@ void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phas
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
 					const uint32_t pause_symbols);
 void set_pocsag();
+void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();
