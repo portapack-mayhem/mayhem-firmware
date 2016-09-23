@@ -27,15 +27,16 @@
 #include "ch.h"
 #include "file.hpp"
 
+#include "lfsr_random.hpp"
 #include "ui_alphanum.hpp"
-#include "ff.h"
-#include "hackrf_gpio.hpp"
+//#include "ff.h"
+//#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
-#include "event_m0.hpp"
+//#include "radio.hpp"
+//#include "event_m0.hpp"
 #include "string_format.hpp"
 
-#include "hackrf_hal.hpp"
+//#include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
@@ -45,20 +46,12 @@ using namespace portapack;
 
 namespace ui {
 
-uint16_t SoundBoardView::shitty_rand() {
-	uint8_t bit;
-	
-	bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5) ) & 1;
-	
-	return lfsr = (lfsr >> 1) | (bit << 15);
-}
-
 void SoundBoardView::do_random() {
 	uint16_t id;
 	
-	chThdSleepMilliseconds(300);	// 100ms
+	chThdSleepMilliseconds(300);	// 300ms
 	
-	id = shitty_rand() % max_sound;
+	id = lfsr_iterate(lfsr_v) % max_sound;
 
 	play_sound(id);
 	

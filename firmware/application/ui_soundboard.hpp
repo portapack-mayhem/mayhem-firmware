@@ -68,7 +68,7 @@ private:
 	
 	File file;
 	
-	uint16_t lfsr = 0x1337u;
+	uint16_t lfsr_v = 0x1337;
 	
 	sound sounds[100];
 	uint8_t max_sound;
@@ -103,7 +103,6 @@ private:
 	void on_tuning_frequency_changed(rf::Frequency f);
 	
 	void do_random();
-	uint16_t shitty_rand();
 	void show_infos(uint16_t id);
 	void change_page(Button& button, const KeyEvent key);
 	void refresh_buttons(uint16_t id);
