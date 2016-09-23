@@ -15,6 +15,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). So mean, you 
 * "Soundboard" wave file player from µSD (put in /wav directory)
 * POCSAG 1200 alphanumeric receiver/decoder
 * Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, some garage doors, ...)
+* Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
 * RDS (Radio Data System) PSN and Radiotext transmit
 * Fully configurable AFSK transmit (Bell202)
 * Virtual keyboard or Unistroke "handwriting" text input
