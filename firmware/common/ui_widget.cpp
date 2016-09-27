@@ -513,6 +513,7 @@ void Console::writeln(std::string message) {
 }
 
 void Console::paint(Painter& painter) {
+	(void)painter;
 	write(buffer);
 }
 
@@ -990,7 +991,7 @@ void OptionsField::set_options(options_t new_options) {
 void OptionsField::paint(Painter& painter) {
 	const auto paint_style = has_focus() ? style().invert() : style();
 	
-	painter.fill_rectangle({screen_rect().pos, {length_ * 8, 16}}, ui::Color::black());
+	painter.fill_rectangle({screen_rect().pos, {(int)length_ * 8, 16}}, ui::Color::black());
 	
 	if( selected_index() < options.size() ) {
 		const auto text = options[selected_index()].first;
@@ -1108,24 +1109,26 @@ int32_t NumberField::clip_value(int32_t value) {
 
 SymField::SymField(
 	Point parent_pos,
-	size_t length,
-	range_t range
+	size_t length
 ) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-	range { range },
 	length_ { length }
 {
 	set_focusable(true);
 }
 
 uint32_t SymField::value(const uint32_t index) {
+	if (index >= length_) return 0;
+
 	return values_[index];
 }
 
-void SymField::set_value(const uint32_t index, int32_t new_value) {
-	new_value = clip_value(new_value);
+void SymField::set_value(const uint32_t index, const uint32_t new_value) {
+	if (index >= length_) return;
+	
+	uint32_t clipped_value = clip_value(index, new_value);
 
-	if( new_value != values_[index] ) {
-		values_[index] = new_value;
+	if (clipped_value != values_[index]) {
+		values_[index] = clipped_value;
 		if( on_change ) {
 			on_change();
 		}
@@ -1134,34 +1137,38 @@ void SymField::set_value(const uint32_t index, int32_t new_value) {
 }
 
 void SymField::set_length(const uint32_t new_length) {
-	if (new_length <= 30) {
+	if ((new_length <= 32) && (new_length != length_)) {
 		prev_length_ = length_;
 		length_ = new_length;
+		
+		// Clip eventual garbage from previous shorter word
+		for (size_t n = 0; n < length_; n++)
+			set_value(n, values_[n]);
+		
 		erase_prev_ = true;
 		set_dirty();
 	}
 }
 
-void SymField::set_range(const int32_t min, const int32_t max) {
-	size_t n;
+void SymField::set_symbol_list(const uint32_t index, const std::string symbol_list) {
+	if (index >= length_) return;
 	
-	range.first = min;
-	range.second = max;
-	for (n = 0; n < length_; n++)
-		set_value(n, values_[n]);
+	symbol_list_[index] = symbol_list;
+
+	// Re-clip symbol's value
+	set_value(index, values_[index]);
 }
 
 void SymField::paint(Painter& painter) {
-	size_t n;
 	Point pt_draw = screen_pos();
 	
 	if (erase_prev_) {
-		painter.fill_rectangle( { pt_draw, { prev_length_ * 8, 16 } }, Color::black() );
+		painter.fill_rectangle( { pt_draw, { (int)prev_length_ * 8, 16 } }, Color::black() );
 		erase_prev_ = false;
 	}
 	
-	for (n = 0; n < length_; n++) {
-		const auto text = to_string_dec_uint(values_[n], 1);
+	for (size_t n = 0; n < length_; n++) {
+		const auto text = symbol_list_[n].substr(values_[n], 1);
 
 		const auto paint_style = (has_focus() && (n == selected_)) ? style().invert() : style();
 
@@ -1208,25 +1215,28 @@ bool SymField::on_key(const KeyEvent key) {
 }
 
 bool SymField::on_encoder(const EncoderEvent delta) {
-	set_value(selected_, values_[selected_] + delta);
+	int32_t new_value = (int)values_[selected_] + delta;
+	
+	if (new_value >= 0)	
+		set_value(selected_, values_[selected_] + delta);
+	
 	return true;
 }
 
 bool SymField::on_touch(const TouchEvent event) {
-	if( event.type == TouchEvent::Type::Start ) {
+	if (event.type == TouchEvent::Type::Start) {
 		focus();
 	}
 	return true;
 }
 
-int32_t SymField::clip_value(int32_t value) {
-	if( value > range.second ) {
-		value = range.second;
-	}
-	if( value < range.first ) {
-		value = range.first;
-	}
-	return value;
+int32_t SymField::clip_value(const uint32_t index, const uint32_t value) {
+	size_t symbol_count = symbol_list_[index].length() - 1;
+	
+	if (value > symbol_count)
+		return symbol_count;
+	else
+		return value;
 }
 
 } /* namespace ui */

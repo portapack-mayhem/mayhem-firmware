@@ -446,17 +446,15 @@ public:
 	std::function<void(SymField&)> on_select;
 	std::function<void()> on_change;
 
-	using range_t = std::pair<int32_t, int32_t>;
-
-	SymField(Point parent_pos, size_t length, range_t range);
+	SymField(Point parent_pos, size_t length);
 
 	SymField(const SymField&) = delete;
 	SymField(SymField&&) = delete;
 
 	uint32_t value(const uint32_t index);
-	void set_value(const uint32_t index, int32_t new_value);
+	void set_value(const uint32_t index, const uint32_t new_value);
 	void set_length(const uint32_t new_length);
-	void set_range(const int32_t min, const int32_t max);
+	void set_symbol_list(const uint32_t index, const std::string symbol_list);
 
 	void paint(Painter& painter) override;
 
@@ -465,13 +463,13 @@ public:
 	bool on_touch(const TouchEvent event) override;
 
 private:
-	range_t range;
-	int32_t values_[30] = { 0 };
+	std::string symbol_list_[32] = { "01" };		// Failsafe init
+	uint32_t values_[32] = { 0 };
 	uint32_t selected_ = 0;
 	size_t length_, prev_length_;
 	bool erase_prev_ = false;
 
-	int32_t clip_value(int32_t value);
+	int32_t clip_value(const uint32_t index, const uint32_t value);
 };
 
 } /* namespace ui */

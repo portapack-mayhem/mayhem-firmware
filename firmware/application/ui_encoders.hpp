@@ -43,63 +43,61 @@ public:
 
 private:
 	struct encoder_def_t {
-		std::string name;
-		uint8_t address_bit_states;		// Often 0, 1, [f, [4]]
-		uint8_t data_bit_states;		// Often 0, 1
-		uint16_t clk_per_bit;			// Oscillator periods per bit
-		uint16_t clk_per_symbol;		// Oscillator periods per bit fragment
-		std::vector<std::string> bit_format;
-		uint8_t word_length;			// Total # of bits
-		std::string word_format;
-		std::string sync;				// Like bit_format
-		uint32_t default_frequency;		// Default encoder clk frequency
-		uint8_t repeat_min;
-		uint32_t pause_symbols;
+		std::string name;						// Encoder chip ref/name
+		std::string address_symbols;			// "01", "01F"...
+		std::string data_symbols;				// Same
+		uint16_t clk_per_symbol;				// Oscillator periods per symbol
+		uint16_t clk_per_fragment;				// Oscillator periods per symbol fragment (state)
+		std::vector<std::string> bit_format;	// List of fragments for each symbol in previous *_symbols list order
+		uint8_t word_length;					// Total # of symbols (not counting sync)
+		std::string word_format;				// A for Address, D for Data, S for sync
+		std::string sync;						// Like bit_format
+		uint32_t default_frequency;				// Default encoder clk frequency (often set by shitty resistor)
+		uint8_t repeat_min;						// Minimum repeat count
+		uint16_t pause_symbols;					// Length of pause between repeats in symbols
 	};
 
-	// S = Sync
-	// A/D = Address/data bits
 	const encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
 		// PT2260-R2
 		{
 			"2260-R2",
-			3, 2,
+			"01F", "01",
 			1024, 128,
 			{ "10001000", "11101110", "10001110" },
 			12,	"AAAAAAAAAADDS",
 			"10000000000000000000000000000000",
-			200000,	1,
-			10	// ?
+			150000,	2,
+			0
 		},
 		
 		// PT2260-R4
 		{
 			"2260-R4",
-			3, 2,
+			"01F", "01",
 			1024, 128,
 			{ "10001000", "11101110", "10001110" },
 			12,	"AAAAAAAADDDDS",
 			"10000000000000000000000000000000",
-			200000,	1,
-			10	// ?
+			150000,	2,
+			0
 		},
 		
 		// PT2262
 		{
 			"2262   ",
-			3, 2,
-			1024, 128,
+			"01F", "01F",
+			32, 4,
 			{ "10001000", "11101110", "10001110" },
 			12,	"AAAAAAAAAAAAS",
 			"10000000000000000000000000000000",
-			200000,	1,
-			10	// ?
+			20000,	4,
+			0
 		},
 		
 		// 16-bit ?
 		{
 			"16-bit ",
-			2, 2,
+			"01", "01",
 			32, 8,
 			{ "1110", "1000" },		// Opposite ?
 			16,	"AAAAAAAAAAAAAAAAS",
@@ -111,7 +109,7 @@ private:
 		// RT1527
 		{
 			"1527   ",
-			2, 2,
+			"01", "01",
 			128, 32,
 			{ "1000", "1110" },
 			24,	"SAAAAAAAAAAAAAAAAAAAADDDD",
@@ -123,7 +121,7 @@ private:
 		// HK526E
 		{
 			"526    ",
-			2, 2,
+			"01", "01",
 			24, 8,
 			{ "110", "100" },
 			12,	"AAAAAAAAAAAA",
@@ -135,7 +133,7 @@ private:
 		// HT12E
 		{
 			"12E    ",
-			2, 2,
+			"01", "01",
 			3, 1,
 			{ "011", "001" },
 			12,	"SAAAAAAAADDDD",
@@ -147,7 +145,7 @@ private:
 		// VD5026 13 bits ?
 		{
 			"5026   ",
-			4, 4,
+			"0123", "0123",
 			128, 8,
 			{ "1000000010000000", "1111111011111110", "1111111010000000", "1000000011111110" },
 			12,	"SAAAAAAAAAAAA",
@@ -159,19 +157,19 @@ private:
 		// UM3750
 		{
 			"UM3750 ",
-			2, 2,
+			"01", "01",
 			96, 32,
 			{ "011", "001" },
 			12,	"SAAAAAAAAAAAA",
 			"1",
 			100000,	4,
-			10	// ?
+			0	// ?
 		},
 		
 		// UM3758
 		{
 			"UM3758 ",
-			3, 2,
+			"01F", "01",
 			96, 16,
 			{ "011011", "001001", "011001" },
 			18,	"SAAAAAAAAAADDDDDDDD",
@@ -183,7 +181,7 @@ private:
 		// BA5104
 		{
 			"BA5104 ",
-			2, 2,
+			"01", "01",
 			3072, 768,
 			{ "1000", "1110" },
 			9,	"SDDAAAAAAA",
@@ -195,7 +193,7 @@ private:
 		// MC145026
 		{
 			"145026 ",
-			3, 2,
+			"01F", "01",
 			16, 1,
 			{ "0111111101111111", "0100000001000000", "0111111101000000" },
 			9,	"SAAAAADDDD",
@@ -207,7 +205,7 @@ private:
 		// HT6*** TODO: Add individual variations
 		{
 			"HT6*** ",
-			3, 2,
+			"01F", "01",
 			198, 33,
 			{ "011011", "001001", "001011" },
 			18,	"SAAAAAAAAAAAADDDDDD",
@@ -219,7 +217,7 @@ private:
 		// TC9148
 		{
 			"TC9148 ",
-			2, 2,
+			"01", "01",
 			48, 12,
 			{ "1000", "1110", },
 			12,	"AAAAAAAAAAAA",
@@ -277,25 +275,19 @@ private:
 		.foreground = Color::blue(),
 	};
 	
-	SymField bitfield {
-		{ 16 + 8, 80 },
-		12,
-		{ 0, 1 }
-	};
-	
 	Text text_enctype {
-		{ 2 * 8, 3 * 8, 8 * 8, 16 },
-		"Encoder:"
+		{ 1 * 8, 24, 5 * 8, 16 },
+		"Type:"
 	};
-	OptionsField options_enctype {
-		{ 2 * 8, 5 * 8 },
+	OptionsField options_enctype {		// Options are loaded at runtime
+		{ 6 * 8, 24 },
 		7,
 		{
 		}
 	};
 	
 	Text text_clk {
-		{ 15 * 8, 3 * 8, 4 * 8, 16 },
+		{ 16 * 8, 3 * 8, 4 * 8, 16 },
 		"Clk:"
 	};
 	NumberField numberfield_clk {
@@ -311,46 +303,55 @@ private:
 	};
 	
 	Text text_bitduration {
-		{ 15 * 8, 5 * 8, 4 * 8, 16 },
+		{ 16 * 8, 5 * 8, 4 * 8, 16 },
 		"Bit:"
 	};
 	NumberField numberfield_bitduration {
-		{ 20 * 8, 5 * 8 },
+		{ 21 * 8, 5 * 8 },
 		4,
 		{ 50, 9999 },
 		1,
 		' '
 	};
 	Text text_us1 {
-		{ 24 * 8, 5 * 8, 2 * 8, 16 },
+		{ 25 * 8, 5 * 8, 2 * 8, 16 },
 		"us"
 	};
 	
 	Text text_wordduration {
-		{ 14 * 8, 7 * 8, 5 * 8, 16 },
+		{ 15 * 8, 7 * 8, 5 * 8, 16 },
 		"Word:"
 	};
 	NumberField numberfield_wordduration {
-		{ 20 * 8, 7 * 8 },
+		{ 21 * 8, 7 * 8 },
 		5,
 		{ 300, 99999 },
 		100,
 		' '
 	};
 	Text text_us2 {
-		{ 25 * 8, 7 * 8, 2 * 8, 16 },
+		{ 26 * 8, 7 * 8, 2 * 8, 16 },
 		"us"
 	};
 	
-	Text text_bitfield {
-		{ 2 * 8, 8 * 8, 5 * 8, 16 },
+	Text text_symfield {
+		{ 2 * 8, 9 * 8, 5 * 8, 16 },
 		"Word:"
 	};
+	SymField symfield_word {
+		{ 2 * 8, 11 * 8 },
+		20
+	};
+	Text text_format {
+		{ 2 * 8, 13 * 8, 24 * 8, 16 },
+		""
+	};
+	
 	//Text text_format_a;	// DEBUG
 	//Text text_format_d;	// DEBUG
 	
 	Text text_waveform {
-		{ 1 * 8, 16 * 8, 9 * 8, 16 },
+		{ 1 * 8, 136, 9 * 8, 16 },
 		"Waveform:"
 	};
 	

@@ -36,7 +36,7 @@ using namespace portapack;
 namespace ui {
 
 void EncodersView::focus() {
-	bitfield.focus();
+	options_enctype.focus();
 }
 
 EncodersView::~EncodersView() {
@@ -54,8 +54,7 @@ void EncodersView::generate_frame() {
 		if (c == 'S')
 			debug_text += encoder_def->sync;
 		else
-			debug_text += encoder_def->bit_format.at(bitfield.value(i));
-		i++;
+			debug_text += encoder_def->bit_format[symfield_word.value(i++)];
 	}
 	
 	draw_waveform();
@@ -67,7 +66,7 @@ void EncodersView::draw_waveform() {
 	uint8_t prelude_length = 0; 	//encoder_def->sync.length();
 	
 	// Clear
-	painter_->fill_rectangle( { 0, 160, 240, 24 }, Color::black() );
+	painter_->fill_rectangle( { 0, 168, 240, 24 }, Color::black() );
 	
 	x_inc = 230.0 / (debug_text.length() - prelude_length);
 	
@@ -78,9 +77,9 @@ void EncodersView::draw_waveform() {
 			y = 0;
 		
 		// Edge
-		if (prev_y != y) painter_->draw_rectangle( { (Coord)x, 160, 1, 24 }, Color::yellow() );
+		if (prev_y != y) painter_->draw_rectangle( { (Coord)x, 168, 1, 24 }, Color::yellow() );
 		// Level
-		painter_->draw_rectangle( { (Coord)x, 160 + y, ceil(x_inc), 1 }, Color::yellow() );
+		painter_->draw_rectangle( { (Coord)x, 168 + y, (int)ceil(x_inc), 1 }, Color::yellow() );
 		
 		prev_y = y;
 		x += x_inc;
@@ -164,7 +163,7 @@ void EncodersView::on_txdone(int n) {
 }
 
 void EncodersView::start_tx(const bool scan) {
-	char ook_bitstream[64];
+	char ook_bitstream[256];
 	uint32_t ook_bitstream_length;
 	
 	/*if (scan) {
@@ -188,7 +187,7 @@ void EncodersView::start_tx(const bool scan) {
 	generate_frame();
 	
 	// Clear bitstream
-	memset(ook_bitstream, 0, 64);
+	memset(ook_bitstream, 0, 256);
 	
 	size_t n = 0;
 	for (auto c : debug_text) {
@@ -197,7 +196,7 @@ void EncodersView::start_tx(const bool scan) {
 		n++;
 	}
 	
-	ook_bitstream_length = n; // - 1;
+	ook_bitstream_length = n;
 
 	transmitter_model.set_tuning_frequency(433920000);		// TODO: Make modifiable !
 	transmitter_model.set_baseband_configuration({
@@ -211,22 +210,23 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	memcpy(shared_memory.tx_data, ook_bitstream, 64);
+	memcpy(shared_memory.tx_data, ook_bitstream, 256);
 	
 	baseband::set_ook_data(
 		ook_bitstream_length,
 		// 2280000/2 = 1140000Hz = 0,877192982us
-		// numberfield_clk.value() / encoder_def->clk_per_symbol
+		// numberfield_clk.value() / encoder_def->clk_per_fragment
 		// 455000 / 12 = 37917Hz = 26,37339452us
-		228000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_symbol),
+		228000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_fragment),
 		encoder_def->repeat_min,
 		encoder_def->pause_symbols
 	);
 }
 
 void EncodersView::on_type_change(size_t index) {
-	std::string word_format;
-	//size_t data_length;
+	std::string word_format, format_string = "";
+	size_t word_length;
+	char symbol_type;
 	//size_t address_length;
 	
 	enc_type = index;
@@ -235,8 +235,26 @@ void EncodersView::on_type_change(size_t index) {
 
 	numberfield_clk.set_value(encoder_def->default_frequency / 1000);
 	
-	bitfield.set_length(encoder_def->word_length);
-	bitfield.set_range(0, encoder_def->address_bit_states - 1);
+	// SymField setup
+	word_length = encoder_def->word_length;
+	symfield_word.set_length(word_length);
+	size_t n = 0, i = 0;
+	while (n < word_length) {
+		symbol_type = encoder_def->word_format.at(i++);
+		if (symbol_type == 'A') {
+			symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
+			format_string += 'A';
+		} else if (symbol_type == 'D') {
+			symfield_word.set_symbol_list(n++, encoder_def->data_symbols);
+			format_string += 'D';
+		}
+	}
+	
+	// Ugly :( Pad to erase
+	while (format_string.length() < 24)
+		format_string += ' ';
+	
+	text_format.set(format_string);
 	
 	/*word_format = encoder_def->word_format;
 	size_t address_start = word_format.find_first_of("A");
@@ -281,6 +299,7 @@ void EncodersView::on_type_change(size_t index) {
 }
 
 void EncodersView::on_show() {
+	// TODO: Remove ?
 	options_enctype.set_selected_index(enc_type);
 	on_type_change(enc_type);
 }
@@ -295,6 +314,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 	
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 	
+	// Default encoder def
 	encoder_def = &encoder_defs[0];
 
 	add_children({ {
@@ -309,8 +329,9 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&text_wordduration,
 		&numberfield_wordduration,
 		&text_us2,
-		&text_bitfield,
-		&bitfield,
+		&text_symfield,
+		&symfield_word,
+		&text_format,
 		//&text_format_a,	// DEBUG
 		//&text_format_d,	// DEBUG
 		&text_waveform,
@@ -319,44 +340,50 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&button_transmit
 	} });
 	
+	// Load encoder types
 	for (i = 0; i < ENC_TYPES_COUNT; i++)
 		enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
-	
-	options_enctype.set_options(enc_options);
-	options_enctype.set_selected_index(0);
-	
-	bitfield.on_change = [this]() {
-		this->generate_frame();
-	};
-	
-	button_transmit.set_style(&style_val);
 	
 	options_enctype.on_change = [this](size_t index, int32_t value) {
 		(void)value;
 		this->on_type_change(index);
 	};
 	
+	options_enctype.set_options(enc_options);
+	options_enctype.set_selected_index(0);
+	
+	symfield_word.on_change = [this]() {
+		this->generate_frame();
+	};
+	
+	button_transmit.set_style(&style_val);
+	
+	// Selecting input clock changes symbol and word duration
 	numberfield_clk.on_change = [this](int32_t value) {
-		int32_t new_value = 1000000 / (((float)value * 1000) / encoder_def->clk_per_bit);
+		//int32_t new_value = 1000000 / (((float)value * 1000) / encoder_def->clk_per_symbol);
+		// value is in kHz, new_value is in us
+		int32_t new_value = 1000000 / ((value * 1000) / encoder_def->clk_per_symbol);
 		if (new_value != numberfield_bitduration.value()) {
 			numberfield_bitduration.set_value(new_value, false);
 			numberfield_wordduration.set_value(new_value * encoder_def->word_length, false);
 		}
 	};
 	
+	// Selecting symbol duration changes input clock and word duration
 	numberfield_bitduration.on_change = [this](int32_t value) {
-		int32_t new_value = 1000000 / (((float)value * 1000) / encoder_def->clk_per_bit);
+		int32_t new_value = 1000000 / (((float)value * 1000) / encoder_def->clk_per_symbol);
 		if (new_value != numberfield_clk.value()) {
 			numberfield_clk.set_value(new_value, false);
 			numberfield_wordduration.set_value(value * encoder_def->word_length, false);
 		}
 	};
 	
+	// Selecting word duration changes input clock and symbol duration
 	numberfield_wordduration.on_change = [this](int32_t value) {
 		int32_t new_value = value / encoder_def->word_length;
 		if (new_value != numberfield_bitduration.value()) {
 			numberfield_bitduration.set_value(new_value, false);
-			numberfield_clk.set_value(1000000 / (((float)new_value * 1000) / encoder_def->clk_per_bit), false);
+			numberfield_clk.set_value(1000000 / (((float)new_value * 1000) / encoder_def->clk_per_symbol), false);
 		}
 	};
 
