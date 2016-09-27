@@ -4,15 +4,15 @@ HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [Hack
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
-It is build on top of [Sharebrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
+It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
-As its name implies, HAVOC's functionalities can be fun (or mean). So mean, you shouldn't use them. We never did.
+As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. We never did.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
 # Fork features
 
-* "Soundboard" wave file player from µSD (put in /wav directory)
+* "Soundboard" wave file player from µSD (put 8-bit mono files in /wav directory)
 * POCSAG 1200 alphanumeric receiver/decoder
 * Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, some garage doors, ...)
 * Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
@@ -53,7 +53,9 @@ About the PWM RSSI output: Frequency is 800Hz in NFM and 500Hz in WFM. The data 
 
 # Thanks
 
-Sig and cLx for discovery and research on AFSK LCR and Xylos. Keld Norman for ideas and suggestions.
+* Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
+* Rainer Matla for the donation :)
+* Keld Norman for ideas and suggestions
 
 # License
 
