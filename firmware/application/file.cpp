@@ -130,7 +130,7 @@ static std::filesystem::path find_last_file_matching_pattern(const std::filesyst
 	std::filesystem::path last_match;
 	for(const auto& entry : std::filesystem::directory_iterator(u"", pattern)) {
 		if( std::filesystem::is_regular_file(entry.status()) ) {
-			const auto match = entry.path();
+			const auto& match = entry.path();
 			if( match > last_match ) {
 				last_match = match;
 			}
