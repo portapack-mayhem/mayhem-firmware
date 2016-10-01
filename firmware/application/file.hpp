@@ -158,6 +158,7 @@ private:
 	string_type _s;
 };
 
+bool operator<(const path& lhs, const path& rhs);
 bool operator>(const path& lhs, const path& rhs);
 
 using file_status = BYTE;
@@ -177,6 +178,10 @@ struct directory_entry : public FILINFO {
 	file_status status() const {
 		return fattrib;
 	}
+
+	std::uintmax_t size() const {
+		return fsize;
+	};
 
 	const std::filesystem::path path() const noexcept { return { fname }; };
 };
@@ -221,6 +226,7 @@ inline directory_iterator end(const directory_iterator&) noexcept { return { }; 
 
 inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) { return lhs.impl != rhs.impl; };
 
+bool is_directory(const file_status s);
 bool is_regular_file(const file_status s);
 
 space_info space(const path& p);

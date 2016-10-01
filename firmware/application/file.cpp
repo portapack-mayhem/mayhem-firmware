@@ -251,6 +251,10 @@ path& path::replace_extension(const path& replacement) {
 	return *this;
 }
 
+bool operator<(const path& lhs, const path& rhs) {
+	return lhs.native() < rhs.native();
+}
+
 bool operator>(const path& lhs, const path& rhs) {
 	return lhs.native() > rhs.native();
 }
@@ -274,6 +278,10 @@ directory_iterator& directory_iterator::operator++() {
 		impl.reset();
 	}
 	return *this;
+}
+
+bool is_directory(const file_status s) {
+	return (s & AM_DIR);
 }
 
 bool is_regular_file(const file_status s) {
