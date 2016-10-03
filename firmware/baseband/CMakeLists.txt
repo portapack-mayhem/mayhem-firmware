@@ -258,6 +258,7 @@ macro(DeclareTargets chunk_tag name)
 	include_directories(. ${INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
 	add_custom_command(
 		OUTPUT ${PROJECT_NAME}.bin ${PROJECT_NAME}.img
