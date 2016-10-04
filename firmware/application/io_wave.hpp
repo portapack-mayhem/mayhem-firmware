@@ -29,6 +29,55 @@
 #include <cstddef>
 #include <cstdint>
 
+struct fmt_pcm_t {
+	constexpr fmt_pcm_t(
+		const uint32_t sampling_rate
+	) : nSamplesPerSec { sampling_rate },
+		nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
+	{
+	}
+
+private:
+	uint8_t ckID[4] { 'f', 'm', 't', ' ' };
+	uint32_t cksize { 16 };
+	uint16_t wFormatTag { 0x0001 };
+	uint16_t nChannels { 1 };
+	uint32_t nSamplesPerSec;
+	uint32_t nAvgBytesPerSec;
+	uint16_t nBlockAlign { 2 };
+	uint16_t wBitsPerSample { 16 };
+};
+
+struct data_t {
+	constexpr data_t(
+		const uint32_t size
+	) : cksize { size }
+	{
+	}
+
+private:
+	uint8_t ckID[4] { 'd', 'a', 't', 'a' };
+	uint32_t cksize { 0 };
+};
+
+struct header_t {
+	constexpr header_t(
+		const uint32_t sampling_rate,
+		const uint32_t data_chunk_size
+	) : cksize { sizeof(header_t) + data_chunk_size - 8 },
+		fmt { sampling_rate },
+		data { data_chunk_size }
+	{
+	}
+
+private:
+	uint8_t riff_id[4] { 'R', 'I', 'F', 'F' };
+	uint32_t cksize { 0 };
+	uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
+	fmt_pcm_t fmt;
+	data_t data;
+};
+
 class WAVFileWriter : public FileWriter {
 public:
 	WAVFileWriter() = default;
@@ -56,55 +105,6 @@ public:
 	}
 
 private:
-	struct fmt_pcm_t {
-		constexpr fmt_pcm_t(
-			const uint32_t sampling_rate
-		) : nSamplesPerSec { sampling_rate },
-			nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
-		{
-		}
-
-	private:
-		uint8_t ckID[4] { 'f', 'm', 't', ' ' };
-		uint32_t cksize { 16 };
-		uint16_t wFormatTag { 0x0001 };
-		uint16_t nChannels { 1 };
-		uint32_t nSamplesPerSec;
-		uint32_t nAvgBytesPerSec;
-		uint16_t nBlockAlign { 2 };
-		uint16_t wBitsPerSample { 16 };
-	};
-
-	struct data_t {
-		constexpr data_t(
-			const uint32_t size
-		) : cksize { size }
-		{
-		}
-
-	private:
-		uint8_t ckID[4] { 'd', 'a', 't', 'a' };
-		uint32_t cksize { 0 };
-	};
-
-	struct header_t {
-		constexpr header_t(
-			const uint32_t sampling_rate,
-			const uint32_t data_chunk_size
-		) : cksize { sizeof(header_t) + data_chunk_size - 8 },
-			fmt { sampling_rate },
-			data { data_chunk_size }
-		{
-		}
-
-	private:
-		uint8_t riff_id[4] { 'R', 'I', 'F', 'F' };
-		uint32_t cksize { 0 };
-		uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
-		fmt_pcm_t fmt;
-		data_t data;
-	};
-
 	uint32_t sampling_rate;
 	uint32_t bytes_written;
 
