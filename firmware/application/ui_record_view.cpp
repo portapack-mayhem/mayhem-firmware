@@ -121,10 +121,8 @@ void RecordView::start() {
 	switch(file_type) {
 	case FileType::WAV:
 		{
-			auto p = std::make_unique<WAVFileWriter>(
-				sampling_rate
-			);
-			auto create_error = p->create(base_path.replace_extension(u".WAV"));
+			auto p = std::make_unique<WAVFileWriter>();
+			auto create_error = p->create(base_path.replace_extension(u".WAV"), sampling_rate);
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {
