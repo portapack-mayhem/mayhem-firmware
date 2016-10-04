@@ -19,49 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CAPTURE_THREAD_H__
-#define __CAPTURE_THREAD_H__
-
-#include "ch.h"
-
-#include "event_m0.hpp"
+#pragma once
 
 #include "io.hpp"
+
+#include "file.hpp"
 #include "optional.hpp"
 
 #include <cstdint>
-#include <cstddef>
-#include <utility>
 
-class CaptureThread {
+class FileWriter : public Writer {
 public:
-	CaptureThread(
-		std::unique_ptr<Writer> writer,
-		size_t write_size,
-		size_t buffer_count,
-		std::function<void()> success_callback,
-		std::function<void(File::Error)> error_callback
-	);
-	~CaptureThread();
+	FileWriter() = default;
 
-	const CaptureConfig& state() const {
-		return config;
+	FileWriter(const FileWriter&) = delete;
+	FileWriter& operator=(const FileWriter&) = delete;
+	FileWriter(FileWriter&& file) = delete;
+	FileWriter& operator=(FileWriter&&) = delete;
+
+	Optional<File::Error> create(const std::filesystem::path& filename) {
+		return file.create(filename);
 	}
 
-	static void check_fifo_isr();
+	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override {
+		auto write_result = file.write(buffer, bytes) ;
+		if( write_result.is_ok() ) {
+			bytes_written += write_result.value();
+		}
+		return write_result;
+	}
 
-private:
-	static constexpr auto event_mask_loop_wake = EVENT_MASK(0);
-
-	CaptureConfig config;
-	std::unique_ptr<Writer> writer;
-	std::function<void()> success_callback;
-	std::function<void(File::Error)> error_callback;
-	static Thread* thread;
-
-	static msg_t static_fn(void* arg);
-
-	Optional<File::Error> run();
+protected:
+	File file;
+	uint64_t bytes_written { 0 };
 };
 
-#endif/*__CAPTURE_THREAD_H__*/
+using RawFileWriter = FileWriter;
