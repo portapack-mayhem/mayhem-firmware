@@ -94,35 +94,11 @@ public:
 	Optional<File::Error> create(
 		const std::filesystem::path& filename,
 		size_t sampling_rate
-	) {
-		sampling_rate = sampling_rate;
-		const auto create_error = FileWriter::create(filename);
-		if( create_error.is_valid() ) {
-			return create_error;
-		} else {
-			return update_header();
-		}
-	}
+	);
 
 private:
 	uint32_t sampling_rate;
 	uint32_t bytes_written;
 
-	Optional<File::Error> update_header() {
-		header_t header { sampling_rate, bytes_written };
-		const auto seek_0_result = file.seek(0);
-		if( seek_0_result.is_error() ) {
-			return seek_0_result.error();
-		}
-		const auto old_position = seek_0_result.value();
-		const auto write_result = file.write(&header, sizeof(header));
-		if( write_result.is_error() ) {
-			return write_result.error();
-		}
-		const auto seek_old_result = file.seek(old_position);
-		if( seek_old_result.is_error() ) {
-			return seek_old_result.error();
-		}
-		return { };
-	}
+	Optional<File::Error> update_header();
 };

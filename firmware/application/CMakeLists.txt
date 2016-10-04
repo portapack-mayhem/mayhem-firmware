@@ -175,6 +175,8 @@ set(CPPSRC
 	log_file.cpp
 	${COMMON}/png_writer.cpp
 	capture_thread.cpp
+	io_file.cpp
+	io_wave.cpp
 	${COMMON}/manchester.cpp
 	string_format.cpp
 	temperature_logger.cpp

@@ -19,33 +19,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "io_file.hpp"
 
-#include "io.hpp"
-
-#include "file.hpp"
-#include "optional.hpp"
-
-#include <cstdint>
-
-class FileWriter : public Writer {
-public:
-	FileWriter() = default;
-
-	FileWriter(const FileWriter&) = delete;
-	FileWriter& operator=(const FileWriter&) = delete;
-	FileWriter(FileWriter&& file) = delete;
-	FileWriter& operator=(FileWriter&&) = delete;
-
-	Optional<File::Error> create(const std::filesystem::path& filename) {
-		return file.create(filename);
+File::Result<File::Size> FileWriter::write(const void* const buffer, const File::Size bytes) {
+	auto write_result = file.write(buffer, bytes) ;
+	if( write_result.is_ok() ) {
+		bytes_written += write_result.value();
 	}
-
-	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
-	
-protected:
-	File file;
-	uint64_t bytes_written { 0 };
-};
-
-using RawFileWriter = FileWriter;
+	return write_result;
+}
