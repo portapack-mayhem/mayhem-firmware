@@ -37,7 +37,6 @@ public:
 	}
 
 	bool put_empty(StreamBuffer* const p) {
-		p->empty();
 		return fifo_buffers_empty->in(p);
 	}
 
@@ -138,6 +137,7 @@ Optional<File::Error> CaptureThread::run() {
 			if( write_result.is_error() ) {
 				return write_result.error();
 			}
+			buffer->empty();
 			stream.put_empty(buffer);
 		} else {
 			chEvtWaitAny(event_mask_loop_wake);
