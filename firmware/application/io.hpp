@@ -23,6 +23,12 @@
 
 #include "file.hpp"
 
+class Reader {
+public:
+	virtual File::Result<File::Size> read(void* const buffer, const File::Size bytes) = 0;
+	virtual ~Reader() = default;
+};
+
 class Writer {
 public:
 	virtual File::Result<File::Size> write(const void* const buffer, const File::Size bytes) = 0;
