@@ -117,7 +117,7 @@ void RecordView::start() {
 		return;
 	}
 
-	std::unique_ptr<Writer> writer;
+	std::unique_ptr<stream::Writer> writer;
 	switch(file_type) {
 	case FileType::WAV:
 		{

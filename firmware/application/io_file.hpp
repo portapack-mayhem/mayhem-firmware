@@ -28,7 +28,7 @@
 
 #include <cstdint>
 
-class FileWriter : public Writer {
+class FileWriter : public stream::Writer {
 public:
 	FileWriter() = default;
 

@@ -36,7 +36,7 @@
 class CaptureThread {
 public:
 	CaptureThread(
-		std::unique_ptr<Writer> writer,
+		std::unique_ptr<stream::Writer> writer,
 		size_t write_size,
 		size_t buffer_count,
 		std::function<void()> success_callback,
@@ -54,7 +54,7 @@ private:
 	static constexpr auto event_mask_loop_wake = EVENT_MASK(0);
 
 	CaptureConfig config;
-	std::unique_ptr<Writer> writer;
+	std::unique_ptr<stream::Writer> writer;
 	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;
 	static Thread* thread;

@@ -75,7 +75,7 @@ StreamOutput::~StreamOutput() {
 Thread* CaptureThread::thread = nullptr;
 
 CaptureThread::CaptureThread(
-	std::unique_ptr<Writer> writer,
+	std::unique_ptr<stream::Writer> writer,
 	size_t write_size,
 	size_t buffer_count,
 	std::function<void()> success_callback,
