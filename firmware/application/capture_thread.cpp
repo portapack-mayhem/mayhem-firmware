@@ -30,19 +30,25 @@ public:
 	StreamOutput(CaptureConfig* const config);
 	~StreamOutput();
 
-	size_t available() {
-		return fifo_buffers_full->len();
+	StreamBuffer* get_empty() {
+		StreamBuffer* p { nullptr };
+		fifo_buffers_empty->out(p);
+		return p;
 	}
 
-	StreamBuffer* get_buffer() {
+	bool put_empty(StreamBuffer* const p) {
+		p->empty();
+		return fifo_buffers_empty->in(p);
+	}
+
+	StreamBuffer* get_full() {
 		StreamBuffer* p { nullptr };
 		fifo_buffers_full->out(p);
 		return p;
 	}
 
-	bool release_buffer(StreamBuffer* const p) {
-		p->empty();
-		return fifo_buffers_empty->in(p);
+	bool put_full(StreamBuffer* const p) {
+		return fifo_buffers_full->in(p);
 	}
 
 	static FIFO<StreamBuffer*>* fifo_buffers_empty;
@@ -126,13 +132,13 @@ Optional<File::Error> CaptureThread::run() {
 	StreamOutput stream { &config };
 
 	while( !chThdShouldTerminate() ) {
-		if( stream.available() ) {
-			auto buffer = stream.get_buffer();
+		auto buffer = stream.get_full();
+		if( buffer ) {
 			auto write_result = writer->write(buffer->data(), buffer->size());
 			if( write_result.is_error() ) {
 				return write_result.error();
 			}
-			stream.release_buffer(buffer);
+			stream.put_empty(buffer);
 		} else {
 			chEvtWaitAny(event_mask_loop_wake);
 		}
