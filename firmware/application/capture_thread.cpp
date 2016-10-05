@@ -23,55 +23,59 @@
 
 #include "baseband_api.hpp"
 
-// StreamOutput ///////////////////////////////////////////////////////////
+// BufferExchange ///////////////////////////////////////////////////////////
 
-class StreamOutput {
+class BufferExchange {
 public:
-	StreamOutput(CaptureConfig* const config);
-	~StreamOutput();
+	BufferExchange(CaptureConfig* const config);
+	~BufferExchange();
 
-	StreamBuffer* get_empty() {
+#if defined(LPC43XX_M0)
+	StreamBuffer* get() {
 		StreamBuffer* p { nullptr };
-		fifo_buffers_empty->out(p);
+		fifo_buffers_for_application->out(p);
 		return p;
 	}
 
-	bool put_empty(StreamBuffer* const p) {
-		return fifo_buffers_empty->in(p);
+	bool put(StreamBuffer* const p) {
+		return fifo_buffers_for_baseband->in(p);
 	}
+#endif
 
-	StreamBuffer* get_full() {
+#if defined(LPC43XX_M4)
+	StreamBuffer* get() {
 		StreamBuffer* p { nullptr };
-		fifo_buffers_full->out(p);
+		fifo_buffers_for_baseband->out(p);
 		return p;
 	}
 
-	bool put_full(StreamBuffer* const p) {
-		return fifo_buffers_full->in(p);
+	bool put(StreamBuffer* const p) {
+		return fifo_buffers_for_application->in(p);
 	}
+#endif
 
-	static FIFO<StreamBuffer*>* fifo_buffers_empty;
-	static FIFO<StreamBuffer*>* fifo_buffers_full;
+	static FIFO<StreamBuffer*>* fifo_buffers_for_baseband;
+	static FIFO<StreamBuffer*>* fifo_buffers_for_application;
 
 private:
 	CaptureConfig* const config;
 };
 
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_empty = nullptr;
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_full = nullptr;
+FIFO<StreamBuffer*>* BufferExchange::fifo_buffers_for_baseband = nullptr;
+FIFO<StreamBuffer*>* BufferExchange::fifo_buffers_for_application = nullptr;
 
-StreamOutput::StreamOutput(
+BufferExchange::BufferExchange(
 	CaptureConfig* const config
 ) : config { config }
 {
 	baseband::capture_start(config);
-	fifo_buffers_empty = config->fifo_buffers_empty;
-	fifo_buffers_full = config->fifo_buffers_full;
+	fifo_buffers_for_baseband = config->fifo_buffers_empty;
+	fifo_buffers_for_application = config->fifo_buffers_full;
 }
 
-StreamOutput::~StreamOutput() {
-	fifo_buffers_full = nullptr;
-	fifo_buffers_empty = nullptr;
+BufferExchange::~BufferExchange() {
+	fifo_buffers_for_baseband = nullptr;
+	fifo_buffers_for_application = nullptr;
 	baseband::capture_stop();
 }
 
@@ -106,7 +110,7 @@ CaptureThread::~CaptureThread() {
 void CaptureThread::check_fifo_isr() {
 	// TODO: Prevent over-signalling by transmitting a set of 
 	// flags from the baseband core.
-	const auto fifo = StreamOutput::fifo_buffers_full;
+	const auto fifo = BufferExchange::fifo_buffers_for_application;
 	if( fifo ) {
 		if( !fifo->is_empty() ) {
 			chEvtSignalI(thread, event_mask_loop_wake);
@@ -128,17 +132,17 @@ msg_t CaptureThread::static_fn(void* arg) {
 }
 
 Optional<File::Error> CaptureThread::run() {
-	StreamOutput stream { &config };
+	BufferExchange buffers { &config };
 
 	while( !chThdShouldTerminate() ) {
-		auto buffer = stream.get_full();
+		auto buffer = buffers.get();
 		if( buffer ) {
 			auto write_result = writer->write(buffer->data(), buffer->size());
 			if( write_result.is_error() ) {
 				return write_result.error();
 			}
 			buffer->empty();
-			stream.put_empty(buffer);
+			buffers.put(buffer);
 		} else {
 			chEvtWaitAny(event_mask_loop_wake);
 		}
