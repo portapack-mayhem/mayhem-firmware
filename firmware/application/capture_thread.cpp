@@ -22,66 +22,19 @@
 #include "capture_thread.hpp"
 
 #include "baseband_api.hpp"
+#include "buffer_exchange.hpp"
 
-// BufferExchange ///////////////////////////////////////////////////////////
-
-class BufferExchange {
-public:
-	BufferExchange(CaptureConfig* const config);
-	~BufferExchange();
-
-#if defined(LPC43XX_M0)
-	StreamBuffer* get() {
-		StreamBuffer* p { nullptr };
-		fifo_buffers_for_application->out(p);
-		return p;
+struct BasebandCapture {
+	BasebandCapture(CaptureConfig* const config) {
+		baseband::capture_start(config);
 	}
 
-	bool put(StreamBuffer* const p) {
-		return fifo_buffers_for_baseband->in(p);
+	~BasebandCapture() {
+		baseband::capture_stop();
 	}
-#endif
-
-#if defined(LPC43XX_M4)
-	StreamBuffer* get() {
-		StreamBuffer* p { nullptr };
-		fifo_buffers_for_baseband->out(p);
-		return p;
-	}
-
-	bool put(StreamBuffer* const p) {
-		return fifo_buffers_for_application->in(p);
-	}
-#endif
-
-	static FIFO<StreamBuffer*>* fifo_buffers_for_baseband;
-	static FIFO<StreamBuffer*>* fifo_buffers_for_application;
-
-private:
-	CaptureConfig* const config;
 };
 
-FIFO<StreamBuffer*>* BufferExchange::fifo_buffers_for_baseband = nullptr;
-FIFO<StreamBuffer*>* BufferExchange::fifo_buffers_for_application = nullptr;
-
-BufferExchange::BufferExchange(
-	CaptureConfig* const config
-) : config { config }
-{
-	baseband::capture_start(config);
-	fifo_buffers_for_baseband = config->fifo_buffers_empty;
-	fifo_buffers_for_application = config->fifo_buffers_full;
-}
-
-BufferExchange::~BufferExchange() {
-	fifo_buffers_for_baseband = nullptr;
-	fifo_buffers_for_application = nullptr;
-	baseband::capture_stop();
-}
-
 // CaptureThread //////////////////////////////////////////////////////////
-
-Thread* CaptureThread::thread = nullptr;
 
 CaptureThread::CaptureThread(
 	std::unique_ptr<stream::Writer> writer,
@@ -101,20 +54,8 @@ CaptureThread::CaptureThread(
 CaptureThread::~CaptureThread() {
 	if( thread ) {
 		chThdTerminate(thread);
-		chEvtSignal(thread, event_mask_loop_wake);
 		chThdWait(thread);
 		thread = nullptr;
-	}
-}
-
-void CaptureThread::check_fifo_isr() {
-	// TODO: Prevent over-signalling by transmitting a set of 
-	// flags from the baseband core.
-	const auto fifo = BufferExchange::fifo_buffers_for_application;
-	if( fifo ) {
-		if( !fifo->is_empty() ) {
-			chEvtSignalI(thread, event_mask_loop_wake);
-		}
 	}
 }
 
@@ -132,20 +73,17 @@ msg_t CaptureThread::static_fn(void* arg) {
 }
 
 Optional<File::Error> CaptureThread::run() {
+	BasebandCapture capture { &config };
 	BufferExchange buffers { &config };
 
 	while( !chThdShouldTerminate() ) {
 		auto buffer = buffers.get();
-		if( buffer ) {
-			auto write_result = writer->write(buffer->data(), buffer->size());
-			if( write_result.is_error() ) {
-				return write_result.error();
-			}
-			buffer->empty();
-			buffers.put(buffer);
-		} else {
-			chEvtWaitAny(event_mask_loop_wake);
+		auto write_result = writer->write(buffer->data(), buffer->size());
+		if( write_result.is_error() ) {
+			return write_result.error();
 		}
+		buffer->empty();
+		buffers.put(buffer);
 	}
 
 	return { };

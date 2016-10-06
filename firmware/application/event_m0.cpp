@@ -31,7 +31,7 @@
 
 #include "irq_controls.hpp"
 
-#include "capture_thread.hpp"
+#include "buffer_exchange.hpp"
 
 #include "ch.h"
 
@@ -48,7 +48,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	CaptureThread::check_fifo_isr();
+	BufferExchange::handle_isr();
 	EventDispatcher::check_fifo_isr();
 	chSysUnlockFromIsr();
 

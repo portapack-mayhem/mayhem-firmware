@@ -19,45 +19,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CAPTURE_THREAD_H__
-#define __CAPTURE_THREAD_H__
+#include "buffer_exchange.hpp"
 
-#include "ch.h"
+BufferExchange* BufferExchange::obj { nullptr };
 
-#include "event_m0.hpp"
+BufferExchange::BufferExchange(
+	CaptureConfig* const config
+) : config { config }
+{
+	obj = this;
+	fifo_buffers_for_baseband = config->fifo_buffers_empty;
+	fifo_buffers_for_application = config->fifo_buffers_full;
+}
 
-#include "io.hpp"
-#include "optional.hpp"
+BufferExchange::~BufferExchange() {
+	obj = nullptr;
+	fifo_buffers_for_baseband = nullptr;
+	fifo_buffers_for_application = nullptr;
+}
 
-#include <cstdint>
-#include <cstddef>
-#include <utility>
+StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
+	while(true) {
+		StreamBuffer* p { nullptr };
+		fifo->out(p);
+		if( p ) {
+			return p;
+		}
 
-class CaptureThread {
-public:
-	CaptureThread(
-		std::unique_ptr<stream::Writer> writer,
-		size_t write_size,
-		size_t buffer_count,
-		std::function<void()> success_callback,
-		std::function<void(File::Error)> error_callback
-	);
-	~CaptureThread();
-
-	const CaptureConfig& state() const {
-		return config;
+		chSysLock();
+		thread = chThdSelf();
+		chSchGoSleepS(THD_STATE_SUSPENDED);
+		chSysUnlock();
 	}
-
-private:
-	CaptureConfig config;
-	std::unique_ptr<stream::Writer> writer;
-	std::function<void()> success_callback;
-	std::function<void(File::Error)> error_callback;
-	Thread* thread;
-
-	static msg_t static_fn(void* arg);
-
-	Optional<File::Error> run();
-};
-
-#endif/*__CAPTURE_THREAD_H__*/
+}

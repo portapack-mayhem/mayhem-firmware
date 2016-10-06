@@ -174,6 +174,7 @@ set(CPPSRC
 	file.cpp
 	log_file.cpp
 	${COMMON}/png_writer.cpp
+	${COMMON}/buffer_exchange.cpp
 	capture_thread.cpp
 	io_file.cpp
 	io_wave.cpp
