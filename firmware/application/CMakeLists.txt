@@ -130,6 +130,7 @@ set(CPPSRC
 	rffc507x_spi.cpp
 	max2837.cpp
 	max5864.cpp
+	${COMMON}/buffer.cpp
 	debounce.cpp
 	touch.cpp
 	touch_adc.cpp

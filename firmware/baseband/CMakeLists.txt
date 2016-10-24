@@ -106,6 +106,7 @@ set(CPPSRC
 	baseband_dma.cpp
 	${COMMON}/baseband_sgpio.cpp
 	${COMMON}/portapack_shared_memory.cpp
+	${COMMON}/buffer.cpp
 	baseband_thread.cpp
 	baseband_processor.cpp
 	baseband_stats_collector.cpp
