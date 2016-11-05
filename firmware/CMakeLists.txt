@@ -20,6 +20,7 @@
 
 project(firmware)
 
+set(BASEBAND ${PROJECT_SOURCE_DIR}/baseband)
 set(COMMON ${PROJECT_SOURCE_DIR}/common)
 set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
