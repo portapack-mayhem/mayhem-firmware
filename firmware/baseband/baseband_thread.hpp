@@ -37,6 +37,11 @@ public:
 		const baseband::Direction direction = baseband::Direction::Receive
 	);
 	~BasebandThread();
+
+	BasebandThread(const BasebandThread&) = delete;
+	BasebandThread(BasebandThread&&) = delete;
+	BasebandThread& operator=(const BasebandThread&) = delete;
+	BasebandThread& operator=(BasebandThread&&) = delete;
 	
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.

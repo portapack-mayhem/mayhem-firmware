@@ -44,6 +44,11 @@ public:
 	);
 	~CaptureThread();
 
+	CaptureThread(const CaptureThread&) = delete;
+	CaptureThread(CaptureThread&&) = delete;
+	CaptureThread& operator=(const CaptureThread&) = delete;
+	CaptureThread& operator=(CaptureThread&&) = delete;
+
 	const CaptureConfig& state() const {
 		return config;
 	}

@@ -49,6 +49,11 @@ public:
 		ui::Context& context
 	);
 
+	EventDispatcher(const EventDispatcher&) = delete;
+	EventDispatcher(EventDispatcher&&) = delete;
+	EventDispatcher& operator=(const EventDispatcher&) = delete;
+	EventDispatcher& operator=(EventDispatcher&&) = delete;
+
 	void run();
 	static void request_stop();
 

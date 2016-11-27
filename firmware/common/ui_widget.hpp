@@ -64,6 +64,8 @@ public:
 
 	Widget(const Widget&) = delete;
 	Widget(Widget&&) = delete;
+	Widget& operator=(const Widget&) = delete;
+	Widget& operator=(Widget&&) = delete;
 
 	virtual ~Widget() = default;
 
@@ -228,6 +230,11 @@ public:
 		const Color foreground,
 		const Color background
 	);
+
+	Image(const Image&) = delete;
+	Image(Image&&) = delete;
+	Image& operator=(const Image&) = delete;
+	Image& operator=(Image&&) = delete;
 
 	void set_bitmap(const Bitmap* bitmap);
 	void set_foreground(const Color color);

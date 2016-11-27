@@ -76,6 +76,11 @@ class WaterfallWidget : public View {
 public:
 	WaterfallWidget();
 
+	WaterfallWidget(const WaterfallWidget&) = delete;
+	WaterfallWidget(WaterfallWidget&&) = delete;
+	WaterfallWidget& operator=(const WaterfallWidget&) = delete;
+	WaterfallWidget& operator=(WaterfallWidget&&) = delete;
+
 	void on_show() override;
 	void on_hide() override;
 

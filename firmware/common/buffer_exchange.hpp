@@ -32,6 +32,11 @@ public:
 	BufferExchange(CaptureConfig* const config);
 	~BufferExchange();
 
+	BufferExchange(const BufferExchange&) = delete;
+	BufferExchange(BufferExchange&&) = delete;
+	BufferExchange& operator=(const BufferExchange&) = delete;
+	BufferExchange& operator=(BufferExchange&&) = delete;
+
 #if defined(LPC43XX_M0)
 	bool empty() const {
 		return fifo_buffers_for_application->is_empty();

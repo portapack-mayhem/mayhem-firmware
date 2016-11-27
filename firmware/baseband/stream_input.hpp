@@ -34,6 +34,11 @@ class StreamInput {
 public:
 	StreamInput(CaptureConfig* const config);
 
+	StreamInput(const StreamInput&) = delete;
+	StreamInput(StreamInput&&) = delete;
+	StreamInput& operator=(const StreamInput&) = delete;
+	StreamInput& operator=(StreamInput&&) = delete;
+
 	size_t write(const void* const data, const size_t length);
 
 private:

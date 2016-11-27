@@ -92,6 +92,8 @@ public:
 
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;
+	NavigationView& operator=(const NavigationView&) = delete;
+	NavigationView& operator=(NavigationView&&) = delete;
 
 	bool is_top() const;
 
