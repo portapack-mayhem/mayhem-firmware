@@ -53,7 +53,7 @@ private:
 	std::unique_ptr<stream::Writer> writer;
 	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;
-	Thread* thread;
+	Thread* thread { nullptr };
 
 	static msg_t static_fn(void* arg);
 

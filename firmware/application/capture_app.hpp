@@ -92,7 +92,7 @@ private:
 		u"BBD_????", RecordView::FileType::RawS16, 16384, 3
 	};
 
-	spectrum::WaterfallWidget waterfall;
+	spectrum::WaterfallWidget waterfall { };
 };
 
 } /* namespace ui */

@@ -45,7 +45,7 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
@@ -55,19 +55,19 @@ private:
 		sizeof(dst) / sizeof(int16_t)
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
-	dsp::demodulate::FM demod;
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_1;
-	dsp::decimate::DecimateBy2CIC4Real audio_dec_2;
-	dsp::decimate::FIR64AndDecimateBy2Real audio_filter;
+	dsp::demodulate::FM demod { };
+	dsp::decimate::DecimateBy2CIC4Real audio_dec_1 { };
+	dsp::decimate::DecimateBy2CIC4Real audio_dec_2 { };
+	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { };
 
-	AudioOutput audio_output;
+	AudioOutput audio_output { };
 
-	SpectrumCollector channel_spectrum;
+	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 

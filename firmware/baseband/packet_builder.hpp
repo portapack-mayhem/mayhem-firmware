@@ -122,13 +122,13 @@ private:
 
 	const PayloadHandlerFunc payload_handler;
 
-	BitHistory bit_history;
-	PreambleMatcher preamble;
-	UnstuffMatcher unstuff;
-	EndMatcher end;
+	BitHistory bit_history { };
+	PreambleMatcher preamble { };
+	UnstuffMatcher unstuff { };
+	EndMatcher end { };
 
 	State state { State::Preamble };
-	baseband::Packet packet;
+	baseband::Packet packet { };
 
 	void reset_state() {
 		packet.clear();

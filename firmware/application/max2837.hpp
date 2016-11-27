@@ -897,7 +897,7 @@ private:
 	spi::arbiter::Target& _target;
 
 	RegisterMap _map { initial_register_values };
-	DirtyRegisters<Register, reg_count> _dirty;
+	DirtyRegisters<Register, reg_count> _dirty { };
 
 	void flush_one(const Register reg);
 

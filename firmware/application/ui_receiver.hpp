@@ -38,9 +38,9 @@ namespace ui {
 
 class FrequencyField : public Widget {
 public:
-	std::function<void(rf::Frequency)> on_change;
-	std::function<void(void)> on_edit;
-	std::function<void(void)> on_show_options;
+	std::function<void(rf::Frequency)> on_change { };
+	std::function<void(void)> on_edit { };
+	std::function<void(void)> on_show_options { };
 
 	using range_t = rf::FrequencyRange;
 
@@ -61,7 +61,7 @@ public:
 private:
 	const size_t length_;
 	const range_t range;
-	rf::Frequency value_;
+	rf::Frequency value_ { 0 };
 	rf::Frequency step { 25000 };
 
 	rf::Frequency clamp_value(rf::Frequency value);
@@ -135,8 +135,8 @@ public:
 private:
 	using array_type = std::array<char, N>;
 
-	array_type s;
-	Justify justify;
+	array_type s { };
+	Justify justify { Justify::Left };
 
 	template<typename Iterator>
 	void remove_zeros(Iterator begin, Iterator end) {
@@ -174,7 +174,7 @@ private:
 
 class FrequencyKeypadView : public View {
 public:
-	std::function<void(rf::Frequency)> on_changed;
+	std::function<void(rf::Frequency)> on_changed { };
 
 	FrequencyKeypadView(
 		NavigationView& nav,
@@ -201,7 +201,7 @@ private:
 		{ 0, 0, text_digits * button_w, button_h }
 	};
 
-	std::array<Button, 12> buttons;
+	std::array<Button, 12> buttons { };
 
 	Button button_close {
 		{ 0, button_h * 4 + button_h, button_w * 3, button_h },
@@ -257,8 +257,8 @@ public:
 
 class FrequencyOptionsView : public View {
 public:
-	std::function<void(rf::Frequency)> on_change_step;
-	std::function<void(int32_t)> on_change_reference_ppm_correction;
+	std::function<void(rf::Frequency)> on_change_step { };
+	std::function<void(int32_t)> on_change_reference_ppm_correction { };
 
 	FrequencyOptionsView(const Rect parent_rect, const Style* const style);
 
@@ -314,7 +314,7 @@ private:
 
 class LNAGainField : public NumberField {
 public:
-	std::function<void(void)> on_show_options;
+	std::function<void(void)> on_show_options { };
 
 	LNAGainField(Point parent_pos);
 
@@ -323,7 +323,7 @@ public:
 
 class VGAGainField : public NumberField {
 public:
-	std::function<void(void)> on_show_options;
+	std::function<void(void)> on_show_options { };
 
 	VGAGainField(Point parent_pos);
 
@@ -332,7 +332,7 @@ public:
 
 class TXGainField : public NumberField {
 public:
-	std::function<void(void)> on_show_options;
+	std::function<void(void)> on_show_options { };
 
 	TXGainField(Point parent_pos);
 

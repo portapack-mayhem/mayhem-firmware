@@ -41,7 +41,7 @@ namespace ui {
 
 class SystemStatusView : public View {
 public:
-	std::function<void(void)> on_back;
+	std::function<void(void)> on_back { };
 
 	SystemStatusView();
 
@@ -86,9 +86,9 @@ private:
 
 class NavigationView : public View {
 public:
-	std::function<void(const View&)> on_view_changed;
+	std::function<void(const View&)> on_view_changed { };
 
-	NavigationView() { }
+	NavigationView() = default;
 
 	NavigationView(const NavigationView&) = delete;
 	NavigationView(NavigationView&&) = delete;
@@ -107,7 +107,7 @@ public:
 	void focus() override;
 
 private:
-	std::vector<std::unique_ptr<View>> view_stack;
+	std::vector<std::unique_ptr<View>> view_stack { };
 	Widget* modal_view { nullptr };
 
 	Widget* view() const;
@@ -142,8 +142,8 @@ public:
 	Context& context() const override;
 
 private:
-	SystemStatusView status_view;
-	NavigationView navigation_view;
+	SystemStatusView status_view { };
+	NavigationView navigation_view { };
 	Context& context_;
 };
 

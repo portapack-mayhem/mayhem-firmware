@@ -86,7 +86,7 @@ private:
 
 	static Thread* thread;
 	volatile Result _result { Result::Incomplete };
-	Stats _stats;
+	Stats _stats { };
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<SDCardTestThread*>(arg);

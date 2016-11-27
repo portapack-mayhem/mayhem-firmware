@@ -78,7 +78,7 @@ private:
 
 	using EntryType = std::unique_ptr<CallbackEntry>;
 	
-	std::list<EntryType> entries;
+	std::list<EntryType> entries { };
 	SignalToken next_token = 1;
 };
 

@@ -48,8 +48,8 @@ private:
 	static Thread* thread;
 
 	BasebandProcessor* baseband_processor { nullptr };
-	baseband::Direction _direction;
-	uint32_t sampling_rate;
+	baseband::Direction _direction { baseband::Direction::Receive };
+	uint32_t sampling_rate { 0 };
 
 	void run() override;
 };

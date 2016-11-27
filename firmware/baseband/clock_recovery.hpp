@@ -60,7 +60,7 @@ public:
 	}
 
 private:
-	std::array<float, 3> t { { 0.0f, 0.0f, 0.0f } };
+	std::array<float, 3> t { };
 	size_t symbol_phase { 0 };
 };
 
@@ -154,9 +154,9 @@ public:
 	}
 
 private:
-	dsp::interpolation::LinearResampler resampler;
-	GardnerTimingErrorDetector timing_error_detector;
-	ErrorFilter error_filter;
+	dsp::interpolation::LinearResampler resampler { };
+	GardnerTimingErrorDetector timing_error_detector { };
+	ErrorFilter error_filter { };
 	const SymbolHandler symbol_handler;
 
 	void resampler_callback(const float interpolated_sample) {

@@ -66,8 +66,8 @@ public:
 private:
 	using samples_t = sample_t[];
 
-	std::unique_ptr<samples_t> samples_;
-	std::unique_ptr<taps_t> taps_reversed_;
+	std::unique_ptr<samples_t> samples_ { };
+	std::unique_ptr<taps_t> taps_reversed_ { };
 	size_t taps_count_ { 0 };
 	size_t decimation_factor_ { 1 };
 	size_t decimation_phase { 0 };

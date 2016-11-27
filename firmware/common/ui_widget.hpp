@@ -46,7 +46,7 @@ public:
 	}
 
 private:
-	FocusManager focus_manager_;
+	FocusManager focus_manager_ { };
 };
 
 class Widget {
@@ -161,7 +161,7 @@ public:
 	virtual std::string title() const;
 
 protected:
-	std::vector<Widget*> children_;
+	std::vector<Widget*> children_ { };
 
 	void invalidate_child(Widget* const widget);
 };
@@ -198,7 +198,7 @@ private:
 
 class Button : public Widget {
 public:
-	std::function<void(Button&)> on_select;
+	std::function<void(Button&)> on_select { };
 
 	Button(Rect parent_rect, std::string text);
 
@@ -243,7 +243,7 @@ private:
 
 class ImageButton : public Image {
 public:
-	std::function<void(ImageButton&)> on_select;
+	std::function<void(ImageButton&)> on_select { };
 
 	ImageButton(
 		const Rect parent_rect,
@@ -263,8 +263,8 @@ public:
 	using option_t = std::pair<name_t, value_t>;
 	using options_t = std::vector<option_t>;
 
-	std::function<void(size_t, value_t)> on_change;
-	std::function<void(void)> on_show_options;
+	std::function<void(size_t, value_t)> on_change { };
+	std::function<void(void)> on_show_options { };
 
 	OptionsField(Point parent_pos, size_t length, options_t options);
 
@@ -287,7 +287,7 @@ private:
 
 class NumberField : public Widget {
 public:
-	std::function<void(int32_t)> on_change;
+	std::function<void(int32_t)> on_change { };
 
 	using range_t = std::pair<int32_t, int32_t>;
 
@@ -309,7 +309,7 @@ private:
 	const int32_t step;
 	const size_t length_;
 	const char fill_char;
-	int32_t value_;
+	int32_t value_ { 0 };
 
 	int32_t clip_value(int32_t value);
 };

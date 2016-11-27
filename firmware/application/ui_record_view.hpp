@@ -37,7 +37,7 @@ namespace ui {
 
 class RecordView : public View {
 public:
-	std::function<void(std::string)> on_error;
+	std::function<void(std::string)> on_error { };
 
 	enum FileType {
 		RawS16 = 2,
@@ -77,7 +77,7 @@ private:
 	const size_t write_size;
 	const size_t buffer_count;
 	size_t sampling_rate { 0 };
-	SignalToken signal_token_tick_second;
+	SignalToken signal_token_tick_second { };
 
 	Rectangle rect_background {
 		Color::black()
@@ -105,7 +105,7 @@ private:
 		"",
 	};
 
-	std::unique_ptr<CaptureThread> capture_thread;
+	std::unique_ptr<CaptureThread> capture_thread { };
 
 	MessageHandlerRegistration message_handler_capture_thread_error {
 		Message::ID::CaptureThreadDone,

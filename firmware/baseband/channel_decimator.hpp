@@ -38,12 +38,6 @@ public:
 		By16,
 		By32,
 	};
-
-	constexpr ChannelDecimator(
-	) : decimation_factor { DecimationFactor::By32 },
-		fs_over_4_downconvert { true }
-	{
-	}
 	
 	constexpr ChannelDecimator(
 		const DecimationFactor decimation_factor,
@@ -64,17 +58,17 @@ public:
 	}
 
 private:
-	std::array<complex16_t, 1024> work_baseband;
+	std::array<complex16_t, 1024> work_baseband { };
 
-	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate;
-	dsp::decimate::Complex8DecimateBy2CIC3 cic_0;
-	dsp::decimate::DecimateBy2CIC3 cic_1;
-	dsp::decimate::DecimateBy2CIC3 cic_2;
-	dsp::decimate::DecimateBy2CIC3 cic_3;
-	dsp::decimate::DecimateBy2CIC3 cic_4;
+	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate { };
+	dsp::decimate::Complex8DecimateBy2CIC3 cic_0 { };
+	dsp::decimate::DecimateBy2CIC3 cic_1 { };
+	dsp::decimate::DecimateBy2CIC3 cic_2 { };
+	dsp::decimate::DecimateBy2CIC3 cic_3 { };
+	dsp::decimate::DecimateBy2CIC3 cic_4 { };
 
-	DecimationFactor decimation_factor;
-	const bool fs_over_4_downconvert;
+	DecimationFactor decimation_factor { DecimationFactor::By32 };
+	const bool fs_over_4_downconvert { true };
 
 	buffer_c16_t execute_decimation(const buffer_c8_t& buffer);
 

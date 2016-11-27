@@ -69,14 +69,14 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 
 	dsp::matched_filter::MatchedFilter mf_38k4_1t_19k2 { rect_taps_307k2_38k4_1t_19k2_p, 8 };
 

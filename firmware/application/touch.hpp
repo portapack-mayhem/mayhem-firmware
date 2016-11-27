@@ -154,13 +154,7 @@ const Calibration default_calibration();
 template<size_t N>
 class Filter {
 public:
-	constexpr Filter(
-	) : history(),
-		history_history { 0 },
-		accumulator { 0 },
-		n { 0 }
-	{
-	}
+	constexpr Filter() = default;
 
 	void reset() {
 		history.fill(0);
@@ -196,10 +190,10 @@ public:
 private:
 	static constexpr uint32_t history_history_mask { (1U << N) - 1 };
 
-	std::array<sample_t, N> history;
-	uint32_t history_history;
-	uint32_t accumulator;
-	size_t n;
+	std::array<sample_t, N> history { };
+	uint32_t history_history { 0 };
+	uint32_t accumulator { 0 };
+	size_t n { 0 };
 
 	bool history_valid() const {
 		return (history_history & history_history_mask) == history_history_mask;
@@ -208,7 +202,7 @@ private:
 
 class Manager {
 public:
-	std::function<void(ui::TouchEvent)> on_event;
+	std::function<void(ui::TouchEvent)> on_event { };
 
 	void feed(const Frame& frame);
 
@@ -224,8 +218,8 @@ private:
 
 	// Ensure filter length is equal or less than touch_count_threshold,
 	// or coordinates from the last touch will be in the initial averages.
-	Filter<touch_count_threshold> filter_x;
-	Filter<touch_count_threshold> filter_y;
+	Filter<touch_count_threshold> filter_x { };
+	Filter<touch_count_threshold> filter_y { };
 
 	//Debounce touch_debounce;
 

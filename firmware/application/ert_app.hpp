@@ -72,7 +72,7 @@ struct ERTRecentEntry {
 
 	size_t received_count { 0 };
 
-	ert::Consumption last_consumption;
+	ert::Consumption last_consumption { };
 
 	ERTRecentEntry(
 		const Key& key
@@ -97,7 +97,7 @@ public:
 	void on_packet(const ert::Packet& packet);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
 using ERTRecentEntries = RecentEntries<ERTRecentEntry>;
@@ -126,8 +126,8 @@ public:
 	std::string title() const override { return "ERT"; };
 
 private:
-	ERTRecentEntries recent;
-	std::unique_ptr<ERTLogger> logger;
+	ERTRecentEntries recent { };
+	std::unique_ptr<ERTLogger> logger { };
 
 	const RecentEntriesColumns columns { {
 		{ "ID", 10 },

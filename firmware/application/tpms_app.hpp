@@ -54,9 +54,9 @@ struct TPMSRecentEntry {
 
 	size_t received_count { 0 };
 
-	Optional<Pressure> last_pressure;
-	Optional<Temperature> last_temperature;
-	Optional<tpms::Flags> last_flags;
+	Optional<Pressure> last_pressure { };
+	Optional<Temperature> last_temperature { };
+	Optional<tpms::Flags> last_flags { };
 
 	TPMSRecentEntry(
 		const Key& key
@@ -83,7 +83,7 @@ public:
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
 namespace ui {
@@ -150,8 +150,8 @@ private:
 		{ 18 * 8, 0 * 16 }
 	};
 
-	TPMSRecentEntries recent;
-	std::unique_ptr<TPMSLogger> logger;
+	TPMSRecentEntries recent { };
+	std::unique_ptr<TPMSLogger> logger { };
 
 	const RecentEntriesColumns columns { {
 		{ "Tp", 2 },

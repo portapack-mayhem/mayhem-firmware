@@ -127,7 +127,7 @@ class RecentEntriesTable : public Widget {
 public:
 	using Entry = typename Entries::value_type;
 
-	std::function<void(const Entry& entry)> on_select;
+	std::function<void(const Entry& entry)> on_select { };
 
 	RecentEntriesTable(
 		Entries& recent
@@ -231,7 +231,7 @@ class RecentEntriesView : public View {
 public:
 	using Entry = typename Entries::value_type;
 
-	std::function<void(const Entry& entry)> on_select;
+	std::function<void(const Entry& entry)> on_select { };
 
 	RecentEntriesView(
 		const RecentEntriesColumns& columns,

@@ -86,8 +86,8 @@ public:
 	);
 
 private:
-	std::array<int16_t, taps_count + 2> z;
-	std::array<int16_t, taps_count> taps;
+	std::array<int16_t, taps_count + 2> z { };
+	std::array<int16_t, taps_count> taps { };
 };
 
 class FIRC8xR16x24FS4Decim4 {
@@ -115,8 +115,8 @@ public:
 	);
 	
 private:
-	std::array<vec2_s16, taps_count - decimation_factor> z_;
-	std::array<tap_t, taps_count> taps_;
+	std::array<vec2_s16, taps_count - decimation_factor> z_ { };
+	std::array<tap_t, taps_count> taps_ { };
 	int32_t output_scale = 0;
 };
 
@@ -145,8 +145,8 @@ public:
 	);
 	
 private:
-	std::array<vec2_s16, taps_count - decimation_factor> z_;
-	std::array<tap_t, taps_count> taps_;
+	std::array<vec2_s16, taps_count - decimation_factor> z_ { };
+	std::array<tap_t, taps_count> taps_ { };
 	int32_t output_scale = 0;
 };
 
@@ -169,8 +169,8 @@ public:
 	);
 	
 private:
-	std::array<vec2_s16, taps_count - decimation_factor> z_;
-	std::array<tap_t, taps_count> taps_;
+	std::array<vec2_s16, taps_count - decimation_factor> z_ { };
+	std::array<tap_t, taps_count> taps_ { };
 	int32_t output_scale = 0;
 };
 
@@ -193,8 +193,8 @@ public:
 	);
 	
 private:
-	std::array<vec2_s16, taps_count - decimation_factor> z_;
-	std::array<tap_t, taps_count> taps_;
+	std::array<vec2_s16, taps_count - decimation_factor> z_ { };
+	std::array<tap_t, taps_count> taps_ { };
 	int32_t output_scale = 0;
 };
 
@@ -208,11 +208,6 @@ public:
 	/* NOTE! Current code makes an assumption that block of samples to be
 	 * processed will be a multiple of the taps_count.
 	 */
-	FIRAndDecimateComplex(
-	) : taps_count_ { 0 },
-		decimation_factor_ { 1 }
-	{
-	}
 
 	template<typename T>
 	void configure(
@@ -230,10 +225,10 @@ public:
 private:
 	using samples_t = sample_t[];
 
-	std::unique_ptr<samples_t> samples_;
-	std::unique_ptr<taps_t> taps_reversed_;
-	size_t taps_count_;
-	size_t decimation_factor_;
+	std::unique_ptr<samples_t> samples_ { };
+	std::unique_ptr<taps_t> taps_reversed_ { };
+	size_t taps_count_ { 0 };
+	size_t decimation_factor_ { 1 };
 
 	template<typename T>
 	void configure(
@@ -259,7 +254,7 @@ public:
 	);
 
 private:
-	int16_t z[5];
+	int16_t z[5] { };
 };
 
 } /* namespace decimate */

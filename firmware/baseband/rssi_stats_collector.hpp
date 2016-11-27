@@ -69,7 +69,7 @@ public:
 
 private:
 	static constexpr float update_interval { 0.1f };
-	RSSIStatistics statistics;
+	RSSIStatistics statistics { };
 };
 
 #endif/*__RSSI_STATS_COLLECTOR_H__*/

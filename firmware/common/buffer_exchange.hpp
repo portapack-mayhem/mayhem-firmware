@@ -68,9 +68,9 @@ public:
 
 private:
 	CaptureConfig* const config;
-	FIFO<StreamBuffer*>* fifo_buffers_for_baseband;
-	FIFO<StreamBuffer*>* fifo_buffers_for_application;
-	Thread* thread;
+	FIFO<StreamBuffer*>* fifo_buffers_for_baseband { nullptr };
+	FIFO<StreamBuffer*>* fifo_buffers_for_application { nullptr };
+	Thread* thread { nullptr };
 	static BufferExchange* obj;
 
 	void check_fifo_isr() {

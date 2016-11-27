@@ -54,21 +54,21 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
 		19200, 9600, { 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
-	symbol_coding::NRZIDecoder nrzi_decode;
+	symbol_coding::NRZIDecoder nrzi_decode { };
 	PacketBuilder<BitPattern, BitPattern, BitPattern> packet_builder {
 		{ 0b0101010101111110, 16, 1 },
 		{ 0b111110, 6 },

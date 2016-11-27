@@ -94,7 +94,7 @@ private:
 
 	static Thread* thread_event_loop;
 
-	touch::Manager touch_manager;
+	touch::Manager touch_manager { };
 	ui::Widget* const top_widget;
 	ui::Painter painter;
 	ui::Context& context;

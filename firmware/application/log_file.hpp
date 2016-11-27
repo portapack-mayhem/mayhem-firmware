@@ -38,7 +38,7 @@ public:
 	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
-	File file;
+	File file { };
 
 	Optional<File::Error> write_line(const std::string& message);
 };

@@ -34,12 +34,6 @@
 
 class SpectrumCollector {
 public:
-	constexpr SpectrumCollector(
-	) : channel_spectrum_decimator { 1 },
-		fifo { fifo_data, ChannelSpectrumConfigMessage::fifo_k }
-	{
-	}
-
 	void on_message(const Message* const message);
 
 	void set_decimation_factor(const size_t decimation_factor);
@@ -51,13 +45,13 @@ public:
 	);
 
 private:
-	BlockDecimator<complex16_t, 256> channel_spectrum_decimator;
-	ChannelSpectrumFIFO fifo;
-	ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k];
+	BlockDecimator<complex16_t, 256> channel_spectrum_decimator { 1 };
+	ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k] { };
+	ChannelSpectrumFIFO fifo { fifo_data, ChannelSpectrumConfigMessage::fifo_k };
 
 	volatile bool channel_spectrum_request_update { false };
 	bool streaming { false };
-	std::array<std::complex<float>, 256> channel_spectrum;
+	std::array<std::complex<float>, 256> channel_spectrum { };
 	uint32_t channel_spectrum_sampling_rate { 0 };
 	uint32_t channel_filter_pass_frequency { 0 };
 	uint32_t channel_filter_stop_frequency { 0 };

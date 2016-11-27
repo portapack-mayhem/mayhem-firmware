@@ -85,7 +85,7 @@ public:
 
 private:
 	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
-	MapType map_;
+	MapType map_ { };
 };
 
 static MessageHandlerMap message_map;

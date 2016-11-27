@@ -44,7 +44,7 @@ public:
 	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
 	
 protected:
-	File file;
+	File file { };
 	uint64_t bytes_written { 0 };
 };
 

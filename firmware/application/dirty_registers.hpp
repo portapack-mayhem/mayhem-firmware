@@ -58,7 +58,7 @@ public:
 	}
 
 private:
-	mask_t mask;
+	mask_t mask { };
 };
 
 #endif/*__DIRTY_REGISTERS_H__*/

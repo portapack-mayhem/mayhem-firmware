@@ -84,8 +84,8 @@ public:
 	void paint(Painter& painter) override;
 
 private:
-	WaterfallView waterfall_view;
-	FrequencyScale frequency_scale;
+	WaterfallView waterfall_view { };
+	FrequencyScale frequency_scale { };
 	ChannelSpectrumFIFO* fifo { nullptr };
 
 	MessageHandlerRegistration message_handler_spectrum_config {

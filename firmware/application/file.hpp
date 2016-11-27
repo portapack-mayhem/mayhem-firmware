@@ -37,10 +37,7 @@ namespace std {
 namespace filesystem {
 
 struct filesystem_error {
-	constexpr filesystem_error(
-	) : err { FR_OK }
-	{
-	}
+	constexpr filesystem_error() = default;
 
 	constexpr filesystem_error(
 		FRESULT fatfs_error
@@ -61,7 +58,7 @@ struct filesystem_error {
 	std::string what() const;
 
 private:
-	uint32_t err;
+	uint32_t err { FR_OK };
 };
 
 struct path {
@@ -196,8 +193,8 @@ class directory_iterator {
 		}
 	};
 
-	std::shared_ptr<Impl> impl;
-	const path pattern;
+	std::shared_ptr<Impl> impl { };
+	const path pattern { };
 
 	friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
 
@@ -320,7 +317,7 @@ public:
 	Optional<Error> sync();
 
 private:
-	FIL f;
+	FIL f { };
 
 	Optional<Error> open_fatfs(const std::filesystem::path& filename, BYTE mode);
 };

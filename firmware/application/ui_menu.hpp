@@ -61,7 +61,7 @@ private:
 
 class MenuView : public View {
 public:
-	std::function<void(void)> on_left;
+	std::function<void(void)> on_left { };
 
 	MenuView() {
 		set_focusable(true);
