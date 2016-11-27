@@ -42,6 +42,12 @@ struct vec2_s16 {
 	}
 
 	constexpr vec2_s16(
+		const int16_t v
+	) : v { v, v }
+	{
+	}
+	
+	constexpr vec2_s16(
 		const int16_t v0,
 		const int16_t v1
 	) : v { v0, v1 }
