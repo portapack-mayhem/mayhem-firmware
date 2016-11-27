@@ -35,7 +35,7 @@ set(USE_OPT "-Os -g --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++11 -fno-rtti -fno-exceptions")
+set(USE_CPPOPT "-std=c++11 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
