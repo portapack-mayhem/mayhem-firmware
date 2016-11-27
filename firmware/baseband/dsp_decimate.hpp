@@ -255,6 +255,7 @@ public:
 
 private:
 	int16_t z[5] { };
+	int16_t _dummy { };	// TODO: Addresses GCC bug when constructing a class that's not sizeof() % 4 == 0?
 };
 
 } /* namespace decimate */
