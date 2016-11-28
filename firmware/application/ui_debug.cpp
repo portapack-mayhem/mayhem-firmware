@@ -164,7 +164,7 @@ void RegistersWidget::update() {
 }
 
 void RegistersWidget::paint(Painter& painter) {
-	const Coord left = (size().w - config.row_width()) / 2;
+	const Coord left = (size().width() - config.row_width()) / 2;
 
 	draw_legend(left, painter);
 	draw_values(left, painter);

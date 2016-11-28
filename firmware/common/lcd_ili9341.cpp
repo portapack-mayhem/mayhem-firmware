@@ -196,8 +196,8 @@ void lcd_start_ram_write(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x(), p.x() + s.w - 1);
-	lcd_paset(p.y(), p.y() + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.width()  - 1);
+	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramwr_start();
 }
 
@@ -205,8 +205,8 @@ void lcd_start_ram_read(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x(), p.x() + s.w - 1);
-	lcd_paset(p.y(), p.y() + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.width()  - 1);
+	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramrd_start();
 }
 
@@ -272,7 +272,7 @@ void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
 	if( !r_clipped.is_empty() ) {
 		lcd_start_ram_write(r_clipped);
-		size_t count = r_clipped.size.w * r_clipped.size.h;
+		size_t count = r_clipped.size.width() * r_clipped.size.height();
 		io.lcd_write_pixels(c, count);
 	}
 }
@@ -341,7 +341,7 @@ void ILI9341::draw_bitmap(
 ) {
 	lcd_start_ram_write(p, size);
 
-	const size_t count = size.w * size.h;
+	const size_t count = size.width() * size.height();
 	for(size_t i=0; i<count; i++) {
 		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
 		io.lcd_write_pixel(pixel ? foreground : background);

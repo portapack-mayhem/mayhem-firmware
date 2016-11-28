@@ -54,7 +54,7 @@ void MenuItemView::paint(Painter& painter) {
 	);
 
 	painter.draw_string(
-		{ r.pos.x() + 8, r.pos.y() + (r.size.h - font_height) / 2 },
+		{ r.pos.x() + 8, r.pos.y() + (r.size.height() - font_height) / 2 },
 		paint_style,
 		item.text
 	);
@@ -87,7 +87,7 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 	for(auto child : children_) {
 		child->set_parent_rect({
 			{ 0, static_cast<ui::Coord>(i * item_height) },
-			{ size().w, item_height }
+			{ size().width(), item_height }
 		});
 		i++;
 	}

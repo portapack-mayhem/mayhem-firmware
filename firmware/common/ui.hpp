@@ -135,25 +135,35 @@ public:
 };
 
 struct Size {
-	Dim w;
-	Dim h;
+private:
+	Dim _w;
+	Dim _h;
 
+public:
 	constexpr Size(
-	) : w { 0 },
-		h { 0 }
+	) : _w { 0 },
+		_h { 0 }
 	{
 	}
 
 	constexpr Size(
 		int w,
 		int h
-	) : w { static_cast<Dim>(w) },
-		h { static_cast<Dim>(h) }
+	) : _w { static_cast<Dim>(w) },
+		_h { static_cast<Dim>(h) }
 	{
 	}
 
+	int width() const {
+		return _w;
+	}
+
+	int height() const {
+		return _h;
+	}
+
 	bool is_empty() const {
-		return (w < 1) || (h < 1);
+		return (_w < 1) || (_h < 1);
 	}
 };
 
@@ -188,7 +198,7 @@ struct Rect {
 	}
 
 	int bottom() const {
-		return pos.y() + size.h;
+		return pos.y() + size.height();
 	}
 
 	int left() const {
@@ -196,19 +206,19 @@ struct Rect {
 	}
 
 	int right() const {
-		return pos.x() + size.w;
+		return pos.x() + size.width();
 	}
 
 	int width() const {
-		return size.w;
+		return size.width();
 	}
 
 	int height() const {
-		return size.h;
+		return size.height();
 	}
 
 	Point center() const {
-		return { pos.x() + size.w / 2, pos.y() + size.h / 2 };
+		return { pos.x() + size.width() / 2, pos.y() + size.height() / 2 };
 	}
 
 	bool is_empty() const {

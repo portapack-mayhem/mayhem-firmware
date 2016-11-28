@@ -112,7 +112,7 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 			(magnitude_n >= 6) ? "M" :
 			(magnitude_n >= 3) ? "k" : "";
 		const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
-		const auto label_width = style().font.size_of(label).w;
+		const auto label_width = style().font.size_of(label).width();
 		
 		const Coord offset_low = r.left() + x_center - pixel_offset;
 		const Rect tick_low { offset_low, r.top(), 1, r.height() };

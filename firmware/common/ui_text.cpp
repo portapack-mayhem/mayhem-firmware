@@ -44,8 +44,10 @@ Size Font::size_of(const std::string s) const {
 
 	for(const auto c : s) {
 		const auto glyph_data = glyph(c);
-		size.w += glyph_data.w();
-		size.h = std::max(size.h, glyph_data.h());
+		size = {
+			size.width() + glyph_data.w(),
+			std::max(size.height(), glyph_data.h())
+		};
 	}
 
 	return size;
