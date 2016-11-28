@@ -171,7 +171,7 @@ public:
 		history_history = (history_history << 1) | 1U;
 	}
 
-	uint32_t value() const {
+	int32_t value() const {
 		return accumulator / N;
 	}
 
@@ -192,7 +192,7 @@ private:
 
 	std::array<sample_t, N> history { };
 	uint32_t history_history { 0 };
-	uint32_t accumulator { 0 };
+	int32_t accumulator { 0 };
 	size_t n { 0 };
 
 	bool history_valid() const {
