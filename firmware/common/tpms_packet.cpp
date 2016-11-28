@@ -88,7 +88,7 @@ Optional<Reading> Packet::reading_ook_8k192_schrader() const {
 			reader_.read(3, 24),
 			Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
 			{ },
-			Flags { (flags << 4) | checksum }
+			Flags { static_cast<Flags>((flags << 4) | checksum) }
 		};
 	} else {
 		return { };
