@@ -49,11 +49,11 @@ bool is_dirty() {
 const std::vector<Widget*> Widget::no_children { };
 
 Point Widget::screen_pos() {
-	return screen_rect().pos;
+	return screen_rect().location();
 }
 
 Size Widget::size() const {
-	return parent_rect.size;
+	return parent_rect.size();
 }
 
 Rect Widget::screen_rect() const {
@@ -317,7 +317,7 @@ void Text::paint(Painter& painter) {
 	painter.fill_rectangle(rect, s.background);
 
 	painter.draw_string(
-		rect.pos,
+		rect.location(),
 		s,
 		text
 	);
@@ -351,13 +351,13 @@ void Button::paint(Painter& painter) {
 	painter.draw_rectangle(r, style().foreground);
 
 	painter.fill_rectangle(
-		{ r.pos.x() + 1, r.pos.y() + 1, r.size.width() - 2, r.size.height() - 2 },
+		{ r.left() + 1, r.top() + 1, r.width() - 2, r.height() - 2 },
 		paint_style.background
 	);
 
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
-		{ r.pos.x() + (r.size.width() - label_r.width()) / 2, r.pos.y() + (r.size.height() - label_r.height()) / 2 },
+		{ r.left() + (r.width() - label_r.width()) / 2, r.top() + (r.height() - label_r.height()) / 2 },
 		paint_style,
 		text_
 	);

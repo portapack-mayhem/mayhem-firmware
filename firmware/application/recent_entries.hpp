@@ -140,7 +140,7 @@ public:
 		const auto r = screen_rect();
 		const auto& s = style();
 
-		Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
+		Rect target_rect { r.location(), { r.width(), s.font.line_height() }};
 		const size_t visible_item_count = r.height() / s.font.line_height();
 
 		auto selected = find(recent, selected_key);

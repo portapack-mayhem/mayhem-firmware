@@ -91,7 +91,7 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, style, line);
+	painter.draw_string(target_rect.location(), style, line);
 }
 
 ERTAppView::ERTAppView(NavigationView&) {

@@ -213,13 +213,13 @@ void lcd_start_ram_read(
 void lcd_start_ram_write(
 	const ui::Rect& r
 ) {
-	lcd_start_ram_write(r.pos, r.size);
+	lcd_start_ram_write(r.location(), r.size());
 }
 
 void lcd_start_ram_read(
 	const ui::Rect& r
 ) {
-	lcd_start_ram_read(r.pos, r.size);
+	lcd_start_ram_read(r.location(), r.size());
 }
 
 void lcd_vertical_scrolling_definition(
@@ -272,7 +272,7 @@ void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
 	if( !r_clipped.is_empty() ) {
 		lcd_start_ram_write(r_clipped);
-		size_t count = r_clipped.size.width() * r_clipped.size.height();
+		size_t count = r_clipped.width() * r_clipped.height();
 		io.lcd_write_pixels(c, count);
 	}
 }
@@ -315,7 +315,7 @@ void ILI9341::draw_pixels(
 	const size_t count
 ) {
 	/* TODO: Assert that rectangle width x height < count */
-	lcd_start_ram_write(r.pos, r.size);
+	lcd_start_ram_write(r);
 	io.lcd_write_pixels(colors, count);
 }
 

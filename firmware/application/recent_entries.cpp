@@ -45,7 +45,7 @@ void RecentEntriesHeader::paint(Painter& painter) {
 		.foreground = parent_style.foreground,
 	};
 
-	auto p = r.pos;
+	auto p = r.location();
 	for(const auto& column : _columns) {
 		const auto width = column.second;
 		auto text = column.first;

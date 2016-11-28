@@ -51,21 +51,21 @@ Rect& Rect::operator+=(const Rect& p) {
 	if( !p.is_empty() ) {
 		const auto x1 = std::min(left(), p.left());
 		const auto y1 = std::min(top(), p.top());
-		pos = { x1, y1 };
+		_pos = { x1, y1 };
 		const auto x2 = std::max(right(), p.right());
 		const auto y2 = std::max(bottom(), p.bottom());
-		size = { x2 - x1, y2 - y1 };
+		_size = { x2 - x1, y2 - y1 };
 	}
 	return *this;
 }
 
 Rect& Rect::operator+=(const Point& p) {
-	pos += p;
+	_pos += p;
 	return *this;
 }
 
 Rect& Rect::operator-=(const Point& p) {
-	pos -= p;
+	_pos -= p;
 	return *this;
 }
 

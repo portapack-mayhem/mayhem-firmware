@@ -67,10 +67,10 @@ void Painter::draw_vline(Point p, int height, const Color c) {
 }
 
 void Painter::draw_rectangle(const Rect r, const Color c) {
-	draw_hline(r.pos, r.size.width(), c);
-	draw_vline({ r.pos.x(), r.pos.y() + 1 }, r.size.height() - 2, c);
-	draw_vline({ r.pos.x() + r.size.width() - 1, r.pos.y() + 1 }, r.size.height() - 2, c);
-	draw_hline({ r.pos.x(), r.pos.y() + r.size.height() - 1 }, r.size.width(), c);
+	draw_hline(r.location(), r.width(), c);
+	draw_vline({ r.left(), r.top() + 1 }, r.height() - 2, c);
+	draw_vline({ r.left() + r.width() - 1, r.top() + 1 }, r.height() - 2, c);
+	draw_hline({ r.left(), r.top() + r.height() - 1 }, r.width(), c);
 }
 
 void Painter::fill_rectangle(const Rect r, const Color c) {

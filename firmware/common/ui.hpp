@@ -168,61 +168,71 @@ public:
 };
 
 struct Rect {
-	Point pos;
-	Size size;
+private:
+	Point _pos;
+	Size _size;
 
+public:
 	constexpr Rect(
-	) : pos { },
-		size { }
+	) : _pos { },
+		_size { }
 	{
 	}
 
 	constexpr Rect(
 		int x, int y,
 		int w, int h
-	) : pos { x, y },
-		size { w, h }
+	) : _pos { x, y },
+		_size { w, h }
 	{
 	}
 
 	constexpr Rect(
 		Point pos,
 		Size size
-	) : pos(pos),
-		size(size)
+	) : _pos(pos),
+		_size(size)
 	{
 	}
 	
+	Point location() const {
+		return _pos;
+	}
+
+	Size size() const {
+		return _size;
+	}
+	
 	int top() const {
-		return pos.y();
+		return _pos.y();
 	}
 
 	int bottom() const {
-		return pos.y() + size.height();
+		return _pos.y() + _size.height();
 	}
 
 	int left() const {
-		return pos.x();
+		return _pos.x();
 	}
 
 	int right() const {
-		return pos.x() + size.width();
+		return _pos.x() + _size.width();
 	}
 
 	int width() const {
-		return size.width();
+		return _size.width();
 	}
 
 	int height() const {
-		return size.height();
+		return _size.height();
 	}
 
 	Point center() const {
-		return { pos.x() + size.width() / 2, pos.y() + size.height() / 2 };
+		return { _pos.x() + _size.width() / 2, _pos.y() + _size.height() / 2 };
 	}
 
 	bool is_empty() const {
-		return size.is_empty();
+		return _size.is_empty();
 	}
 
 	bool contains(const Point p) const;
@@ -230,7 +240,7 @@ struct Rect {
 	Rect intersect(const Rect& o) const;
 
 	Rect operator+(const Point& p) const {
-		return { pos + p, size };
+		return { _pos + p, _size };
 	}
 
 	Rect& operator+=(const Rect& p);
@@ -238,7 +248,7 @@ struct Rect {
 	Rect& operator-=(const Point& p);
 
 	operator bool() const {
-		return !size.is_empty();
+		return !_size.is_empty();
 	}
 };
 
