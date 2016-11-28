@@ -196,8 +196,8 @@ void lcd_start_ram_write(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x, p.x + s.w - 1);
-	lcd_paset(p.y, p.y + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.w - 1);
+	lcd_paset(p.y(), p.y() + s.h - 1);
 	lcd_ramwr_start();
 }
 
@@ -205,8 +205,8 @@ void lcd_start_ram_read(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x, p.x + s.w - 1);
-	lcd_paset(p.y, p.y + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.w - 1);
+	lcd_paset(p.y(), p.y() + s.h - 1);
 	lcd_ramrd_start();
 }
 
@@ -292,8 +292,8 @@ void ILI9341::fill_circle(
 			const bool inside = d2 < radius2;
 			const auto color = inside ? foreground : background;
 			draw_pixel({
-				static_cast<ui::Coord>(x + center.x),
-				static_cast<ui::Coord>(y + center.y)
+				static_cast<ui::Coord>(x + center.x()),
+				static_cast<ui::Coord>(y + center.y())
 			}, color);
 		}
 	}

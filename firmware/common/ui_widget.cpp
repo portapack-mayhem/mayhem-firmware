@@ -351,13 +351,13 @@ void Button::paint(Painter& painter) {
 	painter.draw_rectangle(r, style().foreground);
 
 	painter.fill_rectangle(
-		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
+		{ r.pos.x() + 1, r.pos.y() + 1, r.size.w - 2, r.size.h - 2 },
 		paint_style.background
 	);
 
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
-		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+		{ r.pos.x() + (r.size.w - label_r.w) / 2, r.pos.y() + (r.size.h - label_r.h) / 2 },
 		paint_style,
 		text_
 	);

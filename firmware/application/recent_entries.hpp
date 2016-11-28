@@ -155,7 +155,7 @@ public:
 			const auto is_selected_key = (selected_key == entry.key());
 			const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
 			draw(entry, target_rect, painter, item_style);
-			target_rect.pos.y += target_rect.height();
+			target_rect += { 0, target_rect.height() };
 		}
 
 		painter.fill_rectangle(

@@ -45,15 +45,15 @@ void Console::write(const std::string& message) {
 		} else {
 			const auto glyph = font.glyph(c);
 			const auto advance = glyph.advance();
-			if( (pos.x + advance.x) > rect.width() ) {
+			if( (pos.x() + advance.x()) > rect.width() ) {
 				crlf();
 			}
 			const Point pos_glyph {
-				rect.pos.x + pos.x,
-				display.scroll_area_y(pos.y)
+				rect.pos.x() + pos.x(),
+				display.scroll_area_y(pos.y())
 			};
 			display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
-			pos.x += advance.x;
+			pos += { advance.x(), 0 };
 		}
 	}
 }
@@ -86,14 +86,13 @@ void Console::crlf() {
 	const Style& s = style();
 	const auto sr = screen_rect();
 	const auto line_height = s.font.line_height();
-	pos.x = 0;
-	pos.y += line_height;
-	const int32_t y_excess = pos.y + line_height - sr.height();
+	pos = { 0, pos.y() + line_height };
+	const int32_t y_excess = pos.y() + line_height - sr.height();
 	if( y_excess > 0 ) {
 		display.scroll(-y_excess);
-		pos.y -= y_excess;
+		pos = { pos.x(), pos.y() - y_excess };
 
-		const Rect dirty { sr.left(), display.scroll_area_y(pos.y), sr.width(), line_height };
+		const Rect dirty { sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height };
 		display.fill_rectangle(dirty, s.background);
 	}
 }

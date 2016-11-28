@@ -54,7 +54,7 @@ void MenuItemView::paint(Painter& painter) {
 	);
 
 	painter.draw_string(
-		{ r.pos.x + 8, r.pos.y + (r.size.h - font_height) / 2 },
+		{ r.pos.x() + 8, r.pos.y() + (r.size.h - font_height) / 2 },
 		paint_style,
 		item.text
 	);

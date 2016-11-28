@@ -82,38 +82,54 @@ struct ColorRGB888 {
 };
 
 struct Point {
-	Coord x;
-	Coord y;
+private:
+	Coord _x;
+	Coord _y;
 
+public:
 	constexpr Point(
-	) : x { 0 },
-		y { 0 }
+	) : _x { 0 },
+		_y { 0 }
 	{
 	}
 
 	constexpr Point(
 		int x,
 		int y
-	) : x { static_cast<Coord>(x) },
-		y { static_cast<Coord>(y) }
+	) : _x { static_cast<Coord>(x) },
+		_y { static_cast<Coord>(y) }
 	{
 	}
 
-	Point operator-() const {
-		return { -x, -y };
+	constexpr int x() const {
+		return _x;
 	}
 
-	Point operator+(const Point& p) const {
-		return { x + p.x, y + p.y };
+	constexpr int y() const {
+		return _y;
 	}
 
-	Point operator-(const Point& p) const {
-		return { x - p.x, y - p.y };
+	constexpr Point operator-() const {
+		return { -_x, -_y };
+	}
+
+	constexpr Point operator+(const Point& p) const {
+		return { _x + p._x, _y + p._y };
+	}
+
+	constexpr Point operator-(const Point& p) const {
+		return { _x - p._x, _y - p._y };
 	}
 
 	Point& operator+=(const Point& p) {
-		x += p.x;
-		y += p.y;
+		_x += p._x;
+		_y += p._y;
+		return *this;
+	}
+
+	Point& operator-=(const Point& p) {
+		_x -= p._x;
+		_y -= p._y;
 		return *this;
 	}
 };
@@ -168,19 +184,19 @@ struct Rect {
 	}
 	
 	int top() const {
-		return pos.y;
+		return pos.y();
 	}
 
 	int bottom() const {
-		return pos.y + size.h;
+		return pos.y() + size.h;
 	}
 
 	int left() const {
-		return pos.x;
+		return pos.x();
 	}
 
 	int right() const {
-		return pos.x + size.w;
+		return pos.x() + size.w;
 	}
 
 	int width() const {
@@ -192,7 +208,7 @@ struct Rect {
 	}
 
 	Point center() const {
-		return { pos.x + size.w / 2, pos.y + size.h / 2 };
+		return { pos.x() + size.w / 2, pos.y() + size.h / 2 };
 	}
 
 	bool is_empty() const {
@@ -209,6 +225,7 @@ struct Rect {
 
 	Rect& operator+=(const Rect& p);
 	Rect& operator+=(const Point& p);
+	Rect& operator-=(const Point& p);
 
 	operator bool() const {
 		return !size.is_empty();

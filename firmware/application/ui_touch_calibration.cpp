@@ -92,8 +92,8 @@ void TouchCalibrationView::set_phase(const Phase value) {
 
 uint32_t TouchCalibrationView::distance_squared(const Point& touch_point, const Image& target) {
 	const auto target_point = target.screen_rect().center();
-	const int32_t dx = target_point.x - touch_point.x;
-	const int32_t dy = target_point.y - touch_point.y;
+	const int32_t dx = target_point.x() - touch_point.x();
+	const int32_t dy = target_point.y() - touch_point.y();
 	const uint32_t dx2 = dx * dx;
 	const uint32_t dy2 = dy * dy;
 	return dx2 + dy2;

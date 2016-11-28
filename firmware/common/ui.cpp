@@ -26,8 +26,8 @@
 namespace ui {
 
 bool Rect::contains(const Point p) const {
-	return (p.x >= left()) && (p.y >= top()) &&
-	       (p.x < right()) && (p.y < bottom());
+	return (p.x() >= left()) && (p.y() >= top()) &&
+	       (p.x() < right()) && (p.y() < bottom());
 }
 
 Rect Rect::intersect(const Rect& o) const {
@@ -61,6 +61,11 @@ Rect& Rect::operator+=(const Rect& p) {
 
 Rect& Rect::operator+=(const Point& p) {
 	pos += p;
+	return *this;
+}
+
+Rect& Rect::operator-=(const Point& p) {
+	pos -= p;
 	return *this;
 }
 
