@@ -70,8 +70,8 @@ public:
 	constexpr OOKClockRecovery(
 		const float samples_per_symbol
 	) : symbol_phase_inc_nominal { static_cast<uint32_t>(std::round((1ULL << 32) / samples_per_symbol)) },
-		symbol_phase_inc_k { symbol_phase_inc_nominal * (2.0f / 8.0f) / samples_per_symbol },
-		phase_detector { samples_per_symbol },
+		symbol_phase_inc_k { static_cast<uint32_t>(std::round(symbol_phase_inc_nominal * (2.0f / 8.0f) / samples_per_symbol)) },
+		phase_detector { static_cast<size_t>(std::round(samples_per_symbol)) },
 		phase_accumulator { symbol_phase_inc_nominal }
 	{
 	}
