@@ -273,7 +273,7 @@ public:
 	std::function<void(size_t, value_t)> on_change { };
 	std::function<void(void)> on_show_options { };
 
-	OptionsField(Point parent_pos, size_t length, options_t options);
+	OptionsField(Point parent_pos, int length, options_t options);
 
 	size_t selected_index() const;
 	void set_selected_index(const size_t new_index);
@@ -287,7 +287,7 @@ public:
 	bool on_touch(const TouchEvent event) override;
 
 private:
-	const size_t length_;
+	const int length_;
 	options_t options;
 	size_t selected_index_ { 0 };
 };
@@ -298,7 +298,7 @@ public:
 
 	using range_t = std::pair<int32_t, int32_t>;
 
-	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
+	NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char);
 
 	NumberField(const NumberField&) = delete;
 	NumberField(NumberField&&) = delete;
@@ -314,7 +314,7 @@ public:
 private:
 	const range_t range;
 	const int32_t step;
-	const size_t length_;
+	const int length_;
 	const char fill_char;
 	int32_t value_ { 0 };
 

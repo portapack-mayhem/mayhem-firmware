@@ -291,10 +291,7 @@ void ILI9341::fill_circle(
 			const uint32_t d2 = x2 + y2;
 			const bool inside = d2 < radius2;
 			const auto color = inside ? foreground : background;
-			draw_pixel({
-				static_cast<ui::Coord>(x + center.x()),
-				static_cast<ui::Coord>(y + center.y())
-			}, color);
+			draw_pixel({ x + center.x(), y + center.y() }, color);
 		}
 	}
 }

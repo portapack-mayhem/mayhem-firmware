@@ -38,37 +38,25 @@ void Audio::paint(Painter& painter) {
 	const range_t<int> x_max_range { x_rms + 1, r.width() };
 	const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
-	const Rect r0 {
-		static_cast<ui::Coord>(r.left()), r.top(),
-		static_cast<ui::Dim>(x_rms), r.height()
-	};
+	const Rect r0 { r.left(), r.top(), x_rms, r.height() };
 	painter.fill_rectangle(
 		r0,
 		Color::green()
 	);
 
-	const Rect r1 {
-		static_cast<ui::Coord>(r.left() + x_rms), r.top(),
-		1, r.height()
-	};
+	const Rect r1 { r.left() + x_rms, r.top(), 1, r.height() };
 	painter.fill_rectangle(
 		r1,
 		Color::black()
 	);
 
-	const Rect r2 {
-		static_cast<ui::Coord>(r.left() + x_rms + 1), r.top(),
-		static_cast<ui::Dim>(x_max - (x_rms + 1)), r.height()
-	};
+	const Rect r2 { r.left() + x_rms + 1, r.top(), x_max - (x_rms + 1), r.height() };
 	painter.fill_rectangle(
 		r2,
 		Color::red()
 	);
 
-	const Rect r3 {
-		static_cast<ui::Coord>(r.left() + x_max), r.top(),
-		static_cast<ui::Dim>(r.width() - x_max), r.height()
-	};
+	const Rect r3 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
 	painter.fill_rectangle(
 		r3,
 		Color::black()

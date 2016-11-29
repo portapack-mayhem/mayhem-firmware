@@ -161,7 +161,7 @@ void AnalogAudioView::on_hide() {
 void AnalogAudioView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height) };
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 	waterfall.set_parent_rect(waterfall_rect);
 }
 

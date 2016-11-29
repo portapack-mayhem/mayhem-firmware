@@ -82,13 +82,10 @@ void MenuView::add_items(std::initializer_list<MenuItem> items) {
 void MenuView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	constexpr size_t item_height = 24;
-	size_t i = 0;
+	constexpr int item_height = 24;
+	int i = 0;
 	for(auto child : children_) {
-		child->set_parent_rect({
-			{ 0, static_cast<ui::Coord>(i * item_height) },
-			{ size().width(), item_height }
-		});
+		child->set_parent_rect({ 0, i * item_height, size().width(), item_height });
 		i++;
 	}
 }

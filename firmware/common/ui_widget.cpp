@@ -523,9 +523,9 @@ bool ImageButton::on_touch(const TouchEvent event) {
 
 OptionsField::OptionsField(
 	Point parent_pos,
-	size_t length,
+	int length,
 	options_t options
-) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+) : Widget { { parent_pos, { 8 * length, 16 } } },
 	length_ { length },
 	options { options }
 {
@@ -594,11 +594,11 @@ bool OptionsField::on_touch(const TouchEvent event) {
 
 NumberField::NumberField(
 	Point parent_pos,
-	size_t length,
+	int length,
 	range_t range,
 	int32_t step,
 	char fill_char
-) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+) : Widget { { parent_pos, { 8 * length, 16 } } },
 	range { range },
 	step { step },
 	length_ { length },

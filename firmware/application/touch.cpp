@@ -73,10 +73,7 @@ ui::Point Calibration::translate(const DigitizerPoint& p) const {
 	const int32_t y = (d * p.x + e * p.y + f) / k;
 	const auto x_clipped = x_range.clip(x);
 	const auto y_clipped = y_range.clip(y);
-	return {
-		static_cast<ui::Coord>(x_clipped),
-		static_cast<ui::Coord>(y_clipped)
-	};
+	return { x_clipped, y_clipped };
 }
 
 const Calibration default_calibration() {
