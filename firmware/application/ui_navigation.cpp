@@ -35,7 +35,7 @@
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 
-//#include "ui_closecall.hpp"			// DEBUG
+//#include "ui_closecall.hpp"		// DEBUG
 //#include "ui_freqman.hpp"			// DEBUG
 #include "ui_nuoptix.hpp"
 #include "ui_soundboard.hpp"
@@ -48,7 +48,8 @@
 #include "ui_lcr.hpp"
 #include "analog_audio_app.hpp"
 //#include "ui_audiotx.hpp"			// DEBUG
-//#include "ui_jammer.hpp"			// DEBUG
+#include "ui_adsbtx.hpp"
+#include "ui_jammer.hpp"
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -220,10 +221,11 @@ void NavigationView::focus() {
 /* TranspondersMenuView **************************************************/
 
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
-	add_items<3>({ {
-		{ "AIS:  Boats", ui::Color::white(),          [&nav](){ nav.push<AISAppView>(); } },
-		{ "ERT:  Utility Meters", ui::Color::white(), [&nav](){ nav.push<ERTAppView>(); } },
-		{ "TPMS: Cars", ui::Color::white(),           [&nav](){ nav.push<TPMSAppView>(); } },
+	add_items<4>({ {
+		{ "ADS-B: Planes", 			ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "AIS:   Boats", 			ui::Color::white(),		[&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:   Utility Meters", 	ui::Color::white(), 	[&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS:  Cars", 			ui::Color::white(),		[&nav](){ nav.push<TPMSAppView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -231,10 +233,41 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 /* ReceiverMenuView ******************************************************/
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
-	add_items<3>({ {
-		{ "Audio", ui::Color::white(),        		[&nav](){ nav.push<AnalogAudioView>(); } },
-		{ "Transponders", ui::Color::white(), 		[&nav](){ nav.push<TranspondersMenuView>(); } },
-		{ "POCSAG", ui::Color::cyan(), 				[&nav](){ nav.push<POCSAGAppView>(); } },
+	add_items<7>({ {
+		{ "Audio", 					ui::Color::green(),		[&nav](){ nav.push<AnalogAudioView>(); } },
+		{ "Transponders", 			ui::Color::green(),		[&nav](){ nav.push<TranspondersMenuView>(); } },
+		{ "POCSAG 1200", 			ui::Color::cyan(),		[&nav](){ nav.push<POCSAGAppView>(); } },
+		{ "Nordic/BTLE", 			ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "SIGFOX", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+		{ "CCIR", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // XylosRXView
+		{ "AFSK", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
+	} });
+	on_left = [&nav](){ nav.pop(); };
+}
+
+/* TransmitterCodedMenuView ******************************************************/
+
+TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
+	add_items<7>({ {
+		{ "ADS-B Mode S", 			ui::Color::yellow(),  	[&nav](){ nav.push<ADSBTxView>(); } },
+		{ "BHT Epar", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "BHT Xylos", 				ui::Color::yellow(),  	[&nav](){ nav.push<XylosView>(); } },
+		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		[&nav](){ nav.push<NuoptixView>(); } },
+		{ "OOK remote encoders", 	ui::Color::green(),		[&nav](){ nav.push<EncodersView>(); } },
+		{ "RDS",					ui::Color::orange(),	[&nav](){ nav.push<RDSView>(); } },
+		{ "TEDI/LCR AFSK", 			ui::Color::green(),  	[&nav](){ nav.push<LCRView>(); } },
+	} });
+	on_left = [&nav](){ nav.pop(); };
+}
+
+/* TransmitterAudioMenuView ******************************************************/
+
+TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
+	add_items<4>({ {
+		{ "Soundboard", 			ui::Color::yellow(),  	[&nav](){ nav.push<SoundBoardView>(); } },
+		{ "Numbers station",		ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },	//nav.push<NumbersStationView>();
+		{ "Microphone", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Whistle", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -242,37 +275,22 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<13>({ {
-		{ "Play dead",						ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
-		{ "Receiver                  RX", 	ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture                   RX",	ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
+	add_items<10>({ {
+		{ "Play dead",				ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
+		{ "Receivers", 				ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Capture",				ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
+		{ "Code transmitters", 		ui::Color::purple(),	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
+		{ "Audio transmitters", 	ui::Color::purple(),	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		//{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
-		//{ "Numbers station           TX",	ui::Color::purple(),	[&nav](){ nav.push<NotImplementedView>(); } },	//nav.push<NumbersStationView>();
-		//{ "Pokemon GO Away           TX", 	ui::Color::blue(),  	[&nav](){ nav.push<JammerView>(); } },
-		{ "Soundboard                TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<SoundBoardView>(); } },
-		//{ "Audio                     TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, AudioTX); } },
+		{ "Jammer", 				ui::Color::orange(),  	[&nav](){ nav.push<JammerView>(); } },
 		//{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
-		{ "Xylos                     TX", 	ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
-		{ "TEDI/LCR                  TX", 	ui::Color::yellow(),  	[&nav](){ nav.push<LCRView>(); } },
-		{ "OOK encoders              TX", 	ui::Color::orange(),	[&nav](){ nav.push<EncodersView>(); } },
-		{ "Nuoptix DTMF sync         TX", 	ui::Color::purple(),	[&nav](){ nav.push<NuoptixView>(); } },
-		{ "RDS                       TX",	ui::Color::red(),		[&nav](){ nav.push<RDSView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Setup", 							ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
-		{ "Debug", 							ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF", 						ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
-		{ "About", 							ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
+		{ "Setup", 					ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
+		{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "HackRF", 				ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
+		{ "About", 					ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
-
-		//{ "Nordic/BTLE RX", ui::Color::cyan(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		//{ "Jammer", ui::Color::white(),   		[&nav](){ nav.push<LoadModuleView>(md5_baseband, new JammerView(nav)); } },
-		//{ "Audio file TX", ui::Color::white(),	[&nav](){ nav.push(new NotImplementedView { nav }); } },
-		//{ "Whistle", ui::Color::purple(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new WhistleView { nav, transmitter_model }}); } },
-		//{ "SIGFOX RX", ui::Color::orange(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new SIGFRXView 		  { nav, receiver_model }}); } },
-		//{ "Xylos RX", ui::Color::green(),  		[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband_tx, new XylosRXView	{ nav, receiver_model }}); } },
-		//{ "AFSK RX", ui::Color::cyan(),  			[&nav](){ nav.push(new LoadModuleView { nav, md5_baseband, new AFSKRXView         { nav, receiver_model }}); } },
-
 }
 
 /* SystemView ************************************************************/
@@ -290,8 +308,6 @@ SystemView::SystemView(
 	context_(context)
 {
 	set_style(&style_default);
-	
-	//char debugtxt[21];	// DEBUG
 
 	constexpr ui::Dim status_view_height = 16;
 	

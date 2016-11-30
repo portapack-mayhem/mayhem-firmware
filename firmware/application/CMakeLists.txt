@@ -162,7 +162,7 @@ set(CPPSRC
 	ui_spectrum.cpp
 	ui_about.cpp
 	ui_nuoptix.cpp
-	# ui_jammer.cpp
+	ui_adsbtx.cpp
 	ui_handwrite.cpp
 	ui_afsksetup.cpp
 	# ui_closecall.cpp
@@ -170,8 +170,9 @@ set(CPPSRC
 	ui_rds.cpp
 	ui_lcr.cpp
 	ui_xylos.cpp
-	ui_freqman.cpp
+	# ui_freqman.cpp
 	ui_encoders.cpp
+	ui_jammer.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp

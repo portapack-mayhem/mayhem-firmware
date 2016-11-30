@@ -3582,6 +3582,30 @@ ui_about.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_about.cpp.s
 .PHONY : ui_about.cpp.s
 
+ui_adsbtx.obj: ui_adsbtx.cpp.obj
+.PHONY : ui_adsbtx.obj
+
+# target to build an object file
+ui_adsbtx.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_adsbtx.cpp.obj
+.PHONY : ui_adsbtx.cpp.obj
+
+ui_adsbtx.i: ui_adsbtx.cpp.i
+.PHONY : ui_adsbtx.i
+
+# target to preprocess a source file
+ui_adsbtx.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_adsbtx.cpp.i
+.PHONY : ui_adsbtx.cpp.i
+
+ui_adsbtx.s: ui_adsbtx.cpp.s
+.PHONY : ui_adsbtx.s
+
+# target to generate assembly for a file
+ui_adsbtx.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_adsbtx.cpp.s
+.PHONY : ui_adsbtx.cpp.s
+
 ui_afsksetup.obj: ui_afsksetup.cpp.obj
 .PHONY : ui_afsksetup.obj
 
@@ -3774,30 +3798,6 @@ ui_font_fixed_8x16.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_font_fixed_8x16.cpp.s
 .PHONY : ui_font_fixed_8x16.cpp.s
 
-ui_freqman.obj: ui_freqman.cpp.obj
-.PHONY : ui_freqman.obj
-
-# target to build an object file
-ui_freqman.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.obj
-.PHONY : ui_freqman.cpp.obj
-
-ui_freqman.i: ui_freqman.cpp.i
-.PHONY : ui_freqman.i
-
-# target to preprocess a source file
-ui_freqman.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.i
-.PHONY : ui_freqman.cpp.i
-
-ui_freqman.s: ui_freqman.cpp.s
-.PHONY : ui_freqman.s
-
-# target to generate assembly for a file
-ui_freqman.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.s
-.PHONY : ui_freqman.cpp.s
-
 ui_handwrite.obj: ui_handwrite.cpp.obj
 .PHONY : ui_handwrite.obj
 
@@ -3821,6 +3821,30 @@ ui_handwrite.s: ui_handwrite.cpp.s
 ui_handwrite.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_handwrite.cpp.s
 .PHONY : ui_handwrite.cpp.s
+
+ui_jammer.obj: ui_jammer.cpp.obj
+.PHONY : ui_jammer.obj
+
+# target to build an object file
+ui_jammer.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.obj
+.PHONY : ui_jammer.cpp.obj
+
+ui_jammer.i: ui_jammer.cpp.i
+.PHONY : ui_jammer.i
+
+# target to preprocess a source file
+ui_jammer.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.i
+.PHONY : ui_jammer.cpp.i
+
+ui_jammer.s: ui_jammer.cpp.s
+.PHONY : ui_jammer.s
+
+# target to generate assembly for a file
+ui_jammer.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_jammer.cpp.s
+.PHONY : ui_jammer.cpp.s
 
 ui_lcr.obj: ui_lcr.cpp.obj
 .PHONY : ui_lcr.obj
@@ -4648,6 +4672,9 @@ help:
 	@echo "... ui_about.obj"
 	@echo "... ui_about.i"
 	@echo "... ui_about.s"
+	@echo "... ui_adsbtx.obj"
+	@echo "... ui_adsbtx.i"
+	@echo "... ui_adsbtx.s"
 	@echo "... ui_afsksetup.obj"
 	@echo "... ui_afsksetup.i"
 	@echo "... ui_afsksetup.s"
@@ -4672,12 +4699,12 @@ help:
 	@echo "... ui_font_fixed_8x16.obj"
 	@echo "... ui_font_fixed_8x16.i"
 	@echo "... ui_font_fixed_8x16.s"
-	@echo "... ui_freqman.obj"
-	@echo "... ui_freqman.i"
-	@echo "... ui_freqman.s"
 	@echo "... ui_handwrite.obj"
 	@echo "... ui_handwrite.i"
 	@echo "... ui_handwrite.s"
+	@echo "... ui_jammer.obj"
+	@echo "... ui_jammer.i"
+	@echo "... ui_jammer.s"
 	@echo "... ui_lcr.obj"
 	@echo "... ui_lcr.i"
 	@echo "... ui_lcr.s"

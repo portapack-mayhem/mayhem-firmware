@@ -97,7 +97,7 @@ std::string to_string_dec_int(
 	return q;
 }
 
-static void to_string_hex_internal(char* p, const uint32_t n, const int32_t l) {
+static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 	const uint32_t d = n & 0xf;
 	p[l] = (d > 9) ? (d + 55) : (d + 48);
 	if( l > 0 ) {
@@ -105,8 +105,8 @@ static void to_string_hex_internal(char* p, const uint32_t n, const int32_t l) {
 	}
 }
 
-std::string to_string_hex(const uint32_t n, const int32_t l) {
-	char p[16];
+std::string to_string_hex(const uint64_t n, const int32_t l) {
+	char p[32];
 	to_string_hex_internal(p, n, l - 1);
 	p[l] = 0;
 	return p;

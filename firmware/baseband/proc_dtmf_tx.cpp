@@ -28,7 +28,7 @@
 
 #include <cstdint>
 
-void DTMFTXProcessor::execute(const buffer_c8_t& buffer){
+void DTMFTXProcessor::execute(const buffer_c8_t& buffer) {
 
 	// This is called at 1536000/2048 = 750Hz
 	// DTMF samplerate = 153600Hz

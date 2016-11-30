@@ -22,7 +22,8 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_textentry.hpp"
+#include "ui_navigation.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
 
@@ -199,7 +200,7 @@ private:
 			9,	"SAAAAADDDD",
 			"000000000000000000",
 			455000,	2,
-			10	// ?
+			2
 		},
 		
 		// HT6*** TODO: Add individual variations
@@ -210,7 +211,7 @@ private:
 			{ "011011", "001001", "001011" },
 			18,	"SAAAAAAAAAAAADDDDDD",
 			"0000000000000000000000000000000000001011001011001",
-			100000,	3,
+			80000,	3,
 			10	// ?
 		},
 		

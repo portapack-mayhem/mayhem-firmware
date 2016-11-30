@@ -550,13 +550,11 @@ public:
 class RetuneMessage : public Message {
 public:
 	constexpr RetuneMessage(
-		const int64_t freq
-	) : Message { ID::Retune },
-		freq(freq)
+	) : Message { ID::Retune }
 	{
 	}
 	
-	const int64_t freq = 0;
+	int64_t freq = 0;
 };
 
 class AudioTXConfigMessage : public Message {

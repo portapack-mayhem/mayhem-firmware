@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -176,6 +177,19 @@ private:
 class ReceiverMenuView : public MenuView {
 public:
 	ReceiverMenuView(NavigationView& nav);
+	std::string title() const override { return "Receivers"; };
+};
+
+class TransmitterCodedMenuView : public MenuView {
+public:
+	TransmitterCodedMenuView(NavigationView& nav);
+	std::string title() const override { return "Coded TX"; };
+};
+
+class TransmitterAudioMenuView : public MenuView {
+public:
+	TransmitterAudioMenuView(NavigationView& nav);
+	std::string title() const override { return "Audio TX"; };
 };
 
 class SystemMenuView : public MenuView {

@@ -23,9 +23,14 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: Unistroke text entry screen doesn't care about string max length parameter
 //BUG (fixed ?): No audio in about when shown second time
 //BUG: POCSAG RX sometimes misses the first codeword after SYNC
 
+//TODO: Use ModalMessageView with yes/no for TX
+//TODO: Show address/data bit fields in OOK TX
+//TODO: Scan for OOK TX
+//TODO: Check more OOK encoders
 //TODO: POCSAG 512 and 2400 (all 3 at the same time, or parameter ?)
 //TODO: Check AFSK transmit end, skips last bits ?
 //TODO: Check jammer bandwidths
@@ -36,7 +41,8 @@
 
 //Multimon-style stuff:
 //TODO: AFSK receiver
-//TODO: Xylos (CCIR) receiver
+//TODO: CTCSS detector
+//TODO: DMR detector
 
 //TODO: Closecall wide range fix
 //TODO: SD card wiper
@@ -54,6 +60,7 @@
 //TODO: Hide statusview when playing dead
 //TODO: Persistent playdead !
 
+//In case of disaster:
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
