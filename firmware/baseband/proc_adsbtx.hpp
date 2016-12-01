@@ -20,33 +20,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_JAMMER_H__
-#define __PROC_JAMMER_H__
+#ifndef __PROC_ADSBTX_H__
+#define __PROC_ADSBTX_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class JammerProcessor : public BasebandProcessor {
+class ADSBTXProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
-	void on_message(const Message* const msg) override;
+	void on_message(const Message* const p) override;
 
 private:
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { 2000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };	// 2280000
 	
-    int32_t lfsr32 = 0xABCDE;
-    uint32_t s;
-	int8_t r, ir, re, im;
-	int64_t jammer_bw, jammer_center;
-	int feedback;
-	int32_t lfsr;
-    uint32_t sample_count;
-	uint32_t aphase, phase, sphase;
-	int32_t sample, frq;
-	RetuneMessage message;
+	const uint16_t preamble_parts = 0b1010000101000000;
+	uint8_t bit_part;
+	bool preamble;
+	int8_t re, im;
+    uint16_t bit_pos = 0;
+    uint8_t cur_bit = 0;
+	uint32_t phase, sphase;
+	int32_t sig, frq;
+	
+	TXDoneMessage message;
 };
 
 #endif

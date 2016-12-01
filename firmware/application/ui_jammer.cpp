@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -22,17 +23,11 @@
 #include "ui_jammer.hpp"
 #include "ui_receiver.hpp"
 
-#include "ch.h"
-#include "evtimer.h"
+//#include "ch.h"
+//#include "evtimer.h"
 #include "baseband_api.hpp"
-#include "ff.h"
-#include "hackrf_gpio.hpp"
-#include "portapack.hpp"
-#include "radio.hpp"
 #include "string_format.hpp"
-#include "event_m0.hpp"
 
-#include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
@@ -48,7 +43,7 @@ void JammerView::focus() {
 }
 
 JammerView::~JammerView() {
-	radio::disable();
+	transmitter_model.disable();
 	baseband::shutdown();
 }
 
@@ -321,24 +316,26 @@ JammerView::JammerView(NavigationView& nav) {
 			jamming = true;
 			button_transmit.set_style(&style_cancel);
 			button_transmit.set_text("STOP");
-			radio::disable();
+
+			/*baseband::set_jammer_data(
+
+			);*/
+			
+			//transmitter_model.set_tuning_frequency(433920000);		// TODO
+			transmitter_model.set_baseband_configuration({
+				.mode = 0,
+				.sampling_rate = 1536000U,
+				.decimation_factor = 1,
+			});
+			transmitter_model.set_rf_amp(true);
+			transmitter_model.set_baseband_bandwidth(1750000);
+			transmitter_model.enable();
 		}
 	};
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();
 	};
-	
-	radio::enable({
-		shared_memory.jammer_ranges[0].center,
-		1536000,	// ?
-		2500000,	// ?
-		rf::Direction::Transmit,
-		true,
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-		1,
-	});
 }
 
 } /* namespace ui */

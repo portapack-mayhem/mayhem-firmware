@@ -55,12 +55,13 @@ private:
 	char callsign[9] = "KLM1023 ";
 	
 	uint8_t adsb_frame[14];		// 112 bit data block as 14 bytes
+	uint8_t adsb_bin[112];		// 112 bit data block
 	
 	const char icao_id_lut[65] = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ##### ###############0123456789######";
 	
-	void ascii_to_ccir(char *ascii);
 	void start_tx();
-	void generate_frame();
+	void generate_frame_id();
+	void generate_frame_pos();
 	void on_txdone(const int n);
 	
 	const Style style_val {
@@ -109,6 +110,15 @@ private:
 	Button button_callsign {
 		{ 8 * 8, 4 * 16 + 4, 10 * 8, 24 },
 		"" // "KOR151  "
+	};
+	
+	Text text_frame_a {
+		{ 4 * 8, 10 * 16, 14 * 8, 16 },
+		"-"
+	};
+	Text text_frame_b {
+		{ 4 * 8, 11 * 16, 14 * 8, 16 },
+		"-"
 	};
 	
 	ProgressBar progress {

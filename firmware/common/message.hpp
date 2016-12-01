@@ -76,11 +76,12 @@ public:
 		AudioTXConfig = 27,
 		POCSAGConfigure = 28,
 		DTMFTXConfig = 29,
+		ADSBConfigure = 30,
 		
-		POCSAGPacket = 30,
+		POCSAGPacket = 31,
 		
-		FIFOSignal = 31,
-		FIFOData = 32,
+		FIFOSignal = 32,
+		FIFOData = 33,
 		MAX
 	};
 
@@ -636,6 +637,18 @@ public:
 	}
 
 	const uint32_t rate;
+};
+
+class ADSBConfigureMessage : public Message {
+public:
+	constexpr ADSBConfigureMessage(
+		const uint32_t test
+	) : Message { ID::ADSBConfigure },
+		test(test)
+	{
+	}
+
+	const uint32_t test;
 };
 
 class DTMFTXConfigMessage : public Message {

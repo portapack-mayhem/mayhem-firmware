@@ -342,10 +342,10 @@ DeclareTargets(POOK ook)
 
 ### Jammer
 
-#set(MODE_CPPSRC
-#	proc_jammer.cpp
-#)
-#DeclareTargets(PJAM jammer)
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
 
 ### Audio transmit
 
@@ -388,6 +388,13 @@ set(MODE_CPPSRC
 	proc_rds.cpp
 )
 DeclareTargets(PRDS rds)
+
+### ADS-B TX
+
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADS ads)
 
 ### HackRF "factory" firmware
 

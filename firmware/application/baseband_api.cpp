@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -139,6 +140,13 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 void set_pocsag() {
 	const POCSAGConfigureMessage message {
 		1200
+	};
+	send_message(&message);
+}
+
+void set_adsb() {
+	const ADSBConfigureMessage message {
+		1
 	};
 	send_message(&message);
 }

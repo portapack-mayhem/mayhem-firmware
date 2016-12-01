@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -21,15 +22,10 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
-#include "ui_menu.hpp"
-#include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
+#include "ui_navigation.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
+#include "transmitter_model.hpp"
 
 namespace ui {
 
@@ -66,7 +62,7 @@ private:
 		rf::Frequency max;
 	} rangepreset;
 	
-	const rangepreset range_presets[9][3] = {
+	const rangepreset range_presets[10][3] = {
 		// Orange
 		{{ true, 935000000, 945000000 },	// GSM 900
 		{ true, 1808000000, 1832000000 },	// GSM 1800
@@ -93,20 +89,25 @@ private:
 		{ false, 0, 0 }},					// UMTS
 		
 		// TODO: TDD UMTS, voir doc Arcep
-		// TODO: Wi-FI, BT: 2 400 et 2 483,5 MHz
+		// TODO: Wifi, BT: 2 400 et 2 483,5 MHz
 		
 		// DECT
 		{{ true, 1880000000, 1900000000 },	// BW: 20MHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
-		// Optifib, lol
+		// PMV AFSK
 		{{ true, 162930000, 162970000 },	// BW: 40kHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
 		// ISM 433
 		{{ true, 433050000, 434790000 },	// BW: 0.2%
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		
+		// Sigfox
+		{{ true, 868150000, 868250000 },	// BW: 40kHz (50kHz)
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
@@ -177,7 +178,7 @@ private:
 	};
 	OptionsField options_preset {
 		{ 10 * 8, 3 * 16 },
-		9,
+		8,
 		{
 			{ "Orange  ", 0 },
 			{ "SFR     ", 1 },
@@ -187,7 +188,8 @@ private:
 			{ "DECT    ", 5 },
 			{ "Optifib ", 6 },
 			{ "ISM 433 ", 7 },
-			{ "GPS     ", 8 },
+			{ "Sigfox  ", 8 },
+			{ "GPS     ", 9 }
 		}
 	};
 	
@@ -262,7 +264,7 @@ private:
 			const auto message = static_cast<const RetuneMessage*>(p);
 			this->on_retune(message->freq);
 		}
-};
+	};
 };
 
 } /* namespace ui */
