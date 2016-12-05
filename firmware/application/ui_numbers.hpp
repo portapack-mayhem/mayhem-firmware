@@ -20,33 +20,65 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __UI_NUMBERS_H__
+#define __UI_NUMBERS_H__
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
-#include "transmitter_model.hpp"
+#include "baseband_api.hpp"
+#include "file.hpp"
 
 namespace ui {
 
 class NumbersStationView : public View {
 public:
-	NumbersStationView(NavigationView& nav, TransmitterModel& transmitter_model);
+	NumbersStationView(NavigationView& nav);
 	~NumbersStationView();
 
 	void focus() override;
 	void paint(Painter& painter) override;
 
+	std::string title() const override { return "Numbers station"; };
+	
 private:
-	TransmitterModel& transmitter_model;
+	// Different from the one in ui_soundboard.hpp, simpler
+	struct sound {
+		uint32_t size = 0;
+		uint32_t sample_duration = 0;
+	};
+	
+	sound sounds[11];
+	
+	const std::string filenames[11] = {
+		"zero",
+		"one",
+		"two",
+		"three",
+		"four",
+		"five",
+		"six",
+		"seven",
+		"eight",
+		"nine",
+		"anounce"
+	};
+
 	const uint8_t month_table[12] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
 	const char * day_of_week[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+	
+	File file;
+	uint32_t cnt;
+	uint32_t sample_duration;
+	int8_t audio_buffer[1024];
+	
+	void on_tuning_frequency_changed(rf::Frequency f);
+	void prepare_audio();
+	void play_sound(uint16_t id);
 	
 	// Schedule: save on sd card
 	// For each day of the week, max 8 messages ?
@@ -63,10 +95,30 @@ private:
 		"Schedule:"
 	};
 	
+	NumberField number_bw {
+		{ 11 * 8, 3 * 16 },
+		3,
+		{1, 150},
+		1,
+		' '
+	};
+	
 	Button button_exit {
 		{ 21 * 8, 16 * 16, 64, 32 },
 		"Exit"
 	};
+	
+	MessageHandlerRegistration message_handler_fifo_signal {
+		Message::ID::FIFOSignal,
+		[this](const Message* const p) {
+			const auto message = static_cast<const FIFOSignalMessage*>(p);
+			if (message->signaltype == 1) {
+				this->prepare_audio();
+			}
+		}
+	};
 };
 
 } /* namespace ui */
+
+#endif/*__UI_NUMBERS_H__*/

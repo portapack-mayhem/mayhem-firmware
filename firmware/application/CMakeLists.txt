@@ -135,7 +135,9 @@ set(CPPSRC
 	touch_adc.cpp
 	encoder.cpp
 	audio.cpp
+	adsb.cpp
 	afsk.cpp
+	rds.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp
@@ -170,7 +172,8 @@ set(CPPSRC
 	ui_rds.cpp
 	ui_lcr.cpp
 	ui_xylos.cpp
-	# ui_freqman.cpp
+	ui_numbers.cpp
+	ui_freqman.cpp
 	ui_encoders.cpp
 	ui_jammer.cpp
 	# ui_loadmodule.cpp

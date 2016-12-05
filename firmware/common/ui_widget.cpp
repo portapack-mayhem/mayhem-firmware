@@ -103,7 +103,7 @@ void Widget::hidden(bool hide) {
 		if( hide ) {
 			// TODO: Instead of dirtying parent entirely, dirty only children
 			// that overlap with this widget.
-			parent()->dirty_overlapping_children_in_rect(parent_rect);
+			dirty_overlapping_children_in_rect(parent_rect);
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -1116,6 +1116,35 @@ SymField::SymField(
 	set_focusable(true);
 }
 
+SymField::SymField(
+	Point parent_pos,
+	size_t length,
+	bool hex
+) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+	length_ { length },
+	hex_ { hex }
+{
+	uint8_t c;
+	
+	// Hex field auto-init
+	for (c = 0; c < length; c++)
+		set_symbol_list(c, "0123456789ABCDEF");
+	
+	set_focusable(true);
+}
+
+uint64_t SymField::value_hex_u64() {
+	uint8_t c;
+	uint64_t v = 0;
+	
+	if (hex_) {
+		for (c = 0; c < length_; c++)
+			v += values_[c] << (4 * (length_ - 1 - c));
+		return v;
+	} else 
+		return 0;
+}
+	
 uint32_t SymField::value(const uint32_t index) {
 	if (index >= length_) return 0;
 

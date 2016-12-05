@@ -32,11 +32,12 @@ class FreqManView : public View {
 public:
 	FreqManView(NavigationView& nav);
 	//~FreqManView();
+	
 	std::string title() const override { return "Frequency list"; };
 
 	void paint(Painter& painter) override;
-	void on_show() override;
-	void on_hide() override;
+	//void on_show() override;
+	//void on_hide() override;
 
 private:
 	std::array<Text, 10> text_list;

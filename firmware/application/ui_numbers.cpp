@@ -23,20 +23,15 @@
 #include "ui_numbers.hpp"
 
 #include "ch.h"
-#include "evtimer.h"
-
 #include "ff.h"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
-
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
-#include "portapack_persistent_memory.hpp"
 
 #include <cstring>
 #include <stdio.h>
 
+using namespace portapack;
 using namespace hackrf::one;
 
 namespace ui {
@@ -47,25 +42,96 @@ void NumbersStationView::focus() {
 
 NumbersStationView::~NumbersStationView() {
 	transmitter_model.disable();
+	baseband::shutdown();
 }
 
 void NumbersStationView::paint(Painter& painter) {
 	(void)painter;
 }
 
+void NumbersStationView::on_tuning_frequency_changed(rf::Frequency f) {
+	transmitter_model.set_tuning_frequency(f);
+}
+
+void NumbersStationView::prepare_audio() {
+	if (cnt >= sample_duration) {
+		/*if (!check_loop.value()) {
+			transmitter_model.disable();
+			return;
+		} else {
+			file.seek(44);
+			cnt = 0;
+		}*/
+		
+		// DEBUG
+			file.seek(44);
+			cnt = 0;
+		
+	}
+	
+	file.read(audio_buffer, 1024);
+	
+	// Unsigned to signed, pretty stupid :/
+	for (size_t n = 0; n < 1024; n++)
+		audio_buffer[n] -= 0x80;
+	
+	cnt += 1024;
+	
+	baseband::set_fifo_data(audio_buffer);
+}
+
+void NumbersStationView::play_sound(uint16_t id) {
+	uint32_t divider;
+
+	if (sounds[id].size == 0) return;
+
+	auto error = file.open("/numbers/" + filenames[id] + ".wav");
+	if (error.is_valid()) return;
+	
+	sample_duration = sounds[id].sample_duration;
+	
+	cnt = 0;
+	file.seek(44);	// Skip header
+	
+	prepare_audio();
+	
+	transmitter_model.set_baseband_configuration({
+		.mode = 0,
+		.sampling_rate = 1536000,
+		.decimation_factor = 1,
+	});
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_lna(40);
+	transmitter_model.set_vga(40);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	divider = (1536000 / 44100) - 1;
+	
+	baseband::set_audiotx_data(
+		divider,
+		number_bw.value(),
+		false,
+		0
+	);
+}
+
 NumbersStationView::NumbersStationView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
-{
+	NavigationView& nav
+) {
 	uint8_t m, d, dayofweek;
 	uint16_t y;
 	
+	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+	
 	add_children({ {
 		&text_title,
+		&number_bw,
 		&button_exit
 	} });
-	
+
+	number_bw.set_value(15);
+
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
 	

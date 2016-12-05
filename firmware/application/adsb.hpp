@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
@@ -20,51 +20,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_freqman.hpp"
-
-#include "ch.h"
-#include "ff.h"
-#include "portapack.hpp"
-#include "event_m0.hpp"
-#include "portapack_shared_memory.hpp"
-
 #include <cstring>
+#include <string>
 
-using namespace portapack;
+#ifndef __ADSB_H__
+#define __ADSB_H__
 
-namespace ui {
+namespace adsb {
+
+	const char icao_id_lut[65] = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ##### ###############0123456789######";
 	
-void FreqManView::paint(Painter& painter) {
-	(void)painter;
-}
-
-FreqManView::FreqManView(
-	NavigationView& nav
-) {
-
-	add_children({ {
-		&button_ok
-	} });
-
-	size_t n = 0;
-	for(auto& text : text_list) {
-		add_child(&text);
-		text.set_parent_rect({
-			static_cast<Coord>(0),
-			static_cast<Coord>(16 + (n * 16)),
-			240, 16
-		});
-		const std::string label {
-			(char)(n + 0x30)
-		};
-		text.set(label);
-		n++;
-	}
+	void make_frame_mode_s(uint8_t * adsb_frame, uint32_t ICAO_address);
 	
-	button_ok.on_select = [this, &nav](Button&) {
-		nav.pop();
-	};
+	void generate_frame_id(uint8_t * adsb_frame, uint32_t ICAO_address, char * callsign);
+	void generate_frame_pos(uint8_t * adsb_frame, uint32_t ICAO_address, uint32_t altitude, float latitude, float longitude);
+	
+	void ADSB_generate_CRC(uint8_t * in_message);
 
-}
+} /* namespace adsb */
 
-}
+#endif/*__ADSB_H__*/

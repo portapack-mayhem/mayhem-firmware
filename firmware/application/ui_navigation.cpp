@@ -35,8 +35,9 @@
 #include "ui_setup.hpp"
 #include "ui_debug.hpp"
 
+#include "ui_numbers.hpp"
 //#include "ui_closecall.hpp"		// DEBUG
-//#include "ui_freqman.hpp"			// DEBUG
+#include "ui_freqman.hpp"
 #include "ui_nuoptix.hpp"
 #include "ui_soundboard.hpp"
 
@@ -51,7 +52,6 @@
 #include "ui_adsbtx.hpp"
 #include "ui_jammer.hpp"
 
-#include "analog_audio_app.hpp"
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
@@ -143,7 +143,7 @@ void SystemStatusView::on_camera() {
 		return;
 	}
 
-	for(int i=0; i<320; i++) {
+	for (int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;
 		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
 		png.write_scanline(row);
@@ -233,14 +233,14 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 /* ReceiverMenuView ******************************************************/
 
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<6>({ {
+	//	{ "AFSK", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
 		{ "Audio", 					ui::Color::green(),		[&nav](){ nav.push<AnalogAudioView>(); } },
-		{ "Transponders", 			ui::Color::green(),		[&nav](){ nav.push<TranspondersMenuView>(); } },
-		{ "POCSAG 1200", 			ui::Color::cyan(),		[&nav](){ nav.push<POCSAGAppView>(); } },
-		{ "Nordic/BTLE", 			ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SIGFOX", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "CCIR", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // XylosRXView
-		{ "AFSK", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
+		{ "Nordic/BTLE", 			ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "POCSAG 1200", 			ui::Color::cyan(),		[&nav](){ nav.push<POCSAGAppView>(); } },
+		{ "SIGFOX", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+		{ "Transponders", 			ui::Color::green(),		[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -264,8 +264,8 @@ TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 
 TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 	add_items<4>({ {
-		{ "Soundboard", 			ui::Color::yellow(),  	[&nav](){ nav.push<SoundBoardView>(); } },
-		{ "Numbers station",		ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },	//nav.push<NumbersStationView>();
+		{ "Soundboard", 			ui::Color::green(),  	[&nav](){ nav.push<SoundBoardView>(); } },
+		{ "Numbers station",		ui::Color::yellow(),	[&nav](){ nav.push<NumbersStationView>(); } },
 		{ "Microphone", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Whistle", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 	} });
@@ -275,16 +275,15 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<10>({ {
+	add_items<11>({ {
 		{ "Play dead",				ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
 		{ "Receivers", 				ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Code transmitters", 		ui::Color::purple(),	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
-		{ "Audio transmitters", 	ui::Color::purple(),	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
+		{ "Code transmitters", 		ui::Color::green(),		[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
+		{ "Audio transmitters", 	ui::Color::green(),		[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		//{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),  	[&nav](){ nav.push<JammerView>(); } },
-		//{ "Frequency manager", 				ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
-		//{ "EPAR                      TX", 	ui::Color::green(),  	[&nav](){ nav.push<LoadModuleView>(md5_baseband_tx, EPAR); } },
+		{ "Frequency manager", 		ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 					ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
 		{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },

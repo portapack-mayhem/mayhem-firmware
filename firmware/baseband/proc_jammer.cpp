@@ -40,11 +40,11 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 			for (;;) {
 				ir++;
 				if (ir > 15) ir = 0;
-				if (shared_memory.jammer_ranges[ir].active == true) break;
+				if (jammer_ranges[ir].enabled == true) break;
 			}
-			jammer_bw = shared_memory.jammer_ranges[ir].width / 2;
+			jammer_bw = jammer_ranges[ir].width / 2;
 			
-			message.freq = shared_memory.jammer_ranges[ir].center;
+			message.freq = jammer_ranges[ir].center;
 			shared_memory.application_queue.push(message);
 		} else {
 			s++;
@@ -73,9 +73,9 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 		sample = sine_table_i8[(sphase & 0x03FC0000) >> 18];
 		
 		// FM
-		frq = sample * jammer_bw;
+		delta = sample * jammer_bw;
 		
-		phase = (phase + frq);
+		phase = (phase + delta);
 		sphase = phase + (64 << 18);
 
 		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
@@ -86,6 +86,9 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 };
 
 void JammerProcessor::on_message(const Message* const msg) {
+	
+	jammer_ranges = (JammerRange*)shared_memory.tx_data;
+	
 	/*const auto message = *reinterpret_cast<const DTMFTXConfigMessage*>(msg);
 	
 	if (message.id == Message::ID::DTMFTXConfig) {

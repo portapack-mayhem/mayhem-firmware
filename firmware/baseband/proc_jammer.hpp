@@ -25,6 +25,7 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "portapack_shared_memory.hpp"
 
 class JammerProcessor : public BasebandProcessor {
 public:
@@ -37,6 +38,8 @@ private:
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
+	JammerRange * jammer_ranges;
+	
     int32_t lfsr32 = 0xABCDE;
     uint32_t s;
 	int8_t r, ir, re, im;
@@ -45,7 +48,7 @@ private:
 	int32_t lfsr;
     uint32_t sample_count;
 	uint32_t aphase, phase, sphase;
-	int32_t sample, frq;
+	int32_t sample, delta;
 	RetuneMessage message;
 };
 

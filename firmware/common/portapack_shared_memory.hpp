@@ -28,9 +28,9 @@
 #include "message_queue.hpp"
 
 struct JammerRange {
-	bool active;
-	int64_t center;
-	int64_t width;
+	bool enabled;
+	uint64_t center;
+	uint32_t width;
 	uint32_t duration;
 };
 
@@ -46,12 +46,9 @@ struct SharedMemory {
 	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
 
 	char m4_panic_msg[32] { 0 };
-
-	size_t bit_length;
 	
-	JammerRange jammer_ranges[16];
-	
-	char tx_data[512] { 0 };
+	// struct tx_data union for 9x JammerRange ?
+	uint8_t tx_data[512] { 0 };
 };
 
 extern SharedMemory& shared_memory;

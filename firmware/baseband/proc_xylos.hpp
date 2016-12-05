@@ -68,7 +68,7 @@ private:
     uint8_t digit = 0;
     uint32_t sample_count = 0;
 	uint32_t tone_phase, phase, sphase;
-	int32_t tone_sample, frq;
+	int32_t tone_sample, delta;
 	bool silence = true;
 	TXDoneMessage message;
 	

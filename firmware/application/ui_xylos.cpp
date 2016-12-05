@@ -329,8 +329,6 @@ XylosView::XylosView(NavigationView& nav) {
 		generate_message();
 	};
 	
-	subfamily_code.hidden(true);
-	text_subfamily.set_style(&style_grey);
 	checkbox_wcsubfamily.on_select = [this](Checkbox&) {
 		if (checkbox_wcsubfamily.value() == true) {
 			receiver_code.set_focusable(false);
@@ -342,8 +340,6 @@ XylosView::XylosView(NavigationView& nav) {
 		generate_message();
 	};
 	
-	receiver_code.hidden(true);
-	text_receiver.set_style(&style_grey);
 	checkbox_wcid.on_select = [this](Checkbox&) {
 		if (checkbox_wcid.value() == true) {
 			receiver_code.set_focusable(false);

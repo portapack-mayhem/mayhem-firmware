@@ -447,6 +447,7 @@ public:
 	std::function<void()> on_change;
 
 	SymField(Point parent_pos, size_t length);
+	SymField(Point parent_pos, size_t length, bool hex);
 
 	SymField(const SymField&) = delete;
 	SymField(SymField&&) = delete;
@@ -455,6 +456,7 @@ public:
 	void set_value(const uint32_t index, const uint32_t new_value);
 	void set_length(const uint32_t new_length);
 	void set_symbol_list(const uint32_t index, const std::string symbol_list);
+	uint64_t value_hex_u64();
 
 	void paint(Painter& painter) override;
 
@@ -468,6 +470,7 @@ private:
 	uint32_t selected_ = 0;
 	size_t length_, prev_length_;
 	bool erase_prev_ = false;
+	bool hex_ = false;
 
 	int32_t clip_value(const uint32_t index, const uint32_t value);
 };

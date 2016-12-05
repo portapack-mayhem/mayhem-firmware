@@ -34,35 +34,26 @@ public:
 	JammerView(NavigationView& nav);
 	~JammerView();
 	
-	void updfreq(uint8_t id, rf::Frequency f);
 	void focus() override;
 	
 	std::string title() const override { return "Jammer"; };
 
 private:
-	void on_retune(const int64_t freq);
-	
-	rf::Frequency range1_min;
-	rf::Frequency range1_max;
-	rf::Frequency range2_min;
-	rf::Frequency range2_max;
-	rf::Frequency range3_min;
-	rf::Frequency range3_max;
-	
-	rf::Frequency range1_center;
-	rf::Frequency range1_width;
-	rf::Frequency range2_center;
-	rf::Frequency range2_width;
-	rf::Frequency range3_center;
-	rf::Frequency range3_width;
-	
-	typedef struct rangepreset {
-		bool active;
+	// range_t from utility.hpp is const only
+	typedef struct freq_range {
+		bool enabled;
 		rf::Frequency min;
 		rf::Frequency max;
-	} rangepreset;
+	} freq_range_t;
+
+	freq_range_t frequency_range[3];
 	
-	const rangepreset range_presets[10][3] = {
+	void update_text(uint8_t id, rf::Frequency f);
+	void on_retune(const int64_t freq);
+		
+	// TODO: TDD UMTS, voir doc Arcep
+	// TODO: Wifi, BT: 2 400 et 2 483,5 MHz
+	const freq_range_t range_presets[10][3] = {
 		// Orange
 		{{ true, 935000000, 945000000 },	// GSM 900
 		{ true, 1808000000, 1832000000 },	// GSM 1800
@@ -80,16 +71,13 @@ private:
 		
 		// Free
 		{{ true, 945000000, 950000000 },	// GSM 900
-		{ false, 0, 0 },					// GSM 1800
+		{ false, 0, 0 },					// GSM 1800 ?
 		{ true, 2144900000, 2149900000 }},	// UMTS
 		
 		// GSM-R
 		{{ true, 921000000, 925000000 },	// GSM 900
 		{ false, 0, 0 },					// GSM 1800
 		{ false, 0, 0 }},					// UMTS
-		
-		// TODO: TDD UMTS, voir doc Arcep
-		// TODO: Wifi, BT: 2 400 et 2 483,5 MHz
 		
 		// DECT
 		{{ true, 1880000000, 1900000000 },	// BW: 20MHz
@@ -102,12 +90,12 @@ private:
 		{ false, 0, 0 }},
 		
 		// ISM 433
-		{{ true, 433050000, 434790000 },	// BW: 0.2%
+		{{ true, 433050000, 434790000 },	// Center: 433.92MHz BW: 0.2%
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
 		// Sigfox
-		{{ true, 868150000, 868250000 },	// BW: 40kHz (50kHz)
+		{{ true, 868000000, 868220000 },	// Center: 868.2MHz BW: 40kHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
@@ -131,7 +119,7 @@ private:
 		{
 			{ "Ramp ", 0 },
 			{ "FM   ", 1 },
-			{ "PSK  ", 2 },
+			{ "Phase", 2 },
 			{ "Tones", 3 }
 		}
 	};
@@ -209,40 +197,18 @@ private:
 		"Range 3"
 	};
 	
-	Button button_setfreq1_min {
-		{ 13 * 8, 6 * 16 - 4 - 1, 11 * 8, 18 },
-		"----.----M"
-	};
-	Button button_setfreq1_max {
-		{ 13 * 8, 7 * 16 - 4, 11 * 8, 18 },
-		"----.----M"
-	};
+	std::array<Button, 6> buttons_freq;
+	
 	Text text_info1 {
 		{ 3 * 8, 8 * 16 - 4 + 2, 25 * 8, 16 },
 		"C:----.----M W:-----kHz"
 	};
 	
-	Button button_setfreq2_min {
-		{ 13 * 8, 9 * 16 - 1, 11 * 8, 18 },
-		"----.----M"
-	};
-	Button button_setfreq2_max {
-		{ 13 * 8, 10 * 16, 11 * 8, 18 },
-		"----.----M"
-	};
 	Text text_info2 {
 		{ 3 * 8, 11 * 16 + 2, 25 * 8, 16 },
 		"C:----.----M W:-----kHz"
 	};
 	
-	Button button_setfreq3_min {
-		{ 13 * 8, 12 * 16 + 4 - 1, 11 * 8, 18 },
-		"----.----M"
-	};
-	Button button_setfreq3_max {
-		{ 13 * 8, 13 * 16 + 4, 11 * 8, 18 },
-		"----.----M"
-	};
 	Text text_info3 {
 		{ 3 * 8, 14 * 16 + 4 + 2, 25 * 8, 16 },
 		"C:----.----M W:-----kHz"

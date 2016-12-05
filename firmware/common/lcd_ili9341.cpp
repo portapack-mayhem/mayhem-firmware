@@ -295,7 +295,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 	uint32_t data_idx;
 	uint8_t by, c, count, transp_idx = 0;
 	ui::Color line_buffer[240];
-	ui::Coord px = 0, py;
+	uint16_t px = 0, py;
 	ui::Color palette[16];
 	
 	// Abort if bad depth or no RLE

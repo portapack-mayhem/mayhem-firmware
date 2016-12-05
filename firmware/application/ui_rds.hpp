@@ -33,12 +33,6 @@
 #include "volume.hpp"
 #include "transmitter_model.hpp"
 
-#define RDS_OFFSET_A	0b0011111100
-#define RDS_OFFSET_B	0b0110011000
-#define RDS_OFFSET_C	0b0101101000
-#define RDS_OFFSET_Cp	0b1101010000
-#define RDS_OFFSET_D	0b0110110100
-
 namespace ui {
 
 class RDSView : public View {
@@ -54,28 +48,11 @@ private:
 	char PSN[9];
 	char RadioText[25];
 	bool txing = false;
-	int64_t tuning_frequency = 92200000;	// TODO: CHANGE !
 	
-	uint8_t b2b(const bool in);
+	uint16_t message_length;
 	
-	void gen_PSN(const char * psname);
-	void gen_RadioText(const char * radiotext);
-	
-	void make_0B_group(uint32_t group[],  const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
-						const bool MS, const bool DI, const uint8_t C, const char * chars);
-	void make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
-							const bool segment, const char * chars);
-	
-	radio::Configuration rds_radio_config = {
-		0,
-		2280000,	// ?
-		2500000,	// ?
-		rf::Direction::Transmit,
-		true,
-		0,
-		0,
-		1,
-	};
+	void start_tx();
+	void on_tuning_frequency_changed(rf::Frequency f);
 
 	FrequencyField field_frequency {
 		{ 1 * 8, 1 * 16 },

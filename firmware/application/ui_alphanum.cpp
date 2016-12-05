@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -77,7 +78,7 @@ AlphanumView::AlphanumView(
 	};
 
 	n = 0;
-	for(auto& button : buttons) {
+	for (auto& button : buttons) {
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * button_w),

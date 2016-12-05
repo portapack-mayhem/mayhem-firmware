@@ -22,7 +22,7 @@
 
 #include "proc_rds.hpp"
 #include "portapack_shared_memory.hpp"
-#include "sine_table.hpp"
+#include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 
 #include <cstdint>
@@ -31,18 +31,18 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 	
 	for (size_t i = 0; i < buffer.count; i++) {
 		
-		//Sample generation 2.28M/10=228kHz
-		if(s >= 9) {
+		// Sample generation at 2.28M / 10 = 228kHz
+		if (s >= 9) {
 			s = 0;
-			if(sample_count >= SAMPLES_PER_BIT) {
+			if (sample_count >= SAMPLES_PER_BIT) {
 				cur_bit = (rdsdata[(bit_pos / 26) & 15] >> (25 - (bit_pos % 26))) & 1;
 				prev_output = cur_output;
 				cur_output = prev_output ^ cur_bit;
 
-				const int32_t *src = waveform_biphase;	// const ok ?
+				const int32_t * src = waveform_biphase;
 				int idx = in_sample_index;
 
-				for(int j = 0; j < FILTER_SIZE; j++) {
+				for (int j = 0; j < FILTER_SIZE; j++) {
 					val = (*src++);
 					if (cur_output) val = -val;
 					sample_buffer[idx++] += val;
@@ -52,10 +52,11 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 				in_sample_index += SAMPLES_PER_BIT;
 				if (in_sample_index >= SAMPLE_BUFFER_SIZE) in_sample_index -= SAMPLE_BUFFER_SIZE;
 				
-				if (bit_pos < shared_memory.bit_length)
+				if (bit_pos < message_length)
 					bit_pos++;
 				else
 					bit_pos = 0;
+				
 				sample_count = 0;
 			}
 			
@@ -64,38 +65,39 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 			out_sample_index++;
 			if (out_sample_index >= SAMPLE_BUFFER_SIZE) out_sample_index = 0;
 			
-			//AM @ 228k/4 = 57kHz
-			switch (mphase) {
+			// AM @ 228k/4 = 57kHz
+			// 0, sample, 0, -sample...
+			switch (mphase & 3) {
 				case 0:
 				case 2: sample = 0; break;
 				case 1: break;
-				case 3: sample = -sample; break;
+				case 3: sample = -sample;	// break;
 			}
 			mphase++;
-			if (mphase >= 4) mphase = 0;
 			
 			sample_count++;
 		} else {
 			s++;
 		}
 		
-		//FM
-		frq = (sample>>16) * 386760;
+		// FM
+		delta = (sample >> 16) * 386760;	// ?
 		
-		phase = (phase + frq);
-		sphase = phase + (256<<16);
+		phase += delta;
+		sphase = phase + (64 << 18);
 		
-		re = (sine_table_f32[(sphase & 0x03FF0000)>>18]*127);
-		im = (sine_table_f32[(phase & 0x03FF0000)>>18]*127);
+		re = (sine_table_i8[(sphase & 0x03FF0000) >> 18]);
+		im = (sine_table_i8[(phase & 0x03FF0000) >> 18]);
 		
-		buffer.p[i] = {(int8_t)re,(int8_t)im};
+		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
 }
 
 void RDSProcessor::on_message(const Message* const msg) {
 	if (msg->id == Message::ID::RDSConfigure) {
-		//const auto message = *reinterpret_cast<const RDSConfigureMessage*>(p);
+		const auto message = *reinterpret_cast<const RDSConfigureMessage*>(msg);
 		rdsdata = (uint32_t*)shared_memory.tx_data;
+		message_length = message.length;
 		configured = true;
 	}
 }

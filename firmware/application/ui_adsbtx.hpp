@@ -57,10 +57,8 @@ private:
 	uint8_t adsb_frame[14];		// 112 bit data block as 14 bytes
 	uint8_t adsb_bin[112];		// 112 bit data block
 	
-	const char icao_id_lut[65] = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ##### ###############0123456789######";
-	
 	void start_tx();
-	void generate_frame_id();
+	void generate_frame();
 	void generate_frame_pos();
 	void on_txdone(const int n);
 	
@@ -74,18 +72,13 @@ private:
 		.background = Color::red(),
 		.foreground = Color::black(),
 	};
-	const Style style_grey {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::grey(),
-	};
 	
 	Text text_format {
-		{ 4 * 8, 1 * 16, 7 * 8, 16 },
+		{ 2 * 8, 1 * 16, 7 * 8, 16 },
 		"Format:"
 	};
 	OptionsField options_format {
-		{ 12 * 8, 1 * 16 },
+		{ 10 * 8, 1 * 16 },
 		10,
 		{
 			{ "17: ADS-B", 17 },
@@ -95,38 +88,70 @@ private:
 	};
 	
 	Text text_icaolabel {
-		{ 4 * 8, 3 * 16, 7 * 8, 16 },
+		{ 2 * 8, 2 * 16, 7 * 8, 16 },
 		"ICAO24:"
 	};
-	Button button_icao {
-		{ 12 * 8, 2 * 16 + 12, 8 * 8, 24 },
-		"012345"	// 7277A9
+	SymField sym_icao {
+		{ 10 * 8, 2 * 16 },
+		6,
+		true	// Hex
 	};
 
 	Text text_callsign {
-		{ 4 * 8, 4 * 16 + 8, 3 * 8, 16 },
+		{ 2 * 8, 3 * 16 + 8, 3 * 8, 16 },
 		"ID:"
 	};
 	Button button_callsign {
-		{ 8 * 8, 4 * 16 + 4, 10 * 8, 24 },
-		"" // "KOR151  "
+		{ 6 * 8, 3 * 16 + 4, 10 * 8, 24 },
+		""
+	};
+	
+	Text text_altitude {
+		{ 2 * 8, 5 * 16, 20 * 8, 16 },
+		"Altitude:       feet"
+	};
+	NumberField field_altitude {
+		{ 12 * 8, 5 * 16 },
+		5,
+		{ -1000, 50000 },
+		250,
+		' '
+	};
+	
+	Text text_latitude {
+		{ 2 * 8, 6 * 16, 20 * 8, 16 },
+		"Latitude:    *  '  \""		// No ° symbol in 8x16 font
+	};
+	NumberField field_lat_degrees {
+		{ 12 * 8, 6 * 16 }, 3, { -90, 90 }, 1, ' '
+	};
+	NumberField field_lat_minutes {
+		{ 16 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	NumberField field_lat_seconds {
+		{ 19 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	Text text_longitude {
+		{ 2 * 8, 7 * 16, 20 * 8, 16 },
+		"Longitude:   *  '  \""		// No ° symbol in 8x16 font
+	};
+	NumberField field_lon_degrees {
+		{ 12 * 8, 7 * 16 }, 3, { -90, 90 }, 1, ' '
+	};
+	NumberField field_lon_minutes {
+		{ 16 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	NumberField field_lon_seconds {
+		{ 19 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	
 	Text text_frame_a {
-		{ 4 * 8, 10 * 16, 14 * 8, 16 },
+		{ 4 * 8, 12 * 16, 14 * 8, 16 },
 		"-"
 	};
 	Text text_frame_b {
-		{ 4 * 8, 11 * 16, 14 * 8, 16 },
+		{ 4 * 8, 13 * 16, 14 * 8, 16 },
 		"-"
-	};
-	
-	ProgressBar progress {
-		{ 5 * 8, 13 * 16, 20 * 8, 16 },
-	};
-	Text text_message {
-		{ 5 * 8, 14 * 16, 20 * 8, 16 },
-		"--------------------"
 	};
 	
 	Button button_transmit {

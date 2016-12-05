@@ -23,8 +23,6 @@
 #include "ui_jammer.hpp"
 #include "ui_receiver.hpp"
 
-//#include "ch.h"
-//#include "evtimer.h"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -47,10 +45,12 @@ JammerView::~JammerView() {
 	baseband::shutdown();
 }
 
-void JammerView::updfreq(uint8_t id, rf::Frequency f) {
+void JammerView::update_text(uint8_t id, rf::Frequency f) {
 	char finalstr[25] = {0};
+	rf::Frequency center;
+	std::string bw;
 	uint8_t c;
-	
+
 	auto mhz = to_string_dec_int(f / 1000000, 3);
 	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
 
@@ -59,64 +59,14 @@ void JammerView::updfreq(uint8_t id, rf::Frequency f) {
 	strcat(finalstr, hz100.c_str());
 	strcat(finalstr, "M");
 
-	while (strlen(finalstr) < 10) {
+	while (strlen(finalstr) < 10)
 		strcat(finalstr, " ");
-	}
 
-	if (id == 0) {
-		range1_min = f;
-		this->button_setfreq1_min.set_text(finalstr);
-	}
-	if (id == 1) {
-		range1_max = f;
-		this->button_setfreq1_max.set_text(finalstr);
-	}
-	if (id == 2) {
-		range2_min = f;
-		this->button_setfreq2_min.set_text(finalstr);
-	}
-	if (id == 3) {
-		range2_max = f;
-		this->button_setfreq2_max.set_text(finalstr);
-	}
-	if (id == 4) {
-		range3_min = f;
-		this->button_setfreq3_min.set_text(finalstr);
-	}
-	if (id == 5) {
-		range3_max = f;
-		this->button_setfreq3_max.set_text(finalstr);
-	}
-	
-	rf::Frequency center;
-	std::string bw;
-	
+	buttons_freq[id].set_text(finalstr);
+
 	for (c = 0; c < 3; c++) {
-		if (c == 0)	{
-			center = (range1_min + range1_max) / 2;
-			range1_center = center;
-		}
-		if (c == 1)	{
-			center = (range2_min + range2_max) / 2;
-			range2_center = center;
-		}
-		if (c == 2)	{
-			center = (range3_min + range3_max) / 2;
-			range3_center = center;
-		}
-		
-		if (c == 0)	{
-			range1_width = abs(range1_max - range1_min) / 1000;
-			bw = to_string_dec_int(range1_width, 5);
-		}
-		if (c == 1)	{
-			range2_width = abs(range2_max - range2_min) / 1000;
-			bw = to_string_dec_int(range2_width, 5);
-		}
-		if (c == 2)	{
-			range3_width = abs(range3_max - range3_min) / 1000;
-			bw = to_string_dec_int(range3_width, 5);
-		}
+		center = (frequency_range[c].min + frequency_range[c].max) / 2;
+		bw = to_string_dec_int(abs(frequency_range[c].max - frequency_range[c].min) / 1000, 5);
 		
 		auto center_mhz = to_string_dec_int(center / 1000000, 4);
 		auto center_hz100 = to_string_dec_int((center / 100) % 10000, 4, '0');
@@ -129,23 +79,23 @@ void JammerView::updfreq(uint8_t id, rf::Frequency f) {
 		strcat(finalstr, bw.c_str());
 		strcat(finalstr, "kHz");
 		
-		while (strlen(finalstr) < 23) {
+		while (strlen(finalstr) < 23)
 			strcat(finalstr, " ");
-		}
 		
-		if (c == 0) this->text_info1.set(finalstr);
-		if (c == 1) this->text_info2.set(finalstr);
-		if (c == 2) this->text_info3.set(finalstr);
+		if (c == 0) text_info1.set(finalstr);
+		if (c == 1) text_info2.set(finalstr);
+		if (c == 2) text_info3.set(finalstr);
 	}
 }
 
 void JammerView::on_retune(const int64_t freq) {
-	if (freq > 0) {
-		radio::set_tuning_frequency(freq);
-	}
+	if (freq > 0)
+		transmitter_model.set_tuning_frequency(freq);
 }
 	
 JammerView::JammerView(NavigationView& nav) {
+	size_t n;
+	
 	baseband::run_image(portapack::spi_flash::image_tag_jammer);
 	
 	static constexpr Style style_val {
@@ -166,6 +116,8 @@ JammerView::JammerView(NavigationView& nav) {
 		.foreground = Color::grey(),
 	};
 	
+	JammerRange * jammer_ranges = (JammerRange*)shared_memory.tx_data;
+	
 	add_children({ {
 		&text_type,
 		&options_modulation,
@@ -178,158 +130,139 @@ JammerView::JammerView(NavigationView& nav) {
 		&checkbox_range1,
 		&checkbox_range2,
 		&checkbox_range3,
-		&button_setfreq1_min,
-		&button_setfreq1_max,
 		&text_info1,
-		&button_setfreq2_min,
-		&button_setfreq2_max,
 		&text_info2,
-		&button_setfreq3_min,
-		&button_setfreq3_max,
 		&text_info3,
 		&button_transmit,
 		&button_exit
 	} });
 	
+	const auto button_freq_fn = [this, &nav](Button& button) {
+		uint16_t id = button.id;
+		rf::Frequency * value_ptr;
+		
+		if (id & 1)
+			value_ptr = &frequency_range[id].max;
+		else
+			value_ptr = &frequency_range[id].min;
+		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
+		new_view->on_changed = [this, value_ptr](rf::Frequency f) {
+			*value_ptr = f;
+		};
+	};
+	
+	n = 0;
+	for (auto& button : buttons_freq) {
+		button.on_select = button_freq_fn;
+		button.set_parent_rect({
+			static_cast<Coord>(13 * 8),
+			static_cast<Coord>((n * 52) + 91 + (17 * (n & 1))),
+			88, 18
+		});
+		button.id = n;
+		button.set_text("----.----M");
+		add_child(&button);
+		n++;
+	}
+	
 	button_transmit.set_style(&style_val);
 	text_info1.set_style(&style_info);
 	text_info2.set_style(&style_info);
 	text_info3.set_style(&style_info);
-
-	options_preset.set_selected_index(8);
 	
 	options_preset.on_change = [this](size_t n, OptionsField::value_t v) {
 		(void)n;
-		uint8_t c;
 		
+		for (uint8_t c = 0; c < 3; c++) {
+			frequency_range[c].min = range_presets[v][c].min;
+			frequency_range[c].max = range_presets[v][c].max;
+		}
+		checkbox_range1.set_value(range_presets[v][0].enabled);
+		checkbox_range2.set_value(range_presets[v][1].enabled);
+		checkbox_range3.set_value(range_presets[v][2].enabled);
+	};
+	
+	options_preset.set_selected_index(8);		// Sigfox, because they deserve it
+
+	button_transmit.on_select = [this, &nav, jammer_ranges](Button&) {
+		uint8_t c, i = 0;
+		size_t num_ranges;
+		rf::Frequency start_freq, range_bw, ch_width;
+		bool out_of_ranges = false;
+		
+		// Disable all ranges by default
+		for (i = 0; i < 9; i++)
+			jammer_ranges[i].enabled = false;
+		
+		// Generate jamming "channels", maximum: 9
+		// Convert ranges min/max to center/bw
 		for (c = 0; c < 3; c++) {
-			updfreq(c*2, range_presets[v][c].min);
-			updfreq((c*2)+1, range_presets[v][c].max);
-			if (c == 0) checkbox_range1.set_value(range_presets[v][c].active);
-			if (c == 1) checkbox_range2.set_value(range_presets[v][c].active);
-			if (c == 2) checkbox_range3.set_value(range_presets[v][c].active);
-		}
-	};
-	
-	button_setfreq1_min.on_select = [this,&nav](Button&){
-		auto new_view = nav.push<FrequencyKeypadView>(range1_min);
-		new_view->on_changed = [this](rf::Frequency f) {
-			updfreq(0, f);
-		};
-	};
-	button_setfreq1_max.on_select = [this,&nav](Button&){
-		auto new_view = nav.push<FrequencyKeypadView>(range1_max);
-		new_view->on_changed = [this](rf::Frequency f) {
-			updfreq(0, f);
-		};
-	};
-	
-	button_transmit.on_select = [this](Button&) {
-		uint8_t i = 0;
-		rf::Frequency t, range_lower;
-		
-		for (i = 0; i < 16; i++) {
-			shared_memory.jammer_ranges[i].active = false;
-		}
-		
-		// Swap
-		if (range1_min > range1_max) {
-			t = range1_min;
-			range1_min = range1_max;
-			range1_max = t;
-		}
-		i = 0;
-		range_lower = range1_min;
-//		for (i = 0; i < 3; i++) {
-
-			if (range1_max - range_lower > 1000000) {
-				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
-				shared_memory.jammer_ranges[i].width = 1000000 / 10;
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				range_lower += 1000000;
+			range_bw = abs(frequency_range[c].max - frequency_range[c].min);		// Total bw for range
+			if (frequency_range[c].min < frequency_range[c].max)
+				start_freq = frequency_range[c].min;
+			else
+				start_freq = frequency_range[c].max;
+			if (range_bw > 500000) {
+				// Example: 600kHz
+				// int(600000 / 500000) = 2
+				// CH-BW = 600000 / 2 = 300000
+				// Center-A = min + CH-BW / 2 = 150000
+				// BW-A = CH-BW = 300000
+				// Center-B = min + CH-BW + Center-A = 450000
+				// BW-B = CH-BW = 300000
+				num_ranges = 0;
+				while (range_bw > 500000) {
+					range_bw -= 500000;
+					num_ranges++;
+				}
+				ch_width = range_bw / num_ranges;
+				for (c = 0; c < num_ranges; c++) {
+					if (i >= 9) {
+						out_of_ranges = true;
+						break;
+					}
+					jammer_ranges[i].enabled = true;
+					jammer_ranges[i].width = ch_width;
+					jammer_ranges[i].center = start_freq + (ch_width / 2) + (ch_width * c);
+					jammer_ranges[i].duration = 2280000 / 10;				// ?
+					i++;
+				}
 			} else {
-				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
-				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				//break;
+				if (i >= 9) {
+					out_of_ranges = true;
+				} else {
+					jammer_ranges[i].enabled = true;
+					jammer_ranges[i].width = range_bw;
+					jammer_ranges[i].center = start_freq + (range_bw / 2);
+					jammer_ranges[i].duration = 2280000 / 10;					// ?
+					i++;
+				}
 			}
-//		}
-
-		// Swap
-		if (range2_min > range2_max) {
-			t = range2_min;
-			range2_min = range2_max;
-			range2_max = t;
-		}
-		i = 1;
-		range_lower = range2_min;
-//		for (i = 0; i < 3; i++) {
-
-			if (range1_max - range_lower > 1000000) {
-				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
-				shared_memory.jammer_ranges[i].width = 1000000 / 10;
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				range_lower += 1000000;
-			} else {
-				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
-				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				//break;
-			}
-//		}
-
-		// Swap
-		if (range3_min > range3_max) {
-			t = range3_min;
-			range3_min = range3_max;
-			range3_max = t;
-		}
-		i = 2;
-		range_lower = range3_min;
-//		for (i = 0; i < 3; i++) {
-
-			if (range1_max - range_lower > 1000000) {
-				shared_memory.jammer_ranges[i].center = range_lower + (1000000/2);
-				shared_memory.jammer_ranges[i].width = 1000000 / 10;
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				range_lower += 1000000;
-			} else {
-				shared_memory.jammer_ranges[i].center = (range1_max + range_lower) / 2;
-				shared_memory.jammer_ranges[i].width = (range1_max - range_lower) / 10;		// ?
-				shared_memory.jammer_ranges[i].active = true;
-				shared_memory.jammer_ranges[i].duration = 2280000 / 10;
-				//break;
-			}
-//		}
-		
-		if (jamming == true) {
-			jamming = false;
-			button_transmit.set_style(&style_val);
-			button_transmit.set_text("START");
-			radio::disable();
-		} else {
-			jamming = true;
-			button_transmit.set_style(&style_cancel);
-			button_transmit.set_text("STOP");
-
-			/*baseband::set_jammer_data(
-
-			);*/
 			
-			//transmitter_model.set_tuning_frequency(433920000);		// TODO
-			transmitter_model.set_baseband_configuration({
-				.mode = 0,
-				.sampling_rate = 1536000U,
-				.decimation_factor = 1,
-			});
-			transmitter_model.set_rf_amp(true);
-			transmitter_model.set_baseband_bandwidth(1750000);
-			transmitter_model.enable();
+			if (!out_of_ranges) {
+				if (jamming == true) {
+					jamming = false;
+					button_transmit.set_style(&style_val);
+					button_transmit.set_text("START");
+					radio::disable();
+				} else {
+					jamming = true;
+					button_transmit.set_style(&style_cancel);
+					button_transmit.set_text("STOP");
+					
+					//transmitter_model.set_tuning_frequency(433920000);		// TODO
+					transmitter_model.set_baseband_configuration({
+						.mode = 0,
+						.sampling_rate = 1536000U,
+						.decimation_factor = 1,
+					});
+					transmitter_model.set_rf_amp(true);
+					transmitter_model.set_baseband_bandwidth(1750000);
+					transmitter_model.enable();
+				}
+			} else {
+				nav.display_modal("Error", "Jamming bandwidth too high.");
+			}
 		}
 	};
 

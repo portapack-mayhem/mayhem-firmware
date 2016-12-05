@@ -55,6 +55,21 @@ static char* to_string_dec_uint_pad_internal(
 	return q;
 }
 
+std::string to_string_bin(
+	const uint32_t n,
+	const uint8_t l)
+{
+	char p[33];
+	for (uint8_t c = 0; c < l; c++) {
+		if (n & (1 << (l - c)))
+			p[c] = '1';
+		else
+			p[c] = '0';
+	}
+	p[l] = 0;
+	return p;
+}
+
 std::string to_string_dec_uint(
 	const uint32_t n,
 	const int32_t l,

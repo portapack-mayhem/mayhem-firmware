@@ -151,6 +151,13 @@ void set_adsb() {
 	send_message(&message);
 }
 
+void set_rds_data(const uint16_t message_length) {
+	const RDSConfigureMessage message {
+		message_length
+	};
+	send_message(&message);
+}
+
 void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length) {
 	const DTMFTXConfigMessage message {
 		bw,

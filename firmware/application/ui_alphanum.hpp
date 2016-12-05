@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -54,7 +55,7 @@ private:
 	bool _lowercase = false;
 	static constexpr size_t button_w = 240 / 5;
 	static constexpr size_t button_h = 28;
-	char txtinput[25] = {0};
+	char txtinput[29] = { 0 };		// 28 chars max
 	
 	void char_add(const char c);
 	void char_delete();

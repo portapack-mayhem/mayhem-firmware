@@ -25,8 +25,6 @@
 #include "ui_soundboard.hpp"
 
 #include "ch.h"
-#include "file.hpp"
-
 #include "lfsr_random.hpp"
 #include "ui_alphanum.hpp"
 #include "portapack.hpp"
@@ -256,6 +254,11 @@ SoundBoardView::SoundBoardView(
 				if (c == 100) break;	// Limit to 100 files
 			}
 		}
+	}
+	
+	if (!c) {
+		nav.display_modal("No files", "No files in /wav/ directory");
+		nav.pop();
 	}
 	
 	max_sound = c;

@@ -50,9 +50,12 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 			if (!bit_part) {
 				if (bit_pos >= 112) {
 					// Stop
+					message.n = 200;
+					shared_memory.application_queue.push(message);
+					configured = false;
 					cur_bit = 0;
 				} else {
-					cur_bit = shared_memory.tx_data[bit_pos];
+					cur_bit = 0; //shared_memory.tx_data[bit_pos];
 					bit_pos++;
 					bit_part = 1;
 				}
@@ -66,7 +69,7 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 		//       1001010110100110 0110010110010101
 		
 		if (cur_bit) {
-			phase = (phase + 0x1FE0000);			// What ?
+			phase = (phase + 0x1FE00);			// What ?
 			sphase = phase + (64 << 18);
 
 			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
@@ -78,17 +81,13 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 	
 		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
-	
-	// TEST
-	message.n = 200;
-	shared_memory.application_queue.push(message);
-	configured = false;
 }
 
 void ADSBTXProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const ADSBConfigureMessage*>(p);
 	
 	if (message.id == Message::ID::ADSBConfigure) {
+		bit_part = 0;
 		bit_pos = 0;
 		cur_bit = 0;
 		preamble = true;

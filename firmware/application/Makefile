@@ -2478,6 +2478,30 @@ __/common/wm8731.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/wm8731.cpp.s
 .PHONY : __/common/wm8731.cpp.s
 
+adsb.obj: adsb.cpp.obj
+.PHONY : adsb.obj
+
+# target to build an object file
+adsb.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/adsb.cpp.obj
+.PHONY : adsb.cpp.obj
+
+adsb.i: adsb.cpp.i
+.PHONY : adsb.i
+
+# target to preprocess a source file
+adsb.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/adsb.cpp.i
+.PHONY : adsb.cpp.i
+
+adsb.s: adsb.cpp.s
+.PHONY : adsb.s
+
+# target to generate assembly for a file
+adsb.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/adsb.cpp.s
+.PHONY : adsb.cpp.s
+
 afsk.obj: afsk.cpp.obj
 .PHONY : afsk.obj
 
@@ -3150,6 +3174,30 @@ radio.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/radio.cpp.s
 .PHONY : radio.cpp.s
 
+rds.obj: rds.cpp.obj
+.PHONY : rds.obj
+
+# target to build an object file
+rds.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rds.cpp.obj
+.PHONY : rds.cpp.obj
+
+rds.i: rds.cpp.i
+.PHONY : rds.i
+
+# target to preprocess a source file
+rds.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rds.cpp.i
+.PHONY : rds.cpp.i
+
+rds.s: rds.cpp.s
+.PHONY : rds.s
+
+# target to generate assembly for a file
+rds.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rds.cpp.s
+.PHONY : rds.cpp.s
+
 receiver_model.obj: receiver_model.cpp.obj
 .PHONY : receiver_model.obj
 
@@ -3798,6 +3846,30 @@ ui_font_fixed_8x16.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_font_fixed_8x16.cpp.s
 .PHONY : ui_font_fixed_8x16.cpp.s
 
+ui_freqman.obj: ui_freqman.cpp.obj
+.PHONY : ui_freqman.obj
+
+# target to build an object file
+ui_freqman.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.obj
+.PHONY : ui_freqman.cpp.obj
+
+ui_freqman.i: ui_freqman.cpp.i
+.PHONY : ui_freqman.i
+
+# target to preprocess a source file
+ui_freqman.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.i
+.PHONY : ui_freqman.cpp.i
+
+ui_freqman.s: ui_freqman.cpp.s
+.PHONY : ui_freqman.s
+
+# target to generate assembly for a file
+ui_freqman.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_freqman.cpp.s
+.PHONY : ui_freqman.cpp.s
+
 ui_handwrite.obj: ui_handwrite.cpp.obj
 .PHONY : ui_handwrite.obj
 
@@ -3917,6 +3989,30 @@ ui_navigation.s: ui_navigation.cpp.s
 ui_navigation.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_navigation.cpp.s
 .PHONY : ui_navigation.cpp.s
+
+ui_numbers.obj: ui_numbers.cpp.obj
+.PHONY : ui_numbers.obj
+
+# target to build an object file
+ui_numbers.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_numbers.cpp.obj
+.PHONY : ui_numbers.cpp.obj
+
+ui_numbers.i: ui_numbers.cpp.i
+.PHONY : ui_numbers.i
+
+# target to preprocess a source file
+ui_numbers.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_numbers.cpp.i
+.PHONY : ui_numbers.cpp.i
+
+ui_numbers.s: ui_numbers.cpp.s
+.PHONY : ui_numbers.s
+
+# target to generate assembly for a file
+ui_numbers.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_numbers.cpp.s
+.PHONY : ui_numbers.cpp.s
 
 ui_nuoptix.obj: ui_nuoptix.cpp.obj
 .PHONY : ui_nuoptix.obj
@@ -4534,6 +4630,9 @@ help:
 	@echo "... __/common/wm8731.obj"
 	@echo "... __/common/wm8731.i"
 	@echo "... __/common/wm8731.s"
+	@echo "... adsb.obj"
+	@echo "... adsb.i"
+	@echo "... adsb.s"
 	@echo "... afsk.obj"
 	@echo "... afsk.i"
 	@echo "... afsk.s"
@@ -4618,6 +4717,9 @@ help:
 	@echo "... radio.obj"
 	@echo "... radio.i"
 	@echo "... radio.s"
+	@echo "... rds.obj"
+	@echo "... rds.i"
+	@echo "... rds.s"
 	@echo "... receiver_model.obj"
 	@echo "... receiver_model.i"
 	@echo "... receiver_model.s"
@@ -4699,6 +4801,9 @@ help:
 	@echo "... ui_font_fixed_8x16.obj"
 	@echo "... ui_font_fixed_8x16.i"
 	@echo "... ui_font_fixed_8x16.s"
+	@echo "... ui_freqman.obj"
+	@echo "... ui_freqman.i"
+	@echo "... ui_freqman.s"
 	@echo "... ui_handwrite.obj"
 	@echo "... ui_handwrite.i"
 	@echo "... ui_handwrite.s"
@@ -4714,6 +4819,9 @@ help:
 	@echo "... ui_navigation.obj"
 	@echo "... ui_navigation.i"
 	@echo "... ui_navigation.s"
+	@echo "... ui_numbers.obj"
+	@echo "... ui_numbers.i"
+	@echo "... ui_numbers.s"
 	@echo "... ui_nuoptix.obj"
 	@echo "... ui_nuoptix.i"
 	@echo "... ui_nuoptix.s"

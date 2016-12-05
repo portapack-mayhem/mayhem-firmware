@@ -539,13 +539,13 @@ public:
 class RDSConfigureMessage : public Message {
 public:
 	constexpr RDSConfigureMessage(
-		const uint32_t length
+		const uint16_t length
 	) : Message { ID::RDSConfigure },
 		length(length)
 	{
 	}
 	
-	const uint32_t length = 0;
+	const uint16_t length = 0;
 };
 
 class RetuneMessage : public Message {

@@ -55,7 +55,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 						message.n = 25;			// End of message code
 						shared_memory.application_queue.push(message);
 					} else {
-						message.n = byte_pos;	// Inform UI about progress (just as eye candy)
+						message.n = byte_pos;		// Inform UI about progress (just as eye candy)
 						shared_memory.application_queue.push(message);
 					}
 					
@@ -74,7 +74,7 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			re = 0;
 			im = 0;
 		} else {
-			tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000)>>18]);
+			tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000) >> 18]);
 			
 			// Audio preview sample generation: 1536000/48000 = 32
 			/*if (as >= 31) {
@@ -87,16 +87,16 @@ void XylosProcessor::execute(const buffer_c8_t& buffer) {
 			// FM
 			// 1<<18 = 262144
 			// m = (262144 * BW) / 1536000 / 2
-			frq = tone_sample * 853;	// 10kHz BW
+			delta = tone_sample * 853;	// 10kHz BW
 			
-			phase = (phase + frq);
-			sphase = phase + (64<<18);
+			phase += delta;
+			sphase = phase + (64 << 18);
 
-			re = (sine_table_i8[(sphase & 0x03FC0000)>>18]);
-			im = (sine_table_i8[(phase & 0x03FC0000)>>18]);
+			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 		}
 		
-		buffer.p[i] = {(int8_t)re,(int8_t)im};
+		buffer.p[i] = {(int8_t)re, (int8_t)im};
 	}
 	
 	//audio_output.write(audio_buffer);

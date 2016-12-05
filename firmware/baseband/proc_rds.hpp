@@ -41,6 +41,7 @@ private:
 	
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
+	uint16_t message_length;
 	int8_t re, im;
 	uint8_t mphase, s;
     uint32_t bit_pos;
@@ -54,8 +55,7 @@ private:
     int32_t sample;
     int out_sample_index = SAMPLE_BUFFER_SIZE - 1;
 	uint32_t phase, sphase;
-	int32_t sig, frq, frq_im, rdsc;
-	int32_t k;
+	int32_t delta;
 	
 	bool configured { false };
 

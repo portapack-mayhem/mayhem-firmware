@@ -93,7 +93,7 @@ void DTMFTXProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void DTMFTXProcessor::on_message(const Message* const msg) {
-	char * tone_ptr;
+	uint8_t * tone_ptr;
 	const auto message = *reinterpret_cast<const DTMFTXConfigMessage*>(msg);
 	
 	if (message.id == Message::ID::DTMFTXConfig) {
