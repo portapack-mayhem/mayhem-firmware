@@ -25,7 +25,7 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "clock_manager.hpp"
@@ -41,44 +41,58 @@ public:
 	~NumbersStationView();
 
 	void focus() override;
-	void paint(Painter& painter) override;
-
+	
 	std::string title() const override { return "Numbers station"; };
 	
 private:
-	// Different from the one in ui_soundboard.hpp, simpler
-	struct sound {
-		uint32_t size = 0;
-		uint32_t sample_duration = 0;
+	// Sequencing state machine
+	enum segments {
+		ANNOUNCE = 0,
+		MESSAGE,
+		SIGNOFF
 	};
 	
-	sound sounds[11];
+	Style style_red {
+		.font = font::fixed_8x16,
+		.background = Color::red(),
+		.foreground = Color::black()
+	};
 	
-	const std::string filenames[11] = {
-		"zero",
-		"one",
-		"two",
-		"three",
-		"four",
-		"five",
-		"six",
-		"seven",
-		"eight",
-		"nine",
-		"anounce"
+	NavigationView& nav_;
+	
+	segments segment; 
+	bool file_error = false;
+	uint32_t sound_sizes[11];
+	
+	const std::vector<std::string> file_names = {
+		{ "0" },
+		{ "1" },
+		{ "2" },
+		{ "3" },
+		{ "4" },
+		{ "5" },
+		{ "6" },
+		{ "7" },
+		{ "8" },
+		{ "9" },
+		{ "announce" }
 	};
 
 	const uint8_t month_table[12] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
-	const char * day_of_week[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+	const char * day_of_week[7] = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
 	
 	File file;
+	uint8_t id_test, announce_loop;
 	uint32_t cnt;
 	uint32_t sample_duration;
 	int8_t audio_buffer[1024];
+	uint32_t pause = 0;
 	
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void prepare_audio();
-	void play_sound(uint16_t id);
+	void start_tx();
+	uint16_t fb_to_uint16(const std::string& fb);
+	uint32_t fb_to_uint32(const std::string& fb);
 	
 	// Schedule: save on sd card
 	// For each day of the week, max 8 messages ?
@@ -95,14 +109,27 @@ private:
 		"Schedule:"
 	};
 	
+	FrequencyField field_frequency {
+		{ 1 * 8, 4 },
+	};
 	NumberField number_bw {
-		{ 11 * 8, 3 * 16 },
+		{ 12 * 8, 2 * 16 },
 		3,
 		{1, 150},
 		1,
 		' '
 	};
 	
+	SymField symfield_code {
+		{ 1*8, 3 * 16 },
+		10,
+		false
+	};
+	
+	Button button_tx {
+		{ 21 * 8, 13 * 16, 64, 32 },
+		"TX !"
+	};
 	Button button_exit {
 		{ 21 * 8, 16 * 16, 64, 32 },
 		"Exit"

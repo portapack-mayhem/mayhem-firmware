@@ -110,12 +110,12 @@ constexpr region_t bootstrap {
 
 constexpr region_t images {
 	.offset = 0x10000,
-	.size = 0x40000,
+	.size = 0x70000,
 };
 
 constexpr region_t application {
 	.offset = 0x80000,
-	.size = 0x40000,
+	.size = 0x50000,
 };
 
 } /* namespace spi_flash */

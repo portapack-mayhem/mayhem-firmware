@@ -33,9 +33,27 @@
 using namespace portapack;
 
 namespace ui {
+
+void FrequencySaveView::focus() {
+	button_exit.focus();
+}
+
+FrequencySaveView::FrequencySaveView(
+	NavigationView& nav,
+	const rf::Frequency value
+) {
+
+	add_children({ {
+		&button_exit
+	} });
 	
-void FreqManView::paint(Painter& painter) {
-	(void)painter;
+	button_exit.on_select = [this, &nav](Button&) {
+		nav.pop();
+	};
+}
+
+void FreqManView::focus() {
+	button_exit.focus();
 }
 
 FreqManView::FreqManView(
@@ -43,7 +61,7 @@ FreqManView::FreqManView(
 ) {
 
 	add_children({ {
-		&button_ok
+		&button_exit
 	} });
 
 	size_t n = 0;
@@ -61,7 +79,7 @@ FreqManView::FreqManView(
 		n++;
 	}
 	
-	button_ok.on_select = [this, &nav](Button&) {
+	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};
 

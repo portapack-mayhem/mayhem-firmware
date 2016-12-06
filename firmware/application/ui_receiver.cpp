@@ -20,6 +20,7 @@
  */
 
 #include "ui_receiver.hpp"
+#include "ui_freqman.hpp"
 
 #include "portapack.hpp"
 using namespace portapack;
@@ -140,14 +141,22 @@ FrequencyKeypadView::FrequencyKeypadView(
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			(n % 3) * button_w,
-			(n / 3) * button_h + button_h,
+			(n / 3) * button_h + 24,
 			button_w, button_h
 		});
 		button.set_text(label);
 		n++;
 	}
+	
+	add_children({ {
+		&button_save,
+		&button_close
+	} });
+	
+	button_save.on_select = [this, &nav](Button&) {
+		nav.push<FrequencySaveView>(this->value());
+	};
 
-	add_child(&button_close);
 	button_close.on_select = [this, &nav](Button&) {
 		if( on_changed ) {
 			on_changed(this->value());

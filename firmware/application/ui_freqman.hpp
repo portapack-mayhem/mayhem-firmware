@@ -28,23 +28,37 @@
 
 namespace ui {
 
+class FrequencySaveView : public View {
+public:
+	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
+	//~FrequencySaveView();
+	
+	void focus() override;
+
+	std::string title() const override { return "Save frequency"; };
+
+private:
+	Button button_exit {
+		{ 72, 264, 96, 32 },
+		"Exit"
+	};	
+};
+
 class FreqManView : public View {
 public:
 	FreqManView(NavigationView& nav);
 	//~FreqManView();
 	
-	std::string title() const override { return "Frequency list"; };
+	void focus() override;
 
-	void paint(Painter& painter) override;
-	//void on_show() override;
-	//void on_hide() override;
+	std::string title() const override { return "Freq. manager"; };
 
 private:
 	std::array<Text, 10> text_list;
 
-	Button button_ok {
+	Button button_exit {
 		{ 72, 264, 96, 32 },
-		"OK"
+		"Exit"
 	};
 };
 

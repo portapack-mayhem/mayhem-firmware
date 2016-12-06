@@ -23,14 +23,15 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
 //TEST: RDS
 
-//BUG: Unistroke text entry screen doesn't care about string max length parameter
+//BUG (fixed ?): Soundboard crashes on exit if no wav files on sd card
 //BUG (fixed ?): No audio in about when shown second time
+//BUG: Unistroke text entry screen doesn't care about string max length parameter
 //BUG: POCSAG RX sometimes misses the first codeword after SYNC
-//BUG: Soundboard crashes on exit if no wav files on sd card
 
 //TODO: Use ModalMessageView with yes/no for TX
 //TODO: Show address/data bit fields in OOK TX

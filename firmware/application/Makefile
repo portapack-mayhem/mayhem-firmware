@@ -4302,6 +4302,30 @@ ui_touch_calibration.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_touch_calibration.cpp.s
 .PHONY : ui_touch_calibration.cpp.s
 
+ui_whipcalc.obj: ui_whipcalc.cpp.obj
+.PHONY : ui_whipcalc.obj
+
+# target to build an object file
+ui_whipcalc.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_whipcalc.cpp.obj
+.PHONY : ui_whipcalc.cpp.obj
+
+ui_whipcalc.i: ui_whipcalc.cpp.i
+.PHONY : ui_whipcalc.i
+
+# target to preprocess a source file
+ui_whipcalc.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_whipcalc.cpp.i
+.PHONY : ui_whipcalc.cpp.i
+
+ui_whipcalc.s: ui_whipcalc.cpp.s
+.PHONY : ui_whipcalc.s
+
+# target to generate assembly for a file
+ui_whipcalc.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_whipcalc.cpp.s
+.PHONY : ui_whipcalc.cpp.s
+
 ui_xylos.obj: ui_xylos.cpp.obj
 .PHONY : ui_xylos.obj
 
@@ -4858,6 +4882,9 @@ help:
 	@echo "... ui_touch_calibration.obj"
 	@echo "... ui_touch_calibration.i"
 	@echo "... ui_touch_calibration.s"
+	@echo "... ui_whipcalc.obj"
+	@echo "... ui_whipcalc.i"
+	@echo "... ui_whipcalc.s"
 	@echo "... ui_xylos.obj"
 	@echo "... ui_xylos.i"
 	@echo "... ui_xylos.s"

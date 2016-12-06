@@ -40,6 +40,12 @@
 
 namespace ui {
 
+enum modal_t {
+	INFO = 0,
+	YESNO,
+	ABORT
+};
+
 class SystemStatusView : public View {
 public:
 	std::function<void(void)> on_back;
@@ -112,8 +118,10 @@ public:
 	void push(View* v);
 
 	void pop();
+	void pop_modal();
 
 	void display_modal(const std::string& title, const std::string& message);
+	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice);
 
 	void focus() override;
 
@@ -190,6 +198,12 @@ class TransmitterAudioMenuView : public MenuView {
 public:
 	TransmitterAudioMenuView(NavigationView& nav);
 	std::string title() const override { return "Audio TX"; };
+};
+
+class UtilitiesView : public MenuView {
+public:
+	UtilitiesView(NavigationView& nav);
+	std::string title() const override { return "Utilities"; };	
 };
 
 class SystemMenuView : public MenuView {
@@ -279,23 +293,23 @@ public:
 		NavigationView& nav,
 		const std::string& title,
 		const std::string& message,
-		bool yesno
+		const modal_t type,
+		const std::function<void(bool)> on_choice
 	);
 	void paint(Painter& painter) override;
 
 	void focus() override;
 
-	std::string title() const override { return title_; };
-	
-	std::function<void(bool)> on_choice;
+	// std::string title() const override { return title_; };
 
 private:
 	const std::string title_;
-	const bool yesno_;
-
+	const modal_t type_;
+	const std::function<void(bool)> on_choice_;
+	
 	Text text_message { };
 
-	Button button_done {
+	Button button_ok {
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },
 		"OK",
 	};

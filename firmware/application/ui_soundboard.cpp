@@ -74,10 +74,11 @@ void SoundBoardView::prepare_audio() {
 	}
 	
 	pbar.set_value(cnt);
+
+	size_t bytes_read = file.read(audio_buffer, 1024).value();
 	
-	file.read(audio_buffer, 1024);
-	
-	for (size_t n = 0; n < 1024; n++)
+	// Unsigned to signed, pretty stupid :/
+	for (size_t n = 0; n < bytes_read; n++)
 		audio_buffer[n] -= 0x80;
 	
 	cnt += 1024;
@@ -87,6 +88,10 @@ void SoundBoardView::prepare_audio() {
 
 void SoundBoardView::focus() {
 	buttons[0].focus();
+
+	if (!max_sound) {
+		nav_.display_modal("No files", "No files in /wav/ directory", ABORT, nullptr);
+	}
 }
 
 void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
@@ -202,7 +207,7 @@ void SoundBoardView::on_ctcss_changed(uint32_t v) {
 
 SoundBoardView::SoundBoardView(
 	NavigationView& nav
-)
+) : nav_ (nav)
 {
 	std::vector<std::string> file_list;
 	std::string file_name;
@@ -254,11 +259,6 @@ SoundBoardView::SoundBoardView(
 				if (c == 100) break;	// Limit to 100 files
 			}
 		}
-	}
-	
-	if (!c) {
-		nav.display_modal("No files", "No files in /wav/ directory");
-		nav.pop();
 	}
 	
 	max_sound = c;

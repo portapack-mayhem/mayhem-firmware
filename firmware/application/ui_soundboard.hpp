@@ -44,6 +44,8 @@ public:
 	std::string title() const override { return "Soundboard"; };
 	
 private:
+	NavigationView& nav_;
+	
 	enum tx_modes {
 		NORMAL = 0,
 		RANDOM

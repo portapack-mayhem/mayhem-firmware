@@ -31,6 +31,8 @@
 #include <cstring>
 #include <stdio.h>
 
+// TODO: Total transmission time (all durations / 44100)
+
 using namespace portapack;
 using namespace hackrf::one;
 
@@ -38,6 +40,10 @@ namespace ui {
 
 void NumbersStationView::focus() {
 	button_exit.focus();
+
+	if (file_error) {
+		nav_.display_modal("No files", "Missing files in /numbers/", ABORT, nullptr);
+	}
 }
 
 NumbersStationView::~NumbersStationView() {
@@ -45,53 +51,85 @@ NumbersStationView::~NumbersStationView() {
 	baseband::shutdown();
 }
 
-void NumbersStationView::paint(Painter& painter) {
-	(void)painter;
-}
-
 void NumbersStationView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 }
 
 void NumbersStationView::prepare_audio() {
+	uint8_t code;
+	
 	if (cnt >= sample_duration) {
-		/*if (!check_loop.value()) {
-			transmitter_model.disable();
-			return;
-		} else {
-			file.seek(44);
-			cnt = 0;
-		}*/
+		if (segment == ANNOUNCE) {
+			if (!announce_loop) {
+				segment = MESSAGE;
+			} else {
+				auto error = file.open("/numbers/announce.wav");
+				if (error.is_valid()) return;
+				
+				sample_duration = sound_sizes[10];
+				
+				file.seek(44);		// Skip header
+				
+				announce_loop--;
+			}
+		}
 		
-		// DEBUG
-			file.seek(44);
-			cnt = 0;
+		if (segment == MESSAGE) {
+			if (id_test == 10)
+				transmitter_model.disable();
+			
+			code = symfield_code.value(id_test);
+			
+			if (code == 10) {
+				pause = 11025;		// p: 0.25s @ 44100Hz
+				memset(audio_buffer, 0, 1024);
+			} else if (code == 11) {
+				pause = 33075;		// P: 0.75s @ 44100Hz
+				memset(audio_buffer, 0, 1024);
+			} else {
+				auto error = file.open("/numbers/" + file_names[code] + ".wav");
+				if (error.is_valid()) return;
+				
+				sample_duration = sound_sizes[code];
+				
+				file.seek(44);		// Skip header
+			}
+			
+			id_test++;
+		}
 		
+		cnt = 0;
 	}
 	
-	file.read(audio_buffer, 1024);
-	
-	// Unsigned to signed, pretty stupid :/
-	for (size_t n = 0; n < 1024; n++)
-		audio_buffer[n] -= 0x80;
-	
-	cnt += 1024;
+	if (!pause) {
+		size_t bytes_read = file.read(audio_buffer, 1024).value();
+		
+		// Unsigned to signed, pretty stupid :/
+		for (size_t n = 0; n < bytes_read; n++)
+			audio_buffer[n] -= 0x80;
+		
+		cnt += 1024;
+	} else {
+		if (pause >= 1024) {
+			pause -= 1024;
+		} else {
+			cnt = sample_duration;
+			pause = 0;
+		}
+	}
 	
 	baseband::set_fifo_data(audio_buffer);
 }
 
-void NumbersStationView::play_sound(uint16_t id) {
+void NumbersStationView::start_tx() {
 	uint32_t divider;
 
-	if (sounds[id].size == 0) return;
-
-	auto error = file.open("/numbers/" + filenames[id] + ".wav");
-	if (error.is_valid()) return;
+	sample_duration = sound_sizes[0];
+	cnt = sample_duration;
 	
-	sample_duration = sounds[id].sample_duration;
-	
-	cnt = 0;
-	file.seek(44);	// Skip header
+	id_test = 0;
+	announce_loop = 2;
+	segment = ANNOUNCE;
 	
 	prepare_audio();
 	
@@ -116,21 +154,94 @@ void NumbersStationView::play_sound(uint16_t id) {
 	);
 }
 
+// TODO: Copied from soundboard, make globally available
+uint16_t NumbersStationView::fb_to_uint16(const std::string& fb) {
+	return (fb[1] << 8) + fb[0];
+}
+
+uint32_t NumbersStationView::fb_to_uint32(const std::string& fb) {
+	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
+}
+
 NumbersStationView::NumbersStationView(
 	NavigationView& nav
-) {
-	uint8_t m, d, dayofweek;
-	uint16_t y;
+) : nav_ (nav)
+{
+	uint8_t c;
+	uint8_t y, m, d, dayofweek;
+	size_t size;
+	
+	char file_buffer[32];
+	
+	c = 0;
+	for (auto& file_name : file_names) {
+		auto error = file.open("/numbers/" + file_name + ".wav");
+		if (!error.is_valid()) {
+			file.seek(22);
+			file.read(file_buffer, 2);
+			
+			// Is file mono ?
+			if (fb_to_uint16(file_buffer) == 1) {
+				file.seek(40);
+				file.read(file_buffer, 4);
+				size = fb_to_uint32(file_buffer);
+				if (!size) break;
+				sound_sizes[c] = size;
+				c++;
+			} else {
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	
+	if (c != 11) file_error = true;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 	
 	add_children({ {
 		&text_title,
+		&field_frequency,
 		&number_bw,
+		&symfield_code,
+		&button_tx,
 		&button_exit
 	} });
 
-	number_bw.set_value(15);
+	number_bw.set_value(120);
+
+	field_frequency.set_value(transmitter_model.tuning_frequency());
+	field_frequency.set_step(50000);
+	field_frequency.on_change = [this](rf::Frequency f) {
+		this->on_tuning_frequency_changed(f);
+	};
+	field_frequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			this->on_tuning_frequency_changed(f);
+			this->field_frequency.set_value(f);
+		};
+	};
+	
+	// DEBUG
+	symfield_code.set_value(0, 10);
+	symfield_code.set_value(1, 3);
+	symfield_code.set_value(2, 4);
+	symfield_code.set_value(3, 11);
+	symfield_code.set_value(4, 6);
+	symfield_code.set_value(5, 1);
+	symfield_code.set_value(6, 9);
+	symfield_code.set_value(7, 7);
+	symfield_code.set_value(8, 8);
+	symfield_code.set_value(9, 0);
+	transmitter_model.set_tuning_frequency(103300000);	// 103.3MHz
+
+	for (c = 0; c < 10; c++)
+		symfield_code.set_symbol_list(c, "0123456789pP");
+
+
 
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
@@ -143,6 +254,10 @@ NumbersStationView::NumbersStationView(
 	dayofweek = (y + y/4 - y/100 + y/400 + month_table[m-1] + d) % 7;
 	
 	text_title.set(day_of_week[dayofweek]);
+
+	button_tx.on_select = [this, &nav](Button&){
+		this->start_tx();
+	};
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();

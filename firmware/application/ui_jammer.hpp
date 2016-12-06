@@ -95,7 +95,7 @@ private:
 		{ false, 0, 0 }},
 		
 		// Sigfox
-		{{ true, 868000000, 868220000 },	// Center: 868.2MHz BW: 40kHz
+		{{ true, 868000000, 868200000 },	// Center: 868.2MHz BW: 40kHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		

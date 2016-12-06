@@ -198,13 +198,17 @@ private:
 	static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
 	Text text_value {
-		{ 0, 0, text_digits * button_w, button_h }
+		{ 0, 4, 240, 16 }
 	};
 
 	std::array<Button, 12> buttons;
 
+	Button button_save {
+		{ 0, button_h * 4 + button_h, button_w, button_h },
+		"Save"
+	};
 	Button button_close {
-		{ 0, button_h * 4 + button_h, button_w * 3, button_h },
+		{ button_w, button_h * 4 + button_h, button_w * 2, button_h },
 		"Done"
 	};
 

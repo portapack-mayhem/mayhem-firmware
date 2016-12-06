@@ -35,7 +35,7 @@ set(USE_OPT "-Os -g --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++11 -fno-rtti -fno-exceptions")
+set(USE_CPPOPT "-Wl,-Map,foo.map -std=c++11 -fno-rtti -fno-exceptions")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -145,37 +145,38 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_focus.cpp
 	${COMMON}/msgpack.cpp
-	ui_navigation.cpp
-	ui_menu.cpp
-	ui_rssi.cpp
-	ui_channel.cpp
+	ui_about.cpp
+	ui_adsbtx.cpp
+	ui_afsksetup.cpp
+	ui_alphanum.cpp
 	ui_audio.cpp
-	ui_font_fixed_8x16.cpp
-	ui_setup.cpp
-	ui_touch_calibration.cpp
-	ui_debug.cpp
 	ui_baseband_stats_view.cpp
-	ui_sd_card_status_view.cpp
-	ui_sd_card_debug.cpp
+	ui_channel.cpp
+	ui_debug.cpp
+	ui_encoders.cpp
+	ui_font_fixed_8x16.cpp
+	ui_freqman.cpp
+	ui_handwrite.cpp
+	ui_jammer.cpp
+	ui_lcr.cpp
+	ui_menu.cpp
+	ui_navigation.cpp
+	ui_numbers.cpp
+	ui_nuoptix.cpp
+	ui_rds.cpp
 	ui_receiver.cpp
 	ui_record_view.cpp
-	ui_textentry.cpp
-	ui_alphanum.cpp
-	ui_spectrum.cpp
-	ui_about.cpp
-	ui_nuoptix.cpp
-	ui_adsbtx.cpp
-	ui_handwrite.cpp
-	ui_afsksetup.cpp
-	# ui_closecall.cpp
+	ui_rssi.cpp
+	ui_sd_card_status_view.cpp
+	ui_sd_card_debug.cpp
+	ui_setup.cpp
 	ui_soundboard.cpp
-	ui_rds.cpp
-	ui_lcr.cpp
+	ui_spectrum.cpp
+	ui_textentry.cpp
+	ui_touch_calibration.cpp
+	ui_whipcalc.cpp
 	ui_xylos.cpp
-	ui_numbers.cpp
-	ui_freqman.cpp
-	ui_encoders.cpp
-	ui_jammer.cpp
+	# ui_closecall.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp

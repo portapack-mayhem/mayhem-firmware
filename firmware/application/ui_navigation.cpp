@@ -36,28 +36,26 @@
 #include "ui_debug.hpp"
 
 #include "ui_numbers.hpp"
+#include "ui_whipcalc.hpp"
 //#include "ui_closecall.hpp"		// DEBUG
 #include "ui_freqman.hpp"
 #include "ui_nuoptix.hpp"
 #include "ui_soundboard.hpp"
-
 #include "ui_encoders.hpp"
-#include "ui_debug.hpp"
 #include "ui_rds.hpp"
 #include "ui_xylos.hpp"
 #include "ui_epar.hpp"
 #include "ui_lcr.hpp"
 #include "analog_audio_app.hpp"
-//#include "ui_audiotx.hpp"			// DEBUG
 #include "ui_adsbtx.hpp"
 #include "ui_jammer.hpp"
-
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
 #include "pocsag_app.hpp"
 #include "capture_app.hpp"
 
+#include "ui_debug.hpp"
 #include "core_control.hpp"
 
 #include "file.hpp"
@@ -182,13 +180,38 @@ void NavigationView::pop() {
 	}
 }
 
+void NavigationView::pop_modal() {
+	if( view() == modal_view ) {
+		modal_view = nullptr;
+	}
+
+	// Pop modal view and underlying app view
+	if( view_stack.size() > 2 ) {
+		free_view();
+		view_stack.pop_back();
+		free_view();
+		view_stack.pop_back();
+
+		update_view();
+	}
+}
+
 void NavigationView::display_modal(
 	const std::string& title,
 	const std::string& message
 ) {
+	display_modal(title, message, INFO, nullptr);
+}
+
+void NavigationView::display_modal(
+	const std::string& title,
+	const std::string& message,
+	const modal_t type,
+	const std::function<void(bool)> on_choice
+) {
 	/* If a modal view is already visible, don't display another */
 	if( !modal_view ) {
-		modal_view = push<ModalMessageView>(title, message, false);
+		modal_view = push<ModalMessageView>(title, message, type, on_choice);
 	}
 }
 
@@ -272,6 +295,15 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 	on_left = [&nav](){ nav.pop(); };
 }
 
+/* UtilitiesView *****************************************************************/
+
+UtilitiesView::UtilitiesView(NavigationView& nav) {
+	add_items<2>({ {
+		{ "Whip antenna calculator",	ui::Color::green(), [&nav](){ nav.push<WhipCalcView>(); } },
+		{ "Notepad",					ui::Color::grey(),	[&nav](){ nav.push<NotImplementedView>(); } },
+	} });
+	on_left = [&nav](){ nav.pop(); };
+}
 /* SystemMenuView ********************************************************/
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
@@ -284,9 +316,10 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),  	[&nav](){ nav.push<JammerView>(); } },
 		{ "Frequency manager", 		ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
+		{ "Utilities",				ui::Color::purple(),	[&nav](){ nav.push<UtilitiesView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 					ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
-		{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
+		//{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 				ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
 		{ "About", 					ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
@@ -453,61 +486,66 @@ void NotImplementedView::focus() {
 }
 
 /* ModalMessageView ******************************************************/
-
 ModalMessageView::ModalMessageView(
 	NavigationView& nav,
 	const std::string& title,
 	const std::string& message,
-	bool yesno
+	const modal_t type,
+	const std::function<void(bool)> on_choice
 ) : title_ { title },
-	yesno_ { yesno }
+	type_ { type },
+	on_choice_ { on_choice }
 {
 
-	if (!yesno) {
-		button_done.on_select = [&nav](Button&){
-			nav.pop();
-		};
+	add_child(&text_message);
+
+	if (type == INFO) {
+		add_child(&button_ok);
 		
-		add_children({ {
-			&text_message,
-			&button_done
-		} });
-	} else {
-		button_yes.on_select = [this,&nav](Button&){
-			if (on_choice) on_choice(true);
+		button_ok.on_select = [&nav](Button&){
 			nav.pop();
 		};
-		button_no.on_select = [this,&nav](Button&){
-			if (on_choice) on_choice(false);
-			nav.pop();
-		};
-		
+	} else if (type == YESNO) {
 		add_children({ {
-			&text_message,
 			&button_yes,
 			&button_no
 		} });
+		
+		button_yes.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop();
+		};
+		button_no.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(false);
+			nav.pop();
+		};
+	} else {
+		add_child(&button_ok);
+		
+		button_ok.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop_modal();
+		};
 	}
-
-	text_message.set(message);
 	
 	const int text_message_width = message.size() * 8;
  	text_message.set_parent_rect({
- 		(240 - text_message_width) / 2, 7 * 16,
+ 		(240 - text_message_width) / 2, 8 * 16,
  		text_message_width, 16
  	});
+	text_message.set(message);
 }
 
 void ModalMessageView::paint(Painter& painter) {
 	(void)painter;
-	portapack::display.drawBMP({64, 64}, modal_warning_bmp, false);
+	portapack::display.drawBMP({96, 64}, modal_warning_bmp, false);
 }
 
 void ModalMessageView::focus() {
-	if (!yesno_) {
-		button_done.focus();
-	} else {
+	if (type_ == YESNO) {
 		button_yes.focus();
+	} else {
+		button_ok.focus();
 	}
 }
 

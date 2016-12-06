@@ -51,6 +51,7 @@ void JammerView::update_text(uint8_t id, rf::Frequency f) {
 	std::string bw;
 	uint8_t c;
 
+	/*
 	auto mhz = to_string_dec_int(f / 1000000, 3);
 	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
 
@@ -63,7 +64,8 @@ void JammerView::update_text(uint8_t id, rf::Frequency f) {
 		strcat(finalstr, " ");
 
 	buttons_freq[id].set_text(finalstr);
-
+	*/
+	
 	for (c = 0; c < 3; c++) {
 		center = (frequency_range[c].min + frequency_range[c].max) / 2;
 		bw = to_string_dec_int(abs(frequency_range[c].max - frequency_range[c].min) / 1000, 5);
@@ -156,7 +158,7 @@ JammerView::JammerView(NavigationView& nav) {
 		button.on_select = button_freq_fn;
 		button.set_parent_rect({
 			static_cast<Coord>(13 * 8),
-			static_cast<Coord>((n * 52) + 91 + (17 * (n & 1))),
+			static_cast<Coord>(((n >> 1) * 52) + 90 + (18 * (n & 1))),
 			88, 18
 		});
 		button.id = n;
@@ -180,6 +182,8 @@ JammerView::JammerView(NavigationView& nav) {
 		checkbox_range1.set_value(range_presets[v][0].enabled);
 		checkbox_range2.set_value(range_presets[v][1].enabled);
 		checkbox_range3.set_value(range_presets[v][2].enabled);
+		
+		update_text(0, 0);
 	};
 	
 	options_preset.set_selected_index(8);		// Sigfox, because they deserve it
