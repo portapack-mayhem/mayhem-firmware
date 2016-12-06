@@ -233,6 +233,16 @@ space_info space(const path& p);
 
 std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
 
+/* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
+static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
+
+/* Dangerous to expose these, as FatFs native error values are byte-sized. However,
+ * my filesystem_error implemetation is fine with it. */
+#define FR_DISK_FULL	(0x100)
+#define FR_EOF          (0x101)
+#define FR_BAD_SEEK		(0x102)
+#define FR_UNEXPECTED	(0x103)
+
 class File {
 public:
 	using Size = uint64_t;

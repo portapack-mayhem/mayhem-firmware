@@ -25,13 +25,6 @@
 #include <locale>
 #include <codecvt>
 
-/* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
-static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
-#define FR_DISK_FULL	(0x100)
-#define FR_EOF          (0x101)
-#define FR_BAD_SEEK		(0x102)
-#define FR_UNEXPECTED	(0x103)
-
 Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
 	auto result = f_open(&f, reinterpret_cast<const TCHAR*>(filename.c_str()), mode);
 	if( result == FR_OK ) {
