@@ -53,15 +53,19 @@ Point Widget::screen_pos() {
 }
 
 Size Widget::size() const {
-	return parent_rect.size();
+	return _parent_rect.size();
 }
 
 Rect Widget::screen_rect() const {
-	return parent() ? (parent_rect + parent()->screen_pos()) : parent_rect;
+	return parent() ? (parent_rect() + parent()->screen_pos()) : parent_rect();
+}
+
+Rect Widget::parent_rect() const {
+	return _parent_rect;
 }
 
 void Widget::set_parent_rect(const Rect new_parent_rect) {
-	parent_rect = new_parent_rect;
+	_parent_rect = new_parent_rect;
 	set_dirty();
 }
 
@@ -106,7 +110,7 @@ void Widget::hidden(bool hide) {
 		if( hide ) {
 			// TODO: Instead of dirtying parent entirely, dirty only children
 			// that overlap with this widget.
-			parent()->dirty_overlapping_children_in_rect(parent_rect);
+			parent()->dirty_overlapping_children_in_rect(parent_rect());
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -214,7 +218,7 @@ void Widget::set_highlighted(const bool value) {
 
 void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
 	for(auto child : children()) {
-		if( !child_rect.intersect(child->parent_rect).is_empty() ) {
+		if( !child_rect.intersect(child->parent_rect()).is_empty() ) {
 			child->set_dirty();
 		}
 	}

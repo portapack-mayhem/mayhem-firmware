@@ -52,13 +52,13 @@ private:
 class Widget {
 public:
 	Widget(
-	) : parent_rect { }
+	) : _parent_rect { }
 	{
 	}
 
 	Widget(
 		Rect parent_rect
-	) : parent_rect { parent_rect }
+	) : _parent_rect { parent_rect }
 	{
 	}
 
@@ -72,6 +72,7 @@ public:
 	Point screen_pos();
 	Size size() const;
 	Rect screen_rect() const;
+	Rect parent_rect() const;
 	virtual void set_parent_rect(const Rect new_parent_rect);
 
 	Widget* parent() const;
@@ -119,7 +120,7 @@ protected:
 
 private:
 	/* Widget rectangle relative to parent pos(). */
-	Rect parent_rect;
+	Rect _parent_rect;
 	const Style* style_ { nullptr };
 	Widget* parent_ { nullptr };
 
