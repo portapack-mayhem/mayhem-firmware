@@ -23,10 +23,12 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TODO: CTCSS file/module
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
 //TEST: RDS
+//TEST: Morse coder/beacon
 
 //BUG (fixed ?): Soundboard crashes on exit if no wav files on sd card
 //BUG (fixed ?): No audio in about when shown second time

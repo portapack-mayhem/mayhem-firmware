@@ -176,7 +176,7 @@ set(CPPSRC
 	ui_touch_calibration.cpp
 	ui_whipcalc.cpp
 	ui_xylos.cpp
-	# ui_closecall.cpp
+	ui_closecall.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp
@@ -196,6 +196,8 @@ set(CPPSRC
 	sd_card.cpp
 	time.cpp
 	file.cpp
+	filewriter.cpp
+	wavfile.cpp
 	log_file.cpp
 	${COMMON}/png_writer.cpp
 	capture_thread.cpp

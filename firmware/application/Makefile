@@ -2886,6 +2886,30 @@ file.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/file.cpp.s
 .PHONY : file.cpp.s
 
+filewriter.obj: filewriter.cpp.obj
+.PHONY : filewriter.obj
+
+# target to build an object file
+filewriter.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.obj
+.PHONY : filewriter.cpp.obj
+
+filewriter.i: filewriter.cpp.i
+.PHONY : filewriter.i
+
+# target to preprocess a source file
+filewriter.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.i
+.PHONY : filewriter.cpp.i
+
+filewriter.s: filewriter.cpp.s
+.PHONY : filewriter.s
+
+# target to generate assembly for a file
+filewriter.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.s
+.PHONY : filewriter.cpp.s
+
 hackrf_cpld_data.obj: hackrf_cpld_data.cpp.obj
 .PHONY : hackrf_cpld_data.obj
 
@@ -3774,6 +3798,30 @@ ui_channel.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_channel.cpp.s
 .PHONY : ui_channel.cpp.s
 
+ui_closecall.obj: ui_closecall.cpp.obj
+.PHONY : ui_closecall.obj
+
+# target to build an object file
+ui_closecall.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.obj
+.PHONY : ui_closecall.cpp.obj
+
+ui_closecall.i: ui_closecall.cpp.i
+.PHONY : ui_closecall.i
+
+# target to preprocess a source file
+ui_closecall.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.i
+.PHONY : ui_closecall.cpp.i
+
+ui_closecall.s: ui_closecall.cpp.s
+.PHONY : ui_closecall.s
+
+# target to generate assembly for a file
+ui_closecall.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_closecall.cpp.s
+.PHONY : ui_closecall.cpp.s
+
 ui_debug.obj: ui_debug.cpp.obj
 .PHONY : ui_debug.obj
 
@@ -4350,6 +4398,30 @@ ui_xylos.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_xylos.cpp.s
 .PHONY : ui_xylos.cpp.s
 
+wavfile.obj: wavfile.cpp.obj
+.PHONY : wavfile.obj
+
+# target to build an object file
+wavfile.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.obj
+.PHONY : wavfile.cpp.obj
+
+wavfile.i: wavfile.cpp.i
+.PHONY : wavfile.i
+
+# target to preprocess a source file
+wavfile.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.i
+.PHONY : wavfile.cpp.i
+
+wavfile.s: wavfile.cpp.s
+.PHONY : wavfile.s
+
+# target to generate assembly for a file
+wavfile.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.s
+.PHONY : wavfile.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -4705,6 +4777,9 @@ help:
 	@echo "... file.obj"
 	@echo "... file.i"
 	@echo "... file.s"
+	@echo "... filewriter.obj"
+	@echo "... filewriter.i"
+	@echo "... filewriter.s"
 	@echo "... hackrf_cpld_data.obj"
 	@echo "... hackrf_cpld_data.i"
 	@echo "... hackrf_cpld_data.s"
@@ -4816,6 +4891,9 @@ help:
 	@echo "... ui_channel.obj"
 	@echo "... ui_channel.i"
 	@echo "... ui_channel.s"
+	@echo "... ui_closecall.obj"
+	@echo "... ui_closecall.i"
+	@echo "... ui_closecall.s"
 	@echo "... ui_debug.obj"
 	@echo "... ui_debug.i"
 	@echo "... ui_debug.s"
@@ -4888,6 +4966,9 @@ help:
 	@echo "... ui_xylos.obj"
 	@echo "... ui_xylos.i"
 	@echo "... ui_xylos.s"
+	@echo "... wavfile.obj"
+	@echo "... wavfile.i"
+	@echo "... wavfile.s"
 .PHONY : help
 
 

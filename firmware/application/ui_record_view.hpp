@@ -26,7 +26,7 @@
 
 #include "capture_thread.hpp"
 #include "signal.hpp"
-
+#include "wavfile.hpp"
 #include "bitmap.hpp"
 
 #include <cstddef>

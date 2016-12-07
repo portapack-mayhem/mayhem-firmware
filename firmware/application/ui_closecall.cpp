@@ -33,8 +33,6 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
-#include "hackrf_hal.hpp"
-
 #include <cstring>
 #include <stdio.h>
 #include <algorithm>
@@ -428,14 +426,8 @@ CloseCallView::CloseCallView(
 	signal_token_tick_second = time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
-	
-	receiver_model.set_baseband_configuration({
-		.mode = toUType(ReceiverModel::Mode::CloseCall),
-		.sampling_rate = CC_SLICE_WIDTH,
-		.decimation_factor = 1,
-	});
 	receiver_model.set_baseband_bandwidth(CC_SLICE_WIDTH);
-	//receiver_model.enable();
+	receiver_model.enable();
 }
 
 } /* namespace ui */

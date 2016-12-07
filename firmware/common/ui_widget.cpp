@@ -564,9 +564,9 @@ void Checkbox::set_text(const std::string value) {
 	set_dirty();
 }
 
-std::string Checkbox::text() const {
+/*std::string Checkbox::text() const {
 	return text_;
-}
+}*/
 
 void Checkbox::set_value(const bool value) {
 	value_ = value;

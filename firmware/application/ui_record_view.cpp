@@ -26,141 +26,12 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
-#include "file.hpp"
 #include "time.hpp"
 
 #include "string_format.hpp"
 #include "utility.hpp"
 
 #include <cstdint>
-
-class FileWriter : public Writer {
-public:
-	FileWriter() = default;
-
-	FileWriter(const FileWriter&) = delete;
-	FileWriter& operator=(const FileWriter&) = delete;
-	FileWriter(FileWriter&& file) = delete;
-	FileWriter& operator=(FileWriter&&) = delete;
-
-	Optional<File::Error> create(const std::string& filename) {
-		return file.create(filename);
-	}
-
-	File::Result<size_t> write(const void* const buffer, const size_t bytes) override {
-		auto write_result = file.write(buffer, bytes) ;
-		if( write_result.is_ok() ) {
-			bytes_written += write_result.value();
-		}
-		return write_result;
-	}
-
-protected:
-	File file;
-	uint64_t bytes_written { 0 };
-};
-
-using RawFileWriter = FileWriter;
-
-class WAVFileWriter : public FileWriter {
-public:
-	WAVFileWriter(
-		size_t sampling_rate
-	) : header { sampling_rate }
-	{
-	}
-
-
-	WAVFileWriter(const WAVFileWriter&) = delete;
-	WAVFileWriter& operator=(const WAVFileWriter&) = delete;
-	WAVFileWriter(WAVFileWriter&&) = delete;
-	WAVFileWriter& operator=(WAVFileWriter&&) = delete;
-
-	~WAVFileWriter() {
-		update_header();
-	}
-
-	Optional<File::Error> create(
-		const std::string& filename
-	) {
-		const auto create_error = FileWriter::create(filename);
-		if( create_error.is_valid() ) {
-			return create_error;
-		} else {
-			return update_header();
-		}
-	}
-
-private:
-	struct fmt_pcm_t {
-		constexpr fmt_pcm_t(
-			const uint32_t sampling_rate
-		) : nSamplesPerSec { sampling_rate },
-			nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
-		{
-		}
-
-	private:
-		const uint8_t ckID[4] { 'f', 'm', 't', ' ' };
-		const uint32_t cksize { 16 };
-		const uint16_t wFormatTag { 0x0001 };
-		const uint16_t nChannels { 1 };
-		const uint32_t nSamplesPerSec;
-		const uint32_t nAvgBytesPerSec;
-		const uint16_t nBlockAlign { 2 };
-		const uint16_t wBitsPerSample { 16 };
-	};
-
-	struct data_t {
-		void set_size(const uint32_t value) {
-			cksize = value;
-		}
-
-	private:
-		const uint8_t ckID[4] { 'd', 'a', 't', 'a' };
-		uint32_t cksize { 0 };
-	};
-
-	struct header_t {
-		constexpr header_t(
-			const uint32_t sampling_rate
-		) : fmt { sampling_rate }
-		{
-		}
-
-		void set_data_size(const uint32_t value) {
-			data.set_size(value);
-			cksize = sizeof(header_t) + value - 8;
-		}
-
-	private:
-		const uint8_t riff_id[4] { 'R', 'I', 'F', 'F' };
-		uint32_t cksize { 0 };
-		const uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
-		fmt_pcm_t fmt;
-		data_t data;
-	};
-
-	header_t header;
-
-	Optional<File::Error> update_header() {
-		header.set_data_size(bytes_written);
-		const auto seek_0_result = file.seek(0);
-		if( seek_0_result.is_error() ) {
-			return seek_0_result.error();
-		}
-		const auto old_position = seek_0_result.value();
-		const auto write_result = file.write(&header, sizeof(header));
-		if( write_result.is_error() ) {
-			return write_result.error();
-		}
-		const auto seek_old_result = file.seek(old_position);
-		if( seek_old_result.is_error() ) {
-			return seek_old_result.error();
-		}
-		return { };
-	}
-};
 
 namespace ui {
 
@@ -294,7 +165,7 @@ void RecordView::start() {
 				return;
 			}
 
-			auto p = std::make_unique<RawFileWriter>();
+			auto p = std::make_unique<FileWriter>();
 			auto create_error = p->create(
 				filename_stem + ".C16"
 			);

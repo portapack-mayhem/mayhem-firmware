@@ -24,7 +24,6 @@
 
 #include "ui_soundboard.hpp"
 
-#include "ch.h"
 #include "lfsr_random.hpp"
 #include "ui_alphanum.hpp"
 #include "portapack.hpp"
@@ -56,15 +55,15 @@ void SoundBoardView::do_random() {
 
 void SoundBoardView::prepare_audio() {
 	
-	if (cnt >= sample_duration) {
+	if (sample_counter >= sample_duration) {
 		if (tx_mode == NORMAL) {
 			if (!check_loop.value()) {
 				pbar.set_value(0);
 				transmitter_model.disable();
 				return;
 			} else {
-				file.seek(44);
-				cnt = 0;
+				reader->rewind();
+				sample_counter = 0;
 			}
 		} else {
 			pbar.set_value(0);
@@ -73,15 +72,17 @@ void SoundBoardView::prepare_audio() {
 		}
 	}
 	
-	pbar.set_value(cnt);
+	pbar.set_value(sample_counter);
 
-	size_t bytes_read = file.read(audio_buffer, 1024).value();
+	size_t bytes_read = reader->read(audio_buffer, 1024);
 	
 	// Unsigned to signed, pretty stupid :/
 	for (size_t n = 0; n < bytes_read; n++)
 		audio_buffer[n] -= 0x80;
+	for (size_t n = bytes_read; n < 1024; n++)
+		audio_buffer[n] = 0;
 	
-	cnt += 1024;
+	sample_counter += 1024;
 	
 	baseband::set_fifo_data(audio_buffer);
 }
@@ -105,16 +106,14 @@ void SoundBoardView::play_sound(uint16_t id) {
 
 	if (sounds[id].size == 0) return;
 
-	auto error = file.open("/wav/" + sounds[id].filename);
-	if (error.is_valid()) return;
+	if (!reader->open("/wav/" + sounds[id].filename)) return;
 	
 	sample_duration = sounds[id].sample_duration;
 	
 	pbar.set_max(sample_duration);
 	pbar.set_value(0);
 	
-	cnt = 0;
-	file.seek(44);	// Skip header
+	sample_counter = 0;
 	
 	prepare_audio();
 	
@@ -177,7 +176,6 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 }
 
 void SoundBoardView::change_page(Button& button, const KeyEvent key) {
-	
 	// Stupid way to find out if the button is on the sides
 	if (button.screen_pos().x < 32) {
 		if ((key == KeyEvent::Left) && (page > 0)) {
@@ -193,14 +191,6 @@ void SoundBoardView::change_page(Button& button, const KeyEvent key) {
 	}
 }
 
-uint16_t SoundBoardView::fb_to_uint16(const std::string& fb) {
-	return (fb[1] << 8) + fb[0];
-}
-
-uint32_t SoundBoardView::fb_to_uint32(const std::string& fb) {
-	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
-}
-
 void SoundBoardView::on_ctcss_changed(uint32_t v) {
 	_ctcss_freq = v;
 }
@@ -210,59 +200,36 @@ SoundBoardView::SoundBoardView(
 ) : nav_ (nav)
 {
 	std::vector<std::string> file_list;
-	std::string file_name;
-	uint32_t size;
 	uint8_t c;
 	
-	char file_buffer[32];
+	reader = std::make_unique<WAVFileReader>();
 	
-	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
-
 	file_list = scan_root_files("/wav", ".WAV");
-
+	
 	c = 0;
 	for (auto& file_name : file_list) {
-		
-		auto error = file.open("/wav/" + file_name);
-		
-		if (!error.is_valid()) {
-			
-			file.seek(22);
-			file.read(file_buffer, 2);
-			
-			// Is file mono ?
-			if (fb_to_uint16(file_buffer) == 1) {
-				file.seek(40);
-				file.read(file_buffer, 4);
-				size = fb_to_uint32(file_buffer);
-				sounds[c].size = size;
-				
-				file.seek(24);
-				file.read(file_buffer, 4);
-				sounds[c].sample_rate = fb_to_uint32(file_buffer);
-				
-				file.seek(34);
-				file.read(file_buffer, 2);
-				if (fb_to_uint16(file_buffer) > 8) {
+		if (reader->open("/wav/" + file_name)) {
+			if (reader->channels() == 1) {
+				sounds[c].size = reader->data_size();
+				sounds[c].sample_duration = reader->data_size() / (reader->bits_per_sample() / 8);
+				sounds[c].sample_rate = reader->sample_rate();
+				if (reader->bits_per_sample() > 8)
 					sounds[c].sixteenbit = true;
-					size /= 2;
-				} else
+				else
 					sounds[c].sixteenbit = false;
-				
-				sounds[c].ms_duration = (size * 1000) / sounds[c].sample_rate;
-				sounds[c].sample_duration = size;
-				
+				sounds[c].ms_duration = reader->ms_duration();
 				sounds[c].filename = file_name;
 				sounds[c].shortname = remove_filename_extension(file_name);
-				
 				c++;
-				if (c == 100) break;	// Limit to 100 files
+				if (c == 105) break;	// Limit to 105 files (5 pages)
 			}
 		}
 	}
 	
+	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+
 	max_sound = c;
-	max_page = max_sound / 21;		// 21 buttons per page
+	max_page = max_sound / 21;			// 3 * 7 = 21 buttons per page
 	
 	add_children({ {
 		&field_frequency,

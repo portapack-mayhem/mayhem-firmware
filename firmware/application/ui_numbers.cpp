@@ -22,8 +22,6 @@
 
 #include "ui_numbers.hpp"
 
-#include "ch.h"
-#include "ff.h"
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
@@ -34,16 +32,14 @@
 // TODO: Total transmission time (all durations / 44100)
 
 using namespace portapack;
-using namespace hackrf::one;
 
 namespace ui {
 
 void NumbersStationView::focus() {
 	button_exit.focus();
 
-	if (file_error) {
+	if (file_error)
 		nav_.display_modal("No files", "Missing files in /numbers/", ABORT, nullptr);
-	}
 }
 
 NumbersStationView::~NumbersStationView() {
@@ -58,62 +54,56 @@ void NumbersStationView::on_tuning_frequency_changed(rf::Frequency f) {
 void NumbersStationView::prepare_audio() {
 	uint8_t code;
 	
-	if (cnt >= sample_duration) {
+	if (sample_counter >= sample_duration) {
 		if (segment == ANNOUNCE) {
 			if (!announce_loop) {
 				segment = MESSAGE;
 			} else {
-				auto error = file.open("/numbers/announce.wav");
-				if (error.is_valid()) return;
-				
+				reader->open("/numbers/announce.wav");
 				sample_duration = sound_sizes[10];
-				
-				file.seek(44);		// Skip header
-				
 				announce_loop--;
 			}
 		}
 		
 		if (segment == MESSAGE) {
-			if (id_test == 10)
+			code = symfield_code.value(code_index);
+			
+			if (code_index == 25)
 				transmitter_model.disable();
 			
-			code = symfield_code.value(id_test);
-			
-			if (code == 10) {
-				pause = 11025;		// p: 0.25s @ 44100Hz
+			if (code >= 10) {
 				memset(audio_buffer, 0, 1024);
-			} else if (code == 11) {
-				pause = 33075;		// P: 0.75s @ 44100Hz
-				memset(audio_buffer, 0, 1024);
+				if (code == 10) {
+					pause = 11025;		// p: 0.25s @ 44100Hz
+				} else if (code == 11) {
+					pause = 33075;		// P: 0.75s @ 44100Hz
+				} else if (code == 12) {
+					transmitter_model.disable();
+				}
 			} else {
-				auto error = file.open("/numbers/" + file_names[code] + ".wav");
-				if (error.is_valid()) return;
-				
+				reader->open("/numbers/" + file_names[code] + ".wav");
 				sample_duration = sound_sizes[code];
-				
-				file.seek(44);		// Skip header
 			}
-			
-			id_test++;
-		}
-		
-		cnt = 0;
+			code_index++;
+		}		
+		sample_counter = 0;
 	}
 	
 	if (!pause) {
-		size_t bytes_read = file.read(audio_buffer, 1024).value();
+		size_t bytes_read = reader->read(audio_buffer, 1024);
 		
 		// Unsigned to signed, pretty stupid :/
 		for (size_t n = 0; n < bytes_read; n++)
 			audio_buffer[n] -= 0x80;
+		for (size_t n = bytes_read; n < 1024; n++)
+			audio_buffer[n] = 0;
 		
-		cnt += 1024;
+		sample_counter += 1024;
 	} else {
 		if (pause >= 1024) {
 			pause -= 1024;
 		} else {
-			cnt = sample_duration;
+			sample_counter = sample_duration;
 			pause = 0;
 		}
 	}
@@ -122,12 +112,10 @@ void NumbersStationView::prepare_audio() {
 }
 
 void NumbersStationView::start_tx() {
-	uint32_t divider;
-
-	sample_duration = sound_sizes[0];
-	cnt = sample_duration;
+	sample_duration = sound_sizes[10];		// Announce
+	sample_counter = sample_duration;
 	
-	id_test = 0;
+	code_index = 0;
 	announce_loop = 2;
 	segment = ANNOUNCE;
 	
@@ -144,23 +132,25 @@ void NumbersStationView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	divider = (1536000 / 44100) - 1;
-	
 	baseband::set_audiotx_data(
-		divider,
+		(1536000 / 44100) - 1,
 		number_bw.value(),
 		false,
 		0
 	);
 }
 
-// TODO: Copied from soundboard, make globally available
-uint16_t NumbersStationView::fb_to_uint16(const std::string& fb) {
-	return (fb[1] << 8) + fb[0];
-}
-
-uint32_t NumbersStationView::fb_to_uint32(const std::string& fb) {
-	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
+void NumbersStationView::on_tick_second() {
+	if (check_armed.value()) {
+		armed_blink = not armed_blink;
+		
+		if (armed_blink)
+			check_armed.set_style(&style_red);
+		else
+			check_armed.set_style(&style());
+		
+		check_armed.set_dirty();
+	}
 }
 
 NumbersStationView::NumbersStationView(
@@ -168,31 +158,17 @@ NumbersStationView::NumbersStationView(
 ) : nav_ (nav)
 {
 	uint8_t c;
-	uint8_t y, m, d, dayofweek;
-	size_t size;
+	//uint8_t y, m, d, dayofweek;
 	
-	char file_buffer[32];
+	reader = std::make_unique<WAVFileReader>();
 	
 	c = 0;
 	for (auto& file_name : file_names) {
-		auto error = file.open("/numbers/" + file_name + ".wav");
-		if (!error.is_valid()) {
-			file.seek(22);
-			file.read(file_buffer, 2);
-			
-			// Is file mono ?
-			if (fb_to_uint16(file_buffer) == 1) {
-				file.seek(40);
-				file.read(file_buffer, 4);
-				size = fb_to_uint32(file_buffer);
-				if (!size) break;
-				sound_sizes[c] = size;
+		if (reader->open("/numbers/" + file_name + ".wav")) {
+			if ((reader->channels() == 1) && (reader->sample_rate() == 44100) && (reader->bits_per_sample() == 8)) {
+				sound_sizes[c] = reader->data_size();
 				c++;
-			} else {
-				break;
 			}
-		} else {
-			break;
 		}
 	}
 	
@@ -204,12 +180,15 @@ NumbersStationView::NumbersStationView(
 		&text_title,
 		&field_frequency,
 		&number_bw,
+		&text_code,
 		&symfield_code,
-		&button_tx,
+		&check_armed,
+		&button_tx_now,
 		&button_exit
 	} });
 
-	number_bw.set_value(120);
+	number_bw.set_value(75);
+	check_armed.set_value(false);
 
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(50000);
@@ -225,6 +204,18 @@ NumbersStationView::NumbersStationView(
 		};
 	};
 	
+	check_armed.on_select = [this](Checkbox&) {
+		if (check_armed.value()) {
+			armed_blink = false;
+			signal_token_tick_second = time::signal_tick_second += [this]() {
+				this->on_tick_second();
+			};
+		} else {
+			check_armed.set_style(&style());
+			time::signal_tick_second -= signal_token_tick_second;
+		}
+	};
+	
 	// DEBUG
 	symfield_code.set_value(0, 10);
 	symfield_code.set_value(1, 3);
@@ -236,13 +227,12 @@ NumbersStationView::NumbersStationView(
 	symfield_code.set_value(7, 7);
 	symfield_code.set_value(8, 8);
 	symfield_code.set_value(9, 0);
-	transmitter_model.set_tuning_frequency(103300000);	// 103.3MHz
+	symfield_code.set_value(10, 12);	// End
 
-	for (c = 0; c < 10; c++)
-		symfield_code.set_symbol_list(c, "0123456789pP");
+	for (c = 0; c < 25; c++)
+		symfield_code.set_symbol_list(c, "0123456789pPE");
 
-
-
+/*
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
 	
@@ -254,8 +244,9 @@ NumbersStationView::NumbersStationView(
 	dayofweek = (y + y/4 - y/100 + y/400 + month_table[m-1] + d) % 7;
 	
 	text_title.set(day_of_week[dayofweek]);
+*/
 
-	button_tx.on_select = [this, &nav](Button&){
+	button_tx_now.on_select = [this, &nav](Button&){
 		this->start_tx();
 	};
 

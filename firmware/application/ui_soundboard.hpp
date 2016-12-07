@@ -29,8 +29,9 @@
 #include "baseband_api.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "utility.hpp"
 #include "message.hpp"
-#include "file.hpp"
+#include "wavfile.hpp"
 
 namespace ui {
 
@@ -63,15 +64,15 @@ private:
 		uint32_t ms_duration = 0;
 	};
 	
-	uint32_t cnt;
+	uint32_t sample_counter;
 	uint32_t sample_duration;
 	uint8_t page = 0;
 	
-	File file;
-	
 	uint16_t lfsr_v = 0x1337;
 	
-	sound sounds[100];
+	std::unique_ptr<WAVFileReader> reader;
+	
+	sound sounds[105];
 	uint8_t max_sound;
 	uint8_t max_page;
 	
@@ -112,8 +113,6 @@ private:
 	void play_sound(uint16_t id);
 	void prepare_audio();
 	void on_ctcss_changed(uint32_t v);
-	uint16_t fb_to_uint16(const std::string& fb);
-	uint32_t fb_to_uint32(const std::string& fb);
 	
 	Text text_duration {
 		{ 16, 236, 5 * 8, 16 }

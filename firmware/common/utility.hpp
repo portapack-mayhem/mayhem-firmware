@@ -31,6 +31,14 @@
 
 #define LOCATE_IN_RAM __attribute__((section(".ramtext")))
 
+inline uint16_t fb_to_uint16(const std::string& fb) {
+	return (fb[1] << 8) + fb[0];
+}
+
+inline uint32_t fb_to_uint32(const std::string& fb) {
+	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
+}
+
 constexpr size_t operator "" _KiB(unsigned long long v) {
 	return v * 1024;
 }

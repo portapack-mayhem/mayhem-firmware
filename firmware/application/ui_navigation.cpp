@@ -37,7 +37,7 @@
 
 #include "ui_numbers.hpp"
 #include "ui_whipcalc.hpp"
-//#include "ui_closecall.hpp"		// DEBUG
+#include "ui_closecall.hpp"
 #include "ui_freqman.hpp"
 #include "ui_nuoptix.hpp"
 #include "ui_soundboard.hpp"
@@ -271,10 +271,11 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* TransmitterCodedMenuView ******************************************************/
 
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<8>({ {
 		{ "ADS-B Mode S", 			ui::Color::yellow(),  	[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "BHT Epar", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "BHT Xylos", 				ui::Color::yellow(),  	[&nav](){ nav.push<XylosView>(); } },
+		{ "BHT Xylos", 				ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
+		{ "Morse beacon", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),		[&nav](){ nav.push<EncodersView>(); } },
 		{ "RDS",					ui::Color::orange(),	[&nav](){ nav.push<RDSView>(); } },
@@ -288,7 +289,7 @@ TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 	add_items<4>({ {
 		{ "Soundboard", 			ui::Color::green(),  	[&nav](){ nav.push<SoundBoardView>(); } },
-		{ "Numbers station",		ui::Color::yellow(),	[&nav](){ nav.push<NumbersStationView>(); } },
+		{ "Numbers station",		ui::Color::green(),		[&nav](){ nav.push<NumbersStationView>(); } },
 		{ "Microphone", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Whistle", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 	} });
@@ -298,9 +299,10 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 /* UtilitiesView *****************************************************************/
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
-	add_items<2>({ {
-		{ "Whip antenna calculator",	ui::Color::green(), [&nav](){ nav.push<WhipCalcView>(); } },
-		{ "Notepad",					ui::Color::grey(),	[&nav](){ nav.push<NotImplementedView>(); } },
+	add_items<3>({ {
+		{ "Frequency manager", 		ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
+		{ "Whip antenna length",	ui::Color::green(), 	[&nav](){ nav.push<WhipCalcView>(); } },
+		{ "Notepad",				ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -313,14 +315,13 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Capture",				ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),		[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),		[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
-		//{ "Close Call                RX",	ui::Color::cyan(),		[&nav](){ nav.push<CloseCallView>(); } },
+		{ "Close Call",				ui::Color::orange(),	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),  	[&nav](){ nav.push<JammerView>(); } },
-		{ "Frequency manager", 		ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
 		{ "Utilities",				ui::Color::purple(),	[&nav](){ nav.push<UtilitiesView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 					ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
 		//{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF", 				ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
+		{ "HackRF mode", 			ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
 		{ "About", 					ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
 }

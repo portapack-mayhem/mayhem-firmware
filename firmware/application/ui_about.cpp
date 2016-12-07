@@ -59,7 +59,7 @@ void AboutView::on_show() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_audiotx_data(32, 15, false, 0);
+	baseband::set_audiotx_data(32, 50, false, 0);
 	
 	//audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }

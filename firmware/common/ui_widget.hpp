@@ -263,7 +263,7 @@ public:
 	}
 	
 	void set_text(const std::string value);
-	std::string text() const;
+	// std::string text() const;
 	void set_value(const bool value);
 	bool value() const;
 
