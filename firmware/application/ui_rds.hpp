@@ -27,6 +27,9 @@
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
 #include "message.hpp"
+#include "rds.hpp"
+
+using namespace rds;
 
 namespace ui {
 
@@ -44,6 +47,7 @@ private:
 	char PSN[9];
 	char RadioText[25];
 	bool txing = false;
+	RDS_flags rds_flags;
 	
 	uint16_t message_length;
 	

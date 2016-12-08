@@ -35,14 +35,30 @@ namespace rds {
 #define RDS_OFFSET_Cp	0b1101010000
 #define RDS_OFFSET_D	0b0110110100
 
+struct RDS_flags {
+	uint16_t PI_code;
+	bool TP;
+	uint8_t PTY;
+	bool TA;
+	bool MS;
+	bool DI;
+};
+
 uint32_t makeblock(uint32_t blockdata, uint16_t offset);
 uint8_t b2b(const bool in);
 void make_0B_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
 							const bool MS, const bool DI, const uint8_t C, const char * chars);
 void make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
 							const uint8_t segment, const char * chars);
-uint16_t gen_PSN(const char * psname, const uint8_t pty);
-uint16_t gen_RadioText(const char * radiotext, const uint8_t pty);
+void make_4A_group(uint32_t blocks[], const uint16_t PI_code, const bool TP, const uint8_t PTY,
+							const uint16_t year, const uint8_t month, const uint8_t day,
+							const uint8_t hour, const uint8_t minute, const int8_t local_offset);
+
+uint16_t gen_PSN(const char * psname, const RDS_flags * rds_flags);
+uint16_t gen_RadioText(const char * text, const bool AB, const RDS_flags * rds_flags);
+uint16_t gen_ClockTime(const RDS_flags * rds_flags,
+						const uint16_t year, const uint8_t month, const uint8_t day,
+						const uint8_t hour, const uint8_t minute, const int8_t local_offset);
 
 } /* namespace rds */
 

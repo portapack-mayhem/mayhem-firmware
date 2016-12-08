@@ -22,7 +22,6 @@
 
 #include "ui_rds.hpp"
 
-#include "rds.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
 #include "portapack_shared_memory.hpp"
@@ -115,24 +114,28 @@ RDSView::RDSView(NavigationView& nav) {
 	options_countrycode.set_selected_index(18);		// France
 	options_coverage.set_selected_index(0);			// Local
 	
-	button_editpsn.on_select = [this,&nav](Button&){
+	options_pty.on_change = [this](size_t, int32_t v) {
+		rds_flags.PTY = v;
+	};
+	
+	button_editpsn.on_select = [this,&nav](Button&) {
 		textentry(nav, PSN, 8);
 	};
-	button_txpsn.on_select = [this](Button&){
+	button_txpsn.on_select = [this](Button&) {
 		if (txing) {
 			button_txpsn.set_text("PSN");
 			button_txradiotext.set_text("Radiotext");
 			transmitter_model.disable();
 			txing = false;
 		} else {
-			message_length = gen_PSN(PSN, options_pty.selected_index());
+			message_length = gen_PSN(PSN, &rds_flags);
 			button_txpsn.set_text("STOP");
 			txing = true;
 			start_tx();
 		}
 	};
 	
-	button_editradiotext.on_select = [this,&nav](Button&){
+	button_editradiotext.on_select = [this, &nav](Button&){
 		textentry(nav, RadioText, 24);
 	};
 	button_txradiotext.on_select = [this](Button&){
@@ -142,7 +145,7 @@ RDSView::RDSView(NavigationView& nav) {
 			transmitter_model.disable();
 			txing = false;
 		} else {
-			message_length = gen_RadioText(RadioText, options_pty.selected_index());
+			message_length = gen_RadioText(RadioText, 0, &rds_flags);
 			button_txradiotext.set_text("STOP");
 			txing = true;
 			start_tx();
