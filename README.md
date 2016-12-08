@@ -14,17 +14,18 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 * "Soundboard" wave file player from µSD (put 8-bit mono files in /wav directory)
 * POCSAG 1200 alphanumeric receiver/decoder
-* Simulate OOK frames from PT2262 encoders and friends (doorbells, remote outlets, some garage doors, ...)
+* Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
+* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
 * Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
-* RDS (Radio Data System) PSN and Radiotext transmit
-* Fully configurable AFSK transmit (Bell202)
+* RDS (Radio Data System) PSN and RadioText groups transmit
+* Fully configurable AFSK transmit (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) litteral message forming and transmit
 * Xylos transmitter, street lighting control (NFM CCIR tones)
 * "Play Dead" in case of emergency
-* PWM audio RSSI output
-* (Disabled for now) Close-Call™ style scanner
-* (Disabled for now) Fully configurable jammer
+* PWM audio RSSI output (for crude direction finding)
+* (Not working) Close-Call™ style scanner
+* (Not working) Fully configurable jammer
 * (Not used for now) Dynamic baseband code loading from SD card
 
 # Screenshots
@@ -43,7 +44,6 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * AFSK receiver
 * Make SIGFOX interceptor work with all modules
 * Wireless microphone transmit (with squelch tones)
-* Number station
 * EPAR transmit (old Xylos)
 * Spectrum painter
 
