@@ -138,6 +138,7 @@ set(CPPSRC
 	adsb.cpp
 	afsk.cpp
 	rds.cpp
+	ctcss.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp

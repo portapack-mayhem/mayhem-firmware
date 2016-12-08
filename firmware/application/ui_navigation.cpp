@@ -300,7 +300,7 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
 	add_items<3>({ {
-		{ "Frequency manager", 		ui::Color::white(),  	[&nav](){ nav.push<FreqManView>(); } },
+		{ "Frequency manager", 		ui::Color::grey(),  	[&nav](){ nav.push<FreqManView>(); } },
 		{ "Whip antenna length",	ui::Color::green(), 	[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
 	} });

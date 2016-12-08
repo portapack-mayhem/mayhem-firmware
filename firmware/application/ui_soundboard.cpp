@@ -25,7 +25,6 @@
 #include "ui_soundboard.hpp"
 
 #include "lfsr_random.hpp"
-#include "ui_alphanum.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
 
@@ -199,6 +198,11 @@ SoundBoardView::SoundBoardView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
+	using name_t = std::string;
+	using value_t = int32_t;
+	using option_t = std::pair<name_t, value_t>;
+	using options_t = std::vector<option_t>;
+	options_t ctcss_options;
 	std::vector<std::string> file_list;
 	uint8_t c;
 	
@@ -243,11 +247,17 @@ SoundBoardView::SoundBoardView(
 		&button_random,
 		&button_exit
 	} });
+
+	ctcss_options.emplace_back(std::make_pair("None", 0));
+	
+	for (c = 0; c < CTCSS_TONES_NB; c++)
+		ctcss_options.emplace_back(std::make_pair(ctcss_tones[c].PL_code, c));
+	
+	options_ctcss.set_options(ctcss_options);
 	
 	options_ctcss.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_ctcss_changed(v);
 	};
-	
 	options_ctcss.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {

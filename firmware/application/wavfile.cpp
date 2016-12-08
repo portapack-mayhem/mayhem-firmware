@@ -74,8 +74,7 @@ uint32_t WAVFileReader::ms_duration() {
 }
 
 int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
-
-	auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
+	const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
 
 	if (result.is_error())
 		return 0;

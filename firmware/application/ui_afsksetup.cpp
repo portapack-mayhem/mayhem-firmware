@@ -23,8 +23,6 @@
 #include "ui_afsksetup.hpp"
 #include "ui_receiver.hpp"
 
-#include "ch.h"
-
 #include "portapack.hpp"
 #include "string_format.hpp"
 

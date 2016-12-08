@@ -24,9 +24,7 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 

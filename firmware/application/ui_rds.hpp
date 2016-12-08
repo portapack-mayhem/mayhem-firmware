@@ -26,12 +26,7 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
-#include "clock_manager.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
-#include "transmitter_model.hpp"
 
 namespace ui {
 
@@ -39,10 +34,11 @@ class RDSView : public View {
 public:
 	RDSView(NavigationView& nav);
 	~RDSView();
-	std::string title() const override { return "RDS transmit"; };
 
 	void focus() override;
 	void paint(Painter& painter) override;
+
+	std::string title() const override { return "RDS transmit"; };
 
 private:
 	char PSN[9];
@@ -168,12 +164,12 @@ private:
 	
 	OptionsField options_coverage {
 		{ 1 * 8, 4 * 16 },
-		8,
+		13,
 		{
 			{ "Local", 0 },
 			{ "International", 1 },
 			{ "National", 2 },
-			{ "Supra-regional", 3 },
+			{ "Sup-regional", 3 },
 			{ "R11", 4 },
 			{ "R12", 5 },
 			{ "R13", 6 },

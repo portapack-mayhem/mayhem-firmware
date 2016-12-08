@@ -71,6 +71,7 @@ constexpr image_tag_t image_tag_tpms				{ 'P', 'T', 'P', 'M' };
 constexpr image_tag_t image_tag_pocsag				{ 'P', 'P', 'O', 'C' };
 constexpr image_tag_t image_tag_wfm_audio			{ 'P', 'W', 'F', 'M' };
 constexpr image_tag_t image_tag_wideband_spectrum	{ 'P', 'S', 'P', 'E' };
+constexpr image_tag_t image_tag_closecall			{ 'P', 'C', 'L', 'C' };
 
 constexpr image_tag_t image_tag_jammer				{ 'P', 'J', 'A', 'M' };
 constexpr image_tag_t image_tag_audio_tx			{ 'P', 'A', 'T', 'X' };

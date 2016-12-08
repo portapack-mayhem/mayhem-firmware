@@ -23,13 +23,8 @@
 #include "ui_rds.hpp"
 
 #include "rds.hpp"
-#include "ff.h"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
 #include "baseband_api.hpp"
-
-#include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>

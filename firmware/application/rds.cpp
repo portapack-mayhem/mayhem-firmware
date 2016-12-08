@@ -73,49 +73,12 @@ void make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, cons
 uint16_t gen_PSN(const char * psname, const uint8_t pty) {
 	uint8_t c;
 	uint32_t group[4][4] = { 0 };
-
+	
 	// 4 groups with 2 PSN characters in each
 	make_0B_group(&group[0][0], 0xF849, true, pty, false, true, false, 0, &psname[0]);
 	make_0B_group(&group[1][0], 0xF849, true, pty, false, true, false, 1, &psname[2]);
 	make_0B_group(&group[2][0], 0xF849, true, pty, false, true, false, 2, &psname[4]);
 	make_0B_group(&group[3][0], 0xF849, true, pty, false, true, false, 3, &psname[6]);
-	
-	/*uint32_t group[4][4] = {
-		{
-		0b1111100001001001,		//PI
-		0b0000110011101000,		//Address
-		0b1111100001001001,		//PI
-		0b0000000000000000		//Replaced
-		},
-		
-		{
-		0b1111100001001001,		//PI
-		0b0000110011101001,		//Address
-		0b1111100001001001,		//PI
-		0b0000000000000000		//Replaced
-		},
-		
-		{
-		0b1111100001001001,		//PI
-		0b0000110011101010,		//Address
-		0b1111100001001001,		//PI
-		0b0000000000000000		//Replaced
-		},
-		
-		{
-		0b1111100001001001,		//PI
-		0b0000110011101011,		//Address
-		0b1111100001001001,		//PI
-		0b0000000000000000		//Replaced
-		},
-	};
-	
-	//Insert PSN data in groups
-	group[0][3] = (psname[0] << 8) | psname[1];
-	group[1][3] = (psname[2] << 8) | psname[3];
-	group[2][3] = (psname[4] << 8) | psname[5];
-	group[3][3] = (psname[6] << 8) | psname[7];
-	*/
 	
 	// Generate checkbits for all blocks
 	for (c = 0; c < 4; c++) {
@@ -125,9 +88,10 @@ uint16_t gen_PSN(const char * psname, const uint8_t pty) {
 		group[c][3] = makeblock(group[c][3], RDS_OFFSET_D);
 	}
 	
-	// Todo
-	//for (c = 0; c < 16; c++)
-	//	shared_memory.radio_data[c] = group[c >> 2][c & 3];
+	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.tx_data;
+	
+	for (c = 0; c < 4 * 4; c++)
+		tx_data_u32[c] = group[c >> 2][c & 3];
 	
 	return 4 * 4 * 26;
 }

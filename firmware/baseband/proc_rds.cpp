@@ -35,6 +35,11 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 		if (s >= 9) {
 			s = 0;
 			if (sample_count >= SAMPLES_PER_BIT) {
+				if (bit_pos >= message_length) {
+					bit_pos = 0;
+					cur_output = 0;
+				}
+				
 				cur_bit = (rdsdata[(bit_pos / 26) & 15] >> (25 - (bit_pos % 26))) & 1;
 				prev_output = cur_output;
 				cur_output = prev_output ^ cur_bit;
@@ -52,10 +57,7 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 				in_sample_index += SAMPLES_PER_BIT;
 				if (in_sample_index >= SAMPLE_BUFFER_SIZE) in_sample_index -= SAMPLE_BUFFER_SIZE;
 				
-				if (bit_pos < message_length)
-					bit_pos++;
-				else
-					bit_pos = 0;
+				bit_pos++;
 				
 				sample_count = 0;
 			}

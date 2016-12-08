@@ -2766,6 +2766,30 @@ cpld_update.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/cpld_update.cpp.s
 .PHONY : cpld_update.cpp.s
 
+ctcss.obj: ctcss.cpp.obj
+.PHONY : ctcss.obj
+
+# target to build an object file
+ctcss.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ctcss.cpp.obj
+.PHONY : ctcss.cpp.obj
+
+ctcss.i: ctcss.cpp.i
+.PHONY : ctcss.i
+
+# target to preprocess a source file
+ctcss.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ctcss.cpp.i
+.PHONY : ctcss.cpp.i
+
+ctcss.s: ctcss.cpp.s
+.PHONY : ctcss.s
+
+# target to generate assembly for a file
+ctcss.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ctcss.cpp.s
+.PHONY : ctcss.cpp.s
+
 debounce.obj: debounce.cpp.obj
 .PHONY : debounce.obj
 
@@ -4762,6 +4786,9 @@ help:
 	@echo "... cpld_update.obj"
 	@echo "... cpld_update.i"
 	@echo "... cpld_update.s"
+	@echo "... ctcss.obj"
+	@echo "... ctcss.i"
+	@echo "... ctcss.s"
 	@echo "... debounce.obj"
 	@echo "... debounce.i"
 	@echo "... debounce.s"

@@ -47,7 +47,7 @@ using namespace portapack;
 namespace ui {
 	
 void AboutView::on_show() {
-	transmitter_model.set_tuning_frequency(92200000);
+	transmitter_model.set_tuning_frequency(1337000000);		// TODO: Change
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
 		.sampling_rate = 1536000,

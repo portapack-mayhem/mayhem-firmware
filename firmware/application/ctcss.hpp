@@ -20,33 +20,19 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_CLOSECALLPROCESSOR_H__
-#define __PROC_CLOSECALLPROCESSOR_H__
+#ifndef __CTCSS_H_
+#define __CTCSS_H_
 
-#include "baseband_processor.hpp"
-#include "baseband_thread.hpp"
-#include "spectrum_collector.hpp"
+#include "ui.hpp"
 
-#include "message.hpp"
+#define CTCSS_TONES_NB 50
 
-#include <cstddef>
-#include <array>
-#include <complex>
-
-class CloseCallProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-
-	void on_message(const Message* const message) override;
-
-private:
-	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	
-	SpectrumCollector channel_spectrum;
-
-	std::array<complex16_t, 256> spectrum;
-
-	size_t phase = 0;
+struct ctcss_tone {
+	char PL_code[3];
+	uint16_t num_code;
+	uint32_t frequency;		// Hz * 1000
 };
 
-#endif/*__PROC_CLOSECALLPROCESSOR_H__*/
+extern ctcss_tone ctcss_tones[CTCSS_TONES_NB];
+
+#endif/*__CTCSS_H_*/

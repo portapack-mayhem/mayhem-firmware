@@ -27,13 +27,12 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
-#define CC_SLICE_WIDTH	3000000		// Radio bandwidth
-#define CC_BIN_NB		236			// Total power bins
+#define CC_SLICE_WIDTH	3072000		// Radio bandwidth
+#define CC_BIN_NB		256			// Total power bins
 #define CC_BIN_WIDTH	CC_SLICE_WIDTH/CC_BIN_NB
 
 class CloseCallView : public View {
@@ -58,6 +57,8 @@ private:
 		.background = Color::black(),
 		.foreground = Color::green(),
 	};
+	
+	rf::Frequency f_min, f_max;
 	Coord last_pos = 0;
 	ChannelSpectrumFIFO* fifo { nullptr };
 	uint8_t detect_counter = 0, release_counter = 0;
@@ -78,6 +79,7 @@ private:
 	bool ignore = true;
 	bool slicing;
 	bool locked = false;
+	
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	void on_range_changed();
 	void do_detection();
@@ -134,11 +136,11 @@ private:
 	};
 	Text text_rate {
 		{ 24 * 8, 3 * 16, 2 * 8, 16 },
-		"--2"
+		"--"
 	};
 	
 	Text text_infos {
-		{ 1 * 8, 6 * 16, 8 * 8, 16 },
+		{ 1 * 8, 6 * 16, 28 * 8, 16 },
 		"..."
 	};
 	
@@ -148,18 +150,18 @@ private:
 	};
 	
 	Text text_mhz {
-		{ 26 * 8, 12 * 16, 3 * 8, 16 },
+		{ 26 * 8, 12 * 16 - 4, 3 * 8, 16 },
 		"MHz"
 	};
 	
 	Text text_precision {
 		{ 1 * 8, 13 * 16, 28 * 8, 16 },
-		""
+		"..."
 	};
 	
 	Text text_debug {
 		{ 1 * 8, 14 * 16, 28 * 8, 16 },
-		"DEBUG: Error"
+		"DEBUG: -"
 	};
 	
 	Button button_exit {

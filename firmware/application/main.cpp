@@ -23,12 +23,11 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TODO: CTCSS file/module
+//TEST: RDS
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
-//TEST: RDS
-//TEST: Morse coder/beacon
+//TODO: Morse coder/beacon
 
 //BUG (fixed ?): Soundboard crashes on exit if no wav files on sd card
 //BUG (fixed ?): No audio in about when shown second time
@@ -43,7 +42,6 @@
 //TODO: Check AFSK transmit end, skips last bits ?
 //TODO: Use msgpack for settings, lists... on sd card
 //TODO: Frequency manager
-//TODO: Morse coder
 //TODO: Replay
 
 //Multimon-style stuff:
