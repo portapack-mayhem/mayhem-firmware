@@ -56,8 +56,8 @@ private:
 	
 	Style style_red {
 		.font = font::fixed_8x16,
-		.background = Color::red(),
-		.foreground = Color::black()
+		.background = Color::black(),
+		.foreground = Color::red()
 	};
 	
 	NavigationView& nav_;

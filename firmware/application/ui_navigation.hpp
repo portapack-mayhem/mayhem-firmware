@@ -57,12 +57,12 @@ public:
 
 private:
 	static constexpr auto default_title = "PortaPack|Havoc";
-	static constexpr auto back_text_enabled = " < ";
-	static constexpr auto back_text_disabled = " * ";
+	//static constexpr auto back_text_enabled = " < ";
+	//static constexpr auto back_text_disabled = " * ";
 
 	Button button_back {
-		{ 0 * 8, 0 * 16, 3 * 8, 16 },
-		back_text_disabled,
+		{ 0 * 8, 0 * 16, 20, 16 },
+		"",		//back_text_disabled,
 	};
 
 	Text title {

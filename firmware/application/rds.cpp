@@ -98,7 +98,7 @@ uint16_t gen_PSN(const char * psname, const RDS_flags * rds_flags) {
 	
 	// 4 groups with 2 PSN characters in each
 	for (c = 0; c < 4; c++)
-	make_0B_group(&group[c][0], rds_flags->PI_code, rds_flags->TP, rds_flags->PTY, rds_flags->TA, rds_flags->MS, rds_flags->DI, c, &psname[c * 2]);
+		make_0B_group(&group[c][0], rds_flags->PI_code, rds_flags->TP, rds_flags->PTY, rds_flags->TA, rds_flags->MS, rds_flags->DI, c, &psname[c * 2]);
 	
 	// Generate checkbits for each block of each group
 	for (c = 0; c < 4; c++) {

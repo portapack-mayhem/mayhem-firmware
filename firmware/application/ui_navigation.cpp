@@ -105,7 +105,7 @@ SystemStatusView::SystemStatusView() {
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
-	button_back.set_text(new_value ? back_text_enabled : back_text_disabled);
+	//button_back.set_text(new_value ? back_text_enabled : back_text_disabled);
 	button_back.set_focusable(new_value);
 }
 

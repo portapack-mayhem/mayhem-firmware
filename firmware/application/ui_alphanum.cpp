@@ -53,14 +53,14 @@ AlphanumView::AlphanumView(
 	
 	static constexpr Style style_alpha {
 		.font = font::fixed_8x16,
-		.background = Color(191,31,31),
-		.foreground = Color::black()
+		.background = Color::black(),
+		.foreground = Color(191,31,31)
 	};
 	
 	static constexpr Style style_num {
 		.font = font::fixed_8x16,
-		.background = Color(191,191,31),
-		.foreground = Color::black()
+		.background = Color::black(),
+		.foreground = Color(191,191,31)
 	};
 	
 	txtidx = strlen(txt);

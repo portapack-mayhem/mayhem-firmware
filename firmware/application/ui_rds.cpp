@@ -81,6 +81,12 @@ RDSView::RDSView(NavigationView& nav) {
 	strcpy(PSN, "TEST1234");
 	strcpy(RadioText, "Radiotext test ABCD1234");
 	
+	rds_flags.DI = false;
+	rds_flags.MS = false;
+	rds_flags.PI_code = 0x1337;
+	rds_flags.TA = false;
+	rds_flags.TP = true;
+	
 	add_children({ {
 		&field_frequency,
 		&options_pty,
@@ -110,13 +116,14 @@ RDSView::RDSView(NavigationView& nav) {
 		};
 	};
 	
-	options_pty.set_selected_index(0);				// None
 	options_countrycode.set_selected_index(18);		// France
 	options_coverage.set_selected_index(0);			// Local
 	
 	options_pty.on_change = [this](size_t, int32_t v) {
 		rds_flags.PTY = v;
 	};
+	
+	options_pty.set_selected_index(0);				// None
 	
 	button_editpsn.on_select = [this,&nav](Button&) {
 		textentry(nav, PSN, 8);

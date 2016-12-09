@@ -171,6 +171,7 @@ private:
 	
 	const char ccir_base[21] = "0000000000B0000B0000";
 	
+	/*
 	const char xylos_sequence[9][21] = {
 		"0E0E18920EB1E10B0E0E",
 		"0E0E1890E0B0E12B0E0E",
@@ -179,9 +180,9 @@ private:
 		"0E0E18920EB1E10B0E0E",
 		"0E0E18920EB1E10B0E0E",
 		"0E0E181AEAB10E0B0E0E",
-		"0E01E81AEAB10E0B0E0E",	// 2016-05-22 05:22:29 0E01E81AEA/10E0/0E0E
+		"0E01E81AEAB10E0B0E0E",
 		"0E03181AEAB10E0B0E0E"
-	};
+	};*/
 	
 	unsigned int sequence_idx;
 	
@@ -192,13 +193,13 @@ private:
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
-		.background = Color::green(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::green(),
 	};
 	const Style style_cancel {
 		.font = font::fixed_8x16,
-		.background = Color::red(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::red(),
 	};
 	const Style style_grey {
 		.font = font::fixed_8x16,

@@ -671,14 +671,25 @@ std::string Button::text() const {
 }
 
 void Button::paint(Painter& painter) {
+	Color bg, fg;
 	const auto r = screen_rect();
 
-	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
-
-	painter.draw_rectangle(r, paint_style.foreground);
+	if (has_focus() || highlighted()) {
+		bg = style().foreground;
+		fg = Color::black();
+	} else {
+		bg = Color::grey();
+		fg = style().foreground;
+	}
+	
+	const Style paint_style = { style().font, bg, fg };
+	
+	painter.draw_rectangle({r.pos, {r.size.w, 1}}, Color::light_grey());
+	painter.draw_rectangle({r.pos.x, r.pos.y + r.size.h - 1, r.size.w, 1}, Color::dark_grey());
+	painter.draw_rectangle({r.pos.x + r.size.w - 1, r.pos.y, 1, r.size.h}, Color::dark_grey());
 
 	painter.fill_rectangle(
-		{ r.pos.x + 1, r.pos.y + 1, r.size.w - 2, r.size.h - 2 },
+		{ r.pos.x, r.pos.y + 1, r.size.w - 1, r.size.h - 2 },
 		paint_style.background
 	);
 

@@ -98,13 +98,13 @@ private:
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
-		.background = Color::green(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::green(),
 	};
 	const Style style_cancel {
 		.font = font::fixed_8x16,
-		.background = Color::red(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::red(),
 	};
 	
 	std::array<Button, 5> buttons;
