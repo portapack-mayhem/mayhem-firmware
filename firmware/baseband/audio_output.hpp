@@ -37,6 +37,10 @@
 class AudioOutput {
 public:
 	void configure(
+		const bool do_proc
+	);
+	
+	void configure(
 		const iir_biquad_config_t& hpf_config,
 		const iir_biquad_config_t& deemph_config = iir_config_passthrough,
 		const float squelch_threshold = 0.0f
@@ -64,6 +68,8 @@ private:
 	AudioStatsCollector audio_stats;
 
 	uint64_t audio_present_history = 0;
+	
+	bool do_processing = true;
 
 	void on_block(const buffer_f32_t& audio);
 	void fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo);

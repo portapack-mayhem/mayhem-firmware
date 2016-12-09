@@ -24,12 +24,13 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "encoders.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
 
-namespace ui {
+using namespace encoders;
 
-#define ENC_TYPES_COUNT 14
+namespace ui {
 
 class EncodersView : public View {
 public:
@@ -43,191 +44,6 @@ public:
 	std::string title() const override { return "Encoders TX"; };
 
 private:
-	struct encoder_def_t {
-		std::string name;						// Encoder chip ref/name
-		std::string address_symbols;			// "01", "01F"...
-		std::string data_symbols;				// Same
-		uint16_t clk_per_symbol;				// Oscillator periods per symbol
-		uint16_t clk_per_fragment;				// Oscillator periods per symbol fragment (state)
-		std::vector<std::string> bit_format;	// List of fragments for each symbol in previous *_symbols list order
-		uint8_t word_length;					// Total # of symbols (not counting sync)
-		std::string word_format;				// A for Address, D for Data, S for sync
-		std::string sync;						// Like bit_format
-		uint32_t default_frequency;				// Default encoder clk frequency (often set by shitty resistor)
-		uint8_t repeat_min;						// Minimum repeat count
-		uint16_t pause_symbols;					// Length of pause between repeats in symbols
-	};
-
-	const encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
-		// PT2260-R2
-		{
-			"2260-R2",
-			"01F", "01",
-			1024, 128,
-			{ "10001000", "11101110", "10001110" },
-			12,	"AAAAAAAAAADDS",
-			"10000000000000000000000000000000",
-			150000,	2,
-			0
-		},
-		
-		// PT2260-R4
-		{
-			"2260-R4",
-			"01F", "01",
-			1024, 128,
-			{ "10001000", "11101110", "10001110" },
-			12,	"AAAAAAAADDDDS",
-			"10000000000000000000000000000000",
-			150000,	2,
-			0
-		},
-		
-		// PT2262
-		{
-			"2262   ",
-			"01F", "01F",
-			32, 4,
-			{ "10001000", "11101110", "10001110" },
-			12,	"AAAAAAAAAAAAS",
-			"10000000000000000000000000000000",
-			20000,	4,
-			0
-		},
-		
-		// 16-bit ?
-		{
-			"16-bit ",
-			"01", "01",
-			32, 8,
-			{ "1110", "1000" },		// Opposite ?
-			16,	"AAAAAAAAAAAAAAAAS",
-			"100000000000000000000",
-			25000,	50,
-			0	// ?
-		},
-		
-		// RT1527
-		{
-			"1527   ",
-			"01", "01",
-			128, 32,
-			{ "1000", "1110" },
-			24,	"SAAAAAAAAAAAAAAAAAAAADDDD",
-			"10000000000000000000000000000000",
-			100000,	4,
-			10	// ?
-		},
-		
-		// HK526E
-		{
-			"526    ",
-			"01", "01",
-			24, 8,
-			{ "110", "100" },
-			12,	"AAAAAAAAAAAA",
-			"",
-			20000, 4,
-			10	// ?
-		},
-		
-		// HT12E
-		{
-			"12E    ",
-			"01", "01",
-			3, 1,
-			{ "011", "001" },
-			12,	"SAAAAAAAADDDD",
-			"0000000000000000000000000000000000001",
-			3000, 4,
-			10	// ?
-		},
-			
-		// VD5026 13 bits ?
-		{
-			"5026   ",
-			"0123", "0123",
-			128, 8,
-			{ "1000000010000000", "1111111011111110", "1111111010000000", "1000000011111110" },
-			12,	"SAAAAAAAAAAAA",
-			"000000000000000000000000000000000000000000000001",		// ?
-			100000,	4,
-			10	// ?
-		},
-		
-		// UM3750
-		{
-			"UM3750 ",
-			"01", "01",
-			96, 32,
-			{ "011", "001" },
-			12,	"SAAAAAAAAAAAA",
-			"1",
-			100000,	4,
-			0	// ?
-		},
-		
-		// UM3758
-		{
-			"UM3758 ",
-			"01F", "01",
-			96, 16,
-			{ "011011", "001001", "011001" },
-			18,	"SAAAAAAAAAADDDDDDDD",
-			"1",
-			160000,	4,
-			10	// ?
-		},
-		
-		// BA5104
-		{
-			"BA5104 ",
-			"01", "01",
-			3072, 768,
-			{ "1000", "1110" },
-			9,	"SDDAAAAAAA",
-			"",
-			455000,	4,
-			10	// ?
-		},
-			
-		// MC145026
-		{
-			"145026 ",
-			"01F", "01",
-			16, 1,
-			{ "0111111101111111", "0100000001000000", "0111111101000000" },
-			9,	"SAAAAADDDD",
-			"000000000000000000",
-			455000,	2,
-			2
-		},
-		
-		// HT6*** TODO: Add individual variations
-		{
-			"HT6*** ",
-			"01F", "01",
-			198, 33,
-			{ "011011", "001001", "001011" },
-			18,	"SAAAAAAAAAAAADDDDDD",
-			"0000000000000000000000000000000000001011001011001",
-			80000,	3,
-			10	// ?
-		},
-		
-		// TC9148
-		{
-			"TC9148 ",
-			"01", "01",
-			48, 12,
-			{ "1000", "1110", },
-			12,	"AAAAAAAAAAAA",
-			"",
-			455000,	3,
-			10	// ?
-		}
-	};
-
 	enum tx_modes {
 		IDLE = 0,
 		SINGLE,
@@ -373,7 +189,7 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.n);
+			this->on_txdone(message.progress);
 		}
 	};
 };

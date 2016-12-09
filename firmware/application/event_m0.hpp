@@ -52,7 +52,7 @@ public:
 	void run();
 	static void request_stop();
 
-	void set_display_sleep(const bool sleep);
+	static void set_display_sleep(const bool sleep);
 
 	static inline void check_fifo_isr() {
 		if( !shared_memory.application_queue.is_empty() ) {
@@ -101,7 +101,7 @@ private:
 	uint32_t encoder_last = 0;
 	static bool is_running;
 	bool sd_card_present = false;
-	bool display_sleep = false;
+	static bool display_sleep;
 	bool halt = false;
 
 	eventmask_t wait();
@@ -117,6 +117,7 @@ private:
 
 	void on_touch_event(ui::TouchEvent event);
 
+	//void blink_timer();
 	void handle_lcd_frame_sync();
 	void handle_switches();
 	void handle_encoder();

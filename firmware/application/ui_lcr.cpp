@@ -259,7 +259,7 @@ void LCRView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 
-	memcpy(shared_memory.tx_data, lcr_message_data, 300);
+	memcpy(shared_memory.bb_data.data, lcr_message_data, 300);
 	
 	baseband::set_afsk_data(
 		(153600 * 5) / portapack::persistent_memory::afsk_bitrate(),

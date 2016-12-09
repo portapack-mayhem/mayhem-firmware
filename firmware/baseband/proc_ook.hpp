@@ -52,7 +52,7 @@ private:
 	uint32_t tone_phase, phase, sphase;
 	int32_t tone_sample, sig, frq;
 	
-	TXDoneMessage message;
+	TXDoneMessage txdone_message;
 };
 
 #endif

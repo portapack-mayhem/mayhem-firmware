@@ -95,7 +95,7 @@ void ADSBTxView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	memcpy(shared_memory.tx_data, adsb_bin, 112);
+	memcpy(shared_memory.bb_data.data, adsb_bin, 112);
 	baseband::set_adsb();
 }
 

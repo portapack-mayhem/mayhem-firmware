@@ -271,6 +271,7 @@ SoundBoardView::SoundBoardView(
 	
 	const auto button_dir = [this](Button& button, const KeyEvent key) {
 		this->change_page(button, key);
+		return false;
 	};
 
 	size_t n = 0;

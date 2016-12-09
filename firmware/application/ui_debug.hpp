@@ -208,36 +208,6 @@ private:
 	};
 };
 
-class DebugSDView : public View {
-public:
-	DebugSDView(NavigationView& nav);
-
-	void focus() override;
-
-	void paint(Painter& painter) override;
-
-private:
-	Text text_title {
-		{ 32, 16, 128, 16 },
-		"SD card debug"
-	};
-	
-	Text text_modules {
-		{ 8, 32, 28 * 8, 16 },
-		"TESTTESTTESTTESTTESTTESTTEST"
-	};
-
-	Button button_makefile {
-		{ 72, 192, 96, 24 },
-		"Play file"
-	};
-	
-	Button button_done {
-		{ 72, 240, 96, 24 },
-		"Done"
-	};
-};
-
 class DebugLCRView : public View {
 public:
 	DebugLCRView(NavigationView& nav, std::string lcrstring, uint8_t checksum);

@@ -29,6 +29,7 @@
 #include "ui_focus.hpp"
 #include "radio.hpp"
 
+#include "portapack.hpp"
 #include "utility.hpp"
 
 #include <memory>
@@ -161,6 +162,7 @@ public:
 	void add_child(Widget* const widget);
 	void add_children(const std::vector<Widget*>& children);
 	void remove_child(Widget* const widget);
+	void remove_children(const std::vector<Widget*>& children);
 	const std::vector<Widget*>& children() const override;
 
 	virtual std::string title() const;
@@ -264,7 +266,7 @@ public:
 	
 	void set_text(const std::string value);
 	// std::string text() const;
-	void set_value(const bool value);
+	bool set_value(const bool value);
 	bool value() const;
 
 	void paint(Painter& painter) override;
@@ -281,7 +283,7 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select;
-	std::function<void(Button&,KeyEvent)> on_dir;
+	std::function<bool(Button&,KeyEvent)> on_dir;
 	std::function<void(Button&)> on_highlight;
 
 	Button(Rect parent_rect, std::string text);
@@ -353,6 +355,11 @@ public:
 	std::function<void(void)> on_show_options;
 
 	ImageOptionsField(Rect parent_rect, options_t options);
+	
+	ImageOptionsField(
+	) : ImageOptionsField { { }, { } }
+	{
+	}
 	
 	void set_options(options_t new_options);
 

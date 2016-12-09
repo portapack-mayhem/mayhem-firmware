@@ -53,7 +53,8 @@ struct WFMConfig {
 	void apply() const;
 };
 
-void set_ccir_data(	const uint32_t samples_per_tone, const uint16_t tone_count);
+void set_tones_data(const uint64_t bw, const uint32_t pre_silence, const uint16_t tone_count,
+					const bool dual_tone, const bool audio_out);
 void set_audiotx_data(const uint32_t divider, const uint32_t bw, const bool ctcss_enabled, const uint32_t ctcss_phase_inc);
 void set_fifo_data(const int8_t * data);
 void set_pwmrssi(int32_t avg, bool enabled);
@@ -64,7 +65,7 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 void set_pocsag();
 void set_adsb();
 void set_rds_data(const uint16_t message_length);
-void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);
+//void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();

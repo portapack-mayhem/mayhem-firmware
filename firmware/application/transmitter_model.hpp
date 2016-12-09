@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -30,6 +31,7 @@
 #include "rf_path.hpp"
 #include "max2837.hpp"
 #include "volume.hpp"
+#include "signal.hpp"
 
 class TransmitterModel {
 public:
@@ -70,6 +72,7 @@ private:
 		.sampling_rate = 3072000,
 		.decimation_factor = 1,
 	};
+	SignalToken signal_token_tick_second;
 
 	void update_tuning_frequency();
 	void update_rf_amp();
@@ -78,6 +81,7 @@ private:
 	void update_vga();
 	void update_modulation();
 	void update_baseband_configuration();
+	void on_tick_second();
 };
 
 #endif/*__TRANSMITTER_MODEL_H__*/

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+# Copyright (C) 2016 Furrtek
 #
 # This file is part of PortaPack.
 #
@@ -152,7 +153,9 @@ set(CPPSRC
 	ui_alphanum.cpp
 	ui_audio.cpp
 	ui_baseband_stats_view.cpp
+	ui_bht_tx.cpp
 	ui_channel.cpp
+	ui_closecall.cpp
 	ui_debug.cpp
 	ui_encoders.cpp
 	ui_font_fixed_8x16.cpp
@@ -161,6 +164,7 @@ set(CPPSRC
 	ui_jammer.cpp
 	ui_lcr.cpp
 	ui_menu.cpp
+	ui_morse.cpp
 	ui_navigation.cpp
 	ui_numbers.cpp
 	ui_nuoptix.cpp
@@ -176,8 +180,7 @@ set(CPPSRC
 	ui_textentry.cpp
 	ui_touch_calibration.cpp
 	ui_whipcalc.cpp
-	ui_xylos.cpp
-	ui_closecall.cpp
+	ui_whistle.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp

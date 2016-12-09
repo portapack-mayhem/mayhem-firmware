@@ -28,6 +28,6 @@
 
 namespace ui {
 
-bool textentry(NavigationView& nav, char * str, uint16_t max_length);
+bool textentry(NavigationView& nav, char * str, size_t max_length);
 
 } /* namespace ui */

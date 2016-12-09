@@ -179,7 +179,7 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.n);
+			this->on_txdone(message.progress);
 		}
 	};
 };

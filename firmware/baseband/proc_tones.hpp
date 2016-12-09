@@ -20,18 +20,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_XYLOS_H__
-#define __PROC_XYLOS_H__
+#ifndef __PROC_TONES_H__
+#define __PROC_TONES_H__
 
+#include "portapack_shared_memory.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "audio_output.hpp"
 
-//#include "audio_output.hpp"
-
-#define CCIR_PHASEINC (436.91/2)		// (65536*1024)/1536000*10
-#define CCIR_SILENCE (122880)-1			// 400ms
-
-class XylosProcessor : public BasebandProcessor {
+class TonesProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
@@ -42,37 +39,31 @@ private:
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	const uint32_t ccir_phases[16] = {
-								(uint32_t)(1981*CCIR_PHASEINC),
-								(uint32_t)(1124*CCIR_PHASEINC),
-								(uint32_t)(1197*CCIR_PHASEINC),
-								(uint32_t)(1275*CCIR_PHASEINC),
-								(uint32_t)(1358*CCIR_PHASEINC),
-								(uint32_t)(1446*CCIR_PHASEINC),
-								(uint32_t)(1540*CCIR_PHASEINC),
-								(uint32_t)(1640*CCIR_PHASEINC),
-								(uint32_t)(1747*CCIR_PHASEINC),
-								(uint32_t)(1860*CCIR_PHASEINC),
-								(uint32_t)(2400*CCIR_PHASEINC),
-								(uint32_t)(930*CCIR_PHASEINC),
-								(uint32_t)(2247*CCIR_PHASEINC),
-								(uint32_t)(991*CCIR_PHASEINC),
-								(uint32_t)(2110*CCIR_PHASEINC),
-								(uint32_t)(1055*CCIR_PHASEINC)
-							};
+	std::array<int16_t, 32> audio;	// 2048/64
+	const buffer_s16_t audio_buffer {
+		(int16_t*)audio.data(),
+		sizeof(audio) / sizeof(int16_t)
+	};
 
-	uint32_t samples_per_tone;
-	int8_t re, im;
-	uint8_t s, as = 0, ai;
-    uint8_t byte_pos = 0;
-    uint8_t digit = 0;
-    uint32_t sample_count = 0;
-	uint32_t tone_phase, phase, sphase;
-	int32_t tone_sample, delta;
-	bool silence = true;
-	TXDoneMessage message;
+	uint32_t tone_deltas[32];
+	uint32_t tone_durations[32];
 	
-	//AudioOutput audio_output;
+	bool audio_out;
+	bool dual_tone;
+	uint32_t fm_delta;
+	uint32_t tone_a_phase, tone_b_phase;
+	uint32_t tone_a_delta, tone_b_delta;
+    uint8_t digit_pos;
+    uint8_t digit;
+    uint32_t silence_count, sample_count;
+    uint32_t message_length;
+	uint32_t phase, sphase;
+	int32_t tone_sample, delta;
+	int8_t re, im;
+	uint8_t as, ai;
+	
+	TXDoneMessage txdone_message;
+	AudioOutput audio_output;
 };
 
 #endif

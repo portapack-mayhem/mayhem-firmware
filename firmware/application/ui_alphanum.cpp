@@ -22,12 +22,7 @@
 
 #include "ui_alphanum.hpp"
 
-#include "ch.h"
-
-#include "ff.h"
 #include "portapack.hpp"
-#include "radio.hpp"
-
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
@@ -45,9 +40,9 @@ void AlphanumView::paint(Painter& painter) {
 AlphanumView::AlphanumView(
 	NavigationView& nav,
 	char txt[],
-	uint8_t max_len
-) {
-	_max_len = max_len;
+	size_t max_length
+) : _max_length(max_length)
+{
 	_lowercase = false;
 	size_t n;
 	
@@ -64,14 +59,19 @@ AlphanumView::AlphanumView(
 	};
 	
 	txtidx = strlen(txt);
-	memcpy(txtinput, txt, max_len + 1);
+	memcpy(txtinput, txt, _max_length + 1);
 	n = txtidx;
 	while (n && (txtinput[n - 1] == ' ')) {
 		txtinput[--n] = 0;
 		txtidx--;
 	}
 	
-	add_child(&text_input);
+	add_children({ {
+		&text_input,
+		&button_lowercase,
+		&raw_char,
+		&button_ok
+	} });
 
 	const auto button_fn = [this](Button& button) {
 		this->on_button(button);
@@ -81,9 +81,9 @@ AlphanumView::AlphanumView(
 	for (auto& button : buttons) {
 		button.on_select = button_fn;
 		button.set_parent_rect({
-			static_cast<Coord>((n % 5) * button_w),
-			static_cast<Coord>((n / 5) * button_h + 24),
-			button_w, button_h
+			static_cast<Coord>((n % 5) * (240 / 5)),
+			static_cast<Coord>((n / 5) * 28 + 24),
+			240 / 5, 28
 		});
 		if ((n < 10) || (n == 39))
 			button.set_style(&style_num);
@@ -92,31 +92,28 @@ AlphanumView::AlphanumView(
 		add_child(&button);
 		n++;
 	}
-	set_uppercase();
+	set_keys(keys_upper);
 	
-	add_child(&button_lowercase);
-	button_lowercase.on_select = [this, &nav, max_len](Button&) {
+	button_lowercase.on_select = [this, &nav](Button&) {
 		if (_lowercase == true) {
 			_lowercase = false;
 			button_lowercase.set_text("UC");
-			set_uppercase();
+			set_keys(keys_upper);
 		} else {
 			_lowercase = true;
 			button_lowercase.set_text("LC");
-			set_lowercase();
+			set_keys(keys_lower);
 		}
 	};
 	
-	add_child(&raw_char);
-	raw_char.set_value(0x30);
-	raw_char.on_select = [this, &nav, txt, max_len](NumberField&) {
+	raw_char.set_value('0');
+	raw_char.on_select = [this, &nav](NumberField&) {
 		char_add(raw_char.value());
 		update_text();
 	};
 
-	add_child(&button_done);
-	button_done.on_select = [this, &nav, txt, max_len](Button&) {
-		memcpy(txt, txtinput, max_len + 1);
+	button_ok.on_select = [this, &nav, txt, max_length](Button&) {
+		memcpy(txt, txtinput, max_length + 1);
 		if (on_changed) on_changed(this->value());
 		nav.pop();
 	};
@@ -140,29 +137,12 @@ void AlphanumView::move_cursor() {
 	);
 }
 
-void AlphanumView::set_uppercase() {
-	const char* const key_caps = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
-
+void AlphanumView::set_keys(const char * const key_list) {
 	size_t n = 0;
-	for(auto& button : buttons) {
-		//add_child(&button);
+	
+	for (auto& button : buttons) {
 		const std::string label {
-			key_caps[n]
-		};
-		button.set_text(label);
-		n++;
-	}
-}
-
-
-void AlphanumView::set_lowercase() {
-	const char* const key_caps = "0123456789abcdefghijklmnopqrstuvwxyz:=?<";
-
-	size_t n = 0;
-	for(auto& button : buttons) {
-		//add_child(&button);
-		const std::string label {
-			key_caps[n]
+			key_list[n]
 		};
 		button.set_text(label);
 		n++;
@@ -170,7 +150,7 @@ void AlphanumView::set_lowercase() {
 }
 
 void AlphanumView::focus() {
-	button_done.focus();
+	button_ok.focus();
 }
 
 char * AlphanumView::value() {
@@ -180,30 +160,31 @@ char * AlphanumView::value() {
 
 void AlphanumView::on_button(Button& button) {
 	const auto s = button.text();
-	if( s == "<" ) {
+	
+	if (s == "<")
 		char_delete();
-	} else {
+	else
 		char_add(s[0]);
-	}
+	
 	update_text();
 }
 
 void AlphanumView::char_add(const char c) {
-	if (txtidx < _max_len) {
-		txtinput[txtidx] = c;
-		txtidx++;
-	}
+	if (txtidx >= _max_length) return;
+	
+	txtinput[txtidx] = c;
+	txtidx++;
 }
 
 void AlphanumView::char_delete() {
-	if (txtidx) {
-		txtidx--;
-		txtinput[txtidx] = 0;
-	}
+	if (!txtidx) return;
+	
+	txtidx--;
+	txtinput[txtidx] = 0;
 }
 
 void AlphanumView::update_text() {
-	text_input.set(std::string(txtinput) + std::string(_max_len - strlen(txtinput), ' '));
+	text_input.set(std::string(txtinput) + std::string(_max_length - strlen(txtinput), ' '));
 	move_cursor();
 }
 

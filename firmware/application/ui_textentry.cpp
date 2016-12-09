@@ -24,7 +24,7 @@
 
 namespace ui {
 
-bool textentry(NavigationView& nav, char * str, uint16_t max_length) {
+bool textentry(NavigationView& nav, char * str, size_t max_length) {
 	if (portapack::persistent_memory::ui_config_textentry() == 0) {
 		auto an_view = nav.push<AlphanumView>(str, max_length);
 		an_view->on_changed = [str, max_length](char * value) {

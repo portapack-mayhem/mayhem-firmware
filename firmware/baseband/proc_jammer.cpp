@@ -87,7 +87,7 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 
 void JammerProcessor::on_message(const Message* const msg) {
 	
-	jammer_ranges = (JammerRange*)shared_memory.tx_data;
+	jammer_ranges = (JammerRange*)shared_memory.bb_data.data;
 	
 	/*const auto message = *reinterpret_cast<const DTMFTXConfigMessage*>(msg);
 	

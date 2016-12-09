@@ -92,6 +92,7 @@ private:
 static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
+bool EventDispatcher::display_sleep = false;
 
 EventDispatcher::EventDispatcher(
 	ui::Widget* const top_widget,
@@ -130,7 +131,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 		portapack::display.wake();
 		portapack::io.lcd_backlight(true);
 	}
-	display_sleep = sleep;
+	EventDispatcher::display_sleep = sleep;
 };
 
 eventmask_t EventDispatcher::wait() {
@@ -187,8 +188,12 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 	if( events & EVT_MASK_SWITCHES ) {
 		handle_switches();
 	}
+	
+	/*if( events & EVT_MASK_LCD_FRAME_SYNC ) {
+		blink_timer();
+	}*/
 
-	if( !display_sleep ) {
+	if( !EventDispatcher::display_sleep ) {
 		if( events & EVT_MASK_LCD_FRAME_SYNC ) {
 			handle_lcd_frame_sync();
 		}
@@ -286,7 +291,7 @@ void EventDispatcher::handle_switches() {
 
 	portapack::bl_tick_counter = 0;
 
-	if( display_sleep ) {
+	if( EventDispatcher::display_sleep ) {
 		// Swallow event, wake up display.
 		if( switches_state.any() ) {
 			set_display_sleep(false);
@@ -308,7 +313,7 @@ void EventDispatcher::handle_switches() {
 void EventDispatcher::handle_encoder() {
 	portapack::bl_tick_counter = 0;
 	
-	if( display_sleep ) {
+	if( EventDispatcher::display_sleep ) {
 		// Swallow event, wake up display.
 		set_display_sleep(false);
 		return;

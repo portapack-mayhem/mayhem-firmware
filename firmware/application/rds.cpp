@@ -82,9 +82,17 @@ void make_4A_group(uint32_t blocks[], const uint16_t PI_code, const bool TP, con
 	uint32_t L = 0;
 	uint32_t day_code;
 	
+<<<<<<< HEAD
+	// 57723
+	
+	if ((month == 1) || (month == 2)) L = 1;
+	
+	day_code = 14956 + day + (uint32_t)((float)(year - 1900 - L) * 365.25) + uint16_t((float)((month + 1) + L * 12) * 30.6001);
+=======
 	if ((month == 1) || (month == 2)) L = 1;
 	
 	day_code = 14956 + day + (uint32_t)((float)(year - L) * 365.25) + uint16_t(((month + 1) * L * 12) * 30.6001);
+>>>>>>> d402a87... RDS radiotext and time group generators
 	
 	blocks[0] = PI_code;
 	blocks[1] = (0x4 << 12) | (0 << 11) | (b2b(TP) << 10) | ((PTY & 0x1F) << 5) | ((day_code & 0x18000) >> 15);
@@ -98,7 +106,11 @@ uint16_t gen_PSN(const char * psname, const RDS_flags * rds_flags) {
 	
 	// 4 groups with 2 PSN characters in each
 	for (c = 0; c < 4; c++)
+<<<<<<< HEAD
 		make_0B_group(&group[c][0], rds_flags->PI_code, rds_flags->TP, rds_flags->PTY, rds_flags->TA, rds_flags->MS, rds_flags->DI, c, &psname[c * 2]);
+=======
+	make_0B_group(&group[c][0], rds_flags->PI_code, rds_flags->TP, rds_flags->PTY, rds_flags->TA, rds_flags->MS, rds_flags->DI, c, &psname[c * 2]);
+>>>>>>> d402a87... RDS radiotext and time group generators
 	
 	// Generate checkbits for each block of each group
 	for (c = 0; c < 4; c++) {
@@ -108,7 +120,7 @@ uint16_t gen_PSN(const char * psname, const RDS_flags * rds_flags) {
 		group[c][3] = makeblock(group[c][3], RDS_OFFSET_D);
 	}
 	
-	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.tx_data;
+	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.bb_data.data;
 	
 	// Copy to tx_data for baseband
 	for (c = 0; c < 4 * 4; c++)
@@ -150,7 +162,7 @@ uint16_t gen_RadioText(const char * text,  const bool AB, const RDS_flags * rds_
 		group[i + 3] = makeblock(group[i + 3], RDS_OFFSET_D);
 	}
 	
-	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.tx_data;
+	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.bb_data.data;
 	
 	// Copy to tx_data for baseband
 	for (c = 0; c < (groups * 4); c++)
@@ -175,7 +187,11 @@ uint16_t gen_ClockTime(const RDS_flags * rds_flags,
 	group[2] = makeblock(group[2], RDS_OFFSET_C);
 	group[3] = makeblock(group[3], RDS_OFFSET_D);
 	
+<<<<<<< HEAD
+	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.bb_data.data;
+=======
 	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.tx_data;
+>>>>>>> d402a87... RDS radiotext and time group generators
 	
 	// Copy to tx_data for baseband
 	for (c = 0; c < 4; c++)

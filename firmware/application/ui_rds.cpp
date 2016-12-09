@@ -62,8 +62,8 @@ void RDSView::start_tx() {
 }
 
 void RDSView::paint(Painter& painter) {
-	char RadioTextA[17];
 	(void)painter;
+	char RadioTextA[17];
 	
 	text_psn.set(PSN);
 	
@@ -81,25 +81,29 @@ RDSView::RDSView(NavigationView& nav) {
 	strcpy(PSN, "TEST1234");
 	strcpy(RadioText, "Radiotext test ABCD1234");
 	
-	rds_flags.DI = false;
-	rds_flags.MS = false;
-	rds_flags.PI_code = 0x1337;
-	rds_flags.TA = false;
-	rds_flags.TP = true;
-	
 	add_children({ {
 		&field_frequency,
+		&text_pty,
 		&options_pty,
+		&text_countrycode,
 		&options_countrycode,
+		&text_coverage,
 		&options_coverage,
 		&text_tx,
+		&options_tx,
+		&check_mono_stereo,
+		&check_TA,
+		&check_TP,
+		&check_MS,
+		&text_pi_code,
+		&sym_pi_code,
 		&button_editpsn,
 		&text_psn,
-		&button_txpsn,
 		&button_editradiotext,
+		&text_radiotext,
 		&text_radiotexta,
 		&text_radiotextb,
-		&button_txradiotext,
+		&button_tx,
 		&button_exit
 	} });
 	
@@ -116,27 +120,72 @@ RDSView::RDSView(NavigationView& nav) {
 		};
 	};
 	
-	options_countrycode.set_selected_index(18);		// France
-	options_coverage.set_selected_index(0);			// Local
+	check_TA.set_value(true);
+	check_TP.set_value(true);
+	
+	sym_pi_code.set_value(0, 0xF);
+	sym_pi_code.set_value(1, 0x3);
+	sym_pi_code.set_value(2, 0xE);
+	sym_pi_code.set_value(3, 0x0);
+	sym_pi_code.on_change = [this]() {
+		rds_flags.PI_code = sym_pi_code.value_hex_u64();
+	};
 	
 	options_pty.on_change = [this](size_t, int32_t v) {
 		rds_flags.PTY = v;
 	};
-	
 	options_pty.set_selected_index(0);				// None
+
+	options_countrycode.on_change = [this](size_t, int32_t) {
+		//rds_flags.PTY = v;
+	};
+	options_countrycode.set_selected_index(18);		// Baguette du fromage
+
+	options_coverage.on_change = [this](size_t, int32_t) {
+		//rds_flags.PTY = v;
+	};
+	options_coverage.set_selected_index(0);			// Local
+	
+<<<<<<< HEAD
+	button_editpsn.on_select = [this, &nav](Button&) {
+		textentry(nav, PSN, 8);
+	};
+	button_tx.on_select = [this](Button&) {
+=======
+	options_pty.on_change = [this](size_t, int32_t v) {
+		rds_flags.PTY = v;
+	};
 	
 	button_editpsn.on_select = [this,&nav](Button&) {
 		textentry(nav, PSN, 8);
 	};
 	button_txpsn.on_select = [this](Button&) {
+>>>>>>> d402a87... RDS radiotext and time group generators
 		if (txing) {
-			button_txpsn.set_text("PSN");
-			button_txradiotext.set_text("Radiotext");
 			transmitter_model.disable();
+			button_tx.set_text("START");
 			txing = false;
 		} else {
+<<<<<<< HEAD
+			rds_flags.PI_code = sym_pi_code.value_hex_u64();
+			rds_flags.PTY = options_pty.selected_index_value();
+			rds_flags.DI = check_mono_stereo.value() ? 1 : 0;
+			rds_flags.TP = check_TP.value();
+			rds_flags.TA = check_TA.value();
+			rds_flags.MS = check_MS.value();
+			
+			if (options_tx.selected_index() == 0)
+				message_length = gen_PSN(PSN, &rds_flags);
+			else if (options_tx.selected_index() == 1)
+				message_length = gen_RadioText(RadioText, 0, &rds_flags);
+			else
+				message_length = gen_ClockTime(&rds_flags, 2016, 12, 1, 9, 23, 2);
+			
+			button_tx.set_text("STOP");
+=======
 			message_length = gen_PSN(PSN, &rds_flags);
 			button_txpsn.set_text("STOP");
+>>>>>>> d402a87... RDS radiotext and time group generators
 			txing = true;
 			start_tx();
 		}
@@ -145,6 +194,8 @@ RDSView::RDSView(NavigationView& nav) {
 	button_editradiotext.on_select = [this, &nav](Button&){
 		textentry(nav, RadioText, 24);
 	};
+<<<<<<< HEAD
+=======
 	button_txradiotext.on_select = [this](Button&){
 		if (txing) {
 			button_txpsn.set_text("PSN");
@@ -158,6 +209,7 @@ RDSView::RDSView(NavigationView& nav) {
 			start_tx();
 		}
 	};
+>>>>>>> d402a87... RDS radiotext and time group generators
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();

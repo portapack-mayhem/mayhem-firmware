@@ -23,13 +23,9 @@
 #include "ui_closecall.hpp"
 #include "msgpack.hpp"
 
-#include "ch.h"
 #include "time.hpp"
-
 #include "event_m0.hpp"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 

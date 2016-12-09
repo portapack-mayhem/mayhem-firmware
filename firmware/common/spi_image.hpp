@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -77,10 +78,9 @@ constexpr image_tag_t image_tag_jammer				{ 'P', 'J', 'A', 'M' };
 constexpr image_tag_t image_tag_audio_tx			{ 'P', 'A', 'T', 'X' };
 constexpr image_tag_t image_tag_afsk				{ 'P', 'A', 'F', 'S' };
 constexpr image_tag_t image_tag_epar				{ 'P', 'E', 'P', 'R' };
-constexpr image_tag_t image_tag_xylos				{ 'P', 'X', 'Y', 'L' };
+constexpr image_tag_t image_tag_tones				{ 'P', 'T', 'O', 'N' };
 constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_ook					{ 'P', 'O', 'O', 'K' };
-constexpr image_tag_t image_tag_dtmf_tx				{ 'P', 'D', 'T', 'X' };
 constexpr image_tag_t image_tag_adsb_tx				{ 'P', 'A', 'D', 'S' };
 
 constexpr image_tag_t image_tag_hackrf				{ 'H', 'R', 'F', '1' };

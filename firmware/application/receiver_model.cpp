@@ -24,6 +24,8 @@
 #include "baseband_api.hpp"
 
 #include "portapack_persistent_memory.hpp"
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
 using namespace portapack;
 
 #include "radio.hpp"
@@ -159,6 +161,7 @@ void ReceiverModel::enable() {
 	update_sampling_rate();
 	update_modulation();
 	update_headphone_volume();
+	led_rx.on();
 }
 
 void ReceiverModel::disable() {
@@ -168,6 +171,7 @@ void ReceiverModel::disable() {
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
+	led_rx.off();
 }
 
 int32_t ReceiverModel::tuning_offset() {

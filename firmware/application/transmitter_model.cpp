@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -24,8 +25,12 @@
 #include "baseband_api.hpp"
 
 #include "portapack_persistent_memory.hpp"
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
 using namespace portapack;
 
+#include "time.hpp"
+#include "event_m0.hpp"
 #include "radio.hpp"
 #include "audio.hpp"
 
@@ -83,6 +88,11 @@ uint32_t TransmitterModel::baseband_oversampling() const {
 	return baseband_configuration.decimation_factor;
 }
 
+void TransmitterModel::on_tick_second() {
+	if (portapack::persistent_memory::stealth_mode())
+		led_tx.toggle();
+}
+
 void TransmitterModel::enable() {
 	enabled_ = true;
 	radio::set_direction(rf::Direction::Transmit);
@@ -92,6 +102,13 @@ void TransmitterModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_baseband_configuration();
+	
+	led_tx.on();
+	signal_token_tick_second = time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
+	if (portapack::persistent_memory::stealth_mode())
+		EventDispatcher::set_display_sleep(true);
 }
 
 void TransmitterModel::disable() {
@@ -100,6 +117,9 @@ void TransmitterModel::disable() {
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
+	
+	time::signal_tick_second -= signal_token_tick_second;
+	led_tx.off();
 }
 
 void TransmitterModel::update_tuning_frequency() {

@@ -32,6 +32,12 @@
 #include <array>
 
 void AudioOutput::configure(
+	const bool do_proc
+) {
+	do_processing = do_proc;
+}
+
+void AudioOutput::configure(
 	const iir_biquad_config_t& hpf_config,
 	const iir_biquad_config_t& deemph_config,
 	const float squelch_threshold
@@ -69,20 +75,25 @@ void AudioOutput::write(
 void AudioOutput::on_block(
 	const buffer_f32_t& audio
 ) {
-	const auto audio_present_now = squelch.execute(audio);
-
-	hpf.execute_in_place(audio);
-	deemph.execute_in_place(audio);
-
-	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-	const bool audio_present = (audio_present_history != 0);
+	bool audio_present;
 	
-	if( !audio_present ) {
-		for(size_t i=0; i<audio.count; i++) {
-			audio.p[i] = 0;
-		}
-	}
+	if (do_processing) {
+		const auto audio_present_now = squelch.execute(audio);
 
+		hpf.execute_in_place(audio);
+		deemph.execute_in_place(audio);
+
+		audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
+		audio_present = (audio_present_history != 0);
+		
+		if( !audio_present ) {
+			for(size_t i=0; i<audio.count; i++) {
+				audio.p[i] = 0;
+			}
+		}
+	} else
+		audio_present = true;
+	
 	fill_audio_buffer(audio, audio_present);
 }
 

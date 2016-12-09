@@ -150,11 +150,15 @@ FrequencyKeypadView::FrequencyKeypadView(
 	
 	add_children({ {
 		&button_save,
+		&button_load,
 		&button_close
 	} });
 	
 	button_save.on_select = [this, &nav](Button&) {
 		nav.push<FrequencySaveView>(this->value());
+	};
+	button_load.on_select = [this, &nav](Button&) {
+		nav.push<FrequencyLoadView>(this->value());
 	};
 
 	button_close.on_select = [this, &nav](Button&) {

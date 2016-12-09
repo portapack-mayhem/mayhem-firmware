@@ -50,7 +50,7 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 			if (!bit_part) {
 				if (bit_pos >= 112) {
 					// Stop
-					message.n = 200;
+					message.progress = 200;
 					shared_memory.application_queue.push(message);
 					configured = false;
 					cur_bit = 0;

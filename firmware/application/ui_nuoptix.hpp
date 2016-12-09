@@ -30,6 +30,20 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "message.hpp"
+#include "volume.hpp"
+#include "audio.hpp"
+
+#define DTMF_DELTA_COEF (43.691)		// (65536*1024)/1536000
+#define DTMF_C0			(uint32_t)(1209 * DTMF_DELTA_COEF)
+#define DTMF_C1			(uint32_t)(1336 * DTMF_DELTA_COEF)
+#define DTMF_C2			(uint32_t)(1477 * DTMF_DELTA_COEF)
+#define DTMF_C3			(uint32_t)(1633 * DTMF_DELTA_COEF)
+#define DTMF_R0			(uint32_t)(697 * DTMF_DELTA_COEF)
+#define DTMF_R1			(uint32_t)(770 * DTMF_DELTA_COEF)
+#define DTMF_R2			(uint32_t)(852 * DTMF_DELTA_COEF)
+#define DTMF_R3			(uint32_t)(941 * DTMF_DELTA_COEF)
+
+#define NUOPTIX_TONE_LENGTH 75264		// 1536000*0.049
 
 namespace ui {
 	
@@ -50,7 +64,27 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
-
+	
+	// 0123456789ABCD#*
+	const uint32_t dtmf_deltas[16][2] = {
+		{ DTMF_C1, DTMF_R3 },
+		{ DTMF_C0, DTMF_R0 },
+		{ DTMF_C1, DTMF_R0 },
+		{ DTMF_C2, DTMF_R0 },
+		{ DTMF_C0, DTMF_R1 },
+		{ DTMF_C1, DTMF_R1 },
+		{ DTMF_C2, DTMF_R1 },
+		{ DTMF_C0, DTMF_R2 },
+		{ DTMF_C1, DTMF_R2 },
+		{ DTMF_C2, DTMF_R2 },
+		{ DTMF_C3, DTMF_R0 },
+		{ DTMF_C3, DTMF_R1 },
+		{ DTMF_C3, DTMF_R2 },
+		{ DTMF_C3, DTMF_R3 },
+		{ DTMF_C2, DTMF_R3 },
+		{ DTMF_C0, DTMF_R3 }
+	};
+	
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void transmit(bool setup);
 	
@@ -95,24 +129,18 @@ private:
 		{ 16, 236, 208, 16 }
 	};
 	
-	/*Checkbox check_loop {
-		{ 16, 274 },
-		4,
-		"Loop"
-	};*/
-	
 	Button button_tx {
-		{ 70, 128, 100, 40 },
+		{ 64, 128, 112, 40 },
 		"TX"
 	};
 	
 	Button button_impro {
-		{ 70, 184, 100, 40 },
+		{ 64, 184, 112, 40 },
 		"IMPROVISE"
 	};
 	
 	Button button_exit {
-		{ 160, 270, 64, 32 },
+		{ 88, 270, 64, 32 },
 		"Exit"
 	};
 	
@@ -120,10 +148,10 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			if (message.n == 0xFF)
+			if (message.progress == 0xFF)
 				transmit(false);
 			else
-				pbar.set_value(message.n);
+				pbar.set_value(message.progress);
 		}
 	};
 };

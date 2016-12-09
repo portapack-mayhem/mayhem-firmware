@@ -22,11 +22,7 @@
 
 #include "ui_handwrite.hpp"
 
-#include "ch.h"
-
-#include "ff.h"
 #include "portapack.hpp"
-#include "event_m0.hpp"
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
@@ -43,17 +39,17 @@ void HandWriteView::paint(Painter& painter) {
 HandWriteView::HandWriteView(
 	NavigationView& nav,
 	char txt[],
-	uint8_t max_len
-) {
+	size_t max_length
+) : _max_length(max_length)
+{
 	const char special_chars[5] = {'\'', '.', '?', '!', '='}; 
-	_max_len = max_len;
 	size_t n;
 	
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
 	
 	txtidx = strlen(txt);
-	memcpy(txtinput, txt, max_len + 1);
+	memcpy(txtinput, txt, _max_length + 1);
 	n = txtidx;
 	while (n && (txtinput[n - 1] == ' ')) {
 		txtinput[--n] = 0;
@@ -71,7 +67,7 @@ HandWriteView::HandWriteView(
 	};
 
 	n = 0;
-	for(auto& button : num_buttons) {
+	for (auto& button : num_buttons) {
 		add_child(&button);
 		button.on_select = button_fn;
 		button.set_parent_rect({
@@ -80,15 +76,15 @@ HandWriteView::HandWriteView(
 			24, 28
 		});
 		const std::string label {
-			(char)(n + 0x30)
+			(char)(n + '0')
 		};
 		button.set_text(label);
-		button.id = n + 0x30;
+		button.id = n + '0';
 		n++;
 	}
 	
 	n = 0;
-	for(auto& button : special_buttons) {
+	for (auto& button : special_buttons) {
 		add_child(&button);
 		button.on_select = button_fn;
 		button.set_parent_rect({
@@ -114,9 +110,9 @@ HandWriteView::HandWriteView(
 		}
 	};
 
-	button_ok.on_select = [this, &nav, txt, max_len](Button&) {
-		memcpy(txt, txtinput, max_len + 1);
-		on_changed(this->value());
+	button_ok.on_select = [this, &nav, txt, max_length](Button&) {
+		memcpy(txt, txtinput, max_length + 1);
+		if (on_changed) on_changed(this->value());
 		nav.pop();
 	};
 
@@ -134,14 +130,13 @@ bool HandWriteView::on_touch(const TouchEvent event) {
 		guess_letter();
 	}
 	if (event.type == ui::TouchEvent::Type::Move) {
-		if (tracing) {
+		if (tracing)
 			current_pos = event.point;
-		}
 	}
 	return true;
 }
 
-void HandWriteView::clear_zone(Color color, bool flash) {
+void HandWriteView::clear_zone(const Color color, const bool flash) {
 	display.fill_rectangle(
 		{{0, 32}, {240, 216}},
 		color
@@ -149,6 +144,7 @@ void HandWriteView::clear_zone(Color color, bool flash) {
 	if (flash) {
 		flash_timer = 4;
 	} else {
+		// Draw grid
 		_painter->draw_rectangle(
 			{{0, 32}, {80, 216}},
 			Color::grey()
@@ -169,7 +165,7 @@ void HandWriteView::clear_zone(Color color, bool flash) {
 }
 
 void HandWriteView::guess_letter() {
-	uint8_t symbol, match, count, stroke_idx, stroke_data;
+	uint32_t symbol, match, count, stroke_idx, stroke_data;
 	Condition cond;
 	Direction dir;
 	bool matched;
@@ -212,7 +208,7 @@ void HandWriteView::guess_letter() {
 						} else if ((dir & 0x0F) == 0x0F) {
 							if ((dir & 0xF0) != (stroke_data & 0xF0)) break;
 						} else {
-							if (dir != stroke_data) break;
+							if (dir != (int32_t)stroke_data) break;
 						}
 					}
 				}
@@ -231,7 +227,8 @@ void HandWriteView::guess_letter() {
 				clear_zone(Color::green(), true);	// Green flash
 			} else {
 				if (txtidx) {
-					txtinput[--txtidx] = 0;				// Erase
+					txtidx--;
+					txtinput[txtidx] = 0;			// Erase
 					clear_zone(Color::yellow(), true);	// Yellow flash
 				} else {
 					clear_zone(Color::red(), true);		// Red flash
@@ -386,6 +383,7 @@ void HandWriteView::on_show() {
 }
 
 char * HandWriteView::value() {
+	txtinput[txtidx] = 0;
 	return txtinput;
 }
 
@@ -395,10 +393,10 @@ void HandWriteView::on_button(Button& button) {
 }
 
 void HandWriteView::char_add(const char c) {
-	if (txtidx < _max_len) {
-		txtinput[txtidx] = c;
-		txtidx++;
-	}
+	if (txtidx >= _max_length) return;
+	
+	txtinput[txtidx] = c;
+	txtidx++;
 }
 
 void HandWriteView::update_text() {

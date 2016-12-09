@@ -210,7 +210,7 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	memcpy(shared_memory.tx_data, ook_bitstream, 256);
+	memcpy(shared_memory.bb_data.data, ook_bitstream, 256);
 	
 	baseband::set_ook_data(
 		ook_bitstream_length,
@@ -233,7 +233,7 @@ void EncodersView::on_type_change(size_t index) {
 
 	encoder_def = &encoder_defs[enc_type];
 
-	numberfield_clk.set_value(encoder_def->default_frequency / 1000);
+	numberfield_clk.set_value(encoder_def->default_speed / 1000);
 	
 	// SymField setup
 	word_length = encoder_def->word_length;

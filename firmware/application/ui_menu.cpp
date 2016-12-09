@@ -49,19 +49,20 @@ void MenuItemView::paint(Painter& painter) {
 	const auto paint_style = (highlighted() && parent()->has_focus()) ? style().invert() : style();
 
 	const auto font_height = paint_style.font.line_height();
+	
+	ui::Color final_item_color = (highlighted() && parent()->has_focus()) ? paint_style.foreground : item.color;
+	ui::Color final_bg_color = (highlighted() && parent()->has_focus()) ? item.color : paint_style.background;
+
+	if (final_item_color.v == final_bg_color.v) final_item_color = paint_style.foreground;
 
 	painter.fill_rectangle(
 		r,
-		paint_style.background
+		final_bg_color
 	);
-	
-	ui::Color final_item_color = (highlighted() && parent()->has_focus()) ? ui::Color::black() : item.color;
-
-	if (final_item_color.v == paint_style.background.v) final_item_color = paint_style.foreground;
 
 	Style text_style {
 		.font = paint_style.font,
-		.background = paint_style.background,
+		.background = final_bg_color,
 		.foreground = final_item_color
 	};
 
@@ -84,6 +85,7 @@ MenuView::MenuView() {
 	
 	arrow_more.set_parent_rect( { 216, 320 - 16 - 24, 16, 16 } );
 	arrow_more.set_focusable(false);
+	arrow_more.set_foreground(Color::black());
 }
 
 MenuView::~MenuView() {
@@ -115,7 +117,7 @@ void MenuView::update_items() {
 	size_t i = 0;
 	Coord y_pos;
 	
-	if (MENU_MAX + offset_ < (children_.size() - 1))
+	if ((children_.size() - 1) > MENU_MAX + offset_)
 		more_ = true;
 	else
 		more_ = false;
@@ -148,9 +150,8 @@ size_t MenuView::highlighted() const {
 }
 
 bool MenuView::set_highlighted(const size_t new_value) {
-	if( new_value >= (children_.size() - 1) ) {					// Skip arrow widget
+	if( new_value >= (children_.size() - 1) )					// Skip arrow widget
 		return false;
-	}
 	
 	if ((new_value > offset_) && ((new_value - offset_ + 1) >= MENU_MAX)) {
 		// Shift MenuView up

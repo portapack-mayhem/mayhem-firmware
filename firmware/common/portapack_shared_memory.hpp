@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -25,6 +26,7 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "portapack_shared_memory.hpp"
 #include "message_queue.hpp"
 
 struct JammerRange {
@@ -32,6 +34,17 @@ struct JammerRange {
 	uint64_t center;
 	uint32_t width;
 	uint32_t duration;
+};
+
+struct ToneDef {
+	uint32_t delta;
+	uint32_t duration;
+};
+	
+struct ToneData {
+	ToneDef tone_defs[32];
+	uint32_t silence;
+	uint8_t message[128];
 };
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
@@ -47,8 +60,11 @@ struct SharedMemory {
 
 	char m4_panic_msg[32] { 0 };
 	
-	// struct tx_data union for 9x JammerRange ?
-	uint8_t tx_data[512] { 0 };
+	union {
+		ToneData tones_data;
+		JammerRange jammer_ranges[9];
+		uint8_t data[512];
+	} bb_data;
 };
 
 extern SharedMemory& shared_memory;

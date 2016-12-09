@@ -61,31 +61,38 @@ private:
 	//static constexpr auto back_text_disabled = " * ";
 
 	Button button_back {
-		{ 0 * 8, 0 * 16, 20, 16 },
+		{ 0 * 8, 0 * 16, 16, 16 },
 		"",		//back_text_disabled,
 	};
 
 	Text title {
-		{ 3 * 8, 0, 16 * 8, 1 * 16 },
+		{ 20, 0, 16 * 8, 1 * 16 },
 		default_title,
 	};
 	
+	ImageButton button_stealth {
+		{ 152, 0, 2 * 8, 1 * 16 },
+		&bitmap_stealth,
+		Color::light_grey(),
+		Color::black()
+	};
+	
 	ImageButton button_textentry {
-		{ 164, 0, 2 * 8, 1 * 16 },
+		{ 170, 0, 2 * 8, 1 * 16 },
 		&bitmap_unistroke,
 		Color::white(),
 		Color::black()
 	};
 
 	ImageButton button_camera {
-		{ 184, 0, 2 * 8, 1 * 16 },
+		{ 188, 0, 2 * 8, 1 * 16 },
 		&bitmap_camera,
 		Color::white(),
 		Color::black()
 	};
 
 	ImageButton button_sleep {
-		{ 204, 0, 2 * 8, 1 * 16 },
+		{ 206, 0, 2 * 8, 1 * 16 },
 		&bitmap_sleep,
 		Color::white(),
 		Color::black()
@@ -95,8 +102,9 @@ private:
 		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
 	};
 
-	void on_camera();
+	void on_stealth();
 	void on_textentry();
+	void on_camera();
 };
 
 class NavigationView : public View {
@@ -144,7 +152,7 @@ public:
 class BMPView : public View {
 public:
 	BMPView(NavigationView& nav);
-	void paint(Painter& painter) override;
+	void paint(Painter&) override;
 	void focus() override;
 
 private:
@@ -161,12 +169,14 @@ private:
 
 class PlayDeadView : public View {
 public:
-	PlayDeadView(NavigationView& nav, bool booting);
+	PlayDeadView(NavigationView& nav);
+	
 	void focus() override;
+	void paint(Painter& painter) override;
 
 private:
-	bool _booting;
 	uint32_t sequence = 0;
+	
 	Text text_playdead1 {
 		{ 6 * 8, 7 * 16, 14 * 8, 16 },
 		"Firmware error"
@@ -175,8 +185,12 @@ private:
 		{ 6 * 8, 9 * 16, 16 * 8, 16 },
 		"0x1400_0000 : 2C"
 	};
+	Text text_playdead3 {
+		{ 6 * 8, 12 * 16, 16 * 8, 16 },
+		"Please reset"
+	};
 	
-	Button button_done {
+	Button button_seq_entry {
 		{ 240, 0, 1, 1 },
 		""
 	};
@@ -296,11 +310,11 @@ public:
 		const modal_t type,
 		const std::function<void(bool)> on_choice
 	);
+	
 	void paint(Painter& painter) override;
-
 	void focus() override;
 
-	// std::string title() const override { return title_; };
+	std::string title() const override { return title_; };
 
 private:
 	const std::string title_;

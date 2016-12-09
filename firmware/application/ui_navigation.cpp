@@ -32,30 +32,30 @@
 #include "bmp_modal_warning.hpp"
 
 #include "ui_about.hpp"
-#include "ui_setup.hpp"
-#include "ui_debug.hpp"
-
-#include "ui_numbers.hpp"
-#include "ui_whipcalc.hpp"
-#include "ui_closecall.hpp"
-#include "ui_freqman.hpp"
-#include "ui_nuoptix.hpp"
-#include "ui_soundboard.hpp"
-#include "ui_encoders.hpp"
-#include "ui_rds.hpp"
-#include "ui_xylos.hpp"
-#include "ui_epar.hpp"
-#include "ui_lcr.hpp"
-#include "analog_audio_app.hpp"
 #include "ui_adsbtx.hpp"
+#include "ui_closecall.hpp"
+#include "ui_debug.hpp"
+#include "ui_encoders.hpp"
+#include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
+#include "ui_lcr.hpp"
+#include "ui_morse.hpp"
+#include "ui_numbers.hpp"
+#include "ui_nuoptix.hpp"
+#include "ui_rds.hpp"
+#include "ui_setup.hpp"
+#include "ui_soundboard.hpp"
+#include "ui_whipcalc.hpp"
+#include "ui_whistle.hpp"
+#include "ui_bht_tx.hpp"
+
+#include "analog_audio_app.hpp"
 #include "ais_app.hpp"
 #include "ert_app.hpp"
 #include "tpms_app.hpp"
 #include "pocsag_app.hpp"
 #include "capture_app.hpp"
 
-#include "ui_debug.hpp"
 #include "core_control.hpp"
 
 #include "file.hpp"
@@ -66,28 +66,31 @@ namespace ui {
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView() {
-	uint8_t cfg;
-	
 	add_children({ {
 		&button_back,
 		&title,
+		&button_stealth,
 		&button_textentry,
 		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
 	} });
 	
-	cfg = portapack::persistent_memory::ui_config_textentry();
-	
-	if (!cfg)
+	if (portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_keyboard);
 	else
 		button_textentry.set_bitmap(&bitmap_unistroke);
+	
+	if (portapack::persistent_memory::stealth_mode())
+		button_stealth.set_foreground(ui::Color::green());
 
 	button_back.on_select = [this](Button&){
-		if( this->on_back ) {
+		if (this->on_back)
 			this->on_back();
-		}
+	};
+	
+	button_stealth.on_select = [this](ImageButton&) {
+		this->on_stealth();
 	};
 	
 	button_textentry.on_select = [this](ImageButton&) {
@@ -115,6 +118,20 @@ void SystemStatusView::set_title(const std::string new_value) {
 	} else {
 		title.set(new_value);
 	}
+}
+
+void SystemStatusView::on_stealth() {
+	bool cfg;
+	
+	cfg = portapack::persistent_memory::stealth_mode();
+	portapack::persistent_memory::set_stealth_mode(not cfg);
+	
+	if (!cfg)
+		button_stealth.set_foreground(ui::Color::green());
+	else
+		button_stealth.set_foreground(ui::Color::light_grey());
+	
+	button_stealth.set_dirty();
 }
 
 void SystemStatusView::on_textentry() {
@@ -185,7 +202,7 @@ void NavigationView::pop_modal() {
 		modal_view = nullptr;
 	}
 
-	// Pop modal view and underlying app view
+	// Pop modal view + underlying app view
 	if( view_stack.size() > 2 ) {
 		free_view();
 		view_stack.pop_back();
@@ -221,8 +238,10 @@ void NavigationView::free_view() {
 
 void NavigationView::update_view() {
 	const auto new_view = view_stack.back().get();
+	
 	add_child(new_view);
 	new_view->set_parent_rect({ {0, 0}, size() });
+	
 	focus();
 	set_dirty();
 
@@ -271,14 +290,13 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* TransmitterCodedMenuView ******************************************************/
 
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
-	add_items<8>({ {
-		{ "ADS-B Mode S", 			ui::Color::yellow(),  	[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "BHT Epar", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "BHT Xylos", 				ui::Color::green(),  	[&nav](){ nav.push<XylosView>(); } },
-		{ "Morse beacon", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
+	add_items<7>({ {
+		{ "ADS-B Mode S", 			ui::Color::orange(),  	[&nav](){ nav.push<ADSBTxView>(); } },
+		{ "BHT EPAR/Xylos", 		ui::Color::yellow(),  	[&nav](){ nav.push<BHTView>(); } },
+		{ "Morse beacon", 			ui::Color::yellow(),  	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),		[&nav](){ nav.push<EncodersView>(); } },
-		{ "RDS",					ui::Color::orange(),	[&nav](){ nav.push<RDSView>(); } },
+		{ "RDS",					ui::Color::green(),		[&nav](){ nav.push<RDSView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::green(),  	[&nav](){ nav.push<LCRView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
@@ -291,7 +309,7 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 		{ "Soundboard", 			ui::Color::green(),  	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "Numbers station",		ui::Color::green(),		[&nav](){ nav.push<NumbersStationView>(); } },
 		{ "Microphone", 			ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Whistle", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Whistle", 				ui::Color::yellow(),  	[&nav](){ nav.push<WhistleView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -310,7 +328,7 @@ UtilitiesView::UtilitiesView(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<11>({ {
-		{ "Play dead",				ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(false); } },
+		{ "Play dead",				ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),		[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::cyan(),		[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),		[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
@@ -324,6 +342,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "HackRF mode", 			ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
 		{ "About", 					ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
+	
+	set_highlighted(1);		// Startup selection is "Receivers"
 }
 
 /* SystemView ************************************************************/
@@ -363,22 +383,16 @@ SystemView::SystemView(
 		this->status_view.set_title(new_view.title());
 	};
 
-	// Initial view.
-	// TODO: Restore from non-volatile memory?
-	
-	//if (persistent_memory::playing_dead() == 0x59)
-	//	navigation_view.push(new PlayDeadView { navigation_view, true });
-	//else
-	//	navigation_view.push(new BMPView { navigation_view });
-	
-	if (portapack::persistent_memory::ui_config() & 1)
-		navigation_view.push<BMPView>();
-	else
-		//navigation_view.push<SoundBoardView>();
-		//navigation_view.push<CloseCallView>();
-		//navigation_view.push<HandWriteView>(debugtxt, 20);
-		
-		navigation_view.push<SystemMenuView>();
+	// Initial view
+	if ((portapack::persistent_memory::playing_dead() == 0x5920C1DF) ||		// Enable code
+		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
+		navigation_view.push<PlayDeadView>();
+	} else {
+		if (portapack::persistent_memory::ui_config() & 1)
+			navigation_view.push<BMPView>();
+		else
+			navigation_view.push<SystemMenuView>();
+	}
 }
 
 Context& SystemView::context() const {
@@ -419,45 +433,56 @@ BMPView::BMPView(NavigationView& nav) {
 		&button_done
 	} });
 	
-	button_done.on_select = [this,&nav](Button&){
+	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
-		nav.push<SystemMenuView>();
 	};
 }
 
-void BMPView::paint(Painter& painter) {
-	(void)painter;
-	portapack::display.drawBMP({(240-185)/2, 0}, splash_bmp, false);
+void BMPView::paint(Painter&) {
+	portapack::display.drawBMP({(240 - 185) / 2, 0}, splash_bmp, false);
 }
 
 /* PlayDeadView **********************************************************/
 
 void PlayDeadView::focus() {
-	button_done.focus();
+	button_seq_entry.focus();
 }
 
-PlayDeadView::PlayDeadView(NavigationView& nav, bool booting) {
-	_booting = booting;
-	portapack::persistent_memory::set_playing_dead(0x59);
+void PlayDeadView::paint(Painter& painter) {
+	if (!(portapack::persistent_memory::ui_config() & 16)) {
+		// Blank the whole display
+		painter.fill_rectangle(
+			portapack::display.screen_rect(),
+			style().background
+		);
+	}
+}
+
+PlayDeadView::PlayDeadView(NavigationView& nav) {
+	portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
 	
 	add_children({ {
 		&text_playdead1,
 		&text_playdead2,
-		&button_done,
+		&text_playdead3,
+		&button_seq_entry,
 	} });
 	
-	button_done.on_dir = [this,&nav](Button&, KeyEvent key){
-		sequence = (sequence<<3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
+	text_playdead3.hidden(true);
+	
+	button_seq_entry.on_dir = [this](Button&, KeyEvent key){
+		sequence = (sequence << 3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
+		return true;
 	};
 	
-	button_done.on_select = [this,&nav](Button&){
+	button_seq_entry.on_select = [this, &nav](Button&){
 		if (sequence == portapack::persistent_memory::playdead_sequence()) {
-			portapack::persistent_memory::set_playing_dead(0);
-			if (_booting) {
-				nav.pop();
-				nav.push<SystemMenuView>();
+			portapack::persistent_memory::set_playing_dead(0x82175E23);		// Disable
+			if (!(portapack::persistent_memory::ui_config() & 16)) {
+				text_playdead3.hidden(false);
 			} else {
 				nav.pop();
+				nav.push<SystemMenuView>();
 			}
 		} else {
 			sequence = 0;
@@ -487,6 +512,7 @@ void NotImplementedView::focus() {
 }
 
 /* ModalMessageView ******************************************************/
+
 ModalMessageView::ModalMessageView(
 	NavigationView& nav,
 	const std::string& title,
@@ -497,7 +523,6 @@ ModalMessageView::ModalMessageView(
 	type_ { type },
 	on_choice_ { on_choice }
 {
-
 	add_child(&text_message);
 
 	if (type == INFO) {
@@ -537,8 +562,7 @@ ModalMessageView::ModalMessageView(
 	text_message.set(message);
 }
 
-void ModalMessageView::paint(Painter& painter) {
-	(void)painter;
+void ModalMessageView::paint(Painter&) {
 	portapack::display.drawBMP({96, 64}, modal_warning_bmp, false);
 }
 

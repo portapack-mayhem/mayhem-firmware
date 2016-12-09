@@ -184,6 +184,14 @@ void set_playdead_sequence(const uint32_t new_value) {
 	data->playdead_sequence = new_value;
 }
 
+bool stealth_mode() {
+	return ((data->ui_config >> 3) & 1) ? true : false;
+}
+
+void set_stealth_mode(const bool new_value) {
+	data->ui_config = (data->ui_config & ~0b1000) | ((new_value & 1) << 3);
+}
+
 uint32_t ui_config() {
 	uint8_t bloff_value;
 	
@@ -210,7 +218,7 @@ uint16_t ui_config_bloff() {
 }
 
 void set_config_textentry(uint8_t new_value) {
-	data->ui_config = (data->ui_config & ~0b1100) | ((new_value & 1) << 2);
+	data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
 }
 
 uint8_t ui_config_textentry() {

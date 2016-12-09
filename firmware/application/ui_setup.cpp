@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -180,22 +181,24 @@ SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 		&text_sequence,
 		&button_enter,
 		&button_cancel
-		}});
+	}});
 
-	button_enter.on_select = [this,&nav](Button&){
-		if (entermode == false) {
+	button_enter.on_select = [this, &nav](Button&){
+		if (!entermode) {
 			sequence = 0;
-			memset(sequence_txt,0,11);
-			text_sequence.set("");
 			keycount = 0;
+			memset(sequence_txt, '-', 10);
+			text_sequence.set(sequence_txt);
 			entermode = true;
 			button_cancel.hidden(true);
+			set_dirty();
 		} else {
 			persistent_memory::set_playdead_sequence(sequence);
 			nav.pop();
 		}
 	};
-	button_enter.on_dir = [this,&nav](Button&, KeyEvent key){
+	
+	button_enter.on_dir = [this](Button&, KeyEvent key){
 		if ((entermode == true) && (keycount < 10)) {
 			key_code = static_cast<std::underlying_type<KeyEvent>::type>(key);
 			if (key_code == 0)
@@ -207,25 +210,28 @@ SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 			else if (key_code == 3)
 				sequence_txt[keycount] = 'U';
 			text_sequence.set(sequence_txt);
-			sequence = (sequence<<3) | key_code;
+			sequence = (sequence << 3) | key_code;
 			keycount++;
-			
+			return true;
 		}
+		return false;
 	};
+	
 	button_cancel.on_select = [&nav](Button&){ nav.pop(); };
 }
 
 void SetPlayDeadView::focus() {
-	button_enter.focus();
+	button_cancel.focus();
 }
 
 SetUIView::SetUIView(NavigationView& nav) {
 	uint32_t ui_config;
 	
 	add_children({{
-		&checkbox_showsplash,
+		&checkbox_login,
 		&checkbox_bloff,
 		&options_bloff,
+		&checkbox_showsplash,
 		&button_ok
 	}});
 	
@@ -233,14 +239,18 @@ SetUIView::SetUIView(NavigationView& nav) {
 	
 	if (ui_config & 1) checkbox_showsplash.set_value(true);
 	if (ui_config & 2) checkbox_bloff.set_value(true);
+	if (ui_config & 16) checkbox_login.set_value(true);
 	options_bloff.set_selected_index((ui_config >> 5) & 7);
 
-	button_ok.on_select = [&nav,this](Button&){
-		uint32_t ui_config = 0;
-		if (checkbox_showsplash.value() == true) ui_config |= 1;
-		if (checkbox_bloff.value() == true) ui_config |= 2;
-		ui_config |= (portapack::persistent_memory::ui_config_textentry() << 2);
-		ui_config |= (options_bloff.selected_index() << 5);
+	button_ok.on_select = [&nav, &ui_config, this](Button&) {
+		ui_config &= ~0b10011;
+		
+		if (checkbox_login.value()) {
+			portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
+			ui_config |= (1 << 4);
+		}
+		if (checkbox_showsplash.value()) ui_config |= (1 << 0);
+		if (checkbox_bloff.value()) ui_config |= (1 << 1);
 		
 		portapack::persistent_memory::set_ui_config(ui_config);
 		nav.pop();
@@ -248,7 +258,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 }
 
 void SetUIView::focus() {
-	checkbox_showsplash.focus();
+	checkbox_login.focus();
 }
 
 /*void ModInfoView::on_show() {

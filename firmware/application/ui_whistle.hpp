@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -22,21 +23,16 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
 #include "transmitter_model.hpp"
 
 namespace ui {
 
 class WhistleView : public View {
 public:
-	WhistleView(NavigationView& nav, TransmitterModel& transmitter_model);
+	WhistleView(NavigationView& nav);
 	~WhistleView();
 	
 	void focus() override;
@@ -65,7 +61,6 @@ private:
 		{{ 468225000, 468275000, 468325000 }, 458275000}
 	};
 	rf::Frequency f;
-	TransmitterModel& transmitter_model;
 
 	Text text_status {
 		{ 172, 196, 64, 16 },

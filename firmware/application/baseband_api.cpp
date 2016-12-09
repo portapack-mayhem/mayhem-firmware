@@ -79,10 +79,14 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void set_ccir_data(	const uint32_t samples_per_tone, const uint16_t tone_count) {
-	const CCIRConfigureMessage message {
-		samples_per_tone,
-		tone_count
+void set_tones_data(const uint64_t bw, const uint32_t pre_silence, const uint16_t tone_count,
+					const bool dual_tone, const bool audio_out) {
+	const TonesConfigureMessage message {
+		(uint32_t)(262144 * bw) / 1536000,
+		pre_silence,
+		tone_count,
+		dual_tone,
+		audio_out
 	};
 	send_message(&message);
 }
@@ -158,14 +162,14 @@ void set_rds_data(const uint16_t message_length) {
 	send_message(&message);
 }
 
-void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length) {
+/*void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length) {
 	const DTMFTXConfigMessage message {
 		bw,
 		tone_length,
 		pause_length
 	};
 	send_message(&message);
-}
+}*/
 
 static bool baseband_image_running = false;
 

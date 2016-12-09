@@ -48,15 +48,15 @@ void DTMFTXProcessor::execute(const buffer_c8_t& buffer) {
 					tone = true;
 					timer = tone_length;
 					
-					tone_code = shared_memory.tx_data[tone_idx];
+					tone_code = shared_memory.bb_data.data[tone_idx];
 					
 					if (tone_code == 0xFF) {
-						txdone_message.n = 0xFF;		// End of list
+						txdone_message.done = true;			// End of list
 						shared_memory.application_queue.push(txdone_message);
 						configured = false;
 						tone = false;
 					} else {
-						txdone_message.n = tone_idx;	// New tone (progress)
+						txdone_message.progress = tone_idx;	// New tone
 						shared_memory.application_queue.push(txdone_message);
 						tone_idx++;
 					}
@@ -99,7 +99,7 @@ void DTMFTXProcessor::on_message(const Message* const msg) {
 	if (message.id == Message::ID::DTMFTXConfig) {
 		
 		// Translate DTMF message to index in DTMF frequencies table
-		tone_ptr = &shared_memory.tx_data[0];
+		tone_ptr = &shared_memory.bb_data.data[0];
 		for (;;) {
 			tone_code = *tone_ptr;
 			if (tone_code == 0xFF)
@@ -132,6 +132,8 @@ void DTMFTXProcessor::on_message(const Message* const msg) {
 		tone_length = message.tone_length * 154;		// 153.6
 		pause_length = message.pause_length * 154;		// 153.6
 		as = 0;
+		txdone_message.progress = 0;
+		txdone_message.done = false;
 		tone = false;
 		timer = 0;
 		tone_idx = 0;

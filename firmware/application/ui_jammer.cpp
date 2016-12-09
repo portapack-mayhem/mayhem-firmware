@@ -118,7 +118,7 @@ JammerView::JammerView(NavigationView& nav) {
 		.foreground = Color::grey(),
 	};
 	
-	JammerRange * jammer_ranges = (JammerRange*)shared_memory.tx_data;
+	JammerRange * jammer_ranges = (JammerRange*)shared_memory.bb_data.data;
 	
 	add_children({ {
 		&text_type,

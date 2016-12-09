@@ -25,8 +25,6 @@
 #include "spectrum_color_lut.hpp"
 
 #include "ui_receiver.hpp"
-#include "ui_spectrum.hpp"
-#include "ui_record_view.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {

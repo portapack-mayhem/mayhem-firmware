@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -253,20 +254,20 @@ public:
 	void focus() override;
 	
 private:
-	Checkbox checkbox_showsplash {
-		{ 3 * 8, 2 * 16},
-		11,
-		"Show splash"
+	Checkbox checkbox_login {
+		{ 3 * 8, 2 * 16 },
+		20,
+		"Login with play dead"
 	};
 	
 	Checkbox checkbox_bloff {
-		{ 3 * 8, 4 * 16},
+		{ 3 * 8, 5 * 16 },
 		20,
 		"Backlight off after:"
 	};
 
 	OptionsField options_bloff {
-		{ 10 * 8, 5 * 16 + 4 },
+		{ 10 * 8, 6 * 16 + 4 },
 		10,
 		{
 			{ "5 seconds", 0 },
@@ -275,6 +276,12 @@ private:
 			{ "5 minutes", 3 },
 			{ "10 minutes", 4 }
 		}
+	};
+	
+	Checkbox checkbox_showsplash {
+		{ 3 * 8, 8 * 16 },
+		11,
+		"Show splash"
 	};
 	
 	Button button_ok {
@@ -286,12 +293,14 @@ private:
 class SetPlayDeadView : public View {
 public:
 	SetPlayDeadView(NavigationView& nav);
+	
 	void focus() override;
+	
 private:
 	bool entermode = false;
 	uint32_t sequence = 0;
 	uint8_t keycount, key_code;
-	char sequence_txt[11];
+	char sequence_txt[11] = { 0 };
 	
 	Text text_sequence {
 		{ 64, 32, 14 * 8, 16 },

@@ -250,6 +250,12 @@ void View::remove_child(Widget* const widget) {
 	}
 }
 
+void View::remove_children(const std::vector<Widget*>& children) {
+	for(auto child : children) {
+		remove_child(child);
+	}
+}
+
 const std::vector<Widget*>& View::children() const {
 	return children_;
 }
@@ -564,13 +570,17 @@ void Checkbox::set_text(const std::string value) {
 	set_dirty();
 }
 
-/*std::string Checkbox::text() const {
-	return text_;
-}*/
-
-void Checkbox::set_value(const bool value) {
+bool Checkbox::set_value(const bool value) {
 	value_ = value;
+	
+	if( on_select ) {
+		on_select(*this);
+		return true;
+	}
+	
 	set_dirty();
+	
+	return false;
 }
 
 bool Checkbox::value() const {
@@ -616,15 +626,8 @@ void Checkbox::paint(Painter& painter) {
 }
 
 bool Checkbox::on_key(const KeyEvent key) {
-	if( key == KeyEvent::Select ) {
-		value_ = not value_;
-		set_dirty();
-		
-		if( on_select ) {
-			on_select(*this);
-			return true;
-		}
-	}
+	if( key == KeyEvent::Select )
+		return set_value(not value_);
 
 	return false;
 }
@@ -714,8 +717,7 @@ bool Button::on_key(const KeyEvent key) {
 		}
 	} else {
 		if( on_dir ) {
-			on_dir(*this, key);
-			return false;
+			return on_dir(*this, key);
 		}
 	}
 

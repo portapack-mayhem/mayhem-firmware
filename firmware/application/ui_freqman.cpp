@@ -22,8 +22,6 @@
 
 #include "ui_freqman.hpp"
 
-#include "ch.h"
-#include "ff.h"
 #include "portapack.hpp"
 #include "event_m0.hpp"
 #include "portapack_shared_memory.hpp"
@@ -35,10 +33,33 @@ using namespace portapack;
 namespace ui {
 
 void FrequencySaveView::focus() {
-	button_exit.focus();
+	button_save_timestamp.focus();
 }
 
 FrequencySaveView::FrequencySaveView(
+	NavigationView& nav,
+	const rf::Frequency value
+) {
+	add_children({ {
+		&big_display,
+		&text_save,
+		&button_save_name,
+		&button_save_timestamp,
+		&button_cancel
+	} });
+	
+	big_display.set(value);
+	
+	button_cancel.on_select = [this, &nav](Button&) {
+		nav.pop();
+	};
+}
+
+void FrequencyLoadView::focus() {
+	button_exit.focus();
+}
+
+FrequencyLoadView::FrequencyLoadView(
 	NavigationView& nav,
 	const rf::Frequency value
 ) {

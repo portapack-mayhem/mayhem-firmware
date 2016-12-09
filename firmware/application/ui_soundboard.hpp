@@ -152,7 +152,7 @@ private:
 	};
 	
 	Checkbox check_loop {
-		{ 16, 274 },
+		{ 8, 274 },
 		4,
 		"Loop"
 	};

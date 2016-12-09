@@ -28,8 +28,6 @@
 
 #include "event_m0.hpp"
 
-#include "message.hpp"
-
 #include <cstdint>
 
 namespace ui {

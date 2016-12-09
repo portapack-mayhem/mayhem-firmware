@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -68,7 +69,7 @@ public:
 
 		TXDone = 20,
 		Retune = 21,
-		CCIRConfigure = 22,
+		TonesConfigure = 22,
 		AFSKConfigure = 23,
 		PWMRSSIConfigure = 24,
 		OOKConfigure = 25,
@@ -498,7 +499,8 @@ public:
 	{
 	}
 	
-	int n = 0;
+	uint32_t progress = 0;
+	bool done = false;
 };
 
 
@@ -521,19 +523,28 @@ public:
 	const int32_t avg;
 };
 
-class CCIRConfigureMessage : public Message {
+class TonesConfigureMessage : public Message {
 public:
-	constexpr CCIRConfigureMessage(
-		const uint32_t samples_per_tone,
-		const uint16_t tone_count
-	) : Message { ID::CCIRConfigure },
-		samples_per_tone(samples_per_tone),
-		tone_count(tone_count)
+	constexpr TonesConfigureMessage(
+		const uint32_t fm_delta,
+		const uint32_t pre_silence,
+		const uint16_t tone_count,
+		const bool dual_tone,
+		const bool audio_out
+	) : Message { ID::TonesConfigure },
+		fm_delta(fm_delta),
+		pre_silence(pre_silence),
+		tone_count(tone_count),
+		dual_tone(dual_tone),
+		audio_out(audio_out)
 	{
 	}
 
-	const uint32_t samples_per_tone;
+	const uint32_t fm_delta;
+	const uint32_t pre_silence;
 	const uint16_t tone_count;
+	const bool dual_tone;
+	const bool audio_out;
 };
 
 class RDSConfigureMessage : public Message {

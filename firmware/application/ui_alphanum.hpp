@@ -29,12 +29,6 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
-#include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
-#include "volume.hpp"
-#include "transmitter_model.hpp"
 
 namespace ui {
 
@@ -42,26 +36,30 @@ class AlphanumView : public View {
 public:
 	std::function<void(char *)> on_changed;
 
-	AlphanumView(NavigationView& nav, char txt[], uint8_t max_len);
+	AlphanumView(NavigationView& nav, char txt[], size_t max_length);
 
 	void paint(Painter& painter) override;
 	void focus() override;
 	
 	char * value();
+	
+	std::string title() const override { return "Text entry"; };
 
 private:
-	uint8_t _max_len;
+	const char * const keys_upper = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
+	const char * const keys_lower = "0123456789abcdefghijklmnopqrstuvwxyz:=?<";
+	
+	size_t _max_length;
 	uint8_t txtidx;
 	bool _lowercase = false;
-	static constexpr size_t button_w = 240 / 5;
-	static constexpr size_t button_h = 28;
 	char txtinput[29] = { 0 };		// 28 chars max
 	
 	void char_add(const char c);
 	void char_delete();
-	void set_lowercase();
-	void set_uppercase();
+	void set_keys(const char * const key_list);
 	void move_cursor();
+	void on_button(Button& button);
+	void update_text();
 	
 	Text text_input {
 		{ 8, 0, 224, 16 }
@@ -70,7 +68,7 @@ private:
 	std::array<Button, 40> buttons;
 
 	Button button_lowercase {
-		{ 88+64+16, 270, 32, 24 },
+		{ 21 * 8, 270, 32, 24 },
 		"UC"
 	};
 	
@@ -82,14 +80,10 @@ private:
 		'0'
 	};
 
-	Button button_done {
+	Button button_ok {
 		{ 88, 270, 64, 24 },
-		"Done"
+		"OK"
 	};
-
-	void on_button(Button& button);
-
-	void update_text();
 };
 
 } /* namespace ui */

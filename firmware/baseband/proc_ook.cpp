@@ -49,15 +49,15 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 							if (repeat_counter < repeat) {
 								// Repeat
 								bit_pos = 0;
-								cur_bit = shared_memory.tx_data[0] & 0x80;
-								message.n = repeat_counter + 1;
-								shared_memory.application_queue.push(message);
+								cur_bit = shared_memory.bb_data.data[0] & 0x80;
+								txdone_message.progress = repeat_counter + 1;
+								shared_memory.application_queue.push(txdone_message);
 								repeat_counter++;
 							} else {
 								// Stop
 								cur_bit = 0;
-								message.n = 0;
-								shared_memory.application_queue.push(message);
+								txdone_message.done = true;
+								shared_memory.application_queue.push(txdone_message);
 								configured = false;
 							}
 							pause_counter = 0;
@@ -65,7 +65,7 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 							pause_counter--;
 						}
 					} else {
-						cur_bit = (shared_memory.tx_data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+						cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
 						bit_pos++;
 					}
 				}
@@ -108,6 +108,8 @@ void OOKProcessor::on_message(const Message* const p) {
 		repeat_counter = 0;
 		bit_pos = 0;
 		cur_bit = 0;
+		txdone_message.progress = 0;
+		txdone_message.done = false;
 		configured = true;
 	}
 }

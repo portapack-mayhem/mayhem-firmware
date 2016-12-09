@@ -375,19 +375,12 @@ DeclareTargets(PAFS afsk)
 #)
 #DeclareTargets(PEPR epar)
 
-### Xylos
+### Tones
 
 set(MODE_CPPSRC
-	proc_xylos.cpp
+	proc_tones.cpp
 )
-DeclareTargets(PXYL xylos)
-
-### DTMF TX
-
-set(MODE_CPPSRC
-	proc_dtmf_tx.cpp
-)
-DeclareTargets(PDTX dtmf_tx)
+DeclareTargets(PTON tones)
 
 ### RDS
 

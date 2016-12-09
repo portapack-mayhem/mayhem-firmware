@@ -38,6 +38,40 @@ public:
 	std::string title() const override { return "Save frequency"; };
 
 private:
+	BigFrequency big_display {
+		{ 4, 2 * 16, 28 * 8, 32 },
+		0
+	};
+	
+	Text text_save {
+		{ 72, 124, 10 * 8, 16 },
+		"Save with:",
+	};
+	Button button_save_name {
+		{ 72, 144, 96, 32 },
+		"Name"
+	};
+	Button button_save_timestamp {
+		{ 72, 184, 96, 32 },
+		"Timestamp"
+	};
+
+	Button button_cancel {
+		{ 72, 264, 96, 32 },
+		"Cancel"
+	};
+};
+
+class FrequencyLoadView : public View {
+public:
+	FrequencyLoadView(NavigationView& nav, const rf::Frequency value);
+	//~FrequencySaveView();
+	
+	void focus() override;
+
+	std::string title() const override { return "Load frequency"; };
+
+private:
 	Button button_exit {
 		{ 72, 264, 96, 32 },
 		"Exit"

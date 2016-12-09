@@ -98,7 +98,7 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 void RDSProcessor::on_message(const Message* const msg) {
 	if (msg->id == Message::ID::RDSConfigure) {
 		const auto message = *reinterpret_cast<const RDSConfigureMessage*>(msg);
-		rdsdata = (uint32_t*)shared_memory.tx_data;
+		rdsdata = (uint32_t*)shared_memory.bb_data.data;
 		message_length = message.length;
 		configured = true;
 	}

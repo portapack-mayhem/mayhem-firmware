@@ -26,10 +26,8 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "unistroke.hpp"
-#include "message.hpp"
 
 namespace ui {
 
@@ -37,20 +35,20 @@ class HandWriteView : public View {
 public:
 	std::function<void(char *)> on_changed;
 
-	HandWriteView(NavigationView& nav, char txt[], uint8_t max_len);
+	HandWriteView(NavigationView& nav, char txt[], size_t max_length);
 
 	void paint(Painter& painter) override;
 	void on_show() override;
 	bool on_touch(const TouchEvent event) override;
 	
 	char * value();
-	
-	void char_add(const char c);
 
+	std::string title() const override { return "Text entry"; };
+	
 private:
 	const HandWriting * handwriting;
 	Painter * _painter;
-	uint8_t _max_len;
+	size_t _max_length;
 	uint8_t dir_cnt = 0;
 	uint8_t dir_prev;
 	uint8_t flash_timer = 0;
@@ -61,12 +59,16 @@ private:
 	uint8_t sample_skip, move_wait;
 	uint8_t stroke_list[8];
 	Point start_pos, current_pos, last_pos;
-	bool _lowercase = true;
-	char txtinput[25] = {0};
+	bool _lowercase = false;
+	char txtinput[29] = { 0 };		// 28 chars max
+	
 	void sample_pen();
 	void add_stroke(uint8_t dir);
 	void guess_letter();
-	void clear_zone(Color color, bool flash);
+	void clear_zone(const Color color, const bool flash);
+	void char_add(const char c);
+	void on_button(Button& button);
+	void update_text();
 	
 	Text text_input {
 		{ 8, 0, 224, 16 }
@@ -84,10 +86,6 @@ private:
 		{ 190, 270, 40, 28 },
 		"OK"
 	};
-
-	void on_button(Button& button);
-
-	void update_text();
 	
 	MessageHandlerRegistration message_handler_sample {
 		Message::ID::DisplayFrameSync,

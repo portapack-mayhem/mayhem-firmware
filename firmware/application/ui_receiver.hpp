@@ -204,11 +204,15 @@ private:
 	std::array<Button, 12> buttons;
 
 	Button button_save {
-		{ 0, button_h * 4 + button_h, button_w, button_h },
+		{ 0, button_h * 5, 60, button_h },
 		"Save"
 	};
+	Button button_load {
+		{ 60, button_h * 5, 60, button_h },
+		"Load"
+	};
 	Button button_close {
-		{ button_w, button_h * 4 + button_h, button_w * 2, button_h },
+		{ 128, button_h * 5, 112, button_h },
 		"Done"
 	};
 

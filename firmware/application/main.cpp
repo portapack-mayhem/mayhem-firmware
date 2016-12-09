@@ -23,38 +23,47 @@
 // Bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TEST: RDS
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
-//TODO: Morse coder/beacon
 
+//BUG: Xylos doesn't play last tone ?
 //BUG (fixed ?): Soundboard crashes on exit if no wav files on sd card
-//BUG (fixed ?): No audio in about when shown second time
-//BUG: Unistroke text entry screen doesn't care about string max length parameter
+//BUG (fixed ?): Unistroke text entry screen doesn't care about string max length parameter
 //BUG: POCSAG RX sometimes misses the first codeword after SYNC
+//BUG: Check AFSK transmit end, skips last bits ?
+//BUG: RDS doesn't stop baseband when stopping tx ?
 
-//TODO: Use ModalMessageView with yes/no for TX
+//TODO: Mousejack ?
+//TODO: Waveform widget ?
+//TODO: Frequency manager save/load (ui_freqman)
+//TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
+//TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
+//TODO: Finish EPAR tx
+//TODO: Wav visualizer
+//TODO: Analog TV tx with camcorder font character generator
+//TODO: Test dual tone in proc_tones and remove proc_dtmf_tx
+//TODO: Morse coder for foxhunts
+//TODO: Make Morse coder and Whistle use proc_tones
+//TODO: RDS multiple groups (sequence)
+//TODO: Frequency manager
+//TODO: IQ replay
+//TODO: Use ModalMessageView confirmation for TX ?
 //TODO: Show address/data bit fields in OOK TX
 //TODO: Scan for OOK TX
 //TODO: Check more OOK encoders
 //TODO: POCSAG 512 and 2400 (all 3 at the same time, or parameter ?)
-//TODO: Check AFSK transmit end, skips last bits ?
 //TODO: Use msgpack for settings, lists... on sd card
-//TODO: Frequency manager
-//TODO: Replay
 
 //Multimon-style stuff:
 //TODO: AFSK receiver
 //TODO: CTCSS detector
 //TODO: DMR detector
 
-//TODO: Closecall wide range fix
 //TODO: SD card wiper
 //TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
 //TODO: Bodet :)
-//TODO: Whistler
 
 //TODO: LCR full message former (see norm)
 //TODO: AFSK NRZI
@@ -62,16 +71,15 @@
 
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
-//TODO: Hide statusview when playing dead
-//TODO: Persistent playdead !
 
-//In case of disaster:
+//BUG (fixed ?): No audio in about when shown second time
+
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-
 //TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Two players tic-tac-toe
+//TODO: Analog TV pong game
 
 #include "ch.h"
 

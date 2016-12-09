@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -22,14 +23,7 @@
 #include "ui_whistle.hpp"
 #include "ui_receiver.hpp"
 
-#include "ch.h"
-#include "evtimer.h"
-
-#include "ff.h"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
-
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -46,16 +40,11 @@ void WhistleView::focus() {
 }
 
 WhistleView::~WhistleView() {
-	transmitter_model.disable();
+	//transmitter_model.disable();
 }
 
 void WhistleView::paint(Painter& painter) {
 	(void)painter;
-}
-
-void WhistleView::whistle_th(void *arg) {
-	Mailbox* mbox = (Mailbox *)arg;
-	chMBPost(mbox, 1, TIME_INFINITE);
 }
 
 Button WhistleView::button_scan = {
@@ -64,23 +53,15 @@ Button WhistleView::button_scan = {
 };
 
 WhistleView::WhistleView(
-	NavigationView& nav,
-	TransmitterModel& transmitter_model
-) : transmitter_model(transmitter_model)
+	NavigationView& nav
+)
 {
-	Mailbox mbox;
-    msg_t mbox_buffer[3];
-    chMBInit(&mbox, mbox_buffer, 3);
-	
-	transmitter_model.set_modulation(TX_TONE);
-	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-	
 	add_children({ {
 		&button_transmit,
 		&button_exit
 	} });
 	
-	button_transmit.on_select = [this,&transmitter_model](Button&){
+	button_transmit.on_select = [this](Button&){
 		/*uint16_t c;
 		ui::Context context;
 		
@@ -99,7 +80,7 @@ WhistleView::WhistleView(
 
 		text_status.set("Send...");*/
 		
-		transmitter_model.enable();
+		//transmitter_model.enable();
 	};
 
 	button_exit.on_select = [&nav](Button&){

@@ -41,8 +41,8 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 			
 			if (sample_count >= afsk_samples_per_bit) {
 				if (configured) {
-					cur_byte = shared_memory.tx_data[byte_pos];
-					ext_byte = shared_memory.tx_data[byte_pos + 1];
+					cur_byte = shared_memory.bb_data.data[byte_pos];
+					ext_byte = shared_memory.bb_data.data[byte_pos + 1];
 					
 					if (!(cur_byte | ext_byte)) {
 						// End of data
@@ -50,16 +50,16 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 							// Repeat
 							bit_pos = 0;
 							byte_pos = 0;
-							cur_byte = shared_memory.tx_data[0];
-							ext_byte = shared_memory.tx_data[1];
-							message.n = repeat_counter + 1;
+							cur_byte = shared_memory.bb_data.data[0];
+							ext_byte = shared_memory.bb_data.data[1];
+							message.progress = repeat_counter + 1;
 							shared_memory.application_queue.push(message);
 							repeat_counter++;
 						} else {
 							// Stop
 							cur_byte = 0;
 							ext_byte = 0;
-							message.n = 0;
+							message.progress = 0;
 							shared_memory.application_queue.push(message);
 							configured = false;
 						}

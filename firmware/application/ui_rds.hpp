@@ -55,11 +55,15 @@ private:
 	void on_tuning_frequency_changed(rf::Frequency f);
 
 	FrequencyField field_frequency {
-		{ 1 * 8, 1 * 16 },
+		{ 1 * 8, 4 },
 	};
 	
+	Text text_pty {
+		{ 1 * 8, 16 + 8, 4 * 8, 16 },
+		"PTY:"
+	};
 	OptionsField options_pty {
-		{ 1 * 8, 2 * 16 },
+		{ 5 * 8, 16 + 8 },
 		8,
 		{
 			{ "None", 0 },
@@ -97,8 +101,12 @@ private:
 		}
 	};
 	
+	Text text_countrycode {
+		{ 14 * 8, 16 + 8, 4 * 8, 16 },
+		"CC:"
+	};
 	OptionsField options_countrycode {
-		{ 1 * 8, 3 * 16 },
+		{ 17 * 8, 16 + 8 },
 		11,
 		{
 			{ "Albania", 	9 },
@@ -166,12 +174,26 @@ private:
 		}
 	};
 	
+	Text text_pi_code {
+		{ 1 * 8, 32 + 8, 3 * 8, 16 },
+		"PI:"
+	};
+	SymField sym_pi_code {
+		{ 4 * 8, 32 + 8 },
+		4,
+		true
+	};
+	
+	Text text_coverage {
+		{ 13 * 8, 32 + 8, 9 * 8, 16 },
+		"Cov:"
+	};
 	OptionsField options_coverage {
-		{ 1 * 8, 4 * 16 },
-		13,
+		{ 17 * 8, 32 + 8 },
+		12,
 		{
 			{ "Local", 0 },
-			{ "International", 1 },
+			{ "Internat.", 1 },
 			{ "National", 2 },
 			{ "Sup-regional", 3 },
 			{ "R11", 4 },
@@ -189,43 +211,73 @@ private:
 		}
 	};
 
-	Text text_tx {
-		{ 19 * 8, 4 * 16, 9 * 8, 16 },
-		"Transmit:"
+	Checkbox check_mono_stereo {
+		{ 1 * 8, 4 * 16 },
+		6,
+		"Stereo"
+	};
+	Checkbox check_TA {
+		{ 12 * 8, 4 * 16 },
+		2,
+		"TA"
+	};
+	Checkbox check_TP {
+		{ 18 * 8, 4 * 16 },
+		2,
+		"TP"
+	};
+	Checkbox check_MS {
+		{ 24 * 8, 4 * 16 },
+		2,
+		"MS"
 	};
 
-	Button button_editpsn {
-		{ 2 * 8, 6 * 16, 64, 24 },
-		"Set"
-	};
 	Text text_psn {
-		{ 2 * 8, 15 * 8, 8 * 8, 16 },
-		"TEST1234"
+		{ 2 * 8, 6 * 16, 12 * 8, 16 },
+		"PSN:"
 	};
-	Button button_txpsn {
-		{ 19 * 8, 6 * 16, 10 * 8, 32 },
-		"PSN"
+	Button button_editpsn {
+		{ 22 * 8, 5 * 16 + 12, 48, 24 },
+		"Set"
 	};
 
-	Button button_editradiotext {
-		{ 2 * 8, 9 * 16, 64, 24 },
-		"Set"
+	Text text_radiotext {
+		{ 2 * 8, 8 * 16, 10 * 8, 16 },
+		"RadioText:"
 	};
 	Text text_radiotexta {
-		{ 2 * 8, 21 * 8, 16 * 8, 16 },
-		"Radiotext test !"
+		{ 2 * 8, 9 * 16, 19 * 8, 16 },
+		"-"
 	};
 	Text text_radiotextb {
-		{ 2 * 8, 23 * 8, 16 * 8, 16 },
-		"--------"
+		{ 2 * 8, 10 * 16, 19 * 8, 16 },
+		"-"
 	};
-	Button button_txradiotext {
-		{ 19 * 8, 9 * 16, 10 * 8, 32 },
-		"Radiotext"
+	Button button_editradiotext {
+		{ 22 * 8, 8 * 16 + 12, 48, 24 },
+		"Set"
 	};
 	
+	Text text_tx {
+		{ 2 * 8, 14 * 16, 3 * 8, 16 },
+		"TX:"
+	};
+	OptionsField options_tx {
+		{ 5 * 8, 14 * 16 },
+		11,
+		{
+			{ "PSN", 0 },
+			{ "RadioText", 1 },
+			{ "Date & time", 2 }
+		}
+	};
+	
+	Button button_tx {
+		{ 3 * 8, 16 * 16, 80, 32 },
+		"START"
+	};
 	Button button_exit {
-		{ 72, 260, 96, 32 },
+		{ 19 * 8, 16 * 16, 64, 32 },
 		"Exit"
 	};
 };
