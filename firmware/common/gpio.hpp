@@ -37,12 +37,12 @@ struct PinConfig {
 
 	constexpr operator uint16_t() {
 		return
-			  ((~ifilt) << 7)
-			|  (input   << 6)
-			|  (fast    << 5)
-			| ((~pu)    << 4)
-			|  (pd      << 3)
-			|  (mode    << 0);
+			  (((~ifilt) & 1) << 7)
+			|  ((input   & 1) << 6)
+			|  ((fast    & 1) << 5)
+			| (((~pu)    & 1) << 4)
+			|  ((pd      & 1) << 3)
+			|  ((mode    & 1) << 0);
 	}
 /*
 	constexpr operator uint32_t() {
