@@ -35,7 +35,7 @@ struct PinConfig {
 	const uint32_t input;
 	const uint32_t ifilt;
 
-	constexpr operator uint16_t() {
+	constexpr operator uint16_t() const {
 		return
 			  (((~ifilt) & 1) << 7)
 			|  ((input   & 1) << 6)
