@@ -271,7 +271,7 @@ BHTView::BHTView(NavigationView& nav) {
 				&header_code_b,
 				&checkbox_speaker,
 				&bmp_speaker,
-				&city_code_xs,
+				&city_code_xy,
 				&family_code_xy,
 				&text_subfamily,
 				&subfamily_code,

@@ -27,6 +27,8 @@
 
 namespace ui {
 
+// Use firmware/tools/make_bitmap.py !
+
 static constexpr uint8_t bitmap_stealth_data[] = {
 	0x00, 0x00,
 	0x00, 0x00,

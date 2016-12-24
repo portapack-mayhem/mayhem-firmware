@@ -146,27 +146,15 @@ RDSView::RDSView(NavigationView& nav) {
 	};
 	options_coverage.set_selected_index(0);			// Local
 	
-<<<<<<< HEAD
 	button_editpsn.on_select = [this, &nav](Button&) {
 		textentry(nav, PSN, 8);
 	};
 	button_tx.on_select = [this](Button&) {
-=======
-	options_pty.on_change = [this](size_t, int32_t v) {
-		rds_flags.PTY = v;
-	};
-	
-	button_editpsn.on_select = [this,&nav](Button&) {
-		textentry(nav, PSN, 8);
-	};
-	button_txpsn.on_select = [this](Button&) {
->>>>>>> d402a87... RDS radiotext and time group generators
 		if (txing) {
 			transmitter_model.disable();
 			button_tx.set_text("START");
 			txing = false;
 		} else {
-<<<<<<< HEAD
 			rds_flags.PI_code = sym_pi_code.value_hex_u64();
 			rds_flags.PTY = options_pty.selected_index_value();
 			rds_flags.DI = check_mono_stereo.value() ? 1 : 0;
@@ -182,10 +170,7 @@ RDSView::RDSView(NavigationView& nav) {
 				message_length = gen_ClockTime(&rds_flags, 2016, 12, 1, 9, 23, 2);
 			
 			button_tx.set_text("STOP");
-=======
-			message_length = gen_PSN(PSN, &rds_flags);
-			button_txpsn.set_text("STOP");
->>>>>>> d402a87... RDS radiotext and time group generators
+			
 			txing = true;
 			start_tx();
 		}
@@ -194,22 +179,6 @@ RDSView::RDSView(NavigationView& nav) {
 	button_editradiotext.on_select = [this, &nav](Button&){
 		textentry(nav, RadioText, 24);
 	};
-<<<<<<< HEAD
-=======
-	button_txradiotext.on_select = [this](Button&){
-		if (txing) {
-			button_txpsn.set_text("PSN");
-			button_txradiotext.set_text("Radiotext");
-			transmitter_model.disable();
-			txing = false;
-		} else {
-			message_length = gen_RadioText(RadioText, 0, &rds_flags);
-			button_txradiotext.set_text("STOP");
-			txing = true;
-			start_tx();
-		}
-	};
->>>>>>> d402a87... RDS radiotext and time group generators
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();

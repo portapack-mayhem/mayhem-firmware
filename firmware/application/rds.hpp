@@ -37,19 +37,11 @@ namespace rds {
 
 struct RDS_flags {
 	uint16_t PI_code;
-<<<<<<< HEAD
 	uint8_t PTY;
 	uint8_t DI;
 	bool TP;
 	bool TA;
 	bool MS;
-=======
-	bool TP;
-	uint8_t PTY;
-	bool TA;
-	bool MS;
-	bool DI;
->>>>>>> d402a87... RDS radiotext and time group generators
 };
 
 uint32_t makeblock(uint32_t blockdata, uint16_t offset);

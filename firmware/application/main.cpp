@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// Bitmaps generated with:
+// Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //TEST: Imperial in whipcalc
