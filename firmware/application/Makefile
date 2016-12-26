@@ -2948,6 +2948,33 @@ baseband_cpld.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/baseband_cpld.cpp.s
 .PHONY : baseband_cpld.cpp.s
 
+bht.obj: bht.cpp.obj
+
+.PHONY : bht.obj
+
+# target to build an object file
+bht.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/bht.cpp.obj
+.PHONY : bht.cpp.obj
+
+bht.i: bht.cpp.i
+
+.PHONY : bht.i
+
+# target to preprocess a source file
+bht.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/bht.cpp.i
+.PHONY : bht.cpp.i
+
+bht.s: bht.cpp.s
+
+.PHONY : bht.s
+
+# target to generate assembly for a file
+bht.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/bht.cpp.s
+.PHONY : bht.cpp.s
+
 capture_app.obj: capture_app.cpp.obj
 
 .PHONY : capture_app.obj
@@ -5376,6 +5403,9 @@ help:
 	@echo "... baseband_cpld.obj"
 	@echo "... baseband_cpld.i"
 	@echo "... baseband_cpld.s"
+	@echo "... bht.obj"
+	@echo "... bht.i"
+	@echo "... bht.s"
 	@echo "... capture_app.obj"
 	@echo "... capture_app.i"
 	@echo "... capture_app.s"

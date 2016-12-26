@@ -278,7 +278,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<6>({ {
 	//	{ "AFSK", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
 		{ "Audio", 					ui::Color::green(),		[&nav](){ nav.push<AnalogAudioView>(); } },
-		{ "CCIR", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // XylosRXView
+		{ "CCIR", 					ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Nordic/BTLE", 			ui::Color::grey(),		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "POCSAG 1200", 			ui::Color::cyan(),		[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),  	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
@@ -292,7 +292,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 	add_items<7>({ {
 		{ "ADS-B Mode S", 			ui::Color::orange(),  	[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "BHT EPAR/Xylos", 		ui::Color::yellow(),  	[&nav](){ nav.push<BHTView>(); } },
+		{ "BHT Xy/EP", 				ui::Color::yellow(),  	[&nav](){ nav.push<BHTView>(); } },
 		{ "Morse beacon", 			ui::Color::yellow(),  	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),		[&nav](){ nav.push<EncodersView>(); } },

@@ -49,7 +49,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 			im = 0;
 		} else {
 			if (!sample_count) {
-				digit = shared_memory.bb_data.tones_data.message[digit_pos++];
+				digit = shared_memory.bb_data.tones_data.message[digit_pos];
 				if (digit_pos >= message_length) {
 					configured = false;
 					txdone_message.done = true;
@@ -58,6 +58,8 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 					txdone_message.progress = digit_pos;	// Inform UI about progress
 					shared_memory.application_queue.push(txdone_message);
 				}
+				
+				digit_pos++;
 				
 				if ((digit >= 32) || (tone_deltas[digit] == 0)) {
 					silence_count = shared_memory.bb_data.tones_data.silence;

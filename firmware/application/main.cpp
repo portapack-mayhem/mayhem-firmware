@@ -28,7 +28,6 @@
 //TEST: Jammer
 //TEST: Frequency manager + save/load
 
-//BUG: Xylos doesn't play last tone ?
 //TODO: Morse coder for foxhunts
 //TODO: Finish EPAR tx
 //TODO: Test dual tone in proc_tones and remove proc_dtmf_tx

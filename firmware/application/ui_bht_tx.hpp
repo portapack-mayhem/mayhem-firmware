@@ -29,19 +29,13 @@
 #include "bmp_bulb_off.hpp"
 #include "bmp_bulb_ignore.hpp"
 
+#include "bht.hpp"
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
-//#include "receiver_model.hpp"
 #include "portapack.hpp"
-
-using namespace encoders;
-
-#define CCIR_TONE_LENGTH (153600-1)		// 1536000*0.1
-#define CCIR_DELTA_COEF (43.691)		// (65536*1024)/1536000
-#define CCIR_SILENCE (614400-1)			// 400ms
 
 namespace ui {
 
@@ -55,25 +49,6 @@ public:
 	std::string title() const override { return "BHT transmit"; };
 
 private:
-	const uint32_t ccir_deltas[16] = {
-		(uint32_t)(1981 * CCIR_DELTA_COEF),
-		(uint32_t)(1124 * CCIR_DELTA_COEF),
-		(uint32_t)(1197 * CCIR_DELTA_COEF),
-		(uint32_t)(1275 * CCIR_DELTA_COEF),
-		(uint32_t)(1358 * CCIR_DELTA_COEF),
-		(uint32_t)(1446 * CCIR_DELTA_COEF),
-		(uint32_t)(1540 * CCIR_DELTA_COEF),
-		(uint32_t)(1640 * CCIR_DELTA_COEF),
-		(uint32_t)(1747 * CCIR_DELTA_COEF),
-		(uint32_t)(1860 * CCIR_DELTA_COEF),
-		(uint32_t)(2400 * CCIR_DELTA_COEF),
-		(uint32_t)(930  * CCIR_DELTA_COEF),
-		(uint32_t)(2247 * CCIR_DELTA_COEF),
-		(uint32_t)(991  * CCIR_DELTA_COEF),
-		(uint32_t)(2110 * CCIR_DELTA_COEF),
-		(uint32_t)(1055 * CCIR_DELTA_COEF)
-	};
-
 	enum tx_modes {
 		IDLE = 0,
 		SINGLE,
@@ -82,144 +57,9 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	
-	struct bht_city {
-		std::string name;
-		uint8_t freq_index;
-		bool recent;
-	};
-	
-	const bht_city bht_cities[122] = {
-		{ "Aizenay",			0, false },
-		{ "Albertville",		3, false },
-		{ "Ales",				3, false },
-		{ "Artannes/Indre",		5, false },
-		{ "Avignon",			3, true },
-		{ "Azay-le-Rideau",		5, false },
-		{ "Baux Ste. Croix",	0, false },
-		{ "Beaugency",			4, false },
-		{ "Beaune",				4, false },
-		{ "Betton",				2, false },
-		{ "Bihorel",			0, true },
-		{ "Blanquefort",		4, true },
-		{ "Bobigny",			5, false },
-		{ "Bouffere",			4, true },
-		{ "Boulogne/Mer",		0, true },
-		{ "Bourg-en-Bresse",	3, false },
-		{ "Bourges",			0, false },
-		{ "Bouscat",			0, false },
-		{ "Carquefou",			5, false },
-		{ "St. Cast",			0, false },
-		{ "Caudebec/Caux",		3, true },
-		{ "Cercy-la-Tour",		5, false },
-		{ "Chamalieres",		5, false },
-		{ "St. Chamond",		5, false },
-		{ "Chapelle/Fgrtz",		2, false },
-		{ "Charite/Loire",		3, false },
-		{ "Charleville-Mzr",	1, false },
-		{ "Chilly Mazarin",		5, false },
-		{ "Clermont Frrd.",		5, false },
-		{ "Cluses",				2, false },
-		{ "Compiegne",			4, false },
-		{ "Coulanges/Nevers",	5, false },
-		{ "Cour Cheverny",		5, false },
-		{ "Cournon Auvergne",	5, false },
-		{ "Crolles",			5, true },
-		{ "Cublize",			4, true },
-		{ "Donges",				5, false },
-		{ "Emalleville",		0, false },
-		{ "Etrepagny",			0, false },
-		{ "Fecamp",				0, false },
-		{ "Ferriere",			0, false },
-		{ "Ferte Imbault",		5, false },
-		{ "Fontaine",			5, true },
-		{ "Forbach",			3, false },
-		{ "Fourchambault",		5, false },
-		{ "Fresnay/Sarthe",		3, false },
-		{ "St Fulgent",			5, true },
-		{ "Gaillac",			3, true },
-		{ "St. Georges/Grs",	0, false },
-		{ "St. Gervais/Frt",	5, false },
-		{ "Givors",				5, false },
-		{ "Guichen",			2, false },
-		{ "Guildo",				0, false },
-		{ "Guipry",				2, false },
-		{ "St Hilaire/Riez",	0, false },
-		{ "Hossegor/Capbrtn",	0, true },
-		{ "Houlbec-Cocherel",	0, false },
-		{ "Huisseau/Cosson",	5, false },
-		{ "Huningue",			5, false },
-		{ "Iffendic",			2, false },
-		{ "La Croix St. Ouen",	4, false },
-		{ "Langrune/Mer",		0, false },
-		{ "Le Neubourg",		2, true },
-		{ "St Leger/Vignes",	5, false },
-		{ "Levallois-Perret",	5, false },
-		{ "Lille",				5, true },
-		{ "Limoges",			5, false },
-		{ "Longueil-Anel",		4, false },
-		{ "Lormont",			5, true },
-		{ "Mantes-la-Jolie",	5, false },
-		{ "Martigues",			0, true },
-		{ "Marzy",				5, false },
-		{ "Ste. Memmie",		3, false },
-		{ "Menton",				0, true },
-		{ "Metz",				3, false },
-		{ "Mezidon Canon",		1, false },
-		{ "Millau",				5, false },
-		{ "Miniac-Morvan",		2, false },
-		{ "Mt. Pres Chambord",	5, false },
-		{ "Montesson",			5, false },
-		{ "Monts",				5, false },
-		{ "Noisy-le-Grand",		4, true },
-		{ "St Ouen",			5, false },
-		{ "Ozoir/Ferriere",		5, false },
-		{ "Pace",				2, false },
-		{ "Pelussin",			5, false },
-		{ "Petite Foret",		1, false },
-		{ "Plestin/Greves",		0, false },
-		{ "Pleumeur Bodou",		5, true },
-		{ "Pont Audemer",		0, false },
-		{ "Pontcharra",			5, true },
-		{ "Pontchateau",		5, false },
-		{ "Pressagny L'Org.",	0, false },
-		{ "Remiremont",			4, true },
-		{ "Ribeauville",		5, false },
-		{ "La Roche sur Yon",	0, false },
-		{ "Romorantin-Lant.",	5, false },
-		{ "Rueil Malmaison",	5, false },
-		{ "Sault-les-Rethel",	3, false },
-		{ "Selles-St-Denis",	5, false },
-		{ "Selles/Cher",		5, false },
-		{ "Sens",				4, false },
-		{ "Sezanne",			3, false },
-		{ "Sommesous",			3, false },
-		{ "Ste. Suzanne",		2, true },
-		{ "Talence",			3, true },
-		{ "Thionville",			3, false },
-		{ "Thonon-les-Bains",	2, false },
-		{ "Tours en Sologne",	5, true },
-		{ "Trelaze",			5, true },
-		{ "Trouville/Mer",		0, false },
-		{ "Tulle",				2, false },
-		{ "Ussel",				2, false },
-		{ "Valberg",			5, true },
-		{ "Valence",			5, false },
-		{ "Velizy",				5, false },
-		{ "Vesoul",				5, false },
-		{ "Ville S. la Ferte",	0, false },
-		{ "Villefrance/Saone",	5, false },
-		{ "Villers Cotterets",	3, false },
-		{ "Vitre",				2, false },
-		{ "Vitry-le-Francois",	4, true }
-	};
-	
-	const rf::Frequency bht_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
-	
-	char ccir_message[21];
 	bool speaker_enabled = false;
 	size_t _mode = 0;
 	
-	void ascii_to_ccir(char * ascii);
 	void start_tx();
 	void generate_message();
 	void on_tx_progress(const int progress, const bool done);

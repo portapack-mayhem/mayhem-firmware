@@ -138,8 +138,9 @@ set(CPPSRC
 	audio.cpp
 	adsb.cpp
 	afsk.cpp
-	rds.cpp
+	bht.cpp
 	ctcss.cpp
+	rds.cpp
 	freqman.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
