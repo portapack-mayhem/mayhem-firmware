@@ -107,6 +107,7 @@ MorseView::MorseView(
 )
 {
 	add_children({ {
+		&checkbox_foxhunt,
 		&options_foxhunt,
 		&button_transmit,
 		&button_exit

@@ -101,7 +101,7 @@ void FrequencyLoadView::setup_list() {
 	menu_view.clear();
 	
 	for (n = 0; n < frequencies.size(); n++) {
-		menu_view.add_item({ freqman_item_string(frequencies[n]), ui::Color::white(), [this](){ on_frequency_select(); } });
+		menu_view.add_item({ freqman_item_string(frequencies[n]), ui::Color::white(), nullptr, [this](){ on_frequency_select(); } });
 	}
 	
 	menu_view.set_parent_rect({ 0, 0, 240, 216 });
@@ -168,7 +168,7 @@ void FreqManView::setup_list() {
 	menu_view.clear();
 	
 	for (n = 0; n < frequencies.size(); n++) {
-		menu_view.add_item({ freqman_item_string(frequencies[n]), ui::Color::white(), [this](){ on_frequency_select(); } });
+		menu_view.add_item({ freqman_item_string(frequencies[n]), ui::Color::white(), nullptr, [this](){ on_frequency_select(); } });
 	}
 	
 	menu_view.set_parent_rect({ 0, 0, 240, 168 });

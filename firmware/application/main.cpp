@@ -30,7 +30,6 @@
 
 //TODO: Morse coder for foxhunts
 //TODO: Finish EPAR tx
-//TODO: Test dual tone in proc_tones and remove proc_dtmf_tx
 //TODO: IQ replay
 //TODO: Waveform widget ?
 //TODO: Wav visualizer

@@ -59,6 +59,15 @@ void MenuItemView::paint(Painter& painter) {
 		r,
 		final_bg_color
 	);
+	
+	if (item.bitmap) {
+		painter.draw_bitmap(
+			{ r.pos.x + 4, r.pos.y + 4 },
+			*item.bitmap,
+			final_item_color,
+			final_bg_color
+		);
+	}
 
 	Style text_style {
 		.font = paint_style.font,
@@ -67,7 +76,7 @@ void MenuItemView::paint(Painter& painter) {
 	};
 
 	painter.draw_string(
-		{ r.pos.x + 8, r.pos.y + (r.size.h - font_height) / 2 },
+		{ r.pos.x + 26, r.pos.y + (r.size.h - font_height) / 2 },
 		text_style,
 		item.text
 	);

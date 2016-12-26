@@ -28,8 +28,8 @@
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
-#include "transmitter_model.hpp"
-//#include "receiver_model.hpp"
+//#include "transmitter_model.hpp"
+#include "receiver_model.hpp"
 #include "portapack.hpp"
 
 #define MORSE_TONE_DELTA ((1536000 / 800) - 1)	// 1536000/800
@@ -56,17 +56,17 @@ private:
 	void generate_message(char * text);
 	
 	const char foxhunt_codes[11][3] = {
-		{ 'M', 'O', 'E' },
-		{ 'M', 'O', 'I' },
-		{ 'M', 'O', 'S' },
-		{ 'M', 'O', 'H' },
-		{ 'M', 'O', '5' },
-		{ 'M', 'O', 'N' },
-		{ 'M', 'O', 'D' },
-		{ 'M', 'O', 'B' },
-		{ 'M', 'O', '6' },
-		{ 'M', 'O', 0 },
-		{ 'S', 0, 0 }
+		{ 'M', 'O', 'E' },	// -----.
+		{ 'M', 'O', 'I' },	// -----..
+		{ 'M', 'O', 'S' },	// -----...
+		{ 'M', 'O', 'H' },	// -----....
+		{ 'M', 'O', '5' },	// -----.....
+		{ 'M', 'O', 'N' },	// ------.
+		{ 'M', 'O', 'D' },	// ------..
+		{ 'M', 'O', 'B' },	// ------...
+		{ 'M', 'O', '6' },	// ------....
+		{ 'M', 'O', 0 },	// -----
+		{ 'S', 0, 0 }		// ...
 	};
 	
 	// 0=dot 1=dash
@@ -155,8 +155,18 @@ private:
 		0b0001100000000101,	// <SN>:  00010---- 0101
 	};
 	
+	/*Text text_status {
+		{ 172, 196, 64, 16 },
+		"Foxhunt code:"
+	};*/
+	
+	Checkbox checkbox_foxhunt {
+		{ 4 * 8, 24 },
+		8,
+		"Foxhunt:"
+	};
 	OptionsField options_foxhunt {
-		{ 4 * 8, 32 },
+		{ 18 * 8, 32 },
 		7,
 		{
 			{ "0 (MOE)", 0 },
@@ -173,24 +183,13 @@ private:
 		}
 	};
 	
-	Text text_status {
-		{ 172, 196, 64, 16 },
-		"Ready"
-	};
-	
-	Checkbox checkbox_am_a {
-		{ 2 * 8, 68 },
-		4,
-		"TEST"
-	};
-	
 	Button button_transmit {
-		{ 24, 270, 48, 32 },
+		{ 24, 260, 64, 32 },
 		"TX"
 	};
 	
 	Button button_exit {
-		{ 176, 270, 48, 32 },
+		{ 160, 260, 64, 32 },
 		"Exit"
 	};
 };

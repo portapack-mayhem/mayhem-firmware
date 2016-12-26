@@ -446,13 +446,13 @@ void ModInfoView::focus() {
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items<6>({ {
-		{ "UI", ui::Color::white(), [&nav](){ nav.push<SetUIView>(); } },
+		{ "UI", 					ui::Color::white(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
 		//{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
-		{ "Date/Time", ui::Color::white(), [&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Frequency correction", ui::Color::white(), [&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
-		{ "Antenna Bias Voltage", ui::Color::white(), [&nav](){ nav.push<AntennaBiasSetupView>(); } },		
-		{ "Touch screen", ui::Color::white(),     [&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "Play dead", ui::Color::red(), [&nav](){ nav.push<SetPlayDeadView>(); } }
+		{ "Date/Time",				ui::Color::white(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
+		{ "Frequency correction",	ui::Color::white(), nullptr,	[&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
+		{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },		
+		{ "Touch screen",			ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "Play dead",				ui::Color::red(), 	nullptr,	[&nav](){ nav.push<SetPlayDeadView>(); } }
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

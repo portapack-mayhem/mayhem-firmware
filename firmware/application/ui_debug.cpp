@@ -248,19 +248,19 @@ void RegistersView::focus() {
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 	add_items<4>({ {
-		{ "RFFC5072", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
+		{ "RFFC5072", ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
+		{ "MAX2837", ui::Color::white(),    nullptr,	[&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C", ui::Color::white(),    [&nav](){ nav.push<RegistersView>(
+		{ "Si5351C", ui::Color::white(),    nullptr,	[&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ "WM8731",ui::Color::white(),      [&nav](){ nav.push<RegistersView>(
+		{ "WM8731",ui::Color::white(),      nullptr,	[&nav](){ nav.push<RegistersView>(
 			"WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 1, 3, 4 },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
@@ -272,11 +272,11 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items<5>({ {
-		{ "Memory", ui::Color::white(),     	[&nav](){ nav.push<DebugMemoryView>(); } },
-		{ "Radio State", ui::Color::white(),	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card", ui::Color::white(),    	[&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals", ui::Color::white(),	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature", ui::Color::white(),	[&nav](){ nav.push<TemperatureView>(); } },
+		{ "Memory", 		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugMemoryView>(); } },
+		{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "SD Card",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "Peripherals",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
+		{ "Temperature",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<TemperatureView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
