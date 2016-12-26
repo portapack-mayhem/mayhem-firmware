@@ -140,13 +140,13 @@ set(CPPSRC
 	afsk.cpp
 	rds.cpp
 	ctcss.cpp
+	freqman.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp
 	${COMMON}/ui_widget.cpp
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_focus.cpp
-	${COMMON}/msgpack.cpp
 	ui_about.cpp
 	ui_adsbtx.cpp
 	ui_afsksetup.cpp

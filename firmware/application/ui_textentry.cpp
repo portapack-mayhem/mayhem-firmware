@@ -24,16 +24,19 @@
 
 namespace ui {
 
-bool textentry(NavigationView& nav, char * str, size_t max_length) {
+bool textentry(NavigationView& nav, char * str, const size_t max_length, const std::function<void(char *)> on_done) {
+	
 	if (portapack::persistent_memory::ui_config_textentry() == 0) {
-		auto an_view = nav.push<AlphanumView>(str, max_length);
-		an_view->on_changed = [str, max_length](char * value) {
-			memcpy(str, value, max_length + 1);
+		auto te_view = nav.push<AlphanumView>(str, max_length);
+		te_view->on_changed = [str, max_length, on_done](char * value) {
+			//memcpy(str, value, max_length + 1);
+			if (on_done) on_done(value);
 		};
 	} else {
-		auto an_view = nav.push<HandWriteView>(str, max_length);
-		an_view->on_changed = [str, max_length](char * value) {
-			memcpy(str, value, max_length + 1);
+		auto te_view = nav.push<HandWriteView>(str, max_length);
+		te_view->on_changed = [str, max_length, on_done](char * value) {
+			//memcpy(str, value, max_length + 1);
+			if (on_done) on_done(value);
 		};
 	}
 	

@@ -33,8 +33,6 @@
 #include <string>
 #include <functional>
 
-#define MENU_MAX 11
-
 namespace ui {
 
 struct MenuItem {
@@ -50,8 +48,10 @@ struct MenuItem {
 class MenuItemView : public Widget {
 public:
 	MenuItemView(
-		MenuItem item
-	) : item(item)
+		MenuItem item,
+		bool keep_highlight
+	) : item(item),
+		keep_highlight_ { keep_highlight }
 	{
 	}
 
@@ -63,16 +63,19 @@ public:
 
 private:
 	const MenuItem item;
+	bool keep_highlight_ = false;
 };
 
 class MenuView : public View {
 public:
 	std::function<void(void)> on_left;
 
-	MenuView();
+	MenuView(bool keep_highlight = false);
+	
 	~MenuView();
 
 	void add_item(const MenuItem item);
+	void clear();
 
 	template<size_t N>
 	void add_items(const std::array<MenuItem, N>& items) {
@@ -86,7 +89,7 @@ public:
 	MenuItemView* item_view(size_t index) const;
 
 	size_t highlighted() const;
-	bool set_highlighted(const size_t new_value);
+	bool set_highlighted(int32_t new_value);
 
 	void on_focus() override;
 	void on_blur() override;
@@ -98,17 +101,21 @@ private:
 	void update_items();
 	void on_tick_second();
 	
+	bool keep_highlight_ = false;
+	
 	SignalToken signal_token_tick_second;
 	
 	Image arrow_more {
-		{ 216, 320 - 16 - 24, 16, 16 },
+		{ 228, 320 - 8, 8, 8 },
 		&bitmap_more,
 		Color::white(),
 		Color::black()
 	};
 
+	const size_t item_height = 24;
 	bool blink_ = false;
 	bool more_ = false;
+	size_t displayed_max_;
 	size_t highlighted_ { 0 };
 	size_t offset_ { 0 };
 };

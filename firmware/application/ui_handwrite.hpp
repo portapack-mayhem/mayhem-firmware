@@ -71,7 +71,7 @@ private:
 	void update_text();
 	
 	Text text_input {
-		{ 8, 0, 224, 16 }
+		{ 8, 0, 232, 16 }
 	};
 	
 	std::array<Button, 10> num_buttons;

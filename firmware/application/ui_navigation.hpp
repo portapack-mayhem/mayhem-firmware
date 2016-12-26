@@ -223,6 +223,8 @@ public:
 class SystemMenuView : public MenuView {
 public:
 	SystemMenuView(NavigationView& nav);
+private:
+	void hackrf_mode(NavigationView& nav);
 };
 
 class SystemView : public View {
@@ -238,49 +240,6 @@ private:
 	SystemStatusView status_view;
 	NavigationView navigation_view;
 	Context& context_;
-};
-
-class HackRFFirmwareView : public View {
-public:
-	HackRFFirmwareView(NavigationView& nav);
-
-	void focus() override;
-
-private:
-	Text text_title {
-		{ 76, 4 * 16, 19 * 8, 16 },
-		"HackRF Mode"
-	};
-
-	Text text_description_1 {
-		{  4, 7 * 16, 19 * 8, 16 },
-		"Run stock HackRF firmware and"
-	};
-
-	Text text_description_2 {
-		{ 12, 8 * 16, 19 * 8, 16 },
-		"disable PortaPack until the"
-	};
-
-	Text text_description_3 {
-		{  4, 9 * 16, 19 * 8, 16 },
-		"unit is reset or disconnected"
-	};
-
-	Text text_description_4 {
-		{ 76, 10 * 16, 19 * 8, 16 },
-		"from power?"
-	};
-
-	Button button_yes {
-		{ 4 * 8, 13 * 16, 8 * 8, 24 },
-		"Yes",
-	};
-
-	Button button_no {
-		{ 18 * 8, 13 * 16, 8 * 8, 24 },
-		"No",
-	};
 };
 
 class NotImplementedView : public View {
@@ -329,11 +288,12 @@ private:
 	};
 	
 	Button button_yes {
-		{ 40, 13 * 16, 64, 24 },
+		{ 5 * 8, 13 * 16, 8 * 8, 48 },
 		"YES",
 	};
+
 	Button button_no {
-		{ 152, 13 * 16, 64, 24 },
+		{ 17 * 8, 13 * 16, 8 * 8, 48 },
 		"NO",
 	};
 };

@@ -142,7 +142,7 @@ void HandWriteView::clear_zone(const Color color, const bool flash) {
 		color
 	);
 	if (flash) {
-		flash_timer = 4;
+		flash_timer = 8;
 	} else {
 		// Draw grid
 		_painter->draw_rectangle(
@@ -239,7 +239,7 @@ void HandWriteView::guess_letter() {
 		}
 	} else {
 		// Short tap is space
-		txtinput[txtidx++] = ' ';
+		char_add(' ');
 		clear_zone(Color::green(), true);		// Green flash
 	}
 	update_text();

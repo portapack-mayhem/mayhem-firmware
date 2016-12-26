@@ -25,35 +25,57 @@
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
+#include "ui_textentry.hpp"
+#include "freqman.hpp"
+#include "time.hpp"
 
 namespace ui {
 
 class FrequencySaveView : public View {
 public:
 	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-	//~FrequencySaveView();
+	~FrequencySaveView();
 	
 	void focus() override;
 
 	std::string title() const override { return "Save frequency"; };
 
 private:
+	NavigationView& nav_;
+	bool error = false;
+	char desc_buffer[32] = { 0 };
+	rtc::RTC datetime;
+	rf::Frequency value_;
+	
+	void on_save_name(NavigationView& nav);
+	void on_save_timestamp(NavigationView& nav);
+	void on_tick_second();
+	
+	std::vector<freqman_entry> frequencies;
+	
+	SignalToken signal_token_tick_second;
+	
 	BigFrequency big_display {
 		{ 4, 2 * 16, 28 * 8, 32 },
 		0
 	};
 	
 	Text text_save {
-		{ 72, 124, 10 * 8, 16 },
-		"Save with:",
+		{ 88, 120, 8 * 8, 16 },
+		"Save as:",
 	};
 	Button button_save_name {
 		{ 72, 144, 96, 32 },
-		"Name"
+		"Name (set)"
 	};
 	Button button_save_timestamp {
 		{ 72, 184, 96, 32 },
-		"Timestamp"
+		"Timestamp:"
+	};
+	Text text_timestamp {
+		{ 76, 220, 11 * 8, 16 },
+		"MM/DD HH:MM",
 	};
 
 	Button button_cancel {
@@ -64,34 +86,69 @@ private:
 
 class FrequencyLoadView : public View {
 public:
-	FrequencyLoadView(NavigationView& nav, const rf::Frequency value);
-	//~FrequencySaveView();
+	std::function<void(rf::Frequency)> on_changed;
+	
+	FrequencyLoadView(NavigationView& nav);
 	
 	void focus() override;
 
 	std::string title() const override { return "Load frequency"; };
 
 private:
-	Button button_exit {
+	NavigationView& nav_;
+	bool error = false;
+	
+	void on_frequency_select();
+	void setup_list();
+	
+	std::vector<freqman_entry> frequencies;
+	
+	MenuView menu_view;
+	
+	Button button_cancel {
 		{ 72, 264, 96, 32 },
-		"Exit"
+		"Cancel"
 	};	
 };
 
 class FreqManView : public View {
 public:
 	FreqManView(NavigationView& nav);
-	//~FreqManView();
+	~FreqManView();
 	
 	void focus() override;
 
 	std::string title() const override { return "Freq. manager"; };
 
 private:
-	std::array<Text, 10> text_list;
+	NavigationView& nav_;
+	bool error = false;
+	
+	void on_frequency_select();
+	void on_edit_freq(rf::Frequency f);
+	void on_edit_desc(NavigationView& nav);
+	void on_delete();
+	void setup_list();
+	
+	std::vector<freqman_entry> frequencies;
 
+	MenuView menu_view { true };
+
+	Button button_edit_freq {
+		{ 52, 194, 106, 30 },
+		"Edit freq."
+	};
+	Button button_edit_desc {
+		{ 52, 192 + 32, 106, 30 },
+		"Edit desc."
+	};
+	Button button_del {
+		{ 168, 192, 64, 64 },
+		"Del"
+	};
+	
 	Button button_exit {
-		{ 72, 264, 96, 32 },
+		{ 168, 264, 64, 32 },
 		"Exit"
 	};
 };

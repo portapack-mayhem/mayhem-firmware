@@ -76,7 +76,7 @@ SystemStatusView::SystemStatusView() {
 		&sd_card_status_view,
 	} });
 	
-	if (portapack::persistent_memory::ui_config_textentry())
+	if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_keyboard);
 	else
 		button_textentry.set_bitmap(&bitmap_unistroke);
@@ -326,6 +326,16 @@ UtilitiesView::UtilitiesView(NavigationView& nav) {
 }
 /* SystemMenuView ********************************************************/
 
+void SystemMenuView::hackrf_mode(NavigationView& nav) {
+	nav.push<ModalMessageView>("Confirm", "Switch to HackRF mode ?", YESNO,
+		[this](bool choice) {
+			if (choice) {
+				EventDispatcher::request_stop();
+			}
+		}
+	);
+}
+
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<11>({ {
 		{ "Play dead",				ui::Color::red(),  		[&nav](){ nav.push<PlayDeadView>(); } },
@@ -339,7 +349,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 					ui::Color::white(),    	[&nav](){ nav.push<SetupMenuView>(); } },
 		//{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
-		{ "HackRF mode", 			ui::Color::white(),	   	[&nav](){ nav.push<HackRFFirmwareView>(); } },
+		{ "HackRF mode", 			ui::Color::white(),	   	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 					ui::Color::white(),    	[&nav](){ nav.push<AboutView>(); } }
 	} });
 	
@@ -397,28 +407,6 @@ SystemView::SystemView(
 
 Context& SystemView::context() const {
 	return context_;
-}
-
-/* HackRFFirmwareView ****************************************************/
-
-HackRFFirmwareView::HackRFFirmwareView(NavigationView& nav) {
-	button_yes.on_select = [](Button&){
-		EventDispatcher::request_stop();
-	};
-
-	button_no.on_select = [&nav](Button&){
-		nav.pop();
-	};
-
-	add_children({ {
-		&text_title,
-		&text_description_1,
-		&text_description_2,
-		&text_description_3,
-		&text_description_4,
-		&button_yes,
-		&button_no,
-	} });
 }
 
 /* ***********************************************************************/
@@ -490,10 +478,6 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 	};
 }
 
-void HackRFFirmwareView::focus() {
-	button_no.focus();
-}
-
 /* NotImplementedView ****************************************************/
 
 NotImplementedView::NotImplementedView(NavigationView& nav) {
@@ -563,7 +547,7 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter&) {
-	portapack::display.drawBMP({96, 64}, modal_warning_bmp, false);
+	portapack::display.drawBMP({ 100, 64 }, modal_warning_bmp, false);
 }
 
 void ModalMessageView::focus() {

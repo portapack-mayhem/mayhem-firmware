@@ -104,6 +104,7 @@ public:
 	void set_style(const Style* new_style);
 
 	const Style& style() const;
+	uint16_t id = 0;
 
 	// State management methods.
 	void set_dirty();
@@ -115,8 +116,6 @@ public:
 
 	bool highlighted() const;
 	void set_highlighted(const bool value);
-	
-	uint16_t id = 0;
 
 protected:
 	void dirty_overlapping_children_in_rect(const Rect& child_rect);
@@ -192,18 +191,19 @@ private:
 class Text : public Widget {
 public:
 	Text(
-	) : text { "" } {
+	) : text_ { "" } {
 	}
 
 	Text(Rect parent_rect, std::string text);
 	Text(Rect parent_rect);
 
 	void set(const std::string value);
+	std::string text() const;
 
 	void paint(Painter& painter) override;
 
 private:
-	std::string text;
+	std::string text_;
 };
 
 class BigFrequency : public Widget {
@@ -265,7 +265,6 @@ public:
 	}
 	
 	void set_text(const std::string value);
-	// std::string text() const;
 	bool set_value(const bool value);
 	bool value() const;
 

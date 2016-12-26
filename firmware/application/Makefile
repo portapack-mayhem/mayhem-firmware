@@ -2408,33 +2408,6 @@ __/common/message_queue.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/message_queue.cpp.s
 .PHONY : __/common/message_queue.cpp.s
 
-__/common/msgpack.obj: __/common/msgpack.cpp.obj
-
-.PHONY : __/common/msgpack.obj
-
-# target to build an object file
-__/common/msgpack.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/msgpack.cpp.obj
-.PHONY : __/common/msgpack.cpp.obj
-
-__/common/msgpack.i: __/common/msgpack.cpp.i
-
-.PHONY : __/common/msgpack.i
-
-# target to preprocess a source file
-__/common/msgpack.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/msgpack.cpp.i
-.PHONY : __/common/msgpack.cpp.i
-
-__/common/msgpack.s: __/common/msgpack.cpp.s
-
-.PHONY : __/common/msgpack.s
-
-# target to generate assembly for a file
-__/common/msgpack.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/msgpack.cpp.s
-.PHONY : __/common/msgpack.cpp.s
-
 __/common/png_writer.obj: __/common/png_writer.cpp.obj
 
 .PHONY : __/common/png_writer.obj
@@ -3298,6 +3271,33 @@ filewriter.s: filewriter.cpp.s
 filewriter.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.s
 .PHONY : filewriter.cpp.s
+
+freqman.obj: freqman.cpp.obj
+
+.PHONY : freqman.obj
+
+# target to build an object file
+freqman.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/freqman.cpp.obj
+.PHONY : freqman.cpp.obj
+
+freqman.i: freqman.cpp.i
+
+.PHONY : freqman.i
+
+# target to preprocess a source file
+freqman.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/freqman.cpp.i
+.PHONY : freqman.cpp.i
+
+freqman.s: freqman.cpp.s
+
+.PHONY : freqman.s
+
+# target to generate assembly for a file
+freqman.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/freqman.cpp.s
+.PHONY : freqman.cpp.s
 
 hackrf_cpld_data.obj: hackrf_cpld_data.cpp.obj
 
@@ -5316,9 +5316,6 @@ help:
 	@echo "... __/common/message_queue.obj"
 	@echo "... __/common/message_queue.i"
 	@echo "... __/common/message_queue.s"
-	@echo "... __/common/msgpack.obj"
-	@echo "... __/common/msgpack.i"
-	@echo "... __/common/msgpack.s"
 	@echo "... __/common/png_writer.obj"
 	@echo "... __/common/png_writer.i"
 	@echo "... __/common/png_writer.s"
@@ -5415,6 +5412,9 @@ help:
 	@echo "... filewriter.obj"
 	@echo "... filewriter.i"
 	@echo "... filewriter.s"
+	@echo "... freqman.obj"
+	@echo "... freqman.i"
+	@echo "... freqman.s"
 	@echo "... hackrf_cpld_data.obj"
 	@echo "... hackrf_cpld_data.i"
 	@echo "... hackrf_cpld_data.s"

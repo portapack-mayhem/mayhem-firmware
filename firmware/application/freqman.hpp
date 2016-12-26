@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
@@ -20,21 +20,25 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_TEXTENTRY_H__
-#define __UI_TEXTENTRY_H__
+#include <cstring>
+#include <string>
+#include "file.hpp"
+#include "ui_receiver.hpp"
+#include "string_format.hpp"
 
-#include "ui.hpp"
-#include "ui_navigation.hpp"
-#include "ui_handwrite.hpp"
-#include "ui_alphanum.hpp"
-#include "portapack_persistent_memory.hpp"
+#ifndef __FREQMAN_H__
+#define __FREQMAN_H__
 
-// TODO: Make class
+using namespace ui;
 
-namespace ui {
+struct freqman_entry {
+	rf::Frequency value;
+	std::string frequency_str;
+	std::string description;
+};
 
-bool textentry(NavigationView& nav, char * str, size_t max_length, const std::function<void(char *)> on_done = nullptr);
+bool load_freqman_file(std::vector<freqman_entry> &frequencies);
+bool save_freqman_file(std::vector<freqman_entry> &frequencies);
+std::string freqman_item_string(freqman_entry &frequencies);
 
-} /* namespace ui */
-
-#endif/*__UI_TEXTENTRY_H__*/
+#endif/*__FREQMAN_H__*/

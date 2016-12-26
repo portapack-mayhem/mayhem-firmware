@@ -316,7 +316,7 @@ Text::Text(
 	Rect parent_rect,
 	std::string text
 ) : Widget { parent_rect },
-	text { text }
+	text_ { text }
 {
 }
 
@@ -327,8 +327,12 @@ Text::Text(
 }
 
 void Text::set(const std::string value) {
-	text = value;
+	text_ = value;
 	set_dirty();
+}
+
+std::string Text::text() const {
+	return text_;
 }
 
 void Text::paint(Painter& painter) {
@@ -340,7 +344,7 @@ void Text::paint(Painter& painter) {
 	painter.draw_string(
 		rect.pos,
 		s,
-		text
+		text_
 	);
 }
 
