@@ -12,7 +12,8 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 # Fork features
 
-* "Soundboard" wave file player from µSD (put 8-bit mono files in /wav directory)
+* Frequency manager (save/load from SD card)
+* "Soundboard" wave file player from SD card (put 8-bit mono files in /wav directory)
 * POCSAG 1200 alphanumeric receiver/decoder
 * Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
 * Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
@@ -21,7 +22,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * Fully configurable AFSK transmit (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) litteral message forming and transmit
-* Xylos transmitter, street lighting control (NFM CCIR tones)
+* "Xy" and "EP" transmitter, street lighting control (CCIR tones)
 * "Play Dead" in case of emergency
 * PWM audio RSSI output (for crude direction finding)
 * (Not working) Close-Call™ style scanner
@@ -30,21 +31,19 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 # Screenshots
 
-![test](pictures/ook_enc.png) ![test](pictures/pocsag.png) ![test](pictures/afsk.png)
-![test](pictures/lcr.png) ![test](pictures/rds.png) ![test](pictures/xylos.png)
-![test](pictures/soundboard.png) ![test](pictures/about.png) ![test](pictures/config.png)
+![Frequency manager](pictures/freqman.png) ![OOK encoder](pictures/ook_enc.png) ![POCSAG receiver](pictures/pocsag.png)
+![AFSK transmit](pictures/afsk.png) ![Soundboard](pictures/soundboard.png) ![RDS transmit](pictures/rds.png)
+![Xy transmit](pictures/xylos.png) ![LCR transmit](pictures/lcr.png)  ![Cinfiguration screen](pictures/config.png)
 
 ## Todo
 
 * PMR446 transmit
-* Frequency manager
 * Detect/decode OOK
 * Whistle (tone generator)
 * POCSAG transmitter
 * AFSK receiver
 * Make SIGFOX interceptor work with all modules
 * Wireless microphone transmit (with squelch tones)
-* EPAR transmit (old Xylos)
 * Spectrum painter
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
