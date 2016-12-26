@@ -393,6 +393,8 @@ SystemView::SystemView(
 		this->status_view.set_title(new_view.title());
 	};
 
+	// portapack::persistent_memory::set_playdead_sequence(0x8D1);
+				
 	// Initial view
 	if ((portapack::persistent_memory::playing_dead() == 0x5920C1DF) ||		// Enable code
 		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
@@ -459,7 +461,7 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 	text_playdead3.hidden(true);
 	
 	button_seq_entry.on_dir = [this](Button&, KeyEvent key){
-		sequence = (sequence << 3) | static_cast<std::underlying_type<KeyEvent>::type>(key);
+		sequence = (sequence << 3) | (static_cast<std::underlying_type<KeyEvent>::type>(key) + 1);
 		return true;
 	};
 	

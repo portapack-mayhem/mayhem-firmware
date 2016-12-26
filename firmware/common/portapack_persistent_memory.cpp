@@ -72,6 +72,7 @@ struct data_t {
 	uint32_t afsk_config;
 	
 	// Play dead unlock
+	uint32_t playdead_magic;
 	uint32_t playing_dead;
 	uint32_t playdead_sequence;
 	
@@ -168,20 +169,29 @@ void set_afsk_config(const uint32_t new_value) {
 	data->afsk_config = new_value;
 }
 
+static constexpr uint32_t playdead_magic = 0x88d3bb57;
+
 uint32_t playing_dead() {
 	return data->playing_dead;
 }
 
 void set_playing_dead(const uint32_t new_value) {
+	if( data->playdead_magic != playdead_magic ) {
+		set_playdead_sequence(0x8D1);	// U D L R
+	}
 	data->playing_dead = new_value;
 }
 
 uint32_t playdead_sequence() {
+	if( data->playdead_magic != playdead_magic ) {
+		set_playdead_sequence(0x8D1);	// U D L R
+	}
 	return data->playdead_sequence;
 }
 
 void set_playdead_sequence(const uint32_t new_value) {
 	data->playdead_sequence = new_value;
+	data->playdead_magic = playdead_magic;
 }
 
 bool stealth_mode() {

@@ -22,6 +22,7 @@
 
 #include "ui_setup.hpp"
 
+#include "ui_navigation.hpp"
 #include "ui_touch_calibration.hpp"
 
 #include "portapack_persistent_memory.hpp"
@@ -193,8 +194,12 @@ SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 			button_cancel.hidden(true);
 			set_dirty();
 		} else {
-			persistent_memory::set_playdead_sequence(sequence);
-			nav.pop();
+			if (sequence == 0x8D1)	// U D L R
+				nav.display_modal("Warning", "Default sequence entered !", ABORT, nullptr);
+			else {
+				persistent_memory::set_playdead_sequence(sequence);
+				nav.pop();
+			}
 		}
 	};
 	
@@ -210,7 +215,7 @@ SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 			else if (key_code == 3)
 				sequence_txt[keycount] = 'U';
 			text_sequence.set(sequence_txt);
-			sequence = (sequence << 3) | key_code;
+			sequence = (sequence << 3) | (key_code + 1);
 			keycount++;
 			return true;
 		}
