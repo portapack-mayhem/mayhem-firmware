@@ -63,16 +63,19 @@ void NuoptixView::transmit(bool setup) {
 		timecode = lfsr_iterate(timecode) % 1999;	// Could be 9999 but that would be one long audio track !
 	
 	if (setup) {
-		pbar.set_max(4);
+		pbar.set_max(6 * 2);
 		
-		if (tx_mode == NORMAL)
+		if (tx_mode == IMPROVISE) {
+			// Seed from RTC
+			rtcGetTime(&RTCD1, &datetime);
+			timecode = datetime.day() + datetime.second();
+		} else {
 			timecode = number_timecode.value();
-		else
-			timecode = 0125;	// TODO: Use RTC as seed ?
+		}
 		
 		transmitter_model.set_baseband_configuration({
 			.mode = 0,
-			.sampling_rate = 1536000,
+			.sampling_rate = 1536000U,
 			.decimation_factor = 1,
 		});
 		transmitter_model.set_rf_amp(true);
@@ -137,7 +140,7 @@ void NuoptixView::transmit(bool setup) {
 	shared_memory.bb_data.tones_data.silence = NUOPTIX_TONE_LENGTH;		// 49ms tone, 49ms space
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(number_bw.value(), 0, 6 * 2, true, true);	
+	baseband::set_tones_data(number_bw.value() * 500, 0, 6 * 2, true, true);	
 	
 	timecode++;
 }

@@ -29,6 +29,7 @@
 #include "baseband_api.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "time.hpp"
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
@@ -89,6 +90,7 @@ private:
 	void transmit(bool setup);
 	
 	uint32_t timecode;
+	rtc::RTC datetime;
 	
 	FrequencyField field_frequency {
 		{ 1 * 8, 4 },
@@ -148,7 +150,7 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			if (message.progress == 0xFF)
+			if (message.done)
 				transmit(false);
 			else
 				pbar.set_value(message.progress);

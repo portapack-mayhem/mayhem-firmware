@@ -54,6 +54,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 					configured = false;
 					txdone_message.done = true;
 					shared_memory.application_queue.push(txdone_message);
+					return;
 				} else {
 					txdone_message.progress = digit_pos;	// Inform UI about progress
 					shared_memory.application_queue.push(txdone_message);
@@ -62,7 +63,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 				digit_pos++;
 				
 				if ((digit >= 32) || (tone_deltas[digit] == 0)) {
-					silence_count = shared_memory.bb_data.tones_data.silence;
+					sample_count = shared_memory.bb_data.tones_data.silence;
 				} else {
 					if (!dual_tone) {
 						tone_a_delta = tone_deltas[digit];
@@ -79,8 +80,6 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 			// Ugly
 			if (digit >= 32) {
 				tone_sample = 0;
-				re = 0;
-				im = 0;
 			} else {
 				if (!dual_tone) {
 					tone_sample = (sine_table_i8[(tone_a_phase & 0x03FC0000) >> 18]);
@@ -92,16 +91,16 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 					tone_a_phase += tone_a_delta;
 					tone_b_phase += tone_b_delta;
 				}
-				
-				// FM
-				delta = tone_sample * fm_delta;
-				
-				phase += delta;
-				sphase = phase + (64 << 18);
-
-				re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-				im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 			}
+		
+			// FM
+			delta = tone_sample * fm_delta;
+			
+			phase += delta;
+			sphase = phase + (64 << 18);
+
+			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 		}
 		
 		// Headphone output sample generation: 1536000/24000 = 64
@@ -139,6 +138,7 @@ void TonesProcessor::on_message(const Message* const p) {
 		txdone_message.progress = 0;
 		
 		digit_pos = 0;
+		sample_count = 0;
 		tone_a_phase = 0;
 		tone_b_phase = 0;
 		as = 0;
