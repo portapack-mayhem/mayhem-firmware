@@ -37,6 +37,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 ## Todo
 
+* Generetic code transmitters
 * PMR446 transmit
 * Detect/decode OOK
 * Whistle (tone generator)
@@ -48,7 +49,17 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
-About the PWM RSSI output: Frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output (if enabled)...
+## PWM RSSI output
+
+Huge kludge, wrote in a rush for direction finding. Audio frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output.
+
+## Getting out of Play Dead mode
+
+Play Dead mode is a persistent fake error screen, which can be useful in case of situations where people become too curious. It's easily enabled, and disabled with a programmable key sequence (see Setup menu).
+
+If no exit key sequence was set up, it defaults to up-down-left-right. Enter the sequence and press select, you should see "Please reset" appear. After reset, you should be able to go back to the main menu. If not, a sequence was probably entered already. Solution hint: remove the backup battery for a few minutes, or ui_navigation.cpp ctrl+F 0x8D1 ;)
+
+This mode can also be used as a login screen, not requiring reset.
 
 # Thanks
 
