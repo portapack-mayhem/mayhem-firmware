@@ -31,9 +31,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 # Screenshots
 
-![Frequency manager](pictures/freqman.png) ![OOK encoder](pictures/ook_enc.png) ![POCSAG receiver](pictures/pocsag.png)
-![AFSK transmit](pictures/afsk.png) ![Soundboard](pictures/soundboard.png) ![RDS transmit](pictures/rds.png)
-![Xy transmit](pictures/xylos.png) ![LCR transmit](pictures/lcr.png)  ![Cinfiguration screen](pictures/config.png)
+![HAVOC screenshots](pictures/screenshots.png)
 
 ## Todo
 
