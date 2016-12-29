@@ -31,7 +31,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 # Screenshots
 
-![HAVOC screenshots](pictures/screenshots.png)
+![HAVOC screenshots](screenshots.png)
 
 ## Todo
 
