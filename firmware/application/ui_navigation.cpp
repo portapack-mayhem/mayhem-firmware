@@ -425,6 +425,7 @@ BMPView::BMPView(NavigationView& nav) {
 	
 	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
+		nav.push<SystemMenuView>();
 	};
 }
 
