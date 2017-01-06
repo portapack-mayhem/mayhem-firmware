@@ -52,22 +52,22 @@ constexpr adc::Config adc1_config {
 };
 
 void init() {
-	adc1.clock_enable();
-	adc1.interrupts_disable();
-	adc1.power_up(adc1_config);
-	adc1.interrupts_enable(adc1_interrupt_mask);
+	adc1::clock_enable();
+	adc1::interrupts_disable();
+	adc1::power_up(adc1_config);
+	adc1::interrupts_enable(adc1_interrupt_mask);
 
 	dma::init();
 }
 
 void start() {
 	dma::enable();
-	adc1.start_burst();
+	adc1::start_burst();
 }
 
 void stop() {
 	dma::disable();
-	adc1.stop_burst();
+	adc1::stop_burst();
 }
 
 } /* namespace rssi */

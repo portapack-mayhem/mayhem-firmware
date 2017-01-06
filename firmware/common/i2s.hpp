@@ -155,8 +155,6 @@ struct ConfigDMA {
 template<uint32_t BaseAddress>
 class I2S {
 public:
-	static constexpr LPC_I2S_Type* Peripheral = reinterpret_cast<LPC_I2S_Type*>(BaseAddress);
-
 	static void configure(
 		const ConfigTX& config_tx,
 		const ConfigRX& config_rx
@@ -167,28 +165,28 @@ public:
 		/* NOTE: Documentation of CREG6 is quite confusing. Refer to "I2S clocking and
 		 * pin connections" and other I2S diagrams for more clarity.
 		 */
-		if( Peripheral == LPC_I2S0 ) {
+		if( &p() == LPC_I2S0 ) {
 			LPC_CREG->CREG6 |=
 				  (1U << 12)
 				| (1U << 13)
 				;
 		}
-		if( Peripheral == LPC_I2S1 ) {
+		if( &p() == LPC_I2S1 ) {
 			LPC_CREG->CREG6 |=
 				  (1U << 14)
 				| (1U << 15)
 				;
 		}
 
-		Peripheral->DAO = config_tx.dao;
-		Peripheral->TXRATE = config_tx.txrate;
-		Peripheral->TXBITRATE = config_tx.txbitrate;
-		Peripheral->TXMODE = config_tx.txmode;
+		p().DAO = config_tx.dao;
+		p().TXRATE = config_tx.txrate;
+		p().TXBITRATE = config_tx.txbitrate;
+		p().TXMODE = config_tx.txmode;
 
-		Peripheral->DAI = config_rx.dai;
-		Peripheral->RXRATE = config_rx.rxrate;
-		Peripheral->RXBITRATE = config_rx.rxbitrate;
-		Peripheral->RXMODE = config_rx.rxmode;
+		p().DAI = config_rx.dai;
+		p().RXRATE = config_rx.rxrate;
+		p().RXBITRATE = config_rx.rxbitrate;
+		p().RXMODE = config_rx.rxmode;
 	}
 
 	static void configure(
@@ -198,38 +196,42 @@ public:
 	) {
 		configure(config_tx, config_rx);
 
-		Peripheral->DMA1 = config_dma.dma1;
-		Peripheral->DMA2 = config_dma.dma2;
+		p().DMA1 = config_dma.dma1;
+		p().DMA2 = config_dma.dma2;
 	}
 
 	static void rx_start() {
-		Peripheral->DAI &= ~(1U << 3);
+		p().DAI &= ~(1U << 3);
 	}
 
 	static void rx_stop() {
-		Peripheral->DAI |= (1U << 3);
+		p().DAI |= (1U << 3);
 	}
 
 	static void tx_start() {
-		Peripheral->DAO &= ~(1U << 3);
+		p().DAO &= ~(1U << 3);
 	}
 
 	static void tx_stop() {
-		Peripheral->DAO |= (1U << 3);
+		p().DAO |= (1U << 3);
 	}
 
 	static void tx_mute() {
-		Peripheral->DAO |= (1U << 15);
+		p().DAO |= (1U << 15);
 	}
 
 	static void tx_unmute() {
-		Peripheral->DAO &= ~(1U << 15);
+		p().DAO &= ~(1U << 15);
 	}
 
 private:
 	static void reset() {
-		Peripheral->DAO |= (1U << 4);
-		Peripheral->DAI |= (1U << 4);
+		p().DAO |= (1U << 4);
+		p().DAI |= (1U << 4);
+	}
+
+	static LPC_I2S_Type& p() {
+		return *reinterpret_cast<LPC_I2S_Type*>(BaseAddress);
 	}
 };
 
