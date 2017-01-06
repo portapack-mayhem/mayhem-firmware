@@ -168,7 +168,7 @@ struct Inputs {
 	const uint32_t f_clkin;
 	const uint32_t clkin_div;
 
-	constexpr uint32_t f_clkin_out() {
+	constexpr uint32_t f_clkin_out() const {
 		return f_clkin / clkin_div;
 	}
 };
@@ -181,23 +181,23 @@ struct PLL {
 	const uint32_t b;
 	const uint32_t c;
 
-	constexpr uint32_t f_vco() {
+	constexpr uint32_t f_vco() const {
 		return f_in * (a + (float)b / (float)c);
 	}
 
-	constexpr uint32_t p1() {
+	constexpr uint32_t p1() const {
 		return 128 * a + (uint32_t)(128 * (float)b / (float)c) - 512;
 	}
 
-	constexpr uint32_t p2() {
+	constexpr uint32_t p2() const {
 		return 128 * b - c * (uint32_t)(128 * (float)b / (float)c);
 	}
 
-	constexpr uint32_t p3() {
+	constexpr uint32_t p3() const {
 		return c;
 	}
 
-	constexpr PLLReg reg(const uint8_t pll_n) {
+	constexpr PLLReg reg(const uint8_t pll_n) const {
 		return {
 			uint8_t(26 + (pll_n * 8)),
 			uint8_t((p3() >>  8) & 0xff),
@@ -224,23 +224,23 @@ struct MultisynthFractional {
 	const uint32_t c;
 	const uint32_t r_div;
 
-	constexpr uint32_t p1() {
+	constexpr uint32_t p1() const {
 		return 128 * a + (uint32_t)(128 * (float)b / (float)c) - 512;
 	}
 
-	constexpr uint32_t p2() {
+	constexpr uint32_t p2() const {
 		return 128 * b - c * (uint32_t)(128 * (float)b / (float)c);
 	}
 
-	constexpr uint32_t p3() {
+	constexpr uint32_t p3() const {
 		return c;
 	}
 
-	constexpr uint32_t f_out() {
+	constexpr uint32_t f_out() const {
 		return f_src / (a + (float)b / (float)c) / (1 << r_div);
 	}
 
-	constexpr MultisynthFractionalReg reg(const uint8_t multisynth_n) {
+	constexpr MultisynthFractionalReg reg(const uint8_t multisynth_n) const {
 		return {
 			uint8_t(42 + (multisynth_n * 8)),
 			uint8_t((p3() >> 8) & 0xFF),
@@ -260,11 +260,11 @@ struct MultisynthInteger {
 	const uint32_t a;
 	const uint32_t r_div;
 
-	constexpr uint8_t p1() {
+	constexpr uint8_t p1() const {
 		return a;
 	}
 
-	constexpr uint32_t f_out() {
+	constexpr uint32_t f_out() const {
 		return f_src / a / (1 << r_div);
 	}
 };

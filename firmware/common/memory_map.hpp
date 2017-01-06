@@ -43,15 +43,15 @@ public:
 
 	}
 
-	constexpr uint32_t base() {
+	constexpr uint32_t base() const {
 		return base_;
 	}
 
-	constexpr uint32_t end() {
+	constexpr uint32_t end() const {
 		return base_ + size_;
 	}
 
-	constexpr size_t size() {
+	constexpr size_t size() const {
 		return size_;
 	}
 

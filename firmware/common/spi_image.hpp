@@ -86,7 +86,7 @@ struct region_t {
 	const size_t offset;
 	const size_t size;
 
-	constexpr const void* base() {
+	constexpr const void* base() const {
 		return reinterpret_cast<void*>(portapack::memory::map::spifi_cached.base() + offset);
 	}
 };
