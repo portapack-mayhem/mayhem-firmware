@@ -33,6 +33,8 @@ using namespace lpc43xx;
 
 #include "portapack_shared_memory.hpp"
 
+#include "utility.hpp"
+
 #include <array>
 
 static baseband::SGPIO baseband_sgpio;
