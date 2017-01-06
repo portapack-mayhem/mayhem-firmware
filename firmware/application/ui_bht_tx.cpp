@@ -44,7 +44,7 @@ BHTView::~BHTView() {
 void BHTView::generate_message() {
 	if (!_mode) {
 		text_message.set(
-			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), subfamily_code.value(), 
+			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), family_code_xy.value(), 
 							checkbox_wcsubfamily.value(), subfamily_code.value(), checkbox_wcid.value(), receiver_code.value(),
 							relay_states[0].selected_index(), relay_states[1].selected_index(), 
 							relay_states[2].selected_index(), relay_states[3].selected_index())
@@ -82,7 +82,7 @@ void BHTView::start_tx() {
 	}
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(6000, CCIR_SILENCE, 20, false, checkbox_speaker.value());
+	baseband::set_tones_data(field_bw.value() * 20, CCIR_SILENCE, 20, false, checkbox_speaker.value());
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
@@ -104,7 +104,7 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 				chThdSleepMilliseconds(tempo_cligno.value() * 1000);	// Dirty :(
 				
 				// Invert all relay states
-				for (c = 0; c < 4; c++) {
+				for (c = 0; c < 1; c++) {
 					sr = relay_states[c].selected_index();
 					if (sr > 0) relay_states[c].set_selected_index(sr ^ 3);
 				}
@@ -144,6 +144,7 @@ BHTView::BHTView(NavigationView& nav) {
 		&checkbox_wcid,
 		&text_freq,
 		&options_freq,
+		&field_bw,
 		&text_relais,
 		&progressbar,
 		&text_message,
@@ -156,7 +157,7 @@ BHTView::BHTView(NavigationView& nav) {
 	options_mode.set_selected_index(0);			// Start up in Xy mode
 	header_code_a.set_value(0);
 	header_code_b.set_value(0);
-	city_code_xy.set_value(18);
+	city_code_xy.set_value(10);
 	city_code_ep.set_value(220);
 	family_code_xy.set_value(1);
 	family_code_ep.set_selected_index(2);
@@ -166,6 +167,8 @@ BHTView::BHTView(NavigationView& nav) {
 	tempo_cligno.set_value(1);
 	progressbar.set_max(20);
 	relay_states[0].set_selected_index(1);		// R1 OFF
+	
+	field_bw.set_value(10);
 	
 	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
 		_mode = mode;
@@ -297,8 +300,10 @@ BHTView::BHTView(NavigationView& nav) {
 
 	button_transmit.on_select = [this, &nav](Button&) {
 		if ((tx_mode == IDLE) && (!_mode)) {	// DEBUG
-			if (speaker_enabled && _mode)
-				audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+			if (speaker_enabled)
+				chThdSleepMilliseconds(40 * 1000);	// DEBUG 40s
+			//if (speaker_enabled && _mode)
+			//	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 			tx_mode = SINGLE;
 			button_transmit.set_style(&style_cancel);
 			button_transmit.set_text("Wait");

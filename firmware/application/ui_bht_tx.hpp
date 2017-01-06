@@ -197,11 +197,11 @@ private:
 	};
 	
 	Text text_freq {
-		{ 6 * 8, 8 * 16, 10 * 8, 16 },
+		{ 1 * 8, 8 * 16, 10 * 8, 16 },
 		"Frequence:"
 	};
 	OptionsField options_freq {
-		{ 17 * 8, 8 * 16},
+		{ 12 * 8, 8 * 16},
 		7,
 		{
 			{ "31.3250", 0 },
@@ -212,6 +212,14 @@ private:
 			{ "31.9750", 5 },
 			{ "TEST 88", 6 }
 		}
+	};
+	
+	NumberField field_bw {
+		{ 20 * 8, 8 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' '
 	};
 	
 	Text text_relais {

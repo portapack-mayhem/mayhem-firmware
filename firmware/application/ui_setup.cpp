@@ -452,7 +452,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Frequency correction",	ui::Color::white(), nullptr,	[&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
 		{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },		
 		{ "Touch screen",			ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "Play dead",				ui::Color::red(), 	nullptr,	[&nav](){ nav.push<SetPlayDeadView>(); } }
+		{ "Play dead",				ui::Color::red(), 	&bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

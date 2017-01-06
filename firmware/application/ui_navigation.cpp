@@ -338,11 +338,11 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<11>({ {
-		{ "Play dead",				ui::Color::red(),	nullptr,	[&nav](){ nav.push<PlayDeadView>(); } },
-		{ "Receivers", 				ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture",				ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Code transmitters", 		ui::Color::green(),	nullptr,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
-		{ "Audio transmitters", 	ui::Color::green(),	nullptr,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
+		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
+		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receiver,	[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
+		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
+		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Close Call",				ui::Color::orange(),&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),nullptr,	[&nav](){ nav.push<UtilitiesView>(); } },
