@@ -42,7 +42,7 @@ struct PinConfig {
 			|  ((fast    & 1) << 5)
 			| (((~pu)    & 1) << 4)
 			|  ((pd      & 1) << 3)
-			|  ((mode    & 1) << 0);
+			|  ((mode    & 7) << 0);
 	}
 /*
 	constexpr operator uint32_t() {
