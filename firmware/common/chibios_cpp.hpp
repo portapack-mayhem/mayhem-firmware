@@ -30,6 +30,8 @@ void* operator new(size_t size);
 void* operator new[](size_t size);
 void operator delete(void* p);
 void operator delete[](void* p);
+void operator delete(void* ptr, std::size_t);
+void operator delete[](void* ptr, std::size_t);
 
 namespace chibios {
 
