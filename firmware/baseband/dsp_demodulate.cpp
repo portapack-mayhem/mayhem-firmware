@@ -24,6 +24,7 @@
 #include "complex.hpp"
 #include "fxpt_atan2.hpp"
 #include "utility_m4.hpp"
+#include "simd.hpp"
 
 #include <hal.h>
 
@@ -34,12 +35,12 @@ buffer_f32_t AM::execute(
 	const buffer_c16_t& src,
 	const buffer_f32_t& dst
 ) {
-	const auto src_p = src.p;
-	const auto src_end = &src.p[src.count];
+	auto src_p = simd32_ptr(src.p);
+	auto src_end = simd32_ptr(&src.p[src.count]);
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		const uint32_t sample0 = *__SIMD32(src_p)++;
-		const uint32_t sample1 = *__SIMD32(src_p)++;
+		const uint32_t sample0 = *(src_p++);
+		const uint32_t sample1 = *(src_p++);
 		const uint32_t mag_sq0 = __SMUAD(sample0, sample0);
 		const uint32_t mag_sq1 = __SMUAD(sample1, sample1);
 		*(dst_p++) = __builtin_sqrtf(mag_sq0) * k;
@@ -90,12 +91,12 @@ buffer_f32_t FM::execute(
 ) {
 	auto z = z_;
 
-	const auto src_p = src.p;
-	const auto src_end = &src.p[src.count];
+	auto src_p = simd32_ptr(src.p);
+	auto src_end = simd32_ptr(&src.p[src.count]);
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		const auto s0 = *__SIMD32(src_p)++;
-		const auto s1 = *__SIMD32(src_p)++;
+		const auto s0 = *(src_p++);
+		const auto s1 = *(src_p++);
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
@@ -113,12 +114,12 @@ buffer_s16_t FM::execute(
 ) {
 	auto z = z_;
 
-	const auto src_p = src.p;
-	const auto src_end = &src.p[src.count];
+	auto src_p = simd32_ptr(src.p);
+	auto src_end = simd32_ptr(&src.p[src.count]);
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
-		const auto s0 = *__SIMD32(src_p)++;
-		const auto s1 = *__SIMD32(src_p)++;
+		const auto s0 = *(src_p++);
+		const auto s1 = *(src_p++);
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
 		const auto t1 = multiply_conjugate_s16_s32(s1, s0);
 		z = s1;
@@ -126,7 +127,7 @@ buffer_s16_t FM::execute(
 		const int32_t theta0_sat = __SSAT(theta0_int, 16);
 		const int32_t theta1_int = angle_approx_0deg27(t1) * ks16;
 		const int32_t theta1_sat = __SSAT(theta1_int, 16);
-		*__SIMD32(dst_p)++ = __PKHBT(
+		*(dst_p++) = __PKHBT(
 			theta0_sat,
 			theta1_sat,
 			16
