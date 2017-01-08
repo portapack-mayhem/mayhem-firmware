@@ -68,7 +68,7 @@ private:
 	void generate_frame();
 	void update_progress();
 	void start_tx(const bool scan);
-	void on_txdone(int n);
+	void on_txdone(int n, const bool txdone);
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
@@ -189,7 +189,7 @@ private:
 		Message::ID::TXDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.progress);
+			this->on_txdone(message.progress, message.done);
 		}
 	};
 };

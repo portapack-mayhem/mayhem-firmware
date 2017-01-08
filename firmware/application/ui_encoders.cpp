@@ -118,10 +118,10 @@ void EncodersView::update_progress() {
 	}
 }
 
-void EncodersView::on_txdone(int n) {
+void EncodersView::on_txdone(int n, const bool txdone) {
 	//char str[16];
 	
-	if (n > 0) {
+	if (!txdone) {
 		// Repeating...
 		repeat_index = n + 1;
 		/*if (tx_mode == SCAN) {

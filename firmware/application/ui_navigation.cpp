@@ -265,9 +265,9 @@ void NavigationView::focus() {
 TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 	add_items<4>({ {
 		{ "ADS-B: Planes", 			ui::Color::grey(),	&bitmap_icon_adsb,	[&nav](){ nav.push<NotImplementedView>(); }, },
-		{ "AIS:   Boats", 			ui::Color::white(),	nullptr,	[&nav](){ nav.push<AISAppView>(); } },
-		{ "ERT:   Utility Meters", 	ui::Color::white(), nullptr,	[&nav](){ nav.push<ERTAppView>(); } },
-		{ "TPMS:  Cars", 			ui::Color::white(),	nullptr,	[&nav](){ nav.push<TPMSAppView>(); } },
+		{ "AIS:   Boats", 			ui::Color::white(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
+		{ "ERT:   Utility Meters", 	ui::Color::white(), &bitmap_icon_ert,	[&nav](){ nav.push<ERTAppView>(); } },
+		{ "TPMS:  Cars", 			ui::Color::white(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -279,9 +279,9 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	//	{ "AFSK", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
 		{ "Audio", 					ui::Color::green(),	nullptr,	[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "CCIR", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Nordic/BTLE", 			ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Nordic/BTLE", 			ui::Color::grey(),	&bitmap_icon_nordic_data,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "POCSAG 1200", 			ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<POCSAGAppView>(); } },
-		{ "SIGFOX", 				ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_foxhunt,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "Transponders", 			ui::Color::green(),	nullptr,	[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
