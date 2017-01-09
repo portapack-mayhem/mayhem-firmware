@@ -481,6 +481,26 @@ private:
 	int32_t clip_value(const uint32_t index, const uint32_t value);
 };
 
+class Waveform : public Widget {
+public:
+
+	Waveform(Rect parent_rect, int8_t * data, uint32_t length, uint32_t offset, Color color);
+
+	Waveform(const Waveform&) = delete;
+	Waveform(Waveform&&) = delete;
+
+	void set_offset(const uint32_t new_offset);
+	void set_length(const uint32_t new_length);
+
+	void paint(Painter& painter) override;
+
+private:
+	int8_t * data_;
+	uint32_t length_;
+	uint32_t offset_;
+	Color color_;
+};
+
 } /* namespace ui */
 
 #endif/*__UI_WIDGET_H__*/

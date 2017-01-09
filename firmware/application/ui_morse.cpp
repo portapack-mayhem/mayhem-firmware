@@ -39,7 +39,6 @@ Continuous (Fox-oring)
 
 using namespace portapack;
 
-// TODO: TX power setting
 // TODO: Live keying mode: Dit on left key, dah on right ?
 
 namespace ui {
@@ -98,8 +97,24 @@ void MorseView::generate_message(char * text) {
 	(*tone_defs).delta = 0;					// 7 unit silence
 	(*tone_defs++).duration = MORSE_WORD_SPACE;
 	
-	audio::set_rate(audio::Rate::Hz_24000);
+	transmitter_model.set_tuning_frequency(81800000);
+	transmitter_model.set_baseband_configuration({
+		.mode = 0,
+		.sampling_rate = 1536000U,
+		.decimation_factor = 1,
+	});
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_lna(40);
+	transmitter_model.set_vga(40);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	//audio::set_rate(audio::Rate::Hz_24000);
 	baseband::set_tones_data(5000, 0, i, false, false);
+}
+
+void MorseView::transmit_done() {
+	transmitter_model.disable();
 }
 
 MorseView::MorseView(
@@ -114,25 +129,8 @@ MorseView::MorseView(
 	} });
 	
 	button_transmit.on_select = [this](Button&){
-		/*uint16_t c;
-		ui::Context context;
-		
-		make_frame();
-			
-		shared_memory.afsk_samples_per_bit = 228000/persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
-		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
-
-		for (c = 0; c < 256; c++) {
-			shared_memory.lcrdata[c] = this->lcrframe[c];
-		}
-		
-		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5;		// DEFAULT
-
-		text_status.set("Send...");*/
-		
-		//transmitter_model.enable();
+		//char strtest[] = "TEST";
+		//generate_message(strtest);
 	};
 
 	button_exit.on_select = [&nav](Button&){

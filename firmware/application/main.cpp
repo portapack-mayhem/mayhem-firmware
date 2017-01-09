@@ -28,10 +28,10 @@
 //TEST: Jammer
 //TEST: Frequency manager + save/load
 
+//TODO: "TX box" view or composite widget with frequency and bw settings, simple and advanced setup TX buttons...
 //TODO: Morse coder for foxhunts
 //TODO: Finish EPAR tx
 //TODO: IQ replay
-//TODO: Waveform widget ?
 //TODO: Wav visualizer
 
 //BUG: POCSAG RX sometimes misses the first codeword after SYNC

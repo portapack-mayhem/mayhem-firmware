@@ -44,7 +44,7 @@
 #define DTMF_R2			(uint32_t)(852 * DTMF_DELTA_COEF)
 #define DTMF_R3			(uint32_t)(941 * DTMF_DELTA_COEF)
 
-#define NUOPTIX_TONE_LENGTH 75264		// 1536000*0.049
+#define NUOPTIX_TONE_LENGTH 75264		// 1536000*0.049s
 
 namespace ui {
 	

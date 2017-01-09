@@ -1285,4 +1285,66 @@ int32_t SymField::clip_value(const uint32_t index, const uint32_t value) {
 		return value;
 }
 
+/* Waveform **************************************************************/
+
+Waveform::Waveform(
+	Rect parent_rect,
+	int8_t * data,
+	uint32_t length,
+	uint32_t offset,
+	Color color
+) : Widget { parent_rect },
+	data_ { data },
+	length_ { length },
+	offset_ { offset },
+	color_ { color }
+{
+	data_ += offset_;
+	//set_focusable(false);
+}
+
+void Waveform::set_offset(const uint32_t new_offset) {
+	if (new_offset != offset_) {
+		offset_ = new_offset;
+		set_dirty();
+	}
+}
+
+void Waveform::set_length(const uint32_t new_length) {
+	if (new_length != length_) {
+		length_ = new_length;
+		set_dirty();
+	}
+}
+
+void Waveform::paint(Painter& painter) {
+	uint32_t n, point_count;
+	Coord y, y_offset = screen_rect().pos.y;
+	Coord prev_x = screen_rect().pos.x, prev_y;
+	float x, x_inc;
+	Dim h = screen_rect().size.h;
+	
+	// Clear
+	painter.fill_rectangle(screen_rect(), Color::black());
+	
+	x_inc = (float)screen_rect().size.w / length_;
+	point_count = length_;
+	const float y_scale = (float)(h - 1) / 256;		// TODO: Make variable
+	
+	if (!point_count) return;
+	
+	x = prev_x + x_inc;
+	h = h / 2;
+	
+	prev_y = y_offset + h - (*(data_) * y_scale);
+	for (n = 1; n < point_count; n++) {
+		y = y_offset + h - (*(data_ + n) * y_scale);
+		display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, color_);
+		
+		prev_x = x;
+		prev_y = y;
+		x += x_inc;
+	}
+}
+
 } /* namespace ui */

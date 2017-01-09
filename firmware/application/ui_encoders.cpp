@@ -61,34 +61,21 @@ void EncodersView::generate_frame() {
 }
 
 void EncodersView::draw_waveform() {
-	float x = 0, x_inc;
-	Coord y, prev_y = 1;
-	uint8_t prelude_length = 0; 	//encoder_def->sync.length();
-	
-	// Clear
-	painter_->fill_rectangle( { 0, 168, 240, 24 }, Color::black() );
-	
-	x_inc = 230.0 / (debug_text.length() - prelude_length);
-	
-	for (auto c : debug_text) {		//.substr(prelude_length)
-		if (c == '0')
-			y = 23;
-		else
-			y = 0;
-		
-		// Edge
-		if (prev_y != y) painter_->draw_rectangle( { (Coord)x, 168, 1, 24 }, Color::yellow() );
-		// Level
-		painter_->draw_rectangle( { (Coord)x, 168 + y, (int)ceil(x_inc), 1 }, Color::yellow() );
-		
-		prev_y = y;
-		x += x_inc;
-	}
-}
+	uint32_t n, p = 0, length;
 
-void EncodersView::paint(Painter& painter) {
-	painter_ = &painter;
-	draw_waveform();
+	length = debug_text.length();
+	
+	for (n = 0; n < length; n++) {
+		if (debug_text[n] == '0')
+			waveform_buffer[p] = -128;
+		else
+			waveform_buffer[p] = 127;
+		waveform_buffer[p + 1] = waveform_buffer[p];
+		p += 2;
+	}
+	
+	waveform.set_length(length * 2);
+	waveform.set_dirty();
 }
 
 void EncodersView::update_progress() {
@@ -162,6 +149,10 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 	}
 }
 
+void EncodersView::on_tuning_frequency_changed(rf::Frequency f) {
+	transmitter_model.set_tuning_frequency(f);
+}
+
 void EncodersView::start_tx(const bool scan) {
 	char ook_bitstream[256];
 	uint32_t ook_bitstream_length;
@@ -198,7 +189,6 @@ void EncodersView::start_tx(const bool scan) {
 	
 	ook_bitstream_length = n;
 
-	transmitter_model.set_tuning_frequency(433920000);		// TODO: Make modifiable !
 	transmitter_model.set_baseband_configuration({
 		.mode = 0,
 		.sampling_rate = 2280000U,
@@ -318,6 +308,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 	encoder_def = &encoder_defs[0];
 
 	add_children({ {
+		&field_frequency,
 		&text_enctype,
 		&options_enctype,
 		&text_clk,
@@ -335,10 +326,25 @@ EncodersView::EncodersView(NavigationView& nav) {
 		//&text_format_a,	// DEBUG
 		//&text_format_d,	// DEBUG
 		&text_waveform,
+		&waveform,
 		&text_status,
 		&progress,
 		&button_transmit
 	} });
+	
+	field_frequency.set_value(transmitter_model.tuning_frequency());
+	field_frequency.set_step(50000);
+	field_frequency.on_change = [this](rf::Frequency f) {
+		this->on_tuning_frequency_changed(f);
+	};
+	field_frequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			this->on_tuning_frequency_changed(f);
+			this->field_frequency.set_value(f);
+		};
+	};
 	
 	// Load encoder types
 	for (i = 0; i < ENC_TYPES_COUNT; i++)

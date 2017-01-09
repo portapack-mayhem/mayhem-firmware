@@ -28,7 +28,6 @@
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
-//#include "transmitter_model.hpp"
 #include "receiver_model.hpp"
 #include "portapack.hpp"
 
@@ -54,6 +53,7 @@ private:
 	//rf::Frequency f;
 	
 	void generate_message(char * text);
+	void transmit_done();
 	
 	const char foxhunt_codes[11][3] = {
 		{ 'M', 'O', 'E' },	// -----.
@@ -191,6 +191,15 @@ private:
 	Button button_exit {
 		{ 160, 260, 64, 32 },
 		"Exit"
+	};
+	
+	MessageHandlerRegistration message_handler_tx_done {
+		Message::ID::TXDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
+			if (message.done)
+				transmit_done();
+		}
 	};
 };
 
