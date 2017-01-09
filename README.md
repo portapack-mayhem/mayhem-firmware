@@ -25,25 +25,37 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * "Xy" and "EP" transmitter, street lighting control (CCIR tones)
 * "Play Dead" in case of emergency
 * PWM audio RSSI output (for crude direction finding)
-* (Not working) Close-Call™ style scanner
-* (Not working) Fully configurable jammer
-* (Not used for now) Dynamic baseband code loading from SD card
+
+# Progress
+
+Feature | Progress | Notes
+------- | ------ | -----
+Jammer      | 90% | Need to update baseband code
+RDS TX      | 90% | Needs testing for Radiotext and audio mux function
+POCSAG RX   | 80% | Still misses some messages, needs 512 and 2400bps modes
+Close-Call™ | 70% | Needs adjustments and optimization for wider frequency range
+EPAR TX     | 60% | Older Xy, low priority
+Sigfox RX   | 40% | Left aside, needs updates and testing
+Morse TX    | 30% | Needs UI and testing
+ADS-B TX    | 20% | UI and frame gen stuff done
+Whistle     | 20% | Easy
+Wave visualizer | 10% | High priority
+IQ replay   | 0%  | High priority
+ADS-B RX    | 0%  | Could be fun
+Search      | 0%  | Will be a special Close-Call mode
+Scanner     | 0%  | Easy
+Generic TXs | 0%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
+PMR446 TX   | 0%  | Channel list, mic. in, PTT, CTCSS
+OOK RX      | 0%  | Mainly for 433MHz remotes
+POCSAG TX   | 0%  | Shouldn't be too tough, a real pager for testing would be nice
+AFSK RX     | 0%  | Shouldn't be too tough
+Analog TV TX| 0%  | Could be fun
+Mic. TX     | 0%  | Need to find guard tones for various brands of wireless mics
+Painter     | 0%  | Spectrum painter, low priority
 
 # Screenshots
 
 ![HAVOC screenshots](screenshots.png)
-
-## Todo
-
-* Generetic code transmitters
-* PMR446 transmit
-* Detect/decode OOK
-* Whistle (tone generator)
-* POCSAG transmitter
-* AFSK receiver
-* Make SIGFOX interceptor work with all modules
-* Wireless microphone transmit (with squelch tones)
-* Spectrum painter
 
 **Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
