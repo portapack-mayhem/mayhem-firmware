@@ -53,6 +53,7 @@ void NuoptixView::transmit(bool setup) {
 	uint8_t mod, tone_code;
 	uint8_t c;
 	uint8_t dtmf_message[6];
+	rtc::RTC datetime;
 	
 	if (!tx_mode) {
 		transmitter_model.disable();

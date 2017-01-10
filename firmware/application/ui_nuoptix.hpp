@@ -90,7 +90,6 @@ private:
 	void transmit(bool setup);
 	
 	uint32_t timecode;
-	rtc::RTC datetime;
 	
 	FrequencyField field_frequency {
 		{ 1 * 8, 4 },

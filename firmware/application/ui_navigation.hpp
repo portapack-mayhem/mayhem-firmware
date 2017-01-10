@@ -34,15 +34,22 @@
 #include "ui_sd_card_status_view.hpp"
 
 #include "bitmap.hpp"
+#include "ff.h"
+#include "diskio.h"
+#include "lfsr_random.hpp"
+#include "sd_card.hpp"
 
 #include <vector>
 #include <utility>
+
+using namespace sd_card;
 
 namespace ui {
 
 enum modal_t {
 	INFO = 0,
 	YESNO,
+	YESCANCEL,
 	ABORT
 };
 
@@ -167,6 +174,62 @@ private:
 	};
 };
 
+class WipeSDView : public View {
+public:
+	WipeSDView(NavigationView& nav);
+	~WipeSDView();
+	void focus() override;
+	
+	std::string title() const override { return "SD card wipe"; };	
+
+private:
+	NavigationView& nav_;
+	
+	bool confirmed = false;
+	uint32_t blocks;
+	static Thread* thread;
+	
+	static msg_t static_fn(void* arg) {
+		auto obj = static_cast<WipeSDView*>(arg);
+		obj->run();
+		return 0;
+	}
+	
+	void run() {
+		uint32_t n, b;
+		lfsr_word_t v = 1;
+		const auto buffer = std::make_unique<std::array<uint8_t, 16384>>();
+
+		for (b = 0; b < blocks; b++) {
+			progress.set_value(b);
+			
+			lfsr_fill(v,
+				reinterpret_cast<lfsr_word_t*>(buffer->data()),
+				sizeof(*buffer.get()) / sizeof(lfsr_word_t));
+			
+			// 1MB
+			for (n = 0; n < 64; n++) {
+				if (disk_write(sd_card::fs.drv, buffer->data(), n + (b * 64), 16384 / 512) != RES_OK) nav_.pop();
+			}
+		}
+		nav_.pop();
+	}
+	
+	Text text_info {
+		{ 10 * 8, 16 * 8, 10 * 8, 16 },
+		"Working..."
+	};
+	
+	ProgressBar progress {
+		{ 2 * 8, 19 * 8, 26 * 8, 24 }
+	};
+	
+	Button dummy {
+		{ 240, 0, 0, 0 },
+		""
+	};
+};
+
 class PlayDeadView : public View {
 public:
 	PlayDeadView(NavigationView& nav);
@@ -179,11 +242,11 @@ private:
 	
 	Text text_playdead1 {
 		{ 6 * 8, 7 * 16, 14 * 8, 16 },
-		"Firmware error"
+		"\x46irmwa" "re " "er\x72o\x72"
 	};
 	Text text_playdead2 {
 		{ 6 * 8, 9 * 16, 16 * 8, 16 },
-		"0x1400_0000 : 2C"
+		""
 	};
 	Text text_playdead3 {
 		{ 6 * 8, 12 * 16, 16 * 8, 16 },

@@ -4811,33 +4811,6 @@ ui_rssi.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_rssi.cpp.s
 .PHONY : ui_rssi.cpp.s
 
-ui_sd_card_debug.obj: ui_sd_card_debug.cpp.obj
-
-.PHONY : ui_sd_card_debug.obj
-
-# target to build an object file
-ui_sd_card_debug.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_debug.cpp.obj
-.PHONY : ui_sd_card_debug.cpp.obj
-
-ui_sd_card_debug.i: ui_sd_card_debug.cpp.i
-
-.PHONY : ui_sd_card_debug.i
-
-# target to preprocess a source file
-ui_sd_card_debug.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_debug.cpp.i
-.PHONY : ui_sd_card_debug.cpp.i
-
-ui_sd_card_debug.s: ui_sd_card_debug.cpp.s
-
-.PHONY : ui_sd_card_debug.s
-
-# target to generate assembly for a file
-ui_sd_card_debug.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_debug.cpp.s
-.PHONY : ui_sd_card_debug.cpp.s
-
 ui_sd_card_status_view.obj: ui_sd_card_status_view.cpp.obj
 
 .PHONY : ui_sd_card_status_view.obj
@@ -5610,9 +5583,6 @@ help:
 	@echo "... ui_rssi.obj"
 	@echo "... ui_rssi.i"
 	@echo "... ui_rssi.s"
-	@echo "... ui_sd_card_debug.obj"
-	@echo "... ui_sd_card_debug.i"
-	@echo "... ui_sd_card_debug.s"
 	@echo "... ui_sd_card_status_view.obj"
 	@echo "... ui_sd_card_status_view.i"
 	@echo "... ui_sd_card_status_view.s"

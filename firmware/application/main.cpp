@@ -26,7 +26,7 @@
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
-//TEST: Frequency manager + save/load
+//TODO: Frequency manager auto-remove duplicates
 
 //TODO: "TX box" view or composite widget with frequency and bw settings, simple and advanced setup TX buttons...
 //TODO: Morse coder for foxhunts
@@ -57,7 +57,6 @@
 //TODO: CTCSS detector
 //TODO: DMR detector
 
-//TODO: SD card wiper
 //TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
 //TODO: Bodet :)

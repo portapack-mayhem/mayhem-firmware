@@ -459,7 +459,7 @@ void ProgressBar::set_value(const uint32_t value) {
 }
 
 void ProgressBar::paint(Painter& painter) {
-	uint16_t v_sized;
+	uint32_t v_sized;
 	
 	const auto rect = screen_rect();
 	const auto s = style();

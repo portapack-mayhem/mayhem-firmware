@@ -39,6 +39,7 @@ struct freqman_entry {
 
 bool load_freqman_file(std::vector<freqman_entry> &frequencies);
 bool save_freqman_file(std::vector<freqman_entry> &frequencies);
+bool create_freqman_file(File &freqs_file);
 std::string freqman_item_string(freqman_entry &frequencies);
 
 #endif/*__FREQMAN_H__*/

@@ -24,9 +24,12 @@
 
 #include <cstdint>
 
+#include "ff.h"
 #include "signal.hpp"
 
 namespace sd_card {
+	
+extern FATFS fs;
 
 enum class Status : int32_t {
 	IOError = -3,

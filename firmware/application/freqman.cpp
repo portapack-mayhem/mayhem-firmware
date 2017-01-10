@@ -74,8 +74,7 @@ bool save_freqman_file(std::vector<freqman_entry> &frequencies) {
 	size_t n;
 	std::string item_string;
 	
-	auto result = freqs_file.create("freqman.txt");
-	if (result.is_valid()) return false;
+	if (!create_freqman_file(freqs_file)) return false;
 	
 	for (n = 0; n < frequencies.size(); n++) {
 		item_string = "f=" + to_string_dec_uint(frequencies[n].value);
@@ -85,6 +84,13 @@ bool save_freqman_file(std::vector<freqman_entry> &frequencies) {
 		
 		freqs_file.write_line(item_string);
 	}
+	
+	return true;
+}
+
+bool create_freqman_file(File &freqs_file) {
+	auto result = freqs_file.create("freqman.txt");
+	if (result.is_valid()) return false;
 	
 	return true;
 }

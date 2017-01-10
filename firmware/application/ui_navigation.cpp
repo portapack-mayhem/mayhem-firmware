@@ -317,10 +317,11 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 /* UtilitiesView *****************************************************************/
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
-	add_items<3>({ {
-		{ "Frequency manager", 		ui::Color::red(), 	nullptr,	[&nav](){ nav.push<FreqManView>(); } },
-		{ "Whip antenna length",	ui::Color::green(),	nullptr,	[&nav](){ nav.push<WhipCalcView>(); } },
+	add_items<4>({ {
+		{ "Frequency manager", 		ui::Color::green(), nullptr,	[&nav](){ nav.push<FreqManView>(); } },
+		{ "Whip antenna length",	ui::Color::yellow(),nullptr,	[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Wipe SD card",			ui::Color::red(),	nullptr,	[&nav](){ nav.push<WipeSDView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -348,7 +349,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Utilities",				ui::Color::purple(),nullptr,	[&nav](){ nav.push<UtilitiesView>(); } },
 		//{ "Analyze", 		ui::Color::white(),  	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Setup", 					ui::Color::white(),	nullptr,	[&nav](){ nav.push<SetupMenuView>(); } },
-		//{ "Debug", 					ui::Color::white(),    	[&nav](){ nav.push<DebugMenuView>(); } },
+		//{ "Debug", 					ui::Color::white(), nullptr,   	[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF mode", 			ui::Color::white(),	&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 					ui::Color::white(),	nullptr,	[&nav](){ nav.push<AboutView>(); } }
 	} });
@@ -433,6 +434,45 @@ void BMPView::paint(Painter&) {
 	portapack::display.drawBMP({(240 - 185) / 2, 0}, splash_bmp, false);
 }
 
+/* WipeSDView ************************************************************/
+
+WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
+	add_children({ {
+		&text_info,
+		&progress,
+		&dummy
+	} });
+}
+
+WipeSDView::~WipeSDView() {
+	if (thread) chThdTerminate(thread);
+}
+
+Thread* WipeSDView::thread { nullptr };
+
+void WipeSDView::focus() {
+	BlockDeviceInfo block_device_info;
+	
+	dummy.focus();
+	
+	if (!confirmed) {
+		nav_.push<ModalMessageView>("Warning !", "Wipe first 32MB of SD card ?", YESCANCEL, [this](bool choice) {
+				if (choice)
+					confirmed = true;
+			}
+		);
+	} else {
+		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
+			blocks = 32;	// Only erase first 32MB (block_device_info.blk_size * uint64_t(block_device_info.blk_num)) / (1024 * 1024);
+			progress.set_max(blocks);
+			
+			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, WipeSDView::static_fn, this);
+		} else {
+			nav_.pop();		// Just silently abort for now
+		}
+	}
+}
+
 /* PlayDeadView **********************************************************/
 
 void PlayDeadView::focus() {
@@ -450,6 +490,8 @@ void PlayDeadView::paint(Painter& painter) {
 }
 
 PlayDeadView::PlayDeadView(NavigationView& nav) {
+	rtc::RTC datetime;
+	
 	portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
 	
 	add_children({ {
@@ -458,6 +500,10 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 		&text_playdead3,
 		&button_seq_entry,
 	} });
+	
+	// Seed from RTC
+	rtcGetTime(&RTCD1, &datetime);
+	text_playdead2.set("0x" + to_string_hex(lfsr_iterate(datetime.second()), 6) + "00");
 	
 	text_playdead3.hidden(true);
 	
@@ -532,7 +578,21 @@ ModalMessageView::ModalMessageView(
 			if (on_choice_) on_choice_(false);
 			nav.pop();
 		};
-	} else {
+	} else if (type == YESCANCEL) {
+		add_children({ {
+			&button_yes,
+			&button_no
+		} });
+		
+		button_yes.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop();
+		};
+		button_no.on_select = [this, &nav](Button&){
+			//if (on_choice_) on_choice_(false);
+			nav.pop_modal();
+		};
+	} else {	// ABORT
 		add_child(&button_ok);
 		
 		button_ok.on_select = [this, &nav](Button&){
@@ -554,7 +614,7 @@ void ModalMessageView::paint(Painter&) {
 }
 
 void ModalMessageView::focus() {
-	if (type_ == YESNO) {
+	if ((type_ == YESNO) || (type_ == YESCANCEL)) {
 		button_yes.focus();
 	} else {
 		button_ok.focus();

@@ -27,13 +27,13 @@
 
 namespace sd_card {
 
+FATFS fs;
+
 namespace {
 
 bool card_present = false;
 
 Status status_ { Status::NotPresent };
-
-FATFS fs;
 
 FRESULT mount() {
 	return f_mount(&fs, "", 0);

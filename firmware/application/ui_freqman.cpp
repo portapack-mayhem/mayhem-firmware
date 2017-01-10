@@ -65,7 +65,11 @@ FrequencySaveView::FrequencySaveView(
 ) : nav_ (nav),
 	value_ (value)
 {
-	error = !load_freqman_file(frequencies);
+	File freqs_file;
+	
+	if (!load_freqman_file(frequencies)) {
+		if (!create_freqman_file(freqs_file)) error = true;
+	}
 	
 	signal_token_tick_second = time::signal_tick_second += [this]() {
 		this->on_tick_second();
