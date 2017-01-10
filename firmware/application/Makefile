@@ -3731,6 +3731,60 @@ recent_entries.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/recent_entries.cpp.s
 .PHONY : recent_entries.cpp.s
 
+replay_app.obj: replay_app.cpp.obj
+
+.PHONY : replay_app.obj
+
+# target to build an object file
+replay_app.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_app.cpp.obj
+.PHONY : replay_app.cpp.obj
+
+replay_app.i: replay_app.cpp.i
+
+.PHONY : replay_app.i
+
+# target to preprocess a source file
+replay_app.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_app.cpp.i
+.PHONY : replay_app.cpp.i
+
+replay_app.s: replay_app.cpp.s
+
+.PHONY : replay_app.s
+
+# target to generate assembly for a file
+replay_app.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_app.cpp.s
+.PHONY : replay_app.cpp.s
+
+replay_thread.obj: replay_thread.cpp.obj
+
+.PHONY : replay_thread.obj
+
+# target to build an object file
+replay_thread.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_thread.cpp.obj
+.PHONY : replay_thread.cpp.obj
+
+replay_thread.i: replay_thread.cpp.i
+
+.PHONY : replay_thread.i
+
+# target to preprocess a source file
+replay_thread.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_thread.cpp.i
+.PHONY : replay_thread.cpp.i
+
+replay_thread.s: replay_thread.cpp.s
+
+.PHONY : replay_thread.s
+
+# target to generate assembly for a file
+replay_thread.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/replay_thread.cpp.s
+.PHONY : replay_thread.cpp.s
+
 rf_path.obj: rf_path.cpp.obj
 
 .PHONY : rf_path.obj
@@ -4784,6 +4838,33 @@ ui_record_view.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_record_view.cpp.s
 .PHONY : ui_record_view.cpp.s
 
+ui_replay_view.obj: ui_replay_view.cpp.obj
+
+.PHONY : ui_replay_view.obj
+
+# target to build an object file
+ui_replay_view.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_replay_view.cpp.obj
+.PHONY : ui_replay_view.cpp.obj
+
+ui_replay_view.i: ui_replay_view.cpp.i
+
+.PHONY : ui_replay_view.i
+
+# target to preprocess a source file
+ui_replay_view.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_replay_view.cpp.i
+.PHONY : ui_replay_view.cpp.i
+
+ui_replay_view.s: ui_replay_view.cpp.s
+
+.PHONY : ui_replay_view.s
+
+# target to generate assembly for a file
+ui_replay_view.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_replay_view.cpp.s
+.PHONY : ui_replay_view.cpp.s
+
 ui_rssi.obj: ui_rssi.cpp.obj
 
 .PHONY : ui_rssi.obj
@@ -5463,6 +5544,12 @@ help:
 	@echo "... recent_entries.obj"
 	@echo "... recent_entries.i"
 	@echo "... recent_entries.s"
+	@echo "... replay_app.obj"
+	@echo "... replay_app.i"
+	@echo "... replay_app.s"
+	@echo "... replay_thread.obj"
+	@echo "... replay_thread.i"
+	@echo "... replay_thread.s"
 	@echo "... rf_path.obj"
 	@echo "... rf_path.i"
 	@echo "... rf_path.s"
@@ -5580,6 +5667,9 @@ help:
 	@echo "... ui_record_view.obj"
 	@echo "... ui_record_view.i"
 	@echo "... ui_record_view.s"
+	@echo "... ui_replay_view.obj"
+	@echo "... ui_replay_view.i"
+	@echo "... ui_replay_view.s"
 	@echo "... ui_rssi.obj"
 	@echo "... ui_rssi.i"
 	@echo "... ui_rssi.s"

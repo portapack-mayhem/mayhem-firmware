@@ -66,23 +66,25 @@ public:
 		DisplaySleep = 16,
 		CaptureConfig = 17,
 		CaptureThreadDone = 18,
+		ReplayConfig = 19,
+		ReplayThreadDone = 20,
 
-		TXDone = 20,
-		Retune = 21,
-		TonesConfigure = 22,
-		AFSKConfigure = 23,
-		PWMRSSIConfigure = 24,
-		OOKConfigure = 25,
-		RDSConfigure = 26,
-		AudioTXConfig = 27,
-		POCSAGConfigure = 28,
-		DTMFTXConfig = 29,
-		ADSBConfigure = 30,
+		TXDone = 30,
+		Retune = 31,
+		TonesConfigure = 32,
+		AFSKConfigure = 33,
+		PWMRSSIConfigure = 34,
+		OOKConfigure = 35,
+		RDSConfigure = 36,
+		AudioTXConfig = 37,
+		POCSAGConfigure = 38,
+		DTMFTXConfig = 39,
+		ADSBConfigure = 40,
 		
-		POCSAGPacket = 31,
+		POCSAGPacket = 41,
 		
-		FIFOSignal = 32,
-		FIFOData = 33,
+		FIFOSignal = 52,
+		FIFOData = 53,
 		MAX
 	};
 
@@ -492,6 +494,37 @@ public:
 	CaptureConfig* const config;
 };
 
+struct ReplayConfig {
+	const size_t read_size;
+	const size_t buffer_count;
+	uint64_t baseband_bytes_sent;
+	FIFO<StreamBuffer*>* fifo_buffers_empty;
+	FIFO<StreamBuffer*>* fifo_buffers_full;
+
+	constexpr ReplayConfig(
+		const size_t read_size,
+		const size_t buffer_count
+	) : read_size { read_size },
+		buffer_count { buffer_count },
+		baseband_bytes_sent { 0 },
+		fifo_buffers_empty { nullptr },
+		fifo_buffers_full { nullptr }
+	{
+	}
+};
+
+class ReplayConfigMessage : public Message {
+public:
+	constexpr ReplayConfigMessage(
+		ReplayConfig* const config
+	) : Message { ID::ReplayConfig },
+		config { config }
+	{
+	}
+
+	ReplayConfig* const config;
+};
+
 class TXDoneMessage : public Message {
 public:
 	constexpr TXDoneMessage(
@@ -708,6 +741,18 @@ public:
 	constexpr CaptureThreadDoneMessage(
 		uint32_t error = 0
 	) : Message { ID::CaptureThreadDone },
+		error { error }
+	{
+	}
+
+	uint32_t error;
+};
+
+class ReplayThreadDoneMessage : public Message {
+public:
+	constexpr ReplayThreadDoneMessage(
+		uint32_t error = 0
+	) : Message { ID::ReplayThreadDone },
 		error { error }
 	{
 	}

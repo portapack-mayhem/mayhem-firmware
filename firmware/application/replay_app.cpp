@@ -1,0 +1,121 @@
+/*
+ * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include "replay_app.hpp"
+
+#include "baseband_api.hpp"
+
+#include "portapack.hpp"
+using namespace portapack;
+
+#include "portapack_persistent_memory.hpp"
+using namespace portapack;
+
+namespace ui {
+
+ReplayAppView::ReplayAppView(NavigationView& nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_replay);
+
+	add_children({ {
+		&channel,
+		&field_frequency,
+		&field_frequency_step,
+		&field_rf_amp,
+		&field_lna,
+		&field_vga,
+		&replay_view,
+		&waterfall,
+	} });
+
+	field_frequency.set_value(target_frequency());
+	field_frequency.set_step(receiver_model.frequency_step());
+	field_frequency.on_change = [this](rf::Frequency f) {
+		this->on_target_frequency_changed(f);
+	};
+	field_frequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			this->on_target_frequency_changed(f);
+			this->field_frequency.set_value(f);
+		};
+	};
+
+	field_frequency_step.set_by_value(receiver_model.frequency_step());
+	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
+		receiver_model.set_frequency_step(v);
+		this->field_frequency.set_step(v);
+	};
+
+	radio::enable({
+		target_frequency(),
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Transmit,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga()),
+		1,
+	});
+
+	replay_view.set_sampling_rate(sampling_rate / 8);
+	replay_view.on_error = [&nav](std::string message) {
+		nav.display_modal("Error", message);
+	};
+}
+
+ReplayAppView::~ReplayAppView() {
+	radio::disable();
+	baseband::shutdown();
+}
+
+void ReplayAppView::on_hide() {
+	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
+	// it's being shown or hidden.
+	waterfall.on_hide();
+	View::on_hide();
+}
+
+void ReplayAppView::set_parent_rect(const Rect new_parent_rect) {
+	View::set_parent_rect(new_parent_rect);
+
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height) };
+	waterfall.set_parent_rect(waterfall_rect);
+}
+
+void ReplayAppView::focus() {
+	field_frequency.focus();
+}
+
+void ReplayAppView::on_target_frequency_changed(rf::Frequency f) {
+	set_target_frequency(f);
+}
+
+void ReplayAppView::set_target_frequency(const rf::Frequency new_value) {
+	persistent_memory::set_tuned_frequency(new_value);;
+}
+
+rf::Frequency ReplayAppView::target_frequency() const {
+	return persistent_memory::tuned_frequency();
+}
+
+} /* namespace ui */

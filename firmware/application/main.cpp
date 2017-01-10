@@ -26,8 +26,8 @@
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer
-//TODO: Frequency manager auto-remove duplicates
 
+//TODO: Frequency manager auto-remove duplicates
 //TODO: "TX box" view or composite widget with frequency and bw settings, simple and advanced setup TX buttons...
 //TODO: Morse coder for foxhunts
 //TODO: Finish EPAR tx

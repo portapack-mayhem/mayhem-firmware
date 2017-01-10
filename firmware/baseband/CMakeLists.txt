@@ -114,6 +114,7 @@ set(CPPSRC
 	matched_filter.cpp
 	spectrum_collector.cpp
 	stream_input.cpp
+	stream_output.cpp
 	dsp_squelch.cpp
 	clock_recovery.cpp
 	packet_builder.cpp
@@ -368,12 +369,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAFS afsk)
 
-### Epar
+### Replay
 
-#set(MODE_CPPSRC
-#	proc_epar.cpp
-#)
-#DeclareTargets(PEPR epar)
+set(MODE_CPPSRC
+	proc_replay.cpp
+)
+DeclareTargets(PREP replay)
 
 ### Tones
 

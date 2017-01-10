@@ -172,6 +172,7 @@ set(CPPSRC
 	ui_rds.cpp
 	ui_receiver.cpp
 	ui_record_view.cpp
+	ui_replay_view.cpp
 	ui_rssi.cpp
 	ui_sd_card_status_view.cpp
 	# ui_sd_card_debug.cpp
@@ -198,6 +199,7 @@ set(CPPSRC
 	ert_app.cpp
 	${COMMON}/ert_packet.cpp
 	capture_app.cpp
+	replay_app.cpp
 	sd_card.cpp
 	time.cpp
 	file.cpp
@@ -206,6 +208,7 @@ set(CPPSRC
 	log_file.cpp
 	${COMMON}/png_writer.cpp
 	capture_thread.cpp
+	replay_thread.cpp
 	${COMMON}/manchester.cpp
 	string_format.cpp
 	temperature_logger.cpp
