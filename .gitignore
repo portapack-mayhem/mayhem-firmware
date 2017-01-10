@@ -26,6 +26,7 @@
 /firmware/application/portapack_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.hpp
+/firmware/toolchain-arm-cortex-m.cmake
 # Compiled Object files
 *.slo
 *.lo
@@ -71,3 +72,4 @@ CMakeFiles/
 
 # Host OS turds
 .DS_Store
+/firmware/CMakeCache.txt
