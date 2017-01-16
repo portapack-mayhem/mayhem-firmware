@@ -140,7 +140,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	logger = std::make_unique<POCSAGLogger>();
 	if (logger) logger->append("pocsag.txt");
 	
-	baseband::set_pocsag();
+	baseband::set_pocsag(pocsag::BitRate::FSK1200);
 }
 
 POCSAGAppView::~POCSAGAppView() {

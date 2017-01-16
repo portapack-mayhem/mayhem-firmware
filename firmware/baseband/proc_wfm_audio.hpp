@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -55,7 +56,7 @@ private:
 		sizeof(dst) / sizeof(int16_t)
 	};
 	
-	std::array<int16_t, 32> pwm;
+	std::array<int16_t, 32> pwm { };
 	const buffer_s16_t pwmrssi_audio_buffer {
 		(int16_t*)pwm.data(),
 		sizeof(pwm) / sizeof(int16_t)
@@ -77,10 +78,10 @@ private:
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 	
-	unsigned int c, synth_acc = 0;
+	unsigned int c { 0 }, synth_acc { 0 };
+	uint32_t synth_div { 0 };
 	bool pwmrssi_enabled = false;
-	uint32_t pwmrssi_freq;
-	uint32_t pwmrssi_avg;
+	uint32_t pwmrssi_avg { 0 };
 
 	bool configured { false };
 	void pwmrssi_config(const PWMRSSIConfigureMessage& message);

@@ -41,6 +41,11 @@ public:
 	SoundBoardView(NavigationView& nav);
 	~SoundBoardView();
 
+	SoundBoardView(const SoundBoardView&) = delete;
+	SoundBoardView(SoundBoardView&&) = delete;
+	SoundBoardView& operator=(const SoundBoardView&) = delete;
+	SoundBoardView& operator=(SoundBoardView&&) = delete;
+
 	void focus() override;
 	
 	std::string title() const override { return "Soundboard"; };

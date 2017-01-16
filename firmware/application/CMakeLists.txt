@@ -176,6 +176,7 @@ set(CPPSRC
 	ui_replay_view.cpp
 	ui_rssi.cpp
 	ui_sd_card_status_view.cpp
+	ui_sd_wipe.cpp
 	# ui_sd_card_debug.cpp
 	ui_setup.cpp
 	ui_soundboard.cpp

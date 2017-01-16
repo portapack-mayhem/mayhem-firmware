@@ -5027,6 +5027,33 @@ ui_sd_card_status_view.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_status_view.cpp.s
 .PHONY : ui_sd_card_status_view.cpp.s
 
+ui_sd_wipe.obj: ui_sd_wipe.cpp.obj
+
+.PHONY : ui_sd_wipe.obj
+
+# target to build an object file
+ui_sd_wipe.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_wipe.cpp.obj
+.PHONY : ui_sd_wipe.cpp.obj
+
+ui_sd_wipe.i: ui_sd_wipe.cpp.i
+
+.PHONY : ui_sd_wipe.i
+
+# target to preprocess a source file
+ui_sd_wipe.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_wipe.cpp.i
+.PHONY : ui_sd_wipe.cpp.i
+
+ui_sd_wipe.s: ui_sd_wipe.cpp.s
+
+.PHONY : ui_sd_wipe.s
+
+# target to generate assembly for a file
+ui_sd_wipe.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_sd_wipe.cpp.s
+.PHONY : ui_sd_wipe.cpp.s
+
 ui_setup.obj: ui_setup.cpp.obj
 
 .PHONY : ui_setup.obj
@@ -5769,6 +5796,9 @@ help:
 	@echo "... ui_sd_card_status_view.obj"
 	@echo "... ui_sd_card_status_view.i"
 	@echo "... ui_sd_card_status_view.s"
+	@echo "... ui_sd_wipe.obj"
+	@echo "... ui_sd_wipe.i"
+	@echo "... ui_sd_wipe.s"
 	@echo "... ui_setup.obj"
 	@echo "... ui_setup.i"
 	@echo "... ui_setup.s"

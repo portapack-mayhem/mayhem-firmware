@@ -34,13 +34,14 @@ namespace pocsag {
 
 enum BitRate : uint32_t {
 	UNKNOWN,
-	FSK512,
-	FSK1200,
-	FSK2400
+	FSK512 = 512,
+	FSK1200 = 1200,
+	FSK2400 = 2400
 };
 
 enum PacketFlag : uint32_t {
 	NORMAL,
+	IDLE,
 	TIMED_OUT,
 	TOO_LONG
 };
@@ -81,17 +82,17 @@ public:
 	}
 
 	void clear() {
-		for (size_t c = 0; c < 16; c++)
+		for (uint32_t c = 0; c < 16; c++)
 			codewords[c] = 0;
 		bitrate_ = UNKNOWN;
 		flag_ = NORMAL;
 	}
 
 private:
-	BitRate bitrate_;
-	PacketFlag flag_;
+	BitRate bitrate_ { UNKNOWN };
+	PacketFlag flag_ { NORMAL };
 	uint32_t codewords[16];
-	Timestamp timestamp_;
+	Timestamp timestamp_ { };
 };
 
 } /* namespace pocsag */

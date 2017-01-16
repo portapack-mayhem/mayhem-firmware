@@ -38,6 +38,11 @@ public:
 	CloseCallView(NavigationView& nav);
 	~CloseCallView();
 	
+	CloseCallView(const CloseCallView&) = delete;
+	CloseCallView(CloseCallView&&) = delete;
+	CloseCallView& operator=(const CloseCallView&) = delete;
+	CloseCallView& operator=(CloseCallView&&) = delete;
+	
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;

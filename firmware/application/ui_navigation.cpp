@@ -33,6 +33,7 @@
 
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"
+#include "ui_bht_tx.hpp"
 #include "ui_closecall.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
@@ -43,11 +44,11 @@
 #include "ui_numbers.hpp"
 #include "ui_nuoptix.hpp"
 #include "ui_rds.hpp"
+#include "ui_sd_wipe.hpp"
 #include "ui_setup.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_whipcalc.hpp"
 #include "ui_whistle.hpp"
-#include "ui_bht_tx.hpp"
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -433,45 +434,6 @@ BMPView::BMPView(NavigationView& nav) {
 
 void BMPView::paint(Painter&) {
 	portapack::display.drawBMP({(240 - 185) / 2, 0}, splash_bmp, false);
-}
-
-/* WipeSDView ************************************************************/
-
-WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
-	add_children({
-		&text_info,
-		&progress,
-		&dummy
-	});
-}
-
-WipeSDView::~WipeSDView() {
-	if (thread) chThdTerminate(thread);
-}
-
-Thread* WipeSDView::thread { nullptr };
-
-void WipeSDView::focus() {
-	BlockDeviceInfo block_device_info;
-	
-	dummy.focus();
-	
-	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe first 32MB of SD card ?", YESCANCEL, [this](bool choice) {
-				if (choice)
-					confirmed = true;
-			}
-		);
-	} else {
-		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
-			blocks = 32;	// Only erase first 32MB (block_device_info.blk_size * uint64_t(block_device_info.blk_num)) / (1024 * 1024);
-			progress.set_max(blocks);
-			
-			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, WipeSDView::static_fn, this);
-		} else {
-			nav_.pop();		// Just silently abort for now
-		}
-	}
 }
 
 /* PlayDeadView **********************************************************/

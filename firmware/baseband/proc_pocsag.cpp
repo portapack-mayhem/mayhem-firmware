@@ -29,49 +29,50 @@
 #include <cstdint>
 #include <cstddef>
 
-#define FREQ_SAMP		24000
-#define BAUD			1200
-#define SPHASEINC		(0x10000u * BAUD / FREQ_SAMP)
+#define POCSAG_AUDIO_RATE		24000
 
 #define POCSAG_SYNC		0x7CD215D8
 #define POCSAG_IDLE		0x7A89C197
+#define POCSAG_PREAMBLE_LENGTH	576
+#define POCSAG_BATCH_LENGTH		(9 * 32)
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
-	/* 1.536MHz, 2048 samples */
+	// Samplerate is 1.536MHz, gets 2048 samples, called at 750Hz
 	
-	if( !configured ) return;
+	if (!configured) return;
 	
+	// Get 24kHz audio
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-
 	auto audio = demod.execute(decim_1_out, audio_buffer);
 	
-	for (c = 0; c < 32; c++) {
+	// End up with 32 samples
+	for (uint32_t c = 0; c < 32; c++) {
 		
-		// Bit = sign
-		const int32_t audio_sample = audio.p[c] * 32768.0f;	// sample_int
+		const int32_t audio_sample = audio.p[c] * 32768.0f;
 		//const int32_t audio_sample = __SSAT(sample_int, 16);
 		
-		dcd_shreg <<= 1;
-		dcd_shreg |= (audio_sample < 0);
+		slicer_sr <<= 1;
+		slicer_sr |= (audio_sample < 0);
 
 		// Detect transitions to adjust clock
-		if ((dcd_shreg ^ (dcd_shreg >> 1)) & 1) {
-			if (sphase < (0x8000u-(SPHASEINC/2)))
-				sphase += SPHASEINC/8;
+		if ((slicer_sr ^ (slicer_sr >> 1)) & 1) {
+			if (sphase < (0x8000u - sphase_delta_half))
+				sphase += sphase_delta_eighth;
 			else
-				sphase -= SPHASEINC/8;
+				sphase -= sphase_delta_eighth;
 		}
 		
-		sphase += SPHASEINC;
+		sphase += sphase_delta;
 		
+		// Symbol time elapsed
 		if (sphase >= 0x10000u) {
-			sphase &= 0xffffu;
+			sphase &= 0xFFFFu;
 			
 			rx_data <<= 1;
-			rx_data |= (dcd_shreg & 1);
+			rx_data |= (slicer_sr & 1);
 			
-			switch(rx_state) {
+			switch (rx_state) {
 				
 				case WAITING:
 					if (rx_data == 0xAAAAAAAA) {
@@ -79,12 +80,10 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 						sync_timeout = 0;
 					}
 					break;
-						
+				
 				case PREAMBLE:
-					if (sync_timeout < 600) {
+					if (sync_timeout < POCSAG_PREAMBLE_LENGTH) {
 						sync_timeout++;
-						
-						//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
 
 						if (rx_data == POCSAG_SYNC) {
 							packet.clear();
@@ -94,21 +93,24 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							last_rx_data = rx_data;
 							rx_state = SYNC;
 						} else if (rx_data == POCSAG_IDLE) {
+							push_packet(pocsag::PacketFlag::IDLE);
 							rx_state = WAITING;
 						}
 						
 					} else {
-						rx_state = WAITING;		// Abort
+						rx_state = WAITING;		// Timed out: abort
 					}
 					break;
 				
 				case SYNC:
-					if (msg_timeout < 600) {
+					if (msg_timeout < POCSAG_BATCH_LENGTH) {
 						msg_timeout++;
 						rx_bit++;
 						
 						if (rx_bit >= 32) {
 							rx_bit = 0;
+							
+							// Got a complete codeword
 							
 							//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
 							
@@ -116,22 +118,14 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							
 							if ((rx_data == POCSAG_IDLE) && (!(last_rx_data & 0x80000000))) {
 								// SYNC then IDLE always means end of message ?
-								packet.set_bitrate(pocsag::BitRate::FSK1200);
-								packet.set_flag(pocsag::PacketFlag::NORMAL);
-								packet.set_timestamp(Timestamp::now());
-								const POCSAGPacketMessage message(packet);
-								shared_memory.application_queue.push(message);
+								push_packet(pocsag::PacketFlag::NORMAL);
 								rx_state = WAITING;
 							} else {
 								if (frame_counter < 15) {
 									frame_counter++;
 								} else {
 									// More than 17-1 codewords
-									packet.set_bitrate(pocsag::BitRate::FSK1200);
-									packet.set_flag(pocsag::PacketFlag::TOO_LONG);
-									packet.set_timestamp(Timestamp::now());
-									const POCSAGPacketMessage message(packet);
-									shared_memory.application_queue.push(message);
+									push_packet(pocsag::PacketFlag::TOO_LONG);
 									rx_state = WAITING;
 								}
 							}
@@ -140,11 +134,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 						}
 					} else {
 						// Timed out (no end of message received)
-						packet.set_bitrate(pocsag::BitRate::FSK1200);
-						packet.set_flag(pocsag::PacketFlag::TIMED_OUT);
-						packet.set_timestamp(Timestamp::now());
-						const POCSAGPacketMessage message(packet);
-						shared_memory.application_queue.push(message);
+						push_packet(pocsag::PacketFlag::TIMED_OUT);
 						rx_state = WAITING;
 					}
 					break;
@@ -156,14 +146,20 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	}
 }
 
+void POCSAGProcessor::push_packet(pocsag::PacketFlag flag) {
+	packet.set_bitrate(bitrate);
+	packet.set_flag(flag);
+	packet.set_timestamp(Timestamp::now());
+	const POCSAGPacketMessage message(packet);
+	shared_memory.application_queue.push(message);
+}
+
 void POCSAGProcessor::on_message(const Message* const message) {
 	if (message->id == Message::ID::POCSAGConfigure)
 		configure(*reinterpret_cast<const POCSAGConfigureMessage*>(message));
 }
 
 void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
-	(void)message;
-	
 	constexpr size_t decim_0_input_fs = baseband_fs;
 	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
@@ -176,6 +172,11 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 	demod.configure(demod_input_fs, 4500);
 
+	bitrate = message.bitrate;
+	sphase_delta = 0x10000u * bitrate / POCSAG_AUDIO_RATE;
+	sphase_delta_half = sphase_delta / 2;			// Just for speed
+	sphase_delta_eighth = sphase_delta / 8;
+	
 	rx_state = WAITING;
 	configured = true;
 }

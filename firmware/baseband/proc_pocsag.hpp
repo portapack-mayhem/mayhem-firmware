@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 1996 Thomas Sailer (sailer@ife.ee.ethz.ch, hb9jnx@hb9w.che.eu)
+ * Copyright (C) 2012-2014 Elias Oenal (multimon-ng@eliasoenal.com)
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  *
@@ -60,37 +62,40 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 	
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
-	std::array<float, 32> audio;
+	std::array<float, 32> audio { };
 	const buffer_f32_t audio_buffer {
 		audio.data(),
 		audio.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 
-	dsp::demodulate::FM demod;
+	dsp::demodulate::FM demod { };
 
-	uint32_t sync_timeout;
-	uint32_t msg_timeout;
+	uint32_t sync_timeout { 0 };
+	uint32_t msg_timeout { 0 };
 
-	uint32_t dcd_shreg;
-	uint32_t sphase;
-	uint32_t rx_data;
-	uint32_t last_rx_data;
-	uint32_t rx_bit;
+	uint32_t slicer_sr { 0 };
+	uint32_t sphase { 0 };
+	uint32_t sphase_delta { 0 };
+	uint32_t sphase_delta_half { 0 };
+	uint32_t sphase_delta_eighth { 0 };
+	uint32_t rx_data { 0 };
+	uint32_t last_rx_data { 0 };
+	uint32_t rx_bit { 0 };
 	bool configured = false;
-	rx_states rx_state;
+	rx_states rx_state { WAITING };
+	pocsag::BitRate bitrate { pocsag::BitRate::FSK1200 };
+	uint32_t frame_counter { 0 };
+	pocsag::POCSAGPacket packet { };
 	
-	size_t c, frame_counter;
-	
-	pocsag::POCSAGPacket packet;
-	
+	void push_packet(pocsag::PacketFlag flag);
 	void configure(const POCSAGConfigureMessage& message);
 	
 };

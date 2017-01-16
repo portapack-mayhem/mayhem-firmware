@@ -42,9 +42,9 @@ public:
 private:
 	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	
-	SpectrumCollector channel_spectrum;
+	SpectrumCollector channel_spectrum { };
 
-	std::array<complex16_t, 256> spectrum;
+	std::array<complex16_t, 256> spectrum { };
 
 	size_t phase = 0;
 };

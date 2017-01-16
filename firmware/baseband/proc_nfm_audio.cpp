@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -49,7 +50,8 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 				pwmrssi_audio_buffer.p[c] = 32767;
 			else
 				pwmrssi_audio_buffer.p[c] = -32768;
-			if (synth_acc < 30)		// 24kHz / 30 = 800Hz (TODO: use pwmrssi_freq !)
+			
+			if (synth_acc < synth_div)		// 24kHz / 30 = 800Hz
 				synth_acc++;
 			else
 				synth_acc = 0;
@@ -111,8 +113,9 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 
 void NarrowbandFMAudio::pwmrssi_config(const PWMRSSIConfigureMessage& message) {
 	pwmrssi_enabled = message.enabled;
-	pwmrssi_freq = message.freq;
 	pwmrssi_avg = message.avg / 3;
+	synth_div = message.synth_div;
+	synth_acc = 0;
 }
 
 void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {

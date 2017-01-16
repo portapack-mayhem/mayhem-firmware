@@ -141,9 +141,9 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 	send_message(&message);
 }
 
-void set_pocsag() {
+void set_pocsag(const pocsag::BitRate bitrate) {
 	const POCSAGConfigureMessage message {
-		1200
+		bitrate
 	};
 	send_message(&message);
 }

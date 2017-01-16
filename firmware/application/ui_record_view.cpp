@@ -42,7 +42,7 @@ void RecordView::toggle_pwmrssi() {
 	// Send to RSSI widget
 	const PWMRSSIConfigureMessage message {
 		pwmrssi_enabled,
-		1000,
+		64,
 		0
 	};
 	shared_memory.application_queue.push(message);

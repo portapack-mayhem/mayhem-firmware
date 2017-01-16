@@ -38,6 +38,11 @@ public:
 	EncodersView(NavigationView& nav);
 	~EncodersView();
 	
+	EncodersView(const EncodersView&) = delete;
+	EncodersView(EncodersView&&) = delete;
+	EncodersView& operator=(const EncodersView&) = delete;
+	EncodersView& operator=(EncodersView&&) = delete;
+	
 	void focus() override;
 	void on_show() override;
 	

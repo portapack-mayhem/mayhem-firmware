@@ -24,6 +24,7 @@
 #define __BASEBAND_API_H__
 
 #include "message.hpp"
+#include "pocsag_packet.hpp"
 
 #include "dsp_fir_taps.hpp"
 
@@ -62,7 +63,7 @@ void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phas
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format);
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
 					const uint32_t pause_symbols);
-void set_pocsag();
+void set_pocsag(const pocsag::BitRate bitrate);
 void set_adsb();
 void set_rds_data(const uint16_t message_length);
 //void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);

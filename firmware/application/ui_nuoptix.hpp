@@ -89,7 +89,7 @@ private:
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void transmit(bool setup);
 	
-	uint32_t timecode;
+	uint32_t timecode { 0 };
 	
 	FrequencyField field_frequency {
 		{ 1 * 8, 4 },

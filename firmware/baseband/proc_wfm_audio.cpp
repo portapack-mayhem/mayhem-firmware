@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -77,7 +78,8 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 				pwmrssi_audio_buffer.p[c] = 32767;
 			else
 				pwmrssi_audio_buffer.p[c] = -32768;
-			if (synth_acc < 96)		// 48kHz / 96 = 500Hz (TODO: use pwmrssi_freq !)
+			
+			if (synth_acc < synth_div)		// 48kHz / 96 = 500Hz
 				synth_acc++;
 			else
 				synth_acc = 0;
@@ -135,7 +137,6 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 
 	channel_spectrum.set_decimation_factor(1);
 
-	pwmrssi_enabled = false;
 	synth_acc = 0;
 
 	configured = true;
@@ -143,8 +144,9 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 
 void WidebandFMAudio::pwmrssi_config(const PWMRSSIConfigureMessage& message) {
 	pwmrssi_enabled = message.enabled;
-	pwmrssi_freq = message.freq;
 	pwmrssi_avg = message.avg;
+	synth_div = message.synth_div;
+	synth_acc = 0;
 }
 
 void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {

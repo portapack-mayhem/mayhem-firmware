@@ -30,6 +30,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "pocsag_packet.hpp"
 #include "baseband_packet.hpp"
 #include "ert_packet.hpp"
 #include "tpms_packet.hpp"
@@ -546,17 +547,17 @@ class PWMRSSIConfigureMessage : public Message {
 public:
 	constexpr PWMRSSIConfigureMessage(
 		const bool enabled,
-		const uint32_t freq,
+		const uint32_t synth_div,
 		const int32_t avg
 	) : Message { ID::PWMRSSIConfigure },
 		enabled(enabled),
-		freq(freq),
+		synth_div(synth_div),
 		avg(avg)
 	{
 	}
 	
 	const bool enabled;
-	const uint32_t freq;
+	const uint32_t synth_div;
 	const int32_t avg;
 };
 
@@ -678,13 +679,13 @@ public:
 class POCSAGConfigureMessage : public Message {
 public:
 	constexpr POCSAGConfigureMessage(
-		const uint32_t rate
+		const pocsag::BitRate bitrate
 	) : Message { ID::POCSAGConfigure },
-		rate(rate)
+		bitrate(bitrate)
 	{
 	}
 
-	const uint32_t rate;
+	const pocsag::BitRate bitrate;
 };
 
 class ADSBConfigureMessage : public Message {
