@@ -34,7 +34,7 @@ FRESULT f_write (
 <dt>btw</dt>
 <dd>Specifies number of bytes to write in range of <tt>UINT</tt> type.</dd>
 <dt>bw</dt>
-<dd>Pointer to the <tt>UINT</tt> variable to return the number of bytes written. The value is always valid after the function call regardless of the result.</dd>
+<dd>Pointer to the <tt>UINT</tt> variable to return the number of bytes written. The value is always valid after the function call regardless of the result code.</dd>
 </dl>
 </div>
 
@@ -53,7 +53,7 @@ FRESULT f_write (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The read/write pointer of the file object advances number of bytes written. After the function succeeded, <tt class="arg">*bw</tt> should be checked to detect the disk full. In case of <tt class="arg">*bw</tt> is less than <tt class="arg">btw</tt>, it means the volume got full during the write operation. The function can take a time when the volume is full or close to full.</p>
+<p>The function starts to write data to the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes written. After the function succeeded, <tt class="arg">*bw</tt> should be checked to detect the disk full. In case of <tt class="arg">*bw</tt> is less than <tt class="arg">btw</tt>, it means the volume got full during the write operation. The function can take a time when the volume is full or close to full.</p>
 </div>
 
 

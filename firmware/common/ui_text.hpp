@@ -42,11 +42,11 @@ public:
 	{
 	}
 
-	Dim w() const {
+	int w() const {
 		return w_;
 	}
 
-	Dim h() const {
+	int h() const {
 		return h_;
 	}
 

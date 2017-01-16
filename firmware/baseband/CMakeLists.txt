@@ -35,7 +35,7 @@ set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++11 -fno-rtti -fno-exceptions")
+set(USE_CPPOPT "-std=c++14 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -106,6 +106,7 @@ set(CPPSRC
 	baseband_dma.cpp
 	${COMMON}/baseband_sgpio.cpp
 	${COMMON}/portapack_shared_memory.cpp
+	${COMMON}/buffer.cpp
 	baseband_thread.cpp
 	baseband_processor.cpp
 	baseband_stats_collector.cpp
@@ -259,6 +260,7 @@ macro(DeclareTargets chunk_tag name)
 	include_directories(. ${INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
 	add_custom_command(
 		OUTPUT ${PROJECT_NAME}.bin ${PROJECT_NAME}.img

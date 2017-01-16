@@ -126,7 +126,7 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 		const auto result_second_if = second_if.set_frequency(tuning_config.second_lo_frequency);
 
 		rf_path.set_band(tuning_config.rf_path_band);
-		baseband_cpld.set_q_invert(tuning_config.baseband_q_invert);
+		baseband_cpld.set_invert(tuning_config.baseband_invert);
 
 		return result_second_if;
 	} else {
@@ -146,16 +146,16 @@ void set_vga_gain(const int_fast8_t db) {
 	second_if.set_vga_gain(db);
 }
 
+void set_tx_gain(const int_fast8_t db) {
+	second_if.set_tx_vga_gain(db);
+}
+
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
 	second_if.set_lpf_rf_bandwidth(bandwidth_minimum);
 }
 
 void set_baseband_rate(const uint32_t rate) {
 	portapack::clock_manager.set_sampling_frequency(rate);
-}
-
-void set_baseband_decimation_by(const size_t n) {
-	baseband_cpld.set_decimation_by(n);
 }
 
 void set_antenna_bias(const bool on) {
@@ -181,7 +181,6 @@ void configure(Configuration configuration) {
 	set_lna_gain(configuration.lna_gain);
 	set_vga_gain(configuration.vga_gain);
 	set_baseband_rate(configuration.baseband_rate);
-	set_baseband_decimation_by(configuration.baseband_decimation);
 	set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
 	set_direction(configuration.direction);
 }

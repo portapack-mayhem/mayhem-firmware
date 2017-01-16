@@ -16,20 +16,15 @@
 <p><tt>DIR</tt>構造体は、<tt>f_opendir/f_readdir/f_findfirst/f_findnext</tt>関数のワーク エリアとして使用されます。アプリケーションは、この構造体のメンバを書き換えてはなりません。</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
-    FATFS*  fs;        <span class="c">/* 親ファイル システム オブジェクトへのポインタ */</span>
-    WORD    id;        <span class="c">/* 親ファイル システム オブジェクトのマウントID */</span>
-    WORD    index;     <span class="c">/* 次に検索開始するディレクトリ インデックス番号 */</span>
-    DWORD   sclust;    <span class="c">/* テーブル開始クラスタ (0:ルート) */</span>
+    _FDID   obj;       <span class="c">/* オブジェクトID */</span>
+    DOWRD   dptr;      <span class="c">/* 現在のread/writeオフセット */</span>
     DWORD   clust;     <span class="c">/* 現在のクラスタ番号 */</span>
     DWORD   sect;      <span class="c">/* 現在のセクタ番号 */</span>
     BYTE*   dir;       <span class="c">/* 現在のSFNエントリ(Win[]内)へのポインタ */</span>
     BYTE*   fn;        <span class="c">/* SFNバッファへのポインタ (in/out) {file[8],ext[3],status[1]} */</span>
-<span class="k">#if</span> _FS_LOCK
-    UINT    lockid;    <span class="c">/* サブ ディレクトリ ロックID (0:ルート) */</span>
-<span class="k">#endif</span>
 <span class="k">#if</span> _USE_LFN
+    DWORD   blk_ofs;   <span class="c">/* 現在のエントリブロックの先頭 (0xFFFFFFFF:無効) */</span>
     WCHAR*  lfn;       <span class="c">/* LFNバッファへのポインタ (in/out) */</span>
-    WORD    lfn_idx;   <span class="c">/* LFNエントリの先頭インデックス (0xFFFF:無効) */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> _USE_FIND
     const TCHAR*  pat; <span class="c">/* マッチング パターンへのポインタ */</span>

@@ -33,7 +33,7 @@ TouchCalibrationView::TouchCalibrationView(
 ) : nav { nav },
 	calibration { touch::default_calibration() }
 {
-	add_children({ {
+	add_children({
 		&image_calibrate_0,
 		&image_calibrate_1,
 		&image_calibrate_2,
@@ -46,7 +46,7 @@ TouchCalibrationView::TouchCalibrationView(
 		&label_failure,
 		&button_cancel,
 		&button_ok,
-	} });
+	});
 
 	button_cancel.on_select = [this](Button&){ this->on_cancel(); };
 	button_ok.on_select = [this](Button&){ this->on_ok(); };
@@ -92,8 +92,8 @@ void TouchCalibrationView::set_phase(const Phase value) {
 
 uint32_t TouchCalibrationView::distance_squared(const Point& touch_point, const Image& target) {
 	const auto target_point = target.screen_rect().center();
-	const int32_t dx = target_point.x - touch_point.x;
-	const int32_t dy = target_point.y - touch_point.y;
+	const int32_t dx = target_point.x() - touch_point.x();
+	const int32_t dy = target_point.y() - touch_point.y();
 	const uint32_t dx2 = dx * dx;
 	const uint32_t dy2 = dy * dy;
 	return dx2 + dy2;

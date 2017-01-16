@@ -198,8 +198,8 @@ void lcd_start_ram_write(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x, p.x + s.w - 1);
-	lcd_paset(p.y, p.y + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.width()  - 1);
+	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramwr_start();
 }
 
@@ -207,21 +207,21 @@ void lcd_start_ram_read(
 	const ui::Point p,
 	const ui::Size s
 ) {
-	lcd_caset(p.x, p.x + s.w - 1);
-	lcd_paset(p.y, p.y + s.h - 1);
+	lcd_caset(p.x(), p.x() + s.width()  - 1);
+	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramrd_start();
 }
 
 void lcd_start_ram_write(
 	const ui::Rect& r
 ) {
-	lcd_start_ram_write(r.pos, r.size);
+	lcd_start_ram_write(r.location(), r.size());
 }
 
 void lcd_start_ram_read(
 	const ui::Rect& r
 ) {
-	lcd_start_ram_read(r.pos, r.size);
+	lcd_start_ram_read(r.location(), r.size());
 }
 
 void lcd_vertical_scrolling_definition(
@@ -274,7 +274,7 @@ void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
 	if( !r_clipped.is_empty() ) {
 		lcd_start_ram_write(r_clipped);
-		size_t count = r_clipped.size.w * r_clipped.size.h;
+		size_t count = r_clipped.width() * r_clipped.height();
 		io.lcd_write_pixels(c, count);
 	}
 }
@@ -286,7 +286,7 @@ void ILI9341::render_line(const ui::Point p, const uint8_t count, const ui::Colo
 
 void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer) {
 	lcd_start_ram_write(p, s);
-	io.lcd_write_pixels(line_buffer, s.w * s.h);
+	io.lcd_write_pixels(line_buffer, s.width() * s.height());
 }
 
 // RLE_4 BMP loader (delta not implemented)
@@ -328,7 +328,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 			} else {
 				by = bitmap[data_idx++];
 				if (by == 0) {
-					render_line({p.x, p.y + py}, bmp_header->width, line_buffer);
+					render_line({p.x(), p.y() + py}, bmp_header->width, line_buffer);
 					py--;
 					px = 0;
 				} else if (by == 1) {
@@ -354,10 +354,10 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 				count = by >> 1;
 				by = bitmap[data_idx++];
 				for (c = 0; c < count; c++) {
-					if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
+					if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by >> 4]);
 					px++;
 					if (px < bmp_header->width) {
-						if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
+						if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by & 15]);
 					}
 					px++;
 				}
@@ -375,10 +375,10 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 					count = by >> 1;
 					for (c = 0; c < count; c++) {
 						by = bitmap[data_idx++];
-						if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by >> 4]);
+						if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by >> 4]);
 						px++;
 						if (px < bmp_header->width) {
-							if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x + px), static_cast<ui::Coord>(p.y + py)}, palette[by & 15]);
+							if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by & 15]);
 						}
 						px++;
 					}
@@ -390,10 +390,10 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 }
 
 void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Color color) {
-	int x0 = start.x;
-	int y0 = start.y;
-	int x1 = end.x;
-	int y1 = end.y;
+	int x0 = start.x();
+	int y0 = start.y();
+	int x1 = end.x();
+	int y1 = end.y();
 	
 	int dx = std::abs(x1-x0), sx = x0<x1 ? 1 : -1;
 	int dy = std::abs(y1-y0), sy = y0<y1 ? 1 : -1; 
@@ -422,10 +422,7 @@ void ILI9341::fill_circle(
 			const uint32_t d2 = x2 + y2;
 			const bool inside = d2 < radius2;
 			const auto color = inside ? foreground : background;
-			draw_pixel({
-				static_cast<ui::Coord>(x + center.x),
-				static_cast<ui::Coord>(y + center.y)
-			}, color);
+			draw_pixel({ x + center.x(), y + center.y() }, color);
 		}
 	}
 }
@@ -446,7 +443,7 @@ void ILI9341::draw_pixels(
 	const size_t count
 ) {
 	/* TODO: Assert that rectangle width x height < count */
-	lcd_start_ram_write(r.pos, r.size);
+	lcd_start_ram_write(r);
 	io.lcd_write_pixels(colors, count);
 }
 
@@ -472,7 +469,7 @@ void ILI9341::draw_bitmap(
 ) {
 	lcd_start_ram_write(p, size);
 
-	const size_t count = size.w * size.h;
+	const size_t count = size.width() * size.height();
 	for(size_t i=0; i<count; i++) {
 		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
 		io.lcd_write_pixel(pixel ? foreground : background);

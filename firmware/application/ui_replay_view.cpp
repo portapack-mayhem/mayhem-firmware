@@ -27,7 +27,8 @@
 #include "portapack_shared_memory.hpp"
 using namespace portapack;
 
-#include "time.hpp"
+#include "rtc_time.hpp"
+#include "io_file.hpp"
 
 #include "string_format.hpp"
 #include "utility.hpp"
@@ -38,22 +39,22 @@ namespace ui {
 
 ReplayView::ReplayView(
 	const Rect parent_rect,
-	std::string filename_stem_pattern,
+	std::string filename,
 	const FileType file_type,
 	const size_t read_size,
 	const size_t buffer_count
 ) : View { parent_rect },
-	filename_stem_pattern { filename_stem_pattern },
+	filename { filename },
 	file_type { file_type },
 	read_size { read_size },
 	buffer_count { buffer_count }
 {
-	add_children({ {
+	add_children({
 		&rect_background,
 		&button_record,
 		&text_replay_filename,
 		&text_time_seek,
-	} });
+	});
 
 	rect_background.set_parent_rect({ { 0, 0 }, size() });
 
@@ -61,13 +62,13 @@ ReplayView::ReplayView(
 		this->toggle();
 	};
 
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 }
 
 ReplayView::~ReplayView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void ReplayView::focus() {
@@ -109,24 +110,10 @@ void ReplayView::start() {
 		return;
 	}
 
-	const auto filename_stem = next_filename_stem_matching_pattern(filename_stem_pattern);
-	if( filename_stem.empty() ) {
-		return;
-	}
-
-	std::unique_ptr<Reader> reader;
-	auto p = std::make_unique<FileReader>();
-	auto create_error = p->create(
-		filename_stem + ".C16"
-	);
-	if( create_error.is_valid() ) {
-		handle_error(create_error.value());
-	} else {
-		reader = std::move(p);
-	}
+	auto reader = std::make_unique<FileReader>();
 
 	if( reader ) {
-		text_replay_filename.set(filename_stem);
+		text_replay_filename.set(filename.string());
 		button_record.set_bitmap(&bitmap_stop);
 		replay_thread = std::make_unique<ReplayThread>(
 			std::move(reader),

@@ -194,6 +194,33 @@ __/chibios-portapack/ext/fatfs/src/ff.c.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/ff.c.s
 .PHONY : __/chibios-portapack/ext/fatfs/src/ff.c.s
 
+__/chibios-portapack/ext/fatfs/src/option/unicode.obj: __/chibios-portapack/ext/fatfs/src/option/unicode.c.obj
+
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.obj
+
+# target to build an object file
+__/chibios-portapack/ext/fatfs/src/option/unicode.c.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/option/unicode.c.obj
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.c.obj
+
+__/chibios-portapack/ext/fatfs/src/option/unicode.i: __/chibios-portapack/ext/fatfs/src/option/unicode.c.i
+
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.i
+
+# target to preprocess a source file
+__/chibios-portapack/ext/fatfs/src/option/unicode.c.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/option/unicode.c.i
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.c.i
+
+__/chibios-portapack/ext/fatfs/src/option/unicode.s: __/chibios-portapack/ext/fatfs/src/option/unicode.c.s
+
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.s
+
+# target to generate assembly for a file
+__/chibios-portapack/ext/fatfs/src/option/unicode.c.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/option/unicode.c.s
+.PHONY : __/chibios-portapack/ext/fatfs/src/option/unicode.c.s
+
 __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.obj: __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.c.obj
 
 .PHONY : __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.obj
@@ -2003,6 +2030,60 @@ __/common/ais_packet.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/ais_packet.cpp.s
 .PHONY : __/common/ais_packet.cpp.s
 
+__/common/buffer.obj: __/common/buffer.cpp.obj
+
+.PHONY : __/common/buffer.obj
+
+# target to build an object file
+__/common/buffer.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer.cpp.obj
+.PHONY : __/common/buffer.cpp.obj
+
+__/common/buffer.i: __/common/buffer.cpp.i
+
+.PHONY : __/common/buffer.i
+
+# target to preprocess a source file
+__/common/buffer.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer.cpp.i
+.PHONY : __/common/buffer.cpp.i
+
+__/common/buffer.s: __/common/buffer.cpp.s
+
+.PHONY : __/common/buffer.s
+
+# target to generate assembly for a file
+__/common/buffer.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer.cpp.s
+.PHONY : __/common/buffer.cpp.s
+
+__/common/buffer_exchange.obj: __/common/buffer_exchange.cpp.obj
+
+.PHONY : __/common/buffer_exchange.obj
+
+# target to build an object file
+__/common/buffer_exchange.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer_exchange.cpp.obj
+.PHONY : __/common/buffer_exchange.cpp.obj
+
+__/common/buffer_exchange.i: __/common/buffer_exchange.cpp.i
+
+.PHONY : __/common/buffer_exchange.i
+
+# target to preprocess a source file
+__/common/buffer_exchange.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer_exchange.cpp.i
+.PHONY : __/common/buffer_exchange.cpp.i
+
+__/common/buffer_exchange.s: __/common/buffer_exchange.cpp.s
+
+.PHONY : __/common/buffer_exchange.s
+
+# target to generate assembly for a file
+__/common/buffer_exchange.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/buffer_exchange.cpp.s
+.PHONY : __/common/buffer_exchange.cpp.s
+
 __/common/chibios_cpp.obj: __/common/chibios_cpp.cpp.obj
 
 .PHONY : __/common/chibios_cpp.obj
@@ -3272,33 +3353,6 @@ file.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/file.cpp.s
 .PHONY : file.cpp.s
 
-filewriter.obj: filewriter.cpp.obj
-
-.PHONY : filewriter.obj
-
-# target to build an object file
-filewriter.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.obj
-.PHONY : filewriter.cpp.obj
-
-filewriter.i: filewriter.cpp.i
-
-.PHONY : filewriter.i
-
-# target to preprocess a source file
-filewriter.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.i
-.PHONY : filewriter.cpp.i
-
-filewriter.s: filewriter.cpp.s
-
-.PHONY : filewriter.s
-
-# target to generate assembly for a file
-filewriter.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/filewriter.cpp.s
-.PHONY : filewriter.cpp.s
-
 freqman.obj: freqman.cpp.obj
 
 .PHONY : freqman.obj
@@ -3352,6 +3406,60 @@ hackrf_cpld_data.s: hackrf_cpld_data.cpp.s
 hackrf_cpld_data.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/hackrf_cpld_data.cpp.s
 .PHONY : hackrf_cpld_data.cpp.s
+
+io_file.obj: io_file.cpp.obj
+
+.PHONY : io_file.obj
+
+# target to build an object file
+io_file.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_file.cpp.obj
+.PHONY : io_file.cpp.obj
+
+io_file.i: io_file.cpp.i
+
+.PHONY : io_file.i
+
+# target to preprocess a source file
+io_file.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_file.cpp.i
+.PHONY : io_file.cpp.i
+
+io_file.s: io_file.cpp.s
+
+.PHONY : io_file.s
+
+# target to generate assembly for a file
+io_file.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_file.cpp.s
+.PHONY : io_file.cpp.s
+
+io_wave.obj: io_wave.cpp.obj
+
+.PHONY : io_wave.obj
+
+# target to build an object file
+io_wave.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_wave.cpp.obj
+.PHONY : io_wave.cpp.obj
+
+io_wave.i: io_wave.cpp.i
+
+.PHONY : io_wave.i
+
+# target to preprocess a source file
+io_wave.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_wave.cpp.i
+.PHONY : io_wave.cpp.i
+
+io_wave.s: io_wave.cpp.s
+
+.PHONY : io_wave.s
+
+# target to generate assembly for a file
+io_wave.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/io_wave.cpp.s
+.PHONY : io_wave.cpp.s
 
 irq_controls.obj: irq_controls.cpp.obj
 
@@ -3866,6 +3974,33 @@ rffc507x_spi.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rffc507x_spi.cpp.s
 .PHONY : rffc507x_spi.cpp.s
 
+rtc_time.obj: rtc_time.cpp.obj
+
+.PHONY : rtc_time.obj
+
+# target to build an object file
+rtc_time.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rtc_time.cpp.obj
+.PHONY : rtc_time.cpp.obj
+
+rtc_time.i: rtc_time.cpp.i
+
+.PHONY : rtc_time.i
+
+# target to preprocess a source file
+rtc_time.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rtc_time.cpp.i
+.PHONY : rtc_time.cpp.i
+
+rtc_time.s: rtc_time.cpp.s
+
+.PHONY : rtc_time.s
+
+# target to generate assembly for a file
+rtc_time.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/rtc_time.cpp.s
+.PHONY : rtc_time.cpp.s
+
 sd_card.obj: sd_card.cpp.obj
 
 .PHONY : sd_card.obj
@@ -4027,33 +4162,6 @@ temperature_logger.s: temperature_logger.cpp.s
 temperature_logger.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/temperature_logger.cpp.s
 .PHONY : temperature_logger.cpp.s
-
-time.obj: time.cpp.obj
-
-.PHONY : time.obj
-
-# target to build an object file
-time.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/time.cpp.obj
-.PHONY : time.cpp.obj
-
-time.i: time.cpp.i
-
-.PHONY : time.i
-
-# target to preprocess a source file
-time.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/time.cpp.i
-.PHONY : time.cpp.i
-
-time.s: time.cpp.s
-
-.PHONY : time.s
-
-# target to generate assembly for a file
-time.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/time.cpp.s
-.PHONY : time.cpp.s
 
 touch.obj: touch.cpp.obj
 
@@ -5108,33 +5216,6 @@ ui_whistle.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_whistle.cpp.s
 .PHONY : ui_whistle.cpp.s
 
-wavfile.obj: wavfile.cpp.obj
-
-.PHONY : wavfile.obj
-
-# target to build an object file
-wavfile.cpp.obj:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.obj
-.PHONY : wavfile.cpp.obj
-
-wavfile.i: wavfile.cpp.i
-
-.PHONY : wavfile.i
-
-# target to preprocess a source file
-wavfile.cpp.i:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.i
-.PHONY : wavfile.cpp.i
-
-wavfile.s: wavfile.cpp.s
-
-.PHONY : wavfile.s
-
-# target to generate assembly for a file
-wavfile.cpp.s:
-	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/wavfile.cpp.s
-.PHONY : wavfile.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -5151,6 +5232,9 @@ help:
 	@echo "... __/chibios-portapack/ext/fatfs/src/ff.obj"
 	@echo "... __/chibios-portapack/ext/fatfs/src/ff.i"
 	@echo "... __/chibios-portapack/ext/fatfs/src/ff.s"
+	@echo "... __/chibios-portapack/ext/fatfs/src/option/unicode.obj"
+	@echo "... __/chibios-portapack/ext/fatfs/src/option/unicode.i"
+	@echo "... __/chibios-portapack/ext/fatfs/src/option/unicode.s"
 	@echo "... __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.obj"
 	@echo "... __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.i"
 	@echo "... __/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.s"
@@ -5352,6 +5436,12 @@ help:
 	@echo "... __/common/ais_packet.obj"
 	@echo "... __/common/ais_packet.i"
 	@echo "... __/common/ais_packet.s"
+	@echo "... __/common/buffer.obj"
+	@echo "... __/common/buffer.i"
+	@echo "... __/common/buffer.s"
+	@echo "... __/common/buffer_exchange.obj"
+	@echo "... __/common/buffer_exchange.i"
+	@echo "... __/common/buffer_exchange.s"
 	@echo "... __/common/chibios_cpp.obj"
 	@echo "... __/common/chibios_cpp.i"
 	@echo "... __/common/chibios_cpp.s"
@@ -5493,15 +5583,18 @@ help:
 	@echo "... file.obj"
 	@echo "... file.i"
 	@echo "... file.s"
-	@echo "... filewriter.obj"
-	@echo "... filewriter.i"
-	@echo "... filewriter.s"
 	@echo "... freqman.obj"
 	@echo "... freqman.i"
 	@echo "... freqman.s"
 	@echo "... hackrf_cpld_data.obj"
 	@echo "... hackrf_cpld_data.i"
 	@echo "... hackrf_cpld_data.s"
+	@echo "... io_file.obj"
+	@echo "... io_file.i"
+	@echo "... io_file.s"
+	@echo "... io_wave.obj"
+	@echo "... io_wave.i"
+	@echo "... io_wave.s"
 	@echo "... irq_controls.obj"
 	@echo "... irq_controls.i"
 	@echo "... irq_controls.s"
@@ -5559,6 +5652,9 @@ help:
 	@echo "... rffc507x_spi.obj"
 	@echo "... rffc507x_spi.i"
 	@echo "... rffc507x_spi.s"
+	@echo "... rtc_time.obj"
+	@echo "... rtc_time.i"
+	@echo "... rtc_time.s"
 	@echo "... sd_card.obj"
 	@echo "... sd_card.i"
 	@echo "... sd_card.s"
@@ -5577,9 +5673,6 @@ help:
 	@echo "... temperature_logger.obj"
 	@echo "... temperature_logger.i"
 	@echo "... temperature_logger.s"
-	@echo "... time.obj"
-	@echo "... time.i"
-	@echo "... time.s"
 	@echo "... touch.obj"
 	@echo "... touch.i"
 	@echo "... touch.s"
@@ -5697,9 +5790,6 @@ help:
 	@echo "... ui_whistle.obj"
 	@echo "... ui_whistle.i"
 	@echo "... ui_whistle.s"
-	@echo "... wavfile.obj"
-	@echo "... wavfile.i"
-	@echo "... wavfile.s"
 .PHONY : help
 
 

@@ -83,6 +83,14 @@ constexpr int8_t gain_db_step = 2;
 
 /*************************************************************************/
 
+namespace tx {
+
+constexpr range_t<int8_t> gain_db_range { 0, 47 };
+constexpr int8_t gain_db_step = 1;
+}
+
+/*************************************************************************/
+
 namespace filter {
 
 constexpr std::array<uint32_t, 16> bandwidths {
@@ -829,7 +837,7 @@ public:
 	void init();
 	void set_mode(const Mode mode);
 
-	void set_tx_vga_gain(const int_fast8_t value);
+	void set_tx_vga_gain(const int_fast8_t db);
 	void set_lna_gain(const int_fast8_t db);
 	void set_vga_gain(const int_fast8_t db);
 	void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum);
@@ -876,6 +884,11 @@ public:
 
 	bool set_frequency(const rf::Frequency lo_frequency);
 
+	void set_rx_lo_iq_calibration(const size_t v);
+	void set_rx_bias_trim(const size_t v);
+	void set_vco_bias(const size_t v);
+	void set_rx_buff_vcm(const size_t v);
+
 	reg_t temp_sense();
 
 	reg_t read(const address_t reg_num);
@@ -884,7 +897,7 @@ private:
 	spi::arbiter::Target& _target;
 
 	RegisterMap _map { initial_register_values };
-	DirtyRegisters<Register, reg_count> _dirty;
+	DirtyRegisters<Register, reg_count> _dirty { };
 
 	void flush_one(const Register reg);
 

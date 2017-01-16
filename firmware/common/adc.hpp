@@ -52,84 +52,81 @@ struct Config {
 	uint32_t cr;
 };
 
+template<uint32_t BaseAddress>
 class ADC {
 public:
-	constexpr ADC(
-		LPC_ADCx_Type* adcp
-	) : adcp(adcp)
-	{
+	static void power_up(const Config config) {
+		adcp().CR = config.cr;
 	}
 
-	void power_up(const Config config) const {
-		adcp->CR = config.cr;
-	}
-
-	void clock_enable() const {
-		if( adcp == LPC_ADC0 ) {
+	static void clock_enable() {
+		if( &adcp() == LPC_ADC0 ) {
 			LPC_CCU1->CLK_APB3_ADC0_CFG.AUTO = 1;
 			LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 1;
 		}
-		if( adcp == LPC_ADC1 ) {
+		if( &adcp() == LPC_ADC1 ) {
 			LPC_CCU1->CLK_APB3_ADC1_CFG.AUTO = 1;
 			LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 1;
 		}
 	}
 
-	void clock_disable() const {
-		if( adcp == LPC_ADC0 ) {
+	static void clock_disable() {
+		if( &adcp() == LPC_ADC0 ) {
 			LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 0;
 		}  
-		if( adcp == LPC_ADC1 ) {
+		if( &adcp() == LPC_ADC1 ) {
 			LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 0;
 		}  
 	}
 
-	void disable() const {
-		adcp->INTEN = 0;
-		adcp->CR = 0;
+	static void disable() {
+		adcp().INTEN = 0;
+		adcp().CR = 0;
 
 		clock_disable();
 	}
 
-	void interrupts_disable() const {
-		adcp->INTEN = 0;
+	static void interrupts_disable() {
+		adcp().INTEN = 0;
 	}
 
-	void interrupts_enable(const uint32_t mask) const {
-		adcp->INTEN = mask;
+	static void interrupts_enable(const uint32_t mask) {
+		adcp().INTEN = mask;
 	}
 
-	void start_burst() const {
-		adcp->CR |= (1U << 16);
+	static void start_burst() {
+		adcp().CR |= (1U << 16);
 	}
 
-	void start_once() const {
-		adcp->CR |= (1U << 24);
+	static void start_once() {
+		adcp().CR |= (1U << 24);
 	}
 
-	void start_once(size_t n) const {
-		uint32_t cr = adcp->CR;
+	static void start_once(size_t n) {
+		uint32_t cr = adcp().CR;
 		cr &= ~(0xffU);
 		cr |= (1 << 24) | (1 << n);
-		adcp->CR = cr;
+		adcp().CR = cr;
 	}
 
-	void stop_burst() const {
-		adcp->CR &= ~(1U << 16);
+	static void stop_burst() {
+		adcp().CR &= ~(1U << 16);
 	}
 
-	uint32_t convert(size_t n) const {
+	static uint32_t convert(size_t n) {
 		start_once(n);
 		while(true) {
-			const uint32_t data = adcp->DR[n];
+			const uint32_t data = adcp().DR[n];
 			if( (data >> 31) & 1 ) {
 				return (data >> 6) & 0x3ff;
 			}
 		}
 	}
-	
+
 private:
-	LPC_ADCx_Type* const adcp;
+	static LPC_ADCx_Type& adcp() {
+		return *reinterpret_cast<LPC_ADCx_Type*>(BaseAddress);
+	}
 };
 
 } /* namespace adc */

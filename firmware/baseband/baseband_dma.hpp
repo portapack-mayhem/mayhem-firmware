@@ -31,8 +31,6 @@
 namespace baseband {
 namespace dma {
 
-using Handler = void (*)();
-
 void init();
 void configure(
 	baseband::sample_t* const buffer_base,

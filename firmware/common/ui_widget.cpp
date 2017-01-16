@@ -53,19 +53,23 @@ bool is_dirty() {
 const std::vector<Widget*> Widget::no_children { };
 
 Point Widget::screen_pos() {
-	return screen_rect().pos;
+	return screen_rect().location();
 }
 
 Size Widget::size() const {
-	return parent_rect.size;
+	return _parent_rect.size();
 }
 
 Rect Widget::screen_rect() const {
-	return parent() ? (parent_rect + parent()->screen_pos()) : parent_rect;
+	return parent() ? (parent_rect() + parent()->screen_pos()) : parent_rect();
+}
+
+Rect Widget::parent_rect() const {
+	return _parent_rect;
 }
 
 void Widget::set_parent_rect(const Rect new_parent_rect) {
-	parent_rect = new_parent_rect;
+	_parent_rect = new_parent_rect;
 	set_dirty();
 }
 
@@ -74,12 +78,19 @@ Widget* Widget::parent() const {
 }
 
 void Widget::set_parent(Widget* const widget) {
+	if( widget == parent_ ) {
+		return;
+	}
+
 	if( parent_ && !widget ) {
 		// We have a parent, but are losing it. Update visible status.
+		dirty_overlapping_children_in_rect(screen_rect());
 		visible(false);
 	}
 
 	parent_ = widget;
+
+	set_dirty();
 }
 
 void Widget::set_dirty() {
@@ -103,7 +114,7 @@ void Widget::hidden(bool hide) {
 		if( hide ) {
 			// TODO: Instead of dirtying parent entirely, dirty only children
 			// that overlap with this widget.
-			dirty_overlapping_children_in_rect(parent_rect);
+			parent()->dirty_overlapping_children_in_rect(parent_rect());
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -211,7 +222,7 @@ void Widget::set_highlighted(const bool value) {
 
 void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
 	for(auto child : children()) {
-		if( !child_rect.intersect(child->parent_rect).is_empty() ) {
+		if( !child_rect.intersect(child->parent_rect()).is_empty() ) {
 			child->set_dirty();
 		}
 	}
@@ -231,21 +242,20 @@ void View::add_child(Widget* const widget) {
 		if( widget->parent() == nullptr ) {
 			widget->set_parent(this);
 			children_.push_back(widget);
-			widget->set_dirty();
 		}
 	}
 }
 
-void View::add_children(const std::vector<Widget*>& children) {
+void View::add_children(const std::initializer_list<Widget*> children) {
+	children_.insert(std::end(children_), children);
 	for(auto child : children) {
-		add_child(child);
+		child->set_parent(this);
 	}
 }
 
 void View::remove_child(Widget* const widget) {
 	if( widget ) {
 		children_.erase(std::remove(children_.begin(), children_.end(), widget), children_.end());
-		dirty_overlapping_children_in_rect(widget->screen_rect());
 		widget->set_parent(nullptr);
 	}
 }
@@ -281,11 +291,6 @@ Rectangle::Rectangle(
 {
 }
 
-Rectangle::Rectangle(
-) : Widget {  }
-{
-}
-
 void Rectangle::set_color(const Color c) {
 	color = c;
 	set_dirty();
@@ -316,7 +321,7 @@ Text::Text(
 	Rect parent_rect,
 	std::string text
 ) : Widget { parent_rect },
-	text_ { text }
+	text { text }
 {
 }
 
@@ -327,12 +332,8 @@ Text::Text(
 }
 
 void Text::set(const std::string value) {
-	text_ = value;
+	text = value;
 	set_dirty();
-}
-
-std::string Text::text() const {
-	return text_;
 }
 
 void Text::paint(Painter& painter) {
@@ -342,9 +343,9 @@ void Text::paint(Painter& painter) {
 	painter.fill_rectangle(rect, s.background);
 
 	painter.draw_string(
-		rect.pos,
+		rect.location(),
 		s,
-		text_
+		text
 	);
 }
 
@@ -387,7 +388,7 @@ void BigFrequency::paint(Painter& painter) {
 	const auto rect = screen_rect();
 	
 	// Erase
-	painter.fill_rectangle({{0, rect.pos.y}, {240, 52}}, ui::Color::black());
+	painter.fill_rectangle({{0, rect.location().y()}, {240, 52}}, ui::Color::black());
 	
 	if (!_frequency) {
 		for (i = 0; i < 7; i++)		// ----.------
@@ -412,10 +413,10 @@ void BigFrequency::paint(Painter& painter) {
 	segment_color = style().foreground;
 
 	// Draw
-	digit_x = rect.pos.x;		// 7 * 32 + 8 = 232 (4 px margins)
+	digit_x = rect.location().x();		// 7 * 32 + 8 = 232 (4 px margins)
 	for (i = 0; i < 7; i++) {
 		digit = digits[i];
-		digit_y = rect.pos.y;
+		digit_y = rect.location().y();
 		if (digit < 16) {
 			digit_def = big_segment_font[(uint8_t)digit];
 			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, 	digit_y}, 		{20, 4}}, 	segment_color);
@@ -464,10 +465,10 @@ void ProgressBar::paint(Painter& painter) {
 	const auto rect = screen_rect();
 	const auto s = style();
 
-	v_sized = (rect.size.w * _value) / _max;
+	v_sized = (rect.size().width() * _value) / _max;
 
-	painter.fill_rectangle({rect.pos, {v_sized, rect.size.h}}, style().foreground);
-	painter.fill_rectangle({{rect.pos.x + v_sized, rect.pos.y}, {rect.size.w - v_sized, rect.size.h}}, s.background);
+	painter.fill_rectangle({rect.location(), {v_sized, rect.size().height()}}, style().foreground);
+	painter.fill_rectangle({{rect.location().x() + v_sized, rect.location().y()}, {rect.size().width() - v_sized, rect.size().height()}}, s.background);
 	
 	painter.draw_rectangle(rect, s.foreground);
 }
@@ -500,15 +501,15 @@ void Console::write(std::string message) {
 			} else {
 				const auto glyph = font.glyph(c);
 				const auto advance = glyph.advance();
-				if( (pos.x + advance.x) > rect.width() ) {
+				if( (pos.x() + advance.x()) > rect.width() ) {
 					crlf();
 				}
 				const Point pos_glyph {
-					rect.pos.x + pos.x,
-					display.scroll_area_y(pos.y)
+					rect.left() + pos.x(),
+					display.scroll_area_y(pos.y())
 				};
 				display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
-				pos.x += advance.x;
+				pos += { advance.x(), 0 };
 			}
 		}
 		buffer = message;
@@ -545,14 +546,13 @@ void Console::crlf() {
 	const Style& s = style();
 	const auto sr = screen_rect();
 	const auto line_height = s.font.line_height();
-	pos.x = 0;
-	pos.y += line_height;
-	const int32_t y_excess = pos.y + line_height - sr.height();
+	pos = { 0, pos.y() + line_height };
+	const int32_t y_excess = pos.y() + line_height - sr.height();
 	if( y_excess > 0 ) {
 		display.scroll(-y_excess);
-		pos.y -= y_excess;
+		pos = { pos.x(), pos.y() - y_excess };
 
-		const Rect dirty { sr.left(), display.scroll_area_y(pos.y), sr.width(), line_height };
+		const Rect dirty { sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height };
 		display.fill_rectangle(dirty, s.background);
 	}
 }
@@ -596,33 +596,33 @@ void Checkbox::paint(Painter& painter) {
 	
 	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 	
-	painter.draw_rectangle({ r.pos.x, r.pos.y, 24, 24 }, style().foreground);
+	painter.draw_rectangle({ r.location().x(), r.location().y(), 24, 24 }, style().foreground);
 
 	painter.fill_rectangle(
 		{
-			static_cast<Coord>(r.pos.x + 1), static_cast<Coord>(r.pos.y + 1),
+			static_cast<Coord>(r.location().x() + 1), static_cast<Coord>(r.location().y() + 1),
 			static_cast<Dim>(24 - 2), static_cast<Dim>(24 - 2)
 		},
 		style().background
 	);
 	
-	painter.draw_rectangle({ r.pos.x+2, r.pos.y+2, 24-4, 24-4 }, paint_style.background);
+	painter.draw_rectangle({ r.location().x() + 2, r.location().y() + 2, 24-4, 24-4 }, paint_style.background);
 	
 	if (value_ == true) {
 		// Check
-		portapack::display.draw_line( {r.pos.x+2, r.pos.y+14}, {r.pos.x+6, r.pos.y+18}, ui::Color::green());
-		portapack::display.draw_line( {r.pos.x+6, r.pos.y+18}, {r.pos.x+20, r.pos.y+4}, ui::Color::green());
+		portapack::display.draw_line( {r.location().x()+2, r.location().y()+14}, {r.location().x()+6, r.location().y()+18}, ui::Color::green());
+		portapack::display.draw_line( {r.location().x()+6, r.location().y()+18}, {r.location().x()+20, r.location().y()+4}, ui::Color::green());
 	} else {
 		// Cross
-		portapack::display.draw_line( {r.pos.x+1, r.pos.y+1}, {r.pos.x+24-2, r.pos.y+24-2}, ui::Color::red());
-		portapack::display.draw_line( {r.pos.x+24-2, r.pos.y+1}, {r.pos.x+1, r.pos.y+24-2}, ui::Color::red());
+		portapack::display.draw_line( {r.location().x()+1, r.location().y()+1}, {r.location().x()+24-2, r.location().y()+24-2}, ui::Color::red());
+		portapack::display.draw_line( {r.location().x()+24-2, r.location().y()+1}, {r.location().x()+1, r.location().y()+24-2}, ui::Color::red());
 	}
 	
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
 		{
-			static_cast<Coord>(r.pos.x + 24 + 4),
-			static_cast<Coord>(r.pos.y + (24 - label_r.h) / 2)
+			static_cast<Coord>(r.location().x() + 24 + 4),
+			static_cast<Coord>(r.location().y() + (24 - label_r.height()) / 2)
 		},
 		paint_style,
 		text_
@@ -691,18 +691,18 @@ void Button::paint(Painter& painter) {
 	
 	const Style paint_style = { style().font, bg, fg };
 	
-	painter.draw_rectangle({r.pos, {r.size.w, 1}}, Color::light_grey());
-	painter.draw_rectangle({r.pos.x, r.pos.y + r.size.h - 1, r.size.w, 1}, Color::dark_grey());
-	painter.draw_rectangle({r.pos.x + r.size.w - 1, r.pos.y, 1, r.size.h}, Color::dark_grey());
+	painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
+	painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
+	painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
 
 	painter.fill_rectangle(
-		{ r.pos.x, r.pos.y + 1, r.size.w - 1, r.size.h - 2 },
+		{ r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2 },
 		paint_style.background
 	);
 
 	const auto label_r = paint_style.font.size_of(text_);
 	painter.draw_string(
-		{ r.pos.x + (r.size.w - label_r.w) / 2, r.pos.y + (r.size.h - label_r.h) / 2 },
+		{ r.location().x() + (r.size().width() - label_r.width()) / 2, r.location().y() + (r.size().height() - label_r.height()) / 2 },
 		paint_style,
 		text_
 	);
@@ -753,6 +753,7 @@ bool Button::on_touch(const TouchEvent event) {
 		flags.highlighted = true;
 		set_dirty();
 		return true;
+
 	case TouchEvent::Type::Move:
 		{
 			const bool new_highlighted = screen_rect().contains(event.point);
@@ -762,6 +763,7 @@ bool Button::on_touch(const TouchEvent event) {
 			}
 		}
 		return true;
+
 	case TouchEvent::Type::End:
 		if( flags.highlighted ) {
 			flags.highlighted = false;
@@ -771,6 +773,7 @@ bool Button::on_touch(const TouchEvent event) {
 			}
 		}
 		return true;
+
 	default:
 		return false;
 	}
@@ -865,6 +868,7 @@ bool ImageButton::on_touch(const TouchEvent event) {
 		set_dirty();
 		return true;
 
+
 	case TouchEvent::Type::End:
 		set_highlighted(false);
 		set_dirty();
@@ -931,9 +935,9 @@ void ImageOptionsField::paint(Painter& painter) {
 
 	if( selected_index() < options.size() ) {
 		const auto bmp_ptr = options[selected_index()].first;
-		painter.fill_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, ui::Color::black());
-		painter.draw_rectangle({screen_rect().pos, {screen_rect().size.w + 4, screen_rect().size.h + 4}}, paint_style.background);
-		portapack::display.drawBMP({screen_pos().x + 2, screen_pos().y + 1}, bmp_ptr, true);
+		painter.fill_rectangle({screen_rect().location(), {screen_rect().size().width() + 4, screen_rect().size().height() + 4}}, ui::Color::black());
+		painter.draw_rectangle({screen_rect().location(), {screen_rect().size().width() + 4, screen_rect().size().height() + 4}}, paint_style.background);
+		portapack::display.drawBMP({screen_pos().x() + 2, screen_pos().y() + 1}, bmp_ptr, true);
 	}
 }
 
@@ -959,9 +963,9 @@ bool ImageOptionsField::on_touch(const TouchEvent event) {
 
 OptionsField::OptionsField(
 	Point parent_pos,
-	size_t length,
+	int length,
 	options_t options
-) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+) : Widget { { parent_pos, { 8 * length, 16 } } },
 	length_ { length },
 	options { options }
 {
@@ -1008,7 +1012,7 @@ void OptionsField::set_options(options_t new_options) {
 void OptionsField::paint(Painter& painter) {
 	const auto paint_style = has_focus() ? style().invert() : style();
 	
-	painter.fill_rectangle({screen_rect().pos, {(int)length_ * 8, 16}}, ui::Color::black());
+	painter.fill_rectangle({screen_rect().location(), {(int)length_ * 8, 16}}, ui::Color::black());
 	
 	if( selected_index() < options.size() ) {
 		const auto text = options[selected_index()].first;
@@ -1042,11 +1046,11 @@ bool OptionsField::on_touch(const TouchEvent event) {
 
 NumberField::NumberField(
 	Point parent_pos,
-	size_t length,
+	int length,
 	range_t range,
 	int32_t step,
 	char fill_char
-) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
+) : Widget { { parent_pos, { 8 * length, 16 } } },
 	range { range },
 	step { step },
 	length_ { length },
@@ -1224,7 +1228,7 @@ void SymField::paint(Painter& painter) {
 			text
 		);
 		
-		pt_draw.x += 8;
+		pt_draw += { 8, 0 };
 	}
 }
 
@@ -1319,15 +1323,15 @@ void Waveform::set_length(const uint32_t new_length) {
 
 void Waveform::paint(Painter& painter) {
 	uint32_t n, point_count;
-	Coord y, y_offset = screen_rect().pos.y;
-	Coord prev_x = screen_rect().pos.x, prev_y;
+	Coord y, y_offset = screen_rect().location().y();
+	Coord prev_x = screen_rect().location().x(), prev_y;
 	float x, x_inc;
-	Dim h = screen_rect().size.h;
+	Dim h = screen_rect().size().height();
 	
 	// Clear
 	painter.fill_rectangle(screen_rect(), Color::black());
 	
-	x_inc = (float)screen_rect().size.w / length_;
+	x_inc = (float)screen_rect().size().width() / length_;
 	point_count = length_;
 	const float y_scale = (float)(h - 1) / 256;		// TODO: Make variable
 	

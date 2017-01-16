@@ -185,40 +185,13 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 2> ais_columns { {
-	{ "MMSI", 9 },
-	{ "Name/Call", 20 },
-} };
-
 template<>
-void RecentEntriesView<AISRecentEntries>::draw_header(
+void RecentEntriesTable<AISRecentEntries>::draw(
+	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style
 ) {
-	auto x = 0;
-	for(const auto& column : ais_columns) {
-		const auto width = column.second;
-		auto text = column.first;
-		if( width > text.length() ) {
-			text.append(width - text.length(), ' ');
-		}
-
-		painter.draw_string({ x, target_rect.pos.y }, style, text);
-		x += (width * 8) + 8;
-	}
-}
-
-template<>
-void RecentEntriesView<AISRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style,
-	const bool is_selected
-) {
-	const auto& draw_style = is_selected ? style.invert() : style;
-
 	std::string line = ais::format::mmsi(entry.mmsi) + " ";
 	if( !entry.name.empty() ) {
 		line += entry.name;
@@ -227,13 +200,13 @@ void RecentEntriesView<AISRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, draw_style, line);
+	painter.draw_string(target_rect.location(), style, line);
 }
 
 AISRecentEntryDetailView::AISRecentEntryDetailView() {
-	add_children({ {
+	add_children({
 		&button_done,
-	} });
+	});
 
 	button_done.on_select = [this](const ui::Button&) {
 		if( this->on_close ) {
@@ -291,7 +264,7 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 AISAppView::AISAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ais);
 
-	add_children({ {
+	add_children({
 		&label_channel,
 		&options_channel,
 		&field_rf_amp,
@@ -301,7 +274,7 @@ AISAppView::AISAppView(NavigationView&) {
 		&channel,
 		&recent_entries_view,
 		&recent_entry_detail_view,
-	} });
+	});
 
 	recent_entry_detail_view.hidden(true);
 
@@ -315,7 +288,6 @@ AISAppView::AISAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
@@ -332,7 +304,7 @@ AISAppView::AISAppView(NavigationView&) {
 
 	logger = std::make_unique<AISLogger>();
 	if( logger ) {
-		logger->append("ais.txt");
+		logger->append(u"ais.txt");
 	}
 }
 
@@ -358,12 +330,13 @@ void AISAppView::on_packet(const ais::Packet& packet) {
 		logger->on_packet(packet);
 	}
 
-	const auto updated_entry = recent.on_packet(packet.source_id(), packet);
+	auto& entry = ::on_packet(recent, packet.source_id());
+	entry.update(packet);
 	recent_entries_view.set_dirty();
 
 	// TODO: Crude hack, should be a more formal listener arrangement...
-	if( updated_entry.key() == recent_entry_detail_view.entry().key() ) {
-		recent_entry_detail_view.set_entry(updated_entry);
+	if( entry.key() == recent_entry_detail_view.entry().key() ) {
+		recent_entry_detail_view.set_entry(entry);
 	}
 }
 

@@ -74,11 +74,7 @@ void NuoptixView::transmit(bool setup) {
 			timecode = number_timecode.value();
 		}
 		
-		transmitter_model.set_baseband_configuration({
-			.mode = 0,
-			.sampling_rate = 1536000U,
-			.decimation_factor = 1,
-		});
+		transmitter_model.set_sampling_rate(1536000U);
 		transmitter_model.set_rf_amp(true);
 		transmitter_model.set_lna(40);
 		transmitter_model.set_vga(40);
@@ -152,7 +148,7 @@ NuoptixView::NuoptixView(
 {
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 
-	add_children({ {
+	add_children({
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
@@ -163,7 +159,7 @@ NuoptixView::NuoptixView(
 		&button_tx,
 		&button_impro,
 		&button_exit
-	} });
+	});
 	
 	number_bw.set_value(15);
 	number_timecode.set_value(1);

@@ -184,13 +184,13 @@ constexpr Slice slice_order[] {
 };
 
 constexpr uint32_t gpio_outreg(const Direction direction) {
-	return ((direction == Direction::Transmit) ? (1U << 11) : 0U) | (1U << 10);
+	return ((direction == Direction::Transmit) ? (1U << PIN_DIRECTION) : 0U) | (1U << PIN_DISABLE);
 }
 
 constexpr uint32_t gpio_oenreg(const Direction direction) {
 	return
 		  (0U << PIN_DECIM2)
-		| (1U << PIN_DECIM1)
+		| (0U << PIN_DECIM1)
 		| (0U << PIN_DECIM0)
 		| (0U << PIN_INVERT)
 		| (1U << PIN_DIRECTION)
@@ -282,7 +282,7 @@ constexpr CLK_CAPTURE_MODE data_clk_capture_mode(
 ) {
 	return (direction == Direction::Transmit)
 		? CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
-		: CLK_CAPTURE_MODE::FALLING_CLOCK_EDGE
+		: CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
 		;
 }
 
@@ -298,8 +298,12 @@ constexpr P_OUT_CFG data_p_out_cfg(
 void SGPIO::configure(const Direction direction) {
 	disable_all_slice_counters();
 
+	// Set data pins as input, temporarily.
+	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(Direction::Receive);
+
+	// Now that data pins are inputs, safe to change CPLD direction.
 	LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
-	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
+
 	LPC_SGPIO->OUT_MUX_CFG[ 8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[ 9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
 	LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
@@ -313,6 +317,9 @@ void SGPIO::configure(const Direction direction) {
 	for(size_t i=0; i<8; i++) {
 		LPC_SGPIO->OUT_MUX_CFG[i] = data_out_mux_cfg;
 	}
+
+	// Now that output enable sources are set, enable data bus in correct direction.
+	LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
 
 	const auto slice_gpdma = Slice::H;
 

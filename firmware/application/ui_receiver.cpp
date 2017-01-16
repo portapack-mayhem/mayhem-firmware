@@ -148,11 +148,11 @@ FrequencyKeypadView::FrequencyKeypadView(
 		n++;
 	}
 	
-	add_children({ {
+	add_children({
 		&button_save,
 		&button_load,
 		&button_close
-	} });
+	});
 	
 	button_save.on_select = [this, &nav](Button&) {
 		nav.push<FrequencySaveView>(this->value());
@@ -257,12 +257,12 @@ FrequencyOptionsView::FrequencyOptionsView(
 		this->on_reference_ppm_correction_changed(v);
 	};
 
-	add_children({ {
+	add_children({
 		&text_step,
 		&field_step,
 		&field_ppm,
 		&text_ppm,
-	} });
+	});
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
@@ -313,10 +313,10 @@ RadioGainOptionsView::RadioGainOptionsView(
 {
 	set_style(style);
 
-	add_children({ {
+	add_children({
 		&label_rf_amp,
 		&field_rf_amp,
-	} });
+	});
 }
 
 /* LNAGainField **********************************************************/
@@ -363,6 +363,31 @@ VGAGainField::VGAGainField(
 }
 
 void VGAGainField::on_focus() {
+	//Widget::on_focus();
+	if( on_show_options ) {
+		on_show_options();
+	}
+}
+
+/* TXGainField **********************************************************/
+
+TXGainField::TXGainField(
+	Point parent_pos
+) : NumberField {
+		parent_pos, 2,
+		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
+		max2837::tx::gain_db_step,
+		' ',
+	}
+{
+	set_value(receiver_model.tx_gain());
+
+	on_change = [](int32_t v) {
+		receiver_model.set_tx_gain(v);
+	};
+}
+
+void TXGainField::on_focus() {
 	//Widget::on_focus();
 	if( on_show_options ) {
 		on_show_options();

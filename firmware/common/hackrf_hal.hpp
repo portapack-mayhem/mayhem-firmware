@@ -67,11 +67,11 @@ constexpr size_t clock_generator_output_mcu_clkin	= 7;
 
 /* ADC0 */
 
-constexpr adc::ADC adc0 { LPC_ADC0 };
+using adc0 = adc::ADC<LPC_ADC0_BASE>;
 
 /* ADC1 */
 
-constexpr adc::ADC adc1 { LPC_ADC1 };
+using adc1 = adc::ADC<LPC_ADC1_BASE>;
 
 void reset();
 

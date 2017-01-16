@@ -65,9 +65,9 @@ private:
 
 	uint32_t samples_count { 0 };
 
-	touch::DigitizerPoint average;
+	touch::DigitizerPoint average { };
 
-	std::array<touch::DigitizerPoint, 3> digitizer_points;
+	std::array<touch::DigitizerPoint, 3> digitizer_points { };
 
 	touch::Calibration calibration;
 

@@ -28,7 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
 #include "freqman.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 
 namespace ui {
 
@@ -47,6 +47,7 @@ private:
 	char desc_buffer[32] = { 0 };
 	rtc::RTC datetime;
 	rf::Frequency value_;
+	std::string str_timestamp { };
 	
 	void on_save_name(NavigationView& nav);
 	void on_save_timestamp(NavigationView& nav);

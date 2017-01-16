@@ -28,12 +28,12 @@
 #include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 #include "clock_manager.hpp"
 #include "baseband_api.hpp"
 #include "utility.hpp"
 #include "message.hpp"
-#include "wavfile.hpp"
+#include "io_wave.hpp"
 
 namespace ui {
 

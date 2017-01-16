@@ -19,22 +19,32 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FILEWRITER_H__
-#define __FILEWRITER_H__
+#pragma once
 
-#include "ui_widget.hpp"
+#include "io.hpp"
 
-#include "capture_thread.hpp"
-#include "signal.hpp"
 #include "file.hpp"
+#include "optional.hpp"
 
-#include <cstddef>
-#include <string>
-#include <memory>
+#include <cstdint>
 
-namespace ui {
+class FileReader : public stream::Reader {
+public:
+	FileReader() = default;
+
+	FileReader(const FileReader&) = delete;
+	FileReader& operator=(const FileReader&) = delete;
+	FileReader(FileReader&& file) = delete;
+	FileReader& operator=(FileReader&&) = delete;
+
+	File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
 	
-class FileWriter : public Writer {
+protected:
+	File file { };
+	uint64_t bytes_read { 0 };
+};
+
+class FileWriter : public stream::Writer {
 public:
 	FileWriter() = default;
 
@@ -43,15 +53,15 @@ public:
 	FileWriter(FileWriter&& file) = delete;
 	FileWriter& operator=(FileWriter&&) = delete;
 
-	Optional<File::Error> create(const std::string& filename);
+	Optional<File::Error> create(const std::filesystem::path& filename) {
+		return file.create(filename);
+	}
 
-	File::Result<size_t> write(const void* const buffer, const size_t bytes) override;
-
+	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
+	
 protected:
-	File file;
+	File file { };
 	uint64_t bytes_written { 0 };
 };
 
-} /* namespace ui */
-
-#endif/*__FILEWRITER_H__*/
+using RawFileWriter = FileWriter;

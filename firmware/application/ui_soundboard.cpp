@@ -105,7 +105,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 
 	if (sounds[id].size == 0) return;
 
-	if (!reader->open("/wav/" + sounds[id].filename)) return;
+	if (!reader->open(sounds[id].path)) return;
 	
 	sample_duration = sounds[id].sample_duration;
 	
@@ -116,11 +116,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 	
 	prepare_audio();
 	
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -161,8 +157,8 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 		button.id = n_sound;
 		
 		if (n_sound < max_sound) {
-			button.set_text(sounds[n_sound].shortname);
-			button.set_style(styles[sounds[n_sound].shortname[0] & 3]);
+			button.set_text(sounds[n_sound].path.stem().string());
+			button.set_style(styles[sounds[n_sound].path.stem().string()[0] & 3]);
 		} else {
 			button.set_text("- - -");
 			button.set_style(styles[0]);
@@ -176,13 +172,13 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 
 void SoundBoardView::change_page(Button& button, const KeyEvent key) {
 	// Stupid way to find out if the button is on the sides
-	if (button.screen_pos().x < 32) {
+	if (button.screen_pos().x() < 32) {
 		if ((key == KeyEvent::Left) && (page > 0)) {
 			page--;
 			refresh_buttons(button.id);
 		}
 	}
-	if (button.screen_pos().x > 120) {
+	if (button.screen_pos().x() > 120) {
 		if ((key == KeyEvent::Right) && (page < max_page - 1)) {
 			page++;
 			refresh_buttons(button.id);
@@ -203,16 +199,16 @@ SoundBoardView::SoundBoardView(
 	using option_t = std::pair<name_t, value_t>;
 	using options_t = std::vector<option_t>;
 	options_t ctcss_options;
-	std::vector<std::string> file_list;
+	std::vector<std::filesystem::path> file_list;
 	uint8_t c;
 	
 	reader = std::make_unique<WAVFileReader>();
 	
-	file_list = scan_root_files("/wav", ".WAV");
+	file_list = scan_root_files(reinterpret_cast<const TCHAR*>("/wav"), ".WAV");
 	
 	c = 0;
-	for (auto& file_name : file_list) {
-		if (reader->open("/wav/" + file_name)) {
+	for (auto& path : file_list) {
+		if (reader->open(path)) {
 			if (reader->channels() == 1) {
 				sounds[c].size = reader->data_size();
 				sounds[c].sample_duration = reader->data_size() / (reader->bits_per_sample() / 8);
@@ -222,8 +218,7 @@ SoundBoardView::SoundBoardView(
 				else
 					sounds[c].sixteenbit = false;
 				sounds[c].ms_duration = reader->ms_duration();
-				sounds[c].filename = file_name;
-				sounds[c].shortname = remove_filename_extension(file_name);
+				sounds[c].path = path;
 				c++;
 				if (c == 105) break;	// Limit to 105 files (5 pages)
 			}
@@ -235,7 +230,7 @@ SoundBoardView::SoundBoardView(
 	max_sound = c;
 	max_page = max_sound / 21;			// 3 * 7 = 21 buttons per page
 	
-	add_children({ {
+	add_children({
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
@@ -246,7 +241,7 @@ SoundBoardView::SoundBoardView(
 		&check_loop,
 		&button_random,
 		&button_exit
-	} });
+	});
 
 	ctcss_options.emplace_back(std::make_pair("None", 0));
 	

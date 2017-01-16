@@ -33,6 +33,8 @@ using namespace lpc43xx;
 
 #include "portapack_shared_memory.hpp"
 
+#include "utility.hpp"
+
 #include <array>
 
 static baseband::SGPIO baseband_sgpio;
@@ -45,11 +47,11 @@ BasebandThread::BasebandThread(
 	uint32_t sampling_rate,
 	BasebandProcessor* const baseband_processor,
 	const tprio_t priority,
-	const baseband::Direction dir
+	const baseband::Direction direction
 ) : baseband_processor { baseband_processor },
+	_direction { direction },
 	sampling_rate { sampling_rate }
 {
-	direction = dir;
 	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
 		priority, ThreadBase::fn,
 		this
@@ -69,15 +71,15 @@ void BasebandThread::run() {
 	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
 	baseband::dma::configure(
 		baseband_buffer->data(),
-		direction
+		direction()
 	);
 	//baseband::dma::allocate(4, 2048);
 
-	baseband_sgpio.configure(direction);
-	baseband::dma::enable(direction);
+	baseband_sgpio.configure(direction());
+	baseband::dma::enable(direction());
 	baseband_sgpio.streaming_enable();
 	
-	if (direction == baseband::Direction::Transmit) {
+	if (_direction == baseband::Direction::Transmit) {
 		while( !chThdShouldTerminate() ) {
 			// TODO: Place correct sampling rate into buffer returned here:
 			const baseband::buffer_t buffer_tmp = baseband::dma::wait_for_tx_buffer();

@@ -19,25 +19,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "filewriter.hpp"
+#pragma once
 
-#include "portapack.hpp"
-using namespace portapack;
+#include "file.hpp"
 
-#include <cstdint>
+namespace stream {
 
-namespace ui {
+class Reader {
+public:
+	virtual File::Result<File::Size> read(void* const buffer, const File::Size bytes) = 0;
+	virtual ~Reader() = default;
+};
 
-Optional<File::Error> FileWriter::create(const std::string& filename) {
-	return file.create(filename);
-}
+class Writer {
+public:
+	virtual File::Result<File::Size> write(const void* const buffer, const File::Size bytes) = 0;
+	virtual ~Writer() = default;
+};
 
-File::Result<size_t> FileWriter::write(const void* const buffer, const size_t bytes) {
-	auto write_result = file.write(buffer, bytes) ;
-	if( write_result.is_ok() ) {
-		bytes_written += write_result.value();
-	}
-	return write_result;
-}
-
-} /* namespace ui */
+} /* namespace stream */

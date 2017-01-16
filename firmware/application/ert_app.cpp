@@ -75,42 +75,13 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 4> ert_columns { {
-	{ "ID", 10 },
-	{ "Tp", 2 },
-	{ "Consumpt", 10 },
-	{ "Cnt", 3 },
-} };
-
 template<>
-void RecentEntriesView<ERTRecentEntries>::draw_header(
+void RecentEntriesTable<ERTRecentEntries>::draw(
+	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style
 ) {
-	auto x = 0;
-	for(const auto& column : ert_columns) {
-		const auto width = column.second;
-		auto text = column.first;
-		if( width > text.length() ) {
-			text.append(width - text.length(), ' ');
-		}
-
-		painter.draw_string({ x, target_rect.pos.y }, style, text);
-		x += (width * 8) + 8;
-	}
-}
-
-template<>
-void RecentEntriesView<ERTRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style,
-	const bool is_selected
-) {
-	const auto& draw_style = is_selected ? style.invert() : style;
-
 	std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
 
 	if( entry.received_count > 999 ) {
@@ -120,19 +91,19 @@ void RecentEntriesView<ERTRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, draw_style, line);
+	painter.draw_string(target_rect.location(), style, line);
 }
 
 ERTAppView::ERTAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
-	add_children({ {
+	add_children({
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&rssi,
 		&recent_entries_view,
-	} });
+	});
 
 	radio::enable({
 		initial_target_frequency,
@@ -142,12 +113,11 @@ ERTAppView::ERTAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	logger = std::make_unique<ERTLogger>();
 	if( logger ) {
-		logger->append("ert.txt");
+		logger->append(u"ert.txt");
 	}
 }
 
@@ -172,7 +142,8 @@ void ERTAppView::on_packet(const ert::Packet& packet) {
 	}
 
 	if( packet.crc_ok() ) {
-		recent.on_packet({ packet.id(), packet.commodity_type() }, packet);
+		auto& entry = ::on_packet(recent, ERTRecentEntry::Key { packet.id(), packet.commodity_type() });
+		entry.update(packet);
 		recent_entries_view.set_dirty();
 	}
 }

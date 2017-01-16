@@ -33,14 +33,14 @@ FRESULT f_open (
 <dt>mode</dt>
 <dd>Mode flags that specifies the type of access and open method for the file. It is specified by a combination of following flags.<br>
 <table class="lst">
-<tr><th>Value</th><th>Description</th></tr>
+<tr><th>Value</th><th>Meaning</th></tr>
 <tr><td>FA_READ</td><td>Specifies read access to the object. Data can be read from the file.</tr>
 <tr><td>FA_WRITE</td><td>Specifies write access to the object. Data can be written to the file. Combine with <tt>FA_READ</tt> for read-write access.</td></tr>
 <tr><td>FA_OPEN_EXISTING</td><td>Opens the file. The function fails if the file is not existing. (Default)</td></tr>
-<tr><td>FA_OPEN_ALWAYS</td><td>Opens the file if it is existing. If not, a new file will be created.<br>
-To append data to the file, use <a href="lseek.html"><tt>f_lseek</tt></a> function after the file open in this method.</td></tr>
 <tr><td>FA_CREATE_NEW</td><td>Creates a new file. The function fails with <tt>FR_EXIST</tt> if the file is existing.</td></tr>
 <tr><td>FA_CREATE_ALWAYS</td><td>Creates a new file. If the file is existing, it will be truncated and overwritten.</td></tr>
+<tr><td>FA_OPEN_ALWAYS</td><td>Opens the file if it is existing. If not, a new file will be created.</td></tr>
+<tr><td>FA_OPEN_APPEND</td><td>Same as <tt>FA_OPEN_ALWAYS</tt> except read/write pointer is set end of the file.</td></tr>
 </table>
 </dd>
 </dl>
@@ -74,7 +74,7 @@ To append data to the file, use <a href="lseek.html"><tt>f_lseek</tt></a> functi
 
 <div class="para desc">
 <h4>Description</h4>
-<p>Before using any file function, a work area (file system object) must be registered to the logical drive with <a href="mount.html"><tt>f_mount</tt></a> function. All API functions except for <a href="fdisk.html"><tt>f_fdisk</tt></a> function can work after this procedure.</p>
+<p>Before using any file function, a work area (file system object) must be registered to the logical drive with <a href="mount.html"><tt>f_mount</tt></a> function. All API functions except for <tt>f_mkfs</tt> and <tt>f_fdisk</tt> function can work after this procedure.</p>
 <p>After <tt>f_open</tt> function succeeded, the file object is valid. The file object is used for subsequent operations to the file to identify the file. Open file must be closed prior to power down, media removal or re-mount, or the file can be collapsed. To close an open file, use <a href="close.html"><tt>f_close</tt></a> function.</p>
 <p>If duplicated file open is needed, read <a href="appnote.html#dup">here</a> carefully. However duplicated open of a file with any write mode flag is always prohibited.</p>
 </div>
@@ -82,7 +82,7 @@ To append data to the file, use <a href="lseek.html"><tt>f_lseek</tt></a> functi
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Always available. The mode flags, <tt>FA_WRITE, FA_CREATE_ALWAYS, FA_CREATE_NEW and FA_OPEN_ALWAYS</tt>, are not available when <tt>_FS_READONLY == 1</tt>.</p>
+<p>Always available. Only <tt>FA_READ</tt> and <tt>FA_OPEN_EXISTING</tt> are supported when <tt>_FS_READONLY == 1</tt>.</p>
 </div>
 
 

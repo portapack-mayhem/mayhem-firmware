@@ -225,4 +225,14 @@ void capture_stop() {
 	send_message(&message);
 }
 
+void replay_start(CaptureConfig* const config) {
+	CaptureConfigMessage message { config };
+	send_message(&message);
+}
+
+void replay_stop() {
+	CaptureConfigMessage message { nullptr };
+	send_message(&message);
+}
+
 } /* namespace baseband */

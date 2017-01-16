@@ -21,7 +21,7 @@
  */
 
 #include "ui_menu.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 
 namespace ui {
 
@@ -62,7 +62,7 @@ void MenuItemView::paint(Painter& painter) {
 	
 	if (item.bitmap) {
 		painter.draw_bitmap(
-			{ r.pos.x + 4, r.pos.y + 4 },
+			{ r.location().x() + 4, r.location().y() + 4 },
 			*item.bitmap,
 			final_item_color,
 			final_bg_color
@@ -76,7 +76,7 @@ void MenuItemView::paint(Painter& painter) {
 	};
 
 	painter.draw_string(
-		{ r.pos.x + 26, r.pos.y + (r.size.h - font_height) / 2 },
+		{ r.location().x() + 26, r.location().y() + (r.size().height() - font_height) / 2 },
 		text_style,
 		item.text
 	);
@@ -90,7 +90,7 @@ MenuView::MenuView(
 {
 	set_focusable(true);
 	
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 	
@@ -101,7 +101,7 @@ MenuView::MenuView(
 }
 
 MenuView::~MenuView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void MenuView::on_tick_second() {
@@ -126,7 +126,7 @@ void MenuView::add_item(const MenuItem item) {
 void MenuView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	
-	displayed_max_ = new_parent_rect.size.h / 24;
+	displayed_max_ = new_parent_rect.size().height() / 24;
 	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
 	
 	update_items();
@@ -147,9 +147,9 @@ void MenuView::update_items() {
 			y_pos = (i - offset_ - 1) * item_height;
 			child->set_parent_rect({
 				{ 0, y_pos },
-				{ size().w, (Coord)item_height }
+				{ size().width(), (Coord)item_height }
 			});
-			if ((y_pos < 0) || (y_pos > (Coord)(screen_rect().size.h - item_height)))
+			if ((y_pos < 0) || (y_pos > (Coord)(screen_rect().size().height() - item_height)))
 				child->hidden(true);
 			else
 				child->hidden(false);

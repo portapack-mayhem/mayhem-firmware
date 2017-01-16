@@ -80,6 +80,9 @@ DRESULT disk_ioctl (
 <tr><td>ATA_GET_REV</td><td>リビジョン コードを<tt class="arg">buff</tt>の示す16バイトのバッファに読み出します。(ATA/CFカード専用)</td></tr>
 <tr><td>ATA_GET_MODEL</td><td>モデル コードを<tt class="arg">buff</tt>の示す40バイトのバッファに読み出します。(ATA/CFカード専用)</td></tr>
 <tr><td>ATA_GET_SN</td><td>シリアル番号を<tt class="arg">buff</tt>の示す20バイトのバッファに読み出します。(ATA/CFカード専用)</td></tr>
+<tr><td>ISDIO_READ</td><td><tt class="arg">buff</tt>の示すコマンド構造体に従いiSDIOレジスタからデータを読み出します。(FlashAir専用)</td></tr>
+<tr><td>ISDIO_WRITE</td><td><tt class="arg">buff</tt>の示すコマンド構造体に従いiSDIOレジスタにデータを書き込みます。(FlashAir専用)</td></tr>
+<tr><td>ISDIO_MRITE</td><td><tt class="arg">buff</tt>の示すコマンド構造体に従いiSDIOレジスタの一部のビットを書き換えます。(FlashAir専用)</td></tr>
 </table>
 </div>
 

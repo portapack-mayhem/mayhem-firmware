@@ -121,46 +121,4 @@ struct range_t {
 	}
 };
 
-namespace std {
-
-/*! Stephan T Lavavej (STL!) implementation of make_unique, which has been accepted into the C++14 standard.
- * It includes handling for arrays.
- * Paper here: http://isocpp.org/files/papers/N3656.txt
- */
-template<class T> struct _Unique_if {
-	typedef unique_ptr<T> _Single_object;
-};
-
-//! Specialization for unbound array
-template<class T> struct _Unique_if<T[]> {
-	typedef unique_ptr<T[]> _Unknown_bound;
-};
-
-//! Specialization for array of known size
-template<class T, size_t N> struct _Unique_if<T[N]> {
-	typedef void _Known_bound;
-};
-
-//! Specialization for normal object type
-template<class T, class... Args>
-typename _Unique_if<T>::_Single_object
-make_unique(Args&& ... args) {
-	return unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-//! Specialization for unknown bound
-template<class T>
-typename _Unique_if<T>::_Unknown_bound
-make_unique(size_t n) {
-	typedef typename remove_extent<T>::type U;
-	return unique_ptr<T>(new U[n]());
-}
-
-//! Deleted specialization
-template<class T, class... Args>
-typename _Unique_if<T>::_Known_bound
-make_unique(Args&& ...) = delete;
-
-} /* namespace std */
-
 #endif/*__UTILITY_H__*/

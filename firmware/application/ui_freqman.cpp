@@ -37,7 +37,7 @@ void FrequencySaveView::on_save_name(NavigationView& nav) {
 	nav.pop();
 }
 void FrequencySaveView::on_save_timestamp(NavigationView& nav) {
-	frequencies.push_back({ value_, "", text_timestamp.text() });
+	frequencies.push_back({ value_, "", str_timestamp });
 	nav.pop();
 }
 
@@ -50,12 +50,13 @@ void FrequencySaveView::focus() {
 
 void FrequencySaveView::on_tick_second() {
 	rtcGetTime(&RTCD1, &datetime);
-	text_timestamp.set(to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
-						to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0'));
+	str_timestamp = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
+						to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
+	text_timestamp.set(str_timestamp);
 }
 
 FrequencySaveView::~FrequencySaveView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 	save_freqman_file(frequencies);
 }
 
@@ -71,18 +72,18 @@ FrequencySaveView::FrequencySaveView(
 		if (!create_freqman_file(freqs_file)) error = true;
 	}
 	
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 	
-	add_children({ {
+	add_children({
 		&big_display,
 		&text_save,
 		&button_save_name,
 		&button_save_timestamp,
 		&text_timestamp,
 		&button_cancel
-	} });
+	});
 	
 	on_tick_second();
 	
@@ -130,10 +131,10 @@ FrequencyLoadView::FrequencyLoadView(
 {
 	error = !load_freqman_file(frequencies);
 
-	add_children({ {
+	add_children({
 		&menu_view,
 		&button_cancel
-	} });
+	});
 	
 	setup_list();
 	
@@ -196,13 +197,13 @@ FreqManView::FreqManView(
 {
 	error = !load_freqman_file(frequencies);
 	
-	add_children({ {
+	add_children({
 		&menu_view,
 		&button_edit_freq,
 		&button_edit_desc,
 		&button_del,
 		&button_exit
-	} });
+	});
 	
 	setup_list();
 	

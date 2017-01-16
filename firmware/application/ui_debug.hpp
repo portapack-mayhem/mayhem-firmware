@@ -193,7 +193,7 @@ public:
 	void focus();
 
 private:
-	Text text_title;
+	Text text_title { };
 
 	RegistersWidget registers_widget;
 

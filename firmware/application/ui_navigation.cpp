@@ -67,7 +67,7 @@ namespace ui {
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView() {
-	add_children({ {
+	add_children({
 		&button_back,
 		&title,
 		&button_stealth,
@@ -75,7 +75,7 @@ SystemStatusView::SystemStatusView() {
 		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
-	} });
+	});
 	
 	if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_keyboard);
@@ -148,18 +148,18 @@ void SystemStatusView::on_textentry() {
 }
 
 void SystemStatusView::on_camera() {
-	const auto filename_stem = next_filename_stem_matching_pattern("SCR_????");
-	if( filename_stem.empty() ) {
+	auto path = next_filename_stem_matching_pattern(u"SCR_????");
+	if( path.empty() ) {
 		return;
 	}
 
 	PNGWriter png;
-	auto create_error = png.create(filename_stem + ".PNG");
+	auto create_error = png.create(path.replace_extension(u".PNG"));
 	if( create_error.is_valid() ) {
 		return;
 	}
 
-	for (int i=0; i<320; i++) {
+	for(int i=0; i<320; i++) {
 		std::array<ColorRGB888, 240> row;
 		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
 		png.write_scanline(row);
@@ -420,10 +420,10 @@ void BMPView::focus() {
 }
 
 BMPView::BMPView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_info,
 		&button_done
-	} });
+	});
 	
 	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
@@ -438,11 +438,11 @@ void BMPView::paint(Painter&) {
 /* WipeSDView ************************************************************/
 
 WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
-	add_children({ {
+	add_children({
 		&text_info,
 		&progress,
 		&dummy
-	} });
+	});
 }
 
 WipeSDView::~WipeSDView() {
@@ -495,12 +495,12 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 	
 	portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
 	
-	add_children({ {
+	add_children({
 		&text_playdead1,
 		&text_playdead2,
 		&text_playdead3,
 		&button_seq_entry,
-	} });
+	});
 	
 	// Seed from RTC
 	rtcGetTime(&RTCD1, &datetime);
@@ -535,10 +535,10 @@ NotImplementedView::NotImplementedView(NavigationView& nav) {
 		nav.pop();
 	};
 
-	add_children({ {
+	add_children({
 		&text_title,
 		&button_done,
-	} });
+	});
 }
 
 void NotImplementedView::focus() {
@@ -566,10 +566,10 @@ ModalMessageView::ModalMessageView(
 			nav.pop();
 		};
 	} else if (type == YESNO) {
-		add_children({ {
+		add_children({
 			&button_yes,
 			&button_no
-		} });
+		});
 		
 		button_yes.on_select = [this, &nav](Button&){
 			if (on_choice_) on_choice_(true);
@@ -580,10 +580,10 @@ ModalMessageView::ModalMessageView(
 			nav.pop();
 		};
 	} else if (type == YESCANCEL) {
-		add_children({ {
+		add_children({
 			&button_yes,
 			&button_no
-		} });
+		});
 		
 		button_yes.on_select = [this, &nav](Button&){
 			if (on_choice_) on_choice_(true);

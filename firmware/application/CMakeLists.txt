@@ -36,7 +36,7 @@ set(USE_OPT "-Os -g --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-Wl,-Map,foo.map -std=c++11 -fno-rtti -fno-exceptions")
+set(USE_CPPOPT "-std=c++14 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -131,6 +131,7 @@ set(CPPSRC
 	rffc507x_spi.cpp
 	max2837.cpp
 	max5864.cpp
+	${COMMON}/buffer.cpp
 	debounce.cpp
 	touch.cpp
 	touch_adc.cpp
@@ -201,14 +202,15 @@ set(CPPSRC
 	capture_app.cpp
 	replay_app.cpp
 	sd_card.cpp
-	time.cpp
+	rtc_time.cpp
 	file.cpp
-	filewriter.cpp
-	wavfile.cpp
 	log_file.cpp
 	${COMMON}/png_writer.cpp
+	${COMMON}/buffer_exchange.cpp
 	capture_thread.cpp
 	replay_thread.cpp
+	io_file.cpp
+	io_wave.cpp
 	${COMMON}/manchester.cpp
 	string_format.cpp
 	temperature_logger.cpp
@@ -357,6 +359,7 @@ add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin

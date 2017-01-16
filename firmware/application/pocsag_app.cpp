@@ -104,7 +104,7 @@ void POCSAGAppView::update_freq(rf::Frequency f) {
 POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_pocsag);
 
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&options_freq,
@@ -113,7 +113,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&console
-	} });
+	});
 
 	radio::enable({
 		tuning_frequency(),
@@ -122,8 +122,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		rf::Direction::Receive,
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-		1,
+		static_cast<int8_t>(receiver_model.vga())
 	});
 
 	options_freq.on_change = [this](size_t, OptionsField::value_t v) {

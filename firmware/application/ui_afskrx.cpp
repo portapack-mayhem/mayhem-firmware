@@ -36,10 +36,10 @@ AFSKRXView::AFSKRXView(
 	NavigationView& nav
 )
 {
-	add_children({ {
+	add_children({
 		&button_done,
 		&text_rx
-	} }	);
+	});
 
 	button_done.on_select = [&nav](Button&){
 		nav.pop();

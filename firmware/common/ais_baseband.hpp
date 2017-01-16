@@ -32,21 +32,13 @@
 namespace baseband {
 namespace ais {
 
-// RRC length should be about 4 x the symbol length (4T) to do a good job of
-// cleaning up ISI.
-
-// Translate+RRC filter
-// sample=38.4k, deviation=2400, b=0.5, symbol=9600
-// Length: 16 taps, 4 symbols, 1 cycles of sinusoid
-constexpr std::array<std::complex<float>, 16> rrc_taps_38k4_4t_p { {
-	{  1.0619794019e-02f,  0.0000000000e+00f }, {  3.5758705854e-03f,  1.4811740938e-03f },
-	{ -1.3274742629e-02f, -1.3274742629e-02f }, { -1.5018657262e-02f, -3.6258246051e-02f },
-	{  0.0000000000e+00f, -2.6549484581e-02f }, { -1.5018657262e-02f,  3.6258246051e-02f },
-	{ -1.0237997393e-01f,  1.0237997393e-01f }, { -2.2527985355e-01f,  9.3313970669e-02f },
-	{ -2.8440842032e-01f,  0.0000000000e+00f }, { -2.2527985355e-01f, -9.3313970669e-02f },
-	{ -1.0237997393e-01f, -1.0237997393e-01f }, { -1.5018657262e-02f, -3.6258246051e-02f },
-	{  0.0000000000e+00f,  2.6549484581e-02f }, { -1.5018657262e-02f,  3.6258246051e-02f },
-	{ -1.3274742629e-02f,  1.3274742629e-02f }, {  3.5758705854e-03f, -1.4811740938e-03f },
+// Translate+Rectangular window filter
+// sample=38.4k, deviation=2400, symbol=9600
+// Length: 4 taps, 1 symbol, 1/4 cycle of sinusoid
+// Gain: 1.0 (sinusoid / len(taps))
+constexpr std::array<std::complex<float>, 4> square_taps_38k4_1t_p { {
+	{ 0.25000000f, 0.00000000f }, { 0.23096988f, 0.09567086f },
+	{ 0.17677670f, 0.17677670f }, { 0.09567086f, 0.23096988f },
 } };
 
 } /* namespace ais */

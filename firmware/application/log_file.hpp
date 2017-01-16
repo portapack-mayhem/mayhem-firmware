@@ -31,14 +31,14 @@ using namespace lpc43xx;
 
 class LogFile {
 public:
-	Optional<File::Error> append(const std::string& filename) {
+	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return file.append(filename);
 	}
 
 	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
-	File file;
+	File file { };
 
 	Optional<File::Error> write_line(const std::string& message);
 };

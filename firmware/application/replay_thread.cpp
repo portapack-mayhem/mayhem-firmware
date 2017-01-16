@@ -23,60 +23,22 @@
 #include "replay_thread.hpp"
 
 #include "baseband_api.hpp"
+#include "buffer_exchange.hpp"
 
-// StreamOutput ///////////////////////////////////////////////////////////
-
-class StreamOutput {
-public:
-	StreamOutput(CaptureConfig* const config);
-	~StreamOutput();
-
-	size_t available() {
-		return fifo_buffers_full->len();
+struct BasebandReplay {
+	BasebandReplay(CaptureConfig* const config) {
+		baseband::replay_start(config);
 	}
 
-	StreamBuffer* get_buffer() {
-		StreamBuffer* p { nullptr };
-		fifo_buffers_full->out(p);
-		return p;
+	~BasebandReplay() {
+		baseband::replay_stop();
 	}
-
-	bool release_buffer(StreamBuffer* const p) {
-		p->empty();
-		return fifo_buffers_empty->in(p);
-	}
-
-	static FIFO<StreamBuffer*>* fifo_buffers_empty;
-	static FIFO<StreamBuffer*>* fifo_buffers_full;
-
-private:
-	CaptureConfig* const config;
 };
 
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_empty = nullptr;
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_full = nullptr;
-
-StreamOutput::StreamOutput(
-	CaptureConfig* const config
-) : config { config }
-{
-	baseband::capture_start(config);
-	fifo_buffers_empty = config->fifo_buffers_empty;
-	fifo_buffers_full = config->fifo_buffers_full;
-}
-
-StreamOutput::~StreamOutput() {
-	fifo_buffers_full = nullptr;
-	fifo_buffers_empty = nullptr;
-	baseband::capture_stop();
-}
-
-// CaptureThread //////////////////////////////////////////////////////////
-
-Thread* ReplayThread::thread = nullptr;
+// ReplayThread ///////////////////////////////////////////////////////////
 
 ReplayThread::ReplayThread(
-	std::unique_ptr<Reader> reader,
+	std::unique_ptr<stream::Reader> reader,
 	size_t read_size,
 	size_t buffer_count,
 	std::function<void()> success_callback,
@@ -93,20 +55,8 @@ ReplayThread::ReplayThread(
 ReplayThread::~ReplayThread() {
 	if( thread ) {
 		chThdTerminate(thread);
-		chEvtSignal(thread, event_mask_loop_wake);
 		chThdWait(thread);
 		thread = nullptr;
-	}
-}
-
-void ReplayThread::check_fifo_isr() {
-	// TODO: Prevent over-signalling by transmitting a set of 
-	// flags from the baseband core.
-	const auto fifo = StreamOutput::fifo_buffers_full;
-	if( fifo ) {
-		if( !fifo->is_empty() ) {
-			chEvtSignalI(thread, event_mask_loop_wake);
-		}
 	}
 }
 
@@ -124,19 +74,16 @@ msg_t ReplayThread::static_fn(void* arg) {
 }
 
 Optional<File::Error> ReplayThread::run() {
-	StreamOutput stream { &config };
+	BasebandReplay replay { &config };
+	BufferExchange buffers { &config };
 
 	while( !chThdShouldTerminate() ) {
-		if( stream.available() ) {
-			auto buffer = stream.get_buffer();
-			auto read_result = reader->reader(buffer->data(), buffer->size());
-			if( read_result.is_error() ) {
-				return read_result.error();
-			}
-			stream.release_buffer(buffer);
-		} else {
-			chEvtWaitAny(event_mask_loop_wake);
+		auto buffer = buffers.get();
+		auto read_result = reader->read(buffer->data(), buffer->size());
+		if( read_result.is_error() ) {
+			return read_result.error();
 		}
+		buffers.put(buffer);
 	}
 
 	return { };

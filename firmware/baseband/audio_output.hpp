@@ -59,13 +59,13 @@ private:
 
 	BlockDecimator<float, 32> block_buffer { 1 };	
 
-	IIRBiquadFilter hpf;
-	IIRBiquadFilter deemph;
-	FMSquelch squelch;
+	IIRBiquadFilter hpf { };
+	IIRBiquadFilter deemph { };
+	FMSquelch squelch { };
 
-	std::unique_ptr<StreamInput> stream;
+	std::unique_ptr<StreamInput> stream { };
 
-	AudioStatsCollector audio_stats;
+	AudioStatsCollector audio_stats { };
 
 	uint64_t audio_present_history = 0;
 	

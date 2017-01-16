@@ -15,7 +15,7 @@
 <h2>f_size</h2>
 <p>ファイルのサイズを取得します。</p>
 <pre>
-DWORD f_size (
+FSIZE_t f_size (
   FIL* <span class="arg">fp</span>   <span class="c">/* [IN] ファイル オブジェクト */</span>
 );
 </pre>
@@ -41,7 +41,7 @@ DWORD f_size (
 <h4>解説</h4>
 <p>この関数は、現リビジョンではマクロとして実装されています。ファイル オブジェクトの正当性チェックや排他制御は行いません。</p>
 <pre>
-<span class="k">#define</span> f_size(fp) ((fp)->fsize)
+<span class="k">#define</span> f_size(fp) ((fp)->obj.objsize)
 </pre>
 </div>
 

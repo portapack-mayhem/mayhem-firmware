@@ -813,10 +813,10 @@ public:
 	reg_t read(const address_t reg_num);
 
 private:
-	spi::SPI _bus;
+	spi::SPI _bus { };
 
 	RegisterMap _map { default_hackrf_one };
-	DirtyRegisters<Register, reg_count> _dirty;
+	DirtyRegisters<Register, reg_count> _dirty { };
 
 	void write(const address_t reg_num, const reg_t value);
 

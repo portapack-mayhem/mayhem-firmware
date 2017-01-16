@@ -29,7 +29,7 @@
 #include "baseband_api.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"

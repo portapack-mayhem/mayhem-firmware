@@ -52,7 +52,7 @@ void AboutView::update() {
 			} else {
 				// Find a free text widget
 				for (c = 0; c < 10; c++)
-					if (text_line[c].screen_pos().y >= 200) break;
+					if (text_line[c].screen_pos().y() >= 200) break;
 				
 				if (c < 10) {
 					flag = credits[credits_index].flag & 0x3F;
@@ -106,13 +106,13 @@ void AboutView::update() {
 
 		// Scroll text lines
 		for (c = 0; c < 10; c++) {
-			y_val = text_line[c].screen_pos().y - 16;
+			y_val = text_line[c].screen_pos().y() - 16;
 			if (y_val < 32) {
-				text_line[c].set_parent_rect({{ text_line[c].screen_pos().x, 200 }, { text_line[c].size() }});
+				text_line[c].set_parent_rect({{ text_line[c].screen_pos().x(), 200 }, { text_line[c].size() }});
 				text_line[c].hidden(true);
 			} else {
 				if (y_val < 200) {
-					text_line[c].set_parent_rect({{ text_line[c].screen_pos().x, y_val - 1 }, { text_line[c].size() }});
+					text_line[c].set_parent_rect({{ text_line[c].screen_pos().x(), y_val - 1 }, { text_line[c].size() }});
 					n = (y_val - 32) >> 2;
 					if (n > 19)
 						n = (38 - n);
@@ -134,11 +134,11 @@ AboutView::AboutView(
 {
 	//uint8_t p, c;
 	
-	add_children({ {
+	add_children({
 		&text_cpld_hackrf,
 		&text_cpld_hackrf_status,
 		&button_ok,
-	} });
+	});
 	
 	for (auto& text : text_line) {
 		text.set("");

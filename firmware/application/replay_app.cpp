@@ -35,7 +35,7 @@ namespace ui {
 ReplayAppView::ReplayAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
-	add_children({ {
+	add_children({
 		&channel,
 		&field_frequency,
 		&field_frequency_step,
@@ -44,7 +44,7 @@ ReplayAppView::ReplayAppView(NavigationView& nav) {
 		&field_vga,
 		&replay_view,
 		&waterfall,
-	} });
+	});
 
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -73,8 +73,7 @@ ReplayAppView::ReplayAppView(NavigationView& nav) {
 		rf::Direction::Transmit,
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-		1,
+		static_cast<int8_t>(receiver_model.vga())
 	});
 
 	replay_view.set_sampling_rate(sampling_rate / 8);

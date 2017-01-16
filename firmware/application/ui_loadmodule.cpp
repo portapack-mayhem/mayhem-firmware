@@ -148,11 +148,11 @@ LoadModuleView::LoadModuleView(
 )
 {
 
-	add_children({ {
+	add_children({
 		&text_info,
 		&text_infob,
 		&button_ok
-	} });
+	});
 	
 	_hash = hash;
 

@@ -120,7 +120,7 @@ JammerView::JammerView(NavigationView& nav) {
 	
 	JammerRange * jammer_ranges = (JammerRange*)shared_memory.bb_data.data;
 	
-	add_children({ {
+	add_children({
 		&text_type,
 		&options_modulation,
 		&text_sweep,
@@ -137,7 +137,7 @@ JammerView::JammerView(NavigationView& nav) {
 		&text_info3,
 		&button_transmit,
 		&button_exit
-	} });
+	});
 	
 	const auto button_freq_fn = [this, &nav](Button& button) {
 		uint16_t id = button.id;
@@ -255,11 +255,7 @@ JammerView::JammerView(NavigationView& nav) {
 					button_transmit.set_text("STOP");
 					
 					//transmitter_model.set_tuning_frequency(433920000);		// TODO
-					transmitter_model.set_baseband_configuration({
-						.mode = 0,
-						.sampling_rate = 1536000U,
-						.decimation_factor = 1,
-					});
+					transmitter_model.set_sampling_rate(1536000U);
 					transmitter_model.set_rf_amp(true);
 					transmitter_model.set_baseband_bandwidth(1750000);
 					transmitter_model.enable();

@@ -80,7 +80,7 @@ public:
 	
 private:
 	FIFO<uint8_t> fifo;
-	Mutex mutex_write;
+	Mutex mutex_write { };
 
 	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());

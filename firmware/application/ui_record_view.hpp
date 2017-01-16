@@ -26,7 +26,7 @@
 
 #include "capture_thread.hpp"
 #include "signal.hpp"
-#include "wavfile.hpp"
+
 #include "bitmap.hpp"
 
 #include <cstddef>
@@ -37,7 +37,7 @@ namespace ui {
 
 class RecordView : public View {
 public:
-	std::function<void(std::string)> on_error;
+	std::function<void(std::string)> on_error { };
 
 	enum FileType {
 		RawS16 = 2,
@@ -46,7 +46,7 @@ public:
 
 	RecordView(
 		const Rect parent_rect,
-		std::string filename_stem_pattern,
+		std::filesystem::path filename_stem_pattern,
 		FileType file_type,
 		const size_t write_size,
 		const size_t buffer_count
@@ -65,7 +65,7 @@ public:
 private:
 	void toggle();
 	void toggle_pwmrssi();
-	Optional<File::Error> write_metadata_file(const std::string& filename);
+	Optional<File::Error> write_metadata_file(const std::filesystem::path& filename);
 
 	void on_tick_second();
 	void update_status_display();
@@ -74,12 +74,12 @@ private:
 	void handle_error(const File::Error error);
 
 	bool pwmrssi_enabled = false;
-	const std::string filename_stem_pattern;
+	const std::filesystem::path filename_stem_pattern;
 	const FileType file_type;
 	const size_t write_size;
 	const size_t buffer_count;
 	size_t sampling_rate { 0 };
-	SignalToken signal_token_tick_second;
+	SignalToken signal_token_tick_second { };
 
 	Rectangle rect_background {
 		Color::black()
@@ -114,7 +114,7 @@ private:
 		"",
 	};
 
-	std::unique_ptr<CaptureThread> capture_thread;
+	std::unique_ptr<CaptureThread> capture_thread { };
 
 	MessageHandlerRegistration message_handler_capture_thread_error {
 		Message::ID::CaptureThreadDone,

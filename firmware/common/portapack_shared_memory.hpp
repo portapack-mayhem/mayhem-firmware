@@ -64,7 +64,7 @@ struct SharedMemory {
 		ToneData tones_data;
 		JammerRange jammer_ranges[9];
 		uint8_t data[512];
-	} bb_data;
+	} bb_data { { { { 0, 0 } }, 0, { 0 } } };
 };
 
 extern SharedMemory& shared_memory;

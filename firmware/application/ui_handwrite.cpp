@@ -56,11 +56,11 @@ HandWriteView::HandWriteView(
 		txtidx--;
 	}
 
-	add_children({ {
+	add_children({
 		&text_input,
 		&button_case,
 		&button_ok
-	} });
+	});
 
 	const auto button_fn = [this](Button& button) {
 		this->on_button(button);
@@ -263,12 +263,12 @@ void HandWriteView::sample_pen() {
 	if (!(sample_skip & 15)) {
 		Point cursor_pos;
 		
-		cursor_pos.x = text_input.screen_rect().pos.x + (txtidx * 8);
-		cursor_pos.y = text_input.screen_rect().pos.y + 16 - 4;
+		cursor_pos = {text_input.screen_rect().location().x() + (txtidx * 8),
+						text_input.screen_rect().location().y() + 16 - 4};
 		
 		if (cursor) {
 			display.fill_rectangle(
-				{cursor_pos, {text_input.screen_rect().size.w - cursor_pos.x, 4}},
+				{cursor_pos, {text_input.screen_rect().size().width() - cursor_pos.x(), 4}},
 				Color::black()
 			);
 		} else {
@@ -290,12 +290,12 @@ void HandWriteView::sample_pen() {
 			if (move_wait) {
 				move_wait--;	// ~100ms delay to get rid of jitter from touch start
 			} else {
-				diff_x = current_pos.x - last_pos.x;
-				diff_y = current_pos.y - last_pos.y;
+				diff_x = current_pos.x() - last_pos.x();
+				diff_y = current_pos.y() - last_pos.y();
 
-				if (current_pos.y <= 240) {
+				if (current_pos.y() <= 240) {
 					display.fill_rectangle(
-						{{current_pos.x, current_pos.y}, {4, 4}},
+						{{current_pos.x(), current_pos.y()}, {4, 4}},
 						Color::grey()
 					);
 				}

@@ -73,7 +73,7 @@ WhipCalcView::WhipCalcView(
 	NavigationView& nav
 ) {
 
-	add_children({ {
+	add_children({
 		&text_frequency,
 		&field_frequency,
 		&text_type,
@@ -82,7 +82,7 @@ WhipCalcView::WhipCalcView(
 		&text_result_imperial,
 		&text_result_ant500,
 		&button_exit
-	} });
+	});
 	
 	options_type.on_change = [this](size_t, OptionsField::value_t) {
 		this->update_result();

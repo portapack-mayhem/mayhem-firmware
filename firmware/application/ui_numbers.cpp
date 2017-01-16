@@ -121,11 +121,7 @@ void NumbersStationView::start_tx() {
 	
 	prepare_audio();
 	
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -176,7 +172,7 @@ NumbersStationView::NumbersStationView(
 	
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 	
-	add_children({ {
+	add_children({
 		&text_title,
 		&field_frequency,
 		&number_bw,
@@ -185,7 +181,7 @@ NumbersStationView::NumbersStationView(
 		&check_armed,
 		&button_tx_now,
 		&button_exit
-	} });
+	});
 
 	number_bw.set_value(75);
 	check_armed.set_value(false);
@@ -207,12 +203,12 @@ NumbersStationView::NumbersStationView(
 	check_armed.on_select = [this](Checkbox&) {
 		if (check_armed.value()) {
 			armed_blink = false;
-			signal_token_tick_second = time::signal_tick_second += [this]() {
+			signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 				this->on_tick_second();
 			};
 		} else {
 			check_armed.set_style(&style());
-			time::signal_tick_second -= signal_token_tick_second;
+			rtc_time::signal_tick_second -= signal_token_tick_second;
 		}
 	};
 	

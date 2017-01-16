@@ -34,7 +34,7 @@ FRESULT f_read (
 <dt>btr</dt>
 <dd>Number of bytes to read in range of <tt>UINT</tt> type.</dd>
 <dt>br</dt>
-<dd>Pointer to the <tt>UINT</tt> variable to return number of bytes read. The value is always valid after the function call regardless of the result.</dd>
+<dd>Pointer to the <tt>UINT</tt> variable to return number of bytes read. The value is always valid after the function call regardless of the result code.</dd>
 </dl>
 </div>
 
@@ -53,7 +53,7 @@ FRESULT f_read (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The file read/write pointer of the file object advances number of bytes read. After the function succeeded, <tt class="arg">*br</tt> should be checked to detect end of the file. In case of <tt class="arg">*br</tt> is less than <tt class="arg">btr</tt>, it means the read/write pointer reached end of the file during read operation.</p>
+<p>The function starts to read data from the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes read. After the function succeeded, <tt class="arg">*br</tt> should be checked to detect end of the file. In case of <tt class="arg">*br</tt> is less than <tt class="arg">btr</tt>, it means the read/write pointer reached end of the file during read operation.</p>
 </div>
 
 

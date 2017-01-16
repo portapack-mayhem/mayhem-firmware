@@ -20,33 +20,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "wavfile.hpp"
+#include "io_wave.hpp"
 
-#include "portapack.hpp"
-using namespace portapack;
-
-#include "file.hpp"
-#include "time.hpp"
-#include "utility.hpp"
-
-#include <cstdint>
-
-namespace ui {
-
-int WAVFileReader::open(const std::string& filename) {
-	if (filename == last_filename) {
+int WAVFileReader::open(const std::filesystem::path& path) {
+	if (path.string() == last_path.string()) {
 		rewind();
 		return 1;			// Already open
 	}
 	
-	auto error = file.open(filename);
+	auto error = file.open(path);
 
 	if (!error.is_valid()) {
 		file.read((void*)&header, sizeof(header));
 		
 		// TODO: Check validity here
 	
-		last_filename = filename;
+		last_path = path;
 		data_start = header.fmt.cksize + 28;		// Skip "data" and cksize
 		
 		data_size_ = header.data.cksize;
@@ -98,13 +87,11 @@ uint16_t WAVFileReader::bits_per_sample() {
 	return header.fmt.wBitsPerSample;
 }
 
-WAVFileWriter::~WAVFileWriter() {
-	update_header();
-}
-
 Optional<File::Error> WAVFileWriter::create(
-	const std::string& filename
+	const std::filesystem::path& filename,
+	size_t sampling_rate
 ) {
+	sampling_rate = sampling_rate;
 	const auto create_error = FileWriter::create(filename);
 	if( create_error.is_valid() ) {
 		return create_error;
@@ -114,7 +101,7 @@ Optional<File::Error> WAVFileWriter::create(
 }
 
 Optional<File::Error> WAVFileWriter::update_header() {
-	header.set_data_size(bytes_written);
+	header_t header { sampling_rate, bytes_written };
 	const auto seek_0_result = file.seek(0);
 	if( seek_0_result.is_error() ) {
 		return seek_0_result.error();
@@ -130,5 +117,3 @@ Optional<File::Error> WAVFileWriter::update_header() {
 	}
 	return { };
 }
-
-} /* namespace ui */

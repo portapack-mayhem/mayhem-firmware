@@ -66,12 +66,12 @@ AlphanumView::AlphanumView(
 		txtidx--;
 	}
 	
-	add_children({ {
+	add_children({
 		&text_input,
 		&button_lowercase,
 		&raw_char,
 		&button_ok
-	} });
+	});
 
 	const auto button_fn = [this](Button& button) {
 		this->on_button(button);
@@ -124,11 +124,11 @@ AlphanumView::AlphanumView(
 void AlphanumView::move_cursor() {
 	Point cursor_pos;
 	
-	cursor_pos.x = text_input.screen_rect().pos.x + (txtidx * 8);
-	cursor_pos.y = text_input.screen_rect().pos.y + 16;
+	cursor_pos = {text_input.screen_rect().location().x() + (txtidx * 8),
+					text_input.screen_rect().location().y() + 16};
 	
 	portapack::display.fill_rectangle(
-		{{text_input.screen_rect().pos.x, cursor_pos.y}, {text_input.screen_rect().size.w, 4}},
+		{{text_input.screen_rect().location().x(), cursor_pos.y()}, {text_input.screen_rect().size().width(), 4}},
 		Color::black()
 	);
 	portapack::display.fill_rectangle(

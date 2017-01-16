@@ -23,7 +23,7 @@
 #include "ui_closecall.hpp"
 #include "msgpack.hpp"
 
-#include "time.hpp"
+#include "rtc_time.hpp"
 #include "event_m0.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
@@ -42,7 +42,7 @@ void CloseCallView::focus() {
 }
 
 CloseCallView::~CloseCallView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
 }
@@ -301,7 +301,7 @@ CloseCallView::CloseCallView(
 {
 	baseband::run_image(portapack::spi_flash::image_tag_closecall);
 	
-	add_children({ {
+	add_children({
 		&text_labels_a,
 		&text_labels_b,
 		&text_labels_c,
@@ -318,7 +318,7 @@ CloseCallView::CloseCallView(
 		&text_debug,
 		&big_display,
 		&button_exit
-	} });
+	});
 	
 	text_labels_a.set_style(&style_grey);
 	text_labels_b.set_style(&style_grey);
@@ -380,7 +380,7 @@ CloseCallView::CloseCallView(
 		nav.pop();
 	};
 	
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 

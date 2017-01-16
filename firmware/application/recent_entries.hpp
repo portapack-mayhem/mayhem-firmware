@@ -33,99 +33,103 @@
 #include <iterator>
 #include <algorithm>
 
-template<class Packet, class Entry>
-class RecentEntries {
-public:
-	using EntryType = Entry;
-	using Key = typename Entry::Key;
-	using ContainerType = std::list<Entry>;
-	using const_reference = typename ContainerType::const_reference;
-	using const_iterator = typename ContainerType::const_iterator;
-	using RangeType = std::pair<const_iterator, const_iterator>;
-	
-	const Entry& on_packet(const Key key, const Packet& packet) {
-		auto matching_recent = find(key);
-		if( matching_recent != std::end(entries) ) {
-			// Found within. Move to front of list, increment counter.
-			entries.push_front(*matching_recent);
-			entries.erase(matching_recent);
-		} else {
-			entries.emplace_front(key);
-			truncate_entries();
-		}
+template<class Entry>
+using RecentEntries = std::list<Entry>;
 
-		auto& entry = entries.front();
-		entry.update(packet);
+template<typename ContainerType, typename Key>
+typename ContainerType::const_iterator find(const ContainerType& entries, const Key key) {
+	return std::find_if(
+		std::begin(entries), std::end(entries),
+		[key](typename ContainerType::const_reference e) { return e.key() == key; }
+	);
+}
 
-		return entry;
+template<typename ContainerType>
+static void truncate_entries(ContainerType& entries, const size_t entries_max = 64) {
+	while(entries.size() > entries_max) {
+		entries.pop_back();
+	}
+}
+
+template<typename ContainerType, typename Key>
+typename ContainerType::reference on_packet(ContainerType& entries, const Key key) {
+	auto matching_recent = find(entries, key);
+	if( matching_recent != std::end(entries) ) {
+		// Found within. Move to front of list, increment counter.
+		entries.push_front(*matching_recent);
+		entries.erase(matching_recent);
+	} else {
+		entries.emplace_front(key);
+		truncate_entries(entries);
 	}
 
-	const_reference front() const {
-		return entries.front();
+	return entries.front();
+}
+
+template<typename ContainerType>
+static std::pair<typename ContainerType::const_iterator, typename ContainerType::const_iterator> range_around(
+	const ContainerType& entries,
+	typename ContainerType::const_iterator item,
+	const size_t count
+) {
+	auto start = item;
+	auto end = item;
+	size_t i = 0;
+
+	// Move start iterator toward first entry.
+	while( (start != std::begin(entries)) && (i < count / 2) ) {
+		std::advance(start, -1);
+		i++;
 	}
 
-	const_iterator find(const Key key) const {
-		return std::find_if(
-			std::begin(entries), std::end(entries),
-			[key](const Entry& e) { return e.key() == key; }
-		);
+	// Move end iterator toward last entry.
+	while( (end != std::end(entries)) && (i < count) ) {
+		std::advance(end, 1);
+		i++;
 	}
 
-	const_iterator begin() const {
-		return entries.begin();
-	}
-
-	const_iterator end() const {
-		return entries.end();
-	}
-
-	bool empty() const {
-		return entries.empty();
-	}
-
-	RangeType range_around(
-		const_iterator item, const size_t count
-	) const {
-		auto start = item;
-		auto end = item;
-		size_t i = 0;
-
-		// Move start iterator toward first entry.
-		while( (start != std::begin(entries)) && (i < count / 2) ) {
-			std::advance(start, -1);
-			i++;
-		}
-
-		// Move end iterator toward last entry.
-		while( (end != std::end(entries)) && (i < count) ) {
-			std::advance(end, 1);
-			i++;
-		}
-
-		return { start, end };
-	}
-
-private:
-	ContainerType entries;
-	const size_t entries_max = 64;
-
-	void truncate_entries() {
-		while(entries.size() > entries_max) {
-			entries.pop_back();
-		}
-	}
-};
+	return { start, end };
+}
 
 namespace ui {
 
-template<class Entries>
-class RecentEntriesView : public View {
+using RecentEntriesColumn = std::pair<std::string, size_t>;
+
+class RecentEntriesColumns {
 public:
-	using Entry = typename Entries::EntryType;
+	using ContainerType = std::vector<RecentEntriesColumn>;
 
-	std::function<void(const Entry& entry)> on_select;
+	RecentEntriesColumns(
+		const std::initializer_list<RecentEntriesColumn> columns
+	);
 
-	RecentEntriesView(
+	ContainerType::const_iterator begin() const { return std::begin(_columns); }
+	ContainerType::const_iterator end() const { return std::end(_columns); }
+
+private:
+	const ContainerType _columns;
+};
+
+class RecentEntriesHeader : public Widget {
+public:
+	RecentEntriesHeader(
+		const RecentEntriesColumns& columns
+	);
+
+	void paint(Painter& painter) override;
+
+private:
+	const RecentEntriesColumns& _columns;
+};
+
+template<class Entries>
+class RecentEntriesTable : public Widget {
+public:
+	using Entry = typename Entries::value_type;
+
+	std::function<void(const Entry& entry)> on_select { };
+
+	RecentEntriesTable(
 		Entries& recent
 	) : recent { recent }
 	{
@@ -136,30 +140,22 @@ public:
 		const auto r = screen_rect();
 		const auto& s = style();
 
-		Rect target_rect { r.pos, { r.width(), s.font.line_height() }};
+		Rect target_rect { r.location(), { r.width(), s.font.line_height() }};
 		const size_t visible_item_count = r.height() / s.font.line_height();
 
-		const Style style_header {
-			.font = font::fixed_8x16,
-			.background = Color::blue(),
-			.foreground = Color::white(),
-		};
-
-		draw_header(target_rect, painter, style_header);
-		target_rect.pos.y += target_rect.height();
-
-		auto selected = recent.find(selected_key);
+		auto selected = find(recent, selected_key);
 		if( selected == std::end(recent) ) {
 			selected = std::begin(recent);
 		}
 
-		auto range = recent.range_around(selected, visible_item_count);
+		auto range = range_around(recent, selected, visible_item_count);
 
 		for(auto p = range.first; p != range.second; p++) {
 			const auto& entry = *p;
 			const auto is_selected_key = (selected_key == entry.key());
-			draw(entry, target_rect, painter, s, (has_focus() && is_selected_key));
-			target_rect.pos.y += target_rect.height();
+			const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
+			draw(entry, target_rect, painter, item_style);
+			target_rect += { 0, target_rect.height() };
 		}
 
 		painter.fill_rectangle(
@@ -176,7 +172,7 @@ public:
 	bool on_key(const ui::KeyEvent event) override {
 		if( event == ui::KeyEvent::Select ) {
 			if( on_select ) {
-				const auto selected = recent.find(selected_key);
+				const auto selected = find(recent, selected_key);
 				if( selected != std::end(recent) ) {
 					on_select(*selected);
 					return true;
@@ -197,7 +193,7 @@ private:
 	EntryKey selected_key = Entry::invalid_key;
 
 	void advance(const int32_t amount) {
-		auto selected = recent.find(selected_key);
+		auto selected = find(recent, selected_key);
 		if( selected == std::end(recent) ) {
 			if( recent.empty() ) {
 				selected_key = Entry::invalid_key;
@@ -222,19 +218,59 @@ private:
 		set_dirty();
 	}
 
-	void draw_header(
-		const Rect& target_rect,
-		Painter& painter,
-		const Style& style
-	);
-
 	void draw(
 		const Entry& entry,
 		const Rect& target_rect,
 		Painter& painter,
-		const Style& style,
-		const bool is_selected
+		const Style& style
 	);
+};
+
+template<class Entries>
+class RecentEntriesView : public View {
+public:
+	using Entry = typename Entries::value_type;
+
+	std::function<void(const Entry& entry)> on_select { };
+
+	RecentEntriesView(
+		const RecentEntriesColumns& columns,
+		Entries& recent
+	) : _header { columns },
+		_table { recent }
+	{
+		add_children({
+			&_header,
+			&_table,
+		});
+
+		_table.on_select = [this](const Entry& entry) { if( this->on_select ) { this->on_select(entry); } };
+	}
+
+	void set_parent_rect(const Rect new_parent_rect) override {
+		constexpr Dim scale_height = 16;
+
+		View::set_parent_rect(new_parent_rect);
+		_header.set_parent_rect({ 0, 0, new_parent_rect.width(), scale_height });
+		_table.set_parent_rect({
+			0, scale_height,
+			new_parent_rect.width(),
+			new_parent_rect.height() - scale_height
+		});
+	}
+
+	void paint(Painter&) override {
+		// Children completely cover this View, do not paint.
+		// TODO: What happens here shouldn't matter if I do proper damage detection!
+	}
+
+	void on_focus() override {
+		_table.focus();
+	}
+
+private:
+	RecentEntriesHeader _header;
+	RecentEntriesTable<Entries> _table;
 };
 
 } /* namespace ui */

@@ -71,12 +71,7 @@ constexpr GPIO gpio_max2837_txenable = gpio[GPIO2_4];
 
 constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
 
-constexpr std::array<GPIO, 3> gpios_baseband_decimation {
-	gpio[GPIO5_12],
-	gpio[GPIO5_13],
-	gpio[GPIO5_14]
-};
-constexpr GPIO gpio_baseband_q_invert = gpio[GPIO0_13];
+constexpr GPIO gpio_baseband_invert = gpio[GPIO0_13];
 
 constexpr GPIO gpio_cpld_tdo = gpio[GPIO5_18];
 constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];

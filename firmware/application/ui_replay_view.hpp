@@ -46,7 +46,7 @@ public:
 
 	ReplayView(
 		const Rect parent_rect,
-		std::string filename_stem_pattern,
+		std::string filename,
 		FileType file_type,
 		const size_t read_size,
 		const size_t buffer_count
@@ -71,8 +71,7 @@ private:
 	void handle_replay_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
-	bool pwmrssi_enabled = false;
-	const std::string filename_stem_pattern;
+	const std::filesystem::path filename;
 	const FileType file_type;
 	const size_t read_size;
 	const size_t buffer_count;

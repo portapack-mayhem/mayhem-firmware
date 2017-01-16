@@ -15,7 +15,7 @@
 <h2>f_tell</h2>
 <p>The f_tell function gets the current read/write pointer of a file.</p>
 <pre>
-DWORD f_tell (
+FSIZE_t f_tell (
   FIL* <span class="arg">fp</span>   <span class="c">/* [IN] File object */</span>
 );
 </pre>
@@ -39,7 +39,7 @@ DWORD f_tell (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>In this revision, the <tt>f_tell</tt> function is implemented as a macro. It has not any validation and mutual exclusion.</p>
+<p>In this revision, the <tt>f_tell</tt> function is implemented as a macro. It does not have any validation and mutual exclusion.</p>
 <pre>
 <span class="k">#define</span> f_tell(fp) ((fp)->fptr)
 </pre>

@@ -72,7 +72,7 @@ struct ERTRecentEntry {
 
 	size_t received_count { 0 };
 
-	ert::Consumption last_consumption;
+	ert::Consumption last_consumption { };
 
 	ERTRecentEntry(
 		const Key& key
@@ -90,17 +90,17 @@ struct ERTRecentEntry {
 
 class ERTLogger {
 public:
-	Optional<File::Error> append(const std::string& filename) {
+	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return log_file.append(filename);
 	}
 	
 	void on_packet(const ert::Packet& packet);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
-using ERTRecentEntries = RecentEntries<ert::Packet, ERTRecentEntry>;
+using ERTRecentEntries = RecentEntries<ERTRecentEntry>;
 
 namespace ui {
 
@@ -126,10 +126,16 @@ public:
 	std::string title() const override { return "ERT"; };
 
 private:
-	ERTRecentEntries recent;
-	std::unique_ptr<ERTLogger> logger;
+	ERTRecentEntries recent { };
+	std::unique_ptr<ERTLogger> logger { };
 
-	ERTRecentEntriesView recent_entries_view { recent };
+	const RecentEntriesColumns columns { {
+		{ "ID", 10 },
+		{ "Tp", 2 },
+		{ "Consumpt", 10 },
+		{ "Cnt", 3 },
+	} };
+	ERTRecentEntriesView recent_entries_view { columns, recent };
 
 	static constexpr auto header_height = 1 * 16;
 

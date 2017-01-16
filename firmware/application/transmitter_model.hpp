@@ -49,17 +49,15 @@ public:
 
 	int32_t vga() const;
 	void set_vga(int32_t v_db);
+	
+	int32_t tx_gain() const;
+	void set_tx_gain(int32_t v_db);
 
 	uint32_t sampling_rate() const;
-
-	uint32_t modulation() const;
-	
-	uint32_t baseband_oversampling() const;
+	void set_sampling_rate(uint32_t v);
 
 	void enable();
 	void disable();
-	
-	void set_baseband_configuration(const BasebandConfiguration config);
 
 private:
 	bool enabled_ { false };
@@ -67,20 +65,17 @@ private:
 	int32_t lna_gain_db_ { 0 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
-	BasebandConfiguration baseband_configuration {
-		.mode = 0,
-		.sampling_rate = 3072000,
-		.decimation_factor = 1,
-	};
-	SignalToken signal_token_tick_second;
+	int32_t tx_gain_db_ { 47 };
+	uint32_t sampling_rate_ { 3072000 };
+	SignalToken signal_token_tick_second { };
 
 	void update_tuning_frequency();
 	void update_rf_amp();
 	void update_lna();
 	void update_baseband_bandwidth();
 	void update_vga();
-	void update_modulation();
-	void update_baseband_configuration();
+	void update_tx_gain();
+	void update_sampling_rate();
 	void on_tick_second();
 };
 

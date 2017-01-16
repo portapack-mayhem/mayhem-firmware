@@ -95,44 +95,13 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 
 namespace ui {
 
-static const std::array<std::pair<std::string, size_t>, 6> tpms_columns { {
-	{ "Tp", 2 },
-	{ "ID", 8 },
-	{ "kPa", 3 },
-	{ "C", 3 },
-	{ "Cnt", 3 },
-	{ "Fl", 2 },
-} };
-
 template<>
-void RecentEntriesView<TPMSRecentEntries>::draw_header(
+void RecentEntriesTable<TPMSRecentEntries>::draw(
+	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
 	const Style& style
 ) {
-	auto x = 0;
-	for(const auto& column : tpms_columns) {
-		const auto width = column.second;
-		auto text = column.first;
-		if( width > text.length() ) {
-			text.append(width - text.length(), ' ');
-		}
-
-		painter.draw_string({ x, target_rect.pos.y }, style, text);
-		x += (width * 8) + 8;
-	}
-}
-
-template<>
-void RecentEntriesView<TPMSRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style,
-	const bool is_selected
-) {
-	const auto& draw_style = is_selected ? style.invert() : style;
-
 	std::string line = tpms::format::type(entry.type) + " " + tpms::format::id(entry.id);
 
 	if( entry.last_pressure.is_valid() ) {
@@ -160,13 +129,13 @@ void RecentEntriesView<TPMSRecentEntries>::draw(
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.pos, draw_style, line);
+	painter.draw_string(target_rect.location(), style, line);
 }
 
 TPMSAppView::TPMSAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_tpms);
 
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&options_band,
@@ -174,7 +143,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_lna,
 		&field_vga,
 		&recent_entries_view,
-	} });
+	});
 
 	radio::enable({
 		tuning_frequency(),
@@ -184,7 +153,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	options_band.on_change = [this](size_t, OptionsField::value_t v) {
@@ -194,7 +162,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
-		logger->append("tpms.txt");
+		logger->append(u"tpms.txt");
 	}
 }
 
@@ -221,7 +189,8 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 	const auto reading_opt = packet.reading();
 	if( reading_opt.is_valid() ) {
 		const auto reading = reading_opt.value();
-		recent.on_packet({ reading.type(), reading.id() }, reading);
+		auto& entry = ::on_packet(recent, TPMSRecentEntry::Key { reading.type(), reading.id() });
+		entry.update(reading);
 		recent_entries_view.set_dirty();
 	}
 }

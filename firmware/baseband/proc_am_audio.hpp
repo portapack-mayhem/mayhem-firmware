@@ -49,31 +49,31 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
-	std::array<float, 32> audio;
+	std::array<float, 32> audio { };
 	const buffer_f32_t audio_buffer {
 		audio.data(),
 		audio.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
-	dsp::decimate::FIRAndDecimateComplex decim_2;
-	dsp::decimate::FIRAndDecimateComplex channel_filter;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+	dsp::decimate::FIRAndDecimateComplex decim_2 { };
+	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
 	bool modulation_ssb = false;
-	dsp::demodulate::AM demod_am;
-	dsp::demodulate::SSB demod_ssb;
-	FeedForwardCompressor audio_compressor;
-	AudioOutput audio_output;
+	dsp::demodulate::AM demod_am { };
+	dsp::demodulate::SSB demod_ssb { };
+	FeedForwardCompressor audio_compressor { };
+	AudioOutput audio_output { };
 
-	SpectrumCollector channel_spectrum;
+	SpectrumCollector channel_spectrum { };
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);

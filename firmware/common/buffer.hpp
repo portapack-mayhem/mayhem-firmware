@@ -33,21 +33,11 @@
  * a knot to tackle at the moment, though...
  */
 #if defined(LPC43XX_M4)
-#include "lpc43xx_m4.h"
-
 struct Timestamp {
 	uint32_t tv_date { 0 };
 	uint32_t tv_time { 0 };
 
-	static Timestamp now() {
-		// Code stolen from LPC43xx rtc_lld.c
-		Timestamp timestamp;
-	    do {
-			timestamp.tv_time = LPC_RTC->CTIME0;
-			timestamp.tv_date = LPC_RTC->CTIME1;
-	    } while( (timestamp.tv_time != LPC_RTC->CTIME0) || (timestamp.tv_date != LPC_RTC->CTIME1) );
-	    return timestamp;
-	}
+	static Timestamp now();
 };
 #endif
 

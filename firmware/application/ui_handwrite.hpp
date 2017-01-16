@@ -36,6 +36,11 @@ public:
 	std::function<void(char *)> on_changed;
 
 	HandWriteView(NavigationView& nav, char txt[], size_t max_length);
+	
+	HandWriteView(const HandWriteView&) = delete;
+	HandWriteView(HandWriteView&&) = delete;
+	HandWriteView& operator=(const HandWriteView&) = delete;
+	HandWriteView& operator=(HandWriteView&&) = delete;
 
 	void paint(Painter& painter) override;
 	void on_show() override;

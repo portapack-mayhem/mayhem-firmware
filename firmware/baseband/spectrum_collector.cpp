@@ -103,6 +103,31 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	}
 }
 
+template<typename T>
+static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
+	static_assert(power_of_two(s.size()), "Array size must be power of 2");
+	return s[i];
+};
+
+template<typename T>
+static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
+	static_assert(power_of_two(s.size()), "Array size must be power of 2");
+	constexpr size_t mask = s.size() - 1;
+	// Three point Hamming window.
+	return s[i] * 0.54f + (s[(i-1) & mask] + s[(i+1) & mask]) * -0.23f;
+};
+
+template<typename T>
+static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
+	static_assert(power_of_two(s.size()), "Array size must be power of 2");
+	constexpr size_t mask = s.size() - 1;
+	// Three term Blackman window.
+	constexpr float alpha = 0.42f;
+	constexpr float beta = 0.5f * 0.5f;
+	constexpr float gamma = 0.08f * 0.05f;
+	return s[i] * alpha - (s[(i-1) & mask] + s[(i+1) & mask]) * beta + (s[(i-2) & mask] + s[(i+2) & mask]) * gamma;
+};
+
 void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
 	if( streaming && channel_spectrum_request_update ) {
@@ -114,9 +139,7 @@ void SpectrumCollector::update() {
 		spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
 		spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
 		for(size_t i=0; i<spectrum.db.size(); i++) {
-			// Three point Hamming window.
-			const auto corrected_sample = channel_spectrum[i] * 0.54f
-				+ (channel_spectrum[(i-1) & 0xff] + channel_spectrum[(i+1) & 0xff]) * -0.23f;
+			const auto corrected_sample = spectrum_window_hamming_3(channel_spectrum, i);
 			const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));
 			const float db = mag2_to_dbv_norm(mag2);
 			constexpr float mag_scale = 5.0f;

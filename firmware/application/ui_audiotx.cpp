@@ -52,12 +52,12 @@ AudioTXView::AudioTXView(
 {
 	transmitter_model.set_tuning_frequency(92200000);
 		
-	add_children({ {
+	add_children({
 		&text_title,
 		&field_frequency,
 		&button_transmit,
 		&button_exit
-	} });
+	});
 	
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());

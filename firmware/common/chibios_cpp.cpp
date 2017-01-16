@@ -41,6 +41,14 @@ void operator delete[](void* p) noexcept {
 	chHeapFree(p);
 }
 
+void operator delete(void* ptr, std::size_t) noexcept {
+	::operator delete(ptr);
+}
+
+void operator delete[](void* ptr, std::size_t) noexcept {
+	::operator delete(ptr);
+}
+
 extern uint8_t __heap_base__[];
 extern uint8_t __heap_end__[];
 

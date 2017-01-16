@@ -46,15 +46,15 @@ struct I2CClockConfig {
 		return 1e9 / f;
 	}
 
-	constexpr uint32_t i2c_period_count() {
+	constexpr uint32_t i2c_period_count() const {
 		return period_ns(bus_f) / period_ns(clock_source_f) + 0.5f;
 	}
 
-	constexpr uint32_t i2c_high_count() {
+	constexpr uint32_t i2c_high_count() const {
 		return high_period_ns / period_ns(clock_source_f) + 0.5f;
 	}
 
-	constexpr uint32_t i2c_low_count() {
+	constexpr uint32_t i2c_low_count() const {
 		return i2c_period_count() - i2c_high_count();
 	}
 };

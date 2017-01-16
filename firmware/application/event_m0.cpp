@@ -25,14 +25,14 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "sd_card.hpp"
-#include "time.hpp"
+#include "rtc_time.hpp"
 
 #include "message.hpp"
 #include "message_queue.hpp"
 
 #include "irq_controls.hpp"
 
-#include "capture_thread.hpp"
+#include "buffer_exchange.hpp"
 
 #include "ch.h"
 
@@ -49,7 +49,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	CaptureThread::check_fifo_isr();
+	BufferExchange::handle_isr();
 	EventDispatcher::check_fifo_isr();
 	chSysUnlockFromIsr();
 
@@ -86,7 +86,7 @@ public:
 
 private:
 	using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
-	MapType map_;
+	MapType map_ { };
 };
 
 static MessageHandlerMap message_map;
@@ -235,7 +235,7 @@ void EventDispatcher::handle_rtc_tick() {
 			portapack::bl_tick_counter++;
 	}
 
-	time::on_tick_second();
+	rtc_time::on_tick_second();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {

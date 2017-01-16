@@ -47,11 +47,7 @@ RDSView::~RDSView() {
 }
 
 void RDSView::start_tx() {
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 2280000,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(2280000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -81,7 +77,7 @@ RDSView::RDSView(NavigationView& nav) {
 	strcpy(PSN, "TEST1234");
 	strcpy(RadioText, "Radiotext test ABCD1234");
 	
-	add_children({ {
+	add_children({
 		&field_frequency,
 		&text_pty,
 		&options_pty,
@@ -105,7 +101,7 @@ RDSView::RDSView(NavigationView& nav) {
 		&text_radiotextb,
 		&button_tx,
 		&button_exit
-	} });
+	});
 	
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(50000);	// 50kHz steps

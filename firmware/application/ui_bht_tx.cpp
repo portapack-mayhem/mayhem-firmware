@@ -64,11 +64,7 @@ void BHTView::start_tx() {
 	generate_message();
 	
 	transmitter_model.set_tuning_frequency(bht_freqs[options_freq.selected_index()]);
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000U,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -125,7 +121,7 @@ BHTView::BHTView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 	//baseband::run_image(portapack::spi_flash::image_tag_encoders);
 
-	add_children({ {
+	add_children({
 		&options_mode,
 		&text_header,
 		&header_code_a,
@@ -152,7 +148,7 @@ BHTView::BHTView(NavigationView& nav) {
 		&checkbox_cligno,
 		&tempo_cligno,
 		&text_cligno
-	} });
+	});
 	
 	options_mode.set_selected_index(0);			// Start up in Xy mode
 	header_code_a.set_value(0);
@@ -175,7 +171,7 @@ BHTView::BHTView(NavigationView& nav) {
 		
 		if (_mode) {
 			// EP layout
-			remove_children({ {
+			remove_children({
 				&text_header,
 				&header_code_a,
 				&header_code_b,
@@ -191,19 +187,19 @@ BHTView::BHTView(NavigationView& nav) {
 				&checkbox_wcid,
 				&relay_states[2],
 				&relay_states[3]
-			} });
-			add_children({ {
+			});
+			add_children({
 				&city_code_ep,
 				&family_code_ep
-			} });
+			});
 			set_dirty();
 		} else {
 			// Xy layout
-			remove_children({ {
+			remove_children({
 				&city_code_ep,
 				&family_code_ep
-			} });
-			add_children({ {
+			});
+			add_children({
 				&text_header,
 				&header_code_a,
 				&header_code_b,
@@ -219,7 +215,7 @@ BHTView::BHTView(NavigationView& nav) {
 				&checkbox_wcid,
 				&relay_states[2],
 				&relay_states[3]
-			} });
+			});
 			set_dirty();
 		};
 		generate_message();

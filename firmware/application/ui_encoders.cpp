@@ -189,11 +189,7 @@ void EncodersView::start_tx(const bool scan) {
 	
 	ook_bitstream_length = n;
 
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 2280000U,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(2280000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -307,7 +303,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 	// Default encoder def
 	encoder_def = &encoder_defs[0];
 
-	add_children({ {
+	add_children({
 		&field_frequency,
 		&text_enctype,
 		&options_enctype,
@@ -330,7 +326,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&text_status,
 		&progress,
 		&button_transmit
-	} });
+	});
 	
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(50000);

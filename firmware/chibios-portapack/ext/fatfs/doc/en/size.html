@@ -15,7 +15,7 @@
 <h2>f_size</h2>
 <p>The f_size function gets the size of a file.</p>
 <pre>
-DWORD f_size (
+FSIZE_t f_size (
   FIL* <span class="arg">fp</span>   <span class="c">/* [IN] File object */</span>
 );
 </pre>
@@ -39,9 +39,9 @@ DWORD f_size (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>In this revision, the <tt>f_size</tt> function is implemented as a macro. It has not any validation and mutual exclusion.</p>
+<p>In this revision, the <tt>f_size</tt> function is implemented as a macro. It does not have any validation and mutual exclusion.</p>
 <pre>
-<span class="k">#define</span> f_size(fp) ((fp)->fsize)
+<span class="k">#define</span> f_size(fp) ((fp)->obj.objsize)
 </pre>
 </div>
 

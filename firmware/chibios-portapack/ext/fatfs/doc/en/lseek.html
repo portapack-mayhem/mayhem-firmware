@@ -17,8 +17,8 @@
 
 <pre>
 FRESULT f_lseek (
-  FIL* <span class="arg">fp</span>,   <span class="c">/* [IN] File object */</span>
-  DWORD <span class="arg">ofs</span>  <span class="c">/* [IN] File read/write pointer */</span>
+  FIL*    <span class="arg">fp</span>,  <span class="c">/* [IN] File object */</span>
+  FSIZE_t <span class="arg">ofs</span>  <span class="c">/* [IN] File read/write pointer */</span>
 );
 </pre>
 </div>
@@ -29,7 +29,7 @@ FRESULT f_lseek (
 <dt>fp</dt>
 <dd>Pointer to the open file object.</dd>
 <dt>ofs</dt>
-<dd>Byte offset from top of the file.</dd>
+<dd>Byte offset from top of the file. The data type <tt>FSIZE_t</tt> is an alias of either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>.</dd>
 </dl>
 </div>
 
@@ -48,19 +48,19 @@ FRESULT f_lseek (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_lseek</tt> function moves the file read/write pointer of an open file. The offset can be specified in only origin from top of the file. When an offset beyond the file size is specified at write mode, the file size is expanded to the specified offset. The file data in the expanded area is undefined because no data is written to the file. This is suitable to pre-allocate a cluster chain quickly, for fast write operation. After the <tt>f_lseek</tt> function succeeded, the current read/write pointer should be checked in order to make sure the read/write pointer has been moved correctry. In case of the current read/write pointer is not the expected value, either of followings has been occured.</p>
+<p>The <tt>f_lseek</tt> function moves the file read/write pointer of an open file. The offset can be specified in only origin from top of the file. When an offset beyond the file size is specified at write mode, the file size is expanded to the specified offset. The file data in the expanded area is <em>undefined</em> because no data is written to the file in this process. This is suitable to pre-allocate a cluster chain quickly, for fast write operation. When a contiguous data area needs to be allocated to the file, use <tt>f_expand</tt> function instead. After the <tt>f_lseek</tt> function succeeded, the current read/write pointer should be checked in order to make sure the read/write pointer has been moved correctry. In case of the read/write pointer is not the expected value, either of followings has been occured.</p>
 <ul>
 <li>End of file. The specified <tt class="arg">ofs</tt> was clipped at end of the file because the file has been opened in read-only mode.</li>
-<li>Disk full. There is insufficient free space on the volume to expand the file.</li>
+<li>Disk full. There is no free space on the volume to expand the file.</li>
 </ul>
-<p>The fast seek feature enables fast backward/long seek operations without FAT access by using an on-memory CLMT (cluster link map table). It is applied to <tt>f_read</tt> and <tt>f_write</tt> function as well, however, the file size cannot be expanded by <tt>f_write</tt>, <tt>f_lseek</tt> function while the file is in fast seek mode.</p>
-<p>The fast seek feature is enabled when the member <tt>cltbl</tt> in the file object is not NULL. The CLMT must be created into the <tt>DWORD</tt> array prior to use the fast seek feature. To create the CLMT, set address of the <tt>DWORD</tt> array to the member <tt>cltbl</tt> in the open file object, set the size of array in unit of items to the first item and call the <tt>f_lseek</tt> function with <tt class="arg">ofs</tt><tt> = CREATE_LINKMAP</tt>. After the function succeeded and CLMT is created, no FAT access is occured in subsequent <tt>f_read</tt>, <tt>f_write</tt>, <tt>f_lseek</tt> function to the file. The number of items used or required is returned into the first item of the array. The number of items to be used is (number of the file fragments + 1) * 2. For example, when the file is fragmented in 5, 12 items in the array will be used. If the function failed with <tt>FR_NOT_ENOUGH_CORE</tt>, the given array size is insufficient for the file.</p>
+<p>The fast seek function enables fast backward/long seek operations without FAT access by using an on-memory CLMT (cluster link map table). It is applied to <tt>f_read</tt> and <tt>f_write</tt> function as well, however, the file size cannot be expanded by <tt>f_write</tt>, <tt>f_lseek</tt> function while the file is in fast seek mode.</p>
+<p>The fast seek function is enabled when the member <tt>cltbl</tt> in the file object is not NULL. The CLMT must be created into the <tt>DWORD</tt> array prior to use the fast seek function. To create the CLMT, set address of the <tt>DWORD</tt> array to the member <tt>cltbl</tt> in the open file object, set the size of array in unit of items to the first item and call the <tt>f_lseek</tt> function with <tt class="arg">ofs</tt><tt> = CREATE_LINKMAP</tt>. After the function succeeded and CLMT is created, no FAT access is occured in subsequent <tt>f_read</tt>, <tt>f_write</tt>, <tt>f_lseek</tt> function to the file. The number of items used or required is returned into the first item of the array. The number of items to be used is (number of the file fragments + 1) * 2. For example, when the file is fragmented in 5, 12 items in the array will be used. If the function failed with <tt>FR_NOT_ENOUGH_CORE</tt>, the given array size is insufficient for the file.</p>
 </div>
 
 
 <div class="para comp">
 <h4>QuickInfo</h4>
-<p>Available when <tt>_FS_MINIMIZE &lt;= 2</tt>. To use fast seek feature, <tt>_USE_FASTSEEK</tt> needs to be set 1.</p>
+<p>Available when <tt>_FS_MINIMIZE &lt;= 2</tt>. To use fast seek function, <tt>_USE_FASTSEEK</tt> needs to be set 1.</p>
 </div>
 
 
@@ -102,7 +102,7 @@ FRESULT f_lseek (
     res = f_close(fp);
 </pre>
 <pre>
-<span class="c">/* Using fast seek feature */</span>
+<span class="c">/* Using fast seek function */</span>
 
     DWORD clmt[SZ_TBL];                    <span class="c">/* Cluster link map table buffer */</span>
 
@@ -110,7 +110,7 @@ FRESULT f_lseek (
 
     res = f_lseek(fp, ofs1);               <span class="c">/* This is normal seek (cltbl is nulled on file open) */</span>
 
-    fp-&gt;cltbl = clmt;                      <span class="c">/* Enable fast seek feature (cltbl != NULL) */</span>
+    fp-&gt;cltbl = clmt;                      <span class="c">/* Enable fast seek function (cltbl != NULL) */</span>
     clmt[0] = SZ_TBL;                      <span class="c">/* Set table size */</span>
     res = f_lseek(fp, CREATE_LINKMAP);     <span class="c">/* Create CLMT */</span>
     ...
@@ -122,7 +122,7 @@ FRESULT f_lseek (
 
 <div class="para ref">
 <h4>See Also</h4>
-<p><tt><a href="open.html">f_open</a>, <a href="truncate.html">f_truncate</a>, <a href="sfile.html">FIL</a></tt></p>
+<p><tt><a href="open.html">f_open</a>, <a href="truncate.html">f_truncate</a>, <a href="expand.html">f_expand</a>, <a href="sfile.html">FIL</a></tt></p>
 </div>
 
 <p class="foot"><a href="../00index_e.html">Return</a></p>

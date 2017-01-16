@@ -54,9 +54,9 @@ struct TPMSRecentEntry {
 
 	size_t received_count { 0 };
 
-	Optional<Pressure> last_pressure;
-	Optional<Temperature> last_temperature;
-	Optional<tpms::Flags> last_flags;
+	Optional<Pressure> last_pressure { };
+	Optional<Temperature> last_temperature { };
+	Optional<tpms::Flags> last_flags { };
 
 	TPMSRecentEntry(
 		const Key& key
@@ -72,18 +72,18 @@ struct TPMSRecentEntry {
 	void update(const tpms::Reading& reading);
 };
 
-using TPMSRecentEntries = RecentEntries<tpms::Reading, TPMSRecentEntry>;
+using TPMSRecentEntries = RecentEntries<TPMSRecentEntry>;
 
 class TPMSLogger {
 public:
-	Optional<File::Error> append(const std::string& filename) {
+	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return log_file.append(filename);
 	}
 	
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
 namespace ui {
@@ -150,10 +150,18 @@ private:
 		{ 18 * 8, 0 * 16 }
 	};
 
-	TPMSRecentEntries recent;
-	std::unique_ptr<TPMSLogger> logger;
+	TPMSRecentEntries recent { };
+	std::unique_ptr<TPMSLogger> logger { };
 
-	TPMSRecentEntriesView recent_entries_view { recent };
+	const RecentEntriesColumns columns { {
+		{ "Tp", 2 },
+		{ "ID", 8 },
+		{ "kPa", 3 },
+		{ "C", 3 },
+		{ "Cnt", 3 },
+		{ "Fl", 2 },
+	} };
+	TPMSRecentEntriesView recent_entries_view { columns, recent };
 
 	uint32_t target_frequency_ = initial_target_frequency;
 

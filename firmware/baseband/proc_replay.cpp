@@ -34,17 +34,17 @@ ReplayProcessor::ReplayProcessor() {
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
-	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto& decimator_out = decim_1_out;
-	const auto& channel = decimator_out;
+	//const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+	//const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	//const auto& decimator_out = decim_1_out;
+	//const auto& channel = decimator_out;
 
-	if( stream ) {
-		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-		const auto result = stream->write(decimator_out.p, bytes_to_write);
-	}
+	//if( stream ) {
+	//	const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
+	//	const auto result = stream->write(decimator_out.p, bytes_to_write);
+	//}
 
-	feed_channel_stats(channel);
+	//feed_channel_stats(channel);
 
 	/*spectrum_samples += channel.count;
 	if( spectrum_samples >= spectrum_interval_samples ) {

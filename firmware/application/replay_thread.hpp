@@ -27,23 +27,17 @@
 
 #include "event_m0.hpp"
 
-#include "file.hpp"
+#include "io.hpp"
 #include "optional.hpp"
 
 #include <cstdint>
 #include <cstddef>
 #include <utility>
 
-class Reader {
-public:
-	virtual File::Result<size_t> read(const void* const buffer, const size_t bytes) = 0;
-	virtual ~Reader() = default;
-};
-
 class ReplayThread {
 public:
 	ReplayThread(
-		std::unique_ptr<Reader> reader,
+		std::unique_ptr<stream::Reader> reader,
 		size_t read_size,
 		size_t buffer_count,
 		std::function<void()> success_callback,
@@ -51,20 +45,21 @@ public:
 	);
 	~ReplayThread();
 
-	const ReplayConfig& state() const {
+	ReplayThread(const ReplayThread&) = delete;
+	ReplayThread(ReplayThread&&) = delete;
+	ReplayThread& operator=(const ReplayThread&) = delete;
+	ReplayThread& operator=(ReplayThread&&) = delete;
+
+	const CaptureConfig& state() const {
 		return config;
 	}
 
-	static void check_fifo_isr();
-
 private:
-	static constexpr auto event_mask_loop_wake = EVENT_MASK(0);
-
-	ReplayConfig config;
-	std::unique_ptr<Reader> reader;
+	CaptureConfig config;
+	std::unique_ptr<stream::Reader> reader;
 	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;
-	static Thread* thread;
+	Thread* thread { nullptr };
 
 	static msg_t static_fn(void* arg);
 

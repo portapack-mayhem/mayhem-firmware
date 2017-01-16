@@ -128,12 +128,12 @@ struct Calibration {
 		const std::array<DigitizerPoint, 3>& s,
 		const std::array<ui::Point, 3>& d
 	) : k { (s[0].x - s[2].x) * (s[1].y - s[2].y) - (s[1].x - s[2].x) * (s[0].y - s[2].y) },
-		a { (d[0].x - d[2].x) * (s[1].y - s[2].y) - (d[1].x - d[2].x) * (s[0].y - s[2].y) },
-		b { (s[0].x - s[2].x) * (d[1].x - d[2].x) - (d[0].x - d[2].x) * (s[1].x - s[2].x) },
-		c { s[0].y * (s[2].x * d[1].x - s[1].x * d[2].x) + s[1].y * (s[0].x * d[2].x - s[2].x * d[0].x) + s[2].y * (s[1].x * d[0].x - s[0].x * d[1].x) },
-		d { (d[0].y - d[2].y) * (s[1].y - s[2].y) - (d[1].y - d[2].y) * (s[0].y - s[2].y) },
-		e { (s[0].x - s[2].x) * (d[1].y - d[2].y) - (d[0].y - d[2].y) * (s[1].x - s[2].x) },
-		f { s[0].y * (s[2].x * d[1].y - s[1].x * d[2].y) + s[1].y * (s[0].x * d[2].y - s[2].x * d[0].y) + s[2].y * (s[1].x * d[0].y - s[0].x * d[1].y) }
+		a { (d[0].x() - d[2].x()) * (s[1].y - s[2].y) - (d[1].x() - d[2].x()) * (s[0].y - s[2].y) },
+		b { (s[0].x - s[2].x) * (d[1].x() - d[2].x()) - (d[0].x() - d[2].x()) * (s[1].x - s[2].x) },
+		c { s[0].y * (s[2].x * d[1].x() - s[1].x * d[2].x()) + s[1].y * (s[0].x * d[2].x() - s[2].x * d[0].x()) + s[2].y * (s[1].x * d[0].x() - s[0].x * d[1].x()) },
+		d { (d[0].y() - d[2].y()) * (s[1].y - s[2].y) - (d[1].y() - d[2].y()) * (s[0].y - s[2].y) },
+		e { (s[0].x - s[2].x) * (d[1].y() - d[2].y()) - (d[0].y() - d[2].y()) * (s[1].x - s[2].x) },
+		f { s[0].y * (s[2].x * d[1].y() - s[1].x * d[2].y()) + s[1].y * (s[0].x * d[2].y() - s[2].x * d[0].y()) + s[2].y * (s[1].x * d[0].y() - s[0].x * d[1].y()) }
 	{
 	}
 
@@ -154,13 +154,7 @@ const Calibration default_calibration();
 template<size_t N>
 class Filter {
 public:
-	constexpr Filter(
-	) : history(),
-		history_history { 0 },
-		accumulator { 0 },
-		n { 0 }
-	{
-	}
+	constexpr Filter() = default;
 
 	void reset() {
 		history.fill(0);
@@ -177,7 +171,7 @@ public:
 		history_history = (history_history << 1) | 1U;
 	}
 
-	uint32_t value() const {
+	int32_t value() const {
 		return accumulator / N;
 	}
 
@@ -196,10 +190,10 @@ public:
 private:
 	static constexpr uint32_t history_history_mask { (1U << N) - 1 };
 
-	std::array<sample_t, N> history;
-	uint32_t history_history;
-	uint32_t accumulator;
-	size_t n;
+	std::array<sample_t, N> history { };
+	uint32_t history_history { 0 };
+	int32_t accumulator { 0 };
+	size_t n { 0 };
 
 	bool history_valid() const {
 		return (history_history & history_history_mask) == history_history_mask;
@@ -208,7 +202,7 @@ private:
 
 class Manager {
 public:
-	std::function<void(ui::TouchEvent)> on_event;
+	std::function<void(ui::TouchEvent)> on_event { };
 
 	void feed(const Frame& frame);
 
@@ -224,8 +218,8 @@ private:
 
 	// Ensure filter length is equal or less than touch_count_threshold,
 	// or coordinates from the last touch will be in the initial averages.
-	Filter<touch_count_threshold> filter_x;
-	Filter<touch_count_threshold> filter_y;
+	Filter<touch_count_threshold> filter_x { };
+	Filter<touch_count_threshold> filter_y { };
 
 	//Debounce touch_debounce;
 

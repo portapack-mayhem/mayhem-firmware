@@ -219,7 +219,7 @@ constexpr ClockControl::Type si5351_clock_control_ms_src_clkin = ClockControl::M
 
 constexpr ClockControls si5351_clock_control_common {
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Fractional | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Group | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
+	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Group | ClockControl::CLK_INV_Invert | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Group | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
 	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,

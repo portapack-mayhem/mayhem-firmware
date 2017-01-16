@@ -37,6 +37,12 @@ public:
 	std::function<void(char *)> on_changed;
 
 	AlphanumView(NavigationView& nav, char txt[], size_t max_length);
+	
+	AlphanumView(const AlphanumView&) = delete;
+	AlphanumView(AlphanumView&&) = delete;
+	AlphanumView& operator=(const AlphanumView&) = delete;
+	AlphanumView& operator=(AlphanumView&&) = delete;
+
 
 	void paint(Painter& painter) override;
 	void focus() override;

@@ -120,7 +120,7 @@ void LCRView::paint(Painter& painter) {
 			style_orange,
 			litteral[i]
 		);
-		offset.y += 32;
+		offset += { 0, 32 };
 	}
 	
 	button_setrgsb.set_text(rgsb);
@@ -248,11 +248,7 @@ void LCRView::start_tx(const bool scan) {
 	}
 
 	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -282,7 +278,7 @@ LCRView::LCRView(NavigationView& nav) {
 	
 	strcpy(rgsb, &scan_list[0].addresses[0]);
 	
-	add_children({ {
+	add_children({
 		&text_recap,
 		&options_ec,
 		&button_setrgsb,
@@ -295,7 +291,7 @@ LCRView::LCRView(NavigationView& nav) {
 		&options_scanlist,
 		&button_scan,
 		&button_clear
-	} });
+	});
 	
 	options_scanlist.set_selected_index(0);
 	

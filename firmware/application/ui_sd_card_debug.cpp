@@ -51,19 +51,19 @@ public:
 		halrtcnt_t write_duration_min { 0 };
 		halrtcnt_t write_duration_max { 0 };
 		halrtcnt_t write_test_duration { 0 };
-		size_t write_bytes { 0 };
+		File::Size write_bytes { 0 };
 		size_t write_count { 0 };
 
 		halrtcnt_t read_duration_min { 0 };
 		halrtcnt_t read_duration_max { 0 };
 		halrtcnt_t read_test_duration { 0 };
-		size_t read_bytes { 0 };
+		File::Size read_bytes { 0 };
 		size_t read_count { 0 };
 	};
 
 	SDCardTestThread(
 	) {
-		thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
+		thread = chThdCreateFromHeap(NULL, 3072, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
 	}
 
 	Result result() const {
@@ -80,13 +80,13 @@ public:
 	}
 
 private:
-	static constexpr size_t write_size = 16384;
-	static constexpr size_t bytes_to_write = 16 * 1024 * 1024;
-	static constexpr size_t bytes_to_read = bytes_to_write;
+	static constexpr File::Size write_size = 16384;
+	static constexpr File::Size bytes_to_write = 16 * 1024 * 1024;
+	static constexpr File::Size bytes_to_read = bytes_to_write;
 
 	static Thread* thread;
 	volatile Result _result { Result::Incomplete };
-	Stats _stats;
+	Stats _stats { };
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<SDCardTestThread*>(arg);
@@ -95,7 +95,7 @@ private:
 	}
 
 	Result run() {
-		const std::string filename { "_PPTEST_.DAT" };
+		const std::filesystem::path filename { u"_PPTEST_.DAT" };
 
 		const auto write_result = write(filename);
 		if( write_result != Result::OK ) {
@@ -115,7 +115,7 @@ private:
 			return read_result;
 		}
 
-		f_unlink(filename.c_str());
+		f_unlink(reinterpret_cast<const TCHAR*>(filename.c_str()));
 
 		if( _stats.read_bytes < bytes_to_read ) {
 			return Result::FailReadIncomplete;
@@ -128,7 +128,7 @@ private:
 		return Result::OK;
 	}
 
-	Result write(const std::string& filename) {
+	Result write(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
 		if( !buffer ) {
 			return Result::FailHeap;
@@ -175,7 +175,7 @@ private:
 		return Result::OK;
 	}
 
-	Result read(const std::string& filename) {
+	Result read(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
 		if( !buffer ) {
 			return Result::FailHeap;
@@ -230,7 +230,7 @@ Thread* SDCardTestThread::thread { nullptr };
 namespace ui {
 
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_title,
 		&text_csd_title,
 		&text_csd_value_3,
@@ -257,7 +257,7 @@ SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 		&text_test_read_rate_value,
 		&button_test,
 		&button_ok,
-	} });
+	});
 
 	button_test.on_select = [this](Button&){ this->on_test(); };
 	button_ok.on_select = [&nav](Button&){ nav.pop(); };
@@ -365,7 +365,7 @@ static std::string format_ticks_as_ms(const halrtcnt_t value) {
 	return format_3dot3_string(us);
 }
 
-static std::string format_bytes_per_ticks_as_mib(const size_t bytes, const halrtcnt_t ticks) {
+static std::string format_bytes_per_ticks_as_mib(const File::Size bytes, const halrtcnt_t ticks) {
 	const uint32_t bps = uint64_t(bytes) * halGetCounterFrequency() / ticks;
 	const uint32_t kbps = bps / 1000U;
 	return format_3dot3_string(kbps);

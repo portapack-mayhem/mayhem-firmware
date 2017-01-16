@@ -85,7 +85,7 @@ public:
 	}
 
 private:
-	std::array<T, N> buffer;
+	std::array<T, N> buffer { };
 	uint32_t input_sampling_rate_ { 0 };
 	size_t factor_ { 1 };
 	size_t src_i { 0 };

@@ -34,13 +34,24 @@ public:
 		uint32_t sampling_rate,
 		BasebandProcessor* const baseband_processor,
 		const tprio_t priority,
-		const baseband::Direction dir
+		const baseband::Direction direction = baseband::Direction::Receive
 	);
 	~BasebandThread();
 
+	BasebandThread(const BasebandThread&) = delete;
+	BasebandThread(BasebandThread&&) = delete;
+	BasebandThread& operator=(const BasebandThread&) = delete;
+	BasebandThread& operator=(BasebandThread&&) = delete;
+	
+	// This getter should die, it's just here to leak information to code that
+	// isn't in the right place to begin with.
+	baseband::Direction direction() const {
+		return _direction;
+	}
+
 private:
 	static Thread* thread;
-	baseband::Direction direction;
+	baseband::Direction _direction;
 
 	BasebandProcessor* baseband_processor { nullptr };
 	uint32_t sampling_rate;

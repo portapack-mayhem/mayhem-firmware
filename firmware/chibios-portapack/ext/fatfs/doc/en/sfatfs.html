@@ -16,16 +16,19 @@
 <p>The <tt>FATFS</tt> structure (file system object) holds dynamic work area of individual logical drives. It is given by application program and registerd/unregisterd to the FatFs module with <tt>f_mount</tt> function. Initialization is done on first API call after <tt>f_mount</tt> function or media change. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
-    BYTE    fs_type;      <span class="c">/* FAT sub-type (0:Not mounted, FS_FAT12/FS_FAT16/FS_FAT32) */</span>
+    BYTE    fs_type;      <span class="c">/* File system type (0, FS_FAT12, FS_FAT16, FS_FAT32 or FS_EXFAT) */</span>
     BYTE    drv;          <span class="c">/* Physical drive number */</span>
-    BYTE    csize;        <span class="c">/* Sectors per cluster (1,2,4,...,128) */</span>
     BYTE    n_fats;       <span class="c">/* Number of FAT copies (1,2) */</span>
     BYTE    wflag;        <span class="c">/* win[] flag (b0:win[] is dirty) */</span>
     BYTE    fsi_flag;     <span class="c">/* FSINFO flags (b7:Disabled, b0:Dirty) */</span>
     WORD    id;           <span class="c">/* File system mount ID */</span>
     WORD    n_rootdir;    <span class="c">/* Number of root directory entries (FAT12/16) */</span>
+    WORD    csize;        <span class="c">/* Sectors per cluster */</span>
 <span class="k">#if</span> _MAX_SS != _MIN_SS
     WORD    ssize;        <span class="c">/* Sector size (512,1024,2048 or 4096) */</span>
+<span class="k">#endif</span>
+<span class="k">#if _FS_EXFAT</span>
+    BYTE*   dirbuf;       <span class="c">/* Directory entry block scratchpad buffer */</span>
 <span class="k">#endif</span>
 <span class="k">#if</span> _FS_REENTRANT
     _SYNC_t sobj;         <span class="c">/* Identifier of sync object */</span>
@@ -36,6 +39,11 @@
 <span class="k">#endif</span>
 <span class="k">#if</span> _FS_RPATH
     DWORD   cdir;         <span class="c">/* Cluster number of current directory (0:root) */</span>
+<span class="k">#if _FS_EXFAT</span>
+    DWORD   cdc_scl;      <span class="c">/* Containing directory start cluster (invalid when cdir is 0) */</span>
+    DWORD   cdc_size;     <span class="c">/* b31-b8:Size of containing directory, b7-b0: Chain status */</span>
+    DWORD   cdc_ofs;      <span class="c">/* Offset in the containing directory (invalid when cdir is 0) */</span>
+<span class="k">#endif</span>
 <span class="k">#endif</span>
     DWORD   n_fatent;     <span class="c">/* Number of FAT entries (Number of clusters + 2) */</span>
     DWORD   fsize;        <span class="c">/* Sectors per FAT */</span>

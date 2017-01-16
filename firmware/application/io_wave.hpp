@@ -20,18 +20,66 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __WAVFILE_H__
-#define __WAVFILE_H__
+#pragma once
 
-#include "filewriter.hpp"
+#include "io_file.hpp"
+
+#include "file.hpp"
+#include "optional.hpp"
 
 #include <cstddef>
-#include <string>
-#include <memory>
+#include <cstdint>
 
-namespace ui {
+struct fmt_pcm_t {
+	constexpr fmt_pcm_t(
+		const uint32_t sampling_rate
+	) : nSamplesPerSec { sampling_rate },
+		nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
+	{
+	}
 
-class WAVFileReader {
+private:
+	uint8_t ckID[4] { 'f', 'm', 't', ' ' };
+	uint32_t cksize { 16 };
+	uint16_t wFormatTag { 0x0001 };
+	uint16_t nChannels { 1 };
+	uint32_t nSamplesPerSec;
+	uint32_t nAvgBytesPerSec;
+	uint16_t nBlockAlign { 2 };
+	uint16_t wBitsPerSample { 16 };
+};
+
+struct data_t {
+	constexpr data_t(
+		const uint32_t size
+	) : cksize { size }
+	{
+	}
+
+private:
+	uint8_t ckID[4] { 'd', 'a', 't', 'a' };
+	uint32_t cksize { 0 };
+};
+
+struct header_t {
+	constexpr header_t(
+		const uint32_t sampling_rate,
+		const uint32_t data_chunk_size
+	) : cksize { sizeof(header_t) + data_chunk_size - 8 },
+		fmt { sampling_rate },
+		data { data_chunk_size }
+	{
+	}
+
+private:
+	uint8_t riff_id[4] { 'R', 'I', 'F', 'F' };
+	uint32_t cksize { 0 };
+	uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
+	fmt_pcm_t fmt;
+	data_t data;
+};
+
+class WAVFileReader : public FileReader {
 public:
 	WAVFileReader() = default;
 	
@@ -42,7 +90,7 @@ public:
 	
 	virtual ~WAVFileReader() = default;
 
-	int open(const std::string& filename);
+	int open(const std::filesystem::path& path);
 	void rewind();
 	uint32_t ms_duration();
 	size_t read(void * const data, const size_t bytes_to_read);
@@ -53,13 +101,6 @@ public:
 	uint16_t bits_per_sample();
 	
 private:
-	File file;
-	uint32_t data_start;
-	uint32_t bytes_per_sample;
-	uint32_t data_size_;
-	uint32_t sample_rate_;
-	std::string last_filename = "";
-	
 	struct fmt_pcm_t {
 		uint8_t ckID[4];		// fmt 
 		uint32_t cksize;
@@ -85,81 +126,36 @@ private:
 	};
 
 	header_t header;
-};
 
+	File file;
+	uint32_t data_start;
+	uint32_t bytes_per_sample;
+	uint32_t data_size_;
+	uint32_t sample_rate_;
+	std::filesystem::path last_path { };
+};
 
 class WAVFileWriter : public FileWriter {
 public:
-	WAVFileWriter(
-		size_t sampling_rate
-	) : header { sampling_rate }
-	{
-	}
+	WAVFileWriter() = default;
 
 	WAVFileWriter(const WAVFileWriter&) = delete;
 	WAVFileWriter& operator=(const WAVFileWriter&) = delete;
 	WAVFileWriter(WAVFileWriter&&) = delete;
 	WAVFileWriter& operator=(WAVFileWriter&&) = delete;
 
-	~WAVFileWriter();
+	~WAVFileWriter() {
+		update_header();
+	}
 
-	Optional<File::Error> create(const std::string& filename);
+	Optional<File::Error> create(
+		const std::filesystem::path& filename,
+		size_t sampling_rate
+	);
 
 private:
-	struct fmt_pcm_t {
-		constexpr fmt_pcm_t(
-			const uint32_t sampling_rate
-		) : nSamplesPerSec { sampling_rate },
-			nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
-		{
-		}
-
-	private:
-		const uint8_t ckID[4] { 'f', 'm', 't', ' ' };
-		const uint32_t cksize { 16 };
-		const uint16_t wFormatTag { 0x0001 };
-		const uint16_t nChannels { 1 };
-		const uint32_t nSamplesPerSec;
-		const uint32_t nAvgBytesPerSec;
-		const uint16_t nBlockAlign { 2 };
-		const uint16_t wBitsPerSample { 16 };
-	};
-
-	struct data_t {
-		void set_size(const uint32_t value) {
-			cksize = value;
-		}
-
-	private:
-		const uint8_t ckID[4] { 'd', 'a', 't', 'a' };
-		uint32_t cksize { 0 };
-	};
-
-	struct header_t {
-		constexpr header_t(
-			const uint32_t sampling_rate
-		) : fmt { sampling_rate }
-		{
-		}
-
-		void set_data_size(const uint32_t value) {
-			data.set_size(value);
-			cksize = sizeof(header_t) + value - 8;
-		}
-
-	private:
-		const uint8_t riff_id[4] { 'R', 'I', 'F', 'F' };
-		uint32_t cksize { 0 };
-		const uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
-		fmt_pcm_t fmt;
-		data_t data;
-	};
-
-	header_t header;
+	uint32_t sampling_rate { 0 };
+	uint32_t bytes_written { 0 };
 
 	Optional<File::Error> update_header();
 };
-
-} /* namespace ui */
-
-#endif/*__WAVFILE_H__*/

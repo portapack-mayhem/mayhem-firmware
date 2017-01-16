@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,14 +19,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "time.hpp"
+#include "buffer.hpp"
 
-namespace time {
+#if defined(LPC43XX_M4)
+#include "lpc43xx_m4.h"
 
-Signal<> signal_tick_second;
-
-void on_tick_second() {
-	signal_tick_second.emit();
+Timestamp Timestamp::now() {
+	// Code stolen from LPC43xx rtc_lld.c
+	Timestamp timestamp;
+    do {
+		timestamp.tv_time = LPC_RTC->CTIME0;
+		timestamp.tv_date = LPC_RTC->CTIME1;
+    } while( (timestamp.tv_time != LPC_RTC->CTIME0) || (timestamp.tv_date != LPC_RTC->CTIME1) );
+    return timestamp;
 }
-
-} /* namespace time */
+#endif

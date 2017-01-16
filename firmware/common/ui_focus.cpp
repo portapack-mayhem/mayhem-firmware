@@ -127,14 +127,14 @@ static int32_t rect_distances(
 	switch(direction) {
 	case KeyEvent::Right:
 	case KeyEvent::Left:
-		perpendicular_axis_start = rect_start.center().y;
-		perpendicular_axis_end = rect_end.center().y;
+		perpendicular_axis_start = rect_start.center().y();
+		perpendicular_axis_end = rect_end.center().y();
 		break;
 
 	case KeyEvent::Up:
 	case KeyEvent::Down:
-		perpendicular_axis_start = rect_start.center().x;
-		perpendicular_axis_end = rect_end.center().x;
+		perpendicular_axis_start = rect_start.center().x();
+		perpendicular_axis_end = rect_end.center().x();
 		break;
 
 	default:

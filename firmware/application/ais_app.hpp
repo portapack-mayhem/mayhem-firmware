@@ -49,8 +49,8 @@ using namespace lpc43xx;
 
 struct AISPosition {
 	rtc::RTC timestamp { };
-	ais::Latitude latitude;
-	ais::Longitude longitude;
+	ais::Latitude latitude { };
+	ais::Longitude longitude { };
 	ais::RateOfTurn rate_of_turn { -128 };
 	ais::SpeedOverGround speed_over_ground { 1023 };
 	ais::CourseOverGround course_over_ground { 3600 };
@@ -78,6 +78,9 @@ struct AISRecentEntry {
 	AISRecentEntry(
 		const ais::MMSI& mmsi
 	) : mmsi { mmsi },
+		name { },
+		call_sign { },
+		destination { },
 		last_position { },
 		received_count { 0 },
 		navigational_status { -1 }
@@ -91,18 +94,18 @@ struct AISRecentEntry {
 	void update(const ais::Packet& packet);
 };
 
-using AISRecentEntries = RecentEntries<ais::Packet, AISRecentEntry>;
+using AISRecentEntries = RecentEntries<AISRecentEntry>;
 
 class AISLogger {
 public:
-	Optional<File::Error> append(const std::string& filename) {
+	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return log_file.append(filename);
 	}
 	
 	void on_packet(const ais::Packet& packet);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
 namespace ui {
@@ -111,7 +114,7 @@ using AISRecentEntriesView = RecentEntriesView<AISRecentEntries>;
 
 class AISRecentEntryDetailView : public View {
 public:
-	std::function<void(void)> on_close;
+	std::function<void(void)> on_close { };
 
 	AISRecentEntryDetailView();
 
@@ -122,7 +125,7 @@ public:
 	void paint(Painter&) override;
 
 private:
-	AISRecentEntry entry_;
+	AISRecentEntry entry_ { };
 
 	Button button_done {
 		{ 72, 216, 96, 24 },
@@ -158,11 +161,15 @@ private:
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
-	AISRecentEntries recent;
-	std::unique_ptr<AISLogger> logger;
+	AISRecentEntries recent { };
+	std::unique_ptr<AISLogger> logger { };
 
-	AISRecentEntriesView recent_entries_view { recent };
-	AISRecentEntryDetailView recent_entry_detail_view;
+	const RecentEntriesColumns columns { {
+		{ "MMSI", 9 },
+		{ "Name/Call", 20 },
+	} };
+	AISRecentEntriesView recent_entries_view { columns, recent };
+	AISRecentEntryDetailView recent_entry_detail_view { };
 
 	static constexpr auto header_height = 1 * 16;
 

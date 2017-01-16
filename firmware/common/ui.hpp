@@ -116,121 +116,157 @@ struct ColorRGB888 {
 };
 
 struct Point {
-	Coord x;
-	Coord y;
+private:
+	Coord _x;
+	Coord _y;
 
+public:
 	constexpr Point(
-	) : x { 0 },
-		y { 0 }
+	) : _x { 0 },
+		_y { 0 }
 	{
 	}
 
 	constexpr Point(
 		int x,
 		int y
-	) : x { static_cast<Coord>(x) },
-		y { static_cast<Coord>(y) }
+	) : _x { static_cast<Coord>(x) },
+		_y { static_cast<Coord>(y) }
 	{
 	}
 
-	Point operator-() const {
-		return { -x, -y };
+	constexpr int x() const {
+		return _x;
 	}
 
-	Point operator+(const Point& p) const {
-		return { x + p.x, y + p.y };
+	constexpr int y() const {
+		return _y;
 	}
 
-	Point operator-(const Point& p) const {
-		return { x - p.x, y - p.y };
+	constexpr Point operator-() const {
+		return { -_x, -_y };
+	}
+
+	constexpr Point operator+(const Point& p) const {
+		return { _x + p._x, _y + p._y };
+	}
+
+	constexpr Point operator-(const Point& p) const {
+		return { _x - p._x, _y - p._y };
 	}
 
 	Point& operator+=(const Point& p) {
-		x += p.x;
-		y += p.y;
+		_x += p._x;
+		_y += p._y;
+		return *this;
+	}
+
+	Point& operator-=(const Point& p) {
+		_x -= p._x;
+		_y -= p._y;
 		return *this;
 	}
 };
 
 struct Size {
-	Dim w;
-	Dim h;
+private:
+	Dim _w;
+	Dim _h;
 
+public:
 	constexpr Size(
-	) : w { 0 },
-		h { 0 }
+	) : _w { 0 },
+		_h { 0 }
 	{
 	}
 
 	constexpr Size(
 		int w,
 		int h
-	) : w { static_cast<Dim>(w) },
-		h { static_cast<Dim>(h) }
+	) : _w { static_cast<Dim>(w) },
+		_h { static_cast<Dim>(h) }
 	{
 	}
 
+	int width() const {
+		return _w;
+	}
+
+	int height() const {
+		return _h;
+	}
+
 	bool is_empty() const {
-		return (w < 1) || (h < 1);
+		return (_w < 1) || (_h < 1);
 	}
 };
 
 struct Rect {
-	Point pos;
-	Size size;
+private:
+	Point _pos;
+	Size _size;
 
+public:
 	constexpr Rect(
-	) : pos { },
-		size { }
+	) : _pos { },
+		_size { }
 	{
 	}
 
 	constexpr Rect(
 		int x, int y,
 		int w, int h
-	) : pos { x, y },
-		size { w, h }
+	) : _pos { x, y },
+		_size { w, h }
 	{
 	}
 
 	constexpr Rect(
 		Point pos,
 		Size size
-	) : pos(pos),
-		size(size)
+	) : _pos(pos),
+		_size(size)
 	{
 	}
 	
+	Point location() const {
+		return _pos;
+	}
+
+	Size size() const {
+		return _size;
+	}
+	
 	int top() const {
-		return pos.y;
+		return _pos.y();
 	}
 
 	int bottom() const {
-		return pos.y + size.h;
+		return _pos.y() + _size.height();
 	}
 
 	int left() const {
-		return pos.x;
+		return _pos.x();
 	}
 
 	int right() const {
-		return pos.x + size.w;
+		return _pos.x() + _size.width();
 	}
 
 	int width() const {
-		return size.w;
+		return _size.width();
 	}
 
 	int height() const {
-		return size.h;
+		return _size.height();
 	}
 
 	Point center() const {
-		return { pos.x + size.w / 2, pos.y + size.h / 2 };
+		return { _pos.x() + _size.width() / 2, _pos.y() + _size.height() / 2 };
 	}
 
 	bool is_empty() const {
-		return size.is_empty();
+		return _size.is_empty();
 	}
 
 	bool contains(const Point p) const;
@@ -238,13 +274,15 @@ struct Rect {
 	Rect intersect(const Rect& o) const;
 
 	Rect operator+(const Point& p) const {
-		return { pos + p, size };
+		return { _pos + p, _size };
 	}
 
 	Rect& operator+=(const Rect& p);
+	Rect& operator+=(const Point& p);
+	Rect& operator-=(const Point& p);
 
 	operator bool() const {
-		return !size.is_empty();
+		return !_size.is_empty();
 	}
 };
 

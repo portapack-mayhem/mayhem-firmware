@@ -439,12 +439,16 @@ public:
 		return used_ >= capacity_;
 	}
 
-	const void* data() const {
+	void* data() const {
 		return data_;
 	}
 
 	size_t size() const {
 		return used_;
+	}
+
+	void set_size(const size_t value) {
+		used_ = value;
 	}
 
 	void empty() {

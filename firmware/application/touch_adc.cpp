@@ -57,14 +57,14 @@ constexpr lpc43xx::adc::Config adc0_config {
 };
 
 void init() {
-	adc0.clock_enable();
-	adc0.interrupts_disable();
-	adc0.power_up(adc0_config);
-	adc0.interrupts_enable(adc0_interrupt_mask);
+	adc0::clock_enable();
+	adc0::interrupts_disable();
+	adc0::power_up(adc0_config);
+	adc0::interrupts_enable(adc0_interrupt_mask);
 }
 
 void start() {
-	adc0.start_burst();
+	adc0::start_burst();
 }
 
 // static constexpr bool monitor_overruns_and_not_dones = false;

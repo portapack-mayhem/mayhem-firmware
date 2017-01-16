@@ -51,20 +51,20 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0;
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
 
-	std::unique_ptr<StreamInput> stream;
+	std::unique_ptr<StreamInput> stream { };
 
-	SpectrumCollector channel_spectrum;
+	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 

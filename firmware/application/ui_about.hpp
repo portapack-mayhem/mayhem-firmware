@@ -101,7 +101,7 @@ private:
 									{"",					"MMXVI",					END}
 									};
 
-	std::array<Text, 10> text_line;
+	std::array<Text, 10> text_line { };
 
 	Text text_cpld_hackrf {
 		{ 0, 252, 11*8, 16 },

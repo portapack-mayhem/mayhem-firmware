@@ -31,7 +31,7 @@
 #include "ui_receiver.hpp"
 #include "utility.hpp"
 #include "message.hpp"
-#include "wavfile.hpp"
+#include "io_wave.hpp"
 #include "ctcss.hpp"
 
 namespace ui {
@@ -56,8 +56,7 @@ private:
 	tx_modes tx_mode = NORMAL;
 	
 	struct sound {
-		std::string filename = "";
-		std::string shortname = "";
+		std::filesystem::path path { };
 		bool sixteenbit = false;
 		uint32_t sample_rate = 0;
 		uint32_t size = 0;

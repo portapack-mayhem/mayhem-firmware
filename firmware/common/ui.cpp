@@ -26,8 +26,8 @@
 namespace ui {
 
 bool Rect::contains(const Point p) const {
-	return (p.x >= left()) && (p.y >= top()) &&
-	       (p.x < right()) && (p.y < bottom());
+	return (p.x() >= left()) && (p.y() >= top()) &&
+	       (p.x() < right()) && (p.y() < bottom());
 }
 
 Rect Rect::intersect(const Rect& o) const {
@@ -42,6 +42,8 @@ Rect Rect::intersect(const Rect& o) const {
 	}
 }
 
+// TODO: This violates the principle of least surprise!
+// This does a union, but that might not be obvious from "+=" syntax.
 Rect& Rect::operator+=(const Rect& p) {
 	if( is_empty() ) {
 		*this = p;
@@ -49,11 +51,21 @@ Rect& Rect::operator+=(const Rect& p) {
 	if( !p.is_empty() ) {
 		const auto x1 = std::min(left(), p.left());
 		const auto y1 = std::min(top(), p.top());
-		pos = { x1, y1 };
+		_pos = { x1, y1 };
 		const auto x2 = std::max(right(), p.right());
 		const auto y2 = std::max(bottom(), p.bottom());
-		size = { x2 - x1, y2 - y1 };
+		_size = { x2 - x1, y2 - y1 };
 	}
+	return *this;
+}
+
+Rect& Rect::operator+=(const Point& p) {
+	_pos += p;
+	return *this;
+}
+
+Rect& Rect::operator-=(const Point& p) {
+	_pos -= p;
 	return *this;
 }
 

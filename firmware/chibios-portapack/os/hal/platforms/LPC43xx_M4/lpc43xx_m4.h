@@ -125,12 +125,6 @@ typedef enum IRQn {
 
 #ifdef __cplusplus
 
-/* NOTE: Override old, misbehaving SIMD #defines */
-
-#define __SIMD32_TYPE int32_t
-#define __SIMD32(addr)  (*(__SIMD32_TYPE **) & (addr))
-#define _SIMD32_OFFSET(addr)  (*(__SIMD32_TYPE *)  (addr))
-
 /* Overload of __SXTB16() to add ROR argument, since using __ROR() as an
  * argument to the existing __SXTB16() doesn't produce optimum/sane code.
  */
@@ -194,6 +188,20 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE int32_t __SMULTT(uint32_t op1
   int32_t result;
   __ASM volatile ("smultt %0, %1, %2" : "=r" (result) : "r" (op1), "r" (op2) );
   return result;
+}
+
+#undef __SMULL
+
+__attribute__( ( always_inline ) ) static inline int64_t __SMULL (int32_t op1, int32_t op2)
+{
+  union llreg_u{
+    uint32_t w32[2];
+    int64_t w64;
+  } llr;
+
+  __asm volatile ("smull %0, %1, %2, %3" : "=r" (llr.w32[0]), "=r" (llr.w32[1]): "r" (op1), "r" (op2));
+
+  return(llr.w64);
 }
 
 #undef __SMLALD

@@ -50,7 +50,7 @@ private:
 	float max_squared { 0 };
 	size_t count { 0 };
 
-	AudioStatistics statistics;
+	AudioStatistics statistics { };
 
 	void consume_audio_buffer(const buffer_f32_t& src);
 

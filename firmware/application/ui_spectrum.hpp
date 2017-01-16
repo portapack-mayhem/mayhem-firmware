@@ -76,6 +76,11 @@ class WaterfallWidget : public View {
 public:
 	WaterfallWidget();
 
+	WaterfallWidget(const WaterfallWidget&) = delete;
+	WaterfallWidget(WaterfallWidget&&) = delete;
+	WaterfallWidget& operator=(const WaterfallWidget&) = delete;
+	WaterfallWidget& operator=(WaterfallWidget&&) = delete;
+
 	void on_show() override;
 	void on_hide() override;
 
@@ -84,8 +89,8 @@ public:
 	void paint(Painter& painter) override;
 
 private:
-	WaterfallView waterfall_view;
-	FrequencyScale frequency_scale;
+	WaterfallView waterfall_view { };
+	FrequencyScale frequency_scale { };
 	ChannelSpectrumFIFO* fifo { nullptr };
 
 	MessageHandlerRegistration message_handler_spectrum_config {

@@ -75,6 +75,8 @@ void spectrum_streaming_stop();
 
 void capture_start(CaptureConfig* const config);
 void capture_stop();
+void replay_start(CaptureConfig* const config);
+void replay_stop();
 
 } /* namespace baseband */
 

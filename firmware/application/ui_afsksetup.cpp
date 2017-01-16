@@ -68,7 +68,7 @@ AFSKSetupView::AFSKSetupView(
 	uint8_t rpt;
 	size_t i;
 	
-	add_children({ {
+	add_children({
 		&text_setfreq,
 		&button_setfreq,
 		&text_bps,
@@ -84,7 +84,7 @@ AFSKSetupView::AFSKSetupView(
 		&text_format,
 		&options_format,
 		&button_save
-	} });
+	});
 	
 	for (i = 0; i < AFSK_MODES_COUNT; i++)
 		format_options.emplace_back(std::make_pair(afsk_formats[i].fullname, i));

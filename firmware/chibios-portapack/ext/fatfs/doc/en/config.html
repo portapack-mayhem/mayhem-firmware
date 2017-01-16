@@ -17,7 +17,7 @@
 <h3>Function Configurations</h3>
 
 <h4 id="fs_readonly">_FS_READONLY</h4>
-<p>Read/Write(0) or Read-only(1). Read-only configuration removes writing API functions, <tt>f_write</tt>, <tt>f_sync</tt>, <tt>f_unlink</tt>, <tt>f_mkdir</tt>, <tt>f_chmod</tt>, <tt>f_rename</tt>, <tt>f_truncate</tt>, <tt>f_getfree</tt> and optional writing functions as well.</p>
+<p>Read/Write (0) or Read-only (1). Read-only configuration removes writing API functions, <tt>f_write</tt>, <tt>f_sync</tt>, <tt>f_unlink</tt>, <tt>f_mkdir</tt>, <tt>f_chmod</tt>, <tt>f_rename</tt>, <tt>f_truncate</tt>, <tt>f_getfree</tt> and optional writing functions as well.</p>
 
 <h4 id="fs_minimize">_FS_MINIMIZE</h4>
 <p>This option defines minimization level to remove some basic API functions as follows:</p>
@@ -39,19 +39,25 @@
 </table>
 
 <h4 id="use_find">_USE_FIND</h4>
-<p>Disable(0) or Enable(1). This option switches filtered directory read feature and related functions, <tt>f_findfirst</tt> and <tt>f_findnext</tt>.</p>
+<p>Disable (0) or Enable (1) filtered directory read functions, <tt>f_findfirst</tt> and <tt>f_findnext</tt>. Also <tt>_FS_MINIMIZE</tt> needs to be 0 or 1.</p>
 
 <h4 id="use_mkfs">_USE_MKFS</h4>
-<p>Disable(0) or Enable(1). This option switches <tt>f_mkfs</tt> function.</p>
+<p>Disable (0) or Enable (1) <tt>f_mkfs</tt> function.</p>
 
 <h4 id="use_fastseek">_USE_FASTSEEK</h4>
-<p>Disable(0) or Enable(1). This option switches fast seek feature to enable accelerated mode of <tt>f_lseek</tt>, <tt>f_read</tt> and <tt>f_write</tt> function. For more information, read <a href="lseek.html">here</a>.</p>
+<p>Disable (0) or Enable (1) fast seek function to enable accelerated mode of <tt>f_lseek</tt>, <tt>f_read</tt> and <tt>f_write</tt> function. For more information, read <a href="lseek.html">here</a>.</p>
+
+<h4 id="use_expand">_USE_EXPAND</h4>
+<p>Disable (0) or Enable (1) , <tt>f_enpand</tt> function. Also <tt>_FS_READONLY</tt> needs to be 0.</p>
+
+<h4 id="use_chmod">_USE_CHMOD</h4>
+<p>Disable (0) or Enable (1) metadata manipulation functions, <tt>f_chmod</tt> and <tt>f_utime</tt>. Also <tt>_FS_READONLY</tt> needs to be 0.</p>
 
 <h4 id="use_label">_USE_LABEL</h4>
-<p>Disable(0) or Enable(1). This option switches volume label functions, <tt>f_getlabel</tt> and <tt>f_setlabel</tt>.</p>
+<p>Disable (0) or Enable (1) volume label functions, <tt>f_getlabel</tt> and <tt>f_setlabel</tt>.</p>
 
 <h4 id="use_forward">_USE_FORWARD</h4>
-<p>Disable(0) or Enable(1). This option switches <tt>f_forward</tt> function. also <tt>_FS_TINY</tt> needs to be set to 1.</p>
+<p>Disable (0) or Enable (1) <tt>f_forward</tt> function.</p>
 
 </div>
 
@@ -88,23 +94,23 @@
 </table>
 
 <h4 id="use_lfn">_USE_LFN</h4>
-<p>This option switches the LFN feature. When enable the LFN feature, Unicode handling functions <tt>option/unicode.c</tt> must be added to the project. The LFN working buffer occupies <tt>(_MAX_LFN + 1) * 2</tt> bytes. When use stack for the working buffer, take care on stack overflow. When use heap memory for the working buffer, memory management functions, <tt>ff_memalloc</tt> and <tt>ff_memfree</tt>, must be added to the project.</p>
+<p>This option switches the support for long file name (LFN). When enable the LFN, Unicode support functions <tt>option/unicode.c</tt> need to be added to the project. The working buffer occupies <tt>(_MAX_LFN + 1) * 2</tt> bytes and additional 608 bytes when exFAT enabled. When use stack for the working buffer, take care on stack overflow. When use heap memory for the working buffer, memory management functions, <tt>ff_memalloc</tt> and <tt>ff_memfree</tt>, need to be added to the project.</p>
 <table class="lst1">
 <tr><th>Value</th><th>Description</th></tr>
-<tr><td>0</td><td>Disable LFN feature. Only 8.3 format can be used.</td></tr>
+<tr><td>0</td><td>Disable LFN. Only 8.3 format can be used.</td></tr>
 <tr><td>1</td><td>Enable LFN with static working buffer on the BSS. Always NOT thread-safe.</td></tr>
 <tr><td>2</td><td>Enable LFN with dynamic working buffer on the STACK.</td></tr>
 <tr><td>3</td><td>Enable LFN with dynamic working buffer on the HEAP.</td></tr>
 </table>
 
 <h4 id="max_lfn">_MAX_LFN</h4>
-<p>This option defines the size of LFN working buffer from 12 to 255 in unit of character. This option has no effect when LFN feature is disabled.</p>
+<p>This option defines the size of LFN working buffer from 12 to 255 in unit of character. This option has no effect when LFN is disabled.</p>
 
 <h4 id="lfn_unicode">_LFN_UNICODE</h4>
-<p>ANSI/OEM(0) or Unicode(1). This option switches character encoding on the API. To use Unicode (UTF16) string for the path name, enable LFN feature and set this option to 1. This option also affects behavior of string I/O functions. When LFN feature is disabled, this option must be 0. For more information, read <a href="filename.html#uni">here</a>.</p>
+<p>ANSI/OEM (0) or Unicode (1). This option switches character encoding on the API. To use Unicode (UTF16) string for the path name, enable LFN and set this option to 1. This option also affects behavior of string I/O functions. When LFN is disabled, this option must be 0. For more information, read <a href="filename.html#uni">here</a>.</p>
 
 <h4 id="strf_encode">_STRF_ENCODE</h4>
-<p>When Unicode API is selected by <tt>_LFN_UNICODE</tt>, this option defines the assumption of character encoding on the file to be read/written via string I/O functions, <tt>f_gets</tt>, <tt>f_putc</tt>, <tt>f_puts</tt> and <tt>f_printf</tt>. This option has no effect when <tt>_LFN_UNICODE == 0</tt>.</p>
+<p>When Unicode API is selected by setting <tt>_LFN_UNICODE</tt> 1, this option defines the assumption of character encoding on the file to be read/written via string I/O functions, <tt>f_gets</tt>, <tt>f_putc</tt>, <tt>f_puts</tt> and <tt>f_printf</tt>. This option has no effect when <tt>_LFN_UNICODE = 0</tt>.</p>
 <table class="lst1">
 <tr><th>Value</th><th>Description</th></tr>
 <tr><td>0</td><td>ANSI/OEM</td></tr>
@@ -114,11 +120,11 @@
 </table>
 
 <h4 id="fs_rpath">_FS_RPATH</h4>
-<p>This option configures relative path feature. Note that directory items read via directory functions are affected by this option. For more information, read <a href="filename.html#nam">here</a>.</p>
+<p>This option configures relative path function. For more information, read <a href="filename.html#nam">here</a>.</p>
 <table class="lst1">
 <tr><th>Value</th><th>Description</th></tr>
-<tr><td>0</td><td>Disable relative path feature and remove related functions.</td></tr>
-<tr><td>1</td><td>Enable relative path feature. <tt>f_chdir</tt> and <tt>f_chdrive</tt> function is available.</td></tr>
+<tr><td>0</td><td>Disable relative path function and remove related functions.</td></tr>
+<tr><td>1</td><td>Enable relative path function. <tt>f_chdir</tt> and <tt>f_chdrive</tt> function is available.</td></tr>
 <tr><td>2</td><td><tt>f_getcwd</tt> function is available in addition to 1</td></tr>
 </table>
 
@@ -129,22 +135,22 @@
 <h3>Volume/Drive Configurations</h3>
 
 <h4 id="volumes">_VOLUMES</h4>
-<p>This option configures number of volumes (logical drives, from 1 to 9) to be used.</p>
+<p>This option configures number of volumes (logical drives, from 1 to 10) to be used.</p>
 
 <h4 id="str_volume_id">_STR_VOLUME_ID</h4>
-<p>Disable(0) or Enable(1). This option switches string volume ID feature. When enabled, also pre-defined strings in <tt>_VOLUME_STRS</tt> can be used as drive identifier in the path name.</p>
+<p>Disable (0) or Enable (1). This option switches the support for string volume ID. When enabled, also pre-defined strings in <tt>_VOLUME_STRS</tt> can be used as drive identifier in the path name.</p>
 
 <h4 id="volume_strs">_VOLUME_STRS</h4>
-<p>This option defines the drive ID strings for each logical drives. Number of items must be equal to <tt>_VOLUMES</tt>. Valid characters for the drive ID strings are: A-Z and 0-9.</p>
+<p>This option defines the drive ID strings for each logical drives. Number of items must not be less than <tt>_VOLUMES</tt>. Valid characters for the drive ID string are: A-Z and 0-9.</p>
 
 <h4 id="multi_partition">_MULTI_PARTITION</h4>
-<p>Disable(0) or Enable(1). This option switches multi-partition feature. By default (0), each logical drive number is bound to the same physical drive number and only an FAT volume each physical drive are mounted. When enabled, each logical drive is bound to the partition on the physical drive listed in the user defined partition resolution table <tt>VolToPart[]</tt>. Also <tt>f_fdisk</tt> funciton will be enabled. For more information, read <a href="filename.html#vol">here</a>.</p>
+<p>Disable (0) or Enable (1). This option switches multi-partition function. By default (0), each logical drive number is bound to the same physical drive number and only an FAT volume in the physical drive is mounted. When enabled, each logical drive is bound to the partition on the physical drive listed in the user defined partition resolution table <tt>VolToPart[]</tt>. Also <tt>f_fdisk</tt> funciton will be available. For more information, read <a href="filename.html#vol">here</a>.</p>
 
 <h4 id="max_ss">_MIN_SS, _MAX_SS</h4>
-<p>This set of options defines size of sector on the low level disk I/O interface, <tt>disk_read</tt> and <tt>disk_write</tt> function. Valid numbers are 512, 1024, 2048 and 4096. <tt>_MIN_SS</tt> defines minimum size of sector and <tt>_MAX_SS</tt> defines the maximum size of sector. Always set both 512 for all type of memory cards and harddisk. But a larger value may be required for on-board flash memory and some type of optical media. When <tt>_MAX_SS &gt; _MIN_SS</tt>, FatFs is configured to variable sector size and <tt>GET_SECTOR_SIZE</tt> command must be implemented to the <tt>disk_ioctl</tt> function.</p>
+<p>This set of options defines the size of sector on low level disk I/O interface, <tt>disk_read</tt> and <tt>disk_write</tt> function. Valid values are 512, 1024, 2048 and 4096. <tt>_MIN_SS</tt> defines minimum sector size and <tt>_MAX_SS</tt> defines the maximum sector size. Always set both 512 for any type of memory card and harddisk. But a larger value may be required for on-board flash memory and some type of optical media. When <tt>_MAX_SS &gt; _MIN_SS</tt>, FatFs is configured to variable sector size and <tt>GET_SECTOR_SIZE</tt> command must be implemented to the <tt>disk_ioctl</tt> function.</p>
 
 <h4 id="use_trim">_USE_TRIM</h4>
-<p>Disable(0) or Enable(1). This option switches ATA-TRIM feature. To enable Trim feature, also <tt>CTRL_TRIM</tt> command should be implemented to the <tt>disk_ioctl</tt> function.</p>
+<p>Disable (0) or Enable (1). This option switches ATA-TRIM function. To enable Trim function, also <tt>CTRL_TRIM</tt> command should be implemented to the <tt>disk_ioctl</tt> function.</p>
 
 <h4 id="fs_nofsinfo">_FS_NOFSINFO</h4>
 <p>0 to 3. If you need to know correct free space on the FAT32 volume, set bit 0 of this option, and <tt>f_getfree</tt> function at first time after volume mount will force a full FAT scan. Bit 1 controls the use of last allocated cluster number.</p>
@@ -163,55 +169,33 @@
 <h3>System Configurations</h3>
 
 <h4 id="fs_tiny">_FS_TINY</h4>
-<p>Normal(0) or Tiny(1). At the tiny configuration, size of the file object <tt>FIL</tt> is reduced <tt>_MAX_SS</tt> bytes. Instead of private data buffer eliminated from the file object, common sector buffer in the file system object <tt>FATFS</tt> is used for the file data transfer.</p>
+<p>Normal (0) or Tiny (1). At the tiny configuration, size of the file object <tt>FIL</tt> is reduced <tt>_MAX_SS</tt> bytes. Instead of private data buffer eliminated from the file object, common sector buffer in the file system object <tt>FATFS</tt> is used for the file data transfer.</p>
+
+<h4 id="fs_exfat">_FS_EXFAT</h4>
+<p>This option switches support for the exFAT file system in addition to the FAT file system, Enabled(1) or Disabled(1). To enable this feature, also LFN must be enabled and configureing <tt>_LFN_UNICODE = 1</tt> and <tt>_MAX_LFN = 255</tt> is recommended for full-featured exFAT function. Note that enabling exFAT discards C89 compatibility because of need for 64-bit integer type.</p>
 
 <h4 id="fs_nortc">_FS_NORTC</h4>
-<p>Use RTC(0) or Do not use RTC(1). This option controls timestamp feature. If the system does not have an RTC function or valid timestamp is not needed, set <tt>_FS_NORTC</tt> to 1 to disable the timestamp feature. Any object modified by FatFs will have a fixed timestamp value defined by <tt>_NORTC_MON</tt>, <tt>_NORTC_MDAY</tt> and <tt>_NORTC_YEAR</tt>. To use the timestamp feature, set <tt>_FS_NORTC</tt> to 0 and add <tt>get_fattime</tt> function to the project to get the current time form RTC. This option has no effect at read-only configuration.</p>
+<p>Use RTC (0) or Do not use RTC (1). This option controls timestamp function. If the system does not have an RTC function or valid timestamp is not needed, set <tt>_FS_NORTC</tt> to 1 to disable the timestamp function. Any object modified by FatFs will have a fixed timestamp value defined by <tt>_NORTC_MON</tt>, <tt>_NORTC_MDAY</tt> and <tt>_NORTC_YEAR</tt>. To use the timestamp function, set <tt>_FS_NORTC = 0</tt> and add <tt>get_fattime</tt> function to the project to get the current time form real-time clock. This option has no effect at read-only configuration.</p>
 
 <h4 id="nortc_time">_NORTC_MON, _NORTC_MDAY, _NORTC_YEAR</h4>
-<p>This set of options defines default timestamp to be used at no RTC systems. This option has no effect at read-only configuration or <tt>_FS_NORTC == 0</tt>.</p>
+<p>This set of options defines the time to be used at no RTC systems. This option has no effect at read-only configuration or <tt>_FS_NORTC = 0</tt>.</p>
 
 <h4 id="fs_lock">_FS_LOCK</h4>
-<p>This option switches file lock feature to control duplicated file open and illegal operations to open objects. Note that the file lock feature is independent of re-entrancy. This option must be 0 at read-only configuration.</p>
+<p>This option switches file lock function to control duplicated file open and illegal operations to open objects. Note that the file lock function is independent of re-entrancy. This option must be 0 at read-only configuration.</p>
 <table class="lst1">
 <tr><th>Value</th><th>Description</th></tr>
-<tr><td>0</td><td>Disable file lock feature. To avoid volume corruption, application program should avoid illegal open, remove and rename to the open objects.</td></tr>
-<tr><td>&gt;0</td><td>Enable file lock feature. The value defines how many files/sub-directories can be opened simultaneously under file lock control. Illigal operations to the open object will be rejected with <tt>FR_LOCKED</tt>.</td></tr>
+<tr><td>0</td><td>Disable file lock function. To avoid volume corruption, application program should avoid illegal open, remove and rename to the open objects.</td></tr>
+<tr><td>&gt;0</td><td>Enable file lock function. The value defines how many files/sub-directories can be opened simultaneously under file lock control. Illigal operations to the open object will be rejected with <tt>FR_LOCKED</tt>.</td></tr>
 </table>
 
 <h4 id="fs_reentrant">_FS_REENTRANT</h4>
-<p>Disable(0) or Enable(1). This option switches the re-entrancy (thread safe) of the FatFs module itself. Note that file/directory access to the different volume is always re-entrant and it can work simultaneously regardless of this option but volume control functions, <tt>f_mount</tt>, <tt>f_mkfs</tt> and <tt>f_fdisk</tt>, are always not re-entrant. Only file/directory access to the same volume, in other words, exclusive use of each file system object, is under control of this feature. To enable this feature, also user provided synchronization handlers, <tt>ff_req_grant</tt>, <tt>ff_rel_grant</tt>, <tt>ff_del_syncobj</tt> and <tt>ff_cre_syncobj</tt>, must be added to the project. Samples are available in <tt>option/syscall.c</tt>.</p>
+<p>Disable (0) or Enable (1). This option switches the re-entrancy (thread safe) of the FatFs module itself. Note that file/directory access to the different volume is always re-entrant and it can work simultaneously regardless of this option but volume control functions, <tt>f_mount</tt>, <tt>f_mkfs</tt> and <tt>f_fdisk</tt>, are always not re-entrant. Only file/directory access to the same volume, in other words, exclusive use of each file system object, is under control of this function. To enable this feature, also user provided synchronization handlers, <tt>ff_req_grant</tt>, <tt>ff_rel_grant</tt>, <tt>ff_del_syncobj</tt> and <tt>ff_cre_syncobj</tt>, need to be added to the project. Sample code is available in <tt>option/syscall.c</tt>.</p>
 
 <h4 id="fs_timeout">_FS_TIMEOUT</h4>
-<p>Number of time ticks to abort the file function with <tt>FR_TIMEOUT</tt> when wait time is too long. This option has no effect when <tt>_FS_REENTRANT == 0</tt>.</p>
+<p>Number of time ticks to abort the file function with <tt>FR_TIMEOUT</tt> when wait time is too long. This option has no effect when <tt>_FS_REENTRANT = 0</tt>.</p>
 
 <h4 id="sync_t">_SYNC_t</h4>
-<p>This option defines O/S dependent sync object type. e.g. <tt>HANDLE</tt>, <tt>ID</tt>, <tt>OS_EVENT*</tt>, <tt>SemaphoreHandle_t</tt> and etc. A header file for O/S definitions needs to be included somewhere in the scope of <tt>ff.c</tt>. This option has no effect when <tt>_FS_REENTRANT == 0</tt>.</p>
-
-<h4 id="word_access">_WORD_ACCESS</h4>
-<p>This is an only platform dependent option. It defines which access method is used to the word data on the FAT volume.</p>
-<table class="lst1">
-<tr><th>Value</th><th>Description</th></tr>
-<tr><td>0</td><td>Byte-by-byte access. Always compatible with all platforms.</td></tr>
-<tr><td>1</td><td>Word access. Code size will be slightly reduced but do not choose this unless under both the following conditions.<br>
-* Unaligned memory access is always allowed to ALL instructions.<br>
-* Byte order on the memory is little-endian.</td></tr>
-</table>
-<p>Following table shows an example of allowable settings of some type of processors.</p>
-<pre>
-   ARM7TDMI   0   *2         ColdFire   0   *1         V850E      0   *2
-   Cortex-M3  0   *3         Z80        0/1            V850ES     0/1
-   Cortex-M0  0   *2         x86        0/1            TLCS-870   0/1
-   AVR        0/1            RX600(LE)  0/1            TLCS-900   0/1
-   AVR32      0   *1         RL78       0   *2         R32C       0   *2
-   PIC18      0/1            SH-2       0   *1         M16C       0/1
-   PIC24      0   *2         H8S        0   *1         MSP430     0   *2
-   PIC32      0   *1         H8/300H    0   *1         8051       0/1
-
-   *1:Big-endian.
-   *2:Unaligned memory access is not supported.
-   *3:Some compilers generate LDM/STM for mem_cpy function.
-</pre>
+<p>This option defines O/S dependent sync object type. e.g. <tt>HANDLE</tt>, <tt>ID</tt>, <tt>OS_EVENT*</tt>, <tt>SemaphoreHandle_t</tt> and etc. A header file for O/S definitions needs to be included somewhere in the scope of <tt>ff.c</tt>. This option has no effect when <tt>_FS_REENTRANT = 0</tt>.</p>
 
 </div>
 

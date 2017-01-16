@@ -35,7 +35,7 @@ class PNGWriter {
 public:
 	~PNGWriter();
 
-	Optional<File::Error> create(const std::string& filename);
+	Optional<File::Error> create(const std::filesystem::path& filename);
 	
 	void write_scanline(const std::array<ui::ColorRGB888, 240>& scanline);
 
@@ -44,10 +44,10 @@ private:
 	static constexpr int width { 240 };
 	static constexpr int height { 320 };
 
-	File file;
+	File file { };
 	int scanline_count { 0 };
 	CRC<32, true, true> crc { 0x04c11db7, 0xffffffff, 0xffffffff };
-	Adler32 adler_32;
+	Adler32 adler_32 { };
 
 	void write_chunk_header(const size_t length, const std::array<uint8_t, 4>& type);
 	void write_chunk_content(const void* const p, const size_t count);

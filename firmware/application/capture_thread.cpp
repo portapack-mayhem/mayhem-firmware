@@ -22,60 +22,22 @@
 #include "capture_thread.hpp"
 
 #include "baseband_api.hpp"
+#include "buffer_exchange.hpp"
 
-// StreamOutput ///////////////////////////////////////////////////////////
-
-class StreamOutput {
-public:
-	StreamOutput(CaptureConfig* const config);
-	~StreamOutput();
-
-	size_t available() {
-		return fifo_buffers_full->len();
+struct BasebandCapture {
+	BasebandCapture(CaptureConfig* const config) {
+		baseband::capture_start(config);
 	}
 
-	StreamBuffer* get_buffer() {
-		StreamBuffer* p { nullptr };
-		fifo_buffers_full->out(p);
-		return p;
+	~BasebandCapture() {
+		baseband::capture_stop();
 	}
-
-	bool release_buffer(StreamBuffer* const p) {
-		p->empty();
-		return fifo_buffers_empty->in(p);
-	}
-
-	static FIFO<StreamBuffer*>* fifo_buffers_empty;
-	static FIFO<StreamBuffer*>* fifo_buffers_full;
-
-private:
-	CaptureConfig* const config;
 };
-
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_empty = nullptr;
-FIFO<StreamBuffer*>* StreamOutput::fifo_buffers_full = nullptr;
-
-StreamOutput::StreamOutput(
-	CaptureConfig* const config
-) : config { config }
-{
-	baseband::capture_start(config);
-	fifo_buffers_empty = config->fifo_buffers_empty;
-	fifo_buffers_full = config->fifo_buffers_full;
-}
-
-StreamOutput::~StreamOutput() {
-	fifo_buffers_full = nullptr;
-	fifo_buffers_empty = nullptr;
-	baseband::capture_stop();
-}
 
 // CaptureThread //////////////////////////////////////////////////////////
 
-Thread* CaptureThread::thread = nullptr;
-
 CaptureThread::CaptureThread(
-	std::unique_ptr<Writer> writer,
+	std::unique_ptr<stream::Writer> writer,
 	size_t write_size,
 	size_t buffer_count,
 	std::function<void()> success_callback,
@@ -92,20 +54,8 @@ CaptureThread::CaptureThread(
 CaptureThread::~CaptureThread() {
 	if( thread ) {
 		chThdTerminate(thread);
-		chEvtSignal(thread, event_mask_loop_wake);
 		chThdWait(thread);
 		thread = nullptr;
-	}
-}
-
-void CaptureThread::check_fifo_isr() {
-	// TODO: Prevent over-signalling by transmitting a set of 
-	// flags from the baseband core.
-	const auto fifo = StreamOutput::fifo_buffers_full;
-	if( fifo ) {
-		if( !fifo->is_empty() ) {
-			chEvtSignalI(thread, event_mask_loop_wake);
-		}
 	}
 }
 
@@ -123,19 +73,17 @@ msg_t CaptureThread::static_fn(void* arg) {
 }
 
 Optional<File::Error> CaptureThread::run() {
-	StreamOutput stream { &config };
+	BasebandCapture capture { &config };
+	BufferExchange buffers { &config };
 
 	while( !chThdShouldTerminate() ) {
-		if( stream.available() ) {
-			auto buffer = stream.get_buffer();
-			auto write_result = writer->write(buffer->data(), buffer->size());
-			if( write_result.is_error() ) {
-				return write_result.error();
-			}
-			stream.release_buffer(buffer);
-		} else {
-			chEvtWaitAny(event_mask_loop_wake);
+		auto buffer = buffers.get();
+		auto write_result = writer->write(buffer->data(), buffer->size());
+		if( write_result.is_error() ) {
+			return write_result.error();
 		}
+		buffer->empty();
+		buffers.put(buffer);
 	}
 
 	return { };

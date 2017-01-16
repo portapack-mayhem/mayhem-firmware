@@ -40,7 +40,7 @@ protected:
 	void feed_channel_stats(const buffer_c16_t& channel);
 
 private:
-	ChannelStatsCollector channel_stats;
+	ChannelStatsCollector channel_stats { };
 };
 
 #endif/*__BASEBAND_PROCESSOR_H__*/

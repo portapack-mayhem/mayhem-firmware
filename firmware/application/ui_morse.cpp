@@ -98,11 +98,7 @@ void MorseView::generate_message(char * text) {
 	(*tone_defs++).duration = MORSE_WORD_SPACE;
 	
 	transmitter_model.set_tuning_frequency(81800000);
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 1536000U,
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -121,12 +117,12 @@ MorseView::MorseView(
 	NavigationView& nav
 )
 {
-	add_children({ {
+	add_children({
 		&checkbox_foxhunt,
 		&options_foxhunt,
 		&button_transmit,
 		&button_exit
-	} });
+	});
 	
 	button_transmit.on_select = [this](Button&){
 		//char strtest[] = "TEST";

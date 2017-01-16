@@ -57,7 +57,7 @@ SetDateTimeView::SetDateTimeView(
 		nav.pop();
 	},
 
-	add_children({ {
+	add_children({
 		&text_title,
 		&field_year,
 		&text_slash1,
@@ -72,7 +72,7 @@ SetDateTimeView::SetDateTimeView(
 		&text_format,
 		&button_ok,
 		&button_cancel,
-	} });
+	});
 
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
@@ -125,13 +125,13 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(
 		nav.pop();
 	},
 
-	add_children({ {
+	add_children({
 		&text_title,
 		&field_ppm,
 		&text_ppm,
 		&button_ok,
 		&button_cancel,
-	} });
+	});
 
 	SetFrequencyCorrectionModel model {
 		static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000)
@@ -155,7 +155,7 @@ SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
 }
 
 AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
-	add_children({ {
+	add_children({
 		&text_title,
 		&text_description_1,
 		&text_description_2,
@@ -163,7 +163,7 @@ AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
 		&text_description_4,
 		&options_bias,
 		&button_done,
-	} });
+	});
 
 	options_bias.set_by_value(receiver_model.antenna_bias() ? 1 : 0);
 	options_bias.on_change = [this](size_t, OptionsField::value_t v) {
@@ -178,11 +178,11 @@ void AntennaBiasSetupView::focus() {
 }
 
 SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
-	add_children({{
+	add_children({
 		&text_sequence,
 		&button_enter,
 		&button_cancel
-	}});
+	});
 
 	button_enter.on_select = [this, &nav](Button&){
 		if (!entermode) {
@@ -232,13 +232,13 @@ void SetPlayDeadView::focus() {
 SetUIView::SetUIView(NavigationView& nav) {
 	uint32_t ui_config;
 	
-	add_children({{
+	add_children({
 		&checkbox_login,
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
 		&button_ok
-	}});
+	});
 	
 	ui_config = portapack::persistent_memory::ui_config();
 	

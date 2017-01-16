@@ -56,10 +56,10 @@ WhistleView::WhistleView(
 	NavigationView& nav
 )
 {
-	add_children({ {
+	add_children({
 		&button_transmit,
 		&button_exit
-	} });
+	});
 	
 	button_transmit.on_select = [this](Button&){
 		/*uint16_t c;

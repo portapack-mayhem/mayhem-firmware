@@ -128,12 +128,12 @@ SIGFRXView::SIGFRXView(
 	receiver_model.set_lna(0);
 	receiver_model.set_vga(0);
 	
-	add_children({ {
+	add_children({
 		&text_type,
 		&text_channel,
 		&text_data,
 		&button_exit
-	} });
+	});
 	
 	text_type.set_style(&style_white);
 	text_channel.set_style(&style_white);

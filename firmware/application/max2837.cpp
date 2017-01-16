@@ -55,6 +55,18 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 
 } /* namespace vga */
 
+namespace tx {
+
+static uint_fast8_t gain_ordinal(const int8_t db) {
+	const auto db_sat = gain_db_range.clip(db);
+	uint8_t value = db_sat & 0x0f;
+	value = (db_sat >= 16) ? (value | 0x20) : value;
+	value = (db_sat >= 32) ? (value | 0x10) : value;
+	return (value & 0b111111) ^ 0b111111;
+}
+
+} /* namespace tx */
+
 namespace filter {
 
 static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
@@ -170,8 +182,8 @@ reg_t MAX2837::read(const Register reg) {
 	return read(toUType(reg));
 }
 
-void MAX2837::set_tx_vga_gain(const int_fast8_t value) {
-	_map.r.tx_gain.TXVGA_GAIN_SPI = value;
+void MAX2837::set_tx_vga_gain(const int_fast8_t db) {
+	_map.r.tx_gain.TXVGA_GAIN_SPI = tx::gain_ordinal(db);
 	_dirty[Register::TX_GAIN] = 1;
 	flush();
 }
@@ -228,6 +240,34 @@ bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	flush();
 
 	return true;
+}
+
+void MAX2837::set_rx_lo_iq_calibration(const size_t v) {
+	_map.r.rx_top_rx_bias.RX_IQERR_SPI_EN = 1;
+	_dirty[Register::RX_TOP_RX_BIAS] = 1;
+	_map.r.rxrf_2.iqerr_trim = v;
+	_dirty[Register::RXRF_2] = 1;
+	flush();
+}
+
+void MAX2837::set_rx_bias_trim(const size_t v) {
+	_map.r.rx_top_rx_bias.EN_Bias_Trim = 1;
+	_map.r.rx_top_rx_bias.BIAS_TRIM_SPI = v;
+	_dirty[Register::RX_TOP_RX_BIAS] = 1;
+	flush();
+}
+
+void MAX2837::set_vco_bias(const size_t v) {
+	_map.r.vco_cfg.VCO_BIAS_SPI_EN = 1;
+	_map.r.vco_cfg.VCO_BIAS_SPI = v;
+	_dirty[Register::VCO_CFG] = 1;
+	flush();
+}
+
+void MAX2837::set_rx_buff_vcm(const size_t v) {
+	_map.r.lpf_3_vga_1.BUFF_VCM = v;
+	_dirty[Register::LPF_3_VGA_1] = 1;
+	flush();
 }
 
 reg_t MAX2837::temp_sense() {

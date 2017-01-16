@@ -35,18 +35,11 @@
 #include <iterator>
 #include <vector>
 
-std::string remove_filename_extension(const std::string& filename);
-std::string next_filename_stem_matching_pattern(const std::string& filename_stem_pattern);
-std::vector<std::string> scan_root_files(const std::string& directory, const std::string& extension);
-
 namespace std {
 namespace filesystem {
 
 struct filesystem_error {
-	constexpr filesystem_error(
-	) : err { FR_OK }
-	{
-	}
+	constexpr filesystem_error() = default;
 
 	constexpr filesystem_error(
 		FRESULT fatfs_error
@@ -67,11 +60,110 @@ struct filesystem_error {
 	std::string what() const;
 
 private:
-	uint32_t err;
+	uint32_t err { FR_OK };
 };
 
-using path = std::string;
+struct path {
+	using string_type = std::u16string;
+	using value_type = string_type::value_type;
+
+	static constexpr value_type preferred_separator = u'/';
+
+	path(
+	) : _s { }
+	{
+	}
+
+	path(
+		const path& p
+	) : _s { p._s }
+	{
+	}
+
+	path(
+		path&& p
+	) : _s { std::move(p._s) }
+	{
+	}
+
+	template<class Source>
+	path(
+		const Source& source
+	) : path { std::begin(source), std::end(source) }
+	{
+	}
+
+	template<class InputIt>
+	path(
+		InputIt first,
+		InputIt last
+	) : _s { first, last }
+	{
+	}
+
+	path(
+		const char16_t* const s
+	) : _s { s }
+	{
+	}
+
+	path(
+		const TCHAR* const s
+	) : _s { reinterpret_cast<const std::filesystem::path::value_type*>(s) }
+	{
+	}
+
+	path& operator=(const path& p) {
+		_s = p._s;
+		return *this;
+	}
+
+	path& operator=(path&& p) {
+		_s = std::move(p._s);
+		return *this;
+	}
+
+	path extension() const;
+	path filename() const;
+	path stem() const;
+
+	bool empty() const {
+		return _s.empty();
+	}
+
+	const value_type* c_str() const {
+		return native().c_str();
+	}
+
+	const string_type& native() const {
+		return _s;
+	}
+
+	std::string string() const;
+
+	path& operator+=(const path& p) {
+		_s += p._s;
+		return *this;
+	}
+
+	path& operator+=(const string_type& str) {
+		_s += str;
+		return *this;
+	}
+
+	path& replace_extension(const path& replacement = path());
+
+private:
+	string_type _s;
+};
+
+bool operator<(const path& lhs, const path& rhs);
+bool operator>(const path& lhs, const path& rhs);
+
 using file_status = BYTE;
+
+static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
+static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
 
 struct space_info {
 	static_assert(sizeof(std::uintmax_t) >= 8, "std::uintmax_t too small (<uint64_t)");
@@ -86,7 +178,11 @@ struct directory_entry : public FILINFO {
 		return fattrib;
 	}
 
-	const std::string path() const noexcept { return fname; };
+	std::uintmax_t size() const {
+		return fsize;
+	};
+
+	const std::filesystem::path path() const noexcept { return { fname }; };
 };
 
 class directory_iterator {
@@ -99,7 +195,8 @@ class directory_iterator {
 		}
 	};
 
-	std::shared_ptr<Impl> impl;
+	std::shared_ptr<Impl> impl { };
+	const path pattern { };
 
 	friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
 
@@ -111,8 +208,8 @@ public:
 	using iterator_category = std::input_iterator_tag;
 
 	directory_iterator() noexcept { };
-	directory_iterator(const char* path, const char* wild);
-
+	directory_iterator(std::filesystem::path path, std::filesystem::path wild);
+	
 	~directory_iterator() { }
 
 	directory_iterator& operator++();
@@ -128,6 +225,7 @@ inline directory_iterator end(const directory_iterator&) noexcept { return { }; 
 
 inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) { return lhs.impl != rhs.impl; };
 
+bool is_directory(const file_status s);
 bool is_regular_file(const file_status s);
 
 space_info space(const path& p);
@@ -135,8 +233,23 @@ space_info space(const path& p);
 } /* namespace filesystem */
 } /* namespace std */
 
+std::vector<std::filesystem::path> scan_root_files(const TCHAR* directory, const std::string& extension);
+std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
+
+/* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
+static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
+
+/* Dangerous to expose these, as FatFs native error values are byte-sized. However,
+ * my filesystem_error implemetation is fine with it. */
+#define FR_DISK_FULL	(0x100)
+#define FR_EOF          (0x101)
+#define FR_BAD_SEEK		(0x102)
+#define FR_UNEXPECTED	(0x103)
+
 class File {
 public:
+	using Size = uint64_t;
+	using Offset = uint64_t;
 	using Error = std::filesystem::filesystem_error;
 
 	template<typename T>
@@ -197,17 +310,17 @@ public:
 	File& operator=(const File&) = delete;
 
 	// TODO: Return Result<>.
-	Optional<Error> open(const std::string& filename);
-	Optional<Error> append(const std::string& filename);
-	Optional<Error> create(const std::string& filename);
+	Optional<Error> open(const std::filesystem::path& filename);
+	Optional<Error> append(const std::filesystem::path& filename);
+	Optional<Error> create(const std::filesystem::path& filename);
 
-	Result<size_t> read(void* const data, const size_t bytes_to_read);
-	Result<size_t> write(const void* const data, const size_t bytes_to_write);
+	Result<Size> read(void* const data, const Size bytes_to_read);
+	Result<Size> write(const void* const data, const Size bytes_to_write);
 
-	Result<uint64_t> seek(const uint64_t new_position);
+	Result<Offset> seek(const uint64_t Offset);
 
 	template<size_t N>
-	Result<size_t> write(const std::array<uint8_t, N>& data) {
+	Result<Size> write(const std::array<uint8_t, N>& data) {
 		return write(data.data(), N);
 	}
 
@@ -217,9 +330,9 @@ public:
 	Optional<Error> sync();
 
 private:
-	FIL f;
+	FIL f { };
 
-	Optional<Error> open_fatfs(const std::string& filename, BYTE mode);
+	Optional<Error> open_fatfs(const std::filesystem::path& filename, BYTE mode);
 };
 
 #endif/*__FILE_H__*/

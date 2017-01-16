@@ -39,7 +39,7 @@ public:
 	void focus() override;
 
 private:
-	SignalToken sd_card_status_signal_token;
+	SignalToken sd_card_status_signal_token { };
 
 	void on_status(const sd_card::Status status);
 	void on_test();

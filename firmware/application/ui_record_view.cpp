@@ -22,11 +22,12 @@
 #include "ui_record_view.hpp"
 
 #include "portapack.hpp"
-#include "message.hpp"
-#include "portapack_shared_memory.hpp"
 using namespace portapack;
 
-#include "time.hpp"
+#include "io_file.hpp"
+#include "io_wave.hpp"
+
+#include "rtc_time.hpp"
 
 #include "string_format.hpp"
 #include "utility.hpp"
@@ -35,9 +36,27 @@ using namespace portapack;
 
 namespace ui {
 
+void RecordView::toggle_pwmrssi() {
+	pwmrssi_enabled = !pwmrssi_enabled;
+	
+	// Send to RSSI widget
+	const PWMRSSIConfigureMessage message {
+		pwmrssi_enabled,
+		1000,
+		0
+	};
+	shared_memory.application_queue.push(message);
+	
+	if( !pwmrssi_enabled ) {
+		button_pwmrssi.set_foreground(Color::orange());
+	} else {
+		button_pwmrssi.set_foreground(Color::green());
+	}
+}
+
 RecordView::RecordView(
 	const Rect parent_rect,
-	std::string filename_stem_pattern,
+	std::filesystem::path filename_stem_pattern,
 	const FileType file_type,
 	const size_t write_size,
 	const size_t buffer_count
@@ -47,14 +66,14 @@ RecordView::RecordView(
 	write_size { write_size },
 	buffer_count { buffer_count }
 {
-	add_children({ {
+	add_children({
 		&rect_background,
 		&button_pwmrssi,
 		&button_record,
 		&text_record_filename,
 		&text_record_dropped,
 		&text_time_available,
-	} });
+	});
 
 	rect_background.set_parent_rect({ { 0, 0 }, size() });
 	
@@ -66,13 +85,13 @@ RecordView::RecordView(
 		this->toggle();
 	};
 
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 }
 
 RecordView::~RecordView() {
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void RecordView::focus() {
@@ -106,24 +125,6 @@ void RecordView::toggle() {
 	}
 }
 
-void RecordView::toggle_pwmrssi() {
-	pwmrssi_enabled = !pwmrssi_enabled;
-	
-	// Send to RSSI widget
-	const PWMRSSIConfigureMessage message {
-		pwmrssi_enabled,
-		1000,
-		0
-	};
-	shared_memory.application_queue.push(message);
-	
-	if( !pwmrssi_enabled ) {
-		button_pwmrssi.set_foreground(Color::orange());
-	} else {
-		button_pwmrssi.set_foreground(Color::green());
-	}
-}
-
 void RecordView::start() {
 	stop();
 
@@ -134,21 +135,17 @@ void RecordView::start() {
 		return;
 	}
 
-	const auto filename_stem = next_filename_stem_matching_pattern(filename_stem_pattern);
-	if( filename_stem.empty() ) {
+	auto base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+	if( base_path.empty() ) {
 		return;
 	}
 
-	std::unique_ptr<Writer> writer;
+	std::unique_ptr<stream::Writer> writer;
 	switch(file_type) {
 	case FileType::WAV:
 		{
-			auto p = std::make_unique<WAVFileWriter>(
-				sampling_rate
-			);
-			auto create_error = p->create(
-				filename_stem + ".WAV"
-			);
+			auto p = std::make_unique<WAVFileWriter>();
+			auto create_error = p->create(base_path.replace_extension(u".WAV"), sampling_rate);
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {
@@ -159,16 +156,14 @@ void RecordView::start() {
 
 	case FileType::RawS16:
 		{
-			const auto metadata_file_error = write_metadata_file(filename_stem + ".TXT");
+			const auto metadata_file_error = write_metadata_file(base_path.replace_extension(u".TXT"));
 			if( metadata_file_error.is_valid() ) {
 				handle_error(metadata_file_error.value());
 				return;
 			}
 
-			auto p = std::make_unique<FileWriter>();
-			auto create_error = p->create(
-				filename_stem + ".C16"
-			);
+			auto p = std::make_unique<RawFileWriter>();
+			auto create_error = p->create(base_path.replace_extension(u".C16"));
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {
@@ -182,7 +177,7 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		text_record_filename.set(filename_stem);
+		text_record_filename.set(base_path.replace_extension().string());
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
@@ -210,7 +205,7 @@ void RecordView::stop() {
 	update_status_display();
 }
 
-Optional<File::Error> RecordView::write_metadata_file(const std::string& filename) {
+Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::path& filename) {
 	File file;
 	const auto create_error = file.create(filename);
 	if( create_error.is_valid() ) {
@@ -244,7 +239,7 @@ void RecordView::update_status_display() {
 	}
 
 	if( sampling_rate ) {
-		const auto space_info = std::filesystem::space("");
+		const auto space_info = std::filesystem::space(u"");
 		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * 4);
 		const uint32_t available_seconds = space_info.free / bytes_per_second;
 		const uint32_t seconds = available_seconds % 60;

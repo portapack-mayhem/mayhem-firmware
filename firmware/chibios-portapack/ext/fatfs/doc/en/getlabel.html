@@ -29,7 +29,7 @@ FRESULT f_getlabel (
 <dt>path</dt>
 <dd>Pointer to the null-terminated string that specifies the <a href="filename.html">logical drive</a>. Null-string specifies the default drive.</dd>
 <dt>label</dt>
-<dd>Pointer to the buffer to store the volume label. The buffer size must be at least 12 items. If the volume has no label, a null-string will be returned. Set null pointer if this information is not needed.</dd>
+<dd>Pointer to the buffer to store the volume label. The buffer size must be at least 24 items at <tt>_LFN_UNICODE == 0</tt> or 12 items at <tt>_LFN_UNICODE == 1</tt>. If the volume has no label, a null-string will be returned. Set null pointer if this information is not needed.</dd>
 <dt>vsn</dt>
 <dd>Pointer to the <tt>DWORD</tt> variable to store the volume serial number. Set null pointer if this information is not needed.</dd>
 </dl>
@@ -60,7 +60,7 @@ FRESULT f_getlabel (
 <div class="para use">
 <h4>Example</h4>
 <pre>
-    char str[12];
+    char str[24];
 
     <span class="c">/* Get volume label of the default drive */</span>
     f_getlabel("", str, 0);

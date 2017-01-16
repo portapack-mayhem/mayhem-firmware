@@ -39,7 +39,7 @@ public:
 	std::vector<sample_t> history() const;
 
 private:
-	std::array<sample_t, 128> samples;
+	std::array<sample_t, 128> samples { };
 
 	static constexpr size_t sample_interval = 5;
 	size_t sample_phase = 0;

@@ -34,7 +34,7 @@ namespace ui {
 CaptureAppView::CaptureAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_capture);
 
-	add_children({ {
+	add_children({
 		&rssi,
 		&channel,
 		&field_frequency,
@@ -44,7 +44,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_vga,
 		&record_view,
 		&waterfall,
-	} });
+	});
 
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -74,7 +74,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-		1,
 	});
 
 	record_view.set_sampling_rate(sampling_rate / 8);
@@ -99,7 +98,7 @@ void CaptureAppView::on_hide() {
 void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height) };
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 	waterfall.set_parent_rect(waterfall_rect);
 }
 

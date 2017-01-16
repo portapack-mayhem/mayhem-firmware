@@ -84,11 +84,7 @@ void ADSBTxView::generate_frame() {
 
 void ADSBTxView::start_tx() {
 	transmitter_model.set_tuning_frequency(452000000);		// FOR TESTING - DEBUG
-	transmitter_model.set_baseband_configuration({
-		.mode = 0,
-		.sampling_rate = 2000000U,		// Good ?
-		.decimation_factor = 1,
-	});
+	transmitter_model.set_sampling_rate(2000000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -121,7 +117,7 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 
 	// http://openflights.org
 
-	add_children({ {
+	add_children({
 		&text_format,
 		&options_format,
 		&text_icaolabel,
@@ -141,7 +137,7 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 		&text_frame_a,
 		&text_frame_b,
 		&button_transmit
-	} });
+	});
 	
 	options_format.set_by_value(17);	// Mode S
 	

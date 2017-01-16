@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  *
  * This file is part of PortaPack.
  *
@@ -19,17 +19,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __TIME_H__
-#define __TIME_H__
+#include "buffer_exchange.hpp"
 
-#include "signal.hpp"
+BufferExchange* BufferExchange::obj { nullptr };
 
-namespace time {
+BufferExchange::BufferExchange(
+	CaptureConfig* const config
+) : config { config }
+{
+	obj = this;
+	fifo_buffers_for_baseband = config->fifo_buffers_empty;
+	fifo_buffers_for_application = config->fifo_buffers_full;
+}
 
-extern Signal<> signal_tick_second;
+BufferExchange::~BufferExchange() {
+	obj = nullptr;
+	fifo_buffers_for_baseband = nullptr;
+	fifo_buffers_for_application = nullptr;
+}
 
-void on_tick_second();
+StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
+	while(true) {
+		StreamBuffer* p { nullptr };
+		fifo->out(p);
+		if( p ) {
+			return p;
+		}
 
-} /* namespace time */
-
-#endif/*__TIME_H__*/
+		chSysLock();
+		thread = chThdSelf();
+		chSchGoSleepS(THD_STATE_SUSPENDED);
+		chSysUnlock();
+	}
+}

@@ -149,6 +149,20 @@ void disable() {
 	gpdma_channel_sgpio.disable();
 }
 
+/*baseband::buffer_t wait_for_buffer() {
+	const auto next_index = thread_wait.sleep();
+	
+	if( next_index >= 0 ) {
+		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
+		const auto src = lli_loop[free_index].srcaddr;
+		const auto dst = lli_loop[free_index].destaddr;
+		const auto p = (src == reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0])) ? dst : src;
+		return { reinterpret_cast<sample_t*>(p), transfer_samples };
+	} else {
+		return { };
+	}
+}*/
+
 baseband::buffer_t wait_for_rx_buffer() {
 	const auto next_index = thread_wait.sleep();
 	

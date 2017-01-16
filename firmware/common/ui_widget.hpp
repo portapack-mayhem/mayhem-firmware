@@ -49,30 +49,33 @@ public:
 	}
 
 private:
-	FocusManager focus_manager_;
+	FocusManager focus_manager_ { };
 };
 
 class Widget {
 public:
 	Widget(
-	) : parent_rect { }
+	) : _parent_rect { }
 	{
 	}
 
 	Widget(
 		Rect parent_rect
-	) : parent_rect { parent_rect }
+	) : _parent_rect { parent_rect }
 	{
 	}
 
 	Widget(const Widget&) = delete;
 	Widget(Widget&&) = delete;
+	Widget& operator=(const Widget&) = delete;
+	Widget& operator=(Widget&&) = delete;
 
 	virtual ~Widget() = default;
 
 	Point screen_pos();
 	Size size() const;
 	Rect screen_rect() const;
+	Rect parent_rect() const;
 	virtual void set_parent_rect(const Rect new_parent_rect);
 
 	Widget* parent() const;
@@ -122,7 +125,7 @@ protected:
 
 private:
 	/* Widget rectangle relative to parent pos(). */
-	Rect parent_rect;
+	Rect _parent_rect;
 	const Style* style_ { nullptr };
 	Widget* parent_ { nullptr };
 
@@ -159,7 +162,7 @@ public:
 	void paint(Painter& painter) override;
 
 	void add_child(Widget* const widget);
-	void add_children(const std::vector<Widget*>& children);
+	void add_children(const std::initializer_list<Widget*> children);
 	void remove_child(Widget* const widget);
 	void remove_children(const std::vector<Widget*>& children);
 	const std::vector<Widget*>& children() const override;
@@ -167,7 +170,7 @@ public:
 	virtual std::string title() const;
 
 protected:
-	std::vector<Widget*> children_;
+	std::vector<Widget*> children_ { };
 
 	void invalidate_child(Widget* const widget);
 };
@@ -176,7 +179,10 @@ class Rectangle : public Widget {
 public:
 	Rectangle(Color c);
 	Rectangle(Rect parent_rect, Color c);
-	Rectangle();
+	Rectangle(
+	) : Rectangle { { }, { } }
+	{
+	}
 
 	void paint(Painter& painter) override;
 
@@ -191,19 +197,18 @@ private:
 class Text : public Widget {
 public:
 	Text(
-	) : text_ { "" } {
+	) : text { "" } {
 	}
 
 	Text(Rect parent_rect, std::string text);
 	Text(Rect parent_rect);
 
 	void set(const std::string value);
-	std::string text() const;
 
 	void paint(Painter& painter) override;
 
 private:
-	std::string text_;
+	std::string text;
 };
 
 class BigFrequency : public Widget {
@@ -248,14 +253,14 @@ public:
 private:
 	bool visible = false;
 	Point pos { 0, 0 };
-	std::string buffer;
+	std::string buffer { };
 
 	void crlf();
 };
 
 class Checkbox : public Widget {
 public:
-	std::function<void(Checkbox&)> on_select;
+	std::function<void(Checkbox&)> on_select { };
 
 	Checkbox(Point parent_pos, size_t length, std::string text);
 	
@@ -263,6 +268,11 @@ public:
 	) : Checkbox { { }, { }, { } }
 	{
 	}
+	
+	Checkbox(const Checkbox&) = delete;
+	Checkbox(Checkbox&&) = delete;
+	Checkbox& operator=(const Checkbox&) = delete;
+	Checkbox& operator=(Checkbox&&) = delete;
 	
 	void set_text(const std::string value);
 	bool set_value(const bool value);
@@ -281,9 +291,9 @@ private:
 
 class Button : public Widget {
 public:
-	std::function<void(Button&)> on_select;
-	std::function<bool(Button&,KeyEvent)> on_dir;
-	std::function<void(Button&)> on_highlight;
+	std::function<void(Button&)> on_select { };
+	std::function<bool(Button&, KeyEvent)> on_dir { };
+	std::function<void(Button&)> on_highlight { };
 
 	Button(Rect parent_rect, std::string text);
 
@@ -315,6 +325,11 @@ public:
 		const Color background
 	);
 
+	Image(const Image&) = delete;
+	Image(Image&&) = delete;
+	Image& operator=(const Image&) = delete;
+	Image& operator=(Image&&) = delete;
+
 	void set_bitmap(const Bitmap* bitmap);
 	void set_foreground(const Color color);
 	void set_background(const Color color);
@@ -330,7 +345,7 @@ private:
 
 class ImageButton : public Image {
 public:
-	std::function<void(ImageButton&)> on_select;
+	std::function<void(ImageButton&)> on_select { };
 
 	ImageButton(
 		const Rect parent_rect,
@@ -350,8 +365,8 @@ public:
 	using option_t = std::pair<image_t, value_t>;
 	using options_t = std::vector<option_t>;
 
-	std::function<void(size_t, value_t)> on_change;
-	std::function<void(void)> on_show_options;
+	std::function<void(size_t, value_t)> on_change { };
+	std::function<void(void)> on_show_options { };
 
 	ImageOptionsField(Rect parent_rect, options_t options);
 	
@@ -386,10 +401,10 @@ public:
 	using option_t = std::pair<name_t, value_t>;
 	using options_t = std::vector<option_t>;
 
-	std::function<void(size_t, value_t)> on_change;
-	std::function<void(void)> on_show_options;
+	std::function<void(size_t, value_t)> on_change { };
+	std::function<void(void)> on_show_options { };
 
-	OptionsField(Point parent_pos, size_t length, options_t options);
+	OptionsField(Point parent_pos, int length, options_t options);
 	
 	void set_options(options_t new_options);
 
@@ -406,19 +421,19 @@ public:
 	bool on_touch(const TouchEvent event) override;
 
 private:
-	const size_t length_;
+	const int length_;
 	options_t options;
 	size_t selected_index_ { 0 };
 };
 
 class NumberField : public Widget {
 public:
-	std::function<void(NumberField&)> on_select;
-	std::function<void(int32_t)> on_change;
+	std::function<void(NumberField&)> on_select { };
+	std::function<void(int32_t)> on_change { };
 
 	using range_t = std::pair<int32_t, int32_t>;
 
-	NumberField(Point parent_pos, size_t length, range_t range, int32_t step, char fill_char);
+	NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char);
 	NumberField(
 	) : NumberField { { 0, 0 }, 1, { 0, 1 }, 1, ' ' }
 	{
@@ -440,17 +455,17 @@ public:
 private:
 	range_t range;
 	const int32_t step;
-	const size_t length_;
+	const int length_;
 	const char fill_char;
-	int32_t value_;
+	int32_t value_ { 0 };
 
 	int32_t clip_value(int32_t value);
 };
 
 class SymField : public Widget {
 public:
-	std::function<void(SymField&)> on_select;
-	std::function<void()> on_change;
+	std::function<void(SymField&)> on_select { };
+	std::function<void()> on_change { };
 
 	SymField(Point parent_pos, size_t length);
 	SymField(Point parent_pos, size_t length, bool hex);
@@ -474,7 +489,7 @@ private:
 	std::string symbol_list_[32] = { "01" };		// Failsafe init
 	uint32_t values_[32] = { 0 };
 	uint32_t selected_ = 0;
-	size_t length_, prev_length_;
+	size_t length_, prev_length_ = 0;
 	bool erase_prev_ = false;
 	bool hex_ = false;
 
@@ -488,6 +503,8 @@ public:
 
 	Waveform(const Waveform&) = delete;
 	Waveform(Waveform&&) = delete;
+	Waveform& operator=(const Waveform&) = delete;
+	Waveform& operator=(Waveform&&) = delete;
 
 	void set_offset(const uint32_t new_offset);
 	void set_length(const uint32_t new_length);

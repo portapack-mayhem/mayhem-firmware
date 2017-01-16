@@ -20,6 +20,7 @@
 
 project(firmware)
 
+set(BASEBAND ${PROJECT_SOURCE_DIR}/baseband)
 set(COMMON ${PROJECT_SOURCE_DIR}/common)
 set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
@@ -27,7 +28,7 @@ set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 set(HACKRF_FIRMWARE_FILENAME hackrf_one_usb_ram.dfu)
 set(HACKRF_FIRMWARE_IMAGE ${PROJECT_SOURCE_DIR}/${HACKRF_FIRMWARE_FILENAME})
 
-set(HACKRF_CPLD_SVF_FILENAME hackrf_cpld_default.svf)
+set(HACKRF_CPLD_SVF_FILENAME hackrf_cpld_portapack.svf)
 set(HACKRF_CPLD_SVF_PATH ${PROJECT_SOURCE_DIR}/${HACKRF_CPLD_SVF_FILENAME})
 
 set(EXTRACT_CPLD_DATA ${PROJECT_SOURCE_DIR}/tools/extract_cpld_data.py)
@@ -59,7 +60,7 @@ add_custom_target(
 
 add_custom_target(
 	program
-	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_IMAGE} --reset
+	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_IMAGE}
 	COMMAND sleep 1s
 	COMMAND hackrf_spiflash -w ${FIRMWARE_FILENAME}
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_FILENAME}

@@ -45,46 +45,31 @@ void RSSI::paint(Painter& painter) {
 	const range_t<int> x_max_range { x_avg + 1, r.width() };
 	const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
 
-	const Rect r0 {
-		static_cast<ui::Coord>(r.left()), r.top(),
-		static_cast<ui::Dim>(x_min), r.height()
-	};
+	const Rect r0 { r.left(), r.top(), x_min, r.height() };
 	painter.fill_rectangle(
 		r0,
 		Color::blue()
 	);
 
-	const Rect r1 {
-		static_cast<ui::Coord>(r.left() + x_min), r.top(),
-		static_cast<ui::Dim>(x_avg - x_min), r.height()
-	};
+	const Rect r1 { r.left() + x_min, r.top(), x_avg - x_min, r.height() };
 	painter.fill_rectangle(
 		r1,
 		Color::red()
 	);
 
-	const Rect r2 {
-		static_cast<ui::Coord>(r.left() + x_avg), r.top(),
-		1, r.height()
-	};
+	const Rect r2 { r.left() + x_avg, r.top(), 1, r.height() };
 	painter.fill_rectangle(
 		r2,
 		Color::white()
 	);
 
-	const Rect r3 {
-		static_cast<ui::Coord>(r.left() + x_avg + 1), r.top(),
-		static_cast<ui::Dim>(x_max - (x_avg + 1)), r.height()
-	};
+	const Rect r3 { r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height() };
 	painter.fill_rectangle(
 		r3,
 		Color::red()
 	);
 
-	const Rect r4 {
-		static_cast<ui::Coord>(r.left() + x_max), r.top(),
-		static_cast<ui::Dim>(r.width() - x_max), r.height()
-	};
+	const Rect r4 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
 	painter.fill_rectangle(
 		r4,
 		Color::black()

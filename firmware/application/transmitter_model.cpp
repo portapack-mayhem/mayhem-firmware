@@ -29,7 +29,7 @@
 using namespace hackrf::one;
 using namespace portapack;
 
-#include "time.hpp"
+#include "rtc_time.hpp"
 #include "event_m0.hpp"
 #include "radio.hpp"
 #include "audio.hpp"
@@ -80,12 +80,12 @@ void TransmitterModel::set_vga(int32_t v_db) {
 }
 
 uint32_t TransmitterModel::sampling_rate() const {
-	return baseband_configuration.sampling_rate;
+	return sampling_rate_;
 }
 
-uint32_t TransmitterModel::baseband_oversampling() const {
-	// TODO: Rename decimation_factor.
-	return baseband_configuration.decimation_factor;
+void TransmitterModel::set_sampling_rate(uint32_t v) {
+	sampling_rate_ = v;
+	update_sampling_rate();
 }
 
 void TransmitterModel::on_tick_second() {
@@ -101,10 +101,10 @@ void TransmitterModel::enable() {
 	update_lna();
 	update_vga();
 	update_baseband_bandwidth();
-	update_baseband_configuration();
+	update_sampling_rate();
 	
 	led_tx.on();
-	signal_token_tick_second = time::signal_tick_second += [this]() {
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
 	if (portapack::persistent_memory::stealth_mode())
@@ -118,7 +118,7 @@ void TransmitterModel::disable() {
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
 	
-	time::signal_tick_second -= signal_token_tick_second;
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 	led_tx.off();
 }
 
@@ -142,18 +142,16 @@ void TransmitterModel::update_vga() {
 	radio::set_vga_gain(vga_gain_db_);
 }
 
-void TransmitterModel::set_baseband_configuration(const BasebandConfiguration config) {
-	baseband_configuration = config;
-	update_baseband_configuration();
+void TransmitterModel::update_tx_gain() {
+	radio::set_tx_gain(tx_gain_db_);
 }
 
-void TransmitterModel::update_baseband_configuration() {
+void TransmitterModel::update_sampling_rate() {
 	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
 	// synchronization for things like wideband (sweeping) spectrum analysis, and
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	radio::set_baseband_rate(sampling_rate() * baseband_oversampling());
+	radio::set_baseband_rate(sampling_rate());
 	update_tuning_frequency();
-	radio::set_baseband_decimation_by(baseband_oversampling());
 }

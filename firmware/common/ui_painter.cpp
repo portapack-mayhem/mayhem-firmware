@@ -39,7 +39,7 @@ Style Style::invert() const {
 int Painter::draw_char(const Point p, const Style& style, const char c) {
 	const auto glyph = style.font.glyph(c);
 	display.draw_glyph(p, glyph, style.foreground, style.background);
-	return glyph.advance().x;
+	return glyph.advance().x();
 }
 
 int Painter::draw_string(Point p, const Style& style, const std::string text) {
@@ -49,7 +49,7 @@ int Painter::draw_string(Point p, const Style& style, const std::string text) {
 		display.draw_glyph(p, glyph, style.foreground, style.background);
 		const auto advance = glyph.advance();
 		p += advance;
-		width += advance.x;
+		width += advance.x();
 	}
 	return width;
 }
@@ -67,10 +67,10 @@ void Painter::draw_vline(Point p, int height, const Color c) {
 }
 
 void Painter::draw_rectangle(const Rect r, const Color c) {
-	draw_hline(r.pos, r.size.w, c);
-	draw_vline({ r.pos.x, r.pos.y + 1 }, r.size.h - 2, c);
-	draw_vline({ r.pos.x + r.size.w - 1, r.pos.y + 1 }, r.size.h - 2, c);
-	draw_hline({ r.pos.x, r.pos.y + r.size.h - 1 }, r.size.w, c);
+	draw_hline(r.location(), r.width(), c);
+	draw_vline({ r.left(), r.top() + 1 }, r.height() - 2, c);
+	draw_vline({ r.left() + r.width() - 1, r.top() + 1 }, r.height() - 2, c);
+	draw_hline({ r.left(), r.top() + r.height() - 1 }, r.width(), c);
 }
 
 void Painter::fill_rectangle(const Rect r, const Color c) {
