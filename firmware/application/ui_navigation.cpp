@@ -282,7 +282,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 		{ "Audio", 					ui::Color::green(),	nullptr,	[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "CCIR", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Nordic/BTLE", 			ui::Color::grey(),	&bitmap_icon_nordic,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "POCSAG 1200", 			ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<POCSAGAppView>(); } },
+		{ "POCSAG", 				ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_foxhunt,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "Transponders", 			ui::Color::green(),	nullptr,	[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });

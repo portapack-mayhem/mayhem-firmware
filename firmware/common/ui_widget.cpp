@@ -460,17 +460,17 @@ void ProgressBar::set_value(const uint32_t value) {
 }
 
 void ProgressBar::paint(Painter& painter) {
-	uint32_t v_sized;
+	int v_scaled;
 	
-	const auto rect = screen_rect();
+	const auto sr = screen_rect();
 	const auto s = style();
 
-	v_sized = (rect.size().width() * _value) / _max;
+	v_scaled = (sr.size().width() * _value) / _max;
 
-	painter.fill_rectangle({rect.location(), {v_sized, rect.size().height()}}, style().foreground);
-	painter.fill_rectangle({{rect.location().x() + v_sized, rect.location().y()}, {rect.size().width() - v_sized, rect.size().height()}}, s.background);
+	painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
+	painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
 	
-	painter.draw_rectangle(rect, s.foreground);
+	painter.draw_rectangle(sr, s.foreground);
 }
 
 /* Console ***************************************************************/
@@ -479,7 +479,6 @@ Console::Console(
 	Rect parent_rect
 ) : Widget { parent_rect }
 {
-	display.scroll_set_position(0);
 }
 
 void Console::clear() {
@@ -523,14 +522,14 @@ void Console::writeln(std::string message) {
 	crlf();
 }
 
-void Console::paint(Painter& painter) {
-	(void)painter;
+void Console::paint(Painter&) {
 	write(buffer);
 }
 
 void Console::on_show() {
 	const auto screen_r = screen_rect();
 	display.scroll_set_area(screen_r.top(), screen_r.bottom());
+	display.scroll_set_position(0);
 	clear();
 	visible = true;
 }
@@ -562,10 +561,17 @@ void Console::crlf() {
 Checkbox::Checkbox(
 	Point parent_pos,
 	size_t length,
-	std::string text
-) : Widget { { parent_pos, { static_cast<ui::Dim>((8 * length) + 24), 24 } } },
-	text_ { text }
+	std::string text,
+	bool small
+) : Widget {  },
+	text_ { text },
+	small_ { small }
 {
+	if (!small_)
+		set_parent_rect({ parent_pos, { static_cast<ui::Dim>((8 * length) + 24), 24 } });
+	else
+		set_parent_rect({ parent_pos, { static_cast<ui::Dim>((8 * length) + 16), 16 } });
+	
 	set_focusable(true);
 }
 
@@ -576,13 +582,12 @@ void Checkbox::set_text(const std::string value) {
 
 bool Checkbox::set_value(const bool value) {
 	value_ = value;
+	set_dirty();
 	
 	if( on_select ) {
 		on_select(*this);
 		return true;
 	}
-	
-	set_dirty();
 	
 	return false;
 }
@@ -596,37 +601,64 @@ void Checkbox::paint(Painter& painter) {
 	
 	const auto paint_style = (has_focus() || highlighted()) ? style().invert() : style();
 	
-	painter.draw_rectangle({ r.location().x(), r.location().y(), 24, 24 }, style().foreground);
-
-	painter.fill_rectangle(
-		{
-			static_cast<Coord>(r.location().x() + 1), static_cast<Coord>(r.location().y() + 1),
-			static_cast<Dim>(24 - 2), static_cast<Dim>(24 - 2)
-		},
-		style().background
-	);
-	
-	painter.draw_rectangle({ r.location().x() + 2, r.location().y() + 2, 24-4, 24-4 }, paint_style.background);
-	
-	if (value_ == true) {
-		// Check
-		portapack::display.draw_line( {r.location().x()+2, r.location().y()+14}, {r.location().x()+6, r.location().y()+18}, ui::Color::green());
-		portapack::display.draw_line( {r.location().x()+6, r.location().y()+18}, {r.location().x()+20, r.location().y()+4}, ui::Color::green());
-	} else {
-		// Cross
-		portapack::display.draw_line( {r.location().x()+1, r.location().y()+1}, {r.location().x()+24-2, r.location().y()+24-2}, ui::Color::red());
-		portapack::display.draw_line( {r.location().x()+24-2, r.location().y()+1}, {r.location().x()+1, r.location().y()+24-2}, ui::Color::red());
-	}
+	const auto x = r.location().x();
+	const auto y = r.location().y();
 	
 	const auto label_r = paint_style.font.size_of(text_);
-	painter.draw_string(
-		{
-			static_cast<Coord>(r.location().x() + 24 + 4),
-			static_cast<Coord>(r.location().y() + (24 - label_r.height()) / 2)
-		},
-		paint_style,
-		text_
-	);
+	
+	if (!small_) {
+		painter.draw_rectangle({ { r.location() }, { 24, 24 } }, style().foreground);
+		
+		painter.fill_rectangle({ x + 1, y + 1, 24 - 2, 24 - 2 }, style().background);
+		
+		// Highlight
+		painter.draw_rectangle({ x + 2, y + 2, 24 - 4, 24 - 4 }, paint_style.background);
+		
+		if (value_ == true) {
+			// Check
+			portapack::display.draw_line( {x + 2, y + 14}, {x + 6, y + 18}, ui::Color::green());
+			portapack::display.draw_line( {x + 6, y + 18}, {x + 20, y + 4}, ui::Color::green());
+		} else {
+			// Cross
+			portapack::display.draw_line( {x + 1, y + 1}, {x + 24 - 2, y + 24 - 2}, ui::Color::red());
+			portapack::display.draw_line( {x + 24 - 2, y + 1}, {x + 1, y + 24 - 2}, ui::Color::red());
+		}
+		
+		painter.draw_string(
+			{
+				static_cast<Coord>(x + 24 + 4),
+				static_cast<Coord>(y + (24 - label_r.height()) / 2)
+			},
+			paint_style,
+			text_
+		);
+	} else {
+		painter.draw_rectangle({ { r.location() }, { 16, 16 } }, style().foreground);
+		
+		painter.fill_rectangle({ x + 1, y + 1, 16 - 2, 16 - 2 }, style().background);
+		
+		// Highlight
+		painter.draw_rectangle({ x + 1, y + 1, 16 - 2, 16 - 2 }, paint_style.background);
+		
+		if (value_ == true) {
+			// Check
+			portapack::display.draw_line( {x + 2, y + 8}, {x + 6, y + 12}, ui::Color::green());
+			portapack::display.draw_line( {x + 6, y + 12}, {x + 13, y + 5}, ui::Color::green());
+		} else {
+			// Cross
+			portapack::display.draw_line( {x + 1, y + 1}, {x + 16 - 2, y + 16 - 2}, ui::Color::red());
+			portapack::display.draw_line( {x + 16 - 2, y + 1}, {x + 1, y + 16 - 2}, ui::Color::red());
+		}
+		
+		painter.draw_string(
+			{
+				static_cast<Coord>(x + 16),
+				static_cast<Coord>(y + (16 - label_r.height()) / 2)
+			},
+			paint_style,
+			text_
+		);
+	}
 }
 
 bool Checkbox::on_key(const KeyEvent key) {

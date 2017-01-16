@@ -45,7 +45,7 @@ public:
 	void on_decoded(const pocsag::POCSAGPacket& packet,	const std::string info,	const std::string text);
 
 private:
-	LogFile log_file;
+	LogFile log_file { };
 };
 
 namespace ui {
@@ -68,9 +68,12 @@ private:
 	static constexpr uint32_t sampling_rate = 1536000;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
+	bool logging { true };
 	uint32_t batch_cnt = 0;
-	uint32_t address, function;
-	uint32_t ascii_data, ascii_idx;
+	uint32_t address { 0 };
+	uint32_t function { 0 };
+	uint32_t ascii_data { 0 };
+	uint32_t ascii_idx { 0 };
 	std::string output_text = "";
 
 	MessageHandlerRegistration message_handler_packet {
@@ -93,7 +96,7 @@ private:
 
 	OptionsField options_freq {
 		{ 0 * 8, 0 * 16 },
-		8,
+		7,
 		{
 			{ "Entered", 0 },
 			{ "FR .025", 466025000 },
@@ -104,9 +107,25 @@ private:
 			{ "FR .231", 466231250 }
 		}
 	};
+	
 	Button button_setfreq {
 		{ 0, 20, 12 * 8, 20 },
 		"----.----"
+	};
+	OptionsField options_bitrate {
+		{ 13 * 8, 22 },
+		8,
+		{
+			{ "512 bps ", 0 },
+			{ "1200 bps", 1 },
+			{ "2400 bps", 2 }
+		}
+	};
+	Checkbox check_log {
+		{ 22 * 8, 22 },
+		3,
+		"LOG",
+		true
 	};
 
 	Console console {
@@ -125,7 +144,7 @@ private:
 		{ 18 * 8, 0 * 16 }
 	};
 
-	std::unique_ptr<POCSAGLogger> logger;
+	std::unique_ptr<POCSAGLogger> logger { };
 
 	uint32_t target_frequency_ = initial_target_frequency;
 	
@@ -135,6 +154,7 @@ private:
 	void on_show_list();
 
 	void on_band_changed(const uint32_t new_band_frequency);
+	void on_bitrate_changed(const uint32_t new_bitrate);
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);

@@ -245,7 +245,7 @@ public:
 	void write(std::string message);
 	void writeln(std::string message);
 
-	void paint(Painter& painter) override;
+	void paint(Painter&) override;
 	
 	void on_show() override;
 	void on_hide() override;
@@ -262,7 +262,14 @@ class Checkbox : public Widget {
 public:
 	std::function<void(Checkbox&)> on_select { };
 
-	Checkbox(Point parent_pos, size_t length, std::string text);
+	Checkbox(Point parent_pos, size_t length, std::string text, bool small);
+	Checkbox(
+		Point parent_pos,
+		size_t length,
+		std::string text
+	) : Checkbox { parent_pos, length, text, false }
+	{
+	}
 	
 	Checkbox(
 	) : Checkbox { { }, { }, { } }
@@ -285,7 +292,8 @@ public:
 
 private:
 	std::string text_;
-	bool value_ = false;
+	bool small_ { false };
+	bool value_ { false };
 	const Style* style_ { nullptr };
 };
 

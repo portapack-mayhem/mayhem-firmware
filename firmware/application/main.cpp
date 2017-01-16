@@ -23,6 +23,8 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: Bad console scroll init
+
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 //TEST: Jammer

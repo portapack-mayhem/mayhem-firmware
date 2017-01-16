@@ -118,7 +118,10 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							
 							if ((rx_data == POCSAG_IDLE) && (!(last_rx_data & 0x80000000))) {
 								// SYNC then IDLE always means end of message ?
-								push_packet(pocsag::PacketFlag::NORMAL);
+								if (frame_counter)
+									push_packet(pocsag::PacketFlag::NORMAL);
+								else
+									push_packet(pocsag::PacketFlag::IDLE);
 								rx_state = WAITING;
 							} else {
 								if (frame_counter < 15) {

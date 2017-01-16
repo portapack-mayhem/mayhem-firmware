@@ -51,6 +51,7 @@ static std::string bitrate_str(BitRate bitrate) {
 static std::string flag_str(PacketFlag packetflag) {
 	switch (packetflag) {
 		case PacketFlag::NORMAL:	return "OK";
+		case PacketFlag::IDLE:		return "IDLE";
 		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
 		case PacketFlag::TOO_LONG:	return "TOO LONG";
 		default:					return "";
@@ -108,10 +109,12 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&rssi,
 		&channel,
 		&options_freq,
-		&button_setfreq,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
+		&button_setfreq,
+		&options_bitrate,
+		&check_log,
 		&console
 	});
 
@@ -124,6 +127,16 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga())
 	});
+	
+	check_log.set_value(logging);
+	check_log.on_select = [this](Checkbox&) {
+		logging = check_log.value();
+	};
+	
+	options_bitrate.set_selected_index(1);	// 1200bps
+	options_bitrate.on_change = [this](size_t, OptionsField::value_t v) {
+		this->on_bitrate_changed(v);
+	};
 
 	options_freq.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_band_changed(v);
@@ -170,7 +183,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 			ascii_data |= ((codeword >> 11) & 0xFFFFF);
 			ascii_idx += 20;
 			
-			// Packet 20 bits to 7 bit reversed ASCII
+			// Raw 20 bits to 7 bit reversed ASCII
 			while (ascii_idx >= 7) {
 				ascii_idx -= 7;
 				ascii_char = (ascii_data >> ascii_idx) & 0x7F;
@@ -202,7 +215,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		}
 	}
 	
-	if (logger) logger->on_packet(message->packet, target_frequency());
+	if (logger && logging) logger->on_packet(message->packet, target_frequency());
 
 	if (eom) {
 		std::string console_info;
@@ -221,7 +234,8 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 			if (logger) logger->on_decoded(message->packet, console_info, output_text);
 			
 		} else {
-			console_info += pocsag::format::bitrate_str(message->packet.bitrate()) + " Tone only";
+			console_info += pocsag::format::bitrate_str(message->packet.bitrate()) + " ";
+			console_info += pocsag::format::flag_str(message->packet.flag());
 			
 			console.writeln(console_info);
 		}
@@ -235,6 +249,16 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	} else {
 		batch_cnt++;
 	}
+}
+
+void POCSAGAppView::on_bitrate_changed(const uint32_t new_bitrate) {
+	const pocsag::BitRate bitrates[3] = {
+		pocsag::BitRate::FSK512,
+		pocsag::BitRate::FSK1200,
+		pocsag::BitRate::FSK2400
+	};
+	
+	baseband::set_pocsag(bitrates[new_bitrate]);
 }
 
 void POCSAGAppView::on_band_changed(const uint32_t new_band_frequency) {

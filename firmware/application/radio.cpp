@@ -111,6 +111,11 @@ void set_direction(const rf::Direction new_direction) {
 	rf_path.set_direction(direction);
 
 	baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
+
+	if (direction == rf::Direction::Receive)
+		led_rx.on();
+	else
+		led_tx.on();
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -169,6 +174,9 @@ void disable() {
 	second_if.set_mode(max2837::Mode::Standby);
 	first_if.disable();
 	set_rf_amp(false);
+	
+	led_rx.off();
+	led_tx.off();
 }
 
 void enable(Configuration configuration) {
