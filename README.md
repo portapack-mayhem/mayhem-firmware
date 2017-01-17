@@ -14,7 +14,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 * Frequency manager (save/load from SD card)
 * "Soundboard" wave file player from SD card (put 8-bit mono files in /wav directory)
-* POCSAG 1200 alphanumeric receiver/decoder
+* POCSAG 512/1200/2400 alphanumeric receiver/decoder
 * Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
 * Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
 * Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
@@ -30,17 +30,17 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 Feature | Progress | Notes
 ------- | ------ | -----
-Jammer      | 90% | Need to update baseband code
+Jammer      | 95% | Need to make the different noise modes work
 RDS TX      | 90% | Needs testing for Radiotext and audio mux function
-POCSAG RX   | 80% | Still misses some messages, needs 512 and 2400bps modes
+POCSAG RX   | 90% | Still misses some messages
 Close-Call™ | 70% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
 Morse TX    | 30% | Needs UI and testing
+Wave visualizer | 30% | High priority
 ADS-B TX    | 20% | UI and frame gen stuff done
 Whistle     | 20% | Easy
-Wave visualizer | 10% | High priority
-IQ replay   | 0%  | High priority
+IQ replay   | 10% | High priority
 ADS-B RX    | 0%  | Could be fun
 Search      | 0%  | Will be a special Close-Call mode
 Scanner     | 0%  | Easy
