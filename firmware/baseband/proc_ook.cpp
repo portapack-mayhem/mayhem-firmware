@@ -28,12 +28,13 @@
 #include <cstdint>
 
 void OOKProcessor::execute(const buffer_c8_t& buffer) {
+	int8_t re, im;
 	
 	// This is called at 2.28M/2048 = 1113Hz
 	
 	if (!configured) return;
 	
-	for (size_t i = 0; i<buffer.count; i++) {
+	for (size_t i = 0; i < buffer.count; i++) {
 		
 		// Synthesis at 2.28M/10 = 228kHz
 		if (!s) {
@@ -89,7 +90,7 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 			im = 0;
 		}
 	
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		buffer.p[i] = {re, im};
 	}
 }
 

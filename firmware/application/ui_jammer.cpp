@@ -90,9 +90,11 @@ void JammerView::update_text(uint8_t id, rf::Frequency f) {
 	}
 }
 
-void JammerView::on_retune(const rf::Frequency freq) {
-	if (freq > 0)
+void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
+	if (freq) {
 		transmitter_model.set_tuning_frequency(freq);
+		text_range_number.set(to_string_dec_uint(range, 2, ' '));
+	}
 }
 	
 JammerView::JammerView(NavigationView& nav) {
@@ -102,14 +104,14 @@ JammerView::JammerView(NavigationView& nav) {
 	
 	static constexpr Style style_val {
 		.font = font::fixed_8x16,
-		.background = Color::green(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::green(),
 	};
 	
 	static constexpr Style style_cancel {
 		.font = font::fixed_8x16,
-		.background = Color::red(),
-		.foreground = Color::black(),
+		.background = Color::black(),
+		.foreground = Color::red(),
 	};
 	
 	static constexpr Style style_info {
@@ -122,6 +124,7 @@ JammerView::JammerView(NavigationView& nav) {
 	
 	add_children({
 		&text_type,
+		&text_range_number,
 		&options_modulation,
 		&text_sweep,
 		&options_sweep,
@@ -189,78 +192,86 @@ JammerView::JammerView(NavigationView& nav) {
 	button_transmit.on_select = [this, &nav, jammer_ranges](Button&) {
 		uint8_t c, i = 0;
 		size_t num_ranges;
-		rf::Frequency start_freq, range_bw, ch_width;
+		rf::Frequency start_freq, range_bw, range_bw_sub, ch_width;
 		bool out_of_ranges = false;
 		
 		// Disable all ranges by default
-		for (i = 0; i < 9; i++)
-			jammer_ranges[i].enabled = false;
+		for (c = 0; c < 9; c++)
+			jammer_ranges[c].enabled = false;
 		
 		// Generate jamming "channels", maximum: 9
 		// Convert ranges min/max to center/bw
 		for (c = 0; c < 3; c++) {
+			
 			range_bw = abs(frequency_range[c].max - frequency_range[c].min);		// Total bw for range
-			if (frequency_range[c].min < frequency_range[c].max)
-				start_freq = frequency_range[c].min;
-			else
-				start_freq = frequency_range[c].max;
-			if (range_bw > 500000) {
-				// Example: 600kHz
-				// int(600000 / 500000) = 2
-				// CH-BW = 600000 / 2 = 300000
-				// Center-A = min + CH-BW / 2 = 150000
-				// BW-A = CH-BW = 300000
-				// Center-B = min + CH-BW + Center-A = 450000
-				// BW-B = CH-BW = 300000
-				num_ranges = 0;
-				while (range_bw > 500000) {
-					range_bw -= 500000;
-					num_ranges++;
-				}
-				ch_width = range_bw / num_ranges;
-				for (c = 0; c < num_ranges; c++) {
+			
+			if (range_bw) {
+				// Sort
+				if (frequency_range[c].min < frequency_range[c].max)
+					start_freq = frequency_range[c].min;
+				else
+					start_freq = frequency_range[c].max;
+				
+				if (range_bw > 500000) {
+					// Example: 600kHz
+					// int(600000 / 500000) = 2
+					// CH-BW = 600000 / 2 = 300000
+					// Center-A = min + CH-BW / 2 = 150000
+					// BW-A = CH-BW = 300000
+					// Center-B = min + CH-BW + Center-A = 450000
+					// BW-B = CH-BW = 300000
+					num_ranges = 0;
+					range_bw_sub = range_bw;
+					do {
+						range_bw_sub -= 500000;
+						num_ranges++;
+					} while (range_bw_sub > 500000);
+					ch_width = range_bw / num_ranges;
+					for (c = 0; c < num_ranges; c++) {
+						if (i >= 9) {
+							out_of_ranges = true;
+							break;
+						}
+						jammer_ranges[i].enabled = true;
+						jammer_ranges[i].width = ch_width;
+						jammer_ranges[i].center = start_freq + (ch_width / 2) + (ch_width * c);
+						jammer_ranges[i].duration = 15360 * options_hop.selected_index_value();
+						i++;
+					}
+				} else {
 					if (i >= 9) {
 						out_of_ranges = true;
-						break;
+					} else {
+						jammer_ranges[i].enabled = true;
+						jammer_ranges[i].width = range_bw;
+						jammer_ranges[i].center = start_freq + (range_bw / 2);
+						jammer_ranges[i].duration = 15360 * options_hop.selected_index_value();
+						i++;
 					}
-					jammer_ranges[i].enabled = true;
-					jammer_ranges[i].width = ch_width;
-					jammer_ranges[i].center = start_freq + (ch_width / 2) + (ch_width * c);
-					jammer_ranges[i].duration = 2280000 / 10;				// ?
-					i++;
-				}
-			} else {
-				if (i >= 9) {
-					out_of_ranges = true;
-				} else {
-					jammer_ranges[i].enabled = true;
-					jammer_ranges[i].width = range_bw;
-					jammer_ranges[i].center = start_freq + (range_bw / 2);
-					jammer_ranges[i].duration = 2280000 / 10;					// ?
-					i++;
 				}
 			}
-			
-			if (!out_of_ranges) {
-				if (jamming == true) {
-					jamming = false;
-					button_transmit.set_style(&style_val);
-					button_transmit.set_text("START");
-					radio::disable();
-				} else {
-					jamming = true;
-					button_transmit.set_style(&style_cancel);
-					button_transmit.set_text("STOP");
-					
-					//transmitter_model.set_tuning_frequency(433920000);		// TODO
-					transmitter_model.set_sampling_rate(1536000U);
-					transmitter_model.set_rf_amp(true);
-					transmitter_model.set_baseband_bandwidth(1750000);
-					transmitter_model.enable();
-				}
+		}
+		
+		if (!out_of_ranges) {
+			if (jamming == true) {
+				jamming = false;
+				button_transmit.set_style(&style_val);
+				button_transmit.set_text("START");
+				radio::disable();
 			} else {
-				nav.display_modal("Error", "Jamming bandwidth too large.");
+				jamming = true;
+				button_transmit.set_style(&style_cancel);
+				button_transmit.set_text("STOP");
+				
+				transmitter_model.set_sampling_rate(1536000U);
+				transmitter_model.set_rf_amp(true);
+				transmitter_model.set_baseband_bandwidth(1750000);
+				transmitter_model.enable();
+				
+				baseband::set_jammer();
 			}
+		} else {
+			nav.display_modal("Error", "Jamming bandwidth too large.");
 		}
 	};
 

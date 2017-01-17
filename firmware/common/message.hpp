@@ -72,6 +72,7 @@ public:
 
 		TXDone = 30,
 		Retune = 31,
+		
 		TonesConfigure = 32,
 		AFSKConfigure = 33,
 		PWMRSSIConfigure = 34,
@@ -81,8 +82,9 @@ public:
 		POCSAGConfigure = 38,
 		DTMFTXConfig = 39,
 		ADSBConfigure = 40,
+		JammerConfigure = 41,
 		
-		POCSAGPacket = 41,
+		POCSAGPacket = 50,
 		
 		FIFOSignal = 52,
 		FIFOData = 53,
@@ -605,6 +607,7 @@ public:
 	}
 	
 	int64_t freq = 0;
+	uint32_t range = 0;
 };
 
 class AudioTXConfigMessage : public Message {
@@ -693,6 +696,18 @@ public:
 	constexpr ADSBConfigureMessage(
 		const uint32_t test
 	) : Message { ID::ADSBConfigure },
+		test(test)
+	{
+	}
+
+	const uint32_t test;
+};
+
+class JammerConfigureMessage : public Message {
+public:
+	constexpr JammerConfigureMessage(
+		const uint32_t test
+	) : Message { ID::JammerConfigure },
 		test(test)
 	{
 	}

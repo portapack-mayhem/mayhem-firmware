@@ -155,6 +155,13 @@ void set_adsb() {
 	send_message(&message);
 }
 
+void set_jammer() {
+	const JammerConfigureMessage message {
+		1
+	};
+	send_message(&message);
+}
+
 void set_rds_data(const uint16_t message_length) {
 	const RDSConfigureMessage message {
 		message_length

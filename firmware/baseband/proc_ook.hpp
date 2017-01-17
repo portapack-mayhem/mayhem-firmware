@@ -37,22 +37,21 @@ private:
 	
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	uint32_t samples_per_bit;
-	uint8_t repeat;
-	uint32_t length;
-	uint32_t pause;
+	uint32_t samples_per_bit { 0 };
+	uint8_t repeat { 0 };
+	uint32_t length { 0 };
+	uint32_t pause { 0 };
 	
-	uint32_t pause_counter = 0;
-	uint8_t repeat_counter = 0;
-	int8_t re, im;
-	uint8_t s = 0;
-    uint16_t bit_pos = 0;
-    uint8_t cur_bit = 0;
-    uint32_t sample_count;
-	uint32_t tone_phase, phase, sphase;
-	int32_t tone_sample, sig, frq;
+	uint32_t pause_counter { 0 };
+	uint8_t repeat_counter { 0 };
+	uint8_t s { 0 };
+    uint16_t bit_pos { 0 };
+    uint8_t cur_bit { 0 };
+    uint32_t sample_count { 0 };
+	uint32_t tone_phase { 0 }, phase { 0 }, sphase { 0 };
+	int32_t tone_sample { 0 }, sig { 0 }, frq { 0 };
 	
-	TXDoneMessage txdone_message;
+	TXDoneMessage txdone_message { };
 };
 
 #endif

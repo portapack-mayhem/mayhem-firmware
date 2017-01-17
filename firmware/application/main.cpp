@@ -23,7 +23,12 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: Bad console scroll init
+//BUG: (fixed ?) Bad console scroll init
+//BUG: POCSAG misses alphanum messages, cuts them off sometimes
+//BUG: Jammer channels are wrong (not enough) when using multiple ranges
+
+//TODO: Array for checkboxes and texts, options_preset "CUSTOM" on manual freq. entry, in jammer
+//TODO: Digital mode for Waveform widget
 
 //TEST: Imperial in whipcalc
 //TEST: Numbers

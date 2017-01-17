@@ -239,45 +239,6 @@ void EncodersView::on_type_change(size_t index) {
 		format_string += ' ';
 	
 	text_format.set(format_string);
-	
-	/*word_format = encoder_def->word_format;
-	size_t address_start = word_format.find_first_of("A");
-	size_t data_start = word_format.find_first_of("D");	
-	size_t format_length = word_format.length();
-	
-	if (address_start == std::string::npos) address_start = format_length;
-	if (data_start == std::string::npos) data_start = format_length;
-	
-	// Never did anything so dirty :(
-	if (!address_start) {
-		address_length = data_start;
-		data_length = format_length - address_length;
-	} else {
-		data_length = address_start;
-		address_length = format_length - data_length;
-	}
-	
-	if (address_length) {
-		text_format_a.hidden(false);
-		text_format_a.set_parent_rect(
-			{ (2 + address_start) * 8, 	12 * 8, 	address_length * 8, 	16 }
-		);
-		text_format_a.set_style(&style_address);
-		text_format_a.set(std::string(address_length, 'A'));
-	} else {
-		text_format_a.hidden(true);
-	}
-	
-	if (data_length) {
-		text_format_d.hidden(false);
-		text_format_d.set_parent_rect(
-			{ (2 + data_start) * 8, 	12 * 8, 	data_length * 8, 		16 }
-		);
-		text_format_d.set_style(&style_data);
-		text_format_d.set(std::string(data_length, 'D'));
-	} else {
-		text_format_d.hidden(true);
-	}*/
 
 	generate_frame();
 }

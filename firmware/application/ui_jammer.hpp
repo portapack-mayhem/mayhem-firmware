@@ -49,7 +49,7 @@ private:
 	freq_range_t frequency_range[3];
 	
 	void update_text(uint8_t id, rf::Frequency f);
-	void on_retune(const rf::Frequency freq);
+	void on_retune(const rf::Frequency freq, const uint32_t range);
 		
 	// TODO: TDD UMTS, voir doc Arcep
 	// TODO: BT: 2 400 et 2 483,5 MHz
@@ -100,8 +100,8 @@ private:
 		{ false, 0, 0 }},
 		
 		// GPS L1 & L2
-		{{ true, 1575420000 - 50000, 1575420000 + 50000},	// BW: 100kHz
-		{ true, 1227600000 - 50000, 1227600000 + 50000 },	// BW: 100kHz
+		{{ true, 1575420000 - 1000000, 1575420000 + 1000000},	// BW: 2MHz
+		{ true, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
 		{ false, 0, 0 }},
 		
 		// WLAN 2.4G CH1
@@ -177,6 +177,11 @@ private:
 		}
 	};
 	
+	Text text_range_number {
+		{ 14 * 8, 1 * 16, 2 * 8, 16 },
+		"--"
+	};
+	
 	Text text_sweep {
 		{ 1 * 8, 2 * 16, 6 * 8, 16 },
 		"Sweep:"
@@ -202,14 +207,13 @@ private:
 	};
 	OptionsField options_hop {
 		{ 12 * 8, 4 * 16 },
-		6,
+		5,
 		{
-			{ "  10s", 0 },
-			{ "   5s", 1 },
-			{ "   1s", 2 },
-			{ " 0.1s", 3 },
-			{ " 10ms", 4 },
-			{ "  1ms", 5 }
+			{ " 10ms", 1 },
+			{ "100ms", 10 },
+			{ "   1s", 100 },
+			{ "   5s", 500 },
+			{ "  10s", 1000 }
 		}
 	};
 	
@@ -263,7 +267,7 @@ private:
 		"Range 3"
 	};
 	
-	std::array<Button, 6> buttons_freq;
+	std::array<Button, 6> buttons_freq { };
 	
 	Text text_info1 {
 		{ 3 * 8, 8 * 16 - 4 + 2, 25 * 8, 16 },
@@ -294,7 +298,7 @@ private:
 		Message::ID::Retune,
 		[this](Message* const p) {
 			const auto message = static_cast<const RetuneMessage*>(p);
-			this->on_retune(message->freq);
+			this->on_retune(message->freq, message->range);
 		}
 	};
 };
