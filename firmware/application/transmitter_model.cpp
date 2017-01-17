@@ -88,6 +88,11 @@ void TransmitterModel::set_sampling_rate(uint32_t v) {
 	update_sampling_rate();
 }
 
+void TransmitterModel::set_tx_gain(int32_t v_db) {
+	tx_gain_db_ = v_db;
+	update_tx_gain();
+}
+
 void TransmitterModel::on_tick_second() {
 	if (portapack::persistent_memory::stealth_mode())
 		led_tx.toggle();

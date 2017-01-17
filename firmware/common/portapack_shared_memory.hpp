@@ -29,7 +29,7 @@
 #include "portapack_shared_memory.hpp"
 #include "message_queue.hpp"
 
-struct JammerRange {
+struct JammerChannel {
 	bool enabled;
 	uint64_t center;
 	uint32_t width;
@@ -62,7 +62,7 @@ struct SharedMemory {
 	
 	union {
 		ToneData tones_data;
-		JammerRange jammer_ranges[9];
+		JammerChannel jammer_channels[9];
 		uint8_t data[512];
 	} bb_data { { { { 0, 0 } }, 0, { 0 } } };
 };

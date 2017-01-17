@@ -200,8 +200,8 @@ NumbersStationView::NumbersStationView(
 		};
 	};
 	
-	check_armed.on_select = [this](Checkbox&) {
-		if (check_armed.value()) {
+	check_armed.on_select = [this](Checkbox&, bool v) {
+		if (v) {
 			armed_blink = false;
 			signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 				this->on_tick_second();

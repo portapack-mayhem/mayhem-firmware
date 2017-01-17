@@ -65,7 +65,7 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 					const uint32_t pause_symbols);
 void set_pocsag(const pocsag::BitRate bitrate);
 void set_adsb();
-void set_jammer();
+void set_jammer(const bool run);
 void set_rds_data(const uint16_t message_length);
 //void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);
 

@@ -221,8 +221,8 @@ BHTView::BHTView(NavigationView& nav) {
 		generate_message();
 	};
 	
-	checkbox_speaker.on_select = [this](Checkbox&) {
-		speaker_enabled = checkbox_speaker.value();
+	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
+		speaker_enabled = v;
 	};
 	
 	header_code_a.on_change = [this](int32_t) {
@@ -244,8 +244,8 @@ BHTView::BHTView(NavigationView& nav) {
 		generate_message();
 	};
 	
-	checkbox_wcsubfamily.on_select = [this](Checkbox&) {
-		if (checkbox_wcsubfamily.value()) {
+	checkbox_wcsubfamily.on_select = [this](Checkbox&, bool v) {
+		if (v) {
 			subfamily_code.set_focusable(false);
 			subfamily_code.set_style(&style_grey);
 			text_subfamily.set_style(&style_grey);
@@ -257,8 +257,8 @@ BHTView::BHTView(NavigationView& nav) {
 		generate_message();
 	};
 	
-	checkbox_wcid.on_select = [this](Checkbox&) {
-		if (checkbox_wcid.value()) {
+	checkbox_wcid.on_select = [this](Checkbox&, bool v) {
+		if (v) {
 			receiver_code.set_focusable(false);
 			receiver_code.set_style(&style_grey);
 			text_receiver.set_style(&style_grey);

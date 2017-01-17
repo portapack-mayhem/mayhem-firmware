@@ -260,7 +260,7 @@ private:
 
 class Checkbox : public Widget {
 public:
-	std::function<void(Checkbox&)> on_select { };
+	std::function<void(Checkbox&, bool)> on_select { };
 
 	Checkbox(Point parent_pos, size_t length, std::string text, bool small);
 	Checkbox(

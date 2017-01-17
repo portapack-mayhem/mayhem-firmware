@@ -585,7 +585,7 @@ bool Checkbox::set_value(const bool value) {
 	set_dirty();
 	
 	if( on_select ) {
-		on_select(*this);
+		on_select(*this, value_);
 		return true;
 	}
 	
@@ -680,7 +680,7 @@ bool Checkbox::on_touch(const TouchEvent event) {
 		value_ = not value_;
 		set_dirty();
 		if( on_select ) {
-			on_select(*this);
+			on_select(*this, value_);
 		}
 		return true;
 

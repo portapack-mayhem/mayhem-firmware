@@ -155,9 +155,9 @@ void set_adsb() {
 	send_message(&message);
 }
 
-void set_jammer() {
+void set_jammer(const bool run) {
 	const JammerConfigureMessage message {
-		1
+		run
 	};
 	send_message(&message);
 }

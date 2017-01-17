@@ -100,8 +100,8 @@ private:
 		{ false, 0, 0 }},
 		
 		// GPS L1 & L2
-		{{ true, 1575420000 - 1000000, 1575420000 + 1000000},	// BW: 2MHz
-		{ true, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
+		{{ true, 1575420000 - 500000, 1575420000 + 500000 },	// BW: 1MHz
+		{ false, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
 		{ false, 0, 0 }},
 		
 		// WLAN 2.4G CH1
@@ -210,8 +210,10 @@ private:
 		5,
 		{
 			{ " 10ms", 1 },
+			{ " 50ms", 5 },
 			{ "100ms", 10 },
 			{ "   1s", 100 },
+			{ "   2s", 200 },
 			{ "   5s", 500 },
 			{ "  10s", 1000 }
 		}
@@ -250,39 +252,10 @@ private:
 			{ "WLAN 2.4G CH13 ", 22 }
 		}
 	};
-	
-	Checkbox checkbox_range1 {
-		{ 1 * 8, 6 * 16},
-		7,
-		"Range 1"
-	};
-	Checkbox checkbox_range2 {
-		{ 1 * 8, 9 * 16 + 4},
-		7,
-		"Range 2"
-	};
-	Checkbox checkbox_range3 {
-		{ 1 * 8, 12 * 16 + 8 },
-		7,
-		"Range 3"
-	};
-	
+
+	std::array<Checkbox, 3> checkboxes { };
 	std::array<Button, 6> buttons_freq { };
-	
-	Text text_info1 {
-		{ 3 * 8, 8 * 16 - 4 + 2, 25 * 8, 16 },
-		"C:----.----M W:-----kHz"
-	};
-	
-	Text text_info2 {
-		{ 3 * 8, 11 * 16 + 2, 25 * 8, 16 },
-		"C:----.----M W:-----kHz"
-	};
-	
-	Text text_info3 {
-		{ 3 * 8, 14 * 16 + 4 + 2, 25 * 8, 16 },
-		"C:----.----M W:-----kHz"
-	};
+	std::array<Text, 3> texts_info { };
 	
 	Button button_transmit {
 		{ 2 * 8, 16 * 16, 64, 32 },

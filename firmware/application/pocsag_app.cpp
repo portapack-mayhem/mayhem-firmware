@@ -129,8 +129,8 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	});
 	
 	check_log.set_value(logging);
-	check_log.on_select = [this](Checkbox&) {
-		logging = check_log.value();
+	check_log.on_select = [this](Checkbox&, bool v) {
+		logging = v;
 	};
 	
 	options_bitrate.set_selected_index(1);	// 1200bps

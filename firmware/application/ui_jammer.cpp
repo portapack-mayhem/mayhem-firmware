@@ -32,6 +32,8 @@
 #include <cstring>
 #include <stdio.h>
 
+#define JAMMER_CH_WIDTH 500000
+
 using namespace portapack;
 
 namespace ui {
@@ -84,9 +86,7 @@ void JammerView::update_text(uint8_t id, rf::Frequency f) {
 		while (strlen(finalstr) < 23)
 			strcat(finalstr, " ");
 		
-		if (c == 0) text_info1.set(finalstr);
-		if (c == 1) text_info2.set(finalstr);
-		if (c == 2) text_info3.set(finalstr);
+		texts_info[c].set(finalstr);
 	}
 }
 
@@ -120,7 +120,7 @@ JammerView::JammerView(NavigationView& nav) {
 		.foreground = Color::grey(),
 	};
 	
-	JammerRange * jammer_ranges = (JammerRange*)shared_memory.bb_data.data;
+	JammerChannel * jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 	
 	add_children({
 		&text_type,
@@ -132,12 +132,6 @@ JammerView::JammerView(NavigationView& nav) {
 		&options_preset,
 		&text_hop,
 		&options_hop,
-		&checkbox_range1,
-		&checkbox_range2,
-		&checkbox_range3,
-		&text_info1,
-		&text_info2,
-		&text_info3,
 		&button_transmit,
 		&button_exit
 	});
@@ -156,6 +150,10 @@ JammerView::JammerView(NavigationView& nav) {
 		};
 	};
 	
+	const auto checkbox_fn = [this](Checkbox& checkbox, bool v) {
+		frequency_range[checkbox.id].enabled = v;
+	};
+	
 	n = 0;
 	for (auto& button : buttons_freq) {
 		button.on_select = button_freq_fn;
@@ -170,49 +168,72 @@ JammerView::JammerView(NavigationView& nav) {
 		n++;
 	}
 	
+	n = 0;
+	for (auto& checkbox : checkboxes) {
+		checkbox.on_select = checkbox_fn;
+		checkbox.set_parent_rect({
+			static_cast<Coord>(8),
+			static_cast<Coord>(96 + (n * 52)),
+			24, 24
+		});
+		checkbox.id = n;
+		checkbox.set_text("Range " + to_string_dec_uint(n + 1));
+		add_child(&checkbox);
+		n++;
+	}
+	
+	n = 0;
+	for (auto& text : texts_info) {
+		text.set_parent_rect({
+			static_cast<Coord>(3 * 8),
+			static_cast<Coord>(126 + (n * 52)),
+			25 * 8, 16
+		});
+		text.set("C:----.----M W:-----kHz");
+		text.set_style(&style_info);
+		add_child(&text);
+		n++;
+	}
+	
 	button_transmit.set_style(&style_val);
-	text_info1.set_style(&style_info);
-	text_info2.set_style(&style_info);
-	text_info3.set_style(&style_info);
+	options_hop.set_selected_index(1);
 	
 	options_preset.on_change = [this](size_t, OptionsField::value_t v) {
 		for (uint32_t c = 0; c < 3; c++) {
 			frequency_range[c].min = range_presets[v][c].min;
 			frequency_range[c].max = range_presets[v][c].max;
+			checkboxes[c].set_value(range_presets[v][c].enabled);
 		}
-		checkbox_range1.set_value(range_presets[v][0].enabled);
-		checkbox_range2.set_value(range_presets[v][1].enabled);
-		checkbox_range3.set_value(range_presets[v][2].enabled);
 		
 		update_text(0, 0);
 	};
 	
-	options_preset.set_selected_index(8);
+	options_preset.set_selected_index(9);	// GPS
 
-	button_transmit.on_select = [this, &nav, jammer_ranges](Button&) {
+	button_transmit.on_select = [this, &nav, jammer_channels](Button&) {
 		uint8_t c, i = 0;
-		size_t num_ranges;
+		size_t num_channels;
 		rf::Frequency start_freq, range_bw, range_bw_sub, ch_width;
 		bool out_of_ranges = false;
 		
 		// Disable all ranges by default
 		for (c = 0; c < 9; c++)
-			jammer_ranges[c].enabled = false;
+			jammer_channels[c].enabled = false;
 		
 		// Generate jamming "channels", maximum: 9
 		// Convert ranges min/max to center/bw
-		for (c = 0; c < 3; c++) {
+		for (size_t r = 0; r < 3; r++) {
 			
-			range_bw = abs(frequency_range[c].max - frequency_range[c].min);		// Total bw for range
-			
-			if (range_bw) {
-				// Sort
-				if (frequency_range[c].min < frequency_range[c].max)
-					start_freq = frequency_range[c].min;
-				else
-					start_freq = frequency_range[c].max;
+			if (frequency_range[r].enabled) {
+				range_bw = abs(frequency_range[r].max - frequency_range[r].min);
 				
-				if (range_bw > 500000) {
+				// Sort
+				if (frequency_range[r].min < frequency_range[r].max)
+					start_freq = frequency_range[r].min;
+				else
+					start_freq = frequency_range[r].max;
+				
+				if (range_bw >= JAMMER_CH_WIDTH) {
 					// Example: 600kHz
 					// int(600000 / 500000) = 2
 					// CH-BW = 600000 / 2 = 300000
@@ -220,32 +241,32 @@ JammerView::JammerView(NavigationView& nav) {
 					// BW-A = CH-BW = 300000
 					// Center-B = min + CH-BW + Center-A = 450000
 					// BW-B = CH-BW = 300000
-					num_ranges = 0;
+					num_channels = 0;
 					range_bw_sub = range_bw;
 					do {
-						range_bw_sub -= 500000;
-						num_ranges++;
-					} while (range_bw_sub > 500000);
-					ch_width = range_bw / num_ranges;
-					for (c = 0; c < num_ranges; c++) {
+						range_bw_sub -= JAMMER_CH_WIDTH;
+						num_channels++;
+					} while (range_bw_sub >= JAMMER_CH_WIDTH);
+					ch_width = range_bw / num_channels;
+					for (c = 0; c < num_channels; c++) {
 						if (i >= 9) {
 							out_of_ranges = true;
 							break;
 						}
-						jammer_ranges[i].enabled = true;
-						jammer_ranges[i].width = ch_width;
-						jammer_ranges[i].center = start_freq + (ch_width / 2) + (ch_width * c);
-						jammer_ranges[i].duration = 15360 * options_hop.selected_index_value();
+						jammer_channels[i].enabled = true;
+						jammer_channels[i].width = ch_width;
+						jammer_channels[i].center = start_freq + (ch_width / 2) + (ch_width * c);
+						jammer_channels[i].duration = 15360 * options_hop.selected_index_value();
 						i++;
 					}
 				} else {
 					if (i >= 9) {
 						out_of_ranges = true;
 					} else {
-						jammer_ranges[i].enabled = true;
-						jammer_ranges[i].width = range_bw;
-						jammer_ranges[i].center = start_freq + (range_bw / 2);
-						jammer_ranges[i].duration = 15360 * options_hop.selected_index_value();
+						jammer_channels[i].enabled = true;
+						jammer_channels[i].width = range_bw;
+						jammer_channels[i].center = start_freq + (range_bw / 2);
+						jammer_channels[i].duration = 15360 * options_hop.selected_index_value();
 						i++;
 					}
 				}
@@ -257,7 +278,9 @@ JammerView::JammerView(NavigationView& nav) {
 				jamming = false;
 				button_transmit.set_style(&style_val);
 				button_transmit.set_text("START");
+				transmitter_model.disable();
 				radio::disable();
+				baseband::set_jammer(false);
 			} else {
 				jamming = true;
 				button_transmit.set_style(&style_cancel);
@@ -266,9 +289,10 @@ JammerView::JammerView(NavigationView& nav) {
 				transmitter_model.set_sampling_rate(1536000U);
 				transmitter_model.set_rf_amp(true);
 				transmitter_model.set_baseband_bandwidth(1750000);
+				transmitter_model.set_tx_gain(47);
 				transmitter_model.enable();
-				
-				baseband::set_jammer();
+
+				baseband::set_jammer(true);
 			}
 		} else {
 			nav.display_modal("Error", "Jamming bandwidth too large.");

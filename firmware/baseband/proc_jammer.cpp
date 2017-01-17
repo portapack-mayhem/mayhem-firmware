@@ -34,18 +34,16 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 
 		if (!jammer_duration) {
 			// Find next enabled range
-			for (ir = 0; ir < 9; ir++) {
+			do {
 				current_range++;
 				if (current_range == 9) current_range = 0;
-				if (jammer_ranges[current_range].enabled)
-					break;
-			}
+			} while (!jammer_channels[current_range].enabled);
 			
-			jammer_duration = jammer_ranges[current_range].duration;
-			jammer_bw = jammer_ranges[current_range].width / 6;		// TODO: Exact value
+			jammer_duration = jammer_channels[current_range].duration;
+			jammer_bw = jammer_channels[current_range].width / 5;		// TODO: Exact value
 			
 			// Ask for retune
-			message.freq = jammer_ranges[current_range].center;
+			message.freq = jammer_channels[current_range].center;
 			message.range = current_range;
 			shared_memory.application_queue.push(message);
 		} else {
@@ -64,7 +62,7 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 		}*/
 		
 		// Phase noise
-		if (r >= 70) {
+		if (r >= 10) {
 			aphase += ((aphase>>4) ^ 0x4573) << 14;
 			r = 0;
 		} else {
@@ -84,7 +82,6 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
 
 		buffer.p[i] = {(int8_t)re, (int8_t)im};
-		//buffer.p[i] = {re, im};
 	}
 };
 
@@ -92,11 +89,15 @@ void JammerProcessor::on_message(const Message* const msg) {
 	const auto message = *reinterpret_cast<const JammerConfigureMessage*>(msg);
 	
 	if (message.id == Message::ID::JammerConfigure) {
-		jammer_ranges = (JammerRange*)shared_memory.bb_data.data;
-		jammer_duration = 0;
-		current_range = -1;
-		
-		configured = true;
+		if (message.run) {
+			jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
+			jammer_duration = 0;
+			current_range = 0;
+			
+			configured = true;
+		} else {
+			configured = false;
+		}
 	}
 }
 
