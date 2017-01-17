@@ -57,9 +57,10 @@ public:
 
 	void paint_widget_tree(Widget* const w);
 	
-private:
 	void draw_hline(Point p, int width, const Color c);
 	void draw_vline(Point p, int height, const Color c);
+	
+private:
 	void paint_widget(Widget* const w);
 };
 

@@ -61,20 +61,18 @@ void EncodersView::generate_frame() {
 }
 
 void EncodersView::draw_waveform() {
-	uint32_t n, p = 0, length;
+	uint32_t n, length;
 
 	length = debug_text.length();
 	
 	for (n = 0; n < length; n++) {
 		if (debug_text[n] == '0')
-			waveform_buffer[p] = -128;
+			waveform_buffer[n] = 0;
 		else
-			waveform_buffer[p] = 127;
-		waveform_buffer[p + 1] = waveform_buffer[p];
-		p += 2;
+			waveform_buffer[n] = 1;
 	}
 	
-	waveform.set_length(length * 2);
+	waveform.set_length(length);
 	waveform.set_dirty();
 }
 

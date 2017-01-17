@@ -90,7 +90,7 @@ void JammerView::update_text(uint8_t id, rf::Frequency f) {
 	}
 }
 
-void JammerView::on_retune(const int64_t freq) {
+void JammerView::on_retune(const rf::Frequency freq) {
 	if (freq > 0)
 		transmitter_model.set_tuning_frequency(freq);
 }
@@ -140,13 +140,13 @@ JammerView::JammerView(NavigationView& nav) {
 	});
 	
 	const auto button_freq_fn = [this, &nav](Button& button) {
-		uint16_t id = button.id;
 		rf::Frequency * value_ptr;
 		
-		if (id & 1)
+		if (button.id & 1)
 			value_ptr = &frequency_range[id].max;
 		else
 			value_ptr = &frequency_range[id].min;
+		
 		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
 		new_view->on_changed = [this, value_ptr](rf::Frequency f) {
 			*value_ptr = f;
@@ -172,10 +172,8 @@ JammerView::JammerView(NavigationView& nav) {
 	text_info2.set_style(&style_info);
 	text_info3.set_style(&style_info);
 	
-	options_preset.on_change = [this](size_t n, OptionsField::value_t v) {
-		(void)n;
-		
-		for (uint8_t c = 0; c < 3; c++) {
+	options_preset.on_change = [this](size_t, OptionsField::value_t v) {
+		for (uint32_t c = 0; c < 3; c++) {
 			frequency_range[c].min = range_presets[v][c].min;
 			frequency_range[c].max = range_presets[v][c].max;
 		}
@@ -186,7 +184,7 @@ JammerView::JammerView(NavigationView& nav) {
 		update_text(0, 0);
 	};
 	
-	options_preset.set_selected_index(8);		// Sigfox, because they deserve it
+	options_preset.set_selected_index(8);
 
 	button_transmit.on_select = [this, &nav, jammer_ranges](Button&) {
 		uint8_t c, i = 0;
@@ -261,7 +259,7 @@ JammerView::JammerView(NavigationView& nav) {
 					transmitter_model.enable();
 				}
 			} else {
-				nav.display_modal("Error", "Jamming bandwidth too high.");
+				nav.display_modal("Error", "Jamming bandwidth too large.");
 			}
 		}
 	};

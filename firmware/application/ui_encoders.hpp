@@ -187,6 +187,7 @@ private:
 		waveform_buffer,
 		0,
 		0,
+		true,
 		Color::yellow()
 	};
 	

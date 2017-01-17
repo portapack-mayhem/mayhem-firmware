@@ -267,7 +267,7 @@ private:
 	};
 
 	OptionsField options_bloff {
-		{ 10 * 8, 6 * 16 + 4 },
+		{ 52, 6 * 16 + 8 },
 		10,
 		{
 			{ "5 seconds", 0 },

@@ -1328,14 +1328,15 @@ Waveform::Waveform(
 	int8_t * data,
 	uint32_t length,
 	uint32_t offset,
+	bool digital,
 	Color color
 ) : Widget { parent_rect },
 	data_ { data },
 	length_ { length },
 	offset_ { offset },
+	digital_ { digital },
 	color_ { color }
 {
-	data_ += offset_;
 	//set_focusable(false);
 }
 
@@ -1359,6 +1360,7 @@ void Waveform::paint(Painter& painter) {
 	Coord prev_x = screen_rect().location().x(), prev_y;
 	float x, x_inc;
 	Dim h = screen_rect().size().height();
+	int8_t * data_start = data_ + offset_;
 	
 	// Clear
 	painter.fill_rectangle(screen_rect(), Color::black());
@@ -1369,17 +1371,37 @@ void Waveform::paint(Painter& painter) {
 	
 	if (!point_count) return;
 	
-	x = prev_x + x_inc;
-	h = h / 2;
 	
-	prev_y = y_offset + h - (*(data_) * y_scale);
-	for (n = 1; n < point_count; n++) {
-		y = y_offset + h - (*(data_ + n) * y_scale);
-		display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, color_);
-		
-		prev_x = x;
-		prev_y = y;
-		x += x_inc;
+	if (digital_) {
+		// Digital waveform: each value is an horizontal line
+		x = 0;
+		h--;
+		for (n = 0; n < point_count; n++) {
+			y = *(data_start++) ? h : 0;
+			
+			if (n) {
+				if (y != prev_y)
+					painter.draw_vline( {x, y_offset}, h, color_);
+			}
+			
+			painter.draw_hline( {x, y_offset + y}, ceil(x_inc), color_);
+			
+			prev_y = y;
+			x += x_inc;
+		}
+	} else {
+		// Analog waveform: each value is a point's Y coordinate
+		x = prev_x + x_inc;
+		h = h / 2;
+		prev_y = y_offset + h - (*(data_start++) * y_scale);
+		for (n = 1; n < point_count; n++) {
+			y = y_offset + h - (*(data_start++) * y_scale);
+			display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, color_);
+			
+			prev_x = x;
+			prev_y = y;
+			x += x_inc;
+		}
 	}
 }
 

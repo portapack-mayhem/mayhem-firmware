@@ -507,7 +507,7 @@ private:
 class Waveform : public Widget {
 public:
 
-	Waveform(Rect parent_rect, int8_t * data, uint32_t length, uint32_t offset, Color color);
+	Waveform(Rect parent_rect, int8_t * data, uint32_t length, uint32_t offset, bool digital, Color color);
 
 	Waveform(const Waveform&) = delete;
 	Waveform(Waveform&&) = delete;
@@ -523,6 +523,7 @@ private:
 	int8_t * data_;
 	uint32_t length_;
 	uint32_t offset_;
+	bool digital_ { false };
 	Color color_;
 };
 

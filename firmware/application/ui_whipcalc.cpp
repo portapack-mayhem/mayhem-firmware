@@ -54,7 +54,7 @@ void WhipCalcView::update_result() {
 	length /= 0.14;
 	if (int(length) <= 4) {
 		auto elements = to_string_dec_int((int)length, 1);
-		text_result_ant500.set(elements + " " + frac_str[((int(length * 10.0) % 10) + 1) / 3] + "elements");
+		text_result_ant500.set(elements + " " + frac_str[((int(length * 10.0) % 10) + 1) / 3] + "ANT500 elements");
 	} else {
 		text_result_ant500.set("-");
 	}
@@ -106,6 +106,8 @@ WhipCalcView::WhipCalcView(
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};
+	
+	update_result();
 }
 
 }

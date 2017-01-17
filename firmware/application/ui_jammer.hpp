@@ -49,11 +49,11 @@ private:
 	freq_range_t frequency_range[3];
 	
 	void update_text(uint8_t id, rf::Frequency f);
-	void on_retune(const int64_t freq);
+	void on_retune(const rf::Frequency freq);
 		
 	// TODO: TDD UMTS, voir doc Arcep
-	// TODO: Wifi, BT: 2 400 et 2 483,5 MHz
-	const freq_range_t range_presets[10][3] = {
+	// TODO: BT: 2 400 et 2 483,5 MHz
+	const freq_range_t range_presets[23][3] = {
 		// Orange
 		{{ true, 935000000, 945000000 },	// GSM 900
 		{ true, 1808000000, 1832000000 },	// GSM 1800
@@ -94,7 +94,7 @@ private:
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
 		
-		// Sigfox
+		// ISM 868
 		{{ true, 868000000, 868200000 },	// Center: 868.2MHz BW: 40kHz
 		{ false, 0, 0 },
 		{ false, 0, 0 }},
@@ -102,7 +102,60 @@ private:
 		// GPS L1 & L2
 		{{ true, 1575420000 - 50000, 1575420000 + 50000},	// BW: 100kHz
 		{ true, 1227600000 - 50000, 1227600000 + 50000 },	// BW: 100kHz
-		{ false, 0, 0 }}
+		{ false, 0, 0 }},
+		
+		// WLAN 2.4G CH1
+		{{ true, 2412000000 - 11000000, 2412000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH2
+		{{ true, 2417000000 - 11000000, 2417000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH3
+		{{ true, 2422000000 - 11000000, 2422000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH4
+		{{ true, 2427000000 - 11000000, 2427000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH5
+		{{ true, 2432000000 - 11000000, 2432000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH6
+		{{ true, 2437000000 - 11000000, 2437000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH7
+		{{ true, 2442000000 - 11000000, 2442000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH8
+		{{ true, 2447000000 - 11000000, 2447000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH9
+		{{ true, 2452000000 - 11000000, 2452000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH10
+		{{ true, 2457000000 - 11000000, 2457000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH11
+		{{ true, 2462000000 - 11000000, 2462000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH12
+		{{ true, 2467000000 - 11000000, 2467000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
+		// WLAN 2.4G CH13
+		{{ true, 2472000000 - 11000000, 2472000000 + 11000000},	// BW: 22MHz
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
 
 	};
 	
@@ -166,18 +219,31 @@ private:
 	};
 	OptionsField options_preset {
 		{ 10 * 8, 3 * 16 },
-		8,
+		16,
 		{
-			{ "Orange  ", 0 },
-			{ "SFR     ", 1 },
-			{ "Bouygues", 2 },
-			{ "Free    ", 3 },
-			{ "GSM-R   ", 4 },
-			{ "DECT    ", 5 },
-			{ "Optifib ", 6 },
-			{ "ISM 433 ", 7 },
-			{ "Sigfox  ", 8 },
-			{ "GPS     ", 9 }
+			{ "GSM Orange FR  ", 0 },
+			{ "GSM SFR FR     ", 1 },
+			{ "GSM Bouygues FR", 2 },
+			{ "GSM Free FR    ", 3 },
+			{ "GSM-R FR       ", 4 },
+			{ "DECT           ", 5 },
+			{ "Optifib        ", 6 },
+			{ "ISM 433        ", 7 },
+			{ "ISM 868        ", 8 },
+			{ "GPS            ", 9 },
+			{ "WLAN 2.4G CH1  ", 10 },
+			{ "WLAN 2.4G CH2  ", 11 },
+			{ "WLAN 2.4G CH3  ", 12 },
+			{ "WLAN 2.4G CH4  ", 13 },
+			{ "WLAN 2.4G CH5  ", 14 },
+			{ "WLAN 2.4G CH6  ", 15 },
+			{ "WLAN 2.4G CH7  ", 16 },
+			{ "WLAN 2.4G CH8  ", 17 },
+			{ "WLAN 2.4G CH9  ", 18 },
+			{ "WLAN 2.4G CH10 ", 19 },
+			{ "WLAN 2.4G CH11 ", 20 },
+			{ "WLAN 2.4G CH12 ", 21 },
+			{ "WLAN 2.4G CH13 ", 22 }
 		}
 	};
 	
