@@ -2752,7 +2752,7 @@
   (gr_text "File\n\n.GTP\n.GTO\n.GTS\n.GTL\n\n.G1\n\n.G2\n\n.GBL\n.GBS\n.GBO\n.GBP\n.GKO\n" (at 20 40) (layer Dwgs.User)
     (effects (font (size 1.5 1.5) (thickness 0.1)) (justify left))
   )
-  (gr_text 20150901 (at 75 164 180) (layer F.SilkS)
+  (gr_text ???????? (at 75 164 180) (layer F.SilkS)
     (effects (font (size 1.524 0.762) (thickness 0.1524)))
   )
   (gr_text 4 (at 76.5 139 90) (layer 4_bot)

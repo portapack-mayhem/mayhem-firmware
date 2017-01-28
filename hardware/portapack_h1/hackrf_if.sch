@@ -25,8 +25,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 4 4
 Title "PortaPack H1"
-Date "21 Aug 2015"
-Rev "20150821"
+Date "?? ??? ????"
+Rev "????????"
 Comp "ShareBrained Technology, Inc."
 Comment1 "Copyright © 2014, 2015 Jared Boone"
 Comment2 "License: GNU General Public License, version 2"
