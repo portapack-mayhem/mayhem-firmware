@@ -395,26 +395,6 @@ Text Label 9450 2400 0    60   ~ 0
 LCD_DB14
 Text Label 9450 2500 0    60   ~ 0
 LCD_DB15
-Text Label 5100 6200 0    60   ~ 0
-MCU_D0
-Text Label 5100 6300 0    60   ~ 0
-MCU_D1
-Text Label 5100 6100 0    60   ~ 0
-MCU_D2
-Text Label 5100 6000 0    60   ~ 0
-MCU_D3
-Text Label 3300 6200 0    60   ~ 0
-MCU_D4
-Text Label 3300 6300 0    60   ~ 0
-MCU_D5
-Text Label 3300 6100 0    60   ~ 0
-MCU_D6
-Text Label 3300 6000 0    60   ~ 0
-MCU_D7
-Text Label 6900 6200 0    60   ~ 0
-MCU_LCD_WR
-Text Label 6900 6300 0    60   ~ 0
-MCU_DIR
 Text Label 5500 3600 0    60   ~ 0
 PP_CPLD_TMS
 $Comp
@@ -475,13 +455,13 @@ $EndComp
 Text Label 8200 5400 1    60   ~ 0
 RESET#
 Text Label 8300 5400 1    60   ~ 0
-MCU_LCD_RD_R
+MCU_LCD_RD
 Text Label 5500 3700 0    60   ~ 0
 H1_CPLD_TDI
 Text Label 9700 3800 0    60   ~ 0
-MCU_ADDR_R
+MCU_ADDR
 Text Label 8500 5400 1    60   ~ 0
-MCU_IO_STBX_R
+MCU_IO_STBX
 $Comp
 L +1.8V #PWR066
 U 1 1 53A8D16D
@@ -505,31 +485,9 @@ F 3 "" H 7700 950 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5000 6300 5500 6300
-Wire Wire Line
-	5000 6200 5500 6200
-Wire Wire Line
-	5000 6100 5500 6100
-Wire Wire Line
-	5000 6000 5500 6000
-Wire Wire Line
 	7000 4650 7000 5500
 Wire Wire Line
-	3200 6300 3700 6300
-Wire Wire Line
-	3200 6200 3700 6200
-Wire Wire Line
-	3200 6100 3700 6100
-Wire Wire Line
-	3200 6000 3700 6000
-Wire Wire Line
 	5400 3100 6150 3100
-Wire Wire Line
-	6800 6100 7500 6100
-Wire Wire Line
-	6800 6300 7500 6300
-Wire Wire Line
-	6800 6000 7500 6000
 Wire Wire Line
 	5400 3600 6150 3600
 Wire Wire Line
@@ -1152,97 +1110,27 @@ Wire Wire Line
 Text Label 3900 2600 0    60   ~ 0
 MCU_LCD_TE
 Text Label 8400 5400 1    60   ~ 0
-MCU_LCD_TE_R
-Wire Wire Line
-	8800 6000 7900 6000
-Wire Wire Line
-	8800 6100 7900 6100
-Wire Wire Line
-	8800 6300 7900 6300
-Text Label 8000 6300 0    60   ~ 0
-MCU_DIR_R
-Text Label 8000 6200 0    60   ~ 0
-MCU_LCD_WR_R
-Text Label 9650 2900 0    60   ~ 0
-MCU_DIR_R
-Text Label 9650 3100 0    60   ~ 0
-MCU_LCD_WR_R
-Wire Wire Line
-	9000 6000 9700 6000
-Wire Wire Line
-	9000 6200 9700 6200
-Wire Wire Line
-	9000 6400 9700 6400
-Wire Wire Line
-	11100 6000 10200 6000
-Wire Wire Line
-	11100 6200 10200 6200
-Wire Wire Line
-	11100 6400 10200 6400
-Text Label 9100 6000 0    60   ~ 0
-MCU_LCD_RD
-Text Label 9100 6200 0    60   ~ 0
 MCU_LCD_TE
-Text Label 6900 6000 0    60   ~ 0
-MCU_ADDR
-Text Label 9100 6400 0    60   ~ 0
-MCU_IO_STBX
-Text Label 10300 6000 0    60   ~ 0
-MCU_LCD_RD_R
-Text Label 10300 6200 0    60   ~ 0
-MCU_LCD_TE_R
-Text Label 8000 6000 0    60   ~ 0
-MCU_ADDR_R
-Text Label 10300 6400 0    60   ~ 0
-MCU_IO_STBX_R
+Text Label 9650 2900 0    60   ~ 0
+MCU_DIR
+Text Label 9650 3100 0    60   ~ 0
+MCU_LCD_WR
 Text Label 7100 5400 1    60   ~ 0
-MCU_D7_R
+MCU_D7
 Text Label 7200 5400 1    60   ~ 0
-MCU_D6_R
+MCU_D6
 Text Label 7300 5400 1    60   ~ 0
-MCU_D4_R
+MCU_D4
 Text Label 7400 5400 1    60   ~ 0
-MCU_D5_R
+MCU_D5
 Text Label 7500 5400 1    60   ~ 0
-MCU_D3_R
+MCU_D3
 Text Label 7700 5400 1    60   ~ 0
-MCU_D2_R
+MCU_D2
 Text Label 7900 5400 1    60   ~ 0
-MCU_D0_R
+MCU_D0
 Text Label 8000 5400 1    60   ~ 0
-MCU_D1_R
-Wire Wire Line
-	4800 6000 4100 6000
-Wire Wire Line
-	4800 6100 4100 6100
-Wire Wire Line
-	4800 6200 4100 6200
-Wire Wire Line
-	4800 6300 4100 6300
-Wire Wire Line
-	6600 6000 5900 6000
-Wire Wire Line
-	6600 6100 5900 6100
-Wire Wire Line
-	6600 6200 5900 6200
-Wire Wire Line
-	6600 6300 5900 6300
-Text Label 4200 6000 0    60   ~ 0
-MCU_D7_R
-Text Label 4200 6100 0    60   ~ 0
-MCU_D6_R
-Text Label 4200 6200 0    60   ~ 0
-MCU_D4_R
-Text Label 4200 6300 0    60   ~ 0
-MCU_D5_R
-Text Label 6000 6000 0    60   ~ 0
-MCU_D3_R
-Text Label 6000 6100 0    60   ~ 0
-MCU_D2_R
-Text Label 6000 6200 0    60   ~ 0
-MCU_D0_R
-Text Label 6000 6300 0    60   ~ 0
-MCU_D1_R
+MCU_D1
 $Comp
 L R R22
 U 1 1 53A915E9
@@ -1379,94 +1267,8 @@ Text HLabel 4400 4400 2    60   BiDi ~ 0
 SD_DAT1
 Text HLabel 1200 5300 0    60   Input ~ 0
 I2S0_RX_SDA
-$Comp
-L RPACK4 RP4
-U 1 1 53AB047A
-P 7700 6150
-F 0 "RP4" H 7700 6400 60  0000 C CNN
-F 1 "220R" H 7700 5900 60  0000 C CNN
-F 2 "ipc_resc:IPC_RESCAXS80P160X320X60-8N" H 7700 6150 60  0001 C CNN
-F 3 "" H 7700 6150 60  0000 C CNN
-F 4 "Panasonic" H 7700 6150 60  0001 C CNN "Mfr"
-F 5 "EXB-38V221JV" H 7700 6150 60  0001 C CNN "Part"
-	1    7700 6150
-	1    0    0    -1  
-$EndComp
-$Comp
-L RPACK4 RP6
-U 1 1 53AB04B9
-P 3900 6150
-F 0 "RP6" H 3900 6400 60  0000 C CNN
-F 1 "220R" H 3900 5900 60  0000 C CNN
-F 2 "ipc_resc:IPC_RESCAXS80P160X320X60-8N" H 3900 6150 60  0001 C CNN
-F 3 "" H 3900 6150 60  0000 C CNN
-F 4 "Panasonic" H 3900 6150 60  0001 C CNN "Mfr"
-F 5 "EXB-38V221JV" H 3900 6150 60  0001 C CNN "Part"
-	1    3900 6150
-	1    0    0    -1  
-$EndComp
-$Comp
-L RPACK4 RP7
-U 1 1 53AB04D6
-P 5700 6150
-F 0 "RP7" H 5700 6400 60  0000 C CNN
-F 1 "220R" H 5700 5900 60  0000 C CNN
-F 2 "ipc_resc:IPC_RESCAXS80P160X320X60-8N" H 5700 6150 60  0001 C CNN
-F 3 "" H 5700 6150 60  0000 C CNN
-F 4 "Panasonic" H 5700 6150 60  0001 C CNN "Mfr"
-F 5 "EXB-38V221JV" H 5700 6150 60  0001 C CNN "Part"
-	1    5700 6150
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8800 6200 7900 6200
-Wire Wire Line
-	6800 6200 7500 6200
-Text Label 6900 6100 0    60   ~ 0
-P2_8
-Text Label 8000 6100 0    60   ~ 0
-P2_8_R
-$Comp
-L R R1
-U 1 1 53AB79CA
-P 9950 6000
-F 0 "R1" V 10030 6000 50  0000 C CNN
-F 1 "220R" V 9950 6000 50  0000 C CNN
-F 2 "ipc_resc:IPC_RESC1608X55N" H 9950 6000 60  0001 C CNN
-F 3 "" H 9950 6000 60  0000 C CNN
-F 4 "Yageo" V 9950 6000 60  0001 C CNN "Mfr"
-F 5 "RC0603FR-07220RL" V 9950 6000 60  0001 C CNN "Part"
-	1    9950 6000
-	0    1    -1   0   
-$EndComp
-$Comp
-L R R2
-U 1 1 53AB79D5
-P 9950 6200
-F 0 "R2" V 10030 6200 50  0000 C CNN
-F 1 "220R" V 9950 6200 50  0000 C CNN
-F 2 "ipc_resc:IPC_RESC1608X55N" H 9950 6200 60  0001 C CNN
-F 3 "" H 9950 6200 60  0000 C CNN
-F 4 "Yageo" V 9950 6200 60  0001 C CNN "Mfr"
-F 5 "RC0603FR-07220RL" V 9950 6200 60  0001 C CNN "Part"
-	1    9950 6200
-	0    1    -1   0   
-$EndComp
-$Comp
-L R R3
-U 1 1 53AB79EA
-P 9950 6400
-F 0 "R3" V 10030 6400 50  0000 C CNN
-F 1 "220R" V 9950 6400 50  0000 C CNN
-F 2 "ipc_resc:IPC_RESC1608X55N" H 9950 6400 60  0001 C CNN
-F 3 "" H 9950 6400 60  0000 C CNN
-F 4 "Yageo" V 9950 6400 60  0001 C CNN "Mfr"
-F 5 "RC0603FR-07220RL" V 9950 6400 60  0001 C CNN "Part"
-	1    9950 6400
-	0    1    -1   0   
-$EndComp
 Text Label 9700 3700 0    60   ~ 0
-P2_8_R
+P2_8
 Wire Bus Line
 	10050 700  10050 2400
 Wire Wire Line
