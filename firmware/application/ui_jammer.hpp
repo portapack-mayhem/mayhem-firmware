@@ -39,45 +39,43 @@ public:
 	std::string title() const override { return "Jammer"; };
 
 private:
-	// range_t from utility.hpp is const only
-	typedef struct freq_range {
+	typedef struct jammer_range {
 		bool enabled;
 		rf::Frequency min;
 		rf::Frequency max;
-	} freq_range_t;
+	} jammer_range_t;
 
-	freq_range_t frequency_range[3];
+	jammer_range_t frequency_range[3];
 	
-	void update_text(uint8_t id, rf::Frequency f);
+	void update_range(const uint32_t n);
+	void update_button(const uint32_t n);
 	void on_retune(const rf::Frequency freq, const uint32_t range);
-		
-	// TODO: TDD UMTS, voir doc Arcep
-	// TODO: BT: 2 400 et 2 483,5 MHz
-	const freq_range_t range_presets[23][3] = {
+	
+	const jammer_range_t range_presets[23][3] = {
 		// Orange
-		{{ true, 935000000, 945000000 },	// GSM 900
-		{ true, 1808000000, 1832000000 },	// GSM 1800
-		{ true, 2154900000, 2169700000 }},	// UMTS
+		{{ true, 935000000, 945000000 },	// GSM 900		BW:10M
+		{ false, 1808000000, 1832000000 },	// GSM 1800		BW:24M
+		{ false, 0, 0 }},
 		
 		// SFR
-		{{ true, 950000000, 960000000 },	// GSM 900
-		{ true, 1832000000, 1853000000 },	// GSM 1800
-		{ true, 2110500000, 2125300000 }},	// UMTS
+		{{ true, 950000000, 960000000 },	// GSM 900		BW:10M
+		{ false, 1832000000, 1853000000 },	// GSM 1800		BW:21M
+		{ false, 0, 0 }},
 		
 		// Bouygues
-		{{ true, 925000000, 935000000 },	// GSM 900
-		{ true, 1858000000, 1880000000 },	// GSM 1800
-		{ true, 2125300000, 2140100000 }},	// UMTS
+		{{ true, 925000000, 935000000 },	// GSM 900		BW:10M
+		{ false, 1858000000, 1880000000 },	// GSM 1800		BW:22M
+		{ false, 0, 0 }},
 		
 		// Free
-		{{ true, 945000000, 950000000 },	// GSM 900
-		{ false, 0, 0 },					// GSM 1800 ?
-		{ true, 2144900000, 2149900000 }},	// UMTS
+		{{ true, 945000000, 950000000 },	// GSM 900		BW:5M
+		{ false, 0, 0 },
+		{ true, 0, 0 }},
 		
 		// GSM-R
-		{{ true, 921000000, 925000000 },	// GSM 900
-		{ false, 0, 0 },					// GSM 1800
-		{ false, 0, 0 }},					// UMTS
+		{{ true, 921000000, 925000000 },	// GSM 900		BW:4M
+		{ false, 0, 0 },
+		{ false, 0, 0 }},
 		
 		// DECT
 		{{ true, 1880000000, 1900000000 },	// BW: 20MHz
@@ -160,71 +158,52 @@ private:
 	};
 	
 	bool jamming = false;
-	rf::Frequency f;
 	
 	Text text_type {
-		{ 1 * 8, 1 * 16, 40, 16 },
+		{ 3 * 8, 4, 5 * 8, 16 },
 		"Type:"
 	};
-	OptionsField options_modulation {
-		{ 7 * 8, 1 * 16 },
-		4,
+	OptionsField options_type {
+		{ 9 * 8, 4 },
+		5,
 		{
 			{ "Ramp ", 0 },
-			{ "FM   ", 1 },
-			{ "Phase", 2 },
-			{ "Tones", 3 }
+			{ "Noise", 1 },
+			{ "Tones", 2 }
 		}
 	};
 	
 	Text text_range_number {
-		{ 14 * 8, 1 * 16, 2 * 8, 16 },
-		"--"
+		{ 18 * 8, 4, 1 * 8, 16 },
+		"-"
+	};
+	Text text_range_total {
+		{ 19 * 8, 4, 2 * 8, 16 },
+		"/-"
 	};
 	
-	Text text_sweep {
-		{ 1 * 8, 2 * 16, 6 * 8, 16 },
-		"Sweep:"
+	Text text_speed {
+		{ 2 * 8, 20, 6 * 8, 16 },
+		"Speed:"
 	};
-	OptionsField options_sweep {
-		{ 8 * 8, 2 * 16 },
-		8,
+	OptionsField options_speed {
+		{ 9 * 8, 20 },
+		6,
 		{
-			{ "  1Hz", 0 },
-			{ " 10Hz", 1 },
-			{ "100Hz", 2 },
-			{ " 1kHz", 3 },
-			{ " 5kHz", 4 },
-			{ "10kHz", 5 },
-			{ "20kHz", 6 },
-			{ "50kHz", 7 }
-		}
-	};
-	
-	Text text_hop {
-		{ 1 * 8, 4 * 16, 10 * 8, 16 },
-		"Range hop:"
-	};
-	OptionsField options_hop {
-		{ 12 * 8, 4 * 16 },
-		5,
-		{
-			{ " 10ms", 1 },
-			{ " 50ms", 5 },
-			{ "100ms", 10 },
-			{ "   1s", 100 },
-			{ "   2s", 200 },
-			{ "   5s", 500 },
-			{ "  10s", 1000 }
+			{ "10Hz  ", 0 },
+			{ "100Hz ", 1 },
+			{ "1kHz  ", 2 },
+			{ "10kHz ", 3 },
+			{ "100kHz", 4 }
 		}
 	};
 	
 	Text text_preset {
-		{ 1 * 8, 3 * 16, 8 * 8, 16 },
-		"Presets:"
+		{ 1 * 8, 36, 7 * 8, 16 },
+		"Preset:"
 	};
 	OptionsField options_preset {
-		{ 10 * 8, 3 * 16 },
+		{ 9 * 8, 36 },
 		16,
 		{
 			{ "GSM Orange FR  ", 0 },
@@ -252,18 +231,36 @@ private:
 			{ "WLAN 2.4G CH13 ", 22 }
 		}
 	};
+	
+	Text text_hop {
+		{ 5 * 8, 52, 10 * 8, 16 },
+		"Hop:"
+	};
+	OptionsField options_hop {
+		{ 9 * 8, 52 },
+		5,
+		{
+			{ "10ms ", 1 },
+			{ "50ms ", 5 },
+			{ "100ms", 10 },
+			{ "1s   ", 100 },
+			{ "2s   ", 200 },
+			{ "5s   ", 500 },
+			{ "10s  ", 1000 }
+		}
+	};
 
 	std::array<Checkbox, 3> checkboxes { };
 	std::array<Button, 6> buttons_freq { };
 	std::array<Text, 3> texts_info { };
 	
 	Button button_transmit {
-		{ 2 * 8, 16 * 16, 64, 32 },
+		{ 1 * 8, 16 * 16, 80, 48 },
 		"START"
 	};
 	
 	Button button_exit {
-		{ 21 * 8, 16 * 16, 64, 32 },
+		{ 19 * 8, 16 * 16, 80, 48 },
 		"Exit"
 	};
 	
