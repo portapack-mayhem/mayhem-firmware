@@ -36,9 +36,7 @@
 
 class AudioOutput {
 public:
-	void configure(
-		const bool do_proc
-	);
+	void configure(const bool do_proc);
 	
 	void configure(
 		const iir_biquad_config_t& hpf_config,

@@ -37,27 +37,27 @@ private:
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	uint32_t afsk_samples_per_bit;
-	uint32_t afsk_phase_inc_mark;
-	uint32_t afsk_phase_inc_space;
-	uint8_t afsk_repeat;
-	uint32_t afsk_bw;
-	uint8_t afsk_format;
+	uint32_t afsk_samples_per_bit { 0 };
+	uint32_t afsk_phase_inc_mark { 0 };
+	uint32_t afsk_phase_inc_space { 0 };
+	uint8_t afsk_repeat { 0 };
+	uint32_t afsk_bw { 0 };
+	uint8_t afsk_format { 0 };
 	
-	uint8_t repeat_counter = 0;
-	int8_t re, im;
-	uint8_t s = 0;
-    uint8_t bit_pos = 0;
-    uint16_t byte_pos = 0;
-    char cur_byte = 0;
-    char ext_byte = 0;
-    uint16_t gbyte;
-    uint8_t cur_bit = 0;
-    uint32_t sample_count;
-	uint32_t tone_phase, phase, sphase;
-	int32_t tone_sample, sig, frq;
+	uint8_t repeat_counter { 0 };
+	int8_t re { 0 }, im { 0 };
+	uint8_t s { 0 };
+    uint8_t bit_pos { 0 };
+    uint16_t byte_pos { 0 };
+    char cur_byte { 0 };
+    char ext_byte { 0 };
+    uint16_t gbyte { 0 };
+    uint8_t cur_bit { 0 };
+    uint32_t sample_count { 0 };
+	uint32_t tone_phase { 0 }, phase { 0 }, sphase { 0 };
+	int32_t tone_sample { 0 }, sig { 0 }, frq { 0 };
 	
-	TXDoneMessage message;
+	TXDoneMessage message { };
 };
 
 #endif

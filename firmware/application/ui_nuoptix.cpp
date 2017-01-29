@@ -137,7 +137,7 @@ void NuoptixView::transmit(bool setup) {
 	shared_memory.bb_data.tones_data.silence = NUOPTIX_TONE_LENGTH;		// 49ms tone, 49ms space
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(number_bw.value() * 500, 0, 6 * 2, true, true);	
+	baseband::set_tones_data(number_bw.value(), 0, 6 * 2, true, true);	
 	
 	timecode++;
 }

@@ -82,11 +82,11 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 				tone_sample = 0;
 			} else {
 				if (!dual_tone) {
-					tone_sample = (sine_table_i8[(tone_a_phase & 0x03FC0000) >> 18]);
+					tone_sample = (sine_table_i8[(tone_a_phase & 0x03FC0000U) >> 18]);
 					tone_a_phase += tone_a_delta;
 				} else {
-					tone_sample = sine_table_i8[(tone_a_phase & 0x03FC0000) >> 18] >> 1;
-					tone_sample += sine_table_i8[(tone_b_phase & 0x03FC0000) >> 18] >> 1;
+					tone_sample = sine_table_i8[(tone_a_phase & 0x03FC0000U) >> 18] >> 1;
+					tone_sample += sine_table_i8[(tone_b_phase & 0x03FC0000U) >> 18] >> 1;
 					
 					tone_a_phase += tone_a_delta;
 					tone_b_phase += tone_b_delta;
@@ -97,23 +97,23 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 			delta = tone_sample * fm_delta;
 			
 			phase += delta;
-			sphase = phase + (64 << 18);
+			sphase = phase + (64 << 24);
 
-			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+			re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+			im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
 		}
 		
 		// Headphone output sample generation: 1536000/24000 = 64
 		if (audio_out) {
 			if (!as) {
-				as = 64;	// 63 ?
+				as = 64;
 				audio_buffer.p[ai++] = tone_sample * 128;
 			} else {
 				as--;
 			}
 		}
 		
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		buffer.p[i] = {re, im};
 	}
 	
 	if (audio_out) audio_output.write(audio_buffer);
@@ -128,7 +128,7 @@ void TonesProcessor::on_message(const Message* const p) {
 			tone_durations[c] = shared_memory.bb_data.tones_data.tone_defs[c].duration;
 		}
 		message_length = message.tone_count;
-		fm_delta = message.fm_delta;
+		fm_delta = message.fm_delta * 32768;
 		audio_out = message.audio_out;
 		dual_tone = message.dual_tone;
 		

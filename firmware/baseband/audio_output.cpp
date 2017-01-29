@@ -93,7 +93,7 @@ void AudioOutput::on_block(
 		}
 	} else
 		audio_present = true;
-	
+
 	fill_audio_buffer(audio, audio_present);
 }
 

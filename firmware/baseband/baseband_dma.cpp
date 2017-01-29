@@ -115,9 +115,16 @@ static void dma_error() {
 
 void init() {
 	gpdma_channel_sgpio.set_handlers(transfer_complete, dma_error);
-
-	// LPC_GPDMA->SYNC |= (1 << gpdma_src_peripheral);
-	// LPC_GPDMA->SYNC |= (1 << gpdma_dest_peripheral);
+#if defined(PORTAPACK_BASEBAND_DMA_NO_SYNC)
+	/* Disable synchronization logic to improve(?) DMA response time.
+	 * SGPIO (peripheral) must be on same clock as GPDMA peripheral.
+	 * SGPIO runs from BASE_PERIPH_CLK, which is set to PLL1 in normal
+	 * operation, same as the M4 and M0 cores. Memory, of course, is
+	 * running from the same clock as the cores.
+	 */
+	LPC_GPDMA->SYNC |= (1 << gpdma_src_peripheral);
+	LPC_GPDMA->SYNC |= (1 << gpdma_dest_peripheral);
+#endif
 }
 
 void configure(
@@ -149,7 +156,7 @@ void disable() {
 	gpdma_channel_sgpio.disable();
 }
 
-/*baseband::buffer_t wait_for_buffer() {
+baseband::buffer_t wait_for_buffer() {
 	const auto next_index = thread_wait.sleep();
 	
 	if( next_index >= 0 ) {
@@ -158,28 +165,6 @@ void disable() {
 		const auto dst = lli_loop[free_index].destaddr;
 		const auto p = (src == reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0])) ? dst : src;
 		return { reinterpret_cast<sample_t*>(p), transfer_samples };
-	} else {
-		return { };
-	}
-}*/
-
-baseband::buffer_t wait_for_rx_buffer() {
-	const auto next_index = thread_wait.sleep();
-	
-	if( next_index >= 0 ) {
-		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
-		return { reinterpret_cast<sample_t*>(lli_loop[free_index].destaddr), transfer_samples };
-	} else {
-		return { };
-	}
-}
-
-baseband::buffer_t wait_for_tx_buffer() {
-	const auto next_index = thread_wait.sleep();
-	
-	if( next_index >= 0 ) {
-		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
-		return { reinterpret_cast<sample_t*>(lli_loop[free_index].srcaddr), transfer_samples };
 	} else {
 		return { };
 	}

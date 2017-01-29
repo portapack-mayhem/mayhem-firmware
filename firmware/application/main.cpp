@@ -23,8 +23,11 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: Distorted audio in WFM receiver
 //BUG: (fixed ?) Bad console scroll init
 //BUG: POCSAG misses alphanum messages, cuts them off sometimes
+//BUG: Check AFSK transmit end, skips last bits ?
+//BUG: RDS doesn't stop baseband when stopping tx ?
 
 //TEST: Imperial in whipcalc
 //TEST: Numbers
@@ -36,10 +39,6 @@
 //TODO: Finish EPAR tx
 //TODO: IQ replay
 //TODO: Wav visualizer
-
-//BUG: POCSAG RX sometimes misses the first codeword after SYNC
-//BUG: Check AFSK transmit end, skips last bits ?
-//BUG: RDS doesn't stop baseband when stopping tx ?
 
 //TODO: File browser ?
 //TODO: Mousejack ?

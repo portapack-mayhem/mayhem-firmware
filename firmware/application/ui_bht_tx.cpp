@@ -64,7 +64,7 @@ void BHTView::start_tx() {
 	generate_message();
 	
 	transmitter_model.set_tuning_frequency(bht_freqs[options_freq.selected_index()]);
-	transmitter_model.set_sampling_rate(1536000U);
+	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
 	transmitter_model.set_vga(40);
@@ -78,7 +78,7 @@ void BHTView::start_tx() {
 	}
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(field_bw.value() * 20, CCIR_SILENCE, 20, false, checkbox_speaker.value());
+	baseband::set_tones_data(field_bw.value(), CCIR_SILENCE, 20, false, checkbox_speaker.value());
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {

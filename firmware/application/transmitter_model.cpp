@@ -112,8 +112,10 @@ void TransmitterModel::enable() {
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
 	};
-	if (portapack::persistent_memory::stealth_mode())
-		EventDispatcher::set_display_sleep(true);
+	if (portapack::persistent_memory::stealth_mode()) {
+		DisplaySleepMessage message;
+		EventDispatcher::send_message(message);
+	}
 }
 
 void TransmitterModel::disable() {

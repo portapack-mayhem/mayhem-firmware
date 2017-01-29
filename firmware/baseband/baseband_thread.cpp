@@ -47,7 +47,7 @@ BasebandThread::BasebandThread(
 	uint32_t sampling_rate,
 	BasebandProcessor* const baseband_processor,
 	const tprio_t priority,
-	const baseband::Direction direction
+	baseband::Direction direction
 ) : baseband_processor { baseband_processor },
 	_direction { direction },
 	sampling_rate { sampling_rate }
@@ -78,33 +78,17 @@ void BasebandThread::run() {
 	baseband_sgpio.configure(direction());
 	baseband::dma::enable(direction());
 	baseband_sgpio.streaming_enable();
-	
-	if (_direction == baseband::Direction::Transmit) {
-		while( !chThdShouldTerminate() ) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const baseband::buffer_t buffer_tmp = baseband::dma::wait_for_tx_buffer();
-			if( buffer_tmp ) {
-				buffer_c8_t buffer {
-					buffer_tmp.p, buffer_tmp.count, sampling_rate
-				};
 
-				if( baseband_processor ) {
-					baseband_processor->execute(buffer);
-				}
-			}
-		}
-	} else {
-		while( !chThdShouldTerminate() ) {
-			// TODO: Place correct sampling rate into buffer returned here:
-			const baseband::buffer_t buffer_tmp = baseband::dma::wait_for_rx_buffer();
-			if( buffer_tmp ) {
-				buffer_c8_t buffer {
-					buffer_tmp.p, buffer_tmp.count, sampling_rate
-				};
+	while( !chThdShouldTerminate() ) {
+		// TODO: Place correct sampling rate into buffer returned here:
+		const auto buffer_tmp = baseband::dma::wait_for_buffer();
+		if( buffer_tmp ) {
+			buffer_c8_t buffer {
+				buffer_tmp.p, buffer_tmp.count, sampling_rate
+			};
 
-				if( baseband_processor ) {
-					baseband_processor->execute(buffer);
-				}
+			if( baseband_processor ) {
+				baseband_processor->execute(buffer);
 			}
 		}
 	}
