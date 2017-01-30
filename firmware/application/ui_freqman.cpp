@@ -43,10 +43,13 @@ void FrequencySaveView::on_save_timestamp(NavigationView& nav) {
 }
 
 void FrequencySaveView::focus() {
-	if (error == ERROR_ACCESS)
+	if (error == ERROR_ACCESS) {
 		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
-	else
+	} else {
+		if (error == ERROR_DUPLICATE)
+			nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
 		button_save_timestamp.focus();
+	}
 }
 
 void FrequencySaveView::on_tick_second() {
@@ -68,11 +71,19 @@ FrequencySaveView::FrequencySaveView(
 	value_ (value)
 {
 	File freqs_file;
+	size_t n;
 	
 	if (!load_freqman_file(frequencies)) {
 		if (!create_freqman_file(freqs_file)) {
 			error = ERROR_ACCESS;
 			return;
+		}
+	}
+	
+	for (n = 0; n < frequencies.size(); n++) {
+		if (frequencies[n].value == value_) {
+			error = ERROR_DUPLICATE;
+			break;
 		}
 	}
 	
@@ -223,6 +234,7 @@ FreqManView::FreqManView(
 	
 	add_children({
 		&menu_view,
+		&text_edit,
 		&button_edit_freq,
 		&button_edit_desc,
 		&button_del,

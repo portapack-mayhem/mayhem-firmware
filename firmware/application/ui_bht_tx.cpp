@@ -63,7 +63,7 @@ void BHTView::start_tx() {
 	
 	generate_message();
 	
-	transmitter_model.set_tuning_frequency(bht_freqs[options_freq.selected_index()]);
+	//transmitter_model.set_tuning_frequency(bht_freqs[options_freq.selected_index()]);
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
@@ -74,11 +74,11 @@ void BHTView::start_tx() {
 	// Setup for Xy
 	for (uint8_t c = 0; c < 16; c++) {
 		shared_memory.bb_data.tones_data.tone_defs[c].delta = ccir_deltas[c];
-		shared_memory.bb_data.tones_data.tone_defs[c].duration = CCIR_TONE_LENGTH;
+		shared_memory.bb_data.tones_data.tone_defs[c].duration = XY_TONE_LENGTH;
 	}
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(field_bw.value(), CCIR_SILENCE, 20, false, checkbox_speaker.value());
+	baseband::set_tones_data(transmitter_model.bandwidth(), XY_SILENCE, 20, false, checkbox_speaker.value());
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
@@ -94,8 +94,7 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 			
 			if (!checkbox_cligno.value()) {
 				tx_mode = IDLE;
-				button_transmit.set_style(&style_val);
-				button_transmit.set_text("START");
+				tx_view.set_transmitting(false);
 			} else {
 				chThdSleepMilliseconds(tempo_cligno.value() * 1000);	// Dirty :(
 				
@@ -115,12 +114,11 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 }
 
 BHTView::BHTView(NavigationView& nav) {
-	(void)nav;
 	size_t n;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 	//baseband::run_image(portapack::spi_flash::image_tag_encoders);
-
+	
 	add_children({
 		&options_mode,
 		&text_header,
@@ -138,16 +136,17 @@ BHTView::BHTView(NavigationView& nav) {
 		&text_receiver,
 		&receiver_code,
 		&checkbox_wcid,
-		&text_freq,
-		&options_freq,
-		&field_bw,
+		//&text_freq,
+		//&options_freq,
+		//&field_bw,
 		&text_relais,
 		&progressbar,
 		&text_message,
-		&button_transmit,
+		//&button_transmit,
 		&checkbox_cligno,
 		&tempo_cligno,
-		&text_cligno
+		&text_cligno,
+		&tx_view
 	});
 	
 	options_mode.set_selected_index(0);			// Start up in Xy mode
@@ -159,12 +158,12 @@ BHTView::BHTView(NavigationView& nav) {
 	family_code_ep.set_selected_index(2);
 	subfamily_code.set_value(1);
 	receiver_code.set_value(1);
-	options_freq.set_selected_index(0);
+	//options_freq.set_selected_index(0);
 	tempo_cligno.set_value(1);
 	progressbar.set_max(20);
 	relay_states[0].set_selected_index(1);		// R1 OFF
 	
-	field_bw.set_value(10);
+	//field_bw.set_value(20);
 	
 	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
 		_mode = mode;
@@ -281,8 +280,8 @@ BHTView::BHTView(NavigationView& nav) {
 	for (auto& relay_state : relay_states) {
 		relay_state.on_change = relay_state_fn;
 		relay_state.set_parent_rect({
-			static_cast<Coord>(26 + (n * 53)),
-			174,
+			static_cast<Coord>(4 + (n * 36)),
+			158,
 			24, 24
 		});
 		relay_state.set_options(relay_options);
@@ -290,21 +289,32 @@ BHTView::BHTView(NavigationView& nav) {
 		n++;
 	}
 	
-	button_transmit.set_style(&style_val);
+	//button_transmit.set_style(&style_val);
 	
 	generate_message();
-
-	button_transmit.on_select = [this, &nav](Button&) {
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			receiver_model.set_tuning_frequency(f);
+		};
+	};
+	
+	tx_view.on_start = [this]() {
 		if ((tx_mode == IDLE) && (!_mode)) {	// DEBUG
 			if (speaker_enabled)
 				chThdSleepMilliseconds(40 * 1000);	// DEBUG 40s
 			//if (speaker_enabled && _mode)
 			//	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 			tx_mode = SINGLE;
-			button_transmit.set_style(&style_cancel);
-			button_transmit.set_text("Wait");
+			tx_view.set_transmitting(true);
 			start_tx();
 		}
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		tx_mode = IDLE;
 	};
 }
 

@@ -23,6 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: Set description in frequency save makes everything go crazy
 //BUG: Distorted audio in WFM receiver
 //BUG: (fixed ?) Bad console scroll init
 //BUG: POCSAG misses alphanum messages, cuts them off sometimes
@@ -33,8 +34,7 @@
 //TEST: Numbers
 //TEST: Jammer
 
-//TODO: Frequency manager auto-remove duplicates
-//TODO: "TX box" view or composite widget with frequency and bw settings, simple and advanced setup TX buttons...
+//TODO: Script engine ?
 //TODO: Morse coder for foxhunts
 //TODO: Finish EPAR tx
 //TODO: IQ replay

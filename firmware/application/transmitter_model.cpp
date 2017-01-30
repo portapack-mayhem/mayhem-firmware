@@ -79,6 +79,14 @@ void TransmitterModel::set_vga(int32_t v_db) {
 	update_vga();
 }
 
+uint32_t TransmitterModel::bandwidth() const {
+	return bandwidth_;
+}
+
+void TransmitterModel::set_bandwidth(uint32_t v) {
+	bandwidth_ = v;
+}
+
 uint32_t TransmitterModel::sampling_rate() const {
 	return sampling_rate_;
 }
@@ -86,6 +94,10 @@ uint32_t TransmitterModel::sampling_rate() const {
 void TransmitterModel::set_sampling_rate(uint32_t v) {
 	sampling_rate_ = v;
 	update_sampling_rate();
+}
+
+int32_t TransmitterModel::tx_gain() const {
+	return tx_gain_db_;
 }
 
 void TransmitterModel::set_tx_gain(int32_t v_db) {

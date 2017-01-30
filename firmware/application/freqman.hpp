@@ -34,7 +34,8 @@ using namespace ui;
 enum freqman_error {
 	NO_ERROR = 0,
 	ERROR_ACCESS,
-	ERROR_EMPTY
+	ERROR_EMPTY,
+	ERROR_DUPLICATE
 };
 
 struct freqman_entry {

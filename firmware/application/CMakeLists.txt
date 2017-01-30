@@ -175,6 +175,7 @@ set(CPPSRC
 	ui_record_view.cpp
 	ui_replay_view.cpp
 	ui_rssi.cpp
+	ui_script.cpp
 	ui_sd_card_status_view.cpp
 	ui_sd_wipe.cpp
 	# ui_sd_card_debug.cpp
@@ -183,6 +184,7 @@ set(CPPSRC
 	ui_spectrum.cpp
 	ui_textentry.cpp
 	ui_touch_calibration.cpp
+	ui_transmitter.cpp
 	ui_whipcalc.cpp
 	ui_whistle.cpp
 	# ui_loadmodule.cpp

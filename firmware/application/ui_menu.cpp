@@ -44,6 +44,8 @@ void MenuItemView::unhighlight() {
 }
 
 void MenuItemView::paint(Painter& painter) {
+	Coord offset_x;
+	
 	const auto r = screen_rect();
 
 	const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? style().invert() : style();
@@ -67,7 +69,9 @@ void MenuItemView::paint(Painter& painter) {
 			final_item_color,
 			final_bg_color
 		);
-	}
+		offset_x = 26;
+	} else
+		offset_x = 8;
 
 	Style text_style {
 		.font = paint_style.font,
@@ -76,7 +80,7 @@ void MenuItemView::paint(Painter& painter) {
 	};
 
 	painter.draw_string(
-		{ r.location().x() + 26, r.location().y() + (r.size().height() - font_height) / 2 },
+		{ r.location().x() + offset_x, r.location().y() + (r.size().height() - font_height) / 2 },
 		text_style,
 		item.text
 	);

@@ -104,7 +104,7 @@ std::string freqman_item_string(freqman_entry &entry) {
 							to_string_dec_int((value / 100) % 10000, 4, '0');
 	
 	if (entry.description.size() <= 19) {
-		item_string = entry.frequency_str + ":" + entry.description;
+		item_string = entry.frequency_str + "M: " + entry.description;
 	} else {
 		memcpy(temp_buffer, entry.description.c_str(), 16);
 		temp_buffer[16] = (char)0;

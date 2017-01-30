@@ -79,7 +79,7 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void set_tones_data(const uint64_t bw, const uint32_t pre_silence, const uint16_t tone_count,
+void set_tones_data(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count,
 					const bool dual_tone, const bool audio_out) {
 	const TonesConfigureMessage message {
 		(uint32_t)(262144 * bw) / 1536000,

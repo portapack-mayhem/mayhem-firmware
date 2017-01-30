@@ -136,21 +136,25 @@ private:
 
 	MenuView menu_view { true };
 
+	Text text_edit {
+		{ 16, 194, 5 * 8, 16 },
+		"Edit:"
+	};
 	Button button_edit_freq {
-		{ 52, 194, 106, 30 },
-		"Edit freq."
+		{ 16, 194 + 16, 104, 32 },
+		"Frequency"
 	};
 	Button button_edit_desc {
-		{ 52, 192 + 32, 106, 30 },
-		"Edit desc."
+		{ 16, 194 + 16 + 34, 104, 32 },
+		"Description"
 	};
 	Button button_del {
-		{ 168, 192, 64, 64 },
-		"Del"
+		{ 160, 192, 72, 64 },
+		"Delete"
 	};
 	
 	Button button_exit {
-		{ 168, 264, 64, 32 },
+		{ 160, 264, 72, 32 },
 		"Exit"
 	};
 };

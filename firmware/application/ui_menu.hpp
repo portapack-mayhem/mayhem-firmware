@@ -69,7 +69,7 @@ private:
 
 class MenuView : public View {
 public:
-	std::function<void(void)> on_left;
+	std::function<void(void)> on_left { };
 
 	MenuView(bool keep_highlight = false);
 	
@@ -102,9 +102,9 @@ private:
 	void update_items();
 	void on_tick_second();
 	
-	bool keep_highlight_ = false;
+	bool keep_highlight_ { false };
 	
-	SignalToken signal_token_tick_second;
+	SignalToken signal_token_tick_second { };
 	
 	Image arrow_more {
 		{ 228, 320 - 8, 8, 8 },

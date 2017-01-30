@@ -68,7 +68,7 @@ private:
 	static constexpr uint32_t sampling_rate = 1536000;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
-	bool logging { true };
+	bool logging { false };
 	uint32_t batch_cnt = 0;
 	uint32_t address { 0 };
 	uint32_t function { 0 };

@@ -23,6 +23,7 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "ui_transmitter.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 #include "bmp_bulb_on.hpp"
@@ -196,7 +197,7 @@ private:
 		"Tous"
 	};
 	
-	Text text_freq {
+	/*Text text_freq {
 		{ 1 * 8, 8 * 16, 10 * 8, 16 },
 		"Frequence:"
 	};
@@ -220,14 +221,14 @@ private:
 		{ 0, 99 },
 		1,
 		' '
-	};
+	};*/
 	
 	Text text_relais {
-		{ 8, 19 * 8, 13 * 8, 16 },
-		"Etats relais:"
+		{ 1 * 8, 8 * 16 + 8, 7 * 8, 16 },
+		"Relais:"
 	};
 	
-	std::array<ImageOptionsField, 4> relay_states;
+	std::array<ImageOptionsField, 4> relay_states { };
 	
 	ImageOptionsField::options_t relay_options = {
 		{ &bulb_ignore_bmp[0], 0 },
@@ -236,33 +237,39 @@ private:
 	};
 	
 	ProgressBar progressbar {
-		{ 5 * 8, 27 * 8, 20 * 8, 16 },
+		{ 5 * 8, 13 * 16, 20 * 8, 16 },
 	};
 	Text text_message {
-		{ 5 * 8, 29 * 8, 20 * 8, 16 },
+		{ 5 * 8, 14 * 16, 20 * 8, 16 },
 		""
 	};
 	
-	Button button_transmit {
+	/*Button button_transmit {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"START"
-	};
+	};*/
 	
 	Checkbox checkbox_cligno {
-		{ 16 * 8, 16 * 16 + 4},
+		{ 18 * 8 + 4, 10 * 16},
 		3,
 		"J/N"
 	};
 	NumberField tempo_cligno {
-		{ 24 * 8, 16 * 16 + 8},
+		{ 25 * 8 + 4, 10 * 16 + 4},
 		2,
 		{ 1, 99 },
 		1,
 		' '
 	};
 	Text text_cligno {
-		{ 26 * 8, 16 * 16 + 8, 2 * 8, 16 },
+		{ 27 * 8 + 4, 10 * 16 + 4, 2 * 8, 16 },
 		"s."
+	};
+	
+	TransmitterView tx_view {
+		16 * 16,
+		10000,
+		12
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {

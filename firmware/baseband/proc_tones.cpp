@@ -82,11 +82,11 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 				tone_sample = 0;
 			} else {
 				if (!dual_tone) {
-					tone_sample = (sine_table_i8[(tone_a_phase & 0x03FC0000U) >> 18]);
+					tone_sample = (sine_table_i8[(tone_a_phase & 0xFF000000U) >> 24]);
 					tone_a_phase += tone_a_delta;
 				} else {
-					tone_sample = sine_table_i8[(tone_a_phase & 0x03FC0000U) >> 18] >> 1;
-					tone_sample += sine_table_i8[(tone_b_phase & 0x03FC0000U) >> 18] >> 1;
+					tone_sample = sine_table_i8[(tone_a_phase & 0xFF000000U) >> 24] >> 1;
+					tone_sample += sine_table_i8[(tone_b_phase & 0xFF000000U) >> 24] >> 1;
 					
 					tone_a_phase += tone_a_delta;
 					tone_b_phase += tone_b_delta;

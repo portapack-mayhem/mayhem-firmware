@@ -370,29 +370,4 @@ void VGAGainField::on_focus() {
 	}
 }
 
-/* TXGainField **********************************************************/
-
-TXGainField::TXGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
-		max2837::tx::gain_db_step,
-		' ',
-	}
-{
-	set_value(receiver_model.tx_gain());
-
-	on_change = [](int32_t v) {
-		receiver_model.set_tx_gain(v);
-	};
-}
-
-void TXGainField::on_focus() {
-	//Widget::on_focus();
-	if( on_show_options ) {
-		on_show_options();
-	}
-}
-
 } /* namespace ui */

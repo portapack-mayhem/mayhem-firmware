@@ -5000,6 +5000,33 @@ ui_rssi.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_rssi.cpp.s
 .PHONY : ui_rssi.cpp.s
 
+ui_script.obj: ui_script.cpp.obj
+
+.PHONY : ui_script.obj
+
+# target to build an object file
+ui_script.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_script.cpp.obj
+.PHONY : ui_script.cpp.obj
+
+ui_script.i: ui_script.cpp.i
+
+.PHONY : ui_script.i
+
+# target to preprocess a source file
+ui_script.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_script.cpp.i
+.PHONY : ui_script.cpp.i
+
+ui_script.s: ui_script.cpp.s
+
+.PHONY : ui_script.s
+
+# target to generate assembly for a file
+ui_script.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_script.cpp.s
+.PHONY : ui_script.cpp.s
+
 ui_sd_card_status_view.obj: ui_sd_card_status_view.cpp.obj
 
 .PHONY : ui_sd_card_status_view.obj
@@ -5188,6 +5215,33 @@ ui_touch_calibration.s: ui_touch_calibration.cpp.s
 ui_touch_calibration.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_touch_calibration.cpp.s
 .PHONY : ui_touch_calibration.cpp.s
+
+ui_transmitter.obj: ui_transmitter.cpp.obj
+
+.PHONY : ui_transmitter.obj
+
+# target to build an object file
+ui_transmitter.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_transmitter.cpp.obj
+.PHONY : ui_transmitter.cpp.obj
+
+ui_transmitter.i: ui_transmitter.cpp.i
+
+.PHONY : ui_transmitter.i
+
+# target to preprocess a source file
+ui_transmitter.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_transmitter.cpp.i
+.PHONY : ui_transmitter.cpp.i
+
+ui_transmitter.s: ui_transmitter.cpp.s
+
+.PHONY : ui_transmitter.s
+
+# target to generate assembly for a file
+ui_transmitter.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/ui_transmitter.cpp.s
+.PHONY : ui_transmitter.cpp.s
 
 ui_whipcalc.obj: ui_whipcalc.cpp.obj
 
@@ -5793,6 +5847,9 @@ help:
 	@echo "... ui_rssi.obj"
 	@echo "... ui_rssi.i"
 	@echo "... ui_rssi.s"
+	@echo "... ui_script.obj"
+	@echo "... ui_script.i"
+	@echo "... ui_script.s"
 	@echo "... ui_sd_card_status_view.obj"
 	@echo "... ui_sd_card_status_view.i"
 	@echo "... ui_sd_card_status_view.s"
@@ -5814,6 +5871,9 @@ help:
 	@echo "... ui_touch_calibration.obj"
 	@echo "... ui_touch_calibration.i"
 	@echo "... ui_touch_calibration.s"
+	@echo "... ui_transmitter.obj"
+	@echo "... ui_transmitter.i"
+	@echo "... ui_transmitter.s"
 	@echo "... ui_whipcalc.obj"
 	@echo "... ui_whipcalc.i"
 	@echo "... ui_whipcalc.s"

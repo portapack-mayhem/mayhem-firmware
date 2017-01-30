@@ -71,7 +71,7 @@ private:
 	};
 
 	ImageButton button_back {
-		{ 0 * 8, 0 * 16, 16, 16 },
+		{ 2, 0 * 16, 16, 16 },
 		&bitmap_previous,
 		Color::white(),
 		Color::dark_grey()

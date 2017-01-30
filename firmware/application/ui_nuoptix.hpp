@@ -28,23 +28,14 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "baseband_api.hpp"
 #include "ui_navigation.hpp"
-#include "ui_receiver.hpp"
+#include "ui_transmitter.hpp"
 #include "rtc_time.hpp"
+#include "tonesets.hpp"
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
 
-#define DTMF_DELTA_COEF (43.691)		// (65536*1024)/1536000
-#define DTMF_C0			(uint32_t)(1209 * DTMF_DELTA_COEF)
-#define DTMF_C1			(uint32_t)(1336 * DTMF_DELTA_COEF)
-#define DTMF_C2			(uint32_t)(1477 * DTMF_DELTA_COEF)
-#define DTMF_C3			(uint32_t)(1633 * DTMF_DELTA_COEF)
-#define DTMF_R0			(uint32_t)(697 * DTMF_DELTA_COEF)
-#define DTMF_R1			(uint32_t)(770 * DTMF_DELTA_COEF)
-#define DTMF_R2			(uint32_t)(852 * DTMF_DELTA_COEF)
-#define DTMF_R3			(uint32_t)(941 * DTMF_DELTA_COEF)
-
-#define NUOPTIX_TONE_LENGTH 75264		// 1536000*0.049s
+#define NUOPTIX_TONE_LENGTH	((TONES_SAMPLERATE * 0.049) - 1)	// 49ms
 
 namespace ui {
 	
@@ -64,48 +55,17 @@ private:
 		IMPROVISE
 	};
 	
-	tx_modes tx_mode = IDLE;
-	
-	// 0123456789ABCD#*
-	const uint32_t dtmf_deltas[16][2] = {
-		{ DTMF_C1, DTMF_R3 },
-		{ DTMF_C0, DTMF_R0 },
-		{ DTMF_C1, DTMF_R0 },
-		{ DTMF_C2, DTMF_R0 },
-		{ DTMF_C0, DTMF_R1 },
-		{ DTMF_C1, DTMF_R1 },
-		{ DTMF_C2, DTMF_R1 },
-		{ DTMF_C0, DTMF_R2 },
-		{ DTMF_C1, DTMF_R2 },
-		{ DTMF_C2, DTMF_R2 },
-		{ DTMF_C3, DTMF_R0 },
-		{ DTMF_C3, DTMF_R1 },
-		{ DTMF_C3, DTMF_R2 },
-		{ DTMF_C3, DTMF_R3 },
-		{ DTMF_C2, DTMF_R3 },
-		{ DTMF_C0, DTMF_R3 }
-	};
+	tx_modes tx_mode { IDLE };
 	
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void transmit(bool setup);
 	
 	uint32_t timecode { 0 };
 	
-	FrequencyField field_frequency {
-		{ 1 * 8, 4 },
-	};
-	
-	NumberField number_bw {
-		{ 13 * 8, 4 },
-		2,
-		{1, 99},
-		1,
-		' '
-	};
-	
-	Text text_kHz {
-		{ 15 * 8, 4, 3 * 8, 16 },
-		"kHz"
+	TransmitterView tx_view {
+		11 * 16,
+		10000,
+		15
 	};
 	
 	Text text_timecode {
@@ -130,15 +90,10 @@ private:
 		{ 16, 236, 208, 16 }
 	};
 	
-	Button button_tx {
-		{ 64, 128, 112, 40 },
-		"TX"
-	};
-	
-	Button button_impro {
+	/*Button button_impro {
 		{ 64, 184, 112, 40 },
 		"IMPROVISE"
-	};
+	};*/
 	
 	Button button_exit {
 		{ 88, 270, 64, 32 },

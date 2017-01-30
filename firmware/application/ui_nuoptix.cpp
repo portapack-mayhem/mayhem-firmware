@@ -37,16 +37,12 @@ using namespace portapack;
 namespace ui {
 
 void NuoptixView::focus() {
-	button_tx.focus();
+	number_timecode.focus();
 }
 
 NuoptixView::~NuoptixView() {
 	transmitter_model.disable();
 	baseband::shutdown();
-}
-
-void NuoptixView::on_tuning_frequency_changed(rf::Frequency f) {
-	transmitter_model.set_tuning_frequency(f);
 }
 
 void NuoptixView::transmit(bool setup) {
@@ -137,7 +133,7 @@ void NuoptixView::transmit(bool setup) {
 	shared_memory.bb_data.tones_data.silence = NUOPTIX_TONE_LENGTH;		// 49ms tone, 49ms space
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(number_bw.value(), 0, 6 * 2, true, true);	
+	baseband::set_tones_data(transmitter_model.bandwidth(), 0, 6 * 2, true, true);	
 	
 	timecode++;
 }
@@ -147,49 +143,37 @@ NuoptixView::NuoptixView(
 )
 {
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
-
+	
 	add_children({
-		&field_frequency,
-		&number_bw,
-		&text_kHz,
+		&tx_view,
 		&number_timecode,
 		&text_timecode,
 		&text_mod,
 		&pbar,
-		&button_tx,
-		&button_impro,
 		&button_exit
 	});
 	
-	number_bw.set_value(15);
 	number_timecode.set_value(1);
 
-	field_frequency.set_value(transmitter_model.tuning_frequency());
-	field_frequency.set_step(10000);
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
-	};
-	field_frequency.on_edit = [this, &nav]() {
-		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
-			this->field_frequency.set_value(f);
+			receiver_model.set_tuning_frequency(f);
 		};
 	};
 
-	button_tx.on_select = [this](Button&){
-		if (tx_mode == NORMAL) {
-			tx_mode = IDLE;
-			button_tx.set_text("TX");
-		} else if (tx_mode == IDLE) {
-			tx_mode = NORMAL;
-			button_tx.set_text("STOP");
-			transmit(true);
-		}
+	tx_view.on_start = [this]() {
+		tx_view.set_transmitting(true);
+		tx_mode = NORMAL;
+		transmit(true);
 	};
 	
-	button_impro.on_select = [this](Button&){
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		tx_mode = IDLE;
+	};
+	
+	/*button_impro.on_select = [this](Button&){
 		if (tx_mode == IMPROVISE) {
 			tx_mode = IDLE;
 			button_impro.set_text("IMPROVISE");
@@ -198,7 +182,7 @@ NuoptixView::NuoptixView(
 			button_impro.set_text("STOP");
 			transmit(true);
 		}
-	};
+	};*/
 	
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();

@@ -24,38 +24,19 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 
+#include "tonesets.hpp"
 #include "encoders.hpp"
 #include "portapack.hpp"
 
 using namespace encoders;
 
-#define CCIR_TONE_LENGTH (153600-1)		// 1536000*0.1
-#define CCIR_DELTA_COEF (43.691)		// (65536*1024)/1536000
-#define CCIR_SILENCE (614400-1)			// 400ms
+#define XY_TONE_LENGTH	((TONES_SAMPLERATE * 0.1) - 1)		// 100ms
+#define XY_SILENCE 		(TONES_SAMPLERATE * 0.4)			// 400ms
 	
 struct bht_city {
 	std::string name;
 	uint8_t freq_index;
 	bool recent;
-};
-
-const uint32_t ccir_deltas[16] = {
-	(uint32_t)(1981 * CCIR_DELTA_COEF),
-	(uint32_t)(1124 * CCIR_DELTA_COEF),
-	(uint32_t)(1197 * CCIR_DELTA_COEF),
-	(uint32_t)(1275 * CCIR_DELTA_COEF),
-	(uint32_t)(1358 * CCIR_DELTA_COEF),
-	(uint32_t)(1446 * CCIR_DELTA_COEF),
-	(uint32_t)(1540 * CCIR_DELTA_COEF),
-	(uint32_t)(1640 * CCIR_DELTA_COEF),
-	(uint32_t)(1747 * CCIR_DELTA_COEF),
-	(uint32_t)(1860 * CCIR_DELTA_COEF),
-	(uint32_t)(2400 * CCIR_DELTA_COEF),
-	(uint32_t)(930  * CCIR_DELTA_COEF),
-	(uint32_t)(2247 * CCIR_DELTA_COEF),
-	(uint32_t)(991  * CCIR_DELTA_COEF),
-	(uint32_t)(2110 * CCIR_DELTA_COEF),
-	(uint32_t)(1055 * CCIR_DELTA_COEF)
 };
 
 const rf::Frequency bht_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
