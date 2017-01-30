@@ -230,7 +230,7 @@ JammerView::JammerView(NavigationView& nav) {
 			button_transmit.set_text("START");
 			transmitter_model.disable();
 			radio::disable();
-			baseband::set_jammer(false);
+			baseband::set_jammer(false, 0, 0);
 			jamming = false;
 		} else {
 			
@@ -297,7 +297,7 @@ JammerView::JammerView(NavigationView& nav) {
 				transmitter_model.set_tx_gain(47);
 				transmitter_model.enable();
 
-				baseband::set_jammer(true);
+				baseband::set_jammer(true, options_type.selected_index(), options_speed.selected_index());
 			} else {
 				nav.display_modal("Error", "Jamming bandwidth too large.");
 			}

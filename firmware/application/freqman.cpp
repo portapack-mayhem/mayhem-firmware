@@ -35,9 +35,8 @@ bool load_freqman_file(std::vector<freqman_entry> &frequencies) {
 	
 	while (freqs_file.open("freqman.txt").is_valid()) {
 		auto result = freqs_file.create("freqman.txt");
-		if (result.is_valid()) {
+		if (result.is_valid())
 			return false;
-		}
 	}
 	
 	freqs_file.read(file_buffer, 2048);

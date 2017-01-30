@@ -155,9 +155,11 @@ void set_adsb() {
 	send_message(&message);
 }
 
-void set_jammer(const bool run) {
+void set_jammer(const bool run, const uint32_t type, const uint32_t speed) {
 	const JammerConfigureMessage message {
-		run
+		run, 
+		type,
+		speed
 	};
 	send_message(&message);
 }

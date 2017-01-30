@@ -63,25 +63,25 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 		
 		// Phase noise
 		if (r >= 10) {
-			aphase += ((aphase>>4) ^ 0x4573) << 14;
+			aphase += ((aphase >> 4) ^ 0x4573) << 20;
 			r = 0;
 		} else {
 			r++;
 		}
 		
 		aphase += 8830;
-		sample = sine_table_i8[(aphase & 0x03FC0000) >> 18];
+		sample = sine_table_i8[(aphase & 0xFF000000) >> 24];
 		
 		// FM
 		delta = sample * jammer_bw;
 		
 		phase += delta;
-		sphase = phase + (64 << 18);
+		sphase = phase + (64 << 24);
 
-		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+		re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
+		im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
 
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		buffer.p[i] = {re, im};
 	}
 };
 
@@ -91,6 +91,8 @@ void JammerProcessor::on_message(const Message* const msg) {
 	if (message.id == Message::ID::JammerConfigure) {
 		if (message.run) {
 			jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
+			noise_type = message.type;
+			noise_speed = message.speed;
 			jammer_duration = 0;
 			current_range = 0;
 			

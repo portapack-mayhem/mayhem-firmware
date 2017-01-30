@@ -64,12 +64,17 @@ public:
 
 private:
 	static constexpr auto default_title = "PortaPack|Havoc";
-	//static constexpr auto back_text_enabled = " < ";
-	//static constexpr auto back_text_disabled = " * ";
 
-	Button button_back {
+	Rectangle backdrop {
+		{ 0 * 8, 0 * 16, 240, 16 },
+		Color::dark_grey()
+	};
+
+	ImageButton button_back {
 		{ 0 * 8, 0 * 16, 16, 16 },
-		"",		//back_text_disabled,
+		&bitmap_previous,
+		Color::white(),
+		Color::dark_grey()
 	};
 
 	Text title {
@@ -81,28 +86,28 @@ private:
 		{ 152, 0, 2 * 8, 1 * 16 },
 		&bitmap_stealth,
 		Color::light_grey(),
-		Color::black()
+		Color::dark_grey()
 	};
 	
 	ImageButton button_textentry {
 		{ 170, 0, 2 * 8, 1 * 16 },
 		&bitmap_unistroke,
 		Color::white(),
-		Color::black()
+		Color::dark_grey()
 	};
 
 	ImageButton button_camera {
 		{ 188, 0, 2 * 8, 1 * 16 },
 		&bitmap_camera,
 		Color::white(),
-		Color::black()
+		Color::dark_grey()
 	};
 
 	ImageButton button_sleep {
 		{ 206, 0, 2 * 8, 1 * 16 },
 		&bitmap_sleep,
 		Color::white(),
-		Color::black()
+		Color::dark_grey()
 	};
 
 	SDCardStatusView sd_card_status_view {

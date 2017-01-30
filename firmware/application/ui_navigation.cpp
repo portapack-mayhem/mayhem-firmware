@@ -68,7 +68,14 @@ namespace ui {
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView() {
+	static constexpr Style style_systemstatus {
+		.font = font::fixed_8x16,
+		.background = Color::dark_grey(),
+		.foreground = Color::white(),
+	};
+	
 	add_children({
+		&backdrop,
 		&button_back,
 		&title,
 		&button_stealth,
@@ -78,6 +85,8 @@ SystemStatusView::SystemStatusView() {
 		&sd_card_status_view,
 	});
 	
+	title.set_style(&style_systemstatus);
+	
 	if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_keyboard);
 	else
@@ -86,7 +95,7 @@ SystemStatusView::SystemStatusView() {
 	if (portapack::persistent_memory::stealth_mode())
 		button_stealth.set_foreground(ui::Color::green());
 
-	button_back.on_select = [this](Button&){
+	button_back.on_select = [this](ImageButton&){
 		if (this->on_back)
 			this->on_back();
 	};
@@ -110,7 +119,7 @@ SystemStatusView::SystemStatusView() {
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
-	//button_back.set_text(new_value ? back_text_enabled : back_text_disabled);
+	button_back.set_foreground(new_value ? Color::white() : Color::dark_grey());
 	button_back.set_focusable(new_value);
 }
 

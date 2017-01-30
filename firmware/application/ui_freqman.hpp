@@ -43,19 +43,19 @@ public:
 
 private:
 	NavigationView& nav_;
-	bool error = false;
+	freqman_error error { NO_ERROR };
 	char desc_buffer[32] = { 0 };
-	rtc::RTC datetime;
-	rf::Frequency value_;
+	rtc::RTC datetime { };
+	rf::Frequency value_ { };
 	std::string str_timestamp { };
 	
 	void on_save_name(NavigationView& nav);
 	void on_save_timestamp(NavigationView& nav);
 	void on_tick_second();
 	
-	std::vector<freqman_entry> frequencies;
+	std::vector<freqman_entry> frequencies { };
 	
-	SignalToken signal_token_tick_second;
+	SignalToken signal_token_tick_second { };
 	
 	BigFrequency big_display {
 		{ 4, 2 * 16, 28 * 8, 32 },
@@ -87,7 +87,7 @@ private:
 
 class FrequencyLoadView : public View {
 public:
-	std::function<void(rf::Frequency)> on_changed;
+	std::function<void(rf::Frequency)> on_changed { };
 	
 	FrequencyLoadView(NavigationView& nav);
 	
@@ -97,14 +97,14 @@ public:
 
 private:
 	NavigationView& nav_;
-	bool error = false;
+	freqman_error error { NO_ERROR };
 	
 	void on_frequency_select();
 	void setup_list();
 	
-	std::vector<freqman_entry> frequencies;
+	std::vector<freqman_entry> frequencies { };
 	
-	MenuView menu_view;
+	MenuView menu_view { };
 	
 	Button button_cancel {
 		{ 72, 264, 96, 32 },
@@ -123,7 +123,8 @@ public:
 
 private:
 	NavigationView& nav_;
-	bool error = false;
+	
+	freqman_error error { NO_ERROR };
 	
 	void on_frequency_select();
 	void on_edit_freq(rf::Frequency f);
@@ -131,7 +132,7 @@ private:
 	void on_delete();
 	void setup_list();
 	
-	std::vector<freqman_entry> frequencies;
+	std::vector<freqman_entry> frequencies { };
 
 	MenuView menu_view { true };
 

@@ -36,16 +36,17 @@ void FrequencySaveView::on_save_name(NavigationView& nav) {
 	frequencies.push_back({ value_, "", desc_buffer });
 	nav.pop();
 }
+
 void FrequencySaveView::on_save_timestamp(NavigationView& nav) {
 	frequencies.push_back({ value_, "", str_timestamp });
 	nav.pop();
 }
 
 void FrequencySaveView::focus() {
-	button_save_timestamp.focus();
-	
-	if (error)
-		nav_.display_modal("Error", "File acces error !", ABORT, nullptr);
+	if (error == ERROR_ACCESS)
+		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	else
+		button_save_timestamp.focus();
 }
 
 void FrequencySaveView::on_tick_second() {
@@ -69,7 +70,10 @@ FrequencySaveView::FrequencySaveView(
 	File freqs_file;
 	
 	if (!load_freqman_file(frequencies)) {
-		if (!create_freqman_file(freqs_file)) error = true;
+		if (!create_freqman_file(freqs_file)) {
+			error = ERROR_ACCESS;
+			return;
+		}
 	}
 	
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
@@ -119,17 +123,27 @@ void FrequencyLoadView::on_frequency_select() {
 }
 
 void FrequencyLoadView::focus() {
-	menu_view.focus();
-	
-	if (error)
-		nav_.display_modal("Error", "File acces error !", ABORT, nullptr);
+	if (error == ERROR_ACCESS)
+		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	else if (error == ERROR_EMPTY)
+		nav_.display_modal("Error", "Frequency DB empty", ABORT, nullptr);
+	else
+		menu_view.focus();
 }
 
 FrequencyLoadView::FrequencyLoadView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	error = !load_freqman_file(frequencies);
+	if (!load_freqman_file(frequencies)) {
+		error = ERROR_ACCESS;
+		return;
+	}
+	
+	if (frequencies.size() == 0) {
+		error = ERROR_EMPTY;
+		return;
+	}
 
 	add_children({
 		&menu_view,
@@ -181,10 +195,12 @@ void FreqManView::setup_list() {
 }
 
 void FreqManView::focus() {
-	menu_view.focus();
-	
-	if (error)
-		nav_.display_modal("Error", "File acces error !", ABORT, nullptr);
+	if (error == ERROR_ACCESS)
+		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	else if (error == ERROR_EMPTY)
+		nav_.display_modal("Error", "Frequency DB empty", ABORT, nullptr);
+	else
+		menu_view.focus();
 }
 
 FreqManView::~FreqManView() {
@@ -195,7 +211,15 @@ FreqManView::FreqManView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	error = !load_freqman_file(frequencies);
+	if (!load_freqman_file(frequencies)) {
+		error = ERROR_ACCESS;
+		return;
+	}
+	
+	if (frequencies.size() == 0) {
+		error = ERROR_EMPTY;
+		return;
+	}
 	
 	add_children({
 		&menu_view,
@@ -231,7 +255,6 @@ FreqManView::FreqManView(
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};
-
 }
 
 }

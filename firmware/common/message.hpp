@@ -706,13 +706,19 @@ public:
 class JammerConfigureMessage : public Message {
 public:
 	constexpr JammerConfigureMessage(
-		const bool run
+		const bool run,
+		const uint32_t type,
+		const uint32_t speed
 	) : Message { ID::JammerConfigure },
-		run(run)
+		run(run),
+		type(type),
+		speed(speed)
 	{
 	}
 
 	const bool run;
+	const uint32_t type;
+	const uint32_t speed;
 };
 
 class DTMFTXConfigMessage : public Message {

@@ -40,6 +40,8 @@ private:
 	
 	JammerChannel * jammer_channels {  };
 	
+	uint32_t noise_type { 0 };
+	uint32_t noise_speed { 0 };
     uint32_t jammer_duration { 0 };
 	int8_t r { 0 }, ir { 0 };
     uint32_t current_range { 0 };
@@ -47,7 +49,7 @@ private:
     uint32_t sample_count { 0 };
 	uint32_t aphase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
 	int32_t sample { 0 }, jammer_bw { 0 };
-	int8_t re, im;
+	int8_t re { 0 }, im { 0 };
 	RetuneMessage message { };
 };
 
