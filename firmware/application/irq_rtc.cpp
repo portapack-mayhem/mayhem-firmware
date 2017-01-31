@@ -27,8 +27,11 @@
 using namespace lpc43xx;
 
 #include "event_m0.hpp"
- 
+
+static Thread* thread_rtc_event = NULL;
+
 void rtc_interrupt_enable() {
+	thread_rtc_event = chThdSelf();
 	rtc::interrupt::enable_second_inc();
 	nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
 }
@@ -39,7 +42,7 @@ CH_IRQ_HANDLER(RTC_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	EventDispatcher::event_isr_rtc_tick();
+	chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
 	chSysUnlockFromIsr();
 
 	rtc::interrupt::clear_all();

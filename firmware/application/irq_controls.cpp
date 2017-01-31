@@ -40,6 +40,8 @@
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
+static Thread* thread_controls_event = NULL;
+
 static std::array<Debounce, 7> switch_debounce;
 
 static Encoder encoder;
@@ -156,7 +158,7 @@ void timer0_callback(GPTDriver* const) {
 	/* Signal event loop */
 	if( event_mask ) {
 		chSysLockFromIsr();
-		EventDispatcher::events_flag_isr(event_mask);
+		chEvtSignalI(thread_controls_event, event_mask);
 		chSysUnlockFromIsr();
 	}
 }
@@ -176,6 +178,8 @@ static GPTConfig timer0_config {
 };
 
 void controls_init() {
+	thread_controls_event = chThdSelf();
+
 	touch::adc::start();
 
 	/* GPT timer 0 is used to scan user interface controls -- touch screen,
