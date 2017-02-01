@@ -32,15 +32,15 @@
 
 //TEST: Imperial in whipcalc
 //TEST: Numbers
-//TEST: Jammer
 
 //TODO: Script engine ?
 //TODO: Morse coder for foxhunts
+//TODO: Close Call multiple slices (buggy)
 //TODO: Finish EPAR tx
 //TODO: IQ replay
 //TODO: Wav visualizer
 
-//TODO: File browser ?
+//TODO: File browser view ?
 //TODO: Mousejack ?
 //TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
 //TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
@@ -51,7 +51,6 @@
 //TODO: Show address/data bit fields in OOK TX
 //TODO: Scan for OOK TX
 //TODO: Check more OOK encoders
-//TODO: POCSAG 512 and 2400 (all 3 at the same time, or parameter ?)
 //TODO: Use msgpack for settings, lists... on sd card
 
 //Multimon-style stuff:
@@ -65,7 +64,6 @@
 
 //TODO: LCR full message former (see norm)
 //TODO: AFSK NRZI
-//TODO: TX power setting
 
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?

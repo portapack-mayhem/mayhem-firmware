@@ -37,17 +37,18 @@
 #define POCSAG_BATCH_LENGTH		(9 * 32)
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
-	// Samplerate is 1.536MHz, gets 2048 samples, called at 750Hz
+	// This is called at 1500Hz
 	
 	if (!configured) return;
 	
 	// Get 24kHz audio
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	auto audio = demod.execute(decim_1_out, audio_buffer);
+	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+	auto audio = demod.execute(channel_out, audio_buffer);
 	
-	// End up with 32 samples
-	for (uint32_t c = 0; c < 32; c++) {
+	// End up with 16 samples
+	for (uint32_t c = 0; c < 16; c++) {
 		
 		const int32_t audio_sample = audio.p[c] * 32768.0f;
 		//const int32_t audio_sample = __SSAT(sample_int, 16);
@@ -168,11 +169,15 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
 	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+	
+	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+	const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
 
-	const size_t demod_input_fs = decim_1_output_fs;
+	const size_t demod_input_fs = channel_filter_output_fs;
 
 	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
+	channel_filter.configure(taps_11k0_channel.taps, 2);
 	demod.configure(demod_input_fs, 4500);
 
 	bitrate = message.bitrate;

@@ -57,7 +57,7 @@ private:
 		//END_OF_MESSAGE = 69
 	};
 
-	static constexpr size_t baseband_fs = 1536000;
+	static constexpr size_t baseband_fs = 3072000;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
@@ -75,7 +75,7 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-
+	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	dsp::demodulate::FM demod { };
 
 	uint32_t sync_timeout { 0 };

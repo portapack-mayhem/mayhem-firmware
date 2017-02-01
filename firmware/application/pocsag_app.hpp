@@ -65,7 +65,7 @@ public:
 
 private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
-	static constexpr uint32_t sampling_rate = 1536000;
+	static constexpr uint32_t sampling_rate = 3072000;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	bool logging { false };
