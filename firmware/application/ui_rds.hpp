@@ -181,7 +181,7 @@ private:
 	SymField sym_pi_code {
 		{ 4 * 8, 32 + 8 },
 		4,
-		true
+		SymField::SYMFIELD_HEX
 	};
 	
 	Text text_coverage {

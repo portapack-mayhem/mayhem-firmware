@@ -30,12 +30,14 @@ namespace adsb {
 
 	const char icao_id_lut[65] = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ##### ###############0123456789######";
 	
-	void make_frame_mode_s(uint8_t * adsb_frame, uint32_t ICAO_address);
+	void make_frame_mode_s(uint8_t * const adsb_frame, const uint32_t ICAO_address);
 	
-	void generate_frame_id(uint8_t * adsb_frame, uint32_t ICAO_address, char * callsign);
-	void generate_frame_pos(uint8_t * adsb_frame, uint32_t ICAO_address, uint32_t altitude, float latitude, float longitude);
+	void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, char * const callsign);
+	void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint32_t altitude,
+		const float latitude, const float longitude);
+	void generate_frame_emergency(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint8_t code);
 	
-	void ADSB_generate_CRC(uint8_t * in_message);
+	void ADSB_generate_CRC(uint8_t * const in_message);
 
 } /* namespace adsb */
 

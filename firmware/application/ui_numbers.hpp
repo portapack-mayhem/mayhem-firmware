@@ -132,7 +132,7 @@ private:
 	SymField symfield_code {
 		{ 20, 5 * 16 },
 		25,
-		false
+		SymField::SYMFIELD_DEF
 	};
 	
 	Checkbox check_armed {

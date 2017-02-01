@@ -26,37 +26,38 @@
 
 namespace adsb {
 
-void make_frame_mode_s(uint8_t * adsb_frame, uint32_t ICAO_address) {
-	adsb_frame[0] = 0x8D;	// DF and CA
+void make_frame_mode_s(uint8_t * const adsb_frame, const uint32_t ICAO_address) {
+	adsb_frame[0] = (17 << 3) | 5;		// DF and CA
 	adsb_frame[1] = ICAO_address >> 16;
 	adsb_frame[2] = (ICAO_address >> 8) & 0xFF;
 	adsb_frame[3] = ICAO_address & 0xFF;
+	
+	memset(&adsb_frame[4], 0, 10);
 }
 
-void generate_frame_id(uint8_t * adsb_frame, uint32_t ICAO_address, char * callsign) {
-	uint8_t c, s;
-	char ch;
+void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, char * const callsign) {
 	std::string callsign_formatted(8, '_');
 	uint64_t callsign_coded = 0;
+	uint32_t c, s;
+	char ch;
 	
 	make_frame_mode_s(adsb_frame, ICAO_address);
 	
-	adsb_frame[4] = 0x20;	// TC
+	adsb_frame[4] = 4 << 3;	// TC = 4: Aircraft ID
 		
-	// Translate and code callsign
+	// Translate and encode callsign
 	for (c = 0; c < 8; c++) {
 		ch = callsign[c];
-		for (s = 0; s < 64; s++) {
+		
+		for (s = 0; s < 64; s++)
 			if (ch == icao_id_lut[s]) break;
-		}
-		if (s < 64) {
-			ch = icao_id_lut[s];
-		} else {
-			ch = ' ';
+		
+		if (s >= 64) {
+			ch = ' ';		// Invalid character
 			s = 32;
 		}
 		callsign_coded |= ((uint64_t)s << ((7 - c) * 6));
-		callsign_formatted[c] = ch;
+		callsign[c] = ch;
 	}
 	
 	// Insert callsign in frame
@@ -66,7 +67,17 @@ void generate_frame_id(uint8_t * adsb_frame, uint32_t ICAO_address, char * calls
 	ADSB_generate_CRC(adsb_frame);
 }
 
-void generate_frame_pos(uint8_t * adsb_frame, uint32_t ICAO_address, uint32_t altitude, float latitude, float longitude) {
+void generate_frame_emergency(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint8_t code) {
+	make_frame_mode_s(adsb_frame, ICAO_address);
+	
+	adsb_frame[4] = (28 << 3) + 1;	// TC = 28 (Emergency), subtype = 1 (Emergency)
+	adsb_frame[5] = code << 5;
+	
+	ADSB_generate_CRC(adsb_frame);
+}
+
+void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint32_t altitude,
+	const float latitude, const float longitude) {
 	uint8_t c, time_parity;
 	uint32_t altitude_coded;
 	uint32_t LAT, LON;
@@ -76,7 +87,7 @@ void generate_frame_pos(uint8_t * adsb_frame, uint32_t ICAO_address, uint32_t al
 	
 	make_frame_mode_s(adsb_frame, ICAO_address);
 	
-	adsb_frame[4] = 0x58;	// TC, SS and NICsb
+	adsb_frame[4] = 11 << 3;	// TC = 11: Airborne position
 	
 	altitude_coded = (altitude + 1000) / 25;		// Can be coded in 100ft steps also
 	
@@ -105,7 +116,7 @@ void generate_frame_pos(uint8_t * adsb_frame, uint32_t ICAO_address, uint32_t al
 	adsb_frame[6] = ((altitude_coded & 0x00F) << 4) | (LAT >> 15);		// Then 0, even/odd, and the 2 LAT-CPR MSBs
 }
 
-void ADSB_generate_CRC(uint8_t * in_frame) {
+void ADSB_generate_CRC(uint8_t * const in_frame) {
 	uint8_t adsb_crc[14];	// Temp buffer
 	uint8_t b, c, s, bitn;
 	const uint32_t crc_poly = 0x1205FFF;
@@ -126,10 +137,10 @@ void ADSB_generate_CRC(uint8_t * in_frame) {
 			}
 		}
 	}
+	
 	// Insert CRC in frame
-	for (c = 0; c < 3; c++)
-		in_frame[c + 11] = adsb_crc[c + 11];
-		
+	memcpy(&in_frame[11], &adsb_crc[11], 3);
+	
 }
 
 } /* namespace adsb */

@@ -38,7 +38,7 @@ using namespace portapack;
 namespace ui {
 
 void ADSBTxView::focus() {
-	button_transmit.focus();
+	sym_icao.focus();
 }
 
 ADSBTxView::~ADSBTxView() {
@@ -52,11 +52,8 @@ void ADSBTxView::paint(Painter& painter) {
 }
 
 void ADSBTxView::generate_frame() {
-	uint8_t c;
+	uint32_t c;
 	std::string str_debug;
-
-	if (options_format.selected_index() == 2)
-		button_transmit.hidden(true);
 	
 	generate_frame_id(adsb_frame, sym_icao.value_hex_u64(), callsign);
 
@@ -64,9 +61,8 @@ void ADSBTxView::generate_frame() {
 
 	// Convert to binary (1 bit per byte, faster for baseband code)
 	for (c = 0; c < 112; c++) {
-		if ((adsb_frame[c >> 3] << (c & 7)) & 0x80) {
+		if ((adsb_frame[c >> 3] << (c & 7)) & 0x80)
 			adsb_bin[c] = 0xFF;
-		}
 	}
 	
 	// Display for debug
@@ -79,11 +75,11 @@ void ADSBTxView::generate_frame() {
 		str_debug += to_string_hex(adsb_frame[c + 7], 2);
 	text_frame_b.set(str_debug);
 
-	//text_message.set(callsign_formatted);
+	button_callsign.set_text(callsign);
 }
 
 void ADSBTxView::start_tx() {
-	transmitter_model.set_tuning_frequency(452000000);		// FOR TESTING - DEBUG
+	transmitter_model.set_tuning_frequency(434000000);		// FOR TESTING - DEBUG
 	transmitter_model.set_sampling_rate(2000000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
@@ -96,7 +92,7 @@ void ADSBTxView::start_tx() {
 }
 
 void ADSBTxView::on_txdone(const int n) {
-	size_t sr;
+	//size_t sr;
 
 	if (n == 200) {
 		transmitter_model.disable();
@@ -112,6 +108,7 @@ void ADSBTxView::on_txdone(const int n) {
 
 ADSBTxView::ADSBTxView(NavigationView& nav) {
 	(void)nav;
+	uint32_t c;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
 
@@ -134,6 +131,9 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 		&field_lon_degrees,
 		&field_lon_minutes,
 		&field_lon_seconds,
+		&check_emergency,
+		&text_squawk,
+		&field_squawk,
 		&text_frame_a,
 		&text_frame_b,
 		&button_transmit
@@ -160,6 +160,9 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 	field_lon_degrees.set_value(0);
 	field_lon_minutes.set_value(0);
 	field_lon_seconds.set_value(0);
+	
+	for (c = 0; c < 4; c++)
+		field_squawk.set_value(c, 0);
 	
 	button_transmit.set_style(&style_val);
 	

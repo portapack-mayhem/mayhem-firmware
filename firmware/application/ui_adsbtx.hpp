@@ -79,11 +79,11 @@ private:
 	};
 	OptionsField options_format {
 		{ 10 * 8, 1 * 16 },
-		10,
+		9,
 		{
 			{ "17: ADS-B", 17 },
 			{ "18: TIS-B", 18 },
-			{ "19: Don't.", 19 },
+			{ "19: MIL  ", 19 },
 		}
 	};
 	
@@ -94,7 +94,7 @@ private:
 	SymField sym_icao {
 		{ 10 * 8, 2 * 16 },
 		6,
-		true	// Hex
+		SymField::SYMFIELD_HEX
 	};
 
 	Text text_callsign {
@@ -145,12 +145,28 @@ private:
 		{ 19 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	
+	Checkbox check_emergency {
+		{ 2 * 8, 9 * 16 - 4 },
+		9,
+		"Emergency",
+		false
+	};
+	Text text_squawk {
+		{ 15 * 8, 9 * 16, 6 * 8, 16 },
+		"Squawk"
+	};
+	SymField field_squawk {
+		{ 22 * 8, 9 * 16 },
+		4,
+		SymField::SYMFIELD_OCT
+	};
+	
 	Text text_frame_a {
-		{ 4 * 8, 12 * 16, 14 * 8, 16 },
+		{ 2 * 8, 13 * 16, 14 * 8, 16 },
 		"-"
 	};
 	Text text_frame_b {
-		{ 4 * 8, 13 * 16, 14 * 8, 16 },
+		{ 2 * 8, 14 * 16, 14 * 8, 16 },
 		"-"
 	};
 	

@@ -82,7 +82,7 @@ void WFMConfig::apply() const {
 void set_tones_data(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count,
 					const bool dual_tone, const bool audio_out) {
 	const TonesConfigureMessage message {
-		(uint32_t)(262144 * bw) / 1536000,
+		bw,
 		pre_silence,
 		tone_count,
 		dual_tone,

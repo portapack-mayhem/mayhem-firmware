@@ -167,7 +167,8 @@ private:
 	};
 	SymField symfield_word {
 		{ 2 * 8, 12 * 8 },
-		20
+		20,
+		SymField::SYMFIELD_DEF
 	};
 	Text text_format {
 		{ 2 * 8, 14 * 8, 24 * 8, 16 },

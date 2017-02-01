@@ -475,8 +475,14 @@ public:
 	std::function<void(SymField&)> on_select { };
 	std::function<void()> on_change { };
 
-	SymField(Point parent_pos, size_t length);
-	SymField(Point parent_pos, size_t length, bool hex);
+	enum symfield_type {
+		SYMFIELD_OCT,
+		SYMFIELD_DEC,
+		SYMFIELD_HEX,
+		SYMFIELD_DEF		// User DEFined
+	};
+	
+	SymField(Point parent_pos, size_t length, symfield_type type);
 
 	SymField(const SymField&) = delete;
 	SymField(SymField&&) = delete;
@@ -499,7 +505,7 @@ private:
 	uint32_t selected_ = 0;
 	size_t length_, prev_length_ = 0;
 	bool erase_prev_ = false;
-	bool hex_ = false;
+	symfield_type type_ { };
 
 	int32_t clip_value(const uint32_t index, const uint32_t value);
 };

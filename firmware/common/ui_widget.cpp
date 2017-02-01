@@ -1162,35 +1162,34 @@ int32_t NumberField::clip_value(int32_t value) {
 
 SymField::SymField(
 	Point parent_pos,
-	size_t length
-) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
-	length_ { length }
-{
-	set_focusable(true);
-}
-
-SymField::SymField(
-	Point parent_pos,
 	size_t length,
-	bool hex
+	symfield_type type
 ) : Widget { { parent_pos, { static_cast<ui::Dim>(8 * length), 16 } } },
 	length_ { length },
-	hex_ { hex }
+	type_ { type }
 {
-	uint8_t c;
+	uint32_t c;
 	
-	// Hex field auto-init
-	for (c = 0; c < length; c++)
-		set_symbol_list(c, "0123456789ABCDEF");
+	// Auto-init
+	if (type == SYMFIELD_OCT) {
+		for (c = 0; c < length; c++)
+			set_symbol_list(c, "01234567");
+	} else if (type == SYMFIELD_DEC) {
+		for (c = 0; c < length; c++)
+			set_symbol_list(c, "0123456789");
+	} else if (type == SYMFIELD_HEX) {
+		for (c = 0; c < length; c++)
+			set_symbol_list(c, "0123456789ABCDEF");
+	}
 	
 	set_focusable(true);
 }
 
 uint64_t SymField::value_hex_u64() {
-	uint8_t c;
+	uint32_t c;
 	uint64_t v = 0;
 	
-	if (hex_) {
+	if (type_ != SYMFIELD_DEF) {
 		for (c = 0; c < length_; c++)
 			v += values_[c] << (4 * (length_ - 1 - c));
 		return v;
