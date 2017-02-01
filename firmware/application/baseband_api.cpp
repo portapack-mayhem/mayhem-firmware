@@ -171,14 +171,12 @@ void set_rds_data(const uint16_t message_length) {
 	send_message(&message);
 }
 
-/*void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length) {
-	const DTMFTXConfigMessage message {
-		bw,
-		tone_length,
-		pause_length
+void set_spectrum(const size_t sampling_rate, const size_t trigger) {
+	const WidebandSpectrumConfigMessage message {
+		sampling_rate, trigger
 	};
 	send_message(&message);
-}*/
+}
 
 static bool baseband_image_running = false;
 

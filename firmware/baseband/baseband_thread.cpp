@@ -64,6 +64,10 @@ BasebandThread::~BasebandThread() {
 	thread = nullptr;
 }
 
+void BasebandThread::set_sampling_rate(uint32_t new_sampling_rate) {
+	sampling_rate = new_sampling_rate;
+}
+
 void BasebandThread::run() {
 	baseband_sgpio.init();
 	baseband::dma::init();

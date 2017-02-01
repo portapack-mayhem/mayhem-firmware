@@ -67,7 +67,7 @@ void set_pocsag(const pocsag::BitRate bitrate);
 void set_adsb();
 void set_jammer(const bool run, const uint32_t type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);
-//void set_dtmf_data(const uint32_t bw, const uint32_t tone_length, const uint32_t pause_length);
+void set_spectrum(const size_t sampling_rate, const size_t trigger);
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();

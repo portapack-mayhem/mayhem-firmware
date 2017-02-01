@@ -336,13 +336,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
-### Close Call
-
-set(MODE_CPPSRC
-	proc_closecall.cpp
-)
-DeclareTargets(PCLC closecall)
-
 ### OOK
 
 set(MODE_CPPSRC

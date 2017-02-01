@@ -80,7 +80,7 @@ private:
 	
 	unsigned int c { 0 }, synth_acc { 0 };
 	uint32_t synth_div { 0 };
-	bool pwmrssi_enabled = false;
+	bool pwmrssi_enabled { false };
 	uint32_t pwmrssi_avg { 0 };
 
 	bool configured { false };

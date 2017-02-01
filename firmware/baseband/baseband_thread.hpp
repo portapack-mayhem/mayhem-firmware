@@ -48,6 +48,8 @@ public:
 	baseband::Direction direction() const {
 		return _direction;
 	}
+	
+	void set_sampling_rate(uint32_t new_sampling_rate);
 
 private:
 	static Thread* thread;

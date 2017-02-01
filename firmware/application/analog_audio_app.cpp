@@ -284,6 +284,10 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	}
 
 	baseband::run_image(image_tag);
+	
+	if (modulation == ReceiverModel::Mode::SpectrumAnalysis) {
+		baseband::set_spectrum(20000000, 127);
+	}
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_modulation(modulation);

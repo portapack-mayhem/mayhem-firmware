@@ -34,7 +34,7 @@ namespace ui {
 
 class AlphanumView : public View {
 public:
-	std::function<void(char *)> on_changed;
+	std::function<void(char *)> on_changed { };
 
 	AlphanumView(NavigationView& nav, char txt[], size_t max_length);
 	
@@ -55,8 +55,8 @@ private:
 	const char * const keys_upper = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
 	const char * const keys_lower = "0123456789abcdefghijklmnopqrstuvwxyz:=?<";
 	
-	size_t _max_length;
-	uint8_t txtidx;
+	size_t _max_length { };
+	uint8_t txtidx { 0 };
 	bool _lowercase = false;
 	char txtinput[29] = { 0 };		// 28 chars max
 	

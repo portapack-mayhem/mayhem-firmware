@@ -69,7 +69,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 		 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
 		 * -> 48kHz int16_t[32] */
 		auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
-	
+
 		/* -> 48kHz int16_t[32] */
 		audio_output.write(audio);
 	} else {

@@ -33,6 +33,8 @@
 void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	// 2048 complex8_t samples per buffer.
 	// 102.4us per buffer. 20480 instruction cycles per buffer.
+	
+	if (!configured) return;
 
 	if( phase == 0 ) {
 		std::fill(spectrum.begin(), spectrum.end(), 0);
@@ -45,7 +47,7 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 		spectrum[i] += buffer.p[i + 1024];
 	}
 
-	if( phase == 127 ) {
+	if( phase == trigger ) {
 		const buffer_c16_t buffer_c16 {
 			spectrum.data(),
 			spectrum.size(),
@@ -61,11 +63,20 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 	}
 }
 
-void WidebandSpectrum::on_message(const Message* const message) {
-	switch(message->id) {
+void WidebandSpectrum::on_message(const Message* const msg) {
+	const WidebandSpectrumConfigMessage message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
+	
+	switch(msg->id) {
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
-		channel_spectrum.on_message(message);
+		channel_spectrum.on_message(msg);
+		break;
+		
+	case Message::ID::WidebandSpectrumConfig:
+		baseband_fs = message.sampling_rate;
+		trigger = message.trigger;
+		baseband_thread.set_sampling_rate(baseband_fs);
+		configured = true;
 		break;
 
 	default:

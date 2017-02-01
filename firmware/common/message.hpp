@@ -83,6 +83,7 @@ public:
 		DTMFTXConfig = 39,
 		ADSBConfigure = 40,
 		JammerConfigure = 41,
+		WidebandSpectrumConfig = 42,
 		
 		POCSAGPacket = 50,
 		
@@ -230,6 +231,21 @@ public:
 	}
 
 	Mode mode { Mode::Stopped };
+};
+
+class WidebandSpectrumConfigMessage : public Message {
+public:
+	constexpr WidebandSpectrumConfigMessage (
+		size_t sampling_rate,
+		size_t trigger
+	) : Message { ID::WidebandSpectrumConfig },
+		sampling_rate { sampling_rate },
+		trigger { trigger }
+	{
+	}
+
+	size_t sampling_rate { 0 };
+	size_t trigger { 0 };
 };
 
 struct ChannelSpectrum {

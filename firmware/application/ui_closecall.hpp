@@ -29,9 +29,10 @@
 
 namespace ui {
 
-#define CC_SLICE_WIDTH	3072000		// Radio bandwidth
-#define CC_BIN_NB		256			// Total power bins
-#define CC_BIN_WIDTH	CC_SLICE_WIDTH/CC_BIN_NB
+#define CC_SLICE_WIDTH	2500000		// Radio bandwidth
+#define CC_BIN_NB		256			// Total power bins (skip 4 at center, 2*6 on sides)
+#define CC_BIN_NB_NO_DC	(CC_BIN_NB - 16)
+#define CC_BIN_WIDTH	(CC_SLICE_WIDTH / CC_BIN_NB)
 
 class CloseCallView : public View {
 public:
@@ -62,26 +63,28 @@ private:
 	};
 	
 	rf::Frequency f_min, f_max;
-	Coord last_pos = 0;
+	Coord last_pos { 0 };
 	ChannelSpectrumFIFO* fifo { nullptr };
-	uint8_t detect_counter = 0, release_counter = 0;
+	uint8_t detect_counter { 0 }, release_counter { 0 };
 	uint8_t slice_trim;
-	uint32_t mean = 0;
-	uint32_t min_threshold = 80;	// Todo: Put this in persistent / settings
+	uint32_t mean { 0 };
+	uint32_t min_threshold { 80 };	// Todo: Put this in persistent / settings
 	rf::Frequency slice_start;
 	rf::Frequency slice_frequency;
 	uint8_t slices_max;
 	uint8_t slices_counter;
-	uint16_t last_channel;
+	int16_t last_channel;
+	uint32_t weight { 0 };
+	uint64_t frequency_acc { 0 };
 	rf::Frequency scan_span, resolved_frequency;
 	uint16_t locked_imax;
-	uint8_t slicemax_db[32];		// Todo: Cap max slices !
-	uint8_t slicemax_idx[32];
+	uint8_t slicemax_pow[32];		// Todo: Cap max slices !
+	int16_t slicemax_idx[32];
 	uint8_t scan_counter;
-	SignalToken signal_token_tick_second;
-	bool ignore = true;
-	bool slicing;
-	bool locked = false;
+	SignalToken signal_token_tick_second { };
+	bool ignore { true };
+	bool slicing { false };
+	bool locked { false };
 	
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	void on_range_changed();
