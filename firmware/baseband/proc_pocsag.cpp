@@ -47,11 +47,12 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 	auto audio = demod.execute(channel_out, audio_buffer);
 	
-	// End up with 16 samples
+	// End up with 32 samples ?
 	for (uint32_t c = 0; c < 16; c++) {
 		
-		const int32_t audio_sample = audio.p[c] * 32768.0f;
-		//const int32_t audio_sample = __SSAT(sample_int, 16);
+		const int32_t sample_int = audio.p[c] * 32768.0f;
+		//const int32_t audio_sample = audio.p[c] * 32768.0f;
+		const int32_t audio_sample = __SSAT(sample_int, 16);
 		
 		slicer_sr <<= 1;
 		slicer_sr |= (audio_sample < 0);

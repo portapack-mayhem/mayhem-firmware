@@ -89,9 +89,8 @@ void SoundBoardView::prepare_audio() {
 void SoundBoardView::focus() {
 	buttons[0].focus();
 
-	if (!max_sound) {
+	if (!max_sound)
 		nav_.display_modal("No files", "No files in /wav/ directory", ABORT, nullptr);
-	}
 }
 
 void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
@@ -157,7 +156,7 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 		button.id = n_sound;
 		
 		if (n_sound < max_sound) {
-			button.set_text(sounds[n_sound].path.stem().string());
+			button.set_text(sounds[n_sound].path.stem().string().substr(0, 8));
 			button.set_style(styles[sounds[n_sound].path.stem().string()[0] & 3]);
 		} else {
 			button.set_text("- - -");
@@ -204,11 +203,11 @@ SoundBoardView::SoundBoardView(
 	
 	reader = std::make_unique<WAVFileReader>();
 	
-	file_list = scan_root_files(reinterpret_cast<const TCHAR*>("/wav"), ".WAV");
+	file_list = scan_root_files(u"wav", u"*.WAV");
 	
 	c = 0;
 	for (auto& path : file_list) {
-		if (reader->open(path)) {
+		if (reader->open(u"wav/" + path.native())) {
 			if (reader->channels() == 1) {
 				sounds[c].size = reader->data_size();
 				sounds[c].sample_duration = reader->data_size() / (reader->bits_per_sample() / 8);
@@ -234,7 +233,7 @@ SoundBoardView::SoundBoardView(
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
-		&options_ctcss,
+		//&options_ctcss,
 		&text_page,
 		&text_duration,
 		&pbar,
@@ -243,7 +242,7 @@ SoundBoardView::SoundBoardView(
 		&button_exit
 	});
 
-	ctcss_options.emplace_back(std::make_pair("None", 0));
+	/*ctcss_options.emplace_back(std::make_pair("None", 0));
 	
 	for (c = 0; c < CTCSS_TONES_NB; c++)
 		ctcss_options.emplace_back(std::make_pair(ctcss_tones[c].PL_code, c));
@@ -253,7 +252,7 @@ SoundBoardView::SoundBoardView(
 	options_ctcss.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_ctcss_changed(v);
 	};
-	options_ctcss.set_selected_index(0);
+	options_ctcss.set_selected_index(0);*/
 
 	const auto button_fn = [this](Button& button) {
 		tx_mode = NORMAL;

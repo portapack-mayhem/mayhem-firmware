@@ -69,19 +69,19 @@ private:
 		uint32_t ms_duration = 0;
 	};
 	
-	uint32_t sample_counter;
-	uint32_t sample_duration;
+	uint32_t sample_counter { 0 };
+	uint32_t sample_duration { 0 };
 	uint8_t page = 0;
 	
 	uint16_t lfsr_v = 0x1337;
 	
-	std::unique_ptr<WAVFileReader> reader;
+	std::unique_ptr<WAVFileReader> reader { };
 	
 	sound sounds[105];
-	uint8_t max_sound;
-	uint8_t max_page;
+	uint8_t max_sound { 0 };
+	uint8_t max_page { 0 };
 	
-	uint32_t _ctcss_freq;
+	uint32_t _ctcss_freq { 0 };
 
 	int8_t audio_buffer[1024];
 	
@@ -106,7 +106,7 @@ private:
 		.foreground = { 153, 102, 255 }
 	};
 
-	std::array<Button, 21> buttons;
+	std::array<Button, 21> buttons { };
 	const Style * styles[4] = { &style_a, &style_b, &style_c, &style_d };
 	
 	void on_tuning_frequency_changed(rf::Frequency f);

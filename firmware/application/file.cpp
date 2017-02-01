@@ -166,23 +166,15 @@ std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path 
 	}
 }
 
-std::vector<std::filesystem::path> scan_root_files(const TCHAR* directory, const std::string& extension) {
+std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory,
+	const std::filesystem::path& extension) {
+	
 	std::vector<std::filesystem::path> file_list { };
-	std::filesystem::path file_path;
-	FRESULT res;
-	DIR dir;
-	static FILINFO fno;
-
-	res = f_opendir(&dir, directory);
-	if (res == FR_OK) {
-		for (;;) {
-			res = f_readdir(&dir, &fno);
-			if (res != FR_OK || fno.fname[0] == 0) break;
-			file_path = fno.fname;
-			if (file_path.extension().string() == extension)
-				file_list.push_back(file_path);
+	
+	for(const auto& entry : std::filesystem::directory_iterator(directory, extension)) {
+		if( std::filesystem::is_regular_file(entry.status()) ) {
+			file_list.push_back(entry.path());
 		}
-		f_closedir(&dir);
 	}
 	
 	return file_list;

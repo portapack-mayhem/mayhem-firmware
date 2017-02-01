@@ -125,13 +125,13 @@ private:
 		data_t data;
 	};
 
-	header_t header;
+	header_t header { };
 
-	File file;
-	uint32_t data_start;
-	uint32_t bytes_per_sample;
-	uint32_t data_size_;
-	uint32_t sample_rate_;
+	File file { };
+	uint32_t data_start { };
+	uint32_t bytes_per_sample { };
+	uint32_t data_size_ { 0 };
+	uint32_t sample_rate_ { };
 	std::filesystem::path last_path { };
 };
 
