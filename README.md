@@ -33,18 +33,19 @@ Feature | Progress | Notes
 Jammer      | 95% | Need to make the different noise modes work
 RDS TX      | 90% | Needs testing for Radiotext and audio mux function
 POCSAG RX   | 90% | Still misses some messages
-Close-Call™ | 70% | Needs adjustments and optimization for wider frequency range
+Close-Call™ | 80% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
 Morse TX    | 30% | Needs UI and testing
 Wave visualizer | 30% | High priority
-ADS-B TX    | 20% | UI and frame gen stuff done
+ADS-B TX    | 30% | UI and frame gen stuff done
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
+Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
 ADS-B RX    | 0%  | Could be fun
 Search      | 0%  | Will be a special Close-Call mode
 Scanner     | 0%  | Easy
-Generic TXs | 0%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
+SSB TX      | 0%  | Requested
 PMR446 TX   | 0%  | Channel list, mic. in, PTT, CTCSS
 OOK RX      | 0%  | Mainly for 433MHz remotes
 POCSAG TX   | 0%  | Shouldn't be too tough, a real pager for testing would be nice
