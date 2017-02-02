@@ -83,7 +83,7 @@ private:
 	
 	uint32_t _ctcss_freq { 0 };
 
-	int8_t audio_buffer[1024];
+	int8_t audio_buffer[2048];
 	
 	Style style_a {
 		.font = font::fixed_8x16,

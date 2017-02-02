@@ -208,16 +208,16 @@ SoundBoardView::SoundBoardView(
 	c = 0;
 	for (auto& path : file_list) {
 		if (reader->open(u"wav/" + path.native())) {
-			if (reader->channels() == 1) {
+			if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
 				sounds[c].size = reader->data_size();
-				sounds[c].sample_duration = reader->data_size() / (reader->bits_per_sample() / 8);
+				sounds[c].sample_duration = reader->data_size(); // / (reader->bits_per_sample() / 8);
 				sounds[c].sample_rate = reader->sample_rate();
-				if (reader->bits_per_sample() > 8)
+				/*if (reader->bits_per_sample() > 8)
 					sounds[c].sixteenbit = true;
 				else
-					sounds[c].sixteenbit = false;
+					sounds[c].sixteenbit = false;*/
 				sounds[c].ms_duration = reader->ms_duration();
-				sounds[c].path = path;
+				sounds[c].path = u"wav/" + path.native();
 				c++;
 				if (c == 105) break;	// Limit to 105 files (5 pages)
 			}
@@ -233,7 +233,7 @@ SoundBoardView::SoundBoardView(
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
-		//&options_ctcss,
+		&options_ctcss,
 		&text_page,
 		&text_duration,
 		&pbar,
@@ -242,7 +242,7 @@ SoundBoardView::SoundBoardView(
 		&button_exit
 	});
 
-	/*ctcss_options.emplace_back(std::make_pair("None", 0));
+	ctcss_options.emplace_back(std::make_pair("None", 0));
 	
 	for (c = 0; c < CTCSS_TONES_NB; c++)
 		ctcss_options.emplace_back(std::make_pair(ctcss_tones[c].PL_code, c));
@@ -252,7 +252,7 @@ SoundBoardView::SoundBoardView(
 	options_ctcss.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_ctcss_changed(v);
 	};
-	options_ctcss.set_selected_index(0);*/
+	options_ctcss.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {
 		tx_mode = NORMAL;
