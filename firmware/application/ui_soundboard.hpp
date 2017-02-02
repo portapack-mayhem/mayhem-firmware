@@ -73,17 +73,15 @@ private:
 	uint32_t sample_duration { 0 };
 	uint8_t page = 0;
 	
-	uint16_t lfsr_v = 0x1337;
+	uint32_t lfsr_v = 0x13377331;
 	
 	std::unique_ptr<WAVFileReader> reader { };
 	
 	sound sounds[105];
-	uint8_t max_sound { 0 };
-	uint8_t max_page { 0 };
-	
-	uint32_t _ctcss_freq { 0 };
+	uint32_t max_sound { };
+	uint8_t max_page { };
 
-	int8_t audio_buffer[2048];
+	int8_t audio_buffer[1024];
 	
 	Style style_a {
 		.font = font::fixed_8x16,

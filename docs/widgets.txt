@@ -1,0 +1,171 @@
+~ Pretty ugly PortaPack H1 (+HAVOC) UI widget documentation ~
+              by @furrtek - v0.1 - 2017/02/02
+           Not approved at all by @Sharebrained
+
+The display is 240 x 320 pixels.
+
+A View is basically a rectangular zone on the screen.
+Widgets (aka controls, UI elements...) go into Views.
+
+Views can be pushed to/popped from a stack.
+The main menu view is at the bottom of the stack and can't be popped.
+The title bar view is a special case, it (normally) can't be hidden by pushed Views.
+Since the title bar is 16 pixel high, a regular full-screen view is 240 x 304 pixels.
+
+If the current View can be popped (removed), an arrow shows on the left of the title bar.
+
+Kind of widgets:
+
+==== Rectangle ====
+
+A simple filled or outlined rectangle. No interactivity.
+
+Constructors:
+- Empty
+- Rectangle(Rect, Color)
+
+Methods:
+- set_color(Color)
+- set_outline(bool): Default is filled, set to true for outline only
+
+==== Text ====
+
+A simple text label. No interactivity.
+
+Constructors:
+- Empty
+- Text(Rect)
+- Text(Rect, std::string)
+
+Methods:
+- set(std::string): Updates text
+
+==== BigFrequency (HAVOC) ====
+
+Displays a big 7-segment style frequency value in the XXXX.xxxMHz format.
+If the value is 0, ----.--- is displayed. No leading zeros. No interactivity.
+
+Constructors:
+- BigFrequency(Rect, rf::Frequency)
+
+Methods:
+- set(rf::Frequency): Updates value
+
+==== ProgressBar (HAVOC) ====
+
+Displays progress as an horizontal progress bar with value and maximum value.
+No interactivity.
+
+Constructors:
+- ProgressBar(Rect)
+
+Methods:
+- set_max(uint32_t): Updates maximum value
+- set_value(uint32_t): Updates current value
+
+The maximum value is set by default to 100.
+
+==== Console ====
+
+Displays a scrolling text console. No interactivity.
+
+Constructors:
+- Console(Rect)
+
+Methods:
+- clear(): Clears text and resets cursor to top-left
+- write(std::string): Adds text
+- writeln(std::string): Adds text and CR + LF
+
+==== Checkbox (HAVOC) ====
+
+A toggle option shown as a tickable box with a text label.
+Interactive: select and touch.
+
+Constructors:
+- Empty
+- Checkbox(Point, size_t, std::string)
+- Checkbox(Point, size_t, std::string, bool)
+
+(Position, length of text label, text, regular size/small)
+
+Methods:
+- bool value(): Returns state
+- set_text(std::string): Updates text label
+- set_value(bool): Sets state
+
+Callbacks:
+- on_select: Select key press or touch. Returns state
+
+==== Button ====
+
+A momentary push-button. Interactive: select and touch.
+
+Constructors:
+- Empty
+- Button(Rect, std::string)
+
+Methods:
+- std::string text(): Returns text
+- set_text(std::string): Updates text
+
+Callbacks:
+- on_select: Select key press or touch
+- on_dir: Direction keys press
+- on_highlight: Focus get
+
+==== Image ====
+
+Shows a 1-bit bitmap. No interactivity.
+
+Constructors:
+- Empty
+- Image(Rect, Bitmap*, Color, Color)
+
+(Rect, pointer to bitmap (see bitmap.hpp), foreground, background)
+
+Methods:
+- set_bitmap(Bitmap*): Updates bitmap
+- set_foreground(Color): Changes foreground color
+- set_background(Color): Changes background color
+- invert_colors(): Flip foreground color with background
+
+==== ImageButton ====
+
+Same as the Image widget, except interactive (select and touch). No methods.
+
+Constructors:
+- Empty
+- ImageButton(Rect, Bitmap*, Color, Color)
+
+(Rect, pointer to bitmap (see bitmap.hpp), foreground, background)
+
+Callbacks:
+- on_select: Select key press or touch
+
+==== ImageOptionsField (HAVOC) ====
+
+Options list displayed as images.
+Interactive: change (jog wheel) and focus.
+
+Constructors:
+- Empty
+- ImageOptionsField(Rect, options_t)
+
+options_t is a std::vector of std::pair of unsigned char pointers to color bitmap data and an int32_t
+
+Methods:
+- set_options(options_t)
+- size_t selected_index()
+- size_t selected_index_value()
+- set_selected_index(size_t)
+- set_by_value(value_t)
+
+Callbacks:
+- on_change: Option was changed
+- on_show_options: Focus get
+
+==== OptionsField ====
+==== NumberField ====
+==== SymField (HAVOC) ====
+==== Waveform (HAVOC) ====

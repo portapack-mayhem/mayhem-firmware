@@ -32,7 +32,8 @@
 #include <cstring>
 #include <stdio.h>
 
-#define JAMMER_CH_WIDTH 500000
+#define JAMMER_CH_WIDTH 1000000
+#define JAMMER_MAX_CH 24
 
 using namespace portapack;
 
@@ -95,7 +96,7 @@ void JammerView::update_button(const uint32_t n) {
 void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
 	if (freq) {
 		transmitter_model.set_tuning_frequency(freq);
-		text_range_number.set(to_string_dec_uint(range, 1));
+		text_range_number.set(to_string_dec_uint(range, 2));
 	}
 }
 	
@@ -148,8 +149,10 @@ JammerView::JammerView(NavigationView& nav) {
 			value_ptr = &frequency_range[id].min;
 		
 		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
-		new_view->on_changed = [this, value_ptr](rf::Frequency f) {
+		new_view->on_changed = [this, value_ptr, &button](rf::Frequency f) {
 			*value_ptr = f;
+			update_button(button.id);
+			update_range(button.id >> 1);
 		};
 	};
 	
@@ -235,10 +238,10 @@ JammerView::JammerView(NavigationView& nav) {
 		} else {
 			
 			// Disable all ranges by default
-			for (c = 0; c < 9; c++)
+			for (c = 0; c < JAMMER_MAX_CH; c++)
 				jammer_channels[c].enabled = false;
 			
-			// Generate jamming "channels", maximum: 9
+			// Generate jamming "channels", maximum: JAMMER_MAX_CH
 			// Convert ranges min/max to center/bw
 			for (size_t r = 0; r < 3; r++) {
 				
@@ -260,24 +263,24 @@ JammerView::JammerView(NavigationView& nav) {
 						} while (range_bw_sub >= JAMMER_CH_WIDTH);
 						ch_width = range_bw / num_channels;
 						for (c = 0; c < num_channels; c++) {
-							if (i >= 9) {
+							if (i >= JAMMER_MAX_CH) {
 								out_of_ranges = true;
 								break;
 							}
 							jammer_channels[i].enabled = true;
-							jammer_channels[i].width = ch_width;
+							jammer_channels[i].width = (ch_width * 0xFFFFFFULL) / 1536000;
 							jammer_channels[i].center = start_freq + (ch_width / 2) + (ch_width * c);
-							jammer_channels[i].duration = 15360 * options_hop.selected_index_value();
+							jammer_channels[i].duration = 30720 * options_hop.selected_index_value();
 							i++;
 						}
 					} else {
-						if (i >= 9) {
+						if (i >= JAMMER_MAX_CH) {
 							out_of_ranges = true;
 						} else {
 							jammer_channels[i].enabled = true;
-							jammer_channels[i].width = range_bw;
+							jammer_channels[i].width = (range_bw * 0xFFFFFFULL) / 1536000;
 							jammer_channels[i].center = start_freq + (range_bw / 2);
-							jammer_channels[i].duration = 15360 * options_hop.selected_index_value();
+							jammer_channels[i].duration = 30720 * options_hop.selected_index_value();
 							i++;
 						}
 					}
@@ -285,15 +288,15 @@ JammerView::JammerView(NavigationView& nav) {
 			}
 			
 			if (!out_of_ranges) {
-				text_range_total.set("/" + to_string_dec_uint(i, 1));
+				text_range_total.set("/" + to_string_dec_uint(i, 2));
 				
 				jamming = true;
 				button_transmit.set_style(&style_cancel);
 				button_transmit.set_text("STOP");
 				
-				transmitter_model.set_sampling_rate(1536000U);
+				transmitter_model.set_sampling_rate(3072000U);
 				transmitter_model.set_rf_amp(true);
-				transmitter_model.set_baseband_bandwidth(1750000);
+				transmitter_model.set_baseband_bandwidth(3500000U);
 				transmitter_model.set_tx_gain(47);
 				transmitter_model.enable();
 

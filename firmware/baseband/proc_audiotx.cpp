@@ -37,17 +37,12 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	//ai = 0;
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		// Audio preview sample generation: 1536000/divider = samplerate
+		// Audio preview sample generation @ 1536000/divider
 		if (!as) {
 			as = divider;
-			audio_fifo.out(sample);
+			audio_fifo.out(out_sample);
+			sample = (int32_t)out_sample;
 			//preview_audio_buffer.p[ai++] = sample << 8;
-			
-			if (ctcss_enabled) {
-				ctcss_sample = sine_table_i8[(ctcss_phase & 0x03FC0000) >> 18];
-				int16_t mix = (sample * 218) + (ctcss_sample * 37);		// ~15%
-				sample = mix >> 8;
-			}
 			
 			if ((audio_fifo.len() < 1024) && (asked == false)) {
 				// Ask application to fill up fifo
@@ -59,36 +54,38 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			as--;
 		}
 		
-		ctcss_phase += ctcss_phase_inc;
+		if (ctcss_enabled) {
+			ctcss_sample = sine_table_i8[(ctcss_phase & 0xFF000000U) >> 24];
+			sample_mixed = ((sample * 217) + (ctcss_sample * 38)) / 256;	// ~15%
+			ctcss_phase += ctcss_phase_inc;
+		} else {
+			sample_mixed = sample;
+		}
 		
 		// FM
-		frq = sample * bw;
+		delta = sample_mixed * fm_delta;
 		
-		phase = (phase + frq);
-		sphase = phase + (64 << 18);
+		phase += delta;
+		sphase = phase + (64 << 24);
 
-		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
 		
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		buffer.p[i] = {re, im};
 	}
 	
 	//AudioOutput::fill_audio_buffer(preview_audio_buffer, true);
 }
 
 void AudioTXProcessor::on_message(const Message* const msg) {
-	const auto message = static_cast<const AudioTXConfigMessage*>(msg);
+	const auto message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
 	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-
-			// 1<<18 = 262144
-			// m = (262144 * a) / 1536000
-			// a = 262144 / 1536000 (*1000 = 171)
-			bw = 171 * (message->bw);
-			divider = message->divider;
-			ctcss_phase_inc = message->ctcss_phase_inc;
-			ctcss_enabled = message->ctcss_enabled;
+			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
+			divider = message.divider;
+			ctcss_enabled = message.ctcss_enabled;
+			ctcss_phase_inc = message.ctcss_phase_inc;
 			as = 0;
 
 			configured = true;

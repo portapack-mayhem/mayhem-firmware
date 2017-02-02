@@ -352,8 +352,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<12>({ {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receiver,	[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",					ui::Color::blue(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<NotImplementedView>(); } },	//CaptureAppView
+		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Close Call",				ui::Color::orange(),&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },

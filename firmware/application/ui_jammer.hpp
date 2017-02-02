@@ -70,7 +70,7 @@ private:
 		// Free
 		{{ true, 945000000, 950000000 },	// GSM 900		BW:5M
 		{ false, 0, 0 },
-		{ true, 0, 0 }},
+		{ false, 0, 0 }},
 		
 		// GSM-R
 		{{ true, 921000000, 925000000 },	// GSM 900		BW:4M
@@ -174,12 +174,12 @@ private:
 	};
 	
 	Text text_range_number {
-		{ 18 * 8, 4, 1 * 8, 16 },
-		"-"
+		{ 18 * 8, 4, 2 * 8, 16 },
+		"--"
 	};
 	Text text_range_total {
-		{ 19 * 8, 4, 2 * 8, 16 },
-		"/-"
+		{ 20 * 8, 4, 3 * 8, 16 },
+		"/--"
 	};
 	
 	Text text_speed {

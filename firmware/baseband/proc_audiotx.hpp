@@ -38,19 +38,21 @@ private:
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	int8_t audio_fifo_data[2048];
+	int8_t audio_fifo_data[2048] { };
 	FIFO<int8_t> audio_fifo = { audio_fifo_data, 11 };	// 43ms @ 48000Hz
 	
-	uint32_t bw;
-	uint32_t divider;
-	uint8_t as = 0;
-	uint32_t ctcss_phase_inc;
-	bool ctcss_enabled;
+	uint32_t fm_delta { 0 };
+	uint32_t divider { };
+	uint32_t as { 0 };
+	bool ctcss_enabled { false };
+	uint32_t ctcss_phase_inc { };
+	uint32_t ctcss_phase { 0 }, phase { 0 }, sphase { 0 };
+	int8_t out_sample { };
+	int32_t ctcss_sample { 0 }, sample { 0 }, sample_mixed { }, delta { };
 	
-	int8_t re, im;
-	int8_t ctcss_sample, sample;
+	int8_t re { 0 }, im { 0 };
 	
-	bool asked = false;
+	bool asked { false };
 
 	//int16_t audio_data[64];
 	/*const buffer_s16_t preview_audio_buffer {
@@ -58,10 +60,7 @@ private:
 		sizeof(int16_t)*64
 	};*/
 	
-	FIFOSignalMessage sigmessage;
-	
-	uint32_t ctcss_phase, phase, sphase;
-	int32_t frq;
+	FIFOSignalMessage sigmessage { };
 };
 
 #endif

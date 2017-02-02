@@ -62,9 +62,9 @@ struct SharedMemory {
 	
 	union {
 		ToneData tones_data;
-		JammerChannel jammer_channels[9];
+		JammerChannel jammer_channels[24];
 		uint8_t data[512];
-	} bb_data { { { { 0, 0 } }, 0, { 0 } } };
+	} bb_data { { { { 0, 0 } }, 0, { 0 } } };	// { } ?
 };
 
 extern SharedMemory& shared_memory;

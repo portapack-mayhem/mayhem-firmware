@@ -36,7 +36,7 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 			// Find next enabled range
 			do {
 				current_range++;
-				if (current_range == 9) current_range = 0;
+				if (current_range == 24) current_range = 0;				// Warning ! Should match JAMMER_MAX_CH
 			} while (!jammer_channels[current_range].enabled);
 			
 			jammer_duration = jammer_channels[current_range].duration;

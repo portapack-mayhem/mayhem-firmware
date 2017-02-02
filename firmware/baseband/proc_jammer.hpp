@@ -36,7 +36,7 @@ public:
 private:
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	JammerChannel * jammer_channels {  };
 	

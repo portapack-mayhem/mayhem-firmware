@@ -38,11 +38,12 @@ using namespace portapack;
 namespace ui {
 
 void SoundBoardView::do_random() {
-	uint16_t id;
+	uint32_t id;
 	
-	chThdSleepMilliseconds(300);	// 300ms
+	chThdSleepMilliseconds(500);
 	
-	id = lfsr_iterate(lfsr_v) % max_sound;
+	lfsr_v = lfsr_iterate(lfsr_v);
+	id = lfsr_v % max_sound;
 
 	play_sound(id);
 	
@@ -67,7 +68,8 @@ void SoundBoardView::prepare_audio() {
 		} else {
 			pbar.set_value(0);
 			transmitter_model.disable();
-			do_random();
+			if (check_loop.value())
+				do_random();
 		}
 	}
 	
@@ -98,7 +100,7 @@ void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
 }
 
 void SoundBoardView::play_sound(uint16_t id) {
-	uint32_t ctcss_option;
+	uint32_t ctcss_index;
 	bool ctcss_enabled;
 	uint32_t divider;
 
@@ -122,9 +124,9 @@ void SoundBoardView::play_sound(uint16_t id) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	ctcss_option = options_ctcss.selected_index();
+	ctcss_index = options_ctcss.selected_index();
 	
-	if (ctcss_option)
+	if (ctcss_index)
 		ctcss_enabled = true;
 	else
 		ctcss_enabled = false;
@@ -133,9 +135,9 @@ void SoundBoardView::play_sound(uint16_t id) {
 	
 	baseband::set_audiotx_data(
 		divider,
-		number_bw.value(),
+		number_bw.value() * 1000,
 		ctcss_enabled,
-		(67109.0 * (float)_ctcss_freq)/1536000.0	// TODO: Might not be precise enough
+		(uint32_t)((ctcss_tones[ctcss_index].frequency / 1536000.0) * 0xFFFFFFFFULL)
 	);
 }
 
@@ -183,10 +185,6 @@ void SoundBoardView::change_page(Button& button, const KeyEvent key) {
 			refresh_buttons(button.id);
 		}
 	}
-}
-
-void SoundBoardView::on_ctcss_changed(uint32_t v) {
-	_ctcss_freq = v;
 }
 
 SoundBoardView::SoundBoardView(
@@ -249,9 +247,6 @@ SoundBoardView::SoundBoardView(
 	
 	options_ctcss.set_options(ctcss_options);
 	
-	options_ctcss.on_change = [this](size_t, OptionsField::value_t v) {
-		this->on_ctcss_changed(v);
-	};
 	options_ctcss.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {

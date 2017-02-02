@@ -30,9 +30,9 @@
 struct ctcss_tone {
 	char PL_code[3];
 	uint16_t num_code;
-	uint32_t frequency;		// Hz * 1000
+	float frequency;
 };
 
-extern ctcss_tone ctcss_tones[CTCSS_TONES_NB];
+extern const ctcss_tone ctcss_tones[CTCSS_TONES_NB];
 
 #endif/*__CTCSS_H_*/
