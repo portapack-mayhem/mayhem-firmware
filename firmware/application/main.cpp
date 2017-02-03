@@ -23,8 +23,6 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: Set description in frequency save makes everything go crazy
-//BUG: Distorted audio in WFM receiver
 //BUG: (fixed ?) POCSAG: Bad console scroll init
 //BUG: POCSAG misses alphanum messages, cuts them off sometimes
 //BUG: Check AFSK transmit end, skips last bits ?

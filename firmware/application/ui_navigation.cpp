@@ -352,17 +352,17 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<12>({ {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receiver,	[&nav](){ nav.push<ReceiverMenuView>(); } },
-		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<NotImplementedView>(); } },	//CaptureAppView
-		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },	//CaptureAppView
+		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Close Call",				ui::Color::orange(),&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
-		{ "Utilities",				ui::Color::purple(),nullptr,	[&nav](){ nav.push<UtilitiesView>(); } },
-		{ "Setup", 					ui::Color::white(),	nullptr,	[&nav](){ nav.push<SetupMenuView>(); } },
-		//{ "Debug", 					ui::Color::white(), nullptr,   	[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Utilities",				ui::Color::purple(),nullptr,				[&nav](){ nav.push<UtilitiesView>(); } },
+		{ "Setup", 					ui::Color::white(),	nullptr,				[&nav](){ nav.push<SetupMenuView>(); } },
+		//{ "Debug", 					ui::Color::white(), nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF mode", 			ui::Color::white(),	&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
-		{ "About", 					ui::Color::white(),	nullptr,	[&nav](){ nav.push<AboutView>(); } }
+		{ "About", 					ui::Color::white(),	nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	} });
 	
 	set_highlighted(1);		// Startup selection is "Receivers"

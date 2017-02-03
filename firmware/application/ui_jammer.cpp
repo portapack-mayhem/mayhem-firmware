@@ -76,21 +76,21 @@ void JammerView::update_range(const uint32_t n) {
 	texts_info[n].set(label);
 }
 
-void JammerView::update_button(const uint32_t n) {
+void JammerView::update_button(const uint32_t id) {
 	std::string label;
 	rf::Frequency f;
 	
-	if (n & 1)
-		f = frequency_range[n / 2].max;
+	if (id & 1)
+		f = frequency_range[id / 2].max;
 	else
-		f = frequency_range[n / 2].min;
+		f = frequency_range[id / 2].min;
 	
 	auto f_mhz = to_string_dec_int(f / 1000000, 4);
 	auto f_hz100 = to_string_dec_int((f / 1000) % 1000, 3, '0');
 
 	label = f_mhz + "." + f_hz100 + "M";
 	
-	buttons_freq[n].set_text(label);
+	buttons_freq[id].set_text(label);
 }
 
 void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
@@ -142,18 +142,21 @@ JammerView::JammerView(NavigationView& nav) {
 	
 	const auto button_freq_fn = [this, &nav](Button& button) {
 		rf::Frequency * value_ptr;
+		uint32_t id = button.id;
 		
-		if (button.id & 1)
-			value_ptr = &frequency_range[id].max;
+		if (id & 1)
+			value_ptr = &frequency_range[id >> 1].max;
 		else
-			value_ptr = &frequency_range[id].min;
+			value_ptr = &frequency_range[id >> 1].min;
 		
 		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
-		new_view->on_changed = [this, value_ptr, &button](rf::Frequency f) {
+		new_view->on_changed = [this, value_ptr, id](rf::Frequency f) {
 			*value_ptr = f;
-			update_button(button.id);
-			update_range(button.id >> 1);
+			update_button(id);
+			update_range(id >> 1);
 		};
+		
+		update_button(id);
 	};
 	
 	const auto checkbox_fn = [this](Checkbox& checkbox, bool v) {
