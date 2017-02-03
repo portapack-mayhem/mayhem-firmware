@@ -89,9 +89,15 @@ void MenuItemView::paint(Painter& painter) {
 /* MenuView **************************************************************/
 
 MenuView::MenuView(
+	Rect new_parent_rect,
 	bool keep_highlight
 ) : keep_highlight_ { keep_highlight }
 {
+	View::set_parent_rect(new_parent_rect);
+	
+	displayed_max_ = (parent_rect().size().height() / 24);
+	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
+	
 	set_focusable(true);
 	
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
@@ -105,6 +111,7 @@ MenuView::MenuView(
 }
 
 MenuView::~MenuView() {
+	clear();
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
@@ -120,19 +127,15 @@ void MenuView::on_tick_second() {
 }
 
 void MenuView::clear() {
-	children_.erase(children_.begin() + 1, children_.end());
+	for (auto child : children_) {
+		if (!child->id) {
+			delete child;
+		}
+	}
 }
 
 void MenuView::add_item(const MenuItem item) {
 	add_child(new MenuItemView { item, keep_highlight_ });
-}
-
-void MenuView::set_parent_rect(const Rect new_parent_rect) {
-	View::set_parent_rect(new_parent_rect);
-	
-	displayed_max_ = new_parent_rect.size().height() / 24;
-	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
-	
 	update_items();
 }
 
@@ -175,13 +178,14 @@ size_t MenuView::highlighted() const {
 
 bool MenuView::set_highlighted(int32_t new_value) {
 	int32_t item_count = (int32_t)children_.size() - 1;
+	
 	if (new_value < 0)
 		return false;
 	
 	if (new_value >= item_count)
 		new_value = item_count - 1;
 	
-	if ((new_value > offset_) && ((new_value - offset_ + 1) >= displayed_max_)) {
+	if ((new_value > offset_) && ((new_value - offset_) >= displayed_max_)) {
 		// Shift MenuView up
 		offset_ = new_value - displayed_max_ + 1;
 		update_items();
@@ -191,9 +195,9 @@ bool MenuView::set_highlighted(int32_t new_value) {
 		update_items();
 	}
 
-	item_view(highlighted())->unhighlight();
+	item_view(highlighted_)->unhighlight();
 	highlighted_ = new_value;
-	item_view(highlighted())->highlight();
+	item_view(highlighted_)->highlight();
 
 	return true;
 }

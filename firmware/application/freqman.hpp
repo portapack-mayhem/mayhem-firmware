@@ -42,11 +42,17 @@ struct freqman_entry {
 	rf::Frequency value;
 	std::string frequency_str;
 	std::string description;
+	int32_t category_id;
 };
 
-bool load_freqman_file(std::vector<freqman_entry> &frequencies);
-bool save_freqman_file(std::vector<freqman_entry> &frequencies);
+struct freqman_db {
+	std::vector<freqman_entry> entries;
+	std::vector<std::string> categories;
+};
+
+bool load_freqman_file(freqman_db &db);
+bool save_freqman_file(freqman_db &db);
 bool create_freqman_file(File &freqs_file);
-std::string freqman_item_string(freqman_entry &frequencies);
+std::string freqman_item_string(freqman_entry &item);
 
 #endif/*__FREQMAN_H__*/

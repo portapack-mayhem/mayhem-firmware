@@ -48,12 +48,13 @@ private:
 	rtc::RTC datetime { };
 	rf::Frequency value_ { };
 	std::string str_timestamp { };
+	//int32_t category_id_ { -1 };
 	
 	void on_save_name(NavigationView& nav);
 	void on_save_timestamp(NavigationView& nav);
 	void on_tick_second();
 	
-	std::vector<freqman_entry> frequencies { };
+	freqman_db database { };
 	
 	SignalToken signal_token_tick_second { };
 	
@@ -63,20 +64,30 @@ private:
 	};
 	
 	Text text_save {
-		{ 88, 120, 8 * 8, 16 },
+		{ 4 * 8, 15 * 8, 8 * 8, 16 },
 		"Save as:",
 	};
 	Button button_save_name {
-		{ 72, 144, 96, 32 },
+		{ 4 * 8, 18 * 8, 12 * 8, 32 },
 		"Name (set)"
 	};
 	Button button_save_timestamp {
-		{ 72, 184, 96, 32 },
+		{ 4 * 8, 23 * 8, 12 * 8, 32 },
 		"Timestamp:"
 	};
 	Text text_timestamp {
-		{ 76, 220, 11 * 8, 16 },
+		{ 17 * 8, 24 * 8, 11 * 8, 16 },
 		"MM/DD HH:MM",
+	};
+	
+	Text text_category {
+		{ 4 * 8, 28 * 8, 12 * 8, 16 },
+		"In category:",
+	};
+	OptionsField options_category {
+		{ 17 * 8, 28 * 8 },
+		8,
+		{ }
 	};
 
 	Button button_cancel {
@@ -102,9 +113,12 @@ private:
 	void on_frequency_select();
 	void setup_list();
 	
-	std::vector<freqman_entry> frequencies { };
+	freqman_db database { };
 	
-	MenuView menu_view { };
+	MenuView menu_view {
+		{ 0, 0, 240, 216 },
+		false
+	};
 	
 	Button button_cancel {
 		{ 72, 264, 96, 32 },
@@ -130,31 +144,45 @@ private:
 	void on_edit_freq(rf::Frequency f);
 	void on_edit_desc(NavigationView& nav);
 	void on_delete();
+	void on_edit_category(int32_t category_id);
 	void setup_list();
 	
-	std::vector<freqman_entry> frequencies { };
+	freqman_db database { };
 
-	MenuView menu_view { true };
+	MenuView menu_view {
+		{ 0, 0, 240, 168 },
+		true
+	};
 
 	Text text_edit {
-		{ 16, 194, 5 * 8, 16 },
+		{ 2 * 8, 24 * 8, 5 * 8, 16 },
 		"Edit:"
 	};
 	Button button_edit_freq {
-		{ 16, 194 + 16, 104, 32 },
+		{ 2 * 8, 26 * 8, 14 * 8, 32 },
 		"Frequency"
 	};
 	Button button_edit_desc {
-		{ 16, 194 + 16 + 34, 104, 32 },
+		{ 2 * 8, 30 * 8 + 4, 14 * 8, 32 },
 		"Description"
 	};
+	Text text_category {
+		{ 2 * 8, 35 * 8, 9 * 8, 16 },
+		"Category:",
+	};
+	OptionsField options_category {
+		{ 12 * 8, 35 * 8 },
+		8,
+		{ }
+	};
+	
 	Button button_del {
-		{ 160, 192, 72, 64 },
+		{ 20 * 8, 24 * 8, 9 * 8, 48 },
 		"Delete"
 	};
 	
 	Button button_exit {
-		{ 160, 264, 72, 32 },
+		{ 20 * 8, 33 * 8, 9 * 8, 40 },
 		"Exit"
 	};
 };

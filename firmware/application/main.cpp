@@ -31,8 +31,10 @@
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 
+//TODO: FreqMan: Add and rename categories
+//TODO: FreqMan: Sort by category in edit screen
+//TODO: FreqMan: Cap entry count per category (only done for total entries right now)
 //TODO: Script engine ?
-//TODO: Morse coder for foxhunts
 //TODO: Close Call multiple slices (buggy)
 //TODO: Finish EPAR tx
 //TODO: IQ replay

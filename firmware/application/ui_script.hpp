@@ -63,7 +63,10 @@ private:
 	
 	std::vector<script_line> script { };
 
-	MenuView menu_view { true };
+	MenuView menu_view {
+		{ 0, 0, 240, 168 },
+		true
+	};
 
 	Text text_edit {
 		{ 16, 194, 5 * 8, 16 },

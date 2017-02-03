@@ -71,7 +71,7 @@ class MenuView : public View {
 public:
 	std::function<void(void)> on_left { };
 
-	MenuView(bool keep_highlight = false);
+	MenuView(Rect new_parent_rect = { 0, 0, 240, 304 }, bool keep_highlight = false);
 	
 	~MenuView();
 
@@ -84,8 +84,6 @@ public:
 			add_item(item);
 		}
 	}
-
-	void set_parent_rect(const Rect new_parent_rect) override;
 	
 	MenuItemView* item_view(size_t index) const;
 
@@ -96,7 +94,6 @@ public:
 	void on_blur() override;
 	bool on_key(const KeyEvent event) override;
 	bool on_encoder(const EncoderEvent event) override;
-	//bool on_touch(const TouchEvent event) override;
 
 private:
 	void update_items();
@@ -116,7 +113,7 @@ private:
 	const size_t item_height = 24;
 	bool blink_ = false;
 	bool more_ = false;
-	size_t displayed_max_;
+	size_t displayed_max_ { 0 };
 	size_t highlighted_ { 0 };
 	size_t offset_ { 0 };
 };
