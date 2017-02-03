@@ -98,7 +98,7 @@ private:
 	};
 	Image bmp_speaker {
 		{ 204, 8, 16, 16 },
-		&bitmap_speaker,
+		&bitmap_icon_speaker,
 		ui::Color::white(),
 		ui::Color::black()
 	};

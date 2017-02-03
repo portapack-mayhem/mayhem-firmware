@@ -71,7 +71,7 @@ private:
 		{ 8, 0, 232, 16 }
 	};
 
-	std::array<Button, 40> buttons;
+	std::array<Button, 40> buttons { };
 
 	Button button_lowercase {
 		{ 21 * 8, 270, 32, 24 },

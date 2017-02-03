@@ -88,9 +88,9 @@ SystemStatusView::SystemStatusView() {
 	title.set_style(&style_systemstatus);
 	
 	if (!portapack::persistent_memory::ui_config_textentry())
-		button_textentry.set_bitmap(&bitmap_keyboard);
+		button_textentry.set_bitmap(&bitmap_icon_keyboard);
 	else
-		button_textentry.set_bitmap(&bitmap_unistroke);
+		button_textentry.set_bitmap(&bitmap_icon_unistroke);
 	
 	if (portapack::persistent_memory::stealth_mode())
 		button_stealth.set_foreground(ui::Color::green());
@@ -152,9 +152,9 @@ void SystemStatusView::on_textentry() {
 	portapack::persistent_memory::set_config_textentry(cfg ^ 1);
 	
 	if (!cfg)
-		button_textentry.set_bitmap(&bitmap_unistroke);
+		button_textentry.set_bitmap(&bitmap_icon_unistroke);
 	else
-		button_textentry.set_bitmap(&bitmap_keyboard);
+		button_textentry.set_bitmap(&bitmap_icon_keyboard);
 }
 
 void SystemStatusView::on_camera() {
@@ -292,7 +292,7 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 		{ "CCIR", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Nordic/BTLE", 			ui::Color::grey(),	&bitmap_icon_nordic,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "POCSAG", 				ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<POCSAGAppView>(); } },
-		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_foxhunt,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "Transponders", 			ui::Color::green(),	nullptr,	[&nav](){ nav.push<TranspondersMenuView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
@@ -351,7 +351,7 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items<12>({ {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
-		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receiver,	[&nav](){ nav.push<ReceiverMenuView>(); } },
+		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::cyan(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },	//CaptureAppView
 		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },

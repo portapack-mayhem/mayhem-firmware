@@ -72,7 +72,7 @@ private:
 
 	ImageButton button_back {
 		{ 2, 0 * 16, 16, 16 },
-		&bitmap_previous,
+		&bitmap_icon_previous,
 		Color::white(),
 		Color::dark_grey()
 	};
@@ -84,28 +84,28 @@ private:
 	
 	ImageButton button_stealth {
 		{ 152, 0, 2 * 8, 1 * 16 },
-		&bitmap_stealth,
+		&bitmap_icon_stealth,
 		Color::light_grey(),
 		Color::dark_grey()
 	};
 	
 	ImageButton button_textentry {
 		{ 170, 0, 2 * 8, 1 * 16 },
-		&bitmap_unistroke,
+		&bitmap_icon_unistroke,
 		Color::white(),
 		Color::dark_grey()
 	};
 
 	ImageButton button_camera {
 		{ 188, 0, 2 * 8, 1 * 16 },
-		&bitmap_camera,
+		&bitmap_icon_camera,
 		Color::white(),
 		Color::dark_grey()
 	};
 
 	ImageButton button_sleep {
 		{ 206, 0, 2 * 8, 1 * 16 },
-		&bitmap_sleep,
+		&bitmap_icon_sleep,
 		Color::white(),
 		Color::dark_grey()
 	};
