@@ -111,7 +111,11 @@ MenuView::MenuView(
 }
 
 MenuView::~MenuView() {
-	clear();
+	for (auto child : children_) {
+		if (!child->id) {
+			delete child;
+		}
+	}
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
@@ -129,7 +133,7 @@ void MenuView::on_tick_second() {
 void MenuView::clear() {
 	for (auto child : children_) {
 		if (!child->id) {
-			delete child;
+			remove_child(child);
 		}
 	}
 }

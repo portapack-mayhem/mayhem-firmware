@@ -50,8 +50,8 @@ private:
 	std::string str_timestamp { };
 	//int32_t category_id_ { -1 };
 	
-	void on_save_name(NavigationView& nav);
-	void on_save_timestamp(NavigationView& nav);
+	void on_save_name(char * name);
+	void on_save_timestamp();
 	void on_tick_second();
 	
 	freqman_db database { };

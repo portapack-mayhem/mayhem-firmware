@@ -31,24 +31,23 @@ using namespace portapack;
 
 namespace ui {
 
-void FrequencySaveView::on_save_name(NavigationView& nav) {
-	// TODO: Here be a bug.
-	textentry(nav, desc_buffer, 28);
-	database.entries.push_back({ value_, "", desc_buffer, (int32_t)options_category.selected_index_value() });
-	nav.pop();
+void FrequencySaveView::on_save_name(char * name) {
+	database.entries.push_back({ value_, "", name, (int32_t)options_category.selected_index_value() });
+	nav_.pop();
 }
 
-void FrequencySaveView::on_save_timestamp(NavigationView& nav) {
+void FrequencySaveView::on_save_timestamp() {
 	database.entries.push_back({ value_, "", str_timestamp, (int32_t)options_category.selected_index_value() });
-	nav.pop();
+	nav_.pop();
 }
 
 void FrequencySaveView::focus() {
 	if (error == ERROR_ACCESS) {
 		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	} else if (error == ERROR_DUPLICATE) {
+		nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
+		error = NO_ERROR;
 	} else {
-		if (error == ERROR_DUPLICATE)
-			nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
 		button_save_timestamp.focus();
 	}
 }
@@ -120,10 +119,12 @@ FrequencySaveView::FrequencySaveView(
 	big_display.set(value);
 	
 	button_save_name.on_select = [this, &nav](Button&) {
-		on_save_name(nav);
+		textentry(nav, desc_buffer, 28, [this](char * buffer) {
+				on_save_name(buffer);
+			});
 	};
 	button_save_timestamp.on_select = [this, &nav](Button&) {
-		on_save_timestamp(nav);
+		on_save_timestamp();
 	};
 	
 	button_cancel.on_select = [this, &nav](Button&) {
@@ -216,6 +217,7 @@ void FreqManView::on_edit_desc(NavigationView& nav) {
 }
 
 void FreqManView::on_delete() {
+	size_t n;
 	database.entries.erase(database.entries.begin() + menu_view.highlighted());
 	setup_list();
 }
@@ -240,7 +242,7 @@ void FreqManView::setup_list() {
 		});
 	}
 	
-	menu_view.set_highlighted(menu_view.highlighted());		// Refresh
+	menu_view.set_highlighted(0);		// Refresh
 }
 
 void FreqManView::focus() {
