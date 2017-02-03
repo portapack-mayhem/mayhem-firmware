@@ -203,7 +203,7 @@ void FreqManView::on_frequency_select() {
 
 void FreqManView::on_edit_freq(rf::Frequency f) {
 	database.entries[menu_view.highlighted()].value = f;
-	setup_list();
+	//setup_list();
 }
 
 void FreqManView::on_edit_desc(NavigationView& nav) {
@@ -212,14 +212,13 @@ void FreqManView::on_edit_desc(NavigationView& nav) {
 	strcpy(desc_buffer, database.entries[menu_view.highlighted()].description.c_str());
 	textentry(nav, desc_buffer, 28, [this, &desc_buffer](char * buffer) {
 				database.entries[menu_view.highlighted()].description = buffer;
-				setup_list();
+				//setup_list();
 			});
 }
 
 void FreqManView::on_delete() {
-	size_t n;
 	database.entries.erase(database.entries.begin() + menu_view.highlighted());
-	setup_list();
+	//setup_list();
 }
 
 void FreqManView::on_edit_category(int32_t category_id) {
