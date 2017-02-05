@@ -98,7 +98,7 @@ private:
 									{"Rainer Matla",		"Keld Norman",				TITLE},
 									{"Sigmounte",			"Waax",						TITLE},
 									{"Windyoona",			"Channels",					TITLE_LF},
-									{"",					"MMXVI",					END}
+									{"",					"MMXVII",					END}
 									};
 
 	std::array<Text, 10> text_line { };
