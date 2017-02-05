@@ -29,13 +29,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#define POCSAG_AUDIO_RATE		24000
-
-#define POCSAG_SYNC		0x7CD215D8
-#define POCSAG_IDLE		0x7A89C197
-#define POCSAG_PREAMBLE_LENGTH	576
-#define POCSAG_BATCH_LENGTH		(9 * 32)
-
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	// This is called at 1500Hz
 	
@@ -46,12 +39,11 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 	auto audio = demod.execute(channel_out, audio_buffer);
+	//audio_output.write(audio);
 	
-	// End up with 32 samples ?
 	for (uint32_t c = 0; c < 16; c++) {
 		
 		const int32_t sample_int = audio.p[c] * 32768.0f;
-		//const int32_t audio_sample = audio.p[c] * 32768.0f;
 		const int32_t audio_sample = __SSAT(sample_int, 16);
 		
 		slicer_sr <<= 1;
@@ -84,23 +76,22 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 					break;
 				
 				case PREAMBLE:
-					if (sync_timeout < POCSAG_PREAMBLE_LENGTH) {
+					if (sync_timeout < POCSAG_TIMEOUT) {
 						sync_timeout++;
 
 						if (rx_data == POCSAG_SYNC) {
 							packet.clear();
-							frame_counter = 0;
+							codeword_count = 0;
 							rx_bit = 0;
 							msg_timeout = 0;
-							last_rx_data = rx_data;
 							rx_state = SYNC;
-						} else if (rx_data == POCSAG_IDLE) {
-							push_packet(pocsag::PacketFlag::IDLE);
+						} /*else if (rx_data == POCSAG_IDLE) {
 							rx_state = WAITING;
-						}
+						}*/
 						
 					} else {
 						rx_state = WAITING;		// Timed out: abort
+						push_packet(pocsag::PacketFlag::TOO_LONG);	// DEBUG
 					}
 					break;
 				
@@ -116,29 +107,18 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 							
 							//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
 							
-							packet.set(frame_counter, rx_data);
+							packet.set(codeword_count, rx_data);
 							
-							if ((rx_data == POCSAG_IDLE) && (!(last_rx_data & 0x80000000))) {
-								// SYNC then IDLE always means end of message ?
-								if (frame_counter)
-									push_packet(pocsag::PacketFlag::NORMAL);
-								else
-									push_packet(pocsag::PacketFlag::IDLE);
-								rx_state = WAITING;
+							if (codeword_count < 15) {
+								codeword_count++;
 							} else {
-								if (frame_counter < 15) {
-									frame_counter++;
-								} else {
-									// More than 17-1 codewords
-									push_packet(pocsag::PacketFlag::TOO_LONG);
-									rx_state = WAITING;
-								}
+								push_packet(pocsag::PacketFlag::NORMAL);
+								rx_state = WAITING;
 							}
-							
-							last_rx_data = rx_data;
 						}
 					} else {
 						// Timed out (no end of message received)
+						packet.set(0, codeword_count);	// DEBUG
 						push_packet(pocsag::PacketFlag::TIMED_OUT);
 						rx_state = WAITING;
 					}
@@ -180,6 +160,7 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 	channel_filter.configure(taps_11k0_channel.taps, 2);
 	demod.configure(demod_input_fs, 4500);
+	//audio_output.configure(false);
 
 	bitrate = message.bitrate;
 	sphase_delta = 0x10000u * bitrate / POCSAG_AUDIO_RATE;

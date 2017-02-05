@@ -24,46 +24,19 @@
 
 #include "baseband_api.hpp"
 
+#include "audio.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 using namespace portapack;
+using namespace pocsag;
 
+#include "pocsag.hpp"
 #include "string_format.hpp"
 
 #include "utility.hpp"
 
-#define POCSAG_SYNC     0x7CD215D8
-#define POCSAG_IDLE		0x7A89C197
-
-namespace pocsag {
-
-namespace format {
-
-static std::string bitrate_str(BitRate bitrate) {
-	switch (bitrate) {
-		case BitRate::FSK512:	return "512 ";
-		case BitRate::FSK1200:	return "1200";
-		case BitRate::FSK2400:	return "2400";
-		default:				return "????";
-	}
-}
-
-static std::string flag_str(PacketFlag packetflag) {
-	switch (packetflag) {
-		case PacketFlag::NORMAL:	return "OK";
-		case PacketFlag::IDLE:		return "IDLE";
-		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
-		case PacketFlag::TOO_LONG:	return "TOO LONG";
-		default:					return "";
-	}
-}
-
-} /* namespace format */
-
-} /* namespace pocsag */
-
 void POCSAGLogger::on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
-	std::string entry = pocsag::format::bitrate_str(packet.bitrate()) + " " + to_string_dec_uint(frequency) + "Hz ";
+	std::string entry = pocsag::bitrate_str(packet.bitrate()) + " " + to_string_dec_uint(frequency) + "Hz ";
 	
 	// Raw hex dump of all the codewords
 	for (size_t c = 0; c < 16; c++)
@@ -117,16 +90,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&check_log,
 		&console
 	});
-
-	radio::enable({
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga())
-	});
 	
 	check_log.set_value(logging);
 	check_log.on_select = [this](Checkbox&, bool v) {
@@ -153,11 +116,20 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	logger = std::make_unique<POCSAGLogger>();
 	if (logger) logger->append("pocsag.txt");
 	
+	receiver_model.set_sampling_rate(3072000);
+	receiver_model.set_baseband_bandwidth(1750000);
+	receiver_model.enable();
+	
+	const auto new_volume = volume_t::decibel(60 - 99) + audio::headphone::volume_range().max;
+	receiver_model.set_headphone_volume(new_volume);
+	audio::output::start();
+	
 	baseband::set_pocsag(pocsag::BitRate::FSK1200);
 }
 
 POCSAGAppView::~POCSAGAppView() {
-	radio::disable();
+	audio::output::stop();
+	receiver_model.disable();
 	baseband::shutdown();
 }
 
@@ -165,89 +137,63 @@ void POCSAGAppView::focus() {
 	options_freq.focus();
 }
 
+// Useless ?
 void POCSAGAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 }
 
 void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
-	bool eom = false;
-	uint32_t codeword;
 	std::string alphanum_text = "";
-	char ascii_char;
 	
-	for (size_t i = 0; i < 16; i++) {
-		codeword = message->packet[i];
-		
-		if (codeword & 0x80000000U) {
-			// Message
-			ascii_data |= ((codeword >> 11) & 0xFFFFF);
-			ascii_idx += 20;
-			
-			// Raw 20 bits to 7 bit reversed ASCII
-			while (ascii_idx >= 7) {
-				ascii_idx -= 7;
-				ascii_char = (ascii_data >> ascii_idx) & 0x7F;
-				
-				// Bottom's up
-				ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;	// 01234567 -> 45670123
-				ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 45670123 -> 67452301
-				ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 67452301 -> *7654321
-   
-				// Translate non-printable chars
-				if ((ascii_char < 32) || (ascii_char > 126))
-					output_text += "[" + to_string_dec_uint(ascii_char) + "]";
-				else
-					output_text += ascii_char;
-
-			}
-			ascii_data = ascii_data << 20;
-		} else {
-			// Address
-			if ((codeword == POCSAG_IDLE) || (codeword == POCSAG_SYNC)) {
-				eom = true;
-			} else {
-				if ((codeword) && (!address)) {
-					// Set address if none set and codeword is valid
-					function = (codeword >> 11) & 3;
-					address = ((codeword >> 10) & 0x1FFFF8) | ((codeword >> 1) & 7);
-				}
-			}
-		}
+	// Log raw data
+	if (logger && logging) logger->on_packet(message->packet, target_frequency());
+	
+	if (message->packet.flag() != NORMAL) {
+		console.writeln(
+			"RX ERROR: " + pocsag::flag_str(message->packet.flag()) +
+			" Codewords: " + to_string_dec_uint(message->packet[0])
+		);
 	}
 	
-	if (logger && logging) logger->on_packet(message->packet, target_frequency());
+	bool result = decode_batch(message->packet, &pocsag_state);
 
-	if (eom) {
+	if (result) {
 		std::string console_info;
 		
-		console_info = to_string_time(message->packet.timestamp()) + " ";
+		if (pocsag_state.out_type == ADDRESS) {
+			// Address only
+			console_info = to_string_time(message->packet.timestamp()) + " ";
+			console_info += pocsag::bitrate_str(message->packet.bitrate()) + " ";
+			console_info += "ADDR:" + to_string_dec_uint(pocsag_state.address);
+			console_info += " F" + to_string_dec_uint(pocsag_state.function);
+			
+			console.writeln(console_info);
+			
+			if (logger) logger->on_decoded(message->packet, console_info, pocsag_state.output);
+			
+			last_address = pocsag_state.address;
+		} else if (pocsag_state.out_type == MESSAGE) {
+			if (pocsag_state.address != last_address) {
+				// New message
+				console_info = to_string_time(message->packet.timestamp()) + " ";
+				console_info += pocsag::bitrate_str( message->packet.bitrate()) + " ";
+				console_info += "ADDR:" + to_string_dec_uint(pocsag_state.address);
+				console_info += " F" + to_string_dec_uint(pocsag_state.function);
+				
+				console.writeln(console_info);
+				
+				console.writeln("Alpha:" + pocsag_state.output);
+				
+				if (logger) logger->on_decoded(message->packet, console_info, pocsag_state.output);
+				
+				last_address = pocsag_state.address;
+			} else {
+				// Message continues...
+			}
+		} else if (pocsag_state.out_type == EMPTY)
+			console.writeln("-");
 		
-		if (address || function) {
-			console_info += pocsag::format::bitrate_str( message->packet.bitrate()) + " ";
-			console_info += pocsag::format::flag_str(message->packet.flag()) + " ";
-			console_info += "ADDR:" + to_string_dec_uint(address) + " F:" + to_string_dec_uint(function);
-			
-			console.writeln(console_info);
-			
-			if (output_text != "") console.writeln("Alpha:" + output_text);
-			
-			if (logger) logger->on_decoded(message->packet, console_info, output_text);
-			
-		} else {
-			console_info += pocsag::format::bitrate_str(message->packet.bitrate()) + " ";
-			console_info += pocsag::format::flag_str(message->packet.flag());
-			
-			console.writeln(console_info);
-		}
-
-		output_text = "";
-		ascii_idx = 0;
-		ascii_data = 0;
-		batch_cnt = 0;
-		address = 0;
-		function = 0;
-	} else {
-		batch_cnt++;
+		console.write(pocsag_state.output);
 	}
 }
 
@@ -267,15 +213,11 @@ void POCSAGAppView::on_band_changed(const uint32_t new_band_frequency) {
 
 void POCSAGAppView::set_target_frequency(const uint32_t new_value) {
 	target_frequency_ = new_value;
-	radio::set_tuning_frequency(tuning_frequency());
+	receiver_model.set_tuning_frequency(new_value);
 }
 
 uint32_t POCSAGAppView::target_frequency() const {
 	return target_frequency_;
-}
-
-uint32_t POCSAGAppView::tuning_frequency() const {
-	return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

@@ -34,7 +34,9 @@
 
 #include "pocsag_packet.hpp"
 
+#include "pocsag.hpp"
 #include "message.hpp"
+#include "audio_output.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstdint>
@@ -77,6 +79,8 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	dsp::demodulate::FM demod { };
+	
+	//AudioOutput audio_output { };
 
 	uint32_t sync_timeout { 0 };
 	uint32_t msg_timeout { 0 };
@@ -87,12 +91,11 @@ private:
 	uint32_t sphase_delta_half { 0 };
 	uint32_t sphase_delta_eighth { 0 };
 	uint32_t rx_data { 0 };
-	uint32_t last_rx_data { 0 };
 	uint32_t rx_bit { 0 };
 	bool configured = false;
 	rx_states rx_state { WAITING };
 	pocsag::BitRate bitrate { pocsag::BitRate::FSK1200 };
-	uint32_t frame_counter { 0 };
+	uint32_t codeword_count { 0 };
 	pocsag::POCSAGPacket packet { };
 	
 	void push_packet(pocsag::PacketFlag flag);

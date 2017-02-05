@@ -2516,6 +2516,33 @@ __/common/png_writer.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/png_writer.cpp.s
 .PHONY : __/common/png_writer.cpp.s
 
+__/common/pocsag.obj: __/common/pocsag.cpp.obj
+
+.PHONY : __/common/pocsag.obj
+
+# target to build an object file
+__/common/pocsag.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag.cpp.obj
+.PHONY : __/common/pocsag.cpp.obj
+
+__/common/pocsag.i: __/common/pocsag.cpp.i
+
+.PHONY : __/common/pocsag.i
+
+# target to preprocess a source file
+__/common/pocsag.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag.cpp.i
+.PHONY : __/common/pocsag.cpp.i
+
+__/common/pocsag.s: __/common/pocsag.cpp.s
+
+.PHONY : __/common/pocsag.s
+
+# target to generate assembly for a file
+__/common/pocsag.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag.cpp.s
+.PHONY : __/common/pocsag.cpp.s
+
 __/common/pocsag_packet.obj: __/common/pocsag_packet.cpp.obj
 
 .PHONY : __/common/pocsag_packet.obj
@@ -5571,6 +5598,9 @@ help:
 	@echo "... __/common/png_writer.obj"
 	@echo "... __/common/png_writer.i"
 	@echo "... __/common/png_writer.s"
+	@echo "... __/common/pocsag.obj"
+	@echo "... __/common/pocsag.i"
+	@echo "... __/common/pocsag.s"
 	@echo "... __/common/pocsag_packet.obj"
 	@echo "... __/common/pocsag_packet.i"
 	@echo "... __/common/pocsag_packet.s"

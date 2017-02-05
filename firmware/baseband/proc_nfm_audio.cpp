@@ -22,8 +22,6 @@
 
 #include "proc_nfm_audio.hpp"
 
-#include "audio_output.hpp"
-
 #include "event_m4.hpp"
 
 #include <cstdint>

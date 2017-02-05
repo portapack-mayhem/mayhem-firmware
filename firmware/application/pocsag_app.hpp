@@ -33,6 +33,7 @@
 
 #include "log_file.hpp"
 
+#include "pocsag.hpp"
 #include "pocsag_packet.hpp"
 
 class POCSAGLogger {
@@ -66,16 +67,12 @@ public:
 private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
 	static constexpr uint32_t sampling_rate = 3072000;
-	static constexpr uint32_t baseband_bandwidth = 1750000;
+	//static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	bool logging { false };
-	uint32_t batch_cnt = 0;
-	uint32_t address { 0 };
-	uint32_t function { 0 };
-	uint32_t ascii_data { 0 };
-	uint32_t ascii_idx { 0 };
-	std::string output_text = "";
-
+	uint32_t last_address = 0xFFFFFFFF;
+	pocsag::POCSAGState pocsag_state { };
+	
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::POCSAGPacket,
 		[this](Message* const p) {
@@ -158,8 +155,6 @@ private:
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);
-
-	uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

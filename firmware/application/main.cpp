@@ -24,7 +24,7 @@
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: (fixed ?) POCSAG: Bad console scroll init
-//BUG: POCSAG misses alphanum messages, cuts them off sometimes
+//BUG: (fixed ?) POCSAG misses alphanum messages, cuts them off sometimes
 //BUG: Check AFSK transmit end, skips last bits ?
 //BUG: RDS doesn't stop baseband when stopping tx ?
 
