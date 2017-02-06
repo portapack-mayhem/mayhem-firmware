@@ -27,12 +27,13 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-#include "ui_channel.hpp"
+//#include "ui_channel.hpp"
 
 #include "event_m0.hpp"
 
 #include "log_file.hpp"
 
+#include "bch_code.hpp"
 #include "pocsag.hpp"
 #include "pocsag_packet.hpp"
 
@@ -43,7 +44,7 @@ public:
 	}
 	
 	void on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-	void on_decoded(const pocsag::POCSAGPacket& packet,	const std::string info,	const std::string text);
+	void on_decoded(const pocsag::POCSAGPacket& packet,	const std::string text);
 
 private:
 	LogFile log_file { };
@@ -69,7 +70,12 @@ private:
 	static constexpr uint32_t sampling_rate = 3072000;
 	//static constexpr uint32_t baseband_bandwidth = 1750000;
 
-	bool logging { false };
+	BCHCode BCH_code {
+		{ 1, 0, 1, 0, 0, 1 },
+		5, 31, 21, 2
+	};
+
+	bool logging { true };
 	uint32_t last_address = 0xFFFFFFFF;
 	pocsag::POCSAGState pocsag_state { };
 	

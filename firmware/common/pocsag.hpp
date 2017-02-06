@@ -23,15 +23,19 @@
 #ifndef __POCSAG_H__
 #define __POCSAG_H__
 
+#define POCSAG_PREAMBLE_LENGTH 576
 #define POCSAG_TIMEOUT (576 * 2)	// Preamble length * 2
-#define POCSAG_SYNC 0x7CD215D8
-#define POCSAG_IDLE 0x7A89C197
+#define POCSAG_SYNCWORD 0x7CD215D8
+#define POCSAG_IDLEWORD 0x7A89C197
 #define POCSAG_AUDIO_RATE 24000
 #define POCSAG_BATCH_LENGTH (17 * 32)
 
 #include "pocsag_packet.hpp"
+#include "bch_code.hpp"
 
 namespace pocsag {
+
+// Todo: these enums suck, make a better decode_batch
 
 enum Mode : uint32_t {
 	STATE_CLEAR,
@@ -58,7 +62,9 @@ struct POCSAGState {
 std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);
 
-bool decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
+void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
+void pocsag_encode(BCHCode& BCH_code, const std::string text, const uint32_t address, std::vector<uint32_t>& codewords);
+bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
 
 } /* namespace pocsag */
 

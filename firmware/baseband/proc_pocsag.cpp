@@ -47,7 +47,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 		const int32_t audio_sample = __SSAT(sample_int, 16);
 		
 		slicer_sr <<= 1;
-		slicer_sr |= (audio_sample < 0);
+		slicer_sr |= (audio_sample < 0);		// Do we need hysteresis ?
 
 		// Detect transitions to adjust clock
 		if ((slicer_sr ^ (slicer_sr >> 1)) & 1) {
@@ -79,19 +79,18 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 					if (sync_timeout < POCSAG_TIMEOUT) {
 						sync_timeout++;
 
-						if (rx_data == POCSAG_SYNC) {
+						if (rx_data == POCSAG_SYNCWORD) {
 							packet.clear();
 							codeword_count = 0;
 							rx_bit = 0;
 							msg_timeout = 0;
 							rx_state = SYNC;
-						} /*else if (rx_data == POCSAG_IDLE) {
-							rx_state = WAITING;
-						}*/
+						}
 						
 					} else {
-						rx_state = WAITING;		// Timed out: abort
-						push_packet(pocsag::PacketFlag::TOO_LONG);	// DEBUG
+						// Timeout here is normal (end of message)
+						rx_state = WAITING;
+						//push_packet(pocsag::PacketFlag::TIMED_OUT);
 					}
 					break;
 				
@@ -113,12 +112,12 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 								codeword_count++;
 							} else {
 								push_packet(pocsag::PacketFlag::NORMAL);
-								rx_state = WAITING;
+								rx_state = PREAMBLE;
+								sync_timeout = 0;
 							}
 						}
 					} else {
-						// Timed out (no end of message received)
-						packet.set(0, codeword_count);	// DEBUG
+						packet.set(0, codeword_count);	// Replace first codeword with count, for debug
 						push_packet(pocsag::PacketFlag::TIMED_OUT);
 						rx_state = WAITING;
 					}

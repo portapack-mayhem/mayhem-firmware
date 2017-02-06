@@ -135,14 +135,15 @@ set(CPPSRC
 	debounce.cpp
 	touch.cpp
 	touch_adc.cpp
-	encoder.cpp
-	audio.cpp
 	adsb.cpp
 	afsk.cpp
+	audio.cpp
+	${COMMON}/bch_code.cpp
 	bht.cpp
 	ctcss.cpp
-	rds.cpp
+	encoder.cpp
 	freqman.cpp
+	rds.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp

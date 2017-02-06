@@ -2030,6 +2030,33 @@ __/common/ais_packet.cpp.s:
 	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/ais_packet.cpp.s
 .PHONY : __/common/ais_packet.cpp.s
 
+__/common/bch_code.obj: __/common/bch_code.cpp.obj
+
+.PHONY : __/common/bch_code.obj
+
+# target to build an object file
+__/common/bch_code.cpp.obj:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/bch_code.cpp.obj
+.PHONY : __/common/bch_code.cpp.obj
+
+__/common/bch_code.i: __/common/bch_code.cpp.i
+
+.PHONY : __/common/bch_code.i
+
+# target to preprocess a source file
+__/common/bch_code.cpp.i:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/bch_code.cpp.i
+.PHONY : __/common/bch_code.cpp.i
+
+__/common/bch_code.s: __/common/bch_code.cpp.s
+
+.PHONY : __/common/bch_code.s
+
+# target to generate assembly for a file
+__/common/bch_code.cpp.s:
+	cd /home/furrtek/portapack-hackrf && $(MAKE) -f firmware/application/CMakeFiles/application.elf.dir/build.make firmware/application/CMakeFiles/application.elf.dir/__/common/bch_code.cpp.s
+.PHONY : __/common/bch_code.cpp.s
+
 __/common/buffer.obj: __/common/buffer.cpp.obj
 
 .PHONY : __/common/buffer.obj
@@ -5544,6 +5571,9 @@ help:
 	@echo "... __/common/ais_packet.obj"
 	@echo "... __/common/ais_packet.i"
 	@echo "... __/common/ais_packet.s"
+	@echo "... __/common/bch_code.obj"
+	@echo "... __/common/bch_code.i"
+	@echo "... __/common/bch_code.s"
 	@echo "... __/common/buffer.obj"
 	@echo "... __/common/buffer.i"
 	@echo "... __/common/buffer.s"

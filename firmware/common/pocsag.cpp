@@ -23,13 +23,10 @@
 #include "pocsag.hpp"
 
 #include "baseband_api.hpp"
-
 #include "portapack.hpp"
-#include "portapack_persistent_memory.hpp"
 using namespace portapack;
 
 #include "string_format.hpp"
-
 #include "utility.hpp"
 
 namespace pocsag {
@@ -48,12 +45,118 @@ std::string flag_str(PacketFlag packetflag) {
 		case PacketFlag::NORMAL:	return "OK";
 		case PacketFlag::IDLE:		return "IDLE";
 		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
-		case PacketFlag::TOO_LONG:	return "TOO LONG";
 		default:					return "";
 	}
 }
 
-bool decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
+void insert_BCH(BCHCode& BCH_code, uint32_t * codeword) {
+	uint32_t parity = 0;
+	int data[21];
+	int bit;
+	int * bb;
+	size_t c;
+	
+	for (c = 0; c < 21; c++) {
+		bit = (((*codeword) << c) & 0x80000000U) ? 1 : 0;
+		if (bit) parity++;
+		data[c] = bit;
+	}
+	
+	bb = BCH_code.encode(data);
+	
+	// Make sure ECC bits are cleared
+	(*codeword) &= 0xFFFFF801;
+	
+	for (c = 0; c < 10; c++) {
+		bit = bb[c];
+		(*codeword) |= (bit << (10 - c));
+		if (bit) parity++;
+	}
+	
+	// Even parity
+	(*codeword) |= (parity & 1);
+}
+	
+void pocsag_encode(
+	BCHCode& BCH_code, const std::string text, const uint32_t address,
+	std::vector<uint32_t>& codewords) {
+	
+	size_t b, c, address_slot;
+	size_t bit_idx, char_idx = 0;
+	uint32_t codeword;
+	char ascii_char;
+	
+	size_t text_size = text.size();
+	
+	// Preamble
+	for (b = 0; b < (POCSAG_PREAMBLE_LENGTH / 32); b++) {
+		codewords.push_back(0xAAAAAAAA);
+	}
+	
+	// Address
+	codeword = (address & 0x1FFFF8U) << 13;
+	address_slot = (address & 7) * 2;
+	// Function
+	codeword = 3 << 11;
+	
+	insert_BCH(BCH_code, &codeword);
+	
+	// Address batch
+	codewords.push_back(POCSAG_SYNCWORD);
+	for (c = 0; c < 16; c++) {
+		if (c == address_slot)
+			codewords.push_back(codeword);
+		else
+			codewords.push_back(POCSAG_IDLEWORD);
+	}
+	
+	codeword = 0;
+	bit_idx = 20 + 11;
+	
+	// Messages batch(es)
+	do {
+		codewords.push_back(POCSAG_SYNCWORD);
+		
+		for (c = 0; c < 16; c++) {
+			// Fill up 20 bits
+			do {
+				bit_idx -= 7;
+				
+				if (char_idx < text_size)
+					ascii_char = text[char_idx] & 0x7F;
+				else
+					ascii_char = 0;		// Padding
+				
+				// Bottom's up
+				ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;	// *6543210 -> 3210*654
+				ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 3210*654 -> 103254*6
+				ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 103254*6 -> *0123456
+				
+				codeword |= (ascii_char << bit_idx);
+				
+				char_idx++;
+				
+			} while (bit_idx > 11);
+			
+			codeword &= 0x7FFFF800;		// Trim data
+			codeword |= 0x80000000;		// Message type
+			insert_BCH(BCH_code, &codeword);
+			
+			codewords.push_back(codeword);
+			
+			if (bit_idx != 11) {
+				bit_idx = 20 + bit_idx;
+				codeword = ascii_char << bit_idx;
+			} else {
+				bit_idx = 20 + 11;
+				codeword = 0;
+			}
+		}
+		
+	} while (char_idx < text_size);
+}
+
+bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 	uint32_t codeword;
 	char ascii_char;
 	std::string output_text = "";
@@ -67,7 +170,7 @@ bool decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 		if (!(codeword & 0x80000000U)) {
 			// Address codeword
 			if (state->mode == STATE_CLEAR) {
-				if (codeword != POCSAG_IDLE) {
+				if (codeword != POCSAG_IDLEWORD) {
 					state->function = (codeword >> 11) & 3;
 					state->address = (codeword >> 10) & 0x1FFFF8U;	// 18 MSBs are transmitted
 					state->mode = STATE_HAVE_ADDRESS;
