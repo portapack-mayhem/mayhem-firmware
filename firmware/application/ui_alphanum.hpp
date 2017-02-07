@@ -52,17 +52,24 @@ public:
 	std::string title() const override { return "Text entry"; };
 
 private:
-	const char * const keys_upper = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ. !<";
-	const char * const keys_lower = "0123456789abcdefghijklmnopqrstuvwxyz:=?<";
+	const char * const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
+	const char * const keys_lower = "abcdefghijklmnopqrstuvwxyz' .<";
+	const char * const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
+	
+	const std::pair<std::string, const char *> pages[3] = {
+		{ "Upper", keys_upper },
+		{ "Lower", keys_lower },
+		{ "Digit", keys_digit }
+	};
 	
 	size_t _max_length { };
-	uint8_t txtidx { 0 };
-	bool _lowercase = false;
+	uint32_t txtidx { 0 };
+	uint32_t mode = 0;				// Upper
 	char txtinput[29] = { 0 };		// 28 chars max
 	
 	void char_add(const char c);
 	void char_delete();
-	void set_keys(const char * const key_list);
+	void set_mode(const uint32_t new_mode);
 	void move_cursor();
 	void on_button(Button& button);
 	void update_text();
@@ -71,15 +78,19 @@ private:
 		{ 8, 0, 232, 16 }
 	};
 
-	std::array<Button, 40> buttons { };
+	std::array<Button, 30> buttons { };
 
-	Button button_lowercase {
-		{ 21 * 8, 270, 32, 24 },
-		"UC"
+	Button button_mode {
+		{ 21 * 8, 33 * 8, 8 * 8, 32 },
+		""
 	};
 	
-	NumberField raw_char {
-		{ 16, 270 },
+	Text text_raw {
+		{ 1 * 8, 33 * 8, 4 * 8, 16 },
+		"Raw:"
+	};
+	NumberField field_raw {
+		{ 5 * 8, 33 * 8 },
 		3,
 		{ 1, 255 },
 		1,
@@ -87,7 +98,7 @@ private:
 	};
 
 	Button button_ok {
-		{ 88, 270, 64, 24 },
+		{ 10 * 8, 33 * 8, 9 * 8, 32 },
 		"OK"
 	};
 };

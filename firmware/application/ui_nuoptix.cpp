@@ -60,7 +60,7 @@ void NuoptixView::transmit(bool setup) {
 		timecode = lfsr_iterate(timecode) % 1999;	// Could be 9999 but that would be one long audio track !
 	
 	if (setup) {
-		pbar.set_max(6 * 2);
+		progressbar.set_max(6 * 2);
 		
 		if (tx_mode == IMPROVISE) {
 			// Seed from RTC
@@ -86,7 +86,7 @@ void NuoptixView::transmit(bool setup) {
 		number_timecode.set_value(timecode);
 	}
 	
-	pbar.set_value(0);
+	progressbar.set_value(0);
 	
 	dtmf_message[2] = (timecode / 100) % 10;
 	dtmf_message[3] = (timecode / 10) % 10;
@@ -145,12 +145,11 @@ NuoptixView::NuoptixView(
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 	
 	add_children({
-		&tx_view,
 		&number_timecode,
 		&text_timecode,
 		&text_mod,
-		&pbar,
-		&button_exit
+		&progressbar,
+		&tx_view
 	});
 	
 	number_timecode.set_value(1);
@@ -183,10 +182,6 @@ NuoptixView::NuoptixView(
 			transmit(true);
 		}
 	};*/
-	
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
-	};
 }
 
 }

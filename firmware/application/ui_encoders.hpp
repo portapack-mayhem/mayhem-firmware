@@ -25,6 +25,7 @@
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
+#include "ui_transmitter.hpp"
 #include "encoders.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
@@ -58,14 +59,14 @@ private:
 	};
 	
 	uint8_t enc_type = 0;
-	const encoder_def_t * encoder_def;
+	const encoder_def_t * encoder_def { };
 	tx_modes tx_mode = IDLE;
 	//bool abort_scan = false;
 	//uint8_t scan_count;
 	//double scan_progress;
 	//unsigned int scan_index;
 	std::string debug_text = "0";
-	uint8_t repeat_index;
+	uint8_t repeat_index { 0 };
 	int8_t waveform_buffer[512];
 	
 	void draw_waveform();
@@ -96,10 +97,6 @@ private:
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::blue(),
-	};
-	
-	FrequencyField field_frequency {
-		{ 1 * 8, 4 },
 	};
 	
 	Text text_enctype {
@@ -193,16 +190,17 @@ private:
 	};
 	
 	Text text_status {
-		{ 2 * 8, 224, 128, 16 },
+		{ 2 * 8, 13 * 16, 128, 16 },
 		"Ready"
 	};
 	ProgressBar progress {
-		{ 16, 224 + 20, 208, 16 }
+		{ 2 * 8, 13 * 16 + 20, 208, 16 }
 	};
 	
-	Button button_transmit {
-		{ 16, 270, 80, 32 },
-		"TX"
+	TransmitterView tx_view {
+		16 * 16,
+		50000,
+		9
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {

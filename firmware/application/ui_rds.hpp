@@ -25,6 +25,7 @@
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
+#include "ui_transmitter.hpp"
 #include "ui_textentry.hpp"
 #include "message.hpp"
 #include "rds.hpp"
@@ -44,20 +45,16 @@ public:
 	std::string title() const override { return "RDS transmit"; };
 
 private:
-	char PSN[9];
-	char RadioText[25];
+	char PSN[9] { 0 };
+	char RadioText[25] { 0 };
 	bool txing = false;
-	RDS_flags rds_flags;
+	RDS_flags rds_flags { };
 	
-	uint16_t message_length;
+	uint16_t message_length { 0 };
 	
 	void start_tx();
 	void on_tuning_frequency_changed(rf::Frequency f);
 
-	FrequencyField field_frequency {
-		{ 1 * 8, 4 },
-	};
-	
 	Text text_pty {
 		{ 1 * 8, 16 + 8, 4 * 8, 16 },
 		"PTY:"
@@ -272,13 +269,10 @@ private:
 		}
 	};
 	
-	Button button_tx {
-		{ 3 * 8, 16 * 16, 80, 32 },
-		"START"
-	};
-	Button button_exit {
-		{ 19 * 8, 16 * 16, 64, 32 },
-		"Exit"
+	TransmitterView tx_view {
+		16 * 16,
+		50000,
+		9
 	};
 };
 

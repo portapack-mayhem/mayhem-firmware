@@ -57,9 +57,6 @@ public:
 	~POCSAGAppView();
 
 	void set_parent_rect(const Rect new_parent_rect) override;
-
-	void paint(Painter&) override { };
-
 	void focus() override;
 
 	std::string title() const override { return "POCSAG RX"; };

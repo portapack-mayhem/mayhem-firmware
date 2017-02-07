@@ -62,19 +62,13 @@ private:
 	
 	uint32_t timecode { 0 };
 	
-	TransmitterView tx_view {
-		11 * 16,
-		10000,
-		15
-	};
-	
 	Text text_timecode {
-		{ 10 * 8, 32, 9 * 8, 16 },
+		{ 10 * 8, 2 * 16, 9 * 8, 16 },
 		"Timecode:"
 	};
 	
 	NumberField number_timecode {
-		{ 13 * 8, 48 },
+		{ 13 * 8, 3 * 16 },
 		4,
 		{ 1, 9999 },
 		1,
@@ -82,12 +76,12 @@ private:
 	};
 	
 	Text text_mod {
-		{ 10 * 8, 80, 6 * 8, 16 },
+		{ 10 * 8, 5 * 16, 6 * 8, 16 },
 		"Mod: "
 	};
 	
-	ProgressBar pbar {
-		{ 16, 236, 208, 16 }
+	ProgressBar progressbar {
+		{ 16, 14 * 16, 208, 16 }
 	};
 	
 	/*Button button_impro {
@@ -95,9 +89,10 @@ private:
 		"IMPROVISE"
 	};*/
 	
-	Button button_exit {
-		{ 88, 270, 64, 32 },
-		"Exit"
+	TransmitterView tx_view {
+		16 * 16,
+		10000,
+		15
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {
@@ -107,7 +102,7 @@ private:
 			if (message.done)
 				transmit(false);
 			else
-				pbar.set_value(message.progress);
+				progressbar.set_value(message.progress);
 		}
 	};
 };

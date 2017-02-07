@@ -80,15 +80,15 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	bool abort_scan = false;
-	uint8_t scan_count, scan_index;
-	double scan_progress;
+	uint8_t scan_count { 0 }, scan_index { 0 };
+	double scan_progress { 0 };
 	char litteral[5][8] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 } };
 	char rgsb[5] = { 0 };
 	char lcr_message[512];
 	char lcr_message_data[512];
 	char checksum = 0;
-	rf::Frequency f;
-	uint8_t repeat_index;
+	rf::Frequency f { 0 };
+	uint8_t repeat_index { 0 };
 	
 	void generate_message();
 	void update_progress();
@@ -107,9 +107,9 @@ private:
 		.foreground = Color::red(),
 	};
 	
-	std::array<Button, 5> buttons;
-	std::array<Checkbox, 5> checkboxes;
-	std::array<Rectangle, 5> rectangles;
+	std::array<Button, 5> buttons { };
+	std::array<Checkbox, 5> checkboxes { };
+	std::array<Rectangle, 5> rectangles { };
 
 	Text text_recap {
 		{ 8, 6, 18 * 8, 16 },

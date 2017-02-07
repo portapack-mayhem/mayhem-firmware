@@ -51,6 +51,24 @@ TXGainField::TXGainField(
 
 /* TransmitterView *******************************************************/
 
+void TransmitterView::paint(Painter& painter) {
+	size_t c;
+	Point pos = { 0, screen_pos().y() };
+	
+	for (c = 0; c < 20; c++) {
+		painter.draw_bitmap(
+			pos,
+			bitmap_stripes,
+			ui::Color(191, 191, 0),
+			ui::Color::black()
+		);
+		if (c != 9)
+			pos += { 24, 0 };
+		else
+			pos = { 0, screen_pos().y() + 32 + 8 };
+	}
+}
+
 void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
 	receiver_model.set_tuning_frequency(f);
 }
@@ -82,7 +100,7 @@ void TransmitterView::focus() {
 TransmitterView::TransmitterView(
 	const Coord y, const uint32_t frequency_step, const uint32_t bandwidth
 ) {
-	set_parent_rect({ 0 * 8, y, 30 * 8, 2 * 16 });
+	set_parent_rect({ 0 * 8, y, 30 * 8, 6 * 8 });
 	
 	add_children({
 		&field_frequency,

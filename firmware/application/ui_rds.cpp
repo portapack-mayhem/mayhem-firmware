@@ -57,8 +57,7 @@ void RDSView::start_tx() {
 	baseband::set_rds_data(message_length);
 }
 
-void RDSView::paint(Painter& painter) {
-	(void)painter;
+void RDSView::paint(Painter&) {
 	char RadioTextA[17];
 	
 	text_psn.set(PSN);
@@ -78,7 +77,6 @@ RDSView::RDSView(NavigationView& nav) {
 	strcpy(RadioText, "Radiotext test ABCD1234");
 	
 	add_children({
-		&field_frequency,
 		&text_pty,
 		&options_pty,
 		&text_countrycode,
@@ -99,21 +97,41 @@ RDSView::RDSView(NavigationView& nav) {
 		&text_radiotext,
 		&text_radiotexta,
 		&text_radiotextb,
-		&button_tx,
-		&button_exit
+		&tx_view,
 	});
 	
-	field_frequency.set_value(transmitter_model.tuning_frequency());
-	field_frequency.set_step(50000);	// 50kHz steps
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
-	};
-	field_frequency.on_edit = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(field_frequency.value());
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->field_frequency.set_value(f);
+			receiver_model.set_tuning_frequency(f);
 			this->on_tuning_frequency_changed(f);
 		};
+	};
+	
+	tx_view.on_start = [this]() {
+		tx_view.set_transmitting(true);
+		rds_flags.PI_code = sym_pi_code.value_hex_u64();
+		rds_flags.PTY = options_pty.selected_index_value();
+		rds_flags.DI = check_mono_stereo.value() ? 1 : 0;
+		rds_flags.TP = check_TP.value();
+		rds_flags.TA = check_TA.value();
+		rds_flags.MS = check_MS.value();
+		
+		if (options_tx.selected_index() == 0)
+			message_length = gen_PSN(PSN, &rds_flags);
+		else if (options_tx.selected_index() == 1)
+			message_length = gen_RadioText(RadioText, 0, &rds_flags);
+		else
+			message_length = gen_ClockTime(&rds_flags, 2016, 12, 1, 9, 23, 2);
+		
+		txing = true;
+		start_tx();
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
+		txing = false;
 	};
 	
 	check_TA.set_value(true);
@@ -145,39 +163,9 @@ RDSView::RDSView(NavigationView& nav) {
 	button_editpsn.on_select = [this, &nav](Button&) {
 		textentry(nav, PSN, 8);
 	};
-	button_tx.on_select = [this](Button&) {
-		if (txing) {
-			transmitter_model.disable();
-			button_tx.set_text("START");
-			txing = false;
-		} else {
-			rds_flags.PI_code = sym_pi_code.value_hex_u64();
-			rds_flags.PTY = options_pty.selected_index_value();
-			rds_flags.DI = check_mono_stereo.value() ? 1 : 0;
-			rds_flags.TP = check_TP.value();
-			rds_flags.TA = check_TA.value();
-			rds_flags.MS = check_MS.value();
-			
-			if (options_tx.selected_index() == 0)
-				message_length = gen_PSN(PSN, &rds_flags);
-			else if (options_tx.selected_index() == 1)
-				message_length = gen_RadioText(RadioText, 0, &rds_flags);
-			else
-				message_length = gen_ClockTime(&rds_flags, 2016, 12, 1, 9, 23, 2);
-			
-			button_tx.set_text("STOP");
-			
-			txing = true;
-			start_tx();
-		}
-	};
 	
 	button_editradiotext.on_select = [this, &nav](Button&){
 		textentry(nav, RadioText, 24);
-	};
-
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
 	};
 }
 

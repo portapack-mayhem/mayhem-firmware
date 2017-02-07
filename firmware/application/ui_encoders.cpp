@@ -143,6 +143,7 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 			tx_mode = IDLE;
 			text_status.set("Done");
 			progress.set_value(0);
+			tx_view.set_transmitting(false);
 		//}
 	}
 }
@@ -154,6 +155,7 @@ void EncodersView::on_tuning_frequency_changed(rf::Frequency f) {
 void EncodersView::start_tx(const bool scan) {
 	char ook_bitstream[256];
 	uint32_t ook_bitstream_length;
+	(void)scan;
 	
 	/*if (scan) {
 		if (tx_mode != SCAN) {
@@ -263,7 +265,6 @@ EncodersView::EncodersView(NavigationView& nav) {
 	encoder_def = &encoder_defs[0];
 
 	add_children({
-		&field_frequency,
 		&text_enctype,
 		&options_enctype,
 		&text_clk,
@@ -284,22 +285,8 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&waveform,
 		&text_status,
 		&progress,
-		&button_transmit
+		&tx_view
 	});
-	
-	field_frequency.set_value(transmitter_model.tuning_frequency());
-	field_frequency.set_step(50000);
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
-	};
-	field_frequency.on_edit = [this, &nav]() {
-		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
-			this->field_frequency.set_value(f);
-		};
-	};
 	
 	// Load encoder types
 	for (i = 0; i < ENC_TYPES_COUNT; i++)
@@ -316,8 +303,6 @@ EncodersView::EncodersView(NavigationView& nav) {
 	symfield_word.on_change = [this]() {
 		this->generate_frame();
 	};
-	
-	button_transmit.set_style(&style_val);
 	
 	// Selecting input clock changes symbol and word duration
 	numberfield_clk.on_change = [this](int32_t value) {
@@ -347,9 +332,21 @@ EncodersView::EncodersView(NavigationView& nav) {
 			numberfield_clk.set_value(1000000 / (((float)new_value * 1000) / encoder_def->clk_per_symbol), false);
 		}
 	};
-
-	button_transmit.on_select = [this, &nav](Button&) {
-		if (tx_mode == IDLE) start_tx(false);
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			receiver_model.set_tuning_frequency(f);
+		};
+	};
+	
+	tx_view.on_start = [this]() {
+		tx_view.set_transmitting(true);
+		start_tx(false);
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
 	};
 }
 

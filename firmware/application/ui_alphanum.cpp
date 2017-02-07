@@ -31,9 +31,8 @@
 using namespace hackrf::one;
 
 namespace ui {
-	
-void AlphanumView::paint(Painter& painter) {
-	(void)painter;
+
+void AlphanumView::paint(Painter&) {
 	move_cursor();
 }
 	
@@ -43,20 +42,7 @@ AlphanumView::AlphanumView(
 	size_t max_length
 ) : _max_length(max_length)
 {
-	_lowercase = false;
 	size_t n;
-	
-	static constexpr Style style_alpha {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(255, 63, 63)
-	};
-	
-	static constexpr Style style_num {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(191, 191, 31)
-	};
 	
 	txtidx = strlen(txt);
 	memcpy(txtinput, txt, _max_length + 1);
@@ -68,8 +54,9 @@ AlphanumView::AlphanumView(
 	
 	add_children({
 		&text_input,
-		&button_lowercase,
-		&raw_char,
+		&button_mode,
+		&text_raw,
+		&field_raw,
 		&button_ok
 	});
 
@@ -82,33 +69,21 @@ AlphanumView::AlphanumView(
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * (240 / 5)),
-			static_cast<Coord>((n / 5) * 28 + 24),
-			240 / 5, 28
+			static_cast<Coord>((n / 5) * 38 + 24),
+			240 / 5, 38
 		});
-		if ((n < 10) || (n == 39))
-			button.set_style(&style_num);
-		else
-			button.set_style(&style_alpha);
 		add_child(&button);
 		n++;
 	}
-	set_keys(keys_upper);
+	set_mode(mode);
 	
-	button_lowercase.on_select = [this, &nav](Button&) {
-		if (_lowercase == true) {
-			_lowercase = false;
-			button_lowercase.set_text("UC");
-			set_keys(keys_upper);
-		} else {
-			_lowercase = true;
-			button_lowercase.set_text("LC");
-			set_keys(keys_lower);
-		}
+	button_mode.on_select = [this, &nav](Button&) {
+		set_mode(mode + 1);
 	};
 	
-	raw_char.set_value('0');
-	raw_char.on_select = [this, &nav](NumberField&) {
-		char_add(raw_char.value());
+	field_raw.set_value('0');
+	field_raw.on_select = [this, &nav](NumberField&) {
+		char_add(field_raw.value());
 		update_text();
 	};
 
@@ -124,7 +99,7 @@ AlphanumView::AlphanumView(
 void AlphanumView::move_cursor() {
 	Point cursor_pos;
 	
-	cursor_pos = {text_input.screen_rect().location().x() + (txtidx * 8),
+	cursor_pos = {text_input.screen_rect().location().x() + (Coord)(txtidx * 8),
 					text_input.screen_rect().location().y() + 16};
 	
 	portapack::display.fill_rectangle(
@@ -137,8 +112,15 @@ void AlphanumView::move_cursor() {
 	);
 }
 
-void AlphanumView::set_keys(const char * const key_list) {
+void AlphanumView::set_mode(const uint32_t new_mode) {
 	size_t n = 0;
+	
+	if (new_mode < 3)
+		mode = new_mode;
+	else
+		mode = 0;
+	
+	const char * key_list = pages[mode].second;
 	
 	for (auto& button : buttons) {
 		const std::string label {
@@ -147,6 +129,11 @@ void AlphanumView::set_keys(const char * const key_list) {
 		button.set_text(label);
 		n++;
 	}
+	
+	if (mode < 2)
+		button_mode.set_text(pages[mode + 1].first);
+	else
+		button_mode.set_text(pages[0].first);
 }
 
 void AlphanumView::focus() {

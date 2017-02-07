@@ -56,6 +56,7 @@ public:
 	~TransmitterView();
 	
 	void on_show() override;
+	void paint(Painter& painter) override;
 	void focus() override;
 	
 	void set_transmitting(const bool transmitting);
@@ -75,27 +76,27 @@ private:
 	bool transmitting_ { false };
 	
 	FrequencyField field_frequency {
-		{ 0 * 8, 0 * 16 }
+		{ 0 * 8, 1 * 8 }
 	};
 	
 	TXGainField field_gain {
-		{ 10 * 8, 0 * 16 }
+		{ 10 * 8, 1 * 8 }
 	};
 	
 	NumberField field_bw {
-		{ 13 * 8, 0 * 16 },
+		{ 13 * 8, 1 * 8 },
 		3,
 		{ 1, 150 },
 		1,
 		' '
 	};
 	Text text_kHz {
-		{ 16 * 8, 0 * 16, 3 * 8, 1 * 16 },
+		{ 16 * 8, 1 * 8, 3 * 8, 1 * 16 },
 		"kHz"
 	};
 	
 	Button button_start {
-		{ 20 * 8, 0 * 16, 9 * 8, 32 },
+		{ 20 * 8, 1 * 8, 9 * 8, 32 },
 		"START"
 	};
 
