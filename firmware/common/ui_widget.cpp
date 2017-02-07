@@ -1185,6 +1185,20 @@ SymField::SymField(
 	set_focusable(true);
 }
 
+uint32_t SymField::value_dec_u32() {
+	uint32_t c, mul = 1;
+	uint32_t v = 0;
+	
+	if (type_ == SYMFIELD_DEC) {
+		for (c = 0; c < length_; c++) {
+			v += values_[(length_ - 1 - c)] * mul;
+			mul *= 10;
+		}
+		return v;
+	} else 
+		return 0;
+}
+
 uint64_t SymField::value_hex_u64() {
 	uint32_t c;
 	uint64_t v = 0;

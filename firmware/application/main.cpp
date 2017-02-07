@@ -23,6 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: POCSAG TX: Chops off the few last chars on long messages ?
 //BUG: (fixed ?) POCSAG: Bad console scroll init
 //BUG: (fixed ?) POCSAG misses alphanum messages, cuts them off sometimes
 //BUG: Check AFSK transmit end, skips last bits ?
@@ -31,6 +32,7 @@
 //TEST: Imperial in whipcalc
 //TEST: Numbers
 
+//TODO: Use TransmitterView everywhere possible
 //TODO: FreqMan: Add and rename categories
 //TODO: FreqMan: Sort by category in edit screen
 //TODO: FreqMan: Cap entry count per category (only done for total entries right now)

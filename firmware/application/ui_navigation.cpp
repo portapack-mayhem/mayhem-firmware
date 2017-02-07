@@ -43,6 +43,7 @@
 #include "ui_morse.hpp"
 #include "ui_numbers.hpp"
 #include "ui_nuoptix.hpp"
+#include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_sd_wipe.hpp"
 #include "ui_setup.hpp"
@@ -301,12 +302,13 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* TransmitterCodedMenuView ******************************************************/
 
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
-	add_items<7>({ {
+	add_items<8>({ {
 		{ "ADS-B Mode S", 			ui::Color::orange(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::yellow(),&bitmap_icon_bht,	[&nav](){ nav.push<BHTView>(); } },
 		{ "Morse beacon", 			ui::Color::yellow(),&bitmap_icon_morse,	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),	&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
+		{ "POCSAG", 				ui::Color::cyan(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),	&bitmap_icon_rds,	[&nav](){ nav.push<RDSView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::green(), &bitmap_icon_lcr,	[&nav](){ nav.push<LCRView>(); } },
 	} });

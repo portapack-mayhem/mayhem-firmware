@@ -63,7 +63,6 @@ void BHTView::start_tx() {
 	
 	generate_message();
 	
-	//transmitter_model.set_tuning_frequency(bht_freqs[options_freq.selected_index()]);
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_lna(40);
@@ -136,13 +135,9 @@ BHTView::BHTView(NavigationView& nav) {
 		&text_receiver,
 		&receiver_code,
 		&checkbox_wcid,
-		//&text_freq,
-		//&options_freq,
-		//&field_bw,
 		&text_relais,
 		&progressbar,
 		&text_message,
-		//&button_transmit,
 		&checkbox_cligno,
 		&tempo_cligno,
 		&text_cligno,
@@ -158,12 +153,9 @@ BHTView::BHTView(NavigationView& nav) {
 	family_code_ep.set_selected_index(2);
 	subfamily_code.set_value(1);
 	receiver_code.set_value(1);
-	//options_freq.set_selected_index(0);
 	tempo_cligno.set_value(1);
 	progressbar.set_max(20);
 	relay_states[0].set_selected_index(1);		// R1 OFF
-	
-	//field_bw.set_value(20);
 	
 	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
 		_mode = mode;
@@ -289,8 +281,6 @@ BHTView::BHTView(NavigationView& nav) {
 		n++;
 	}
 	
-	//button_transmit.set_style(&style_val);
-	
 	generate_message();
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
@@ -301,11 +291,9 @@ BHTView::BHTView(NavigationView& nav) {
 	};
 	
 	tx_view.on_start = [this]() {
-		if ((tx_mode == IDLE) && (!_mode)) {	// DEBUG
-			if (speaker_enabled)
-				chThdSleepMilliseconds(40 * 1000);	// DEBUG 40s
-			//if (speaker_enabled && _mode)
-			//	audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+		if ((tx_mode == IDLE) && (!_mode)) {
+			if (speaker_enabled && _mode)
+				audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
 			tx_mode = SINGLE;
 			tx_view.set_transmitting(true);
 			start_tx();

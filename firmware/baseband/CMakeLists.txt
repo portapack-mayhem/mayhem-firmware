@@ -301,6 +301,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PERT ert)
 
+### FSK TX
+
+set(MODE_CPPSRC
+	proc_fsk.cpp
+)
+DeclareTargets(PFSK fsktx)
+
 ### POCSAG RX
 
 set(MODE_CPPSRC

@@ -197,32 +197,6 @@ private:
 		"Tous"
 	};
 	
-	/*Text text_freq {
-		{ 1 * 8, 8 * 16, 10 * 8, 16 },
-		"Frequence:"
-	};
-	OptionsField options_freq {
-		{ 12 * 8, 8 * 16},
-		7,
-		{
-			{ "31.3250", 0 },
-			{ "31.3875", 1 },
-			{ "31.4375", 2 },
-			{ "31.4750", 3 },
-			{ "31.6875", 4 },
-			{ "31.9750", 5 },
-			{ "TEST 88", 6 }
-		}
-	};
-	
-	NumberField field_bw {
-		{ 20 * 8, 8 * 16 },
-		2,
-		{ 0, 99 },
-		1,
-		' '
-	};*/
-	
 	Text text_relais {
 		{ 1 * 8, 8 * 16 + 8, 7 * 8, 16 },
 		"Relais:"
@@ -243,11 +217,6 @@ private:
 		{ 5 * 8, 14 * 16, 20 * 8, 16 },
 		""
 	};
-	
-	/*Button button_transmit {
-		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"START"
-	};*/
 	
 	Checkbox checkbox_cligno {
 		{ 18 * 8 + 4, 10 * 16},

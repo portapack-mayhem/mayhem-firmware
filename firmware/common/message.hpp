@@ -84,6 +84,7 @@ public:
 		ADSBConfigure = 40,
 		JammerConfigure = 41,
 		WidebandSpectrumConfig = 42,
+		FSKConfigure = 43,
 		
 		POCSAGPacket = 50,
 		
@@ -693,6 +694,27 @@ public:
 	const uint32_t samples_per_bit;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
+};
+
+class FSKConfigureMessage : public Message {
+public:
+	constexpr FSKConfigureMessage(
+		const uint32_t stream_length,
+		const uint32_t samples_per_bit,
+		const uint32_t shift,
+		const uint32_t progress_notice
+	) : Message { ID::FSKConfigure },
+		stream_length(stream_length),
+		samples_per_bit(samples_per_bit),
+		shift(shift),
+		progress_notice(progress_notice)
+	{
+	}
+
+	const uint32_t stream_length;
+	const uint32_t samples_per_bit;
+	const uint32_t shift;
+	const uint32_t progress_notice;
 };
 
 class POCSAGConfigureMessage : public Message {

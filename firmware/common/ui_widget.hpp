@@ -491,6 +491,7 @@ public:
 	void set_value(const uint32_t index, const uint32_t new_value);
 	void set_length(const uint32_t new_length);
 	void set_symbol_list(const uint32_t index, const std::string symbol_list);
+	uint32_t value_dec_u32();
 	uint64_t value_hex_u64();
 
 	void paint(Painter& painter) override;

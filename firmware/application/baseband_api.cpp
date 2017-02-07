@@ -141,6 +141,17 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 	send_message(&message);
 }
 
+void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift,
+					const uint32_t progress_notice) {
+	const FSKConfigureMessage message {
+		stream_length,
+		samples_per_bit,
+		shift,
+		progress_notice
+	};
+	send_message(&message);
+}
+
 void set_pocsag(const pocsag::BitRate bitrate) {
 	const POCSAGConfigureMessage message {
 		bitrate

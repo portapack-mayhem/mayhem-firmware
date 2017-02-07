@@ -56,6 +56,7 @@ public:
 	~TransmitterView();
 	
 	void on_show() override;
+	void focus() override;
 	
 	void set_transmitting(const bool transmitting);
 
@@ -78,11 +79,11 @@ private:
 	};
 	
 	TXGainField field_gain {
-		{ 11 * 8, 0 * 16 }
+		{ 10 * 8, 0 * 16 }
 	};
 	
 	NumberField field_bw {
-		{ 14 * 8, 0 * 16 },
+		{ 13 * 8, 0 * 16 },
 		3,
 		{ 1, 150 },
 		1,

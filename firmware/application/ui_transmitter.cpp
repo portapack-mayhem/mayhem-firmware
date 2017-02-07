@@ -75,6 +75,10 @@ void TransmitterView::on_show() {
 	field_frequency.set_value(receiver_model.tuning_frequency());
 }
 
+void TransmitterView::focus() {
+	button_start.focus();
+}
+
 TransmitterView::TransmitterView(
 	const Coord y, const uint32_t frequency_step, const uint32_t bandwidth
 ) {

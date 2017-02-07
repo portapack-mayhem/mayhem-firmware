@@ -82,6 +82,7 @@ constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_ook					{ 'P', 'O', 'O', 'K' };
 constexpr image_tag_t image_tag_adsb_tx				{ 'P', 'A', 'D', 'S' };
 constexpr image_tag_t image_tag_replay				{ 'P', 'R', 'E', 'P' };
+constexpr image_tag_t image_tag_fsktx				{ 'P', 'F', 'S', 'K' };
 
 constexpr image_tag_t image_tag_hackrf				{ 'H', 'R', 'F', '1' };
 

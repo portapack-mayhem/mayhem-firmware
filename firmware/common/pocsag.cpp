@@ -94,19 +94,20 @@ void pocsag_encode(
 	}
 	
 	// Address
-	codeword = (address & 0x1FFFF8U) << 13;
+	codeword = (address & 0x1FFFF8U) << 10;
 	address_slot = (address & 7) * 2;
 	// Function
-	codeword = 3 << 11;
+	codeword |= (3 << 11);
 	
 	insert_BCH(BCH_code, &codeword);
 	
 	// Address batch
 	codewords.push_back(POCSAG_SYNCWORD);
 	for (c = 0; c < 16; c++) {
-		if (c == address_slot)
+		if (c == address_slot) {
 			codewords.push_back(codeword);
-		else
+			break;
+		} else
 			codewords.push_back(POCSAG_IDLEWORD);
 	}
 	
@@ -115,43 +116,51 @@ void pocsag_encode(
 	
 	// Messages batch(es)
 	do {
-		codewords.push_back(POCSAG_SYNCWORD);
+		if (c == 0) codewords.push_back(POCSAG_SYNCWORD);
 		
-		for (c = 0; c < 16; c++) {
-			// Fill up 20 bits
-			do {
-				bit_idx -= 7;
-				
-				if (char_idx < text_size)
-					ascii_char = text[char_idx] & 0x7F;
-				else
-					ascii_char = 0;		// Padding
-				
-				// Bottom's up
-				ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;	// *6543210 -> 3210*654
-				ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 3210*654 -> 103254*6
-				ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 103254*6 -> *0123456
-				
-				codeword |= (ascii_char << bit_idx);
-				
-				char_idx++;
-				
-			} while (bit_idx > 11);
+		for ( ; c < 16; c++) {
 			
-			codeword &= 0x7FFFF800;		// Trim data
-			codeword |= 0x80000000;		// Message type
-			insert_BCH(BCH_code, &codeword);
-			
-			codewords.push_back(codeword);
-			
-			if (bit_idx != 11) {
-				bit_idx = 20 + bit_idx;
-				codeword = ascii_char << bit_idx;
+			if (char_idx < text_size) {
+				
+				// Fill up 20 bits
+				do {
+					bit_idx -= 7;
+					
+					if (char_idx < text_size)
+						ascii_char = text[char_idx] & 0x7F;
+					else
+						ascii_char = 0;		// Codeword padding
+					
+					// Bottom's up
+					ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;	// *6543210 -> 3210*654
+					ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;	// 3210*654 -> 103254*6
+					ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);		// 103254*6 -> *0123456
+					
+					codeword |= (ascii_char << bit_idx);
+					
+					char_idx++;
+					
+				} while (bit_idx > 11);
+				
+				codeword &= 0x7FFFF800;		// Trim data
+				codeword |= 0x80000000;		// Message type
+				insert_BCH(BCH_code, &codeword);
+				
+				codewords.push_back(codeword);
+				
+				if (bit_idx != 11) {
+					bit_idx = 20 + bit_idx;
+					codeword = ascii_char << bit_idx;
+				} else {
+					bit_idx = 20 + 11;
+					codeword = 0;
+				}
 			} else {
-				bit_idx = 20 + 11;
-				codeword = 0;
+				codewords.push_back(POCSAG_IDLEWORD);	// Batch padding
 			}
 		}
+		
+		c = 0;
 		
 	} while (char_idx < text_size);
 }
