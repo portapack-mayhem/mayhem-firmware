@@ -56,16 +56,15 @@ void POCSAGTXView::on_tx_progress(const int progress, const bool done) {
 }
 
 void POCSAGTXView::start_tx() {
-	uint32_t total_frames, i, codeword, b, bi, address;
-	std::string test_string = "PORTAPACK !";
+	uint32_t total_frames, i, codeword, bi, address;
+	pocsag::BitRate bitrate;
 	std::vector<uint32_t> codewords;
-	uint8_t byte = 0;
 	
 	address = address_field.value_dec_u32();
-	if (address > 0x7FFFFFU)
+	if (address > 0x1FFFFFU)
 		address = 0;			// Todo: Error screen
 	
-	pocsag_encode(BCH_code, test_string, address, codewords);
+	pocsag_encode(BCH_code, message, address, codewords);
 	
 	total_frames = codewords.size() / 2;
 	
@@ -82,13 +81,6 @@ void POCSAGTXView::start_tx() {
 	
 	bi = 0;
 	for (i = 0; i < codewords.size(); i++) {
-		/*for (b = 0; b < 32; b++) {
-			byte |= ((((codewords[i] << b) & 0x80000000U) ? 1 : 0) << (7 - (b & 7)));
-			if ((b & 7) == 7) {
-				data_ptr[bi++] = byte;
-				byte = 0;
-			}
-		}*/
 		codeword = codewords[i];
 		data_ptr[bi++] = (codeword >> 24) & 0xFF;
 		data_ptr[bi++] = (codeword >> 16) & 0xFF;
@@ -98,28 +90,45 @@ void POCSAGTXView::start_tx() {
 	
 	text_debug_a.set("Codewords: " + to_string_dec_uint(codewords.size()));
 	
+	bitrate = pocsag_bitrates[options_bitrate.selected_index()];
+	
 	baseband::set_fsk_data(
 		codewords.size() * 32,
-		228000 / 1200,
+		2280000 / bitrate,
 		4500,
 		64
-		//228000 / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_fragment),
 	);
 }
 
+void POCSAGTXView::paint(Painter&) {
+	message = buffer;
+	text_message.set("Message:" + message);
+}
+
+void POCSAGTXView::on_set_text(NavigationView& nav) {
+	textentry(nav, buffer, 16);
+}
+
 POCSAGTXView::POCSAGTXView(NavigationView& nav) {
-	//size_t i;
-	
+
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
 	add_children({
 		&text_debug_a,
-		&text_debug_b,
-		&text_debug_c,
+		&text_address,
 		&address_field,
+		&options_bitrate,
+		&text_message,
+		&button_message,
 		&progressbar,
 		&tx_view
 	});
+
+	options_bitrate.set_selected_index(1);	// 1200bps
+	
+	button_message.on_select = [this, &nav](Button&) {
+		this->on_set_text(nav);
+	};
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

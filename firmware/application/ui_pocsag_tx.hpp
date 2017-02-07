@@ -29,6 +29,7 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
+#include "ui_textentry.hpp"
 #include "bch_code.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
@@ -40,22 +41,26 @@ public:
 	POCSAGTXView(NavigationView& nav);
 	~POCSAGTXView();
 	
-	/*POCSAGTXView(const EncodersView&) = delete;
-	POCSAGTXView(EncodersView&&) = delete;
-	POCSAGTXView& operator=(const EncodersView&) = delete;
-	POCSAGTXView& operator=(EncodersView&&) = delete;*/
+	POCSAGTXView(const POCSAGTXView&) = delete;
+	POCSAGTXView(POCSAGTXView&&) = delete;
+	POCSAGTXView& operator=(const POCSAGTXView&) = delete;
+	POCSAGTXView& operator=(POCSAGTXView&&) = delete;
 	
 	void focus() override;
+	void paint(Painter&) override;
 	
 	std::string title() const override { return "POCSAG TX"; };
 
 private:
+	char buffer[17] = "PORTAPACK";
+	std::string message { };
 
 	BCHCode BCH_code {
 		{ 1, 0, 1, 0, 0, 1 },
 		5, 31, 21, 2
 	};
 	
+	void on_set_text(NavigationView& nav);
 	void on_tx_progress(const int progress, const bool done);
 	void start_tx();
 	
@@ -63,19 +68,34 @@ private:
 		{ 1 * 8, 4 * 8, 20 * 8, 16 },
 		"-"
 	};
-	Text text_debug_b {
-		{ 1 * 8, 6 * 8, 20 * 8, 16 },
-		"-"
-	};
-	Text text_debug_c {
-		{ 1 * 8, 12 * 8, 20 * 8, 16 },
+	
+	Text text_address {
+		{ 3 * 8, 10 * 8, 20 * 8, 16 },
 		"Address:"
 	};
-	
 	SymField address_field {
-		{ 9 * 8, 12 * 8 },
+		{ 11 * 8, 10 * 8 },
 		7,
 		SymField::SYMFIELD_DEC
+	};
+	
+	OptionsField options_bitrate {
+		{ 11 * 8, 12 * 8 },
+		8,
+		{
+			{ "512 bps ", 0 },
+			{ "1200 bps", 1 },
+			{ "2400 bps", 2 }
+		}
+	};
+	
+	Text text_message {
+		{ 3 * 8, 14 * 8, 16 * 8, 16 },
+		""
+	};
+	Button button_message {
+		{ 3 * 8, 16 * 8, 8 * 8, 28 },
+		"Set"
 	};
 	
 	ProgressBar progressbar {

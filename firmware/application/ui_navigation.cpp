@@ -527,11 +527,10 @@ ModalMessageView::ModalMessageView(
 	const modal_t type,
 	const std::function<void(bool)> on_choice
 ) : title_ { title },
+	message_ { message },
 	type_ { type },
 	on_choice_ { on_choice }
 {
-	add_child(&text_message);
-
 	if (type == INFO) {
 		add_child(&button_ok);
 		
@@ -574,17 +573,28 @@ ModalMessageView::ModalMessageView(
 			nav.pop_modal();
 		};
 	}
-	
-	const int text_message_width = message.size() * 8;
- 	text_message.set_parent_rect({
- 		(240 - text_message_width) / 2, 8 * 16,
- 		text_message_width, 16
- 	});
-	text_message.set(message);
 }
 
-void ModalMessageView::paint(Painter&) {
-	portapack::display.drawBMP({ 100, 64 }, modal_warning_bmp, false);
+void ModalMessageView::paint(Painter& painter) {
+	size_t pos, i = 0, start = 0;
+	
+	portapack::display.drawBMP({ 100, 48 }, modal_warning_bmp, false);
+	
+	// Terrible...
+	while ((pos = message_.find("\n", start)) != std::string::npos) {
+		painter.draw_string(
+			{ 1 * 8, (Coord)(120 + (i * 16)) },
+			style(),
+			message_.substr(start, pos)
+		);
+		i++;
+		start = pos + 1;
+	}
+	painter.draw_string(
+		{ 1 * 8, (Coord)(120 + (i * 16)) },
+		style(),
+		message_.substr(start, pos)
+	);
 }
 
 void ModalMessageView::focus() {

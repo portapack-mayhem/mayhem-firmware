@@ -291,10 +291,9 @@ public:
 
 private:
 	const std::string title_;
+	const std::string message_;
 	const modal_t type_;
 	const std::function<void(bool)> on_choice_;
-	
-	Text text_message { };
 
 	Button button_ok {
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },

@@ -49,13 +49,13 @@ AlphanumView::AlphanumView(
 	static constexpr Style style_alpha {
 		.font = font::fixed_8x16,
 		.background = Color::black(),
-		.foreground = Color(191,31,31)
+		.foreground = Color(255, 63, 63)
 	};
 	
 	static constexpr Style style_num {
 		.font = font::fixed_8x16,
 		.background = Color::black(),
-		.foreground = Color(191,191,31)
+		.foreground = Color(191, 191, 31)
 	};
 	
 	txtidx = strlen(txt);

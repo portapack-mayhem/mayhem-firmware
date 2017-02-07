@@ -44,7 +44,7 @@ void WipeSDView::focus() {
 	dummy.focus();
 	
 	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe first 32MB of SD card ?", YESCANCEL, [this](bool choice) {
+		nav_.push<ModalMessageView>("Warning !", "Wipe first 32MB of SD card\n(filesystem included) ?", YESCANCEL, [this](bool choice) {
 				if (choice)
 					confirmed = true;
 			}

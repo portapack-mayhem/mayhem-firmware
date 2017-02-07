@@ -191,13 +191,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 }
 
 void POCSAGAppView::on_bitrate_changed(const uint32_t new_bitrate) {
-	const pocsag::BitRate bitrates[3] = {
-		pocsag::BitRate::FSK512,
-		pocsag::BitRate::FSK1200,
-		pocsag::BitRate::FSK2400
-	};
-	
-	baseband::set_pocsag(bitrates[new_bitrate]);
+	baseband::set_pocsag(pocsag_bitrates[new_bitrate]);
 }
 
 void POCSAGAppView::on_band_changed(const uint32_t new_band_frequency) {

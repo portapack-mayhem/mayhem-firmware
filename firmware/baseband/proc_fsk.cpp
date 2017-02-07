@@ -35,34 +35,28 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 	if (!configured) return;
 	
 	for (size_t i = 0; i < buffer.count; i++) {
-		
-		// Synthesis at 2.28M/10 = 228kHz
-		if (!s) {
-			s = 10 - 1;
-			if (sample_count >= samples_per_bit) {
-				if (bit_pos >= length) {
-					// End of data
-					cur_bit = 0;
-					txdone_message.done = true;
-					shared_memory.application_queue.push(txdone_message);
-					configured = false;
-				} else {
-					cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
-					bit_pos++;
-					if (progress_count >= progress_notice) {
-						progress_count = 0;
-						txdone_message.progress++;
-						shared_memory.application_queue.push(txdone_message);
-					} else {
-						progress_count++;
-					}
-				}
-				sample_count = 0;
+
+		if (sample_count >= samples_per_bit) {
+			if (bit_pos >= length) {
+				// End of data
+				cur_bit = 0;
+				txdone_message.done = true;
+				shared_memory.application_queue.push(txdone_message);
+				configured = false;
 			} else {
-				sample_count++;
+				cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+				bit_pos++;
+				if (progress_count >= progress_notice) {
+					progress_count = 0;
+					txdone_message.progress++;
+					shared_memory.application_queue.push(txdone_message);
+				} else {
+					progress_count++;
+				}
 			}
+			sample_count = 0;
 		} else {
-			s--;
+			sample_count++;
 		}
 		
 		if (configured) {
@@ -96,7 +90,6 @@ void FSKProcessor::on_message(const Message* const p) {
 		
 		progress_notice = message.progress_notice;
 		
-		s = 0;
 		sample_count = samples_per_bit;
 		progress_count = 0;
 		bit_pos = 0;

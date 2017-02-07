@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_SE_WIPE_H__
-#define __UI_SE_WIPE_H__
+#ifndef __UI_SD_WIPE_H__
+#define __UI_SD_WIPE_H__
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -89,4 +89,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_SE_WIPE_H__*/
+#endif/*__UI_SD_WIPE_H__*/

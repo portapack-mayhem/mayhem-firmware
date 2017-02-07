@@ -40,7 +40,6 @@ private:
 	uint32_t samples_per_bit { 0 };
 	uint32_t length { 0 };
 	
-	uint8_t s { 0 };
     uint32_t shift_zero { }, shift_one { };
     uint32_t bit_pos { 0 };
     uint32_t progress_notice { }, progress_count { 0 };

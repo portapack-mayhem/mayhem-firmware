@@ -59,6 +59,12 @@ struct POCSAGState {
 	std::string output;
 };
 
+const pocsag::BitRate pocsag_bitrates[3] = {
+	pocsag::BitRate::FSK512,
+	pocsag::BitRate::FSK1200,
+	pocsag::BitRate::FSK2400
+};
+
 std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);
 
