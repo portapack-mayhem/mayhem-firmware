@@ -585,7 +585,7 @@ void ModalMessageView::paint(Painter& painter) {
 		painter.draw_string(
 			{ 1 * 8, (Coord)(120 + (i * 16)) },
 			style(),
-			message_.substr(start, pos)
+			message_.substr(start, pos - start)
 		);
 		i++;
 		start = pos + 1;

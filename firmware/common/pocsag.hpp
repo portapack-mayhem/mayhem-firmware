@@ -49,6 +49,12 @@ enum OutputType : uint32_t {
 	MESSAGE
 };
 
+enum MessageType : uint32_t {
+	ADDRESS_ONLY,
+	NUMERIC_ONLY,
+	ALPHANUMERIC
+};
+
 struct POCSAGState {
 	uint32_t function;
 	uint32_t address;
@@ -69,7 +75,9 @@ std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);
 
 void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
-void pocsag_encode(BCHCode& BCH_code, const std::string text, const uint32_t address, std::vector<uint32_t>& codewords);
+uint32_t get_digit_code(char code);
+void pocsag_encode(const MessageType type, BCHCode& BCH_code, const std::string message,
+					const uint32_t address, std::vector<uint32_t>& codewords);
 bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
 
 } /* namespace pocsag */

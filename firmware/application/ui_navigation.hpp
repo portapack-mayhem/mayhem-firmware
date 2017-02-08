@@ -296,17 +296,17 @@ private:
 	const std::function<void(bool)> on_choice_;
 
 	Button button_ok {
-		{ 10 * 8, 13 * 16, 10 * 8, 24 },
+		{ 10 * 8, 14 * 16, 10 * 8, 48 },
 		"OK",
 	};
 	
 	Button button_yes {
-		{ 5 * 8, 13 * 16, 8 * 8, 48 },
+		{ 5 * 8, 14 * 16, 8 * 8, 48 },
 		"YES",
 	};
 
 	Button button_no {
-		{ 17 * 8, 13 * 16, 8 * 8, 48 },
+		{ 17 * 8, 14 * 16, 8 * 8, 48 },
 		"NO",
 	};
 };

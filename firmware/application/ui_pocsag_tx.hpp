@@ -33,6 +33,9 @@
 #include "bch_code.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "pocsag.hpp"
+
+using namespace pocsag;
 
 namespace ui {
 
@@ -54,6 +57,7 @@ public:
 private:
 	char buffer[17] = "PORTAPACK";
 	std::string message { };
+	NavigationView& nav_;
 
 	BCHCode BCH_code {
 		{ 1, 0, 1, 0, 0, 1 },
@@ -62,25 +66,14 @@ private:
 	
 	void on_set_text(NavigationView& nav);
 	void on_tx_progress(const int progress, const bool done);
-	void start_tx();
+	bool start_tx();
 	
-	Text text_debug_a {
-		{ 1 * 8, 4 * 8, 20 * 8, 16 },
-		"-"
+	Text text_bitrate {
+		{ 3 * 8, 4 * 8, 8 * 8, 16 },
+		"Bitrate:"
 	};
-	
-	Text text_address {
-		{ 3 * 8, 10 * 8, 20 * 8, 16 },
-		"Address:"
-	};
-	SymField address_field {
-		{ 11 * 8, 10 * 8 },
-		7,
-		SymField::SYMFIELD_DEC
-	};
-	
 	OptionsField options_bitrate {
-		{ 11 * 8, 12 * 8 },
+		{ 11 * 8, 4 * 8 },
 		8,
 		{
 			{ "512 bps ", 0 },
@@ -89,12 +82,36 @@ private:
 		}
 	};
 	
+	Text text_address {
+		{ 3 * 8, 6 * 8, 8 * 8, 16 },
+		"Address:"
+	};
+	SymField field_address {
+		{ 11 * 8, 6 * 8 },
+		7,
+		SymField::SYMFIELD_DEC
+	};
+	
+	Text text_type {
+		{ 6 * 8, 8 * 8, 5 * 8, 16 },
+		"Type:"
+	};
+	OptionsField options_type {
+		{ 11 * 8, 8 * 8 },
+		12,
+		{
+			{ "Address only", MessageType::ADDRESS_ONLY },
+			{ "Numeric only", MessageType::NUMERIC_ONLY },
+			{ "Alphanumeric", MessageType::ALPHANUMERIC }
+		}
+	};
+	
 	Text text_message {
-		{ 3 * 8, 14 * 8, 16 * 8, 16 },
+		{ 3 * 8, 12 * 8, 16 * 8, 16 },
 		""
 	};
 	Button button_message {
-		{ 3 * 8, 16 * 8, 8 * 8, 28 },
+		{ 3 * 8, 14 * 8, 8 * 8, 28 },
 		"Set"
 	};
 	

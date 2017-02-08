@@ -22,7 +22,6 @@
 
 #include "ui_pocsag_tx.hpp"
 
-#include "pocsag.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -55,16 +54,34 @@ void POCSAGTXView::on_tx_progress(const int progress, const bool done) {
 		progressbar.set_value(progress);
 }
 
-void POCSAGTXView::start_tx() {
+bool POCSAGTXView::start_tx() {
 	uint32_t total_frames, i, codeword, bi, address;
 	pocsag::BitRate bitrate;
 	std::vector<uint32_t> codewords;
+	MessageType type;
 	
-	address = address_field.value_dec_u32();
-	if (address > 0x1FFFFFU)
-		address = 0;			// Todo: Error screen
+	type = (MessageType)options_type.selected_index_value();
 	
-	pocsag_encode(BCH_code, message, address, codewords);
+	address = field_address.value_dec_u32();
+	if (address > 0x1FFFFFU) {
+		nav_.display_modal("Bad address", "Address must be less\nthan 2097152.", INFO, nullptr);
+		return false;
+	}
+	
+	if (type == MessageType::NUMERIC_ONLY) {
+		// Check for invalid characters
+		if (message.find_first_not_of("0123456789SU -][") != std::string::npos) {
+			nav_.display_modal(
+				"Bad message",
+				"A numeric only message must\nonly contain:\n0123456789SU][- or space.",
+				INFO,
+				nullptr
+			);
+			return false;
+		}
+	}
+	
+	pocsag_encode(type, BCH_code, message, address, codewords);
 	
 	total_frames = codewords.size() / 2;
 	
@@ -88,7 +105,7 @@ void POCSAGTXView::start_tx() {
 		data_ptr[bi++] = codeword & 0xFF;
 	}
 	
-	text_debug_a.set("Codewords: " + to_string_dec_uint(codewords.size()));
+	//text_debug_a.set("Codewords: " + to_string_dec_uint(codewords.size()));
 	
 	bitrate = pocsag_bitrates[options_bitrate.selected_index()];
 	
@@ -98,6 +115,8 @@ void POCSAGTXView::start_tx() {
 		4500,
 		64
 	);
+	
+	return true;
 }
 
 void POCSAGTXView::paint(Painter&) {
@@ -109,15 +128,20 @@ void POCSAGTXView::on_set_text(NavigationView& nav) {
 	textentry(nav, buffer, 16);
 }
 
-POCSAGTXView::POCSAGTXView(NavigationView& nav) {
+POCSAGTXView::POCSAGTXView(
+	NavigationView& nav
+) : nav_ (nav)
+{
 
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
 	add_children({
-		&text_debug_a,
-		&text_address,
-		&address_field,
+		&text_bitrate,
 		&options_bitrate,
+		&text_address,
+		&field_address,
+		&text_type,
+		&options_type,
 		&text_message,
 		&button_message,
 		&progressbar,
@@ -125,6 +149,7 @@ POCSAGTXView::POCSAGTXView(NavigationView& nav) {
 	});
 
 	options_bitrate.set_selected_index(1);	// 1200bps
+	options_type.set_selected_index(2);		// Alphanumeric
 	
 	button_message.on_select = [this, &nav](Button&) {
 		this->on_set_text(nav);
@@ -138,12 +163,13 @@ POCSAGTXView::POCSAGTXView(NavigationView& nav) {
 	};
 	
 	tx_view.on_start = [this]() {
-		tx_view.set_transmitting(true);
-		start_tx();
+		if (start_tx())
+			tx_view.set_transmitting(true);
 	};
 	
 	tx_view.on_stop = [this]() {
 		tx_view.set_transmitting(false);
+		transmitter_model.disable();
 	};
 	
 }
