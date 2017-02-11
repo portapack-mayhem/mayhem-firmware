@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+# Copyright (C) 2016 Furrtek
 #
 # This file is part of PortaPack.
 #
@@ -409,7 +410,7 @@ add_custom_command(
 	VERBATIM
 )
 
-set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
+#set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
 
 ### Terminator image
 
@@ -420,16 +421,19 @@ add_custom_command(
 	VERBATIM
 )
 
-set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
+#set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
 
 #######################################################################
 
 project(baseband)
 
+message(${BASEBAND_IMAGES})
+
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.img
 	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img
 	DEPENDS ${BASEBAND_IMAGES}
+	DEPENDS hackrf.img terminator.img
 	VERBATIM
 )
 
