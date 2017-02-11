@@ -14,12 +14,14 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 * Frequency manager (save/load from SD card)
 * "Soundboard" wave file player from SD card (put 8-bit mono files in /wav directory)
+* POCSAG 512/1200/2400 transmitter
 * POCSAG 512/1200/2400 alphanumeric receiver/decoder
+* Fully configurable jammer
 * Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
 * Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
 * Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
 * RDS (Radio Data System) PSN and RadioText groups transmit
-* Fully configurable AFSK transmit (Bell202...)
+* AFSK transmit (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) litteral message forming and transmit
 * "Xy" and "EP" transmitter, street lighting control (CCIR tones)
@@ -31,14 +33,14 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 Feature | Progress | Notes
 ------- | ------ | -----
 Jammer      | 95% | Need to make the different noise modes work
-RDS TX      | 90% | Needs testing for Radiotext and audio mux function
-POCSAG RX   | 90% | Still misses some messages
-Close-Call™ | 80% | Needs adjustments and optimization for wider frequency range
+POCSAG RX   | 95% | Needs support for numeric messages
+RDS TX      | 90% | Radiotext isn't quite right yet
+Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
+ADS-B TX    | 40% | UI and frame gen stuff done
 Morse TX    | 30% | Needs UI and testing
 Wave visualizer | 30% | High priority
-ADS-B TX    | 30% | UI and frame gen stuff done
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
@@ -48,7 +50,6 @@ Scanner     | 0%  | Easy
 SSB TX      | 0%  | Requested
 PMR446 TX   | 0%  | Channel list, mic. in, PTT, CTCSS
 OOK RX      | 0%  | Mainly for 433MHz remotes
-POCSAG TX   | 0%  | Shouldn't be too tough, a real pager for testing would be nice
 AFSK RX     | 0%  | Shouldn't be too tough
 Analog TV TX| 0%  | Could be fun
 Mic. TX     | 0%  | Need to find guard tones for various brands of wireless mics
@@ -57,8 +58,6 @@ Painter     | 0%  | Spectrum painter, low priority
 # Screenshots
 
 ![HAVOC screenshots](screenshots.png)
-
-**Visit the [wiki](https://github.com/furrtek/portapack-havoc/wiki) for more details.**
 
 ## PWM RSSI output
 
@@ -75,7 +74,7 @@ This mode can also be used as a login screen, not requiring reset.
 # Thanks
 
 * Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
-* Rainer Matla for the donation :)
+* Rainer Matla and DC1RDB for the donations :)
 * Keld Norman for ideas and suggestions
 
 # License
