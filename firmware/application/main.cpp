@@ -24,9 +24,6 @@
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: RDS Radiotext is not recognized in Redsea (and car radio)
-//BUG: POCSAG TX: Chops off the last few chars on long messages ?
-//BUG: (fixed ?) POCSAG: Bad console scroll init
-//BUG: (fixed ?) POCSAG misses alphanum messages, cuts them off sometimes
 //BUG: Check AFSK transmit end, skips last bits ?
 //BUG: RDS doesn't stop baseband when stopping tx ?
 

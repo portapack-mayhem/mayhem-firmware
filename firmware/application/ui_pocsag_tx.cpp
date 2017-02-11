@@ -105,8 +105,6 @@ bool POCSAGTXView::start_tx() {
 		data_ptr[bi++] = codeword & 0xFF;
 	}
 	
-	//text_debug_a.set("Codewords: " + to_string_dec_uint(codewords.size()));
-	
 	bitrate = pocsag_bitrates[options_bitrate.selected_index()];
 	
 	baseband::set_fsk_data(
