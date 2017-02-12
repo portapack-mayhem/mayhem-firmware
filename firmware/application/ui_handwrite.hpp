@@ -33,7 +33,7 @@ namespace ui {
 
 class HandWriteView : public View {
 public:
-	std::function<void(char *)> on_changed;
+	std::function<void(char *)> on_changed { };
 
 	HandWriteView(NavigationView& nav, char txt[], size_t max_length);
 	
@@ -51,19 +51,19 @@ public:
 	std::string title() const override { return "Text entry"; };
 	
 private:
-	const HandWriting * handwriting;
-	Painter * _painter;
+	const HandWriting * handwriting { };
+	Painter * _painter { };
 	size_t _max_length;
-	uint8_t dir_cnt = 0;
-	uint8_t dir_prev;
-	uint8_t flash_timer = 0;
-	uint8_t txtidx = 0;
-	bool cursor = false;
-	bool tracing = false;
-	uint8_t stroke_index;
-	uint8_t sample_skip, move_wait;
+	uint8_t dir_cnt { 0 };
+	uint8_t dir_prev { 0 };
+	uint8_t flash_timer { 0 };
+	uint8_t txtidx { 0 };
+	bool cursor { false };
+	bool tracing { false };
+	uint8_t stroke_index { 0 };
+	uint8_t sample_skip { 0 }, move_wait { 0 };
 	uint8_t stroke_list[8];
-	Point start_pos, current_pos, last_pos;
+	Point start_pos { }, current_pos { }, last_pos { };
 	bool _lowercase = false;
 	char txtinput[29] = { 0 };		// 28 chars max
 	
@@ -79,8 +79,8 @@ private:
 		{ 8, 0, 232, 16 }
 	};
 	
-	std::array<Button, 10> num_buttons;
-	std::array<Button, 5> special_buttons;
+	std::array<Button, 10> num_buttons { };
+	std::array<Button, 5> special_buttons { };
 
 	Button button_case {
 		{ 8, 270, 32, 28 },

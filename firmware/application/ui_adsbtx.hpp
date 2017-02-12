@@ -25,6 +25,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "ui_transmitter.hpp"
 
 #include "message.hpp"
 #include "transmitter_model.hpp"
@@ -57,7 +58,7 @@ private:
 	uint8_t adsb_frame[14];		// 112 bit data block as 14 bytes
 	uint8_t adsb_bin[112];		// 112 bit data block
 	
-	void start_tx();
+	bool start_tx();
 	void generate_frame();
 	void generate_frame_pos();
 	void on_txdone(const int n);
@@ -170,9 +171,11 @@ private:
 		"-"
 	};
 	
-	Button button_transmit {
-		{ 2 * 8, 16 * 16, 64, 32 },
-		"START"
+	TransmitterView tx_view {
+		16 * 16,
+		1090000000,
+		2000000,
+		true
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {

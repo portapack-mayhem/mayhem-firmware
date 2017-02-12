@@ -349,6 +349,32 @@ void Text::paint(Painter& painter) {
 	);
 }
 
+/* Labels ****************************************************************/
+
+Labels::Labels(
+	std::vector<Label> * labels
+) : labels_ { labels }
+{
+}
+
+void Labels::set_labels(std::vector<Label> * const labels) {
+	labels_ = labels;
+	set_dirty();
+}
+
+void Labels::paint(Painter& painter) {
+	/*const auto rect = screen_rect();
+	const auto s = style();
+
+	painter.fill_rectangle(rect, s.background);
+
+	painter.draw_string(
+		rect.location(),
+		s,
+		text
+	);*/
+}
+
 /* BigFrequency **********************************************************/
 
 const uint8_t big_segment_font[11] = {

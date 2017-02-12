@@ -21,8 +21,10 @@
 /firmware/application/application.bin
 /CMakeCache.txt
 /Makefile
+/firmware/Makefile
 /firmware/baseband/Makefile
 /firmware/bootstrap/Makefile
+/firmware/application/Makefile
 /firmware/application/portapack_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.hpp

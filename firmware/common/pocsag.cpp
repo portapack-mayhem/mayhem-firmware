@@ -110,7 +110,7 @@ void pocsag_encode(
 	size_t b, c, address_slot;
 	size_t bit_idx, char_idx = 0;
 	uint32_t codeword, digit_code;
-	char ascii_char;
+	char ascii_char = 0;
 	
 	size_t message_size = message.size();
 	
@@ -140,6 +140,7 @@ void pocsag_encode(
 	
 	if (type == MessageType::ADDRESS_ONLY) return;	// Done.
 	
+	c++;
 	codeword = 0;
 	bit_idx = 20 + 11;
 	

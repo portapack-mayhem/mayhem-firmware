@@ -52,7 +52,13 @@ public:
 	std::function<void(void)> on_start { };
 	std::function<void(void)> on_stop { };
 	
-	TransmitterView(const Coord y, const uint32_t frequency_step, const uint32_t bandwidth);
+	TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t bandwidth, const bool lock);
+	TransmitterView(
+		const Coord y, const uint32_t frequency_step, const uint32_t bandwidth
+	) : TransmitterView { y, frequency_step, bandwidth, false }
+	{
+	}
+	
 	~TransmitterView();
 	
 	void on_show() override;
@@ -72,15 +78,25 @@ private:
 		.background = Color::black(),
 		.foreground = Color::red(),
 	};
+	const Style style_locked {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::dark_grey(),
+	};
 	
+	bool lock_ { false };
 	bool transmitting_ { false };
 	
 	FrequencyField field_frequency {
 		{ 0 * 8, 1 * 8 }
 	};
 	
+	Text text_gain {
+		{ 0 * 8, 3 * 8, 5 * 8, 1 * 16 },
+		"Gain:"
+	};
 	TXGainField field_gain {
-		{ 10 * 8, 1 * 8 }
+		{ 5 * 8, 3 * 8 }
 	};
 	
 	NumberField field_bw {

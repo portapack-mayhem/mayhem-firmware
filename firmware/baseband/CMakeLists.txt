@@ -427,8 +427,6 @@ add_custom_command(
 
 project(baseband)
 
-message(${BASEBAND_IMAGES})
-
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.img
 	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img

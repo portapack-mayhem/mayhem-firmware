@@ -78,7 +78,9 @@ void ADSBTxView::generate_frame() {
 	button_callsign.set_text(callsign);
 }
 
-void ADSBTxView::start_tx() {
+bool ADSBTxView::start_tx() {
+	generate_frame();
+	
 	transmitter_model.set_tuning_frequency(434000000);		// FOR TESTING - DEBUG
 	transmitter_model.set_sampling_rate(2000000U);
 	transmitter_model.set_rf_amp(true);
@@ -89,6 +91,8 @@ void ADSBTxView::start_tx() {
 	
 	memcpy(shared_memory.bb_data.data, adsb_bin, 112);
 	baseband::set_adsb();
+	
+	return false;	// DEBUG
 }
 
 void ADSBTxView::on_txdone(const int n) {
@@ -97,22 +101,15 @@ void ADSBTxView::on_txdone(const int n) {
 	if (n == 200) {
 		transmitter_model.disable();
 		//progress.set_value(0);
-		
-		tx_mode = IDLE;
-		button_transmit.set_style(&style_val);
-		button_transmit.set_text("START");
 	} else {
 		//progress.set_value(n);
 	}
 }
 
 ADSBTxView::ADSBTxView(NavigationView& nav) {
-	(void)nav;
 	uint32_t c;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
-
-	// http://openflights.org
 
 	add_children({
 		&text_format,
@@ -136,7 +133,7 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 		&field_squawk,
 		&text_frame_a,
 		&text_frame_b,
-		&button_transmit
+		&tx_view
 	});
 	
 	options_format.set_by_value(17);	// Mode S
@@ -164,19 +161,21 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 	for (c = 0; c < 4; c++)
 		field_squawk.set_value(c, 0);
 	
-	button_transmit.set_style(&style_val);
-	
 	generate_frame();
-
-	// Single transmit
-	button_transmit.on_select = [this, &nav](Button&) {
-		if (tx_mode == IDLE) {
-			tx_mode = SINGLE;
-			button_transmit.set_style(&style_cancel);
-			button_transmit.set_text("Wait");
-			generate_frame();
-			start_tx();
-		}
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		// Shouldn't be able to edit frequency
+		return;
+	};
+	
+	tx_view.on_start = [this]() {
+		if (start_tx())
+			tx_view.set_transmitting(true);
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
 	};
 }
 

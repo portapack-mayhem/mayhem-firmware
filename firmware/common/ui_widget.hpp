@@ -211,6 +211,29 @@ private:
 	std::string text;
 };
 
+class Labels : public Widget {
+public:
+	struct Label {
+		Point pos;
+		std::string text;
+		ui::Color color;
+	};
+	
+	Labels(const Labels&) = delete;
+	Labels(Labels&&) = delete;
+	Labels& operator=(const Labels&) = delete;
+	Labels& operator=(Labels&&) = delete;
+
+	Labels(std::vector<Label> * labels);
+
+	void set_labels(std::vector<Label> * const labels);
+
+	void paint(Painter& painter) override;
+
+private:
+	std::vector<Label> * labels_;
+};
+
 class BigFrequency : public Widget {
 public:
 	BigFrequency(Rect parent_rect, rf::Frequency frequency);
@@ -294,7 +317,7 @@ private:
 	std::string text_;
 	bool small_ { false };
 	bool value_ { false };
-	const Style* style_ { nullptr };
+	const Style * style_ { nullptr };
 };
 
 class Button : public Widget {

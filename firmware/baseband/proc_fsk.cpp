@@ -37,7 +37,7 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i < buffer.count; i++) {
 
 		if (sample_count >= samples_per_bit) {
-			if (bit_pos >= length) {
+			if (bit_pos > length) {
 				// End of data
 				cur_bit = 0;
 				txdone_message.done = true;
@@ -83,7 +83,7 @@ void FSKProcessor::on_message(const Message* const p) {
 	
 	if (message.id == Message::ID::FSKConfigure) {
 		samples_per_bit = message.samples_per_bit;
-		length = message.stream_length - 1;
+		length = message.stream_length + 4;			// Why 4 ?!
 		
 		shift_zero = message.shift * (0xFFFFFFFFULL / 2280000);
 		shift_one = -shift_zero;

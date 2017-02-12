@@ -298,8 +298,8 @@ public:
 	
 private:
 	bool entermode = false;
-	uint32_t sequence = 0;
-	uint8_t keycount, key_code;
+	uint32_t sequence { 0 };
+	uint8_t keycount { 0 }, key_code { };
 	char sequence_txt[11] = { 0 };
 	
 	Text text_sequence {

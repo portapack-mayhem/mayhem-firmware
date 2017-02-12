@@ -98,34 +98,44 @@ void TransmitterView::focus() {
 }
 
 TransmitterView::TransmitterView(
-	const Coord y, const uint32_t frequency_step, const uint32_t bandwidth
-) {
+	const Coord y, const uint64_t frequency_step, const uint32_t bandwidth, const bool lock
+) :	lock_ { lock }
+{
 	set_parent_rect({ 0 * 8, y, 30 * 8, 6 * 8 });
 	
 	add_children({
 		&field_frequency,
+		&text_gain,
 		&field_gain,
-		&field_bw,
-		&text_kHz,
 		&button_start
 	});
 	
 	set_transmitting(false);
+	
+	if (lock_) {
+		field_frequency.set_focusable(false);
+		field_frequency.set_style(&style_locked);
+	} else {
+		add_children({
+			&field_bw,
+			&text_kHz
+		});
+		
+		field_bw.on_change = [this](int32_t bandwidth) {
+			on_bandwidth_changed(bandwidth);
+		};
+		field_bw.set_value(bandwidth);
+	}
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(frequency_step);
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		on_tuning_frequency_changed(f);
 	};
 	field_frequency.on_edit = [this]() {
 		if (on_edit_frequency)
 			on_edit_frequency();
 	};
-	
-	field_bw.on_change = [this](int32_t bandwidth) {
-		transmitter_model.set_bandwidth(bandwidth);
-	};
-	field_bw.set_value(bandwidth);
 	
 	button_start.on_select = [this](Button&){
 		if (transmitting_) {
