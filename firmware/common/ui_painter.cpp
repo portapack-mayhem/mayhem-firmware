@@ -42,16 +42,23 @@ int Painter::draw_char(const Point p, const Style& style, const char c) {
 	return glyph.advance().x();
 }
 
-int Painter::draw_string(Point p, const Style& style, const std::string text) {
+int Painter::draw_string(Point p, const Font& font, const Color foreground,
+	const Color background, const std::string text) {
+	
 	size_t width = 0;
+	
 	for(const auto c : text) {
-		const auto glyph = style.font.glyph(c);
-		display.draw_glyph(p, glyph, style.foreground, style.background);
+		const auto glyph = font.glyph(c);
+		display.draw_glyph(p, glyph, foreground, background);
 		const auto advance = glyph.advance();
 		p += advance;
 		width += advance.x();
 	}
 	return width;
+}
+
+int Painter::draw_string(Point p, const Style& style, const std::string text) {
+	return draw_string(p, style.font, style.foreground, style.background, text);
 }
 
 void Painter::draw_bitmap(const Point p, const Bitmap& bitmap, const Color foreground, const Color background) {

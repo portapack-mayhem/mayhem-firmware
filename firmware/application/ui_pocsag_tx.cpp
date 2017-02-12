@@ -119,7 +119,7 @@ bool POCSAGTXView::start_tx() {
 
 void POCSAGTXView::paint(Painter&) {
 	message = buffer;
-	text_message.set("Message:" + message);
+	text_message.set(message);
 }
 
 void POCSAGTXView::on_set_text(NavigationView& nav) {
@@ -134,11 +134,9 @@ POCSAGTXView::POCSAGTXView(
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
 	add_children({
-		&text_bitrate,
+		&labels,
 		&options_bitrate,
-		&text_address,
 		&field_address,
-		&text_type,
 		&options_type,
 		&text_message,
 		&button_message,

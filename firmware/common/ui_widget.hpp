@@ -27,6 +27,7 @@
 #include "ui_text.hpp"
 #include "ui_painter.hpp"
 #include "ui_focus.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "radio.hpp"
 
 #include "portapack.hpp"
@@ -224,14 +225,14 @@ public:
 	Labels& operator=(const Labels&) = delete;
 	Labels& operator=(Labels&&) = delete;
 
-	Labels(std::vector<Label> * labels);
+	Labels(std::initializer_list<Label> labels);
 
-	void set_labels(std::vector<Label> * const labels);
+	void set_labels(std::initializer_list<Label> labels);
 
 	void paint(Painter& painter) override;
 
 private:
-	std::vector<Label> * labels_;
+	std::vector<Label> labels_;
 };
 
 class BigFrequency : public Widget {

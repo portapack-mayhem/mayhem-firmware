@@ -39,19 +39,21 @@ public:
 private:
 	void update_freq(rf::Frequency f);
 	
-	Text text_setfreq {
-		{ 8, 32, 104, 16 },
-		"Frequency:"
+	Labels labels {
+		{ { 1 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
+		{ { 16 * 8, 5 * 8 }, "Speed:", Color::light_grey() },
+		{ { 2 * 8, 13 * 8 }, "Mark:      Hz", Color::light_grey() },
+		{ { 2 * 8, 15 * 8 }, "Space:     Hz", Color::light_grey() },
+		{ { 140, 13 * 8 }, "BW:   kHz", Color::light_grey() },
+		{ { 140, 15 * 8 }, "Repeat:", Color::light_grey() },
+		{ { 2 * 8, 19 * 8 }, "Format:", Color::light_grey() }
 	};
+	
 	Button button_setfreq {
 		{ 8, 48, 104, 32 },
 		"----.----"
 	};
-	
-	Text text_bps {
-		{ 128, 40, 104, 16 },
-		"Speed:"
-	};
+
 	OptionsField options_bps {
 		{ 128, 60 },
 		7,
@@ -63,11 +65,7 @@ private:
 			{ "9600bps", 9600 }
 		}
 	};
-	
-	Text text_mark {
-		{ 16, 104, 48, 16 },
-		"Mark:      Hz"
-	};
+
 	NumberField field_mark {
 		{ 64, 104 },
 		5,
@@ -76,10 +74,6 @@ private:
 		' '
 	};
 	
-	Text text_space {
-		{ 16, 120, 48, 16 },
-		"Space:     Hz"
-	};
 	NumberField field_space {
 		{ 64, 120 },
 		5,
@@ -88,10 +82,6 @@ private:
 		' '
 	};
 	
-	Text text_bw {
-		{ 140, 104, 80, 16 },
-		"BW:    kHz"
-	};
 	NumberField field_bw {
 		{ 172, 104 },
 		2,
@@ -100,10 +90,6 @@ private:
 		' '
 	};
 	
-	Text text_repeat {
-		{ 140, 120, 64, 16 },
-		"Repeat: "
-	};
 	NumberField field_repeat {
 		{ 204, 120 },
 		2,
@@ -112,10 +98,6 @@ private:
 		' '
 	};
 	
-	Text text_format {
-		{ 16, 152, 7 * 8, 16 },
-		"Format:"
-	};
 	OptionsField options_format {
 		{ 80, 152 },
 		10,

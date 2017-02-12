@@ -28,9 +28,9 @@
 //BUG: RDS doesn't stop baseband when stopping tx ?
 
 //TEST: Imperial in whipcalc
-//TEST: Numbers
 
-//TODO: Use TransmitterView in ADSB, Morse, TEDI/LCR, Numbers, whistle, jammer...
+//TODO: Use Labels widget wherever possible
+//TODO: Use TransmitterView in Morse, TEDI/LCR, Numbers, whistle, jammer...
 //TODO: FreqMan: Add and rename categories
 //TODO: FreqMan: Sort by category in edit screen
 //TODO: FreqMan: Cap entry count per category (only done for total entries right now)

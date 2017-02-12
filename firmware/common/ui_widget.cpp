@@ -352,27 +352,26 @@ void Text::paint(Painter& painter) {
 /* Labels ****************************************************************/
 
 Labels::Labels(
-	std::vector<Label> * labels
+	std::initializer_list<Label> labels
 ) : labels_ { labels }
 {
 }
 
-void Labels::set_labels(std::vector<Label> * const labels) {
+void Labels::set_labels(std::initializer_list<Label> labels) {
 	labels_ = labels;
 	set_dirty();
 }
 
 void Labels::paint(Painter& painter) {
-	/*const auto rect = screen_rect();
-	const auto s = style();
-
-	painter.fill_rectangle(rect, s.background);
-
-	painter.draw_string(
-		rect.location(),
-		s,
-		text
-	);*/
+	for (auto &label : labels_) {
+		painter.draw_string(
+			label.pos + screen_pos(),
+			style().font,
+			label.color,
+			style().background,
+			label.text
+		);
+	}
 }
 
 /* BigFrequency **********************************************************/

@@ -69,19 +69,13 @@ AFSKSetupView::AFSKSetupView(
 	size_t i;
 	
 	add_children({
-		&text_setfreq,
+		&labels,
 		&button_setfreq,
-		&text_bps,
 		&options_bps,
-		&text_mark,
 		&field_mark,
-		&text_space,
 		&field_space,
-		&text_bw,
 		&field_bw,
-		&text_repeat,
 		&field_repeat,
-		&text_format,
 		&options_format,
 		&button_save
 	});

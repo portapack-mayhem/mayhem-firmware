@@ -26,7 +26,6 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
 #include "ui_textentry.hpp"
@@ -68,10 +67,13 @@ private:
 	void on_tx_progress(const int progress, const bool done);
 	bool start_tx();
 	
-	Text text_bitrate {
-		{ 3 * 8, 4 * 8, 8 * 8, 16 },
-		"Bitrate:"
+	Labels labels {
+		{ { 3 * 8, 4 * 8 }, "Bitrate:", Color::light_grey() },
+		{ { 3 * 8, 6 * 8 }, "Address:", Color::light_grey() },
+		{ { 6 * 8, 8 * 8 }, "Type:", Color::light_grey() },
+		{ { 3 * 8, 12 * 8 }, "Message:", Color::light_grey() }
 	};
+	
 	OptionsField options_bitrate {
 		{ 11 * 8, 4 * 8 },
 		8,
@@ -81,21 +83,13 @@ private:
 			{ "2400 bps", 2 }
 		}
 	};
-	
-	Text text_address {
-		{ 3 * 8, 6 * 8, 8 * 8, 16 },
-		"Address:"
-	};
+
 	SymField field_address {
 		{ 11 * 8, 6 * 8 },
 		7,
 		SymField::SYMFIELD_DEC
 	};
 	
-	Text text_type {
-		{ 6 * 8, 8 * 8, 5 * 8, 16 },
-		"Type:"
-	};
 	OptionsField options_type {
 		{ 11 * 8, 8 * 8 },
 		12,
@@ -107,9 +101,10 @@ private:
 	};
 	
 	Text text_message {
-		{ 3 * 8, 12 * 8, 16 * 8, 16 },
+		{ 11 * 8, 12 * 8, 16 * 8, 16 },
 		""
 	};
+	
 	Button button_message {
 		{ 3 * 8, 14 * 8, 8 * 8, 28 },
 		"Set"
