@@ -35,6 +35,7 @@
 #include "ert_packet.hpp"
 #include "tpms_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
@@ -745,7 +746,7 @@ class JammerConfigureMessage : public Message {
 public:
 	constexpr JammerConfigureMessage(
 		const bool run,
-		const uint32_t type,
+		const jammer::JammerType type,
 		const uint32_t speed
 	) : Message { ID::JammerConfigure },
 		run(run),
@@ -755,7 +756,7 @@ public:
 	}
 
 	const bool run;
-	const uint32_t type;
+	const jammer::JammerType type;
 	const uint32_t speed;
 };
 

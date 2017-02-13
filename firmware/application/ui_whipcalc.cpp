@@ -74,9 +74,8 @@ WhipCalcView::WhipCalcView(
 ) {
 
 	add_children({
-		&text_frequency,
+		&labels,
 		&field_frequency,
-		&text_type,
 		&options_type,
 		&text_result_metric,
 		&text_result_imperial,

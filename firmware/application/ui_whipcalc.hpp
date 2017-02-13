@@ -47,18 +47,15 @@ private:
 	
 	void update_result();
 	
-	Text text_frequency {
-		{ 2 * 8, 2 * 16, 10 * 16, 16 },
-		"Frequency:"
+	Labels labels {
+		{ { 2 * 8, 2 * 16 }, "Frequency:", Color::light_grey() },
+		{ { 2 * 8, 3 * 16 }, "Type:", Color::light_grey() }
 	};
+
 	FrequencyField field_frequency {
 		{ 13 * 8, 2 * 16 },
 	};
-	
-	Text text_type {
-		{ 2 * 8, 3 * 16, 5 * 16, 16 },
-		"Type:"
-	};
+
 	OptionsField options_type {
 		{ 8 * 8, 3 * 16 },
 		12,

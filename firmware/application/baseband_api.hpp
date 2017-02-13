@@ -25,6 +25,7 @@
 
 #include "message.hpp"
 #include "pocsag_packet.hpp"
+#include "jammer.hpp"
 
 #include "dsp_fir_taps.hpp"
 
@@ -67,7 +68,7 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 					const uint32_t progress_notice);
 void set_pocsag(const pocsag::BitRate bitrate);
 void set_adsb();
-void set_jammer(const bool run, const uint32_t type, const uint32_t speed);
+void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);
 void set_spectrum(const size_t sampling_rate, const size_t trigger);
 

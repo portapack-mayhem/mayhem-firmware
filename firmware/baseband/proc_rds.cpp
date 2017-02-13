@@ -91,7 +91,7 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 		re = (sine_table_i8[(sphase & 0x03FF0000) >> 18]);
 		im = (sine_table_i8[(phase & 0x03FF0000) >> 18]);
 		
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		buffer.p[i] = {re, im};
 	}
 }
 

@@ -265,23 +265,15 @@ EncodersView::EncodersView(NavigationView& nav) {
 	encoder_def = &encoder_defs[0];
 
 	add_children({
-		&text_enctype,
+		&labels,
 		&options_enctype,
-		&text_clk,
 		&numberfield_clk,
-		&text_kHz,
-		&text_bitduration,
 		&numberfield_bitduration,
-		&text_us1,
-		&text_wordduration,
 		&numberfield_wordduration,
-		&text_us2,
-		&text_symfield,
 		&symfield_word,
 		&text_format,
 		//&text_format_a,	// DEBUG
 		//&text_format_d,	// DEBUG
-		&text_waveform,
 		&waveform,
 		&text_status,
 		&progress,

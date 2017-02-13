@@ -24,8 +24,9 @@
 #include "ui_widget.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_navigation.hpp"
-#include "message.hpp"
 #include "transmitter_model.hpp"
+#include "message.hpp"
+#include "jammer.hpp"
 
 namespace ui {
 
@@ -157,19 +158,22 @@ private:
 
 	};
 	
-	bool jamming = false;
+	bool jamming { false };
 	
-	Text text_type {
-		{ 3 * 8, 4, 5 * 8, 16 },
-		"Type:"
+	Labels labels {
+		{ { 3 * 8, 4 }, "Type:", Color::light_grey() },
+		{ { 2 * 8, 20 }, "Speed:", Color::light_grey() },
+		{ { 1 * 8, 36 }, "Preset:", Color::light_grey() },
+		{ { 5 * 8, 52 }, "Hop:", Color::light_grey() }
 	};
+	
 	OptionsField options_type {
 		{ 9 * 8, 4 },
 		5,
 		{
-			{ "Ramp ", 0 },
-			{ "Noise", 1 },
-			{ "Tones", 2 }
+			{ "FSK  ", 0 },
+			{ "Tone ", 1 },
+			{ "Sweep", 2 }
 		}
 	};
 	
@@ -182,26 +186,18 @@ private:
 		"/--"
 	};
 	
-	Text text_speed {
-		{ 2 * 8, 20, 6 * 8, 16 },
-		"Speed:"
-	};
 	OptionsField options_speed {
 		{ 9 * 8, 20 },
 		6,
 		{
-			{ "10Hz  ", 0 },
-			{ "100Hz ", 1 },
-			{ "1kHz  ", 2 },
-			{ "10kHz ", 3 },
-			{ "100kHz", 4 }
+			{ "10Hz  ", 10 },
+			{ "100Hz ", 100 },
+			{ "1kHz  ", 1000 },
+			{ "10kHz ", 10000 },
+			{ "100kHz", 100000 }
 		}
 	};
 	
-	Text text_preset {
-		{ 1 * 8, 36, 7 * 8, 16 },
-		"Preset:"
-	};
 	OptionsField options_preset {
 		{ 9 * 8, 36 },
 		16,
@@ -232,10 +228,6 @@ private:
 		}
 	};
 	
-	Text text_hop {
-		{ 5 * 8, 52, 10 * 8, 16 },
-		"Hop:"
-	};
 	OptionsField options_hop {
 		{ 9 * 8, 52 },
 		5,
@@ -257,11 +249,6 @@ private:
 	Button button_transmit {
 		{ 1 * 8, 16 * 16, 80, 48 },
 		"START"
-	};
-	
-	Button button_exit {
-		{ 19 * 8, 16 * 16, 80, 48 },
-		"Exit"
 	};
 	
 	MessageHandlerRegistration message_handler_retune {

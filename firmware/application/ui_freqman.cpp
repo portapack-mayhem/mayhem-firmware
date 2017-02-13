@@ -280,10 +280,8 @@ FreqManView::FreqManView(
 	
 	add_children({
 		&menu_view,
-		&text_edit,
 		&button_edit_freq,
 		&button_edit_desc,
-		&text_category,
 		&options_category,
 		&button_del,
 		&button_exit

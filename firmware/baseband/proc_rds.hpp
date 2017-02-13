@@ -37,25 +37,25 @@ public:
 	void on_message(const Message* const msg) override;
 
 private:
-	uint32_t * rdsdata;
+	uint32_t * rdsdata { };
 	
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	uint16_t message_length;
-	int8_t re, im;
-	uint8_t mphase, s;
-    uint32_t bit_pos;
+	uint16_t message_length { 0 };
+	int8_t re { 0 }, im { 0 };
+	uint8_t mphase { 0 }, s { 0 };
+    uint32_t bit_pos { 0 };
     int32_t sample_buffer[SAMPLE_BUFFER_SIZE] = {0};
-    int32_t val;
-    uint8_t prev_output = 0;
-    uint8_t cur_output = 0;
-    uint8_t cur_bit = 0;
+    int32_t val { 0 };
+    uint8_t prev_output { 0 };
+    uint8_t cur_output { 0 };
+    uint8_t cur_bit { 0 };
     int sample_count = SAMPLES_PER_BIT;
     int in_sample_index = 0;
-    int32_t sample;
+    int32_t sample { 0 };
     int out_sample_index = SAMPLE_BUFFER_SIZE - 1;
-	uint32_t phase, sphase;
-	int32_t delta;
+	uint32_t phase { 0 }, sphase { 0 };
+	int32_t delta { 0 };
 	
 	bool configured { false };
 

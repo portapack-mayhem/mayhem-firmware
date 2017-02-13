@@ -36,11 +36,11 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 			// Find next enabled range
 			do {
 				current_range++;
-				if (current_range == 24) current_range = 0;				// Warning ! Should match JAMMER_MAX_CH
+				if (current_range == JAMMER_MAX_CH) current_range = 0;
 			} while (!jammer_channels[current_range].enabled);
 			
 			jammer_duration = jammer_channels[current_range].duration;
-			jammer_bw = jammer_channels[current_range].width / 5;		// TODO: Exact value
+			jammer_bw = jammer_channels[current_range].width / 2;		// TODO: Exact value
 			
 			// Ask for retune
 			message.freq = jammer_channels[current_range].center;
@@ -50,29 +50,30 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 			jammer_duration--;
 		}
 		
-		// Ramp
-		/*if (r >= 10) {
-			if (sample < 128)
-				sample++;
-			else
-				sample = -127;
-			r = 0;
-		} else {
-			r++;
-		}*/
-		
 		// Phase noise
-		if (r >= 10) {
-			aphase += ((aphase >> 4) ^ 0x4573) << 20;
-			r = 0;
+		if (!period_counter) {
+			period_counter = noise_period;
+			
+			if (noise_type == JammerType::TYPE_FSK) {
+				sample = (sample + lfsr) >> 1;
+			} else if (noise_type == JammerType::TYPE_TONE) {
+				tone_delta = 150000 + (lfsr >> 9);	// Approx 100Hz to 6kHz
+			} else if (noise_type == JammerType::TYPE_SWEEP) {
+				sample++;							// This is like saw wave FM
+			}
+			
+			feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
+			lfsr = (lfsr << 1) | feedback;
+			if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
 		} else {
-			r++;
+			period_counter--;
 		}
 		
-		aphase += 8830;
-		sample = sine_table_i8[(aphase & 0xFF000000) >> 24];
+		if (noise_type == JammerType::TYPE_TONE) {
+			aphase += tone_delta;
+			sample = sine_table_i8[(aphase & 0xFF000000) >> 24];
+		}
 		
-		// FM
 		delta = sample * jammer_bw;
 		
 		phase += delta;
@@ -92,9 +93,13 @@ void JammerProcessor::on_message(const Message* const msg) {
 		if (message.run) {
 			jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 			noise_type = message.type;
-			noise_speed = message.speed;
+			noise_period = 3072000 / message.speed;
+			if (noise_type == JammerType::TYPE_SWEEP)
+				noise_period >>= 8;
+			period_counter = 0;
 			jammer_duration = 0;
 			current_range = 0;
+			lfsr = 0xDEAD0012;
 			
 			configured = true;
 		} else {

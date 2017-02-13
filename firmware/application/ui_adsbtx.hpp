@@ -74,10 +74,16 @@ private:
 		.foreground = Color::red(),
 	};
 	
-	Text text_format {
-		{ 2 * 8, 1 * 16, 7 * 8, 16 },
-		"Format:"
+	Labels labels {
+		{ { 2 * 8, 2 * 8 }, "Format:", Color::light_grey() },
+		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() },
+		{ { 2 * 8, 7 * 8 }, "ID:", Color::light_grey() },
+		{ { 2 * 8, 10 * 8 }, "Altitude:       feet", Color::light_grey() },
+		{ { 2 * 8, 12 * 8 }, "Latitude:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 2 * 8, 14 * 8 }, "Longitude:   *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 15 * 8, 18 * 8 }, "Squawk", Color::light_grey() }
 	};
+	
 	OptionsField options_format {
 		{ 10 * 8, 1 * 16 },
 		9,
@@ -88,29 +94,17 @@ private:
 		}
 	};
 	
-	Text text_icaolabel {
-		{ 2 * 8, 2 * 16, 7 * 8, 16 },
-		"ICAO24:"
-	};
 	SymField sym_icao {
 		{ 10 * 8, 2 * 16 },
 		6,
 		SymField::SYMFIELD_HEX
 	};
 
-	Text text_callsign {
-		{ 2 * 8, 3 * 16 + 8, 3 * 8, 16 },
-		"ID:"
-	};
 	Button button_callsign {
 		{ 6 * 8, 3 * 16 + 4, 10 * 8, 24 },
 		""
 	};
 	
-	Text text_altitude {
-		{ 2 * 8, 5 * 16, 20 * 8, 16 },
-		"Altitude:       feet"
-	};
 	NumberField field_altitude {
 		{ 12 * 8, 5 * 16 },
 		5,
@@ -119,10 +113,6 @@ private:
 		' '
 	};
 	
-	Text text_latitude {
-		{ 2 * 8, 6 * 16, 20 * 8, 16 },
-		"Latitude:    *  '  \""		// No ° symbol in 8x16 font
-	};
 	NumberField field_lat_degrees {
 		{ 12 * 8, 6 * 16 }, 3, { -90, 90 }, 1, ' '
 	};
@@ -132,10 +122,7 @@ private:
 	NumberField field_lat_seconds {
 		{ 19 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
-	Text text_longitude {
-		{ 2 * 8, 7 * 16, 20 * 8, 16 },
-		"Longitude:   *  '  \""		// No ° symbol in 8x16 font
-	};
+	
 	NumberField field_lon_degrees {
 		{ 12 * 8, 7 * 16 }, 3, { -90, 90 }, 1, ' '
 	};
@@ -152,10 +139,7 @@ private:
 		"Emergency",
 		false
 	};
-	Text text_squawk {
-		{ 15 * 8, 9 * 16, 6 * 8, 16 },
-		"Squawk"
-	};
+	
 	SymField field_squawk {
 		{ 22 * 8, 9 * 16 },
 		4,

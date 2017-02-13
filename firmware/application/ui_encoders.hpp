@@ -99,21 +99,25 @@ private:
 		.foreground = Color::blue(),
 	};
 	
-	Text text_enctype {
-		{ 1 * 8, 32, 5 * 8, 16 },
-		"Type:"
+	Labels labels {
+		{ { 1 * 8, 4 * 8 }, "Type:", Color::light_grey() },
+		{ { 16 * 8, 4 * 8 }, "Clk:", Color::light_grey() },
+		{ { 24 * 8, 4 * 8 }, "kHz", Color::light_grey() },
+		{ { 16 * 8, 6 * 8 }, "Bit:", Color::light_grey() },
+		{ { 25 * 8, 6 * 8 }, "us", Color::light_grey() },
+		{ { 15 * 8, 8 * 8 }, "Word:", Color::light_grey() },
+		{ { 26 * 8, 8 * 8 }, "us", Color::light_grey() },
+		{ { 2 * 8, 10 * 8 }, "Word:", Color::light_grey() },
+		{ { 1 * 8, 17 * 8 }, "Waveform:", Color::light_grey() }
 	};
+
 	OptionsField options_enctype {		// Options are loaded at runtime
 		{ 6 * 8, 32 },
 		7,
 		{
 		}
 	};
-	
-	Text text_clk {
-		{ 16 * 8, 4 * 8, 4 * 8, 16 },
-		"Clk:"
-	};
+
 	NumberField numberfield_clk {
 		{ 21 * 8, 4 * 8 },
 		3,
@@ -121,15 +125,7 @@ private:
 		1,
 		' '
 	};
-	Text text_kHz {
-		{ 24 * 8, 4 * 8, 3 * 8, 16 },
-		"kHz"
-	};
-	
-	Text text_bitduration {
-		{ 16 * 8, 6 * 8, 4 * 8, 16 },
-		"Bit:"
-	};
+
 	NumberField numberfield_bitduration {
 		{ 21 * 8, 6 * 8 },
 		4,
@@ -137,15 +133,7 @@ private:
 		1,
 		' '
 	};
-	Text text_us1 {
-		{ 25 * 8, 6 * 8, 2 * 8, 16 },
-		"us"
-	};
-	
-	Text text_wordduration {
-		{ 15 * 8, 8 * 8, 5 * 8, 16 },
-		"Word:"
-	};
+
 	NumberField numberfield_wordduration {
 		{ 21 * 8, 8 * 8 },
 		5,
@@ -153,15 +141,7 @@ private:
 		100,
 		' '
 	};
-	Text text_us2 {
-		{ 26 * 8, 8 * 8, 2 * 8, 16 },
-		"us"
-	};
 	
-	Text text_symfield {
-		{ 2 * 8, 10 * 8, 5 * 8, 16 },
-		"Word:"
-	};
 	SymField symfield_word {
 		{ 2 * 8, 12 * 8 },
 		20,
@@ -174,11 +154,6 @@ private:
 	
 	//Text text_format_a;	// DEBUG
 	//Text text_format_d;	// DEBUG
-	
-	Text text_waveform {
-		{ 1 * 8, 136, 9 * 8, 16 },
-		"Waveform:"
-	};
 	
 	Waveform waveform {
 		{ 0, 160, 240, 32 },
@@ -193,6 +168,7 @@ private:
 		{ 2 * 8, 13 * 16, 128, 16 },
 		"Ready"
 	};
+
 	ProgressBar progress {
 		{ 2 * 8, 13 * 16 + 20, 208, 16 }
 	};

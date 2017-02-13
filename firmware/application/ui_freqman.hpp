@@ -153,11 +153,12 @@ private:
 		{ 0, 0, 240, 168 },
 		true
 	};
-
-	Text text_edit {
-		{ 2 * 8, 24 * 8, 5 * 8, 16 },
-		"Edit:"
+	
+	Labels label {
+		{ { 2 * 8, 24 * 8 }, "Edit:", Color::light_grey() },
+		{ { 2 * 8, 35 * 8 }, "Category:", Color::light_grey() }
 	};
+
 	Button button_edit_freq {
 		{ 2 * 8, 26 * 8, 14 * 8, 32 },
 		"Frequency"
@@ -166,10 +167,7 @@ private:
 		{ 2 * 8, 30 * 8 + 4, 14 * 8, 32 },
 		"Description"
 	};
-	Text text_category {
-		{ 2 * 8, 35 * 8, 9 * 8, 16 },
-		"Category:",
-	};
+
 	OptionsField options_category {
 		{ 12 * 8, 35 * 8 },
 		8,

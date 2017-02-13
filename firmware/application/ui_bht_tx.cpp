@@ -119,28 +119,22 @@ BHTView::BHTView(NavigationView& nav) {
 	//baseband::run_image(portapack::spi_flash::image_tag_encoders);
 	
 	add_children({
+		&labels,
 		&options_mode,
-		&text_header,
 		&header_code_a,
 		&header_code_b,
 		&checkbox_speaker,
 		&bmp_speaker,
-		&text_city,
 		&city_code_xy,
-		&text_family,
 		&family_code_xy,
-		&text_subfamily,
 		&subfamily_code,
 		&checkbox_wcsubfamily,
-		&text_receiver,
 		&receiver_code,
 		&checkbox_wcid,
-		&text_relais,
 		&progressbar,
 		&text_message,
 		&checkbox_cligno,
 		&tempo_cligno,
-		&text_cligno,
 		&tx_view
 	});
 	
@@ -163,17 +157,14 @@ BHTView::BHTView(NavigationView& nav) {
 		if (_mode) {
 			// EP layout
 			remove_children({
-				&text_header,
 				&header_code_a,
 				&header_code_b,
 				&checkbox_speaker,
 				&bmp_speaker,
 				&city_code_xy,
 				&family_code_xy,
-				&text_subfamily,
 				&subfamily_code,
 				&checkbox_wcsubfamily,
-				&text_receiver,
 				&receiver_code,
 				&checkbox_wcid,
 				&relay_states[2],
@@ -191,17 +182,14 @@ BHTView::BHTView(NavigationView& nav) {
 				&family_code_ep
 			});
 			add_children({
-				&text_header,
 				&header_code_a,
 				&header_code_b,
 				&checkbox_speaker,
 				&bmp_speaker,
 				&city_code_xy,
 				&family_code_xy,
-				&text_subfamily,
 				&subfamily_code,
 				&checkbox_wcsubfamily,
-				&text_receiver,
 				&receiver_code,
 				&checkbox_wcid,
 				&relay_states[2],
@@ -238,12 +226,8 @@ BHTView::BHTView(NavigationView& nav) {
 	checkbox_wcsubfamily.on_select = [this](Checkbox&, bool v) {
 		if (v) {
 			subfamily_code.set_focusable(false);
-			subfamily_code.set_style(&style_grey);
-			text_subfamily.set_style(&style_grey);
 		} else {
 			subfamily_code.set_focusable(true);
-			subfamily_code.set_style(&style());
-			text_subfamily.set_style(&style());
 		}
 		generate_message();
 	};
@@ -251,12 +235,8 @@ BHTView::BHTView(NavigationView& nav) {
 	checkbox_wcid.on_select = [this](Checkbox&, bool v) {
 		if (v) {
 			receiver_code.set_focusable(false);
-			receiver_code.set_style(&style_grey);
-			text_receiver.set_style(&style_grey);
 		} else {
 			receiver_code.set_focusable(true);
-			receiver_code.set_style(&style());
-			text_receiver.set_style(&style());
 		}
 		generate_message();
 	};

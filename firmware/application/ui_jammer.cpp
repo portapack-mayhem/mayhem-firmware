@@ -32,10 +32,8 @@
 #include <cstring>
 #include <stdio.h>
 
-#define JAMMER_CH_WIDTH 1000000
-#define JAMMER_MAX_CH 24
-
 using namespace portapack;
+using namespace jammer;
 
 namespace ui {
 
@@ -126,18 +124,14 @@ JammerView::JammerView(NavigationView& nav) {
 	JammerChannel * jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 	
 	add_children({
-		&text_type,
+		&labels,
 		&options_type,
 		&text_range_number,
 		&text_range_total,
-		&text_speed,
 		&options_speed,
-		&text_preset,
 		&options_preset,
-		&text_hop,
 		&options_hop,
-		&button_transmit,
-		&button_exit
+		&button_transmit
 	});
 	
 	const auto button_freq_fn = [this, &nav](Button& button) {
@@ -219,8 +213,8 @@ JammerView::JammerView(NavigationView& nav) {
 		
 	};
 	
-	options_type.set_selected_index(1);		// Noise
-	options_speed.set_selected_index(2);	// 10kHz
+	options_type.set_selected_index(2);		// Sweep
+	options_speed.set_selected_index(3);	// 10kHz
 	options_preset.set_selected_index(8);	// ISM 868
 	options_hop.set_selected_index(1);		// 50ms
 	button_transmit.set_style(&style_val);
@@ -236,7 +230,7 @@ JammerView::JammerView(NavigationView& nav) {
 			button_transmit.set_text("START");
 			transmitter_model.disable();
 			radio::disable();
-			baseband::set_jammer(false, 0, 0);
+			baseband::set_jammer(false, JammerType::TYPE_FSK, 0);
 			jamming = false;
 		} else {
 			
@@ -303,15 +297,11 @@ JammerView::JammerView(NavigationView& nav) {
 				transmitter_model.set_tx_gain(47);
 				transmitter_model.enable();
 
-				baseband::set_jammer(true, options_type.selected_index(), options_speed.selected_index());
+				baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
 			} else {
-				nav.display_modal("Error", "Jamming bandwidth too large.");
+				nav.display_modal("Error", "Jamming bandwidth too large.\nMust be less than 24MHz.");
 			}
 		}
-	};
-
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
 	};
 }
 

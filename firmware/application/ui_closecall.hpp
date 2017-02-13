@@ -62,25 +62,25 @@ private:
 		.foreground = Color::green(),
 	};
 	
-	rf::Frequency f_min, f_max;
+	rf::Frequency f_min { 0 }, f_max { 0 };
 	Coord last_pos { 0 };
 	ChannelSpectrumFIFO* fifo { nullptr };
 	uint8_t detect_counter { 0 }, release_counter { 0 };
-	uint8_t slice_trim;
+	uint8_t slice_trim { 0 };
 	uint32_t mean { 0 };
 	uint32_t min_threshold { 80 };	// Todo: Put this in persistent / settings
-	rf::Frequency slice_start;
-	rf::Frequency slice_frequency;
-	uint8_t slices_max;
-	uint8_t slices_counter;
-	int16_t last_channel;
+	rf::Frequency slice_start { 0 };
+	rf::Frequency slice_frequency { 0 };
+	uint8_t slices_max { 0 };
+	uint8_t slices_counter { 0 };
+	int16_t last_channel { 0 };
 	uint32_t weight { 0 };
 	uint64_t frequency_acc { 0 };
-	rf::Frequency scan_span, resolved_frequency;
-	uint16_t locked_imax;
+	rf::Frequency scan_span { 0 }, resolved_frequency { 0 };
+	uint16_t locked_imax { 0 };
 	uint8_t slicemax_pow[32];		// Todo: Cap max slices !
 	int16_t slicemax_idx[32];
-	uint8_t scan_counter;
+	uint8_t scan_counter { 0 };
 	SignalToken signal_token_tick_second { };
 	bool ignore { true };
 	bool slicing { false };
@@ -101,17 +101,10 @@ private:
 	 * |
 	 * */
 	
-	Text text_labels_a {
-		{ 1 * 8, 0 * 16, 28 * 8, 16 },
-		"Min:      Max:       LNA VGA"
-	};
-	Text text_labels_b {
-		{ 1 * 8, 2 * 16, 10 * 8, 16 },
-		"Threshold:"
-	};
-	Text text_labels_c {
-		{ 1 * 8, 3 * 16, 28 * 8, 16 },
-		"Slices:           Rate:   Hz"
+	Labels labels {
+		{ { 1 * 8, 0 }, "Min:      Max:       LNA VGA", Color::light_grey() },
+		{ { 1 * 8, 4 * 8 }, "Threshold:", Color::light_grey() },
+		{ { 1 * 8, 6 * 8 }, "Slices:           Rate:   Hz", Color::light_grey() }
 	};
 	
 	NumberField field_threshold {

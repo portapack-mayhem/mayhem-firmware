@@ -288,9 +288,7 @@ CloseCallView::CloseCallView(
 	baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 	
 	add_children({
-		&text_labels_a,
-		&text_labels_b,
-		&text_labels_c,
+		&labels,
 		&field_frequency_min,
 		&field_frequency_max,
 		&field_lna,
@@ -306,9 +304,6 @@ CloseCallView::CloseCallView(
 		&button_exit
 	});
 	
-	text_labels_a.set_style(&style_grey);
-	text_labels_b.set_style(&style_grey);
-	text_labels_c.set_style(&style_grey);
 	text_slices.set_style(&style_grey);
 	text_rate.set_style(&style_grey);
 	text_mhz.set_style(&style_grey);

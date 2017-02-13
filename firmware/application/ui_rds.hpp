@@ -55,10 +55,15 @@ private:
 	void start_tx();
 	void on_tuning_frequency_changed(rf::Frequency f);
 
-	Text text_pty {
-		{ 1 * 8, 16 + 8, 4 * 8, 16 },
-		"PTY:"
+	Labels labels {
+		{ { 1 * 8, 16 + 8 }, "PTY:", Color::light_grey() },
+		{ { 14 * 8, 16 + 8 }, "CC:", Color::light_grey() },
+		{ { 1 * 8, 32 + 8 }, "PI:", Color::light_grey() },
+		{ { 13 * 8, 32 + 8 }, "Cov:", Color::light_grey() },
+		{ { 2 * 8, 8 * 16 }, "RadioText:", Color::light_grey() },
+		{ { 2 * 8, 14 * 16 }, "TX:", Color::light_grey() }
 	};
+	
 	OptionsField options_pty {
 		{ 5 * 8, 16 + 8 },
 		8,
@@ -98,10 +103,6 @@ private:
 		}
 	};
 	
-	Text text_countrycode {
-		{ 14 * 8, 16 + 8, 4 * 8, 16 },
-		"CC:"
-	};
 	OptionsField options_countrycode {
 		{ 17 * 8, 16 + 8 },
 		11,
@@ -171,20 +172,12 @@ private:
 		}
 	};
 	
-	Text text_pi_code {
-		{ 1 * 8, 32 + 8, 3 * 8, 16 },
-		"PI:"
-	};
 	SymField sym_pi_code {
 		{ 4 * 8, 32 + 8 },
 		4,
 		SymField::SYMFIELD_HEX
 	};
 	
-	Text text_coverage {
-		{ 13 * 8, 32 + 8, 9 * 8, 16 },
-		"Cov:"
-	};
 	OptionsField options_coverage {
 		{ 17 * 8, 32 + 8 },
 		12,
@@ -229,19 +222,15 @@ private:
 		"MS"
 	};
 
-	Text text_psn {
-		{ 2 * 8, 6 * 16, 12 * 8, 16 },
-		"PSN:"
-	};
 	Button button_editpsn {
 		{ 22 * 8, 5 * 16 + 12, 48, 24 },
 		"Set"
 	};
-
-	Text text_radiotext {
-		{ 2 * 8, 8 * 16, 10 * 8, 16 },
-		"RadioText:"
+	Text text_psn {
+		 { 2 * 8, 6 * 16, 4 * 8, 16 },
+		 "PSN:"
 	};
+
 	Text text_radiotexta {
 		{ 2 * 8, 9 * 16, 19 * 8, 16 },
 		"-"
@@ -255,10 +244,6 @@ private:
 		"Set"
 	};
 	
-	Text text_tx {
-		{ 2 * 8, 14 * 16, 3 * 8, 16 },
-		"TX:"
-	};
 	OptionsField options_tx {
 		{ 5 * 8, 14 * 16 },
 		11,
