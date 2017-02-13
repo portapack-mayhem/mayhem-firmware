@@ -62,7 +62,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 				
 				digit_pos++;
 				
-				if ((digit >= 32) || (tone_deltas[digit] == 0)) {
+				if (digit >= 32) {	//  || (tone_deltas[digit] == 0)
 					sample_count = shared_memory.bb_data.tones_data.silence;
 				} else {
 					if (!dual_tone) {
@@ -78,7 +78,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 			}
 			
 			// Ugly
-			if (digit >= 32) {
+			if ((digit >= 32) || (tone_deltas[digit] == 0)) {
 				tone_sample = 0;
 			} else {
 				if (!dual_tone) {
@@ -128,7 +128,7 @@ void TonesProcessor::on_message(const Message* const p) {
 			tone_durations[c] = shared_memory.bb_data.tones_data.tone_defs[c].duration;
 		}
 		message_length = message.tone_count;
-		fm_delta = message.fm_delta * (0xFFFFFFFFULL / 1536000);
+		fm_delta = message.fm_delta * (0xFFFFFFFFULL / 1536000) * 2;
 		audio_out = message.audio_out;
 		dual_tone = message.dual_tone;
 		

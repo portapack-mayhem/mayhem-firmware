@@ -26,7 +26,7 @@
 #include "portapack.hpp"
 
 #define TONES_SAMPLERATE 1536000
-#define TONES_DELTA_COEF ((1ULL << 32) / 1536000)
+#define TONES_DELTA_COEF ((1ULL << 32) / TONES_SAMPLERATE)
 
 #define TONES_F2D(f) (uint32_t)(f * TONES_DELTA_COEF)
 

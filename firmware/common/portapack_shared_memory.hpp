@@ -44,7 +44,7 @@ struct ToneDef {
 struct ToneData {
 	ToneDef tone_defs[32];
 	uint32_t silence;
-	uint8_t message[128];
+	uint8_t message[256];
 };
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */

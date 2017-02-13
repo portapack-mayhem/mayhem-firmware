@@ -29,6 +29,7 @@
 
 //TEST: Imperial in whipcalc
 
+//TODO: Use transmittermodel bw setting
 //TODO: Use Labels widget wherever possible
 //TODO: Use TransmitterView in Morse, TEDI/LCR, Numbers, whistle, jammer...
 //TODO: FreqMan: Add and rename categories
