@@ -15,7 +15,7 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * Frequency manager (save/load from SD card)
 * "Soundboard" wave file player from SD card (put 8-bit mono files in /wav directory)
 * POCSAG 512/1200/2400 transmitter
-* POCSAG 512/1200/2400 alphanumeric receiver/decoder
+* POCSAG 512/1200/2400 receiver/decoder
 * Fully configurable jammer
 * Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
 * Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
@@ -32,7 +32,6 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 Feature | Progress | Notes
 ------- | ------ | -----
-Jammer      | 95% | Need to make the different noise modes work
 POCSAG RX   | 95% | Needs support for numeric messages
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
