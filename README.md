@@ -12,18 +12,19 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 
 # Fork features
 
-* Frequency manager (save/load from SD card)
-* "Soundboard" wave file player from SD card (put 8-bit mono files in /wav directory)
+* Frequency manager (save & load from SD card)
+* "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
 * POCSAG 512/1200/2400 transmitter
 * POCSAG 512/1200/2400 receiver/decoder
 * Fully configurable jammer
-* Simulate OOK frames from PT2262 encoders and many others (doorbells, remote outlets, some garage doors, ...)
-* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, fox hunts, ...)
+* OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
+* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, ...)
 * Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
-* RDS (Radio Data System) PSN and RadioText groups transmit
-* AFSK transmit (Bell202...)
+* Morse transmitter (FM tone and CW)
+* RDS (Radio Data System) PSN, RadioText and Time groups transmitter
+* AFSK transmitter (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
-* LCR (Language de Commande Routier) litteral message forming and transmit
+* LCR (Language de Commande Routier) message generator
 * "Xy" and "EP" transmitter, street lighting control (CCIR tones)
 * "Play Dead" in case of emergency
 * PWM audio RSSI output (for crude direction finding)
@@ -33,12 +34,12 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 Feature | Progress | Notes
 ------- | ------ | -----
 POCSAG RX   | 95% | Needs support for numeric messages
+Morse TX    | 95% | CW mode needs testing
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
 ADS-B TX    | 40% | UI and frame gen stuff done
-Morse TX    | 30% | Needs UI and testing
 Wave visualizer | 30% | High priority
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
