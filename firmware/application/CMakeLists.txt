@@ -199,6 +199,7 @@ set(CPPSRC
 	${COMMON}/ais_packet.cpp
 	${COMMON}/pocsag_packet.cpp
 	${COMMON}/pocsag.cpp
+	${COMMON}/morse.cpp
 	ais_app.cpp
 	tpms_app.cpp
 	pocsag_app.cpp

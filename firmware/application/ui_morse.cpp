@@ -32,16 +32,24 @@ Continuous (Fox-oring)
 
 #include "portapack.hpp"
 #include "baseband_api.hpp"
+#include "hackrf_gpio.hpp"
+#include "portapack_shared_memory.hpp"
+#include "ui_textentry.hpp"
 
 #include <cstring>
 #include <stdio.h>
 
 using namespace portapack;
 using namespace morse;
+using namespace hackrf::one;
 
 // TODO: Live keying mode: Dit on left key, dah on right ?
 
 namespace ui {
+
+void MorseView::on_set_text(NavigationView& nav) {
+	textentry(nav, buffer, 28);
+}
 
 void MorseView::focus() {
 	tx_view.focus();
@@ -52,21 +60,58 @@ MorseView::~MorseView() {
 	baseband::shutdown();
 }
 
-void MorseView::paint(Painter& painter) {
-	(void)painter;
+void MorseView::paint(Painter&) {
+	message = buffer;
+	text_message.set(message);
+}
+
+static WORKING_AREA(ookthread_wa, 256);
+static msg_t ookthread_fn(void * arg) {
+	uint32_t v = 0, delay = 0;
+	size_t i = 0;
+	uint8_t * message = shared_memory.bb_data.tones_data.message;
+	MorseView * arg_c = (MorseView*)arg;
+	
+	chRegSetThreadName("ookthread");
+	for (i = 0; i < arg_c->symbol_count; i++) {
+		if (chThdShouldTerminate()) break;
+		
+		if (message[i] == 0) {
+			v = 1;
+			delay = MORSE_DOT;
+		} else if (message[i] == 1) {
+			v = 1;
+			delay = MORSE_DASH;
+		} else if (message[i] == 2) {
+			v = 0;
+			delay = MORSE_SYMBOL_SPACE;
+		} else if (message[i] == 3) {
+			v = 0;
+			delay = MORSE_LETTER_SPACE;
+		} else if (message[i] == 4) {
+			v = 0;
+			delay = MORSE_WORD_SPACE;
+		}
+		
+		gpio_tx.write(v);
+		arg_c->on_tx_progress(i, false);
+		
+		chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
+	}
+	
+	gpio_tx.write(0);
+	arg_c->on_tx_progress(0, true);
+	chThdExit(0);
+	
+	return 0;
 }
 
 bool MorseView::start_tx() {
-	size_t symbol_count;
-	std::string message;
-	
-	if (checkbox_foxhunt.value()) {
+	if (checkbox_foxhunt.value())
 		message = foxhunt_codes[options_foxhunt.selected_index_value()];
-	} else {
-		message = "ABCDEFGHIJKLMN";
-	}
 	
-	symbol_count = morse_encode(message, field_time_unit.value(), field_tone.value());
+	time_unit_ms = field_time_unit.value();
+	symbol_count = morse_encode(message, time_unit_ms, field_tone.value());
 	
 	if (!symbol_count) {
 		nav_.display_modal("Error", "Message too long.", INFO, nullptr);
@@ -82,7 +127,11 @@ bool MorseView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_tones_data(transmitter_model.bandwidth(), 0, symbol_count, false, false);
+	if (options_modulation.selected_index() == 0) {
+		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
+	} else {
+		baseband::set_tones_data(transmitter_model.bandwidth(), 0, symbol_count, false, false);
+	}
 	
 	return true;
 }
@@ -100,21 +149,29 @@ MorseView::MorseView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
+	
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 	
 	add_children({
+		&labels,
 		&checkbox_foxhunt,
 		&options_foxhunt,
-		&text_time_unit,
 		&field_time_unit,
-		&text_tone,
 		&field_tone,
+		&options_modulation,
+		&text_message,
+		&button_message,
 		&progressbar,
 		&tx_view
 	});
 	
-	field_time_unit.set_value(50);		// 50ms
-	field_tone.set_value(700);			// 700Hz
+	field_time_unit.set_value(50);				// 50ms
+	field_tone.set_value(700);					// 700Hz
+	options_modulation.set_selected_index(0);	// CW
+	
+	button_message.on_select = [this, &nav](Button&) {
+		this->on_set_text(nav);
+	};
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
@@ -129,6 +186,7 @@ MorseView::MorseView(
 	};
 	
 	tx_view.on_stop = [this]() {
+		chThdTerminate(ookthread);
 		tx_view.set_transmitting(false);
 	};
 

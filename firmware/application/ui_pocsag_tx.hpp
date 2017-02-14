@@ -28,7 +28,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
-#include "ui_textentry.hpp"
 #include "bch_code.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
@@ -106,8 +105,8 @@ private:
 	};
 	
 	Button button_message {
-		{ 3 * 8, 14 * 8, 8 * 8, 28 },
-		"Set"
+		{ 3 * 8, 14 * 8, 12 * 8, 28 },
+		"Set message"
 	};
 	
 	ProgressBar progressbar {

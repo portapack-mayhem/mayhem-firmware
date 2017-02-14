@@ -24,6 +24,7 @@
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+#include "ui_textentry.hpp"
 
 #include "portapack_persistent_memory.hpp"
 

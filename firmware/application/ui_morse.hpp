@@ -34,6 +34,8 @@
 #include "audio.hpp"
 #include "morse.hpp"
 
+#include <ch.h>
+
 using namespace morse;
 
 namespace ui {
@@ -43,37 +45,32 @@ public:
 	MorseView(NavigationView& nav);
 	~MorseView();
 	
+	MorseView(const MorseView&) = delete;
+	MorseView(MorseView&&) = delete;
+	MorseView& operator=(const MorseView&) = delete;
+	MorseView& operator=(MorseView&&) = delete;
+	
 	void focus() override;
 	void paint(Painter& painter) override;
 
+	void on_tx_progress(const int progress, const bool done);
+	uint32_t time_unit_ms { 0 };
+	size_t symbol_count { 0 };
 private:
 	NavigationView& nav_;
+	char buffer[29] = "PORTAPACK";
+	std::string message { };
 	
 	bool start_tx();
-	void on_tx_progress(const int progress, const bool done);
+	void on_set_text(NavigationView& nav);
 	
-	Text text_time_unit {
-		{ 4 * 8, 6 * 8, 15 * 8, 16 },
-		"Time unit:   ms"
-	};
-	NumberField field_time_unit {
-		{ 14 * 8, 6 * 8 },
-		3,
-		{ 1, 999 },
-		1,
-		' '
-	};
+	size_t modulation { 0 };
+	Thread * ookthread { };
 	
-	Text text_tone {
-		{ 4 * 8, 8 * 8, 11 * 8, 16 },
-		"Tone:    Hz"
-	};
-	NumberField field_tone {
-		{ 9 * 8, 8 * 8 },
-		4,
-		{ 100, 9999 },
-		20,
-		' '
+	Labels labels {
+		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
+		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
+		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
 	};
 	
 	Checkbox checkbox_foxhunt {
@@ -97,6 +94,41 @@ private:
 			{ "9 (MO) ", 9 },
 			{ "10 (S) ", 10 }
 		}
+	};
+	
+	NumberField field_time_unit {
+		{ 14 * 8, 6 * 8 },
+		3,
+		{ 10, 999 },
+		1,
+		' '
+	};
+	
+	NumberField field_tone {
+		{ 9 * 8, 8 * 8 },
+		4,
+		{ 100, 9999 },
+		20,
+		' '
+	};
+	
+	OptionsField options_modulation {
+		{ 15 * 8, 10 * 8 },
+		2,
+		{
+			{ "CW", 0 },
+			{ "FM", 1 }
+		}
+	};
+	
+	Text text_message {
+		{ 1 * 8, 14 * 8, 28 * 8, 16 },
+		""
+	};
+	
+	Button button_message {
+		{ 1 * 8, 16 * 8, 12 * 8, 28 },
+		"Set message"
 	};
 	
 	ProgressBar progressbar {
