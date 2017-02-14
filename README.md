@@ -6,6 +6,8 @@ Hardware is available at [ShareBrained Technology](http://sharebrained.com/porta
 
 It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
+**Documentation: [READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)**
+
 As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. We never did.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
@@ -58,18 +60,6 @@ Painter     | 0%  | Spectrum painter, low priority
 # Screenshots
 
 ![HAVOC screenshots](screenshots.png)
-
-## PWM RSSI output
-
-Huge kludge, wrote in a rush for direction finding. Audio frequency is 800Hz in NFM and 500Hz in WFM. The data path is very messy, the RSSI thread running on the baseband core sends groups of values to the application RSSI widget which computes the average value, which sends it back to the baseband module for audio output.
-
-## Getting out of Play Dead mode
-
-Play Dead mode is a persistent fake error screen, which can be useful in case of situations where people become too curious. It's easily enabled, and disabled with a programmable key sequence (see Setup menu).
-
-If no exit key sequence was set up, it defaults to up-down-left-right. Enter the sequence and press select, you should see "Please reset" appear. After reset, you should be able to go back to the main menu. If not, a sequence was probably entered already. Solution hint: remove the backup battery for a few minutes, or ui_navigation.cpp ctrl+F 0x8D1 ;)
-
-This mode can also be used as a login screen, not requiring reset.
 
 # Thanks
 
