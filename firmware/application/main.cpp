@@ -29,7 +29,7 @@
 
 //TEST: Imperial in whipcalc
 
-//TODO: Morse transmition time estimate
+//TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
 /*
 Keying speed: 60 or 75 PARIS

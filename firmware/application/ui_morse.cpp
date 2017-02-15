@@ -27,6 +27,7 @@
 #include "hackrf_gpio.hpp"
 #include "portapack_shared_memory.hpp"
 #include "ui_textentry.hpp"
+#include "string_format.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -53,6 +54,7 @@ MorseView::~MorseView() {
 void MorseView::paint(Painter&) {
 	message = buffer;
 	text_message.set(message);
+	update_tx_duration();
 }
 
 static WORKING_AREA(ookthread_wa, 256);
@@ -87,11 +89,9 @@ static msg_t ookthread_fn(void * arg) {
 }
 
 bool MorseView::start_tx() {
-	if (checkbox_foxhunt.value())
-		message = foxhunt_codes[options_foxhunt.selected_index_value()];
-	
+	// Re-generate message, just in case
 	time_unit_ms = field_time_unit.value();
-	symbol_count = morse_encode(message, time_unit_ms, field_tone.value());
+	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
 	
 	if (!symbol_count) {
 		nav_.display_modal("Error", "Message too long.", INFO, nullptr);
@@ -116,6 +116,20 @@ bool MorseView::start_tx() {
 	return true;
 }
 
+void MorseView::update_tx_duration() {
+	uint32_t duration_ms;
+	
+	time_unit_ms = field_time_unit.value();
+	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
+	
+	if (symbol_count) {
+		duration_ms = time_units * time_unit_ms;
+		text_tx_duration.set(to_string_dec_uint(duration_ms / 1000) + "." + to_string_dec_uint((duration_ms / 100) % 10, 1) + "s   ");
+	} else {
+		text_tx_duration.set("-");
+	}
+}
+
 void MorseView::on_tx_progress(const int progress, const bool done) {
 	if (done) {
 		transmitter_model.disable();
@@ -129,7 +143,6 @@ MorseView::MorseView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	
 	baseband::run_image(portapack::spi_flash::image_tag_tones);
 	
 	add_children({
@@ -139,6 +152,7 @@ MorseView::MorseView(
 		&field_time_unit,
 		&field_tone,
 		&options_modulation,
+		&text_tx_duration,
 		&text_message,
 		&button_message,
 		&progressbar,
@@ -148,6 +162,24 @@ MorseView::MorseView(
 	field_time_unit.set_value(50);				// 50ms
 	field_tone.set_value(700);					// 700Hz
 	options_modulation.set_selected_index(0);	// CW
+	
+	checkbox_foxhunt.on_select = [this](Checkbox&, bool v) {
+		if (v) {
+			message = foxhunt_codes[options_foxhunt.selected_index_value()];
+			strncpy(buffer, message.c_str(), sizeof(buffer));
+			text_message.set(message);
+			update_tx_duration();
+		}
+	};
+	
+	options_foxhunt.on_change = [this](size_t, int32_t) {
+		if (checkbox_foxhunt.value())
+			update_tx_duration();
+	};
+	
+	field_time_unit.on_change = [this](int32_t) {
+		update_tx_duration();
+	};
 	
 	button_message.on_select = [this, &nav](Button&) {
 		this->on_set_text(nav);
@@ -169,7 +201,6 @@ MorseView::MorseView(
 		chThdTerminate(ookthread);
 		tx_view.set_transmitting(false);
 	};
-
 }
 
 } /* namespace ui */

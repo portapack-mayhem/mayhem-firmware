@@ -63,8 +63,10 @@ private:
 	NavigationView& nav_;
 	char buffer[29] = "PORTAPACK";
 	std::string message { };
+	uint32_t time_units { 0 };
 	
 	bool start_tx();
+	void update_tx_duration();
 	void on_set_text(NavigationView& nav);
 	
 	size_t modulation { 0 };
@@ -74,6 +76,7 @@ private:
 		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
 		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
+		{ { 1 * 8, 14 * 8 }, "TX will last", Color::light_grey() }
 	};
 	
 	Checkbox checkbox_foxhunt {
@@ -124,18 +127,23 @@ private:
 		}
 	};
 	
+	Text text_tx_duration {
+		{ 14 * 8, 14 * 8, 4 * 8, 16 },
+		"-"
+	};
+	
 	Text text_message {
-		{ 1 * 8, 14 * 8, 28 * 8, 16 },
+		{ 1 * 8, 18 * 8, 28 * 8, 16 },
 		""
 	};
 	
 	Button button_message {
-		{ 1 * 8, 16 * 8, 12 * 8, 28 },
+		{ 1 * 8, 20 * 8, 12 * 8, 28 },
 		"Set message"
 	};
 	
 	ProgressBar progressbar {
-		{ 2 * 8, 14 * 16, 208, 16 }
+		{ 2 * 8, 28 * 8, 208, 16 }
 	};
 	
 	TransmitterView tx_view {

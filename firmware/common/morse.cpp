@@ -31,43 +31,48 @@ using namespace portapack;
 namespace morse {
 
 // Returns 0 if message is too long
-size_t morse_encode(std::string& message, const uint32_t time_unit_ms, const uint32_t tone) {
+size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
+	const uint32_t tone, uint32_t * const time_units) {
+	
 	size_t i, c;
-	uint8_t code, code_size;
+	uint16_t code, code_size;
 	uint8_t morse_message[256];
+	
+	*time_units = 0;
 	
 	ToneDef * tone_defs = shared_memory.bb_data.tones_data.tone_defs;
 	
 	i = 0;
 	for (char& ch : message) {
-		if ((ch >= 'a') && (ch <= 'z'))					// Make uppercase
+		if (i > 256) return 0;
+		
+		if ((ch >= 'a') && (ch <= 'z'))				// Make uppercase
 			ch -= 32;
 		
-		if ((ch >= 'A') && (ch <= 'Z')) {
-			code = morse_ITU[ch - 'A' + 10];
-		} else if ((ch >= '0') && (ch <= '9')) {
-			code = morse_ITU[ch - '0'];
-		} else {
-			ch = ' ';									// Default to space char
-			code = 0;
+		if ((ch >= '!') && (ch <= '_')) {
+			code = morse_ITU[ch - '!'];
+		} else {								
+			code = 0;								// Default to space char
 		}
 		
-		if (ch == ' ') {
+		if (!code) {
 			if (i)
-				morse_message[i - 1] = 4;				// Word space
+				morse_message[i - 1] = 4;			// Word space
 		} else {
 			code_size = code & 7;
 			
 			for (c = 0; c < code_size; c++) {
-				morse_message[i++] = ((code << c) & 0x80) ? 1 : 0;	// Dot/dash
-				morse_message[i++] = 2;					// Symbol space
+				morse_message[i++] = ((code << c) & 0x8000) ? 1 : 0;	// Dot/dash
+				morse_message[i++] = 2;				// Symbol space
 			}
-			morse_message[i - 1] = 3;					// Letter space
+			morse_message[i - 1] = 3;				// Letter space
 		}
-		
 	}
 	
-	if (i > 256) return 0;
+	// Count time units
+	for (c = 0; c < i; c++) {
+		*time_units += morse_symbols[morse_message[c]];
+	}
 	
 	memcpy(shared_memory.bb_data.tones_data.message, morse_message, i);
 	
