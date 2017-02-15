@@ -29,9 +29,18 @@
 
 //TEST: Imperial in whipcalc
 
+//TODO: Morse transmition time estimate
+//TODO: Morse live keying mode ?
+/*
+Keying speed: 60 or 75 PARIS
+Continuous (Fox-oring)
+12s transmit, 48s space (Sprint 1/5th) 
+60s transmit, 240s space (Classic 1/5 min) 
+60s transmit, 360s space (Classic 1/7 min) 
+*/
 //TODO: Use transmittermodel bw setting
 //TODO: Use Labels widget wherever possible
-//TODO: Use TransmitterView in Morse, TEDI/LCR, Numbers, whistle, jammer...
+//TODO: Use TransmitterView in TEDI/LCR, Numbers, whistle, ...
 //TODO: FreqMan: Add and rename categories
 //TODO: FreqMan: Sort by category in edit screen
 //TODO: FreqMan: Cap entry count per category (only done for total entries right now)

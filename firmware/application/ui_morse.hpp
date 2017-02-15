@@ -54,6 +54,9 @@ public:
 	void paint(Painter& painter) override;
 
 	void on_tx_progress(const int progress, const bool done);
+	
+	std::string title() const override { return "Morse TX"; };
+	
 	uint32_t time_unit_ms { 0 };
 	size_t symbol_count { 0 };
 private:

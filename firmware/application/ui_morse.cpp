@@ -20,14 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*
-Keying speed: 60 or 75 PARIS
-Continuous (Fox-oring)
-12s transmit, 48s space (Sprint 1/5th) 
-60s transmit, 240s space (Classic 1/5 min) 
-60s transmit, 360s space (Classic 1/7 min) 
-*/
-
 #include "ui_morse.hpp"
 
 #include "portapack.hpp"
@@ -42,8 +34,6 @@ Continuous (Fox-oring)
 using namespace portapack;
 using namespace morse;
 using namespace hackrf::one;
-
-// TODO: Live keying mode: Dit on left key, dah on right ?
 
 namespace ui {
 
@@ -66,32 +56,22 @@ void MorseView::paint(Painter&) {
 }
 
 static WORKING_AREA(ookthread_wa, 256);
+
 static msg_t ookthread_fn(void * arg) {
 	uint32_t v = 0, delay = 0;
 	size_t i = 0;
 	uint8_t * message = shared_memory.bb_data.tones_data.message;
+	uint8_t symbol;
 	MorseView * arg_c = (MorseView*)arg;
 	
 	chRegSetThreadName("ookthread");
 	for (i = 0; i < arg_c->symbol_count; i++) {
 		if (chThdShouldTerminate()) break;
 		
-		if (message[i] == 0) {
-			v = 1;
-			delay = MORSE_DOT;
-		} else if (message[i] == 1) {
-			v = 1;
-			delay = MORSE_DASH;
-		} else if (message[i] == 2) {
-			v = 0;
-			delay = MORSE_SYMBOL_SPACE;
-		} else if (message[i] == 3) {
-			v = 0;
-			delay = MORSE_LETTER_SPACE;
-		} else if (message[i] == 4) {
-			v = 0;
-			delay = MORSE_WORD_SPACE;
-		}
+		symbol = message[i];
+		
+		v = (symbol < 2) ? 1 : 0;
+		delay = morse_symbols[v];
 		
 		gpio_tx.write(v);
 		arg_c->on_tx_progress(i, false);

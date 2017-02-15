@@ -34,6 +34,14 @@
 #define MORSE_WORD_SPACE 7
 
 namespace morse {
+	
+const uint32_t morse_symbols[5] = {
+	MORSE_DOT,
+	MORSE_DASH,
+	MORSE_SYMBOL_SPACE,
+	MORSE_LETTER_SPACE,
+	MORSE_WORD_SPACE
+};
 
 size_t morse_encode(std::string& message, const uint32_t time_unit_ms, const uint32_t tone);
 

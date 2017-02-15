@@ -47,6 +47,7 @@ public:
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;
+	
 	std::string title() const override { return "Close Call"; };
 
 private:
@@ -75,7 +76,7 @@ private:
 	uint8_t slices_counter { 0 };
 	int16_t last_channel { 0 };
 	uint32_t weight { 0 };
-	uint64_t frequency_acc { 0 };
+	int64_t frequency_acc { 0 };
 	rf::Frequency scan_span { 0 }, resolved_frequency { 0 };
 	uint16_t locked_imax { 0 };
 	uint8_t slicemax_pow[32];		// Todo: Cap max slices !

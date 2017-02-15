@@ -35,6 +35,7 @@
 #include "ui_adsbtx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_closecall.hpp"
+#include "ui_cw.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_freqman.hpp"
@@ -305,10 +306,10 @@ TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 	add_items<8>({ {
 		{ "ADS-B Mode S", 			ui::Color::orange(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::yellow(),&bitmap_icon_bht,	[&nav](){ nav.push<BHTView>(); } },
-		{ "Morse beacon", 			ui::Color::yellow(),&bitmap_icon_morse,	[&nav](){ nav.push<MorseView>(); } },
+		{ "Morse code", 			ui::Color::green(),	&bitmap_icon_morse,	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),	&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
-		{ "POCSAG", 				ui::Color::cyan(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
+		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),	&bitmap_icon_rds,	[&nav](){ nav.push<RDSView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::green(), &bitmap_icon_lcr,	[&nav](){ nav.push<LCRView>(); } },
 	} });
@@ -330,8 +331,9 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 /* UtilitiesView *****************************************************************/
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
-	add_items<4>({ {
+	add_items<5>({ {
 		{ "Frequency manager", 		ui::Color::green(), nullptr,	[&nav](){ nav.push<FreqManView>(); } },
+		{ "CW generator", 			ui::Color::green(), nullptr,	[&nav](){ nav.push<CWTXView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),nullptr,	[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),	nullptr,	[&nav](){ nav.push<WipeSDView>(); } },

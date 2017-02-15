@@ -400,6 +400,14 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADS ads)
 
+
+### No op
+
+set(MODE_CPPSRC
+	proc_noop.cpp
+)
+DeclareTargets(PNOP no_operation)
+
 ### HackRF "factory" firmware
 
 add_custom_command(

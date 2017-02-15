@@ -72,16 +72,14 @@ size_t morse_encode(std::string& message, const uint32_t time_unit_ms, const uin
 	memcpy(shared_memory.bb_data.tones_data.message, morse_message, i);
 	
 	// Setup tone "symbols"
-	tone_defs[0].delta = TONES_F2D(tone);			// 0: Dot
-	tone_defs[0].duration = (TONES_SAMPLERATE * MORSE_DOT * time_unit_ms) / 1000;
-	tone_defs[1].delta = TONES_F2D(tone);			// 1: Dash
-	tone_defs[1].duration = (TONES_SAMPLERATE * MORSE_DASH * time_unit_ms) / 1000;
-	tone_defs[2].delta = 0;							// 2: Symbol space
-	tone_defs[2].duration = (TONES_SAMPLERATE * MORSE_SYMBOL_SPACE * time_unit_ms) / 1000;
-	tone_defs[3].delta = 0;							// 3: Letter space
-	tone_defs[3].duration = (TONES_SAMPLERATE * MORSE_LETTER_SPACE * time_unit_ms) / 1000;
-	tone_defs[4].delta = 0;							// 4: Word space
-	tone_defs[4].duration = (TONES_SAMPLERATE * MORSE_WORD_SPACE * time_unit_ms) / 1000;
+	for (c = 0; c < 5; c++) {
+		if (c < 2)
+			tone_defs[c].delta = TONES_F2D(tone);	// Dot and dash
+		else
+			tone_defs[c].delta = 0;					// Pause
+		
+		tone_defs[c].duration = (TONES_SAMPLERATE * morse_symbols[c] * time_unit_ms) / 1000;
+	}
 	
 	return i;
 }
