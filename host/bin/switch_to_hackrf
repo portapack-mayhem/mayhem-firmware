@@ -6,6 +6,38 @@ printf "After the HackRF is plugged in, you may release the DFU button.\n"
 printf "Press any key to continue or ^c to abort\n"
 read
 
-dfu-util --device 1fc9:000c --download hackrf_one_usb_ram.dfu --reset
+for i in /usr/share/hackrf/hackrf_one_usb.dfu /usr/share/hackrf/hackrf_one_usb_ram.dfu hackrf_one_usb.dfu; do
+  if [ -r "${i}" ]; then
+    ram_firmware="${i}"
+    break
+  fi
+done
+
+if [ -n "${ram_firmware}" ]; then
+  printf "\nFound firmware: ${ram_firmware}\n"
+  printf "Flashing...\n"
+else
+  printf "Unable to fine firmware to flash, please have hackrf_one_usb.dfu\n"
+  printf "in current directory or /usr/share/hackrf/\n"
+  exit 1
+fi
+
+for i in /usr/share/hackrf/hackrf_one_usb.bin /usr/share/hackrf/hckrf_one_usb_rom_to_ram.bin hackrf_one_usb.bin; do
+  if [ -r "${i}" ]; then
+    rom_firmware="${i}"
+    break
+  fi
+done
+
+if [ -n "${rom_firmware}" ]; then
+  printf "\nFound firmware: ${rom_firmware}\n"
+  printf "Flashing...\n"
+else
+  printf "Unable to fine firmware to flash, please have hackrf_one_usb.bin\n"
+  printf "in current directory or /usr/share/hackrf/\n"
+  exit 1
+fi
+
+dfu-util --device 1fc9:000c --download "${ram_firmware}" --reset
 sleep 2s
-hackrf_spiflash -w hackrf_one_usb_rom_to_ram.bin
+hackrf_spiflash -w "${rom_firmware}"
