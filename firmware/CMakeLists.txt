@@ -25,7 +25,7 @@ set(COMMON ${PROJECT_SOURCE_DIR}/common)
 set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 
-set(HACKRF_FIRMWARE_FILENAME hackrf_one_usb_ram.dfu)
+set(HACKRF_FIRMWARE_FILENAME hackrf_one_usb.dfu)
 set(HACKRF_FIRMWARE_IMAGE ${PROJECT_SOURCE_DIR}/${HACKRF_FIRMWARE_FILENAME})
 
 set(HACKRF_CPLD_SVF_FILENAME hackrf_cpld_portapack.svf)
