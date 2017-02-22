@@ -17,12 +17,12 @@ if [ -n "${ram_firmware}" ]; then
   printf "\nFound firmware: ${ram_firmware}\n"
   printf "Flashing...\n"
 else
-  printf "Unable to fine firmware to flash, please have hackrf_one_usb.dfu\n"
+  printf "Unable to find firmware to flash, please have hackrf_one_usb.dfu\n"
   printf "in current directory or /usr/share/hackrf/\n"
   exit 1
 fi
 
-for i in /usr/share/hackrf/hackrf_one_usb.bin /usr/share/hackrf/hckrf_one_usb_rom_to_ram.bin hackrf_one_usb.bin; do
+for i in /usr/share/hackrf/hackrf_one_usb.bin /usr/share/hackrf/hackrf_one_usb_rom_to_ram.bin hackrf_one_usb.bin; do
   if [ -r "${i}" ]; then
     rom_firmware="${i}"
     break
@@ -33,7 +33,7 @@ if [ -n "${rom_firmware}" ]; then
   printf "\nFound firmware: ${rom_firmware}\n"
   printf "Flashing...\n"
 else
-  printf "Unable to fine firmware to flash, please have hackrf_one_usb.bin\n"
+  printf "Unable to find firmware to flash, please have hackrf_one_usb.bin\n"
   printf "in current directory or /usr/share/hackrf/\n"
   exit 1
 fi

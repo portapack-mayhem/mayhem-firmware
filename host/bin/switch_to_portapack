@@ -17,7 +17,7 @@ if [ -n "${ram_firmware}" ]; then
   printf "\nFound firmware: ${ram_firmware}\n"
   printf "Flashing...\n"
 else
-  printf "Unable to fine firmware to flash, please have hackrf_one_usb.dfu\n"
+  printf "Unable to find firmware to flash, please have hackrf_one_usb.dfu\n"
   printf "in current directory or /usr/share/hackrf/\n"
   exit 1
 fi
@@ -33,7 +33,7 @@ if [ -n "${rom_firmware}" ]; then
   printf "\nFound firmware: ${rom_firmware}\n"
   printf "Flashing...\n"
 else
-  printf "Unable to fine firmware to flash, please have portapack-h1-firmware.bin\n"
+  printf "Unable to find firmware to flash, please have portapack-h1-firmware.bin\n"
   printf "in current directory or /usr/share/hackrf/\n"
   exit 1
 fi
