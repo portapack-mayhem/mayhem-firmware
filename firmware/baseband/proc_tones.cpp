@@ -122,28 +122,35 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 void TonesProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const TonesConfigureMessage*>(p);
 	if (message.id == Message::ID::TonesConfigure) {
-		silence_count = message.pre_silence;		// In samples
-		for (uint8_t c = 0; c < 32; c++) {
-			tone_deltas[c] = shared_memory.bb_data.tones_data.tone_defs[c].delta;
-			tone_durations[c] = shared_memory.bb_data.tones_data.tone_defs[c].duration;
-		}
 		message_length = message.tone_count;
-		fm_delta = message.fm_delta * (0xFFFFFFFFULL / 1536000) * 2;
-		audio_out = message.audio_out;
-		dual_tone = message.dual_tone;
 		
-		if (audio_out) audio_output.configure(false);
-		
-		txdone_message.done = false;
-		txdone_message.progress = 0;
-		
-		digit_pos = 0;
-		sample_count = 0;
-		tone_a_phase = 0;
-		tone_b_phase = 0;
-		as = 0;
-		
-		configured = true;
+		if (message_length) {
+			silence_count = message.pre_silence;		// In samples
+			for (uint8_t c = 0; c < 32; c++) {
+				tone_deltas[c] = shared_memory.bb_data.tones_data.tone_defs[c].delta;
+				tone_durations[c] = shared_memory.bb_data.tones_data.tone_defs[c].duration;
+			}
+			fm_delta = message.fm_delta * (0xFFFFFFFFULL / 1536000) * 2;
+			audio_out = message.audio_out;
+			dual_tone = message.dual_tone;
+			
+			if (audio_out) audio_output.configure(false);
+			
+			txdone_message.done = false;
+			txdone_message.progress = 0;
+			
+			digit_pos = 0;
+			sample_count = 0;
+			tone_a_phase = 0;
+			tone_b_phase = 0;
+			as = 0;
+			
+			configured = true;
+		} else {
+			configured = false;
+			txdone_message.done = true;
+			shared_memory.application_queue.push(txdone_message);
+		}
 	}
 }
 

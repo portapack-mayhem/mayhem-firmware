@@ -65,18 +65,25 @@ private:
 	std::string message { };
 	uint32_t time_units { 0 };
 	
+	enum modulation_t {
+		CW = 0,
+		FM = 1
+	};
+	modulation_t modulation { CW };
+	
 	bool start_tx();
 	void update_tx_duration();
 	void on_set_text(NavigationView& nav);
+	void set_foxhunt(size_t i);
 	
-	size_t modulation { 0 };
-	Thread * ookthread { };
+	Thread * ookthread { nullptr };
+	bool foxhunt_mode { false };
 	
 	Labels labels {
 		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
 		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
-		{ { 1 * 8, 14 * 8 }, "TX will last", Color::light_grey() }
+		{ { 1 * 8, 25 * 8 }, "TX will last", Color::light_grey() }
 	};
 	
 	Checkbox checkbox_foxhunt {
@@ -88,17 +95,17 @@ private:
 		{ 17 * 8, 16 + 4 },
 		7,
 		{
-			{ "0 (MOE)", 0 },
-			{ "1 (MOI)", 1 },
-			{ "2 (MOS)", 2 },
-			{ "3 (MOH)", 3 },
-			{ "4 (MO5)", 4 },
-			{ "5 (MON)", 5 },
-			{ "6 (MOD)", 6 },
-			{ "7 (MOB)", 7 },
-			{ "8 (MO6)", 8 },
-			{ "9 (MO) ", 9 },
-			{ "10 (S) ", 10 }
+			{ "1 (MOE)", 0 },
+			{ "2 (MOI)", 1 },
+			{ "3 (MOS)", 2 },
+			{ "4 (MOH)", 3 },
+			{ "5 (MO5)", 4 },
+			{ "6 (MON)", 5 },
+			{ "7 (MOD)", 6 },
+			{ "8 (MOB)", 7 },
+			{ "9 (MO6)", 8 },
+			{ "X (MO) ", 9 },
+			{ "T (S) ", 10 }
 		}
 	};
 	
@@ -128,17 +135,17 @@ private:
 	};
 	
 	Text text_tx_duration {
-		{ 14 * 8, 14 * 8, 4 * 8, 16 },
+		{ 14 * 8, 25 * 8, 4 * 8, 16 },
 		"-"
 	};
 	
 	Text text_message {
-		{ 1 * 8, 18 * 8, 28 * 8, 16 },
+		{ 1 * 8, 15 * 8, 28 * 8, 16 },
 		""
 	};
 	
 	Button button_message {
-		{ 1 * 8, 20 * 8, 12 * 8, 28 },
+		{ 1 * 8, 17 * 8, 12 * 8, 28 },
 		"Set message"
 	};
 	

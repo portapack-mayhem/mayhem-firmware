@@ -38,12 +38,44 @@ using namespace hackrf::one;
 
 namespace ui {
 
+static WORKING_AREA(ookthread_wa, 256);
+
+static msg_t ookthread_fn(void * arg) {
+	uint32_t v = 0, delay = 0;
+	size_t i = 0;
+	uint8_t * message_symbols = shared_memory.bb_data.tones_data.message;
+	uint8_t symbol;
+	MorseView * arg_c = (MorseView*)arg;
+	
+	chRegSetThreadName("ookthread");
+	
+	for (i = 0; i < arg_c->symbol_count; i++) {
+		if (chThdShouldTerminate()) break;
+		
+		symbol = message_symbols[i];
+		
+		v = (symbol < 2) ? 1 : 0;	// TX on for dot or dash, off for pause
+		delay = morse_symbols[symbol];
+		
+		gpio_tx.write(v);
+		arg_c->on_tx_progress(i, false);
+		
+		chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
+	}
+	
+	gpio_tx.write(0);				// Ensure TX is off
+	arg_c->on_tx_progress(0, true);
+	chThdExit(0);
+	
+	return 0;
+}
+
 void MorseView::on_set_text(NavigationView& nav) {
 	textentry(nav, buffer, 28);
 }
 
 void MorseView::focus() {
-	tx_view.focus();
+	button_message.focus();
 }
 
 MorseView::~MorseView() {
@@ -57,44 +89,12 @@ void MorseView::paint(Painter&) {
 	update_tx_duration();
 }
 
-static WORKING_AREA(ookthread_wa, 256);
-
-static msg_t ookthread_fn(void * arg) {
-	uint32_t v = 0, delay = 0;
-	size_t i = 0;
-	uint8_t * message = shared_memory.bb_data.tones_data.message;
-	uint8_t symbol;
-	MorseView * arg_c = (MorseView*)arg;
-	
-	chRegSetThreadName("ookthread");
-	for (i = 0; i < arg_c->symbol_count; i++) {
-		if (chThdShouldTerminate()) break;
-		
-		symbol = message[i];
-		
-		v = (symbol < 2) ? 1 : 0;
-		delay = morse_symbols[v];
-		
-		gpio_tx.write(v);
-		arg_c->on_tx_progress(i, false);
-		
-		chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
-	}
-	
-	gpio_tx.write(0);
-	arg_c->on_tx_progress(0, true);
-	chThdExit(0);
-	
-	return 0;
-}
-
 bool MorseView::start_tx() {
 	// Re-generate message, just in case
-	time_unit_ms = field_time_unit.value();
-	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
+	update_tx_duration();
 	
 	if (!symbol_count) {
-		nav_.display_modal("Error", "Message too long.", INFO, nullptr);
+		nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.", INFO, nullptr);
 		return false;
 	}
 	
@@ -107,9 +107,9 @@ bool MorseView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	if (options_modulation.selected_index() == 0) {
+	if (modulation == CW) {
 		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-	} else {
+	} else if (modulation == FM) {
 		baseband::set_tones_data(transmitter_model.bandwidth(), 0, symbol_count, false, false);
 	}
 	
@@ -126,7 +126,7 @@ void MorseView::update_tx_duration() {
 		duration_ms = time_units * time_unit_ms;
 		text_tx_duration.set(to_string_dec_uint(duration_ms / 1000) + "." + to_string_dec_uint((duration_ms / 100) % 10, 1) + "s   ");
 	} else {
-		text_tx_duration.set("-");
+		text_tx_duration.set("-");		// Error
 	}
 }
 
@@ -137,6 +137,13 @@ void MorseView::on_tx_progress(const int progress, const bool done) {
 		tx_view.set_transmitting(false);
 	} else
 		progressbar.set_value(progress);
+}
+
+void MorseView::set_foxhunt(size_t i) {
+	message = foxhunt_codes[i];
+	strncpy(buffer, message.c_str(), sizeof(buffer));
+	text_message.set(message);
+	update_tx_duration();
 }
 
 MorseView::MorseView(
@@ -159,22 +166,25 @@ MorseView::MorseView(
 		&tx_view
 	});
 	
-	field_time_unit.set_value(50);				// 50ms
-	field_tone.set_value(700);					// 700Hz
-	options_modulation.set_selected_index(0);	// CW
+	// Default settings
+	field_time_unit.set_value(50);				// 50ms unit
+	field_tone.set_value(700);					// 700Hz FM tone
+	options_modulation.set_selected_index(0);	// CW mode
 	
-	checkbox_foxhunt.on_select = [this](Checkbox&, bool v) {
-		if (v) {
-			message = foxhunt_codes[options_foxhunt.selected_index_value()];
-			strncpy(buffer, message.c_str(), sizeof(buffer));
-			text_message.set(message);
-			update_tx_duration();
-		}
+	checkbox_foxhunt.on_select = [this](Checkbox&, bool value) {
+		foxhunt_mode = value;
+		
+		if (foxhunt_mode)
+			set_foxhunt(options_foxhunt.selected_index_value());
 	};
 	
-	options_foxhunt.on_change = [this](size_t, int32_t) {
-		if (checkbox_foxhunt.value())
-			update_tx_duration();
+	options_foxhunt.on_change = [this](size_t i, int32_t) {
+		if (foxhunt_mode)
+			set_foxhunt(i);
+	};
+	
+	options_modulation.on_change = [this](size_t i, int32_t) {
+		modulation = (modulation_t)i;
 	};
 	
 	field_time_unit.on_change = [this](int32_t) {
@@ -198,7 +208,9 @@ MorseView::MorseView(
 	};
 	
 	tx_view.on_stop = [this]() {
-		chThdTerminate(ookthread);
+		if (ookthread) chThdTerminate(ookthread);
+		transmitter_model.disable();
+		baseband::set_tones_data(0, 0, 0, false, false);
 		tx_view.set_transmitting(false);
 	};
 }

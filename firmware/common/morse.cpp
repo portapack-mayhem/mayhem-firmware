@@ -44,7 +44,7 @@ size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
 	
 	i = 0;
 	for (char& ch : message) {
-		if (i > 256) return 0;
+		if (i > 256) return 0;						// Message too long
 		
 		if ((ch >= 'a') && (ch <= 'z'))				// Make uppercase
 			ch -= 32;
