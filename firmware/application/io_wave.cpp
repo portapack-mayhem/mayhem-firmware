@@ -89,9 +89,9 @@ uint16_t WAVFileReader::bits_per_sample() {
 
 Optional<File::Error> WAVFileWriter::create(
 	const std::filesystem::path& filename,
-	size_t sampling_rate
+	size_t sampling_rate_set
 ) {
-	sampling_rate = sampling_rate;
+	sampling_rate = sampling_rate_set;
 	const auto create_error = FileWriter::create(filename);
 	if( create_error.is_valid() ) {
 		return create_error;

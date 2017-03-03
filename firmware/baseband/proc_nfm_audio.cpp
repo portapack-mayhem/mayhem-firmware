@@ -39,7 +39,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	feed_channel_stats(channel_out);
 	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
-	if ( !pwmrssi_enabled ) {
+	if (!pwmrssi_enabled) {
 		auto audio = demod.execute(channel_out, audio_buffer);
 		audio_output.write(audio);
 	} else {
@@ -49,7 +49,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 			else
 				pwmrssi_audio_buffer.p[c] = -32768;
 			
-			if (synth_acc < synth_div)		// 24kHz / 30 = 800Hz
+			if (synth_acc < synth_div)
 				synth_acc++;
 			else
 				synth_acc = 0;
@@ -103,7 +103,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
 	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config);	// , 0.8f
-
+	
 	synth_acc = 0;
 	
 	configured = true;

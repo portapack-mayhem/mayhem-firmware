@@ -155,7 +155,6 @@ public:
 
 private:
 	uint32_t sampling_rate { 0 };
-	uint32_t bytes_written { 0 };
 
 	Optional<File::Error> update_header();
 };
