@@ -77,6 +77,8 @@ struct data_t {
 	uint32_t playdead_sequence;
 	
 	uint32_t ui_config;
+	
+	uint32_t pocsag_address;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -237,6 +239,14 @@ uint8_t ui_config_textentry() {
 
 void set_ui_config(const uint32_t new_value) {
 	data->ui_config = new_value;
+}
+
+uint32_t pocsag_address() {
+	return data->pocsag_address;
+}
+
+void set_pocsag_address(uint32_t address) {
+	data->pocsag_address = address;
 }
 
 } /* namespace persistent_memory */

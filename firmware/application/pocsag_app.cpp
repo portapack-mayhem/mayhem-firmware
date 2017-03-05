@@ -155,6 +155,8 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		console_info += pocsag::bitrate_str(message->packet.bitrate());
 		console_info += " ADDR:" + to_string_dec_uint(pocsag_state.address);
 		console_info += " F" + to_string_dec_uint(pocsag_state.function);
+
+		portapack::persistent_memory::set_pocsag_address(pocsag_state.address);
 		
 		if (pocsag_state.out_type == ADDRESS) {
 			// Address only

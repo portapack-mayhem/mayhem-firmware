@@ -88,7 +88,7 @@ private:
 	bool transmitting_ { false };
 	
 	FrequencyField field_frequency {
-		{ 0 * 8, 1 * 8 }
+		{ 4, 1 * 8 }
 	};
 	
 	Text text_gain {

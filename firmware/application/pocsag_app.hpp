@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-//#include "ui_channel.hpp"
 
 #include "event_m0.hpp"
 
@@ -103,20 +102,20 @@ private:
 	};
 	
 	Button button_setfreq {
-		{ 0, 20, 12 * 8, 20 },
+		{ 0, 20, 11 * 8, 20 },
 		"----.----"
 	};
 	OptionsField options_bitrate {
-		{ 13 * 8, 22 },
-		8,
+		{ 12 * 8, 22 },
+		7,
 		{
-			{ "512 bps ", 0 },
-			{ "1200 bps", 1 },
-			{ "2400 bps", 2 }
+			{ "512bps ", 0 },
+			{ "1200bps", 1 },
+			{ "2400bps", 2 }
 		}
 	};
 	Checkbox check_log {
-		{ 22 * 8, 22 },
+		{ 20 * 8, 22 },
 		3,
 		"LOG",
 		true

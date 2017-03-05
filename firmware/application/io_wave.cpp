@@ -50,10 +50,6 @@ int WAVFileReader::open(const std::filesystem::path& path) {
 	}
 }
 
-size_t WAVFileReader::read(void * const data, const size_t bytes_to_read) {
-	return file.read(data, bytes_to_read).value();
-}
-
 void WAVFileReader::rewind() {
 	file.seek(data_start);
 }
@@ -62,14 +58,14 @@ uint32_t WAVFileReader::ms_duration() {
 	return ((data_size_ * 1000) / sample_rate_) / bytes_per_sample;
 }
 
-int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
+/*int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
 	const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
 
 	if (result.is_error())
 		return 0;
 		
 	return 1;
-}
+}*/
 
 uint16_t WAVFileReader::channels() {
 	return header.fmt.nChannels;

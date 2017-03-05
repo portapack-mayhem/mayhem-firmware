@@ -34,7 +34,6 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	
 	if (!configured) return;
 
-	//ai = 0;
 	for (size_t i = 0; i<buffer.count; i++) {
 		
 		// Audio preview sample generation @ 1536000/divider
@@ -44,7 +43,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			sample = (int32_t)out_sample;
 			//preview_audio_buffer.p[ai++] = sample << 8;
 			
-			if ((audio_fifo.len() < 1024) && (asked == false)) {
+			if ((audio_fifo.len() < 512) && (asked == false)) {
 				// Ask application to fill up fifo
 				sigmessage.signaltype = 1;
 				shared_memory.application_queue.push(sigmessage);
@@ -92,7 +91,7 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 			break;
 		
 		case Message::ID::FIFOData:
-			audio_fifo.in(static_cast<const FIFODataMessage*>(msg)->data, 1024);
+			audio_fifo.in(static_cast<const FIFODataMessage*>(msg)->data, 512);
 			asked = false;
 			break;
 

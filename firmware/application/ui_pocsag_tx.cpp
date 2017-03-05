@@ -131,7 +131,9 @@ POCSAGTXView::POCSAGTXView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-
+	uint32_t reload_address;
+	uint32_t c;
+	
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
 	add_children({
@@ -146,7 +148,14 @@ POCSAGTXView::POCSAGTXView(
 	});
 
 	options_bitrate.set_selected_index(1);	// 1200bps
-	options_type.set_selected_index(2);		// Alphanumeric
+	options_type.set_selected_index(0);		// Address only
+	
+	// TODO: set_value for whole symfield
+	reload_address = portapack::persistent_memory::pocsag_address();
+	for (c = 0; c < 7; c++) {
+		field_address.set_value(6 - c, reload_address % 10);
+		reload_address /= 10;
+	}
 	
 	button_message.on_select = [this, &nav](Button&) {
 		this->on_set_text(nav);

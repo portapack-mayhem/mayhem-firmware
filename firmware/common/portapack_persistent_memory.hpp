@@ -76,6 +76,9 @@ uint16_t ui_config_bloff();
 uint8_t ui_config_textentry();
 void set_config_textentry(uint8_t new_value);
 
+uint32_t pocsag_address();
+void set_pocsag_address(uint32_t address);
+
 } /* namespace persistent_memory */
 } /* namespace portapack */
 

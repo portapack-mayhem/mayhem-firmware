@@ -75,15 +75,15 @@ void SoundBoardView::prepare_audio() {
 	
 	pbar.set_value(sample_counter);
 
-	size_t bytes_read = reader->read(audio_buffer, 1024);
+	auto bytes_read = reader->read(audio_buffer, 512).value();
 	
 	// Unsigned to signed, pretty stupid :/
 	for (size_t n = 0; n < bytes_read; n++)
 		audio_buffer[n] -= 0x80;
-	for (size_t n = bytes_read; n < 1024; n++)
+	for (size_t n = bytes_read; n < 512; n++)
 		audio_buffer[n] = 0;
 	
-	sample_counter += 1024;
+	sample_counter += 512;
 	
 	baseband::set_fifo_data(audio_buffer);
 }

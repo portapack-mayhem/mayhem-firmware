@@ -81,7 +81,7 @@ private:
 	uint32_t max_sound { };
 	uint8_t max_page { };
 
-	int8_t audio_buffer[1024];
+	int8_t audio_buffer[512];
 	
 	Style style_a {
 		.font = font::fixed_8x16,

@@ -93,8 +93,7 @@ public:
 	int open(const std::filesystem::path& path);
 	void rewind();
 	uint32_t ms_duration();
-	size_t read(void * const data, const size_t bytes_to_read);
-	int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
+	//int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
 	uint16_t channels();
 	uint32_t sample_rate();
 	uint32_t data_size();
@@ -127,7 +126,6 @@ private:
 
 	header_t header { };
 
-	File file { };
 	uint32_t data_start { };
 	uint32_t bytes_per_sample { };
 	uint32_t data_size_ { 0 };

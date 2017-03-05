@@ -90,7 +90,7 @@ void NumbersStationView::prepare_audio() {
 	}
 	
 	if (!pause) {
-		size_t bytes_read = reader->read(audio_buffer, 1024);
+		auto bytes_read = reader->read(audio_buffer, 1024).value();
 		
 		// Unsigned to signed, pretty stupid :/
 		for (size_t n = 0; n < bytes_read; n++)
