@@ -22,36 +22,75 @@
 
 #include "io_wave.hpp"
 
-int WAVFileReader::open(const std::filesystem::path& path) {
+bool WAVFileReader::open(const std::filesystem::path& path) {
+	size_t i = 0;
+	char ch;
+	const uint8_t tag_INAM[4] = { 'I', 'N', 'A', 'M' };
+	char title_buffer[32];
+	uint32_t riff_size, data_end, title_size;
+	size_t search_limit = 0;
+	
+	// Already open ?
 	if (path.string() == last_path.string()) {
 		rewind();
-		return 1;			// Already open
+		return true;
 	}
 	
 	auto error = file.open(path);
 
 	if (!error.is_valid()) {
-		file.read((void*)&header, sizeof(header));
+		file.read((void*)&header, sizeof(header));	// Read header (RIFF and WAVE)
 		
-		// TODO: Check validity here
-	
-		last_path = path;
-		data_start = header.fmt.cksize + 28;		// Skip "data" and cksize
-		
+		riff_size = header.cksize + 8;
+		data_start = header.fmt.cksize + 28;
 		data_size_ = header.data.cksize;
+		data_end = data_start + data_size_ + 1;
+		
+		// Look for INAM (title) tag
+		if (data_end < riff_size) {
+			file.seek(data_end);
+			while(file.read((void*)&ch, 1).is_ok()) {
+				if (ch == tag_INAM[i++]) {
+					if (i == 4) {
+						// Tag found, copy title
+						file.read((void*)&title_size, sizeof(uint32_t));
+						if (title_size > 32) title_size = 32;
+						file.read((void*)&title_buffer, title_size);
+						title_string = title_buffer;
+						break;
+					}
+				} else {
+					if (ch == tag_INAM[0])
+						i = 1;
+					else
+						i = 0;
+				}
+				if (search_limit == 256)
+					break;
+				else
+					search_limit++;
+			}
+		}
+		
 		sample_rate_ = header.fmt.nSamplesPerSec;
 		bytes_per_sample = header.fmt.wBitsPerSample / 8;
 		
 		rewind();
 		
-		return 1;
+		last_path = path;
+		
+		return true;
 	} else {
-		return 0;
+		return false;
 	}
 }
 
 void WAVFileReader::rewind() {
 	file.seek(data_start);
+}
+
+std::string WAVFileReader::title() {
+	return title_string;
 }
 
 uint32_t WAVFileReader::ms_duration() {
@@ -97,7 +136,7 @@ Optional<File::Error> WAVFileWriter::create(
 }
 
 Optional<File::Error> WAVFileWriter::update_header() {
-	header_t header { sampling_rate, bytes_written };
+	header_t header { sampling_rate, (uint32_t)bytes_written };
 	const auto seek_0_result = file.seek(0);
 	if( seek_0_result.is_error() ) {
 		return seek_0_result.error();

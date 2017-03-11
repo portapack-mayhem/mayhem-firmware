@@ -55,7 +55,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 		
 		if (ctcss_enabled) {
 			ctcss_sample = sine_table_i8[(ctcss_phase & 0xFF000000U) >> 24];
-			sample_mixed = ((sample * 217) + (ctcss_sample * 38)) / 256;	// ~15%
+			sample_mixed = ((sample * 205) + (ctcss_sample * 50)) / 256;	// ~20%
 			ctcss_phase += ctcss_phase_inc;
 		} else {
 			sample_mixed = sample;

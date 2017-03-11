@@ -67,6 +67,7 @@ private:
 		uint32_t size = 0;
 		uint32_t sample_duration = 0;
 		uint32_t ms_duration = 0;
+		std::string title { };
 	};
 	
 	uint32_t sample_counter { 0 };
@@ -77,7 +78,7 @@ private:
 	
 	std::unique_ptr<WAVFileReader> reader { };
 	
-	sound sounds[105];
+	sound sounds[108];			// 6 pages * 18 buttons
 	uint32_t max_sound { };
 	uint8_t max_page { };
 
@@ -104,7 +105,7 @@ private:
 		.foreground = { 153, 102, 255 }
 	};
 
-	std::array<Button, 21> buttons { };
+	std::array<Button, 18> buttons { };
 	const Style * styles[4] = { &style_a, &style_b, &style_c, &style_d };
 	
 	void on_tuning_frequency_changed(rf::Frequency f);
@@ -117,16 +118,12 @@ private:
 	void prepare_audio();
 	void on_ctcss_changed(uint32_t v);
 	
-	Text text_duration {
-		{ 16, 236, 5 * 8, 16 }
-	};
-	
 	FrequencyField field_frequency {
-		{ 1 * 8, 4 },
+		{ 0, 4 },
 	};
 	
 	NumberField number_bw {
-		{ 11 * 8, 4 },
+		{ 10 * 8, 4 },
 		3,
 		{1, 150},
 		1,
@@ -134,23 +131,32 @@ private:
 	};
 	
 	Text text_kHz {
-		{ 14 * 8, 4, 3 * 8, 16 },
-		"kHz"
+		{ 13 * 8, 4, 8 * 8, 16 },
+		"k CTCSS:"
 	};
 	
 	OptionsField options_ctcss {
-		{ 18 * 8, 4 },
-		6,
+		{ 21 * 8, 4 },
+		8,
 		{ }
 	};
 	
+	Text text_title {
+		{ 1 * 8, 26 * 8, 20 * 8, 16 },
+		"-"
+	};
+	
 	Text text_page {
-		{ 25 * 8, 4, 3 * 8, 16 },
-		"-/-"
+		{ 22 * 8 - 4, 26 * 8, 8 * 8, 16 },
+		"Page -/-"
+	};
+	
+	Text text_duration {
+		{ 1 * 8, 30 * 8, 5 * 8, 16 }
 	};
 	
 	ProgressBar pbar {
-		{ 72, 236, 150, 16 }
+		{ 9 * 8, 30 * 8, 19 * 8, 16 }
 	};
 	
 	Checkbox check_loop {
@@ -160,12 +166,12 @@ private:
 	};
 	
 	Button button_random {
-		{ 80, 270, 72, 32 },
+		{ 10 * 8, 34 * 8, 9 * 8, 32 },
 		"Random"
 	};
 	
 	Button button_exit {
-		{ 160, 270, 64, 32 },
+		{ 21 * 8, 34 * 8, 8 * 8, 32 },
 		"Exit"
 	};
 	

@@ -47,8 +47,8 @@ void SoundBoardView::do_random() {
 
 	play_sound(id);
 	
-	buttons[id % 21].focus();
-	page = id / 21;
+	buttons[id % 18].focus();
+	page = id / 18;
 	
 	refresh_buttons(id);
 }
@@ -126,9 +126,10 @@ void SoundBoardView::play_sound(uint16_t id) {
 	
 	ctcss_index = options_ctcss.selected_index();
 	
-	if (ctcss_index)
+	if (ctcss_index) {
 		ctcss_enabled = true;
-	else
+		ctcss_index--;
+	} else
 		ctcss_enabled = false;
 	
 	divider = (1536000 / sounds[id].sample_rate) - 1;
@@ -145,15 +146,17 @@ void SoundBoardView::show_infos(uint16_t id) {
 	uint32_t duration = sounds[id].ms_duration;
 	
 	text_duration.set(to_string_dec_uint(duration / 1000) + "." + to_string_dec_uint((duration / 100) % 10) + "s");
+	
+	text_title.set(sounds[id].title);
 }
 
 void SoundBoardView::refresh_buttons(uint16_t id) {
 	size_t n = 0, n_sound;
 	
-	text_page.set(to_string_dec_uint(page + 1) + "/" + to_string_dec_uint(max_page));
+	text_page.set("Page " + to_string_dec_uint(page + 1) + "/" + to_string_dec_uint(max_page));
 	
 	for (auto& button : buttons) {
-		n_sound = (page * 21) + n;
+		n_sound = (page * 18) + n;
 		
 		button.id = n_sound;
 		
@@ -197,7 +200,9 @@ SoundBoardView::SoundBoardView(
 	using options_t = std::vector<option_t>;
 	options_t ctcss_options;
 	std::vector<std::filesystem::path> file_list;
+	std::string title, f_string;
 	uint8_t c;
+	uint32_t f;
 	
 	reader = std::make_unique<WAVFileReader>();
 	
@@ -216,8 +221,13 @@ SoundBoardView::SoundBoardView(
 					sounds[c].sixteenbit = false;*/
 				sounds[c].ms_duration = reader->ms_duration();
 				sounds[c].path = u"wav/" + path.native();
+				title = reader->title().substr(0, 20);
+				if (title != "")
+					sounds[c].title = title;
+				else
+					sounds[c].title = "-";
 				c++;
-				if (c == 105) break;	// Limit to 105 files (5 pages)
+				if (c == 108) break;		// Limit to 108 files (6 pages)
 			}
 		}
 	}
@@ -225,13 +235,14 @@ SoundBoardView::SoundBoardView(
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 
 	max_sound = c;
-	max_page = max_sound / 21;			// 3 * 7 = 21 buttons per page
+	max_page = (max_sound + 18 - 1) / 18;	// 3 * 6 = 18 buttons per page
 	
 	add_children({
 		&field_frequency,
 		&number_bw,
 		&text_kHz,
 		&options_ctcss,
+		&text_title,
 		&text_page,
 		&text_duration,
 		&pbar,
@@ -240,10 +251,14 @@ SoundBoardView::SoundBoardView(
 		&button_exit
 	});
 
+	// Populate CTCSS list
 	ctcss_options.emplace_back(std::make_pair("None", 0));
-	
-	for (c = 0; c < CTCSS_TONES_NB; c++)
-		ctcss_options.emplace_back(std::make_pair(ctcss_tones[c].PL_code, c));
+	for (c = 0; c < CTCSS_TONES_NB; c++) {
+		f = (uint32_t)(ctcss_tones[c].frequency * 10);
+		f_string = ctcss_tones[c].PL_code;
+		f_string += " " + to_string_dec_uint(f / 10) + "." + to_string_dec_uint(f % 10);
+		ctcss_options.emplace_back(f_string, c);
+	}
 	
 	options_ctcss.set_options(ctcss_options);
 	
@@ -271,8 +286,8 @@ SoundBoardView::SoundBoardView(
 		button.on_dir = button_dir;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 3) * 78 + 3),
-			static_cast<Coord>((n / 3) * 28 + 26),
-			78, 28
+			static_cast<Coord>((n / 3) * 30 + 24),
+			78, 30
 		});
 		n++;
 	}

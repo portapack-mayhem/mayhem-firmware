@@ -90,7 +90,7 @@ public:
 	
 	virtual ~WAVFileReader() = default;
 
-	int open(const std::filesystem::path& path);
+	bool open(const std::filesystem::path& path);
 	void rewind();
 	uint32_t ms_duration();
 	//int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
@@ -98,6 +98,7 @@ public:
 	uint32_t sample_rate();
 	uint32_t data_size();
 	uint16_t bits_per_sample();
+	std::string title();
 	
 private:
 	struct fmt_pcm_t {
@@ -130,6 +131,7 @@ private:
 	uint32_t bytes_per_sample { };
 	uint32_t data_size_ { 0 };
 	uint32_t sample_rate_ { };
+	std::string title_string { };
 	std::filesystem::path last_path { };
 };
 
