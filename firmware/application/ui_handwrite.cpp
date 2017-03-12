@@ -31,7 +31,7 @@
 using namespace portapack;
 
 namespace ui {
-	
+
 void HandWriteView::paint(Painter& painter) {
 	_painter = &painter;
 }

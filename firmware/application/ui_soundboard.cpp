@@ -181,8 +181,7 @@ void SoundBoardView::change_page(Button& button, const KeyEvent key) {
 			page--;
 			refresh_buttons(button.id);
 		}
-	}
-	if (button.screen_pos().x() > 120) {
+	} else if (button.screen_pos().x() > 120) {
 		if ((key == KeyEvent::Right) && (page < max_page - 1)) {
 			page++;
 			refresh_buttons(button.id);
@@ -194,9 +193,7 @@ SoundBoardView::SoundBoardView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	using name_t = std::string;
-	using value_t = int32_t;
-	using option_t = std::pair<name_t, value_t>;
+	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t ctcss_options;
 	std::vector<std::filesystem::path> file_list;
@@ -278,6 +275,7 @@ SoundBoardView::SoundBoardView(
 		return false;
 	};
 
+	// Generate buttons
 	size_t n = 0;
 	for(auto& button : buttons) {
 		add_child(&button);
@@ -294,7 +292,7 @@ SoundBoardView::SoundBoardView(
 	refresh_buttons(0);
 	
 	check_loop.set_value(false);
-	number_bw.set_value(15);
+	number_bw.set_value(12);
 
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(10000);

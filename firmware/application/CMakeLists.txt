@@ -155,6 +155,7 @@ set(CPPSRC
 	ui_afsksetup.cpp
 	ui_alphanum.cpp
 	ui_audio.cpp
+	ui_audiotx.cpp
 	ui_baseband_stats_view.cpp
 	ui_bht_tx.cpp
 	ui_channel.cpp

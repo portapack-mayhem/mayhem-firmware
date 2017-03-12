@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -37,6 +38,13 @@ void mute();
 void unmute();
 
 } /* namespace output */
+
+namespace input {
+
+void start();
+void stop();
+
+} /* namespace input */
 
 namespace headphone {
 

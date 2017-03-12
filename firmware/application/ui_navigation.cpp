@@ -33,6 +33,7 @@
 
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"
+#include "ui_audiotx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_closecall.hpp"
 #include "ui_cw.hpp"
@@ -321,9 +322,9 @@ TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 	add_items<4>({ {
 		{ "Soundboard", 			ui::Color::green(), &bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
-		{ "Numbers station",		ui::Color::green(),	&bitmap_icon_numbers,	[&nav](){ nav.push<NumbersStationView>(); } },
-		{ "Microphone", 			ui::Color::grey(),	&bitmap_icon_microphone,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Whistle", 				ui::Color::yellow(),&bitmap_icon_whistle,	[&nav](){ nav.push<WhistleView>(); } },
+		{ "Numbers station",		ui::Color::orange(),&bitmap_icon_numbers,		[&nav](){ nav.push<NumbersStationView>(); } },
+		{ "Microphone", 			ui::Color::orange(),&bitmap_icon_microphone,	[&nav](){ nav.push<AudioTXView>(); } },
+		{ "Whistle", 				ui::Color::yellow(),&bitmap_icon_whistle,		[&nav](){ nav.push<WhistleView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

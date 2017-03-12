@@ -21,15 +21,12 @@
 
 #include "ui_audiotx.hpp"
 
-#include "ch.h"
-
+#include "baseband_api.hpp"
 #include "ui_alphanum.hpp"
-#include "ff.h"
-#include "hackrf_gpio.hpp"
+#include "audio.hpp"
 #include "portapack.hpp"
-#include "radio.hpp"
-
-#include "hackrf_hal.hpp"
+#include "pins.hpp"
+#include "string_format.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
@@ -42,6 +39,38 @@ void AudioTXView::focus() {
 	button_transmit.focus();
 }
 
+void AudioTXView::paint(Painter& painter) {
+	_painter = &painter;
+}
+
+void AudioTXView::draw_vumeter() {
+	uint32_t bar;
+	Color color;
+	bool lit = true;
+	uint32_t bar_level = audio_level / 15;
+	
+	if (bar_level > 16) bar_level = 16;
+	
+	for (bar = 0; bar < 16; bar++) {
+		if (bar >= bar_level)
+			lit = false;
+		
+		if (bar < 11)
+			color = lit ? Color::green() : Color::dark_green();
+		else if ((bar >= 11) && (bar < 13))
+			color = lit ? Color::yellow() : Color::dark_yellow();
+		else if ((bar >= 13) && (bar < 15))
+			color = lit ? Color::orange() : Color::dark_orange();
+		else
+			color = lit ? Color::red() : Color::dark_red();
+		
+		_painter->fill_rectangle({ 100, (Coord)(210 - (bar * 12)), 40, 10 }, color);
+	}
+	
+	//text_power.set(to_string_hex(LPC_I2S0->STATE, 8) + " " + to_string_dec_uint(audio_level) + "  ");
+	text_power.set(to_string_dec_uint(audio_level) + "  ");
+}
+
 void AudioTXView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 }
@@ -50,10 +79,14 @@ AudioTXView::AudioTXView(
 	NavigationView& nav
 )
 {
+	pins[P6_2].mode(3);		// I2S0_RX_SDA !
+	
+	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
+	
 	transmitter_model.set_tuning_frequency(92200000);
 		
 	add_children({
-		&text_title,
+		&text_power,
 		&field_frequency,
 		&button_transmit,
 		&button_exit
@@ -74,22 +107,32 @@ AudioTXView::AudioTXView(
 	};
 	
 	button_transmit.on_select = [](Button&){
-		transmitter_model.set_baseband_configuration({
-			.mode = 1,
-			.sampling_rate = 1536000,
-			.decimation_factor = 1,
-		});
+		transmitter_model.set_sampling_rate(1536000U);
 		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_lna(40);
+		transmitter_model.set_vga(40);
+		transmitter_model.set_baseband_bandwidth(1750000);
 		transmitter_model.enable();
+		
+		baseband::set_audiotx_data(
+			76800,		// 20Hz level update
+			10000,		// 10kHz bw
+			false,
+			0
+		);
 	};
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();
 	};
+	
+	audio::set_rate(audio::Rate::Hz_24000);
+	audio::input::start();
 }
 
 AudioTXView::~AudioTXView() {
 	transmitter_model.disable();
+	baseband::shutdown();
 }
 
 }

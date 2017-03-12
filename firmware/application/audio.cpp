@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -41,7 +42,7 @@ constexpr i2s::ConfigTX i2s0_config_tx {
 		.mono = 0,
 		.stop = 1,
 		.reset = 0,
-		.ws_sel = 0,
+		.ws_sel = 0,			// Master
 		.ws_halfperiod = 0x0f,
 		.mute = 1,
 	},
@@ -65,7 +66,7 @@ constexpr i2s::ConfigRX i2s0_config_rx {
 		.mono = 0,
 		.stop = 1,
 		.reset = 0,
-		.ws_sel = 1,
+		.ws_sel = 0,			// Master
 		.ws_halfperiod = 0x0f,
 	},
 	.rxrate = i2s::MCLKRate {
@@ -102,6 +103,18 @@ constexpr uint8_t wm8731_i2c_address = 0x1a;
 WM8731 audio_codec { i2c0, wm8731_i2c_address };
 
 } /* namespace */
+
+namespace input {
+
+void start() {
+	i2s::i2s0::rx_start();
+}
+
+void stop() {
+	i2s::i2s0::rx_stop();
+}
+
+} /* namespace input */
 
 namespace output {
 

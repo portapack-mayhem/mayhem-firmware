@@ -129,6 +129,7 @@ set(CPPSRC
 	rssi_thread.cpp
 	audio_compressor.cpp
 	audio_output.cpp
+	audio_input.cpp
 	audio_dma.cpp
 	audio_stats_collector.cpp
 	${COMMON}/utility.cpp
@@ -364,6 +365,13 @@ set(MODE_CPPSRC
 	proc_audiotx.cpp
 )
 DeclareTargets(PATX audio_tx)
+
+### Microphone transmit
+
+set(MODE_CPPSRC
+	proc_mictx.cpp
+)
+DeclareTargets(PMTX mic_tx)
 
 ### AFSK
 

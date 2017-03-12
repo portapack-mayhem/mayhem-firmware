@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,16 +20,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __UI_AUDIOTX_H__
+#define __UI_AUDIOTX_H__
+
 #include "ui.hpp"
+#include "hal.h"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "clock_manager.hpp"
 #include "message.hpp"
-#include "rf_path.hpp"
-#include "max2837.hpp"
 #include "volume.hpp"
 #include "ui_receiver.hpp"
 #include "transmitter_model.hpp"
@@ -40,29 +40,58 @@ public:
 	AudioTXView(NavigationView& nav);
 	~AudioTXView();
 
+	AudioTXView(const AudioTXView&) = delete;
+	AudioTXView(AudioTXView&&) = delete;
+	AudioTXView& operator=(const AudioTXView&) = delete;
+	AudioTXView& operator=(AudioTXView&&) = delete;
+	
 	void focus() override;
+	void paint(Painter& painter) override;
+	
+	std::string title() const override { return "Microphone TX"; };
 
 private:
+	void draw_vumeter();
 	void on_tuning_frequency_changed(rf::Frequency f);
 	
-	FrequencyField field_frequency {
-		{ 5 * 8, 3 * 16 },
+	uint32_t audio_level { 0 };
+	Painter * _painter { };
+	
+	Text text_power {
+		{ 6 * 8, 28 * 8, 16 * 8, 16 },
+		"-"
 	};
 	
-	Text text_title {
-		{ 76, 64, 88, 16 },
-		"Audio TX"
+	FrequencyField field_frequency {
+		{ 6 * 8, 30 * 8 },
 	};
 	
 	Button button_transmit {
-		{ 72, 130, 96, 32 },
+		{ 1 * 8, 33 * 8, 12 * 8, 32 },
 		"Transmit"
 	};
 	
 	Button button_exit {
-		{ 72, 270, 96, 32 },
+		{ 16 * 8, 33 * 8, 12 * 8, 32 },
 		"Exit"
+	};
+	
+	MessageHandlerRegistration message_handler_lcd_sync {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			this->draw_vumeter();
+		}
+	};
+	
+	MessageHandlerRegistration message_handler_audio_level {
+		Message::ID::AudioLevel,
+		[this](const Message* const p) {
+			const auto message = static_cast<const AudioLevelMessage*>(p);
+			this->audio_level = message->value;
+		}
 	};
 };
 
 } /* namespace ui */
+
+#endif/*__UI_AUDIOTX_H__*/
