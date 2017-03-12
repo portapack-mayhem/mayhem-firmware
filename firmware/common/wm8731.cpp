@@ -29,7 +29,7 @@ void WM8731::init() {
 	reset();
 
 	write(PowerDownControl {
-		.lineinpd = 1,
+		.lineinpd = 1,	
 		.micpd = 0,
 		.adcpd = 0,
 		.dacpd = 0,
@@ -83,7 +83,7 @@ void WM8731::init() {
 		.reserved0 = 0,
 	});
 
-	set_line_in_volume(0.0_dB);
+	//set_line_in_volume(0.0_dB);
 	headphone_mute();
 }
 

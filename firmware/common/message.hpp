@@ -91,6 +91,8 @@ public:
 		
 		FIFOSignal = 52,
 		FIFOData = 53,
+		
+		AudioLevel = 54,
 		MAX
 	};
 
@@ -626,6 +628,16 @@ public:
 	
 	int64_t freq = 0;
 	uint32_t range = 0;
+};
+
+class AudioLevelMessage : public Message {
+public:
+	constexpr AudioLevelMessage(
+	) : Message { ID::AudioLevel }
+	{
+	}
+	
+	uint32_t value = 0;
 };
 
 class AudioTXConfigMessage : public Message {
