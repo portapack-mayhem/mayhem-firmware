@@ -18,12 +18,12 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
 * POCSAG 512/1200/2400 transmitter
 * POCSAG 512/1200/2400 receiver/decoder
-* Fully configurable jammer
-* OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
-* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, ...)
-* Nuoptix DTMF sync transmit (quite specific but can be useful in some theme parks :) )
 * Morse transmitter (FM tone and CW)
+* OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN, RadioText and Time groups transmitter
+* Fully configurable jammer
+* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, ...)
+* Nuoptix DTMF sync transmitter (quite specific but can be useful in some theme parks :) )
 * AFSK transmitter (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) message generator
@@ -40,9 +40,11 @@ Morse TX    | 95% | CW mode needs testing
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
+Mic. TX     | 50% | Need to find guard tones for various brands of wireless mics
 Sigfox RX   | 40% | Left aside, needs updates and testing
 ADS-B TX    | 40% | UI and frame gen stuff done
 Wave visualizer | 30% | High priority
+PMR446 TX   | 30% | Channel list, PTT, CTCSS
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
@@ -50,11 +52,9 @@ ADS-B RX    | 0%  | Could be fun
 Search      | 0%  | Will be a special Close-Call mode
 Scanner     | 0%  | Easy
 SSB TX      | 0%  | Requested
-PMR446 TX   | 0%  | Channel list, mic. in, PTT, CTCSS
 OOK RX      | 0%  | Mainly for 433MHz remotes
 AFSK RX     | 0%  | Shouldn't be too tough
 Analog TV TX| 0%  | Could be fun
-Mic. TX     | 0%  | Need to find guard tones for various brands of wireless mics
 Painter     | 0%  | Spectrum painter, low priority
 
 # Screenshots
