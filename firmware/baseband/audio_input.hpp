@@ -20,38 +20,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __AUDIO_DMA_H__
-#define __AUDIO_DMA_H__
+#ifndef __AUDIO_INPUT_H__
+#define __AUDIO_INPUT_H__
+
+#include "dsp_types.hpp"
+
+#include "dsp_iir.hpp"
+#include "dsp_squelch.hpp"
+
+#include "stream_input.hpp"
 
 #include <cstdint>
+#include <memory>
 
-#include "buffer.hpp"
+class AudioInput {
+public:
+	void configure(
+		const iir_biquad_config_t& hpf_config,
+		const float squelch_threshold = 0.0f
+	);
 
-namespace audio {
+	void read_audio_buffer(buffer_s16_t& audio);
 
-struct sample_t {
-	union {
-		struct {
-			int16_t left;
-			int16_t right;
-		};
-		uint32_t raw;
-	};
+	/*void set_stream(std::unique_ptr<StreamInput> new_stream) {
+		stream = std::move(new_stream);
+	}*/
+
+private:
+	static constexpr float k = 32768.0f;
+	static constexpr float ki = 1.0f / k;
+
+	IIRBiquadFilter hpf { };
+	//FMSquelch squelch { };
+
+	//std::unique_ptr<StreamInput> stream { };
+
+	//AudioStatsCollector audio_stats { };
 };
 
-using buffer_t = buffer_t<sample_t>;
-
-namespace dma {
-
-void init();
-void configure();
-void enable();
-void disable();
-
-audio::buffer_t tx_empty_buffer();
-audio::buffer_t rx_empty_buffer();
-
-} /* namespace dma */
-} /* namespace audio */
-
-#endif/*__AUDIO_DMA_H__*/
+#endif/*__AUDIO_INPUT_H__*/
