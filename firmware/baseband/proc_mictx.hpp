@@ -46,7 +46,7 @@ private:
 	
 	AudioInput audio_input { };
 	
-	uint32_t divider { };
+	uint32_t divider { }, gain_x10 { };
 	uint32_t as { 0 };
 	uint32_t fm_delta { 0 };
 	bool ctcss_enabled { false };

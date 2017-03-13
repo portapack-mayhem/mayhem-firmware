@@ -33,6 +33,7 @@
 #include <cstring>
 #include <vector>
 
+using namespace ctcss;
 using namespace portapack;
 
 namespace ui {
@@ -137,6 +138,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 	baseband::set_audiotx_data(
 		divider,
 		number_bw.value() * 1000,
+		1,
 		ctcss_enabled,
 		(uint32_t)((ctcss_tones[ctcss_index].frequency / 1536000.0) * 0xFFFFFFFFULL)
 	);
@@ -193,13 +195,9 @@ SoundBoardView::SoundBoardView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	using option_t = std::pair<std::string, int32_t>;
-	using options_t = std::vector<option_t>;
-	options_t ctcss_options;
 	std::vector<std::filesystem::path> file_list;
-	std::string title, f_string;
+	std::string title;
 	uint8_t c;
-	uint32_t f;
 	
 	reader = std::make_unique<WAVFileReader>();
 	
@@ -248,17 +246,7 @@ SoundBoardView::SoundBoardView(
 		&button_exit
 	});
 
-	// Populate CTCSS list
-	ctcss_options.emplace_back(std::make_pair("None", 0));
-	for (c = 0; c < CTCSS_TONES_NB; c++) {
-		f = (uint32_t)(ctcss_tones[c].frequency * 10);
-		f_string = ctcss_tones[c].PL_code;
-		f_string += " " + to_string_dec_uint(f / 10) + "." + to_string_dec_uint(f % 10);
-		ctcss_options.emplace_back(f_string, c);
-	}
-	
-	options_ctcss.set_options(ctcss_options);
-	
+	ctcss_populate(options_ctcss);
 	options_ctcss.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {

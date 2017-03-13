@@ -245,6 +245,20 @@ public:
 
 private:
 	rf::Frequency _frequency;
+	
+	const uint8_t segment_font[11] = {
+		0b00111111,	// 0: ABCDEF
+		0b00000110,	// 1: AB
+		0b01011011,	// 2: ABDEG
+		0b01001111,	// 3: ABCDG
+		0b01100110,	// 4: BCFG
+		0b01101101,	// 5: ACDFG
+		0b01111101,	// 6: ACDEFG
+		0b00000111,	// 7: ABC
+		0b01111111,	// 8: ABCDEFG
+		0b01101111,	// 9: ABCDFG
+		0b01000000	// -: G
+	};
 };
 
 class ProgressBar : public Widget {
@@ -511,8 +525,8 @@ public:
 	SymField(const SymField&) = delete;
 	SymField(SymField&&) = delete;
 
-	uint32_t value(const uint32_t index);
-	void set_value(const uint32_t index, const uint32_t new_value);
+	uint32_t get_sym(const uint32_t index);
+	void set_sym(const uint32_t index, const uint32_t new_value);
 	void set_length(const uint32_t new_length);
 	void set_symbol_list(const uint32_t index, const std::string symbol_list);
 	uint32_t value_dec_u32();
@@ -556,6 +570,24 @@ private:
 	uint32_t offset_;
 	bool digital_ { false };
 	Color color_;
+};
+
+class VuMeter : public Widget {
+public:
+
+	VuMeter(Rect parent_rect, uint32_t LEDs);
+
+	void set_value(const uint8_t new_value);
+	void set_mark(const uint8_t new_mark);
+
+	void paint(Painter& painter) override;
+
+private:
+	uint32_t LEDs_, LED_height { 0 };
+	uint32_t value_ { 0 }, prev_value { 0 };
+	uint32_t split { 0 };
+	uint16_t max { 0 }, prev_max { 0 }, hold_timer { 0 }, mark { 0 }, prev_mark { 0 };
+	int height;
 };
 
 } /* namespace ui */

@@ -132,10 +132,10 @@ RDSView::RDSView(NavigationView& nav) {
 	check_TA.set_value(true);
 	check_TP.set_value(true);
 	
-	sym_pi_code.set_value(0, 0xF);
-	sym_pi_code.set_value(1, 0x3);
-	sym_pi_code.set_value(2, 0xE);
-	sym_pi_code.set_value(3, 0x0);
+	sym_pi_code.set_sym(0, 0xF);
+	sym_pi_code.set_sym(1, 0x3);
+	sym_pi_code.set_sym(2, 0xE);
+	sym_pi_code.set_sym(3, 0x0);
 	sym_pi_code.on_change = [this]() {
 		rds_flags.PI_code = sym_pi_code.value_hex_u64();
 	};

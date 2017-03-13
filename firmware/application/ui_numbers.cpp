@@ -66,7 +66,7 @@ void NumbersStationView::prepare_audio() {
 		}
 		
 		if (segment == MESSAGE) {
-			code = symfield_code.value(code_index);
+			code = symfield_code.get_sym(code_index);
 			
 			if (code_index == 25)
 				transmitter_model.disable();
@@ -131,6 +131,7 @@ void NumbersStationView::start_tx() {
 	baseband::set_audiotx_data(
 		(1536000 / 44100) - 1,
 		number_bw.value(),
+		1,
 		false,
 		0
 	);
@@ -213,17 +214,17 @@ NumbersStationView::NumbersStationView(
 	};
 	
 	// DEBUG
-	symfield_code.set_value(0, 10);
-	symfield_code.set_value(1, 3);
-	symfield_code.set_value(2, 4);
-	symfield_code.set_value(3, 11);
-	symfield_code.set_value(4, 6);
-	symfield_code.set_value(5, 1);
-	symfield_code.set_value(6, 9);
-	symfield_code.set_value(7, 7);
-	symfield_code.set_value(8, 8);
-	symfield_code.set_value(9, 0);
-	symfield_code.set_value(10, 12);	// End
+	symfield_code.set_sym(0, 10);
+	symfield_code.set_sym(1, 3);
+	symfield_code.set_sym(2, 4);
+	symfield_code.set_sym(3, 11);
+	symfield_code.set_sym(4, 6);
+	symfield_code.set_sym(5, 1);
+	symfield_code.set_sym(6, 9);
+	symfield_code.set_sym(7, 7);
+	symfield_code.set_sym(8, 8);
+	symfield_code.set_sym(9, 0);
+	symfield_code.set_sym(10, 12);	// End
 
 	for (c = 0; c < 25; c++)
 		symfield_code.set_symbol_list(c, "0123456789pPE");

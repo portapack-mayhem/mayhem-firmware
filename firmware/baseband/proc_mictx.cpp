@@ -37,13 +37,14 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		sample = audio_buffer.p[i >> 6] >> 8;
+		sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
+		sample = (sample * (int32_t)gain_x10) / 10;
 		
-		power += (sample < 0) ? -sample : sample;
+		power += (sample < 0) ? -sample : sample;	// Power mean for UI vu-meter
 		
 		if (!as) {
 			as = divider;
-			level_message.value = power / (divider / 4);
+			level_message.value = power / (divider / 4);			// Why ?
 			shared_memory.application_queue.push(level_message);
 			power = 0;
 		} else {
@@ -59,13 +60,18 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 		}
 		
 		// FM
-		delta = sample_mixed * fm_delta;
-		
-		phase += delta;
-		sphase = phase + (64 << 24);
+		if (fm_delta) {
+			delta = sample_mixed * fm_delta;
+			
+			phase += delta;
+			sphase = phase + (64 << 24);
 
-		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
-		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+			re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+			im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+		} else {
+			re = 0;
+			im = 0;
+		}
 		
 		buffer.p[i] = {re, im};
 	}
@@ -77,6 +83,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
 			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
+			gain_x10 = message.gain_x10;
 			divider = message.divider;
 			ctcss_enabled = message.ctcss_enabled;
 			ctcss_phase_inc = message.ctcss_phase_inc;

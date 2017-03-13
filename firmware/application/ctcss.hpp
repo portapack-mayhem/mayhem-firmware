@@ -24,9 +24,14 @@
 #define __CTCSS_H_
 
 #include "ui.hpp"
+#include "ui_widget.hpp"
+
+using namespace ui;
 
 #define CTCSS_TONES_NB 50
 
+namespace ctcss {
+	
 struct ctcss_tone {
 	char PL_code[3];
 	uint16_t num_code;
@@ -34,5 +39,9 @@ struct ctcss_tone {
 };
 
 extern const ctcss_tone ctcss_tones[CTCSS_TONES_NB];
+
+void ctcss_populate(OptionsField& field);
+
+}
 
 #endif/*__CTCSS_H_*/

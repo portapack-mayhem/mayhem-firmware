@@ -153,7 +153,7 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 	field_lon_seconds.set_value(0);
 	
 	for (c = 0; c < 4; c++)
-		field_squawk.set_value(c, 0);
+		field_squawk.set_sym(c, 0);
 	
 	generate_frame();
 	

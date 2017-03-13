@@ -645,11 +645,13 @@ public:
 	constexpr AudioTXConfigMessage(
 		const uint32_t divider,
 		const uint32_t fm_delta,
+		const uint32_t gain_x10,
 		const uint32_t ctcss_phase_inc,
 		const bool ctcss_enabled
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
 		fm_delta(fm_delta),
+		gain_x10(gain_x10),
 		ctcss_phase_inc(ctcss_phase_inc),
 		ctcss_enabled(ctcss_enabled)
 	{
@@ -657,6 +659,7 @@ public:
 
 	const uint32_t divider;
 	const uint32_t fm_delta;
+	const uint32_t gain_x10;
 	const uint32_t ctcss_phase_inc;
 	const bool ctcss_enabled;
 };

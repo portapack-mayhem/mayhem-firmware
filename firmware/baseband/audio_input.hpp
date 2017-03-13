@@ -35,27 +35,13 @@
 
 class AudioInput {
 public:
-	void configure(
-		const iir_biquad_config_t& hpf_config,
-		const float squelch_threshold = 0.0f
-	);
-
 	void read_audio_buffer(buffer_s16_t& audio);
 
-	/*void set_stream(std::unique_ptr<StreamInput> new_stream) {
-		stream = std::move(new_stream);
-	}*/
-
 private:
-	static constexpr float k = 32768.0f;
+	/*static constexpr float k = 32768.0f;
 	static constexpr float ki = 1.0f / k;
 
-	IIRBiquadFilter hpf { };
-	//FMSquelch squelch { };
-
-	//std::unique_ptr<StreamInput> stream { };
-
-	//AudioStatsCollector audio_stats { };
+	IIRBiquadFilter hpf { };*/
 };
 
 #endif/*__AUDIO_INPUT_H__*/

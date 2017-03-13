@@ -21,7 +21,10 @@
  */
 
 #include "ctcss.hpp"
+#include "string_format.hpp"
 
+namespace ctcss {
+	
 const ctcss_tone ctcss_tones[CTCSS_TONES_NB] = {
 	{ "XZ", 0, 67.000 },
 	{ "WZ", 1, 69.400 },
@@ -74,3 +77,23 @@ const ctcss_tone ctcss_tones[CTCSS_TONES_NB] = {
 	{ "--", 38, 250.300 },
 	{ "0Z", 50, 254.100 }
 };
+
+void ctcss_populate(OptionsField& field) {
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	options_t ctcss_options;
+	std::string f_string;
+	uint32_t c, f;
+	
+	ctcss_options.emplace_back(std::make_pair("None", 0));
+	for (c = 0; c < CTCSS_TONES_NB; c++) {
+		f = (uint32_t)(ctcss_tones[c].frequency * 10);
+		f_string = ctcss_tones[c].PL_code;
+		f_string += " " + to_string_dec_uint(f / 10) + "." + to_string_dec_uint(f % 10);
+		ctcss_options.emplace_back(f_string, c);
+	}
+	
+	field.set_options(ctcss_options);
+}
+
+}

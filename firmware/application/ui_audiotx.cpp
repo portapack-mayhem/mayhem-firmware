@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -22,53 +23,102 @@
 #include "ui_audiotx.hpp"
 
 #include "baseband_api.hpp"
-#include "ui_alphanum.hpp"
+#include "hackrf_gpio.hpp"
 #include "audio.hpp"
 #include "portapack.hpp"
 #include "pins.hpp"
 #include "string_format.hpp"
+#include "irq_controls.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
 
+using namespace ctcss;
 using namespace portapack;
+using namespace hackrf::one;
 
 namespace ui {
 
 void AudioTXView::focus() {
-	button_transmit.focus();
+	field_frequency.focus();
 }
 
-void AudioTXView::paint(Painter& painter) {
-	_painter = &painter;
+void AudioTXView::update_vumeter() {
+	vumeter.set_value(audio_level);
 }
 
-void AudioTXView::draw_vumeter() {
-	uint32_t bar;
-	Color color;
-	bool lit = true;
-	uint32_t bar_level = audio_level / 15;
+void AudioTXView::set_tx(bool enable) {
+	uint32_t ctcss_index;
+	bool ctcss_enabled;
 	
-	if (bar_level > 16) bar_level = 16;
-	
-	for (bar = 0; bar < 16; bar++) {
-		if (bar >= bar_level)
-			lit = false;
+	if (enable) {
+		ctcss_index = options_ctcss.selected_index();
 		
-		if (bar < 11)
-			color = lit ? Color::green() : Color::dark_green();
-		else if ((bar >= 11) && (bar < 13))
-			color = lit ? Color::yellow() : Color::dark_yellow();
-		else if ((bar >= 13) && (bar < 15))
-			color = lit ? Color::orange() : Color::dark_orange();
-		else
-			color = lit ? Color::red() : Color::dark_red();
+		if (ctcss_index) {
+			ctcss_enabled = true;
+			ctcss_index--;
+		} else
+			ctcss_enabled = false;
 		
-		_painter->fill_rectangle({ 100, (Coord)(210 - (bar * 12)), 40, 10 }, color);
+		baseband::set_audiotx_data(
+			1536000U / 20,		// 20Hz level update
+			transmitter_model.bandwidth(),
+			mic_gain_x10,
+			ctcss_enabled,
+			(uint32_t)((ctcss_tones[ctcss_index].frequency / 1536000.0) * 0xFFFFFFFFULL)
+		);
+		gpio_tx.write(1);
+		led_tx.on();
+		transmitting = true;
+	} else {
+		baseband::set_audiotx_data(
+			1536000U / 20,		// 20Hz level update
+			0,					// BW 0 = TX off
+			mic_gain_x10,
+			false,				// Ignore CTCSS
+			0
+		);
+		gpio_tx.write(0);
+		led_tx.off();
+		transmitting = false;
 	}
-	
-	//text_power.set(to_string_hex(LPC_I2S0->STATE, 8) + " " + to_string_dec_uint(audio_level) + "  ");
-	text_power.set(to_string_dec_uint(audio_level) + "  ");
+}
+
+void AudioTXView::do_timing() {
+	if (va_enabled) {
+		if (!transmitting) {
+			// Attack
+			if (audio_level >= va_level) {
+				if ((attack_timer >> 8) >= attack_ms) {
+					decay_timer = 0;
+					attack_timer = 0;
+					set_tx(true);
+				} else {
+					attack_timer += ((256 * 1000) / 60);	// 1 frame @ 60fps in ms .8 fixed point
+				}
+			} else {
+				attack_timer = 0;
+			}
+		} else {
+			// Decay
+			if (audio_level < va_level) {
+				if ((decay_timer >> 8) >= decay_ms) {
+					decay_timer = 0;
+					attack_timer = 0;
+					set_tx(false);
+				} else {
+					decay_timer += ((256 * 1000) / 60);		// 1 frame @ 60fps in ms .8 fixed point
+				}
+			} else {
+				decay_timer = 0;
+			}
+		}
+	} else {
+		// PTT disable :(
+		const auto switches_state = get_switches_state();
+		if (!switches_state[1])		// Left button
+			set_tx(false);
+	}
 }
 
 void AudioTXView::on_tuning_frequency_changed(rf::Frequency f) {
@@ -82,15 +132,30 @@ AudioTXView::AudioTXView(
 	pins[P6_2].mode(3);		// I2S0_RX_SDA !
 	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
-	
-	transmitter_model.set_tuning_frequency(92200000);
 		
 	add_children({
-		&text_power,
+		&labels,
+		&vumeter,
+		&options_gain,
+		&check_va,
+		&field_va_level,
+		&field_va_attack,
+		&field_va_decay,
+		&field_bw,
 		&field_frequency,
-		&button_transmit,
+		&options_ctcss,
+		//&check_rogerbeep,
+		&text_ptt,
 		&button_exit
 	});
+	
+	ctcss_populate(options_ctcss);
+	options_ctcss.set_selected_index(0);
+	
+	options_gain.on_change = [this](size_t, int32_t v) {
+		mic_gain_x10 = v;
+	};
+	options_gain.set_selected_index(1);		// x1.0
 	
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -106,25 +171,45 @@ AudioTXView::AudioTXView(
 		};
 	};
 	
-	button_transmit.on_select = [](Button&){
-		transmitter_model.set_sampling_rate(1536000U);
-		transmitter_model.set_rf_amp(true);
-		transmitter_model.set_lna(40);
-		transmitter_model.set_vga(40);
-		transmitter_model.set_baseband_bandwidth(1750000);
-		transmitter_model.enable();
-		
-		baseband::set_audiotx_data(
-			76800,		// 20Hz level update
-			10000,		// 10kHz bw
-			false,
-			0
-		);
+	field_bw.on_change = [this](uint32_t v) {
+		transmitter_model.set_bandwidth(v * 1000);
 	};
+	field_bw.set_value(10);
+	
+	check_va.on_select = [this](Checkbox&, bool v) {
+		va_enabled = v;
+		text_ptt.hidden(v);
+		set_dirty();
+	};
+	check_va.set_value(false);
+	
+	field_va_level.on_change = [this](int32_t v) {
+		va_level = v;
+		vumeter.set_mark(v);
+	};
+	field_va_level.set_value(40);
+	
+	field_va_attack.on_change = [this](int32_t v) {
+		attack_ms = v;
+	};
+	field_va_attack.set_value(500);
+	
+	field_va_decay.on_change = [this](int32_t v) {
+		decay_ms = v;
+	};
+	field_va_decay.set_value(2000);
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();
 	};
+	
+	// Run baseband as soon as the app starts to get audio levels without transmitting (rf amp off)
+	transmitter_model.set_sampling_rate(1536000U);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	set_tx(false);
 	
 	audio::set_rate(audio::Rate::Hz_24000);
 	audio::input::start();

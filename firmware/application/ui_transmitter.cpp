@@ -122,7 +122,7 @@ TransmitterView::TransmitterView(
 		});
 		
 		field_bw.on_change = [this](int32_t bandwidth) {
-			on_bandwidth_changed(bandwidth);
+			on_bandwidth_changed(bandwidth * 1000);
 		};
 		field_bw.set_value(bandwidth);
 	}

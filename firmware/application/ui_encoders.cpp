@@ -54,7 +54,7 @@ void EncodersView::generate_frame() {
 		if (c == 'S')
 			debug_text += encoder_def->sync;
 		else
-			debug_text += encoder_def->bit_format[symfield_word.value(i++)];
+			debug_text += encoder_def->bit_format[symfield_word.get_sym(i++)];
 	}
 	
 	draw_waveform();

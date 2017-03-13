@@ -189,11 +189,11 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	if (new_value >= item_count)
 		new_value = item_count - 1;
 	
-	if ((new_value > offset_) && ((new_value - offset_) >= displayed_max_)) {
+	if (((uint32_t)new_value > offset_) && ((new_value - offset_) >= displayed_max_)) {
 		// Shift MenuView up
 		offset_ = new_value - displayed_max_ + 1;
 		update_items();
-	} else if (new_value < offset_) {
+	} else if ((uint32_t)new_value < offset_) {
 		// Shift MenuView down
 		offset_ = new_value;
 		update_items();

@@ -24,11 +24,12 @@
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: RDS Radiotext is not recognized in Redsea (and car radio)
-//BUG: Check AFSK transmit end, skips last bits ?
 //BUG: RDS doesn't stop baseband when stopping tx ?
+//BUG: Check AFSK transmit end, skips last bits ?
 
 //TEST: Imperial in whipcalc
 
+//TODO: Roger beep in mic tx
 //TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
 /*

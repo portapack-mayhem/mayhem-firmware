@@ -153,7 +153,7 @@ POCSAGTXView::POCSAGTXView(
 	// TODO: set_value for whole symfield
 	reload_address = portapack::persistent_memory::pocsag_address();
 	for (c = 0; c < 7; c++) {
-		field_address.set_value(6 - c, reload_address % 10);
+		field_address.set_sym(6 - c, reload_address % 10);
 		reload_address /= 10;
 	}
 	

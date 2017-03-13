@@ -376,20 +376,6 @@ void Labels::paint(Painter& painter) {
 
 /* BigFrequency **********************************************************/
 
-const uint8_t big_segment_font[11] = {
-	0b00111111,	// 0: ABCDEF
-	0b00000110,	// 1: AB
-	0b01011011,	// 2: ABDEG
-	0b01001111,	// 3: ABCDG
-	0b01100110,	// 4: BCFG
-	0b01101101,	// 5: ACDFG
-	0b01111101,	// 6: ACDEFG
-	0b00000111,	// 7: ABC
-	0b01111111,	// 8: ABCDEFG
-	0b01101111,	// 9: ABCDFG
-	0b01000000	// -: G
-};
-
 BigFrequency::BigFrequency(
 	Rect parent_rect,
 	rf::Frequency frequency
@@ -404,7 +390,7 @@ void BigFrequency::set(const rf::Frequency frequency) {
 }
 
 void BigFrequency::paint(Painter& painter) {
-	uint8_t i, digit_def;
+	uint32_t i, digit_def;
 	char digits[7];
 	char digit;
 	Coord digit_x, digit_y;
@@ -443,7 +429,7 @@ void BigFrequency::paint(Painter& painter) {
 		digit = digits[i];
 		digit_y = rect.location().y();
 		if (digit < 16) {
-			digit_def = big_segment_font[(uint8_t)digit];
+			digit_def = segment_font[(uint8_t)digit];
 			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, 	digit_y}, 		{20, 4}}, 	segment_color);
 			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, 	digit_y + 4}, 	{4, 20}}, 	segment_color);
 			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, 	digit_y + 28}, 	{4, 20}}, 	segment_color);
@@ -1236,13 +1222,13 @@ uint64_t SymField::value_hex_u64() {
 		return 0;
 }
 	
-uint32_t SymField::value(const uint32_t index) {
+uint32_t SymField::get_sym(const uint32_t index) {
 	if (index >= length_) return 0;
 
 	return values_[index];
 }
 
-void SymField::set_value(const uint32_t index, const uint32_t new_value) {
+void SymField::set_sym(const uint32_t index, const uint32_t new_value) {
 	if (index >= length_) return;
 	
 	uint32_t clipped_value = clip_value(index, new_value);
@@ -1263,7 +1249,7 @@ void SymField::set_length(const uint32_t new_length) {
 		
 		// Clip eventual garbage from previous shorter word
 		for (size_t n = 0; n < length_; n++)
-			set_value(n, values_[n]);
+			set_sym(n, values_[n]);
 		
 		erase_prev_ = true;
 		set_dirty();
@@ -1276,7 +1262,7 @@ void SymField::set_symbol_list(const uint32_t index, const std::string symbol_li
 	symbol_list_[index] = symbol_list;
 
 	// Re-clip symbol's value
-	set_value(index, values_[index]);
+	set_sym(index, values_[index]);
 }
 
 void SymField::paint(Painter& painter) {
@@ -1338,7 +1324,7 @@ bool SymField::on_encoder(const EncoderEvent delta) {
 	int32_t new_value = (int)values_[selected_] + delta;
 	
 	if (new_value >= 0)	
-		set_value(selected_, values_[selected_] + delta);
+		set_sym(selected_, values_[selected_] + delta);
 	
 	return true;
 }
@@ -1419,10 +1405,10 @@ void Waveform::paint(Painter& painter) {
 			
 			if (n) {
 				if (y != prev_y)
-					painter.draw_vline( {x, y_offset}, h, color_);
+					painter.draw_vline( {(Coord)x, y_offset}, h, color_);
 			}
 			
-			painter.draw_hline( {x, y_offset + y}, ceil(x_inc), color_);
+			painter.draw_hline( {(Coord)x, y_offset + y}, ceil(x_inc), color_);
 			
 			prev_y = y;
 			x += x_inc;
@@ -1441,6 +1427,91 @@ void Waveform::paint(Painter& painter) {
 			x += x_inc;
 		}
 	}
+}
+
+
+/* VuMeter **************************************************************/
+
+VuMeter::VuMeter(
+	Rect parent_rect,
+	uint32_t LEDs
+) : Widget { parent_rect },
+	LEDs_ { LEDs },
+	height { parent_rect.size().height() }
+{
+	//set_focusable(false);
+	LED_height = height / LEDs;
+	split = 256 / LEDs;
+}
+
+void VuMeter::set_value(const uint8_t new_value) {
+	value_ = new_value;
+	set_dirty();
+}
+
+void VuMeter::set_mark(const uint8_t new_mark) {
+	if (new_mark != mark) {
+		mark = new_mark;
+		set_dirty();
+	}
+}
+
+void VuMeter::paint(Painter& painter) {
+	Point pos = screen_rect().location();
+		Dim width = screen_rect().size().width() - 4;
+	
+	if (value_ != prev_value) {
+		uint32_t bar;
+		Color color;
+		bool lit = false;
+		uint32_t bar_level = LEDs_ - ((value_ + 1) / split);
+		// Draw LEDs
+		for (bar = 0; bar < LEDs_; bar++) {
+			if (bar >= bar_level)
+				lit = true;
+			
+			if (bar == 0)
+				color = lit ? Color::red() : Color::dark_red();
+			else if (bar == 1)
+				color = lit ? Color::orange() : Color::dark_orange();
+			else if ((bar == 2) || (bar == 3))
+				color = lit ? Color::yellow() : Color::dark_yellow();
+			else
+				color = lit ? Color::green() : Color::dark_green();
+			
+			painter.fill_rectangle({ pos.x(), pos.y() + (Coord)(bar * LED_height), width, (Coord)LED_height - 2 }, color);
+		}
+		prev_value = value_;
+	}
+	
+	// Update max level
+	if (value_ > max) {
+		max = value_;
+		hold_timer = 30;	// 0.5s @ 60Hz
+	} else {
+		if (hold_timer) {
+			hold_timer--;
+		} else {
+			if (max) max--;	// Let it drop
+		}
+	}
+	
+	// Draw max level
+	if (max != prev_max) {
+		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * prev_max) / 256 }, 8, Color::black());
+		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * max) / 256 }, 8, Color::white());
+		if (prev_max == mark)
+			prev_mark = 0;	// Force mark refresh
+	}
+	
+	// Draw mark
+	if ((mark != prev_mark) && (mark)) {
+		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * prev_mark) / 256 }, 8, Color::black());
+		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * mark) / 256 }, 8, Color::grey());
+	}
+	
+	prev_max = max;
+	prev_mark = mark;
 }
 
 } /* namespace ui */
