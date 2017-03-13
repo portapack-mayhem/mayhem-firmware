@@ -8,12 +8,13 @@ It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/
 
 **Documentation: [READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)**
 
-As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. We never did.
+As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. No. Bad. Put it down.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
 # Fork features
 
+* Microphone transmit with CTCSS
 * Frequency manager (save & load from SD card)
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
 * POCSAG 512/1200/2400 transmitter
@@ -36,18 +37,18 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 Feature | Progress | Notes
 ------- | ------ | -----
 POCSAG RX   | 95% | Needs support for numeric messages
-Morse TX    | 95% | CW mode needs testing
+Morse TX    | 95% | Symbols need testing
+Mic. TX     | 90% | Need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
-Mic. TX     | 50% | Need to find guard tones for various brands of wireless mics
 Sigfox RX   | 40% | Left aside, needs updates and testing
 ADS-B TX    | 40% | UI and frame gen stuff done
 Wave visualizer | 30% | High priority
-PMR446 TX   | 30% | Channel list, PTT, CTCSS
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
+SI4032 TRX  | 0%  | 
 ADS-B RX    | 0%  | Could be fun
 Search      | 0%  | Will be a special Close-Call mode
 Scanner     | 0%  | Easy
