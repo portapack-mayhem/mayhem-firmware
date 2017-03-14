@@ -38,7 +38,7 @@ Feature | Progress | Notes
 ------- | ------ | -----
 POCSAG RX   | 95% | Needs support for numeric messages
 Morse TX    | 95% | Symbols need testing
-Mic. TX     | 90% | Need to find guard tones for various brands of wireless mics
+Mic. TX     | 95% | Need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 EPAR TX     | 60% | Older Xy, low priority
@@ -48,15 +48,14 @@ Wave visualizer | 30% | High priority
 Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
-SI4032 TRX  | 0%  | 
+SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
+SSTV TRX    | 0%  |
 ADS-B RX    | 0%  | Could be fun
-Search      | 0%  | Will be a special Close-Call mode
 Scanner     | 0%  | Easy
 SSB TX      | 0%  | Requested
 OOK RX      | 0%  | Mainly for 433MHz remotes
 AFSK RX     | 0%  | Shouldn't be too tough
-Analog TV TX| 0%  | Could be fun
-Painter     | 0%  | Spectrum painter, low priority
+Analog TV TX| 0%  | Enough CPU ?
 
 # Screenshots
 
@@ -66,7 +65,7 @@ Painter     | 0%  | Spectrum painter, low priority
 
 * Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
 * Rainer Matla and DC1RDB for the donations :)
-* Keld Norman for ideas and suggestions
+* Keld Norman and Giorgio Campiotti for ideas and suggestions
 
 # License
 
