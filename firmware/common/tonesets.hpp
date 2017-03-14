@@ -23,12 +23,14 @@
 #ifndef __TONESETS_H__
 #define __TONESETS_H__
 
-#include "portapack.hpp"
+#include <memory>
 
 #define TONES_SAMPLERATE 1536000
 #define TONES_DELTA_COEF ((1ULL << 32) / TONES_SAMPLERATE)
 
 #define TONES_F2D(f) (uint32_t)(f * TONES_DELTA_COEF)
+
+#define BEEP_TONES_NB 6
 
 #define DTMF_C0	TONES_F2D(1209)
 #define DTMF_C1	TONES_F2D(1336)
@@ -114,6 +116,15 @@ const uint32_t zvei_deltas[16] = {
 	TONES_F2D(885),
 	TONES_F2D(2600),
 	TONES_F2D(680)
+};
+
+const uint32_t beep_deltas[BEEP_TONES_NB] = {
+	TONES_F2D(1475),
+	TONES_F2D(740),
+	TONES_F2D(587),
+	TONES_F2D(1109),
+	TONES_F2D(831),
+	TONES_F2D(740)
 };
 
 #endif/*__TONESETS_H__*/

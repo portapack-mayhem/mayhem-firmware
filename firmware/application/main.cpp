@@ -29,7 +29,7 @@
 
 //TEST: Imperial in whipcalc
 
-//TODO: Roger beep in mic tx
+//TODO: Optimize (and group ?) CTCSS tone gen code
 //TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
 /*

@@ -21,6 +21,7 @@
  */
 
 #include "proc_mictx.hpp"
+#include "tonesets.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
@@ -37,18 +38,36 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 
 	for (size_t i = 0; i<buffer.count; i++) {
 		
-		sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
-		sample = (sample * (int32_t)gain_x10) / 10;
-		
-		power += (sample < 0) ? -sample : sample;	// Power mean for UI vu-meter
-		
-		if (!as) {
-			as = divider;
-			level_message.value = power / (divider / 4);			// Why ?
-			shared_memory.application_queue.push(level_message);
-			power = 0;
+		if (!play_beep) {
+			sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
+			sample = (sample * (int32_t)gain_x10) / 10;
+			
+			power += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
+			
+			if (!as) {
+				as = divider;
+				level_message.value = power / (divider / 4);				// Why ?
+				shared_memory.application_queue.push(level_message);
+				power = 0;
+			} else {
+				as--;
+			}
 		} else {
-			as--;
+			if (beep_timer) {
+				beep_timer--;
+			} else {
+				beep_timer = 76800;			// 50ms @ 1536000Hz
+				if (beep_index == BEEP_TONES_NB) {
+					configured = false;
+					fm_delta = 0;			// Zero-out the IQ output for the rest of the buffer
+					shared_memory.application_queue.push(txdone_message);
+				} else {
+					beep_phase_inc = beep_deltas[beep_index];
+					beep_index++;
+				}
+			}
+			sample = sine_table_i8[(beep_phase & 0xFF000000U) >> 24];
+			beep_phase += beep_phase_inc;
 		}
 		
 		if (ctcss_enabled) {
@@ -88,14 +107,18 @@ void MicTXProcessor::on_message(const Message* const msg) {
 			divider = config_message.divider;
 			ctcss_enabled = config_message.ctcss_enabled;
 			ctcss_phase_inc = config_message.ctcss_phase_inc;
+			
+			txdone_message.done = true;
 
+			play_beep = false;
 			configured = true;
 			break;
 		
 		case Message::ID::RequestSignal:
 			if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
-				// TODO
-				txdone_message.done = true;
+				beep_index = 0;
+				beep_timer = 0;
+				play_beep = true;
 			}
 			break;
 

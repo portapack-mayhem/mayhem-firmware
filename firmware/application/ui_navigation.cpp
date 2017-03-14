@@ -322,9 +322,9 @@ TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 	add_items<4>({ {
 		{ "Soundboard", 			ui::Color::green(), &bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
-		{ "Numbers station",		ui::Color::orange(),&bitmap_icon_numbers,		[&nav](){ nav.push<NumbersStationView>(); } },
+		{ "Numbers station",		ui::Color::yellow(),&bitmap_icon_numbers,		[&nav](){ nav.push<NumbersStationView>(); } },
 		{ "Microphone", 			ui::Color::green(),	&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
-		{ "Whistle", 				ui::Color::yellow(),&bitmap_icon_whistle,		[&nav](){ nav.push<WhistleView>(); } },
+		{ "Whistle", 				ui::Color::orange(),&bitmap_icon_whistle,		[&nav](){ nav.push<WhistleView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -333,11 +333,11 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
 	add_items<5>({ {
-		{ "Frequency manager", 		ui::Color::green(), nullptr,	[&nav](){ nav.push<FreqManView>(); } },
-		{ "CW generator", 			ui::Color::green(), nullptr,	[&nav](){ nav.push<CWTXView>(); } },
-		{ "Whip antenna length",	ui::Color::yellow(),nullptr,	[&nav](){ nav.push<WhipCalcView>(); } },
-		{ "Notepad",				ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Wipe SD card",			ui::Color::red(),	nullptr,	[&nav](){ nav.push<WipeSDView>(); } },
+		{ "Frequency manager", 		ui::Color::green(), nullptr,			[&nav](){ nav.push<FreqManView>(); } },
+		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,	[&nav](){ nav.push<CWTXView>(); } },
+		{ "Whip antenna length",	ui::Color::yellow(),nullptr,			[&nav](){ nav.push<WhipCalcView>(); } },
+		{ "Notepad",				ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Wipe SD card",			ui::Color::red(),	nullptr,			[&nav](){ nav.push<WipeSDView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

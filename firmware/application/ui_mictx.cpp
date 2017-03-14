@@ -49,7 +49,6 @@ void MicTXView::update_vumeter() {
 
 void MicTXView::on_tx_done() {
 	// Roger beep transmitted, stop transmitting
-	transmitting = false;
 	set_tx(false);
 }
 
@@ -89,8 +88,8 @@ void MicTXView::set_tx(bool enable) {
 			);
 			gpio_tx.write(0);
 			led_tx.off();
-			transmitting = false;
 		}
+		transmitting = false;
 	}
 }
 
@@ -126,7 +125,7 @@ void MicTXView::do_timing() {
 	} else {
 		// PTT disable :(
 		const auto switches_state = get_switches_state();
-		if (!switches_state[1])		// Left button
+		if (!switches_state[1] && transmitting)		// Left button
 			set_tx(false);
 	}
 }

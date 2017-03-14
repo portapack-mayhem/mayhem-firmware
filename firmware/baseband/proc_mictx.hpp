@@ -34,7 +34,7 @@ public:
 	void on_message(const Message* const msg) override;
 
 private:
-	bool configured = false;
+	bool configured { false };
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
@@ -49,10 +49,12 @@ private:
 	uint32_t divider { }, gain_x10 { };
 	uint32_t as { 0 };
 	uint32_t fm_delta { 0 };
+	bool play_beep { false };
 	bool ctcss_enabled { false };
 	uint32_t ctcss_phase_inc { };
 	uint32_t ctcss_phase { 0 }, phase { 0 }, sphase { 0 };
 	int32_t ctcss_sample { 0 }, sample { 0 }, sample_mixed { }, delta { };
+	uint32_t beep_phase { 0 }, beep_phase_inc { }, beep_index { }, beep_timer { };
 	uint64_t power { 0 };
 	
 	int8_t re { 0 }, im { 0 };
