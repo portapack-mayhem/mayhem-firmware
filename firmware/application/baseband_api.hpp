@@ -72,6 +72,7 @@ void set_adsb();
 void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);
 void set_spectrum(const size_t sampling_rate, const size_t trigger);
+void request_beep();
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void shutdown();

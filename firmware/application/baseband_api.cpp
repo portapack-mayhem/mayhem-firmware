@@ -255,4 +255,9 @@ void replay_stop() {
 	send_message(&message);
 }
 
+void request_beep() {
+	RequestSignalMessage message { RequestSignalMessage::Signal::BeepRequest };
+	send_message(&message);
+}
+
 } /* namespace baseband */

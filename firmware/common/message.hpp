@@ -89,7 +89,7 @@ public:
 		
 		POCSAGPacket = 50,
 		
-		FIFOSignal = 52,
+		RequestSignal = 52,
 		FIFOData = 53,
 		
 		AudioLevel = 54,
@@ -794,14 +794,21 @@ public:
 };
 
 // TODO: use streaming buffer instead
-class FIFOSignalMessage : public Message {
+class RequestSignalMessage : public Message {
 public:
-	constexpr FIFOSignalMessage(
-	) : Message { ID::FIFOSignal }
+	enum class Signal : char {
+		FillRequest = 1,
+		BeepRequest = 2,
+	};
+
+	constexpr RequestSignalMessage(
+		Signal signal
+	) : Message { ID::RequestSignal },
+		signal ( signal )
 	{
 	}
 
-	char signaltype = 0;
+	Signal signal;
 };
 
 class FIFODataMessage : public Message {

@@ -45,8 +45,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			
 			if ((audio_fifo.len() < 512) && (asked == false)) {
 				// Ask application to fill up fifo
-				sigmessage.signaltype = 1;
-				shared_memory.application_queue.push(sigmessage);
+				shared_memory.application_queue.push(sig_message);
 				asked = true;
 			}
 		} else {

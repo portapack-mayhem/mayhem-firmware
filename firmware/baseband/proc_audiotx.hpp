@@ -60,7 +60,7 @@ private:
 		sizeof(int16_t)*64
 	};*/
 	
-	FIFOSignalMessage sigmessage { };
+	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
 };
 
 #endif

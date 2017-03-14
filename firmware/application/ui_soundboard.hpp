@@ -176,10 +176,10 @@ private:
 	};
 	
 	MessageHandlerRegistration message_handler_fifo_signal {
-		Message::ID::FIFOSignal,
+		Message::ID::RequestSignal,
 		[this](const Message* const p) {
-			const auto message = static_cast<const FIFOSignalMessage*>(p);
-			if (message->signaltype == 1) {
+			const auto message = static_cast<const RequestSignalMessage*>(p);
+			if (message->signal == RequestSignalMessage::Signal::FillRequest) {
 				this->prepare_audio();
 			}
 		}

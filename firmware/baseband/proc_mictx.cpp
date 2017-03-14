@@ -78,17 +78,25 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 }
 
 void MicTXProcessor::on_message(const Message* const msg) {
-	const auto message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
+	const AudioTXConfigMessage config_message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
+	const RequestSignalMessage request_message = *reinterpret_cast<const RequestSignalMessage*>(msg);
 	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
-			gain_x10 = message.gain_x10;
-			divider = message.divider;
-			ctcss_enabled = message.ctcss_enabled;
-			ctcss_phase_inc = message.ctcss_phase_inc;
+			fm_delta = config_message.fm_delta * (0xFFFFFFULL / 1536000);
+			gain_x10 = config_message.gain_x10;
+			divider = config_message.divider;
+			ctcss_enabled = config_message.ctcss_enabled;
+			ctcss_phase_inc = config_message.ctcss_phase_inc;
 
 			configured = true;
+			break;
+		
+		case Message::ID::RequestSignal:
+			if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
+				// TODO
+				txdone_message.done = true;
+			}
 			break;
 
 		default:

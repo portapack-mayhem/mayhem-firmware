@@ -39,15 +39,21 @@ using namespace hackrf::one;
 
 namespace ui {
 
-void AudioTXView::focus() {
+void MicTXView::focus() {
 	field_frequency.focus();
 }
 
-void AudioTXView::update_vumeter() {
+void MicTXView::update_vumeter() {
 	vumeter.set_value(audio_level);
 }
 
-void AudioTXView::set_tx(bool enable) {
+void MicTXView::on_tx_done() {
+	// Roger beep transmitted, stop transmitting
+	transmitting = false;
+	set_tx(false);
+}
+
+void MicTXView::set_tx(bool enable) {
 	uint32_t ctcss_index;
 	bool ctcss_enabled;
 	
@@ -71,20 +77,24 @@ void AudioTXView::set_tx(bool enable) {
 		led_tx.on();
 		transmitting = true;
 	} else {
-		baseband::set_audiotx_data(
-			1536000U / 20,		// 20Hz level update
-			0,					// BW 0 = TX off
-			mic_gain_x10,
-			false,				// Ignore CTCSS
-			0
-		);
-		gpio_tx.write(0);
-		led_tx.off();
-		transmitting = false;
+		if (transmitting && rogerbeep_enabled) {
+			baseband::request_beep();
+		} else {
+			baseband::set_audiotx_data(
+				1536000U / 20,		// 20Hz level update
+				0,					// BW 0 = TX off
+				mic_gain_x10,
+				false,				// Ignore CTCSS
+				0
+			);
+			gpio_tx.write(0);
+			led_tx.off();
+			transmitting = false;
+		}
 	}
 }
 
-void AudioTXView::do_timing() {
+void MicTXView::do_timing() {
 	if (va_enabled) {
 		if (!transmitting) {
 			// Attack
@@ -121,15 +131,15 @@ void AudioTXView::do_timing() {
 	}
 }
 
-void AudioTXView::on_tuning_frequency_changed(rf::Frequency f) {
+void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 }
 
-AudioTXView::AudioTXView(
+MicTXView::MicTXView(
 	NavigationView& nav
 )
 {
-	pins[P6_2].mode(3);		// I2S0_RX_SDA !
+	pins[P6_2].mode(3);		// Set P6_2 pin function to I2S0_RX_SDA
 	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		
@@ -144,7 +154,7 @@ AudioTXView::AudioTXView(
 		&field_bw,
 		&field_frequency,
 		&options_ctcss,
-		//&check_rogerbeep,
+		&check_rogerbeep,
 		&text_ptt,
 		&button_exit
 	});
@@ -183,6 +193,11 @@ AudioTXView::AudioTXView(
 	};
 	check_va.set_value(false);
 	
+	check_rogerbeep.on_select = [this](Checkbox&, bool v) {
+		rogerbeep_enabled = v;
+	};
+	check_rogerbeep.set_value(false);
+	
 	field_va_level.on_change = [this](int32_t v) {
 		va_level = v;
 		vumeter.set_mark(v);
@@ -215,7 +230,7 @@ AudioTXView::AudioTXView(
 	audio::input::start();
 }
 
-AudioTXView::~AudioTXView() {
+MicTXView::~MicTXView() {
 	transmitter_model.disable();
 	baseband::shutdown();
 }

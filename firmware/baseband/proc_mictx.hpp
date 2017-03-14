@@ -58,6 +58,7 @@ private:
 	int8_t re { 0 }, im { 0 };
 	
 	AudioLevelMessage level_message { };
+	TXDoneMessage txdone_message { };
 };
 
 #endif

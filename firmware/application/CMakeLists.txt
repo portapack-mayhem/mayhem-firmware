@@ -141,6 +141,7 @@ set(CPPSRC
 	${COMMON}/bch_code.cpp
 	bht.cpp
 	ctcss.cpp
+	dcs.cpp
 	encoder.cpp
 	freqman.cpp
 	rds.cpp
@@ -155,7 +156,7 @@ set(CPPSRC
 	ui_afsksetup.cpp
 	ui_alphanum.cpp
 	ui_audio.cpp
-	ui_audiotx.cpp
+	ui_mictx.cpp
 	ui_baseband_stats_view.cpp
 	ui_bht_tx.cpp
 	ui_channel.cpp
