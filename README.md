@@ -6,7 +6,11 @@ Hardware is available at [ShareBrained Technology](http://sharebrained.com/porta
 
 It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
 
-**Documentation: [READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)**
+# Documentation
+
+[READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)**
+
+# Summary
 
 As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. No. Bad. Put it down.
 
