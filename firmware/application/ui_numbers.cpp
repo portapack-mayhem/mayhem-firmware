@@ -21,6 +21,7 @@
  */
 
 #include "ui_numbers.hpp"
+#include "string_format.hpp"
 
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
@@ -29,17 +30,15 @@
 #include <cstring>
 #include <stdio.h>
 
-// TODO: Total transmission time (all durations / 44100)
-
 using namespace portapack;
 
 namespace ui {
 
 void NumbersStationView::focus() {
-	button_exit.focus();
-
 	if (file_error)
-		nav_.display_modal("No files", "Missing files in /numbers/", ABORT, nullptr);
+		nav_.display_modal("No voices", "No valid voices found in\nthe /numbers directory.", ABORT, nullptr);
+	else
+		button_exit.focus();
 }
 
 NumbersStationView::~NumbersStationView() {
@@ -54,7 +53,7 @@ void NumbersStationView::on_tuning_frequency_changed(rf::Frequency f) {
 void NumbersStationView::prepare_audio() {
 	uint8_t code;
 	
-	if (sample_counter >= sample_duration) {
+	/*if (sample_counter >= sample_duration) {
 		if (segment == ANNOUNCE) {
 			if (!announce_loop) {
 				segment = MESSAGE;
@@ -108,11 +107,11 @@ void NumbersStationView::prepare_audio() {
 		}
 	}
 	
-	baseband::set_fifo_data(audio_buffer);
+	baseband::set_fifo_data(audio_buffer);*/
 }
 
 void NumbersStationView::start_tx() {
-	sample_duration = sound_sizes[10];		// Announce
+	//sample_duration = sound_sizes[10];		// Announce
 	sample_counter = sample_duration;
 	
 	code_index = 0;
@@ -130,7 +129,7 @@ void NumbersStationView::start_tx() {
 	
 	baseband::set_audiotx_data(
 		(1536000 / 44100) - 1,
-		number_bw.value(),
+		12000,
 		1,
 		false,
 		0
@@ -150,56 +149,99 @@ void NumbersStationView::on_tick_second() {
 	}
 }
 
+void NumbersStationView::on_voice_changed(size_t index) {
+	std::string flags_string = "";
+	
+	if (voices[index].accent) {
+		flags_string = "^";
+	}
+	if (voices[index].announce) {
+		flags_string += "A";
+	}
+	text_voice_flags.set(flags_string);
+}
+
 NumbersStationView::NumbersStationView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	uint8_t c;
+	std::vector<std::filesystem::path> directory_list;
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	options_t voice_options;
+	uint32_t c, i, ia;
+	bool valid;
 	//uint8_t y, m, d, dayofweek;
 	
 	reader = std::make_unique<WAVFileReader>();
 	
-	c = 0;
-	for (auto& file_name : file_names) {
-		if (reader->open("/numbers/" + file_name + ".wav")) {
-			if ((reader->channels() == 1) && (reader->sample_rate() == 44100) && (reader->bits_per_sample() == 8)) {
-				sound_sizes[c] = reader->data_size();
-				c++;
+	// Search for valid voice directories
+	directory_list = scan_root_directories("/numbers");
+	if (!directory_list.size()) {
+		file_error = true;
+		return;
+	}
+	// This is awfully repetitive
+	for (const auto& dir : directory_list) {
+		i = 0;
+		for (const auto& file_name : file_names) {
+			valid = false;
+			if (reader->open("/numbers/" + dir.string() + "/" + file_name + ".wav")) {
+				// Check format (mono, 8 bits)
+				if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
+					valid = true;
 			}
+			if (!valid) {
+				if (i < 10)
+					i = 0;	// Missingno, invalid voice
+				break;
+			}
+			i++;
+		}
+		if (i) {
+			// Voice ok, are there accent files ?
+			ia = 0;
+			for (const auto& file_name : file_names) {
+				valid = false;
+				if (reader->open("/numbers/" + dir.string() + "/" + file_name + "a.wav")) {
+					// Check format (mono, 8 bits)
+					if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
+						valid = true;
+				}
+				if (!valid)
+					break;
+				ia++;
+			}
+			
+			voices.push_back({ dir.string(), (ia >= 10), (i == 11) });
 		}
 	}
-	
-	if (c != 11) file_error = true;
+	if (!voices.size()) {
+		file_error = true;
+		return;
+	}
 	
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 	
 	add_children({
-		&text_title,
-		&field_frequency,
-		&number_bw,
-		&text_code,
 		&symfield_code,
 		&check_armed,
-		&button_tx_now,
+		&options_voices,
+		&text_voice_flags,
+		//&button_tx_now,
 		&button_exit
 	});
+	
+	for (const auto& voice : voices)
+		voice_options.emplace_back(voice.dir.substr(0, 4), c);
+	
+	options_voices.set_options(voice_options);
+	options_voices.on_change = [this](size_t i, int32_t) {
+		this->on_voice_changed(i);
+	};
+	options_voices.set_selected_index(0);
 
-	number_bw.set_value(75);
 	check_armed.set_value(false);
-
-	field_frequency.set_value(transmitter_model.tuning_frequency());
-	field_frequency.set_step(50000);
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
-	};
-	field_frequency.on_edit = [this, &nav]() {
-		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
-			this->field_frequency.set_value(f);
-		};
-	};
 	
 	check_armed.on_select = [this](Checkbox&, bool v) {
 		if (v) {
@@ -212,6 +254,9 @@ NumbersStationView::NumbersStationView(
 			rtc_time::signal_tick_second -= signal_token_tick_second;
 		}
 	};
+	
+	for (c = 0; c < 25; c++)
+		symfield_code.set_symbol_list(c, "0123456789pPE");
 	
 	// DEBUG
 	symfield_code.set_sym(0, 10);
@@ -226,9 +271,6 @@ NumbersStationView::NumbersStationView(
 	symfield_code.set_sym(9, 0);
 	symfield_code.set_sym(10, 12);	// End
 
-	for (c = 0; c < 25; c++)
-		symfield_code.set_symbol_list(c, "0123456789pPE");
-
 /*
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
@@ -242,10 +284,6 @@ NumbersStationView::NumbersStationView(
 	
 	text_title.set(day_of_week[dayofweek]);
 */
-
-	button_tx_now.on_select = [this, &nav](Button&){
-		this->start_tx();
-	};
 
 	button_exit.on_select = [&nav](Button&){
 		nav.pop();

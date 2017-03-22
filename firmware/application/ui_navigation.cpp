@@ -21,19 +21,16 @@
  */
 
 #include "ui_navigation.hpp"
-//#include "ui_loadmodule.hpp"
 
 #include "modules.h"
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
-#include "portapack_persistent_memory.hpp"
 #include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
 
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"
-#include "ui_mictx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_closecall.hpp"
 #include "ui_cw.hpp"
@@ -42,9 +39,11 @@
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
 #include "ui_lcr.hpp"
+#include "ui_mictx.hpp"
 #include "ui_morse.hpp"
 #include "ui_numbers.hpp"
 #include "ui_nuoptix.hpp"
+#include "ui_playdead.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_sd_wipe.hpp"
@@ -354,13 +353,14 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<12>({ {
+	add_items<13>({ {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
+		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
+		{ "SSTV transmitter", 		ui::Color::grey(),	nullptr,				[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Close Call",				ui::Color::orange(),&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesView>(); } },
@@ -448,60 +448,6 @@ BMPView::BMPView(NavigationView& nav) {
 
 void BMPView::paint(Painter&) {
 	portapack::display.drawBMP({(240 - 185) / 2, 0}, splash_bmp, false);
-}
-
-/* PlayDeadView **********************************************************/
-
-void PlayDeadView::focus() {
-	button_seq_entry.focus();
-}
-
-void PlayDeadView::paint(Painter& painter) {
-	if (!(portapack::persistent_memory::ui_config() & 16)) {
-		// Blank the whole display
-		painter.fill_rectangle(
-			portapack::display.screen_rect(),
-			style().background
-		);
-	}
-}
-
-PlayDeadView::PlayDeadView(NavigationView& nav) {
-	rtc::RTC datetime;
-	
-	portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
-	
-	add_children({
-		&text_playdead1,
-		&text_playdead2,
-		&text_playdead3,
-		&button_seq_entry,
-	});
-	
-	// Seed from RTC
-	rtcGetTime(&RTCD1, &datetime);
-	text_playdead2.set("0x" + to_string_hex(lfsr_iterate(datetime.second()), 6) + "00");
-	
-	text_playdead3.hidden(true);
-	
-	button_seq_entry.on_dir = [this](Button&, KeyEvent key){
-		sequence = (sequence << 3) | (static_cast<std::underlying_type<KeyEvent>::type>(key) + 1);
-		return true;
-	};
-	
-	button_seq_entry.on_select = [this, &nav](Button&){
-		if (sequence == portapack::persistent_memory::playdead_sequence()) {
-			portapack::persistent_memory::set_playing_dead(0x82175E23);		// Disable
-			if (!(portapack::persistent_memory::ui_config() & 16)) {
-				text_playdead3.hidden(false);
-			} else {
-				nav.pop();
-				nav.push<SystemMenuView>();
-			}
-		} else {
-			sequence = 0;
-		}
-	};
 }
 
 /* NotImplementedView ****************************************************/

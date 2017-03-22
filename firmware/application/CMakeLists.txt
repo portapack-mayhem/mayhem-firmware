@@ -174,6 +174,7 @@ set(CPPSRC
 	ui_navigation.cpp
 	ui_numbers.cpp
 	ui_nuoptix.cpp
+	ui_playdead.cpp
 	ui_pocsag_tx.cpp
 	ui_rds.cpp
 	ui_receiver.cpp

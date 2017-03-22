@@ -130,7 +130,7 @@ void TonesProcessor::on_message(const Message* const p) {
 				tone_deltas[c] = shared_memory.bb_data.tones_data.tone_defs[c].delta;
 				tone_durations[c] = shared_memory.bb_data.tones_data.tone_defs[c].duration;
 			}
-			fm_delta = message.fm_delta * (0xFFFFFFFFULL / 1536000) * 2;
+			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
 			audio_out = message.audio_out;
 			dual_tone = message.dual_tone;
 			

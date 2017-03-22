@@ -180,6 +180,19 @@ std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& 
 	return file_list;
 }
 
+std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory) {
+	
+	std::vector<std::filesystem::path> directory_list { };
+	
+	for(const auto& entry : std::filesystem::directory_iterator(directory, "*")) {
+		if( std::filesystem::is_directory(entry.status()) ) {
+			directory_list.push_back(entry.path());
+		}
+	}
+	
+	return directory_list;
+}
+
 namespace std {
 namespace filesystem {
 

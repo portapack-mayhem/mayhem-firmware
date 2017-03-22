@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,6 +21,7 @@
  */
 
 #include "lcd_ili9341.hpp"
+#include "bmp.hpp"
 
 #include "portapack_io.hpp"
 using namespace portapack;
