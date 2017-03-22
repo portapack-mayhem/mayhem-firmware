@@ -275,6 +275,20 @@ macro(DeclareTargets chunk_tag name)
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 endmacro()
 
+### ADS-B TX
+
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADS ads)
+
+### AFSK
+
+set(MODE_CPPSRC
+	proc_afsk.cpp
+)
+DeclareTargets(PAFS afsk)
+
 ### AIS
 
 set(MODE_CPPSRC
@@ -288,6 +302,13 @@ set(MODE_CPPSRC
 	proc_am_audio.cpp
 )
 DeclareTargets(PAMA am_audio)
+
+### Audio transmit
+
+set(MODE_CPPSRC
+	proc_audiotx.cpp
+)
+DeclareTargets(PATX audio_tx)
 
 ### Capture
 
@@ -310,61 +331,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSK fsktx)
 
-### POCSAG RX
-
-set(MODE_CPPSRC
-	proc_pocsag.cpp
-)
-DeclareTargets(PPOC pocsag)
-
-### NFM Audio
-
-set(MODE_CPPSRC
-	proc_nfm_audio.cpp
-)
-DeclareTargets(PNFM nfm_audio)
-
-### TPMS
-
-set(MODE_CPPSRC
-	proc_tpms.cpp
-)
-DeclareTargets(PTPM tpms)
-
-### WFM Audio
-
-set(MODE_CPPSRC
-	proc_wfm_audio.cpp
-)
-DeclareTargets(PWFM wfm_audio)
-
-### Wideband Spectrum
-
-set(MODE_CPPSRC
-	proc_wideband_spectrum.cpp
-)
-DeclareTargets(PSPE wideband_spectrum)
-
-### OOK
-
-set(MODE_CPPSRC
-	proc_ook.cpp
-)
-DeclareTargets(POOK ook)
-
 ### Jammer
 
 set(MODE_CPPSRC
 	proc_jammer.cpp
 )
 DeclareTargets(PJAM jammer)
-
-### Audio transmit
-
-set(MODE_CPPSRC
-	proc_audiotx.cpp
-)
-DeclareTargets(PATX audio_tx)
 
 ### Microphone transmit
 
@@ -373,12 +345,40 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PMTX mic_tx)
 
-### AFSK
+### NFM Audio
 
 set(MODE_CPPSRC
-	proc_afsk.cpp
+	proc_nfm_audio.cpp
 )
-DeclareTargets(PAFS afsk)
+DeclareTargets(PNFM nfm_audio)
+
+### No op
+
+set(MODE_CPPSRC
+	proc_noop.cpp
+)
+DeclareTargets(PNOP no_operation)
+
+### OOK
+
+set(MODE_CPPSRC
+	proc_ook.cpp
+)
+DeclareTargets(POOK ook)
+
+### POCSAG RX
+
+set(MODE_CPPSRC
+	proc_pocsag.cpp
+)
+DeclareTargets(PPOC pocsag)
+
+### RDS
+
+set(MODE_CPPSRC
+	proc_rds.cpp
+)
+DeclareTargets(PRDS rds)
 
 ### Replay
 
@@ -394,27 +394,26 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTON tones)
 
-### RDS
+### TPMS
 
 set(MODE_CPPSRC
-	proc_rds.cpp
+	proc_tpms.cpp
 )
-DeclareTargets(PRDS rds)
+DeclareTargets(PTPM tpms)
 
-### ADS-B TX
+### Wideband Spectrum
 
 set(MODE_CPPSRC
-	proc_adsbtx.cpp
+	proc_wideband_spectrum.cpp
 )
-DeclareTargets(PADS ads)
+DeclareTargets(PSPE wideband_spectrum)
 
-
-### No op
+### WFM Audio
 
 set(MODE_CPPSRC
-	proc_noop.cpp
+	proc_wfm_audio.cpp
 )
-DeclareTargets(PNOP no_operation)
+DeclareTargets(PWFM wfm_audio)
 
 ### HackRF "factory" firmware
 

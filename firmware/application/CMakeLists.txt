@@ -188,6 +188,7 @@ set(CPPSRC
 	ui_setup.cpp
 	ui_soundboard.cpp
 	ui_spectrum.cpp
+	ui_sstvtx.cpp
 	ui_textentry.cpp
 	ui_touch_calibration.cpp
 	ui_transmitter.cpp

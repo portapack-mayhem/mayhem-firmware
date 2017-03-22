@@ -224,6 +224,7 @@ NumbersStationView::NumbersStationView(
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
 	
 	add_children({
+		&labels,
 		&symfield_code,
 		&check_armed,
 		&options_voices,
@@ -233,7 +234,7 @@ NumbersStationView::NumbersStationView(
 	});
 	
 	for (const auto& voice : voices)
-		voice_options.emplace_back(voice.dir.substr(0, 4), c);
+		voice_options.emplace_back(voice.dir.substr(0, 4), 0);
 	
 	options_voices.set_options(voice_options);
 	options_voices.on_change = [this](size_t i, int32_t) {

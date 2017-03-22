@@ -49,6 +49,7 @@
 #include "ui_sd_wipe.hpp"
 #include "ui_setup.hpp"
 #include "ui_soundboard.hpp"
+#include "ui_sstvtx.hpp"
 #include "ui_whipcalc.hpp"
 #include "ui_whistle.hpp"
 
@@ -360,8 +361,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
-		{ "SSTV transmitter", 		ui::Color::grey(),	nullptr,				[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Close Call",				ui::Color::orange(),&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
+		{ "SSTV transmitter", 		ui::Color::grey(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
+		{ "Close Call",				ui::Color::cyan(),	&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesView>(); } },
 		{ "Setup", 					ui::Color::white(),	&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },
