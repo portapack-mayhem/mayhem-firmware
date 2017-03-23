@@ -45,6 +45,7 @@ Morse TX    | 95% | Symbols need testing
 Mic. TX     | 95% | Need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
+SSTV TX     | 70% | Only Scottie 2. Needs more modes and better bitmap file handling
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
 ADS-B TX    | 40% | UI and frame gen stuff done
@@ -53,7 +54,7 @@ Whistle     | 20% | Easy
 IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
-SSTV TRX    | 0%  |
+SSTV RX     | 0%  |
 ADS-B RX    | 0%  | Could be fun
 Scanner     | 0%  | Easy
 SSB TX      | 0%  | Requested
