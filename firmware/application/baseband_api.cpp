@@ -91,6 +91,14 @@ void set_tones_data(const uint32_t bw, const uint32_t pre_silence, const uint16_
 	send_message(&message);
 }
 
+void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
+	const SSTVConfigureMessage message {
+		vis_code,
+		pixel_duration
+	};
+	send_message(&message);
+}
+
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format) {
 	const AFSKConfigureMessage message {

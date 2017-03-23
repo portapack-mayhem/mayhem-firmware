@@ -23,6 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//BUG: Length is wrong in soundboard for long files (> 1min ?)
 //BUG: RDS Radiotext is not recognized in Redsea (and car radio)
 //BUG: RDS doesn't stop baseband when stopping tx ?
 //BUG: Check AFSK transmit end, skips last bits ?

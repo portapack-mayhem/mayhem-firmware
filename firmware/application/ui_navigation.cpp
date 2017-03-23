@@ -361,7 +361,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
-		{ "SSTV transmitter", 		ui::Color::grey(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
+		{ "SSTV transmitter", 		ui::Color::dark_orange(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "Close Call",				ui::Color::cyan(),	&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesView>(); } },

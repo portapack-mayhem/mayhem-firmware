@@ -57,6 +57,7 @@ struct WFMConfig {
 
 void set_tones_data(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count,
 					const bool dual_tone, const bool audio_out);
+void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration);
 void set_audiotx_data(const uint32_t divider, const uint32_t bw, const uint32_t gain_x10,
 					const bool ctcss_enabled, const uint32_t ctcss_phase_inc);
 void set_fifo_data(const int8_t * data);

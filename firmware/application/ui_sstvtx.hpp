@@ -47,20 +47,25 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 	
-	std::string title() const override { return "SSTV transmit"; };
+	std::string title() const override { return "SSTV TX (beta)"; };
 	
 private:
 	NavigationView& nav_;
+	
+	sstv_scanline scanline_buffer { };
 	
 	File bmp_file { };
 	bmp_header_t bmp_header { };
 	std::vector<std::filesystem::path> bitmaps { };
 	bool file_error { false };
+	uint32_t scanline_counter { 0 };
+	uint8_t pixels_buffer[320 * 3];		// 320 pixels @ 24bpp
 
 	void read_boundary(uint8_t * buffer, uint32_t position, uint32_t length);
 	void on_bitmap_changed(size_t index);
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void start_tx();
+	void prepare_scanline();
 	
 	Labels labels {
 		{ { 1 * 8, 1 * 8 }, "File:", Color::light_grey() }
@@ -73,7 +78,7 @@ private:
 	};
 	Text text_mode {
 		{ 2 * 8, 4 * 8, 16 * 8, 16 },
-		"Scottie 2 (beta)"
+		"Scottie 2"
 	};
 	
 	ProgressBar progressbar {
@@ -86,15 +91,15 @@ private:
 		12
 	};
 	
-	/*MessageHandlerRegistration message_handler_fifo_signal {
+	MessageHandlerRegistration message_handler_fifo_signal {
 		Message::ID::RequestSignal,
 		[this](const Message* const p) {
 			const auto message = static_cast<const RequestSignalMessage*>(p);
 			if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-				this->prepare_audio();
+				this->prepare_scanline();
 			}
 		}
-	};*/
+	};
 };
 
 } /* namespace ui */

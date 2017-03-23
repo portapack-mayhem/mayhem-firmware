@@ -68,7 +68,6 @@ void SSTVTXView::paint(Painter&) {
 	ui::Color line_buffer[160];
 	Coord line;
 	uint32_t data_idx, bmp_px, pixel_idx;
-	uint8_t pixels_buffer[320 * 3];		// 320 pixels @ 24bpp
 	
 	data_idx = bmp_header.image_data;
 	
@@ -97,28 +96,22 @@ void SSTVTXView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 }
 
-void SSTVTXView::start_tx() {
-	// Baseband SSTV TX code should have a 2 scanlines buffer, and ask
-	// for fill-up when there's 1 or less remaining. This should leave
-	// enough time for the code here to generate the scanline data
-	// before tx.
+void SSTVTXView::prepare_scanline() {
+	sstv_scanline scanline_buffer;
+	uint32_t component, pixel_idx;
 	
-	const uint8_t VIS_code = 0b00011101;	// Scottie 2
+	if (scanline_counter >= (256 * 3)) {
+		progressbar.set_value(0);
+		transmitter_model.disable();
+		options_bitmaps.set_focusable(true);
+		tx_view.set_transmitting(false);
+		return;
+	}
 	
-	// Calibration:
-	// 1900 300ms
-	// 1200 10ms
-	// 1900 300ms
-	// VIS: (30ms * 10 = 300ms)
-	// 1200
-	// 00011101 (0=1300, 1=1100)
-	// 1200
-	
-	// Scottie 2: 320x256 px
-	
-	// V-sync ?
-	// First line: 1200 9ms
-	// Scanline:
+	progressbar.set_value(scanline_counter);
+
+	// Scottie 2 scanline:
+	// (First line: 1200 9ms)
 	// 1500 1.5ms
 	// Green
 	// 1500 1.5ms
@@ -126,27 +119,71 @@ void SSTVTXView::start_tx() {
 	// 1200 9ms
 	// 1500 1.5ms
 	// Red
-	// Scanline time: 88.064ms (.2752ms/pixel @ 320 pixels/line)
+	// Scanline time: 88.064ms (275.2us/pixel @ 320 pixels/line)
 	
-	transmitter_model.set_sampling_rate(1536000U);
+	component = scanline_counter % 3;
+
+	if ((!scanline_counter) || (component == 2)) {
+		scanline_buffer.start_tone.frequency = SSTV_F2D(1200);
+		scanline_buffer.start_tone.duration = SSTV_MS2S(9);
+	} else
+		scanline_buffer.start_tone.duration = 0;
+	
+	scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+	scanline_buffer.gap_tone.duration = SSTV_MS2S(1.5);
+	
+	if (component == 0) {
+		// Read a new line
+		read_boundary(pixels_buffer,
+						bmp_header.image_data + ((255 - (scanline_counter / 3)) * sizeof(pixels_buffer)),
+						sizeof(pixels_buffer));
+	}
+	
+	for (uint32_t bmp_px = 0; bmp_px < 320; bmp_px++) {
+		pixel_idx = bmp_px * 3;
+		if (component == 0)
+			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + 1];	// Green
+		else if (component == 1)
+			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx];		// Blue
+		else
+			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + 2];	// Red
+	}
+	
+	baseband::set_fifo_data((int8_t *)&scanline_buffer);
+	
+	scanline_counter++;
+}
+
+void SSTVTXView::start_tx() {
+	// Baseband SSTV TX code should have a 2 scanlines buffer, and ask
+	// for fill-up when there's 1 or less remaining. This should leave
+	// enough time for the code here to generate the scanline data
+	// before tx. See sstv.hpp: 
+	
+	// Scottie 2 is 320x256 px
+	
+	scanline_counter = 0;
+	prepare_scanline();
+	
+	transmitter_model.set_sampling_rate(3072000U);
 	transmitter_model.set_rf_amp(true);
-	//transmitter_model.set_lna(40);
-	//transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	/*baseband::set_sstvtx_data(
-		(1536000 / 44100) - 1,
-		12000,
-		1,
-		false,
-		0
-	);*/
+	baseband::set_sstv_data(
+		0b00011101,		// Scottie 2, 275.2us/px
+		(uint32_t)(0.0002752 * 3072000.0)
+	);
+	
+	// Todo: Find a better way to prevent user from changing bitmap during tx
+	options_bitmaps.set_focusable(false);
+	tx_view.focus();
 }
 
 void SSTVTXView::on_bitmap_changed(size_t index) {
 	bmp_file.open("/sstv/" + bitmaps[index].string());
 	bmp_file.read(&bmp_header, sizeof(bmp_header));
+	progressbar.set_max(256 * 3);
 	set_dirty();
 }
 
@@ -158,7 +195,6 @@ SSTVTXView::SSTVTXView(
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t bitmap_options;
-	uint32_t c;
 	
 	// Search for valid bitmaps
 	file_list = scan_root_files(u"/sstv", u"*.bmp");
@@ -184,12 +220,16 @@ SSTVTXView::SSTVTXView(
 		return;
 	}
 	
-	//baseband::run_image(portapack::spi_flash::image_tag_sstv_tx);
+	// Maybe this could be merged with proc_tones ? Pretty much the same except lots
+	// of different tones (256+)
+	baseband::run_image(portapack::spi_flash::image_tag_sstv_tx);
 	
 	add_children({
 		&labels,
 		&options_bitmaps,
-		&text_mode
+		&text_mode,
+		&progressbar,
+		&tx_view
 	});
 	
 	for (const auto& bitmap : bitmaps)
@@ -200,6 +240,26 @@ SSTVTXView::SSTVTXView(
 		this->on_bitmap_changed(i);
 	};
 	options_bitmaps.set_selected_index(0);
+	on_bitmap_changed(0);
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			receiver_model.set_tuning_frequency(f);
+		};
+	};
+	
+	tx_view.on_start = [this]() {
+		start_tx();
+		tx_view.set_transmitting(true);
+	};
+	
+	tx_view.on_stop = [this]() {
+		baseband::set_sstv_data(0, 0);
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
+		options_bitmaps.set_focusable(true);
+	};
 }
 
 } /* namespace ui */

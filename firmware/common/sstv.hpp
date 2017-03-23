@@ -19,12 +19,25 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
- 
+
+#ifndef __SSTV_H__
+#define __SSTV_H__
+
 namespace sstv {
 
+#define SSTV_SAMPLERATE 3072000
+#define SSTV_DELTA_COEF ((1ULL << 32) / SSTV_SAMPLERATE)
+
+#define SSTV_F2D(f) (uint32_t)((f) * SSTV_DELTA_COEF)
+#define SSTV_MS2S(f) (uint32_t)((f) / 1000.0 * (float)SSTV_SAMPLERATE)
+
+#define SSTV_VIS_SS SSTV_F2D(1200)
+#define SSTV_VIS_ZERO SSTV_F2D(1300)
+#define SSTV_VIS_ONE SSTV_F2D(1100)
+
 struct sstv_tone {
-	uint16_t frequency;
-	uint16_t duration;
+	uint32_t frequency;
+	uint32_t duration;
 };
 
 struct sstv_scanline {
@@ -35,3 +48,4 @@ struct sstv_scanline {
 
 } /* namespace sstv */
 
+#endif/*__SSTV_H__*/

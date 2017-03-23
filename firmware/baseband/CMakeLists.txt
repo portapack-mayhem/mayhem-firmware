@@ -387,6 +387,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
+### SSTV TX
+
+set(MODE_CPPSRC
+	proc_sstvtx.cpp
+)
+DeclareTargets(PSTX sstvtx)
+
 ### Tones
 
 set(MODE_CPPSRC

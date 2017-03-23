@@ -86,6 +86,7 @@ public:
 		JammerConfigure = 41,
 		WidebandSpectrumConfig = 42,
 		FSKConfigure = 43,
+		SSTVConfigure = 44,
 		
 		POCSAGPacket = 50,
 		
@@ -710,6 +711,21 @@ public:
 	const uint32_t samples_per_bit;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
+};
+
+class SSTVConfigureMessage : public Message {
+public:
+	constexpr SSTVConfigureMessage(
+		const uint8_t vis_code,
+		const uint32_t pixel_duration
+	) : Message { ID::SSTVConfigure },
+		vis_code(vis_code),
+		pixel_duration(pixel_duration)
+	{
+	}
+
+	const uint8_t vis_code;
+	const uint32_t pixel_duration;
 };
 
 class FSKConfigureMessage : public Message {
