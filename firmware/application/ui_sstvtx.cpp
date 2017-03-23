@@ -99,6 +99,7 @@ void SSTVTXView::on_tuning_frequency_changed(rf::Frequency f) {
 void SSTVTXView::prepare_scanline() {
 	sstv_scanline scanline_buffer;
 	uint32_t component, pixel_idx;
+	uint8_t offset;
 	
 	if (scanline_counter >= (256 * 3)) {
 		progressbar.set_value(0);
@@ -122,31 +123,33 @@ void SSTVTXView::prepare_scanline() {
 	// Scanline time: 88.064ms (275.2us/pixel @ 320 pixels/line)
 	
 	component = scanline_counter % 3;
-
-	if ((!scanline_counter) || (component == 2)) {
+	
+	if ((!scanline_counter && tx_sstv_mode->sync_on_first) || (component == tx_sstv_mode->sync_index)) {
+		// Sync
 		scanline_buffer.start_tone.frequency = SSTV_F2D(1200);
-		scanline_buffer.start_tone.duration = SSTV_MS2S(9);
-	} else
+		scanline_buffer.start_tone.duration = tx_sstv_mode->samples_per_sync;
+		scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+		scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
+	} else {
+		// Regular scanline
 		scanline_buffer.start_tone.duration = 0;
+		if (tx_sstv_mode->gaps) {
+			scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+			scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
+		}
+	}
 	
-	scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
-	scanline_buffer.gap_tone.duration = SSTV_MS2S(1.5);
-	
-	if (component == 0) {
+	if (!component) {
 		// Read a new line
 		read_boundary(pixels_buffer,
 						bmp_header.image_data + ((255 - (scanline_counter / 3)) * sizeof(pixels_buffer)),
 						sizeof(pixels_buffer));
 	}
 	
+	offset = component_map[component];
 	for (uint32_t bmp_px = 0; bmp_px < 320; bmp_px++) {
 		pixel_idx = bmp_px * 3;
-		if (component == 0)
-			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + 1];	// Green
-		else if (component == 1)
-			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx];		// Blue
-		else
-			scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + 2];	// Red
+		scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + offset];
 	}
 	
 	baseband::set_fifo_data((int8_t *)&scanline_buffer);
@@ -155,15 +158,12 @@ void SSTVTXView::prepare_scanline() {
 }
 
 void SSTVTXView::start_tx() {
-	// Baseband SSTV TX code should have a 2 scanlines buffer, and ask
-	// for fill-up when there's 1 or less remaining. This should leave
-	// enough time for the code here to generate the scanline data
-	// before tx. See sstv.hpp: 
-	
-	// Scottie 2 is 320x256 px
+	// The baseband SSTV TX code (proc_sstv) has a 2-scanline buffer. It is preloaded before
+	// TX start, and asks for fill-up when a new scanline starts being read. This should
+	// leave enough time for the code in prepare_scanline() before it ends.
 	
 	scanline_counter = 0;
-	prepare_scanline();
+	prepare_scanline();		// Preload one scanline
 	
 	transmitter_model.set_sampling_rate(3072000U);
 	transmitter_model.set_rf_amp(true);
@@ -171,8 +171,8 @@ void SSTVTXView::start_tx() {
 	transmitter_model.enable();
 	
 	baseband::set_sstv_data(
-		0b00011101,		// Scottie 2, 275.2us/px
-		(uint32_t)(0.0002752 * 3072000.0)
+		tx_sstv_mode->vis_code,
+		tx_sstv_mode->samples_per_pixel
 	);
 	
 	// Todo: Find a better way to prevent user from changing bitmap during tx
@@ -180,11 +180,29 @@ void SSTVTXView::start_tx() {
 	tx_view.focus();
 }
 
-void SSTVTXView::on_bitmap_changed(size_t index) {
+void SSTVTXView::on_bitmap_changed(const size_t index) {
 	bmp_file.open("/sstv/" + bitmaps[index].string());
 	bmp_file.read(&bmp_header, sizeof(bmp_header));
-	progressbar.set_max(256 * 3);
 	set_dirty();
+}
+
+void SSTVTXView::on_mode_changed(const size_t index) {
+	sstv_color_seq tx_color_sequence;
+	
+	tx_sstv_mode = &sstv_modes[index];
+	
+	tx_color_sequence = sstv_modes[index].color_sequence;
+	if (tx_color_sequence == SSTV_COLOR_RGB) {
+		component_map[0] = 2;
+		component_map[1] = 1;
+		component_map[2] = 0;
+	} else if (tx_color_sequence == SSTV_COLOR_GBR) {
+		component_map[0] = 1;
+		component_map[1] = 0;
+		component_map[2] = 2;
+	}
+
+	progressbar.set_max(sstv_modes[index].lines * 3);
 }
 
 SSTVTXView::SSTVTXView(
@@ -195,7 +213,9 @@ SSTVTXView::SSTVTXView(
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t bitmap_options;
-	
+	options_t mode_options;
+	uint32_t c;
+
 	// Search for valid bitmaps
 	file_list = scan_root_files(u"/sstv", u"*.bmp");
 	if (!file_list.size()) {
@@ -205,11 +225,11 @@ SSTVTXView::SSTVTXView(
 	for (const auto& file_name : file_list) {
 		if (!bmp_file.open("/sstv/" + file_name.string()).is_valid()) {
 			bmp_file.read(&bmp_header, sizeof(bmp_header));
-			if ((bmp_header.signature == 0x4D42) &&
-				(bmp_header.width == 320) &&		// Must be == 320x256 pixels for now
+			if ((bmp_header.signature == 0x4D42) &&	// "BM"
+				(bmp_header.width == 320) &&		// Must be exactly 320x256 pixels for now
 				(bmp_header.height == 256) &&
 				(bmp_header.planes == 1) &&
-				(bmp_header.bpp >= 24) &&			// 24 or 32 bpp
+				(bmp_header.bpp == 24) &&			// 24 bpp only
 				(bmp_header.compression == 0)) {	// No compression
 					bitmaps.push_back(file_name);
 			}
@@ -227,20 +247,32 @@ SSTVTXView::SSTVTXView(
 	add_children({
 		&labels,
 		&options_bitmaps,
-		&text_mode,
+		&options_modes,
 		&progressbar,
 		&tx_view
 	});
 	
+	// Populate file list
 	for (const auto& bitmap : bitmaps)
 		bitmap_options.emplace_back(bitmap.string().substr(0, 16), 0);
-	
 	options_bitmaps.set_options(bitmap_options);
+
+	// Populate mode list
+	for (c = 0; c < SSTV_MODES_NB; c++)
+		mode_options.emplace_back(sstv_modes[c].name, c);
+	options_modes.set_options(mode_options);
+	
 	options_bitmaps.on_change = [this](size_t i, int32_t) {
 		this->on_bitmap_changed(i);
 	};
-	options_bitmaps.set_selected_index(0);
+	options_bitmaps.set_selected_index(0);	// First file
 	on_bitmap_changed(0);
+	
+	options_modes.on_change = [this](size_t i, int32_t) {
+		this->on_mode_changed(i);
+	};
+	options_modes.set_selected_index(1);	// Scottie 2
+	on_mode_changed(1);
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

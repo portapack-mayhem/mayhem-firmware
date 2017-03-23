@@ -37,28 +37,38 @@ using namespace portapack;
 
 namespace ui {
 
+void ReplayView::on_file_changed(const uint32_t duration) {
+	std::string str_duration = "";
+	
+	if (duration >= 60)
+		str_duration = to_string_dec_uint(duration / 60) + "m";
+	
+	text_duration.set(str_duration + to_string_dec_uint(duration % 60) + "s");
+}
+
 ReplayView::ReplayView(
 	const Rect parent_rect,
-	std::string filename,
-	const FileType file_type,
 	const size_t read_size,
 	const size_t buffer_count
 ) : View { parent_rect },
-	filename { filename },
-	file_type { file_type },
 	read_size { read_size },
 	buffer_count { buffer_count }
 {
 	add_children({
 		&rect_background,
-		&button_record,
-		&text_replay_filename,
-		&text_time_seek,
+		&button_play,
+		&options_files,
+		&text_duration,
+		//&text_time_seek,
 	});
 
 	rect_background.set_parent_rect({ { 0, 0 }, size() });
 
-	button_record.on_select = [this](ImageButton&) {
+	options_files.on_change = [this](size_t, int32_t duration) {
+		this->on_file_changed(duration);
+	};
+	
+	button_play.on_select = [this](ImageButton&) {
 		this->toggle();
 	};
 
@@ -72,21 +82,22 @@ ReplayView::~ReplayView() {
 }
 
 void ReplayView::focus() {
-	button_record.focus();
+	options_files.focus();
 }
 
-void ReplayView::set_sampling_rate(const size_t new_sampling_rate) {
-	if( new_sampling_rate != sampling_rate ) {
-		stop();
-		sampling_rate = new_sampling_rate;
-
-		button_record.hidden(sampling_rate == 0);
-		text_replay_filename.hidden(sampling_rate == 0);
-		text_time_seek.hidden(sampling_rate == 0);
-		rect_background.hidden(sampling_rate != 0);
-
-		update_status_display();
+void ReplayView::set_file_list(const std::vector<std::filesystem::path>& file_list) {
+	File bbd_file;
+	uint32_t duration;
+	
+	for (const auto& file : file_list) {
+		bbd_file.open("/" + file.string());
+		duration = bbd_file.size() / (2 * 2 * (sampling_rate / 8));
+		file_options.emplace_back(file.string().substr(0, 8), duration);
 	}
+	options_files.set_options(file_options);
+	options_files.set_selected_index(0);	// First file
+	on_file_changed(file_options[0].second);
+	
 }
 
 bool ReplayView::is_active() const {
@@ -104,17 +115,10 @@ void ReplayView::toggle() {
 void ReplayView::start() {
 	stop();
 
-	text_replay_filename.set("");
-
-	if( sampling_rate == 0 ) {
-		return;
-	}
-
 	auto reader = std::make_unique<FileReader>();
 
 	if( reader ) {
-		text_replay_filename.set(filename.string());
-		button_record.set_bitmap(&bitmap_stop);
+		button_play.set_bitmap(&bitmap_stop);
 		replay_thread = std::make_unique<ReplayThread>(
 			std::move(reader),
 			read_size, buffer_count,
@@ -130,12 +134,23 @@ void ReplayView::start() {
 	}
 
 	update_status_display();
+	
+	radio::enable({
+		460000000,	//target_frequency(),
+		4000000,	//sampling_rate,
+		2500000,	//baseband_bandwidth,
+		rf::Direction::Transmit,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga())
+	});
 }
 
 void ReplayView::stop() {
 	if( is_active() ) {
 		replay_thread.reset();
-		button_record.set_bitmap(&bitmap_record);
+		radio::disable();
+		button_play.set_bitmap(&bitmap_play);
 	}
 
 	update_status_display();

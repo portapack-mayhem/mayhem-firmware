@@ -40,7 +40,7 @@ StreamOutput::StreamOutput(ReplayConfig* const config) :
 	}
 }
 
-size_t StreamOutput::write(const void* const data, const size_t length) {
+size_t StreamOutput::read(const void* const data, const size_t length) {
 	const uint8_t* p = static_cast<const uint8_t*>(data);
 	size_t written = 0;
 

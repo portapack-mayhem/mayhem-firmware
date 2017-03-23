@@ -45,9 +45,13 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Capture"; };
+	std::string title() const override { return "Replay (beta)"; };
 
 private:
+	NavigationView& nav_;
+	
+	bool file_error { false };
+	
 	static constexpr ui::Dim header_height = 2 * 16;
 
 	static constexpr uint32_t sampling_rate = 4000000;
@@ -57,10 +61,6 @@ private:
 
 	rf::Frequency target_frequency() const;
 	void set_target_frequency(const rf::Frequency new_value);
-
-	Channel channel {
-		{ 24 * 8, 5, 6 * 8, 4 },
-	};
 
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 16 },
@@ -74,20 +74,12 @@ private:
 		{ 16 * 8, 0 * 16 }
 	};
 
-	LNAGainField field_lna {
-		{ 18 * 8, 0 * 16 }
-	};
-
-	VGAGainField field_vga {
-		{ 21 * 8, 0 * 16 }
-	};
-
 	ReplayView replay_view {
 		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		"BBD_????", ReplayView::FileType::RawS16, 16384, 3
+		16384, 3
 	};
 
-	spectrum::WaterfallWidget waterfall;
+	spectrum::WaterfallWidget waterfall { };
 };
 
 } /* namespace ui */

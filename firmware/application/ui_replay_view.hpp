@@ -37,17 +37,10 @@ namespace ui {
 
 class ReplayView : public View {
 public:
-	std::function<void(std::string)> on_error;
-
-	enum FileType {
-		RawS16 = 2,
-		WAV = 3,
-	};
+	std::function<void(std::string)> on_error { };
 
 	ReplayView(
 		const Rect parent_rect,
-		std::string filename,
-		FileType file_type,
 		const size_t read_size,
 		const size_t buffer_count
 	);
@@ -55,7 +48,7 @@ public:
 
 	void focus() override;
 
-	void set_sampling_rate(const size_t new_sampling_rate);
+	void set_file_list(const std::vector<std::filesystem::path>& file_list);
 
 	void start();
 	void stop();
@@ -63,43 +56,53 @@ public:
 	bool is_active() const;
 
 private:
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	
+	static constexpr uint32_t sampling_rate = 4000000;
+	
 	void toggle();
 
+	void on_file_changed(const uint32_t duration);
 	void on_tick_second();
 	void update_status_display();
 
 	void handle_replay_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
-	const std::filesystem::path filename;
-	const FileType file_type;
 	const size_t read_size;
 	const size_t buffer_count;
-	size_t sampling_rate { 0 };
-	SignalToken signal_token_tick_second;
+	SignalToken signal_token_tick_second { };
+	options_t file_options { };
 
 	Rectangle rect_background {
 		Color::black()
 	};
 
-	ImageButton button_record {
-		{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
-		&bitmap_record,
-		Color::red(),
+	ImageButton button_play {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		&bitmap_play,
+		Color::green(),
 		Color::black()
 	};
 
-	Text text_replay_filename {
-		{ 7 * 8, 0 * 16, 8 * 8, 16 },
-		"",
+	OptionsField options_files {
+		{ 2 * 8, 0 * 8 },
+		8,
+		{ }
+	};
+	
+	Text text_duration {
+		{ 11 * 8, 0 * 8, 12 * 8, 16 },
+		"-"
 	};
 
-	Text text_time_seek {
-		{ 21 * 8, 0 * 16, 9 * 8, 16 },
+	/*Text text_time_seek {
+		{ 18 * 8, 0 * 16, 9 * 8, 16 },
 		"",
-	};
+	};*/
 
-	std::unique_ptr<ReplayThread> replay_thread;
+	std::unique_ptr<ReplayThread> replay_thread { };
 
 	MessageHandlerRegistration message_handler_capture_thread_error {
 		Message::ID::CaptureThreadDone,

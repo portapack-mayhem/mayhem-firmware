@@ -39,13 +39,17 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	//const auto& decimator_out = decim_1_out;
 	//const auto& channel = decimator_out;
 
-	//if( stream ) {
-	//	const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-	//	const auto result = stream->write(decimator_out.p, bytes_to_write);
-	//}
+	if( stream ) {
+		const size_t bytes_to_read = buffer.count;	// ?
+		const auto result = stream->read(iq_buffer.p, bytes_to_read);
+	}
 
 	//feed_channel_stats(channel);
-
+	
+	for (size_t i = 0; i < buffer.count; i++) {
+		buffer.p[i] = { iq_buffer.p[i].real() >> 8, iq_buffer.p[i].imag() >> 8};
+	}
+	
 	/*spectrum_samples += channel.count;
 	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
@@ -60,7 +64,7 @@ void ReplayProcessor::on_message(const Message* const message) {
 		channel_spectrum.on_message(message);
 		break;*/
 
-	case Message::ID::ReplayConfig:
+	case Message::ID::CaptureConfig:
 		replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));
 		break;
 

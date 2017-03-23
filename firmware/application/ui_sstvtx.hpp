@@ -43,6 +43,11 @@ class SSTVTXView : public View {
 public:
 	SSTVTXView(NavigationView& nav);
 	~SSTVTXView();
+	
+	SSTVTXView(const SSTVTXView&) = delete;
+	SSTVTXView(SSTVTXView&&) = delete;
+	SSTVTXView& operator=(const SSTVTXView&) = delete;
+	SSTVTXView& operator=(SSTVTXView&&) = delete;
 
 	void focus() override;
 	void paint(Painter&) override;
@@ -54,21 +59,26 @@ private:
 	
 	sstv_scanline scanline_buffer { };
 	
+	bool file_error { false };
 	File bmp_file { };
 	bmp_header_t bmp_header { };
 	std::vector<std::filesystem::path> bitmaps { };
-	bool file_error { false };
 	uint32_t scanline_counter { 0 };
 	uint8_t pixels_buffer[320 * 3];		// 320 pixels @ 24bpp
+	const sstv_mode * tx_sstv_mode { };
+	
+	uint8_t component_map[3] { };
 
 	void read_boundary(uint8_t * buffer, uint32_t position, uint32_t length);
-	void on_bitmap_changed(size_t index);
+	void on_bitmap_changed(const size_t index);
+	void on_mode_changed(const size_t index);
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void start_tx();
 	void prepare_scanline();
 	
 	Labels labels {
-		{ { 1 * 8, 1 * 8 }, "File:", Color::light_grey() }
+		{ { 1 * 8, 1 * 8 }, "File:", Color::light_grey() },
+		{ { 1 * 8, 3 * 8 }, "Mode:", Color::light_grey() }
 	};
 	
 	OptionsField options_bitmaps {
@@ -76,9 +86,10 @@ private:
 		16,
 		{ }
 	};
-	Text text_mode {
-		{ 2 * 8, 4 * 8, 16 * 8, 16 },
-		"Scottie 2"
+	OptionsField options_modes {
+		{ 6 * 8, 3 * 8 },
+		16,
+		{ }
 	};
 	
 	ProgressBar progressbar {

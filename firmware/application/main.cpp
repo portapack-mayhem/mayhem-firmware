@@ -23,13 +23,13 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: Length is wrong in soundboard for long files (> 1min ?)
 //BUG: RDS Radiotext is not recognized in Redsea (and car radio)
 //BUG: RDS doesn't stop baseband when stopping tx ?
 //BUG: Check AFSK transmit end, skips last bits ?
 
 //TEST: Imperial in whipcalc
 
+//TODO: IQ replay
 //TODO: Optimize (and group ?) CTCSS tone gen code
 //TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
@@ -49,7 +49,6 @@ Continuous (Fox-oring)
 //TODO: Script engine ?
 //TODO: Close Call multiple slices (buggy)
 //TODO: Finish EPAR tx
-//TODO: IQ replay
 //TODO: Wav visualizer
 
 //TODO: File browser view ?

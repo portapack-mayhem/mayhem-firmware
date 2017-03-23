@@ -50,7 +50,7 @@ private:
 	enum state_t {
 		STATE_CALIBRATION = 0,
 		STATE_VIS,
-		STATE_START,
+		STATE_SYNC,
 		STATE_PIXELS
 	};
 	
@@ -63,8 +63,6 @@ private:
 	uint32_t vis_code_sequence[10] { };
 	sstv_scanline scanline_buffer[2] { };
 	uint8_t buffer_flip { 0 }, substep { 0 };
-	
-	uint8_t vis_code { };
 	uint32_t pixel_duration { };
 
 	sstv_scanline * current_scanline { };
@@ -77,9 +75,7 @@ private:
     uint32_t sample_count { 0 };
 	uint32_t phase { 0 }, sphase { 0 };
 	int32_t tone_sample { 0 }, delta { 0 };
-	int8_t re { 0 }, im { 0 };
-	
-	bool asked { false };
+	int8_t re { }, im { };
 	
 	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
 };

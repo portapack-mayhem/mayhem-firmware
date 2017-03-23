@@ -34,8 +34,13 @@
 class StreamOutput {
 public:
 	StreamOutput(ReplayConfig* const config);
+	
+	StreamOutput(const StreamOutput&) = delete;
+	StreamOutput(StreamOutput&&) = delete;
+	StreamOutput& operator=(const StreamOutput&) = delete;
+	StreamOutput& operator=(StreamOutput&&) = delete;
 
-	size_t write(const void* const data, const size_t length);
+	size_t read(const void* const data, const size_t length);
 
 private:
 	static constexpr size_t buffer_count_max_log2 = 3;

@@ -319,6 +319,7 @@ public:
 	Result<Size> write(const void* const data, const Size bytes_to_write);
 
 	Result<Offset> seek(const uint64_t Offset);
+	Size size();
 
 	template<size_t N>
 	Result<Size> write(const std::array<uint8_t, N>& data) {

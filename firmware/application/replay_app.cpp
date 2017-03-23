@@ -21,6 +21,7 @@
  */
 
 #include "replay_app.hpp"
+#include "string_format.hpp"
 
 #include "baseband_api.hpp"
 
@@ -32,20 +33,31 @@ using namespace portapack;
 
 namespace ui {
 
-ReplayAppView::ReplayAppView(NavigationView& nav) {
-	baseband::run_image(portapack::spi_flash::image_tag_replay);
+ReplayAppView::ReplayAppView(
+	NavigationView& nav
+) : nav_ (nav)
+{
+	std::vector<std::filesystem::path> file_list;
+	
+	// Search for files
+	file_list = scan_root_files(u"/", u"*.C16");
+	if (!file_list.size()) {
+		file_error = true;
+		return;
+	}
+	
+	//baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
-		&channel,
 		&field_frequency,
 		&field_frequency_step,
 		&field_rf_amp,
-		&field_lna,
-		&field_vga,
 		&replay_view,
 		&waterfall,
 	});
-
+	
+	replay_view.set_file_list(file_list);
+	
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -66,17 +78,6 @@ ReplayAppView::ReplayAppView(NavigationView& nav) {
 		this->field_frequency.set_step(v);
 	};
 
-	radio::enable({
-		target_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Transmit,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga())
-	});
-
-	replay_view.set_sampling_rate(sampling_rate / 8);
 	replay_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
 	};

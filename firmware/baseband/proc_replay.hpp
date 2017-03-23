@@ -52,13 +52,13 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	//RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst;
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
+	std::array<complex16_t, 2048> iq { };
+	const buffer_c16_t iq_buffer {
+		iq.data(),
+		iq.size()
 	};
 
-	std::unique_ptr<StreamOutput> stream;
+	std::unique_ptr<StreamOutput> stream { };
 
 	/*SpectrumCollector channel_spectrum;
 	size_t spectrum_interval_samples = 0;
