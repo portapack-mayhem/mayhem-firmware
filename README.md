@@ -8,7 +8,7 @@ It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/
 
 # Documentation
 
-[READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)**
+[READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)
 
 # Summary
 
@@ -45,19 +45,19 @@ Morse TX    | 95% | Symbols need testing
 Mic. TX     | 95% | Need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
-SSTV TX     | 70% | Only Scottie 2. Needs more modes and better bitmap file handling
+SSTV TX     | 80% | Needs better bitmap file handling + testing
 EPAR TX     | 60% | Older Xy, low priority
 Sigfox RX   | 40% | Left aside, needs updates and testing
 ADS-B TX    | 40% | UI and frame gen stuff done
 Wave visualizer | 30% | High priority
+IQ replay   | 30% | High priority
 Whistle     | 20% | Easy
-IQ replay   | 10% | High priority
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
 SSTV RX     | 0%  |
 ADS-B RX    | 0%  | Could be fun
 Scanner     | 0%  | Easy
-SSB TX      | 0%  | Requested
+SSB TX      | 0%  | Requested but math is hard :(
 OOK RX      | 0%  | Mainly for 433MHz remotes
 AFSK RX     | 0%  | Shouldn't be too tough
 Analog TV TX| 0%  | Enough CPU ?
