@@ -86,7 +86,7 @@ private:
 		flags flag;
 	} credits_t;
 	
-	const credits_t credits[13] = {	{"Portapack|HAVOC", 	"Git hash " GIT_REVISION,	SECTION},
+	const credits_t credits[14] = {	{"Portapack|HAVOC", 	"Git hash " GIT_REVISION,	SECTION},
 									{"Gurus",				"J. Boone", 				TITLE},
 									{"M. Ossmann",			"", 						MEMBER_LF},
 									{"Immaturity",			"Furrtek", 					TITLE_LF},
@@ -96,6 +96,7 @@ private:
 									{"Xy. infos",			"cLx", 						TITLE_LF},
 									{"Thanks",				"",							SECTION},
 									{"Rainer Matla",		"Keld Norman",				TITLE},
+									{"Giorgio Campiotti",	"DC1RDB",					TITLE},
 									{"Sigmounte",			"Waax",						TITLE},
 									{"Windyoona",			"Channels",					TITLE_LF},
 									{"",					"MMXVII",					END}

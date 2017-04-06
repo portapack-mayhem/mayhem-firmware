@@ -97,6 +97,10 @@ File::Result<File::Offset> File::seek(const Offset new_position) {
 	return { static_cast<File::Offset>(old_position) };
 }
 
+File::Size File::size() {
+	return { static_cast<File::Size>(f_size(&f)) };
+}
+
 Optional<File::Error> File::write_line(const std::string& s) {
 	const auto result_s = write(s.c_str(), s.size());
 	if( result_s.is_error() ) {
