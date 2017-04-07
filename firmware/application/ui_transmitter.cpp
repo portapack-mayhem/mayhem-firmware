@@ -22,6 +22,8 @@
 
 #include "ui_transmitter.hpp"
 
+#include "audio.hpp"
+#include "baseband_api.hpp"
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -117,8 +119,8 @@ TransmitterView::TransmitterView(
 		field_frequency.set_style(&style_locked);
 	} else {
 		add_children({
-			&field_bw,
-			&text_kHz
+			&text_bw,
+			&field_bw
 		});
 		
 		field_bw.on_change = [this](int32_t bandwidth) {
@@ -152,11 +154,9 @@ TransmitterView::TransmitterView(
 }
 
 TransmitterView::~TransmitterView() {
-	/*audio::output::stop();
-
+	audio::output::stop();
 	transmitter_model.disable();
-
-	baseband::shutdown();*/
+	baseband::shutdown();
 }
 
 } /* namespace ui */

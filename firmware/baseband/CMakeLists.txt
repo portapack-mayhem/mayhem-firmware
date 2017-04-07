@@ -432,7 +432,7 @@ add_custom_command(
 	VERBATIM
 )
 
-#set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
+set(BASEBAND_IMAGES ${BASEBAND_IMAGES} hackrf.img)
 
 ### Terminator image
 
@@ -443,7 +443,7 @@ add_custom_command(
 	VERBATIM
 )
 
-#set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
+set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
 
 #######################################################################
 

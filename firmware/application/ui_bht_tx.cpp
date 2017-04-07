@@ -45,43 +45,41 @@ void BHTView::generate_message() {
 	uint8_t ccir_message[20];
 	uint32_t c;
 	
-	if (!_mode) {
-		if (tx_mode == SINGLE) {
+	if (tx_mode == SINGLE) {
 		text_message.set(
 			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), family_code_xy.value(), 
 							checkbox_wcsubfamily.value(), subfamily_code.value(), checkbox_wcid.value(), receiver_code.value(),
 							relay_states[0].selected_index(), relay_states[1].selected_index(), 
 							relay_states[2].selected_index(), relay_states[3].selected_index())
 		);
-		}/* else if (tx_mode == SEQUENCE) {
-			// sequence_lille_matin
-			for (c = 0; c < 20; c++) {
-				if (sequence_lille_matin[seq_index].code[c] <= 9)
-					ccir_message[c] = sequence_lille_matin[seq_index].code[c] - '0';
-				else
-					ccir_message[c] = sequence_lille_matin[seq_index].code[c] - 'A' + 10;
-			}
-			
-			// Copy for baseband
-			memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
-
-			text_message.set(sequence_lille_matin[seq_index].code);
-			text_message.set_dirty();
-		}*/
+	} else if (tx_mode == SEQUENCE) {
+		for (c = 0; c < 20; c++) {
+			if (sequence_matin[seq_index].code[c] <= '9')
+				ccir_message[c] = sequence_matin[seq_index].code[c] - '0';
+			else
+				ccir_message[c] = sequence_matin[seq_index].code[c] - 'A' + 10;
+		}
 		
-	} else {
+		// Replace repeats with E code
+		for (c = 1; c < 20; c++)
+			if (ccir_message[c] == ccir_message[c - 1]) ccir_message[c] = 14;
+		
+		// Copy for baseband
+		memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
+
+		text_message.set(sequence_matin[seq_index].code);
+		//text_message.set_dirty();
+	}
 
 	/*else {
-		text_message.set(
-			gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
-							relay_states[0].selected_index(), relay_states[1].selected_index())
-		);*/
-	}
+	text_message.set(
+		gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
+						relay_states[0].selected_index(), relay_states[1].selected_index())
+	);*/
 }
 
 void BHTView::start_tx() {
-	if (speaker_enabled && !_mode)
-		audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+	uint8_t c;
 	
 	generate_message();
 	
@@ -92,24 +90,21 @@ void BHTView::start_tx() {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	// Setup for Xy
-	for (uint8_t c = 0; c < 16; c++) {
+	// Setup tones for Xy
+	for (c = 0; c < 16; c++) {
 		shared_memory.bb_data.tones_data.tone_defs[c].delta = ccir_deltas[c];
 		shared_memory.bb_data.tones_data.tone_defs[c].duration = XY_TONE_LENGTH;
 	}
 	
-	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(transmitter_model.bandwidth(), XY_SILENCE, 20, false, checkbox_speaker.value());
+	baseband::set_tones_data(transmitter_model.bandwidth(), XY_SILENCE, 20, false, false);
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
-	size_t c;
-	uint8_t sr;
+	uint32_t c;
+	uint8_t rs;
 	
 	if (tx_mode == SINGLE) {
 		if (done) {
-			audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
-			
 			transmitter_model.disable();
 			progressbar.set_value(0);
 			
@@ -119,11 +114,9 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 			} else {
 				chThdSleepMilliseconds(tempo_cligno.value() * 1000);	// Dirty :(
 				
-				// Invert all relay states
-				for (c = 0; c < 1; c++) {
-					sr = relay_states[c].selected_index();
-					if (sr > 0) relay_states[c].set_selected_index(sr ^ 3);
-				}
+				// Invert first relay's state
+				rs = relay_states[0].selected_index();
+				if (rs > 0) relay_states[0].set_selected_index(rs ^ 3);
 				
 				generate_message();
 				start_tx();
@@ -131,15 +124,27 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 		} else {
 			progressbar.set_value(progress);
 		}
-	}/* else if (tx_mode == SEQUENCE) {
+	} else if (tx_mode == SEQUENCE) {
 		if (done) {
 			transmitter_model.disable();
-			chThdSleepMilliseconds(sequence_lille_matin[seq_index].delay * 1000);
-			seq_index++;
-			generate_message();
-			start_tx();
+			progressbar.set_value(0);
+			
+			if (seq_index < 13) {
+				for (c = 0; c < sequence_matin[seq_index].delay; c++)
+					chThdSleepMilliseconds(1000);
+				
+				seq_index++;
+				
+				generate_message();
+				start_tx();
+			} else {
+				tx_mode = IDLE;
+				tx_view.set_transmitting(false);
+			}
+		} else {
+			progressbar.set_value(progress);
 		}
-	}*/
+	}
 }
 
 BHTView::BHTView(NavigationView& nav) {
@@ -153,8 +158,6 @@ BHTView::BHTView(NavigationView& nav) {
 		&options_mode,
 		&header_code_a,
 		&header_code_b,
-		&checkbox_speaker,
-		&bmp_speaker,
 		&city_code_xy,
 		&family_code_xy,
 		&subfamily_code,
@@ -173,16 +176,15 @@ BHTView::BHTView(NavigationView& nav) {
 	header_code_a.set_value(0);
 	header_code_b.set_value(0);
 	city_code_xy.set_value(10);
-	city_code_ep.set_value(220);
+	//city_code_ep.set_value(220);
 	family_code_xy.set_value(1);
-	family_code_ep.set_selected_index(2);
+	//family_code_ep.set_selected_index(2);
 	subfamily_code.set_value(1);
 	receiver_code.set_value(1);
-	tempo_cligno.set_value(1);
+	tempo_cligno.set_value(0);
 	progressbar.set_max(20);
-	relay_states[0].set_selected_index(1);		// R1 OFF
 	
-	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
+/*	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
 		_mode = mode;
 		
 		if (_mode) {
@@ -229,46 +231,28 @@ BHTView::BHTView(NavigationView& nav) {
 			set_dirty();
 		};
 		generate_message();
-	};
+	};*/
 	
-	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
-		speaker_enabled = v;
-	};
-	
-	header_code_a.on_change = [this](int32_t) {
-		generate_message();
-	};
-	header_code_b.on_change = [this](int32_t) {
-		generate_message();
-	};
-	city_code_xy.on_change = [this](int32_t) {
-		generate_message();
-	};
-	family_code_xy.on_change = [this](int32_t) {
-		generate_message();
-	};
-	subfamily_code.on_change = [this](int32_t) {
-		generate_message();
-	};
-	receiver_code.on_change = [this](int32_t) {
-		generate_message();
-	};
+	header_code_a.on_change = [this](int32_t) { generate_message(); };
+	header_code_b.on_change = [this](int32_t) { generate_message(); };
+	city_code_xy.on_change = [this](int32_t) { generate_message(); };
+	family_code_xy.on_change = [this](int32_t) { generate_message(); };
+	subfamily_code.on_change = [this](int32_t) { generate_message(); };
+	receiver_code.on_change = [this](int32_t) { generate_message(); };
 	
 	checkbox_wcsubfamily.on_select = [this](Checkbox&, bool v) {
-		if (v) {
+		if (v)
 			subfamily_code.set_focusable(false);
-		} else {
+		else
 			subfamily_code.set_focusable(true);
-		}
 		generate_message();
 	};
 	
 	checkbox_wcid.on_select = [this](Checkbox&, bool v) {
-		if (v) {
+		if (v)
 			receiver_code.set_focusable(false);
-		} else {
+		else
 			receiver_code.set_focusable(true);
-		}
 		generate_message();
 	};
 	
@@ -284,7 +268,7 @@ BHTView::BHTView(NavigationView& nav) {
 		relay_state.on_change = relay_state_fn;
 		relay_state.set_parent_rect({
 			static_cast<Coord>(4 + (n * 36)),
-			158,
+			150,
 			24, 24
 		});
 		relay_state.set_options(relay_options);
@@ -302,7 +286,7 @@ BHTView::BHTView(NavigationView& nav) {
 	};
 	
 	button_seq.on_select = [this, &nav](Button&) {
-		if ((tx_mode == IDLE) && (!_mode)) {
+		if (tx_mode == IDLE) {
 			seq_index = 0;
 			tx_mode = SEQUENCE;
 			tx_view.set_transmitting(true);
@@ -311,9 +295,7 @@ BHTView::BHTView(NavigationView& nav) {
 	};
 	
 	tx_view.on_start = [this]() {
-		if ((tx_mode == IDLE) && (!_mode)) {
-			if (speaker_enabled && _mode)
-				audio::headphone::set_volume(volume_t::decibel(90 - 99) + audio::headphone::volume_range().max);
+		if (tx_mode == IDLE) {
 			tx_mode = SINGLE;
 			tx_view.set_transmitting(true);
 			start_tx();

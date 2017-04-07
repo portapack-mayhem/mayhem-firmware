@@ -161,6 +161,7 @@ set(CPPSRC
 	ui_bht_tx.cpp
 	ui_channel.cpp
 	ui_closecall.cpp
+	ui_coasterp.cpp
 	ui_cw.cpp
 	ui_debug.cpp
 	ui_encoders.cpp

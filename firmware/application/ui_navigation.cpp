@@ -33,6 +33,7 @@
 #include "ui_adsbtx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_closecall.hpp"
+#include "ui_coasterp.hpp"
 #include "ui_cw.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
@@ -304,11 +305,12 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 /* TransmitterCodedMenuView ******************************************************/
 
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
-	add_items<8>({ {
+	add_items<9>({ {
 		{ "ADS-B Mode S", 			ui::Color::orange(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::yellow(),&bitmap_icon_bht,	[&nav](){ nav.push<BHTView>(); } },
 		{ "Morse code", 			ui::Color::green(),	&bitmap_icon_morse,	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),	&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
+		{ "NTTWorks burger pager", 	ui::Color::orange(), &bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),	&bitmap_icon_rds,	[&nav](){ nav.push<RDSView>(); } },
@@ -333,11 +335,11 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 
 UtilitiesView::UtilitiesView(NavigationView& nav) {
 	add_items<5>({ {
-		{ "Frequency manager", 		ui::Color::green(), nullptr,			[&nav](){ nav.push<FreqManView>(); } },
-		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,	[&nav](){ nav.push<CWTXView>(); } },
-		{ "Whip antenna length",	ui::Color::yellow(),nullptr,			[&nav](){ nav.push<WhipCalcView>(); } },
-		{ "Notepad",				ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Wipe SD card",			ui::Color::red(),	nullptr,			[&nav](){ nav.push<WipeSDView>(); } },
+		{ "Frequency manager", 		ui::Color::green(), &bitmap_icon_freqman,	[&nav](){ nav.push<FreqManView>(); } },
+		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,		[&nav](){ nav.push<CWTXView>(); } },
+		{ "Whip antenna length",	ui::Color::yellow(),nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
+		{ "Notepad",				ui::Color::grey(),	&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Wipe SD card",			ui::Color::red(),	nullptr,				[&nav](){ nav.push<WipeSDView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

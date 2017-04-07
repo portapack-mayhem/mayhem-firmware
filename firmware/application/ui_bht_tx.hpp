@@ -32,8 +32,6 @@
 
 #include "bht.hpp"
 #include "message.hpp"
-#include "volume.hpp"
-#include "audio.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
 #include "portapack.hpp"
@@ -72,7 +70,7 @@ private:
 2017-03-03 07:15:05	0001181AAAB1000B0000	18:1:A:AA	
 2017-03-03 07:15:22	0001189400B0100B0000	18:9:4:00	 R2=OFF (8)	
 */
-	const sequence_t sequence_lille_matin[14] = {
+	const sequence_t sequence_matin[14] = {
 		{ "0000189000B1002B0000", 19 }, // 18:9:0:00	 R1=OFF (1)	
 		{ "0000189200B2110B0000", 16 },	// 18:9:2:00	 R1=ON  (4)	
 		{ "0000189200B1110B0000", 52 },	// 18:9:2:00	 R1=OFF (4)	
@@ -96,9 +94,6 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
-	
-	bool speaker_enabled = false;
-	size_t _mode = 0;
 	
 	void start_tx();
 	void generate_message();
@@ -126,8 +121,8 @@ private:
 		{ { 7 * 8, 7 * 8 }, "Famille:", Color::light_grey() },
 		{ { 2 * 8, 9 * 8 + 2 }, "Sous-famille:", Color::light_grey() },
 		{ { 2 * 8, 13 * 8 }, "ID recepteur:", Color::light_grey() },
-		{ { 1 * 8, 17 * 8 }, "Relais:", Color::light_grey() },
-		{ { 27 * 8 + 4, 20 * 8 + 4 }, "s.", Color::light_grey() }
+		{ { 1 * 8, 16 * 8 }, "Relais:", Color::light_grey() },
+		{ { 27 * 8 + 4, 19 * 8 + 4 }, "s.", Color::light_grey() }
 	};
 	
 	OptionsField options_mode {
@@ -137,18 +132,6 @@ private:
 			{ "Mode Xy.", 0 },
 			{ "Mode EP.", 1 }
 		}
-	};
-	
-	Checkbox checkbox_speaker {
-		{ 22 * 8, 4 },
-		0,
-		""
-	};
-	Image bmp_speaker {
-		{ 204, 8, 16, 16 },
-		&bitmap_icon_speaker,
-		ui::Color::white(),
-		ui::Color::black()
 	};
 	
 	NumberField header_code_a {
@@ -173,13 +156,13 @@ private:
 		1,
 		' '
 	};
-	NumberField city_code_ep {
+	/*NumberField city_code_ep {
 		{ 16 * 8, 5 * 8 },
 		3,
 		{ 0, 255 },
 		1,
 		' '
-	};
+	};*/
 	
 	NumberField family_code_xy {
 		{ 16 * 8, 7 * 8 },
@@ -188,7 +171,7 @@ private:
 		1,
 		' '
 	};
-	OptionsField family_code_ep {
+	/*OptionsField family_code_ep {
 		{ 16 * 8, 7 * 8 },
 		2,
 		{
@@ -197,7 +180,7 @@ private:
 			{ "C ", 0 },
 			{ "TP", 3 }
 		}
-	};
+	};*/
 	
 	NumberField subfamily_code {
 		{ 16 * 8, 9 * 8 + 2 },
@@ -234,20 +217,20 @@ private:
 	};
 	
 	ProgressBar progressbar {
-		{ 5 * 8, 13 * 16, 20 * 8, 16 },
+		{ 5 * 8, 12 * 16, 20 * 8, 16 },
 	};
 	Text text_message {
-		{ 5 * 8, 14 * 16, 20 * 8, 16 },
+		{ 5 * 8, 13 * 16, 20 * 8, 16 },
 		""
 	};
 	
 	Checkbox checkbox_cligno {
-		{ 18 * 8 + 4, 10 * 16},
+		{ 18 * 8 + 4, 19 * 8 },
 		3,
-		"J/N"
+		"Alt"
 	};
 	NumberField tempo_cligno {
-		{ 25 * 8 + 4, 10 * 16 + 4},
+		{ 25 * 8 + 4, 19 * 8 + 4 },
 		2,
 		{ 1, 99 },
 		1,
@@ -255,7 +238,7 @@ private:
 	};
 	
 	Button button_seq {
-		{ 210, 210, 30, 30 },
+		{ 210, 13 * 16, 32, 32 },
 		"SQ"
 	};
 	

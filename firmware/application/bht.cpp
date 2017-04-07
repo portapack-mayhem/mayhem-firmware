@@ -131,7 +131,7 @@ std::string gen_message_xy(size_t header_code_a, size_t header_code_b, size_t ci
 	// Copy for baseband
 	memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
 	
-	// Return as text
+	// Return as text for display
 	return ccir_to_ascii(ccir_message);
 }
 

@@ -34,7 +34,6 @@
 //TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
 /*
-Keying speed: 60 or 75 PARIS
 Continuous (Fox-oring)
 12s transmit, 48s space (Sprint 1/5th) 
 60s transmit, 240s space (Classic 1/5 min) 
@@ -48,7 +47,6 @@ Continuous (Fox-oring)
 //TODO: FreqMan: Cap entry count per category (only done for total entries right now)
 //TODO: Script engine ?
 //TODO: Close Call multiple slices (buggy)
-//TODO: Finish EPAR tx
 //TODO: Wav visualizer
 
 //TODO: File browser view ?
@@ -56,7 +54,7 @@ Continuous (Fox-oring)
 //TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
 //TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
 //TODO: Analog TV tx with camcorder font character generator
-//TODO: Make Morse coder and Whistle use proc_tones
+//TODO: Make Whistle use proc_tones
 //TODO: RDS multiple groups (sequence)
 //TODO: Use ModalMessageView confirmation for TX ?
 //TODO: Show address/data bit fields in OOK TX
@@ -68,23 +66,17 @@ Continuous (Fox-oring)
 //TODO: AFSK receiver
 //TODO: CTCSS detector
 //TODO: DMR detector
-
 //TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
 //TODO: Bodet :)
-
 //TODO: LCR full message former (see norm)
 //TODO: AFSK NRZI
-
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
-
 //BUG (fixed ?): No audio in about when shown second time
-
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 //BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-//TODO: Draw on touchscreen and transmit as spectrum paint
 //TODO: Two players tic-tac-toe
 //TODO: Analog TV pong game
 

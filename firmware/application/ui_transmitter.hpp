@@ -88,31 +88,31 @@ private:
 	bool transmitting_ { false };
 	
 	FrequencyField field_frequency {
-		{ 4, 1 * 8 }
+		{ 0, 1 * 8 }
 	};
 	
 	Text text_gain {
-		{ 0 * 8, 3 * 8, 5 * 8, 1 * 16 },
+		{ 0, 3 * 8, 5 * 8, 1 * 16 },
 		"Gain:"
 	};
 	TXGainField field_gain {
 		{ 5 * 8, 3 * 8 }
 	};
 	
+	Text text_bw {
+		{ 11 * 8, 1 * 8, 9 * 8, 1 * 16 },
+		"BW:   kHz"
+	};
 	NumberField field_bw {
-		{ 13 * 8, 1 * 8 },
+		{ 14 * 8, 1 * 8 },
 		3,
 		{ 1, 150 },
 		1,
 		' '
 	};
-	Text text_kHz {
-		{ 16 * 8, 1 * 8, 3 * 8, 1 * 16 },
-		"kHz"
-	};
 	
 	Button button_start {
-		{ 20 * 8, 1 * 8, 9 * 8, 32 },
+		{ 21 * 8, 1 * 8, 9 * 8, 32 },
 		"START"
 	};
 
