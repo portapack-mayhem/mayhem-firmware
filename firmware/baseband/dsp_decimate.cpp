@@ -21,6 +21,8 @@
 
 #include "dsp_decimate.hpp"
 
+#include "simd.hpp"
+
 #include <hal.h>
 
 namespace dsp {
@@ -566,39 +568,39 @@ buffer_c16_t DecimateBy2CIC3::execute(
 	uint32_t t1 = _iq0;
 	uint32_t t2 = _iq1;
 	const uint32_t taps = 0x00000003;
-	auto s = src.p;
-	auto d = dst.p;
-	const auto d_end = &dst.p[src.count / 2];
+	auto s = simd32_ptr(&src.p[0]);
+	auto d = simd32_ptr(&dst.p[0]);
+	const auto d_end = simd32_ptr(&dst.p[src.count / 2]);
 	while(d < d_end) {
 		uint32_t i = __SXTH(t1, 0);			/* 1: I0 */
 		uint32_t q = __SXTH(t1, 16);			/* 1: Q0 */
 		i = __SMLABB(t2, taps, i);	/* 1: I1*3 + I0 */
 		q = __SMLATB(t2, taps, q);	/* 1: Q1*3 + Q0 */
 
-		const uint32_t t3 = *__SIMD32(s)++;		/* 3: Q2:I2 */
-		const uint32_t t4 = *__SIMD32(s)++;		/*    Q3:I3 */
+		const uint32_t t3 = *(s++);		/* 3: Q2:I2 */
+		const uint32_t t4 = *(s++);		/*    Q3:I3 */
 
 		i = __SMLABB(t3, taps, i);	/* 1: I2*3 + I1*3 + I0 */
 		q = __SMLATB(t3, taps, q);	/* 1: Q2*3 + Q1*3 + Q0 */
 		int32_t si0 = __SXTAH(i, t4,  0);		/* 1: I3 + Q2*3 + Q1*3 + Q0 */
 		int32_t sq0 = __SXTAH(q, t4, 16);		/* 1: Q3 + Q2*3 + Q1*3 + Q0 */
 		i = __BFI(si0 / 8, sq0 / 8, 16, 16);	/* 1: D2_Q0:D2_I0 */
-		*__SIMD32(d)++ = i;			/* D2_Q0:D2_I0 */
+		*(d++) = i;			/* D2_Q0:D2_I0 */
 
 		i = __SXTH(t3, 0);			/* 1: I2 */
 		q = __SXTH(t3, 16);			/* 1: Q2 */
 		i = __SMLABB(t4, taps, i);	/* 1: I3*3 + I2 */
 		q = __SMLATB(t4, taps, q);	/* 1: Q3*3 + Q2 */
 
-		t1 = *__SIMD32(s)++;		/* 3: Q4:I4 */
-		t2 = *__SIMD32(s)++;		/*    Q5:I5 */
+		t1 = *(s++);		/* 3: Q4:I4 */
+		t2 = *(s++);		/*    Q5:I5 */
 
 		i = __SMLABB(t1, taps, i);	/* 1: I4*3 + I3*3 + I2 */
 		q = __SMLATB(t1, taps, q);	/* 1: Q4*3 + Q3*3 + Q2 */
 		int32_t si1 = __SXTAH(i, t2, 0) ;		/* 1: I5 + Q4*3 + Q3*3 + Q2 */
 		int32_t sq1 = __SXTAH(q, t2, 16);		/* 1: Q5 + Q4*3 + Q3*3 + Q2 */
 		i = __BFI(si1 / 8, sq1 / 8, 16, 16);	/* 1: D2_Q1:D2_I1 */
-		*__SIMD32(d)++ = i;			/* D2_Q1:D2_I1 */
+		*(d++) = i;			/* D2_Q1:D2_I1 */
 	}
 	_iq0 = t1;
 	_iq1 = t2;
@@ -665,57 +667,57 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 	const auto output_sampling_rate = src.sampling_rate / decimation_factor_;
 	const size_t output_samples = src.count / decimation_factor_;
 	
-	sample_t* dst_p = dst.p;
+	auto dst_p = simd32_ptr(dst.p);
 	const buffer_c16_t result { dst.p, output_samples, output_sampling_rate };
 
-	const sample_t* src_p = src.p;
+	auto src_p = simd32_ptr(src.p);
 	size_t outer_count = output_samples;
 	while(outer_count > 0) {
 		/* Put new samples into delay buffer */
-		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
+		auto z_new_p = simd32_ptr(&samples_[taps_count_ - decimation_factor_]);
 		for(size_t i=0; i<decimation_factor_; i++) {
-			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
+			*(z_new_p++) = *(src_p++);
 		}
 
 		size_t loop_count = taps_count_ / 8;
-		auto t_p = &taps_reversed_[0];
-		auto z_p = &samples_[0];
+		auto t_p = simd32_ptr(&taps_reversed_[0]);
+		auto z_p = simd32_ptr(&samples_[0]);
 
 		int64_t t_real = 0;
 		int64_t t_imag = 0;
 
 		while(loop_count > 0) {
-			const auto tap0 = *__SIMD32(t_p)++;
-			const auto sample0 = *__SIMD32(z_p)++;
-			const auto tap1 = *__SIMD32(t_p)++;
-			const auto sample1 = *__SIMD32(z_p)++;
+			const auto tap0 = *(t_p++);
+			const auto sample0 = *(z_p++);
+			const auto tap1 = *(t_p++);
+			const auto sample1 = *(z_p++);
 			t_real = __SMLSLD(sample0, tap0, t_real);
 			t_imag = __SMLALDX(sample0, tap0, t_imag);
 			t_real = __SMLSLD(sample1, tap1, t_real);
 			t_imag = __SMLALDX(sample1, tap1, t_imag);
 
-			const auto tap2 = *__SIMD32(t_p)++;
-			const auto sample2 = *__SIMD32(z_p)++;
-			const auto tap3 = *__SIMD32(t_p)++;
-			const auto sample3 = *__SIMD32(z_p)++;
+			const auto tap2 = *(t_p++);
+			const auto sample2 = *(z_p++);
+			const auto tap3 = *(t_p++);
+			const auto sample3 = *(z_p++);
 			t_real = __SMLSLD(sample2, tap2, t_real);
 			t_imag = __SMLALDX(sample2, tap2, t_imag);
 			t_real = __SMLSLD(sample3, tap3, t_real);
 			t_imag = __SMLALDX(sample3, tap3, t_imag);
 
-			const auto tap4 = *__SIMD32(t_p)++;
-			const auto sample4 = *__SIMD32(z_p)++;
-			const auto tap5 = *__SIMD32(t_p)++;
-			const auto sample5 = *__SIMD32(z_p)++;
+			const auto tap4 = *(t_p++);
+			const auto sample4 = *(z_p++);
+			const auto tap5 = *(t_p++);
+			const auto sample5 = *(z_p++);
 			t_real = __SMLSLD(sample4, tap4, t_real);
 			t_imag = __SMLALDX(sample4, tap4, t_imag);
 			t_real = __SMLSLD(sample5, tap5, t_real);
 			t_imag = __SMLALDX(sample5, tap5, t_imag);
 
-			const auto tap6 = *__SIMD32(t_p)++;
-			const auto sample6 = *__SIMD32(z_p)++;
-			const auto tap7 = *__SIMD32(t_p)++;
-			const auto sample7 = *__SIMD32(z_p)++;
+			const auto tap6 = *(t_p++);
+			const auto sample6 = *(z_p++);
+			const auto tap7 = *(t_p++);
+			const auto sample7 = *(z_p++);
 			t_real = __SMLSLD(sample6, tap6, t_real);
 			t_imag = __SMLALDX(sample6, tap6, t_imag);
 			t_real = __SMLSLD(sample7, tap7, t_real);
@@ -731,7 +733,7 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 		const int32_t i = t_imag >> 16;
 		const int32_t r_sat = __SSAT(r, 16);
 		const int32_t i_sat = __SSAT(i, 16);
-		*__SIMD32(dst_p)++ = __PKHBT(
+		*(dst_p++) = __PKHBT(
 			r_sat,
 			i_sat,
 			16
@@ -741,14 +743,14 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 		const size_t unroll_factor = 4;
 		size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;
 
-		sample_t* t = &samples_[0];
-		const sample_t* s = &samples_[decimation_factor_];
+		auto t = simd32_ptr(&samples_[0]);
+		auto s = simd32_ptr(&samples_[decimation_factor_]);
 		
 		while(shift_count > 0) {
-			*__SIMD32(t)++ = *__SIMD32(s)++;
-			*__SIMD32(t)++ = *__SIMD32(s)++;
-			*__SIMD32(t)++ = *__SIMD32(s)++;
-			*__SIMD32(t)++ = *__SIMD32(s)++;
+			*(t++) = *(s++);
+			*(t++) = *(s++);
+			*(t++) = *(s++);
+			*(t++) = *(s++);
 			shift_count--;
 		}
 

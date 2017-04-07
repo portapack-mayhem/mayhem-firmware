@@ -42,18 +42,40 @@ BHTView::~BHTView() {
 }
 
 void BHTView::generate_message() {
+	uint8_t ccir_message[20];
+	uint32_t c;
+	
 	if (!_mode) {
+		if (tx_mode == SINGLE) {
 		text_message.set(
 			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), family_code_xy.value(), 
 							checkbox_wcsubfamily.value(), subfamily_code.value(), checkbox_wcid.value(), receiver_code.value(),
 							relay_states[0].selected_index(), relay_states[1].selected_index(), 
 							relay_states[2].selected_index(), relay_states[3].selected_index())
 		);
+		}/* else if (tx_mode == SEQUENCE) {
+			// sequence_lille_matin
+			for (c = 0; c < 20; c++) {
+				if (sequence_lille_matin[seq_index].code[c] <= 9)
+					ccir_message[c] = sequence_lille_matin[seq_index].code[c] - '0';
+				else
+					ccir_message[c] = sequence_lille_matin[seq_index].code[c] - 'A' + 10;
+			}
+			
+			// Copy for baseband
+			memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
+
+			text_message.set(sequence_lille_matin[seq_index].code);
+			text_message.set_dirty();
+		}*/
+		
 	} else {
+
+	/*else {
 		text_message.set(
 			gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
 							relay_states[0].selected_index(), relay_states[1].selected_index())
-		);
+		);*/
 	}
 }
 
@@ -109,7 +131,15 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 		} else {
 			progressbar.set_value(progress);
 		}
-	}
+	}/* else if (tx_mode == SEQUENCE) {
+		if (done) {
+			transmitter_model.disable();
+			chThdSleepMilliseconds(sequence_lille_matin[seq_index].delay * 1000);
+			seq_index++;
+			generate_message();
+			start_tx();
+		}
+	}*/
 }
 
 BHTView::BHTView(NavigationView& nav) {
@@ -135,6 +165,7 @@ BHTView::BHTView(NavigationView& nav) {
 		&text_message,
 		&checkbox_cligno,
 		&tempo_cligno,
+		&button_seq,		// Sequence
 		&tx_view
 	});
 	
@@ -268,6 +299,15 @@ BHTView::BHTView(NavigationView& nav) {
 		new_view->on_changed = [this](rf::Frequency f) {
 			receiver_model.set_tuning_frequency(f);
 		};
+	};
+	
+	button_seq.on_select = [this, &nav](Button&) {
+		if ((tx_mode == IDLE) && (!_mode)) {
+			seq_index = 0;
+			tx_mode = SEQUENCE;
+			tx_view.set_transmitting(true);
+			start_tx();
+		}
 	};
 	
 	tx_view.on_start = [this]() {
