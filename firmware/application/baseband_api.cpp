@@ -79,7 +79,12 @@ void WFMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_48000);
 }
 
-void set_tones_data(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count,
+void set_tone(const uint32_t index, const uint32_t delta, const uint32_t duration) {
+	shared_memory.bb_data.tones_data.tone_defs[index].delta = delta;
+	shared_memory.bb_data.tones_data.tone_defs[index].duration = duration;
+}
+
+void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count,
 					const bool dual_tone, const bool audio_out) {
 	const TonesConfigureMessage message {
 		bw,

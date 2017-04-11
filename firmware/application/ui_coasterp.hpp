@@ -44,7 +44,8 @@ public:
 private:
 	enum tx_modes {
 		IDLE = 0,
-		SINGLE
+		SINGLE,
+		SCAN
 	};
 	
 	tx_modes tx_mode = IDLE;
@@ -54,17 +55,18 @@ private:
 	void on_tx_progress(const int progress, const bool done);
 	
 	Labels labels {
-		{ { 1 * 8, 3 * 8 }, "Data:", Color::light_grey() }
+		{ { 1 * 8, 3 * 8 }, "Syscall pager TX beta", Color::light_grey() },
+		{ { 1 * 8, 8 * 8 }, "Data:", Color::light_grey() }
 	};
 	
 	SymField sym_data {
-		{ 6 * 8, 3 * 8 },
+		{ 7 * 8, 8 * 8 },
 		16,		// 14 ? 12 ?
 		SymField::SYMFIELD_HEX
 	};
 	
 	Checkbox checkbox_scan {
-		{ 10 * 8, 8 * 8 },
+		{ 10 * 8, 14 * 8 },
 		4,
 		"Scan"
 	};

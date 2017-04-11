@@ -42,6 +42,7 @@ struct bht_city {
 //const rf::Frequency bht_freqs[7] = { 31325000, 31387500, 31437500, 31475000, 31687500, 31975000, 88000000 };
 
 std::string gen_message_ep(uint8_t city_code, size_t family_code_ep, uint32_t relay_state_A, uint32_t relay_state_B);
+std::string gen_message_xy(const std::string& code);
 std::string gen_message_xy(size_t header_code_a, size_t header_code_b, size_t city_code, size_t family_code,
 							bool subfamily_wc, size_t subfamily_code, bool id_wc, size_t receiver_code,
 							size_t relay_state_A, size_t relay_state_B, size_t relay_state_C, size_t relay_state_D);

@@ -78,11 +78,36 @@ std::string gen_message_ep(uint8_t city_code, size_t family_code_ep, uint32_t re
 	return ep_message;
 }
 
+std::string gen_message_xy(const std::string& ascii_code) {
+	std::string local_code = ascii_code;
+	uint8_t ccir_message[20];
+	uint8_t translate;
+	uint32_t c;
+	
+	// Replace repeats with E code
+	for (c = 1; c < 20; c++)
+		if (local_code[c] == local_code[c - 1]) local_code[c] = 'E';
+		
+	for (c = 0; c < 20; c++) {
+		if (local_code[c] <= '9')
+			translate = local_code[c] - '0';
+		else
+			translate = local_code[c] - 'A' + 10;
+		ccir_message[c] = (translate < 16) ? translate : 0;		// Sanitize
+	}
+	
+	// Copy for baseband
+	memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
+	
+	// Return as text for display
+	return local_code;
+}
+
 std::string gen_message_xy(size_t header_code_a, size_t header_code_b, size_t city_code, size_t family_code,
 							bool subfamily_wc, size_t subfamily_code, bool id_wc, size_t receiver_code,
 							size_t relay_state_A, size_t relay_state_B, size_t relay_state_C, size_t relay_state_D) {
-	size_t c;
 	uint8_t ccir_message[20];
+	size_t c;
 	
 	// Xy CCIR frame
 

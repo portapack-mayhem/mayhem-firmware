@@ -37,10 +37,9 @@ size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
 	size_t i, c;
 	uint16_t code, code_size;
 	uint8_t morse_message[256];
+	uint32_t delta;
 	
 	*time_units = 0;
-	
-	ToneDef * tone_defs = shared_memory.bb_data.tones_data.tone_defs;
 	
 	i = 0;
 	for (char& ch : message) {
@@ -79,11 +78,11 @@ size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
 	// Setup tone "symbols"
 	for (c = 0; c < 5; c++) {
 		if (c < 2)
-			tone_defs[c].delta = TONES_F2D(tone);	// Dot and dash
+			delta = TONES_F2D(tone);	// Dot and dash
 		else
-			tone_defs[c].delta = 0;					// Pause
+			delta = 0;					// Pause
 		
-		tone_defs[c].duration = (TONES_SAMPLERATE * morse_symbols[c] * time_unit_ms) / 1000;
+		baseband::set_tone(c, delta, (TONES_SAMPLERATE * morse_symbols[c] * time_unit_ms) / 1000);
 	}
 	
 	return i;

@@ -346,7 +346,7 @@ BCHCode::BCHCode(
 		valid = true;
 	
 	if (valid) {
-		for (i = 0; i < (m + 1); i++) {
+		for (i = 0; i < (size_t)(m + 1); i++) {
 			p[i] = p_init[i];
 		}
 

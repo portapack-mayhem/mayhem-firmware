@@ -36,13 +36,15 @@
 #include "encoders.hpp"
 #include "portapack.hpp"
 
+#define XY_SEQ_COUNT 14
+
 namespace ui {
 
 class BHTView : public View {
 public:
 	BHTView(NavigationView& nav);
 	~BHTView();
-	
+
 	void focus() override;
 	
 	std::string title() const override { return "BHT transmit"; };
@@ -54,23 +56,8 @@ private:
 		const std::string code;
 		const uint32_t delay;
 	};
- /*
-2017-03-03 07:11:04	0000189000B1002B0000	18:9:0:00	 R1=OFF (1)	
-2017-03-03 07:11:23	0000189200B2110B0000	18:9:2:00	 R1=ON  (4)	
-2017-03-03 07:11:39	0000189200B1110B0000	18:9:2:00	 R1=OFF (4)	
-2017-03-03 07:12:31	0001189200B2110B0000	18:9:2:00	 R1=ON  (4)	
-2017-03-03 07:12:48	0001189200B1110B0000	18:9:2:00	 R1=OFF (4)	
-2017-03-03 07:13:04	0000189000B0012B0000	18:9:0:00	 R3=OFF (2)	
-2017-03-03 07:13:26	0001189200B1120B0000	18:9:2:00	 R3=ON  (6)	
-2017-03-03 07:13:43	0001189200B1110B0000	18:9:2:00	 R3=OFF (6)	
-2017-03-03 07:14:00	0001181AAAB1000B0000	18:1:A:AA	 R1=OFF (10)	
-2017-03-03 07:14:17	0001189400B1000B0000	18:9:4:00	 R1=OFF (7)	
-2017-03-03 07:14:31	0001189200B1120B0000	18:9:2:00	 R3=ON  (6)	
-2017-03-03 07:14:48	0001189200B1110B0000	18:9:2:00	 R3=OFF (6)	
-2017-03-03 07:15:05	0001181AAAB1000B0000	18:1:A:AA	
-2017-03-03 07:15:22	0001189400B0100B0000	18:9:4:00	 R2=OFF (8)	
-*/
-	const sequence_t sequence_matin[14] = {
+
+	const sequence_t sequence_matin[XY_SEQ_COUNT] = {
 		{ "0000189000B1002B0000", 19 }, // 18:9:0:00	 R1=OFF (1)	
 		{ "0000189200B2110B0000", 16 },	// 18:9:2:00	 R1=ON  (4)	
 		{ "0000189200B1110B0000", 52 },	// 18:9:2:00	 R1=OFF (4)	
@@ -94,10 +81,10 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
-	
-	void start_tx();
+
 	void generate_message();
 	void on_tx_progress(const int progress, const bool done);
+	void start_tx();
 	
 	const Style style_val {
 		.font = font::fixed_8x16,
@@ -217,10 +204,10 @@ private:
 	};
 	
 	ProgressBar progressbar {
-		{ 5 * 8, 12 * 16, 20 * 8, 16 },
+		{ 3 * 8, 12 * 16, 20 * 8, 16 },
 	};
 	Text text_message {
-		{ 5 * 8, 13 * 16, 20 * 8, 16 },
+		{ 3 * 8, 13 * 16, 20 * 8, 16 },
 		""
 	};
 	
@@ -238,8 +225,8 @@ private:
 	};
 	
 	Button button_seq {
-		{ 210, 13 * 16, 32, 32 },
-		"SQ"
+		{ 24 * 8, 13 * 16, 40, 32 },
+		"Seq"
 	};
 	
 	TransmitterView tx_view {

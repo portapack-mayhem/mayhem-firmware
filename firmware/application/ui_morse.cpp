@@ -108,7 +108,7 @@ bool MorseView::start_tx() {
 	if (modulation == CW) {
 		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
 	} else if (modulation == FM) {
-		baseband::set_tones_data(transmitter_model.bandwidth(), 0, symbol_count, false, false);
+		baseband::set_tones_config(transmitter_model.bandwidth(), 0, symbol_count, false, false);
 	}
 	
 	return true;
@@ -208,7 +208,7 @@ MorseView::MorseView(
 	tx_view.on_stop = [this]() {
 		if (ookthread) chThdTerminate(ookthread);
 		transmitter_model.disable();
-		baseband::set_tones_data(0, 0, 0, false, false);
+		baseband::set_tones_config(0, 0, 0, false, false);
 		tx_view.set_transmitting(false);
 	};
 }

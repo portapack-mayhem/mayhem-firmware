@@ -171,6 +171,7 @@ void TransmitterModel::update_sampling_rate() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
+	
 	radio::set_baseband_rate(sampling_rate());
 	update_tuning_frequency();
 }

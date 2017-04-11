@@ -23,7 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: RDS Radiotext is not recognized in Redsea (and car radio)
+//TODO: CTCSS detector
 //BUG: RDS doesn't stop baseband when stopping tx ?
 //BUG: Check AFSK transmit end, skips last bits ?
 

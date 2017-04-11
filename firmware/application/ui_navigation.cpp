@@ -306,11 +306,11 @@ ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 
 TransmitterCodedMenuView::TransmitterCodedMenuView(NavigationView& nav) {
 	add_items<9>({ {
-		{ "ADS-B Mode S", 			ui::Color::orange(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "BHT Xy/EP", 				ui::Color::yellow(),&bitmap_icon_bht,	[&nav](){ nav.push<BHTView>(); } },
+		{ "ADS-B Mode S", 			ui::Color::orange(), &bitmap_icon_adsb,	[&nav](){ nav.push<ADSBTxView>(); } },
+		{ "BHT Xy/EP", 				ui::Color::green(), &bitmap_icon_bht,	[&nav](){ nav.push<BHTView>(); } },
 		{ "Morse code", 			ui::Color::green(),	&bitmap_icon_morse,	[&nav](){ nav.push<MorseView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),	&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
-		{ "NTTWorks burger pager", 	ui::Color::orange(), &bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
+		{ "NTTWorks burger pager", 	ui::Color::yellow(), &bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
 		{ "OOK remote encoders", 	ui::Color::green(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),	&bitmap_icon_rds,	[&nav](){ nav.push<RDSView>(); } },

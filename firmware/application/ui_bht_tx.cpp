@@ -42,9 +42,6 @@ BHTView::~BHTView() {
 }
 
 void BHTView::generate_message() {
-	uint8_t ccir_message[20];
-	uint32_t c;
-	
 	if (tx_mode == SINGLE) {
 		text_message.set(
 			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), family_code_xy.value(), 
@@ -52,30 +49,16 @@ void BHTView::generate_message() {
 							relay_states[0].selected_index(), relay_states[1].selected_index(), 
 							relay_states[2].selected_index(), relay_states[3].selected_index())
 		);
+		/*} else {
+			text_message.set(
+				gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
+								relay_states[0].selected_index(), relay_states[1].selected_index())
+			);*/
 	} else if (tx_mode == SEQUENCE) {
-		for (c = 0; c < 20; c++) {
-			if (sequence_matin[seq_index].code[c] <= '9')
-				ccir_message[c] = sequence_matin[seq_index].code[c] - '0';
-			else
-				ccir_message[c] = sequence_matin[seq_index].code[c] - 'A' + 10;
-		}
-		
-		// Replace repeats with E code
-		for (c = 1; c < 20; c++)
-			if (ccir_message[c] == ccir_message[c - 1]) ccir_message[c] = 14;
-		
-		// Copy for baseband
-		memcpy(shared_memory.bb_data.tones_data.message, ccir_message, 20);
-
-		text_message.set(sequence_matin[seq_index].code);
-		//text_message.set_dirty();
+		text_message.set(
+			gen_message_xy(sequence_matin[seq_index].code)
+		);
 	}
-
-	/*else {
-	text_message.set(
-		gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
-						relay_states[0].selected_index(), relay_states[1].selected_index())
-	);*/
 }
 
 void BHTView::start_tx() {
@@ -83,24 +66,25 @@ void BHTView::start_tx() {
 	
 	generate_message();
 	
+	if (tx_mode == SINGLE)
+		progressbar.set_max(20);
+	else if (tx_mode == SEQUENCE)
+		progressbar.set_max(20 * XY_SEQ_COUNT);
+	
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_lna(40);
-	transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
 	// Setup tones for Xy
-	for (c = 0; c < 16; c++) {
-		shared_memory.bb_data.tones_data.tone_defs[c].delta = ccir_deltas[c];
-		shared_memory.bb_data.tones_data.tone_defs[c].duration = XY_TONE_LENGTH;
-	}
+	for (c = 0; c < 16; c++)
+		baseband::set_tone(c, ccir_deltas[c], XY_TONE_LENGTH);
 	
-	baseband::set_tones_data(transmitter_model.bandwidth(), XY_SILENCE, 20, false, false);
+	baseband::set_tones_config(transmitter_model.bandwidth(), XY_SILENCE, 20, false, false);
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
-	uint32_t c;
+	uint8_t c;
 	uint8_t rs;
 	
 	if (tx_mode == SINGLE) {
@@ -118,7 +102,6 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 				rs = relay_states[0].selected_index();
 				if (rs > 0) relay_states[0].set_selected_index(rs ^ 3);
 				
-				generate_message();
 				start_tx();
 			}
 		} else {
@@ -127,22 +110,21 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 	} else if (tx_mode == SEQUENCE) {
 		if (done) {
 			transmitter_model.disable();
-			progressbar.set_value(0);
 			
-			if (seq_index < 13) {
+			if (seq_index < (XY_SEQ_COUNT - 1)) {
 				for (c = 0; c < sequence_matin[seq_index].delay; c++)
 					chThdSleepMilliseconds(1000);
 				
 				seq_index++;
 				
-				generate_message();
 				start_tx();
 			} else {
+				progressbar.set_value(0);
 				tx_mode = IDLE;
 				tx_view.set_transmitting(false);
 			}
 		} else {
-			progressbar.set_value(progress);
+			progressbar.set_value((seq_index * 20) + progress);
 		}
 	}
 }
@@ -168,7 +150,7 @@ BHTView::BHTView(NavigationView& nav) {
 		&text_message,
 		&checkbox_cligno,
 		&tempo_cligno,
-		&button_seq,		// Sequence
+		&button_seq,
 		&tx_view
 	});
 	
@@ -182,7 +164,6 @@ BHTView::BHTView(NavigationView& nav) {
 	subfamily_code.set_value(1);
 	receiver_code.set_value(1);
 	tempo_cligno.set_value(0);
-	progressbar.set_max(20);
 	
 /*	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
 		_mode = mode;
@@ -303,6 +284,7 @@ BHTView::BHTView(NavigationView& nav) {
 	};
 	
 	tx_view.on_stop = [this]() {
+		transmitter_model.disable();
 		tx_view.set_transmitting(false);
 		tx_mode = IDLE;
 	};

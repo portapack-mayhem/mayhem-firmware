@@ -125,15 +125,13 @@ void NuoptixView::transmit(bool setup) {
 	}
 	
 	for (c = 0; c < 16; c++) {
-		shared_memory.bb_data.tones_data.tone_defs[c * 2].delta = dtmf_deltas[c][0];
-		shared_memory.bb_data.tones_data.tone_defs[c * 2].duration = NUOPTIX_TONE_LENGTH;
-		shared_memory.bb_data.tones_data.tone_defs[c * 2 + 1].delta = dtmf_deltas[c][1];
-		shared_memory.bb_data.tones_data.tone_defs[c * 2 + 1].duration = NUOPTIX_TONE_LENGTH;
+		baseband::set_tone(c * 2, dtmf_deltas[c][0], NUOPTIX_TONE_LENGTH);
+		baseband::set_tone(c * 2 + 1, dtmf_deltas[c][1], NUOPTIX_TONE_LENGTH);
 	}
 	shared_memory.bb_data.tones_data.silence = NUOPTIX_TONE_LENGTH;		// 49ms tone, 49ms space
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	baseband::set_tones_data(transmitter_model.bandwidth(), 0, 6 * 2, true, true);	
+	baseband::set_tones_config(transmitter_model.bandwidth(), 0, 6 * 2, true, true);	
 	
 	timecode++;
 }

@@ -58,7 +58,7 @@ void CoasterPagerView::generate_frame() {
 	
 	// Data
 	for (c = 0; c < 8; c++)
-		frame[c + 11] = (sym_data.get_sym(c << 1) << 4) | sym_data.get_sym((c << 1) + 1);
+		frame[c + 11] = (sym_data.get_sym(c * 2) << 4) | sym_data.get_sym(c * 2 + 1);
 
 	// Copy for baseband
 	memcpy(shared_memory.bb_data.data, frame, 19);
@@ -77,12 +77,30 @@ void CoasterPagerView::start_tx() {
 
 void CoasterPagerView::on_tx_progress(const int progress, const bool done) {
 	(void)progress;
+	uint16_t address = 0;
+	uint32_t c;
 	
-	if (tx_mode == SINGLE) {
-		if (done) {
+	if (done) {
+		if (tx_mode == SINGLE) {
 			transmitter_model.disable();
 			tx_mode = IDLE;
 			tx_view.set_transmitting(false);
+		} else if (tx_mode == SCAN) {
+			// Increment address
+			
+			for (c = 0; c < 4; c++) {
+				address <<= 4;
+				address |= sym_data.get_sym(12 + c);
+			}
+			
+			address++;
+			
+			for (c = 0; c < 4; c++) {
+				sym_data.set_sym(15 - c, address & 0x0F);
+				address >>= 4;
+			}
+			
+			start_tx();
 		}
 	}
 }
@@ -101,11 +119,9 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
 		&tx_view
 	});
 	
+	// Bytes to nibbles
 	for (c = 0; c < 16; c++)
 		sym_data.set_sym(c, (data_init[c >> 1] >> ((c & 1) ? 0 : 4)) & 0x0F);
-	
-	/*checkbox_scan.on_select = [this](Checkbox&, bool v) {
-	};*/
 	
 	checkbox_scan.set_value(false);
 	
@@ -120,7 +136,10 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
 	
 	tx_view.on_start = [this]() {
 		if (tx_mode == IDLE) {
-			tx_mode = SINGLE;
+			if (checkbox_scan.value())
+				tx_mode = SCAN;
+			else
+				tx_mode = SINGLE;
 			tx_view.set_transmitting(true);
 			start_tx();
 		}
