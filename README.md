@@ -1,4 +1,4 @@
-# portapack-HAVOC
+![HAVOC banner](doc/banner.png)
 
 HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
