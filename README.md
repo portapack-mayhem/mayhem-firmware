@@ -39,28 +39,31 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 # Progress
 
 Feature | Progress | Notes
-------- | ------ | -----
-POCSAG RX   | 95% | Needs support for numeric messages
-Morse TX    | 95% | Symbols need testing
-Mic. TX     | 95% | Need to find guard tones for various brands of wireless mics
+------- | -------- | -----
+POCSAG RX   | 95% | Needs support for numeric messages
+Morse TX    | 95% | Need testing for all symbols
+Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
-SSTV TX     | 80% | Needs better bitmap file handling + testing
+SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
 EPAR TX     | 60% | Older Xy, low priority
-Sigfox RX   | 40% | Left aside, needs updates and testing
-ADS-B TX    | 40% | UI and frame gen stuff done
-Wave visualizer | 30% | High priority
+Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
+ADS-B TX    | 40% | UI and frame gen stuff done, needs baseband module
+Wave visualizer | 30% | Only the widget is ready, high priority
 IQ replay   | 30% | High priority
 Whistle     | 20% | Easy
-Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF...
+Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
 SSTV RX     | 0%  |
-ADS-B RX    | 0%  | Could be fun
-Scanner     | 0%  | Easy
+ADS-B RX    | 0%  | Could be fun. Is sensitivity high enough ?
+Scanner     | 0%  | Easy, could be used with POCSAG RX to catch jumping channels
 SSB TX      | 0%  | Requested but math is hard :(
-OOK RX      | 0%  | Mainly for 433MHz remotes
-AFSK RX     | 0%  | Shouldn't be too tough
-Analog TV TX| 0%  | Enough CPU ?
+OOK RX      | 0%  | See if rtl_433's author is fine with using protocol defs
+AFSK RX     | 0%  | Shouldn't be too hard, bit-time shift and mix method ?
+Analog TV TX| 0%  | Enough CPU ? B&W and no sound ?
+LoJack RX   | 0%  | Basically AFSK RX
+DMR info RX | 0%  | Retrieve DMR channel info. **No voice** because of vocoder complexity and possible legal issue
+Tetra info? | 0%  | Same
 
 # Screenshots
 
