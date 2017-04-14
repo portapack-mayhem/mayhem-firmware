@@ -152,7 +152,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		std::string console_info;
 		
 		console_info = to_string_time(message->packet.timestamp()) + " ";
-		console_info += pocsag::bitrate_str(message->packet.bitrate());
+		console_info += "B:" + pocsag::bitrate_str(message->packet.bitrate());  // "B:" caractere add for more visibility
 		console_info += " ADDR:" + to_string_dec_uint(pocsag_state.address);
 		console_info += " F" + to_string_dec_uint(pocsag_state.function);
 
