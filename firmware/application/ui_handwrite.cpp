@@ -38,7 +38,7 @@ void HandWriteView::paint(Painter& painter) {
 
 HandWriteView::HandWriteView(
 	NavigationView& nav,
-	char txt[],
+	std::string& txt,
 	size_t max_length
 ) : _max_length(max_length)
 {
@@ -48,8 +48,8 @@ HandWriteView::HandWriteView(
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
 	
-	txtidx = strlen(txt);
-	memcpy(txtinput, txt, _max_length + 1);
+	txtidx = txt.length();
+	txtinput = txt;
 	n = txtidx;
 	while (n && (txtinput[n - 1] == ' ')) {
 		txtinput[--n] = 0;
@@ -110,8 +110,8 @@ HandWriteView::HandWriteView(
 		}
 	};
 
-	button_ok.on_select = [this, &nav, txt, max_length](Button&) {
-		memcpy(txt, txtinput, max_length + 1);
+	button_ok.on_select = [this, &nav, &txt, max_length](Button&) {
+		txt = txtinput;
 		if (on_changed) on_changed(this->value());
 		nav.pop();
 	};
@@ -382,7 +382,7 @@ void HandWriteView::on_show() {
 	clear_zone(Color::black(), false);
 }
 
-char * HandWriteView::value() {
+std::string HandWriteView::value() {
 	txtinput[txtidx] = 0;
 	return txtinput;
 }

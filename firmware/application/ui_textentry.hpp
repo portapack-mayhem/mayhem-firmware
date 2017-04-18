@@ -29,11 +29,9 @@
 #include "ui_alphanum.hpp"
 #include "portapack_persistent_memory.hpp"
 
-// TODO: Make class
-
 namespace ui {
 
-bool textentry(NavigationView& nav, char * str, size_t max_length, const std::function<void(char *)> on_done = nullptr);
+bool text_entry(NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string)> on_done = nullptr);
 
 } /* namespace ui */
 

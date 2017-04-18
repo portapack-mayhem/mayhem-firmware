@@ -41,15 +41,15 @@ public:
 private:
 	struct scan_list_t {
 		uint8_t count;
-		const char * addresses;
+		const std::string * addresses;
 	};
 	
 	const scan_list_t scan_list[2] = {
-		{ 36, &RGSB_list_Lille[0][0] },
-		{ 20, &RGSB_list_Reims[0][0] }
+		{ 36, &RGSB_list_Lille[0] },
+		{ 20, &RGSB_list_Reims[0] }
 	};
 	 
-	const char RGSB_list_Lille[36][5] = {
+	const std::string RGSB_list_Lille[36] = {
 		"AI10",	"AI20", "AI30",	"AI40",
 		"AI50",	"AI60", "AI70",	"AJ10",
 		"AJ20",	"AJ30", "AJ40",	"AJ50",
@@ -62,7 +62,7 @@ private:
 		"EbS0"
 	};
 	
-	const char RGSB_list_Reims[20][5] = {
+	const std::string  RGSB_list_Reims[20] = {
 		"AI10",	"AI20", "AI30",	"AI40",
 		"AI50",	"AI60", "AI70",
 		"AJ10", "AJ20",	"AJ30", "AJ40",
@@ -81,8 +81,8 @@ private:
 	tx_modes tx_mode = IDLE;
 	uint8_t scan_count { 0 }, scan_index { 0 };
 	double scan_progress { 0 };
-	char litteral[5][8] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 } };
-	char rgsb[5] = { 0 };
+	std::string litteral[5] { "       " };
+	std::string rgsb { "    " };
 	char lcr_message[512];
 	char lcr_message_data[512];
 	rf::Frequency f { 0 };

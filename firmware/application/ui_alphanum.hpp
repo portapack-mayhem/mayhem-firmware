@@ -34,9 +34,9 @@ namespace ui {
 
 class AlphanumView : public View {
 public:
-	std::function<void(char *)> on_changed { };
+	std::function<void(std::string)> on_changed { };
 
-	AlphanumView(NavigationView& nav, char txt[], size_t max_length);
+	AlphanumView(NavigationView& nav, std::string& txt, size_t max_length);
 	
 	AlphanumView(const AlphanumView&) = delete;
 	AlphanumView(AlphanumView&&) = delete;
@@ -47,7 +47,7 @@ public:
 	void paint(Painter& painter) override;
 	void focus() override;
 	
-	char * value();
+	std::string value();
 	
 	std::string title() const override { return "Text entry"; };
 
@@ -65,7 +65,7 @@ private:
 	size_t _max_length { };
 	uint32_t txtidx { 0 };
 	uint32_t mode = 0;				// Upper
-	char txtinput[29] = { 0 };		// 28 chars max
+	std::string txtinput { "" };	// 28 chars max
 	
 	void char_add(const char c);
 	void char_delete();

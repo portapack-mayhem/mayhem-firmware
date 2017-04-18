@@ -49,8 +49,6 @@ RDSView::~RDSView() {
 void RDSView::start_tx() {
 	transmitter_model.set_sampling_rate(2280000U);
 	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_lna(40);
-	transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
@@ -58,23 +56,16 @@ void RDSView::start_tx() {
 }
 
 void RDSView::paint(Painter&) {
-	char RadioTextA[17];
-	
 	text_psn.set(PSN);
-	
-	memcpy(RadioTextA, RadioText, 16);
-	RadioTextA[16] = 0;
-	text_radiotexta.set(RadioTextA);
-	memcpy(RadioTextA, RadioText + 16, 8);
-	RadioTextA[8] = 0;
-	text_radiotextb.set(RadioTextA);
+	text_radiotexta.set(RadioText.substr(0, 16));
+	text_radiotextb.set(RadioText.substr(16, 16));
 }
 
 RDSView::RDSView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_rds);
 	
-	strcpy(PSN, "TEST1234");
-	strcpy(RadioText, "Radiotext test ABCD1234");
+	PSN = "TEST1234";
+	RadioText =  "Radiotext test ABCD1234";
 	
 	add_children({
 		&labels,
@@ -140,27 +131,16 @@ RDSView::RDSView(NavigationView& nav) {
 		rds_flags.PI_code = sym_pi_code.value_hex_u64();
 	};
 	
-	options_pty.on_change = [this](size_t, int32_t v) {
-		rds_flags.PTY = v;
-	};
 	options_pty.set_selected_index(0);				// None
-
-	options_countrycode.on_change = [this](size_t, int32_t) {
-		//rds_flags.PTY = v;
-	};
 	options_countrycode.set_selected_index(18);		// Baguette du fromage
-
-	options_coverage.on_change = [this](size_t, int32_t) {
-		//rds_flags.PTY = v;
-	};
 	options_coverage.set_selected_index(0);			// Local
 	
 	button_editpsn.on_select = [this, &nav](Button&) {
-		textentry(nav, PSN, 8);
+		text_entry(nav, PSN, 8);
 	};
 	
 	button_editradiotext.on_select = [this, &nav](Button&){
-		textentry(nav, RadioText, 24);
+		text_entry(nav, RadioText, 24);
 	};
 }
 

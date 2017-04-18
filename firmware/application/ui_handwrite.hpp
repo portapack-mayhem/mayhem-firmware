@@ -33,9 +33,9 @@ namespace ui {
 
 class HandWriteView : public View {
 public:
-	std::function<void(char *)> on_changed { };
+	std::function<void(std::string)> on_changed { };
 
-	HandWriteView(NavigationView& nav, char txt[], size_t max_length);
+	HandWriteView(NavigationView& nav, std::string& txt, size_t max_length);
 	
 	HandWriteView(const HandWriteView&) = delete;
 	HandWriteView(HandWriteView&&) = delete;
@@ -46,7 +46,7 @@ public:
 	void on_show() override;
 	bool on_touch(const TouchEvent event) override;
 	
-	char * value();
+	std::string value();
 
 	std::string title() const override { return "Text entry"; };
 	
@@ -65,7 +65,7 @@ private:
 	uint8_t stroke_list[8];
 	Point start_pos { }, current_pos { }, last_pos { };
 	bool _lowercase = false;
-	char txtinput[29] = { 0 };		// 28 chars max
+	std::string txtinput { "" };		// 28 chars max
 	
 	void sample_pen();
 	void add_stroke(uint8_t dir);

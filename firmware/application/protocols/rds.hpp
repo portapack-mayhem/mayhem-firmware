@@ -44,18 +44,23 @@ struct RDS_flags {
 	bool MS;
 };
 
-uint32_t makeblock(uint32_t blockdata, uint16_t offset);
+struct RDS_group {
+	uint32_t block[4];
+};
+
+uint32_t make_block(uint32_t blockdata, uint16_t offset);
 uint8_t b2b(const bool in);
-void make_0B_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
-							const bool MS, const bool DI, const uint8_t C, const char * chars);
-void make_2A_group(uint32_t group[], const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
-							const uint8_t segment, const char * chars);
-void make_4A_group(uint32_t blocks[], const uint16_t PI_code, const bool TP, const uint8_t PTY,
+
+void make_0B_group(RDS_group * group, const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool TA,
+							const bool MS, const bool DI, const uint8_t C, const std::string chars);
+void make_2A_group(RDS_group * group, const uint16_t PI_code, const bool TP, const uint8_t PTY, const bool AB,
+							const uint8_t segment, const std::string chars);
+void make_4A_group(RDS_group * group, const uint16_t PI_code, const bool TP, const uint8_t PTY,
 							const uint16_t year, const uint8_t month, const uint8_t day,
 							const uint8_t hour, const uint8_t minute, const int8_t local_offset);
 
-uint16_t gen_PSN(const char * psname, const RDS_flags * rds_flags);
-uint16_t gen_RadioText(const char * text, const bool AB, const RDS_flags * rds_flags);
+uint16_t gen_PSN(const std::string & psname, const RDS_flags * rds_flags);
+uint16_t gen_RadioText(const std::string & text, const bool AB, const RDS_flags * rds_flags);
 uint16_t gen_ClockTime(const RDS_flags * rds_flags,
 						const uint16_t year, const uint8_t month, const uint8_t day,
 						const uint8_t hour, const uint8_t minute, const int8_t local_offset);

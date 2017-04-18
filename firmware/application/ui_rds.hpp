@@ -45,8 +45,8 @@ public:
 	std::string title() const override { return "RDS transmit"; };
 
 private:
-	char PSN[9] { 0 };
-	char RadioText[25] { 0 };
+	std::string PSN { 0 };
+	std::string RadioText { 0 };
 	bool txing = false;
 	RDS_flags rds_flags { };
 	
@@ -60,8 +60,9 @@ private:
 		{ { 14 * 8, 16 + 8 }, "CC:", Color::light_grey() },
 		{ { 1 * 8, 32 + 8 }, "PI:", Color::light_grey() },
 		{ { 13 * 8, 32 + 8 }, "Cov:", Color::light_grey() },
+		{ { 2 * 8, 13 * 8 }, "PSN:", Color::light_grey() },
 		{ { 2 * 8, 8 * 16 }, "RadioText:", Color::light_grey() },
-		{ { 2 * 8, 14 * 16 }, "TX:", Color::light_grey() }
+		{ { 2 * 8, 14 * 16 }, "TX group:", Color::light_grey() }
 	};
 	
 	OptionsField options_pty {
@@ -223,12 +224,12 @@ private:
 	};
 
 	Button button_editpsn {
-		{ 22 * 8, 5 * 16 + 12, 48, 24 },
+		{ 22 * 8, 5 * 16 + 20, 48, 24 },
 		"Set"
 	};
 	Text text_psn {
-		 { 2 * 8, 6 * 16, 4 * 8, 16 },
-		 "PSN:"
+		 { 6 * 8, 13 * 8, 4 * 8, 16 },
+		 ""
 	};
 
 	Text text_radiotexta {
@@ -245,7 +246,7 @@ private:
 	};
 	
 	OptionsField options_tx {
-		{ 5 * 8, 14 * 16 },
+		{ 11 * 8, 14 * 16 },
 		11,
 		{
 			{ "PSN", 0 },

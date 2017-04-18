@@ -38,14 +38,15 @@ void AlphanumView::paint(Painter&) {
 	
 AlphanumView::AlphanumView(
 	NavigationView& nav,
-	char txt[],
+	std::string& txt,
 	size_t max_length
 ) : _max_length(max_length)
 {
 	size_t n;
 	
-	txtidx = strlen(txt);
-	memcpy(txtinput, txt, _max_length + 1);
+	txtidx = txt.length();
+	txtinput = txt;
+	
 	n = txtidx;
 	while (n && (txtinput[n - 1] == ' ')) {
 		txtinput[--n] = 0;
@@ -87,8 +88,8 @@ AlphanumView::AlphanumView(
 		update_text();
 	};
 
-	button_ok.on_select = [this, &nav, txt, max_length](Button&) {
-		memcpy(txt, txtinput, max_length + 1);
+	button_ok.on_select = [this, &nav, &txt, max_length](Button&) {
+		txt = txtinput;
 		if (on_changed) on_changed(this->value());
 		nav.pop();
 	};
@@ -140,7 +141,7 @@ void AlphanumView::focus() {
 	button_ok.focus();
 }
 
-char * AlphanumView::value() {
+std::string AlphanumView::value() {
 	txtinput[txtidx] = 0;
 	return txtinput;
 }
@@ -171,7 +172,7 @@ void AlphanumView::char_delete() {
 }
 
 void AlphanumView::update_text() {
-	text_input.set(std::string(txtinput) + std::string(_max_length - strlen(txtinput), ' '));
+	text_input.set(std::string(txtinput) + std::string(_max_length - txtinput.length(), ' '));
 	move_cursor();
 }
 

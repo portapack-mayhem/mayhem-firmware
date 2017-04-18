@@ -71,7 +71,7 @@ static msg_t ookthread_fn(void * arg) {
 }
 
 void MorseView::on_set_text(NavigationView& nav) {
-	textentry(nav, buffer, 28);
+	text_entry(nav, buffer, 28);
 }
 
 void MorseView::focus() {
@@ -139,7 +139,7 @@ void MorseView::on_tx_progress(const int progress, const bool done) {
 
 void MorseView::set_foxhunt(size_t i) {
 	message = foxhunt_codes[i];
-	strncpy(buffer, message.c_str(), sizeof(buffer));
+	buffer = message.c_str();
 	text_message.set(message);
 	update_tx_duration();
 }

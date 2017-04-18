@@ -35,7 +35,7 @@ void make_frame_mode_s(uint8_t * const adsb_frame, const uint32_t ICAO_address) 
 	memset(&adsb_frame[4], 0, 10);
 }
 
-void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, char * const callsign) {
+void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, std::string & callsign) {
 	std::string callsign_formatted(8, '_');
 	uint64_t callsign_coded = 0;
 	uint32_t c, s;

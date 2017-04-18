@@ -53,7 +53,7 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	
-	char callsign[9] = "KLM1023 ";
+	std::string callsign = "KLM1023 ";
 	
 	uint8_t adsb_frame[14];		// 112 bit data block as 14 bytes
 	uint8_t adsb_bin[112];		// 112 bit data block

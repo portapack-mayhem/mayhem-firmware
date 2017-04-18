@@ -40,7 +40,7 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 					cur_output = 0;
 				}
 				
-				cur_bit = (rdsdata[(bit_pos / 26) & 15] >> (25 - (bit_pos % 26))) & 1;
+				cur_bit = (rdsdata[(bit_pos / 26) & 127] >> (25 - (bit_pos % 26))) & 1;
 				prev_output = cur_output;
 				cur_output = prev_output ^ cur_bit;
 

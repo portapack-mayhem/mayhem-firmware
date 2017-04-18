@@ -32,7 +32,7 @@ namespace adsb {
 	
 	void make_frame_mode_s(uint8_t * const adsb_frame, const uint32_t ICAO_address);
 	
-	void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, char * const callsign);
+	void generate_frame_id(uint8_t * const adsb_frame, const uint32_t ICAO_address, std::string & callsign);
 	void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint32_t altitude,
 		const float latitude, const float longitude);
 	void generate_frame_emergency(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint8_t code);

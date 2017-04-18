@@ -61,7 +61,7 @@ public:
 	size_t symbol_count { 0 };
 private:
 	NavigationView& nav_;
-	char buffer[29] = "PORTAPACK";
+	std::string buffer { "PORTAPACK" };
 	std::string message { };
 	uint32_t time_units { 0 };
 	

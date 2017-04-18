@@ -31,7 +31,7 @@ using namespace portapack;
 
 namespace ui {
 
-void FrequencySaveView::on_save_name(char * name) {
+void FrequencySaveView::on_save_name(std::string& name) {
 	database.entries.push_back({ value_, "", name, (int32_t)options_category.selected_index_value() });
 	nav_.pop();
 }
@@ -119,7 +119,7 @@ FrequencySaveView::FrequencySaveView(
 	big_display.set(value);
 	
 	button_save_name.on_select = [this, &nav](Button&) {
-		textentry(nav, desc_buffer, 28, [this](char * buffer) {
+		text_entry(nav, desc_buffer, 28, [this](std::string buffer) {
 				on_save_name(buffer);
 			});
 	};
@@ -207,10 +207,7 @@ void FreqManView::on_edit_freq(rf::Frequency f) {
 }
 
 void FreqManView::on_edit_desc(NavigationView& nav) {
-	char desc_buffer[32] = { 0 };
-	
-	strcpy(desc_buffer, database.entries[menu_view.highlighted()].description.c_str());
-	textentry(nav, desc_buffer, 28, [this, &desc_buffer](char * buffer) {
+	text_entry(nav, desc_buffer, 28, [this](std::string buffer) {
 				database.entries[menu_view.highlighted()].description = buffer;
 				//setup_list();
 			});
@@ -313,6 +310,7 @@ FreqManView::FreqManView(
 	};
 	
 	button_edit_desc.on_select = [this, &nav](Button&) {
+		desc_buffer = database.entries[menu_view.highlighted()].description;
 		on_edit_desc(nav);
 	};
 	

@@ -53,7 +53,7 @@ public:
 	std::string title() const override { return "POCSAG TX"; };
 
 private:
-	char buffer[17] = "PORTAPACK";
+	std::string buffer { "PORTAPACK" };
 	std::string message { };
 	NavigationView& nav_;
 
