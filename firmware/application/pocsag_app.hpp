@@ -24,11 +24,8 @@
 #define __POCSAG_APP_H__
 
 #include "ui_widget.hpp"
-#include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-
-#include "event_m0.hpp"
 
 #include "log_file.hpp"
 
@@ -41,8 +38,8 @@ public:
 		return log_file.append(filename);
 	}
 	
-	void on_packet(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-	void on_decoded(const pocsag::POCSAGPacket& packet,	const std::string text);
+	void log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
+	void log_decoded(const pocsag::POCSAGPacket& packet, const std::string text);
 
 private:
 	LogFile log_file { };
@@ -63,9 +60,10 @@ public:
 private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
 	static constexpr uint32_t sampling_rate = 3072000;
-	//static constexpr uint32_t baseband_bandwidth = 1750000;
+	const uint8_t default_ignore[7] = { 1, 0, 0, 8, 8, 2, 4 };
 
 	bool logging { true };
+	bool ignore { false };
 	uint32_t last_address = 0xFFFFFFFF;
 	pocsag::POCSAGState pocsag_state { };
 	
@@ -79,39 +77,51 @@ private:
 
 	static constexpr ui::Dim header_height = 1 * 16;
 
+	OptionsField options_freq {
+		{ 0 * 8, 0 * 16 },
+		12,
+		{
+			{ "Entered", 0 },
+			{ "BEL Fire", 169625000 },
+			{ "DEU Fire", 448425000 },
+			{ "DEU e-Msg1", 465970000 },
+			{ "DEU e-Msg2", 466075000 },
+			{ "FRA e-Msg1", 466025000 },
+			{ "FRA e-Msg2", 466050000 },
+			{ "FRA e-Msg3", 466075000 },
+			{ "FRA e-Msg4", 466175000 },
+			{ "FRA e-Msg5", 466206250 },
+			{ "FRA e-Msg6", 466231250 },
+			{ "FRA Fire", 173512500 },
+			{ "SWE Minicall1", 169800000 },
+			{ "SWE Minicall2", 161437500 },
+			{ "USA Medical1", 152007500 },
+			{ "USA Medical2", 157450000 },
+			{ "USA Medical3", 163250000 }
+		}
+	};
+	RFAmpField field_rf_amp {
+		{ 13 * 8, 0 * 16 }
+	};
+	LNAGainField field_lna {
+		{ 15 * 8, 0 * 16 }
+	};
+	VGAGainField field_vga {
+		{ 18 * 8, 0 * 16 }
+	};
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
-
 	Channel channel {
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
-
-	OptionsField options_freq {
-		{ 0 * 8, 0 * 16 },
-		7,
-		{
-			{ "Entered", 0 },
-			{ "FR .025", 466025000 },
-			{ "FR .050", 466050000 },
-			{ "FR .075", 466075000 },
-			{ "FR .175", 466175000 },
-			{ "FR .206", 466206250 },
-			{ "FR .231", 466231250 },
-			{ "DE Pub1", 466075000 },
-			{ "DE Pub2", 465970000 },
-			{ "US 152.", 152007500 },
-			{ "US 157.", 157450000 },
-			{ "US 153.", 163250000 }
-		}
-	};
 	
 	Button button_setfreq {
-		{ 0, 20, 11 * 8, 20 },
+		{ 0, 19, 11 * 8, 20 },
 		"----.----"
 	};
 	OptionsField options_bitrate {
-		{ 12 * 8, 22 },
+		{ 12 * 8, 21 },
 		7,
 		{
 			{ "512bps ", 0 },
@@ -120,26 +130,26 @@ private:
 		}
 	};
 	Checkbox check_log {
-		{ 20 * 8, 22 },
+		{ 22 * 8, 21 },
 		3,
 		"LOG",
 		true
 	};
+	
+	Checkbox check_ignore {
+		{ 1 * 8, 40 },
+		15,
+		"Ignore address:",
+		true
+	};
+	SymField sym_ignore {
+		{ 19 * 8, 40 },
+		7,
+		SymField::SYMFIELD_DEC
+	};
 
 	Console console {
-		{ 0, 48, 240, 256 }
-	};
-
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
-	};
-
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
-
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
+		{ 0, 4 * 16, 240, 240 }
 	};
 
 	std::unique_ptr<POCSAGLogger> logger { };
@@ -149,9 +159,7 @@ private:
 	void update_freq(rf::Frequency f);
 
 	void on_packet(const POCSAGPacketMessage * message);
-	void on_show_list();
 
-	void on_band_changed(const uint32_t new_band_frequency);
 	void on_bitrate_changed(const uint32_t new_bitrate);
 
 	uint32_t target_frequency() const;

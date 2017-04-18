@@ -33,9 +33,9 @@ namespace pocsag {
 
 std::string bitrate_str(BitRate bitrate) {
 	switch (bitrate) {
-		case BitRate::FSK512:	return "512 ";
-		case BitRate::FSK1200:	return "1200";
-		case BitRate::FSK2400:	return "2400";
+		case BitRate::FSK512:	return "512bps ";
+		case BitRate::FSK1200:	return "1200bps";
+		case BitRate::FSK2400:	return "2400bps";
 		default:				return "????";
 	}
 }
@@ -43,7 +43,6 @@ std::string bitrate_str(BitRate bitrate) {
 std::string flag_str(PacketFlag packetflag) {
 	switch (packetflag) {
 		case PacketFlag::NORMAL:	return "OK";
-		case PacketFlag::IDLE:		return "IDLE";
 		case PacketFlag::TIMED_OUT:	return "TIMED OUT";
 		default:					return "";
 	}
@@ -222,7 +221,7 @@ void pocsag_encode(
 	} while (char_idx < message_size);
 }
 
-bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
+void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 	uint32_t codeword;
 	char ascii_char;
 	std::string output_text = "";
@@ -286,8 +285,6 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 	
 	if (state->mode == STATE_HAVE_ADDRESS)
 		state->mode = STATE_CLEAR;
-	
-	return true;
 }
 
 } /* namespace pocsag */

@@ -173,7 +173,7 @@ void SystemStatusView::on_camera() {
 		return;
 	}
 
-	for(int i=0; i<320; i++) {
+	for(int i = 0; i < 320; i++) {
 		std::array<ColorRGB888, 240> row;
 		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
 		png.write_scanline(row);

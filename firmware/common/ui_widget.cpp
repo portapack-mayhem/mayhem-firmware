@@ -501,25 +501,41 @@ void Console::clear() {
 }
 
 void Console::write(std::string message) {
+	bool escape = false;
+	
 	if (visible) {
 		const Style& s = style();
 		const Font& font = s.font;
 		const auto rect = screen_rect();
-		for(const auto c : message) {
-			if( c == '\n' ) {
-				crlf();
+		ui::Color pen_color = s.foreground;
+		
+		for (const auto c : message) {
+			if (escape) {
+				if (c == '\x01')
+					pen_color = ui::Color::red();
+				else if (c == '\x02')
+					pen_color = ui::Color::green();
+				else if (c == '\x03')
+					pen_color = ui::Color::blue();
+				escape = false;
 			} else {
-				const auto glyph = font.glyph(c);
-				const auto advance = glyph.advance();
-				if( (pos.x() + advance.x()) > rect.width() ) {
+				if (c == '\n') {
 					crlf();
+				} else if (c == '\x1B') {
+					escape = true;
+				} else {
+					const auto glyph = font.glyph(c);
+					const auto advance = glyph.advance();
+					if( (pos.x() + advance.x()) > rect.width() ) {
+						crlf();
+					}
+					const Point pos_glyph {
+						rect.left() + pos.x(),
+						display.scroll_area_y(pos.y())
+					};
+					display.draw_glyph(pos_glyph, glyph, pen_color, s.background);
+					pos += { advance.x(), 0 };
 				}
-				const Point pos_glyph {
-					rect.left() + pos.x(),
-					display.scroll_area_y(pos.y())
-				};
-				display.draw_glyph(pos_glyph, glyph, s.foreground, s.background);
-				pos += { advance.x(), 0 };
 			}
 		}
 		buffer = message;
@@ -663,7 +679,7 @@ void Checkbox::paint(Painter& painter) {
 		
 		painter.draw_string(
 			{
-				static_cast<Coord>(x + 16),
+				static_cast<Coord>(x + 16 + 2),
 				static_cast<Coord>(y + (16 - label_r.height()) / 2)
 			},
 			paint_style,

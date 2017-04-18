@@ -41,7 +41,6 @@ enum BitRate : uint32_t {
 
 enum PacketFlag : uint32_t {
 	NORMAL,
-	IDLE,
 	TIMED_OUT,
 	TOO_LONG
 };

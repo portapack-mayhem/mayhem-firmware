@@ -24,7 +24,7 @@
 #define __POCSAG_H__
 
 #define POCSAG_PREAMBLE_LENGTH 576
-#define POCSAG_TIMEOUT (576 * 2)	// Preamble length * 2
+#define POCSAG_TIMEOUT (576 * 2)		// Preamble length * 2
 #define POCSAG_SYNCWORD 0x7CD215D8
 #define POCSAG_IDLEWORD 0x7A89C197
 #define POCSAG_AUDIO_RATE 24000
@@ -78,7 +78,7 @@ void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
 uint32_t get_digit_code(char code);
 void pocsag_encode(const MessageType type, BCHCode& BCH_code, const std::string message,
 					const uint32_t address, std::vector<uint32_t>& codewords);
-bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
+void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
 
 } /* namespace pocsag */
 
