@@ -25,6 +25,7 @@
 #include "ui_debug.hpp"
 
 #include "afsk.hpp"
+#include "lcr.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -45,58 +46,6 @@ void LCRView::focus() {
 LCRView::~LCRView() {
 	transmitter_model.disable();
 	baseband::shutdown();
-}
-
-void LCRView::generate_message() {
-	const char lcr_init[8] = { 127, 127, 127, 127, 127, 127, 127, 15 };		// Modem sync and SOM
-	const char ec_lut[4][2] = { { 'A', 0x00 },								// Eclairage (Auto, Jour, Nuit)
-								{ 'J', 0x00 },
-								{ 'N', 0x00 },
-								{ 'S', 0x00 } };
-	char eom[3] = { 3, 0, 0 };		// EOM and space for checksum
-
-	uint8_t i;
-	
-	button_setrgsb.set_text(rgsb);
-	
-	// Pad litterals to 7 chars (not required ?)
-	for (i = 0; i < 5; i++)
-		while (strlen(litteral[i]) < 7)
-			strcat(litteral[i], " ");
-	
-	// Compose LCR message
-	memset(lcr_message, 0, 512);
-	memcpy(lcr_message, lcr_init, 8);
-
-	strcat(lcr_message, rgsb);		// Address
-	strcat(lcr_message, "PA ");
-	
-	for (i = 0; i < 5; i++) {
-		if (checkboxes[i].value() == true) {
-			strcat(lcr_message, "AM=");
-			strcat(lcr_message, to_string_dec_uint(i + 1, 1).c_str());
-			strcat(lcr_message, " AF=\"");
-			strcat(lcr_message, litteral[i]);
-			strcat(lcr_message, "\" CL=0 ");
-		}
-	}
-	strcat(lcr_message, "EC=");
-	strcat(lcr_message, ec_lut[options_ec.selected_index()]);
-	strcat(lcr_message, " SAB=0");
-	
-	// Checksum
-	checksum = 0;
-	i = 7;						// Skip modem sync
-	while (lcr_message[i])
-		checksum ^= lcr_message[i++];
-
-	checksum ^= eom[0];			// EOM char
-	checksum &= 0x7F;			// Trim
-	eom[1] = checksum;
-	
-	strcat(lcr_message, eom);
-	
-	afsk::generate_data(lcr_message, lcr_message_data);
 }
 
 void LCRView::paint(Painter& painter) {
@@ -134,6 +83,17 @@ void LCRView::paint(Painter& painter) {
 	text_recap.set(final_str);
 }
 
+std::vector<std::string> LCRView::parse_litterals() {
+	std::vector<std::string> litterals;
+	
+	for (size_t i = 0; i < 5; i++) {
+		if (checkboxes[i].value())
+			litterals.push_back(litteral[i]);
+	}
+	
+	return litterals;
+}
+
 void LCRView::update_progress() {
 	char str[16];
 	
@@ -162,8 +122,6 @@ void LCRView::update_progress() {
 }
 
 void LCRView::on_txdone(int n) {
-	char str[16];
-	
 	if (n > 0) {
 		// Repeating...
 		repeat_index = n + 1;
@@ -177,25 +135,13 @@ void LCRView::on_txdone(int n) {
 		// Done transmitting
 		if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
 			transmitter_model.disable();
-			if (abort_scan) {
-				// Kill scan process
-				strcpy(str, "Abort @");
-				strcat(str, rgsb);
-				text_status.set(str);
-				progress.set_value(0);
-				tx_mode = IDLE;
-				abort_scan = false;
-				button_scan.set_style(&style_val);
-				button_scan.set_text("SCAN");
-			} else {
-				// Next address
-				scan_index++;
-				strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[scan_index * 5]);
-				scan_progress++;
-				repeat_index = 1;
-				update_progress();
-				start_tx(true);
-			}
+			// Next address
+			scan_index++;
+			strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[scan_index * 5]);
+			scan_progress++;
+			repeat_index = 1;
+			update_progress();
+			start_tx(true);
 		} else {
 			transmitter_model.disable();
 			tx_mode = IDLE;
@@ -230,7 +176,8 @@ void LCRView::start_tx(const bool scan) {
 		update_progress();
 	}
 	
-	generate_message();
+	button_setrgsb.set_text(rgsb);
+	afsk::generate_data(lcr::generate_message(rgsb, parse_litterals(), options_ec.selected_index()), lcr_message_data);
 
 	switch (portapack::persistent_memory::afsk_format()) {
 		case 0:
@@ -259,10 +206,10 @@ void LCRView::start_tx(const bool scan) {
 	
 	baseband::set_afsk_data(
 		(153600 * 5) / portapack::persistent_memory::afsk_bitrate(),
-		portapack::persistent_memory::afsk_mark_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
-		portapack::persistent_memory::afsk_space_freq() * 437 * 5, //(0x40000 * 256) / (153600 / 25),
+		portapack::persistent_memory::afsk_mark_freq() * 437 * 5, 	// (0x40000 * 256) / (153600 / 25),
+		portapack::persistent_memory::afsk_space_freq() * 437 * 5, 	// (0x40000 * 256) / (153600 / 25),
 		afsk_repeats,
-		portapack::persistent_memory::afsk_bw() * 115,		// See proc_afsk.cpp
+		portapack::persistent_memory::afsk_bw() * 115,				// See proc_afsk.cpp
 		afsk_format
 	);
 }
@@ -355,8 +302,7 @@ LCRView::LCRView(NavigationView& nav) {
 	};
 	
 	button_lcrdebug.on_select = [this, &nav](Button&) {
-		generate_message();
-		nav.push<DebugLCRView>(std::string(lcr_message), checksum);
+		nav.push<DebugLCRView>(lcr::generate_message(rgsb, parse_litterals(), options_ec.selected_index()));
 	};
 	
 	button_transmit.on_select = [this](Button&) {
@@ -364,12 +310,22 @@ LCRView::LCRView(NavigationView& nav) {
 	};
 	
 	button_scan.on_select = [this](Button&) {
+		char str[16];
+		
 		if (tx_mode == IDLE)	{
 			button_scan.set_style(&style_cancel);
 			button_scan.set_text("ABORT");
 			start_tx(true);
 		} else {
-			abort_scan = true;
+			// Kill scan process
+			baseband::kill_afsk();
+			strcpy(str, "Abort @");
+			strcat(str, rgsb);
+			text_status.set(str);
+			progress.set_value(0);
+			tx_mode = IDLE;
+			button_scan.set_style(&style_val);
+			button_scan.set_text("SCAN");
 		}
 	};
 
@@ -383,8 +339,6 @@ LCRView::LCRView(NavigationView& nav) {
 				checkboxes[n].set_value(true);
 			set_dirty();
 			start_tx(false);
-		} else if (tx_mode == SCAN) {
-			abort_scan = true;
 		}
 	};
 }

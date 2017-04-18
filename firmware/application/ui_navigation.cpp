@@ -326,7 +326,7 @@ TransmitterAudioMenuView::TransmitterAudioMenuView(NavigationView& nav) {
 		{ "Soundboard", 			ui::Color::green(), &bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "Numbers station",		ui::Color::yellow(),&bitmap_icon_numbers,		[&nav](){ nav.push<NumbersStationView>(); } },
 		{ "Microphone", 			ui::Color::green(),	&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
-		{ "Whistle", 				ui::Color::orange(),&bitmap_icon_whistle,		[&nav](){ nav.push<WhistleView>(); } },
+		{ "Whistle", 				ui::Color::green(),	&bitmap_icon_whistle,		[&nav](){ nav.push<WhistleView>(); } },
 	} });
 	on_left = [&nav](){ nav.pop(); };
 }

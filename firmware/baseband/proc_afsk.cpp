@@ -124,22 +124,25 @@ void AFSKProcessor::on_message(const Message* const msg) {
 	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(msg);
 	
 	if (message.id == Message::ID::AFSKConfigure) {
-		afsk_samples_per_bit = message.samples_per_bit;
-		afsk_phase_inc_mark = message.phase_inc_mark;
-		afsk_phase_inc_space = message.phase_inc_space;
-		afsk_repeat = message.repeat - 1;
-		afsk_bw = message.bw;
-		afsk_format = message.format;
-	
-		s = 0;
-		sample_count = afsk_samples_per_bit;
-		repeat_counter = 0;
-		bit_pos = 0;
-		byte_pos = 0;
-		cur_byte = 0;
-		ext_byte = 0;
-		cur_bit = 0;
-		configured = true;
+		if (message.samples_per_bit) {
+			afsk_samples_per_bit = message.samples_per_bit;
+			afsk_phase_inc_mark = message.phase_inc_mark;
+			afsk_phase_inc_space = message.phase_inc_space;
+			afsk_repeat = message.repeat - 1;
+			afsk_bw = message.bw;
+			afsk_format = message.format;
+		
+			s = 0;
+			sample_count = afsk_samples_per_bit;
+			repeat_counter = 0;
+			bit_pos = 0;
+			byte_pos = 0;
+			cur_byte = 0;
+			ext_byte = 0;
+			cur_bit = 0;
+			configured = true;
+		} else
+			configured = false;		// Kill
 	}
 }
 

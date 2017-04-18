@@ -79,18 +79,16 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
-	bool abort_scan = false;
 	uint8_t scan_count { 0 }, scan_index { 0 };
 	double scan_progress { 0 };
 	char litteral[5][8] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 } };
 	char rgsb[5] = { 0 };
 	char lcr_message[512];
 	char lcr_message_data[512];
-	char checksum = 0;
 	rf::Frequency f { 0 };
 	uint8_t repeat_index { 0 };
 	
-	void generate_message();
+	std::vector<std::string> parse_litterals();
 	void update_progress();
 	void start_tx(const bool scan);
 	void on_txdone(int n);

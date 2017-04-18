@@ -135,16 +135,17 @@ set(CPPSRC
 	debounce.cpp
 	touch.cpp
 	touch_adc.cpp
-	adsb.cpp
+	protocols/adsb.cpp
+	protocols/bht.cpp
+	protocols/dcs.cpp
+	protocols/lcr.cpp
+	protocols/rds.cpp
 	afsk.cpp
 	audio.cpp
 	${COMMON}/bch_code.cpp
-	bht.cpp
 	ctcss.cpp
-	dcs.cpp
 	encoder.cpp
 	freqman.cpp
-	rds.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_text.cpp
@@ -270,6 +271,7 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	${FATFSINC}
 	${CHIBIOS}/os/various
 	bitmaps
+	protocols
 )
 
 #

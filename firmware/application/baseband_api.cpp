@@ -96,6 +96,17 @@ void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint1
 	send_message(&message);
 }
 
+void kill_tone() {
+	const TonesConfigureMessage message {
+		0,
+		0,
+		0,
+		false,
+		false
+	};
+	send_message(&message);
+}
+
 void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
 	const SSTVConfigureMessage message {
 		vis_code,
@@ -113,6 +124,18 @@ void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phas
 		afsk_repeat,
 		afsk_bw,
 		afsk_alt_format
+	};
+	send_message(&message);
+}
+
+void kill_afsk() {
+	const AFSKConfigureMessage message {
+		0,
+		0,
+		0,
+		0,
+		0,
+		false
 	};
 	send_message(&message);
 }

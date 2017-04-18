@@ -208,7 +208,7 @@ MorseView::MorseView(
 	tx_view.on_stop = [this]() {
 		if (ookthread) chThdTerminate(ookthread);
 		transmitter_model.disable();
-		baseband::set_tones_config(0, 0, 0, false, false);
+		baseband::kill_tone();
 		tx_view.set_transmitting(false);
 	};
 }

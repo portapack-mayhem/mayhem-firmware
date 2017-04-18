@@ -26,7 +26,7 @@
 
 namespace afsk {
 
-void generate_data(const char * in_message, char * out_data) {
+void generate_data(const std::string & in_message, char * out_data) {
 	const afsk_formats_t * format_def;
 	uint8_t pm, pp, bit, cp, cur_byte, new_byte;
 	uint16_t dp;
@@ -40,7 +40,7 @@ void generate_data(const char * in_message, char * out_data) {
 
 	if (format_def->data_bits == 7) {
 		if (!format_def->use_LUT) {
-			for (dp = 0; dp < strlen(in_message); dp++) {
+			for (dp = 0; dp < in_message.length(); dp++) {
 				pp = pm;
 				new_byte = 0;
 				cur_byte = in_message[dp];
@@ -55,14 +55,10 @@ void generate_data(const char * in_message, char * out_data) {
 			out_data[dp++] = 0;
 			out_data[dp] = 0;
 		} else {
-			for (dp = 0; dp < strlen(in_message); dp++) {
+			for (dp = 0; dp < in_message.length(); dp++) {
 				pp = pm;
 				
-				// Do not apply LUT on checksum (last byte) ?
-				if (dp != strlen(in_message) - 1)
-					cur_byte = alt_lookup[(uint8_t)in_message[dp] & 0x7F];
-				else
-					cur_byte = in_message[dp];
+				cur_byte = in_message[dp];
 				
 				for (cp = 0; cp < 8; cp++)
 					if ((cur_byte >> cp) & 1) pp++;

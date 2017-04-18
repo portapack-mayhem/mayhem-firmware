@@ -36,12 +36,13 @@ void ScriptView::on_frequency_select() {
 }
 
 void ScriptView::on_edit_freq(rf::Frequency f) {
+	(void)f;
 	//frequencies[menu_view.highlighted()].value = f;
 	setup_list();
 }
 
 void ScriptView::on_edit_desc(NavigationView& nav) {
-
+	(void)nav;
 }
 
 void ScriptView::on_delete() {
@@ -50,7 +51,7 @@ void ScriptView::on_delete() {
 }
 
 void ScriptView::setup_list() {
-	size_t n;
+	//size_t n;
 	
 	menu_view.clear();
 	

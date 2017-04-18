@@ -210,7 +210,7 @@ private:
 
 class DebugLCRView : public View {
 public:
-	DebugLCRView(NavigationView& nav, std::string lcrstring, uint8_t checksum);
+	DebugLCRView(NavigationView& nav, std::string lcrstring);
 
 	void focus() override;
 	

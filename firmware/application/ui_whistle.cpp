@@ -22,92 +22,86 @@
 
 #include "ui_whistle.hpp"
 #include "ui_receiver.hpp"
+#include "tonesets.hpp"
 
-#include "portapack.hpp"
-#include "hackrf_hal.hpp"
-#include "portapack_shared_memory.hpp"
-#include "portapack_persistent_memory.hpp"
+#include "baseband_api.hpp"
 
 #include <cstring>
 #include <stdio.h>
 
-using namespace hackrf::one;
+using namespace portapack;
 
 namespace ui {
 
+void WhistleView::start_tx() {
+	baseband::set_tone(
+		0,
+		field_tone.value() * TONES_DELTA_COEF,
+		(checkbox_stop.value()) ? field_stop.value() * TONES_SAMPLERATE : 0xFFFFFFFF);	// (Almost) infinite duration :)
+	
+	shared_memory.bb_data.tones_data.message[0] = 0;
+	
+	transmitter_model.set_sampling_rate(1536000);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	baseband::set_tones_config(transmitter_model.bandwidth(), 0, 1, false, false);
+	
+	tx_mode = SINGLE;
+}
+
+void WhistleView::on_tx_progress(const bool done) {
+	if (done) {
+		transmitter_model.disable();
+		tx_view.set_transmitting(false);
+		tx_mode = IDLE;
+	}
+}
+
 void WhistleView::focus() {
-	button_transmit.focus();
+	tx_view.focus();
 }
 
 WhistleView::~WhistleView() {
-	//transmitter_model.disable();
+	transmitter_model.disable();
+	baseband::shutdown();
 }
-
-void WhistleView::paint(Painter& painter) {
-	(void)painter;
-}
-
-Button WhistleView::button_scan = {
-	{ 76, 270, 72, 32 },
-	"SCAN"
-};
 
 WhistleView::WhistleView(
 	NavigationView& nav
 )
 {
+	baseband::run_image(portapack::spi_flash::image_tag_tones);
+	
 	add_children({
-		&button_transmit,
-		&button_exit
+		&labels,
+		&field_tone,
+		&checkbox_stop,
+		&field_stop,
+		&tx_view
 	});
 	
-	button_transmit.on_select = [this](Button&){
-		/*uint16_t c;
-		ui::Context context;
-		
-		make_frame();
-			
-		shared_memory.afsk_samples_per_bit = 228000/persistent_memory::afsk_bitrate();
-		shared_memory.afsk_phase_inc_mark = persistent_memory::afsk_mark_freq()*(65536*1024)/2280;
-		shared_memory.afsk_phase_inc_space = persistent_memory::afsk_space_freq()*(65536*1024)/2280;
-
-		for (c = 0; c < 256; c++) {
-			shared_memory.lcrdata[c] = this->lcrframe[c];
+	field_tone.set_value(1520);
+	field_stop.set_value(15);
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			receiver_model.set_tuning_frequency(f);
+		};
+	};
+	
+	tx_view.on_start = [this]() {
+		if (tx_mode == IDLE) {
+			tx_view.set_transmitting(true);
+			start_tx();
 		}
-		
-		shared_memory.afsk_transmit_done = false;
-		shared_memory.afsk_repeat = 5;		// DEFAULT
-
-		text_status.set("Send...");*/
-		
-		//transmitter_model.enable();
 	};
-
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
+	
+	tx_view.on_stop = [this]() {
+		baseband::kill_tone();
 	};
-
-	//static VirtualTimer vt1;
-	//msg_t msg, result;
-
-	/*static EvTimer evt;
-	static EventListener el0;
-	
-	evtInit(&evt, MS2ST(2000));
-	evtStart(&evt);
-	chEvtRegister(&evt.et_es, &el0, 0);*/
-	
-	//chVTSet(&vt1, MS2ST(2000), whistle_th, (void *)&mbox);
-	
-    //while(1) {
-        /*result = chMBFetch(&mbox, &msg, TIME_INFINITE);
-        if(result == RDY_OK) {
-            if(msg & 1)
-                button_scan.set_text("POUET");
-        }*/
-        //chThdSleepMilliseconds(500);
-    //}
-	
 }
 
 } /* namespace ui */

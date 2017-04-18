@@ -24,7 +24,7 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_transmitter.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
 
@@ -36,33 +36,59 @@ public:
 	~WhistleView();
 	
 	void focus() override;
-	void paint(Painter& painter) override;
-	static void whistle_th(void *p);
+	
+	std::string title() const override { return "Whistle"; };
 
 private:
-	rf::Frequency f;
+	void start_tx();
+	void on_tx_progress(const bool done);
 
-	Text text_status {
-		{ 172, 196, 64, 16 },
-		"Ready"
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE
 	};
 	
-	Checkbox checkbox_am_a {
-		{ 16, 68 },
-		20,
-		""
+	tx_modes tx_mode = IDLE;
+
+	Labels labels {
+		{ { 3 * 8, 4 * 8 }, "Tone frequency:     Hz", Color::light_grey() },
+		{ { 22 * 8, 8 * 8 + 4 }, "s.", Color::light_grey() }
 	};
 	
-	Button button_transmit {
-		{ 24, 270, 48, 32 },
-		"TX"
+	NumberField field_tone {
+		{ 19 * 8, 4 * 8 },
+		4,
+		{ 1, 9999 },
+		5,
+		' '
 	};
 	
-	static Button button_scan;
+	Checkbox checkbox_stop {
+		{ 5 * 8, 8 * 8 },
+		10,
+		"Stop after"
+	};
 	
-	Button button_exit {
-		{ 176, 270, 48, 32 },
-		"Exit"
+	NumberField field_stop {
+		{ 20 * 8, 8 * 8 + 4 },
+		2,
+		{ 1, 99 },
+		1,
+		' '
+	};
+	
+	TransmitterView tx_view {
+		16 * 16,
+		10000,
+		12
+	};
+	
+	MessageHandlerRegistration message_handler_tx_done {
+		Message::ID::TXDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
+			this->on_tx_progress(message.done);
+		}
 	};
 };
 

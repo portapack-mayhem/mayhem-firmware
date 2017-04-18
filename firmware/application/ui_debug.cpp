@@ -281,7 +281,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 	on_left = [&nav](){ nav.pop(); };
 }
 
-DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string, uint8_t checksum) {
+DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
 	
 	std::string debug_text;
 	
@@ -299,7 +299,7 @@ DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string, uint8_t 
 	
 	debug_text += "\n\n";
 	debug_text += "Length: " + to_string_dec_uint(lcr_string.length()) + '\n';
-	debug_text += "Checksum: " + to_string_dec_uint(checksum) + '\n';
+	debug_text += "Checksum: " + to_string_dec_uint(lcr_string.back()) + '\n';
 	
 	console.write(debug_text);
 	

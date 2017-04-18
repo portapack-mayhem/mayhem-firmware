@@ -23,39 +23,15 @@
 #include "ui.hpp"
 #include <cstring>
 #include <string>
+#include <vector>
 
-#ifndef __AFSK_H__
-#define __AFSK_H__
+#ifndef __LCR_H__
+#define __LCR_H__
 
-namespace afsk {
-	
-#define AFSK_MODES_COUNT 4
+namespace lcr {
 
-enum parity_enum {
-	NONE = 0,
-	EVEN,
-	ODD
-};
+std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
 
-struct afsk_formats_t {
-	std::string fullname;
-	std::string shortname;
-	uint8_t data_bits;
-	parity_enum parity;
-	uint8_t stop_bits;
-	bool MSB_first;
-	bool use_LUT;
-};
+} /* namespace lcr */
 
-const afsk_formats_t afsk_formats[4] = {
-	{ "7-Even-1 R", "7E1", 7, EVEN,	1, false, false },
-	{ "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },
-	{ "7-Odd-1   ", "7o1", 7, ODD,	1, true, false },
-	{ "8-Even-0  ", "8E0", 8, EVEN,	1, true, false }
-};
-
-void generate_data(const std::string & in_message, char * out_data);
-
-} /* namespace afsk */
-
-#endif/*__AFSK_H__*/
+#endif/*__LCR_H__*/
