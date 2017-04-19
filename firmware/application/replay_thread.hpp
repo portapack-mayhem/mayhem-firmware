@@ -50,12 +50,12 @@ public:
 	ReplayThread& operator=(const ReplayThread&) = delete;
 	ReplayThread& operator=(ReplayThread&&) = delete;
 
-	const CaptureConfig& state() const {
+	const ReplayConfig& state() const {
 		return config;
 	}
 
 private:
-	CaptureConfig config;
+	ReplayConfig config;
 	std::unique_ptr<stream::Reader> reader;
 	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;

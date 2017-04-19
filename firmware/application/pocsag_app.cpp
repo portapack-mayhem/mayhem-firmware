@@ -147,10 +147,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	else {
 		pocsag_decode_batch(message->packet, &pocsag_state);
 
-		if ((ignore) && (pocsag_state.out_type == ADDRESS) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
+		if ((ignore) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
 			// Ignore (inform, but no log)
-			console.write("\n\x1B\x03" + to_string_time(message->packet.timestamp()) +
-						" Ignored address " + to_string_dec_uint(pocsag_state.address));
+			//console.write("\n\x1B\x03" + to_string_time(message->packet.timestamp()) +
+			//			" Ignored address " + to_string_dec_uint(pocsag_state.address));
 			return;
 		}
 
@@ -179,9 +179,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		} else if (pocsag_state.out_type == MESSAGE) {
 			if (pocsag_state.address != last_address) {
 				// New message
-				
 				console.writeln(console_info);
-				
 				console.write(pocsag_state.output);
 				
 				last_address = pocsag_state.address;

@@ -40,29 +40,30 @@ StreamOutput::StreamOutput(ReplayConfig* const config) :
 	}
 }
 
-size_t StreamOutput::read(const void* const data, const size_t length) {
-	const uint8_t* p = static_cast<const uint8_t*>(data);
-	size_t written = 0;
+size_t StreamOutput::read(void* const data, const size_t length) {
+	uint8_t* p = static_cast<uint8_t*>(data);
+	size_t read = 0;
 
-	while( written < length ) {
+	while( read < length ) {
 		if( !active_buffer ) {
-			// We need an empty buffer...
-			if( !fifo_buffers_empty.out(active_buffer) ) {
+			// We need a full buffer...
+			if( !fifo_buffers_full.out(active_buffer) ) {
 				// ...but none are available. Samples were dropped.
+			//active_buffer = nullptr;		// Testing ! Jumpstart
+			creg::m4txevent::assert();
 				break;
 			}
 		}
 		
-		const auto remaining = length - written;
-		written += active_buffer->write(&p[written], remaining);
+		const auto remaining = length - read;
+		read += active_buffer->read(&p[read], remaining);
+		//buffer->empty();
 
-		if( active_buffer->is_full() ) {
-			if( !fifo_buffers_full.in(active_buffer) ) {
-				// FIFO is fuil of buffers, there's no place for this one.
-				// Bail out of the loop, and try submitting the buffer in the
+		if( active_buffer->is_empty() ) {
+			if( !fifo_buffers_empty.in(active_buffer) ) {
+				// FIFO is completly empty.
+				// Bail out of the loop, and try retrieving the buffer in the
 				// next pass.
-				// This should never happen if the number of buffers is less
-				// than the capacity of the FIFO.
 				break;
 			}
 			active_buffer = nullptr;
@@ -70,7 +71,7 @@ size_t StreamOutput::read(const void* const data, const size_t length) {
 		}
 	}
 
-	config->baseband_bytes_sent += length;
+	config->baseband_bytes_received += length;
 
-	return written;
+	return read;
 }

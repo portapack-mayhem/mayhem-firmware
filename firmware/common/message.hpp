@@ -458,9 +458,20 @@ public:
 		used_ += copy_size;
 		return copy_size;
 	}
+	
+	size_t read(void* p, const size_t count) {
+		const auto copy_size = std::min(used_, count);
+		memcpy(p, &data_[used_ - copy_size], copy_size);
+		used_ -= copy_size;
+		return copy_size;
+	}
 
 	bool is_full() const {
 		return used_ >= capacity_;
+	}
+	
+	bool is_empty() const {
+		return used_ == 0;
 	}
 
 	void* data() const {
@@ -525,7 +536,7 @@ public:
 struct ReplayConfig {
 	const size_t read_size;
 	const size_t buffer_count;
-	uint64_t baseband_bytes_sent;
+	uint64_t baseband_bytes_received;
 	FIFO<StreamBuffer*>* fifo_buffers_empty;
 	FIFO<StreamBuffer*>* fifo_buffers_full;
 
@@ -534,7 +545,7 @@ struct ReplayConfig {
 		const size_t buffer_count
 	) : read_size { read_size },
 		buffer_count { buffer_count },
-		baseband_bytes_sent { 0 },
+		baseband_bytes_received { 0 },
 		fifo_buffers_empty { nullptr },
 		fifo_buffers_full { nullptr }
 	{

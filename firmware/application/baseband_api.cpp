@@ -281,13 +281,13 @@ void capture_stop() {
 	send_message(&message);
 }
 
-void replay_start(CaptureConfig* const config) {
-	CaptureConfigMessage message { config };
+void replay_start(ReplayConfig* const config) {
+	ReplayConfigMessage message { config };
 	send_message(&message);
 }
 
 void replay_stop() {
-	CaptureConfigMessage message { nullptr };
+	ReplayConfigMessage message { nullptr };
 	send_message(&message);
 }
 

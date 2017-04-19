@@ -39,15 +39,21 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	//const auto& decimator_out = decim_1_out;
 	//const auto& channel = decimator_out;
 
-	if( stream ) {
-		const size_t bytes_to_read = buffer.count;	// ?
-		const auto result = stream->read(iq_buffer.p, bytes_to_read);
-	}
-
-	//feed_channel_stats(channel);
+	size_t pos = 0;
 	
-	for (size_t i = 0; i < buffer.count; i++) {
-		buffer.p[i] = { iq_buffer.p[i].real() >> 8, iq_buffer.p[i].imag() >> 8};
+	for (size_t c = 0; c < 4; c++) {
+		if( stream ) {
+			const size_t bytes_to_read = sizeof(*buffer.p) * buffer.count / 4;	// ?
+			const auto result = stream->read(iq_buffer.p, bytes_to_read);
+		}
+
+		//feed_channel_stats(channel);
+		
+		for (size_t i = 0; i < (buffer.count / 4); i++) {
+			buffer.p[pos] = { iq_buffer.p[i].real() >> 8, iq_buffer.p[i].imag() >> 8 };
+			pos++;
+			//buffer.p[i] = { iq_buffer.p[i].real(), iq_buffer.p[i].imag() };
+		}
 	}
 	
 	/*spectrum_samples += channel.count;

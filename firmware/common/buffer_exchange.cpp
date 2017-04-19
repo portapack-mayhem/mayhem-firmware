@@ -21,15 +21,30 @@
 
 #include "buffer_exchange.hpp"
 
+// DEBUG:
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
+
 BufferExchange* BufferExchange::obj { nullptr };
 
 BufferExchange::BufferExchange(
 	CaptureConfig* const config
-) : config { config }
+)	// : config_capture { config }
 {
 	obj = this;
+	direction = CAPTURE;
 	fifo_buffers_for_baseband = config->fifo_buffers_empty;
 	fifo_buffers_for_application = config->fifo_buffers_full;
+}
+
+BufferExchange::BufferExchange(
+	ReplayConfig* const config
+)	// : config_replay { config }
+{
+	obj = this;
+	direction = REPLAY;
+	fifo_buffers_for_baseband = config->fifo_buffers_full;
+	fifo_buffers_for_application = config->fifo_buffers_empty;
 }
 
 BufferExchange::~BufferExchange() {
@@ -42,6 +57,9 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 	while(true) {
 		StreamBuffer* p { nullptr };
 		fifo->out(p);
+		
+		led_tx.on();	// DEBUG
+		
 		if( p ) {
 			return p;
 		}

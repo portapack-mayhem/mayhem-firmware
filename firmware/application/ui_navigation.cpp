@@ -360,7 +360,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",					ui::Color::grey(),	&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },	// ReplayAppView
+		{ "Replay",					ui::Color::blue(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },	// ReplayAppView
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "SSTV transmitter", 		ui::Color::dark_green(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },

@@ -57,7 +57,7 @@ size_t StreamInput::write(const void* const data, const size_t length) {
 
 		if( active_buffer->is_full() ) {
 			if( !fifo_buffers_full.in(active_buffer) ) {
-				// FIFO is fuil of buffers, there's no place for this one.
+				// FIFO is full of buffers, there's no place for this one.
 				// Bail out of the loop, and try submitting the buffer in the
 				// next pass.
 				// This should never happen if the number of buffers is less

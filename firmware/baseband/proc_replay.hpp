@@ -46,13 +46,13 @@ public:
 
 private:
 	// TODO: Repeated value needs to be transmitted from application side.
-	static constexpr size_t baseband_fs = 4000000;
+	static constexpr size_t baseband_fs = 500000;
 	//static constexpr auto spectrum_rate_hz = 50.0f;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	//RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 2048> iq { };
+	std::array<complex16_t, 512> iq { };	// 2048
 	const buffer_c16_t iq_buffer {
 		iq.data(),
 		iq.size()

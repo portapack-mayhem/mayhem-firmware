@@ -41,11 +41,11 @@ public:
 
 	void on_hide() override;
 
-	void set_parent_rect(const Rect new_parent_rect) override;
+	//void set_parent_rect(const Rect new_parent_rect) override;
 
 	void focus() override;
 
-	std::string title() const override { return "Replay (beta)"; };
+	std::string title() const override { return "Replay (broken)"; };
 
 private:
 	NavigationView& nav_;
@@ -79,7 +79,7 @@ private:
 		16384, 3
 	};
 
-	spectrum::WaterfallWidget waterfall { };
+	//spectrum::WaterfallWidget waterfall { };
 };
 
 } /* namespace ui */

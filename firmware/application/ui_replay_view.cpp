@@ -72,13 +72,13 @@ ReplayView::ReplayView(
 		this->toggle();
 	};
 
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+	/*signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
-	};
+	};*/
 }
 
 ReplayView::~ReplayView() {
-	rtc_time::signal_tick_second -= signal_token_tick_second;
+	//rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void ReplayView::focus() {
@@ -97,7 +97,6 @@ void ReplayView::set_file_list(const std::vector<std::filesystem::path>& file_li
 	options_files.set_options(file_options);
 	options_files.set_selected_index(0);	// First file
 	on_file_changed(file_options[0].second);
-	
 }
 
 bool ReplayView::is_active() const {
@@ -136,8 +135,8 @@ void ReplayView::start() {
 	update_status_display();
 	
 	radio::enable({
-		460000000,	//target_frequency(),
-		4000000,	//sampling_rate,
+		434000000,	//target_frequency(),
+		sampling_rate,
 		2500000,	//baseband_bandwidth,
 		rf::Direction::Transmit,
 		receiver_model.rf_amp(),

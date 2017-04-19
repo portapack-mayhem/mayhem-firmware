@@ -30,6 +30,7 @@
 class BufferExchange {
 public:
 	BufferExchange(CaptureConfig* const config);
+	BufferExchange(ReplayConfig* const config);
 	~BufferExchange();
 
 	BufferExchange(const BufferExchange&) = delete;
@@ -72,16 +73,25 @@ public:
 	}
 
 private:
-	CaptureConfig* const config;
+	//CaptureConfig* const config_capture;
+	//ReplayConfig* const config_replay;
 	FIFO<StreamBuffer*>* fifo_buffers_for_baseband { nullptr };
 	FIFO<StreamBuffer*>* fifo_buffers_for_application { nullptr };
 	Thread* thread { nullptr };
 	static BufferExchange* obj;
+	
+	enum {
+		CAPTURE,
+		REPLAY
+	} direction { };
 
 	void check_fifo_isr() {
-		if( !empty() ) {
+		//if (!empty() && (direction == CAPTURE)) {
+		if (!empty())
 			wakeup_isr();
-		}
+		//} else if (!empty() && (direction == REPLAY)) {
+		//	wakeup_isr();
+		//}
 	}
 
 	void wakeup_isr() {
