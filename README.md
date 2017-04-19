@@ -10,9 +10,11 @@ It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/
 
 [READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)
 
+Do you want to submit a bug report, suggest something, ... ? Don't hesitate, go here: https://github.com/furrtek/portapack-havoc/issues (Check the progress list below first).
+
 # Summary
 
-As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't use them. No. Bad. Put it down.
+As its name implies, HAVOC's functionalities can be fun, mean and even useful sometimes. You shouldn't use them. No. Bad. Put it down.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
@@ -32,8 +34,9 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 * AFSK transmitter (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) message generator
-* "Xy" and "EP" transmitter, street lighting control (CCIR tones)
+* Xylos transmitter, street lighting control (CCIR tones)
 * "Play Dead" in case of emergency
+* Utilities such as tone generator and CW transmitter
 * PWM audio RSSI output (for crude direction finding)
 
 # Progress
@@ -41,17 +44,15 @@ As its name implies, HAVOC's functionalities can be fun (or mean). You shouldn't
 Feature | Progress | Notes
 ------- | -------- | -----
 POCSAG RX   | 95% | Needs support for numeric messages
-Morse TX    | 95% | Need testing for all symbols
+Morse TX    | 95% | Needs fox hunt scheduler and live keying mode
 Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
 RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
-EPAR TX     | 60% | Older Xy, low priority
+IQ replay   | 50% | High priority
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
 ADS-B TX    | 40% | UI and frame gen stuff done, needs baseband module
 Wave visualizer | 30% | Only the widget is ready, high priority
-IQ replay   | 30% | High priority
-Whistle     | 20% | Easy
 Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
 SSTV RX     | 0%  |
