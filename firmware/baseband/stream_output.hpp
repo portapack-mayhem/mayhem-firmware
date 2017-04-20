@@ -48,12 +48,12 @@ private:
 	
 	FIFO<StreamBuffer*> fifo_buffers_empty;
 	FIFO<StreamBuffer*> fifo_buffers_full;
-	std::array<StreamBuffer, buffer_count_max> buffers;
-	std::array<StreamBuffer*, buffer_count_max> buffers_empty;
-	std::array<StreamBuffer*, buffer_count_max> buffers_full;
+	std::array<StreamBuffer, buffer_count_max> buffers { };
+	std::array<StreamBuffer*, buffer_count_max> buffers_empty { };
+	std::array<StreamBuffer*, buffer_count_max> buffers_full { };
 	StreamBuffer* active_buffer { nullptr };
 	ReplayConfig* const config { nullptr };
-	std::unique_ptr<uint8_t[]> data;
+	std::unique_ptr<uint8_t[]> data { };
 };
 
 #endif/*__STREAM_OUTPUT_H__*/

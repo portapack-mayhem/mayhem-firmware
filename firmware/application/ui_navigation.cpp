@@ -89,6 +89,7 @@ SystemStatusView::SystemStatusView() {
 		&sd_card_status_view,
 	});
 	
+	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
 	
 	if (!portapack::persistent_memory::ui_config_textentry())

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -162,6 +163,13 @@ void FocusManager::update(
 
 			return { nullptr, 0 };
 		};
+		
+		const auto find_back_fn = [](ui::Widget* const w) -> test_result_t {
+			if( w->focusable() && (w->id == -1) )
+				return { w, 0 };
+			else
+				return { nullptr, 0 };
+		};
 
 		test_collection_t collection;
 		widget_collect_visible(top_widget, test_fn, collection);
@@ -175,6 +183,14 @@ void FocusManager::update(
 			//focus->blur();
 			const auto new_focus = (*nearest).first;
 			set_focus_widget(new_focus);
+		} else {
+			if ((focus_widget()->id >= 0) && (event == KeyEvent::Left)) {
+				// Stuck left, move to back button
+				collection.clear();
+				widget_collect_visible(top_widget, find_back_fn, collection);
+				if (!collection.empty())
+					set_focus_widget(collection[0].first);
+			}
 		}
 	}
 }

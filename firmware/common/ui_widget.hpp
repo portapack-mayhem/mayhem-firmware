@@ -108,7 +108,7 @@ public:
 	void set_style(const Style* new_style);
 
 	const Style& style() const;
-	uint16_t id = 0;
+	int16_t id = 0;
 
 	// State management methods.
 	void set_dirty();

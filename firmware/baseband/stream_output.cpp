@@ -49,8 +49,6 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 			// We need a full buffer...
 			if( !fifo_buffers_full.out(active_buffer) ) {
 				// ...but none are available. Samples were dropped.
-			//active_buffer = nullptr;		// Testing ! Jumpstart
-			creg::m4txevent::assert();
 				break;
 			}
 		}
