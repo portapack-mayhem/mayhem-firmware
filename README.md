@@ -46,14 +46,13 @@ Feature | Progress | Notes
 POCSAG RX   | 95% | Needs support for numeric messages
 Morse TX    | 95% | Needs fox hunt scheduler and live keying mode
 Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
-RDS TX      | 90% | Radiotext isn't quite right yet
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
 IQ replay   | 50% | High priority
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
 ADS-B TX    | 40% | UI and frame gen stuff done, needs baseband module
 Wave visualizer | 30% | Only the widget is ready, high priority
-Generic TXs | 5%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
+Generic TXs | 20%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
 SSTV RX     | 0%  |
 ADS-B RX    | 0%  | Could be fun. Is sensitivity high enough ?
