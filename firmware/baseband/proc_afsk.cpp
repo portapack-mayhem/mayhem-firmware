@@ -35,88 +35,60 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 	
 	for (size_t i = 0; i<buffer.count; i++) {
 
-		// Tone synthesis at 2.28M/10 = 228kHz
-		if (s >= (5 - 1)) {
-			s = 0;
-			
-			if (sample_count >= afsk_samples_per_bit) {
-				if (configured) {
-					cur_byte = shared_memory.bb_data.data[byte_pos];
-					ext_byte = shared_memory.bb_data.data[byte_pos + 1];
-					
-					if (!(cur_byte | ext_byte)) {
-						// End of data
-						if (repeat_counter < afsk_repeat) {
-							// Repeat
-							bit_pos = 0;
-							byte_pos = 0;
-							cur_byte = shared_memory.bb_data.data[0];
-							ext_byte = shared_memory.bb_data.data[1];
-							message.progress = repeat_counter + 1;
-							shared_memory.application_queue.push(message);
-							repeat_counter++;
-						} else {
-							// Stop
-							cur_byte = 0;
-							ext_byte = 0;
-							message.progress = 0;
-							shared_memory.application_queue.push(message);
-							configured = false;
-						}
+		if (sample_count >= afsk_samples_per_bit) {
+			if (configured) {
+				cur_word = *word_ptr;
+				
+				if (!cur_word) {
+					// End of data
+					if (repeat_counter < afsk_repeat) {
+						// Repeat
+						bit_pos = 0;
+						word_ptr = (uint16_t*)shared_memory.bb_data.data;
+						cur_word = *word_ptr;
+						message.progress = repeat_counter + 1;
+						shared_memory.application_queue.push(message);
+						repeat_counter++;
+					} else {
+						// Stop
+						cur_word = 0;
+						message.progress = 0;
+						shared_memory.application_queue.push(message);
+						configured = false;
 					}
 				}
-				
-				if (afsk_format == 0) {
-					// 0bbbbbbbp1
-					// Start, 7-bit data, parity, stop
-					gbyte = (cur_byte << 1) | 1;
-				} else if (afsk_format == 1) {
-					// 0bbbbbbbbp
-					// Start, 8-bit data, parity
-					gbyte = (cur_byte << 1) | (ext_byte & 1);
-				}
-				
-				cur_bit = (gbyte >> (9 - bit_pos)) & 1;
-
-				if (bit_pos >= 9) {
-					bit_pos = 0;
-					if (afsk_format == 0)
-						byte_pos++;
-					else if (afsk_format == 1)
-						byte_pos += 2;
-				} else {
-					bit_pos++;
-				}
-				
-				sample_count = 0;
-			} else {
-				sample_count++;
 			}
-			if (cur_bit)
-				tone_phase += afsk_phase_inc_mark;
-			else
-				tone_phase += afsk_phase_inc_space;
+			
+			cur_bit = (cur_word >> (symbol_count - bit_pos)) & 1;
+
+			if (bit_pos >= symbol_count) {
+				bit_pos = 0;
+				word_ptr++;
+			} else {
+				bit_pos++;
+			}
+			
+			sample_count = 0;
 		} else {
-			s--;
+			sample_count++;
 		}
+		
+		if (cur_bit)
+			tone_phase += afsk_phase_inc_mark;
+		else
+			tone_phase += afsk_phase_inc_space;
 
-		//tone_phase += 432759;	// 1981Hz
-		
-		tone_sample = (sine_table_i8[(tone_phase & 0x03FC0000) >> 18]); 
-		
-		// FM
-		// 1<<18 = 262144
-		// m = (262144 * a) / 2280000
-		// a = 262144 / 2280000 (*1000 = 115, see ui_lcr afsk_bw setting)
-		frq = tone_sample * afsk_bw;
-		
-		phase = (phase + frq);
-		sphase = phase + (64 << 18);
+		tone_sample = sine_table_i8[(tone_phase & 0xFF000000U) >> 24];
 
-		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-		im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+		delta = tone_sample * fm_delta;
 		
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		phase += delta;
+		sphase = phase + (64 << 24);
+
+		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+			
+		buffer.p[i] = {re, im};
 	}
 }
 
@@ -126,19 +98,17 @@ void AFSKProcessor::on_message(const Message* const msg) {
 	if (message.id == Message::ID::AFSKConfigure) {
 		if (message.samples_per_bit) {
 			afsk_samples_per_bit = message.samples_per_bit;
-			afsk_phase_inc_mark = message.phase_inc_mark;
-			afsk_phase_inc_space = message.phase_inc_space;
+			afsk_phase_inc_mark = message.phase_inc_mark * AFSK_DELTA_COEF;
+			afsk_phase_inc_space = message.phase_inc_space * AFSK_DELTA_COEF;
 			afsk_repeat = message.repeat - 1;
-			afsk_bw = message.bw;
-			afsk_format = message.format;
-		
-			s = 0;
+			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
+			symbol_count = message.symbol_count - 1;
+
 			sample_count = afsk_samples_per_bit;
 			repeat_counter = 0;
 			bit_pos = 0;
-			byte_pos = 0;
-			cur_byte = 0;
-			ext_byte = 0;
+			word_ptr = (uint16_t*)shared_memory.bb_data.data;
+			cur_word = 0;
 			cur_bit = 0;
 			configured = true;
 		} else

@@ -116,14 +116,14 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
 }
 
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
-					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format) {
+					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count) {
 	const AFSKConfigureMessage message {
 		afsk_samples_per_bit,
 		afsk_phase_inc_mark,
 		afsk_phase_inc_space,
 		afsk_repeat,
 		afsk_bw,
-		afsk_alt_format
+		symbol_count
 	};
 	send_message(&message);
 }

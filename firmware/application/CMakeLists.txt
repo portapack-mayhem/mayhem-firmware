@@ -140,7 +140,7 @@ set(CPPSRC
 	protocols/dcs.cpp
 	protocols/lcr.cpp
 	protocols/rds.cpp
-	afsk.cpp
+	modems.cpp
 	audio.cpp
 	${COMMON}/bch_code.cpp
 	ctcss.cpp
@@ -183,7 +183,7 @@ set(CPPSRC
 	ui_record_view.cpp
 	ui_replay_view.cpp
 	ui_rssi.cpp
-	ui_script.cpp
+	# ui_script.cpp
 	ui_sd_card_status_view.cpp
 	ui_sd_wipe.cpp
 	# ui_sd_card_debug.cpp

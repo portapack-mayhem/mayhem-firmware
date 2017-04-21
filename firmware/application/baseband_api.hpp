@@ -65,7 +65,7 @@ void set_audiotx_data(const uint32_t divider, const uint32_t bw, const uint32_t 
 void set_fifo_data(const int8_t * data);
 void set_pwmrssi(int32_t avg, bool enabled);
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
-					const uint8_t afsk_repeat, const uint32_t afsk_bw, const bool afsk_alt_format);
+					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count);
 void kill_afsk();
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
 					const uint32_t pause_symbols);

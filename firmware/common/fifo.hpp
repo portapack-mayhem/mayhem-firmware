@@ -111,9 +111,9 @@ public:
 			return false;
 		}
 
-		val = _data[_out & mask()];
-		smp_wmb();
-		_out += 1;
+		val = _data[_out & mask()];		// Crashes
+		smp_wmb();						// Ok
+		_out += 1;						// Crashes
 
 		return true;
 	}

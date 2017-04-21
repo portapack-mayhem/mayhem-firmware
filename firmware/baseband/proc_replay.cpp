@@ -22,8 +22,6 @@
 
 #include "proc_replay.hpp"
 
-//#include "dsp_fir_taps.hpp"
-
 #include "event_m4.hpp"
 
 #include "utility.hpp"
@@ -34,16 +32,12 @@ ReplayProcessor::ReplayProcessor() {
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
-	//const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	//const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	//const auto& decimator_out = decim_1_out;
-	//const auto& channel = decimator_out;
 
 	size_t pos = 0;
 	
 	for (size_t c = 0; c < 4; c++) {
 		if( stream ) {
-			const size_t bytes_to_read = sizeof(*buffer.p) * buffer.count / 4;	// ?
+			const size_t bytes_to_read = sizeof(*buffer.p) * buffer.count / 4;
 			const auto result = stream->read(iq_buffer.p, bytes_to_read);
 		}
 
@@ -52,7 +46,6 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 		for (size_t i = 0; i < (buffer.count / 4); i++) {
 			buffer.p[pos] = { iq_buffer.p[i].real() >> 8, iq_buffer.p[i].imag() >> 8 };
 			pos++;
-			//buffer.p[i] = { iq_buffer.p[i].real(), iq_buffer.p[i].imag() };
 		}
 	}
 	

@@ -44,17 +44,21 @@ constexpr ppb_range_t ppb_range { -99000, 99000 };
 constexpr ppb_t ppb_reset_value { 0 };
 
 using afsk_freq_range_t = range_t<int32_t>;
-constexpr afsk_freq_range_t afsk_freq_range { 1, 400 };
-constexpr int32_t afsk_mark_reset_value { 48 };
-constexpr int32_t afsk_space_reset_value { 88 };
+constexpr afsk_freq_range_t afsk_freq_range { 1, 4000 };
+constexpr int32_t afsk_mark_reset_value { 1200 };
+constexpr int32_t afsk_space_reset_value { 2200 };
 
-using afsk_bitrate_range_t = range_t<int32_t>;
-constexpr afsk_bitrate_range_t afsk_bitrate_range { 600, 9600 };
-constexpr int32_t afsk_bitrate_reset_value { 1200 };
+using modem_baudrate_range_t = range_t<int32_t>;
+constexpr modem_baudrate_range_t modem_baudrate_range { 50, 9600 };
+constexpr int32_t modem_baudrate_reset_value { 1200 };
 
-using afsk_bw_range_t = range_t<int32_t>;
-constexpr afsk_bw_range_t afsk_bw_range { 1, 50 };
-constexpr int32_t afsk_bw_reset_value { 15 };
+using modem_bw_range_t = range_t<int32_t>;
+constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
+constexpr int32_t modem_bw_reset_value { 15000 };
+
+using modem_repeat_range_t = range_t<int32_t>;
+constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
+constexpr int32_t modem_repeat_reset_value { 5 };
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
@@ -63,13 +67,14 @@ struct data_t {
 	uint32_t touch_calibration_magic;
 	touch::Calibration touch_calibration;
 
-	
-	// AFSK modem
+	// Modem
+	uint32_t modem_def_index;
+	serial_format_t serial_format;
+	int32_t modem_bw;
 	int32_t afsk_mark_freq;
-	int32_t afsk_space_freq;		// Todo: reduce size, only 256 bytes of NVRAM !
-	int32_t afsk_bitrate;
-	int32_t afsk_bw;
-	uint32_t afsk_config;
+	int32_t afsk_space_freq;
+	int32_t modem_baudrate;
+	int32_t modem_repeat;
 	
 	// Play dead unlock
 	uint32_t playdead_magic;
@@ -78,7 +83,8 @@ struct data_t {
 	
 	uint32_t ui_config;
 	
-	uint32_t pocsag_address;
+	uint32_t pocsag_last_address;
+	uint32_t pocsag_ignore_address;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -137,38 +143,39 @@ void set_afsk_space(const int32_t new_value) {
 	data->afsk_space_freq = afsk_freq_range.clip(new_value);
 }
 
-int32_t afsk_bitrate() {
-	afsk_bitrate_range.reset_if_outside(data->afsk_bitrate, afsk_bitrate_reset_value);
-	return data->afsk_bitrate;
+int32_t modem_baudrate() {
+	modem_baudrate_range.reset_if_outside(data->modem_baudrate, modem_baudrate_reset_value);
+	return data->modem_baudrate;
 }
 
-void set_afsk_bitrate(const int32_t new_value) {
-	data->afsk_bitrate = afsk_bitrate_range.clip(new_value);
+void set_modem_baudrate(const int32_t new_value) {
+	data->modem_baudrate = modem_baudrate_range.clip(new_value);
 }
 
-int32_t afsk_bw() {
-	afsk_bw_range.reset_if_outside(data->afsk_bw, afsk_bw_reset_value);
-	return data->afsk_bw;
+int32_t modem_bw() {
+	modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
+	return data->modem_bw;
 }
 
-void set_afsk_bw(const int32_t new_value) {
-	data->afsk_bw = afsk_bw_range.clip(new_value);
+void set_modem_bw(const int32_t new_value) {
+	data->modem_bw = modem_bw_range.clip(new_value);
 }
 
-uint32_t afsk_config() {
-	return data->afsk_config;
+uint8_t modem_repeat() {
+	modem_repeat_range.reset_if_outside(data->modem_repeat, modem_repeat_reset_value);
+	return data->modem_repeat;
 }
 
-uint8_t afsk_format() {
-	return ((data->afsk_config >> 16) & 3);
+void set_modem_repeat(const uint32_t new_value) {
+	data->modem_repeat = modem_repeat_range.clip(new_value);
 }
 
-uint8_t afsk_repeats() {
-	return (data->afsk_config >> 24);
+serial_format_t serial_format() {
+	return data->serial_format;
 }
 
-void set_afsk_config(const uint32_t new_value) {
-	data->afsk_config = new_value;
+void set_serial_format(const serial_format_t new_value) {
+	data->serial_format = new_value;
 }
 
 static constexpr uint32_t playdead_magic = 0x88d3bb57;
@@ -241,12 +248,20 @@ void set_ui_config(const uint32_t new_value) {
 	data->ui_config = new_value;
 }
 
-uint32_t pocsag_address() {
-	return data->pocsag_address;
+uint32_t pocsag_last_address() {
+	return data->pocsag_last_address;
 }
 
-void set_pocsag_address(uint32_t address) {
-	data->pocsag_address = address;
+void set_pocsag_last_address(uint32_t address) {
+	data->pocsag_last_address = address;
+}
+
+uint32_t pocsag_ignore_address() {
+	return data->pocsag_ignore_address;
+}
+
+void set_pocsag_ignore_address(uint32_t address) {
+	data->pocsag_ignore_address = address;
 }
 
 } /* namespace persistent_memory */

@@ -151,7 +151,7 @@ POCSAGTXView::POCSAGTXView(
 	options_type.set_selected_index(0);		// Address only
 	
 	// TODO: set_value for whole symfield
-	reload_address = portapack::persistent_memory::pocsag_address();
+	reload_address = persistent_memory::pocsag_last_address();
 	for (c = 0; c < 7; c++) {
 		field_address.set_sym(6 - c, reload_address % 10);
 		reload_address /= 10;

@@ -86,12 +86,8 @@ private:
 	} direction { };
 
 	void check_fifo_isr() {
-		//if (!empty() && (direction == CAPTURE)) {
 		if (!empty())
 			wakeup_isr();
-		//} else if (!empty() && (direction == REPLAY)) {
-		//	wakeup_isr();
-		//}
 	}
 
 	void wakeup_isr() {

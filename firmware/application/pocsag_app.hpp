@@ -59,8 +59,6 @@ public:
 
 private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
-	static constexpr uint32_t sampling_rate = 3072000;
-	const uint8_t default_ignore[7] = { 1, 0, 0, 8, 8, 2, 4 };
 
 	bool logging { true };
 	bool ignore { false };

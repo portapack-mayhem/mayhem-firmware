@@ -683,15 +683,15 @@ public:
 		const uint32_t phase_inc_mark,
 		const uint32_t phase_inc_space,
 		const uint8_t repeat,
-		const uint32_t bw,
-		const uint8_t format
+		const uint32_t fm_delta,
+		const uint8_t symbol_count
 	) : Message { ID::AFSKConfigure },
 		samples_per_bit(samples_per_bit),
 		phase_inc_mark(phase_inc_mark),
 		phase_inc_space(phase_inc_space),
 		repeat(repeat),
-		bw(bw),
-		format(format)
+		fm_delta(fm_delta),
+		symbol_count(symbol_count)
 	{
 	}
 
@@ -699,8 +699,8 @@ public:
 	const uint32_t phase_inc_mark;
 	const uint32_t phase_inc_space;
 	const uint8_t repeat;
-	const uint32_t bw;
-	const uint8_t format;
+	const uint32_t fm_delta;
+	const uint8_t symbol_count;
 };
 
 class OOKConfigureMessage : public Message {

@@ -25,11 +25,6 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
-//#include "rssi_thread.hpp"
-
-//#include "dsp_decimate.hpp"
-
-//#include "spectrum_collector.hpp"
 
 #include "stream_output.hpp"
 
@@ -52,7 +47,7 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	//RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> iq { };	// 2048
+	std::array<complex16_t, 512> iq { };	// 2048 doesn't fit in allocated RAM
 	const buffer_c16_t iq_buffer {
 		iq.data(),
 		iq.size()

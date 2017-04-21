@@ -33,7 +33,7 @@
 #include <stdio.h>
 
 using namespace portapack;
-using namespace afsk;
+using namespace modems;
 
 namespace ui {
 
@@ -42,18 +42,14 @@ void AFSKSetupView::focus() {
 }
 
 void AFSKSetupView::update_freq(rf::Frequency f) {
-	char finalstr[10] = {0};
+	std::string final_str;
 	
-	portapack::persistent_memory::set_tuned_frequency(f);
+	persistent_memory::set_tuned_frequency(f);
 	
-	auto mhz = to_string_dec_int(f / 1000000, 4);
-	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
+	final_str = to_string_dec_int(f / 1000000, 4) + ".";
+	final_str += to_string_dec_int((f / 100) % 10000, 4, '0');
 
-	strcat(finalstr, mhz.c_str());
-	strcat(finalstr, ".");
-	strcat(finalstr, hz100.c_str());
-
-	this->button_setfreq.set_text(finalstr);
+	button_setfreq.set_text(final_str);
 }
 
 AFSKSetupView::AFSKSetupView(
@@ -64,57 +60,81 @@ AFSKSetupView::AFSKSetupView(
 	using value_t = int32_t;
 	using option_t = std::pair<name_t, value_t>;
 	using options_t = std::vector<option_t>;
-	options_t format_options;
-	uint8_t rpt;
+	options_t modem_options;
 	size_t i;
 	
 	add_children({
 		&labels,
 		&button_setfreq,
-		&options_bps,
+		&field_baudrate,
 		&field_mark,
 		&field_space,
 		&field_bw,
 		&field_repeat,
-		&options_format,
+		&options_modem,
+		&button_set_modem,
+		&sym_format,
 		&button_save
 	});
 	
-	for (i = 0; i < AFSK_MODES_COUNT; i++)
-		format_options.emplace_back(std::make_pair(afsk_formats[i].fullname, i));
+	for (i = 0; i < MODEM_DEF_COUNT; i++) {
+		if (modem_defs[i].modulation == AFSK)
+			modem_options.emplace_back(std::make_pair(modem_defs[i].name, i));
+	}
 	
-	options_format.set_options(format_options);
-	options_format.set_selected_index(portapack::persistent_memory::afsk_format());
+	options_modem.set_options(modem_options);
+	options_modem.set_selected_index(0);
 	
-	update_freq(portapack::persistent_memory::tuned_frequency());
+	sym_format.set_symbol_list(0, "6789");		// Data bits
+	sym_format.set_symbol_list(1, "NEo");		// Parity
+	sym_format.set_symbol_list(2, "012");		// Stop bits
+	sym_format.set_symbol_list(3, "ML");		// MSB/LSB first
 	
-	field_mark.set_value(portapack::persistent_memory::afsk_mark_freq() * 25);
-	field_space.set_value(portapack::persistent_memory::afsk_space_freq() * 25);
-	field_bw.set_value(portapack::persistent_memory::afsk_bw());
-	rpt = portapack::persistent_memory::afsk_repeats();
-	if ((rpt > 99) || (!rpt)) rpt = 5;
-	field_repeat.set_value(rpt);
+	sym_format.set_sym(0, persistent_memory::serial_format().data_bits - 6);
+	sym_format.set_sym(1, persistent_memory::serial_format().parity);
+	sym_format.set_sym(2, persistent_memory::serial_format().stop_bits);
+	sym_format.set_sym(3, persistent_memory::serial_format().bit_order);
 	
-	button_setfreq.on_select = [this,&nav](Button&) {
-		auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::tuned_frequency());
+	update_freq(persistent_memory::tuned_frequency());
+	
+	field_mark.set_value(persistent_memory::afsk_mark_freq());
+	field_space.set_value(persistent_memory::afsk_space_freq());
+	field_bw.set_value(persistent_memory::modem_bw() / 1000);
+	field_repeat.set_value(persistent_memory::modem_repeat());
+	
+	button_setfreq.on_select = [this, &nav](Button&) {
+		auto new_view = nav.push<FrequencyKeypadView>(persistent_memory::tuned_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			update_freq(f);
 		};
 	};
 	
-	options_bps.set_by_value(portapack::persistent_memory::afsk_bitrate());
+	field_baudrate.set_value(persistent_memory::modem_baudrate());
+	
+	button_set_modem.on_select = [this, &nav](Button&) {
+		size_t modem_def_index = options_modem.selected_index();
+		
+		field_mark.set_value(modem_defs[modem_def_index].mark_freq);
+		field_space.set_value(modem_defs[modem_def_index].space_freq);
+		field_baudrate.set_value(modem_defs[modem_def_index].baudrate);
+	};
 
 	button_save.on_select = [this,&nav](Button&) {
-		uint32_t afsk_config = 0;
+		serial_format_t serial_format;
 		
-		portapack::persistent_memory::set_afsk_bitrate(options_bps.selected_index_value());
-		portapack::persistent_memory::set_afsk_mark(field_mark.value() / 25);
-		portapack::persistent_memory::set_afsk_space(field_space.value() / 25);
-		portapack::persistent_memory::set_afsk_bw(field_bw.value());
+		persistent_memory::set_afsk_mark(field_mark.value());
+		persistent_memory::set_afsk_space(field_space.value());
 		
-		afsk_config |= (options_format.selected_index() << 16);
-		afsk_config |= (field_repeat.value() << 24);
-		portapack::persistent_memory::set_afsk_config(afsk_config);
+		persistent_memory::set_modem_baudrate(field_baudrate.value());
+		persistent_memory::set_modem_bw(field_bw.value() * 1000);
+		persistent_memory::set_modem_repeat(field_repeat.value());
+		
+		serial_format.data_bits = sym_format.get_sym(0) + 6;
+		serial_format.parity = (parity_enum)sym_format.get_sym(1);
+		serial_format.stop_bits = sym_format.get_sym(2);
+		serial_format.bit_order = (order_enum)sym_format.get_sym(3);
+		
+		persistent_memory::set_serial_format(serial_format);
 		
 		nav.pop();
 	};

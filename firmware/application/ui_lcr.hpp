@@ -84,7 +84,7 @@ private:
 	std::string litteral[5] { "       " };
 	std::string rgsb { "    " };
 	char lcr_message[512];
-	char lcr_message_data[512];
+	uint16_t lcr_message_data[256];
 	rf::Frequency f { 0 };
 	uint8_t repeat_index { 0 };
 	

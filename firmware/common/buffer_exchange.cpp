@@ -32,7 +32,7 @@ BufferExchange::BufferExchange(
 )	// : config_capture { config }
 {
 	obj = this;
-	direction = CAPTURE;
+	// In capture mode, baseband wants empty buffers, app waits for full buffers
 	fifo_buffers_for_baseband = config->fifo_buffers_empty;
 	fifo_buffers_for_application = config->fifo_buffers_full;
 }
@@ -42,7 +42,7 @@ BufferExchange::BufferExchange(
 )	// : config_replay { config }
 {
 	obj = this;
-	direction = REPLAY;
+	// In replay mode, baseband wants full buffers, app waits for empty buffers
 	fifo_buffers_for_baseband = config->fifo_buffers_full;
 	fifo_buffers_for_application = config->fifo_buffers_empty;
 }
@@ -56,14 +56,15 @@ BufferExchange::~BufferExchange() {
 StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 	while(true) {
 		StreamBuffer* p { nullptr };
-		fifo->out(p);
+		fifo->out(p);	// This crashes replay
 		
-		led_tx.on();	// DEBUG
+		//led_tx.on();	// DEBUG
 		
 		if( p ) {
 			return p;
 		}
 
+		// Put thread to sleep, woken up by M4 IRQ
 		chSysLock();
 		thread = chThdSelf();
 		chSchGoSleepS(THD_STATE_SUSPENDED);

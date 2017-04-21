@@ -67,13 +67,13 @@ ReplayThread::~ReplayThread() {
 msg_t ReplayThread::static_fn(void* arg) {
 	auto obj = static_cast<ReplayThread*>(arg);
 	const auto error = obj->run();
-	/*if( error.is_valid() && obj->error_callback ) {
+	if( error.is_valid() && obj->error_callback ) {
 		obj->error_callback(error.value());
 	} else {
 		if( obj->success_callback ) {
 			obj->success_callback();
 		}
-	}*/
+	}
 	return 0;
 }
 
@@ -82,14 +82,13 @@ Optional<File::Error> ReplayThread::run() {
 	BufferExchange buffers { &config };
 
 	while( !chThdShouldTerminate() ) {
-		//auto buffer = buffers.get();
-		buffers.get();
+		auto buffer = buffers.get();
 		/*auto read_result = reader->read(buffer->data(), buffer->size());
 		if( read_result.is_error() ) {
 			return read_result.error();
 		}
 		buffers.put(buffer);*/
-		chThdSleep(50);
+		chThdSleep(50);		// DEBUG
 		//led_tx.toggle();
 	}
 

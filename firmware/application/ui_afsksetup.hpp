@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "afsk.hpp"
+#include "modems.hpp"
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -40,30 +40,27 @@ private:
 	void update_freq(rf::Frequency f);
 	
 	Labels labels {
-		{ { 1 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
-		{ { 16 * 8, 5 * 8 }, "Speed:", Color::light_grey() },
+		{ { 2 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
+		{ { 2 * 8, 11 * 8 }, "Speed:     Bps", Color::light_grey() },
 		{ { 2 * 8, 13 * 8 }, "Mark:      Hz", Color::light_grey() },
 		{ { 2 * 8, 15 * 8 }, "Space:     Hz", Color::light_grey() },
 		{ { 140, 13 * 8 }, "BW:   kHz", Color::light_grey() },
 		{ { 140, 15 * 8 }, "Repeat:", Color::light_grey() },
-		{ { 2 * 8, 19 * 8 }, "Format:", Color::light_grey() }
+		{ { 2 * 8, 19 * 8 }, "Modem preset:", Color::light_grey() },
+		{ { 2 * 8, 22 * 8 }, "Serial format:", Color::light_grey() }
 	};
 	
 	Button button_setfreq {
-		{ 8, 48, 104, 32 },
+		{ 13 * 8, 3 * 8, 12 * 8, 32 },
 		"----.----"
 	};
 
-	OptionsField options_bps {
-		{ 128, 60 },
-		7,
-		{
-			{ "600bps ", 600 },
-			{ "1200bps", 1200 },
-			{ "2400bps", 2400 },
-			{ "4800bps", 4800 },
-			{ "9600bps", 9600 }
-		}
+	NumberField field_baudrate {
+		{ 64, 88 },
+		5,
+		{ 50, 9600 },
+		25,
+		' '
 	};
 
 	NumberField field_mark {
@@ -98,11 +95,22 @@ private:
 		' '
 	};
 	
-	OptionsField options_format {
-		{ 80, 152 },
-		10,
+	OptionsField options_modem {
+		{ 16 * 8, 19 * 8 },
+		7,
 		{
 		}
+	};
+	
+	SymField sym_format {
+		{ 16 * 8, 22 * 8 },
+		4,
+		SymField::SYMFIELD_DEF
+	};
+	
+	Button button_set_modem {
+		{ 24 * 8, 19 * 8 - 4, 5 * 8, 24 },
+		"SET"
 	};
 	
 	Button button_save {

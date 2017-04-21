@@ -24,7 +24,7 @@
 #include "ui_afsksetup.hpp"
 #include "ui_debug.hpp"
 
-#include "afsk.hpp"
+#include "modems.hpp"
 #include "lcr.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -35,7 +35,7 @@
 #include <stdio.h>
 
 using namespace portapack;
-using namespace afsk;
+using namespace modems;
 
 namespace ui {
 
@@ -49,7 +49,7 @@ LCRView::~LCRView() {
 }
 
 void LCRView::paint(Painter& painter) {
-	uint8_t i;
+	size_t i;
 	std::string final_str;
 	
 	static constexpr Style style_orange {
@@ -75,11 +75,11 @@ void LCRView::paint(Painter& painter) {
 	button_setrgsb.set_text(rgsb);
 	
 	// Recap: freq @ bps
-	final_str = to_string_dec_int(portapack::persistent_memory::tuned_frequency() / 1000, 6);
+	final_str = to_string_dec_int(persistent_memory::tuned_frequency() / 1000, 6);
 	final_str += '@';
-	final_str += to_string_dec_int(portapack::persistent_memory::afsk_bitrate(), 4);
+	final_str += to_string_dec_int(persistent_memory::modem_baudrate(), 4);
 	final_str += "bps ";
-	final_str += afsk_formats[portapack::persistent_memory::afsk_format()].shortname;
+	//final_str += modem_defs[persistent_memory::modem_def_index()].name;
 	text_recap.set(final_str);
 }
 
@@ -95,25 +95,18 @@ std::vector<std::string> LCRView::parse_litterals() {
 }
 
 void LCRView::update_progress() {
-	char str[16];
+	std::string progress_str;
 	
-	text_status.set("            ");
+	text_status.set("            ");	// Clear
 	
 	if (tx_mode == SINGLE) {
-		strcpy(str, to_string_dec_uint(repeat_index).c_str());
-		strcat(str, "/");
-		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
-		text_status.set(str);
+		progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat());
+		text_status.set(progress_str);
 		progress.set_value(repeat_index);
 	} else if (tx_mode == SCAN) {
-		strcpy(str, to_string_dec_uint(repeat_index).c_str());
-		strcat(str, "/");
-		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
-		strcat(str, " ");
-		strcat(str, to_string_dec_uint(scan_index + 1).c_str());
-		strcat(str, "/");
-		strcat(str, to_string_dec_uint(scan_count).c_str());
-		text_status.set(str);
+		progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat());
+		progress_str += " " + to_string_dec_uint(scan_index + 1) + "/" + to_string_dec_uint(scan_count);
+		text_status.set(progress_str);
 		progress.set_value(scan_progress);
 	} else {
 		text_status.set("Ready");
@@ -153,10 +146,9 @@ void LCRView::on_txdone(int n) {
 }
 
 void LCRView::start_tx(const bool scan) {
-	uint8_t afsk_format;
-	uint8_t afsk_repeats;
+	uint8_t repeats;
 	
-	afsk_repeats = portapack::persistent_memory::afsk_repeats();
+	repeats = persistent_memory::modem_repeat();
 	
 	if (scan) {
 		if (tx_mode != SCAN) {
@@ -166,35 +158,20 @@ void LCRView::start_tx(const bool scan) {
 			repeat_index = 1;
 			tx_mode = SCAN;
 			rgsb = scan_list[options_scanlist.selected_index()].addresses[0];
-			progress.set_max(scan_count * afsk_repeats);
+			progress.set_max(scan_count * repeats);
 			update_progress();
 		}
 	} else {
 		tx_mode = SINGLE;
 		repeat_index = 1;
-		progress.set_max(afsk_repeats);
+		progress.set_max(repeats);
 		update_progress();
 	}
 	
 	button_setrgsb.set_text(rgsb);
-	afsk::generate_data(lcr::generate_message(rgsb, parse_litterals(), options_ec.selected_index()), lcr_message_data);
+	modems::generate_data(lcr::generate_message(rgsb, parse_litterals(), options_ec.selected_index()), lcr_message_data);
 
-	switch (portapack::persistent_memory::afsk_format()) {
-		case 0:
-		case 1:
-		case 2:
-			afsk_format = 0;
-			break;
-		
-		case 3:
-			afsk_format = 1;
-			break;
-		
-		default:
-			afsk_format = 0;
-	}
-
-	transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
 	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
@@ -203,12 +180,12 @@ void LCRView::start_tx(const bool scan) {
 	memcpy(shared_memory.bb_data.data, lcr_message_data, 300);
 	
 	baseband::set_afsk_data(
-		(153600 * 5) / portapack::persistent_memory::afsk_bitrate(),
-		portapack::persistent_memory::afsk_mark_freq() * 437 * 5, 	// (0x40000 * 256) / (153600 / 25),
-		portapack::persistent_memory::afsk_space_freq() * 437 * 5, 	// (0x40000 * 256) / (153600 / 25),
-		afsk_repeats,
-		portapack::persistent_memory::afsk_bw() * 115,				// See proc_afsk.cpp
-		afsk_format
+		1536000 / persistent_memory::modem_baudrate(),
+		persistent_memory::afsk_mark_freq(),
+		persistent_memory::afsk_space_freq(),
+		repeats,
+		persistent_memory::modem_bw(),
+		modems::symbol_count()
 	);
 }
 

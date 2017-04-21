@@ -48,7 +48,7 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 		if( !active_buffer ) {
 			// We need a full buffer...
 			if( !fifo_buffers_full.out(active_buffer) ) {
-				// ...but none are available. Samples were dropped.
+				// ...but none are available. Hole in transmission (inform app and stop ?)
 				break;
 			}
 		}
@@ -59,11 +59,12 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 
 		if( active_buffer->is_empty() ) {
 			if( !fifo_buffers_empty.in(active_buffer) ) {
-				// FIFO is completly empty.
-				// Bail out of the loop, and try retrieving the buffer in the
-				// next pass.
+				// Empty buffers FIFO is already full.
+				// This should never happen if the number of buffers is less
+				// than the capacity of the FIFO.
 				break;
 			}
+			// Tell M0 (IRQ) that a buffer has been consumed.
 			active_buffer = nullptr;
 			creg::m4txevent::assert();
 		}

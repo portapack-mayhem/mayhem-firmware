@@ -67,6 +67,7 @@ void POCSAGAppView::update_freq(rf::Frequency f) {
 }
 
 POCSAGAppView::POCSAGAppView(NavigationView& nav) {
+	uint32_t ignore_address;
 	
 	baseband::run_image(portapack::spi_flash::image_tag_pocsag);
 
@@ -109,8 +110,12 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	check_ignore.on_select = [this](Checkbox&, bool v) {
 		ignore = v;
 	};
-	for (size_t c = 0; c < 7; c++)
-		sym_ignore.set_sym(c, default_ignore[c]);
+	
+	ignore_address = persistent_memory::pocsag_ignore_address();
+	for (size_t c = 0; c < 7; c++) {
+		sym_ignore.set_sym(6 - c, ignore_address % 10);
+		ignore_address /= 10;
+	}
 	
 	button_setfreq.on_select = [this,&nav](Button&) {
 		auto new_view = nav.push<FrequencyKeypadView>(target_frequency_);
@@ -126,6 +131,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 }
 
 POCSAGAppView::~POCSAGAppView() {
+	
+	// Save ignored address
+	persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
+	
 	receiver_model.disable();
 	baseband::shutdown();
 }
@@ -162,7 +171,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 		console_info += " F" + to_string_dec_uint(pocsag_state.function);
 
 		// Store last received address for POCSAG TX
-		portapack::persistent_memory::set_pocsag_address(pocsag_state.address);
+		persistent_memory::set_pocsag_last_address(pocsag_state.address);
 		
 		if (pocsag_state.out_type == ADDRESS) {
 			// Address only

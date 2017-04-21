@@ -23,8 +23,6 @@
 #include "lcr.hpp"
 #include "string_format.hpp"
 
-//#include "portapack_persistent_memory.hpp"
-
 namespace lcr {
 
 std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec) {
