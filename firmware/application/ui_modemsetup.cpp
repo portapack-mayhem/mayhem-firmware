@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_afsksetup.hpp"
+#include "ui_modemsetup.hpp"
 #include "ui_receiver.hpp"
 
 #include "portapack.hpp"
@@ -37,22 +37,17 @@ using namespace modems;
 
 namespace ui {
 
-void AFSKSetupView::focus() {
+void ModemSetupView::focus() {
 	button_setfreq.focus();
 }
 
-void AFSKSetupView::update_freq(rf::Frequency f) {
-	std::string final_str;
-	
+void ModemSetupView::update_freq(rf::Frequency f) {
 	persistent_memory::set_tuned_frequency(f);
-	
-	final_str = to_string_dec_int(f / 1000000, 4) + ".";
-	final_str += to_string_dec_int((f / 100) % 10000, 4, '0');
 
-	button_setfreq.set_text(final_str);
+	button_setfreq.set_text(to_string_short_freq(f, 4));
 }
 
-AFSKSetupView::AFSKSetupView(
+ModemSetupView::ModemSetupView(
 	NavigationView& nav
 )
 {

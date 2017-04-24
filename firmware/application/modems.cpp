@@ -21,25 +21,13 @@
  */
 
 #include "modems.hpp"
+#include "serializer.hpp"
 
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
 
 namespace modems {
-
-uint8_t symbol_count() {
-	serial_format_t serial_format;
-	uint8_t count;
-	
-	serial_format = persistent_memory::serial_format();
-	
-	count = 1 + serial_format.data_bits;	// Start
-	if (serial_format.parity) count++;
-	count += serial_format.stop_bits;
-	
-	return count;
-};
 
 void generate_data(const std::string& in_message, uint16_t * out_data) {
 	serial_format_t serial_format;
@@ -58,6 +46,7 @@ void generate_data(const std::string& in_message, uint16_t * out_data) {
 	for (bytes = 0; bytes < in_message.length(); bytes++) {
 		parity = parity_init;
 		cur_byte = in_message[bytes];
+		bit = 0;
 		
 		if (serial_format.bit_order == MSB_FIRST) {
 			ordered_word = cur_byte;

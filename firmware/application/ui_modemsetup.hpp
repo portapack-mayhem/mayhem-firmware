@@ -21,6 +21,7 @@
  */
 
 #include "modems.hpp"
+#include "serializer.hpp"
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -28,13 +29,13 @@
 
 namespace ui {
 
-class AFSKSetupView : public View {
+class ModemSetupView : public View {
 public:
-	AFSKSetupView(NavigationView& nav);
+	ModemSetupView(NavigationView& nav);
 	
 	void focus() override;
 	
-	std::string title() const override { return "AFSK setup"; };
+	std::string title() const override { return "Modem setup"; };
 
 private:
 	void update_freq(rf::Frequency f);

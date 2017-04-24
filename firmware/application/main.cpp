@@ -24,7 +24,6 @@
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
 //BUG: Replay freezes when SD card not present
-//TODO: CTCSS detector
 //BUG: RDS doesn't stop baseband when stopping tx ?
 //BUG: Check AFSK transmit end, skips last bits ?
 

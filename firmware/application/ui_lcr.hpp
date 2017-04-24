@@ -37,7 +37,7 @@ public:
 	void paint(Painter& painter) override;
 	
 	std::string title() const override { return "LCR transmit"; };
-
+	
 private:
 	struct scan_list_t {
 		uint8_t count;
@@ -80,7 +80,7 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	uint8_t scan_count { 0 }, scan_index { 0 };
-	double scan_progress { 0 };
+	uint32_t scan_progress { 0 };
 	std::string litteral[5] { "       " };
 	std::string rgsb { "    " };
 	char lcr_message[512];
@@ -105,61 +105,58 @@ private:
 		.foreground = Color::red(),
 	};
 	
+	Labels labels {
+		{ { 2 * 8, 4 }, "EC:", Color::light_grey() },
+		{ { 88, 268 }, "Scan list:", Color::light_grey() }
+	};
+	
 	std::array<Button, 5> buttons { };
 	std::array<Checkbox, 5> checkboxes { };
 	std::array<Rectangle, 5> rectangles { };
 
 	Text text_recap {
-		{ 8, 6, 18 * 8, 16 },
+		{ 12 * 8, 4, 18 * 8, 16 },
 		"-"
 	};
 	
 	OptionsField options_ec {
-		{ 21 * 8, 6 },
-		7,
+		{ 40, 4 },
+		4,
 		{
-			{ "EC:Auto", 0 },
-			{ "EC:Jour", 1 },
-			{ "EC:Nuit", 2 },
-			{ "EC:S ? ", 3 }
+			{ "Auto", 0 },
+			{ "Jour", 1 },
+			{ "Nuit", 2 },
+			{ "S ? ", 3 }
 		}
 	};
 
 	Button button_setrgsb {
-		{ 16, 24, 96, 32 },
-		"Set RGSB"
+		{ 8, 24, 80, 32 },
+		"RGSB"
 	};
 	Button button_txsetup {
-		{ 128, 24, 96, 32 },
-		"TX setup"
-	};
-	
-	Button button_lcrdebug {
-		{ 168, 216, 56, 24 },
-		"DEBUG"
+		{ 13 * 8, 24, 128, 32 },
+		"Modem setup"
 	};
 	
 	Button button_clear {
-		{ 174, 64, 50, 9 * 16 },
+		{ 174, 64, 58, 19 * 8 },
 		"CLEAR"
 	};
 	
 	Text text_status {
-		{ 16, 224, 128, 16 },
+		{ 16, 222, 128, 16 },
 		"Ready"
 	};
 	ProgressBar progress {
-		{ 16, 224 + 20, 208, 16 }
+		{ 16, 242, 208, 16 }
 	};
 	
 	Button button_transmit {
-		{ 16, 270, 64, 32 },
+		{ 8, 270, 64, 32 },
 		"TX"
 	};
-	Text text_scanlist {
-		{ 88, 268, 80, 16 },
-		"Scan list:"
-	};
+	
 	OptionsField options_scanlist {
 		{ 88, 284 },
 		6,
@@ -168,8 +165,9 @@ private:
 			{ "Reims ", 1 }
 		}
 	};
+	
 	Button button_scan {
-		{ 168, 270, 56, 32 },
+		{ 166, 270, 64, 32 },
 		"SCAN"
 	};
 	

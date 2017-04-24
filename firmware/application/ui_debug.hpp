@@ -208,7 +208,7 @@ private:
 	};
 };
 
-class DebugLCRView : public View {
+/*class DebugLCRView : public View {
 public:
 	DebugLCRView(NavigationView& nav, std::string lcrstring);
 
@@ -225,7 +225,7 @@ private:
 		{ 72, 264, 96, 32 },
 		"Exit"
 	};
-};
+};*/
 
 class DebugPeripheralsMenuView : public MenuView {
 public:

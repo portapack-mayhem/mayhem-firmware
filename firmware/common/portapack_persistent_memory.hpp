@@ -28,8 +28,10 @@
 #include "rf_path.hpp"
 #include "touch.hpp"
 #include "modems.hpp"
+#include "serializer.hpp"
 
 using namespace modems;
+using namespace serializer;
 
 namespace portapack {
 namespace persistent_memory {

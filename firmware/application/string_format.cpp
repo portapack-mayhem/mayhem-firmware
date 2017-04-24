@@ -112,6 +112,13 @@ std::string to_string_dec_int(
 	return q;
 }
 
+std::string to_string_short_freq(const uint64_t f, const int32_t l) {
+	auto final_str = to_string_dec_int(f / 1000000, 4) + ".";
+	final_str += to_string_dec_int((f / 100) % 10000, l, '0');
+
+	return final_str;
+}
+
 static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 	const uint32_t d = n & 0xf;
 	p[l] = (d > 9) ? (d + 55) : (d + 48);

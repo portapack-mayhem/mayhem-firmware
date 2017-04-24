@@ -140,6 +140,7 @@ set(CPPSRC
 	protocols/dcs.cpp
 	protocols/lcr.cpp
 	protocols/rds.cpp
+	serializer.cpp
 	modems.cpp
 	audio.cpp
 	${COMMON}/bch_code.cpp
@@ -154,7 +155,7 @@ set(CPPSRC
 	${COMMON}/ui_focus.cpp
 	ui_about.cpp
 	ui_adsbtx.cpp
-	ui_afsksetup.cpp
+	ui_modemsetup.cpp
 	ui_alphanum.cpp
 	ui_audio.cpp
 	ui_mictx.cpp

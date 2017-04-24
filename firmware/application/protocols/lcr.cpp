@@ -29,7 +29,7 @@ std::string generate_message(std::string rgsb, std::vector<std::string> litteral
 	const std::string ec_lut[4] = { "A", "J", "N", "S" };					// Eclairage (Auto, Jour, Nuit)
 	char eom[3] = { 3, 0, 0 };		// EOM and space for checksum
 	uint8_t i;
-	std::string lcr_message { 127, 127, 127, 127, 127, 127, 127, 15 };		// Modem sync and SOM
+	std::string lcr_message { 127, 127, 127, 127, 127, 127, 127, 5 };		// 5/15 ? Modem sync and SOM
 	char checksum = 0;
 	
 	// Pad litterals to 7 chars (not required ?)

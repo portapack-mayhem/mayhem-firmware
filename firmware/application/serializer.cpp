@@ -20,44 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui.hpp"
-#include <cstring>
-#include <string>
+#include "serializer.hpp"
 
-#ifndef __MODEMS_H__
-#define __MODEMS_H__
+#include "portapack_persistent_memory.hpp"
 
-namespace modems {
+using namespace portapack;
+
+namespace serializer {
 	
-#define MODEM_DEF_COUNT 7
+/* Raw:		00110110100111
+ * NRZ-L:	00110110100111
+ * NRZ-M:	00100100111010
+ * NRZ-S:	10001110010000
+ * RZ:		00 00 10 10 00 10 10 00 10 00 00 10 10 10
+ * Bi-L:	01 01 10 10 01 10 10 01 10 01 01 10 10 10
+ * Bi-M:	00 11 01 01 00 10 10 11 01 00 11 01 01 01
+ * Bi-S:	01 01 00 11 01 00 11 01 00 10 10 11 00 11
+ * Diff M.:	...
+ */
 
-enum modulation_enum {
-	AFSK = 0,
-	FSK,
-	PSK,
-	SSB
+uint8_t symbol_count() {
+	serial_format_t serial_format;
+	uint8_t count;
+	
+	serial_format = persistent_memory::serial_format();
+	
+	count = 1 + serial_format.data_bits;	// Start
+	if (serial_format.parity) count++;
+	count += serial_format.stop_bits;
+	
+	return count;
 };
 
-struct modem_def_t {
-	std::string name;
-	modulation_enum modulation;
-	uint16_t mark_freq;
-	uint16_t space_freq;
-	uint16_t baudrate;
-};
-
-const modem_def_t modem_defs[MODEM_DEF_COUNT] = {
-	{ "Bell202", 	AFSK,	1200,	2200, 	1200 },
-	{ "Bell103", 	AFSK,	1270,	1070, 	300 },
-	{ "V21",		AFSK,	980,	1180, 	300 },
-	{ "V23 M1",		AFSK,	1300,	1700,	600 },
-	{ "V23 M2",		AFSK,	1300,	2100,	1200 },
-	{ "RTTY US",	SSB,	2295,	2125,	45 },
-	{ "RTTY EU",	SSB,	2125,	1955,	45 }
-};
-
-void generate_data(const std::string& in_message, uint16_t * out_data);
-
-} /* namespace modems */
-
-#endif/*__MODEMS_H__*/
+} /* namespace serializer */

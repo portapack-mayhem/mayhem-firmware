@@ -281,7 +281,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 	on_left = [&nav](){ nav.pop(); };
 }
 
-DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
+/*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
 	
 	std::string debug_text;
 	
@@ -310,6 +310,6 @@ DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
 	
 void DebugLCRView::focus() {
 	button_exit.focus();
-}
+}*/
 
 } /* namespace ui */
