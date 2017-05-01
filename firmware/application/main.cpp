@@ -70,7 +70,6 @@ static void event_loop() {
 int main(void) {
 	portapack::init();
 
-	portapack::io.init();
 	portapack::display.init();
 
 	sdcStart(&SDCD1, nullptr);

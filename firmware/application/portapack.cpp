@@ -139,6 +139,8 @@ void init() {
 	led_rx.setup();
 	led_tx.setup();
 
+	portapack::io.init();
+
 	clock_manager.init();
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
