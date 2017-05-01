@@ -198,7 +198,7 @@ private:
 	static constexpr size_t gpio_data_shift = 8;
 	static constexpr ioportmask_t gpio_data_mask = 0xffU << gpio_data_shift;
 
-	uint8_t io_reg { 0x01 };
+	uint8_t io_reg { 0x03 };
 
 	void lcd_rd_assert() {
 		gpio_lcd_rd.set();
