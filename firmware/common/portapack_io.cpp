@@ -64,6 +64,17 @@ void IO::lcd_reset_state(const bool active) {
 	io_write(1, io_reg);
 }
 
+void IO::audio_reset_state(const bool active) {
+	/* Reset signal for audio codec. Some audio codecs (e.g. WM8731) do not
+	 * implement reset signal, only soft reset via I2C.
+	 */
+	/* NOTE: This overwrites the contents of the IO register, which for now
+	 * have no significance. But someday...?
+	 */
+	io_reg = (io_reg & 0xfd) | ((active ? 1 : 0) << 1);
+	io_write(1, io_reg);
+}
+
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	/* Very touchy code to save context of PortaPack data bus while the
 	 * resistive touch pin drive is changed. Order of operations is

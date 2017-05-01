@@ -100,6 +100,7 @@ public:
 
 	void lcd_backlight(const bool value);
 	void lcd_reset_state(const bool active);
+	void audio_reset_state(const bool active);
 
 	void lcd_data_write_command_and_data(
 		const uint_fast8_t command,
