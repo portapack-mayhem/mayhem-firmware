@@ -23,6 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TODO: Waveform widget as FFT view in scanner
 //BUG: Replay freezes when SD card not present
 //BUG: RDS doesn't stop baseband when stopping tx ?
 //BUG: Check AFSK transmit end, skips last bits ?

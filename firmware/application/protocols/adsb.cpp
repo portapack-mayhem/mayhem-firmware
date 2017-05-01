@@ -76,6 +76,7 @@ void generate_frame_emergency(uint8_t * const adsb_frame, const uint32_t ICAO_ad
 	ADSB_generate_CRC(adsb_frame);
 }
 
+/*
 void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address, const uint32_t altitude,
 	const float latitude, const float longitude) {
 	uint8_t c, time_parity;
@@ -103,9 +104,9 @@ void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address,
 	//rlat = delta_lat * ((yz / 524288.0) + int(lat / delta_lat));
 	//delta_lon = 360.0 / (NL(rlat) - time_parity);
 	//xz = 524288.0 * (mod(lon, delta_lon) / delta_lon);	// Round to int !
-	/*if (time_parity) {
+	if (time_parity) {
 		A = sign(rlat0)[NL(rlat0) - NL(rlat1)];
-	}*/
+	}
 	// int xz and yz, then:
 	// xz >>= 2;
 	// yz >>= 2;
@@ -115,13 +116,15 @@ void generate_frame_pos(uint8_t * const adsb_frame, const uint32_t ICAO_address,
 	adsb_frame[5] = ((altitude_coded & 0x7F0) >> 3) | 1;
 	adsb_frame[6] = ((altitude_coded & 0x00F) << 4) | (LAT >> 15);		// Then 0, even/odd, and the 2 LAT-CPR MSBs
 }
+*/
 
 void ADSB_generate_CRC(uint8_t * const in_frame) {
 	uint8_t adsb_crc[14];	// Temp buffer
 	uint8_t b, c, s, bitn;
 	const uint32_t crc_poly = 0x1205FFF;
 	
-	in_frame[11] = 0x00;	// Clear CRC
+	// Clear CRC
+	in_frame[11] = 0x00;
 	in_frame[12] = 0x00;
 	in_frame[13] = 0x00;
 	
@@ -140,7 +143,6 @@ void ADSB_generate_CRC(uint8_t * const in_frame) {
 	
 	// Insert CRC in frame
 	memcpy(&in_frame[11], &adsb_crc[11], 3);
-	
 }
 
 } /* namespace adsb */

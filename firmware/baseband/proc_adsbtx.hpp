@@ -26,6 +26,8 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
+#define TEST_F2D(f) (uint32_t)((f) * ((1ULL << 32) / 4000000))
+
 class ADSBTXProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
@@ -35,18 +37,20 @@ public:
 private:
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 2000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };	// 2280000
+	BasebandThread baseband_thread { 4000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	const uint16_t preamble_parts = 0b1010000101000000;
-	uint8_t bit_part;
-	bool preamble;
-	int8_t re, im;
-    uint16_t bit_pos = 0;
-    uint8_t cur_bit = 0;
-	uint32_t phase, sphase;
-	int32_t sig, frq;
+	bool preamble { }, active { };
+    uint16_t bit_pos { 0 };
+    uint8_t cur_bit { 0 };
+	uint32_t sample { 0 };
+	uint32_t tone_phase { 0 };
+	uint32_t fm_delta { 0 };
+	uint32_t phase { 0 }, sphase { 0 };
+	int32_t tone_sample { 0 }, delta { 0 };
+	int8_t re { }, im { };
 	
-	TXDoneMessage message;
+	TXDoneMessage message { };
 };
 
 #endif

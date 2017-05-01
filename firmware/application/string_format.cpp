@@ -127,11 +127,23 @@ static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 	}
 }
 
-std::string to_string_hex(const uint64_t n, const int32_t l) {
+std::string to_string_hex(const uint64_t n, int32_t l) {
 	char p[32];
+	
+	l = std::min(l, 31L);
 	to_string_hex_internal(p, n, l - 1);
 	p[l] = 0;
 	return p;
+}
+
+std::string to_string_hex_array(uint8_t * const array, const int32_t l) {
+	std::string str_return = "";
+	uint8_t bytes;
+	
+	for (bytes = 0; bytes < l; bytes++)
+		str_return += to_string_hex(array[bytes], 2);
+	
+	return str_return;
 }
 
 std::string to_string_datetime(const rtc::RTC& value) {

@@ -38,7 +38,8 @@ using namespace portapack;
 namespace ui {
 
 void ADSBTxView::focus() {
-	sym_icao.focus();
+	//sym_icao.focus();
+	tx_view.focus();
 }
 
 ADSBTxView::~ADSBTxView() {
@@ -59,21 +60,15 @@ void ADSBTxView::generate_frame() {
 
 	memset(adsb_bin, 0, 112);
 
-	// Convert to binary (1 bit per byte, faster for baseband code)
+	// Convert to binary (1 byte per bit, faster for baseband code)
 	for (c = 0; c < 112; c++) {
 		if ((adsb_frame[c >> 3] << (c & 7)) & 0x80)
-			adsb_bin[c] = 0xFF;
+			adsb_bin[c] = 1;
 	}
 	
-	// Display for debug
-	str_debug = "";
-	for (c = 0; c < 7; c++)
-		str_debug += to_string_hex(adsb_frame[c], 2);
-	text_frame_a.set(str_debug);
-	str_debug = "";
-	for (c = 0; c < 7; c++)
-		str_debug += to_string_hex(adsb_frame[c + 7], 2);
-	text_frame_b.set(str_debug);
+	// Display in hex for debug
+	text_frame_a.set(to_string_hex_array(&adsb_frame[0], 7));
+	text_frame_b.set(to_string_hex_array(&adsb_frame[7], 7));
 
 	button_callsign.set_text(callsign);
 }
@@ -81,25 +76,25 @@ void ADSBTxView::generate_frame() {
 bool ADSBTxView::start_tx() {
 	generate_frame();
 	
-	transmitter_model.set_tuning_frequency(434000000);		// FOR TESTING - DEBUG
-	transmitter_model.set_sampling_rate(2000000U);
-	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_lna(40);
-	transmitter_model.set_vga(40);
-	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
-	
 	memcpy(shared_memory.bb_data.data, adsb_bin, 112);
 	baseband::set_adsb();
+	
+	transmitter_model.set_tuning_frequency(434000000);		// FOR TESTING - DEBUG
+	transmitter_model.set_sampling_rate(4000000U);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_vga(40);
+	transmitter_model.set_baseband_bandwidth(2500000);
+	transmitter_model.enable();
 	
 	return false;	// DEBUG
 }
 
-void ADSBTxView::on_txdone(const int n) {
+void ADSBTxView::on_txdone(const bool v) {
 	//size_t sr;
 
-	if (n == 200) {
+	if (v) {
 		transmitter_model.disable();
+		tx_view.set_transmitting(false);
 		//progress.set_value(0);
 	} else {
 		//progress.set_value(n);

@@ -29,57 +29,67 @@
 
 void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 	
-	// This is called at 2M/2048 = 977Hz
+	// This is called at 4M/2048 = 1953Hz
+	// One pulse = 500ns = 2 samples
+	// One bit = 2 pulses = 1us = 4 samples
 	
 	if (!configured) return;
 	
 	for (size_t i = 0; i < buffer.count; i++) {
 		
-		// Synthesis at 2M
-		/*if (preamble == true) {
-			if (bit_pos >= 16) {
-				bit_pos = 0;
-				preamble = false;
-				bit_part = 0;
-			} else {
-				cur_bit = (preamble_parts << bit_pos) >> 15;
-				bit_pos++;
-			}
-		}*/
-		//if (preamble == false) {
-			if (!bit_part) {
-				if (bit_pos >= 112) {
-					// Stop
-					message.progress = 200;
-					shared_memory.application_queue.push(message);
-					configured = false;
-					cur_bit = 0;
-				} else {
-					cur_bit = 0; //shared_memory.tx_data[bit_pos];
-					bit_pos++;
-					bit_part = 1;
+		if (!sample) {
+			sample = 3;
+			
+			if (active) {
+				if (preamble) {
+					if (bit_pos >= 16) {
+						preamble = false;
+						bit_pos = 0;
+					} else {
+						cur_bit = (preamble_parts << bit_pos) >> 15;
+						bit_pos++;
+					}
+				}
+				
+				if (!preamble) {
+					if (bit_pos >= 112) {
+						active = false;	// Stop
+						cur_bit = 0;
+					} else {
+						cur_bit = shared_memory.bb_data.data[bit_pos];
+						bit_pos++;
+					}
 				}
 			} else {
-				bit_part = 0;
-				cur_bit ^= 1;
+				//cur_bit = 0;
+				if (bit_pos == 8192) {	// ?
+					configured = false;
+					message.done = true;
+					shared_memory.application_queue.push(message);
+				}
+				bit_pos++;
 			}
-		//}
+		} else
+			sample--;
 		
-		// 8D48: 10001101 01001000
-		//       1001010110100110 0110010110010101
+		if (sample == 1)
+			cur_bit ^= 1;	// Invert
+		
+		delta = tone_sample * fm_delta;
+		tone_sample += 128;
 		
 		if (cur_bit) {
-			phase = (phase + 0x1FE00);			// What ?
-			sphase = phase + (64 << 18);
+			phase += delta;
+			sphase = phase + (64 << 24);
 
-			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+			re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+			im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
 		} else {
 			re = 0;
 			im = 0;
 		}
-	
-		buffer.p[i] = {(int8_t)re, (int8_t)im};
+		
+		buffer.p[i] = {re, im};
 	}
 }
 
@@ -87,11 +97,14 @@ void ADSBTXProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const ADSBConfigureMessage*>(p);
 	
 	if (message.id == Message::ID::ADSBConfigure) {
-		bit_part = 0;
 		bit_pos = 0;
+		sample = 0;
 		cur_bit = 0;
 		preamble = true;
+		active = true;
 		configured = true;
+		
+		fm_delta = 50000 * (0xFFFFFFULL / 4000000);	// Fixed bw for now
 	}
 }
 

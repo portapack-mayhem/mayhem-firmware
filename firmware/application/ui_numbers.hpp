@@ -42,6 +42,11 @@ class NumbersStationView : public View {
 public:
 	NumbersStationView(NavigationView& nav);
 	~NumbersStationView();
+	
+	NumbersStationView(const NumbersStationView&) = delete;
+	NumbersStationView(NumbersStationView&&) = delete;
+	NumbersStationView& operator=(const NumbersStationView&) = delete;
+	NumbersStationView& operator=(NumbersStationView&&) = delete;
 
 	void focus() override;
 	
@@ -64,59 +69,65 @@ private:
 		.foreground = Color::red()
 	};
 	
+	typedef struct {
+		char code;
+		uint32_t index;
+		uint32_t length;
+		uint32_t samplerate;
+	} wav_file_t;
+	
 	struct voice_t {
 		std::string dir;
+		std::vector<wav_file_t> available_wavs;
 		bool accent;
-		bool announce;
+	};
+	
+	std::vector<voice_t> voices { };
+	voice_t * current_voice { };
+	
+	struct wav_file_list_t {
+		std::string name;
+		bool required;
+		char code;
+	};
+	
+	const std::vector<wav_file_list_t> file_names = {
+		{ "0", true, '0' },
+		{ "1", true, '1' },
+		{ "2", true, '2' },
+		{ "3", true, '3' },
+		{ "4", true, '4' },
+		{ "5", true, '5' },
+		{ "6", true, '6' },
+		{ "7", true, '7' },
+		{ "8", true, '8' },
+		{ "9", true, '9' },
+		{ "announce", false, 'A' }
 	};
 	
 	segments segment { IDLE };
 	bool armed { false };
 	bool file_error { false };
-	std::vector<voice_t> voices;
-	
-	const std::vector<std::string> file_names = {
-		{ "0" },
-		{ "1" },
-		{ "2" },
-		{ "3" },
-		{ "4" },
-		{ "5" },
-		{ "6" },
-		{ "7" },
-		{ "8" },
-		{ "9" },
-		{ "announce" }
-	};
 	
 	// const uint8_t month_table[12] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
 	// const char * day_of_week[7] = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
 	
 	std::unique_ptr<WAVFileReader> reader { };
 	
-	uint8_t code_index, announce_loop;
-	uint32_t sample_counter;
-	uint32_t sample_duration;
-	int8_t audio_buffer[1024];
-	uint32_t pause = 0;
+	uint8_t code_index { 0 }, announce_loop { 0 };
+	uint32_t sample_counter { 0 };
+	uint32_t sample_length { 0 };
+	int8_t audio_buffer[1024] { };
+	uint32_t pause { 0 };
 	bool armed_blink { false };
 	SignalToken signal_token_tick_second { };
 
+	wav_file_t * get_wav(uint32_t index);
+	bool check_wav_validity(const std::string dir, const std::string file);
 	void on_voice_changed(size_t index);
-	void on_tick_second();	
-	void on_tuning_frequency_changed(rf::Frequency f);
+	void on_tick_second();
 	void prepare_audio();
 	void start_tx();
-	
-	// Schedule: save on sd card
-	// For each day of the week, max 8 messages ?
-	// For each message: Normal, accent. Can chose accent on first or last digit
-	// Prelude with number of repeats
-	// Message 1 with number of repeats
-	// Interlude ?
-	// Message 2 with number of repeats
-	// End
-	// Frequency list and sequence
 	
 	Labels labels {
 		{ { 2 * 8, 5 * 8 }, "Voice:     Flags:", Color::light_grey() },

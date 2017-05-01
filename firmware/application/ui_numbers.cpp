@@ -34,6 +34,8 @@ using namespace portapack;
 
 namespace ui {
 
+// TODO: This app takes way too much space, find a way to shrink/simplify or make it an SD card module (loadable)
+
 void NumbersStationView::focus() {
 	if (file_error)
 		nav_.display_modal("No voices", "No valid voices found in\nthe /numbers directory.", ABORT, nullptr);
@@ -46,29 +48,34 @@ NumbersStationView::~NumbersStationView() {
 	baseband::shutdown();
 }
 
-void NumbersStationView::on_tuning_frequency_changed(rf::Frequency f) {
-	transmitter_model.set_tuning_frequency(f);
+NumbersStationView::wav_file_t * NumbersStationView::get_wav(uint32_t index) {
+	return &current_voice->available_wavs[index];
 }
 
 void NumbersStationView::prepare_audio() {
 	uint8_t code;
+	wav_file_t * wav_file;
 	
-	/*if (sample_counter >= sample_duration) {
+	if (sample_counter >= sample_length) {
 		if (segment == ANNOUNCE) {
 			if (!announce_loop) {
+				code_index = 0;
 				segment = MESSAGE;
 			} else {
-				reader->open("/numbers/announce.wav");
-				sample_duration = sound_sizes[10];
+				wav_file = get_wav(11);
+				reader->open(current_voice->dir + file_names[wav_file->index].name + ".wav");
+				sample_length = wav_file->length;
 				announce_loop--;
 			}
 		}
 		
 		if (segment == MESSAGE) {
-			code = symfield_code.get_sym(code_index);
-			
-			if (code_index == 25)
+			if (code_index == 25) {
 				transmitter_model.disable();
+				return;
+			}
+			
+			code = symfield_code.get_sym(code_index);
 			
 			if (code >= 10) {
 				memset(audio_buffer, 0, 1024);
@@ -78,10 +85,12 @@ void NumbersStationView::prepare_audio() {
 					pause = 33075;		// P: 0.75s @ 44100Hz
 				} else if (code == 12) {
 					transmitter_model.disable();
+					return;
 				}
 			} else {
-				reader->open("/numbers/" + file_names[code] + ".wav");
-				sample_duration = sound_sizes[code];
+				wav_file = get_wav(code);
+				reader->open(current_voice->dir + file_names[code].name + ".wav");
+				sample_length = wav_file->length;
 			}
 			code_index++;
 		}		
@@ -102,17 +111,17 @@ void NumbersStationView::prepare_audio() {
 		if (pause >= 1024) {
 			pause -= 1024;
 		} else {
-			sample_counter = sample_duration;
+			sample_counter = sample_length;
 			pause = 0;
 		}
 	}
 	
-	baseband::set_fifo_data(audio_buffer);*/
+	baseband::set_fifo_data(audio_buffer);
 }
 
 void NumbersStationView::start_tx() {
-	//sample_duration = sound_sizes[10];		// Announce
-	sample_counter = sample_duration;
+	//sample_length = sound_sizes[10];		// Announce
+	sample_counter = sample_length;
 	
 	code_index = 0;
 	announce_loop = 2;
@@ -126,7 +135,7 @@ void NumbersStationView::start_tx() {
 	transmitter_model.enable();
 	
 	baseband::set_audiotx_data(
-		(1536000 / 44100) - 1,
+		(1536000 / 44100) - 1,		// TODO: Read wav file's samplerate
 		12000,
 		1,
 		false,
@@ -135,28 +144,37 @@ void NumbersStationView::start_tx() {
 }
 
 void NumbersStationView::on_tick_second() {
-	if (check_armed.value()) {
-		armed_blink = not armed_blink;
-		
-		if (armed_blink)
-			check_armed.set_style(&style_red);
-		else
-			check_armed.set_style(&style());
-		
-		check_armed.set_dirty();
-	}
+	armed_blink = not armed_blink;
+	
+	if (armed_blink)
+		check_armed.set_style(&style_red);
+	else
+		check_armed.set_style(&style());
+	
+	check_armed.set_dirty();
 }
 
 void NumbersStationView::on_voice_changed(size_t index) {
-	std::string flags_string = "";
+	std::string code_list = "";
 	
-	if (voices[index].accent) {
-		flags_string = "^";
-	}
-	if (voices[index].announce) {
-		flags_string += "A";
-	}
-	text_voice_flags.set(flags_string);
+	for (const auto& wavs : voices[index].available_wavs)
+		code_list += wavs.code;
+	
+	for (uint32_t c = 0; c < 25; c++)
+		symfield_code.set_symbol_list(c, code_list);
+	
+	current_voice = &voices[index];
+}
+
+bool NumbersStationView::check_wav_validity(const std::string dir, const std::string file) {
+	if (reader->open("/numbers/" + dir + "/" + file)) {
+		// Check format (mono, 8 bits)
+		if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
+			return true;
+		else
+			return false;
+	} else
+		return false;
 }
 
 NumbersStationView::NumbersStationView(
@@ -167,8 +185,9 @@ NumbersStationView::NumbersStationView(
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t voice_options;
-	uint32_t c, i, ia;
+	voice_t temp_voice { };
 	bool valid;
+	uint32_t c;
 	//uint8_t y, m, d, dayofweek;
 	
 	reader = std::make_unique<WAVFileReader>();
@@ -179,42 +198,39 @@ NumbersStationView::NumbersStationView(
 		file_error = true;
 		return;
 	}
-	// This is awfully repetitive
+	
 	for (const auto& dir : directory_list) {
-		i = 0;
+		c = 0;
 		for (const auto& file_name : file_names) {
-			valid = false;
-			if (reader->open("/numbers/" + dir.string() + "/" + file_name + ".wav")) {
-				// Check format (mono, 8 bits)
-				if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
-					valid = true;
+			valid = check_wav_validity(dir.string(), file_name.name + ".wav");
+			if ((!valid) && (file_name.required)) {
+				temp_voice.available_wavs.clear();
+				break;	// Invalid required file means invalid voice
+			} else if (valid) {
+				temp_voice.available_wavs.push_back({ file_name.code, c++, 0, 0 });	// TODO: Needs length and samplerate
 			}
-			if (!valid) {
-				if (i < 10)
-					i = 0;	// Missingno, invalid voice
-				break;
-			}
-			i++;
 		}
-		if (i) {
-			// Voice ok, are there accent files ?
-			ia = 0;
+		if (!temp_voice.available_wavs.empty()) {
+			// Voice can be used, are there accent files ?
+			c = 0;
 			for (const auto& file_name : file_names) {
-				valid = false;
-				if (reader->open("/numbers/" + dir.string() + "/" + file_name + "a.wav")) {
-					// Check format (mono, 8 bits)
-					if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
-						valid = true;
+				valid = check_wav_validity(dir.string(), file_name.name + "a.wav");
+				if ((!valid) && (file_name.required)) {
+					c = 0;
+					break;	// Invalid required file means accents can't be used
+				} else if (valid) {
+					c++;
 				}
-				if (!valid)
-					break;
-				ia++;
 			}
 			
-			voices.push_back({ dir.string(), (ia >= 10), (i == 11) });
+			temp_voice.accent = c ? true : false;
+			temp_voice.dir = dir.string();
+			
+			voices.push_back(temp_voice);
 		}
 	}
-	if (!voices.size()) {
+	
+	if (voices.empty()) {
 		file_error = true;
 		return;
 	}
@@ -253,9 +269,6 @@ NumbersStationView::NumbersStationView(
 			rtc_time::signal_tick_second -= signal_token_tick_second;
 		}
 	};
-	
-	for (c = 0; c < 25; c++)
-		symfield_code.set_symbol_list(c, "0123456789pPE");
 	
 	// DEBUG
 	symfield_code.set_sym(0, 10);
