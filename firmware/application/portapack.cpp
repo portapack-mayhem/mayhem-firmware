@@ -145,6 +145,14 @@ void init() {
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 
+	if( !cpld_update_if_necessary() ) {
+		chSysHalt();
+	}
+
+	if( !cpld_hackrf_load_sram() ) {
+		chSysHalt();
+	}
+
 	audio::init();
 	
 	clock_manager.enable_first_if_clock();
@@ -153,14 +161,6 @@ void init() {
 	radio::init();
 
 	touch::adc::init();
-
-	if( !cpld_update_if_necessary() ) {
-		chSysHalt();
-	}
-
-	if( !cpld_hackrf_load_sram() ) {
-		chSysHalt();
-	}
 }
 
 void shutdown() {
