@@ -23,7 +23,6 @@
 #define __CHANNEL_STATS_COLLECTOR_H__
 
 #include "dsp_types.hpp"
-#include "simd.hpp"
 #include "message.hpp"
 #include "utility.hpp"
 
@@ -36,7 +35,7 @@ class ChannelStatsCollector {
 public:
 	template<typename Callback>
 	void feed(const buffer_c16_t& src, Callback callback) {
-		max_squared = compute_max_squared(src, max_squared);
+		max_squared = compute_max_squared(src, max_squared); 
 		count += src.count;
 
 		const size_t samples_per_update = src.sampling_rate * update_interval;
@@ -60,11 +59,9 @@ private:
 		const buffer_c16_t& src,
 		uint32_t max_squared
 	) {
-		auto p = simd32_ptr(src.p);
-		const auto end_p = simd32_ptr(&src.p[src.count]);
-
-		while(p < end_p) {
-			const uint32_t sample = *(p++);
+		auto src_p = src.p;
+		while(src_p < &src.p[src.count]) {
+			const uint32_t sample = *__SIMD32(src_p)++;
 			const uint32_t mag_sq = __SMUAD(sample, sample);
 			if( mag_sq > max_squared ) {
 				max_squared = mag_sq;

@@ -28,30 +28,6 @@
 
 #include <cstdint>
 
-template<typename T>
-struct simd32_t {
-	union {
-		uint32_t raw;
-		T vec;
-	};
-
-	operator uint32_t() const {
-		return raw;
-	}
-
-	simd32_t& operator=(uint32_t v) {
-		raw = v;
-		return *this;
-	}
-
-	static_assert(sizeof(raw) == sizeof(vec), "simd32_t types are not the same size.");
-};
-
-template<typename T>
-simd32_t<T>* simd32_ptr(T* const p) {
-	return reinterpret_cast<simd32_t<T>*>(p);
-}
-
 struct vec4_s8 {
 	union {
 		int8_t v[4];
