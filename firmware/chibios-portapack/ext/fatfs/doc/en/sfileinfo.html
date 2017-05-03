@@ -33,7 +33,7 @@
 <h4>Members</h4>
 <dl>
 <dt>fsize</dt>
-<dd>Indicates size of the file in unit of byte. Always zero for directories. <tt>FSIZE_t</tt> is an alias of integer type either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>.</dd>
+<dd>Indicates size of the file in unit of byte. <tt>FSIZE_t</tt> is an alias of integer type either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>. Do not care when the item is a directory.</dd>
 <dt>fdate</dt>
 <dd>Indicates the date when the file was modified or the directory was created.<br>
 <dl>

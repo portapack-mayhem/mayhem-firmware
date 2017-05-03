@@ -29,13 +29,13 @@ FRESULT f_mkfs (
 <h4>Parameters</h4>
 <dl class="par">
 <dt>path</dt>
-<dd>Pointer to the null-terminated string specifies the <a href="filename.html">logical drive</a> to be formatted. If there is no drive number in it, it means the default drive. The logical drive does not need to be mounted.</dd>
+<dd>Pointer to the null-terminated string specifies the <a href="filename.html">logical drive</a> to be formatted. If there is no drive number in it, it means the default drive. The logical drive may or may not be mounted for the format process.</dd>
 <dt>opt</dt>
 <dd>Specifies the format option in combination of <tt>FM_FAT</tt>, <tt>FM_FAT32</tt>, <tt>FM_EXFAT</tt> and bitwise-or of these three, <tt>FM_ANY</tt>. <tt>FM_EXFAT</tt> is ignored when exFAT is not enabled. These flags specify which FAT type to be created on the volume. If two or more types are specified, one out of them will be selected depends on the volume size. The flag <tt>FM_SFD</tt> specifies to place the volume on the drive in SFD format.</dd>
 <dt>au</dt>
-<dd>Specifies size of the allocation unit (cluter) in unit of byte. The valid value is N times the sector size. N is power of 2 from 1 to 128 for FAT volume and upto 16MiB for exFAT volume. If zero is given, the default allocation unit size is selected depends on the volume size.</dd>
+<dd>Specifies size of the allocation unit (cluter) in unit of byte. The valid value is <tt>n</tt> times the sector size. The <tt>n</tt> is power of 2 from 1 to 128 for FAT volume and upto 16MiB for exFAT volume. If zero is given, the default allocation unit size is selected depends on the volume size.</dd>
 <dt>work</dt>
-<dd>Pointer to the working buffer for the format process.</dd>
+<dd>Pointer to the working buffer used for the format process.</dd>
 <dt>len</dt>
 <dd>Size of the working buffer in unit of byte. It needs to be the sector size at least. Plenty of working buffer reduces number of write transaction to the device and the format process will be finished quickly.</dd>
 </dl>
@@ -78,7 +78,7 @@ int main (void)
     FIL fil;            <span class="c">/* File object */</span>
     FRESULT res;        <span class="c">/* API result code */</span>
     UINT bw;            <span class="c">/* Bytes written */</span>
-    BYTE work[_MAX_SS]; <span class="c">/* Work area (larger is better for process time) */</span>
+    BYTE work[_MAX_SS]; <span class="c">/* Work area (larger is better for processing time) */</span>
 
 
     <span class="c">/* Create FAT volume */</span>

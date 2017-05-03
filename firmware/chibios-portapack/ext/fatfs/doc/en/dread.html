@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>disk_read</h2>
-<p>The disk_read function reads sector(s) from the storage device.</p>
+<p>The disk_read function is called to read data from the sector(s) of storage device.</p>
 <pre>
 DRESULT disk_read (
   BYTE <span class="arg">pdrv</span>,     <span class="c">/* [IN] Physical drive number */</span>
@@ -30,7 +30,7 @@ DRESULT disk_read (
 <dt>pdrv</dt>
 <dd>Physical drive number to identify the target device.</dd>
 <dt>buff</dt>
-<dd>Pointer to the <em>byte array</em> to store the read data.</dd>
+<dd>Pointer to the first item of the <em>byte array</em> to store read data.</dd>
 <dt>sector</dt>
 <dd>Start sector number in 32-bit LBA.</dd>
 <dt>count</dt>
@@ -45,7 +45,7 @@ DRESULT disk_read (
 <dt>RES_OK (0)</dt>
 <dd>The function succeeded.</dd>
 <dt>RES_ERROR</dt>
-<dd>Any hard error occured during the read operation and could not recover it.</dd>
+<dd>A hard error occured during the read operation and could not recover it.</dd>
 <dt>RES_PARERR</dt>
 <dd>Invalid parameter.</dd>
 <dt>RES_NOTRDY</dt>
@@ -61,7 +61,7 @@ DRESULT disk_read (
 <ul>
 <li>Convert word transfer to byte transfer in this function if needed. - Recommended.</li>
 <li>On the <tt>f_read</tt> calls, avoid long read request that includes a whole of sector. - Any direct transfer never occures.</li>
-<li>On the <tt>f_read</tt> calls, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt>buff</tt> is guaranteed.</li>
+<li>On the <tt>f_read</tt> calls, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt class="arg">buff</tt> is guaranteed.</li>
 </ul>
 <p>Generally, a multiple sector transfer request must not be split into single sector transactions to the storage device, or you will not get good read throughput.</p>
 </div>

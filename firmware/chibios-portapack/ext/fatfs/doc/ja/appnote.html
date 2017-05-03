@@ -47,7 +47,7 @@ FatFsモジュールはANSI C(C89)準拠で記述されているので、普通�
 <p><img src="../res/funcs.png" width="750" height="420" alt="functional diagram"></p>
 
 <h4>ユーザの作成する関数</h4>
-<p>ポーティング作業は、要求されるデバイス制御関数を用意することが全てで、それ以外にすることは何もありません。既に動作しているデバイス制御モジュールがあるなら、そのAPIをFatFsに合わせるかグルー関数を介してつなぐだけで済みますが、無い場合はほかから移植するか最初から書くかする必要があります。定義されている全ての関数が常に必要なわけではありません。例えば、リード オンリ構成では書き込み系関数は必要ありません。次の表に構成オプションと要求される関数の対応を示します。</p>
+<p>ポーティング作業は、要求されるデバイス制御関数を用意することが全てで、それ以外にすることは何もありません。既に動作しているデバイス制御モジュールがあるなら、そのインターフェースをFatFsに合わせるかグルー関数を介してつなぐだけで済みますが、無い場合はほかから移植するか最初から書くかする必要があります。定義されている全ての関数が常に必要なわけではありません。例えば、リード オンリ構成では書き込み系関数は必要ありません。次の表に構成オプションと要求される関数の対応を示します。</p>
 <table class="lst2">
 <tr><th>必要な関数</th><th>必要となる条件</th><th>備考</th></tr>
 <tr><td>disk_status<br>disk_initialize<br>disk_read</td><td>常時</td><td rowspan="5">ffsample.zip (サンプル)<br>その他web上に多数</td></tr>
@@ -81,16 +81,16 @@ FatFsモジュールはANSI C(C89)準拠で記述されているので、普通�
 <tr><th></th><th>ARM7<small><br>32bit</small></th><th>ARM7<small><br>Thumb</small></th><th>CM3<small><br>Thumb-2</small></th><th>AVR</th><th>H8/300H</th><th>PIC24</th><th>RL78</th><th>V850ES</th><th>SH-2A</th><th>RX600</th><th>IA-32</th></tr>
 <tr class="cal">     <td>Compiler</td><td>GCC</td><td>GCC</td><td>GCC</td><td>GCC</td><td>CH38</td><td>C30</td><td>CC78K0R</td><td>CA850</td><td>SHC</td><td>RXC</td><td>MSC</td></tr>
 <!--                                                      ARM        Thumb          CM3           AVR            H8          PIC24          RL78       V850ES        SH-2A        RX600        IA-32   -->
-<tr class="ral"><td class="cal">text (Full, R/W)</td><td>10.1k</td><td>6.6k</td><td>6.2k</td><td>12.1k</td><td>10.5k</td><td>11.2k</td><td>12.6k</td><td>8.5k</td><td>8.7k</td><td>6.3k</td><td>8.4k</td></tr>
-<tr class="ral"><td class="cal">text (Min, R/W)</td>  <td>6.6k</td><td>4.5k</td><td>4.2k</td> <td>7.9k</td> <td>7.0k</td> <td>7.6k</td> <td>8.8k</td><td>5.9k</td><td>5.8k</td><td>4.3k</td><td>5.8k</td></tr>
-<tr class="ral"><td class="cal">text (Full, R/O)</td> <td>4.8k</td><td>3.1k</td><td>2.9k</td> <td>5.8k</td> <td>5.1k</td> <td>5.5k</td> <td>6.4k</td><td>4.1k</td><td>4.0k</td><td>3.1k</td><td>4.0k</td></tr>
-<tr class="ral"><td class="cal">text (Min, R/O)</td>  <td>3.5k</td><td>2.4k</td><td>2.3k</td> <td>4.4k</td> <td>3.9k</td> <td>4.2k</td> <td>5.0k</td><td>3.3k</td><td>3.1k</td><td>2.4k</td><td>3.1k</td></tr>
+<tr class="ral"><td class="cal">text (Full, R/W)</td><td>10.4k</td><td>6.8k</td><td>6.3k</td><td>12.4k</td> <td>9.8k</td><td>11.1k</td><td>12.8k</td><td>8.6k</td><td>8.9k</td><td>6.4k</td><td>8.5k</td></tr>
+<tr class="ral"><td class="cal">text (Min, R/W)</td>  <td>6.8k</td><td>4.6k</td><td>4.3k</td> <td>8.2k</td> <td>6.7k</td> <td>7.6k</td> <td>9.1k</td><td>6.0k</td><td>5.9k</td><td>4.5k</td><td>5.9k</td></tr>
+<tr class="ral"><td class="cal">text (Full, R/O)</td> <td>4.8k</td><td>3.1k</td><td>2.8k</td> <td>5.6k</td> <td>4.6k</td> <td>5.3k</td> <td>6.3k</td><td>4.0k</td><td>3.9k</td><td>3.0k</td><td>3.9k</td></tr>
+<tr class="ral"><td class="cal">text (Min, R/O)</td>  <td>3.6k</td><td>2.4k</td><td>2.3k</td> <td>4.4k</td> <td>3.5k</td> <td>4.0k</td> <td>4.9k</td><td>3.3k</td><td>3.0k</td><td>2.4k</td><td>3.1k</td></tr>
 <tr class="ral"><td class="cal">bss</td><td>V*4 + 2</td><td>V*4 + 2</td><td>V*4 + 2</td><td>V*2 + 2</td><td>V*4 + 2</td><td>V*2 + 2</td><td>V*2 + 2</td><td>V*4 + 2</td><td>V*4 + 2</td><td>V*4 + 2</td><td>V*4 + 2</td></tr>
 <tr class="ral"><td class="cal">Work area<br><small>(_FS_TINY == 0)</small></td><td>V*564<br>+ F*552</td><td>V*564<br>+ F*552</td><td>V*564<br>+ F*552</td><td>V*560<br>+ F*546</td><td>V*560<br>+ F*546</td><td>V*560<br>+ F*546</td><td>V*560<br>+ F*546</td><td>V*564<br>+ F*552</td><td>V*564<br>+ F*552</td><td>V*564<br>+ F*552</td><td>V*564<br>+ F*552</td></tr>
 <tr class="ral"><td class="cal">Work area<br><small>(_FS_TINY == 1)</small></td><td>V*564<br>+ F*40</td><td>V*564<br>+ F*40</td><td>V*564<br>+ F*40</td><td>V*560<br>+ F*34</td><td>V*560<br>+ F*34</td><td>V*560<br>+ F*34</td><td>V*560<br>+ F*34</td><td>V*564<br>+ F*40</td><td>V*564<br>+ F*40</td><td>V*564<br>+ F*40</td><td>V*564<br>+ F*40</td></tr>
 </table>
 <pre>
-FatFs R0.12 options:
+FatFs R0.12b options:
 _FS_READONLY   0 (R/W) or 1 (R/O)
 _FS_MINIMIZE   0 (Full, with all basic functions) or 3 (Min, with fully minimized)
 _FS_TINY       0 (Default) or 1 (Tiny file object)
@@ -254,13 +254,13 @@ And any other options are left not changed from default setting.
 
 <div class="para doc" id="license">
 <h3>FatFsのライセンスについて</h3>
-<p>FatFsは、作者(ChaN)の個人プロジェクトとして開発されています。現在のリビジョンにおいてコントリビューターはいないため、作者の書いたソース コード以外は含まれません。ソース ファイルにライセンス条件が記述されているので、利用の際はそれに従うこと。原文は英語ですが、参考までに以下に日本語訳を示しておきます。</p>
+<p>FatFsは、作者(ChaN)の個人プロジェクトとして開発されています。現在までのリビジョンにおいてコントリビューターはいないため、作者以外の書いたソース コードは含まれません。ソース ファイルにライセンス条件が記述されているので、利用の際はそれに従うこと。原文は英語ですが、参考までに以下に日本語訳を示しておきます。</p>
 <pre>
 /*----------------------------------------------------------------------------/
-/  FatFs - Generic FAT file system module  R0.12a                             /
+/  FatFs - Generic FAT file system module  Rx.xx                              /
 /-----------------------------------------------------------------------------/
 /
-/ Copyright (C) 2016, ChaN, all right reserved.
+/ Copyright (C) 20xx, ChaN, all right reserved.
 /
 / FatFsモジュールはオープンソースソフトウェアです。FatFsの再配布および使用は、
 / ソースコードかバイナリ形式か、また変更の有無にかかわらず、次の条件が満たされ

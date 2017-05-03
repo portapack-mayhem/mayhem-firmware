@@ -6,12 +6,12 @@
 <link rel="up" title="FatFs" href="../00index_e.html">
 <link rel="alternate" hreflang="ja" title="Japanese" href="../ja/rc.html">
 <link rel="stylesheet" href="../css_e.css" type="text/css" media="screen" title="ELM Default">
-<title>FatFs - Return Codes</title>
+<title>FatFs - API Return Code</title>
 </head>
 
 <body>
-<h1>Return Code of the File Functions</h1>
-<p>On the FatFs API, most of file functions return common result code as enum type <tt>FRESULT</tt>. When a function succeeded, it returns zero, otherwise returns non-zero value that indicates type of error.</p>
+<h1>Return Code of API Functions</h1>
+<p>Most of API functions return common result code as enum type <tt>FRESULT</tt>. When an API function succeeded, it returns zero (<tt>FR_OK</tt>), otherwise it returns non-zero value indicates type of error.</p>
 
 <dl class="ret">
 
@@ -25,7 +25,8 @@
 <dd>Assertion failed. An insanity is detected in the internal process. One of the following possibilities is suspected.
 <ul>
 <li>Work area (file system object, file object or etc...) has been broken by stack overflow or any other tasks. This is the reason in most case.</li>
-<li>There is any error of the FAT structure on the volume.</li>
+<li>There is an error of the FAT structure on the volume.</li>
+<li>There is a bug in the FatFs module itself.</li>
 </ul>
 Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.
 </dd>
@@ -50,25 +51,25 @@ Note that if once this error occured at any operation to an open file, the file 
 <li>Deleting the non-empty directory or current directory.</li>
 <li>Reading the file opened without <tt>FA_READ</tt> flag.</li>
 <li>Any modification to the file opened without <tt>FA_WRITE</tt> flag.</li>
-<li>Could not create the file or directory due to the directory table is full.</li>
+<li>Could not create the object due to root directory full or disk full.</li>
 <li>Could not allocate a contiguous area to the file.</li>
 </ul>
 </dd>
 
 <dt id="ex">FR_EXIST</dt>
-<dd>Name collision. Any object that has the same name is already existing.</dd>
+<dd>Name collision. An object with the same name is already existing.</dd>
 
 <dt id="io">FR_INVALID_OBJECT</dt>
 <dd>The file/directory object is invalid or a null pointer is given. There are some reasons as follows:
 <ul>
-<li>It has been closed, it is not opened or it can be collapsed.</li>
-<li>It has been invalidated by a voulme mount process. All open objects of the volume are invalidated as well.</li>
-<li>The corresponding physical drive is not ready due to a media removal.</li>
+<li>It has been closed, it has not been opened or it has been collapsed.</li>
+<li>It has been invalidated by a voulme mount process. Open objects on the volume are invalidated by voulme mount process.</li>
+<li>Physical drive is not ready to work due to a media removal.</li>
 </ul>
 </dd>
 
 <dt id="wp">FR_WRITE_PROTECTED</dt>
-<dd>Any write mode operation against the write-protected media.</dd>
+<dd>A write mode operation against the write-protected media.</dd>
 
 <dt id="id">FR_INVALID_DRIVE</dt>
 <dd>Invalid drive number is specified in the path name. A null pointer is given as the path name. (Related option: <tt><a href="config.html#volumes">_VOLUMES</a></tt>)</dd>
@@ -107,7 +108,7 @@ Note that if once this error occured at any operation to an open file, the file 
 <dd>Number of open objects has been reached maximum value and no more object can be opened. (Related option: <tt><a href="config.html#fs_lock">_FS_LOCK</a></tt>)</dd>
 
 <dt id="ip">FR_INVALID_PARAMETER</dt>
-<dd>The given parameter is invalid or there is any inconsistent.</dd>
+<dd>The given parameter is invalid or there is an inconsistent for the volume.</dd>
 </dl>
 
 <p class="foot"><a href="../00index_e.html">Return</a></p>

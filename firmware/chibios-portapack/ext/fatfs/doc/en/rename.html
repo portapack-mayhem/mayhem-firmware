@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>f_rename</h2>
-<p>Renames a file or sub-directory.</p>
+<p>The f_rename function renames and/or moves a file or sub-directory.</p>
 <pre>
 FRESULT f_rename (
   const TCHAR* <span class="arg">old_name</span>, <span class="c">/* [IN] Old object name */</span>
@@ -28,7 +28,7 @@ FRESULT f_rename (
 <dt>old_name</dt>
 <dd>Pointer to a null-terminated string that specifies the existing <a href="filename.html">file or sub-directory</a> to be renamed.</dd>
 <dt>new_name</dt>
-<dd>Pointer to a null-terminated string that specifies the new object name. Any drive number may be specified in this string but it is ignored and assumed as the same drive of the <tt class="arg">old_name</tt>.</dd>
+<dd>Pointer to a null-terminated string that specifies the new object name. A drive number may be specified in this string but it is ignored and assumed as the same drive of the <tt class="arg">old_name</tt>. Any object with this path name except <tt class="arg">old_name</tt> must not be exist, or the function fails with <tt>FR_EXIST</tt>.</dd>
 </dl>
 </div>
 
@@ -43,7 +43,6 @@ FRESULT f_rename (
 <a href="rc.html#ok">FR_NO_FILE</a>,
 <a href="rc.html#np">FR_NO_PATH</a>,
 <a href="rc.html#in">FR_INVALID_NAME</a>,
-<a href="rc.html#de">FR_DENIED</a>,
 <a href="rc.html#ex">FR_EXIST</a>,
 <a href="rc.html#wp">FR_WRITE_PROTECTED</a>,
 <a href="rc.html#id">FR_INVALID_DRIVE</a>,
@@ -58,7 +57,7 @@ FRESULT f_rename (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>Renames a file or sub-directory and can also move it to other directory in the same logical drive. The object to be renamed must not be an open object, or <em>the FAT volume can be collapsed</em>. Such the wrong operation can be rejected safely when <a href="appnote.html#dup">file lock feature</a> is enabled.</p>
+<p>Renames a file or sub-directory and can also move it to other directory in the same volume. The object to be renamed must not be an open object, or <em>the FAT volume can be collapsed</em>. Such the wrong operation is rejected safely when <a href="appnote.html#dup">file lock function</a> is enabled.</p>
 </div>
 
 
@@ -77,7 +76,7 @@ FRESULT f_rename (
     <span class="c">/* Rename an object in the drive 2 */</span>
     f_rename("2:oldname.txt", "newname.txt");
 
-    <span class="c">/* Rename an object and move it to other directory */</span>
+    <span class="c">/* Rename an object and move it to other directory in the volume */</span>
     f_rename("log.txt", "old/log0001.txt");
 </pre>
 </div>

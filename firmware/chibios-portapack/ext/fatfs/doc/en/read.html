@@ -45,6 +45,7 @@ FRESULT f_read (
 <a href="rc.html#ok">FR_OK</a>,
 <a href="rc.html#de">FR_DISK_ERR</a>,
 <a href="rc.html#ie">FR_INT_ERR</a>,
+<a href="rc.html#dn">FR_DENIED</a>,
 <a href="rc.html#io">FR_INVALID_OBJECT</a>,
 <a href="rc.html#tm">FR_TIMEOUT</a>
 </p>
@@ -53,7 +54,7 @@ FRESULT f_read (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The function starts to read data from the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes read. After the function succeeded, <tt class="arg">*br</tt> should be checked to detect end of the file. In case of <tt class="arg">*br</tt> is less than <tt class="arg">btr</tt>, it means the read/write pointer reached end of the file during read operation.</p>
+<p>The function starts to read data from the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes read. After the function succeeded, <tt class="arg">*br</tt> should be checked to detect end of the file. In case of <tt class="arg">*br</tt> &lt; <tt class="arg">btr</tt>, it means the read/write pointer reached end of the file during read operation.</p>
 </div>
 
 

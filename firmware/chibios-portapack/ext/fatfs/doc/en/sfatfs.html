@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>FATFS</h2>
-<p>The <tt>FATFS</tt> structure (file system object) holds dynamic work area of individual logical drives. It is given by application program and registerd/unregisterd to the FatFs module with <tt>f_mount</tt> function. Initialization is done on first API call after <tt>f_mount</tt> function or media change. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
+<p>The <tt>FATFS</tt> structure (file system object) holds dynamic work area of individual logical drives. It is given by application program and registerd/unregisterd to the FatFs module with <tt>f_mount</tt> function. Initialization of the structure is done by volume mount process whenever necessary. Application program must not modify any member in this structure, or the FAT volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
     BYTE    fs_type;      <span class="c">/* File system type (0, FS_FAT12, FS_FAT16, FS_FAT32 or FS_EXFAT) */</span>

@@ -74,10 +74,10 @@ FRESULT f_fdisk (
     DWORD plist[] = {50, 50, 0, 0};  <span class="c">/* Divide drive into two partitions */</span>
     BYTE work[_MAX_SS];
 
-    f_fdisk(0, plist, work);                     <span class="c">/* Divide physical drive 0 */</span>
+    f_fdisk(0, plist, work);                    <span class="c">/* Divide physical drive 0 */</span>
 
-    f_mkfs("0:", FMT_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 0 */</span>
-    f_mkfs("1:", FMT_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 1 */</span>
+    f_mkfs("0:", FM_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 0 */</span>
+    f_mkfs("1:", FM_ANY, work, sizeof work);    <span class="c">/* Create FAT volume on the logical drive 1 */</span>
 
 </pre>
 </div>

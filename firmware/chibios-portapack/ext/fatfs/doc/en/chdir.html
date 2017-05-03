@@ -25,7 +25,7 @@ FRESULT f_chdir (
 <h4>Parameters</h4>
 <dl class="par">
 <dt>path</dt>
-<dd>Pointer to the null-terminated string that specifies a <a href="filename.html">directory</a> to go.</dd>
+<dd>Pointer to the null-terminated string that specifies the <a href="filename.html">directory</a> to go.</dd>
 </dl>
 </div>
 
@@ -50,7 +50,7 @@ FRESULT f_chdir (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_chdir</tt> function changes the current directory of the logical drive. The current directory of a drive is initialized to the root directory when the drive is auto-mounted. Note that the current directory is retained in the each file system object so that it also affects other tasks that using the volume.</p>
+<p>The <tt>f_chdir</tt> function changes the current directory of the logical drive. The current directory of a drive is set to the root directory when the drive is mounted. Note that the current directory is retained in the each file system object, so that it also affects other tasks that use the volume.</p>
 </div>
 
 
@@ -63,10 +63,10 @@ FRESULT f_chdir (
 <div class="para use">
 <h4>Example</h4>
 <pre>
-    <span class="c">/* Change current direcoty of the current drive (dir1 under root dir) */</span>
+    <span class="c">/* Change current direcoty of the current drive ('dir1' under root directory) */</span>
     f_chdir("/dir1");
 
-    <span class="c">/* Change current direcoty of drive 2 (parent dir) */</span>
+    <span class="c">/* Change current direcoty of drive 2 (parent directory) */</span>
     f_chdir("2:..");
 </pre>
 </div>

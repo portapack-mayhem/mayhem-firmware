@@ -13,7 +13,7 @@
 
 <div class="para func">
 <h2>disk_write</h2>
-<p>The disk_write writes sector(s) to the storage device.</p>
+<p>The disk_write function is called to write data to the sector(s) of storage device.</p>
 <pre>
 DRESULT disk_write (
   BYTE <span class="arg">drv</span>,         <span class="c">/* [IN] Physical drive number */</span>
@@ -30,7 +30,7 @@ DRESULT disk_write (
 <dt>pdrv</dt>
 <dd>Physical drive number to identify the target device.</dd>
 <dt>buff</dt>
-<dd>Pointer to the <em>byte array</em> to be written. The size of data to be written is sector size * <tt class="arg">count</tt> bytes.</dd>
+<dd>Pointer to the first item of the <em>byte array</em> to be written. The size of data to be written is sector size * <tt class="arg">count</tt> bytes.</dd>
 <dt>sector</dt>
 <dd>Start sector number in 32-bit LBA.</dd>
 <dt>count</dt>
@@ -45,7 +45,7 @@ DRESULT disk_write (
 <dt>RES_OK (0)</dt>
 <dd>The function succeeded.</dd>
 <dt>RES_ERROR</dt>
-<dd>Any hard error occured during the write operation and could not recover it.</dd>
+<dd>A hard error occured during the write operation and could not recover it.</dd>
 <dt>RES_WRPRT</dt>
 <dd>The medium is write protected.</dd>
 <dt>RES_PARERR</dt>
