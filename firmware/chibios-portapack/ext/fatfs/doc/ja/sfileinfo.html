@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>FILINFO</h2>
-<p><tt>FILINFO</tt>構造体は、<tt>f_stat/f_readdir/f_findfirst/f_findnext</tt>関数で返されるオブジェクトに関する情報を保持します。</p>
+<p><tt>FILINFO</tt>構造体は、<tt>f_stat/f_readdir/f_findfirst/f_findnext</tt>関数で返されるオブジェクトに関する情報を保持します。LFN使用時はサイズが大きく増加するので注意が必要です。</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
     FSIZE_t fsize;               <span class="c">/* ファイル サイズ */</span>

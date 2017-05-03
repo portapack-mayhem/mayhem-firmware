@@ -62,15 +62,14 @@ FRESULT f_fdisk (
     <span class="c">/* ユーザ定義のボリューム管理テーブル (_MULTI_PARTITION == 1 のとき必要) */</span>
 
     PARTITION VolToPart[] = {
-        {0, 1},    <span class="c">/* 論理ドライブ 0 ==> 物理ドライブ 0, 第1区画 */</span>
-        {0, 2},    <span class="c">/* 論理ドライブ 1 ==> 物理ドライブ 0, 第2区画 */</span>
-        {1, 0}     <span class="c">/* 論理ドライブ 2 ==> 物理ドライブ 1, 自動検出 */</span>
+        {0, 1},    <span class="c">/* "0:" ==> 物理ドライブ 0, 第1区画 */</span>
+        {0, 2},    <span class="c">/* "1:" ==> 物理ドライブ 0, 第2区画 */</span>
+        {1, 0}     <span class="c">/* "2:" ==> 物理ドライブ 1, 自動検出 */</span>
     };
 </pre>
 <pre>
     <span class="c">/* 新しい物理ドライブ(0)の初期化 */</span>
 
-    FATFS fs;
     DWORD plist[] = {50, 50, 0, 0};  <span class="c">/* 第1区画,第2区画それぞれに50%ずつ割り当て */</span>
     BYTE work[_MAX_SS];
 

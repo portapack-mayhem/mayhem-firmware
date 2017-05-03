@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------/
-/ Low level disk I/O module function checker
+/ Low level disk I/O module function checker                            /
 /-----------------------------------------------------------------------/
 / WARNING: The data on the target drive will be lost!
 */
@@ -41,8 +41,8 @@ int test_diskio (
 )
 {
     UINT n, cc, ns;
-    DWORD sz_drv, lba, lba2, pns = 1;
-    WORD sz_sect, sz_eblk;
+    DWORD sz_drv, lba, lba2, sz_eblk, pns = 1;
+    WORD sz_sect;
     BYTE *pbuff = (BYTE*)buff;
     DSTATUS ds;
     DRESULT dr;
@@ -113,7 +113,7 @@ int test_diskio (
             printf(" - failed.\n");
         }
         if (dr == RES_OK || sz_eblk >= 2) {
-            printf(" Size of the erase block is %u sectors.\n", sz_eblk);
+            printf(" Size of the erase block is %lu sectors.\n", sz_eblk);
         } else {
             printf(" Size of the erase block is unknown.\n");
         }
@@ -196,7 +196,7 @@ int test_diskio (
         pns++;
 
         /* Single sector write test (misaligned memory address) */
-        printf("**** Single sector write test 2 ****\n");
+        printf("**** Single sector write test (misaligned address) ****\n");
         lba = 5;
         for (n = 0, pn(pns); n < sz_sect; n++) pbuff[n+3] = (BYTE)pn(0);
         printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff+3), lba);

@@ -60,8 +60,8 @@ FRESULT f_expand (
 <li>Not allowable file size. (&gt;= 4GiB on FAT volume)</li>
 </ul>
 <p>When <tt class="arg">opt</tt> is 0, the function finds a contiguous data area and set it as suggested point for next allocation instead of allocating it to the file. The next cluster allocation is started at top of the contiguous area found by this function. Thus the write file is guaranteed be contiguous and no allocation delay until the size reaches that size at least unless any other changes to the volume is performed.</p>
-<p>The contiguous file would have an advantage at time-critical read/write operations. It reduces some overheads in the file system and the storage media caused by random access due to fragmented file data. Especially FAT access for the contiguous file on the exFAT volume is completely eliminated and storage media will be accessed sequentially.</p>
-<p>Also the contiguous file data can be easily accessed directly via low-level disk functions. But this is not recommended in consideration for future compatibility.</p>
+<p>The contiguous file would have an advantage at time-critical read/write operations. It eliminates some overheads in the file system and the storage media caused by random access due to fragmented file data. Especially FAT access for the contiguous file on the exFAT volume is completely eliminated and storage media will be accessed sequentially.</p>
+<p>Also the contiguous file can be easily accessed directly via low-level disk functions. But this is not recommended in consideration for future compatibility.</p>
 </div>
 
 <div class="para comp">
@@ -79,28 +79,29 @@ FRESULT f_expand (
     res = f_open(fp = malloc(sizeof (FIL)), "file.dat", FA_WRITE|FA_CREATE_ALWAYS);
     if (res) { <span class="c">/* Check if the file has been opened */</span>
         free(fp);
-        ...
+        die("Failed to open the file.");
     }
 
     <span class="c">/* Alloacte a 100 MiB of contiguous area to the file */</span>
     res = f_expand(fp, 104857600, 1);
     if (res) { <span class="c">/* Check if the file has been expanded */</span>
-        ...
+        f_close(fp);
         free(fp);
-        ...
+        die("Failed to allocate contiguous area.");
     }
+
     <span class="c">/* Now you have a contiguous file accessible with fp */</span>
 
 </pre>
 <pre>
-    <span class="c">/* Accessing the file data directly via low-level disk functions */</span>
+    <span class="c">/* Accessing the contiguous file via low-level disk functions */</span>
 
     <span class="c">/* Get physical location of the file data */</span>
     drv = fp-&gt;obj.fs-&gt;drv;
-    sect = fp-&gt;obj.fs-&gt;database + fp-&gt;obj.fs-&gt;csize * (fp-&gt;obj.sclust - 2);
+    lba = fp-&gt;obj.fs-&gt;database + fp-&gt;obj.fs-&gt;csize * (fp-&gt;obj.sclust - 2);
 
     <span class="c">/* Write 2048 sectors from top of the file at a time */</span>
-    res = disk_write(drv, buffer, sect, 2048);
+    res = disk_write(drv, buffer, lba, 2048);
 
 </pre>
 </div>

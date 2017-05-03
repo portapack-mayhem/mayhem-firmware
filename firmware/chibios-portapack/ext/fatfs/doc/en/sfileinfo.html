@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>FILINFO</h2>
-<p>The <tt>FILINFO</tt> structure holds information about the object returned by <tt>f_readdir</tt>, <tt>f_findfirst</tt>, <tt>f_findnext</tt> and <tt>f_stat</tt> function.</p>
+<p>The <tt>FILINFO</tt> structure holds information about the object returned by <tt>f_readdir</tt>, <tt>f_findfirst</tt>, <tt>f_findnext</tt> and <tt>f_stat</tt> function. Be careful in the size of structure when LFN is enabled.</p>
 <pre>
 <span class="k">typedef struct</span> {
     FSIZE_t fsize;               <span class="c">/* File size */</span>

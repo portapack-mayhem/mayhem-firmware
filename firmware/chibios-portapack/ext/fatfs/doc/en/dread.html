@@ -60,8 +60,8 @@ DRESULT disk_read (
 <p>The memory address specified by <tt class="arg">buff</tt> is not that always aligned to word boundary because the argument is defined as <tt>BYTE*</tt>. The unaligned read/write request can occure at <a href="appnote.html#fs1">direct transfer</a>. If the bus architecture, especially DMA controller, does not allow unaligned memory access, it should be solved in this function. There are some workarounds described below to avoid this issue.</p>
 <ul>
 <li>Convert word transfer to byte transfer in this function if needed. - Recommended.</li>
-<li>On the <tt>f_read</tt> calls, avoid long read request that includes a whole of sector. - Any direct transfer never occures.</li>
-<li>On the <tt>f_read</tt> calls, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt class="arg">buff</tt> is guaranteed.</li>
+<li>On the <tt>f_read()</tt> calls, avoid long read request that includes a whole of sector. - Any direct transfer never occures.</li>
+<li>On the <tt>f_read(fp, data, btw, bw)</tt> calls, make sure that <tt>(((UINT)data &amp; 3) == (f_tell(fp) &amp; 3))</tt> is true. - Word alignment of <tt class="arg">buff</tt> is guaranteed.</li>
 </ul>
 <p>Generally, a multiple sector transfer request must not be split into single sector transactions to the storage device, or you will not get good read throughput.</p>
 </div>

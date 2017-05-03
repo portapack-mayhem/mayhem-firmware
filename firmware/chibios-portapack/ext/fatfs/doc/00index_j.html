@@ -10,11 +10,11 @@
 <link rel="alternate" hreflang="ja" title="オリジナル版" href="http://elm-chan.org/fsw/ff/00index_j.html">
 <link rel="alternate" hreflang="en" title="英文版" href="00index_e.html">
 <link rel="stylesheet" href="css_j.css" type="text/css" media="screen" title="ELM Default">
-<title>FatFs 汎用FATファイルシステム モジュール</title>
+<title>FatFs 汎用FATファイルシステム モジュール (R0.12c)</title>
 </head>
 
 <body>
-<h1>FatFs 汎用FATファイルシステム モジュール</h1>
+<h1>FatFs 汎用FATファイルシステム モジュール (R0.12c)</h1>
 <hr>
 
 <div class="abst">
@@ -22,7 +22,7 @@
 <p>FatFsは小規模な組み込みシステム向けの汎用FAT/exFATファイルシステム モジュールです。ANSI C(C89)準拠でハードウェア アーキテクチャには依存しないので、必要なワーク エリアが確保できれば、8051, PIC, AVR, SH, Z80, 68k, H8, ARMなど安価なマイコンでも使用可能です。このほか、FatFsを極小マイコン向けにシュリンクした<a href="http://elm-chan.org/fsw/ff/00index_p.html">ぷちFatFs</a>もあります。</p>
 <h4>FatFsモジュールの特徴</h4>
 <ul>
- <li>Windows互換 FAT/exFATファイルシステム</li>
+ <li>DOS/Windows互換 FAT/exFATファイルシステム</li>
  <li>プラットフォーム非依存</li>
  <li>コンパクトなコードとRAM使用量</li>
  <li>多くの<a href="ja/config.html">構成オプション</a>:
@@ -41,8 +41,9 @@
 
 
 <div class="para">
-<h3>上位レイヤ インターフェース</h3>
+<h3>アプリケーション インターフェース</h3>
 <img src="res/layers1.png" class="rset" width="245" height="220" alt="layer">
+<p>FatFsモジュールは、上位レイヤに対して次に示すファイルAPIを提供します。</p>
 <ul>
  <li>ファイル アクセス
  <ul>
@@ -102,9 +103,9 @@
 
 
 <div class="para">
-<h3>下位レイヤ インターフェース</h3>
+<h3>デバイス制御インターフェース</h3>
 <img src="res/layers2.png" class="rset" width="245" height="220" alt="layer">
-<p>FatFsモジュールは、単なるファイルシステム レイヤなので、その下位のストレージ デバイス制御レイヤはそれに含まれません。それぞれのプラットフォームやストレージ デバイスに対応した制御レイヤは、インプリメンタによって提供される必要があります。FatFsモジュールは、下位レイヤに対し標準的には次のインターフェースを要求します。一部の拡張機能、たとえばOS関連機能を有効にしたときは、加えてプロセス/メモリ操作関数なども必要になります。サンプル プロジェクトに下位レイヤの実装例を示します。</p>
+<p>FatFsモジュールは、プラットフォームから独立した単なるファイルシステム レイヤです。ストレージ デバイス(例えばメモリ カード)の制御機能はFatFsの構成部分ではないので、インプリメンタによって提供される必要があります。FatFsモジュールは、下位レイヤに対し標準的には次のインターフェースを要求します。一部の拡張機能(たとえばOS関連機能)を利用するときは、これらに加えてプロセス/メモリ操作関数なども必要になります。サンプル プロジェクトに下位レイヤの実装例を示します。</p>
 <ul>
  <li><a href="ja/dstat.html">disk_status</a> - デバイスの状態取得</li>
  <li><a href="ja/dinit.html">disk_initialize</a> - デバイスの初期化</li>
@@ -120,7 +121,7 @@
 <h3>資料</h3>
 <p>FatFsモジュールはフリー ソフトウェアとして教育・研究・開発用に公開しています。どのような利用目的（個人利用から商用まで）でも使用・改変・配布について一切の制限はありませんが、全て利用者の責任の下での利用とします。詳しくはアプリケーション ノートを参照してください。</p>
 <ul>
- <li>最初に読め: <a href="ja/appnote.html">FatFsモジュール アプリケーション ノート</a> <span class="mfd">2016. 9. 4</span></li>
+ <li>最初に読め: <a href="ja/appnote.html">FatFsモジュール アプリケーション ノート</a></li>
  <li>コミュニティ: <a href="http://elm-chan.org/fsw/ff/bd/">FatFsユーザ フォーラム</a></li>
  <li><a href="https://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx">FATファイルシステム仕様 by Microsoft</a>↗ (The reference document on FAT file system)</li>
  <li><a href="http://elm-chan.org/docs/fat.html">FATファイルシステム概要</a> (↑を読むためのガイド)</li>

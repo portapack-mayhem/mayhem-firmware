@@ -30,7 +30,7 @@ FRESULT f_expand (
 <dt>fp</dt>
 <dd>対象となるファイル オブジェクト構造体へのポインタを指定します。</dd>
 <dt>fsz</dt>
-<dd>ファイルに割り当てるバイト単位のサイズ。データ型<tt>FSIZE_t</tt>は、<tt>DWORD</tt>(32-bit)または<tt>QWORD</tt>(64-bit)のエリアスで、exFATサポートの有無により切り替わります。</dd>
+<dd>ファイルに割り当てるバイト単位のサイズ。データ型<tt>FSIZE_t</tt>は、<tt>DWORD</tt>(32ビット)または<tt>QWORD</tt>(64ビット)のエリアスで、exFATサポートの有無により切り替わります。</dd>
 <dt>opt</dt>
 <dd>実際に割り当てを行うかどうか指定するフラグ。</dd>
 </dl>
@@ -79,15 +79,15 @@ FRESULT f_expand (
     res = f_open(fp = malloc(sizeof (FIL)), "file.dat", FA_WRITE|FA_CREATE_ALWAYS);
     if (res) { <span class="c">/* ファイルが開かれたかチェック */</span>
         free(fp);
-        ...
+        die("Failed to open the file.");
     }
 
     <span class="c">/* 100 MiB の連続領域を割り当てる */</span>
     res = f_expand(fp, 104857600, 1);
     if (res) { <span class="c">/* 割り当てられたかチェック */</span>
-        ...
+        f_close(fp);
         free(fp);
-        ...
+        die("Failed to allocate contiguous area.");
     }
     <span class="c">/* 連続ファイル作成成功 fp でアクセス可能 */</span>
 

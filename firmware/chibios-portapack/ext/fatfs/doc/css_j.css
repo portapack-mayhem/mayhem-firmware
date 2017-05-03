@@ -17,6 +17,7 @@ strong {}
 pre {border: 1px dashed gray; margin: 0.5em 1em; padding: 0.5em; line-height: 1.2em; letter-spacing: 0; font-size: 0.85em; font-family: "Consolas", "Courier New", "‚l‚r ƒSƒVƒbƒN", monospace; background-color: white;}
 pre span.c {color: green;}
 pre span.k {color: blue;}
+pre span.b {font-weight: bold;}
 pre span.arg {font-style: italic;}
 tt {margin: 0 0.2em; letter-spacing: 0; font-size: 0.85em; font-family: "Consolas", "Courier New", "‚l‚r ƒSƒVƒbƒN", monospace;}
 tt.arg {font-style: italic;}
@@ -27,7 +28,7 @@ dl {margin: 0.5em 1em;}
 dd {margin: 0em   2em;}
 dt {font-size: 0.85em; font-family: "Consolas", "Courier New", "‚l‚r ƒSƒVƒbƒN", monospace;}
 dl.par dt {margin: 0.5em 0 0 0 ; font-style: italic; letter-spacing: 0;}
-dl.ret dt {margin: 0.5em 0 0 0 ; font-size: 0.85em; font-family: "Consolas", "Courier New", "‚l‚r ƒSƒVƒbƒN", monospace; letter-spacing: 0; }
+dl.ret dt {margin: 0.5em 0 0 0 ; font-size: 0.85em; font-family: "Consolas", "Courier New", "‚l‚r ƒSƒVƒbƒN", monospace; letter-spacing: 0; font-weight: bold; }
 hr {border-width: 1px; margin: 1em;}
 div.abst {font-family: "‚l‚r ‚oƒSƒVƒbƒN",sans-serif;}
 div.para {clear: both; font-family: "‚l‚r ‚o–¾’©",serif;}

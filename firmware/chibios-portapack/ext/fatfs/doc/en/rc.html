@@ -19,7 +19,7 @@
 <dd>The function succeeded.</dd>
 
 <dt id="de">FR_DISK_ERR</dt>
-<dd>An unrecoverable hard error occured in the lower layer, <tt>disk_read</tt>, <tt>disk_write</tt> or <tt>disk_ioctl</tt> function.<br>Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.</dd>
+<dd>The lower layer, <tt>disk_read</tt>, <tt>disk_write</tt> or <tt>disk_ioctl</tt> function, reported that an unrecoverable hard error occured.<br>Note that if once this error occured at any operation to an open file, the file object is aborted and all operations to the file except for close will be rejected.</dd>
 
 <dt id="ie">FR_INT_ERR</dt>
 <dd>Assertion failed. An insanity is detected in the internal process. One of the following possibilities is suspected.
@@ -32,7 +32,14 @@ Note that if once this error occured at any operation to an open file, the file 
 </dd>
 
 <dt id="nr">FR_NOT_READY</dt>
-<dd>The storage device cannot work due to a failure of <a href="dinit.html"><tt>disk_initialize</tt></a> function due to no medium or any other reason.</dd>
+<dd>The lower layer, <a href="dinit.html"><tt>disk_initialize</tt></a> function, reported that the storage device could not be got ready to work. One of the following possibilities is suspected.
+<ul>
+<li>No medium in the drive.</li>
+<li>Wrong lower layer implementation for the storage device.</li>
+<li>Wrong hardware configuration.</li>
+<li>The storage device is broken.</li>
+</ul>
+</dd>
 
 <dt id="nf">FR_NO_FILE</dt>
 <dd>Could not find the file.</dd>
