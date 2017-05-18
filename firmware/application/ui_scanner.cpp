@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// BUG: Mirroring in proc_wideband...
+// BUG: Lock on frequency, if frequency jump, still locked on first one
+
 #include "ui_scanner.hpp"
 
 #include "baseband_api.hpp"
@@ -61,6 +64,7 @@ void ScannerView::do_detection() {
 	uint8_t power_max = 0;
 	int32_t bin_max = -1;
 	uint32_t bin_max_pixel = 0;
+	uint32_t snap_value;
 	uint8_t power;
 	rtc::RTC datetime;
 	std::string str_approx, str_timestamp;
@@ -91,7 +95,12 @@ void ScannerView::do_detection() {
 			if ((bin_max != locked_bin) || (!locked)) {
 				
 				if (!locked) {
-					resolved_frequency = slices[slice_counter].center_frequency + (SCAN_BIN_WIDTH * (bin_max - 120));	// Init
+					resolved_frequency = slices[slice_counter].center_frequency + (SCAN_BIN_WIDTH * (bin_max - 120));
+					
+					if (check_snap.value()) {
+						snap_value = options_snap.selected_index_value();
+						resolved_frequency = round(resolved_frequency / snap_value) * snap_value;
+					}
 					
 					// Check range
 					if ((resolved_frequency >= f_min) && (resolved_frequency <= f_max)) {
@@ -109,11 +118,6 @@ void ScannerView::do_detection() {
 
 						text_infos.set("Locked ! ");
 						big_display.set_style(&style_locked);
-						
-						// Approximation/error display
-						str_approx = "." + to_string_dec_uint(((resolved_frequency - 4883) / 1000) % 10000);
-						str_approx += "~." + to_string_dec_uint(((resolved_frequency + 4883) / 1000) % 10000);
-						text_approx.set(str_approx);
 						
 						locked = true;
 						locked_bin = bin_max;
@@ -269,7 +273,7 @@ void ScannerView::on_range_changed() {
 		receiver_model.set_tuning_frequency(slices[0].center_frequency);
 
 		slices_nb = 1;
-		text_slices.set("1");
+		text_slices.set(" 1");
 	}
 
 	slice_counter = 0;
@@ -346,14 +350,18 @@ ScannerView::ScannerView(
 		&text_infos,
 		&vu_max,
 		&progress_timers,
-		//&check_goto,
-		//&options_goto,
+		&check_snap,
+		&options_snap,
 		&big_display,
-		&recent_entries_view,
-		&text_approx
+		&recent_entries_view
 	});
 	
+	baseband::set_spectrum(SCAN_SLICE_WIDTH, 32);
+	
 	recent_entries_view.set_parent_rect({ 0, 28 * 8, 240, 12 * 8 });
+	recent_entries_view.on_select = [this, &nav](const ScannerRecentEntry& entry) {
+		nav.push<FrequencyKeypadView>(entry.frequency);
+	};
 	
 	text_mean.set_style(&style_grey);
 	text_slices.set_style(&style_grey);
@@ -361,9 +369,8 @@ ScannerView::ScannerView(
 	progress_timers.set_style(&style_grey);
 	big_display.set_style(&style_grey);
 	
-	baseband::set_spectrum(SCAN_SLICE_WIDTH, 32);
-	
-	//options_goto.set_selected_index(0);			// Nothing
+	check_snap.set_value(true);
+	options_snap.set_selected_index(1);		// 12.5kHz
 	
 	field_threshold.set_value(80);
 	field_threshold.on_change = [this](int32_t value) {

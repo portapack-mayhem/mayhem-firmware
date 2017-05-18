@@ -65,25 +65,14 @@ void FrequencyField::set_step(rf::Frequency new_value) {
 }
 
 void FrequencyField::paint(Painter& painter) {
-	const auto mhz = to_string_dec_int(value_ / 1000000, 4);
-	const auto hz100 = to_string_dec_int((value_ / 100) % 10000, 4, '0');
+	const std::string str_value = to_string_short_freq(value_);
 
 	const auto paint_style = has_focus() ? style().invert() : style();
 
 	painter.draw_string(
 		screen_pos(),
 		paint_style,
-		mhz
-	);
-	painter.draw_string(
-		screen_pos() + Point { 4 * 8, 0 },
-		paint_style,
-		"."
-	);
-	painter.draw_string(
-		screen_pos() + Point { 5 * 8, 0 },
-		paint_style,
-		hz100
+		str_value
 	);
 }
 

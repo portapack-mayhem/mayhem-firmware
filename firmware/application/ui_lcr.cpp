@@ -73,7 +73,7 @@ void LCRView::paint(Painter& painter) {
 	button_setrgsb.set_text(rgsb);
 	
 	// Recap: frequency @ baudrate
-	final_str = to_string_short_freq(persistent_memory::tuned_frequency(), 3);
+	final_str = to_string_short_freq(persistent_memory::tuned_frequency());
 	final_str += '@';
 	final_str += to_string_dec_int(persistent_memory::modem_baudrate(), 4);
 	final_str += "bps ";

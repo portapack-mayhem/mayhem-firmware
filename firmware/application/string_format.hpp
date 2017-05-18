@@ -36,7 +36,7 @@ std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char f
 std::string to_string_hex(const uint64_t n, const int32_t l = 0);
 std::string to_string_hex_array(uint8_t * const array, const int32_t l = 0);
 
-std::string to_string_short_freq(const uint64_t f, const int32_t l = 4);
+std::string to_string_short_freq(const uint64_t f);
 
 std::string to_string_datetime(const rtc::RTC& value);
 std::string to_string_time(const rtc::RTC& value);

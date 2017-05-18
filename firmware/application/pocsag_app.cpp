@@ -59,11 +59,8 @@ void POCSAGAppView::update_freq(rf::Frequency f) {
 	set_target_frequency(f);
 	
 	portapack::persistent_memory::set_tuned_frequency(f);	// Maybe not ?
-	
-	auto mhz = to_string_dec_int(f / 1000000, 4);
-	auto hz100 = to_string_dec_int((f / 100) % 10000, 4, '0');
 
-	button_setfreq.set_text(mhz + "." + hz100);
+	button_setfreq.set_text(to_string_short_freq(f));
 }
 
 POCSAGAppView::POCSAGAppView(NavigationView& nav) {

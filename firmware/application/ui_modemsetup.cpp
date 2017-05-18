@@ -44,7 +44,7 @@ void ModemSetupView::focus() {
 void ModemSetupView::update_freq(rf::Frequency f) {
 	persistent_memory::set_tuned_frequency(f);
 
-	button_setfreq.set_text(to_string_short_freq(f, 4));
+	button_setfreq.set_text(to_string_short_freq(f));
 }
 
 ModemSetupView::ModemSetupView(

@@ -149,16 +149,8 @@ private:
 		{ { 1 * 8, 4 * 8 }, "Trig:   /255    Mean:   /255", Color::light_grey() },
 		{ { 1 * 8, 6 * 8 }, "Slices:  /32      Rate:   Hz", Color::light_grey() },
 		{ { 6 * 8, 10 * 8 }, "Timer  Status", Color::light_grey() },
-		{ { 1 * 8, 25 * 8 }, "+/-4.9kHz:", Color::light_grey() },
+		{ { 1 * 8, 25 * 8 }, "Accuracy: +/-4.9kHz", Color::light_grey() },
 		{ { 26 * 8, 25 * 8 }, "MHz", Color::light_grey() }
-	};
-	
-	NumberField field_threshold {
-		{ 6 * 8, 2 * 16 },
-		3,
-		{ 5, 255 },
-		5,
-		' '
 	};
 	 
 	FrequencyField field_frequency_min {
@@ -174,6 +166,13 @@ private:
 		{ 26 * 8, 1 * 16 }
 	};
 	
+	NumberField field_threshold {
+		{ 6 * 8, 2 * 16 },
+		3,
+		{ 5, 255 },
+		5,
+		' '
+	};
 	Text text_mean {
 		{ 22 * 8, 2 * 16, 3 * 8, 16 },
 		"---"
@@ -192,6 +191,7 @@ private:
 		16,
 		false
 	};
+	
 	ProgressBar progress_timers {
 		{ 6 * 8, 12 * 8, 5 * 8, 16 }
 	};
@@ -199,30 +199,26 @@ private:
 		{ 13 * 8, 12 * 8, 15 * 8, 16 },
 		"Listening"
 	};
-	Checkbox check_goto {
+	
+	Checkbox check_snap {
 		{ 6 * 8, 15 * 8 },
-		8,
-		"On lock:",
+		7,
+		"Adjust:",
 		true
 	};
-	OptionsField options_goto {
-		{ 17 * 8, 15 * 8 },
+	OptionsField options_snap {
+		{ 15 * 8, 15 * 8 },
 		7,
 		{
-			{ "Nothing", 0 },
-			{ "NFM RX ", 1 },
-			{ "POCSAG ", 2 }
+			{ "25kHz  ", 25000 },
+			{ "12.5kHz", 12500 },
+			{ "8.33kHz", 8333 }
 		}
 	};
 	
 	BigFrequency big_display {
 		{ 4, 9 * 16, 28 * 8, 52 },
 		0
-	};
-	
-	Text text_approx {
-		{ 11 * 8, 25 * 8, 11 * 8, 16 },
-		"..."
 	};
 	
 	MessageHandlerRegistration message_handler_spectrum_config {

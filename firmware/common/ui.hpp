@@ -95,6 +95,9 @@ struct Color {
 	static constexpr Color blue() {
 		return {   0,   0, 255 };
 	}
+	static constexpr Color dark_blue() {
+		return {   0,	0, 127 };
+	}
 	
 	static constexpr Color cyan() {
 		return {   0,   255, 255 };

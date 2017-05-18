@@ -112,10 +112,8 @@ std::string to_string_dec_int(
 	return q;
 }
 
-std::string to_string_short_freq(const uint64_t f, const int32_t l) {
-	auto final_str = to_string_dec_int(f / 1000000, 4) + ".";
-	final_str += to_string_dec_int((f / 100) % 10000, l, '0');
-
+std::string to_string_short_freq(const uint64_t f) {
+	auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
 	return final_str;
 }
 

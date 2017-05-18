@@ -41,7 +41,7 @@ void RecentEntriesHeader::paint(Painter& painter) {
 
 	const Style style {
 		.font = parent_style.font,
-		.background = Color::blue(),
+		.background = Color::dark_blue(),
 		.foreground = parent_style.foreground,
 	};
 

@@ -55,11 +55,8 @@ void JammerView::update_range(const uint32_t n) {
 	
 	center = (range_ptr->min + range_ptr->max) / 2;
 	bw_khz = abs(range_ptr->max - range_ptr->min) / 1000;
-	
-	auto center_mhz = to_string_dec_int(center / 1000000, 4);
-	auto center_hz100 = to_string_dec_int((center / 1000) % 1000, 3, '0');
 
-	label = "C:" + center_mhz + "." + center_hz100 + "M   W:";
+	label = "C:" + to_string_short_freq(center) + "M  W:";
 	
 	if (bw_khz < 1000) {
 		label += to_string_dec_int(bw_khz, 3) + "kHz";
