@@ -76,8 +76,6 @@ void AudioOutput::write(
 void AudioOutput::on_block(
 	const buffer_f32_t& audio
 ) {
-	bool audio_present;
-	
 	if (do_processing) {
 		const auto audio_present_now = squelch.execute(audio);
 
@@ -96,6 +94,10 @@ void AudioOutput::on_block(
 		audio_present = true;
 
 	fill_audio_buffer(audio, audio_present);
+}
+
+bool AudioOutput::is_squelched() {
+	return ~audio_present;
 }
 
 void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo) {

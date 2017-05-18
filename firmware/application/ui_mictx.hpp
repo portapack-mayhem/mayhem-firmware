@@ -90,7 +90,8 @@ private:
 	
 	VuMeter vumeter {
 		{ 1 * 8, 2 * 8, 5 * 8, 26 * 8 },
-		16
+		16,
+		false
 	};
 	
 	OptionsField options_gain {

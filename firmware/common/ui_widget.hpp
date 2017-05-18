@@ -575,19 +575,19 @@ private:
 class VuMeter : public Widget {
 public:
 
-	VuMeter(Rect parent_rect, uint32_t LEDs);
+	VuMeter(Rect parent_rect, uint32_t LEDs, bool show_max);
 
-	void set_value(const uint8_t new_value);
-	void set_mark(const uint8_t new_mark);
+	void set_value(const uint32_t new_value);
+	void set_mark(const uint32_t new_mark);
 
 	void paint(Painter& painter) override;
 
 private:
 	uint32_t LEDs_, LED_height { 0 };
-	uint32_t value_ { 0 }, prev_value { 0 };
+	uint32_t value_ { 0 }, prev_value { 255 };	// Forces painting on first display
 	uint32_t split { 0 };
 	uint16_t max { 0 }, prev_max { 0 }, hold_timer { 0 }, mark { 0 }, prev_mark { 0 };
-	int height;
+	bool show_max_;
 };
 
 } /* namespace ui */

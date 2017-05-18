@@ -457,12 +457,16 @@ ProgressBar::ProgressBar(
 }
 
 void ProgressBar::set_max(const uint32_t max) {
+	if (max == _max) return;
+	
 	_value = 0;
 	_max = max;
 	set_dirty();
 }
 
 void ProgressBar::set_value(const uint32_t value) {
+	if (value == _value) return;
+	
 	if (value > _max)
 		_value = _max;
 	else
@@ -1450,37 +1454,45 @@ void Waveform::paint(Painter& painter) {
 
 VuMeter::VuMeter(
 	Rect parent_rect,
-	uint32_t LEDs
+	uint32_t LEDs,
+	bool show_max
 ) : Widget { parent_rect },
 	LEDs_ { LEDs },
-	height { parent_rect.size().height() }
+	show_max_ { show_max }
 {
 	//set_focusable(false);
-	LED_height = height / LEDs;
+	LED_height = parent_rect.size().height() / LEDs;
 	split = 256 / LEDs;
 }
 
-void VuMeter::set_value(const uint8_t new_value) {
-	value_ = new_value;
-	set_dirty();
+void VuMeter::set_value(const uint32_t new_value) {
+	if ((new_value != value_) && (new_value < 256)) {
+		value_ = new_value;
+		set_dirty();
+	}
 }
 
-void VuMeter::set_mark(const uint8_t new_mark) {
-	if (new_mark != mark) {
+void VuMeter::set_mark(const uint32_t new_mark) {
+	if ((new_mark != mark) && (new_mark < 256)) {
 		mark = new_mark;
 		set_dirty();
 	}
 }
 
 void VuMeter::paint(Painter& painter) {
+	uint32_t bar;
+	Color color;
+	bool lit = false;
+	uint32_t bar_level;
 	Point pos = screen_rect().location();
-		Dim width = screen_rect().size().width() - 4;
+	Dim width = screen_rect().size().width() - 4;
+	Dim height = screen_rect().size().height();
+	Dim bottom = pos.y() + height;
+	Coord marks_x = pos.x() + width;
 	
 	if (value_ != prev_value) {
-		uint32_t bar;
-		Color color;
-		bool lit = false;
-		uint32_t bar_level = LEDs_ - ((value_ + 1) / split);
+		bar_level = LEDs_ - ((value_ + 1) / split);
+		
 		// Draw LEDs
 		for (bar = 0; bar < LEDs_; bar++) {
 			if (bar >= bar_level)
@@ -1501,33 +1513,34 @@ void VuMeter::paint(Painter& painter) {
 	}
 	
 	// Update max level
-	if (value_ > max) {
-		max = value_;
-		hold_timer = 30;	// 0.5s @ 60Hz
-	} else {
-		if (hold_timer) {
-			hold_timer--;
+	if (show_max_) {
+		if (value_ > max) {
+			max = value_;
+			hold_timer = 30;	// 0.5s @ 60Hz
 		} else {
-			if (max) max--;	// Let it drop
+			if (hold_timer) {
+				hold_timer--;
+			} else {
+				if (max) max--;	// Let it drop
+			}
 		}
-	}
-	
-	// Draw max level
-	if (max != prev_max) {
-		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * prev_max) / 256 }, 8, Color::black());
-		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * max) / 256 }, 8, Color::white());
-		if (prev_max == mark)
-			prev_mark = 0;	// Force mark refresh
+		
+		// Draw max level
+		if (max != prev_max) {
+			painter.draw_hline({ marks_x, bottom - (height * prev_max) / 256 }, 8, Color::black());
+			painter.draw_hline({ marks_x, bottom - (height * max) / 256 }, 8, Color::white());
+			if (prev_max == mark)
+				prev_mark = 0;	// Force mark refresh
+			prev_max = max;
+		}
 	}
 	
 	// Draw mark
 	if ((mark != prev_mark) && (mark)) {
-		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * prev_mark) / 256 }, 8, Color::black());
-		painter.draw_hline({ pos.x() + width, pos.y() + height - (height * mark) / 256 }, 8, Color::grey());
+		painter.draw_hline({ marks_x, bottom - (height * prev_mark) / 256 }, 8, Color::black());
+		painter.draw_hline({ marks_x, bottom - (height * mark) / 256 }, 8, Color::grey());
+		prev_mark = mark;
 	}
-	
-	prev_max = max;
-	prev_mark = mark;
 }
 
 } /* namespace ui */

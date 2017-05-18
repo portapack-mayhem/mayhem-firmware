@@ -73,6 +73,7 @@ private:
 	dsp::demodulate::FM demod { };
 
 	AudioOutput audio_output { };
+	bool old_state { };
 
 	SpectrumCollector channel_spectrum { };
 	
@@ -85,6 +86,8 @@ private:
 	void pwmrssi_config(const PWMRSSIConfigureMessage& message);
 	void configure(const NBFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
+	
+	RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

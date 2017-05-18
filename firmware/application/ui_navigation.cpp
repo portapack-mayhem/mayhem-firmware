@@ -32,7 +32,6 @@
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"
 #include "ui_bht_tx.hpp"
-#include "ui_closecall.hpp"
 #include "ui_coasterp.hpp"
 #include "ui_cw.hpp"
 #include "ui_debug.hpp"
@@ -48,6 +47,7 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_sd_wipe.hpp"
+#include "ui_scanner.hpp"
 #include "ui_setup.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
@@ -293,7 +293,7 @@ TranspondersMenuView::TranspondersMenuView(NavigationView& nav) {
 ReceiverMenuView::ReceiverMenuView(NavigationView& nav) {
 	add_items<6>({ {
 	//	{ "AFSK", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } }, // AFSKRXView
-		{ "Audio", 					ui::Color::green(),	nullptr,	[&nav](){ nav.push<AnalogAudioView>(); } },
+		{ "Audio", 					ui::Color::green(),	nullptr,	[&nav](){ nav.push<AnalogAudioView>(false); } },
 		{ "CCIR", 					ui::Color::grey(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Nordic/BTLE", 			ui::Color::grey(),	&bitmap_icon_nordic,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "POCSAG", 				ui::Color::cyan(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
@@ -365,7 +365,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "SSTV transmitter", 		ui::Color::dark_green(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
-		{ "Close Call",				ui::Color::cyan(),	&bitmap_icon_closecall,	[&nav](){ nav.push<CloseCallView>(); } },
+		{ "Scanner/search",			ui::Color::cyan(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesView>(); } },
 		{ "Setup", 					ui::Color::white(),	&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },

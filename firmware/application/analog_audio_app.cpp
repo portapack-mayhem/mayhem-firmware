@@ -77,8 +77,10 @@ NBFMOptionsView::NBFMOptionsView(
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
-	NavigationView& nav
-) {
+	NavigationView& nav,
+	bool eos
+) : nav_ (nav)
+{
 	add_children({
 		&rssi,
 		&channel,
@@ -91,6 +93,8 @@ AnalogAudioView::AnalogAudioView(
 		&record_view,
 		&waterfall,
 	});
+	
+	exit_on_squelch = eos;
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -309,6 +313,10 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	if( !is_wideband_spectrum_mode ) {
 		audio::output::unmute();
 	}
+}
+
+void AnalogAudioView::squelched() {
+	if (exit_on_squelch) nav_.pop();
 }
 
 } /* namespace ui */

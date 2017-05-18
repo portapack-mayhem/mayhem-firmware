@@ -82,7 +82,7 @@ private:
 
 class AnalogAudioView : public View {
 public:
-	AnalogAudioView(NavigationView& nav);
+	AnalogAudioView(NavigationView& nav, bool eos);
 	~AnalogAudioView();
 
 	void on_hide() override;
@@ -96,6 +96,9 @@ private:
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 
+	NavigationView& nav_;
+	bool exit_on_squelch { false };
+	
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
@@ -163,6 +166,17 @@ private:
 	void set_options_widget(std::unique_ptr<Widget> new_widget);
 
 	void update_modulation(const ReceiverModel::Mode modulation);
+	
+	void squelched();
+	
+	MessageHandlerRegistration message_handler_squelch_signal {
+		Message::ID::RequestSignal,
+		[this](const Message* const p) {
+			(void)p;
+			this->squelched();
+		}
+	};
+
 };
 
 } /* namespace ui */

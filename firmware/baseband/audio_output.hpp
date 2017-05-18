@@ -51,6 +51,8 @@ public:
 	void set_stream(std::unique_ptr<StreamInput> new_stream) {
 		stream = std::move(new_stream);
 	}
+	
+	bool is_squelched();
 
 private:
 	static constexpr float k = 32768.0f;
@@ -68,6 +70,7 @@ private:
 
 	uint64_t audio_present_history = 0;
 	
+	bool audio_present = false;
 	bool do_processing = true;
 
 	void on_block(const buffer_f32_t& audio);

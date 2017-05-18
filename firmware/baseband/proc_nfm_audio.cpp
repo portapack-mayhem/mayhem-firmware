@@ -21,6 +21,7 @@
  */
 
 #include "proc_nfm_audio.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "event_m4.hpp"
 
@@ -28,6 +29,8 @@
 #include <cstddef>
 
 void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
+	bool new_state;
+	
 	if( !configured ) {
 		return;
 	}
@@ -56,6 +59,13 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 		}
 
 		audio_output.write(pwmrssi_audio_buffer);
+		
+		new_state = audio_output.is_squelched();
+		
+		if (new_state && !old_state)
+			shared_memory.application_queue.push(sig_message);
+		
+		old_state = new_state;	
 	}
 }
 
@@ -102,7 +112,8 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
 	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
-	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config);	// , 0.8f
+	// TODO: Configurable squelch threshold
+	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, 0.8f);
 	
 	synth_acc = 0;
 	

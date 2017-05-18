@@ -23,14 +23,15 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TODO: Waveform widget as FFT view in scanner
+//TODO: Scanner multiple slices (buggy)
+//TODO: Use to_string_short_freq
+//TODO: Add auto-rounding to 12.5kHz channel option in scanner
+//TODO: Waveform widget as FFT view in scanner ?
 //BUG: Replay freezes when SD card not present
 //BUG: RDS doesn't stop baseband when stopping tx ?
-//BUG: Check AFSK transmit end, skips last bits ?
-
+//TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
-//TODO: IQ replay
 //TODO: Optimize (and group ?) CTCSS tone gen code
 //TODO: Morse use prosigns
 //TODO: Morse live keying mode ?
@@ -41,39 +42,35 @@ Continuous (Fox-oring)
 60s transmit, 360s space (Classic 1/7 min) 
 */
 //TODO: Use transmittermodel bw setting
-//TODO: Use Labels widget wherever possible
-//TODO: Use TransmitterView in TEDI/LCR, Numbers, whistle, ...
+//TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
 //TODO: FreqMan: Add and rename categories
 //TODO: FreqMan: Sort by category in edit screen
 //TODO: FreqMan: Cap entry count per category (only done for total entries right now)
-//TODO: Script engine ?
-//TODO: Close Call multiple slices (buggy)
 //TODO: Wav visualizer
-
 //TODO: File browser view ?
 //TODO: Mousejack ?
 //TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
 //TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
-//TODO: Analog TV tx with camcorder font character generator
-//TODO: Make Whistle use proc_tones
 //TODO: RDS multiple groups (sequence)
 //TODO: Use ModalMessageView confirmation for TX ?
-//TODO: Show address/data bit fields in OOK TX
-//TODO: Scan for OOK TX
-//TODO: Check more OOK encoders
 //TODO: Use msgpack for settings, lists... on sd card
 
-//Multimon-style stuff:
-//TODO: AFSK receiver
+// Multimon-style stuff:
 //TODO: CTCSS detector
 //TODO: DMR detector
 //TODO: GSM channel detector
 //TODO: SIGFOX RX/TX
-//TODO: Bodet :)
-//TODO: LCR full message former (see norm)
-//TODO: AFSK NRZI
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
+
+// Old or low-priority stuff:
+//TODO: Bodet :)
+//TODO: Analog TV tx with camcorder font character generator
+//TODO: Show address/data bit fields in OOK TX
+//TODO: Scan for OOK TX
+//TODO: Script engine ?
+//TODO: AFSK receiver
+//TODO: Check more OOK encoders
 //BUG (fixed ?): No audio in about when shown second time
 //TODO: Show MD5 mismatches for modules not found, etc...
 //TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule

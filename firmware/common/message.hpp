@@ -821,11 +821,13 @@ public:
 };
 
 // TODO: use streaming buffer instead
+// TODO: rename (not only used for requests)
 class RequestSignalMessage : public Message {
 public:
 	enum class Signal : char {
 		FillRequest = 1,
 		BeepRequest = 2,
+		Squelched = 3
 	};
 
 	constexpr RequestSignalMessage(

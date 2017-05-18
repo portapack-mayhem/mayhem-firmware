@@ -162,7 +162,7 @@ set(CPPSRC
 	ui_baseband_stats_view.cpp
 	ui_bht_tx.cpp
 	ui_channel.cpp
-	ui_closecall.cpp
+	ui_scanner.cpp
 	ui_coasterp.cpp
 	ui_cw.cpp
 	ui_debug.cpp
