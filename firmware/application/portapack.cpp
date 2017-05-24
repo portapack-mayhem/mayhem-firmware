@@ -21,6 +21,7 @@
 
 #include "portapack.hpp"
 #include "portapack_hal.hpp"
+#include "portapack_dma.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
@@ -161,9 +162,14 @@ void init() {
 	radio::init();
 
 	touch::adc::init();
+
+	LPC_CREG->DMAMUX = portapack::gpdma_mux;
+	gpdma::controller.enable();
 }
 
 void shutdown() {
+	gpdma::controller.disable();
+
 	display.shutdown();
 	
 	radio::disable();

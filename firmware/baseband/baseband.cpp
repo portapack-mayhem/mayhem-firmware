@@ -35,8 +35,6 @@ static void init() {
 	audio::dma::configure();
 	audio::dma::enable();
 
-	LPC_CREG->DMAMUX = portapack::gpdma_mux;
-	gpdma::controller.enable();
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
