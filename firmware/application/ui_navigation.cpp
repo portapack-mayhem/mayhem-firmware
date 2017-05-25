@@ -31,6 +31,7 @@
 
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"
+#include "ui_aprstx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
 #include "ui_cw.hpp"
@@ -357,7 +358,7 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<13>({ {
+	add_items<14>({ {
 		{ "Play dead",				ui::Color::red(),	&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),	&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiverMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),	&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
@@ -365,7 +366,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Audio transmitters", 	ui::Color::green(),	&bitmap_icon_audiotx,	[&nav](){ nav.push<TransmitterAudioMenuView>(); } },
 		{ "Code transmitters", 		ui::Color::green(),	&bitmap_icon_codetx,	[&nav](){ nav.push<TransmitterCodedMenuView>(); } },
 		{ "SSTV transmitter", 		ui::Color::dark_green(),	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
-		{ "Scanner/search",			ui::Color::cyan(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },
+		{ "APRS transmitter", 		ui::Color::grey(),	&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
+		{ "Scanner/search",			ui::Color::blue(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Jammer", 				ui::Color::orange(),&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Utilities",				ui::Color::purple(),&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesView>(); } },
 		{ "Setup", 					ui::Color::white(),	&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },

@@ -37,10 +37,10 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 	
 	for (size_t i = 0; i < buffer.count; i++) {
 		
-		if (!sample) {
-			sample = 3;
-			
-			if (active) {
+		if (active) {
+			if (!sample) {
+				sample = 3;
+				
 				if (preamble) {
 					if (bit_pos >= 16) {
 						preamble = false;
@@ -60,20 +60,20 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 						bit_pos++;
 					}
 				}
-			} else {
-				//cur_bit = 0;
-				if (bit_pos == 8192) {	// ?
-					configured = false;
-					message.done = true;
-					shared_memory.application_queue.push(message);
-				}
-				bit_pos++;
+			} else
+				sample--;
+			
+			if (sample == 1)
+				cur_bit ^= 1;	// Invert
+		} else {
+			//cur_bit = 0;
+			if (bit_pos == 8192) {	// ?
+				configured = false;
+				message.done = true;
+				shared_memory.application_queue.push(message);
 			}
-		} else
-			sample--;
-		
-		if (sample == 1)
-			cur_bit ^= 1;	// Invert
+			bit_pos++;
+		}
 		
 		delta = tone_sample * fm_delta;
 		tone_sample += 128;

@@ -136,6 +136,8 @@ set(CPPSRC
 	touch.cpp
 	touch_adc.cpp
 	protocols/adsb.cpp
+	protocols/aprs.cpp
+	protocols/ax25.cpp
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/lcr.cpp
@@ -155,6 +157,7 @@ set(CPPSRC
 	${COMMON}/ui_focus.cpp
 	ui_about.cpp
 	ui_adsbtx.cpp
+	ui_aprstx.cpp
 	ui_modemsetup.cpp
 	ui_alphanum.cpp
 	ui_audio.cpp

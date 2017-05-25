@@ -20,9 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// BUG: Mirroring in proc_wideband...
-// BUG: Lock on frequency, if frequency jump, still locked on first one
-
 #include "ui_scanner.hpp"
 
 #include "baseband_api.hpp"

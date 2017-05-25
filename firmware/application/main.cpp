@@ -23,18 +23,22 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TODO: Scanner multiple slices (buggy)
-//TODO: Use to_string_short_freq
-//TODO: Add auto-rounding to 12.5kHz channel option in scanner
-//TODO: Waveform widget as FFT view in scanner ?
-//BUG: Replay freezes when SD card not present
+//BUG: SCANNER Mirroring in proc_wideband...
+//BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
+//BUG: SCANNER Multiple slices
+//BUG: REPLAY freezes when SD card not present
 //BUG: RDS doesn't stop baseband when stopping tx ?
+
+//TODO: Merge AFSK and TONES procs ?
+//TODO: NFM Squelch level setting
+//TODO: NFM RX nav.pop on squelch
+//TODO: MORSE use prosigns
+//TODO: MORSE live keying mode
+//TODO: Use to_string_short_freq wherever possible
+//TODO: SCANNER Waveform widget as FFT view ?
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
-
 //TODO: Optimize (and group ?) CTCSS tone gen code
-//TODO: Morse use prosigns
-//TODO: Morse live keying mode ?
 /*
 Continuous (Fox-oring)
 12s transmit, 48s space (Sprint 1/5th) 

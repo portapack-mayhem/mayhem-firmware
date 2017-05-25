@@ -79,7 +79,7 @@ bool ADSBTxView::start_tx() {
 	memcpy(shared_memory.bb_data.data, adsb_bin, 112);
 	baseband::set_adsb();
 	
-	transmitter_model.set_tuning_frequency(434000000);		// FOR TESTING - DEBUG
+	transmitter_model.set_tuning_frequency(1090000000);		// FOR TESTING - DEBUG
 	transmitter_model.set_sampling_rate(4000000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_vga(40);
