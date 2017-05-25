@@ -92,7 +92,7 @@ private:
 			{ "FRA e-Msg6", 466231250 },
 			{ "FRA Fire", 173512500 },
 			{ "NL Medical", 169650000 },
-			{ "NL KPN 3 - Public", 17245000 },
+			{ "NL KPN3-Public", 172450000 },
 			{ "SWE Minicall1", 169800000 },
 			{ "SWE Minicall2", 161437500 },
 			{ "USA Medical1", 152007500 },
