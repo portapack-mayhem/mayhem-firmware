@@ -96,7 +96,7 @@ private:
 									{"Xy. infos",			"cLx", 						TITLE_LF},
 									{"Thanks",				"",							SECTION},
 									{"Rainer Matla",		"Keld Norman",				TITLE},
-									{"Giorgio Campiotti",	"DC1RDB",					TITLE},
+									{"Giorgio C.",			"DC1RDB",					TITLE},
 									{"Sigmounte",			"Waax",						TITLE},
 									{"Windyoona",			"Channels",					TITLE_LF},
 									{"",					"MMXVII",					END}

@@ -158,11 +158,6 @@ private:
 	View* push_view(std::unique_ptr<View> new_view);
 };
 
-class TranspondersMenuView : public MenuView {
-public:
-	TranspondersMenuView(NavigationView& nav);
-};
-
 class BMPView : public View {
 public:
 	BMPView(NavigationView& nav);
@@ -181,27 +176,21 @@ private:
 	};
 };
 
-class ReceiverMenuView : public MenuView {
+class ReceiversMenuView : public MenuView {
 public:
-	ReceiverMenuView(NavigationView& nav);
+	ReceiversMenuView(NavigationView& nav);
 	std::string title() const override { return "Receivers"; };
 };
 
-class TransmitterCodedMenuView : public MenuView {
+class TransmittersMenuView : public MenuView {
 public:
-	TransmitterCodedMenuView(NavigationView& nav);
-	std::string title() const override { return "Coded TX"; };
+	TransmittersMenuView(NavigationView& nav);
+	std::string title() const override { return "Transmitters"; };
 };
 
-class TransmitterAudioMenuView : public MenuView {
+class UtilitiesMenuView : public MenuView {
 public:
-	TransmitterAudioMenuView(NavigationView& nav);
-	std::string title() const override { return "Audio TX"; };
-};
-
-class UtilitiesView : public MenuView {
-public:
-	UtilitiesView(NavigationView& nav);
+	UtilitiesMenuView(NavigationView& nav);
 	std::string title() const override { return "Utilities"; };	
 };
 

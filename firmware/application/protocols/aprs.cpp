@@ -35,10 +35,11 @@ void make_aprs_frame(char * address_dest, char * address_src) {
 	char address[14] = { 0 };
 	uint8_t info[7] = { 0 };	//{ 'F','U','R','R','T','E','K' };
 	
+	// Both SSIDs are 0
 	memcpy(&address[0], address_dest, 6);
 	memcpy(&address[7], address_src, 6);
 	
-	frame.make_ui_frame(address, 0x03, 0xF0, info, sizeof(info));
+	frame.make_ui_frame(address, 0x03, protocol_id_t::NO_LAYER3, info, sizeof(info));
 }
 
 } /* namespace aprs */
