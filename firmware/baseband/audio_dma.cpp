@@ -228,7 +228,7 @@ buffer_t rx_empty_buffer() {
 	if( next_lli ) {
 		const size_t next_index = next_lli - &lli_rx_loop[0];
 		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
-		return { reinterpret_cast<sample_t*>(lli_rx_loop[free_index].srcaddr), transfer_samples };
+		return { reinterpret_cast<sample_t*>(lli_rx_loop[free_index].destaddr), transfer_samples };
 	} else {
 		return { nullptr, 0 };
 	}
