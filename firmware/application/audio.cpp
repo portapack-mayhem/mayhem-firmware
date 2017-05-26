@@ -27,6 +27,7 @@ using portapack::clock_manager;
 
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
+#include "portapack_hal.hpp"
 
 #include "i2s.hpp"
 using namespace lpc43xx;
@@ -160,6 +161,9 @@ void init() {
 		i2s0_config_rx,
 		i2s0_config_dma
 	);
+
+	// Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
+	portapack::pin_i2s0_rx_sda.mode(3);
 }
 
 void shutdown() {
