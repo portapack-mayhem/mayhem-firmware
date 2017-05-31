@@ -131,20 +131,30 @@ private:
 
 struct RegistersWidgetConfig {
 	int registers_count;
-	int legend_length;
-	int value_length;
-	int registers_per_row;
+	int register_bits;
+
+	constexpr int legend_length() const {
+		return (registers_count >= 0x10) ? 2 : 1;
+	}
 
 	constexpr int legend_width() const {
-		return legend_length * 8;
+		return legend_length() * 8;
+	}
+
+	constexpr int value_length() const {
+		return (register_bits + 3) / 4;
 	}
 
 	constexpr int value_width() const {
-		return value_length * 8;
+		return value_length() * 8;
+	}
+
+	constexpr int registers_per_row() const {
+		return (value_length() >= 3) ? 4 : 8;
 	}
 
 	constexpr int registers_row_length() const {
-		return (registers_per_row * (value_length + 1)) - 1;
+		return (registers_per_row() * (value_length() + 1)) - 1;
 	}
 
 	constexpr int registers_row_width() const {
@@ -156,7 +166,7 @@ struct RegistersWidgetConfig {
 	}
 
 	constexpr int rows() const {
-		return registers_count / registers_per_row;
+		return registers_count / registers_per_row();
 	}
 };
 
