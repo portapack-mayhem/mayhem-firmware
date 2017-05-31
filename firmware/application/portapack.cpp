@@ -38,6 +38,8 @@ using wolfson::wm8731::WM8731;
 
 #include "cpld_update.hpp"
 
+#include "optional.hpp"
+
 namespace portapack {
 
 portapack::IO io {
@@ -107,6 +109,25 @@ private:
 };
 
 static Power power;
+
+enum class PortaPackModel {
+	R1_20150901,
+	R2_20170522,
+};
+
+static PortaPackModel portapack_model() {
+	static Optional<PortaPackModel> model;
+
+	if( !model.is_valid() ) {
+		if( audio_codec_wm8731.detected() ) {
+			model = PortaPackModel::R1_20150901;
+		} else {
+			model = PortaPackModel::R2_20170522;
+		}
+	}
+
+	return model.value();
+}
 
 void init() {
 	for(const auto& pin : pins) {
