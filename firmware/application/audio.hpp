@@ -63,6 +63,13 @@ void unmute();
 
 } /* namespace output */
 
+namespace input {
+
+void start();
+void stop();
+
+} /* namespace input */
+
 namespace headphone {
 
 volume_range_t volume_range();

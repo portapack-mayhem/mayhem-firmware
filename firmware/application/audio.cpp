@@ -123,6 +123,20 @@ void unmute() {
 
 } /* namespace output */
 
+namespace input {
+
+void start() {
+	audio_codec->microphone_enable();
+	i2s::i2s0::rx_start();
+}
+
+void stop() {
+	i2s::i2s0::rx_stop();
+	audio_codec->microphone_disable();
+}
+
+} /* namespace input */
+
 namespace headphone {
 
 volume_range_t volume_range() {
