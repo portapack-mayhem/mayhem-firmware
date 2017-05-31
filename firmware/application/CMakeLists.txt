@@ -71,7 +71,7 @@ set(USE_FPU no)
 # Project, sources and paths
 #
 
-set(CPLD_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/output_files/portapack_h1_cpld.svf)
+set(CPLD_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20150901/output_files/portapack_h1_cpld.svf)
 set(CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_data.cpp)
 
 set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
