@@ -260,8 +260,8 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 			"Si5351C", RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ "WM8731",      [&nav](){ nav.push<RegistersView>( 
-		  "WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 9 }, 
+		{ audio::debug::codec_name(), [&nav](){ nav.push<RegistersView>(
+			audio::debug::codec_name(), RegistersWidgetConfig { audio::debug::reg_count(), audio::debug::reg_bits() },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
 	});

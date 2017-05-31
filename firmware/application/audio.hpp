@@ -73,12 +73,14 @@ void set_volume(const volume_t volume);
 
 namespace debug {
 
-int reg_count();
-uint16_t reg_read(const int register_number);
+size_t reg_count();
+uint32_t reg_read(const size_t register_number);
+std::string codec_name();
+size_t reg_bits();
 
 } /* namespace debug */
 
-void init();
+void init(audio::Codec* const codec);
 void shutdown();
 
 enum class Rate {

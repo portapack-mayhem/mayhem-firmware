@@ -33,6 +33,9 @@ using namespace hackrf::one;
 #include "touch_adc.hpp"
 #include "audio.hpp"
 
+#include "wm8731.hpp"
+using wolfson::wm8731::WM8731;
+
 #include "cpld_update.hpp"
 
 namespace portapack {
@@ -60,6 +63,8 @@ si5351::Si5351 clock_generator {
 ClockManager clock_manager {
 	i2c0, clock_generator
 };
+
+WM8731 audio_codec_wm8731 { i2c0, 0x1a };
 
 ReceiverModel receiver_model;
 
@@ -154,7 +159,7 @@ void init() {
 
 	portapack::io.init();
 
-	audio::init();
+	audio::init(&audio_codec_wm8731);
 	
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();

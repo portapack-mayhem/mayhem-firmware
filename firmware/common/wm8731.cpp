@@ -108,7 +108,7 @@ bool WM8731::write(const address_t reg_address, const reg_t value) {
 	return bus.transmit(bus_address, values.data(), values.size());
 }
 
-reg_t WM8731::read(const address_t reg_address) {
+uint32_t WM8731::reg_read(const size_t reg_address) {
 	return map.w[reg_address];
 }
 

@@ -27,13 +27,10 @@
 
 #include "i2c_pp.hpp"
 
-#include "volume.hpp"
+#include "audio.hpp"
 
 namespace wolfson {
 namespace wm8731 {
-
-constexpr volume_range_t headphone_gain_range { -121.0_dB, 6.0_dB };
-constexpr volume_range_t line_in_gain_range { -34.5_dB, 12.0_dB };
 
 enum class ADCSource {
 	Line = 0,
@@ -278,7 +275,7 @@ constexpr RegisterMap default_after_reset { Register_Type {
 	},
 } };
 
-class WM8731 {
+class WM8731 : public audio::Codec {
 public:
 	constexpr WM8731(
 		I2C& bus,
@@ -288,14 +285,18 @@ public:
 	{
 	}
 
-	void init();
+	void init() override;
+	
+	bool reset() override;
 
-	bool reset();
+	std::string name() const override {
+		return "WM8731";
+	}
 
 	bool detected();
 
 	void set_line_in_volume(const volume_t volume) {
-		const auto normalized = line_in_gain_range.normalize(volume);
+		const auto normalized = line_in_gain_range().normalize(volume);
 		auto n = normalized.centibel() / 15;
 
 		write(LeftLineIn {
@@ -307,9 +308,9 @@ public:
 		});
 	}
 
-	void set_headphone_volume(const volume_t volume) {
-		const auto normalized = headphone_gain_range.normalize(volume);
+	void set_headphone_volume(const volume_t volume) override {
 		headphone_volume = volume;
+		const auto normalized = headphone_gain_range().normalize(volume);
 		auto n = normalized.centibel() / 10;
 
 		write(LeftHeadphoneOut {
@@ -320,8 +321,32 @@ public:
 		});
 	}
 
+	volume_range_t headphone_gain_range() const override {
+		return { -121.0_dB, 6.0_dB };
+	}
+
+	volume_range_t line_in_gain_range() const {
+		return { -34.5_dB, 12.0_dB };
+	}
+
 	void headphone_mute() {
-		set_headphone_volume(headphone_gain_range.min);
+		set_headphone_volume(headphone_gain_range().min);
+	}
+
+	void headphone_enable() override {
+		set_headphone_volume(headphone_volume);
+	}
+
+	void headphone_disable() override {
+		headphone_mute();
+	}
+
+	void microphone_enable() override {
+		// TODO: Implement
+	}
+
+	void microphone_disable() override {
+		// TODO: Implement
 	}
 
 	// void microphone_mute(const bool mute) {
@@ -334,7 +359,15 @@ public:
 	// 	write(Register::AnalogAudioPathControl);
 	// }
 
-	reg_t read(const address_t reg_address);
+	size_t reg_count() const override {
+		return wolfson::wm8731::reg_count;
+	}
+
+	size_t reg_bits() const override {
+		return 9;
+	}
+	
+	uint32_t reg_read(const size_t reg_address) override;
 	
 private:
 	I2C& bus;
