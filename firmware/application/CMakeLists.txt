@@ -122,6 +122,7 @@ set(CPPSRC
 	clock_manager.cpp
 	si5351.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/ak4951.cpp
 	radio.cpp
 	baseband_cpld.cpp
 	tuning.cpp

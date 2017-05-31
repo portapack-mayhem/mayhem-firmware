@@ -36,6 +36,9 @@ using namespace hackrf::one;
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
 
+#include "ak4951.hpp"
+using asahi_kasei::ak4951::AK4951;
+
 #include "cpld_update.hpp"
 
 #include "optional.hpp"
@@ -67,6 +70,7 @@ ClockManager clock_manager {
 };
 
 WM8731 audio_codec_wm8731 { i2c0, 0x1a };
+AK4951 audio_codec_ak4951 { i2c0, 0x12 };
 
 ReceiverModel receiver_model;
 
@@ -180,7 +184,11 @@ void init() {
 
 	portapack::io.init();
 
-	audio::init(&audio_codec_wm8731);
+	if( portapack_model() == PortaPackModel::R2_20170522 ) {
+		audio::init(&audio_codec_ak4951);
+	} else {
+		audio::init(&audio_codec_wm8731);
+	}
 	
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
