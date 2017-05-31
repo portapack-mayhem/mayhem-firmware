@@ -290,7 +290,7 @@ public:
 
 	void init();
 
-	void reset();
+	bool reset();
 
 	void set_line_in_volume(const volume_t volume) {
 		const auto normalized = line_in_gain_range.normalize(volume);
@@ -338,9 +338,9 @@ private:
 	const I2C::address_t bus_address;
 	RegisterMap map { default_after_reset };
 
-	void write(const Register reg);
+	bool write(const Register reg);
 	
-	void write(const address_t reg_address, const reg_t value);
+	bool write(const address_t reg_address, const reg_t value);
 
 	void write(const LeftLineIn value);
 	void write(const RightLineIn value);
