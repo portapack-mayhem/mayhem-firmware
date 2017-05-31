@@ -87,6 +87,10 @@ void WM8731::init() {
 	headphone_mute();
 }
 
+bool WM8731::detected() {
+	return reset();
+}
+
 bool WM8731::reset() {
 	return write(0x0f, 0);
 }

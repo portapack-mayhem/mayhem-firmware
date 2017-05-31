@@ -292,6 +292,8 @@ public:
 
 	bool reset();
 
+	bool detected();
+
 	void set_line_in_volume(const volume_t volume) {
 		const auto normalized = line_in_gain_range.normalize(volume);
 		auto n = normalized.centibel() / 15;
