@@ -307,6 +307,7 @@ public:
 
 	void set_headphone_volume(const volume_t volume) {
 		const auto normalized = headphone_gain_range.normalize(volume);
+		headphone_volume = volume;
 		auto n = normalized.centibel() / 10;
 
 		write(LeftHeadphoneOut {
@@ -337,6 +338,7 @@ private:
 	I2C& bus;
 	const I2C::address_t bus_address;
 	RegisterMap map { default_after_reset };
+	volume_t headphone_volume = -60.0_dB;
 
 	bool write(const Register reg);
 	
