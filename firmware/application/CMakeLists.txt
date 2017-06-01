@@ -71,8 +71,11 @@ set(USE_FPU no)
 # Project, sources and paths
 #
 
-set(CPLD_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20150901/output_files/portapack_h1_cpld.svf)
-set(CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_data.cpp)
+set(CPLD_20150901_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20150901/output_files/portapack_h1_cpld.svf)
+set(CPLD_20150901_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20150901_data.cpp)
+
+set(CPLD_20170522_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20170522/output_files/portapack_h1_cpld.svf)
+set(CPLD_20170522_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20170522_data.cpp)
 
 set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
 set(HACKRF_CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.cpp)
@@ -194,7 +197,8 @@ set(CPPSRC
 	${COMMON}/jtag.cpp
 	${COMMON}/jtag_tap.cpp
 	cpld_update.cpp
-	${CPLD_DATA_CPP}
+	${CPLD_20150901_DATA_CPP}
+	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
 )
 
@@ -310,9 +314,15 @@ include(${RULESPATH}/rules.cmake)
 ##############################################################################
 
 add_custom_command(
-	OUTPUT ${CPLD_DATA_CPP}
-	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH} >${CPLD_DATA_CPP}
-	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_SVF_PATH}
+	OUTPUT ${CPLD_20150901_DATA_CPP}
+	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_20150901_SVF_PATH} rev_20150901 >${CPLD_20150901_DATA_CPP}
+	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_20150901_SVF_PATH}
+)
+
+add_custom_command(
+	OUTPUT ${CPLD_20170522_DATA_CPP}
+	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_20170522_SVF_PATH} rev_20170522 >${CPLD_20170522_DATA_CPP}
+	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_20170522_SVF_PATH}
 )
 
 add_custom_command(

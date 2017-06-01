@@ -27,10 +27,12 @@
 #include "jtag_target_gpio.hpp"
 #include "cpld_max5.hpp"
 #include "cpld_xilinx.hpp"
-#include "portapack_cpld_data.hpp"
 #include "hackrf_cpld_data.hpp"
 
-bool cpld_update_if_necessary() {
+bool cpld_update_if_necessary(
+	const std::array<uint16_t, 3328>& block_0,
+	const std::array<uint16_t,  512>& block_1
+) {
 	jtag::GPIOTarget target {
 		portapack::gpio_cpld_tck,
 		portapack::gpio_cpld_tms,
@@ -63,17 +65,11 @@ bool cpld_update_if_necessary() {
 	}
 
 	/* Verify CPLD contents against current bitstream. */
-	auto ok = cpld.verify(
-		portapack::cpld::block_0,
-		portapack::cpld::block_1
-	);
+	auto ok = cpld.verify(block_0, block_1);
 
 	/* CPLD verifies incorrectly. Erase and program with current bitstream. */
 	if( !ok ) {
-		ok = cpld.program(
-			portapack::cpld::block_0,
-			portapack::cpld::block_1
-		);
+		ok = cpld.program(block_0, block_1);
 	}
 
 	/* If programming OK, reset CPLD to user mode. Otherwise leave it in

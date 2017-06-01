@@ -22,6 +22,7 @@
 #include "portapack.hpp"
 #include "portapack_hal.hpp"
 #include "portapack_dma.hpp"
+#include "portapack_cpld_data.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
@@ -174,8 +175,14 @@ void init() {
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 
-	if( !cpld_update_if_necessary() ) {
-		chSysHalt();
+	if( portapack_model() == PortaPackModel::R2_20170522 ) {
+		if( !cpld_update_if_necessary(portapack::cpld::rev_20170522::block_0, portapack::cpld::rev_20170522::block_1) ) {
+			chSysHalt();
+		}
+	} else {
+		if( !cpld_update_if_necessary(portapack::cpld::rev_20150901::block_0, portapack::cpld::rev_20150901::block_1) ) {
+			chSysHalt();
+		}
 	}
 
 	if( !cpld_hackrf_load_sram() ) {

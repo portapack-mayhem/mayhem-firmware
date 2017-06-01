@@ -25,11 +25,12 @@
 
 import sys
 
-if len(sys.argv) != 2:
-	print('Usage: <command> <Altera MAX V CPLD SVF file path>')
+if len(sys.argv) != 3:
+	print('Usage: <command> <Altera MAX V CPLD SVF file path> <revision name>')
 	sys.exit(-1)
 
 f = open(sys.argv[1], 'r')
+revision_name = sys.argv[2]
 
 calculate_crc = False
 
@@ -98,7 +99,8 @@ print("""#include "portapack_cpld_data.hpp"
 
 namespace portapack {
 namespace cpld {
-""")
+namespace %s {
+""" % revision_name)
 
 print('const std::array<uint16_t, %d> block_0 { {' % len(block_0))
 print_block(block_0)
@@ -111,9 +113,10 @@ print_block(block_1)
 
 print("""} };
 
+} /* namespace %s */
 } /* namespace cpld */
 } /* namespace portapack */
-""")
+""" % revision_name)
 
 if calculate_crc:
 	# Apply post-programming modification to make post-programming CRC correct:

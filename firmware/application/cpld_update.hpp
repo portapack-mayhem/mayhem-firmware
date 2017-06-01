@@ -22,7 +22,13 @@
 #ifndef __CPLD_UPDATE_H__
 #define __CPLD_UPDATE_H__
 
-bool cpld_update_if_necessary();
+#include <cstdint>
+#include <array>
+
+bool cpld_update_if_necessary(
+	const std::array<uint16_t, 3328>& block_0,
+	const std::array<uint16_t,  512>& block_1
+);
 
 bool cpld_hackrf_load_sram();
 bool cpld_hackrf_verify_eeprom();
