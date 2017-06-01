@@ -1,0 +1,14 @@
+**/*.qws
+**/*.chg
+**/smart.log
+**/db/
+**/incremental_db/
+**/output_files/*.done
+**/output_files/*.smsg
+**/output_files/*.summary
+**/output_files/*.jdi
+**/output_files/*.pin
+**/output_files/*.pof
+**/output_files/*.rpt
+**/output_files/*.sld
+**/simulation/
