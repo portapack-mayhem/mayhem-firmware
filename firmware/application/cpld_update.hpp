@@ -22,12 +22,10 @@
 #ifndef __CPLD_UPDATE_H__
 #define __CPLD_UPDATE_H__
 
-#include <cstdint>
-#include <array>
+#include "portapack_cpld_data.hpp"
 
 bool cpld_update_if_necessary(
-	const std::array<uint16_t, 3328>& block_0,
-	const std::array<uint16_t,  512>& block_1
+	const portapack::cpld::Config config
 );
 
 bool cpld_hackrf_load_sram();

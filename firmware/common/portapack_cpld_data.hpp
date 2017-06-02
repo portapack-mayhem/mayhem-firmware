@@ -28,14 +28,27 @@
 namespace portapack {
 namespace cpld {
 
+struct Config {
+	const std::array<uint16_t, 3328>& block_0;
+	const std::array<uint16_t,  512>& block_1;
+};
+
 namespace rev_20150901 {
+
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
+
+const Config config { block_0, block_1 };
+
 } /* namespace rev_20150901 */
 
 namespace rev_20170522 {
+
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
+
+const Config config { block_0, block_1 };
+
 } /* namespace rev_20170522 */
 
 } /* namespace cpld */
