@@ -22,16 +22,16 @@
 #ifndef __PORTAPACK_CPLD_DATA_H__
 #define __PORTAPACK_CPLD_DATA_H__
 
+#include "cpld_max5.hpp"
+
 #include <cstdint>
 #include <array>
 
 namespace portapack {
 namespace cpld {
 
-struct Config {
-	const std::array<uint16_t, 3328>& block_0;
-	const std::array<uint16_t,  512>& block_1;
-};
+using CPLD = ::cpld::max5::CPLD;
+using Config = ::cpld::max5::Config;
 
 namespace rev_20150901 {
 

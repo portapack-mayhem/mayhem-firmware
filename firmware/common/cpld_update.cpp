@@ -30,8 +30,11 @@
 #include "portapack_cpld_data.hpp"
 #include "hackrf_cpld_data.hpp"
 
-bool cpld_update_if_necessary(
-	const portapack::cpld::Config config
+namespace portapack {
+namespace cpld {
+
+bool update_if_necessary(
+	const Config config
 ) {
 	jtag::GPIOTarget target {
 		portapack::gpio_cpld_tck,
@@ -40,7 +43,7 @@ bool cpld_update_if_necessary(
 		portapack::gpio_cpld_tdo
 	};
 	jtag::JTAG jtag { target };
-	cpld::max5::CPLD cpld { jtag };
+	CPLD cpld { jtag };
 
 	/* Unknown state */
 	cpld.reset();
@@ -82,6 +85,12 @@ bool cpld_update_if_necessary(
 	return ok;
 }
 
+} /* namespace cpld */
+} /* namespace portapack */
+
+namespace hackrf {
+namespace cpld {
+
 static jtag::GPIOTarget jtag_target_hackrf() {
 	return {
 		hackrf::one::gpio_cpld_tck,
@@ -91,9 +100,9 @@ static jtag::GPIOTarget jtag_target_hackrf() {
 	};
 }
 
-bool cpld_hackrf_load_sram() {
+bool load_sram() {
 	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	cpld::xilinx::XC2C64A hackrf_cpld { jtag_target_hackrf_cpld };
+	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
 	hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
 	const auto ok = hackrf_cpld.verify_sram(hackrf::one::cpld::verify_blocks);
@@ -101,18 +110,21 @@ bool cpld_hackrf_load_sram() {
 	return ok;
 }
 
-bool cpld_hackrf_verify_eeprom() {
+bool verify_eeprom() {
 	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	cpld::xilinx::XC2C64A hackrf_cpld { jtag_target_hackrf_cpld };
+	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
 	const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
 	
 	return ok;
 }
 
-void cpld_hackrf_init_from_eeprom() {
+void init_from_eeprom() {
 	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	cpld::xilinx::XC2C64A hackrf_cpld { jtag_target_hackrf_cpld };
+	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
 	hackrf_cpld.init_from_eeprom();
 }
+
+} /* namespace cpld */
+} /* namespace hackrf */
