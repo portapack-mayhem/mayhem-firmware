@@ -134,6 +134,13 @@ static PortaPackModel portapack_model() {
 	return model.value();
 }
 
+static audio::Codec* portapack_audio_codec() {
+	return (portapack_model() == PortaPackModel::R2_20170522)
+		? static_cast<audio::Codec*>(&audio_codec_ak4951)
+		: static_cast<audio::Codec*>(&audio_codec_wm8731)
+		;
+}
+
 static const portapack::cpld::Config& portapack_cpld_config() {
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? portapack::cpld::rev_20170522::config
@@ -192,11 +199,7 @@ void init() {
 
 	portapack::io.init();
 
-	if( portapack_model() == PortaPackModel::R2_20170522 ) {
-		audio::init(&audio_codec_ak4951);
-	} else {
-		audio::init(&audio_codec_wm8731);
-	}
+	audio::init(portapack_audio_codec());
 	
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
