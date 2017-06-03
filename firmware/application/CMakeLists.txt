@@ -127,7 +127,7 @@ set(CPPSRC
 	${COMMON}/wm8731.cpp
 	${COMMON}/ak4951.cpp
 	radio.cpp
-	baseband_cpld.cpp
+	${COMMON}/baseband_cpld.cpp
 	tuning.cpp
 	rf_path.cpp
 	rffc507x.cpp
@@ -196,7 +196,7 @@ set(CPPSRC
 	${COMMON}/cpld_xilinx.cpp
 	${COMMON}/jtag.cpp
 	${COMMON}/jtag_tap.cpp
-	cpld_update.cpp
+	${COMMON}/cpld_update.cpp
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
