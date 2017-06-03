@@ -134,6 +134,13 @@ static PortaPackModel portapack_model() {
 	return model.value();
 }
 
+static const portapack::cpld::Config& portapack_cpld_config() {
+	return (portapack_model() == PortaPackModel::R2_20170522)
+		? portapack::cpld::rev_20170522::config
+		: portapack::cpld::rev_20150901::config
+		;
+}
+
 void init() {
 	for(const auto& pin : pins) {
 		pin.init();
@@ -175,14 +182,8 @@ void init() {
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 
-	if( portapack_model() == PortaPackModel::R2_20170522 ) {
-		if( !cpld_update_if_necessary(portapack::cpld::rev_20170522::config) ) {
-			chSysHalt();
-		}
-	} else {
-		if( !cpld_update_if_necessary(portapack::cpld::rev_20150901::config) ) {
-			chSysHalt();
-		}
+	if( !cpld_update_if_necessary(portapack_cpld_config()) ) {
+		chSysHalt();
 	}
 
 	if( !cpld_hackrf_load_sram() ) {
