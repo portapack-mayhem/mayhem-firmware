@@ -36,10 +36,8 @@ case_bumper_inset_from_pcb_edge = case_radiused ? 14.0 : 12.0;
 
 mounting_drills = [
     [4, 4],
-    [66, pcb_w - 4],
     [116, 4],
     [4, pcb_w - 4],
-    [71, pcb_w - 44],
     [116, pcb_w - 4]
 ];
 
