@@ -17,7 +17,9 @@ case_thickness = 1.5;
 case_bottom_thickness = case_thickness * 2;
 h1_pcb_bottom_clearance = 4.0;
 case_bottom_tool_r = 3.0;
-case_lid_thickness = 0.125 * 25.4;
+
+lcd_thickness = 3.8;
+case_lid_thickness = 3.0 / 16.0 * 25.4;
 
 case_height_above_datum = h1_pcb_thickness + spacer_height + pp_h1_pcb_thickness + case_lid_thickness;
 case_height_below_datum = case_bottom_thickness + h1_pcb_bottom_clearance;
