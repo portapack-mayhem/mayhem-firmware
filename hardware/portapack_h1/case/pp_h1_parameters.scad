@@ -7,7 +7,7 @@ pcb_hole_pad_r = 5.6 / 2;
 h1_pcb_thickness = 1.64;
 pp_h1_pcb_thickness = 1.56;
 
-spacer_height = 0.5 * 25.4;
+spacer_height = 12.0;
 
 bolt_drill_d = 3.0;
 pcb_attach_drills_depth = 4.0;
