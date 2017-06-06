@@ -27,12 +27,12 @@ attach_foot_r = pcb_hole_pad_r;
 attach_drill_r = bolt_drill_d / 2.0;
 
 case_bumper_d = 0.5 * 25.4;
-case_bumper_clearance = 0.5;
+case_bumper_clearance = 0.0;
 case_bumper_emboss_depth = 1.0;
 
 case_radiused = true;
 
-case_bumper_inset_from_pcb_edge = case_radiused ? 10.0 : 8.0;
+case_bumper_inset_from_pcb_edge = case_radiused ? 14.0 : 12.0;
 
 mounting_drills = [
     [4, 4],
