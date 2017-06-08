@@ -18,6 +18,8 @@ case_bottom_thickness = case_thickness * 2;
 h1_pcb_bottom_clearance = 4.0;
 case_bottom_tool_r = 3.0;
 
+h1_led_diffuser_thickness = 0.85;
+
 lcd_thickness = 3.8;
 case_lid_thickness = 3.0 / 16.0 * 25.4;
 
@@ -58,7 +60,14 @@ module pcb_outline() {
 
 module pcb_outline_clearance() {
     minkowski() {
-        pcb_outline();
-        circle(r=pcb_case_clearance);
+        offset(r=-pcb_corner_r) {
+            polygon([
+                [0 - h1_led_diffuser_thickness, 0 - pcb_case_clearance],
+                [0 - h1_led_diffuser_thickness, pcb_w + pcb_case_clearance],
+                [pcb_l + pcb_case_clearance, pcb_w + pcb_case_clearance],
+                [pcb_l + pcb_case_clearance, 0 - pcb_case_clearance]
+            ]);
+        }
+        circle(r=pcb_corner_r);
     }
 }
