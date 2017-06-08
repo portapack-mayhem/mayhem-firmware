@@ -227,11 +227,9 @@ module led(refdes, c) {
 }
 
 module led_drill() {
-    hole_diameter = 2;
-
     translate([0, -0.25, -0.3]) {
         rotate([90, 0, 0]) {
-            cylinder(d=hole_diameter, h=10);
+            cylinder(d=h1_led_hole_diameter, h=10);
         }
     }
 }

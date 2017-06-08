@@ -18,6 +18,7 @@ case_bottom_thickness = case_thickness * 2;
 h1_pcb_bottom_clearance = 4.0;
 case_bottom_tool_r = 3.0;
 
+h1_led_hole_diameter = 2;
 h1_led_diffuser_thickness = 0.85;
 
 lcd_thickness = 3.8;
