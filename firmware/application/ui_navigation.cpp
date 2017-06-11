@@ -22,12 +22,13 @@
 
 #include "ui_navigation.hpp"
 
-#include "modules.h"
+//#include "modules.h"
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
 #include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "ui_about.hpp"
 #include "ui_adsbtx.hpp"

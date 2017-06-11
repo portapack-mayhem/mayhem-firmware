@@ -27,31 +27,30 @@
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
+#include <algorithm>
 
 using namespace hackrf::one;
 
 namespace ui {
 
 void AlphanumView::paint(Painter&) {
-	move_cursor();
+	draw_cursor();
 }
-	
+
 AlphanumView::AlphanumView(
 	NavigationView& nav,
-	std::string& txt,
+	std::string * str,
 	size_t max_length
-) : _max_length(max_length)
+) : _max_length(max_length),
+	_str(str)
 {
 	size_t n;
 	
-	txtidx = txt.length();
-	txtinput = txt;
+	// Trim from right
+	_str->erase(std::find_if(_str->rbegin(), _str->rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), _str->end());
+	cursor_pos = _str->length();
 	
-	n = txtidx;
-	while (n && (txtinput[n - 1] == ' ')) {
-		txtinput[--n] = 0;
-		txtidx--;
-	}
+	_str->resize(_max_length, 0);
 	
 	add_children({
 		&text_input,
@@ -76,39 +75,40 @@ AlphanumView::AlphanumView(
 		add_child(&button);
 		n++;
 	}
+	
 	set_mode(mode);
 	
-	button_mode.on_select = [this, &nav](Button&) {
+	button_mode.on_select = [this](Button&) {
 		set_mode(mode + 1);
 	};
 	
 	field_raw.set_value('0');
-	field_raw.on_select = [this, &nav](NumberField&) {
+	field_raw.on_select = [this](NumberField&) {
 		char_add(field_raw.value());
 		update_text();
 	};
 
-	button_ok.on_select = [this, &nav, &txt, max_length](Button&) {
-		txt = txtinput;
-		if (on_changed) on_changed(this->value());
+	button_ok.on_select = [this, &nav](Button&) {
+		if (on_changed)
+			on_changed(_str);
 		nav.pop();
 	};
 
 	update_text();
 }
 
-void AlphanumView::move_cursor() {
-	Point cursor_pos;
+void AlphanumView::draw_cursor() {
+	Point draw_pos;
 	
-	cursor_pos = {text_input.screen_rect().location().x() + (Coord)(txtidx * 8),
+	draw_pos = {text_input.screen_rect().location().x() + 8 + std::min((Coord)cursor_pos, (Coord)28) * 8,
 					text_input.screen_rect().location().y() + 16};
 	
 	portapack::display.fill_rectangle(
-		{{text_input.screen_rect().location().x(), cursor_pos.y()}, {text_input.screen_rect().size().width(), 4}},
+		{{text_input.screen_rect().location().x(), draw_pos.y()}, {text_input.screen_rect().size().width(), 4}},
 		Color::black()
 	);
 	portapack::display.fill_rectangle(
-		{cursor_pos, {8, 4}},
+		{draw_pos, {8, 4}},
 		Color::white()
 	);
 }
@@ -121,7 +121,7 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 	else
 		mode = 0;
 	
-	const char * key_list = pages[mode].second;
+	const char * key_list = key_sets[mode].second;
 	
 	for (auto& button : buttons) {
 		const std::string label {
@@ -132,48 +132,47 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 	}
 	
 	if (mode < 2)
-		button_mode.set_text(pages[mode + 1].first);
+		button_mode.set_text(key_sets[mode + 1].first);
 	else
-		button_mode.set_text(pages[0].first);
+		button_mode.set_text(key_sets[0].first);
 }
 
 void AlphanumView::focus() {
 	button_ok.focus();
 }
 
-std::string AlphanumView::value() {
-	txtinput[txtidx] = 0;
-	return txtinput;
-}
-
 void AlphanumView::on_button(Button& button) {
-	const auto s = button.text();
+	const auto c = button.text()[0];
 	
-	if (s == "<")
+	if (c == '<')
 		char_delete();
 	else
-		char_add(s[0]);
+		char_add(c);
 	
 	update_text();
 }
 
 void AlphanumView::char_add(const char c) {
-	if (txtidx >= _max_length) return;
+	if (cursor_pos >= _max_length) return;
 	
-	txtinput[txtidx] = c;
-	txtidx++;
+	_str->replace(cursor_pos, 1, 1, c);
+	cursor_pos++;
 }
 
 void AlphanumView::char_delete() {
-	if (!txtidx) return;
+	if (!cursor_pos) return;
 	
-	txtidx--;
-	txtinput[txtidx] = 0;
+	cursor_pos--;
+	_str->replace(cursor_pos, 1, 1, 0);
 }
 
 void AlphanumView::update_text() {
-	text_input.set(std::string(txtinput) + std::string(_max_length - txtinput.length(), ' '));
-	move_cursor();
+	if (cursor_pos <= 28)
+		text_input.set(' ' + *_str + std::string(_max_length - _str->length(), ' '));
+	else
+		text_input.set('<' + _str->substr(cursor_pos - 28, 28));
+		
+	draw_cursor();
 }
 
 }

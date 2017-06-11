@@ -44,13 +44,13 @@ public:
 private:
 	NavigationView& nav_;
 	freqman_error error { NO_ERROR };
-	std::string desc_buffer { "-" };
+	std::string desc_buffer { };
 	rtc::RTC datetime { };
 	rf::Frequency value_ { };
 	std::string str_timestamp { };
 	//int32_t category_id_ { -1 };
 	
-	void on_save_name(std::string& name);
+	void on_save_name();
 	void on_save_timestamp();
 	void on_tick_second();
 	
@@ -139,7 +139,7 @@ private:
 	NavigationView& nav_;
 	
 	freqman_error error { NO_ERROR };
-	std::string desc_buffer { "-" };
+	std::string desc_buffer { };
 	
 	void on_frequency_select();
 	void on_edit_freq(rf::Frequency f);

@@ -81,7 +81,7 @@ private:
 	tx_modes tx_mode = IDLE;
 	uint8_t scan_count { 0 }, scan_index { 0 };
 	uint32_t scan_progress { 0 };
-	std::string litteral[5] { "       " };
+	std::string litteral[5] { { "       " } };
 	std::string rgsb { "    " };
 	char lcr_message[512];
 	uint16_t lcr_message_data[256];
@@ -107,7 +107,7 @@ private:
 	
 	Labels labels {
 		{ { 2 * 8, 4 }, "EC:", Color::light_grey() },
-		{ { 88, 268 }, "Scan list:", Color::light_grey() }
+		{ { 84, 268 }, "Scan list:", Color::light_grey() }
 	};
 	
 	std::array<Button, 5> buttons { };
@@ -158,10 +158,9 @@ private:
 	};
 	
 	OptionsField options_scanlist {
-		{ 88, 284 },
+		{ 84, 284 },
 		6,
 		{
-			{ "Lille ", 0 },
 			{ "Reims ", 1 }
 		}
 	};

@@ -27,11 +27,10 @@
 #include "ui_navigation.hpp"
 #include "ui_handwrite.hpp"
 #include "ui_alphanum.hpp"
-#include "portapack_persistent_memory.hpp"
 
 namespace ui {
 
-bool text_entry(NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string)> on_done = nullptr);
+void text_entry(NavigationView& nav, std::string * str, size_t max_length, const std::function<void(std::string*)> on_done = nullptr);
 
 } /* namespace ui */
 

@@ -21,26 +21,24 @@
  */
 
 #include "ui_textentry.hpp"
+#include "portapack_persistent_memory.hpp"
 
 namespace ui {
 
-bool text_entry(NavigationView& nav, std::string& str, const size_t max_length, const std::function<void(std::string)> on_done) {
-	
+void text_entry(NavigationView& nav, std::string * str, const size_t max_length, const std::function<void(std::string *)> on_done) {
 	if (portapack::persistent_memory::ui_config_textentry() == 0) {
 		auto te_view = nav.push<AlphanumView>(str, max_length);
-		te_view->on_changed = [str, max_length, on_done](std::string value) {
-			//memcpy(str, value, max_length + 1);
-			if (on_done) on_done(value);
+		te_view->on_changed = [on_done](std::string * value) {
+			if (on_done)
+				on_done(value);
 		};
 	} else {
 		auto te_view = nav.push<HandWriteView>(str, max_length);
-		te_view->on_changed = [str, max_length, on_done](std::string value) {
-			//memcpy(str, value, max_length + 1);
-			if (on_done) on_done(value);
+		te_view->on_changed = [on_done](std::string * value) {
+			if (on_done)
+				on_done(value);
 		};
 	}
-	
-	return true;
 }
 
 } /* namespace ui */

@@ -136,11 +136,11 @@ RDSView::RDSView(NavigationView& nav) {
 	options_coverage.set_selected_index(0);			// Local
 	
 	button_editpsn.on_select = [this, &nav](Button&) {
-		text_entry(nav, PSN, 8);
+		text_entry(nav, &PSN, 8);
 	};
 	
 	button_editradiotext.on_select = [this, &nav](Button&){
-		text_entry(nav, RadioText, 24);
+		text_entry(nav, &RadioText, 24);
 	};
 }
 

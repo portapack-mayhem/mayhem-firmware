@@ -25,15 +25,17 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 
-#include <cstring>
+//#include <cstring>
 
 using namespace portapack;
 
 namespace ui {
 
-void FrequencySaveView::on_save_name(std::string& name) {
-	database.entries.push_back({ value_, "", name, (int32_t)options_category.selected_index_value() });
-	nav_.pop();
+void FrequencySaveView::on_save_name() {
+	text_entry(nav_, &desc_buffer, 7, [this](std::string * buffer) {
+			database.entries.push_back({ value_, "", *buffer, (int32_t)options_category.selected_index_value() });
+			nav_.pop();
+		});
 }
 
 void FrequencySaveView::on_save_timestamp() {
@@ -78,6 +80,8 @@ FrequencySaveView::FrequencySaveView(
 	File freqs_file;
 	size_t n;
 	
+	desc_buffer.reserve(28);
+	
 	if (!load_freqman_file(database)) {
 		if (!create_freqman_file(freqs_file)) {
 			error = ERROR_ACCESS;
@@ -119,9 +123,7 @@ FrequencySaveView::FrequencySaveView(
 	big_display.set(value);
 	
 	button_save_name.on_select = [this, &nav](Button&) {
-		text_entry(nav, desc_buffer, 28, [this](std::string buffer) {
-				on_save_name(buffer);
-			});
+		on_save_name();
 	};
 	button_save_timestamp.on_select = [this, &nav](Button&) {
 		on_save_timestamp();
@@ -207,8 +209,8 @@ void FreqManView::on_edit_freq(rf::Frequency f) {
 }
 
 void FreqManView::on_edit_desc(NavigationView& nav) {
-	text_entry(nav, desc_buffer, 28, [this](std::string buffer) {
-				database.entries[menu_view.highlighted()].description = buffer;
+	text_entry(nav, &desc_buffer, 28, [this](std::string * buffer) {
+				database.entries[menu_view.highlighted()].description = *buffer;
 				//setup_list();
 			});
 }
@@ -264,7 +266,7 @@ FreqManView::FreqManView(
 	using options_t = std::vector<option_t>;
 	options_t categories;
 	size_t n;
-	
+		
 	if (!load_freqman_file(database)) {
 		error = ERROR_ACCESS;
 		return;

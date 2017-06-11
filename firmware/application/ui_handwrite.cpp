@@ -38,23 +38,21 @@ void HandWriteView::paint(Painter& painter) {
 
 HandWriteView::HandWriteView(
 	NavigationView& nav,
-	std::string& txt,
+	std::string * str,
 	size_t max_length
-) : _max_length(max_length)
+) : _max_length(max_length),
+	_str(str)
 {
-	const char special_chars[5] = {'\'', '.', '?', '!', '='}; 
 	size_t n;
+	
+	// Trim from right
+	_str->erase(std::find_if(_str->rbegin(), _str->rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), _str->end());
+	cursor_pos = _str->length();
+	
+	_str->resize(_max_length, 0);
 	
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
-	
-	txtidx = txt.length();
-	txtinput = txt;
-	n = txtidx;
-	while (n && (txtinput[n - 1] == ' ')) {
-		txtinput[--n] = 0;
-		txtidx--;
-	}
 
 	add_children({
 		&text_input,
@@ -110,9 +108,9 @@ HandWriteView::HandWriteView(
 		}
 	};
 
-	button_ok.on_select = [this, &nav, &txt, max_length](Button&) {
-		txt = txtinput;
-		if (on_changed) on_changed(this->value());
+	button_ok.on_select = [this, &nav](Button&) {
+		if (on_changed)
+			on_changed(_str);
 		nav.pop();
 	};
 
@@ -226,9 +224,9 @@ void HandWriteView::guess_letter() {
 					char_add('A' + symbol - 1);
 				clear_zone(Color::green(), true);	// Green flash
 			} else {
-				if (txtidx) {
-					txtidx--;
-					txtinput[txtidx] = 0;			// Erase
+				if (cursor_pos) {
+					cursor_pos--;
+					_str->replace(cursor_pos, 1, 1, 0);
 					clear_zone(Color::yellow(), true);	// Yellow flash
 				} else {
 					clear_zone(Color::red(), true);		// Red flash
@@ -261,19 +259,19 @@ void HandWriteView::sample_pen() {
 	
 	// Blink cursor
 	if (!(sample_skip & 15)) {
-		Point cursor_pos;
+		Point draw_pos;
 		
-		cursor_pos = {text_input.screen_rect().location().x() + (txtidx * 8),
+		draw_pos = {text_input.screen_rect().location().x() + 8 + std::min((Coord)cursor_pos, (Coord)28) * 8,
 						text_input.screen_rect().location().y() + 16 - 4};
 		
 		if (cursor) {
 			display.fill_rectangle(
-				{cursor_pos, {text_input.screen_rect().size().width() - cursor_pos.x(), 4}},
+				{draw_pos, {text_input.screen_rect().size().width() - draw_pos.x(), 4}},
 				Color::black()
 			);
 		} else {
 			display.fill_rectangle(
-				{cursor_pos, {8, 4}},
+				{draw_pos, {8, 4}},
 				Color::white()
 			);
 		}
@@ -382,25 +380,23 @@ void HandWriteView::on_show() {
 	clear_zone(Color::black(), false);
 }
 
-std::string HandWriteView::value() {
-	txtinput[txtidx] = 0;
-	return txtinput;
-}
-
 void HandWriteView::on_button(Button& button) {
 	char_add(button.id);
 	update_text();
 }
 
 void HandWriteView::char_add(const char c) {
-	if (txtidx >= _max_length) return;
+	if (cursor_pos >= _max_length) return;
 	
-	txtinput[txtidx] = c;
-	txtidx++;
+	_str->replace(cursor_pos, 1, 1, c);
+	cursor_pos++;
 }
 
 void HandWriteView::update_text() {
-	text_input.set(txtinput);
+	if (cursor_pos <= 28)
+		text_input.set(' ' + *_str + std::string(_max_length - _str->length(), ' '));
+	else
+		text_input.set('<' + _str->substr(cursor_pos - 28, 28));
 }
 
 }

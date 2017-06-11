@@ -34,20 +34,17 @@ namespace ui {
 
 class AlphanumView : public View {
 public:
-	std::function<void(std::string)> on_changed { };
+	std::function<void(std::string*)> on_changed { };
 
-	AlphanumView(NavigationView& nav, std::string& txt, size_t max_length);
+	AlphanumView(NavigationView& nav, std::string * str, size_t max_length);
 	
 	AlphanumView(const AlphanumView&) = delete;
 	AlphanumView(AlphanumView&&) = delete;
 	AlphanumView& operator=(const AlphanumView&) = delete;
 	AlphanumView& operator=(AlphanumView&&) = delete;
 
-
 	void paint(Painter& painter) override;
 	void focus() override;
-	
-	std::string value();
 	
 	std::string title() const override { return "Text entry"; };
 
@@ -56,26 +53,26 @@ private:
 	const char * const keys_lower = "abcdefghijklmnopqrstuvwxyz' .<";
 	const char * const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
 	
-	const std::pair<std::string, const char *> pages[3] = {
+	const std::pair<std::string, const char *> key_sets[3] = {
 		{ "Upper", keys_upper },
 		{ "Lower", keys_lower },
 		{ "Digit", keys_digit }
 	};
 	
 	size_t _max_length { };
-	uint32_t txtidx { 0 };
-	uint32_t mode = 0;				// Upper
-	std::string txtinput { "" };	// 28 chars max
+	uint32_t cursor_pos { 0 };
+	uint32_t mode = 0;				// Uppercase
+	std::string * _str { };
 	
 	void char_add(const char c);
 	void char_delete();
 	void set_mode(const uint32_t new_mode);
-	void move_cursor();
+	void draw_cursor();
 	void on_button(Button& button);
 	void update_text();
 	
 	Text text_input {
-		{ 8, 0, 232, 16 }
+		{ 0, 0, 240, 16 }
 	};
 
 	std::array<Button, 30> buttons { };
