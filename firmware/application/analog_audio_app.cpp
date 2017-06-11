@@ -66,11 +66,18 @@ NBFMOptionsView::NBFMOptionsView(
 	add_children({
 		&label_config,
 		&options_config,
+		&text_squelch,
+		&field_squelch
 	});
 
 	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_nbfm_configuration(n);
+	};
+	
+	field_squelch.set_value(receiver_model.squelch_level());
+	field_squelch.on_change = [this](int32_t v) {
+		receiver_model.set_squelch_level(v);
 	};
 }
 

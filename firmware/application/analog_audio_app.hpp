@@ -78,6 +78,19 @@ private:
 			{ "16k ", 0 },
 		}
 	};
+	
+	Text text_squelch {
+		{ 9 * 8, 0 * 16, 7 * 8, 1 * 16 },
+		"SQ    /100"
+	};
+
+	NumberField field_squelch {
+		{ 12 * 8, 0 * 16 },
+		3,
+		{ 0, 100 },
+		1,
+		' ',
+	};
 };
 
 class AnalogAudioView : public View {

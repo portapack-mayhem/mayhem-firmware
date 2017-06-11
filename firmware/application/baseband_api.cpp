@@ -52,7 +52,7 @@ void AMConfig::apply() const {
 	audio::set_rate(audio::Rate::Hz_12000);
 }
 
-void NBFMConfig::apply() const {
+void NBFMConfig::apply(const uint8_t squelch_level) const {
 	const NBFMConfigureMessage message {
 		decim_0,
 		decim_1,
@@ -60,7 +60,8 @@ void NBFMConfig::apply() const {
 		2,
 		deviation,
 		audio_24k_hpf_300hz_config,
-		audio_24k_deemph_300_6_config
+		audio_24k_deemph_300_6_config,
+		squelch_level
 	};
 	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_24000);

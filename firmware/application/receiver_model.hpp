@@ -71,6 +71,9 @@ public:
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
+	
+	uint8_t squelch_level() const;
+	void set_squelch_level(uint8_t v);
 
 	void enable();
 	void disable();
@@ -99,6 +102,7 @@ private:
 	size_t nbfm_config_index = 0;
 	size_t wfm_config_index = 0;
 	volume_t headphone_volume_ { -43.0_dB };
+	uint8_t squelch_level_ { 80 };
 
 	int32_t tuning_offset();
 

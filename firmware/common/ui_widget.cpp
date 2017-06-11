@@ -1461,7 +1461,7 @@ VuMeter::VuMeter(
 	show_max_ { show_max }
 {
 	//set_focusable(false);
-	LED_height = parent_rect.size().height() / LEDs;
+	LED_height = std::max(1UL, parent_rect.size().height() / LEDs);
 	split = 256 / LEDs;
 }
 
@@ -1507,7 +1507,7 @@ void VuMeter::paint(Painter& painter) {
 			else
 				color = lit ? Color::green() : Color::dark_green();
 			
-			painter.fill_rectangle({ pos.x(), pos.y() + (Coord)(bar * LED_height), width, (Coord)LED_height - 2 }, color);
+			painter.fill_rectangle({ pos.x(), pos.y() + (Coord)(bar * (LED_height + 1)), width, (Coord)LED_height }, color);
 		}
 		prev_value = value_;
 	}

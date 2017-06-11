@@ -112,6 +112,9 @@ private:
 		int16_t index;
 	} slices[32];
 	
+	uint32_t bin_skip_acc { 0 }, bin_skip_frac { };
+	uint32_t pixel_index { 0 };
+	std::array<Color, 240> spectrum_row { 0 };
 	ChannelSpectrumFIFO* fifo { nullptr };
 	rf::Frequency f_min { 0 }, f_max { 0 };
 	uint8_t detect_timer { 0 }, release_timer { 0 }, timing_div { 0 };
@@ -123,7 +126,7 @@ private:
 	uint8_t slices_nb { 0 };
 	uint8_t slice_counter { 0 };
 	int16_t last_bin { 0 };
-	Coord last_pos { 0 };
+	Coord last_tick_pos { 0 };
 	rf::Frequency scan_span { 0 }, resolved_frequency { 0 };
 	uint16_t locked_bin { 0 };
 	uint8_t scan_counter { 0 };
@@ -135,6 +138,7 @@ private:
 	void on_lna_changed(int32_t v_db);
 	void on_vga_changed(int32_t v_db);
 	void do_timers();
+	void add_spectrum_pixel(Color color);
 	
 	const RecentEntriesColumns columns { {
 		{ "Frequency", 9 },
@@ -149,7 +153,7 @@ private:
 		{ { 1 * 8, 4 * 8 }, "Trig:   /255    Mean:   /255", Color::light_grey() },
 		{ { 1 * 8, 6 * 8 }, "Slices:  /32      Rate:   Hz", Color::light_grey() },
 		{ { 6 * 8, 10 * 8 }, "Timer  Status", Color::light_grey() },
-		{ { 1 * 8, 25 * 8 }, "Accuracy: +/-4.9kHz", Color::light_grey() },
+		{ { 1 * 8, 25 * 8 }, "Accuracy +/-4.9kHz", Color::light_grey() },
 		{ { 26 * 8, 25 * 8 }, "MHz", Color::light_grey() }
 	};
 	 
@@ -188,12 +192,12 @@ private:
 	
 	VuMeter vu_max {
 		{ 1 * 8, 11 * 8 - 4, 3 * 8, 48 },
-		16,
+		18,
 		false
 	};
 	
 	ProgressBar progress_timers {
-		{ 6 * 8, 12 * 8, 5 * 8, 16 }
+		{ 6 * 8, 12 * 8, 6 * 8, 16 }
 	};
 	Text text_infos {
 		{ 13 * 8, 12 * 8, 15 * 8, 16 },
@@ -203,11 +207,11 @@ private:
 	Checkbox check_snap {
 		{ 6 * 8, 15 * 8 },
 		7,
-		"Adjust:",
+		"Snap to:",
 		true
 	};
 	OptionsField options_snap {
-		{ 15 * 8, 15 * 8 },
+		{ 17 * 8, 15 * 8 },
 		7,
 		{
 			{ "25kHz  ", 25000 },

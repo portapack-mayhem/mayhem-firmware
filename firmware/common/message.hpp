@@ -356,7 +356,8 @@ public:
 		const size_t channel_decimation,
 		const size_t deviation,
 		const iir_biquad_config_t audio_hpf_config,
-		const iir_biquad_config_t audio_deemph_config
+		const iir_biquad_config_t audio_deemph_config,
+		const uint8_t squelch_level
 	) : Message { ID::NBFMConfigure },
 		decim_0_filter(decim_0_filter),
 		decim_1_filter(decim_1_filter),
@@ -364,7 +365,8 @@ public:
 		channel_decimation { channel_decimation },
 		deviation { deviation },
 		audio_hpf_config(audio_hpf_config),
-		audio_deemph_config(audio_deemph_config)
+		audio_deemph_config(audio_deemph_config),
+		squelch_level(squelch_level)
 	{
 	}
 
@@ -375,6 +377,7 @@ public:
 	const size_t deviation;
 	const iir_biquad_config_t audio_hpf_config;
 	const iir_biquad_config_t audio_deemph_config;
+	const uint8_t squelch_level;
 };
 
 class WFMConfigureMessage : public Message {

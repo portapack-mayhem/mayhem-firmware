@@ -66,6 +66,14 @@ void ScannerView::do_detection() {
 	rtc::RTC datetime;
 	std::string str_approx, str_timestamp;
 	
+	// Display spectrum
+	bin_skip_acc = 0;
+	pixel_index = 0;
+	display.draw_pixels(
+		{ { 0, 88 }, { (Dim)spectrum_row.size(), 1 } },
+		spectrum_row
+	);
+	
 	mean_power = mean_acc / (SCAN_BIN_NB_NO_DC * slices_nb);
 	mean_acc = 0;
 	
@@ -79,8 +87,8 @@ void ScannerView::do_detection() {
 		
 		if ((power >= mean_power + power_threshold) && (power > power_max)) {
 			power_max = power;
-			bin_max_pixel = slices[slice].max_index;
-			bin_max = bin_max_pixel + (slice * SCAN_BIN_NB);
+			bin_max = slices[slice].max_index + (slice * SCAN_BIN_NB);
+			bin_max_pixel = bin_max / slices_nb;
 		}
 	}
 	
@@ -157,63 +165,65 @@ void ScannerView::do_detection() {
 	scan_counter++;
 	
 	// Refresh red tick
-	portapack::display.fill_rectangle({last_pos, 90, 1, 6}, Color::black());
+	portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::black());
 	if (bin_max > -1) {
-		if (bin_max_pixel < 120)
-			bin_max_pixel += 2;
+		//if (bin_max_pixel < 120)
+		//	bin_max_pixel += 2;
 		//else
 		//	bin_max_pixel -= 0;
-		last_pos = (ui::Coord)bin_max_pixel;
-		portapack::display.fill_rectangle({last_pos, 90, 1, 6}, Color::red());
+		last_tick_pos = (Coord)bin_max_pixel;
+		portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::red());
 	}
 }
 
+void ScannerView::add_spectrum_pixel(Color color) {
+	// Is avoiding floats really needed ?
+	bin_skip_acc += bin_skip_frac;
+	if (bin_skip_acc < 0x10000) 
+		return;
+	
+	bin_skip_acc -= 0x10000;
+	
+	if (pixel_index < 240)
+		spectrum_row[pixel_index++] = color;
+}
+
 void ScannerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-	uint8_t power_max = 0;
-	int16_t bin_max = 0;
+	uint8_t max_power = 0;
+	int16_t max_bin = 0;
 	uint8_t power;
 	size_t bin;
-	std::array<Color, 240> pixel_row;
 	
 	baseband::spectrum_streaming_stop();
 	
-	// Draw spectrum line
+	// Add pixels to spectrum row, and find max power for this slice
+	// Leftmost and rightmost 2 bins are ignored
+	// Center 12 bins are ignored
+	// 256-2-2-12 = 240 bins used
 	for (bin = 0; bin < 120; bin++) {
-		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[134 + bin]];	// 134~253 in 0~119
-		pixel_row[bin] = pixel_color;
-	}
-	for (bin = 120; bin < 240; bin++) {
-		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[bin - 118]];	// 2~121 in 120~239
-		pixel_row[bin] = pixel_color;
-	}
-	display.draw_pixels(
-		{ { 0, 88 + slice_counter * 2 }, { pixel_row.size(), 1 } },
-		pixel_row
-	);
-	
-	// Find max power for this slice
-	for (bin = 0 ; bin < 120; bin++) {
+		add_spectrum_pixel(spectrum_rgb3_lut[spectrum.db[134 + bin]]);	// 134~253 goes in 0~119
 		power = spectrum.db[134 + bin];
 		mean_acc += power;
-		if (power > power_max) {
-			power_max = power;
-			bin_max = bin - 2;
+		if (power > max_power) {
+			max_power = power;
+			max_bin = bin - 2;	// To check
 		}
 	}
 	for (bin = 120; bin < 240; bin++) {
+		add_spectrum_pixel(spectrum_rgb3_lut[spectrum.db[bin - 118]]);	// 2~121 goes in 120~239
 		power = spectrum.db[bin - 118];
 		mean_acc += power;
-		if (power > power_max) {
-			power_max = power;
-			bin_max = bin + 2;
+		if (power > max_power) {
+			max_power = power;
+			max_bin = bin + 2;	// To check
 		}
 	}
 	
-	slices[slice_counter].max_power = power_max;
-	slices[slice_counter].max_index = bin_max;
+	slices[slice_counter].max_power = max_power;
+	slices[slice_counter].max_index = max_bin;
 	
-	// Slice update
 	if (slices_nb > 1) {
+		// Slice sequence
 		slice_counter++;
 		if (slice_counter >= slices_nb) {
 			do_detection();
@@ -221,6 +231,7 @@ void ScannerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		}
 		receiver_model.set_tuning_frequency(slices[slice_counter].center_frequency);
 	} else {
+		// Unique slice
 		do_detection();
 	}
 	
@@ -272,6 +283,8 @@ void ScannerView::on_range_changed() {
 		slices_nb = 1;
 		text_slices.set(" 1");
 	}
+	
+	bin_skip_frac = 0x10000 / slices_nb;
 
 	slice_counter = 0;
 }
@@ -353,7 +366,7 @@ ScannerView::ScannerView(
 		&recent_entries_view
 	});
 	
-	baseband::set_spectrum(SCAN_SLICE_WIDTH, 32);
+	baseband::set_spectrum(SCAN_SLICE_WIDTH, 31);
 	
 	recent_entries_view.set_parent_rect({ 0, 28 * 8, 240, 12 * 8 });
 	recent_entries_view.on_select = [this, &nav](const ScannerRecentEntry& entry) {

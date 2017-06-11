@@ -23,8 +23,6 @@
 
 #include "event_m4.hpp"
 
-#include "dsp_fft.hpp"
-
 #include <cstdint>
 #include <cstddef>
 

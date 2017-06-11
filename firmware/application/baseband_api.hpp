@@ -48,7 +48,7 @@ struct NBFMConfig {
 	const fir_taps_real<32> channel;
 	const size_t deviation;
 
-	void apply() const;
+	void apply(const uint8_t squelch_level) const;
 };
 
 struct WFMConfig {

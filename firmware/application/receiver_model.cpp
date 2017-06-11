@@ -153,6 +153,15 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
 	update_headphone_volume();
 }
 
+uint8_t ReceiverModel::squelch_level() const {
+	return squelch_level_;
+}
+
+void ReceiverModel::set_squelch_level(uint8_t v) {
+	squelch_level_ = v;
+	update_modulation();
+}
+
 void ReceiverModel::enable() {
 	enabled_ = true;
 	radio::set_direction(rf::Direction::Receive);
@@ -286,7 +295,7 @@ size_t ReceiverModel::nbfm_configuration() const {
 }
 
 void ReceiverModel::update_nbfm_configuration() {
-	nbfm_configs[nbfm_config_index].apply();
+	nbfm_configs[nbfm_config_index].apply(squelch_level_);
 }
 
 size_t ReceiverModel::wfm_configuration() const {
