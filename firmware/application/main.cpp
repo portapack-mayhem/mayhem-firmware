@@ -23,7 +23,6 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//BUG: SCANNER Mirroring in proc_wideband...
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 //BUG: REPLAY freezes when SD card not present

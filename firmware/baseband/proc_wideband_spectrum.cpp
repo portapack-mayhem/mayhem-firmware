@@ -74,6 +74,7 @@ void WidebandSpectrum::on_message(const Message* const msg) {
 		baseband_fs = message.sampling_rate;
 		trigger = message.trigger;
 		baseband_thread.set_sampling_rate(baseband_fs);
+		phase = 0;
 		configured = true;
 		break;
 

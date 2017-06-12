@@ -31,7 +31,7 @@
 namespace ui {
 
 #define SCAN_SLICE_WIDTH	2500000				// Scan slice bandwidth
-#define SCAN_BIN_NB			256					// FFT power bins (skip 4 at center, 2*6 on sides)
+#define SCAN_BIN_NB			256					// FFT power bins
 #define SCAN_BIN_NB_NO_DC	(SCAN_BIN_NB - 16)	// Bins after trimming
 #define SCAN_BIN_WIDTH		(SCAN_SLICE_WIDTH / SCAN_BIN_NB)
 
@@ -126,6 +126,7 @@ private:
 	uint8_t slices_nb { 0 };
 	uint8_t slice_counter { 0 };
 	int16_t last_bin { 0 };
+	uint32_t last_slice { 0 };
 	Coord last_tick_pos { 0 };
 	rf::Frequency scan_span { 0 }, resolved_frequency { 0 };
 	uint16_t locked_bin { 0 };

@@ -60,7 +60,7 @@ ScannerView::~ScannerView() {
 void ScannerView::do_detection() {
 	uint8_t power_max = 0;
 	int32_t bin_max = -1;
-	uint32_t bin_max_pixel = 0;
+	uint32_t slice_max = 0;
 	uint32_t snap_value;
 	uint8_t power;
 	rtc::RTC datetime;
@@ -87,20 +87,20 @@ void ScannerView::do_detection() {
 		
 		if ((power >= mean_power + power_threshold) && (power > power_max)) {
 			power_max = power;
-			bin_max = slices[slice].max_index + (slice * SCAN_BIN_NB);
-			bin_max_pixel = bin_max / slices_nb;
+			bin_max = slices[slice].max_index;
+			slice_max = slice;
 		}
 	}
 	
 	// Lock / release
-	if ((bin_max >= last_bin - 2) && (bin_max <= last_bin + 2) && (bin_max > -1)) {
+	if ((bin_max >= last_bin - 2) && (bin_max <= last_bin + 2) && (bin_max > -1) && (slice_max == last_slice)) {
 		
 		// Staying around the same bin
 		if (detect_timer >= DETECT_DELAY) {
 			if ((bin_max != locked_bin) || (!locked)) {
 				
 				if (!locked) {
-					resolved_frequency = slices[slice_counter].center_frequency + (SCAN_BIN_WIDTH * (bin_max - 120));
+					resolved_frequency = slices[slice_max].center_frequency + (SCAN_BIN_WIDTH * (bin_max - 128));
 					
 					if (check_snap.value()) {
 						snap_value = options_snap.selected_index_value();
@@ -138,7 +138,8 @@ void ScannerView::do_detection() {
 						else if (options_goto.selected_index() == 2)
 							nav_.push<POCSAGAppView>();
 						*/
-					}
+					} else
+						text_infos.set("Out of range");
 				}
 				
 				big_display.set(resolved_frequency);
@@ -162,22 +163,19 @@ void ScannerView::do_detection() {
 	}
 	
 	last_bin = bin_max;
+	last_slice = slice_max;
 	scan_counter++;
 	
 	// Refresh red tick
 	portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::black());
 	if (bin_max > -1) {
-		//if (bin_max_pixel < 120)
-		//	bin_max_pixel += 2;
-		//else
-		//	bin_max_pixel -= 0;
-		last_tick_pos = (Coord)bin_max_pixel;
+		last_tick_pos = (Coord)(bin_max / slices_nb);
 		portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::red());
 	}
 }
 
 void ScannerView::add_spectrum_pixel(Color color) {
-	// Is avoiding floats really needed ?
+	// Is avoiding floats really necessary ?
 	bin_skip_acc += bin_skip_frac;
 	if (bin_skip_acc < 0x10000) 
 		return;
@@ -196,26 +194,26 @@ void ScannerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	
 	baseband::spectrum_streaming_stop();
 	
-	// Add pixels to spectrum row, and find max power for this slice
+	// Add pixels to spectrum display and find max power for this slice
+	// Center 12 bins are ignored (DC spike is blanked)
 	// Leftmost and rightmost 2 bins are ignored
-	// Center 12 bins are ignored
-	// 256-2-2-12 = 240 bins used
-	for (bin = 0; bin < 120; bin++) {
-		add_spectrum_pixel(spectrum_rgb3_lut[spectrum.db[134 + bin]]);	// 134~253 goes in 0~119
-		power = spectrum.db[134 + bin];
-		mean_acc += power;
-		if (power > max_power) {
-			max_power = power;
-			max_bin = bin - 2;	// To check
+	for (bin = 0; bin < 256; bin++) {
+
+		if ((bin < 2) || (bin > 253) || ((bin >= 122) && (bin < 134))) {
+			power = 0;
+		} else {
+			if (bin < 128)
+				power = spectrum.db[128 + bin];
+			else
+				power = spectrum.db[bin - 128];
 		}
-	}
-	for (bin = 120; bin < 240; bin++) {
-		add_spectrum_pixel(spectrum_rgb3_lut[spectrum.db[bin - 118]]);	// 2~121 goes in 120~239
-		power = spectrum.db[bin - 118];
+		
+		add_spectrum_pixel(spectrum_rgb3_lut[power]);
+		
 		mean_acc += power;
 		if (power > max_power) {
 			max_power = power;
-			max_bin = bin + 2;	// To check
+			max_bin = bin;
 		}
 	}
 	
@@ -224,12 +222,13 @@ void ScannerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	
 	if (slices_nb > 1) {
 		// Slice sequence
-		slice_counter++;
 		if (slice_counter >= slices_nb) {
 			do_detection();
 			slice_counter = 0;
-		}
+		} else
+			slice_counter++;
 		receiver_model.set_tuning_frequency(slices[slice_counter].center_frequency);
+		baseband::set_spectrum(SCAN_SLICE_WIDTH, 31);	// Clear
 	} else {
 		// Unique slice
 		do_detection();
@@ -263,7 +262,7 @@ void ScannerView::on_range_changed() {
 			text_slices.set("!!");
 			slices_nb = 32;
 		} else {
-			text_slices.set(to_string_dec_uint(slices_nb));
+			text_slices.set(to_string_dec_uint(slices_nb, 2, ' '));
 		}
 		// slices_span = 6 * 2.5M = 15M
 		slices_span = slices_nb * SCAN_SLICE_WIDTH;
@@ -284,7 +283,7 @@ void ScannerView::on_range_changed() {
 		text_slices.set(" 1");
 	}
 	
-	bin_skip_frac = 0x10000 / slices_nb;
+	bin_skip_frac = 0xF000 / slices_nb;
 
 	slice_counter = 0;
 }
