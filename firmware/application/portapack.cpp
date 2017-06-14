@@ -148,7 +148,20 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 		;
 }
 
-void init() {
+static void shutdown_base() {
+	clock_manager.shutdown();
+
+	power.shutdown();
+	// TODO: Wait a bit for supplies to discharge?
+
+	chSysDisable();
+
+	systick_stop();
+
+	hackrf::one::reset();
+}
+
+bool init() {
 	for(const auto& pin : pins) {
 		pin.init();
 	}
@@ -190,7 +203,8 @@ void init() {
 	clock_manager.run_at_full_speed();
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		chSysHalt();
+		shutdown_base();
+		return false;
 	}
 
 	if( !hackrf::cpld::load_sram() ) {
@@ -210,6 +224,8 @@ void init() {
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
+
+	return true;
 }
 
 void shutdown() {
@@ -222,16 +238,7 @@ void shutdown() {
 
 	hackrf::cpld::init_from_eeprom();
 
-	clock_manager.shutdown();
-
-	power.shutdown();
-	// TODO: Wait a bit for supplies to discharge?
-
-	chSysDisable();
-
-	systick_stop();
-
-	hackrf::one::reset();
+	shutdown_base();
 }
 
 extern "C" {

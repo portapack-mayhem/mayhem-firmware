@@ -68,22 +68,23 @@ static void event_loop() {
 }
 
 int main(void) {
-	portapack::init();
+	if( portapack::init() ) {
+		portapack::display.init();
 
-	portapack::display.init();
+		sdcStart(&SDCD1, nullptr);
 
-	sdcStart(&SDCD1, nullptr);
+		controls_init();
+		lcd_frame_sync_configure();
+		rtc_interrupt_enable();
 
-	controls_init();
-	lcd_frame_sync_configure();
-	rtc_interrupt_enable();
+		event_loop();
 
-	event_loop();
+		sdcDisconnect(&SDCD1);
+		sdcStop(&SDCD1);
 
-	sdcDisconnect(&SDCD1);
-	sdcStop(&SDCD1);
+		portapack::shutdown();
+	}
 
-	portapack::shutdown();
 	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf);
 	m0_halt();
 

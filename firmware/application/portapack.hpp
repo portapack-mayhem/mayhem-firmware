@@ -49,7 +49,7 @@ extern ReceiverModel receiver_model;
 
 extern TemperatureLogger temperature_logger;
 
-void init();
+bool init();
 void shutdown();
 
 } /* namespace portapack */
