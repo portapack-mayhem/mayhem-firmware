@@ -43,7 +43,7 @@ OUTPUT_DIR=output_files
 all: smart.log $(OUTPUT_DIR)/$(PROJECT).asm.rpt $(OUTPUT_DIR)/$(PROJECT).sta.rpt
 
 clean:
-	rm -rf *.chg smart.log db/ incremental_db/ $(OUTPUT_DIR)/
+	rm -rf *.chg *.qws smart.log db/ incremental_db/ $(OUTPUT_DIR)/
 
 map: smart.log $(OUTPUT_DIR)/$(PROJECT).map.rpt
 
