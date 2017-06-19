@@ -4,7 +4,7 @@ software-defined radio (SDR).
 Schematic
 =========
 
-The schematic was drawn using KiCad.
+The schematic was drawn using KiCad 4.0.6.
 
 Schematic symbols are cached in the design files, but are also
 available in a separate repository:
@@ -35,7 +35,7 @@ the JTAG pins from the HackRF One's microcontroller.
 License
 =======
 
-Copyright (C) 2013, 2014, 2015 Jared Boone, ShareBrained Technology, Inc.
+Copyright (C) 2013-2017 Jared Boone, ShareBrained Technology, Inc.
 
 These files are part of PortaPack.
 
