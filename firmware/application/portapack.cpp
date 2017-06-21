@@ -21,6 +21,8 @@
 
 #include "portapack.hpp"
 #include "portapack_hal.hpp"
+#include "portapack_dma.hpp"
+#include "portapack_cpld_data.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
@@ -32,7 +34,15 @@ using namespace hackrf::one;
 #include "touch_adc.hpp"
 #include "audio.hpp"
 
+#include "wm8731.hpp"
+using wolfson::wm8731::WM8731;
+
+#include "ak4951.hpp"
+using asahi_kasei::ak4951::AK4951;
+
 #include "cpld_update.hpp"
+
+#include "optional.hpp"
 
 namespace portapack {
 
@@ -59,6 +69,9 @@ si5351::Si5351 clock_generator {
 ClockManager clock_manager {
 	i2c0, clock_generator
 };
+
+WM8731 audio_codec_wm8731 { i2c0, 0x1a };
+AK4951 audio_codec_ak4951 { i2c0, 0x12 };
 
 ReceiverModel receiver_model;
 
@@ -106,7 +119,53 @@ private:
 
 static Power power;
 
-void init() {
+enum class PortaPackModel {
+	R1_20150901,
+	R2_20170522,
+};
+
+static PortaPackModel portapack_model() {
+	static Optional<PortaPackModel> model;
+
+	if( !model.is_valid() ) {
+		if( audio_codec_wm8731.detected() ) {
+			model = PortaPackModel::R1_20150901;
+		} else {
+			model = PortaPackModel::R2_20170522;
+		}
+	}
+
+	return model.value();
+}
+
+static audio::Codec* portapack_audio_codec() {
+	return (portapack_model() == PortaPackModel::R2_20170522)
+		? static_cast<audio::Codec*>(&audio_codec_ak4951)
+		: static_cast<audio::Codec*>(&audio_codec_wm8731)
+		;
+}
+
+static const portapack::cpld::Config& portapack_cpld_config() {
+	return (portapack_model() == PortaPackModel::R2_20170522)
+		? portapack::cpld::rev_20170522::config
+		: portapack::cpld::rev_20150901::config
+		;
+}
+
+static void shutdown_base() {
+	clock_manager.shutdown();
+
+	power.shutdown();
+	// TODO: Wait a bit for supplies to discharge?
+
+	chSysDisable();
+
+	systick_stop();
+
+	hackrf::one::reset();
+}
+
+bool init() {
 	for(const auto& pin : pins) {
 		pin.init();
 	}
@@ -147,7 +206,18 @@ void init() {
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 
-	audio::init();
+	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+		shutdown_base();
+		return false;
+	}
+
+	if( !hackrf::cpld::load_sram() ) {
+		chSysHalt();
+	}
+
+	portapack::io.init();
+
+	audio::init(portapack_audio_codec());
 	
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
@@ -156,33 +226,23 @@ void init() {
 
 	touch::adc::init();
 
-	if( !cpld_update_if_necessary() ) {
-		chSysHalt();
-	}
+	LPC_CREG->DMAMUX = portapack::gpdma_mux;
+	gpdma::controller.enable();
 
-	if( !cpld_hackrf_load_sram() ) {
-		chSysHalt();
-	}
+	return true;
 }
 
 void shutdown() {
+	gpdma::controller.disable();
+
 	display.shutdown();
 	
 	radio::disable();
 	audio::shutdown();
 
-	cpld_hackrf_init_from_eeprom();
+	hackrf::cpld::init_from_eeprom();
 
-	clock_manager.shutdown();
-
-	power.shutdown();
-	// TODO: Wait a bit for supplies to discharge?
-
-	chSysDisable();
-
-	systick_stop();
-
-	hackrf::one::reset();
+	shutdown_base();
 }
 
 extern "C" {

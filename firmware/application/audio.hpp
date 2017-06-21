@@ -26,8 +26,33 @@
 #include "volume.hpp"
 
 #include <cstdint>
+#include <cstddef>
+
+#include <string>
 
 namespace audio {
+
+class Codec {
+public:
+	virtual ~Codec() { }
+
+	virtual std::string name() const = 0;
+
+	virtual bool reset() = 0;
+	virtual void init() = 0;
+
+	virtual void headphone_enable() = 0;
+	virtual void headphone_disable() = 0;
+	virtual volume_range_t headphone_gain_range() const = 0;
+	virtual void set_headphone_volume(const volume_t volume) = 0;
+
+	virtual void microphone_enable() = 0;
+	virtual void microphone_disable() = 0;
+
+	virtual size_t reg_count() const = 0;
+	virtual size_t reg_bits() const = 0;
+	virtual uint32_t reg_read(const size_t register_number) = 0;
+};
 
 namespace output {
 
@@ -56,12 +81,14 @@ void set_volume(const volume_t volume);
 
 namespace debug {
 
-int reg_count();
-uint16_t reg_read(const int register_number);
+size_t reg_count();
+uint32_t reg_read(const size_t register_number);
+std::string codec_name();
+size_t reg_bits();
 
 } /* namespace debug */
 
-void init();
+void init(audio::Codec* const codec);
 void shutdown();
 
 enum class Rate {

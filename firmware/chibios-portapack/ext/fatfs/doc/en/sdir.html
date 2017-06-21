@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>DIR</h2>
-<p>The <tt>DIR</tt> structure is used for the work area to read a directory by <tt>f_oepndir</tt>, <tt>f_readdir</tt>, <tt>f_findfirst</tt> and <tt>f_findnext</tt> function. Application program must not modify any member in this structure, or any data on the FAT volume can be collapsed.</p>
+<p>The <tt>DIR</tt> structure is used for the work area to read a directory by <tt>f_oepndir</tt>, <tt>f_readdir</tt>, <tt>f_findfirst</tt> and <tt>f_findnext</tt> function. Application program must not modify any member in this structure, or any file on the volume can be collapsed.</p>
 <pre>
 <span class="k">typedef</span> <span class="k">struct</span> {
     _FDID   obj;        <span class="c">/* Owner file sytem object and object identifier */</span>

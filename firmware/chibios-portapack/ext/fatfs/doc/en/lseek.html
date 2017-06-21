@@ -29,7 +29,7 @@ FRESULT f_lseek (
 <dt>fp</dt>
 <dd>Pointer to the open file object.</dd>
 <dt>ofs</dt>
-<dd>Byte offset from top of the file. The data type <tt>FSIZE_t</tt> is an alias of either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>.</dd>
+<dd>Byte offset from top of the file to set read/write pointer. The data type <tt>FSIZE_t</tt> is an alias of either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>.</dd>
 </dl>
 </div>
 
@@ -48,7 +48,8 @@ FRESULT f_lseek (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The <tt>f_lseek</tt> function moves the file read/write pointer of an open file. The offset can be specified in only origin from top of the file. When an offset beyond the file size is specified at write mode, the file size is expanded to the specified offset. The file data in the expanded area is <em>undefined</em> because no data is written to the file in this process. This is suitable to pre-allocate a cluster chain quickly, for fast write operation. When a contiguous data area needs to be allocated to the file, use <tt>f_expand</tt> function instead. After the <tt>f_lseek</tt> function succeeded, the current read/write pointer should be checked in order to make sure the read/write pointer has been moved correctry. In case of the read/write pointer is not the expected value, either of followings has been occured.</p>
+<p>File read/write ponter in the open file object points the data byte to be read/written at next read/write operation. It advances as the number of bytes read/written. The <tt>f_lseek</tt> function moves the file read/write pointer without any read/write operation to the file.</p>
+<p>When an offset beyond the file size is specified at write mode, the file size is expanded to the specified offset. The file data in the expanded area is <em>undefined</em> because no data is written to the file in this process. This is suitable to pre-allocate a data area to the file quickly for fast write operation. When a contiguous data area needs to be allocated to the file, use <tt>f_expand</tt> function instead. After the <tt>f_lseek</tt> function succeeded, the current read/write pointer should be checked in order to make sure the read/write pointer has been moved correctry. In case of the read/write pointer is not the expected value, either of followings has been occured.</p>
 <ul>
 <li>End of file. The specified <tt class="arg">ofs</tt> was clipped at end of the file because the file has been opened in read-only mode.</li>
 <li>Disk full. There is no free space on the volume to expand the file.</li>

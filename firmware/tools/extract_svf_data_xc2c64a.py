@@ -36,7 +36,7 @@ def crack_variable_path(variable_path):
 parser = argparse.ArgumentParser()
 parser.add_argument('input_file_path', type=str)
 parser.add_argument('variable_path', type=str)
-parser.add_argument('header_file_path', type=str)
+# parser.add_argument('header_file_path', type=str)
 parser.add_argument('data_file_path', type=str)
 args = parser.parse_args()
 
@@ -330,13 +330,14 @@ for block in verify:
 	if block['id'] == 0x05:
 		block['tdo'] = program_done[0]['tdi']
 
-header_file_name = os.path.split(args.header_file_path)[1]
+# header_file_name = os.path.split(args.header_file_path)[1]
+header_file_name = 'hackrf_cpld_data.hpp'
 
-header_includes = ('cpld_xilinx.hpp',)
+# header_includes = ('cpld_xilinx.hpp',)
 data_includes = (header_file_name,)
 
 type_name = '::cpld::xilinx::XC2C64A::verify_blocks_t'
 
-HeaderGen(header_includes, namespaces, type_name, variable_name).to_file(args.header_file_path)
+# HeaderGen(header_includes, namespaces, type_name, variable_name).to_file(args.header_file_path)
 DataGen(data_includes, namespaces, type_name, variable_name, verify).to_file(args.data_file_path)
 

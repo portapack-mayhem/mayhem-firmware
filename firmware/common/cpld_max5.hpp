@@ -33,6 +33,11 @@
 namespace cpld {
 namespace max5 {
 
+struct Config {
+	const std::array<uint16_t, 3328>& block_0;
+	const std::array<uint16_t,  512>& block_1;
+};
+
 class CPLD {
 public:
 	constexpr CPLD(

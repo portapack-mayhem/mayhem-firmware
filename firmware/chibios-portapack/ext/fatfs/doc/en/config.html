@@ -45,16 +45,16 @@
 <p>Disable (0) or Enable (1) <tt>f_mkfs</tt> function.</p>
 
 <h4 id="use_fastseek">_USE_FASTSEEK</h4>
-<p>Disable (0) or Enable (1) fast seek function to enable accelerated mode of <tt>f_lseek</tt>, <tt>f_read</tt> and <tt>f_write</tt> function. For more information, read <a href="lseek.html">here</a>.</p>
+<p>Disable (0) or Enable (1) fast seek function to enable accelerated mode for <tt>f_lseek</tt>, <tt>f_read</tt> and <tt>f_write</tt> function. For more information, read <a href="lseek.html">here</a>.</p>
 
 <h4 id="use_expand">_USE_EXPAND</h4>
 <p>Disable (0) or Enable (1) , <tt>f_enpand</tt> function. Also <tt>_FS_READONLY</tt> needs to be 0.</p>
 
 <h4 id="use_chmod">_USE_CHMOD</h4>
-<p>Disable (0) or Enable (1) metadata manipulation functions, <tt>f_chmod</tt> and <tt>f_utime</tt>. Also <tt>_FS_READONLY</tt> needs to be 0.</p>
+<p>Disable (0) or Enable (1) metadata control functions, <tt>f_chmod</tt> and <tt>f_utime</tt>. Also <tt>_FS_READONLY</tt> needs to be 0.</p>
 
 <h4 id="use_label">_USE_LABEL</h4>
-<p>Disable (0) or Enable (1) volume label functions, <tt>f_getlabel</tt> and <tt>f_setlabel</tt>.</p>
+<p>Disable (0) or Enable (1) API functions for volume label, <tt>f_getlabel</tt> and <tt>f_setlabel</tt>.</p>
 
 <h4 id="use_forward">_USE_FORWARD</h4>
 <p>Disable (0) or Enable (1) <tt>f_forward</tt> function.</p>
@@ -147,7 +147,7 @@
 <p>Disable (0) or Enable (1). This option switches multi-partition function. By default (0), each logical drive number is bound to the same physical drive number and only an FAT volume in the physical drive is mounted. When enabled, each logical drive is bound to the partition on the physical drive listed in the user defined partition resolution table <tt>VolToPart[]</tt>. Also <tt>f_fdisk</tt> funciton will be available. For more information, read <a href="filename.html#vol">here</a>.</p>
 
 <h4 id="max_ss">_MIN_SS, _MAX_SS</h4>
-<p>This set of options defines the size of sector on low level disk I/O interface, <tt>disk_read</tt> and <tt>disk_write</tt> function. Valid values are 512, 1024, 2048 and 4096. <tt>_MIN_SS</tt> defines minimum sector size and <tt>_MAX_SS</tt> defines the maximum sector size. Always set both 512 for any type of memory card and harddisk. But a larger value may be required for on-board flash memory and some type of optical media. When <tt>_MAX_SS &gt; _MIN_SS</tt>, FatFs is configured to variable sector size and <tt>GET_SECTOR_SIZE</tt> command must be implemented to the <tt>disk_ioctl</tt> function.</p>
+<p>This set of options defines the size of sector on low level disk I/O interface, <tt>disk_read</tt> and <tt>disk_write</tt> function. Valid values are 512, 1024, 2048 and 4096. <tt>_MIN_SS</tt> defines minimum sector size and <tt>_MAX_SS</tt> defines the maximum sector size. Always set both 512 for memory card and harddisk. But a larger value may be required for on-board flash memory and some type of optical media. When <tt>_MAX_SS &gt; _MIN_SS</tt>, support of variable sector size is enabled and <tt>GET_SECTOR_SIZE</tt> command needs to be implemented to the <tt>disk_ioctl</tt> function.</p>
 
 <h4 id="use_trim">_USE_TRIM</h4>
 <p>Disable (0) or Enable (1). This option switches ATA-TRIM function. To enable Trim function, also <tt>CTRL_TRIM</tt> command should be implemented to the <tt>disk_ioctl</tt> function.</p>
@@ -175,7 +175,7 @@
 <p>This option switches support for the exFAT file system in addition to the FAT file system, Enabled(1) or Disabled(1). To enable this feature, also LFN must be enabled and configureing <tt>_LFN_UNICODE = 1</tt> and <tt>_MAX_LFN = 255</tt> is recommended for full-featured exFAT function. Note that enabling exFAT discards C89 compatibility because of need for 64-bit integer type.</p>
 
 <h4 id="fs_nortc">_FS_NORTC</h4>
-<p>Use RTC (0) or Do not use RTC (1). This option controls timestamp function. If the system does not have an RTC function or valid timestamp is not needed, set <tt>_FS_NORTC</tt> to 1 to disable the timestamp function. Any object modified by FatFs will have a fixed timestamp value defined by <tt>_NORTC_MON</tt>, <tt>_NORTC_MDAY</tt> and <tt>_NORTC_YEAR</tt>. To use the timestamp function, set <tt>_FS_NORTC = 0</tt> and add <tt>get_fattime</tt> function to the project to get the current time form real-time clock. This option has no effect at read-only configuration.</p>
+<p>Use RTC (0) or Do not use RTC (1). This option controls timestamp function. If the system does not have an RTC function or valid timestamp is not needed, set <tt>_FS_NORTC</tt> to 1 to disable the timestamp function. Any object modified by FatFs will have a fixed timestamp defined by <tt>_NORTC_MON</tt>, <tt>_NORTC_MDAY</tt> and <tt>_NORTC_YEAR</tt>. To use the timestamp function, set <tt>_FS_NORTC = 0</tt> and add <tt>get_fattime</tt> function to the project to get the current time form real-time clock. This option has no effect at read-only configuration.</p>
 
 <h4 id="nortc_time">_NORTC_MON, _NORTC_MDAY, _NORTC_YEAR</h4>
 <p>This set of options defines the time to be used at no RTC systems. This option has no effect at read-only configuration or <tt>_FS_NORTC = 0</tt>.</p>
@@ -184,12 +184,12 @@
 <p>This option switches file lock function to control duplicated file open and illegal operations to open objects. Note that the file lock function is independent of re-entrancy. This option must be 0 at read-only configuration.</p>
 <table class="lst1">
 <tr><th>Value</th><th>Description</th></tr>
-<tr><td>0</td><td>Disable file lock function. To avoid volume corruption, application program should avoid illegal open, remove and rename to the open objects.</td></tr>
-<tr><td>&gt;0</td><td>Enable file lock function. The value defines how many files/sub-directories can be opened simultaneously under file lock control. Illigal operations to the open object will be rejected with <tt>FR_LOCKED</tt>.</td></tr>
+<tr><td>0</td><td>Disable file lock function. To avoid collapsing file by wrong file operation, application program needs to avoid illegal open, remove and rename to the open objects.</td></tr>
+<tr><td>&gt;0</td><td>Enable file lock function. The value defines how many files/sub-directories can be opened simultaneously under the file lock control. Illigal operations to the open object will be rejected with <tt>FR_LOCKED</tt>.</td></tr>
 </table>
 
 <h4 id="fs_reentrant">_FS_REENTRANT</h4>
-<p>Disable (0) or Enable (1). This option switches the re-entrancy (thread safe) of the FatFs module itself. Note that file/directory access to the different volume is always re-entrant and it can work simultaneously regardless of this option but volume control functions, <tt>f_mount</tt>, <tt>f_mkfs</tt> and <tt>f_fdisk</tt>, are always not re-entrant. Only file/directory access to the same volume, in other words, exclusive use of each file system object, is under control of this function. To enable this feature, also user provided synchronization handlers, <tt>ff_req_grant</tt>, <tt>ff_rel_grant</tt>, <tt>ff_del_syncobj</tt> and <tt>ff_cre_syncobj</tt>, need to be added to the project. Sample code is available in <tt>option/syscall.c</tt>.</p>
+<p>Disable (0) or Enable (1). This option switches the re-entrancy (thread safe) of the FatFs module itself. Note that file/directory access to the different volume is always re-entrant and it can work simultaneously regardless of this option but volume control functions. <tt>f_mount</tt>, <tt>f_mkfs</tt> and <tt>f_fdisk</tt>, are always not re-entrant. Only file/directory access to the same volume, in other words, exclusive use of each file system object, is under control of this function. To enable this feature, also user provided synchronization handlers, <tt>ff_req_grant</tt>, <tt>ff_rel_grant</tt>, <tt>ff_del_syncobj</tt> and <tt>ff_cre_syncobj</tt>, need to be added to the project. Sample code is available in <tt>option/syscall.c</tt>.</p>
 
 <h4 id="fs_timeout">_FS_TIMEOUT</h4>
 <p>Number of time ticks to abort the file function with <tt>FR_TIMEOUT</tt> when wait time is too long. This option has no effect when <tt>_FS_REENTRANT = 0</tt>.</p>

@@ -136,7 +136,7 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 		generate_frame();
 	};
 	button_callsign.on_select = [this, &nav](Button&) {
-		text_entry(nav, &callsign, 9);
+		text_prompt(nav, &callsign, 9);
 	};
 	
 	field_altitude.set_value(11000);

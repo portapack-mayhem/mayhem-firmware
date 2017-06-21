@@ -41,7 +41,7 @@ DSTATUS disk_status (
 
 		return stat;
 
-	case DEB_USB :
+	case DEV_USB :
 		result = USB_disk_status();
 
 		// translate the reslut code here

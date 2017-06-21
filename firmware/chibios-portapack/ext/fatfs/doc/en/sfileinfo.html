@@ -13,7 +13,7 @@
 
 <div class="para">
 <h2>FILINFO</h2>
-<p>The <tt>FILINFO</tt> structure holds information about the object returned by <tt>f_readdir</tt>, <tt>f_findfirst</tt>, <tt>f_findnext</tt> and <tt>f_stat</tt> function.</p>
+<p>The <tt>FILINFO</tt> structure holds information about the object returned by <tt>f_readdir</tt>, <tt>f_findfirst</tt>, <tt>f_findnext</tt> and <tt>f_stat</tt> function. Be careful in the size of structure when LFN is enabled.</p>
 <pre>
 <span class="k">typedef struct</span> {
     FSIZE_t fsize;               <span class="c">/* File size */</span>
@@ -33,7 +33,7 @@
 <h4>Members</h4>
 <dl>
 <dt>fsize</dt>
-<dd>Indicates size of the file in unit of byte. Always zero for directories. <tt>FSIZE_t</tt> is an alias of integer type either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>.</dd>
+<dd>Indicates size of the file in unit of byte. <tt>FSIZE_t</tt> is an alias of integer type either <tt>DWORD</tt>(32-bit) or <tt>QWORD</tt>(64-bit) depends on the configuration option <tt>_FS_EXFAT</tt>. Do not care when the item is a directory.</dd>
 <dt>fdate</dt>
 <dd>Indicates the date when the file was modified or the directory was created.<br>
 <dl>

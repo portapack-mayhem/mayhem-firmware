@@ -56,6 +56,12 @@ constexpr GPIO gpio_cpld_tdo = gpio[GPIO1_8];	// P1_5
 constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];	// P6_1
 constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];	// P6_2
 
+constexpr auto pin_i2s0_mclk   = pins[CLK2];
+constexpr auto pin_i2s0_sck    = pins[P3_0];
+constexpr auto pin_i2s0_ws     = pins[P3_1];
+constexpr auto pin_i2s0_tx_sda = pins[P3_2];
+constexpr auto pin_i2s0_rx_sda = pins[P6_2];
+
 } /* namespace portapack */
 
 #endif/*__PORTAPACK_HAL_H__*/

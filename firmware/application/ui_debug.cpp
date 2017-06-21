@@ -173,12 +173,12 @@ void RegistersWidget::paint(Painter& painter) {
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
 	const auto pos = screen_pos();
 
-	for(int i=0; i<config.registers_count; i+=config.registers_per_row) {
+	for(int i=0; i<config.registers_count; i+=config.registers_per_row()) {
 		const Point offset {
-			left, (i / config.registers_per_row) * row_height
+			left, (i / config.registers_per_row()) * row_height
 		};
 
-		const auto text = to_string_hex(i, config.legend_length);
+		const auto text = to_string_hex(i, config.legend_length());
 		painter.draw_string(
 			pos + offset,
 			style().invert(),
@@ -195,13 +195,13 @@ void RegistersWidget::draw_values(
 
 	for(int i=0; i<config.registers_count; i++) {
 		const Point offset = {
-			left + config.legend_width() + 8 + (i % config.registers_per_row) * (config.value_width() + 8),
-			(i / config.registers_per_row) * row_height
+			left + config.legend_width() + 8 + (i % config.registers_per_row()) * (config.value_width() + 8),
+			(i / config.registers_per_row()) * row_height
 		};
 
 		const auto value = reader(i);
 
-		const auto text = to_string_hex(value, config.value_length);
+		const auto text = to_string_hex(value, config.value_length());
 		painter.draw_string(
 			pos + offset,
 			style(),
@@ -247,37 +247,37 @@ void RegistersView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
-	add_items<4>({ {
-		{ "RFFC5072", ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
-			"RFFC5072", RegistersWidgetConfig { 31, 2, 4, 4 },
+	add_items({
+		{ "RFFC5072",    ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+			"RFFC5072", RegistersWidgetConfig { 31, 16 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837", ui::Color::white(),    nullptr,	[&nav](){ nav.push<RegistersView>(
-			"MAX2837", RegistersWidgetConfig { 32, 2, 3, 4 },
+		{ "MAX2837",     ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+			"MAX2837", RegistersWidgetConfig { 32, 10 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C", ui::Color::white(),    nullptr,	[&nav](){ nav.push<RegistersView>(
-			"Si5351C", RegistersWidgetConfig { 96, 2, 2, 8 },
+		{ "Si5351C",     ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+			"Si5351C", RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ "WM8731",ui::Color::white(),      nullptr,	[&nav](){ nav.push<RegistersView>(
-			"WM8731", RegistersWidgetConfig { audio::debug::reg_count(), 1, 3, 4 },
+		{ audio::debug::codec_name(), ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+			audio::debug::codec_name(), RegistersWidgetConfig { audio::debug::reg_count(), audio::debug::reg_bits() },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
-	add_items<4>({ {
+	add_items({
 		{ "Memory", 		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		//{ "SD Card",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<SDCardDebugView>(); } },
 		{ "Peripherals",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
 		{ "Temperature",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<TemperatureView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 

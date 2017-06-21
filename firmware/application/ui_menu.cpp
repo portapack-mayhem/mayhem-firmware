@@ -138,9 +138,15 @@ void MenuView::clear() {
 	}
 }
 
-void MenuView::add_item(const MenuItem item) {
+void MenuView::add_item(MenuItem item) {
 	add_child(new MenuItemView { item, keep_highlight_ });
 	update_items();
+}
+
+void MenuView::add_items(std::initializer_list<MenuItem> items) {
+	for(auto item : items) {
+		add_item(item);
+	}
 }
 
 void MenuView::update_items() {

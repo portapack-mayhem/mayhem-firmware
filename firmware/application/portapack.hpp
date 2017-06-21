@@ -53,7 +53,7 @@ extern uint8_t bl_tick_counter;
 
 extern TemperatureLogger temperature_logger;
 
-void init();
+bool init();
 void shutdown();
 
 } /* namespace portapack */

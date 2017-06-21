@@ -55,7 +55,7 @@ FRESULT f_readdir (
 <li>Setting of <tt>_MAX_LFN</tt> is insufficient for the long file name. (Not the case at <tt>_MAX_LFN == 255</tt>)</li>
 <li>The long file name contains any character not allowed in ANSI/OEM code. (Not the case at <tt>_LFN_UNICODE == 1</tt>)</li>
 </ul>
-<p>There is a problem on reading a directory of exFAT volume. The exFAT does not support short file name. This means no name can be returned on the condition above. If it is the case, a "?" is returned as file name to indicate that the object is not accessible. To avoid this problem, configure FatFs <tt>_LFN_UNICODE = 1</tt> and <tt>_MAX_LFN = 255</tt> to support the full feature of LFN specification.</p>
+<p>There is a problem on reading a directory of exFAT volume. The exFAT does not support short file name. This means no name can be returned on the condition above. If it is the case, "?" is returned into the <tt>fname[]</tt> to indicate that the object is not accessible. To avoid this problem, configure FatFs <tt>_LFN_UNICODE = 1</tt> and <tt>_MAX_LFN = 255</tt> to support the full feature of LFN specification.</p>
 </div>
 
 

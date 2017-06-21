@@ -124,7 +124,7 @@ void POCSAGTXView::paint(Painter&) {
 }
 
 void POCSAGTXView::on_set_text(NavigationView& nav) {
-	text_entry(nav, &buffer, 16);
+	text_prompt(nav, &buffer, 16);
 }
 
 POCSAGTXView::POCSAGTXView(

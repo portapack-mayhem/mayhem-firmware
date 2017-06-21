@@ -46,6 +46,7 @@ FRESULT f_forward (
 <a href="rc.html#de">FR_DISK_ERR</a>,
 <a href="rc.html#ie">FR_INT_ERR</a>,
 <a href="rc.html#io">FR_INVALID_OBJECT</a>,
+<a href="rc.html#dn">FR_DENIED</a>,
 <a href="rc.html#tm">FR_TIMEOUT</a>
 </p>
 </div>
@@ -114,7 +115,7 @@ FRESULT play_file (
     <span class="c">/* Repeat until the file pointer reaches end of the file */</span>
     while (rc == FR_OK &amp;&amp; !f_eof(&amp;fil)) {
 
-        <span class="c">/* any other processes... */</span>
+        <span class="c">/* some processes... */</span>
 
         <span class="c">/* Fill output stream periodicaly or on-demand */</span>
         rc = f_forward(&amp;fil, out_stream, 1000, &amp;dmy);

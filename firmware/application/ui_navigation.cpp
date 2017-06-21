@@ -281,7 +281,7 @@ void NavigationView::focus() {
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
-	add_items<9>({ {
+	add_items({
 		{ "ADS-B: Planes", 			ui::Color::grey(),	&bitmap_icon_adsb,	[&nav](){ nav.push<NotImplementedView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
 		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
@@ -291,14 +291,14 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* TransmittersMenuView **************************************************/
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
-	add_items<16>({ {
+	add_items({
 		{ "ADS-B Mode S", 			ui::Color::orange(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "APRS", 					ui::Color::grey(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
@@ -315,20 +315,20 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
 		{ "Whistle", 				ui::Color::green(),		&bitmap_icon_whistle,	[&nav](){ nav.push<WhistleView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
 /* UtilitiesMenuView *****************************************************/
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
-	add_items<5>({ {
+	add_items({
 		{ "Frequency manager", 		ui::Color::green(), &bitmap_icon_freqman,	[&nav](){ nav.push<FreqManView>(); } },
 		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,		[&nav](){ nav.push<CWTXView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),	&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),	nullptr,				[&nav](){ nav.push<WipeSDView>(); } },
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 
@@ -345,7 +345,7 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-	add_items<10>({ {
+	add_items({
 		{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),		&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
 		{ "Transmitters", 			ui::Color::green(),		nullptr,				[&nav](){ nav.push<TransmittersMenuView>(); } },
@@ -357,7 +357,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "Debug", 					ui::Color::white(), nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF mode", 			ui::Color::white(),		&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 					ui::Color::white(),		nullptr,				[&nav](){ nav.push<AboutView>(); } }
-	} });
+	});
 	
 	set_highlighted(1);		// Startup selection is "Receivers"
 }

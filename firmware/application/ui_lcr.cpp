@@ -186,7 +186,7 @@ void LCRView::start_tx(const bool scan) {
 }
 
 void LCRView::on_button_setam(NavigationView& nav, Button& button) {
-	text_entry(nav, &litteral[button.id], 7);
+	text_prompt(nav, &litteral[button.id], 7);
 }
 
 LCRView::LCRView(NavigationView& nav) {
@@ -263,7 +263,7 @@ LCRView::LCRView(NavigationView& nav) {
 	button_scan.set_style(&style_val);
 	
 	button_setrgsb.on_select = [this,&nav](Button&) {
-		text_entry(nav, &rgsb, 4);
+		text_prompt(nav, &rgsb, 4);
 	};
 	
 	button_txsetup.on_select = [&nav](Button&) {

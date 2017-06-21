@@ -22,10 +22,26 @@
 #ifndef __CPLD_UPDATE_H__
 #define __CPLD_UPDATE_H__
 
-bool cpld_update_if_necessary();
+#include "portapack_cpld_data.hpp"
 
-bool cpld_hackrf_load_sram();
-bool cpld_hackrf_verify_eeprom();
-void cpld_hackrf_init_from_eeprom();
+namespace portapack {
+namespace cpld {
+
+bool update_if_necessary(
+	const Config config
+);
+
+} /* namespace cpld */
+} /* namespace portapack */
+
+namespace hackrf {
+namespace cpld {
+
+bool load_sram();
+bool verify_eeprom();
+void init_from_eeprom();
+
+} /* namespace cpld */
+} /* namespace hackrf */
 
 #endif/*__CPLD_UPDATE_H__*/

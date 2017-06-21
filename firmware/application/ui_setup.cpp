@@ -445,7 +445,7 @@ void ModInfoView::focus() {
 }*/
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
-	add_items<6>({ {
+	add_items({
 		{ "UI", 					ui::Color::white(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
 		//{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time",				ui::Color::white(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
@@ -453,7 +453,7 @@ SetupMenuView::SetupMenuView(NavigationView& nav) {
 		{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },		
 		{ "Touch screen",			ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
 		{ "Play dead",				ui::Color::red(), 	&bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
-	} });
+	});
 	on_left = [&nav](){ nav.pop(); };
 }
 

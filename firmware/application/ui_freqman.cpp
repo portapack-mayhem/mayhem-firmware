@@ -25,14 +25,12 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 
-//#include <cstring>
-
 using namespace portapack;
 
 namespace ui {
 
 void FrequencySaveView::on_save_name() {
-	text_entry(nav_, &desc_buffer, 7, [this](std::string * buffer) {
+	text_prompt(nav_, &desc_buffer, 7, [this](std::string * buffer) {
 			database.entries.push_back({ value_, "", *buffer, (int32_t)options_category.selected_index_value() });
 			nav_.pop();
 		});
@@ -209,7 +207,7 @@ void FreqManView::on_edit_freq(rf::Frequency f) {
 }
 
 void FreqManView::on_edit_desc(NavigationView& nav) {
-	text_entry(nav, &desc_buffer, 28, [this](std::string * buffer) {
+	text_prompt(nav, &desc_buffer, 28, [this](std::string * buffer) {
 				database.entries[menu_view.highlighted()].description = *buffer;
 				//setup_list();
 			});

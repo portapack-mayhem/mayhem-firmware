@@ -23,11 +23,9 @@
 #include "audio.hpp"
 
 #include "portapack.hpp"
-using portapack::i2c0;
 using portapack::clock_manager;
 
-#include "wm8731.hpp"
-using wolfson::wm8731::WM8731;
+#include "portapack_hal.hpp"
 
 #include "i2s.hpp"
 using namespace lpc43xx;
@@ -98,23 +96,9 @@ constexpr i2s::ConfigDMA i2s0_config_dma {
 	},
 };
 
-constexpr uint8_t wm8731_i2c_address = 0x1a;
-
-WM8731 audio_codec { i2c0, wm8731_i2c_address };
+static audio::Codec* audio_codec = nullptr;
 
 } /* namespace */
-
-namespace input {
-
-void start() {
-	i2s::i2s0::rx_start();
-}
-
-void stop() {
-	i2s::i2s0::rx_stop();
-}
-
-} /* namespace input */
 
 namespace output {
 
@@ -130,53 +114,80 @@ void stop() {
 
 void mute() {
 	i2s::i2s0::tx_mute();
-
-	audio_codec.headphone_mute();
+	audio_codec->headphone_disable();
 }
 
 void unmute() {
 	i2s::i2s0::tx_unmute();
+	audio_codec->headphone_enable();
 }
 
 } /* namespace output */
 
+namespace input {
+
+void start() {
+	audio_codec->microphone_enable();
+	i2s::i2s0::rx_start();
+}
+
+void stop() {
+	i2s::i2s0::rx_stop();
+	audio_codec->microphone_disable();
+}
+
+} /* namespace input */
+
 namespace headphone {
 
 volume_range_t volume_range() {
-	return wolfson::wm8731::headphone_gain_range;
+	return audio_codec->headphone_gain_range();
 }
 
 void set_volume(const volume_t volume) {
-	audio_codec.set_headphone_volume(volume);
+	audio_codec->set_headphone_volume(volume);
 }
 
 } /* namespace headphone */
 
 namespace debug {
 
-int reg_count() {
-	return wolfson::wm8731::reg_count;
+size_t reg_count() {
+	return audio_codec->reg_count();
 }
 
-uint16_t reg_read(const int register_number) {
-	return audio_codec.read(register_number);
+uint32_t reg_read(const size_t register_number) {
+	return audio_codec->reg_read(register_number);
+}
+
+std::string codec_name() {
+	return audio_codec->name();
+}
+
+size_t reg_bits() {
+	return audio_codec->reg_bits();
 }
 
 } /* namespace debug */
 
-void init() {
+void init(audio::Codec* const codec) {
+	audio_codec = codec;
+
 	clock_manager.start_audio_pll();
-	audio_codec.init();
+	audio_codec->init();
 
 	i2s::i2s0::configure(
 		i2s0_config_tx,
 		i2s0_config_rx,
 		i2s0_config_dma
 	);
+
+	// Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
+	portapack::pin_i2s0_rx_sda.mode(3);
 }
 
 void shutdown() {
-	audio_codec.reset();
+	audio_codec->reset();
 	output::stop();
 }
 

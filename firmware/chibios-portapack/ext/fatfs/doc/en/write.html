@@ -45,6 +45,7 @@ FRESULT f_write (
 <a href="rc.html#ok">FR_OK</a>,
 <a href="rc.html#de">FR_DISK_ERR</a>,
 <a href="rc.html#ie">FR_INT_ERR</a>,
+<a href="rc.html#dn">FR_DENIED</a>,
 <a href="rc.html#io">FR_INVALID_OBJECT</a>,
 <a href="rc.html#tm">FR_TIMEOUT</a>
 </p>
@@ -53,7 +54,7 @@ FRESULT f_write (
 
 <div class="para desc">
 <h4>Description</h4>
-<p>The function starts to write data to the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes written. After the function succeeded, <tt class="arg">*bw</tt> should be checked to detect the disk full. In case of <tt class="arg">*bw</tt> is less than <tt class="arg">btw</tt>, it means the volume got full during the write operation. The function can take a time when the volume is full or close to full.</p>
+<p>The function starts to write data to the file at the position pointed by the read/write pointer. The read/write pointer advances as number of bytes written. After the function succeeded, <tt class="arg">*bw</tt> should be checked to detect the disk full. In case of <tt class="arg">*bw</tt> &lt; <tt class="arg">btw</tt>, it means the volume got full during the write operation. The function can take a time when the volume is full or close to full.</p>
 </div>
 
 

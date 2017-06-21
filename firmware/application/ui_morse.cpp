@@ -71,7 +71,7 @@ static msg_t ookthread_fn(void * arg) {
 }
 
 void MorseView::on_set_text(NavigationView& nav) {
-	text_entry(nav, &buffer, 28);
+	text_prompt(nav, &buffer, 28);
 }
 
 void MorseView::focus() {

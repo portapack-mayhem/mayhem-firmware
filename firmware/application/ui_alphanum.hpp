@@ -26,16 +26,13 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "ui_textentry.hpp"
 #include "ui_menu.hpp"
-#include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
-class AlphanumView : public View {
+class AlphanumView : public TextEntryView {
 public:
-	std::function<void(std::string*)> on_changed { };
-
 	AlphanumView(NavigationView& nav, std::string * str, size_t max_length);
 	
 	AlphanumView(const AlphanumView&) = delete;
@@ -44,9 +41,6 @@ public:
 	AlphanumView& operator=(AlphanumView&&) = delete;
 
 	void paint(Painter& painter) override;
-	void focus() override;
-	
-	std::string title() const override { return "Text entry"; };
 
 private:
 	const char * const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
@@ -59,21 +53,10 @@ private:
 		{ "Digit", keys_digit }
 	};
 	
-	size_t _max_length { };
-	uint32_t cursor_pos { 0 };
-	uint32_t mode = 0;				// Uppercase
-	std::string * _str { };
+	uint32_t mode = 0;	// Uppercase
 	
-	void char_add(const char c);
-	void char_delete();
 	void set_mode(const uint32_t new_mode);
-	void draw_cursor();
 	void on_button(Button& button);
-	void update_text();
-	
-	Text text_input {
-		{ 0, 0, 240, 16 }
-	};
 
 	std::array<Button, 30> buttons { };
 

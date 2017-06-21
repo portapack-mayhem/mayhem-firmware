@@ -10,11 +10,11 @@
 <link rel="alternate" hreflang="en" title="Original" href="http://elm-chan.org/fsw/ff/00index_e.html">
 <link rel="alternate" hreflang="ja" title="Japanese version" href="00index_j.html">
 <link rel="stylesheet" href="css_e.css" type="text/css" media="screen" title="ELM Default">
-<title>FatFs - Generic FAT File System Module</title>
+<title>FatFs - Generic FAT File System Module (R0.12c)</title>
 </head>
 
 <body>
-<h1>FatFs - Generic FAT File System Module</h1>
+<h1>FatFs - Generic FAT File System Module (R0.12c)</h1>
 <hr>
 
 <div class="abst">
@@ -23,7 +23,7 @@
 
 <h4>Features</h4>
 <ul>
- <li>Windows compatible FAT/exFAT file system.</li>
+ <li>DOS/Windows compatible FAT/exFAT file system.</li>
  <li>Platform independent. Easy to port.</li>
  <li>Very small footprint for program code and work area.</li>
  <li>Various <a href="en/config.html">configuration options</a> to support for:
@@ -44,6 +44,7 @@
 <div class="para">
 <h3>Application Interface</h3>
 <img src="res/layers1.png" class="rset" width="245" height="220" alt="layer">
+<p>FatFs provides various file control functions for the applications as shown below.</p>
 <ul>
  <li>File Access
  <ul>
@@ -103,9 +104,9 @@
 
 
 <div class="para">
-<h3>Device Control Interface</h3>
+<h3>Media Access Interface</h3>
 <img src="res/layers2.png" class="rset" width="245" height="220" alt="layer">
-<p>Since the FatFs module is a file system layer, it is completely separated from the physical devices, such as memory card, harddisk and any type of storage device. FatFs accesses the storage devices via a simple interface shown below. The low level device control module is <em>not a part of FatFs module</em>. It is provided by implementer. Also sample implementations for some platforms are available in the downloads.</p>
+<p>Since the FatFs module is just a file system layer independent of platform and storage device. It is completely separated from the physical devices, such as memory card, harddisk and any type of storage device. The low level device control module is <em>not a part of FatFs module</em> and it needs to be provided by implementer. FatFs accesses the storage devices via a simple media access interface shown below. Also sample implementations for some platforms are available in the downloads.</p>
 <ul>
  <li><a href="en/dstat.html">disk_status</a> - Get device status</li>
  <li><a href="en/dinit.html">disk_initialize</a> - Initialize device</li>
@@ -136,6 +137,6 @@
 
 
 <hr>
-<p class="foot"><a href="http://elm-chan.org/fsw/ff/00index_e.html">Latest Information</a></p>
+<p class="foot"><a href="http://elm-chan.org/fsw/ff/00index_e.html">FatFs Homepage</a></p>
 </body>
 </html>

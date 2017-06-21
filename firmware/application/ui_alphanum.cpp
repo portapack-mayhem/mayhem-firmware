@@ -26,10 +26,7 @@
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include <cstring>
 #include <algorithm>
-
-using namespace hackrf::one;
 
 namespace ui {
 
@@ -41,23 +38,14 @@ AlphanumView::AlphanumView(
 	NavigationView& nav,
 	std::string * str,
 	size_t max_length
-) : _max_length(max_length),
-	_str(str)
+) : TextEntryView(nav, str, max_length)
 {
 	size_t n;
 	
-	// Trim from right
-	_str->erase(std::find_if(_str->rbegin(), _str->rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), _str->end());
-	cursor_pos = _str->length();
-	
-	_str->resize(_max_length, 0);
-	
 	add_children({
-		&text_input,
 		&button_mode,
 		&text_raw,
-		&field_raw,
-		&button_ok
+		&field_raw
 	});
 
 	const auto button_fn = [this](Button& button) {
@@ -97,22 +85,6 @@ AlphanumView::AlphanumView(
 	update_text();
 }
 
-void AlphanumView::draw_cursor() {
-	Point draw_pos;
-	
-	draw_pos = {text_input.screen_rect().location().x() + 8 + std::min((Coord)cursor_pos, (Coord)28) * 8,
-					text_input.screen_rect().location().y() + 16};
-	
-	portapack::display.fill_rectangle(
-		{{text_input.screen_rect().location().x(), draw_pos.y()}, {text_input.screen_rect().size().width(), 4}},
-		Color::black()
-	);
-	portapack::display.fill_rectangle(
-		{draw_pos, {8, 4}},
-		Color::white()
-	);
-}
-
 void AlphanumView::set_mode(const uint32_t new_mode) {
 	size_t n = 0;
 	
@@ -137,10 +109,6 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 		button_mode.set_text(key_sets[0].first);
 }
 
-void AlphanumView::focus() {
-	button_ok.focus();
-}
-
 void AlphanumView::on_button(Button& button) {
 	const auto c = button.text()[0];
 	
@@ -150,29 +118,6 @@ void AlphanumView::on_button(Button& button) {
 		char_add(c);
 	
 	update_text();
-}
-
-void AlphanumView::char_add(const char c) {
-	if (cursor_pos >= _max_length) return;
-	
-	_str->replace(cursor_pos, 1, 1, c);
-	cursor_pos++;
-}
-
-void AlphanumView::char_delete() {
-	if (!cursor_pos) return;
-	
-	cursor_pos--;
-	_str->replace(cursor_pos, 1, 1, 0);
-}
-
-void AlphanumView::update_text() {
-	if (cursor_pos <= 28)
-		text_input.set(' ' + *_str + std::string(_max_length - _str->length(), ' '));
-	else
-		text_input.set('<' + _str->substr(cursor_pos - 28, 28));
-		
-	draw_cursor();
 }
 
 }

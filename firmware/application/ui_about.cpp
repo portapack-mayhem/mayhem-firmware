@@ -132,8 +132,6 @@ AboutView::AboutView(
 	NavigationView& nav
 )
 {
-	//uint8_t p, c;
-	
 	add_children({
 		&text_cpld_hackrf,
 		&text_cpld_hackrf_status,
@@ -150,13 +148,13 @@ AboutView::AboutView(
 		add_child(&text);
 	}
 
-	if( cpld_hackrf_verify_eeprom() ) {
+	if( hackrf::cpld::verify_eeprom() ) {
 		text_cpld_hackrf_status.set(" OK");
 	} else {
 		text_cpld_hackrf_status.set("BAD");
 	}
 
-	button_ok.on_select = [this,&nav](Button&){
+	button_ok.on_select = [&nav](Button&){
 		nav.pop();
 	};
 }

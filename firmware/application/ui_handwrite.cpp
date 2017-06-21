@@ -26,7 +26,7 @@
 #include "hackrf_hal.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include <cstring>
+#include <algorithm>
 
 using namespace portapack;
 
@@ -40,24 +40,15 @@ HandWriteView::HandWriteView(
 	NavigationView& nav,
 	std::string * str,
 	size_t max_length
-) : _max_length(max_length),
-	_str(str)
+) : TextEntryView(nav, str, max_length)
 {
 	size_t n;
-	
-	// Trim from right
-	_str->erase(std::find_if(_str->rbegin(), _str->rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), _str->end());
-	cursor_pos = _str->length();
-	
-	_str->resize(_max_length, 0);
 	
 	// Handwriting alphabet definition here
 	handwriting = &handwriting_unistroke;
 
 	add_children({
-		&text_input,
-		&button_case,
-		&button_ok
+		&button_case
 	});
 
 	const auto button_fn = [this](Button& button) {
@@ -224,9 +215,8 @@ void HandWriteView::guess_letter() {
 					char_add('A' + symbol - 1);
 				clear_zone(Color::green(), true);	// Green flash
 			} else {
-				if (cursor_pos) {
-					cursor_pos--;
-					_str->replace(cursor_pos, 1, 1, 0);
+				if (_cursor_pos) {
+					char_delete();
 					clear_zone(Color::yellow(), true);	// Yellow flash
 				} else {
 					clear_zone(Color::red(), true);		// Red flash
@@ -257,26 +247,7 @@ void HandWriteView::sample_pen() {
 	int16_t diff_x, diff_y;
 	uint8_t dir, dir_ud, dir_lr, stroke_prev;
 	
-	// Blink cursor
-	if (!(sample_skip & 15)) {
-		Point draw_pos;
-		
-		draw_pos = {text_input.screen_rect().location().x() + 8 + std::min((Coord)cursor_pos, (Coord)28) * 8,
-						text_input.screen_rect().location().y() + 16 - 4};
-		
-		if (cursor) {
-			display.fill_rectangle(
-				{draw_pos, {text_input.screen_rect().size().width() - draw_pos.x(), 4}},
-				Color::black()
-			);
-		} else {
-			display.fill_rectangle(
-				{draw_pos, {8, 4}},
-				Color::white()
-			);
-		}
-		cursor = !cursor;	
-	}
+	draw_cursor();
 	
 	if (flash_timer) {
 		if (flash_timer == 1) clear_zone(Color::black(), false);
@@ -383,20 +354,6 @@ void HandWriteView::on_show() {
 void HandWriteView::on_button(Button& button) {
 	char_add(button.id);
 	update_text();
-}
-
-void HandWriteView::char_add(const char c) {
-	if (cursor_pos >= _max_length) return;
-	
-	_str->replace(cursor_pos, 1, 1, c);
-	cursor_pos++;
-}
-
-void HandWriteView::update_text() {
-	if (cursor_pos <= 28)
-		text_input.set(' ' + *_str + std::string(_max_length - _str->length(), ' '));
-	else
-		text_input.set('<' + _str->substr(cursor_pos - 28, 28));
 }
 
 }

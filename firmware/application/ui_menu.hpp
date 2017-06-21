@@ -51,7 +51,7 @@ public:
 	MenuItemView(
 		MenuItem item,
 		bool keep_highlight
-	) : item(item),
+	) : item { item },
 		keep_highlight_ { keep_highlight }
 	{
 	}
@@ -75,15 +75,9 @@ public:
 	
 	~MenuView();
 
-	void add_item(const MenuItem item);
+	void add_item(MenuItem item);
+	void add_items(std::initializer_list<MenuItem> items);
 	void clear();
-
-	template<size_t N>
-	void add_items(const std::array<MenuItem, N>& items) {
-		for (const auto& item : items) {
-			add_item(item);
-		}
-	}
 	
 	MenuItemView* item_view(size_t index) const;
 

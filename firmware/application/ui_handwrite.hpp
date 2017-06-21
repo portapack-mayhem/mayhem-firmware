@@ -26,58 +26,44 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-#include "ui_navigation.hpp"
+#include "ui_textentry.hpp"
 #include "unistroke.hpp"
 
 namespace ui {
 
-class HandWriteView : public View {
+class HandWriteView : public TextEntryView {
 public:
-	std::function<void(std::string*)> on_changed { };
-
 	HandWriteView(NavigationView& nav, std::string * str, size_t max_length);
-	
+
 	HandWriteView(const HandWriteView&) = delete;
 	HandWriteView(HandWriteView&&) = delete;
 	HandWriteView& operator=(const HandWriteView&) = delete;
 	HandWriteView& operator=(HandWriteView&&) = delete;
-
+	
 	void paint(Painter& painter) override;
 	void on_show() override;
 	bool on_touch(const TouchEvent event) override;
-
-	std::string title() const override { return "Text entry"; };
 	
 private:
-	const char special_chars[5] = {'\'', '.', '?', '!', '='}; 
+	const char special_chars[5] = { '\'', '.', '?', '!', '=' }; 
 	
 	const HandWriting * handwriting { };
 	Painter * _painter { };
-	size_t _max_length;
 	uint8_t dir_cnt { 0 };
 	uint8_t dir_prev { 0 };
 	uint8_t flash_timer { 0 };
-	uint32_t cursor_pos { 0 };
-	bool cursor { false };
 	bool tracing { false };
 	uint8_t stroke_index { 0 };
 	uint8_t sample_skip { 0 }, move_wait { 0 };
 	uint8_t stroke_list[8];
 	Point start_pos { }, current_pos { }, last_pos { };
 	bool _lowercase = false;
-	std::string * _str { };
 	
 	void sample_pen();
 	void add_stroke(uint8_t dir);
 	void guess_letter();
 	void clear_zone(const Color color, const bool flash);
-	void char_add(const char c);
 	void on_button(Button& button);
-	void update_text();
-	
-	Text text_input {
-		{ 8, 0, 232, 16 }
-	};
 	
 	std::array<Button, 10> num_buttons { };
 	std::array<Button, 5> special_buttons { };
