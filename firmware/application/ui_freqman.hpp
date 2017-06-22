@@ -52,6 +52,7 @@ protected:
 	options_t categories { };
 	std::function<void(int32_t category_id)> on_change_category { nullptr };
 	std::function<void(void)> on_select_frequency { nullptr };
+	std::function<void(bool)> on_refresh_widgets { nullptr };
 	std::vector<std::string> file_list { };
 	int32_t current_category_id { 0 };
 	
@@ -133,6 +134,7 @@ public:
 	FrequencyLoadView(NavigationView& nav);
 
 private:
+	void refresh_widgets(const bool v);
 };
 
 class FrequencyManagerView : public FreqManBaseView {
@@ -143,6 +145,7 @@ public:
 private:
 	std::string desc_buffer { };
 	
+	void refresh_widgets(const bool v);
 	void on_edit_freq(rf::Frequency f);
 	void on_edit_desc(NavigationView& nav);
 	void on_new_category(NavigationView& nav);

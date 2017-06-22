@@ -70,7 +70,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 		
 		// Read frequency
 		pos += 2;
-		value = strtol(pos, nullptr, 10);
+		value = strtoll(pos, nullptr, 10);
 
 		// Read description until , or LF
 		pos = strstr(file_data, "d=");
@@ -99,12 +99,14 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 	File freqman_file;
 	std::string item_string;
+	rf::Frequency f;
 	
 	if (!create_freqman_file(file_stem, freqman_file))
 		return false;
 	
 	for (size_t n = 0; n < db.entries.size(); n++) {
-		item_string = "f=" + to_string_dec_uint(db.entries[n].value);
+		f = db.entries[n].value;
+		item_string = "f=" + to_string_dec_uint(f / 1000) + to_string_dec_uint(f % 1000UL, 3, '0');		// Please forgive me
 		
 		if (db.entries[n].description.size())
 			item_string += ",d=" + db.entries[n].description;

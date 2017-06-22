@@ -100,7 +100,7 @@ TextEntryView::TextEntryView(
 	_str->erase(std::find_if(_str->rbegin(), _str->rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), _str->end());
 	_cursor_pos = _str->length();
 	
-	_str->resize(_max_length, 0);
+	_str->reserve(_max_length);
 	
 	add_children({
 		&text_input,
@@ -108,6 +108,7 @@ TextEntryView::TextEntryView(
 	});
 	
 	button_ok.on_select = [this, &nav](Button&) {
+		_str->substr(0, _cursor_pos);
 		if (on_changed)
 			on_changed(_str);
 		nav.pop();

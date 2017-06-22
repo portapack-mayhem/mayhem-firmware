@@ -106,13 +106,11 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
 void FreqManBaseView::refresh_list() {
 	if (!database.entries.size()) {
-		menu_view.hidden(true);
-		text_empty.hidden(false);
-		display.fill_rectangle(menu_view.screen_rect(), Color::black());
-		return;
+		if (on_refresh_widgets)
+			on_refresh_widgets(true);
 	} else {
-		menu_view.hidden(false);
-		text_empty.hidden(true);
+		if (on_refresh_widgets)
+			on_refresh_widgets(false);
 	
 		menu_view.clear();
 		
@@ -142,8 +140,8 @@ void FrequencySaveView::on_save_name() {
 
 void FrequencySaveView::on_save_timestamp() {
 	database.entries.push_back({ value_, "", str_timestamp });
-	nav_.pop();
 	save_freqman_file(file_list[current_category_id], database);
+	nav_.pop();
 }
 
 void FrequencySaveView::on_tick_second() {
@@ -197,21 +195,34 @@ FrequencySaveView::FrequencySaveView(
 	};
 }
 
+void FrequencyLoadView::refresh_widgets(const bool v) {
+	menu_view.hidden(v);
+	text_empty.hidden(!v);
+	//display.fill_rectangle(menu_view.screen_rect(), Color::black());
+	set_dirty();
+}
+
 FrequencyLoadView::FrequencyLoadView(
 	NavigationView& nav
 ) : FreqManBaseView(nav, options_category)
 {
+	on_refresh_widgets = [this](bool v) {
+		refresh_widgets(v);
+	};
+	
 	add_children({
 		&menu_view,
 		&text_empty
 	});
+	
+	// Resize menu view to fill screen
+	menu_view.set_parent_rect({ 0, 3 * 8, 240, 29 * 8 });
 	
 	// Just to allow exit on left
 	menu_view.on_left = [&nav, this]() {
 		nav.pop();
 	};
 	
-	text_empty.hidden(true);
 	change_category(0);
 	refresh_list();
 	
@@ -251,6 +262,16 @@ void FrequencyManagerView::on_delete() {
 	refresh_list();
 }
 
+void FrequencyManagerView::refresh_widgets(const bool v) {
+	button_edit_freq.hidden(v);
+	button_edit_desc.hidden(v);
+	button_delete.hidden(v);
+	menu_view.hidden(v);
+	text_empty.hidden(!v);
+	//display.fill_rectangle(menu_view.screen_rect(), Color::black());
+	set_dirty();
+}
+
 FrequencyManagerView::~FrequencyManagerView() {
 	//save_freqman_file(file_list[current_category_id], database);
 }
@@ -259,6 +280,10 @@ FrequencyManagerView::FrequencyManagerView(
 	NavigationView& nav
 ) : FreqManBaseView(nav, options_category)
 {
+	on_refresh_widgets = [this](bool v) {
+		refresh_widgets(v);
+	};
+	
 	add_children({
 		&labels,
 		&button_new_category,
@@ -274,7 +299,6 @@ FrequencyManagerView::FrequencyManagerView(
 		nav.pop();
 	};
 	
-	text_empty.hidden(true);
 	change_category(0);
 	refresh_list();
 	
@@ -283,6 +307,7 @@ FrequencyManagerView::FrequencyManagerView(
 	};
 	
 	button_new_category.on_select = [this, &nav](Button&) {
+		desc_buffer = "";
 		on_new_category(nav);
 	};
 	
