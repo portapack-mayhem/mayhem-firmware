@@ -29,27 +29,121 @@ using namespace portapack;
 
 namespace ui {
 
+FreqManBaseView::FreqManBaseView(
+	NavigationView& nav,
+	Widget& default_focus_widget
+) : nav_ (nav),
+	default_focus_widget_ (default_focus_widget)
+{
+	file_list = get_freqman_files();
+	
+	if (!file_list.size()) {
+		error_ = ERROR_NOFILES;
+		return;
+	}
+	
+	add_children({
+		&label_category,
+		&options_category,
+		&button_exit
+	});
+	
+	// Populate categories OptionsField
+	populate_categories();
+	
+	on_change_category = [this](int32_t category_id) {
+		change_category(category_id);
+	};
+	//change_category(0);
+	
+	button_exit.on_select = [this, &nav](Button&) {
+		nav.pop();
+	};
+};
+
+void FreqManBaseView::focus() {
+	/*if (error_ == ERROR_ACCESS) {
+		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	} else if (error_ == ERROR_DUPLICATE) {
+		nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
+		error_ = NO_ERROR;
+	}*/
+	
+	if (error_ == ERROR_NOFILES) {
+		nav_.display_modal("Error", "No database files", ABORT, nullptr);
+	} else {
+		default_focus_widget_.focus();
+	}
+}
+
+bool FreqManBaseView::populate_categories() {
+	size_t n;
+
+	categories.clear();
+	
+	for (n = 0; n < file_list.size(); n++)
+		categories.emplace_back(std::make_pair(file_list[n], n));
+	
+	options_category.set_options(categories);
+	options_category.set_selected_index(0);
+	
+	options_category.on_change = [this](size_t, int32_t category_id) {
+		if (on_change_category)
+			on_change_category(category_id);
+	};
+	
+	return true;
+}
+
+void FreqManBaseView::change_category(int32_t category_id) {
+	current_category_id = category_id;
+	
+	if (!load_freqman_file(file_list[current_category_id], database))
+		error_ = ERROR_ACCESS;	// Todo
+	else
+		refresh_list();
+}
+
+void FreqManBaseView::refresh_list() {
+	if (!database.entries.size()) {
+		menu_view.hidden(true);
+		text_empty.hidden(false);
+		display.fill_rectangle(menu_view.screen_rect(), Color::black());
+		return;
+	} else {
+		menu_view.hidden(false);
+		text_empty.hidden(true);
+	
+		menu_view.clear();
+		
+		for (size_t n = 0; n < database.entries.size(); n++) {
+			menu_view.add_item({
+				freqman_item_string(database.entries[n], 26),
+				ui::Color::light_grey(),
+				nullptr,
+				[this](){
+					if (on_select_frequency)
+						on_select_frequency();
+				}
+			});
+		}
+		
+		menu_view.set_highlighted(0);	// Refresh
+	}
+}
+
 void FrequencySaveView::on_save_name() {
-	text_prompt(nav_, &desc_buffer, 7, [this](std::string * buffer) {
-			database.entries.push_back({ value_, "", *buffer, (int32_t)options_category.selected_index_value() });
-			nav_.pop();
-		});
+	text_prompt(nav_, &desc_buffer, 28, [this](std::string * buffer) {
+		database.entries.push_back({ value_, "", *buffer });
+		save_freqman_file(file_list[current_category_id], database);
+		nav_.pop();
+	});
 }
 
 void FrequencySaveView::on_save_timestamp() {
-	database.entries.push_back({ value_, "", str_timestamp, (int32_t)options_category.selected_index_value() });
+	database.entries.push_back({ value_, "", str_timestamp });
 	nav_.pop();
-}
-
-void FrequencySaveView::focus() {
-	if (error == ERROR_ACCESS) {
-		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
-	} else if (error == ERROR_DUPLICATE) {
-		nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
-		error = NO_ERROR;
-	} else {
-		button_save_timestamp.focus();
-	}
+	save_freqman_file(file_list[current_category_id], database);
 }
 
 void FrequencySaveView::on_tick_second() {
@@ -61,38 +155,23 @@ void FrequencySaveView::on_tick_second() {
 
 FrequencySaveView::~FrequencySaveView() {
 	rtc_time::signal_tick_second -= signal_token_tick_second;
-	save_freqman_file(database);
 }
 
 FrequencySaveView::FrequencySaveView(
 	NavigationView& nav,
 	const rf::Frequency value
-) : nav_ (nav),
+) : FreqManBaseView(nav, options_category),
 	value_ (value)
 {
-	using name_t = std::string;
-	using value_t = int32_t;
-	using option_t = std::pair<name_t, value_t>;
-	using options_t = std::vector<option_t>;
-	options_t categories;
-	File freqs_file;
-	size_t n;
-	
 	desc_buffer.reserve(28);
 	
-	if (!load_freqman_file(database)) {
-		if (!create_freqman_file(freqs_file)) {
-			error = ERROR_ACCESS;
-			return;
-		}
-	}
-	
-	for (n = 0; n < database.entries.size(); n++) {
+	// Todo: add back ?
+	/*for (size_t n = 0; n < database.entries.size(); n++) {
 		if (database.entries[n].value == value_) {
-			error = ERROR_DUPLICATE;
+			error_ = ERROR_DUPLICATE;
 			break;
 		}
-	}
+	}*/
 	
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
 		this->on_tick_second();
@@ -103,18 +182,8 @@ FrequencySaveView::FrequencySaveView(
 		&text_save,
 		&button_save_name,
 		&button_save_timestamp,
-		&text_timestamp,
-		&text_category,
-		&options_category,
-		&button_cancel
+		&text_timestamp
 	});
-
-	// Populate categories OptionsField
-	categories.emplace_back(std::make_pair("No cat.", -1));
-	for (n = 0; n < database.categories.size(); n++)
-		categories.emplace_back(std::make_pair(database.categories[n], n));
-	options_category.set_options(categories);
-	options_category.set_selected_index(0);
 	
 	on_tick_second();
 	
@@ -126,180 +195,95 @@ FrequencySaveView::FrequencySaveView(
 	button_save_timestamp.on_select = [this, &nav](Button&) {
 		on_save_timestamp();
 	};
-	
-	button_cancel.on_select = [this, &nav](Button&) {
-		nav.pop();
-	};
-}
-
-void FrequencyLoadView::setup_list() {
-	size_t n;
-	
-	menu_view.clear();
-	
-	for (n = 0; n < database.entries.size(); n++) {
-		menu_view.add_item({
-			freqman_item_string(database.entries[n]),
-			ui::Color::white(),
-			nullptr,
-			[this](){ 
-				on_frequency_select();
-			}
-		});
-	}
-	
-	menu_view.set_highlighted(menu_view.highlighted());		// Refresh
-}
-
-void FrequencyLoadView::on_frequency_select() {
-	nav_.pop();
-	if (on_changed) on_changed(database.entries[menu_view.highlighted()].value);
-}
-
-void FrequencyLoadView::focus() {
-	if (error == ERROR_ACCESS)
-		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
-	else if (error == ERROR_EMPTY)
-		nav_.display_modal("Error", "Frequency DB empty", ABORT, nullptr);
-	else
-		menu_view.focus();
 }
 
 FrequencyLoadView::FrequencyLoadView(
 	NavigationView& nav
-) : nav_ (nav)
+) : FreqManBaseView(nav, options_category)
 {
-	if (!load_freqman_file(database)) {
-		error = ERROR_ACCESS;
-		return;
-	}
-	
-	if (database.entries.size() == 0) {
-		error = ERROR_EMPTY;
-		return;
-	}
-
 	add_children({
 		&menu_view,
-		&button_cancel
+		&text_empty
 	});
 	
-	setup_list();
-	
 	// Just to allow exit on left
-	menu_view.on_left = [this]() {
-		on_frequency_select();
-	};
-	
-	button_cancel.on_select = [this, &nav](Button&) {
+	menu_view.on_left = [&nav, this]() {
 		nav.pop();
 	};
+	
+	text_empty.hidden(true);
+	change_category(0);
+	refresh_list();
+	
+	on_select_frequency = [&nav, this]() {
+		nav_.pop();
+		if (on_changed)
+			on_changed(database.entries[menu_view.highlighted()].value);
+	};
 }
 
-void FreqManView::on_frequency_select() {
-	options_category.set_selected_index(database.entries[menu_view.highlighted()].category_id + 1);
-	button_edit_freq.focus();
-}
-
-void FreqManView::on_edit_freq(rf::Frequency f) {
+void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
 	database.entries[menu_view.highlighted()].value = f;
-	//setup_list();
+	save_freqman_file(file_list[current_category_id], database);
+	refresh_list();
 }
 
-void FreqManView::on_edit_desc(NavigationView& nav) {
+void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
 	text_prompt(nav, &desc_buffer, 28, [this](std::string * buffer) {
-				database.entries[menu_view.highlighted()].description = *buffer;
-				//setup_list();
-			});
+		database.entries[menu_view.highlighted()].description = *buffer;
+		refresh_list();
+		save_freqman_file(file_list[current_category_id], database);
+	});
 }
 
-void FreqManView::on_delete() {
+void FrequencyManagerView::on_new_category(NavigationView& nav) {
+	text_prompt(nav, &desc_buffer, 8, [this](std::string * buffer) {
+		File freqman_file;
+		create_freqman_file(*buffer, freqman_file);
+	});
+	populate_categories();
+	refresh_list();
+}
+
+void FrequencyManagerView::on_delete() {
 	database.entries.erase(database.entries.begin() + menu_view.highlighted());
-	//setup_list();
+	save_freqman_file(file_list[current_category_id], database);
+	refresh_list();
 }
 
-void FreqManView::on_edit_category(int32_t category_id) {
-	database.entries[menu_view.highlighted()].category_id = category_id;
+FrequencyManagerView::~FrequencyManagerView() {
+	//save_freqman_file(file_list[current_category_id], database);
 }
 
-void FreqManView::setup_list() {
-	size_t n;
-	
-	menu_view.clear();
-	
-	for (n = 0; n < database.entries.size(); n++) {
-		menu_view.add_item({
-			freqman_item_string(database.entries[n]),
-			ui::Color::white(),
-			nullptr,
-			[this](){
-				on_frequency_select();
-			}
-		});
-	}
-	
-	menu_view.set_highlighted(0);		// Refresh
-}
-
-void FreqManView::focus() {
-	if (error == ERROR_ACCESS)
-		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
-	else if (error == ERROR_EMPTY)
-		nav_.display_modal("Error", "Frequency DB empty", ABORT, nullptr);
-	else
-		menu_view.focus();
-}
-
-FreqManView::~FreqManView() {
-	save_freqman_file(database);
-}
-
-FreqManView::FreqManView(
+FrequencyManagerView::FrequencyManagerView(
 	NavigationView& nav
-) : nav_ (nav)
+) : FreqManBaseView(nav, options_category)
 {
-	using name_t = std::string;
-	using value_t = int32_t;
-	using option_t = std::pair<name_t, value_t>;
-	using options_t = std::vector<option_t>;
-	options_t categories;
-	size_t n;
-		
-	if (!load_freqman_file(database)) {
-		error = ERROR_ACCESS;
-		return;
-	}
-	
-	if (database.entries.size() == 0) {
-		error = ERROR_EMPTY;
-		return;
-	}
-	
 	add_children({
+		&labels,
+		&button_new_category,
 		&menu_view,
+		&text_empty,
 		&button_edit_freq,
 		&button_edit_desc,
-		&options_category,
-		&button_del,
-		&button_exit
+		&button_delete
 	});
 	
-	setup_list();
-	
-	// Populate categories OptionsField
-	categories.emplace_back(std::make_pair("No cat.", -1));
-	for (n = 0; n < database.categories.size(); n++)
-		categories.emplace_back(std::make_pair(database.categories[n], n));
-	options_category.set_options(categories);
-	options_category.set_selected_index(0);
-	
-	options_category.on_change = [this](size_t, int32_t category_id) {
-		on_edit_category(category_id);
+	// Just to allow exit on left
+	menu_view.on_left = [&nav, this]() {
+		nav.pop();
 	};
 	
-	// Just to allow exit on left
-	menu_view.on_left = [this]() {
-		on_frequency_select();
+	text_empty.hidden(true);
+	change_category(0);
+	refresh_list();
+	
+	on_select_frequency = [this]() {
+		button_edit_freq.focus();
+	};
+	
+	button_new_category.on_select = [this, &nav](Button&) {
+		on_new_category(nav);
 	};
 	
 	button_edit_freq.on_select = [this, &nav](Button&) {
@@ -314,18 +298,13 @@ FreqManView::FreqManView(
 		on_edit_desc(nav);
 	};
 	
-	button_del.on_select = [this, &nav](Button&) {
+	button_delete.on_select = [this, &nav](Button&) {
 		nav.push<ModalMessageView>("Confirm", "Are you sure ?", YESNO,
 			[this](bool choice) {
-				if (choice) {
+				if (choice)
 					on_delete();
-				}
 			}
 		);
-	};
-	
-	button_exit.on_select = [this, &nav](Button&) {
-		nav.pop();
 	};
 }
 

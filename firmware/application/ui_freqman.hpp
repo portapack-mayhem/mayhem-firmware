@@ -31,30 +31,75 @@
 #include "rtc_time.hpp"
 
 namespace ui {
+	
+class FreqManBaseView : public View {
+public:
+	FreqManBaseView(
+		NavigationView& nav, Widget& default_focus_widget
+	);
 
-class FrequencySaveView : public View {
+	void focus() override;
+	
+	std::string title() const override { return "Freq. manager"; };
+	
+protected:
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	
+	NavigationView& nav_;
+	freqman_error error_ { NO_ERROR };
+	Widget& default_focus_widget_;
+	options_t categories { };
+	std::function<void(int32_t category_id)> on_change_category { nullptr };
+	std::function<void(void)> on_select_frequency { nullptr };
+	std::vector<std::string> file_list { };
+	int32_t current_category_id { 0 };
+	
+	bool populate_categories();
+	void change_category(int32_t category_id);
+	void refresh_list();
+	
+	freqman_db database { };
+	
+	Labels label_category {
+		{ { 0, 4 }, "Category:", Color::light_grey() }
+	};
+	
+	OptionsField options_category {
+		{ 9 * 8, 4 },
+		8,
+		{ }
+	};
+	
+	MenuView menu_view {
+		{ 0, 3 * 8, 240, 23 * 8 },
+		true
+	};
+	Text text_empty {
+		{ 7 * 8, 12 * 8, 16 * 8, 16 },
+		"Empty category !",
+	};
+	
+	Button button_exit {
+		{ 20 * 8, 34 * 8, 10 * 8, 4 * 8 },
+		"Exit"
+	};
+};
+
+class FrequencySaveView : public FreqManBaseView {
 public:
 	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
 	~FrequencySaveView();
-	
-	void focus() override;
-
-	std::string title() const override { return "Save frequency"; };
 
 private:
-	NavigationView& nav_;
-	freqman_error error { NO_ERROR };
 	std::string desc_buffer { };
 	rtc::RTC datetime { };
 	rf::Frequency value_ { };
 	std::string str_timestamp { };
-	//int32_t category_id_ { -1 };
 	
 	void on_save_name();
 	void on_save_timestamp();
 	void on_tick_second();
-	
-	freqman_db database { };
 	
 	SignalToken signal_token_tick_second { };
 	
@@ -79,110 +124,51 @@ private:
 		{ 17 * 8, 24 * 8, 11 * 8, 16 },
 		"MM/DD HH:MM",
 	};
-	
-	Text text_category {
-		{ 4 * 8, 28 * 8, 12 * 8, 16 },
-		"In category:",
-	};
-	OptionsField options_category {
-		{ 17 * 8, 28 * 8 },
-		8,
-		{ }
-	};
-
-	Button button_cancel {
-		{ 72, 264, 96, 32 },
-		"Cancel"
-	};
 };
 
-class FrequencyLoadView : public View {
+class FrequencyLoadView : public FreqManBaseView {
 public:
 	std::function<void(rf::Frequency)> on_changed { };
 	
 	FrequencyLoadView(NavigationView& nav);
-	
-	void focus() override;
-
-	std::string title() const override { return "Load frequency"; };
 
 private:
-	NavigationView& nav_;
-	freqman_error error { NO_ERROR };
-	
-	void on_frequency_select();
-	void setup_list();
-	
-	freqman_db database { };
-	
-	MenuView menu_view {
-		{ 0, 0, 240, 216 },
-		false
-	};
-	
-	Button button_cancel {
-		{ 72, 264, 96, 32 },
-		"Cancel"
-	};	
 };
 
-class FreqManView : public View {
+class FrequencyManagerView : public FreqManBaseView {
 public:
-	FreqManView(NavigationView& nav);
-	~FreqManView();
-	
-	void focus() override;
-
-	std::string title() const override { return "Freq. manager"; };
+	FrequencyManagerView(NavigationView& nav);
+	~FrequencyManagerView();
 
 private:
-	NavigationView& nav_;
-	
-	freqman_error error { NO_ERROR };
 	std::string desc_buffer { };
 	
-	void on_frequency_select();
 	void on_edit_freq(rf::Frequency f);
 	void on_edit_desc(NavigationView& nav);
+	void on_new_category(NavigationView& nav);
 	void on_delete();
-	void on_edit_category(int32_t category_id);
-	void setup_list();
-	
-	freqman_db database { };
 
-	MenuView menu_view {
-		{ 0, 0, 240, 168 },
-		true
+	Labels labels {
+		{ { 4 * 8 + 4, 26 * 8 }, "Edit:", Color::light_grey() }
 	};
 	
-	Labels label {
-		{ { 2 * 8, 24 * 8 }, "Edit:", Color::light_grey() },
-		{ { 2 * 8, 35 * 8 }, "Category:", Color::light_grey() }
+	Button button_new_category {
+		{ 18 * 8, 2, 12 * 8, 20 },
+		"Create new"
 	};
 
 	Button button_edit_freq {
-		{ 2 * 8, 26 * 8, 14 * 8, 32 },
+		{ 0 * 8, 29 * 8, 14 * 8, 32 },
 		"Frequency"
 	};
 	Button button_edit_desc {
-		{ 2 * 8, 30 * 8 + 4, 14 * 8, 32 },
+		{ 0 * 8, 34 * 8, 14 * 8, 32 },
 		"Description"
 	};
-
-	OptionsField options_category {
-		{ 12 * 8, 35 * 8 },
-		8,
-		{ }
-	};
 	
-	Button button_del {
-		{ 20 * 8, 24 * 8, 9 * 8, 48 },
+	Button button_delete {
+		{ 18 * 8, 27 * 8, 12 * 8, 32 },
 		"Delete"
-	};
-	
-	Button button_exit {
-		{ 20 * 8, 33 * 8, 9 * 8, 40 },
-		"Exit"
 	};
 };
 

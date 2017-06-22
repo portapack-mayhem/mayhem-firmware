@@ -93,7 +93,7 @@ void SoundBoardView::focus() {
 	buttons[0].focus();
 
 	if (!max_sound)
-		nav_.display_modal("No files", "No files in /wav/ directory", ABORT, nullptr);
+		nav_.display_modal("No files", "No files in /WAV/ directory", ABORT, nullptr);
 }
 
 void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
@@ -201,11 +201,11 @@ SoundBoardView::SoundBoardView(
 	
 	reader = std::make_unique<WAVFileReader>();
 	
-	file_list = scan_root_files(u"wav", u"*.WAV");
+	file_list = scan_root_files(u"WAV", u"*.WAV");
 	
 	c = 0;
 	for (auto& path : file_list) {
-		if (reader->open(u"wav/" + path.native())) {
+		if (reader->open(u"WAV/" + path.native())) {
 			if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
 				sounds[c].size = reader->data_size();
 				sounds[c].sample_duration = reader->data_size(); // / (reader->bits_per_sample() / 8);
@@ -215,7 +215,7 @@ SoundBoardView::SoundBoardView(
 				else
 					sounds[c].sixteenbit = false;*/
 				sounds[c].ms_duration = reader->ms_duration();
-				sounds[c].path = u"wav/" + path.native();
+				sounds[c].path = u"WAV/" + path.native();
 				title = reader->title().substr(0, 20);
 				if (title != "")
 					sounds[c].title = title;

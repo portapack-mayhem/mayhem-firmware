@@ -52,8 +52,8 @@ void MenuItemView::paint(Painter& painter) {
 
 	const auto font_height = paint_style.font.line_height();
 	
-	ui::Color final_item_color = (highlighted() && parent()->has_focus()) ? paint_style.foreground : item.color;
-	ui::Color final_bg_color = (highlighted() && parent()->has_focus()) ? item.color : paint_style.background;
+	ui::Color final_item_color = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? paint_style.foreground : item.color;
+	ui::Color final_bg_color = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? item.color : paint_style.background;
 
 	if (final_item_color.v == final_bg_color.v) final_item_color = paint_style.foreground;
 
@@ -105,18 +105,15 @@ MenuView::MenuView(
 	};
 	
 	add_child(&arrow_more);
-	arrow_more.id = 1;		// Special flag
 	arrow_more.set_focusable(false);
 	arrow_more.set_foreground(Color::black());
 }
 
 MenuView::~MenuView() {
-	for (auto child : children_) {
-		if (!child->id) {
-			delete child;
-		}
-	}
 	rtc_time::signal_tick_second -= signal_token_tick_second;
+	for (auto item : menu_items_) {
+		delete item;
+	}
 }
 
 void MenuView::on_tick_second() {
@@ -131,20 +128,26 @@ void MenuView::on_tick_second() {
 }
 
 void MenuView::clear() {
-	for (auto child : children_) {
-		if (!child->id) {
-			remove_child(child);
-		}
+	for (auto item : menu_items_) {
+		remove_child(item);
+		delete item;
 	}
-}
-
-void MenuView::add_item(MenuItem item) {
-	add_child(new MenuItemView { item, keep_highlight_ });
+	menu_items_.clear();
+	
 	update_items();
 }
 
-void MenuView::add_items(std::initializer_list<MenuItem> items) {
-	for(auto item : items) {
+void MenuView::add_item(MenuItem new_item) {
+	auto item = new MenuItemView { new_item, keep_highlight_ };
+	
+	menu_items_.push_back(item);
+	add_child(item);
+	
+	update_items();
+}
+
+void MenuView::add_items(std::initializer_list<MenuItem> new_items) {
+	for (auto item : new_items) {
 		add_item(item);
 	}
 }
@@ -153,33 +156,30 @@ void MenuView::update_items() {
 	size_t i = 0;
 	int32_t y_pos;
 	
-	if ((children_.size() - 1) > displayed_max_ + offset_) {
+	if (menu_items_.size() > displayed_max_ + offset_) {
 		more_ = true;
 		blink_ = true;
 	} else
 		more_ = false;
 	
-	for (auto child : children_) {
-		if (!child->id) {
-			y_pos = (i - offset_ - 1) * item_height;
-			child->set_parent_rect({
-				{ 0, y_pos },
-				{ size().width(), (Coord)item_height }
-			});
-			if ((y_pos < 0) || (y_pos > (Coord)(screen_rect().size().height() - item_height)))
-				child->hidden(true);
-			else
-				child->hidden(false);
-		}
+	for (auto item : menu_items_) {
+		y_pos = (i - offset_) * item_height;
+		item->set_parent_rect({
+			{ 0, y_pos },
+			{ size().width(), (Coord)item_height }
+		});
+		if ((y_pos < 0) || (y_pos > (Coord)(screen_rect().size().height() - item_height)))
+			item->hidden(true);
+		else
+			item->hidden(false);
 		i++;
 	}
+	
+	set_dirty();
 }
 
 MenuItemView* MenuView::item_view(size_t index) const {
-	/* TODO: Terrible cast! Take it as a sign I must be doing something
-	 * shamefully wrong here, right?
-	 */
-	return static_cast<MenuItemView*>(children_[index + 1]);
+	return menu_items_[index];
 }
 
 size_t MenuView::highlighted() const {
@@ -187,7 +187,7 @@ size_t MenuView::highlighted() const {
 }
 
 bool MenuView::set_highlighted(int32_t new_value) {
-	int32_t item_count = (int32_t)children_.size() - 1;
+	int32_t item_count = (int32_t)menu_items_.size();
 	
 	if (new_value < 0)
 		return false;

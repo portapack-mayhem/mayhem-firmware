@@ -30,11 +30,12 @@
 #define __FREQMAN_H__
 
 using namespace ui;
+using namespace std;
 
 enum freqman_error {
 	NO_ERROR = 0,
 	ERROR_ACCESS,
-	ERROR_EMPTY,
+	ERROR_NOFILES,
 	ERROR_DUPLICATE
 };
 
@@ -42,17 +43,16 @@ struct freqman_entry {
 	rf::Frequency value;
 	std::string frequency_str;
 	std::string description;
-	int32_t category_id;
 };
 
 struct freqman_db {
 	std::vector<freqman_entry> entries;
-	std::vector<std::string> categories;
 };
 
-bool load_freqman_file(freqman_db &db);
-bool save_freqman_file(freqman_db &db);
-bool create_freqman_file(File &freqs_file);
-std::string freqman_item_string(freqman_entry &item);
+std::vector<std::string> get_freqman_files();
+bool load_freqman_file(std::string& file_stem, freqman_db &db);
+bool save_freqman_file(std::string& file_stem, freqman_db &db);
+bool create_freqman_file(std::string& file_stem, File& freqman_file);
+std::string freqman_item_string(freqman_entry &item, size_t max_length);
 
 #endif/*__FREQMAN_H__*/

@@ -75,8 +75,8 @@ public:
 	
 	~MenuView();
 
-	void add_item(MenuItem item);
-	void add_items(std::initializer_list<MenuItem> items);
+	void add_item(MenuItem new_item);
+	void add_items(std::initializer_list<MenuItem> new_items);
 	void clear();
 	
 	MenuItemView* item_view(size_t index) const;
@@ -89,6 +89,7 @@ public:
 	bool on_key(const KeyEvent event) override;
 	bool on_encoder(const EncoderEvent event) override;
 
+	
 private:
 	void update_items();
 	void on_tick_second();
@@ -96,6 +97,7 @@ private:
 	bool keep_highlight_ { false };
 	
 	SignalToken signal_token_tick_second { };
+	std::vector<MenuItemView*> menu_items_ { };
 	
 	Image arrow_more {
 		{ 228, 320 - 8, 8, 8 },

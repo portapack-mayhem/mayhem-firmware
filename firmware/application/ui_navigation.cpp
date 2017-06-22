@@ -323,7 +323,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	add_items({
-		{ "Frequency manager", 		ui::Color::green(), &bitmap_icon_freqman,	[&nav](){ nav.push<FreqManView>(); } },
+		{ "Frequency manager", 		ui::Color::green(), &bitmap_icon_freqman,	[&nav](){ nav.push<FrequencyManagerView>(); } },
 		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,		[&nav](){ nav.push<CWTXView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),	&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
