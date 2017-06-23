@@ -23,20 +23,23 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TEST: Mic tx
+//TEST: Menuview refresh, seems to blink a lot
+//TEST: Check AFSK transmit end, skips last bits ?
+//TEST: Imperial in whipcalc
+
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 //BUG: REPLAY freezes when SD card not present
 //BUG: RDS doesn't stop baseband when stopping tx ?
 
+//TODO: Make freqman refresh simpler (use previous black rectangle method)
 //TODO: Merge AFSK and TONES procs ?
-//TODO: NFM Squelch level setting
-//TODO: NFM RX nav.pop on squelch
+//TODO: NFM RX mode: nav.pop on squelch
 //TODO: MORSE use prosigns
 //TODO: MORSE live keying mode
 //TODO: Use to_string_short_freq wherever possible
 //TODO: SCANNER Waveform widget as FFT view ?
-//TEST: Check AFSK transmit end, skips last bits ?
-//TEST: Imperial in whipcalc
 //TODO: Optimize (and group ?) CTCSS tone gen code
 /*
 Continuous (Fox-oring)
@@ -46,9 +49,7 @@ Continuous (Fox-oring)
 */
 //TODO: Use transmittermodel bw setting
 //TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
-//TODO: FreqMan: Add and rename categories
-//TODO: FreqMan: Sort by category in edit screen
-//TODO: FreqMan: Cap entry count per category (only done for total entries right now)
+//TODO: FreqMan: Remove and rename categories
 //TODO: Wav visualizer
 //TODO: File browser view ?
 //TODO: Mousejack ?

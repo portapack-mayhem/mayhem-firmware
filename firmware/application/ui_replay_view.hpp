@@ -59,7 +59,7 @@ private:
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	
-	static constexpr uint32_t sampling_rate = 500000;
+	static constexpr uint32_t sampling_rate = 1000000;
 	
 	void toggle();
 
@@ -74,6 +74,7 @@ private:
 	const size_t buffer_count;
 	//SignalToken signal_token_tick_second { };
 	options_t file_options { };
+	//std::filesystem:path file_path { };
 
 	Rectangle rect_background {
 		Color::black()

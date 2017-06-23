@@ -114,7 +114,15 @@ void ReplayView::toggle() {
 void ReplayView::start() {
 	stop();
 
-	auto reader = std::make_unique<FileReader>();
+	std::unique_ptr<stream::Reader> reader;
+	
+	auto p = std::make_unique<FileReader>();
+	auto create_error = p->open(file_options[options_files.selected_index()].first + ".C16");
+	if( create_error.is_valid() ) {
+		handle_error(create_error.value());
+	} else {
+		reader = std::move(p);
+	}
 
 	if( reader ) {
 		button_play.set_bitmap(&bitmap_stop);
@@ -135,7 +143,7 @@ void ReplayView::start() {
 	update_status_display();
 	
 	radio::enable({
-		434000000,	//target_frequency(),
+		receiver_model.tuning_frequency(),
 		sampling_rate,
 		2500000,	//baseband_bandwidth,
 		rf::Direction::Transmit,

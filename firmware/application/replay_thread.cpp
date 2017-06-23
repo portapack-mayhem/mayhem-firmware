@@ -83,13 +83,17 @@ Optional<File::Error> ReplayThread::run() {
 
 	while( !chThdShouldTerminate() ) {
 		auto buffer = buffers.get();
-		/*auto read_result = reader->read(buffer->data(), buffer->size());
+		
+		auto read_result = reader->read(buffer->data(), buffer->capacity());
+		buffer->set_size(buffer->capacity());
 		if( read_result.is_error() ) {
 			return read_result.error();
 		}
-		buffers.put(buffer);*/
-		chThdSleep(50);		// DEBUG
-		//led_tx.toggle();
+		
+		if (!buffers.put(buffer))
+			for(;;){};		// DEBUG
+		
+		led_tx.toggle();	// DEBUG
 	}
 
 	return { };

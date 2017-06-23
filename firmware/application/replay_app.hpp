@@ -54,7 +54,7 @@ private:
 	
 	static constexpr ui::Dim header_height = 2 * 16;
 
-	static constexpr uint32_t sampling_rate = 4000000;
+	static constexpr uint32_t sampling_rate = 500000;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
 	void on_target_frequency_changed(rf::Frequency f);

@@ -55,7 +55,6 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 		
 		const auto remaining = length - read;
 		read += active_buffer->read(&p[read], remaining);
-		//buffer->empty();
 
 		if( active_buffer->is_empty() ) {
 			if( !fifo_buffers_empty.in(active_buffer) ) {

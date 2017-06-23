@@ -37,6 +37,10 @@ public:
 	FileReader(FileReader&& file) = delete;
 	FileReader& operator=(FileReader&&) = delete;
 
+	Optional<File::Error> open(const std::filesystem::path& filename) {
+		return file.open(filename);
+	}
+	
 	File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
 	
 protected:

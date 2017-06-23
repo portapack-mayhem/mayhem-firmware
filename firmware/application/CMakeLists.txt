@@ -182,7 +182,7 @@ set(CPPSRC
 	ui_menu.cpp
 	ui_morse.cpp
 	ui_navigation.cpp
-	ui_numbers.cpp
+	# ui_numbers.cpp
 	ui_nuoptix.cpp
 	ui_playdead.cpp
 	ui_pocsag_tx.cpp

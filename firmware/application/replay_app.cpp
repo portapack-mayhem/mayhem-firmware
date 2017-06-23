@@ -24,11 +24,10 @@
 #include "string_format.hpp"
 
 #include "baseband_api.hpp"
-
 #include "portapack.hpp"
-using namespace portapack;
-
 #include "portapack_persistent_memory.hpp"
+
+using namespace portapack;
 
 namespace ui {
 
@@ -38,7 +37,7 @@ ReplayAppView::ReplayAppView(
 {
 	std::vector<std::filesystem::path> file_list;
 	
-	// Search for files
+	// Search for files with the right extension
 	file_list = scan_root_files(u"/", u"*.C16");
 	if (!file_list.size()) {
 		file_error = true;

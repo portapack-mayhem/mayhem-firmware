@@ -43,7 +43,7 @@
 #include "ui_lcr.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
-#include "ui_numbers.hpp"
+//#include "ui_numbers.hpp"
 #include "ui_nuoptix.hpp"
 #include "ui_playdead.hpp"
 #include "ui_pocsag_tx.hpp"
@@ -306,7 +306,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
 		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
-		{ "Numbers station",		ui::Color::orange(),	&bitmap_icon_numbers,	[&nav](){ nav.push<NumbersStationView>(); } },
+		{ "Numbers station",		ui::Color::grey(),		&bitmap_icon_numbers,	[&nav](){ nav.push<NotImplementedView>(); } },	// NumbersStationView
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
@@ -350,7 +350,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Receivers", 				ui::Color::cyan(),		&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
 		{ "Transmitters", 			ui::Color::green(),		nullptr,				[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",					ui::Color::grey(),		&bitmap_icon_replay,	[&nav](){ nav.push<NotImplementedView>(); } },	// ReplayAppView
+		{ "Replay",					ui::Color::grey(),		&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Scanner/search",			ui::Color::orange(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Utilities",				ui::Color::purple(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Setup", 					ui::Color::white(),		&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },

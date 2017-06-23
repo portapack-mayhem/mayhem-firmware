@@ -41,7 +41,7 @@ public:
 
 private:
 	// TODO: Repeated value needs to be transmitted from application side.
-	static constexpr size_t baseband_fs = 500000;
+	static constexpr size_t baseband_fs = 1000000;
 	//static constexpr auto spectrum_rate_hz = 50.0f;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };

@@ -63,7 +63,7 @@ void ReplayProcessor::on_message(const Message* const message) {
 		channel_spectrum.on_message(message);
 		break;*/
 
-	case Message::ID::CaptureConfig:
+	case Message::ID::ReplayConfig:
 		replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));
 		break;
 

@@ -484,6 +484,10 @@ public:
 	size_t size() const {
 		return used_;
 	}
+	
+	size_t capacity() const {
+		return capacity_;
+	}
 
 	void set_size(const size_t value) {
 		used_ = value;

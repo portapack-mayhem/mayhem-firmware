@@ -56,9 +56,7 @@ BufferExchange::~BufferExchange() {
 StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 	while(true) {
 		StreamBuffer* p { nullptr };
-		fifo->out(p);	// This crashes replay
-		
-		//led_tx.on();	// DEBUG
+		fifo->out(p);
 		
 		if( p ) {
 			return p;
