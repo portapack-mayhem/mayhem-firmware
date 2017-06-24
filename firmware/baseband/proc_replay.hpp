@@ -26,6 +26,8 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
+#include "spectrum_collector.hpp"
+
 #include "stream_output.hpp"
 
 #include <array>
@@ -40,14 +42,12 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
-	// TODO: Repeated value needs to be transmitted from application side.
-	static constexpr size_t baseband_fs = 1000000;
+	static constexpr size_t baseband_fs = 4000000;
 	//static constexpr auto spectrum_rate_hz = 50.0f;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	//RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> iq { };	// 2048 doesn't fit in allocated RAM
+	std::array<complex16_t, 256> iq { };	// This fits in just right in allocated RAM
 	const buffer_c16_t iq_buffer {
 		iq.data(),
 		iq.size()

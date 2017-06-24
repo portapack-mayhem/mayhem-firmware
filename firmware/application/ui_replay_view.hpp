@@ -59,7 +59,7 @@ private:
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	
-	static constexpr uint32_t sampling_rate = 1000000;
+	static constexpr uint32_t sampling_rate = 4000000;
 	
 	void toggle();
 

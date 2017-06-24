@@ -25,10 +25,6 @@
 #include "baseband_api.hpp"
 #include "buffer_exchange.hpp"
 
-// DEBUG:
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
-
 struct BasebandReplay {
 	BasebandReplay(ReplayConfig* const config) {
 		baseband::replay_start(config);
@@ -90,10 +86,7 @@ Optional<File::Error> ReplayThread::run() {
 			return read_result.error();
 		}
 		
-		if (!buffers.put(buffer))
-			for(;;){};		// DEBUG
-		
-		led_tx.toggle();	// DEBUG
+		buffers.put(buffer);
 	}
 
 	return { };

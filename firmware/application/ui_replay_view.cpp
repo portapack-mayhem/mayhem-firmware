@@ -91,7 +91,7 @@ void ReplayView::set_file_list(const std::vector<std::filesystem::path>& file_li
 	
 	for (const auto& file : file_list) {
 		bbd_file.open("/" + file.string());
-		duration = bbd_file.size() / (2 * 2 * (sampling_rate / 8));
+		duration = bbd_file.size() / (2 * 2 * sampling_rate / 4);
 		file_options.emplace_back(file.string().substr(0, 8), duration);
 	}
 	options_files.set_options(file_options);

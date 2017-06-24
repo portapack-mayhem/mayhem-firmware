@@ -27,26 +27,40 @@
 #include "utility.hpp"
 
 ReplayProcessor::ReplayProcessor() {
+	// TODO: Interpolation filter needed !
+	
+	/*spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
+	spectrum_samples = 0;
 
+	channel_spectrum.set_decimation_factor(1);*/
+	
 }
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
-	/* 2.4576MHz, 2048 samples */
+	/* 4MHz, 2048 samples */
 
 	size_t pos = 0;
 	
-	for (size_t c = 0; c < 4; c++) {
-		if( stream ) {
-			const size_t bytes_to_read = sizeof(*buffer.p) * buffer.count / 4;
-			const auto result = stream->read(iq_buffer.p, bytes_to_read);
-		}
+	// File data is in C16 format, we need C8
+	// File samplerate is 500kHz, we're at 4MHz
+	// iq_buffer can only be 512 samples (RAM limitation)
+	// For a full 2048-sample C8 buffer, we need:
+	// 2048 samples * 2 bytes per sample = 4096 bytes
+	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file
+	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
+	if( stream ) {
+		const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);	// *2 (C16), /8 (oversampling)
+		const auto result = stream->read(iq_buffer.p, bytes_to_read);
+	}
 
-		//feed_channel_stats(channel);
-		
-		for (size_t i = 0; i < (buffer.count / 4); i++) {
-			buffer.p[pos] = { iq_buffer.p[i].real() >> 8, iq_buffer.p[i].imag() >> 8 };
-			pos++;
-		}
+	//feed_channel_stats(channel);
+	
+	// Zero-stuff
+	for (size_t i = 0; i < buffer.count; i++) {
+		if (i & 3)
+			buffer.p[i] = { 0, 0 };
+		else
+			buffer.p[i] = { iq_buffer.p[i >> 3].real() >> 8, iq_buffer.p[i >> 3].imag() >> 8 };
 	}
 	
 	/*spectrum_samples += channel.count;
