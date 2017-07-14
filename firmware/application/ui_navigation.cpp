@@ -31,7 +31,8 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "ui_about.hpp"
-#include "ui_adsbtx.hpp"
+#include "ui_adsb_tx.hpp"
+#include "ui_adsb_rx.hpp"
 #include "ui_aprstx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
@@ -282,7 +283,7 @@ void NavigationView::focus() {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B: Planes", 			ui::Color::grey(),	&bitmap_icon_adsb,	[&nav](){ nav.push<NotImplementedView>(); }, },
+		{ "ADS-B: Planes", 			ui::Color::orange(),	&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
 		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Audio", 					ui::Color::green(),	nullptr,			[&nav](){ nav.push<AnalogAudioView>(false); } },

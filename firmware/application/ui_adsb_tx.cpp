@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_adsbtx.hpp"
+#include "ui_adsb_tx.hpp"
 #include "ui_alphanum.hpp"
 
 #include "adsb.hpp"

@@ -160,7 +160,8 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_focus.cpp
 	ui_about.cpp
-	ui_adsbtx.cpp
+	ui_adsb_tx.cpp
+	ui_adsb_rx.cpp
 	ui_aprstx.cpp
 	ui_modemsetup.cpp
 	ui_alphanum.cpp

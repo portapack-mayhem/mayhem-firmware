@@ -29,6 +29,7 @@
 namespace adsb {
 
 	const char icao_id_lut[65] = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ##### ###############0123456789######";
+	const uint8_t adsb_preamble[16] = { 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0 };
 	
 	void make_frame_mode_s(uint8_t * const adsb_frame, const uint32_t ICAO_address);
 	
