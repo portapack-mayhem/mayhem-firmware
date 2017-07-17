@@ -68,11 +68,11 @@ constexpr Pin pins[] = {
 	[P2_1]  = {  2,  1, { .mode=4, .pd=1, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_RXD: PortaPack P2_1/ADDR */
 	[P2_2]  = {  2,  2, PinConfig::sgpio_inout_fast(0) }, /* SGPIO6/BANK2F3M16: CPLD.61/HOST_DATA6(IO) */
 	[P2_3]  = {  2,  3, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
-	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/<unused> */
+	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/LCD_RD */
 	[P2_5]  = {  2,  5, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
 	[P2_6]  = {  2,  6, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
 	[P2_7]  = {  2,  7, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* ISP: 10K PU, Unused */
-	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/LCD_RD */
+	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/<unused> */
 	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WR */
 	[P2_10] = {  2, 10, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
 	[P2_11] = {  2, 11, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
