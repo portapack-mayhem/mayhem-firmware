@@ -49,13 +49,13 @@ constexpr Pin pins[] = {
 	[P1_3]  = {  1,  3, { .mode=5, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* SSP1_MISO/P41: MAX2837.DOUT(O) */
 	[P1_4]  = {  1,  4, { .mode=5, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* SSP1_MOSI/P40: MAX2837.DIN(I), MAX5864.DIN(I) */
 	[P1_5]  = {  1,  5, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* SD_POW: PortaPack CPLD.TDO(O) */
-	[P1_6]  = {  1,  6, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_CMD: PortaPack SD.CMD(IO)  */
+	[P1_6]  = {  1,  6, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_CMD: PortaPack SD.CMD(IO)  */
 	[P1_7]  = {  1,  7, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !MIX_BYPASS/P35: U1.VCTL1(I), U11.VCTL2(I), U9.V2(I) */
 	[P1_8]  = {  1,  8, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* SD_VOLT0: PortaPack CPLD.TMS(I) */
-	[P1_9]  = {  1,  9, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT0: PortaPack SD.DAT0(IO) */
-	[P1_10] = {  1, 10, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT1: PortaPack SD.DAT1(IO) */
-	[P1_11] = {  1, 11, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
-	[P1_12] = {  1, 12, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
+	[P1_9]  = {  1,  9, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT0: PortaPack SD.DAT0(IO) */
+	[P1_10] = {  1, 10, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT1: PortaPack SD.DAT1(IO) */
+	[P1_11] = {  1, 11, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
+	[P1_12] = {  1, 12, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
 	[P1_13] = {  1, 13, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* SD_CD: PortaPack SD.CD(O) */
 	[P1_14] = {  1, 14, PinConfig::sgpio_out_fast_with_pullup(6) }, /* SGPIO10/P78/BANK2F3M8: CPLD.76/HOST_DISABLE(I) */
 	[P1_15] = {  1, 15, PinConfig::sgpio_inout_fast(2) }, /* SGPIO2/BANK2F3M9: CPLD.74/HOST_DATA2(IO) */
@@ -130,7 +130,7 @@ constexpr Pin pins[] = {
 	[P9_5]  = {  9,  5, { .mode=3, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* CPLD_TDO: CPLD.TDO(O) */
 	[P9_6]  = {  9,  6, PinConfig::sgpio_in_fast(6) }, /* SGPIO8/SGPIO_CLK/P60: SI5351C.CLK2(O) */
 	[PF_4]  = { 15,  4, { .mode=7, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_RX_SCK: Unused */
-	[CLK0]  = { 24,  0, { .mode=4, .pd=1, .pu=0, .fast=1, .input=1, .ifilt=0 } }, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
+	[CLK0]  = { 24,  0, { .mode=4, .pd=1, .pu=0, .fast=0, .input=1, .ifilt=0 } }, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
 	[CLK2]  = { 24,  2, { .mode=6, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_TX_CLK: PortaPack I2S0_TX_MCLK */
 };
 
