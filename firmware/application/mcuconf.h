@@ -38,13 +38,11 @@
 
 
 #define LPC43XX_I2C_USE_I2C0                TRUE
-#define LPC43XX_I2C_USE_I2C1                TRUE
 
 /*
  * SPI driver system settings.
  */
 
-#define LPC_SPI_USE_SSP0                    TRUE
 #define LPC_SPI_USE_SSP1                    TRUE
 
 

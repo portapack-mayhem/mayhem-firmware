@@ -39,7 +39,6 @@ extern portapack::IO io;
 extern lcd::ILI9341 display;
 
 extern I2C i2c0;
-extern SPI ssp0;
 extern SPI ssp1;
 
 extern si5351::Si5351 clock_generator;

@@ -59,7 +59,6 @@ portapack::IO io {
 lcd::ILI9341 display;
 
 I2C i2c0(&I2CD0);
-SPI ssp0(&SPID1);
 SPI ssp1(&SPID2);
 
 si5351::Si5351 clock_generator {
