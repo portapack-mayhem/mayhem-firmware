@@ -210,10 +210,11 @@ void AK4951::microphone_enable() {
 // map.r.digital_mic.DMIC = 0;
 // update(Register::DigitalMic);
 	
-	map.r.signal_select_1.MGAIN20 = 0b110;
+	const uint_fast8_t mgain = 0b0111;
+	map.r.signal_select_1.MGAIN20 = mgain & 7;
 	map.r.signal_select_1.PMMP = 1;
 	map.r.signal_select_1.MPSEL = 1;	// MPWR2 pin
-	map.r.signal_select_1.MGAIN3 = 0b0;
+	map.r.signal_select_1.MGAIN3 = (mgain >> 3) & 1;
 	update(Register::SignalSelect1);
 
 	map.r.signal_select_2.INL = 0b01;	// Lch input signal = LIN2
