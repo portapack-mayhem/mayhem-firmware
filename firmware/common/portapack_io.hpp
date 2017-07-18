@@ -130,7 +130,7 @@ public:
 	) {
 		lcd_command(command);
 		for(size_t i=0; i<data_count; i++) {
-			data[i] = lcd_read_data_id();
+			data[i] = lcd_read_data();
 		}
 	}
 
@@ -149,7 +149,7 @@ public:
 	}
 
 	uint32_t lcd_read_word() {
-		return lcd_read_data_frame_memory();
+		return lcd_read_data();
 	}
 
 	void lcd_write_pixels(const ui::Color pixel, size_t n) {
@@ -167,13 +167,13 @@ public:
 	void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
 		size_t word_count = byte_count / 2;
 		while(word_count) {
-			const auto word = lcd_read_data_frame_memory();
+			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 			*(byte++) = word >> 0;
 			word_count--;
 		}
 		if( byte_count & 1 ) {
-			const auto word = lcd_read_data_frame_memory();
+			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 		}
 	}
@@ -311,42 +311,7 @@ private:
 		lcd_wr_deassert();		/* Complete write operation */
 	}
 
-	uint32_t lcd_read_data_id() {
-		// NOTE: Assumes ADDR=1 from command phase.
-		dir_read();
-
-		/* Start read operation */
-		lcd_rd_assert();
-		/* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		const auto value_high = data_read();
-
-		/* Latch data[7:0] */
-		lcd_rd_deassert();
-		/* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		const auto value_low = data_read();
-		return (value_high << 8) | value_low;
-	}
-
-	uint32_t lcd_read_data_frame_memory() {
+	uint32_t lcd_read_data() {
 		// NOTE: Assumes ADDR=1 from command phase.
 		dir_read();
 
