@@ -99,6 +99,12 @@ public:
 		shift_ir(static_cast<uint32_t>(instruction));
 	}
 
+	void shift_dr(std::bitset<240>& value) {
+		for(size_t i=0; i<value.size(); i++) {
+			value[i] = shift_dr(1, value[i]);
+		}
+	}
+
 private:
 	jtag::JTAG& jtag;
 
@@ -147,6 +153,10 @@ private:
 
 	void shift_ir(const uint32_t value) {
 		jtag.shift_ir(IR_LENGTH, value);
+	}
+
+	uint32_t shift_dr(const size_t count, const uint32_t value) {
+		return jtag.shift_dr(count, value);
 	}
 };
 /*
