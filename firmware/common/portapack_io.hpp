@@ -104,6 +104,17 @@ public:
 
 	void lcd_data_write_command_and_data(
 		const uint_fast8_t command,
+		const uint8_t* data,
+		const size_t data_count
+	) {
+		lcd_command(command);
+		for(size_t i=0; i<data_count; i++) {
+			lcd_write_data_fast(data[i]);
+		}
+	}
+	
+	void lcd_data_write_command_and_data(
+		const uint_fast8_t command,
 		const std::initializer_list<uint8_t>& data
 	) {
 		lcd_command(command);
