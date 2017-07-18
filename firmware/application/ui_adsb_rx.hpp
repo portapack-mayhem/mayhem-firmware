@@ -45,8 +45,9 @@ private:
 	static constexpr float k = 1.0f / 128.0f;
 	
 	File iq_file { };
+	size_t f_offset { 0 };
 	
-	void analyze(uint64_t offset);
+	bool analyze(uint64_t offset);
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 8 }, "Test", Color::light_grey() }
@@ -82,8 +83,8 @@ private:
 	};
 	
 	Button button_ffw {
-		{ 176, 0 * 16, 64, 16 },
-		"+50ms"
+		{ 184, 0 * 16, 56, 16 },
+		"FFW"
 	};
 	
 	/*

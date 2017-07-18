@@ -23,7 +23,6 @@
 #include "ui_adsb_tx.hpp"
 #include "ui_alphanum.hpp"
 
-#include "adsb.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
@@ -56,19 +55,19 @@ void ADSBTxView::generate_frame() {
 	uint32_t c;
 	std::string str_debug;
 	
-	generate_frame_id(adsb_frame, sym_icao.value_hex_u64(), callsign);
+	generate_frame_id(frame, sym_icao.value_hex_u64(), callsign);
 
 	memset(adsb_bin, 0, 112);
 
 	// Convert to binary (1 byte per bit, faster for baseband code)
 	for (c = 0; c < 112; c++) {
-		if ((adsb_frame[c >> 3] << (c & 7)) & 0x80)
+		if ((frame.get_byte(c >> 3) << (c & 7)) & 0x80)
 			adsb_bin[c] = 1;
 	}
 	
 	// Display in hex for debug
-	text_frame_a.set(to_string_hex_array(&adsb_frame[0], 7));
-	text_frame_b.set(to_string_hex_array(&adsb_frame[7], 7));
+	//text_frame_a.set(to_string_hex_array(frame.get_byte(0), 7));
+	//text_frame_b.set(to_string_hex_array(frame.get_byte(7), 7));
 
 	button_callsign.set_text(callsign);
 }
@@ -79,7 +78,7 @@ bool ADSBTxView::start_tx() {
 	memcpy(shared_memory.bb_data.data, adsb_bin, 112);
 	baseband::set_adsb();
 	
-	transmitter_model.set_tuning_frequency(1090000000);		// FOR TESTING - DEBUG
+	transmitter_model.set_tuning_frequency(434000000);		// DEBUG
 	transmitter_model.set_sampling_rate(4000000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_vga(40);

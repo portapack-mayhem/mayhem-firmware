@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "adsb.hpp"
 #include "ui_textentry.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -30,6 +31,8 @@
 #include "message.hpp"
 #include "transmitter_model.hpp"
 #include "portapack.hpp"
+
+using namespace adsb;
 
 namespace ui {
 
@@ -55,7 +58,7 @@ private:
 	
 	std::string callsign = "KLM1023 ";
 	
-	uint8_t adsb_frame[14];		// 112 bit data block as 14 bytes
+	adsb_frame frame { };
 	uint8_t adsb_bin[112];		// 112 bit data block
 	
 	bool start_tx();
