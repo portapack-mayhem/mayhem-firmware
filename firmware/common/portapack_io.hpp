@@ -109,7 +109,7 @@ public:
 	) {
 		lcd_command(command);
 		for(size_t i=0; i<data_count; i++) {
-			lcd_write_data_fast(data[i]);
+			lcd_write_data(data[i]);
 		}
 	}
 	
@@ -119,7 +119,7 @@ public:
 	) {
 		lcd_command(command);
 		for(const auto d : data) {
-			lcd_write_data_fast(d);
+			lcd_write_data(d);
 		}
 	}
 
@@ -135,17 +135,17 @@ public:
 	}
 
 	void lcd_write_word(const uint32_t w) {
-		lcd_write_data_fast(w);
+		lcd_write_data(w);
 	}
 
 	void lcd_write_words(const uint16_t* const w, size_t n) {
 		for(size_t i=0; i<n; i++) {
-			lcd_write_data_fast(w[i]);
+			lcd_write_data(w[i]);
 		}
 	}
 
 	void lcd_write_pixel(const ui::Color pixel) {
-		lcd_write_data_fast(pixel.v);
+		lcd_write_data(pixel.v);
 	}
 
 	uint32_t lcd_read_word() {
@@ -154,7 +154,7 @@ public:
 
 	void lcd_write_pixels(const ui::Color pixel, size_t n) {
 		while(n--) {
-			lcd_write_data_fast(pixel.v);
+			lcd_write_data(pixel.v);
 		}
 	}
 
@@ -298,7 +298,7 @@ private:
 		addr(1);				/* Set up for data phase (most likely after a command) */
 	}
 
-	void lcd_write_data_fast(const uint32_t value) __attribute__((always_inline)) {
+	void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
 		// NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
 		data_write_high(value);	/* Drive high byte */
 		__asm__("nop");
