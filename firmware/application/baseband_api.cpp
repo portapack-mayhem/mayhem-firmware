@@ -23,6 +23,7 @@
 #include "baseband_api.hpp"
 
 #include "audio.hpp"
+#include "tonesets.hpp"
 #include "dsp_iir_config.hpp"
 
 #include "portapack_shared_memory.hpp"
@@ -224,6 +225,20 @@ void set_rds_data(const uint16_t message_length) {
 void set_spectrum(const size_t sampling_rate, const size_t trigger) {
 	const WidebandSpectrumConfigMessage message {
 		sampling_rate, trigger
+	};
+	send_message(&message);
+}
+
+void set_siggen_tone(const uint32_t tone) {
+	const SigGenToneMessage message {
+		TONES_F2D(tone)
+	};
+	send_message(&message);
+}
+
+void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t duration) {
+	const SigGenConfigMessage message {
+		bw, shape, duration * TONES_SAMPLERATE
 	};
 	send_message(&message);
 }

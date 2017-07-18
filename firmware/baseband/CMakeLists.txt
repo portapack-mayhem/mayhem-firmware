@@ -387,6 +387,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
+### Signal generator
+
+set(MODE_CPPSRC
+	proc_siggen.cpp
+)
+DeclareTargets(PSIG siggen)
+
 ### SSTV TX
 
 set(MODE_CPPSRC

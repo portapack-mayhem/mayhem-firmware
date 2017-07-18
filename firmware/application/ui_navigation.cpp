@@ -36,7 +36,7 @@
 #include "ui_aprstx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
-#include "ui_cw.hpp"
+#include "ui_siggen.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_freqman.hpp"
@@ -55,7 +55,6 @@
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_whipcalc.hpp"
-#include "ui_whistle.hpp"
 
 #include "analog_audio_app.hpp"
 #include "ais_app.hpp"
@@ -283,17 +282,19 @@ void NavigationView::focus() {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B: Planes", 			ui::Color::orange(),	&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
+		{ "ADS-B: Planes", 			ui::Color::yellow(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
 		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Audio", 					ui::Color::green(),	nullptr,			[&nav](){ nav.push<AnalogAudioView>(false); } },
+		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(false); } },
 		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+		{ "LoRa", 					ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
+	//set_highlighted(3);		// Default selection is "Audio"
 }
 
 /* TransmittersMenuView **************************************************/
@@ -312,10 +313,10 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "OOK remote encoders", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),		&bitmap_icon_rds,		[&nav](){ nav.push<RDSView>(); } },
+		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },
 		{ "Soundboard", 			ui::Color::green(), 	&bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
-		{ "Whistle", 				ui::Color::green(),		&bitmap_icon_whistle,	[&nav](){ nav.push<WhistleView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -325,7 +326,6 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	add_items({
 		{ "Frequency manager", 		ui::Color::green(), &bitmap_icon_freqman,	[&nav](){ nav.push<FrequencyManagerView>(); } },
-		{ "CW generator", 			ui::Color::green(), &bitmap_icon_cwgen,		[&nav](){ nav.push<CWTXView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),	&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),	nullptr,				[&nav](){ nav.push<WipeSDView>(); } },

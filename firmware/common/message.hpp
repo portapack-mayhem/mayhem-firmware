@@ -87,6 +87,8 @@ public:
 		WidebandSpectrumConfig = 42,
 		FSKConfigure = 43,
 		SSTVConfigure = 44,
+		SigGenConfig = 43,
+		SigGenTone = 44,
 		
 		POCSAGPacket = 50,
 		
@@ -681,6 +683,36 @@ public:
 	const uint32_t gain_x10;
 	const uint32_t ctcss_phase_inc;
 	const bool ctcss_enabled;
+};
+
+class SigGenConfigMessage : public Message {
+public:
+	constexpr SigGenConfigMessage(
+		const uint32_t bw,
+		const uint32_t shape,
+		const uint32_t duration
+	) : Message { ID::SigGenConfig },
+		bw(bw),
+		shape(shape),
+		duration(duration)
+	{
+	}
+
+	const uint32_t bw;
+	const uint32_t shape;
+	const uint32_t duration;
+};
+
+class SigGenToneMessage : public Message {
+public:
+	constexpr SigGenToneMessage(
+		const uint32_t tone_delta
+	) : Message { ID::SigGenTone },
+		tone_delta(tone_delta)
+	{
+	}
+
+	const uint32_t tone_delta;
 };
 
 class AFSKConfigureMessage : public Message {

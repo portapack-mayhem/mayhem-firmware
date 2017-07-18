@@ -172,7 +172,7 @@ set(CPPSRC
 	ui_channel.cpp
 	ui_scanner.cpp
 	ui_coasterp.cpp
-	ui_cw.cpp
+	ui_siggen.cpp
 	ui_debug.cpp
 	ui_encoders.cpp
 	ui_font_fixed_8x16.cpp
@@ -204,7 +204,6 @@ set(CPPSRC
 	ui_touch_calibration.cpp
 	ui_transmitter.cpp
 	ui_whipcalc.cpp
-	ui_whistle.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp
 	receiver_model.cpp

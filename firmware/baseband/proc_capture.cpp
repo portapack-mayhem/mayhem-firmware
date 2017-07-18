@@ -39,8 +39,8 @@ CaptureProcessor::CaptureProcessor() {
 	decim_0.configure(decim_0_filter.taps, 33554432);
 	decim_1.configure(decim_1_filter.taps, 131072);
 
-	channel_filter_pass_f = decim_1_filter.pass_frequency_normalized * decim_1_input_fs;
-	channel_filter_stop_f = decim_1_filter.stop_frequency_normalized * decim_1_input_fs;
+	channel_filter_pass_f = decim_1_filter.pass_frequency_normalized * decim_1_input_fs;	// 162760.416666667
+	channel_filter_stop_f = decim_1_filter.stop_frequency_normalized * decim_1_input_fs;	// 337239.583333333
 
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;

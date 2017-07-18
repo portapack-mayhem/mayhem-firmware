@@ -100,7 +100,7 @@ private:
 	};
 	
 	Text text_bw {
-		{ 11 * 8, 2 * 8, 9 * 8, 1 * 16 },
+		{ 11 * 8, 1 * 8, 9 * 8, 1 * 16 },
 		"BW:   kHz"
 	};
 	NumberField field_bw {

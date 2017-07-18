@@ -20,10 +20,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_whistle.hpp"
-#include "ui_receiver.hpp"
-#include "tonesets.hpp"
+#include "ui_siggen.hpp"
 
+#include "tonesets.hpp"
+#include "portapack.hpp"
 #include "baseband_api.hpp"
 
 #include <cstring>
@@ -33,57 +33,75 @@ using namespace portapack;
 
 namespace ui {
 
-void WhistleView::start_tx() {
-	baseband::set_tone(
-		0,
-		field_tone.value() * TONES_DELTA_COEF,
-		(checkbox_stop.value()) ? field_stop.value() * TONES_SAMPLERATE : 0xFFFFFFFF);	// (Almost) infinite duration :)
-	
-	shared_memory.bb_data.tones_data.message[0] = 0;
-	
+void SigGenView::focus() {
+	options_shape.focus();
+}
+
+SigGenView::~SigGenView() {
+	transmitter_model.disable();
+	baseband::shutdown();
+}
+
+void SigGenView::start_tx() {
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_tones_config(transmitter_model.bandwidth(), 0, 1, false, false);
+	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
 	
-	tx_mode = SINGLE;
+	auto duration = field_stop.value();
+	if (!checkbox_auto.value())
+		duration = 0;
+	baseband::set_siggen_config(transmitter_model.bandwidth(), options_shape.selected_index_value(), field_stop.value());
 }
 
-void WhistleView::on_tx_progress(const bool done) {
-	if (done) {
-		transmitter_model.disable();
+void SigGenView::update_tone() {
+	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
+}
+
+void SigGenView::on_tx_progress(const bool done) {
+	if (done)
 		tx_view.set_transmitting(false);
-		tx_mode = IDLE;
-	}
 }
 
-void WhistleView::focus() {
-	tx_view.focus();
-}
-
-WhistleView::~WhistleView() {
-	transmitter_model.disable();
-	baseband::shutdown();
-}
-
-WhistleView::WhistleView(
+SigGenView::SigGenView(
 	NavigationView& nav
 )
 {
-	baseband::run_image(portapack::spi_flash::image_tag_tones);
+	baseband::run_image(portapack::spi_flash::image_tag_siggen);
 	
 	add_children({
 		&labels,
-		&field_tone,
+		&options_shape,
+		&text_shape,
+		&symfield_tone,
+		&button_update,
+		&checkbox_auto,
 		&checkbox_stop,
 		&field_stop,
 		&tx_view
 	});
 	
-	field_tone.set_value(1520);
-	field_stop.set_value(15);
+	options_shape.on_change = [this](size_t, OptionsField::value_t v) {
+		text_shape.set(shape_strings[v]);
+	};
+	options_shape.set_selected_index(0);
+	text_shape.set(shape_strings[0]);
+	
+	symfield_tone.set_sym(1, 1);			// Default: 1000 Hz
+	symfield_tone.on_change = [this]() {
+		if (auto_update)
+			update_tone();
+	};
+	
+	button_update.on_select = [this](Button&) {
+		update_tone();
+	};
+	
+	checkbox_auto.on_select = [this](Checkbox&, bool v) {
+		auto_update = v;
+	};
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
@@ -93,15 +111,15 @@ WhistleView::WhistleView(
 	};
 	
 	tx_view.on_start = [this]() {
-		if (tx_mode == IDLE) {
-			tx_view.set_transmitting(true);
-			start_tx();
-		}
+		start_tx();
+		tx_view.set_transmitting(true);
 	};
 	
 	tx_view.on_stop = [this]() {
-		baseband::kill_tone();
+		transmitter_model.disable();
+		tx_view.set_transmitting(false);
 	};
+
 }
 
 } /* namespace ui */

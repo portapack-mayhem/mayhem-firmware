@@ -406,18 +406,22 @@ public:
 
 class ImageOptionsField : public Widget {
 public:
-	using image_t = const unsigned char *;
 	using value_t = int32_t;
-	using option_t = std::pair<image_t, value_t>;
+	using option_t = std::pair<const Bitmap*, value_t>;
 	using options_t = std::vector<option_t>;
 
 	std::function<void(size_t, value_t)> on_change { };
 	std::function<void(void)> on_show_options { };
 
-	ImageOptionsField(Rect parent_rect, options_t options);
+	ImageOptionsField(
+		const Rect parent_rect,
+		const Color foreground,
+		const Color background,
+		const options_t options
+	);
 	
 	ImageOptionsField(
-	) : ImageOptionsField { { }, { } }
+	) : ImageOptionsField { { }, Color::white(), Color::black(), { } }
 	{
 	}
 	
@@ -438,6 +442,8 @@ public:
 private:
 	options_t options;
 	size_t selected_index_ { 0 };
+	Color foreground_;
+	Color background_;
 };
 
 class OptionsField : public Widget {

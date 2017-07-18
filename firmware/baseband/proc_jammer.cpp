@@ -87,9 +87,9 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 };
 
 void JammerProcessor::on_message(const Message* const msg) {
-	const auto message = *reinterpret_cast<const JammerConfigureMessage*>(msg);
-	
-	if (message.id == Message::ID::JammerConfigure) {
+	if (msg->id == Message::ID::JammerConfigure) {
+		const auto message = *reinterpret_cast<const JammerConfigureMessage*>(msg);
+		
 		if (message.run) {
 			jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 			noise_type = message.type;

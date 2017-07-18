@@ -948,10 +948,14 @@ bool ImageButton::on_touch(const TouchEvent event) {
 /* ImageOptionsField *****************************************************/
 
 ImageOptionsField::ImageOptionsField(
-	Rect parent_rect,
-	options_t options
+	const Rect parent_rect,
+	const Color foreground,
+	const Color background,
+	const options_t options
 ) : Widget { parent_rect },
-	options { options }
+	options { options },
+	foreground_ { foreground },
+	background_ { background }
 {
 	set_focusable(true);
 }
@@ -994,14 +998,20 @@ void ImageOptionsField::set_options(options_t new_options) {
 }
 
 void ImageOptionsField::paint(Painter& painter) {
-	const auto paint_style = has_focus() ? style().invert() : style();
-
-	if( selected_index() < options.size() ) {
-		const auto bmp_ptr = options[selected_index()].first;
-		painter.fill_rectangle({screen_rect().location(), {screen_rect().size().width() + 4, screen_rect().size().height() + 4}}, ui::Color::black());
-		painter.draw_rectangle({screen_rect().location(), {screen_rect().size().width() + 4, screen_rect().size().height() + 4}}, paint_style.background);
-		portapack::display.drawBMP({screen_pos().x() + 2, screen_pos().y() + 1}, bmp_ptr, true);
-	}
+	const bool selected = (has_focus() || highlighted());
+	const auto paint_style = selected ? style().invert() : style();
+	
+	painter.draw_rectangle(
+		{ screen_rect().location(), { screen_rect().size().width() + 4, screen_rect().size().height() + 4 } },
+		paint_style.background
+	);
+	
+	painter.draw_bitmap(
+		{screen_pos().x() + 2, screen_pos().y() + 2},
+		*options[selected_index_].first,
+		foreground_,
+		background_
+	);
 }
 
 void ImageOptionsField::on_focus() {

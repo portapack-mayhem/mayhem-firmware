@@ -20,57 +20,97 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __SIGGEN_H__
+#define __SIGGEN_H__
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
-#include "ui_painter.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
+
+#include "portapack.hpp"
 #include "message.hpp"
-#include "transmitter_model.hpp"
 
 namespace ui {
 
-class WhistleView : public View {
+class SigGenView : public View {
 public:
-	WhistleView(NavigationView& nav);
-	~WhistleView();
+	SigGenView(NavigationView& nav);
+	~SigGenView();
 	
 	void focus() override;
 	
-	std::string title() const override { return "Whistle"; };
+	std::string title() const override { return "Signal generator"; };
 
 private:
 	void start_tx();
+	void update_tone();
 	void on_tx_progress(const bool done);
-
-	enum tx_modes {
-		IDLE = 0,
-		SINGLE
+	
+	const std::string shape_strings[7] = {
+		"CW",
+		"Sine",
+		"Triangle",
+		"Saw up",
+		"Saw down",
+		"Square",
+		"Noise"
 	};
 	
-	tx_modes tx_mode = IDLE;
-
+	bool auto_update { false };
+	
 	Labels labels {
-		{ { 3 * 8, 4 * 8 }, "Tone frequency:     Hz", Color::light_grey() },
-		{ { 22 * 8, 8 * 8 + 4 }, "s.", Color::light_grey() }
+		{ { 6 * 8, 4 + 10 }, "Shape:", Color::light_grey() },
+		{ { 7 * 8, 7 * 8 }, "Tone:      Hz", Color::light_grey() },
+		{ { 22 * 8, 15 * 8 + 4 }, "s.", Color::light_grey() },
+		{ { 8 * 8, 20 * 8 }, "Modulation: FM", Color::light_grey() }
 	};
 	
-	NumberField field_tone {
-		{ 19 * 8, 4 * 8 },
-		4,
-		{ 1, 9999 },
+	ImageOptionsField options_shape {
+		{ 13 * 8, 4, 32, 32 },
+		Color::white(),
+		Color::black(),
+		{
+			{ &bitmap_sig_cw, 0 },
+			{ &bitmap_sig_sine, 1 },
+			{ &bitmap_sig_tri, 2 },
+			{ &bitmap_sig_saw_up, 3 },
+			{ &bitmap_sig_saw_down, 4 },
+			{ &bitmap_sig_square, 5 },
+			{ &bitmap_sig_noise, 6 }
+		}
+	};
+	
+	Text text_shape {
+		{ 18 * 8, 4 + 10, 8 * 8, 16 },
+		""
+	};
+	
+	SymField symfield_tone {
+		{ 13 * 8, 7 * 8 },
 		5,
-		' '
+		SymField::SYMFIELD_DEC
+	};
+	
+	Button button_update {
+		{ 6 * 8, 10 * 8, 8 * 8, 3 * 8 },
+		"Update"
+	};
+	
+	Checkbox checkbox_auto {
+		{ 16 * 8, 10 * 8 },
+		4,
+		"Auto"
 	};
 	
 	Checkbox checkbox_stop {
-		{ 5 * 8, 8 * 8 },
+		{ 5 * 8, 15 * 8 },
 		10,
 		"Stop after"
 	};
 	
 	NumberField field_stop {
-		{ 20 * 8, 8 * 8 + 4 },
+		{ 20 * 8, 15 * 8 + 4 },
 		2,
 		{ 1, 99 },
 		1,
@@ -93,3 +133,5 @@ private:
 };
 
 } /* namespace ui */
+
+#endif/*__SIGGEN_H__*/

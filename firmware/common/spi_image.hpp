@@ -84,6 +84,7 @@ constexpr image_tag_t image_tag_replay				{ 'P', 'R', 'E', 'P' };
 constexpr image_tag_t image_tag_fsktx				{ 'P', 'F', 'S', 'K' };
 constexpr image_tag_t image_tag_mic_tx				{ 'P', 'M', 'T', 'X' };
 constexpr image_tag_t image_tag_sstv_tx				{ 'P', 'S', 'T', 'X' };
+constexpr image_tag_t image_tag_siggen				{ 'P', 'S', 'I', 'G' };
 
 constexpr image_tag_t image_tag_noop				{ 'P', 'N', 'O', 'P' };
 

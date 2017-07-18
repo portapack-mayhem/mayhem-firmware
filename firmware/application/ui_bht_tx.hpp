@@ -26,11 +26,8 @@
 #include "ui_transmitter.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
-#include "bmp_bulb_on.hpp"
-#include "bmp_bulb_off.hpp"
-#include "bmp_bulb_ignore.hpp"
-
 #include "bht.hpp"
+#include "bitmap.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
@@ -198,9 +195,9 @@ private:
 	std::array<ImageOptionsField, 4> relay_states { };
 	
 	ImageOptionsField::options_t relay_options = {
-		{ &bulb_ignore_bmp[0], 0 },
-		{ &bulb_off_bmp[0], 1 },
-		{ &bulb_on_bmp[0], 2 }
+		{ &bitmap_bulb_ignore, 0 },
+		{ &bitmap_bulb_off, 1 },
+		{ &bitmap_bulb_on, 2 }
 	};
 	
 	ProgressBar progressbar {
