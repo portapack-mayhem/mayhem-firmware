@@ -31,6 +31,7 @@ using namespace hackrf::one;
 
 #include "clock_manager.hpp"
 
+#include "backlight.hpp"
 #include "touch_adc.hpp"
 #include "audio.hpp"
 
@@ -55,6 +56,9 @@ portapack::IO io {
 	portapack::gpio_lcd_te,
 	portapack::gpio_unused,
 };
+
+portapack::BacklightCAT4004 backlight_cat4004;
+portapack::BacklightOnOff   backlight_on_off;
 
 lcd::ILI9341 display;
 
@@ -145,6 +149,12 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 		? portapack::cpld::rev_20170522::config
 		: portapack::cpld::rev_20150901::config
 		;
+}
+
+Backlight* backlight() {
+	return (portapack_model() == PortaPackModel::R2_20170522)
+		? static_cast<portapack::Backlight*>(&backlight_cat4004)
+		: static_cast<portapack::Backlight*>(&backlight_on_off);
 }
 
 static void shutdown_base() {
@@ -272,6 +282,7 @@ bool init() {
 void shutdown() {
 	gpdma::controller.disable();
 
+	backlight()->off();
 	display.shutdown();
 	
 	radio::disable();

@@ -270,12 +270,9 @@ void lcd_vertical_scrolling_start_address(
 void ILI9341::init() {
 	lcd_reset();
 	lcd_init();
-
-	io.lcd_backlight(1);
 }
 
 void ILI9341::shutdown() {
-	io.lcd_backlight(0);
 	lcd_reset();
 }
 

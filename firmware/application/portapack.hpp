@@ -29,6 +29,7 @@
 #include "spi_pp.hpp"
 #include "si5351.hpp"
 #include "lcd_ili9341.hpp"
+#include "backlight.hpp"
 
 #include "radio.hpp"
 #include "clock_manager.hpp"
@@ -52,5 +53,7 @@ extern TemperatureLogger temperature_logger;
 
 bool init();
 void shutdown();
+
+Backlight* backlight();
 
 } /* namespace portapack */
