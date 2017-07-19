@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "portapack_io.hpp"
 
 #include "receiver_model.hpp"
