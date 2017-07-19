@@ -160,6 +160,46 @@ static void shutdown_base() {
 	hackrf::one::reset();
 }
 
+static void turn_off_unused_mcu_peripherals() {
+	/* RITIMER: M0 SysTick substitute (because M0 has no SysTick)
+	 * TIMER3: M0 cycle/PCLK counter
+	 */
+
+	// Reclaim about 42mA when idle at top menu.
+	LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = 0;
+	LPC_CCU1->CLK_APB3_DAC_CFG.RUN = 0;
+	LPC_CCU1->CLK_APB3_CAN0_CFG.RUN = 0;
+	LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG.RUN = 0;
+	LPC_CCU1->CLK_APB1_CAN1_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_LCD_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_ETHERNET_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_USB0_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_EMC_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_SCT_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_USB1_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_EMCDIV_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_WWDT_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_USART0_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_UART1_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_TIMER1_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_USART2_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_USART3_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_TIMER2_CFG.RUN = 0;
+	LPC_CCU1->CLK_M4_QEI_CFG.RUN = 0;
+
+	LPC_CCU1->CLK_USB1_CFG.RUN = 0;
+	LPC_CCU1->CLK_SPI_CFG.RUN = 0;
+
+	LPC_CCU2->CLK_APB2_USART3_CFG.RUN = 0;
+	LPC_CCU2->CLK_APB2_USART2_CFG.RUN = 0;
+	LPC_CCU2->CLK_APB0_UART1_CFG.RUN = 0;
+	LPC_CCU2->CLK_APB0_USART0_CFG.RUN = 0;
+	LPC_CCU2->CLK_APB0_SSP0_CFG.RUN = 0;
+
+	LPC_CREG->CREG0 |= (1 << 5);	// Disable USB0 PHY
+}
+
 bool init() {
 	for(const auto& pin : pins) {
 		pin.init();
@@ -184,6 +224,8 @@ bool init() {
 		| (1U << 11)	// SDA: Input enabled
 		| (0U << 15)	// SDA: Enable input glitch filter
 		;
+
+	turn_off_unused_mcu_peripherals();
 
 	power.init();
 
