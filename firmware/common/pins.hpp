@@ -64,20 +64,20 @@ constexpr Pin pins[] = {
 	[P1_18] = {  1, 18, PinConfig::gpio_out_with_pulldown(0) }, /* SGPIO12/BANK2F3M12: CPLD.70/HOST_INVERT(I) */
 	[P1_19] = {  1, 19, { .mode=1, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* SSP1_SCK/P39: MAX2837.SCLK(I), MAX5864.SCLK(I) */
 	[P1_20] = {  1, 20, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* CS_XCVR/P53: MAX2837.CS(I) */
-	[P2_0]  = {  2,  0, { .mode=4, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
-	[P2_1]  = {  2,  1, { .mode=4, .pd=1, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_RXD: PortaPack P2_1/ADDR */
+	[P2_0]  = {  2,  0, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
+	[P2_1]  = {  2,  1, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_RXD: PortaPack P2_1/ADDR */
 	[P2_2]  = {  2,  2, PinConfig::sgpio_inout_fast(0) }, /* SGPIO6/BANK2F3M16: CPLD.61/HOST_DATA6(IO) */
 	[P2_3]  = {  2,  3, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
-	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/LCD_RD */
+	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/LCD_RDX */
 	[P2_5]  = {  2,  5, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
 	[P2_6]  = {  2,  6, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
 	[P2_7]  = {  2,  7, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* ISP: 10K PU, Unused */
 	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/<unused> */
-	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WR */
+	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WRX */
 	[P2_10] = {  2, 10, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
 	[P2_11] = {  2, 11, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
 	[P2_12] = {  2, 12, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
-	[P2_13] = {  2, 13, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* P2_13: PortaPack P2_13/DIR */
+	[P2_13] = {  2, 13, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* P2_13: PortaPack P2_13/DIR */
 	[P3_0]  = {  3,  0, { .mode=2, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
 	[P3_1]  = {  3,  1, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* I2S0_RX_WS: PortaPack I2S0_TX_WS(I). Input enabled to fold back into RX. */
 	[P3_2]  = {  3,  2, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_RX_SDA: PortaPack I2S0_TX_SDA(I) */

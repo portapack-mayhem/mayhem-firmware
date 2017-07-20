@@ -49,8 +49,8 @@ namespace portapack {
 
 portapack::IO io {
 	portapack::gpio_dir,
-	portapack::gpio_lcd_rd,
-	portapack::gpio_lcd_wr,
+	portapack::gpio_lcd_rdx,
+	portapack::gpio_lcd_wrx,
 	portapack::gpio_io_stbx,
 	portapack::gpio_addr,
 	portapack::gpio_lcd_te,

@@ -80,15 +80,15 @@ public:
 
 	constexpr IO(
 		GPIO gpio_dir,
-		GPIO gpio_lcd_rd,
-		GPIO gpio_lcd_wr,
+		GPIO gpio_lcd_rdx,
+		GPIO gpio_lcd_wrx,
 		GPIO gpio_io_stbx,
 		GPIO gpio_addr,
 		GPIO gpio_rot_a,
 		GPIO gpio_rot_b
 	) : gpio_dir { gpio_dir },
-		gpio_lcd_rd { gpio_lcd_rd },
-		gpio_lcd_wr { gpio_lcd_wr },
+		gpio_lcd_rdx { gpio_lcd_rdx },
+		gpio_lcd_wrx { gpio_lcd_wrx },
 		gpio_io_stbx { gpio_io_stbx },
 		gpio_addr { gpio_addr },
 		gpio_rot_a { gpio_rot_a },
@@ -199,8 +199,8 @@ public:
 
 private:
 	const GPIO gpio_dir;
-	const GPIO gpio_lcd_rd;
-	const GPIO gpio_lcd_wr;
+	const GPIO gpio_lcd_rdx;
+	const GPIO gpio_lcd_wrx;
 	const GPIO gpio_io_stbx;
 	const GPIO gpio_addr;
 	const GPIO gpio_rot_a;
@@ -213,19 +213,19 @@ private:
 	uint8_t io_reg { 0x03 };
 
 	void lcd_rd_assert() {
-		gpio_lcd_rd.set();
+		gpio_lcd_rdx.clear();
 	}
 
 	void lcd_rd_deassert() {
-		gpio_lcd_rd.clear();
+		gpio_lcd_rdx.set();
 	}
 
 	void lcd_wr_assert() {
-		gpio_lcd_wr.set();
+		gpio_lcd_wrx.clear();
 	}
 
 	void lcd_wr_deassert() {
-		gpio_lcd_wr.clear();
+		gpio_lcd_wrx.set();
 	}
 
 	void io_stb_assert() {

@@ -45,7 +45,7 @@ set lcd_data_wr_hold 10.0
 # Create Clock
 #**************************************************************
 
-create_clock -name {MCU_LCD_WR} -period 66.000 -waveform { 0.000 33.000 } [get_ports {MCU_LCD_WR}]
+create_clock -name {MCU_LCD_WRX} -period 66.000 -waveform { 0.000 33.000 } [get_ports {MCU_LCD_WRX}]
 #create_clock -name strobe_virt -period 66.000
 
 #**************************************************************

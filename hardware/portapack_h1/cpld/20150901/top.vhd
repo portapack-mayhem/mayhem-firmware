@@ -26,11 +26,11 @@ entity top is
 		MCU_D				:	inout	std_logic_vector(7 downto 0);
 		MCU_DIR			:	in		std_logic;
 		MCU_IO_STBX		:	in		std_logic;
-		MCU_LCD_WR		:	in		std_logic;
+		MCU_LCD_WRX		:	in		std_logic;
 		MCU_ADDR			:	in		std_logic;
 		MCU_LCD_TE		:	out	std_logic;
 		MCU_P2_8			:	in		std_logic;
-		MCU_LCD_RD		:	in		std_logic;
+		MCU_LCD_RDX		:	in		std_logic;
 		
 		TP_U				:	out	std_logic;
 		TP_D				:	out	std_logic;
@@ -112,13 +112,13 @@ begin
 	io_strobe <= (MCU_IO_STBX = '0');
 	io_read_strobe <= io_strobe and dir_read;
 
-	lcd_read_strobe <= (MCU_LCD_RD = '1');
+	lcd_read_strobe <= (MCU_LCD_RDX = '0');
 	lcd_write <= not lcd_read_strobe;
 
 	-- LCD interface
 	LCD_RS <= MCU_ADDR;
-	LCD_RDX <= not MCU_LCD_RD;
-	LCD_WRX <= not MCU_LCD_WR;
+	LCD_RDX <= MCU_LCD_RDX;
+	LCD_WRX <= MCU_LCD_WRX;
 
 	lcd_data_out <= lcd_data_out_q & mcu_data_in;
 	lcd_data_in <= LCD_DB;
@@ -136,17 +136,17 @@ begin
 	
 	-- Synchronous behaviors:
 	-- LCD write: Capture LCD high byte on LCD_WRX falling edge.
-	process(MCU_LCD_WR, mcu_data_in)
+	process(MCU_LCD_WRX, mcu_data_in)
 	begin
-		if rising_edge(MCU_LCD_WR) then
+		if falling_edge(MCU_LCD_WRX) then
 			lcd_data_out_q <= mcu_data_in;
 		end if;
 	end process;
 	
 	-- LCD read: Capture LCD low byte on LCD_RD falling edge.
-	process(MCU_LCD_RD, lcd_data_in)
+	process(MCU_LCD_RDX, lcd_data_in)
 	begin
-		if falling_edge(MCU_LCD_RD) then
+		if rising_edge(MCU_LCD_RDX) then
 			lcd_data_in_q <= lcd_data_in(7 downto 0);
 		end if;
 	end process;

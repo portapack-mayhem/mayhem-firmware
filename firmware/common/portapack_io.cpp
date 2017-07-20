@@ -43,8 +43,8 @@ void IO::init() {
 	addr(0);
 
 	gpio_dir.output();
-	gpio_lcd_rd.output();
-	gpio_lcd_wr.output();
+	gpio_lcd_rdx.output();
+	gpio_lcd_wrx.output();
 	gpio_io_stbx.output();
 	gpio_addr.output();
 	gpio_rot_a.input();
