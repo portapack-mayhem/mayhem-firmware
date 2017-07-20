@@ -259,7 +259,6 @@ set_location_assignment PIN_4 -to LCD_BACKLIGHT
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_BACKLIGHT
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_BACKLIGHT
 set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_BACKLIGHT
-set_instance_assignment -name PCI_IO OFF -to LCD_BACKLIGHT
 set_location_assignment PIN_30 -to MCU_LCD_RD
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RD
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RD
