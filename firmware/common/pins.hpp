@@ -73,7 +73,7 @@ constexpr Pin pins[] = {
 	[P2_6]  = {  2,  6, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
 	[P2_7]  = {  2,  7, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* ISP: 10K PU, Unused */
 	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/<unused> */
-	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WRX */
+	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WRX */
 	[P2_10] = {  2, 10, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
 	[P2_11] = {  2, 11, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
 	[P2_12] = {  2, 12, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
