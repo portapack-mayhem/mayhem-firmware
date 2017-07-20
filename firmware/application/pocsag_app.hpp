@@ -75,46 +75,6 @@ private:
 
 	static constexpr ui::Dim header_height = 1 * 16;
 
-	OptionsField options_freq {
-		{ 0 * 8, 0 * 16 },
-		12,
-		{
-			{ "Entered", 0 },
-			{ "BEL Fire", 169625000 },
-			{ "DEU Fire", 448425000 },
-			{ "DEU e-Msg1", 465970000 },
-			{ "DEU e-Msg2", 466075000 },
-			{ "FRA e-Msg1", 466025000 },
-			{ "FRA e-Msg2", 466050000 },
-			{ "FRA e-Msg3", 466075000 },
-			{ "FRA e-Msg4", 466175000 },
-			{ "FRA e-Msg5", 466206250 },
-			{ "FRA e-Msg6", 466231250 },
-			{ "FRA Fire *", 173512500 },
-			{ "FRA Fire HF", 85955000 },
-			{ "FRA Fire 1", 173550000 },
-			{ "FRA Fire 2", 173625000 }, 
-			{ "FRA Fire 3", 173550000 },
-			{ "FRA Fire 4", 173700000 },
-			{ "FRA Fire 5", 173875000 },
-			{ "FRA Fire 6", 173925000 },
-			{ "FRA Fire 7", 173550000 },
-			{ "FRA Fire 8", 168950000 },
-			{ "FRA Fire 9", 169025000 },
-			{ "FRA Fire 10", 169100000 },
-			{ "FRA Fire 11", 169275000 },
-			{ "FRA Fire 12", 169325000 },
-			{ "FRA Priv1", 446475000 },
-			{ "FRA Priv2", 446525000 },	* works near Paris
-			{ "NL Medical", 169650000 },
-			{ "NL KPN3-Public", 172450000 },
-			{ "SWE Minicall1", 169800000 },
-			{ "SWE Minicall2", 161437500 },
-			{ "USA Medical1", 152007500 },
-			{ "USA Medical2", 157450000 },
-			{ "USA Medical3", 163250000 }
-		}
-	};
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
 	};
@@ -131,9 +91,8 @@ private:
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 	
-	Button button_setfreq {
-		{ 0, 19, 11 * 8, 20 },
-		"----.----"
+	FrequencyField field_frequency {
+		{ 0 * 8, 0 * 8 },
 	};
 	OptionsField options_bitrate {
 		{ 12 * 8, 21 },

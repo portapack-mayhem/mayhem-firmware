@@ -270,6 +270,7 @@ EncodersView::EncodersView(NavigationView& nav) {
 		&numberfield_clk,
 		&numberfield_bitduration,
 		&numberfield_wordduration,
+		//&field_debug,
 		&symfield_word,
 		&text_format,
 		//&text_format_a,	// DEBUG
@@ -295,6 +296,19 @@ EncodersView::EncodersView(NavigationView& nav) {
 	symfield_word.on_change = [this]() {
 		this->generate_frame();
 	};
+	
+	// DEBUG
+	/*field_debug.on_change = [this](int32_t value) {
+		uint32_t l;
+		de_bruijn debruijn_seq;
+		debruijn_seq.init(value);
+		l = 1;
+		l <<= value;
+		l--;
+		if (l > 25)
+			l = 25;
+		text_format.set(to_string_bin(debruijn_seq.compute(l), 25));
+	};*/
 	
 	// Selecting input clock changes symbol and word duration
 	numberfield_clk.on_change = [this](int32_t value) {

@@ -27,6 +27,7 @@
 #include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
 #include "encoders.hpp"
+#include "de_bruijn.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
 
@@ -141,6 +142,15 @@ private:
 		100,
 		' '
 	};
+	
+	// DEBUG
+	/*NumberField field_debug {
+		{ 21 * 8, 10 * 8 },
+		2,
+		{ 3, 16 },
+		1,
+		' '
+	};*/
 	
 	SymField symfield_word {
 		{ 2 * 8, 12 * 8 },

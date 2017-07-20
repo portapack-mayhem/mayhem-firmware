@@ -57,10 +57,7 @@ namespace ui {
 
 void POCSAGAppView::update_freq(rf::Frequency f) {
 	set_target_frequency(f);
-	
 	portapack::persistent_memory::set_tuned_frequency(f);	// Maybe not ?
-
-	button_setfreq.set_text(to_string_short_freq(f));
 }
 
 POCSAGAppView::POCSAGAppView(NavigationView& nav) {
@@ -71,11 +68,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	add_children({
 		&rssi,
 		&channel,
-		&options_freq,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
-		&button_setfreq,
+		&field_frequency,
 		&options_bitrate,
 		&check_log,
 		&check_ignore,
@@ -87,6 +83,20 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	receiver_model.set_baseband_bandwidth(1750000);
 	receiver_model.enable();
 	
+	field_frequency.set_value(receiver_model.tuning_frequency());
+	field_frequency.set_step(receiver_model.frequency_step());
+	field_frequency.on_change = [this](rf::Frequency f) {
+		update_freq(f);
+	};
+	field_frequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			update_freq(f);
+			field_frequency.set_value(f);
+		};
+	};
+	
 	check_log.set_value(logging);
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
@@ -96,12 +106,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		on_bitrate_changed(v);
 	};
 	options_bitrate.set_selected_index(1);	// 1200bps
-
-	options_freq.on_change = [this](size_t, OptionsField::value_t v) {
-		set_target_frequency(v);
-		update_freq(v);
-	};
-	options_freq.set_by_value(target_frequency());
 	
 	check_ignore.set_value(ignore);
 	check_ignore.on_select = [this](Checkbox&, bool v) {
@@ -113,22 +117,13 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		sym_ignore.set_sym(6 - c, ignore_address % 10);
 		ignore_address /= 10;
 	}
-	
-	button_setfreq.on_select = [this,&nav](Button&) {
-		auto new_view = nav.push<FrequencyKeypadView>(target_frequency_);
-		new_view->on_changed = [this](rf::Frequency f) {
-			options_freq.set_selected_index(0);		// Automatically select "Entered"
-			update_freq(f);
-		};
-	};
 
 	logger = std::make_unique<POCSAGLogger>();
 	if (logger)
 		logger->append("pocsag.txt");
 }
 
-POCSAGAppView::~POCSAGAppView() {
-	
+POCSAGAppView::~POCSAGAppView() {	
 	// Save ignored address
 	persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
 	
@@ -137,7 +132,7 @@ POCSAGAppView::~POCSAGAppView() {
 }
 
 void POCSAGAppView::focus() {
-	options_freq.focus();
+	field_frequency.focus();
 }
 
 // Useless ?

@@ -152,6 +152,7 @@ set(CPPSRC
 	${COMMON}/bch_code.cpp
 	ctcss.cpp
 	encoder.cpp
+	de_bruijn.cpp
 	freqman.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
