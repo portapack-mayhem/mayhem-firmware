@@ -53,7 +53,7 @@ void SigGenView::start_tx() {
 	auto duration = field_stop.value();
 	if (!checkbox_auto.value())
 		duration = 0;
-	baseband::set_siggen_config(transmitter_model.bandwidth(), options_shape.selected_index_value(), field_stop.value());
+	baseband::set_siggen_config(transmitter_model.bandwidth(), options_shape.selected_index_value(), duration);
 }
 
 void SigGenView::update_tone() {

@@ -117,7 +117,7 @@ void FreqManBaseView::refresh_list() {
 		for (size_t n = 0; n < database.entries.size(); n++) {
 			menu_view.add_item({
 				freqman_item_string(database.entries[n], 26),
-				ui::Color::light_grey(),
+				ui::Color::white(),
 				nullptr,
 				[this](){
 					if (on_select_frequency)

@@ -22,50 +22,37 @@
 
 #include "de_bruijn.hpp"
 
-/*
-How this works:
-B(2,4):		2 states, 4 bits
-Primitive poly with n=4: 1001
-
-	0001
-xor 1001 = 0 ^ 1 = 1
-
-	00011
-xor  1001 = 0 ^ 1 = 1
-
-	000111
-xor   1001 = 0 ^ 1 = 1
-
-	0001111
-xor    1001 = 1 ^ 1 = 0
-
-	00011110
-xor     1001 = 1 ^ 0 = 1
-
-	000111101
-xor      1001 = 1 ^ 1 = 0
-
-	0001111010
-xor       1001 = 0 ^ 1 = 1
-
-	00011110101
-xor        1001 = 0 ^ 1 = 1
-
-	000111101011
-xor         1001 = 1 ^ 1 = 0
-
-	0001111010110
-xor          1001 = 0 ^ 0 = 0
-
-	00011110101100
-xor           1001 = 1 ^ 0 = 1
-
-	000111101011001
-xor            1001 = 1 ^ 1 = 0
-
-	0001111010110010
-xor             1001 = 0 ^ 0 = 0
-*/
+/* How this works:
+ * B(2,4) means:
+ * 	Alphabet size = 2 (binary)
+ * 	Code length = 4
+ * The length of the bitstream is (2 ^ 4) - 1 = 15
+ * The primitive polynomials come from the de_bruijn_polys[] array (one for each code length)
+ * The shift register is init with 1 and shifted left each step
+ * The polynomial is kept on the right, and ANDed with the corresponding shift register bits
+ * The resulting bits are XORed together to produce the new bit pushed in the shift register
+ * 
+ * 		0001 (init)
+ * AND	1001 (polynomial)
+ *      0001 XOR'd -> 1
+ * 
+ * 		00011 (shift left)
+ * AND	 1001
+ *       0001 XOR'd -> 1
+ * 
+ * 		000111 (shift left)
+ * AND	  1001
+ *        0001 XOR'd -> 1
+ * 
+ * 		0001111 (shift left)
+ * AND	   1001
+ *         1001 XOR'd -> 0
+ * 
+ * 		00011110 (shift left)
+ * AND	    1001
+ *          1000 XOR'd -> 1
+ * ...
+ */
 
 void de_bruijn::init(const uint32_t n) {
 	if ((n < 3) || (n > 16))
@@ -73,16 +60,15 @@ void de_bruijn::init(const uint32_t n) {
 	else
 		length = n;
 	
-	// k is 2 (binary sequence)
 	poly = de_bruijn_polys[length - 3];
 	shift_register = 1;
 }
 
-uint32_t de_bruijn::compute(const uint32_t step) {
-	uint32_t c, bits, masked;
+uint32_t de_bruijn::compute(const uint32_t steps) {
+	uint32_t step, bits, masked;
 	uint8_t new_bit;
 	
-	for (c = 0; c < step; c++) {
+	for (step = 0; step < steps; step++) {
 		masked = shift_register & poly;
 		new_bit = 0;
 		for (bits = 0; bits < length; bits++) {

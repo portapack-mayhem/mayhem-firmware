@@ -23,6 +23,8 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TODO: De bruijn sequence scanner for encoders
+//TODO: Waveform viewer
 //TEST: Mic tx
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?

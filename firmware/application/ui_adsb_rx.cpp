@@ -22,9 +22,11 @@
 
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
+#include "ui_geomap.hpp"
 
 #include "adsb.hpp"
 #include "string_format.hpp"
+#include "sine_table_int8.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -202,11 +204,6 @@ bool ADSBRxView::analyze(uint64_t offset) {
 		
 		prev_mag = mag;
 		
-		/*if (!lcd_y && !lcd_x) {
-			for (c = 0; c < 16; c++)
-				display.fill_rectangle({c * 4, 300, 4, 16}, shifter[c] ? Color::white() : Color::blue());
-		}*/
-		
 		if (preamble_count) {
 			if (lcd_y < 188) {
 				mag *= 16;
@@ -250,18 +247,18 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	if (result.is_valid()) {
 		text_debug_a.set("Can't open file");
 	}
-	
+
 	offset_field.on_change = [this, &nav](int32_t value) {
 		// TODO
 	};
 	
 	button_ffw.on_select = [this, &nav](Button&) {
-		while (!analyze(f_offset)) {
+		auto new_view = nav.push<GeoMapView>();
+		/*while (!analyze(f_offset)) {
 			f_offset++;
 		}
 		offset_field.set_value(f_offset);
-		f_offset++;
-		//offset_field.set_value(offset_field.value() + 1562);
+		f_offset++;*/
 	};
 }
 

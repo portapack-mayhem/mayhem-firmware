@@ -29,7 +29,6 @@
 
 #include <cstring>
 #include <stdio.h>
-#include <math.h>
 
 using namespace portapack;
 

@@ -161,27 +161,26 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_focus.cpp
 	ui_about.cpp
-	ui_adsb_tx.cpp
 	ui_adsb_rx.cpp
-	ui_aprstx.cpp
-	ui_modemsetup.cpp
+	ui_adsb_tx.cpp
 	ui_alphanum.cpp
+	ui_aprstx.cpp
 	ui_audio.cpp
-	ui_mictx.cpp
 	ui_baseband_stats_view.cpp
 	ui_bht_tx.cpp
 	ui_channel.cpp
-	ui_scanner.cpp
 	ui_coasterp.cpp
-	ui_siggen.cpp
 	ui_debug.cpp
 	ui_encoders.cpp
 	ui_font_fixed_8x16.cpp
 	ui_freqman.cpp
+	ui_geomap.cpp
 	ui_handwrite.cpp
 	ui_jammer.cpp
 	ui_lcr.cpp
 	ui_menu.cpp
+	ui_mictx.cpp
+	ui_modemsetup.cpp
 	ui_morse.cpp
 	ui_navigation.cpp
 	# ui_numbers.cpp
@@ -193,11 +192,13 @@ set(CPPSRC
 	ui_record_view.cpp
 	ui_replay_view.cpp
 	ui_rssi.cpp
+	ui_scanner.cpp
 	# ui_script.cpp
 	ui_sd_card_status_view.cpp
 	ui_sd_wipe.cpp
 	# ui_sd_card_debug.cpp
 	ui_setup.cpp
+	ui_siggen.cpp
 	ui_soundboard.cpp
 	ui_spectrum.cpp
 	ui_sstvtx.cpp

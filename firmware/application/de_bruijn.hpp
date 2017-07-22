@@ -46,7 +46,7 @@ const uint32_t de_bruijn_polys[14] {
 struct de_bruijn {
 public:
 	void init(const uint32_t n);
-	uint32_t compute(const uint32_t step);
+	uint32_t compute(const uint32_t steps);
 
 private:
 	uint32_t length { };
