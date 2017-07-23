@@ -26,7 +26,6 @@
 
 #include "adsb.hpp"
 #include "string_format.hpp"
-#include "sine_table_int8.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -39,25 +38,35 @@ using namespace portapack;
 
 namespace ui {
 
+template<>
+void RecentEntriesTable<ADSBRecentEntries>::draw(
+	const Entry& entry,
+	const Rect& target_rect,
+	Painter& painter,
+	const Style& style
+) {
+	painter.draw_string(target_rect.location(), style, to_string_hex_array((uint8_t*)entry.raw_data, 10) + " " + entry.time);
+}
+
 void ADSBRxView::focus() {
 	offset_field.focus();
 	offset_field.set_value(13179);
 }
 
 ADSBRxView::~ADSBRxView() {
-	//transmitter_model.disable();
-	//baseband::shutdown();
+	receiver_model.disable();
+	baseband::shutdown();
 }
 
-bool ADSBRxView::analyze(uint64_t offset) {
+/*bool ADSBRxView::analyze(uint64_t offset) {
 	Coord lcd_x = 0, lcd_y = 0;
+	int8_t re, im;
 	adsb_frame frame;
 	int16_t file_data[128];		// 256 bytes / 2 IQ / 16 bits = 64 samples
 	complex8_t iq_data[256];	// 256 samples
 	uint64_t file_offset = 0;
 	uint8_t data_put = 0, data_get = 0;
 	int16_t f_re, f_im;
-	int8_t re, im;
 	uint32_t c;
 	uint8_t level, bit, byte;
 	Color mark_color;
@@ -224,42 +233,64 @@ bool ADSBRxView::analyze(uint64_t offset) {
 	}
 	
 	return false;
+}*/
+
+void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
+	rtc::RTC datetime;
+	std::string str_timestamp;
+	auto frame = message->frame;
+	auto& entry = ::on_packet(recent, frame.get_ICAO_address());
+	
+	rtcGetTime(&RTCD1, &datetime);
+	str_timestamp = to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
+					to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
+					to_string_dec_uint(datetime.second(), 2, '0');
+	entry.set_time(str_timestamp);
+	entry.set_raw(frame.get_raw_data());
+	recent_entries_view.set_dirty();
 }
 
 ADSBRxView::ADSBRxView(NavigationView& nav) {
-	
-	//baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
+	baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
 
 	add_children({
-		&labels,
+		//&labels,
 		&offset_field,
-		&button_ffw,
+		//&button_ffw,
 		&text_debug_a,
 		&text_debug_b,
 		&text_debug_c,
-		&text_debug_d,
-		&text_debug_e
+		&recent_entries_view
 	});
 	
-	// File must be 16bit complex @ 2Msps !
+	recent_entries_view.set_parent_rect({ 0, 64, 240, 224 });
 	
-	auto result = iq_file.open("ADSB.C16");
+	// File must be 16bit complex @ 2Msps !
+	/*auto result = iq_file.open("ADSB.C16");
 	if (result.is_valid()) {
 		text_debug_a.set("Can't open file");
-	}
+	}*/
 
-	offset_field.on_change = [this, &nav](int32_t value) {
+	/*offset_field.on_change = [this, &nav](int32_t value) {
 		// TODO
-	};
+	};*/
 	
-	button_ffw.on_select = [this, &nav](Button&) {
-		auto new_view = nav.push<GeoMapView>();
-		/*while (!analyze(f_offset)) {
+	/*button_ffw.on_select = [this, &nav](Button&) {
+		//nav.push<GeoMapView>();
+		while (!analyze(f_offset)) {
 			f_offset++;
 		}
 		offset_field.set_value(f_offset);
-		f_offset++;*/
-	};
+		f_offset++;
+	};*/
+	
+	baseband::set_adsb();
+	
+	receiver_model.set_tuning_frequency(1090000000);
+	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
+	receiver_model.set_sampling_rate(2000000);
+	receiver_model.set_baseband_bandwidth(2500000);
+	receiver_model.enable();
 }
 
 } /* namespace ui */

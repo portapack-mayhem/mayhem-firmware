@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2017 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,37 +20,43 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_ADSBTX_H__
-#define __PROC_ADSBTX_H__
+#ifndef __PROC_ADSBRX_H__
+#define __PROC_ADSBRX_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class ADSBTXProcessor : public BasebandProcessor {
+#include "adsb_frame.hpp"
+
+using namespace adsb;
+
+#define ADSB_PREAMBLE_LENGTH 16
+
+class ADSBRXProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
-	void on_message(const Message* const p) override;
+	void on_message(const Message* const message) override;
 
 private:
-	bool configured = false;
+	static constexpr float k = 1.0f / 128.0f;
 	
-	BasebandThread baseband_thread { 4000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	static constexpr size_t baseband_fs = 2000000;
 	
-	const complex8_t am_lut[4] = {
-		{ 127, 0 },
-		{ 0, 127 },
-		{ -127, 0 },
-		{ 0, -127 }		
-	};
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	
-	bool active { };
-	uint32_t terminate { };
-    uint32_t bit_pos { 0 };
-    uint32_t cur_bit { 0 };
-	uint32_t phase { 0 };
-	
-	TXDoneMessage message { };
+	ADSBFrame frame { };
+	bool configured { false };
+	float prev_mag { 0 };
+	float threshold, threshold_low, threshold_high;
+	size_t null_count, bit_count, sample_count;
+	std::pair<float, uint8_t> shifter[ADSB_PREAMBLE_LENGTH];
+	bool decoding { };
+	bool preamble { }, active { };
+    uint16_t bit_pos { 0 };
+    uint8_t cur_bit { 0 };
+	uint32_t sample { 0 };
+	int8_t re { }, im { };
 };
 
 #endif

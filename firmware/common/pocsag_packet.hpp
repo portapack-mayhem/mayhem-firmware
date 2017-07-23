@@ -26,8 +26,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "optional.hpp"
-
 #include "baseband.hpp"
 
 namespace pocsag {

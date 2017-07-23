@@ -76,7 +76,7 @@ void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
 }
 
 void TransmitterView::on_bandwidth_changed(uint32_t bandwidth) {
-	transmitter_model.set_bandwidth(bandwidth);
+	//transmitter_model.set_bandwidth(bandwidth);
 }
 
 void TransmitterView::set_transmitting(const bool transmitting) {
@@ -92,7 +92,7 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 }
 
 void TransmitterView::on_show() {
-	field_frequency.set_value(receiver_model.tuning_frequency());
+	//field_frequency.set_value(receiver_model.tuning_frequency());
 }
 
 void TransmitterView::focus() {

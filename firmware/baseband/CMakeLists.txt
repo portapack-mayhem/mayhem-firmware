@@ -275,12 +275,19 @@ macro(DeclareTargets chunk_tag name)
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 endmacro()
 
+### ADS-B RX
+
+set(MODE_CPPSRC
+	proc_adsbrx.cpp
+)
+DeclareTargets(PADR adsbrx)
+
 ### ADS-B TX
 
 set(MODE_CPPSRC
 	proc_adsbtx.cpp
 )
-DeclareTargets(PADS ads)
+DeclareTargets(PADT adsbtx)
 
 ### AFSK
 

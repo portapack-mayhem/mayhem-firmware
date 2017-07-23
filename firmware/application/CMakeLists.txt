@@ -139,7 +139,6 @@ set(CPPSRC
 	debounce.cpp
 	touch.cpp
 	touch_adc.cpp
-	protocols/adsb.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp
@@ -217,6 +216,8 @@ set(CPPSRC
 	${COMMON}/pocsag_packet.cpp
 	${COMMON}/pocsag.cpp
 	${COMMON}/morse.cpp
+	${COMMON}/adsb_frame.cpp
+	${COMMON}/adsb.cpp
 	ais_app.cpp
 	tpms_app.cpp
 	pocsag_app.cpp

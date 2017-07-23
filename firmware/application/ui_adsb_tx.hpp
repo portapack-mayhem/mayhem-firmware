@@ -41,7 +41,7 @@ public:
 	ADSBTxView(NavigationView& nav);
 	~ADSBTxView();
 	
-	void paint(Painter& painter) override;
+	void paint(Painter&) override;
 	
 	void focus() override;
 	
@@ -54,16 +54,44 @@ private:
 		SEQUENCE
 	};
 	
+	const float plane_lats[12] = {
+		0,
+		-1,
+		-2,
+		-3,
+		-4,
+		-5,
+		-4.5,
+		-5,
+		-4,
+		-3,
+		-2,
+		-1
+	};
+	const float plane_lons[12] = {
+		0,
+		1,
+		1,
+		1,
+		2,
+		1,
+		0,
+		-1,
+		-2,
+		-1,
+		-1,
+		-1
+	};
+	
 	tx_modes tx_mode = IDLE;
 	
-	std::string callsign = "KLM1023 ";
+	std::string callsign = "PORTAPAC";
 	
-	adsb_frame frame { };
-	uint8_t adsb_bin[112];		// 112 bit data block
+	ADSBFrame frames[4] { };
 	
 	bool start_tx();
 	void generate_frame();
-	void generate_frame_pos();
+	void rotate_frames();
 	void on_txdone(const bool v);
 	
 	const Style style_val {
@@ -82,8 +110,8 @@ private:
 		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() },
 		{ { 2 * 8, 7 * 8 }, "ID:", Color::light_grey() },
 		{ { 2 * 8, 10 * 8 }, "Altitude:       feet", Color::light_grey() },
-		{ { 2 * 8, 12 * 8 }, "Latitude:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 2 * 8, 14 * 8 }, "Longitude:   *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 2 * 8, 12 * 8 }, "Latitude:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 2 * 8, 14 * 8 }, "Longitude:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
 		{ { 15 * 8, 18 * 8 }, "Squawk", Color::light_grey() }
 	};
 	
@@ -117,23 +145,23 @@ private:
 	};
 	
 	NumberField field_lat_degrees {
-		{ 12 * 8, 6 * 16 }, 3, { -90, 90 }, 1, ' '
+		{ 12 * 8, 6 * 16 }, 4, { -90, 90 }, 1, ' '
 	};
 	NumberField field_lat_minutes {
-		{ 16 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 17 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lat_seconds {
-		{ 19 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 20 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	
 	NumberField field_lon_degrees {
-		{ 12 * 8, 7 * 16 }, 3, { -90, 90 }, 1, ' '
+		{ 12 * 8, 7 * 16 }, 4, { -180, 180 }, 1, ' '
 	};
 	NumberField field_lon_minutes {
-		{ 16 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 17 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lon_seconds {
-		{ 19 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 20 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	
 	Checkbox check_emergency {
@@ -160,8 +188,8 @@ private:
 	
 	TransmitterView tx_view {
 		16 * 16,
-		1090000000,
-		2000000,
+		0,
+		0,
 		true
 	};
 	

@@ -129,7 +129,7 @@ typedef enum IRQn {
 
 #define __SIMD32_TYPE int32_t
 #define __SIMD32(addr)  (*(__SIMD32_TYPE **) & (addr))
-#define _SIMD32_OFFSET(addr)  (*(__SIMD32_TYPE *)  (addr))
+#define _SIMD32_OFFSET(addr) (*(__SIMD32_TYPE *) (addr))
 
 /* Overload of __SXTB16() to add ROR argument, since using __ROR() as an
  * argument to the existing __SXTB16() doesn't produce optimum/sane code.

@@ -63,6 +63,7 @@ private:
 	char c[4];
 };
 
+constexpr image_tag_t image_tag_adsb_rx				{ 'P', 'A', 'D', 'R' };
 constexpr image_tag_t image_tag_ais					{ 'P', 'A', 'I', 'S' };
 constexpr image_tag_t image_tag_am_audio			{ 'P', 'A', 'M', 'A' };
 constexpr image_tag_t image_tag_capture				{ 'P', 'C', 'A', 'P' };
@@ -79,7 +80,7 @@ constexpr image_tag_t image_tag_afsk				{ 'P', 'A', 'F', 'S' };
 constexpr image_tag_t image_tag_tones				{ 'P', 'T', 'O', 'N' };
 constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_ook					{ 'P', 'O', 'O', 'K' };
-constexpr image_tag_t image_tag_adsb_tx				{ 'P', 'A', 'D', 'S' };
+constexpr image_tag_t image_tag_adsb_tx				{ 'P', 'A', 'D', 'T' };
 constexpr image_tag_t image_tag_replay				{ 'P', 'R', 'E', 'P' };
 constexpr image_tag_t image_tag_fsktx				{ 'P', 'F', 'S', 'K' };
 constexpr image_tag_t image_tag_mic_tx				{ 'P', 'M', 'T', 'X' };

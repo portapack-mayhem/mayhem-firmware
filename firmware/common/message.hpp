@@ -35,6 +35,7 @@
 #include "ert_packet.hpp"
 #include "tpms_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "adsb_frame.hpp"
 #include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
@@ -91,6 +92,7 @@ public:
 		SigGenTone = 44,
 		
 		POCSAGPacket = 50,
+		ADSBFrame = 51,
 		
 		RequestSignal = 52,
 		FIFOData = 53,
@@ -315,6 +317,18 @@ public:
 	}
 	
 	pocsag::POCSAGPacket packet;
+};
+
+class ADSBFrameMessage : public Message {
+public:
+	constexpr ADSBFrameMessage(
+		const adsb::ADSBFrame& frame
+	) : Message { ID::ADSBFrame },
+		frame { frame }
+	{
+	}
+	
+	adsb::ADSBFrame frame;
 };
 
 class ShutdownMessage : public Message {

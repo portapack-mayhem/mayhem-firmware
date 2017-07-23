@@ -35,7 +35,14 @@ class ChannelStatsCollector {
 public:
 	template<typename Callback>
 	void feed(const buffer_c16_t& src, Callback callback) {
-		max_squared = compute_max_squared(src, max_squared); 
+		auto src_p = src.p;
+		while(src_p < &src.p[src.count]) {
+			const uint32_t sample = *__SIMD32(src_p)++;
+			const uint32_t mag_sq = __SMUAD(sample, sample);
+			if( mag_sq > max_squared ) {
+				max_squared = mag_sq;
+			}
+		}
 		count += src.count;
 
 		const size_t samples_per_update = src.sampling_rate * update_interval;
@@ -54,22 +61,6 @@ private:
 	static constexpr float update_interval { 0.1f };
 	uint32_t max_squared { 0 };
 	size_t count { 0 };
-
-	static uint32_t compute_max_squared(
-		const buffer_c16_t& src,
-		uint32_t max_squared
-	) {
-		auto src_p = src.p;
-		while(src_p < &src.p[src.count]) {
-			const uint32_t sample = *__SIMD32(src_p)++;
-			const uint32_t mag_sq = __SMUAD(sample, sample);
-			if( mag_sq > max_squared ) {
-				max_squared = mag_sq;
-			}
-		}
-
-		return max_squared;
-	}
 };
 
 #endif/*__CHANNEL_STATS_COLLECTOR_H__*/
