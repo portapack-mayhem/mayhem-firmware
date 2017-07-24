@@ -80,15 +80,15 @@ public:
 
 	constexpr IO(
 		GPIO gpio_dir,
-		GPIO gpio_lcd_rd,
-		GPIO gpio_lcd_wr,
+		GPIO gpio_lcd_rdx,
+		GPIO gpio_lcd_wrx,
 		GPIO gpio_io_stbx,
 		GPIO gpio_addr,
 		GPIO gpio_rot_a,
 		GPIO gpio_rot_b
 	) : gpio_dir { gpio_dir },
-		gpio_lcd_rd { gpio_lcd_rd },
-		gpio_lcd_wr { gpio_lcd_wr },
+		gpio_lcd_rdx { gpio_lcd_rdx },
+		gpio_lcd_wrx { gpio_lcd_wrx },
 		gpio_io_stbx { gpio_io_stbx },
 		gpio_addr { gpio_addr },
 		gpio_rot_a { gpio_rot_a },
@@ -104,11 +104,22 @@ public:
 
 	void lcd_data_write_command_and_data(
 		const uint_fast8_t command,
+		const uint8_t* data,
+		const size_t data_count
+	) {
+		lcd_command(command);
+		for(size_t i=0; i<data_count; i++) {
+			lcd_write_data(data[i]);
+		}
+	}
+	
+	void lcd_data_write_command_and_data(
+		const uint_fast8_t command,
 		const std::initializer_list<uint8_t>& data
 	) {
 		lcd_command(command);
 		for(const auto d : data) {
-			lcd_write_data_fast(d);
+			lcd_write_data(d);
 		}
 	}
 
@@ -119,31 +130,31 @@ public:
 	) {
 		lcd_command(command);
 		for(size_t i=0; i<data_count; i++) {
-			data[i] = lcd_read_data_id();
+			data[i] = lcd_read_data();
 		}
 	}
 
 	void lcd_write_word(const uint32_t w) {
-		lcd_write_data_fast(w);
+		lcd_write_data(w);
 	}
 
 	void lcd_write_words(const uint16_t* const w, size_t n) {
 		for(size_t i=0; i<n; i++) {
-			lcd_write_data_fast(w[i]);
+			lcd_write_data(w[i]);
 		}
 	}
 
 	void lcd_write_pixel(const ui::Color pixel) {
-		lcd_write_data_fast(pixel.v);
+		lcd_write_data(pixel.v);
 	}
 
 	uint32_t lcd_read_word() {
-		return lcd_read_data_frame_memory();
+		return lcd_read_data();
 	}
 
 	void lcd_write_pixels(const ui::Color pixel, size_t n) {
 		while(n--) {
-			lcd_write_data_fast(pixel.v);
+			lcd_write_data(pixel.v);
 		}
 	}
 
@@ -156,13 +167,13 @@ public:
 	void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
 		size_t word_count = byte_count / 2;
 		while(word_count) {
-			const auto word = lcd_read_data_frame_memory();
+			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 			*(byte++) = word >> 0;
 			word_count--;
 		}
 		if( byte_count & 1 ) {
-			const auto word = lcd_read_data_frame_memory();
+			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 		}
 	}
@@ -188,8 +199,8 @@ public:
 
 private:
 	const GPIO gpio_dir;
-	const GPIO gpio_lcd_rd;
-	const GPIO gpio_lcd_wr;
+	const GPIO gpio_lcd_rdx;
+	const GPIO gpio_lcd_wrx;
 	const GPIO gpio_io_stbx;
 	const GPIO gpio_addr;
 	const GPIO gpio_rot_a;
@@ -202,19 +213,19 @@ private:
 	uint8_t io_reg { 0x03 };
 
 	void lcd_rd_assert() {
-		gpio_lcd_rd.set();
+		gpio_lcd_rdx.clear();
 	}
 
 	void lcd_rd_deassert() {
-		gpio_lcd_rd.clear();
+		gpio_lcd_rdx.set();
 	}
 
 	void lcd_wr_assert() {
-		gpio_lcd_wr.set();
+		gpio_lcd_wrx.clear();
 	}
 
 	void lcd_wr_deassert() {
-		gpio_lcd_wr.clear();
+		gpio_lcd_wrx.set();
 	}
 
 	void io_stb_assert() {
@@ -287,7 +298,7 @@ private:
 		addr(1);				/* Set up for data phase (most likely after a command) */
 	}
 
-	void lcd_write_data_fast(const uint32_t value) __attribute__((always_inline)) {
+	void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
 		// NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
 		data_write_high(value);	/* Drive high byte */
 		__asm__("nop");
@@ -300,42 +311,7 @@ private:
 		lcd_wr_deassert();		/* Complete write operation */
 	}
 
-	uint32_t lcd_read_data_id() {
-		// NOTE: Assumes ADDR=1 from command phase.
-		dir_read();
-
-		/* Start read operation */
-		lcd_rd_assert();
-		/* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		const auto value_high = data_read();
-
-		/* Latch data[7:0] */
-		lcd_rd_deassert();
-		/* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-
-		const auto value_low = data_read();
-		return (value_high << 8) | value_low;
-	}
-
-	uint32_t lcd_read_data_frame_memory() {
+	uint32_t lcd_read_data() {
 		// NOTE: Assumes ADDR=1 from command phase.
 		dir_read();
 

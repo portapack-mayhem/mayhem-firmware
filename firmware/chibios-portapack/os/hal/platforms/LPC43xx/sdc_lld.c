@@ -586,10 +586,18 @@ void sdc_lld_start(SDCDriver *sdcp) {
     sdio_reset();
     sdio_reset_card();
 
-    // UM10503 recommendation
+    // Test jig tests:
+    // SAMPLE_DELAY  Write    Read      SDC    FAIL    OK
+    //       0        OK       OK       OK             3
+    //       2        OK       OK       OK             1
+    //       3        OK       OK       OK             1
+    //       4        OK     f_read 1   0x2      3     2 (20170424 fails, 20170522 OK)
+    //       5        OK     f_read 1   0x2      1
+    // UM10503 recommendation: SAMPLE_DELAY=0x8, DRV_DELAY=0xF
+    // Datasheet recommendation: SAMPLE_DELAY=0x9, DRV_DELAY=0xD
     LPC_SCU->SDDELAY =
-        (0x8 << 0)
-      | (0xf << 8)
+        (0x0 << 0)
+      | (0xa << 8)  /* >6ns hold with low clk/dat/cmd output drive */
       ;
     LPC_SDMMC->CTRL =
         (1U <<  4)  /* INT_ENABLE */

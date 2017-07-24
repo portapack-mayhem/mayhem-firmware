@@ -18,11 +18,9 @@ module attach_center() {
 
 module pcb_supports() {
     translate(mounting_drills[0]) attach_corner();
-    translate(mounting_drills[1]) rotate(90) attach_side();
-    translate(mounting_drills[2]) rotate(90) attach_corner();
-    translate(mounting_drills[3]) rotate(270) attach_corner();
-    translate(mounting_drills[4]) attach_center();
-    translate(mounting_drills[5]) rotate(180) attach_corner();
+    translate(mounting_drills[1]) rotate(90) attach_corner();
+    translate(mounting_drills[2]) rotate(270) attach_corner();
+    translate(mounting_drills[3]) rotate(180) attach_corner();
 }
 
 module pcb_attach_drill_outline() {

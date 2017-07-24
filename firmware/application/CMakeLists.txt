@@ -117,6 +117,7 @@ set(CPPSRC
 	${COMMON}/message_queue.cpp
 	${COMMON}/hackrf_hal.cpp
 	portapack.cpp
+	${COMMON}/backlight.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	baseband_api.cpp
 	${COMMON}/portapack_persistent_memory.cpp

@@ -227,11 +227,9 @@ module led(refdes, c) {
 }
 
 module led_drill() {
-    hole_diameter = 2;
-
     translate([0, -0.25, -0.3]) {
         rotate([90, 0, 0]) {
-            cylinder(d=hole_diameter, h=10);
+            cylinder(d=h1_led_hole_diameter, h=10);
         }
     }
 }
@@ -712,7 +710,6 @@ module micro_sd_drill(clearance) {
 
 module portapack_h1_pcb_mounting_hole_drills() {
     translate([ 64, 104]) pcb_mounting_hole_drill();
-    translate([126, 104]) pcb_mounting_hole_drill();
     translate([176, 104]) pcb_mounting_hole_drill();
     translate([ 64, 171]) pcb_mounting_hole_drill();
     translate([176, 171]) pcb_mounting_hole_drill();
@@ -810,7 +807,6 @@ module portapack_h1_stack_hackrf_one() {
 module portapack_h1_stack_spacers() {
     hackrf_one_transform() {
         translate([ 64, 104]) spacer();
-        translate([126, 104]) spacer();
         translate([176, 104]) spacer();
         translate([ 64, 171]) spacer();
         translate([176, 171]) spacer();
@@ -825,7 +821,6 @@ module portapack_h1_stack_screws() {
     screw_tz = spacer_height + pp_h1_pcb_thickness;
     translate([0, 0, screw_tz]) portapack_h1_transform() {
         translate([ 64, 104]) screw();
-        translate([126, 104]) screw();
         translate([176, 104]) screw();
         translate([ 64, 171]) screw();
         translate([176, 171]) screw();

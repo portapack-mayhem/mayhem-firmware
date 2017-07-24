@@ -38,9 +38,13 @@
 
 #include <cstdint>
 
+constexpr auto EVT_MASK_RTC_TICK        = EVENT_MASK(0);
+constexpr auto EVT_MASK_LCD_FRAME_SYNC  = EVENT_MASK(1);
 constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
 constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
+constexpr auto EVT_MASK_APPLICATION     = EVENT_MASK(6);
+constexpr auto EVT_MASK_LOCAL           = EVENT_MASK(7);
 
 class EventDispatcher {
 public:
@@ -65,14 +69,6 @@ public:
 		}
 	}
 
-	static inline void event_isr_rtc_tick() {
-		events_flag_isr(EVT_MASK_RTC_TICK);
-	}
-
-	static inline void event_isr_lcd_frame_sync() {
-		events_flag_isr(EVT_MASK_LCD_FRAME_SYNC);
-	}
-
 	static inline void events_flag(const eventmask_t events) {
 		if( thread_event_loop ) {
 			chEvtSignal(thread_event_loop, events);
@@ -92,11 +88,6 @@ public:
 	}
 
 private:
-	static constexpr auto EVT_MASK_RTC_TICK       = EVENT_MASK(0);
-	static constexpr auto EVT_MASK_LCD_FRAME_SYNC = EVENT_MASK(1);
-	static constexpr auto EVT_MASK_APPLICATION    = EVENT_MASK(6);
-	static constexpr auto EVT_MASK_LOCAL          = EVENT_MASK(7);
-
 	static Thread* thread_event_loop;
 
 	touch::Manager touch_manager { };

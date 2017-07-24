@@ -47,16 +47,36 @@ void lcd_reset() {
 
 void lcd_sleep_in() {
 	io.lcd_data_write_command_and_data(0x10, {});
+	// "It will be necessary to wait 5msec before sending next command,
+	// this is to allow time for the supply voltages and clock circuits
+	// to stabilize."
 	chThdSleepMilliseconds(5);
 }
 
 void lcd_sleep_out() {
 	io.lcd_data_write_command_and_data(0x11, {});
+	// "It will be necessary to wait 120msec after sending Sleep Out
+	// command (when in Sleep In Mode) before Sleep In command can be
+	// sent."
 	chThdSleepMilliseconds(120);
 }
 
 void lcd_display_on() {
 	io.lcd_data_write_command_and_data(0x29, {});
+}
+
+void lcd_display_off() {
+	io.lcd_data_write_command_and_data(0x28, {});
+}
+
+void lcd_sleep() {
+	lcd_display_off();
+	lcd_sleep_in();
+}
+
+void lcd_wake() {
+	lcd_sleep_out();
+	lcd_display_on();
 }
 
 void lcd_init() {
@@ -165,8 +185,7 @@ void lcd_init() {
 		0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05
 	});
 
-	lcd_sleep_out();
-	lcd_display_on();
+	lcd_wake();
 
 	// Turn on Tearing Effect Line (TE) output signal.
 	io.lcd_data_write_command_and_data(0x35, { 0b00000000 });
@@ -255,21 +274,18 @@ void lcd_vertical_scrolling_start_address(
 void ILI9341::init() {
 	lcd_reset();
 	lcd_init();
-
-	io.lcd_backlight(1);
 }
 
 void ILI9341::shutdown() {
-	io.lcd_backlight(0);
 	lcd_reset();
 }
 
 void ILI9341::sleep() {
-	lcd_sleep_in();
+	lcd_sleep();
 }
 
 void ILI9341::wake() {
-	lcd_sleep_out();
+	lcd_wake();
 }
 
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {

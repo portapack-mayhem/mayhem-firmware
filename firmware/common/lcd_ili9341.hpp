@@ -34,7 +34,7 @@ namespace lcd {
 class ILI9341 {
 public:
 	constexpr ILI9341(
-	) : scroll_state { 0, 0, 320, 0 }
+	) : scroll_state { 0, 0, height(), 0 }
 	{
 	}
 
@@ -105,10 +105,10 @@ public:
 
 private:
 	struct scroll_t {
-		uint16_t top_area;
-		uint16_t bottom_area;
-		uint16_t height;
-		uint16_t current_position;
+		ui::Coord top_area;
+		ui::Coord bottom_area;
+		ui::Dim height;
+		ui::Coord current_position;
 	};
 	
 	scroll_t scroll_state;

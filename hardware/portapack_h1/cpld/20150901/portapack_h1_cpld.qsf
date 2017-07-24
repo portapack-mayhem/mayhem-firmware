@@ -259,7 +259,6 @@ set_location_assignment PIN_4 -to LCD_BACKLIGHT
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_BACKLIGHT
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_BACKLIGHT
 set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_BACKLIGHT
-set_instance_assignment -name PCI_IO OFF -to LCD_BACKLIGHT
 set_location_assignment PIN_30 -to MCU_LCD_RD
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RD
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RD
@@ -287,3 +286,34 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_P2_
 set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_P2_8
 set_instance_assignment -name PCI_IO OFF -to MCU_P2_8
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[15]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[14]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[13]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[12]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[11]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[10]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[9]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[8]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[7]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[6]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[5]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[4]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[0]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[7]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[6]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[5]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[4]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[0]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_ADDR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_DIR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_IO_STBX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_RD
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_WR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_P2_8

@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "portapack_io.hpp"
 
 #include "receiver_model.hpp"
@@ -28,6 +30,7 @@
 #include "spi_pp.hpp"
 #include "si5351.hpp"
 #include "lcd_ili9341.hpp"
+#include "backlight.hpp"
 
 #include "radio.hpp"
 #include "clock_manager.hpp"
@@ -40,7 +43,6 @@ extern portapack::IO io;
 extern lcd::ILI9341 display;
 
 extern I2C i2c0;
-extern SPI ssp0;
 extern SPI ssp1;
 
 extern si5351::Si5351 clock_generator;
@@ -55,5 +57,7 @@ extern TemperatureLogger temperature_logger;
 
 bool init();
 void shutdown();
+
+Backlight* backlight();
 
 } /* namespace portapack */

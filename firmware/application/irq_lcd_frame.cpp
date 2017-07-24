@@ -28,7 +28,10 @@
 
 #include "portapack_hal.hpp"
 
+static Thread* thread_lcd_frame_event = NULL;
+
 static void pin_int4_interrupt_enable() {
+	thread_lcd_frame_event = chThdSelf();
 	nvicEnableVector(PIN_INT4_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_PIN_INT4_IRQ_PRIORITY));
 }
 
@@ -54,7 +57,7 @@ CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
 	CH_IRQ_PROLOGUE();
 
 	chSysLockFromIsr();
-	EventDispatcher::event_isr_lcd_frame_sync();
+	chEvtSignalI(thread_lcd_frame_event, EVT_MASK_LCD_FRAME_SYNC);
 	chSysUnlockFromIsr();
 
 	LPC_GPIO_INT->IST = (1U << 4);

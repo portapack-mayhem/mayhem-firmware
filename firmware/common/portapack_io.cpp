@@ -43,8 +43,8 @@ void IO::init() {
 	addr(0);
 
 	gpio_dir.output();
-	gpio_lcd_rd.output();
-	gpio_lcd_wr.output();
+	gpio_lcd_rdx.output();
+	gpio_lcd_wrx.output();
 	gpio_io_stbx.output();
 	gpio_addr.output();
 	gpio_rot_a.input();
@@ -57,17 +57,11 @@ void IO::lcd_backlight(const bool value) {
 }
 
 void IO::lcd_reset_state(const bool active) {
-	/* NOTE: This overwrites the contents of the IO register, which for now
-	 * have no significance. But someday...?
-	 */
 	io_reg = (io_reg & 0xfe) | ((active ? 1 : 0) << 0);
 	io_write(1, io_reg);
 }
 
 void IO::audio_reset_state(const bool active) {
-	/* Reset signal for audio codec. Some audio codecs (e.g. WM8731) do not
-	 * implement reset signal, only soft reset via I2C.
-	 */
 	/* NOTE: This overwrites the contents of the IO register, which for now
 	 * have no significance. But someday...?
 	 */

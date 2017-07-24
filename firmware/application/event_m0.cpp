@@ -125,11 +125,12 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 	// TODO: Distribute display sleep message more broadly, shut down data generation
 	// on baseband side, since all that data is being discarded during sleep.
 	if( sleep ) {
-		portapack::io.lcd_backlight(false);
+		portapack::backlight()->off();
 		portapack::display.sleep();
 	} else {
 		portapack::display.wake();
-		portapack::io.lcd_backlight(true);
+		// Don't turn on backlight here.
+		// Let frame sync handler turn on backlight after repaint.
 	}
 	EventDispatcher::display_sleep = sleep;
 };
@@ -284,6 +285,8 @@ void EventDispatcher::handle_lcd_frame_sync() {
 	DisplayFrameSyncMessage message;
 	message_map.send(&message);
 	painter.paint_widget_tree(top_widget);
+
+	portapack::backlight()->on();
 }
 
 void EventDispatcher::handle_switches() {

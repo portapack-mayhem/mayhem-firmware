@@ -49,13 +49,13 @@ constexpr Pin pins[] = {
 	[P1_3]  = {  1,  3, { .mode=5, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* SSP1_MISO/P41: MAX2837.DOUT(O) */
 	[P1_4]  = {  1,  4, { .mode=5, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* SSP1_MOSI/P40: MAX2837.DIN(I), MAX5864.DIN(I) */
 	[P1_5]  = {  1,  5, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* SD_POW: PortaPack CPLD.TDO(O) */
-	[P1_6]  = {  1,  6, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_CMD: PortaPack SD.CMD(IO)  */
+	[P1_6]  = {  1,  6, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_CMD: PortaPack SD.CMD(IO)  */
 	[P1_7]  = {  1,  7, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !MIX_BYPASS/P35: U1.VCTL1(I), U11.VCTL2(I), U9.V2(I) */
 	[P1_8]  = {  1,  8, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* SD_VOLT0: PortaPack CPLD.TMS(I) */
-	[P1_9]  = {  1,  9, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT0: PortaPack SD.DAT0(IO) */
-	[P1_10] = {  1, 10, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT1: PortaPack SD.DAT1(IO) */
-	[P1_11] = {  1, 11, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
-	[P1_12] = {  1, 12, { .mode=7, .pd=0, .pu=1, .fast=1, .input=1, .ifilt=0 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
+	[P1_9]  = {  1,  9, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT0: PortaPack SD.DAT0(IO) */
+	[P1_10] = {  1, 10, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT1: PortaPack SD.DAT1(IO) */
+	[P1_11] = {  1, 11, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
+	[P1_12] = {  1, 12, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=0 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
 	[P1_13] = {  1, 13, { .mode=7, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* SD_CD: PortaPack SD.CD(O) */
 	[P1_14] = {  1, 14, PinConfig::sgpio_out_fast_with_pullup(6) }, /* SGPIO10/P78/BANK2F3M8: CPLD.76/HOST_DISABLE(I) */
 	[P1_15] = {  1, 15, PinConfig::sgpio_inout_fast(2) }, /* SGPIO2/BANK2F3M9: CPLD.74/HOST_DATA2(IO) */
@@ -64,20 +64,20 @@ constexpr Pin pins[] = {
 	[P1_18] = {  1, 18, PinConfig::gpio_out_with_pulldown(0) }, /* SGPIO12/BANK2F3M12: CPLD.70/HOST_INVERT(I) */
 	[P1_19] = {  1, 19, { .mode=1, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* SSP1_SCK/P39: MAX2837.SCLK(I), MAX5864.SCLK(I) */
 	[P1_20] = {  1, 20, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* CS_XCVR/P53: MAX2837.CS(I) */
-	[P2_0]  = {  2,  0, { .mode=4, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
-	[P2_1]  = {  2,  1, { .mode=4, .pd=1, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_RXD: PortaPack P2_1/ADDR */
+	[P2_0]  = {  2,  0, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
+	[P2_1]  = {  2,  1, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* U0_RXD: PortaPack P2_1/ADDR */
 	[P2_2]  = {  2,  2, PinConfig::sgpio_inout_fast(0) }, /* SGPIO6/BANK2F3M16: CPLD.61/HOST_DATA6(IO) */
 	[P2_3]  = {  2,  3, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
-	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/<unused> */
+	[P2_4]  = {  2,  4, { .mode=4, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* I2C1_SCL: PortaPack P2_4/LCD_RDX */
 	[P2_5]  = {  2,  5, { .mode=4, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
 	[P2_6]  = {  2,  6, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
 	[P2_7]  = {  2,  7, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* ISP: 10K PU, Unused */
-	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/LCD_RD */
-	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WR */
+	[P2_8]  = {  2,  8, { .mode=4, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* P2_8: 10K PD, BOOT2, DFU switch, PortaPack P2_8/<unused> */
+	[P2_9]  = {  2,  9, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* P2_9: 10K PD, BOOT3, PortaPack P2_9/LCD_WRX */
 	[P2_10] = {  2, 10, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
 	[P2_11] = {  2, 11, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
 	[P2_12] = {  2, 12, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
-	[P2_13] = {  2, 13, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* P2_13: PortaPack P2_13/DIR */
+	[P2_13] = {  2, 13, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* P2_13: PortaPack P2_13/DIR */
 	[P3_0]  = {  3,  0, { .mode=2, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
 	[P3_1]  = {  3,  1, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* I2S0_RX_WS: PortaPack I2S0_TX_WS(I). Input enabled to fold back into RX. */
 	[P3_2]  = {  3,  2, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_RX_SDA: PortaPack I2S0_TX_SDA(I) */
@@ -130,7 +130,7 @@ constexpr Pin pins[] = {
 	[P9_5]  = {  9,  5, { .mode=3, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* CPLD_TDO: CPLD.TDO(O) */
 	[P9_6]  = {  9,  6, PinConfig::sgpio_in_fast(6) }, /* SGPIO8/SGPIO_CLK/P60: SI5351C.CLK2(O) */
 	[PF_4]  = { 15,  4, { .mode=7, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_RX_SCK: Unused */
-	[CLK0]  = { 24,  0, { .mode=4, .pd=1, .pu=0, .fast=1, .input=1, .ifilt=0 } }, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
+	[CLK0]  = { 24,  0, { .mode=4, .pd=1, .pu=0, .fast=0, .input=1, .ifilt=0 } }, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
 	[CLK2]  = { 24,  2, { .mode=6, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_TX_CLK: PortaPack I2S0_TX_MCLK */
 };
 

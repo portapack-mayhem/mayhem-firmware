@@ -45,7 +45,7 @@ set lcd_data_wr_hold 10.0
 # Create Clock
 #**************************************************************
 
-create_clock -name {MCU_STROBE} -period 66.000 -waveform { 0.000 33.000 } [get_ports {MCU_STROBE}]
+create_clock -name {MCU_LCD_WRX} -period 66.000 -waveform { 0.000 33.000 } [get_ports {MCU_LCD_WRX}]
 #create_clock -name strobe_virt -period 66.000
 
 #**************************************************************
@@ -88,8 +88,8 @@ create_clock -name {MCU_STROBE} -period 66.000 -waveform { 0.000 33.000 } [get_p
 # Set False Path
 #**************************************************************
 
-set_false_path -from [get_clocks {MCU_STROBE}] -to [get_ports {TP_D TP_L TP_R TP_U}]
-set_false_path -from [get_ports {SW_D SW_L SW_R SW_ROT_A SW_ROT_B SW_SEL SW_U}] -to [get_ports {MCU_D[*]}]
+#set_false_path -from [get_clocks {MCU_IO_STBX}] -to [get_ports {TP_D TP_L TP_R TP_U}]
+#set_false_path -from [get_ports {SW_D SW_L SW_R SW_ROT_A SW_ROT_B SW_SEL SW_U}] -to [get_ports {MCU_D[*]}]
 
 
 #**************************************************************
