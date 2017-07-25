@@ -67,7 +67,7 @@ Tetra info? | 0%  | Same
 
 # Screenshots
 
-![HAVOC screenshots](screenshots.png)
+![HAVOC screenshots](doc/screenshots.png)
 
 # Thanks
 
