@@ -30,6 +30,26 @@
 
 namespace adsb {
 
+#define DEG_TO_RAD(d) (d * (2 * pi) / 360.0)
+
+enum downlink_format {
+	DF_ADSB = 17,
+	DF_EHS_SQUAWK = 21
+};
+
+enum type_code {
+	TC_IDENT = 4,
+	TC_AIRBORNE_POS = 11,
+	TC_AIRBORNE_VELO = 19
+};
+
+enum data_selector {
+	BDS_ID = 0x20,
+	BDS_ID_MARKS = 0x21,
+	BDS_INTENT = 0x40,
+	BDS_HEADING = 0x60
+};
+
 const float adsb_lat_lut[58] = {
 	10.47047130,    14.82817437,    18.18626357,    21.02939493,
     23.54504487,    25.82924707,    27.93898710,    29.91135686,
@@ -48,12 +68,14 @@ const float adsb_lat_lut[58] = {
     86.53536998,    87.00000000
 };
 
-void make_frame_mode_s(ADSBFrame& frame, const uint32_t ICAO_address);
-void generate_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign);
-void generate_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t altitude,
+void make_frame_adsb(ADSBFrame& frame, const uint32_t ICAO_address);
+void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign);
+void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity);
-void generate_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
-void generate_frame_identity(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t code);
+void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
+	const float angle, const int32_t v_rate);
+void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
+void encode_frame_identity(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t code);
 
 } /* namespace adsb */
 

@@ -39,5 +39,5 @@ addons:
       - kalakris-cmake
   artifacts:
     paths:
-      - $(ls build/firmware/portapack-h1-firmware-*.tar.bz2 | tr "\n" ":")
-      - $(ls build/firmware/portapack-h1-firmware-*.zip | tr "\n" ":")
+      - $(ls build/firmware/portapack-h1-havoc-*.tar.bz2 | tr "\n" ":")
+      - $(ls build/firmware/portapack-h1-havoc-*.zip | tr "\n" ":")

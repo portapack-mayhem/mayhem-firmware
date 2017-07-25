@@ -69,3 +69,14 @@ FormattedSymbols format_symbols(
 
 	return { hex_data, hex_error };
 }
+
+void manchester_encode(uint8_t * dest, uint8_t * src, size_t length, const size_t sense) {
+	uint_fast8_t part = sense ? 0 : 0xFF;
+	
+	for (size_t c = 0; c < length; c++) {
+		if ((src[c >> 3] << (c & 7)) & 0x80) {
+			*(dest++) = part;
+			*(dest++) = ~part;
+		}
+	}
+}

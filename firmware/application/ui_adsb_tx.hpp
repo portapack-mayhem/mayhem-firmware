@@ -22,10 +22,11 @@
 
 #include "ui.hpp"
 #include "adsb.hpp"
+#include "utility.hpp"
+#include "sine_table.hpp"
 #include "ui_textentry.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_transmitter.hpp"
 
 #include "message.hpp"
@@ -35,6 +36,21 @@
 using namespace adsb;
 
 namespace ui {
+
+class Compass : public Widget {
+public:
+	Compass(const Point parent_pos);
+
+	void set_value(uint32_t new_value);
+
+	void paint(Painter&) override;
+
+private:
+	const range_t<uint32_t> range { 0, 359 };
+	uint32_t value_ { 0 };
+
+	uint32_t clamp_value(uint32_t value);
+};
 
 class ADSBTxView : public View {
 public:
@@ -85,37 +101,28 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	
-	std::string callsign = "PORTAPAC";
+	std::string callsign = "TEST1234";
 	
 	ADSBFrame frames[4] { };
 	
-	bool start_tx();
-	void generate_frame();
-	void rotate_frames();
+	void start_tx();
+	void generate_frames();
+	//void rotate_frames();
 	void on_txdone(const bool v);
 	
-	const Style style_val {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::green(),
-	};
-	const Style style_cancel {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::red(),
-	};
-	
 	Labels labels {
-		{ { 2 * 8, 2 * 8 }, "Format:", Color::light_grey() },
+		{ { 2 * 8, 2 * 8 }, "Format: 17 (ADS-B)", Color::light_grey() },
 		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() },
-		{ { 2 * 8, 7 * 8 }, "ID:", Color::light_grey() },
-		{ { 2 * 8, 10 * 8 }, "Altitude:       feet", Color::light_grey() },
-		{ { 2 * 8, 12 * 8 }, "Latitude:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 2 * 8, 14 * 8 }, "Longitude:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 15 * 8, 18 * 8 }, "Squawk", Color::light_grey() }
+		{ { 2 * 8, 7 * 8 }, "Callsign:", Color::light_grey() },
+		{ { 1 * 8, 11 * 8 }, "Alt:       feet", Color::light_grey() },
+		{ { 1 * 8, 13 * 8 }, "Lat:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 1 * 8, 15 * 8 }, "Lon:     *  '  \"", Color::light_grey() },
+		{ { 1 * 8, 18 * 8 }, "Speed:    kn  Bearing:    *", Color::light_grey() },
+		{ { 16 * 8, 22 * 8 }, "Squawk:", Color::light_grey() }
 	};
 	
-	OptionsField options_format {
+	// Only ADS-B is implemented right now
+	/*OptionsField options_format {
 		{ 10 * 8, 1 * 16 },
 		9,
 		{
@@ -123,7 +130,7 @@ private:
 			{ "18: TIS-B", 18 },
 			{ "19: MIL  ", 19 },
 		}
-	};
+	};*/
 	
 	SymField sym_icao {
 		{ 10 * 8, 2 * 16 },
@@ -132,12 +139,12 @@ private:
 	};
 
 	Button button_callsign {
-		{ 6 * 8, 3 * 16 + 4, 10 * 8, 24 },
+		{ 12 * 8, 3 * 16 + 4, 10 * 8, 24 },
 		""
 	};
 	
 	NumberField field_altitude {
-		{ 12 * 8, 5 * 16 },
+		{ 6 * 8, 11 * 8 },
 		5,
 		{ -1000, 50000 },
 		250,
@@ -145,44 +152,50 @@ private:
 	};
 	
 	NumberField field_lat_degrees {
-		{ 12 * 8, 6 * 16 }, 4, { -90, 90 }, 1, ' '
+		{ 6 * 8, 13 * 8 }, 4, { -90, 90 }, 1, ' '
 	};
 	NumberField field_lat_minutes {
-		{ 17 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 11 * 8, 13 * 8 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lat_seconds {
-		{ 20 * 8, 6 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 14 * 8, 13 * 8 }, 2, { 0, 59 }, 1, ' '
 	};
 	
 	NumberField field_lon_degrees {
-		{ 12 * 8, 7 * 16 }, 4, { -180, 180 }, 1, ' '
+		{ 6 * 8, 15 * 8 }, 4, { -180, 180 }, 1, ' '
 	};
 	NumberField field_lon_minutes {
-		{ 17 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 11 * 8, 15 * 8 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lon_seconds {
-		{ 20 * 8, 7 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 14 * 8, 15 * 8 }, 2, { 0, 59 }, 1, ' '
+	};
+	
+	Compass compass {
+		{ 21 * 8, 5 * 16 }
+	};
+	NumberField field_angle {
+		{ 21 * 8 + 20, 9 * 16 }, 3, { 0, 359 }, 1, ' '
+	};
+	
+	NumberField field_speed {
+		{ 8 * 8, 18 * 8 }, 3, { 0, 999 }, 5, ' '
 	};
 	
 	Checkbox check_emergency {
-		{ 2 * 8, 9 * 16 - 4 },
+		{ 2 * 8, 11 * 16 - 4 },
 		9,
 		"Emergency",
 		false
 	};
-	
 	SymField field_squawk {
-		{ 22 * 8, 9 * 16 },
+		{ 24 * 8, 11 * 16 },
 		4,
 		SymField::SYMFIELD_OCT
 	};
 	
-	Text text_frame_a {
-		{ 2 * 8, 13 * 16, 14 * 8, 16 },
-		"-"
-	};
-	Text text_frame_b {
-		{ 2 * 8, 14 * 16, 14 * 8, 16 },
+	Text text_frame {
+		{ 1 * 8, 29 * 8, 14 * 8, 16 },
 		"-"
 	};
 	
