@@ -114,7 +114,7 @@ private:
 	
 	uint32_t bin_skip_acc { 0 }, bin_skip_frac { };
 	uint32_t pixel_index { 0 };
-	std::array<Color, 240> spectrum_row { 0 };
+	std::array<Color, 240> spectrum_row = { 0 };
 	ChannelSpectrumFIFO* fifo { nullptr };
 	rf::Frequency f_min { 0 }, f_max { 0 };
 	uint8_t detect_timer { 0 }, release_timer { 0 }, timing_div { 0 };
