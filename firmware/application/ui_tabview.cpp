@@ -47,12 +47,12 @@ void Tab::set(
 
 void Tab::paint(Painter& painter) {
 	const auto rect = screen_rect();
-	const Color color = highlighted() ? Color::black() : Color::light_grey();
+	const Color color = highlighted() ? Color::black() : Color::grey();
 
 	painter.fill_rectangle({ rect.left(), rect.top(), rect.width() - 8, rect.height() }, color);
 
 	if (!highlighted())
-		painter.draw_hline({ rect.left(), rect.top() }, rect.width() - 9, Color::white());
+		painter.draw_hline({ rect.left(), rect.top() }, rect.width() - 9, Color::light_grey());
 	
 	painter.draw_bitmap(
 		{ rect.right() - 8, rect.top() },
@@ -105,50 +105,38 @@ void TabView::set_selected(uint16_t index) {
 	if (index >= n_tabs)
 		return;
 	
-	//if (index == current_tab)
-	//	return;
-	
-	// Hide all widgets
-	for (const auto widget : parent()->children()) {
-		widget->hidden(true);
-	}
-	
-	// Except this one :)
-	hidden(false);
+	// Hide previous view
+	views[current_tab]->hidden(true);
 	
 	tab = &tabs[current_tab];
 	tab->set_highlighted(false);
 	tab->set_focusable(true);
 	tab->set_dirty();
 	
-	// Show new tab's widgets
-	for (auto widget : widget_lists[index]) {
-		widget->hidden(false);
-	}
+	// Show new view
+	views[index]->hidden(false);
 	
 	tab = &tabs[index];
 	current_tab = index;
 	tab->set_highlighted(true);
 	tab->set_focusable(false);
 	tab->set_dirty();
-	
-	parent()->set_dirty();
-}
-
-void TabView::focus() {
-	tabs[current_tab].focus();
 }
 
 void TabView::on_show() {
 	set_selected(current_tab);
+}
+	
+void TabView::focus() {
+	views[current_tab]->focus();
 }
 
 TabView::TabView(std::initializer_list<TabDef> tab_definitions) {
 	size_t i = 0;
 	
 	n_tabs = tab_definitions.size();
-	if (n_tabs > 5)
-		n_tabs = 5;
+	if (n_tabs > MAX_TABS)
+		n_tabs = MAX_TABS;
 	
 	size_t tab_width = 240 / n_tabs;
 	
@@ -156,12 +144,10 @@ TabView::TabView(std::initializer_list<TabDef> tab_definitions) {
 	
 	for (auto &tab_definition : tab_definitions) {
 		tabs[i].set(i, tab_width, tab_definition.text, tab_definition.color);
-		for (auto widget : tab_definition.widget_list) {
-			widget_lists[i].emplace_back(widget);
-		}
+		views[i] = tab_definition.view;
 		add_child(&tabs[i]);
 		i++;
-		if (i == 5) break;
+		if (i == MAX_TABS) break;
 	}
 }
 

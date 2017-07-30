@@ -96,8 +96,10 @@ void GeoMapView::move_map() {
 }
 
 GeoMapView::GeoMapView(
-	NavigationView& nav
-) : nav_ (nav)
+	NavigationView& nav,
+	Mode mode
+) : nav_ (nav),
+	mode_ (mode)
 {
 	auto result = map_file.open("ADSB/world_map.bin");
 	if (result.is_valid()) {
@@ -113,17 +115,20 @@ GeoMapView::GeoMapView(
 	
 	add_children({
 		&field_xpos,
-		&field_ypos,
-		&field_angle
+		&field_ypos
 	});
+	
+	if (mode_ == SHOW) {
+		add_child(&field_angle);
+		field_angle.on_change = [this](int32_t) {
+			move_map();
+		};
+	}
 	
 	field_xpos.on_change = [this](int32_t) {
 		move_map();
 	};
 	field_ypos.on_change = [this](int32_t) {
-		move_map();
-	};
-	field_angle.on_change = [this](int32_t) {
 		move_map();
 	};
 }

@@ -276,7 +276,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	};*/
 	
 	/*button_ffw.on_select = [this, &nav](Button&) {
-		//nav.push<GeoMapView>();
+		//nav.push<GeoMapView>(GeoMapView::Mode::SHOW);
 		while (!analyze(f_offset)) {
 			f_offset++;
 		}

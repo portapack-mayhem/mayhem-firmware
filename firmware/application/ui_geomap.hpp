@@ -31,7 +31,12 @@ namespace ui {
 
 class GeoMapView : public View {
 public:
-	GeoMapView(NavigationView& nav);
+	enum Mode {
+		SHOW,
+		SET
+	};
+	
+	GeoMapView(NavigationView& nav, Mode mode);
 	~GeoMapView();
 	
 	void focus() override;
@@ -40,6 +45,7 @@ public:
 
 private:
 	NavigationView& nav_;
+	Mode mode_ { };
 	
 	File map_file { };
 	bool file_error { false };

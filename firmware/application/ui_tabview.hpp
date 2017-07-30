@@ -31,6 +31,8 @@
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
+	
+#define MAX_TABS 5
 
 class Tab : public Widget {
 public:
@@ -56,7 +58,7 @@ public:
 	struct TabDef {
 		std::string text;
 		ui::Color color;
-		std::initializer_list<Widget*> widget_list;
+		View* view;
 	};
 	
 	TabView(std::initializer_list<TabDef> tab_definitions);
@@ -69,8 +71,8 @@ public:
 
 private:
 	size_t n_tabs { };
-	std::array<Tab, 5> tabs { };
-	std::array<std::vector<Widget*>, 5> widget_lists { };
+	std::array<Tab, MAX_TABS> tabs { };
+	std::array<View*, MAX_TABS> views { };
 	uint32_t current_tab { 0 };
 };
 

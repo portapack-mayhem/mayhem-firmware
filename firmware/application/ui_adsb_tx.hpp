@@ -51,8 +51,137 @@ private:
 	
 	const range_t<uint32_t> range { 0, 359 };
 	uint32_t value_ { 0 };
+};
 
-	uint32_t clamp_value(uint32_t value);
+class ADSBView : public View {
+public:
+	ADSBView();
+	
+	void focus() override;
+	
+	void set_type(std::string type);
+	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
+
+protected:
+	bool enabled { false };
+	
+	void set_enabled(bool value);
+	
+private:
+	Checkbox check_enable {
+		{ 2 * 8, 0 * 16 },
+		20,
+		"",
+		false
+	};
+};
+
+class ADSBPositionView : public ADSBView {
+public:
+	ADSBPositionView(NavigationView& nav);
+	
+	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
+
+private:
+	Labels labels_position {
+		{ { 2 * 8, 2 * 16 }, "Alt:       feet", Color::light_grey() },
+		{ { 2 * 8, 4 * 16 }, "Lat:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 2 * 8, 5 * 16 }, "Lon:     *  '  \"", Color::light_grey() },
+	};
+	
+	NumberField field_altitude {
+		{ 7 * 8, 2 * 16 },
+		5,
+		{ -1000, 50000 },
+		250,
+		' '
+	};
+	
+	NumberField field_lat_degrees {
+		{ 7 * 8, 4 * 16 }, 4, { -90, 90 }, 1, ' '
+	};
+	NumberField field_lat_minutes {
+		{ 12 * 8, 4 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	NumberField field_lat_seconds {
+		{ 15 * 8, 4 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	
+	NumberField field_lon_degrees {
+		{ 7 * 8, 5 * 16 }, 4, { -180, 180 }, 1, ' '
+	};
+	NumberField field_lon_minutes {
+		{ 12 * 8, 5 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	NumberField field_lon_seconds {
+		{ 15 * 8, 5 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	
+	Button button_set_map {
+		{ 7 * 8, 7 * 16, 14 * 8, 2 * 16 },
+		"Set from map"
+	};
+};
+
+class ADSBCallsignView : public ADSBView {
+public:
+	ADSBCallsignView(NavigationView& nav);
+	
+	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
+
+private:
+	std::string callsign = "TEST1234";
+	
+	Labels labels_callsign {
+		{ { 2 * 8, 5 * 8 }, "Callsign:", Color::light_grey() }
+	};
+	
+	Button button_callsign {
+		{ 12 * 8, 2 * 16, 10 * 8, 2 * 16 },
+		""
+	};
+};
+
+class ADSBSpeedView : public ADSBView {
+public:
+	ADSBSpeedView();
+	
+	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
+
+private:
+	Labels labels_speed {
+		{ { 1 * 8, 6 * 16 }, "Speed:    kn  Bearing:    *", Color::light_grey() }
+	};
+	
+	Compass compass {
+		{ 21 * 8, 2 * 16 }
+	};
+	
+	NumberField field_angle {
+		{ 21 * 8 + 20, 6 * 16 }, 3, { 0, 359 }, 1, ' ', true
+	};
+	
+	NumberField field_speed {
+		{ 8 * 8, 6 * 16 }, 3, { 0, 999 }, 5, ' '
+	};
+};
+
+class ADSBSquawkView : public ADSBView {
+public:
+	ADSBSquawkView();
+	
+	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
+
+private:
+	Labels labels_squawk {
+		{ { 2 * 8, 2 * 16 }, "Squawk:", Color::light_grey() }
+	};
+	
+	SymField field_squawk {
+		{ 10 * 8, 2 * 16 },
+		4,
+		SymField::SYMFIELD_OCT
+	};
 };
 
 class ADSBTxView : public View {
@@ -101,131 +230,34 @@ private:
 	};
 	
 	tx_modes tx_mode = IDLE;
-	
-	std::string callsign = "TEST1234";
-	
-	ADSBFrame frames[4] { };
+	NavigationView& nav_;
+	std::vector<ADSBFrame> frames { };
 	
 	void start_tx();
 	void generate_frames();
-	//void rotate_frames();
+	void rotate_frames();
 	void on_txdone(const bool v);
 	
-	Labels labels {
-		//{ { 2 * 8, 2 * 8 }, "Format: 17 (ADS-B)", Color::light_grey() },
-		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() },
-		{ { 2 * 8, 7 * 8 }, "Callsign:", Color::light_grey() },
-		{ { 1 * 8, 11 * 8 }, "Alt:       feet", Color::light_grey() },
-		{ { 1 * 8, 13 * 8 }, "Lat:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 1 * 8, 15 * 8 }, "Lon:     *  '  \"", Color::light_grey() },
-		{ { 1 * 8, 18 * 8 }, "Speed:    kn  Bearing:    *", Color::light_grey() },
-		{ { 16 * 8, 22 * 8 }, "Squawk:", Color::light_grey() }
-	};
-	
-	// Only ADS-B is implemented right now
-	/*OptionsField options_format {
-		{ 10 * 8, 1 * 16 },
-		9,
-		{
-			{ "17: ADS-B", 17 },
-			{ "18: TIS-B", 18 },
-			{ "19: MIL  ", 19 },
-		}
-	};*/
+	ADSBPositionView view_position { nav_ };
+	ADSBCallsignView view_callsign { nav_ };
+	ADSBSpeedView view_speed { };
+	ADSBSquawkView view_squawk { };
 	
 	TabView tab_view {
-		{ "Position#", Color::cyan(),
-			{
-				&labels,
-				&field_altitude,
-				&field_lat_degrees,
-				&field_lat_minutes,
-				&field_lat_seconds,
-				&field_lon_degrees,
-				&field_lon_minutes,
-				&field_lon_seconds
-			}
-		},
-		{ "Callsign", Color::green(),
-			{
-				&button_callsign,
-			}
-		},
-		{ "Speed", Color::yellow(),
-			{
-				&compass,
-				&field_angle,
-				&field_speed
-			}
-		},
-		{ "Squawk", Color::orange(),
-			{
-				&check_emergency,
-				&field_squawk
-			}
-		}
+		{ "Position", Color::cyan(), &view_position },
+		{ "Callsign", Color::green(), &view_callsign },
+		{ "Speed", Color::yellow(), &view_speed },
+		{ "Squawk", Color::orange(), &view_squawk }
+	};
+	
+	Labels labels {
+		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() }
 	};
 	
 	SymField sym_icao {
-		{ 10 * 8, 2 * 16 },
+		{ 10 * 8, 4 * 8 },
 		6,
 		SymField::SYMFIELD_HEX
-	};
-
-	Button button_callsign {
-		{ 12 * 8, 3 * 16 + 4, 10 * 8, 24 },
-		""
-	};
-	
-	NumberField field_altitude {
-		{ 6 * 8, 11 * 8 },
-		5,
-		{ -1000, 50000 },
-		250,
-		' '
-	};
-	
-	NumberField field_lat_degrees {
-		{ 6 * 8, 13 * 8 }, 4, { -90, 90 }, 1, ' '
-	};
-	NumberField field_lat_minutes {
-		{ 11 * 8, 13 * 8 }, 2, { 0, 59 }, 1, ' '
-	};
-	NumberField field_lat_seconds {
-		{ 14 * 8, 13 * 8 }, 2, { 0, 59 }, 1, ' '
-	};
-	
-	NumberField field_lon_degrees {
-		{ 6 * 8, 15 * 8 }, 4, { -180, 180 }, 1, ' '
-	};
-	NumberField field_lon_minutes {
-		{ 11 * 8, 15 * 8 }, 2, { 0, 59 }, 1, ' '
-	};
-	NumberField field_lon_seconds {
-		{ 14 * 8, 15 * 8 }, 2, { 0, 59 }, 1, ' '
-	};
-	
-	Compass compass {
-		{ 21 * 8, 5 * 16 }
-	};
-	NumberField field_angle {
-		{ 21 * 8 + 20, 9 * 16 }, 3, { 0, 359 }, 1, ' ', true
-	};
-	
-	NumberField field_speed {
-		{ 8 * 8, 18 * 8 }, 3, { 0, 999 }, 5, ' '
-	};
-	
-	Checkbox check_emergency {
-		{ 2 * 8, 11 * 16 - 4 },
-		9,
-		"Emergency",
-		false
-	};
-	SymField field_squawk {
-		{ 24 * 8, 11 * 16 },
-		4,
-		SymField::SYMFIELD_OCT
 	};
 	
 	Text text_frame {

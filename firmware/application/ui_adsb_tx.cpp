@@ -22,6 +22,7 @@
 
 #include "ui_adsb_tx.hpp"
 #include "ui_alphanum.hpp"
+#include "ui_geomap.hpp"
 
 #include "manchester.hpp"
 #include "string_format.hpp"
@@ -49,7 +50,7 @@ Point Compass::polar_to_point(uint32_t angle, uint32_t distance) {
 void Compass::set_value(uint32_t new_value) {
 	Point center = screen_pos() + Point(32, 32);
 	
-	new_value = clamp_value(new_value);
+	new_value = range.clip(new_value);
 	
 	display.draw_line(
 		center,
@@ -77,12 +78,141 @@ void Compass::paint(Painter&) {
 	set_value(value_);
 }
 
-uint32_t Compass::clamp_value(uint32_t value) {
-	return range.clip(value);
+ADSBView::ADSBView() {
+	add_child(&check_enable);
+	hidden(true);
+	
+	check_enable.on_select = [this](Checkbox&, bool value) {
+		enabled = value;
+	};
+}
+
+void ADSBView::set_enabled(bool value) {
+	check_enable.set_value(value);
+}
+
+void ADSBView::set_type(std::string type) {
+	check_enable.set_text("Transmit " + type);
+}
+
+void ADSBView::focus() {
+	check_enable.focus();
+}
+
+ADSBPositionView::ADSBPositionView(NavigationView& nav) {
+	set_type("position");
+	
+	add_children({
+		&labels_position,
+		&field_altitude,
+		&field_lat_degrees,
+		&field_lat_minutes,
+		&field_lat_seconds,
+		&field_lon_degrees,
+		&field_lon_minutes,
+		&field_lon_seconds,
+		&button_set_map
+	});
+	
+	field_altitude.set_value(36000);
+	field_lat_degrees.set_value(0);
+	field_lat_minutes.set_value(0);
+	field_lat_seconds.set_value(0);
+	field_lon_degrees.set_value(0);
+	field_lon_minutes.set_value(0);
+	field_lon_seconds.set_value(0);
+	
+	button_set_map.on_select = [this, &nav](Button&) {
+		nav.push<GeoMapView>(GeoMapView::Mode::SET);
+	};
+}
+
+void ADSBPositionView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	ADSBFrame temp_frame;
+	
+	encode_frame_pos(temp_frame, ICAO_address, field_altitude.value(),
+		field_lat_degrees.value(), field_lon_degrees.value(), 0);
+	
+	frame_list.emplace_back(temp_frame);
+	
+	encode_frame_pos(temp_frame, ICAO_address, field_altitude.value(),
+		field_lat_degrees.value(), field_lon_degrees.value(), 1);
+		
+	frame_list.emplace_back(temp_frame);
+}
+
+ADSBCallsignView::ADSBCallsignView(NavigationView& nav) {
+	set_type("callsign");
+	
+	add_children({
+		&labels_callsign,
+		&button_callsign
+	});
+	
+	set_enabled(true);
+	
+	button_callsign.set_text(callsign);
+	
+	button_callsign.on_select = [this, &nav](Button&) {
+		text_prompt(nav, &callsign, 8);
+	};
+}
+
+void ADSBCallsignView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	ADSBFrame temp_frame;
+	
+	encode_frame_id(temp_frame, ICAO_address, callsign);
+	
+	frame_list.emplace_back(temp_frame);
+}
+
+ADSBSpeedView::ADSBSpeedView() {
+	set_type("speed");
+	
+	add_children({
+		&labels_speed,
+		&compass,
+		&field_angle,
+		&field_speed
+	});
+	
+	field_angle.set_value(0);
+	field_speed.set_value(400);
+	
+	field_angle.on_change = [this](int32_t v) {
+		compass.set_value(v);
+	};
+}
+
+void ADSBSpeedView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	ADSBFrame temp_frame;
+	
+	encode_frame_velo(temp_frame, ICAO_address, field_speed.value(),
+		field_angle.value(), 0);	// TODO: v_rate
+	
+	frame_list.emplace_back(temp_frame);
+}
+
+ADSBSquawkView::ADSBSquawkView() {
+	set_type("squawk");
+	
+	add_children({
+		&labels_squawk,
+		&field_squawk
+	});
+}
+
+void ADSBSquawkView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	ADSBFrame temp_frame;
+	(void)ICAO_address;
+	
+	encode_frame_squawk(temp_frame, field_squawk.value_dec_u32());
+	
+	frame_list.emplace_back(temp_frame);
 }
 
 void ADSBTxView::focus() {
-	button_callsign.focus();
+	tab_view.focus();
 }
 
 ADSBTxView::~ADSBTxView() {
@@ -91,21 +221,19 @@ ADSBTxView::~ADSBTxView() {
 }
 
 void ADSBTxView::generate_frames() {
-	uint8_t * bin_ptr = shared_memory.bb_data.data;
+	const uint32_t ICAO_address = sym_icao.value_hex_u64();
 	
-	encode_frame_id(frames[0], sym_icao.value_hex_u64(), callsign);
-	
-	encode_frame_pos(frames[1], sym_icao.value_hex_u64(), field_altitude.value(),
-		field_lat_degrees.value(), field_lon_degrees.value(), 0);
-	encode_frame_pos(frames[2], sym_icao.value_hex_u64(), field_altitude.value(),
-		field_lat_degrees.value(), field_lon_degrees.value(), 1);
+	view_position.collect_frames(ICAO_address, frames);
+	view_callsign.collect_frames(ICAO_address, frames);
+	view_speed.collect_frames(ICAO_address, frames);
+	view_squawk.collect_frames(ICAO_address, frames);
 
-	memset(bin_ptr, 0, 240);
+	//memset(bin_ptr, 0, 240);
 
-	auto raw_ptr = frames[0].get_raw_data();
+	//auto raw_ptr = frames[0].get_raw_data();
 	
 	// The preamble isn't manchester encoded
-	memcpy(bin_ptr, adsb_preamble, 16);
+	//memcpy(bin_ptr, adsb_preamble, 16);
 	
 	// Convert to binary with manchester encoding (1 byte per bit, faster for baseband code)
 	/*for (c = 0; c < 112; c++) {
@@ -118,12 +246,12 @@ void ADSBTxView::generate_frames() {
 		}
 	}*/
 	
-	manchester_encode(bin_ptr + 16, raw_ptr, 112, 0);
+	/*manchester_encode(bin_ptr + 16, raw_ptr, 112, 0);
 	
 	// Display in hex for debug
 	text_frame.set(to_string_hex_array(frames[0].get_raw_data(), 14));
 
-	button_callsign.set_text(callsign);
+	button_callsign.set_text(callsign);*/
 }
 
 void ADSBTxView::start_tx() {
@@ -138,22 +266,22 @@ void ADSBTxView::start_tx() {
 }
 
 void ADSBTxView::on_txdone(const bool v) {
+	(void)v;
 	/*if (v) {
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
 	}*/
 }
 
-/*void ADSBTxView::rotate_frames() {
-	// DEBUG
+void ADSBTxView::rotate_frames() {
 	uint8_t * bin_ptr = shared_memory.bb_data.data;
 	uint8_t * raw_ptr;
-	uint32_t frame_index = 0, plane_index = 0;
-	uint32_t c, regen = 0;
-	float offs = 0;
+	uint32_t frame_index = 0;	//, plane_index = 0;
+	uint32_t c;	//, regen = 0;
+	//float offs = 0;
 	
 	for (;;) {
-		if (!regen) {
+		/*if (!regen) {
 			regen = 10;
 			
 			encode_frame_id(frames[0], plane_index, "DEMO" + to_string_dec_uint(plane_index));
@@ -167,7 +295,7 @@ void ADSBTxView::on_txdone(const bool v) {
 				plane_index++;
 			
 			offs += 0.001;
-		}
+		}*/
 		
 		memset(bin_ptr, 0, 240);
 		
@@ -188,91 +316,50 @@ void ADSBTxView::on_txdone(const bool v) {
 		
 		baseband::set_adsb();
 		
-		chThdSleepMilliseconds(5);
+		chThdSleepMilliseconds(50);
 		
-		if (frame_index == 3) {
+		if (frame_index == frames.size()) {
 			frame_index = 0;
-			if (regen)
-				regen--;
+			//if (regen)
+			//	regen--;
 		} else {
 			frame_index++;
 		}
 	}
-}*/
+}
 
-ADSBTxView::ADSBTxView(NavigationView& nav) {
+ADSBTxView::ADSBTxView(
+	NavigationView& nav
+) : nav_ { nav }
+{
+	Rect view_rect = { 0, 7 * 8, 240, 192 };
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
 
 	add_children({
-		&labels,
 		&tab_view,
-		//&options_format,
+		&labels,
 		&sym_icao,
-		&button_callsign,
-		&field_altitude,
-		&field_lat_degrees,
-		&field_lat_minutes,
-		&field_lat_seconds,
-		&field_lon_degrees,
-		&field_lon_minutes,
-		&field_lon_seconds,
-		&compass,
-		&field_angle,
-		&field_speed,
-		&check_emergency,
-		&field_squawk,
+		&view_position,
+		&view_callsign,
+		&view_speed,
+		&view_squawk,
 		&text_frame,
 		&tx_view
 	});
 	
-	/*options_format.set_by_value(17);	// Mode S
-	
-	options_format.on_change = [this](size_t, int32_t) {
-		generate_frames();
-	};*/
+	view_position.set_parent_rect(view_rect);
+	view_callsign.set_parent_rect(view_rect);
+	view_speed.set_parent_rect(view_rect);
+	view_squawk.set_parent_rect(view_rect);
 	
 	sym_icao.on_change = [this]() {
 		generate_frames();
 	};
-	button_callsign.on_select = [this, &nav](Button&) {
-		text_prompt(nav, &callsign, 8);
-	};
-	
-	field_altitude.set_value(36000);
-	field_lat_degrees.set_value(0);
-	field_lat_minutes.set_value(0);
-	field_lat_seconds.set_value(0);
-	field_lon_degrees.set_value(0);
-	field_lon_minutes.set_value(0);
-	field_lon_seconds.set_value(0);
-	field_angle.set_value(0);
-	field_speed.set_value(0);
-	
-	const auto update_fn = [this](int32_t) {
-		generate_frames();
-	};
-	
-	field_altitude.on_change = update_fn;
-	field_lat_degrees.on_change = update_fn;
-	field_lat_minutes.on_change = update_fn;
-	field_lat_seconds.on_change = update_fn;
-	field_lon_degrees.on_change = update_fn;
-	field_lon_minutes.on_change = update_fn;
-	field_lon_seconds.on_change = update_fn;
-	
-	field_angle.on_change = [this](int32_t v) {
-		compass.set_value(v);
-		generate_frames();
-	};
-	
-	field_speed.on_change = update_fn;
-	
-	generate_frames();
 	
 	tx_view.on_start = [this]() {
 		start_tx();
 		tx_view.set_transmitting(true);
-		//rotate_frames();
+		rotate_frames();
 	};
 	
 	tx_view.on_stop = [this]() {

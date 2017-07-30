@@ -74,8 +74,8 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const uint3
 	const float latitude, const float longitude, const uint32_t time_parity);
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate);
-void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
-void encode_frame_identity(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t code);
+//void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
+void encode_frame_squawk(ADSBFrame& frame, const uint32_t squawk);
 
 } /* namespace adsb */
 
