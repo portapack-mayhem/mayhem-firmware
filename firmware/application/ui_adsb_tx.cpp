@@ -40,7 +40,10 @@ Compass::Compass(
 	const Point parent_pos
 ) : Widget { { parent_pos, { 64, 64 } } }
 {
-	set_focusable(false);	// Useless ?
+}
+
+Point Compass::polar_to_point(uint32_t angle, uint32_t distance) {
+	return Point(sin_f32(DEG_TO_RAD(angle) + (pi / 2)) * distance, -sin_f32(DEG_TO_RAD(angle)) * distance);
 }
 
 void Compass::set_value(uint32_t new_value) {
@@ -50,13 +53,13 @@ void Compass::set_value(uint32_t new_value) {
 	
 	display.draw_line(
 		center,
-		center + Point(sin_f32(DEG_TO_RAD(value_) + (pi / 2)) * 28, -sin_f32(DEG_TO_RAD(value_)) * 28),
+		center + polar_to_point(value_, 28),
 		Color::dark_grey()
 	);
 	
 	display.draw_line(
 		center,
-		center + Point(sin_f32(DEG_TO_RAD(new_value) + (pi / 2)) * 28, -sin_f32(DEG_TO_RAD(new_value)) * 28),
+		center + polar_to_point(new_value, 28),
 		Color::green()
 	);
 
@@ -65,6 +68,7 @@ void Compass::set_value(uint32_t new_value) {
 
 void Compass::paint(Painter&) {
 	display.fill_circle(screen_pos() + Point(32, 32), 32, Color::dark_grey(), Color::black());
+	
 	display.fill_rectangle({ screen_pos() + Point(32 - 2, 0), { 4, 4 } }, Color::black());	// N
 	display.fill_rectangle({ screen_pos() + Point(32 - 2, 64 - 4), { 4, 4 } }, Color::black());	// S
 	display.fill_rectangle({ screen_pos() + Point(0, 32 - 2), { 4, 4 } }, Color::black());	// W
@@ -78,16 +82,12 @@ uint32_t Compass::clamp_value(uint32_t value) {
 }
 
 void ADSBTxView::focus() {
-	tx_view.focus();
+	button_callsign.focus();
 }
 
 ADSBTxView::~ADSBTxView() {
 	transmitter_model.disable();
 	baseband::shutdown();
-}
-
-void ADSBTxView::paint(Painter&) {
-	button_callsign.set_text(callsign);
 }
 
 void ADSBTxView::generate_frames() {
@@ -129,10 +129,8 @@ void ADSBTxView::generate_frames() {
 void ADSBTxView::start_tx() {
 	generate_frames();
 	
-	transmitter_model.set_tuning_frequency(434000000);	// DEBUG
 	transmitter_model.set_sampling_rate(4000000U);
 	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(10000000);
 	transmitter_model.enable();
 	
@@ -140,10 +138,10 @@ void ADSBTxView::start_tx() {
 }
 
 void ADSBTxView::on_txdone(const bool v) {
-	if (v) {
+	/*if (v) {
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
-	}
+	}*/
 }
 
 /*void ADSBTxView::rotate_frames() {
@@ -203,12 +201,11 @@ void ADSBTxView::on_txdone(const bool v) {
 }*/
 
 ADSBTxView::ADSBTxView(NavigationView& nav) {
-	uint32_t c;
-	
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
 
 	add_children({
 		&labels,
+		&tab_view,
 		//&options_format,
 		&sym_icao,
 		&button_callsign,
@@ -251,31 +248,26 @@ ADSBTxView::ADSBTxView(NavigationView& nav) {
 	field_angle.set_value(0);
 	field_speed.set_value(0);
 	
-	field_altitude.on_change = [this](int32_t) {
+	const auto update_fn = [this](int32_t) {
 		generate_frames();
 	};
-	field_lat_degrees.on_change = [this](int32_t) {
-		generate_frames();
-	};
-	field_lon_degrees.on_change = [this](int32_t) {
-		generate_frames();
-	};
+	
+	field_altitude.on_change = update_fn;
+	field_lat_degrees.on_change = update_fn;
+	field_lat_minutes.on_change = update_fn;
+	field_lat_seconds.on_change = update_fn;
+	field_lon_degrees.on_change = update_fn;
+	field_lon_minutes.on_change = update_fn;
+	field_lon_seconds.on_change = update_fn;
 	
 	field_angle.on_change = [this](int32_t v) {
 		compass.set_value(v);
 		generate_frames();
 	};
 	
-	field_speed.on_change = [this](int32_t) {
-		generate_frames();
-	};
-	
-	for (c = 0; c < 4; c++)
-		field_squawk.set_sym(c, 0);
+	field_speed.on_change = update_fn;
 	
 	generate_frames();
-	
-	receiver_model.set_tuning_frequency(434000000);		// DEBUG
 	
 	tx_view.on_start = [this]() {
 		start_tx();

@@ -485,9 +485,15 @@ public:
 
 	using range_t = std::pair<int32_t, int32_t>;
 
-	NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char);
+	NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char, bool can_loop);
+	
+	NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char
+	) : NumberField { parent_pos, length, range, step, fill_char, false }
+	{
+	}
+	
 	NumberField(
-	) : NumberField { { 0, 0 }, 1, { 0, 1 }, 1, ' ' }
+	) : NumberField { { 0, 0 }, 1, { 0, 1 }, 1, ' ', false }
 	{
 	}
 
@@ -510,6 +516,7 @@ private:
 	const int length_;
 	const char fill_char;
 	int32_t value_ { 0 };
+	bool can_loop { };
 
 	int32_t clip_value(int32_t value);
 };

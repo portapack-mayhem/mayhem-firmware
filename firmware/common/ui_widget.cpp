@@ -114,7 +114,9 @@ void Widget::hidden(bool hide) {
 		if( hide ) {
 			// TODO: Instead of dirtying parent entirely, dirty only children
 			// that overlap with this widget.
-			parent()->dirty_overlapping_children_in_rect(parent_rect());
+			
+			//parent()->dirty_overlapping_children_in_rect(parent_rect());
+			
 			/* TODO: Notify self and all non-hidden children that they're
 			 * now effectively hidden?
 			 */
@@ -1122,12 +1124,14 @@ NumberField::NumberField(
 	int length,
 	range_t range,
 	int32_t step,
-	char fill_char
+	char fill_char,
+	bool can_loop
 ) : Widget { { parent_pos, { 8 * length, 16 } } },
 	range { range },
 	step { step },
 	length_ { length },
-	fill_char { fill_char }
+	fill_char { fill_char },
+	can_loop { can_loop }
 {
 	set_focusable(true);
 }
@@ -1137,6 +1141,13 @@ int32_t NumberField::value() const {
 }
 
 void NumberField::set_value(int32_t new_value, bool trigger_change) {
+	if (can_loop) {
+		if (new_value >= 0)
+			new_value = new_value % (range.second + 1);
+		else
+			new_value = range.second + new_value + 1;
+	}
+	
 	new_value = clip_value(new_value);
 
 	if( new_value != value() ) {

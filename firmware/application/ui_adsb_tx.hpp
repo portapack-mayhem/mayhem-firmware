@@ -26,6 +26,7 @@
 #include "sine_table.hpp"
 #include "ui_textentry.hpp"
 #include "ui_widget.hpp"
+#include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
 
@@ -46,6 +47,8 @@ public:
 	void paint(Painter&) override;
 
 private:
+	Point polar_to_point(uint32_t angle, uint32_t distance);
+	
 	const range_t<uint32_t> range { 0, 359 };
 	uint32_t value_ { 0 };
 
@@ -56,8 +59,6 @@ class ADSBTxView : public View {
 public:
 	ADSBTxView(NavigationView& nav);
 	~ADSBTxView();
-	
-	void paint(Painter&) override;
 	
 	void focus() override;
 	
@@ -111,7 +112,7 @@ private:
 	void on_txdone(const bool v);
 	
 	Labels labels {
-		{ { 2 * 8, 2 * 8 }, "Format: 17 (ADS-B)", Color::light_grey() },
+		//{ { 2 * 8, 2 * 8 }, "Format: 17 (ADS-B)", Color::light_grey() },
 		{ { 2 * 8, 4 * 8 }, "ICAO24:", Color::light_grey() },
 		{ { 2 * 8, 7 * 8 }, "Callsign:", Color::light_grey() },
 		{ { 1 * 8, 11 * 8 }, "Alt:       feet", Color::light_grey() },
@@ -131,6 +132,39 @@ private:
 			{ "19: MIL  ", 19 },
 		}
 	};*/
+	
+	TabView tab_view {
+		{ "Position#", Color::cyan(),
+			{
+				&labels,
+				&field_altitude,
+				&field_lat_degrees,
+				&field_lat_minutes,
+				&field_lat_seconds,
+				&field_lon_degrees,
+				&field_lon_minutes,
+				&field_lon_seconds
+			}
+		},
+		{ "Callsign", Color::green(),
+			{
+				&button_callsign,
+			}
+		},
+		{ "Speed", Color::yellow(),
+			{
+				&compass,
+				&field_angle,
+				&field_speed
+			}
+		},
+		{ "Squawk", Color::orange(),
+			{
+				&check_emergency,
+				&field_squawk
+			}
+		}
+	};
 	
 	SymField sym_icao {
 		{ 10 * 8, 2 * 16 },
@@ -175,7 +209,7 @@ private:
 		{ 21 * 8, 5 * 16 }
 	};
 	NumberField field_angle {
-		{ 21 * 8 + 20, 9 * 16 }, 3, { 0, 359 }, 1, ' '
+		{ 21 * 8 + 20, 9 * 16 }, 3, { 0, 359 }, 1, ' ', true
 	};
 	
 	NumberField field_speed {
@@ -201,9 +235,8 @@ private:
 	
 	TransmitterView tx_view {
 		16 * 16,
-		0,
-		0,
-		true
+		1000000,
+		0
 	};
 	
 	MessageHandlerRegistration message_handler_tx_done {

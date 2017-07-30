@@ -103,7 +103,7 @@ TransmitterView::TransmitterView(
 	const Coord y, const uint64_t frequency_step, const uint32_t bandwidth, const bool lock
 ) :	lock_ { lock }
 {
-	set_parent_rect({ 0 * 8, y, 30 * 8, 6 * 8 });
+	set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
 	
 	add_children({
 		&field_frequency,
@@ -118,15 +118,17 @@ TransmitterView::TransmitterView(
 		field_frequency.set_focusable(false);
 		field_frequency.set_style(&style_locked);
 	} else {
-		add_children({
-			&text_bw,
-			&field_bw
-		});
-		
-		field_bw.on_change = [this](int32_t bandwidth) {
-			on_bandwidth_changed(bandwidth * 1000);
-		};
-		field_bw.set_value(bandwidth);
+		if (bandwidth) {
+			add_children({
+				&text_bw,
+				&field_bw
+			});
+			
+			field_bw.on_change = [this](int32_t bandwidth) {
+				on_bandwidth_changed(bandwidth * 1000);
+			};
+			field_bw.set_value(bandwidth);
+		}
 	}
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
