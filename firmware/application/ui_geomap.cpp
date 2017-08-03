@@ -23,8 +23,6 @@
 #include "ui_geomap.hpp"
 
 #include "adsb.hpp"
-//#include "string_format.hpp"
-#include "sine_table_int8.hpp"
 #include "portapack.hpp"
 
 #include <cstring>
@@ -34,9 +32,80 @@ using namespace portapack;
 
 namespace ui {
 
+GeoPos::GeoPos(
+	const Point pos
+) {
+	set_parent_rect({pos, {30 * 8, 3 * 16}});
+	
+	add_children({
+		&labels_position,
+		&field_altitude,
+		&field_lat_degrees,
+		&field_lat_minutes,
+		&field_lat_seconds,
+		&field_lon_degrees,
+		&field_lon_minutes,
+		&field_lon_seconds
+	});
+	
+	// Defaults
+	set_altitude(0);
+	set_lat(0);
+	set_lon(0);
+	
+	const auto changed = [this](int32_t) {
+		if (on_change)
+			on_change();
+	};
+	
+	field_altitude.on_change = changed;
+	field_lat_degrees.on_change = changed;
+	field_lat_minutes.on_change = changed;
+	field_lat_seconds.on_change = changed;
+	field_lon_degrees.on_change = changed;
+	field_lon_minutes.on_change = changed;
+	field_lon_seconds.on_change = changed;
+}
+
+void GeoPos::focus() {
+	field_altitude.focus();
+}
+
+void GeoPos::set_altitude(int32_t altitude) {
+	field_altitude.set_value(altitude);
+}
+
+void GeoPos::set_lat(float lat) {
+	field_lat_degrees.set_value(lat);
+	field_lat_minutes.set_value((uint32_t)(lat / (1.0 / 60)) % 60);
+	field_lat_seconds.set_value((uint32_t)(lat / (1.0 / 3600)) % 60);
+}
+
+void GeoPos::set_lon(float lon) {
+	field_lon_degrees.set_value(lon);
+	field_lon_minutes.set_value((uint32_t)(lon / (1.0 / 60)) % 60);
+	field_lon_seconds.set_value((uint32_t)(lon / (1.0 / 3600)) % 60);
+}
+
+float GeoPos::lat() {
+	return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+};
+
+float GeoPos::lon() {
+	return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+};
+
+int32_t GeoPos::altitude() {
+	return field_altitude.value();
+};
+
+void GeoPos::set_read_only(bool v) {
+	set_focusable(~v);
+};
+
 void GeoMapView::focus() {
 	if (!file_error) {
-		field_xpos.focus();
+		geopos.focus();
 		move_map();
 	} else
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
@@ -46,61 +115,58 @@ GeoMapView::~GeoMapView() {
 	
 }
 
-Point GeoMapView::polar_to_point(const uint8_t angle, const uint32_t size) {
-	return { (Coord)(sine_table_i8[(angle + 64) & 0xFF] * size) >> 7, (Coord)(sine_table_i8[angle] * size) >> 7 };
-}
-
-void GeoMapView::draw_bearing(const Point origin, const uint8_t angle, uint32_t size, const Color color) {
+void GeoMapView::draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color) {
 	Point arrow_a, arrow_b, arrow_c;
 	
-	arrow_a = polar_to_point(angle, size) + origin;
-	arrow_b = polar_to_point(angle + 128 - 16, size) + origin;
-	arrow_c = polar_to_point(angle + 128 + 16, size) + origin;
-	display.draw_line(arrow_a, arrow_b, color);
-	display.draw_line(arrow_b, arrow_c, color);
-	display.draw_line(arrow_c, arrow_a, color);
-	
-	size--;
-	arrow_a = polar_to_point(angle, size) + origin;
-	arrow_b = polar_to_point(angle + 128 - 16, size) + origin;
-	arrow_c = polar_to_point(angle + 128 + 16, size) + origin;
-	display.draw_line(arrow_a, arrow_b, color);
-	display.draw_line(arrow_b, arrow_c, color);
-	display.draw_line(arrow_c, arrow_a, color);
+	for (size_t thickness = 0; thickness < 3; thickness++) {
+		arrow_a = polar_to_point(angle, size) + origin;
+		arrow_b = polar_to_point(angle + 180 - 30, size) + origin;
+		arrow_c = polar_to_point(angle + 180 + 30, size) + origin;
+		
+		display.draw_line(arrow_a, arrow_b, color);
+		display.draw_line(arrow_b, arrow_c, color);
+		display.draw_line(arrow_c, arrow_a, color);
+		
+		size--;
+	}
 }
 
 void GeoMapView::move_map() {
 	Coord line;
 	int32_t x_pos, y_pos;
-	std::array<ui::Color, 240> map_buffer;
+	std::array<ui::Color, 240> map_line_buffer;
+	
+	auto r = screen_rect();
+	Rect map_rect = { r.left(), r.top() + banner_height, r.width(), r.height() - banner_height };
+	
+	altitude_ = geopos.altitude();
+	lat_ = geopos.lat();
+	lon_ = geopos.lon();
 	
 	// Map is in Equidistant "Plate Carrée" projection
-	x_pos = map_center_x - 120 + ((((field_xpos.value() * map_center_x) << 8) / 180) >> 8);
-	y_pos = map_center_y - 144 + ((((field_ypos.value() * map_center_y) << 8) / 90) >> 8);
+	x_pos = map_center_x - (map_rect.width() / 2) + ((lat_ * map_center_x) / 180);
+	y_pos = map_center_y - (map_rect.height() / 2) + ((lon_ * map_center_y) / 90);
 	
-	if (x_pos > (map_width - 240))
-		x_pos = map_width - 240;
-	if (y_pos > (map_height + 288))
-		y_pos = map_height - 288;
+	if (x_pos > (map_width - map_rect.width()))
+		x_pos = map_width - map_rect.width();
+	if (y_pos > (map_height + map_rect.height()))
+		y_pos = map_height - map_rect.height();
 	
-	for (line = 0; line < 288; line++) {
+	for (line = 0; line < map_rect.height(); line++) {
 		map_file.seek(4 + ((x_pos + (map_width * (y_pos + line))) << 1));
-		map_file.read(map_buffer.data(), 240 * 2);
-		display.draw_pixels({ 0, 32 + line, 240, 1 }, map_buffer);
+		map_file.read(map_line_buffer.data(), map_rect.width() << 1);
+		display.draw_pixels({ 0, map_rect.top() + line, map_rect.width(), 1 }, map_line_buffer);
 	}
 	
-	draw_bearing({ 120, 32 + 144 }, field_angle.value(), 16, Color::red());
-	
-	//display.fill_rectangle({ 120-16, 176-1, 32, 2 }, Color::red());
-	//display.fill_rectangle({ 120-1, 176-16, 2, 32 }, Color::red());
+	if (mode_ == PROMPT) {
+		display.fill_rectangle({ map_rect.center() - Point(16, 1), { 32, 2 } }, Color::red());
+		display.fill_rectangle({ map_rect.center() - Point(1, 16), { 2, 32 } }, Color::red());
+	} else {
+		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
+	}
 }
 
-GeoMapView::GeoMapView(
-	NavigationView& nav,
-	Mode mode
-) : nav_ (nav),
-	mode_ (mode)
-{
+void GeoMapView::setup() {
 	auto result = map_file.open("ADSB/world_map.bin");
 	if (result.is_valid()) {
 		file_error = true;
@@ -113,23 +179,59 @@ GeoMapView::GeoMapView(
 	map_center_x = map_width >> 1;
 	map_center_y = map_height >> 1;
 	
-	add_children({
-		&field_xpos,
-		&field_ypos
-	});
+	add_child(&geopos);
 	
-	if (mode_ == SHOW) {
-		add_child(&field_angle);
-		field_angle.on_change = [this](int32_t) {
-			move_map();
-		};
-	}
+	geopos.set_altitude(altitude_);
+	geopos.set_lat(lat_);
+	geopos.set_lon(lon_);
 	
-	field_xpos.on_change = [this](int32_t) {
+	geopos.on_change = [this]() {
 		move_map();
 	};
-	field_ypos.on_change = [this](int32_t) {
-		move_map();
+}
+
+// Display mode
+GeoMapView::GeoMapView(
+	NavigationView& nav,
+	std::string* tag,
+	int32_t altitude,
+	float lat,
+	float lon,
+	float angle
+) : nav_ (nav),
+	tag_ (tag),
+	altitude_ (altitude),
+	lat_ (lat),
+	lon_ (lon),
+	angle_ (angle)
+{
+	mode_ = DISPLAY;
+	setup();
+	
+	geopos.set_read_only(true);
+}
+
+// Prompt mode
+GeoMapView::GeoMapView(
+	NavigationView& nav,
+	int32_t altitude,
+	float lat,
+	float lon,
+	const std::function<void(int32_t, float, float)> on_done
+) : nav_ (nav),
+	altitude_ (altitude),
+	lat_ (lat),
+	lon_ (lon)
+{
+	mode_ = PROMPT;
+	setup();
+	
+	add_child(&button_ok);
+	
+	button_ok.on_select = [this, on_done, &nav](Button&) {
+		if (on_done)
+			on_done(altitude_, lat_, lon_);
+		nav.pop();
 	};
 }
 

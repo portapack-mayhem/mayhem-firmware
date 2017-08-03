@@ -22,7 +22,6 @@
 
 #include "ui_adsb_tx.hpp"
 #include "ui_alphanum.hpp"
-#include "ui_geomap.hpp"
 
 #include "manchester.hpp"
 #include "string_format.hpp"
@@ -41,10 +40,6 @@ Compass::Compass(
 	const Point parent_pos
 ) : Widget { { parent_pos, { 64, 64 } } }
 {
-}
-
-Point Compass::polar_to_point(uint32_t angle, uint32_t distance) {
-	return Point(sin_f32(DEG_TO_RAD(angle) + (pi / 2)) * distance, -sin_f32(DEG_TO_RAD(angle)) * distance);
 }
 
 void Compass::set_value(uint32_t new_value) {
@@ -103,40 +98,35 @@ ADSBPositionView::ADSBPositionView(NavigationView& nav) {
 	set_type("position");
 	
 	add_children({
-		&labels_position,
-		&field_altitude,
-		&field_lat_degrees,
-		&field_lat_minutes,
-		&field_lat_seconds,
-		&field_lon_degrees,
-		&field_lon_minutes,
-		&field_lon_seconds,
+		&geopos,
 		&button_set_map
 	});
 	
-	field_altitude.set_value(36000);
-	field_lat_degrees.set_value(0);
-	field_lat_minutes.set_value(0);
-	field_lat_seconds.set_value(0);
-	field_lon_degrees.set_value(0);
-	field_lon_minutes.set_value(0);
-	field_lon_seconds.set_value(0);
+	geopos.set_altitude(36000);
 	
 	button_set_map.on_select = [this, &nav](Button&) {
-		nav.push<GeoMapView>(GeoMapView::Mode::SET);
+		nav.push<GeoMapView>(
+			geopos.altitude(),
+			geopos.lat(),
+			geopos.lon(),
+			[this](int32_t altitude, float lat, float lon) {
+				geopos.set_altitude(altitude);
+				geopos.set_lat(lat);
+				geopos.set_lon(lon);
+			});
 	};
 }
 
 void ADSBPositionView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
 	ADSBFrame temp_frame;
 	
-	encode_frame_pos(temp_frame, ICAO_address, field_altitude.value(),
-		field_lat_degrees.value(), field_lon_degrees.value(), 0);
+	encode_frame_pos(temp_frame, ICAO_address, geopos.altitude(),
+		geopos.lat(), geopos.lon(), 0);
 	
 	frame_list.emplace_back(temp_frame);
 	
-	encode_frame_pos(temp_frame, ICAO_address, field_altitude.value(),
-		field_lat_degrees.value(), field_lon_degrees.value(), 1);
+	encode_frame_pos(temp_frame, ICAO_address, geopos.altitude(),
+		geopos.lat(), geopos.lon(), 1);
 		
 	frame_list.emplace_back(temp_frame);
 }
@@ -223,10 +213,17 @@ ADSBTxView::~ADSBTxView() {
 void ADSBTxView::generate_frames() {
 	const uint32_t ICAO_address = sym_icao.value_hex_u64();
 	
+	/* This scheme kinda sucks. Each "tab"'s collect_frames method
+	 * is called to generate its related frame(s). Getting values
+	 * from each widget of each tab would be better ?
+	 * */
 	view_position.collect_frames(ICAO_address, frames);
 	view_callsign.collect_frames(ICAO_address, frames);
 	view_speed.collect_frames(ICAO_address, frames);
 	view_squawk.collect_frames(ICAO_address, frames);
+	
+	// DEBUG: Show how many frames were generated
+	text_frame.set(to_string_dec_uint(frames.size()) + " frame(s).");
 
 	//memset(bin_ptr, 0, 240);
 
@@ -352,14 +349,11 @@ ADSBTxView::ADSBTxView(
 	view_speed.set_parent_rect(view_rect);
 	view_squawk.set_parent_rect(view_rect);
 	
-	sym_icao.on_change = [this]() {
-		generate_frames();
-	};
-	
 	tx_view.on_start = [this]() {
 		start_tx();
 		tx_view.set_transmitting(true);
-		rotate_frames();
+		// Disable for DEBUG
+		//rotate_frames();
 	};
 	
 	tx_view.on_stop = [this]() {

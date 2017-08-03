@@ -27,8 +27,6 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
-#include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 	
@@ -53,8 +51,6 @@ private:
 
 class TabView : public View {
 public:
-	//std::function<void(void)> on_change { };
-	
 	struct TabDef {
 		std::string text;
 		ui::Color color;

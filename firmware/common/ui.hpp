@@ -26,6 +26,8 @@
 
 namespace ui {
 
+#define DEG_TO_RAD(d) (d * (2 * pi) / 360.0)
+
 using Coord = int16_t;
 using Dim = int16_t;
 
@@ -325,6 +327,8 @@ struct TouchEvent {
 	Point point;
 	Type type;
 };
+
+Point polar_to_point(float angle, uint32_t distance);
 
 } /* namespace ui */
 

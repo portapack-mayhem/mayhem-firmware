@@ -23,9 +23,9 @@
 #include "ui.hpp"
 #include "adsb.hpp"
 #include "utility.hpp"
-#include "sine_table.hpp"
 #include "ui_textentry.hpp"
 #include "ui_widget.hpp"
+#include "ui_geomap.hpp"
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
@@ -47,8 +47,6 @@ public:
 	void paint(Painter&) override;
 
 private:
-	Point polar_to_point(uint32_t angle, uint32_t distance);
-	
 	const range_t<uint32_t> range { 0, 359 };
 	uint32_t value_ { 0 };
 };
@@ -83,38 +81,8 @@ public:
 	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
 
 private:
-	Labels labels_position {
-		{ { 2 * 8, 2 * 16 }, "Alt:       feet", Color::light_grey() },
-		{ { 2 * 8, 4 * 16 }, "Lat:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 2 * 8, 5 * 16 }, "Lon:     *  '  \"", Color::light_grey() },
-	};
-	
-	NumberField field_altitude {
-		{ 7 * 8, 2 * 16 },
-		5,
-		{ -1000, 50000 },
-		250,
-		' '
-	};
-	
-	NumberField field_lat_degrees {
-		{ 7 * 8, 4 * 16 }, 4, { -90, 90 }, 1, ' '
-	};
-	NumberField field_lat_minutes {
-		{ 12 * 8, 4 * 16 }, 2, { 0, 59 }, 1, ' '
-	};
-	NumberField field_lat_seconds {
-		{ 15 * 8, 4 * 16 }, 2, { 0, 59 }, 1, ' '
-	};
-	
-	NumberField field_lon_degrees {
-		{ 7 * 8, 5 * 16 }, 4, { -180, 180 }, 1, ' '
-	};
-	NumberField field_lon_minutes {
-		{ 12 * 8, 5 * 16 }, 2, { 0, 59 }, 1, ' '
-	};
-	NumberField field_lon_seconds {
-		{ 15 * 8, 5 * 16 }, 2, { 0, 59 }, 1, ' '
+	GeoPos geopos {
+		{ 0, 2 * 16 }
 	};
 	
 	Button button_set_map {
@@ -194,13 +162,13 @@ public:
 	std::string title() const override { return "ADS-B transmit"; };
 
 private:
-	enum tx_modes {
+	/*enum tx_modes {
 		IDLE = 0,
 		SINGLE,
 		SEQUENCE
-	};
+	};*/
 	
-	const float plane_lats[12] = {
+	/*const float plane_lats[12] = {
 		0,
 		-1,
 		-2,
@@ -227,9 +195,9 @@ private:
 		-1,
 		-1,
 		-1
-	};
+	};*/
 	
-	tx_modes tx_mode = IDLE;
+	//tx_modes tx_mode = IDLE;
 	NavigationView& nav_;
 	std::vector<ADSBFrame> frames { };
 	

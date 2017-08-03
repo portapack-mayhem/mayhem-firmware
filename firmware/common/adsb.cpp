@@ -161,7 +161,7 @@ int cpr_N(float lat, int is_odd) {
 // ... and ...
 // if (lon > 180) lon -= 360;
 
-void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t altitude,
+void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity) {
 	
 	uint32_t altitude_coded;

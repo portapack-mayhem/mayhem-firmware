@@ -24,13 +24,12 @@
 #define __ADSB_H__
 
 #include "adsb_frame.hpp"
+#include "ui.hpp"
 
 #include <cstring>
 #include <string>
 
 namespace adsb {
-
-#define DEG_TO_RAD(d) (d * (2 * pi) / 360.0)
 
 enum downlink_format {
 	DF_ADSB = 17,
@@ -70,7 +69,7 @@ const float adsb_lat_lut[58] = {
 
 void make_frame_adsb(ADSBFrame& frame, const uint32_t ICAO_address);
 void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign);
-void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t altitude,
+void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity);
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate);
