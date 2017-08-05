@@ -233,7 +233,7 @@ private:
 		{ 0, 128, 240, 16 },
 		"Git Commit Hash        " GIT_REVISION,
 	};
-
+/*
 	Text text_cpld_hackrf {
 		{ 0, 144, 11*8, 16 },
 		"HackRF CPLD",
@@ -243,7 +243,7 @@ private:
 		{ 240 - 3*8, 144, 3*8, 16 },
 		"???"
 	};
-
+*/
 	Button button_ok {
 		{ 72, 192, 96, 24 },
 		"OK"

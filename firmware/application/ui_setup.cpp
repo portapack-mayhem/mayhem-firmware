@@ -175,18 +175,19 @@ AboutView::AboutView(NavigationView& nav) {
 	add_children({
 		&text_title,
 		&text_firmware,
-		&text_cpld_hackrf,
-		&text_cpld_hackrf_status,
+		// &text_cpld_hackrf,
+		// &text_cpld_hackrf_status,
 		&button_ok,
 	});
 
 	button_ok.on_select = [&nav](Button&){ nav.pop(); };
-
+/*
 	if( hackrf::cpld::verify_eeprom() ) {
 		text_cpld_hackrf_status.set(" OK");
 	} else {
 		text_cpld_hackrf_status.set("BAD");
 	}
+*/
 }
 
 void AboutView::focus() {
