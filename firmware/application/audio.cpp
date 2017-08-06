@@ -75,7 +75,7 @@ constexpr i2s::ConfigRX i2s0_config_rx_four_wire {
 		.bitrate = 7,
 	},
 	.rxmode = i2s::Mode {
-		.clksel = i2s::ClockSelect::BaseAudioClkOrExternalMCLK,
+		.clksel = i2s::ClockSelect::FractionalDivider,
 		.four_pin = 1,
 		.mclk_out_en = 0,
 	},
