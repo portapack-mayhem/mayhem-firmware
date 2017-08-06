@@ -33,6 +33,8 @@ namespace audio {
 
 namespace {
 
+// "Master": I2S peripheral generates SCK/WS, transmits to audio codec.
+
 constexpr i2s::ConfigTX i2s0_config_tx_master_base_clk {
 	.dao = i2s::DAO {
 		.wordwidth = i2s::WordWidth::Bits16,
@@ -80,6 +82,33 @@ constexpr i2s::ConfigRX i2s0_config_rx_four_wire {
 		.mclk_out_en = 0,
 	},
 	.sck_in_sel = 0,
+};
+
+// "Slave": I2S controlled by external SCK/WS, received from audio codec.
+
+constexpr i2s::ConfigTX i2s0_config_tx_slave_base_clk {
+	.dao = i2s::DAO {
+		.wordwidth = i2s::WordWidth::Bits16,
+		.mono = 0,
+		.stop = 1,
+		.reset = 0,
+		.ws_sel = 1,
+		.ws_halfperiod = 0x0f,
+		.mute = 1,
+	},
+	.txrate = i2s::MCLKRate {
+		.x_divider = 0,
+		.y_divider = 0,
+	},
+	.txbitrate = i2s::BitRate {
+		.bitrate = 0,
+	},
+	.txmode = i2s::Mode {
+		.clksel = i2s::ClockSelect::FractionalDivider,
+		.four_pin = 0,
+		.mclk_out_en = 1,
+	},
+	.sck_in_sel = 1,
 };
 
 constexpr i2s::ConfigDMA i2s0_config_dma {
