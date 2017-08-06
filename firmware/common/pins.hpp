@@ -78,7 +78,7 @@ constexpr Pin pins[] = {
 	[P2_11] = {  2, 11, { .mode=0, .pd=1, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
 	[P2_12] = {  2, 12, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
 	[P2_13] = {  2, 13, { .mode=0, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=1 } }, /* P2_13: PortaPack P2_13/DIR */
-	[P3_0]  = {  3,  0, { .mode=2, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
+	[P3_0]  = {  3,  0, { .mode=2, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
 	[P3_1]  = {  3,  1, { .mode=0, .pd=0, .pu=1, .fast=0, .input=1, .ifilt=1 } }, /* I2S0_RX_WS: PortaPack I2S0_TX_WS(I). Input enabled to fold back into RX. */
 	[P3_2]  = {  3,  2, { .mode=0, .pd=0, .pu=1, .fast=0, .input=0, .ifilt=1 } }, /* I2S0_RX_SDA: PortaPack I2S0_TX_SDA(I) */
 	//[P3_3]  = {  3,  3, { .mode=3, .pd=1, .pu=0, .fast=1, .input=1, .ifilt=0 } }, /* SPIFI_SCK: W25Q80BV.CLK(I), enable input buffer for timing feedback */
