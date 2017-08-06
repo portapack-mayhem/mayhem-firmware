@@ -33,7 +33,7 @@ namespace audio {
 
 namespace {
 
-constexpr i2s::ConfigTX i2s0_config_tx {
+constexpr i2s::ConfigTX i2s0_config_tx_master_base_clk {
 	.dao = i2s::DAO {
 		.wordwidth = i2s::WordWidth::Bits16,
 		.mono = 0,
@@ -58,7 +58,7 @@ constexpr i2s::ConfigTX i2s0_config_tx {
 	.sck_in_sel = 1,
 };
 
-constexpr i2s::ConfigRX i2s0_config_rx {
+constexpr i2s::ConfigRX i2s0_config_rx_four_wire {
 	.dai = i2s::DAI {
 		.wordwidth = i2s::WordWidth::Bits16,
 		.mono = 0,
@@ -178,8 +178,8 @@ void init(audio::Codec* const codec) {
 	audio_codec->init();
 
 	i2s::i2s0::configure(
-		i2s0_config_tx,
-		i2s0_config_rx,
+		i2s0_config_tx_master_base_clk,
+		i2s0_config_rx_four_wire,
 		i2s0_config_dma
 	);
 
