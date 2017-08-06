@@ -376,6 +376,7 @@ private:
 	volume_t headphone_volume = -60.0_dB;
 
 	void configure_interface_i2s_slave();
+	void configure_interface_i2s_master();
 
 	bool write(const Register reg);
 	

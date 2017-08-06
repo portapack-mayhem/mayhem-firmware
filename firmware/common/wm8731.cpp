@@ -37,6 +37,18 @@ void WM8731::configure_interface_i2s_slave() {
 	});
 }
 
+void WM8731::configure_interface_i2s_master() {
+	write(DigitalAudioInterfaceFormat {
+		.format = 2,
+		.iwl = 0,
+		.lrp = 0,
+		.lrswap = 0,
+		.ms = 1,
+		.bclkinv = 0,
+		.reserved0 = 0,
+	});
+}
+
 void WM8731::init() {
 	reset();
 

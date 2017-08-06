@@ -46,6 +46,12 @@ void AK4951::configure_digital_interface_external_slave() {
 	update(Register::PowerManagement2);
 }
 
+void AK4951::configure_digital_interface_external_master() {
+	map.r.power_management_2.MS = 1;	// Master mode
+	map.r.power_management_2.PMPLL = 0;	// EXT mode
+	update(Register::PowerManagement2);
+}
+
 void AK4951::init() {
 	reset();
 
