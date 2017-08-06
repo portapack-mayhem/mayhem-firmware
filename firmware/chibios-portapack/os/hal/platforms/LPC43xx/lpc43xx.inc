@@ -42,6 +42,19 @@ extern "C" {
   */
 
 typedef struct {
+  __IO uint32_t ETHMODE            : 3;
+       uint32_t RESERVED0          : 1;
+  __IO uint32_t CTOUTCTRL          : 1;
+       uint32_t RESERVED1          : 7;
+  __IO uint32_t I2S0_TX_SCK_IN_SEL : 1;
+  __IO uint32_t I2S0_RX_SCK_IN_SEL : 1;
+  __IO uint32_t I2S1_TX_SCK_IN_SEL : 1;
+  __IO uint32_t I2S1_RX_SCK_IN_SEL : 1;
+  __IO uint32_t EMC_CLK_SEL        : 1;
+       uint32_t RESERVED2          : 15;
+} LPC_CREG_CREG6_Type;
+
+typedef struct {
        uint32_t RESERVED0;
   __IO uint32_t CREG0;
        uint32_t RESERVED1[62];
@@ -52,7 +65,7 @@ typedef struct {
   __IO uint32_t FLASHCFGA;
   __IO uint32_t FLASHCFGB;
   __IO uint32_t ETBCFG;
-  __IO uint32_t CREG6;
+  LPC_CREG_CREG6_Type CREG6;
   __IO uint32_t M4TXEVENT;
        uint32_t RESERVED3[51];
   __I  uint32_t CHIPID;

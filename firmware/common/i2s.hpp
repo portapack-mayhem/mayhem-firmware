@@ -138,6 +138,7 @@ struct ConfigTX {
 	uint32_t txrate;
 	uint32_t txbitrate;
 	uint32_t txmode;
+	uint32_t sck_in_sel;
 };
 
 struct ConfigRX {
@@ -145,6 +146,7 @@ struct ConfigRX {
 	uint32_t rxrate;
 	uint32_t rxbitrate;
 	uint32_t rxmode;
+	uint32_t sck_in_sel;
 };
 
 struct ConfigDMA {
@@ -161,21 +163,13 @@ public:
 	) {
 		reset();
 
-		/* I2S operates in master mode, use PLL0AUDIO as MCLK source for TX. */
-		/* NOTE: Documentation of CREG6 is quite confusing. Refer to "I2S clocking and
-		 * pin connections" and other I2S diagrams for more clarity.
-		 */
 		if( &p() == LPC_I2S0 ) {
-			LPC_CREG->CREG6 |=
-				  (1U << 12)
-				| (1U << 13)
-				;
+			LPC_CREG->CREG6.I2S0_TX_SCK_IN_SEL = config_tx.sck_in_sel;
+			LPC_CREG->CREG6.I2S0_RX_SCK_IN_SEL = config_rx.sck_in_sel;
 		}
 		if( &p() == LPC_I2S1 ) {
-			LPC_CREG->CREG6 |=
-				  (1U << 14)
-				| (1U << 15)
-				;
+			LPC_CREG->CREG6.I2S1_TX_SCK_IN_SEL = config_tx.sck_in_sel;
+			LPC_CREG->CREG6.I2S1_RX_SCK_IN_SEL = config_rx.sck_in_sel;
 		}
 
 		p().DAO = config_tx.dao;

@@ -55,6 +55,7 @@ constexpr i2s::ConfigTX i2s0_config_tx {
 		.four_pin = 0,
 		.mclk_out_en = 1,
 	},
+	.sck_in_sel = 1,
 };
 
 constexpr i2s::ConfigRX i2s0_config_rx {
@@ -78,6 +79,7 @@ constexpr i2s::ConfigRX i2s0_config_rx {
 		.four_pin = 1,
 		.mclk_out_en = 0,
 	},
+	.sck_in_sel = 0,
 };
 
 constexpr i2s::ConfigDMA i2s0_config_dma {
