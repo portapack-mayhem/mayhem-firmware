@@ -201,16 +201,17 @@ size_t reg_bits() {
 } /* namespace debug */
 
 void init(audio::Codec* const codec) {
-	audio_codec = codec;
-
 	clock_manager.start_audio_pll();
-	audio_codec->init();
 
+	// Configure I2S before activating codec interface.
 	i2s::i2s0::configure(
 		i2s0_config_tx_master_base_clk,
 		i2s0_config_rx_four_wire,
 		i2s0_config_dma
 	);
+
+	audio_codec = codec;
+	audio_codec->init();
 
 	// Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
 	portapack::pin_i2s0_rx_sda.mode(3);
