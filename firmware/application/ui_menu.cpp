@@ -23,7 +23,7 @@
 
 namespace ui {
 
-/* MenuViewItem **********************************************************/
+/* MenuItemView **********************************************************/
 
 void MenuItemView::select() {
 	if( item.on_select ) {

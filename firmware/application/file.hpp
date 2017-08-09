@@ -237,7 +237,7 @@ std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path 
 static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 
 /* Dangerous to expose these, as FatFs native error values are byte-sized. However,
- * my filesystem_error implemetation is fine with it. */
+ * my filesystem_error implementation is fine with it. */
 #define FR_DISK_FULL	(0x100)
 #define FR_EOF          (0x101)
 #define FR_BAD_SEEK		(0x102)
