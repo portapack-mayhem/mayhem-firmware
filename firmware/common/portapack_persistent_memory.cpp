@@ -22,7 +22,6 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "portapack.hpp"
-
 #include "hal.h"
 
 #include "utility.hpp"

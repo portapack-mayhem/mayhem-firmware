@@ -329,7 +329,7 @@ void Text::paint(Painter& painter) {
 
 /* Button ****************************************************************/
 
- Button::Button(
+Button::Button(
 	Rect parent_rect,
 	std::string text
 ) : Widget { parent_rect },

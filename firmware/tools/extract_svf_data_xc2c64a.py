@@ -340,3 +340,4 @@ type_name = '::cpld::xilinx::XC2C64A::verify_blocks_t'
 
 # HeaderGen(header_includes, namespaces, type_name, variable_name).to_file(args.header_file_path)
 DataGen(data_includes, namespaces, type_name, variable_name, verify).to_file(args.data_file_path)
+

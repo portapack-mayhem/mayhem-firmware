@@ -147,8 +147,10 @@ void NavigationView::free_view() {
 
 void NavigationView::update_view() {
 	const auto new_view = view_stack.back().get();
+	
 	add_child(new_view);
 	new_view->set_parent_rect({ {0, 0}, size() });
+	
 	focus();
 	set_dirty();
 
