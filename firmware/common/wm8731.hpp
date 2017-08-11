@@ -375,6 +375,9 @@ private:
 	RegisterMap map { default_after_reset };
 	volume_t headphone_volume = -60.0_dB;
 
+	void configure_interface_i2s_slave();
+	void configure_interface_i2s_master();
+
 	bool write(const Register reg);
 	
 	bool write(const address_t reg_address, const reg_t value);

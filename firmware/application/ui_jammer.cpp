@@ -33,28 +33,95 @@
 #include <stdio.h>
 
 using namespace portapack;
-using namespace jammer;
 
 namespace ui {
 
-void JammerView::focus() {
-	options_preset.focus();
+void RangeView::focus() {
+	check_enabled.focus();
+}
+	
+extern constexpr jammer_range_t RangeView::range_presets[];
+extern constexpr Style RangeView::style_info;
+
+RangeView::RangeView(NavigationView& nav) {
+	hidden(true);
+	
+	add_children({
+		&labels,
+		&check_enabled,
+		&options_preset,
+		&button_min,
+		&button_max,
+		&text_info
+	});
+	
+	check_enabled.set_value(false);
+	
+	check_enabled.on_select = [this](Checkbox&, bool v) {
+		frequency_range.enabled = v;
+	};
+	
+	button_min.on_select = [this, &nav](Button& button) {
+		rf::Frequency * value_ptr;
+
+		value_ptr = &frequency_range.min;
+		
+		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
+		new_view->on_changed = [this, value_ptr, &button](rf::Frequency f) {
+			*value_ptr = f;
+			update_button(button, f);
+			update_range();
+		};
+		
+		//update_button(button, f);
+	};
+	
+	button_max.on_select = [this, &nav](Button& button) {
+		rf::Frequency * value_ptr;
+
+		value_ptr = &frequency_range.max;
+		
+		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
+		new_view->on_changed = [this, value_ptr, &button](rf::Frequency f) {
+			*value_ptr = f;
+			update_button(button, f);
+			update_range();
+		};
+		
+		//update_button(button, f);
+	};
+
+	text_info.set_style(&style_info);
+	
+	options_preset.set_selected_index(8);	// ISM 868
+	
+	options_preset.on_change = [this](size_t, OptionsField::value_t v) {
+		frequency_range.min = range_presets[v].min;
+		frequency_range.max = range_presets[v].max;
+		check_enabled.set_value(true);
+		update_button(button_min, frequency_range.min);
+		update_button(button_max, frequency_range.max);
+		update_range();
+	};
 }
 
-JammerView::~JammerView() {
-	transmitter_model.disable();
-	baseband::shutdown();
-}
-
-void JammerView::update_range(const uint32_t n) {
+void RangeView::update_button(Button& button, rf::Frequency f) {
 	std::string label;
-	jammer_range_t * range_ptr;
+	
+	auto f_mhz = to_string_dec_int(f / 1000000, 4);
+	auto f_hz100 = to_string_dec_int((f / 1000) % 1000, 3, '0');
+
+	label = f_mhz + "." + f_hz100 + "M";
+	
+	button.set_text(label);
+}
+
+void RangeView::update_range() {
+	std::string label;
 	rf::Frequency center, bw_khz;
 	
-	range_ptr = &frequency_range[n];
-	
-	center = (range_ptr->min + range_ptr->max) / 2;
-	bw_khz = abs(range_ptr->max - range_ptr->min) / 1000;
+	center = (frequency_range.min + frequency_range.max) / 2;
+	bw_khz = abs(frequency_range.max - frequency_range.min) / 1000;
 
 	label = "C:" + to_string_short_freq(center) + "M  W:";
 	
@@ -68,24 +135,16 @@ void JammerView::update_range(const uint32_t n) {
 	while (label.length() < 23)
 		label += " ";
 	
-	texts_info[n].set(label);
+	text_info.set(label);
 }
 
-void JammerView::update_button(const uint32_t id) {
-	std::string label;
-	rf::Frequency f;
-	
-	if (id & 1)
-		f = frequency_range[id / 2].max;
-	else
-		f = frequency_range[id / 2].min;
-	
-	auto f_mhz = to_string_dec_int(f / 1000000, 4);
-	auto f_hz100 = to_string_dec_int((f / 1000) % 1000, 3, '0');
+void JammerView::focus() {
+	tab_view.focus();
+}
 
-	label = f_mhz + "." + f_hz100 + "M";
-	
-	buttons_freq[id].set_text(label);
+JammerView::~JammerView() {
+	transmitter_model.disable();
+	baseband::shutdown();
 }
 
 void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
@@ -95,9 +154,11 @@ void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
 	}
 }
 	
-JammerView::JammerView(NavigationView& nav) {
-	size_t n;
-	
+JammerView::JammerView(
+	NavigationView& nav
+) : nav_ { nav }
+{
+	Rect view_rect = { 0, 3 * 8, 240, 80 };
 	baseband::run_image(portapack::spi_flash::image_tag_jammer);
 	
 	static constexpr Style style_val {
@@ -112,107 +173,28 @@ JammerView::JammerView(NavigationView& nav) {
 		.foreground = Color::red(),
 	};
 	
-	static constexpr Style style_info {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::grey(),
-	};
-	
 	JammerChannel * jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 	
 	add_children({
+		&tab_view,
+		&view_range_a,
+		&view_range_b,
+		&view_range_c,
 		&labels,
 		&options_type,
 		&text_range_number,
 		&text_range_total,
 		&options_speed,
-		&options_preset,
 		&options_hop,
 		&button_transmit
 	});
 	
-	const auto button_freq_fn = [this, &nav](Button& button) {
-		rf::Frequency * value_ptr;
-		uint32_t id = button.id;
-		
-		if (id & 1)
-			value_ptr = &frequency_range[id >> 1].max;
-		else
-			value_ptr = &frequency_range[id >> 1].min;
-		
-		auto new_view = nav.push<FrequencyKeypadView>(*value_ptr);
-		new_view->on_changed = [this, value_ptr, id](rf::Frequency f) {
-			*value_ptr = f;
-			update_button(id);
-			update_range(id >> 1);
-		};
-		
-		update_button(id);
-	};
-	
-	const auto checkbox_fn = [this](Checkbox& checkbox, bool v) {
-		frequency_range[checkbox.id].enabled = v;
-	};
-	
-	n = 0;
-	for (auto& button : buttons_freq) {
-		button.on_select = button_freq_fn;
-		button.set_parent_rect({
-			static_cast<Coord>(13 * 8),
-			static_cast<Coord>(76 + ((n >> 1) * 58) + (20 * (n & 1))),
-			96, 20
-		});
-		button.id = n;
-		add_child(&button);
-		n++;
-	}
-	
-	n = 0;
-	for (auto& checkbox : checkboxes) {
-		checkbox.on_select = checkbox_fn;
-		checkbox.set_parent_rect({
-			static_cast<Coord>(8),
-			static_cast<Coord>(86 + (n * 58)),
-			24, 24
-		});
-		checkbox.id = n;
-		checkbox.set_text("Range " + to_string_dec_uint(n + 1));
-		add_child(&checkbox);
-		n++;
-	}
-	
-	n = 0;
-	for (auto& text : texts_info) {
-		text.set_parent_rect({
-			static_cast<Coord>(3 * 8),
-			static_cast<Coord>(116 + (n * 58)),
-			25 * 8, 16
-		});
-		text.set_style(&style_info);
-		add_child(&text);
-		n++;
-	}
-	
-	options_preset.on_change = [this](size_t, OptionsField::value_t v) {
-		const jammer_range_t * preset_ptr;
-		uint32_t c;
-		
-		for (c = 0; c < 3; c++) {
-			preset_ptr = &range_presets[v][c];
-			
-			frequency_range[c].min = preset_ptr->min;
-			frequency_range[c].max = preset_ptr->max;
-			checkboxes[c].set_value(preset_ptr->enabled);
-			update_button(c * 2);
-			update_button(c * 2 + 1);
-			update_range(c);
-		}
-		
-	};
+	view_range_a.set_parent_rect(view_rect);
+	view_range_b.set_parent_rect(view_rect);
+	view_range_c.set_parent_rect(view_rect);
 	
 	options_type.set_selected_index(2);		// Sweep
 	options_speed.set_selected_index(3);	// 10kHz
-	options_preset.set_selected_index(8);	// ISM 868
 	options_hop.set_selected_index(1);		// 50ms
 	button_transmit.set_style(&style_val);
 
@@ -239,14 +221,14 @@ JammerView::JammerView(NavigationView& nav) {
 			// Convert ranges min/max to center/bw
 			for (size_t r = 0; r < 3; r++) {
 				
-				if (frequency_range[r].enabled) {
-					range_bw = abs(frequency_range[r].max - frequency_range[r].min);
+				if (range_views[r]->frequency_range.enabled) {
+					range_bw = abs(range_views[r]->frequency_range.max - range_views[r]->frequency_range.min);
 					
 					// Sort
-					if (frequency_range[r].min < frequency_range[r].max)
-						start_freq = frequency_range[r].min;
+					if (range_views[r]->frequency_range.min < range_views[r]->frequency_range.max)
+						start_freq = range_views[r]->frequency_range.min;
 					else
-						start_freq = frequency_range[r].max;
+						start_freq = range_views[r]->frequency_range.max;
 					
 					if (range_bw >= JAMMER_CH_WIDTH) {
 						num_channels = 0;

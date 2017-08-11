@@ -132,11 +132,7 @@ AboutView::AboutView(
 	NavigationView& nav
 )
 {
-	add_children({
-		&text_cpld_hackrf,
-		&text_cpld_hackrf_status,
-		&button_ok,
-	});
+	add_child(&button_ok);
 	
 	for (auto& text : text_line) {
 		text.set("");
@@ -146,12 +142,6 @@ AboutView::AboutView(
 			0, 0
 		});
 		add_child(&text);
-	}
-
-	if( hackrf::cpld::verify_eeprom() ) {
-		text_cpld_hackrf_status.set(" OK");
-	} else {
-		text_cpld_hackrf_status.set("BAD");
 	}
 
 	button_ok.on_select = [&nav](Button&){

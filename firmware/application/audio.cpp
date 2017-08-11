@@ -34,7 +34,9 @@ namespace audio {
 
 namespace {
 
-constexpr i2s::ConfigTX i2s0_config_tx {
+// "Master": I2S peripheral generates SCK/WS, transmits to audio codec.
+
+constexpr i2s::ConfigTX i2s0_config_tx_master_base_clk {
 	.dao = i2s::DAO {
 		.wordwidth = i2s::WordWidth::Bits16,
 		.mono = 0,
@@ -56,9 +58,10 @@ constexpr i2s::ConfigTX i2s0_config_tx {
 		.four_pin = 0,
 		.mclk_out_en = 1,
 	},
+	.sck_in_sel = 1,
 };
 
-constexpr i2s::ConfigRX i2s0_config_rx {
+constexpr i2s::ConfigRX i2s0_config_rx_four_wire {
 	.dai = i2s::DAI {
 		.wordwidth = i2s::WordWidth::Bits16,
 		.mono = 0,
@@ -75,10 +78,38 @@ constexpr i2s::ConfigRX i2s0_config_rx {
 		.bitrate = 7,
 	},
 	.rxmode = i2s::Mode {
-		.clksel = i2s::ClockSelect::BaseAudioClkOrExternalMCLK,
+		.clksel = i2s::ClockSelect::FractionalDivider,
 		.four_pin = 1,
 		.mclk_out_en = 0,
 	},
+	.sck_in_sel = 0,
+};
+
+// "Slave": I2S controlled by external SCK/WS, received from audio codec.
+
+constexpr i2s::ConfigTX i2s0_config_tx_slave_base_clk {
+	.dao = i2s::DAO {
+		.wordwidth = i2s::WordWidth::Bits16,
+		.mono = 0,
+		.stop = 1,
+		.reset = 0,
+		.ws_sel = 1,
+		.ws_halfperiod = 0x0f,
+		.mute = 1,
+	},
+	.txrate = i2s::MCLKRate {
+		.x_divider = 0,
+		.y_divider = 0,
+	},
+	.txbitrate = i2s::BitRate {
+		.bitrate = 0,
+	},
+	.txmode = i2s::Mode {
+		.clksel = i2s::ClockSelect::FractionalDivider,
+		.four_pin = 0,
+		.mclk_out_en = 1,
+	},
+	.sck_in_sel = 1,
 };
 
 constexpr i2s::ConfigDMA i2s0_config_dma {
@@ -171,16 +202,17 @@ size_t reg_bits() {
 } /* namespace debug */
 
 void init(audio::Codec* const codec) {
-	audio_codec = codec;
-
 	clock_manager.start_audio_pll();
-	audio_codec->init();
 
+	// Configure I2S before activating codec interface.
 	i2s::i2s0::configure(
-		i2s0_config_tx,
-		i2s0_config_rx,
+		i2s0_config_tx_master_base_clk,
+		i2s0_config_rx_four_wire,
 		i2s0_config_dma
 	);
+
+	audio_codec = codec;
+	audio_codec->init();
 
 	// Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
 	portapack::pin_i2s0_rx_sda.mode(3);

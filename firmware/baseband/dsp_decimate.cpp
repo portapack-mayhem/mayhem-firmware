@@ -566,8 +566,8 @@ buffer_c16_t DecimateBy2CIC3::execute(
 	uint32_t t1 = _iq0;
 	uint32_t t2 = _iq1;
 	const uint32_t taps = 0x00000003;
-	auto s = src.p;
-	auto d = dst.p;
+	void* s = src.p;
+	void* d = dst.p;
 	const auto d_end = &dst.p[src.count / 2];
 	while(d < d_end) {
 		uint32_t i = __SXTH(t1, 0);			/* 1: I0 */
@@ -665,21 +665,21 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 	const auto output_sampling_rate = src.sampling_rate / decimation_factor_;
 	const size_t output_samples = src.count / decimation_factor_;
 	
-	sample_t* dst_p = dst.p;
+	void* dst_p = dst.p;
 	const buffer_c16_t result { dst.p, output_samples, output_sampling_rate };
 
-	const sample_t* src_p = src.p;
+	const void* src_p = src.p;
 	size_t outer_count = output_samples;
 	while(outer_count > 0) {
 		/* Put new samples into delay buffer */
-		auto z_new_p = &samples_[taps_count_ - decimation_factor_];
+		void* z_new_p = &samples_[taps_count_ - decimation_factor_];
 		for(size_t i=0; i<decimation_factor_; i++) {
 			*__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
 		}
 
 		size_t loop_count = taps_count_ / 8;
-		auto t_p = &taps_reversed_[0];
-		auto z_p = &samples_[0];
+		void* t_p = &taps_reversed_[0];
+		void* z_p = &samples_[0];
 
 		int64_t t_real = 0;
 		int64_t t_imag = 0;
@@ -741,8 +741,8 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 		const size_t unroll_factor = 4;
 		size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;
 
-		sample_t* t = &samples_[0];
-		const sample_t* s = &samples_[decimation_factor_];
+		void* t = &samples_[0];
+		const void* s = &samples_[decimation_factor_];
 		
 		while(shift_count > 0) {
 			*__SIMD32(t)++ = *__SIMD32(s)++;
@@ -754,7 +754,7 @@ buffer_c16_t FIRAndDecimateComplex::execute(
 
 		shift_count = (taps_count_ - decimation_factor_) % unroll_factor;
 		while(shift_count > 0) {
-			*(t++) = *(s++);
+			*__SIMD32(t)++ = *__SIMD32(s)++;
 			shift_count--;
 		}
 

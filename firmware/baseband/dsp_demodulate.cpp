@@ -34,7 +34,7 @@ buffer_f32_t AM::execute(
 	const buffer_c16_t& src,
 	const buffer_f32_t& dst
 ) {
-	const auto src_p = src.p;
+	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
@@ -90,7 +90,7 @@ buffer_f32_t FM::execute(
 ) {
 	auto z = z_;
 
-	const auto src_p = src.p;
+	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
 	while(src_p < src_end) {
@@ -113,9 +113,9 @@ buffer_s16_t FM::execute(
 ) {
 	auto z = z_;
 
-	const auto src_p = src.p;
+	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
-	auto dst_p = dst.p;
+	void* dst_p = dst.p;
 	while(src_p < src_end) {
 		const auto s0 = *__SIMD32(src_p)++;
 		const auto s1 = *__SIMD32(src_p)++;

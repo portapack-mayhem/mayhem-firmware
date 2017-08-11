@@ -22,6 +22,7 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
+#include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
 #include "ui_font_fixed_8x16.hpp"
@@ -37,23 +38,30 @@
 
 namespace ui {
 
-class BHTView : public View {
+class XylosView : public View {
 public:
-	BHTView(NavigationView& nav);
-	~BHTView();
-
+	XylosView();
+	
 	void focus() override;
 	
-	std::string title() const override { return "BHT transmit"; };
-
-private:
+	void flip_relays();
+	void generate_message();
+	
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SEQUENCE
+	};
+	
+	tx_modes tx_mode = IDLE;
+	
 	uint32_t seq_index { 0 };
 	
 	struct sequence_t {
 		const std::string code;
 		const uint32_t delay;
 	};
-
+	
 	const sequence_t sequence_matin[XY_SEQ_COUNT] = {
 		{ "0000189000B1002B0000", 19 }, // 18:9:0:00	 R1=OFF (1)	
 		{ "0000189200B2110B0000", 16 },	// 18:9:2:00	 R1=ON  (4)	
@@ -70,124 +78,71 @@ private:
 		{ "0000181AAAB1000B0000", 17 },	// 18:1:A:AA	
 		{ "0000189400B0100B0000", 17 }	// 18:9:4:00	 R2=OFF (8)		
 	};
-	
-	enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SEQUENCE
-	};
-	
-	tx_modes tx_mode = IDLE;
 
-	void generate_message();
-	void on_tx_progress(const int progress, const bool done);
-	void start_tx();
-	
-	const Style style_val {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::green(),
-	};
-	const Style style_cancel {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::red(),
-	};
-	const Style style_grey {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::grey(),
-	};
-	
+private:
 	Labels labels {
-		{ { 8 * 8, 3 * 8 }, "Header:", Color::light_grey() },
-		{ { 4 * 8, 5 * 8 }, "Code ville:", Color::light_grey() },
-		{ { 7 * 8, 7 * 8 }, "Famille:", Color::light_grey() },
-		{ { 2 * 8, 9 * 8 + 2 }, "Sous-famille:", Color::light_grey() },
-		{ { 2 * 8, 13 * 8 }, "ID recepteur:", Color::light_grey() },
-		{ { 1 * 8, 16 * 8 }, "Relais:", Color::light_grey() },
-		{ { 27 * 8 + 4, 19 * 8 + 4 }, "s.", Color::light_grey() }
+		{ { 8 * 8, 1 * 8 }, "Header:", Color::light_grey() },
+		{ { 4 * 8, 3 * 8 }, "Code ville:", Color::light_grey() },
+		{ { 7 * 8, 5 * 8 }, "Famille:", Color::light_grey() },
+		{ { 2 * 8, 7 * 8 + 2 }, "Sous-famille:", Color::light_grey() },
+		{ { 2 * 8, 11 * 8 }, "ID recepteur:", Color::light_grey() },
+		{ { 2 * 8, 14 * 8 }, "Relais:", Color::light_grey() }
 	};
 	
-	OptionsField options_mode {
-		{ 10 * 8, 4 },
-		10,
-		{
-			{ "Mode Xy.", 0 },
-			{ "Mode EP.", 1 }
-		}
+	NumberField field_header_a {
+		{ 16 * 8, 1 * 8 },
+		2,
+		{ 0, 99 },
+		1,
+		'0'
+	};
+	NumberField field_header_b {
+		{ 18 * 8, 1 * 8 },
+		2,
+		{ 0, 99 },
+		1,
+		'0'
 	};
 	
-	NumberField header_code_a {
+	NumberField field_city {
 		{ 16 * 8, 3 * 8 },
 		2,
 		{ 0, 99 },
 		1,
-		'0'
-	};
-	NumberField header_code_b {
-		{ 18 * 8, 3 * 8 },
-		2,
-		{ 0, 99 },
-		1,
-		'0'
-	};
-	
-	NumberField city_code_xy {
-		{ 16 * 8, 5 * 8 },
-		2,
-		{ 0, 99 },
-		1,
 		' '
 	};
-	/*NumberField city_code_ep {
-		{ 16 * 8, 5 * 8 },
-		3,
-		{ 0, 255 },
-		1,
-		' '
-	};*/
 	
-	NumberField family_code_xy {
-		{ 16 * 8, 7 * 8 },
+	NumberField field_family {
+		{ 16 * 8, 5 * 8 },
 		1,
 		{ 0, 9 },
 		1,
 		' '
 	};
-	/*OptionsField family_code_ep {
-		{ 16 * 8, 7 * 8 },
-		2,
-		{
-			{ "A ", 2 },	// See receiver PCB
-			{ "B ", 1 },
-			{ "C ", 0 },
-			{ "TP", 3 }
-		}
-	};*/
-	
-	NumberField subfamily_code {
-		{ 16 * 8, 9 * 8 + 2 },
+
+	NumberField field_subfamily {
+		{ 16 * 8, 7 * 8 + 2 },
 		1,
 		{ 0, 9 },
 		1,
 		' '
 	};
+	
 	Checkbox checkbox_wcsubfamily {
-		{ 20 * 8, 8 * 8 + 6 },
+		{ 20 * 8, 6 * 8 + 6 },
 		6,
 		"Toutes"
 	};
 	
-	NumberField receiver_code {
-		{ 16 * 8, 13 * 8 },
+	NumberField field_receiver {
+		{ 16 * 8, 11 * 8 },
 		2,
 		{ 0, 99 },
 		1,
 		'0'
 	};
 	Checkbox checkbox_wcid {
-		{ 20 * 8, 12 * 8 + 4 },
+		{ 20 * 8, 10 * 8 + 4 },
 		4,
 		"Tous"
 	};
@@ -200,30 +155,104 @@ private:
 		{ &bitmap_bulb_on, 2 }
 	};
 	
-	ProgressBar progressbar {
-		{ 3 * 8, 12 * 16, 20 * 8, 16 },
+	Button button_seq {
+		{ 24 * 8, 1 * 8, 40, 32 },
+		"Seq"
 	};
-	Text text_message {
-		{ 3 * 8, 13 * 16, 20 * 8, 16 },
-		""
+};
+
+class EPARView : public View {
+public:
+	EPARView();
+	
+	void focus() override;
+	
+	void flip_relays();
+	void generate_message();
+
+private:
+	Labels labels {
+		{ { 4 * 8, 1 * 8 }, "Code ville:", Color::light_grey() },
+		{ { 8 * 8, 3 * 8 }, "Groupe:", Color::light_grey() },
+		{ { 8 * 8, 7 * 8 }, "Relais:", Color::light_grey() }
 	};
 	
-	Checkbox checkbox_cligno {
-		{ 18 * 8 + 4, 19 * 8 },
+	NumberField field_city {
+		{ 16 * 8, 1 * 8 },
 		3,
-		"Alt"
-	};
-	NumberField tempo_cligno {
-		{ 25 * 8 + 4, 19 * 8 + 4 },
-		2,
-		{ 1, 99 },
+		{ 0, 255 },
 		1,
 		' '
 	};
 	
-	Button button_seq {
-		{ 24 * 8, 13 * 16, 40, 32 },
-		"Seq"
+	OptionsField field_group {
+		{ 16 * 8, 3 * 8 },
+		2,
+		{
+			{ "A ", 2 },	// See receiver PCB
+			{ "B ", 1 },
+			{ "C ", 0 },
+			{ "TP", 3 }
+		}
+	};
+	
+	std::array<ImageOptionsField, 2> relay_states { };
+	
+	ImageOptionsField::options_t relay_options = {
+		{ &bitmap_bulb_off, 0 },
+		{ &bitmap_bulb_on, 1 }
+	};
+	
+	Button button_scan {
+		{ 22 * 8, 1 * 8, 56, 32 },
+		"Scan"
+	};
+};
+
+class BHTView : public View {
+public:
+	BHTView(NavigationView& nav);
+	~BHTView();
+
+	void focus() override;
+	
+	std::string title() const override { return "BHT transmit"; };
+
+private:
+	void on_tx_progress(const int progress, const bool done);
+	void start_tx();
+	
+	XylosView view_xylos { };
+	EPARView view_EPAR { };
+	
+	TabView tab_view {
+		{ "Xylos", Color::cyan(), &view_xylos },
+		{ "EPAR", Color::green(), &view_EPAR }
+	};
+	
+	Labels labels {
+		{ { 29 * 8, 14 * 16 + 4 }, "s", Color::light_grey() }
+	};
+	
+	ProgressBar progressbar {
+		{ 1 * 8, 14 * 16, 20 * 8, 16 },
+	};
+	Text text_message {
+		{ 1 * 8, 15 * 16, 20 * 8, 16 },
+		""
+	};
+	
+	Checkbox checkbox_cligno {
+		{ 22 * 8, 14 * 16 },
+		1,
+		"~"
+	};
+	NumberField field_tempo {
+		{ 27 * 8, 14 * 16 + 4 },
+		2,
+		{ 1, 99 },
+		1,
+		' '
 	};
 	
 	TransmitterView tx_view {

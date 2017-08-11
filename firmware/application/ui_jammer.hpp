@@ -24,11 +24,161 @@
 #include "ui_widget.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_navigation.hpp"
+#include "ui_tabview.hpp"
 #include "transmitter_model.hpp"
 #include "message.hpp"
 #include "jammer.hpp"
 
+using namespace jammer;
+
 namespace ui {
+
+class RangeView : public View {
+public:
+	RangeView(NavigationView& nav);
+	
+	void focus() override;
+	
+	jammer_range_t frequency_range { };
+	
+private:
+	void update_button(Button& button, rf::Frequency f);
+	void update_range();
+
+	static constexpr Style style_info {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::grey(),
+	};
+	
+	static constexpr jammer_range_t range_presets[] = {
+		// GSM900 Orange
+		{ true, 935000000, 945000000 },		// BW:10M
+		// GSM1800 Orange
+		{ false, 1808000000, 1832000000 },	// BW:24M
+		
+		// GSM900 SFR
+		{ true, 950000000, 960000000 },		// BW:10M
+		// GSM1800 SFR
+		{ false, 1832000000, 1853000000 },	// BW:21M
+		
+		// GSM900 Bouygues
+		{ true, 925000000, 935000000 },		// BW:10M
+		// GSM1800 Bouygues
+		{ false, 1858000000, 1880000000 },	// BW:22M
+		
+		// GSM900 Free
+		{ true, 945000000, 950000000 },		// BW:5M
+		
+		// GSM-R
+		{ true, 921000000, 925000000 },		// BW:4M
+		
+		// DECT
+		{ true, 1880000000, 1900000000 },	// BW: 20MHz
+		
+		// PMV AFSK
+		{ true, 162930000, 162970000 },		// BW: 40kHz
+		
+		// ISM 433
+		{ true, 433050000, 434790000 },		// Center: 433.92MHz BW: 0.2%
+		
+		// ISM 868
+		{ true, 868000000, 868200000 },		// Center: 868.2MHz BW: 40kHz
+		
+		// GPS L1
+		{ true, 1575420000 - 500000, 1575420000 + 500000 },		// BW: 1MHz
+		// GPS L2
+		{ false, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
+		
+		// WLAN 2.4G CH1
+		{ true, 2412000000 - 11000000, 2412000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH2
+		{ true, 2417000000 - 11000000, 2417000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH3
+		{ true, 2422000000 - 11000000, 2422000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH4
+		{ true, 2427000000 - 11000000, 2427000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH5
+		{ true, 2432000000 - 11000000, 2432000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH6
+		{ true, 2437000000 - 11000000, 2437000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH7
+		{ true, 2442000000 - 11000000, 2442000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH8
+		{ true, 2447000000 - 11000000, 2447000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH9
+		{ true, 2452000000 - 11000000, 2452000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH10
+		{ true, 2457000000 - 11000000, 2457000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH11
+		{ true, 2462000000 - 11000000, 2462000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH12
+		{ true, 2467000000 - 11000000, 2467000000 + 11000000},	// BW: 22MHz
+		// WLAN 2.4G CH13
+		{ true, 2472000000 - 11000000, 2472000000 + 11000000},	// BW: 22MHz
+	};
+	
+	Labels labels {
+		{ { 2 * 8, 5 * 8 }, "Preset:", Color::light_grey() },
+		{ { 5 * 8, 9 * 8 }, "Start:", Color::light_grey() },
+		{ { 6 * 8, 13 * 8 }, "Stop:", Color::light_grey() },
+	};
+	
+	Checkbox check_enabled {
+		{ 44, 1 * 8 },
+		12,
+		"Enable range",
+		false
+	};
+	
+	OptionsField options_preset {
+		{ 9 * 8, 5 * 8 },
+		19,
+		{
+			{ "GSM900 Orange FR", 0 },
+			{ "GSM1800 Orange FR", 1 },
+			{ "GSM900 SFR FR", 2 },
+			{ "GSM1800 SFR FR", 3 },
+			{ "GSM900 Bouygues FR", 4 },
+			{ "GSM1800 Bouygues FR", 5 },
+			{ "GSM Free FR    ", 6 },
+			{ "GSM-R FR       ", 7 },
+			{ "DECT           ", 8 },
+			{ "Optifib        ", 9 },
+			{ "ISM 433        ", 10 },
+			{ "ISM 868        ", 11 },
+			{ "GPS L1         ", 12 },
+			{ "GPS L2         ", 13 },
+			{ "WLAN 2.4G CH1  ", 14 },
+			{ "WLAN 2.4G CH2  ", 15 },
+			{ "WLAN 2.4G CH3  ", 16 },
+			{ "WLAN 2.4G CH4  ", 17 },
+			{ "WLAN 2.4G CH5  ", 18 },
+			{ "WLAN 2.4G CH6  ", 19 },
+			{ "WLAN 2.4G CH7  ", 20 },
+			{ "WLAN 2.4G CH8  ", 21 },
+			{ "WLAN 2.4G CH9  ", 22 },
+			{ "WLAN 2.4G CH10 ", 23 },
+			{ "WLAN 2.4G CH11 ", 24 },
+			{ "WLAN 2.4G CH12 ", 25 },
+			{ "WLAN 2.4G CH13 ", 26 }
+		}
+	};
+	
+	Button button_min {
+		{ 13 * 8, 4 * 16, 120, 28 },
+		""
+	};
+	Button button_max {
+		{ 13 * 8, 6 * 16, 120, 28 },
+		""
+	};
+	
+	Text text_info {
+		{ 3 * 8, 8 * 16, 25 * 8, 16 },
+		""
+	};
+};
 
 class JammerView : public View {
 public:
@@ -38,137 +188,34 @@ public:
 	void focus() override;
 	
 	std::string title() const override { return "Jammer"; };
-
+	
 private:
-	typedef struct jammer_range {
-		bool enabled;
-		rf::Frequency min;
-		rf::Frequency max;
-	} jammer_range_t;
-
-	jammer_range_t frequency_range[3];
+	NavigationView& nav_;
 	
-	void update_range(const uint32_t n);
-	void update_button(const uint32_t n);
 	void on_retune(const rf::Frequency freq, const uint32_t range);
-	
-	const jammer_range_t range_presets[23][3] = {
-		// Orange
-		{{ true, 935000000, 945000000 },	// GSM 900		BW:10M
-		{ false, 1808000000, 1832000000 },	// GSM 1800		BW:24M
-		{ false, 0, 0 }},
-		
-		// SFR
-		{{ true, 950000000, 960000000 },	// GSM 900		BW:10M
-		{ false, 1832000000, 1853000000 },	// GSM 1800		BW:21M
-		{ false, 0, 0 }},
-		
-		// Bouygues
-		{{ true, 925000000, 935000000 },	// GSM 900		BW:10M
-		{ false, 1858000000, 1880000000 },	// GSM 1800		BW:22M
-		{ false, 0, 0 }},
-		
-		// Free
-		{{ true, 945000000, 950000000 },	// GSM 900		BW:5M
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// GSM-R
-		{{ true, 921000000, 925000000 },	// GSM 900		BW:4M
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// DECT
-		{{ true, 1880000000, 1900000000 },	// BW: 20MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// PMV AFSK
-		{{ true, 162930000, 162970000 },	// BW: 40kHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// ISM 433
-		{{ true, 433050000, 434790000 },	// Center: 433.92MHz BW: 0.2%
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// ISM 868
-		{{ true, 868000000, 868200000 },	// Center: 868.2MHz BW: 40kHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		
-		// GPS L1 & L2
-		{{ true, 1575420000 - 500000, 1575420000 + 500000 },	// BW: 1MHz
-		{ false, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
-		{ false, 0, 0 }},
-		
-		// WLAN 2.4G CH1
-		{{ true, 2412000000 - 11000000, 2412000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH2
-		{{ true, 2417000000 - 11000000, 2417000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH3
-		{{ true, 2422000000 - 11000000, 2422000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH4
-		{{ true, 2427000000 - 11000000, 2427000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH5
-		{{ true, 2432000000 - 11000000, 2432000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH6
-		{{ true, 2437000000 - 11000000, 2437000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH7
-		{{ true, 2442000000 - 11000000, 2442000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH8
-		{{ true, 2447000000 - 11000000, 2447000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH9
-		{{ true, 2452000000 - 11000000, 2452000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH10
-		{{ true, 2457000000 - 11000000, 2457000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH11
-		{{ true, 2462000000 - 11000000, 2462000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH12
-		{{ true, 2467000000 - 11000000, 2467000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-		// WLAN 2.4G CH13
-		{{ true, 2472000000 - 11000000, 2472000000 + 11000000},	// BW: 22MHz
-		{ false, 0, 0 },
-		{ false, 0, 0 }},
-
-	};
 	
 	bool jamming { false };
 	
+	RangeView view_range_a { nav_ };
+	RangeView view_range_b { nav_ };
+	RangeView view_range_c { nav_ };
+	
+	std::array<RangeView*, 3> range_views { &view_range_a, &view_range_b, &view_range_c };
+	
+	TabView tab_view {
+		{ "Range 1", Color::white(), range_views[0] },
+		{ "Range 2", Color::white(), range_views[1] },
+		{ "Range 3", Color::white(), range_views[2] },
+	};
+	
 	Labels labels {
-		{ { 3 * 8, 4 }, "Type:", Color::light_grey() },
-		{ { 2 * 8, 20 }, "Speed:", Color::light_grey() },
-		{ { 1 * 8, 36 }, "Preset:", Color::light_grey() },
-		{ { 5 * 8, 52 }, "Hop:", Color::light_grey() }
+		{ { 3 * 8, 12 * 16 }, "Type:", Color::light_grey() },
+		{ { 2 * 8, 13 * 16 }, "Speed:", Color::light_grey() },
+		{ { 5 * 8, 14 * 16 }, "Hop:", Color::light_grey() }
 	};
 	
 	OptionsField options_type {
-		{ 9 * 8, 4 },
+		{ 9 * 8, 12 * 16 },
 		5,
 		{
 			{ "FSK  ", 0 },
@@ -178,16 +225,16 @@ private:
 	};
 	
 	Text text_range_number {
-		{ 18 * 8, 4, 2 * 8, 16 },
+		{ 18 * 8, 12 * 16, 2 * 8, 16 },
 		"--"
 	};
 	Text text_range_total {
-		{ 20 * 8, 4, 3 * 8, 16 },
+		{ 20 * 8, 12 * 16, 3 * 8, 16 },
 		"/--"
 	};
 	
 	OptionsField options_speed {
-		{ 9 * 8, 20 },
+		{ 9 * 8, 13 * 16 },
 		6,
 		{
 			{ "10Hz  ", 10 },
@@ -198,38 +245,8 @@ private:
 		}
 	};
 	
-	OptionsField options_preset {
-		{ 9 * 8, 36 },
-		16,
-		{
-			{ "GSM Orange FR  ", 0 },
-			{ "GSM SFR FR     ", 1 },
-			{ "GSM Bouygues FR", 2 },
-			{ "GSM Free FR    ", 3 },
-			{ "GSM-R FR       ", 4 },
-			{ "DECT           ", 5 },
-			{ "Optifib        ", 6 },
-			{ "ISM 433        ", 7 },
-			{ "ISM 868        ", 8 },
-			{ "GPS            ", 9 },
-			{ "WLAN 2.4G CH1  ", 10 },
-			{ "WLAN 2.4G CH2  ", 11 },
-			{ "WLAN 2.4G CH3  ", 12 },
-			{ "WLAN 2.4G CH4  ", 13 },
-			{ "WLAN 2.4G CH5  ", 14 },
-			{ "WLAN 2.4G CH6  ", 15 },
-			{ "WLAN 2.4G CH7  ", 16 },
-			{ "WLAN 2.4G CH8  ", 17 },
-			{ "WLAN 2.4G CH9  ", 18 },
-			{ "WLAN 2.4G CH10 ", 19 },
-			{ "WLAN 2.4G CH11 ", 20 },
-			{ "WLAN 2.4G CH12 ", 21 },
-			{ "WLAN 2.4G CH13 ", 22 }
-		}
-	};
-	
 	OptionsField options_hop {
-		{ 9 * 8, 52 },
+		{ 9 * 8, 14 * 16 },
 		5,
 		{
 			{ "10ms ", 1 },
@@ -241,10 +258,6 @@ private:
 			{ "10s  ", 1000 }
 		}
 	};
-
-	std::array<Checkbox, 3> checkboxes { };
-	std::array<Button, 6> buttons_freq { };
-	std::array<Text, 3> texts_info { };
 	
 	Button button_transmit {
 		{ 1 * 8, 16 * 16, 80, 48 },

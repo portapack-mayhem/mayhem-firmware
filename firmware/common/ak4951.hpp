@@ -864,7 +864,9 @@ private:
 		Line,
 	};
 
-	void configure_digital_interface();
+	void configure_digital_interface_i2s();
+	void configure_digital_interface_external_slave();
+	void configure_digital_interface_external_master();
 	void set_digtal_volume_control(const reg_t value);
 	void set_dac_power(const bool enable);
 	void set_headphone_power(const bool enable);

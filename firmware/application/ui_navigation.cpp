@@ -349,7 +349,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items({
 		{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receivers", 				ui::Color::cyan(),		&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
-		{ "Transmitters", 			ui::Color::green(),		nullptr,				[&nav](){ nav.push<TransmittersMenuView>(); } },
+		{ "Transmitters", 			ui::Color::green(),		&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",					ui::Color::grey(),		&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Scanner/search",			ui::Color::orange(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },

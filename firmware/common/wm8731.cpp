@@ -25,6 +25,30 @@
 namespace wolfson {
 namespace wm8731 {
 
+void WM8731::configure_interface_i2s_slave() {
+	write(DigitalAudioInterfaceFormat {
+		.format = 2,
+		.iwl = 0,
+		.lrp = 0,
+		.lrswap = 0,
+		.ms = 0,
+		.bclkinv = 0,
+		.reserved0 = 0,
+	});
+}
+
+void WM8731::configure_interface_i2s_master() {
+	write(DigitalAudioInterfaceFormat {
+		.format = 2,
+		.iwl = 0,
+		.lrp = 0,
+		.lrswap = 0,
+		.ms = 1,
+		.bclkinv = 0,
+		.reserved0 = 0,
+	});
+}
+
 void WM8731::init() {
 	reset();
 
@@ -49,15 +73,7 @@ void WM8731::init() {
 	// 	.reserved0 = 0,
 	// });
 
-	write(DigitalAudioInterfaceFormat {
-		.format = 2,
-		.iwl = 0,
-		.lrp = 0,
-		.lrswap = 0,
-		.ms = 0,
-		.bclkinv = 0,
-		.reserved0 = 0,
-	});
+	configure_interface_i2s_slave();
 
 	write(DigitalAudioPathControl {
 		.adchpd = 0,

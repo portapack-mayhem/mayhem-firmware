@@ -33,7 +33,7 @@ using namespace portapack;
 namespace ui {
 
 void BHTView::focus() {
-	relay_states[0].focus();
+	tx_view.focus();
 }
 
 BHTView::~BHTView() {
@@ -41,34 +41,15 @@ BHTView::~BHTView() {
 	baseband::shutdown();
 }
 
-void BHTView::generate_message() {
-	if (tx_mode == SINGLE) {
-		text_message.set(
-			gen_message_xy(header_code_a.value(), header_code_b.value(), city_code_xy.value(), family_code_xy.value(), 
-							checkbox_wcsubfamily.value(), subfamily_code.value(), checkbox_wcid.value(), receiver_code.value(),
-							relay_states[0].selected_index(), relay_states[1].selected_index(), 
-							relay_states[2].selected_index(), relay_states[3].selected_index())
-		);
-		/*} else {
-			text_message.set(
-				gen_message_ep(city_code_ep.value(), family_code_ep.selected_index_value(),
-								relay_states[0].selected_index(), relay_states[1].selected_index())
-			);*/
-	} else if (tx_mode == SEQUENCE) {
-		text_message.set(
-			gen_message_xy(sequence_matin[seq_index].code)
-		);
-	}
-}
-
 void BHTView::start_tx() {
 	uint8_t c;
 	
-	generate_message();
+	view_xylos.generate_message();
+	view_EPAR.generate_message();
 	
-	if (tx_mode == SINGLE)
+	if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE)
 		progressbar.set_max(20);
-	else if (tx_mode == SEQUENCE)
+	else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE)
 		progressbar.set_max(20 * XY_SEQ_COUNT);
 	
 	transmitter_model.set_sampling_rate(1536000);
@@ -85,155 +66,166 @@ void BHTView::start_tx() {
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
 	uint8_t c;
-	uint8_t rs;
 	
-	if (tx_mode == SINGLE) {
+	if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE) {
 		if (done) {
 			transmitter_model.disable();
 			progressbar.set_value(0);
 			
 			if (!checkbox_cligno.value()) {
-				tx_mode = IDLE;
+				view_xylos.tx_mode = XylosView::tx_modes::IDLE;
 				tx_view.set_transmitting(false);
 			} else {
-				chThdSleepMilliseconds(tempo_cligno.value() * 1000);	// Dirty :(
+				chThdSleepMilliseconds(field_tempo.value() * 1000);	// Dirty :(
 				
-				// Invert first relay's state
-				rs = relay_states[0].selected_index();
-				if (rs > 0) relay_states[0].set_selected_index(rs ^ 3);
+				view_EPAR.flip_relays();
+				view_xylos.flip_relays();
 				
 				start_tx();
 			}
 		} else {
 			progressbar.set_value(progress);
 		}
-	} else if (tx_mode == SEQUENCE) {
+	} else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE) {
 		if (done) {
 			transmitter_model.disable();
 			
-			if (seq_index < (XY_SEQ_COUNT - 1)) {
-				for (c = 0; c < sequence_matin[seq_index].delay; c++)
+			if (view_xylos.seq_index < (XY_SEQ_COUNT - 1)) {
+				for (c = 0; c < view_xylos.sequence_matin[view_xylos.seq_index].delay; c++)
 					chThdSleepMilliseconds(1000);
 				
-				seq_index++;
+				view_xylos.seq_index++;
 				
 				start_tx();
 			} else {
 				progressbar.set_value(0);
-				tx_mode = IDLE;
+				view_xylos.tx_mode = XylosView::tx_modes::IDLE;
 				tx_view.set_transmitting(false);
 			}
 		} else {
-			progressbar.set_value((seq_index * 20) + progress);
+			progressbar.set_value((view_xylos.seq_index * 20) + progress);
 		}
 	}
 }
 
-BHTView::BHTView(NavigationView& nav) {
+void EPARView::flip_relays() {
+	// Invert first relay's state
+	relay_states[0].set_selected_index(relay_states[0].selected_index() ^ 1);
+}
+
+void EPARView::generate_message() {
+	//text_message.set(
+		gen_message_ep(field_city.value(), field_group.selected_index_value(),
+						relay_states[0].selected_index(), relay_states[1].selected_index());
+	//);
+}
+
+EPARView::EPARView() {
 	size_t n;
 	
-	baseband::run_image(portapack::spi_flash::image_tag_tones);
-	//baseband::run_image(portapack::spi_flash::image_tag_encoders);
+	hidden(true);
+	
+	//baseband::run_image(portapack::spi_flash::image_tag_ook);
 	
 	add_children({
 		&labels,
-		&options_mode,
-		&header_code_a,
-		&header_code_b,
-		&city_code_xy,
-		&family_code_xy,
-		&subfamily_code,
-		&checkbox_wcsubfamily,
-		&receiver_code,
-		&checkbox_wcid,
-		&progressbar,
-		&text_message,
-		&checkbox_cligno,
-		&tempo_cligno,
-		&button_seq,
-		&tx_view
+		&field_city,
+		&field_group,
+		&button_scan
 	});
+
+	field_city.set_value(220);
+	field_group.set_selected_index(2);
 	
-	options_mode.set_selected_index(0);			// Start up in Xy mode
-	header_code_a.set_value(0);
-	header_code_b.set_value(0);
-	city_code_xy.set_value(10);
-	//city_code_ep.set_value(220);
-	family_code_xy.set_value(1);
-	//family_code_ep.set_selected_index(2);
-	subfamily_code.set_value(1);
-	receiver_code.set_value(1);
-	tempo_cligno.set_value(0);
+	field_city.on_change = [this](int32_t) { generate_message(); };
+	field_group.on_change = [this](size_t, int32_t) { generate_message(); };
 	
-/*	options_mode.on_change = [this](size_t mode, OptionsField::value_t) {
-		_mode = mode;
-		
-		if (_mode) {
-			// EP layout
-			remove_children({
-				&header_code_a,
-				&header_code_b,
-				&checkbox_speaker,
-				&bmp_speaker,
-				&city_code_xy,
-				&family_code_xy,
-				&subfamily_code,
-				&checkbox_wcsubfamily,
-				&receiver_code,
-				&checkbox_wcid,
-				&relay_states[2],
-				&relay_states[3]
-			});
-			add_children({
-				&city_code_ep,
-				&family_code_ep
-			});
-			set_dirty();
-		} else {
-			// Xy layout
-			remove_children({
-				&city_code_ep,
-				&family_code_ep
-			});
-			add_children({
-				&header_code_a,
-				&header_code_b,
-				&checkbox_speaker,
-				&bmp_speaker,
-				&city_code_xy,
-				&family_code_xy,
-				&subfamily_code,
-				&checkbox_wcsubfamily,
-				&receiver_code,
-				&checkbox_wcid,
-				&relay_states[2],
-				&relay_states[3]
-			});
-			set_dirty();
-		};
-		generate_message();
-	};*/
+	const auto relay_state_fn = [this](size_t, OptionsField::value_t) {
+		this->generate_message();
+	};
 	
-	header_code_a.on_change = [this](int32_t) { generate_message(); };
-	header_code_b.on_change = [this](int32_t) { generate_message(); };
-	city_code_xy.on_change = [this](int32_t) { generate_message(); };
-	family_code_xy.on_change = [this](int32_t) { generate_message(); };
-	subfamily_code.on_change = [this](int32_t) { generate_message(); };
-	receiver_code.on_change = [this](int32_t) { generate_message(); };
+	n = 0;
+	for (auto& relay_state : relay_states) {
+		relay_state.on_change = relay_state_fn;
+		relay_state.set_parent_rect({
+			static_cast<Coord>(90 + (n * 36)),
+			80,
+			24, 24
+		});
+		relay_state.set_options(relay_options);
+		add_child(&relay_state);
+		n++;
+	}
+}
+
+void EPARView::focus() {
+	field_city.focus();
+}
+
+void XylosView::flip_relays() {
+	size_t rs;
+	
+	// Invert first relay's state
+	rs = relay_states[0].selected_index();
+	if (rs > 0) relay_states[0].set_selected_index(rs ^ 3);
+}
+
+void XylosView::generate_message() {
+	if (tx_mode == SINGLE) {
+		//text_message.set(
+			gen_message_xy(field_header_a.value(), field_header_b.value(), field_city.value(), field_family.value(), 
+							checkbox_wcsubfamily.value(), field_subfamily.value(), checkbox_wcid.value(), field_receiver.value(),
+							relay_states[0].selected_index(), relay_states[1].selected_index(), 
+							relay_states[2].selected_index(), relay_states[3].selected_index());
+		//);
+	} else if (tx_mode == SEQUENCE) {
+		//text_message.set(
+			gen_message_xy(sequence_matin[seq_index].code);
+		//);
+	}
+}
+
+XylosView::XylosView() {
+	size_t n;
+	
+	hidden(true);
+	
+	//baseband::run_image(portapack::spi_flash::image_tag_tones);
+	
+	add_children({
+		&labels,
+		&field_header_a,
+		&field_header_b,
+		&field_city,
+		&field_family,
+		&field_subfamily,
+		&checkbox_wcsubfamily,
+		&field_receiver,
+		&checkbox_wcid,
+		&button_seq,
+	});
+
+	field_header_a.set_value(0);
+	field_header_b.set_value(0);
+	field_city.set_value(10);
+	field_family.set_value(1);
+	field_subfamily.set_value(1);
+	field_receiver.set_value(1);
+	
+	field_header_a.on_change = [this](int32_t) { generate_message(); };
+	field_header_b.on_change = [this](int32_t) { generate_message(); };
+	field_city.on_change = [this](int32_t) { generate_message(); };
+	field_family.on_change = [this](int32_t) { generate_message(); };
+	field_subfamily.on_change = [this](int32_t) { generate_message(); };
+	field_receiver.on_change = [this](int32_t) { generate_message(); };
 	
 	checkbox_wcsubfamily.on_select = [this](Checkbox&, bool v) {
-		if (v)
-			subfamily_code.set_focusable(false);
-		else
-			subfamily_code.set_focusable(true);
+		field_subfamily.set_focusable(!v);
 		generate_message();
 	};
 	
 	checkbox_wcid.on_select = [this](Checkbox&, bool v) {
-		if (v)
-			receiver_code.set_focusable(false);
-		else
-			receiver_code.set_focusable(true);
+		field_receiver.set_focusable(!v);
 		generate_message();
 	};
 	
@@ -248,16 +240,41 @@ BHTView::BHTView(NavigationView& nav) {
 	for (auto& relay_state : relay_states) {
 		relay_state.on_change = relay_state_fn;
 		relay_state.set_parent_rect({
-			static_cast<Coord>(4 + (n * 36)),
-			150,
+			static_cast<Coord>(54 + (n * 36)),
+			134,
 			24, 24
 		});
 		relay_state.set_options(relay_options);
 		add_child(&relay_state);
 		n++;
 	}
+}
+
+void XylosView::focus() {
+	field_city.focus();
+}
+
+BHTView::BHTView(NavigationView& nav) {
+	Rect view_rect = { 0, 3 * 8, 240, 192 };
 	
-	generate_message();
+	baseband::run_image(portapack::spi_flash::image_tag_tones);
+
+	add_children({
+		&tab_view,
+		&labels,
+		&view_xylos,
+		&view_EPAR,
+		&checkbox_cligno,
+		&field_tempo,
+		&progressbar,
+		&text_message,
+		&tx_view
+	});
+	
+	view_xylos.set_parent_rect(view_rect);
+	view_EPAR.set_parent_rect(view_rect);
+	
+	field_tempo.set_value(0);
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
@@ -266,18 +283,18 @@ BHTView::BHTView(NavigationView& nav) {
 		};
 	};
 	
-	button_seq.on_select = [this, &nav](Button&) {
+	/*button_seq.on_select = [this, &nav](Button&) {
 		if (tx_mode == IDLE) {
 			seq_index = 0;
 			tx_mode = SEQUENCE;
 			tx_view.set_transmitting(true);
 			start_tx();
 		}
-	};
+	};*/
 	
 	tx_view.on_start = [this]() {
-		if (tx_mode == IDLE) {
-			tx_mode = SINGLE;
+		if (view_xylos.tx_mode == XylosView::tx_modes::IDLE) {
+			view_xylos.tx_mode = XylosView::tx_modes::SINGLE;
 			tx_view.set_transmitting(true);
 			start_tx();
 		}
@@ -286,7 +303,7 @@ BHTView::BHTView(NavigationView& nav) {
 	tx_view.on_stop = [this]() {
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
-		tx_mode = IDLE;
+		view_xylos.tx_mode = XylosView::tx_modes::IDLE;
 	};
 }
 

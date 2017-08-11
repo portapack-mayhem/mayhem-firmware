@@ -108,7 +108,7 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 	 * Those bits assumed to be 0b0100", which may not be entirely true...
 	 */
 	constexpr uint8_t first_nibble = 0x4;
-	const auto system_id = (first_nibble << 20) | reader_.read(0, 20);
+	// const auto system_id = (first_nibble << 20) | reader_.read(0, 20);
 	const auto id = reader_.read(20, 32);
 	const auto value_0 = reader_.read(52, 8);
 	const auto value_1 = reader_.read(60, 8);

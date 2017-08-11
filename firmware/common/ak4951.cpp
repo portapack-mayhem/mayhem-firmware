@@ -29,7 +29,7 @@ using namespace portapack;
 namespace asahi_kasei {
 namespace ak4951 {
 
-void AK4951::configure_digital_interface() {
+void AK4951::configure_digital_interface_i2s() {
 	// Configure for external slave mode.
 	map.r.mode_control_1.DIF = 0b11;	// I2S compatible
 	map.r.mode_control_1.BCKO = 0;		// BICK = 32fs
@@ -38,11 +38,16 @@ void AK4951::configure_digital_interface() {
 	map.r.mode_control_2.CM = 0b00;		// MCKI = 256fs
 	map.r.mode_control_2.FS = 0b1011;	// fs = 48kHz
 	update(Register::ModeControl2);
+}
 
-	// map.r.mode_control_3.DVOLC = 1;		// Control L/R channels with DVL (LchDigitalVolumeControl)
-	// update(Register::ModeControl3);
-
+void AK4951::configure_digital_interface_external_slave() {
 	map.r.power_management_2.MS = 0;	// Slave mode
+	map.r.power_management_2.PMPLL = 0;	// EXT mode
+	update(Register::PowerManagement2);
+}
+
+void AK4951::configure_digital_interface_external_master() {
+	map.r.power_management_2.MS = 1;	// Master mode
 	map.r.power_management_2.PMPLL = 0;	// EXT mode
 	update(Register::PowerManagement2);
 }
@@ -53,7 +58,8 @@ void AK4951::init() {
 	// Write dummy address to "release" the reset.
 	write(0x00, 0x00);
 
-	configure_digital_interface();
+	configure_digital_interface_i2s();
+	configure_digital_interface_external_slave();
 
 	map.r.power_management_1.PMVCM = 1;
 	update(Register::PowerManagement1);
