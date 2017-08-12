@@ -263,15 +263,15 @@ set_location_assignment PIN_4 -to AUDIO_RESETX
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to AUDIO_RESETX
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to AUDIO_RESETX
 set_instance_assignment -name SLOW_SLEW_RATE ON -to AUDIO_RESETX
-set_location_assignment PIN_30 -to MCU_LCD_RD
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RD
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RD
-set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_RD
-set_location_assignment PIN_40 -to MCU_LCD_WR
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_WR
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_WR
-set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_WR
-set_instance_assignment -name PCI_IO OFF -to MCU_LCD_WR
+set_location_assignment PIN_30 -to MCU_LCD_RDX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RDX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RDX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_RDX
+set_location_assignment PIN_40 -to MCU_LCD_WRX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_WRX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_WRX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_WRX
+set_instance_assignment -name PCI_IO OFF -to MCU_LCD_WRX
 set_location_assignment PIN_32 -to MCU_IO_STBX
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_IO_STBX
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_IO_STBX
@@ -318,6 +318,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[0]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_ADDR
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_DIR
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_IO_STBX
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_RD
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_WR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_RDX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_WRX
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_P2_8
