@@ -145,7 +145,11 @@ void RecordView::start() {
 	case FileType::WAV:
 		{
 			auto p = std::make_unique<WAVFileWriter>();
-			auto create_error = p->create(base_path.replace_extension(u".WAV"), sampling_rate);
+			auto create_error = p->create(
+				base_path.replace_extension(u".WAV"),
+				sampling_rate,
+				to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz"
+			);
 			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
 			} else {

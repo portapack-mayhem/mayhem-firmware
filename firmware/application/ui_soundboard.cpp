@@ -25,13 +25,7 @@
 #include "ui_soundboard.hpp"
 
 #include "lfsr_random.hpp"
-#include "portapack.hpp"
 #include "string_format.hpp"
-
-#include "portapack_shared_memory.hpp"
-
-#include <cstring>
-#include <vector>
 
 using namespace ctcss;
 using namespace portapack;

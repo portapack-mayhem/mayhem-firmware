@@ -27,8 +27,7 @@
 #include "file.hpp"
 #include "optional.hpp"
 
-#include <cstddef>
-#include <cstdint>
+#include <string.h>
 
 struct fmt_pcm_t {
 	constexpr fmt_pcm_t(
@@ -64,8 +63,9 @@ private:
 struct header_t {
 	constexpr header_t(
 		const uint32_t sampling_rate,
-		const uint32_t data_chunk_size
-	) : cksize { sizeof(header_t) + data_chunk_size - 8 },
+		const uint32_t data_chunk_size,
+		const uint32_t info_chunk_size
+	) : cksize { sizeof(header_t) + data_chunk_size + info_chunk_size - 8 },
 		fmt { sampling_rate },
 		data { data_chunk_size }
 	{
@@ -77,6 +77,27 @@ private:
 	uint8_t wave_id[4] { 'W', 'A', 'V', 'E' };
 	fmt_pcm_t fmt;
 	data_t data;
+};
+
+struct tags_t {
+	constexpr tags_t(
+		const std::string& title_str
+	)
+	{
+		strcpy(title, title_str.c_str());
+		cksize = sizeof(tags_t) - 8;
+	}
+
+private:
+	uint8_t list_id[4] { 'L', 'I', 'S', 'T' };
+	uint32_t cksize { 0 };
+	uint8_t info_id[4] { 'I', 'N', 'F', 'O' };
+	uint8_t iart_id[4] { 'I', 'A', 'R', 'T' };
+	uint32_t sckiart_size { 12 };
+	char artist[12] { "PortaPack\0\0" };
+	uint8_t inam_id[4] { 'I', 'N', 'A', 'M' };
+	uint32_t sckinam_size { 64 };
+	char title[64] { 0 };
 };
 
 class WAVFileReader : public FileReader {
@@ -145,16 +166,21 @@ public:
 	WAVFileWriter& operator=(WAVFileWriter&&) = delete;
 
 	~WAVFileWriter() {
+		write_tags();
 		update_header();
 	}
 
 	Optional<File::Error> create(
 		const std::filesystem::path& filename,
-		size_t sampling_rate
+		size_t sampling_rate,
+		std::string title_set
 	);
 
 private:
 	uint32_t sampling_rate { 0 };
+	uint32_t info_chunk_size { 0 };
+	std::string title { };
 
 	Optional<File::Error> update_header();
+	Optional<File::Error> write_tags();
 };
