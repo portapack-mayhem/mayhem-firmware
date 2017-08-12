@@ -52,10 +52,10 @@ public:
 	std::function<void(void)> on_start { };
 	std::function<void(void)> on_stop { };
 	
-	TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t bandwidth, const bool lock);
+	TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
 	TransmitterView(
-		const Coord y, const uint32_t frequency_step, const uint32_t bandwidth
-	) : TransmitterView { y, frequency_step, bandwidth, false }
+		const Coord y, const uint32_t frequency_step, const uint32_t channel_bandwidth
+	) : TransmitterView { y, frequency_step, channel_bandwidth, false }
 	{
 	}
 	
@@ -117,7 +117,7 @@ private:
 	};
 
 	void on_tuning_frequency_changed(rf::Frequency f);
-	void on_bandwidth_changed(uint32_t bandwidth);
+	void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
 };
 
 } /* namespace ui */

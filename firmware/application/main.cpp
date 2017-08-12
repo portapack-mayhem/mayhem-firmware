@@ -50,7 +50,6 @@ Continuous (Fox-oring)
 60s transmit, 240s space (Classic 1/5 min) 
 60s transmit, 360s space (Classic 1/7 min) 
 */
-//TODO: Use transmittermodel bw setting
 //TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
 //TODO: FreqMan: Remove and rename categories
 //TODO: Wav visualizer

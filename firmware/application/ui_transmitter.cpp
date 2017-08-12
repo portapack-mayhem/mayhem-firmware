@@ -75,8 +75,8 @@ void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
 	receiver_model.set_tuning_frequency(f);
 }
 
-void TransmitterView::on_bandwidth_changed(uint32_t bandwidth) {
-	//transmitter_model.set_bandwidth(bandwidth);
+void TransmitterView::on_channel_bandwidth_changed(uint32_t channel_bandwidth) {
+	transmitter_model.set_channel_bandwidth(channel_bandwidth);
 }
 
 void TransmitterView::set_transmitting(const bool transmitting) {
@@ -100,7 +100,7 @@ void TransmitterView::focus() {
 }
 
 TransmitterView::TransmitterView(
-	const Coord y, const uint64_t frequency_step, const uint32_t bandwidth, const bool lock
+	const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock
 ) :	lock_ { lock }
 {
 	set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
@@ -118,16 +118,16 @@ TransmitterView::TransmitterView(
 		field_frequency.set_focusable(false);
 		field_frequency.set_style(&style_locked);
 	} else {
-		if (bandwidth) {
+		if (channel_bandwidth) {
 			add_children({
 				&text_bw,
 				&field_bw
 			});
 			
-			field_bw.on_change = [this](int32_t bandwidth) {
-				on_bandwidth_changed(bandwidth * 1000);
+			field_bw.on_change = [this](int32_t v) {
+				on_channel_bandwidth_changed(v * 1000);
 			};
-			field_bw.set_value(bandwidth);
+			field_bw.set_value(channel_bandwidth);
 		}
 	}
 

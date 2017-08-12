@@ -53,8 +53,8 @@ public:
 	int32_t tx_gain() const;
 	void set_tx_gain(int32_t v_db);
 	
-	uint32_t bandwidth() const;
-	void set_bandwidth(uint32_t v);
+	uint32_t channel_bandwidth() const;
+	void set_channel_bandwidth(uint32_t v);
 
 	uint32_t sampling_rate() const;
 	void set_sampling_rate(uint32_t v);
@@ -66,7 +66,7 @@ private:
 	bool enabled_ { false };
 	bool rf_amp_ { true };
 	int32_t lna_gain_db_ { 0 };
-	uint32_t bandwidth_ { 1 };
+	uint32_t channel_bandwidth_ { 1 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 8 };
 	int32_t tx_gain_db_ { 47 };

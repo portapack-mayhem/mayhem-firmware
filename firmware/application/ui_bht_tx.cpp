@@ -61,7 +61,7 @@ void BHTView::start_tx() {
 	for (c = 0; c < 16; c++)
 		baseband::set_tone(c, ccir_deltas[c], XY_TONE_LENGTH);
 	
-	baseband::set_tones_config(transmitter_model.bandwidth(), XY_SILENCE, 20, false, false);
+	baseband::set_tones_config(transmitter_model.channel_bandwidth(), XY_SILENCE, 20, false, false);
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
@@ -279,7 +279,7 @@ BHTView::BHTView(NavigationView& nav) {
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
+			transmitter_model.set_tuning_frequency(f);
 		};
 	};
 	

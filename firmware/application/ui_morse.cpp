@@ -108,7 +108,7 @@ bool MorseView::start_tx() {
 	if (modulation == CW) {
 		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
 	} else if (modulation == FM) {
-		baseband::set_tones_config(transmitter_model.bandwidth(), 0, symbol_count, false, false);
+		baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
 	}
 	
 	return true;

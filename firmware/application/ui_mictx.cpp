@@ -67,7 +67,7 @@ void MicTXView::set_tx(bool enable) {
 		
 		baseband::set_audiotx_data(
 			1536000U / 20,		// 20Hz level update
-			transmitter_model.bandwidth(),
+			transmitter_model.channel_bandwidth(),
 			mic_gain_x10,
 			ctcss_enabled,
 			(uint32_t)((ctcss_tones[ctcss_index].frequency / 1536000.0) * 0xFFFFFFFFULL)
@@ -181,7 +181,7 @@ MicTXView::MicTXView(
 	};
 	
 	field_bw.on_change = [this](uint32_t v) {
-		transmitter_model.set_bandwidth(v * 1000);
+		transmitter_model.set_channel_bandwidth(v * 1000);
 	};
 	field_bw.set_value(10);
 	

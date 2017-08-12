@@ -153,7 +153,7 @@ RangeView::RangeView(NavigationView& nav) {
 	};
 
 	button_center.on_select = [this, &nav](Button& button) {
-		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
+		auto new_view = nav.push<FrequencyKeypadView>(center);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			update_center(f);
 		};
@@ -162,7 +162,7 @@ RangeView::RangeView(NavigationView& nav) {
 	};
 	
 	button_width.on_select = [this, &nav](Button& button) {
-		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
+		auto new_view = nav.push<FrequencyKeypadView>(width);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			update_width(f);
 		};

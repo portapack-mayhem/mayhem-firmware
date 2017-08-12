@@ -79,12 +79,12 @@ void TransmitterModel::set_vga(int32_t v_db) {
 	update_vga();
 }
 
-uint32_t TransmitterModel::bandwidth() const {
-	return bandwidth_;
+uint32_t TransmitterModel::channel_bandwidth() const {
+	return channel_bandwidth_;
 }
 
-void TransmitterModel::set_bandwidth(uint32_t v) {
-	bandwidth_ = v;
+void TransmitterModel::set_channel_bandwidth(uint32_t v) {
+	channel_bandwidth_ = v;
 }
 
 uint32_t TransmitterModel::sampling_rate() const {
