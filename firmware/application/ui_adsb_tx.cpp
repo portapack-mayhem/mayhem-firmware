@@ -118,6 +118,8 @@ ADSBPositionView::ADSBPositionView(NavigationView& nav) {
 }
 
 void ADSBPositionView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	if (!enabled) return;
+	
 	ADSBFrame temp_frame;
 	
 	encode_frame_pos(temp_frame, ICAO_address, geopos.altitude(),
@@ -149,6 +151,8 @@ ADSBCallsignView::ADSBCallsignView(NavigationView& nav) {
 }
 
 void ADSBCallsignView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	if (!enabled) return;
+	
 	ADSBFrame temp_frame;
 	
 	encode_frame_id(temp_frame, ICAO_address, callsign);
@@ -175,6 +179,8 @@ ADSBSpeedView::ADSBSpeedView() {
 }
 
 void ADSBSpeedView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	if (!enabled) return;
+	
 	ADSBFrame temp_frame;
 	
 	encode_frame_velo(temp_frame, ICAO_address, field_speed.value(),
@@ -193,6 +199,8 @@ ADSBSquawkView::ADSBSquawkView() {
 }
 
 void ADSBSquawkView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+	if (!enabled) return;
+	
 	ADSBFrame temp_frame;
 	(void)ICAO_address;
 	
@@ -201,83 +209,35 @@ void ADSBSquawkView::collect_frames(const uint32_t ICAO_address, std::vector<ADS
 	frame_list.emplace_back(temp_frame);
 }
 
-void ADSBTxView::focus() {
-	tab_view.focus();
+ADSBTXThread::ADSBTXThread(
+	std::vector<ADSBFrame> frames
+) : frames_ {  std::move(frames) }
+{
+	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ADSBTXThread::static_fn, this);
 }
 
-ADSBTxView::~ADSBTxView() {
-	transmitter_model.disable();
-	baseband::shutdown();
+ADSBTXThread::~ADSBTXThread() {
+	if( thread ) {
+		chThdTerminate(thread);
+		chThdWait(thread);
+		thread = nullptr;
+	}
 }
 
-void ADSBTxView::generate_frames() {
-	const uint32_t ICAO_address = sym_icao.value_hex_u64();
-	
-	/* This scheme kinda sucks. Each "tab"'s collect_frames method
-	 * is called to generate its related frame(s). Getting values
-	 * from each widget of each tab would be better ?
-	 * */
-	view_position.collect_frames(ICAO_address, frames);
-	view_callsign.collect_frames(ICAO_address, frames);
-	view_speed.collect_frames(ICAO_address, frames);
-	view_squawk.collect_frames(ICAO_address, frames);
-	
-	// DEBUG: Show how many frames were generated
-	text_frame.set(to_string_dec_uint(frames.size()) + " frame(s).");
-
-	//memset(bin_ptr, 0, 240);
-
-	//auto raw_ptr = frames[0].get_raw_data();
-	
-	// The preamble isn't manchester encoded
-	//memcpy(bin_ptr, adsb_preamble, 16);
-	
-	// Convert to binary with manchester encoding (1 byte per bit, faster for baseband code)
-	/*for (c = 0; c < 112; c++) {
-		if ((raw_ptr[c >> 3] << (c & 7)) & 0x80) {
-			bin_ptr[(c * 2) + 16] = 1;
-			bin_ptr[(c * 2) + 16 + 1] = 0;
-		} else {
-			bin_ptr[(c * 2) + 16] = 0;
-			bin_ptr[(c * 2) + 16 + 1] = 1;
-		}
-	}*/
-	
-	/*manchester_encode(bin_ptr + 16, raw_ptr, 112, 0);
-	
-	// Display in hex for debug
-	text_frame.set(to_string_hex_array(frames[0].get_raw_data(), 14));
-
-	button_callsign.set_text(callsign);*/
+msg_t ADSBTXThread::static_fn(void* arg) {
+	auto obj = static_cast<ADSBTXThread*>(arg);
+	obj->run();
+	return 0;
 }
 
-void ADSBTxView::start_tx() {
-	generate_frames();
-	
-	transmitter_model.set_sampling_rate(4000000U);
-	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_baseband_bandwidth(10000000);
-	transmitter_model.enable();
-	
-	baseband::set_adsb();
-}
-
-void ADSBTxView::on_txdone(const bool v) {
-	(void)v;
-	/*if (v) {
-		transmitter_model.disable();
-		tx_view.set_transmitting(false);
-	}*/
-}
-
-void ADSBTxView::rotate_frames() {
+void ADSBTXThread::run() {
 	uint8_t * bin_ptr = shared_memory.bb_data.data;
 	uint8_t * raw_ptr;
 	uint32_t frame_index = 0;	//, plane_index = 0;
-	uint32_t c;	//, regen = 0;
+	//uint32_t regen = 0;
 	//float offs = 0;
 	
-	for (;;) {
+	while( !chThdShouldTerminate() ) {
 		/*if (!regen) {
 			regen = 10;
 			
@@ -294,28 +254,24 @@ void ADSBTxView::rotate_frames() {
 			offs += 0.001;
 		}*/
 		
-		memset(bin_ptr, 0, 240);
+		memset(bin_ptr, 0, 256);	// 112 bits * 2 parts = 224 should be enough
 		
-		raw_ptr = frames[frame_index].get_raw_data();
+		raw_ptr = frames_[frame_index].get_raw_data();
 		
+		// The preamble isn't manchester encoded
 		memcpy(bin_ptr, adsb_preamble, 16);
 		
 		// Convert to binary (1 byte per bit, faster for baseband code)
-		for (c = 0; c < 112; c++) {
-			if ((raw_ptr[c >> 3] << (c & 7)) & 0x80) {
-				bin_ptr[(c * 2) + 16] = 1;
-				bin_ptr[(c * 2) + 16 + 1] = 0;
-			} else {
-				bin_ptr[(c * 2) + 16] = 0;
-				bin_ptr[(c * 2) + 16 + 1] = 1;
-			}
-		}
-		
+		manchester_encode(bin_ptr + 16, raw_ptr, 112, 0);
+	
+		// Display in hex for debug
+		//text_frame.set(to_string_hex_array(frames[0].get_raw_data(), 14));
+	
 		baseband::set_adsb();
 		
 		chThdSleepMilliseconds(50);
 		
-		if (frame_index == frames.size()) {
+		if (frame_index == frames_.size()) {
 			frame_index = 0;
 			//if (regen)
 			//	regen--;
@@ -323,6 +279,46 @@ void ADSBTxView::rotate_frames() {
 			frame_index++;
 		}
 	}
+}
+
+void ADSBTxView::focus() {
+	tab_view.focus();
+}
+
+ADSBTxView::~ADSBTxView() {
+	transmitter_model.disable();
+	baseband::shutdown();
+}
+
+void ADSBTxView::generate_frames() {
+	const uint32_t ICAO_address = sym_icao.value_hex_u64();
+	
+	frames.clear();
+	
+	/* This scheme kinda sucks. Each "tab"'s collect_frames method
+	 * is called to generate its related frame(s). Getting values
+	 * from each widget of each tab would be better ?
+	 * */
+	view_position.collect_frames(ICAO_address, frames);
+	view_callsign.collect_frames(ICAO_address, frames);
+	view_speed.collect_frames(ICAO_address, frames);
+	view_squawk.collect_frames(ICAO_address, frames);
+	
+	// Show how many frames were generated
+	//text_frame.set(to_string_dec_uint(frames.size()) + " frame(s).");
+}
+
+void ADSBTxView::start_tx() {
+	generate_frames();
+	
+	transmitter_model.set_sampling_rate(4000000U);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(10000000);
+	transmitter_model.enable();
+	
+	baseband::set_adsb();
+	
+	tx_thread = std::make_unique<ADSBTXThread>(frames);
 }
 
 ADSBTxView::ADSBTxView(
@@ -349,11 +345,16 @@ ADSBTxView::ADSBTxView(
 	view_speed.set_parent_rect(view_rect);
 	view_squawk.set_parent_rect(view_rect);
 	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			transmitter_model.set_tuning_frequency(f);
+		};
+	};
+	
 	tx_view.on_start = [this]() {
 		start_tx();
 		tx_view.set_transmitting(true);
-		// Disable for DEBUG
-		//rotate_frames();
 	};
 	
 	tx_view.on_stop = [this]() {

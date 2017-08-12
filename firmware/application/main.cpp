@@ -23,17 +23,15 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TEST: ADS-B tx manchester encoder, velocity and squawk frames
+//TEST: ADS-B tx velocity and squawk frames
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
-//BUG: ADSB transmit baseband code works only if stuck in a loop (txdone message makes everything go nuts)
 //BUG: CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: REPLAY See what's wrong with quality (format, or need for interpolation filter ?)
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
-//BUG: REPLAY freezes when SD card not present
 //BUG: RDS doesn't stop baseband when stopping tx ?
 
 //TODO: REPLAY Convert C16 to C8 on M0 core

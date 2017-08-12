@@ -44,8 +44,6 @@ private:
 		{ 0, -127 }		
 	};
 	
-	bool active { };
-	uint32_t terminate { };
     uint32_t bit_pos { 0 };
     uint32_t cur_bit { 0 };
 	uint32_t phase { 0 };

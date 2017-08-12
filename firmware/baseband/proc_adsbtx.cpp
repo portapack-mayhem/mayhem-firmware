@@ -36,65 +36,24 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 	// Or ./dump1090 --freq 434000000 --gain 20 --interactive --net --net-http-port 8080 --net-beast
 	
 	if (!configured) return;
-	
-	/*if (terminate) {
-		for (size_t i = 0; i < buffer.count; i++) {
+
+	for (size_t i = 0; i < buffer.count; i++) {
+		if (bit_pos >= (240 << 1)) {
+			configured = false;
+			cur_bit = 0;
+		} else {
+			cur_bit = shared_memory.bb_data.data[bit_pos >> 1];
+			bit_pos++;
+		}
+		
+		if (cur_bit) {
+			// Crude AM
+			buffer.p[i] = am_lut[phase & 3];
+			phase++;
+		} else {
 			buffer.p[i] = { 0, 0 };
 		}
-		terminate--;
-		if (!terminate) {
-			message.done = true;
-			shared_memory.application_queue.push(message);
-			configured = false;
-			return;
-		}
-	} else {*/
-	
-		for (size_t i = 0; i < buffer.count; i++) {
-			
-			/*if (active) {
-				if (!sample) {
-					sample = 300;
-					if (bit_pos >= 112) {
-						active = false;	// Stop
-						cur_bit = 0;
-					} else {
-						cur_bit = shared_memory.bb_data.data[bit_pos];
-						bit_pos++;
-					}
-				} else
-					sample--;
-				
-				if (!preamble) {
-					if (sample == 150)
-						cur_bit ^= 1;	// Invert
-				}
-			} else {*/
-				/*cur_bit = 0;
-				if (bit_pos >= 16384) {
-					configured = false;
-					message.done = true;
-					shared_memory.application_queue.push(message);
-				}*/
-				if (bit_pos >= (240 << 1)) {
-					configured = false;
-					terminate = 100;
-					cur_bit = 0;
-				} else {
-					cur_bit = shared_memory.bb_data.data[bit_pos >> 1];
-					bit_pos++;
-				}
-			//}
-			
-			if (cur_bit) {
-				// Crude AM
-				buffer.p[i] = am_lut[phase & 3];
-				phase++;
-			} else {
-				buffer.p[i] = { 0, 0 };
-			}
-		}
-	//}
+	}
 }
 
 void ADSBTXProcessor::on_message(const Message* const p) {
@@ -103,9 +62,7 @@ void ADSBTXProcessor::on_message(const Message* const p) {
 	if (message.id == Message::ID::ADSBConfigure) {
 		bit_pos = 0;
 		phase = 0;
-		active = true;
 		configured = true;
-		terminate = 0;
 	}
 }
 

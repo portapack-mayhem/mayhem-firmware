@@ -67,6 +67,6 @@ FormattedSymbols format_symbols(
 	const ManchesterDecoder& decoder
 );
 
-void manchester_encode(uint8_t * dest, uint8_t * src, size_t length, const size_t sense = 0);
+void manchester_encode(uint8_t * dest, uint8_t * src, const size_t length, const size_t sense = 0);
 
 #endif/*__MANCHESTER_H__*/

@@ -152,6 +152,25 @@ private:
 	};
 };
 
+class ADSBTXThread {
+public:
+	ADSBTXThread(std::vector<ADSBFrame> frames);
+	~ADSBTXThread();
+
+	ADSBTXThread(const ADSBTXThread&) = delete;
+	ADSBTXThread(ADSBTXThread&&) = delete;
+	ADSBTXThread& operator=(const ADSBTXThread&) = delete;
+	ADSBTXThread& operator=(ADSBTXThread&&) = delete;
+
+private:
+	std::vector<ADSBFrame> frames_ { };
+	Thread* thread { nullptr };
+
+	static msg_t static_fn(void* arg);
+	
+	void run();
+};
+
 class ADSBTxView : public View {
 public:
 	ADSBTxView(NavigationView& nav);
@@ -203,8 +222,6 @@ private:
 	
 	void start_tx();
 	void generate_frames();
-	void rotate_frames();
-	void on_txdone(const bool v);
 	
 	ADSBPositionView view_position { nav_ };
 	ADSBCallsignView view_callsign { nav_ };
@@ -239,13 +256,7 @@ private:
 		0
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.done);
-		}
-	};
+	std::unique_ptr<ADSBTXThread> tx_thread { };
 };
 
 } /* namespace ui */
