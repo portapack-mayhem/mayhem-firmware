@@ -173,7 +173,7 @@ public:
 	Optional<File::Error> create(
 		const std::filesystem::path& filename,
 		size_t sampling_rate,
-		std::string title_set
+		const std::string& title_set
 	);
 
 private:

@@ -23,7 +23,6 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TEST: ADS-B tx velocity and squawk frames
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc

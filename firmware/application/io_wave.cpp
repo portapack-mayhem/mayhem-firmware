@@ -125,7 +125,7 @@ uint16_t WAVFileReader::bits_per_sample() {
 Optional<File::Error> WAVFileWriter::create(
 	const std::filesystem::path& filename,
 	size_t sampling_rate_set,
-	std::string title_set
+	const std::string& title_set
 ) {
 	sampling_rate = sampling_rate_set;
 	title = title_set;
@@ -139,19 +139,24 @@ Optional<File::Error> WAVFileWriter::create(
 
 Optional<File::Error> WAVFileWriter::update_header() {
 	header_t header { sampling_rate, (uint32_t)bytes_written - sizeof(header_t), info_chunk_size };
+	
 	const auto seek_0_result = file.seek(0);
 	if( seek_0_result.is_error() ) {
 		return seek_0_result.error();
 	}
+	
 	const auto old_position = seek_0_result.value();
+	
 	const auto write_result = file.write(&header, sizeof(header));
 	if( write_result.is_error() ) {
 		return write_result.error();
 	}
+	
 	const auto seek_old_result = file.seek(old_position);
 	if( seek_old_result.is_error() ) {
 		return seek_old_result.error();
 	}
+	
 	return { };
 }
 
