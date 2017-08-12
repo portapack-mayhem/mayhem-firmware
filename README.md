@@ -10,33 +10,34 @@ It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/
 
 [READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)
 
-Do you want to submit a bug report, suggest something, ... ? Don't hesitate, go here: https://github.com/furrtek/portapack-havoc/issues (Check the progress list below first).
+If you want to submit a bug report, suggest something... Don't hesitate, use this page: https://github.com/furrtek/portapack-havoc/issues (Check the progress list below first).
 
 # Summary
 
-As its name implies, HAVOC's functionalities can be fun, mean and even useful sometimes. You shouldn't use them. No. Bad. Put it down.
+As its name implies, HAVOC's functionalities can be fun, mean and even useful sometimes. You shouldn't use them. No ! Bad ! Put it down.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
 # Fork features
 
-* Microphone transmit with CTCSS
-* Frequency manager (save & load from SD card)
+* Microphone FM transmit with CTCSS
+* Frequency manager (save & load from SD card, with categories and notes)
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
+* ADS-B transmitter
+* SSTV transmitter
+* Fully configurable jammer
 * POCSAG 512/1200/2400 transmitter
 * POCSAG 512/1200/2400 receiver/decoder
 * Morse transmitter (FM tone and CW)
 * OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN, RadioText and Time groups transmitter
-* Fully configurable jammer
-* Scheduled numbers station (for spies on a budget, alerts, LARP scenarios, ...)
 * Nuoptix DTMF sync transmitter (quite specific but can be useful in some theme parks :) )
 * AFSK transmitter (Bell202...)
 * Virtual keyboard or Unistroke "handwriting" text input
 * LCR (Language de Commande Routier) message generator
-* Xylos transmitter, street lighting control (CCIR tones)
+* Street lighting control transmitter (CCIR tones)
 * "Play Dead" in case of emergency
-* Utilities such as tone generator and CW transmitter
+* Fully configurable RF signal generator
 * PWM audio RSSI output (for crude direction finding)
 
 # Progress
@@ -48,14 +49,14 @@ Morse TX    | 95% | Needs fox hunt scheduler and live keying mode
 Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
-IQ replay   | 50% | High priority
+ADS-B TX    | 70% | UI and frame gen stuff done, baseband module needs work
+IQ replay   | 60% | Buffer glitches ? High priority
+ADS-B RX    | 50%  | Decodes IQ files OK. Triggers on real signal but wrong messages.
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
-ADS-B TX    | 40% | UI and frame gen stuff done, needs baseband module
 Wave visualizer | 30% | Only the widget is ready, high priority
 Generic TXs | 20%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
 SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
-SSTV RX     | 0%  |
-ADS-B RX    | 0%  | Could be fun. Is sensitivity high enough ?
+SSTV RX     | 0%  | 
 Scanner     | 0%  | Easy, could be used with POCSAG RX to catch jumping channels
 SSB TX      | 0%  | Requested but math is hard :(
 OOK RX      | 0%  | See if rtl_433's author is fine with using protocol defs
