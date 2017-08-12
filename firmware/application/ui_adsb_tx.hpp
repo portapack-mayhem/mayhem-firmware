@@ -86,7 +86,7 @@ private:
 	};
 	
 	Button button_set_map {
-		{ 7 * 8, 7 * 16, 14 * 8, 2 * 16 },
+		{ 8 * 8, 6 * 16, 14 * 8, 2 * 16 },
 		"Set from map"
 	};
 };

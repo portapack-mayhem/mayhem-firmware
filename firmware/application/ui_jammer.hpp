@@ -38,12 +38,18 @@ public:
 	RangeView(NavigationView& nav);
 	
 	void focus() override;
+	void paint(Painter&) override;
 	
-	jammer_range_t frequency_range { };
+	jammer_range_t frequency_range { false, 0, 0 };
 	
 private:
-	void update_button(Button& button, rf::Frequency f);
-	void update_range();
+	void update_min(rf::Frequency f);
+	void update_max(rf::Frequency f);
+	void update_center(rf::Frequency f);
+	void update_width(uint32_t w);
+	
+	uint32_t width { };
+	rf::Frequency center { };
 
 	static constexpr Style style_info {
 		.font = font::fixed_8x16,
@@ -55,17 +61,17 @@ private:
 		// GSM900 Orange
 		{ true, 935000000, 945000000 },		// BW:10M
 		// GSM1800 Orange
-		{ false, 1808000000, 1832000000 },	// BW:24M
+		{ true, 1808000000, 1832000000 },	// BW:24M
 		
 		// GSM900 SFR
 		{ true, 950000000, 960000000 },		// BW:10M
 		// GSM1800 SFR
-		{ false, 1832000000, 1853000000 },	// BW:21M
+		{ true, 1832000000, 1853000000 },	// BW:21M
 		
 		// GSM900 Bouygues
 		{ true, 925000000, 935000000 },		// BW:10M
 		// GSM1800 Bouygues
-		{ false, 1858000000, 1880000000 },	// BW:22M
+		{ true, 1858000000, 1880000000 },	// BW:22M
 		
 		// GSM900 Free
 		{ true, 945000000, 950000000 },		// BW:5M
@@ -88,7 +94,7 @@ private:
 		// GPS L1
 		{ true, 1575420000 - 500000, 1575420000 + 500000 },		// BW: 1MHz
 		// GPS L2
-		{ false, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
+		{ true, 1227600000 - 1000000, 1227600000 + 1000000 },	// BW: 2MHz
 		
 		// WLAN 2.4G CH1
 		{ true, 2412000000 - 11000000, 2412000000 + 11000000},	// BW: 22MHz
@@ -119,20 +125,22 @@ private:
 	};
 	
 	Labels labels {
-		{ { 2 * 8, 5 * 8 }, "Preset:", Color::light_grey() },
-		{ { 5 * 8, 9 * 8 }, "Start:", Color::light_grey() },
-		{ { 6 * 8, 13 * 8 }, "Stop:", Color::light_grey() },
+		{ { 1 * 8, 4 * 8 }, "Preset:", Color::light_grey() },
+		{ { 2 * 8, 9 * 8 + 4 }, "Start", Color::light_grey() },
+		{ { 23 * 8, 9 * 8 + 4 }, "Stop", Color::light_grey() },
+		{ { 12 * 8, 6 * 8 }, "Center", Color::light_grey() },
+		{ { 12 * 8 + 4, 14 * 8 }, "Width", Color::light_grey() }
 	};
 	
 	Checkbox check_enabled {
-		{ 44, 1 * 8 },
+		{ 7 * 8, 4 },
 		12,
 		"Enable range",
 		false
 	};
 	
 	OptionsField options_preset {
-		{ 9 * 8, 5 * 8 },
+		{ 9 * 8, 4 * 8 },
 		19,
 		{
 			{ "GSM900 Orange FR", 0 },
@@ -141,41 +149,44 @@ private:
 			{ "GSM1800 SFR FR", 3 },
 			{ "GSM900 Bouygues FR", 4 },
 			{ "GSM1800 Bouygues FR", 5 },
-			{ "GSM Free FR    ", 6 },
-			{ "GSM-R FR       ", 7 },
-			{ "DECT           ", 8 },
-			{ "Optifib        ", 9 },
-			{ "ISM 433        ", 10 },
-			{ "ISM 868        ", 11 },
-			{ "GPS L1         ", 12 },
-			{ "GPS L2         ", 13 },
-			{ "WLAN 2.4G CH1  ", 14 },
-			{ "WLAN 2.4G CH2  ", 15 },
-			{ "WLAN 2.4G CH3  ", 16 },
-			{ "WLAN 2.4G CH4  ", 17 },
-			{ "WLAN 2.4G CH5  ", 18 },
-			{ "WLAN 2.4G CH6  ", 19 },
-			{ "WLAN 2.4G CH7  ", 20 },
-			{ "WLAN 2.4G CH8  ", 21 },
-			{ "WLAN 2.4G CH9  ", 22 },
-			{ "WLAN 2.4G CH10 ", 23 },
-			{ "WLAN 2.4G CH11 ", 24 },
-			{ "WLAN 2.4G CH12 ", 25 },
-			{ "WLAN 2.4G CH13 ", 26 }
+			{ "GSM Free FR", 6 },
+			{ "GSM-R FR", 7 },
+			{ "DECT", 8 },
+			{ "Optifib", 9 },
+			{ "ISM 433", 10 },
+			{ "ISM 868", 11 },
+			{ "GPS L1", 12 },
+			{ "GPS L2", 13 },
+			{ "WLAN 2.4G CH1", 14 },
+			{ "WLAN 2.4G CH2", 15 },
+			{ "WLAN 2.4G CH3", 16 },
+			{ "WLAN 2.4G CH4", 17 },
+			{ "WLAN 2.4G CH5", 18 },
+			{ "WLAN 2.4G CH6", 19 },
+			{ "WLAN 2.4G CH7", 20 },
+			{ "WLAN 2.4G CH8", 21 },
+			{ "WLAN 2.4G CH9", 22 },
+			{ "WLAN 2.4G CH10", 23 },
+			{ "WLAN 2.4G CH11", 24 },
+			{ "WLAN 2.4G CH12", 25 },
+			{ "WLAN 2.4G CH13", 26 }
 		}
 	};
 	
 	Button button_min {
-		{ 13 * 8, 4 * 16, 120, 28 },
+		{ 0 * 8, 6 * 16, 11 * 8, 28 },
 		""
 	};
 	Button button_max {
-		{ 13 * 8, 6 * 16, 120, 28 },
+		{ 19 * 8, 6 * 16, 11 * 8, 28 },
 		""
 	};
-	
-	Text text_info {
-		{ 3 * 8, 8 * 16, 25 * 8, 16 },
+	Button button_center {
+		{ 76, 4 * 16, 11 * 8, 28 },
+		""
+	};
+	Button button_width {
+		{ 76, 8 * 16, 11 * 8, 28 },
 		""
 	};
 };
@@ -185,6 +196,11 @@ public:
 	JammerView(NavigationView& nav);
 	~JammerView();
 	
+	JammerView(const JammerView&) = delete;
+	JammerView(JammerView&&) = delete;
+	JammerView& operator=(const JammerView&) = delete;
+	JammerView& operator=(JammerView&&) = delete;
+	
 	void focus() override;
 	
 	std::string title() const override { return "Jammer"; };
@@ -192,9 +208,24 @@ public:
 private:
 	NavigationView& nav_;
 	
+	void start_tx();
+	void stop_tx();
+	void set_jammer_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration);
 	void on_retune(const rf::Frequency freq, const uint32_t range);
 	
+	JammerChannel * jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
 	bool jamming { false };
+	
+	static constexpr Style style_val {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::green(),
+	};
+	static constexpr Style style_cancel {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::red(),
+	};
 	
 	RangeView view_range_a { nav_ };
 	RangeView view_range_b { nav_ };
@@ -216,20 +247,21 @@ private:
 	
 	OptionsField options_type {
 		{ 9 * 8, 12 * 16 },
-		5,
+		8,
 		{
-			{ "FSK  ", 0 },
-			{ "Tone ", 1 },
-			{ "Sweep", 2 }
+			{ "Rand FSK", 0 },
+			{ "FM tone", 1 },
+			{ "CW sweep", 2 },
+			{ "Rand CW", 3 },
 		}
 	};
 	
 	Text text_range_number {
-		{ 18 * 8, 12 * 16, 2 * 8, 16 },
+		{ 22 * 8, 12 * 16, 2 * 8, 16 },
 		"--"
 	};
 	Text text_range_total {
-		{ 20 * 8, 12 * 16, 3 * 8, 16 },
+		{ 24 * 8, 12 * 16, 3 * 8, 16 },
 		"/--"
 	};
 	
@@ -260,7 +292,7 @@ private:
 	};
 	
 	Button button_transmit {
-		{ 1 * 8, 16 * 16, 80, 48 },
+		{ 9 * 8, 16 * 16, 96, 48 },
 		"START"
 	};
 	

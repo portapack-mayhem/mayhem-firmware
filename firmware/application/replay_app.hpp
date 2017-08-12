@@ -45,7 +45,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Replay (broken)"; };
+	std::string title() const override { return "Replay (BETA)"; };
 
 private:
 	NavigationView& nav_;

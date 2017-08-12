@@ -29,9 +29,14 @@
 
 namespace ui {
 
+enum GeoMapMode {
+	DISPLAY,
+	PROMPT
+};
+
 class GeoPos : public View {
 public:
-	std::function<void(void)> on_change { };
+	std::function<void(int32_t, float, float)> on_change { };
 	
 	GeoPos(const Point pos);
 	
@@ -41,12 +46,15 @@ public:
 	void set_altitude(int32_t altitude);
 	void set_lat(float lat);
 	void set_lon(float lon);
+	int32_t altitude();
 	float lat();
 	float lon();
-	int32_t altitude();
+	
+	void set_report_change(bool v);
 
 private:
 	bool read_only { false };
+	bool report_change { true };
 
 	Labels labels_position {
 		{ { 2 * 8, 0 * 16 }, "Alt:       feet", Color::light_grey() },
@@ -83,6 +91,35 @@ private:
 	};
 };
 
+class GeoMap : public Widget {
+public:
+	std::function<void(float, float)> on_move { };
+
+	GeoMap(Rect parent_rect);
+
+	void paint(Painter& painter) override;
+
+	bool on_touch(const TouchEvent event) override;
+	
+	bool init();
+	void set_mode(GeoMapMode mode);
+	void move(const float lon, const float lat);
+
+private:
+	void draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color);
+	
+	GeoMapMode mode_ { };
+	File map_file { };
+	uint16_t map_width { }, map_height { };
+	int32_t map_center_x { }, map_center_y { };
+	float lon_ratio { }, lat_ratio { };
+	int32_t x_pos { }, y_pos { };
+	int32_t prev_x_pos { 0xFFFF }, prev_y_pos { 0xFFFF };
+	float lat_ { };
+	float lon_ { };
+	float angle_ { };
+};
+
 class GeoMapView : public View {
 public:
 	GeoMapView(NavigationView& nav, std::string* tag, int32_t altitude, float lat, float lon, float angle);
@@ -93,39 +130,33 @@ public:
 	GeoMapView& operator=(const GeoMapView&) = delete;
 	GeoMapView& operator=(GeoMapView&&) = delete;
 	
-	~GeoMapView();
-	
 	void focus() override;
 	
 	std::string title() const override { return "Map view"; };
 
 private:
-	enum Mode {
-		DISPLAY,
-		PROMPT
-	};
+	NavigationView& nav_;
+	
+	void setup();
+	
+	const std::function<void(int32_t, float, float)> on_done { };
 	
 	const Dim banner_height = 3 * 16;
-	NavigationView& nav_;
-	const std::function<void(int32_t, float, float)> on_done { };
-	Mode mode_ { };
+	GeoMapMode mode_ { };
 	std::string* tag_ { };
 	int32_t altitude_ { };
 	float lat_ { };
 	float lon_ { };
 	float angle_ { };
 	
-	File map_file { };
-	bool file_error { false };
-	uint16_t map_width { }, map_height { };
-	int32_t map_center_x { }, map_center_y { };
-	
-	void setup();
-	void move_map();
-	void draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color);
+	bool file_error { };
 	
 	GeoPos geopos {
 		{ 0, 0 }
+	};
+	
+	GeoMap geomap {
+		{ 0, banner_height, 240, 320 - 16 - banner_height }
 	};
 	
 	Button button_ok {

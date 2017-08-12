@@ -102,7 +102,10 @@ void ReplayAppView::on_hide() {
 }*/
 
 void ReplayAppView::focus() {
-	field_frequency.focus();
+	if (!file_error) {
+		field_frequency.focus();
+	} else
+		nav_.display_modal("No files", "No .C16 files in\nSD card root", ABORT, nullptr);
 }
 
 void ReplayAppView::on_target_frequency_changed(rf::Frequency f) {
