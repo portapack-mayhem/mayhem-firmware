@@ -31,7 +31,6 @@
 //BUG: REPLAY See what's wrong with quality (format, or need for interpolation filter ?)
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
-//BUG: RDS doesn't stop baseband when stopping tx ?
 
 //TODO: REPLAY Convert C16 to C8 on M0 core
 //TODO: Use TabView
