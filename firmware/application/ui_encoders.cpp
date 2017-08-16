@@ -190,8 +190,6 @@ void EncodersView::start_tx(const bool scan) {
 
 	transmitter_model.set_sampling_rate(2280000U);
 	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_lna(40);
-	transmitter_model.set_vga(40);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	

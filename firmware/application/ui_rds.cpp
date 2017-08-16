@@ -33,12 +33,145 @@ using namespace rds;
 
 namespace ui {
 
-void RDSView::focus() {
-	button_editpsn.focus();
+RDSPSNView::RDSPSNView(
+	NavigationView& nav, 
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
+	set_type("PSN");
+	
+	add_children({
+		&labels,
+		&text_psn,
+		&button_set,
+		&check_mono_stereo,
+		&check_TA,
+		&check_MS
+	});
+	
+	set_enabled(true);
+	
+	check_TA.set_value(true);
+	
+	check_mono_stereo.on_select = [this](Checkbox&, bool value) {
+		mono_stereo = value;
+	};
+	check_TA.on_select = [this](Checkbox&, bool value) {
+		TA = value;
+	};
+	check_MS.on_select = [this](Checkbox&, bool value) {
+		MS = value;
+	};
+	
+	button_set.on_select = [this, &nav](Button&) {
+		text_prompt(
+			nav,
+			&PSN,
+			8,
+			[this](std::string* s) {
+				text_psn.set(*s);
+			}
+		);
+	};
 }
 
-void RDSView::on_tuning_frequency_changed(rf::Frequency f) {
-	transmitter_model.set_tuning_frequency(f);
+RDSRadioTextView::RDSRadioTextView(
+	NavigationView& nav, 
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
+	set_type("Radiotext");
+	
+	add_children({
+		&labels,
+		&button_set,
+		&text_radiotext
+	});
+	
+	button_set.on_select = [this, &nav](Button&){
+		text_prompt(
+			nav,
+			&radiotext,
+			28,
+			[this](std::string* s) {
+				text_radiotext.set(*s);
+			}
+		);
+	};
+}
+
+RDSDateTimeView::RDSDateTimeView(
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
+	set_type("date & time");
+	
+	add_children({
+		&labels
+	});
+}
+
+RDSAudioView::RDSAudioView(
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
+	set_type("audio");
+	
+	add_children({
+		&labels
+	});
+}
+
+RDSThread::RDSThread(
+	std::vector<RDSGroup>** frames
+) : frames_ { std::move(frames) }
+{
+	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, RDSThread::static_fn, this);
+}
+
+RDSThread::~RDSThread() {
+	if( thread ) {
+		chThdTerminate(thread);
+		chThdWait(thread);
+		thread = nullptr;
+	}
+}
+
+msg_t RDSThread::static_fn(void* arg) {
+	auto obj = static_cast<RDSThread*>(arg);
+	obj->run();
+	return 0;
+}
+
+void RDSThread::run() {
+	std::vector<RDSGroup>* frame_ptr;
+	size_t block_count, c;
+	uint32_t * tx_data_u32 = (uint32_t*)shared_memory.bb_data.data;
+	uint32_t frame_index = 0;
+	
+	while( !chThdShouldTerminate() ) {
+
+		do {
+			frame_ptr = frames_[frame_index];
+			
+			if (frame_index == 2) {
+				frame_index = 0;
+			} else {
+				frame_index++;
+			}
+		} while(!(block_count = frame_ptr->size() * 4));
+		
+		for (c = 0; c < block_count; c++)
+			tx_data_u32[c] = frame_ptr->at(c >> 2).block[c & 3];
+	
+		baseband::set_rds_data(block_count * 26);
+		
+		chThdSleepMilliseconds(1000);
+	}
+}
+
+void RDSView::focus() {
+	tab_view.focus();
 }
 
 RDSView::~RDSView() {
@@ -47,80 +180,58 @@ RDSView::~RDSView() {
 }
 
 void RDSView::start_tx() {
+	rds_flags.PI_code = sym_pi_code.value_hex_u64();
+	rds_flags.PTY = options_pty.selected_index_value();
+	rds_flags.DI = view_PSN.mono_stereo ? 1 : 0;
+	rds_flags.TP = check_TP.value();
+	rds_flags.TA = view_PSN.TA;
+	rds_flags.MS = view_PSN.MS;
+	
+	if (view_PSN.is_enabled())
+		gen_PSN(frame_psn, view_PSN.PSN, &rds_flags);
+	else
+		frame_psn.clear();
+	
+	if (view_radiotext.is_enabled())
+		gen_RadioText(frame_radiotext, view_radiotext.radiotext, 0, &rds_flags);
+	else
+		frame_radiotext.clear();
+	
+	// DEBUG
+	if (view_datetime.is_enabled())
+		gen_ClockTime(frame_datetime, &rds_flags, 2016, 12, 1, 9, 23, 2);
+	else
+		frame_datetime.clear();
+	
 	transmitter_model.set_sampling_rate(2280000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_rds_data(message_length);
+	tx_thread = std::make_unique<RDSThread>(frames);
 }
 
-void RDSView::paint(Painter&) {
-	text_psn.set(PSN);
-	text_radiotexta.set(RadioText.substr(0, 16));
-	text_radiotextb.set(RadioText.substr(16, 16));
-}
-
-RDSView::RDSView(NavigationView& nav) {
+RDSView::RDSView(
+	NavigationView& nav
+) : nav_ { nav }
+{
 	baseband::run_image(portapack::spi_flash::image_tag_rds);
 	
-	PSN = "TEST1234";
-	RadioText =  "Radiotext test ABCD1234";
-	
 	add_children({
+		&tab_view,
 		&labels,
-		&options_pty,
-		&options_countrycode,
-		&options_coverage,
-		&options_tx,
-		&check_mono_stereo,
-		&check_TA,
-		&check_TP,
-		&check_MS,
 		&sym_pi_code,
-		&button_editpsn,
-		&text_psn,
-		&button_editradiotext,
-		&text_radiotexta,
-		&text_radiotextb,
+		&check_TP,
+		&options_pty,
+		&view_PSN,
+		&view_radiotext,
+		&view_datetime,
+		&view_audio,
+		//&options_countrycode,
+		//&options_coverage,
 		&tx_view,
 	});
 	
-	tx_view.on_edit_frequency = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
-			this->on_tuning_frequency_changed(f);
-		};
-	};
-	
-	tx_view.on_start = [this]() {
-		tx_view.set_transmitting(true);
-		rds_flags.PI_code = sym_pi_code.value_hex_u64();
-		rds_flags.PTY = options_pty.selected_index_value();
-		rds_flags.DI = check_mono_stereo.value() ? 1 : 0;
-		rds_flags.TP = check_TP.value();
-		rds_flags.TA = check_TA.value();
-		rds_flags.MS = check_MS.value();
-		
-		if (options_tx.selected_index() == 0)
-			message_length = gen_PSN(PSN, &rds_flags);
-		else if (options_tx.selected_index() == 1)
-			message_length = gen_RadioText(RadioText, 0, &rds_flags);
-		else
-			message_length = gen_ClockTime(&rds_flags, 2016, 12, 1, 9, 23, 2);
-		
-		txing = true;
-		start_tx();
-	};
-	
-	tx_view.on_stop = [this]() {
-		tx_view.set_transmitting(false);
-		transmitter_model.disable();
-		txing = false;
-	};
-	
-	check_TA.set_value(true);
 	check_TP.set_value(true);
 	
 	sym_pi_code.set_sym(0, 0xF);
@@ -132,15 +243,26 @@ RDSView::RDSView(NavigationView& nav) {
 	};
 	
 	options_pty.set_selected_index(0);				// None
-	options_countrycode.set_selected_index(18);		// Baguette du fromage
-	options_coverage.set_selected_index(0);			// Local
+	//options_countrycode.set_selected_index(18);		// Baguette du fromage
+	//options_coverage.set_selected_index(0);			// Local
 	
-	button_editpsn.on_select = [this, &nav](Button&) {
-		text_prompt(nav, &PSN, 8);
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			receiver_model.set_tuning_frequency(f);
+		};
 	};
 	
-	button_editradiotext.on_select = [this, &nav](Button&){
-		text_prompt(nav, &RadioText, 24);
+	tx_view.on_start = [this]() {
+		start_tx();
+		tx_view.set_transmitting(true);
+		txing = true;
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
+		txing = false;
 	};
 }
 

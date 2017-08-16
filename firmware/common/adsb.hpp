@@ -68,12 +68,19 @@ const float adsb_lat_lut[58] = {
 };
 
 void make_frame_adsb(ADSBFrame& frame, const uint32_t ICAO_address);
+
 void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign);
+std::string decode_frame_id(ADSBFrame& frame);
+
 void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity);
+uint32_t decode_frame_pos(ADSBFrame& frame);
+
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate);
+
 //void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
+
 void encode_frame_squawk(ADSBFrame& frame, const uint32_t squawk);
 
 } /* namespace adsb */

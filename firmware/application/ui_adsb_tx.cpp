@@ -73,28 +73,10 @@ void Compass::paint(Painter&) {
 	set_value(value_);
 }
 
-ADSBView::ADSBView() {
-	add_child(&check_enable);
-	hidden(true);
-	
-	check_enable.on_select = [this](Checkbox&, bool value) {
-		enabled = value;
-	};
-}
-
-void ADSBView::set_enabled(bool value) {
-	check_enable.set_value(value);
-}
-
-void ADSBView::set_type(std::string type) {
-	check_enable.set_text("Transmit " + type);
-}
-
-void ADSBView::focus() {
-	check_enable.focus();
-}
-
-ADSBPositionView::ADSBPositionView(NavigationView& nav) {
+ADSBPositionView::ADSBPositionView(
+	NavigationView& nav, Rect parent_rect
+) : OptionTabView(parent_rect)
+{
 	set_type("position");
 	
 	add_children({
@@ -133,7 +115,10 @@ void ADSBPositionView::collect_frames(const uint32_t ICAO_address, std::vector<A
 	frame_list.emplace_back(temp_frame);
 }
 
-ADSBCallsignView::ADSBCallsignView(NavigationView& nav) {
+ADSBCallsignView::ADSBCallsignView(
+	NavigationView& nav, Rect parent_rect
+) : OptionTabView(parent_rect)
+{
 	set_type("callsign");
 	
 	add_children({
@@ -146,7 +131,14 @@ ADSBCallsignView::ADSBCallsignView(NavigationView& nav) {
 	button_callsign.set_text(callsign);
 	
 	button_callsign.on_select = [this, &nav](Button&) {
-		text_prompt(nav, &callsign, 8);
+		text_prompt(
+			nav,
+			&callsign,
+			8,
+			[this](std::string* s) {
+				button_callsign.set_text(*s);
+			}
+		);
 	};
 }
 
@@ -160,7 +152,10 @@ void ADSBCallsignView::collect_frames(const uint32_t ICAO_address, std::vector<A
 	frame_list.emplace_back(temp_frame);
 }
 
-ADSBSpeedView::ADSBSpeedView() {
+ADSBSpeedView::ADSBSpeedView(
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
 	set_type("speed");
 	
 	add_children({
@@ -189,7 +184,10 @@ void ADSBSpeedView::collect_frames(const uint32_t ICAO_address, std::vector<ADSB
 	frame_list.emplace_back(temp_frame);
 }
 
-ADSBSquawkView::ADSBSquawkView() {
+ADSBSquawkView::ADSBSquawkView(
+	Rect parent_rect
+) : OptionTabView(parent_rect)
+{
 	set_type("squawk");
 	
 	add_children({
@@ -325,7 +323,6 @@ ADSBTxView::ADSBTxView(
 	NavigationView& nav
 ) : nav_ { nav }
 {
-	Rect view_rect = { 0, 7 * 8, 240, 192 };
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
 
 	add_children({
@@ -339,11 +336,6 @@ ADSBTxView::ADSBTxView(
 		&text_frame,
 		&tx_view
 	});
-	
-	view_position.set_parent_rect(view_rect);
-	view_callsign.set_parent_rect(view_rect);
-	view_speed.set_parent_rect(view_rect);
-	view_squawk.set_parent_rect(view_rect);
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

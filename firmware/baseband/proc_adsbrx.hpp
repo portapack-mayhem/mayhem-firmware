@@ -25,6 +25,7 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 
 #include "adsb_frame.hpp"
 
@@ -44,6 +45,7 @@ private:
 	static constexpr size_t baseband_fs = 2000000;
 	
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 	
 	ADSBFrame frame { };
 	bool configured { false };

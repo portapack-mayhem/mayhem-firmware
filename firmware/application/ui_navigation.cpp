@@ -282,7 +282,7 @@ void NavigationView::focus() {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B: Planes", 			ui::Color::yellow(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
+		{ "ADS-B: Planes", 			ui::Color::green(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
 		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(false); } },
@@ -301,7 +301,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B Mode S", 			ui::Color::orange(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
+		{ "ADS-B Mode S", 			ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "APRS", 					ui::Color::grey(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "Jammer", 				ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },

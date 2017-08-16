@@ -22,14 +22,11 @@
 
 #include "ui.hpp"
 #include "file.hpp"
-//#include "ui_textentry.hpp"
-//#include "ui_widget.hpp"
-#include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "recent_entries.hpp"
 
 #include "message.hpp"
-#include "portapack.hpp"
 
 namespace ui {
 
@@ -38,9 +35,12 @@ struct ADSBRecentEntry {
 	
 	static constexpr Key invalid_key = 0xffffffff;
 	
-	uint32_t ICAO_address;
+	uint32_t ICAO_address { };
+	uint16_t hits { 0 };
 	uint8_t raw_data[14] { };	// 112 bits at most
+	std::string callsign { "        " };
 	std::string time { "" };
+	std::string geo_pos { "" };
 
 	ADSBRecentEntry(
 	) : ADSBRecentEntry { 0 }
@@ -55,6 +55,18 @@ struct ADSBRecentEntry {
 
 	Key key() const {
 		return ICAO_address;
+	}
+	
+	void set_callsign(std::string& new_callsign) {
+		callsign = new_callsign;
+	}
+	
+	void inc_hit() {
+		hits++;
+	}
+	
+	void set_pos(std::string& new_pos) {
+		geo_pos = new_pos;
 	}
 	
 	void set_time(std::string& new_time) {
@@ -75,34 +87,34 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B debug"; };
+	std::string title() const override { return "ADS-B receive"; };
 
 private:
-	//static constexpr float k = 1.0f / 128.0f;
-	
-	//File iq_file { };
-	//size_t f_offset { 0 };
-	
-	//bool analyze(uint64_t offset);
 	void on_frame(const ADSBFrameMessage * message);
 	
 	const RecentEntriesColumns columns { {
-		{ "Raw", 21 },
-		{ "Time", 8 },
+		{ "ICAO", 6 },
+		{ "Callsign", 8 },
+		{ "Hits", 5 },
+		{ "Time", 8 }
 	} };
 	ADSBRecentEntries recent { };
 	RecentEntriesView<RecentEntries<ADSBRecentEntry>> recent_entries_view { columns, recent };
 	
-	/*Labels labels {
-		{ { 0 * 8, 0 * 8 }, "Test", Color::light_grey() }
-	};*/
+	RSSI rssi {
+		{ 19 * 8, 4, 10 * 8, 8 },
+	};
 	
-	NumberField offset_field {
-		{ 0, 0 },
-		6,
-		{ 0, 819200 },	// * 256 -> file offset
-		1,
-		'0'
+	LNAGainField field_lna {
+		{ 4 * 8, 0 * 16 }
+	};
+
+	VGAGainField field_vga {
+		{ 11 * 8, 0 * 16 }
+	};
+	
+	Labels labels {
+		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   RSSI:", Color::light_grey() }
 	};
 	
 	Text text_debug_a {
@@ -117,11 +129,6 @@ private:
 		{ 0 * 8, 3 * 16, 30 * 8, 16 },
 		"-"
 	};
-	
-	/*Button button_ffw {
-		{ 184, 0 * 16, 56, 16 },
-		"FFW"
-	};*/
 	
 	MessageHandlerRegistration message_handler_frame {
 		Message::ID::ADSBFrame,

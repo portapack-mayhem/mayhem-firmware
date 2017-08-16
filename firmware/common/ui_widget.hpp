@@ -603,6 +603,29 @@ private:
 	bool show_max_;
 };
 
+class OptionTabView : public View {
+public:
+	OptionTabView(Rect parent_rect);
+	
+	void focus() override;
+	
+	bool is_enabled();
+	void set_type(std::string type);
+
+protected:
+	bool enabled { false };
+	
+	void set_enabled(bool value);
+	
+private:
+	Checkbox check_enable {
+		{ 2 * 8, 0 * 16 },
+		20,
+		"",
+		false
+	};
+};
+
 } /* namespace ui */
 
 #endif/*__UI_WIDGET_H__*/

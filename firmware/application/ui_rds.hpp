@@ -21,52 +21,169 @@
  */
 
 #include "ui.hpp"
-#include "ui_menu.hpp"
-#include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
-#include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
 #include "ui_textentry.hpp"
-#include "message.hpp"
+#include "ui_tabview.hpp"
+
 #include "rds.hpp"
 
 using namespace rds;
 
 namespace ui {
 
+class RDSPSNView : public OptionTabView {
+public:
+	RDSPSNView(NavigationView& nav, Rect parent_rect);
+	
+	std::string PSN { "TEST1234" };
+	bool mono_stereo { false };
+	bool TA { false };
+	bool MS { false };
+	
+private:
+	Labels labels {
+		{ { 1 * 8, 3 * 8 }, "Program Service Name", Color::light_grey() },
+		{ { 2 * 8, 7 * 8 }, "PSN:", Color::light_grey() }
+	};
+	
+	Button button_set {
+		{ 18 * 8, 3 * 16, 80, 32 },
+		"Set"
+	};
+	Text text_psn {
+		 { 6 * 8, 3 * 16 + 8, 8 * 8, 16 },
+		 ""
+	};
+	
+	Checkbox check_mono_stereo {
+		{ 2 * 8, 12 * 8 },
+		6,
+		"Stereo"
+	};
+	Checkbox check_MS {
+		{ 14 * 8, 12 * 8 },
+		5,
+		"Music"
+	};
+	Checkbox check_TA {
+		{ 2 * 8, 16 * 8 },
+		20,
+		"Traffic announcement"
+	};
+};
+
+class RDSRadioTextView : public OptionTabView {
+public:
+	RDSRadioTextView(NavigationView& nav, Rect parent_rect);
+	
+	std::string radiotext { "Radiotext test ABCD1234" };
+private:
+	Labels labels {
+		{ { 2 * 8, 3 * 8 }, "Radiotext", Color::light_grey() },
+		{ { 1 * 8, 6 * 8 }, "Text:", Color::light_grey() }
+	};
+	
+	Text text_radiotext {
+		{ 1 * 8, 4 * 16, 28 * 8, 16 },
+		"-"
+	};
+	Button button_set {
+		{ 88, 6 * 16, 64, 32 },
+		"Set"
+	};
+};
+
+class RDSDateTimeView : public OptionTabView {
+public:
+	RDSDateTimeView(Rect parent_rect);
+	
+private:
+	Labels labels {
+		{ { 44, 5 * 16 }, "Not yet implemented", Color::red() }
+	};
+};
+
+class RDSAudioView : public OptionTabView {
+public:
+	RDSAudioView(Rect parent_rect);
+	
+private:
+	Labels labels {
+		{ { 44, 5 * 16 }, "Not yet implemented", Color::red() }
+	};
+};
+
+class RDSThread {
+public:
+	RDSThread(std::vector<RDSGroup>** frames);
+	~RDSThread();
+
+	RDSThread(const RDSThread&) = delete;
+	RDSThread(RDSThread&&) = delete;
+	RDSThread& operator=(const RDSThread&) = delete;
+	RDSThread& operator=(RDSThread&&) = delete;
+
+private:
+	std::vector<RDSGroup>** frames_ { };
+	Thread* thread { nullptr };
+
+	static msg_t static_fn(void* arg);
+	
+	void run();
+};
+
 class RDSView : public View {
 public:
 	RDSView(NavigationView& nav);
 	~RDSView();
 
+	RDSView(const RDSView&) = delete;
+	RDSView(RDSView&&) = delete;
+	RDSView& operator=(const RDSView&) = delete;
+	RDSView& operator=(RDSView&&) = delete;
+	
 	void focus() override;
-	void paint(Painter& painter) override;
 
 	std::string title() const override { return "RDS transmit"; };
 
 private:
-	std::string PSN { 0 };
-	std::string RadioText { 0 };
-	bool txing = false;
+	NavigationView& nav_;
 	RDS_flags rds_flags { };
+	
+	std::vector<RDSGroup> frame_psn { };
+	std::vector<RDSGroup> frame_radiotext { };
+	std::vector<RDSGroup> frame_datetime { };
+	std::vector<RDSGroup>* frames[3] { &frame_psn, &frame_radiotext, &frame_datetime };
+	
+	bool txing = false;
 	
 	uint16_t message_length { 0 };
 	
 	void start_tx();
-	void on_tuning_frequency_changed(rf::Frequency f);
 
+	Rect view_rect = { 0, 8 * 8, 240, 192 };
+	
+	RDSPSNView view_PSN { nav_, view_rect };
+	RDSRadioTextView view_radiotext { nav_, view_rect };
+	RDSDateTimeView view_datetime { view_rect };
+	RDSAudioView view_audio { view_rect };
+	
+	TabView tab_view {
+		{ "Name", Color::cyan(), &view_PSN },
+		{ "Text", Color::green(), &view_radiotext },
+		{ "Time", Color::yellow(), &view_datetime },
+		{ "Audio", Color::orange(), &view_audio }
+	};
+	
 	Labels labels {
-		{ { 1 * 8, 16 + 8 }, "PTY:", Color::light_grey() },
-		{ { 14 * 8, 16 + 8 }, "CC:", Color::light_grey() },
-		{ { 1 * 8, 32 + 8 }, "PI:", Color::light_grey() },
-		{ { 13 * 8, 32 + 8 }, "Cov:", Color::light_grey() },
-		{ { 2 * 8, 13 * 8 }, "PSN:", Color::light_grey() },
-		{ { 2 * 8, 8 * 16 }, "RadioText:", Color::light_grey() },
-		{ { 2 * 8, 14 * 16 }, "TX group:", Color::light_grey() }
+		{ { 0 * 8, 28 }, "Program type:", Color::light_grey() },
+		//{ { 14 * 8, 16 + 8 }, "CC:", Color::light_grey() },
+		{ { 2 * 8, 28 + 16 }, "Program ID:", Color::light_grey() },
+		//{ { 13 * 8, 32 + 8 }, "Cov:", Color::light_grey() },
 	};
 	
 	OptionsField options_pty {
-		{ 5 * 8, 16 + 8 },
+		{ 13 * 8, 28 },
 		8,
 		{
 			{ "None", 0 },
@@ -104,7 +221,7 @@ private:
 		}
 	};
 	
-	OptionsField options_countrycode {
+	/*OptionsField options_countrycode {
 		{ 17 * 8, 16 + 8 },
 		11,
 		{
@@ -171,15 +288,15 @@ private:
 			{ "Vatican", 	4 },
 			{ "Yugoslavia", 13 }
 		}
-	};
+	};*/
 	
 	SymField sym_pi_code {
-		{ 4 * 8, 32 + 8 },
+		{ 13 * 8, 28 + 16 },
 		4,
 		SymField::SYMFIELD_HEX
 	};
 	
-	OptionsField options_coverage {
+	/*OptionsField options_coverage {
 		{ 17 * 8, 32 + 8 },
 		12,
 		{
@@ -200,59 +317,12 @@ private:
 			{ "R111", 14 },
 			{ "R112", 15 }
 		}
-	};
+	};*/
 
-	Checkbox check_mono_stereo {
-		{ 1 * 8, 4 * 16 },
-		6,
-		"Stereo"
-	};
-	Checkbox check_TA {
-		{ 12 * 8, 4 * 16 },
-		2,
-		"TA"
-	};
 	Checkbox check_TP {
-		{ 18 * 8, 4 * 16 },
+		{ 23 * 8, 4 * 8 },
 		2,
 		"TP"
-	};
-	Checkbox check_MS {
-		{ 24 * 8, 4 * 16 },
-		2,
-		"MS"
-	};
-
-	Button button_editpsn {
-		{ 22 * 8, 5 * 16 + 20, 48, 24 },
-		"Set"
-	};
-	Text text_psn {
-		 { 6 * 8, 13 * 8, 4 * 8, 16 },
-		 ""
-	};
-
-	Text text_radiotexta {
-		{ 2 * 8, 9 * 16, 19 * 8, 16 },
-		"-"
-	};
-	Text text_radiotextb {
-		{ 2 * 8, 10 * 16, 19 * 8, 16 },
-		"-"
-	};
-	Button button_editradiotext {
-		{ 22 * 8, 8 * 16 + 12, 48, 24 },
-		"Set"
-	};
-	
-	OptionsField options_tx {
-		{ 11 * 8, 14 * 16 },
-		11,
-		{
-			{ "PSN", 0 },
-			{ "RadioText", 1 },
-			{ "Date & time", 2 }
-		}
 	};
 	
 	TransmitterView tx_view {
@@ -260,6 +330,8 @@ private:
 		50000,
 		9
 	};
+	
+	std::unique_ptr<RDSThread> tx_thread { };
 };
 
 } /* namespace ui */

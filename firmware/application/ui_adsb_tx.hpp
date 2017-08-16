@@ -22,14 +22,10 @@
 
 #include "ui.hpp"
 #include "adsb.hpp"
-#include "utility.hpp"
 #include "ui_textentry.hpp"
-#include "ui_widget.hpp"
 #include "ui_geomap.hpp"
 #include "ui_tabview.hpp"
-#include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
-
 #include "message.hpp"
 #include "transmitter_model.hpp"
 #include "portapack.hpp"
@@ -51,32 +47,9 @@ private:
 	uint32_t value_ { 0 };
 };
 
-class ADSBView : public View {
+class ADSBPositionView : public OptionTabView {
 public:
-	ADSBView();
-	
-	void focus() override;
-	
-	void set_type(std::string type);
-	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
-
-protected:
-	bool enabled { false };
-	
-	void set_enabled(bool value);
-	
-private:
-	Checkbox check_enable {
-		{ 2 * 8, 0 * 16 },
-		20,
-		"",
-		false
-	};
-};
-
-class ADSBPositionView : public ADSBView {
-public:
-	ADSBPositionView(NavigationView& nav);
+	ADSBPositionView(NavigationView& nav, Rect parent_rect);
 	
 	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
 
@@ -91,9 +64,9 @@ private:
 	};
 };
 
-class ADSBCallsignView : public ADSBView {
+class ADSBCallsignView : public OptionTabView {
 public:
-	ADSBCallsignView(NavigationView& nav);
+	ADSBCallsignView(NavigationView& nav, Rect parent_rect);
 	
 	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
 
@@ -110,9 +83,9 @@ private:
 	};
 };
 
-class ADSBSpeedView : public ADSBView {
+class ADSBSpeedView : public OptionTabView {
 public:
-	ADSBSpeedView();
+	ADSBSpeedView(Rect parent_rect);
 	
 	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
 
@@ -134,9 +107,9 @@ private:
 	};
 };
 
-class ADSBSquawkView : public ADSBView {
+class ADSBSquawkView : public OptionTabView {
 public:
-	ADSBSquawkView();
+	ADSBSquawkView(Rect parent_rect);
 	
 	void collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list);
 
@@ -223,10 +196,12 @@ private:
 	void start_tx();
 	void generate_frames();
 	
-	ADSBPositionView view_position { nav_ };
-	ADSBCallsignView view_callsign { nav_ };
-	ADSBSpeedView view_speed { };
-	ADSBSquawkView view_squawk { };
+	Rect view_rect = { 0, 7 * 8, 240, 192 };
+	
+	ADSBPositionView view_position { nav_, view_rect };
+	ADSBCallsignView view_callsign { nav_, view_rect };
+	ADSBSpeedView view_speed { view_rect };
+	ADSBSquawkView view_squawk { view_rect };
 	
 	TabView tab_view {
 		{ "Position", Color::cyan(), &view_position },

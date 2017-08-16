@@ -60,39 +60,41 @@ public:
 	uint8_t * get_raw_data() {
 		return raw_data;
 	}
-
-	std::string get_callsign() {
-		uint64_t callsign_coded = 0;
-		uint32_t c;
-		std::string callsign = "";
-		
-		// Frame bytes to long
-		for (c = 5; c < 11; c++) {
-			callsign_coded <<= 8;
-			callsign_coded |= raw_data[c];
-		}
-		
-		// Long to 6-bit characters
-		for (c = 0; c < 8; c++) {
-			callsign.append(1, icao_id_lut[(callsign_coded >> 42) & 0x3F]);
-			callsign_coded <<= 6;
-		}
-		
-		return callsign;
-	}
 	
 	void make_CRC() {
-		uint8_t adsb_crc[14];	// Temp buffer
+		uint32_t computed_CRC = compute_CRC();
+		
+		// Insert CRC in frame
+		raw_data[11] = (computed_CRC >> 16) & 0xFF;
+		raw_data[12] = (computed_CRC >> 8) & 0xFF;
+		raw_data[13] = computed_CRC & 0xFF;
+	}
+
+	bool check_CRC() {
+		uint32_t computed_CRC = compute_CRC();
+		
+		if (raw_data[11] != ((computed_CRC >> 16) & 0xFF)) return false;
+		if (raw_data[12] != ((computed_CRC >> 8) & 0xFF)) return false;
+		if (raw_data[13] != (computed_CRC & 0xFF)) return false;
+		
+		return true;
+	}
+	
+private:
+	static const uint8_t adsb_preamble[16];
+	static const char icao_id_lut[65];
+	alignas(4) uint8_t index { 0 };
+	alignas(4) uint8_t raw_data[14] { };	// 112 bits at most
+
+	uint32_t compute_CRC() {
+		uint8_t adsb_crc[14] = { 0 };	// Temp buffer
 		uint8_t b, c, s, bitn;
 		const uint32_t crc_poly = 0x1205FFF;
 		
-		// Clear CRC
-		raw_data[11] = 0x00;
-		raw_data[12] = 0x00;
-		raw_data[13] = 0x00;
+		// Copy frame data
+		memcpy(adsb_crc, raw_data, 11);
 		
 		// Compute CRC
-		memcpy(adsb_crc, raw_data, 14);
 		for (c = 0; c < 11; c++) {
 			for (b = 0; b < 8; b++) {
 				if ((adsb_crc[c] << b) & 0x80) {
@@ -104,15 +106,8 @@ public:
 			}
 		}
 		
-		// Insert CRC in frame
-		memcpy(&raw_data[11], &adsb_crc[11], 3);
+		return (adsb_crc[11] << 16) + (adsb_crc[12] << 8) + adsb_crc[13];
 	}
-
-private:
-	static const uint8_t adsb_preamble[16];
-	static const char icao_id_lut[65];
-	alignas(4) uint8_t index { 0 };
-	alignas(4) uint8_t raw_data[14] { };	// 112 bits at most
 };
 
 } /* namespace adsb */

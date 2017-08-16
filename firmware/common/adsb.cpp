@@ -70,6 +70,27 @@ void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::s
 	frame.make_CRC();
 }
 
+std::string decode_frame_id(ADSBFrame& frame) {
+	std::string callsign = "";
+	uint8_t * raw_data = frame.get_raw_data();
+	uint64_t callsign_coded = 0;
+	uint32_t c;
+	
+	// Frame bytes to long
+	for (c = 5; c < 11; c++) {
+		callsign_coded <<= 8;
+		callsign_coded |= raw_data[c];
+	}
+	
+	// Long to 6-bit characters
+	for (c = 0; c < 8; c++) {
+		callsign.append(1, icao_id_lut[(callsign_coded >> 42) & 0x3F]);
+		callsign_coded <<= 6;
+	}
+	
+	return callsign;
+}
+
 /*void generate_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code) {
 	make_frame_mode_s(frame, ICAO_address);
 	
@@ -141,26 +162,6 @@ int cpr_N(float lat, int is_odd) {
     return nl;
 }
 
-// Decoding method (from dump1090):
-// index int j = floor(((59 * latcprE - 60 * latcprO) / 131072) + 0.50)
-// latE = DlatE * (cpr_mod(j, 60) + (latcprE / 131072))
-// latO = DlatO * (cpr_mod(j, 59) + (latcprO / 131072))
-// if latE >= 270 -> latE -= 360
-// if latO >= 270 -> latO -= 360
-// if (cpr_NL(latE) != cpr_NL(latO)) return;
-
-// int ni = cpr_N(latE ,0);
-// int m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072) + 0.5)
-// lon = cpr_Dlon(latE, 0) * (cpr_mod(m, ni) + loncprE / 131072);
-// lat = latE;
-// ... or ...
-// int ni = cpr_N(latO ,0);
-// int m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072) + 0.5)
-// lon = cpr_Dlon(latO, 0) * (cpr_mod(m, ni) + loncprO / 131072);
-// lat = latO;
-// ... and ...
-// if (lon > 180) lon -= 360;
-
 void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity) {
 	
@@ -200,6 +201,37 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 	frame.push_byte(lon);
 	
 	frame.make_CRC();
+}
+
+// Decoding method (from dump1090):
+// index int j = floor(((59 * latcprE - 60 * latcprO) / 131072) + 0.50)
+// latE = DlatE * (cpr_mod(j, 60) + (latcprE / 131072))
+// latO = DlatO * (cpr_mod(j, 59) + (latcprO / 131072))
+// if latE >= 270 -> latE -= 360
+// if latO >= 270 -> latO -= 360
+// if (cpr_NL(latE) != cpr_NL(latO)) return;
+
+// int ni = cpr_N(latE ,0);
+// int m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072) + 0.5)
+// lon = cpr_Dlon(latE, 0) * (cpr_mod(m, ni) + loncprE / 131072);
+// lat = latE;
+// ... or ...
+// int ni = cpr_N(latO ,0);
+// int m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072) + 0.5)
+// lon = cpr_Dlon(latO, 0) * (cpr_mod(m, ni) + loncprO / 131072);
+// lat = latO;
+// ... and ...
+// if (lon > 180) lon -= 360;
+
+// Only altitude is decoded for now
+uint32_t decode_frame_pos(ADSBFrame& frame) {
+	uint8_t * raw_data = frame.get_raw_data();
+	
+	// Q-bit is present
+    if (raw_data[5] & 1)
+        return ((((raw_data[5] >> 1) << 4) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
+	
+	return 0;
 }
 
 // speed is in knots

@@ -276,6 +276,35 @@ std::string View::title() const {
 	return "";
 };
 
+/* OptionTabView *********************************************************/
+
+OptionTabView::OptionTabView(Rect parent_rect) {
+	set_parent_rect(parent_rect);
+	
+	add_child(&check_enable);
+	hidden(true);
+	
+	check_enable.on_select = [this](Checkbox&, bool value) {
+		enabled = value;
+	};
+}
+
+void OptionTabView::set_enabled(bool value) {
+	check_enable.set_value(value);
+}
+
+bool OptionTabView::is_enabled() {
+	return check_enable.value();
+}
+
+void OptionTabView::set_type(std::string type) {
+	check_enable.set_text("Transmit " + type);
+}
+
+void OptionTabView::focus() {
+	check_enable.focus();
+}
+
 /* Rectangle *************************************************************/
 
 Rectangle::Rectangle(
