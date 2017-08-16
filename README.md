@@ -23,6 +23,7 @@ As its name implies, HAVOC's functionalities can be fun, mean and even useful so
 * Microphone FM transmit with CTCSS
 * Frequency manager (save & load from SD card, with categories and notes)
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
+* ADS-B receiver
 * ADS-B transmitter
 * SSTV transmitter
 * Fully configurable jammer
@@ -48,10 +49,10 @@ POCSAG RX   | 95% | Needs support for numeric messages
 Morse TX    | 95% | Needs fox hunt scheduler and live keying mode
 Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
+ADS-B RX    | 80%  | Needs position and speed decoding
 SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
-ADS-B TX    | 70% | UI and frame gen stuff done, baseband module needs work
+ADS-B TX    | 80% | UI and frame gen stuff done, baseband module needs work
 IQ replay   | 60% | Buffer glitches ? High priority
-ADS-B RX    | 50%  | Decodes IQ files OK. Triggers on real signal but wrong messages.
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
 Wave visualizer | 30% | Only the widget is ready, high priority
 Generic TXs | 20%  | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
