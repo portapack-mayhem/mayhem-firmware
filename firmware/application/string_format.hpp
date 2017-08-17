@@ -29,6 +29,12 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+enum TimeFormat {
+	YMDHMS = 0,
+	HMS = 1,
+	HM = 2
+};
+
 // TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
 std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l = 0, const char fill = 0);
@@ -38,8 +44,7 @@ std::string to_string_hex_array(uint8_t * const array, const int32_t l = 0);
 
 std::string to_string_short_freq(const uint64_t f);
 
-std::string to_string_datetime(const rtc::RTC& value);
-std::string to_string_time(const rtc::RTC& value);
+std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format = YMDHMS);
 std::string to_string_timestamp(const rtc::RTC& value);
 
 #endif/*__STRING_FORMAT_H__*/

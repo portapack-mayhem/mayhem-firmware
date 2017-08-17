@@ -24,7 +24,6 @@
 #include "ui_alphanum.hpp"
 #include "ui_geomap.hpp"
 
-#include "adsb.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
@@ -33,13 +32,12 @@
 #include <cstring>
 #include <stdio.h>
 
-using namespace adsb;
 using namespace portapack;
 
 namespace ui {
 
 template<>
-void RecentEntriesTable<ADSBRecentEntries>::draw(
+void RecentEntriesTable<AircraftRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -48,9 +46,15 @@ void RecentEntriesTable<ADSBRecentEntries>::draw(
 	painter.draw_string(
 		target_rect.location(),
 		style,
-		to_string_hex(entry.ICAO_address, 6) + " " + entry.callsign + " " + (entry.hits <= 9999 ? to_string_dec_uint(entry.hits, 5) : "9999+") + " " + entry.time
-		//to_string_hex_array((uint8_t*)entry.raw_data, 10) + " " + entry.time
+		to_string_hex(entry.ICAO_address, 6) +
+		(entry.pos.valid ? " \x1B\x02" : " ") + 
+		entry.callsign + "  \x1B\x00" +
+		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
+		entry.time_string
 	);
+	
+	if (entry.pos.valid)
+		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, style.foreground, style.background);
 }
 
 void ADSBRxView::focus() {
@@ -73,24 +77,35 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	
 	
 	if (frame.check_CRC() && frame.get_ICAO_address()) {
+		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
+		
 		auto& entry = ::on_packet(recent, ICAO_address);
 		
 		rtcGetTime(&RTCD1, &datetime);
-		str_timestamp = to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
-						to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
-						to_string_dec_uint(datetime.second(), 2, '0');
+		str_timestamp = to_string_datetime(datetime, HMS);
+		entry.set_time_string(str_timestamp);
 		
-		entry.set_time(str_timestamp);
-		entry.set_raw(frame.get_raw_data());
 		entry.inc_hit();
 		
 		if (frame.get_DF() == DF_ADSB) {
-			if (frame.get_msg_type() == TC_IDENT) {
+			uint8_t msg_type = frame.get_msg_type();
+			uint8_t * raw_data = frame.get_raw_data();
+			
+			if ((msg_type >= 1) && (msg_type <= 4)) {
 				callsign = decode_frame_id(frame);
 				entry.set_callsign(callsign);
-			} else if (frame.get_msg_type() == TC_AIRBORNE_POS) {
-				callsign = "Altitude: " + to_string_dec_uint(decode_frame_pos(frame)) + "ft";
-				entry.set_pos(callsign);
+			} else if ((msg_type >= 9) && (msg_type <= 18)) {
+				entry.set_frame_pos(frame, raw_data[6] & 4);
+				
+				if (entry.pos.valid) {
+					callsign = "Alt:" + to_string_dec_uint(entry.pos.altitude) +
+						" Lat" + to_string_dec_int(entry.pos.latitude) +
+						"." + to_string_dec_int((int)(entry.pos.latitude * 1000) % 100) +
+						" Lon" + to_string_dec_int(entry.pos.longitude) +
+						"." + to_string_dec_int((int)(entry.pos.longitude * 1000) % 100);
+					
+					entry.set_pos_string(callsign);
+				}
 			}
 		}
 		
@@ -98,7 +113,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	}
 }
 
-ADSBRxView::ADSBRxView(NavigationView& nav) {
+ADSBRxView::ADSBRxView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
 
 	add_children({
@@ -113,8 +128,10 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	});
 	
 	recent_entries_view.set_parent_rect({ 0, 64, 240, 224 });
-	recent_entries_view.on_select = [this](const ADSBRecentEntry& entry) {
-		text_debug_a.set(entry.geo_pos);
+	recent_entries_view.on_select = [this](const AircraftRecentEntry& entry) {
+		text_debug_a.set(entry.pos_string);
+		text_debug_b.set(to_string_hex_array(entry.frame_pos_even.get_raw_data(), 14));
+		text_debug_c.set(to_string_hex_array(entry.frame_pos_odd.get_raw_data(), 14));
 	};
 	
 	baseband::set_adsb();

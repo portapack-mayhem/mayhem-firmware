@@ -546,12 +546,7 @@ void Console::write(std::string message) {
 		
 		for (const auto c : message) {
 			if (escape) {
-				if (c == '\x01')
-					pen_color = ui::Color::red();
-				else if (c == '\x02')
-					pen_color = ui::Color::green();
-				else if (c == '\x03')
-					pen_color = ui::Color::blue();
+				pen_color = term_colors[c & 7];
 				escape = false;
 			} else {
 				if (c == '\n') {

@@ -26,6 +26,17 @@
 
 namespace ui {
 
+Color term_colors[8] = {
+	Color::black(),
+	Color::red(),
+	Color::green(),
+	Color::yellow(),
+	Color::blue(),
+	Color::magenta(),
+	Color::cyan(),
+	Color::white()
+};
+
 bool Rect::contains(const Point p) const {
 	return (p.x() >= left()) && (p.y() >= top()) &&
 	       (p.x() < right()) && (p.y() < bottom());

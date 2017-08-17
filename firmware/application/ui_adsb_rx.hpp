@@ -26,28 +26,30 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "recent_entries.hpp"
 
+#include "adsb.hpp"
 #include "message.hpp"
+
+using namespace adsb;
 
 namespace ui {
 
-struct ADSBRecentEntry {
+struct AircraftRecentEntry {
 	using Key = uint32_t;
 	
 	static constexpr Key invalid_key = 0xffffffff;
 	
 	uint32_t ICAO_address { };
 	uint16_t hits { 0 };
-	uint8_t raw_data[14] { };	// 112 bits at most
-	std::string callsign { "        " };
-	std::string time { "" };
-	std::string geo_pos { "" };
-
-	ADSBRecentEntry(
-	) : ADSBRecentEntry { 0 }
-	{
-	}
+	adsb_pos pos { false, 0, 0, 0 };
 	
-	ADSBRecentEntry(
+	ADSBFrame frame_pos_even { };
+	ADSBFrame frame_pos_odd { };
+	
+	std::string callsign { "        " };
+	std::string time_string { "" };
+	std::string pos_string { "" };
+	
+	AircraftRecentEntry(
 		const uint32_t ICAO_address
 	) : ICAO_address { ICAO_address }
 	{
@@ -65,24 +67,32 @@ struct ADSBRecentEntry {
 		hits++;
 	}
 	
-	void set_pos(std::string& new_pos) {
-		geo_pos = new_pos;
+	void set_frame_pos(ADSBFrame& frame, uint32_t parity) {
+		if (!parity)
+			frame_pos_even = frame;
+		else
+			frame_pos_odd = frame;
+		
+		if (!frame_pos_even.empty() && !frame_pos_odd.empty()) {
+			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < 20)
+				pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
+		}
 	}
 	
-	void set_time(std::string& new_time) {
-		time = new_time;
+	void set_pos_string(std::string& new_pos_string) {
+		pos_string = new_pos_string;
 	}
 	
-	void set_raw(uint8_t * raw_ptr) {
-		memcpy(raw_data, raw_ptr, 14);
+	void set_time_string(std::string& new_time_string) {
+		time_string = new_time_string;
 	}
 };
 
-using ADSBRecentEntries = RecentEntries<ADSBRecentEntry>;
+using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
 
 class ADSBRxView : public View {
 public:
-	ADSBRxView(NavigationView& nav);
+	ADSBRxView(NavigationView&);
 	~ADSBRxView();
 	
 	void focus() override;
@@ -94,12 +104,12 @@ private:
 	
 	const RecentEntriesColumns columns { {
 		{ "ICAO", 6 },
-		{ "Callsign", 8 },
-		{ "Hits", 5 },
+		{ "Callsign", 9 },
+		{ "Hits", 4 },
 		{ "Time", 8 }
 	} };
-	ADSBRecentEntries recent { };
-	RecentEntriesView<RecentEntries<ADSBRecentEntry>> recent_entries_view { columns, recent };
+	AircraftRecentEntries recent { };
+	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
 	
 	RSSI rssi {
 		{ 19 * 8, 4, 10 * 8, 8 },

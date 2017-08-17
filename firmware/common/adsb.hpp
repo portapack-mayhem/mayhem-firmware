@@ -49,6 +49,13 @@ enum data_selector {
 	BDS_HEADING = 0x60
 };
 
+struct adsb_pos {
+	bool valid;
+	float latitude;
+	float longitude;
+	int32_t altitude;
+};
+
 const float adsb_lat_lut[58] = {
 	10.47047130,    14.82817437,    18.18626357,    21.02939493,
     23.54504487,    25.82924707,    27.93898710,    29.91135686,
@@ -74,7 +81,8 @@ std::string decode_frame_id(ADSBFrame& frame);
 
 void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity);
-uint32_t decode_frame_pos(ADSBFrame& frame);
+
+adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd);
 
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate);

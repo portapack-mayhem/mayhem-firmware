@@ -44,6 +44,13 @@ public:
 	uint32_t get_ICAO_address() {
 		return (raw_data[1] << 16) + (raw_data[2] << 8) + raw_data[3];
 	}
+	
+	void set_rx_timestamp(uint32_t timestamp) {
+		rx_timestamp = timestamp;
+	}
+	uint32_t get_rx_timestamp() {
+		return rx_timestamp;
+	}
 
 	void clear() {
 		index = 0;
@@ -57,8 +64,8 @@ public:
 		raw_data[index++] = byte;
 	}
 
-	uint8_t * get_raw_data() {
-		return raw_data;
+	uint8_t * get_raw_data() const {
+		return (uint8_t* const)raw_data;
 	}
 	
 	void make_CRC() {
@@ -73,11 +80,15 @@ public:
 	bool check_CRC() {
 		uint32_t computed_CRC = compute_CRC();
 		
-		if (raw_data[11] != ((computed_CRC >> 16) & 0xFF)) return false;
-		if (raw_data[12] != ((computed_CRC >> 8) & 0xFF)) return false;
-		if (raw_data[13] != (computed_CRC & 0xFF)) return false;
+		if ((raw_data[11] != ((computed_CRC >> 16) & 0xFF)) ||
+			(raw_data[12] != ((computed_CRC >> 8) & 0xFF)) ||
+			(raw_data[13] != (computed_CRC & 0xFF))) return false;
 		
 		return true;
+	}
+	
+	bool empty() {
+		return (index == 0);
 	}
 	
 private:
@@ -85,6 +96,7 @@ private:
 	static const char icao_id_lut[65];
 	alignas(4) uint8_t index { 0 };
 	alignas(4) uint8_t raw_data[14] { };	// 112 bits at most
+	uint32_t rx_timestamp { };
 
 	uint32_t compute_CRC() {
 		uint8_t adsb_crc[14] = { 0 };	// Temp buffer

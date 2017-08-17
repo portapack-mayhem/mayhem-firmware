@@ -138,11 +138,11 @@ void encode_frame_squawk(ADSBFrame& frame, const uint32_t squawk) {
 }
 
 float cpr_mod(float a, float b) {
-    return a - (b * floor(a / b));
+	return a - (b * floor(a / b));
 }
 
 int cpr_NL(float lat) {
-    if (lat < 0)
+	if (lat < 0)
 		lat = -lat;		// Symmetry
 	
 	for (size_t c = 0; c < 58; c++) {
@@ -150,7 +150,7 @@ int cpr_NL(float lat) {
 			return 59 - c;
 	}
 	
-    return 1;
+	return 1;
 }
 
 int cpr_N(float lat, int is_odd) {
@@ -160,6 +160,10 @@ int cpr_N(float lat, int is_odd) {
 		nl = 1;
 	
     return nl;
+}
+
+float cpr_Dlon(float lat, int is_odd) {
+    return 360.0 / cpr_N(lat, is_odd);
 }
 
 void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
@@ -203,35 +207,76 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 	frame.make_CRC();
 }
 
-// Decoding method (from dump1090):
-// index int j = floor(((59 * latcprE - 60 * latcprO) / 131072) + 0.50)
-// latE = DlatE * (cpr_mod(j, 60) + (latcprE / 131072))
-// latO = DlatO * (cpr_mod(j, 59) + (latcprO / 131072))
-// if latE >= 270 -> latE -= 360
-// if latO >= 270 -> latO -= 360
-// if (cpr_NL(latE) != cpr_NL(latO)) return;
-
-// int ni = cpr_N(latE ,0);
-// int m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072) + 0.5)
-// lon = cpr_Dlon(latE, 0) * (cpr_mod(m, ni) + loncprE / 131072);
-// lat = latE;
-// ... or ...
-// int ni = cpr_N(latO ,0);
-// int m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072) + 0.5)
-// lon = cpr_Dlon(latO, 0) * (cpr_mod(m, ni) + loncprO / 131072);
-// lat = latO;
-// ... and ...
-// if (lon > 180) lon -= 360;
-
-// Only altitude is decoded for now
-uint32_t decode_frame_pos(ADSBFrame& frame) {
-	uint8_t * raw_data = frame.get_raw_data();
+// Decoding method from dump1090
+adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
+	uint8_t * raw_data;
+	uint32_t latcprE, latcprO, loncprE, loncprO;
+	float latE, latO, m, Dlon;
+	int ni;
+	adsb_pos position { false, 0, 0, 0 };
 	
-	// Q-bit is present
-    if (raw_data[5] & 1)
-        return ((((raw_data[5] >> 1) << 4) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
+	uint32_t time_even = frame_even.get_rx_timestamp();
+	uint32_t time_odd = frame_odd.get_rx_timestamp();
+	uint8_t * frame_data_even = frame_even.get_raw_data();
+	uint8_t * frame_data_odd = frame_odd.get_raw_data();
 	
-	return 0;
+	// Return most recent altitude
+	if (time_even > time_odd)
+		raw_data = frame_data_even;
+	else
+		raw_data = frame_data_odd;
+
+	// Q-bit must be present
+	if (raw_data[5] & 1)
+		position.altitude = ((((raw_data[5] & 0xFE) << 3) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
+
+	// Position
+	latcprE = ((frame_data_even[6] & 3) << 15) | (frame_data_even[7] << 7) | (frame_data_even[8] >> 1);
+	loncprE = ((frame_data_even[8] & 1) << 16) | (frame_data_even[9] << 8) | frame_data_even[10];
+	
+	latcprO = ((frame_data_odd[6] & 3) << 15) | (frame_data_odd[7] << 7) | (frame_data_odd[8] >> 1);
+	loncprO = ((frame_data_odd[8] & 1) << 16) | (frame_data_odd[9] << 8) | frame_data_odd[10];
+
+	// Compute latitude index
+	float j = floor((((59.0 * latcprE) - (60.0 * latcprO)) / 131072.0) + 0.5);
+	latE = (360.0 / 60.0) * (cpr_mod(j, 60) + (latcprE / 131072.0));
+	latO = (360.0 / 59.0) * (cpr_mod(j, 59) + (latcprO / 131072.0));
+
+	if (latE >= 270) latE -= 360;
+	if (latO >= 270) latO -= 360;
+
+	// Both frames must be in the same latitude zone
+	if (cpr_NL(latE) != cpr_NL(latO))
+		return position;
+
+	// Compute longitude
+	if (time_even > time_odd) {
+		// Use even frame
+		ni = cpr_N(latE, 0);
+		Dlon = 360.0 / ni;
+		
+		m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072.0) + 0.5);
+		
+		position.longitude = Dlon * (cpr_mod(m, ni) + loncprE / 131072.0);
+		
+		position.latitude = latE;
+	} else {
+		// Use odd frame
+		ni = cpr_N(latO, 1);
+		Dlon = 360.0 / ni;
+		
+		m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072.0) + 0.5);
+		
+		position.longitude = Dlon * (cpr_mod(m, ni) + loncprO / 131072.0);
+		
+		position.latitude = latO;
+	}
+	
+	if (position.longitude > 180) position.longitude -= 360;
+	
+	position.valid = true;
+
+	return position;
 }
 
 // speed is in knots

@@ -144,18 +144,22 @@ std::string to_string_hex_array(uint8_t * const array, const int32_t l) {
 	return str_return;
 }
 
-std::string to_string_datetime(const rtc::RTC& value) {
-	return to_string_dec_uint(value.year(), 4, '0') + "/" +
-		to_string_dec_uint(value.month(), 2, '0') + "/" +
-		to_string_dec_uint(value.day(), 2, '0') + " " +
-		to_string_dec_uint(value.hour(), 2, '0') + ":" +
-		to_string_dec_uint(value.minute(), 2, '0') + ":" +
-		to_string_dec_uint(value.second(), 2, '0');
-}
-
-std::string to_string_time(const rtc::RTC& value) {
-	return to_string_dec_uint(value.hour(), 2, '0') + ":" +
-		to_string_dec_uint(value.minute(), 2, '0');
+std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
+	std::string string { "" };
+	
+	if (format == YMDHMS) {
+		string += to_string_dec_uint(value.year(), 4, '0') + "/" +
+					to_string_dec_uint(value.month(), 2, '0') + "/" +
+					to_string_dec_uint(value.day(), 2, '0') + " ";
+	}
+	
+	string += to_string_dec_uint(value.hour(), 2, '0') + ":" +
+	string += to_string_dec_uint(value.minute(), 2, '0');
+	
+	if ((format == YMDHMS) || (format == HMS))
+		string += ":" + to_string_dec_uint(value.second(), 2, '0');
+	
+	return string;
 }
 
 std::string to_string_timestamp(const rtc::RTC& value) {

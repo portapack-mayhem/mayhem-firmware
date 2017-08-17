@@ -45,14 +45,26 @@ int Painter::draw_char(const Point p, const Style& style, const char c) {
 int Painter::draw_string(Point p, const Font& font, const Color foreground,
 	const Color background, const std::string text) {
 	
+	bool escape = false;
 	size_t width = 0;
+	Color pen = foreground;
 	
 	for(const auto c : text) {
-		const auto glyph = font.glyph(c);
-		display.draw_glyph(p, glyph, foreground, background);
-		const auto advance = glyph.advance();
-		p += advance;
-		width += advance.x();
+		if (escape) {
+			pen = term_colors[c & 7];
+			if (!c) pen = foreground;
+			escape = false;
+		} else {
+			if (c == '\x1B') {
+				escape = true;
+			} else {
+				const auto glyph = font.glyph(c);
+				display.draw_glyph(p, glyph, pen, background);
+				const auto advance = glyph.advance();
+				p += advance;
+				width += advance.x();
+			}
+		}
 	}
 	return width;
 }
