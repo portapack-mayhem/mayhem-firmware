@@ -40,6 +40,7 @@ struct AircraftRecentEntry {
 	
 	uint32_t ICAO_address { };
 	uint16_t hits { 0 };
+	uint32_t age { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
 	
 	ADSBFrame frame_pos_even { };
@@ -47,7 +48,7 @@ struct AircraftRecentEntry {
 	
 	std::string callsign { "        " };
 	std::string time_string { "" };
-	std::string pos_string { "" };
+	std::string info_string { "" };
 	
 	AircraftRecentEntry(
 		const uint32_t ICAO_address
@@ -79,12 +80,20 @@ struct AircraftRecentEntry {
 		}
 	}
 	
-	void set_pos_string(std::string& new_pos_string) {
-		pos_string = new_pos_string;
+	void set_info_string(std::string& new_info_string) {
+		info_string = new_info_string;
 	}
 	
 	void set_time_string(std::string& new_time_string) {
 		time_string = new_time_string;
+	}
+	
+	void reset_age() {
+		age = 0;
+	}
+	
+	void inc_age() {
+		age++;
 	}
 };
 
@@ -101,6 +110,7 @@ public:
 
 private:
 	void on_frame(const ADSBFrameMessage * message);
+	void on_tick_second();
 	
 	const RecentEntriesColumns columns { {
 		{ "ICAO", 6 },
@@ -110,6 +120,8 @@ private:
 	} };
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
+	
+	SignalToken signal_token_tick_second { };
 	
 	RSSI rssi {
 		{ 19 * 8, 4, 10 * 8, 8 },

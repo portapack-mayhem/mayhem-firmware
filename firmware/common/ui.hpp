@@ -104,9 +104,15 @@ struct Color {
 	static constexpr Color cyan() {
 		return {   0, 255, 255 };
 	}
+	static constexpr Color dark_cyan() {
+		return {   0, 127, 127 };
+	}
 	
 	static constexpr Color magenta() {
 		return { 255,   0, 255 };
+	}
+	static constexpr Color dark_magenta() {
+		return { 127,   0, 127 };
 	}
 
 	static constexpr Color white() {
@@ -128,7 +134,7 @@ struct Color {
 	}
 };
 
-extern Color term_colors[8];
+extern Color term_colors[16];
 
 struct ColorRGB888 {
 	uint8_t r;

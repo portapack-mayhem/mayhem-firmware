@@ -51,8 +51,10 @@ int Painter::draw_string(Point p, const Font& font, const Color foreground,
 	
 	for(const auto c : text) {
 		if (escape) {
-			pen = term_colors[c & 7];
-			if (!c) pen = foreground;
+			if (c <= 15)
+				pen = term_colors[c & 15];
+			else
+				pen = foreground;
 			escape = false;
 		} else {
 			if (c == '\x1B') {

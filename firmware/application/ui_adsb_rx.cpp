@@ -24,6 +24,7 @@
 #include "ui_alphanum.hpp"
 #include "ui_geomap.hpp"
 
+#include "rtc_time.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
@@ -43,18 +44,35 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	Painter& painter,
 	const Style& style
 ) {
+	char aged_color;
+	Color target_color;
+	
+	if (entry.age < 10) {
+		aged_color = 0x10;
+		target_color = Color::green();
+	} else if ((entry.age >= 10) && (entry.age < 30)) {
+		aged_color = 0x07;
+		target_color = Color::light_grey();
+	} else {
+		aged_color = 0x08;
+		target_color = Color::dark_grey();
+	}
+	
+	std::string string = "\x1B";
+	string += aged_color;
+	string += to_string_hex(entry.ICAO_address, 6) + " " +
+		entry.callsign + "  " +
+		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
+		entry.time_string;
+	
 	painter.draw_string(
 		target_rect.location(),
 		style,
-		to_string_hex(entry.ICAO_address, 6) +
-		(entry.pos.valid ? " \x1B\x02" : " ") + 
-		entry.callsign + "  \x1B\x00" +
-		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
-		entry.time_string
+		string
 	);
 	
 	if (entry.pos.valid)
-		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, style.foreground, style.background);
+		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, target_color, style.background);
 }
 
 void ADSBRxView::focus() {
@@ -62,6 +80,7 @@ void ADSBRxView::focus() {
 }
 
 ADSBRxView::~ADSBRxView() {
+	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
 }
@@ -70,18 +89,17 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	rtc::RTC datetime;
 	std::string str_timestamp;
 	std::string callsign;
+	std::string str_info;
 	
 	auto frame = message->frame;
-	
 	uint32_t ICAO_address = frame.get_ICAO_address();
 	
-	
 	if (frame.check_CRC() && frame.get_ICAO_address()) {
-		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
-		
+		rtcGetTime(&RTCD1, &datetime);
 		auto& entry = ::on_packet(recent, ICAO_address);
 		
-		rtcGetTime(&RTCD1, &datetime);
+		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
+		entry.reset_age();
 		str_timestamp = to_string_datetime(datetime, HMS);
 		entry.set_time_string(str_timestamp);
 		
@@ -98,18 +116,26 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
-					callsign = "Alt:" + to_string_dec_uint(entry.pos.altitude) +
+					str_info = "Alt:" + to_string_dec_uint(entry.pos.altitude) +
 						" Lat" + to_string_dec_int(entry.pos.latitude) +
 						"." + to_string_dec_int((int)(entry.pos.latitude * 1000) % 100) +
 						" Lon" + to_string_dec_int(entry.pos.longitude) +
 						"." + to_string_dec_int((int)(entry.pos.longitude * 1000) % 100);
 					
-					entry.set_pos_string(callsign);
+					entry.set_info_string(str_info);
 				}
 			}
 		}
 		
 		recent_entries_view.set_dirty();
+	}
+}
+
+void ADSBRxView::on_tick_second() {
+	for (auto& entry : recent) {
+		entry.inc_age();
+		if ((entry.age == 10) || (entry.age == 30))
+			recent_entries_view.set_dirty();
 	}
 }
 
@@ -129,9 +155,13 @@ ADSBRxView::ADSBRxView(NavigationView&) {
 	
 	recent_entries_view.set_parent_rect({ 0, 64, 240, 224 });
 	recent_entries_view.on_select = [this](const AircraftRecentEntry& entry) {
-		text_debug_a.set(entry.pos_string);
+		text_debug_a.set(entry.info_string);
 		text_debug_b.set(to_string_hex_array(entry.frame_pos_even.get_raw_data(), 14));
 		text_debug_c.set(to_string_hex_array(entry.frame_pos_odd.get_raw_data(), 14));
+	};
+	
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+		on_tick_second();
 	};
 	
 	baseband::set_adsb();

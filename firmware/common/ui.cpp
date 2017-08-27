@@ -26,14 +26,23 @@
 
 namespace ui {
 
-Color term_colors[8] = {
+// CGA palette
+Color term_colors[16] = {
 	Color::black(),
-	Color::red(),
-	Color::green(),
-	Color::yellow(),
+	Color::dark_blue(),
+	Color::dark_green(),
+	Color::dark_cyan(),
+	Color::dark_red(),
+	Color::dark_magenta(),
+	Color::dark_yellow(),
+	Color::light_grey(),
+	Color::dark_grey(),
 	Color::blue(),
-	Color::magenta(),
+	Color::green(),
 	Color::cyan(),
+	Color::red(),
+	Color::magenta(),
+	Color::yellow(),
 	Color::white()
 };
 
