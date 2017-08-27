@@ -23,6 +23,7 @@
 #include "ui.hpp"
 #include "file.hpp"
 #include "ui_receiver.hpp"
+#include "ui_geomap.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "recent_entries.hpp"
 
@@ -104,6 +105,11 @@ public:
 	ADSBRxView(NavigationView&);
 	~ADSBRxView();
 	
+	ADSBRxView(const ADSBRxView&) = delete;
+	ADSBRxView(ADSBRxView&&) = delete;
+	ADSBRxView& operator=(const ADSBRxView&) = delete;
+	ADSBRxView& operator=(ADSBRxView&&) = delete;
+	
 	void focus() override;
 	
 	std::string title() const override { return "ADS-B receive"; };
@@ -121,6 +127,7 @@ private:
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
 	
+	GeoMapView* geomap_view { };
 	SignalToken signal_token_tick_second { };
 	
 	RSSI rssi {
@@ -139,7 +146,7 @@ private:
 		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   RSSI:", Color::light_grey() }
 	};
 	
-	Text text_debug_a {
+	/*Text text_debug_a {
 		{ 0 * 8, 1 * 16, 30 * 8, 16 },
 		"-"
 	};
@@ -150,7 +157,7 @@ private:
 	Text text_debug_c {
 		{ 0 * 8, 3 * 16, 30 * 8, 16 },
 		"-"
-	};
+	};*/
 	
 	MessageHandlerRegistration message_handler_frame {
 		Message::ID::ADSBFrame,

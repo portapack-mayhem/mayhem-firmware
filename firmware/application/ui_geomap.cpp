@@ -138,6 +138,7 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else {
 		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
+		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
 	}
 	
 	/*if (has_focus() || highlighted())
@@ -152,7 +153,7 @@ void GeoMap::paint(Painter& painter) {
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
-	if (event.type == TouchEvent::Type::Start) {
+	if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
 		set_highlighted(true);
 		if (on_move) {
 			Point p = event.point - screen_rect().center();
@@ -171,7 +172,7 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	// Map is in Equidistant "Plate Carrée" projection
 	x_pos = map_center_x - (map_rect.width() / 2) + (lon_ / lon_ratio);
-	y_pos = map_center_y - (map_rect.height() / 2) + (lat_ / lat_ratio);
+	y_pos = map_center_y - (map_rect.height() / 2) + (lat_ / lat_ratio) + 16;
 	
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
@@ -193,7 +194,7 @@ bool GeoMap::init() {
 	map_center_y = map_height >> 1;
 	
 	lon_ratio = 180.0 / map_center_x;
-	lat_ratio = 90.0 / map_center_y;
+	lat_ratio = -90.0 / map_center_y;
 	
 	return true;
 }
@@ -225,6 +226,13 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
+void GeoMapView::update_pos(float lat, float lon) {
+	lat_ = lat;
+	lon_ = lon;
+	geomap.move(lon_, lat_);
+	geomap.set_dirty();
+}
+	
 void GeoMapView::setup() {
 	add_children({
 		&geopos,
@@ -261,13 +269,12 @@ void GeoMapView::setup() {
 // Display mode
 GeoMapView::GeoMapView(
 	NavigationView& nav,
-	std::string* tag,
+	const std::string& tag,
 	int32_t altitude,
 	float lat,
 	float lon,
 	float angle
 ) : nav_ (nav),
-	tag_ (tag),
 	altitude_ (altitude),
 	lat_ (lat),
 	lon_ (lon),
@@ -281,6 +288,7 @@ GeoMapView::GeoMapView(
 	setup();
 	
 	geomap.set_mode(mode_);
+	geomap.set_tag(tag);
 	geomap.move(lon_, lat_);
 	
 	geopos.set_read_only(true);

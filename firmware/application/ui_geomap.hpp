@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __GEOMAP_H__
+#define __GEOMAP_H__
+
 #include "ui.hpp"
 #include "file.hpp"
 #include "ui_navigation.hpp"
@@ -104,6 +107,9 @@ public:
 	bool init();
 	void set_mode(GeoMapMode mode);
 	void move(const float lon, const float lat);
+	void set_tag(std::string new_tag) {
+		tag_ = new_tag;
+	}
 
 private:
 	void draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color);
@@ -118,11 +124,12 @@ private:
 	float lat_ { };
 	float lon_ { };
 	float angle_ { };
+	std::string tag_ { };
 };
 
 class GeoMapView : public View {
 public:
-	GeoMapView(NavigationView& nav, std::string* tag, int32_t altitude, float lat, float lon, float angle);
+	GeoMapView(NavigationView& nav, const std::string& tag, int32_t altitude, float lat, float lon, float angle);
 	GeoMapView(NavigationView& nav, int32_t altitude, float lat, float lon, const std::function<void(int32_t, float, float)> on_done);
 	
 	GeoMapView(const GeoMapView&) = delete;
@@ -131,6 +138,8 @@ public:
 	GeoMapView& operator=(GeoMapView&&) = delete;
 	
 	void focus() override;
+	
+	void update_pos(float lat, float lon);
 	
 	std::string title() const override { return "Map view"; };
 
@@ -143,7 +152,6 @@ private:
 	
 	const Dim banner_height = 3 * 16;
 	GeoMapMode mode_ { };
-	std::string* tag_ { };
 	int32_t altitude_ { };
 	float lat_ { };
 	float lon_ { };
@@ -166,3 +174,5 @@ private:
 };
 
 } /* namespace ui */
+
+#endif

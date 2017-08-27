@@ -22,7 +22,6 @@
 
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
-#include "ui_geomap.hpp"
 
 #include "rtc_time.hpp"
 #include "string_format.hpp"
@@ -123,6 +122,9 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 						"." + to_string_dec_int((int)(entry.pos.longitude * 1000) % 100);
 					
 					entry.set_info_string(str_info);
+					
+					if (geomap_view)
+						geomap_view->update_pos(entry.pos.latitude, entry.pos.longitude);
 				}
 			}
 		}
@@ -139,7 +141,7 @@ void ADSBRxView::on_tick_second() {
 	}
 }
 
-ADSBRxView::ADSBRxView(NavigationView&) {
+ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
 
 	add_children({
@@ -147,17 +149,24 @@ ADSBRxView::ADSBRxView(NavigationView&) {
 		&rssi,
 		&field_lna,
 		&field_vga,
-		&text_debug_a,
-		&text_debug_b,
-		&text_debug_c,
+		//&text_debug_a,
+		//&text_debug_b,
+		//&text_debug_c,
 		&recent_entries_view
 	});
 	
 	recent_entries_view.set_parent_rect({ 0, 64, 240, 224 });
-	recent_entries_view.on_select = [this](const AircraftRecentEntry& entry) {
-		text_debug_a.set(entry.info_string);
-		text_debug_b.set(to_string_hex_array(entry.frame_pos_even.get_raw_data(), 14));
-		text_debug_c.set(to_string_hex_array(entry.frame_pos_odd.get_raw_data(), 14));
+	recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
+		//text_debug_a.set(entry.info_string);
+		//text_debug_b.set(to_string_hex_array(entry.frame_pos_even.get_raw_data(), 14));
+		//text_debug_c.set(to_string_hex_array(entry.frame_pos_odd.get_raw_data(), 14));
+		
+		geomap_view = nav.push<GeoMapView>(
+			entry.callsign,
+			entry.pos.altitude,
+			entry.pos.latitude,
+			entry.pos.longitude,
+			0.0);
 	};
 	
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {

@@ -162,9 +162,9 @@ POCSAGTXView::POCSAGTXView(
 	};
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
+			transmitter_model.set_tuning_frequency(f);
 		};
 	};
 	
