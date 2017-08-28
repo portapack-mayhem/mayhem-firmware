@@ -140,16 +140,6 @@ void GeoMap::paint(Painter& painter) {
 		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
 		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
 	}
-	
-	/*if (has_focus() || highlighted())
-		border = style().foreground;
-	else
-		border = Color::grey();
-	
-	painter.draw_rectangle(
-		{ r.location().x(), r.location().y(), r.size().width(), r.size().height() },
-		border
-	);*/
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
@@ -226,7 +216,7 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
-void GeoMapView::update_pos(float lat, float lon) {
+void GeoMapView::update_position(float lat, float lon) {
 	lat_ = lat;
 	lon_ = lon;
 	geomap.move(lon_, lat_);
@@ -266,6 +256,12 @@ void GeoMapView::setup() {
 	};
 }
 
+
+GeoMapView::~GeoMapView() {
+	if (on_close_)
+		on_close_();
+}
+
 // Display mode
 GeoMapView::GeoMapView(
 	NavigationView& nav,
@@ -273,12 +269,14 @@ GeoMapView::GeoMapView(
 	int32_t altitude,
 	float lat,
 	float lon,
-	float angle
+	float angle,
+	const std::function<void(void)> on_close
 ) : nav_ (nav),
 	altitude_ (altitude),
 	lat_ (lat),
 	lon_ (lon),
-	angle_ (angle)
+	angle_ (angle),
+	on_close_(on_close)
 {
 	mode_ = DISPLAY;
 	

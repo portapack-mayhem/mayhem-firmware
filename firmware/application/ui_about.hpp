@@ -94,7 +94,7 @@ private:
 									{"E. Oenal",			"", 						MEMBER_LF},
 									{"RDS waveform",		"C. Jacquet", 				TITLE_LF},
 									{"Xy. infos",			"cLx", 						TITLE_LF},
-									{"ADS-B map",			"D. Strebe", 				TITLE_LF},
+									{"World map",			"NASA", 					TITLE_LF},
 									{"Thanks",				"",							SECTION},
 									{"Rainer Matla",		"Keld Norman",				TITLE},
 									{"Giorgio C.",			"DC1RDB",					TITLE},

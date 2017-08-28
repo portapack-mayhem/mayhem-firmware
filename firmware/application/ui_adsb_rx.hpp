@@ -100,9 +100,80 @@ struct AircraftRecentEntry {
 
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
 
+class ADSBRxDetailsView : public View {
+public:
+	ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
+	~ADSBRxDetailsView();
+
+	ADSBRxDetailsView(const ADSBRxDetailsView&) = delete;
+	ADSBRxDetailsView(ADSBRxDetailsView&&) = delete;
+	ADSBRxDetailsView& operator=(const ADSBRxDetailsView&) = delete;
+	ADSBRxDetailsView& operator=(ADSBRxDetailsView&&) = delete;
+	
+	void focus() override;
+	
+	void update(const AircraftRecentEntry& entry);
+	
+	std::string title() const override { return "Aircraft details"; };
+	
+private:
+	AircraftRecentEntry entry_copy { 0 };
+	std::function<void(void)> on_close_ { };
+	GeoMapView* geomap_view { nullptr };
+	bool send_updates { false };
+	File db_file { };
+	
+	Labels labels {
+		{ { 0 * 8, 1 * 16 }, "Callsign:", Color::light_grey() },
+		{ { 0 * 8, 2 * 16 }, "Last seen:", Color::light_grey() },
+		{ { 0 * 8, 3 * 16 }, "Airline:", Color::light_grey() },
+		{ { 0 * 8, 5 * 16 }, "Country:", Color::light_grey() },
+		{ { 0 * 8, 12 * 16 }, "Even position frame:", Color::light_grey() },
+		{ { 0 * 8, 14 * 16 }, "Odd position frame:", Color::light_grey() }
+	};
+	
+	Text text_callsign {
+		{ 9 * 8, 1 * 16, 8 * 8, 16 },
+		"-"
+	};
+	
+	Text text_last_seen {
+		{ 11 * 8, 2 * 16, 19 * 8, 16 },
+		"-"
+	};
+	
+	Text text_airline {
+		{ 0 * 8, 4 * 16, 30 * 8, 16 },
+		"-"
+	};
+	
+	Text text_country {
+		{ 8 * 8, 5 * 16, 22 * 8, 16 },
+		"-"
+	};
+	
+	Text text_infos {
+		{ 0 * 8, 6 * 16, 30 * 8, 16 },
+		"-"
+	};
+	Text text_frame_pos_even {
+		{ 0 * 8, 13 * 16, 30 * 8, 16 },
+		"-"
+	};
+	Text text_frame_pos_odd {
+		{ 0 * 8, 15 * 16, 30 * 8, 16 },
+		"-"
+	};
+	
+	Button button_see_map {
+		{ 8 * 8, 8 * 16, 14 * 8, 3 * 16 },
+		"See on map"
+	};
+};
+	
 class ADSBRxView : public View {
 public:
-	ADSBRxView(NavigationView&);
+	ADSBRxView(NavigationView& nav);
 	~ADSBRxView();
 	
 	ADSBRxView(const ADSBRxView&) = delete;
@@ -127,8 +198,14 @@ private:
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
 	
-	GeoMapView* geomap_view { };
 	SignalToken signal_token_tick_second { };
+	ADSBRxDetailsView* details_view { nullptr };
+	uint32_t detailed_entry_key { 0 };
+	bool send_updates { false };
+	
+	Labels labels {
+		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   RSSI:", Color::light_grey() }
+	};
 	
 	RSSI rssi {
 		{ 19 * 8, 4, 10 * 8, 8 },
@@ -141,23 +218,6 @@ private:
 	VGAGainField field_vga {
 		{ 11 * 8, 0 * 16 }
 	};
-	
-	Labels labels {
-		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   RSSI:", Color::light_grey() }
-	};
-	
-	/*Text text_debug_a {
-		{ 0 * 8, 1 * 16, 30 * 8, 16 },
-		"-"
-	};
-	Text text_debug_b {
-		{ 0 * 8, 2 * 16, 30 * 8, 16 },
-		"-"
-	};
-	Text text_debug_c {
-		{ 0 * 8, 3 * 16, 30 * 8, 16 },
-		"-"
-	};*/
 	
 	MessageHandlerRegistration message_handler_frame {
 		Message::ID::ADSBFrame,

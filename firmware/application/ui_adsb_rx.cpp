@@ -74,8 +74,109 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, target_color, style.background);
 }
 
+void ADSBRxDetailsView::focus() {
+	button_see_map.focus();
+}
+
+void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
+	entry_copy = entry;
+	
+	uint32_t age = entry_copy.age;
+	
+	if (age < 60)
+		text_last_seen.set(to_string_dec_uint(age) + " seconds ago");
+	else
+		text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
+	
+	text_infos.set(entry_copy.info_string);
+	
+	text_frame_pos_even.set(to_string_hex_array(entry_copy.frame_pos_even.get_raw_data(), 14));
+	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
+	
+	if (send_updates)
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude);
+}
+
+ADSBRxDetailsView::~ADSBRxDetailsView() {
+	on_close_();
+}
+
+ADSBRxDetailsView::ADSBRxDetailsView(
+	NavigationView& nav,
+	const AircraftRecentEntry& entry,
+	const std::function<void(void)> on_close
+) : entry_copy(entry),
+	on_close_(on_close)
+{
+	char file_buffer[32] { 0 };
+	bool found = false;
+	std::string airline_code;
+	size_t c;
+	
+	add_children({
+		&labels,
+		&text_callsign,
+		&text_last_seen,
+		&text_airline,
+		&text_country,
+		&text_infos,
+		&text_frame_pos_even,
+		&text_frame_pos_odd,
+		&button_see_map
+	});
+	
+	update(entry_copy);
+	
+	// The following won't (shouldn't !) change for a given airborne aircraft
+	// Try getting the airline's name from airlines.db
+	auto result = db_file.open("ADSB/airlines.db");
+	if (!result.is_valid()) {
+		// Search for 3-letter code in 0x0000~0x2000
+		airline_code = entry_copy.callsign.substr(0, 3);
+		c = 0;
+		do {
+			db_file.read(file_buffer, 4);
+			if (!file_buffer[0])
+				break;
+			if (!airline_code.compare(0, 4, file_buffer))
+				found = true;
+			else
+				c++;
+		} while (!found);
+		
+		if (found) {
+			db_file.seek(0x2000 + (c << 6));
+			db_file.read(file_buffer, 32);
+			text_airline.set(file_buffer);
+			db_file.read(file_buffer, 32);
+			text_country.set(file_buffer);
+		} else {
+			text_airline.set("Unknown");
+			text_country.set("Unknown");
+		}
+	} else {
+		text_airline.set("No airlines.db file");
+		text_country.set("No airlines.db file");
+	}
+	
+	text_callsign.set(entry_copy.callsign);
+	
+	button_see_map.on_select = [this, &nav](Button&) {
+		geomap_view = nav.push<GeoMapView>(
+			entry_copy.callsign,
+			entry_copy.pos.altitude,
+			entry_copy.pos.latitude,
+			entry_copy.pos.longitude,
+			0,
+			[this]() {
+				send_updates = false;
+			});
+		send_updates = true;
+	};
+};
+
 void ADSBRxView::focus() {
-	field_lna.focus();
+	field_vga.focus();
 }
 
 ADSBRxView::~ADSBRxView() {
@@ -123,8 +224,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					
 					entry.set_info_string(str_info);
 					
-					if (geomap_view)
-						geomap_view->update_pos(entry.pos.latitude, entry.pos.longitude);
+					if (send_updates)
+						details_view->update(entry);
 				}
 			}
 		}
@@ -138,6 +239,8 @@ void ADSBRxView::on_tick_second() {
 		entry.inc_age();
 		if ((entry.age == 10) || (entry.age == 30))
 			recent_entries_view.set_dirty();
+		if (details_view && send_updates && (entry.key() == detailed_entry_key))
+			details_view->update(entry);
 	}
 }
 
@@ -149,24 +252,18 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		&rssi,
 		&field_lna,
 		&field_vga,
-		//&text_debug_a,
-		//&text_debug_b,
-		//&text_debug_c,
 		&recent_entries_view
 	});
 	
-	recent_entries_view.set_parent_rect({ 0, 64, 240, 224 });
+	recent_entries_view.set_parent_rect({ 0, 16, 240, 272 });
 	recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
-		//text_debug_a.set(entry.info_string);
-		//text_debug_b.set(to_string_hex_array(entry.frame_pos_even.get_raw_data(), 14));
-		//text_debug_c.set(to_string_hex_array(entry.frame_pos_odd.get_raw_data(), 14));
-		
-		geomap_view = nav.push<GeoMapView>(
-			entry.callsign,
-			entry.pos.altitude,
-			entry.pos.latitude,
-			entry.pos.longitude,
-			0.0);
+		detailed_entry_key = entry.key();
+		details_view = nav.push<ADSBRxDetailsView>(
+			entry,
+			[this]() {
+				send_updates = false;
+			});
+		send_updates = true;
 	};
 	
 	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {

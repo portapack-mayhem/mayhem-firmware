@@ -9,6 +9,7 @@
 /firmware/application/portapack_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.hpp
+/sdcard/ADSB/world_map.bin
 
 # Compiled Object files
 *.slo

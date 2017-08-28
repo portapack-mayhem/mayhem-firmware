@@ -129,8 +129,22 @@ private:
 
 class GeoMapView : public View {
 public:
-	GeoMapView(NavigationView& nav, const std::string& tag, int32_t altitude, float lat, float lon, float angle);
-	GeoMapView(NavigationView& nav, int32_t altitude, float lat, float lon, const std::function<void(int32_t, float, float)> on_done);
+	GeoMapView(
+		NavigationView& nav,
+		const std::string& tag,
+		int32_t altitude,
+		float lat,
+		float lon,
+		float angle,
+		const std::function<void(void)> on_close
+	);
+	GeoMapView(NavigationView& nav,
+		int32_t altitude,
+		float lat,
+		float lon,
+		const std::function<void(int32_t, float, float)> on_done
+	);
+	~GeoMapView();
 	
 	GeoMapView(const GeoMapView&) = delete;
 	GeoMapView(GeoMapView&&) = delete;
@@ -139,7 +153,7 @@ public:
 	
 	void focus() override;
 	
-	void update_pos(float lat, float lon);
+	void update_position(float lat, float lon);
 	
 	std::string title() const override { return "Map view"; };
 
@@ -156,6 +170,7 @@ private:
 	float lat_ { };
 	float lon_ { };
 	float angle_ { };
+	std::function<void(void)> on_close_ { nullptr };
 	
 	bool file_error { };
 	
