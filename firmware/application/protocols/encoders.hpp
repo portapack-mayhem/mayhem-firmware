@@ -29,6 +29,7 @@
 namespace encoders {
 	
 	#define ENC_TYPES_COUNT 14
+	#define OOK_SAMPLERATE 2280000U
 
 	struct encoder_def_t {
 		std::string name;						// Encoder chip ref/name

@@ -219,6 +219,8 @@ void GeoMapView::focus() {
 void GeoMapView::update_position(float lat, float lon) {
 	lat_ = lat;
 	lon_ = lon;
+	geopos.set_lat(lat_);
+	geopos.set_lon(lon_);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();
 }

@@ -24,13 +24,27 @@
 #define __UI_ABOUT_H__
 
 #include "ui_widget.hpp"
-#include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 #include <cstdint>
 
 namespace ui {
+
+class CreditsWidget : public Widget {
+public:
+	CreditsWidget(Rect parent_rect);
+	
+	void on_show() override;
+	void on_hide() override;
+
+	void paint(Painter&) override;
+	
+	void new_row(const std::array<Color, 240>& pixel_row);
+
+private:
+	void clear();
+};
 
 class AboutView : public View {
 public:
@@ -43,33 +57,14 @@ public:
 private:
 	void update();
 
-	uint8_t credits_index = 0;
-	uint32_t scroll = 0;
-	bool second = false;
-	bool line_feed = false;
+	uint8_t credits_index { 0 };
+	uint8_t render_line { 0 };
+	Coord start_pos { 0 };
+	uint8_t slow_down { 0 };
+	int32_t timer { 0 };
+	bool loop { false };
 	
-	Style styles[4] = { style_black, style_dark_grey, style_light_grey, style_white };
-	
-	static constexpr Style style_white {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(255, 255, 255)
-	};
-	static constexpr Style style_light_grey {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(170, 170, 170)
-	};
-	static constexpr Style style_dark_grey {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(85, 85, 85)
-	};
-	static constexpr Style style_black {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color(0, 0, 0)
-	};
+	std::string text { };
 
 	enum flags {
 		SECTION = 0,
@@ -81,30 +76,35 @@ private:
 	};
 		
 	typedef struct credits_t {
-		std::string role;
-		std::string name;
-		flags flag;
+		size_t start_pos;
+		std::string text;
+		int32_t delay;
 	} credits_t;
 	
-	const credits_t credits[16] = {	{"Portapack|HAVOC", 	"Git hash " GIT_REVISION,	SECTION},
-									{"Gurus",				"J. Boone", 				TITLE},
-									{"M. Ossmann",			"", 						MEMBER_LF},
-									{"HAVOC",				"Furrtek", 					TITLE_LF},
-									{"POCSAG rx",			"T. Sailer", 				TITLE},
-									{"E. Oenal",			"", 						MEMBER_LF},
-									{"RDS waveform",		"C. Jacquet", 				TITLE_LF},
-									{"Xy. infos",			"cLx", 						TITLE_LF},
-									{"World map",			"NASA", 					TITLE_LF},
-									{"Thanks",				"",							SECTION},
-									{"Rainer Matla",		"Keld Norman",				TITLE},
-									{"Giorgio C.",			"DC1RDB",					TITLE},
-									{"Sigmounte",			"Waax",						TITLE},
-									{"Windyoona",			"Channels",					TITLE},
-									{"F4GEV",				"",							TITLE_LF},
-									{"",					"MMXVII",					END}
-									};
-
-	std::array<Text, 10> text_line { };
+	const credits_t credits[19] = {	
+		{ 60,		"PortaPack|HAVOC",				0 },
+		{ 7 * 8,	"Git hash " GIT_REVISION,		16 },
+		{ 9 * 8,	"Gurus  J. Boone",				0 },
+		{ 16 * 8,	"M. Ossmann",					16 },
+		{ 9 * 8,	"HAVOC  Furrtek",				16 },
+		{ 5 * 8,	"POCSAG rx  T. Sailer",			0 },
+		{ 16 * 8,	"E. Oenal",						16 },
+		{ 2 * 8,	"RDS waveform  C. Jacquet", 	16 },
+		{ 5 * 8,	"Xy. infos  cLx", 				16 },
+		{ 0,		"OOK scan trick  Samy Kamkar",	16 },
+		{ 5 * 8,	"World map  NASA", 				24 },
+		{ 12 * 8,	"Thanks",						16 },
+		{ 1 * 8,	"Rainer Matla     Keld Norman",	0 },
+		{ 1 * 8,	" Giorgio C.         DC1RDB",	0 },
+		{ 1 * 8,	" Sigmounte           Waax",	0 },
+		{ 1 * 8,	" Windyoona         Channels",	0 },
+		{ 1 * 8,	"   F4GEV",						24 },
+		{ 12 * 8,	"MMXVII",						-1 }
+	};
+	
+	CreditsWidget credits_display {
+		{ 0, 16, 240, 240 }
+	};
 
 	Button button_ok {
 		{ 72, 272, 96, 24 },

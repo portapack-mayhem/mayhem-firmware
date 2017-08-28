@@ -21,37 +21,151 @@
  */
 
 #include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
-#include "ui_receiver.hpp"
+#include "ui_tabview.hpp"
 #include "ui_transmitter.hpp"
+#include "transmitter_model.hpp"
 #include "encoders.hpp"
 #include "de_bruijn.hpp"
-#include "message.hpp"
-#include "transmitter_model.hpp"
 
 using namespace encoders;
 
 namespace ui {
+
+class EncodersConfigView : public View {
+public:
+	EncodersConfigView(NavigationView& nav, Rect parent_rect);
+	
+	EncodersConfigView(const EncodersConfigView&) = delete;
+	EncodersConfigView(EncodersConfigView&&) = delete;
+	EncodersConfigView& operator=(const EncodersConfigView&) = delete;
+	EncodersConfigView& operator=(EncodersConfigView&&) = delete;
+	
+	void focus() override;
+	void on_show() override;
+	
+	uint8_t repeat_min();
+	uint32_t samples_per_bit();
+	uint32_t pause_symbols();
+	void generate_frame();
+	
+	std::string frame_symbols = "0";
+
+private:
+	//bool abort_scan = false;
+	//uint8_t scan_count;
+	//double scan_progress;
+	//unsigned int scan_index;
+	int8_t waveform_buffer[512];
+	const encoder_def_t * encoder_def { };
+	//uint8_t enc_type = 0;
+
+	void draw_waveform();
+	void on_bitfield();
+	void on_type_change(size_t index);
+	
+	Labels labels {
+		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },
+		{ { 16 * 8, 0 }, "Clk:", Color::light_grey() },
+		{ { 24 * 8, 0 }, "kHz", Color::light_grey() },
+		{ { 16 * 8, 2 * 8 }, "Bit:", Color::light_grey() },
+		{ { 25 * 8, 2 * 8 }, "us", Color::light_grey() },
+		{ { 15 * 8, 4 * 8 }, "Word:", Color::light_grey() },
+		{ { 26 * 8, 4 * 8 }, "us", Color::light_grey() },
+		{ { 2 * 8, 6 * 8 }, "Word:", Color::light_grey() },
+		{ { 1 * 8, 13 * 8 }, "Waveform:", Color::light_grey() }
+	};
+
+	OptionsField options_enctype {		// Options are loaded at runtime
+		{ 6 * 8, 0 },
+		7,
+		{
+		}
+	};
+
+	NumberField numberfield_clk {
+		{ 21 * 8, 0 },
+		3,
+		{ 1, 500 },
+		1,
+		' '
+	};
+
+	NumberField numberfield_bitduration {
+		{ 21 * 8, 2 * 8 },
+		4,
+		{ 50, 9999 },
+		1,
+		' '
+	};
+
+	NumberField numberfield_wordduration {
+		{ 21 * 8, 4 * 8 },
+		5,
+		{ 300, 99999 },
+		100,
+		' '
+	};
+	
+	SymField symfield_word {
+		{ 2 * 8, 8 * 8 },
+		20,
+		SymField::SYMFIELD_DEF
+	};
+	
+	Text text_format {
+		{ 2 * 8, 10 * 8, 24 * 8, 16 },
+		""
+	};
+	
+	Waveform waveform {
+		{ 0, 16 * 8, 240, 32 },
+		waveform_buffer,
+		0,
+		0,
+		true,
+		Color::yellow()
+	};
+};
+
+
+class EncodersScanView : public View {
+public:
+	EncodersScanView(NavigationView& nav, Rect parent_rect);
+	
+	void focus() override;
+
+private:
+	Labels labels {
+		{ { 1 * 8, 1 * 8 }, "Test", Color::light_grey() }
+	};
+	
+	// DEBUG
+	NumberField field_debug {
+		{ 1 * 8, 6 * 8 },
+		2,
+		{ 3, 16 },
+		1,
+		' '
+	};
+	
+	// DEBUG
+	Text text_debug {
+		{ 1 * 8, 8 * 8, 24 * 8, 16 },
+		""
+	};
+};
 
 class EncodersView : public View {
 public:
 	EncodersView(NavigationView& nav);
 	~EncodersView();
 	
-	EncodersView(const EncodersView&) = delete;
-	EncodersView(EncodersView&&) = delete;
-	EncodersView& operator=(const EncodersView&) = delete;
-	EncodersView& operator=(EncodersView&&) = delete;
-	
 	void focus() override;
-	void on_show() override;
 	
-	std::string title() const override { return "Encoders TX"; };
+	std::string title() const override { return "OOK transmit"; };
 
 private:
-	void on_tuning_frequency_changed(rf::Frequency f);
+	NavigationView& nav_;
 
 	enum tx_modes {
 		IDLE = 0,
@@ -59,35 +173,13 @@ private:
 		SCAN
 	};
 	
-	uint8_t enc_type = 0;
-	const encoder_def_t * encoder_def { };
 	tx_modes tx_mode = IDLE;
-	//bool abort_scan = false;
-	//uint8_t scan_count;
-	//double scan_progress;
-	//unsigned int scan_index;
-	std::string debug_text = "0";
 	uint8_t repeat_index { 0 };
-	int8_t waveform_buffer[512];
+	uint8_t repeat_min { 0 };
 	
-	void draw_waveform();
-	void on_bitfield();
-	void on_type_change(size_t index);
-	void generate_frame();
 	void update_progress();
 	void start_tx(const bool scan);
 	void on_txdone(int n, const bool txdone);
-	
-	const Style style_val {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::green(),
-	};
-	const Style style_cancel {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::red(),
-	};
 	
 	const Style style_address {
 		.font = font::fixed_8x16,
@@ -100,85 +192,21 @@ private:
 		.foreground = Color::blue(),
 	};
 	
-	Labels labels {
-		{ { 1 * 8, 4 * 8 }, "Type:", Color::light_grey() },
-		{ { 16 * 8, 4 * 8 }, "Clk:", Color::light_grey() },
-		{ { 24 * 8, 4 * 8 }, "kHz", Color::light_grey() },
-		{ { 16 * 8, 6 * 8 }, "Bit:", Color::light_grey() },
-		{ { 25 * 8, 6 * 8 }, "us", Color::light_grey() },
-		{ { 15 * 8, 8 * 8 }, "Word:", Color::light_grey() },
-		{ { 26 * 8, 8 * 8 }, "us", Color::light_grey() },
-		{ { 2 * 8, 10 * 8 }, "Word:", Color::light_grey() },
-		{ { 1 * 8, 17 * 8 }, "Waveform:", Color::light_grey() }
+	Rect view_rect = { 0, 5 * 8, 240, 168 };
+	
+	EncodersConfigView view_config { nav_, view_rect };
+	EncodersScanView view_scan { nav_, view_rect };
+	
+	TabView tab_view {
+		{ "Config", Color::cyan(), &view_config },
+		{ "Scan", Color::green(), &view_scan },
 	};
 
-	OptionsField options_enctype {		// Options are loaded at runtime
-		{ 6 * 8, 32 },
-		7,
-		{
-		}
-	};
-
-	NumberField numberfield_clk {
-		{ 21 * 8, 4 * 8 },
-		3,
-		{ 1, 500 },
-		1,
-		' '
-	};
-
-	NumberField numberfield_bitduration {
-		{ 21 * 8, 6 * 8 },
-		4,
-		{ 50, 9999 },
-		1,
-		' '
-	};
-
-	NumberField numberfield_wordduration {
-		{ 21 * 8, 8 * 8 },
-		5,
-		{ 300, 99999 },
-		100,
-		' '
-	};
-	
-	// DEBUG
-	/*NumberField field_debug {
-		{ 21 * 8, 10 * 8 },
-		2,
-		{ 3, 16 },
-		1,
-		' '
-	};*/
-	
-	SymField symfield_word {
-		{ 2 * 8, 12 * 8 },
-		20,
-		SymField::SYMFIELD_DEF
-	};
-	Text text_format {
-		{ 2 * 8, 14 * 8, 24 * 8, 16 },
-		""
-	};
-	
-	//Text text_format_a;	// DEBUG
-	//Text text_format_d;	// DEBUG
-	
-	Waveform waveform {
-		{ 0, 160, 240, 32 },
-		waveform_buffer,
-		0,
-		0,
-		true,
-		Color::yellow()
-	};
-	
 	Text text_status {
 		{ 2 * 8, 13 * 16, 128, 16 },
 		"Ready"
 	};
-
+	
 	ProgressBar progress {
 		{ 2 * 8, 13 * 16 + 20, 208, 16 }
 	};

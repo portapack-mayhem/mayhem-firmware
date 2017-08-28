@@ -98,7 +98,7 @@ void OOKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const OOKConfigureMessage*>(p);
 	
 	if (message.id == Message::ID::OOKConfigure) {
-		samples_per_bit = message.samples_per_bit;
+		samples_per_bit = message.samples_per_bit / 10;
 		repeat = message.repeat - 1;
 		length = message.stream_length - 1;
 		pause = message.pause_symbols + 1;

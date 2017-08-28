@@ -38,111 +38,100 @@ using namespace portapack;
 
 namespace ui {
 
-void AboutView::update() {
-	size_t c;
-	int32_t n;
-	std::string text;
-	Coord y_val, x_pos = 0;
-	uint32_t flag;
-	
-	if (scroll & 1) {
-		if (!((scroll >> 1) & 15)) {
-			if (line_feed) {
-				line_feed = false;
-			} else {
-				// Find a free text widget
-				for (c = 0; c < 10; c++)
-					if (text_line[c].screen_pos().y() >= 200) break;
-				
-				if (c < 10) {
-					flag = credits[credits_index].flag & 0x3F;
-					line_feed = (credits[credits_index].flag & 0x40) ? true : false;
-					
-					if (flag == SECTION) {
-						if (!second) {
-							text = credits[credits_index].role;
-							if (credits[credits_index].name != "")
-								second = true;
-							else {
-								credits_index++;
-								line_feed = true;
-							}
-						} else {
-							text = credits[credits_index].name;
-							second = false;
-							line_feed = true;
-							credits_index++;
-						}
-						x_pos = (240 - (text.size() * 8)) / 2;
-					} else if (flag == TITLE) {
-						text = credits[credits_index].role;
-						x_pos = 120 - (text.size() * 8);
-						if (credits[credits_index].name != "")
-							text += "  " + credits[credits_index].name;
-						credits_index++;
-					} else if (flag == MEMBER) {
-						if (!second) {
-							text = credits[credits_index].role;
-							if (credits[credits_index].name != "")
-								second = true;
-							else
-								credits_index++;
-						} else {
-							text = credits[credits_index].name;
-							second = false;
-							credits_index++;
-						}
-						x_pos = 136;
-					}
-					
-					if (!(flag & 0x80)) {
-						text_line[c].set_parent_rect({{ x_pos, 200 - 16 }, { (Dim)text.size() * 8, 17 }});
-						text_line[c].set(text);
-						text_line[c].hidden(false);
-					}
-				}
-			}
-		}
+// This is pretty much WaterfallView but in the opposite direction
+CreditsWidget::CreditsWidget(
+	Rect parent_rect
+) : Widget { parent_rect }
+{
+}
 
-		// Scroll text lines
-		for (c = 0; c < 10; c++) {
-			y_val = text_line[c].screen_pos().y() - 16;
-			if (y_val < 32) {
-				text_line[c].set_parent_rect({{ text_line[c].screen_pos().x(), 200 }, { text_line[c].size() }});
-				text_line[c].hidden(true);
-			} else {
-				if (y_val < 200) {
-					text_line[c].set_parent_rect({{ text_line[c].screen_pos().x(), y_val - 1 }, { text_line[c].size() }});
-					n = (y_val - 32) >> 2;
-					if (n > 19)
-						n = (38 - n);
-					else
-						n -= 3;
-					if (n > 3) n = 3;
-					if (n < 0) n = 0;
-					text_line[c].set_style(&styles[n]);
-				}
-			}
+void CreditsWidget::paint(Painter&) {
+}
+
+void CreditsWidget::on_show() {
+	clear();
+
+	const auto screen_r = screen_rect();
+	display.scroll_set_area(screen_r.top(), screen_r.bottom());
+}
+
+void CreditsWidget::on_hide() {
+	display.scroll_disable();
+}
+
+void CreditsWidget::new_row(
+	const std::array<Color, 240>& pixel_row
+) {
+	const auto draw_y = display.scroll(-1);
+	
+	display.draw_pixels(
+		{ { 0, draw_y }, { 240, 1 } },
+		pixel_row
+	);
+}
+
+void CreditsWidget::clear() {
+	display.fill_rectangle(
+		screen_rect(),
+		Color::black()
+	);
+}
+
+void AboutView::update() {
+	size_t i = 0;
+	std::array<Color, 240> pixel_row;
+	
+	slow_down++;
+	if (slow_down & 1) return;
+	
+	if (!timer) {
+		if (loop) {
+			credits_index = 0;
+			loop = false;
 		}
+		
+		text = credits[credits_index].text;
+		timer = credits[credits_index].delay;
+		start_pos = credits[credits_index].start_pos;
+		
+		if (timer < 0) {
+			timer = 240;
+			loop = true;
+		} else {
+			timer += 16;
+		}
+		
+		render_line = 0;
+		credits_index++;
+	} else
+		timer--;
+	
+	if (render_line < 16) {
+		for (const auto c : text) {
+			const auto glyph = style().font.glyph(c);
+			
+			const size_t start = (glyph.size().width() / 8) * render_line; 
+			for(Dim c=0; c<glyph.size().width(); c++) {
+				const auto pixel = glyph.pixels()[start + (c >> 3)] & (1U << (c & 0x7));
+				pixel_row[start_pos + i + c] = pixel ? Color::white() : Color::black();
+			}
+			
+			const auto advance = glyph.advance();
+			i += advance.x();
+		}
+		render_line++;
 	}
-	scroll++;
+	
+	credits_display.new_row(pixel_row);
 }
 
 AboutView::AboutView(
 	NavigationView& nav
-)
-{
-	add_child(&button_ok);
-	
-	for (auto& text : text_line) {
-		text.set("");
-		text.set_parent_rect({
-			static_cast<Coord>(0),
-			static_cast<Coord>(200),
-			0, 0
-		});
-		add_child(&text);
-	}
+) {
+	add_children({
+		&credits_display,
+		&button_ok
+	});
 
 	button_ok.on_select = [&nav](Button&){
 		nav.pop();
