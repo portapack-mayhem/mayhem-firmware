@@ -93,9 +93,9 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void AFSKProcessor::on_message(const Message* const msg) {
-	const auto message = *reinterpret_cast<const AFSKConfigureMessage*>(msg);
+	const auto message = *reinterpret_cast<const AFSKTxConfigureMessage*>(msg);
 	
-	if (message.id == Message::ID::AFSKConfigure) {
+	if (message.id == Message::ID::AFSKTxConfigure) {
 		if (message.samples_per_bit) {
 			afsk_samples_per_bit = message.samples_per_bit;
 			afsk_phase_inc_mark = message.phase_inc_mark * AFSK_DELTA_COEF;

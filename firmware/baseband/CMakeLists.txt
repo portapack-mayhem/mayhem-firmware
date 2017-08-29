@@ -294,7 +294,14 @@ DeclareTargets(PADT adsbtx)
 set(MODE_CPPSRC
 	proc_afsk.cpp
 )
-DeclareTargets(PAFS afsk)
+DeclareTargets(PAFT afsktx)
+
+### AFSK RX
+
+set(MODE_CPPSRC
+	proc_afskrx.cpp
+)
+DeclareTargets(PAFR afskrx)
 
 ### AIS
 

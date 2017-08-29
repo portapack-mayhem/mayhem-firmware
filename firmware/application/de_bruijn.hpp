@@ -25,7 +25,7 @@
 #ifndef __DE_BRUIJN_H__
 #define __DE_BRUIJN_H__
 
-// Starts at n = 3
+// n from 3 to 16
 const uint32_t de_bruijn_polys[14] {
 	0b0000000000000101,
 	0b0000000000001001,
@@ -45,7 +45,7 @@ const uint32_t de_bruijn_polys[14] {
 
 struct de_bruijn {
 public:
-	void init(const uint32_t n);
+	size_t init(const uint32_t n);
 	uint32_t compute(const uint32_t steps);
 
 private:

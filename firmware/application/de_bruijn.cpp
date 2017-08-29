@@ -26,10 +26,10 @@
  * B(2,4) means:
  * 	Alphabet size = 2 (binary)
  * 	Code length = 4
- * The length of the bitstream is (2 ^ 4) - 1 = 15
+ * The length of the bitstream is (2 ^ 4) + (4 - 1) = 19 bits
  * The primitive polynomials come from the de_bruijn_polys[] array (one for each code length)
  * The shift register is init with 1 and shifted left each step
- * The polynomial is kept on the right, and ANDed with the corresponding shift register bits
+ * The polynomial is kept on the right, and used as a AND mask applied on the corresponding shift register bits
  * The resulting bits are XORed together to produce the new bit pushed in the shift register
  * 
  * 		0001 (init)
@@ -52,9 +52,28 @@
  * AND	    1001
  *          1000 XOR'd -> 1
  * ...
+ * After 16 steps: (0+) 000111101011001000
+ * Each of the 16 possible values appears in the sequence:
+ * -0000-111101011001000 0
+ * 0-0001-11101011001000 1
+ * 0000111101011-0010-00 2
+ * 00-0011-1101011001000 3
+ * 00001111010110-0100-0 4
+ * 00001111-0101-1001000 5
+ * 0000111101-0110-01000 6
+ * 000-0111-101011001000 7
+ * 000011110101100-1000- 8
+ * 000011110101-1001-000 9
+ * 0000111-1010-11001000 10
+ * 000011110-1011-001000 11
+ * 00001111010-1100-1000 12
+ * 000011-1101-011001000 13
+ * 00001-1110-1011001000 14
+ * 0000-1111-01011001000 15
  */
 
-void de_bruijn::init(const uint32_t n) {
+size_t de_bruijn::init(const uint32_t n) {
+	// Cap
 	if ((n < 3) || (n > 16))
 		length = 3;
 	else
@@ -62,6 +81,8 @@ void de_bruijn::init(const uint32_t n) {
 	
 	poly = de_bruijn_polys[length - 3];
 	shift_register = 1;
+	
+	return (1U << length) + (length - 1);
 }
 
 uint32_t de_bruijn::compute(const uint32_t steps) {

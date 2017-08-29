@@ -64,16 +64,6 @@ private:
 	bool ignore { false };
 	uint32_t last_address = 0xFFFFFFFF;
 	pocsag::POCSAGState pocsag_state { };
-	
-	MessageHandlerRegistration message_handler_packet {
-		Message::ID::POCSAGPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const POCSAGPacketMessage*>(p);
-			this->on_packet(message);
-		}
-	};
-
-	static constexpr ui::Dim header_height = 1 * 16;
 
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
@@ -138,6 +128,14 @@ private:
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);
+	
+	MessageHandlerRegistration message_handler_packet {
+		Message::ID::POCSAGPacket,
+		[this](Message* const p) {
+			const auto message = static_cast<const POCSAGPacketMessage*>(p);
+			this->on_packet(message);
+		}
+	};
 };
 
 } /* namespace ui */

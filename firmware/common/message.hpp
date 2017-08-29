@@ -71,12 +71,13 @@ public:
 		CaptureThreadDone = 18,
 		ReplayConfig = 19,
 		ReplayThreadDone = 20,
+		AFSKRxConfigure = 21,
 
 		TXDone = 30,
 		Retune = 31,
 		
 		TonesConfigure = 32,
-		AFSKConfigure = 33,
+		AFSKTxConfigure = 33,
 		PWMRSSIConfigure = 34,
 		OOKConfigure = 35,
 		RDSConfigure = 36,
@@ -93,11 +94,12 @@ public:
 		
 		POCSAGPacket = 50,
 		ADSBFrame = 51,
+		AFSKData = 52,
 		
-		RequestSignal = 52,
-		FIFOData = 53,
+		RequestSignal = 60,
+		FIFOData = 61,
 		
-		AudioLevel = 54,
+		AudioLevelReport = 70,
 		MAX
 	};
 
@@ -329,6 +331,18 @@ public:
 	}
 	
 	adsb::ADSBFrame frame;
+};
+
+class AFSKDataMessage : public Message {
+public:
+	constexpr AFSKDataMessage(
+		const uint_fast8_t byte
+	) : Message { ID::AFSKData },
+		byte { byte }
+	{
+	}
+	
+	uint_fast8_t byte;
 };
 
 class ShutdownMessage : public Message {
@@ -598,7 +612,17 @@ public:
 	bool done = false;
 };
 
-
+class AFSKRxConfigureMessage : public Message {
+public:
+	constexpr AFSKRxConfigureMessage(
+		const uint32_t bitrate
+	) : Message { ID::AFSKRxConfigure },
+		bitrate(bitrate)
+	{
+	}
+	
+	const uint32_t bitrate;
+};
 
 class PWMRSSIConfigureMessage : public Message {
 public:
@@ -665,10 +689,10 @@ public:
 	uint32_t range = 0;
 };
 
-class AudioLevelMessage : public Message {
+class AudioLevelReportMessage : public Message {
 public:
-	constexpr AudioLevelMessage(
-	) : Message { ID::AudioLevel }
+	constexpr AudioLevelReportMessage(
+	) : Message { ID::AudioLevelReport }
 	{
 	}
 	
@@ -729,16 +753,16 @@ public:
 	const uint32_t tone_delta;
 };
 
-class AFSKConfigureMessage : public Message {
+class AFSKTxConfigureMessage : public Message {
 public:
-	constexpr AFSKConfigureMessage(
+	constexpr AFSKTxConfigureMessage(
 		const uint32_t samples_per_bit,
 		const uint32_t phase_inc_mark,
 		const uint32_t phase_inc_space,
 		const uint8_t repeat,
 		const uint32_t fm_delta,
 		const uint8_t symbol_count
-	) : Message { ID::AFSKConfigure },
+	) : Message { ID::AFSKTxConfigure },
 		samples_per_bit(samples_per_bit),
 		phase_inc_mark(phase_inc_mark),
 		phase_inc_space(phase_inc_space),

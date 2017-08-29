@@ -67,12 +67,10 @@ private:
 		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },
 		{ { 16 * 8, 0 }, "Clk:", Color::light_grey() },
 		{ { 24 * 8, 0 }, "kHz", Color::light_grey() },
-		{ { 16 * 8, 2 * 8 }, "Bit:", Color::light_grey() },
-		{ { 25 * 8, 2 * 8 }, "us", Color::light_grey() },
-		{ { 15 * 8, 4 * 8 }, "Word:", Color::light_grey() },
-		{ { 26 * 8, 4 * 8 }, "us", Color::light_grey() },
-		{ { 2 * 8, 6 * 8 }, "Word:", Color::light_grey() },
-		{ { 1 * 8, 13 * 8 }, "Waveform:", Color::light_grey() }
+		{ { 14 * 8, 2 * 8 }, "Frame:", Color::light_grey() },
+		{ { 26 * 8, 2 * 8 }, "us", Color::light_grey() },
+		{ { 2 * 8, 4 * 8 }, "Symbols:", Color::light_grey() },
+		{ { 1 * 8, 11 * 8 }, "Waveform:", Color::light_grey() }
 	};
 
 	OptionsField options_enctype {		// Options are loaded at runtime
@@ -82,7 +80,7 @@ private:
 		}
 	};
 
-	NumberField numberfield_clk {
+	NumberField field_clk {
 		{ 21 * 8, 0 },
 		3,
 		{ 1, 500 },
@@ -90,16 +88,8 @@ private:
 		' '
 	};
 
-	NumberField numberfield_bitduration {
+	NumberField field_frameduration {
 		{ 21 * 8, 2 * 8 },
-		4,
-		{ 50, 9999 },
-		1,
-		' '
-	};
-
-	NumberField numberfield_wordduration {
-		{ 21 * 8, 4 * 8 },
 		5,
 		{ 300, 99999 },
 		100,
@@ -107,18 +97,18 @@ private:
 	};
 	
 	SymField symfield_word {
-		{ 2 * 8, 8 * 8 },
+		{ 2 * 8, 6 * 8 },
 		20,
 		SymField::SYMFIELD_DEF
 	};
 	
 	Text text_format {
-		{ 2 * 8, 10 * 8, 24 * 8, 16 },
+		{ 2 * 8, 8 * 8, 24 * 8, 16 },
 		""
 	};
 	
 	Waveform waveform {
-		{ 0, 16 * 8, 240, 32 },
+		{ 0, 14 * 8, 240, 32 },
 		waveform_buffer,
 		0,
 		0,
@@ -136,7 +126,7 @@ public:
 
 private:
 	Labels labels {
-		{ { 1 * 8, 1 * 8 }, "Test", Color::light_grey() }
+		{ { 1 * 8, 1 * 8 }, "Coming soon...", Color::light_grey() }
 	};
 	
 	// DEBUG
@@ -151,6 +141,12 @@ private:
 	// DEBUG
 	Text text_debug {
 		{ 1 * 8, 8 * 8, 24 * 8, 16 },
+		""
+	};
+	
+	// DEBUG
+	Text text_length {
+		{ 1 * 8, 10 * 8, 24 * 8, 16 },
 		""
 	};
 };
@@ -192,7 +188,7 @@ private:
 		.foreground = Color::blue(),
 	};
 	
-	Rect view_rect = { 0, 5 * 8, 240, 168 };
+	Rect view_rect = { 0, 4 * 8, 240, 168 };
 	
 	EncodersConfigView view_config { nav_, view_rect };
 	EncodersScanView view_scan { nav_, view_rect };

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,90 +21,93 @@
  */
 
 #include "proc_afskrx.hpp"
-#include "sine_table.hpp"
 #include "portapack_shared_memory.hpp"
 
-using namespace lpc43xx;
+#include "event_m4.hpp"
 
-void AFSKRXProcessor::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
-		return;
-	}
-	/* Called every 2048/3072000 second -- 1500Hz. */
+#include <cstdint>
+#include <cstddef>
+
+void AFSKRxProcessor::execute(const buffer_c8_t& buffer) {
+	// This is called at 1500Hz
+
+	if (!configured) return;
 	
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 
-	auto audio = demod.execute(channel_out, work_audio_buffer);
+	feed_channel_stats(channel_out);
+	
+	auto audio = demod.execute(channel_out, audio_buffer);
 
-	/*static uint64_t audio_present_history = 0;
-	const auto audio_present_now = squelch.execute(audio);
-	audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
-	const bool audio_present = (audio_present_history != 0);
-*/
-	//if( !audio_present ) {
-		// Zero audio buffer.
-		/*for(size_t i=0; i<audio.count; i++) {
-			if ((i % 3) > 1)
-				audio.p[i] = 4096;
+	for (size_t c = 0; c < audio.count; c++) {
+
+		const int32_t sample_int = audio.p[c] * 32768.0f;
+		const int32_t audio_sample = __SSAT(sample_int, 16);
+		
+		/*slicer_sr <<= 1;
+		slicer_sr |= (audio_sample < 0);		// Do we need hysteresis ?
+
+		// Detect transitions to adjust clock
+		if ((slicer_sr ^ (slicer_sr >> 1)) & 1) {
+			if (sphase < (0x8000u - sphase_delta_half))
+				sphase += sphase_delta_eighth;
 			else
-				audio.p[i] = -4096;
-		}*/
-	//}
-
-	//audio_hpf.execute_in_place(audio);
-
-	for(size_t i=0; i<audio.count; i++) {
-		if (spur > 10) {
-			if (audio.p[i] > 2000)
-				sign = 1;
-			if (audio.p[i] < -2000)
-				sign = 0;
-			spur = 0;
-		} else {
-			spur++;
+				sphase -= sphase_delta_eighth;
 		}
-		if (sign != prev_sign) {
-			if (freq_timer < 15)		// 48
-				bit = 0;
-			else
-				bit++;
-			freq_timer = 0;
-		}
-		prev_sign = sign;
-		if (freq_timer < 1000) freq_timer++;	// TODO: Limit in a more intelligent way
+		
+		sphase += sphase_delta;*/
+		
+		// Symbol time elapsed
+		//if (sphase >= 0x10000u) {
+		//	sphase &= 0xFFFFu;
+			
+			rx_data <<= 1;
+			rx_data |= 1;
+			
+			bit_count++;
+			if (bit_count == 8) {
+				data_message.byte = rx_data;
+				shared_memory.application_queue.push(data_message);
+				bit_count = 0;
+			}
+		//}
 	}
-	
-	if (bit_timer >= 40) {
-		bit_timer = 0;
-		// Check bit state here !
-	} else {
-		bit_timer++;
-	}
-	
-    if (sc >= 600) {
-		sc = 0;
-		//AFSKDataMessage message;
-		//memcpy(message.data,aud,128*2);
-		//shared_memory.application_queue.push(message);
-		audc = 0;
-	} else {
-		sc++;
-	}
-	
-	if (audc < 4) {
-		memcpy(aud+(audc*32),audio.p,32*2);
-		audc++;
-	}
-	
-	audio_output.write(audio);
 }
 
-void AFSKRXProcessor::data_handler(
-	const double data
-) {
-	/*AFSKDataMessage message;
-	message.data = 'T';
-	shared_memory.application_queue.push(message);*/
+void AFSKRxProcessor::on_message(const Message* const message) {
+	if (message->id == Message::ID::AFSKRxConfigure)
+		configure(*reinterpret_cast<const AFSKRxConfigureMessage*>(message));
+}
+
+void AFSKRxProcessor::configure(const AFSKRxConfigureMessage& message) {
+	constexpr size_t decim_0_input_fs = baseband_fs;
+	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+
+	constexpr size_t decim_1_input_fs = decim_0_output_fs;
+	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+
+	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+	const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
+
+	const size_t demod_input_fs = channel_filter_output_fs;
+
+	decim_0.configure(taps_16k0_decim_0.taps, 33554432);
+	decim_1.configure(taps_16k0_decim_1.taps, 131072);
+	channel_filter.configure(taps_16k0_channel.taps, 2);
+	demod.configure(demod_input_fs, 5000);
+	
+	bitrate = message.bitrate;
+	sphase_delta = 0x10000u * bitrate / 24000;
+	sphase_delta_half = sphase_delta / 2;			// Just for speed
+	sphase_delta_eighth = sphase_delta / 8;
+	
+	configured = true;
+}
+
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<AFSKRxProcessor>() };
+	event_dispatcher.run();
+	return 0;
 }

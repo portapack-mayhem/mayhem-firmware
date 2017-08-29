@@ -117,9 +117,16 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
 	send_message(&message);
 }
 
+void set_afsk(const uint32_t bitrate) {
+	const AFSKRxConfigureMessage message {
+		bitrate
+	};
+	send_message(&message);
+}
+
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count) {
-	const AFSKConfigureMessage message {
+	const AFSKTxConfigureMessage message {
 		afsk_samples_per_bit,
 		afsk_phase_inc_mark,
 		afsk_phase_inc_space,
@@ -131,7 +138,7 @@ void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phas
 }
 
 void kill_afsk() {
-	const AFSKConfigureMessage message {
+	const AFSKTxConfigureMessage message {
 		0,
 		0,
 		0,

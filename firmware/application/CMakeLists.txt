@@ -163,8 +163,9 @@ set(CPPSRC
 	ui_about.cpp
 	ui_adsb_rx.cpp
 	ui_adsb_tx.cpp
+	ui_afsk_rx.cpp
 	ui_alphanum.cpp
-	ui_aprstx.cpp
+	ui_aprs_tx.cpp
 	ui_audio.cpp
 	ui_baseband_stats_view.cpp
 	ui_bht_tx.cpp

@@ -33,7 +33,8 @@
 #include "ui_about.hpp"
 #include "ui_adsb_tx.hpp"
 #include "ui_adsb_rx.hpp"
-#include "ui_aprstx.hpp"
+#include "ui_aprs_tx.hpp"
+#include "ui_afsk_rx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
 #include "ui_siggen.hpp"
@@ -282,9 +283,9 @@ void NavigationView::focus() {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B: Planes", 			ui::Color::green(),&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
+		{ "ADS-B: Planes", 			ui::Color::green(),	&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
-		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "APRS", 					ui::Color::orange(),&bitmap_icon_aprs,	[&nav](){ nav.push<AFSKRxView>(); } },
 		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(false); } },
 		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },

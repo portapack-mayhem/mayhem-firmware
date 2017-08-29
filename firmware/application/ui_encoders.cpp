@@ -32,9 +32,7 @@ namespace ui {
 EncodersConfigView::EncodersConfigView(
 	NavigationView& nav, Rect parent_rect
 ) {
-	using name_t = std::string;
-	using value_t = int32_t;
-	using option_t = std::pair<name_t, value_t>;
+	using option_t = std::pair<std::string, int32_t>;
 	std::vector<option_t> enc_options;
 	size_t i;
 	
@@ -47,9 +45,8 @@ EncodersConfigView::EncodersConfigView(
 	add_children({
 		&labels,
 		&options_enctype,
-		&numberfield_clk,
-		&numberfield_bitduration,
-		&numberfield_wordduration,
+		&field_clk,
+		&field_frameduration,
 		&symfield_word,
 		&text_format,
 		&waveform
@@ -71,31 +68,19 @@ EncodersConfigView::EncodersConfigView(
 	};
 	
 	// Selecting input clock changes symbol and word duration
-	numberfield_clk.on_change = [this](int32_t value) {
+	field_clk.on_change = [this](int32_t value) {
 		// value is in kHz, new_value is in us
-		int32_t new_value = 1000000 / ((value * 1000) / encoder_def->clk_per_symbol);
-		if (new_value != numberfield_bitduration.value()) {
-			numberfield_bitduration.set_value(new_value, false);
-			numberfield_wordduration.set_value(new_value * encoder_def->word_length, false);
-		}
-	};
-	
-	// Selecting symbol duration changes input clock and word duration
-	numberfield_bitduration.on_change = [this](int32_t value) {
-		int32_t new_value = 1000000 / (((float)value * 1000) / encoder_def->clk_per_symbol);
-		if (new_value != numberfield_clk.value()) {
-			numberfield_clk.set_value(new_value, false);
-			numberfield_wordduration.set_value(value * encoder_def->word_length, false);
-		}
+		int32_t new_value = (encoder_def->clk_per_symbol * 1000000) / (value * 1000);
+		if (new_value != field_frameduration.value())
+			field_frameduration.set_value(new_value * encoder_def->word_length, false);
 	};
 	
 	// Selecting word duration changes input clock and symbol duration
-	numberfield_wordduration.on_change = [this](int32_t value) {
-		int32_t new_value = value / encoder_def->word_length;
-		if (new_value != numberfield_bitduration.value()) {
-			numberfield_bitduration.set_value(new_value, false);
-			numberfield_clk.set_value(1000000 / (((float)new_value * 1000) / encoder_def->clk_per_symbol), false);
-		}
+	field_frameduration.on_change = [this](int32_t value) {
+		// value is in us, new_value is in kHz
+		int32_t new_value = (value * 1000) / (encoder_def->word_length * encoder_def->clk_per_symbol);
+		if (new_value != field_clk.value())
+			field_clk.set_value(1000000 / new_value, false);
 	};
 }
 
@@ -104,16 +89,13 @@ void EncodersConfigView::focus() {
 }
 
 void EncodersConfigView::on_type_change(size_t index) {
-	std::string word_format, format_string = "";
+	std::string format_string = "";
 	size_t word_length;
 	char symbol_type;
-	//size_t address_length;
-	
-	//enc_type = index;
 
 	encoder_def = &encoder_defs[index];
 
-	numberfield_clk.set_value(encoder_def->default_speed / 1000);
+	field_clk.set_value(encoder_def->default_speed / 1000);
 	
 	// SymField setup
 	word_length = encoder_def->word_length;
@@ -139,16 +121,14 @@ void EncodersConfigView::on_type_change(size_t index) {
 }
 
 void EncodersConfigView::on_show() {
-	// TODO: Remove ?
-	//options_enctype.set_selected_index(enc_type);
-	//on_type_change(enc_type);
+	options_enctype.set_selected_index(0);
+	on_type_change(0);
 }
 
 void EncodersConfigView::draw_waveform() {
 	size_t length = frame_symbols.length();
-	size_t n;
-	
-	for (n = 0; n < length; n++) {
+
+	for (size_t n = 0; n < length; n++) {
 		if (frame_symbols[n] == '0')
 			waveform_buffer[n] = 0;
 		else
@@ -179,7 +159,7 @@ uint8_t EncodersConfigView::repeat_min() {
 }
 
 uint32_t EncodersConfigView::samples_per_bit() {
-	return OOK_SAMPLERATE / ((numberfield_clk.value() * 1000) / encoder_def->clk_per_fragment);
+	return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 }
 
 uint32_t EncodersConfigView::pause_symbols() {
@@ -199,20 +179,26 @@ EncodersScanView::EncodersScanView(
 	add_children({
 		&labels,
 		&field_debug,
-		&text_debug
+		&text_debug,
+		&text_length
 	});
 	
 	// DEBUG
 	field_debug.on_change = [this](int32_t value) {
 		uint32_t l;
+		size_t length;
+		
 		de_bruijn debruijn_seq;
-		debruijn_seq.init(value);
+		length = debruijn_seq.init(value);
+		
 		l = 1;
 		l <<= value;
 		l--;
 		if (l > 25)
 			l = 25;
 		text_debug.set(to_string_bin(debruijn_seq.compute(l), 25));
+		
+		text_length.set(to_string_dec_uint(length));
 	};
 }
 
@@ -256,7 +242,7 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 	
 	if (!txdone) {
 		// Repeating...
-		//repeat_index = n + 1;
+		repeat_index = n + 1;
 		
 		/*if (tx_mode == SCAN) {
 			scan_progress++;
@@ -299,8 +285,9 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 
 void EncodersView::start_tx(const bool scan) {
 	(void)scan;
-	uint8_t* ook_bitstream = shared_memory.bb_data.data;
-	uint32_t ook_bitstream_length;
+	uint8_t byte = 0;
+	size_t bitstream_length =0;
+	uint8_t * bitstream = shared_memory.bb_data.data;
 	
 	repeat_min = view_config.repeat_min();
 	
@@ -324,17 +311,14 @@ void EncodersView::start_tx(const bool scan) {
 	
 	view_config.generate_frame();
 	
-	// Clear bitstream
-	memset(ook_bitstream, 0, 256);
-	
-	size_t n = 0;
 	for (auto c : view_config.frame_symbols) {
+		byte <<= 1;
 		if (c != '0')
-			ook_bitstream[n >> 3] |= (1 << (7 - (n & 7)));
-		n++;
+			byte |= 1;
+		if ((bitstream_length & 7) == 7)
+			bitstream[bitstream_length >> 3] = byte;
+		bitstream_length++;
 	}
-	
-	ook_bitstream_length = n;
 
 	transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
 	transmitter_model.set_rf_amp(true);
@@ -342,10 +326,7 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.enable();
 	
 	baseband::set_ook_data(
-		ook_bitstream_length,
-		// 2280000/2 = 1140000Hz = 0,877192982us
-		// numberfield_clk.value() / encoder_def->clk_per_fragment
-		// 455000 / 12 = 37917Hz = 26,37339452us
+		bitstream_length,
 		view_config.samples_per_bit(),
 		repeat_min,
 		view_config.pause_symbols()

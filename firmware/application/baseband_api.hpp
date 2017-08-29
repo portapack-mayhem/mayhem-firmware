@@ -67,6 +67,7 @@ void set_pwmrssi(int32_t avg, bool enabled);
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count);
 void kill_afsk();
+void set_afsk(const uint32_t bitrate);
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
 					const uint32_t pause_symbols);
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift,

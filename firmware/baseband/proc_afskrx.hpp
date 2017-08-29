@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2016 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -23,46 +24,59 @@
 #define __PROC_AFSKRX_H__
 
 #include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
-#include "audio_output.hpp"
+#include "fifo.hpp"
 #include "message.hpp"
 
-class AFSKRXProcessor : public BasebandProcessor {
+class AFSKRxProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 
+	void on_message(const Message* const message) override;
+	
 private:
-	std::array<complex16_t, 512> dst;
+	static constexpr size_t baseband_fs = 3072000;
+	
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
+	
+	std::array<complex16_t, 512> dst { };
 	const buffer_c16_t dst_buffer {
 		dst.data(),
 		dst.size()
 	};
-	const buffer_f32_t work_audio_buffer {
-		(float*)dst.data(),
-		sizeof(dst) / sizeof(float)
+	std::array<float, 32> audio { };
+	const buffer_f32_t audio_buffer {
+		audio.data(),
+		audio.size()
 	};
 	
-	dsp::decimate::FIRAndDecimateComplex channel_filter;
-	dsp::demodulate::FM demod;	// 48000 5000
+	// Can't use FIFO class here since it only allows power-of-two sizes
+	std::array<int32_t, 24000/1200> delay_line { 0 };
 	
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0;
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1;
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+	dsp::decimate::FIRAndDecimateComplex channel_filter { };
+	
+	dsp::demodulate::FM demod { };
 
-	AudioOutput audio_output;
-
-    uint16_t bit_timer = 0, freq_timer = 0;
-	uint16_t sc;
-	uint8_t audc, spur, sign, prev_sign, bit = 0;
-	
-	int16_t aud[128];
-	
-	void data_handler(const double data);
+	uint32_t bitrate { };
+	uint32_t sphase { 0 };
+	uint32_t sphase_delta { 0 };
+	uint32_t sphase_delta_half { 0 };
+	uint32_t sphase_delta_eighth { 0 };
+	uint32_t rx_data { 0 };
+	uint32_t bit_count { 0 };
 	
 	bool configured { false };
-	void configure(const NBFMConfigureMessage& message);
+	void configure(const AFSKRxConfigureMessage& message);
+	
+	AFSKDataMessage data_message { 0 };
 };
 
 #endif/*__PROC_TPMS_H__*/

@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_aprstx.hpp"
+#include "ui_aprs_tx.hpp"
 #include "ui_alphanum.hpp"
 
 #include "aprs.hpp"

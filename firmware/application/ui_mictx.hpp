@@ -177,9 +177,9 @@ private:
 	};
 	
 	MessageHandlerRegistration message_handler_audio_level {
-		Message::ID::AudioLevel,
+		Message::ID::AudioLevelReport,
 		[this](const Message* const p) {
-			const auto message = static_cast<const AudioLevelMessage*>(p);
+			const auto message = static_cast<const AudioLevelReportMessage*>(p);
 			this->audio_level = message->value;
 		}
 	};
