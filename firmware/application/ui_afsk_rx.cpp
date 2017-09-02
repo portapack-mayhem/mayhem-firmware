@@ -110,11 +110,12 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 }
 
 void AFSKRxView::on_data(uint32_t value, bool is_data) {
-	std::string str_byte = "\x1B";
-	
-	str_byte += (char)((console_color & 3) + 9);
+	std::string str_console = "\x1B";
+	std::string str_byte = "";
 	
 	if (is_data) {
+		str_console += (char)((console_color & 3) + 9);
+		
 		//value = deframe_word(value);
 		
 		value &= 0xFF;											// ABCDEFGH
@@ -123,14 +124,17 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
 		value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
 		value &= 0x7F;
 		
-		if ((value >= 32) && (value < 127))
-			str_byte += (char)value ;							// Printable
-		else
-			str_byte += "[" + to_string_hex(value, 2) + "]";	// Not printable
+		if ((value >= 32) && (value < 127)) {
+			str_console += (char)value;							// Printable
+			str_byte += (char)value;
+		} else {
+			str_console += "[" + to_string_hex(value, 2) + "]";	// Not printable
+			str_byte += "[" + to_string_hex(value, 2) + "]";
+		}
 		
 		//str_byte = to_string_bin(value & 0xFF, 8) + "  ";
 		
-		console.write(str_byte);
+		console.write(str_console);
 		
 		if (logger) str_log += str_byte;
 		
