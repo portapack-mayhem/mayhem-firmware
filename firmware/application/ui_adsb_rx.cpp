@@ -25,12 +25,8 @@
 
 #include "rtc_time.hpp"
 #include "string_format.hpp"
-#include "portapack.hpp"
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
-
-#include <cstring>
-#include <stdio.h>
 
 using namespace portapack;
 

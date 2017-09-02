@@ -26,8 +26,21 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_widget.hpp"
+
+#include "log_file.hpp"
 #include "utility.hpp"
+
+class AFSKLogger {
+public:
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
+	
+	void log_raw_data(const std::string& data);
+
+private:
+	LogFile log_file { };
+};
 
 namespace ui {
 
@@ -41,7 +54,11 @@ public:
 	std::string title() const override { return "AFSK RX (beta)"; };
 	
 private:
-	void on_data(uint_fast8_t byte);
+	void on_data(uint32_t value, bool is_data);
+	
+	uint8_t console_color { 0 };
+	uint32_t prev_value { 0 };
+	std::string str_log { "" };
 
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
@@ -60,33 +77,34 @@ private:
 	};
 	
 	FrequencyField field_frequency {
-		{ 0 * 8, 0 * 8 },
+		{ 0 * 8, 0 * 16 },
 	};
-	OptionsField options_bitrate {
-		{ 12 * 8, 21 },
-		7,
-		{
-			{ "600bps ", 600 },
-			{ "1200bps", 1200 },
-			{ "2400bps", 2400 }
-		}
+	
+	Text text_debug {
+		{ 0 * 8, 1 * 16, 10 * 8, 16 },
+		"DEBUG"
+	};
+	
+	
+	Button button_modem_setup {
+		{ 12 * 8, 1 * 16, 96, 24 },
+		"Modem setup"
 	};
 	
 	Console console {
-		{ 0, 4 * 16, 240, 240 }
+		{ 0, 3 * 16, 240, 240 }
 	};
 
 	void update_freq(rf::Frequency f);
-
-	void on_bitrate_changed(const uint32_t new_bitrate);
-
 	void on_data_afsk(const AFSKDataMessage& message);
+	
+	std::unique_ptr<AFSKLogger> logger { };
 	
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::AFSKData,
 		[this](Message* const p) {
 			const auto message = static_cast<const AFSKDataMessage*>(p);
-			this->on_data(message->byte);
+			this->on_data(message->value, message->is_data);
 		}
 	};
 };

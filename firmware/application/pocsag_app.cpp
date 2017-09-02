@@ -23,8 +23,6 @@
 #include "pocsag_app.hpp"
 
 #include "baseband_api.hpp"
-
-#include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;

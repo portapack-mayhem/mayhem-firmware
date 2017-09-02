@@ -41,23 +41,23 @@ private:
 	void update_freq(rf::Frequency f);
 	
 	Labels labels {
-		{ { 2 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
-		{ { 2 * 8, 11 * 8 }, "Speed:     Bps", Color::light_grey() },
+		//{ { 2 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
+		{ { 2 * 8, 11 * 8 }, "Baudrate:", Color::light_grey() },
 		{ { 2 * 8, 13 * 8 }, "Mark:      Hz", Color::light_grey() },
 		{ { 2 * 8, 15 * 8 }, "Space:     Hz", Color::light_grey() },
-		{ { 140, 13 * 8 }, "BW:   kHz", Color::light_grey() },
+		//{ { 140, 13 * 8 }, "BW:   kHz", Color::light_grey() },
 		{ { 140, 15 * 8 }, "Repeat:", Color::light_grey() },
-		{ { 2 * 8, 19 * 8 }, "Modem preset:", Color::light_grey() },
+		{ { 1 * 8, 6 * 8 }, "Modem preset:", Color::light_grey() },
 		{ { 2 * 8, 22 * 8 }, "Serial format:", Color::light_grey() }
 	};
 	
-	Button button_setfreq {
+	/*Button button_setfreq {
 		{ 13 * 8, 3 * 8, 12 * 8, 32 },
 		"----.----"
-	};
+	};*/
 
 	NumberField field_baudrate {
-		{ 64, 88 },
+		{ 11 * 8, 11 * 8 },
 		5,
 		{ 50, 9600 },
 		25,
@@ -65,7 +65,7 @@ private:
 	};
 
 	NumberField field_mark {
-		{ 64, 104 },
+		{ 8 * 8, 13 * 8 },
 		5,
 		{ 100, 15000 },
 		25,
@@ -73,23 +73,23 @@ private:
 	};
 	
 	NumberField field_space {
-		{ 64, 120 },
+		{ 8 * 8, 15 * 8 },
 		5,
 		{ 100, 15000 },
 		25,
 		' '
 	};
 	
-	NumberField field_bw {
+	/*NumberField field_bw {
 		{ 172, 104 },
 		2,
 		{ 1, 50 },
 		1,
 		' '
-	};
+	};*/
 	
 	NumberField field_repeat {
-		{ 204, 120 },
+		{ 204, 15 * 8 },
 		2,
 		{ 1, 99 },
 		1,
@@ -97,7 +97,7 @@ private:
 	};
 	
 	OptionsField options_modem {
-		{ 16 * 8, 19 * 8 },
+		{ 15 * 8, 6 * 8 },
 		7,
 		{
 		}
@@ -110,12 +110,12 @@ private:
 	};
 	
 	Button button_set_modem {
-		{ 24 * 8, 19 * 8 - 4, 5 * 8, 24 },
+		{ 23 * 8, 6 * 8 - 4, 6 * 8, 24 },
 		"SET"
 	};
 	
 	Button button_save {
-		{ 72, 250, 96, 40 },
+		{ 9 * 8, 250, 96, 40 },
 		"Save"
 	};
 };

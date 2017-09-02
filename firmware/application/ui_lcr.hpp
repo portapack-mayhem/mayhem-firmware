@@ -134,7 +134,7 @@ private:
 		{ 8, 24, 80, 32 },
 		"RGSB"
 	};
-	Button button_txsetup {
+	Button button_modem_setup {
 		{ 13 * 8, 24, 128, 32 },
 		"Modem setup"
 	};

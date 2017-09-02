@@ -538,7 +538,7 @@ void Console::clear() {
 void Console::write(std::string message) {
 	bool escape = false;
 	
-	if (visible) {
+	if (!hidden() && visible()) {
 		const Style& s = style();
 		const Font& font = s.font;
 		const auto rect = screen_rect();
@@ -546,7 +546,10 @@ void Console::write(std::string message) {
 		
 		for (const auto c : message) {
 			if (escape) {
-				pen_color = term_colors[c & 7];
+				if (c <= 15)
+					pen_color = term_colors[c & 15];
+				else
+					pen_color = s.foreground;
 				escape = false;
 			} else {
 				if (c == '\n') {
@@ -570,7 +573,7 @@ void Console::write(std::string message) {
 		}
 		buffer = message;
 	} else {
-		buffer += message;
+		if (buffer.size() < 256) buffer += message;
 	}
 }
 
@@ -588,7 +591,7 @@ void Console::on_show() {
 	display.scroll_set_area(screen_r.top(), screen_r.bottom());
 	display.scroll_set_position(0);
 	clear();
-	visible = true;
+	//visible = true;
 }
 
 void Console::on_hide() {
@@ -596,9 +599,12 @@ void Console::on_hide() {
 	 * position?
 	 */
 	display.scroll_disable();
+	//visible = false;
 }
 
 void Console::crlf() {
+	if (hidden() || !visible()) return;
+	
 	const Style& s = style();
 	const auto sr = screen_rect();
 	const auto line_height = s.font.line_height();

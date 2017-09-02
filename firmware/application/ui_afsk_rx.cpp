@@ -21,11 +21,24 @@
  */
 
 #include "ui_afsk_rx.hpp"
-#include "baseband_api.hpp"
+#include "ui_modemsetup.hpp"
 
-//#include "string_format.hpp"
+#include "modems.hpp"
+#include "audio.hpp"
+#include "rtc_time.hpp"
+#include "baseband_api.hpp"
+#include "string_format.hpp"
+#include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
+using namespace modems;
+
+void AFSKLogger::log_raw_data(const std::string& data) {
+	rtc::RTC datetime;
+	rtcGetTime(&RTCD1, &datetime);
+	
+	log_file.write_entry(datetime, data);
+}
 
 namespace ui {
 
@@ -35,10 +48,6 @@ void AFSKRxView::focus() {
 
 void AFSKRxView::update_freq(rf::Frequency f) {
 	receiver_model.set_tuning_frequency(f);
-}
-
-void AFSKRxView::on_bitrate_changed(const uint32_t new_bitrate) {
-	baseband::set_afsk(new_bitrate);
 }
 
 AFSKRxView::AFSKRxView(NavigationView& nav) {
@@ -51,16 +60,24 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&field_frequency,
-		&options_bitrate,
+		&text_debug,
+		&button_modem_setup,
 		&console
 	});
 	
-	//receiver_model.set_sampling_rate(3072000);
-	//receiver_model.set_baseband_bandwidth(1750000);
-	//receiver_model.enable();
+	// Auto-configure modem for LCR RX (will be removed later)
+	update_freq(462713300);	// 162950000
+	auto def_bell202 = &modem_defs[0];
+	persistent_memory::set_modem_baudrate(def_bell202->baudrate);
+	serial_format_t serial_format;
+	serial_format.data_bits = 7;
+	serial_format.parity = EVEN;
+	serial_format.stop_bits = 1;
+	serial_format.bit_order = LSB_FIRST;
+	persistent_memory::set_serial_format(serial_format);
 	
 	field_frequency.set_value(receiver_model.tuning_frequency());
-	field_frequency.set_step(receiver_model.frequency_step());
+	field_frequency.set_step(100);
 	field_frequency.on_change = [this](rf::Frequency f) {
 		update_freq(f);
 	};
@@ -72,19 +89,69 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 			field_frequency.set_value(f);
 		};
 	};
-	
-	options_bitrate.on_change = [this](size_t, OptionsField::value_t v) {
-		on_bitrate_changed(v);
+
+	button_modem_setup.on_select = [&nav](Button&) {
+		nav.push<ModemSetupView>();
 	};
-	options_bitrate.set_selected_index(1);	// 1200bps
+	
+	logger = std::make_unique<AFSKLogger>();
+	if (logger)
+		logger->append("AFSK_LOG.TXT");
+	
+	// Auto-configure modem for LCR RX (will be removed later)
+	baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
+	
+	audio::set_rate(audio::Rate::Hz_24000);
+	audio::output::start();
+	
+	receiver_model.set_sampling_rate(3072000);
+	receiver_model.set_baseband_bandwidth(1750000);
+	receiver_model.enable();
 }
 
-void AFSKRxView::on_data(uint_fast8_t byte) {
-	std::string str_byte(1, byte);
-	console.write(str_byte);
+void AFSKRxView::on_data(uint32_t value, bool is_data) {
+	std::string str_byte = "\x1B";
+	
+	str_byte += (char)((console_color & 3) + 9);
+	
+	if (is_data) {
+		//value = deframe_word(value);
+		
+		value &= 0xFF;											// ABCDEFGH
+		value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
+		value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
+		value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
+		value &= 0x7F;
+		
+		if ((value >= 32) && (value < 127))
+			str_byte += (char)value ;							// Printable
+		else
+			str_byte += "[" + to_string_hex(value, 2) + "]";	// Not printable
+		
+		//str_byte = to_string_bin(value & 0xFF, 8) + "  ";
+		
+		console.write(str_byte);
+		
+		if (logger) str_log += str_byte;
+		
+		if ((value != 0x7F) && (prev_value == 0x7F)) {
+			console.writeln("");
+			console_color++;
+			
+			if (logger) {
+				logger->log_raw_data(str_log);
+				str_log = "";
+			}
+		}
+		prev_value = value;
+	} else {
+		// Baudrate estimation
+		text_debug.set("~" + to_string_dec_uint(value));
+	}
 }
 
 AFSKRxView::~AFSKRxView() {
+	audio::output::stop();
 	receiver_model.disable();
 	baseband::shutdown();
 }

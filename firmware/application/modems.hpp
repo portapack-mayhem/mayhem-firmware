@@ -31,16 +31,16 @@ namespace modems {
 	
 #define MODEM_DEF_COUNT 7
 
-enum modulation_enum {
+enum ModemModulation {
 	AFSK = 0,
 	FSK,
 	PSK,
-	SSB
+	AM		// SSB
 };
 
 struct modem_def_t {
 	std::string name;
-	modulation_enum modulation;
+	ModemModulation modulation;
 	uint16_t mark_freq;
 	uint16_t space_freq;
 	uint16_t baudrate;
@@ -52,11 +52,12 @@ const modem_def_t modem_defs[MODEM_DEF_COUNT] = {
 	{ "V21",		AFSK,	980,	1180, 	300 },
 	{ "V23 M1",		AFSK,	1300,	1700,	600 },
 	{ "V23 M2",		AFSK,	1300,	2100,	1200 },
-	{ "RTTY US",	SSB,	2295,	2125,	45 },
-	{ "RTTY EU",	SSB,	2125,	1955,	45 }
+	{ "RTTY US",	AM,		2295,	2125,	45 },
+	{ "RTTY EU",	AM,		2125,	1955,	45 }
 };
 
 void generate_data(const std::string& in_message, uint16_t * out_data);
+uint32_t deframe_word(uint32_t raw_word);
 
 } /* namespace modems */
 

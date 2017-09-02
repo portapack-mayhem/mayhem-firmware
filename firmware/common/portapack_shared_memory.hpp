@@ -26,7 +26,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "portapack_shared_memory.hpp"
 #include "message_queue.hpp"
 
 struct JammerChannel {

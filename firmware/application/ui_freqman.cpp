@@ -30,31 +30,28 @@ using namespace portapack;
 namespace ui {
 
 FreqManBaseView::FreqManBaseView(
-	NavigationView& nav,
-	Widget& default_focus_widget
-) : nav_ (nav),
-	default_focus_widget_ (default_focus_widget)
+	NavigationView& nav
+) : nav_ (nav)
 {
 	file_list = get_freqman_files();
 	
-	if (!file_list.size()) {
+	if (!file_list.size())
 		error_ = ERROR_NOFILES;
-		return;
-	}
 	
 	add_children({
 		&label_category,
-		&options_category,
 		&button_exit
 	});
 	
-	// Populate categories OptionsField
-	populate_categories();
+	if (file_list.size()) {
+		add_child(&options_category);
+		populate_categories();
+	}
 	
+	// Default function
 	on_change_category = [this](int32_t category_id) {
 		change_category(category_id);
 	};
-	//change_category(0);
 	
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
@@ -62,26 +59,21 @@ FreqManBaseView::FreqManBaseView(
 };
 
 void FreqManBaseView::focus() {
-	/*if (error_ == ERROR_ACCESS) {
-		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
-	} else if (error_ == ERROR_DUPLICATE) {
-		nav_.display_modal("Error", "Frequency already saved", INFO, nullptr);
-		error_ = NO_ERROR;
-	}*/
+	button_exit.focus();
 	
-	if (error_ == ERROR_NOFILES) {
+	if (error_ == ERROR_ACCESS) {
+		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+	} else if (error_ == ERROR_NOFILES) {
 		nav_.display_modal("Error", "No database files", ABORT, nullptr);
 	} else {
-		default_focus_widget_.focus();
+		options_category.focus();
 	}
 }
 
 bool FreqManBaseView::populate_categories() {
-	size_t n;
-
 	categories.clear();
 	
-	for (n = 0; n < file_list.size(); n++)
+	for (size_t n = 0; n < file_list.size(); n++)
 		categories.emplace_back(std::make_pair(file_list[n], n));
 	
 	options_category.set_options(categories);
@@ -96,10 +88,13 @@ bool FreqManBaseView::populate_categories() {
 }
 
 void FreqManBaseView::change_category(int32_t category_id) {
+	
+	if (!file_list.size()) return;
+	
 	current_category_id = category_id;
 	
 	if (!load_freqman_file(file_list[current_category_id], database))
-		error_ = ERROR_ACCESS;	// Todo
+		error_ = ERROR_ACCESS;
 	else
 		refresh_list();
 }
@@ -158,7 +153,7 @@ FrequencySaveView::~FrequencySaveView() {
 FrequencySaveView::FrequencySaveView(
 	NavigationView& nav,
 	const rf::Frequency value
-) : FreqManBaseView(nav, options_category),
+) : FreqManBaseView(nav),
 	value_ (value)
 {
 	desc_buffer.reserve(28);
@@ -204,7 +199,7 @@ void FrequencyLoadView::refresh_widgets(const bool v) {
 
 FrequencyLoadView::FrequencyLoadView(
 	NavigationView& nav
-) : FreqManBaseView(nav, options_category)
+) : FreqManBaseView(nav)
 {
 	on_refresh_widgets = [this](bool v) {
 		refresh_widgets(v);
@@ -278,7 +273,7 @@ FrequencyManagerView::~FrequencyManagerView() {
 
 FrequencyManagerView::FrequencyManagerView(
 	NavigationView& nav
-) : FreqManBaseView(nav, options_category)
+) : FreqManBaseView(nav)
 {
 	on_refresh_widgets = [this](bool v) {
 		refresh_widgets(v);

@@ -61,7 +61,7 @@ std::string to_string_bin(
 {
 	char p[33];
 	for (uint8_t c = 0; c < l; c++) {
-		if (n & (1 << (l - c)))
+		if (n & (1 << (l - 1 - c)))
 			p[c] = '1';
 		else
 			p[c] = '0';

@@ -35,7 +35,7 @@ namespace ui {
 class FreqManBaseView : public View {
 public:
 	FreqManBaseView(
-		NavigationView& nav, Widget& default_focus_widget
+		NavigationView& nav
 	);
 
 	void focus() override;
@@ -48,7 +48,6 @@ protected:
 	
 	NavigationView& nav_;
 	freqman_error error_ { NO_ERROR };
-	Widget& default_focus_widget_;
 	options_t categories { };
 	std::function<void(int32_t category_id)> on_change_category { nullptr };
 	std::function<void(void)> on_select_frequency { nullptr };

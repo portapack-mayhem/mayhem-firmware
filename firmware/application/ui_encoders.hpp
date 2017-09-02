@@ -177,7 +177,7 @@ private:
 	void start_tx(const bool scan);
 	void on_txdone(int n, const bool txdone);
 	
-	const Style style_address {
+	/*const Style style_address {
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::red(),
@@ -186,7 +186,7 @@ private:
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::blue(),
-	};
+	};*/
 	
 	Rect view_rect = { 0, 4 * 8, 240, 168 };
 	

@@ -79,4 +79,41 @@ void generate_data(const std::string& in_message, uint16_t * out_data) {
 	out_data[bytes] = 0;	// End marker
 }
 
+// This accepts a word with start and stop bits removed !
+uint32_t deframe_word(uint32_t raw_word) {
+	serial_format_t serial_format;
+	uint32_t parity, cur_bit, deframed_word { 0 };
+	size_t bit, bits;
+	
+	serial_format = persistent_memory::serial_format();
+	
+	/*if (serial_format.parity == ODD)
+		parity = 1;
+	else
+		parity = 0;*/
+
+	bits = serial_format.data_bits;
+	
+	// Ignore parity for now
+	if (serial_format.parity)
+		raw_word >>= 1;
+		
+	if (serial_format.bit_order == LSB_FIRST) {
+		// Reverse data bits
+		for (bit = 0; bit < bits; bit++) {
+			cur_bit = raw_word & 1;
+			
+			deframed_word <<= 1;
+			deframed_word |= cur_bit;
+			
+			//parity += cur_bit;
+			
+			raw_word >>= 1;
+		}
+		
+		return deframed_word;
+	} else
+		return raw_word;
+}
+
 } /* namespace modems */

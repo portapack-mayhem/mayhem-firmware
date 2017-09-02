@@ -21,15 +21,13 @@
  */
 
 #include "ui.hpp"
-#include <cstring>
-#include <string>
+
+#include "portapack_persistent_memory.hpp"
 
 #ifndef __SERIALIZER_H__
 #define __SERIALIZER_H__
 
 namespace serializer {
-
-uint8_t symbol_count();
 
 enum parity_enum : uint8_t {
 	NONE = 0,
@@ -48,6 +46,8 @@ struct serial_format_t {
 	uint8_t stop_bits;
 	order_enum bit_order;
 };
+
+size_t symbol_count(const serial_format_t& serial_format);
 
 	/*{ "7-Even-1 R", "7E1", 7, EVEN,	1, false, false },
 	{ "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },

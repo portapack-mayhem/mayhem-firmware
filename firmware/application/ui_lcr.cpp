@@ -23,15 +23,12 @@
 #include "ui_lcr.hpp"
 #include "ui_modemsetup.hpp"
 
-#include "modems.hpp"
 #include "lcr.hpp"
+#include "modems.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
-#include "portapack_persistent_memory.hpp"
-
-#include <cstring>
-#include <stdio.h>
+#include "serializer.hpp"
 
 using namespace portapack;
 
@@ -47,7 +44,6 @@ LCRView::~LCRView() {
 }
 
 void LCRView::paint(Painter& painter) {
-	size_t i;
 	std::string final_str;
 	
 	static constexpr Style style_orange {
@@ -61,7 +57,7 @@ void LCRView::paint(Painter& painter) {
 		static_cast<Coord>(68)
 	};
 	
-	for (i = 0; i < 5; i++) {
+	for (size_t i = 0; i < 5; i++) {
 		painter.draw_string(
 			screen_pos() + offset,
 			style_orange,
@@ -181,7 +177,7 @@ void LCRView::start_tx(const bool scan) {
 		persistent_memory::afsk_space_freq(),
 		repeats,
 		persistent_memory::modem_bw(),
-		serializer::symbol_count()
+		serializer::symbol_count(persistent_memory::serial_format())
 	);
 }
 
@@ -201,7 +197,7 @@ LCRView::LCRView(NavigationView& nav) {
 		&text_recap,
 		&options_ec,
 		&button_setrgsb,
-		&button_txsetup,
+		&button_modem_setup,
 		&text_status,
 		&progress,
 		&button_transmit,
@@ -266,7 +262,7 @@ LCRView::LCRView(NavigationView& nav) {
 		text_prompt(nav, &rgsb, 4);
 	};
 	
-	button_txsetup.on_select = [&nav](Button&) {
+	button_modem_setup.on_select = [&nav](Button&) {
 		nav.push<ModemSetupView>();
 	};
 	
@@ -294,11 +290,9 @@ LCRView::LCRView(NavigationView& nav) {
 	};
 
 	button_clear.on_select = [this, &nav](Button&) {
-		size_t n;
-		
 		if (tx_mode == IDLE) {
 			options_ec.set_selected_index(0);	// Auto
-			for (n = 0; n < 5; n++) {
+			for (size_t n = 0; n < 5; n++) {
 				litteral[n] = "       ";
 				checkboxes[n].set_value(true);
 			}

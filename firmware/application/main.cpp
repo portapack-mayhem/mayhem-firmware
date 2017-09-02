@@ -32,6 +32,8 @@
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
+//TODO: Frequency and bw settings were removed from modemsetup, put those back in LCR TX
+//TODO: Use separate thread for scanning in LCR TX
 //TODO: REPLAY Convert C16 to C8 on M0 core
 //TODO: Use TabView
 //TODO: De bruijn sequence scanner for encoders

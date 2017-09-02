@@ -285,7 +285,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
 		{ "ADS-B: Planes", 			ui::Color::green(),	&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
-		{ "APRS", 					ui::Color::orange(),&bitmap_icon_aprs,	[&nav](){ nav.push<AFSKRxView>(); } },
+		{ "AFSK", 					ui::Color::yellow(),&bitmap_icon_receivers,	[&nav](){ nav.push<AFSKRxView>(); } },
+		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(false); } },
 		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
@@ -295,7 +296,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
-	//set_highlighted(3);		// Default selection is "Audio"
+	//set_highlighted(4);		// Default selection is "Audio"
 }
 
 /* TransmittersMenuView **************************************************/

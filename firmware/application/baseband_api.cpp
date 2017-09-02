@@ -117,9 +117,12 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
 	send_message(&message);
 }
 
-void set_afsk(const uint32_t bitrate) {
+void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
 	const AFSKRxConfigureMessage message {
-		bitrate
+		baudrate,
+		word_length,
+		trigger_value,
+		trigger_word
 	};
 	send_message(&message);
 }

@@ -336,13 +336,16 @@ public:
 class AFSKDataMessage : public Message {
 public:
 	constexpr AFSKDataMessage(
-		const uint_fast8_t byte
+		const bool is_data,
+		const uint32_t value
 	) : Message { ID::AFSKData },
-		byte { byte }
+		is_data { is_data },
+		value { value }
 	{
 	}
 	
-	uint_fast8_t byte;
+	bool is_data;
+	uint32_t value;
 };
 
 class ShutdownMessage : public Message {
@@ -615,13 +618,22 @@ public:
 class AFSKRxConfigureMessage : public Message {
 public:
 	constexpr AFSKRxConfigureMessage(
-		const uint32_t bitrate
+		const uint32_t baudrate,
+		const uint32_t word_length,
+		const uint32_t trigger_value,
+		const bool trigger_word
 	) : Message { ID::AFSKRxConfigure },
-		bitrate(bitrate)
+		baudrate(baudrate),
+		word_length(word_length),
+		trigger_value(trigger_value),
+		trigger_word(trigger_word)
 	{
 	}
 	
-	const uint32_t bitrate;
+	const uint32_t baudrate;
+	const uint32_t word_length;
+	const uint32_t trigger_value;
+	const bool trigger_word;
 };
 
 class PWMRSSIConfigureMessage : public Message {

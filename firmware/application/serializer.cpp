@@ -39,11 +39,8 @@ namespace serializer {
  * Diff M.:	...
  */
 
-uint8_t symbol_count() {
-	serial_format_t serial_format;
-	uint8_t count;
-	
-	serial_format = persistent_memory::serial_format();
+size_t symbol_count(const serial_format_t& serial_format) {
+	size_t count;
 	
 	count = 1 + serial_format.data_bits;	// Start
 	if (serial_format.parity) count++;

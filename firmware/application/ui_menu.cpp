@@ -93,10 +93,7 @@ MenuView::MenuView(
 	bool keep_highlight
 ) : keep_highlight_ { keep_highlight }
 {
-	View::set_parent_rect(new_parent_rect);
-	
-	displayed_max_ = (parent_rect().size().height() / 24);
-	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
+	set_parent_rect(new_parent_rect);
 	
 	set_focusable(true);
 	
@@ -114,6 +111,14 @@ MenuView::~MenuView() {
 	for (auto item : menu_items_) {
 		delete item;
 	}
+}
+
+void MenuView::set_parent_rect(const Rect new_parent_rect) {
+	
+	View::set_parent_rect(new_parent_rect);
+	
+	displayed_max_ = (parent_rect().size().height() / 24);
+	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
 }
 
 void MenuView::on_tick_second() {

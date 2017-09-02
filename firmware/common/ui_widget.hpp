@@ -289,7 +289,7 @@ public:
 	void on_hide() override;
 
 private:
-	bool visible = false;
+	//bool visible = false;
 	Point pos { 0, 0 };
 	std::string buffer { };
 

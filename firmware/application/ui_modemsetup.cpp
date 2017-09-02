@@ -29,42 +29,36 @@
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
-#include <cstring>
-#include <stdio.h>
-
 using namespace portapack;
 using namespace modems;
 
 namespace ui {
 
 void ModemSetupView::focus() {
-	button_setfreq.focus();
+	field_baudrate.focus();
 }
 
-void ModemSetupView::update_freq(rf::Frequency f) {
+/*void ModemSetupView::update_freq(rf::Frequency f) {
 	persistent_memory::set_tuned_frequency(f);
 
 	button_setfreq.set_text(to_string_short_freq(f));
-}
+}*/
 
 ModemSetupView::ModemSetupView(
 	NavigationView& nav
 )
 {
-	using name_t = std::string;
-	using value_t = int32_t;
-	using option_t = std::pair<name_t, value_t>;
+	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t modem_options;
-	size_t i;
 	
 	add_children({
 		&labels,
-		&button_setfreq,
+		//&button_setfreq,
 		&field_baudrate,
 		&field_mark,
 		&field_space,
-		&field_bw,
+		//&field_bw,
 		&field_repeat,
 		&options_modem,
 		&button_set_modem,
@@ -72,11 +66,10 @@ ModemSetupView::ModemSetupView(
 		&button_save
 	});
 	
-	for (i = 0; i < MODEM_DEF_COUNT; i++) {
+	for (size_t i = 0; i < MODEM_DEF_COUNT; i++) {
 		if (modem_defs[i].modulation == AFSK)
 			modem_options.emplace_back(std::make_pair(modem_defs[i].name, i));
 	}
-	
 	options_modem.set_options(modem_options);
 	options_modem.set_selected_index(0);
 	
@@ -90,19 +83,19 @@ ModemSetupView::ModemSetupView(
 	sym_format.set_sym(2, persistent_memory::serial_format().stop_bits);
 	sym_format.set_sym(3, persistent_memory::serial_format().bit_order);
 	
-	update_freq(persistent_memory::tuned_frequency());
+	//update_freq(persistent_memory::tuned_frequency());
 	
 	field_mark.set_value(persistent_memory::afsk_mark_freq());
 	field_space.set_value(persistent_memory::afsk_space_freq());
-	field_bw.set_value(persistent_memory::modem_bw() / 1000);
+	//field_bw.set_value(persistent_memory::modem_bw() / 1000);
 	field_repeat.set_value(persistent_memory::modem_repeat());
 	
-	button_setfreq.on_select = [this, &nav](Button&) {
+	/*button_setfreq.on_select = [this, &nav](Button&) {
 		auto new_view = nav.push<FrequencyKeypadView>(persistent_memory::tuned_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			update_freq(f);
 		};
-	};
+	};*/
 	
 	field_baudrate.set_value(persistent_memory::modem_baudrate());
 	
@@ -121,7 +114,7 @@ ModemSetupView::ModemSetupView(
 		persistent_memory::set_afsk_space(field_space.value());
 		
 		persistent_memory::set_modem_baudrate(field_baudrate.value());
-		persistent_memory::set_modem_bw(field_bw.value() * 1000);
+		//persistent_memory::set_modem_bw(field_bw.value() * 1000);
 		persistent_memory::set_modem_repeat(field_repeat.value());
 		
 		serial_format.data_bits = sym_format.get_sym(0) + 6;

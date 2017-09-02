@@ -84,11 +84,11 @@ public:
 	size_t highlighted() const;
 	bool set_highlighted(int32_t new_value);
 
+	void set_parent_rect(const Rect new_parent_rect) override;
 	void on_focus() override;
 	void on_blur() override;
 	bool on_key(const KeyEvent event) override;
 	bool on_encoder(const EncoderEvent event) override;
-
 	
 private:
 	void update_items();
