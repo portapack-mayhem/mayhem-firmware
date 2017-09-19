@@ -173,6 +173,7 @@ set(CPPSRC
 	ui_coasterp.cpp
 	ui_debug.cpp
 	ui_encoders.cpp
+	ui_fileman.cpp
 	ui_font_fixed_8x16.cpp
 	ui_freqman.cpp
 	ui_geomap.cpp
