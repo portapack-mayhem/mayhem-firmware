@@ -87,7 +87,7 @@ SystemStatusView::SystemStatusView() {
 		&button_back,
 		&title,
 		&button_stealth,
-		&button_textentry,
+		//&button_textentry,
 		&button_camera,
 		&button_sleep,
 		&sd_card_status_view,
@@ -96,10 +96,10 @@ SystemStatusView::SystemStatusView() {
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
 	
-	if (!portapack::persistent_memory::ui_config_textentry())
+	/*if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_icon_keyboard);
 	else
-		button_textentry.set_bitmap(&bitmap_icon_unistroke);
+		button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
 	
 	if (portapack::persistent_memory::stealth_mode())
 		button_stealth.set_foreground(ui::Color::green());
@@ -113,9 +113,9 @@ SystemStatusView::SystemStatusView() {
 		this->on_stealth();
 	};
 	
-	button_textentry.on_select = [this](ImageButton&) {
+	/*button_textentry.on_select = [this](ImageButton&) {
 		this->on_textentry();
-	};
+	};*/
 
 	button_camera.on_select = [this](ImageButton&) {
 		this->on_camera();
@@ -154,7 +154,7 @@ void SystemStatusView::on_stealth() {
 	button_stealth.set_dirty();
 }
 
-void SystemStatusView::on_textentry() {
+/*void SystemStatusView::on_textentry() {
 	uint8_t cfg;
 	
 	cfg = portapack::persistent_memory::ui_config_textentry();
@@ -164,7 +164,7 @@ void SystemStatusView::on_textentry() {
 		button_textentry.set_bitmap(&bitmap_icon_unistroke);
 	else
 		button_textentry.set_bitmap(&bitmap_icon_keyboard);
-}
+}*/
 
 void SystemStatusView::on_camera() {
 	auto path = next_filename_stem_matching_pattern(u"SCR_????");

@@ -83,18 +83,18 @@ private:
 	};
 	
 	ImageButton button_stealth {
-		{ 152, 0, 2 * 8, 1 * 16 },
+		{ 170, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_stealth,
 		Color::light_grey(),
 		Color::dark_grey()
 	};
 	
-	ImageButton button_textentry {
+	/*ImageButton button_textentry {
 		{ 170, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_unistroke,
 		Color::white(),
 		Color::dark_grey()
-	};
+	};*/
 
 	ImageButton button_camera {
 		{ 188, 0, 2 * 8, 1 * 16 },
@@ -115,7 +115,7 @@ private:
 	};
 
 	void on_stealth();
-	void on_textentry();
+	//void on_textentry();
 	void on_camera();
 };
 
@@ -143,7 +143,7 @@ public:
 	void pop_modal();
 
 	void display_modal(const std::string& title, const std::string& message);
-	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice);
+	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
 
 	void focus() override;
 

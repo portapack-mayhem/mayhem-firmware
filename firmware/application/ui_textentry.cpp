@@ -21,28 +21,28 @@
  */
 
 #include "ui_textentry.hpp"
-#include "portapack_persistent_memory.hpp"
-#include "ui_handwrite.hpp"
+//#include "portapack_persistent_memory.hpp"
 #include "ui_alphanum.hpp"
+//#include "ui_handwrite.hpp"
 
 using namespace portapack;
 
 namespace ui {
 
 void text_prompt(NavigationView& nav, std::string * str, const size_t max_length, const std::function<void(std::string *)> on_done) {
-	if (persistent_memory::ui_config_textentry() == 0) {
+	//if (persistent_memory::ui_config_textentry() == 0) {
 		auto te_view = nav.push<AlphanumView>(str, max_length);
 		te_view->on_changed = [on_done](std::string * value) {
 			if (on_done)
 				on_done(value);
 		};
-	} else {
+	/*} else {
 		auto te_view = nav.push<HandWriteView>(str, max_length);
 		te_view->on_changed = [on_done](std::string * value) {
 			if (on_done)
 				on_done(value);
 		};
-	}
+	}*/
 }
 
 void TextEntryView::update_text() {

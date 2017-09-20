@@ -134,20 +134,9 @@ void FrequencySaveView::on_save_name() {
 }
 
 void FrequencySaveView::on_save_timestamp() {
-	database.entries.push_back({ value_, "", str_timestamp });
+	database.entries.push_back({ value_, "", live_timestamp.string() });
 	save_freqman_file(file_list[current_category_id], database);
 	nav_.pop();
-}
-
-void FrequencySaveView::on_tick_second() {
-	rtcGetTime(&RTCD1, &datetime);
-	str_timestamp = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
-						to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
-	text_timestamp.set(str_timestamp);
-}
-
-FrequencySaveView::~FrequencySaveView() {
-	rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 FrequencySaveView::FrequencySaveView(
@@ -166,19 +155,13 @@ FrequencySaveView::FrequencySaveView(
 		}
 	}*/
 	
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
-	
 	add_children({
+		&labels,
 		&big_display,
-		&text_save,
 		&button_save_name,
 		&button_save_timestamp,
-		&text_timestamp
+		&live_timestamp
 	});
-	
-	on_tick_second();
 	
 	big_display.set(value);
 	

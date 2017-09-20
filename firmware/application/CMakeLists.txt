@@ -177,7 +177,7 @@ set(CPPSRC
 	ui_font_fixed_8x16.cpp
 	ui_freqman.cpp
 	ui_geomap.cpp
-	ui_handwrite.cpp
+	# ui_handwrite.cpp
 	ui_jammer.cpp
 	ui_lcr.cpp
 	ui_menu.cpp

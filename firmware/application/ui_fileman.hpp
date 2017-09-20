@@ -27,7 +27,6 @@
 #include "file.hpp"
 #include "ui_navigation.hpp"
 #include "ui_textentry.hpp"
-#include "rtc_time.hpp"
 
 namespace ui {
 
@@ -46,7 +45,7 @@ public:
 	void focus() override;
 	
 	void load_directory_contents(const std::filesystem::path& dir_path);
-	std::filesystem::path get_absolute_path();
+	std::filesystem::path get_selected_path();
 	
 	std::string title() const override { return "File manager"; };
 	
@@ -55,7 +54,7 @@ protected:
 	
 	const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
 	
-	bool error_ { false };
+	bool empty_root { false };
 	std::function<void(void)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
 	std::vector<fileman_entry> entry_list { };
@@ -87,20 +86,15 @@ protected:
 	};
 };
 
-class FileSaveView : public FileManBaseView {
+/*class FileSaveView : public FileManBaseView {
 public:
 	FileSaveView(NavigationView& nav);
 	~FileSaveView();
 
 private:
-	std::string filename_buffer { };
-	rtc::RTC datetime { };
-	std::string str_timestamp { };
+	std::string name_buffer { };
 	
 	void on_save_name();
-	void on_tick_second();
-	
-	SignalToken signal_token_tick_second { };
 	
 	Text text_save {
 		{ 4 * 8, 15 * 8, 8 * 8, 16 },
@@ -110,11 +104,10 @@ private:
 		{ 4 * 8, 18 * 8, 12 * 8, 32 },
 		"Name (set)"
 	};
-	Text text_timestamp {
-		{ 17 * 8, 24 * 8, 11 * 8, 16 },
-		"MM/DD HH:MM",
+	LiveDateTime live_timestamp {
+		{ 17 * 8, 24 * 8, 11 * 8, 16 }
 	};
-};
+};*/
 
 class FileLoadView : public FileManBaseView {
 public:
@@ -132,15 +125,11 @@ public:
 	~FileManagerView();
 
 private:
-	std::string filename_buffer { };
+	std::string name_buffer { };
 	
 	void refresh_widgets(const bool v);
 	void on_rename(NavigationView& nav);
 	void on_delete();
-
-	/*Labels labels {
-		{ { 4 * 8 + 4, 26 * 8 }, "Edit:", Color::light_grey() }
-	};*/
 
 	Button button_rename {
 		{ 0 * 8, 28 * 8, 14 * 8, 32 },

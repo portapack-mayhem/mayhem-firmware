@@ -28,6 +28,7 @@
 #include "ui_painter.hpp"
 #include "ui_focus.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "rtc_time.hpp"
 #include "radio.hpp"
 
 #include "portapack.hpp"
@@ -235,6 +236,25 @@ private:
 	std::vector<Label> labels_;
 };
 
+class LiveDateTime : public Widget {
+public:
+	LiveDateTime(Rect parent_rect);
+	~LiveDateTime();
+
+	void paint(Painter& painter) override;
+	
+	std::string& string() {
+		return text;
+	}
+
+private:
+	void on_tick_second();
+	
+	rtc::RTC datetime { };
+	SignalToken signal_token_tick_second { };
+	std::string text { };
+};
+
 class BigFrequency : public Widget {
 public:
 	BigFrequency(Rect parent_rect, rf::Frequency frequency);
@@ -245,6 +265,8 @@ public:
 
 private:
 	rf::Frequency _frequency;
+	
+	static constexpr Dim digit_width = 32;
 	
 	const uint8_t segment_font[11] = {
 		0b00111111,	// 0: ABCDEF
@@ -258,6 +280,16 @@ private:
 		0b01111111,	// 8: ABCDEFG
 		0b01101111,	// 9: ABCDFG
 		0b01000000	// -: G
+	};
+	
+	const Rect segments[7] = {
+		{{4, 0}, 	{20, 4}},
+		{{24, 4}, 	{4, 20}},
+		{{24, 28}, 	{4, 20}},
+		{{4, 48}, 	{20, 4}},
+		{{0, 28}, 	{4, 20}},
+		{{0, 4}, 	{4, 20}},
+		{{4, 24}, 	{20, 4}}
 	};
 };
 

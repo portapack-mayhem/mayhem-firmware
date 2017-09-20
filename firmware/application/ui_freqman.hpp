@@ -28,7 +28,6 @@
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
 #include "freqman.hpp"
-#include "rtc_time.hpp"
 
 namespace ui {
 	
@@ -89,40 +88,33 @@ protected:
 class FrequencySaveView : public FreqManBaseView {
 public:
 	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-	~FrequencySaveView();
 
 private:
 	std::string desc_buffer { };
-	rtc::RTC datetime { };
 	rf::Frequency value_ { };
-	std::string str_timestamp { };
 	
 	void on_save_name();
 	void on_save_timestamp();
-	void on_tick_second();
-	
-	SignalToken signal_token_tick_second { };
 	
 	BigFrequency big_display {
 		{ 4, 2 * 16, 28 * 8, 32 },
 		0
 	};
 	
-	Text text_save {
-		{ 4 * 8, 15 * 8, 8 * 8, 16 },
-		"Save as:",
+	Labels labels {
+		{ { 2 * 8, 14 * 8 }, "Save as:", Color::white() }
 	};
+	
 	Button button_save_name {
-		{ 4 * 8, 18 * 8, 12 * 8, 32 },
+		{ 2 * 8, 17 * 8, 14 * 8, 48 },
 		"Name (set)"
 	};
 	Button button_save_timestamp {
-		{ 4 * 8, 23 * 8, 12 * 8, 32 },
+		{ 2 * 8, 25 * 8, 14 * 8, 48 },
 		"Timestamp:"
 	};
-	Text text_timestamp {
-		{ 17 * 8, 24 * 8, 11 * 8, 16 },
-		"MM/DD HH:MM",
+	LiveDateTime live_timestamp {
+		{ 17 * 8, 27 * 8, 11 * 8, 16 }
 	};
 };
 

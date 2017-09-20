@@ -36,6 +36,7 @@ void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_p
 	
 	entry_list.clear();
 	
+	// List all directories and files, put directories up top
 	for (const auto& entry : std::filesystem::directory_iterator(dir_path, u"*")) {
 		if (std::filesystem::is_regular_file(entry.status())) {
 			entry_list.push_back({ entry.path(), (uint32_t)entry.size(), false });
@@ -45,14 +46,14 @@ void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_p
 	}
 }
 
-std::filesystem::path FileManBaseView::get_absolute_path() {
-	std::string current_path_str = current_path.string();
+std::filesystem::path FileManBaseView::get_selected_path() {
+	std::string selected_path_str = current_path.string();
 	
-	if (current_path_str.back() != '/')
-		current_path_str += '/';
-	current_path_str += (entry_list[menu_view.highlighted()].entry_path.string());
+	if (selected_path_str.back() != '/')
+		selected_path_str += '/';
+	selected_path_str += (entry_list[menu_view.highlighted()].entry_path.string());
 	
-	return current_path_str;
+	return selected_path_str;
 }
 
 FileManBaseView::FileManBaseView(
@@ -62,13 +63,22 @@ FileManBaseView::FileManBaseView(
 	load_directory_contents(current_path);
 	
 	if (!entry_list.size())
-		error_ = true;
+		empty_root = true;
 	
 	add_children({
 		&labels,
 		&text_current,
 		&button_exit
 	});
+
+	// Go back one level on left
+	menu_view.on_left = [&nav, this]() {
+		std::string current_path_str = current_path.string();
+		
+		current_path_str = current_path_str.substr(0, current_path_str.find_last_of('/'));
+		load_directory_contents(current_path_str);
+		refresh_list();
+	};
 	
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
@@ -76,8 +86,7 @@ FileManBaseView::FileManBaseView(
 };
 
 void FileManBaseView::focus() {
-	
-	if (error_) {
+	if (empty_root) {
 		button_exit.focus();
 		nav_.display_modal("Error", "No files in root.", ABORT, nullptr);
 	} else {
@@ -91,16 +100,18 @@ void FileManBaseView::refresh_list() {
 	size_t file_size;
 	
 	if (!entry_list.size()) {
+		// Hide widgets, show warning
 		if (on_refresh_widgets)
 			on_refresh_widgets(true);
 	} else {
+		// Hide warning, show widgets
 		if (on_refresh_widgets)
 			on_refresh_widgets(false);
 	
 		menu_view.clear();
 		
 		for (size_t n = 0; n < entry_list.size(); n++) {
-			auto entry_name = entry_list[n].entry_path.filename().string();
+			auto entry_name = entry_list[n].entry_path.filename().string().substr(0, 20);
 			
 			if (entry_list[n].is_directory) {
 				
@@ -145,47 +156,28 @@ void FileManBaseView::refresh_list() {
 	}
 }
 
-void FileSaveView::on_save_name() {
-	/*text_prompt(nav_, &filename_buffer, 8, [this](std::string * buffer) {
-		//database.entries.push_back({ value_, "", *buffer });
-		//save_freqman_file(entry_list[current_category_id], database);
+/*void FileSaveView::on_save_name() {
+	text_prompt(nav_, &filename_buffer, 8, [this](std::string * buffer) {
 		nav_.pop();
-	});*/
-}
-
-void FileSaveView::on_tick_second() {
-	rtcGetTime(&RTCD1, &datetime);
-	str_timestamp = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
-						to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
-	text_timestamp.set(str_timestamp);
-}
-
-FileSaveView::~FileSaveView() {
-	rtc_time::signal_tick_second -= signal_token_tick_second;
+	});
 }
 
 FileSaveView::FileSaveView(
 	NavigationView& nav
 ) : FileManBaseView(nav)
 {
-	filename_buffer.reserve(8);
-	
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
+	name_buffer.clear();
 	
 	add_children({
 		&text_save,
 		&button_save_name,
-		&text_timestamp
+		&live_timestamp
 	});
-	
-	on_tick_second();
 	
 	button_save_name.on_select = [this, &nav](Button&) {
 		on_save_name();
 	};
-}
+}*/
 
 void FileLoadView::refresh_widgets(const bool v) {
 	menu_view.hidden(v);
@@ -224,15 +216,15 @@ FileLoadView::FileLoadView(
 }
 
 void FileManagerView::on_rename(NavigationView& nav) {
-	text_prompt(nav, &filename_buffer, 12, [this](std::string * buffer) {
-		rename_file(get_absolute_path(), *buffer);
+	text_prompt(nav, &name_buffer, 12, [this](std::string * buffer) {
+		rename_file(get_selected_path(), *buffer);
 		load_directory_contents(current_path);
 		refresh_list();
 	});
 }
 
 void FileManagerView::on_delete() {
-	delete_file(get_absolute_path());
+	delete_file(get_selected_path());
 	load_directory_contents(current_path);
 	refresh_list();
 }
@@ -259,7 +251,6 @@ FileManagerView::FileManagerView(
 	};
 	
 	add_children({
-		//&labels,
 		&menu_view,
 		&text_empty,
 		&button_rename,
@@ -267,29 +258,20 @@ FileManagerView::FileManagerView(
 		&button_delete
 	});
 	
-	// Go back one level on left
-	menu_view.on_left = [&nav, this]() {
-		std::string current_path_str = current_path.string();
-		
-		current_path_str = current_path_str.substr(0, current_path_str.find_last_of('/'));
-		load_directory_contents(current_path_str);
-		refresh_list();
-	};
-	
 	refresh_list();
 	
 	on_select_entry = [this]() {
 		if (entry_list[menu_view.highlighted()].is_directory) {
-			load_directory_contents(get_absolute_path());
+			load_directory_contents(get_selected_path());
 			refresh_list();
 		} else
 			button_rename.focus();
 	};
 	
 	button_new_dir.on_select = [this, &nav](Button&) {
-		filename_buffer = "";
+		name_buffer.clear();
 		
-		text_prompt(nav, &filename_buffer, 12, [this](std::string * buffer) {
+		text_prompt(nav, &name_buffer, 12, [this](std::string * buffer) {
 			std::string path_str = *buffer;
 			
 			make_new_directory(current_path.string() + '/' + path_str);
@@ -300,7 +282,7 @@ FileManagerView::FileManagerView(
 	
 	button_rename.on_select = [this, &nav](Button&) {
 		if (!entry_list[menu_view.highlighted()].is_directory) {
-			filename_buffer = entry_list[menu_view.highlighted()].entry_path.filename().string();
+			name_buffer = entry_list[menu_view.highlighted()].entry_path.filename().string();
 			on_rename(nav);
 		}
 	};

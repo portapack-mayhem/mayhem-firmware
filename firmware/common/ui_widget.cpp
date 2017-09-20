@@ -405,6 +405,45 @@ void Labels::paint(Painter& painter) {
 	}
 }
 
+/* LiveDateTime **********************************************************/
+
+void LiveDateTime::on_tick_second() {
+	rtcGetTime(&RTCD1, &datetime);
+	
+	text = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
+			to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
+	
+	set_dirty();
+}
+
+LiveDateTime::LiveDateTime(
+	Rect parent_rect
+) : Widget { parent_rect }
+{
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
+}
+
+LiveDateTime::~LiveDateTime() {
+	rtc_time::signal_tick_second -= signal_token_tick_second;
+}
+
+void LiveDateTime::paint(Painter& painter) {
+	const auto rect = screen_rect();
+	const auto s = style();
+	
+	on_tick_second();
+
+	painter.fill_rectangle(rect, s.background);
+
+	painter.draw_string(
+		rect.location(),
+		s,
+		text
+	);
+}
+
 /* BigFrequency **********************************************************/
 
 BigFrequency::BigFrequency(
@@ -422,21 +461,22 @@ void BigFrequency::set(const rf::Frequency frequency) {
 
 void BigFrequency::paint(Painter& painter) {
 	uint32_t i, digit_def;
-	char digits[7];
+	std::array<char, 7> digits;
 	char digit;
-	Coord digit_x, digit_y;
+	Point digit_pos;
 	ui::Color segment_color;
 	
 	const auto rect = screen_rect();
 	
 	// Erase
-	painter.fill_rectangle({{0, rect.location().y()}, {240, 52}}, ui::Color::black());
+	painter.fill_rectangle({ { 0, rect.location().y() }, { 240, 52 } }, ui::Color::black());
 	
+	// Prepare digits
 	if (!_frequency) {
-		for (i = 0; i < 7; i++)		// ----.------
-			digits[i] = 10;
+		digits.fill(10);			// ----.---
+		digit_pos = { 0, rect.location().y() };
 	} else {
-		_frequency /= 1000;			// GMMM.KKKuuu
+		_frequency /= 1000;			// GMMM.KKK(uuu)
 		
 		for (i = 0; i < 7; i++) {
 			digits[6 - i] = _frequency % 10;
@@ -444,37 +484,38 @@ void BigFrequency::paint(Painter& painter) {
 		}
 		
 		// Remove leading zeros
-		for (i = 0; i < 7; i++) {
+		for (i = 0; i < 3; i++) {
 			if (!digits[i])
 				digits[i] = 16;		// "Don't draw" code
 			else
 				break;
 		}
+		
+		digit_pos = { (240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y() };
 	}
 	
 	segment_color = style().foreground;
 
 	// Draw
-	digit_x = rect.location().x();		// 7 * 32 + 8 = 232 (4 px margins)
 	for (i = 0; i < 7; i++) {
 		digit = digits[i];
-		digit_y = rect.location().y();
+		
 		if (digit < 16) {
 			digit_def = segment_font[(uint8_t)digit];
-			if (digit_def & 0x01) painter.fill_rectangle({{digit_x + 4, 	digit_y}, 		{20, 4}}, 	segment_color);
-			if (digit_def & 0x02) painter.fill_rectangle({{digit_x + 24, 	digit_y + 4}, 	{4, 20}}, 	segment_color);
-			if (digit_def & 0x04) painter.fill_rectangle({{digit_x + 24, 	digit_y + 28}, 	{4, 20}}, 	segment_color);
-			if (digit_def & 0x08) painter.fill_rectangle({{digit_x + 4, 	digit_y + 48}, 	{20, 4}}, 	segment_color);
-			if (digit_def & 0x10) painter.fill_rectangle({{digit_x, 		digit_y + 28}, 	{4, 20}}, 	segment_color);
-			if (digit_def & 0x20) painter.fill_rectangle({{digit_x, 		digit_y + 4}, 	{4, 20}}, 	segment_color);
-			if (digit_def & 0x40) painter.fill_rectangle({{digit_x + 4, 	digit_y + 24}, 	{20, 4}}, 	segment_color);
+			
+			for (size_t s = 0; s < 7; s++) {
+				if (digit_def & 1)
+					painter.fill_rectangle({ digit_pos + segments[s].location(), segments[s].size() }, segment_color);
+				digit_def >>= 1;
+			}
 		}
+		
 		if (i == 3) {
 			// Dot
-			painter.fill_rectangle({{digit_x + 34, digit_y + 48}, {4, 4}}, segment_color);
-			digit_x += 40;
+			painter.fill_rectangle({ digit_pos + Point(34, 48), { 4, 4 } }, segment_color);
+			digit_pos += { (digit_width + 8), 0 };
 		} else {
-			digit_x += 32;
+			digit_pos += { digit_width, 0 };
 		}
 	}
 }
