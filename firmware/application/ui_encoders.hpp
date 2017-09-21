@@ -48,7 +48,7 @@ public:
 	uint32_t pause_symbols();
 	void generate_frame();
 	
-	std::string frame_symbols = "0";
+	std::string frame_fragments = "0";
 
 private:
 	//bool abort_scan = false;

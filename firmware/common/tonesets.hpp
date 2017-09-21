@@ -41,7 +41,7 @@
 #define DTMF_R2	TONES_F2D(852)
 #define DTMF_R3	TONES_F2D(941)
 
-const uint32_t ccir_deltas[16] = {
+const std::array<uint32_t, 16> ccir_deltas = {
 	TONES_F2D(1981),
 	TONES_F2D(1124),
 	TONES_F2D(1197),
@@ -80,7 +80,7 @@ const uint32_t dtmf_deltas[16][2] = {
 	{ DTMF_C0, DTMF_R3 }
 };
 
-const uint32_t eia_deltas[16] = {
+const std::array<uint32_t, 16> eia_deltas = {
 	TONES_F2D(600),
 	TONES_F2D(741),
 	TONES_F2D(882),
@@ -99,7 +99,7 @@ const uint32_t eia_deltas[16] = {
 	TONES_F2D(1091)
 };
 
-const uint32_t zvei_deltas[16] = {
+const std::array<uint32_t, 16> zvei_deltas = {
 	TONES_F2D(2400),
 	TONES_F2D(1060),
 	TONES_F2D(1160),

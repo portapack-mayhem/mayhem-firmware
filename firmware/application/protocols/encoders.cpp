@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2017 Furrtek
  * 
  * This file is part of PortaPack.
  *
@@ -22,25 +22,37 @@
 
 #include "ui.hpp"
 #include "ui_navigation.hpp"
-
-#include "tonesets.hpp"
 #include "encoders.hpp"
 
-using namespace encoders;
+using namespace portapack;
 
-#define XY_TONE_LENGTH	((TONES_SAMPLERATE * 0.1) - 1)		// 100ms
-#define XY_SILENCE 		(TONES_SAMPLERATE * 0.4)			// 400ms
-#define XY_TONE_COUNT	20
+namespace encoders {
+
+size_t make_bitstream(std::string& fragments) {
+	uint8_t byte = 0;
+	size_t bitstream_length = 0;
+	uint8_t * bitstream = shared_memory.bb_data.data;
 	
-struct bht_city {
-	std::string name;
-	uint8_t freq_index;
-	bool recent;
-};
-
-size_t gen_message_ep(uint8_t city_code, size_t family_code_ep, uint32_t relay_state_A, uint32_t relay_state_B);
-std::string gen_message_xy(const std::string& code);
-std::string gen_message_xy(size_t header_code_a, size_t header_code_b, size_t city_code, size_t family_code,
-							bool subfamily_wc, size_t subfamily_code, bool id_wc, size_t receiver_code,
-							size_t relay_state_A, size_t relay_state_B, size_t relay_state_C, size_t relay_state_D);
-std::string ccir_to_ascii(uint8_t * ccir);
+	for (auto c : fragments) {
+		byte <<= 1;
+		if (c != '0')
+			byte |= 1;
+		
+		if ((bitstream_length & 7) == 7)
+			bitstream[bitstream_length >> 3] = byte;
+		
+		bitstream_length++;
+	}
+	
+	// Finish last byte if needed
+	size_t padding =  8 - (bitstream_length & 7);
+	if (padding != 8) {
+		byte <<= padding;
+		bitstream[(bitstream_length + padding - 1) >> 3] = byte;
+		padding++;
+	}
+	
+	return bitstream_length;
+}
+	
+} /* namespace encoders */

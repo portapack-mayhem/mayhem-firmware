@@ -40,7 +40,7 @@ namespace ui {
 
 class XylosView : public View {
 public:
-	XylosView();
+	XylosView(Rect parent_rect);
 	
 	void focus() override;
 	
@@ -163,13 +163,15 @@ private:
 
 class EPARView : public View {
 public:
-	EPARView();
+	EPARView(Rect parent_rect);
 	
 	void focus() override;
 	
 	void flip_relays();
-	void generate_message();
+	size_t generate_message();
 
+	size_t half { 0 };
+	
 private:
 	Labels labels {
 		{ { 4 * 8, 1 * 8 }, "Code ville:", Color::light_grey() },
@@ -222,8 +224,17 @@ private:
 	void on_tx_progress(const int progress, const bool done);
 	void start_tx();
 	
-	XylosView view_xylos { };
-	EPARView view_EPAR { };
+	enum tx_type_t {
+		XYLOS = 0,
+		EPAR = 1
+	};
+	
+	tx_type_t tx_type = { };
+	
+	Rect view_rect = { 0, 3 * 8, 240, 192 };
+	
+	XylosView view_xylos { view_rect };
+	EPARView view_EPAR { view_rect };
 	
 	TabView tab_view {
 		{ "Xylos", Color::cyan(), &view_xylos },

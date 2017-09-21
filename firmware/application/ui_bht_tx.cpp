@@ -21,12 +21,10 @@
  */
 
 #include "ui_bht_tx.hpp"
+#include "string_format.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
-
-#include <cstring>
-#include <stdio.h>
 
 using namespace portapack;
 
@@ -36,57 +34,98 @@ void BHTView::focus() {
 	tx_view.focus();
 }
 
-BHTView::~BHTView() {
-	transmitter_model.disable();
-	baseband::shutdown();
-}
-
 void BHTView::start_tx() {
-	uint8_t c;
+	baseband::shutdown();
 	
-	view_xylos.generate_message();
-	view_EPAR.generate_message();
-	
-	if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE)
-		progressbar.set_max(20);
-	else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE)
-		progressbar.set_max(20 * XY_SEQ_COUNT);
-	
-	transmitter_model.set_sampling_rate(1536000);
-	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
-	
-	// Setup tones for Xy
-	for (c = 0; c < 16; c++)
-		baseband::set_tone(c, ccir_deltas[c], XY_TONE_LENGTH);
-	
-	baseband::set_tones_config(transmitter_model.channel_bandwidth(), XY_SILENCE, 20, false, false);
+	if (tx_type == XYLOS) {
+		
+		baseband::run_image(portapack::spi_flash::image_tag_tones);
+		
+		view_xylos.generate_message();
+		
+		//if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE)
+			progressbar.set_max(20);
+		//else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE)
+		//	progressbar.set_max(20 * XY_SEQ_COUNT);
+		
+		transmitter_model.set_sampling_rate(TONES_SAMPLERATE);
+		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_baseband_bandwidth(1750000);
+		transmitter_model.enable();
+		
+		// Setup tones
+		for (size_t c = 0; c < ccir_deltas.size(); c++)
+			baseband::set_tone(c, ccir_deltas[c], XY_TONE_LENGTH);
+		
+		baseband::set_tones_config(transmitter_model.channel_bandwidth(), XY_SILENCE, XY_TONE_COUNT, false, false);
+		
+	} else if (tx_type == EPAR) {
+		
+		baseband::run_image(portapack::spi_flash::image_tag_ook);
+		
+		size_t bitstream_length = view_EPAR.generate_message();
+		
+		progressbar.set_max(2 * 26);
+		
+		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
+		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_baseband_bandwidth(1750000);
+		transmitter_model.enable();
+
+		baseband::set_ook_data(
+			bitstream_length,
+			OOK_SAMPLERATE / 580,
+			26,
+			encoder_defs[ENCODER_UM3750].pause_symbols
+		);
+	}
 }
 
 void BHTView::on_tx_progress(const int progress, const bool done) {
-	uint8_t c;
+	//if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE) {
 	
-	if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE) {
+	if (done) {
+		transmitter_model.disable();
+		view_xylos.tx_mode = XylosView::tx_modes::IDLE;
+		tx_view.set_transmitting(false);
+	}
+	
+	if (tx_type == XYLOS) {
 		if (done) {
-			transmitter_model.disable();
-			progressbar.set_value(0);
-			
 			if (!checkbox_cligno.value()) {
 				view_xylos.tx_mode = XylosView::tx_modes::IDLE;
 				tx_view.set_transmitting(false);
+				progressbar.set_value(0);
 			} else {
 				chThdSleepMilliseconds(field_tempo.value() * 1000);	// Dirty :(
 				
-				view_EPAR.flip_relays();
 				view_xylos.flip_relays();
 				
 				start_tx();
 			}
-		} else {
+		} else
 			progressbar.set_value(progress);
-		}
-	} else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE) {
+	} else if (tx_type == EPAR) {
+		if (done) {
+			if (!view_EPAR.half) {
+				view_EPAR.half = 1;
+				start_tx();		// Start second half of transmission
+			} else {
+				view_EPAR.half = 0;
+				progressbar.set_value(0);
+				if (checkbox_cligno.value()) {
+					chThdSleepMilliseconds(field_tempo.value() * 1000);	// Dirty :(
+					
+					view_EPAR.flip_relays();
+					
+					start_tx();
+				}
+			}
+		} else
+			progressbar.set_value((26 * view_EPAR.half) + progress);
+	}
+	
+	/*} else if (view_xylos.tx_mode == XylosView::tx_modes::SEQUENCE) {
 		if (done) {
 			transmitter_model.disable();
 			
@@ -105,7 +144,59 @@ void BHTView::on_tx_progress(const int progress, const bool done) {
 		} else {
 			progressbar.set_value((view_xylos.seq_index * 20) + progress);
 		}
-	}
+	}*/
+}
+
+BHTView::~BHTView() {
+	transmitter_model.disable();
+	baseband::shutdown();
+}
+
+BHTView::BHTView(NavigationView& nav) {
+	add_children({
+		&tab_view,
+		&labels,
+		&view_xylos,
+		&view_EPAR,
+		&checkbox_cligno,
+		&field_tempo,
+		&progressbar,
+		&text_message,
+		&tx_view
+	});
+	
+	field_tempo.set_value(1);
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			transmitter_model.set_tuning_frequency(f);
+		};
+	};
+	
+	/*button_seq.on_select = [this, &nav](Button&) {
+		if (tx_mode == IDLE) {
+			seq_index = 0;
+			tx_mode = SEQUENCE;
+			tx_view.set_transmitting(true);
+			start_tx();
+		}
+	};*/
+	
+	tx_view.on_start = [this]() {
+		if (view_xylos.tx_mode == XylosView::tx_modes::IDLE) {
+			view_xylos.tx_mode = XylosView::tx_modes::SINGLE;
+			tx_view.set_transmitting(true);
+			tx_type = (tx_type_t)tab_view.selected();
+			start_tx();
+		}
+	};
+	
+	tx_view.on_stop = [this]() {
+		transmitter_model.disable();
+		tx_view.set_transmitting(false);
+		view_xylos.tx_mode = XylosView::tx_modes::IDLE;
+	};
 }
 
 void EPARView::flip_relays() {
@@ -113,25 +204,23 @@ void EPARView::flip_relays() {
 	relay_states[0].set_selected_index(relay_states[0].selected_index() ^ 1);
 }
 
-void EPARView::generate_message() {
-	//text_message.set(
-		gen_message_ep(field_city.value(), field_group.selected_index_value(),
-						relay_states[0].selected_index(), relay_states[1].selected_index());
-	//);
+size_t EPARView::generate_message() {
+	// R2, then R1
+	return gen_message_ep(field_city.value(), field_group.selected_index_value(),
+							1 - half, relay_states[half].selected_index());
 }
 
-EPARView::EPARView() {
-	size_t n;
+EPARView::EPARView(
+	Rect parent_rect
+) : View(parent_rect) {
 	
 	hidden(true);
-	
-	//baseband::run_image(portapack::spi_flash::image_tag_ook);
 	
 	add_children({
 		&labels,
 		&field_city,
 		&field_group,
-		&button_scan
+		//&button_scan
 	});
 
 	field_city.set_value(220);
@@ -144,7 +233,7 @@ EPARView::EPARView() {
 		this->generate_message();
 	};
 	
-	n = 0;
+	size_t n = 0;
 	for (auto& relay_state : relay_states) {
 		relay_state.on_change = relay_state_fn;
 		relay_state.set_parent_rect({
@@ -163,34 +252,33 @@ void EPARView::focus() {
 }
 
 void XylosView::flip_relays() {
-	size_t rs;
+	// Invert first relay's state if not ignored
+	size_t rs = relay_states[0].selected_index();
 	
-	// Invert first relay's state
-	rs = relay_states[0].selected_index();
-	if (rs > 0) relay_states[0].set_selected_index(rs ^ 3);
+	if (rs > 0)
+		relay_states[0].set_selected_index(rs ^ 3);
 }
 
 void XylosView::generate_message() {
-	if (tx_mode == SINGLE) {
+	//if (tx_mode == SINGLE) {
 		//text_message.set(
 			gen_message_xy(field_header_a.value(), field_header_b.value(), field_city.value(), field_family.value(), 
 							checkbox_wcsubfamily.value(), field_subfamily.value(), checkbox_wcid.value(), field_receiver.value(),
 							relay_states[0].selected_index(), relay_states[1].selected_index(), 
 							relay_states[2].selected_index(), relay_states[3].selected_index());
 		//);
-	} else if (tx_mode == SEQUENCE) {
+	/*} else if (tx_mode == SEQUENCE) {
 		//text_message.set(
 			gen_message_xy(sequence_matin[seq_index].code);
 		//);
-	}
+	}*/
 }
 
-XylosView::XylosView() {
-	size_t n;
+XylosView::XylosView(
+	Rect parent_rect
+) : View(parent_rect) {
 	
 	hidden(true);
-	
-	//baseband::run_image(portapack::spi_flash::image_tag_tones);
 	
 	add_children({
 		&labels,
@@ -202,7 +290,7 @@ XylosView::XylosView() {
 		&checkbox_wcsubfamily,
 		&field_receiver,
 		&checkbox_wcid,
-		&button_seq,
+		//&button_seq,
 	});
 
 	field_header_a.set_value(0);
@@ -236,7 +324,7 @@ XylosView::XylosView() {
 		this->generate_message();
 	};
 	
-	n = 0;
+	size_t n = 0;
 	for (auto& relay_state : relay_states) {
 		relay_state.on_change = relay_state_fn;
 		relay_state.set_parent_rect({
@@ -252,59 +340,6 @@ XylosView::XylosView() {
 
 void XylosView::focus() {
 	field_city.focus();
-}
-
-BHTView::BHTView(NavigationView& nav) {
-	Rect view_rect = { 0, 3 * 8, 240, 192 };
-	
-	baseband::run_image(portapack::spi_flash::image_tag_tones);
-
-	add_children({
-		&tab_view,
-		&labels,
-		&view_xylos,
-		&view_EPAR,
-		&checkbox_cligno,
-		&field_tempo,
-		&progressbar,
-		&text_message,
-		&tx_view
-	});
-	
-	view_xylos.set_parent_rect(view_rect);
-	view_EPAR.set_parent_rect(view_rect);
-	
-	field_tempo.set_value(0);
-	
-	tx_view.on_edit_frequency = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			transmitter_model.set_tuning_frequency(f);
-		};
-	};
-	
-	/*button_seq.on_select = [this, &nav](Button&) {
-		if (tx_mode == IDLE) {
-			seq_index = 0;
-			tx_mode = SEQUENCE;
-			tx_view.set_transmitting(true);
-			start_tx();
-		}
-	};*/
-	
-	tx_view.on_start = [this]() {
-		if (view_xylos.tx_mode == XylosView::tx_modes::IDLE) {
-			view_xylos.tx_mode = XylosView::tx_modes::SINGLE;
-			tx_view.set_transmitting(true);
-			start_tx();
-		}
-	};
-	
-	tx_view.on_stop = [this]() {
-		transmitter_model.disable();
-		tx_view.set_transmitting(false);
-		view_xylos.tx_mode = XylosView::tx_modes::IDLE;
-	};
 }
 
 } /* namespace ui */

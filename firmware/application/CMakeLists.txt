@@ -144,6 +144,7 @@ set(CPPSRC
 	protocols/ax25.cpp
 	protocols/bht.cpp
 	protocols/dcs.cpp
+	protocols/encoders.cpp
 	protocols/lcr.cpp
 	protocols/rds.cpp
 	serializer.cpp

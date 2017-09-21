@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <vector>
 #include <cstring>
 #include <string>
 
@@ -29,7 +30,11 @@
 namespace encoders {
 	
 	#define ENC_TYPES_COUNT 14
-	#define OOK_SAMPLERATE 2280000U
+	#define OOK_SAMPLERATE	2280000U
+	
+	#define ENCODER_UM3750	8
+	
+	size_t make_bitstream(std::string& fragments);
 
 	struct encoder_def_t {
 		std::string name;						// Encoder chip ref/name
@@ -151,9 +156,9 @@ namespace encoders {
 			96, 32,
 			{ "011", "001" },
 			12,	"SAAAAAAAAAAAA",
-			"1",
+			"001",
 			100000,	4,
-			0	// ?
+			(3 * 12) - 6	// Compensates for pause delay bug in proc_ook
 		},
 		
 		// UM3758

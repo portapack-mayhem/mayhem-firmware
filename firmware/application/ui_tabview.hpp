@@ -41,12 +41,12 @@ public:
 	bool on_key(const KeyEvent key) override;
 	bool on_touch(const TouchEvent event) override;
 	
-	void set(uint16_t index, Dim width, std::string text, Color text_color);
+	void set(uint32_t index, Dim width, std::string text, Color text_color);
 
 private:
 	std::string text_ { };
 	Color text_color_ { };
-	uint16_t index_ { };
+	uint32_t index_ { };
 };
 
 class TabView : public View {
@@ -63,7 +63,10 @@ public:
 	void focus() override;
 	void on_show() override;
 	
-	void set_selected(uint16_t index);
+	void set_selected(uint32_t index);
+	uint32_t selected() {
+		return current_tab;
+	};
 
 private:
 	size_t n_tabs { };

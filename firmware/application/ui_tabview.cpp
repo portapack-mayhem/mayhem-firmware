@@ -32,12 +32,12 @@ Tab::Tab() {
 };
 
 void Tab::set(
-	uint16_t index,
+	uint32_t index,
 	Dim width,
 	std::string text,
 	Color text_color
 ) {
-	set_parent_rect({ index * width, 0, width, 24 });
+	set_parent_rect({ (Coord)(index * width), 0, width, 24 });
 	
 	text_ = text.substr(0, (width - 8) / 8);
 	text_color_ = text_color;
@@ -99,7 +99,7 @@ bool Tab::on_touch(const TouchEvent event) {
 	}
 }
 
-void TabView::set_selected(uint16_t index) {
+void TabView::set_selected(uint32_t index) {
 	Tab * tab;
 	
 	if (index >= n_tabs)

@@ -126,10 +126,10 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
-	size_t length = frame_symbols.length();
+	size_t length = frame_fragments.length();
 
 	for (size_t n = 0; n < length; n++) {
-		if (frame_symbols[n] == '0')
+		if (frame_fragments[n] == '0')
 			waveform_buffer[n] = 0;
 		else
 			waveform_buffer[n] = 1;
@@ -142,13 +142,13 @@ void EncodersConfigView::draw_waveform() {
 void EncodersConfigView::generate_frame() {
 	size_t i = 0;
 	
-	frame_symbols.clear();
+	frame_fragments.clear();
 	
 	for (auto c : encoder_def->word_format) {
 		if (c == 'S')
-			frame_symbols += encoder_def->sync;
+			frame_fragments += encoder_def->sync;
 		else
-			frame_symbols += encoder_def->bit_format[symfield_word.get_sym(i++)];
+			frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
 	}
 	
 	draw_waveform();
@@ -285,9 +285,7 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 
 void EncodersView::start_tx(const bool scan) {
 	(void)scan;
-	uint8_t byte = 0;
-	size_t bitstream_length =0;
-	uint8_t * bitstream = shared_memory.bb_data.data;
+	size_t bitstream_length = 0;
 	
 	repeat_min = view_config.repeat_min();
 	
@@ -311,14 +309,7 @@ void EncodersView::start_tx(const bool scan) {
 	
 	view_config.generate_frame();
 	
-	for (auto c : view_config.frame_symbols) {
-		byte <<= 1;
-		if (c != '0')
-			byte |= 1;
-		if ((bitstream_length & 7) == 7)
-			bitstream[bitstream_length >> 3] = byte;
-		bitstream_length++;
-	}
+	bitstream_length = make_bitstream(view_config.frame_fragments);
 
 	transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
 	transmitter_model.set_rf_amp(true);

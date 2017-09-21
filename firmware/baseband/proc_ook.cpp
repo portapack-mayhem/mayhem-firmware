@@ -100,7 +100,7 @@ void OOKProcessor::on_message(const Message* const p) {
 	if (message.id == Message::ID::OOKConfigure) {
 		samples_per_bit = message.samples_per_bit / 10;
 		repeat = message.repeat - 1;
-		length = message.stream_length - 1;
+		length = message.stream_length;
 		pause = message.pause_symbols + 1;
 	
 		pause_counter = 0;
