@@ -56,6 +56,7 @@
 #include "ui_setup.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
+#include "ui_touchtunes.hpp"
 #include "ui_whipcalc.hpp"
 
 #include "analog_audio_app.hpp"
@@ -311,7 +312,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
 		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
-		{ "Numbers station",		ui::Color::grey(),		&bitmap_icon_numbers,	[&nav](){ nav.push<NotImplementedView>(); } },	// NumbersStationView
+		{ "TouchTunes remote",		ui::Color::orange(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },

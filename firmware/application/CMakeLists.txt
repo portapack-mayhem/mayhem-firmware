@@ -152,8 +152,9 @@ set(CPPSRC
 	audio.cpp
 	${COMMON}/bch_code.cpp
 	ctcss.cpp
-	encoder.cpp
 	de_bruijn.cpp
+	encoder.cpp
+	emu_cc1101.cpp
 	freqman.cpp
 	${COMMON}/lcd_ili9341.cpp
 	${COMMON}/ui.cpp
@@ -208,6 +209,7 @@ set(CPPSRC
 	ui_tabview.cpp
 	ui_textentry.cpp
 	ui_touch_calibration.cpp
+	ui_touchtunes.cpp
 	ui_transmitter.cpp
 	ui_whipcalc.cpp
 	# ui_loadmodule.cpp

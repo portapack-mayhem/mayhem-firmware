@@ -65,15 +65,6 @@ private:
 	bool loop { false };
 	
 	std::string text { };
-
-	enum flags {
-		SECTION = 0,
-		MEMBER = 1,
-		MEMBER_LF = 0x41,
-		TITLE = 2,
-		TITLE_LF = 0x42,
-		END = 0x80
-	};
 		
 	typedef struct credits_t {
 		size_t start_pos;
@@ -81,18 +72,19 @@ private:
 		int32_t delay;
 	} credits_t;
 	
-	const credits_t credits[19] = {	
+	const credits_t credits[20] = {	
 		{ 60,		"PortaPack|HAVOC",				0 },
 		{ 7 * 8,	"Git hash " GIT_REVISION,		16 },
-		{ 9 * 8,	"Gurus  J. Boone",				0 },
-		{ 16 * 8,	"M. Ossmann",					16 },
-		{ 9 * 8,	"HAVOC  Furrtek",				16 },
-		{ 5 * 8,	"POCSAG rx  T. Sailer",			0 },
-		{ 16 * 8,	"E. Oenal",						16 },
-		{ 2 * 8,	"RDS waveform  C. Jacquet", 	16 },
-		{ 5 * 8,	"Xy. infos  cLx", 				16 },
-		{ 0,		"OOK scan trick  Samy Kamkar",	16 },
-		{ 5 * 8,	"World map  NASA", 				24 },
+		{ 11 * 8,	"Gurus  J. Boone",				0 },
+		{ 18 * 8,	"M. Ossmann",					16 },
+		{ 11 * 8,	"HAVOC  Furrtek",				16 },
+		{ 7 * 8,	"POCSAG rx  T. Sailer",			0 },
+		{ 18 * 8,	"E. Oenal",						16 },
+		{ 4 * 8,	"RDS waveform  C. Jacquet", 	16 },
+		{ 7 * 8,	"Xy. infos  cLx", 				16 },
+		{ 2 * 8,	"OOK scan trick  Samy Kamkar",	16 },
+		{ 7 * 8,	"World map  NASA", 				16 },
+		{ 0 * 8,	"TouchTunes infos  Notpike",	24 },
 		{ 12 * 8,	"Thanks",						16 },
 		{ 1 * 8,	"Rainer Matla     Keld Norman",	0 },
 		{ 1 * 8,	" Giorgio C.         DC1RDB",	0 },
