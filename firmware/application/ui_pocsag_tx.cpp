@@ -28,17 +28,13 @@
 
 #include "portapack_persistent_memory.hpp"
 
-#include <cstring>
-#include <stdio.h>
-#include <math.h>
-
 using namespace portapack;
 using namespace pocsag;
 
 namespace ui {
 
 void POCSAGTXView::focus() {
-	tx_view.focus();
+	field_address.focus();
 }
 
 POCSAGTXView::~POCSAGTXView() {
@@ -59,30 +55,24 @@ bool POCSAGTXView::start_tx() {
 	uint32_t total_frames, i, codeword, bi, address;
 	pocsag::BitRate bitrate;
 	std::vector<uint32_t> codewords;
-	MessageType type;
-	
-	type = (MessageType)options_type.selected_index_value();
 	
 	address = field_address.value_dec_u32();
 	if (address > 0x1FFFFFU) {
-		nav_.display_modal("Bad address", "Address must be less\nthan 2097152.", INFO, nullptr);
+		nav_.display_modal("Bad address", "Address must be less\nthan 2097152.");
 		return false;
 	}
+	
+	MessageType type = (MessageType)options_type.selected_index_value();
 	
 	if (type == MessageType::NUMERIC_ONLY) {
 		// Check for invalid characters
 		if (message.find_first_not_of("0123456789SU -][") != std::string::npos) {
-			nav_.display_modal(
-				"Bad message",
-				"A numeric only message must\nonly contain:\n0123456789SU][- or space.",
-				INFO,
-				nullptr
-			);
+			nav_.display_modal("Bad message", "A numeric only message must\nonly contain:\n0123456789SU][- or space.");
 			return false;
 		}
 	}
 	
-	pocsag_encode(type, BCH_code, message, address, codewords);
+	pocsag_encode(type, BCH_code, options_function.selected_index_value(), message, address, codewords);
 	
 	total_frames = codewords.size() / 2;
 	
@@ -124,16 +114,13 @@ void POCSAGTXView::paint(Painter&) {
 }
 
 void POCSAGTXView::on_set_text(NavigationView& nav) {
-	text_prompt(nav, &buffer, 16);
+	text_prompt(nav, &buffer, 30);
 }
 
 POCSAGTXView::POCSAGTXView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	uint32_t reload_address;
-	uint32_t c;
-	
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
 	add_children({
@@ -141,6 +128,7 @@ POCSAGTXView::POCSAGTXView(
 		&options_bitrate,
 		&field_address,
 		&options_type,
+		&options_function,
 		&text_message,
 		&button_message,
 		&progressbar,
@@ -151,11 +139,16 @@ POCSAGTXView::POCSAGTXView(
 	options_type.set_selected_index(0);		// Address only
 	
 	// TODO: set_value for whole symfield
-	reload_address = persistent_memory::pocsag_last_address();
-	for (c = 0; c < 7; c++) {
+	uint32_t reload_address = persistent_memory::pocsag_last_address();
+	for (uint32_t c = 0; c < 7; c++) {
 		field_address.set_sym(6 - c, reload_address % 10);
 		reload_address /= 10;
 	}
+	
+	options_type.on_change = [this](size_t, int32_t i) {
+		if (i == 2)
+			options_function.set_selected_index(3);
+	};
 	
 	button_message.on_select = [this, &nav](Button&) {
 		this->on_set_text(nav);

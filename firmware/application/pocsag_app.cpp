@@ -25,12 +25,12 @@
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#include "pocsag.hpp"
+
 using namespace portapack;
 using namespace pocsag;
 
-#include "pocsag.hpp"
 #include "string_format.hpp"
-
 #include "utility.hpp"
 
 void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {

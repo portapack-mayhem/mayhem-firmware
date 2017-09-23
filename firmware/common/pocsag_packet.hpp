@@ -79,8 +79,7 @@ public:
 	}
 
 	void clear() {
-		for (uint32_t c = 0; c < 16; c++)
-			codewords[c] = 0;
+		codewords.fill(0);
 		bitrate_ = UNKNOWN;
 		flag_ = NORMAL;
 	}
@@ -88,7 +87,7 @@ public:
 private:
 	BitRate bitrate_ { UNKNOWN };
 	PacketFlag flag_ { NORMAL };
-	uint32_t codewords[16];
+	std::array <uint32_t, 16> codewords;
 	Timestamp timestamp_ { };
 };
 

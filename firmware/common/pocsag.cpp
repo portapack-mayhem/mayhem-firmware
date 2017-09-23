@@ -102,8 +102,7 @@ uint32_t get_digit_code(char code) {
 	return code;
 }
 	
-void pocsag_encode(
-	const MessageType type, BCHCode& BCH_code, const std::string message, const uint32_t address,
+void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message, const uint32_t address,
 	std::vector<uint32_t>& codewords) {
 	
 	size_t b, c, address_slot;
@@ -122,8 +121,7 @@ void pocsag_encode(
 	codeword = (address & 0x1FFFF8U) << 10;
 	address_slot = (address & 7) * 2;
 	// Function
-	if (type == MessageType::ALPHANUMERIC)
-		codeword |= (3 << 11);
+	codeword |= (function << 11);
 	
 	insert_BCH(BCH_code, &codeword);
 	

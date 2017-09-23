@@ -70,7 +70,8 @@ private:
 		{ { 3 * 8, 4 * 8 }, "Bitrate:", Color::light_grey() },
 		{ { 3 * 8, 6 * 8 }, "Address:", Color::light_grey() },
 		{ { 6 * 8, 8 * 8 }, "Type:", Color::light_grey() },
-		{ { 3 * 8, 12 * 8 }, "Message:", Color::light_grey() }
+		{ { 2 * 8, 10 * 8 }, "Function:", Color::light_grey() },
+		{ { 0 * 8, 14 * 8 }, "Message:", Color::light_grey() }
 	};
 	
 	OptionsField options_bitrate {
@@ -99,13 +100,24 @@ private:
 		}
 	};
 	
+	OptionsField options_function {
+		{ 11 * 8, 10 * 8 },
+		1,
+		{
+			{ "A", 0 },
+			{ "B", 1 },
+			{ "C", 2 },
+			{ "D", 3 }
+		}
+	};
+	
 	Text text_message {
-		{ 11 * 8, 12 * 8, 16 * 8, 16 },
+		{ 0 * 8, 16 * 8, 16 * 8, 16 },
 		""
 	};
 	
 	Button button_message {
-		{ 3 * 8, 14 * 8, 12 * 8, 28 },
+		{ 0 * 8, 18 * 8, 14 * 8, 32 },
 		"Set message"
 	};
 	

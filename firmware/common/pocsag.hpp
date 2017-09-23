@@ -76,7 +76,7 @@ std::string flag_str(PacketFlag packetflag);
 
 void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
 uint32_t get_digit_code(char code);
-void pocsag_encode(const MessageType type, BCHCode& BCH_code, const std::string message,
+void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message,
 					const uint32_t address, std::vector<uint32_t>& codewords);
 void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
 
