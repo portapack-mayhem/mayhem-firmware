@@ -175,7 +175,7 @@ private:
 	
 	void update_progress();
 	void start_tx(const bool scan);
-	void on_txdone(int n, const bool txdone);
+	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	/*const Style style_address {
 		.font = font::fixed_8x16,
@@ -203,7 +203,7 @@ private:
 		"Ready"
 	};
 	
-	ProgressBar progress {
+	ProgressBar progressbar {
 		{ 2 * 8, 13 * 16 + 20, 208, 16 }
 	};
 	
@@ -213,11 +213,11 @@ private:
 		9
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.progress, message.done);
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress, message.done);
 		}
 	};
 };

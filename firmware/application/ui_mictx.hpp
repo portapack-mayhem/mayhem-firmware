@@ -64,7 +64,7 @@ private:
 	void set_tx(bool enable);
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_ctcss_changed(uint32_t v);
-	void on_tx_done();
+	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	bool transmitting { false };
 	bool va_enabled { };
@@ -184,11 +184,11 @@ private:
 		}
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			if (message.done) this->on_tx_done();
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress, message.done);
 		}
 	};
 };

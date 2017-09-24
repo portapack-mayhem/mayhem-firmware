@@ -52,12 +52,13 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 				digit = shared_memory.bb_data.tones_data.message[digit_pos];
 				if (digit_pos >= message_length) {
 					configured = false;
-					txdone_message.done = true;
-					shared_memory.application_queue.push(txdone_message);
+					txprogress_message.done = true;
+					shared_memory.application_queue.push(txprogress_message);
 					return;
 				} else {
-					txdone_message.progress = digit_pos;	// Inform UI about progress
-					shared_memory.application_queue.push(txdone_message);
+					txprogress_message.progress = digit_pos;	// Inform UI about progress
+					txprogress_message.done = false;
+					shared_memory.application_queue.push(txprogress_message);
 				}
 				
 				digit_pos++;
@@ -136,8 +137,8 @@ void TonesProcessor::on_message(const Message* const p) {
 			
 			if (audio_out) audio_output.configure(false);
 			
-			txdone_message.done = false;
-			txdone_message.progress = 0;
+			txprogress_message.done = false;
+			txprogress_message.progress = 0;
 			
 			digit_pos = 0;
 			sample_count = 0;
@@ -148,8 +149,8 @@ void TonesProcessor::on_message(const Message* const p) {
 			configured = true;
 		} else {
 			configured = false;
-			txdone_message.done = true;
-			shared_memory.application_queue.push(txdone_message);
+			txprogress_message.done = true;
+			shared_memory.application_queue.push(txprogress_message);
 		}
 	}
 }

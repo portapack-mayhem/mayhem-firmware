@@ -59,6 +59,7 @@ private:
 	
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void transmit(bool setup);
+	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	uint32_t timecode { 0 };
 	
@@ -95,14 +96,11 @@ private:
 		15
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			if (message.done)
-				transmit(false);
-			else
-				progressbar.set_value(message.progress);
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress, message.done);
 		}
 	};
 };

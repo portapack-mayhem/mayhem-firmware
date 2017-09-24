@@ -40,27 +40,29 @@ TouchTunesView::~TouchTunesView() {
 	baseband::shutdown();
 }
 
-void TouchTunesView::on_tx_progress(const int progress, const bool done) {
+void TouchTunesView::stop_tx() {
+	transmitter_model.disable();
+	tx_mode = IDLE;
+	progressbar.set_value(0);
+	text_status.set("Ready");
+}
+
+void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (!done) {
-		// Repeating
-		if (tx_mode == SINGLE) {
+		// Progress
+		if (tx_mode == SINGLE)
 			progressbar.set_value(progress);
-		} else if (tx_mode == SCAN) {
-			progressbar.set_value((pin * 4) + progress);
-		}
+		else if (tx_mode == SCAN)
+			progressbar.set_value((pin * TOUCHTUNES_REPEATS) + progress);
 	} else {
 		// Done transmitting
 		if (tx_mode == SINGLE) {
-			transmitter_model.disable();
-			tx_mode = IDLE;
-			progressbar.set_value(0);
+			stop_tx();
 		} else if (tx_mode == SCAN) {
-			pin++;
-			if (pin == 256) {
-				transmitter_model.disable();
-				tx_mode = IDLE;
-				progressbar.set_value(0);
+			if (pin == TOUCHTUNES_MAX_PIN) {
+				stop_tx();
 			} else {
+				pin++;
 				field_pin.set_value(pin);
 				start_tx(scan_button_index);
 			}
@@ -76,28 +78,36 @@ void TouchTunesView::start_tx(const uint32_t button_index) {
 	if (check_scan.value()) {
 		scan_button_index = button_index;
 		tx_mode = SCAN;
-		progressbar.set_max(256 * 4);
+		progressbar.set_max(TOUCHTUNES_MAX_PIN * TOUCHTUNES_REPEATS);
+		text_status.set("Scanning...");
 	} else {
 		tx_mode = SINGLE;
-		progressbar.set_max(4);
+		progressbar.set_max(TOUCHTUNES_REPEATS);
+		text_status.set("Transmitting...");
 	}
 	
-	frame_data = 0x5D;		// Sync word
+	frame_data = TOUCHTUNES_SYNC_WORD;		// Sync word
 	
+	// Insert pin value (LSB first)
 	for (bit = 0; bit < 8; bit++) {
 		frame_data <<= 1;
 		if (pin & (1 << bit))
 			frame_data |= 1;
 	}
 	
+	// Insert button code (and its complement)
 	frame_data <<= 16;
-	frame_data |= button_codes[button_index];
+	frame_data |= (button_codes[button_index] << 8);
+	frame_data |= (button_codes[button_index] ^ 0xFF);
 	
+	// Convert to OOK symbols
 	for (bit = 0; bit < (8 + 8 + 16); bit++) {
 		fragments += (frame_data & 0x80000000UL) ? "1000" : "10";
 		frame_data <<= 1;
 	}
-	fragments = "111111111111111100000000" + fragments + "1000";	// End pulse
+	
+	// Sync and end pulse
+	fragments = "111111111111111100000000" + fragments + "1000";
 	
 	size_t bitstream_length = make_bitstream(fragments);
 	
@@ -109,28 +119,20 @@ void TouchTunesView::start_tx(const uint32_t button_index) {
 	
 	baseband::set_ook_data(
 		bitstream_length,
-		OOK_SAMPLERATE / 1766,	// 1766 baud, 566us/bit
-		4,						// Repeats
-		100
+		OOK_SAMPLERATE / 1786,	// 560us
+		TOUCHTUNES_REPEATS,
+		100						// Pause
 	);
 }
 
 TouchTunesView::TouchTunesView(
 	NavigationView&
-)
-{
+) {
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 
 	add_children({
 		&labels,
 		&field_pin,
-		&button_on_off,
-		&button_pause,
-		&button_p1,
-		&button_ok,
-		&button_vol_inc1,
-		&button_vol_inc2,
-		&button_vol_inc3,
 		&check_scan,
 		&text_status,
 		&progressbar
@@ -142,28 +144,22 @@ TouchTunesView::TouchTunesView(
 		pin = v;
 	};
 	
-	button_on_off.on_select = [this](Button&) {
-		start_tx(0);
+	const auto button_fn = [this](Button& button) {
+		start_tx(button.id);
 	};
 	
-	button_pause.on_select = [this](Button&) {
-		start_tx(1);
-	};
-	button_p1.on_select = [this](Button&) {
-		start_tx(2);
-	};
-	button_ok.on_select = [this](Button&) {
-		start_tx(3);
-	};
-	button_vol_inc1.on_select = [this](Button&) {
-		start_tx(4);
-	};
-	button_vol_inc2.on_select = [this](Button&) {
-		start_tx(5);
-	};
-	button_vol_inc3.on_select = [this](Button&) {
-		start_tx(6);
-	};
+	size_t n = 0;
+	for (auto& entry : remote_layout) {
+		buttons[n].on_select = button_fn;
+		buttons[n].id = n;
+		buttons[n].set_text(entry.text);
+		buttons[n].set_parent_rect({
+			entry.position + Point(8, 0),
+			{ (Dim)(entry.text.length() + 2) * 8, 4 * 8 }
+		});
+		add_child(&buttons[n]);
+		n++;
+	}
 }
 
 } /* namespace ui */

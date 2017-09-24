@@ -41,20 +41,13 @@ private:
 	void update_freq(rf::Frequency f);
 	
 	Labels labels {
-		//{ { 2 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
 		{ { 2 * 8, 11 * 8 }, "Baudrate:", Color::light_grey() },
 		{ { 2 * 8, 13 * 8 }, "Mark:      Hz", Color::light_grey() },
 		{ { 2 * 8, 15 * 8 }, "Space:     Hz", Color::light_grey() },
-		//{ { 140, 13 * 8 }, "BW:   kHz", Color::light_grey() },
 		{ { 140, 15 * 8 }, "Repeat:", Color::light_grey() },
 		{ { 1 * 8, 6 * 8 }, "Modem preset:", Color::light_grey() },
 		{ { 2 * 8, 22 * 8 }, "Serial format:", Color::light_grey() }
 	};
-	
-	/*Button button_setfreq {
-		{ 13 * 8, 3 * 8, 12 * 8, 32 },
-		"----.----"
-	};*/
 
 	NumberField field_baudrate {
 		{ 11 * 8, 11 * 8 },
@@ -79,14 +72,6 @@ private:
 		25,
 		' '
 	};
-	
-	/*NumberField field_bw {
-		{ 172, 104 },
-		2,
-		{ 1, 50 },
-		1,
-		' '
-	};*/
 	
 	NumberField field_repeat {
 		{ 204, 15 * 8 },

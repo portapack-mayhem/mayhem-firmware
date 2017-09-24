@@ -42,14 +42,13 @@ static WORKING_AREA(ookthread_wa, 256);
 
 static msg_t ookthread_fn(void * arg) {
 	uint32_t v = 0, delay = 0;
-	size_t i = 0;
 	uint8_t * message_symbols = shared_memory.bb_data.tones_data.message;
 	uint8_t symbol;
 	MorseView * arg_c = (MorseView*)arg;
 	
 	chRegSetThreadName("ookthread");
 	
-	for (i = 0; i < arg_c->symbol_count; i++) {
+	for (uint32_t i = 0; i < arg_c->symbol_count; i++) {
 		if (chThdShouldTerminate()) break;
 		
 		symbol = message_symbols[i];
@@ -128,7 +127,7 @@ void MorseView::update_tx_duration() {
 	}
 }
 
-void MorseView::on_tx_progress(const int progress, const bool done) {
+void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (done) {
 		transmitter_model.disable();
 		progressbar.set_value(0);

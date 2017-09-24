@@ -51,9 +51,9 @@ using modem_baudrate_range_t = range_t<int32_t>;
 constexpr modem_baudrate_range_t modem_baudrate_range { 50, 9600 };
 constexpr int32_t modem_baudrate_reset_value { 1200 };
 
-using modem_bw_range_t = range_t<int32_t>;
+/*using modem_bw_range_t = range_t<int32_t>;
 constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
-constexpr int32_t modem_bw_reset_value { 15000 };
+constexpr int32_t modem_bw_reset_value { 15000 };*/
 
 using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
@@ -151,14 +151,14 @@ void set_modem_baudrate(const int32_t new_value) {
 	data->modem_baudrate = modem_baudrate_range.clip(new_value);
 }
 
-int32_t modem_bw() {
+/*int32_t modem_bw() {
 	modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
 	return data->modem_bw;
 }
 
 void set_modem_bw(const int32_t new_value) {
 	data->modem_bw = modem_bw_range.clip(new_value);
-}
+}*/
 
 uint8_t modem_repeat() {
 	modem_repeat_range.reset_if_outside(data->modem_repeat, modem_repeat_reset_value);

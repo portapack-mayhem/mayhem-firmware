@@ -63,8 +63,10 @@ void APRSTXView::start_tx() {
 	transmitter_model.enable();*/
 }
 
-void APRSTXView::on_txdone(const bool v) {
-	if (v) {
+void APRSTXView::on_tx_progress(const uint32_t progress, const bool done) {
+	(void)progress;
+	
+	if (done) {
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
 		//progress.set_value(0);

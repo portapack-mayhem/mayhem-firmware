@@ -32,7 +32,6 @@ namespace cc1101 {
 	
 // Data rate (Bauds)
 // Whitening: Everything except preamble and sync word, init value = 111111111
-//	See datasheet page 38 for logic schematic
 // Packet format: preamble, sync word, (opt) length, (opt) address, payload, (opt) CRC
 // Preamble: 8*n bits of 10101010
 // Sync word: 2 bytes (can be repeated twice)
@@ -100,6 +99,12 @@ private:
 	modulation_t modulation_ { TWO_FSK };
 	uint8_t num_preamble_ { 4 };
 	size_t deviation_ { 4000 };
+	
+	uint16_t whitening_pn { 0x1FF };
+	
+	void whitening_init();
+	uint8_t whiten_byte(uint8_t byte);
+	
 };
 
 } /* namespace cc1101 */

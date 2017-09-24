@@ -46,14 +46,15 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 						bit_pos = 0;
 						word_ptr = (uint16_t*)shared_memory.bb_data.data;
 						cur_word = *word_ptr;
-						message.progress = repeat_counter + 1;
-						shared_memory.application_queue.push(message);
+						txprogress_message.done = false;
+						txprogress_message.progress = repeat_counter + 1;
+						shared_memory.application_queue.push(txprogress_message);
 						repeat_counter++;
 					} else {
 						// Stop
 						cur_word = 0;
-						message.progress = 0;
-						shared_memory.application_queue.push(message);
+						txprogress_message.done = true;
+						shared_memory.application_queue.push(txprogress_message);
 						configured = false;
 					}
 				}
@@ -101,7 +102,7 @@ void AFSKProcessor::on_message(const Message* const msg) {
 			afsk_phase_inc_mark = message.phase_inc_mark * AFSK_DELTA_COEF;
 			afsk_phase_inc_space = message.phase_inc_space * AFSK_DELTA_COEF;
 			afsk_repeat = message.repeat - 1;
-			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
+			fm_delta = message.fm_delta * (0xFFFFFFULL / AFSK_SAMPLERATE);
 			symbol_count = message.symbol_count - 1;
 
 			sample_count = afsk_samples_per_bit;

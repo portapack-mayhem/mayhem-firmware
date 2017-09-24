@@ -219,7 +219,7 @@ void EncodersView::update_progress() {
 	if (tx_mode == SINGLE) {
 		str_buffer = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(repeat_min);
 		text_status.set(str_buffer);
-		progress.set_value(repeat_index);
+		progressbar.set_value(repeat_index);
 		
 	/*} else if (tx_mode == SCAN) {
 		strcpy(str, to_string_dec_uint(repeat_index).c_str());
@@ -233,16 +233,16 @@ void EncodersView::update_progress() {
 		progress.set_value(scan_progress);*/
 	} else {
 		text_status.set("Ready");
-		progress.set_value(0);
+		progressbar.set_value(0);
 	}
 }
 
-void EncodersView::on_txdone(int n, const bool txdone) {
+void EncodersView::on_tx_progress(const uint32_t progress, const bool done) {
 	//char str[16];
 	
-	if (!txdone) {
+	if (!done) {
 		// Repeating...
-		repeat_index = n + 1;
+		repeat_index = progress + 1;
 		
 		/*if (tx_mode == SCAN) {
 			scan_progress++;
@@ -277,7 +277,7 @@ void EncodersView::on_txdone(int n, const bool txdone) {
 			transmitter_model.disable();
 			tx_mode = IDLE;
 			text_status.set("Done");
-			progress.set_value(0);
+			progressbar.set_value(0);
 			tx_view.set_transmitting(false);
 		//}
 	}
@@ -303,7 +303,7 @@ void EncodersView::start_tx(const bool scan) {
 	} else {*/
 		tx_mode = SINGLE;
 		repeat_index = 1;
-		progress.set_max(repeat_min);
+		progressbar.set_max(repeat_min);
 		update_progress();
 	//}
 	
@@ -335,7 +335,7 @@ EncodersView::EncodersView(
 		&view_config,
 		&view_scan,
 		&text_status,
-		&progress,
+		&progressbar,
 		&tx_view
 	});
 	

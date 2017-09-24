@@ -60,7 +60,7 @@ private:
 	int8_t re { 0 }, im { 0 };
 	
 	AudioLevelReportMessage level_message { };
-	TXDoneMessage txdone_message { };
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

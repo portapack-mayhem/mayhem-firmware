@@ -47,7 +47,10 @@ void MicTXView::update_vumeter() {
 	vumeter.set_value(audio_level);
 }
 
-void MicTXView::on_tx_done() {
+void MicTXView::on_tx_progress(const uint32_t progress, const bool done) {
+	(void)progress;
+	(void)done;
+	
 	// Roger beep transmitted, stop transmitting
 	set_tx(false);
 }

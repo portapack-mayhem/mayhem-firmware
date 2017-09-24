@@ -56,7 +56,7 @@ private:
 	void start_tx();
 	void generate_frame();
 	void generate_frame_pos();
-	void on_txdone(const bool v);
+	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	Labels labels {
 		{ { 2 * 8, 2 * 8 }, "Work in progress...", Color::light_grey() }
@@ -74,11 +74,11 @@ private:
 		true
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.done);
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress, message.done);
 		}
 	};
 };

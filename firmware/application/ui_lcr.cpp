@@ -35,7 +35,7 @@ using namespace portapack;
 namespace ui {
 
 void LCRView::focus() {
-	button_setrgsb.focus();
+	button_set_rgsb.focus();
 }
 
 LCRView::~LCRView() {
@@ -43,92 +43,52 @@ LCRView::~LCRView() {
 	baseband::shutdown();
 }
 
-void LCRView::paint(Painter& painter) {
-	std::string final_str;
-	
-	static constexpr Style style_orange {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::orange(),
-	};
-	
-	Point offset = {
-		static_cast<Coord>(104),
-		static_cast<Coord>(68)
-	};
-	
-	for (size_t i = 0; i < 5; i++) {
-		painter.draw_string(
-			screen_pos() + offset,
-			style_orange,
-			litteral[i]
-		);
-		offset += { 0, 32 };
-	}
-	
-	button_setrgsb.set_text(rgsb);
-	
-	// Recap: frequency @ baudrate
-	final_str = to_string_short_freq(persistent_memory::tuned_frequency());
-	final_str += '@';
-	final_str += to_string_dec_int(persistent_memory::modem_baudrate(), 4);
-	final_str += "bps ";
-	//final_str += modem_defs[persistent_memory::modem_def_index()].name;
-	text_recap.set(final_str);
-}
-
-std::vector<std::string> LCRView::parse_litterals() {
-	std::vector<std::string> litterals;
-	
-	for (size_t i = 0; i < 5; i++) {
-		if (checkboxes[i].value())
-			litterals.push_back(litteral[i]);
-	}
-	
-	return litterals;
-}
+/*
+// Recap: frequency @ baudrate
+final_str = to_string_short_freq(persistent_memory::tuned_frequency());
+final_str += '@';
+final_str += to_string_dec_int(persistent_memory::modem_baudrate(), 4);
+final_str += "bps ";
+//final_str += modem_defs[persistent_memory::modem_def_index()].name;
+text_recap.set(final_str);*/
 
 void LCRView::update_progress() {
-	std::string progress_str;
-	
-	text_status.set("            ");	// Clear
-	
-	progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat());
-	progress_str += " " + to_string_dec_uint(scan_index + 1) + "/" + to_string_dec_uint(scan_count);
-	
-	if (tx_mode == SINGLE) {
-		text_status.set(progress_str);
-		progress.set_value(repeat_index);
-	} else if (tx_mode == SCAN) {
-		text_status.set(progress_str);
-		progress.set_value(scan_progress);
-	} else {
+	if (tx_mode == IDLE) {
 		text_status.set("Ready");
 		progress.set_value(0);
+	} else {
+		std::string progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat()) +
+			" " + to_string_dec_uint(scan_index + 1) + "/" + to_string_dec_uint(scan_count);
+			
+		text_status.set(progress_str);
+		
+		if (tx_mode == SINGLE)
+			progress.set_value(repeat_index);
+		else if (tx_mode == SCAN)
+			progress.set_value(scan_progress);
 	}
 }
 
-void LCRView::on_txdone(int n) {
-	if (n) {
+void LCRView::on_tx_progress(const uint32_t progress, const bool done) {
+	if (!done) {
 		// Repeating...
-		repeat_index = n + 1;
+		repeat_index = progress + 1;
 		
 		if (tx_mode == SCAN)
 			scan_progress++;
 	} else {
 		// Done transmitting
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
+		
 		if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
-			transmitter_model.disable();
 			// Next address
 			scan_index++;
 			scan_progress++;
 			repeat_index = 1;
 			start_tx(true);
 		} else {
-			transmitter_model.disable();
 			tx_mode = IDLE;
-			button_scan.set_style(&style_val);
-			button_scan.set_text("SCAN");
 		}
 	}
 	
@@ -136,9 +96,7 @@ void LCRView::on_txdone(int n) {
 }
 
 void LCRView::start_tx(const bool scan) {
-	uint8_t repeats;
-	
-	repeats = persistent_memory::modem_repeat();
+	uint32_t repeats = persistent_memory::modem_repeat();
 	
 	if (scan) {
 		if (tx_mode != SCAN) {
@@ -151,6 +109,7 @@ void LCRView::start_tx(const bool scan) {
 			update_progress();
 		}
 		rgsb = scan_list[options_scanlist.selected_index()].addresses[scan_index];
+		button_set_rgsb.set_text(rgsb);
 	} else {
 		tx_mode = SINGLE;
 		repeat_index = 1;
@@ -160,11 +119,17 @@ void LCRView::start_tx(const bool scan) {
 		update_progress();
 	}
 	
-	button_setrgsb.set_text(rgsb);
-	modems::generate_data(lcr::generate_message(rgsb, parse_litterals(), options_ec.selected_index()), lcr_message_data);
+	std::vector<std::string> litterals_list;
+	
+	for (size_t i = 0; i < LCR_MAX_AM; i++) {
+		if (checkboxes[i].value())
+			litterals_list.push_back(litteral[i]);
+	}
+	
+	modems::generate_data(lcr::generate_message(rgsb, litterals_list, options_ec.selected_index()), lcr_message_data);
 
 	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
-	transmitter_model.set_sampling_rate(1536000U);
+	transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
@@ -172,17 +137,23 @@ void LCRView::start_tx(const bool scan) {
 	memcpy(shared_memory.bb_data.data, lcr_message_data, sizeof(lcr_message_data));
 	
 	baseband::set_afsk_data(
-		1536000 / persistent_memory::modem_baudrate(),
+		AFSK_TX_SAMPLERATE / persistent_memory::modem_baudrate(),
 		persistent_memory::afsk_mark_freq(),
 		persistent_memory::afsk_space_freq(),
 		repeats,
-		persistent_memory::modem_bw(),
+		transmitter_model.channel_bandwidth(),
 		serializer::symbol_count(persistent_memory::serial_format())
 	);
 }
 
-void LCRView::on_button_setam(NavigationView& nav, Button& button) {
-	text_prompt(nav, &litteral[button.id], 7);
+void LCRView::on_button_set_am(NavigationView& nav, int16_t button_id) {
+	text_prompt(
+		nav,
+		&litteral[button_id],
+		7,
+		[this, button_id](std::string* buffer) {
+			texts[button_id].set(*buffer);
+		});
 }
 
 LCRView::LCRView(NavigationView& nav) {
@@ -190,115 +161,125 @@ LCRView::LCRView(NavigationView& nav) {
 	
 	baseband::run_image(portapack::spi_flash::image_tag_afsk);
 	
-	rgsb = scan_list[0].addresses[0];
-	
 	add_children({
 		&labels,
-		&text_recap,
 		&options_ec,
-		&button_setrgsb,
+		&button_set_rgsb,
 		&button_modem_setup,
 		&text_status,
 		&progress,
-		&button_transmit,
 		&options_scanlist,
-		&button_scan,
-		&button_clear
+		&check_scan,
+		&button_clear,
+		&tx_view
 	});
 	
 	options_scanlist.set_selected_index(0);
 	
-	const auto button_setam_fn = [this, &nav](Button& button) {
-		this->on_button_setam(nav, button);
+	const auto button_set_am_fn = [this, &nav](Button& button) {
+		on_button_set_am(nav, button.id);
 	};
 	
-	size_t n = 0;
-	for (auto& button : buttons) {
-		button.on_select = button_setam_fn;
-		button.id = n;
-		button.set_text("AM " + to_string_dec_uint(n + 1, 1));
-		button.set_parent_rect({
+	for (size_t n = 0; n < LCR_MAX_AM; n++) {
+		Button* button = &buttons[n];
+		button->on_select = button_set_am_fn;
+		button->id = n;
+		button->set_text("AM " + to_string_dec_uint(n + 1));
+		button->set_parent_rect({
 			static_cast<Coord>(40),
 			static_cast<Coord>(n * 32 + 64),
 			48, 24
 		});
-		add_child(&button);
-		n++;
-	}
-	
-	n = 0;
-	for (auto& checkbox : checkboxes) {
-		checkbox.set_parent_rect({
+		add_child(button);
+		
+		Checkbox* checkbox = &checkboxes[n];
+		checkbox->set_parent_rect({
 			static_cast<Coord>(8),
 			static_cast<Coord>(n * 32 + 64),
 			48, 24
 		});
-		checkbox.set_value(false);
-		add_child(&checkbox);
-		n++;
-	}
-	
-	n = 0;
-	for (auto& rectangle : rectangles) {
-		rectangle.set_parent_rect({
+		checkbox->set_value(false);
+		add_child(checkbox);
+		
+		Rectangle* rectangle = &rectangles[n];
+		rectangle->set_parent_rect({
 			static_cast<Coord>(98),
-			static_cast<Coord>(n * 32 + 68 - 2),
+			static_cast<Coord>(n * 32 + 66),
 			68, 20
 		});
-		rectangle.set_color(ui::Color::grey());
-		rectangle.set_outline(true);
-		add_child(&rectangle);
-		n++;
+		rectangle->set_color(ui::Color::grey());
+		rectangle->set_outline(true);
+		add_child(rectangle);
+		
+		Text* text = &texts[n];
+		text->set_parent_rect({
+			static_cast<Coord>(104),
+			static_cast<Coord>(n * 32 + 68),
+			7 * 8, 16
+		});
+		add_child(text);
 	}
 	
-	button_setrgsb.set_text(rgsb);
+	button_set_rgsb.set_text(rgsb);
 	options_ec.set_selected_index(0);	// Auto
 	checkboxes[0].set_value(true);
 	
-	button_transmit.set_style(&style_val);
-	button_scan.set_style(&style_val);
-	
-	button_setrgsb.on_select = [this,&nav](Button&) {
-		text_prompt(nav, &rgsb, 4);
+	button_set_rgsb.on_select = [this, &nav](Button&) {
+		text_prompt(
+			nav,
+			&rgsb,
+			4,
+			[this](std::string* buffer) {
+				button_set_rgsb.set_text(*buffer);
+			});
 	};
 	
-	button_modem_setup.on_select = [&nav](Button&) {
-		nav.push<ModemSetupView>();
-	};
-	
-	button_transmit.on_select = [this](Button&) {
+	button_modem_setup.on_select = [this, &nav](Button&) {
 		if (tx_mode == IDLE)
-			start_tx(false);
-	};
-	
-	button_scan.on_select = [this](Button&) {
-		std::string str_temp;
-		
-		if (tx_mode == IDLE)	{
-			button_scan.set_style(&style_cancel);
-			button_scan.set_text("ABORT");
-			start_tx(true);
-		} else {
-			// Kill scan process
-			baseband::kill_afsk();
-			text_status.set("Abort @" + rgsb);
-			progress.set_value(0);
-			tx_mode = IDLE;
-			button_scan.set_style(&style_val);
-			button_scan.set_text("SCAN");
-		}
+			nav.push<ModemSetupView>();
 	};
 
 	button_clear.on_select = [this, &nav](Button&) {
-		if (tx_mode == IDLE) {
-			options_ec.set_selected_index(0);	// Auto
-			for (size_t n = 0; n < 5; n++) {
-				litteral[n] = "       ";
-				checkboxes[n].set_value(true);
-			}
-			set_dirty();
-			start_tx(false);
+		options_ec.set_selected_index(0);	// Auto
+		for (size_t n = 0; n < LCR_MAX_AM; n++) {
+			litteral[n] = "       ";
+			checkboxes[n].set_value(true);
 		}
+	};
+	
+	tx_view.on_edit_frequency = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			transmitter_model.set_tuning_frequency(f);
+		};
+	};
+	
+	tx_view.on_start = [this]() {
+		if (check_scan.value()) {
+			if (tx_mode == IDLE) {
+				start_tx(true);
+				tx_view.set_transmitting(true);
+			} else {
+				// Kill scan process
+				baseband::kill_afsk();
+				tx_view.set_transmitting(false);
+				transmitter_model.disable();
+				text_status.set("Abort @" + rgsb);
+				progress.set_value(0);
+				tx_mode = IDLE;
+			}
+		} else {
+			if (tx_mode == IDLE) {
+				start_tx(false);
+				tx_view.set_transmitting(true);
+			}
+		}
+	};
+	
+	tx_view.on_stop = [this]() {
+		tx_view.set_transmitting(false);
+		transmitter_model.disable();
+		tx_mode = IDLE;
 	};
 }
 

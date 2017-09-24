@@ -48,7 +48,7 @@ private:
     uint32_t cur_bit { 0 };
 	uint32_t phase { 0 };
 	
-	TXDoneMessage message { };
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

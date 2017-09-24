@@ -42,7 +42,7 @@ POCSAGTXView::~POCSAGTXView() {
 	baseband::shutdown();
 }
 
-void POCSAGTXView::on_tx_progress(const int progress, const bool done) {
+void POCSAGTXView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (done) {
 		transmitter_model.disable();
 		progressbar.set_value(0);

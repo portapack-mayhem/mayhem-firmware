@@ -75,8 +75,9 @@ void CoasterPagerView::start_tx() {
 	baseband::set_fsk_data(19 * 8, 2280000 / 1000, 5000, 32);
 }
 
-void CoasterPagerView::on_tx_progress(const int progress, const bool done) {
+void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) {
 	(void)progress;
+	
 	uint16_t address = 0;
 	uint32_t c;
 	

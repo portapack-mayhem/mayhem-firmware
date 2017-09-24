@@ -52,7 +52,7 @@ private:
 	
 	void start_tx();
 	void generate_frame();
-	void on_tx_progress(const int progress, const bool done);
+	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	Labels labels {
 		{ { 1 * 8, 3 * 8 }, "Syscall pager TX beta", Color::light_grey() },
@@ -85,10 +85,10 @@ private:
 		12
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
 			this->on_tx_progress(message.progress, message.done);
 		}
 	};

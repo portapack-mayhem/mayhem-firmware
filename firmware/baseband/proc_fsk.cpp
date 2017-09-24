@@ -40,16 +40,17 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 			if (bit_pos > length) {
 				// End of data
 				cur_bit = 0;
-				txdone_message.done = true;
-				shared_memory.application_queue.push(txdone_message);
+				txprogress_message.done = true;
+				shared_memory.application_queue.push(txprogress_message);
 				configured = false;
 			} else {
 				cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
 				bit_pos++;
 				if (progress_count >= progress_notice) {
 					progress_count = 0;
-					txdone_message.progress++;
-					shared_memory.application_queue.push(txdone_message);
+					txprogress_message.progress++;
+					txprogress_message.done = false;
+					shared_memory.application_queue.push(txprogress_message);
 				} else {
 					progress_count++;
 				}
@@ -95,8 +96,8 @@ void FSKProcessor::on_message(const Message* const p) {
 		bit_pos = 0;
 		cur_bit = 0;
 		
-		txdone_message.progress = 0;
-		txdone_message.done = false;
+		txprogress_message.progress = 0;
+		txprogress_message.done = false;
 		configured = true;
 	}
 }

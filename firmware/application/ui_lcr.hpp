@@ -23,10 +23,14 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_textentry.hpp"
+#include "ui_transmitter.hpp"
+
 #include "message.hpp"
 #include "transmitter_model.hpp"
 
 namespace ui {
+	
+#define LCR_MAX_AM 5
 
 class LCRView : public View {
 public:
@@ -34,7 +38,6 @@ public:
 	~LCRView();
 	
 	void focus() override;
-	void paint(Painter& painter) override;
 	
 	std::string title() const override { return "LCR transmit"; };
 	
@@ -48,7 +51,7 @@ private:
 		{ 36, &RGSB_list_Lille[0] },
 		{ 20, &RGSB_list_Reims[0] }
 	};
-	 
+	
 	const std::string RGSB_list_Lille[36] = {
 		"AI10",	"AI20", "AI30",	"AI40",
 		"AI50",	"AI60", "AI70",	"AJ10",
@@ -81,46 +84,28 @@ private:
 	tx_modes tx_mode = IDLE;
 	uint8_t scan_count { 0 }, scan_index { 0 };
 	uint32_t scan_progress { 0 };
-	std::string litteral[5] { { "       " } };
-	std::string rgsb { "    " };
-	char lcr_message[512];
+	std::array<std::string, LCR_MAX_AM> litteral { { "       " } };
+	std::string rgsb { "AI10" };
 	uint16_t lcr_message_data[256];
-	rf::Frequency f { 0 };
 	uint8_t repeat_index { 0 };
 	
-	std::vector<std::string> parse_litterals();
 	void update_progress();
 	void start_tx(const bool scan);
-	void on_txdone(int n);
-	void on_button_setam(NavigationView& nav, Button& button);
-	
-	const Style style_val {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::green(),
-	};
-	const Style style_cancel {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::red(),
-	};
+	void on_tx_progress(const uint32_t progress, const bool done);
+	void on_button_set_am(NavigationView& nav, int16_t button_id);
 	
 	Labels labels {
-		{ { 2 * 8, 4 }, "EC:", Color::light_grey() },
-		{ { 84, 268 }, "Scan list:", Color::light_grey() }
+		{ { 0, 8 }, "EC:     RGSB:", Color::light_grey() },
+		{ { 17 * 8, 4 * 8 }, "List:", Color::light_grey() }
 	};
 	
-	std::array<Button, 5> buttons { };
-	std::array<Checkbox, 5> checkboxes { };
-	std::array<Rectangle, 5> rectangles { };
-
-	Text text_recap {
-		{ 12 * 8, 4, 18 * 8, 16 },
-		"-"
-	};
+	std::array<Button, LCR_MAX_AM> buttons { };
+	std::array<Checkbox, LCR_MAX_AM> checkboxes { };
+	std::array<Rectangle, LCR_MAX_AM> rectangles { };
+	std::array<Text, LCR_MAX_AM> texts { };
 	
 	OptionsField options_ec {
-		{ 40, 4 },
+		{ 3 * 8, 8 },
 		4,
 		{
 			{ "Auto", 0 },
@@ -130,51 +115,52 @@ private:
 		}
 	};
 
-	Button button_setrgsb {
-		{ 8, 24, 80, 32 },
+	Button button_set_rgsb {
+		{ 13 * 8, 4, 8 * 8, 24 },
 		"RGSB"
 	};
+	Checkbox check_scan {
+		{ 22 * 8, 4 },
+		4,
+		"Scan"
+	};
+	
 	Button button_modem_setup {
-		{ 13 * 8, 24, 128, 32 },
+		{ 1 * 8, 4 * 8 + 2, 14 * 8, 24 },
 		"Modem setup"
 	};
-	
-	Button button_clear {
-		{ 174, 64, 58, 19 * 8 },
-		"CLEAR"
-	};
-	
-	Text text_status {
-		{ 16, 222, 128, 16 },
-		"Ready"
-	};
-	ProgressBar progress {
-		{ 16, 242, 208, 16 }
-	};
-	
-	Button button_transmit {
-		{ 8, 270, 64, 32 },
-		"TX"
-	};
-	
 	OptionsField options_scanlist {
-		{ 84, 284 },
+		{ 22 * 8, 4 * 8 },
 		6,
 		{
 			{ "Reims ", 1 }
 		}
 	};
 	
-	Button button_scan {
-		{ 166, 270, 64, 32 },
-		"SCAN"
+	Button button_clear {
+		{ 22 * 8, 8 * 8, 7 * 8, 19 * 8 },
+		"CLEAR"
 	};
 	
-	MessageHandlerRegistration message_handler_tx_done {
-		Message::ID::TXDone,
+	Text text_status {
+		{ 2 * 8, 27 * 8 + 4, 26 * 8, 16 },
+		"Ready"
+	};
+	ProgressBar progress {
+		{ 2 * 8, 29 * 8 + 4, 26 * 8, 16 }
+	};
+	
+	TransmitterView tx_view {
+		16 * 16,
+		10000,
+		12
+	};
+	
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXDoneMessage*>(p);
-			this->on_txdone(message.progress);
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress, message.done);
 		}
 	};
 };

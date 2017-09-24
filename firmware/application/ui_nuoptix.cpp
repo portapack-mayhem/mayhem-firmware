@@ -45,6 +45,13 @@ NuoptixView::~NuoptixView() {
 	baseband::shutdown();
 }
 
+void NuoptixView::on_tx_progress(const uint32_t progress, const bool done) {
+	if (done)
+		transmit(false);
+	else
+		progressbar.set_value(progress);
+}
+
 void NuoptixView::transmit(bool setup) {
 	uint8_t mod, tone_code;
 	uint8_t c;

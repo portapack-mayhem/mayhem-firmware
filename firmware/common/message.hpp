@@ -73,7 +73,7 @@ public:
 		ReplayThreadDone = 20,
 		AFSKRxConfigure = 21,
 
-		TXDone = 30,
+		TXProgress = 30,
 		Retune = 31,
 		
 		TonesConfigure = 32,
@@ -604,10 +604,10 @@ public:
 	ReplayConfig* const config;
 };
 
-class TXDoneMessage : public Message {
+class TXProgressMessage : public Message {
 public:
-	constexpr TXDoneMessage(
-	) : Message { ID::TXDone }
+	constexpr TXProgressMessage(
+	) : Message { ID::TXProgress }
 	{
 	}
 	

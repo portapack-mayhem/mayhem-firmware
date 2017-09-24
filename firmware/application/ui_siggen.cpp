@@ -60,7 +60,9 @@ void SigGenView::update_tone() {
 	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
 }
 
-void SigGenView::on_tx_progress(const bool done) {
+void SigGenView::on_tx_progress(const uint32_t progress, const bool done) {
+	(void) progress;
+	
 	if (done)
 		tx_view.set_transmitting(false);
 }

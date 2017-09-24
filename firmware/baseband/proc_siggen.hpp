@@ -46,7 +46,7 @@ private:
 	int8_t sample { 0 };
 	int8_t re { 0 }, im { 0 };
 	
-	TXDoneMessage message { };
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

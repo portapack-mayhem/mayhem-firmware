@@ -298,7 +298,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
-	//set_highlighted(4);		// Default selection is "Audio"
+	
+	set_highlighted(4);		// Default selection is "Audio"
 }
 
 /* TransmittersMenuView **************************************************/
@@ -312,7 +313,6 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
 		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
-		{ "TouchTunes remote",		ui::Color::orange(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK remote encoders", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
@@ -321,6 +321,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Soundboard", 			ui::Color::green(), 	&bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
+		{ "TouchTunes remote",		ui::Color::orange(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 }

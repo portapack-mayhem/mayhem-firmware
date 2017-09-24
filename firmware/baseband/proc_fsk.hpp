@@ -47,7 +47,7 @@ private:
     uint32_t sample_count { 0 };
 	uint32_t phase { 0 }, sphase { 0 };
 	
-	TXDoneMessage txdone_message { };
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

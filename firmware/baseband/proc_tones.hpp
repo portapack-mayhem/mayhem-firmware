@@ -62,7 +62,7 @@ private:
 	int8_t re { 0 }, im { 0 };
 	uint8_t as { 0 }, ai { 0 };
 	
-	TXDoneMessage txdone_message { };
+	TXProgressMessage txprogress_message { };
 	AudioOutput audio_output { };
 };
 

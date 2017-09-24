@@ -33,8 +33,8 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!sample_count && auto_off) {
-			message.done = true;
-			shared_memory.application_queue.push(message);
+			txprogress_message.done = true;
+			shared_memory.application_queue.push(txprogress_message);
 		} else
 			sample_count--;
 		

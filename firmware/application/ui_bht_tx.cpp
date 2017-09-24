@@ -81,7 +81,7 @@ void BHTView::start_tx() {
 	}
 }
 
-void BHTView::on_tx_progress(const int progress, const bool done) {
+void BHTView::on_tx_progress(const uint32_t progress, const bool done) {
 	//if (view_xylos.tx_mode == XylosView::tx_modes::SINGLE) {
 	
 	if (done) {

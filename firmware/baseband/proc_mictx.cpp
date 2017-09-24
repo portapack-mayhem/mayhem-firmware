@@ -60,7 +60,7 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 				if (beep_index == BEEP_TONES_NB) {
 					configured = false;
 					fm_delta = 0;			// Zero-out the IQ output for the rest of the buffer
-					shared_memory.application_queue.push(txdone_message);
+					shared_memory.application_queue.push(txprogress_message);
 				} else {
 					beep_phase_inc = beep_deltas[beep_index];
 					beep_index++;
@@ -108,7 +108,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 			ctcss_enabled = config_message.ctcss_enabled;
 			ctcss_phase_inc = config_message.ctcss_phase_inc;
 			
-			txdone_message.done = true;
+			txprogress_message.done = true;
 
 			play_beep = false;
 			configured = true;

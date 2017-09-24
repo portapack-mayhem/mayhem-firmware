@@ -30,20 +30,21 @@ using namespace portapack;
 namespace modems {
 
 void generate_data(const std::string& in_message, uint16_t * out_data) {
-	serial_format_t serial_format;
-	uint8_t parity_init, parity, data_bits, bits, bit, cur_byte;
-	uint16_t ordered_word, bytes;
+	uint8_t parity_init, parity, bits, bit, cur_byte;
+	uint16_t ordered_word;
+	size_t bytes;
 	
-	serial_format = persistent_memory::serial_format();
+	serial_format_t serial_format = persistent_memory::serial_format();
+	size_t message_length = in_message.length();
 	
 	if (serial_format.parity == ODD)
 		parity_init = 1;
 	else
 		parity_init = 0;
 
-	data_bits = serial_format.data_bits;
+	uint8_t data_bits = serial_format.data_bits;
 	
-	for (bytes = 0; bytes < in_message.length(); bytes++) {
+	for (bytes = 0; bytes < message_length; bytes++) {
 		parity = parity_init;
 		cur_byte = in_message[bytes];
 		bit = 0;
@@ -81,18 +82,17 @@ void generate_data(const std::string& in_message, uint16_t * out_data) {
 
 // This accepts a word with start and stop bits removed !
 uint32_t deframe_word(uint32_t raw_word) {
-	serial_format_t serial_format;
-	uint32_t parity, cur_bit, deframed_word { 0 };
-	size_t bit, bits;
+	uint32_t cur_bit, deframed_word { 0 };
+	size_t bit;
 	
-	serial_format = persistent_memory::serial_format();
+	serial_format_t serial_format = persistent_memory::serial_format();
 	
 	/*if (serial_format.parity == ODD)
 		parity = 1;
 	else
 		parity = 0;*/
 
-	bits = serial_format.data_bits;
+	size_t data_bits = serial_format.data_bits;
 	
 	// Ignore parity for now
 	if (serial_format.parity)
@@ -100,7 +100,7 @@ uint32_t deframe_word(uint32_t raw_word) {
 		
 	if (serial_format.bit_order == LSB_FIRST) {
 		// Reverse data bits
-		for (bit = 0; bit < bits; bit++) {
+		for (bit = 0; bit < data_bits; bit++) {
 			cur_bit = raw_word & 1;
 			
 			deframed_word <<= 1;

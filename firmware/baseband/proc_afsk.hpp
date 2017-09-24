@@ -38,7 +38,7 @@ public:
 private:
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { AFSK_SAMPLERATE, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	uint32_t afsk_samples_per_bit { 0 };
 	uint32_t afsk_phase_inc_mark { 0 };
@@ -58,7 +58,7 @@ private:
 	
 	int8_t re { 0 }, im { 0 };
 	
-	TXDoneMessage message { };
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

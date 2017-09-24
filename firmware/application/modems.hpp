@@ -30,6 +30,7 @@
 namespace modems {
 	
 #define MODEM_DEF_COUNT 7
+#define AFSK_TX_SAMPLERATE 1536000U
 
 enum ModemModulation {
 	AFSK = 0,
