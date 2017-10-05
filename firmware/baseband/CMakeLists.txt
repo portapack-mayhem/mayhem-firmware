@@ -338,6 +338,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PERT ert)
 
+### Radiosonde
+
+set(MODE_CPPSRC
+	proc_sonde.cpp
+)
+DeclareTargets(PSON sonde)
+
 ### FSK TX
 
 set(MODE_CPPSRC

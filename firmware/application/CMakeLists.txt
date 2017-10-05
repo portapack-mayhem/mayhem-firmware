@@ -203,6 +203,7 @@ set(CPPSRC
 	# ui_sd_card_debug.cpp
 	ui_setup.cpp
 	ui_siggen.cpp
+	ui_sonde.cpp
 	ui_soundboard.cpp
 	ui_spectrum.cpp
 	ui_sstvtx.cpp
@@ -225,6 +226,7 @@ set(CPPSRC
 	${COMMON}/morse.cpp
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/adsb.cpp
+	${COMMON}/sonde_packet.cpp
 	ais_app.cpp
 	tpms_app.cpp
 	pocsag_app.cpp

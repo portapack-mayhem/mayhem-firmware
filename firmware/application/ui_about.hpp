@@ -72,7 +72,7 @@ private:
 		int32_t delay;
 	} credits_t;
 	
-	const credits_t credits[20] = {	
+	const credits_t credits[22] = {	
 		{ 60,		"PortaPack|HAVOC",				0 },
 		{ 7 * 8,	"Git hash " GIT_REVISION,		16 },
 		{ 11 * 8,	"Gurus  J. Boone",				0 },
@@ -80,6 +80,8 @@ private:
 		{ 11 * 8,	"HAVOC  Furrtek",				16 },
 		{ 7 * 8,	"POCSAG rx  T. Sailer",			0 },
 		{ 18 * 8,	"E. Oenal",						16 },
+		{ 0 * 8,	"Radiosonde infos  F4GMU",		0 },
+		{ 18 * 8,	"RS1729",						16 },
 		{ 4 * 8,	"RDS waveform  C. Jacquet", 	16 },
 		{ 7 * 8,	"Xy. infos  cLx", 				16 },
 		{ 2 * 8,	"OOK scan trick  Samy Kamkar",	16 },

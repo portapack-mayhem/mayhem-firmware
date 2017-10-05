@@ -35,6 +35,7 @@
 #include "ert_packet.hpp"
 #include "tpms_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "sonde_packet.hpp"
 #include "adsb_frame.hpp"
 #include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
@@ -60,18 +61,19 @@ public:
 		Shutdown = 8,
 		AISPacket = 7,
 		ERTPacket = 9,
-		UpdateSpectrum = 10,
-		NBFMConfigure = 11,
-		WFMConfigure = 12,
-		AMConfigure = 13,
-		ChannelSpectrumConfig = 14,
-		SpectrumStreamingConfig = 15,
-		DisplaySleep = 16,
-		CaptureConfig = 17,
-		CaptureThreadDone = 18,
-		ReplayConfig = 19,
-		ReplayThreadDone = 20,
-		AFSKRxConfigure = 21,
+		SondePacket = 10,
+		UpdateSpectrum = 11,
+		NBFMConfigure = 12,
+		WFMConfigure = 13,
+		AMConfigure = 14,
+		ChannelSpectrumConfig = 15,
+		SpectrumStreamingConfig = 16,
+		DisplaySleep = 17,
+		CaptureConfig = 18,
+		CaptureThreadDone = 19,
+		ReplayConfig = 20,
+		ReplayThreadDone = 21,
+		AFSKRxConfigure = 22,
 
 		TXProgress = 30,
 		Retune = 31,
@@ -368,6 +370,22 @@ public:
 	}
 
 	ert::Packet::Type type;
+
+	baseband::Packet packet;
+};
+
+class SondePacketMessage : public Message {
+public:
+	constexpr SondePacketMessage(
+		const sonde::Packet::Type type,
+		const baseband::Packet& packet
+	) : Message { ID::SondePacket },
+		type { type },
+		packet { packet }
+	{
+	}
+
+	sonde::Packet::Type type;
 
 	baseband::Packet packet;
 };

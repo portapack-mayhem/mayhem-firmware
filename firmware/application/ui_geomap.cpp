@@ -173,9 +173,8 @@ void GeoMap::move(const float lon, const float lat) {
 
 bool GeoMap::init() {
 	auto result = map_file.open("ADSB/world_map.bin");
-	if (result.is_valid()) {
+	if (result.is_valid())
 		return false;
-	}
 	
 	map_file.read(&map_width, 2);
 	map_file.read(&map_height, 2);
@@ -210,9 +209,9 @@ void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t siz
 }
 
 void GeoMapView::focus() {
-	if (!file_error) {
-		geopos.focus();
-	} else
+	geopos.focus();
+	
+	if (!file_error)
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
@@ -226,10 +225,7 @@ void GeoMapView::update_position(float lat, float lon) {
 }
 	
 void GeoMapView::setup() {
-	add_children({
-		&geopos,
-		&geomap
-	});
+	add_child(&geomap);
 	
 	geopos.set_altitude(altitude_);
 	geopos.set_lat(lat_);
@@ -282,6 +278,8 @@ GeoMapView::GeoMapView(
 {
 	mode_ = DISPLAY;
 	
+	add_child(&geopos);
+	
 	file_error = !geomap.init();
 	if (file_error) return;
 	
@@ -307,6 +305,8 @@ GeoMapView::GeoMapView(
 	lon_ (lon)
 {
 	mode_ = PROMPT;
+	
+	add_child(&geopos);
 	
 	file_error = !geomap.init();
 	if (file_error) return;

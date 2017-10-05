@@ -50,6 +50,7 @@
 #include "ui_nuoptix.hpp"
 #include "ui_playdead.hpp"
 #include "ui_pocsag_tx.hpp"
+#include "ui_sonde.hpp"
 #include "ui_rds.hpp"
 #include "ui_sd_wipe.hpp"
 #include "ui_scanner.hpp"
@@ -294,6 +295,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "LoRa", 					ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Radiosondes", 			ui::Color::red(),	&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});

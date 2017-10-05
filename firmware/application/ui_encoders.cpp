@@ -30,7 +30,7 @@ using namespace portapack;
 namespace ui {
 
 EncodersConfigView::EncodersConfigView(
-	NavigationView& nav, Rect parent_rect
+	NavigationView&, Rect parent_rect
 ) {
 	using option_t = std::pair<std::string, int32_t>;
 	std::vector<option_t> enc_options;
@@ -171,7 +171,7 @@ void EncodersScanView::focus() {
 }
 
 EncodersScanView::EncodersScanView(
-	NavigationView& nav, Rect parent_rect
+	NavigationView&, Rect parent_rect
 ) {
 	set_parent_rect(parent_rect);
 	hidden(true);

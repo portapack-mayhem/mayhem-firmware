@@ -261,7 +261,7 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
 		{ audio::debug::codec_name(), ui::Color::white(),	nullptr,	[&nav](){ nav.push<RegistersView>(
-			audio::debug::codec_name(), RegistersWidgetConfig { (int)audio::debug::reg_count(), (int)audio::debug::reg_bits() },
+			audio::debug::codec_name(), RegistersWidgetConfig { (size_t)audio::debug::reg_count(), (size_t)audio::debug::reg_bits() },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
 	});
