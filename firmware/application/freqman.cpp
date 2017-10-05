@@ -23,9 +23,6 @@
 #include "freqman.hpp"
 #include <algorithm>
 
-#define FREQMAN_DESC_MAX_LEN 30
-#define FREQMAN_MAX_PER_FILE 256
-
 std::vector<std::string> get_freqman_files() {
 	std::vector<std::string> file_list;
 	
@@ -40,9 +37,9 @@ std::vector<std::string> get_freqman_files() {
 
 bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 	File freqman_file;
-	size_t length, span_end, n = 0;
-	uint64_t seek_pos = 0;
+	size_t length, n = 0, file_position = 0;
 	char * pos;
+	char * line_start;
 	char * line_end;
 	std::string description;
 	rf::Frequency value;
@@ -54,43 +51,52 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 	if (result.is_valid())
 		return false;
 	
-	freqman_file.read(file_data, 256);
-	
-	while ((pos = strstr(file_data, "f=")) && (n < FREQMAN_MAX_PER_FILE)) {
+	while (1) {
+		freqman_file.seek(file_position);
 		
-		// Trim buffer at end of last complete line
-		line_end = file_data;
-		span_end = strcspn(line_end, "\x0A");
-		if (span_end) {
-			if (span_end == strlen(line_end))
-				return true;
+		memset(file_data, 0, 256);
+		auto read_size = freqman_file.read(file_data, 256);
+		if (read_size.is_error())
+			return false;	// Read error
+		
+		file_position += sizeof(file_data);
+		
+		line_start = file_data;
+		
+		pos = strstr(file_data, "f=");
+		if (!pos) break;
+		
+		// Look for complete lines in buffer
+		while ((line_end = strstr(line_start, "\x0A"))) {
+			// Read frequency
+			pos = strstr(line_start, "f=");
+			if (pos) {
+				pos += 2;
+				value = strtoll(pos, nullptr, 10);
+			} else
+				value = 0;
+			
+			// Read description until , or LF
+			pos = strstr(line_start, "d=");
+			if (pos) {
+				pos += 2;
+				length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
+				description = string(pos, length);
+			} else
+				description = "-";
+			
+			db.entries.push_back({ value, "", description });
+			n++;
+			
+			if (n >= FREQMAN_MAX_PER_FILE) return true;
+			
+			line_start = line_end + 1;
 		}
-		line_end += (span_end + 1);
-		*line_end = (char)0;
 		
-		// Read frequency
-		pos += 2;
-		value = strtoll(pos, nullptr, 10);
-
-		// Read description until , or LF
-		pos = strstr(file_data, "d=");
-		if (pos) {
-			pos += 2;
-			length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
-			description = string(pos, length);
-		} else {
-			description = "-";
-		}
+		if (read_size.value() != sizeof(file_data))
+			return true;	// End of file
 		
-		db.entries.push_back({ value, "", description });
-		n++;
-
-		seek_pos += (line_end - file_data);
-
-		if (freqman_file.seek(seek_pos).value() == seek_pos)
-			break;
-		else
-			freqman_file.read(file_data, 256);
+		file_position -= (file_data + sizeof(file_data) - line_start);
 	}
 	
 	return true;

@@ -29,6 +29,10 @@
 #ifndef __FREQMAN_H__
 #define __FREQMAN_H__
 
+#define FREQMAN_DESC_MAX_LEN 30
+#define FREQMAN_MAX_PER_FILE 50
+#define FREQMAN_MAX_PER_FILE_STR "50"
+
 using namespace ui;
 using namespace std;
 
@@ -40,9 +44,9 @@ enum freqman_error {
 };
 
 struct freqman_entry {
-	rf::Frequency value;
-	std::string frequency_str;
-	std::string description;
+	rf::Frequency value { 0 };
+	std::string frequency_str { };
+	std::string description { };
 };
 
 struct freqman_db {

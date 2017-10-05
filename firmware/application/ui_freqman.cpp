@@ -35,9 +35,6 @@ FreqManBaseView::FreqManBaseView(
 {
 	file_list = get_freqman_files();
 	
-	if (!file_list.size())
-		error_ = ERROR_NOFILES;
-	
 	add_children({
 		&label_category,
 		&button_exit
@@ -46,7 +43,8 @@ FreqManBaseView::FreqManBaseView(
 	if (file_list.size()) {
 		add_child(&options_category);
 		populate_categories();
-	}
+	} else
+		error_ = ERROR_NOFILES;
 	
 	// Default function
 	on_change_category = [this](int32_t category_id) {
@@ -64,17 +62,22 @@ void FreqManBaseView::focus() {
 	if (error_ == ERROR_ACCESS) {
 		nav_.display_modal("Error", "File acces error", ABORT, nullptr);
 	} else if (error_ == ERROR_NOFILES) {
-		nav_.display_modal("Error", "No database files", ABORT, nullptr);
+		nav_.display_modal("Error", "No database files\nin /freqman", ABORT, nullptr);
 	} else {
 		options_category.focus();
 	}
 }
 
-bool FreqManBaseView::populate_categories() {
+void FreqManBaseView::populate_categories() {
 	categories.clear();
 	
 	for (size_t n = 0; n < file_list.size(); n++)
 		categories.emplace_back(std::make_pair(file_list[n], n));
+	
+	// Alphabetical sort
+	std::sort(categories.begin(), categories.end(), [](auto &left, auto &right) {
+		return left.first < right.first;
+	});
 	
 	options_category.set_options(categories);
 	options_category.set_selected_index(0);
@@ -83,8 +86,6 @@ bool FreqManBaseView::populate_categories() {
 		if (on_change_category)
 			on_change_category(category_id);
 	};
-	
-	return true;
 }
 
 void FreqManBaseView::change_category(int32_t category_id) {
@@ -120,23 +121,40 @@ void FreqManBaseView::refresh_list() {
 				}
 			});
 		}
-		
+	
 		menu_view.set_highlighted(0);	// Refresh
+	}
+}
+
+void FrequencySaveView::save_current_file() {
+	if (database.entries.size() > FREQMAN_MAX_PER_FILE) {
+		nav_.display_modal(
+			"Error", "Too many entries, maximum is\n" FREQMAN_MAX_PER_FILE_STR ". Trim list ?",
+			YESNO,
+			[this](bool choice) {
+				if (choice) {
+					database.entries.resize(FREQMAN_MAX_PER_FILE);
+					save_freqman_file(file_list[current_category_id], database);
+				}
+				nav_.pop();
+			}
+		);
+	} else {
+		save_freqman_file(file_list[current_category_id], database);
+		nav_.pop();
 	}
 }
 
 void FrequencySaveView::on_save_name() {
 	text_prompt(nav_, &desc_buffer, 28, [this](std::string * buffer) {
 		database.entries.push_back({ value_, "", *buffer });
-		save_freqman_file(file_list[current_category_id], database);
-		nav_.pop();
+		save_current_file();
 	});
 }
 
 void FrequencySaveView::on_save_timestamp() {
 	database.entries.push_back({ value_, "", live_timestamp.string() });
-	save_freqman_file(file_list[current_category_id], database);
-	nav_.pop();
+	save_current_file();
 }
 
 FrequencySaveView::FrequencySaveView(

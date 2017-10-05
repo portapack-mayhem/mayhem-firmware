@@ -54,7 +54,7 @@ protected:
 	std::vector<std::string> file_list { };
 	int32_t current_category_id { 0 };
 	
-	bool populate_categories();
+	void populate_categories();
 	void change_category(int32_t category_id);
 	void refresh_list();
 	
@@ -95,6 +95,7 @@ private:
 	
 	void on_save_name();
 	void on_save_timestamp();
+	void save_current_file();
 	
 	BigFrequency big_display {
 		{ 4, 2 * 16, 28 * 8, 32 },
