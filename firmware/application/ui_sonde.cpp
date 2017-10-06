@@ -53,14 +53,14 @@ SondeView::SondeView(NavigationView& nav) {
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		receiver_model.set_tuning_frequency(f);
+		set_target_frequency(f);
 		field_frequency.set_value(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
+			set_target_frequency(f);
 			field_frequency.set_value(f);
 		};
 	};
@@ -74,6 +74,8 @@ SondeView::SondeView(NavigationView& nav) {
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
 	});
+	
+	set_target_frequency(402000000);
 
 	/*logger = std::make_unique<SondeLogger>();
 	if( logger ) {
@@ -90,14 +92,30 @@ void SondeView::focus() {
 	field_vga.focus();
 }
 
-void SondeView::on_packet(const sonde::Packet& packet) {
-	text_debug.set("Got frame !");
+void SondeView::on_packet(const baseband::Packet& packet) {
+	std::string bin_string;
+	
+	for (size_t i = 0; i < 30; i++) {
+		bin_string += to_string_dec_uint(packet[i]);
+	}
+	
+	text_debug.set(bin_string);
+	
 	/*if( logger ) {
 		logger->on_packet(packet);
 	}*/
 
 	/*if( packet.crc_ok() ) {
 	}*/
+}
+
+void SondeView::set_target_frequency(const uint32_t new_value) {
+	target_frequency_ = new_value;
+	radio::set_tuning_frequency(tuning_frequency());
+}
+
+uint32_t SondeView::tuning_frequency() const {
+	return target_frequency_ - (sampling_rate / 4);
 }
 
 } /* namespace ui */

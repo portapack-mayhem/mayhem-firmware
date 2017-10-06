@@ -28,22 +28,23 @@
 #include "event_m4.hpp"
 
 SondeProcessor::SondeProcessor() {
-	decim_0.configure(taps_200k_decim_0.taps, 33554432);
-	decim_1.configure(taps_200k_decim_1.taps, 131072);
+	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
+	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 }
 
 void SondeProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decimator_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+	const auto decimator_out = decim_1_out;
 
-	/* 307.2kHz, 256 samples */
+	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 
 	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf_38k4_1t_19k2.execute_once(decimator_out.p[i]) ) {
-			clock_recovery_fsk_19k2(mf_38k4_1t_19k2.get_output());
+		if( mf.execute_once(decimator_out.p[i]) ) {
+			clock_recovery_fsk_4800(mf.get_output());
 		}
 	}
 }

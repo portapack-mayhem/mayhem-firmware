@@ -67,6 +67,7 @@ public:
 
 private:
 	//std::unique_ptr<SondeLogger> logger { };
+	uint32_t target_frequency_ { };
 
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
@@ -96,12 +97,16 @@ private:
 		Message::ID::SondePacket,
 		[this](Message* const p) {
 			const auto message = static_cast<const SondePacketMessage*>(p);
-			const sonde::Packet packet { message->type, message->packet };
-			this->on_packet(packet);
+			//const sonde::Packet packet { message->type, message->packet };
+			//this->on_packet(packet);
+			this->on_packet(message->packet);
 		}
 	};
 
-	void on_packet(const sonde::Packet& packet);
+	//void on_packet(const sonde::Packet& packet);
+	void on_packet(const baseband::Packet& packet);
+	void set_target_frequency(const uint32_t new_value);
+	uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */
