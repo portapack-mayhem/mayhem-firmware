@@ -35,6 +35,7 @@ namespace encoders {
 	#define ENCODER_UM3750	8
 	
 	size_t make_bitstream(std::string& fragments);
+	void bitstream_append(size_t& bitstream_length, uint32_t bit_count, uint32_t bits);
 
 	struct encoder_def_t {
 		std::string name;						// Encoder chip ref/name

@@ -31,18 +31,18 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "ui_about.hpp"
-#include "ui_adsb_tx.hpp"
 #include "ui_adsb_rx.hpp"
-#include "ui_aprs_tx.hpp"
+#include "ui_adsb_tx.hpp"
 #include "ui_afsk_rx.hpp"
+#include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
-#include "ui_siggen.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
+#include "ui_keyfob.hpp"
 #include "ui_lcr.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
@@ -50,11 +50,12 @@
 #include "ui_nuoptix.hpp"
 #include "ui_playdead.hpp"
 #include "ui_pocsag_tx.hpp"
-#include "ui_sonde.hpp"
 #include "ui_rds.hpp"
-#include "ui_sd_wipe.hpp"
 #include "ui_scanner.hpp"
+#include "ui_sd_wipe.hpp"
 #include "ui_setup.hpp"
+#include "ui_siggen.hpp"
+#include "ui_sonde.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_touchtunes.hpp"
@@ -312,11 +313,12 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "APRS", 					ui::Color::grey(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "Jammer", 				ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
+		{ "Key fob", 				ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
 		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
 		{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
-		{ "OOK remote encoders", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
+		{ "Generic OOK remotes", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),		&bitmap_icon_rds,		[&nav](){ nav.push<RDSView>(); } },
 		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },

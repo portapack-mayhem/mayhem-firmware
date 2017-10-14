@@ -1328,7 +1328,7 @@ uint64_t SymField::value_hex_u64() {
 	
 	if (type_ != SYMFIELD_DEF) {
 		for (c = 0; c < length_; c++)
-			v += values_[c] << (4 * (length_ - 1 - c));
+			v += (uint64_t)(values_[c]) << (4 * (length_ - 1 - c));
 		return v;
 	} else 
 		return 0;

@@ -181,6 +181,7 @@ set(CPPSRC
 	ui_geomap.cpp
 	# ui_handwrite.cpp
 	ui_jammer.cpp
+	ui_keyfob.cpp
 	ui_lcr.cpp
 	ui_menu.cpp
 	ui_mictx.cpp

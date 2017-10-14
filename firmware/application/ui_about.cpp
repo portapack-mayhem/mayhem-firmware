@@ -97,9 +97,8 @@ void AboutView::update() {
 		if (timer < 0) {
 			timer = 240;
 			loop = true;
-		} else {
+		} else
 			timer += 16;
-		}
 		
 		render_line = 0;
 		credits_index++;
@@ -111,7 +110,7 @@ void AboutView::update() {
 			const auto glyph = style().font.glyph(c);
 			
 			const size_t start = (glyph.size().width() / 8) * render_line; 
-			for(Dim c=0; c<glyph.size().width(); c++) {
+			for (Dim c = 0; c < glyph.size().width(); c++) {
 				const auto pixel = glyph.pixels()[start + (c >> 3)] & (1U << (c & 0x7));
 				pixel_row[start_pos + i + c] = pixel ? Color::white() : Color::black();
 			}
