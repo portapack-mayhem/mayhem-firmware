@@ -211,7 +211,7 @@ void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t siz
 void GeoMapView::focus() {
 	geopos.focus();
 	
-	if (!file_error)
+	if (!map_opened)
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
@@ -280,8 +280,8 @@ GeoMapView::GeoMapView(
 	
 	add_child(&geopos);
 	
-	file_error = !geomap.init();
-	if (file_error) return;
+	map_opened = geomap.init();
+	if (!map_opened) return;
 	
 	setup();
 	
@@ -308,8 +308,8 @@ GeoMapView::GeoMapView(
 	
 	add_child(&geopos);
 	
-	file_error = !geomap.init();
-	if (file_error) return;
+	map_opened = geomap.init();
+	if (!map_opened) return;
 	
 	setup();
 	add_child(&button_ok);

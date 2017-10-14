@@ -172,7 +172,7 @@ private:
 	float angle_ { };
 	std::function<void(void)> on_close_ { nullptr };
 	
-	bool file_error { };
+	bool map_opened { };
 	
 	GeoPos geopos {
 		{ 0, 0 }
