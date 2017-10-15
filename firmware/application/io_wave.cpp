@@ -97,6 +97,10 @@ uint32_t WAVFileReader::ms_duration() {
 	return ((data_size_ * 1000) / sample_rate_) / bytes_per_sample;
 }
 
+void WAVFileReader::data_seek(const uint64_t Offset) {
+	file.seek(data_start + (Offset * bytes_per_sample));
+}
+	
 /*int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
 	const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
 
@@ -116,6 +120,10 @@ uint32_t WAVFileReader::sample_rate() {
 
 uint32_t WAVFileReader::data_size() {
 	return data_size_;
+}
+
+uint32_t WAVFileReader::sample_count() {
+	return data_size_ / bytes_per_sample;
 }
 
 uint16_t WAVFileReader::bits_per_sample() {

@@ -59,6 +59,7 @@
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_touchtunes.hpp"
+#include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
 
 #include "analog_audio_app.hpp"
@@ -363,6 +364,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",					ui::Color::grey(),		&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Scanner/search",			ui::Color::orange(),	&bitmap_icon_closecall,	[&nav](){ nav.push<ScannerView>(); } },
+		{ "Wave file viewer", 		ui::Color::blue(),		nullptr,				[&nav](){ nav.push<ViewWavView>(); } },
 		{ "Utilities",				ui::Color::purple(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Setup", 					ui::Color::white(),		&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },
 		//{ "Debug", 					ui::Color::white(), nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },

@@ -32,11 +32,19 @@
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
+//TODO: Cap Wav viewer position
+//TODO: Adapt wav viewer position step
+//TODO: Optimize wav viewer refresh
+//TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
+//TODO: Continue work on proc_afskrx_corr, see python script (it works !)
+//TODO: Super simple text file viewer
+//TODO: De bruijn sequence scanner for encoders
+//TODO: FILEMAN Rename folders
+//TODO: FILEMAN Move files
 //TODO: Frequency and bw settings were removed from modemsetup, put those back in LCR TX
+//TODO: Use separate thread for scanning in EPAR TX
 //TODO: Use separate thread for scanning in LCR TX
 //TODO: REPLAY Convert C16 to C8 on M0 core
-//TODO: Use TabView
-//TODO: De bruijn sequence scanner for encoders
 //TODO: Make freqman refresh simpler (use previous black rectangle method)
 //TODO: Merge AFSK and TONES procs ?
 //TODO: NFM RX mode: nav.pop on squelch

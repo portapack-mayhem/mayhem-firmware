@@ -112,12 +112,14 @@ public:
 	virtual ~WAVFileReader() = default;
 
 	bool open(const std::filesystem::path& path);
+	void data_seek(const uint64_t Offset);
 	void rewind();
 	uint32_t ms_duration();
 	//int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
 	uint16_t channels();
 	uint32_t sample_rate();
 	uint32_t data_size();
+	uint32_t sample_count();
 	uint16_t bits_per_sample();
 	std::string title();
 	

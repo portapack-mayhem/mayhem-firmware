@@ -213,6 +213,7 @@ set(CPPSRC
 	ui_touch_calibration.cpp
 	ui_touchtunes.cpp
 	ui_transmitter.cpp
+	ui_view_wav.cpp
 	ui_whipcalc.cpp
 	# ui_loadmodule.cpp
 	recent_entries.cpp

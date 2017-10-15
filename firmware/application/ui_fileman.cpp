@@ -201,17 +201,17 @@ FileLoadView::FileLoadView(
 	// Resize menu view to fill screen
 	menu_view.set_parent_rect({ 0, 3 * 8, 240, 29 * 8 });
 	
-	// Just to allow exit on left
-	menu_view.on_left = [&nav, this]() {
-		nav.pop();
-	};
-	
 	refresh_list();
 	
 	on_select_entry = [&nav, this]() {
-		nav_.pop();
-		if (on_changed)
-			on_changed(entry_list[menu_view.highlighted()].entry_path);
+		if (entry_list[menu_view.highlighted()].is_directory) {
+			load_directory_contents(get_selected_path());
+			refresh_list();
+		} else {
+			nav_.pop();
+			if (on_changed)
+				on_changed(entry_list[menu_view.highlighted()].entry_path);
+		}
 	};
 }
 
@@ -288,6 +288,7 @@ FileManagerView::FileManagerView(
 	};
 	
 	button_delete.on_select = [this, &nav](Button&) {
+		// Use display_modal ?
 		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted()].entry_path.filename().string() + "\nAre you sure ?", YESNO,
 			[this](bool choice) {
 				if (choice)

@@ -1236,6 +1236,10 @@ void NumberField::set_range(const int32_t min, const int32_t max) {
 	set_value(value(), false);
 }
 
+void NumberField::set_step(const int32_t new_step) {
+	step = new_step;
+}
+
 void NumberField::paint(Painter& painter) {
 	const auto text = to_string_dec_int(value_, length_, fill_char);
 

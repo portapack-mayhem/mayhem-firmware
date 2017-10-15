@@ -535,6 +535,7 @@ public:
 	int32_t value() const;
 	void set_value(int32_t new_value, bool trigger_change = true);
 	void set_range(const int32_t min, const int32_t max);
+	void set_step(const int32_t new_step);
 
 	void paint(Painter& painter) override;
 
@@ -544,7 +545,7 @@ public:
 
 private:
 	range_t range;
-	const int32_t step;
+	int32_t step;
 	const int length_;
 	const char fill_char;
 	int32_t value_ { 0 };
