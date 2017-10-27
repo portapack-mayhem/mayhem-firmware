@@ -42,16 +42,22 @@ SondeView::SondeView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_sonde);
 
 	add_children({
-		&field_frequency,
-		&text_debug,
+		&labels,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
-		&rssi
+		&rssi,
+		&field_frequency,
+		&text_debug_a,
+		&text_debug_b,
+		&text_signature,
+		&text_sats,
+		&geopos,
+		&button_see_map
 	});
 
-	field_frequency.set_value(receiver_model.tuning_frequency());
-	field_frequency.set_step(receiver_model.frequency_step());
+	field_frequency.set_value(target_frequency_);
+	field_frequency.set_step(10000);
 	field_frequency.on_change = [this](rf::Frequency f) {
 		set_target_frequency(f);
 		field_frequency.set_value(f);
@@ -65,8 +71,10 @@ SondeView::SondeView(NavigationView& nav) {
 		};
 	};
 	
+	geopos.set_read_only(true);
+	
 	radio::enable({
-		receiver_model.tuning_frequency(),
+		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
 		rf::Direction::Receive,
@@ -74,9 +82,16 @@ SondeView::SondeView(NavigationView& nav) {
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
 	});
-	
-	set_target_frequency(402000000);
 
+	button_see_map.on_select = [this, &nav](Button&) {
+		nav.push<GeoMapView>(
+			"",
+			altitude,
+			latitude,
+			longitude,
+			0);
+	};
+	
 	/*logger = std::make_unique<SondeLogger>();
 	if( logger ) {
 		logger->append(u"sonde.txt");
@@ -92,19 +107,28 @@ void SondeView::focus() {
 	field_vga.focus();
 }
 
-void SondeView::on_packet(const baseband::Packet& packet) {
-	std::string bin_string;
+void SondeView::on_packet(const sonde::Packet& packet) {
+	const auto hex_formatted = packet.symbols_formatted();
 	
-	for (size_t i = 0; i < 30; i++) {
-		bin_string += to_string_dec_uint(packet[i]);
-	}
+	text_debug_a.set(hex_formatted.data.substr(0, 30));
+	text_debug_b.set(hex_formatted.errors.substr(0, 30));
 	
-	text_debug.set(bin_string);
+	text_signature.set(packet.signature());
+	
+	text_sats.set(to_string_dec_uint(packet.visible_sats()));
+	
+	altitude = packet.GPS_altitude();
+	latitude = packet.GPS_latitude();
+	longitude = packet.GPS_longitude();
+	
+	geopos.set_altitude(altitude);
+	geopos.set_lat(latitude);
+	geopos.set_lon(longitude);
 	
 	/*if( logger ) {
 		logger->on_packet(packet);
 	}*/
-
+	
 	/*if( packet.crc_ok() ) {
 	}*/
 }

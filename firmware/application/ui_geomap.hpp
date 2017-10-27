@@ -136,7 +136,7 @@ public:
 		float lat,
 		float lon,
 		float angle,
-		const std::function<void(void)> on_close
+		const std::function<void(void)> on_close = nullptr
 	);
 	GeoMapView(NavigationView& nav,
 		int32_t altitude,

@@ -23,7 +23,6 @@
 #include "proc_sonde.hpp"
 
 #include "dsp_fir_taps.hpp"
-//#include "portapack_shared_memory.hpp"
 
 #include "event_m4.hpp"
 

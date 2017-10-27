@@ -42,8 +42,8 @@ public:
 	};
 
 	Packet(
-		const Type type,
-		const baseband::Packet& packet
+		const baseband::Packet& packet,
+		const Type type
 	) : packet_ { packet },
 		decoder_ { packet_ },
 		reader_ { decoder_ },
@@ -59,16 +59,21 @@ public:
 
 	Type type() const;
 	SN serial_number() const;
+	uint32_t visible_sats() const;
+	uint32_t GPS_altitude() const;
+	float GPS_latitude() const;
+	float GPS_longitude() const;
+	std::string signature() const;
 
 	FormattedSymbols symbols_formatted() const;
 
 	bool crc_ok() const;
 
 private:
-	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+	using Reader = FieldReader<BiphaseMDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
-	const ManchesterDecoder decoder_;
+	const BiphaseMDecoder decoder_;
 	const Reader reader_;
 	const Type type_;
 

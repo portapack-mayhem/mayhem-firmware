@@ -42,6 +42,33 @@ Packet::Type Packet::type() const {
 	return type_;
 }
 
+uint32_t Packet::visible_sats() const {
+	return reader_.read(30 * 8, 8);
+}
+
+uint32_t Packet::GPS_altitude() const {
+	return reader_.read(22 * 8, 32) / 1000;
+}
+
+float Packet::GPS_latitude() const {
+	return reader_.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
+}
+
+float Packet::GPS_longitude() const {
+	return reader_.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
+}
+
+std::string Packet::signature() const {
+	const auto header = reader_.read(0, 24);
+	
+	if (header == 0x649F20)
+		return "M10";
+	else if (header == 0x648F20)
+		return "M2K2";
+	else
+		return symbols_formatted().data.substr(0, 6);
+}
+
 SN Packet::serial_number() const {
 	if (type() == Type::M10) {
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606

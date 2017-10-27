@@ -23,6 +23,10 @@
 
 #include "string_format.hpp"
 
+size_t ManchesterBase::symbols_count() const {
+	return packet.size() / 2;
+}
+
 DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
 	const size_t encoded_index = index * 2;
 	if( (encoded_index + 1) < packet.size() ) {
@@ -34,12 +38,19 @@ DecodedSymbol ManchesterDecoder::operator[](const size_t index) const {
 	}
 }
 
-size_t ManchesterDecoder::symbols_count() const {
-	return packet.size() / 2;
+DecodedSymbol BiphaseMDecoder::operator[](const size_t index) const {
+	const size_t encoded_index = index * 2;
+	if( (encoded_index + 1) < packet.size() ) {
+		const auto value = packet[encoded_index + 0] != packet[encoded_index + 1];
+		const uint_fast8_t error = encoded_index ? (packet[encoded_index - 1] == packet[encoded_index + 0]) : 0;
+		return { value, error };
+	} else {
+		return { 0, 1 };
+	}
 }
 
 FormattedSymbols format_symbols(
-	const ManchesterDecoder& decoder
+	const ManchesterBase& decoder
 ) {
 	const size_t payload_length_decoded = decoder.symbols_count();
 	const size_t payload_length_hex_characters = (payload_length_decoded + 3) / 4;

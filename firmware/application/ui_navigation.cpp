@@ -297,7 +297,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "LoRa", 					ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Radiosondes", 			ui::Color::red(),	&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
+		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});
