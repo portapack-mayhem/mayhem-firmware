@@ -32,8 +32,6 @@
 
 namespace sonde {
 
-using SN = uint64_t;
-
 class Packet {
 public:
 	enum class Type : uint32_t {
@@ -58,12 +56,12 @@ public:
 	Timestamp received_at() const;
 
 	Type type() const;
-	SN serial_number() const;
-	uint32_t visible_sats() const;
+	std::string serial_number() const;
 	uint32_t GPS_altitude() const;
 	float GPS_latitude() const;
 	float GPS_longitude() const;
 	std::string signature() const;
+	uint32_t battery_voltage() const;
 
 	FormattedSymbols symbols_formatted() const;
 

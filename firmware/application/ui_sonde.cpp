@@ -21,20 +21,17 @@
  */
 
 #include "ui_sonde.hpp"
-
 #include "baseband_api.hpp"
 
 #include "portapack.hpp"
 using namespace portapack;
 
-//#include "manchester.hpp"
-
 #include "string_format.hpp"
 
-/*void SondeLogger::on_packet(const sonde::Packet& packet) {
+void SondeLogger::on_packet(const sonde::Packet& packet) {
 	const auto formatted = packet.symbols_formatted();
-	log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
-}*/
+	log_file.write_entry(packet.received_at(), formatted.data);
+}
 
 namespace ui {
 
@@ -43,15 +40,15 @@ SondeView::SondeView(NavigationView& nav) {
 
 	add_children({
 		&labels,
+		&field_frequency,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&rssi,
-		&field_frequency,
-		&text_debug_a,
-		&text_debug_b,
+		&check_log,
 		&text_signature,
-		&text_sats,
+		&text_serial,
+		&text_voltage,
 		&geopos,
 		&button_see_map
 	});
@@ -73,6 +70,10 @@ SondeView::SondeView(NavigationView& nav) {
 	
 	geopos.set_read_only(true);
 	
+	check_log.on_select = [this](Checkbox&, bool v) {
+		logging = v;
+	};
+	
 	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
@@ -92,10 +93,10 @@ SondeView::SondeView(NavigationView& nav) {
 			0);
 	};
 	
-	/*logger = std::make_unique<SondeLogger>();
-	if( logger ) {
+	logger = std::make_unique<SondeLogger>();
+	if (logger)
 		logger->append(u"sonde.txt");
-	}*/
+	
 }
 
 SondeView::~SondeView() {
@@ -108,14 +109,11 @@ void SondeView::focus() {
 }
 
 void SondeView::on_packet(const sonde::Packet& packet) {
-	const auto hex_formatted = packet.symbols_formatted();
-	
-	text_debug_a.set(hex_formatted.data.substr(0, 30));
-	text_debug_b.set(hex_formatted.errors.substr(0, 30));
+	//const auto hex_formatted = packet.symbols_formatted();
 	
 	text_signature.set(packet.signature());
-	
-	text_sats.set(to_string_dec_uint(packet.visible_sats()));
+	text_serial.set(packet.serial_number());
+	text_voltage.set(to_string_dec_uint(packet.battery_voltage()) + "mV");
 	
 	altitude = packet.GPS_altitude();
 	latitude = packet.GPS_latitude();
@@ -125,9 +123,9 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 	geopos.set_lat(latitude);
 	geopos.set_lon(longitude);
 	
-	/*if( logger ) {
+	if (logger && logging) {
 		logger->on_packet(packet);
-	}*/
+	}
 	
 	/*if( packet.crc_ok() ) {
 	}*/

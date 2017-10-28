@@ -123,7 +123,7 @@ private:
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_M10 {
 		{ 0b00110011001100110101100110110011, 32, 1 },
 		{ },
-		{ 102 * 8 },
+		{ 88 * 2 * 8 },
 		[this](const baseband::Packet& packet) {
 			const SondePacketMessage message { sonde::Packet::Type::M10, packet };
 			shared_memory.application_queue.push(message);

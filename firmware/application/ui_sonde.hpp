@@ -26,7 +26,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-#include "ui_channel.hpp"
 #include "ui_geomap.hpp"
 
 #include "event_m0.hpp"
@@ -35,12 +34,10 @@
 
 #include "sonde_packet.hpp"
 
-#include "recent_entries.hpp"
-
 #include <cstddef>
 #include <string>
 
-/*class SondeLogger {
+class SondeLogger {
 public:
 	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return log_file.append(filename);
@@ -50,7 +47,7 @@ public:
 
 private:
 	LogFile log_file { };
-};*/
+};
 
 namespace ui {
 
@@ -67,16 +64,17 @@ public:
 	std::string title() const override { return "Radiosonde RX"; };
 
 private:
-	//std::unique_ptr<SondeLogger> logger { };
+	std::unique_ptr<SondeLogger> logger { };
 	uint32_t target_frequency_ { 402000000 };
+	bool logging { false };
 	int32_t altitude { 0 };
 	float latitude { 0 };
 	float longitude { 0 };
 	
 	Labels labels {
-		{ { 3 * 8, 5 * 16 }, "Signature:", Color::light_grey() },
-		{ { 0 * 8, 6 * 16 }, "Visible sats:", Color::light_grey() },
-		//{ { 4 * 8, 7 * 16 }, "Altitude:", Color::light_grey() },
+		{ { 0 * 8, 2 * 16 }, "Signature:", Color::light_grey() },
+		{ { 3 * 8, 3 * 16 }, "Serial:", Color::light_grey() },
+		{ { 4 * 8, 4 * 16 }, "Vbatt:", Color::light_grey() }
 	};
 
 	FrequencyField field_frequency {
@@ -98,30 +96,31 @@ private:
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
 	
-	Text text_debug_a {
-		{ 0, 2 * 16, 240, 16 },
-		"Waiting for frame..."
-	};
-	Text text_debug_b {
-		{ 0, 3 * 16, 240, 16 },
-		"Waiting for frame..."
+	Checkbox check_log {
+		{ 22 * 8, 2 * 16 + 8 },
+		3,
+		"Log"
 	};
 	
 	Text text_signature {
-		{ 13 * 8, 5 * 16, 240, 16 },
+		{ 10 * 8, 2 * 16, 10 * 8, 16 },
 		"..."
 	};
-	Text text_sats {
-		{ 13 * 8, 6 * 16, 240, 16 },
+	Text text_serial {
+		{ 10 * 8, 3 * 16, 11 * 8, 16 },
+		"..."
+	};
+	Text text_voltage {
+		{ 10 * 8, 4 * 16, 10 * 8, 16 },
 		"..."
 	};
 	
 	GeoPos geopos {
-		{ 0, 8 * 16 }
+		{ 0, 6 * 16 }
 	};
 	
 	Button button_see_map {
-		{ 8 * 8, 12 * 16, 14 * 8, 3 * 16 },
+		{ 8 * 8, 10 * 16, 14 * 8, 3 * 16 },
 		"See on map"
 	};
 
@@ -134,7 +133,6 @@ private:
 		}
 	};
 
-	//void on_packet(const sonde::Packet& packet);
 	void on_packet(const sonde::Packet& packet);
 	void set_target_frequency(const uint32_t new_value);
 	uint32_t tuning_frequency() const;

@@ -60,13 +60,13 @@ private:
 	bool report_change { true };
 
 	Labels labels_position {
-		{ { 2 * 8, 0 * 16 }, "Alt:       feet", Color::light_grey() },
-		{ { 2 * 8, 1 * 16 }, "Lat:     *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
-		{ { 2 * 8, 2 * 16 }, "Lon:     *  '  \"", Color::light_grey() },
+		{ { 1 * 8, 0 * 16 }, "Alt:       feet", Color::light_grey() },
+		{ { 1 * 8, 1 * 16 }, "Lat:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
+		{ { 1 * 8, 2 * 16 }, "Lon:    *  '  \"", Color::light_grey() },
 	};
 	
 	NumberField field_altitude {
-		{ 7 * 8, 0 * 16 },
+		{ 6 * 8, 0 * 16 },
 		5,
 		{ -1000, 50000 },
 		250,
@@ -74,23 +74,31 @@ private:
 	};
 	
 	NumberField field_lat_degrees {
-		{ 7 * 8, 1 * 16 }, 4, { -90, 90 }, 1, ' '
+		{ 5 * 8, 1 * 16 }, 4, { -90, 90 }, 1, ' '
 	};
 	NumberField field_lat_minutes {
-		{ 12 * 8, 1 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 10 * 8, 1 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lat_seconds {
-		{ 15 * 8, 1 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 13 * 8, 1 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	Text text_lat_decimal {
+		{ 17 * 8, 1 * 16, 13 * 8, 1 * 16 },
+		""
 	};
 	
 	NumberField field_lon_degrees {
-		{ 7 * 8, 2 * 16 }, 4, { -180, 180 }, 1, ' '
+		{ 5 * 8, 2 * 16 }, 4, { -180, 180 }, 1, ' '
 	};
 	NumberField field_lon_minutes {
-		{ 12 * 8, 2 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 10 * 8, 2 * 16 }, 2, { 0, 59 }, 1, ' '
 	};
 	NumberField field_lon_seconds {
-		{ 15 * 8, 2 * 16 }, 2, { 0, 59 }, 1, ' '
+		{ 13 * 8, 2 * 16 }, 2, { 0, 59 }, 1, ' '
+	};
+	Text text_lon_decimal {
+		{ 17 * 8, 2 * 16, 13 * 8, 1 * 16 },
+		""
 	};
 };
 

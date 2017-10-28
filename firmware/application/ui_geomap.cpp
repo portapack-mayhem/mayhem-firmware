@@ -29,12 +29,14 @@
 
 using namespace portapack;
 
+#include "string_format.hpp"
+
 namespace ui {
 
 GeoPos::GeoPos(
 	const Point pos
 ) {
-	set_parent_rect({pos, {30 * 8, 3 * 16}});
+	set_parent_rect({pos, { 30 * 8, 3 * 16 }});
 	
 	add_children({
 		&labels_position,
@@ -42,9 +44,11 @@ GeoPos::GeoPos(
 		&field_lat_degrees,
 		&field_lat_minutes,
 		&field_lat_seconds,
+		&text_lat_decimal,
 		&field_lon_degrees,
 		&field_lon_minutes,
-		&field_lon_seconds
+		&field_lon_seconds,
+		&text_lon_decimal
 	});
 	
 	// Defaults
@@ -53,8 +57,22 @@ GeoPos::GeoPos(
 	set_lon(0);
 	
 	const auto changed_fn = [this](int32_t) {
+		float lat_value = lat();
+		float lon_value = lon();
+		double integer_part;
+		double fractional_part;
+		
+		fractional_part = modf(lat_value, &integer_part) * 100000;
+		if (fractional_part < 0)
+			fractional_part = -fractional_part;
+		text_lat_decimal.set(to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, 5));
+		fractional_part = modf(lon_value, &integer_part) * 100000;
+		if (fractional_part < 0)
+			fractional_part = -fractional_part;
+		text_lon_decimal.set(to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, 5));
+	
 		if (on_change && report_change)
-			on_change(altitude(), lat(), lon());
+			on_change(altitude(), lat_value, lon_value);
 	};
 	
 	field_altitude.on_change = changed_fn;
@@ -64,6 +82,11 @@ GeoPos::GeoPos(
 	field_lon_degrees.on_change = changed_fn;
 	field_lon_minutes.on_change = changed_fn;
 	field_lon_seconds.on_change = changed_fn;
+}
+
+void GeoPos::set_read_only(bool v) {
+	for(auto child : children_)
+		child->set_focusable(!v);
 }
 
 // Stupid hack to avoid an event loop
@@ -103,10 +126,6 @@ int32_t GeoPos::altitude() {
 	return field_altitude.value();
 };
 
-void GeoPos::set_read_only(bool v) {
-	set_focusable(~v);
-};
-
 GeoMap::GeoMap(
 	Rect parent_rect
 ) : Widget { parent_rect }
@@ -117,7 +136,6 @@ GeoMap::GeoMap(
 void GeoMap::paint(Painter& painter) {
 	Coord line;
 	std::array<ui::Color, 240> map_line_buffer;
-	//Color border;
 	const auto r = screen_rect();
 	
 	// Ony redraw map if it moved by at least 1 pixel
