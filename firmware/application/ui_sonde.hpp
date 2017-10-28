@@ -97,7 +97,7 @@ private:
 	};
 	
 	Checkbox check_log {
-		{ 22 * 8, 2 * 16 + 8 },
+		{ 22 * 8, 2 * 16 + 12 },
 		3,
 		"Log"
 	};
@@ -116,7 +116,8 @@ private:
 	};
 	
 	GeoPos geopos {
-		{ 0, 6 * 16 }
+		{ 0, 6 * 16 },
+		GeoPos::alt_unit::METERS
 	};
 	
 	Button button_see_map {

@@ -34,13 +34,16 @@ using namespace portapack;
 namespace ui {
 
 GeoPos::GeoPos(
-	const Point pos
-) {
+	const Point pos,
+	const alt_unit altitude_unit
+) : altitude_unit_(altitude_unit) {
+	
 	set_parent_rect({pos, { 30 * 8, 3 * 16 }});
 	
 	add_children({
 		&labels_position,
 		&field_altitude,
+		&text_alt_unit,
 		&field_lat_degrees,
 		&field_lat_minutes,
 		&field_lat_seconds,
@@ -82,6 +85,8 @@ GeoPos::GeoPos(
 	field_lon_degrees.on_change = changed_fn;
 	field_lon_minutes.on_change = changed_fn;
 	field_lon_seconds.on_change = changed_fn;
+	
+	text_alt_unit.set(altitude_unit_ ? "m" : "ft");
 }
 
 void GeoPos::set_read_only(bool v) {
@@ -283,12 +288,14 @@ GeoMapView::GeoMapView(
 	NavigationView& nav,
 	const std::string& tag,
 	int32_t altitude,
+	GeoPos::alt_unit altitude_unit,
 	float lat,
 	float lon,
 	float angle,
 	const std::function<void(void)> on_close
 ) : nav_ (nav),
 	altitude_ (altitude),
+	altitude_unit_ (altitude_unit),
 	lat_ (lat),
 	lon_ (lon),
 	angle_ (angle),
@@ -314,11 +321,13 @@ GeoMapView::GeoMapView(
 GeoMapView::GeoMapView(
 	NavigationView& nav,
 	int32_t altitude,
+	GeoPos::alt_unit altitude_unit,
 	float lat,
 	float lon,
 	const std::function<void(int32_t, float, float)> on_done
 ) : nav_ (nav),
 	altitude_ (altitude),
+	altitude_unit_ (altitude_unit),
 	lat_ (lat),
 	lon_ (lon)
 {

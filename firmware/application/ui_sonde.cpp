@@ -88,6 +88,7 @@ SondeView::SondeView(NavigationView& nav) {
 		nav.push<GeoMapView>(
 			"",
 			altitude,
+			GeoPos::alt_unit::METERS,
 			latitude,
 			longitude,
 			0);
@@ -113,7 +114,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 	
 	text_signature.set(packet.signature());
 	text_serial.set(packet.serial_number());
-	text_voltage.set(to_string_dec_uint(packet.battery_voltage()) + "mV");
+	text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
 	
 	altitude = packet.GPS_altitude();
 	latitude = packet.GPS_latitude();

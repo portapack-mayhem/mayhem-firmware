@@ -39,9 +39,14 @@ enum GeoMapMode {
 
 class GeoPos : public View {
 public:
+	enum alt_unit {
+		FEET = 0,
+		METERS
+	};
+	
 	std::function<void(int32_t, float, float)> on_change { };
 	
-	GeoPos(const Point pos);
+	GeoPos(const Point pos, const alt_unit altitude_unit);
 	
 	void focus() override;
 	
@@ -58,9 +63,10 @@ public:
 private:
 	bool read_only { false };
 	bool report_change { true };
+	alt_unit altitude_unit_ { };
 
 	Labels labels_position {
-		{ { 1 * 8, 0 * 16 }, "Alt:       feet", Color::light_grey() },
+		{ { 1 * 8, 0 * 16 }, "Alt:", Color::light_grey() },
 		{ { 1 * 8, 1 * 16 }, "Lat:    *  '  \"", Color::light_grey() },	// No ° symbol in 8x16 font
 		{ { 1 * 8, 2 * 16 }, "Lon:    *  '  \"", Color::light_grey() },
 	};
@@ -71,6 +77,10 @@ private:
 		{ -1000, 50000 },
 		250,
 		' '
+	};
+	Text text_alt_unit {
+		{ 12 * 8, 0 * 16, 2 * 8, 16 },
+		""
 	};
 	
 	NumberField field_lat_degrees {
@@ -141,6 +151,7 @@ public:
 		NavigationView& nav,
 		const std::string& tag,
 		int32_t altitude,
+		GeoPos::alt_unit altitude_unit,
 		float lat,
 		float lon,
 		float angle,
@@ -148,6 +159,7 @@ public:
 	);
 	GeoMapView(NavigationView& nav,
 		int32_t altitude,
+		GeoPos::alt_unit altitude_unit,
 		float lat,
 		float lon,
 		const std::function<void(int32_t, float, float)> on_done
@@ -175,6 +187,7 @@ private:
 	const Dim banner_height = 3 * 16;
 	GeoMapMode mode_ { };
 	int32_t altitude_ { };
+	GeoPos::alt_unit altitude_unit_ { };
 	float lat_ { };
 	float lon_ { };
 	float angle_ { };
@@ -183,7 +196,8 @@ private:
 	bool map_opened { };
 	
 	GeoPos geopos {
-		{ 0, 0 }
+		{ 0, 0 },
+		altitude_unit_
 	};
 	
 	GeoMap geomap {
