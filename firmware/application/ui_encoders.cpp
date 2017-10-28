@@ -128,12 +128,8 @@ void EncodersConfigView::on_show() {
 void EncodersConfigView::draw_waveform() {
 	size_t length = frame_fragments.length();
 
-	for (size_t n = 0; n < length; n++) {
-		if (frame_fragments[n] == '0')
-			waveform_buffer[n] = 0;
-		else
-			waveform_buffer[n] = 1;
-	}
+	for (size_t n = 0; n < length; n++)
+		waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
 	
 	waveform.set_length(length);
 	waveform.set_dirty();
