@@ -170,3 +170,31 @@ std::string to_string_timestamp(const rtc::RTC& value) {
 		to_string_dec_uint(value.minute(), 2, '0') +
 		to_string_dec_uint(value.second(), 2, '0');
 }
+
+std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision) {
+	const uint32_t powers_of_ten[5] = { 1, 10, 100, 1000, 10000 };
+	std::string string { "" };
+	uint32_t prefix_index = base_nano;
+	double integer_part;
+	double fractional_part;
+	
+	precision = std::min((uint32_t)4, precision);
+	
+	while (n > 1000) {
+		n /= 1000.0;
+		prefix_index++;
+	}
+	
+	fractional_part = modf(n, &integer_part) * powers_of_ten[precision];
+	if (fractional_part < 0)
+		fractional_part = -fractional_part;
+	
+	string = to_string_dec_int(integer_part);
+	if (precision)
+		string += '.' + to_string_dec_uint(fractional_part, precision, '0');
+	
+	if (prefix_index != 3)
+		string += unit_prefix[prefix_index];
+	
+	return string;
+}

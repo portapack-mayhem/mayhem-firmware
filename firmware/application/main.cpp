@@ -34,7 +34,7 @@
 
 //TODO: Cap Wav viewer position
 //TODO: Adapt wav viewer position step
-//TODO: Optimize wav viewer refresh
+//TODO: Use unit_auto_scale
 //TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
 //TODO: Continue work on proc_afskrx_corr, see python script (it works !)
 //TODO: Super simple text file viewer
@@ -59,10 +59,7 @@ Continuous (Fox-oring)
 60s transmit, 240s space (Classic 1/5 min) 
 60s transmit, 360s space (Classic 1/7 min) 
 */
-//TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
 //TODO: FreqMan: Remove and rename categories
-//TODO: Wav visualizer
-//TODO: File browser view ?
 //TODO: Mousejack ?
 //TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
 //TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback

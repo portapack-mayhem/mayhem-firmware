@@ -32,29 +32,34 @@ namespace ui {
 void ViewWavView::update_scale(int32_t new_scale) {
 	scale = new_scale;
 	ns_per_pixel = (1000000000UL / wav_reader->sample_rate()) * scale;
-	field_pos_samples.set_step(scale);
 	refresh_waveform();
+	refresh_measurements();
 }
 
 void ViewWavView::refresh_waveform() {
-	int16_t sample;
-	
 	for (size_t i = 0; i < 240; i++) {
 		wav_reader->data_seek(position + (i * scale));
-		wav_reader->read(&sample, 2);
-		
-		waveform_buffer[i] = sample >> 8;
+		wav_reader->read(&waveform_buffer[i], sizeof(int16_t));
 	}
 	
+	waveform.set_dirty();
+	
+	// Window
+	uint64_t w_start = (position * 240) / wav_reader->sample_count();
+	uint64_t w_width = (scale * 240) / (wav_reader->sample_count() / 240);
+	display.fill_rectangle({ 0, 10 * 16 + 1, 240, 16 }, Color::black());
+	display.fill_rectangle({ (Coord)w_start, 21 * 8, (Dim)w_width + 1, 8 }, Color::white());
+	display.draw_line({ 0, 10 * 16 + 1 }, { (Coord)w_start, 21 * 8 }, Color::white());
+	display.draw_line({ 239, 10 * 16 + 1 }, { (Coord)(w_start + w_width), 21 * 8 }, Color::white());
+}
+
+void ViewWavView::refresh_measurements() {
 	uint64_t span_ns = ns_per_pixel * abs(field_cursor_b.value() - field_cursor_a.value());
+	
 	if (span_ns)
-		text_delta.set(to_string_dec_uint(span_ns / 1000) + "us (" + to_string_dec_uint(1000000000UL / span_ns) + "Hz)");
+		text_delta.set(unit_auto_scale(span_ns, 0, 3) + "s (" + to_string_dec_uint(1000000000UL / span_ns) + "Hz)");
 	else
 		text_delta.set("0us ?Hz");
-	
-	//waveform.set_dirty();
-	
-	set_dirty();
 }
 
 void ViewWavView::paint(Painter& painter) {
@@ -62,22 +67,9 @@ void ViewWavView::paint(Painter& painter) {
 	painter.draw_hline({ 0, 6 * 16 - 1 }, 240, Color::grey());
 	painter.draw_hline({ 0, 10 * 16 }, 240, Color::grey());
 	
-	// 0~127 to 0~15 color index
+	// Overall amplitude view, 0~127 to 0~255 color index
 	for (size_t i = 0; i < 240; i++)
-		painter.draw_vline({ (Coord)i, 11 * 16 }, 8, amplitude_colors[amplitude_buffer[i] >> 3]);
-	
-	// Window
-	uint64_t w_start = (position * 240) / wav_reader->sample_count();
-	uint64_t w_width = (scale * 240) / (wav_reader->sample_count() / 240);
-	painter.fill_rectangle({ 0, 10 * 16 + 1, 240, 16 }, Color::black());
-	painter.fill_rectangle({ (Coord)w_start, 21 * 8, (Dim)w_width + 1, 8 }, Color::white());
-	display.draw_line({ 0, 10 * 16 + 1 }, { (Coord)w_start, 21 * 8 }, Color::white());
-	display.draw_line({ 239, 10 * 16 + 1 }, { (Coord)(w_start + w_width), 21 * 8 }, Color::white());
-	
-	// Cursors
-	painter.fill_rectangle({ 0, 6 * 16 - 8, 240, 7 }, Color::black());
-	painter.draw_vline({ (Coord)field_cursor_a.value(), 11 * 8 }, 7, Color::cyan());
-	painter.draw_vline({ (Coord)field_cursor_b.value(), 11 * 8 }, 7, Color::magenta());
+		painter.draw_vline({ (Coord)i, 11 * 16 }, 8, spectrum_rgb2_lut[amplitude_buffer[i] << 1]);
 }
 
 void ViewWavView::on_pos_changed() {
@@ -101,7 +93,7 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
 	
 	text_filename.set(file_path.filename().string());
 	auto ms_duration = wav_reader->ms_duration();
-	text_duration.set(to_string_dec_uint(ms_duration / 1000) + "s" + to_string_dec_uint(ms_duration % 1000) + "ms");
+	text_duration.set(unit_auto_scale(ms_duration, 2, 3) + "s");
 	
 	wav_reader->rewind();
 	
@@ -117,13 +109,7 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
 		for (size_t s = 0; s < subsampling_factor; s++) {
 			wav_reader->data_seek(((i * subsampling_factor) + s) * skip);
 			wav_reader->read(&sample, 2);
-			
-			if (sample < 0)
-				sample = -sample;
-			
-			sample >>= 8;
-			
-			average += sample;
+			average += (abs(sample) >> 8);
 		}
 		
 		amplitude_buffer[i] = average / subsampling_factor;
@@ -135,18 +121,10 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
 
 void ViewWavView::reset_controls() {
 	field_scale.set_value(1);
-	field_scale.on_change = [this](int32_t value) {
-		update_scale(value);
-	};
-	
 	field_pos_seconds.set_value(0);
-	field_pos_seconds.on_change = [this](int32_t) {
-		on_pos_changed();
-	};
 	field_pos_samples.set_value(0);
-	field_pos_samples.on_change = [this](int32_t) {
-		on_pos_changed();
-	};
+	field_cursor_a.set_value(0);
+	field_cursor_b.set_value(0);
 }
 	
 ViewWavView::ViewWavView(
@@ -175,19 +153,30 @@ ViewWavView::ViewWavView(
 		auto open_view = nav.push<FileLoadView>();
 		open_view->on_changed = [this](std::filesystem::path file_path) {
 			load_wav(file_path);
+			field_pos_seconds.focus();
 		};
 	};
 	
-	reset_controls();
+	field_scale.on_change = [this](int32_t value) {
+		update_scale(value);
+	};
+	field_pos_seconds.on_change = [this](int32_t) {
+		on_pos_changed();
+	};
+	field_pos_samples.on_change = [this](int32_t) {
+		on_pos_changed();
+	};
 	
-	field_cursor_a.set_value(0);
-	field_cursor_a.on_change = [this](int32_t) {
-		refresh_waveform();
+	field_cursor_a.on_change = [this](int32_t v) {
+		waveform.set_cursor(0, v);
+		refresh_measurements();
 	};
-	field_cursor_b.set_value(0);
-	field_cursor_b.on_change = [this](int32_t) {
-		refresh_waveform();
+	field_cursor_b.on_change = [this](int32_t v) {
+		waveform.set_cursor(1, v);
+		refresh_measurements();
 	};
+	
+	reset_controls();
 }
 
 void ViewWavView::focus() {
