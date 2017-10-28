@@ -34,7 +34,6 @@
 
 //TODO: Cap Wav viewer position
 //TODO: Adapt wav viewer position step
-//TODO: Optimize wav viewer refresh
 //TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
 //TODO: Continue work on proc_afskrx_corr, see python script (it works !)
 //TODO: Super simple text file viewer
