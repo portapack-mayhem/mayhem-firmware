@@ -598,7 +598,7 @@ private:
 class Waveform : public Widget {
 public:
 
-	Waveform(Rect parent_rect, int8_t * data, uint32_t length, uint32_t offset, bool digital, Color color);
+	Waveform(Rect parent_rect, int16_t * data, uint32_t length, uint32_t offset, bool digital, Color color);
 
 	Waveform(const Waveform&) = delete;
 	Waveform(Waveform&&) = delete;
@@ -607,15 +607,20 @@ public:
 
 	void set_offset(const uint32_t new_offset);
 	void set_length(const uint32_t new_length);
+	void set_cursor(const uint32_t i, const int16_t position);
 
 	void paint(Painter& painter) override;
 
 private:
-	int8_t * data_;
+	const Color cursor_colors[2] = { Color::cyan(), Color::magenta() };
+	
+	int16_t * data_;
 	uint32_t length_;
 	uint32_t offset_;
 	bool digital_ { false };
 	Color color_;
+	int16_t cursors[2] { };
+	bool show_cursors { false };
 };
 
 class VuMeter : public Widget {
