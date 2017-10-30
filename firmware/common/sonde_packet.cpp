@@ -62,7 +62,7 @@ std::string Packet::signature() const {
 	
 	if (header == 0x649F20)
 		return "M10";
-	else if (header == 0x648F20)
+	else if ((header == 0x648F20) || (header == 0x648F23))
 		return "M2K2";
 	else
 		return "0x" + symbols_formatted().data.substr(0, 6);

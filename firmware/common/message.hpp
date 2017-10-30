@@ -97,6 +97,7 @@ public:
 		POCSAGPacket = 50,
 		ADSBFrame = 51,
 		AFSKData = 52,
+		TestAppPacket = 53,
 		
 		RequestSignal = 60,
 		FIFOData = 61,
@@ -386,6 +387,18 @@ public:
 	}
 
 	sonde::Packet::Type type;
+
+	baseband::Packet packet;
+};
+
+class TestAppPacketMessage : public Message {
+public:
+	constexpr TestAppPacketMessage(
+		const baseband::Packet& packet
+	) : Message { ID::TestAppPacket },
+		packet { packet }
+	{
+	}
 
 	baseband::Packet packet;
 };
