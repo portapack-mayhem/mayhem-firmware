@@ -209,6 +209,7 @@ set(CPPSRC
 	ui_spectrum.cpp
 	ui_sstvtx.cpp
 	ui_tabview.cpp
+	ui_test.cpp
 	ui_textentry.cpp
 	ui_touch_calibration.cpp
 	ui_touchtunes.cpp
@@ -229,6 +230,7 @@ set(CPPSRC
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/sonde_packet.cpp
+	${COMMON}/test_packet.cpp
 	ais_app.cpp
 	tpms_app.cpp
 	pocsag_app.cpp

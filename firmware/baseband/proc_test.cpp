@@ -20,18 +20,18 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_sonde.hpp"
+#include "proc_test.hpp"
 
 #include "dsp_fir_taps.hpp"
 
 #include "event_m4.hpp"
 
-SondeProcessor::SondeProcessor() {
+TestProcessor::TestProcessor() {
 	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 }
 
-void SondeProcessor::execute(const buffer_c8_t& buffer) {
+void TestProcessor::execute(const buffer_c8_t& buffer) {
 	/* 2.4576MHz, 2048 samples */
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
@@ -43,13 +43,13 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 
 	for(size_t i=0; i<decimator_out.count; i++) {
 		if( mf.execute_once(decimator_out.p[i]) ) {
-			clock_recovery_fsk_4800(mf.get_output());
+			clock_recovery_fsk_9600(mf.get_output());
 		}
 	}
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<SondeProcessor>() };
+	EventDispatcher event_dispatcher { std::make_unique<TestProcessor>() };
 	event_dispatcher.run();
 	return 0;
 }

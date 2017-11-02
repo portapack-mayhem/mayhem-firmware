@@ -20,61 +20,43 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_SONDE_H__
-#define __UI_SONDE_H__
+#ifndef __UI_TEST_H__
+#define __UI_TEST_H__
 
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-#include "ui_geomap.hpp"
 
 #include "event_m0.hpp"
 
-#include "log_file.hpp"
-
-#include "sonde_packet.hpp"
+#include "test_packet.hpp"
 
 #include <cstddef>
 #include <string>
 
-class SondeLogger {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return log_file.append(filename);
-	}
-	
-	void on_packet(const sonde::Packet& packet);
-
-private:
-	LogFile log_file { };
-};
-
 namespace ui {
 
-class SondeView : public View {
+class TestView : public View {
 public:
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
-	SondeView(NavigationView& nav);
-	~SondeView();
+	TestView(NavigationView& nav);
+	~TestView();
 
 	void focus() override;
 
-	std::string title() const override { return "Radiosonde RX"; };
+	std::string title() const override { return "Test app"; };
 
 private:
-	std::unique_ptr<SondeLogger> logger { };
-	uint32_t target_frequency_ { 402000000 };
-	bool logging { false };
-	int32_t altitude { 0 };
-	float latitude { 0 };
-	float longitude { 0 };
+	uint32_t target_frequency_ { 439255000 };
+	Coord cur_x { 0 };
+	uint32_t packet_count { 0 };
+	uint32_t packets_lost { 0 };
+	uint32_t prev_v { 0 };
 	
 	Labels labels {
-		{ { 0 * 8, 2 * 16 }, "Signature:", Color::light_grey() },
-		{ { 3 * 8, 3 * 16 }, "Serial:", Color::light_grey() },
-		{ { 4 * 8, 4 * 16 }, "Vbatt:", Color::light_grey() }
+		{ { 0 * 8, 1 * 16 }, "Data:", Color::light_grey() }
 	};
 
 	FrequencyField field_frequency {
@@ -96,49 +78,29 @@ private:
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
 	
-	Checkbox check_log {
-		{ 22 * 8, 2 * 16 + 12 },
-		3,
-		"Log"
-	};
-	
-	Text text_signature {
-		{ 10 * 8, 2 * 16, 10 * 8, 16 },
+	Text text_debug_a {
+		{ 0 * 8, 2 * 16, 30 * 8, 16 },
 		"..."
 	};
-	Text text_serial {
-		{ 10 * 8, 3 * 16, 11 * 8, 16 },
+	Text text_debug_b {
+		{ 0 * 8, 3 * 16, 30 * 8, 16 },
 		"..."
-	};
-	Text text_voltage {
-		{ 10 * 8, 4 * 16, 10 * 8, 16 },
-		"..."
-	};
-	
-	GeoPos geopos {
-		{ 0, 6 * 16 },
-		GeoPos::alt_unit::METERS
-	};
-	
-	Button button_see_map {
-		{ 8 * 8, 10 * 16, 14 * 8, 3 * 16 },
-		"See on map"
 	};
 
 	MessageHandlerRegistration message_handler_packet {
-		Message::ID::SondePacket,
+		Message::ID::TestAppPacket,
 		[this](Message* const p) {
-			const auto message = static_cast<const SondePacketMessage*>(p);
-			const sonde::Packet packet { message->packet, message->type };
+			const auto message = static_cast<const TestAppPacketMessage*>(p);
+			const testapp::Packet packet { message->packet };
 			this->on_packet(packet);
 		}
 	};
 
-	void on_packet(const sonde::Packet& packet);
+	void on_packet(const testapp::Packet& packet);
 	void set_target_frequency(const uint32_t new_value);
 	uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */
 
-#endif/*__UI_SONDE_H__*/
+#endif/*__UI_TEST_H__*/

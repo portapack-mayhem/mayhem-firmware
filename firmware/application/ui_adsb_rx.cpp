@@ -161,6 +161,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		geomap_view = nav.push<GeoMapView>(
 			entry_copy.callsign,
 			entry_copy.pos.altitude,
+			GeoPos::alt_unit::FEET,
 			entry_copy.pos.latitude,
 			entry_copy.pos.longitude,
 			0,

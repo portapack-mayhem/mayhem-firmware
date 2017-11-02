@@ -59,7 +59,24 @@ Continuous (Fox-oring)
 60s transmit, 240s space (Classic 1/5 min) 
 60s transmit, 360s space (Classic 1/7 min) 
 */
+<<<<<<< ./firmware/application/main_LOCAL_5232.cpp
+||||||| ./firmware/application/main_BASE_5232.cpp
+//TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
+=======
+//TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
+//TODO: Use TransmitterView in TEDI/LCR, Numbers, ...
+>>>>>>> ./firmware/application/main_REMOTE_5232.cpp
 //TODO: FreqMan: Remove and rename categories
+<<<<<<< ./firmware/application/main_LOCAL_5232.cpp
+||||||| ./firmware/application/main_BASE_5232.cpp
+//TODO: Wav visualizer
+//TODO: File browser view ?
+=======
+//TODO: Wav visualizer
+//TODO: File browser view ?
+//TODO: Wav visualizer
+//TODO: File browser view ?
+>>>>>>> ./firmware/application/main_REMOTE_5232.cpp
 //TODO: Mousejack ?
 //TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
 //TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback

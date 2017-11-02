@@ -55,7 +55,8 @@ public:
 
 private:
 	GeoPos geopos {
-		{ 0, 2 * 16 }
+		{ 0, 2 * 16 },
+		GeoPos::FEET
 	};
 	
 	Button button_set_map {

@@ -58,6 +58,7 @@
 #include "ui_sonde.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
+#include "ui_test.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
@@ -297,7 +298,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "LoRa", 					ui::Color::grey(),	nullptr,			[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Radiosondes", 			ui::Color::red(),	&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
+		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
 	});
@@ -335,6 +336,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	add_items({
+		{ "Test app", 				ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<TestView>(); } },
 		{ "Frequency manager", 		ui::Color::green(), 	&bitmap_icon_freqman,	[&nav](){ nav.push<FrequencyManagerView>(); } },
 		{ "File manager", 			ui::Color::yellow(),	&bitmap_icon_file,		[&nav](){ nav.push<FileManagerView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },

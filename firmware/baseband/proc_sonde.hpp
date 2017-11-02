@@ -28,8 +28,8 @@
  * Since the applied shift in ui_sonde.cpp is -fs/4 = -2457600/4 = -614400Hz to avoid the DC spike, the FSK signal ends up being
  * shifted by 614400 / 8 / 8 = 9600Hz. So decim_1_out should look like this:
  * 
- *   _______________|__/'\__________
- * -C               A   B           C
+ *   _______________|______/'\______
+ * -C               A       B       C
  * 
  * A is the DC spike at 0Hz
  * B is the FSK signal shifted right at 9600Hz
@@ -40,7 +40,7 @@
  *   ______________/'\______________
  * -C               D               C
  * 
- * A should have been filtered off ?
+ * Anything unwanted (like A) should have been filtered off
  * D is B around 0Hz now
  * 
  * Then the clock_recovery function should be happy :)
@@ -113,18 +113,17 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
-	// AIS: 19200, 9600
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
-		19200, 4800, { 0.0555f },
+		19200, 9600, { 0.0555f },
 		[this](const float raw_symbol) {
 			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 			this->packet_builder_fsk_4800_M10.execute(sliced_symbol);
 		}
 	};
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_M10 {
-		{ 0b11001100110011001010011001001100, 32, 1 },
+		{ 0b00110011001100110101100110110011, 32, 1 },
 		{ },
-		{ 50 },	// { 102 * 8 },
+		{ 88 * 2 * 8 },
 		[this](const baseband::Packet& packet) {
 			const SondePacketMessage message { sonde::Packet::Type::M10, packet };
 			shared_memory.application_queue.push(message);

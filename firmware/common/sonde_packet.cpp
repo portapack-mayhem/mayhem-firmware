@@ -21,8 +21,7 @@
  */
 
 #include "sonde_packet.hpp"
-
-//#include "crc.hpp"
+#include "string_format.hpp"
 
 namespace sonde {
 
@@ -42,15 +41,49 @@ Packet::Type Packet::type() const {
 	return type_;
 }
 
-SN Packet::serial_number() const {
+uint32_t Packet::GPS_altitude() const {
+	return (reader_.read(22 * 8, 32) / 1000) - 48;
+}
+
+float Packet::GPS_latitude() const {
+	return reader_.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
+}
+
+float Packet::GPS_longitude() const {
+	return reader_.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
+}
+
+uint32_t Packet::battery_voltage() const {
+	return (reader_.read(69 * 8, 8) + (reader_.read(70 * 8, 8) << 8)) * 1000 / 150;
+}
+
+std::string Packet::signature() const {
+	const auto header = reader_.read(0, 24);
+	
+	if (header == 0x649F20)
+		return "M10";
+	else if ((header == 0x648F20) || (header == 0x648F23))
+		return "M2K2";
+	else
+		return "0x" + symbols_formatted().data.substr(0, 6);
+}
+
+std::string Packet::serial_number() const {
 	if (type() == Type::M10) {
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606
-		return (reader_.read(2 * 8, 8) << 20) |
-			(reader_.read(0, 4) << 16) |
-			(reader_.read(4 * 8, 3) << 13) |
-			(reader_.read(4 * 8 + 3, 5) << 8) |
-			reader_.read(3 * 8, 8);
+		// Starting at byte #93: 00000000 11111111 22222222 33333333 44444444
+		//                           CCCC          AAAABBBB
+		//                                                  44444444 33333333
+		//                                                  DDDEEEEE EEEEEEEE
+		
+		return to_string_hex(reader_.read(93 * 8 + 16, 4), 1) +
+			to_string_dec_uint(reader_.read(93 * 8 + 20, 4), 2, '0') + " " +
+			to_string_hex(reader_.read(93 * 8 + 4, 4), 1) + " " +
+			to_string_dec_uint(reader_.read(93 * 8 + 24, 3), 1) +
+			to_string_dec_uint(reader_.read(93 * 8 + 27, 13), 4, '0');
+	
 	}
+	
 	return 0;
 }
 

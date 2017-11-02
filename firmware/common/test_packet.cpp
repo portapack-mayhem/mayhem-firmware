@@ -20,36 +20,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_sonde.hpp"
+#include "test_packet.hpp"
+#include "string_format.hpp"
 
-#include "dsp_fir_taps.hpp"
+namespace testapp {
 
-#include "event_m4.hpp"
-
-SondeProcessor::SondeProcessor() {
-	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
-	decim_1.configure(taps_11k0_decim_1.taps, 131072);
+size_t Packet::length() const {
+	return decoder_.symbols_count();
 }
 
-void SondeProcessor::execute(const buffer_c8_t& buffer) {
-	/* 2.4576MHz, 2048 samples */
-
-	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-	const auto decimator_out = decim_1_out;
-
-	/* 38.4kHz, 32 samples */
-	feed_channel_stats(decimator_out);
-
-	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
-			clock_recovery_fsk_4800(mf.get_output());
-		}
-	}
+bool Packet::is_valid() const {
+	return true;
 }
 
-int main() {
-	EventDispatcher event_dispatcher { std::make_unique<SondeProcessor>() };
-	event_dispatcher.run();
-	return 0;
+Timestamp Packet::received_at() const {
+	return packet_.timestamp();
 }
+
+FormattedSymbols Packet::symbols_formatted() const {
+	return format_symbols(decoder_);
+}
+
+uint32_t Packet::value() const {
+	return reader_.read(3 * 8, 8);
+}
+
+uint32_t Packet::alt() const {
+	return reader_.read(1 * 8, 12) - 0xC00;
+}
+
+} /* namespace testapp */
