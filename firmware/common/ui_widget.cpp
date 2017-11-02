@@ -1465,7 +1465,7 @@ int32_t SymField::clip_value(const uint32_t index, const uint32_t value) {
 
 Waveform::Waveform(
 	Rect parent_rect,
-	int8_t * data,
+	int16_t * data,
 	uint32_t length,
 	uint32_t offset,
 	bool digital,
@@ -1478,6 +1478,16 @@ Waveform::Waveform(
 	color_ { color }
 {
 	//set_focusable(false);
+}
+
+void Waveform::set_cursor(const uint32_t i, const int16_t position) {
+	if (i < 2) {
+		if (position != cursors[i]) {
+			cursors[i] = position;
+			set_dirty();
+		}
+		show_cursors = true;
+	}
 }
 
 void Waveform::set_offset(const uint32_t new_offset) {
@@ -1495,28 +1505,26 @@ void Waveform::set_length(const uint32_t new_length) {
 }
 
 void Waveform::paint(Painter& painter) {
-	uint32_t n, point_count;
+	size_t n;
 	Coord y, y_offset = screen_rect().location().y();
 	Coord prev_x = screen_rect().location().x(), prev_y;
 	float x, x_inc;
 	Dim h = screen_rect().size().height();
-	int8_t * data_start = data_ + offset_;
+	const float y_scale = (float)(h - 1) / 65536.0;
+	int16_t * data_start = data_ + offset_;
 	
 	// Clear
 	painter.fill_rectangle(screen_rect(), Color::black());
 	
+	if (!length_) return;
+	
 	x_inc = (float)screen_rect().size().width() / length_;
-	point_count = length_;
-	const float y_scale = (float)(h - 1) / 256;		// TODO: Make variable
-	
-	if (!point_count) return;
-	
 	
 	if (digital_) {
 		// Digital waveform: each value is an horizontal line
 		x = 0;
 		h--;
-		for (n = 0; n < point_count; n++) {
+		for (n = 0; n < length_; n++) {
 			y = *(data_start++) ? h : 0;
 			
 			if (n) {
@@ -1532,15 +1540,26 @@ void Waveform::paint(Painter& painter) {
 	} else {
 		// Analog waveform: each value is a point's Y coordinate
 		x = prev_x + x_inc;
-		h = h / 2;
+		h /= 2;
 		prev_y = y_offset + h - (*(data_start++) * y_scale);
-		for (n = 1; n < point_count; n++) {
+		for (n = 1; n < length_; n++) {
 			y = y_offset + h - (*(data_start++) * y_scale);
 			display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, color_);
 			
 			prev_x = x;
 			prev_y = y;
 			x += x_inc;
+		}
+	}
+	
+	// Cursors
+	if (show_cursors) {
+		for (n = 0; n < 2; n++) {
+			painter.draw_vline(
+				Point(std::min(screen_rect().size().width(), (int)cursors[n]), y_offset),
+				screen_rect().size().height(),
+				cursor_colors[n]
+				);
 		}
 	}
 }

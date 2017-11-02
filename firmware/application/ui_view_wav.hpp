@@ -23,6 +23,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "io_wave.hpp"
+#include "spectrum_color_lut.hpp"
 
 namespace ui {
 
@@ -41,32 +42,14 @@ private:
 	
 	void update_scale(int32_t new_scale);
 	void refresh_waveform();
+	void refresh_measurements();
 	void on_pos_changed();
 	void load_wav(std::filesystem::path file_path);
 	void reset_controls();
-	
-	const Color amplitude_colors[16] = {
-		{ 0x00, 0x3F, 0xB0 },
-		{ 0x00, 0x6D, 0xB5 },
-		{ 0x00, 0x9C, 0xBA },
-		{ 0x00, 0xBF, 0xB0 },
-		{ 0x00, 0xC5, 0x86 },
-		{ 0x00, 0xCA, 0x5A },
-		{ 0x00, 0xCF, 0x2A },
-		{ 0x06, 0xD4, 0x00 },
-		{ 0x3A, 0xDA, 0x00 },
-		{ 0x71, 0xDF, 0x00 },
-		{ 0xAA, 0xE4, 0x00 },
-		{ 0xE6, 0xE9, 0x00 },
-		{ 0xEF, 0xB9, 0x00 },
-		{ 0xF4, 0x83, 0x00 },
-		{ 0xF9, 0x4B, 0x00 },
-		{ 0xFF, 0x0F, 0x00 }
-	};
 
 	std::unique_ptr<WAVFileReader> wav_reader { };
 	
-	int8_t waveform_buffer[240] { };
+	int16_t waveform_buffer[240] { };
 	uint8_t amplitude_buffer[240] { };
 	int32_t scale { 1 };
 	uint64_t ns_per_pixel { };

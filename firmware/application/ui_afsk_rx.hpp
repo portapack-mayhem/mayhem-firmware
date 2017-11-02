@@ -26,6 +26,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_record_view.hpp"	// DEBUG
 
 #include "log_file.hpp"
 #include "utility.hpp"
@@ -91,8 +92,14 @@ private:
 		"Modem setup"
 	};
 	
+	// DEBUG
+	RecordView record_view {
+		{ 0 * 8, 3 * 16, 30 * 8, 1 * 16 },
+		u"AFS_????", RecordView::FileType::WAV, 4096, 4
+	};
+	
 	Console console {
-		{ 0, 3 * 16, 240, 240 }
+		{ 0, 4 * 16, 240, 240 }
 	};
 
 	void update_freq(rf::Frequency f);
