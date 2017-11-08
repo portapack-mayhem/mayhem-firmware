@@ -70,13 +70,18 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, target_color, style.background);
 }
 
+void ADSBLogger::log_str(std::string& logline) {
+	rtc::RTC datetime;
+	rtcGetTime(&RTCD1, &datetime);
+	log_file.write_entry(datetime,logline);
+}
+
 void ADSBRxDetailsView::focus() {
 	button_see_map.focus();
 }
 
 void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	entry_copy = entry;
-	
 	uint32_t age = entry_copy.age;
 	
 	if (age < 60)
@@ -120,9 +125,9 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_frame_pos_odd,
 		&button_see_map
 	});
-	
+	std::unique_ptr<ADSBLogger> logger { };
 	update(entry_copy);
-	
+
 	// The following won't (shouldn't !) change for a given airborne aircraft
 	// Try getting the airline's name from airlines.db
 	auto result = db_file.open("ADSB/airlines.db");
@@ -187,28 +192,30 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	std::string str_timestamp;
 	std::string callsign;
 	std::string str_info;
-	
+	std::string logentry;
+
 	auto frame = message->frame;
 	uint32_t ICAO_address = frame.get_ICAO_address();
 	
 	if (frame.check_CRC() && frame.get_ICAO_address()) {
 		rtcGetTime(&RTCD1, &datetime);
 		auto& entry = ::on_packet(recent, ICAO_address);
-		
 		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 		entry.reset_age();
 		str_timestamp = to_string_datetime(datetime, HMS);
 		entry.set_time_string(str_timestamp);
-		
+
 		entry.inc_hit();
-		
-		if (frame.get_DF() == DF_ADSB) {
+		logentry+=to_string_hex_array(frame.get_raw_data(), 14)+" ";
+		logentry+="ICAO:"+to_string_hex(ICAO_address, 6) +" ";
+	if (frame.get_DF() == DF_ADSB) {
 			uint8_t msg_type = frame.get_msg_type();
 			uint8_t * raw_data = frame.get_raw_data();
 			
 			if ((msg_type >= 1) && (msg_type <= 4)) {
 				callsign = decode_frame_id(frame);
 				entry.set_callsign(callsign);
+				logentry+=callsign+" ";
 			} else if ((msg_type >= 9) && (msg_type <= 18)) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
@@ -220,14 +227,22 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 						"." + to_string_dec_int((int)(entry.pos.longitude * 1000) % 100);
 					
 					entry.set_info_string(str_info);
-					
+					logentry+=str_info+ " ";
+
 					if (send_updates)
 						details_view->update(entry);
 				}
 			}
 		}
-		
-		recent_entries_view.set_dirty();
+		recent_entries_view.set_dirty(); 
+		logger = std::make_unique<ADSBLogger>();
+        if( logger ) {
+                logger->append(u"adsb.txt");
+                // will log each frame in format:
+                // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
+				logger->log_str(logentry);
+        }
+
 	}
 }
 
@@ -243,7 +258,6 @@ void ADSBRxView::on_tick_second() {
 
 ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
-
 	add_children({
 		&labels,
 		&rssi,

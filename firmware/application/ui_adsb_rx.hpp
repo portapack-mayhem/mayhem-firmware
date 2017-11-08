@@ -26,9 +26,10 @@
 #include "ui_geomap.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "recent_entries.hpp"
-
+#include "log_file.hpp"
 #include "adsb.hpp"
 #include "message.hpp"
+
 
 using namespace adsb;
 
@@ -99,6 +100,18 @@ struct AircraftRecentEntry {
 };
 
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
+
+class ADSBLogger {
+public:
+	Optional<File::Error> append(const std::filesystem::path& filename) {
+		return log_file.append(filename);
+	}
+	void log_str(std::string& logline);
+
+private:
+	LogFile log_file { };
+};
+
 
 class ADSBRxDetailsView : public View {
 public:
@@ -186,6 +199,7 @@ public:
 	std::string title() const override { return "ADS-B receive"; };
 
 private:
+	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
 	
