@@ -28,6 +28,16 @@ using namespace portapack;
 
 #include "string_format.hpp"
 
+void TestLogger::log_raw_data(const testapp::Packet& packet, const int32_t alt) {
+	std::string entry = to_string_dec_uint(packet.value()) + " " + to_string_dec_int(alt);
+	
+	// Raw hex dump
+	//for (size_t c = 0; c < 10; c++)
+	//	entry += to_string_hex(packet[c], 8) + " ";
+	
+	log_file.write_entry(packet.received_at(), entry);
+}
+
 namespace ui {
 
 TestView::TestView(NavigationView& nav) {
@@ -41,7 +51,9 @@ TestView::TestView(NavigationView& nav) {
 		&field_vga,
 		&rssi,
 		&text_debug_a,
-		&text_debug_b
+		&text_debug_b,
+		&button_cal,
+		&check_log
 	});
 
 	field_frequency.set_value(target_frequency_);
@@ -58,6 +70,19 @@ TestView::TestView(NavigationView& nav) {
 			field_frequency.set_value(f);
 		};
 	};
+	
+	check_log.on_select = [this](Checkbox&, bool v) {
+		logging = v;
+	};
+	
+	button_cal.on_select = [this](Button&) {
+		cal_value = raw_alt - 0x80;
+	};
+	
+
+	logger = std::make_unique<TestLogger>();
+	if (logger)
+		logger->append("saucepan.txt");
 	
 	radio::enable({
 		tuning_frequency(),
@@ -85,7 +110,7 @@ void TestView::on_packet(const testapp::Packet& packet) {
 	
 	packet_count++;
 	uint32_t diff = ((v - 1) - prev_v);
-	if (diff < 20)
+	if (diff < 50)
 		packets_lost += diff;
 	prev_v = v;
 	
@@ -93,13 +118,17 @@ void TestView::on_packet(const testapp::Packet& packet) {
 	
 	text_debug_b.set(to_string_dec_uint((packets_lost * 1000) / packet_count) + " per 1000");
 	
-	display.draw_pixel(Point(cur_x, 4 * 16 + (256 - packet.alt())), Color::white());
+	raw_alt = packet.alt();
+	display.draw_pixel(Point(cur_x, 4 * 16 + (256 - ((raw_alt - cal_value) / 4))), Color::white());
 	
 	cur_x++;
 	if (cur_x >= 240) {
-		display.fill_rectangle(Rect(0, 4 * 16, 240, 256), Color::black());
+		display.fill_rectangle(Rect(0, 5 * 16, 240, 256), Color::black());
 		cur_x = 0;
 	}
+	
+	if (logger && logging)
+		logger->log_raw_data(packet, raw_alt - cal_value);
 	
 	//radio::disable();
 	

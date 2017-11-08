@@ -204,10 +204,10 @@ SoundBoardView::SoundBoardView(
 				sounds[c].size = reader->data_size();
 				sounds[c].sample_duration = reader->data_size(); // / (reader->bits_per_sample() / 8);
 				sounds[c].sample_rate = reader->sample_rate();
-				/*if (reader->bits_per_sample() > 8)
-					sounds[c].sixteenbit = true;
-				else
-					sounds[c].sixteenbit = false;*/
+				//if (reader->bits_per_sample() > 8)
+				//	sounds[c].sixteenbit = true;
+				//else
+				//	sounds[c].sixteenbit = false;
 				sounds[c].ms_duration = reader->ms_duration();
 				sounds[c].path = u"WAV/" + path.native();
 				title = reader->title().substr(0, 20);

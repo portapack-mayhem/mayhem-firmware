@@ -30,15 +30,28 @@
 #include "event_m0.hpp"
 
 #include "test_packet.hpp"
+#include "log_file.hpp"
 
 #include <cstddef>
 #include <string>
+
+class TestLogger {
+public:
+	Optional<File::Error> append(const std::string& filename) {
+		return log_file.append(filename);
+	}
+	
+	void log_raw_data(const testapp::Packet& packet, const int32_t alt);
+
+private:
+	LogFile log_file { };
+};
 
 namespace ui {
 
 class TestView : public View {
 public:
-	static constexpr uint32_t sampling_rate = 2457600;
+	static constexpr uint32_t sampling_rate = 2457600*2;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	TestView(NavigationView& nav);
@@ -49,11 +62,14 @@ public:
 	std::string title() const override { return "Test app"; };
 
 private:
-	uint32_t target_frequency_ { 439255000 };
+	uint32_t target_frequency_ { 439206000 };
 	Coord cur_x { 0 };
 	uint32_t packet_count { 0 };
 	uint32_t packets_lost { 0 };
 	uint32_t prev_v { 0 };
+	uint32_t raw_alt { 0 };
+	uint32_t cal_value { 0 };
+	bool logging { false };
 	
 	Labels labels {
 		{ { 0 * 8, 1 * 16 }, "Data:", Color::light_grey() }
@@ -79,13 +95,25 @@ private:
 	};
 	
 	Text text_debug_a {
-		{ 0 * 8, 2 * 16, 30 * 8, 16 },
+		{ 0 * 8, 4 * 16, 30 * 8, 16 },
 		"..."
 	};
 	Text text_debug_b {
-		{ 0 * 8, 3 * 16, 30 * 8, 16 },
+		{ 0 * 8, 5 * 16, 30 * 8, 16 },
 		"..."
 	};
+	
+	Button button_cal {
+		{ 17 * 8, 2 * 16, 5 * 8, 2 * 16 },
+		"CAL"
+	};
+	Checkbox check_log {
+		{ 23 * 8, 2 * 16 },
+		3,
+		"LOG"
+	};
+	
+	std::unique_ptr<TestLogger> logger { };
 
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::TestAppPacket,

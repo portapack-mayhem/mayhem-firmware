@@ -42,11 +42,11 @@ FormattedSymbols Packet::symbols_formatted() const {
 }
 
 uint32_t Packet::value() const {
-	return reader_.read(3 * 8, 8);
+	return (reader_.read(10 * 8, 6) << 8) | reader_.read(9 * 8, 8);
 }
 
 uint32_t Packet::alt() const {
-	return reader_.read(1 * 8, 12) - 0xC00;
+	return reader_.read(1 * 8, 12);
 }
 
 } /* namespace testapp */

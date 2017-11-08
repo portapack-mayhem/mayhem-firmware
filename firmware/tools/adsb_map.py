@@ -18,6 +18,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
+from __future__ import print_function
 import sys
 import struct
 from PIL import Image
@@ -38,4 +39,4 @@ for y in range (0, im.size[1]):
 		pixel_lcd |= (pix[x, y][2] >> 3)
 		line += struct.pack('H', pixel_lcd)
 	outfile.write(line)
-	print str(y) + '/' + str(im.size[1]) + '\r',
+	print(str(y) + '/' + str(im.size[1]) + '\r', end="")

@@ -62,6 +62,7 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 			if (pin == TOUCHTUNES_MAX_PIN) {
 				stop_tx();
 			} else {
+				transmitter_model.disable();
 				pin++;
 				field_pin.set_value(pin);
 				start_tx(scan_button_index);
@@ -71,9 +72,9 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 }
 
 void TouchTunesView::start_tx(const uint32_t button_index) {
-	std::string fragments;
+	std::string fragments = { "" };
 	size_t bit;
-	uint64_t frame_data { 0 };
+	uint64_t frame_data;
 	
 	if (check_scan.value()) {
 		scan_button_index = button_index;
