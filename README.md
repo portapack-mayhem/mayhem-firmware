@@ -24,18 +24,19 @@ As its name implies, HAVOC's functionalities can be fun, mean and even useful so
 * Frequency manager (save & load from SD card, with categories and notes)
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
 * ADS-B receiver with map view
-* ADS-B transmitter
+* ADS-B transmitter (aircraft spoof)
 * SSTV transmitter
 * Fully configurable jammer
-* POCSAG 512/1200/2400 transmitter
-* POCSAG 512/1200/2400 receiver/decoder
+* POCSAG transmitter
+* POCSAG receiver/decoder
 * Morse transmitter (FM tone and CW)
 * OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN, RadioText and Time groups transmitter
+* Meteorological radiosonde receiver for M10 and M2K2...
 * AFSK receiver
 * AFSK transmitter (Bell202...)
 * Nuoptix DTMF sync transmitter (quite specific but can be useful in some theme parks :) )
-* Virtual keyboard or Unistroke "handwriting" text input
+* TouchTunes jukebox universal remote (by Notpike)
 * LCR (Language de Commande Routier) message generator
 * Street lighting control transmitter (CCIR tones)
 * "Play Dead" in case of emergency
@@ -53,12 +54,13 @@ ADS-B RX    | 90% | Needs angle and speed decoding
 Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
 ADS-B TX    | 85% | Works but baseband module needs cleaning
 SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
+Radiosondes | 75% | Needs support for other models
+Wave visualizer | 70% | Needs cleaning and handling of other sample formats, high priority
 AFSK RX     | 70% | Needs work regarding flexibility
 IQ replay   | 60% | Buffer glitches ? High priority
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
-Wave visualizer | 30% | Only the widget is ready, high priority
 Generic TXs | 30% | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
-SI4032 TRX  | 0%  | And other sub-GHz transceiver chips
+CC1101 TRX  | 10% | And other sub-GHz transceiver chips like SI4032...
 SSTV RX     | 0%  | 
 Scanner     | 0%  | Easy, could be used with POCSAG RX to catch jumping channels
 SSB TX      | 0%  | Requested but math is hard :(
