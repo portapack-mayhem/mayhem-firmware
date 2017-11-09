@@ -74,7 +74,7 @@ private:
 	bool rogerbeep_enabled { };
 	uint32_t tone_key_index { };
 	bool tone_key_enabled { };
-	uint32_t mic_gain_x10 { };
+	uint32_t mic_gain_x10 { 10 };
 	uint32_t audio_level { 0 };
 	uint32_t va_level { };
 	uint32_t attack_ms { };

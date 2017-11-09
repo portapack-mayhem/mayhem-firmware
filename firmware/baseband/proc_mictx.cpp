@@ -39,7 +39,7 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!play_beep) {
-			sample = audio_buffer.p[i >> 5] >> 8;		// 1536000 / 32 = 48000
+			sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
 			sample = (sample * (int32_t)gain_x10) / 10;
 			
 			power += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter

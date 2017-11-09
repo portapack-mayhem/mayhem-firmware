@@ -129,9 +129,9 @@ MicTXView::MicTXView(
 )
 {
 	pins[P6_2].mode(3);		// Set P6_2 pin function to I2S0_RX_SDA
-	
-	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		
+	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
+	
 	add_children({
 		&labels,
 		&vumeter,
@@ -220,7 +220,7 @@ MicTXView::MicTXView(
 	
 	set_tx(false);
 	
-	audio::set_rate(audio::Rate::Hz_48000);
+	audio::set_rate(audio::Rate::Hz_24000);
 	audio::input::start();
 }
 
