@@ -151,7 +151,7 @@ set(CPPSRC
 	modems.cpp
 	audio.cpp
 	${COMMON}/bch_code.cpp
-	ctcss.cpp
+	tone_key.cpp
 	de_bruijn.cpp
 	encoder.cpp
 	emu_cc1101.cpp

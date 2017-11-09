@@ -1650,8 +1650,8 @@ void VuMeter::paint(Painter& painter) {
 		}
 	}
 	
-	// Draw mark
-	if ((mark != prev_mark) && (mark)) {
+	// Draw mark (forced refresh)
+	if (mark) {
 		painter.draw_hline({ marks_x, bottom - (height * prev_mark) / 256 }, 8, Color::black());
 		painter.draw_hline({ marks_x, bottom - (height * mark) / 256 }, 8, Color::grey());
 		prev_mark = mark;

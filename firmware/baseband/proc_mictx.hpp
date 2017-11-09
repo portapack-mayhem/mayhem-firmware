@@ -34,9 +34,11 @@ public:
 	void on_message(const Message* const msg) override;
 
 private:
+	static constexpr size_t baseband_fs = 1536000U;
+	
 	bool configured { false };
 	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	int16_t audio_data[64];
 	buffer_s16_t audio_buffer {

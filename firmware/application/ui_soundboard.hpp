@@ -29,7 +29,7 @@
 #include "baseband_api.hpp"
 #include "ui_receiver.hpp"
 #include "io_wave.hpp"
-#include "ctcss.hpp"
+#include "tone_key.hpp"
 
 namespace ui {
 
@@ -132,7 +132,7 @@ private:
 		"k CTCSS:"
 	};
 	
-	OptionsField options_ctcss {
+	OptionsField options_tone_key {
 		{ 21 * 8, 4 },
 		8,
 		{ }

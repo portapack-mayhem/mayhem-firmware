@@ -36,10 +36,10 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	
 	audio_input.read_audio_buffer(audio_buffer);
 
-	for (size_t i = 0; i<buffer.count; i++) {
+	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!play_beep) {
-			sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
+			sample = audio_buffer.p[i >> 5] >> 8;		// 1536000 / 32 = 48000
 			sample = (sample * (int32_t)gain_x10) / 10;
 			
 			power += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
@@ -56,10 +56,10 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 			if (beep_timer) {
 				beep_timer--;
 			} else {
-				beep_timer = 76800;			// 50ms @ 1536000Hz
+				beep_timer = 76800;		// 50ms @ 1536000Hz
 				if (beep_index == BEEP_TONES_NB) {
 					configured = false;
-					fm_delta = 0;			// Zero-out the IQ output for the rest of the buffer
+					fm_delta = 0;		// Zero-out the IQ output for the rest of the buffer
 					shared_memory.application_queue.push(txprogress_message);
 				} else {
 					beep_phase_inc = beep_deltas[beep_index];
@@ -102,7 +102,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-			fm_delta = config_message.fm_delta * (0xFFFFFFULL / 1536000);
+			fm_delta = config_message.fm_delta * (0xFFFFFFULL / baseband_fs);
 			gain_x10 = config_message.gain_x10;
 			divider = config_message.divider;
 			ctcss_enabled = config_message.ctcss_enabled;

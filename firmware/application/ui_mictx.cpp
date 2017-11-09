@@ -25,6 +25,7 @@
 #include "baseband_api.hpp"
 #include "hackrf_gpio.hpp"
 #include "audio.hpp"
+#include "tonesets.hpp"
 #include "portapack.hpp"
 #include "pins.hpp"
 #include "string_format.hpp"
@@ -33,7 +34,7 @@
 
 #include <cstring>
 
-using namespace ctcss;
+using namespace tonekey;
 using namespace portapack;
 using namespace hackrf::one;
 
@@ -47,52 +48,38 @@ void MicTXView::update_vumeter() {
 	vumeter.set_value(audio_level);
 }
 
-void MicTXView::on_tx_progress(const uint32_t progress, const bool done) {
-	(void)progress;
-	(void)done;
-	
-	// Roger beep transmitted, stop transmitting
-	set_tx(false);
+void MicTXView::on_tx_progress(const bool done) {
+	// Roger beep played, stop transmitting
+	if (done)
+		set_tx(false);
+}
+
+void MicTXView::configure_baseband() {
+	baseband::set_audiotx_data(
+		sampling_rate / 20,		// Update vu-meter at 20Hz
+		transmitting ? transmitter_model.channel_bandwidth() : 0,
+		mic_gain_x10,
+		transmitting ? tone_key_enabled : false,
+		TONES_F2D(tone_keys[tone_key_index].second)
+	);
 }
 
 void MicTXView::set_tx(bool enable) {
-	uint32_t ctcss_index;
-	bool ctcss_enabled;
-	
 	if (enable) {
-		ctcss_index = options_ctcss.selected_index();
-		
-		if (ctcss_index) {
-			ctcss_enabled = true;
-			ctcss_index--;
-		} else
-			ctcss_enabled = false;
-		
-		baseband::set_audiotx_data(
-			1536000U / 20,		// 20Hz level update
-			transmitter_model.channel_bandwidth(),
-			mic_gain_x10,
-			ctcss_enabled,
-			(uint32_t)((ctcss_tones[ctcss_index].frequency / 1536000.0) * 0xFFFFFFFFULL)
-		);
+		transmitting = true;
+		configure_baseband();
 		gpio_tx.write(1);
 		led_tx.on();
-		transmitting = true;
 	} else {
 		if (transmitting && rogerbeep_enabled) {
 			baseband::request_beep();
+			transmitting = false;
 		} else {
-			baseband::set_audiotx_data(
-				1536000U / 20,		// 20Hz level update
-				0,					// BW 0 = TX off
-				mic_gain_x10,
-				false,				// Ignore CTCSS
-				0
-			);
+			transmitting = false;
+			configure_baseband();
 			gpio_tx.write(0);
 			led_tx.off();
 		}
-		transmitting = false;
 	}
 }
 
@@ -106,7 +93,7 @@ void MicTXView::do_timing() {
 					attack_timer = 0;
 					set_tx(true);
 				} else {
-					attack_timer += ((256 * 1000) / 60);	// 1 frame @ 60fps in ms .8 fixed point
+					attack_timer += lcd_frame_duration;
 				}
 			} else {
 				attack_timer = 0;
@@ -119,16 +106,16 @@ void MicTXView::do_timing() {
 					attack_timer = 0;
 					set_tx(false);
 				} else {
-					decay_timer += ((256 * 1000) / 60);		// 1 frame @ 60fps in ms .8 fixed point
+					decay_timer += lcd_frame_duration;
 				}
 			} else {
 				decay_timer = 0;
 			}
 		}
 	} else {
-		// PTT disable :(
+		// Check for PTT release
 		const auto switches_state = get_switches_state();
-		if (!switches_state[1] && transmitting)		// Left button
+		if (!switches_state[0] && transmitting)		// Right button
 			set_tx(false);
 	}
 }
@@ -155,17 +142,26 @@ MicTXView::MicTXView(
 		&field_va_decay,
 		&field_bw,
 		&field_frequency,
-		&options_ctcss,
+		&options_tone_key,
 		&check_rogerbeep,
-		&text_ptt,
-		&button_exit
+		&text_ptt
 	});
 	
-	ctcss_populate(options_ctcss);
-	options_ctcss.set_selected_index(0);
+	tone_keys_populate(options_tone_key);
+	options_tone_key.on_change = [this](size_t i, int32_t) {
+		tone_key_index = i;
+		
+		if (tone_key_index) {
+			tone_key_enabled = true;
+			tone_key_index--;
+		} else
+			tone_key_enabled = false;
+	};
+	options_tone_key.set_selected_index(0);
 	
 	options_gain.on_change = [this](size_t, int32_t v) {
 		mic_gain_x10 = v;
+		configure_baseband();
 	};
 	options_gain.set_selected_index(1);		// x1.0
 	
@@ -214,21 +210,17 @@ MicTXView::MicTXView(
 	field_va_decay.on_change = [this](int32_t v) {
 		decay_ms = v;
 	};
-	field_va_decay.set_value(2000);
-
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
-	};
+	field_va_decay.set_value(1000);
 	
 	// Run baseband as soon as the app starts to get audio levels without transmitting (rf amp off)
-	transmitter_model.set_sampling_rate(1536000U);
+	transmitter_model.set_sampling_rate(sampling_rate);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
 	set_tx(false);
 	
-	audio::set_rate(audio::Rate::Hz_24000);
+	audio::set_rate(audio::Rate::Hz_48000);
 	audio::input::start();
 }
 
