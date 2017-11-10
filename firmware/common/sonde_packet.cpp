@@ -25,12 +25,31 @@
 
 namespace sonde {
 
+Packet::Packet(
+	const baseband::Packet& packet,
+	const Type type
+) : packet_ { packet },
+	decoder_ { packet_ },
+	reader_bi_m { decoder_ },
+	type_ { type }
+{
+	if (type_ == Type::Meteomodem_unknown) {
+		// Right now we're just sure that the sync is from a Meteomodem sonde, differentiate between models now
+		const uint32_t id_byte = reader_bi_m.read(1 * 8, 16);
+		
+		if (id_byte == 0x649F)
+			type_ = Type::Meteomodem_M10;
+		else if (id_byte == 0x648F)
+			type_ = Type::Meteomodem_M2K2;
+	}
+}
+
 size_t Packet::length() const {
 	return decoder_.symbols_count();
 }
 
 bool Packet::is_valid() const {
-	return true;
+	return true;	// TODO
 }
 
 Timestamp Packet::received_at() const {
@@ -41,50 +60,75 @@ Packet::Type Packet::type() const {
 	return type_;
 }
 
+/*uint8_t Packet::vaisala_descramble(const uint32_t pos) {
+	return reader_raw.read(pos * 8, 8) ^ vaisala_mask[pos & 63];
+};*/
+
 uint32_t Packet::GPS_altitude() const {
-	return (reader_.read(22 * 8, 32) / 1000) - 48;
+	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2))
+		return (reader_bi_m.read(22 * 8, 32) / 1000) - 48;
+	else if (type_ == Type::Vaisala_RS41_SG) {
+		/*uint32_t altitude_ecef = 0;
+		for (uint32_t i = 0; i < 4; i++)
+			altitude_ecef = (altitude_ecef << 8) + vaisala_descramble(0x11C + i);*/
+		// TODO: and a bunch of maths (see ecef2elli() from RS1729)
+		return 0;
+	} else
+		return 0;	// Unknown
 }
 
 float Packet::GPS_latitude() const {
-	return reader_.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
+	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2))
+		return reader_bi_m.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
+	//else if (type_ == Type::Vaisala_RS41_SG)
+	//	return vaisala_descramble();
+	else
+		return 0;	// Unknown
 }
 
 float Packet::GPS_longitude() const {
-	return reader_.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
+	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2))
+		return reader_bi_m.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
+	else
+		return 0;	// Unknown
 }
 
 uint32_t Packet::battery_voltage() const {
-	return (reader_.read(69 * 8, 8) + (reader_.read(70 * 8, 8) << 8)) * 1000 / 150;
+	if (type_ == Type::Meteomodem_M10)
+		return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
+	else if (type_ == Type::Meteomodem_M2K2)
+		return reader_bi_m.read(69 * 8, 8) * 66;	// Actually 65.8
+	else
+		return 0;	// Unknown
 }
 
-std::string Packet::signature() const {
-	const auto header = reader_.read(0, 24);
-	
-	if (header == 0x649F20)
-		return "M10";
-	else if ((header == 0x648F20) || (header == 0x648F23))
-		return "M2K2";
-	else
-		return "0x" + symbols_formatted().data.substr(0, 6);
+std::string Packet::type_string() const {
+	switch (type_) {
+		case Type::Unknown: 				return "Unknown";
+		case Type::Meteomodem_unknown:		return "Meteomodem ???";
+		case Type::Meteomodem_M10:			return "Meteomodem M10";
+		case Type::Meteomodem_M2K2:			return "Meteomodem M2K2";
+		case Type::Vaisala_RS41_SG:			return "Vaisala RS41-SG";
+		default:							return "? 0x" + symbols_formatted().data.substr(0, 6);
+	}
 }
 
 std::string Packet::serial_number() const {
-	if (type() == Type::M10) {
+	if (type() == Type::Meteomodem_M10) {
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606
 		// Starting at byte #93: 00000000 11111111 22222222 33333333 44444444
 		//                           CCCC          AAAABBBB
 		//                                                  44444444 33333333
 		//                                                  DDDEEEEE EEEEEEEE
 		
-		return to_string_hex(reader_.read(93 * 8 + 16, 4), 1) +
-			to_string_dec_uint(reader_.read(93 * 8 + 20, 4), 2, '0') + " " +
-			to_string_hex(reader_.read(93 * 8 + 4, 4), 1) + " " +
-			to_string_dec_uint(reader_.read(93 * 8 + 24, 3), 1) +
-			to_string_dec_uint(reader_.read(93 * 8 + 27, 13), 4, '0');
+		return to_string_hex(reader_bi_m.read(93 * 8 + 16, 4), 1) +
+			to_string_dec_uint(reader_bi_m.read(93 * 8 + 20, 4), 2, '0') + " " +
+			to_string_hex(reader_bi_m.read(93 * 8 + 4, 4), 1) + " " +
+			to_string_dec_uint(reader_bi_m.read(93 * 8 + 24, 3), 1) +
+			to_string_dec_uint(reader_bi_m.read(93 * 8 + 27, 13), 4, '0');
 	
-	}
-	
-	return 0;
+	} else
+		return 0;
 }
 
 FormattedSymbols Packet::symbols_formatted() const {
@@ -93,8 +137,8 @@ FormattedSymbols Packet::symbols_formatted() const {
 
 bool Packet::crc_ok() const {
 	switch(type()) {
-	case Type::M10:	return crc_ok_M10();
-	default:		return false;
+	case Type::Meteomodem_M10:	return crc_ok_M10();
+	default:					return false;
 	}
 }
 

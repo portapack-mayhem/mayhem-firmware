@@ -62,7 +62,7 @@ public:
 	}
 
 private:
-	std::bitset<1408> data { };
+	std::bitset<2560> data { };
 	Timestamp timestamp_ { };
 	size_t count { 0 };
 };

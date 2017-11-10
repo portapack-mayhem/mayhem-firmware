@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2014 zilog80
  *
  * This file is part of PortaPack.
  *
@@ -113,19 +114,37 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
+	// Actually 4800bits/s but the Manchester coding doubles the symbol rate
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_9600 {
 		19200, 9600, { 0.0555f },
 		[this](const float raw_symbol) {
 			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_4800_M10.execute(sliced_symbol);
+			this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
 		}
 	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_M10 {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_9600_Meteomodem {
 		{ 0b00110011001100110101100110110011, 32, 1 },
 		{ },
 		{ 88 * 2 * 8 },
 		[this](const baseband::Packet& packet) {
-			const SondePacketMessage message { sonde::Packet::Type::M10, packet };
+			const SondePacketMessage message { sonde::Packet::Type::Meteomodem_unknown, packet };
+			shared_memory.application_queue.push(message);
+		}
+	};
+	
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
+		19200, 4800, { 0.0555f },
+		[this](const float raw_symbol) {
+			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+			this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
+		}
+	};
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
+		{ 0b00001000011011010101001110001000, 32, 1 },
+		{ },
+		{ 320 * 8 },
+		[this](const baseband::Packet& packet) {
+			const SondePacketMessage message { sonde::Packet::Type::Vaisala_RS41_SG, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};

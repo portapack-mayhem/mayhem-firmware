@@ -112,7 +112,7 @@ void SondeView::focus() {
 void SondeView::on_packet(const sonde::Packet& packet) {
 	//const auto hex_formatted = packet.symbols_formatted();
 	
-	text_signature.set(packet.signature());
+	text_signature.set(packet.type_string());
 	text_serial.set(packet.serial_number());
 	text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
 	

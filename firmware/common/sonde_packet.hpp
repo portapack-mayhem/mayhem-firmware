@@ -36,18 +36,13 @@ class Packet {
 public:
 	enum class Type : uint32_t {
 		Unknown = 0,
-		M10 = 1,
+		Meteomodem_unknown = 1,
+		Meteomodem_M10 = 2,
+		Meteomodem_M2K2 = 3,
+		Vaisala_RS41_SG = 4,
 	};
-
-	Packet(
-		const baseband::Packet& packet,
-		const Type type
-	) : packet_ { packet },
-		decoder_ { packet_ },
-		reader_ { decoder_ },
-		type_ { type }
-	{
-	}
+	
+	Packet(const baseband::Packet& packet, const Type type);
 
 	size_t length() const;
 	
@@ -56,24 +51,37 @@ public:
 	Timestamp received_at() const;
 
 	Type type() const;
+	std::string type_string() const;
+	
 	std::string serial_number() const;
+	uint32_t battery_voltage() const;
+	
 	uint32_t GPS_altitude() const;
 	float GPS_latitude() const;
 	float GPS_longitude() const;
-	std::string signature() const;
-	uint32_t battery_voltage() const;
 
 	FormattedSymbols symbols_formatted() const;
 
 	bool crc_ok() const;
 
 private:
-	using Reader = FieldReader<BiphaseMDecoder, BitRemapNone>;
+	static constexpr uint8_t vaisala_mask[64] = { 
+		0x96, 0x83, 0x3E, 0x51, 0xB1, 0x49, 0x08, 0x98, 
+		0x32, 0x05, 0x59, 0x0E, 0xF9, 0x44, 0xC6, 0x26,
+		0x21, 0x60, 0xC2, 0xEA, 0x79, 0x5D, 0x6D, 0xA1,
+		0x54, 0x69, 0x47, 0x0C, 0xDC, 0xE8, 0x5C, 0xF1,
+		0xF7, 0x76, 0x82, 0x7F, 0x07, 0x99, 0xA2, 0x2C,
+		0x93, 0x7C, 0x30, 0x63, 0xF5, 0x10, 0x2E, 0x61,
+		0xD0, 0xBC, 0xB4, 0xB6, 0x06, 0xAA, 0xF4, 0x23,
+		0x78, 0x6E, 0x3B, 0xAE, 0xBF, 0x7B, 0x4C, 0xC1
+	};
+	
+	//uint8_t vaisala_descramble(const uint32_t pos);
 
 	const baseband::Packet packet_;
 	const BiphaseMDecoder decoder_;
-	const Reader reader_;
-	const Type type_;
+	const FieldReader<BiphaseMDecoder, BitRemapNone> reader_bi_m;
+	Type type_;
 
 	bool crc_ok_M10() const;
 };
