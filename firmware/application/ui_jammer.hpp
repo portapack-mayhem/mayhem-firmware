@@ -231,7 +231,7 @@ private:
 	RangeView view_range_b { nav_ };
 	RangeView view_range_c { nav_ };
 	
-	std::array<RangeView*, 3> range_views { &view_range_a, &view_range_b, &view_range_c };
+	std::array<RangeView*, 3> range_views { { &view_range_a, &view_range_b, &view_range_c } };
 	
 	TabView tab_view {
 		{ "Range 1", Color::white(), range_views[0] },
