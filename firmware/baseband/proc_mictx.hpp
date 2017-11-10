@@ -23,9 +23,10 @@
 #ifndef __PROC_MICTX_H__
 #define __PROC_MICTX_H__
 
-#include "audio_input.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "audio_input.hpp"
+#include "tone_gen.hpp"
 
 class MicTXProcessor : public BasebandProcessor {
 public:
@@ -47,17 +48,17 @@ private:
 	};
 	
 	AudioInput audio_input { };
+	ToneGen tone_gen { };
+	ToneGen beep_gen { };
 	
 	uint32_t divider { }, gain_x10 { };
-	uint32_t as { 0 };
-	uint32_t fm_delta { 0 };
+	uint64_t power_acc { 0 };
+	uint32_t power_acc_count { 0 };
 	bool play_beep { false };
-	bool ctcss_enabled { false };
-	uint32_t ctcss_phase_inc { };
-	uint32_t ctcss_phase { 0 }, phase { 0 }, sphase { 0 };
-	int32_t ctcss_sample { 0 }, sample { 0 }, sample_mixed { }, delta { };
-	uint32_t beep_phase { 0 }, beep_phase_inc { }, beep_index { }, beep_timer { };
-	uint64_t power { 0 };
+	uint32_t fm_delta { 0 };
+	uint32_t phase { 0 }, sphase { 0 };
+	int32_t sample { 0 }, delta { };
+	uint32_t beep_index { }, beep_timer { };
 	
 	int8_t re { 0 }, im { 0 };
 	

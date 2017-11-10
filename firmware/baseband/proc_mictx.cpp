@@ -39,48 +39,43 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!play_beep) {
-			sample = audio_buffer.p[i >> 6] >> 8;		// 1536000 / 64 = 24000
+			sample = audio_buffer.p[i >> 6] >> 8;			// 1536000 / 64 = 24000
 			sample = (sample * (int32_t)gain_x10) / 10;
 			
-			power += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
+			power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
 			
-			if (!as) {
-				as = divider;
-				level_message.value = power / (divider / 4);				// Why ?
-				shared_memory.application_queue.push(level_message);
-				power = 0;
+			if (power_acc_count) {
+				power_acc_count--;
 			} else {
-				as--;
+				power_acc_count = divider;
+				level_message.value = power_acc / (divider / 4);	// Why ?
+				shared_memory.application_queue.push(level_message);
+				power_acc = 0;
 			}
 		} else {
 			if (beep_timer) {
 				beep_timer--;
 			} else {
-				beep_timer = 76800;		// 50ms @ 1536000Hz
+				beep_timer = baseband_fs * 0.05;			// 50ms
+				
 				if (beep_index == BEEP_TONES_NB) {
 					configured = false;
 					fm_delta = 0;		// Zero-out the IQ output for the rest of the buffer
 					shared_memory.application_queue.push(txprogress_message);
 				} else {
-					beep_phase_inc = beep_deltas[beep_index];
+					beep_gen.configure(beep_deltas[beep_index], 1.0);
 					beep_index++;
 				}
 			}
-			sample = sine_table_i8[(beep_phase & 0xFF000000U) >> 24];
-			beep_phase += beep_phase_inc;
+			
+			sample = beep_gen.process(0);
 		}
 		
-		if (ctcss_enabled) {
-			ctcss_sample = sine_table_i8[(ctcss_phase & 0xFF000000U) >> 24];
-			sample_mixed = ((sample * 205) + (ctcss_sample * 50)) / 256;	// ~20%
-			ctcss_phase += ctcss_phase_inc;
-		} else {
-			sample_mixed = sample;
-		}
+		sample = tone_gen.process(sample);
 		
 		// FM
 		if (fm_delta) {
-			delta = sample_mixed * fm_delta;
+			delta = sample * fm_delta;
 			
 			phase += delta;
 			sphase = phase + (64 << 24);
@@ -105,8 +100,9 @@ void MicTXProcessor::on_message(const Message* const msg) {
 			fm_delta = config_message.fm_delta * (0xFFFFFFULL / baseband_fs);
 			gain_x10 = config_message.gain_x10;
 			divider = config_message.divider;
-			ctcss_enabled = config_message.ctcss_enabled;
-			ctcss_phase_inc = config_message.ctcss_phase_inc;
+			power_acc_count = 0;
+			
+			tone_gen.configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
 			
 			txprogress_message.done = true;
 

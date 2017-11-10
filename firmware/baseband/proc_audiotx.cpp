@@ -52,16 +52,10 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 			as--;
 		}
 		
-		if (ctcss_enabled) {
-			ctcss_sample = sine_table_i8[(ctcss_phase & 0xFF000000U) >> 24];
-			sample_mixed = ((sample * 205) + (ctcss_sample * 50)) / 256;	// ~20%
-			ctcss_phase += ctcss_phase_inc;
-		} else {
-			sample_mixed = sample;
-		}
+		sample = tone_gen.process(sample);
 		
 		// FM
-		delta = sample_mixed * fm_delta;
+		delta = sample * fm_delta;
 		
 		phase += delta;
 		sphase = phase + (64 << 24);
@@ -82,9 +76,9 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 		case Message::ID::AudioTXConfig:
 			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
 			divider = message.divider;
-			ctcss_enabled = message.ctcss_enabled;
-			ctcss_phase_inc = message.ctcss_phase_inc;
 			as = 0;
+			
+			tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
 
 			configured = true;
 			break;

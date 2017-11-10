@@ -26,6 +26,7 @@
 namespace tonekey {
 	
 const tone_key_t tone_keys[] = {
+	{ "None", 0.0 },
 	{ "0 XZ", 67.000 },
 	{ "1 WZ", 69.400 },
 	{ "2 XA", 71.900 },
@@ -88,9 +89,8 @@ void tone_keys_populate(OptionsField& field) {
 	options_t tone_key_options;
 	std::string tone_name;
 	
-	tone_key_options.emplace_back(std::make_pair("None", 0));
 	for (size_t c = 0; c < KEY_TONES_NB; c++) {
-		if (c < 50)
+		if (c && (c < 51))
 			tone_name = "CTCSS " + tone_keys[c].first;
 		else
 			tone_name = tone_keys[c].first;

@@ -26,6 +26,7 @@
 #include "fifo.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "tone_gen.hpp"
 
 class AudioTXProcessor : public BasebandProcessor {
 public:
@@ -41,14 +42,14 @@ private:
 	int8_t audio_fifo_data[2048] { };
 	FIFO<int8_t> audio_fifo = { audio_fifo_data, 11 };	// 43ms @ 48000Hz
 	
+	ToneGen tone_gen { };
+	
 	uint32_t fm_delta { 0 };
 	uint32_t divider { };
 	uint32_t as { 0 };
-	bool ctcss_enabled { false };
-	uint32_t ctcss_phase_inc { };
-	uint32_t ctcss_phase { 0 }, phase { 0 }, sphase { 0 };
+	uint32_t phase { 0 }, sphase { 0 };
 	int8_t out_sample { };
-	int32_t ctcss_sample { 0 }, sample { 0 }, sample_mixed { }, delta { };
+	int32_t sample { 0 }, delta { };
 	
 	int8_t re { 0 }, im { 0 };
 	

@@ -748,22 +748,22 @@ public:
 		const uint32_t divider,
 		const uint32_t fm_delta,
 		const uint32_t gain_x10,
-		const uint32_t ctcss_phase_inc,
-		const bool ctcss_enabled
+		const uint32_t tone_key_delta,
+		const float tone_key_mix_weight
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
 		fm_delta(fm_delta),
 		gain_x10(gain_x10),
-		ctcss_phase_inc(ctcss_phase_inc),
-		ctcss_enabled(ctcss_enabled)
+		tone_key_delta(tone_key_delta),
+		tone_key_mix_weight(tone_key_mix_weight)
 	{
 	}
 
 	const uint32_t divider;
 	const uint32_t fm_delta;
 	const uint32_t gain_x10;
-	const uint32_t ctcss_phase_inc;
-	const bool ctcss_enabled;
+	const uint32_t tone_key_delta;
+	const float tone_key_mix_weight;
 };
 
 class SigGenConfigMessage : public Message {

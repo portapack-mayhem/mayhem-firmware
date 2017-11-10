@@ -33,7 +33,6 @@
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
-//TODO: Make tone generator class for baseband (with freq, samplerate and mixing ratio parameters)
 //TODO: Cap Wav viewer position
 //TODO: Adapt wav viewer position step
 //TODO: Use unit_auto_scale

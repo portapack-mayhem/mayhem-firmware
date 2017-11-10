@@ -136,6 +136,7 @@ set(CPPSRC
 	${COMMON}/chibios_cpp.cpp
 	${COMMON}/debug.cpp
 	${COMMON}/gcc.cpp
+	tone_gen.cpp
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.

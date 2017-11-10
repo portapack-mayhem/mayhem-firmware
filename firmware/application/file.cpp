@@ -217,7 +217,7 @@ std::string filesystem_error::what() const {
 	case FR_OK: 					return "ok";
 	case FR_DISK_ERR:				return "disk error";
 	case FR_INT_ERR:				return "insanity detected";
-	case FR_NOT_READY:				return "not ready";
+	case FR_NOT_READY:				return "SD card not ready";
 	case FR_NO_FILE:				return "no file";
 	case FR_NO_PATH:				return "no path";
 	case FR_INVALID_NAME:			return "invalid name";

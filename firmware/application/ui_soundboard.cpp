@@ -26,6 +26,7 @@
 
 #include "lfsr_random.hpp"
 #include "string_format.hpp"
+#include "tonesets.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -96,7 +97,6 @@ void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
 
 void SoundBoardView::play_sound(uint16_t id) {
 	uint32_t tone_key_index;
-	bool tone_key_enabled;
 	uint32_t divider;
 
 	if (sounds[id].size == 0) return;
@@ -121,20 +121,14 @@ void SoundBoardView::play_sound(uint16_t id) {
 	
 	tone_key_index = options_tone_key.selected_index();
 	
-	if (tone_key_index) {
-		tone_key_enabled = true;
-		tone_key_index--;
-	} else
-		tone_key_enabled = false;
-	
 	divider = (1536000 / sounds[id].sample_rate) - 1;
 	
 	baseband::set_audiotx_data(
 		divider,
 		number_bw.value() * 1000,
-		1,
-		tone_key_enabled,
-		(uint32_t)((tone_keys[tone_key_index].second / 1536000.0) * 0xFFFFFFFFULL)
+		10,
+		TONES_F2D(tone_keys[tone_key_index].second),
+		0.2		// 20% mix
 	);
 }
 

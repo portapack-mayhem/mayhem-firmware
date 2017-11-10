@@ -59,8 +59,8 @@ void MicTXView::configure_baseband() {
 		sampling_rate / 20,		// Update vu-meter at 20Hz
 		transmitting ? transmitter_model.channel_bandwidth() : 0,
 		mic_gain_x10,
-		transmitting ? tone_key_enabled : false,
-		TONES_F2D(tone_keys[tone_key_index].second)
+		TONES_F2D(tone_keys[tone_key_index].second),
+		0.2		// 20% mix
 	);
 }
 
@@ -150,12 +150,6 @@ MicTXView::MicTXView(
 	tone_keys_populate(options_tone_key);
 	options_tone_key.on_change = [this](size_t i, int32_t) {
 		tone_key_index = i;
-		
-		if (tone_key_index) {
-			tone_key_enabled = true;
-			tone_key_index--;
-		} else
-			tone_key_enabled = false;
 	};
 	options_tone_key.set_selected_index(0);
 	
