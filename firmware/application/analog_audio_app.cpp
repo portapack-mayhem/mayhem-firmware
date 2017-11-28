@@ -26,6 +26,7 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 using namespace portapack;
+using namespace tonekey;
 
 #include "audio.hpp"
 #include "file.hpp"
@@ -97,6 +98,7 @@ AnalogAudioView::AnalogAudioView(
 		&field_vga,
 		&options_modulation,
 		&field_volume,
+		&text_ctcss,
 		&record_view,
 		&waterfall,
 	});
@@ -203,6 +205,8 @@ void AnalogAudioView::remove_options_widget() {
 		options_widget.reset();
 	}
 
+	text_ctcss.hidden(true);
+
 	field_lna.set_style(nullptr);
 	options_modulation.set_style(nullptr);
 	field_frequency.set_style(nullptr);
@@ -253,7 +257,7 @@ void AnalogAudioView::on_show_options_modulation() {
 		break;
 
 	case ReceiverModel::Mode::NarrowbandFMAudio:
-		widget = std::make_unique<NBFMOptionsView>(options_view_rect, &style_options_group);
+		widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
 		break;
 
 	default:
@@ -262,6 +266,8 @@ void AnalogAudioView::on_show_options_modulation() {
 
 	set_options_widget(std::move(widget));
 	options_modulation.set_style(&style_options_group);
+	
+	if (modulation == ReceiverModel::Mode::NarrowbandFMAudio) text_ctcss.hidden(false);
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
@@ -324,6 +330,26 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 
 void AnalogAudioView::squelched() {
 	if (exit_on_squelch) nav_.pop();
+}
+
+void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
+	//const std::string value_string = to_string_dec_uint(value / 10) + "." + to_string_dec_uint(value % 10);
+	float diff, min_diff = value;
+	size_t min_idx { 0 };
+	size_t c;
+	
+	for (c = 0; c < KEY_TONES_NB; c++) {
+		diff = abs(((float)value / 100.0) - tone_keys[c].second);
+		if (diff < min_diff) {
+			min_idx = c;
+			min_diff = diff;
+		}
+	}
+	
+	if (min_diff < 40)
+		text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
+	else
+		text_ctcss.set("???");
 }
 
 } /* namespace ui */

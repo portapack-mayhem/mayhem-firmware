@@ -79,7 +79,8 @@ const tone_key_t tone_keys[] = {
 	{ "50 0Z", 254.100 },
 	{ "Axient 28kHz", 28000.0 },
 	{ "Sennheiser 32.768k", 32768.0 },
-	{ "Sennheiser 32kHz", 32000.0 },
+	{ "Sennheiser 32.000k", 32000.0 },
+	{ "Sony 32.382k", 32382.0 },
 	{ "Shure 19kHz", 19000.0 }
 };
 

@@ -52,7 +52,7 @@ private:
 	int32_t avg_;
 	int32_t max_;
 	
-	bool pwmrssi_enabled = false;
+	bool pitch_rssi_enabled = false;
 
 	MessageHandlerRegistration message_handler_stats {
 		Message::ID::RSSIStatistics,
@@ -61,16 +61,16 @@ private:
 		}
 	};
 	
-	MessageHandlerRegistration message_handler_pwmrssi {
-		Message::ID::PWMRSSIConfigure,
+	MessageHandlerRegistration message_handler_pitch_rssi {
+		Message::ID::PitchRSSIConfigure,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const PWMRSSIConfigureMessage*>(p);
-			this->set_pwmrssi(message.enabled);
+			const auto message = *reinterpret_cast<const PitchRSSIConfigureMessage*>(p);
+			this->set_pitch_rssi(message.enabled);
 		}
 	};
 
 	void on_statistics_update(const RSSIStatistics& statistics);
-	void set_pwmrssi(bool enabled);
+	void set_pitch_rssi(bool enabled);
 };
 
 }

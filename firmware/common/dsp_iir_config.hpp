@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2017 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -41,6 +42,12 @@ constexpr iir_biquad_config_t audio_24k_hpf_300hz_config {
 	{  0.94597686f, -1.89195371f,  0.94597686f },
 	{  1.00000000f, -1.88903308f,  0.89487434f }
 
+};
+
+// scipy.signal.butter(2, 30 / 12000.0, 'highpass', analog=False)
+constexpr iir_biquad_config_t audio_24k_hpf_30hz_config {
+	{  0.99446179f, -1.98892358f,  0.99446179f },
+	{  1.00000000f, -1.98889291f,  0.98895425f }
 };
 
 // scipy.signal.butter(2, 300 / 8000.0, 'highpass', analog=False)

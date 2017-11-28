@@ -45,49 +45,32 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 		channel_spectrum.feed(channel, channel_filter_pass_f, channel_filter_stop_f);
 	}
 
-	if ( !pwmrssi_enabled ) {
-		/* 384kHz complex<int16_t>[256]
-		 * -> FM demodulation
-		 * -> 384kHz int16_t[256] */
-		/* TODO: To improve adjacent channel rejection, implement complex channel filter:
-		 *		pass < +/- 100kHz, stop > +/- 200kHz
-		 */
+	/* 384kHz complex<int16_t>[256]
+	 * -> FM demodulation
+	 * -> 384kHz int16_t[256] */
+	/* TODO: To improve adjacent channel rejection, implement complex channel filter:
+	 *		pass < +/- 100kHz, stop > +/- 200kHz
+	 */
 
-		auto audio_oversampled = demod.execute(channel, work_audio_buffer);
+	auto audio_oversampled = demod.execute(channel, work_audio_buffer);
 
-		/* 384kHz int16_t[256]
-		 * -> 4th order CIC decimation by 2, gain of 1
-		 * -> 192kHz int16_t[128] */
-		auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
+	/* 384kHz int16_t[256]
+	 * -> 4th order CIC decimation by 2, gain of 1
+	 * -> 192kHz int16_t[128] */
+	auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
 
-		/* 192kHz int16_t[128]
-		 * -> 4th order CIC decimation by 2, gain of 1
-		 * -> 96kHz int16_t[64] */
-		auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
+	/* 192kHz int16_t[128]
+	 * -> 4th order CIC decimation by 2, gain of 1
+	 * -> 96kHz int16_t[64] */
+	auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
 
-		/* 96kHz int16_t[64]
-		 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
-		 * -> 48kHz int16_t[32] */
-		auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
+	/* 96kHz int16_t[64]
+	 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
+	 * -> 48kHz int16_t[32] */
+	auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
-		/* -> 48kHz int16_t[32] */
-		audio_output.write(audio);
-	} else {
-		for (c = 0; c < 32; c++) {
-			if (synth_acc < pwmrssi_avg)
-				pwmrssi_audio_buffer.p[c] = 32767;
-			else
-				pwmrssi_audio_buffer.p[c] = -32768;
-			
-			if (synth_acc < synth_div)		// 48kHz / 96 = 500Hz
-				synth_acc++;
-			else
-				synth_acc = 0;
-		}
-
-		/* -> 48kHz int16_t[32] */
-		audio_output.write(pwmrssi_audio_buffer);
-	}
+	/* -> 48kHz int16_t[32] */
+	audio_output.write(audio);
 	
 }
 
@@ -104,10 +87,6 @@ void WidebandFMAudio::on_message(const Message* const message) {
 
 	case Message::ID::CaptureConfig:
 		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
-		break;
-	
-	case Message::ID::PWMRSSIConfigure:
-		pwmrssi_config(*reinterpret_cast<const PWMRSSIConfigureMessage*>(message));
 		break;
 		
 	default:
@@ -137,16 +116,7 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
 
 	channel_spectrum.set_decimation_factor(1);
 
-	synth_acc = 0;
-
 	configured = true;
-}
-
-void WidebandFMAudio::pwmrssi_config(const PWMRSSIConfigureMessage& message) {
-	pwmrssi_enabled = message.enabled;
-	pwmrssi_avg = message.avg;
-	synth_div = message.synth_div;
-	synth_acc = 0;
 }
 
 void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {

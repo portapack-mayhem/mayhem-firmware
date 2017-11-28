@@ -29,6 +29,7 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
+#include "dsp_iir.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -52,16 +53,21 @@ private:
 		dst.data(),
 		dst.size()
 	};
-	std::array<float, 32> audio { };
-	const buffer_f32_t audio_buffer {
-		audio.data(),
-		audio.size()
+	const buffer_s16_t work_audio_buffer {
+		(int16_t*)dst.data(),
+		sizeof(dst) / sizeof(int16_t)
 	};
 	
-	std::array<int16_t, 32> pwm { };
-	const buffer_s16_t pwmrssi_audio_buffer {
-		(int16_t*)pwm.data(),
-		sizeof(pwm) / sizeof(int16_t)
+	std::array<int16_t, 16> audio { };
+	const buffer_s16_t audio_buffer {
+		(int16_t*)audio.data(),
+		sizeof(audio) / sizeof(int16_t)
+	};
+	
+	std::array<int16_t, 16> tone { };
+	const buffer_s16_t tone_buffer {
+		(int16_t*)tone.data(),
+		sizeof(tone) / sizeof(int16_t)
 	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
@@ -69,25 +75,34 @@ private:
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
+	
+	// For CTCSS decoding
+	dsp::decimate::FIR64AndDecimateBy2Real ctcss_filter { };
+	IIRBiquadFilter hpf { };
 
 	dsp::demodulate::FM demod { };
 
 	AudioOutput audio_output { };
-	bool old_state { };
 
 	SpectrumCollector channel_spectrum { };
 	
-	unsigned int c { 0 }, synth_acc { 0 };
-	uint32_t synth_div { 0 };
-	bool pwmrssi_enabled = false;
-	uint32_t pwmrssi_avg { 0 };
+	uint32_t tone_phase { 0 };
+	uint32_t tone_delta { 0 };
+	bool pitch_rssi_enabled { false };
+	
+	float cur_sample { }, prev_sample { };
+	uint32_t z_acc { 0}, z_timer { 0 }, z_count { 0 };
+	bool ctcss_detect_enabled { true };
+	static constexpr float k = 32768.0f;
+	static constexpr float ki = 1.0f / k;
 
 	bool configured { false };
-	void pwmrssi_config(const PWMRSSIConfigureMessage& message);
+	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 	void configure(const NBFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
 	
-	RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
+	//RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
+	CodedSquelchMessage ctcss_message { 0 };
 };
 
 #endif/*__PROC_NFM_AUDIO_H__*/

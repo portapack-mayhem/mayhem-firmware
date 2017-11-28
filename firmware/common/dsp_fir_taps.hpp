@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2017 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -115,7 +116,7 @@ constexpr fir_taps_real<32> taps_11k0_channel {
 	} },
 };
 
-/// NBFM 8K50F3E emission type ////////////////////////////////////////////
+// NBFM 8K50F3E emission type /////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=3072000, pass=4250, stop=340250, decim=8, fout=384000
 constexpr fir_taps_real<24> taps_4k25_decim_0 {
@@ -149,6 +150,50 @@ constexpr fir_taps_real<32> taps_4k25_channel {
 		 -1440,  -2488,  -2435,   -614,   3035,   7771,  12226,  14927,
 		 14927,  12226,   7771,   3035,   -614,  -2435,  -2488,  -1440,
 		  -141,    770,   1063,    871,    484,    153,    -14,    -58,
+	} },
+};
+
+/* CTCSS audio filter */
+/* 12kHz int16_t input
+ * -> FIR filter, <300Hz pass, >300Hz stop, gain of 1
+ * -> 6kHz int16_t output, gain of 1.0 (I think).
+ * Padded to multiple of four taps for unrolled FIR code.
+ * sum(abs(taps)): 125270
+ */
+/*constexpr fir_taps_real<64> taps_64_lp_025_025 {
+	.pass_frequency_normalized = 0.025f,
+	.stop_frequency_normalized = 0.025f,
+	.taps = { {
+		     0,      0,     -3,     -7,    -13,    -20,    -27,    -32,
+		   -34,    -33,    -25,    -10,     13,     47,     94,    152,
+		   223,    307,    402,    508,    622,    742,    866,    991,
+		  1113,   1229,   1336,   1430,   1510,   1571,   1614,   1635,
+		  1635,   1614,   1571,   1510,   1430,   1336,   1229,   1113,
+		   991,    866,    742,    622,    508,    402,    307,    223,
+		   152,     94,     47,     13,    -10,    -25,    -33,    -34,
+		   -32,    -27,    -20,    -13,     -7,     -3,      0,      0
+	} },
+};*/
+
+/* CTCSS audio filter */
+/* 24kHz int16_t input
+ * -> FIR filter, <300Hz pass, >300Hz stop, gain of 1
+ * -> 12kHz int16_t output, gain of 1.0 (I think).
+ * Padded to multiple of four taps for unrolled FIR code.
+ * sum(abs(taps)): 125270
+ */
+constexpr fir_taps_real<64> taps_64_lp_025_025 {
+	.pass_frequency_normalized = 0.0125f,
+	.stop_frequency_normalized = 0.0125f,
+	.taps = { {
+		0, 0, 2, 6, 12, 20, 32, 46,
+		64, 85, 110, 138, 169, 204, 241, 281,
+		323, 367, 412, 457, 502, 547, 590, 631,
+		669, 704, 735, 762, 784, 801, 812, 818,
+		818, 812, 801, 784, 762, 735, 704, 669,
+		631, 590, 547, 502, 457, 412, 367, 323,
+		281, 241, 204, 169, 138, 110, 85, 64,
+		46, 32, 20, 12, 6, 2, 0, 0
 	} },
 };
 

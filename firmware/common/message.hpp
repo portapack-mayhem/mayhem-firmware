@@ -80,7 +80,7 @@ public:
 		
 		TonesConfigure = 32,
 		AFSKTxConfigure = 33,
-		PWMRSSIConfigure = 34,
+		PitchRSSIConfigure = 34,
 		OOKConfigure = 35,
 		RDSConfigure = 36,
 		AudioTXConfig = 37,
@@ -103,6 +103,7 @@ public:
 		FIFOData = 61,
 		
 		AudioLevelReport = 70,
+		CodedSquelch = 71,
 		MAX
 	};
 
@@ -348,6 +349,18 @@ public:
 	}
 	
 	bool is_data;
+	uint32_t value;
+};
+
+class CodedSquelchMessage : public Message {
+public:
+	constexpr CodedSquelchMessage(
+		const uint32_t value
+	) : Message { ID::CodedSquelch },
+		value { value }
+	{
+	}
+	
 	uint32_t value;
 };
 
@@ -667,22 +680,19 @@ public:
 	const bool trigger_word;
 };
 
-class PWMRSSIConfigureMessage : public Message {
+class PitchRSSIConfigureMessage : public Message {
 public:
-	constexpr PWMRSSIConfigureMessage(
+	constexpr PitchRSSIConfigureMessage(
 		const bool enabled,
-		const uint32_t synth_div,
-		const int32_t avg
-	) : Message { ID::PWMRSSIConfigure },
+		const int32_t rssi
+	) : Message { ID::PitchRSSIConfigure },
 		enabled(enabled),
-		synth_div(synth_div),
-		avg(avg)
+		rssi(rssi)
 	{
 	}
 	
 	const bool enabled;
-	const uint32_t synth_div;
-	const int32_t avg;
+	const int32_t rssi;
 };
 
 class TonesConfigureMessage : public Message {

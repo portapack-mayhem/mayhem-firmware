@@ -171,10 +171,9 @@ void set_fifo_data(const int8_t * data) {
 	send_message(&message);
 }
 
-void set_pwmrssi(int32_t avg, bool enabled) {
-	const PWMRSSIConfigureMessage message {
+void set_pitch_rssi(int32_t avg, bool enabled) {
+	const PitchRSSIConfigureMessage message {
 		enabled,
-		1000,	// 1kHz
 		avg
 	};
 	send_message(&message);	

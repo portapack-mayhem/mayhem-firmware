@@ -75,16 +75,13 @@ void RSSI::paint(Painter& painter) {
 		Color::black()
 	);
 	
-	if (pwmrssi_enabled) {
-		const range_t<int> pwmrssi_avg_range { 0, 96 };
-		const auto pwmrssi_avg = pwmrssi_avg_range.clip((avg_ - raw_min) * 96 / raw_delta);
-		baseband::set_pwmrssi(pwmrssi_avg, true);
-	}
+	if (pitch_rssi_enabled)
+		baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
 }
 
-void RSSI::set_pwmrssi(bool enabled) {
-	pwmrssi_enabled = enabled;
-	if (!enabled) baseband::set_pwmrssi(0, false);
+void RSSI::set_pitch_rssi(bool enabled) {
+	pitch_rssi_enabled = enabled;
+	if (!enabled) baseband::set_pitch_rssi(0, false);
 }
 
 void RSSI::on_statistics_update(const RSSIStatistics& statistics) {

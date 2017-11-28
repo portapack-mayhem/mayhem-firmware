@@ -55,12 +55,6 @@ private:
 		(int16_t*)dst.data(),
 		sizeof(dst) / sizeof(int16_t)
 	};
-	
-	std::array<int16_t, 32> pwm { };
-	const buffer_s16_t pwmrssi_audio_buffer {
-		(int16_t*)pwm.data(),
-		sizeof(pwm) / sizeof(int16_t)
-	};
 
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
@@ -77,14 +71,8 @@ private:
 	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
-	
-	unsigned int c { 0 }, synth_acc { 0 };
-	uint32_t synth_div { 0 };
-	bool pwmrssi_enabled { false };
-	uint32_t pwmrssi_avg { 0 };
 
 	bool configured { false };
-	void pwmrssi_config(const PWMRSSIConfigureMessage& message);
 	void configure(const WFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
 };

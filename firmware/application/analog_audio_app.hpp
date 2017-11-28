@@ -30,6 +30,8 @@
 
 #include "ui_font_fixed_8x16.hpp"
 
+#include "tone_key.hpp"
+
 namespace ui {
 
 constexpr Style style_options_group {
@@ -68,7 +70,6 @@ private:
 		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
 		"BW",
 	};
-
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		4,
@@ -80,14 +81,13 @@ private:
 	};
 	
 	Text text_squelch {
-		{ 9 * 8, 0 * 16, 7 * 8, 1 * 16 },
-		"SQ    /100"
+		{ 9 * 8, 0 * 16, 8 * 8, 1 * 16 },
+		"SQ   /99"
 	};
-
 	NumberField field_squelch {
 		{ 12 * 8, 0 * 16 },
-		3,
-		{ 0, 100 },
+		2,
+		{ 0, 99 },
 		1,
 		' ',
 	};
@@ -108,6 +108,7 @@ private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
+	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
 
 	NavigationView& nav_;
 	bool exit_on_squelch { false };
@@ -154,6 +155,11 @@ private:
 		1,
 		' ',
 	};
+	
+	Text text_ctcss {
+		{ 19 * 8, 1 * 16, 11 * 8, 1 * 16 },
+		""
+	};
 
 	std::unique_ptr<Widget> options_widget { };
 
@@ -181,6 +187,7 @@ private:
 	void update_modulation(const ReceiverModel::Mode modulation);
 	
 	void squelched();
+	void handle_coded_squelch(const uint32_t value);
 	
 	MessageHandlerRegistration message_handler_squelch_signal {
 		Message::ID::RequestSignal,
@@ -189,7 +196,14 @@ private:
 			this->squelched();
 		}
 	};
-
+	
+	MessageHandlerRegistration message_handler_coded_squelch {
+		Message::ID::CodedSquelch,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
+			this->handle_coded_squelch(message.value);
+		}
+	};
 };
 
 } /* namespace ui */

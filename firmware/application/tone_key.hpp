@@ -28,7 +28,7 @@
 
 using namespace ui;
 
-#define KEY_TONES_NB (sizeof(tone_keys) / sizeof(tone_keys[0]))
+#define KEY_TONES_NB	56
 
 namespace tonekey {
 
