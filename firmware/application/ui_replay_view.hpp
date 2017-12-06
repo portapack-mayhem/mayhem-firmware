@@ -105,7 +105,7 @@ private:
 
 	std::unique_ptr<ReplayThread> replay_thread { };
 
-	MessageHandlerRegistration message_handler_capture_thread_error {
+	MessageHandlerRegistration message_handler_replay_thread_error {
 		Message::ID::CaptureThreadDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);

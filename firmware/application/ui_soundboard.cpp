@@ -127,7 +127,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 		divider,
 		number_bw.value() * 1000,
 		10,
-		TONES_F2D(tone_keys[tone_key_index].second),
+		TONES_F2D(tone_key_frequency(tone_key_index)),
 		0.2		// 20% mix
 	);
 }

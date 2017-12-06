@@ -46,9 +46,18 @@ public:
 	StreamBuffer* get() {
 		return get(fifo_buffers_for_application);
 	}
+	
+	StreamBuffer* get_prefill() {
+		return get_prefill(fifo_buffers_for_application);
+	}
 
 	bool put(StreamBuffer* const p) {
 		return fifo_buffers_for_baseband->in(p);
+	}
+	
+	// TESTING...
+	bool put_app(StreamBuffer* const p) {
+		return fifo_buffers_for_application->in(p);
 	}
 #endif
 
@@ -99,4 +108,6 @@ private:
 	}
 
 	StreamBuffer* get(FIFO<StreamBuffer*>* fifo);
+	
+	StreamBuffer* get_prefill(FIFO<StreamBuffer*>* fifo);
 };

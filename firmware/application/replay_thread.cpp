@@ -76,15 +76,47 @@ msg_t ReplayThread::static_fn(void* arg) {
 Optional<File::Error> ReplayThread::run() {
 	BasebandReplay replay { &config };
 	BufferExchange buffers { &config };
+	
+	StreamBuffer* prefill_buffer { nullptr };
+	
+	// TESTING: Prefill
+	// While empty buffers fifo is not empty...
+	while (!buffers.empty()) {
+		prefill_buffer = buffers.get_prefill();
+		
+		if (prefill_buffer == nullptr) {
+			buffers.put_app(prefill_buffer);
+		} else {
+			size_t blocks = prefill_buffer->capacity() / 512;
+			
+			for (size_t c = 0; c < blocks; c++) {
+				auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * 512], 512);
+				if( read_result.is_error() ) {
+					return read_result.error();
+				}
+			}
+			
+			prefill_buffer->set_size(prefill_buffer->capacity());
+			
+			buffers.put(prefill_buffer);
+			//if (!buffers.put(prefill_buffer)) for(;;) {};
+			
+		}
+	};
 
 	while( !chThdShouldTerminate() ) {
 		auto buffer = buffers.get();
 		
-		auto read_result = reader->read(buffer->data(), buffer->capacity());
-		buffer->set_size(buffer->capacity());
-		if( read_result.is_error() ) {
-			return read_result.error();
+		size_t blocks = buffer->capacity() / 512;
+		
+		for (size_t c = 0; c < blocks; c++) {
+			auto read_result = reader->read(&((uint8_t*)buffer->data())[c * 512], 512);
+			if( read_result.is_error() ) {
+				return read_result.error();
+			}
 		}
+		
+		buffer->set_size(buffer->capacity());
 		
 		buffers.put(buffer);
 	}

@@ -28,15 +28,14 @@
 
 using namespace ui;
 
-#define KEY_TONES_NB	56
-
 namespace tonekey {
 
-using tone_key_t = std::pair<std::string, float>; 
+using tone_key_t = std::vector<std::pair<std::string, float>>;
 
-extern const tone_key_t tone_keys[];
+extern const tone_key_t tone_keys;
 
 void tone_keys_populate(OptionsField& field);
+float tone_key_frequency(const uint32_t index);
 
 }
 

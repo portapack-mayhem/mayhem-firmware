@@ -35,7 +35,9 @@ StreamOutput::StreamOutput(ReplayConfig* const config) :
 	config->fifo_buffers_full = &fifo_buffers_full;
 
 	for(size_t i=0; i<config->buffer_count; i++) {
+		// Set buffers to point consecutively in previously allocated unique_ptr "data"
 		buffers[i] = { &(data.get()[i * config->read_size]), config->read_size };
+		// Put all buffer pointers in the "empty buffer" FIFO
 		fifo_buffers_empty.in(&buffers[i]);
 	}
 }
@@ -49,6 +51,8 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 			// We need a full buffer...
 			if( !fifo_buffers_full.out(active_buffer) ) {
 				// ...but none are available. Hole in transmission (inform app and stop ?)
+				//active_buffer = nullptr;
+				//creg::m4txevent::assert();
 				break;
 			}
 		}

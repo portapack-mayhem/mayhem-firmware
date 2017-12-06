@@ -20,12 +20,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "tone_key.hpp"
 #include "string_format.hpp"
+#include "tone_key.hpp"
 
 namespace tonekey {
-	
-const tone_key_t tone_keys[] = {
+
+const tone_key_t tone_keys = {
 	{ "None", 0.0 },
 	{ "0 XZ", 67.000 },
 	{ "1 WZ", 69.400 },
@@ -90,14 +90,22 @@ void tone_keys_populate(OptionsField& field) {
 	options_t tone_key_options;
 	std::string tone_name;
 	
-	for (size_t c = 0; c < KEY_TONES_NB; c++) {
-		if (c && (c < 51))
-			tone_name = "CTCSS " + tone_keys[c].first;
-		else
+	for (size_t c = 0; c < tone_keys.size(); c++) {
+		if (c && c < 51) {
+			auto f = tone_keys[c].second;
+			tone_name = "CTCSS " + tone_keys[c].first + " " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
+		} else {
 			tone_name = tone_keys[c].first;
+		}
+		
 		tone_key_options.emplace_back(tone_name, c);
 	}
+	
 	field.set_options(tone_key_options);
+}
+
+float tone_key_frequency(const uint32_t index) {
+	return tone_keys[index].second;
 }
 
 }

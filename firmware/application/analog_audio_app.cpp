@@ -333,12 +333,11 @@ void AnalogAudioView::squelched() {
 }
 
 void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
-	//const std::string value_string = to_string_dec_uint(value / 10) + "." + to_string_dec_uint(value % 10);
 	float diff, min_diff = value;
 	size_t min_idx { 0 };
 	size_t c;
 	
-	for (c = 0; c < KEY_TONES_NB; c++) {
+	for (c = 0; c < tone_keys.size(); c++) {
 		diff = abs(((float)value / 100.0) - tone_keys[c].second);
 		if (diff < min_diff) {
 			min_idx = c;

@@ -27,6 +27,7 @@
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
+//BUG: Crash on rename file with long filename
 //BUG: Auto backlight off doesn't work anymore
 //BUG: CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: REPLAY See what's wrong with quality (format, or need for interpolation filter ?)

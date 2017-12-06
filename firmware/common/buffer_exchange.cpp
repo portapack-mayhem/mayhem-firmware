@@ -69,3 +69,10 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 		chSysUnlock();
 	}
 }
+
+StreamBuffer* BufferExchange::get_prefill(FIFO<StreamBuffer*>* fifo) {
+	StreamBuffer* p { nullptr };
+	fifo->out(p);
+	
+	return p;
+}

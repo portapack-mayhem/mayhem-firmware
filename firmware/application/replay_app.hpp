@@ -41,7 +41,7 @@ public:
 
 	void on_hide() override;
 
-	//void set_parent_rect(const Rect new_parent_rect) override;
+	void set_parent_rect(const Rect new_parent_rect) override;
 
 	void focus() override;
 
@@ -53,9 +53,6 @@ private:
 	bool file_error { false };
 	
 	static constexpr ui::Dim header_height = 2 * 16;
-
-	static constexpr uint32_t sampling_rate = 500000;
-	static constexpr uint32_t baseband_bandwidth = 2500000;
 
 	void on_target_frequency_changed(rf::Frequency f);
 
@@ -79,7 +76,7 @@ private:
 		16384, 3
 	};
 
-	//spectrum::WaterfallWidget waterfall { };
+	spectrum::WaterfallWidget waterfall { };
 };
 
 } /* namespace ui */

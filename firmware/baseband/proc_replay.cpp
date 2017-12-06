@@ -21,19 +21,20 @@
  */
 
 #include "proc_replay.hpp"
+#include "sine_table_int8.hpp"
 
 #include "event_m4.hpp"
 
 #include "utility.hpp"
 
 ReplayProcessor::ReplayProcessor() {
-	// TODO: Interpolation filter needed !
+	channel_filter_pass_f = taps_200k_decim_1.pass_frequency_normalized * 1000000;	// 162760.416666667
+	channel_filter_stop_f = taps_200k_decim_1.stop_frequency_normalized * 1000000;	// 337239.583333333
 	
-	/*spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
+	spectrum_interval_samples = (baseband_fs / 8) / spectrum_rate_hz;
 	spectrum_samples = 0;
 
-	channel_spectrum.set_decimation_factor(1);*/
-	
+	channel_spectrum.set_decimation_factor(1);
 }
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
@@ -43,13 +44,13 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// File data is in C16 format, we need C8
 	// File samplerate is 500kHz, we're at 4MHz
-	// iq_buffer can only be 512 samples (RAM limitation)
-	// For a full 2048-sample C8 buffer, we need:
+	// iq_buffer can only be 512 C16 samples (RAM limitation)
+	// To fill up the 2048-sample C8 buffer, we need:
 	// 2048 samples * 2 bytes per sample = 4096 bytes
-	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file
+	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
 	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
 	if( stream ) {
-		const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);	// *2 (C16), /8 (oversampling)
+		const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);	// *2 (C16), /8 (oversampling) should be == 1024
 		const auto result = stream->read(iq_buffer.p, bytes_to_read);
 	}
 
@@ -57,25 +58,39 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// Zero-stuff
 	for (size_t i = 0; i < buffer.count; i++) {
-		if (i & 3)
-			buffer.p[i] = { 0, 0 };
-		else
-			buffer.p[i] = { iq_buffer.p[i >> 3].real() >> 8, iq_buffer.p[i >> 3].imag() >> 8 };
+		
+		// DEBUG: This works. Transmits a 1kHz tone
+		/*sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
+		tone_phase += (1000 * ((1ULL << 32) / baseband_fs));
+		// Do FM
+		delta = sample * 30000 * (0xFFFFFFULL / baseband_fs);
+		phase += delta;
+		sphase = phase + (64 << 24);
+		iq_buffer.p[i >> 3] = { (int16_t)(sine_table_i8[(sphase & 0xFF000000) >> 24]) << 8, (int16_t)(sine_table_i8[(phase & 0xFF000000) >> 24]) << 8 };
+		*/
+		
+		/*if (i & 3)
+			buffer.p[i] = buffer.p[i - 1];
+		else {*/
+			auto re_out = iq_buffer.p[i >> 3].real() >> 8;
+			auto im_out = iq_buffer.p[i >> 3].imag() >> 8;
+			buffer.p[i] = { re_out, im_out };
+		//}
 	}
 	
-	/*spectrum_samples += channel.count;
+	spectrum_samples += buffer.count;
 	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
-		channel_spectrum.feed(channel, channel_filter_pass_f, channel_filter_stop_f);
-	}*/
+		channel_spectrum.feed(iq_buffer, channel_filter_pass_f, channel_filter_stop_f);
+	}
 }
 
 void ReplayProcessor::on_message(const Message* const message) {
 	switch(message->id) {
-	/*case Message::ID::UpdateSpectrum:
+	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(message);
-		break;*/
+		break;
 
 	case Message::ID::ReplayConfig:
 		replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));

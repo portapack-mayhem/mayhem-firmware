@@ -51,7 +51,7 @@ ReplayAppView::ReplayAppView(
 		&field_frequency_step,
 		&field_rf_amp,
 		&replay_view,
-		//&waterfall,
+		&waterfall,
 	});
 	
 	replay_view.set_file_list(file_list);
@@ -89,17 +89,16 @@ ReplayAppView::~ReplayAppView() {
 void ReplayAppView::on_hide() {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
-	
-	//waterfall.on_hide();
+	waterfall.on_hide();
 	View::on_hide();
 }
 
-/*void ReplayAppView::set_parent_rect(const Rect new_parent_rect) {
+void ReplayAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), static_cast<ui::Dim>(new_parent_rect.height() - header_height) };
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 	waterfall.set_parent_rect(waterfall_rect);
-}*/
+}
 
 void ReplayAppView::focus() {
 	if (!file_error) {

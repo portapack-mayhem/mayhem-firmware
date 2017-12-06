@@ -541,7 +541,7 @@ public:
 	
 	size_t read(void* p, const size_t count) {
 		const auto copy_size = std::min(used_, count);
-		memcpy(p, &data_[used_ - copy_size], copy_size);
+		memcpy(p, &data_[capacity_ - used_], copy_size);
 		used_ -= copy_size;
 		return copy_size;
 	}
