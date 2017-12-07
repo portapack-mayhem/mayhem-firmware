@@ -20,8 +20,11 @@ As its name implies, HAVOC's functionalities can be fun, mean and even useful so
 
 # Fork features
 
+* IQ file replay
 * Microphone FM transmit with CTCSS
+* CTCSS decoder
 * Frequency manager (save & load from SD card, with categories and notes)
+* File manager
 * "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
 * ADS-B receiver with map view
 * ADS-B transmitter (aircraft spoof)
@@ -41,7 +44,7 @@ As its name implies, HAVOC's functionalities can be fun, mean and even useful so
 * Street lighting control transmitter (CCIR tones)
 * "Play Dead" in case of emergency
 * Fully configurable RF signal generator
-* PWM audio RSSI output (for crude direction finding)
+* RSSI audio output as pitch (for direction finding)
 
 # Progress
 
@@ -57,7 +60,6 @@ SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (
 Radiosondes | 75% | Needs support for other models
 Wave visualizer | 70% | Needs cleaning and handling of other sample formats, high priority
 AFSK RX     | 70% | Needs work regarding flexibility
-IQ replay   | 60% | Buffer glitches ? High priority
 Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
 Generic TXs | 30% | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
 CC1101 TRX  | 10% | And other sub-GHz transceiver chips like SI4032...
@@ -77,7 +79,7 @@ Tetra info? | 0%  | Same
 # Thanks
 
 * Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
-* Rainer Matla and DC1RDB for the donations :)
+* Pyr3x, Rainer Matla and DC1RDB for the donations :)
 * Keld Norman and Giorgio Campiotti for ideas and suggestions
 
 # License
