@@ -150,7 +150,7 @@ ViewWavView::ViewWavView(
 	});
 	
 	button_open.on_select = [this, &nav](Button&) {
-		auto open_view = nav.push<FileLoadView>();
+		auto open_view = nav.push<FileLoadView>(".WAV");
 		open_view->on_changed = [this](std::filesystem::path file_path) {
 			load_wav(file_path);
 			field_pos_seconds.focus();

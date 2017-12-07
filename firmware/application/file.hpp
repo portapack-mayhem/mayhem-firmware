@@ -233,12 +233,13 @@ space_info space(const path& p);
 } /* namespace filesystem */
 } /* namespace std */
 
-std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
-std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
-std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
 void delete_file(const std::filesystem::path& file_path);
 void rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 uint32_t make_new_directory(const std::filesystem::path& dir_path);
+
+std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
+std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
+std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
 
 /* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
 static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");

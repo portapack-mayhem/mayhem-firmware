@@ -27,13 +27,14 @@
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
-//BUG: Crash on rename file with long filename
 //BUG: Auto backlight off doesn't work anymore
-//BUG: CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
-//BUG: REPLAY See what's wrong with quality (format, or need for interpolation filter ?)
+//BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
+//TODO: Display file creation/modification date in FileLoadView
+//TODO: Display recording frequency in Replay (from associated .txt file, if present)
+//TODO: Clean up ReplayThread
 //TODO: Cap Wav viewer position
 //TODO: Adapt wav viewer position step
 //TODO: Use unit_auto_scale
@@ -80,10 +81,7 @@ Continuous (Fox-oring)
 // Old or low-priority stuff:
 //TODO: Bodet :)
 //TODO: Analog TV tx with camcorder font character generator
-//TODO: Show address/data bit fields in OOK TX
 //TODO: Scan for OOK TX
-//TODO: Script engine ?
-//TODO: AFSK receiver
 //TODO: Check more OOK encoders
 //BUG (fixed ?): No audio in about when shown second time
 //TODO: Show MD5 mismatches for modules not found, etc...

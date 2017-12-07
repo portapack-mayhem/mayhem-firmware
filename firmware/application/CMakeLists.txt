@@ -195,7 +195,7 @@ set(CPPSRC
 	ui_rds.cpp
 	ui_receiver.cpp
 	ui_record_view.cpp
-	ui_replay_view.cpp
+	# ui_replay_view.cpp
 	ui_rssi.cpp
 	ui_scanner.cpp
 	# ui_script.cpp

@@ -55,7 +55,6 @@ public:
 		return fifo_buffers_for_baseband->in(p);
 	}
 	
-	// TESTING...
 	bool put_app(StreamBuffer* const p) {
 		return fifo_buffers_for_application->in(p);
 	}

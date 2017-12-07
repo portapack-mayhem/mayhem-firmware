@@ -40,6 +40,7 @@ public:
 		std::unique_ptr<stream::Reader> reader,
 		size_t read_size,
 		size_t buffer_count,
+		bool* ready_signal,
 		std::function<void()> success_callback,
 		std::function<void(File::Error)> error_callback
 	);
@@ -57,6 +58,7 @@ public:
 private:
 	ReplayConfig config;
 	std::unique_ptr<stream::Reader> reader;
+	bool* ready_sig;
 	std::function<void()> success_callback;
 	std::function<void(File::Error)> error_callback;
 	Thread* thread { nullptr };

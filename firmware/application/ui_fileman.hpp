@@ -39,7 +39,8 @@ struct fileman_entry {
 class FileManBaseView : public View {
 public:
 	FileManBaseView(
-		NavigationView& nav
+		NavigationView& nav,
+		std::string filter
 	);
 
 	void focus() override;
@@ -52,13 +53,31 @@ public:
 protected:
 	NavigationView& nav_;
 	
+	static constexpr size_t max_filename_length = 30 - 2;
+	
 	const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
+	
+	struct file_assoc_t {
+		std::string extension;
+		const Bitmap* icon;
+		ui::Color color;
+	};
+	
+	const std::vector<file_assoc_t> file_types = {
+		{ ".TXT", &bitmap_icon_file_text, ui::Color::white() },
+		{ ".PNG", &bitmap_icon_file_image, ui::Color::green() },
+		{ ".BMP", &bitmap_icon_file_image, ui::Color::green() },
+		{ ".C16", &bitmap_icon_file_iq, ui::Color::blue() },
+		{ ".WAV", &bitmap_icon_speaker, ui::Color::dark_magenta() },
+		{ "", &bitmap_icon_file, ui::Color::light_grey() }
+	};
 	
 	bool empty_root { false };
 	std::function<void(void)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
 	std::vector<fileman_entry> entry_list { };
 	std::filesystem::path current_path { u"" };
+	std::string extension_filter { "" };
 	
 	void change_category(int32_t category_id);
 	void refresh_list();
@@ -113,7 +132,7 @@ class FileLoadView : public FileManBaseView {
 public:
 	std::function<void(std::filesystem::path)> on_changed { };
 	
-	FileLoadView(NavigationView& nav);
+	FileLoadView(NavigationView& nav, std::string filter);
 
 private:
 	void refresh_widgets(const bool v);

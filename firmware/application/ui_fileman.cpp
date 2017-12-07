@@ -32,14 +32,24 @@ namespace ui {
 void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_path) {
 	current_path = dir_path;
 	
-	text_current.set(dir_path.string());
+	text_current.set(dir_path.string().substr(0, 30 - 8));
 	
 	entry_list.clear();
 	
-	// List all directories and files, put directories up top
+	auto filtering = (bool)extension_filter.size();
+	
+	// List directories and files, put directories up top
 	for (const auto& entry : std::filesystem::directory_iterator(dir_path, u"*")) {
 		if (std::filesystem::is_regular_file(entry.status())) {
-			entry_list.push_back({ entry.path(), (uint32_t)entry.size(), false });
+			if (entry.path().string().length()) {
+				auto entry_extension = entry.path().extension().string();
+			
+				for (auto &c: entry_extension)
+					c = toupper(c);
+				
+				if ((entry_extension == extension_filter) || !filtering)
+					entry_list.push_back({ entry.path(), (uint32_t)entry.size(), false });
+			}
 		} else if (std::filesystem::is_directory(entry.status())) {
 			entry_list.insert(entry_list.begin(), { entry.path(), 0, true });
 		}
@@ -57,8 +67,10 @@ std::filesystem::path FileManBaseView::get_selected_path() {
 }
 
 FileManBaseView::FileManBaseView(
-	NavigationView& nav
-) : nav_ (nav)
+	NavigationView& nav,
+	std::string filter
+) : nav_ (nav),
+	extension_filter { filter }
 {
 	load_directory_contents(current_path);
 	
@@ -95,10 +107,6 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::refresh_list() {
-	std::string size_str { };
-	uint32_t suffix_index;
-	size_t file_size;
-	
 	if (!entry_list.size()) {
 		// Hide widgets, show warning
 		if (on_refresh_widgets)
@@ -111,9 +119,10 @@ void FileManBaseView::refresh_list() {
 		menu_view.clear();
 		
 		for (size_t n = 0; n < entry_list.size(); n++) {
-			auto entry_name = entry_list[n].entry_path.filename().string().substr(0, 20);
+			auto entry = &entry_list[n];
+			auto entry_name = entry->entry_path.filename().string().substr(0, 20);
 			
-			if (entry_list[n].is_directory) {
+			if (entry->is_directory) {
 				
 				menu_view.add_item({
 					entry_name,
@@ -127,8 +136,8 @@ void FileManBaseView::refresh_list() {
 				
 			} else {
 				
-				file_size = entry_list[n].size;
-				suffix_index = 0;
+				auto file_size = entry->size;
+				size_t suffix_index = 0;
 				
 				while (file_size >= 1024) {
 					file_size /= 1024;
@@ -137,12 +146,23 @@ void FileManBaseView::refresh_list() {
 				if (suffix_index > 4)
 					suffix_index = 4;
 				
-				size_str = to_string_dec_uint(file_size) + suffix[suffix_index];
+				std::string size_str = to_string_dec_uint(file_size) + suffix[suffix_index];
+				
+				auto entry_extension = entry->entry_path.extension().string();
+				for (auto &c: entry_extension)
+					c = toupper(c);
+				
+				// Associate extension to icon and color
+				size_t c;
+				for (c = 0; c < file_types.size() - 1; c++) {
+					if (entry_extension == file_types[c].extension)
+						break;
+				}
 				
 				menu_view.add_item({
 					entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-					ui::Color::white(),
-					&bitmap_icon_file,
+					file_types[c].color,
+					file_types[c].icon,
 					[this](){
 						if (on_select_entry)
 							on_select_entry();
@@ -186,8 +206,9 @@ void FileLoadView::refresh_widgets(const bool v) {
 }
 
 FileLoadView::FileLoadView(
-	NavigationView& nav
-) : FileManBaseView(nav)
+	NavigationView& nav,
+	std::string filter
+) : FileManBaseView(nav, filter)
 {
 	on_refresh_widgets = [this](bool v) {
 		refresh_widgets(v);
@@ -216,7 +237,7 @@ FileLoadView::FileLoadView(
 }
 
 void FileManagerView::on_rename(NavigationView& nav) {
-	text_prompt(nav, &name_buffer, 12, [this](std::string * buffer) {
+	text_prompt(nav, &name_buffer, max_filename_length, [this](std::string * buffer) {
 		rename_file(get_selected_path(), *buffer);
 		load_directory_contents(current_path);
 		refresh_list();
@@ -244,7 +265,7 @@ FileManagerView::~FileManagerView() {
 
 FileManagerView::FileManagerView(
 	NavigationView& nav
-) : FileManBaseView(nav)
+) : FileManBaseView(nav, "")
 {
 	on_refresh_widgets = [this](bool v) {
 		refresh_widgets(v);
@@ -271,7 +292,7 @@ FileManagerView::FileManagerView(
 	button_new_dir.on_select = [this, &nav](Button&) {
 		name_buffer.clear();
 		
-		text_prompt(nav, &name_buffer, 12, [this](std::string * buffer) {
+		text_prompt(nav, &name_buffer, max_filename_length, [this](std::string * buffer) {
 			std::string path_str = *buffer;
 			
 			make_new_directory(current_path.string() + '/' + path_str);
@@ -281,10 +302,8 @@ FileManagerView::FileManagerView(
 	};
 	
 	button_rename.on_select = [this, &nav](Button&) {
-		if (!entry_list[menu_view.highlighted()].is_directory) {
-			name_buffer = entry_list[menu_view.highlighted()].entry_path.filename().string();
-			on_rename(nav);
-		}
+		name_buffer = entry_list[menu_view.highlighted()].entry_path.filename().string().substr(0, max_filename_length);
+		on_rename(nav);
 	};
 	
 	button_delete.on_select = [this, &nav](Button&) {

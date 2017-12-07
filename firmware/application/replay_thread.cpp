@@ -41,10 +41,12 @@ ReplayThread::ReplayThread(
 	std::unique_ptr<stream::Reader> reader,
 	size_t read_size,
 	size_t buffer_count,
+	bool* ready_signal,
 	std::function<void()> success_callback,
 	std::function<void(File::Error)> error_callback
 ) : config { read_size, buffer_count },
 	reader { std::move(reader) },
+	ready_sig { ready_signal },
 	success_callback { std::move(success_callback) },
 	error_callback { std::move(error_callback) }
 {
@@ -79,7 +81,12 @@ Optional<File::Error> ReplayThread::run() {
 	
 	StreamBuffer* prefill_buffer { nullptr };
 	
-	// TESTING: Prefill
+	// Wait for FIFOs to be allocated in baseband
+	// Wait for ui_replay_view to tell us that the buffers are ready (awful :( )
+	while (!(*ready_sig)) {
+		chThdSleep(100);
+	};
+	
 	// While empty buffers fifo is not empty...
 	while (!buffers.empty()) {
 		prefill_buffer = buffers.get_prefill();
@@ -87,7 +94,7 @@ Optional<File::Error> ReplayThread::run() {
 		if (prefill_buffer == nullptr) {
 			buffers.put_app(prefill_buffer);
 		} else {
-			size_t blocks = prefill_buffer->capacity() / 512;
+			size_t blocks = 16384 / 512;
 			
 			for (size_t c = 0; c < blocks; c++) {
 				auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * 512], 512);
@@ -96,23 +103,23 @@ Optional<File::Error> ReplayThread::run() {
 				}
 			}
 			
-			prefill_buffer->set_size(prefill_buffer->capacity());
+			prefill_buffer->set_size(16384);
 			
 			buffers.put(prefill_buffer);
-			//if (!buffers.put(prefill_buffer)) for(;;) {};
-			
 		}
 	};
+	
+	baseband::set_fifo_data(nullptr);
 
 	while( !chThdShouldTerminate() ) {
 		auto buffer = buffers.get();
 		
-		size_t blocks = buffer->capacity() / 512;
-		
-		for (size_t c = 0; c < blocks; c++) {
-			auto read_result = reader->read(&((uint8_t*)buffer->data())[c * 512], 512);
-			if( read_result.is_error() ) {
-				return read_result.error();
+		auto read_result = reader->read(buffer->data(), buffer->capacity());
+		if( read_result.is_error() ) {
+			return read_result.error();
+		} else {
+			if (read_result.value() == 0) {
+				return { };
 			}
 		}
 		

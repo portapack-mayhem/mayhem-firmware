@@ -21,10 +21,6 @@
 
 #include "buffer_exchange.hpp"
 
-// DEBUG:
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
-
 BufferExchange* BufferExchange::obj { nullptr };
 
 BufferExchange::BufferExchange(

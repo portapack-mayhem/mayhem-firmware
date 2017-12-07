@@ -47,26 +47,29 @@ private:
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 
-	std::array<complex16_t, 256> iq { };	// This fits in just right in allocated RAM - Too big ?
+	std::array<complex16_t, 256> iq { };
 	const buffer_c16_t iq_buffer {
 		iq.data(),
-		iq.size()
+		iq.size(),
+		baseband_fs / 8
 	};
 	
 	uint32_t channel_filter_pass_f = 0;
 	uint32_t channel_filter_stop_f = 0;
-	
-	// DEBUG
-	//uint32_t tone_phase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
-	//int8_t sample { 0 };
 
 	std::unique_ptr<StreamOutput> stream { };
 
 	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
+	
+	bool configured { false };
+	uint32_t bytes_read { 0 };
 
 	void replay_config(const ReplayConfigMessage& message);
+	
+	TXProgressMessage txprogress_message { };
+	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
 };
 
 #endif/*__PROC_REPLAY_HPP__*/

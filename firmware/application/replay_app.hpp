@@ -26,7 +26,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_replay_view.hpp"
+#include "replay_thread.hpp"
 #include "ui_spectrum.hpp"
 
 #include <string>
@@ -40,24 +40,40 @@ public:
 	~ReplayAppView();
 
 	void on_hide() override;
-
 	void set_parent_rect(const Rect new_parent_rect) override;
-
 	void focus() override;
 
-	std::string title() const override { return "Replay (BETA)"; };
+	std::string title() const override { return "Replay"; };
+	
+	void start();
+	void stop();
+	bool is_active() const;
 
 private:
 	NavigationView& nav_;
 	
-	bool file_error { false };
+	static constexpr ui::Dim header_height = 3 * 16;
 	
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr uint32_t sampling_rate = 4000000;
+	static constexpr uint32_t baseband_bandwidth = 2500000;
+	const size_t read_size { 16384 };
+	const size_t buffer_count { 3 };
 
+	void on_file_changed(std::filesystem::path new_file_path);
 	void on_target_frequency_changed(rf::Frequency f);
-
-	rf::Frequency target_frequency() const;
+	void on_tx_progress(const uint32_t progress);
+	
 	void set_target_frequency(const rf::Frequency new_value);
+	rf::Frequency target_frequency() const;
+
+	void toggle();
+	void set_ready();
+	void handle_replay_thread_done(const File::Error error);
+	void handle_error(const File::Error error);
+
+	std::filesystem::path file_path { };
+	std::unique_ptr<ReplayThread> replay_thread { };
+	bool ready_signal { false };
 
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 16 },
@@ -71,12 +87,57 @@ private:
 		{ 16 * 8, 0 * 16 }
 	};
 
-	ReplayView replay_view {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
-		16384, 3
+	ImageButton button_play {
+		{ 0 * 8, 1 * 16 + 8, 2 * 8, 1 * 16 },
+		&bitmap_play,
+		Color::green(),
+		Color::black()
+	};
+	
+	Text text_filename {
+		{ 2 * 8, 1 * 16, 18 * 8, 16 },
+		"-"
+	};
+	Text text_duration {
+		{ 2 * 8, 2 * 16, 6 * 8, 16 },
+		"-"
+	};
+	ProgressBar progressbar {
+		{ 9 * 8, 2 * 16, 10 * 8, 16 }
+	};
+	
+	Button button_open {
+		{ 20 * 8, 1 * 16, 10 * 8, 2 * 16 },
+		"Open file"
 	};
 
 	spectrum::WaterfallWidget waterfall { };
+
+	MessageHandlerRegistration message_handler_replay_thread_error {
+		Message::ID::ReplayThreadDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+			this->handle_replay_thread_done(message.error);
+		}
+	};
+	
+	MessageHandlerRegistration message_handler_fifo_signal {
+		Message::ID::RequestSignal,
+		[this](const Message* const p) {
+			const auto message = static_cast<const RequestSignalMessage*>(p);
+			if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+				this->set_ready();
+			}
+		}
+	};
+	
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress);
+		}
+	};
 };
 
 } /* namespace ui */

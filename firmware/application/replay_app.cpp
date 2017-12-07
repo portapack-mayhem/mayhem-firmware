@@ -23,6 +23,9 @@
 #include "replay_app.hpp"
 #include "string_format.hpp"
 
+#include "ui_fileman.hpp"
+#include "io_file.hpp"
+
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -31,30 +34,131 @@ using namespace portapack;
 
 namespace ui {
 
+void ReplayAppView::set_ready() {
+	ready_signal = true;
+}
+
+void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
+	File bbd_file;
+	std::string str_duration = "";
+	
+	file_path = new_file_path;
+	
+	text_filename.set(new_file_path.string().substr(0, 18));
+	
+	bbd_file.open("/" + new_file_path.string());
+	auto file_size = bbd_file.size();
+	auto duration = file_size / (2 * 2 * sampling_rate / 8);
+	
+	progressbar.set_max(file_size);
+	
+	if (duration >= 60)
+		str_duration = to_string_dec_uint(duration / 60) + "m";
+	
+	text_duration.set(str_duration + to_string_dec_uint(duration % 60) + "s");
+	
+	button_play.focus();
+}
+
+void ReplayAppView::on_tx_progress(const uint32_t progress) {
+	progressbar.set_value(progress);
+}
+
+void ReplayAppView::focus() {
+	button_open.focus();
+}
+
+bool ReplayAppView::is_active() const {
+	return (bool)replay_thread;
+}
+
+void ReplayAppView::toggle() {
+	if( is_active() ) {
+		stop();
+	} else {
+		start();
+	}
+}
+
+void ReplayAppView::start() {
+	stop();
+
+	std::unique_ptr<stream::Reader> reader;
+	
+	auto p = std::make_unique<FileReader>();
+	auto open_error = p->open(file_path);
+	if( open_error.is_valid() ) {
+		handle_error(open_error.value());
+	} else {
+		reader = std::move(p);
+	}
+
+	if( reader ) {
+		button_play.set_bitmap(&bitmap_stop);
+		replay_thread = std::make_unique<ReplayThread>(
+			std::move(reader),
+			read_size, buffer_count,
+			&ready_signal,
+			[]() {
+				ReplayThreadDoneMessage message { };
+				EventDispatcher::send_message(message);
+			},
+			[](File::Error error) {
+				ReplayThreadDoneMessage message { error.code() };
+				EventDispatcher::send_message(message);
+			}
+		);
+	}
+	
+	radio::enable({
+		receiver_model.tuning_frequency(),
+		sampling_rate,
+		baseband_bandwidth,
+		rf::Direction::Transmit,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga())
+	});
+}
+
+void ReplayAppView::stop() {
+	if( is_active() )
+		replay_thread.reset();
+		
+	progressbar.set_value(0);
+	
+	radio::disable();
+	button_play.set_bitmap(&bitmap_play);
+}
+
+void ReplayAppView::handle_replay_thread_done(const File::Error error) {
+	stop();
+	if( error.code() ) {
+		handle_error(error);
+	}
+}
+
+void ReplayAppView::handle_error(const File::Error error) {
+	nav_.display_modal("Error", error.what());
+}
+
 ReplayAppView::ReplayAppView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	std::vector<std::filesystem::path> file_list;
-	
-	// Search for files with the right extension
-	file_list = scan_root_files(u"/", u"*.C16");
-	if (!file_list.size()) {
-		file_error = true;
-		return;
-	}
-	
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
 		&field_frequency,
 		&field_frequency_step,
 		&field_rf_amp,
-		&replay_view,
+		&button_play,
+		&text_filename,
+		&text_duration,
+		&progressbar,
+		&button_open,
 		&waterfall,
 	});
-	
-	replay_view.set_file_list(file_list);
 	
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -75,9 +179,16 @@ ReplayAppView::ReplayAppView(
 		receiver_model.set_frequency_step(v);
 		this->field_frequency.set_step(v);
 	};
-
-	replay_view.on_error = [&nav](std::string message) {
-		nav.display_modal("Error", message);
+	
+	button_play.on_select = [this](ImageButton&) {
+		this->toggle();
+	};
+	
+	button_open.on_select = [this, &nav](Button&) {
+		auto new_view = nav.push<FileLoadView>(".C16");
+		new_view->on_changed = [this](std::filesystem::path new_file_path) {
+			on_file_changed(new_file_path);
+		};
 	};
 }
 
@@ -98,13 +209,6 @@ void ReplayAppView::set_parent_rect(const Rect new_parent_rect) {
 
 	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 	waterfall.set_parent_rect(waterfall_rect);
-}
-
-void ReplayAppView::focus() {
-	if (!file_error) {
-		field_frequency.focus();
-	} else
-		nav_.display_modal("No files", "No .C16 files in\nSD card root", ABORT, nullptr);
 }
 
 void ReplayAppView::on_target_frequency_changed(rf::Frequency f) {
