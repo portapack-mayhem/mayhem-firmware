@@ -144,7 +144,7 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 		menu_item_views.push_back(item);
 		add_child(item);
 		
-		auto y_pos = c * item_height;
+		Coord y_pos = c * item_height;
 		item->set_parent_rect({
 			{ 0, y_pos },
 			{ size().width(), (Coord)item_height }
@@ -187,7 +187,6 @@ void MenuView::add_items(std::initializer_list<MenuItem> new_items) {
 
 void MenuView::update_items() {
 	size_t i = 0;
-	int32_t y_pos;
 	
 	if (menu_items.size() > displayed_max + offset) {
 		more = true;
@@ -196,7 +195,7 @@ void MenuView::update_items() {
 		more = false;
 	
 	for (auto item : menu_item_views) {
-		if (i + offset >= menu_items.size()) break;
+		if (i >= menu_items.size()) break;
 		
 		// Assign item data to MenuItemViews according to offset
 		item->set_item(&menu_items[i + offset]);

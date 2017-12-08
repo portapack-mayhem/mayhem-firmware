@@ -260,9 +260,10 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
 	add_children({
 		&labels,
-		&rssi,
 		&field_lna,
 		&field_vga,
+		&field_rf_amp,
+		&rssi,
 		&recent_entries_view
 	});
 	
@@ -284,7 +285,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::set_adsb();
 	
 	receiver_model.set_tuning_frequency(1090000000);
-	receiver_model.set_rf_amp(true);
 	field_lna.set_value(40);
 	field_vga.set_value(40);
 	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);

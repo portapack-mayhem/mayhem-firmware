@@ -75,16 +75,20 @@ private:
 	std::unique_ptr<ReplayThread> replay_thread { };
 	bool ready_signal { false };
 
+	Labels labels {
+		{ { 10 * 8, 0 * 8 }, "LNA:   AMP:", Color::light_grey() }
+	};
+	
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 16 },
 	};
 	
-	FrequencyStepView field_frequency_step {
-		{ 10 * 8, 0 * 16 },
+	LNAGainField field_lna {
+		{ 14 * 8, 0 * 16 }
 	};
 
 	RFAmpField field_rf_amp {
-		{ 16 * 8, 0 * 16 }
+		{ 21 * 8, 0 * 16 }
 	};
 
 	ImageButton button_play {

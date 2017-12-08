@@ -149,8 +149,9 @@ ReplayAppView::ReplayAppView(
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
+		&labels,
 		&field_frequency,
-		&field_frequency_step,
+		&field_lna,
 		&field_rf_amp,
 		&button_play,
 		&text_filename,
@@ -174,11 +175,7 @@ ReplayAppView::ReplayAppView(
 		};
 	};
 
-	field_frequency_step.set_by_value(receiver_model.frequency_step());
-	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
-		receiver_model.set_frequency_step(v);
-		this->field_frequency.set_step(v);
-	};
+	field_frequency.set_step(5000);
 	
 	button_play.on_select = [this](ImageButton&) {
 		this->toggle();

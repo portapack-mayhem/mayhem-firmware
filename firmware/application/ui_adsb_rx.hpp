@@ -30,7 +30,6 @@
 #include "adsb.hpp"
 #include "message.hpp"
 
-
 using namespace adsb;
 
 namespace ui {
@@ -218,11 +217,7 @@ private:
 	bool send_updates { false };
 	
 	Labels labels {
-		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   RSSI:", Color::light_grey() }
-	};
-	
-	RSSI rssi {
-		{ 19 * 8, 4, 10 * 8, 8 },
+		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   AMP:", Color::light_grey() }
 	};
 	
 	LNAGainField field_lna {
@@ -231,6 +226,14 @@ private:
 
 	VGAGainField field_vga {
 		{ 11 * 8, 0 * 16 }
+	};
+	
+	RFAmpField field_rf_amp {
+		{ 18 * 8, 0 * 16 }
+	};
+	
+	RSSI rssi {
+		{ 20 * 8, 4, 10 * 8, 8 },
 	};
 	
 	MessageHandlerRegistration message_handler_frame {
