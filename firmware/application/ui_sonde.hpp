@@ -97,7 +97,7 @@ private:
 	};
 	
 	Checkbox check_log {
-		{ 22 * 8, 2 * 16 + 12 },
+		{ 22 * 8, 3 * 16 },
 		3,
 		"Log"
 	};

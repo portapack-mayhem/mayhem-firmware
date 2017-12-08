@@ -121,7 +121,8 @@ private:
 
 class FrequencyLoadView : public FreqManBaseView {
 public:
-	std::function<void(rf::Frequency)> on_changed { };
+	std::function<void(rf::Frequency)> on_frequency_loaded { };
+	std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded { };
 	
 	FrequencyLoadView(NavigationView& nav);
 

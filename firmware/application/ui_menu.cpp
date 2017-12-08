@@ -27,9 +27,15 @@ namespace ui {
 
 /* MenuItemView **********************************************************/
 
+void MenuItemView::set_item(MenuItem* item_) {
+	item = item_;
+}
+
 void MenuItemView::select() {
-	if( item.on_select ) {
-		item.on_select();
+	if (!item) return;
+	
+	if( item->on_select ) {
+		item->on_select();
 	}
 }
 
@@ -46,14 +52,16 @@ void MenuItemView::unhighlight() {
 void MenuItemView::paint(Painter& painter) {
 	Coord offset_x;
 	
+	if (!item) return;
+	
 	const auto r = screen_rect();
 
-	const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? style().invert() : style();
+	const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
 
 	const auto font_height = paint_style.font.line_height();
 	
-	ui::Color final_item_color = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? paint_style.foreground : item.color;
-	ui::Color final_bg_color = (highlighted() && (parent()->has_focus() || keep_highlight_)) ? item.color : paint_style.background;
+	ui::Color final_item_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? paint_style.foreground : item->color;
+	ui::Color final_bg_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? item->color : paint_style.background;
 
 	if (final_item_color.v == final_bg_color.v) final_item_color = paint_style.foreground;
 
@@ -62,10 +70,10 @@ void MenuItemView::paint(Painter& painter) {
 		final_bg_color
 	);
 	
-	if (item.bitmap) {
+	if (item->bitmap) {
 		painter.draw_bitmap(
 			{ r.location().x() + 4, r.location().y() + 4 },
-			*item.bitmap,
+			*item->bitmap,
 			final_item_color,
 			final_bg_color
 		);
@@ -82,7 +90,7 @@ void MenuItemView::paint(Painter& painter) {
 	painter.draw_string(
 		{ r.location().x() + offset_x, r.location().y() + (r.size().height() - font_height) / 2 },
 		text_style,
-		item.text
+		item->text
 	);
 }
 
@@ -91,7 +99,7 @@ void MenuItemView::paint(Painter& painter) {
 MenuView::MenuView(
 	Rect new_parent_rect,
 	bool keep_highlight
-) : keep_highlight_ { keep_highlight }
+) : keep_highlight { keep_highlight }
 {
 	set_parent_rect(new_parent_rect);
 	
@@ -108,45 +116,65 @@ MenuView::MenuView(
 
 MenuView::~MenuView() {
 	rtc_time::signal_tick_second -= signal_token_tick_second;
-	for (auto item : menu_items_) {
+	
+	for (auto item : menu_item_views) {
 		delete item;
 	}
 }
 
 void MenuView::set_parent_rect(const Rect new_parent_rect) {
-	
 	View::set_parent_rect(new_parent_rect);
 	
-	displayed_max_ = (parent_rect().size().height() / 24);
-	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max_ * item_height), 8, 8 } );
+	displayed_max = (parent_rect().size().height() / item_height);
+	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max * item_height), 8, 8 } );
+	
+	// TODO: Clean this up :(
+	if (menu_item_views.size()) {
+	
+		for (auto item : menu_item_views) {
+			remove_child(item);
+			delete item;
+		}
+	}
+
+	menu_item_views.clear();
+	
+	for (size_t c = 0; c < displayed_max; c++) {
+		auto item = new MenuItemView { keep_highlight };
+		menu_item_views.push_back(item);
+		add_child(item);
+		
+		auto y_pos = c * item_height;
+		item->set_parent_rect({
+			{ 0, y_pos },
+			{ size().width(), (Coord)item_height }
+		});
+	}
+	
+	update_items();
 }
 
 void MenuView::on_tick_second() {
-	if (more_ && blink_)
+	if (more && blink)
 		arrow_more.set_foreground(Color::white());
 	else
 		arrow_more.set_foreground(Color::black());
 	
-	blink_ = !blink_;
+	blink = !blink;
 	
 	arrow_more.set_dirty();
 }
 
 void MenuView::clear() {
-	for (auto item : menu_items_) {
-		remove_child(item);
-		delete item;
+	for (auto item : menu_item_views) {
+		item->set_item(nullptr);
 	}
-	menu_items_.clear();
 	
-	update_items();
+	menu_items.clear();
 }
 
 void MenuView::add_item(MenuItem new_item) {
-	auto item = new MenuItemView { new_item, keep_highlight_ };
-	
-	menu_items_.push_back(item);
-	add_child(item);
+	menu_items.push_back(new_item);
 	
 	update_items();
 }
@@ -161,38 +189,34 @@ void MenuView::update_items() {
 	size_t i = 0;
 	int32_t y_pos;
 	
-	if (menu_items_.size() > displayed_max_ + offset_) {
-		more_ = true;
-		blink_ = true;
+	if (menu_items.size() > displayed_max + offset) {
+		more = true;
+		blink = true;
 	} else
-		more_ = false;
+		more = false;
 	
-	for (auto item : menu_items_) {
-		y_pos = (i - offset_) * item_height;
-		item->set_parent_rect({
-			{ 0, y_pos },
-			{ size().width(), (Coord)item_height }
-		});
-		if ((y_pos < 0) || (y_pos > (Coord)(screen_rect().size().height() - item_height)))
-			item->hidden(true);
-		else
-			item->hidden(false);
+	for (auto item : menu_item_views) {
+		if (i + offset >= menu_items.size()) break;
+		
+		// Assign item data to MenuItemViews according to offset
+		item->set_item(&menu_items[i + offset]);
+		item->set_dirty();
+		
+		if (highlighted_item == (i + offset)) {
+			item->highlight();
+		} else
+			item->unhighlight();
+		
 		i++;
 	}
-	
-	set_dirty();
 }
 
 MenuItemView* MenuView::item_view(size_t index) const {
-	return menu_items_[index];
-}
-
-size_t MenuView::highlighted() const {
-	return highlighted_;
+	return menu_item_views[index];
 }
 
 bool MenuView::set_highlighted(int32_t new_value) {
-	int32_t item_count = (int32_t)menu_items_.size();
+	int32_t item_count = (int32_t)menu_items.size();
 	
 	if (new_value < 0)
 		return false;
@@ -200,42 +224,49 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	if (new_value >= item_count)
 		new_value = item_count - 1;
 	
-	if (((uint32_t)new_value > offset_) && ((new_value - offset_) >= displayed_max_)) {
+	if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
 		// Shift MenuView up
-		offset_ = new_value - displayed_max_ + 1;
+	highlighted_item = new_value;
+		offset = new_value - displayed_max + 1;
 		update_items();
-	} else if ((uint32_t)new_value < offset_) {
+	} else if ((uint32_t)new_value < offset) {
 		// Shift MenuView down
-		offset_ = new_value;
+	highlighted_item = new_value;
+		offset = new_value;
 		update_items();
+	} else {
+		// Just update highlight
+		item_view(highlighted_item - offset)->unhighlight();
+		highlighted_item = new_value;
+		item_view(highlighted_item - offset)->highlight();
 	}
-
-	item_view(highlighted_)->unhighlight();
-	highlighted_ = new_value;
-	item_view(highlighted_)->highlight();
 
 	return true;
 }
 
+uint32_t MenuView::highlighted_index() {
+	return highlighted_item;
+}
+
 void MenuView::on_focus() {
-	item_view(highlighted())->highlight();
+	item_view(highlighted_item)->highlight();
 }
 
 void MenuView::on_blur() {
-	if (!keep_highlight_) item_view(highlighted())->unhighlight();
+	if (!keep_highlight) item_view(highlighted_item)->unhighlight();
 }
 
 bool MenuView::on_key(const KeyEvent key) {
 	switch(key) {
 	case KeyEvent::Up:
-		return set_highlighted(highlighted() - 1);
+		return set_highlighted(highlighted_item - 1);
 
 	case KeyEvent::Down:
-		return set_highlighted(highlighted() + 1);
+		return set_highlighted(highlighted_item + 1);
 
 	case KeyEvent::Select:
 	case KeyEvent::Right:
-		item_view(highlighted())->select();
+		item_view(highlighted_item - offset)->select();
 		return true;
 
 	case KeyEvent::Left:
@@ -250,7 +281,7 @@ bool MenuView::on_key(const KeyEvent key) {
 }
 
 bool MenuView::on_encoder(const EncoderEvent event) {
-	set_highlighted(highlighted() + event);
+	set_highlighted(highlighted_item + event);
 	return true;
 }
 

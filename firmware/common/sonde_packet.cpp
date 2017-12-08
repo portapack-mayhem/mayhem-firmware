@@ -35,7 +35,7 @@ Packet::Packet(
 {
 	if (type_ == Type::Meteomodem_unknown) {
 		// Right now we're just sure that the sync is from a Meteomodem sonde, differentiate between models now
-		const uint32_t id_byte = reader_bi_m.read(1 * 8, 16);
+		const uint32_t id_byte = reader_bi_m.read(0 * 8, 16);
 		
 		if (id_byte == 0x649F)
 			type_ = Type::Meteomodem_M10;
@@ -128,7 +128,7 @@ std::string Packet::serial_number() const {
 			to_string_dec_uint(reader_bi_m.read(93 * 8 + 27, 13), 4, '0');
 	
 	} else
-		return 0;
+		return "?";
 }
 
 FormattedSymbols Packet::symbols_formatted() const {

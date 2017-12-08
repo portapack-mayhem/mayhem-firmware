@@ -147,13 +147,13 @@ void FrequencySaveView::save_current_file() {
 
 void FrequencySaveView::on_save_name() {
 	text_prompt(nav_, &desc_buffer, 28, [this](std::string * buffer) {
-		database.entries.push_back({ value_, "", *buffer });
+		database.entries.push_back({ value_, 0, *buffer, SINGLE });
 		save_current_file();
 	});
 }
 
 void FrequencySaveView::on_save_timestamp() {
-	database.entries.push_back({ value_, "", live_timestamp.string() });
+	database.entries.push_back({ value_, 0, live_timestamp.string(), SINGLE });
 	save_current_file();
 }
 
@@ -224,13 +224,26 @@ FrequencyLoadView::FrequencyLoadView(
 	
 	on_select_frequency = [&nav, this]() {
 		nav_.pop();
-		if (on_changed)
-			on_changed(database.entries[menu_view.highlighted()].value);
+		
+		auto& entry = database.entries[menu_view.highlighted()];
+		
+		if (entry.type == RANGE) {
+			// User chose a frequency range entry
+			if (on_range_loaded)
+				on_range_loaded(entry.frequency_a, entry.frequency_b);
+			else if (on_frequency_loaded)
+				on_frequency_loaded(entry.frequency_a);
+			// TODO: Maybe return center of range if user choses a range when the app needs a unique frequency, instead of frequency_a ?
+		} else {
+			// User chose an unique frequency entry
+			if (on_frequency_loaded)
+				on_frequency_loaded(entry.frequency_a);
+		}
 	};
 }
 
 void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
-	database.entries[menu_view.highlighted()].value = f;
+	database.entries[menu_view.highlighted()].frequency_a = f;
 	save_freqman_file(file_list[current_category_id], database);
 	refresh_list();
 }
@@ -308,7 +321,7 @@ FrequencyManagerView::FrequencyManagerView(
 	};
 	
 	button_edit_freq.on_select = [this, &nav](Button&) {
-		auto new_view = nav.push<FrequencyKeypadView>(database.entries[menu_view.highlighted()].value);
+		auto new_view = nav.push<FrequencyKeypadView>(database.entries[menu_view.highlighted()].frequency_a);
 		new_view->on_changed = [this](rf::Frequency f) {
 			on_edit_freq(f);
 		};

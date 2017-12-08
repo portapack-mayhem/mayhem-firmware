@@ -72,7 +72,7 @@ private:
 		int32_t delay;
 	} credits_t;
 	
-	const credits_t credits[24] = {
+	const credits_t credits[25] = {
 		//           012345678901234567890123456789
 		{ 60,		"PortaPack|HAVOC",					0 },
 		{ 7 * 8,	"Git hash " GIT_REVISION,			16 },
@@ -90,12 +90,13 @@ private:
 		{ 0 * 8,	"TouchTunes infos  Notpike",		16 },
 		{ 4 * 8,	    "Subaru infos  Tom",			0 },
 		{ 18 * 8,	                  "Wimmenhove",		24 },
-		{ 12 * 8,	            "Thanks",				16 },
+		{ 6 * 8,	      "Thanks & donators",			16 },
 		{ 1 * 8,	 "Rainer Matla     Keld Norman",	0 },
 		{ 1 * 8,	 " Giorgio C.         DC1RDB",		0 },
 		{ 1 * 8,	 " Sigmounte           Waax",		0 },
 		{ 1 * 8, 	" Windyoona         Channels",		0 },
-		{ 1 * 8, 	"   F4GEV",							24 },
+		{ 1 * 8, 	"   F4GEV             Pyr3x",		0 },
+		{ 1 * 8,    "  HB3YOE",							24 },
 		{ 12 * 8,	            "MMXVII",				-1 }
 	};
 	

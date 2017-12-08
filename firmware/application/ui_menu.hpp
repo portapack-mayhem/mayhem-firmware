@@ -49,22 +49,27 @@ struct MenuItem {
 class MenuItemView : public Widget {
 public:
 	MenuItemView(
-		MenuItem item,
 		bool keep_highlight
-	) : item { item },
-		keep_highlight_ { keep_highlight }
+	) : keep_highlight { keep_highlight }
 	{
 	}
+	
+	MenuItemView(const MenuItemView&) = delete;
+	MenuItemView(MenuItemView&&) = delete;
+	MenuItemView& operator=(const MenuItemView&) = delete;
+	MenuItemView& operator=(MenuItemView&&) = delete;
 
 	void paint(Painter& painter) override;
+	
+	void set_item(MenuItem* item_);
 
 	void select();
 	void highlight();
 	void unhighlight();
 
 private:
-	const MenuItem item;
-	bool keep_highlight_ = false;
+	MenuItem* item { nullptr };
+	bool keep_highlight = false;
 };
 
 class MenuView : public View {
@@ -81,8 +86,8 @@ public:
 	
 	MenuItemView* item_view(size_t index) const;
 
-	size_t highlighted() const;
 	bool set_highlighted(int32_t new_value);
+	uint32_t highlighted_index();
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 	void on_focus() override;
@@ -94,10 +99,11 @@ private:
 	void update_items();
 	void on_tick_second();
 	
-	bool keep_highlight_ { false };
+	bool keep_highlight { false };
 	
 	SignalToken signal_token_tick_second { };
-	std::vector<MenuItemView*> menu_items_ { };
+	std::vector<MenuItem> menu_items { };
+	std::vector<MenuItemView*> menu_item_views { };
 	
 	Image arrow_more {
 		{ 228, 320 - 8, 8, 8 },
@@ -107,11 +113,11 @@ private:
 	};
 
 	const size_t item_height = 24;
-	bool blink_ = false;
-	bool more_ = false;
-	size_t displayed_max_ { 0 };
-	size_t highlighted_ { 0 };
-	size_t offset_ { 0 };
+	bool blink = false;
+	bool more = false;
+	size_t displayed_max { 0 };
+	size_t highlighted_item { 0 };
+	size_t offset { 0 };
 };
 
 } /* namespace ui */

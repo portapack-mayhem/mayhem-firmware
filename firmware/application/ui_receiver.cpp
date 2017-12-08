@@ -149,7 +149,7 @@ FrequencyKeypadView::FrequencyKeypadView(
 	};
 	button_load.on_select = [this, &nav](Button&) {
 		auto load_view = nav.push<FrequencyLoadView>();
-		load_view->on_changed = [this](rf::Frequency value) {
+		load_view->on_frequency_loaded = [this](rf::Frequency value) {
 			set_value(value);
 		};
 	};

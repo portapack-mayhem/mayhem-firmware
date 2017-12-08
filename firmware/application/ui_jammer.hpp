@@ -43,8 +43,8 @@ public:
 	jammer_range_t frequency_range { false, 0, 0 };
 	
 private:
-	void update_min(rf::Frequency f);
-	void update_max(rf::Frequency f);
+	void update_start(rf::Frequency f);
+	void update_stop(rf::Frequency f);
 	void update_center(rf::Frequency f);
 	void update_width(uint32_t w);
 	
@@ -57,7 +57,7 @@ private:
 		.foreground = Color::grey(),
 	};
 	
-	static constexpr jammer_range_t range_presets[] = {
+	/*static constexpr jammer_range_t range_presets[] = {
 		// GSM900 Orange
 		{ true, 935000000, 945000000 },		// BW:10M
 		// GSM1800 Orange
@@ -122,10 +122,9 @@ private:
 		{ true, 2467000000 - 11000000, 2467000000 + 11000000},	// BW: 22MHz
 		// WLAN 2.4G CH13
 		{ true, 2472000000 - 11000000, 2472000000 + 11000000},	// BW: 22MHz
-	};
+	};*/
 	
 	Labels labels {
-		{ { 1 * 8, 4 * 8 }, "Preset:", Color::light_grey() },
 		{ { 2 * 8, 9 * 8 + 4 }, "Start", Color::light_grey() },
 		{ { 23 * 8, 9 * 8 + 4 }, "Stop", Color::light_grey() },
 		{ { 12 * 8, 6 * 8 }, "Center", Color::light_grey() },
@@ -133,51 +132,21 @@ private:
 	};
 	
 	Checkbox check_enabled {
-		{ 7 * 8, 4 },
+		{ 1 * 8, 4 },
 		12,
-		"Enable range",
-		false
+		"Enable range"
 	};
 	
-	OptionsField options_preset {
-		{ 9 * 8, 4 * 8 },
-		19,
-		{
-			{ "GSM900 Orange FR", 0 },
-			{ "GSM1800 Orange FR", 1 },
-			{ "GSM900 SFR FR", 2 },
-			{ "GSM1800 SFR FR", 3 },
-			{ "GSM900 Bouygues FR", 4 },
-			{ "GSM1800 Bouygues FR", 5 },
-			{ "GSM Free FR", 6 },
-			{ "GSM-R FR", 7 },
-			{ "DECT", 8 },
-			{ "Optifib", 9 },
-			{ "ISM 433", 10 },
-			{ "ISM 868", 11 },
-			{ "GPS L1", 12 },
-			{ "GPS L2", 13 },
-			{ "WLAN 2.4G CH1", 14 },
-			{ "WLAN 2.4G CH2", 15 },
-			{ "WLAN 2.4G CH3", 16 },
-			{ "WLAN 2.4G CH4", 17 },
-			{ "WLAN 2.4G CH5", 18 },
-			{ "WLAN 2.4G CH6", 19 },
-			{ "WLAN 2.4G CH7", 20 },
-			{ "WLAN 2.4G CH8", 21 },
-			{ "WLAN 2.4G CH9", 22 },
-			{ "WLAN 2.4G CH10", 23 },
-			{ "WLAN 2.4G CH11", 24 },
-			{ "WLAN 2.4G CH12", 25 },
-			{ "WLAN 2.4G CH13", 26 }
-		}
+	Button button_load_range {
+		{ 18 * 8, 4, 12 * 8, 24 },
+		"Load range"
 	};
 	
-	Button button_min {
+	Button button_start {
 		{ 0 * 8, 6 * 16, 11 * 8, 28 },
 		""
 	};
-	Button button_max {
+	Button button_stop {
 		{ 19 * 8, 6 * 16, 11 * 8, 28 },
 		""
 	};

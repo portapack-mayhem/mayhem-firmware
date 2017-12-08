@@ -33,6 +33,7 @@
 //BUG: SCANNER Multiple slices
 
 //TODO: Display file creation/modification date in FileLoadView
+//TODO: Super simple text file viewer
 //TODO: Display recording frequency in Replay (from associated .txt file, if present)
 //TODO: Clean up ReplayThread
 //TODO: Cap Wav viewer position
@@ -40,7 +41,6 @@
 //TODO: Use unit_auto_scale
 //TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
 //TODO: Continue work on proc_afskrx_corr, see python script (it works !)
-//TODO: Super simple text file viewer
 //TODO: De bruijn sequence scanner for encoders
 //TODO: FILEMAN Rename folders
 //TODO: FILEMAN Move files

@@ -82,7 +82,7 @@ void AboutView::update() {
 	std::array<Color, 240> pixel_row;
 	
 	slow_down++;
-	if (slow_down & 1) return;
+	if (slow_down % 3 < 2) return;
 	
 	if (!timer) {
 		if (loop) {

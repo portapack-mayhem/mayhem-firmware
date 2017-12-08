@@ -22,6 +22,7 @@
 
 #include "ui_jammer.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freqman.hpp"
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -34,13 +35,12 @@ void RangeView::focus() {
 	check_enabled.focus();
 }
 
-extern constexpr jammer_range_t RangeView::range_presets[];
 extern constexpr Style RangeView::style_info;
 
-void RangeView::update_min(rf::Frequency f) {
+void RangeView::update_start(rf::Frequency f) {
 	// Change everything except max
 	frequency_range.min = f;
-	button_min.set_text(to_string_short_freq(f));
+	button_start.set_text(to_string_short_freq(f));
 	
 	center = (frequency_range.min + frequency_range.max) / 2;
 	width = abs(frequency_range.max - frequency_range.min);
@@ -49,10 +49,10 @@ void RangeView::update_min(rf::Frequency f) {
 	button_width.set_text(to_string_short_freq(width));
 }
 
-void RangeView::update_max(rf::Frequency f) {
+void RangeView::update_stop(rf::Frequency f) {
 	// Change everything except min
 	frequency_range.max = f;
-	button_max.set_text(to_string_short_freq(f));
+	button_stop.set_text(to_string_short_freq(f));
 	
 	center = (frequency_range.min + frequency_range.max) / 2;
 	width = abs(frequency_range.max - frequency_range.min);
@@ -70,10 +70,10 @@ void RangeView::update_center(rf::Frequency f) {
 	rf::Frequency max = min + width;
 	
 	frequency_range.min = min;
-	button_min.set_text(to_string_short_freq(min));
+	button_start.set_text(to_string_short_freq(min));
 	
 	frequency_range.max = max;
-	button_max.set_text(to_string_short_freq(max));
+	button_stop.set_text(to_string_short_freq(max));
 }
 
 void RangeView::update_width(uint32_t w) {
@@ -86,10 +86,10 @@ void RangeView::update_width(uint32_t w) {
 	rf::Frequency max = min + width;
 	
 	frequency_range.min = min;
-	button_min.set_text(to_string_short_freq(min));
+	button_start.set_text(to_string_short_freq(min));
 	
 	frequency_range.max = max;
-	button_max.set_text(to_string_short_freq(max));
+	button_stop.set_text(to_string_short_freq(max));
 }
 
 void RangeView::paint(Painter&) {
@@ -123,9 +123,9 @@ RangeView::RangeView(NavigationView& nav) {
 	add_children({
 		&labels,
 		&check_enabled,
-		&options_preset,
-		&button_min,
-		&button_max,
+		&button_load_range,
+		&button_start,
+		&button_stop,
 		&button_center,
 		&button_width
 	});
@@ -134,22 +134,18 @@ RangeView::RangeView(NavigationView& nav) {
 		frequency_range.enabled = v;
 	};
 	
-	button_min.on_select = [this, &nav](Button& button) {
+	button_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.min);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
-			update_min(f);
+			update_start(f);
 		};
-		
-		//update_button(button, f);
 	};
 	
-	button_max.on_select = [this, &nav](Button& button) {
+	button_stop.on_select = [this, &nav](Button& button) {
 		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
-			update_max(f);
+			update_stop(f);
 		};
-		
-		//update_button(button, f);
 	};
 
 	button_center.on_select = [this, &nav](Button& button) {
@@ -157,8 +153,6 @@ RangeView::RangeView(NavigationView& nav) {
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			update_center(f);
 		};
-		
-		//update_button(button, f);
 	};
 	
 	button_width.on_select = [this, &nav](Button& button) {
@@ -166,16 +160,19 @@ RangeView::RangeView(NavigationView& nav) {
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			update_width(f);
 		};
-		
-		//update_button(button, f);
 	};
 	
-	options_preset.on_change = [this](size_t, OptionsField::value_t v) {
-		update_min(range_presets[v].min);
-		update_max(range_presets[v].max);
-		check_enabled.set_value(true);
+	button_load_range.on_select = [this, &nav](Button&) {
+		auto load_view = nav.push<FrequencyLoadView>();
+		load_view->on_frequency_loaded = [this](rf::Frequency value) {
+			update_center(value);
+			update_width(100000);	// 100kHz default jamming bandwidth when loading unique frequency
+		};
+		load_view->on_range_loaded = [this](rf::Frequency start, rf::Frequency stop) {
+			update_start(start);
+			update_stop(stop);
+		};
 	};
-	options_preset.set_selected_index(11);	// ISM 868
 	
 	check_enabled.set_value(false);
 }

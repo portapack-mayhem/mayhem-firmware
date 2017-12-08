@@ -61,7 +61,7 @@ std::filesystem::path FileManBaseView::get_selected_path() {
 	
 	if (selected_path_str.back() != '/')
 		selected_path_str += '/';
-	selected_path_str += (entry_list[menu_view.highlighted()].entry_path.string());
+	selected_path_str += (entry_list[menu_view.highlighted_index()].entry_path.string());
 	
 	return selected_path_str;
 }
@@ -225,13 +225,13 @@ FileLoadView::FileLoadView(
 	refresh_list();
 	
 	on_select_entry = [&nav, this]() {
-		if (entry_list[menu_view.highlighted()].is_directory) {
+		if (entry_list[menu_view.highlighted_index()].is_directory) {
 			load_directory_contents(get_selected_path());
 			refresh_list();
 		} else {
 			nav_.pop();
 			if (on_changed)
-				on_changed(entry_list[menu_view.highlighted()].entry_path);
+				on_changed(entry_list[menu_view.highlighted_index()].entry_path);
 		}
 	};
 }
@@ -282,7 +282,7 @@ FileManagerView::FileManagerView(
 	refresh_list();
 	
 	on_select_entry = [this]() {
-		if (entry_list[menu_view.highlighted()].is_directory) {
+		if (entry_list[menu_view.highlighted_index()].is_directory) {
 			load_directory_contents(get_selected_path());
 			refresh_list();
 		} else
@@ -302,13 +302,13 @@ FileManagerView::FileManagerView(
 	};
 	
 	button_rename.on_select = [this, &nav](Button&) {
-		name_buffer = entry_list[menu_view.highlighted()].entry_path.filename().string().substr(0, max_filename_length);
+		name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
 		on_rename(nav);
 	};
 	
 	button_delete.on_select = [this, &nav](Button&) {
 		// Use display_modal ?
-		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted()].entry_path.filename().string() + "\nAre you sure ?", YESNO,
+		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure ?", YESNO,
 			[this](bool choice) {
 				if (choice)
 					on_delete();
