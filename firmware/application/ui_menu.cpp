@@ -31,14 +31,6 @@ void MenuItemView::set_item(MenuItem* item_) {
 	item = item_;
 }
 
-void MenuItemView::select() {
-	if (!item) return;
-	
-	if( item->on_select ) {
-		item->on_select();
-	}
-}
-
 void MenuItemView::highlight() {
 	set_highlighted(true);
 	set_dirty();
@@ -135,9 +127,9 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 			remove_child(item);
 			delete item;
 		}
+		
+		menu_item_views.clear();
 	}
-
-	menu_item_views.clear();
 	
 	for (size_t c = 0; c < displayed_max; c++) {
 		auto item = new MenuItemView { keep_highlight };
@@ -225,12 +217,12 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	
 	if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
 		// Shift MenuView up
-	highlighted_item = new_value;
+		highlighted_item = new_value;
 		offset = new_value - displayed_max + 1;
 		update_items();
 	} else if ((uint32_t)new_value < offset) {
 		// Shift MenuView down
-	highlighted_item = new_value;
+		highlighted_item = new_value;
 		offset = new_value;
 		update_items();
 	} else {
@@ -248,11 +240,12 @@ uint32_t MenuView::highlighted_index() {
 }
 
 void MenuView::on_focus() {
-	item_view(highlighted_item)->highlight();
+	item_view(highlighted_item - offset)->highlight();
 }
 
 void MenuView::on_blur() {
-	if (!keep_highlight) item_view(highlighted_item)->unhighlight();
+	if (!keep_highlight)
+		item_view(highlighted_item - offset)->unhighlight();
 }
 
 bool MenuView::on_key(const KeyEvent key) {
@@ -265,7 +258,9 @@ bool MenuView::on_key(const KeyEvent key) {
 
 	case KeyEvent::Select:
 	case KeyEvent::Right:
-		item_view(highlighted_item - offset)->select();
+		if( menu_items[highlighted_item].on_select ) {
+			menu_items[highlighted_item].on_select();
+		}
 		return true;
 
 	case KeyEvent::Left:

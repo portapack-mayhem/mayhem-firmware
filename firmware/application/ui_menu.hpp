@@ -63,7 +63,6 @@ public:
 	
 	void set_item(MenuItem* item_);
 
-	void select();
 	void highlight();
 	void unhighlight();
 
