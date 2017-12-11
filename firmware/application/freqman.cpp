@@ -43,25 +43,27 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 	char * line_end;
 	std::string description;
 	rf::Frequency frequency_a, frequency_b;
-	char file_data[256];
+	char file_data[257];
 	freqman_entry_type type;
 	
-	db.entries.clear();
+	db.clear();
 	
 	auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
 	if (result.is_valid())
 		return false;
 	
 	while (1) {
+		// Read a 256 bytes block from file
 		freqman_file.seek(file_position);
 		
-		memset(file_data, 0, 256);
+		memset(file_data, 0, 257);
 		auto read_size = freqman_file.read(file_data, 256);
 		if (read_size.is_error())
 			return false;	// Read error
 		
-		file_position += sizeof(file_data);
+		file_position += 256;
 		
+		// Reset line_start to beginning of buffer
 		line_start = file_data;
 		
 		if (!strstr(file_data, "f=") && !strstr(file_data, "a="))
@@ -102,18 +104,20 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 			} else
 				description = "-";
 			
-			db.entries.push_back({ frequency_a, frequency_b, description, type });
+			db.push_back({ frequency_a, frequency_b, description, type });
 			n++;
 			
 			if (n >= FREQMAN_MAX_PER_FILE) return true;
 			
 			line_start = line_end + 1;
+			if (line_start - file_data >= 256) break;
 		}
 		
-		if (read_size.value() != sizeof(file_data))
-			return true;	// End of file
+		if (read_size.value() != 256)
+			break;	// End of file
 		
-		file_position -= (file_data + sizeof(file_data) - line_start);
+		// Restart at beginning of last incomplete line
+		file_position -= (file_data + 256 - line_start);
 	}
 	
 	return true;
@@ -127,8 +131,8 @@ bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 	if (!create_freqman_file(file_stem, freqman_file))
 		return false;
 	
-	for (size_t n = 0; n < db.entries.size(); n++) {
-		auto& entry = db.entries[n];
+	for (size_t n = 0; n < db.size(); n++) {
+		auto& entry = db[n];
 
 		frequency_a = entry.frequency_a;
 		

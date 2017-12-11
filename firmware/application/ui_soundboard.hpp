@@ -75,7 +75,7 @@ private:
 	
 	std::unique_ptr<WAVFileReader> reader { };
 	
-	sound sounds[108];			// 6 pages * 18 buttons
+	sound sounds[54];			// 3 pages * 18 buttons
 	uint32_t max_sound { };
 	uint8_t max_page { };
 
@@ -109,27 +109,26 @@ private:
 	
 	void do_random();
 	void show_infos(uint16_t id);
-	void change_page(Button& button, const KeyEvent key);
+	bool change_page(Button& button, const KeyEvent key);
 	void refresh_buttons(uint16_t id);
 	void play_sound(uint16_t id);
 	void prepare_audio();
 	void on_ctcss_changed(uint32_t v);
+	
+	Labels labels {
+		{ { 10 * 8, 4 }, "BW:   kHz", Color::light_grey() }
+	};
 	
 	FrequencyField field_frequency {
 		{ 0, 4 },
 	};
 	
 	NumberField number_bw {
-		{ 10 * 8, 4 },
+		{ 13 * 8, 4 },
 		3,
-		{1, 150},
+		{ 1, 150 },
 		1,
 		' '
-	};
-	
-	Text text_kHz {
-		{ 13 * 8, 4, 8 * 8, 16 },
-		"k CTCSS:"
 	};
 	
 	OptionsField options_tone_key {
@@ -153,7 +152,7 @@ private:
 	};
 	
 	ProgressBar pbar {
-		{ 9 * 8, 30 * 8, 19 * 8, 16 }
+		{ 9 * 8, 30 * 8, 20 * 8, 16 }
 	};
 	
 	Checkbox check_loop {

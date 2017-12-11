@@ -30,8 +30,8 @@
 #define __FREQMAN_H__
 
 #define FREQMAN_DESC_MAX_LEN 30
-#define FREQMAN_MAX_PER_FILE 50
-#define FREQMAN_MAX_PER_FILE_STR "50"
+#define FREQMAN_MAX_PER_FILE 30
+#define FREQMAN_MAX_PER_FILE_STR "30"
 
 using namespace ui;
 using namespace std;
@@ -55,9 +55,7 @@ struct freqman_entry {
 	freqman_entry_type type { };
 };
 
-struct freqman_db {
-	std::vector<freqman_entry> entries;
-};
+using freqman_db = std::vector<freqman_entry>;
 
 std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db &db);

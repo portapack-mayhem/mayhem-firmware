@@ -119,7 +119,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	tone_key_index = options_tone_key.selected_index();
+	tone_key_index = 0;	//options_tone_key.selected_index();
 	
 	divider = (1536000 / sounds[id].sample_rate) - 1;
 	
@@ -164,19 +164,22 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 	show_infos(id);
 }
 
-void SoundBoardView::change_page(Button& button, const KeyEvent key) {
+bool SoundBoardView::change_page(Button& button, const KeyEvent key) {
 	// Stupid way to find out if the button is on the sides
 	if (button.screen_pos().x() < 32) {
 		if ((key == KeyEvent::Left) && (page > 0)) {
 			page--;
 			refresh_buttons(button.id);
+			return true;
 		}
 	} else if (button.screen_pos().x() > 120) {
 		if ((key == KeyEvent::Right) && (page < max_page - 1)) {
 			page++;
 			refresh_buttons(button.id);
+			return true;
 		}
 	}
+	return false;
 }
 
 SoundBoardView::SoundBoardView(
@@ -210,7 +213,7 @@ SoundBoardView::SoundBoardView(
 				else
 					sounds[c].title = "-";
 				c++;
-				if (c == 108) break;		// Limit to 108 files (6 pages)
+				if (c == 54) break;		// Limit to 54 files (3 pages)
 			}
 		}
 	}
@@ -221,10 +224,10 @@ SoundBoardView::SoundBoardView(
 	max_page = (max_sound + 18 - 1) / 18;	// 3 * 6 = 18 buttons per page
 	
 	add_children({
+		&labels,
 		&field_frequency,
 		&number_bw,
-		&text_kHz,
-		&options_tone_key,
+		//&options_tone_key,
 		&text_title,
 		&text_page,
 		&text_duration,
@@ -234,8 +237,8 @@ SoundBoardView::SoundBoardView(
 		&button_exit
 	});
 
-	tone_keys_populate(options_tone_key);
-	options_tone_key.set_selected_index(0);
+	//tone_keys_populate(options_tone_key);
+	//options_tone_key.set_selected_index(0);
 
 	const auto button_fn = [this](Button& button) {
 		tx_mode = NORMAL;
@@ -247,8 +250,7 @@ SoundBoardView::SoundBoardView(
 	};
 	
 	const auto button_dir = [this](Button& button, const KeyEvent key) {
-		this->change_page(button, key);
-		return false;
+		return change_page(button, key);
 	};
 
 	// Generate buttons
