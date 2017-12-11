@@ -45,10 +45,6 @@ public:
 
 	std::string title() const override { return "Replay"; };
 	
-	void start();
-	void stop();
-	bool is_active() const;
-
 private:
 	NavigationView& nav_;
 	
@@ -67,52 +63,58 @@ private:
 	rf::Frequency target_frequency() const;
 
 	void toggle();
+	void start();
+	void stop(const bool do_loop);
+	bool is_active() const;
 	void set_ready();
-	void handle_replay_thread_done(const File::Error error);
-	void handle_error(const File::Error error);
+	void handle_replay_thread_done(const uint32_t return_code);
+	void file_error();
 
 	std::filesystem::path file_path { };
 	std::unique_ptr<ReplayThread> replay_thread { };
 	bool ready_signal { false };
 
 	Labels labels {
-		{ { 10 * 8, 0 * 8 }, "LNA:   AMP:", Color::light_grey() }
-	};
-	
-	FrequencyField field_frequency {
-		{ 0 * 8, 0 * 16 },
-	};
-	
-	LNAGainField field_lna {
-		{ 14 * 8, 0 * 16 }
-	};
-
-	RFAmpField field_rf_amp {
-		{ 21 * 8, 0 * 16 }
-	};
-
-	ImageButton button_play {
-		{ 0 * 8, 1 * 16 + 8, 2 * 8, 1 * 16 },
-		&bitmap_play,
-		Color::green(),
-		Color::black()
-	};
-	
-	Text text_filename {
-		{ 2 * 8, 1 * 16, 18 * 8, 16 },
-		"-"
-	};
-	Text text_duration {
-		{ 2 * 8, 2 * 16, 6 * 8, 16 },
-		"-"
-	};
-	ProgressBar progressbar {
-		{ 9 * 8, 2 * 16, 10 * 8, 16 }
+		{ { 10 * 8, 2 * 16 }, "LNA:   A:", Color::light_grey() }
 	};
 	
 	Button button_open {
-		{ 20 * 8, 1 * 16, 10 * 8, 2 * 16 },
+		{ 0 * 8, 0 * 16, 10 * 8, 2 * 16 },
 		"Open file"
+	};
+	
+	Text text_filename {
+		{ 11 * 8, 0 * 16, 19 * 8, 16 },
+		"-"
+	};
+	Text text_duration {
+		{ 11 * 8, 1 * 16, 6 * 8, 16 },
+		"-"
+	};
+	ProgressBar progressbar {
+		{ 18 * 8, 1 * 16, 12 * 8, 16 }
+	};
+	
+	FrequencyField field_frequency {
+		{ 0 * 8, 2 * 16 },
+	};
+	LNAGainField field_lna {
+		{ 14 * 8, 2 * 16 }
+	};
+	RFAmpField field_rf_amp {
+		{ 19 * 8, 2 * 16 }
+	};
+	Checkbox check_loop {
+		{ 21 * 8, 2 * 16 },
+		4,
+		"Loop",
+		true
+	};
+	ImageButton button_play {
+		{ 28 * 8, 2 * 16, 2 * 8, 1 * 16 },
+		&bitmap_play,
+		Color::green(),
+		Color::black()
 	};
 
 	spectrum::WaterfallWidget waterfall { };
@@ -121,7 +123,7 @@ private:
 		Message::ID::ReplayThreadDone,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-			this->handle_replay_thread_done(message.error);
+			this->handle_replay_thread_done(message.return_code);
 		}
 	};
 	

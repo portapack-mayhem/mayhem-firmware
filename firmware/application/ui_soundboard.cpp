@@ -133,9 +133,7 @@ void SoundBoardView::play_sound(uint16_t id) {
 }
 
 void SoundBoardView::show_infos(uint16_t id) {
-	uint32_t duration = sounds[id].ms_duration;
-	
-	text_duration.set(to_string_dec_uint(duration / 1000) + "." + to_string_dec_uint((duration / 100) % 10) + "s");
+	text_duration.set(to_string_time_ms(sounds[id].ms_duration));
 	
 	text_title.set(sounds[id].title);
 }

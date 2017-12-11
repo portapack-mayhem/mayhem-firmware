@@ -997,13 +997,13 @@ public:
 class ReplayThreadDoneMessage : public Message {
 public:
 	constexpr ReplayThreadDoneMessage(
-		uint32_t error = 0
+		uint32_t return_code = 0
 	) : Message { ID::ReplayThreadDone },
-		error { error }
+		return_code { return_code }
 	{
 	}
 
-	uint32_t error;
+	uint32_t return_code;
 };
 
 #endif/*__MESSAGE_H__*/

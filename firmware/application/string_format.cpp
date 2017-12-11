@@ -117,6 +117,23 @@ std::string to_string_short_freq(const uint64_t f) {
 	return final_str;
 }
 
+std::string to_string_time_ms(const uint32_t ms) {
+	std::string final_str { "" };
+	
+	if (ms < 1000) {
+		final_str = to_string_dec_uint(ms) + "ms";
+	} else {
+		auto seconds = ms / 1000;
+		
+		if (seconds >= 60)
+			final_str = to_string_dec_uint(seconds / 60) + "m";
+		
+		return final_str + to_string_dec_uint(seconds % 60) + "s";
+	}
+	
+	return final_str;
+}
+
 static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 	const uint32_t d = n & 0xf;
 	p[l] = (d > 9) ? (d + 55) : (d + 48);

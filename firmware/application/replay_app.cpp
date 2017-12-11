@@ -44,18 +44,15 @@ void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
 	
 	file_path = new_file_path;
 	
-	text_filename.set(new_file_path.string().substr(0, 18));
+	text_filename.set(new_file_path.string().substr(0, 19));
 	
 	bbd_file.open("/" + new_file_path.string());
 	auto file_size = bbd_file.size();
-	auto duration = file_size / (2 * 2 * sampling_rate / 8);
+	auto duration = (file_size * 1000) / (2 * 2 * sampling_rate / 8);
 	
 	progressbar.set_max(file_size);
 	
-	if (duration >= 60)
-		str_duration = to_string_dec_uint(duration / 60) + "m";
-	
-	text_duration.set(str_duration + to_string_dec_uint(duration % 60) + "s");
+	text_duration.set(to_string_time_ms(duration));
 	
 	button_play.focus();
 }
@@ -68,27 +65,31 @@ void ReplayAppView::focus() {
 	button_open.focus();
 }
 
+void ReplayAppView::file_error() {
+	nav_.display_modal("Error", "File read error.");
+}
+
 bool ReplayAppView::is_active() const {
 	return (bool)replay_thread;
 }
 
 void ReplayAppView::toggle() {
 	if( is_active() ) {
-		stop();
+		stop(false);
 	} else {
 		start();
 	}
 }
 
 void ReplayAppView::start() {
-	stop();
+	stop(false);
 
 	std::unique_ptr<stream::Reader> reader;
 	
 	auto p = std::make_unique<FileReader>();
 	auto open_error = p->open(file_path);
 	if( open_error.is_valid() ) {
-		handle_error(open_error.value());
+		file_error();
 	} else {
 		reader = std::move(p);
 	}
@@ -99,12 +100,8 @@ void ReplayAppView::start() {
 			std::move(reader),
 			read_size, buffer_count,
 			&ready_signal,
-			[]() {
-				ReplayThreadDoneMessage message { };
-				EventDispatcher::send_message(message);
-			},
-			[](File::Error error) {
-				ReplayThreadDoneMessage message { error.code() };
+			[](uint32_t return_code) {
+				ReplayThreadDoneMessage message { return_code };
 				EventDispatcher::send_message(message);
 			}
 		);
@@ -121,25 +118,27 @@ void ReplayAppView::start() {
 	});
 }
 
-void ReplayAppView::stop() {
+void ReplayAppView::stop(const bool do_loop) {
 	if( is_active() )
 		replay_thread.reset();
-		
-	progressbar.set_value(0);
 	
-	radio::disable();
-	button_play.set_bitmap(&bitmap_play);
-}
-
-void ReplayAppView::handle_replay_thread_done(const File::Error error) {
-	stop();
-	if( error.code() ) {
-		handle_error(error);
+	if (do_loop && check_loop.value()) {
+		start();
+	} else {
+		radio::disable();
+		button_play.set_bitmap(&bitmap_play);
 	}
 }
 
-void ReplayAppView::handle_error(const File::Error error) {
-	nav_.display_modal("Error", error.what());
+void ReplayAppView::handle_replay_thread_done(const uint32_t return_code) {
+	if (return_code == ReplayThread::END_OF_FILE) {
+		stop(true);
+	} else if (return_code == ReplayThread::READ_ERROR) {
+		stop(false);
+		file_error();
+	}
+	
+	progressbar.set_value(0);
 }
 
 ReplayAppView::ReplayAppView(
@@ -150,14 +149,15 @@ ReplayAppView::ReplayAppView(
 
 	add_children({
 		&labels,
-		&field_frequency,
-		&field_lna,
-		&field_rf_amp,
-		&button_play,
+		&button_open,
 		&text_filename,
 		&text_duration,
 		&progressbar,
-		&button_open,
+		&field_frequency,
+		&field_lna,
+		&field_rf_amp,
+		&check_loop,
+		&button_play,
 		&waterfall,
 	});
 	

@@ -42,13 +42,11 @@ ReplayThread::ReplayThread(
 	size_t read_size,
 	size_t buffer_count,
 	bool* ready_signal,
-	std::function<void()> success_callback,
-	std::function<void(File::Error)> error_callback
+	std::function<void(uint32_t return_code)> terminate_callback
 ) : config { read_size, buffer_count },
 	reader { std::move(reader) },
 	ready_sig { ready_signal },
-	success_callback { std::move(success_callback) },
-	error_callback { std::move(error_callback) }
+	terminate_callback { std::move(terminate_callback) }
 {
 	// Need significant stack for FATFS
 	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ReplayThread::static_fn, this);
@@ -64,18 +62,14 @@ ReplayThread::~ReplayThread() {
 
 msg_t ReplayThread::static_fn(void* arg) {
 	auto obj = static_cast<ReplayThread*>(arg);
-	const auto error = obj->run();
-	if( error.is_valid() && obj->error_callback ) {
-		obj->error_callback(error.value());
-	} else {
-		if( obj->success_callback ) {
-			obj->success_callback();
-		}
+	const auto return_code = obj->run();
+	if( obj->terminate_callback ) {
+		obj->terminate_callback(return_code);
 	}
 	return 0;
 }
 
-Optional<File::Error> ReplayThread::run() {
+uint32_t ReplayThread::run() {
 	BasebandReplay replay { &config };
 	BufferExchange buffers { &config };
 	
@@ -99,7 +93,7 @@ Optional<File::Error> ReplayThread::run() {
 			for (size_t c = 0; c < blocks; c++) {
 				auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * 512], 512);
 				if( read_result.is_error() ) {
-					return read_result.error();
+					return READ_ERROR;
 				}
 			}
 			
@@ -116,10 +110,10 @@ Optional<File::Error> ReplayThread::run() {
 		
 		auto read_result = reader->read(buffer->data(), buffer->capacity());
 		if( read_result.is_error() ) {
-			return read_result.error();
+			return READ_ERROR;
 		} else {
 			if (read_result.value() == 0) {
-				return { };
+				return END_OF_FILE;
 			}
 		}
 		
@@ -128,5 +122,5 @@ Optional<File::Error> ReplayThread::run() {
 		buffers.put(buffer);
 	}
 
-	return { };
+	return TERMINATED;
 }
