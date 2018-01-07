@@ -46,13 +46,10 @@ public:
 	SetDateTimeView(NavigationView& nav);
 
 	void focus() override;
+	
+	std::string title() const override { return "Set Date/Time"; };
 
 private:
-	Text text_title {
-		{ 10 * 8, 7 * 16, 9 * 16, 16 },
-		"Date/Time"
-	};
-
 	NumberField field_year {
 		{ 4 * 8, 9 * 16 },
 		4,
@@ -135,36 +132,60 @@ struct SetFrequencyCorrectionModel {
 	int8_t ppm;
 };
 
-class SetFrequencyCorrectionView : public View {
+class SetRadioView : public View {
 public:
-	SetFrequencyCorrectionView(NavigationView& nav);
+	SetRadioView(NavigationView& nav);
 
 	void focus() override;
+	
+	std::string title() const override { return "Radio settings"; };
 
 private:
-	Text text_title {
-		{ 5 * 8, 7 * 16, 20 * 8, 16 },
-		"Frequency Correction"
+	Labels labels {
+		{ { 2 * 8, 2 * 16 }, "Frequency correction:", Color::light_grey() },
+		{ { 6 * 8, 3 * 16 }, "PPM", Color::light_grey() },
 	};
 
 	NumberField field_ppm {
-		{ 11 * 8, 9 * 16 },
+		{ 2 * 8, 3 * 16 },
 		3,
 		{ -50, 50 },
 		1,
 		'0',
 	};
-	Text text_ppm {
-		{ 15 * 8, 9 * 16, 3 * 8, 16 },
-		"PPM",
+	
+	Text text_description_1 {
+		{ 24, 6 * 16, 24 * 8, 16 },
+		"CAUTION: Ensure that all"
 	};
 
-	Button button_ok {
-		{ 4 * 8, 13 * 16, 8 * 8, 24 },
-		"OK",
+	Text text_description_2 {
+		{ 28, 7 * 16, 23 * 8, 16 },
+		"devices attached to the"
+	};
+
+	Text text_description_3 {
+		{  8, 8 * 16, 28 * 8, 16 },
+		"antenna connector can accept"
+	};
+
+	Text text_description_4 {
+		{ 68, 9 * 16, 13 * 8, 16 },
+		"a DC voltage!"
+	};
+
+	Checkbox check_bias {
+		{ 28, 12 * 16 },
+		5,
+		"Turn on bias voltage"
+	};
+
+	Button button_done {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Done"
 	};
 	Button button_cancel {
-		{ 18 * 8, 13 * 16, 8 * 8, 24 },
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
 		"Cancel",
 	};
 
@@ -201,57 +222,13 @@ private:
 	};
 };
 
-class AntennaBiasSetupView : public View {
-public:
-	AntennaBiasSetupView(NavigationView& nav);
-
-	void focus() override;
-
-private:
-	Text text_title {
-		{ 5 * 8, 3 * 16, 20 * 8, 16 },
-		"Antenna Bias Voltage"
-	};
-
-	Text text_description_1 {
-		{ 24, 6 * 16, 24 * 8, 16 },
-		"CAUTION: Ensure that all"
-	};
-
-	Text text_description_2 {
-		{ 28, 7 * 16, 23 * 8, 16 },
-		"devices attached to the"
-	};
-
-	Text text_description_3 {
-		{  8, 8 * 16, 28 * 8, 16 },
-		"antenna connector can accept"
-	};
-
-	Text text_description_4 {
-		{ 68, 9 * 16, 13 * 8, 16 },
-		"a DC voltage!"
-	};
-
-	OptionsField options_bias {
-		{ 100, 12 * 16 },
-		5,
-		{
-			{ " Off ", 0 },
-			{ " On  ", 1 },
-		}
-	};
-
-	Button button_done {
-		{ 72, 15 * 16, 96, 24 },
-		"Done"
-	};
-};
-
 class SetUIView : public View {
 public:
 	SetUIView(NavigationView& nav);
+	
 	void focus() override;
+	
+	std::string title() const override { return "UI settings"; };
 	
 private:
 	Checkbox checkbox_login {
@@ -295,6 +272,8 @@ public:
 	SetPlayDeadView(NavigationView& nav);
 	
 	void focus() override;
+	
+	std::string title() const override { return "Playdead settings"; };
 	
 private:
 	bool entermode = false;
@@ -390,6 +369,8 @@ private:
 class SetupMenuView : public MenuView {
 public:
 	SetupMenuView(NavigationView& nav);
+	
+	std::string title() const override { return "Settings"; };
 };
 
 } /* namespace ui */

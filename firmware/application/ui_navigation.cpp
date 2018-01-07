@@ -76,6 +76,8 @@
 #include "file.hpp"
 #include "png_writer.hpp"
 
+using portapack::receiver_model;
+
 namespace ui {
 
 /* SystemStatusView ******************************************************/
@@ -95,19 +97,20 @@ SystemStatusView::SystemStatusView() {
 		//&button_textentry,
 		&button_camera,
 		&button_sleep,
+		&image_bias_tee,
 		&sd_card_status_view,
 	});
 	
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
 	
+	if (portapack::persistent_memory::stealth_mode())
+		button_stealth.set_foreground(ui::Color::green());
+	
 	/*if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_icon_keyboard);
 	else
 		button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
-	
-	if (portapack::persistent_memory::stealth_mode())
-		button_stealth.set_foreground(ui::Color::green());
 
 	button_back.on_select = [this](ImageButton&){
 		if (this->on_back)
@@ -130,6 +133,16 @@ SystemStatusView::SystemStatusView() {
 		DisplaySleepMessage message;
 		EventDispatcher::send_message(message);
 	};
+}
+
+void SystemStatusView::refresh() {
+	if (receiver_model.antenna_bias()) {
+		image_bias_tee.set_bitmap(&bitmap_icon_biast_on);
+		image_bias_tee.set_foreground(ui::Color::green());
+	} else {
+		image_bias_tee.set_bitmap(&bitmap_icon_biast_off);
+		image_bias_tee.set_foreground(ui::Color::light_grey());
+	}	
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {

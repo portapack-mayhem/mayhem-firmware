@@ -78,12 +78,12 @@ private:
 	};
 
 	Text title {
-		{ 20, 0, 16 * 8, 1 * 16 },
+		{ 20, 0, 17 * 8, 1 * 16 },
 		default_title,
 	};
 	
 	ImageButton button_stealth {
-		{ 170, 0, 2 * 8, 1 * 16 },
+		{ 20 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_stealth,
 		Color::light_grey(),
 		Color::dark_grey()
@@ -97,19 +97,26 @@ private:
 	};*/
 
 	ImageButton button_camera {
-		{ 188, 0, 2 * 8, 1 * 16 },
+		{ 22 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_camera,
 		Color::white(),
 		Color::dark_grey()
 	};
 
 	ImageButton button_sleep {
-		{ 206, 0, 2 * 8, 1 * 16 },
+		{ 24 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_sleep,
 		Color::white(),
 		Color::dark_grey()
 	};
-
+	
+	Image image_bias_tee {
+		{ 26 * 8, 0, 2 * 8, 1 * 16 },
+		&bitmap_icon_biast_off,
+		Color::light_grey(),
+		Color::dark_grey()
+	};
+	
 	SDCardStatusView sd_card_status_view {
 		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
 	};
@@ -117,6 +124,15 @@ private:
 	void on_stealth();
 	//void on_textentry();
 	void on_camera();
+	void refresh();
+	
+	MessageHandlerRegistration message_handler_refresh {
+		Message::ID::StatusRefresh,
+		[this](const Message* const p) {
+			(void)p;
+			this->refresh();
+		}
+	};
 };
 
 class NavigationView : public View {
@@ -166,8 +182,8 @@ public:
 
 private:
 	Text text_info {
-		{ 5 * 8, 284, 20 * 8, 16 },
-		"shrbrnd-sig-ftk 2017"
+		{ 76, 284, 20 * 8, 16 },
+		"GIT " GIT_REVISION
 	};
 	
 	Button button_done {
