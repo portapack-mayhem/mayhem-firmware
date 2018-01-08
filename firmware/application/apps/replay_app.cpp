@@ -44,9 +44,9 @@ void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
 	
 	file_path = new_file_path;
 	
-	text_filename.set(new_file_path.string().substr(0, 19));
+	text_filename.set(file_path.filename().string().substr(0, 19));
 	
-	bbd_file.open("/" + new_file_path.string());
+	bbd_file.open("/" + file_path.string());
 	auto file_size = bbd_file.size();
 	auto duration = (file_size * 1000) / (2 * 2 * sampling_rate / 8);
 	
