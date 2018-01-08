@@ -231,7 +231,7 @@ FileLoadView::FileLoadView(
 		} else {
 			nav_.pop();
 			if (on_changed)
-				on_changed(entry_list[menu_view.highlighted_index()].entry_path);
+				on_changed(current_path.string() + '/' + entry_list[menu_view.highlighted_index()].entry_path.string());
 		}
 	};
 }

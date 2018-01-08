@@ -34,7 +34,6 @@ using portapack::receiver_model;
 using namespace portapack;
 
 #include "string_format.hpp"
-#include "portapack_persistent_memory.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 
@@ -58,7 +57,6 @@ SetDateTimeView::SetDateTimeView(
 	},
 
 	add_children({
-		&text_title,
 		&field_year,
 		&text_slash1,
 		&field_month,
@@ -112,25 +110,23 @@ SetDateTimeModel SetDateTimeView::form_collect() {
 	};
 }
 
-SetFrequencyCorrectionView::SetFrequencyCorrectionView(
+SetRadioView::SetRadioView(
 	NavigationView& nav
 ) {
-	button_ok.on_select = [&nav, this](Button&){
-		const auto model = this->form_collect();
-		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
-		nav.pop();
-	},
-
 	button_cancel.on_select = [&nav](Button&){
 		nav.pop();
 	},
 
 	add_children({
-		&text_title,
+		&labels,
 		&field_ppm,
-		&text_ppm,
-		&button_ok,
-		&button_cancel,
+		&text_description_1,
+		&text_description_2,
+		&text_description_3,
+		&text_description_4,
+		&check_bias,
+		&button_done,
+		&button_cancel
 	});
 
 	SetFrequencyCorrectionModel model {
@@ -138,43 +134,33 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(
 	};
 
 	form_init(model);
+
+	check_bias.set_value(receiver_model.antenna_bias());
+	check_bias.on_select = [this](Checkbox&, bool v) {
+		receiver_model.set_antenna_bias(v);
+		StatusRefreshMessage message { };
+		EventDispatcher::send_message(message);
+	};
+
+	button_done.on_select = [this, &nav](Button&){
+		const auto model = this->form_collect();
+		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
+		nav.pop();
+	};
 }
 
-void SetFrequencyCorrectionView::focus() {
-	button_cancel.focus();
+void SetRadioView::focus() {
+	button_done.focus();
 }
 
-void SetFrequencyCorrectionView::form_init(const SetFrequencyCorrectionModel& model) {
+void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
 	field_ppm.set_value(model.ppm);
 }
 
-SetFrequencyCorrectionModel SetFrequencyCorrectionView::form_collect() {
+SetFrequencyCorrectionModel SetRadioView::form_collect() {
 	return {
 		.ppm = static_cast<int8_t>(field_ppm.value()),
 	};
-}
-
-AntennaBiasSetupView::AntennaBiasSetupView(NavigationView& nav) {
-	add_children({
-		&text_title,
-		&text_description_1,
-		&text_description_2,
-		&text_description_3,
-		&text_description_4,
-		&options_bias,
-		&button_done,
-	});
-
-	options_bias.set_by_value(receiver_model.antenna_bias() ? 1 : 0);
-	options_bias.on_change = [this](size_t, OptionsField::value_t v) {
-		receiver_model.set_antenna_bias(v);
-	};
-
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
-}
-
-void AntennaBiasSetupView::focus() {
-	button_done.focus();
 }
 
 SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
@@ -230,8 +216,6 @@ void SetPlayDeadView::focus() {
 }
 
 SetUIView::SetUIView(NavigationView& nav) {
-	uint32_t ui_config;
-	
 	add_children({
 		&checkbox_login,
 		&checkbox_bloff,
@@ -240,24 +224,26 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&button_ok
 	});
 	
-	ui_config = portapack::persistent_memory::ui_config();
+	checkbox_showsplash.set_value(persistent_memory::config_splash());
+	checkbox_login.set_value(persistent_memory::config_login());
 	
-	if (ui_config & 1) checkbox_showsplash.set_value(true);
-	if (ui_config & 2) checkbox_bloff.set_value(true);
-	if (ui_config & 16) checkbox_login.set_value(true);
-	options_bloff.set_selected_index((ui_config >> 5) & 7);
+	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
+	
+	if (backlight_timer) {
+		checkbox_bloff.set_value(true);
+		options_bloff.set_by_value(backlight_timer);
+	} else {
+		options_bloff.set_selected_index(0);
+	}
 
-	button_ok.on_select = [&nav, &ui_config, this](Button&) {
-		ui_config &= ~0b10011;
+	button_ok.on_select = [&nav, this](Button&) {
+		if (checkbox_bloff.value())
+			persistent_memory::set_config_backlight_timer(options_bloff.selected_index() + 1);
+		else
+			persistent_memory::set_config_backlight_timer(0);
 		
-		if (checkbox_login.value()) {
-			portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
-			ui_config |= (1 << 4);
-		}
-		if (checkbox_showsplash.value()) ui_config |= (1 << 0);
-		if (checkbox_bloff.value()) ui_config |= (1 << 1);
-		
-		portapack::persistent_memory::set_ui_config(ui_config);
+		persistent_memory::set_config_splash(checkbox_showsplash.value());
+		persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
 	};
 }
@@ -446,13 +432,14 @@ void ModInfoView::focus() {
 
 SetupMenuView::SetupMenuView(NavigationView& nav) {
 	add_items({
-		{ "UI", 					ui::Color::white(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
+		{ "Radio",			ui::Color::white(), nullptr,	[&nav](){ nav.push<SetRadioView>(); } },
+		{ "UI", 			ui::Color::white(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
 		//{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
-		{ "Date/Time",				ui::Color::white(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Frequency correction",	ui::Color::white(), nullptr,	[&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
-		{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },		
-		{ "Touch screen",			ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "Play dead",				ui::Color::red(), 	&bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
+		{ "Date/Time",		ui::Color::white(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
+		//{ "Frequency correction",	ui::Color::white(), nullptr,	[&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
+		//{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },
+		{ "Touch screen",	ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "Play dead",		ui::Color::white(), &bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
 	});
 	on_left = [&nav](){ nav.pop(); };
 }

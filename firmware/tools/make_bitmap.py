@@ -62,9 +62,9 @@ def convert_png(file):
 			if j % 8 == 7:
 				f.write("0x%0.2X, " % data)
 				data = 0
-
+		
 		f.write("\n")
-		if i < rgb_im.size[0] - 1:
+		if i < rgb_im.size[1] - 1:
 			f.write('	')		# Tab
 
 	f.write("};\n")

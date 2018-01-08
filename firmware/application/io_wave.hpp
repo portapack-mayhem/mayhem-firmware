@@ -33,7 +33,7 @@ struct fmt_pcm_t {
 	constexpr fmt_pcm_t(
 		const uint32_t sampling_rate
 	) : nSamplesPerSec { sampling_rate },
-		nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
+		nAvgBytesPerSec { nSamplesPerSec * 2 }	// nBlockAlign = 2
 	{
 	}
 

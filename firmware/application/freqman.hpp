@@ -58,8 +58,8 @@ struct freqman_entry {
 using freqman_db = std::vector<freqman_entry>;
 
 std::vector<std::string> get_freqman_files();
-bool load_freqman_file(std::string& file_stem, freqman_db &db);
-bool save_freqman_file(std::string& file_stem, freqman_db &db);
+bool load_freqman_file(std::string& file_stem, freqman_db& db);
+bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
 std::string freqman_item_string(freqman_entry &item, size_t max_length);
 

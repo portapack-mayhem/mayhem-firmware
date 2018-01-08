@@ -80,6 +80,7 @@ struct data_t {
 	uint32_t playing_dead;
 	uint32_t playdead_sequence;
 	
+	// UI
 	uint32_t ui_config;
 	
 	uint32_t pocsag_last_address;
@@ -203,49 +204,50 @@ void set_playdead_sequence(const uint32_t new_value) {
 }
 
 bool stealth_mode() {
-	return ((data->ui_config >> 3) & 1) ? true : false;
+	return (data->ui_config & 0x20000000UL) ? true : false;
 }
 
-void set_stealth_mode(const bool new_value) {
-	data->ui_config = (data->ui_config & ~0b1000) | ((new_value & 1) << 3);
+void set_stealth_mode(const bool v) {
+	data->ui_config = (data->ui_config & ~0x20000000UL) | (v << 29);
 }
 
-uint32_t ui_config() {
-	uint8_t bloff_value;
-	
-	// Cap value
-	bloff_value = (data->ui_config >> 5) & 7;
-	if (bloff_value > 4) bloff_value = 1;		// 15s default
-
-	data->ui_config = (data->ui_config & 0x1F) | (bloff_value << 5);
-	
-	return data->ui_config;
+bool config_splash() {
+	return (data->ui_config & 0x80000000UL) ? true : false;
 }
 
-uint16_t ui_config_bloff() {
-	uint8_t bloff_value;
-	uint16_t bloff_seconds[5] = { 5, 15, 60, 300, 600 };
-	
-	if (!(data->ui_config & 2)) return 0;
-
-	// Cap value
-	bloff_value = (data->ui_config >> 5) & 7;
-	if (bloff_value > 4) bloff_value = 1;
-
-	return bloff_seconds[bloff_value];
+bool config_login() {
+	return (data->ui_config & 0x40000000UL) ? true : false;
 }
 
-void set_config_textentry(uint8_t new_value) {
+uint32_t config_backlight_timer() {
+	const uint32_t timer_seconds[8] = { 0, 5, 15, 60, 300, 600, 600, 600 };
+
+	return timer_seconds[data->ui_config & 0x00000007UL];
+}
+
+void set_config_splash(bool v) {
+	data->ui_config = (data->ui_config & ~0x80000000UL) | (v << 31);
+}
+
+void set_config_login(bool v) {
+	data->ui_config = (data->ui_config & ~0x40000000UL) | (v << 30);
+}
+
+void set_config_backlight_timer(uint32_t i) {
+	data->ui_config = (data->ui_config & ~0x00000007UL) | (i & 7);
+}
+
+/*void set_config_textentry(uint8_t new_value) {
 	data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
 }
 
 uint8_t ui_config_textentry() {
 	return ((data->ui_config >> 2) & 1);
-}
+}*/
 
-void set_ui_config(const uint32_t new_value) {
+/*void set_ui_config(const uint32_t new_value) {
 	data->ui_config = new_value;
-}
+}*/
 
 uint32_t pocsag_last_address() {
 	return data->pocsag_last_address;

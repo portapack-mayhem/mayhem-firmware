@@ -74,6 +74,7 @@ public:
 		ReplayConfig = 20,
 		ReplayThreadDone = 21,
 		AFSKRxConfigure = 22,
+		StatusRefresh = 23,
 
 		TXProgress = 30,
 		Retune = 31,
@@ -215,6 +216,14 @@ class DisplaySleepMessage : public Message {
 public:
 	constexpr DisplaySleepMessage(
 	) : Message { ID::DisplaySleep }
+	{
+	}
+};
+
+class StatusRefreshMessage : public Message {
+public:
+	constexpr StatusRefreshMessage(
+	) : Message { ID::StatusRefresh }
 	{
 	}
 };
