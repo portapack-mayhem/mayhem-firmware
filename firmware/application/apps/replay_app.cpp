@@ -39,20 +39,41 @@ void ReplayAppView::set_ready() {
 }
 
 void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
-	File bbd_file;
-	std::string str_duration = "";
+	File data_file, info_file;
+	char file_data[257];
+	
+	// Get file size
+	auto data_open_error = data_file.open("/" + new_file_path.string());
+	if (data_open_error.is_valid()) {
+		file_error();
+		return;
+	}
 	
 	file_path = new_file_path;
 	
-	text_filename.set(file_path.filename().string().substr(0, 19));
-	
-	bbd_file.open("/" + file_path.string());
-	auto file_size = bbd_file.size();
+	auto file_size = data_file.size();
 	auto duration = (file_size * 1000) / (2 * 2 * sampling_rate / 8);
 	
 	progressbar.set_max(file_size);
-	
+	text_filename.set(file_path.filename().string().substr(0, 19));
 	text_duration.set(to_string_time_ms(duration));
+	
+	// Get original record frequency if available
+	std::filesystem::path info_file_path = file_path;
+	info_file_path.replace_extension(u".TXT");
+	
+	auto info_open_error = info_file.open("/" + info_file_path.string());
+	if (!info_open_error.is_valid()) {
+		memset(file_data, 0, 257);
+		auto read_size = info_file.read(file_data, 256);
+		if (!read_size.is_error()) {
+			auto pos = strstr(file_data, "center_frequency=");
+			if (pos) {
+				pos += 17;
+				field_frequency.set_value(strtoll(pos, nullptr, 10));
+			}
+		}
+	}
 	
 	button_play.focus();
 }

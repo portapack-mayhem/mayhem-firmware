@@ -76,6 +76,7 @@ private:
 
 	Labels labels {
 		{ { 10 * 8, 2 * 16 }, "LNA:   A:", Color::light_grey() }
+		//{ { 10 * 8, 2 * 16 }, "500ksps", Color::light_grey() }
 	};
 	
 	Button button_open {
