@@ -247,11 +247,11 @@ private:
 		{ 52, 6 * 16 + 8 },
 		10,
 		{
-			{ "5 seconds", 0 },
-			{ "15 seconds", 1 },
-			{ "1 minute", 2 },
-			{ "5 minutes", 3 },
-			{ "10 minutes", 4 }
+			{ "5 seconds", 5 },
+			{ "15 seconds", 15 },
+			{ "1 minute", 60 },
+			{ "5 minutes", 300 },
+			{ "10 minutes", 600 }
 		}
 	};
 	

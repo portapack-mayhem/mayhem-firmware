@@ -222,15 +222,13 @@ void EventDispatcher::handle_local_queue() {
 }
 
 void EventDispatcher::handle_rtc_tick() {
-	uint16_t bloff;
-	
 	sd_card::poll_inserted();
 
 	portapack::temperature_logger.second_tick();
 	
-	bloff = portapack::persistent_memory::ui_config_bloff();
-	if (bloff) {
-		if (portapack::bl_tick_counter == bloff)
+	uint32_t backlight_timer = portapack::persistent_memory::config_backlight_timer();
+	if (backlight_timer) {
+		if (portapack::bl_tick_counter == backlight_timer)
 			set_display_sleep(true);
 		else
 			portapack::bl_tick_counter++;

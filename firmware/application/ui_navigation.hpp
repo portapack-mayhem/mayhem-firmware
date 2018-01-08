@@ -53,17 +53,58 @@ enum modal_t {
 	ABORT
 };
 
+class NavigationView : public View {
+public:
+	std::function<void(const View&)> on_view_changed { };
+
+	NavigationView() = default;
+
+	NavigationView(const NavigationView&) = delete;
+	NavigationView(NavigationView&&) = delete;
+	NavigationView& operator=(const NavigationView&) = delete;
+	NavigationView& operator=(NavigationView&&) = delete;
+
+	bool is_top() const;
+
+	template<class T, class... Args>
+	T* push(Args&&... args) {
+		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
+	}
+	
+	void push(View* v);
+
+	void pop();
+	void pop_modal();
+
+	void display_modal(const std::string& title, const std::string& message);
+	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
+
+	void focus() override;
+
+private:
+	std::vector<std::unique_ptr<View>> view_stack { };
+	Widget* modal_view { nullptr };
+
+	Widget* view() const;
+
+	void free_view();
+	void update_view();
+	View* push_view(std::unique_ptr<View> new_view);
+};
+
 class SystemStatusView : public View {
 public:
 	std::function<void(void)> on_back { };
 
-	SystemStatusView();
+	SystemStatusView(NavigationView& nav);
 
 	void set_back_enabled(bool new_value);
 	void set_title(const std::string new_value);
 
 private:
 	static constexpr auto default_title = "PortaPack|Havoc";
+	
+	NavigationView& nav_;
 
 	Rectangle backdrop {
 		{ 0 * 8, 0 * 16, 240, 16 },
@@ -110,8 +151,8 @@ private:
 		Color::dark_grey()
 	};
 	
-	Image image_bias_tee {
-		{ 26 * 8, 0, 2 * 8, 1 * 16 },
+	ImageButton button_bias_tee {
+		{ 26 * 8, 0, 12, 1 * 16 },
 		&bitmap_icon_biast_off,
 		Color::light_grey(),
 		Color::dark_grey()
@@ -122,6 +163,7 @@ private:
 	};
 
 	void on_stealth();
+	void on_bias_tee();
 	//void on_textentry();
 	void on_camera();
 	void refresh();
@@ -133,45 +175,6 @@ private:
 			this->refresh();
 		}
 	};
-};
-
-class NavigationView : public View {
-public:
-	std::function<void(const View&)> on_view_changed { };
-
-	NavigationView() = default;
-
-	NavigationView(const NavigationView&) = delete;
-	NavigationView(NavigationView&&) = delete;
-	NavigationView& operator=(const NavigationView&) = delete;
-	NavigationView& operator=(NavigationView&&) = delete;
-
-	bool is_top() const;
-
-	template<class T, class... Args>
-	T* push(Args&&... args) {
-		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
-	}
-	
-	void push(View* v);
-
-	void pop();
-	void pop_modal();
-
-	void display_modal(const std::string& title, const std::string& message);
-	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
-
-	void focus() override;
-
-private:
-	std::vector<std::unique_ptr<View>> view_stack { };
-	Widget* modal_view { nullptr };
-
-	Widget* view() const;
-
-	void free_view();
-	void update_view();
-	View* push_view(std::unique_ptr<View> new_view);
 };
 
 class BMPView : public View {
@@ -227,7 +230,7 @@ public:
 	Context& context() const override;
 
 private:
-	SystemStatusView status_view { };
+	SystemStatusView status_view { navigation_view };
 	NavigationView navigation_view { };
 	Context& context_;
 };

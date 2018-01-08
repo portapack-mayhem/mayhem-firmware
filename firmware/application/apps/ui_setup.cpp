@@ -216,8 +216,6 @@ void SetPlayDeadView::focus() {
 }
 
 SetUIView::SetUIView(NavigationView& nav) {
-	uint32_t ui_config;
-	
 	add_children({
 		&checkbox_login,
 		&checkbox_bloff,
@@ -226,24 +224,26 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&button_ok
 	});
 	
-	ui_config = portapack::persistent_memory::ui_config();
+	checkbox_showsplash.set_value(persistent_memory::config_splash());
+	checkbox_login.set_value(persistent_memory::config_login());
 	
-	if (ui_config & 1) checkbox_showsplash.set_value(true);
-	if (ui_config & 2) checkbox_bloff.set_value(true);
-	if (ui_config & 16) checkbox_login.set_value(true);
-	options_bloff.set_selected_index((ui_config >> 5) & 7);
+	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
+	
+	if (backlight_timer) {
+		checkbox_bloff.set_value(true);
+		options_bloff.set_by_value(backlight_timer);
+	} else {
+		options_bloff.set_selected_index(0);
+	}
 
-	button_ok.on_select = [&nav, &ui_config, this](Button&) {
-		ui_config &= ~0b10011;
+	button_ok.on_select = [&nav, this](Button&) {
+		if (checkbox_bloff.value())
+			persistent_memory::set_config_backlight_timer(options_bloff.selected_index() + 1);
+		else
+			persistent_memory::set_config_backlight_timer(0);
 		
-		if (checkbox_login.value()) {
-			portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
-			ui_config |= (1 << 4);
-		}
-		if (checkbox_showsplash.value()) ui_config |= (1 << 0);
-		if (checkbox_bloff.value()) ui_config |= (1 << 1);
-		
-		portapack::persistent_memory::set_ui_config(ui_config);
+		persistent_memory::set_config_splash(checkbox_showsplash.value());
+		persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
 	};
 }

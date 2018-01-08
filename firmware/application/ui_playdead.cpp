@@ -24,6 +24,8 @@
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 
+using namespace portapack;
+
 namespace ui {
 	
 void PlayDeadView::focus() {
@@ -31,10 +33,10 @@ void PlayDeadView::focus() {
 }
 
 void PlayDeadView::paint(Painter& painter) {
-	if (!(portapack::persistent_memory::ui_config() & 16)) {
+	if (persistent_memory::config_login()) {
 		// Blank the whole display
 		painter.fill_rectangle(
-			portapack::display.screen_rect(),
+			display.screen_rect(),
 			style().background
 		);
 	}
@@ -43,7 +45,7 @@ void PlayDeadView::paint(Painter& painter) {
 PlayDeadView::PlayDeadView(NavigationView& nav) {
 	rtc::RTC datetime;
 	
-	portapack::persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
+	persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
 	
 	add_children({
 		&text_playdead1,
@@ -64,9 +66,9 @@ PlayDeadView::PlayDeadView(NavigationView& nav) {
 	};
 	
 	button_seq_entry.on_select = [this, &nav](Button&){
-		if (sequence == portapack::persistent_memory::playdead_sequence()) {
-			portapack::persistent_memory::set_playing_dead(0x82175E23);		// Disable
-			if (!(portapack::persistent_memory::ui_config() & 16)) {
+		if (sequence == persistent_memory::playdead_sequence()) {
+			persistent_memory::set_playing_dead(0x82175E23);		// Disable
+			if (persistent_memory::config_login()) {
 				text_playdead3.hidden(false);
 			} else {
 				nav.pop();

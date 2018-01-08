@@ -82,7 +82,10 @@ namespace ui {
 
 /* SystemStatusView ******************************************************/
 
-SystemStatusView::SystemStatusView() {
+SystemStatusView::SystemStatusView(
+	NavigationView& nav
+) : nav_ (nav)
+{
 	static constexpr Style style_systemstatus {
 		.font = font::fixed_8x16,
 		.background = Color::dark_grey(),
@@ -97,7 +100,7 @@ SystemStatusView::SystemStatusView() {
 		//&button_textentry,
 		&button_camera,
 		&button_sleep,
-		&image_bias_tee,
+		&button_bias_tee,
 		&sd_card_status_view,
 	});
 	
@@ -112,6 +115,8 @@ SystemStatusView::SystemStatusView() {
 	else
 		button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
 
+	refresh();
+	
 	button_back.on_select = [this](ImageButton&){
 		if (this->on_back)
 			this->on_back();
@@ -119,6 +124,10 @@ SystemStatusView::SystemStatusView() {
 	
 	button_stealth.on_select = [this](ImageButton&) {
 		this->on_stealth();
+	};
+	
+	button_bias_tee.on_select = [this](ImageButton&) {
+		this->on_bias_tee();
 	};
 	
 	/*button_textentry.on_select = [this](ImageButton&) {
@@ -137,12 +146,12 @@ SystemStatusView::SystemStatusView() {
 
 void SystemStatusView::refresh() {
 	if (receiver_model.antenna_bias()) {
-		image_bias_tee.set_bitmap(&bitmap_icon_biast_on);
-		image_bias_tee.set_foreground(ui::Color::green());
+		button_bias_tee.set_bitmap(&bitmap_icon_biast_on);
+		button_bias_tee.set_foreground(ui::Color::yellow());
 	} else {
-		image_bias_tee.set_bitmap(&bitmap_icon_biast_off);
-		image_bias_tee.set_foreground(ui::Color::light_grey());
-	}	
+		button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
+		button_bias_tee.set_foreground(ui::Color::light_grey());
+	}
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
@@ -159,17 +168,33 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_stealth() {
-	bool cfg;
+	bool mode = not portapack::persistent_memory::stealth_mode();
 	
-	cfg = portapack::persistent_memory::stealth_mode();
-	portapack::persistent_memory::set_stealth_mode(not cfg);
+	portapack::persistent_memory::set_stealth_mode(mode);
 	
-	if (!cfg)
+	if (mode)
 		button_stealth.set_foreground(ui::Color::green());
 	else
 		button_stealth.set_foreground(ui::Color::light_grey());
 	
 	button_stealth.set_dirty();
+}
+
+void SystemStatusView::on_bias_tee() {
+	bool antenna_bias = receiver_model.antenna_bias();
+	
+	if (!antenna_bias) {
+		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector ?", YESNO, [this](bool v) {
+				if (v) {
+					receiver_model.set_antenna_bias(true);
+					refresh();
+				}
+			});
+	
+	} else {
+		receiver_model.set_antenna_bias(false);
+		refresh();
+	}
 }
 
 /*void SystemStatusView::on_textentry() {
@@ -434,7 +459,7 @@ SystemView::SystemView(
 		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
 		navigation_view.push<PlayDeadView>();
 	} else {*/
-		if (portapack::persistent_memory::ui_config() & 1)
+		if (portapack::persistent_memory::config_splash())
 			navigation_view.push<BMPView>();
 		else
 			navigation_view.push<SystemMenuView>();
