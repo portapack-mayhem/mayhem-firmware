@@ -74,6 +74,7 @@ private:
 class MenuView : public View {
 public:
 	std::function<void(void)> on_left { };
+	std::function<void(void)> on_highlight { nullptr };
 
 	MenuView(Rect new_parent_rect = { 0, 0, 240, 304 }, bool keep_highlight = false);
 	

@@ -233,8 +233,14 @@ space_info space(const path& p);
 } /* namespace filesystem */
 } /* namespace std */
 
+struct FATTimestamp {
+	uint16_t FAT_date;
+	uint16_t FAT_time;
+};
+
 void delete_file(const std::filesystem::path& file_path);
 void rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
+FATTimestamp file_created_date(const std::filesystem::path& file_path);
 uint32_t make_new_directory(const std::filesystem::path& dir_path);
 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
@@ -255,6 +261,7 @@ class File {
 public:
 	using Size = uint64_t;
 	using Offset = uint64_t;
+	using Timestamp = uint32_t;
 	using Error = std::filesystem::filesystem_error;
 
 	template<typename T>
@@ -321,8 +328,9 @@ public:
 
 	Result<Size> read(void* const data, const Size bytes_to_read);
 	Result<Size> write(const void* const data, const Size bytes_to_write);
-
+	
 	Result<Offset> seek(const uint64_t Offset);
+	Timestamp created_date();
 	Size size();
 
 	template<size_t N>

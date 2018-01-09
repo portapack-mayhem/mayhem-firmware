@@ -149,21 +149,30 @@ private:
 	void refresh_widgets(const bool v);
 	void on_rename(NavigationView& nav);
 	void on_delete();
+	
+	Labels labels {
+		{ { 0, 26 * 8 }, "Created ", Color::light_grey() }
+	};
+	
+	Text text_date {
+		{ 8 * 8, 26 * 8 , 19 * 8, 16 },
+		""
+	};
 
 	Button button_rename {
-		{ 0 * 8, 28 * 8, 14 * 8, 32 },
+		{ 0 * 8, 29 * 8, 12 * 8, 32 },
 		"Rename"
+	};
+	Button button_delete {
+		{ 18 * 8, 29 * 8, 12 * 8, 32 },
+		"Delete"
 	};
 	
 	Button button_new_dir {
-		{ 0 * 8, 33 * 8, 14 * 8, 32 },
+		{ 0 * 8, 34 * 8, 14 * 8, 32 },
 		"New dir"
 	};
 	
-	Button button_delete {
-		{ 18 * 8, 28 * 8, 12 * 8, 32 },
-		"Delete"
-	};
 };
 
 } /* namespace ui */

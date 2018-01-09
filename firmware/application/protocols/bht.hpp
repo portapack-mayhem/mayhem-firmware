@@ -28,9 +28,14 @@
 
 using namespace encoders;
 
-#define XY_TONE_LENGTH	((TONES_SAMPLERATE * 0.1) - 1)		// 100ms
-#define XY_SILENCE 		(TONES_SAMPLERATE * 0.4)			// 400ms
-#define XY_TONE_COUNT	20
+#define XY_TONE_DURATION	((TONES_SAMPLERATE * 0.1) - 1)		// 100ms
+#define XY_SILENCE 			(TONES_SAMPLERATE * 0.4)			// 400ms
+#define XY_TONE_COUNT		20
+#define XY_MAX_CITY			99
+
+#define EPAR_BIT_DURATION	(OOK_SAMPLERATE / 580)
+#define EPAR_REPEAT_COUNT	26
+#define EPAR_MAX_CITY		255
 	
 struct bht_city {
 	std::string name;

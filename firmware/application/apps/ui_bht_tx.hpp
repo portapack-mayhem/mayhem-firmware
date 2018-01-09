@@ -34,8 +34,6 @@
 #include "encoders.hpp"
 #include "portapack.hpp"
 
-#define XY_SEQ_COUNT 14
-
 namespace ui {
 
 class XylosView : public View {
@@ -46,39 +44,9 @@ public:
 	
 	void flip_relays();
 	void generate_message();
+	bool increment_address();
+	uint32_t get_scan_remaining();
 	
-	enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SEQUENCE
-	};
-	
-	tx_modes tx_mode = IDLE;
-	
-	uint32_t seq_index { 0 };
-	
-	struct sequence_t {
-		const std::string code;
-		const uint32_t delay;
-	};
-	
-	const sequence_t sequence_matin[XY_SEQ_COUNT] = {
-		{ "0000189000B1002B0000", 19 }, // 18:9:0:00	 R1=OFF (1)	
-		{ "0000189200B2110B0000", 16 },	// 18:9:2:00	 R1=ON  (4)	
-		{ "0000189200B1110B0000", 52 },	// 18:9:2:00	 R1=OFF (4)	
-		{ "0000189200B2110B0000", 17 },	// 18:9:2:00	 R1=ON  (4)	
-		{ "0000189200B1110B0000", 16 },	// 18:9:2:00	 R1=OFF (4)	
-		{ "0000189000B0012B0000", 22 },	// 18:9:0:00	 R3=OFF (2)	
-		{ "0000189200B1120B0000", 17 },	// 18:9:2:00	 R3=ON  (6)	
-		{ "0000189200B1110B0000", 17 },	// 18:9:2:00	 R3=OFF (6)	
-		{ "0000181AAAB1000B0000", 17 },	// 18:1:A:AA	 R1=OFF (10)	
-		{ "0000189400B1000B0000", 17 },	// 18:9:4:00	 R1=OFF (7)	
-		{ "0000189200B1120B0000", 14 },	// 18:9:2:00	 R3=ON  (6)	
-		{ "0000189200B1110B0000", 17 },	// 18:9:2:00	 R3=OFF (6)	
-		{ "0000181AAAB1000B0000", 17 },	// 18:1:A:AA	
-		{ "0000189400B0100B0000", 17 }	// 18:9:4:00	 R2=OFF (8)		
-	};
-
 private:
 	Labels labels {
 		{ { 8 * 8, 1 * 8 }, "Header:", Color::light_grey() },
@@ -107,7 +75,7 @@ private:
 	NumberField field_city {
 		{ 16 * 8, 3 * 8 },
 		2,
-		{ 0, 99 },
+		{ 0, XY_MAX_CITY },
 		1,
 		' '
 	};
@@ -154,11 +122,6 @@ private:
 		{ &bitmap_bulb_off, 1 },
 		{ &bitmap_bulb_on, 2 }
 	};
-	
-	Button button_seq {
-		{ 24 * 8, 1 * 8, 40, 32 },
-		"Seq"
-	};
 };
 
 class EPARView : public View {
@@ -169,8 +132,10 @@ public:
 	
 	void flip_relays();
 	size_t generate_message();
+	bool increment_address();
+	uint32_t get_scan_remaining();
 
-	size_t half { 0 };
+	bool half { false };
 	
 private:
 	Labels labels {
@@ -182,9 +147,9 @@ private:
 	NumberField field_city {
 		{ 16 * 8, 1 * 8 },
 		3,
-		{ 0, 255 },
+		{ 0, EPAR_MAX_CITY },
 		1,
-		' '
+		'0'
 	};
 	
 	OptionsField field_group {
@@ -204,11 +169,6 @@ private:
 		{ &bitmap_bulb_off, 0 },
 		{ &bitmap_bulb_on, 1 }
 	};
-	
-	Button button_scan {
-		{ 22 * 8, 1 * 8, 56, 32 },
-		"Scan"
-	};
 };
 
 class BHTView : public View {
@@ -223,15 +183,24 @@ public:
 private:
 	void on_tx_progress(const uint32_t progress, const bool done);
 	void start_tx();
+	void stop_tx();
 	
-	enum tx_type_t {
+	enum target_system_t {
 		XYLOS = 0,
 		EPAR = 1
 	};
 	
-	tx_type_t tx_type = { };
+	target_system_t target_system = { };
 	
-	Rect view_rect = { 0, 3 * 8, 240, 192 };
+	enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SCAN
+	};
+	
+	tx_modes tx_mode = IDLE;
+	
+	Rect view_rect = { 0, 3 * 8, 240, 176 };
 	
 	XylosView view_xylos { view_rect };
 	EPARView view_EPAR { view_rect };
@@ -245,25 +214,27 @@ private:
 		{ { 29 * 8, 14 * 16 + 4 }, "s", Color::light_grey() }
 	};
 	
-	ProgressBar progressbar {
-		{ 1 * 8, 14 * 16, 20 * 8, 16 },
-	};
-	Text text_message {
-		{ 1 * 8, 15 * 16, 20 * 8, 16 },
-		""
+	Checkbox checkbox_scan {
+		{ 1 * 8, 25 * 8 },
+		4,
+		"Scan"
 	};
 	
 	Checkbox checkbox_cligno {
-		{ 22 * 8, 14 * 16 },
-		1,
-		"~"
+		{ 16 * 8, 25 * 8 },
+		6,
+		"Cligno"
 	};
 	NumberField field_tempo {
-		{ 27 * 8, 14 * 16 + 4 },
+		{ 26 * 8, 25 * 8 + 4 },
 		2,
 		{ 1, 99 },
 		1,
 		' '
+	};
+	
+	ProgressBar progressbar {
+		{ 0 * 8, 29 * 8, 30 * 8, 16 },
 	};
 	
 	TransmitterView tx_view {

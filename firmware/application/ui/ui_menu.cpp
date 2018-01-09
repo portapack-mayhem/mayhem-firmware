@@ -231,7 +231,10 @@ bool MenuView::set_highlighted(int32_t new_value) {
 		highlighted_item = new_value;
 		item_view(highlighted_item - offset)->highlight();
 	}
-
+	
+	if (on_highlight)
+		on_highlight();
+	
 	return true;
 }
 

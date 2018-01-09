@@ -531,7 +531,9 @@ ProgressBar::ProgressBar(
 void ProgressBar::set_max(const uint32_t max) {
 	if (max == _max) return;
 	
-	_value = 0;
+	if (_value > _max)
+		_value = _max;
+	
 	_max = max;
 	set_dirty();
 }

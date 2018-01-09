@@ -27,15 +27,14 @@
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
-//BUG: Auto backlight off doesn't work anymore
 //BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
+//TODO: Open files in File Manager
+//TODO: Ask for filename after record
 //TODO: Make entries disappear from RecentEntries list in ADS-B RX (after 2 minutes with no update ?)
-//TODO: Display file creation/modification date in FileLoadView
 //TODO: Super simple text file viewer
-//TODO: Display recording frequency in Replay (from associated .txt file, if present)
 //TODO: Clean up ReplayThread
 //TODO: Cap Wav viewer position
 //TODO: Adapt wav viewer position step

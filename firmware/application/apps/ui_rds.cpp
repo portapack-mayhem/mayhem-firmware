@@ -260,6 +260,7 @@ RDSView::RDSView(
 	};
 	
 	tx_view.on_stop = [this]() {
+		// Kill tx_thread here ?
 		tx_view.set_transmitting(false);
 		transmitter_model.disable();
 		txing = false;
