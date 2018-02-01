@@ -74,7 +74,7 @@ void AudioTXProcessor::on_message(const Message* const msg) {
 	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-			fm_delta = message.fm_delta * (0xFFFFFFULL / 1536000);
+			fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
 			divider = message.divider;
 			as = 0;
 			

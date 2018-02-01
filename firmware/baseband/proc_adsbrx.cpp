@@ -34,8 +34,9 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 	int8_t re, im;
 	float mag;
 	uint32_t c;
-	uint8_t level, bit, byte;
-	bool confidence, first_in_window, last_in_window;
+	uint8_t level, bit, byte { };
+	//bool confidence;
+	bool first_in_window, last_in_window;
 	
 	// This is called at 2M/2048 = 977Hz
 	// One pulse = 500ns = 2 samples
@@ -62,10 +63,6 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				if ((prev_mag < threshold_low) && (mag < threshold_low)) {
 					// Both under window, silence.
 					if (null_count > 3) {
-						//text_debug_b.set("Bits:" + bits.substr(0, 25));
-						//text_debug_c.set("Hex:" + hex_str.substr(0, 26));
-						//text_debug_d.set("DF=" + to_string_dec_uint(frame.get_DF()) + " ICAO=" + to_string_hex(frame.get_ICAO_address(), 6));
-						
 						const ADSBFrameMessage message(frame);
 						shared_memory.application_queue.push(message);
 							
@@ -73,7 +70,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					} else
 						null_count++;
 						
-					confidence = false;
+					//confidence = false;
 					if (prev_mag > mag)
 						bit = 1;
 					else
@@ -87,13 +84,13 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					last_in_window = ((mag >= threshold_low) && (mag <= threshold_high));
 					
 					if ((first_in_window && !last_in_window) || (!first_in_window && last_in_window)) {
-						confidence = true;
+						//confidence = true;
 						if (prev_mag > mag)
 							bit = 1;
 						else
 							bit = 0;
 					} else {
-						confidence = false;
+						//confidence = false;
 						if (prev_mag > mag)
 							bit = 1;
 						else

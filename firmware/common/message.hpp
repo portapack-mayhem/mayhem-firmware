@@ -765,22 +765,22 @@ class AudioTXConfigMessage : public Message {
 public:
 	constexpr AudioTXConfigMessage(
 		const uint32_t divider,
-		const uint32_t fm_delta,
-		const uint32_t gain_x10,
+		const float deviation_hz,
+		const float audio_gain,
 		const uint32_t tone_key_delta,
 		const float tone_key_mix_weight
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
-		fm_delta(fm_delta),
-		gain_x10(gain_x10),
+		deviation_hz(deviation_hz),
+		audio_gain(audio_gain),
 		tone_key_delta(tone_key_delta),
 		tone_key_mix_weight(tone_key_mix_weight)
 	{
 	}
 
 	const uint32_t divider;
-	const uint32_t fm_delta;
-	const uint32_t gain_x10;
+	const float deviation_hz;
+	const float audio_gain;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
 };

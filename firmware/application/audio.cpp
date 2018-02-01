@@ -220,6 +220,7 @@ void init(audio::Codec* const codec) {
 
 void shutdown() {
 	audio_codec->reset();
+	input::stop();
 	output::stop();
 }
 

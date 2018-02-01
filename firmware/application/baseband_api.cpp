@@ -152,12 +152,12 @@ void kill_afsk() {
 	send_message(&message);
 }
 
-void set_audiotx_data(const uint32_t divider, const uint32_t bw, const uint32_t gain_x10,
+void set_audiotx_data(const uint32_t divider, const float deviation_hz, const float audio_gain,
 					const uint32_t tone_key_delta, const float tone_key_mix_weight) {
 	const AudioTXConfigMessage message {
 		divider,
-		bw,
-		gain_x10,
+		deviation_hz,
+		audio_gain,
 		tone_key_delta,
 		tone_key_mix_weight
 	};

@@ -70,14 +70,14 @@ struct Color {
 		return { 255,   0,   0 };
 	}
 	static constexpr Color dark_red() {
-		return { 191,   0,   0 };
+		return { 159,   0,   0 };
 	}
 	
 	static constexpr Color orange() {
 		return { 255, 175,   0 };
 	}
 	static constexpr Color dark_orange() {
-		return { 191,  88,   0 };
+		return { 191,  95,   0 };
 	}
 
 	static constexpr Color yellow() {
@@ -91,7 +91,7 @@ struct Color {
 		return {   0, 255,   0 };
 	}
 	static constexpr Color dark_green() {
-		return {   0, 191,   0 };
+		return {   0, 159,   0 };
 	}
 
 	static constexpr Color blue() {

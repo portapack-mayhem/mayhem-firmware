@@ -21,9 +21,9 @@
  */
 
 #include "proc_mictx.hpp"
-#include "tonesets.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
+#include "tonesets.hpp"
 #include "event_m4.hpp"
 
 #include <cstdint>
@@ -40,7 +40,7 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 		
 		if (!play_beep) {
 			sample = audio_buffer.p[i >> 6] >> 8;			// 1536000 / 64 = 24000
-			sample = (sample * (int32_t)gain_x10) / 10;
+			sample *= audio_gain;
 			
 			power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
 			
@@ -60,7 +60,6 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 				
 				if (beep_index == BEEP_TONES_NB) {
 					configured = false;
-					fm_delta = 0;		// Zero-out the IQ output for the rest of the buffer
 					shared_memory.application_queue.push(txprogress_message);
 				} else {
 					beep_gen.configure(beep_deltas[beep_index], 1.0);
@@ -74,20 +73,20 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 		sample = tone_gen.process(sample);
 		
 		// FM
-		if (fm_delta) {
+		if (configured) {
 			delta = sample * fm_delta;
 			
 			phase += delta;
-			sphase = phase + (64 << 24);
+			sphase = phase >> 24;
 
-			re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
-			im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+			re = (sine_table_i8[(sphase + 64) & 255]);
+			im = (sine_table_i8[sphase]);
 		} else {
 			re = 0;
 			im = 0;
 		}
 		
-		buffer.p[i] = {re, im};
+		buffer.p[i] = { re, im };
 	}
 }
 
@@ -97,8 +96,9 @@ void MicTXProcessor::on_message(const Message* const msg) {
 	
 	switch(msg->id) {
 		case Message::ID::AudioTXConfig:
-			fm_delta = config_message.fm_delta * (0xFFFFFFULL / baseband_fs);
-			gain_x10 = config_message.gain_x10;
+			fm_delta = config_message.deviation_hz * (0xFFFFFFUL / baseband_fs);
+			
+			audio_gain = config_message.audio_gain;
 			divider = config_message.divider;
 			power_acc_count = 0;
 			

@@ -35,9 +35,11 @@ public:
 	void on_message(const Message* const msg) override;
 
 private:
+	static constexpr size_t baseband_fs = 1536000U;
+	
 	bool configured = false;
 	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	int8_t audio_fifo_data[2048] { };
 	FIFO<int8_t> audio_fifo = { audio_fifo_data, 11 };	// 43ms @ 48000Hz

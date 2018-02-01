@@ -24,6 +24,8 @@
 
 namespace ui {
 
+Thread* WipeSDView::thread { nullptr };
+
 WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
 	add_children({
 		&text_info,
@@ -33,10 +35,9 @@ WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
 }
 
 WipeSDView::~WipeSDView() {
-	if (thread) chThdTerminate(thread);
+	if (thread)
+		chThdTerminate(thread);
 }
-
-Thread* WipeSDView::thread { nullptr };
 
 void WipeSDView::focus() {
 	BlockDeviceInfo block_device_info;
@@ -44,17 +45,14 @@ void WipeSDView::focus() {
 	dummy.focus();
 	
 	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe first 32MB of SD card\n(filesystem included) ?", YESCANCEL, [this](bool choice) {
+		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card ?", YESCANCEL, [this](bool choice) {
 				if (choice)
 					confirmed = true;
 			}
 		);
 	} else {
 		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
-			blocks = 32;	// Only erase first 32MB (block_device_info.blk_size * uint64_t(block_device_info.blk_num)) / (1024 * 1024);
-			progress.set_max(blocks);
-			
-			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO + 10, WipeSDView::static_fn, this);
+			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
 		} else {
 			nav_.pop();		// Just silently abort for now
 		}
