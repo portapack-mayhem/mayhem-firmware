@@ -50,7 +50,7 @@ private:
 	
 	static constexpr ui::Dim header_height = 3 * 16;
 	
-	static constexpr uint32_t sampling_rate = 4000000;
+	uint32_t sample_rate = 0;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 	const size_t read_size { 16384 };
 	const size_t buffer_count { 3 };
@@ -76,7 +76,6 @@ private:
 
 	Labels labels {
 		{ { 10 * 8, 2 * 16 }, "LNA:   A:", Color::light_grey() }
-		//{ { 10 * 8, 2 * 16 }, "500ksps", Color::light_grey() }
 	};
 	
 	Button button_open {
@@ -85,9 +84,14 @@ private:
 	};
 	
 	Text text_filename {
-		{ 11 * 8, 0 * 16, 19 * 8, 16 },
+		{ 11 * 8, 0 * 16, 12 * 8, 16 },
 		"-"
 	};
+	Text text_sample_rate {
+		{ 24 * 8, 0 * 16, 6 * 8, 16 },
+		"-"
+	};
+	
 	Text text_duration {
 		{ 11 * 8, 1 * 16, 6 * 8, 16 },
 		"-"

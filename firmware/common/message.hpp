@@ -75,6 +75,7 @@ public:
 		ReplayThreadDone = 21,
 		AFSKRxConfigure = 22,
 		StatusRefresh = 23,
+		SamplerateConfig = 24,
 
 		TXProgress = 30,
 		Retune = 31,
@@ -749,6 +750,18 @@ public:
 	
 	int64_t freq = 0;
 	uint32_t range = 0;
+};
+
+class SamplerateConfigMessage : public Message {
+public:
+	constexpr SamplerateConfigMessage(
+		const uint32_t sample_rate
+	) : Message { ID::SamplerateConfig },
+		sample_rate(sample_rate)
+	{
+	}
+	
+	const uint32_t sample_rate = 0;
 };
 
 class AudioLevelReportMessage : public Message {

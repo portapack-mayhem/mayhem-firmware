@@ -45,9 +45,8 @@ public:
 	rf::Frequency frequency_step() const;
 	void set_frequency_step(rf::Frequency f);
 
-	bool antenna_bias() const;
-	void set_antenna_bias(bool enabled);
-
+	void set_antenna_bias();
+	
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
@@ -91,7 +90,6 @@ private:
 	rf::Frequency frequency_step_ { 25000 };
 	bool enabled_ { false };
 	bool rf_amp_ { false };
-	bool antenna_bias_ { false };
 	int32_t lna_gain_db_ { 32 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };

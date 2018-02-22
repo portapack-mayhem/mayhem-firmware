@@ -42,7 +42,7 @@ public:
 	void on_message(const Message* const message) override;
 
 private:
-	static constexpr size_t baseband_fs = 4000000;
+	size_t baseband_fs = 0;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
@@ -66,6 +66,7 @@ private:
 	bool configured { false };
 	uint32_t bytes_read { 0 };
 
+	void samplerate_config(const SamplerateConfigMessage& message);
 	void replay_config(const ReplayConfigMessage& message);
 	
 	TXProgressMessage txprogress_message { };

@@ -296,6 +296,11 @@ void spectrum_streaming_stop() {
 	send_message(&message);
 }
 
+void set_sample_rate(const uint32_t sample_rate) {
+	SamplerateConfigMessage message { sample_rate };
+	send_message(&message);
+}
+
 void capture_start(CaptureConfig* const config) {
 	CaptureConfigMessage message { config };
 	send_message(&message);

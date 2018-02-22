@@ -135,9 +135,9 @@ SetRadioView::SetRadioView(
 
 	form_init(model);
 
-	check_bias.set_value(receiver_model.antenna_bias());
+	check_bias.set_value(portapack::get_antenna_bias());
 	check_bias.on_select = [this](Checkbox&, bool v) {
-		receiver_model.set_antenna_bias(v);
+		portapack::set_antenna_bias(v);
 		StatusRefreshMessage message { };
 		EventDispatcher::send_message(message);
 	};

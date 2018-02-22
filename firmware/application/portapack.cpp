@@ -77,12 +77,20 @@ WM8731 audio_codec_wm8731 { i2c0, 0x1a };
 AK4951 audio_codec_ak4951 { i2c0, 0x12 };
 
 ReceiverModel receiver_model;
+TransmitterModel transmitter_model;
 
 TemperatureLogger temperature_logger;
 
-TransmitterModel transmitter_model;
+bool antenna_bias { false };
+uint8_t bl_tick_counter { 0 };
 
-uint8_t bl_tick_counter = 0;
+void set_antenna_bias(const bool v) {
+	antenna_bias = v;
+}
+
+bool get_antenna_bias() {
+	return antenna_bias;
+}
 
 class Power {
 public:

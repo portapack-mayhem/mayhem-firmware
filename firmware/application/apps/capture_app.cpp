@@ -35,6 +35,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_capture);
 
 	add_children({
+		&labels,
 		&rssi,
 		&channel,
 		&field_frequency,
@@ -42,6 +43,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
+		&option_bandwidth,
 		&record_view,
 		&waterfall,
 	});
@@ -65,6 +67,16 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		receiver_model.set_frequency_step(v);
 		this->field_frequency.set_step(v);
 	};
+	
+	option_bandwidth.on_change = [this](size_t, uint32_t divider) {
+		sampling_rate = 4000000 / divider;
+		
+		waterfall.on_hide();
+		set_target_frequency(target_frequency());
+		record_view.set_sampling_rate(sampling_rate);
+		radio::set_baseband_rate(sampling_rate);
+		waterfall.on_show();
+	};
 
 	radio::enable({
 		tuning_frequency(),
@@ -75,8 +87,9 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
 	});
+	
+	option_bandwidth.set_selected_index(4);		// 500k
 
-	record_view.set_sampling_rate(sampling_rate / 8);
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
 	};

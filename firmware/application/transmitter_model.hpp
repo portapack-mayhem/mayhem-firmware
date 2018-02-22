@@ -38,6 +38,8 @@ public:
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
 
+	void set_antenna_bias();
+	
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
@@ -74,6 +76,7 @@ private:
 	SignalToken signal_token_tick_second { };
 
 	void update_tuning_frequency();
+	void update_antenna_bias();
 	void update_rf_amp();
 	void update_lna();
 	void update_baseband_bandwidth();

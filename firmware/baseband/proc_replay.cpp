@@ -32,7 +32,6 @@ ReplayProcessor::ReplayProcessor() {
 	channel_filter_pass_f = taps_200k_decim_1.pass_frequency_normalized * 1000000;	// 162760.416666667
 	channel_filter_stop_f = taps_200k_decim_1.stop_frequency_normalized * 1000000;	// 337239.583333333
 	
-	spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
 
 	channel_spectrum.set_decimation_factor(1);
@@ -86,6 +85,10 @@ void ReplayProcessor::on_message(const Message* const message) {
 		channel_spectrum.on_message(message);
 		break;
 
+	case Message::ID::SamplerateConfig:
+		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+		break;
+	
 	case Message::ID::ReplayConfig:
 		configured = false;
 		bytes_read = 0;
@@ -102,8 +105,15 @@ void ReplayProcessor::on_message(const Message* const message) {
 	}
 }
 
+void ReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+	baseband_fs = message.sample_rate;
+	baseband_thread.set_sampling_rate(baseband_fs);
+	spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
+}
+
 void ReplayProcessor::replay_config(const ReplayConfigMessage& message) {
 	if( message.config ) {
+		
 		stream = std::make_unique<StreamOutput>(message.config);
 		
 		// Tell application that the buffers and FIFO pointers are ready, prefill

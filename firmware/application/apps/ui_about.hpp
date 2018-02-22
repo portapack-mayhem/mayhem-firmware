@@ -97,7 +97,7 @@ private:
 		{ 1 * 8, 	" Windyoona         Channels",		0 },
 		{ 1 * 8, 	"   F4GEV             Pyr3x",		0 },
 		{ 1 * 8,    "  HB3YOE",							24 },
-		{ 12 * 8,	            "MMXVII",				-1 }
+		{ 11 * 8,	            "MMXVIII",				-1 }
 	};
 	
 	CreditsWidget credits_display {

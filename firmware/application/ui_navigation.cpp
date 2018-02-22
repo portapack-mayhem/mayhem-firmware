@@ -77,6 +77,7 @@
 #include "png_writer.hpp"
 
 using portapack::receiver_model;
+using portapack::transmitter_model;
 
 namespace ui {
 
@@ -145,7 +146,7 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::refresh() {
-	if (receiver_model.antenna_bias()) {
+	if (portapack::get_antenna_bias()) {
 		button_bias_tee.set_bitmap(&bitmap_icon_biast_on);
 		button_bias_tee.set_foreground(ui::Color::yellow());
 	} else {
@@ -171,28 +172,26 @@ void SystemStatusView::on_stealth() {
 	bool mode = not portapack::persistent_memory::stealth_mode();
 	
 	portapack::persistent_memory::set_stealth_mode(mode);
-	
-	if (mode)
-		button_stealth.set_foreground(ui::Color::green());
-	else
-		button_stealth.set_foreground(ui::Color::light_grey());
+
+	button_stealth.set_foreground(mode ? ui::Color::green() : ui::Color::light_grey());
 	
 	button_stealth.set_dirty();
 }
 
 void SystemStatusView::on_bias_tee() {
-	bool antenna_bias = receiver_model.antenna_bias();
-	
-	if (!antenna_bias) {
+	if (!portapack::antenna_bias) {
 		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector ?", YESNO, [this](bool v) {
 				if (v) {
-					receiver_model.set_antenna_bias(true);
+					portapack::set_antenna_bias(true);
+					receiver_model.set_antenna_bias();
+					transmitter_model.set_antenna_bias();
 					refresh();
 				}
 			});
-	
 	} else {
-		receiver_model.set_antenna_bias(false);
+		portapack::set_antenna_bias(false);
+		receiver_model.set_antenna_bias();
+		transmitter_model.set_antenna_bias();
 		refresh();
 	}
 }
