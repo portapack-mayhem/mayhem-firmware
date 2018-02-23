@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,19 +20,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <cstring>
-#include <string>
+#include "ui_tone_search.hpp"
 
-#ifndef __APRS_H__
-#define __APRS_H__
+#include "baseband_api.hpp"
+#include "string_format.hpp"
 
-namespace aprs {
+using namespace portapack;
 
-	void make_aprs_frame(
-		const char * src_address, const uint32_t src_ssid,
-		const char * dest_address, const uint32_t dest_ssid,
-		const std::string& payload);
+namespace ui {
 
-} /* namespace aprs */
+void ToneSearchView::focus() {
+	//field_frequency_min.focus();
+}
 
-#endif/*__APRS_H__*/
+ToneSearchView::~ToneSearchView() {
+	receiver_model.disable();
+	baseband::shutdown();
+}
+
+ToneSearchView::ToneSearchView(
+	NavigationView& nav
+) : nav_ (nav)
+{
+	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+	
+	add_children({
+		&labels
+	});
+}
+
+} /* namespace ui */

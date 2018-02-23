@@ -23,6 +23,7 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+//TEST: Goertzel
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
@@ -44,7 +45,6 @@
 //TODO: De bruijn sequence scanner for encoders
 //TODO: FILEMAN Move files
 //TODO: Use separate thread for scanning in EPAR TX
-//TODO: Use separate thread for scanning in LCR TX
 //TODO: Make freqman refresh simpler (use previous black rectangle method)
 //TODO: Merge AFSK and TONES procs ?
 //TODO: NFM RX mode: nav.pop on squelch

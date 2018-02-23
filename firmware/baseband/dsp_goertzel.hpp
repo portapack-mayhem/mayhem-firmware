@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,19 +20,24 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <cstring>
-#include <string>
+#ifndef __DSP_GOERTZEL_H__
+#define __DSP_GOERTZEL_H__
 
-#ifndef __APRS_H__
-#define __APRS_H__
+#include "dsp_types.hpp"
 
-namespace aprs {
+namespace dsp {
 
-	void make_aprs_frame(
-		const char * src_address, const uint32_t src_ssid,
-		const char * dest_address, const uint32_t dest_ssid,
-		const std::string& payload);
+class GoertzelDetector {
+public:
+	GoertzelDetector(const float frequency, const uint32_t sample_rate);
+	
+	float execute(const buffer_s16_t& src);
 
-} /* namespace aprs */
+private:
+	float coefficient { };
+	int16_t s[2] { 0 };
+};
 
-#endif/*__APRS_H__*/
+} /* namespace dsp */
+
+#endif/*__DSP_GOERTZEL_H__*/

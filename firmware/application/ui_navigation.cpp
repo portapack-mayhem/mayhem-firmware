@@ -59,6 +59,7 @@
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_test.hpp"
+#include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
@@ -349,7 +350,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 	add_items({
 		{ "ADS-B Mode S", 			ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "APRS", 					ui::Color::grey(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
+		{ "APRS", 					ui::Color::orange(),	&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "Jammer", 				ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Key fob", 				ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
@@ -360,11 +361,10 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Generic OOK remotes", 	ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
 		{ "RDS",					ui::Color::green(),		&bitmap_icon_rds,		[&nav](){ nav.push<RDSView>(); } },
-		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },
 		{ "Soundboard", 			ui::Color::green(), 	&bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
-		{ "TouchTunes remote",		ui::Color::orange(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
+		{ "TouchTunes remote",		ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -376,8 +376,10 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 		{ "Test app", 				ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<TestView>(); } },
 		{ "Frequency manager", 		ui::Color::green(), 	&bitmap_icon_freqman,	[&nav](){ nav.push<FrequencyManagerView>(); } },
 		{ "File manager", 			ui::Color::yellow(),	&bitmap_icon_file,		[&nav](){ nav.push<FileManagerView>(); } },
-		{ "Whip antenna length",	ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Notepad",				ui::Color::grey(),		&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },
+		{ "Tone search", 			ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<NotImplementedView>(); } },	// ToneSearchView
+		{ "Whip antenna length",	ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),		nullptr,				[&nav](){ nav.push<WipeSDView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };

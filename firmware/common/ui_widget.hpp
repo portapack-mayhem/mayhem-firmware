@@ -563,6 +563,7 @@ public:
 		SYMFIELD_OCT,
 		SYMFIELD_DEC,
 		SYMFIELD_HEX,
+		SYMFIELD_ALPHANUM,
 		SYMFIELD_DEF		// User DEFined
 	};
 	
@@ -577,6 +578,7 @@ public:
 	void set_symbol_list(const uint32_t index, const std::string symbol_list);
 	uint32_t value_dec_u32();
 	uint64_t value_hex_u64();
+	std::string value_string();
 
 	void paint(Painter& painter) override;
 

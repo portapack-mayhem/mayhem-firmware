@@ -113,6 +113,7 @@ set(CPPSRC
 	baseband_stats_collector.cpp
 	dsp_decimate.cpp
 	dsp_demodulate.cpp
+	dsp_goertzel.cpp
 	matched_filter.cpp
 	spectrum_collector.cpp
 	stream_input.cpp
