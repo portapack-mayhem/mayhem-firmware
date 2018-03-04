@@ -39,19 +39,50 @@ void ReplayAppView::set_ready() {
 }
 
 void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
-	File bbd_file;
-	std::string str_duration = "";
+	File data_file, info_file;
+	char file_data[257];
+	
+	// Get file size
+	auto data_open_error = data_file.open("/" + new_file_path.string());
+	if (data_open_error.is_valid()) {
+		file_error();
+		return;
+	}
 	
 	file_path = new_file_path;
 	
-	text_filename.set(file_path.filename().string().substr(0, 19));
+	// Get original record frequency if available
+	std::filesystem::path info_file_path = file_path;
+	info_file_path.replace_extension(u".TXT");
 	
-	bbd_file.open("/" + file_path.string());
-	auto file_size = bbd_file.size();
-	auto duration = (file_size * 1000) / (2 * 2 * sampling_rate / 8);
+	sample_rate = 500000;
+	
+	auto info_open_error = info_file.open("/" + info_file_path.string());
+	if (!info_open_error.is_valid()) {
+		memset(file_data, 0, 257);
+		auto read_size = info_file.read(file_data, 256);
+		if (!read_size.is_error()) {
+			auto pos1 = strstr(file_data, "center_frequency=");
+			if (pos1) {
+				pos1 += 17;
+				field_frequency.set_value(strtoll(pos1, nullptr, 10));
+			}
+			
+			auto pos2 = strstr(file_data, "sample_rate=");
+			if (pos2) {
+				pos2 += 12;
+				sample_rate = strtoll(pos2, nullptr, 10);
+			}
+		}
+	}
+	
+	text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
+	
+	auto file_size = data_file.size();
+	auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
 	
 	progressbar.set_max(file_size);
-	
+	text_filename.set(file_path.filename().string().substr(0, 12));
 	text_duration.set(to_string_time_ms(duration));
 	
 	button_play.focus();
@@ -96,6 +127,8 @@ void ReplayAppView::start() {
 
 	if( reader ) {
 		button_play.set_bitmap(&bitmap_stop);
+		baseband::set_sample_rate(sample_rate * 8);
+		
 		replay_thread = std::make_unique<ReplayThread>(
 			std::move(reader),
 			read_size, buffer_count,
@@ -109,7 +142,7 @@ void ReplayAppView::start() {
 	
 	radio::enable({
 		receiver_model.tuning_frequency(),
-		sampling_rate,
+		sample_rate * 8 ,
 		baseband_bandwidth,
 		rf::Direction::Transmit,
 		receiver_model.rf_amp(),
@@ -151,6 +184,7 @@ ReplayAppView::ReplayAppView(
 		&labels,
 		&button_open,
 		&text_filename,
+		&text_sample_rate,
 		&text_duration,
 		&progressbar,
 		&field_frequency,

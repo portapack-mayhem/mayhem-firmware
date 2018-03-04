@@ -24,10 +24,8 @@
 #define __UI_MICTX_H__
 
 #include "ui.hpp"
-#include "hal.h"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_receiver.hpp"
 #include "transmitter_model.hpp"
 #include "tone_key.hpp"
@@ -73,7 +71,7 @@ private:
 	bool va_enabled { };
 	bool rogerbeep_enabled { };
 	uint32_t tone_key_index { };
-	uint32_t mic_gain_x10 { 10 };
+	float mic_gain { 1.0 };
 	uint32_t audio_level { 0 };
 	uint32_t va_level { };
 	uint32_t attack_ms { };

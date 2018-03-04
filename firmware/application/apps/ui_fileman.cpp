@@ -274,10 +274,16 @@ FileManagerView::FileManagerView(
 	add_children({
 		&menu_view,
 		&text_empty,
+		&labels,
+		&text_date,
 		&button_rename,
 		&button_new_dir,
 		&button_delete
 	});
+	
+	menu_view.on_highlight = [this]() {
+		text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_path())));
+	};
 	
 	refresh_list();
 	

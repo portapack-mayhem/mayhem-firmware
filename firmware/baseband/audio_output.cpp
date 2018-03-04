@@ -97,7 +97,7 @@ void AudioOutput::on_block(
 }
 
 bool AudioOutput::is_squelched() {
-	return ~audio_present;
+	return !audio_present;
 }
 
 void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo) {

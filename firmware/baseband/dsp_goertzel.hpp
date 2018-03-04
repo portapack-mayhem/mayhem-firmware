@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,49 +20,24 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __DSP_GOERTZEL_H__
+#define __DSP_GOERTZEL_H__
 
-#include "portapack_io.hpp"
+#include "dsp_types.hpp"
 
-#include "receiver_model.hpp"
-#include "transmitter_model.hpp"
+namespace dsp {
 
-#include "i2c_pp.hpp"
-#include "spi_pp.hpp"
-#include "si5351.hpp"
-#include "lcd_ili9341.hpp"
-#include "backlight.hpp"
+class GoertzelDetector {
+public:
+	GoertzelDetector(const float frequency, const uint32_t sample_rate);
+	
+	float execute(const buffer_s16_t& src);
 
-#include "radio.hpp"
-#include "clock_manager.hpp"
-#include "temperature_logger.hpp"
+private:
+	float coefficient { };
+	int16_t s[2] { 0 };
+};
 
-namespace portapack {
+} /* namespace dsp */
 
-extern portapack::IO io;
-
-extern lcd::ILI9341 display;
-
-extern I2C i2c0;
-extern SPI ssp1;
-
-extern si5351::Si5351 clock_generator;
-extern ClockManager clock_manager;
-
-extern ReceiverModel receiver_model;
-extern TransmitterModel transmitter_model;
-
-extern uint8_t bl_tick_counter;
-extern bool antenna_bias;
-
-extern TemperatureLogger temperature_logger;
-
-void set_antenna_bias(const bool v);
-bool get_antenna_bias();
-
-bool init();
-void shutdown();
-
-Backlight* backlight();
-
-} /* namespace portapack */
+#endif/*__DSP_GOERTZEL_H__*/

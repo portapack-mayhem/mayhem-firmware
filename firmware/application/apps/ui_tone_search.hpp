@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,43 +20,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_sd_wipe.hpp"
+#include "receiver_model.hpp"
+
+#include "ui_receiver.hpp"
+#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
-Thread* WipeSDView::thread { nullptr };
-
-WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
-	add_children({
-		&text_info,
-		&progress,
-		&dummy
-	});
-}
-
-WipeSDView::~WipeSDView() {
-	if (thread)
-		chThdTerminate(thread);
-}
-
-void WipeSDView::focus() {
-	BlockDeviceInfo block_device_info;
+class ToneSearchView : public View {
+public:
+	ToneSearchView(NavigationView& nav);
+	~ToneSearchView();
 	
-	dummy.focus();
+	void focus() override;
 	
-	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card ?", YESCANCEL, [this](bool choice) {
-				if (choice)
-					confirmed = true;
+	std::string title() const override { return "Tone search"; };
+
+private:
+	NavigationView& nav_;
+	
+	Labels labels {
+		{ { 1 * 8, 0 }, "Min:      Max:       LNA VGA", Color::light_grey() }
+	};
+	
+	/*
+	MessageHandlerRegistration message_handler_frame_sync {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			if( this->fifo ) {
+				ChannelSpectrum channel_spectrum;
+				while( fifo->out(channel_spectrum) ) {
+					this->on_channel_spectrum(channel_spectrum);
+				}
 			}
-		);
-	} else {
-		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
-			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
-		} else {
-			nav_.pop();		// Just silently abort for now
+			this->do_timers();
 		}
-	}
-}
+	};*/
+};
 
 } /* namespace ui */

@@ -25,6 +25,7 @@
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "string_format.hpp"
 #include "ff.h"
 
 #include <cstdint>
@@ -37,13 +38,12 @@ public:
 	~WipeSDView();
 	void focus() override;
 	
-	std::string title() const override { return "SD card wipe"; };	
+	std::string title() const override { return "Wipe FAT"; };	
 
 private:
 	NavigationView& nav_;
 	
 	bool confirmed = false;
-	uint32_t blocks { 0 };
 	static Thread* thread;
 	
 	static msg_t static_fn(void* arg) {
@@ -53,21 +53,24 @@ private:
 	}
 	
 	void run() {
-		uint32_t n, b;
 		lfsr_word_t v = 1;
-		const auto buffer = std::make_unique<std::array<uint8_t, 16384>>();
+		//DIR d;
+		const auto buffer = std::make_unique<std::array<uint8_t, 512>>();
 
-		for (b = 0; b < blocks; b++) {
-			progress.set_value(b);
+		//f_opendir(&d, (TCHAR*)u"");
+
+		uint32_t count = 512;	//sd_card::fs.n_fats * sd_card::fs.fsize;
+		progress.set_max(count);
+
+		for (uint32_t c = 0; c < count; c++) {
+			progress.set_value(c);
 			
 			lfsr_fill(v,
 				reinterpret_cast<lfsr_word_t*>(buffer->data()),
 				sizeof(*buffer.get()) / sizeof(lfsr_word_t));
-			
-			// 1MB
-			for (n = 0; n < 64; n++) {
-				if (disk_write(sd_card::fs.drv, buffer->data(), n + (b * 64), 16384 / 512) != RES_OK) nav_.pop();
-			}
+				
+			if (disk_write(sd_card::fs.drv, buffer->data(), sd_card::fs.fatbase + c, 1) != RES_OK)
+				break;
 		}
 		nav_.pop();
 	}

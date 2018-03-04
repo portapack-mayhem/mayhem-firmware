@@ -47,9 +47,9 @@ public:
 	std::string title() const override { return "Capture"; };
 
 private:
-	static constexpr ui::Dim header_height = 2 * 16;
+	static constexpr ui::Dim header_height = 3 * 16;
 
-	static constexpr uint32_t sampling_rate = 4000000;
+	uint32_t sampling_rate = 0;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
 	void on_target_frequency_changed(rf::Frequency f);
@@ -59,6 +59,10 @@ private:
 
 	rf::Frequency tuning_frequency() const;
 
+	Labels labels {
+		{ { 0 * 8, 1 * 16 }, "Rate:", Color::light_grey() },
+	};
+	
 	RSSI rssi {
 		{ 24 * 8, 0, 6 * 8, 4 },
 	};
@@ -87,8 +91,20 @@ private:
 		{ 21 * 8, 0 * 16 }
 	};
 
+	OptionsField option_bandwidth {
+		{ 5 * 8, 1 * 16 },
+		4,
+		{
+			{ " 25k", 20 },
+			{ " 50k", 10 },
+			{ "100k", 5 },
+			{ "250k", 2 },
+			{ "500k", 1 }
+		}
+	};
+	
 	RecordView record_view {
-		{ 0 * 8, 1 * 16, 30 * 8, 1 * 16 },
+		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
 		u"BBD_????", RecordView::FileType::RawS16, 16384, 3
 	};
 

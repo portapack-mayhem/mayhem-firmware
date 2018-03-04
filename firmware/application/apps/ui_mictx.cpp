@@ -23,20 +23,16 @@
 #include "ui_mictx.hpp"
 
 #include "baseband_api.hpp"
-#include "hackrf_gpio.hpp"
 #include "audio.hpp"
 #include "tonesets.hpp"
-#include "portapack.hpp"
-#include "pins.hpp"
+#include "portapack_hal.hpp"
 #include "string_format.hpp"
 #include "irq_controls.hpp"
-#include "portapack_shared_memory.hpp"
 
 #include <cstring>
 
 using namespace tonekey;
 using namespace portapack;
-using namespace hackrf::one;
 
 namespace ui {
 
@@ -58,7 +54,7 @@ void MicTXView::configure_baseband() {
 	baseband::set_audiotx_data(
 		sampling_rate / 20,		// Update vu-meter at 20Hz
 		transmitting ? transmitter_model.channel_bandwidth() : 0,
-		mic_gain_x10,
+		mic_gain,
 		TONES_F2D(tone_key_frequency(tone_key_index)),
 		0.2		// 20% mix
 	);
@@ -68,8 +64,11 @@ void MicTXView::set_tx(bool enable) {
 	if (enable) {
 		transmitting = true;
 		configure_baseband();
-		gpio_tx.write(1);
-		led_tx.on();
+		transmitter_model.set_rf_amp(true);
+		transmitter_model.enable();
+		portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
+		//gpio_tx.write(1);
+		//led_tx.on();
 	} else {
 		if (transmitting && rogerbeep_enabled) {
 			baseband::request_beep();
@@ -77,8 +76,10 @@ void MicTXView::set_tx(bool enable) {
 		} else {
 			transmitting = false;
 			configure_baseband();
-			gpio_tx.write(0);
-			led_tx.off();
+			transmitter_model.set_rf_amp(false);
+			transmitter_model.disable();
+			//gpio_tx.write(0);
+			//led_tx.off();
 		}
 	}
 }
@@ -128,8 +129,8 @@ MicTXView::MicTXView(
 	NavigationView& nav
 )
 {
-	pins[P6_2].mode(3);		// Set P6_2 pin function to I2S0_RX_SDA
-		
+	portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
+	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 	
 	add_children({
@@ -154,7 +155,7 @@ MicTXView::MicTXView(
 	options_tone_key.set_selected_index(0);
 	
 	options_gain.on_change = [this](size_t, int32_t v) {
-		mic_gain_x10 = v;
+		mic_gain = v / 10.0;
 		configure_baseband();
 	};
 	options_gain.set_selected_index(1);		// x1.0
@@ -206,11 +207,9 @@ MicTXView::MicTXView(
 	};
 	field_va_decay.set_value(1000);
 	
-	// Run baseband as soon as the app starts to get audio levels without transmitting (rf amp off)
 	transmitter_model.set_sampling_rate(sampling_rate);
-	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_rf_amp(false);
 	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
 	
 	set_tx(false);
 	
@@ -219,6 +218,7 @@ MicTXView::MicTXView(
 }
 
 MicTXView::~MicTXView() {
+	audio::input::stop();
 	transmitter_model.disable();
 	baseband::shutdown();
 }

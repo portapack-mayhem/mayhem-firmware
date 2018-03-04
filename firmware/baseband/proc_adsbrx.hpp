@@ -50,8 +50,8 @@ private:
 	ADSBFrame frame { };
 	bool configured { false };
 	float prev_mag { 0 };
-	float threshold, threshold_low, threshold_high;
-	size_t null_count, bit_count, sample_count;
+	float threshold { }, threshold_low { }, threshold_high { };
+	size_t null_count { 0 }, bit_count { 0 }, sample_count { 0 };
 	std::pair<float, uint8_t> shifter[ADSB_PREAMBLE_LENGTH];
 	bool decoding { };
 	bool preamble { }, active { };

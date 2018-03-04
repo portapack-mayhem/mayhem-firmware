@@ -25,6 +25,7 @@
 
 #include "portapack_persistent_memory.hpp"
 #include "hackrf_gpio.hpp"
+#include "portapack.hpp"
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -72,12 +73,7 @@ void ReceiverModel::set_frequency_step(rf::Frequency f) {
 	frequency_step_ = f;
 }
 
-bool ReceiverModel::antenna_bias() const {
-	return antenna_bias_;
-}
-
-void ReceiverModel::set_antenna_bias(bool enabled) {
-	antenna_bias_ = enabled;
+void ReceiverModel::set_antenna_bias() {
 	update_antenna_bias();
 }
 
@@ -180,7 +176,7 @@ void ReceiverModel::enable() {
 
 void ReceiverModel::disable() {
 	enabled_ = false;
-	update_antenna_bias();
+	radio::set_antenna_bias(false);
 
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
@@ -201,7 +197,8 @@ void ReceiverModel::update_tuning_frequency() {
 }
 
 void ReceiverModel::update_antenna_bias() {
-	radio::set_antenna_bias(antenna_bias_ && enabled_);
+	if (enabled_)
+		radio::set_antenna_bias(portapack::get_antenna_bias());
 }
 
 void ReceiverModel::update_rf_amp() {

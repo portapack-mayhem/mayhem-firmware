@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -19,49 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "dsp_goertzel.hpp"
 
-#include "portapack_io.hpp"
+#include "complex.hpp"
+#include "sine_table.hpp"
 
-#include "receiver_model.hpp"
-#include "transmitter_model.hpp"
+namespace dsp {
 
-#include "i2c_pp.hpp"
-#include "spi_pp.hpp"
-#include "si5351.hpp"
-#include "lcd_ili9341.hpp"
-#include "backlight.hpp"
+GoertzelDetector::GoertzelDetector(
+	const float frequency,
+	const uint32_t sample_rate
+) {
+	coefficient = 2.0 * sin_f32((2.0 * pi * frequency / sample_rate) - pi / 2.0);
+}
 
-#include "radio.hpp"
-#include "clock_manager.hpp"
-#include "temperature_logger.hpp"
+float GoertzelDetector::execute(
+	const buffer_s16_t& src
+) {
 
-namespace portapack {
+	const size_t count = src.count;
+	
+	for (size_t i = 0; i < count; i++) {
+		s[2] = s[1];
+		s[1] = s[0];
+		s[0] = src.p[i] + coefficient * s[1] - s[2];
+	}
 
-extern portapack::IO io;
+	const uint32_t sq0 = s[0] * s[0];
+	const uint32_t sq1 = s[1] * s[1];
+	float magnitude = __builtin_sqrtf(sq0 + sq1 - s[0] * s[1] * coefficient);
 
-extern lcd::ILI9341 display;
+	return magnitude;
+}
 
-extern I2C i2c0;
-extern SPI ssp1;
-
-extern si5351::Si5351 clock_generator;
-extern ClockManager clock_manager;
-
-extern ReceiverModel receiver_model;
-extern TransmitterModel transmitter_model;
-
-extern uint8_t bl_tick_counter;
-extern bool antenna_bias;
-
-extern TemperatureLogger temperature_logger;
-
-void set_antenna_bias(const bool v);
-bool get_antenna_bias();
-
-bool init();
-void shutdown();
-
-Backlight* backlight();
-
-} /* namespace portapack */
+} /* namespace dsp */

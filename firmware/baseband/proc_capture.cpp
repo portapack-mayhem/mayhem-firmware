@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -28,23 +29,9 @@
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
-	const auto& decim_0_filter = taps_200k_decim_0;
-	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
-
-	const auto& decim_1_filter = taps_200k_decim_1;
-	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-
-	decim_0.configure(decim_0_filter.taps, 33554432);
-	decim_1.configure(decim_1_filter.taps, 131072);
-
-	channel_filter_pass_f = decim_1_filter.pass_frequency_normalized * decim_1_input_fs;	// 162760.416666667
-	channel_filter_stop_f = decim_1_filter.stop_frequency_normalized * decim_1_input_fs;	// 337239.583333333
-
-	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
-	spectrum_samples = 0;
-
+	decim_0.configure(taps_200k_decim_0.taps, 33554432);
+	decim_1.configure(taps_200k_decim_1.taps, 131072);
+	
 	channel_spectrum.set_decimation_factor(1);
 }
 
@@ -76,6 +63,10 @@ void CaptureProcessor::on_message(const Message* const message) {
 		channel_spectrum.on_message(message);
 		break;
 
+	case Message::ID::SamplerateConfig:
+		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+		break;
+	
 	case Message::ID::CaptureConfig:
 		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
 		break;
@@ -83,6 +74,22 @@ void CaptureProcessor::on_message(const Message* const message) {
 	default:
 		break;
 	}
+}
+
+void CaptureProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+	baseband_fs = message.sample_rate;
+	baseband_thread.set_sampling_rate(baseband_fs);
+	
+	size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
+
+	size_t decim_1_input_fs = decim_0_output_fs;
+	size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+
+	channel_filter_pass_f = taps_200k_decim_1.pass_frequency_normalized * decim_1_input_fs;	// 162760.416666667
+	channel_filter_stop_f = taps_200k_decim_1.stop_frequency_normalized * decim_1_input_fs;	// 337239.583333333
+
+	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
+	spectrum_samples = 0;
 }
 
 void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {

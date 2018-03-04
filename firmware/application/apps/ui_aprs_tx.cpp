@@ -27,6 +27,7 @@
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "baseband_api.hpp"
+#include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
 #include <cstring>
@@ -46,21 +47,29 @@ APRSTXView::~APRSTXView() {
 	baseband::shutdown();
 }
 
-void APRSTXView::paint(Painter& painter) {
-	(void)painter;
-}
-
-void APRSTXView::generate_frame() {
-
-}
-
 void APRSTXView::start_tx() {
-	//generate_frame();
+	make_aprs_frame(
+		sym_source.value_string().c_str(), num_ssid_source.value(),
+		sym_dest.value_string().c_str(), num_ssid_dest.value(),
+		payload);
 	
-	/*transmitter_model.set_tuning_frequency(144800000);
+	//uint8_t * bb_data_ptr = shared_memory.bb_data.data;
+	//text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
+	
+	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
+	transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
 	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_baseband_bandwidth(2500000);
-	transmitter_model.enable();*/
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	baseband::set_afsk_data(
+		AFSK_TX_SAMPLERATE / 1200,
+		1200,
+		2200,
+		1,
+		10000,	//transmitter_model.channel_bandwidth(),
+		8
+	);
 }
 
 void APRSTXView::on_tx_progress(const uint32_t progress, const bool done) {
@@ -69,9 +78,6 @@ void APRSTXView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (done) {
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
-		//progress.set_value(0);
-	} else {
-		//progress.set_value(n);
 	}
 }
 
@@ -81,9 +87,25 @@ APRSTXView::APRSTXView(NavigationView& nav) {
 
 	add_children({
 		&labels,
-		&text_frame_a,
+		&sym_source,
+		&num_ssid_source,
+		&sym_dest,
+		&num_ssid_dest,
+		&text_payload,
+		&button_set,
 		&tx_view
 	});
+	
+	button_set.on_select = [this, &nav](Button&) {
+		text_prompt(
+			nav,
+			&payload,
+			30,
+			[this](std::string* s) {
+				text_payload.set(*s);
+			}
+		);
+	};
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		return;

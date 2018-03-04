@@ -38,8 +38,6 @@ public:
 	APRSTXView(NavigationView& nav);
 	~APRSTXView();
 	
-	void paint(Painter& painter) override;
-	
 	void focus() override;
 	
 	std::string title() const override { return "APRS TX (beta)"; };
@@ -53,25 +51,58 @@ private:
 	
 	tx_modes tx_mode = IDLE;*/
 	
+	std::string payload { "" };
+	
 	void start_tx();
 	void generate_frame();
 	void generate_frame_pos();
 	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	Labels labels {
-		{ { 2 * 8, 2 * 8 }, "Work in progress...", Color::light_grey() }
+		{ { 0 * 8, 1 * 16 }, "Source:       SSID:", Color::light_grey() },	// 6 alphanum + SSID
+		{ { 0 * 8, 2 * 16 }, " Dest.:       SSID:", Color::light_grey() },
+		{ { 0 * 8, 4 * 16 }, "Info field:", Color::light_grey() },
 	};
 	
-	Text text_frame_a {
-		{ 2 * 8, 13 * 16, 14 * 8, 16 },
+	SymField sym_source {
+		{ 7 * 8, 1 * 16 },
+		6,
+		SymField::SYMFIELD_ALPHANUM
+	};
+	NumberField num_ssid_source {
+		{ 19 * 8, 1 * 16 },
+		2,
+		{ 0, 15 },
+		1,
+		' '
+	};
+	
+	SymField sym_dest {
+		{ 7 * 8, 2 * 16 },
+		6,
+		SymField::SYMFIELD_ALPHANUM
+	};
+	NumberField num_ssid_dest {
+		{ 19 * 8, 2 * 16 },
+		2,
+		{ 0, 15 },
+		1,
+		' '
+	};
+	
+	Text text_payload {
+		{ 0 * 8, 5 * 16, 30 * 8, 16 },
 		"-"
+	};
+	Button button_set {
+		{ 0 * 8, 6 * 16, 80, 32 },
+		"Set"
 	};
 	
 	TransmitterView tx_view {
 		16 * 16,
-		144800000,
-		2000000,
-		true
+		5000,
+		10
 	};
 	
 	MessageHandlerRegistration message_handler_tx_progress {

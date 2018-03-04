@@ -531,7 +531,9 @@ ProgressBar::ProgressBar(
 void ProgressBar::set_max(const uint32_t max) {
 	if (max == _max) return;
 	
-	_value = 0;
+	if (_value > _max)
+		_value = _max;
+	
 	_max = max;
 	set_dirty();
 }
@@ -1307,17 +1309,19 @@ SymField::SymField(
 	} else if (type == SYMFIELD_HEX) {
 		for (c = 0; c < length; c++)
 			set_symbol_list(c, "0123456789ABCDEF");
+	} else if (type == SYMFIELD_ALPHANUM) {
+		for (c = 0; c < length; c++)
+			set_symbol_list(c, " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 	}
 	
 	set_focusable(true);
 }
 
 uint32_t SymField::value_dec_u32() {
-	uint32_t c, mul = 1;
-	uint32_t v = 0;
+	uint32_t mul = 1, v = 0;
 	
 	if (type_ == SYMFIELD_DEC) {
-		for (c = 0; c < length_; c++) {
+		for (uint32_t c = 0; c < length_; c++) {
 			v += values_[(length_ - 1 - c)] * mul;
 			mul *= 10;
 		}
@@ -1327,15 +1331,26 @@ uint32_t SymField::value_dec_u32() {
 }
 
 uint64_t SymField::value_hex_u64() {
-	uint32_t c;
 	uint64_t v = 0;
 	
 	if (type_ != SYMFIELD_DEF) {
-		for (c = 0; c < length_; c++)
+		for (uint32_t c = 0; c < length_; c++)
 			v += (uint64_t)(values_[c]) << (4 * (length_ - 1 - c));
 		return v;
 	} else 
 		return 0;
+}
+
+std::string SymField::value_string() {
+	std::string return_string { "" };
+	
+	if (type_ == SYMFIELD_ALPHANUM) {
+		for (uint32_t c = 0; c < length_; c++) {
+			return_string += symbol_list_[0][values_[c]];
+		}
+	}
+	
+	return return_string;
 }
 	
 uint32_t SymField::get_sym(const uint32_t index) {

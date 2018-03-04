@@ -72,7 +72,7 @@ void FreqManBaseView::populate_categories() {
 	categories.clear();
 	
 	for (size_t n = 0; n < file_list.size(); n++)
-		categories.emplace_back(std::make_pair(file_list[n], n));
+		categories.emplace_back(std::make_pair(file_list[n].substr(0, 14), n));
 	
 	// Alphabetical sort
 	std::sort(categories.begin(), categories.end(), [](auto &left, auto &right) {

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,43 +20,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_sd_wipe.hpp"
+#include "ui_tone_search.hpp"
+
+#include "baseband_api.hpp"
+#include "string_format.hpp"
+
+using namespace portapack;
 
 namespace ui {
 
-Thread* WipeSDView::thread { nullptr };
+void ToneSearchView::focus() {
+	//field_frequency_min.focus();
+}
 
-WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
+ToneSearchView::~ToneSearchView() {
+	receiver_model.disable();
+	baseband::shutdown();
+}
+
+ToneSearchView::ToneSearchView(
+	NavigationView& nav
+) : nav_ (nav)
+{
+	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+	
 	add_children({
-		&text_info,
-		&progress,
-		&dummy
+		&labels
 	});
-}
-
-WipeSDView::~WipeSDView() {
-	if (thread)
-		chThdTerminate(thread);
-}
-
-void WipeSDView::focus() {
-	BlockDeviceInfo block_device_info;
-	
-	dummy.focus();
-	
-	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card ?", YESCANCEL, [this](bool choice) {
-				if (choice)
-					confirmed = true;
-			}
-		);
-	} else {
-		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
-			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
-		} else {
-			nav_.pop();		// Just silently abort for now
-		}
-	}
 }
 
 } /* namespace ui */

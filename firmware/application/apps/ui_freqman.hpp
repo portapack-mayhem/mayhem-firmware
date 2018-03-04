@@ -149,8 +149,8 @@ private:
 	};
 	
 	Button button_new_category {
-		{ 18 * 8, 2, 12 * 8, 20 },
-		"Create new"
+		{ 23 * 8, 2, 7 * 8, 20 },
+		"New"
 	};
 
 	Button button_edit_freq {
