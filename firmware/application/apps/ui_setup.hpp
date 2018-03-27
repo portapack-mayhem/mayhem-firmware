@@ -155,23 +155,23 @@ private:
 	};
 	
 	Text text_description_1 {
-		{ 24, 6 * 16, 24 * 8, 16 },
-		"CAUTION: Ensure that all"
+		{ 24, 7 * 16, 24 * 8, 16 },
+		"\x1B" "\x0C" "CAUTION: Ensure that all"
 	};
 
 	Text text_description_2 {
-		{ 28, 7 * 16, 23 * 8, 16 },
-		"devices attached to the"
+		{ 28, 8 * 16, 23 * 8, 16 },
+		"\x1B" "\x0C" "devices attached to the"
 	};
 
 	Text text_description_3 {
-		{  8, 8 * 16, 28 * 8, 16 },
-		"antenna connector can accept"
+		{  8, 9 * 16, 28 * 8, 16 },
+		"\x1B" "\x0C" "antenna connector can accept"
 	};
 
 	Text text_description_4 {
-		{ 68, 9 * 16, 13 * 8, 16 },
-		"a DC voltage!"
+		{ 68, 10 * 16, 13 * 8, 16 },
+		"\x1B" "\x0C" "a DC voltage!"
 	};
 
 	Checkbox check_bias {

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,38 +20,45 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_scanner.hpp"
-
-#include "baseband_api.hpp"
-#include "string_format.hpp"
-
-using namespace portapack;
+#include "ui.hpp"
+#include "ui_transmitter.hpp"
+#include "transmitter_model.hpp"
 
 namespace ui {
 
-void ScannerView::focus() {
-	button.focus();
-}
-
-ScannerView::~ScannerView() {
-	//receiver_model.disable();
-	//baseband::shutdown();
-}
-
-ScannerView::ScannerView(
-	NavigationView& nav
-)
-{
-	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+class RemoteView : public View {
+public:
+	RemoteView(NavigationView& nav);
+	~RemoteView();
 	
-	add_children({
-		&labels,
-		&button
-	});
+	void focus() override;
 	
-	button.on_select = [this, &nav](Button&) {
-		nav.pop();
+	std::string title() const override { return "Custom remote"; };
+
+private:
+	/*enum tx_modes {
+		IDLE = 0,
+		SINGLE,
+		SCAN
 	};
-}
+	
+	tx_modes tx_mode = IDLE;
+
+	struct remote_layout_t {
+		Point position;
+		std::string text;
+	};
+	
+	const std::array<remote_layout_t, 32> remote_layout { };*/
+	
+	Labels labels {
+		{ { 1 * 8, 0 }, "Work in progress...", Color::light_grey() }
+	};
+	
+	Button button {
+		{ 60, 64, 120, 32 },
+		"Exit"
+	};
+};
 
 } /* namespace ui */

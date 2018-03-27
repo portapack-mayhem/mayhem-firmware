@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_scanner.hpp"
+#include "ui_remote.hpp"
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -29,21 +29,19 @@ using namespace portapack;
 
 namespace ui {
 
-void ScannerView::focus() {
+void RemoteView::focus() {
 	button.focus();
 }
 
-ScannerView::~ScannerView() {
-	//receiver_model.disable();
+RemoteView::~RemoteView() {
+	//transmitter_model.disable();
 	//baseband::shutdown();
 }
 
-ScannerView::ScannerView(
+
+RemoteView::RemoteView(
 	NavigationView& nav
-)
-{
-	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-	
+) {
 	add_children({
 		&labels,
 		&button

@@ -32,9 +32,11 @@
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 
+//TODO: Disable Nuoptix timecode TX, useless (almost)
+//TODO: Move Touchtunes remote to Custom remote
+//TODO: Use escapes \x1B to set colors in text, it works !
 //TODO: Open files in File Manager
 //TODO: Ask for filename after record
-//TODO: Make entries disappear from RecentEntries list in ADS-B RX (after 2 minutes with no update ?)
 //TODO: Super simple text file viewer
 //TODO: Clean up ReplayThread
 //TODO: Cap Wav viewer position
