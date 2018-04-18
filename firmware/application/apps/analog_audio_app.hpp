@@ -104,6 +104,8 @@ public:
 
 	void focus() override;
 
+	std::string title() const override { return "Analog audio"; };
+	
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
@@ -168,7 +170,7 @@ private:
 		u"AUD_????", RecordView::FileType::WAV, 4096, 4
 	};
 
-	spectrum::WaterfallWidget waterfall { };
+	spectrum::WaterfallWidget waterfall { true };
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

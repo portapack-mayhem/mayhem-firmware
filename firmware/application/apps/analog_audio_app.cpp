@@ -148,6 +148,10 @@ AnalogAudioView::AnalogAudioView(
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
 	};
+	
+	waterfall.on_select = [this](int32_t offset) {
+		field_frequency.set_value(receiver_model.tuning_frequency() + offset);
+	};
 
 	audio::output::start();
 
