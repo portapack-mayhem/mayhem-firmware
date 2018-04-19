@@ -113,7 +113,7 @@ private:
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
 
 	NavigationView& nav_;
-	bool exit_on_squelch { false };
+	//bool exit_on_squelch { false };
 	
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -188,16 +188,16 @@ private:
 
 	void update_modulation(const ReceiverModel::Mode modulation);
 	
-	void squelched();
+	//void squelched();
 	void handle_coded_squelch(const uint32_t value);
 	
-	MessageHandlerRegistration message_handler_squelch_signal {
+	/*MessageHandlerRegistration message_handler_squelch_signal {
 		Message::ID::RequestSignal,
 		[this](const Message* const p) {
 			(void)p;
 			this->squelched();
 		}
-	};
+	};*/
 	
 	MessageHandlerRegistration message_handler_coded_squelch {
 		Message::ID::CodedSquelch,
