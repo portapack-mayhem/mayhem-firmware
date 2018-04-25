@@ -121,7 +121,7 @@ void TouchTunesView::start_tx(const uint32_t button_index) {
 	
 	baseband::set_ook_data(
 		bitstream_length,
-		OOK_SAMPLERATE / 1786,	// 560us
+		OOK_SAMPLERATE / 1766,	// 560us
 		TOUCHTUNES_REPEATS,
 		100						// Pause
 	);
