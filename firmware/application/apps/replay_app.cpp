@@ -161,6 +161,8 @@ void ReplayAppView::stop(const bool do_loop) {
 		radio::disable();
 		button_play.set_bitmap(&bitmap_play);
 	}
+	
+	ready_signal = false;
 }
 
 void ReplayAppView::handle_replay_thread_done(const uint32_t return_code) {

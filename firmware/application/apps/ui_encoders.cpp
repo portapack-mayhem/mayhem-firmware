@@ -102,7 +102,7 @@ void EncodersConfigView::on_type_change(size_t index) {
 	symfield_word.set_length(word_length);
 	size_t n = 0, i = 0;
 	while (n < word_length) {
-		symbol_type = encoder_def->word_format.at(i++);
+		symbol_type = encoder_def->word_format[i++];
 		if (symbol_type == 'A') {
 			symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
 			format_string += 'A';

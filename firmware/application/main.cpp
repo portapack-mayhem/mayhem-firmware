@@ -23,6 +23,10 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
+// Note about available RAM:
+// Check what ends up in the BSS section by looking at the map files !
+// Use constexpr where possible or make sure const are in .cpp files, not headers !
+
 //TEST: Goertzel
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
@@ -31,8 +35,8 @@
 //BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
+//GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
 
-//TODO: Disable Nuoptix timecode TX, useless (almost)
 //TODO: Move Touchtunes remote to Custom remote
 //TODO: Use escapes \x1B to set colors in text, it works !
 //TODO: Open files in File Manager

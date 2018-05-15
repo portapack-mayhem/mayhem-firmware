@@ -45,7 +45,10 @@ ToneSearchView::ToneSearchView(
 	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 	
 	add_children({
-		&labels
+		&labels,
+		&field_lna,
+		&field_vga,
+		&field_rf_amp,
 	});
 }
 

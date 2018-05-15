@@ -78,7 +78,7 @@ size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
 	// Setup tone "symbols"
 	for (c = 0; c < 5; c++) {
 		if (c < 2)
-			delta = TONES_F2D(tone);	// Dot and dash
+			delta = TONES_F2D(tone, TONES_SAMPLERATE);	// Dot and dash
 		else
 			delta = 0;					// Pause
 		

@@ -40,14 +40,14 @@ enum ModemModulation {
 };
 
 struct modem_def_t {
-	std::string name;
+	char name[16];
 	ModemModulation modulation;
 	uint16_t mark_freq;
 	uint16_t space_freq;
 	uint16_t baudrate;
 };
 
-const modem_def_t modem_defs[MODEM_DEF_COUNT] = {
+constexpr modem_def_t modem_defs[MODEM_DEF_COUNT] = {
 	{ "Bell202", 	AFSK,	1200,	2200, 	1200 },
 	{ "Bell103", 	AFSK,	1270,	1070, 	300 },
 	{ "V21",		AFSK,	980,	1180, 	300 },

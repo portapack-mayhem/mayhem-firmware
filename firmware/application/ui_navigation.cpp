@@ -37,7 +37,7 @@
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
-#include "ui_debug.hpp"
+//#include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
@@ -329,20 +329,20 @@ void NavigationView::focus() {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
-		{ "ADS-B: Planes", 			ui::Color::green(),	&bitmap_icon_adsb,	[&nav](){ nav.push<ADSBRxView>(); }, },
-		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.push<AISAppView>(); } },
-		{ "AFSK", 					ui::Color::yellow(),&bitmap_icon_receivers,	[&nav](){ nav.push<AFSKRxView>(); } },
-		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(false); } },
-		{ "DMR framing", 			ui::Color::grey(),	&bitmap_icon_dmr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.push<ERTAppView>(); } },
-		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
-		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
-		{ "LoRa", 					ui::Color::grey(),	&bitmap_icon_lora,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.push<SondeView>(); } },
-		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "TETRA framing", 			ui::Color::grey(),	&bitmap_icon_tetra,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.push<TPMSAppView>(); } },
+		{ "ADS-B: Planes", 			ui::Color::green(),	&bitmap_icon_adsb,	[&nav](){ nav.replace<ADSBRxView>(); }, },
+		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.replace<AISAppView>(); } },
+		{ "AFSK", 					ui::Color::yellow(),&bitmap_icon_receivers,	[&nav](){ nav.replace<AFSKRxView>(); } },
+		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.replace<AnalogAudioView>(false); } },
+		{ "DMR framing", 			ui::Color::grey(),	&bitmap_icon_dmr,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.replace<ERTAppView>(); } },
+		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.replace<POCSAGAppView>(); } },
+		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.replace<NotImplementedView>(); } }, // SIGFRXView
+		{ "LoRa", 					ui::Color::grey(),	&bitmap_icon_lora,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.replace<SondeView>(); } },
+		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "TETRA framing", 			ui::Color::grey(),	&bitmap_icon_tetra,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.replace<TPMSAppView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 	
@@ -383,7 +383,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 		{ "File manager", 			ui::Color::yellow(),	&bitmap_icon_file,		[&nav](){ nav.push<FileManagerView>(); } },
 		{ "Notepad",				ui::Color::grey(),		&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },
-		{ "Tone search", 			ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<NotImplementedView>(); } },	// ToneSearchView
+		{ "Tone search", 			ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<ToneSearchView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),		nullptr,				[&nav](){ nav.push<WipeSDView>(); } },
 	});
@@ -466,10 +466,12 @@ SystemView::SystemView(
 		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
 		navigation_view.push<PlayDeadView>();
 	} else {*/
+	
 		if (portapack::persistent_memory::config_splash())
 			navigation_view.push<BMPView>();
 		else
 			navigation_view.push<SystemMenuView>();
+			
 	//}
 }
 
