@@ -55,7 +55,7 @@
 #include "ui_scanner.hpp"
 #include "ui_search.hpp"
 #include "ui_sd_wipe.hpp"
-#include "ui_setup.hpp"
+#include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
 #include "ui_soundboard.hpp"
@@ -378,12 +378,13 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	add_items({
-		{ "Test app", 				ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<TestView>(); } },
+		//{ "Test app", 				ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<TestView>(); } },
 		{ "Frequency manager", 		ui::Color::green(), 	&bitmap_icon_freqman,	[&nav](){ nav.push<FrequencyManagerView>(); } },
 		{ "File manager", 			ui::Color::yellow(),	&bitmap_icon_file,		[&nav](){ nav.push<FileManagerView>(); } },
 		{ "Notepad",				ui::Color::grey(),		&bitmap_icon_notepad,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "Signal generator", 		ui::Color::green(), 	&bitmap_icon_cwgen,		[&nav](){ nav.push<SigGenView>(); } },
-		{ "Tone search", 			ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<ToneSearchView>(); } },
+		//{ "Tone search", 			ui::Color::grey(), 		nullptr,				[&nav](){ nav.push<ToneSearchView>(); } },
+		{ "Wave file viewer", 		ui::Color::blue(),		nullptr,				[&nav](){ nav.push<ViewWavView>(); } },
 		{ "Whip antenna length",	ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<WhipCalcView>(); } },
 		{ "Wipe SD card",			ui::Color::red(),		nullptr,				[&nav](){ nav.push<WipeSDView>(); } },
 	});
@@ -411,9 +412,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Replay",					ui::Color::purple(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Search/Close call",		ui::Color::yellow(),	&bitmap_icon_closecall,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanner",				ui::Color::grey(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
-		{ "Wave file viewer", 		ui::Color::blue(),		nullptr,				[&nav](){ nav.push<ViewWavView>(); } },
 		{ "Utilities",				ui::Color::light_grey(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
-		{ "Setup", 					ui::Color::white(),		&bitmap_icon_setup,		[&nav](){ nav.push<SetupMenuView>(); } },
+		{ "Settings", 				ui::Color::white(),		&bitmap_icon_setup,		[&nav](){ nav.push<SettingsMenuView>(); } },
 		//{ "Debug", 					ui::Color::white(), nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF mode", 			ui::Color::white(),		&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 					ui::Color::white(),		nullptr,				[&nav](){ nav.push<AboutView>(); } }

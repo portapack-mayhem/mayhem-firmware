@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_setup.hpp"
+#include "ui_settings.hpp"
 
 #include "ui_navigation.hpp"
 #include "ui_touch_calibration.hpp"
@@ -42,7 +42,7 @@ namespace ui {
 SetDateTimeView::SetDateTimeView(
 	NavigationView& nav
 ) {
-	button_ok.on_select = [&nav, this](Button&){
+	button_done.on_select = [&nav, this](Button&){
 		const auto model = this->form_collect();
 		const rtc::RTC new_datetime {
 			model.year, model.month, model.day,
@@ -57,18 +57,14 @@ SetDateTimeView::SetDateTimeView(
 	},
 
 	add_children({
+		&labels,
 		&field_year,
-		&text_slash1,
 		&field_month,
-		&text_slash2,
 		&field_day,
 		&field_hour,
-		&text_colon1,
 		&field_minute,
-		&text_colon2,
 		&field_second,
-		&text_format,
-		&button_ok,
+		&button_done,
 		&button_cancel,
 	});
 
@@ -120,10 +116,6 @@ SetRadioView::SetRadioView(
 	add_children({
 		&labels,
 		&field_ppm,
-		&text_description_1,
-		&text_description_2,
-		&text_description_3,
-		&text_description_4,
 		&check_bias,
 		&button_done,
 		&button_cancel
@@ -250,6 +242,25 @@ SetUIView::SetUIView(NavigationView& nav) {
 
 void SetUIView::focus() {
 	checkbox_login.focus();
+}
+
+SetAudioView::SetAudioView(NavigationView& nav) {
+	add_children({
+		&labels,
+		&field_tone_mix,
+		&button_ok
+	});
+
+	field_tone_mix.set_value(persistent_memory::tone_mix());
+	
+	button_ok.on_select = [&nav, this](Button&) {
+		persistent_memory::set_tone_mix(field_tone_mix.value());
+		nav.pop();
+	};
+}
+
+void SetAudioView::focus() {
+	field_tone_mix.focus();
 }
 
 /*void ModInfoView::on_show() {
@@ -430,14 +441,13 @@ void ModInfoView::focus() {
 		button_ok.focus();
 }*/
 
-SetupMenuView::SetupMenuView(NavigationView& nav) {
+SettingsMenuView::SettingsMenuView(NavigationView& nav) {
 	add_items({
+		{ "Audio", 			ui::Color::white(), &bitmap_icon_speaker,	[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",			ui::Color::white(), nullptr,	[&nav](){ nav.push<SetRadioView>(); } },
 		{ "UI", 			ui::Color::white(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
 		//{ "SD card modules", ui::Color::white(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time",		ui::Color::white(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
-		//{ "Frequency correction",	ui::Color::white(), nullptr,	[&nav](){ nav.push<SetFrequencyCorrectionView>(); } },
-		//{ "Antenna Bias Voltage",	ui::Color::white(), nullptr,	[&nav](){ nav.push<AntennaBiasSetupView>(); } },
 		{ "Touch screen",	ui::Color::white(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
 		{ "Play dead",		ui::Color::white(), &bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
 	});

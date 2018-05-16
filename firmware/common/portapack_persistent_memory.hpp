@@ -50,6 +50,9 @@ const touch::Calibration& touch_calibration();
 serial_format_t serial_format();
 void set_serial_format(const serial_format_t new_value);
 
+int32_t tone_mix();
+void set_tone_mix(const int32_t new_value);
+
 int32_t afsk_mark_freq();
 void set_afsk_mark(const int32_t new_value);
 

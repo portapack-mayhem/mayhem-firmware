@@ -234,7 +234,7 @@ set(CPPSRC
 	apps/ui_scanner.cpp
 	apps/ui_search.cpp
 	apps/ui_sd_wipe.cpp
-	apps/ui_setup.cpp
+	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
 	apps/ui_soundboard.cpp

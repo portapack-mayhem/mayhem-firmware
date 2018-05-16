@@ -61,7 +61,7 @@ void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint1
 void kill_tone();
 void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration);
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain,
-					const uint32_t tone_key_delta, const float tone_key_mix_weight);
+					const uint32_t tone_key_delta);
 void set_fifo_data(const int8_t * data);
 void set_pitch_rssi(int32_t avg, bool enabled);
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,

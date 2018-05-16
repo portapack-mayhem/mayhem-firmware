@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_SETUP_H__
-#define __UI_SETUP_H__
+#ifndef __UI_SETTINGS_H__
+#define __UI_SETTINGS_H__
 
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
@@ -50,6 +50,11 @@ public:
 	std::string title() const override { return "Set Date/Time"; };
 
 private:
+	Labels labels {
+		{ { 8 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() },
+		{ { 4 * 8, 11 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::light_grey() }
+	};
+	
 	NumberField field_year {
 		{ 4 * 8, 9 * 16 },
 		4,
@@ -57,20 +62,12 @@ private:
 		1,
 		'0',
 	};
-	Text text_slash1 {
-		{ 8 * 8, 9 * 16, 1 * 8, 16 },
-		"/",
-	};
 	NumberField field_month {
 		{ 9 * 8, 9 * 16 },
 		2,
 		{ 1, 12 },
 		1,
 		'0',
-	};
-	Text text_slash2 {
-		{ 11 * 8, 9 * 16, 1 * 8, 16 },
-		"/",
 	};
 	NumberField field_day {
 		{ 12 * 8, 9 * 16 },
@@ -87,20 +84,12 @@ private:
 		1,
 		'0',
 	};
-	Text text_colon1 {
-		{ 17 * 8, 9 * 16, 1 * 8, 16 },
-		":"
-	};
 	NumberField field_minute {
 		{ 18 * 8, 9 * 16 },
 		2,
 		{ 0, 59 },
 		1,
 		'0',
-	};
-	Text text_colon2 {
-		{ 20 * 8, 9 * 16, 1 * 8, 16 },
-		":",
 	};
 	NumberField field_second {
 		{ 21 * 8, 9 * 16 },
@@ -110,17 +99,12 @@ private:
 		'0',
 	};
 
-	Text text_format {
-		{ 4 * 8, 11 * 16, 19 * 8, 16 },
-		"YYYY/MM/DD HH:MM:SS",
-	};
-
-	Button button_ok {
-		{ 4 * 8, 13 * 16, 8 * 8, 24 },
-		"OK",
+	Button button_done {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Done"
 	};
 	Button button_cancel {
-		{ 18 * 8, 13 * 16, 8 * 8, 24 },
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
 		"Cancel",
 	};
 
@@ -144,6 +128,10 @@ private:
 	Labels labels {
 		{ { 2 * 8, 2 * 16 }, "Frequency correction:", Color::light_grey() },
 		{ { 6 * 8, 3 * 16 }, "PPM", Color::light_grey() },
+		{ { 24, 7 * 16 }, "CAUTION: Ensure that all", Color::red() },
+		{ { 28, 8 * 16 }, "devices attached to the", Color::red() },
+		{ { 8, 9 * 16 }, "antenna connector can accept", Color::red() },
+		{ { 68, 10 * 16 }, "a DC voltage!", Color::red() }
 	};
 
 	NumberField field_ppm {
@@ -152,26 +140,6 @@ private:
 		{ -50, 50 },
 		1,
 		'0',
-	};
-	
-	Text text_description_1 {
-		{ 24, 7 * 16, 24 * 8, 16 },
-		"\x1B" "\x0C" "CAUTION: Ensure that all"
-	};
-
-	Text text_description_2 {
-		{ 28, 8 * 16, 23 * 8, 16 },
-		"\x1B" "\x0C" "devices attached to the"
-	};
-
-	Text text_description_3 {
-		{  8, 9 * 16, 28 * 8, 16 },
-		"\x1B" "\x0C" "antenna connector can accept"
-	};
-
-	Text text_description_4 {
-		{ 68, 10 * 16, 13 * 8, 16 },
-		"\x1B" "\x0C" "a DC voltage!"
 	};
 
 	Checkbox check_bias {
@@ -262,7 +230,34 @@ private:
 	};
 	
 	Button button_ok {
-		{ 72, 260, 96, 32 },
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"OK"
+	};
+};
+
+class SetAudioView : public View {
+public:
+	SetAudioView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "Audio settings"; };
+	
+private:
+	Labels labels {
+		{ { 2 * 8, 3 * 16 }, "Tone key mix:   %", Color::light_grey() },
+	};
+	
+	NumberField field_tone_mix {
+		{ 16 * 8, 3 * 16 },
+		2,
+		{ 10, 99 },
+		1,
+		'0'
+	};
+	
+	Button button_ok {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"OK"
 	};
 };
@@ -366,13 +361,13 @@ private:
 	};
 };*/
 
-class SetupMenuView : public MenuView {
+class SettingsMenuView : public MenuView {
 public:
-	SetupMenuView(NavigationView& nav);
+	SettingsMenuView(NavigationView& nav);
 	
 	std::string title() const override { return "Settings"; };
 };
 
 } /* namespace ui */
 
-#endif/*__UI_SETUP_H__*/
+#endif/*__UI_SETTINGS_H__*/

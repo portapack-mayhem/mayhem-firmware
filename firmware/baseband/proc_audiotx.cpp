@@ -95,7 +95,6 @@ void AudioTXProcessor::on_message(const Message* const message) {
 
 void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
 	fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
-	
 	tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
 }
 

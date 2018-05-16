@@ -98,13 +98,12 @@ void SoundBoardView::file_error() {
 
 void SoundBoardView::play_sound(uint16_t id) {
 	uint32_t sample_rate = 0;
-	
 	auto reader = std::make_unique<WAVFileReader>();
 	uint32_t tone_key_index = options_tone_key.selected_index();
 	
 	stop(false);
 
-	if(!reader->open(sounds[id].path)) {
+	if (!reader->open(sounds[id].path)) {
 		file_error();
 		return;
 	}
@@ -130,11 +129,10 @@ void SoundBoardView::play_sound(uint16_t id) {
 	}
 	
 	baseband::set_audiotx_config(
-		0,
+		0,	// Divider is unused
 		number_bw.value() * 1000,
-		10,
-		TONES_F2D(tone_key_frequency(tone_key_index), sample_rate),
-		0.2		// 20% mix
+		0,	// Gain is unused
+		TONES_F2D(tone_key_frequency(tone_key_index), sample_rate)
 	);
 	
 	radio::enable({

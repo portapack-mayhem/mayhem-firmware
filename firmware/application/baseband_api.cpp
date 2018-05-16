@@ -27,8 +27,11 @@
 #include "dsp_iir_config.hpp"
 
 #include "portapack_shared_memory.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "core_control.hpp"
+
+using namespace portapack;
 
 namespace baseband {
 
@@ -153,13 +156,13 @@ void kill_afsk() {
 }
 
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain,
-					const uint32_t tone_key_delta, const float tone_key_mix_weight) {
+					const uint32_t tone_key_delta) {
 	const AudioTXConfigMessage message {
 		divider,
 		deviation_hz,
 		audio_gain,
 		tone_key_delta,
-		tone_key_mix_weight
+		(float)persistent_memory::tone_mix() / 100.0f
 	};
 	send_message(&message);
 }
