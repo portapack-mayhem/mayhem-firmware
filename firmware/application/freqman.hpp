@@ -30,8 +30,8 @@
 #define __FREQMAN_H__
 
 #define FREQMAN_DESC_MAX_LEN 30
-#define FREQMAN_MAX_PER_FILE 30
-#define FREQMAN_MAX_PER_FILE_STR "30"
+#define FREQMAN_MAX_PER_FILE 99
+#define FREQMAN_MAX_PER_FILE_STR "99"
 
 using namespace ui;
 using namespace std;

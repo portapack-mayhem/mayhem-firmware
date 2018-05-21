@@ -31,3 +31,8 @@ f=161437500,d=SWE Minicall2
 f=152007500,d=USA Medical1
 f=157450000,d=USA Medical2
 f=163250000,d=USA Medical3
+f=147300000,d=CH Swissphone 1
+f=147325000,d=CH Swissphone 2
+f=147375000,d=CH Swissphone 3
+f=147400000,d=CH Swissphone 4
+f=169700000,d=CH Swissphone 5
