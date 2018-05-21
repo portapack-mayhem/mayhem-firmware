@@ -352,7 +352,10 @@ void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
 	waterfall_reduced_rect = { 0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height - audio_spectrum_height };
 	
 	frequency_scale.set_parent_rect({ 0, 0, new_parent_rect.width(), scale_height });
-	waterfall_view.set_parent_rect(waterfall_normal_rect);
+	if (fft_widget)
+		waterfall_view.set_parent_rect(waterfall_reduced_rect);
+	else
+		waterfall_view.set_parent_rect(waterfall_normal_rect);
 	waterfall_view.on_show();
 	
 	fft_widget_rect = { 0, new_parent_rect.height() - audio_spectrum_height, new_parent_rect.width(), audio_spectrum_height };

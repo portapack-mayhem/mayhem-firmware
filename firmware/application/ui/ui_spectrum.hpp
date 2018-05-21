@@ -105,6 +105,7 @@ public:
 private:
 	void on_tick_second();
 	
+	//static constexpr ui::Dim audio_spectrum_scale_height = 16 + 2;
 	static constexpr ui::Dim audio_spectrum_height = 2 * 16;
 	
 	WaterfallView waterfall_view { };
@@ -149,7 +150,7 @@ private:
 			if( this->audio_fifo ) {
 				AudioSpectrum audio_spectrum;
 				while( audio_fifo->out(audio_spectrum) ) {
-					// Unstack everything until and only use last buffer (should only be one max. ready per frame)
+					// Unstack everything available and only use last buffer (should only be one max. ready per frame)
 				}
 				this->on_audio_spectrum(audio_spectrum);
 			}
