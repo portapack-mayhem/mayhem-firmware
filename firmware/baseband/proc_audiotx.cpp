@@ -29,67 +29,90 @@
 #include <cstdint>
 
 void AudioTXProcessor::execute(const buffer_c8_t& buffer){
-
-	// This is called at 1536000/2048 = 750Hz
 	
 	if (!configured) return;
-
-	for (size_t i = 0; i<buffer.count; i++) {
+	
+	if( stream ) {
+		const size_t bytes_to_read = (buffer.count / 32);	// /32 (oversampling) should be == 64
+		bytes_read += stream->read(audio_buffer.p, bytes_to_read);
+	}
+	
+	// Fill and "stretch"
+	for (size_t i = 0; i < buffer.count; i++) {
+		if (!(i & 31))
+			audio_sample = audio_buffer.p[i >> 5] - 0x80;
 		
-		// Audio preview sample generation @ 1536000/divider
-		if (!as) {
-			as = divider;
-			audio_fifo.out(out_sample);
-			sample = (int32_t)out_sample;
-			//preview_audio_buffer.p[ai++] = sample << 8;
-			
-			if ((audio_fifo.len() < 512) && (asked == false)) {
-				// Ask application to fill up fifo
-				shared_memory.application_queue.push(sig_message);
-				asked = true;
-			}
-		} else {
-			as--;
-		}
-		
-		sample = tone_gen.process(sample);
+		sample = tone_gen.process(audio_sample);
 		
 		// FM
 		delta = sample * fm_delta;
 		
 		phase += delta;
 		sphase = phase + (64 << 24);
-
+		
 		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
 		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
 		
-		buffer.p[i] = {re, im};
+		buffer.p[i] = { (int8_t)re, (int8_t)im };
+	}
+	
+	spectrum_samples += buffer.count;
+	if( spectrum_samples >= spectrum_interval_samples ) {
+		spectrum_samples -= spectrum_interval_samples;
+		
+		txprogress_message.progress = bytes_read;	// Inform UI about progress
+		txprogress_message.done = false;
+		shared_memory.application_queue.push(txprogress_message);
 	}
 	
 	//AudioOutput::fill_audio_buffer(preview_audio_buffer, true);
 }
 
-void AudioTXProcessor::on_message(const Message* const msg) {
-	const auto message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
-	
-	switch(msg->id) {
+void AudioTXProcessor::on_message(const Message* const message) {
+	switch(message->id) {
 		case Message::ID::AudioTXConfig:
-			fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
-			divider = message.divider;
-			as = 0;
-			
-			tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
+			audio_config(*reinterpret_cast<const AudioTXConfigMessage*>(message));
+			break;
 
-			configured = true;
+		case Message::ID::ReplayConfig:
+			configured = false;
+			bytes_read = 0;
+			replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));
+			break;
+		
+		case Message::ID::SamplerateConfig:
+			samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
 			break;
 		
 		case Message::ID::FIFOData:
-			audio_fifo.in(static_cast<const FIFODataMessage*>(msg)->data, 512);
-			asked = false;
+			configured = true;
 			break;
-
+		
 		default:
 			break;
+	}
+}
+
+void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
+	fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
+	tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
+}
+
+void AudioTXProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+	baseband_fs = message.sample_rate;
+	baseband_thread.set_sampling_rate(baseband_fs);
+	spectrum_interval_samples = baseband_fs / 20;
+}
+
+void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
+	if( message.config ) {
+		
+		stream = std::make_unique<StreamOutput>(message.config);
+		
+		// Tell application that the buffers and FIFO pointers are ready, prefill
+		shared_memory.application_queue.push(sig_message);
+	} else {
+		stream.reset();
 	}
 }
 

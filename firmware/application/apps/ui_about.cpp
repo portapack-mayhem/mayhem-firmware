@@ -62,10 +62,11 @@ void CreditsWidget::on_hide() {
 void CreditsWidget::new_row(
 	const std::array<Color, 240>& pixel_row
 ) {
+	// Glitch be here (see comment in main.cpp)
 	const auto draw_y = display.scroll(-1);
 	
 	display.draw_pixels(
-		{ { 0, draw_y }, { 240, 1 } },
+		{ { 0, draw_y - 1 }, { 240, 1 } },
 		pixel_row
 	);
 }

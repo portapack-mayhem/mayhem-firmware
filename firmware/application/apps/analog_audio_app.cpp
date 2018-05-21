@@ -103,7 +103,7 @@ AnalogAudioView::AnalogAudioView(
 		&waterfall,
 	});
 	
-	exit_on_squelch = eos;
+	//exit_on_squelch = eos;
 
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -147,6 +147,10 @@ AnalogAudioView::AnalogAudioView(
 
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
+	};
+	
+	waterfall.on_select = [this](int32_t offset) {
+		field_frequency.set_value(receiver_model.tuning_frequency() + offset);
 	};
 
 	audio::output::start();
@@ -328,9 +332,9 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	}
 }
 
-void AnalogAudioView::squelched() {
+/*void AnalogAudioView::squelched() {
 	if (exit_on_squelch) nav_.pop();
-}
+}*/
 
 void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
 	float diff, min_diff = value;

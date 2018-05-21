@@ -45,7 +45,7 @@ const uint32_t morse_symbols[5] = {
 size_t morse_encode(std::string& message, const uint32_t time_unit_ms,
 	const uint32_t tone, uint32_t * const time_units);
 
-const std::string foxhunt_codes[11] = {
+constexpr char foxhunt_codes[11][4] = {
 	{ "MOE" },	// -----.
 	{ "MOI" },	// -----..
 	{ "MOS" },	// -----...
@@ -60,7 +60,7 @@ const std::string foxhunt_codes[11] = {
 };
 
 // 0=dot 1=dash
-const uint16_t morse_ITU[63] = {
+constexpr uint16_t morse_ITU[63] = {
 						//    Code    Size
 	0b1010110000000110,	// !: 101011- 110
 	0b0100100000000110,	// ": 010010- 110
@@ -127,7 +127,7 @@ const uint16_t morse_ITU[63] = {
 	0b0011010000000110	// _: 001101- 110
 };
 
-const uint16_t prosigns[12] = {
+constexpr uint16_t prosigns[12] = {
 						//    	  Code		Size
 	0b0001110000001001,	// <SOS>: 000111000	1001
 	0b0101000000000100,	// <AA>:  0101----- 0100

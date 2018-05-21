@@ -96,16 +96,16 @@ public:
 		SigGenConfig = 43,
 		SigGenTone = 44,
 		
-		POCSAGPacket = 50,
-		ADSBFrame = 51,
-		AFSKData = 52,
-		TestAppPacket = 53,
+		POCSAGPacket = 45,
+		ADSBFrame = 46,
+		AFSKData = 47,
+		TestAppPacket = 48,
 		
-		RequestSignal = 60,
-		FIFOData = 61,
+		RequestSignal = 49,
+		FIFOData = 50,
 		
-		AudioLevelReport = 70,
-		CodedSquelch = 71,
+		AudioLevelReport = 51,
+		CodedSquelch = 52,
 		MAX
 	};
 

@@ -270,12 +270,11 @@ void ADSBTXThread::run() {
 		
 		chThdSleepMilliseconds(50);
 		
-		if (frame_index == frames_.size()) {
+		frame_index++;
+		if (frame_index >= frames_.size()) {
 			frame_index = 0;
 			//if (regen)
 			//	regen--;
-		} else {
-			frame_index++;
 		}
 	}
 }

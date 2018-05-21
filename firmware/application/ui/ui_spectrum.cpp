@@ -61,6 +61,19 @@ void FrequencyScale::set_channel_filter(
 	}
 }
 
+void FrequencyScale::show_cursor(const bool v) {
+	if (v != _show_cursor) {
+		_show_cursor = v;
+		set_dirty();
+	}
+}
+
+void FrequencyScale::set_cursor_position(const int32_t value) {
+	_show_cursor = true;
+	cursor_position = value;
+	set_dirty();
+}
+
 void FrequencyScale::paint(Painter& painter) {
 	const auto r = screen_rect();
 
@@ -73,6 +86,17 @@ void FrequencyScale::paint(Painter& painter) {
 
 	draw_filter_ranges(painter, r);
 	draw_frequency_ticks(painter, r);
+	
+	if (_show_cursor) {
+		const Rect r_cursor {
+			120 + cursor_position, r.bottom() - filter_band_height,
+			2, filter_band_height
+		};
+		painter.fill_rectangle(
+			r_cursor,
+			Color::red()
+		);
+	}
 }
 
 void FrequencyScale::clear() {
@@ -226,11 +250,22 @@ void WaterfallView::clear() {
 
 /* WaterfallWidget *******************************************************/
 
-WaterfallWidget::WaterfallWidget() {
+WaterfallWidget::WaterfallWidget(const bool cursor) {
+	set_focusable(cursor);
+	
 	add_children({
 		&waterfall_view,
 		&frequency_scale,
 	});
+}
+
+WaterfallWidget::~WaterfallWidget() {
+	rtc_time::signal_tick_second -= signal_token_tick_second;
+}
+
+void WaterfallWidget::on_tick_second() {
+	frequency_scale.show_cursor(_blink);
+	_blink = !_blink;
 }
 
 void WaterfallWidget::on_show() {
@@ -239,6 +274,41 @@ void WaterfallWidget::on_show() {
 
 void WaterfallWidget::on_hide() {
 	baseband::spectrum_streaming_stop();
+}
+
+void WaterfallWidget::on_focus() {
+	_blink = true;
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
+}
+
+void WaterfallWidget::on_blur() {
+	frequency_scale.show_cursor(false);
+	rtc_time::signal_tick_second -= signal_token_tick_second;
+}
+
+bool WaterfallWidget::on_encoder(const EncoderEvent delta) {
+	cursor_position += delta;
+	
+	cursor_position = std::min<int32_t>(cursor_position, 119);
+	cursor_position = std::max<int32_t>(cursor_position, -120);
+	
+	frequency_scale.set_cursor_position(cursor_position);
+	return true;
+}
+
+bool WaterfallWidget::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select((cursor_position * sampling_rate) / 240);
+			cursor_position = 0;
+			frequency_scale.set_cursor_position(cursor_position);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
@@ -260,7 +330,8 @@ void WaterfallWidget::paint(Painter& painter) {
 
 void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	waterfall_view.on_channel_spectrum(spectrum);
-	frequency_scale.set_spectrum_sampling_rate(spectrum.sampling_rate);
+	sampling_rate = spectrum.sampling_rate;
+	frequency_scale.set_spectrum_sampling_rate(sampling_rate);
 	frequency_scale.set_channel_filter(
 		spectrum.channel_filter_pass_frequency,
 		spectrum.channel_filter_stop_frequency

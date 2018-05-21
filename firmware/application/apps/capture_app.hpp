@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -93,13 +94,16 @@ private:
 
 	OptionsField option_bandwidth {
 		{ 5 * 8, 1 * 16 },
-		4,
+		5,
 		{
-			{ " 25k", 20 },
-			{ " 50k", 10 },
-			{ "100k", 5 },
-			{ "250k", 2 },
-			{ "500k", 1 }
+			{ "  8k5", 8500 },
+			{ " 11k ", 11000 },
+			{ " 16k ", 16000 },
+			{ " 25k ", 25000 },
+			{ " 50k ", 50000 },
+			{ "100k ", 100000 },
+			{ "250k ", 250000 },
+			{ "500k ", 500000 }
 		}
 	};
 	

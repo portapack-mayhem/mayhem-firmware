@@ -10,6 +10,10 @@
 /firmware/application/hackrf_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.hpp
 /sdcard/ADSB/world_map.bin
+/sdcard/FREQMAN/BHT*
+/sdcard/FREQMAN/R.TXT
+/sdcard/FREQMAN/XXX.TXT
+/sdcard/WAV/*
 
 # Compiled Object files
 *.slo
@@ -56,3 +60,4 @@ CMakeFiles/
 # Host OS turds
 .DS_Store
 /firmware/CMakeCache.txt
+/sdcard/ADSB/airlines.txt

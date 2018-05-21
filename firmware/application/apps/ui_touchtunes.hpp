@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * Copyright (C) 2017 NotPike (notpike@horsefucker.org)
+ * Copyright (C) 2018 NotPike (notpike@horsefucker.org)
  *
  * This file is part of PortaPack.
  *
@@ -29,6 +29,7 @@
 // The format is actually very simple if it is rather seen as short and long gaps between pulses (as seen in many OOK remotes).
 // The frames and data rate suspiciously match the NEC infrared protocol (http://www.sbprojects.com/knowledge/ir/nec.php) without
 // the address complement. The exact data rate would be 1786 baud (560us/fragment).
+// NotPike: The data rate should be 1786 but the remote was transmitting at 1766 
 
 // Pin 0 - On/Off
 // ffff00 a2888a2aaaa8888aa2aa2220
@@ -66,16 +67,16 @@
 
 // Each 16bit button code is actually 8bit followed by its complement
 const uint8_t button_codes[32] = {
-	0xB3,	// Pause
+	0x32,	// Pause
 	0x78,	// On/Off
-	0xF1,	// P1
+	0x70,	// P1
 	0x60,	// P2
 	0xCA,	// P3
 	0x20,	// F1
 	0xF2,	// Up
 	0xA0,	// F2
 	0x84,	// Left
-	0xDD,	// OK
+	0x44,	// OK
 	0xC4,	// Right
 	0x30,	// F3
 	0x80,	// Down
@@ -92,9 +93,9 @@ const uint8_t button_codes[32] = {
 	0x18,	// Music_Karaoke
 	0x98,	// 0
 	0x58,	// Lock_Queue
-	0xF4,	// Zone 1 Vol+
-	0xF6,	// Zone 2 Vol+
-	0xFC,	// Zone 3 Vol+
+	0xD0,	// Zone 1 Vol+
+	0x90,	// Zone 2 Vol+
+	0xC0,	// Zone 3 Vol+
 	0x50,	// Zone 1 Vol-
 	0x10,	// Zone 2 Vol-
 	0x40,	// Zone 3 Vol-

@@ -44,7 +44,7 @@ enum sstv_color_seq {
 #define SSTV_MODES_NB 6
 
 // From http://www.graphics.stanford.edu/~seander/bithacks.html, nice !
-inline uint8_t sstv_parity(uint8_t code) {
+constexpr inline uint8_t sstv_parity(uint8_t code) {
 	uint8_t out = code;
 	out ^= code >> 4;
 	out &= 0x0F;
@@ -63,7 +63,7 @@ struct sstv_scanline {
 };
 
 struct sstv_mode {
-	std::string name;
+	char name[16];
 	uint8_t vis_code;
 	bool color;					// Unused for now
 	sstv_color_seq color_sequence;
@@ -78,7 +78,7 @@ struct sstv_mode {
 	//std::pair<uint16_t, uint16_t> luma_range;
 };
 
-const sstv_mode sstv_modes[SSTV_MODES_NB] = {
+constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {
 	{ "Scottie 1", 	sstv_parity(60),	true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.4320),	true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5) },
 	{ "Scottie 2", 	sstv_parity(56),	true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.2752),	true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5) },
 	{ "Scottie DX",	sstv_parity(76),	true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(1.08), 	true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5) },

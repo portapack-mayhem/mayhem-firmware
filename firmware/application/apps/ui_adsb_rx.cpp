@@ -41,11 +41,13 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 ) {
 	char aged_color;
 	Color target_color;
+	auto entry_age = entry.age;
 	
-	if (entry.age < 10) {
+	// Color decay for flights not being updated anymore
+	if (entry_age < ADSB_DECAY_A) {
 		aged_color = 0x10;
 		target_color = Color::green();
-	} else if ((entry.age >= 10) && (entry.age < 30)) {
+	} else if ((entry_age >= ADSB_DECAY_A) && (entry_age < ADSB_DECAY_B)) {
 		aged_color = 0x07;
 		target_color = Color::light_grey();
 	} else {
@@ -53,9 +55,9 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		target_color = Color::dark_grey();
 	}
 	
-	std::string string = "\x1B";
-	string += aged_color;
-	string += to_string_hex(entry.ICAO_address, 6) + " " +
+	std::string entry_string = "\x1B";
+	entry_string += aged_color;
+	entry_string += to_string_hex(entry.ICAO_address, 6) + " " +
 		entry.callsign + "  " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
 		entry.time_string;
@@ -63,7 +65,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	painter.draw_string(
 		target_rect.location(),
 		style,
-		string
+		entry_string
 	);
 	
 	if (entry.pos.valid)
@@ -125,6 +127,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_frame_pos_odd,
 		&button_see_map
 	});
+	
 	std::unique_ptr<ADSBLogger> logger { };
 	update(entry_copy);
 
@@ -206,9 +209,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		entry.set_time_string(str_timestamp);
 
 		entry.inc_hit();
-		logentry+=to_string_hex_array(frame.get_raw_data(), 14)+" ";
-		logentry+="ICAO:"+to_string_hex(ICAO_address, 6) +" ";
-	if (frame.get_DF() == DF_ADSB) {
+		logentry += to_string_hex_array(frame.get_raw_data(), 14) + " ";
+		logentry += "ICAO:" + to_string_hex(ICAO_address, 6) + " ";
+		
+		if (frame.get_DF() == DF_ADSB) {
 			uint8_t msg_type = frame.get_msg_type();
 			uint8_t * raw_data = frame.get_raw_data();
 			
@@ -235,24 +239,29 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 			}
 		}
 		recent_entries_view.set_dirty(); 
+		
 		logger = std::make_unique<ADSBLogger>();
-        if( logger ) {
+        if (logger) {
                 logger->append(u"adsb.txt");
                 // will log each frame in format:
                 // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
 				logger->log_str(logentry);
         }
-
 	}
 }
 
 void ADSBRxView::on_tick_second() {
+	// Decay and refresh if needed
 	for (auto& entry : recent) {
 		entry.inc_age();
-		if ((entry.age == 10) || (entry.age == 30))
-			recent_entries_view.set_dirty();
-		if (details_view && send_updates && (entry.key() == detailed_entry_key))
-			details_view->update(entry);
+		
+		if (details_view) {
+			if (send_updates && (entry.key() == detailed_entry_key))
+				details_view->update(entry);
+		} else {
+			if ((entry.age == ADSB_DECAY_A) || (entry.age == ADSB_DECAY_B))
+				recent_entries_view.set_dirty();
+		}
 	}
 }
 

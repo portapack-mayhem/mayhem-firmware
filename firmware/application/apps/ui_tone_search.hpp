@@ -40,7 +40,19 @@ private:
 	NavigationView& nav_;
 	
 	Labels labels {
-		{ { 1 * 8, 0 }, "Min:      Max:       LNA VGA", Color::light_grey() }
+		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   AMP:", Color::light_grey() }
+	};
+	
+	LNAGainField field_lna {
+		{ 4 * 8, 0 * 16 }
+	};
+	
+	VGAGainField field_vga {
+		{ 11 * 8, 0 * 16 }
+	};
+	
+	RFAmpField field_rf_amp {
+		{ 18 * 8, 0 * 16 }
 	};
 	
 	/*

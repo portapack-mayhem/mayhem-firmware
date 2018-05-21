@@ -23,7 +23,11 @@
 // Color bitmaps generated with:
 // Gimp image > indexed colors (16), then "xxd -i *.bmp"
 
-//TEST: Goertzel
+// Note about available RAM:
+// Check what ends up in the BSS section by looking at the map files !
+// Use constexpr where possible or make sure const are in .cpp files, not headers !
+
+//TEST: Goertzel tone detect
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
@@ -31,10 +35,15 @@
 //BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
+//GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
 
+//TODO: Make play button larger in Replay
+//TODO: Put LNA and VGA controls in Soundboard
+//TODO: Add default headphones volume setting in Audio settings
+//TODO: Move Touchtunes remote to Custom remote
+//TODO: Use escapes \x1B to set colors in text, it works !
 //TODO: Open files in File Manager
 //TODO: Ask for filename after record
-//TODO: Make entries disappear from RecentEntries list in ADS-B RX (after 2 minutes with no update ?)
 //TODO: Super simple text file viewer
 //TODO: Clean up ReplayThread
 //TODO: Cap Wav viewer position
@@ -68,10 +77,8 @@ Continuous (Fox-oring)
 //TODO: Use msgpack for settings, lists... on sd card
 
 // Multimon-style stuff:
-//TODO: CTCSS detector
 //TODO: DMR detector
 //TODO: GSM channel detector
-//TODO: SIGFOX RX/TX
 //TODO: Playdead amnesia and login
 //TODO: Setup: Play dead by default ? Enable/disable ?
 

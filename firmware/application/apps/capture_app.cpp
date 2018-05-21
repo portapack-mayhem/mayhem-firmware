@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -68,8 +69,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		this->field_frequency.set_step(v);
 	};
 	
-	option_bandwidth.on_change = [this](size_t, uint32_t divider) {
-		sampling_rate = 4000000 / divider;
+	option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
+		sampling_rate = 8 * base_rate;
 		
 		waterfall.on_hide();
 		set_target_frequency(target_frequency());
@@ -88,7 +89,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		static_cast<int8_t>(receiver_model.vga()),
 	});
 	
-	option_bandwidth.set_selected_index(4);		// 500k
+	option_bandwidth.set_selected_index(7);		// 500k
 
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);

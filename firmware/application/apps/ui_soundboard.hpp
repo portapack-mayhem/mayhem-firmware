@@ -26,6 +26,7 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "replay_thread.hpp"
 #include "baseband_api.hpp"
 #include "ui_receiver.hpp"
 #include "io_wave.hpp"
@@ -59,10 +60,6 @@ private:
 	
 	struct sound {
 		std::filesystem::path path { };
-		bool sixteenbit = false;
-		uint32_t sample_rate = 0;
-		uint32_t size = 0;
-		uint32_t sample_duration = 0;
 		uint32_t ms_duration = 0;
 		std::string title { };
 	};
@@ -73,13 +70,15 @@ private:
 	
 	uint32_t lfsr_v = 0x13377331;
 	
-	std::unique_ptr<WAVFileReader> reader { };
-	
-	sound sounds[54];			// 3 pages * 18 buttons
+	sound sounds[60];			// 5 pages * 12 buttons
 	uint32_t max_sound { };
 	uint8_t max_page { };
+	uint32_t playing_id { };
 
-	int8_t audio_buffer[512];
+	const size_t read_size { 2048 };	// Less ?
+	const size_t buffer_count { 3 };
+	std::unique_ptr<ReplayThread> replay_thread { };
+	bool ready_signal { false };
 	
 	Style style_a {
 		.font = font::fixed_8x16,
@@ -102,7 +101,7 @@ private:
 		.foreground = { 153, 102, 255 }
 	};
 
-	std::array<Button, 18> buttons { };
+	std::array<Button, 15> buttons { };
 	const Style * styles[4] = { &style_a, &style_b, &style_c, &style_d };
 	
 	void on_tuning_frequency_changed(rf::Frequency f);
@@ -112,8 +111,13 @@ private:
 	bool change_page(Button& button, const KeyEvent key);
 	void refresh_buttons(uint16_t id);
 	void play_sound(uint16_t id);
-	void prepare_audio();
 	void on_ctcss_changed(uint32_t v);
+	void stop(const bool do_loop);
+	bool is_active() const;
+	void set_ready();
+	void handle_replay_thread_done(const uint32_t return_code);
+	void file_error();
+	void on_tx_progress(const uint32_t progress);
 	
 	Labels labels {
 		{ { 10 * 8, 4 }, "BW:   kHz", Color::light_grey() }
@@ -138,21 +142,21 @@ private:
 	};
 	
 	Text text_title {
-		{ 1 * 8, 26 * 8, 20 * 8, 16 },
+		{ 1 * 8, 28 * 8, 20 * 8, 16 },
 		"-"
 	};
 	
 	Text text_page {
-		{ 22 * 8 - 4, 26 * 8, 8 * 8, 16 },
+		{ 22 * 8 - 4, 28 * 8, 8 * 8, 16 },
 		"Page -/-"
 	};
 	
 	Text text_duration {
-		{ 1 * 8, 30 * 8, 5 * 8, 16 }
+		{ 1 * 8, 31 * 8, 5 * 8, 16 }
 	};
 	
-	ProgressBar pbar {
-		{ 9 * 8, 30 * 8, 20 * 8, 16 }
+	ProgressBar progressbar {
+		{ 9 * 8, 31 * 8, 20 * 8, 16 }
 	};
 	
 	Checkbox check_loop {
@@ -171,13 +175,29 @@ private:
 		"Exit"
 	};
 	
+	MessageHandlerRegistration message_handler_replay_thread_error {
+		Message::ID::ReplayThreadDone,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+			this->handle_replay_thread_done(message.return_code);
+		}
+	};
+	
 	MessageHandlerRegistration message_handler_fifo_signal {
 		Message::ID::RequestSignal,
 		[this](const Message* const p) {
 			const auto message = static_cast<const RequestSignalMessage*>(p);
 			if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-				this->prepare_audio();
+				this->set_ready();
 			}
+		}
+	};
+	
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress);
 		}
 	};
 };

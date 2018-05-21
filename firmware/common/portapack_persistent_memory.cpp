@@ -42,6 +42,10 @@ using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range { -99000, 99000 };
 constexpr ppb_t ppb_reset_value { 0 };
 
+using tone_mix_range_t = range_t<int32_t>;
+constexpr tone_mix_range_t tone_mix_range { 10, 99 };
+constexpr int32_t tone_mix_reset_value { 20 };
+
 using afsk_freq_range_t = range_t<int32_t>;
 constexpr afsk_freq_range_t afsk_freq_range { 1, 4000 };
 constexpr int32_t afsk_mark_reset_value { 1200 };
@@ -85,6 +89,8 @@ struct data_t {
 	
 	uint32_t pocsag_last_address;
 	uint32_t pocsag_ignore_address;
+	
+	int32_t tone_mix;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -123,6 +129,15 @@ const touch::Calibration& touch_calibration() {
 		set_touch_calibration(touch::default_calibration());
 	}
 	return data->touch_calibration;
+}
+
+int32_t tone_mix() {
+	tone_mix_range.reset_if_outside(data->tone_mix, tone_mix_reset_value);
+	return data->tone_mix;
+}
+
+void set_tone_mix(const int32_t new_value) {
+	data->tone_mix = tone_mix_range.clip(new_value);
 }
 
 int32_t afsk_mark_freq() {

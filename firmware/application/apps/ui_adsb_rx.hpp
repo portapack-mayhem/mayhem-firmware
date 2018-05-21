@@ -21,10 +21,12 @@
  */
 
 #include "ui.hpp"
-#include "file.hpp"
+
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
 #include "ui_font_fixed_8x16.hpp"
+
+#include "file.hpp"
 #include "recent_entries.hpp"
 #include "log_file.hpp"
 #include "adsb.hpp"
@@ -33,6 +35,10 @@
 using namespace adsb;
 
 namespace ui {
+
+#define ADSB_DECAY_A 10		// In seconds
+#define ADSB_DECAY_B 30
+#define ADSB_DECAY_C 60		// Can be used for removing old entries, RecentEntries already caps to 64
 
 struct AircraftRecentEntry {
 	using Key = uint32_t;

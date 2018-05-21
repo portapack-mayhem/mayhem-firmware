@@ -88,7 +88,7 @@ uint32_t ReplayThread::run() {
 		if (prefill_buffer == nullptr) {
 			buffers.put_app(prefill_buffer);
 		} else {
-			size_t blocks = 16384 / 512;
+			size_t blocks = config.read_size / 512;
 			
 			for (size_t c = 0; c < blocks; c++) {
 				auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * 512], 512);
@@ -97,7 +97,7 @@ uint32_t ReplayThread::run() {
 				}
 			}
 			
-			prefill_buffer->set_size(16384);
+			prefill_buffer->set_size(config.read_size);
 			
 			buffers.put(prefill_buffer);
 		}

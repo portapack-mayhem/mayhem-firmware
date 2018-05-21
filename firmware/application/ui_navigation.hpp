@@ -70,8 +70,14 @@ public:
 	T* push(Args&&... args) {
 		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
 	}
+	template<class T, class... Args>
+	T* replace(Args&&... args) {
+		pop();
+		return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
+	}
 	
 	void push(View* v);
+	void replace(View* v);
 
 	void pop();
 	void pop_modal();

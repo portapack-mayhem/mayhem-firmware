@@ -104,6 +104,8 @@ public:
 
 	void focus() override;
 
+	std::string title() const override { return "Analog audio"; };
+	
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
@@ -111,7 +113,7 @@ private:
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
 
 	NavigationView& nav_;
-	bool exit_on_squelch { false };
+	//bool exit_on_squelch { false };
 	
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -168,7 +170,7 @@ private:
 		u"AUD_????", RecordView::FileType::WAV, 4096, 4
 	};
 
-	spectrum::WaterfallWidget waterfall { };
+	spectrum::WaterfallWidget waterfall { true };
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
@@ -186,16 +188,16 @@ private:
 
 	void update_modulation(const ReceiverModel::Mode modulation);
 	
-	void squelched();
+	//void squelched();
 	void handle_coded_squelch(const uint32_t value);
 	
-	MessageHandlerRegistration message_handler_squelch_signal {
+	/*MessageHandlerRegistration message_handler_squelch_signal {
 		Message::ID::RequestSignal,
 		[this](const Message* const p) {
 			(void)p;
 			this->squelched();
 		}
-	};
+	};*/
 	
 	MessageHandlerRegistration message_handler_coded_squelch {
 		Message::ID::CodedSquelch,

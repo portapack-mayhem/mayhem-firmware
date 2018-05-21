@@ -23,7 +23,6 @@
 // To prepare samples: for f in ./*.wav; do sox "$f" -r 48000 -c 1 -b8 --norm "conv/$f"; done
 
 #include "ui_soundboard.hpp"
-
 #include "lfsr_random.hpp"
 #include "string_format.hpp"
 #include "tonesets.hpp"
@@ -33,6 +32,7 @@ using namespace portapack;
 
 namespace ui {
 
+// TODO: Use Sharebrained's PRNG
 void SoundBoardView::do_random() {
 	uint32_t id;
 	
@@ -43,45 +43,42 @@ void SoundBoardView::do_random() {
 
 	play_sound(id);
 	
-	buttons[id % 18].focus();
-	page = id / 18;
+	buttons[id % 15].focus();
+	page = id / 15;
 	
 	refresh_buttons(id);
 }
 
-void SoundBoardView::prepare_audio() {
+bool SoundBoardView::is_active() const {
+	return (bool)replay_thread;
+}
+
+void SoundBoardView::stop(const bool do_loop) {
+	if( is_active() )
+		replay_thread.reset();
 	
-	if (sample_counter >= sample_duration) {
-		if (tx_mode == NORMAL) {
-			if (!check_loop.value()) {
-				pbar.set_value(0);
-				transmitter_model.disable();
-				return;
-			} else {
-				reader->rewind();
-				sample_counter = 0;
-			}
-		} else {
-			pbar.set_value(0);
-			transmitter_model.disable();
-			if (check_loop.value())
-				do_random();
-		}
+	if (do_loop && check_loop.value()) {
+		play_sound(playing_id);
+	} else {
+		radio::disable();
+		//button_play.set_bitmap(&bitmap_play);
+	}
+	ready_signal = false;
+}
+
+void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
+	if (return_code == ReplayThread::END_OF_FILE) {
+		stop(true);
+	} else if (return_code == ReplayThread::READ_ERROR) {
+		stop(false);
+		file_error();
 	}
 	
-	pbar.set_value(sample_counter);
+	progressbar.set_value(0);
+}
 
-	auto bytes_read = reader->read(audio_buffer, 512).value();
-	
-	// Unsigned to signed, pretty stupid :/
-	for (size_t n = 0; n < bytes_read; n++)
-		audio_buffer[n] -= 0x80;
-	for (size_t n = bytes_read; n < 512; n++)
-		audio_buffer[n] = 0;
-	
-	sample_counter += 512;
-	
-	baseband::set_fifo_data(audio_buffer);
+void SoundBoardView::set_ready() {
+	ready_signal = true;
 }
 
 void SoundBoardView::focus() {
@@ -95,41 +92,58 @@ void SoundBoardView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 }
 
+void SoundBoardView::file_error() {
+	nav_.display_modal("Error", "File read error.");
+}
+
 void SoundBoardView::play_sound(uint16_t id) {
-	uint32_t tone_key_index;
-	uint32_t divider;
+	uint32_t sample_rate = 0;
+	auto reader = std::make_unique<WAVFileReader>();
+	uint32_t tone_key_index = options_tone_key.selected_index();
+	
+	stop(false);
 
-	if (sounds[id].size == 0) return;
-
-	if (!reader->open(sounds[id].path)) return;
+	if (!reader->open(sounds[id].path)) {
+		file_error();
+		return;
+	}
 	
-	sample_duration = sounds[id].sample_duration;
+	playing_id = id;
 	
-	pbar.set_max(sample_duration);
-	pbar.set_value(0);
+	progressbar.set_max(reader->sample_count());
+	sample_rate = reader->sample_rate() * 32;
 	
-	sample_counter = 0;
+	if( reader ) {
+		//button_play.set_bitmap(&bitmap_stop);
+		baseband::set_sample_rate(sample_rate);
+		
+		replay_thread = std::make_unique<ReplayThread>(
+			std::move(reader),
+			read_size, buffer_count,
+			&ready_signal,
+			[](uint32_t return_code) {
+				ReplayThreadDoneMessage message { return_code };
+				EventDispatcher::send_message(message);
+			}
+		);
+	}
 	
-	prepare_audio();
-	
-	transmitter_model.set_sampling_rate(1536000U);
-	transmitter_model.set_rf_amp(true);
-	transmitter_model.set_lna(40);
-	transmitter_model.set_vga(40);
-	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
-	
-	tone_key_index = 0;	//options_tone_key.selected_index();
-	
-	divider = (1536000 / sounds[id].sample_rate) - 1;
-	
-	baseband::set_audiotx_data(
-		divider,
+	baseband::set_audiotx_config(
+		0,	// Divider is unused
 		number_bw.value() * 1000,
-		10,
-		TONES_F2D(tone_key_frequency(tone_key_index)),
-		0.2		// 20% mix
+		0,	// Gain is unused
+		TONES_F2D(tone_key_frequency(tone_key_index), sample_rate)
 	);
+	
+	radio::enable({
+		receiver_model.tuning_frequency(),
+		sample_rate,
+		1750000,
+		rf::Direction::Transmit,
+		receiver_model.rf_amp(),
+		static_cast<int8_t>(receiver_model.lna()),
+		static_cast<int8_t>(receiver_model.vga())
+	});
 }
 
 void SoundBoardView::show_infos(uint16_t id) {
@@ -144,7 +158,7 @@ void SoundBoardView::refresh_buttons(uint16_t id) {
 	text_page.set("Page " + to_string_dec_uint(page + 1) + "/" + to_string_dec_uint(max_page));
 	
 	for (auto& button : buttons) {
-		n_sound = (page * 18) + n;
+		n_sound = (page * 15) + n;
 		
 		button.id = n_sound;
 		
@@ -180,64 +194,57 @@ bool SoundBoardView::change_page(Button& button, const KeyEvent key) {
 	return false;
 }
 
+void SoundBoardView::on_tx_progress(const uint32_t progress) {
+	progressbar.set_value(progress);
+}
+
 SoundBoardView::SoundBoardView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	std::vector<std::filesystem::path> file_list;
-	std::string title;
-	uint8_t c;
+	auto reader = std::make_unique<WAVFileReader>();
+	uint8_t c = 0;
 	
-	reader = std::make_unique<WAVFileReader>();
-	
-	file_list = scan_root_files(u"WAV", u"*.WAV");
-	
-	c = 0;
-	for (auto& path : file_list) {
-		if (reader->open(u"WAV/" + path.native())) {
-			if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
-				sounds[c].size = reader->data_size();
-				sounds[c].sample_duration = reader->data_size(); // / (reader->bits_per_sample() / 8);
-				sounds[c].sample_rate = reader->sample_rate();
-				//if (reader->bits_per_sample() > 8)
-				//	sounds[c].sixteenbit = true;
-				//else
-				//	sounds[c].sixteenbit = false;
-				sounds[c].ms_duration = reader->ms_duration();
-				sounds[c].path = u"WAV/" + path.native();
-				title = reader->title().substr(0, 20);
-				if (title != "")
-					sounds[c].title = title;
-				else
-					sounds[c].title = "-";
-				c++;
-				if (c == 54) break;		// Limit to 54 files (3 pages)
+	for(const auto& entry : std::filesystem::directory_iterator(u"WAV", u"*.WAV")) {
+		if( std::filesystem::is_regular_file(entry.status()) ) {
+			if (reader->open(u"WAV/" + entry.path().native())) {
+				if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
+					sounds[c].ms_duration = reader->ms_duration();
+					sounds[c].path = u"WAV/" + entry.path().native();
+					std::string title = reader->title().substr(0, 20);
+					if (title != "")
+						sounds[c].title = title;
+					else
+						sounds[c].title = "-";
+					c++;
+					if (c == 60) break;		// Limit to 60 files (4 pages)
+				}
 			}
 		}
 	}
 	
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
-
+	
 	max_sound = c;
-	max_page = (max_sound + 18 - 1) / 18;	// 3 * 6 = 18 buttons per page
+	max_page = (max_sound + 15 - 1) / 15;	// 3 * 5 = 15 buttons per page
 	
 	add_children({
 		&labels,
 		&field_frequency,
 		&number_bw,
-		//&options_tone_key,
+		&options_tone_key,
 		&text_title,
 		&text_page,
 		&text_duration,
-		&pbar,
+		&progressbar,
 		&check_loop,
 		&button_random,
 		&button_exit
 	});
-
-	//tone_keys_populate(options_tone_key);
-	//options_tone_key.set_selected_index(0);
-
+	
+	tone_keys_populate(options_tone_key);
+	options_tone_key.set_selected_index(0);
+	
 	const auto button_fn = [this](Button& button) {
 		tx_mode = NORMAL;
 		this->play_sound(button.id);
@@ -250,7 +257,7 @@ SoundBoardView::SoundBoardView(
 	const auto button_dir = [this](Button& button, const KeyEvent key) {
 		return change_page(button, key);
 	};
-
+	
 	// Generate buttons
 	size_t n = 0;
 	for(auto& button : buttons) {
@@ -260,8 +267,8 @@ SoundBoardView::SoundBoardView(
 		button.on_dir = button_dir;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 3) * 78 + 3),
-			static_cast<Coord>((n / 3) * 30 + 24),
-			78, 30
+			static_cast<Coord>((n / 3) * 38 + 24),
+			78, 38
 		});
 		n++;
 	}

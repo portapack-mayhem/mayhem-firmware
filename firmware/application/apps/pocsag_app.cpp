@@ -142,7 +142,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	std::string alphanum_text = "";
 	
 	if (message->packet.flag() != NORMAL)
-		console.writeln("\n\x1B\x0CRX ERROR: " + pocsag::flag_str(message->packet.flag()));
+		console.writeln("\n\x1B\x0CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
 	else {
 		pocsag_decode_batch(message->packet, &pocsag_state);
 
