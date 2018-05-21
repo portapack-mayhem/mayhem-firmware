@@ -617,6 +617,7 @@ private:
 	const Color cursor_colors[2] = { Color::cyan(), Color::magenta() };
 	
 	int16_t * data_;
+	//std::vector<int16_t> previous_data { };
 	uint32_t length_;
 	uint32_t offset_;
 	bool digital_ { false };

@@ -143,7 +143,7 @@ set(CPPSRC
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/sonde_packet.cpp
-	${COMMON}/test_packet.cpp
+	# ${COMMON}/test_packet.cpp
 	${COMMON}/tpms_packet.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_focus.cpp
@@ -239,7 +239,7 @@ set(CPPSRC
 	apps/ui_sonde.cpp
 	apps/ui_soundboard.cpp
 	apps/ui_sstvtx.cpp
-	apps/ui_test.cpp
+	# apps/ui_test.cpp
 	apps/ui_tone_search.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp

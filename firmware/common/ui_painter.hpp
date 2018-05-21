@@ -56,6 +56,7 @@ public:
 
 	void draw_rectangle(const Rect r, const Color c);
 	void fill_rectangle(const Rect r, const Color c);
+	void fill_rectangle_unrolled8(const Rect r, const Color c);
 
 	void paint_widget_tree(Widget* const w);
 	

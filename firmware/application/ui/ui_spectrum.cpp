@@ -255,7 +255,7 @@ WaterfallWidget::WaterfallWidget(const bool cursor) {
 	
 	add_children({
 		&waterfall_view,
-		&frequency_scale,
+		&frequency_scale
 	});
 }
 
@@ -311,16 +311,51 @@ bool WaterfallWidget::on_key(const KeyEvent key) {
 	return false;
 }
 
+void WaterfallWidget::on_audio_spectrum(const AudioSpectrum& spectrum) {
+	if (fft_widget) {
+		for (size_t i = 0; i < spectrum.db.size(); i++)
+			audio_spectrum[i] = ((int16_t)spectrum.db[i] - 127) * 256;
+		fft_widget->set_dirty();
+	}
+}
+
+void WaterfallWidget::set_fft_widget(const bool show) {
+	if (fft_widget) {
+		audio_fifo = nullptr;
+		remove_child(fft_widget.get());
+		fft_widget.reset();
+	}
+	
+	if (show) {
+		waterfall_view.set_parent_rect(waterfall_reduced_rect);
+		waterfall_view.on_show();
+		fft_widget = std::make_unique<Waveform>(
+			fft_widget_rect,
+			audio_spectrum,
+			128,
+			0,
+			false,
+			Color::white());
+		add_child(fft_widget.get());
+	} else {
+		waterfall_view.set_parent_rect(waterfall_normal_rect);
+		waterfall_view.on_show();
+	}
+}
+
 void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
 	constexpr Dim scale_height = 20;
 
 	View::set_parent_rect(new_parent_rect);
+	
+	waterfall_normal_rect = { 0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height};
+	waterfall_reduced_rect = { 0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height - audio_spectrum_height };
+	
 	frequency_scale.set_parent_rect({ 0, 0, new_parent_rect.width(), scale_height });
-	waterfall_view.set_parent_rect({
-		0, scale_height,
-		new_parent_rect.width(),
-		new_parent_rect.height() - scale_height
-	});
+	waterfall_view.set_parent_rect(waterfall_normal_rect);
+	waterfall_view.on_show();
+	
+	fft_widget_rect = { 0, new_parent_rect.height() - audio_spectrum_height, new_parent_rect.width(), audio_spectrum_height };
 }
 
 void WaterfallWidget::paint(Painter& painter) {

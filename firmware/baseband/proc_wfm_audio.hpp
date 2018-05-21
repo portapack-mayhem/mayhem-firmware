@@ -27,8 +27,10 @@
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
 
+#include "dsp_types.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
+#include "block_decimator.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -56,6 +58,12 @@ private:
 		sizeof(dst) / sizeof(int16_t)
 	};
 
+	std::array<complex16_t, 64> complex_audio { };
+	const buffer_c16_t complex_audio_buffer {
+		complex_audio.data(),
+		complex_audio.size()
+	};
+	
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 	uint32_t channel_filter_pass_f = 0;
@@ -67,6 +75,14 @@ private:
 	dsp::decimate::FIR64AndDecimateBy2Real audio_filter { };
 
 	AudioOutput audio_output { };
+	
+	// For fs=96kHz FFT streaming
+	BlockDecimator<complex16_t, 256> audio_spectrum_decimator { 1 };
+	AudioSpectrum fifo_data[1 << AudioSpectrumConfigMessage::fifo_k] { };
+	AudioSpectrumFIFO fifo { fifo_data, AudioSpectrumConfigMessage::fifo_k };
+	std::array<std::complex<float>, 256> audio_spectrum { };
+	uint32_t refresh_timer { 0 };
+	uint32_t fft_stage { 0 };
 
 	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
@@ -75,6 +91,7 @@ private:
 	bool configured { false };
 	void configure(const WFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
+	void post_message(const buffer_c16_t& data);
 };
 
 #endif/*__PROC_WFM_AUDIO_H__*/

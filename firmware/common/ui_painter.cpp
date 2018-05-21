@@ -98,6 +98,10 @@ void Painter::fill_rectangle(const Rect r, const Color c) {
 	display.fill_rectangle(r, c);
 }
 
+void Painter::fill_rectangle_unrolled8(const Rect r, const Color c) {
+	display.fill_rectangle_unrolled8(r, c);
+}
+
 void Painter::paint_widget_tree(Widget* const w) {
 	if( ui::is_dirty() ) {
 		paint_widget(w);

@@ -97,41 +97,67 @@ public:
 	bool on_key(const KeyEvent key) override;
 
 	void set_parent_rect(const Rect new_parent_rect) override;
+	
+	void set_fft_widget(const bool show);
 
 	void paint(Painter& painter) override;
 
 private:
 	void on_tick_second();
 	
+	static constexpr ui::Dim audio_spectrum_height = 2 * 16;
+	
 	WaterfallView waterfall_view { };
 	FrequencyScale frequency_scale { };
-	ChannelSpectrumFIFO* fifo { nullptr };
 	
+	ChannelSpectrumFIFO* channel_fifo { nullptr };
+	AudioSpectrumFIFO* audio_fifo { nullptr };
+	
+	std::unique_ptr<Widget> fft_widget { };
 	bool _blink { false };
 	int sampling_rate { 0 };
 	int32_t cursor_position { 0 };
 	SignalToken signal_token_tick_second { };
+	int16_t audio_spectrum[128] { 0 };
+	ui::Rect waterfall_normal_rect { };
+	ui::Rect waterfall_reduced_rect { };
+	ui::Rect fft_widget_rect { };
 
-	MessageHandlerRegistration message_handler_spectrum_config {
+	MessageHandlerRegistration message_handler_channel_spectrum_config {
 		Message::ID::ChannelSpectrumConfig,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-			this->fifo = message.fifo;
+			this->channel_fifo = message.fifo;
+		}
+	};
+	MessageHandlerRegistration message_handler_audio_spectrum_config {
+		Message::ID::AudioSpectrumConfig,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const AudioSpectrumConfigMessage*>(p);
+			this->audio_fifo = message.fifo;
 		}
 	};
 	MessageHandlerRegistration message_handler_frame_sync {
 		Message::ID::DisplayFrameSync,
 		[this](const Message* const) {
-			if( this->fifo ) {
+			if( this->channel_fifo ) {
 				ChannelSpectrum channel_spectrum;
-				while( fifo->out(channel_spectrum) ) {
+				while( channel_fifo->out(channel_spectrum) ) {
 					this->on_channel_spectrum(channel_spectrum);
 				}
+			}
+			if( this->audio_fifo ) {
+				AudioSpectrum audio_spectrum;
+				while( audio_fifo->out(audio_spectrum) ) {
+					// Unstack everything until and only use last buffer (should only be one max. ready per frame)
+				}
+				this->on_audio_spectrum(audio_spectrum);
 			}
 		}
 	};
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
+	void on_audio_spectrum(const AudioSpectrum& spectrum);
 };
 
 } /* namespace spectrum */

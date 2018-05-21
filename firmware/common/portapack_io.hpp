@@ -158,6 +158,21 @@ public:
 		}
 	}
 
+	void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
+		auto v = pixel.v;
+		n >>= 3;
+		while(n--) {
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+			lcd_write_data(v);
+		}
+	}
+	
 	void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
 		for(size_t i=0; i<n; i++) {
 			lcd_write_pixel(pixels[i]);

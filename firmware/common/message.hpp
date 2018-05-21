@@ -106,6 +106,7 @@ public:
 		
 		AudioLevelReport = 51,
 		CodedSquelch = 52,
+		AudioSpectrumConfig = 53,
 		MAX
 	};
 
@@ -271,6 +272,27 @@ public:
 
 	size_t sampling_rate { 0 };
 	size_t trigger { 0 };
+};
+
+struct AudioSpectrum {
+	std::array<uint8_t, 128> db { { 0 } };
+	//uint32_t sampling_rate { 0 };
+};
+
+using AudioSpectrumFIFO = FIFO<AudioSpectrum>;
+
+class AudioSpectrumConfigMessage : public Message {
+public:
+	static constexpr size_t fifo_k = 2;
+	
+	constexpr AudioSpectrumConfigMessage(
+		AudioSpectrumFIFO* fifo
+	) : Message { ID::AudioSpectrumConfig },
+		fifo { fifo }
+	{
+	}
+
+	AudioSpectrumFIFO* fifo { nullptr };
 };
 
 struct ChannelSpectrum {

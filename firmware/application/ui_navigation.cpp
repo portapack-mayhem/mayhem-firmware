@@ -60,7 +60,7 @@
 #include "ui_sonde.hpp"
 #include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
-#include "ui_test.hpp"
+//#include "ui_test.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"

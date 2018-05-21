@@ -27,6 +27,10 @@
 // Check what ends up in the BSS section by looking at the map files !
 // Use constexpr where possible or make sure const are in .cpp files, not headers !
 
+// Note about messages:
+// There can only be one message handler for one kind of message at once
+// If an attempt is made to register a second handler, there's a chDbgPanic
+
 //TEST: Goertzel tone detect
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
@@ -36,7 +40,11 @@
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 //GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
+//GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
+//	See fifo.reset_in() ?
 
+//TODO: DCS decoder
+//TODO: Make CTCSS display only when squelch is opened
 //TODO: Make play button larger in Replay
 //TODO: Put LNA and VGA controls in Soundboard
 //TODO: Add default headphones volume setting in Audio settings
