@@ -208,8 +208,6 @@ void AnalogAudioView::remove_options_widget() {
 		options_widget.reset();
 	}
 	
-	text_ctcss.hidden(true);
-	
 	field_lna.set_style(nullptr);
 	options_modulation.set_style(nullptr);
 	field_frequency.set_style(nullptr);
@@ -257,21 +255,24 @@ void AnalogAudioView::on_show_options_modulation() {
 	switch(modulation) {
 	case ReceiverModel::Mode::AMAudio:
 		widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
-		waterfall.set_fft_widget(false);
+		waterfall.show_audio_spectrum_view(false);
+		text_ctcss.hidden(true);
 		break;
 
 	case ReceiverModel::Mode::NarrowbandFMAudio:
 		widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
-		waterfall.set_fft_widget(false);
+		waterfall.show_audio_spectrum_view(false);
+		text_ctcss.hidden(false);
 		break;
 	
 	case ReceiverModel::Mode::WidebandFMAudio:
-		waterfall.set_fft_widget(true);
-		waterfall.on_show();
+		waterfall.show_audio_spectrum_view(true);
+		text_ctcss.hidden(true);
 		break;
 	
 	case ReceiverModel::Mode::SpectrumAnalysis:
-		waterfall.set_fft_widget(false);
+		waterfall.show_audio_spectrum_view(false);
+		text_ctcss.hidden(true);
 		break;
 		
 	default:
@@ -280,8 +281,6 @@ void AnalogAudioView::on_show_options_modulation() {
 
 	set_options_widget(std::move(widget));
 	options_modulation.set_style(&style_options_group);
-	
-	if (modulation == ReceiverModel::Mode::NarrowbandFMAudio) text_ctcss.hidden(false);
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {

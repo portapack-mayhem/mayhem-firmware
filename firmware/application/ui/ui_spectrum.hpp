@@ -35,22 +35,65 @@
 namespace ui {
 namespace spectrum {
 
+class AudioSpectrumView : public View {
+public:
+	AudioSpectrumView(const Rect parent_rect);
+	
+	void paint(Painter& painter) override;
+	
+	void on_audio_spectrum(const AudioSpectrum& spectrum);
+	
+private:
+	static constexpr int cursor_band_height = 4;
+	
+	int16_t audio_spectrum[128] { 0 };
+	
+	Labels labels {
+		{ { 6 * 8, 0 * 16 }, "Hz", Color::light_grey() }
+	};
+	
+	NumberField field_frequency {
+		{ 0 * 8, 0 * 16 },
+		5,
+		{ 0, 48000 },
+		48000 / 240,
+		' '
+	};
+	
+	Waveform waveform {
+		{ 0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16 },
+		audio_spectrum,
+		128,
+		0,
+		false,
+		Color::white()
+	};
+};
+
 class FrequencyScale : public Widget {
 public:
+	std::function<void(int32_t offset)> on_select { };
+	
 	void on_show() override;
+	void on_focus() override;
+	void on_blur() override;
+	
+	bool on_encoder(const EncoderEvent delta) override;
+	bool on_key(const KeyEvent key) override;
 
 	void set_spectrum_sampling_rate(const int new_sampling_rate);
 	void set_channel_filter(const int pass_frequency, const int stop_frequency);
-	void show_cursor(const bool v);
-	void set_cursor_position(const int32_t value);
 
 	void paint(Painter& painter) override;
 
 private:
 	static constexpr int filter_band_height = 4;
 
-	bool _show_cursor { false };
+	void on_tick_second();
+	
+	bool _blink { false };
 	int32_t cursor_position { 0 };
+	SignalToken signal_token_tick_second { };
 	int spectrum_sampling_rate { 0 };
 	const int spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
 	int channel_filter_pass_frequency { 0 };
@@ -81,7 +124,6 @@ public:
 	std::function<void(int32_t offset)> on_select { };
 	
 	WaterfallWidget(const bool cursor = false);
-	~WaterfallWidget();
 
 	WaterfallWidget(const WaterfallWidget&) = delete;
 	WaterfallWidget(WaterfallWidget&&) = delete;
@@ -90,23 +132,19 @@ public:
 
 	void on_show() override;
 	void on_hide() override;
-	void on_focus() override;
-	void on_blur() override;
-	
-	bool on_encoder(const EncoderEvent delta) override;
-	bool on_key(const KeyEvent key) override;
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 	
-	void set_fft_widget(const bool show);
+	void show_audio_spectrum_view(const bool show);
 
 	void paint(Painter& painter) override;
 
 private:
-	void on_tick_second();
+	void update_widgets_rect();
 	
-	//static constexpr ui::Dim audio_spectrum_scale_height = 16 + 2;
-	static constexpr ui::Dim audio_spectrum_height = 2 * 16;
+	const Rect audio_spectrum_view_rect { 0 * 8, 0 * 16, 30 * 8, 2 * 16 + 20 };
+	static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
+	static constexpr Dim scale_height = 20;
 	
 	WaterfallView waterfall_view { };
 	FrequencyScale frequency_scale { };
@@ -114,15 +152,12 @@ private:
 	ChannelSpectrumFIFO* channel_fifo { nullptr };
 	AudioSpectrumFIFO* audio_fifo { nullptr };
 	
-	std::unique_ptr<Widget> fft_widget { };
-	bool _blink { false };
+	std::unique_ptr<AudioSpectrumView> audio_spectrum_view { };
+	
 	int sampling_rate { 0 };
 	int32_t cursor_position { 0 };
-	SignalToken signal_token_tick_second { };
-	int16_t audio_spectrum[128] { 0 };
 	ui::Rect waterfall_normal_rect { };
 	ui::Rect waterfall_reduced_rect { };
-	ui::Rect fft_widget_rect { };
 
 	MessageHandlerRegistration message_handler_channel_spectrum_config {
 		Message::ID::ChannelSpectrumConfig,

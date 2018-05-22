@@ -1523,7 +1523,7 @@ void Waveform::set_length(const uint32_t new_length) {
 void Waveform::paint(Painter& painter) {
 	size_t n;
 	Coord y, y_offset = screen_rect().location().y();
-	Coord prev_x, prev_y;
+	Coord prev_x = screen_rect().location().x(), prev_y;
 	float x, x_inc;
 	Dim h = screen_rect().size().height();
 	const float y_scale = (float)(h - 1) / 65536.0;
@@ -1535,18 +1535,6 @@ void Waveform::paint(Painter& painter) {
 	
 	// Clear
 	painter.fill_rectangle_unrolled8(screen_rect(), Color::black());
-	/*prev_x = screen_rect().location().x();
-	prev_y = previous_data[0];
-	x = prev_x + x_inc;
-	for (n = 1; n < length_; n++) {
-		y = previous_data[n];
-		display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, Color::black());
-		
-		prev_x = x;
-		prev_y = y;
-		x += x_inc;
-	}*/
-	prev_x = screen_rect().location().x();
 	
 	if (digital_) {
 		// Digital waveform: each value is an horizontal line
@@ -1570,10 +1558,8 @@ void Waveform::paint(Painter& painter) {
 		x = prev_x + x_inc;
 		h /= 2;
 		prev_y = y_offset + h - (*(data_start++) * y_scale);
-		//previous_data[0] = prev_y;
 		for (n = 1; n < length_; n++) {
 			y = y_offset + h - (*(data_start++) * y_scale);
-			//previous_data[n] = y;
 			display.draw_line( {prev_x, prev_y}, {(Coord)x, y}, color_);
 			
 			prev_x = x;

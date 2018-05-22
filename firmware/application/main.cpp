@@ -43,6 +43,7 @@
 //GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
 //	See fifo.reset_in() ?
 
+//TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
 //TODO: DCS decoder
 //TODO: Make CTCSS display only when squelch is opened
 //TODO: Make play button larger in Replay
