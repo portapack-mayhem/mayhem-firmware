@@ -25,8 +25,6 @@
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
 
-#include "pocsag.hpp"
-
 using namespace portapack;
 using namespace pocsag;
 

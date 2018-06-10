@@ -112,7 +112,7 @@ void FreqManBaseView::refresh_list() {
 		
 		for (size_t n = 0; n < database.size(); n++) {
 			menu_view.add_item({
-				freqman_item_string(database[n], 26),
+				freqman_item_string(database[n], 30),
 				ui::Color::white(),
 				nullptr,
 				[this](){
@@ -212,7 +212,7 @@ FrequencyLoadView::FrequencyLoadView(
 	});
 	
 	// Resize menu view to fill screen
-	menu_view.set_parent_rect({ 0, 3 * 8, 240, 29 * 8 });
+	menu_view.set_parent_rect({ 0, 3 * 8, 240, 30 * 8 });
 	
 	// Just to allow exit on left
 	menu_view.on_left = [&nav, this]() {

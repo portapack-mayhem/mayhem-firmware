@@ -277,6 +277,13 @@ macro(DeclareTargets chunk_tag name)
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 endmacro()
 
+### ACARS RX
+
+set(MODE_CPPSRC
+	proc_acars.cpp
+)
+DeclareTargets(PACA acars)
+
 ### ADS-B RX
 
 set(MODE_CPPSRC

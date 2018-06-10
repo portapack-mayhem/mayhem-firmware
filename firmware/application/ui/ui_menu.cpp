@@ -42,7 +42,7 @@ void MenuItemView::unhighlight() {
 }
 
 void MenuItemView::paint(Painter& painter) {
-	Coord offset_x;
+	Coord offset_x { };
 	
 	if (!item) return;
 	
@@ -71,7 +71,7 @@ void MenuItemView::paint(Painter& painter) {
 		);
 		offset_x = 26;
 	} else
-		offset_x = 8;
+		offset_x = 0;
 
 	Style text_style {
 		.font = paint_style.font,

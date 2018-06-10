@@ -43,12 +43,14 @@
 //GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
 //	See fifo.reset_in() ?
 
-//TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
-//TODO: DCS decoder
-//TODO: Make CTCSS display only when squelch is opened
+//TODO: Add larger description text field in frequency load, under menuview
+//TODO: Allow apps to select a preferred FREQMAN file
 //TODO: Make play button larger in Replay
-//TODO: Put LNA and VGA controls in Soundboard
 //TODO: Add default headphones volume setting in Audio settings
+//TODO: Put LNA and VGA controls in Soundboard
+//TODO: Make CTCSS display only when squelch is opened
+//TODO: DCS decoder
+//TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
 //TODO: Move Touchtunes remote to Custom remote
 //TODO: Use escapes \x1B to set colors in text, it works !
 //TODO: Open files in File Manager
