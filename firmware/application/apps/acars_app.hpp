@@ -51,13 +51,13 @@ public:
 	ACARSAppView(NavigationView& nav);
 	~ACARSAppView();
 
-	void set_parent_rect(const Rect new_parent_rect) override;
 	void focus() override;
 
-	std::string title() const override { return "ACARS RX"; };
+	std::string title() const override { return "ACARS (WIP)"; };
 
 private:
 	bool logging { false };
+	uint32_t packet_counter { 0 };
 
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
@@ -86,7 +86,7 @@ private:
 	};
 
 	Console console {
-		{ 0, 4 * 16, 240, 240 }
+		{ 0, 3 * 16, 240, 256 }
 	};
 
 	std::unique_ptr<ACARSLogger> logger { };

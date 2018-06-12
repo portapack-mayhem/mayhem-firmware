@@ -330,7 +330,7 @@ set(TOPT "-mthumb -DTHUMB")
 set(CWARN "-Wall -Wextra -Wstrict-prototypes")
 
 # Define C++ warning options here
-set(CPPWARN "-Wall -Wextra")
+set(CPPWARN "-Wall -Wextra -Wno-psabi")
 
 #
 # Compiler settings

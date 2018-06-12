@@ -96,7 +96,7 @@ private:
 
 class AnalogAudioView : public View {
 public:
-	AnalogAudioView(NavigationView& nav, bool eos);
+	AnalogAudioView(NavigationView& nav);
 	~AnalogAudioView();
 
 	void on_hide() override;

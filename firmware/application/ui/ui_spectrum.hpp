@@ -41,7 +41,7 @@ public:
 	
 	void paint(Painter& painter) override;
 	
-	void on_audio_spectrum(const AudioSpectrum& spectrum);
+	void on_audio_spectrum(const AudioSpectrum* spectrum);
 	
 private:
 	static constexpr int cursor_band_height = 4;
@@ -150,7 +150,8 @@ private:
 	FrequencyScale frequency_scale { };
 	
 	ChannelSpectrumFIFO* channel_fifo { nullptr };
-	AudioSpectrumFIFO* audio_fifo { nullptr };
+	AudioSpectrum* audio_spectrum_data { nullptr };
+	bool audio_spectrum_update { false };
 	
 	std::unique_ptr<AudioSpectrumView> audio_spectrum_view { };
 	
@@ -166,11 +167,12 @@ private:
 			this->channel_fifo = message.fifo;
 		}
 	};
-	MessageHandlerRegistration message_handler_audio_spectrum_config {
-		Message::ID::AudioSpectrumConfig,
+	MessageHandlerRegistration message_handler_audio_spectrum {
+		Message::ID::AudioSpectrum,
 		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const AudioSpectrumConfigMessage*>(p);
-			this->audio_fifo = message.fifo;
+			const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
+			this->audio_spectrum_data = message.data;
+			this->audio_spectrum_update = true;
 		}
 	};
 	MessageHandlerRegistration message_handler_frame_sync {
@@ -182,18 +184,15 @@ private:
 					this->on_channel_spectrum(channel_spectrum);
 				}
 			}
-			if( this->audio_fifo ) {
-				AudioSpectrum audio_spectrum;
-				while( audio_fifo->out(audio_spectrum) ) {
-					// Unstack everything available and only use last buffer (should only be one max. ready per frame)
-				}
-				this->on_audio_spectrum(audio_spectrum);
+			if (this->audio_spectrum_update) {
+				this->audio_spectrum_update = false;
+				this->on_audio_spectrum();
 			}
 		}
 	};
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
-	void on_audio_spectrum(const AudioSpectrum& spectrum);
+	void on_audio_spectrum();
 };
 
 } /* namespace spectrum */

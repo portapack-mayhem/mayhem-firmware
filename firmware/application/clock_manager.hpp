@@ -42,7 +42,7 @@ public:
 	{
 	}
 
-	void init();
+	void init(const bool use_clkin);
 	void shutdown();
 
 	void run_from_irc();

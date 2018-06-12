@@ -28,8 +28,6 @@
 #include "rssi_thread.hpp"
 
 #include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
-//#include "audio_compressor.hpp"
 
 #include "spectrum_collector.hpp"
 
@@ -53,7 +51,48 @@
 #include <cstddef>
 #include <bitset>
 
-#include "ais_baseband.hpp"
+// AIS:
+// IN: 2457600/8/8 = 38400
+// Offset: 2457600/4 = 614400 (614400/8/8 = 9600)
+// Deviation: 2400
+// Symbol: 9600
+// Decimate: 2
+// 4 taps, 1 symbol, 1/4 cycle
+
+// TPMS:
+// IN: 2457600/4/2 = 307200
+// Offset: 2457600/4 = 614400 (614400/4/2 = 76800)
+// Deviation: 38400
+// Symbol: 19200
+// Decimate: 8
+// 16 taps, 1 symbol, 2 cycles
+
+// ACARS:
+// IN: 2457600/8/8 = 38400
+// Offset: 2457600/4 = 614400 (614400/8/8 = 9600)
+// Deviation: ???
+// Symbol: 2400
+// Decimate: 8
+// 16 taps, 1 symbol, 2 cycles
+
+// Number of taps: size of one symbol in samples (in/symbol)
+// Cycles: 
+
+
+// Translate+rectangular filter
+// sample=38.4k, deviation=4800, symbol=2400
+// Length: 16 taps, 1 symbol, 2 cycles of sinusoid
+// This is actually the same as rect_taps_307k2_38k4_1t_19k2_p
+constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p { {
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
+	{  6.2500000000e-02f,  0.0000000000e+00f }, {  4.4194173824e-02f,  4.4194173824e-02f },
+	{  0.0000000000e+00f,  6.2500000000e-02f }, { -4.4194173824e-02f,  4.4194173824e-02f },
+	{ -6.2500000000e-02f,  0.0000000000e+00f }, { -4.4194173824e-02f, -4.4194173824e-02f },
+	{  0.0000000000e+00f, -6.2500000000e-02f }, {  4.4194173824e-02f, -4.4194173824e-02f },
+} };
 
 class ACARSProcessor : public BasebandProcessor {
 public:
@@ -73,23 +112,24 @@ private:
 		dst.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };	// Translate already done here !
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
+	dsp::matched_filter::MatchedFilter mf { rect_taps_38k4_4k8_1t_2k4_p, 8 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
-		19200, 2400, { 0.0555f },
+		4800, 2400, { 0.0555f },
 		[this](const float symbol) { this->consume_symbol(symbol); }
 	};
-	symbol_coding::NRZIDecoder nrzi_decode { };
-	PacketBuilder<BitPattern, NeverMatch, BitPattern> packet_builder {
-		{ 0b1001011010010110, 16, 1 },	// SYN, SYN
+	symbol_coding::ACARSDecoder acars_decode { };
+	/*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
+		{ 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
 		{ },
-		{ 0b11111111, 8, 1 },
+		{ 128 },
 		[this](const baseband::Packet& packet) {
 			this->payload_handler(packet);
 		}
-	};
+	};*/
+	baseband::Packet packet { };
 
 	void consume_symbol(const float symbol);
 	void payload_handler(const baseband::Packet& packet);

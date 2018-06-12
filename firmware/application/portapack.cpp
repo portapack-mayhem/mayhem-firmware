@@ -30,6 +30,7 @@
 using namespace hackrf::one;
 
 #include "clock_manager.hpp"
+#include "event_m0.hpp"
 
 #include "backlight.hpp"
 #include "touch_adc.hpp"
@@ -82,6 +83,7 @@ TransmitterModel transmitter_model;
 TemperatureLogger temperature_logger;
 
 bool antenna_bias { false };
+bool prev_clkin_status { false };
 uint8_t bl_tick_counter { 0 };
 
 void set_antenna_bias(const bool v) {
@@ -90,6 +92,22 @@ void set_antenna_bias(const bool v) {
 
 bool get_antenna_bias() {
 	return antenna_bias;
+}
+
+bool get_ext_clock() {
+	return prev_clkin_status;
+}
+
+void poll_ext_clock() {
+	auto clkin_status = clock_generator.clkin_status();
+	
+	if (clkin_status != prev_clkin_status) {
+		StatusRefreshMessage message { };
+		EventDispatcher::send_message(message);
+		clock_manager.init(clkin_status);
+	}
+	
+	prev_clkin_status = clkin_status;
 }
 
 class Power {
@@ -278,7 +296,7 @@ bool init() {
 	led_rx.setup();
 	led_tx.setup();
 
-	clock_manager.init();
+	clock_manager.init(false);
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 

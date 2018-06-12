@@ -86,8 +86,7 @@ NBFMOptionsView::NBFMOptionsView(
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
-	NavigationView& nav,
-	bool eos
+	NavigationView& nav
 ) : nav_ (nav)
 {
 	add_children({

@@ -29,13 +29,16 @@
 
 // Note about messages:
 // There can only be one message handler for one kind of message at once
-// If an attempt is made to register a second handler, there's a chDbgPanic
+// If an attempt is made to register a second handler, there's a chDbgPanic "MsgDblReg"
+
+// Note about matched filters: see proc_sonde.hpp
 
 //TEST: Goertzel tone detect
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
+//BUG: Console lock-up if first string to be printed starts with escape character ?
 //BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
@@ -43,6 +46,7 @@
 //GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
 //	See fifo.reset_in() ?
 
+//TODO: Continue acars receiver. See matched filter, probably doesn't shift the spectrum correctly
 //TODO: Add larger description text field in frequency load, under menuview
 //TODO: Allow apps to select a preferred FREQMAN file
 //TODO: Make play button larger in Replay

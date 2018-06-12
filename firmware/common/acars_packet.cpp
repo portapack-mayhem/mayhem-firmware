@@ -33,7 +33,7 @@ size_t Packet::length() const {
 }
 
 bool Packet::is_valid() const {
-	return length_valid() && crc_ok();
+	return true;	//length_valid() && crc_ok();
 }
 
 Timestamp Packet::received_at() const {
@@ -51,7 +51,7 @@ std::string Packet::registration_number() const {
 	const size_t character_length = 8;
 	for(size_t i=16; i<(16+7*character_length); i+=character_length) {
 		result += (field_.read(i, character_length) & 0x7F);
-	} 
+	}
 
 	return result;
 }

@@ -74,9 +74,9 @@ void AudioSpectrumView::paint(Painter& painter) {
 	);
 }
 
-void AudioSpectrumView::on_audio_spectrum(const AudioSpectrum& spectrum) {
-	for (size_t i = 0; i < spectrum.db.size(); i++)
-		audio_spectrum[i] = ((int16_t)spectrum.db[i] - 127) * 256;
+void AudioSpectrumView::on_audio_spectrum(const AudioSpectrum* spectrum) {
+	for (size_t i = 0; i < spectrum->db.size(); i++)
+		audio_spectrum[i] = ((int16_t)spectrum->db[i] - 127) * 256;
 	waveform.set_dirty();
 }
 
@@ -353,7 +353,7 @@ void WaterfallWidget::show_audio_spectrum_view(const bool show) {
 		add_child(audio_spectrum_view.get());
 		update_widgets_rect();
 	} else {
-		audio_fifo = nullptr;
+		audio_spectrum_update = false;
 		remove_child(audio_spectrum_view.get());
 		audio_spectrum_view.reset();
 		update_widgets_rect();
@@ -395,8 +395,8 @@ void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	);
 }
 
-void WaterfallWidget::on_audio_spectrum(const AudioSpectrum& spectrum) {
-	audio_spectrum_view->on_audio_spectrum(spectrum);
+void WaterfallWidget::on_audio_spectrum() {
+	audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
 }
 
 } /* namespace spectrum */

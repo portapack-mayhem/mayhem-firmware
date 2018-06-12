@@ -661,6 +661,28 @@ static constexpr Bitmap bitmap_icon_freqman {
 	{ 16, 16 }, bitmap_icon_freqman_data
 };
 
+static constexpr uint8_t bitmap_icon_clk_int_data[] = {
+	0x00, 
+	0x00, 
+	0xDC, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x76, 
+	0x00, 
+	0x44, 
+	0x6C, 
+	0x38, 
+	0x38, 
+	0x6C, 
+	0x44, 
+	0x00, 
+};
+static constexpr Bitmap bitmap_icon_clk_int {
+	{ 8, 16 }, bitmap_icon_clk_int_data
+};
+
 static constexpr uint8_t bitmap_sd_card_ok_data[] = {
 	0x00, 0x00, 
 	0x00, 0x00, 
@@ -1697,6 +1719,28 @@ static constexpr uint8_t bitmap_target_data[] = {
 };
 static constexpr Bitmap bitmap_target {
 	{ 16, 16 }, bitmap_target_data
+};
+
+static constexpr uint8_t bitmap_icon_clk_ext_data[] = {
+	0x00, 
+	0x00, 
+	0xDC, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x76, 
+	0x00, 
+	0x10, 
+	0x38, 
+	0x7C, 
+	0x10, 
+	0x10, 
+	0x10, 
+	0x00, 
+};
+static constexpr Bitmap bitmap_icon_clk_ext {
+	{ 8, 16 }, bitmap_icon_clk_ext_data
 };
 
 static constexpr uint8_t bitmap_icon_sstv_data[] = {

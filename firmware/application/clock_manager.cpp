@@ -247,10 +247,10 @@ constexpr ClockControls si5351_clock_control_clkin {
 	si5351_clock_control_common[4] | si5351_clock_control_ms_src_clkin,
 	si5351_clock_control_common[5] | si5351_clock_control_ms_src_clkin,
 	si5351_clock_control_common[6] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[7] | si5351_clock_control_ms_src_clkin,
+	si5351_clock_control_common[7] | si5351_clock_control_ms_src_xtal,
 };
 
-void ClockManager::init() {
+void ClockManager::init(const bool use_clkin) {
 	/* Must be sure to run the M4 core from IRC when messing with the signal
 	 * generator that sources the GP_CLKIN signal that drives the micro-
 	 * controller's PLL1 input.
@@ -269,7 +269,7 @@ void ClockManager::init() {
 	clock_generator.enable_fanout();
 	clock_generator.set_pll_input_sources(si5351_pll_input_sources);
 
-	const bool use_clkin = false;
+	//const bool use_clkin = false;
 	clock_generator.set_clock_control(
 		use_clkin ?
 			si5351_clock_control_clkin

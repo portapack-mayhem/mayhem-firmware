@@ -32,11 +32,16 @@ using namespace acars;
 #include "utility.hpp"
 
 void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequency) {
-	std::string entry = "Raw: F:" + to_string_dec_uint(frequency) + "Hz ";
+	(void)frequency;
+	std::string entry { };	//= "Raw: F:" + to_string_dec_uint(frequency) + "Hz ";
+	entry.reserve(256);
 	
 	// Raw hex dump of all the bytes
-	for (size_t c = 0; c < packet.length(); c += 8)
-		entry += to_string_hex(packet.read(c, 8), 8) + " ";
+	//for (size_t c = 0; c < packet.length(); c += 32)
+	//	entry += to_string_hex(packet.read(c, 32), 8) + " ";
+	
+	for (size_t c = 0; c < 256; c += 32)
+		entry += to_string_bin(packet.read(c, 32), 32);
 	
 	log_file.write_entry(packet.received_at(), entry);
 }
@@ -107,24 +112,25 @@ void ACARSAppView::focus() {
 	field_frequency.focus();
 }
 
-// Useless ?
-void ACARSAppView::set_parent_rect(const Rect new_parent_rect) {
-	View::set_parent_rect(new_parent_rect);
-}
-
 void ACARSAppView::on_packet(const acars::Packet& packet) {
-	std::string alphanum_text = "";
+	std::string console_info;
 	
-	if (!packet.is_valid())
-		console.writeln("\n\x1B\x0INVALID PACKET");
-	else {
-		std::string console_info;
+	/*if (!packet.is_valid()) {
+		console_info = to_string_datetime(packet.received_at(), HMS);
+		console_info += " INVALID";
 		
-		console_info = "\n" + to_string_datetime(packet.received_at(), HM);
-		console_info += " REG:" + packet.registration_number();
+		console.writeln(console_info);
+	} else {
+		console_info = to_string_datetime(packet.received_at(), HMS);
+		console_info += ":" + to_string_bin(packet.read(0, 32), 32);
+		//console_info += " REG:" + packet.registration_number();
 		
-		console.write(console_info);
-	}
+		console.writeln(console_info);
+	}*/
+	
+	packet_counter++;
+	if (packet_counter % 10 == 0)
+		console.writeln("Block #" + to_string_dec_uint(packet_counter));
 	
 	// Log raw data whatever it contains
 	if (logger && logging)

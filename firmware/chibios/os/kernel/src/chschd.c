@@ -148,6 +148,7 @@ static void wakeup(void *p) {
 #if CH_USE_SEMAPHORES
   case THD_STATE_WTSEM:
     chSemFastSignalI((Semaphore *)tp->p_u.wtobjp);
+    __attribute__ ((fallthrough));
     /* Falls into, intentional. */
 #endif
 #if CH_USE_QUEUES

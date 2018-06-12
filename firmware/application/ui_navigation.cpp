@@ -106,6 +106,7 @@ SystemStatusView::SystemStatusView(
 		&button_camera,
 		&button_sleep,
 		&button_bias_tee,
+		&image_clock_status,
 		&sd_card_status_view,
 	});
 	
@@ -155,6 +156,14 @@ void SystemStatusView::refresh() {
 		button_bias_tee.set_foreground(ui::Color::yellow());
 	} else {
 		button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
+		button_bias_tee.set_foreground(ui::Color::light_grey());
+	}
+	
+	if (portapack::get_ext_clock()) {
+		image_clock_status.set_bitmap(&bitmap_icon_clk_ext);
+		button_bias_tee.set_foreground(ui::Color::green());
+	} else {
+		image_clock_status.set_bitmap(&bitmap_icon_clk_int);
 		button_bias_tee.set_foreground(ui::Color::light_grey());
 	}
 }
@@ -334,7 +343,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "ACARS: Planes", 			ui::Color::yellow(),&bitmap_icon_adsb,	[&nav](){ nav.replace<ACARSAppView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.replace<AISAppView>(); } },
 		{ "AFSK", 					ui::Color::yellow(),&bitmap_icon_receivers,	[&nav](){ nav.replace<AFSKRxView>(); } },
-		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.replace<AnalogAudioView>(false); } },
+		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.replace<AnalogAudioView>(); } },
 		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.replace<ERTAppView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.replace<POCSAGAppView>(); } },
 		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.replace<SondeView>(); } },
@@ -370,7 +379,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Soundboard", 			ui::Color::green(), 	&bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
-		{ "TouchTunes remote",		ui::Color::yellow(),	&bitmap_icon_remote		[&nav](){ nav.push<TouchTunesView>(); } },
+		{ "TouchTunes remote",		ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<TouchTunesView>(); } },
 		{ "Custom remote", 			ui::Color::grey(),		&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };

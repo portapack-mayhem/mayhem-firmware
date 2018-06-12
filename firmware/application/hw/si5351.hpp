@@ -302,10 +302,6 @@ public:
 
 	void reset();
 
-	uint8_t device_status() {
-		return read_register(Register::DeviceStatus);
-	}
-
 	void wait_for_device_ready() {
 		while(device_status() & 0x80);
 	}
@@ -382,7 +378,11 @@ public:
 		_clock_control[n] |= ClockControl::CLK_PDN_Mask;
 		write_register(Register::CLKControl_Base + n, _clock_control[n]);
 	}
-
+	
+	bool clkin_status() {
+		return ((device_status() & DeviceStatus::LOS_Mask) == DeviceStatus::LOS_ValidClockAtCLKIN);
+	}
+	
 	template<size_t N>
 	void write_registers(const uint8_t reg, const std::array<uint8_t, N>& values) {
 		std::array<uint8_t, N + 1> data;
@@ -397,6 +397,10 @@ private:
 	const I2C::address_t _address;
 	uint8_t _output_enable;
 
+	uint8_t device_status() {
+		return read_register(Register::DeviceStatus);
+	}
+	
 	void update_output_enable_control() {
 		write_register(Register::OutputEnableControl, ~_output_enable);
 	}

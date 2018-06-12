@@ -125,12 +125,12 @@ private:
 	};
 
 	Text title {
-		{ 20, 0, 17 * 8, 1 * 16 },
+		{ 20, 0, 16 * 8, 1 * 16 },
 		default_title,
 	};
 	
 	ImageButton button_stealth {
-		{ 20 * 8, 0, 2 * 8, 1 * 16 },
+		{ 19 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_stealth,
 		Color::light_grey(),
 		Color::dark_grey()
@@ -144,22 +144,29 @@ private:
 	};*/
 
 	ImageButton button_camera {
-		{ 22 * 8, 0, 2 * 8, 1 * 16 },
+		{ 21 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_camera,
 		Color::white(),
 		Color::dark_grey()
 	};
 
 	ImageButton button_sleep {
-		{ 24 * 8, 0, 2 * 8, 1 * 16 },
+		{ 23 * 8, 0, 2 * 8, 1 * 16 },
 		&bitmap_icon_sleep,
 		Color::white(),
 		Color::dark_grey()
 	};
 	
 	ImageButton button_bias_tee {
-		{ 26 * 8, 0, 12, 1 * 16 },
+		{ 25 * 8, 0, 12, 1 * 16 },
 		&bitmap_icon_biast_off,
+		Color::light_grey(),
+		Color::dark_grey()
+	};
+	
+	Image image_clock_status {
+		{ 27 * 8, 0 * 16,  2 * 8, 1 * 16 },
+		&bitmap_icon_clk_int,
 		Color::light_grey(),
 		Color::dark_grey()
 	};

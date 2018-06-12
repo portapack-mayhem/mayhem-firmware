@@ -31,6 +31,7 @@
 ACARSProcessor::ACARSProcessor() {
 	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
+	packet.clear();
 }
 
 void ACARSProcessor::execute(const buffer_c8_t& buffer) {
@@ -54,9 +55,16 @@ void ACARSProcessor::consume_symbol(
 	const float raw_symbol
 ) {
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-	const auto decoded_symbol = nrzi_decode(sliced_symbol);
+	//const auto decoded_symbol = acars_decode(sliced_symbol);
 
-	packet_builder.execute(decoded_symbol);
+	// DEBUG
+	packet.add(sliced_symbol);
+	if (packet.size() == 256) {
+		payload_handler(packet);
+		packet.clear();
+	}
+
+	//packet_builder.execute(decoded_symbol);
 }
 
 void ACARSProcessor::payload_handler(

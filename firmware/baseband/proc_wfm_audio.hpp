@@ -53,6 +53,7 @@ private:
 		dst.data(),
 		dst.size()
 	};
+	// work_audio_buffer and dst_buffer use the same data pointer
 	const buffer_s16_t work_audio_buffer {
 		(int16_t*)dst.data(),
 		sizeof(dst) / sizeof(int16_t)
@@ -78,11 +79,16 @@ private:
 	
 	// For fs=96kHz FFT streaming
 	BlockDecimator<complex16_t, 256> audio_spectrum_decimator { 1 };
-	AudioSpectrum fifo_data[1 << AudioSpectrumConfigMessage::fifo_k] { };
-	AudioSpectrumFIFO fifo { fifo_data, AudioSpectrumConfigMessage::fifo_k };
 	std::array<std::complex<float>, 256> audio_spectrum { };
-	uint32_t refresh_timer { 0 };
-	uint32_t fft_stage { 0 };
+	uint32_t audio_spectrum_timer { 0 };
+	enum AudioSpectrumState {
+		IDLE = 0,
+		FEED,
+		FFT
+	};
+	AudioSpectrumState audio_spectrum_state { IDLE };
+	AudioSpectrum spectrum { };
+	uint32_t fft_step { 0 };
 
 	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;

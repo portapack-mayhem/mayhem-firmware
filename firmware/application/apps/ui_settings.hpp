@@ -51,26 +51,26 @@ public:
 
 private:
 	Labels labels {
-		{ { 8 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() },
-		{ { 4 * 8, 11 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::light_grey() }
+		{ { 6 * 8, 7 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::grey() },
+		{ { 10 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() }
 	};
 	
 	NumberField field_year {
-		{ 4 * 8, 9 * 16 },
+		{ 6 * 8, 9 * 16 },
 		4,
 		{ 2015, 2099 },
 		1,
 		'0',
 	};
 	NumberField field_month {
-		{ 9 * 8, 9 * 16 },
+		{ 11 * 8, 9 * 16 },
 		2,
 		{ 1, 12 },
 		1,
 		'0',
 	};
 	NumberField field_day {
-		{ 12 * 8, 9 * 16 },
+		{ 14 * 8, 9 * 16 },
 		2,
 		{ 1, 31 },
 		1,
@@ -78,21 +78,21 @@ private:
 	};
 
 	NumberField field_hour {
-		{ 15 * 8, 9 * 16 },
+		{ 17 * 8, 9 * 16 },
 		2,
 		{ 0, 23 },
 		1,
 		'0',
 	};
 	NumberField field_minute {
-		{ 18 * 8, 9 * 16 },
+		{ 20 * 8, 9 * 16 },
 		2,
 		{ 0, 59 },
 		1,
 		'0',
 	};
 	NumberField field_second {
-		{ 21 * 8, 9 * 16 },
+		{ 23 * 8, 9 * 16 },
 		2,
 		{ 0, 59 },
 		1,
@@ -141,7 +141,7 @@ private:
 		1,
 		'0',
 	};
-
+	
 	Checkbox check_bias {
 		{ 28, 12 * 16 },
 		5,
@@ -159,35 +159,6 @@ private:
 
 	void form_init(const SetFrequencyCorrectionModel& model);
 	SetFrequencyCorrectionModel form_collect();
-};
-
-class SetTouchCalibView : public View {
-public:
-	SetTouchCalibView(NavigationView& nav);
-	void focus() override;
-	bool on_touch(const TouchEvent event) override;
-	
-private:
-	
-	Text text_title {
-		{ 64, 32, 40, 16 },
-		"UL,UR,DL,DR !",
-	};
-	
-	Text text_debugx {
-		{ 64, 64, 40, 16 },
-		"X",
-	};
-	
-	Text text_debugy {
-		{ 64, 80, 40, 16 },
-		"Y",
-	};
-	
-	Button button_ok {
-		{ 72, 192, 96, 24 },
-		"OK"
-	};
 };
 
 class SetUIView : public View {
@@ -224,7 +195,7 @@ private:
 	};
 	
 	Checkbox checkbox_showsplash {
-		{ 3 * 8, 8 * 16 },
+		{ 3 * 8, 9 * 16 },
 		11,
 		"Show splash"
 	};
