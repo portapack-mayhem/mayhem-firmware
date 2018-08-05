@@ -108,7 +108,7 @@ inline void clear() {
 
 namespace cgu {
 
-enum class CLK_SEL {
+enum class CLK_SEL : uint8_t {
 	RTC_32KHZ	= 0x00,
 	IRC			= 0x01,
 	ENET_RX_CLK = 0x02,
