@@ -422,6 +422,30 @@ void ClockManager::disable_gp_clkin_source() {
 	clock_generator.disable_output(clock_generator_output_mcu_clkin);
 }
 
+void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel) {
+	// Measure a clock input for 480 cycles of the LPC43xx IRC.
+	LPC_CGU->FREQ_MON = LPC_CGU_FREQ_MON_Type {
+		.RCNT = 480,
+		.FCNT = 0,
+		.MEAS = 0,
+		.CLK_SEL = toUType(clk_sel),
+		.RESERVED0 = 0
+	};
+	LPC_CGU->FREQ_MON.MEAS = 1;
+}
+
+void ClockManager::wait_For_frequency_monitor_measurement_done() {
+	// FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
+	while(LPC_CGU->FREQ_MON.MEAS == 1);
+}
+
+uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
+	// Measurement is only as accurate as the LPC43xx IRC oscillator,
+	// which is +/- 1.5%. Measurement is for 480 IRC clcocks. Scale
+	// the cycle count to get a value in Hertz.
+	return LPC_CGU->FREQ_MON.FCNT * 25000;
+}
+
 void ClockManager::enable_xtal_oscillator() {
 	LPC_CGU->XTAL_OSC_CTRL.BYPASS = 0;
 	LPC_CGU->XTAL_OSC_CTRL.ENABLE = 1;
