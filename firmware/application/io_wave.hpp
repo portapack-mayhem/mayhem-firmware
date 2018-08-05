@@ -32,20 +32,26 @@
 struct fmt_pcm_t {
 	constexpr fmt_pcm_t(
 		const uint32_t sampling_rate
-	) : nSamplesPerSec { sampling_rate },
-		nAvgBytesPerSec { nSamplesPerSec * nBlockAlign }
+	) : ckID { 'f', 'm', 't', ' ' },
+		cksize { 16 },
+		wFormatTag { 0x0001 },
+		nChannels { 1 },
+		nSamplesPerSec { sampling_rate },
+		nAvgBytesPerSec { sampling_rate * 2 },
+		nBlockAlign { 2 },
+		wBitsPerSample { 16 }
 	{
 	}
 
 private:
-	uint8_t ckID[4] { 'f', 'm', 't', ' ' };
-	uint32_t cksize { 16 };
-	uint16_t wFormatTag { 0x0001 };
-	uint16_t nChannels { 1 };
+	uint8_t ckID[4];
+	uint32_t cksize;
+	uint16_t wFormatTag;
+	uint16_t nChannels;
 	uint32_t nSamplesPerSec;
 	uint32_t nAvgBytesPerSec;
-	uint16_t nBlockAlign { 2 };
-	uint16_t wBitsPerSample { 16 };
+	uint16_t nBlockAlign;
+	uint16_t wBitsPerSample;
 };
 
 struct data_t {
