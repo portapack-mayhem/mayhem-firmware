@@ -310,6 +310,10 @@ public:
 		while(device_status() & 0x80);
 	}
 
+	bool clkin_loss_of_signal() {
+		return (device_status() >> 4) & 1;
+	}
+	
 	void enable_fanout() {
 		write_register(Register::FanoutEnable, 0b11010000);
 	}
@@ -371,6 +375,11 @@ public:
 	void set_clock_control(const ClockControls& clock_control) {
 		_clock_control = clock_control;
 		update_all_clock_control();
+	}
+
+	void set_clock_control(const size_t n, const ClockControl::Type clock_control) {
+		_clock_control[n] = clock_control;
+		write_register(Register::CLKControl_Base + n, _clock_control[n]);
 	}
 
 	void enable_clock(const size_t n) {

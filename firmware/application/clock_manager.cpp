@@ -269,11 +269,23 @@ void ClockManager::init() {
 	clock_generator.enable_fanout();
 	clock_generator.set_pll_input_sources(si5351_pll_input_sources);
 
-	const bool use_clkin = false;
+	const auto clkin_present = !clock_generator.clkin_loss_of_signal();
+	auto clkin_valid = false;
+
+	if( clkin_present ) {
+		// Measure Si5351B CLKIN frequency against LPC43xx IRC oscillator
+		set_gp_clkin_to_clkin_direct();
+		start_frequency_monitor_measurement(cgu::CLK_SEL::GP_CLKIN);
+		wait_For_frequency_monitor_measurement_done();
+		const auto clkin_frequency = get_frequency_monitor_measurement_in_hertz();
+
+		// CLKIN is required to be 10MHz. FREQ_MON measurement is accurate to 1.5%
+		// due to LPC43xx IRC oscillator precision.
+		clkin_valid = (clkin_frequency >= 9850000) && (clkin_frequency <= 10150000);
+	}
+
 	clock_generator.set_clock_control(
-		use_clkin ?
-			si5351_clock_control_clkin
-		: si5351_clock_control_xtal
+		clkin_valid ? si5351_clock_control_clkin : si5351_clock_control_xtal
 	);
 
 	clock_generator.write(si5351_pll_a_xtal_reg);
@@ -420,6 +432,14 @@ void ClockManager::enable_gp_clkin_source() {
 void ClockManager::disable_gp_clkin_source() {
 	clock_generator.disable_clock(clock_generator_output_mcu_clkin);
 	clock_generator.disable_output(clock_generator_output_mcu_clkin);
+}
+
+void ClockManager::set_gp_clkin_to_clkin_direct() {
+	clock_generator.set_clock_control(
+		clock_generator_output_mcu_clkin,
+		{ ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_CLKIN | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer | ClockControl::CLK_PDN_Power_On }
+	);
+	enable_gp_clkin_source();
 }
 
 void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel) {

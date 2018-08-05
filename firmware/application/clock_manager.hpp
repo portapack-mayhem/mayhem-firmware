@@ -77,6 +77,8 @@ private:
 
 	void enable_gp_clkin_source();
 	void disable_gp_clkin_source();
+	void set_gp_clkin_to_clkin_direct();
+
 	void start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel);
 	void wait_For_frequency_monitor_measurement_done();
 
