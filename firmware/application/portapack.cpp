@@ -102,12 +102,12 @@ void poll_ext_clock() {
 	auto clkin_status = clock_generator.clkin_status();
 	
 	if (clkin_status != prev_clkin_status) {
+		prev_clkin_status = clkin_status;
 		StatusRefreshMessage message { };
 		EventDispatcher::send_message(message);
 		clock_manager.init();
 	}
 	
-	prev_clkin_status = clkin_status;
 }
 
 class Power {
