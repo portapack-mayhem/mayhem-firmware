@@ -42,7 +42,7 @@ public:
 	{
 	}
 
-	void init(const bool use_clkin);
+	void init();
 	void shutdown();
 
 	void run_from_irc();
@@ -66,6 +66,8 @@ public:
 
 	void set_reference_ppb(const int32_t ppb);
 
+	uint32_t get_frequency_monitor_measurement_in_hertz();
+
 private:
 	I2C& i2c0;
 	si5351::Si5351& clock_generator;
@@ -75,6 +77,10 @@ private:
 
 	void enable_gp_clkin_source();
 	void disable_gp_clkin_source();
+	void set_gp_clkin_to_clkin_direct();
+
+	void start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel);
+	void wait_For_frequency_monitor_measurement_done();
 
 	void enable_xtal_oscillator();
 	void disable_xtal_oscillator();

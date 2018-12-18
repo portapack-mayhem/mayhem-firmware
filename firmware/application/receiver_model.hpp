@@ -37,6 +37,7 @@ public:
 		NarrowbandFMAudio = 1,
 		WidebandFMAudio = 2,
 		SpectrumAnalysis = 3,
+		Capture = 4
 	};
 
 	rf::Frequency tuning_frequency() const;

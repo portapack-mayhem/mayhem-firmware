@@ -58,7 +58,6 @@
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
-#include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
 //#include "ui_test.hpp"
 #include "ui_tone_search.hpp"
@@ -73,6 +72,7 @@
 #include "ert_app.hpp"
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
+#include "soundboard_app.hpp"
 #include "tpms_app.hpp"
 
 #include "core_control.hpp"
@@ -166,6 +166,8 @@ void SystemStatusView::refresh() {
 		image_clock_status.set_bitmap(&bitmap_icon_clk_int);
 		button_bias_tee.set_foreground(ui::Color::light_grey());
 	}
+	
+	set_dirty();
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
@@ -186,9 +188,7 @@ void SystemStatusView::on_stealth() {
 	
 	portapack::persistent_memory::set_stealth_mode(mode);
 
-	button_stealth.set_foreground(mode ? ui::Color::green() : ui::Color::light_grey());
-	
-	button_stealth.set_dirty();
+	button_stealth.set_foreground(mode ? Color::green() : Color::light_grey());
 }
 
 void SystemStatusView::on_bias_tee() {
@@ -196,6 +196,7 @@ void SystemStatusView::on_bias_tee() {
 		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector ?", YESNO, [this](bool v) {
 				if (v) {
 					portapack::set_antenna_bias(true);
+					//radio::set_antenna_bias(true);
 					receiver_model.set_antenna_bias();
 					transmitter_model.set_antenna_bias();
 					refresh();
@@ -203,6 +204,7 @@ void SystemStatusView::on_bias_tee() {
 			});
 	} else {
 		portapack::set_antenna_bias(false);
+		//radio::set_antenna_bias(false);
 		receiver_model.set_antenna_bias();
 		transmitter_model.set_antenna_bias();
 		refresh();
@@ -371,7 +373,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Key fob", 				ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
-		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
+		{ "Burger pagers", 			ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
 		//{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK encoders", 			ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
@@ -478,10 +480,12 @@ SystemView::SystemView(
 		navigation_view.push<PlayDeadView>();
 	} else {*/
 	
+		navigation_view.push<SystemMenuView>();
+		
 		if (portapack::persistent_memory::config_splash())
 			navigation_view.push<BMPView>();
-		else
-			navigation_view.push<SystemMenuView>();
+		//else
+		//	navigation_view.push<SystemMenuView>();
 			
 	//}
 }
@@ -504,7 +508,6 @@ BMPView::BMPView(NavigationView& nav) {
 	
 	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
-		nav.push<SystemMenuView>();
 	};
 }
 

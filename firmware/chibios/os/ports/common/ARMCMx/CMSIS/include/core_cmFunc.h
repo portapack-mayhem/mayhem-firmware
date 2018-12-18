@@ -307,6 +307,10 @@ __STATIC_INLINE void __set_FPSCR(uint32_t fpscr)
 #elif defined ( __GNUC__ ) /*------------------ GNU Compiler ---------------------*/
 /* GNU gcc specific functions */
 
+#ifndef   __STATIC_FORCEINLINE
+  #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+#endif
+
 /** \brief  Enable IRQ Interrupts
 
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
@@ -403,15 +407,15 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_xPSR(void)
 
 /** \brief  Get Process Stack Pointer
 
-    This function returns the current value of the Process Stack Pointer (PSP).
+    \details Returns the current value of the Process Stack Pointer (PSP).
 
     \return               PSP Register value
  */
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_PSP(void)
+__STATIC_FORCEINLINE uint32_t __get_PSP(void)
 {
-  register uint32_t result;
+  uint32_t result;
 
-  __ASM volatile ("MRS %0, psp\n"  : "=r" (result) );
+  __ASM volatile ("MRS %0, psp"  : "=r" (result) );
   return(result);
 }
 
@@ -430,18 +434,17 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_PSP(uint32_t topOf
 
 /** \brief  Get Main Stack Pointer
 
-    This function returns the current value of the Main Stack Pointer (MSP).
+    \details Returns the current value of the Main Stack Pointer (MSP).
 
     \return               MSP Register value
  */
-__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_MSP(void)
+__STATIC_FORCEINLINE uint32_t __get_MSP(void)
 {
-  register uint32_t result;
+  uint32_t result;
 
-  __ASM volatile ("MRS %0, msp\n" : "=r" (result) );
+  __ASM volatile ("MRS %0, msp" : "=r" (result) );
   return(result);
 }
-
 
 /** \brief  Set Main Stack Pointer
 

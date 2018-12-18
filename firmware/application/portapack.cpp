@@ -104,7 +104,7 @@ void poll_ext_clock() {
 	if (clkin_status != prev_clkin_status) {
 		StatusRefreshMessage message { };
 		EventDispatcher::send_message(message);
-		clock_manager.init(clkin_status);
+		clock_manager.init();
 	}
 	
 	prev_clkin_status = clkin_status;
@@ -296,7 +296,7 @@ bool init() {
 	led_rx.setup();
 	led_tx.setup();
 
-	clock_manager.init(false);
+	clock_manager.init();
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.run_at_full_speed();
 

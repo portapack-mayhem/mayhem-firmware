@@ -36,7 +36,7 @@ set(USE_OPT "-Os -g --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++14 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+set(USE_CPPOPT "-std=c++17 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -238,7 +238,6 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	apps/ui_soundboard.cpp
 	apps/ui_sstvtx.cpp
 	# apps/ui_test.cpp
 	apps/ui_tone_search.cpp
@@ -247,13 +246,14 @@ set(CPPSRC
 	apps/ui_view_wav.cpp
 	apps/ui_whipcalc.cpp
 	apps/acars_app.cpp
-	apps/analog_audio_app.cpp
 	apps/ais_app.cpp
-	apps/tpms_app.cpp
-	apps/pocsag_app.cpp
-	apps/ert_app.cpp
+	apps/analog_audio_app.cpp
 	apps/capture_app.cpp
+	apps/ert_app.cpp
+	apps/pocsag_app.cpp
 	apps/replay_app.cpp
+	apps/soundboard_app.cpp
+	apps/tpms_app.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp

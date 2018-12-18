@@ -23,7 +23,6 @@
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
-//#include "audio_output.hpp"
 #include "event_m4.hpp"
 
 #include <cstdint>
@@ -32,17 +31,18 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 	
 	if (!configured) return;
 	
-	if( stream ) {
-		const size_t bytes_to_read = (buffer.count / 32);	// /32 (oversampling) should be == 64
-		bytes_read += stream->read(audio_buffer.p, bytes_to_read);
-	}
-	
-	// Fill and "stretch"
+	// Zero-order hold (poop)
 	for (size_t i = 0; i < buffer.count; i++) {
-		if (!(i & 31))
-			audio_sample = audio_buffer.p[i >> 5] - 0x80;
+		resample_acc += resample_inc;
+		if (resample_acc >= 0x10000) {
+			resample_acc -= 0x10000;
+			if (stream) {
+				stream->read(&audio_sample, 1);
+				bytes_read++;
+			}
+		}
 		
-		sample = tone_gen.process(audio_sample);
+		sample = tone_gen.process(audio_sample - 0x80);
 		
 		// FM
 		delta = sample * fm_delta;
@@ -50,22 +50,20 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 		phase += delta;
 		sphase = phase + (64 << 24);
 		
-		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
-		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+		re = sine_table_i8[(sphase & 0xFF000000U) >> 24];
+		im = sine_table_i8[(phase & 0xFF000000U) >> 24];
 		
 		buffer.p[i] = { (int8_t)re, (int8_t)im };
 	}
 	
-	spectrum_samples += buffer.count;
-	if( spectrum_samples >= spectrum_interval_samples ) {
-		spectrum_samples -= spectrum_interval_samples;
+	progress_samples += buffer.count;
+	if (progress_samples >= progress_interval_samples) {
+		progress_samples -= progress_interval_samples;
 		
 		txprogress_message.progress = bytes_read;	// Inform UI about progress
 		txprogress_message.done = false;
 		shared_memory.application_queue.push(txprogress_message);
 	}
-	
-	//AudioOutput::fill_audio_buffer(preview_audio_buffer, true);
 }
 
 void AudioTXProcessor::on_message(const Message* const message) {
@@ -96,12 +94,8 @@ void AudioTXProcessor::on_message(const Message* const message) {
 void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
 	fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
 	tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
-}
-
-void AudioTXProcessor::samplerate_config(const SamplerateConfigMessage& message) {
-	baseband_fs = message.sample_rate;
-	baseband_thread.set_sampling_rate(baseband_fs);
-	spectrum_interval_samples = baseband_fs / 20;
+	progress_interval_samples = message.divider;
+	resample_acc = 0;
 }
 
 void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
@@ -114,6 +108,10 @@ void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
 	} else {
 		stream.reset();
 	}
+}
+
+void AudioTXProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+	resample_inc = (((uint64_t)message.sample_rate) << 16) / baseband_fs;	// 16.16 fixed point message.sample_rate
 }
 
 int main() {
