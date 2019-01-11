@@ -47,6 +47,16 @@ SDCDriver SDCD1;
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
 
+#if LPC_SDC_USE_SDC1
+static const sdio_resources_t sdio_resources = {
+  .base = { .clk = &LPC_CGU->BASE_SDIO_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = 0 },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_SDIO_CFG, .stat = &LPC_CCU1->CLK_M4_SDIO_STAT },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_SDIO_CFG, .stat = &LPC_CCU2->CLK_SDIO_STAT },
+  .reset = { .output_index = 20 },
+  .interrupt = { .irq = SDIO_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SDC_SDIO_IRQ_PRIORITY) },
+};
+#endif
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -561,6 +571,7 @@ CH_IRQ_HANDLER(SDIO_IRQHandler) {
 void sdc_lld_init(void) {
 
   sdcObjectInit(&SDCD1);
+  SDCD1.resources = &sdio_resources;
   SDCD1.thread = NULL;
 
   /* Assuming there's a global reset when the hardware is initialized.
@@ -578,10 +589,12 @@ void sdc_lld_init(void) {
 void sdc_lld_start(SDCDriver *sdcp) {
 
   if (sdcp->state == BLK_STOP) {
-    LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
+    base_clock_enable(&sdcp->resources->base);
+    branch_clock_enable(&sdcp->resources->branch_register_if);
+    branch_clock_enable(&sdcp->resources->branch_peripheral);
+    peripheral_reset(&sdcp->resources->reset);
 
-    LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 1;
-    LPC_CGU->BASE_SDIO_CLK.PD = 0;
+    LPC_SDMMC->CLKENA = (1U << 16);   /* CCLK_LOW_POWER */
 
     sdio_reset();
     sdio_reset_card();
@@ -623,8 +636,7 @@ void sdc_lld_start(SDCDriver *sdcp) {
     sdio_interrupts_set_mask(0);
     sdio_interrupts_clear();
 
-    nvicEnableVector(SDIO_IRQn,
-                     CORTEX_PRIORITY_MASK(LPC_SDC_SDIO_IRQ_PRIORITY));
+    interrupt_enable(&sdcp->resources->interrupt);
   }
 }
 
@@ -638,7 +650,7 @@ void sdc_lld_start(SDCDriver *sdcp) {
 void sdc_lld_stop(SDCDriver *sdcp) {
 
   if (sdcp->state != BLK_STOP) {
-    nvicDisableVector(SDIO_IRQn);
+    interrupt_disable(&sdcp->resources->interrupt);
 
     /* Quickest way to return peripheral and card to known (and low power)
      * state is to reset both. Right?
@@ -646,9 +658,10 @@ void sdc_lld_stop(SDCDriver *sdcp) {
     sdio_reset();
     sdio_reset_card();
 
-    LPC_CGU->BASE_SDIO_CLK.PD = 1;
-    LPC_CCU1->CLK_M4_SDIO_CFG.AUTO = 1;
-    LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 0;
+    peripheral_reset(&sdcp->resources->reset);
+    branch_clock_disable(&sdcp->resources->branch_peripheral);
+    branch_clock_disable(&sdcp->resources->branch_register_if);
+    base_clock_disable(&sdcp->resources->base);
   }
 }
 

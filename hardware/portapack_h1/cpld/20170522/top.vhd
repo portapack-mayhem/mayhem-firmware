@@ -53,7 +53,13 @@ entity top is
 		LCD_TE			:	in		std_logic;
 		LCD_BACKLIGHT	:	out	std_logic;
 
-		AUDIO_RESETX	:	out std_logic
+		AUDIO_RESETX	:	out	std_logic;
+
+		REF_EN			:	out	std_logic;
+
+		GPS_RESETX		:	out	std_logic;
+		GPS_TX_READY	:	in		std_logic;
+		GPS_TIMEPULSE	:	in		std_logic
 	);
 end top;
 
@@ -82,6 +88,8 @@ architecture rtl of top is
 	signal	lcd_backlight_q : std_logic := '0';
 
 	signal	audio_reset_q : std_logic := '1';
+
+	signal	ref_en_q : std_logic := '0';
 
 	signal	dir_read : boolean;
 	signal	dir_write : boolean;
@@ -127,10 +135,15 @@ begin
 	lcd_data_out <= lcd_data_out_q & mcu_data_in;
 	lcd_data_in <= LCD_DB;
 	LCD_DB <= lcd_data_out when lcd_write else (others => 'Z');
-	
+
+	-- Reference clock
+	REF_EN <= ref_en_q;
+
+	-- Peripheral reset control
 	LCD_RESETX <= not lcd_reset_q;
 	AUDIO_RESETX <= not audio_reset_q;
-	
+	GPS_RESETX <= '1';
+
 	-- MCU interface
 	mcu_data_out_lcd <= lcd_data_in(15 downto 8) when lcd_read_strobe else lcd_data_in_q;
 	mcu_data_out_io <= switches;
@@ -166,6 +179,7 @@ begin
 			else
 				lcd_reset_q <= mcu_data_in(0);
 				audio_reset_q <= mcu_data_in(1);
+				ref_en_q <= mcu_data_in(6);
 				lcd_backlight_q <= mcu_data_in(7);
 			end if;
 		end if;

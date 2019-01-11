@@ -69,6 +69,12 @@ void IO::audio_reset_state(const bool active) {
 	io_write(1, io_reg);
 }
 
+void IO::reference_oscillator(const bool enable) {
+	const uint8_t mask = 1 << 6;
+	io_reg = (io_reg & ~mask) | (enable ? mask : 0);
+	io_write(1, io_reg);
+}
+
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	/* Very touchy code to save context of PortaPack data bus while the
 	 * resistive touch pin drive is changed. Order of operations is

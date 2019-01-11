@@ -77,6 +77,17 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Structure used for SDIO configuration.
+ */
+typedef struct {
+  base_clock_regs_t base;
+  branch_clock_regs_t branch_register_if;
+  branch_clock_regs_t branch_peripheral;
+  peripheral_reset_t reset;
+  interrupt_config_t interrupt;
+} sdio_resources_t;
+
+/**
  * @brief   Type of SDIO bus mode.
  */
 typedef enum {
@@ -149,6 +160,10 @@ struct SDCDriver {
    */
   uint32_t                  rca;
   /* End of the mandatory fields.*/
+  /**
+   * @brief Pointer to the non-peripheral SDIO resources.
+   */
+  const sdio_resources_t * resources;
   /**
    * @brief Thread waiting for I/O completion IRQ.
    */

@@ -86,6 +86,22 @@ I2CDriver I2CD1;
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
 
+#if LPC43XX_I2C_USE_I2C0
+static const i2c_resources_t i2c0_resources = {
+  .base = { .clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1) },
+  .branch = { .cfg = &LPC_CCU1->CLK_APB1_I2C0_CFG, .stat = &LPC_CCU1->CLK_APB1_I2C0_STAT },
+  .reset = { .output_index = 48 },
+};
+#endif /* LPC43XX_I2C_USE_I2C0 */
+
+#if LPC43XX_I2C_USE_I2C1
+static const i2c_resources_t i2c1_resources = {
+  .base = { .clk = &LPC_CGU->BASE_APB3_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 0) },
+  .branch = { .cfg = &LPC_CCU1->CLK_APB3_I2C1_CFG, .stat = &LPC_CCU1->CLK_APB3_I2C1_STAT },
+  .reset = { .output_index = 49 },
+};
+#endif /* LPC43XX_I2C_USE_I2C1 */
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -364,12 +380,14 @@ void i2c_lld_init(void) {
   i2cObjectInit(&I2CD0);
   I2CD0.thread = NULL;
   I2CD0.i2c    = LPC_I2C0;
+  I2CD0.resources = &i2c0_resources;
 #endif /* LPC43XX_I2C_USE_I2C0 */
 
 #if LPC43XX_I2C_USE_I2C1 || defined(__DOXYGEN__)
   i2cObjectInit(&I2CD1);
   I2CD1.thread = NULL;
   I2CD1.i2c = LPC_I2C1;
+  I2CD1.resources = &i2c1_resources;
 #endif /* LPC43XX_I2C_USE_I2C1 */
 }
 
@@ -385,19 +403,9 @@ void i2c_lld_start(I2CDriver *i2cp) {
 
   /* TODO: Reset peripheral, enable clocks? */
 
-#if LPC43XX_I2C_USE_I2C0 || defined(__DOXYGEN__)
-  if (&I2CD0 == i2cp) {
-    ////LPC_CCU1->CLK_APB1_I2C0_CFG.AUTO = 1;
-    LPC_CCU1->CLK_APB1_I2C0_CFG.RUN = 1;
-  }
-#endif /* LPC43XX_I2C_USE_I2C0 */
-
-#if LPC43XX_I2C_USE_I2C1 || defined(__DOXYGEN__)
-  if (&I2CD1 == i2cp) {
-    ////LPC_CCU1->CLK_APB3_I2C1_CFG.AUTO = 1;
-    LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = 1;
-  }
-#endif /* LPC43XX_I2C_USE_I2C1 */
+  base_clock_enable(&i2cp->resources->base);
+  branch_clock_enable(&i2cp->resources->branch);
+  peripheral_reset(&i2cp->resources->reset);
 
   i2c_periph_set_clock(dp, i2cp->config->high_count, i2cp->config->low_count);
   i2c_periph_enable(dp);
@@ -441,9 +449,16 @@ void i2c_lld_stop(I2CDriver *i2cp) {
 #if defined(LPC43XX_M4)
       nvicDisableVector(I2C0_IRQn);
 #endif
-      i2c_periph_disable(dp);
-      LPC_CCU1->CLK_APB1_I2C0_CFG.AUTO = 1;
-      LPC_CCU1->CLK_APB1_I2C0_CFG.RUN = 0;
+#if defined(LPC43XX_M0)
+#if LPC43XX_I2C_USE_I2C1
+      if( I2CD1.state == I2C_STOP ) {
+#endif
+        // TODO: This won't work if the I2C peripherals are split between cores!
+        nvicDisableVector(I2C0_OR_I2C1_IRQn);
+#if LPC43XX_I2C_USE_I2C1
+      }
+#endif
+#endif
     }
 #endif /* LPC43XX_I2C_USE_I2C0 */
 
@@ -452,11 +467,23 @@ void i2c_lld_stop(I2CDriver *i2cp) {
 #if defined(LPC43XX_M4)
       nvicDisableVector(I2C1_IRQn);
 #endif
-      i2c_periph_disable(dp);
-      LPC_CCU1->CLK_APB3_I2C1_CFG.AUTO = 1;
-      LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = 0;
+#if defined(LPC43XX_M0)
+#if LPC43XX_I2C_USE_I2C0
+      if( I2CD0.state == I2C_STOP ) {
+#endif
+        // TODO: This won't work if the I2C peripherals are split between cores!
+        nvicDisableVector(I2C0_OR_I2C1_IRQn);
+#if LPC43XX_I2C_USE_I2C0
+      }
+#endif
+#endif
     }
 #endif /* LPC43XX_I2C_USE_I2C1 */
+
+    i2c_periph_disable(dp);
+    peripheral_reset(&i2cp->resources->reset);
+    branch_clock_disable(&i2cp->resources->branch);
+    base_clock_disable(&i2cp->resources->base);
   }
 }
 

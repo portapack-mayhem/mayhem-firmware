@@ -356,7 +356,7 @@ enum class Status {
 };
 
 inline void reset(const Reset reset) {
-	LPC_RGU->RESET_CTRL[toUType(reset) >> 5] |= (1U << (toUType(reset) & 0x1f));
+	LPC_RGU->RESET_CTRL[toUType(reset) >> 5] = (1U << (toUType(reset) & 0x1f));
 }
 
 inline void reset_mask(const uint64_t mask) {

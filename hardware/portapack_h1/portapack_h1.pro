@@ -1,4 +1,4 @@
-update=Mon 19 Jun 2017 03:56:47 PM PDT
+update=Wed 25 Jul 2018 01:46:26 PM PDT
 version=1
 last_client=kicad
 [cvpcb]
@@ -8,30 +8,6 @@ NetIExt=net
 EquName1=devcms
 [general]
 version=1
-[eeschema]
-version=1
-LibDir=../../../library-kicad
-[eeschema/libraries]
-LibName1=portapack_h1-rescue
-LibName2=hackrf_expansion
-LibName3=passive
-LibName4=supply
-LibName5=trs_jack
-LibName6=battery
-LibName7=sd
-LibName8=ck
-LibName9=altera
-LibName10=regulator
-LibName11=tp
-LibName12=header
-LibName13=hole
-LibName14=sharebrained
-LibName15=fiducial
-LibName16=eastrising
-LibName17=on_semi
-LibName18=asahi_kasei
-LibName19=ti
-LibName20=diode
 [pcbnew]
 version=1
 PageLayoutDescrFile=
@@ -61,3 +37,6 @@ NetFmtName=Pcbnew
 SpiceForceRefPrefix=0
 SpiceUseNetNumbers=0
 LabSize=60
+[eeschema]
+version=1
+LibDir=

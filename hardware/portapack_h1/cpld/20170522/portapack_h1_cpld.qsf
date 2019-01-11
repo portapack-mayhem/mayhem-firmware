@@ -321,3 +321,27 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_IO_STBX
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_RDX
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_WRX
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_P2_8
+
+set_location_assignment PIN_35 -to GPS_TIMEPULSE
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_TIMEPULSE
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_TIMEPULSE
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_TIMEPULSE
+set_instance_assignment -name PCI_IO OFF -to GPS_TIMEPULSE
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPS_TIMEPULSE
+
+set_location_assignment PIN_36 -to GPS_TX_READY
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_TX_READY
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_TX_READY
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_TX_READY
+set_instance_assignment -name PCI_IO OFF -to GPS_TX_READY
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPS_TX_READY
+
+set_location_assignment PIN_5 -to REF_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to REF_EN
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to REF_EN
+set_instance_assignment -name SLOW_SLEW_RATE ON -to REF_EN
+
+set_location_assignment PIN_7 -to GPS_RESETX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_RESETX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_RESETX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_RESETX

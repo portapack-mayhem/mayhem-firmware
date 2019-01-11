@@ -100,53 +100,16 @@ bool get_ext_clock() {
 
 void poll_ext_clock() {
 	auto clkin_status = clock_generator.clkin_status();
-	
+
 	if (clkin_status != prev_clkin_status) {
 		prev_clkin_status = clkin_status;
 		StatusRefreshMessage message { };
 		EventDispatcher::send_message(message);
-		clock_manager.init();
+		clock_manager.init_peripherals();
 	}
-	
+
 }
 
-class Power {
-public:
-	void init() {
-		/* VAA powers:
-		 * MAX5864 analog section.
-		 * MAX2837 registers and other functions.
-		 * RFFC5072 analog section.
-		 *
-		 * Beware that power applied to pins of the MAX2837 may
-		 * show up on VAA and start powering other components on the
-		 * VAA net. So turn on VAA before driving pins from MCU to
-		 * MAX2837.
-		 */
-		/* Turn on VAA */
-		gpio_vaa_disable.clear();
-		gpio_vaa_disable.output();
-
-		/* 1V8 powers CPLD internals.
-		 */
-		/* Turn on 1V8 */
-		gpio_1v8_enable.set();
-		gpio_1v8_enable.output();
-
-		/* Set VREGMODE for switching regulator on HackRF One */
-		gpio_vregmode.set();
-		gpio_vregmode.output();
-	}
-
-	void shutdown() {
-		gpio_1v8_enable.clear();
-		gpio_vaa_disable.set();
-	}
-
-private:
-};
-
-static Power power;
 
 enum class PortaPackModel {
 	R1_20150901,
@@ -187,6 +150,25 @@ Backlight* backlight() {
 		: static_cast<portapack::Backlight*>(&backlight_on_off);
 }
 
+static void configure_unused_mcu_peripherals_power_down(const bool power_down) {
+	LPC_CGU->IDIVD_CTRL.PD = power_down;
+	LPC_CGU->IDIVE_CTRL.PD = power_down;
+
+	LPC_CGU->BASE_USB1_CLK.PD = power_down;
+	LPC_CGU->BASE_SPI_CLK.PD = power_down;
+	LPC_CGU->BASE_PHY_RX_CLK.PD = power_down;
+	LPC_CGU->BASE_PHY_TX_CLK.PD = power_down;
+	LPC_CGU->BASE_LCD_CLK.PD = power_down;
+	LPC_CGU->BASE_SSP0_CLK.PD = power_down;
+	LPC_CGU->BASE_UART0_CLK.PD = power_down;
+	LPC_CGU->BASE_UART1_CLK.PD = power_down;
+	LPC_CGU->BASE_UART2_CLK.PD = power_down;
+	LPC_CGU->BASE_UART3_CLK.PD = power_down;
+	LPC_CGU->BASE_OUT_CLK.PD = power_down;
+	LPC_CGU->BASE_CGU_OUT0_CLK.PD = power_down;
+	LPC_CGU->BASE_CGU_OUT1_CLK.PD = power_down;
+}
+
 static void configure_unused_mcu_peripherals(const bool enabled) {
 	/* Disabling these peripherals reduces "idle" (PortaPack at main
 	 * menu) current by 42mA.
@@ -196,9 +178,17 @@ static void configure_unused_mcu_peripherals(const bool enabled) {
 	 *
 	 * RITIMER: M0 SysTick substitute (because M0 has no SysTick)
 	 * TIMER3: M0 cycle/PCLK counter
+	 * IDIVB: Clock for SPI (set up in bootstrap code)
+	 * IDIVC: I2S audio clock
 	 */
 
 	const uint32_t clock_run_state = enabled ? 1 : 0;
+	const bool power_down = !enabled;
+
+	if( power_down == false ) {
+		// Power up peripheral clocks *before* enabling run state.
+		configure_unused_mcu_peripherals_power_down(power_down);
+	}
 
 	LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = clock_run_state;
 	LPC_CCU1->CLK_APB3_DAC_CFG.RUN = clock_run_state;
@@ -230,6 +220,11 @@ static void configure_unused_mcu_peripherals(const bool enabled) {
 	LPC_CCU2->CLK_APB0_UART1_CFG.RUN = clock_run_state;
 	LPC_CCU2->CLK_APB0_USART0_CFG.RUN = clock_run_state;
 	LPC_CCU2->CLK_APB0_SSP0_CFG.RUN = clock_run_state;
+
+	if( power_down == true ) {
+		// Power down peripheral clocks *after* disabling run state.
+		configure_unused_mcu_peripherals_power_down(power_down);
+	}
 }
 
 static void disable_unused_mcu_peripheral_clocks() {
@@ -243,9 +238,6 @@ static void enable_unused_mcu_peripheral_clocks() {
 static void shutdown_base() {
 	clock_manager.shutdown();
 
-	power.shutdown();
-	// TODO: Wait a bit for supplies to discharge?
-
 	chSysDisable();
 
 	systick_stop();
@@ -256,49 +248,8 @@ static void shutdown_base() {
 }
 
 bool init() {
-	for(const auto& pin : pins) {
-		pin.init();
-	}
+	clock_manager.init_peripherals();
 
-	/* Configure other pins */
-	/* Glitch filter operates at 3ns instead of 50ns due to the WM8731
-	 * returning an ACK very fast (170ns) and confusing the I2C state
-	 * machine into thinking there was a bus error. It looks like the
-	 * MCU sees SDA fall before SCL falls, indicating a START at the
-	 * point an ACK is expected. With the glitch filter off or set to
-	 * 3ns, it's probably still a bit tight timing-wise, but improves
-	 * reliability on some problem units.
-	 */
-	LPC_SCU->SFSI2C0 =
-		  (1U <<  0)	// SCL: 3ns glitch
-		| (0U <<  2)	// SCL: Standard/Fast mode
-		| (1U <<  3)	// SCL: Input enabled
-		| (0U <<  7)	// SCL: Enable input glitch filter
-		| (1U <<  8)	// SDA: 3ns glitch
-		| (0U << 10)	// SDA: Standard/Fast mode
-		| (1U << 11)	// SDA: Input enabled
-		| (0U << 15)	// SDA: Enable input glitch filter
-		;
-
-	disable_unused_mcu_peripheral_clocks();
-
-	LPC_CREG->CREG0 |= (1 << 5);	// Disable USB0 PHY
-
-	power.init();
-
-	gpio_max5864_select.set();
-	gpio_max5864_select.output();
-
-	gpio_max2837_select.set();
-	gpio_max2837_select.output();
-
-	led_usb.setup();
-	led_rx.setup();
-	led_tx.setup();
-
-	clock_manager.init();
-	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-	clock_manager.run_at_full_speed();
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		shutdown_base();
@@ -310,6 +261,9 @@ bool init() {
 	}
 
 	portapack::io.init();
+
+	clock_manager.init_clock_generator();
+	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 
 	audio::init(portapack_audio_codec());
 	
@@ -340,12 +294,109 @@ void shutdown() {
 	shutdown_base();
 }
 
+/* Bootstrap runs from SPIFI on the M4, immediately after the LPC43xx built-in
+ * boot ROM runs.
+ */
+
+/* After boot ROM executes:
+ * PLL1 is at 288MHz (IRC * 24)
+ * IDIVB_CTRL = PLL1 / 9 = 32MHz
+ * IDIVC_CTRL = PLL1 / 3 = 96MHz
+ * BASE_SPIFI_CLK.CLK_SEL = IDIVB
+ * BASE_M4_CLK.CLK_SEL = IDIVC?
+ */
+
+static void configure_spifi(void) {
+	constexpr Pin pins_spifi[] = {
+		{  3,  3, PinConfig::spifi_sck(3) }, /* SPIFI_SCK: W25Q80BV.CLK(I), enable input buffer for timing feedback */
+		{  3,  4, PinConfig::spifi_inout(3) }, /* SPIFI_SIO3/P82: W25Q80BV.HOLD(IO) */
+		{  3,  5, PinConfig::spifi_inout(3) }, /* SPIFI_SIO2/P81: W25Q80BV.WP(IO) */
+		{  3,  6, PinConfig::spifi_inout(3) }, /* SPIFI_MISO: W25Q80BV.DO(IO) */
+		{  3,  7, PinConfig::spifi_inout(3) }, /* SPIFI_MOSI: W25Q80BV.DI(IO) */
+		{  3,  8, PinConfig::spifi_cs(3) }, /* SPIFI_CS/P68: W25Q80BV.CS(I) */
+	};
+
+	for(const auto& pin : pins_spifi) {
+		pin.init();
+	}
+
+	/* Tweak SPIFI mode */
+	LPC_SPIFI->CTRL =
+		  (0xffff <<  0)	/* Timeout */
+		| (0x1    << 16)	/* CS high time in "clocks - 1" */
+		| (0      << 21)	/* 0: Attempt speculative prefetch on data accesses */
+		| (0      << 22)	/* 0: No interrupt on command ended */
+		| (0      << 23)	/* 0: SCK driven low after rising edge at which last bit of command is captured. Stays low while CS# is high. */
+		| (0      << 27)	/* 0: Cache prefetching enabled */
+		| (0      << 28)	/* 0: Quad protocol, IO3:0 */
+		| (1      << 29)	/* 1: Read data sampled on falling edge of clock */
+		| (1      << 30)	/* 1: Read data is sampled using feedback clock from SCK pin */
+		| (0      << 31)	/* 0: DMA request disabled */
+		;
+
+	/* Throttle up the SPIFI interface to 96MHz (IDIVA=PLL1 / 3) */
+	LPC_CGU->IDIVB_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 2 <<  2)	/* IDIV (/3) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 9 << 24)	/* PLL1 */
+		;
+}
+
 extern "C" {
 
+void __early_init(void) {
+	/*
+	 * Upon exit from bootloader into SPIFI boot mode:
+	 *
+	 * Enabled:
+	 *   PLL1: IRC, M=/24, N=/1, P=/1, autoblock, direct = 288 MHz
+	 *   IDIVA: IRC /1 = 12 MHz
+	 *   IDIVB: PLL1 /9, autoblock = 32 MHz
+	 *   IDIVC: PLL1 /3, autoblock = 96 MHz
+	 *   IDIVD: IRC /1 = 12 MHz
+	 *   IDIVE: IRC /1 = 12 MHz
+	 *   BASE_M4_CLK: IDIVC, autoblock
+	 *   BASE_SPIFI_CLK: IDIVB, autoblock
+	 *
+	 * Disabled:
+	 *   XTAL_OSC
+	 *   PLL0USB
+	 *   PLL0AUDIO
+	 */
+	/* LPC43xx M4 takes about 500 usec to get to __early_init
+	 * Before __early_init, LPC bootloader runs and starts our code. In user code, the process stack
+	 * is initialized, hardware floating point is initialized, and stacks are zeroed,
+	 */
+	const uint32_t CORTEX_M4_CPUID      = 0x410fc240;
+	const uint32_t CORTEX_M4_CPUID_MASK = 0xff0ffff0;
+
+	if( (SCB->CPUID & CORTEX_M4_CPUID_MASK) == CORTEX_M4_CPUID ) {
+		/* Enable unaligned exception handler */
+		SCB_CCR |= (1 << 3);
+
+		/* Enable MemManage, BusFault, UsageFault exception handlers */
+		SCB_SHCSR |= (1 << 18) | (1 << 17) | (1 << 16);
+
+		reset();
+
+		// disable_unused_mcu_peripheral_clocks();
+		configure_spifi();
+
+		LPC_CCU1->CLK_M4_M0APP_CFG.RUN = true;
+		LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x0;
+		LPC_RGU->RESET_CTRL[1] = 0;
+
+		/* Prevent the M4 from doing any more initializing by sleep-waiting forever...
+		 * ...until the M0 resets the M4 with some code to run.
+		 */
+		while(1) {
+			__WFE();
+		}
+	}
+}
+
 void __late_init(void) {
-
-	reset();
-
 	/*
 	 * System initializations.
 	 * - HAL initialization, this also initializes the configured device drivers

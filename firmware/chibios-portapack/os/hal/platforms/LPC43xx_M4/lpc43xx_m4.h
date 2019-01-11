@@ -122,6 +122,7 @@ typedef enum IRQn {
 
 #include "core_cm4.h"             /* Cortex-M4 processor and core peripherals */
 #include "lpc43xx.inc"
+#include "lpc43xx.h"
 
 #ifdef __cplusplus
 

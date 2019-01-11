@@ -96,6 +96,15 @@
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
 
+/**
+ * @brief   Structure used for I2C configuration.
+ */
+typedef struct {
+  base_clock_regs_t base;
+  branch_clock_regs_t branch;
+  peripheral_reset_t reset;
+} i2c_resources_t;
+
 typedef LPC_I2Cx_Type* I2C_TypeDef;
 
 /**
@@ -181,6 +190,10 @@ struct I2CDriver {
    * @brief     Pointer to the I2Cx registers block.
    */
   I2C_TypeDef               i2c;
+  /**
+   * @brief Pointer to the non-peripheral I2C resources.
+   */
+  const i2c_resources_t * resources;
 };
 
 /**

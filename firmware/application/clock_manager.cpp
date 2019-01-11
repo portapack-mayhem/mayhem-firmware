@@ -21,6 +21,8 @@
 
 #include "clock_manager.hpp"
 
+#include "portapack_io.hpp"
+
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
@@ -41,6 +43,7 @@ static constexpr uint32_t systick_load(const uint32_t clock_source_f) {
 }
 
 constexpr uint32_t clock_source_irc_f		=  12000000;
+constexpr uint32_t clock_source_pll1_boot_f	=  96000000;
 //constexpr uint32_t clock_source_gp_clkin	=  20000000;
 constexpr uint32_t clock_source_pll1_step_f	= 100000000;
 constexpr uint32_t clock_source_pll1_f		= 200000000;
@@ -54,8 +57,8 @@ constexpr uint32_t si5351_vco_f	= 800000000;
 constexpr uint32_t i2c0_bus_f			= 400000;
 constexpr uint32_t i2c0_high_period_ns	= 900;
 
-constexpr I2CClockConfig i2c_clock_config_400k_slow_clock {
-	.clock_source_f = clock_source_irc_f,
+constexpr I2CClockConfig i2c_clock_config_400k_boot_clock {
+	.clock_source_f = clock_source_pll1_boot_f,
 	.bus_f = i2c0_bus_f,
 	.high_period_ns = i2c0_high_period_ns,
 };
@@ -66,9 +69,9 @@ constexpr I2CClockConfig i2c_clock_config_400k_fast_clock {
 	.high_period_ns = i2c0_high_period_ns,
 };
 
-constexpr I2CConfig i2c_config_slow_clock {
-	.high_count = i2c_clock_config_400k_slow_clock.i2c_high_count(),
-	.low_count = i2c_clock_config_400k_slow_clock.i2c_low_count(),
+constexpr I2CConfig i2c_config_boot_clock {
+	.high_count = i2c_clock_config_400k_boot_clock.i2c_high_count(),
+	.low_count = i2c_clock_config_400k_boot_clock.i2c_low_count(),
 };
 
 constexpr I2CConfig i2c_config_fast_clock {
@@ -214,79 +217,104 @@ static_assert(si5351_ms_int_mcu_clkin.f_out() == mcu_clkin_f, "MS int MCU CLKIN 
 
 using namespace si5351;
 
-constexpr ClockControl::Type si5351_clock_control_ms_src_xtal = ClockControl::MS_SRC_PLLA;
-constexpr ClockControl::Type si5351_clock_control_ms_src_clkin = ClockControl::MS_SRC_PLLB;
+static constexpr ClockControl::MultiSynthSource get_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
+	return (reference_source == ClockManager::ReferenceSource::Xtal)
+		? ClockControl::MultiSynthSource::PLLA
+		: ClockControl::MultiSynthSource::PLLB
+		;
+}
 
-constexpr ClockControls si5351_clock_control_common {
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Fractional | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Group | ClockControl::CLK_INV_Invert | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Group | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_8mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Fractional | ClockControl::CLK_PDN_Power_Off,
-	ClockControl::CLK_IDRV_6mA | ClockControl::CLK_SRC_MS_Self  | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer    | ClockControl::CLK_PDN_Power_Off,
-};
+constexpr ClockControls si5351_clock_control_common { {
+	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+} };
 
-constexpr ClockControls si5351_clock_control_xtal {
-	si5351_clock_control_common[0] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[1] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[2] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[3] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[4] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[5] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[6] | si5351_clock_control_ms_src_xtal,
-	si5351_clock_control_common[7] | si5351_clock_control_ms_src_xtal,
-};
+ClockManager::ReferenceSource ClockManager::get_reference_source() const {
+	return reference_source;
+}
 
-constexpr ClockControls si5351_clock_control_clkin {
-	si5351_clock_control_common[0] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[1] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[2] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[3] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[4] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[5] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[6] | si5351_clock_control_ms_src_clkin,
-	si5351_clock_control_common[7] | si5351_clock_control_ms_src_clkin,
-};
+static void portapack_tcxo_enable() {
+	portapack::io.reference_oscillator(true);
 
-void ClockManager::init() {
+	/* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
+	/* Delay an additional 1ms (arbitrary) for the clock generator to detect a signal. */
+	volatile uint32_t delay = 240000 + 24000;
+	while(delay--);
+}
+
+static void portapack_tcxo_disable() {
+	portapack::io.reference_oscillator(false);
+}
+
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
+
+void ClockManager::init_peripherals() {
 	/* Must be sure to run the M4 core from IRC when messing with the signal
 	 * generator that sources the GP_CLKIN signal that drives the micro-
 	 * controller's PLL1 input.
 	 */
-	/* When booting from SPIFI, PLL1 is already running at 96MHz. */
-	//run_from_irc();
+	/* When booting from SPIFI, PLL1 is already running at 288MHz. */
 	/* TODO: Refactor this blob, there's too much knowledge about post-boot
 	 * state, which can change depending on where we're running from -- SPIFI
 	 * or RAM or ???
 	 */
-	update_peripheral_clocks(cgu::CLK_SEL::IRC);
-	start_peripherals(cgu::CLK_SEL::IRC);
+	// PLL1 is running at 288 MHz upon bootstrap exit.
+	LPC_CGU->IDIVA_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 2 <<  2)	/* IDIV (/3) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 9 << 24)	/* PLL1 */
+		;
 
+	const auto clk_sel = cgu::CLK_SEL::IDIVA;
+	set_clock(LPC_CGU->BASE_M4_CLK, clk_sel);
+	set_clock(LPC_CGU->BASE_PERIPH_CLK, clk_sel);
+	set_clock(LPC_CGU->BASE_APB1_CLK, clk_sel);
+	set_clock(LPC_CGU->BASE_APB3_CLK, clk_sel);
+	set_clock(LPC_CGU->BASE_SDIO_CLK, clk_sel);
+	set_clock(LPC_CGU->BASE_SSP1_CLK, clk_sel);
+
+	// IDIVC should no longer be in use.
+	LPC_CGU->IDIVC_CTRL.PD = 1;
+
+	i2c0.start(i2c_config_boot_clock);
+}
+
+void ClockManager::init_clock_generator() {
 	clock_generator.reset();
 	clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
 	clock_generator.enable_fanout();
 	clock_generator.set_pll_input_sources(si5351_pll_input_sources);
 
-	const auto clkin_present = !clock_generator.clkin_loss_of_signal();
-	auto clkin_valid = false;
-
-	if( clkin_present ) {
-		// Measure Si5351B CLKIN frequency against LPC43xx IRC oscillator
-		set_gp_clkin_to_clkin_direct();
-		start_frequency_monitor_measurement(cgu::CLK_SEL::GP_CLKIN);
-		wait_For_frequency_monitor_measurement_done();
-		const auto clkin_frequency = get_frequency_monitor_measurement_in_hertz();
-
-		// CLKIN is required to be 10MHz. FREQ_MON measurement is accurate to 1.5%
-		// due to LPC43xx IRC oscillator precision.
-		clkin_valid = (clkin_frequency >= 9850000) && (clkin_frequency <= 10150000);
-	}
-
 	clock_generator.set_clock_control(
-		clkin_valid ? si5351_clock_control_clkin : si5351_clock_control_xtal
+		clock_generator_output_mcu_clkin,
+		si5351_clock_control_common[clock_generator_output_mcu_clkin].clk_src(ClockControl::ClockSource::CLKIN).clk_pdn(ClockControl::ClockPowerDown::Power_On)
 	);
+	clock_generator.enable_output(clock_generator_output_mcu_clkin);
+
+	const auto reference_source = choose_reference_source();
+
+	clock_generator.disable_output(clock_generator_output_mcu_clkin);
+
+	const auto ref_pll = get_reference_clock_generator_pll(reference_source);
+	const ClockControls si5351_clock_control = ClockControls { {
+		si5351_clock_control_common[0].ms_src(ref_pll),
+		si5351_clock_control_common[1].ms_src(ref_pll),
+		si5351_clock_control_common[2].ms_src(ref_pll),
+		si5351_clock_control_common[3].ms_src(ref_pll),
+		si5351_clock_control_common[4].ms_src(ref_pll),
+		si5351_clock_control_common[5].ms_src(ref_pll),
+		si5351_clock_control_common[6].ms_src(ref_pll),
+		si5351_clock_control_common[7].ms_src(ref_pll),
+	} };
+	clock_generator.set_clock_control(si5351_clock_control);
 
 	clock_generator.write(si5351_pll_a_xtal_reg);
 	clock_generator.write(si5351_pll_b_clkin_reg);
@@ -297,20 +325,63 @@ void ClockManager::init() {
 	clock_generator.write(si5351_ms_4_reg);
 	clock_generator.write(si5351_ms_5_reg);
 	clock_generator.write(si5351_ms6_7_off_mcu_clkin_reg);
+
 	clock_generator.reset_plls();
+
+	// Wait for both PLLs to lock.
+	// TODO: Disable the unused PLL?
+	while((clock_generator.device_status() & 0x60) != 0);
+
+	clock_generator.set_clock_control(
+		clock_generator_output_mcu_clkin,
+		si5351_clock_control_common[clock_generator_output_mcu_clkin].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On)
+	);
+	clock_generator.enable_output(clock_generator_output_mcu_clkin);
+
+	set_m4_clock_to_pll1();
+}
+
+uint32_t ClockManager::measure_gp_clkin_frequency() {
+	// Measure Si5351B CLKIN frequency against LPC43xx IRC oscillator
+	start_frequency_monitor_measurement(cgu::CLK_SEL::GP_CLKIN);
+	wait_For_frequency_monitor_measurement_done();
+	return get_frequency_monitor_measurement_in_hertz();
+}
+
+ClockManager::ReferenceSource ClockManager::detect_reference_source() {
+	if( clock_generator.clkin_loss_of_signal() ) {
+		// No external reference. Turn on PortaPack reference (if present).
+		portapack_tcxo_enable();
+
+		if( clock_generator.clkin_loss_of_signal() ) {
+			// No PortaPack reference was detected. Choose the HackRF crystal as the reference.
+			return ReferenceSource::Xtal;
+		} else {
+			return ReferenceSource::PortaPack;
+		}
+	} else {
+		return ReferenceSource::External;
+	}
+}
+
+ClockManager::ReferenceSource ClockManager::choose_reference_source() {
+	const auto detected_reference = detect_reference_source();
+
+	if( (detected_reference == ReferenceSource::External) ||
+	    (detected_reference == ReferenceSource::PortaPack) ) {
+		const auto frequency = measure_gp_clkin_frequency();
+		if( (frequency >= 9850000) && (frequency <= 10150000) ) {
+			return detected_reference;
+		}
+	}
+
+	portapack_tcxo_disable();
+	return ReferenceSource::Xtal;
 }
 
 void ClockManager::shutdown() {
-	run_from_irc();
+	// run_from_irc();
 	clock_generator.reset();
-}
-
-void ClockManager::run_from_irc() {
-	change_clock_configuration(cgu::CLK_SEL::IRC);
-}
-
-void ClockManager::run_at_full_speed() {
-	change_clock_configuration(cgu::CLK_SEL::PLL1);
 }
 
 void ClockManager::enable_codec_clocks() {
@@ -373,6 +444,10 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 }
 
 void ClockManager::set_reference_ppb(const int32_t ppb) {
+	/* NOTE: This adjustment only affects PLLA, which is derived from the 25MHz crystal.
+	 * It is assumed an external clock coming in to PLLB is sufficiently accurate as to not need adjustment.
+	 * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
+	 */
 	constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
 	constexpr uint32_t denominator = 1000000 / pll_multiplier;
 	const uint32_t new_a = (ppb >= 0) ? pll_multiplier : (pll_multiplier - 1);
@@ -387,59 +462,6 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
 	};
 	const auto pll_a_reg = pll.reg(0);
 	clock_generator.write(pll_a_reg);
-}
-
-void ClockManager::change_clock_configuration(const cgu::CLK_SEL clk_sel) {
-	/* If starting PLL1, turn on the clock feeding GP_CLKIN */
-	if( clk_sel == cgu::CLK_SEL::PLL1 ) {
-		enable_gp_clkin_source();
-	}
-
-	if( clk_sel == cgu::CLK_SEL::XTAL ) {
-		enable_xtal_oscillator();
-	}
-
-	stop_peripherals();
-
-	set_m4_clock_to_irc();
-
-	update_peripheral_clocks(clk_sel);
-
-	if( clk_sel == cgu::CLK_SEL::PLL1 ) {
-		set_m4_clock_to_pll1();
-	} else {
-		power_down_pll1();
-	}
-
-	start_peripherals(clk_sel);
-
-	if( clk_sel != cgu::CLK_SEL::XTAL ) {
-		disable_xtal_oscillator();
-	}
-
-	/* If not using PLL1, disable clock feeding GP_CLKIN */
-	if( clk_sel != cgu::CLK_SEL::PLL1 ) {
-		stop_audio_pll();
-		disable_gp_clkin_source();
-	}
-}
-
-void ClockManager::enable_gp_clkin_source() {
-	clock_generator.enable_clock(clock_generator_output_mcu_clkin);
-	clock_generator.enable_output(clock_generator_output_mcu_clkin);
-}
-
-void ClockManager::disable_gp_clkin_source() {
-	clock_generator.disable_clock(clock_generator_output_mcu_clkin);
-	clock_generator.disable_output(clock_generator_output_mcu_clkin);
-}
-
-void ClockManager::set_gp_clkin_to_clkin_direct() {
-	clock_generator.set_clock_control(
-		clock_generator_output_mcu_clkin,
-		{ ClockControl::CLK_IDRV_2mA | ClockControl::CLK_SRC_CLKIN | ClockControl::CLK_INV_Normal | ClockControl::MS_INT_Integer | ClockControl::CLK_PDN_Power_On }
-	);
-	enable_gp_clkin_source();
 }
 
 void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel) {
@@ -475,48 +497,94 @@ void ClockManager::disable_xtal_oscillator() {
 	LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;
 }
 
-void ClockManager::set_m4_clock_to_irc() {
-	/* Set M4 clock to safe default speed (~12MHz IRC) */
-	set_clock(LPC_CGU->BASE_M4_CLK, cgu::CLK_SEL::IRC);
-	systick_adjust_period(systick_count_irc);
-	//_clock_f = clock_source_irc_f;
-	halLPCSetSystemClock(clock_source_irc_f);
-}
-
 void ClockManager::set_m4_clock_to_pll1() {
 	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
 	 * core clock speed to the 110 - 204MHz range.
 	 */
 
+	/* Set M4 clock to safe default speed (~12MHz IRC) */
+
+	i2c0.stop();
+
+	// All other peripherals capable of running at 204 MHz.
+	LPC_CGU->IDIVA_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 0 <<  2)	/* IDIV (/1) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 1 << 24)	/* IRC */
+		;
+
+	systick_adjust_period(systick_count_irc);
+	halLPCSetSystemClock(clock_source_irc_f);
+
+	// SPIFI clock
+	LPC_CGU->IDIVB_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 0 <<  2)	/* IDIV (/1) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 1 << 24)	/* IRC */
+		;
+
 	/* Step into the 90-110MHz M4 clock range */
+	/* Fclkin = 40M
+	 * 	/N=2 = 20M = PFDin
+	 * Fcco = PFDin * (M=10) = 200M
+	 * Fclk = Fcco / (2*(P=1)) = 100M
+	 */
 	cgu::pll1::ctrl({
-		.pd = 0,
+		.pd = 1,
 		.bypass = 0,
 		.fbsel = 0,
 		.direct = 0,
 		.psel = 0,
 		.autoblock = 1,
-		.nsel = 0,
-		.msel = 4,
+		.nsel = 1,
+		.msel = 9,
 		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
 	});
+
+	cgu::pll1::enable();
 	while( !cgu::pll1::is_locked() );
 
 	/* Switch M4 clock to PLL1 running at intermediate rate */
-	set_clock(LPC_CGU->BASE_M4_CLK, cgu::CLK_SEL::PLL1);
+	// All other peripherals capable of running at 204 MHz.
+	LPC_CGU->IDIVA_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 0 <<  2)	/* IDIV (/1) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 9 << 24)	/* PLL1 */
+		;
+
 	systick_adjust_period(systick_count_pll1_step);
-	//_clock_f = clock_source_pll1_step_f;
 	halLPCSetSystemClock(clock_source_pll1_step_f);
+
+	// SPIFI clock
+	LPC_CGU->IDIVB_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 0 <<  2)	/* IDIV (/1) */
+		| ( 1 << 11)	/* AUTO BLOCK */
+		| ( 9 << 24)	/* PLL1 */
+		;
 
 	/* Delay >50us at 90-110MHz clock speed */
 	volatile uint32_t delay = 1400;
 	while(delay--);
 
+	// SPIFI clock
+	LPC_CGU->IDIVB_CTRL.word =
+		  ( 0 <<  0)	/* PD */
+		| ( 1 <<  2)	/* IDIV (/2) */
+		| ( 1 << 11)	/* AUTOBLOCK */
+		| ( 9 << 24)	/* PLL1 */
+		;
+
 	/* Remove /2P divider from PLL1 output to achieve full speed */
 	cgu::pll1::direct();
+
 	systick_adjust_period(systick_count_pll1);
-	//_clock_f = clock_source_pll1_f;
 	halLPCSetSystemClock(clock_source_pll1_f);
+
+	i2c0.start(i2c_config_fast_clock);
 }
 
 void ClockManager::power_down_pll1() {
@@ -565,8 +633,8 @@ void ClockManager::start_audio_pll() {
 }
 
 void ClockManager::set_base_audio_clock_divider(const size_t divisor) {
-	LPC_CGU->IDIVC_CTRL =
-		  (0 <<  1)
+	LPC_CGU->IDIVC_CTRL.word =
+		  (0 <<  0)
 		| ((divisor - 1) <<  2)
 		| (1 << 11)
 		| (toUType(cgu::CLK_SEL::PLL0AUDIO) << 24)
@@ -581,29 +649,4 @@ void ClockManager::stop_audio_pll() {
 
 void ClockManager::stop_peripherals() {
 	i2c0.stop();
-}
-
-void ClockManager::update_peripheral_clocks(const cgu::CLK_SEL clk_sel) {
-	/* TODO: Extract a structure to represent clock settings for different
-	 * modes.
-	 */
-	set_clock(LPC_CGU->BASE_PERIPH_CLK, clk_sel);
-	LPC_CGU->IDIVB_CTRL =
-		  (0 <<  1)
-		| (1 <<  2)
-		| (1 << 11)
-		| (toUType(clk_sel) << 24)
-		;
-	set_clock(LPC_CGU->BASE_APB1_CLK, clk_sel);
-	set_clock(LPC_CGU->BASE_APB3_CLK, clk_sel);
-	set_clock(LPC_CGU->BASE_SDIO_CLK, clk_sel);
-	set_clock(LPC_CGU->BASE_SSP1_CLK, clk_sel);
-}
-
-void ClockManager::start_peripherals(const cgu::CLK_SEL clk_sel) {
-	/* Start APB1 peripherals considering new clock */
-	i2c0.start((clk_sel == cgu::CLK_SEL::PLL1)
-		? i2c_config_fast_clock
-		: i2c_config_slow_clock
-	);
 }

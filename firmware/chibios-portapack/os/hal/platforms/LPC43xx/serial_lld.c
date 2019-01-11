@@ -63,6 +63,48 @@ static const SerialConfig default_config = {
   FCR_TRIGGER0
 };
 
+#if LPC_SERIAL_USE_USART0
+static const uart_resources_t usart0_resources = {
+  .base = { .clk = &LPC_CGU->BASE_UART0_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1 << 4) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_USART0_CFG,   .stat = &LPC_CCU1->CLK_M4_USART0_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB0_USART0_CFG, .stat = &LPC_CCU2->CLK_APB0_USART0_STAT },
+  .reset = { .output_index = 44 },
+  .interrupt = { .irq = USART0_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART0_IRQ_PRIORITY) },
+};
+#endif
+#if LPC_SERIAL_USE_UART1
+static const uart_resources_t uart1_resources = {
+  .base = { .clk = &LPC_CGU->BASE_UART1_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1 << 3) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_UART1_CFG,   .stat = &LPC_CCU1->CLK_M4_UART1_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB0_UART1_CFG, .stat = &LPC_CCU2->CLK_APB0_UART1_STAT },
+  .reset = { .output_index = 45 },
+  .interrupt = { .irq = UART1_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_UART1_IRQ_PRIORITY) },
+};
+#endif
+#if LPC_SERIAL_USE_USART2
+static const uart_resources_t usart2_resources = {
+  .base = { .clk = &LPC_CGU->BASE_UART2_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1 << 2) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_USART2_CFG,   .stat = &LPC_CCU1->CLK_M4_USART2_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB2_USART2_CFG, .stat = &LPC_CCU2->CLK_APB2_USART2_STAT },
+  .reset = { .output_index = 46 },
+#if defined(LPC43XX_M4)
+  .interrupt = { .irq = USART2_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
+#endif
+#if defined(LPC43XX_M0)
+  .interrupt = { .irq = USART2_OR_C_CAN1_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
+#endif
+};
+#endif
+#if LPC_SERIAL_USE_USART3
+static const uart_resources_t usart3_resources = {
+  .base = { .clk = &LPC_CGU->BASE_UART3_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1 << 1) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_USART3_CFG,   .stat = &LPC_CCU1->CLK_M4_USART3_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB2_USART3_CFG, .stat = &LPC_CCU2->CLK_APB2_USART3_STAT },
+  .reset = { .output_index = 47 },
+  .interrupt = { .irq = USART3_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART3_IRQ_PRIORITY) },
+};
+#endif
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -337,21 +379,25 @@ void sd_lld_init(void) {
 #if LPC_SERIAL_USE_USART0
   sdObjectInit(&SD1, NULL, notify1);
   SD1.uart = LPC_USART0;
+  SD1.resources = &usart0_resources;
 #endif
 
 #if LPC_SERIAL_USE_UART1
   sdObjectInit(&SD2, NULL, notify2);
   SD2.uart = (LPC_USART_Type *) LPC_UART1;
+  SD2.resources = &uart1_resources;
 #endif
 
 #if LPC_SERIAL_USE_USART2
   sdObjectInit(&SD3, NULL, notify3);
   SD3.uart = LPC_USART2;
+  SD3.resources = &usart2_resources;
 #endif
 
 #if LPC_SERIAL_USE_USART3
   sdObjectInit(&SD4, NULL, notify4);
   SD4.uart = LPC_USART3;
+  SD4.resources = &usart3_resources;
 #endif
 }
 
@@ -371,48 +417,11 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
     config = &default_config;
 
   if (sdp->state == SD_STOP) {
-#if LPC_SERIAL_USE_USART0
-    if (&SD1 == sdp) {
-      LPC_CCU1->CLK_M4_USART0_CFG.RUN = 1;    /* Register interface branch clock. */
-      LPC_CGU->BASE_UART0_CLK.PD = 0;         /* Peripheral base clock. */
-      LPC_CCU2->CLK_APB0_USART0_CFG.RUN = 1;  /* Peripheral branch clock. */
-      nvicEnableVector(USART0_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SERIAL_USART0_IRQ_PRIORITY));
-    }
-#endif
-#if LPC_SERIAL_USE_UART1
-    if (&SD2 == sdp) {
-      LPC_CCU1->CLK_M4_UART1_CFG.RUN = 1;     /* Register interface branch clock. */
-      LPC_CGU->BASE_UART1_CLK.PD = 0;         /* Peripheral base clock. */
-      LPC_CCU2->CLK_APB0_UART1_CFG.RUN = 1;   /* Peripheral branch clock. */
-      nvicEnableVector(UART1_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SERIAL_UART1_IRQ_PRIORITY));
-    }
-#endif
-#if LPC_SERIAL_USE_USART2
-    if (&SD3 == sdp) {
-      LPC_CCU1->CLK_M4_USART2_CFG.RUN = 1;    /* Register interface branch clock. */
-      LPC_CGU->BASE_UART2_CLK.PD = 0;         /* Peripheral base clock. */
-      LPC_CCU2->CLK_APB2_USART2_CFG.RUN = 1;  /* Peripheral branch clock. */
-#if defined(LPC43XX_M4)
-      nvicEnableVector(USART2_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY));
-#endif
-#if defined(LPC43XX_M0)
-      nvicEnableVector(USART2_OR_C_CAN1_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY));
-#endif
-    }
-#endif
-#if LPC_SERIAL_USE_USART3
-    if (&SD4 == sdp) {
-      LPC_CCU1->CLK_M4_USART3_CFG.RUN = 1;    /* Register interface branch clock. */
-      LPC_CGU->BASE_UART3_CLK.PD = 0;         /* Peripheral base clock. */
-      LPC_CCU2->CLK_APB2_USART3_CFG.RUN = 1;  /* Peripheral branch clock. */
-      nvicEnableVector(USART3_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SERIAL_USART3_IRQ_PRIORITY));
-    }
-#endif
+    base_clock_enable(&sdp->resources->base);
+    branch_clock_enable(&sdp->resources->branch_register_if);
+    branch_clock_enable(&sdp->resources->branch_peripheral);
+    peripheral_reset(&sdp->resources->reset);
+    interrupt_enable(&sdp->resources->interrupt);
   }
   uart_init(sdp, config);
 }
@@ -429,56 +438,12 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
 void sd_lld_stop(SerialDriver *sdp) {
 
   if (sdp->state == SD_READY) {
-    uart_deinit(sdp->uart);
-#if LPC_SERIAL_USE_USART0
-    if (&SD1 == sdp) {
-      LPC_CCU2->CLK_APB0_USART0_CFG.AUTO = 1; /* Peripheral branch clock. */
-      LPC_CCU2->CLK_APB0_USART0_CFG.RUN = 0;
-      LPC_CGU->BASE_UART0_CLK.PD = 1;         /* Peripheral base clock. */
-      LPC_CCU1->CLK_M4_USART0_CFG.AUTO = 1;   /* Register interface branch clock. */
-      LPC_CCU1->CLK_M4_USART0_CFG.RUN = 0;
-      nvicDisableVector(USART0_IRQn);
-      return;
-    }
-#endif
-#if LPC_SERIAL_USE_UART1
-    if (&SD2 == sdp) {
-      LPC_CCU2->CLK_APB0_UART1_CFG.AUTO = 1;  /* Peripheral branch clock. */
-      LPC_CCU2->CLK_APB0_UART0_CFG.RUN = 0;
-      LPC_CGU->BASE_UART1_CLK.PD = 1;         /* Peripheral base clock. */
-      LPC_CCU1->CLK_M4_UART1_CFG.AUTO = 1;    /* Register interface branch clock. */
-      LPC_CCU1->CLK_M4_UART1_CFG.RUN = 0;
-      nvicDisableVector(UART1_IRQn);
-      return;
-    }
-#endif
-#if LPC_SERIAL_USE_USART2
-    if (&SD3 == sdp) {
-      LPC_CCU2->CLK_APB2_USART2_CFG.AUTO = 1; /* Peripheral branch clock. */
-      LPC_CCU2->CLK_APB2_USART2_CFG.RUN = 0;
-      LPC_CGU->BASE_UART2_CLK.PD = 1;         /* Peripheral base clock. */
-      LPC_CCU1->CLK_M4_USART2_CFG.AUTO = 1;   /* Register interface branch clock. */
-      LPC_CCU1->CLK_M4_USART2_CFG.RUN = 0;
-#if defined(LPC43XX_M4)
-      nvicDisableVector(USART2_IRQn);
-#endif
-#if defined(LPC43XX_M0)
-      nvicDisableVector(USART2_OR_C_CAN1_IRQn);
-#endif
-      return;
-    }
-#endif
-#if LPC_SERIAL_USE_USART3
-    if (&SD4 == sdp) {
-      LPC_CCU2->CLK_APB2_USART3_CFG.AUTO = 1; /* Peripheral branch clock. */
-      LPC_CCU2->CLK_APB2_USART3_CFG.RUN = 0;
-      LPC_CGU->BASE_UART3_CLK.PD = 1;         /* Peripheral base clock. */
-      LPC_CCU1->CLK_M4_USART3_CFG.AUTO = 1;   /* Register interface branch clock. */
-      LPC_CCU1->CLK_M4_USART3_CFG.RUN = 0;
-      nvicDisableVector(USART3_IRQn);
-      return;
-    }
-#endif
+    uart_deinit(&sdp->uart);
+    interrupt_disable(&sdp->resources->interrupt);
+    peripheral_reset(&sdp->resources->reset);
+    branch_clock_disable(&sdp->resources->branch_peripheral);
+    branch_clock_disable(&sdp->resources->branch_register_if);
+    base_clock_disable(&sdp->resources->base);
   }
 }
 

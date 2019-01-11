@@ -1,41 +1,21 @@
-EESchema Schematic File Version 2
-LIBS:portapack_h1-rescue
-LIBS:hackrf_expansion
-LIBS:passive
-LIBS:supply
-LIBS:trs_jack
-LIBS:battery
-LIBS:sd
-LIBS:ck
-LIBS:altera
-LIBS:regulator
-LIBS:tp
-LIBS:header
-LIBS:hole
-LIBS:sharebrained
-LIBS:fiducial
-LIBS:eastrising
-LIBS:on_semi
-LIBS:asahi_kasei
-LIBS:ti
-LIBS:diode
+EESchema Schematic File Version 4
 LIBS:portapack_h1-cache
-EELAYER 25 0
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 5
+Sheet 1 6
 Title "PortaPack H1"
-Date "2017-05-22"
-Rev "20170522"
+Date "2018-08-20"
+Rev "20180820"
 Comp "ShareBrained Technology, Inc."
-Comment1 "Copyright © 2014-2017 Jared Boone"
+Comment1 "Copyright © 2014-2018 Jared Boone"
 Comment2 "License: GNU General Public License, version 2"
 Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L HOLE1 H2
+L hole:HOLE1 H2
 U 1 1 5369BBD8
 P 9500 1900
 F 0 "H2" H 9500 2050 60  0000 C CNN
@@ -46,7 +26,7 @@ F 3 "" H 9500 1900 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L HOLE1 H3
+L hole:HOLE1 H3
 U 1 1 5369BBEC
 P 9500 2400
 F 0 "H3" H 9500 2550 60  0000 C CNN
@@ -57,7 +37,7 @@ F 3 "" H 9500 2400 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L HOLE1 H4
+L hole:HOLE1 H4
 U 1 1 5369BC00
 P 9500 2900
 F 0 "H4" H 9500 3050 60  0000 C CNN
@@ -68,7 +48,7 @@ F 3 "" H 9500 2900 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L HOLE1 H5
+L hole:HOLE1 H5
 U 1 1 5369BC14
 P 9500 3400
 F 0 "H5" H 9500 3550 60  0000 C CNN
@@ -180,6 +160,11 @@ F36 "VIN" I R 6600 5200 60
 F37 "VBUS" O R 6600 5000 60 
 F38 "VBUSCTRL" I R 6600 5100 60 
 F39 "VBAT" I L 4700 5200 60 
+F40 "CLKIN" B L 4700 4900 60 
+F41 "REF_EN" O L 4700 5000 60 
+F42 "GPS_TX_READY" I L 4700 2800 60 
+F43 "GPS_TIMEPULSE" I L 4700 2900 60 
+F44 "GPS_RESET#" O L 4700 3000 60 
 $EndSheet
 Wire Wire Line
 	6600 1900 7600 1900
@@ -240,15 +225,15 @@ Wire Wire Line
 Wire Wire Line
 	3700 2300 4700 2300
 Wire Wire Line
-	4700 2500 3700 2500
+	4700 2500 4000 2500
 Wire Wire Line
-	3700 2600 4700 2600
+	3700 2600 4100 2600
 Wire Wire Line
-	9800 1900 9800 3500
+	9800 1900 9800 2400
 Connection ~ 9800 2400
 Connection ~ 9800 2900
 $Comp
-L FIDUCIAL FID1
+L fiducial:FIDUCIAL FID1
 U 1 1 53B309AC
 P 4100 7100
 F 0 "FID1" H 4100 7225 60  0000 C CNN
@@ -259,7 +244,7 @@ F 3 "" H 4100 7100 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L FIDUCIAL FID2
+L fiducial:FIDUCIAL FID2
 U 1 1 53B30B4C
 P 4100 7500
 F 0 "FID2" H 4100 7625 60  0000 C CNN
@@ -270,7 +255,7 @@ F 3 "" H 4100 7500 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L FIDUCIAL FID3
+L fiducial:FIDUCIAL FID3
 U 1 1 53B30CEC
 P 4700 7100
 F 0 "FID3" H 4700 7225 60  0000 C CNN
@@ -281,18 +266,7 @@ F 3 "" H 4700 7100 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L FIDUCIAL FID4
-U 1 1 53B30E8C
-P 4700 7500
-F 0 "FID4" H 4700 7625 60  0000 C CNN
-F 1 "FIDUCIAL" H 4700 7375 60  0000 C CNN
-F 2 "fiducial:FIDUCIAL_65MIL" H 4700 7500 60  0001 C CNN
-F 3 "" H 4700 7500 60  0000 C CNN
-	1    4700 7500
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR01
+L power:GND #PWR01
 U 1 1 53B3303D
 P 9800 3500
 F 0 "#PWR01" H 9800 3500 30  0001 C CNN
@@ -310,7 +284,7 @@ Wire Wire Line
 Wire Wire Line
 	4700 1700 3700 1700
 $Sheet
-S 4700 5600 1900 700 
+S 4700 5600 1900 1000
 U 58CFF3E3
 F0 "power" 50
 F1 "power.sch" 50
@@ -323,6 +297,9 @@ F7 "VBUS" I R 6600 5700 60
 F8 "VBUSCTRL" O R 6600 5800 60 
 F9 "VIN" O R 6600 5900 60 
 F10 "VBAT" O L 4700 5700 60 
+F11 "REF_CLK" O L 4700 6500 60 
+F12 "REF_EN" I L 4700 6400 60 
+F13 "GPS_VCC" O R 6600 6400 60 
 $EndSheet
 Wire Wire Line
 	6600 6200 7600 6200
@@ -358,4 +335,78 @@ Wire Wire Line
 	7000 5200 7000 5900
 Wire Wire Line
 	7000 5900 6600 5900
+Wire Wire Line
+	9800 2400 9800 2900
+Wire Wire Line
+	9800 2900 9800 3400
+Wire Wire Line
+	9800 3400 9800 3500
+Wire Wire Line
+	4700 5000 4300 5000
+Wire Wire Line
+	4300 5000 4300 6400
+Wire Wire Line
+	4300 6400 4700 6400
+Wire Wire Line
+	4700 6500 4200 6500
+Wire Wire Line
+	4200 6500 4200 4900
+Wire Wire Line
+	4200 4900 4700 4900
+$Sheet
+S 4700 600  1900 800 
+U 5B7E0B2A
+F0 "gps" 50
+F1 "gps.sch" 50
+F2 "SDA" B L 4700 800 60 
+F3 "SCL" B L 4700 700 60 
+F4 "V_BACKUP" I L 4700 1300 60 
+F5 "VCC" I R 6600 1300 60 
+F6 "TIMEPULSE" O L 4700 1000 60 
+F7 "RESET#" I L 4700 1100 60 
+F8 "TX_READY" O L 4700 900 60 
+$EndSheet
+Wire Wire Line
+	4700 700  4000 700 
+Wire Wire Line
+	4000 700  4000 2500
+Connection ~ 4000 2500
+Wire Wire Line
+	4000 2500 3700 2500
+Wire Wire Line
+	4700 800  4100 800 
+Wire Wire Line
+	4100 800  4100 2600
+Connection ~ 4100 2600
+Wire Wire Line
+	4100 2600 4700 2600
+Wire Wire Line
+	4700 1300 4500 1300
+Wire Wire Line
+	4500 1300 4500 5200
+Connection ~ 4500 5200
+Wire Wire Line
+	4200 2800 4700 2800
+Wire Wire Line
+	4700 2900 4300 2900
+Wire Wire Line
+	4700 900  4200 900 
+Wire Wire Line
+	4200 900  4200 2800
+Wire Wire Line
+	4700 1000 4300 1000
+Wire Wire Line
+	4300 1000 4300 2900
+Wire Wire Line
+	4700 1100 4400 1100
+Wire Wire Line
+	4400 1100 4400 3000
+Wire Wire Line
+	4400 3000 4700 3000
+Wire Wire Line
+	6600 6400 7100 6400
+Wire Wire Line
+	7100 6400 7100 1300
+Wire Wire Line
+	6600 1300 7100 1300
 $EndSCHEMATC

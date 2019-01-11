@@ -100,6 +100,9 @@ void systick_stop() {
  */
 void hal_lld_init(void) {
   /* Initialize timer 3 to serve as a cycle (PCLK) counter. */
+  LPC_CCU1->CLK_M4_TIMER3_CFG.AUTO = 1;
+  LPC_CCU1->CLK_M4_TIMER3_CFG.RUN = 1;
+  while(!LPC_CCU1->CLK_M4_TIMER3_STAT.RUN);
   LPC_TIMER3->TCR = (1 << 1); /* CRST=1 */
   LPC_TIMER3->TCR = 0;        /* CRST=0 */
   LPC_TIMER3->TC = 0;
@@ -109,6 +112,9 @@ void hal_lld_init(void) {
   /* Initialize repetitive interrupt timer (RIT) to act like SysTick for
    * operating system process timing.
    */
+  LPC_CCU1->CLK_M4_RITIMER_CFG.AUTO = 1;
+  LPC_CCU1->CLK_M4_RITIMER_CFG.RUN = 1;
+  while(!LPC_CCU1->CLK_M4_RITIMER_STAT.RUN);
   LPC_RITIMER->CTRL =
       (1 << 0)  /* RITINT */
     | (1 << 1)  /* RITENCLR */

@@ -136,6 +136,15 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Structure used for Timer configuration.
+ */
+typedef struct {
+  branch_clock_regs_t branch;
+  peripheral_reset_t reset;
+  interrupt_config_t interrupt;
+} timer_resources_t;
+
+/**
  * @brief   GPT frequency type.
  */
 typedef uint32_t gptfreq_t;
@@ -185,6 +194,10 @@ struct GPTDriver {
    * @brief Pointer to the TIMER registers block.
    */
   LPC_TIMER_Type            *tmr;
+  /**
+   * @brief Pointer to the non-peripheral Timer resources.
+   */
+  const timer_resources_t * resources;
 };
 
 /*===========================================================================*/

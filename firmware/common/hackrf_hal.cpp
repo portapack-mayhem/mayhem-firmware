@@ -71,8 +71,7 @@ void reset() {
 		/*| rgu::Reset::SPIFI*/
 		| rgu::Reset::CAN1
 		| rgu::Reset::CAN0
-		/* Don't reset M0 if that's the core we're running on! */
-		/*| rgu::Reset::M0APP */
+		| rgu::Reset::M0APP
 		| rgu::Reset::SGPIO
 		| rgu::Reset::SPI
 	);

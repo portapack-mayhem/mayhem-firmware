@@ -221,6 +221,16 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Structure used for SSP configuration.
+ */
+typedef struct {
+  base_clock_regs_t base;
+  branch_clock_regs_t branch_register_if;
+  branch_clock_regs_t branch_peripheral;
+  peripheral_reset_t reset;
+} ssp_resources_t;
+
+/**
  * @brief   Type of a structure representing an SPI driver.
  */
 typedef struct SPIDriver SPIDriver;
@@ -296,6 +306,10 @@ struct SPIDriver {
    * @brief Pointer to the SSP registers block.
    */
   LPC_SSPx_Type         *ssp;
+  /**
+   * @brief Pointer to the non-peripheral SSP resources.
+   */
+  const ssp_resources_t * resources;
   /**
    * @brief Number of bytes yet to be received.
    */

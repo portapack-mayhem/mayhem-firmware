@@ -250,9 +250,14 @@ FrequencyOptionsView::FrequencyOptionsView(
 	add_children({
 		&text_step,
 		&field_step,
-		&field_ppm,
-		&text_ppm,
 	});
+
+	if( portapack::clock_manager.get_reference_source() == ClockManager::ReferenceSource::External ) {
+		add_child(&text_ext);
+	} else {
+		add_child(&field_ppm);
+	}
+	add_child(&text_ppm);
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {

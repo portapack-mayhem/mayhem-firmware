@@ -46,6 +46,10 @@ public:
 	{
 	}
 
+	void bypass();
+	void sample();
+	void clamp();
+
 	void reset() {
 		jtag.reset();
 	}
@@ -56,7 +60,7 @@ public:
 
 	bool idcode_ok();
 
-	void enter_isp();
+	void enable();
 
 	/* Check ID:
 	 * The silicon ID is checked before any Program or Verify process. The
@@ -65,7 +69,9 @@ public:
 	 */
 	bool silicon_id_ok();
 
-	void exit_isp();	// I think that's what the code does...
+	uint32_t usercode();
+
+	void disable();
 
 	void bulk_erase();
 
@@ -85,18 +91,39 @@ public:
 
 	std::pair<bool, uint8_t> boundary_scan();
 
-	enum class Instruction {
-		BYPASS = 0b1111111111,
-		EXTEST = 0b0000001111,
-		SAMPLE = 0b0000000101,
-		IDCODE = 0b0000000110,
-		USERCODE = 0b0000000111,
-		CLAMP = 0b0000001010,
-		HIGHZ = 0b0000001011
-	};
+private:
+	using idcode_t = uint32_t;
+	static constexpr size_t idcode_length = 32;
+	static constexpr idcode_t idcode      = 0b00000010000010100101000011011101;
+	static constexpr idcode_t idcode_mask = 0b11111111111111111111111111111111;
+	
+	static constexpr size_t ir_length = 10;
 
-	void shift_ir(const Instruction instruction) {
-		shift_ir(static_cast<uint32_t>(instruction));
+	using ir_t = uint16_t;
+
+	enum class instruction_t : ir_t {
+		BYPASS            = 0b1111111111, // 0x3ff
+		EXTEST            = 0b0000001111, // 0x00f
+		SAMPLE            = 0b0000000101, // 0x005
+		IDCODE            = 0b0000000110, // 0x006
+		USERCODE          = 0b0000000111, // 0x007
+		CLAMP             = 0b0000001010, // 0x00a
+		HIGHZ             = 0b0000001011, // 0x00b
+		ISC_ENABLE        = 0b1011001100, // 0x2cc
+		ISC_DISABLE       = 0b1000000001, // 0x201
+		ISC_PROGRAM       = 0b1011110100, // 0x2f4
+		ISC_ERASE         = 0b1011110010, // 0x2f2
+		ISC_ADDRESS_SHIFT = 0b1000000011, // 0x203
+		ISC_READ          = 0b1000000101, // 0x205
+		ISC_NOOP          = 0b1000010000, // 0x210
+ 	};
+
+	void shift_ir(const instruction_t instruction) {
+		shift_ir(static_cast<ir_t>(instruction));
+	}
+	
+	void shift_ir(const uint32_t value) {
+		jtag.shift_ir(ir_length, value);
 	}
 
 	void shift_dr(std::bitset<240>& value) {
@@ -105,7 +132,10 @@ public:
 		}
 	}
 
-private:
+	uint32_t shift_dr(const size_t count, const uint32_t value) {
+		return jtag.shift_dr(count, value);
+	}
+
 	jtag::JTAG& jtag;
 
 	std::array<uint16_t, 5> read_silicon_id();
@@ -146,18 +176,6 @@ private:
 
 	using crc_t = CRC<32, true, true>;
 	void block_crc(const uint16_t id, const size_t count, crc_t& crc);
-	
-	const uint32_t IDCODE = 0b00000010000010100101000011011101;
-
-	const size_t IR_LENGTH = 10;
-
-	void shift_ir(const uint32_t value) {
-		jtag.shift_ir(IR_LENGTH, value);
-	}
-
-	uint32_t shift_dr(const size_t count, const uint32_t value) {
-		return jtag.shift_dr(count, value);
-	}
 };
 /*
 class ModeISP {

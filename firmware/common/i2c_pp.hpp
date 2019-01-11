@@ -32,16 +32,6 @@ struct I2CClockConfig {
 	float bus_f;
 	float high_period_ns;
 
-	constexpr I2CClockConfig(
-		float clock_source_f,
-		float bus_f,
-		float high_period_ns
-	) : clock_source_f(clock_source_f),
-		bus_f(bus_f),
-		high_period_ns(high_period_ns)
-	{
-	}
-
 	static constexpr float period_ns(const float f) {
 		return 1e9 / f;
 	}
