@@ -52,6 +52,11 @@ static std::string latlon(const Latitude latitude, const Longitude longitude) {
 	}
 }
 
+static float latlon_float(const int32_t normalized) {
+	const uint32_t normalized_abs = std::abs(normalized);
+	return ((((float) normalized_abs) * 5) / 3) / (100 * 10000);
+}
+
 static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
@@ -203,9 +208,10 @@ void RecentEntriesTable<AISRecentEntries>::draw(
 	painter.draw_string(target_rect.location(), style, line);
 }
 
-AISRecentEntryDetailView::AISRecentEntryDetailView() {
+AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 	add_children({
 		&button_done,
+		&button_see_map,
 	});
 
 	button_done.on_select = [this](const ui::Button&) {
@@ -213,6 +219,29 @@ AISRecentEntryDetailView::AISRecentEntryDetailView() {
 			this->on_close();
 		}
 	};
+
+	button_see_map.on_select = [this, &nav](Button&) {
+		geomap_view = nav.push<GeoMapView>(
+			entry_.name,
+			0,
+			GeoPos::alt_unit::METERS,
+			ais::format::latlon_float(entry_.last_position.latitude.normalized()),
+			ais::format::latlon_float(entry_.last_position.longitude.normalized()),
+			entry_.last_position.true_heading,
+			[this]() {
+				send_updates = false;
+			});
+			send_updates = true;
+
+		
+	};
+	
+	
+}
+
+void AISRecentEntryDetailView::update_position() {
+	if (send_updates)
+		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()));
 }
 
 void AISRecentEntryDetailView::focus() {
@@ -261,7 +290,7 @@ void AISRecentEntryDetailView::set_entry(const AISRecentEntry& entry) {
 	set_dirty();
 }
 
-AISAppView::AISAppView(NavigationView&) {
+AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 	baseband::run_image(portapack::spi_flash::image_tag_ais);
 
 	add_children({
@@ -337,6 +366,7 @@ void AISAppView::on_packet(const ais::Packet& packet) {
 	// TODO: Crude hack, should be a more formal listener arrangement...
 	if( entry.key() == recent_entry_detail_view.entry().key() ) {
 		recent_entry_detail_view.set_entry(entry);
+		recent_entry_detail_view.update_position();
 	}
 }
 
