@@ -89,9 +89,9 @@ constexpr Pin pins[] = {
 	[P4_5]  = {  4,  5, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* RXENABLE/P56: MAX2837.RXENABLE(I) */
 	[P4_6]  = {  4,  6, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* XCVR_EN: 10K PD, MAX2837.ENABLE(I) */
 	[P4_7]  = {  4,  7, { .mode=1, .pd=0, .pu=0, .fast=0, .input=1, .ifilt=0 } }, /* GP_CLKIN/P72/MCU_CLK: SI5351C.CLK7(O) */
-	[P4_8]  = {  4,  8, PinConfig::gpio_out_with_pullup(4) }, /* SGPIO13/BANK2F3M2: CPLD.90/HOST_DECIM_SEL0(I) */
-	[P4_9]  = {  4,  9, PinConfig::gpio_out_with_pullup(4) }, /* SGPIO14/BANK2F3M4: CPLD.81/HOST_DECIM_SEL1(I) */
-	[P4_10] = {  4, 10, PinConfig::gpio_out_with_pullup(4) }, /* SGPIO15/BANK2F3M6: CPLD.78/HOST_DECIM_SEL2(I) */
+	[P4_8]  = {  4,  8, PinConfig::floating_input_with_pull(0, 4) }, /* SGPIO13/BANK2F3M2: CPLD.90/HOST_SYNC_EN(I) */
+	[P4_9]  = {  4,  9, PinConfig::floating_input(4) }, /* SGPIO14/BANK2F3M4: CPLD.81(I) */
+	[P4_10] = {  4, 10, PinConfig::floating_input(4) }, /* SGPIO15/BANK2F3M6: CPLD.78(I) */
 	[P5_0]  = {  5,  0, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
 	[P5_1]  = {  5,  1, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* LP/P45: U6.VCTL2(I), U5.VCTL1(I) */
 	[P5_2]  = {  5,  2, { .mode=0, .pd=0, .pu=0, .fast=0, .input=0, .ifilt=1 } }, /* TX_MIX_BP/P46: U9.V1(I) */

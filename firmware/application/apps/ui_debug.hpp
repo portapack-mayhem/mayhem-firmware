@@ -218,6 +218,56 @@ private:
 	};
 };
 
+class ControlsSwitchesWidget : public Widget {
+public:
+	ControlsSwitchesWidget(
+		Rect parent_rect
+	) : Widget { parent_rect },
+		key_event_mask(0)
+	{
+		set_focusable(true);
+	}
+
+	void on_show() override;
+	bool on_key(const KeyEvent key) override;
+
+	void paint(Painter& painter) override;
+
+private:
+	uint8_t key_event_mask;
+
+	MessageHandlerRegistration message_handler_frame_sync {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			this->on_frame_sync();
+		}
+	};
+
+	void on_frame_sync();
+};
+
+class DebugControlsView : public View {
+public:
+	explicit DebugControlsView(NavigationView& nav);
+
+	void focus() override;
+
+private:
+	Text text_title {
+		{ 64, 16, 184, 16 },
+		"Controls State",
+	};
+
+	ControlsSwitchesWidget switches_widget {
+		{ 80, 80, 80, 112 },
+	};
+
+	Button button_done {
+		{ 72, 264, 96, 24 },
+		"Done"
+	};
+};
+
 /*class DebugLCRView : public View {
 public:
 	DebugLCRView(NavigationView& nav, std::string lcrstring);

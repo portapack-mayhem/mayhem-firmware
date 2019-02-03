@@ -341,9 +341,18 @@ constexpr std::array<channel::Channel, 8> channels { {
 	{ 4 }, { 5 }, { 6 }, { 7 },
 } };
 
+static const gpdma_resources_t gpdma_resources = {
+  .base = { .clk = &LPC_CGU->BASE_M4_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 3) },
+  .branch = { .cfg = &LPC_CCU1->CLK_M4_DMA_CFG, .stat = &LPC_CCU1->CLK_M4_DMA_STAT },
+  .reset = { .output_index = 19 },
+};
+
 class Controller {
 public:
 	void enable() const {
+		base_clock_enable(&gpdma_resources.base);
+		branch_clock_enable(&gpdma_resources.branch);
+		peripheral_reset(&gpdma_resources.reset);
 		LPC_GPDMA->CONFIG |= (1U << 0);
 	}
 
@@ -352,6 +361,9 @@ public:
 			channel.disable();
 		}
 		LPC_GPDMA->CONFIG &= ~(1U << 0);
+		peripheral_reset(&gpdma_resources.reset);
+		branch_clock_disable(&gpdma_resources.branch);
+		base_clock_disable(&gpdma_resources.base);
 	}
 };
 

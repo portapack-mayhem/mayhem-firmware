@@ -83,7 +83,6 @@ TransmitterModel transmitter_model;
 TemperatureLogger temperature_logger;
 
 bool antenna_bias { false };
-bool prev_clkin_status { false };
 uint8_t bl_tick_counter { 0 };
 
 void set_antenna_bias(const bool v) {
@@ -94,22 +93,73 @@ bool get_antenna_bias() {
 	return antenna_bias;
 }
 
-bool get_ext_clock() {
-	return prev_clkin_status;
+static constexpr uint32_t systick_count(const uint32_t clock_source_f) {
+	return clock_source_f / CH_FREQUENCY;
 }
 
-void poll_ext_clock() {
-	auto clkin_status = clock_generator.clkin_status();
-
-	if (clkin_status != prev_clkin_status) {
-		prev_clkin_status = clkin_status;
-		StatusRefreshMessage message { };
-		EventDispatcher::send_message(message);
-		clock_manager.init_peripherals();
-	}
-
+static constexpr uint32_t systick_load(const uint32_t clock_source_f) {
+	return systick_count(clock_source_f) - 1;
 }
 
+constexpr uint32_t i2c0_bus_f			= 400000;
+constexpr uint32_t i2c0_high_period_ns	= 900;
+
+typedef struct {
+	uint32_t clock_f;
+	uint32_t systick_count;
+	uint32_t idivb;
+	uint32_t idivc;
+} clock_config_t;
+
+static constexpr uint32_t idiv_config(const cgu::CLK_SEL clk_sel, const uint32_t idiv) {
+	return cgu::IDIV_CTRL { 0, idiv-1, 1, clk_sel };
+}
+
+constexpr clock_config_t clock_config_irc {
+	12000000, systick_load(12000000),
+	idiv_config(cgu::CLK_SEL::IRC, 1),
+	idiv_config(cgu::CLK_SEL::IRC, 1),
+};
+
+constexpr clock_config_t clock_config_pll1_boot {
+	96000000, systick_load(96000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 9),
+	idiv_config(cgu::CLK_SEL::PLL1, 3),
+};
+
+constexpr clock_config_t clock_config_pll1_step {
+	100000000, systick_load(100000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+};
+
+constexpr clock_config_t clock_config_pll1 {
+	200000000, systick_load(200000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 2),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+};
+
+constexpr I2CClockConfig i2c_clock_config_400k_boot_clock {
+	.clock_source_f = clock_config_pll1_boot.clock_f,
+	.bus_f = i2c0_bus_f,
+	.high_period_ns = i2c0_high_period_ns,
+};
+
+constexpr I2CClockConfig i2c_clock_config_400k_fast_clock {
+	.clock_source_f = clock_config_pll1.clock_f,
+	.bus_f = i2c0_bus_f,
+	.high_period_ns = i2c0_high_period_ns,
+};
+
+constexpr I2CConfig i2c_config_boot_clock {
+	.high_count = i2c_clock_config_400k_boot_clock.i2c_high_count(),
+	.low_count = i2c_clock_config_400k_boot_clock.i2c_low_count(),
+};
+
+constexpr I2CConfig i2c_config_fast_clock {
+	.high_count = i2c_clock_config_400k_fast_clock.i2c_high_count(),
+	.low_count = i2c_clock_config_400k_fast_clock.i2c_low_count(),
+};
 
 enum class PortaPackModel {
 	R1_20150901,
@@ -150,119 +200,165 @@ Backlight* backlight() {
 		: static_cast<portapack::Backlight*>(&backlight_on_off);
 }
 
-static void configure_unused_mcu_peripherals_power_down(const bool power_down) {
-	LPC_CGU->IDIVD_CTRL.PD = power_down;
-	LPC_CGU->IDIVE_CTRL.PD = power_down;
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
-	LPC_CGU->BASE_USB1_CLK.PD = power_down;
-	LPC_CGU->BASE_SPI_CLK.PD = power_down;
-	LPC_CGU->BASE_PHY_RX_CLK.PD = power_down;
-	LPC_CGU->BASE_PHY_TX_CLK.PD = power_down;
-	LPC_CGU->BASE_LCD_CLK.PD = power_down;
-	LPC_CGU->BASE_SSP0_CLK.PD = power_down;
-	LPC_CGU->BASE_UART0_CLK.PD = power_down;
-	LPC_CGU->BASE_UART1_CLK.PD = power_down;
-	LPC_CGU->BASE_UART2_CLK.PD = power_down;
-	LPC_CGU->BASE_UART3_CLK.PD = power_down;
-	LPC_CGU->BASE_OUT_CLK.PD = power_down;
-	LPC_CGU->BASE_CGU_OUT0_CLK.PD = power_down;
-	LPC_CGU->BASE_CGU_OUT1_CLK.PD = power_down;
-}
+static LPC_CGU_BASE_CLK_Type* const base_clocks_idivc[] = {
+	&LPC_CGU->BASE_PERIPH_CLK,
+	&LPC_CGU->BASE_M4_CLK,
+	&LPC_CGU->BASE_APB1_CLK,
+	&LPC_CGU->BASE_APB3_CLK,
+	&LPC_CGU->BASE_SDIO_CLK,
+	&LPC_CGU->BASE_SSP1_CLK,
+};
 
-static void configure_unused_mcu_peripherals(const bool enabled) {
-	/* Disabling these peripherals reduces "idle" (PortaPack at main
-	 * menu) current by 42mA.
-	 */
-
-	/* Some surprising peripherals in use by PortaPack firmware:
-	 *
-	 * RITIMER: M0 SysTick substitute (because M0 has no SysTick)
-	 * TIMER3: M0 cycle/PCLK counter
-	 * IDIVB: Clock for SPI (set up in bootstrap code)
-	 * IDIVC: I2S audio clock
-	 */
-
-	const uint32_t clock_run_state = enabled ? 1 : 0;
-	const bool power_down = !enabled;
-
-	if( power_down == false ) {
-		// Power up peripheral clocks *before* enabling run state.
-		configure_unused_mcu_peripherals_power_down(power_down);
-	}
-
-	LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB3_DAC_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB3_CAN0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB1_CAN1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_LCD_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_ETHERNET_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USB0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_EMC_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_SCT_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USB1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_EMCDIV_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_WWDT_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_UART1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_SSP0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_TIMER1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART2_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART3_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_TIMER2_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_QEI_CFG.RUN = clock_run_state;
-
-	LPC_CCU1->CLK_USB1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_SPI_CFG.RUN = clock_run_state;
-
-	LPC_CCU2->CLK_APB2_USART3_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB2_USART2_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_UART1_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_USART0_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_SSP0_CFG.RUN = clock_run_state;
-
-	if( power_down == true ) {
-		// Power down peripheral clocks *after* disabling run state.
-		configure_unused_mcu_peripherals_power_down(power_down);
+static void set_idivc_base_clocks(const cgu::CLK_SEL clock_source) {
+	for(uint32_t i=0; i<ARRAY_SIZE(base_clocks_idivc); i++) {
+		base_clocks_idivc[i]->AUTOBLOCK = 1;
+		base_clocks_idivc[i]->CLK_SEL = toUType(clock_source);
 	}
 }
 
-static void disable_unused_mcu_peripheral_clocks() {
-	configure_unused_mcu_peripherals(false);
-}
-
-static void enable_unused_mcu_peripheral_clocks() {
-	configure_unused_mcu_peripherals(true);
+static void set_clock_config(const clock_config_t& config) {
+	LPC_CGU->IDIVB_CTRL.word = config.idivb;
+	LPC_CGU->IDIVC_CTRL.word = config.idivc;
+	systick_adjust_period(config.systick_count);
+	halLPCSetSystemClock(config.clock_f);
 }
 
 static void shutdown_base() {
+	i2c0.stop();
+
+	set_clock_config(clock_config_irc);
+
+	cgu::pll1::disable();
+
+	set_idivc_base_clocks(cgu::CLK_SEL::IRC);
+
+	cgu::pll1::ctrl({
+		.pd = 1,
+		.bypass = 0,
+		.fbsel = 0,
+		.direct = 1,
+		.psel = 0,
+		.autoblock = 1,
+		.nsel = 0,
+		.msel = 23,
+		.clk_sel = cgu::CLK_SEL::IRC,
+	});
+
+	cgu::pll1::enable();
+	while( !cgu::pll1::is_locked() );
+
+	set_clock_config(clock_config_pll1_boot);
+
+	i2c0.start(i2c_config_boot_clock);
+
 	clock_manager.shutdown();
-
-	chSysDisable();
-
-	systick_stop();
-
-	enable_unused_mcu_peripheral_clocks();
-
-	hackrf::one::reset();
 }
 
-bool init() {
-	clock_manager.init_peripherals();
+/* Clock scheme after exiting bootloader in SPIFI mode:
+ * 
+ * XTAL_OSC = powered down
+ *
+ * PLL0USB = powered down
+ * PLL0AUDIO = powered down
+ * PLL1 = IRC * 24 = 288 MHz
+ *
+ * IDIVA = IRC / 1 = 12 MHz
+ * IDIVB = PLL1 / 9 = 32 MHz
+ * IDIVC = PLL1 / 3 = 96 MHz
+ * IDIVD = IRC / 1 = 12 MHz
+ * IDIVE = IRC / 1 = 12 MHz
+ *
+ * BASE_USB0_CLK = PLL0USB
+ * BASE_PERIPH_CLK = IRC
+ * BASE_M4_CLK = IDIVC (96 MHz)
+ * BASE_SPIFI_CLK = IDIVB (32 MHZ)
+ *
+ * everything else = IRC
+ */
 
+/* Clock scheme during PortaPack operation:
+ * 
+ * XTAL_OSC = powered down
+ *
+ * PLL0USB = powered down
+ * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
+ * PLL1 = GP_CLKIN * 10 = 200 MHz
+ *
+ * IDIVA = IRC / 1 = 12 MHz
+ * IDIVB = PLL1 / 2 = 100 MHz
+ * IDIVC = PLL1 / 1 = 200 MHz
+ * IDIVD = PLL0AUDIO / N (where N is varied depending on decimation factor)
+ * IDIVE = IRC / 1 = 12 MHz
+ *
+ * BASE_USB0_CLK = PLL0USB
+ * BASE_PERIPH_CLK = IRC
+ * BASE_M4_CLK = IDIVC (200 MHz)
+ * BASE_SPIFI_CLK = IDIVB (100 MHZ)
+ * BASE_AUDIO_CLK = IDIVD
+ *
+ * everything else = IRC
+ */
+
+bool init() {
+	set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
+
+	i2c0.start(i2c_config_boot_clock);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		shutdown_base();
 		return false;
 	}
 
-	if( !hackrf::cpld::load_sram() ) {
-		chSysHalt();
-	}
-
 	portapack::io.init();
 
 	clock_manager.init_clock_generator();
+
+	i2c0.stop();
+
+	set_clock_config(clock_config_irc);
+
+	cgu::pll1::disable();
+
+	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
+	 * core clock speed to the 110 - 204MHz range.
+	 */
+
+	/* Step into the 90-110MHz M4 clock range */
+	/* Fclkin = 40M
+	 * 	/N=2 = 20M = PFDin
+	 * Fcco = PFDin * (M=10) = 200M
+	 * Fclk = Fcco / (2*(P=1)) = 100M
+	 */
+	cgu::pll1::ctrl({
+		.pd = 1,
+		.bypass = 0,
+		.fbsel = 0,
+		.direct = 0,
+		.psel = 0,
+		.autoblock = 1,
+		.nsel = 1,
+		.msel = 9,
+		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
+	});
+
+	cgu::pll1::enable();
+	while( !cgu::pll1::is_locked() );
+
+	set_clock_config(clock_config_pll1_step);
+
+	/* Delay >50us at 90-110MHz clock speed */
+	volatile uint32_t delay = 1400;
+	while(delay--);
+
+	set_clock_config(clock_config_pll1);
+
+	/* Remove /2P divider from PLL1 output to achieve full speed */
+	cgu::pll1::direct();
+
+	i2c0.start(i2c_config_fast_clock);
+
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 
 	audio::init(portapack_audio_codec());
@@ -292,127 +388,6 @@ void shutdown() {
 	hackrf::cpld::init_from_eeprom();
 
 	shutdown_base();
-}
-
-/* Bootstrap runs from SPIFI on the M4, immediately after the LPC43xx built-in
- * boot ROM runs.
- */
-
-/* After boot ROM executes:
- * PLL1 is at 288MHz (IRC * 24)
- * IDIVB_CTRL = PLL1 / 9 = 32MHz
- * IDIVC_CTRL = PLL1 / 3 = 96MHz
- * BASE_SPIFI_CLK.CLK_SEL = IDIVB
- * BASE_M4_CLK.CLK_SEL = IDIVC?
- */
-
-static void configure_spifi(void) {
-	constexpr Pin pins_spifi[] = {
-		{  3,  3, PinConfig::spifi_sck(3) }, /* SPIFI_SCK: W25Q80BV.CLK(I), enable input buffer for timing feedback */
-		{  3,  4, PinConfig::spifi_inout(3) }, /* SPIFI_SIO3/P82: W25Q80BV.HOLD(IO) */
-		{  3,  5, PinConfig::spifi_inout(3) }, /* SPIFI_SIO2/P81: W25Q80BV.WP(IO) */
-		{  3,  6, PinConfig::spifi_inout(3) }, /* SPIFI_MISO: W25Q80BV.DO(IO) */
-		{  3,  7, PinConfig::spifi_inout(3) }, /* SPIFI_MOSI: W25Q80BV.DI(IO) */
-		{  3,  8, PinConfig::spifi_cs(3) }, /* SPIFI_CS/P68: W25Q80BV.CS(I) */
-	};
-
-	for(const auto& pin : pins_spifi) {
-		pin.init();
-	}
-
-	/* Tweak SPIFI mode */
-	LPC_SPIFI->CTRL =
-		  (0xffff <<  0)	/* Timeout */
-		| (0x1    << 16)	/* CS high time in "clocks - 1" */
-		| (0      << 21)	/* 0: Attempt speculative prefetch on data accesses */
-		| (0      << 22)	/* 0: No interrupt on command ended */
-		| (0      << 23)	/* 0: SCK driven low after rising edge at which last bit of command is captured. Stays low while CS# is high. */
-		| (0      << 27)	/* 0: Cache prefetching enabled */
-		| (0      << 28)	/* 0: Quad protocol, IO3:0 */
-		| (1      << 29)	/* 1: Read data sampled on falling edge of clock */
-		| (1      << 30)	/* 1: Read data is sampled using feedback clock from SCK pin */
-		| (0      << 31)	/* 0: DMA request disabled */
-		;
-
-	/* Throttle up the SPIFI interface to 96MHz (IDIVA=PLL1 / 3) */
-	LPC_CGU->IDIVB_CTRL.word =
-		  ( 0 <<  0)	/* PD */
-		| ( 2 <<  2)	/* IDIV (/3) */
-		| ( 1 << 11)	/* AUTOBLOCK */
-		| ( 9 << 24)	/* PLL1 */
-		;
-}
-
-extern "C" {
-
-void __early_init(void) {
-	/*
-	 * Upon exit from bootloader into SPIFI boot mode:
-	 *
-	 * Enabled:
-	 *   PLL1: IRC, M=/24, N=/1, P=/1, autoblock, direct = 288 MHz
-	 *   IDIVA: IRC /1 = 12 MHz
-	 *   IDIVB: PLL1 /9, autoblock = 32 MHz
-	 *   IDIVC: PLL1 /3, autoblock = 96 MHz
-	 *   IDIVD: IRC /1 = 12 MHz
-	 *   IDIVE: IRC /1 = 12 MHz
-	 *   BASE_M4_CLK: IDIVC, autoblock
-	 *   BASE_SPIFI_CLK: IDIVB, autoblock
-	 *
-	 * Disabled:
-	 *   XTAL_OSC
-	 *   PLL0USB
-	 *   PLL0AUDIO
-	 */
-	/* LPC43xx M4 takes about 500 usec to get to __early_init
-	 * Before __early_init, LPC bootloader runs and starts our code. In user code, the process stack
-	 * is initialized, hardware floating point is initialized, and stacks are zeroed,
-	 */
-	const uint32_t CORTEX_M4_CPUID      = 0x410fc240;
-	const uint32_t CORTEX_M4_CPUID_MASK = 0xff0ffff0;
-
-	if( (SCB->CPUID & CORTEX_M4_CPUID_MASK) == CORTEX_M4_CPUID ) {
-		/* Enable unaligned exception handler */
-		SCB_CCR |= (1 << 3);
-
-		/* Enable MemManage, BusFault, UsageFault exception handlers */
-		SCB_SHCSR |= (1 << 18) | (1 << 17) | (1 << 16);
-
-		reset();
-
-		// disable_unused_mcu_peripheral_clocks();
-		configure_spifi();
-
-		LPC_CCU1->CLK_M4_M0APP_CFG.RUN = true;
-		LPC_CREG->M0APPMEMMAP = LPC_SPIFI_DATA_CACHED_BASE + 0x0;
-		LPC_RGU->RESET_CTRL[1] = 0;
-
-		/* Prevent the M4 from doing any more initializing by sleep-waiting forever...
-		 * ...until the M0 resets the M4 with some code to run.
-		 */
-		while(1) {
-			__WFE();
-		}
-	}
-}
-
-void __late_init(void) {
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
-
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
-}
-
 }
 
 } /* namespace portapack */

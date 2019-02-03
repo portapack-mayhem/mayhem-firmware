@@ -69,7 +69,7 @@ static const uart_resources_t usart0_resources = {
   .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_USART0_CFG,   .stat = &LPC_CCU1->CLK_M4_USART0_STAT   },
   .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB0_USART0_CFG, .stat = &LPC_CCU2->CLK_APB0_USART0_STAT },
   .reset = { .output_index = 44 },
-  .interrupt = { .irq = USART0_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART0_IRQ_PRIORITY) },
+  .interrupt = { .irq = USART0_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART0_IRQ_PRIORITY) },
 };
 #endif
 #if LPC_SERIAL_USE_UART1
@@ -78,7 +78,7 @@ static const uart_resources_t uart1_resources = {
   .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_UART1_CFG,   .stat = &LPC_CCU1->CLK_M4_UART1_STAT   },
   .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB0_UART1_CFG, .stat = &LPC_CCU2->CLK_APB0_UART1_STAT },
   .reset = { .output_index = 45 },
-  .interrupt = { .irq = UART1_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_UART1_IRQ_PRIORITY) },
+  .interrupt = { .irq = UART1_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_UART1_IRQ_PRIORITY) },
 };
 #endif
 #if LPC_SERIAL_USE_USART2
@@ -88,10 +88,10 @@ static const uart_resources_t usart2_resources = {
   .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB2_USART2_CFG, .stat = &LPC_CCU2->CLK_APB2_USART2_STAT },
   .reset = { .output_index = 46 },
 #if defined(LPC43XX_M4)
-  .interrupt = { .irq = USART2_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
+  .interrupt = { .irq = USART2_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
 #endif
 #if defined(LPC43XX_M0)
-  .interrupt = { .irq = USART2_OR_C_CAN1_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
+  .interrupt = { .irq = USART2_OR_C_CAN1_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART2_IRQ_PRIORITY) },
 #endif
 };
 #endif
@@ -101,7 +101,7 @@ static const uart_resources_t usart3_resources = {
   .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_USART3_CFG,   .stat = &LPC_CCU1->CLK_M4_USART3_STAT   },
   .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB2_USART3_CFG, .stat = &LPC_CCU2->CLK_APB2_USART3_STAT },
   .reset = { .output_index = 47 },
-  .interrupt = { .irq = USART3_IRQn, priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART3_IRQ_PRIORITY) },
+  .interrupt = { .irq = USART3_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC_SERIAL_USART3_IRQ_PRIORITY) },
 };
 #endif
 
@@ -438,7 +438,7 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
 void sd_lld_stop(SerialDriver *sdp) {
 
   if (sdp->state == SD_READY) {
-    uart_deinit(&sdp->uart);
+    uart_deinit(sdp->uart);
     interrupt_disable(&sdp->resources->interrupt);
     peripheral_reset(&sdp->resources->reset);
     branch_clock_disable(&sdp->resources->branch_peripheral);

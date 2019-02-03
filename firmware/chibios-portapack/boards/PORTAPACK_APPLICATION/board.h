@@ -19,20 +19,24 @@
 #define _BOARD_H_
 
 /*
- * Setup for Great Scott Gadgets HackRF One
+ * Setup for PortaPack application running on M4, which then bootstaps the M0,
+ * which then runs the application firmware and user interface.
  */
 
 /*
  * Board identifiers.
  */
-#define BOARD_GSG_HACKRF_ONE
-#define BOARD_NAME "Great Scott Gadgets HackRF One"
+#define BOARD_PORTAPACK_APPLICATION
+#define BOARD_NAME "PortaPack Application"
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
 extern "C" {
 #endif
   void boardInit(void);
+
+  void vaa_power_on(void);
+  void vaa_power_off(void);
 #ifdef __cplusplus
 }
 #endif

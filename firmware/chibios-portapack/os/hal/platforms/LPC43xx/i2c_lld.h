@@ -99,12 +99,6 @@
 /**
  * @brief   Structure used for I2C configuration.
  */
-typedef struct {
-  base_clock_regs_t base;
-  branch_clock_regs_t branch;
-  peripheral_reset_t reset;
-} i2c_resources_t;
-
 typedef LPC_I2Cx_Type* I2C_TypeDef;
 
 /**

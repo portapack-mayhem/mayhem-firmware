@@ -42,6 +42,17 @@ void CPLD::sample() {
 	}
 }
 
+void CPLD::sample(std::bitset<240>& value) {
+	shift_ir(instruction_t::SAMPLE);
+	jtag.runtest_tck(93);
+	shift_dr(value);
+}
+
+void CPLD::extest(std::bitset<240>& value) {
+	shift_ir(instruction_t::EXTEST);
+	shift_dr(value);
+}
+
 void CPLD::clamp() {
 	shift_ir(instruction_t::CLAMP);
 	jtag.runtest_tck(93);

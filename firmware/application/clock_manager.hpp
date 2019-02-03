@@ -38,18 +38,22 @@ public:
 		PortaPack, /* 10 MHz TCXO on 20180820 and newer PortaPack revisions. */
 		External, /* HackRF external clock input SMA, or from PortaPack with TCXO feature. */
 	};
+	using ReferenceFrequency = uint32_t;
+
+	typedef struct {
+		ReferenceSource source;
+		ReferenceFrequency frequency;
+	} Reference;
 
 	constexpr ClockManager(
 		I2C& i2c0,
 		si5351::Si5351& clock_generator
 	) : i2c0(i2c0),
 		clock_generator(clock_generator),
-		reference_source(ReferenceSource::Xtal)/*
-		_clock_f(0)*/
+		reference({ReferenceSource::Xtal, 10000000})
 	{
 	}
 
-	void init_peripherals();
 	void init_clock_generator();
 	void shutdown();
 
@@ -73,33 +77,26 @@ public:
 
 	uint32_t get_frequency_monitor_measurement_in_hertz();
 
-	ReferenceSource get_reference_source() const;
+	Reference get_reference() const;
 
 private:
 	I2C& i2c0;
 	si5351::Si5351& clock_generator;
-	ReferenceSource reference_source;
-	//uint32_t _clock_f;
+	Reference reference;
 
 	void set_gp_clkin_to_clkin_direct();
 
 	void start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel);
 	void wait_For_frequency_monitor_measurement_done();
 
-	void enable_xtal_oscillator();
-	void disable_xtal_oscillator();
-
 	void set_m4_clock_to_irc();
 
 	void set_m4_clock_to_pll1();
-	void power_down_pll1();
-
-	void stop_peripherals();
 
 	uint32_t measure_gp_clkin_frequency();
 
-	ClockManager::ReferenceSource detect_reference_source();
-	ClockManager::ReferenceSource choose_reference_source();
+	ReferenceSource detect_reference_source();
+	Reference choose_reference();
 };
 
 #endif/*__CLOCK_MANAGER_H__*/

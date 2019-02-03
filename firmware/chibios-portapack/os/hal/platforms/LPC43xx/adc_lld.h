@@ -98,13 +98,6 @@
 /**
  * @brief   Structure used for ADC configuration.
  */
-typedef struct {
-  base_clock_regs_t base;
-  branch_clock_regs_t branch;
-  peripheral_reset_t reset;
-  interrupt_config_t interrupt;
-} adc_resources_t;
-
 typedef LPC_ADCx_Type* ADC_TypeDef;
 
 /**

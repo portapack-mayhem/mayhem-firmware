@@ -252,12 +252,10 @@ FrequencyOptionsView::FrequencyOptionsView(
 		&field_step,
 	});
 
-	if( portapack::clock_manager.get_reference_source() == ClockManager::ReferenceSource::External ) {
-		add_child(&text_ext);
-	} else {
+	if( portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::Xtal ) {
 		add_child(&field_ppm);
+		add_child(&text_ppm);
 	}
-	add_child(&text_ppm);
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {

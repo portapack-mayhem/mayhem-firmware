@@ -122,11 +122,13 @@ static bool touch_update() {
 	}
 }
 
-static bool switches_update(const uint8_t switches_raw) {
+static uint8_t switches_raw = 0;
+
+static bool switches_update(const uint8_t raw) {
 	// TODO: Only fire event on press, not release?
 	bool switch_changed = false;
 	for(size_t i=0; i<switch_debounce.size(); i++) {
-		switch_changed |= switch_debounce[i].feed((switches_raw >> i) & 1);
+		switch_changed |= switch_debounce[i].feed((raw >> i) & 1);
 	}
 
 	return switch_changed;
@@ -149,7 +151,7 @@ static bool encoder_read() {
 void timer0_callback(GPTDriver* const) {
 	eventmask_t event_mask = 0;
 	if( touch_update() ) event_mask |= EVT_MASK_TOUCH;
-	const auto switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
+	switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
 	if( switches_update(switches_raw) ) {
 		event_mask |= EVT_MASK_SWITCHES;
 		if( encoder_read() ) event_mask |= EVT_MASK_ENCODER;
@@ -206,3 +208,13 @@ EncoderPosition get_encoder_position() {
 touch::Frame get_touch_frame() {
 	return touch_frame;
 }
+
+namespace control {
+namespace debug {
+
+uint8_t switches() {
+	return switches_raw;
+}
+
+} /* debug */
+} /* control */

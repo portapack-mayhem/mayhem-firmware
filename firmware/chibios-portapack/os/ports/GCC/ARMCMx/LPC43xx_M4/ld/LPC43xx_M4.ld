@@ -23,8 +23,8 @@ __process_stack_size__  = 0x1000;   /* main() stack */
 
 MEMORY
 {
-    flash   : org = 0x00000000, len = 32752	/* Local SRAM @ 0x10080000 */
-    ram     : org = 0x10000000, len = 96k   /* Local SRAM @ 0x10000000 */
+    flash (rx)  : org = 0x00000000, len = 32752	/* Local SRAM @ 0x10080000 */
+    ram   (rwx) : org = 0x10000000, len = 96k   /* Local SRAM @ 0x10000000 */
 }
 
 __ram_start__           = ORIGIN(ram);
@@ -126,6 +126,8 @@ SECTIONS
         . = ALIGN(4);
         PROVIDE(_edata = .);
     } > ram
+
+    _textend = LOADADDR(.data) + SIZEOF(.data);
 
     .bss ALIGN(4) : ALIGN(4)
     {

@@ -55,12 +55,12 @@ images = (
 	{
 		'name': 'application',
 		'data': application_image,
-		'size': 0x80000, #len(application_image),
+		'size': len(application_image),
 	},
 	{
 		'name': 'baseband',
 		'data': baseband_image,
-		'size': 0x80000,
+		'size': len(baseband_image),
 	},
 )
 

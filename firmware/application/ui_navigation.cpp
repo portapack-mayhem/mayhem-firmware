@@ -159,7 +159,7 @@ void SystemStatusView::refresh() {
 		button_bias_tee.set_foreground(ui::Color::light_grey());
 	}
 	
-	if (portapack::get_ext_clock()) {
+	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External) {
 		image_clock_status.set_bitmap(&bitmap_icon_clk_ext);
 		button_bias_tee.set_foreground(ui::Color::green());
 	} else {

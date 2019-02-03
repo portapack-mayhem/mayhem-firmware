@@ -73,8 +73,6 @@ using adc0 = adc::ADC<LPC_ADC0_BASE>;
 
 using adc1 = adc::ADC<LPC_ADC1_BASE>;
 
-void reset();
-
 } /* namespace one */
 } /* namespace hackrf */
 

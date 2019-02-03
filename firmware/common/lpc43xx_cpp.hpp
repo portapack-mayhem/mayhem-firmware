@@ -134,7 +134,7 @@ struct IDIV_CTRL {
 	constexpr operator uint32_t() const {
 		return
 			  ((pd & 1) << 0)
-			| ((idiv & 3) << 2)
+			| ((idiv & 255) << 2)
 			| ((autoblock & 1) << 11)
 			| ((toUType(clk_sel) & 0x1f) << 24)
 			;

@@ -32,8 +32,7 @@ namespace baseband {
 
 class SGPIO {
 public:
-	void init() {
-	}
+	void init();
 
 	void configure(const Direction direction);
 

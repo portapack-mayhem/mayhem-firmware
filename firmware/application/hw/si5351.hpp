@@ -454,11 +454,7 @@ public:
 		_clock_control[n].CLK_PDN = ClockControl::ClockPowerDown::Power_Off;
 		write_register(Register::CLKControl_Base + n, _clock_control[n]);
 	}
-	
-	bool clkin_status() {
-		return ((device_status() & DeviceStatus::LOS_Mask) == DeviceStatus::LOS_ValidClockAtCLKIN);
-	}
-	
+
 	template<size_t N>
 	void write_registers(const uint8_t reg, const std::array<uint8_t, N>& values) {
 		std::array<uint8_t, N + 1> data;
@@ -472,7 +468,7 @@ private:
 	I2C& _bus;
 	const I2C::address_t _address;
 	uint8_t _output_enable;
-	
+
 	void update_output_enable_control() {
 		write_register(Register::OutputEnableControl, ~_output_enable);
 	}

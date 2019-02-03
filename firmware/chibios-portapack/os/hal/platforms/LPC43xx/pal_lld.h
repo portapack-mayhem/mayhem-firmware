@@ -42,37 +42,6 @@
 /*===========================================================================*/
 
 /**
- * @brief   GPIO port setup info.
- */
-typedef struct {
-  /** Initial value for FIO_PIN register.*/
-  uint32_t      data;
-  /** Initial value for FIO_DIR register.*/
-  uint32_t      dir;
-} gpio_setup_t;
-
-typedef struct {
-  union {
-    struct {
-      uint16_t MODE : 3;
-      uint16_t EPD  : 1;
-      uint16_t EPUN : 1;
-      uint16_t EHS  : 1;
-      uint16_t EZI  : 1;
-      uint16_t ZIF  : 1;
-      uint16_t RESERVED0 : 8;
-    };
-    uint16_t word;
-  };
-} scu_config_t;
-
-typedef struct {
-  uint8_t port;
-  uint8_t pin;
-  scu_config_t config;
-} scu_setup_t;
-
-/**
  * @brief   Generic I/O ports static initializer.
  * @details An instance of this structure must be passed to @p palInit() at
  *          system startup time in order to initialized the digital I/O

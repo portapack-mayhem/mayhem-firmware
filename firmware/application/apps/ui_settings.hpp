@@ -125,17 +125,41 @@ public:
 	std::string title() const override { return "Radio settings"; };
 
 private:
-	Labels labels {
-		{ { 2 * 8, 2 * 16 }, "Frequency correction:", Color::light_grey() },
-		{ { 6 * 8, 3 * 16 }, "PPM", Color::light_grey() },
-		{ { 24, 7 * 16 }, "CAUTION: Ensure that all", Color::red() },
-		{ { 28, 8 * 16 }, "devices attached to the", Color::red() },
-		{ { 8, 9 * 16 }, "antenna connector can accept", Color::red() },
-		{ { 68, 10 * 16 }, "a DC voltage!", Color::red() }
+	const Style style_text {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::light_grey(),
+	};
+
+	Text label_source {
+		{ 0, 1 * 16, 17 * 8, 16 },
+		"Reference Source:"
+	};
+
+	Text value_source {
+		{ (240 - 11 * 8), 1 * 16, 11 * 8, 16 },
+		"---"
+	};
+
+	Text value_source_frequency {
+		{ (240 - 11 * 8), 2 * 16, 11 * 8, 16 },
+		"---"
+	};
+
+	Labels labels_correction {
+		{ { 2 * 8, 4 * 16 }, "Frequency correction:", Color::light_grey() },
+		{ { 6 * 8, 5 * 16 }, "PPM", Color::light_grey() },
+	};
+
+	Labels labels_bias {
+		{ { 24, 8 * 16 }, "CAUTION: Ensure that all", Color::red() },
+		{ { 28, 9 * 16 }, "devices attached to the", Color::red() },
+		{ { 8, 10 * 16 }, "antenna connector can accept", Color::red() },
+		{ { 68, 11 * 16 }, "a DC voltage!", Color::red() }
 	};
 
 	NumberField field_ppm {
-		{ 2 * 8, 3 * 16 },
+		{ 2 * 8, 5 * 16 },
 		3,
 		{ -50, 50 },
 		1,
@@ -143,7 +167,7 @@ private:
 	};
 	
 	Checkbox check_bias {
-		{ 28, 12 * 16 },
+		{ 28, 13 * 16 },
 		5,
 		"Turn on bias voltage"
 	};

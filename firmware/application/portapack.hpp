@@ -59,9 +59,6 @@ extern TemperatureLogger temperature_logger;
 void set_antenna_bias(const bool v);
 bool get_antenna_bias();
 
-void poll_ext_clock();
-bool get_ext_clock();
-
 bool init();
 void shutdown();
 

@@ -223,8 +223,6 @@ void EventDispatcher::handle_local_queue() {
 
 void EventDispatcher::handle_rtc_tick() {
 	sd_card::poll_inserted();
-	
-	portapack::poll_ext_clock();
 
 	portapack::temperature_logger.second_tick();
 	
@@ -294,6 +292,19 @@ void EventDispatcher::handle_switches() {
 
 	portapack::bl_tick_counter = 0;
 
+	if( switches_state.count() == 0 ) {
+		// If all keys are released, we are no longer in a key event.
+		in_key_event = false;
+	}
+
+	if( in_key_event ) {
+		// If we're in a key event, return. We will ignore all additional key
+		// presses until the first key is released. We also want to ignore events
+		// where the last key held generates a key event when other pressed keys
+		// are released.
+		return;
+	}
+
 	if( EventDispatcher::display_sleep ) {
 		// Swallow event, wake up display.
 		if( switches_state.any() ) {
@@ -309,6 +320,8 @@ void EventDispatcher::handle_switches() {
 			if( !event_bubble_key(event) ) {
 				context.focus_manager().update(top_widget, event);
 			}
+
+			in_key_event = true;
 		}
 	}
 }

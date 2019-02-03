@@ -82,7 +82,7 @@ set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
 set(HACKRF_CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.cpp)
 
 # Imported source files and paths
-include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
+include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_APPLICATION/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M0/platform.cmake)
 include(${CHIBIOS}/os/hal/hal.cmake)
 include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0/port.cmake)
@@ -405,7 +405,7 @@ add_custom_command(
 add_custom_command(
 	OUTPUT ${HACKRF_CPLD_DATA_HPP} ${HACKRF_CPLD_DATA_CPP}
 	COMMAND ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH} hackrf::one::cpld::verify_blocks ${HACKRF_CPLD_DATA_CPP}
-	DEPENDS ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH}
+	DEPENDS ${EXTRACT_SVF_DATA_XC2C64A} hackrf
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})

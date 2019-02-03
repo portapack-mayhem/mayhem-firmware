@@ -86,7 +86,7 @@ Tetra info? | 0%  | Same
 
 Except where specified in subdirectories of this project, all work is offered under the following license:
 
-Copyright (C) 2013-2015 Jared Boone, ShareBrained Technology, Inc.
+Copyright (C) 2013-2019 Jared Boone, ShareBrained Technology, Inc.
 
 Copyright (C) 2015-2016 Furrtek
 

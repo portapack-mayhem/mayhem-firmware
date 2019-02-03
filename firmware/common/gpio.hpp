@@ -186,7 +186,7 @@ struct PinConfig {
 	}
 
 	static constexpr PinConfig spifi_cs(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 0, .ifilt = 0 };
+		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0 };
 	}
 };
 

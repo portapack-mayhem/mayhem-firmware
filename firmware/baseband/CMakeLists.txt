@@ -73,7 +73,7 @@ set(USE_FPU hard)
 #
 
 # Imported source files and paths
-include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
+include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_BASEBAND/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M4/platform.cmake)
 include(${CHIBIOS}/os/hal/hal.cmake)
 include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M4/port.cmake)
@@ -470,9 +470,9 @@ DeclareTargets(PWFM wfm_audio)
 
 add_custom_command(
 	OUTPUT hackrf.bin hackrf.img
-	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_IMAGE} hackrf.bin
+	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_DFU_IMAGE} hackrf.bin
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img
-	DEPENDS ${HACKRF_FIRMWARE_IMAGE} ${STRIP_DFU} ${MAKE_IMAGE_CHUNK}
+	DEPENDS hackrf ${STRIP_DFU} ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )
 

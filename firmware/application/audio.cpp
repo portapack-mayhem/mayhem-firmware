@@ -222,6 +222,10 @@ void shutdown() {
 	audio_codec->reset();
 	input::stop();
 	output::stop();
+
+	i2s::i2s0::shutdown();
+
+	clock_manager.stop_audio_pll();
 }
 
 void set_rate(const Rate rate) {

@@ -48,6 +48,8 @@ public:
 
 	void bypass();
 	void sample();
+	void sample(std::bitset<240>& value);
+	void extest(std::bitset<240>& value);
 	void clamp();
 
 	void reset() {
