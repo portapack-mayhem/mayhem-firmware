@@ -70,6 +70,7 @@
 #include "analog_audio_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
+#include "lge_app.hpp"
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
 #include "soundboard_app.hpp"
@@ -371,6 +372,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "Jammer", 				ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Key fob", 				ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
+		{ "LGE tool", 				ui::Color::yellow(),	&bitmap_icon_lge,		[&nav](){ nav.push<LGEView>(); } },
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
 		{ "Burger pagers", 			ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },

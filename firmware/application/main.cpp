@@ -46,6 +46,8 @@
 //GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
 //	See fifo.reset_in() ?
 
+//FIXED: Update button in signal gen doesn't work for shape change
+//BUG: Signal gen noise shape doesn't work
 //TODO: Continue acars receiver. See matched filter, probably doesn't shift the spectrum correctly
 //TODO: Add larger description text field in frequency load, under menuview
 //TODO: Allow apps to select a preferred FREQMAN file
