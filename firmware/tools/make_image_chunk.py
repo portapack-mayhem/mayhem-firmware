@@ -27,7 +27,7 @@ import struct
 usage_message = """
 PortaPack image chunk writer
 
-Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary>
+Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary> [<chunk max size>]
 """
 
 def read_image(path):
@@ -41,10 +41,13 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-if len(sys.argv) == 4:
+input_image_max_length = 32768
+if len(sys.argv) in (4, 5):
 	input_image = read_image(sys.argv[1])
 	tag = tuple(map(ord, sys.argv[2]))
 	output_path = sys.argv[3]
+	if len(sys.argv) == 5:
+		input_image_max_length = int(sys.argv[4])
 elif len(sys.argv) == 2:
 	input_image = bytearray()
 	tag = (0, 0, 0, 0)
@@ -57,7 +60,6 @@ if len(tag) != 4:
 	print(usage_message)
 	sys.exit(-2)
 
-input_image_max_length = 32768
 if len(input_image) > input_image_max_length:
 	raise RuntimeError('image size of %d exceeds device size of %d bytes' % (len(input_image), input_image_max_length))
 if (len(input_image) & 3) != 0:
