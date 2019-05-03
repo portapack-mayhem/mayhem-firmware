@@ -26,7 +26,6 @@ set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 
 set(EXTRACT_CPLD_DATA ${PROJECT_SOURCE_DIR}/tools/extract_cpld_data.py)
-set(EXTRACT_SVF_DATA_XC2C64A ${PROJECT_SOURCE_DIR}/tools/extract_svf_data_xc2c64a.py)
 set(STRIP_DFU ${PROJECT_SOURCE_DIR}/tools/strip_dfu.py)
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
@@ -40,7 +39,7 @@ ExternalProject_Add(hackrf
 	GIT_REPOSITORY https://github.com/jboone/hackrf.git
 	# SOURCE_SUBDIR firmware
 	# SOURCE_SUBDIR isn't available in CMake 3.5 (Ubuntu 16.04 LTS), so the following is a work-around:
-	CONFIGURE_COMMAND ${CMAKE_COMMAND} -DUSER_INTERFACE=PORTAPACK "-GUnix Makefiles" ../hackrf/firmware
+	CONFIGURE_COMMAND ${CMAKE_COMMAND} "-GUnix Makefiles" ../hackrf/firmware
 	BUILD_COMMAND ${MAKE_EXE} hackrf_usb.dfu
 	INSTALL_COMMAND ""
 )
@@ -54,8 +53,9 @@ set(HACKRF_FIRMWARE_BIN_FILENAME hackrf_usb.bin)
 
 set(HACKRF_FIRMWARE_DFU_IMAGE ${hackrf_BINARY_DIR}/hackrf_usb/${HACKRF_FIRMWARE_DFU_FILENAME})
 set(HACKRF_FIRMWARE_BIN_IMAGE ${hackrf_BINARY_DIR}/hackrf_usb/${HACKRF_FIRMWARE_BIN_FILENAME})
-set(HACKRF_CPLD_SVF_FILENAME default.svf)
-set(HACKRF_CPLD_SVF_PATH ${hackrf_SOURCE_DIR}/firmware/cpld/sgpio_if/${HACKRF_CPLD_SVF_FILENAME})
+set(HACKRF_CPLD_TOOL ${hackrf_SOURCE_DIR}/firmware/tools/cpld_bitstream.py)
+set(HACKRF_CPLD_XSVF_FILENAME default.xsvf)
+set(HACKRF_CPLD_XSVF_PATH ${hackrf_SOURCE_DIR}/firmware/cpld/sgpio_if/${HACKRF_CPLD_XSVF_FILENAME})
 
 add_subdirectory(application)
 add_subdirectory(baseband)

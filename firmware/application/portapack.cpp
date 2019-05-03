@@ -311,6 +311,12 @@ bool init() {
 		return false;
 	}
 
+	if( !hackrf::cpld::load_sram() ) {
+		chSysHalt();
+	}
+
+	configure_pins_portapack();
+	
 	portapack::io.init();
 
 	clock_manager.init_clock_generator();

@@ -251,6 +251,7 @@ set(CPPSRC
 	apps/analog_audio_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
+	apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	apps/replay_app.cpp
 	apps/soundboard_app.cpp
@@ -404,9 +405,9 @@ add_custom_command(
 )
 
 add_custom_command(
-	OUTPUT ${HACKRF_CPLD_DATA_HPP} ${HACKRF_CPLD_DATA_CPP}
-	COMMAND ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH} hackrf::one::cpld::verify_blocks ${HACKRF_CPLD_DATA_CPP}
-	DEPENDS ${EXTRACT_SVF_DATA_XC2C64A} hackrf
+	OUTPUT ${HACKRF_CPLD_DATA_CPP}
+	COMMAND ${HACKRF_CPLD_TOOL} --xsvf ${HACKRF_CPLD_XSVF_PATH} --portapack-data ${HACKRF_CPLD_DATA_CPP}
+	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH} hackrf
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
