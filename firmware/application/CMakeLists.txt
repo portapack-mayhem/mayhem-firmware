@@ -159,7 +159,8 @@ set(CPPSRC
 	clock_manager.cpp
 	core_control.cpp
 	de_bruijn.cpp
-	emu_cc1101.cpp
+	#emu_cc1101.cpp
+	rfm69.cpp
 	event_m0.cpp
 	file.cpp
 	freqman.cpp

@@ -36,7 +36,7 @@ void AlphanumView::paint(Painter&) {
 
 AlphanumView::AlphanumView(
 	NavigationView& nav,
-	std::string * str,
+	std::string& str,
 	size_t max_length
 ) : TextEntryView(nav, str, max_length)
 {

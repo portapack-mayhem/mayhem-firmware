@@ -134,10 +134,10 @@ ADSBCallsignView::ADSBCallsignView(
 	button_callsign.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,
-			&callsign,
+			callsign,
 			8,
-			[this](std::string* s) {
-				button_callsign.set_text(*s);
+			[this](std::string& s) {
+				button_callsign.set_text(s);
 			}
 		);
 	};

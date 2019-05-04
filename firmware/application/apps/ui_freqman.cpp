@@ -146,8 +146,8 @@ void FrequencySaveView::save_current_file() {
 }
 
 void FrequencySaveView::on_save_name() {
-	text_prompt(nav_, &desc_buffer, 28, [this](std::string * buffer) {
-		database.push_back({ value_, 0, *buffer, SINGLE });
+	text_prompt(nav_, desc_buffer, 28, [this](std::string& buffer) {
+		database.push_back({ value_, 0, buffer, SINGLE });
 		save_current_file();
 	});
 }
@@ -249,17 +249,17 @@ void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
 }
 
 void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
-	text_prompt(nav, &desc_buffer, 28, [this](std::string * buffer) {
-		database[menu_view.highlighted_index()].description = *buffer;
+	text_prompt(nav, desc_buffer, 28, [this](std::string& buffer) {
+		database[menu_view.highlighted_index()].description = buffer;
 		refresh_list();
 		save_freqman_file(file_list[categories[current_category_id].second], database);
 	});
 }
 
 void FrequencyManagerView::on_new_category(NavigationView& nav) {
-	text_prompt(nav, &desc_buffer, 8, [this](std::string * buffer) {
+	text_prompt(nav, desc_buffer, 8, [this](std::string& buffer) {
 		File freqman_file;
-		create_freqman_file(*buffer, freqman_file);
+		create_freqman_file(buffer, freqman_file);
 	});
 	populate_categories();
 	refresh_list();

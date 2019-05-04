@@ -590,7 +590,7 @@ void Console::write(std::string message) {
 		for (const auto c : message) {
 			if (escape) {
 				if (c <= 15)
-					pen_color = term_colors[c & 15];
+					pen_color = term_colors[(uint8_t)c];
 				else
 					pen_color = s.foreground;
 				escape = false;

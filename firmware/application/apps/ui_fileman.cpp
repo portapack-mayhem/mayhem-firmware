@@ -237,8 +237,8 @@ FileLoadView::FileLoadView(
 }
 
 void FileManagerView::on_rename(NavigationView& nav) {
-	text_prompt(nav, &name_buffer, max_filename_length, [this](std::string * buffer) {
-		rename_file(get_selected_path(), *buffer);
+	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+		rename_file(get_selected_path(), buffer);
 		load_directory_contents(current_path);
 		refresh_list();
 	});
@@ -298,10 +298,8 @@ FileManagerView::FileManagerView(
 	button_new_dir.on_select = [this, &nav](Button&) {
 		name_buffer.clear();
 		
-		text_prompt(nav, &name_buffer, max_filename_length, [this](std::string * buffer) {
-			std::string path_str = *buffer;
-			
-			make_new_directory(current_path.string() + '/' + path_str);
+		text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+			make_new_directory(current_path.string() + '/' + buffer);
 			load_directory_contents(current_path);
 			refresh_list();
 		});

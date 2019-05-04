@@ -149,10 +149,10 @@ void LCRView::start_tx(const bool scan) {
 void LCRView::on_button_set_am(NavigationView& nav, int16_t button_id) {
 	text_prompt(
 		nav,
-		&litteral[button_id],
+		litteral[button_id],
 		7,
-		[this, button_id](std::string* buffer) {
-			texts[button_id].set(*buffer);
+		[this, button_id](std::string& buffer) {
+			texts[button_id].set(buffer);
 		});
 }
 
@@ -227,10 +227,10 @@ LCRView::LCRView(NavigationView& nav) {
 	button_set_rgsb.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,
-			&rgsb,
+			rgsb,
 			4,
-			[this](std::string* buffer) {
-				button_set_rgsb.set_text(*buffer);
+			[this](std::string& buffer) {
+				button_set_rgsb.set_text(buffer);
 			});
 	};
 	
