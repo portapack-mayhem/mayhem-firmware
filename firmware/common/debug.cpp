@@ -64,18 +64,6 @@ static void runtime_error() {
 
 extern "C" {
 
-void __early_init(void) {
-	/* Enable unaligned exception handler */
-	SCB_CCR |= (1 << 3);
-
-#if defined(LPC43XX_M4)
-	/* Enable MemManage, BusFault, UsageFault exception handlers */
-	SCB_SHCSR |= (1 << 16);
-	SCB_SHCSR |= (1 << 17);
-	SCB_SHCSR |= (1 << 18);
-#endif
-}
-
 void port_halt(void) {
 	// Copy debug panic message to M0 region.
 	const auto* p = dbg_panic_msg;

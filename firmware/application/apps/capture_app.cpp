@@ -27,9 +27,6 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-#include "portapack_persistent_memory.hpp"
-using namespace portapack;
-
 namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav) {
@@ -49,20 +46,20 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&waterfall,
 	});
 
-	field_frequency.set_value(target_frequency());
+	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_target_frequency_changed(f);
+		this->on_tuning_frequency_changed(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_target_frequency_changed(f);
+			this->on_tuning_frequency_changed(f);
 			this->field_frequency.set_value(f);
 		};
 	};
-
+	
 	field_frequency_step.set_by_value(receiver_model.frequency_step());
 	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
 		receiver_model.set_frequency_step(v);
@@ -70,26 +67,19 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	};
 	
 	option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
-		sampling_rate = 8 * base_rate;
+		sampling_rate = 8 * base_rate;	// Decimation by 8 done on baseband side
 		
 		waterfall.on_hide();
-		set_target_frequency(target_frequency());
 		record_view.set_sampling_rate(sampling_rate);
-		radio::set_baseband_rate(sampling_rate);
+		receiver_model.set_sampling_rate(sampling_rate);
 		waterfall.on_show();
 	};
-
-	radio::enable({
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	});
 	
 	option_bandwidth.set_selected_index(7);		// 500k
+	
+	receiver_model.set_modulation(ReceiverModel::Mode::Capture);
+	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+	receiver_model.enable();
 
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
@@ -97,8 +87,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 }
 
 CaptureAppView::~CaptureAppView() {
-	radio::disable();
-
+	receiver_model.disable();
 	baseband::shutdown();
 }
 
@@ -120,21 +109,8 @@ void CaptureAppView::focus() {
 	record_view.focus();
 }
 
-void CaptureAppView::on_target_frequency_changed(rf::Frequency f) {
-	set_target_frequency(f);
-}
-
-void CaptureAppView::set_target_frequency(const rf::Frequency new_value) {
-	persistent_memory::set_tuned_frequency(new_value);;
-	radio::set_tuning_frequency(tuning_frequency());
-}
-
-rf::Frequency CaptureAppView::target_frequency() const {
-	return persistent_memory::tuned_frequency();
-}
-
-rf::Frequency CaptureAppView::tuning_frequency() const {
-	return target_frequency() - (sampling_rate / 4);
+void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {
+	receiver_model.set_tuning_frequency(f);
 }
 
 } /* namespace ui */

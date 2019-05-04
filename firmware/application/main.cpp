@@ -27,19 +27,36 @@
 // Check what ends up in the BSS section by looking at the map files !
 // Use constexpr where possible or make sure const are in .cpp files, not headers !
 
+// Note about messages:
+// There can only be one message handler for one kind of message at once
+// If an attempt is made to register a second handler, there's a chDbgPanic "MsgDblReg"
+
+// Note about matched filters: see proc_sonde.hpp
+
 //TEST: Goertzel tone detect
 //TEST: Menuview refresh, seems to blink a lot
 //TEST: Check AFSK transmit end, skips last bits ?
 //TEST: Imperial in whipcalc
 
+//BUG: Console lock-up if first string to be printed starts with escape character ?
 //BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
 //BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
 //BUG: SCANNER Multiple slices
 //GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
+//GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
+//	See fifo.reset_in() ?
 
+//FIXED: Update button in signal gen doesn't work for shape change
+//BUG: Signal gen noise shape doesn't work
+//TODO: Continue acars receiver. See matched filter, probably doesn't shift the spectrum correctly
+//TODO: Add larger description text field in frequency load, under menuview
+//TODO: Allow apps to select a preferred FREQMAN file
 //TODO: Make play button larger in Replay
-//TODO: Put LNA and VGA controls in Soundboard
 //TODO: Add default headphones volume setting in Audio settings
+//TODO: Put LNA and VGA controls in Soundboard
+//TODO: Make CTCSS display only when squelch is opened
+//TODO: DCS decoder
+//TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
 //TODO: Move Touchtunes remote to Custom remote
 //TODO: Use escapes \x1B to set colors in text, it works !
 //TODO: Open files in File Manager

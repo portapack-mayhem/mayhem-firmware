@@ -100,25 +100,26 @@ void fft_swap_in_place(std::array<T, N>& data) {
 /* http://www.drdobbs.com/cpp/a-simple-and-efficient-fft-implementatio/199500857?pgno=3 */
 
 template<typename T, size_t N>
-void fft_c_preswapped(std::array<T, N>& data) {
+void fft_c_preswapped(std::array<T, N>& data, const size_t from, const size_t to) {
 	static_assert(power_of_two(N), "only defined for N == power of two");
 	constexpr auto K = log_2(N);
+	if ((to > K) || (from > K)) return;
 
 	constexpr size_t K_max = 8;
 	static_assert(K <= K_max, "No FFT twiddle factors for K > 8");
 	static constexpr std::array<std::complex<float>, K_max> wp_table { {
-		{ -2.0f,                        0.0f                     },
-		{ -1.0f,                       -1.0f                     },
-		{ -0.2928932188134524756f,     -0.7071067811865475244f   },
-		{ -0.076120467488713243872f,   -0.38268343236508977173f  },
-		{ -0.019214719596769550874f,   -0.19509032201612826785f  },
-		{ -0.0048152733278031137552f,  -0.098017140329560601994f },
-		{ -0.0012045437948276072852f,  -0.049067674327418014255f },
-		{ -0.00030118130379577988423f, -0.024541228522912288032f },
+		{ -2.0f,                        0.0f                     },	// 2
+		{ -1.0f,                       -1.0f                     },	// 4
+		{ -0.2928932188134524756f,     -0.7071067811865475244f   },	// 8
+		{ -0.076120467488713243872f,   -0.38268343236508977173f  },	// 16
+		{ -0.019214719596769550874f,   -0.19509032201612826785f  },	// 32
+		{ -0.0048152733278031137552f,  -0.098017140329560601994f },	// 64
+		{ -0.0012045437948276072852f,  -0.049067674327418014255f },	// 128
+		{ -0.00030118130379577988423f, -0.024541228522912288032f },	// 256
 	} };
 
 	/* Provide data to this function, pre-swapped. */
-	for(size_t k = 0; k < log_2(N); k++) {
+	for(size_t k = from; k < to; k++) {
 		const size_t mmax = 1 << k;
 		const auto wp = wp_table[k];
 		T w { 1.0f, 0.0f };

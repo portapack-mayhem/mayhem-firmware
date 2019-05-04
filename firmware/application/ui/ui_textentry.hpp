@@ -30,13 +30,13 @@ namespace ui {
 
 class TextEntryView : public View {
 public:
-	std::function<void(std::string*)> on_changed { };
+	std::function<void(std::string&)> on_changed { };
 	
 	void focus() override;
 	std::string title() const override { return "Text entry"; };
 	
 protected:
-	TextEntryView(NavigationView& nav, std::string * str, size_t max_length);
+	TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
 	
 	TextEntryView(const TextEntryView&) = delete;
 	TextEntryView(TextEntryView&&) = delete;
@@ -48,9 +48,9 @@ protected:
 	void draw_cursor();
 	void update_text();
 	
-	std::string * _str;
+	std::string& _str;
 	size_t _max_length;
-	uint32_t _cursor_pos { 0 };
+	uint32_t cursor_pos { 0 };
 	
 	Text text_input {
 		{ 0, 0, 240, 16 }
@@ -62,7 +62,7 @@ protected:
 	};
 };
 
-void text_prompt(NavigationView& nav, std::string * str, size_t max_length, const std::function<void(std::string*)> on_done = nullptr);
+void text_prompt(NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */
 

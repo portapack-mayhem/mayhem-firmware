@@ -39,8 +39,6 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Freq. manager"; };
-	
 protected:
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
@@ -89,6 +87,8 @@ class FrequencySaveView : public FreqManBaseView {
 public:
 	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
 
+	std::string title() const override { return "Save frequency"; };
+	
 private:
 	std::string desc_buffer { };
 	rf::Frequency value_ { };
@@ -126,6 +126,8 @@ public:
 	
 	FrequencyLoadView(NavigationView& nav);
 
+	std::string title() const override { return "Load frequency"; };
+	
 private:
 	void refresh_widgets(const bool v);
 };
@@ -135,6 +137,8 @@ public:
 	FrequencyManagerView(NavigationView& nav);
 	~FrequencyManagerView();
 
+	std::string title() const override { return "Freq. manager"; };
+	
 private:
 	std::string desc_buffer { };
 	

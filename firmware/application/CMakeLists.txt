@@ -36,7 +36,7 @@ set(USE_OPT "-Os -g --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++14 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+set(USE_CPPOPT "-std=c++17 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -82,7 +82,7 @@ set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
 set(HACKRF_CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.cpp)
 
 # Imported source files and paths
-include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
+include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_APPLICATION/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M0/platform.cmake)
 include(${CHIBIOS}/os/hal/hal.cmake)
 include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0/port.cmake)
@@ -109,6 +109,7 @@ set(CSRC
 # setting.
 set(CPPSRC
 	main.cpp
+	${COMMON}/acars_packet.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/ais_baseband.cpp
@@ -143,7 +144,7 @@ set(CPPSRC
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/sonde_packet.cpp
-	${COMMON}/test_packet.cpp
+	# ${COMMON}/test_packet.cpp
 	${COMMON}/tpms_packet.cpp
 	${COMMON}/ui.cpp
 	${COMMON}/ui_focus.cpp
@@ -158,7 +159,8 @@ set(CPPSRC
 	clock_manager.cpp
 	core_control.cpp
 	de_bruijn.cpp
-	emu_cc1101.cpp
+	#emu_cc1101.cpp
+	rfm69.cpp
 	event_m0.cpp
 	file.cpp
 	freqman.cpp
@@ -224,6 +226,7 @@ set(CPPSRC
 	apps/ui_jammer.cpp
 	apps/ui_keyfob.cpp
 	apps/ui_lcr.cpp
+	apps/lge_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_morse.cpp
@@ -237,21 +240,23 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	apps/ui_soundboard.cpp
 	apps/ui_sstvtx.cpp
-	apps/ui_test.cpp
+	# apps/ui_test.cpp
 	apps/ui_tone_search.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
 	apps/ui_view_wav.cpp
 	apps/ui_whipcalc.cpp
-	apps/analog_audio_app.cpp
+	apps/acars_app.cpp
 	apps/ais_app.cpp
-	apps/tpms_app.cpp
-	apps/pocsag_app.cpp
-	apps/ert_app.cpp
+	apps/analog_audio_app.cpp
 	apps/capture_app.cpp
+	apps/ert_app.cpp
+	apps/lge_app.cpp
+	apps/pocsag_app.cpp
 	apps/replay_app.cpp
+	apps/soundboard_app.cpp
+	apps/tpms_app.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp
@@ -328,7 +333,7 @@ set(TOPT "-mthumb -DTHUMB")
 set(CWARN "-Wall -Wextra -Wstrict-prototypes")
 
 # Define C++ warning options here
-set(CPPWARN "-Wall -Wextra")
+set(CPPWARN "-Wall -Wextra -Wno-psabi")
 
 #
 # Compiler settings
@@ -401,9 +406,9 @@ add_custom_command(
 )
 
 add_custom_command(
-	OUTPUT ${HACKRF_CPLD_DATA_HPP} ${HACKRF_CPLD_DATA_CPP}
-	COMMAND ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH} hackrf::one::cpld::verify_blocks ${HACKRF_CPLD_DATA_CPP}
-	DEPENDS ${EXTRACT_SVF_DATA_XC2C64A} ${HACKRF_CPLD_SVF_PATH}
+	OUTPUT ${HACKRF_CPLD_DATA_CPP}
+	COMMAND ${HACKRF_CPLD_TOOL} --xsvf ${HACKRF_CPLD_XSVF_PATH} --portapack-data ${HACKRF_CPLD_DATA_CPP}
+	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH} hackrf
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})

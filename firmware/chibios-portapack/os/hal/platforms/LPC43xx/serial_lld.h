@@ -258,6 +258,9 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Structure used for UART configuration.
+ */
+/**
  * @brief   LPC Serial Driver configuration structure.
  * @details An instance of this structure must be passed to @p sdStart()
  *          in order to configure and start a serial driver operations.
@@ -294,7 +297,9 @@ typedef struct {
   uint8_t                   ob[SERIAL_BUFFERS_SIZE];                        \
   /* End of the mandatory fields.*/                                         \
   /* Pointer to the UART registers block.*/                                 \
-  LPC_USART_Type        *uart;
+  LPC_USART_Type        *uart;                                              \
+  /* Pointer to the non-peripheral SSP resources.*/                         \
+  const uart_resources_t * resources;
 
 /*===========================================================================*/
 /* Driver macros.                                                            */

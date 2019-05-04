@@ -111,11 +111,39 @@ SetRadioView::SetRadioView(
 ) {
 	button_cancel.on_select = [&nav](Button&){
 		nav.pop();
-	},
+	};
+
+	const auto reference = portapack::clock_manager.get_reference();
+	
+	std::string source_name("---");
+	switch(reference.source) {
+	case ClockManager::ReferenceSource::Xtal:      source_name = "HackRF";    break;
+	case ClockManager::ReferenceSource::PortaPack: source_name = "PortaPack"; break;
+	case ClockManager::ReferenceSource::External:  source_name = "External";  break;
+	}
+
+	value_source.set(source_name);
+	value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+
+	label_source.set_style(&style_text);
+	value_source.set_style(&style_text);
+	value_source_frequency.set_style(&style_text);
 
 	add_children({
-		&labels,
-		&field_ppm,
+		&label_source,
+		&value_source,
+		&value_source_frequency,
+	});
+
+	if( reference.source == ClockManager::ReferenceSource::Xtal ) {
+		add_children({
+			&labels_correction,
+			&field_ppm,
+		});
+	}
+
+	add_children({
+		&labels_bias,
 		&check_bias,
 		&button_done,
 		&button_cancel

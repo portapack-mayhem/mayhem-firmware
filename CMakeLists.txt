@@ -19,6 +19,8 @@
 #
 
 cmake_minimum_required(VERSION 2.8.9)
+cmake_policy(SET CMP0005 NEW)
+
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex-m.cmake)
 
 project(portapack-h1)

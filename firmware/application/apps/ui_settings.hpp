@@ -51,26 +51,26 @@ public:
 
 private:
 	Labels labels {
-		{ { 8 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() },
-		{ { 4 * 8, 11 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::light_grey() }
+		{ { 6 * 8, 7 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::grey() },
+		{ { 10 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() }
 	};
 	
 	NumberField field_year {
-		{ 4 * 8, 9 * 16 },
+		{ 6 * 8, 9 * 16 },
 		4,
 		{ 2015, 2099 },
 		1,
 		'0',
 	};
 	NumberField field_month {
-		{ 9 * 8, 9 * 16 },
+		{ 11 * 8, 9 * 16 },
 		2,
 		{ 1, 12 },
 		1,
 		'0',
 	};
 	NumberField field_day {
-		{ 12 * 8, 9 * 16 },
+		{ 14 * 8, 9 * 16 },
 		2,
 		{ 1, 31 },
 		1,
@@ -78,21 +78,21 @@ private:
 	};
 
 	NumberField field_hour {
-		{ 15 * 8, 9 * 16 },
+		{ 17 * 8, 9 * 16 },
 		2,
 		{ 0, 23 },
 		1,
 		'0',
 	};
 	NumberField field_minute {
-		{ 18 * 8, 9 * 16 },
+		{ 20 * 8, 9 * 16 },
 		2,
 		{ 0, 59 },
 		1,
 		'0',
 	};
 	NumberField field_second {
-		{ 21 * 8, 9 * 16 },
+		{ 23 * 8, 9 * 16 },
 		2,
 		{ 0, 59 },
 		1,
@@ -125,25 +125,49 @@ public:
 	std::string title() const override { return "Radio settings"; };
 
 private:
-	Labels labels {
-		{ { 2 * 8, 2 * 16 }, "Frequency correction:", Color::light_grey() },
-		{ { 6 * 8, 3 * 16 }, "PPM", Color::light_grey() },
-		{ { 24, 7 * 16 }, "CAUTION: Ensure that all", Color::red() },
-		{ { 28, 8 * 16 }, "devices attached to the", Color::red() },
-		{ { 8, 9 * 16 }, "antenna connector can accept", Color::red() },
-		{ { 68, 10 * 16 }, "a DC voltage!", Color::red() }
+	const Style style_text {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::light_grey(),
+	};
+
+	Text label_source {
+		{ 0, 1 * 16, 17 * 8, 16 },
+		"Reference Source:"
+	};
+
+	Text value_source {
+		{ (240 - 11 * 8), 1 * 16, 11 * 8, 16 },
+		"---"
+	};
+
+	Text value_source_frequency {
+		{ (240 - 11 * 8), 2 * 16, 11 * 8, 16 },
+		"---"
+	};
+
+	Labels labels_correction {
+		{ { 2 * 8, 4 * 16 }, "Frequency correction:", Color::light_grey() },
+		{ { 6 * 8, 5 * 16 }, "PPM", Color::light_grey() },
+	};
+
+	Labels labels_bias {
+		{ { 24, 8 * 16 }, "CAUTION: Ensure that all", Color::red() },
+		{ { 28, 9 * 16 }, "devices attached to the", Color::red() },
+		{ { 8, 10 * 16 }, "antenna connector can accept", Color::red() },
+		{ { 68, 11 * 16 }, "a DC voltage!", Color::red() }
 	};
 
 	NumberField field_ppm {
-		{ 2 * 8, 3 * 16 },
+		{ 2 * 8, 5 * 16 },
 		3,
 		{ -50, 50 },
 		1,
 		'0',
 	};
-
+	
 	Checkbox check_bias {
-		{ 28, 12 * 16 },
+		{ 28, 13 * 16 },
 		5,
 		"Turn on bias voltage"
 	};
@@ -159,35 +183,6 @@ private:
 
 	void form_init(const SetFrequencyCorrectionModel& model);
 	SetFrequencyCorrectionModel form_collect();
-};
-
-class SetTouchCalibView : public View {
-public:
-	SetTouchCalibView(NavigationView& nav);
-	void focus() override;
-	bool on_touch(const TouchEvent event) override;
-	
-private:
-	
-	Text text_title {
-		{ 64, 32, 40, 16 },
-		"UL,UR,DL,DR !",
-	};
-	
-	Text text_debugx {
-		{ 64, 64, 40, 16 },
-		"X",
-	};
-	
-	Text text_debugy {
-		{ 64, 80, 40, 16 },
-		"Y",
-	};
-	
-	Button button_ok {
-		{ 72, 192, 96, 24 },
-		"OK"
-	};
 };
 
 class SetUIView : public View {
@@ -224,7 +219,7 @@ private:
 	};
 	
 	Checkbox checkbox_showsplash {
-		{ 3 * 8, 8 * 16 },
+		{ 3 * 8, 9 * 16 },
 		11,
 		"Show splash"
 	};

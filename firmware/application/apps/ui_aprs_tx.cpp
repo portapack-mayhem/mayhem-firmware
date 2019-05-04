@@ -99,10 +99,10 @@ APRSTXView::APRSTXView(NavigationView& nav) {
 	button_set.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,
-			&payload,
+			payload,
 			30,
-			[this](std::string* s) {
-				text_payload.set(*s);
+			[this](std::string& s) {
+				text_payload.set(s);
 			}
 		);
 	};

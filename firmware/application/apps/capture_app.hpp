@@ -29,9 +29,6 @@
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
 
-#include <string>
-#include <memory>
-
 namespace ui {
 
 class CaptureAppView : public View {
@@ -53,12 +50,7 @@ private:
 	uint32_t sampling_rate = 0;
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	void on_target_frequency_changed(rf::Frequency f);
-
-	rf::Frequency target_frequency() const;
-	void set_target_frequency(const rf::Frequency new_value);
-
-	rf::Frequency tuning_frequency() const;
+	void on_tuning_frequency_changed(rf::Frequency f);
 
 	Labels labels {
 		{ { 0 * 8, 1 * 16 }, "Rate:", Color::light_grey() },

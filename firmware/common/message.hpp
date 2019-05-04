@@ -30,13 +30,14 @@
 #include <functional>
 #include <algorithm>
 
-#include "pocsag_packet.hpp"
 #include "baseband_packet.hpp"
+
+#include "acars_packet.hpp"
+#include "adsb_frame.hpp"
 #include "ert_packet.hpp"
-#include "tpms_packet.hpp"
 #include "pocsag_packet.hpp"
 #include "sonde_packet.hpp"
-#include "adsb_frame.hpp"
+#include "tpms_packet.hpp"
 #include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
@@ -57,9 +58,10 @@ public:
 		ChannelStatistics = 2,
 		DisplayFrameSync = 3,
 		AudioStatistics = 4,
+		Shutdown = 5,
 		TPMSPacket = 6,
-		Shutdown = 8,
-		AISPacket = 7,
+		ACARSPacket = 7,
+		AISPacket = 8,
 		ERTPacket = 9,
 		SondePacket = 10,
 		UpdateSpectrum = 11,
@@ -106,6 +108,7 @@ public:
 		
 		AudioLevelReport = 51,
 		CodedSquelch = 52,
+		AudioSpectrum = 53,
 		MAX
 	};
 
@@ -273,6 +276,23 @@ public:
 	size_t trigger { 0 };
 };
 
+struct AudioSpectrum {
+	std::array<uint8_t, 128> db { { 0 } };
+	//uint32_t sampling_rate { 0 };
+};
+
+class AudioSpectrumMessage : public Message {
+public:
+	constexpr AudioSpectrumMessage(
+		AudioSpectrum* data
+	) : Message { ID::AudioSpectrum },
+		data { data }
+	{
+	}
+
+	AudioSpectrum* data { nullptr };
+};
+
 struct ChannelSpectrum {
 	std::array<uint8_t, 256> db { { 0 } };
 	uint32_t sampling_rate { 0 };
@@ -333,6 +353,18 @@ public:
 	}
 	
 	pocsag::POCSAGPacket packet;
+};
+
+class ACARSPacketMessage : public Message {
+public:
+	constexpr ACARSPacketMessage(
+		const baseband::Packet& packet
+	) : Message { ID::ACARSPacket },
+		packet { packet }
+	{
+	}
+
+	baseband::Packet packet;
 };
 
 class ADSBFrameMessage : public Message {

@@ -28,6 +28,8 @@
 
 #include "memory_map.hpp"
 
+extern uint32_t _textend;
+
 namespace portapack {
 namespace spi_flash {
 
@@ -63,6 +65,7 @@ private:
 	char c[4];
 };
 
+constexpr image_tag_t image_tag_acars				{ 'P', 'A', 'C', 'A' };
 constexpr image_tag_t image_tag_adsb_rx				{ 'P', 'A', 'D', 'R' };
 constexpr image_tag_t image_tag_afsk_rx				{ 'P', 'A', 'F', 'R' };
 constexpr image_tag_t image_tag_ais					{ 'P', 'A', 'I', 'S' };
@@ -113,19 +116,14 @@ struct region_t {
 	}
 };
 
-constexpr region_t bootstrap {
+const region_t images {
+	.offset = reinterpret_cast<uint32_t>(&_textend),
+	.size = portapack::memory::map::spifi_cached.size() - reinterpret_cast<uint32_t>(&_textend),
+};
+
+const region_t application {
 	.offset = 0x00000,
-	.size = 0x10000,
-};
-
-constexpr region_t images {
-	.offset = 0x10000,
-	.size = 0x70000,
-};
-
-constexpr region_t application {
-	.offset = 0x80000,
-	.size = 0x50000,
+	.size = reinterpret_cast<uint32_t>(&_textend),
 };
 
 } /* namespace spi_flash */

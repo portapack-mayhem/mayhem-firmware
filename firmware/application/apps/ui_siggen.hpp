@@ -44,6 +44,7 @@ public:
 
 private:
 	void start_tx();
+	void update_config();
 	void update_tone();
 	void on_tx_progress(const uint32_t progress, const bool done);
 	

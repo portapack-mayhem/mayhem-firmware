@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -95,7 +96,7 @@ private:
 
 class AnalogAudioView : public View {
 public:
-	AnalogAudioView(NavigationView& nav, bool eos);
+	AnalogAudioView(NavigationView& nav);
 	~AnalogAudioView();
 
 	void on_hide() override;

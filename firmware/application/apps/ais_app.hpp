@@ -28,6 +28,8 @@
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
 
+#include "ui_geomap.hpp"
+
 #include "event_m0.hpp"
 
 #include "log_file.hpp"
@@ -116,11 +118,12 @@ class AISRecentEntryDetailView : public View {
 public:
 	std::function<void(void)> on_close { };
 
-	AISRecentEntryDetailView();
+	AISRecentEntryDetailView(NavigationView& nav);
 
 	void set_entry(const AISRecentEntry& new_entry);
 	const AISRecentEntry& entry() const { return entry_; };
 
+	void update_position();
 	void focus() override;
 	void paint(Painter&) override;
 
@@ -128,9 +131,15 @@ private:
 	AISRecentEntry entry_ { };
 
 	Button button_done {
-		{ 72, 216, 96, 24 },
+		{ 125, 216, 96, 24 },
 		"Done"
 	};
+	Button button_see_map {
+		{ 19, 216, 96, 24 },
+		"See on map"
+	};
+	GeoMapView* geomap_view { nullptr };
+	bool send_updates { false };
 
 	Rect draw_field(
 		Painter& painter,
@@ -160,6 +169,7 @@ private:
 	static constexpr uint32_t initial_target_frequency = 162025000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
+	NavigationView& nav_;
 
 	AISRecentEntries recent { };
 	std::unique_ptr<AISLogger> logger { };
@@ -169,7 +179,7 @@ private:
 		{ "Name/Call", 20 },
 	} };
 	AISRecentEntriesView recent_entries_view { columns, recent };
-	AISRecentEntryDetailView recent_entry_detail_view { };
+	AISRecentEntryDetailView recent_entry_detail_view { nav_ };
 
 	static constexpr auto header_height = 1 * 16;
 

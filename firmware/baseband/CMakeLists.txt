@@ -36,7 +36,7 @@ set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++14 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+set(USE_CPPOPT "-std=c++17 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -73,7 +73,7 @@ set(USE_FPU hard)
 #
 
 # Imported source files and paths
-include(${CHIBIOS_PORTAPACK}/boards/GSG_HACKRF_ONE/board.cmake)
+include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_BASEBAND/board.cmake)
 include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M4/platform.cmake)
 include(${CHIBIOS}/os/hal/hal.cmake)
 include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M4/port.cmake)
@@ -277,6 +277,13 @@ macro(DeclareTargets chunk_tag name)
 	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 endmacro()
 
+### ACARS RX
+
+set(MODE_CPPSRC
+	proc_acars.cpp
+)
+DeclareTargets(PACA acars)
+
 ### ADS-B RX
 
 set(MODE_CPPSRC
@@ -463,9 +470,9 @@ DeclareTargets(PWFM wfm_audio)
 
 add_custom_command(
 	OUTPUT hackrf.bin hackrf.img
-	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_IMAGE} hackrf.bin
-	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img
-	DEPENDS ${HACKRF_FIRMWARE_IMAGE} ${STRIP_DFU} ${MAKE_IMAGE_CHUNK}
+	COMMAND ${STRIP_DFU} ${HACKRF_FIRMWARE_DFU_IMAGE} hackrf.bin
+	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.bin HRF1 hackrf.img 98304
+	DEPENDS hackrf ${STRIP_DFU} ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )
 

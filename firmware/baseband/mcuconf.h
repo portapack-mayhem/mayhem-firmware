@@ -46,7 +46,3 @@
 #if !defined(LPC43XX_M4_CLK) || defined(__DOXYGEN__)
 #define LPC43XX_M4_CLK                      200000000
 #endif
-
-#if !defined(LPC43XX_M4_CLK_SRC) || defined(__DOXYGEN__)
-#define LPC43XX_M4_CLK_SRC                  0x09
-#endif

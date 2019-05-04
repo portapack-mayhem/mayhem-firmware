@@ -30,6 +30,7 @@
 using namespace hackrf::one;
 
 #include "clock_manager.hpp"
+#include "event_m0.hpp"
 
 #include "backlight.hpp"
 #include "touch_adc.hpp"
@@ -92,43 +93,73 @@ bool get_antenna_bias() {
 	return antenna_bias;
 }
 
-class Power {
-public:
-	void init() {
-		/* VAA powers:
-		 * MAX5864 analog section.
-		 * MAX2837 registers and other functions.
-		 * RFFC5072 analog section.
-		 *
-		 * Beware that power applied to pins of the MAX2837 may
-		 * show up on VAA and start powering other components on the
-		 * VAA net. So turn on VAA before driving pins from MCU to
-		 * MAX2837.
-		 */
-		/* Turn on VAA */
-		gpio_vaa_disable.clear();
-		gpio_vaa_disable.output();
+static constexpr uint32_t systick_count(const uint32_t clock_source_f) {
+	return clock_source_f / CH_FREQUENCY;
+}
 
-		/* 1V8 powers CPLD internals.
-		 */
-		/* Turn on 1V8 */
-		gpio_1v8_enable.set();
-		gpio_1v8_enable.output();
+static constexpr uint32_t systick_load(const uint32_t clock_source_f) {
+	return systick_count(clock_source_f) - 1;
+}
 
-		/* Set VREGMODE for switching regulator on HackRF One */
-		gpio_vregmode.set();
-		gpio_vregmode.output();
-	}
+constexpr uint32_t i2c0_bus_f			= 400000;
+constexpr uint32_t i2c0_high_period_ns	= 900;
 
-	void shutdown() {
-		gpio_1v8_enable.clear();
-		gpio_vaa_disable.set();
-	}
+typedef struct {
+	uint32_t clock_f;
+	uint32_t systick_count;
+	uint32_t idivb;
+	uint32_t idivc;
+} clock_config_t;
 
-private:
+static constexpr uint32_t idiv_config(const cgu::CLK_SEL clk_sel, const uint32_t idiv) {
+	return cgu::IDIV_CTRL { 0, idiv-1, 1, clk_sel };
+}
+
+constexpr clock_config_t clock_config_irc {
+	12000000, systick_load(12000000),
+	idiv_config(cgu::CLK_SEL::IRC, 1),
+	idiv_config(cgu::CLK_SEL::IRC, 1),
 };
 
-static Power power;
+constexpr clock_config_t clock_config_pll1_boot {
+	96000000, systick_load(96000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 9),
+	idiv_config(cgu::CLK_SEL::PLL1, 3),
+};
+
+constexpr clock_config_t clock_config_pll1_step {
+	100000000, systick_load(100000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+};
+
+constexpr clock_config_t clock_config_pll1 {
+	200000000, systick_load(200000000),
+	idiv_config(cgu::CLK_SEL::PLL1, 2),
+	idiv_config(cgu::CLK_SEL::PLL1, 1),
+};
+
+constexpr I2CClockConfig i2c_clock_config_400k_boot_clock {
+	.clock_source_f = clock_config_pll1_boot.clock_f,
+	.bus_f = i2c0_bus_f,
+	.high_period_ns = i2c0_high_period_ns,
+};
+
+constexpr I2CClockConfig i2c_clock_config_400k_fast_clock {
+	.clock_source_f = clock_config_pll1.clock_f,
+	.bus_f = i2c0_bus_f,
+	.high_period_ns = i2c0_high_period_ns,
+};
+
+constexpr I2CConfig i2c_config_boot_clock {
+	.high_count = i2c_clock_config_400k_boot_clock.i2c_high_count(),
+	.low_count = i2c_clock_config_400k_boot_clock.i2c_low_count(),
+};
+
+constexpr I2CConfig i2c_config_fast_clock {
+	.high_count = i2c_clock_config_400k_fast_clock.i2c_high_count(),
+	.low_count = i2c_clock_config_400k_fast_clock.i2c_low_count(),
+};
 
 enum class PortaPackModel {
 	R1_20150901,
@@ -169,118 +200,111 @@ Backlight* backlight() {
 		: static_cast<portapack::Backlight*>(&backlight_on_off);
 }
 
-static void configure_unused_mcu_peripherals(const bool enabled) {
-	/* Disabling these peripherals reduces "idle" (PortaPack at main
-	 * menu) current by 42mA.
-	 */
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
-	/* Some surprising peripherals in use by PortaPack firmware:
-	 *
-	 * RITIMER: M0 SysTick substitute (because M0 has no SysTick)
-	 * TIMER3: M0 cycle/PCLK counter
-	 */
+static LPC_CGU_BASE_CLK_Type* const base_clocks_idivc[] = {
+	&LPC_CGU->BASE_PERIPH_CLK,
+	&LPC_CGU->BASE_M4_CLK,
+	&LPC_CGU->BASE_APB1_CLK,
+	&LPC_CGU->BASE_APB3_CLK,
+	&LPC_CGU->BASE_SDIO_CLK,
+	&LPC_CGU->BASE_SSP1_CLK,
+};
 
-	const uint32_t clock_run_state = enabled ? 1 : 0;
-
-	LPC_CCU1->CLK_APB3_I2C1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB3_DAC_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB3_CAN0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_APB1_CAN1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_LCD_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_ETHERNET_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USB0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_EMC_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_SCT_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USB1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_EMCDIV_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_WWDT_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_UART1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_SSP0_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_TIMER1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART2_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_USART3_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_TIMER2_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_M4_QEI_CFG.RUN = clock_run_state;
-
-	LPC_CCU1->CLK_USB1_CFG.RUN = clock_run_state;
-	LPC_CCU1->CLK_SPI_CFG.RUN = clock_run_state;
-
-	LPC_CCU2->CLK_APB2_USART3_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB2_USART2_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_UART1_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_USART0_CFG.RUN = clock_run_state;
-	LPC_CCU2->CLK_APB0_SSP0_CFG.RUN = clock_run_state;
+static void set_idivc_base_clocks(const cgu::CLK_SEL clock_source) {
+	for(uint32_t i=0; i<ARRAY_SIZE(base_clocks_idivc); i++) {
+		base_clocks_idivc[i]->AUTOBLOCK = 1;
+		base_clocks_idivc[i]->CLK_SEL = toUType(clock_source);
+	}
 }
 
-static void disable_unused_mcu_peripheral_clocks() {
-	configure_unused_mcu_peripherals(false);
-}
-
-static void enable_unused_mcu_peripheral_clocks() {
-	configure_unused_mcu_peripherals(true);
+static void set_clock_config(const clock_config_t& config) {
+	LPC_CGU->IDIVB_CTRL.word = config.idivb;
+	LPC_CGU->IDIVC_CTRL.word = config.idivc;
+	systick_adjust_period(config.systick_count);
+	halLPCSetSystemClock(config.clock_f);
 }
 
 static void shutdown_base() {
+	i2c0.stop();
+
+	set_clock_config(clock_config_irc);
+
+	cgu::pll1::disable();
+
+	set_idivc_base_clocks(cgu::CLK_SEL::IRC);
+
+	cgu::pll1::ctrl({
+		.pd = 1,
+		.bypass = 0,
+		.fbsel = 0,
+		.direct = 1,
+		.psel = 0,
+		.autoblock = 1,
+		.nsel = 0,
+		.msel = 23,
+		.clk_sel = cgu::CLK_SEL::IRC,
+	});
+
+	cgu::pll1::enable();
+	while( !cgu::pll1::is_locked() );
+
+	set_clock_config(clock_config_pll1_boot);
+
+	i2c0.start(i2c_config_boot_clock);
+
 	clock_manager.shutdown();
-
-	power.shutdown();
-	// TODO: Wait a bit for supplies to discharge?
-
-	chSysDisable();
-
-	systick_stop();
-
-	enable_unused_mcu_peripheral_clocks();
-
-	hackrf::one::reset();
 }
 
+/* Clock scheme after exiting bootloader in SPIFI mode:
+ * 
+ * XTAL_OSC = powered down
+ *
+ * PLL0USB = powered down
+ * PLL0AUDIO = powered down
+ * PLL1 = IRC * 24 = 288 MHz
+ *
+ * IDIVA = IRC / 1 = 12 MHz
+ * IDIVB = PLL1 / 9 = 32 MHz
+ * IDIVC = PLL1 / 3 = 96 MHz
+ * IDIVD = IRC / 1 = 12 MHz
+ * IDIVE = IRC / 1 = 12 MHz
+ *
+ * BASE_USB0_CLK = PLL0USB
+ * BASE_PERIPH_CLK = IRC
+ * BASE_M4_CLK = IDIVC (96 MHz)
+ * BASE_SPIFI_CLK = IDIVB (32 MHZ)
+ *
+ * everything else = IRC
+ */
+
+/* Clock scheme during PortaPack operation:
+ * 
+ * XTAL_OSC = powered down
+ *
+ * PLL0USB = powered down
+ * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
+ * PLL1 = GP_CLKIN * 10 = 200 MHz
+ *
+ * IDIVA = IRC / 1 = 12 MHz
+ * IDIVB = PLL1 / 2 = 100 MHz
+ * IDIVC = PLL1 / 1 = 200 MHz
+ * IDIVD = PLL0AUDIO / N (where N is varied depending on decimation factor)
+ * IDIVE = IRC / 1 = 12 MHz
+ *
+ * BASE_USB0_CLK = PLL0USB
+ * BASE_PERIPH_CLK = IRC
+ * BASE_M4_CLK = IDIVC (200 MHz)
+ * BASE_SPIFI_CLK = IDIVB (100 MHZ)
+ * BASE_AUDIO_CLK = IDIVD
+ *
+ * everything else = IRC
+ */
+
 bool init() {
-	for(const auto& pin : pins) {
-		pin.init();
-	}
+	set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
-	/* Configure other pins */
-	/* Glitch filter operates at 3ns instead of 50ns due to the WM8731
-	 * returning an ACK very fast (170ns) and confusing the I2C state
-	 * machine into thinking there was a bus error. It looks like the
-	 * MCU sees SDA fall before SCL falls, indicating a START at the
-	 * point an ACK is expected. With the glitch filter off or set to
-	 * 3ns, it's probably still a bit tight timing-wise, but improves
-	 * reliability on some problem units.
-	 */
-	LPC_SCU->SFSI2C0 =
-		  (1U <<  0)	// SCL: 3ns glitch
-		| (0U <<  2)	// SCL: Standard/Fast mode
-		| (1U <<  3)	// SCL: Input enabled
-		| (0U <<  7)	// SCL: Enable input glitch filter
-		| (1U <<  8)	// SDA: 3ns glitch
-		| (0U << 10)	// SDA: Standard/Fast mode
-		| (1U << 11)	// SDA: Input enabled
-		| (0U << 15)	// SDA: Enable input glitch filter
-		;
-
-	disable_unused_mcu_peripheral_clocks();
-
-	LPC_CREG->CREG0 |= (1 << 5);	// Disable USB0 PHY
-
-	power.init();
-
-	gpio_max5864_select.set();
-	gpio_max5864_select.output();
-
-	gpio_max2837_select.set();
-	gpio_max2837_select.output();
-
-	led_usb.setup();
-	led_rx.setup();
-	led_tx.setup();
-
-	clock_manager.init();
-	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-	clock_manager.run_at_full_speed();
+	i2c0.start(i2c_config_boot_clock);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		shutdown_base();
@@ -291,7 +315,57 @@ bool init() {
 		chSysHalt();
 	}
 
+	configure_pins_portapack();
+	
 	portapack::io.init();
+
+	clock_manager.init_clock_generator();
+
+	i2c0.stop();
+
+	set_clock_config(clock_config_irc);
+
+	cgu::pll1::disable();
+
+	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
+	 * core clock speed to the 110 - 204MHz range.
+	 */
+
+	/* Step into the 90-110MHz M4 clock range */
+	/* Fclkin = 40M
+	 * 	/N=2 = 20M = PFDin
+	 * Fcco = PFDin * (M=10) = 200M
+	 * Fclk = Fcco / (2*(P=1)) = 100M
+	 */
+	cgu::pll1::ctrl({
+		.pd = 1,
+		.bypass = 0,
+		.fbsel = 0,
+		.direct = 0,
+		.psel = 0,
+		.autoblock = 1,
+		.nsel = 1,
+		.msel = 9,
+		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
+	});
+
+	cgu::pll1::enable();
+	while( !cgu::pll1::is_locked() );
+
+	set_clock_config(clock_config_pll1_step);
+
+	/* Delay >50us at 90-110MHz clock speed */
+	volatile uint32_t delay = 1400;
+	while(delay--);
+
+	set_clock_config(clock_config_pll1);
+
+	/* Remove /2P divider from PLL1 output to achieve full speed */
+	cgu::pll1::direct();
+
+	i2c0.start(i2c_config_fast_clock);
+
+	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 
 	audio::init(portapack_audio_codec());
 	
@@ -320,30 +394,6 @@ void shutdown() {
 	hackrf::cpld::init_from_eeprom();
 
 	shutdown_base();
-}
-
-extern "C" {
-
-void __late_init(void) {
-
-	reset();
-
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
-
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
-}
-
 }
 
 } /* namespace portapack */

@@ -297,6 +297,10 @@ struct SPIDriver {
    */
   LPC_SSPx_Type         *ssp;
   /**
+   * @brief Pointer to the non-peripheral SSP resources.
+   */
+  const ssp_resources_t * resources;
+  /**
    * @brief Number of bytes yet to be received.
    */
   uint32_t              rxcnt;

@@ -8,6 +8,7 @@ set(PLATFORMSRC
 	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx/sdc_lld.c
 	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx/serial_lld.c
 	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx/spi_lld.c
+	${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx/lpc43xx.c
 )
 
 # Required include directories

@@ -32,35 +32,33 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 	
 	// This is called at 2.28M/2048 = 1113Hz
 	
-	if (!configured) return;
-	
 	for (size_t i = 0; i < buffer.count; i++) {
 
-		if (sample_count >= samples_per_bit) {
-			if (bit_pos > length) {
-				// End of data
-				cur_bit = 0;
-				txprogress_message.done = true;
-				shared_memory.application_queue.push(txprogress_message);
-				configured = false;
-			} else {
-				cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
-				bit_pos++;
-				if (progress_count >= progress_notice) {
-					progress_count = 0;
-					txprogress_message.progress++;
-					txprogress_message.done = false;
-					shared_memory.application_queue.push(txprogress_message);
-				} else {
-					progress_count++;
-				}
-			}
-			sample_count = 0;
-		} else {
-			sample_count++;
-		}
-		
 		if (configured) {
+			if (sample_count >= samples_per_bit) {
+				if (bit_pos > length) {
+					// End of data
+					cur_bit = 0;
+					txprogress_message.done = true;
+					shared_memory.application_queue.push(txprogress_message);
+					configured = false;
+				} else {
+					cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+					bit_pos++;
+					if (progress_count >= progress_notice) {
+						progress_count = 0;
+						txprogress_message.progress++;
+						txprogress_message.done = false;
+						shared_memory.application_queue.push(txprogress_message);
+					} else {
+						progress_count++;
+					}
+				}
+				sample_count = 0;
+			} else {
+				sample_count++;
+			}
+		
 			if (cur_bit)
 				phase += shift_one;
 			else
@@ -84,10 +82,10 @@ void FSKProcessor::on_message(const Message* const p) {
 	
 	if (message.id == Message::ID::FSKConfigure) {
 		samples_per_bit = message.samples_per_bit;
-		length = message.stream_length + 4;			// Why 4 ?!
+		length = message.stream_length + 32;			// Why ?!
 		
-		shift_zero = message.shift * (0xFFFFFFFFULL / 2280000);
-		shift_one = -shift_zero;
+		shift_one = message.shift * (0xFFFFFFFFULL / 2280000);
+		shift_zero = -shift_one;
 		
 		progress_notice = message.progress_notice;
 		

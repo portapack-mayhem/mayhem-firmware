@@ -58,21 +58,23 @@
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
-#include "ui_soundboard.hpp"
 #include "ui_sstvtx.hpp"
-#include "ui_test.hpp"
+//#include "ui_test.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
 
-#include "analog_audio_app.hpp"
+#include "acars_app.hpp"
 #include "ais_app.hpp"
-#include "ert_app.hpp"
-#include "tpms_app.hpp"
-#include "pocsag_app.hpp"
+#include "analog_audio_app.hpp"
 #include "capture_app.hpp"
+#include "ert_app.hpp"
+#include "lge_app.hpp"
+#include "pocsag_app.hpp"
 #include "replay_app.hpp"
+#include "soundboard_app.hpp"
+#include "tpms_app.hpp"
 
 #include "core_control.hpp"
 
@@ -105,6 +107,7 @@ SystemStatusView::SystemStatusView(
 		&button_camera,
 		&button_sleep,
 		&button_bias_tee,
+		&image_clock_status,
 		&sd_card_status_view,
 	});
 	
@@ -156,6 +159,16 @@ void SystemStatusView::refresh() {
 		button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
 		button_bias_tee.set_foreground(ui::Color::light_grey());
 	}
+	
+	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External) {
+		image_clock_status.set_bitmap(&bitmap_icon_clk_ext);
+		button_bias_tee.set_foreground(ui::Color::green());
+	} else {
+		image_clock_status.set_bitmap(&bitmap_icon_clk_int);
+		button_bias_tee.set_foreground(ui::Color::light_grey());
+	}
+	
+	set_dirty();
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
@@ -176,9 +189,7 @@ void SystemStatusView::on_stealth() {
 	
 	portapack::persistent_memory::set_stealth_mode(mode);
 
-	button_stealth.set_foreground(mode ? ui::Color::green() : ui::Color::light_grey());
-	
-	button_stealth.set_dirty();
+	button_stealth.set_foreground(mode ? Color::green() : Color::light_grey());
 }
 
 void SystemStatusView::on_bias_tee() {
@@ -186,6 +197,7 @@ void SystemStatusView::on_bias_tee() {
 		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector ?", YESNO, [this](bool v) {
 				if (v) {
 					portapack::set_antenna_bias(true);
+					//radio::set_antenna_bias(true);
 					receiver_model.set_antenna_bias();
 					transmitter_model.set_antenna_bias();
 					refresh();
@@ -193,6 +205,7 @@ void SystemStatusView::on_bias_tee() {
 			});
 	} else {
 		portapack::set_antenna_bias(false);
+		//radio::set_antenna_bias(false);
 		receiver_model.set_antenna_bias();
 		transmitter_model.set_antenna_bias();
 		refresh();
@@ -330,19 +343,20 @@ void NavigationView::focus() {
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 	add_items({
 		{ "ADS-B: Planes", 			ui::Color::green(),	&bitmap_icon_adsb,	[&nav](){ nav.replace<ADSBRxView>(); }, },
+		{ "ACARS: Planes", 			ui::Color::yellow(),&bitmap_icon_adsb,	[&nav](){ nav.replace<ACARSAppView>(); }, },
 		{ "AIS:   Boats", 			ui::Color::green(),	&bitmap_icon_ais,	[&nav](){ nav.replace<AISAppView>(); } },
 		{ "AFSK", 					ui::Color::yellow(),&bitmap_icon_receivers,	[&nav](){ nav.replace<AFSKRxView>(); } },
-		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.replace<NotImplementedView>(); } },
-		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.replace<AnalogAudioView>(false); } },
-		{ "DMR framing", 			ui::Color::grey(),	&bitmap_icon_dmr,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "Audio", 					ui::Color::green(),	&bitmap_icon_speaker,	[&nav](){ nav.replace<AnalogAudioView>(); } },
 		{ "ERT:   Utility Meters", 	ui::Color::green(), &bitmap_icon_ert,	[&nav](){ nav.replace<ERTAppView>(); } },
 		{ "POCSAG", 				ui::Color::green(),	&bitmap_icon_pocsag,	[&nav](){ nav.replace<POCSAGAppView>(); } },
+		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.replace<SondeView>(); } },
+		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.replace<TPMSAppView>(); } },
+		{ "APRS", 					ui::Color::grey(),	&bitmap_icon_aprs,	[&nav](){ nav.replace<NotImplementedView>(); } },
+		{ "DMR framing", 			ui::Color::grey(),	&bitmap_icon_dmr,	[&nav](){ nav.replace<NotImplementedView>(); } },
 		{ "SIGFOX", 				ui::Color::grey(),	&bitmap_icon_fox,	[&nav](){ nav.replace<NotImplementedView>(); } }, // SIGFRXView
 		{ "LoRa", 					ui::Color::grey(),	&bitmap_icon_lora,	[&nav](){ nav.replace<NotImplementedView>(); } },
-		{ "Radiosondes", 			ui::Color::yellow(),&bitmap_icon_sonde,	[&nav](){ nav.replace<SondeView>(); } },
 		{ "SSTV", 					ui::Color::grey(), 	&bitmap_icon_sstv,	[&nav](){ nav.replace<NotImplementedView>(); } },
 		{ "TETRA framing", 			ui::Color::grey(),	&bitmap_icon_tetra,	[&nav](){ nav.replace<NotImplementedView>(); } },
-		{ "TPMS:  Cars", 			ui::Color::green(),	&bitmap_icon_tpms,	[&nav](){ nav.replace<TPMSAppView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 	
@@ -356,12 +370,12 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "ADS-B Mode S", 			ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "APRS", 					ui::Color::orange(),	&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 				ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
-		{ "Custom remote", 			ui::Color::grey(),		&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
 		{ "Jammer", 				ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
 		{ "Key fob", 				ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
+		{ "LGE tool", 				ui::Color::yellow(),	&bitmap_icon_lge,		[&nav](){ nav.push<LGEView>(); } },
 		{ "Microphone", 			ui::Color::green(),		&bitmap_icon_microphone,	[&nav](){ nav.push<MicTXView>(); } },
 		{ "Morse code", 			ui::Color::green(),		&bitmap_icon_morse,		[&nav](){ nav.push<MorseView>(); } },
-		{ "NTTWorks burger pager", 	ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
+		{ "Burger pagers", 			ui::Color::yellow(), 	&bitmap_icon_burger,	[&nav](){ nav.push<CoasterPagerView>(); } },
 		//{ "Nuoptix DTMF timecode", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
 		{ "OOK encoders", 			ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<EncodersView>(); } },
 		{ "POCSAG", 				ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGTXView>(); } },
@@ -369,7 +383,8 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 		{ "Soundboard", 			ui::Color::green(), 	&bitmap_icon_soundboard,	[&nav](){ nav.push<SoundBoardView>(); } },
 		{ "SSTV", 					ui::Color::green(), 	&bitmap_icon_sstv,		[&nav](){ nav.push<SSTVTXView>(); } },
 		{ "TEDI/LCR AFSK", 			ui::Color::yellow(), 	&bitmap_icon_lcr,		[&nav](){ nav.push<LCRView>(); } },
-		{ "TouchTunes remote",		ui::Color::yellow(),	nullptr,				[&nav](){ nav.push<TouchTunesView>(); } },
+		{ "TouchTunes remote",		ui::Color::yellow(),	&bitmap_icon_remote,	[&nav](){ nav.push<TouchTunesView>(); } },
+		{ "Custom remote", 			ui::Color::grey(),		&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
 	});
 	on_left = [&nav](){ nav.pop(); };
 }
@@ -467,10 +482,12 @@ SystemView::SystemView(
 		navigation_view.push<PlayDeadView>();
 	} else {*/
 	
+		navigation_view.push<SystemMenuView>();
+		
 		if (portapack::persistent_memory::config_splash())
 			navigation_view.push<BMPView>();
-		else
-			navigation_view.push<SystemMenuView>();
+		//else
+		//	navigation_view.push<SystemMenuView>();
 			
 	//}
 }
@@ -493,7 +510,6 @@ BMPView::BMPView(NavigationView& nav) {
 	
 	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
-		nav.push<SystemMenuView>();
 	};
 }
 

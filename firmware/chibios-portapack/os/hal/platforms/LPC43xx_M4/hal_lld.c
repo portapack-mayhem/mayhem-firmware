@@ -77,8 +77,10 @@ void systick_adjust_period(const uint32_t counts_per_tick) {
  * @notapi
  */
 void hal_lld_init(void) {
+#if defined(LPC43XX_M4_CLK_SRC)
   LPC_CGU->BASE_M4_CLK.AUTOBLOCK = 1;
   LPC_CGU->BASE_M4_CLK.CLK_SEL = LPC43XX_M4_CLK_SRC;
+#endif
 
   /* SysTick initialization using the system clock.*/
   systick_adjust_period(halLPCGetSystemClock() / CH_FREQUENCY - 1);

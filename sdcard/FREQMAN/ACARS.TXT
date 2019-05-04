@@ -1,0 +1,17 @@
+f=131550000,d=World Primary
+f=130425000,d=USA Additional
+f=131125000,d=USA Additional
+f=136700000,d=USA Additional
+f=136750000,d=USA Additional
+f=136800000,d=USA Additional
+f=130025000,d=USA/CAN Secondary
+f=129125000,d=USA/CAN Additional
+f=130450000,d=USA/CAN Additional
+f=131725000,d=Euro Primary
+f=131525000,d=Euro Secondary
+f=136900000,d=Euro Secondary
+f=131850000,d=New European
+f=136750000,d=New European
+f=131450000,d=Japan Primary
+f=136850000,d=SITA North America
+f=131475000,d=Air Canada

@@ -42,23 +42,28 @@ SigGenView::~SigGenView() {
 	baseband::shutdown();
 }
 
+void SigGenView::update_config() {
+	baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), field_stop.value());
+}
+
+void SigGenView::update_tone() {
+	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
+}
+
 void SigGenView::start_tx() {
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
-	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
+	update_tone();
 	
-	auto duration = field_stop.value();
+	/*auto duration = field_stop.value();
 	if (!checkbox_auto.value())
-		duration = 0;
-	baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), duration);
+		duration = 0;*/
+	update_config();
 }
 
-void SigGenView::update_tone() {
-	baseband::set_siggen_tone(symfield_tone.value_dec_u32());
-}
 
 void SigGenView::on_tx_progress(const uint32_t progress, const bool done) {
 	(void) progress;
@@ -87,6 +92,8 @@ SigGenView::SigGenView(
 	
 	options_shape.on_change = [this](size_t, OptionsField::value_t v) {
 		text_shape.set(shape_strings[v]);
+		if (auto_update)
+			update_config();
 	};
 	options_shape.set_selected_index(0);
 	text_shape.set(shape_strings[0]);
@@ -99,6 +106,7 @@ SigGenView::SigGenView(
 	
 	button_update.on_select = [this](Button&) {
 		update_tone();
+		update_config();
 	};
 	
 	checkbox_auto.on_select = [this](Checkbox&, bool v) {

@@ -590,7 +590,7 @@ void Console::write(std::string message) {
 		for (const auto c : message) {
 			if (escape) {
 				if (c <= 15)
-					pen_color = term_colors[c & 15];
+					pen_color = term_colors[(uint8_t)c];
 				else
 					pen_color = s.foreground;
 				escape = false;
@@ -1493,6 +1493,7 @@ Waveform::Waveform(
 	color_ { color }
 {
 	//set_focusable(false);
+	//previous_data.resize(length_, 0);
 }
 
 void Waveform::set_cursor(const uint32_t i, const int16_t position) {
@@ -1528,12 +1529,12 @@ void Waveform::paint(Painter& painter) {
 	const float y_scale = (float)(h - 1) / 65536.0;
 	int16_t * data_start = data_ + offset_;
 	
-	// Clear
-	painter.fill_rectangle(screen_rect(), Color::black());
-	
 	if (!length_) return;
 	
 	x_inc = (float)screen_rect().size().width() / length_;
+	
+	// Clear
+	painter.fill_rectangle_unrolled8(screen_rect(), Color::black());
 	
 	if (digital_) {
 		// Digital waveform: each value is an horizontal line

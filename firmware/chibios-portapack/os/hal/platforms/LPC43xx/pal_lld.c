@@ -52,6 +52,8 @@
 /* Driver exported functions.                                                */
 /*===========================================================================*/
 
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
+
 /**
  * @brief   LPC43xx I/O ports configuration.
  * @details Ports 0 through 8.
@@ -64,6 +66,10 @@ void _pal_lld_init(const PALConfig *config) {
   for(size_t i=0; i<8; i++) {
     LPC_GPIO->PIN[i] = config->P[i].data;
     LPC_GPIO->DIR[i] = config->P[i].dir;
+  }
+
+  for(size_t i=0; i<ARRAY_SIZE(config->SCU); i++) {
+    LPC_SCU->SFSP[config->SCU[i].port][config->SCU[i].pin] = config->SCU[i].config.word;
   }
 }
 

@@ -48,6 +48,24 @@ SPIDriver SPID2;
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
 
+#if LPC_SPI_USE_SSP0
+static const ssp_resources_t ssp0_resources = {
+  .base = { .clk = &LPC_CGU->BASE_SSP0_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1U << 6) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_SSP0_CFG,   .stat = &LPC_CCU1->CLK_M4_SSP0_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB0_SSP0_CFG, .stat = &LPC_CCU2->CLK_APB0_SSP0_STAT },
+  .reset = { .output_index = 50 },
+};
+#endif /* LPC_SPI_USE_SSP0 */
+
+#if LPC_SPI_USE_SSP1
+static const ssp_resources_t ssp1_resources = {
+  .base = { .clk = &LPC_CGU->BASE_SSP1_CLK, .stat = &LPC_CCU2->BASE_STAT, .stat_mask = (1U << 5) },
+  .branch_register_if = { .cfg = &LPC_CCU1->CLK_M4_SSP1_CFG,   .stat = &LPC_CCU1->CLK_M4_SSP1_STAT   },
+  .branch_peripheral  = { .cfg = &LPC_CCU2->CLK_APB2_SSP1_CFG, .stat = &LPC_CCU2->CLK_APB2_SSP1_STAT },
+  .reset = { .output_index = 51 },
+};
+#endif /* LPC_SPI_USE_SSP1 */
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -194,11 +212,13 @@ void spi_lld_init(void) {
 #if LPC_SPI_USE_SSP0
   spiObjectInit(&SPID1);
   SPID1.ssp = LPC_SSP0;
+  SPID1.resources = &ssp0_resources;
 #endif /* LPC_SPI_USE_SSP0 */
 
 #if LPC_SPI_USE_SSP1
   spiObjectInit(&SPID2);
   SPID2.ssp = LPC_SSP1;
+  SPID2.resources = &ssp1_resources;
 #endif /* LPC_SPI_USE_SSP0 */
 }
 
@@ -212,11 +232,12 @@ void spi_lld_init(void) {
 void spi_lld_start(SPIDriver *spip) {
 
   if (spip->state == SPI_STOP) {
-    /* Clock activation.*/
+    base_clock_enable(&spip->resources->base);
+    branch_clock_enable(&spip->resources->branch_register_if);
+    branch_clock_enable(&spip->resources->branch_peripheral);
+    peripheral_reset(&spip->resources->reset);
 #if LPC_SPI_USE_SSP0
     if (&SPID1 == spip) {
-      LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 1;
-      LPC_CGU->BASE_SSP0_CLK.PD = 0;
 #if defined(LPC43XX_M4)
       nvicEnableVector(SSP0_IRQn,
                        CORTEX_PRIORITY_MASK(LPC_SPI_SSP0_IRQ_PRIORITY));
@@ -229,8 +250,6 @@ void spi_lld_start(SPIDriver *spip) {
 #endif
 #if LPC_SPI_USE_SSP1
     if (&SPID2 == spip) {
-      LPC_CCU1->CLK_M4_SSP1_CFG.RUN = 1;
-      LPC_CGU->BASE_SSP1_CLK.PD = 0;
 #if defined(LPC43XX_M4)
       nvicEnableVector(SSP1_IRQn,
                        CORTEX_PRIORITY_MASK(LPC_SPI_SSP1_IRQ_PRIORITY));
@@ -267,18 +286,44 @@ void spi_lld_stop(SPIDriver *spip) {
     spip->ssp->IMSC = 0;
 #if LPC_SPI_USE_SSP0
     if (&SPID1 == spip) {
-      LPC_CGU->BASE_SSP0_CLK.PD = 1;
-      LPC_CCU1->CLK_M4_SSP0_CFG.AUTO = 1;
-      LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 0;
+#if defined(LPC43XX_M4)
+      nvicDisableVector(SSP0_IRQn);
+#endif
+#if defined(LPC43XX_M0)
+#if LPC_SPI_USE_SSP1
+      /* Disable only if other SSP is stopped. */
+      /* TODO: Won't work correctly if SSPs are split between cores! */
+      if(SPID2.state == SPI_STOP) {
+#endif
+        nvicDisableVector(SSP0_OR_SSP1_IRQn);
+#if LPC_SPI_USE_SSP1
+      }
+#endif
+#endif
     }
 #endif
 #if LPC_SPI_USE_SSP1
     if (&SPID2 == spip) {
-      LPC_CGU->BASE_SSP1_CLK.PD = 1;
-      LPC_CCU1->CLK_M4_SSP1_CFG.AUTO = 1;
-      LPC_CCU1->CLK_M4_SSP1_CFG.RUN = 0;
+#if defined(LPC43XX_M4)
+      nvicDisableVector(SSP1_IRQn);
+#endif
+#if defined(LPC43XX_M0)
+#if LPC_SPI_USE_SSP0
+      /* Disable only if other SSP is stopped. */
+      /* TODO: Won't work correctly if SSPs are split between cores! */
+      if(SPID1.state == SPI_STOP) {
+#endif
+        nvicDisableVector(SSP0_OR_SSP1_IRQn);
+#if LPC_SPI_USE_SSP1
+      }
+#endif
+#endif
     }
 #endif
+    peripheral_reset(&spip->resources->reset);
+    branch_clock_disable(&spip->resources->branch_peripheral);
+    branch_clock_disable(&spip->resources->branch_register_if);
+    base_clock_disable(&spip->resources->base);
   }
 }
 

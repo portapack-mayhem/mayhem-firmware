@@ -98,11 +98,14 @@ typedef struct {
        uint32_t RESERVED0   : 3;
 } LPC_CGU_FREQ_MON_Type;
 
-typedef struct {
-  __IO uint32_t ENABLE      : 1;
-  __IO uint32_t BYPASS      : 1;
-  __IO uint32_t HF          : 1;
-       uint32_t RESERVED0   : 29;
+typedef union {
+  struct {
+    __IO uint32_t ENABLE      : 1;
+    __IO uint32_t BYPASS      : 1;
+    __IO uint32_t HF          : 1;
+         uint32_t RESERVED0   : 29;
+  };
+  __IO uint32_t word;
 } LPC_CGU_XTAL_OSC_CTRL_Type;
 
 typedef struct {
@@ -146,18 +149,21 @@ typedef struct {
   __IO uint32_t CLK_SEL     : 5;
        uint32_t RESERVED3   : 3;
 } LPC_CGU_PLL1_CTRL_Type;
-/*
-typedef struct {
-  __IO uint32_t PD          : 1;
-       uint32_t RESERVED0   : 1;
-  __IO uint32_t IDIV        : 2;
-       uint32_t RESERVED1   : 7;
-  __IO uint32_t AUTOBLOCK   : 1;
-       uint32_t RESERVED2   : 12;
-  __IO uint32_t CLK_SEL     : 5;
-       uint32_t RESERVED3   : 3;
+
+typedef union {
+  struct {
+    __IO uint32_t PD          : 1;
+         uint32_t RESERVED0   : 1;
+    __IO uint32_t IDIV        : 2;
+         uint32_t RESERVED1   : 7;
+    __IO uint32_t AUTOBLOCK   : 1;
+         uint32_t RESERVED2   : 12;
+    __IO uint32_t CLK_SEL     : 5;
+         uint32_t RESERVED3   : 3;
+  };
+  __IO uint32_t word;  
 } LPC_CGU_IDIVx_CTRL_Type;
-*/
+
 typedef struct {
   __I  uint32_t PD          : 1;
        uint32_t RESERVED0   : 10;
@@ -167,13 +173,16 @@ typedef struct {
        uint32_t RESERVED2   : 3;
 } LPC_CGU_BASE_SAFE_CLK_Type;
 
-typedef struct {
-  __IO uint32_t PD          : 1;
-       uint32_t RESERVED0   : 10;
-  __IO uint32_t AUTOBLOCK   : 1;
-       uint32_t RESERVED1   : 12;
-  __IO uint32_t CLK_SEL     : 5;
-       uint32_t RESERVED2   : 3;
+typedef union {
+  struct {
+    __IO uint32_t PD          : 1;
+         uint32_t RESERVED0   : 10;
+    __IO uint32_t AUTOBLOCK   : 1;
+         uint32_t RESERVED1   : 12;
+    __IO uint32_t CLK_SEL     : 5;
+         uint32_t RESERVED2   : 3;
+  };
+  __IO uint32_t word;
 } LPC_CGU_BASE_CLK_Type;
 
 typedef struct {
@@ -191,11 +200,11 @@ typedef struct {
   __IO uint32_t               PLL0AUDIO_FRAC;
   __I  uint32_t               PLL1_STAT;          /* +0x040 */
   __IO uint32_t               PLL1_CTRL;
-  __IO uint32_t               IDIVA_CTRL;
-  __IO uint32_t               IDIVB_CTRL;
-  __IO uint32_t               IDIVC_CTRL;         /* +0x050 */
-  __IO uint32_t               IDIVD_CTRL;
-  __IO uint32_t               IDIVE_CTRL;
+  LPC_CGU_IDIVx_CTRL_Type     IDIVA_CTRL;
+  LPC_CGU_IDIVx_CTRL_Type     IDIVB_CTRL;
+  LPC_CGU_IDIVx_CTRL_Type     IDIVC_CTRL;         /* +0x050 */
+  LPC_CGU_IDIVx_CTRL_Type     IDIVD_CTRL;
+  LPC_CGU_IDIVx_CTRL_Type     IDIVE_CTRL;
   LPC_CGU_BASE_SAFE_CLK_Type  BASE_SAFE_CLK;
   LPC_CGU_BASE_CLK_Type       BASE_USB0_CLK;      /* +0x060 */
   LPC_CGU_BASE_CLK_Type       BASE_PERIPH_CLK;
@@ -1066,6 +1075,47 @@ typedef struct {
 } LPC_TIMER_Type;
 
 // ------------------------------------------------------------------------------------------------
+// -----                                        MOTOCONPWM                                    -----
+// ------------------------------------------------------------------------------------------------
+
+/**
+  * @brief Product name title=UM10503 Chapter title=LPC43xx Motor Control PWM (MOTOCONPWM) Modification date=7/26/2017 Major revision=2 Minor revision=3
+  */
+
+typedef struct {
+  __I  uint32_t CON;
+  __O  uint32_t CON_SET;
+  __O  uint32_t CON_CLR;
+  __I  uint32_t CAPCON;
+  __O  uint32_t CAPCON_SET;
+  __O  uint32_t CAPCON_CLR;
+  __IO uint32_t TC0;
+  __IO uint32_t TC1;
+  __IO uint32_t TC2;
+  __IO uint32_t LIM0;
+  __IO uint32_t LIM1;
+  __IO uint32_t LIM2;
+  __IO uint32_t MAT0;
+  __IO uint32_t MAT1;
+  __IO uint32_t MAT2;
+  __IO uint32_t DT;
+  __IO uint32_t MCCP;
+  __I  uint32_t CAP0;
+  __I  uint32_t CAP1;
+  __I  uint32_t CAP2;
+  __I  uint32_t INTEN;
+  __O  uint32_t INTEN_SET;
+  __O  uint32_t INTEN_CLR;
+  __I  uint32_t CNTCON;
+  __O  uint32_t CNTCON_SET;
+  __O  uint32_t CNTCON_CLR;
+  __I  uint32_t INTF;
+  __O  uint32_t INTF_SET;
+  __O  uint32_t INTF_CLR;
+  __O  uint32_t CAP_CLR;
+} LPC_MCPWM_Type;
+
+// ------------------------------------------------------------------------------------------------
 // -----                                        RITIMER                                       -----
 // ------------------------------------------------------------------------------------------------
 
@@ -1409,6 +1459,7 @@ typedef struct {
 #define LPC_USART3                ((LPC_USART_Type          *) LPC_USART3_BASE)
 #define LPC_TIMER2                ((LPC_TIMER_Type          *) LPC_TIMER2_BASE)
 #define LPC_TIMER3                ((LPC_TIMER_Type          *) LPC_TIMER3_BASE)
+#define LPC_MCPWM                 ((LPC_MCPWM_Type          *) LPC_MCPWM_BASE)
 #define LPC_SSP1                  ((LPC_SSPx_Type           *) LPC_SSP1_BASE)
 #define LPC_I2C1                  ((LPC_I2Cx_Type           *) LPC_I2C1_BASE)
 #define LPC_ADC0                  ((LPC_ADCx_Type           *) LPC_ADC0_BASE)

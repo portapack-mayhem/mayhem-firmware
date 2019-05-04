@@ -34,17 +34,16 @@ void Si5351::reset() {
 	write_register(Register::InterruptStatusSticky, 0x00);
 	write_register(Register::InterruptStatusMask, 0xf0);
 
-	update_output_enable_control();
+	disable_output_mask(0xff);
 	write_register(Register::OEBPinEnableControlMask, 0xff);
 	write_register(Register::PLLInputSource, 0x00);
 
-	_clock_control = {
-		ClockControl::CLK_PDN_Power_Off, ClockControl::CLK_PDN_Power_Off,
-		ClockControl::CLK_PDN_Power_Off, ClockControl::CLK_PDN_Power_Off,
-		ClockControl::CLK_PDN_Power_Off, ClockControl::CLK_PDN_Power_Off,
-		ClockControl::CLK_PDN_Power_Off, ClockControl::CLK_PDN_Power_Off
-	};
-	update_all_clock_control();
+	set_clock_control({
+		ClockControl::power_off(), ClockControl::power_off(),
+		ClockControl::power_off(), ClockControl::power_off(),
+		ClockControl::power_off(), ClockControl::power_off(),
+		ClockControl::power_off(), ClockControl::power_off()
+	});
 
 	write(std::array<uint8_t, 70> { Register::CLK3_0DisableState });
 

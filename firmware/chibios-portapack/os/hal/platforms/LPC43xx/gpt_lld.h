@@ -185,6 +185,10 @@ struct GPTDriver {
    * @brief Pointer to the TIMER registers block.
    */
   LPC_TIMER_Type            *tmr;
+  /**
+   * @brief Pointer to the non-peripheral Timer resources.
+   */
+  const timer_resources_t * resources;
 };
 
 /*===========================================================================*/

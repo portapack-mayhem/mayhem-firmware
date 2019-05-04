@@ -471,6 +471,28 @@ static constexpr Bitmap bitmap_icon_nuoptix {
 	{ 16, 16 }, bitmap_icon_nuoptix_data
 };
 
+static constexpr uint8_t bitmap_icon_lge_data[] = {
+	0x00, 0x00, 
+	0x80, 0x00, 
+	0xA4, 0x12, 
+	0xA8, 0x0A, 
+	0xD0, 0x05, 
+	0xEC, 0x1B, 
+	0xF0, 0x07, 
+	0xFE, 0xFF, 
+	0xF0, 0x07, 
+	0xEC, 0x1B, 
+	0xD0, 0x05, 
+	0xA8, 0x0A, 
+	0xA4, 0x12, 
+	0x80, 0x00, 
+	0x00, 0x00, 
+	0x00, 0x00, 
+};
+static constexpr Bitmap bitmap_icon_lge {
+	{ 16, 16 }, bitmap_icon_lge_data
+};
+
 static constexpr uint8_t bitmap_icon_file_iq_data[] = {
 	0x98, 0x00, 
 	0x24, 0x06, 
@@ -659,6 +681,28 @@ static constexpr uint8_t bitmap_icon_freqman_data[] = {
 };
 static constexpr Bitmap bitmap_icon_freqman {
 	{ 16, 16 }, bitmap_icon_freqman_data
+};
+
+static constexpr uint8_t bitmap_icon_clk_int_data[] = {
+	0x00, 
+	0x00, 
+	0xDC, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x76, 
+	0x00, 
+	0x44, 
+	0x6C, 
+	0x38, 
+	0x38, 
+	0x6C, 
+	0x44, 
+	0x00, 
+};
+static constexpr Bitmap bitmap_icon_clk_int {
+	{ 8, 16 }, bitmap_icon_clk_int_data
 };
 
 static constexpr uint8_t bitmap_sd_card_ok_data[] = {
@@ -1697,6 +1741,28 @@ static constexpr uint8_t bitmap_target_data[] = {
 };
 static constexpr Bitmap bitmap_target {
 	{ 16, 16 }, bitmap_target_data
+};
+
+static constexpr uint8_t bitmap_icon_clk_ext_data[] = {
+	0x00, 
+	0x00, 
+	0xDC, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x54, 
+	0x76, 
+	0x00, 
+	0x10, 
+	0x38, 
+	0x7C, 
+	0x10, 
+	0x10, 
+	0x10, 
+	0x00, 
+};
+static constexpr Bitmap bitmap_icon_clk_ext {
+	{ 8, 16 }, bitmap_icon_clk_ext_data
 };
 
 static constexpr uint8_t bitmap_icon_sstv_data[] = {

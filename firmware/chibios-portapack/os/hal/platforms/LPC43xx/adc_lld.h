@@ -95,6 +95,9 @@
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
 
+/**
+ * @brief   Structure used for ADC configuration.
+ */
 typedef LPC_ADCx_Type* ADC_TypeDef;
 
 /**
@@ -235,6 +238,10 @@ struct ADCDriver {
    * @brief Pointer to the ADCx registers block.
    */
   ADC_TypeDef               adc;
+  /**
+   * @brief Pointer to the non-peripheral ADC resources.
+   */
+  const adc_resources_t * resources;
 };
 
 /*===========================================================================*/

@@ -150,6 +150,10 @@ struct SDCDriver {
   uint32_t                  rca;
   /* End of the mandatory fields.*/
   /**
+   * @brief Pointer to the non-peripheral SDIO resources.
+   */
+  const sdio_resources_t * resources;
+  /**
    * @brief Thread waiting for I/O completion IRQ.
    */
   Thread                    *thread;

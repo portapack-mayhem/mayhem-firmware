@@ -275,6 +275,7 @@ void ReceiverModel::update_modulation() {
 		break;
 
 	case Mode::SpectrumAnalysis:
+	case Mode::Capture:
 		break;
 	}
 }

@@ -54,6 +54,24 @@ ADCDriver ADCD1;
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
 
+#if LPC43XX_ADC_USE_ADC0
+static const adc_resources_t adc0_resources = {
+  .base = { .clk = &LPC_CGU->BASE_APB3_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1U << 0) },
+  .branch = { .cfg = &LPC_CCU1->CLK_APB3_ADC0_CFG, .stat = &LPC_CCU1->CLK_APB3_ADC0_STAT },
+  .reset = { .output_index = 40 },
+  .interrupt = { .irq = ADC0_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC43XX_ADC0_IRQ_PRIORITY) },
+};
+#endif /* LPC43XX_ADC_USE_ADC0 */
+
+#if LPC43XX_ADC_USE_ADC1
+static const adc_resources_t adc1_resources = {
+  .base = { .clk = &LPC_CGU->BASE_APB3_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1U << 0) },
+  .branch = { .cfg = &LPC_CCU1->CLK_APB3_ADC1_CFG, .stat = &LPC_CCU1->CLK_APB3_ADC1_STAT },
+  .reset = { .output_index = 41 },
+  .interrupt = { .irq = ADC1_IRQn, .priority_mask = CORTEX_PRIORITY_MASK(LPC43XX_ADC1_IRQ_PRIORITY) },
+};
+#endif /* LPC43XX_ADC_USE_ADC1 */
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -129,6 +147,7 @@ void adc_lld_init(void) {
   adcObjectInit(&ADCD0);
   /* TODO: Implement */
   ADCD0.adc = LPC_ADC0;
+  ADCD0.resources = &adc0_resources;
 #endif /* LPC43XX_ADC_USE_ADC0 */
 
 #if LPC43XX_ADC_USE_ADC1
@@ -136,6 +155,7 @@ void adc_lld_init(void) {
   adcObjectInit(&ADCD1);
   /* TODO: Implement */
   ADCD1.adc = LPC_ADC1;
+  ADCD1.resources = &adc1_resources;
 #endif /* LPC43XX_ADC_USE_ADC1 */
 }
 
@@ -150,20 +170,10 @@ void adc_lld_start(ADCDriver *adcp) {
 
   if (adcp->state == ADC_STOP) {
     /* Enables the peripheral.*/
-#if LPC43XX_ADC_USE_ADC0
-    if (&ADCD0 == adcp) {
-      LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 1;
-      LPC_CGU->BASE_APB3_CLK.PD = 0;
-      nvicEnableVector(ADC0_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_ADC0_IRQ_PRIORITY));
-    }
-#endif /* LPC43XX_ADC_USE_ADC0 */
-#if LPC43XX_ADC_USE_ADC1
-    if (&ADCD1 == adcp) {
-      LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 1;
-      LPC_CGU->BASE_APB3_CLK.PD = 0;
-      nvicEnableVector(ADC1_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_ADC1_IRQ_PRIORITY));
-    }
-#endif /* LPC43XX_ADC_USE_ADC1 */
+    base_clock_enable(&adcp->resources->base);
+    branch_clock_enable(&adcp->resources->branch);
+    peripheral_reset(&adcp->resources->reset);
+    interrupt_enable(&adcp->resources->interrupt);
 
     /* Configures the peripheral.*/
     adcp->adc->CR =
@@ -201,21 +211,10 @@ void adc_lld_stop(ADCDriver *adcp) {
       ;
 
     /* Disables the peripheral.*/
-#if LPC43XX_ADC_USE_ADC0
-    if (&ADCD0 == adcp) {
-      nvicDisableVector(ADC0_IRQn);
-      LPC_CCU1->CLK_APB3_ADC0_CFG.AUTO = 1;
-      LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 0;
-    }
-#endif /* LPC43XX_ADC_USE_ADC0 */
-
-#if LPC43XX_ADC_USE_ADC1
-    if (&ADCD1 == adcp) {
-      nvicDisableVector(ADC1_IRQn);
-      LPC_CCU1->CLK_APB3_ADC1_CFG.AUTO = 1;
-      LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 0;
-    }
-#endif /* LPC43XX_ADC_USE_ADC1 */
+    interrupt_disable(&adcp->resources->interrupt);
+    peripheral_reset(&adcp->resources->reset);
+    branch_clock_disable(&adcp->resources->branch);
+    base_clock_disable(&adcp->resources->base);
   }
 }
 

@@ -66,10 +66,10 @@ RDSPSNView::RDSPSNView(
 	button_set.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,
-			&PSN,
+			PSN,
 			8,
-			[this](std::string* s) {
-				text_psn.set(*s);
+			[this](std::string& s) {
+				text_psn.set(s);
 			}
 		);
 	};
@@ -91,10 +91,10 @@ RDSRadioTextView::RDSRadioTextView(
 	button_set.on_select = [this, &nav](Button&){
 		text_prompt(
 			nav,
-			&radiotext,
+			radiotext,
 			28,
-			[this](std::string* s) {
-				text_radiotext.set(*s);
+			[this](std::string& s) {
+				text_radiotext.set(s);
 			}
 		);
 	};

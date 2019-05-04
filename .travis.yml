@@ -1,6 +1,11 @@
 language: cpp
 
-cache: apt
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      cache: apt
+      dist: xenial
 
 notifications:
   irc:
@@ -27,6 +32,9 @@ script:
   - popd
 
 addons:
+  apt:
+    packages:
+      - dfu-util
   artifacts:
     paths:
       - $(ls build/firmware/portapack-h1-havoc-*.tar.bz2 | tr "\n" ":")

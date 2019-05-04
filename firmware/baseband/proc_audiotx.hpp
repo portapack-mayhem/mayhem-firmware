@@ -35,35 +35,22 @@ public:
 	void on_message(const Message* const msg) override;
 
 private:
-	size_t baseband_fs = 0;
+	static constexpr size_t baseband_fs = 1536000;
 	
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	std::array<uint8_t, 64> audio { };
-	const buffer_t<uint8_t> audio_buffer {
-		audio.data(),
-		audio.size(),
-		baseband_fs / 8
-	};
 	
 	std::unique_ptr<StreamOutput> stream { };
 	
 	ToneGen tone_gen { };
 	
+	uint32_t resample_inc { }, resample_acc { };
 	uint32_t fm_delta { 0 };
 	uint32_t phase { 0 }, sphase { 0 };
-	int8_t out_sample { };
-	int32_t sample { 0 }, audio_sample { 0 }, delta { };
+	uint8_t audio_sample { };
+	int32_t sample { 0 }, delta { };
 	int8_t re { 0 }, im { 0 };
 	
-	size_t spectrum_interval_samples = 0;
-	size_t spectrum_samples = 0;
-
-	//int16_t audio_data[64];
-	/*const buffer_s16_t preview_audio_buffer {
-		audio_data,
-		sizeof(int16_t)*64
-	};*/
+	size_t progress_interval_samples, progress_samples = 0;
 	
 	bool configured { false };
 	uint32_t bytes_read { 0 };

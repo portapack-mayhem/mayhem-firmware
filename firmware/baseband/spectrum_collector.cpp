@@ -132,7 +132,7 @@ void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
 	if( streaming && channel_spectrum_request_update ) {
 		/* Decimated buffer is full. Compute spectrum. */
-		fft_c_preswapped(channel_spectrum);
+		fft_c_preswapped(channel_spectrum, 0, 8);
 
 		ChannelSpectrum spectrum;
 		spectrum.sampling_rate = channel_spectrum_sampling_rate;

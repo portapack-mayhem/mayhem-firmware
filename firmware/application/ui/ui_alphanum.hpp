@@ -33,7 +33,7 @@ namespace ui {
 
 class AlphanumView : public TextEntryView {
 public:
-	AlphanumView(NavigationView& nav, std::string * str, size_t max_length);
+	AlphanumView(NavigationView& nav, std::string& str, size_t max_length);
 	
 	AlphanumView(const AlphanumView&) = delete;
 	AlphanumView(AlphanumView&&) = delete;

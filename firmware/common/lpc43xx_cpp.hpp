@@ -108,7 +108,7 @@ inline void clear() {
 
 namespace cgu {
 
-enum class CLK_SEL {
+enum class CLK_SEL : uint8_t {
 	RTC_32KHZ	= 0x00,
 	IRC			= 0x01,
 	ENET_RX_CLK = 0x02,
@@ -134,7 +134,7 @@ struct IDIV_CTRL {
 	constexpr operator uint32_t() const {
 		return
 			  ((pd & 1) << 0)
-			| ((idiv & 3) << 2)
+			| ((idiv & 255) << 2)
 			| ((autoblock & 1) << 11)
 			| ((toUType(clk_sel) & 0x1f) << 24)
 			;
@@ -356,7 +356,7 @@ enum class Status {
 };
 
 inline void reset(const Reset reset) {
-	LPC_RGU->RESET_CTRL[toUType(reset) >> 5] |= (1U << (toUType(reset) & 0x1f));
+	LPC_RGU->RESET_CTRL[toUType(reset) >> 5] = (1U << (toUType(reset) & 0x1f));
 }
 
 inline void reset_mask(const uint64_t mask) {
