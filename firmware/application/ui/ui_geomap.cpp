@@ -120,11 +120,19 @@ void GeoPos::set_lon(float lon) {
 }
 
 float GeoPos::lat() {
-	return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+	if (field_lat_degrees.value() < 0) {
+	  return -1 * ( -1 * field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0));
+        } else {
+	  return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+	}
 };
 
 float GeoPos::lon() {
-	return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+	if (field_lon_degrees.value() < 0) {
+	  return -1 * (-1 * field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0));
+	} else {
+	  return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+	}
 };
 
 int32_t GeoPos::altitude() {
