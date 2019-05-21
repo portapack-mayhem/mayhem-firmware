@@ -211,7 +211,7 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 	uint8_t * raw_data;
 	uint32_t latcprE, latcprO, loncprE, loncprO;
-	float latE, latO, m, Dlon;
+	float latE, latO, m, Dlon, cpr_lon_odd, cpr_lon_even, cpr_lat_odd, cpr_lat_even;
 	int ni;
 	adsb_pos position { false, 0, 0, 0 };
 	
@@ -237,10 +237,17 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 	latcprO = ((frame_data_odd[6] & 3) << 15) | (frame_data_odd[7] << 7) | (frame_data_odd[8] >> 1);
 	loncprO = ((frame_data_odd[8] & 1) << 16) | (frame_data_odd[9] << 8) | frame_data_odd[10];
 
+	// Calculate the coefficients
+	cpr_lon_even = loncprE / CPR_MAX_VALUE;
+	cpr_lon_odd = loncprO / CPR_MAX_VALUE;
+
+	cpr_lat_odd = latcprO / CPR_MAX_VALUE;
+	cpr_lat_even = latcprE / CPR_MAX_VALUE;
+
 	// Compute latitude index
-	float j = floor((((59.0 * latcprE) - (60.0 * latcprO)) / 131072.0) + 0.5);
-	latE = (360.0 / 60.0) * (cpr_mod(j, 60) + (latcprE / 131072.0));
-	latO = (360.0 / 59.0) * (cpr_mod(j, 59) + (latcprO / 131072.0));
+	float j = floor(((59.0 * cpr_lat_even) - (60.0 * cpr_lat_odd)) + 0.5);
+	latE = (360.0 / 60.0) * (cpr_mod(j, 60) + cpr_lat_even);
+	latO = (360.0 / 59.0) * (cpr_mod(j, 59) + cpr_lat_odd);
 
 	if (latE >= 270) latE -= 360;
 	if (latO >= 270) latO -= 360;
@@ -255,9 +262,9 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		ni = cpr_N(latE, 0);
 		Dlon = 360.0 / ni;
 		
-		m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072.0) + 0.5);
+		m = floor((cpr_lon_even * (cpr_NL(latE) - 1)) - (cpr_lon_odd * cpr_NL(latE)) + 0.5);
 		
-		position.longitude = Dlon * (cpr_mod(m, ni) + loncprE / 131072.0);
+		position.longitude = Dlon * (cpr_mod(m, ni) + cpr_lon_even);
 		
 		position.latitude = latE;
 	} else {
@@ -265,9 +272,9 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		ni = cpr_N(latO, 1);
 		Dlon = 360.0 / ni;
 		
-		m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072.0) + 0.5);
+		m = floor((cpr_lon_even * (cpr_NL(latO) - 1)) - (cpr_lon_odd * cpr_NL(latO)) + 0.5);
 		
-		position.longitude = Dlon * (cpr_mod(m, ni) + loncprO / 131072.0);
+		position.longitude = Dlon * (cpr_mod(m, ni) + cpr_lon_odd);
 		
 		position.latitude = latO;
 	}

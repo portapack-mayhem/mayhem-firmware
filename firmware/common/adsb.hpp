@@ -56,6 +56,8 @@ struct adsb_pos {
 	int32_t altitude;
 };
 
+const float CPR_MAX_VALUE = 131072.0;
+
 const float adsb_lat_lut[58] = {
 	10.47047130,    14.82817437,    18.18626357,    21.02939493,
     23.54504487,    25.82924707,    27.93898710,    29.91135686,

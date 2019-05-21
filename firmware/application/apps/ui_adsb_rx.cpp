@@ -220,7 +220,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				callsign = decode_frame_id(frame);
 				entry.set_callsign(callsign);
 				logentry+=callsign+" ";
-			} else if ((msg_type >= 9) && (msg_type <= 18)) {
+			} else if (((msg_type >= 9) && (msg_type <= 18)) || ((msg_type >= 20) && (msg_type <= 22))) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
