@@ -80,6 +80,7 @@ protected:
 	std::string extension_filter { "" };
 	
 	void change_category(int32_t category_id);
+	std::filesystem::path get_parent_dir();
 	void refresh_list();
 	
 	Labels labels {
@@ -93,10 +94,6 @@ protected:
 	MenuView menu_view {
 		{ 0, 2 * 8, 240, 26 * 8 },
 		true
-	};
-	Text text_empty {
-		{ 7 * 8, 12 * 8, 16 * 8, 16 },
-		"Empty directory !",
 	};
 	
 	Button button_exit {
