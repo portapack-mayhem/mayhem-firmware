@@ -4,17 +4,22 @@ HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [Hack
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
-It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
+It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning most of the original functionalities are kept.
 
-# Documentation
+# Documentation & finding help
 
-[READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)
+Please RTFM before asking for help:
+* [Havoc wiki](https://github.com/furrtek/portapack-havoc/wiki)
+* [PortaPack wiki](https://github.com/sharebrained/portapack-hackrf/wiki)
+* [Some questions and answers](https://github.com/furrtek/portapack-havoc/issues)
+* [Facebook group](https://www.facebook.com/groups/177623356165819/) if that's your thing
+* And probably a bunch of posts on a variety of forums...
 
-If you want to submit a bug report, suggest something... Don't hesitate, use this page: https://github.com/furrtek/portapack-havoc/issues (Check the progress list below first).
+If you want to submit a bug report or suggest something, use this page: https://github.com/furrtek/portapack-havoc/issues (Check if it hasn't been already posted, there's a search function. Also check the progress list below).
 
 # Summary
 
-As its name implies, HAVOC's functionalities can be fun, mean and even useful sometimes. You shouldn't use them. No ! Bad ! Put it down.
+As its name implies, HAVOC's functionalities can be fun, mean or even useful sometimes. You probably shouldn't use them. No ! Bad ! Put it down.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
@@ -81,6 +86,7 @@ Tetra info? | 0%  | Same
 * Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
 * Pyr3x, Rainer Matla and DC1RDB for the donations :)
 * Keld Norman and Giorgio Campiotti for ideas and suggestions
+* In general, people who help making it better instead of asking already answered questions
 
 # License
 
@@ -119,6 +125,8 @@ The latest version of this repository can be found at
 https://github.com/sharebrained/portapack-hackrf/
 
 ## HAVOC specific things
+
+Warning: won't reply to questions about flashing and compiling. See links above.
 
 Furrtek <furrtek@gmail.com>
 
