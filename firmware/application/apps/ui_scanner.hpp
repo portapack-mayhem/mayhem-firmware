@@ -24,6 +24,7 @@
 
 #include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "freqman.hpp"
 
 namespace ui {
 
@@ -67,10 +68,12 @@ private:
 	std::vector<rf::Frequency> frequency_list { };
 	int32_t squelch { 0 };
 	uint32_t timer { 0 };
+	uint32_t wait { 0 };
+	freqman_db database { };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1 * 16 }, "SQUELCH:  /99", Color::light_grey() },
+		{ { 0 * 8, 1 * 16 }, "BW:    SQUELCH:  /99 WAIT:", Color::light_grey() },
 		{ { 0 * 8, 3 * 16 }, "Work in progress...", Color::light_grey() }
 	};
 	
@@ -93,15 +96,33 @@ private:
 		1,
 		' ',
 	};
-	
+
+	OptionsField field_bw {
+		{ 3 * 8, 1 * 16 },
+		3,
+		{
+			{ "8k5", 0 },
+			{ "11k", 0 },
+			{ "16k", 0 },
+		}
+	};
+
 	NumberField field_squelch {
-		{ 8 * 8, 1 * 16 },
+		{ 15 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
 		' ',
 	};
-	
+
+	NumberField field_wait {
+		{ 26 * 8, 1 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
+	};
+
 	Text text_cycle {
 		{ 0, 5 * 16, 240, 16 },
 		"--/--"

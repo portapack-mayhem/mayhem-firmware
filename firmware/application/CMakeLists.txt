@@ -206,6 +206,7 @@ set(CPPSRC
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
 	ui/ui_menu.cpp
+	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
 	ui/ui_spectrum.cpp
@@ -346,8 +347,7 @@ set(CPPWARN "-Wall -Wextra -Wno-psabi")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-
-set(DDEFS -DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -DGIT_REVISION=\"${GIT_REVISION}\")
+set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -408,7 +408,7 @@ add_custom_command(
 add_custom_command(
 	OUTPUT ${HACKRF_CPLD_DATA_CPP}
 	COMMAND ${HACKRF_CPLD_TOOL} --xsvf ${HACKRF_CPLD_XSVF_PATH} --portapack-data ${HACKRF_CPLD_DATA_CPP}
-	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH} hackrf
+	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH}
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})

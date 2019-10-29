@@ -170,7 +170,7 @@ const PALConfig pal_default_config = {
             | (1 <<  9) // P7_1:  PortaPack GPIO3_9(IO)
             | (1 <<  8) // P7_0:  PortaPack GPIO3_8(IO)
             | (1 <<  7) // P6_11: VREGMODE
-            | (1 <<  6) // P6_10: EN1V8, 10K PD
+            | (0 <<  6) // P6_10: EN1V8, 10K PD
             | (1 <<  5) // P6_9:  !TX_AMP_PWR, 10K PU
             | (1 <<  4) // P6_5:  HackRF CPLD.TMS(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
             | (1 <<  3) // P6_4:  MIXER_SDATA
@@ -478,8 +478,8 @@ void vaa_power_on(void) {
   /* Combination of pulse duration and duty cycle was arrived at empirically, to keep supply glitching
    * to +/- 0.15V.
    */
-  const uint32_t cycle_period = 128;
-  const uint32_t enable_period = 10;
+  const uint32_t cycle_period = 256;
+  uint32_t enable_period = 2;
   LPC_MCPWM->TC2 = 0;
   LPC_MCPWM->MAT2 = cycle_period - enable_period;
   LPC_MCPWM->LIM2 = cycle_period;
@@ -493,7 +493,11 @@ void vaa_power_on(void) {
   /* Wait until VAA rises to approximately 90% of final voltage. */
   /* Timing assumes we're running immediately after the bootloader: 96 MHz from IRC+PLL1
    */
-  { volatile uint32_t delay = 12000; while(delay--); }
+  while(enable_period < cycle_period) {
+    { volatile uint32_t delay = 2000; while(delay--); }
+    enable_period <<= 1;
+    LPC_MCPWM->MAT2 = cycle_period - enable_period;
+  }
 
   /* Hold !VAA_ENABLE active using a GPIO, so we can reclaim and shut down the MOTOCONPWM peripheral. */
   LPC_GPIO->CLR[2]  = (1 << 9); // !VAA_ENABLE
@@ -635,9 +639,11 @@ extern "C" void __late_init(void) {
  */
 extern "C" void boardInit(void) {
   vaa_power_on();
+  LPC_GPIO->W3[6] = 1;
 }
 
 extern "C" void _default_exit(void) {
+    LPC_GPIO->W3[6] = 0;
     vaa_power_off();
 
     chSysDisable();

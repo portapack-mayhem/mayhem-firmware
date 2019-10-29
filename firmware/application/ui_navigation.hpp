@@ -27,6 +27,7 @@
 #include "ui_widget.hpp"
 #include "ui_focus.hpp"
 #include "ui_menu.hpp"
+#include "ui_btngrid.hpp"
 
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
@@ -198,8 +199,8 @@ public:
 
 private:
 	Text text_info {
-		{ 76, 284, 20 * 8, 16 },
-		"GIT " GIT_REVISION
+		{ 4*8, 284, 20 * 8, 16 },
+		"Version " VERSION_STRING
 	};
 	
 	Button button_done {
@@ -208,25 +209,25 @@ private:
 	};
 };
 
-class ReceiversMenuView : public MenuView {
+class ReceiversMenuView : public BtnGridView {
 public:
 	ReceiversMenuView(NavigationView& nav);
 	std::string title() const override { return "Receivers"; };
 };
 
-class TransmittersMenuView : public MenuView {
+class TransmittersMenuView : public BtnGridView {
 public:
 	TransmittersMenuView(NavigationView& nav);
 	std::string title() const override { return "Transmitters"; };
 };
 
-class UtilitiesMenuView : public MenuView {
+class UtilitiesMenuView : public BtnGridView {
 public:
 	UtilitiesMenuView(NavigationView& nav);
 	std::string title() const override { return "Utilities"; };	
 };
 
-class SystemMenuView : public MenuView {
+class SystemMenuView : public BtnGridView {
 public:
 	SystemMenuView(NavigationView& nav);
 private:

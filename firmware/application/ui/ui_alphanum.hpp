@@ -41,6 +41,7 @@ public:
 	AlphanumView& operator=(AlphanumView&&) = delete;
 
 	void paint(Painter& painter) override;
+	bool on_encoder(const EncoderEvent delta) override;
 
 private:
 	const char * const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
@@ -53,6 +54,7 @@ private:
 		{ "Digit", keys_digit }
 	};
 	
+	int16_t focused_button = 0;
 	uint32_t mode = 0;	// Uppercase
 	
 	void set_mode(const uint32_t new_mode);

@@ -394,6 +394,40 @@ private:
 	std::string text_;
 };
 
+class NewButton : public Widget {
+public:
+	std::function<void(void)> on_select { };
+	//std::function<void(NewButton&)> on_select { };
+	std::function<bool(NewButton&, KeyEvent)> on_dir { };
+	std::function<void(NewButton&)> on_highlight { };
+
+	NewButton(const NewButton&) = delete;
+	NewButton& operator=(const NewButton&) = delete;
+	NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
+	NewButton(
+	) : NewButton { { }, { }, { } }
+	{
+	}
+
+	void set_bitmap(const Bitmap* bitmap);
+	void set_text(const std::string value);
+	void set_color(Color value);
+	std::string text() const;
+	const Bitmap* bitmap();
+	ui::Color color();
+
+	void on_focus() override;
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+
+	void paint(Painter& painter) override;
+
+private:
+	std::string text_;
+	Color color_ = Color::dark_cyan();
+	const Bitmap* bitmap_;
+};
+
 class Image : public Widget {
 public:
 	Image();

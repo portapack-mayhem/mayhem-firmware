@@ -918,6 +918,132 @@ bool Button::on_touch(const TouchEvent event) {
 #endif
 }
 
+/* NewButton ****************************************************************/
+
+NewButton::NewButton(
+	Rect parent_rect,
+	std::string text,
+	const Bitmap* bitmap
+) : Widget { parent_rect },
+	text_ { text },
+	bitmap_ (bitmap)
+{
+	set_focusable(true);
+}
+
+void NewButton::set_text(const std::string value) {
+	text_ = value;
+	set_dirty();
+}
+
+std::string NewButton::text() const {
+	return text_;
+}
+
+void NewButton::set_bitmap(const Bitmap* bitmap) {
+	bitmap_ = bitmap;
+	set_dirty();
+}
+
+const Bitmap* NewButton::bitmap() {
+	return bitmap_;
+}
+
+void NewButton::set_color(Color color) {
+  color_ = color;
+	set_dirty();
+}
+
+ui::Color NewButton::color() {
+	return color_;
+}
+
+void NewButton::paint(Painter& painter) {
+
+	if (!bitmap_ && text_.empty())
+		return;
+
+	Color bg, fg;
+	const auto r = screen_rect();
+
+	if (has_focus() || highlighted()) {
+		bg = style().foreground;
+		fg = Color::black();
+	} else {
+		bg = Color::grey();
+		fg = style().foreground;
+	}
+
+	const Style paint_style = { style().font, bg, fg };
+
+	painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
+	painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
+	painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+
+	painter.fill_rectangle(
+		{ r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2 },
+		paint_style.background
+	);
+
+	int y = r.location().y();
+	if (bitmap_) {
+		painter.draw_bitmap(
+			{r.location().x() + (r.size().width() / 2) - 8, r.location().y() + 6},
+			*bitmap_,
+			color_, //Color::green(), //fg,
+			bg
+		);
+		y += 10;
+	}
+	const auto label_r = paint_style.font.size_of(text_);
+	painter.draw_string(
+		{ r.location().x() + (r.size().width() - label_r.width()) / 2, y + (r.size().height() - label_r.height()) / 2 },
+		paint_style,
+		text_
+	);
+}
+
+void NewButton::on_focus() {
+	if( on_highlight )
+		on_highlight(*this);
+}
+
+bool NewButton::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select();
+			return true;
+		}
+	} else {
+		if( on_dir ) {
+			return on_dir(*this, key);
+		}
+	}
+
+	return false;
+}
+
+bool NewButton::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		set_highlighted(true);
+		set_dirty();
+		return true;
+
+
+	case TouchEvent::Type::End:
+		set_highlighted(false);
+		set_dirty();
+		if( on_select ) {
+			on_select();
+		}
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 /* Image *****************************************************************/
 
 Image::Image(

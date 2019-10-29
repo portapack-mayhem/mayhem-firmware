@@ -75,7 +75,7 @@ private:
 	const credits_t credits[25] = {
 		//           012345678901234567890123456789
 		{ 60,		"PortaPack|HAVOC",					0 },
-		{ 7 * 8,	"Git hash " GIT_REVISION,			16 },
+		{ 4 * 8,	    "Version " VERSION_STRING,		16 },
 		{ 11 * 8,	           "Gurus  J. Boone",		0 },
 		{ 18 * 8,	                  "M. Ossmann",		16 },
 		{ 11 * 8,	           "HAVOC  Furrtek",		16 },

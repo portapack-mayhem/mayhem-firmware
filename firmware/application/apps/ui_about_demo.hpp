@@ -131,7 +131,7 @@ private:
 
 	Text text_firmware {
 		{ 0, 236, 240, 16 },
-		"Git Commit Hash        " GIT_REVISION,
+		"Version   " VERSION_STRING,
 	};
 
 	Text text_cpld_hackrf {

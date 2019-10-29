@@ -78,7 +78,9 @@ void ScannerThread::run() {
 }
 
 void ScannerView::handle_retune(uint32_t i) {
-	text_cycle.set(to_string_dec_uint(i) + "/" + to_string_dec_uint(frequency_list.size()));
+	text_cycle.set(	to_string_dec_uint(i) + "/" +
+					to_string_dec_uint(frequency_list.size()) + " : " +
+					to_string_dec_uint(frequency_list[i]) );
 }
 
 void ScannerView::focus() {
@@ -101,20 +103,46 @@ ScannerView::ScannerView(
 		&field_vga,
 		&field_rf_amp,
 		&field_volume,
+		&field_bw,
 		&field_squelch,
+		&field_wait,
 		//&record_view,
 		&text_cycle,
 		//&waterfall,
 	});
-	
-	// DEBUG
-	frequency_list.push_back(466025000);
-	frequency_list.push_back(466050000);
-	frequency_list.push_back(466075000);
-	frequency_list.push_back(466175000);
-	frequency_list.push_back(466206250);
-	frequency_list.push_back(466231250);
-	
+
+	std::string scanner_file = "SCANNER";
+	if (load_freqman_file(scanner_file, database)) {
+		for(auto& entry : database) {
+			// FIXME
+			if (entry.type == RANGE) {
+				for (uint32_t i=entry.frequency_a; i < entry.frequency_b; i+= 1000000) {
+					frequency_list.push_back(i);
+				}
+			} else {
+				frequency_list.push_back(entry.frequency_a);
+			}
+		}
+	} else {
+		// DEBUG
+		frequency_list.push_back(466025000);
+		frequency_list.push_back(466050000);
+		frequency_list.push_back(466075000);
+		frequency_list.push_back(466175000);
+		frequency_list.push_back(466206250);
+		frequency_list.push_back(466231250);
+	}
+
+	field_bw.set_selected_index(2);
+	field_bw.on_change = [this](size_t n, OptionsField::value_t) {
+		receiver_model.set_nbfm_configuration(n);
+	};
+
+	field_wait.on_change = [this](int32_t v) {
+		wait = v;
+	};
+	field_wait.set_value(5);
+
 	field_squelch.on_change = [this](int32_t v) {
 		squelch = v;
 	};
@@ -134,7 +162,7 @@ ScannerView::ScannerView(
 	receiver_model.set_baseband_bandwidth(1750000);
 	receiver_model.enable();
 	receiver_model.set_squelch_level(0);
-	receiver_model.set_nbfm_configuration(2);	// 16k
+	receiver_model.set_nbfm_configuration(field_bw.selected_index());
 	audio::output::unmute();
 	
 	// TODO: Scanning thread here
@@ -144,11 +172,11 @@ ScannerView::ScannerView(
 void ScannerView::on_statistics_update(const ChannelStatistics& statistics) {
 	int32_t max_db = statistics.max_db;
 	
-	if (timer < 6)
+	if (timer <= wait)
 		timer++;
 	
 	if (max_db < -squelch) {
-		if (timer == 5) {
+		if (timer == wait) {
 			//audio::output::stop();
 			scan_thread->set_scanning(true);
 		}

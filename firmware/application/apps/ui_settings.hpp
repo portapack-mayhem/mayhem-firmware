@@ -356,7 +356,7 @@ private:
 	};
 };*/
 
-class SettingsMenuView : public MenuView {
+class SettingsMenuView : public BtnGridView {
 public:
 	SettingsMenuView(NavigationView& nav);
 	
