@@ -1,10 +1,10 @@
 ![HAVOC banner](doc/banner.png)
 
-HAVOC is a **unofficial** fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
+HAVOC is an **unofficial** fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
 
 Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
 
-It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning most of the original functionalities are kept.
+It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning most of the original functionality remains the same.
 
 # Documentation & finding help
 
@@ -21,7 +21,7 @@ If you want to submit a bug report or suggest something, use this page: https://
 
 # Summary
 
-As its name implies, HAVOC's functionalities can be fun, mean or even useful sometimes. You probably shouldn't use them. No ! Bad ! Put it down.
+As its name implies, HAVOC's functions can be fun, mean or even useful sometimes. You probably shouldn't use them. No ! Bad ! Put it down.
 
 **In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
 
@@ -42,9 +42,9 @@ As its name implies, HAVOC's functionalities can be fun, mean or even useful som
 * Morse transmitter (FM tone and CW)
 * OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
 * RDS (Radio Data System) PSN, RadioText and Time groups transmitter
-* Meteorological radiosonde receiver for M10 and M2K2...
+* Meteorological radiosonde receiver (M10, M2K2, ...)
 * AFSK receiver
-* AFSK transmitter (Bell202...)
+* AFSK transmitter (Bell202, ...)
 * Nuoptix DTMF sync transmitter (quite specific but can be useful in some theme parks :) )
 * TouchTunes jukebox universal remote (by Notpike)
 * LCR (Language de Commande Routier) message generator
