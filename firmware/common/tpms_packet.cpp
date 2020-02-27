@@ -42,7 +42,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 			Reading::Type::FLM_64,
 			reader_.read(0, 32),
 			Pressure { static_cast<int>(reader_.read(32, 8)) * 4 / 3 },
-			Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 50 }
+			Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 56 }
 		};
 
 	case 72:
@@ -50,7 +50,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 			Reading::Type::FLM_72,
 			reader_.read(0, 32),
 			Pressure { static_cast<int>(reader_.read(40, 8)) * 4 / 3 },
-			Temperature { static_cast<int>(reader_.read(48, 8)) - 50 }
+			Temperature { static_cast<int>(reader_.read(48, 8)) - 56 }
 		};
 
 	case 80:
@@ -58,7 +58,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 			Reading::Type::FLM_80,
 			reader_.read(8, 32),
 			Pressure { static_cast<int>(reader_.read(48, 8)) * 4 / 3 },
-			Temperature { static_cast<int>(reader_.read(56, 8)) - 50 }
+			Temperature { static_cast<int>(reader_.read(56, 8)) - 56 }
 		};
 
 	default:
@@ -124,7 +124,7 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 			Reading::Type::GMC_96,
 			id,
 			Pressure { static_cast<int>(value_1) * 4 / 3 },
-			Temperature { static_cast<int>(value_0) - 50 }
+			Temperature { static_cast<int>(value_0) - 56 }
 		};
 	} else {
 		return { };
