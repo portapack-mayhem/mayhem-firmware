@@ -17,7 +17,7 @@ Please RTFM before asking for help:
 * [Facebook group](https://www.facebook.com/groups/177623356165819/) if that's your thing
 * And probably a bunch of posts on a variety of forums...
 
-If you want to submit a bug report or suggest something, use this page: https://github.com/furrtek/portapack-havoc/issues (Check if it hasn't been already posted, there's a search function. Also check the progress list below).
+If you want to submit a bug report, use this page: https://github.com/furrtek/portapack-havoc/issues. Check if it hasn't been already posted, there's a search function. Also check the progress list below. Tickets which aren't related to the firmware itself, or the original HackRF and Portapack H1 will be closed.
 
 # Summary
 
