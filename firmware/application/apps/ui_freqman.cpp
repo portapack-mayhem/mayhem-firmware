@@ -259,7 +259,7 @@ void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
 }
 
 void FrequencyManagerView::on_new_category(NavigationView& nav) {
-	text_prompt(nav, desc_buffer, 8, [this](std::string& buffer) {
+	text_prompt(nav, desc_buffer, 12, [this](std::string& buffer) {
 		File freqman_file;
 		create_freqman_file(buffer, freqman_file);
 	});

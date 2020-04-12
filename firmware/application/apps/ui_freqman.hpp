@@ -64,7 +64,7 @@ protected:
 	
 	OptionsField options_category {
 		{ 9 * 8, 4 },
-		8,
+		12,
 		{ }
 	};
 	
