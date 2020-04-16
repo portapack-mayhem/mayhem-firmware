@@ -166,7 +166,6 @@ void SSTVTXView::start_tx() {
 	prepare_scanline();		// Preload one scanline
 	
 	transmitter_model.set_sampling_rate(3072000U);
-	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	
