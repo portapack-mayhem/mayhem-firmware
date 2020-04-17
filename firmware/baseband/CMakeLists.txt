@@ -417,6 +417,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
+### GPS Simulator
+
+set(MODE_CPPSRC
+	proc_gps_sim.cpp
+)
+DeclareTargets(PGPS gps_sim)
+
 ### Signal generator
 
 set(MODE_CPPSRC
