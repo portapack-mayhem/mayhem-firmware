@@ -73,6 +73,7 @@
 #include "lge_app.hpp"
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
+#include "gps_sim_app.hpp"
 #include "soundboard_app.hpp"
 #include "tpms_app.hpp"
 
@@ -426,6 +427,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Transmit", 	ui::Color::green(),			&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",					ui::Color::purple(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "GPS Sim",                              ui::Color::white(),     &bitmap_gps_sim,    [&nav](){ nav.push<GpsSimAppView>(); } },
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_closecall,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanner",	ui::Color::orange(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Utilities",				ui::Color::light_grey(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
