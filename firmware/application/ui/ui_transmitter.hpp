@@ -37,6 +37,10 @@
 #include <algorithm>
 #include <functional>
 
+#define POWER_THRESHOLD_HIGH	47
+#define POWER_THRESHOLD_MED		38
+#define POWER_THRESHOLD_LOW		17
+
 namespace ui {
 
 class TXGainField : public NumberField {
@@ -83,7 +87,22 @@ private:
 		.background = Color::black(),
 		.foreground = Color::dark_grey(),
 	};
-	
+	const Style style_power_low {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::yellow(),
+	};
+	const Style style_power_med {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::orange(),
+	};
+	const Style style_power_high {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::red(),
+	};
+
 	bool lock_ { false };
 	bool transmitting_ { false };
 	
@@ -95,10 +114,15 @@ private:
 		{ 0, 3 * 8, 5 * 8, 1 * 16 },
 		"Gain:"
 	};
-	TXGainField field_gain {
-		{ 5 * 8, 3 * 8 }
-	};
 	
+	NumberField field_gain {
+		{ 5 * 8, 3 * 8 },
+		2,
+		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
+		max2837::tx::gain_db_step,
+		' '
+	};
+
 	Text text_bw {
 		{ 11 * 8, 1 * 8, 9 * 8, 1 * 16 },
 		"BW:   kHz"
@@ -111,6 +135,19 @@ private:
 		' '
 	};
 	
+	Text text_amp {
+		{ 11 * 8, 3 * 8, 5 * 8, 1 * 16 },
+		"Amp:"
+	};
+
+	NumberField field_amp {
+		{ 16 * 8, 3 * 8 },
+		2,
+		{ 0, 14 },
+		14,
+		' '
+	};
+
 	Button button_start {
 		{ 21 * 8, 1 * 8, 9 * 8, 32 },
 		"START"
@@ -118,6 +155,10 @@ private:
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
+	void on_tx_gain_changed(int32_t tx_gain);
+	void on_tx_amp_changed(bool rf_amp);
+
+	void update_gainlevel_styles(void);
 };
 
 } /* namespace ui */

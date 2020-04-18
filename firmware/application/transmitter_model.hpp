@@ -66,7 +66,7 @@ public:
 
 private:
 	bool enabled_ { false };
-	bool rf_amp_ { true };
+	bool rf_amp_ { false };
 	int32_t lna_gain_db_ { 0 };
 	uint32_t channel_bandwidth_ { 1 };
 	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
