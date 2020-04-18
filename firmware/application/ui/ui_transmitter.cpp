@@ -33,24 +33,6 @@ using namespace portapack;
 
 namespace ui {
 
-/* TXGainField **********************************************************/
-
-TXGainField::TXGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
-		max2837::tx::gain_db_step,
-		' ',
-	}
-{
-	set_value(transmitter_model.tx_gain());
-
-	on_change = [](int32_t v) {
-		transmitter_model.set_tx_gain(v);
-	};
-}
-
 /* TransmitterView *******************************************************/
 
 void TransmitterView::paint(Painter& painter) {
@@ -79,6 +61,34 @@ void TransmitterView::on_channel_bandwidth_changed(uint32_t channel_bandwidth) {
 	transmitter_model.set_channel_bandwidth(channel_bandwidth);
 }
 
+void TransmitterView::on_tx_gain_changed(int32_t tx_gain) {
+	transmitter_model.set_tx_gain(tx_gain);
+	update_gainlevel_styles();
+}
+
+void TransmitterView::on_tx_amp_changed(bool rf_amp) {
+	transmitter_model.set_rf_amp(rf_amp);
+	update_gainlevel_styles();
+}
+
+void TransmitterView::update_gainlevel_styles() {
+	const Style *new_style_ptr = NULL;
+	int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
+	
+	if(tot_gain > POWER_THRESHOLD_HIGH) {
+		new_style_ptr = &style_power_high;
+	} else if(tot_gain > POWER_THRESHOLD_MED) {
+		new_style_ptr = &style_power_med;
+	} else if(tot_gain > POWER_THRESHOLD_LOW) {
+		new_style_ptr = &style_power_low;
+	}
+
+	field_gain.set_style(new_style_ptr);
+	text_gain.set_style(new_style_ptr);
+	field_amp.set_style(new_style_ptr);
+	text_amp.set_style(new_style_ptr);
+}
+
 void TransmitterView::set_transmitting(const bool transmitting) {
 	if (transmitting) {
 		button_start.set_text("STOP");
@@ -93,6 +103,11 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 
 void TransmitterView::on_show() {
 	field_frequency.set_value(transmitter_model.tuning_frequency());
+
+	field_gain.set_value(transmitter_model.tx_gain());
+	field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
+
+	update_gainlevel_styles();
 }
 
 void TransmitterView::focus() {
@@ -109,7 +124,9 @@ TransmitterView::TransmitterView(
 		&field_frequency,
 		&text_gain,
 		&field_gain,
-		&button_start
+		&button_start,
+		&text_amp,
+		&field_amp,
 	});
 	
 	set_transmitting(false);
@@ -140,10 +157,15 @@ TransmitterView::TransmitterView(
 		if (on_edit_frequency)
 			on_edit_frequency();
 	};
-	field_frequency.on_change = [this](rf::Frequency f) {
-		transmitter_model.set_tuning_frequency(f);
+
+	field_gain.on_change = [this](uint32_t tx_gain) {
+		on_tx_gain_changed(tx_gain);
 	};
 	
+	field_amp.on_change = [this](uint32_t rf_amp) {
+		on_tx_amp_changed((bool) rf_amp);
+	};
+
 	button_start.on_select = [this](Button&){
 		if (transmitting_) {
 			if (on_stop)

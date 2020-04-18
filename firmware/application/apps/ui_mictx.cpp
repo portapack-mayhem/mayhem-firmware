@@ -63,7 +63,6 @@ void MicTXView::set_tx(bool enable) {
 	if (enable) {
 		transmitting = true;
 		configure_baseband();
-		transmitter_model.set_rf_amp(true);
 		transmitter_model.enable();
 		portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
 		//gpio_tx.write(1);
@@ -75,7 +74,6 @@ void MicTXView::set_tx(bool enable) {
 		} else {
 			transmitting = false;
 			configure_baseband();
-			transmitter_model.set_rf_amp(false);
 			transmitter_model.disable();
 			//gpio_tx.write(0);
 			//led_tx.off();
@@ -207,7 +205,6 @@ MicTXView::MicTXView(
 	field_va_decay.set_value(1000);
 	
 	transmitter_model.set_sampling_rate(sampling_rate);
-	transmitter_model.set_rf_amp(false);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	
 	set_tx(false);
