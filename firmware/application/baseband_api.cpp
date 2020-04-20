@@ -130,6 +130,26 @@ void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_
 	send_message(&message);
 }
 
+void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
+	const BTLERxConfigureMessage message {
+		baudrate,
+		word_length,
+		trigger_value,
+		trigger_word
+	};
+	send_message(&message);
+}
+    
+void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
+	const NRFRxConfigureMessage message {
+		baudrate,
+		word_length,
+		trigger_value,
+		trigger_word
+	};
+	send_message(&message);
+}
+    
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count) {
 	const AFSKTxConfigureMessage message {

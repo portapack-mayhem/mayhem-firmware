@@ -68,8 +68,11 @@ private:
 constexpr image_tag_t image_tag_acars				{ 'P', 'A', 'C', 'A' };
 constexpr image_tag_t image_tag_adsb_rx				{ 'P', 'A', 'D', 'R' };
 constexpr image_tag_t image_tag_afsk_rx				{ 'P', 'A', 'F', 'R' };
+constexpr image_tag_t image_tag_btle_rx				{ 'P', 'B', 'T', 'R' };
+constexpr image_tag_t image_tag_nrf_rx				{ 'P', 'N', 'R', 'R' };
 constexpr image_tag_t image_tag_ais					{ 'P', 'A', 'I', 'S' };
 constexpr image_tag_t image_tag_am_audio			{ 'P', 'A', 'M', 'A' };
+constexpr image_tag_t image_tag_am_tv			        { 'P', 'A', 'M', 'T' };
 constexpr image_tag_t image_tag_capture				{ 'P', 'C', 'A', 'P' };
 constexpr image_tag_t image_tag_ert					{ 'P', 'E', 'R', 'T' };
 constexpr image_tag_t image_tag_nfm_audio			{ 'P', 'N', 'F', 'M' };
