@@ -318,6 +318,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNRR nrfrx)
 
+### BTLE RX
+
+set(MODE_CPPSRC
+	proc_btlerx.cpp
+)
+DeclareTargets(PBTR btlerx)
 ### AIS
 
 set(MODE_CPPSRC
