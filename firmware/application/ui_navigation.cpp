@@ -70,6 +70,7 @@
 #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
+#include "analog_tv_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
 #include "lge_app.hpp"
@@ -352,6 +353,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "BTLE",		ui::Color::yellow(),	&bitmap_icon_btle,		[&nav](){ nav.push<BTLERxView>(); } },
 		{ "NRF", 		ui::Color::yellow(),	&bitmap_icon_nrf,		[&nav](){ nav.push<NRFRxView>(); } }, 
 		{ "Audio", 		ui::Color::green(),		&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(); } },
+		{ "Analog TV", 	ui::Color::yellow(),		&bitmap_icon_sstv,		[&nav](){ nav.push<AnalogTvView>(); } },
 		{ "ERT Meter", 	ui::Color::green(), 	&bitmap_icon_ert,		[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 	ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "Radiosnde", 	ui::Color::yellow(),	&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
