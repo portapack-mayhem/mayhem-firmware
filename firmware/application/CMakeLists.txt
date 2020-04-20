@@ -217,6 +217,7 @@ set(CPPSRC
 	apps/ui_adsb_rx.cpp
 	apps/ui_adsb_tx.cpp
 	apps/ui_afsk_rx.cpp
+	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_coasterp.cpp

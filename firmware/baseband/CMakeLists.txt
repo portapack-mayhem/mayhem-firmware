@@ -311,6 +311,12 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+### NRF RX
+
+set(MODE_CPPSRC
+	proc_nrfrx.cpp
+)
+DeclareTargets(PNRR nrfrx)
 
 ### AIS
 
