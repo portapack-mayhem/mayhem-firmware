@@ -90,7 +90,7 @@ private:
 		{ 0 * 8,	"TouchTunes infos  Notpike",		16 },
 		{ 4 * 8,	    "Subaru infos  Tom",			0 },
 		{ 18 * 8,	                  "Wimmenhove",		16 },
-		{ 1 * 8,	" GPS,TV,BTLE,NRF  Shao",			24 },
+		{ 1 * 8,	 "GPS,TV,BTLE,NRF  Shao",			24 },
 		{ 6 * 8,	      "Thanks & donators",			16 },
 		{ 1 * 8,	 "Rainer Matla     Keld Norman",	0 },
 		{ 1 * 8,	 " Giorgio C.         DC1RDB",		0 },
