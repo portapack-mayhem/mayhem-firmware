@@ -116,6 +116,7 @@ set(CPPSRC
 	dsp_goertzel.cpp
 	matched_filter.cpp
 	spectrum_collector.cpp
+	tv_collector.cpp
 	stream_input.cpp
 	stream_output.cpp
 	dsp_squelch.cpp
@@ -311,7 +312,19 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+### NRF RX
 
+set(MODE_CPPSRC
+	proc_nrfrx.cpp
+)
+DeclareTargets(PNRR nrfrx)
+
+### BTLE RX
+
+set(MODE_CPPSRC
+	proc_btlerx.cpp
+)
+DeclareTargets(PBTR btlerx)
 ### AIS
 
 set(MODE_CPPSRC
@@ -325,6 +338,13 @@ set(MODE_CPPSRC
 	proc_am_audio.cpp
 )
 DeclareTargets(PAMA am_audio)
+
+### AM TV
+
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
 
 ### Audio transmit
 
