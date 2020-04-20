@@ -209,6 +209,7 @@ set(CPPSRC
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
+	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
@@ -217,6 +218,8 @@ set(CPPSRC
 	apps/ui_adsb_rx.cpp
 	apps/ui_adsb_tx.cpp
 	apps/ui_afsk_rx.cpp
+	apps/ui_btle_rx.cpp
+	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_coasterp.cpp
@@ -251,6 +254,7 @@ set(CPPSRC
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
+	apps/analog_tv_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/lge_app.cpp
