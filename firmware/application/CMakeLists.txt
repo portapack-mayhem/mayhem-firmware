@@ -223,7 +223,7 @@ set(CPPSRC
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_coasterp.cpp
-	# apps/ui_debug.cpp
+	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
 	apps/ui_freqman.cpp
@@ -276,7 +276,7 @@ set(CPPSRC
 	# ui_numbers.cpp
 	# ui_replay_view.cpp
 	# ui_script.cpp
-	# ui_sd_card_debug.cpp
+	ui_sd_card_debug.cpp
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}

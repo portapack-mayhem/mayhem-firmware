@@ -39,7 +39,7 @@
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_coasterp.hpp"
-//#include "ui_debug.hpp"
+#include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
@@ -438,7 +438,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Scanner",	ui::Color::orange(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Utilities",				ui::Color::light_grey(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Settings", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		//{ "Debug",		ui::Color::cyan(),			nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Debug",		ui::Color::cyan(),			nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});

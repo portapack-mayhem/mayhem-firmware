@@ -28,7 +28,7 @@
 
 #include "audio.hpp"
 
-// #include "ui_sd_card_debug.hpp"
+#include "ui_sd_card_debug.hpp"
 
 #include "portapack.hpp"
 using namespace portapack;
@@ -347,7 +347,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items({
 		{ "Memory", 		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		//{ "SD Card",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "SD Card",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<SDCardDebugView>(); } },
 		{ "Peripherals",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
 		{ "Temperature",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<TemperatureView>(); } },
 		{ "Controls",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugControlsView>(); } },	});
