@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:xenial
 
 # Set location to download ARM toolkit from.
 # This will need to be changed over time or replaced with a static link to the latest release.
