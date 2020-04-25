@@ -17,17 +17,6 @@ env:
     - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
     - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#portapack"
-    template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "Change view : %{compare_url}"
-      - "Build details : %{build_url}"
-      # TODO: The "build_number.1" in this URL is almost certainly wrong, but correct value not available from Travis?
-      - "Firmware download : https://jboone.github.io/portapack-havoc-nightly/"
-
 before_install:
   - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
   - sudo apt-get update -q
@@ -65,9 +54,3 @@ addons:
       - cmake
       - dfu-util
 
-deploy:
-  provider: script
-  skip-cleanup: true
-  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightly.sh
-  on:
-    branch: master
