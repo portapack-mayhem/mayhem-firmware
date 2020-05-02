@@ -193,7 +193,7 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	// Using WGS 84/Pseudo-Mercator projection
 	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
-	y_pos = (0.5-lat_/(340.1206913+-4.21807e-5*pow((double)abs(lat_),3.4198394))) * map_height-(map_rect.height() / 2);
+	y_pos = (0.5-lat_/(340.1206913+-4.21807e-5*pow((double)abs(lat_),3.4198394))) * map_height -(map_rect.height() / 1) + 32;
 
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
