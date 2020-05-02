@@ -25,6 +25,8 @@ from PIL import Image
 
 outfile = open('../../sdcard/world_map.bin', 'wb')
 
+# Allow for bigger images
+Image.MAX_IMAGE_PIXELS = 1933120000
 im = Image.open("../../sdcard/world_map.jpg")
 pix = im.load()
 
@@ -35,14 +37,14 @@ for y in range (0, im.size[1]):
 	line = ''
 	for x in range (0, im.size[0]):
 		# RRRRRGGGGGGBBBBB
-		#pixel_lcd = (pix[x, y][0] >> 3) << 11
-		#pixel_lcd |= (pix[x, y][1] >> 2) << 5
-		#pixel_lcd |= (pix[x, y][2] >> 3)
+		pixel_lcd = (pix[x, y][0] >> 3) << 11
+		pixel_lcd |= (pix[x, y][1] >> 2) << 5
+		pixel_lcd |= (pix[x, y][2] >> 3)
 		#         RRRGGGBB to
 		# RRR00GGG000BB000
-		pixel_lcd = (pix[x, y][0] >> 5) << 5
-		pixel_lcd |= (pix[x, y][1] >> 5) << 2
-		pixel_lcd |= (pix[x, y][2] >> 6)
-		line += struct.pack('B', pixel_lcd)
+		# pixel_lcd = (pix[x, y][0] >> 5) << 5
+		# pixel_lcd |= (pix[x, y][1] >> 5) << 2
+		# pixel_lcd |= (pix[x, y][2] >> 6)
+		line += struct.pack('H', pixel_lcd)
 	outfile.write(line)
 	print(str(y) + '/' + str(im.size[1]) + '\r', end="")
