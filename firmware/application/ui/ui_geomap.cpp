@@ -168,7 +168,7 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else {
-		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
+		draw_bearing({ 120, 32 + 144 }, angle_, 8, Color::magenta());
 		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
 	}
 }
