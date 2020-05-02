@@ -147,7 +147,7 @@ GeoMap::GeoMap(
 }
 
 void GeoMap::paint(Painter& painter) {
-	Coord line;
+	u_int16_t line;
 	std::array<ui::Color, 240> map_line_buffer;
 	const auto r = screen_rect();
 	
@@ -168,7 +168,7 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else {
-		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
+		draw_bearing({ 120, 32 + 144 }, angle_, 10, Color::red());
 		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
 	}
 }
@@ -191,10 +191,10 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	Rect map_rect = screen_rect();
 	
-	// Map is in Equidistant "Plate Carrée" projection
-	x_pos = map_center_x - (map_rect.width() / 2) + (lon_ / lon_ratio);
-	y_pos = map_center_y - (map_rect.height() / 2) + (lat_ / lat_ratio) + 16;
-	
+	// Using WGS 84/Pseudo-Mercator projection
+	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
+	y_pos = (0.5-lat_/(340.1206913+-4.21807e-5*pow((double)abs(lat_),3.4198394))) * map_height -(map_rect.height() / 1) + 32;
+
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
 		x_pos = map_width - map_rect.width();
@@ -228,8 +228,8 @@ void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t siz
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
 		arrow_a = polar_to_point(angle, size) + origin;
-		arrow_b = polar_to_point(angle + 180 - 30, size) + origin;
-		arrow_c = polar_to_point(angle + 180 + 30, size) + origin;
+		arrow_b = polar_to_point(angle + 180 - 35, size) + origin;
+		arrow_c = polar_to_point(angle + 180 + 35, size) + origin;
 		
 		display.draw_line(arrow_a, arrow_b, color);
 		display.draw_line(arrow_b, arrow_c, color);
