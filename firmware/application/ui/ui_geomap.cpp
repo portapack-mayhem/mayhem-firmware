@@ -168,7 +168,7 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else {
-		draw_bearing({ 120, 32 + 144 }, angle_, 8, Color::magenta());
+		draw_bearing({ 120, 32 + 144 }, angle_, 10, Color::red());
 		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
 	}
 }
@@ -228,8 +228,8 @@ void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t siz
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
 		arrow_a = polar_to_point(angle, size) + origin;
-		arrow_b = polar_to_point(angle + 180 - 30, size) + origin;
-		arrow_c = polar_to_point(angle + 180 + 30, size) + origin;
+		arrow_b = polar_to_point(angle + 180 - 35, size) + origin;
+		arrow_c = polar_to_point(angle + 180 + 35, size) + origin;
 		
 		display.draw_line(arrow_a, arrow_b, color);
 		display.draw_line(arrow_b, arrow_c, color);
