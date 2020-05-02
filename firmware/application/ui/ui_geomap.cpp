@@ -147,7 +147,7 @@ GeoMap::GeoMap(
 }
 
 void GeoMap::paint(Painter& painter) {
-	Coord line;
+	u_int16_t line;
 	std::array<ui::Color, 240> map_line_buffer;
 	const auto r = screen_rect();
 	
