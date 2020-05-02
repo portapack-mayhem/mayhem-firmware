@@ -191,10 +191,10 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	Rect map_rect = screen_rect();
 	
-	// Map is in Equidistant "Plate Carrée" projection
-	x_pos = map_center_x - (map_rect.width() / 2) + (lon_ / lon_ratio);
-	y_pos = map_center_y - (map_rect.height() / 2) + (lat_ / lat_ratio) + 16;
-	
+	// Using WGS 84/Pseudo-Mercator projection
+	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
+	y_pos = (0.5-lat_/(340.1206913+-4.21807e-5*pow((double)abs(lat_),3.4198394))) * map_height-(map_rect.height() / 2);
+
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
 		x_pos = map_width - map_rect.width();
