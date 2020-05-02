@@ -23,11 +23,11 @@ import sys
 import struct
 from PIL import Image
 
-outfile = open('../../sdcard/world_map.bin', 'wb')
+outfile = open('../../sdcard/ADSB/world_map.bin', 'wb')
 
 # Allow for bigger images
 Image.MAX_IMAGE_PIXELS = 1933120000
-im = Image.open("../../sdcard/world_map.jpg")
+im = Image.open("../../sdcard/ADSB/world_map.jpg")
 pix = im.load()
 
 outfile.write(struct.pack('H', im.size[0]))
