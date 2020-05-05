@@ -23,6 +23,7 @@ import struct
 
 outfile = open("airlines.db", "w")
 
+# Download airlines.txt from http://xdeco.org/?page_id=30
 lines = [line.rstrip('\n') for line in open('../../sdcard/ADSB/airlines.txt', 'r')]
 n = 0
 
