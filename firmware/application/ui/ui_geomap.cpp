@@ -30,6 +30,7 @@
 using namespace portapack;
 
 #include "string_format.hpp"
+#include "complex.hpp"
 
 namespace ui {
 
@@ -193,7 +194,13 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	// Using WGS 84/Pseudo-Mercator projection
 	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
-	y_pos = (0.5-lat_/(340.1206913+-4.21807e-5*pow((double)abs(lat_),3.4198394))) * map_height -(map_rect.height() / 1) + 32;
+
+	// Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
+	double map_bottom = sin(-85.05 * pi / 180); // Map bitmap only goes from about -85 to 85 lat
+	double lat_rad = sin(lat * pi / 180);
+	double map_world_lon = map_width / (2 * pi); 
+    double map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
+	y_pos = map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset) - 128; // Offset added for the GUI
 
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
