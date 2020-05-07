@@ -247,6 +247,8 @@ public:
 			parent_pos,
 			5,
 			{
+				{ "  1  ",        1 },
+				{ "  10 ",       10 },
 				{ "  100",      100 },
 				{ "  1k ",     1000 },
 				{ "  3k ",     3000 },	/* Approximate SSB bandwidth */
