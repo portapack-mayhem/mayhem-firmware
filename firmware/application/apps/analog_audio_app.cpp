@@ -162,6 +162,7 @@ AnalogAudioView::~AnalogAudioView() {
 	// both?
 	audio::output::stop();
 
+	receiver_model.set_sampling_rate(3072000); 	// Just a hack to avoid hanging other apps if the last modulation was SPEC
 	receiver_model.disable();
 
 	baseband::shutdown();
