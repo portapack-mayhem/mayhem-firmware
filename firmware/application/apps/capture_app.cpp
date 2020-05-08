@@ -46,6 +46,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		&waterfall,
 	});
 
+	// Hack for initialization
+	// TODO: This should be included in a more global section so apps dont need to do it 
+	receiver_model.set_sampling_rate(3072000);
+	receiver_model.set_baseband_bandwidth(1750000);
+	//-------------------
+
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -87,6 +93,14 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 }
 
 CaptureAppView::~CaptureAppView() {
+
+	// Hack for preventing halting other apps
+	// TODO: This should be also part of something global
+	receiver_model.set_sampling_rate(3072000);
+	receiver_model.set_baseband_bandwidth(1750000);
+	receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+	// ----------------------------
+
 	receiver_model.disable();
 	baseband::shutdown();
 }
