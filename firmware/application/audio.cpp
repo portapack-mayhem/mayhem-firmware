@@ -146,11 +146,23 @@ void stop() {
 void mute() {
 	i2s::i2s0::tx_mute();
 	audio_codec->headphone_disable();
+	//audio_codec->speaker_disable();
 }
 
 void unmute() {
 	i2s::i2s0::tx_unmute();
 	audio_codec->headphone_enable();
+	//audio_codec->speaker_disable();
+}
+
+void speaker_mute() {
+	i2s::i2s0::tx_mute();
+	audio_codec->speaker_disable();
+}
+
+void speaker_unmute() {
+	i2s::i2s0::tx_unmute();
+	audio_codec->speaker_enable();
 }
 
 } /* namespace output */
