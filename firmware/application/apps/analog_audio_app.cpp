@@ -154,6 +154,7 @@ AnalogAudioView::AnalogAudioView(
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
+    on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
 }
 
 AnalogAudioView::~AnalogAudioView() {
