@@ -47,8 +47,11 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 		const int32_t audio_sample = __SSAT(sample_int, 16);
 		
 		slicer_sr <<= 1;
-		slicer_sr |= (audio_sample < 0);		// Do we need hysteresis ?
-
+		if (phase == 0)
+			slicer_sr |= (audio_sample < 0);		// Do we need hysteresis ?
+		else
+			slicer_sr |= !(audio_sample < 0);
+			
 		// Detect transitions to adjust clock
 		if ((slicer_sr ^ (slicer_sr >> 1)) & 1) {
 			if (sphase < (0x8000u - sphase_delta_half))
@@ -162,6 +165,7 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	//audio_output.configure(false);
 
 	bitrate = message.bitrate;
+	phase = message.phase;
 	sphase_delta = 0x10000u * bitrate / POCSAG_AUDIO_RATE;
 	sphase_delta_half = sphase_delta / 2;			// Just for speed
 	sphase_delta_eighth = sphase_delta / 8;
