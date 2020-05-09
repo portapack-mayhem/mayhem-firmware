@@ -93,6 +93,14 @@ private:
 			{ "2400bps", 2 }
 		}
 	};
+	OptionsField options_phase {
+		{ 6 * 8, 21 },
+		1,
+		{
+			{ "P", 0 },
+			{ "N", 1 },
+		}
+	};
 	Checkbox check_log {
 		{ 22 * 8, 21 },
 		3,
@@ -124,7 +132,7 @@ private:
 
 	void on_packet(const POCSAGPacketMessage * message);
 
-	void on_bitrate_changed(const uint32_t new_bitrate);
+	void on_config_changed(const uint32_t new_bitrate, const bool phase);
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);

@@ -77,7 +77,7 @@ void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 					const uint32_t pause_symbols);
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift,
 					const uint32_t progress_notice);
-void set_pocsag(const pocsag::BitRate bitrate);
+void set_pocsag(const pocsag::BitRate bitrate, bool phase);
 void set_adsb();
 void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);
