@@ -27,7 +27,7 @@ outfile = open('../../sdcard/world_map.bin', 'wb')
 
 # Allow for bigger images
 Image.MAX_IMAGE_PIXELS = None
-im = Image.open("../../sdcard/world_map.jpg")
+im = Image.open("../../sdcard/ADSB/world_map.jpg")
 pix = im.load()
 
 outfile.write(struct.pack('H', im.size[0]))
