@@ -418,6 +418,10 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
+	if(!this->hackrf_warning) {
+		return EventDispatcher::request_stop();
+	}
+
 	nav.push<ModalMessageView>("Confirm", "Switch to HackRF mode ?", YESNO,
 		[this](bool choice) {
 			if (choice) {
@@ -427,18 +431,24 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 	);
 }
 
+void SystemMenuView::enable_warning() {
+	this->hackrf_warning = true;
+}
+
 SystemMenuView::SystemMenuView(NavigationView& nav) {
+	this->hackrf_warning = false;
+
 	add_items({
-		{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
-		{ "Receivers", 	ui::Color::dark_cyan(),		&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
-		{ "Transmit", 	ui::Color::green(),			&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
-		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",					ui::Color::purple(),	&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
-		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_closecall,	[&nav](){ nav.push<SearchView>(); } },
-		{ "Scanner",	ui::Color::orange(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
-		{ "Utilities",				ui::Color::light_grey(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
-		{ "Settings", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		{ "Debug",		ui::Color::cyan(),			nullptr,   				[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[this, &nav](){ enable_warning(); nav.push<PlayDeadView>(); } },
+		{ "Receivers", 	ui::Color::dark_cyan(),		&bitmap_icon_receivers,	[this, &nav](){ enable_warning(); nav.push<ReceiversMenuView>(); } },
+		{ "Transmit", 	ui::Color::green(),			&bitmap_icon_transmit,	[this, &nav](){ enable_warning(); nav.push<TransmittersMenuView>(); } },
+		{ "Capture",				ui::Color::blue(),		&bitmap_icon_capture,	[this, &nav](){ enable_warning(); nav.push<CaptureAppView>(); } },
+		{ "Replay",					ui::Color::purple(),	&bitmap_icon_replay,	[this, &nav](){ enable_warning(); nav.push<ReplayAppView>(); } },
+		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_closecall,	[this, &nav](){ enable_warning(); nav.push<SearchView>(); } },
+		{ "Scanner",	ui::Color::orange(),		&bitmap_icon_scanner,	[this, &nav](){ enable_warning(); nav.push<ScannerView>(); } },
+		{ "Utilities",				ui::Color::light_grey(),	&bitmap_icon_utilities,	[this, &nav](){ enable_warning(); nav.push<UtilitiesMenuView>(); } },
+		{ "Settings", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[this, &nav](){ enable_warning(); nav.push<SettingsMenuView>(); } },
+		{ "Debug",		ui::Color::cyan(),			nullptr,   				[this, &nav](){ enable_warning(); nav.push<DebugMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});

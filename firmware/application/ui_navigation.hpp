@@ -231,7 +231,9 @@ class SystemMenuView : public BtnGridView {
 public:
 	SystemMenuView(NavigationView& nav);
 private:
+	bool hackrf_warning;
 	void hackrf_mode(NavigationView& nav);
+	void enable_warning();
 };
 
 class SystemView : public View {
