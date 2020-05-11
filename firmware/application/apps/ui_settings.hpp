@@ -101,11 +101,11 @@ private:
 
 	Button button_done {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"Done"
+		"Save"
 	};
 	Button button_cancel {
 		{ 16 * 8, 16 * 16, 12 * 8, 32 },
-		"Cancel",
+		"Cancel"
 	};
 
 	void form_init(const SetDateTimeModel& model);
@@ -174,7 +174,7 @@ private:
 
 	Button button_done {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"Done"
+		"Save"
 	};
 	Button button_cancel {
 		{ 16 * 8, 16 * 16, 12 * 8, 32 },
@@ -194,11 +194,11 @@ public:
 	std::string title() const override { return "UI settings"; };
 	
 private:
-	Checkbox checkbox_login {
+	/*Checkbox checkbox_login {
 		{ 3 * 8, 2 * 16 },
 		20,
 		"Login with play dead"
-	};
+	};*/
 	
 	Checkbox checkbox_bloff {
 		{ 3 * 8, 5 * 16 },
@@ -212,7 +212,9 @@ private:
 		{
 			{ "5 seconds", 5 },
 			{ "15 seconds", 15 },
+			{ "30 seconds", 30 },
 			{ "1 minute", 60 },
+			{ "3 minutes", 180 },
 			{ "5 minutes", 300 },
 			{ "10 minutes", 600 }
 		}
@@ -226,7 +228,7 @@ private:
 	
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"OK"
+		"Save"
 	};
 };
 
@@ -253,10 +255,11 @@ private:
 	
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"OK"
+		"Save"
 	};
 };
 
+/*
 class SetPlayDeadView : public View {
 public:
 	SetPlayDeadView(NavigationView& nav);
@@ -284,7 +287,7 @@ private:
 		{ 128, 192, 96, 24 },
 		"Cancel"
 	};
-};
+};*/
 
 /*class ModInfoView : public View {
 public:

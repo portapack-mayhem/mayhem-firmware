@@ -249,7 +249,7 @@ private:
 	Context& context_;
 };
 
-class NotImplementedView : public View {
+/*class NotImplementedView : public View {
 public:
 	NotImplementedView(NavigationView& nav);
 
@@ -265,7 +265,7 @@ private:
 		{ 10 * 8, 13 * 16, 10 * 8, 24 },
 		"Bummer",
 	};
-};
+};*/
 
 class ModalMessageView : public View {
 public:
