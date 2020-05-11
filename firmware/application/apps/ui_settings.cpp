@@ -183,6 +183,7 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
 	};
 }
 
+/*
 SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 	add_children({
 		&text_sequence,
@@ -234,10 +235,11 @@ SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
 void SetPlayDeadView::focus() {
 	button_cancel.focus();
 }
+*/
 
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
-		&checkbox_login,
+		//&checkbox_login,
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
@@ -245,7 +247,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 	});
 	
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
-	checkbox_login.set_value(persistent_memory::config_login());
+	//checkbox_login.set_value(persistent_memory::config_login());
 	
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
 	
@@ -263,13 +265,13 @@ SetUIView::SetUIView(NavigationView& nav) {
 			persistent_memory::set_config_backlight_timer(0);
 		
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
-		persistent_memory::set_config_login(checkbox_login.value());
+		//persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
 	};
 }
 
 void SetUIView::focus() {
-	checkbox_login.focus();
+	button_ok.focus();
 }
 
 SetAudioView::SetAudioView(NavigationView& nav) {
@@ -478,7 +480,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
 		//{ "SD card modules", ui::Color::dark_cyan(), [&nav](){ nav.push<ModInfoView>(); } },
 		{ "Date/Time",		ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Touch screen",	ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "Play dead",		ui::Color::dark_cyan(), &bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
+		//{ "Play dead",		ui::Color::dark_cyan(), &bitmap_icon_playdead,	[&nav](){ nav.push<SetPlayDeadView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }
