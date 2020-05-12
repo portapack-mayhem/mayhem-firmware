@@ -513,7 +513,6 @@ void BMPView::focus() {
 
 BMPView::BMPView(NavigationView& nav) {
 	add_children({
-		&text_info,
 		&button_done
 	});
 	
@@ -523,7 +522,7 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter&) {
-	portapack::display.drawBMP({(240 - 185) / 2, 0}, splash_bmp, false);
+	portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
 }
 
 /* NotImplementedView ****************************************************/
