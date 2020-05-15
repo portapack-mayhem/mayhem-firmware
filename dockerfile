@@ -14,8 +14,13 @@ COPY ./ /havocsrc
 
 #Fetch dependencies from APT
 RUN apt-get update && \
-	apt-get install -y tar wget dfu-util cmake python python-pip && \
+	apt-get install -y tar wget dfu-util cmake python curl && \
 	apt-get -qy autoremove
+
+#Install current pip from PyPa
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+	python get-pip.py
+
 #Fetch additional dependencies from Python 2.x pip
 RUN pip install pyyaml
 

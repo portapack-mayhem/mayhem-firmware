@@ -11,9 +11,14 @@ WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
 RUN apt-get update && \
-	apt-get install -y git tar wget dfu-util cmake python3 python-pip ccache && \
+	apt-get install -y git tar wget dfu-util cmake python3 ccache curl && \
 	apt-get -qy autoremove
 
+#Install current pip from PyPa
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+	python3 get-pip.py
+
+#Fetch additional dependencies from Python 3.x pip
 RUN pip install pyyaml
 
 # Grab the GNU ARM toolchain from arm.com
