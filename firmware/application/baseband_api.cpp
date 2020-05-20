@@ -224,9 +224,10 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 	send_message(&message);
 }
 
-void set_pocsag(const pocsag::BitRate bitrate) {
+void set_pocsag(const pocsag::BitRate bitrate, bool phase) {
 	const POCSAGConfigureMessage message {
-		bitrate
+		bitrate,
+		phase
 	};
 	send_message(&message);
 }

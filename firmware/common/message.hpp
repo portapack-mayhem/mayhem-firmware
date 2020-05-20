@@ -989,13 +989,16 @@ public:
 class POCSAGConfigureMessage : public Message {
 public:
 	constexpr POCSAGConfigureMessage(
-		const pocsag::BitRate bitrate
+		const pocsag::BitRate bitrate,
+		const bool phase
 	) : Message { ID::POCSAGConfigure },
-		bitrate(bitrate)
+		bitrate(bitrate),
+		phase(phase)
 	{
 	}
 
 	const pocsag::BitRate bitrate;
+	const bool phase;
 };
 
 class ADSBConfigureMessage : public Message {
