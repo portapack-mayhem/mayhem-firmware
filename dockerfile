@@ -23,6 +23,11 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 
 #Fetch additional dependencies from Python 2.x pip
 RUN pip install pyyaml
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 #Grab the GNU ARM toolchain from arm.com
 #Then extract contents to /opt/build/armbin/
