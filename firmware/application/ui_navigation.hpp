@@ -54,8 +54,6 @@ enum modal_t {
 	ABORT
 };
 
-//#define VERSION_STRING "v1.0.0"; // TODO: Move somewhere else
-
 class NavigationView : public View {
 public:
 	std::function<void(const View&)> on_view_changed { };
@@ -111,7 +109,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "MAYHEM v1.0.0"; // TODO: Move the version somewhere
+	static constexpr auto default_title = "MAYHEM v1.0.1"; // TODO: Move the version somewhere
 	
 	NavigationView& nav_;
 
