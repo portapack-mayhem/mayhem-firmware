@@ -14,7 +14,7 @@ COPY ./ /havocsrc
 
 #Fetch dependencies from APT
 RUN apt-get update && \
-	apt-get install -y tar wget dfu-util cmake python curl && \
+	apt-get install -y tar wget dfu-util cmake python bzip2 curl && \
 	apt-get -qy autoremove
 
 #Install current pip from PyPa
