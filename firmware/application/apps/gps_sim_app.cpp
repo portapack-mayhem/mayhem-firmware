@@ -82,7 +82,7 @@ void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path) {
 	auto file_size = data_file.size();
 	auto duration = (file_size * 1000) / (1 * 2 * sample_rate);
 	
-	progressbar.set_max(file_size);
+	progressbar.set_max(file_size / 1024);
 	text_filename.set(file_path.filename().string().substr(0, 12));
 	text_duration.set(to_string_time_ms(duration));
 	

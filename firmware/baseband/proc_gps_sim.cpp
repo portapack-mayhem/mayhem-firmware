@@ -58,34 +58,18 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	}
 	
 	// Fill and "stretch"
-	for (size_t i = 0; i < buffer.count; i++) {
-		/*if (i & 3) {
-			buffer.p[i] = buffer.p[i - 1];
-		} else {
-			auto re_out = iq_buffer.p[i >> 3].real() ;
-			auto im_out = iq_buffer.p[i >> 3].imag() ;
-			buffer.p[i] = { (int8_t)re_out, (int8_t)im_out };
-		}*/
-                /*
-                if (i % 8 != 0) {
-			buffer.p[i] = buffer.p[i - 1];
-		} else {
-			auto re_out = iq_buffer.p[i/8].real() ;
-			auto im_out = iq_buffer.p[i/8].imag() ;
-			buffer.p[i] = { (int8_t)re_out, (int8_t)im_out };
-		}*/
-                
-                auto re_out = iq_buffer.p[i].real() ;
-	        auto im_out = iq_buffer.p[i].imag() ;
+	for (size_t i = 0; i < buffer.count; i++) {               
+        auto re_out = iq_buffer.p[i].real() ;
+	    auto im_out = iq_buffer.p[i].imag() ;
 		buffer.p[i] = { (int8_t)re_out, (int8_t)im_out };
 	}
 	
 	spectrum_samples += buffer.count;
 	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
-		//channel_spectrum.feed(iq_buffer, channel_filter_pass_f, channel_filter_stop_f);
-		
-		txprogress_message.progress = bytes_read;	// Inform UI about progress
+
+		txprogress_message.progress = bytes_read / 1024;	// Inform UI about progress
+
 		txprogress_message.done = false;
 		shared_memory.application_queue.push(txprogress_message);
 	}
