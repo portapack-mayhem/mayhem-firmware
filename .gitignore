@@ -13,7 +13,6 @@
 /sdcard/FREQMAN/BHT*
 /sdcard/FREQMAN/R.TXT
 /sdcard/FREQMAN/XXX.TXT
-/sdcard/WAV/*
 
 # Compiled Object files
 *.slo
@@ -61,7 +60,6 @@ CMakeFiles/
 *.sublime-project
 *.sublime-workspace
 
-# Host OS turds
+# Host OS leftovers
 .DS_Store
 /firmware/CMakeCache.txt
-/sdcard/ADSB/airlines.txt
