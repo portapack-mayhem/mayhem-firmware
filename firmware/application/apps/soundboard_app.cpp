@@ -207,8 +207,8 @@ SoundBoardView::SoundBoardView(
 		&menu_view,
 		&text_empty,
 		&options_tone_key,
-		&text_title,
-		&text_duration,
+		//&text_title,
+		//&text_duration,
 		&progressbar,
 		&check_loop,
 		&check_random,
@@ -217,7 +217,7 @@ SoundBoardView::SoundBoardView(
 	
 	refresh_list();
 	
-	text_title.set(to_string_dec_uint(file_list.size()));
+	//text_title.set(to_string_dec_uint(file_list.size()));
 	
 	tone_keys_populate(options_tone_key);
 	options_tone_key.set_selected_index(0);

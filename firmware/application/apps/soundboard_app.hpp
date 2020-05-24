@@ -80,12 +80,12 @@ private:
 	void on_select_entry();
 	
 	Labels labels {
-		{ { 0, 20 * 8 + 4 }, "Title:", Color::light_grey() },
-		{ { 0, 23 * 8 }, "Key:", Color::light_grey() }
+		//{ { 0, 20 * 8 + 4 }, "Title:", Color::light_grey() },
+		{ { 0, 180 }, "Key:", Color::light_grey() }
 	};
 	
 	MenuView menu_view {
-		{ 0, 2 * 8, 240, 20 * 8 },
+		{ 0, 0, 240, 175 },
 		true
 	};
 	Text text_empty {
@@ -93,22 +93,22 @@ private:
 		"Empty directory !",
 	};
 	
-	Text text_title {
+	/*Text text_title {
 		{ 6 * 8, 20 * 8 + 4, 15 * 8, 16 }
-	};
+	};*/
 	
-	Text text_duration {
+	/*Text text_duration {
 		{ 22 * 8, 20 * 8 + 4, 6 * 8, 16 }
-	};
+	};*/
 	
 	OptionsField options_tone_key {
-		{ 4 * 8, 23 * 8 },
+		{ 32 , 180 },
 		18,
 		{ }
 	};
 	
 	Checkbox check_loop {
-		{ 8, 25 * 8 + 4 },
+		{ 0, 25 * 8 + 4 },
 		4,
 		"Loop"
 	};
