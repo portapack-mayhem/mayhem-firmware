@@ -1396,14 +1396,14 @@ static constexpr Bitmap bitmap_icon_utilities {
 };
 
 static constexpr uint8_t bitmap_more_data[] = {
-	0x20, 
-	0x20, 
-	0x20, 
-	0x20, 
-	0x20, 
-	0xA8, 
-	0x70, 
-	0x20, 
+	0x10, 
+	0x10, 
+	0x10, 
+	0x10, 
+	0x54, 
+	0x38, 
+	0x10, 
+	0x00, 
 };
 static constexpr Bitmap bitmap_more {
 	{ 8, 8 }, bitmap_more_data
