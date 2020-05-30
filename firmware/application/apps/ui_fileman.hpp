@@ -97,7 +97,7 @@ protected:
 	};
 	
 	Button button_exit {
-		{ 20 * 8, 34 * 8, 10 * 8, 4 * 8 },
+		{ 16 * 8, 34 * 8, 14 * 8, 32 },
 		"Exit"
 	};
 };
@@ -157,11 +157,11 @@ private:
 	};
 
 	Button button_rename {
-		{ 0 * 8, 29 * 8, 12 * 8, 32 },
+		{ 0 * 8, 29 * 8, 14 * 8, 32 },
 		"Rename"
 	};
 	Button button_delete {
-		{ 18 * 8, 29 * 8, 12 * 8, 32 },
+		{ 16 * 8, 29 * 8, 14 * 8, 32 },
 		"Delete"
 	};
 	
