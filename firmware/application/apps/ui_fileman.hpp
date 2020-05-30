@@ -67,8 +67,9 @@ protected:
 		{ ".TXT", &bitmap_icon_file_text, ui::Color::white() },
 		{ ".PNG", &bitmap_icon_file_image, ui::Color::green() },
 		{ ".BMP", &bitmap_icon_file_image, ui::Color::green() },
+		{ ".C8",  &bitmap_icon_file_iq, ui::Color::blue() },
 		{ ".C16", &bitmap_icon_file_iq, ui::Color::blue() },
-		{ ".WAV", &bitmap_icon_speaker, ui::Color::dark_magenta() },
+		{ ".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta() },
 		{ "", &bitmap_icon_file, ui::Color::light_grey() }
 	};
 	
