@@ -32,8 +32,8 @@ namespace ui {
 void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_path) {
 	current_path = dir_path;
 	
-	text_current.set(dir_path.string().substr(0, 30 - 8));
-	
+	text_current.set(dir_path.string().length()? dir_path.string().substr(0, 30 - 6):"(sd root)");
+
 	entry_list.clear();
 	
 	auto filtering = (bool)extension_filter.size();
@@ -315,7 +315,7 @@ FileManagerView::FileManagerView(
 	
 	button_delete.on_select = [this, &nav](Button&) {
 		// Use display_modal ?
-		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure ?", YESNO,
+		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
 			[this](bool choice) {
 				if (choice)
 					on_delete();
