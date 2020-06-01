@@ -473,7 +473,7 @@ void ModInfoView::focus() {
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
 	add_items({
-		//{ "..", 				ui::Color::light_grey(), &bitmap_icon_previous,				[&nav](){ nav.pop(); } },
+		{ "..", 				ui::Color::light_grey(), &bitmap_icon_previous,				[&nav](){ nav.pop(); } },
 		{ "Audio", 			ui::Color::dark_cyan(), &bitmap_icon_speaker,	[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",			ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<SetRadioView>(); } },
 		{ "UI", 			ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
