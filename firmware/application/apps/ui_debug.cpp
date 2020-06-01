@@ -345,13 +345,15 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items({
-		{ "Memory", 		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugMemoryView>(); } },
+		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
+		{ "Memory", 		ui::Color::white(),	&bitmap_icon_soundboard,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<TemperatureView>(); } },
-		{ "Controls",		ui::Color::white(),	nullptr,	[&nav](){ nav.push<DebugControlsView>(); } },	});
-	on_left = [&nav](){ nav.pop(); };
+		{ "SD Card",		ui::Color::white(),	&bitmap_icon_file,	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "Peripherals",	ui::Color::white(),	&bitmap_icon_debug,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
+		{ "Temperature",	ui::Color::white(),	&bitmap_icon_transmit,	[&nav](){ nav.push<TemperatureView>(); } },
+		{ "Controls",		ui::Color::white(),	&bitmap_icon_utilities,	[&nav](){ nav.push<DebugControlsView>(); } },
+	});
+	set_max_rows(2); // allow wider buttons
 }
 
 /*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {

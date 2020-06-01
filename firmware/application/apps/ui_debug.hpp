@@ -292,9 +292,10 @@ public:
 	DebugPeripheralsMenuView(NavigationView& nav);
 };
 
-class DebugMenuView : public MenuView {
+class DebugMenuView : public BtnGridView {
 public:
 	DebugMenuView(NavigationView& nav);
+	std::string title() const override { return "Debug"; };	
 };
 
 } /* namespace ui */
