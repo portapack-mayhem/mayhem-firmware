@@ -345,7 +345,7 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
 	add_items({
-		{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
+		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		{ "Memory", 		ui::Color::white(),	&bitmap_icon_soundboard,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SD Card",		ui::Color::white(),	&bitmap_icon_file,	[&nav](){ nav.push<SDCardDebugView>(); } },
