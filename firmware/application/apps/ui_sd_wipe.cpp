@@ -45,7 +45,7 @@ void WipeSDView::focus() {
 	dummy.focus();
 	
 	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card ?", YESCANCEL, [this](bool choice) {
+		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card?", YESCANCEL, [this](bool choice) {
 				if (choice)
 					confirmed = true;
 			}

@@ -112,4 +112,4 @@ f.write("\n")
 f.write("} /* namespace ui */\n\n")
 f.write("#endif/*__BITMAP_HPP__*/\n")
 
-print "Converted " + str(count) + " files"
+print("Converted " + str(count) + " files")
