@@ -77,10 +77,14 @@ void set_stealth_mode(const bool v);
 bool config_splash();
 bool config_login();
 uint32_t config_backlight_timer();
+bool config_backbutton();
+bool config_speaker();
 
 void set_config_splash(bool v);
 void set_config_login(bool v);
 void set_config_backlight_timer(uint32_t i);
+void set_config_backbutton(bool v);                         //Show / hide ".." back button in menues
+void set_config_speaker(bool v);                            //h1 may have a speaker connected
 
 //uint8_t ui_config_textentry();
 //void set_config_textentry(uint8_t new_value);

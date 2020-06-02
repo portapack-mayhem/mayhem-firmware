@@ -224,7 +224,7 @@ public:
 class UtilitiesMenuView : public BtnGridView {
 public:
 	UtilitiesMenuView(NavigationView& nav);
-	std::string title() const override { return "Utilities"; };	
+	std::string title() const override { return "Tools"; };	
 };
 
 class SystemMenuView : public BtnGridView {

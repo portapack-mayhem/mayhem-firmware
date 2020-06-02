@@ -240,12 +240,17 @@ void SetPlayDeadView::focus() {
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
 		//&checkbox_login,
+		&checkbox_speaker,
+		&checkbox_backbutton,
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
 		&button_ok
 	});
-	
+
+	checkbox_backbutton.set_value(persistent_memory::config_backbutton());
+	checkbox_speaker.set_value(persistent_memory::config_speaker());
+
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	//checkbox_login.set_value(persistent_memory::config_login());
 	
@@ -264,6 +269,8 @@ SetUIView::SetUIView(NavigationView& nav) {
 		else
 			persistent_memory::set_config_backlight_timer(0);
 		
+		persistent_memory::set_config_backbutton(checkbox_backbutton.value());
+		persistent_memory::set_config_speaker(checkbox_speaker.value());
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		//persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
@@ -472,8 +479,10 @@ void ModInfoView::focus() {
 }*/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+	if (portapack::persistent_memory::config_backbutton()) add_items({
+		{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
+		});
 	add_items({
-		{ "..", 				ui::Color::light_grey(), &bitmap_icon_previous,				[&nav](){ nav.pop(); } },
 		{ "Audio", 			ui::Color::dark_cyan(), &bitmap_icon_speaker,	[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",			ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<SetRadioView>(); } },
 		{ "UI", 			ui::Color::dark_cyan(), nullptr,	[&nav](){ nav.push<SetUIView>(); } },
