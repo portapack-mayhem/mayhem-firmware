@@ -198,7 +198,7 @@ void SystemStatusView::on_stealth() {
 
 void SystemStatusView::on_bias_tee() {
 	if (!portapack::antenna_bias) {
-		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector ?", YESNO, [this](bool v) {
+		nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector?", YESNO, [this](bool v) {
 				if (v) {
 					portapack::set_antenna_bias(true);
 					//radio::set_antenna_bias(true);

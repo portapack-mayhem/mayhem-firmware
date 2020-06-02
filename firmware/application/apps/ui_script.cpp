@@ -94,7 +94,7 @@ ScriptView::ScriptView(
 	};
 	
 	button_del.on_select = [this, &nav](Button&) {
-		nav.push<ModalMessageView>("Confirm", "Are you sure ?", YESNO,
+		nav.push<ModalMessageView>("Confirm", "Are you sure?", YESNO,
 			[this](bool choice) {
 				if (choice) {
 					on_delete();
