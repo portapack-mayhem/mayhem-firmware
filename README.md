@@ -41,4 +41,4 @@ As a last option, if you want to send money directly to me for getting more boar
 ## What if I need help?
 First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related with the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
-You can reach the [official community](https://github.com/eried/portapack-mayhem/issues/new/choose) in Facebook. 
+You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook. 
