@@ -2164,7 +2164,7 @@ static constexpr uint8_t bitmap_icon_sd_card[] = {
 	0x62,  0x26,	// 0010011001100010
 	0x02,  0x20,	// 0010000000000010
 	0xFE,  0x3F,	// 0011111111111110
- };
+};
 static constexpr Bitmap bitmap_icon_sd_card {
 	{ 16, 16 }, bitmap_icon_sd_card_data
 };
@@ -2186,7 +2186,7 @@ static constexpr uint8_t bitmap_icon_memory[] = {
 	0xB0,  0x0A,	// 0000101010110000
 	0x5E,  0x7A,	// 0111101001011110
 	0xF0,  0x0F,	// 0000111111110000
- };
+};
 static constexpr Bitmap bitmap_icon_memory_data {
 	{ 16, 16 }, bitmap_icon_memory
 };
@@ -2208,7 +2208,7 @@ static constexpr uint8_t bitmap_icon_peripherals[] = {
 	0x50,  0x43,	// 0100001101010000
 	0x00,  0x42,	// 0100001000000000
 	0x00,  0x7E,	// 0111111000000000
- };
+};
 static constexpr Bitmap bitmap_icon_peripherals_data {
 	{ 16, 16 }, bitmap_icon_peripherals
 };
@@ -2230,7 +2230,7 @@ static constexpr uint8_t bitmap_icon_temperature[] = {
 	0x4C,  0x78,	// 0111100001001100
 	0x08,  0x30,	// 0011000000001000
 	0x00,  0x00,	// 0000000000000000
- };
+};
 static constexpr Bitmap bitmap_icon_temperature_data {
 	{ 16, 16 }, bitmap_icon_temperature
 };
@@ -2252,7 +2252,7 @@ static constexpr uint8_t bitmap_icon_controls[] = {
 	0x88,  0x22,	// 0010001010001000
 	0x30,  0x19,	// 0001100100110000
 	0xC0,  0x07,	// 0000011111000000
- };
+};
 static constexpr Bitmap bitmap_icon_controls_data {
 	{ 16, 16 }, bitmap_icon_controls
 };
