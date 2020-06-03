@@ -21,9 +21,9 @@ A clear and concise description of what you expected to happen.
 
 **Affected versions**
 Please try to reproduce the problem, and write any difference related with the Expected behavior, on the maximum number of versions:
-* Latest Stable [Release](https://github.com/eried/portapack-mayhem/releases/latest)
+* Latest Stable Release
 * Original PortaPack (if possible; this firmware is also included inside the Release package)
-* Any previous version (if possible; i.e.: you remember this working on a [previous](https://github.com/eried/portapack-mayhem/releases/) Release)
+* Any previous version (if possible; i.e.: you remember this working on a previous Release)
 
 **Additional**
 If the bug is difficult to explain, additionally to the text please include images and videos.
