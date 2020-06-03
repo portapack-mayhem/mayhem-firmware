@@ -6,15 +6,15 @@ Hi, this is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/), 
 
 # FAQ
 
-The intention of the current repository is to try to get all the latest features and cleanest documentation for them, embracing any colaboration. To clarify any basic question, please read the following frequently ask ones:
+The intention of the current repository is to try to get all the latest features and cleanest documentation for them, embracing any colaboration. To clarify any basic question, please read the following common ones:
 
 ## Does it work on H1/H2 PortaPack?
 
-Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a clone that includes everything you need. Sadly, the people making the H2 never published the PCB, so it is not optimal.
+Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a clone that includes everything you need. Sadly, the people making the H2 never published the updated PCB, so it is not "optimal" for the community.
 
 ## Where is the latest firmware?
 
-The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. There are instructions on the description of the release itself.
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions on the description of the release itself to get it on your device.
 
 ## Is this the newest firmware for my PortaPack? 
 Probably **YES**.
