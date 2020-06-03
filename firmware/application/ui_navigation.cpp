@@ -106,6 +106,7 @@ SystemStatusView::SystemStatusView(
 		&backdrop,
 		&button_back,
 		&title,
+		&button_speaker,
 		&button_stealth,
 		//&button_textentry,
 		&button_camera,
@@ -115,6 +116,11 @@ SystemStatusView::SystemStatusView(
 		&sd_card_status_view,
 	});
 	
+	if (portapack::persistent_memory::config_speaker()) 
+		button_speaker.hidden(false);
+	else
+		button_speaker.hidden(true);
+
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
 	
@@ -132,6 +138,10 @@ SystemStatusView::SystemStatusView(
 		if (this->on_back)
 			this->on_back();
 	};
+
+	button_speaker.on_select = [this](ImageButton&) {
+ 		this->on_speaker();
+ 	};
 	
 	button_stealth.on_select = [this](ImageButton&) {
 		this->on_stealth();
@@ -156,6 +166,13 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::refresh() {
+	if (portapack::persistent_memory::config_speaker()) {
+		button_speaker.set_foreground(Color::light_grey());
+		button_speaker.hidden(false);
+	}		
+	else {
+		button_speaker.hidden(true);
+	}
 	if (portapack::get_antenna_bias()) {
 		button_bias_tee.set_bitmap(&bitmap_icon_biast_on);
 		button_bias_tee.set_foreground(ui::Color::yellow());
@@ -187,6 +204,21 @@ void SystemStatusView::set_title(const std::string new_value) {
 		title.set(new_value);
 	}
 }
+
+void SystemStatusView::on_speaker() {
+ 	if (!portapack::speaker_mode) 
+ 	{
+ 		portapack::set_speaker_mode(true);
+ 		button_speaker.set_foreground(Color::green());
+ 	}
+ 	else
+ 	{
+ 		portapack::set_speaker_mode(false);
+ 		button_speaker.set_foreground(Color::light_grey());
+ 	}
+
+ }
+
 
 void SystemStatusView::on_stealth() {
 	bool mode = not portapack::persistent_memory::stealth_mode();

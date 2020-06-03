@@ -42,6 +42,9 @@ extern portapack::IO io;
 
 extern lcd::ILI9341 display;
 
+extern bool speaker_mode;
+void set_speaker_mode(const bool v);
+
 extern I2C i2c0;
 extern SPI ssp1;
 

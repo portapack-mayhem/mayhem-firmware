@@ -126,9 +126,16 @@ private:
 	};
 
 	Text title {
-		{ 20, 0, 16 * 8, 1 * 16 },
+		{ 20, 0, 14 * 8, 1 * 16 },
 		default_title,
 	};
+
+	ImageButton button_speaker {
+ 		{ 17 * 8, 0, 2 * 8, 1 * 16 },
+ 		&bitmap_icon_speaker,
+ 		Color::light_grey(),
+ 		Color::dark_grey()
+ 	};
 	
 	ImageButton button_stealth {
 		{ 19 * 8, 0, 2 * 8, 1 * 16 },
@@ -176,6 +183,7 @@ private:
 		{ 28 * 8, 0 * 16,  2 * 8, 1 * 16 }
 	};
 
+	void on_speaker();
 	void on_stealth();
 	void on_bias_tee();
 	//void on_textentry();

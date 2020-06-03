@@ -287,7 +287,7 @@ private:
 	};
 };*/
 
-class DebugPeripheralsMenuView : public MenuView {
+class DebugPeripheralsMenuView : public BtnGridView {
 public:
 	DebugPeripheralsMenuView(NavigationView& nav);
 };
