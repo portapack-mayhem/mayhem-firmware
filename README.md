@@ -19,8 +19,10 @@ The current stable release is on the [Release](https://github.com/eried/portapac
 ## Is this the newest firmware for my PortaPack? 
 Probably **YES**.
 
+## Which one is actually the newest?
+There is a lot of confusion of which is the latest version because no old version used any actual "version number". Additionally, since the files were distributed on facebook groups, github issue links and similar temporal sources, then there was no central location for them. Mayhem uses major.minor.release semantic versioning, so you can always compare your current version with the latest from [Releases](https://github.com/eried/portapack-mayhem/releases/latest).
+
 ## What about Havoc/GridRF/jamesshao8/jboone's?
-There is a lot of confusion of which is the latest version because no old version used any actual "version number". Also, since the files were distributed on facebook groups, github issue links and such then there was no central location for them. About the other releases:
 * jboone's PortaPack: the [vainilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
 * Havoc: It was the most popular fork of jboone's PortaPack, right now is readonly so it is not being developed
 * jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
