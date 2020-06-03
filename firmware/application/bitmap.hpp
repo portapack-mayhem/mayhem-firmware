@@ -427,6 +427,28 @@ static constexpr Bitmap bitmap_icon_codetx {
 	{ 16, 16 }, bitmap_icon_codetx_data
 };
 
+static constexpr uint8_t bitmap_icon_controls_data[] = {
+	0x8C, 0x31, 
+	0x5A, 0x6B, 
+	0xDE, 0x7B, 
+	0x8C, 0x31, 
+	0x00, 0x00, 
+	0x8C, 0x31, 
+	0x5A, 0x7B, 
+	0xDE, 0x7B, 
+	0x8C, 0x31, 
+	0x00, 0x00, 
+	0x8C, 0x31, 
+	0xDA, 0x7B, 
+	0xDE, 0x7B, 
+	0x8C, 0x31, 
+	0x00, 0x00, 
+	0x00, 0x00, 
+};
+static constexpr Bitmap bitmap_icon_controls {
+	{ 16, 16 }, bitmap_icon_controls_data
+};
+
 static constexpr uint8_t bitmap_icon_cwgen_data[] = {
 	0x18, 0x00, 
 	0x24, 0x00, 
@@ -889,6 +911,28 @@ static constexpr Bitmap bitmap_icon_lora {
 	{ 16, 16 }, bitmap_icon_lora_data
 };
 
+static constexpr uint8_t bitmap_icon_memory_data[] = {
+	0x54, 0x15, 
+	0x54, 0x15, 
+	0xFF, 0x7F, 
+	0xFC, 0x1F, 
+	0xFF, 0x7F, 
+	0xCC, 0x19, 
+	0xAF, 0x7A, 
+	0x6C, 0x1B, 
+	0xEF, 0x7B, 
+	0xEC, 0x1B, 
+	0xFF, 0x7F, 
+	0xFC, 0x1F, 
+	0xFF, 0x7F, 
+	0x54, 0x15, 
+	0x54, 0x15, 
+	0x00, 0x00, 
+};
+static constexpr Bitmap bitmap_icon_memory {
+	{ 16, 16 }, bitmap_icon_memory_data
+};
+
 static constexpr uint8_t bitmap_icon_microphone_data[] = {
 	0xC0, 0x03, 
 	0xE0, 0x07, 
@@ -1041,6 +1085,28 @@ static constexpr uint8_t bitmap_icon_nuoptix_data[] = {
 };
 static constexpr Bitmap bitmap_icon_nuoptix {
 	{ 16, 16 }, bitmap_icon_nuoptix_data
+};
+
+static constexpr uint8_t bitmap_icon_peripherals_data[] = {
+	0x54, 0x01, 
+	0x54, 0x01, 
+	0xFF, 0x07, 
+	0x7C, 0x01, 
+	0xBF, 0x07, 
+	0xDC, 0x18, 
+	0x6F, 0x10, 
+	0x2C, 0x21, 
+	0xAF, 0x20, 
+	0x34, 0x20, 
+	0x54, 0x10, 
+	0xC0, 0x38, 
+	0x00, 0x77, 
+	0x00, 0xE0, 
+	0x00, 0xC0, 
+	0x00, 0x00, 
+};
+static constexpr Bitmap bitmap_icon_peripherals {
+	{ 16, 16 }, bitmap_icon_peripherals_data
 };
 
 static constexpr uint8_t bitmap_icon_pocsag_data[] = {
@@ -1307,6 +1373,28 @@ static constexpr Bitmap bitmap_icon_sd {
 	{ 16, 16 }, bitmap_icon_sd_data
 };
 
+static constexpr uint8_t bitmap_icon_sdcard_data[] = {
+	0xF0, 0x3F, 
+	0x58, 0x35, 
+	0x5C, 0x35, 
+	0xFC, 0x3F, 
+	0xFC, 0x3F, 
+	0xFC, 0x3F, 
+	0xFC, 0x3F, 
+	0xFC, 0x3F, 
+	0xFC, 0x3F, 
+	0xAC, 0x3A, 
+	0x5C, 0x35, 
+	0xAC, 0x3A, 
+	0x5C, 0x35, 
+	0xAC, 0x3A, 
+	0x5C, 0x35, 
+	0xAC, 0x3A, 
+};
+static constexpr Bitmap bitmap_icon_sdcard {
+	{ 16, 16 }, bitmap_icon_sdcard_data
+};
+
 static constexpr uint8_t bitmap_icon_search_data[] = {
 	0xF8, 0x01, 
 	0xFC, 0x03, 
@@ -1481,6 +1569,28 @@ static constexpr uint8_t bitmap_icon_stealth_data[] = {
 };
 static constexpr Bitmap bitmap_icon_stealth {
 	{ 16, 16 }, bitmap_icon_stealth_data
+};
+
+static constexpr uint8_t bitmap_icon_temperature_data[] = {
+	0x00, 0x01, 
+	0x80, 0x01, 
+	0x80, 0x05, 
+	0xC0, 0x0D, 
+	0x40, 0x0D, 
+	0xD0, 0x1F, 
+	0x70, 0x15, 
+	0xB0, 0x1A, 
+	0x58, 0x35, 
+	0xB8, 0x3A, 
+	0x58, 0x34, 
+	0x28, 0x28, 
+	0x18, 0x30, 
+	0x30, 0x18, 
+	0x60, 0x0C, 
+	0xC0, 0x07, 
+};
+static constexpr Bitmap bitmap_icon_temperature {
+	{ 16, 16 }, bitmap_icon_temperature_data
 };
 
 static constexpr uint8_t bitmap_icon_tetra_data[] = {
@@ -2147,115 +2257,6 @@ static constexpr Bitmap bitmap_target_verify {
 	{ 32, 32 }, bitmap_target_verify_data
 };
 
-static constexpr uint8_t bitmap_icon_sd_card[] = {
-	0x00,  0x00,	// 0000000000000000
-	0xF8,  0x3F,	// 0011111111111000
-	0x04,  0x20,	// 0010000000000100
-	0x42,  0x31,	// 0011000101000010
-	0x42,  0x31,	// 0011000101000010
-	0x82,  0x11,	// 0001000110000010
-	0x02,  0x11,	// 0001000100000010
-	0x02,  0x31,	// 0011000100000010
-	0x02,  0x20,	// 0010000000000010
-	0x62,  0x23,	// 0010001101100010
-	0x52,  0x24,	// 0010010001010010
-	0x52,  0x22,	// 0010001001010010
-	0x52,  0x21,	// 0010000101010010
-	0x62,  0x26,	// 0010011001100010
-	0x02,  0x20,	// 0010000000000010
-	0xFE,  0x3F,	// 0011111111111110
-};
-static constexpr Bitmap bitmap_icon_sd_card {
-	{ 16, 16 }, bitmap_icon_sd_card_data
-};
-
-static constexpr uint8_t bitmap_icon_memory[] = {
-	0x00,  0x00,	// 0000000000000000
-	0x70,  0x0E,	// 0000111001110000
-	0x9E,  0x79,	// 0111100110011110
-	0x10,  0x08,	// 0000100000010000
-	0x5E,  0x7A,	// 0111101001011110
-	0x50,  0x0D,	// 0000110101010000
-	0x5E,  0x7D,	// 0111110101011110
-	0x50,  0x0D,	// 0000110101010000
-	0x5E,  0x7A,	// 0111101001011110
-	0x10,  0x08,	// 0000100000010000
-	0x5E,  0x7A,	// 0111101001011110
-	0xB0,  0x0A,	// 0000101010110000
-	0xBE,  0x7A,	// 0111101010111110
-	0xB0,  0x0A,	// 0000101010110000
-	0x5E,  0x7A,	// 0111101001011110
-	0xF0,  0x0F,	// 0000111111110000
-};
-static constexpr Bitmap bitmap_icon_memory_data {
-	{ 16, 16 }, bitmap_icon_memory
-};
-
-static constexpr uint8_t bitmap_icon_peripherals[] = {
-	0x00,  0x00,	// 0000000000000000
-	0x00,  0x7E,	// 0111111000000000
-	0x50,  0x63,	// 0110001101010000
-	0x00,  0x42,	// 0100001000000000
-	0x10,  0x42,	// 0100001000010000
-	0x7E,  0x42,	// 0100001001111110
-	0x62,  0x7E,	// 0111111001100010
-	0x42,  0x08,	// 0000100001000010
-	0x42,  0x00,	// 0000000001000010
-	0x42,  0x08,	// 0000100001000010
-	0x7E,  0x7E,	// 0111111001111110
-	0x10,  0x62,	// 0110001000010000
-	0x00,  0x42,	// 0100001000000000
-	0x50,  0x43,	// 0100001101010000
-	0x00,  0x42,	// 0100001000000000
-	0x00,  0x7E,	// 0111111000000000
-};
-static constexpr Bitmap bitmap_icon_peripherals_data {
-	{ 16, 16 }, bitmap_icon_peripherals
-};
-
-static constexpr uint8_t bitmap_icon_temperature[] = {
-	0x00,  0x00,	// 0000000000000000
-	0x0C,  0x23,	// 0010001100001100
-	0x12,  0x54,	// 0101010000010010
-	0x2A,  0x24,	// 0010010000101010
-	0x44,  0x03,	// 0000001101000100
-	0xA8,  0x00,	// 0000000010101000
-	0x10,  0x01,	// 0000000100010000
-	0xA0,  0x02,	// 0000001010100000
-	0x40,  0x04,	// 0000010001000000
-	0x80,  0x0A,	// 0000101010000000
-	0x00,  0x11,	// 0001000100000000
-	0x4E,  0x2A,	// 0010101001001110
-	0xA8,  0x74,	// 0111010010101000
-	0x4C,  0x78,	// 0111100001001100
-	0x08,  0x30,	// 0011000000001000
-	0x00,  0x00,	// 0000000000000000
-};
-static constexpr Bitmap bitmap_icon_temperature_data {
-	{ 16, 16 }, bitmap_icon_temperature
-};
-
-static constexpr uint8_t bitmap_icon_controls[] = {
-	0x00,  0x00,	// 0000000000000000
-	0xC0,  0x07,	// 0000011111000000
-	0x30,  0x19,	// 0001100100110000
-	0x88,  0x22,	// 0010001010001000
-	0xC4,  0x47,	// 0100011111000100
-	0x04,  0x40,	// 0100000000000100
-	0x12,  0x90,	// 1001000000010010
-	0x1A,  0xB1,	// 1011000100011010
-	0x96,  0xD3,	// 1101001110010110
-	0x1A,  0xB1,	// 1011000100011010
-	0x12,  0x90,	// 1001000000010010
-	0x04,  0x40,	// 0100000000000100
-	0xC4,  0x47,	// 0100011111000100
-	0x88,  0x22,	// 0010001010001000
-	0x30,  0x19,	// 0001100100110000
-	0xC0,  0x07,	// 0000011111000000
-};
-static constexpr Bitmap bitmap_icon_controls_data {
-	{ 16, 16 }, bitmap_icon_controls
-};
 
 } /* namespace ui */
 
