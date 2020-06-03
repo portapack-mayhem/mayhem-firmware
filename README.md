@@ -1,25 +1,40 @@
-## Fork of the unofficial HAVOC
+Hi, this is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/), which was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, which is an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork means it is a derivated, so it is basically a clone that, for now, has extra features and fixes over the older versions.
 
-Keeping the latest release files and all features I found, and possible my own features in the future, around here. Check Releases
+[<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_front.png" height="400"> <img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_back.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview)
 
+*[PortaPack H2](https://s.click.aliexpress.com/e/_dSMPvNo) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
+
+# FAQ
+
+The intention of the current repository is to try to get all the latest features and cleanest documentation for them, embracing any colaboration. To clarify any basic question, please read the following frequently ask ones:
+
+## Does it work on H1/H2 PortaPack?
+
+Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a clone that includes everything you need. Sadly, the people making the H2 never published the PCB, so it is not optimal.
+
+## Where is the latest firmware?
+
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. There are instructions on the description of the release itself.
+
+## Is this the newest firmware for my PortaPack? 
+Probably **YES**.
+
+## What about Havoc/GridRF/jamesshao8/jboone's?
+There is a lot of confusion of which is the latest version because no old version used any actual "version number". Also, since the files were distributed on facebook groups, github issue links and such then there was no central location for them. About the other releases:
+* jboone's PortaPack: the [vainilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
+* Havoc: It was the most popular fork of jboone's PortaPack, right now is readonly so it is not being developed
+* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
+* GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
+
+## How can I colaborate
+You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), fix bugs and [answer issues](https://github.com/eried/portapack-mayhem/issues) or add new functionality. Please check the following [guide](https://github.com/eried/portapack-mayhem/wiki/How-to-colaborate) with details.
+
+Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. 
+
+As a last option, if you want to send money directly to me for getting more boards, antennas and such, please use:
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
-I only have this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), so that's the version I'll be using for testing the releases before I post them here. BTW, if you have the same H2 (I know... I know it is a *dirty* clone) you could print my case:
-[![Case](docs/images/h2_front.jpg)](https://www.thingiverse.com/thing:4260973)
+## What if I need help?
+First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related with the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
-<details>
-  <summary>More details about the H2 case</summary>
-  
-[STL files](https://www.thingiverse.com/thing:4260973)
-
-  
-</details>
-
-<details>
-  <summary>Printed magnetic cover for the H2 case</summary>
-  
-[![Cover](docs/images/h2_cover.jpg)](https://www.thingiverse.com/thing:4278961)
-  
-[STL files](https://www.thingiverse.com/thing:4278961)
-  
-</details>
+You can reach the [official community](https://github.com/eried/portapack-mayhem/issues/new/choose) in Facebook. 
