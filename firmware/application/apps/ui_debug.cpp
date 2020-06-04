@@ -325,19 +325,19 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 			{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		});
 	add_items({
-		{ "RFFC5072",    ui::Color::dark_cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "RFFC5072",    ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 16 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837",     ui::Color::dark_cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "MAX2837",     ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 10 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C",     ui::Color::dark_cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "Si5351C",     ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ audio::debug::codec_name(), ui::Color::dark_cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ audio::debug::codec_name(), ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
 			audio::debug::codec_name(), RegistersWidgetConfig { audio::debug::reg_count(), audio::debug::reg_bits() },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
@@ -351,12 +351,12 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		});
 	add_items({
-		{ "Memory", 		ui::Color::dark_cyan(),	&bitmap_icon_memory,	[&nav](){ nav.push<DebugMemoryView>(); } },
+		{ "Memory", 		ui::Color::cyan(),	&bitmap_icon_memory,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",		ui::Color::dark_cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals",	ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature",	ui::Color::dark_cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
-		{ "Controls",		ui::Color::dark_cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
+		{ "SD Card",		ui::Color::cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "Peripherals",	ui::Color::cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
+		{ "Temperature",	ui::Color::cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
+		{ "Controls",		ui::Color::cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
 	});
 	set_max_rows(2); // allow wider buttons
 }
