@@ -287,9 +287,10 @@ private:
 	};
 };*/
 
-class DebugPeripheralsMenuView : public MenuView {
+class DebugPeripheralsMenuView : public BtnGridView {
 public:
 	DebugPeripheralsMenuView(NavigationView& nav);
+	std::string title() const override { return "Peripherals"; };	
 };
 
 class DebugMenuView : public BtnGridView {
