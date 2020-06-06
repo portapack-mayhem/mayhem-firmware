@@ -18,7 +18,9 @@ Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-s
 
 ### Where is the latest firmware?
 
-The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions on the description of the release itself to get it on your device.
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions on the description of the release itself to get it on your device. 
+
+There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently, but these may contain incomplete functionality.
 
 ### Is this the newest firmware for my PortaPack? 
 Probably **YES**.
