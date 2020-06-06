@@ -104,6 +104,7 @@ ScannerView::ScannerView(
 		&field_rf_amp,
 		&field_volume,
 		&field_bw,
+		&field_trigger,
 		&field_squelch,
 		&field_wait,
 		//&record_view,
@@ -143,10 +144,17 @@ ScannerView::ScannerView(
 	};
 	field_wait.set_value(5);
 
+	field_trigger.on_change = [this](int32_t v) {
+		trigger = v;
+	};
+	field_trigger.set_value(30);
+	
+	field_squelch.set_value(receiver_model.squelch_level());
 	field_squelch.on_change = [this](int32_t v) {
 		squelch = v;
+		receiver_model.set_squelch_level(v);
 	};
-	field_squelch.set_value(30);
+
 
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
@@ -175,7 +183,7 @@ void ScannerView::on_statistics_update(const ChannelStatistics& statistics) {
 	if (timer <= wait)
 		timer++;
 	
-	if (max_db < -squelch) {
+	if (max_db < -trigger) {
 		if (timer == wait) {
 			//audio::output::stop();
 			scan_thread->set_scanning(true);
