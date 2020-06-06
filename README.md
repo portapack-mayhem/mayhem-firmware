@@ -1,3 +1,5 @@
+[![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381)
+
 Hi, this is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/), which was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, which is an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork means it is a derivated, so it is basically a clone that, for now, has extra features and fixes over the older versions.
 
 [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_front.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_inside.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview#portapack-internals)
