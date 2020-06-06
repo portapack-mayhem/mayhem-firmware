@@ -66,6 +66,7 @@ private:
 	void handle_retune(uint32_t i);
 	
 	std::vector<rf::Frequency> frequency_list { };
+	int32_t trigger { 0 };
 	int32_t squelch { 0 };
 	uint32_t timer { 0 };
 	uint32_t wait { 0 };
@@ -73,8 +74,8 @@ private:
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1 * 16 }, "BW:    SQUELCH:  /99 WAIT:", Color::light_grey() },
-		{ { 0 * 8, 3 * 16 }, "Work in progress...", Color::light_grey() }
+		{ { 0 * 8, 1 * 16 }, "BW:    TR:  /99 SQ:  /99 WT:", Color::light_grey() },
+		{ { 0 * 8, 3 * 16 }, "Work in progress!", Color::light_grey() }
 	};
 	
 	LNAGainField field_lna {
@@ -107,8 +108,16 @@ private:
 		}
 	};
 
+	NumberField field_trigger {
+		{ 10 * 8, 1 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
+	};
+	
 	NumberField field_squelch {
-		{ 15 * 8, 1 * 16 },
+		{ 19 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -116,7 +125,7 @@ private:
 	};
 
 	NumberField field_wait {
-		{ 26 * 8, 1 * 16 },
+		{ 28 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
