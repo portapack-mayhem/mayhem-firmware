@@ -66,6 +66,7 @@ private:
 	void handle_retune(uint32_t i);
 	
 	std::vector<rf::Frequency> frequency_list { };
+	std::vector<string> description_list { };
 	int32_t trigger { 0 };
 	int32_t squelch { 0 };
 	uint32_t timer { 0 };
@@ -135,6 +136,10 @@ private:
 	Text text_cycle {
 		{ 0, 5 * 16, 240, 16 },
 		"--/--"
+	};
+	Text desc_cycle {
+		{0, 6 * 16, 240, 16 },
+		" "
 	};
 	
 	std::unique_ptr<ScannerThread> scan_thread { };
