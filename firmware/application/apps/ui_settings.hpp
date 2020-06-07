@@ -200,6 +200,11 @@ private:
 		"Login with play dead"
 	};*/
 	
+	Checkbox checkbox_speaker {
+		{ 3 * 8, 2 * 16 },
+		20,
+		"Hide H1 Speaker option"
+	};
 	Checkbox checkbox_bloff {
 		{ 3 * 8, 5 * 16 },
 		20,
