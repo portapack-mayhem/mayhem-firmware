@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![buddy pipeline](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276/badge.svg?token=48cd59d53de0589a8fbe26bc751d77a59a011cf72581da049343879402991c34 "buddy pipeline")](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack)
 
-This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/), which was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, which is an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork means it is a derivated, so it is basically a clone that has extra features and fixes over the older versions.
+This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/), which was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork means it is a derivated, so it is basically a clone that has extra features and fixes over the older versions.
 
 [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_front.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_inside.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview#portapack-internals)
 
