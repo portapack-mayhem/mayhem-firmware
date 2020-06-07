@@ -168,10 +168,10 @@ void MAX2837::write(const address_t reg_num, const reg_t value) {
 	_target.transfer(&t, 1);
 }
 
-reg_t MAX2837::read(const address_t reg_num) {
-	uint16_t t = (1U << 15) | (reg_num << 10);
-	_target.transfer(&t, 1U);
-	return t & 0x3ffU;
+reg_t MAX2837::read(const address_t reg_num) {	//16 bit registers
+	uint16_t t = (1U << 15) | (reg_num << 10);	// bits: 15 1=read mode 14,13,12,11,10 = register address
+	_target.transfer(&t, 1U);	//read 
+	return t & 0x3ffU;	//Return bits 9,8,7,6,5,4,3,2,1,0 (masked)
 }
 
 void MAX2837::write(const Register reg, const reg_t value) {

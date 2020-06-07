@@ -77,7 +77,7 @@ void TemperatureWidget::paint(Painter& painter) {
 	const Color color_foreground = Color::green();
 	const Color color_reticle { 128, 128, 128 };
 
-	const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
+	const auto graph_width = static_cast<int>(logger.capacity()) * bar_width; //graph_width=128
 	const Rect graph_rect {
 		rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
 		graph_width, rect.height()
@@ -87,9 +87,9 @@ void TemperatureWidget::paint(Painter& painter) {
 		graph_rect.width() + 2, graph_rect.height() + 2
 	};
 	painter.draw_rectangle(frame_rect, color_reticle);
-	painter.fill_rectangle(graph_rect, color_background);
+	painter.fill_rectangle(graph_rect, color_background); //graph area & background done.
+	const auto history = logger.history();	//Start plotting temp
 
-	const auto history = logger.history();
 	for(size_t i=0; i<history.size(); i++) {
 		const Coord x = graph_rect.right() - (history.size() - i) * bar_width;
 		const auto sample = history[i];
@@ -99,13 +99,12 @@ void TemperatureWidget::paint(Painter& painter) {
 		painter.fill_rectangle({ x, y, bar_width, bar_height }, color_foreground);
 	}
 
-	if( !history.empty() ) {
+	if( !history.empty() ) {	//Put current measured temp on graph bottom right
 		const auto sample = history.back();
 		const auto temp = temperature(sample);
 		const auto last_y = screen_y(temp, graph_rect);
 		const Coord x = graph_rect.right() + 8;
 		const Coord y = last_y - 8;
-
 		painter.draw_string({ x, y }, style(), temperature_str(temp));
 	}
 
@@ -325,23 +324,24 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
 			{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		});
 	add_items({
-		{ "RFFC5072",    ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "RFFC5072",    ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 16 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837",     ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "MAX2837",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<RegistersView>(
 			"MAX2837", RegistersWidgetConfig { 32, 10 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C",     ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ "Si5351C",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<RegistersView>(
 			"Si5351C", RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
-		{ audio::debug::codec_name(), ui::Color::cyan(),	nullptr,	[&nav](){ nav.push<RegistersView>(
+		{ audio::debug::codec_name(), ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<RegistersView>(
 			audio::debug::codec_name(), RegistersWidgetConfig { audio::debug::reg_count(), audio::debug::reg_bits() },
 			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
 		); } },
 	});
+		set_max_rows(2); // allow wider buttons
 }
 
 /* DebugMenuView *********************************************************/
@@ -351,12 +351,12 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		});
 	add_items({
-		{ "Memory", 		ui::Color::cyan(),	&bitmap_icon_memory,	[&nav](){ nav.push<DebugMemoryView>(); } },
+		{ "Memory", 		ui::Color::dark_cyan(),	&bitmap_icon_memory,	[&nav](){ nav.push<DebugMemoryView>(); } },
 		//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",		ui::Color::cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals",	ui::Color::cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature",	ui::Color::cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
-		{ "Controls",		ui::Color::cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
+		{ "SD Card",		ui::Color::dark_cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
+		{ "Peripherals",	ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
+		{ "Temperature",	ui::Color::dark_cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
+		{ "Controls",		ui::Color::dark_cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
 	});
 	set_max_rows(2); // allow wider buttons
 }
