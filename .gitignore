@@ -2,6 +2,7 @@
 /firmware/application/application.bin
 /CMakeCache.txt
 /Makefile
+/.vscode
 /firmware/Makefile
 /firmware/baseband/Makefile
 /firmware/bootstrap/Makefile
