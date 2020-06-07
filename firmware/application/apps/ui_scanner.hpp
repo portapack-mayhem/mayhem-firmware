@@ -74,9 +74,9 @@ private:
 	freqman_db database { };
 	
 	Labels labels {
-		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1 * 16 }, "BW:    TR:  /99 SQ:  /99 WT:", Color::light_grey() },
-		{ { 0 * 8, 3 * 16 }, "Work in progress!", Color::light_grey() }
+		{ { 0 * 8, 0 * 16 }, "LNA:    TRIGGER:  /99   VOL:", Color::light_grey() },
+		{ { 0 * 8, 1 * 16 }, "VGA:    SQUELCH:  /99   AMP:", Color::light_grey() },
+		{ { 0 * 8, 2 * 16 }, " BW:       WAIT:", Color::light_grey() },
 	};
 	
 	LNAGainField field_lna {
@@ -84,15 +84,15 @@ private:
 	};
 
 	VGAGainField field_vga {
-		{ 11 * 8, 0 * 16 }
+		{ 4 * 8, 1 * 16 }
 	};
 	
 	RFAmpField field_rf_amp {
-		{ 18 * 8, 0 * 16 }
+		{ 28 * 8, 1 * 16 }
 	};
 	
 	NumberField field_volume {
-		{ 24 * 8, 0 * 16 },
+		{ 28 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -100,7 +100,7 @@ private:
 	};
 
 	OptionsField field_bw {
-		{ 3 * 8, 1 * 16 },
+		{ 4 * 8, 2 * 16 },
 		3,
 		{
 			{ "8k5", 0 },
@@ -110,7 +110,7 @@ private:
 	};
 
 	NumberField field_trigger {
-		{ 10 * 8, 1 * 16 },
+		{ 16 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -118,7 +118,7 @@ private:
 	};
 	
 	NumberField field_squelch {
-		{ 19 * 8, 1 * 16 },
+		{ 16 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -126,7 +126,7 @@ private:
 	};
 
 	NumberField field_wait {
-		{ 28 * 8, 1 * 16 },
+		{ 16 * 8, 2 * 16 },
 		2,
 		{ 0, 99 },
 		1,
