@@ -130,6 +130,7 @@ ScannerView::ScannerView(
 		}
 	} else {
 		// DEBUG
+		// TODO: Clean this
 		frequency_list.push_back(466025000);
 		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466050000);
