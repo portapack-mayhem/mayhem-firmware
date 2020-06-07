@@ -18,7 +18,7 @@ Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-s
 
 ### Where is the latest firmware?
 
-The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions on the description of the release itself to get it on your device. 
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
 
 There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently, but these may contain incomplete functionality.
 
@@ -45,6 +45,6 @@ As a last option, if you want to send money directly to me for getting more boar
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
 ### What if I need help?
-First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related with the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
+First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
 You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook. 
