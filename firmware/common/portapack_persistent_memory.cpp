@@ -218,8 +218,15 @@ void set_playdead_sequence(const uint32_t new_value) {
 	data->playdead_magic = playdead_magic;
 }
 
+bool config_speaker() {
+	return (data->ui_config & 0x10000000UL) ? false : true; // Default true
+}
 bool stealth_mode() {
 	return (data->ui_config & 0x20000000UL) ? true : false;
+}
+
+void set_config_speaker(bool new_value) {
+	data->ui_config = (data->ui_config & ~0x10000000UL) | (!new_value << 28); 
 }
 
 void set_stealth_mode(const bool v) {
