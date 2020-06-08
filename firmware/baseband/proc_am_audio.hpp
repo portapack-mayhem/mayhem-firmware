@@ -35,51 +35,54 @@
 
 #include <cstdint>
 
-class NarrowbandAMAudio : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const message) override;
+class NarrowbandAMAudio : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	static constexpr size_t baseband_fs = 3072000;
-	static constexpr size_t decim_2_decimation_factor = 4;
-	static constexpr size_t channel_filter_decimation_factor = 1;
+		void on_message(const Message* const message) override;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+	private:
+		static constexpr size_t baseband_fs = 3072000;
+		static constexpr size_t decim_2_decimation_factor = 4;
+		static constexpr size_t channel_filter_decimation_factor = 1;
 
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
-	std::array<float, 32> audio { };
-	const buffer_f32_t audio_buffer {
-		audio.data(),
-		audio.size()
-	};
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-	dsp::decimate::FIRAndDecimateComplex decim_2 { };
-	dsp::decimate::FIRAndDecimateComplex channel_filter { };
-	uint32_t channel_filter_pass_f = 0;
-	uint32_t channel_filter_stop_f = 0;
+		std::array<complex16_t, 512> dst { };
+		const buffer_c16_t dst_buffer
+		{
+			dst.data(),
+			dst.size()
+		};
+		std::array<float, 32> audio { };
+		const buffer_f32_t audio_buffer
+		{
+			audio.data(),
+			audio.size()
+		};
 
-	bool modulation_ssb = false;
-	dsp::demodulate::AM demod_am { };
-	dsp::demodulate::SSB demod_ssb { };
-	FeedForwardCompressor audio_compressor { };
-	AudioOutput audio_output { };
+		dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+		dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+		dsp::decimate::FIRAndDecimateComplex decim_2 { };
+		dsp::decimate::FIRAndDecimateComplex channel_filter { };
+		uint32_t channel_filter_pass_f = 0;
+		uint32_t channel_filter_stop_f = 0;
 
-	SpectrumCollector channel_spectrum { };
+		bool modulation_ssb = false;
+		dsp::demodulate::AM demod_am { };
+		dsp::demodulate::SSB demod_ssb { };
+		FeedForwardCompressor audio_compressor { };
+		AudioOutput audio_output { };
 
-	bool configured { false };
-	void configure(const AMConfigureMessage& message);
-	void capture_config(const CaptureConfigMessage& message);
+		SpectrumCollector channel_spectrum { };
 
-	buffer_f32_t demodulate(const buffer_c16_t& channel);
+		bool configured { false };
+		void configure(const AMConfigureMessage& message);
+		void capture_config(const CaptureConfigMessage& message);
+
+		buffer_f32_t demodulate(const buffer_c16_t& channel);
 };
 
 #endif/*__PROC_AM_AUDIO_H__*/

@@ -81,9 +81,9 @@
 //TODO: Optimize (and group ?) CTCSS tone gen code
 /*
 Continuous (Fox-oring)
-12s transmit, 48s space (Sprint 1/5th) 
-60s transmit, 240s space (Classic 1/5 min) 
-60s transmit, 360s space (Classic 1/7 min) 
+12s transmit, 48s space (Sprint 1/5th)
+60s transmit, 240s space (Classic 1/5 min)
+60s transmit, 360s space (Classic 1/7 min)
 */
 //TODO: FreqMan: Remove and rename categories
 //TODO: Mousejack ?
@@ -141,17 +141,21 @@ Continuous (Fox-oring)
 
 #include <string.h>
 
-static void event_loop() {
+static void event_loop()
+{
 	ui::Context context;
-	ui::SystemView system_view {
+	ui::SystemView system_view
+	{
 		context,
 		portapack::display.screen_rect()
 	};
 
 	EventDispatcher event_dispatcher { &system_view, context };
-	MessageHandlerRegistration message_handler_display_sleep {
+	MessageHandlerRegistration message_handler_display_sleep
+	{
 		Message::ID::DisplaySleep,
-		[&event_dispatcher](const Message* const) {
+		[&event_dispatcher](const Message * const)
+		{
 			event_dispatcher.set_display_sleep(true);
 		}
 	};
@@ -159,8 +163,10 @@ static void event_loop() {
 	event_dispatcher.run();
 }
 
-int main(void) {
-	if( portapack::init() ) {
+int main(void)
+{
+	if( portapack::init() )
+	{
 		portapack::display.init();
 
 		sdcStart(&SDCD1, nullptr);

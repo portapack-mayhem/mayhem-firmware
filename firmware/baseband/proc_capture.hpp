@@ -36,41 +36,43 @@
 #include <array>
 #include <memory>
 
-class CaptureProcessor : public BasebandProcessor {
-public:
-	CaptureProcessor();
+class CaptureProcessor : public BasebandProcessor
+{
+	public:
+		CaptureProcessor();
 
-	void execute(const buffer_c8_t& buffer) override;
+		void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message* const message) override;
+		void on_message(const Message* const message) override;
 
-private:
-	// TODO: Repeated value needs to be transmitted from application side.
-	size_t baseband_fs = 0;
-	static constexpr auto spectrum_rate_hz = 50.0f;
+	private:
+		// TODO: Repeated value needs to be transmitted from application side.
+		size_t baseband_fs = 0;
+		static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
+		std::array<complex16_t, 512> dst { };
+		const buffer_c16_t dst_buffer
+		{
+			dst.data(),
+			dst.size()
+		};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
-	uint32_t channel_filter_pass_f = 0;
-	uint32_t channel_filter_stop_f = 0;
+		dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+		dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
+		uint32_t channel_filter_pass_f = 0;
+		uint32_t channel_filter_stop_f = 0;
 
-	std::unique_ptr<StreamInput> stream { };
+		std::unique_ptr<StreamInput> stream { };
 
-	SpectrumCollector channel_spectrum { };
-	size_t spectrum_interval_samples = 0;
-	size_t spectrum_samples = 0;
+		SpectrumCollector channel_spectrum { };
+		size_t spectrum_interval_samples = 0;
+		size_t spectrum_samples = 0;
 
-	void samplerate_config(const SamplerateConfigMessage& message);
-	void capture_config(const CaptureConfigMessage& message);
+		void samplerate_config(const SamplerateConfigMessage& message);
+		void capture_config(const CaptureConfigMessage& message);
 };
 
 #endif/*__PROC_CAPTURE_HPP__*/

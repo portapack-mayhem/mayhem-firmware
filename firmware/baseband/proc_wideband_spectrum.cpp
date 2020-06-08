@@ -28,48 +28,57 @@
 
 #include <array>
 
-void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
+void WidebandSpectrum::execute(const buffer_c8_t& buffer)
+{
 	// 2048 complex8_t samples per buffer.
 	// 102.4us per buffer. 20480 instruction cycles per buffer.
-	
+
 	if (!configured) return;
 
-	if( phase == 0 ) {
+	if( phase == 0 )
+	{
 		std::fill(spectrum.begin(), spectrum.end(), 0);
 	}
 
-	for(size_t i=0; i<spectrum.size(); i++) {
+	for(size_t i = 0; i < spectrum.size(); i++)
+	{
 		// TODO: Removed window-presum windowing, due to lack of available code RAM.
 		// TODO: Apply window to improve spectrum bin sidelobes.
 		spectrum[i] += buffer.p[i +    0];
 		spectrum[i] += buffer.p[i + 1024];
 	}
 
-	if( phase == trigger ) {
-		const buffer_c16_t buffer_c16 {
+	if( phase == trigger )
+	{
+		const buffer_c16_t buffer_c16
+		{
 			spectrum.data(),
 			spectrum.size(),
 			buffer.sampling_rate
 		};
 		channel_spectrum.feed(
-			buffer_c16,
-			0, 0
+		    buffer_c16,
+		    0, 0
 		);
 		phase = 0;
-	} else {
+	}
+	else
+	{
 		phase++;
 	}
 }
 
-void WidebandSpectrum::on_message(const Message* const msg) {
+void WidebandSpectrum::on_message(const Message* const msg)
+{
 	const WidebandSpectrumConfigMessage message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
-	
-	switch(msg->id) {
+
+	switch(msg->id)
+	{
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(msg);
 		break;
-		
+
 	case Message::ID::WidebandSpectrumConfig:
 		baseband_fs = message.sampling_rate;
 		trigger = message.trigger;
@@ -83,7 +92,8 @@ void WidebandSpectrum::on_message(const Message* const msg) {
 	}
 }
 
-int main() {
+int main()
+{
 	EventDispatcher event_dispatcher { std::make_unique<WidebandSpectrum>() };
 	event_dispatcher.run();
 	return 0;

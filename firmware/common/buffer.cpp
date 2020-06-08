@@ -24,13 +24,16 @@
 #if defined(LPC43XX_M4)
 #include "lpc43xx_m4.h"
 
-Timestamp Timestamp::now() {
+Timestamp Timestamp::now()
+{
 	// Code stolen from LPC43xx rtc_lld.c
 	Timestamp timestamp;
-    do {
+	do
+	{
 		timestamp.tv_time = LPC_RTC->CTIME0;
 		timestamp.tv_date = LPC_RTC->CTIME1;
-    } while( (timestamp.tv_time != LPC_RTC->CTIME0) || (timestamp.tv_date != LPC_RTC->CTIME1) );
-    return timestamp;
+	}
+	while( (timestamp.tv_time != LPC_RTC->CTIME0) || (timestamp.tv_date != LPC_RTC->CTIME1) );
+	return timestamp;
 }
 #endif

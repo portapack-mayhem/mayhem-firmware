@@ -23,98 +23,112 @@
 
 #include <cstdint>
 
-namespace portapack {
+namespace portapack
+{
 
-class Backlight {
-public:
-	using value_t = int_fast8_t;
+	class Backlight
+	{
+		public:
+			using value_t = int_fast8_t;
 
-	virtual ~Backlight() = default;
+			virtual ~Backlight() = default;
 
-	virtual value_t levels() const = 0;
+			virtual value_t levels() const = 0;
 
-	virtual void set_level(const value_t value) = 0;
-	virtual value_t level() const = 0;
+			virtual void set_level(const value_t value) = 0;
+			virtual value_t level() const = 0;
 
-	virtual void increase() = 0;
-	virtual void decrease() = 0;
+			virtual void increase() = 0;
+			virtual void decrease() = 0;
 
-	virtual void on() = 0;
-	virtual void off() = 0;
+			virtual void on() = 0;
+			virtual void off() = 0;
 
-	virtual bool is_on() const = 0;
-};
+			virtual bool is_on() const = 0;
+	};
 
-class BacklightBase : public Backlight {
-public:
-	void increase() override {
-		set_level(level() + 1);
-	}
+	class BacklightBase : public Backlight
+	{
+		public:
+			void increase() override
+			{
+				set_level(level() + 1);
+			}
 
-	void decrease() override {
-		set_level(level() - 1);
-	}
-};
+			void decrease() override
+			{
+				set_level(level() - 1);
+			}
+	};
 
-class BacklightOnOff : public BacklightBase {
-public:
-	value_t levels() const override {
-		return 1;
-	}
+	class BacklightOnOff : public BacklightBase
+	{
+		public:
+			value_t levels() const override
+			{
+				return 1;
+			}
 
-	void set_level(const value_t) override {
-	}
+			void set_level(const value_t) override
+			{
+			}
 
-	value_t level() const override {
-		return levels() - 1;
-	}
+			value_t level() const override
+			{
+				return levels() - 1;
+			}
 
-	void on() override;
-	void off() override;
+			void on() override;
+			void off() override;
 
-	bool is_on() const override {
-		return on_;
-	}
+			bool is_on() const override
+			{
+				return on_;
+			}
 
-private:
-	static constexpr value_t maximum_level = 1;
+		private:
+			static constexpr value_t maximum_level = 1;
 
-	bool on_ { false };
-};
+			bool on_ { false };
+	};
 
-class BacklightCAT4004 : public BacklightBase {
-public:
-	value_t levels() const override {
-		return maximum_level + 1;
-	}
+	class BacklightCAT4004 : public BacklightBase
+	{
+		public:
+			value_t levels() const override
+			{
+				return maximum_level + 1;
+			}
 
-	void set_level(const value_t value) override;
+			void set_level(const value_t value) override;
 
-	value_t level() const override {
-		return level_;
-	}
+			value_t level() const override
+			{
+				return level_;
+			}
 
-	void on() override;
-	void off() override;
+			void on() override;
+			void off() override;
 
-	bool is_on() const override {
-		return on_;
-	}
+			bool is_on() const override
+			{
+				return on_;
+			}
 
-private:
-	static constexpr value_t initial_brightness = 25;
-	static constexpr value_t maximum_level = 31;
+		private:
+			static constexpr value_t initial_brightness = 25;
+			static constexpr value_t maximum_level = 31;
 
-	static constexpr uint32_t ticks_setup  = 204e6 * 10e-6;
-	static constexpr uint32_t ms_pwrdwn    = 5;
-	static constexpr uint32_t ticks_lo     = 204e6 * 1e-6;
-	static constexpr uint32_t ticks_hi     = 204e6 * 1e-6;
+			static constexpr uint32_t ticks_setup  = 204e6 * 10e-6;
+			static constexpr uint32_t ms_pwrdwn    = 5;
+			static constexpr uint32_t ticks_lo     = 204e6 * 1e-6;
+			static constexpr uint32_t ticks_hi     = 204e6 * 1e-6;
 
-	value_t level_ { initial_brightness };
-	bool on_ { false };
+			value_t level_ { initial_brightness };
+			bool on_ { false };
 
-	void pulses(value_t target);
-	void pulse();
-};
+			void pulses(value_t target);
+			void pulse();
+	};
 
 } /* namespace portapack */

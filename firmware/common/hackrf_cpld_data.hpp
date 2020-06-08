@@ -24,16 +24,19 @@
 
 #include "cpld_xilinx.hpp"
 
-namespace hackrf {
-namespace one {
-namespace cpld {
+namespace hackrf
+{
+	namespace one
+	{
+		namespace cpld
+		{
 
-using CPLD = ::cpld::xilinx::XC2C64A;
+			using CPLD = ::cpld::xilinx::XC2C64A;
 
-extern const CPLD::verify_blocks_t verify_blocks;
+			extern const CPLD::verify_blocks_t verify_blocks;
 
-} /* namespace hackrf */
-} /* namespace one */
+		} /* namespace hackrf */
+	} /* namespace one */
 } /* namespace cpld */
 
 #endif/*__HACKRF_CPLD_DATA_H__*/

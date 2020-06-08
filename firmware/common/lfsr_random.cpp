@@ -33,7 +33,8 @@ static void lfsr_iterate_internal(lfsr_word_t& v)
 		shift-amounts   : (12, 12, 8)
 		shift-direction : left
 	*/
-	enum {
+	enum
+	{
 		length         = 31,
 		tap_0          = 31,
 		tap_1          = 18,
@@ -44,60 +45,66 @@ static void lfsr_iterate_internal(lfsr_word_t& v)
 
 	const lfsr_word_t zero = 0;
 	v = (
-		(
-			v << shift_amount_0
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_0)) ^
-				(v >> (tap_1 - shift_amount_0))
-			) & (
-				~(~zero << shift_amount_0)
-			)
-		)
-	);
+	        (
+	            v << shift_amount_0
+	        ) | (
+	            (
+	                (v >> (tap_0 - shift_amount_0)) ^
+	                (v >> (tap_1 - shift_amount_0))
+	            ) & (
+	                ~(~zero << shift_amount_0)
+	            )
+	        )
+	    );
 	v = (
-		(
-			v << shift_amount_1
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_1)) ^
-				(v >> (tap_1 - shift_amount_1))
-			) & (
-				~(~zero << shift_amount_1)
-			)
-		)
-	);
+	        (
+	            v << shift_amount_1
+	        ) | (
+	            (
+	                (v >> (tap_0 - shift_amount_1)) ^
+	                (v >> (tap_1 - shift_amount_1))
+	            ) & (
+	                ~(~zero << shift_amount_1)
+	            )
+	        )
+	    );
 	v = (
-		(
-			v << shift_amount_2
-		) | (
-			(
-				(v >> (tap_0 - shift_amount_2)) ^
-				(v >> (tap_1 - shift_amount_2))
-			) & (
-				~(~zero << shift_amount_2)
-			)
-		)
-	);
+	        (
+	            v << shift_amount_2
+	        ) | (
+	            (
+	                (v >> (tap_0 - shift_amount_2)) ^
+	                (v >> (tap_1 - shift_amount_2))
+	            ) & (
+	                ~(~zero << shift_amount_2)
+	            )
+	        )
+	    );
 }
 
-lfsr_word_t lfsr_iterate(lfsr_word_t v) {
+lfsr_word_t lfsr_iterate(lfsr_word_t v)
+{
 	lfsr_iterate_internal(v);
 	return v;
 }
 
-void lfsr_fill(lfsr_word_t& v, lfsr_word_t* buffer, size_t word_count) {
-	while( word_count != 0 ) {
+void lfsr_fill(lfsr_word_t& v, lfsr_word_t* buffer, size_t word_count)
+{
+	while( word_count != 0 )
+	{
 		lfsr_iterate_internal(v);
 		*(buffer++) = v;
 		word_count--;
 	}
 }
 
-bool lfsr_compare(lfsr_word_t& v, const lfsr_word_t* buffer, size_t word_count) {
-	while( word_count != 0 ) {
+bool lfsr_compare(lfsr_word_t& v, const lfsr_word_t* buffer, size_t word_count)
+{
+	while( word_count != 0 )
+	{
 		lfsr_iterate_internal(v);
-		if( *(buffer++) != v ) {
+		if( *(buffer++) != v )
+		{
 			return false;
 		}
 		word_count--;

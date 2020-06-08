@@ -32,8 +32,10 @@
 
 #include <algorithm>
 
-void TvCollector::on_message(const Message* const message) {
-	switch(message->id) {
+void TvCollector::on_message(const Message* const message)
+{
+	switch(message->id)
+	{
 	case Message::ID::UpdateSpectrum:
 		update();
 		break;
@@ -47,28 +49,35 @@ void TvCollector::on_message(const Message* const message) {
 	}
 }
 
-void TvCollector::set_state(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+void TvCollector::set_state(const SpectrumStreamingConfigMessage& message)
+{
+	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running )
+	{
 		start();
-	} else {
+	}
+	else
+	{
 		stop();
 	}
 }
 
-void TvCollector::start() {
+void TvCollector::start()
+{
 	streaming = true;
 	ChannelSpectrumConfigMessage message { &fifo };
 	shared_memory.application_queue.push(message);
 }
 
-void TvCollector::stop() {
+void TvCollector::stop()
+{
 	streaming = false;
 	fifo.reset_in();
 }
 
 void TvCollector::set_decimation_factor(
-	const size_t decimation_factor
-) {
+    const size_t decimation_factor
+)
+{
 	channel_spectrum_decimator.set_factor(decimation_factor);
 }
 
@@ -78,40 +87,49 @@ void TvCollector::set_decimation_factor(
  */
 
 void TvCollector::feed(
-	const buffer_c16_t& channel
-) {
+    const buffer_c16_t& channel
+)
+{
 	// Called from baseband processing thread.
-	channel_spectrum_decimator.feed(channel,[this](const buffer_c16_t& data) {this->post_message(data);});
+	channel_spectrum_decimator.feed(channel, [this](const buffer_c16_t& data)
+	{
+		this->post_message(data);
+	});
 }
 
-void TvCollector::post_message(const buffer_c16_t& data) {
+void TvCollector::post_message(const buffer_c16_t& data)
+{
 	// Called from baseband processing thread.
-        float re, im;
+	float re, im;
 	float mag;
-        float max;
-	if( streaming && !channel_spectrum_request_update ) {
-                for(size_t i=0; i<256; i++) 
+	float max;
+	if( streaming && !channel_spectrum_request_update )
+	{
+		for(size_t i = 0; i < 256; i++)
 		{
 			const auto s = data.p[i];
-                        re = (float)(data.p[i].real());
+			re = (float)(data.p[i].real());
 			im = (float)(data.p[i].imag());
 			mag = __builtin_sqrtf((re * re) + (im * im)) ;
 			channel_spectrum[i] = {mag, mag};
 		}
-                channel_spectrum_sampling_rate = data.sampling_rate;
+		channel_spectrum_sampling_rate = data.sampling_rate;
 		channel_spectrum_request_update = true;
 		EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
 	}
 }
 
 
-void TvCollector::update() {
+void TvCollector::update()
+{
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
-	if( streaming && channel_spectrum_request_update ) {
+	if( streaming && channel_spectrum_request_update )
+	{
 		ChannelSpectrum spectrum;
 		spectrum.sampling_rate = channel_spectrum_sampling_rate;
-		for(size_t i=0; i<spectrum.db.size(); i++) {
-                        const auto corrected_sample = channel_spectrum[i].real();
+		for(size_t i = 0; i < spectrum.db.size(); i++)
+		{
+			const auto corrected_sample = channel_spectrum[i].real();
 			const unsigned int v = corrected_sample + 127.0f;
 			spectrum.db[i] = std::max(0U, std::min(255U, v));
 		}

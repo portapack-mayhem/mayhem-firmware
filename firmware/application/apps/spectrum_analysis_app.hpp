@@ -25,19 +25,22 @@
 #include "receiver_model.hpp"
 #include "ui_spectrum.hpp"
 
-class SpectrumAnalysisModel {
-public:
-	SpectrumAnalysisModel();
+class SpectrumAnalysisModel
+{
+	public:
+		SpectrumAnalysisModel();
 };
 
-namespace ui {
+namespace ui
+{
 
-class SpectrumAnalysisView : public spectrum::WaterfallWidget {
-public:
+	class SpectrumAnalysisView : public spectrum::WaterfallWidget
+	{
+		public:
 
-private:
-	SpectrumAnalysisModel model;
-};
+		private:
+			SpectrumAnalysisModel model;
+	};
 
 } /* namespace ui */
 

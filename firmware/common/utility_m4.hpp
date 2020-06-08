@@ -26,7 +26,8 @@
 
 #include <hal.h>
 
-static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type a, const complex16_t::rep_type b) {
+static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type a, const complex16_t::rep_type b)
+{
 	// conjugate: conj(a + bj) = a - bj
 	// multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j
 	// conjugate-multiply: (ac + bd) + (bc - ad)j

@@ -26,24 +26,27 @@
 
 #include "rssi.hpp"
 
-namespace rf {
-namespace rssi {
-namespace dma {
+namespace rf
+{
+	namespace rssi
+	{
+		namespace dma
+		{
 
-void init();
+			void init();
 
-void allocate(size_t buffer_count, size_t items_per_buffer);
-void free();
+			void allocate(size_t buffer_count, size_t items_per_buffer);
+			void free();
 
-void enable();
-bool is_enabled();
+			void enable();
+			bool is_enabled();
 
-void disable();
+			void disable();
 
-rf::rssi::buffer_t wait_for_buffer();
+			rf::rssi::buffer_t wait_for_buffer();
 
-} /* namespace dma */
-} /* namespace rssi */
+		} /* namespace dma */
+	} /* namespace rssi */
 } /* namespace rf */
 
 #endif/*__RSSI_DMA_H__*/

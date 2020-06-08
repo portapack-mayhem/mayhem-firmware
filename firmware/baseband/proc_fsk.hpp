@@ -26,28 +26,29 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class FSKProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const p) override;
+class FSKProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	bool configured = false;
-	
-	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	uint32_t samples_per_bit { 0 };
-	uint32_t length { 0 };
-	
-    uint32_t shift_zero { }, shift_one { };
-    uint32_t bit_pos { 0 };
-    uint32_t progress_notice { }, progress_count { 0 };
-    uint8_t cur_bit { 0 };
-    uint32_t sample_count { 0 };
-	uint32_t phase { 0 }, sphase { 0 };
-	
-	TXProgressMessage txprogress_message { };
+		void on_message(const Message* const p) override;
+
+	private:
+		bool configured = false;
+
+		BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+		uint32_t samples_per_bit { 0 };
+		uint32_t length { 0 };
+
+		uint32_t shift_zero { }, shift_one { };
+		uint32_t bit_pos { 0 };
+		uint32_t progress_notice { }, progress_count { 0 };
+		uint8_t cur_bit { 0 };
+		uint32_t sample_count { 0 };
+		uint32_t phase { 0 }, sphase { 0 };
+
+		TXProgressMessage txprogress_message { };
 };
 
 #endif

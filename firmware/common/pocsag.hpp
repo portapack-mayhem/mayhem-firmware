@@ -33,52 +33,58 @@
 #include "pocsag_packet.hpp"
 #include "bch_code.hpp"
 
-namespace pocsag {
+namespace pocsag
+{
 
-// Todo: these enums suck, make a better decode_batch
+	// Todo: these enums suck, make a better decode_batch
 
-enum Mode : uint32_t {
-	STATE_CLEAR,
-	STATE_HAVE_ADDRESS,
-	STATE_GETTING_MSG
-};
+	enum Mode : uint32_t
+	{
+		STATE_CLEAR,
+		STATE_HAVE_ADDRESS,
+		STATE_GETTING_MSG
+	};
 
-enum OutputType : uint32_t {
-	EMPTY,
-	ADDRESS,
-	MESSAGE
-};
+	enum OutputType : uint32_t
+	{
+		EMPTY,
+		ADDRESS,
+		MESSAGE
+	};
 
-enum MessageType : uint32_t {
-	ADDRESS_ONLY,
-	NUMERIC_ONLY,
-	ALPHANUMERIC
-};
+	enum MessageType : uint32_t
+	{
+		ADDRESS_ONLY,
+		NUMERIC_ONLY,
+		ALPHANUMERIC
+	};
 
-struct POCSAGState {
-	uint32_t function;
-	uint32_t address;
-	Mode mode = STATE_CLEAR;
-	OutputType out_type = EMPTY;
-	uint32_t ascii_data;
-	uint32_t ascii_idx;
-	std::string output;
-};
+	struct POCSAGState
+	{
+		uint32_t function;
+		uint32_t address;
+		Mode mode = STATE_CLEAR;
+		OutputType out_type = EMPTY;
+		uint32_t ascii_data;
+		uint32_t ascii_idx;
+		std::string output;
+	};
 
-const pocsag::BitRate pocsag_bitrates[3] = {
-	pocsag::BitRate::FSK512,
-	pocsag::BitRate::FSK1200,
-	pocsag::BitRate::FSK2400
-};
+	const pocsag::BitRate pocsag_bitrates[3] =
+	{
+		pocsag::BitRate::FSK512,
+		pocsag::BitRate::FSK1200,
+		pocsag::BitRate::FSK2400
+	};
 
-std::string bitrate_str(BitRate bitrate);
-std::string flag_str(PacketFlag packetflag);
+	std::string bitrate_str(BitRate bitrate);
+	std::string flag_str(PacketFlag packetflag);
 
-void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
-uint32_t get_digit_code(char code);
-void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message,
-					const uint32_t address, std::vector<uint32_t>& codewords);
-void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
+	void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
+	uint32_t get_digit_code(char code);
+	void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message,
+	                   const uint32_t address, std::vector<uint32_t>& codewords);
+	void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
 
 } /* namespace pocsag */
 

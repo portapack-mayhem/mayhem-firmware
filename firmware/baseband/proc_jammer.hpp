@@ -30,30 +30,31 @@
 
 using namespace jammer;
 
-class JammerProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const msg) override;
+class JammerProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	bool configured { false };
-	
-	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	JammerChannel * jammer_channels {  };
-	
-	JammerType noise_type { };
-	uint32_t tone_delta { 0 }, lfsr { }, feedback { };
-	uint32_t noise_period { 0 }, period_counter { 0 };
-    uint32_t jammer_duration { 0 };
-    uint32_t current_range { 0 };
-	int64_t jammer_center { 0 }, jammer_bw { 0 };
-    uint32_t sample_count { 0 };
-	uint32_t aphase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
-	int8_t sample { 0 };
-	int8_t re { 0 }, im { 0 };
-	RetuneMessage message { };
+		void on_message(const Message* const msg) override;
+
+	private:
+		bool configured { false };
+
+		BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+		JammerChannel * jammer_channels {  };
+
+		JammerType noise_type { };
+		uint32_t tone_delta { 0 }, lfsr { }, feedback { };
+		uint32_t noise_period { 0 }, period_counter { 0 };
+		uint32_t jammer_duration { 0 };
+		uint32_t current_range { 0 };
+		int64_t jammer_center { 0 }, jammer_bw { 0 };
+		uint32_t sample_count { 0 };
+		uint32_t aphase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
+		int8_t sample { 0 };
+		int8_t re { 0 }, im { 0 };
+		RetuneMessage message { };
 };
 
 #endif

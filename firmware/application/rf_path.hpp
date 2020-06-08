@@ -26,49 +26,54 @@
 
 #include <cstdint>
 
-namespace rf {
+namespace rf
+{
 
-using Frequency = int64_t;
-using FrequencyRange = range_t<Frequency>;
+	using Frequency = int64_t;
+	using FrequencyRange = range_t<Frequency>;
 
-enum class Direction {
-	/* Zero-based, used as index into table */
-	Receive = 0,
-	Transmit = 1,
-};
+	enum class Direction
+	{
+		/* Zero-based, used as index into table */
+		Receive = 0,
+		Transmit = 1,
+	};
 
-namespace path {
+	namespace path
+	{
 
-constexpr FrequencyRange band_low  {                0,        2150000000 };
-constexpr FrequencyRange band_high {       2750000000,        7250000000 };
-constexpr FrequencyRange band_mid  { band_low.maximum, band_high.minimum };
+		constexpr FrequencyRange band_low  {                0,        2150000000 };
+		constexpr FrequencyRange band_high {       2750000000,        7250000000 };
+		constexpr FrequencyRange band_mid  { band_low.maximum, band_high.minimum };
 
-enum class Band {
-	/* Zero-based, used as index into frequency_bands table */
-	Low = 0,
-	Mid = 1,
-	High = 2,
-};
+		enum class Band
+		{
+			/* Zero-based, used as index into frequency_bands table */
+			Low = 0,
+			Mid = 1,
+			High = 2,
+		};
 
-class Path {
-public:
-	void init();
+		class Path
+		{
+			public:
+				void init();
 
-	void set_direction(const Direction direction);
-	void set_band(const Band band);
-	void set_rf_amp(const bool rf_amp);
+				void set_direction(const Direction direction);
+				void set_band(const Band band);
+				void set_rf_amp(const bool rf_amp);
 
-private:
-	Direction direction { Direction::Receive };
-	Band band { Band::Mid };
-	bool rf_amp { false };
+			private:
+				Direction direction { Direction::Receive };
+				Band band { Band::Mid };
+				bool rf_amp { false };
 
-	void update();
-};
+				void update();
+		};
 
-} /* path */
+	} /* path */
 
-constexpr FrequencyRange tuning_range { path::band_low.minimum, path::band_high.maximum };
+	constexpr FrequencyRange tuning_range { path::band_low.minimum, path::band_high.maximum };
 
 } /* rf */
 

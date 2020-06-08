@@ -36,61 +36,65 @@
 #include "fifo.hpp"
 #include "message.hpp"
 
-class NRFRxProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
+class NRFRxProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message* const message) override;
-	
-private:
-	static constexpr size_t baseband_fs = 4000000;
-	static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
-	
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
-	
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
+		void on_message(const Message* const message) override;
 
-        std::array<complex16_t, 512> spectrum { };
-	const buffer_c16_t spectrum_buffer {
-		spectrum.data(),
-		spectrum.size()
-	};
+	private:
+		static constexpr size_t baseband_fs = 4000000;
+		static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
 
-	const buffer_s16_t work_audio_buffer {
-		(int16_t*)dst.data(),
-		sizeof(dst) / sizeof(int16_t)
-	};
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
+
+		std::array<complex16_t, 512> dst { };
+		const buffer_c16_t dst_buffer
+		{
+			dst.data(),
+			dst.size()
+		};
+
+		std::array<complex16_t, 512> spectrum { };
+		const buffer_c16_t spectrum_buffer
+		{
+			spectrum.data(),
+			spectrum.size()
+		};
+
+		const buffer_s16_t work_audio_buffer
+		{
+			(int16_t*)dst.data(),
+			sizeof(dst) / sizeof(int16_t)
+		};
 
 
-	// Array size ok down to 375 bauds (24000 / 375)
-	std::array<int32_t, 64> delay_line { 0 };
-	std::array<int16_t, 1000> rb_buf { 0 };
+		// Array size ok down to 375 bauds (24000 / 375)
+		std::array<int32_t, 64> delay_line { 0 };
+		std::array<int16_t, 1000> rb_buf { 0 };
 
-	/*dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-	dsp::decimate::FIRAndDecimateComplex channel_filter { };*/
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
-	
-	dsp::demodulate::FM demod { };
-	int rb_head {-1};
-	int32_t g_threshold {0};  
-	//uint8_t g_srate {8}; 
-	uint8_t channel_number {38};
-	int skipSamples {1000};
-	int RB_SIZE {1000};
+		/*dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+		dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+		dsp::decimate::FIRAndDecimateComplex channel_filter { };*/
+		dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+		dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 
-	bool configured { false };
+		dsp::demodulate::FM demod { };
+		int rb_head {-1};
+		int32_t g_threshold {0};
+		//uint8_t g_srate {8};
+		uint8_t channel_number {38};
+		int skipSamples {1000};
+		int RB_SIZE {1000};
 
-	
-	void configure(const NRFRxConfigureMessage& message);
-	
-	AFSKDataMessage data_message { false, 0 };
+		bool configured { false };
+
+
+		void configure(const NRFRxConfigureMessage& message);
+
+		AFSKDataMessage data_message { false, 0 };
 };
 
 #endif/*__PROC_NRFRX_H__*/

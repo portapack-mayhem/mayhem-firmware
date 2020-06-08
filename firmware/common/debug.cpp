@@ -27,12 +27,14 @@
 #include "portapack_shared_memory.hpp"
 
 #if defined(LPC43XX_M0)
-static void debug_indicate_error_init() {
+static void debug_indicate_error_init()
+{
 	// TODO: Get knowledge of LED GPIO port/bit from shared place.
 	LPC_GPIO->CLR[2] = (1 << 2);
 }
 
-static void debug_indicate_error_update() {
+static void debug_indicate_error_update()
+{
 	// Flash RX (yellow) LED to indicate baseband error.
 	// TODO: Get knowledge of LED GPIO port/bit from shared place.
 	LPC_GPIO->NOT[2] = (1 << 2);
@@ -40,22 +42,26 @@ static void debug_indicate_error_update() {
 #endif
 
 #if defined(LPC43XX_M4)
-static void debug_indicate_error_init() {
+static void debug_indicate_error_init()
+{
 	// TODO: Get knowledge of LED GPIO port/bit from shared place.
 	LPC_GPIO->CLR[2] = (1 << 8);
 }
 
-static void debug_indicate_error_update() {
+static void debug_indicate_error_update()
+{
 	// Flash TX (red) LED to indicate baseband error.
 	// TODO: Get knowledge of LED GPIO port/bit from shared place.
 	LPC_GPIO->NOT[2] = (1 << 8);
 }
 #endif
 
-static void runtime_error() {
+static void runtime_error()
+{
 	debug_indicate_error_init();
 
-	while(true) {
+	while(true)
+	{
 		volatile size_t n = 1000000U;
 		while(n--);
 		debug_indicate_error_update();
@@ -64,45 +70,53 @@ static void runtime_error() {
 
 extern "C" {
 
-void port_halt(void) {
-	// Copy debug panic message to M0 region.
-	const auto* p = dbg_panic_msg;
-	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
-		if( *p == 0 ) {
-			shared_memory.m4_panic_msg[i] = 0;
-		} else {
-			shared_memory.m4_panic_msg[i] = *(p++);
+	void port_halt(void)
+	{
+		// Copy debug panic message to M0 region.
+		const auto* p = dbg_panic_msg;
+		for(size_t i = 0; i < sizeof(shared_memory.m4_panic_msg); i++)
+		{
+			if( *p == 0 )
+			{
+				shared_memory.m4_panic_msg[i] = 0;
+			}
+			else
+			{
+				shared_memory.m4_panic_msg[i] = *(p++);
+			}
 		}
+
+		port_disable();
+		runtime_error();
 	}
 
-	port_disable();
-	runtime_error();
-}
-
 #if defined(LPC43XX_M4)
-CH_IRQ_HANDLER(MemManageVector) {
+	CH_IRQ_HANDLER(MemManageVector)
+	{
 #if CH_DBG_ENABLED
-	chDbgPanic("MemManage");
+		chDbgPanic("MemManage");
 #else
-	chSysHalt();
+		chSysHalt();
 #endif
-}
+	}
 
-CH_IRQ_HANDLER(BusFaultVector) {
+	CH_IRQ_HANDLER(BusFaultVector)
+	{
 #if CH_DBG_ENABLED
-	chDbgPanic("BusFault");
+		chDbgPanic("BusFault");
 #else
-	chSysHalt();
+		chSysHalt();
 #endif
-}
+	}
 
-CH_IRQ_HANDLER(UsageFaultVector) {
+	CH_IRQ_HANDLER(UsageFaultVector)
+	{
 #if CH_DBG_ENABLED
-	chDbgPanic("UsageFault");
+		chDbgPanic("UsageFault");
 #else
-	chSysHalt();
+		chSysHalt();
 #endif
-}
+	}
 #endif
 
 }

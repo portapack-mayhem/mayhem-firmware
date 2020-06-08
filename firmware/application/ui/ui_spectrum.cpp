@@ -33,371 +33,430 @@ using namespace portapack;
 #include <cmath>
 #include <array>
 
-namespace ui {
-namespace spectrum {
-
-/* AudioSpectrumView******************************************************/
-
-AudioSpectrumView::AudioSpectrumView(
-	const Rect parent_rect
-) : View { parent_rect }
+namespace ui
 {
-	set_focusable(true);
-	
-	add_children({
-		&labels,
-		&field_frequency,
-		&waveform
-	});
-	
-	field_frequency.on_change = [this](int32_t) {
-		set_dirty();
-	};
-	field_frequency.set_value(0);
-}
+	namespace spectrum
+	{
 
-void AudioSpectrumView::paint(Painter& painter) {
-	const auto r = screen_rect();
+		/* AudioSpectrumView******************************************************/
 
-	painter.fill_rectangle(r, Color::black());
+		AudioSpectrumView::AudioSpectrumView(
+		    const Rect parent_rect
+		) : View { parent_rect }
+		{
+			set_focusable(true);
 
-	//if( !spectrum_sampling_rate ) return;
-	
-	// Cursor
-	const Rect r_cursor {
-		field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
-		1, cursor_band_height
-	};
-	painter.fill_rectangle(
-		r_cursor,
-		Color::red()
-	);
-}
+			add_children(
+			{
+				&labels,
+				&field_frequency,
+				&waveform
+			});
 
-void AudioSpectrumView::on_audio_spectrum(const AudioSpectrum* spectrum) {
-	for (size_t i = 0; i < spectrum->db.size(); i++)
-		audio_spectrum[i] = ((int16_t)spectrum->db[i] - 127) * 256;
-	waveform.set_dirty();
-}
+			field_frequency.on_change = [this](int32_t)
+			{
+				set_dirty();
+			};
+			field_frequency.set_value(0);
+		}
 
-/* FrequencyScale ********************************************************/
+		void AudioSpectrumView::paint(Painter& painter)
+		{
+			const auto r = screen_rect();
 
-void FrequencyScale::on_show() {
-	clear();
-}
+			painter.fill_rectangle(r, Color::black());
 
-void FrequencyScale::set_spectrum_sampling_rate(const int new_sampling_rate) {
-	if( (spectrum_sampling_rate != new_sampling_rate) ) {
-		spectrum_sampling_rate = new_sampling_rate;
-		set_dirty();
-	}
-}
+			//if( !spectrum_sampling_rate ) return;
 
-void FrequencyScale::set_channel_filter(
-	const int pass_frequency,
-	const int stop_frequency
-) {
-	if( (channel_filter_pass_frequency != pass_frequency) ||
-		(channel_filter_stop_frequency != stop_frequency) ) {
-		channel_filter_pass_frequency = pass_frequency;
-		channel_filter_stop_frequency = stop_frequency;
-		set_dirty();
-	}
-}
-
-void FrequencyScale::paint(Painter& painter) {
-	const auto r = screen_rect();
-
-	clear_background(painter, r);
-
-	if( !spectrum_sampling_rate ) {
-		// Can't draw without non-zero scale.
-		return;
-	}
-
-	draw_filter_ranges(painter, r);
-	draw_frequency_ticks(painter, r);
-	
-	if (_blink) {
-		const Rect r_cursor {
-			120 + cursor_position, r.bottom() - filter_band_height,
-			2, filter_band_height
-		};
-		painter.fill_rectangle(
-			r_cursor,
-			Color::red()
-		);
-	}
-}
-
-void FrequencyScale::clear() {
-	spectrum_sampling_rate = 0;
-	set_dirty();
-}
-
-void FrequencyScale::clear_background(Painter& painter, const Rect r) {
-	painter.fill_rectangle(r, Color::black());
-}
-
-void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
-	const auto x_center = r.width() / 2;
-
-	const Rect tick { r.left() + x_center, r.top(), 1, r.height() };
-	painter.fill_rectangle(tick, Color::white());
-
-	constexpr int tick_count_max = 4;
-	float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
-	int magnitude = 1;
-	int magnitude_n = 0;
-	while(rough_tick_interval >= 10.0f) {
-		rough_tick_interval /= 10;
-		magnitude *= 10;
-		magnitude_n += 1;
-	}
-	const int tick_interval = std::ceil(rough_tick_interval);
-
-	auto tick_offset = tick_interval;
-	while((tick_offset * magnitude) < spectrum_sampling_rate / 2) {
-		const Dim pixel_offset = tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
-
-		const std::string zero_pad =
-			((magnitude_n % 3) == 0) ? "" :
-			((magnitude_n % 3) == 1) ? "0" : "00";
-		const std::string unit =
-			(magnitude_n >= 6) ? "M" :
-			(magnitude_n >= 3) ? "k" : "";
-		const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
-		const auto label_width = style().font.size_of(label).width();
-		
-		const Coord offset_low = r.left() + x_center - pixel_offset;
-		const Rect tick_low { offset_low, r.top(), 1, r.height() };
-		painter.fill_rectangle(tick_low, Color::white());
-		painter.draw_string({ offset_low + 2, r.top() }, style(), label );
-
-		const Coord offset_high = r.left() + x_center + pixel_offset;
-		const Rect tick_high { offset_high, r.top(), 1, r.height() };
-		painter.fill_rectangle(tick_high, Color::white());
-		painter.draw_string({ offset_high - 2 - label_width, r.top() }, style(), label );
-
-		tick_offset += tick_interval;
-	}
-}
-
-void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
-	if( channel_filter_pass_frequency ) {
-		const auto x_center = r.width() / 2;
-
-		const auto pass_offset = channel_filter_pass_frequency * spectrum_bins / spectrum_sampling_rate;
-		const auto stop_offset = channel_filter_stop_frequency * spectrum_bins / spectrum_sampling_rate;
-
-		const auto pass_x_lo = x_center - pass_offset;
-		const auto pass_x_hi = x_center + pass_offset;
-
-		if( channel_filter_stop_frequency ) {
-			const auto stop_x_lo = x_center - stop_offset;
-			const auto stop_x_hi = x_center + stop_offset;
-
-			const Rect r_stop_lo {
-				r.left() + stop_x_lo, r.bottom() - filter_band_height,
-				pass_x_lo - stop_x_lo, filter_band_height
+			// Cursor
+			const Rect r_cursor
+			{
+				field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
+				1, cursor_band_height
 			};
 			painter.fill_rectangle(
-				r_stop_lo,
-				Color::yellow()
-			);
-
-			const Rect r_stop_hi {
-				r.left() + pass_x_hi, r.bottom() - filter_band_height,
-				stop_x_hi - pass_x_hi, filter_band_height
-			};
-			painter.fill_rectangle(
-				r_stop_hi,
-				Color::yellow()
+			    r_cursor,
+			    Color::red()
 			);
 		}
 
-		const Rect r_pass {
-			r.left() + pass_x_lo, r.bottom() - filter_band_height,
-			pass_x_hi - pass_x_lo, filter_band_height
-		};
-		painter.fill_rectangle(
-			r_pass,
-			Color::green()
-		);
-	}
-}
+		void AudioSpectrumView::on_audio_spectrum(const AudioSpectrum* spectrum)
+		{
+			for (size_t i = 0; i < spectrum->db.size(); i++)
+				audio_spectrum[i] = ((int16_t)spectrum->db[i] - 127) * 256;
+			waveform.set_dirty();
+		}
 
-void FrequencyScale::on_focus() {
-	_blink = true;
-	on_tick_second();
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
-}
+		/* FrequencyScale ********************************************************/
 
-void FrequencyScale::on_blur() {
-	rtc_time::signal_tick_second -= signal_token_tick_second;
-	_blink = false;
-	set_dirty();
-}
+		void FrequencyScale::on_show()
+		{
+			clear();
+		}
 
-bool FrequencyScale::on_encoder(const EncoderEvent delta) {
-	cursor_position += delta;
-	
-	cursor_position = std::min<int32_t>(cursor_position, 119);
-	cursor_position = std::max<int32_t>(cursor_position, -120);
-	
-	set_dirty();
-	
-	return true;
-}
+		void FrequencyScale::set_spectrum_sampling_rate(const int new_sampling_rate)
+		{
+			if( (spectrum_sampling_rate != new_sampling_rate) )
+			{
+				spectrum_sampling_rate = new_sampling_rate;
+				set_dirty();
+			}
+		}
 
-bool FrequencyScale::on_key(const KeyEvent key) {
-	if( key == KeyEvent::Select ) {
-		if( on_select ) {
-			on_select((cursor_position * spectrum_sampling_rate) / 240);
-			cursor_position = 0;
+		void FrequencyScale::set_channel_filter(
+		    const int pass_frequency,
+		    const int stop_frequency
+		)
+		{
+			if( (channel_filter_pass_frequency != pass_frequency) ||
+			        (channel_filter_stop_frequency != stop_frequency) )
+			{
+				channel_filter_pass_frequency = pass_frequency;
+				channel_filter_stop_frequency = stop_frequency;
+				set_dirty();
+			}
+		}
+
+		void FrequencyScale::paint(Painter& painter)
+		{
+			const auto r = screen_rect();
+
+			clear_background(painter, r);
+
+			if( !spectrum_sampling_rate )
+			{
+				// Can't draw without non-zero scale.
+				return;
+			}
+
+			draw_filter_ranges(painter, r);
+			draw_frequency_ticks(painter, r);
+
+			if (_blink)
+			{
+				const Rect r_cursor
+				{
+					120 + cursor_position, r.bottom() - filter_band_height,
+					2, filter_band_height
+				};
+				painter.fill_rectangle(
+				    r_cursor,
+				    Color::red()
+				);
+			}
+		}
+
+		void FrequencyScale::clear()
+		{
+			spectrum_sampling_rate = 0;
+			set_dirty();
+		}
+
+		void FrequencyScale::clear_background(Painter& painter, const Rect r)
+		{
+			painter.fill_rectangle(r, Color::black());
+		}
+
+		void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r)
+		{
+			const auto x_center = r.width() / 2;
+
+			const Rect tick { r.left() + x_center, r.top(), 1, r.height() };
+			painter.fill_rectangle(tick, Color::white());
+
+			constexpr int tick_count_max = 4;
+			float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
+			int magnitude = 1;
+			int magnitude_n = 0;
+			while(rough_tick_interval >= 10.0f)
+			{
+				rough_tick_interval /= 10;
+				magnitude *= 10;
+				magnitude_n += 1;
+			}
+			const int tick_interval = std::ceil(rough_tick_interval);
+
+			auto tick_offset = tick_interval;
+			while((tick_offset * magnitude) < spectrum_sampling_rate / 2)
+			{
+				const Dim pixel_offset = tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
+
+				const std::string zero_pad =
+				    ((magnitude_n % 3) == 0) ? "" :
+				    ((magnitude_n % 3) == 1) ? "0" : "00";
+				const std::string unit =
+				    (magnitude_n >= 6) ? "M" :
+				    (magnitude_n >= 3) ? "k" : "";
+				const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
+				const auto label_width = style().font.size_of(label).width();
+
+				const Coord offset_low = r.left() + x_center - pixel_offset;
+				const Rect tick_low { offset_low, r.top(), 1, r.height() };
+				painter.fill_rectangle(tick_low, Color::white());
+				painter.draw_string({ offset_low + 2, r.top() }, style(), label );
+
+				const Coord offset_high = r.left() + x_center + pixel_offset;
+				const Rect tick_high { offset_high, r.top(), 1, r.height() };
+				painter.fill_rectangle(tick_high, Color::white());
+				painter.draw_string({ offset_high - 2 - label_width, r.top() }, style(), label );
+
+				tick_offset += tick_interval;
+			}
+		}
+
+		void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r)
+		{
+			if( channel_filter_pass_frequency )
+			{
+				const auto x_center = r.width() / 2;
+
+				const auto pass_offset = channel_filter_pass_frequency * spectrum_bins / spectrum_sampling_rate;
+				const auto stop_offset = channel_filter_stop_frequency * spectrum_bins / spectrum_sampling_rate;
+
+				const auto pass_x_lo = x_center - pass_offset;
+				const auto pass_x_hi = x_center + pass_offset;
+
+				if( channel_filter_stop_frequency )
+				{
+					const auto stop_x_lo = x_center - stop_offset;
+					const auto stop_x_hi = x_center + stop_offset;
+
+					const Rect r_stop_lo
+					{
+						r.left() + stop_x_lo, r.bottom() - filter_band_height,
+						pass_x_lo - stop_x_lo, filter_band_height
+					};
+					painter.fill_rectangle(
+					    r_stop_lo,
+					    Color::yellow()
+					);
+
+					const Rect r_stop_hi
+					{
+						r.left() + pass_x_hi, r.bottom() - filter_band_height,
+						stop_x_hi - pass_x_hi, filter_band_height
+					};
+					painter.fill_rectangle(
+					    r_stop_hi,
+					    Color::yellow()
+					);
+				}
+
+				const Rect r_pass
+				{
+					r.left() + pass_x_lo, r.bottom() - filter_band_height,
+					pass_x_hi - pass_x_lo, filter_band_height
+				};
+				painter.fill_rectangle(
+				    r_pass,
+				    Color::green()
+				);
+			}
+		}
+
+		void FrequencyScale::on_focus()
+		{
+			_blink = true;
+			on_tick_second();
+			signal_token_tick_second = rtc_time::signal_tick_second += [this]()
+			{
+				this->on_tick_second();
+			};
+		}
+
+		void FrequencyScale::on_blur()
+		{
+			rtc_time::signal_tick_second -= signal_token_tick_second;
+			_blink = false;
+			set_dirty();
+		}
+
+		bool FrequencyScale::on_encoder(const EncoderEvent delta)
+		{
+			cursor_position += delta;
+
+			cursor_position = std::min<int32_t>(cursor_position, 119);
+			cursor_position = std::max<int32_t>(cursor_position, -120);
+
+			set_dirty();
+
 			return true;
 		}
-	}
-	
-	return false;
-}
 
-void FrequencyScale::on_tick_second() {
-	set_dirty();
-	_blink = !_blink;
-}
+		bool FrequencyScale::on_key(const KeyEvent key)
+		{
+			if( key == KeyEvent::Select )
+			{
+				if( on_select )
+				{
+					on_select((cursor_position * spectrum_sampling_rate) / 240);
+					cursor_position = 0;
+					return true;
+				}
+			}
 
-/* WaterfallView *********************************************************/
+			return false;
+		}
 
-void WaterfallView::on_show() {
-	clear();
+		void FrequencyScale::on_tick_second()
+		{
+			set_dirty();
+			_blink = !_blink;
+		}
 
-	const auto screen_r = screen_rect();
-	display.scroll_set_area(screen_r.top(), screen_r.bottom());
-}
+		/* WaterfallView *********************************************************/
 
-void WaterfallView::on_hide() {
-	/* TODO: Clear region to eliminate brief flash of content at un-shifted
-	 * position?
-	 */
-	display.scroll_disable();
-}
+		void WaterfallView::on_show()
+		{
+			clear();
 
-void WaterfallView::paint(Painter& painter) {
-	// Do nothing.
-	(void)painter;
-}
+			const auto screen_r = screen_rect();
+			display.scroll_set_area(screen_r.top(), screen_r.bottom());
+		}
 
-void WaterfallView::on_channel_spectrum(
-	const ChannelSpectrum& spectrum
-) {
-	/* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
+		void WaterfallView::on_hide()
+		{
+			/* TODO: Clear region to eliminate brief flash of content at un-shifted
+			 * position?
+			 */
+			display.scroll_disable();
+		}
 
-	std::array<Color, 240> pixel_row;
-	for(size_t i=0; i<120; i++) {
-		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
-		pixel_row[i] = pixel_color;
-	}
+		void WaterfallView::paint(Painter& painter)
+		{
+			// Do nothing.
+			(void)painter;
+		}
 
-	for(size_t i=120; i<240; i++) {
-		const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
-		pixel_row[i] = pixel_color;
-	}
+		void WaterfallView::on_channel_spectrum(
+		    const ChannelSpectrum& spectrum
+		)
+		{
+			/* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
 
-	const auto draw_y = display.scroll(1);
+			std::array<Color, 240> pixel_row;
+			for(size_t i = 0; i < 120; i++)
+			{
+				const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
+				pixel_row[i] = pixel_color;
+			}
 
-	display.draw_pixels(
-		{ { 0, draw_y }, { pixel_row.size(), 1 } },
-		pixel_row
-	);
-}
+			for(size_t i = 120; i < 240; i++)
+			{
+				const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
+				pixel_row[i] = pixel_color;
+			}
 
-void WaterfallView::clear() {
-	display.fill_rectangle(
-		screen_rect(),
-		Color::black()
-	);
-}
+			const auto draw_y = display.scroll(1);
 
-/* WaterfallWidget *******************************************************/
+			display.draw_pixels(
+			{ { 0, draw_y }, { pixel_row.size(), 1 } },
+			pixel_row
+			);
+		}
 
-WaterfallWidget::WaterfallWidget(const bool cursor) {
-	add_children({
-		&waterfall_view,
-		&frequency_scale
-	});
-	
-	frequency_scale.set_focusable(cursor);
-	
-	// Making the event climb up all the way up to here kinda sucks
-	frequency_scale.on_select = [this](int32_t offset) {
-		if (on_select) on_select(offset);
-	};
-}
+		void WaterfallView::clear()
+		{
+			display.fill_rectangle(
+			    screen_rect(),
+			    Color::black()
+			);
+		}
 
-void WaterfallWidget::on_show() {
-	baseband::spectrum_streaming_start();
-}
+		/* WaterfallWidget *******************************************************/
 
-void WaterfallWidget::on_hide() {
-	baseband::spectrum_streaming_stop();
-}
+		WaterfallWidget::WaterfallWidget(const bool cursor)
+		{
+			add_children(
+			{
+				&waterfall_view,
+				&frequency_scale
+			});
 
-void WaterfallWidget::show_audio_spectrum_view(const bool show) {
-	if ((audio_spectrum_view && show) || (!audio_spectrum_view && !show)) return;
-	
-	if (show) {
-		audio_spectrum_view = std::make_unique<AudioSpectrumView>(audio_spectrum_view_rect);
-		add_child(audio_spectrum_view.get());
-		update_widgets_rect();
-	} else {
-		audio_spectrum_update = false;
-		remove_child(audio_spectrum_view.get());
-		audio_spectrum_view.reset();
-		update_widgets_rect();
-	}
-}
+			frequency_scale.set_focusable(cursor);
 
-void WaterfallWidget::update_widgets_rect() {
-	if (audio_spectrum_view) {
-		frequency_scale.set_parent_rect({ 0, audio_spectrum_height, screen_rect().width(), scale_height });
-		waterfall_view.set_parent_rect(waterfall_reduced_rect);
-	} else {
-		frequency_scale.set_parent_rect({ 0, 0, screen_rect().width(), scale_height });
-		waterfall_view.set_parent_rect(waterfall_normal_rect);
-	}
-	waterfall_view.on_show();
-}
+			// Making the event climb up all the way up to here kinda sucks
+			frequency_scale.on_select = [this](int32_t offset)
+			{
+				if (on_select) on_select(offset);
+			};
+		}
 
-void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
-	View::set_parent_rect(new_parent_rect);
-	
-	waterfall_normal_rect = { 0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height};
-	waterfall_reduced_rect = { 0, audio_spectrum_height + scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height - audio_spectrum_height };
-	
-	update_widgets_rect();
-}
+		void WaterfallWidget::on_show()
+		{
+			baseband::spectrum_streaming_start();
+		}
 
-void WaterfallWidget::paint(Painter& painter) {
-	// TODO:
-	(void)painter;
-}
+		void WaterfallWidget::on_hide()
+		{
+			baseband::spectrum_streaming_stop();
+		}
 
-void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-	waterfall_view.on_channel_spectrum(spectrum);
-	sampling_rate = spectrum.sampling_rate;
-	frequency_scale.set_spectrum_sampling_rate(sampling_rate);
-	frequency_scale.set_channel_filter(
-		spectrum.channel_filter_pass_frequency,
-		spectrum.channel_filter_stop_frequency
-	);
-}
+		void WaterfallWidget::show_audio_spectrum_view(const bool show)
+		{
+			if ((audio_spectrum_view && show) || (!audio_spectrum_view && !show)) return;
 
-void WaterfallWidget::on_audio_spectrum() {
-	audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
-}
+			if (show)
+			{
+				audio_spectrum_view = std::make_unique<AudioSpectrumView>(audio_spectrum_view_rect);
+				add_child(audio_spectrum_view.get());
+				update_widgets_rect();
+			}
+			else
+			{
+				audio_spectrum_update = false;
+				remove_child(audio_spectrum_view.get());
+				audio_spectrum_view.reset();
+				update_widgets_rect();
+			}
+		}
 
-} /* namespace spectrum */
+		void WaterfallWidget::update_widgets_rect()
+		{
+			if (audio_spectrum_view)
+			{
+				frequency_scale.set_parent_rect({ 0, audio_spectrum_height, screen_rect().width(), scale_height });
+				waterfall_view.set_parent_rect(waterfall_reduced_rect);
+			}
+			else
+			{
+				frequency_scale.set_parent_rect({ 0, 0, screen_rect().width(), scale_height });
+				waterfall_view.set_parent_rect(waterfall_normal_rect);
+			}
+			waterfall_view.on_show();
+		}
+
+		void WaterfallWidget::set_parent_rect(const Rect new_parent_rect)
+		{
+			View::set_parent_rect(new_parent_rect);
+
+			waterfall_normal_rect = { 0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height};
+			waterfall_reduced_rect = { 0, audio_spectrum_height + scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height - audio_spectrum_height };
+
+			update_widgets_rect();
+		}
+
+		void WaterfallWidget::paint(Painter& painter)
+		{
+			// TODO:
+			(void)painter;
+		}
+
+		void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum)
+		{
+			waterfall_view.on_channel_spectrum(spectrum);
+			sampling_rate = spectrum.sampling_rate;
+			frequency_scale.set_spectrum_sampling_rate(sampling_rate);
+			frequency_scale.set_channel_filter(
+			    spectrum.channel_filter_pass_frequency,
+			    spectrum.channel_filter_stop_frequency
+			);
+		}
+
+		void WaterfallWidget::on_audio_spectrum()
+		{
+			audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
+		}
+
+	} /* namespace spectrum */
 } /* namespace ui */

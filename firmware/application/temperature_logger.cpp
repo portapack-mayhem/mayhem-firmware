@@ -25,39 +25,46 @@
 
 #include <algorithm>
 
-void TemperatureLogger::second_tick() {
+void TemperatureLogger::second_tick()
+{
 	sample_phase++;
-	if( sample_phase >= sample_interval ) {
+	if( sample_phase >= sample_interval )
+	{
 		push_sample(read_sample());
 	}
 }
 
-size_t TemperatureLogger::size() const {
+size_t TemperatureLogger::size() const
+{
 	return std::min(capacity(), samples_count);
 }
 
-size_t TemperatureLogger::capacity() const {
+size_t TemperatureLogger::capacity() const
+{
 	return samples.size();
 }
 
-std::vector<TemperatureLogger::sample_t> TemperatureLogger::history() const {
+std::vector<TemperatureLogger::sample_t> TemperatureLogger::history() const
+{
 	std::vector<sample_t> result;
 
 	const auto n = size();
 	result.resize(n);
-	
+
 	// Copy the last N samples from the buffer, since new samples are added at the end.
 	std::copy(samples.cend() - n, samples.cend(), result.data());
-	
+
 	return result;
 }
 
-TemperatureLogger::sample_t TemperatureLogger::read_sample() {
+TemperatureLogger::sample_t TemperatureLogger::read_sample()
+{
 	// MAX2837 does not return a valid temperature if in "shutdown" mode.
 	return radio::debug::second_if::temp_sense();
 }
 
-void TemperatureLogger::push_sample(const TemperatureLogger::sample_t sample) {
+void TemperatureLogger::push_sample(const TemperatureLogger::sample_t sample)
+{
 	// Started out building a pseudo-FIFO, then got lazy.
 
 	// Shift samples: samples[1:] -> samples[0:-1]

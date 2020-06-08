@@ -24,15 +24,17 @@
 
 #include "touch.hpp"
 
-namespace touch {
-namespace adc {
+namespace touch
+{
+	namespace adc
+	{
 
-void init();
-void start();
+		void init();
+		void start();
 
-Samples get();
+		Samples get();
 
-} /* namespace adc */
+	} /* namespace adc */
 } /* namespace touch */
 
 #endif/*__TOUCH_ADC_H__*/

@@ -27,38 +27,42 @@
 #ifndef __MODEMS_H__
 #define __MODEMS_H__
 
-namespace modems {
-	
+namespace modems
+{
+
 #define MODEM_DEF_COUNT 7
 #define AFSK_TX_SAMPLERATE 1536000U
 
-enum ModemModulation {
-	AFSK = 0,
-	FSK,
-	PSK,
-	AM		// SSB
-};
+	enum ModemModulation
+	{
+		AFSK = 0,
+		FSK,
+		PSK,
+		AM		// SSB
+	};
 
-struct modem_def_t {
-	char name[16];
-	ModemModulation modulation;
-	uint16_t mark_freq;
-	uint16_t space_freq;
-	uint16_t baudrate;
-};
+	struct modem_def_t
+	{
+		char name[16];
+		ModemModulation modulation;
+		uint16_t mark_freq;
+		uint16_t space_freq;
+		uint16_t baudrate;
+	};
 
-constexpr modem_def_t modem_defs[MODEM_DEF_COUNT] = {
-	{ "Bell202", 	AFSK,	1200,	2200, 	1200 },
-	{ "Bell103", 	AFSK,	1270,	1070, 	300 },
-	{ "V21",		AFSK,	980,	1180, 	300 },
-	{ "V23 M1",		AFSK,	1300,	1700,	600 },
-	{ "V23 M2",		AFSK,	1300,	2100,	1200 },
-	{ "RTTY US",	AM,		2295,	2125,	45 },
-	{ "RTTY EU",	AM,		2125,	1955,	45 }
-};
+	constexpr modem_def_t modem_defs[MODEM_DEF_COUNT] =
+	{
+		{ "Bell202", 	AFSK,	1200,	2200, 	1200 },
+		{ "Bell103", 	AFSK,	1270,	1070, 	300 },
+		{ "V21",		AFSK,	980,	1180, 	300 },
+		{ "V23 M1",		AFSK,	1300,	1700,	600 },
+		{ "V23 M2",		AFSK,	1300,	2100,	1200 },
+		{ "RTTY US",	AM,		2295,	2125,	45 },
+		{ "RTTY EU",	AM,		2125,	1955,	45 }
+	};
 
-void generate_data(const std::string& in_message, uint16_t * out_data);
-uint32_t deframe_word(uint32_t raw_word);
+	void generate_data(const std::string& in_message, uint16_t * out_data);
+	uint32_t deframe_word(uint32_t raw_word);
 
 } /* namespace modems */
 

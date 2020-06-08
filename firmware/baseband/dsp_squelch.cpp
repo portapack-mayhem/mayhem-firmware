@@ -24,23 +24,28 @@
 #include <cstdint>
 #include <array>
 
-bool FMSquelch::execute(const buffer_f32_t& audio) {
-	if( threshold_squared == 0.0f ) {
+bool FMSquelch::execute(const buffer_f32_t& audio)
+{
+	if( threshold_squared == 0.0f )
+	{
 		return true;
 	}
 
 	// TODO: No hard-coded array size.
 	std::array<float, N> squelch_energy_buffer;
-	const buffer_f32_t squelch_energy {
+	const buffer_f32_t squelch_energy
+	{
 		squelch_energy_buffer.data(),
 		squelch_energy_buffer.size()
 	};
 	non_audio_hpf.execute(audio, squelch_energy);
 
 	float non_audio_max_squared = 0;
-	for(const auto sample : squelch_energy_buffer) {
+	for(const auto sample : squelch_energy_buffer)
+	{
 		const float sample_squared = sample * sample;
-		if( sample_squared > non_audio_max_squared ) {
+		if( sample_squared > non_audio_max_squared )
+		{
 			non_audio_max_squared = sample_squared;
 		}
 	}
@@ -48,6 +53,7 @@ bool FMSquelch::execute(const buffer_f32_t& audio) {
 	return (non_audio_max_squared < threshold_squared);
 }
 
-void FMSquelch::set_threshold(const float new_value) {
+void FMSquelch::set_threshold(const float new_value)
+{
 	threshold_squared = new_value * new_value;
 }

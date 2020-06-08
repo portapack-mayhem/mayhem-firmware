@@ -31,126 +31,154 @@ using namespace portapack;
 #include "crc.hpp"
 #include "string_format.hpp"
 
-namespace ert {
+namespace ert
+{
 
-namespace format {
+	namespace format
+	{
 
-std::string type(Packet::Type value) {
-	switch(value) {
-	default:
-	case Packet::Type::Unknown:	return "???";
-	case Packet::Type::IDM:		return "IDM";
-	case Packet::Type::SCM:		return "SCM";
-	}
-}
+		std::string type(Packet::Type value)
+		{
+			switch(value)
+			{
+			default:
+			case Packet::Type::Unknown:
+				return "???";
+			case Packet::Type::IDM:
+				return "IDM";
+			case Packet::Type::SCM:
+				return "SCM";
+			}
+		}
 
-std::string id(ID value) {
-	return to_string_dec_uint(value, 10);
-}
+		std::string id(ID value)
+		{
+			return to_string_dec_uint(value, 10);
+		}
 
-std::string consumption(Consumption value) {
-	return to_string_dec_uint(value, 10);
-}
+		std::string consumption(Consumption value)
+		{
+			return to_string_dec_uint(value, 10);
+		}
 
-std::string commodity_type(CommodityType value) {
-	return to_string_dec_uint(value, 2);
-}
+		std::string commodity_type(CommodityType value)
+		{
+			return to_string_dec_uint(value, 2);
+		}
 
-} /* namespace format */
+	} /* namespace format */
 
 } /* namespace ert */
 
-void ERTLogger::on_packet(const ert::Packet& packet) {
+void ERTLogger::on_packet(const ert::Packet& packet)
+{
 	const auto formatted = packet.symbols_formatted();
 	log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
 }
 
 const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
 
-void ERTRecentEntry::update(const ert::Packet& packet) {
+void ERTRecentEntry::update(const ert::Packet& packet)
+{
 	received_count++;
 
 	last_consumption = packet.consumption();
 }
 
-namespace ui {
+namespace ui
+{
 
-template<>
-void RecentEntriesTable<ERTRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style
-) {
-	std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
+	template<>
+	void RecentEntriesTable<ERTRecentEntries>::draw(
+	    const Entry& entry,
+	    const Rect& target_rect,
+	    Painter& painter,
+	    const Style& style
+	)
+	{
+		std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
 
-	if( entry.received_count > 999 ) {
-		line += " +++";
-	} else {
-		line += " " + to_string_dec_uint(entry.received_count, 3);
+		if( entry.received_count > 999 )
+		{
+			line += " +++";
+		}
+		else
+		{
+			line += " " + to_string_dec_uint(entry.received_count, 3);
+		}
+
+		line.resize(target_rect.width() / 8, ' ');
+		painter.draw_string(target_rect.location(), style, line);
 	}
 
-	line.resize(target_rect.width() / 8, ' ');
-	painter.draw_string(target_rect.location(), style, line);
-}
+	ERTAppView::ERTAppView(NavigationView&)
+	{
+		baseband::run_image(portapack::spi_flash::image_tag_ert);
 
-ERTAppView::ERTAppView(NavigationView&) {
-	baseband::run_image(portapack::spi_flash::image_tag_ert);
+		add_children(
+		{
+			&field_rf_amp,
+			&field_lna,
+			&field_vga,
+			&rssi,
+			&recent_entries_view,
+		});
 
-	add_children({
-		&field_rf_amp,
-		&field_lna,
-		&field_vga,
-		&rssi,
-		&recent_entries_view,
-	});
+		radio::enable(
+		{
+			initial_target_frequency,
+			sampling_rate,
+			baseband_bandwidth,
+			rf::Direction::Receive,
+			receiver_model.rf_amp(),
+			static_cast<int8_t>(receiver_model.lna()),
+			static_cast<int8_t>(receiver_model.vga()),
+		});
 
-	radio::enable({
-		initial_target_frequency,
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	});
-
-	logger = std::make_unique<ERTLogger>();
-	if( logger ) {
-		logger->append(u"ert.txt");
-	}
-}
-
-ERTAppView::~ERTAppView() {
-	radio::disable();
-
-	baseband::shutdown();
-}
-
-void ERTAppView::focus() {
-	field_vga.focus();
-}
-
-void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
-	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
-}
-
-void ERTAppView::on_packet(const ert::Packet& packet) {
-	if( logger ) {
-		logger->on_packet(packet);
+		logger = std::make_unique<ERTLogger>();
+		if( logger )
+		{
+			logger->append(u"ert.txt");
+		}
 	}
 
-	if( packet.crc_ok() ) {
-		auto& entry = ::on_packet(recent, ERTRecentEntry::Key { packet.id(), packet.commodity_type() });
-		entry.update(packet);
-		recent_entries_view.set_dirty();
-	}
-}
+	ERTAppView::~ERTAppView()
+	{
+		radio::disable();
 
-void ERTAppView::on_show_list() {
-	recent_entries_view.hidden(false);
-	recent_entries_view.focus();
-}
+		baseband::shutdown();
+	}
+
+	void ERTAppView::focus()
+	{
+		field_vga.focus();
+	}
+
+	void ERTAppView::set_parent_rect(const Rect new_parent_rect)
+	{
+		View::set_parent_rect(new_parent_rect);
+		recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
+	}
+
+	void ERTAppView::on_packet(const ert::Packet& packet)
+	{
+		if( logger )
+		{
+			logger->on_packet(packet);
+		}
+
+		if( packet.crc_ok() )
+		{
+			auto& entry = ::on_packet(recent, ERTRecentEntry::Key { packet.id(), packet.commodity_type() });
+			entry.update(packet);
+			recent_entries_view.set_dirty();
+		}
+	}
+
+	void ERTAppView::on_show_list()
+	{
+		recent_entries_view.hidden(false);
+		recent_entries_view.focus();
+	}
 
 } /* namespace ui */

@@ -27,9 +27,10 @@
 
 #define DCS_CODES_NB 512
 
-namespace dcs {
+namespace dcs
+{
 
-uint32_t dcs_word(uint32_t code);
+	uint32_t dcs_word(uint32_t code);
 
 }
 

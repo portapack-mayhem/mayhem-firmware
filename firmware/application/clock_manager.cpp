@@ -31,7 +31,8 @@ using namespace lpc43xx;
 
 constexpr uint32_t si5351_vco_f	= 800000000;
 
-constexpr si5351::Inputs si5351_inputs {
+constexpr si5351::Inputs si5351_inputs
+{
 	.f_xtal = si5351_xtal_f,
 	.f_clkin = si5351_clkin_f,
 	.clkin_div = 1,
@@ -40,13 +41,15 @@ constexpr si5351::Inputs si5351_inputs {
 static_assert(si5351_inputs.f_xtal        == si5351_xtal_f,  "XTAL output frequency wrong");
 static_assert(si5351_inputs.f_clkin_out() == si5351_clkin_f, "CLKIN output frequency wrong");
 
-constexpr si5351::PLLInputSource::Type si5351_pll_input_sources {
-	  si5351::PLLInputSource::PLLA_Source_XTAL
+constexpr si5351::PLLInputSource::Type si5351_pll_input_sources
+{
+	si5351::PLLInputSource::PLLA_Source_XTAL
 	| si5351::PLLInputSource::PLLB_Source_CLKIN
 	| si5351::PLLInputSource::CLKIN_Div1
 };
 
-constexpr si5351::PLL si5351_pll_xtal_25m {
+constexpr si5351::PLL si5351_pll_xtal_25m
+{
 	.f_in = si5351_inputs.f_xtal,
 	.a = 32,
 	.b = 0,
@@ -54,7 +57,8 @@ constexpr si5351::PLL si5351_pll_xtal_25m {
 };
 constexpr auto si5351_pll_a_xtal_reg = si5351_pll_xtal_25m.reg(0);
 
-constexpr si5351::PLL si5351_pll_clkin_10m {
+constexpr si5351::PLL si5351_pll_clkin_10m
+{
 	.f_in = si5351_inputs.f_clkin_out(),
 	.a = 80,
 	.b = 0,
@@ -90,7 +94,8 @@ constexpr si5351::MultisynthFractional si5351_ms_0_20m {
 };
 constexpr auto si5351_ms_0_20m_reg = si5351_ms_0_20m.reg(0);
 */
-constexpr si5351::MultisynthFractional si5351_ms_0_8m {
+constexpr si5351::MultisynthFractional si5351_ms_0_8m
+{
 	.f_src = si5351_vco_f,
 	.a = 50,
 	.b = 0,
@@ -99,7 +104,8 @@ constexpr si5351::MultisynthFractional si5351_ms_0_8m {
 };
 constexpr auto si5351_ms_0_8m_reg = si5351_ms_0_8m.reg(clock_generator_output_codec);
 
-constexpr si5351::MultisynthFractional si5351_ms_group {
+constexpr si5351::MultisynthFractional si5351_ms_group
+{
 	.f_src = si5351_vco_f,
 	.a = 80,  /* Don't care */
 	.b = 0,
@@ -109,7 +115,8 @@ constexpr si5351::MultisynthFractional si5351_ms_group {
 constexpr auto si5351_ms_1_group_reg = si5351_ms_group.reg(clock_generator_output_cpld);
 constexpr auto si5351_ms_2_group_reg = si5351_ms_group.reg(clock_generator_output_sgpio);
 
-constexpr si5351::MultisynthFractional si5351_ms_10m {
+constexpr si5351::MultisynthFractional si5351_ms_10m
+{
 	.f_src = si5351_vco_f,
 	.a = 80,
 	.b = 0,
@@ -118,7 +125,8 @@ constexpr si5351::MultisynthFractional si5351_ms_10m {
 };
 constexpr auto si5351_ms_3_10m_reg = si5351_ms_10m.reg(3);
 
-constexpr si5351::MultisynthFractional si5351_ms_40m {
+constexpr si5351::MultisynthFractional si5351_ms_40m
+{
 	.f_src = si5351_vco_f,
 	.a = 20,
 	.b = 0,
@@ -147,13 +155,15 @@ static_assert(si5351_ms_max2837.f_out() == max2837_reference_f, "MAX2837 referen
 // static_assert(si5351_ms_50m.p2()    ==        0, "MS 40MHz P2 wrong");
 // static_assert(si5351_ms_50m.p3()    ==        1, "MS 40MHz P3 wrong");
 
-constexpr si5351::MultisynthInteger si5351_ms_int_off {
+constexpr si5351::MultisynthInteger si5351_ms_int_off
+{
 	.f_src = si5351_vco_f,
 	.a = 255,
 	.r_div = 0,
 };
 
-constexpr si5351::MultisynthInteger si5351_ms_int_mcu_clkin {
+constexpr si5351::MultisynthInteger si5351_ms_int_mcu_clkin
+{
 	.f_src = si5351_vco_f,
 	.a = 20,
 	.r_div = 0,
@@ -169,29 +179,32 @@ static_assert(si5351_ms_int_mcu_clkin.f_out() == mcu_clkin_f, "MS int MCU CLKIN 
 
 using namespace si5351;
 
-static constexpr ClockControl::MultiSynthSource get_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
+static constexpr ClockControl::MultiSynthSource get_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source)
+{
 	return (reference_source == ClockManager::ReferenceSource::Xtal)
-		? ClockControl::MultiSynthSource::PLLA
-		: ClockControl::MultiSynthSource::PLLB
-		;
+	       ? ClockControl::MultiSynthSource::PLLA
+	       : ClockControl::MultiSynthSource::PLLB
+	       ;
 }
 
 constexpr ClockControls si5351_clock_control_common { {
-	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-} };
+		{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
+		{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	} };
 
-ClockManager::Reference ClockManager::get_reference() const {
+ClockManager::Reference ClockManager::get_reference() const
+{
 	return reference;
 }
 
-static void portapack_tcxo_enable() {
+static void portapack_tcxo_enable()
+{
 	portapack::io.reference_oscillator(true);
 
 	/* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
@@ -200,22 +213,24 @@ static void portapack_tcxo_enable() {
 	while(delay--);
 }
 
-static void portapack_tcxo_disable() {
+static void portapack_tcxo_disable()
+{
 	portapack::io.reference_oscillator(false);
 }
 
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
-void ClockManager::init_clock_generator() {
+void ClockManager::init_clock_generator()
+{
 	clock_generator.reset();
 	clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
 	clock_generator.enable_fanout();
 	clock_generator.set_pll_input_sources(si5351_pll_input_sources);
 
 	clock_generator.set_clock_control(
-		clock_generator_output_mcu_clkin,
-		si5351_clock_control_common[clock_generator_output_mcu_clkin].clk_src(ClockControl::ClockSource::CLKIN).clk_pdn(ClockControl::ClockPowerDown::Power_On)
+	    clock_generator_output_mcu_clkin,
+	    si5351_clock_control_common[clock_generator_output_mcu_clkin].clk_src(ClockControl::ClockSource::CLKIN).clk_pdn(ClockControl::ClockPowerDown::Power_On)
 	);
 	clock_generator.enable_output(clock_generator_output_mcu_clkin);
 
@@ -225,15 +240,15 @@ void ClockManager::init_clock_generator() {
 
 	const auto ref_pll = get_reference_clock_generator_pll(reference.source);
 	const ClockControls si5351_clock_control = ClockControls { {
-		si5351_clock_control_common[0].ms_src(ref_pll),
-		si5351_clock_control_common[1].ms_src(ref_pll),
-		si5351_clock_control_common[2].ms_src(ref_pll),
-		si5351_clock_control_common[3].ms_src(ref_pll),
-		si5351_clock_control_common[4].ms_src(ref_pll),
-		si5351_clock_control_common[5].ms_src(ref_pll),
-		si5351_clock_control_common[6].ms_src(ref_pll),
-		si5351_clock_control_common[7].ms_src(ref_pll),
-	} };
+			si5351_clock_control_common[0].ms_src(ref_pll),
+			si5351_clock_control_common[1].ms_src(ref_pll),
+			si5351_clock_control_common[2].ms_src(ref_pll),
+			si5351_clock_control_common[3].ms_src(ref_pll),
+			si5351_clock_control_common[4].ms_src(ref_pll),
+			si5351_clock_control_common[5].ms_src(ref_pll),
+			si5351_clock_control_common[6].ms_src(ref_pll),
+			si5351_clock_control_common[7].ms_src(ref_pll),
+		} };
 	clock_generator.set_clock_control(si5351_clock_control);
 
 	clock_generator.write(si5351_pll_a_xtal_reg);
@@ -254,42 +269,53 @@ void ClockManager::init_clock_generator() {
 	while((clock_generator.device_status() & device_status_mask) != 0);
 
 	clock_generator.set_clock_control(
-		clock_generator_output_mcu_clkin,
-		si5351_clock_control_common[clock_generator_output_mcu_clkin].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On)
+	    clock_generator_output_mcu_clkin,
+	    si5351_clock_control_common[clock_generator_output_mcu_clkin].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On)
 	);
 	clock_generator.enable_output(clock_generator_output_mcu_clkin);
 }
 
-uint32_t ClockManager::measure_gp_clkin_frequency() {
+uint32_t ClockManager::measure_gp_clkin_frequency()
+{
 	// Measure Si5351B CLKIN frequency against LPC43xx IRC oscillator
 	start_frequency_monitor_measurement(cgu::CLK_SEL::GP_CLKIN);
 	wait_For_frequency_monitor_measurement_done();
 	return get_frequency_monitor_measurement_in_hertz();
 }
 
-ClockManager::ReferenceSource ClockManager::detect_reference_source() {
-	if( clock_generator.clkin_loss_of_signal() ) {
+ClockManager::ReferenceSource ClockManager::detect_reference_source()
+{
+	if( clock_generator.clkin_loss_of_signal() )
+	{
 		// No external reference. Turn on PortaPack reference (if present).
 		portapack_tcxo_enable();
 
-		if( clock_generator.clkin_loss_of_signal() ) {
+		if( clock_generator.clkin_loss_of_signal() )
+		{
 			// No PortaPack reference was detected. Choose the HackRF crystal as the reference.
 			return ReferenceSource::Xtal;
-		} else {
+		}
+		else
+		{
 			return ReferenceSource::PortaPack;
 		}
-	} else {
+	}
+	else
+	{
 		return ReferenceSource::External;
 	}
 }
 
-ClockManager::Reference ClockManager::choose_reference() {
+ClockManager::Reference ClockManager::choose_reference()
+{
 	const auto detected_reference = detect_reference_source();
 
 	if( (detected_reference == ReferenceSource::External) ||
-	    (detected_reference == ReferenceSource::PortaPack) ) {
+	        (detected_reference == ReferenceSource::PortaPack) )
+	{
 		const auto frequency = measure_gp_clkin_frequency();
-		if( (frequency >= 9850000) && (frequency <= 10150000) ) {
+		if( (frequency >= 9850000) && (frequency <= 10150000) )
+		{
 
 			return { detected_reference, 10000000 };
 		}
@@ -299,11 +325,13 @@ ClockManager::Reference ClockManager::choose_reference() {
 	return { ReferenceSource::Xtal, 10000000 };
 }
 
-void ClockManager::shutdown() {
+void ClockManager::shutdown()
+{
 	clock_generator.reset();
 }
 
-void ClockManager::enable_codec_clocks() {
+void ClockManager::enable_codec_clocks()
+{
 	clock_generator.enable_clock(clock_generator_output_codec);
 	clock_generator.enable_clock(clock_generator_output_cpld);
 	clock_generator.enable_clock(clock_generator_output_sgpio);
@@ -312,48 +340,54 @@ void ClockManager::enable_codec_clocks() {
 	 * in a 2:1 relationship may start with the slower clock high or low?
 	 */
 	clock_generator.enable_output_mask(
-		  (1U << clock_generator_output_codec)
-		| (1U << clock_generator_output_cpld)
-		| (1U << clock_generator_output_sgpio)
+	    (1U << clock_generator_output_codec)
+	    | (1U << clock_generator_output_cpld)
+	    | (1U << clock_generator_output_sgpio)
 	);
 }
 
-void ClockManager::disable_codec_clocks() {
+void ClockManager::disable_codec_clocks()
+{
 	/* Turn off outputs before disabling clocks. It seems the clock needs to
 	 * be enabled for the output to come to rest at the state specified by
 	 * CLKx_DISABLE_STATE.
 	 */
 	clock_generator.disable_output_mask(
-		  (1U << clock_generator_output_codec)
-		| (1U << clock_generator_output_cpld)
-		| (1U << clock_generator_output_sgpio)
+	    (1U << clock_generator_output_codec)
+	    | (1U << clock_generator_output_cpld)
+	    | (1U << clock_generator_output_sgpio)
 	);
 	clock_generator.disable_clock(clock_generator_output_codec);
 	clock_generator.disable_clock(clock_generator_output_cpld);
 	clock_generator.disable_clock(clock_generator_output_sgpio);
 }
 
-void ClockManager::enable_first_if_clock() {
+void ClockManager::enable_first_if_clock()
+{
 	clock_generator.enable_clock(clock_generator_output_first_if);
 	clock_generator.enable_output_mask(1U << clock_generator_output_first_if);
 }
 
-void ClockManager::disable_first_if_clock() {
+void ClockManager::disable_first_if_clock()
+{
 	clock_generator.disable_output_mask(1U << clock_generator_output_first_if);
 	clock_generator.disable_clock(clock_generator_output_first_if);
 }
 
-void ClockManager::enable_second_if_clock() {
+void ClockManager::enable_second_if_clock()
+{
 	clock_generator.enable_clock(clock_generator_output_second_if);
 	clock_generator.enable_output_mask(1U << clock_generator_output_second_if);
 }
 
-void ClockManager::disable_second_if_clock() {
+void ClockManager::disable_second_if_clock()
+{
 	clock_generator.disable_output_mask(1U << clock_generator_output_second_if);
 	clock_generator.disable_clock(clock_generator_output_second_if);
 }
 
-void ClockManager::set_sampling_frequency(const uint32_t frequency) {
+void ClockManager::set_sampling_frequency(const uint32_t frequency)
+{
 	/* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
 	 * twice the frequency, and derived from the MS0 synth. So it's only
 	 * necessary to change the MS0 synth frequency, and ensure the output
@@ -362,7 +396,8 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 	clock_generator.set_ms_frequency(clock_generator_output_codec, frequency * 2, si5351_vco_f, 1);
 }
 
-void ClockManager::set_reference_ppb(const int32_t ppb) {
+void ClockManager::set_reference_ppb(const int32_t ppb)
+{
 	/* NOTE: This adjustment only affects PLLA, which is derived from the 25MHz crystal.
 	 * It is assumed an external clock coming in to PLLB is sufficiently accurate as to not need adjustment.
 	 * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
@@ -373,7 +408,8 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
 	const uint32_t new_b = (ppb >= 0) ? (ppb / 1000) : (denominator + (ppb / 1000));
 	const uint32_t new_c = (ppb == 0) ? 1 : denominator;
 
-	const si5351::PLL pll {
+	const si5351::PLL pll
+	{
 		.f_in = si5351_inputs.f_xtal,
 		.a = new_a,
 		.b = new_b,
@@ -383,9 +419,11 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
 	clock_generator.write(pll_a_reg);
 }
 
-void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel) {
+void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_sel)
+{
 	// Measure a clock input for 480 cycles of the LPC43xx IRC.
-	LPC_CGU->FREQ_MON = LPC_CGU_FREQ_MON_Type {
+	LPC_CGU->FREQ_MON = LPC_CGU_FREQ_MON_Type
+	{
 		.RCNT = 480,
 		.FCNT = 0,
 		.MEAS = 0,
@@ -395,20 +433,24 @@ void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_se
 	LPC_CGU->FREQ_MON.MEAS = 1;
 }
 
-void ClockManager::wait_For_frequency_monitor_measurement_done() {
+void ClockManager::wait_For_frequency_monitor_measurement_done()
+{
 	// FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
 	while(LPC_CGU->FREQ_MON.MEAS == 1);
 }
 
-uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
+uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz()
+{
 	// Measurement is only as accurate as the LPC43xx IRC oscillator,
 	// which is +/- 1.5%. Measurement is for 480 IRC clcocks. Scale
 	// the cycle count to get a value in Hertz.
 	return LPC_CGU->FREQ_MON.FCNT * 25000;
 }
 
-void ClockManager::start_audio_pll() {
-	cgu::pll0audio::ctrl({
+void ClockManager::start_audio_pll()
+{
+	cgu::pll0audio::ctrl(
+	{
 		.pd = 1,
 		.bypass = 0,
 		.directi = 0,
@@ -427,15 +469,18 @@ void ClockManager::start_audio_pll() {
 	 *		PSEL=20, NSEL=125, MSEL=768
 	 *		PDEC=31, NDEC=45, MDEC=30542
 	 */
-	cgu::pll0audio::mdiv({
+	cgu::pll0audio::mdiv(
+	{
 		.mdec = 30542,
 	});
-	cgu::pll0audio::np_div({
+	cgu::pll0audio::np_div(
+	{
 		.pdec = 31,
 		.ndec = 45,
 	});
 
-	cgu::pll0audio::frac({
+	cgu::pll0audio::frac(
+	{
 		.pllfract_ctrl = 0,
 	});
 
@@ -449,16 +494,18 @@ void ClockManager::start_audio_pll() {
 	LPC_CGU->BASE_AUDIO_CLK.CLK_SEL = toUType(cgu::CLK_SEL::IDIVD);
 }
 
-void ClockManager::set_base_audio_clock_divider(const size_t divisor) {
+void ClockManager::set_base_audio_clock_divider(const size_t divisor)
+{
 	LPC_CGU->IDIVD_CTRL.word =
-		  (0 <<  0)
-		| ((divisor - 1) <<  2)
-		| (1 << 11)
-		| (toUType(cgu::CLK_SEL::PLL0AUDIO) << 24)
-		;
+	    (0 <<  0)
+	    | ((divisor - 1) <<  2)
+	    | (1 << 11)
+	    | (toUType(cgu::CLK_SEL::PLL0AUDIO) << 24)
+	    ;
 }
 
-void ClockManager::stop_audio_pll() {
+void ClockManager::stop_audio_pll()
+{
 	cgu::pll0audio::clock_disable();
 	cgu::pll0audio::power_down();
 	while( cgu::pll0audio::is_locked() );

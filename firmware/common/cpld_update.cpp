@@ -30,105 +30,120 @@
 #include "portapack_cpld_data.hpp"
 #include "hackrf_cpld_data.hpp"
 
-namespace portapack {
-namespace cpld {
+namespace portapack
+{
+	namespace cpld
+	{
 
-bool update_if_necessary(
-	const Config config
-) {
-	jtag::GPIOTarget target {
-		portapack::gpio_cpld_tck,
-		portapack::gpio_cpld_tms,
-		portapack::gpio_cpld_tdi,
-		portapack::gpio_cpld_tdo
-	};
-	jtag::JTAG jtag { target };
-	CPLD cpld { jtag };
+		bool update_if_necessary(
+		    const Config config
+		)
+		{
+			jtag::GPIOTarget target
+			{
+				portapack::gpio_cpld_tck,
+				portapack::gpio_cpld_tms,
+				portapack::gpio_cpld_tdi,
+				portapack::gpio_cpld_tdo
+			};
+			jtag::JTAG jtag { target };
+			CPLD cpld { jtag };
 
-	/* Unknown state */
-	cpld.reset();
-	cpld.run_test_idle();
+			/* Unknown state */
+			cpld.reset();
+			cpld.run_test_idle();
 
-	/* Run-Test/Idle */
-	if( !cpld.idcode_ok() ) {
-		return false;
-	}
+			/* Run-Test/Idle */
+			if( !cpld.idcode_ok() )
+			{
+				return false;
+			}
 
-	cpld.sample();
-	cpld.bypass();
-	cpld.enable();
+			cpld.sample();
+			cpld.bypass();
+			cpld.enable();
 
-	/* If silicon ID doesn't match, there's a serious problem. Leave CPLD
-	 * in passive state.
-	 */
-	if( !cpld.silicon_id_ok() ) {
-		return false;
-	}
+			/* If silicon ID doesn't match, there's a serious problem. Leave CPLD
+			 * in passive state.
+			 */
+			if( !cpld.silicon_id_ok() )
+			{
+				return false;
+			}
 
-	/* Verify CPLD contents against current bitstream. */
-	auto ok = cpld.verify(config.block_0, config.block_1);
+			/* Verify CPLD contents against current bitstream. */
+			auto ok = cpld.verify(config.block_0, config.block_1);
 
-	/* CPLD verifies incorrectly. Erase and program with current bitstream. */
-	if( !ok ) {
-		ok = cpld.program(config.block_0, config.block_1);
-	}
+			/* CPLD verifies incorrectly. Erase and program with current bitstream. */
+			if( !ok )
+			{
+				ok = cpld.program(config.block_0, config.block_1);
+			}
 
-	/* If programming OK, reset CPLD to user mode. Otherwise leave it in
-	 * passive (ISP) state.
-	 */
-	if( ok ) {
-		cpld.disable();
-		cpld.bypass();
+			/* If programming OK, reset CPLD to user mode. Otherwise leave it in
+			 * passive (ISP) state.
+			 */
+			if( ok )
+			{
+				cpld.disable();
+				cpld.bypass();
 
-		/* Initiate SRAM reload from flash we just programmed. */
-		cpld.sample();
-		cpld.clamp();
-		cpld.disable();
-	}
+				/* Initiate SRAM reload from flash we just programmed. */
+				cpld.sample();
+				cpld.clamp();
+				cpld.disable();
+			}
 
-	return ok;
-}
+			return ok;
+		}
 
-} /* namespace cpld */
+	} /* namespace cpld */
 } /* namespace portapack */
 
-namespace hackrf {
-namespace cpld {
+namespace hackrf
+{
+	namespace cpld
+	{
 
-static jtag::GPIOTarget jtag_target_hackrf() {
-	return {
-		hackrf::one::gpio_cpld_tck,
-		hackrf::one::gpio_cpld_tms,
-		hackrf::one::gpio_cpld_tdi,
-		hackrf::one::gpio_cpld_tdo,
-	};
-}
+		static jtag::GPIOTarget jtag_target_hackrf()
+		{
+			return
+			{
+				hackrf::one::gpio_cpld_tck,
+				hackrf::one::gpio_cpld_tms,
+				hackrf::one::gpio_cpld_tdi,
+				hackrf::one::gpio_cpld_tdo,
+			};
+		}
 
-bool load_sram() {
-	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
+		bool load_sram()
+		{
+			auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+			hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
-	hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
-	const auto ok = hackrf_cpld.verify_sram(hackrf::one::cpld::verify_blocks);
+			hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
+			const auto ok = hackrf_cpld.verify_sram(hackrf::one::cpld::verify_blocks);
 
-	return ok;
-}
+			return ok;
+		}
 
-bool verify_eeprom() {
-	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
+		bool verify_eeprom()
+		{
+			auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+			hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
-	const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
-	
-	return ok;
-}
+			const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
 
-void init_from_eeprom() {
-	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
+			return ok;
+		}
 
-	hackrf_cpld.init_from_eeprom();
-}
+		void init_from_eeprom()
+		{
+			auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+			hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
-} /* namespace cpld */
+			hackrf_cpld.init_from_eeprom();
+		}
+
+	} /* namespace cpld */
 } /* namespace hackrf */

@@ -38,135 +38,154 @@
 
 using namespace morse;
 
-namespace ui {
+namespace ui
+{
 
-class MorseView : public View {
-public:
-	MorseView(NavigationView& nav);
-	~MorseView();
-	
-	MorseView(const MorseView&) = delete;
-	MorseView(MorseView&&) = delete;
-	MorseView& operator=(const MorseView&) = delete;
-	MorseView& operator=(MorseView&&) = delete;
-	
-	void focus() override;
-	void paint(Painter& painter) override;
-	
-	void on_tx_progress(const uint32_t progress, const bool done);
-	
-	std::string title() const override { return "Morse TX"; };
-	
-	uint32_t time_unit_ms { 0 };
-	size_t symbol_count { 0 };
-private:
-	NavigationView& nav_;
-	std::string buffer { "PORTAPACK" };
-	std::string message { };
-	uint32_t time_units { 0 };
-	
-	enum modulation_t {
-		CW = 0,
-		FM = 1
+	class MorseView : public View
+	{
+		public:
+			MorseView(NavigationView& nav);
+			~MorseView();
+
+			MorseView(const MorseView&) = delete;
+			MorseView(MorseView&&) = delete;
+			MorseView& operator=(const MorseView&) = delete;
+			MorseView& operator=(MorseView&&) = delete;
+
+			void focus() override;
+			void paint(Painter& painter) override;
+
+			void on_tx_progress(const uint32_t progress, const bool done);
+
+			std::string title() const override
+			{
+				return "Morse TX";
+			};
+
+			uint32_t time_unit_ms { 0 };
+			size_t symbol_count { 0 };
+		private:
+			NavigationView& nav_;
+			std::string buffer { "PORTAPACK" };
+			std::string message { };
+			uint32_t time_units { 0 };
+
+			enum modulation_t
+			{
+				CW = 0,
+				FM = 1
+			};
+			modulation_t modulation { CW };
+
+			bool start_tx();
+			void update_tx_duration();
+			void on_set_text(NavigationView& nav);
+			void set_foxhunt(size_t i);
+
+			Thread * ookthread { nullptr };
+			bool foxhunt_mode { false };
+
+			Labels labels
+			{
+				{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
+				{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
+				{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
+				{ { 1 * 8, 25 * 8 }, "TX will last", Color::light_grey() }
+			};
+
+			Checkbox checkbox_foxhunt
+			{
+				{ 4 * 8, 16 },
+				8,
+				"Foxhunt:"
+			};
+			OptionsField options_foxhunt
+			{
+				{ 17 * 8, 16 + 4 },
+				7,
+				{
+					{ "1 (MOE)", 0 },
+					{ "2 (MOI)", 1 },
+					{ "3 (MOS)", 2 },
+					{ "4 (MOH)", 3 },
+					{ "5 (MO5)", 4 },
+					{ "6 (MON)", 5 },
+					{ "7 (MOD)", 6 },
+					{ "8 (MOB)", 7 },
+					{ "9 (MO6)", 8 },
+					{ "X (MO) ", 9 },
+					{ "T (S) ", 10 }
+				}
+			};
+
+			NumberField field_time_unit
+			{
+				{ 14 * 8, 6 * 8 },
+				3,
+				{ 10, 999 },
+				1,
+				' '
+			};
+
+			NumberField field_tone
+			{
+				{ 9 * 8, 8 * 8 },
+				4,
+				{ 100, 9999 },
+				20,
+				' '
+			};
+
+			OptionsField options_modulation
+			{
+				{ 15 * 8, 10 * 8 },
+				2,
+				{
+					{ "CW", 0 },
+					{ "FM", 1 }
+				}
+			};
+
+			Text text_tx_duration
+			{
+				{ 14 * 8, 25 * 8, 4 * 8, 16 },
+				"-"
+			};
+
+			Text text_message
+			{
+				{ 1 * 8, 15 * 8, 28 * 8, 16 },
+				""
+			};
+
+			Button button_message
+			{
+				{ 1 * 8, 17 * 8, 12 * 8, 28 },
+				"Set message"
+			};
+
+			ProgressBar progressbar
+			{
+				{ 2 * 8, 28 * 8, 208, 16 }
+			};
+
+			TransmitterView tx_view
+			{
+				16 * 16,
+				10000,
+				12
+			};
+
+			MessageHandlerRegistration message_handler_tx_progress
+			{
+				Message::ID::TXProgress,
+				[this](const Message * const p)
+				{
+					const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+					this->on_tx_progress(message.progress, message.done);
+				}
+			};
 	};
-	modulation_t modulation { CW };
-	
-	bool start_tx();
-	void update_tx_duration();
-	void on_set_text(NavigationView& nav);
-	void set_foxhunt(size_t i);
-	
-	Thread * ookthread { nullptr };
-	bool foxhunt_mode { false };
-	
-	Labels labels {
-		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
-		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
-		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
-		{ { 1 * 8, 25 * 8 }, "TX will last", Color::light_grey() }
-	};
-	
-	Checkbox checkbox_foxhunt {
-		{ 4 * 8, 16 },
-		8,
-		"Foxhunt:"
-	};
-	OptionsField options_foxhunt {
-		{ 17 * 8, 16 + 4 },
-		7,
-		{
-			{ "1 (MOE)", 0 },
-			{ "2 (MOI)", 1 },
-			{ "3 (MOS)", 2 },
-			{ "4 (MOH)", 3 },
-			{ "5 (MO5)", 4 },
-			{ "6 (MON)", 5 },
-			{ "7 (MOD)", 6 },
-			{ "8 (MOB)", 7 },
-			{ "9 (MO6)", 8 },
-			{ "X (MO) ", 9 },
-			{ "T (S) ", 10 }
-		}
-	};
-	
-	NumberField field_time_unit {
-		{ 14 * 8, 6 * 8 },
-		3,
-		{ 10, 999 },
-		1,
-		' '
-	};
-	
-	NumberField field_tone {
-		{ 9 * 8, 8 * 8 },
-		4,
-		{ 100, 9999 },
-		20,
-		' '
-	};
-	
-	OptionsField options_modulation {
-		{ 15 * 8, 10 * 8 },
-		2,
-		{
-			{ "CW", 0 },
-			{ "FM", 1 }
-		}
-	};
-	
-	Text text_tx_duration {
-		{ 14 * 8, 25 * 8, 4 * 8, 16 },
-		"-"
-	};
-	
-	Text text_message {
-		{ 1 * 8, 15 * 8, 28 * 8, 16 },
-		""
-	};
-	
-	Button button_message {
-		{ 1 * 8, 17 * 8, 12 * 8, 28 },
-		"Set message"
-	};
-	
-	ProgressBar progressbar {
-		{ 2 * 8, 28 * 8, 208, 16 }
-	};
-	
-	TransmitterView tx_view {
-		16 * 16,
-		10000,
-		12
-	};
-	
-	MessageHandlerRegistration message_handler_tx_progress {
-		Message::ID::TXProgress,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-			this->on_tx_progress(message.progress, message.done);
-		}
-	};
-};
 
 } /* namespace ui */
 

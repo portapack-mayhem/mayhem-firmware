@@ -28,23 +28,25 @@
 #include "complex.hpp"
 #include "baseband.hpp"
 
-namespace baseband {
-namespace dma {
+namespace baseband
+{
+	namespace dma
+	{
 
-void init();
-void configure(
-	baseband::sample_t* const buffer_base,
-	const baseband::Direction direction
-);
+		void init();
+		void configure(
+		    baseband::sample_t* const buffer_base,
+		    const baseband::Direction direction
+		);
 
-void enable(const baseband::Direction direction);
-bool is_enabled();
+		void enable(const baseband::Direction direction);
+		bool is_enabled();
 
-void disable();
+		void disable();
 
-baseband::buffer_t wait_for_buffer();
+		baseband::buffer_t wait_for_buffer();
 
-} /* namespace dma */
+	} /* namespace dma */
 } /* namespace baseband */
 
 #endif/*__BASEBAND_DMA_H__*/

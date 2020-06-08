@@ -30,71 +30,83 @@
 #include "complex.hpp"
 
 template<typename T, size_t N>
-class BlockDecimator {
-public:
-	constexpr BlockDecimator(
-		const size_t factor
-	) : factor_ { factor }
-	{
-	}
-
-	void set_input_sampling_rate(const uint32_t new_sampling_rate) {
-		if( new_sampling_rate != input_sampling_rate() ) {
-			input_sampling_rate_ = new_sampling_rate;
-			reset_state();
+class BlockDecimator
+{
+	public:
+		constexpr BlockDecimator(
+		    const size_t factor
+		) : factor_ { factor }
+		{
 		}
-	}
 
-	uint32_t input_sampling_rate() const {
-		return input_sampling_rate_;
-	}
-
-	void set_factor(const size_t new_factor) {
-		if( new_factor != factor() ) {
-			factor_ = new_factor;
-			reset_state();
-		}
-	}
-
-	size_t factor() const {
-		return factor_;
-	}
-
-	uint32_t output_sampling_rate() const {
-		return input_sampling_rate() / factor();
-	}
-
-	template<typename BlockCallback>
-	void feed(const buffer_t<T>& src, BlockCallback callback) {
-		/* NOTE: Input block size must be >= factor */
-
-		set_input_sampling_rate(src.sampling_rate);
-
-		while( src_i < src.count ) {
-			buffer[dst_i++] = src.p[src_i];
-			if( dst_i == buffer.size() ) {
-				callback({ buffer.data(), buffer.size(), output_sampling_rate() });
+		void set_input_sampling_rate(const uint32_t new_sampling_rate)
+		{
+			if( new_sampling_rate != input_sampling_rate() )
+			{
+				input_sampling_rate_ = new_sampling_rate;
 				reset_state();
-				dst_i = 0;
+			}
+		}
+
+		uint32_t input_sampling_rate() const
+		{
+			return input_sampling_rate_;
+		}
+
+		void set_factor(const size_t new_factor)
+		{
+			if( new_factor != factor() )
+			{
+				factor_ = new_factor;
+				reset_state();
+			}
+		}
+
+		size_t factor() const
+		{
+			return factor_;
+		}
+
+		uint32_t output_sampling_rate() const
+		{
+			return input_sampling_rate() / factor();
+		}
+
+		template<typename BlockCallback>
+		void feed(const buffer_t<T>& src, BlockCallback callback)
+		{
+			/* NOTE: Input block size must be >= factor */
+
+			set_input_sampling_rate(src.sampling_rate);
+
+			while( src_i < src.count )
+			{
+				buffer[dst_i++] = src.p[src_i];
+				if( dst_i == buffer.size() )
+				{
+					callback({ buffer.data(), buffer.size(), output_sampling_rate() });
+					reset_state();
+					dst_i = 0;
+				}
+
+				src_i += factor();
 			}
 
-			src_i += factor();
+			src_i -= src.count;
 		}
 
-		src_i -= src.count;
-	}
+	private:
+		std::array<T, N> buffer { };
+		uint32_t input_sampling_rate_ { 0 };
+		size_t factor_ { 1 };
+		size_t src_i { 0 };
+		size_t dst_i { 0 };
 
-private:
-	std::array<T, N> buffer { };
-	uint32_t input_sampling_rate_ { 0 };
-	size_t factor_ { 1 };
-	size_t src_i { 0 };
-	size_t dst_i { 0 };
-
-	void reset_state() {
-		src_i = 0;
-		dst_i = 0;
-	}
+		void reset_state()
+		{
+			src_i = 0;
+			dst_i = 0;
+		}
 };
 
 #endif/*__BLOCK_DECIMATOR_H__*/

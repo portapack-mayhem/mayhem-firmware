@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,92 +36,106 @@
 using namespace aprs;
 using namespace portapack;
 
-namespace ui {
+namespace ui
+{
 
-void APRSTXView::focus() {
-	tx_view.focus();
-}
-
-APRSTXView::~APRSTXView() {
-	transmitter_model.disable();
-	baseband::shutdown();
-}
-
-void APRSTXView::start_tx() {
-	make_aprs_frame(
-		sym_source.value_string().c_str(), num_ssid_source.value(),
-		sym_dest.value_string().c_str(), num_ssid_dest.value(),
-		payload);
-	
-	//uint8_t * bb_data_ptr = shared_memory.bb_data.data;
-	//text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
-	
-	transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
-	transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
-	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
-	
-	baseband::set_afsk_data(
-		AFSK_TX_SAMPLERATE / 1200,
-		1200,
-		2200,
-		1,
-		10000,	//transmitter_model.channel_bandwidth(),
-		8
-	);
-}
-
-void APRSTXView::on_tx_progress(const uint32_t progress, const bool done) {
-	(void)progress;
-	
-	if (done) {
-		transmitter_model.disable();
-		tx_view.set_transmitting(false);
+	void APRSTXView::focus()
+	{
+		tx_view.focus();
 	}
-}
 
-APRSTXView::APRSTXView(NavigationView& nav) {
-	
-	baseband::run_image(portapack::spi_flash::image_tag_afsk);
+	APRSTXView::~APRSTXView()
+	{
+		transmitter_model.disable();
+		baseband::shutdown();
+	}
 
-	add_children({
-		&labels,
-		&sym_source,
-		&num_ssid_source,
-		&sym_dest,
-		&num_ssid_dest,
-		&text_payload,
-		&button_set,
-		&tx_view
-	});
-	
-	button_set.on_select = [this, &nav](Button&) {
-		text_prompt(
-			nav,
-			payload,
-			30,
-			[this](std::string& s) {
+	void APRSTXView::start_tx()
+	{
+		make_aprs_frame(
+		    sym_source.value_string().c_str(), num_ssid_source.value(),
+		    sym_dest.value_string().c_str(), num_ssid_dest.value(),
+		    payload);
+
+		//uint8_t * bb_data_ptr = shared_memory.bb_data.data;
+		//text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
+
+		transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
+		transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
+		transmitter_model.set_baseband_bandwidth(1750000);
+		transmitter_model.enable();
+
+		baseband::set_afsk_data(
+		    AFSK_TX_SAMPLERATE / 1200,
+		    1200,
+		    2200,
+		    1,
+		    10000,	//transmitter_model.channel_bandwidth(),
+		    8
+		);
+	}
+
+	void APRSTXView::on_tx_progress(const uint32_t progress, const bool done)
+	{
+		(void)progress;
+
+		if (done)
+		{
+			transmitter_model.disable();
+			tx_view.set_transmitting(false);
+		}
+	}
+
+	APRSTXView::APRSTXView(NavigationView& nav)
+	{
+
+		baseband::run_image(portapack::spi_flash::image_tag_afsk);
+
+		add_children(
+		{
+			&labels,
+			&sym_source,
+			&num_ssid_source,
+			&sym_dest,
+			&num_ssid_dest,
+			&text_payload,
+			&button_set,
+			&tx_view
+		});
+
+		button_set.on_select = [this, &nav](Button&)
+		{
+			text_prompt(
+			    nav,
+			    payload,
+			    30,
+			    [this](std::string & s)
+			{
 				text_payload.set(s);
 			}
-		);
-	};
-	
-	tx_view.on_edit_frequency = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
+			);
 		};
-	};
-	
-	tx_view.on_start = [this]() {
-		start_tx();
-		tx_view.set_transmitting(true);
-	};
-	
-	tx_view.on_stop = [this]() {
-		tx_view.set_transmitting(false);
-		transmitter_model.disable();
-	};
-}
+
+		tx_view.on_edit_frequency = [this, &nav]()
+		{
+			auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+			new_view->on_changed = [this](rf::Frequency f)
+			{
+				receiver_model.set_tuning_frequency(f);
+			};
+		};
+
+		tx_view.on_start = [this]()
+		{
+			start_tx();
+			tx_view.set_transmitting(true);
+		};
+
+		tx_view.on_stop = [this]()
+		{
+			tx_view.set_transmitting(false);
+			transmitter_model.disable();
+		};
+	}
 
 } /* namespace ui */

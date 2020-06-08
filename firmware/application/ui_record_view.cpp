@@ -34,247 +34,291 @@ using namespace portapack;
 
 #include <cstdint>
 
-namespace ui {
-
-/*void RecordView::toggle_pitch_rssi() {
-	pitch_rssi_enabled = !pitch_rssi_enabled;
-	
-	// Send to RSSI widget
-	const PitchRSSIConfigureMessage message {
-		pitch_rssi_enabled,
-		0
-	};
-	shared_memory.application_queue.push(message);
-	
-	if( !pitch_rssi_enabled ) {
-		button_pitch_rssi.set_foreground(Color::orange());
-	} else {
-		button_pitch_rssi.set_foreground(Color::green());
-	}
-}*/
-
-RecordView::RecordView(
-	const Rect parent_rect,
-	std::filesystem::path filename_stem_pattern,
-	const FileType file_type,
-	const size_t write_size,
-	const size_t buffer_count
-) : View { parent_rect },
-	filename_stem_pattern { filename_stem_pattern },
-	file_type { file_type },
-	write_size { write_size },
-	buffer_count { buffer_count }
+namespace ui
 {
-	add_children({
-		&rect_background,
-		//&button_pitch_rssi,
-		&button_record,
-		&text_record_filename,
-		&text_record_dropped,
-		&text_time_available,
-	});
-	
-	rect_background.set_parent_rect({ { 0, 0 }, size() });
-	
-	/*button_pitch_rssi.on_select = [this](ImageButton&) {
-		this->toggle_pitch_rssi();
-	};*/
 
-	button_record.on_select = [this](ImageButton&) {
-		this->toggle();
-	};
+	/*void RecordView::toggle_pitch_rssi() {
+		pitch_rssi_enabled = !pitch_rssi_enabled;
 
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
-}
+		// Send to RSSI widget
+		const PitchRSSIConfigureMessage message {
+			pitch_rssi_enabled,
+			0
+		};
+		shared_memory.application_queue.push(message);
 
-RecordView::~RecordView() {
-	rtc_time::signal_tick_second -= signal_token_tick_second;
-}
+		if( !pitch_rssi_enabled ) {
+			button_pitch_rssi.set_foreground(Color::orange());
+		} else {
+			button_pitch_rssi.set_foreground(Color::green());
+		}
+	}*/
 
-void RecordView::focus() {
-	button_record.focus();
-}
+	RecordView::RecordView(
+	    const Rect parent_rect,
+	    std::filesystem::path filename_stem_pattern,
+	    const FileType file_type,
+	    const size_t write_size,
+	    const size_t buffer_count
+	) : View { parent_rect },
+		filename_stem_pattern { filename_stem_pattern },
+		file_type { file_type },
+		write_size { write_size },
+		buffer_count { buffer_count }
+	{
+		add_children(
+		{
+			&rect_background,
+			//&button_pitch_rssi,
+			&button_record,
+			&text_record_filename,
+			&text_record_dropped,
+			&text_time_available,
+		});
 
-void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
-	if( new_sampling_rate != sampling_rate ) {
+		rect_background.set_parent_rect({ { 0, 0 }, size() });
+
+		/*button_pitch_rssi.on_select = [this](ImageButton&) {
+			this->toggle_pitch_rssi();
+		};*/
+
+		button_record.on_select = [this](ImageButton&)
+		{
+			this->toggle();
+		};
+
+		signal_token_tick_second = rtc_time::signal_tick_second += [this]()
+		{
+			this->on_tick_second();
+		};
+	}
+
+	RecordView::~RecordView()
+	{
+		rtc_time::signal_tick_second -= signal_token_tick_second;
+	}
+
+	void RecordView::focus()
+	{
+		button_record.focus();
+	}
+
+	void RecordView::set_sampling_rate(const size_t new_sampling_rate)
+	{
+		if( new_sampling_rate != sampling_rate )
+		{
+			stop();
+
+			sampling_rate = new_sampling_rate;
+			baseband::set_sample_rate(sampling_rate);
+
+			button_record.hidden(sampling_rate == 0);
+			text_record_filename.hidden(sampling_rate == 0);
+			text_record_dropped.hidden(sampling_rate == 0);
+			text_time_available.hidden(sampling_rate == 0);
+			rect_background.hidden(sampling_rate != 0);
+
+			update_status_display();
+		}
+	}
+
+	bool RecordView::is_active() const
+	{
+		return (bool)capture_thread;
+	}
+
+	void RecordView::toggle()
+	{
+		if( is_active() )
+		{
+			stop();
+		}
+		else
+		{
+			start();
+		}
+	}
+
+	void RecordView::start()
+	{
 		stop();
-		
-		sampling_rate = new_sampling_rate;
-		baseband::set_sample_rate(sampling_rate);
 
-		button_record.hidden(sampling_rate == 0);
-		text_record_filename.hidden(sampling_rate == 0);
-		text_record_dropped.hidden(sampling_rate == 0);
-		text_time_available.hidden(sampling_rate == 0);
-		rect_background.hidden(sampling_rate != 0);
+		text_record_filename.set("");
+		text_record_dropped.set("");
 
-		update_status_display();
-	}
-}
+		if( sampling_rate == 0 )
+		{
+			return;
+		}
 
-bool RecordView::is_active() const {
-	return (bool)capture_thread;
-}
+		auto base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+		if( base_path.empty() )
+		{
+			return;
+		}
 
-void RecordView::toggle() {
-	if( is_active() ) {
-		stop();
-	} else {
-		start();
-	}
-}
-
-void RecordView::start() {
-	stop();
-
-	text_record_filename.set("");
-	text_record_dropped.set("");
-
-	if( sampling_rate == 0 ) {
-		return;
-	}
-
-	auto base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
-	if( base_path.empty() ) {
-		return;
-	}
-
-	std::unique_ptr<stream::Writer> writer;
-	switch(file_type) {
-	case FileType::WAV:
+		std::unique_ptr<stream::Writer> writer;
+		switch(file_type)
+		{
+		case FileType::WAV:
 		{
 			auto p = std::make_unique<WAVFileWriter>();
 			auto create_error = p->create(
-				base_path.replace_extension(u".WAV"),
-				sampling_rate,
-				to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz"
-			);
-			if( create_error.is_valid() ) {
+			                        base_path.replace_extension(u".WAV"),
+			                        sampling_rate,
+			                        to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz"
+			                    );
+			if( create_error.is_valid() )
+			{
 				handle_error(create_error.value());
-			} else {
+			}
+			else
+			{
 				writer = std::move(p);
 			}
 		}
 		break;
 
-	case FileType::RawS16:
+		case FileType::RawS16:
 		{
 			const auto metadata_file_error = write_metadata_file(base_path.replace_extension(u".TXT"));
-			if( metadata_file_error.is_valid() ) {
+			if( metadata_file_error.is_valid() )
+			{
 				handle_error(metadata_file_error.value());
 				return;
 			}
 
 			auto p = std::make_unique<RawFileWriter>();
 			auto create_error = p->create(base_path.replace_extension(u".C16"));
-			if( create_error.is_valid() ) {
+			if( create_error.is_valid() )
+			{
 				handle_error(create_error.value());
-			} else {
+			}
+			else
+			{
 				writer = std::move(p);
 			}
 		}
 		break;
 
-	default:
-		break;
-	};
+		default:
+			break;
+		};
 
-	if( writer ) {
-		text_record_filename.set(base_path.replace_extension().string());
-		button_record.set_bitmap(&bitmap_stop);
-		capture_thread = std::make_unique<CaptureThread>(
-			std::move(writer),
-			write_size, buffer_count,
-			[]() {
+		if( writer )
+		{
+			text_record_filename.set(base_path.replace_extension().string());
+			button_record.set_bitmap(&bitmap_stop);
+			capture_thread = std::make_unique<CaptureThread>(
+			                     std::move(writer),
+			                     write_size, buffer_count,
+			                     []()
+			{
 				CaptureThreadDoneMessage message { };
 				EventDispatcher::send_message(message);
 			},
-			[](File::Error error) {
+			[](File::Error error)
+			{
 				CaptureThreadDoneMessage message { error.code() };
 				EventDispatcher::send_message(message);
 			}
-		);
-	}
-
-	update_status_display();
-}
-
-void RecordView::on_hide() {
-	stop(); // Stop current recording
-	View::on_hide();
-}
-
-void RecordView::stop() {
-	if( is_active() ) {
-		capture_thread.reset();
-		button_record.set_bitmap(&bitmap_record);
-	}
-
-	update_status_display();
-}
-
-Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::path& filename) {
-	File file;
-	const auto create_error = file.create(filename);
-	if( create_error.is_valid() ) {
-		return create_error;
-	} else {
-		const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate / 8));
-		if( error_line1.is_valid() ) {
-			return error_line1;
+			                 );
 		}
-		const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
-		if( error_line2.is_valid() ) {
-			return error_line2;
+
+		update_status_display();
+	}
+
+	void RecordView::on_hide()
+	{
+		stop(); // Stop current recording
+		View::on_hide();
+	}
+
+	void RecordView::stop()
+	{
+		if( is_active() )
+		{
+			capture_thread.reset();
+			button_record.set_bitmap(&bitmap_record);
 		}
-		return { };
-	}
-}
 
-void RecordView::on_tick_second() {
-	update_status_display();
-}
-
-void RecordView::update_status_display() {
-	if( is_active() ) {
-		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
-		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
-		text_record_dropped.set(s);
+		update_status_display();
 	}
-	
-	/*if (pitch_rssi_enabled) {
-		button_pitch_rssi.invert_colors();
-	}*/
 
-	if( sampling_rate ) {
-		const auto space_info = std::filesystem::space(u"");
-		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);
-		const uint32_t available_seconds = space_info.free / bytes_per_second;
-		const uint32_t seconds = available_seconds % 60;
-		const uint32_t available_minutes = available_seconds / 60;
-		const uint32_t minutes = available_minutes % 60;
-		const uint32_t hours = available_minutes / 60;
-		const std::string available_time =
-			to_string_dec_uint(hours, 3, ' ') + ":" +
-			to_string_dec_uint(minutes, 2, '0') + ":" +
-			to_string_dec_uint(seconds, 2, '0');
-		text_time_available.set(available_time);
+	Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::path& filename)
+	{
+		File file;
+		const auto create_error = file.create(filename);
+		if( create_error.is_valid() )
+		{
+			return create_error;
+		}
+		else
+		{
+			const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate / 8));
+			if( error_line1.is_valid() )
+			{
+				return error_line1;
+			}
+			const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
+			if( error_line2.is_valid() )
+			{
+				return error_line2;
+			}
+			return { };
+		}
 	}
-}
 
-void RecordView::handle_capture_thread_done(const File::Error error) {
-	stop();
-	if( error.code() ) {
-		handle_error(error);
+	void RecordView::on_tick_second()
+	{
+		update_status_display();
 	}
-}
 
-void RecordView::handle_error(const File::Error error) {
-	if( on_error ) {
-		on_error(error.what());
+	void RecordView::update_status_display()
+	{
+		if( is_active() )
+		{
+			const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
+			const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+			text_record_dropped.set(s);
+		}
+
+		/*if (pitch_rssi_enabled) {
+			button_pitch_rssi.invert_colors();
+		}*/
+
+		if( sampling_rate )
+		{
+			const auto space_info = std::filesystem::space(u"");
+			const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);
+			const uint32_t available_seconds = space_info.free / bytes_per_second;
+			const uint32_t seconds = available_seconds % 60;
+			const uint32_t available_minutes = available_seconds / 60;
+			const uint32_t minutes = available_minutes % 60;
+			const uint32_t hours = available_minutes / 60;
+			const std::string available_time =
+			    to_string_dec_uint(hours, 3, ' ') + ":" +
+			    to_string_dec_uint(minutes, 2, '0') + ":" +
+			    to_string_dec_uint(seconds, 2, '0');
+			text_time_available.set(available_time);
+		}
 	}
-}
+
+	void RecordView::handle_capture_thread_done(const File::Error error)
+	{
+		stop();
+		if( error.code() )
+		{
+			handle_error(error);
+		}
+	}
+
+	void RecordView::handle_error(const File::Error error)
+	{
+		if( on_error )
+		{
+			on_error(error.what());
+		}
+	}
 
 } /* namespace ui */

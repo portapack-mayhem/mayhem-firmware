@@ -32,31 +32,32 @@ using namespace chibios_rt;
 #define BITCLEAR        3
 #define BITSET          4
 
-typedef struct {
-  uint8_t       action;
-  uint32_t      value;
+typedef struct
+{
+	uint8_t       action;
+	uint32_t      value;
 } seqop_t;
 
 // Flashing sequence for LED1.
 static const seqop_t LED1_sequence[] =
 {
-  {BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    200},
-  {BITSET,   PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    800},
-  {BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    400},
-  {BITSET,   PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    600},
-  {BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    600},
-  {BITSET,   PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    400},
-  {BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    800},
-  {BITSET,   PAL_PORT_BIT(GPIOC_LED)},
-  {SLEEP,    200},
-  {GOTO,     0}
+	{BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    200},
+	{BITSET,   PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    800},
+	{BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    400},
+	{BITSET,   PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    600},
+	{BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    600},
+	{BITSET,   PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    400},
+	{BITCLEAR, PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    800},
+	{BITSET,   PAL_PORT_BIT(GPIOC_LED)},
+	{SLEEP,    200},
+	{GOTO,     0}
 };
 
 /*
@@ -64,56 +65,64 @@ static const seqop_t LED1_sequence[] =
  * Any sequencer is just an instance of this class, all the details are
  * totally encapsulated and hidden to the application level.
  */
-class SequencerThread : public BaseStaticThread<128> {
-private:
-  const seqop_t *base, *curr;                   // Thread local variables.
+class SequencerThread : public BaseStaticThread<128>
+{
+	private:
+		const seqop_t *base, *curr;                   // Thread local variables.
 
-protected:
-  virtual msg_t main(void) {
-    while (true) {
-      switch(curr->action) {
-      case SLEEP:
-        sleep(curr->value);
-        break;
-      case GOTO:
-        curr = &base[curr->value];
-        continue;
-      case STOP:
-        return 0;
-      case BITCLEAR:
-        palClearPort(GPIOC, curr->value);
-        break;
-      case BITSET:
-        palSetPort(GPIOC, curr->value);
-        break;
-      }
-      curr++;
-    }
-  }
+	protected:
+		virtual msg_t main(void)
+		{
+			while (true)
+			{
+				switch(curr->action)
+				{
+				case SLEEP:
+					sleep(curr->value);
+					break;
+				case GOTO:
+					curr = &base[curr->value];
+					continue;
+				case STOP:
+					return 0;
+				case BITCLEAR:
+					palClearPort(GPIOC, curr->value);
+					break;
+				case BITSET:
+					palSetPort(GPIOC, curr->value);
+					break;
+				}
+				curr++;
+			}
+		}
 
-public:
-  SequencerThread(const seqop_t *sequence) : BaseStaticThread<128>() {
+	public:
+		SequencerThread(const seqop_t *sequence) : BaseStaticThread<128>()
+		{
 
-    base = curr = sequence;
-  }
+			base = curr = sequence;
+		}
 };
 
 /*
  * Tester thread class. This thread executes the test suite.
  */
-class TesterThread : public BaseStaticThread<256> {
+class TesterThread : public BaseStaticThread<256>
+{
 
-protected:
-  virtual msg_t main(void) {
+	protected:
+		virtual msg_t main(void)
+		{
 
-    setName("tester");
+			setName("tester");
 
-    return TestThread(&SD2);
-  }
+			return TestThread(&SD2);
+		}
 
-public:
-  TesterThread(void) : BaseStaticThread<256>() {
-  }
+	public:
+		TesterThread(void) : BaseStaticThread<256>()
+		{
+		}
 };
 
 /* Static threads instances.*/
@@ -123,39 +132,42 @@ static SequencerThread blinker1(LED1_sequence);
 /*
  * Application entry point.
  */
-int main(void) {
+int main(void)
+{
 
-  /*
-   * System initializations.
-   * - HAL initialization, this also initializes the configured device drivers
-   *   and performs the board-specific initializations.
-   * - Kernel initialization, the main() function becomes a thread and the
-   *   RTOS is active.
-   */
-  halInit();
-  System::init();
+	/*
+	 * System initializations.
+	 * - HAL initialization, this also initializes the configured device drivers
+	 *   and performs the board-specific initializations.
+	 * - Kernel initialization, the main() function becomes a thread and the
+	 *   RTOS is active.
+	 */
+	halInit();
+	System::init();
 
-  /*
-   * Activates the serial driver 2 using the driver default configuration.
-   */
-  sdStart(&SD2, NULL);
+	/*
+	 * Activates the serial driver 2 using the driver default configuration.
+	 */
+	sdStart(&SD2, NULL);
 
-  /*
-   * Starts several instances of the SequencerThread class, each one operating
-   * on a different LED.
-   */
-  blinker1.start(NORMALPRIO + 10);
+	/*
+	 * Starts several instances of the SequencerThread class, each one operating
+	 * on a different LED.
+	 */
+	blinker1.start(NORMALPRIO + 10);
 
-  /*
-   * Serves timer events.
-   */
-  while (true) {
-    if (palReadPad(GPIOA, GPIOA_BUTTON)) {
-      tester.start(NORMALPRIO);
-      tester.wait();
-    };
-    BaseThread::sleep(MS2ST(500));
-  }
+	/*
+	 * Serves timer events.
+	 */
+	while (true)
+	{
+		if (palReadPad(GPIOA, GPIOA_BUTTON))
+		{
+			tester.start(NORMALPRIO);
+			tester.wait();
+		};
+		BaseThread::sleep(MS2ST(500));
+	}
 
-  return 0;
+	return 0;
 }

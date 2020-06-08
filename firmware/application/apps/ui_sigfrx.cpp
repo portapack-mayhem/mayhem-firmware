@@ -43,108 +43,129 @@
 
 using namespace portapack;
 
-namespace ui {
-
-void SIGFRXView::focus() {
-	button_exit.focus();
-}
-
-SIGFRXView::~SIGFRXView() {
-	receiver_model.disable();
-}
-
-void SIGFRXView::paint(Painter& painter) {
-	uint8_t i, xp;
-	
-	//portapack::display.drawBMP({0, 302-160}, fox_bmp);
-	portapack::display.fill_rectangle({0,16,240,160-16}, ui::Color::white());
-	for (i = 0; i < 6; i++) {
-		xp = sigfrx_marks[i*3];
-		painter.draw_string({ (ui::Coord)sigfrx_marks[(i*3)+1], 144-20 }, style_white, to_string_dec_uint(sigfrx_marks[(i*3)+2]) );
-		portapack::display.draw_line({xp, 144-4}, {xp, 144}, ui::Color::black());
-	}
-}
-
-void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-	portapack::display.fill_rectangle({0, 144, 240, 4},ui::Color::white());
-	
-	uint8_t xmax = 0, imax = 0;
-	size_t i;
-	
-	for (i=0; i<120; i++) {
-		if (spectrum.db[i] > xmax) {
-			xmax = spectrum.db[i];
-			imax = i;
-		}
-	}
-	for (i=136; i<256; i++) {
-		if (spectrum.db[i-16] > xmax) {
-			xmax = spectrum.db[i-16];
-			imax = i-16;
-		}
-	}
-	
-	if ((imax >= last_channel-2) && (imax <= last_channel+2)) {
-		if (detect_counter >= 5) {
-			// Latched !
-		} else {
-			detect_counter++;
-		}
-	} else {
-		if (detect_counter >= 5) text_channel.set("...        ");
-		detect_counter = 0;
-	}
-	
-	last_channel = imax;
-	
-	portapack::display.fill_rectangle({(ui::Coord)(imax-2), 144, 4, 4}, ui::Color::red());
-}
-
-void SIGFRXView::on_show() {
-	/*EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrum,
-		[this](const Message* const p) {
-			this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
-		}
-	);*/
-}
-
-void SIGFRXView::on_hide() {
-	//EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrum);
-}
-
-SIGFRXView::SIGFRXView(
-	NavigationView& nav
-)
+namespace ui
 {
-	receiver_model.set_baseband_configuration({
-		.mode = 255,	// DEBUG
-		.sampling_rate = 3072000,
-		.decimation_factor = 4,
-	});
-	receiver_model.set_baseband_bandwidth(1750000);
-	
-	receiver_model.set_tuning_frequency(868110000);
-	
-	receiver_model.set_lna(0);
-	receiver_model.set_vga(0);
-	
-	add_children({
-		&text_type,
-		&text_channel,
-		&text_data,
-		&button_exit
-	});
-	
-	text_type.set_style(&style_white);
-	text_channel.set_style(&style_white);
-	text_data.set_style(&style_white);
 
-	button_exit.on_select = [&nav](Button&){
-		nav.pop();
-	};
-	
-	receiver_model.enable();
-	
-}
+	void SIGFRXView::focus()
+	{
+		button_exit.focus();
+	}
+
+	SIGFRXView::~SIGFRXView()
+	{
+		receiver_model.disable();
+	}
+
+	void SIGFRXView::paint(Painter& painter)
+	{
+		uint8_t i, xp;
+
+		//portapack::display.drawBMP({0, 302-160}, fox_bmp);
+		portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, ui::Color::white());
+		for (i = 0; i < 6; i++)
+		{
+			xp = sigfrx_marks[i * 3];
+			painter.draw_string({ (ui::Coord)sigfrx_marks[(i * 3) + 1], 144 - 20 }, style_white, to_string_dec_uint(sigfrx_marks[(i * 3) + 2]) );
+			portapack::display.draw_line({xp, 144 - 4}, {xp, 144}, ui::Color::black());
+		}
+	}
+
+	void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum)
+	{
+		portapack::display.fill_rectangle({0, 144, 240, 4}, ui::Color::white());
+
+		uint8_t xmax = 0, imax = 0;
+		size_t i;
+
+		for (i = 0; i < 120; i++)
+		{
+			if (spectrum.db[i] > xmax)
+			{
+				xmax = spectrum.db[i];
+				imax = i;
+			}
+		}
+		for (i = 136; i < 256; i++)
+		{
+			if (spectrum.db[i - 16] > xmax)
+			{
+				xmax = spectrum.db[i - 16];
+				imax = i - 16;
+			}
+		}
+
+		if ((imax >= last_channel - 2) && (imax <= last_channel + 2))
+		{
+			if (detect_counter >= 5)
+			{
+				// Latched !
+			}
+			else
+			{
+				detect_counter++;
+			}
+		}
+		else
+		{
+			if (detect_counter >= 5) text_channel.set("...        ");
+			detect_counter = 0;
+		}
+
+		last_channel = imax;
+
+		portapack::display.fill_rectangle({(ui::Coord)(imax - 2), 144, 4, 4}, ui::Color::red());
+	}
+
+	void SIGFRXView::on_show()
+	{
+		/*EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrum,
+			[this](const Message* const p) {
+				this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
+			}
+		);*/
+	}
+
+	void SIGFRXView::on_hide()
+	{
+		//EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrum);
+	}
+
+	SIGFRXView::SIGFRXView(
+	    NavigationView& nav
+	)
+	{
+		receiver_model.set_baseband_configuration(
+		{
+			.mode = 255,	// DEBUG
+			.sampling_rate = 3072000,
+			.decimation_factor = 4,
+		});
+		receiver_model.set_baseband_bandwidth(1750000);
+
+		receiver_model.set_tuning_frequency(868110000);
+
+		receiver_model.set_lna(0);
+		receiver_model.set_vga(0);
+
+		add_children(
+		{
+			&text_type,
+			&text_channel,
+			&text_data,
+			&button_exit
+		});
+
+		text_type.set_style(&style_white);
+		text_channel.set_style(&style_white);
+		text_data.set_style(&style_white);
+
+		button_exit.on_select = [&nav](Button&)
+		{
+			nav.pop();
+		};
+
+		receiver_model.enable();
+
+	}
 
 } /* namespace ui */

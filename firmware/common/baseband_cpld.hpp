@@ -24,16 +24,18 @@
 
 #include <cstdint>
 
-namespace baseband {
+namespace baseband
+{
 
-class CPLD {
-public:
-	void init();
+	class CPLD
+	{
+		public:
+			void init();
 
-	void set_invert(const bool invert);
-	
-private:
-};
+			void set_invert(const bool invert);
+
+		private:
+	};
 
 }
 

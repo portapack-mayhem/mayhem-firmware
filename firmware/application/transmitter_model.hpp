@@ -33,57 +33,58 @@
 #include "volume.hpp"
 #include "signal.hpp"
 
-class TransmitterModel {
-public:
-	rf::Frequency tuning_frequency() const;
-	void set_tuning_frequency(rf::Frequency f);
+class TransmitterModel
+{
+	public:
+		rf::Frequency tuning_frequency() const;
+		void set_tuning_frequency(rf::Frequency f);
 
-	void set_antenna_bias();
-	
-	bool rf_amp() const;
-	void set_rf_amp(bool enabled);
+		void set_antenna_bias();
 
-	int32_t lna() const;
-	void set_lna(int32_t v_db);
+		bool rf_amp() const;
+		void set_rf_amp(bool enabled);
 
-	uint32_t baseband_bandwidth() const;
-	void set_baseband_bandwidth(uint32_t v);
+		int32_t lna() const;
+		void set_lna(int32_t v_db);
 
-	int32_t vga() const;
-	void set_vga(int32_t v_db);
-	
-	int32_t tx_gain() const;
-	void set_tx_gain(int32_t v_db);
-	
-	uint32_t channel_bandwidth() const;
-	void set_channel_bandwidth(uint32_t v);
+		uint32_t baseband_bandwidth() const;
+		void set_baseband_bandwidth(uint32_t v);
 
-	uint32_t sampling_rate() const;
-	void set_sampling_rate(uint32_t v);
+		int32_t vga() const;
+		void set_vga(int32_t v_db);
 
-	void enable();
-	void disable();
+		int32_t tx_gain() const;
+		void set_tx_gain(int32_t v_db);
 
-private:
-	bool enabled_ { false };
-	bool rf_amp_ { false };
-	int32_t lna_gain_db_ { 0 };
-	uint32_t channel_bandwidth_ { 1 };
-	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
-	int32_t vga_gain_db_ { 8 };
-	int32_t tx_gain_db_ { 47 };
-	uint32_t sampling_rate_ { 3072000 };
-	SignalToken signal_token_tick_second { };
+		uint32_t channel_bandwidth() const;
+		void set_channel_bandwidth(uint32_t v);
 
-	void update_tuning_frequency();
-	void update_antenna_bias();
-	void update_rf_amp();
-	void update_lna();
-	void update_baseband_bandwidth();
-	void update_vga();
-	void update_tx_gain();
-	void update_sampling_rate();
-	void on_tick_second();
+		uint32_t sampling_rate() const;
+		void set_sampling_rate(uint32_t v);
+
+		void enable();
+		void disable();
+
+	private:
+		bool enabled_ { false };
+		bool rf_amp_ { false };
+		int32_t lna_gain_db_ { 0 };
+		uint32_t channel_bandwidth_ { 1 };
+		uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
+		int32_t vga_gain_db_ { 8 };
+		int32_t tx_gain_db_ { 47 };
+		uint32_t sampling_rate_ { 3072000 };
+		SignalToken signal_token_tick_second { };
+
+		void update_tuning_frequency();
+		void update_antenna_bias();
+		void update_rf_amp();
+		void update_lna();
+		void update_baseband_bandwidth();
+		void update_vga();
+		void update_tx_gain();
+		void update_sampling_rate();
+		void on_tick_second();
 };
 
 #endif/*__TRANSMITTER_MODEL_H__*/

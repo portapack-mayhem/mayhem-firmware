@@ -34,7 +34,8 @@ StreamOutput::StreamOutput(ReplayConfig* const config) :
 	config->fifo_buffers_empty = &fifo_buffers_empty;
 	config->fifo_buffers_full = &fifo_buffers_full;
 
-	for(size_t i=0; i<config->buffer_count; i++) {
+	for(size_t i = 0; i < config->buffer_count; i++)
+	{
 		// Set buffers to point consecutively in previously allocated unique_ptr "data"
 		buffers[i] = { &(data.get()[i * config->read_size]), config->read_size };
 		// Put all buffer pointers in the "empty buffer" FIFO
@@ -42,24 +43,30 @@ StreamOutput::StreamOutput(ReplayConfig* const config) :
 	}
 }
 
-size_t StreamOutput::read(void* const data, const size_t length) {
+size_t StreamOutput::read(void* const data, const size_t length)
+{
 	uint8_t* p = static_cast<uint8_t*>(data);
 	size_t read = 0;
 
-	while( read < length ) {
-		if( !active_buffer ) {
+	while( read < length )
+	{
+		if( !active_buffer )
+		{
 			// We need a full buffer...
-			if( !fifo_buffers_full.out(active_buffer) ) {
+			if( !fifo_buffers_full.out(active_buffer) )
+			{
 				// ...but none are available. Hole in transmission (inform app and stop ?)
 				break;
 			}
 		}
-		
+
 		const auto remaining = length - read;
 		read += active_buffer->read(&p[read], remaining);
 
-		if( active_buffer->is_empty() ) {
-			if( !fifo_buffers_empty.in(active_buffer) ) {
+		if( active_buffer->is_empty() )
+		{
+			if( !fifo_buffers_empty.in(active_buffer) )
+			{
 				// Empty buffers FIFO is already full.
 				// This should never happen if the number of buffers is less
 				// than the capacity of the FIFO.

@@ -25,46 +25,52 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace rffc507x {
-namespace spi {
+namespace rffc507x
+{
+	namespace spi
+	{
 
-using reg_t = uint16_t;
-using address_t = uint8_t;
-using bit_t = uint_fast8_t;
-using data_t = uint32_t;
+		using reg_t = uint16_t;
+		using address_t = uint8_t;
+		using bit_t = uint_fast8_t;
+		using data_t = uint32_t;
 
-class SPI {
-public:
-	enum class Direction {
-		Write = 0,
-		Read = 1,
-	};
+		class SPI
+		{
+			public:
+				enum class Direction
+				{
+					Write = 0,
+					Read = 1,
+				};
 
-	void init();
+				void init();
 
-	reg_t read(const address_t address) {
-		return transfer_word(Direction::Read, address, 0);
-	}
+				reg_t read(const address_t address)
+				{
+					return transfer_word(Direction::Read, address, 0);
+				}
 
-	void write(const address_t address, const reg_t value) {
-		transfer_word(Direction::Write, address, value);
-	}
+				void write(const address_t address, const reg_t value)
+				{
+					transfer_word(Direction::Write, address, value);
+				}
 
-private:
-	void select(const bool active);
+			private:
+				void select(const bool active);
 
-	void direction_out();
-	void direction_in();
+				void direction_out();
+				void direction_in();
 
-	void write_bit(const bit_t value);
-	bit_t read_bit();
+				void write_bit(const bit_t value);
+				bit_t read_bit();
 
-	bit_t transfer_bit(const bit_t bit_out);
-	data_t transfer_bits(const data_t data_out, const size_t count);
-	data_t transfer_word(const Direction direction, const address_t address, const data_t data_out);
-};
+				bit_t transfer_bit(const bit_t bit_out);
+				data_t transfer_bits(const data_t data_out, const size_t count);
+				data_t transfer_word(const Direction direction, const address_t address, const data_t data_out);
+		};
 
-} /* spi */
+	} /* spi */
 } /* rffc507x */
 
 #endif/*__RFFC507X_SPI_H__*/

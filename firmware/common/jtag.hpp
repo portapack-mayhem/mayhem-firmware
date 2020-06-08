@@ -29,72 +29,80 @@
 
 #include <bitset>
 
-namespace jtag {
+namespace jtag
+{
 
-class JTAG {
-public:
-	constexpr JTAG(
-		Target& target
-	) : target(target)
+	class JTAG
 	{
-	}
+		public:
+			constexpr JTAG(
+			    Target& target
+			) : target(target)
+			{
+			}
 
-	void reset() {
-		/* ??? -> Test-Logic-Reset */
-		for(size_t i=0; i<8; i++) {
-			target.clock(1, 0);
-		}
-	}
+			void reset()
+			{
+				/* ??? -> Test-Logic-Reset */
+				for(size_t i = 0; i < 8; i++)
+				{
+					target.clock(1, 0);
+				}
+			}
 
-	void run_test_idle() {
-		/* Test-Logic-Reset -> Run-Test/Idle */
-		target.clock(0, 0);
-	}
+			void run_test_idle()
+			{
+				/* Test-Logic-Reset -> Run-Test/Idle */
+				target.clock(0, 0);
+			}
 
-	void runtest_tck(const size_t count) {
-		target.delay(count);
-	}
+			void runtest_tck(const size_t count)
+			{
+				target.delay(count);
+			}
 
-	uint32_t shift_ir(const size_t count, const uint32_t value) {
-		/* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
-		target.clock(1, 0);
-		target.clock(1, 0);
-		/* Scan -> Capture -> Shift */
-		target.clock(0, 0);
-		target.clock(0, 0);
+			uint32_t shift_ir(const size_t count, const uint32_t value)
+			{
+				/* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
+				target.clock(1, 0);
+				target.clock(1, 0);
+				/* Scan -> Capture -> Shift */
+				target.clock(0, 0);
+				target.clock(0, 0);
 
-		const auto result = shift(count, value);
+				const auto result = shift(count, value);
 
-		/* Exit1 -> Update */
-		target.clock(1, 0);
-		/* Update -> Run-Test/Idle */
-		target.clock(0, 0);
+				/* Exit1 -> Update */
+				target.clock(1, 0);
+				/* Update -> Run-Test/Idle */
+				target.clock(0, 0);
 
-		return result;
-	}
+				return result;
+			}
 
-	uint32_t shift_dr(const size_t count, const uint32_t value) {
-		/* Run-Test/Idle -> Select-DR-Scan */
-		target.clock(1, 0);
-		/* Scan -> Capture -> Shift */
-		target.clock(0, 0);
-		target.clock(0, 0);
+			uint32_t shift_dr(const size_t count, const uint32_t value)
+			{
+				/* Run-Test/Idle -> Select-DR-Scan */
+				target.clock(1, 0);
+				/* Scan -> Capture -> Shift */
+				target.clock(0, 0);
+				target.clock(0, 0);
 
-		const auto result = shift(count, value);
+				const auto result = shift(count, value);
 
-		/* Exit1 -> Update */
-		target.clock(1, 0);
-		/* Update -> Run-Test/Idle */
-		target.clock(0, 0);
+				/* Exit1 -> Update */
+				target.clock(1, 0);
+				/* Update -> Run-Test/Idle */
+				target.clock(0, 0);
 
-		return result;
-	}
+				return result;
+			}
 
-private:
-	Target& target;
+		private:
+			Target& target;
 
-	uint32_t shift(const size_t count, uint32_t value);
-};
+			uint32_t shift(const size_t count, uint32_t value);
+	};
 
 } /* namespace jtag */
 

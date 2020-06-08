@@ -29,60 +29,63 @@
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
 
-namespace ert {
+namespace ert
+{
 
-using ID = uint32_t;
-using Consumption = uint32_t;
-using CommodityType = uint32_t;
+	using ID = uint32_t;
+	using Consumption = uint32_t;
+	using CommodityType = uint32_t;
 
-constexpr ID invalid_id = 0;
-constexpr CommodityType invalid_commodity_type = -1;
-constexpr Consumption invalid_consumption = 0;
+	constexpr ID invalid_id = 0;
+	constexpr CommodityType invalid_commodity_type = -1;
+	constexpr Consumption invalid_consumption = 0;
 
-class Packet {
-public:
-	enum class Type : uint32_t {
-		Unknown = 0,
-		IDM = 1,
-		SCM = 2,
-	};
-
-	Packet(
-		const Type type,
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		decoder_ { packet_ },
-		reader_ { decoder_ },
-		type_ { type }
+	class Packet
 	{
-	}
+		public:
+			enum class Type : uint32_t
+			{
+				Unknown = 0,
+				IDM = 1,
+				SCM = 2,
+			};
 
-	size_t length() const;
-	
-	bool is_valid() const;
+			Packet(
+			    const Type type,
+			    const baseband::Packet& packet
+			) : packet_ { packet },
+				decoder_ { packet_ },
+				reader_ { decoder_ },
+				type_ { type }
+			{
+			}
 
-	Timestamp received_at() const;
+			size_t length() const;
 
-	Type type() const;
-	ID id() const;
-	CommodityType commodity_type() const;
-	Consumption consumption() const;
+			bool is_valid() const;
 
-	FormattedSymbols symbols_formatted() const;
+			Timestamp received_at() const;
 
-	bool crc_ok() const;
+			Type type() const;
+			ID id() const;
+			CommodityType commodity_type() const;
+			Consumption consumption() const;
 
-private:
-	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+			FormattedSymbols symbols_formatted() const;
 
-	const baseband::Packet packet_;
-	const ManchesterDecoder decoder_;
-	const Reader reader_;
-	const Type type_;
+			bool crc_ok() const;
 
-	bool crc_ok_idm() const;
-	bool crc_ok_scm() const;
-};
+		private:
+			using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+
+			const baseband::Packet packet_;
+			const ManchesterDecoder decoder_;
+			const Reader reader_;
+			const Type type_;
+
+			bool crc_ok_idm() const;
+			bool crc_ok_scm() const;
+	};
 
 } /* namespace ert */
 

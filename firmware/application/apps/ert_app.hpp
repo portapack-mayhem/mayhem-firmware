@@ -38,30 +38,34 @@
 #include <cstddef>
 #include <string>
 
-struct ERTKey {
+struct ERTKey
+{
 	ert::ID id;
 	ert::CommodityType commodity_type;
 
 	constexpr ERTKey(
-		ert::ID id = ert::invalid_id,
-		ert::CommodityType commodity_type = ert::invalid_commodity_type
+	    ert::ID id = ert::invalid_id,
+	    ert::CommodityType commodity_type = ert::invalid_commodity_type
 	) : id { id  },
 		commodity_type { commodity_type }
 	{
 	}
 
-	ERTKey& operator=(const ERTKey& other) {
+	ERTKey& operator=(const ERTKey& other)
+	{
 		id = other.id;
 		commodity_type = other.commodity_type;
 		return *this;
 	}
 
-	bool operator==(const ERTKey& other) const {
+	bool operator==(const ERTKey& other) const
+	{
 		return (id == other.id) && (commodity_type == other.commodity_type);
 	}
 };
 
-struct ERTRecentEntry {
+struct ERTRecentEntry
+{
 	using Key = ERTKey;
 
 	// TODO: Is this the right choice of invalid key value?
@@ -75,98 +79,112 @@ struct ERTRecentEntry {
 	ert::Consumption last_consumption { };
 
 	ERTRecentEntry(
-		const Key& key
+	    const Key& key
 	) : id { key.id },
 		commodity_type { key.commodity_type }
 	{
 	}
 
-	Key key() const {
+	Key key() const
+	{
 		return { id, commodity_type };
 	}
 
 	void update(const ert::Packet& packet);
 };
 
-class ERTLogger {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return log_file.append(filename);
-	}
-	
-	void on_packet(const ert::Packet& packet);
+class ERTLogger
+{
+	public:
+		Optional<File::Error> append(const std::filesystem::path& filename)
+		{
+			return log_file.append(filename);
+		}
 
-private:
-	LogFile log_file { };
+		void on_packet(const ert::Packet& packet);
+
+	private:
+		LogFile log_file { };
 };
 
 using ERTRecentEntries = RecentEntries<ERTRecentEntry>;
 
-namespace ui {
+namespace ui
+{
 
-using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
+	using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
 
-class ERTAppView : public View {
-public:
-	static constexpr uint32_t initial_target_frequency = 911600000;
-	static constexpr uint32_t sampling_rate = 4194304;
-	static constexpr uint32_t baseband_bandwidth = 2500000;
+	class ERTAppView : public View
+	{
+		public:
+			static constexpr uint32_t initial_target_frequency = 911600000;
+			static constexpr uint32_t sampling_rate = 4194304;
+			static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	ERTAppView(NavigationView& nav);
-	~ERTAppView();
+			ERTAppView(NavigationView& nav);
+			~ERTAppView();
 
-	void set_parent_rect(const Rect new_parent_rect) override;
+			void set_parent_rect(const Rect new_parent_rect) override;
 
-	// Prevent painting of region covered entirely by a child.
-	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
-	void paint(Painter&) override { };
+			// Prevent painting of region covered entirely by a child.
+			// TODO: Add flag to View that specifies view does not need to be cleared before painting.
+			void paint(Painter&) override { };
 
-	void focus() override;
+			void focus() override;
 
-	std::string title() const override { return "ERT"; };
+			std::string title() const override
+			{
+				return "ERT";
+			};
 
-private:
-	ERTRecentEntries recent { };
-	std::unique_ptr<ERTLogger> logger { };
+		private:
+			ERTRecentEntries recent { };
+			std::unique_ptr<ERTLogger> logger { };
 
-	const RecentEntriesColumns columns { {
-		{ "ID", 10 },
-		{ "Tp", 2 },
-		{ "Consumpt", 10 },
-		{ "Cnt", 3 },
-	} };
-	ERTRecentEntriesView recent_entries_view { columns, recent };
+			const RecentEntriesColumns columns { {
+					{ "ID", 10 },
+					{ "Tp", 2 },
+					{ "Consumpt", 10 },
+					{ "Cnt", 3 },
+				} };
+			ERTRecentEntriesView recent_entries_view { columns, recent };
 
-	static constexpr auto header_height = 1 * 16;
+			static constexpr auto header_height = 1 * 16;
 
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
+			RFAmpField field_rf_amp
+			{
+				{ 13 * 8, 0 * 16 }
+			};
+
+			LNAGainField field_lna
+			{
+				{ 15 * 8, 0 * 16 }
+			};
+
+			VGAGainField field_vga
+			{
+				{ 18 * 8, 0 * 16 }
+			};
+
+			RSSI rssi
+			{
+				{ 21 * 8, 0, 6 * 8, 4 },
+			};
+
+			MessageHandlerRegistration message_handler_packet
+			{
+				Message::ID::ERTPacket,
+				[this](Message * const p)
+				{
+					const auto message = static_cast<const ERTPacketMessage*>(p);
+					const ert::Packet packet { message->type, message->packet };
+					this->on_packet(packet);
+				}
+			};
+
+			void on_packet(const ert::Packet& packet);
+			void on_show_list();
 	};
-
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
-
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
-
-	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
-	};
-
-	MessageHandlerRegistration message_handler_packet {
-		Message::ID::ERTPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ERTPacketMessage*>(p);
-			const ert::Packet packet { message->type, message->packet };
-			this->on_packet(packet);
-		}
-	};
-
-	void on_packet(const ert::Packet& packet);
-	void on_show_list();
-};
 
 } /* namespace ui */
 

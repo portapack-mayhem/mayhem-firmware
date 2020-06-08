@@ -34,44 +34,46 @@
 #include <array>
 #include <memory>
 
-class ReplayProcessor : public BasebandProcessor {
-public:
-	ReplayProcessor();
+class ReplayProcessor : public BasebandProcessor
+{
+	public:
+		ReplayProcessor();
 
-	void execute(const buffer_c8_t& buffer) override;
+		void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message* const message) override;
+		void on_message(const Message* const message) override;
 
-private:
-	size_t baseband_fs = 0;
-	static constexpr auto spectrum_rate_hz = 50.0f;
+	private:
+		size_t baseband_fs = 0;
+		static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 
-	std::array<complex8_t, 2048> iq { };
-	const buffer_c8_t iq_buffer {
-		iq.data(),
-		iq.size(),
-		baseband_fs 
-	};
-	
-	uint32_t channel_filter_pass_f = 0;
-	uint32_t channel_filter_stop_f = 0;
+		std::array<complex8_t, 2048> iq { };
+		const buffer_c8_t iq_buffer
+		{
+			iq.data(),
+			iq.size(),
+			baseband_fs
+		};
 
-	std::unique_ptr<StreamOutput> stream { };
+		uint32_t channel_filter_pass_f = 0;
+		uint32_t channel_filter_stop_f = 0;
 
-	SpectrumCollector channel_spectrum { };
-	size_t spectrum_interval_samples = 0;
-	size_t spectrum_samples = 0;
-	
-	bool configured { false };
-	uint32_t bytes_read { 0 };
+		std::unique_ptr<StreamOutput> stream { };
 
-	void samplerate_config(const SamplerateConfigMessage& message);
-	void replay_config(const ReplayConfigMessage& message);
-	
-	TXProgressMessage txprogress_message { };
-	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
+		SpectrumCollector channel_spectrum { };
+		size_t spectrum_interval_samples = 0;
+		size_t spectrum_samples = 0;
+
+		bool configured { false };
+		uint32_t bytes_read { 0 };
+
+		void samplerate_config(const SamplerateConfigMessage& message);
+		void replay_config(const ReplayConfigMessage& message);
+
+		TXProgressMessage txprogress_message { };
+		RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
 };
 
 #endif/*__PROC_GPS_SIM_HPP__*/

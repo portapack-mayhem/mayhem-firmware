@@ -26,19 +26,22 @@
 #ifndef __JAMMER_H__
 #define __JAMMER_H__
 
-namespace jammer {
+namespace jammer
+{
 
-typedef struct jammer_range {
-	bool enabled;
-	int64_t min;
-	int64_t max;
-} jammer_range_t;
+	typedef struct jammer_range
+	{
+		bool enabled;
+		int64_t min;
+		int64_t max;
+	} jammer_range_t;
 
-enum JammerType : uint32_t {
-	TYPE_FSK = 0,
-	TYPE_TONE = 1,
-	TYPE_SWEEP = 2
-};
+	enum JammerType : uint32_t
+	{
+		TYPE_FSK = 0,
+		TYPE_TONE = 1,
+		TYPE_SWEEP = 2
+	};
 
 } /* namespace jammer */
 

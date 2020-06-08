@@ -28,52 +28,54 @@
 
 using namespace lpc43xx;
 
-namespace hackrf {
-namespace one {
+namespace hackrf
+{
+	namespace one
+	{
 
-/* Clocks */
+		/* Clocks */
 
-using ClockFrequency = uint32_t;
+		using ClockFrequency = uint32_t;
 
-constexpr ClockFrequency si5351_xtal_f		= 25000000U;
-constexpr ClockFrequency si5351_clkin_f		= 10000000U;
+		constexpr ClockFrequency si5351_xtal_f		= 25000000U;
+		constexpr ClockFrequency si5351_clkin_f		= 10000000U;
 
-/* TODO: Use this many other places. */
-/* TODO: M4/M0 and peripheral rates may be more PortaPack-specific? Move out
- * of HackRF header? */
-constexpr ClockFrequency base_m4_clk_f		= 200000000U;
-constexpr ClockFrequency base_m0_clk_f		= base_m4_clk_f;
-constexpr ClockFrequency base_apb3_clk_f	= base_m4_clk_f;
-constexpr ClockFrequency ssp1_pclk_f		= base_m4_clk_f;
+		/* TODO: Use this many other places. */
+		/* TODO: M4/M0 and peripheral rates may be more PortaPack-specific? Move out
+		 * of HackRF header? */
+		constexpr ClockFrequency base_m4_clk_f		= 200000000U;
+		constexpr ClockFrequency base_m0_clk_f		= base_m4_clk_f;
+		constexpr ClockFrequency base_apb3_clk_f	= base_m4_clk_f;
+		constexpr ClockFrequency ssp1_pclk_f		= base_m4_clk_f;
 
-constexpr ClockFrequency max5864_spi_f		= 20000000U;
-constexpr ClockFrequency max2837_spi_f 		= 20000000U;
+		constexpr ClockFrequency max5864_spi_f		= 20000000U;
+		constexpr ClockFrequency max2837_spi_f 		= 20000000U;
 
-constexpr ClockFrequency rffc5072_reference_f	= 40000000U;
-constexpr ClockFrequency max2837_reference_f	= 40000000U;
-constexpr ClockFrequency mcu_clkin_f			= 40000000U;
+		constexpr ClockFrequency rffc5072_reference_f	= 40000000U;
+		constexpr ClockFrequency max2837_reference_f	= 40000000U;
+		constexpr ClockFrequency mcu_clkin_f			= 40000000U;
 
-constexpr uint8_t si5351_i2c_address = 0x60;
+		constexpr uint8_t si5351_i2c_address = 0x60;
 
-/* Clock Generator */
+		/* Clock Generator */
 
-constexpr size_t clock_generator_output_codec		= 0;
-constexpr size_t clock_generator_output_cpld		= 1;
-constexpr size_t clock_generator_output_sgpio		= 2;
-constexpr size_t clock_generator_output_clkout		= 3;
-constexpr size_t clock_generator_output_first_if	= 4;
-constexpr size_t clock_generator_output_second_if	= 5;
-constexpr size_t clock_generator_output_mcu_clkin	= 7;
+		constexpr size_t clock_generator_output_codec		= 0;
+		constexpr size_t clock_generator_output_cpld		= 1;
+		constexpr size_t clock_generator_output_sgpio		= 2;
+		constexpr size_t clock_generator_output_clkout		= 3;
+		constexpr size_t clock_generator_output_first_if	= 4;
+		constexpr size_t clock_generator_output_second_if	= 5;
+		constexpr size_t clock_generator_output_mcu_clkin	= 7;
 
-/* ADC0 */
+		/* ADC0 */
 
-using adc0 = adc::ADC<LPC_ADC0_BASE>;
+		using adc0 = adc::ADC<LPC_ADC0_BASE>;
 
-/* ADC1 */
+		/* ADC1 */
 
-using adc1 = adc::ADC<LPC_ADC1_BASE>;
+		using adc1 = adc::ADC<LPC_ADC1_BASE>;
 
-} /* namespace one */
+	} /* namespace one */
 } /* namespace hackrf */
 
 #endif/*__HACKRF_HAL_H__*/

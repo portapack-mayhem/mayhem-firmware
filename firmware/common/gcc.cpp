@@ -32,14 +32,17 @@
 void *__dso_handle;
 
 /* prevents the exception handling name demangling code getting pulled in */
-namespace __gnu_cxx {
-	void __verbose_terminate_handler() {
+namespace __gnu_cxx
+{
+	void __verbose_terminate_handler()
+	{
 	}
 }
 
 /* NOTE: Hack to address bloat when using C++ class virtual destructors.
  */
-extern "C" __attribute__((weak)) void __cxa_pure_virtual(void) {
+extern "C" __attribute__((weak)) void __cxa_pure_virtual(void)
+{
 	chSysHalt();
 }
 
@@ -48,7 +51,11 @@ extern "C" __attribute__((weak)) void __cxa_pure_virtual(void) {
 /* Implementing abort() eliminates requirement for _getpid(), _kill(),
  * _exit().
  */
-extern "C" void abort() {
+extern "C" void abort()
+{
 	/* while() loop to avoid noreturn-is-returning warning. */
-	while(1) { chSysHalt(); }
+	while(1)
+	{
+		chSysHalt();
+	}
 }

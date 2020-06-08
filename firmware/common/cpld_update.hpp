@@ -24,24 +24,28 @@
 
 #include "portapack_cpld_data.hpp"
 
-namespace portapack {
-namespace cpld {
+namespace portapack
+{
+	namespace cpld
+	{
 
-bool update_if_necessary(
-	const Config config
-);
+		bool update_if_necessary(
+		    const Config config
+		);
 
-} /* namespace cpld */
+	} /* namespace cpld */
 } /* namespace portapack */
 
-namespace hackrf {
-namespace cpld {
+namespace hackrf
+{
+	namespace cpld
+	{
 
-bool load_sram();
-bool verify_eeprom();
-void init_from_eeprom();
+		bool load_sram();
+		bool verify_eeprom();
+		void init_from_eeprom();
 
-} /* namespace cpld */
+	} /* namespace cpld */
 } /* namespace hackrf */
 
 #endif/*__CPLD_UPDATE_H__*/

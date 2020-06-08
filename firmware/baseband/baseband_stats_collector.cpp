@@ -23,7 +23,8 @@
 
 #include "lpc43xx_cpp.hpp"
 
-bool BasebandStatsCollector::process(const buffer_c8_t& buffer) {
+bool BasebandStatsCollector::process(const buffer_c8_t& buffer)
+{
 	samples += buffer.count;
 
 	const size_t report_samples = buffer.sampling_rate * report_interval;
@@ -31,7 +32,8 @@ bool BasebandStatsCollector::process(const buffer_c8_t& buffer) {
 	return report_delta >= report_samples;
 }
 
-BasebandStatistics BasebandStatsCollector::capture_statistics() {
+BasebandStatistics BasebandStatsCollector::capture_statistics()
+{
 	BasebandStatistics statistics;
 
 	const auto idle_ticks = thread_idle->total_ticks;

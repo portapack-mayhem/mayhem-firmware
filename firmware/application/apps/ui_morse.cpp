@@ -36,179 +36,209 @@ using namespace portapack;
 using namespace morse;
 using namespace hackrf::one;
 
-namespace ui {
-
-static WORKING_AREA(ookthread_wa, 256);
-
-static msg_t ookthread_fn(void * arg) {
-	uint32_t v = 0, delay = 0;
-	uint8_t * message_symbols = shared_memory.bb_data.tones_data.message;
-	uint8_t symbol;
-	MorseView * arg_c = (MorseView*)arg;
-	
-	chRegSetThreadName("ookthread");
-	
-	for (uint32_t i = 0; i < arg_c->symbol_count; i++) {
-		if (chThdShouldTerminate()) break;
-		
-		symbol = message_symbols[i];
-		
-		v = (symbol < 2) ? 1 : 0;	// TX on for dot or dash, off for pause
-		delay = morse_symbols[symbol];
-		
-		gpio_tx.write(v);
-		arg_c->on_tx_progress(i, false);
-		
-		chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
-	}
-	
-	gpio_tx.write(0);				// Ensure TX is off
-	arg_c->on_tx_progress(0, true);
-	chThdExit(0);
-	
-	return 0;
-}
-
-void MorseView::on_set_text(NavigationView& nav) {
-	text_prompt(nav, buffer, 28);
-}
-
-void MorseView::focus() {
-	button_message.focus();
-}
-
-MorseView::~MorseView() {
-	transmitter_model.disable();
-	baseband::shutdown();
-}
-
-void MorseView::paint(Painter&) {
-	message = buffer;
-	text_message.set(message);
-	update_tx_duration();
-}
-
-bool MorseView::start_tx() {
-	// Re-generate message, just in case
-	update_tx_duration();
-	
-	if (!symbol_count) {
-		nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.", INFO, nullptr);
-		return false;
-	}
-	
-	progressbar.set_max(symbol_count);
-	
-	transmitter_model.set_sampling_rate(1536000U);
-	transmitter_model.set_baseband_bandwidth(1750000);
-	transmitter_model.enable();
-	
-	if (modulation == CW) {
-		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-	} else if (modulation == FM) {
-		baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
-	}
-	
-	return true;
-}
-
-void MorseView::update_tx_duration() {
-	uint32_t duration_ms;
-	
-	time_unit_ms = field_time_unit.value();
-	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
-	
-	if (symbol_count) {
-		duration_ms = time_units * time_unit_ms;
-		text_tx_duration.set(to_string_dec_uint(duration_ms / 1000) + "." + to_string_dec_uint((duration_ms / 100) % 10, 1) + "s   ");
-	} else {
-		text_tx_duration.set("-");		// Error
-	}
-}
-
-void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
-	if (done) {
-		transmitter_model.disable();
-		progressbar.set_value(0);
-		tx_view.set_transmitting(false);
-	} else
-		progressbar.set_value(progress);
-}
-
-void MorseView::set_foxhunt(size_t i) {
-	message = foxhunt_codes[i];
-	buffer = message.c_str();
-	text_message.set(message);
-	update_tx_duration();
-}
-
-MorseView::MorseView(
-	NavigationView& nav
-) : nav_ (nav)
+namespace ui
 {
-	baseband::run_image(portapack::spi_flash::image_tag_tones);
-	
-	add_children({
-		&labels,
-		&checkbox_foxhunt,
-		&options_foxhunt,
-		&field_time_unit,
-		&field_tone,
-		&options_modulation,
-		&text_tx_duration,
-		&text_message,
-		&button_message,
-		&progressbar,
-		&tx_view
-	});
-	
-	// Default settings
-	field_time_unit.set_value(50);				// 50ms unit
-	field_tone.set_value(700);					// 700Hz FM tone
-	options_modulation.set_selected_index(0);	// CW mode
-	
-	checkbox_foxhunt.on_select = [this](Checkbox&, bool value) {
-		foxhunt_mode = value;
-		
-		if (foxhunt_mode)
-			set_foxhunt(options_foxhunt.selected_index_value());
-	};
-	
-	options_foxhunt.on_change = [this](size_t i, int32_t) {
-		if (foxhunt_mode)
-			set_foxhunt(i);
-	};
-	
-	options_modulation.on_change = [this](size_t i, int32_t) {
-		modulation = (modulation_t)i;
-	};
-	
-	field_time_unit.on_change = [this](int32_t) {
-		update_tx_duration();
-	};
-	
-	button_message.on_select = [this, &nav](Button&) {
-		this->on_set_text(nav);
-	};
-	
-	tx_view.on_edit_frequency = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
-		};
-	};
-	
-	tx_view.on_start = [this]() {
-		if (start_tx())
-			tx_view.set_transmitting(true);
-	};
-	
-	tx_view.on_stop = [this]() {
-		if (ookthread) chThdTerminate(ookthread);
+
+	static WORKING_AREA(ookthread_wa, 256);
+
+	static msg_t ookthread_fn(void * arg)
+	{
+		uint32_t v = 0, delay = 0;
+		uint8_t * message_symbols = shared_memory.bb_data.tones_data.message;
+		uint8_t symbol;
+		MorseView * arg_c = (MorseView*)arg;
+
+		chRegSetThreadName("ookthread");
+
+		for (uint32_t i = 0; i < arg_c->symbol_count; i++)
+		{
+			if (chThdShouldTerminate()) break;
+
+			symbol = message_symbols[i];
+
+			v = (symbol < 2) ? 1 : 0;	// TX on for dot or dash, off for pause
+			delay = morse_symbols[symbol];
+
+			gpio_tx.write(v);
+			arg_c->on_tx_progress(i, false);
+
+			chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
+		}
+
+		gpio_tx.write(0);				// Ensure TX is off
+		arg_c->on_tx_progress(0, true);
+		chThdExit(0);
+
+		return 0;
+	}
+
+	void MorseView::on_set_text(NavigationView& nav)
+	{
+		text_prompt(nav, buffer, 28);
+	}
+
+	void MorseView::focus()
+	{
+		button_message.focus();
+	}
+
+	MorseView::~MorseView()
+	{
 		transmitter_model.disable();
-		baseband::kill_tone();
-		tx_view.set_transmitting(false);
-	};
-}
+		baseband::shutdown();
+	}
+
+	void MorseView::paint(Painter&)
+	{
+		message = buffer;
+		text_message.set(message);
+		update_tx_duration();
+	}
+
+	bool MorseView::start_tx()
+	{
+		// Re-generate message, just in case
+		update_tx_duration();
+
+		if (!symbol_count)
+		{
+			nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.", INFO, nullptr);
+			return false;
+		}
+
+		progressbar.set_max(symbol_count);
+
+		transmitter_model.set_sampling_rate(1536000U);
+		transmitter_model.set_baseband_bandwidth(1750000);
+		transmitter_model.enable();
+
+		if (modulation == CW)
+		{
+			ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
+		}
+		else if (modulation == FM)
+		{
+			baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
+		}
+
+		return true;
+	}
+
+	void MorseView::update_tx_duration()
+	{
+		uint32_t duration_ms;
+
+		time_unit_ms = field_time_unit.value();
+		symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
+
+		if (symbol_count)
+		{
+			duration_ms = time_units * time_unit_ms;
+			text_tx_duration.set(to_string_dec_uint(duration_ms / 1000) + "." + to_string_dec_uint((duration_ms / 100) % 10, 1) + "s   ");
+		}
+		else
+		{
+			text_tx_duration.set("-");		// Error
+		}
+	}
+
+	void MorseView::on_tx_progress(const uint32_t progress, const bool done)
+	{
+		if (done)
+		{
+			transmitter_model.disable();
+			progressbar.set_value(0);
+			tx_view.set_transmitting(false);
+		}
+		else
+			progressbar.set_value(progress);
+	}
+
+	void MorseView::set_foxhunt(size_t i)
+	{
+		message = foxhunt_codes[i];
+		buffer = message.c_str();
+		text_message.set(message);
+		update_tx_duration();
+	}
+
+	MorseView::MorseView(
+	    NavigationView& nav
+	) : nav_ (nav)
+	{
+		baseband::run_image(portapack::spi_flash::image_tag_tones);
+
+		add_children(
+		{
+			&labels,
+			&checkbox_foxhunt,
+			&options_foxhunt,
+			&field_time_unit,
+			&field_tone,
+			&options_modulation,
+			&text_tx_duration,
+			&text_message,
+			&button_message,
+			&progressbar,
+			&tx_view
+		});
+
+		// Default settings
+		field_time_unit.set_value(50);				// 50ms unit
+		field_tone.set_value(700);					// 700Hz FM tone
+		options_modulation.set_selected_index(0);	// CW mode
+
+		checkbox_foxhunt.on_select = [this](Checkbox&, bool value)
+		{
+			foxhunt_mode = value;
+
+			if (foxhunt_mode)
+				set_foxhunt(options_foxhunt.selected_index_value());
+		};
+
+		options_foxhunt.on_change = [this](size_t i, int32_t)
+		{
+			if (foxhunt_mode)
+				set_foxhunt(i);
+		};
+
+		options_modulation.on_change = [this](size_t i, int32_t)
+		{
+			modulation = (modulation_t)i;
+		};
+
+		field_time_unit.on_change = [this](int32_t)
+		{
+			update_tx_duration();
+		};
+
+		button_message.on_select = [this, &nav](Button&)
+		{
+			this->on_set_text(nav);
+		};
+
+		tx_view.on_edit_frequency = [this, &nav]()
+		{
+			auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+			new_view->on_changed = [this](rf::Frequency f)
+			{
+				receiver_model.set_tuning_frequency(f);
+			};
+		};
+
+		tx_view.on_start = [this]()
+		{
+			if (start_tx())
+				tx_view.set_transmitting(true);
+		};
+
+		tx_view.on_stop = [this]()
+		{
+			if (ookthread) chThdTerminate(ookthread);
+			transmitter_model.disable();
+			baseband::kill_tone();
+			tx_view.set_transmitting(false);
+		};
+	}
 
 } /* namespace ui */

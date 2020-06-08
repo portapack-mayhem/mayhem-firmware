@@ -36,35 +36,36 @@
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
 
-namespace portapack {
+namespace portapack
+{
 
-extern portapack::IO io;
+	extern portapack::IO io;
 
-extern lcd::ILI9341 display;
+	extern lcd::ILI9341 display;
 
-extern I2C i2c0;
-extern SPI ssp1;
+	extern I2C i2c0;
+	extern SPI ssp1;
 
-extern si5351::Si5351 clock_generator;
-extern ClockManager clock_manager;
+	extern si5351::Si5351 clock_generator;
+	extern ClockManager clock_manager;
 
-extern ReceiverModel receiver_model;
-extern TransmitterModel transmitter_model;
+	extern ReceiverModel receiver_model;
+	extern TransmitterModel transmitter_model;
 
-extern bool speaker_mode;
-void set_speaker_mode(const bool v);
+	extern bool speaker_mode;
+	void set_speaker_mode(const bool v);
 
-extern uint8_t bl_tick_counter;
-extern bool antenna_bias;
+	extern uint8_t bl_tick_counter;
+	extern bool antenna_bias;
 
-extern TemperatureLogger temperature_logger;
+	extern TemperatureLogger temperature_logger;
 
-void set_antenna_bias(const bool v);
-bool get_antenna_bias();
+	void set_antenna_bias(const bool v);
+	bool get_antenna_bias();
 
-bool init();
-void shutdown();
+	bool init();
+	void shutdown();
 
-Backlight* backlight();
+	Backlight* backlight();
 
 } /* namespace portapack */

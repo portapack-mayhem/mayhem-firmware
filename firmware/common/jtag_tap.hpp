@@ -27,129 +27,136 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace jtag {
-namespace tap {
-
-class bits_t {
-public:
-	constexpr bits_t(
-	) : p { nullptr },
-		count { 0 }
+namespace jtag
+{
+	namespace tap
 	{
-	}
 
-	constexpr bits_t(
-		const size_t count,
-		const bool default_value = true
-	) : p { nullptr },
-		count { count },
-		default_value { default_value }
-	{
-	}
+		class bits_t
+		{
+			public:
+				constexpr bits_t(
+				) : p { nullptr },
+					count { 0 }
+				{
+				}
 
-	constexpr bits_t(
-		const uint8_t* const p,
-		const size_t count
-	) : p { p },
-		count { count }
-	{
-	}
+				constexpr bits_t(
+				    const size_t count,
+				    const bool default_value = true
+				) : p { nullptr },
+					count { count },
+					default_value { default_value }
+				{
+				}
 
-	size_t length() const;
+				constexpr bits_t(
+				    const uint8_t* const p,
+				    const size_t count
+				) : p { p },
+					count { count }
+				{
+				}
 
-	explicit operator bool() const;
+				size_t length() const;
 
-	bool operator[](const size_t index) const;
+				explicit operator bool() const;
 
-private:
-	const uint8_t* p { nullptr };
-	size_t count { 0 };
-	bool default_value { false };
+				bool operator[](const size_t index) const;
 
-	size_t bytes() const;
-};
+			private:
+				const uint8_t* p { nullptr };
+				size_t count { 0 };
+				bool default_value { false };
 
-enum class state_t : uint8_t {
-	/* Ordinal values are important for "routes" values, and to match XSVF definitions. */
-	test_logic_reset = 0,
-	run_test_idle = 1,
-	select_dr_scan = 2,
-	capture_dr = 3,
-	shift_dr = 4,
-	exit1_dr = 5,
-	pause_dr = 6,
-	exit2_dr = 7,
-	update_dr = 8,
-	select_ir_scan = 9,
-	capture_ir = 10,
-	shift_ir = 11,
-	exit1_ir = 12,
-	pause_ir = 13,
-	exit2_ir = 14,
-	update_ir = 15,
-};
+				size_t bytes() const;
+		};
 
-class TAPState {
-public:
-	constexpr TAPState(
-	) : _state { state_t::test_logic_reset }
-	{
-	}
+		enum class state_t : uint8_t
+		{
+			/* Ordinal values are important for "routes" values, and to match XSVF definitions. */
+			test_logic_reset = 0,
+			run_test_idle = 1,
+			select_dr_scan = 2,
+			capture_dr = 3,
+			shift_dr = 4,
+			exit1_dr = 5,
+			pause_dr = 6,
+			exit2_dr = 7,
+			update_dr = 8,
+			select_ir_scan = 9,
+			capture_ir = 10,
+			shift_ir = 11,
+			exit1_ir = 12,
+			pause_ir = 13,
+			exit2_ir = 14,
+			update_ir = 15,
+		};
 
-	state_t state() const;
-	void advance(const bool tms);
-	bool advance_toward(const state_t desired_state) const;
+		class TAPState
+		{
+			public:
+				constexpr TAPState(
+				) : _state { state_t::test_logic_reset }
+				{
+				}
 
-private:
-	state_t _state;
-};
+				state_t state() const;
+				void advance(const bool tms);
+				bool advance_toward(const state_t desired_state) const;
 
-class TAPMachine {
-public:
-	constexpr TAPMachine(
-		jtag::Target& target
-	) : target { target }
-	{
-	}
+			private:
+				state_t _state;
+		};
 
-	void set_run_test(const uint32_t value);
-	void set_repeat(const uint8_t value);
-	void set_end_ir(const state_t state);
-	void set_end_dr(const state_t state);
+		class TAPMachine
+		{
+			public:
+				constexpr TAPMachine(
+				    jtag::Target& target
+				) : target { target }
+				{
+				}
 
-	bool shift(const bits_t& tdi, const bool end_tms) {
-		return shift(tdi, {}, {}, end_tms);
-	}
-	
-	bool shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms);
+				void set_run_test(const uint32_t value);
+				void set_repeat(const uint8_t value);
+				void set_end_ir(const state_t state);
+				void set_end_dr(const state_t state);
 
-	bool shift_ir(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
-	bool shift_dr(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
+				bool shift(const bits_t& tdi, const bool end_tms)
+				{
+					return shift(tdi, {}, {}, end_tms);
+				}
 
-	void state(const state_t state);
-	
-	void wait(const state_t wait_state, const state_t end_state, const uint32_t wait_time);
+				bool shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms);
 
-private:
-	jtag::Target& target;
-	TAPState tap { };
+				bool shift_ir(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
+				bool shift_dr(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
 
-	uint32_t _run_test { 0 };
-	uint8_t _repeat { 0 };
-	state_t _end_ir { };
-	state_t _end_dr { };
+				void state(const state_t state);
 
-	bool clock(const bool tms, const bool tdi=false);
-	void advance_to_state(const state_t desired_state);
-	void delay_us(const uint32_t microseconds);
+				void wait(const state_t wait_state, const state_t end_state, const uint32_t wait_time);
 
-	void shift_start(const state_t state);
-	void shift_end(const state_t end_state, const uint32_t end_delay);
+			private:
+				jtag::Target& target;
+				TAPState tap { };
 
-	bool shift_data(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const state_t state, const state_t end_state, const uint32_t end_delay);
-};
+				uint32_t _run_test { 0 };
+				uint8_t _repeat { 0 };
+				state_t _end_ir { };
+				state_t _end_dr { };
 
-} /* namespace tap */
+				bool clock(const bool tms, const bool tdi = false);
+				void advance_to_state(const state_t desired_state);
+				void delay_us(const uint32_t microseconds);
+
+				void shift_start(const state_t state);
+				void shift_end(const state_t end_state, const uint32_t end_delay);
+
+				bool shift_data(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const state_t state, const state_t end_state, const uint32_t end_delay);
+		};
+
+	} /* namespace tap */
 } /* namespace jtag */
 
 #endif/*__JTAG_TAP_H__*/

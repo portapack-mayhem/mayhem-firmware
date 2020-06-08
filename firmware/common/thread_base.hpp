@@ -24,20 +24,22 @@
 
 #include <ch.h>
 
-class ThreadBase {
-public:
-	virtual ~ThreadBase() = default;
-	
-protected:
-	static msg_t fn(void* arg) {
-		auto obj = static_cast<ThreadBase*>(arg);
-		obj->run();
+class ThreadBase
+{
+	public:
+		virtual ~ThreadBase() = default;
 
-		return 0;
-	}
+	protected:
+		static msg_t fn(void* arg)
+		{
+			auto obj = static_cast<ThreadBase*>(arg);
+			obj->run();
 
-private:
-	virtual void run() = 0;
+			return 0;
+		}
+
+	private:
+		virtual void run() = 0;
 };
 
 #endif/*__THREAD_BASE_H__*/

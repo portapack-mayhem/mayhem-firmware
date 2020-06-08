@@ -34,132 +34,151 @@
 using namespace portapack;
 using namespace modems;
 
-namespace ui {
+namespace ui
+{
 
-void NRFRxView::focus() {
-	field_frequency.focus();
-}
-
-void NRFRxView::update_freq(rf::Frequency f) {
-	receiver_model.set_tuning_frequency(f);
-}
-
-NRFRxView::NRFRxView(NavigationView& nav) {
-	baseband::run_image(portapack::spi_flash::image_tag_nrf_rx);
-	
-	add_children({
-		&rssi,
-		&channel,
-		&field_rf_amp,
-		&field_lna,
-		&field_vga,
-		&field_frequency,
-		&text_debug,
-		&button_modem_setup,
-		&record_view,
-		&console
-	});
-	
-	// DEBUG
-	record_view.on_error = [&nav](std::string message) {
-		nav.display_modal("Error", message);
-	};
-	record_view.set_sampling_rate(24000);
-	
-	// Auto-configure modem for LCR RX (will be removed later)
-	update_freq(2480000000);
-	auto def_bell202 = &modem_defs[0];
-	persistent_memory::set_modem_baudrate(def_bell202->baudrate);
-	serial_format_t serial_format;
-	serial_format.data_bits = 7;
-	serial_format.parity = EVEN;
-	serial_format.stop_bits = 1;
-	serial_format.bit_order = LSB_FIRST;
-	persistent_memory::set_serial_format(serial_format);
-	
-	field_frequency.set_value(receiver_model.tuning_frequency());
-	field_frequency.set_step(100);
-	field_frequency.on_change = [this](rf::Frequency f) {
-		update_freq(f);
-	};
-	field_frequency.on_edit = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			update_freq(f);
-			field_frequency.set_value(f);
-		};
-	};
-
-	button_modem_setup.on_select = [&nav](Button&) {
-		nav.push<ModemSetupView>();
-	};
-	
-	
-	// Auto-configure modem for LCR RX (will be removed later)
-	baseband::set_nrf(persistent_memory::modem_baudrate(), 8, 0, false);
-	
-	audio::set_rate(audio::Rate::Hz_24000);
-	audio::output::start();
-	
-	receiver_model.set_sampling_rate(4000000);
-	receiver_model.set_baseband_bandwidth(4000000);
-	receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-	receiver_model.enable();
-}
-
-void NRFRxView::on_data(uint32_t value, bool is_data) {
-	//std::string str_console = "\x1B";
-	std::string str_console = "";
-	if (is_data) {
-		// Colorize differently after message splits
-		//str_console += (char)((console_color & 3) + 9);
-		
-		//value &= 0xFF;											// ABCDEFGH
-		//value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
-		//value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
-		//value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
-		//value &= 0x7F;											// Ignore parity, which is the MSB now
-		
-		//if ((value >= 32) && (value < 127)) {
-		//	str_console += (char)value;							// Printable
-		//} 
-		
-		//str_console += (char)'A';
-		//str_console += (char)value;
-		//str_console += "[" + to_string_hex(value, 2) + "]";	
-		str_console += " " + to_string_hex(value, 2) ;	
-		console.write(str_console);
-		
-		
-		
-		/*if ((value != 0x7F) && (prev_value == 0x7F)) {
-			// Message split
-			console.writeln("");
-			console_color++;
-			
-			
-		}*/
-		//prev_value = value;
-	} else {
-		// Baudrate estimation
-		//text_debug.set("~" + to_string_dec_uint(value)); 
-		if (value == 'A')
-		{console.write("addr:");}
-		else if (value == 'B')
-		{console.write(" data:");}
-		else if (value == 'C')
-		{
-			console.writeln("");
-			console.writeln("");
-		}
-		//console.writeln("");
+	void NRFRxView::focus()
+	{
+		field_frequency.focus();
 	}
-}
 
-NRFRxView::~NRFRxView() {
-	audio::output::stop();
-	receiver_model.disable();
-	baseband::shutdown();
-}
+	void NRFRxView::update_freq(rf::Frequency f)
+	{
+		receiver_model.set_tuning_frequency(f);
+	}
+
+	NRFRxView::NRFRxView(NavigationView& nav)
+	{
+		baseband::run_image(portapack::spi_flash::image_tag_nrf_rx);
+
+		add_children(
+		{
+			&rssi,
+			&channel,
+			&field_rf_amp,
+			&field_lna,
+			&field_vga,
+			&field_frequency,
+			&text_debug,
+			&button_modem_setup,
+			&record_view,
+			&console
+		});
+
+		// DEBUG
+		record_view.on_error = [&nav](std::string message)
+		{
+			nav.display_modal("Error", message);
+		};
+		record_view.set_sampling_rate(24000);
+
+		// Auto-configure modem for LCR RX (will be removed later)
+		update_freq(2480000000);
+		auto def_bell202 = &modem_defs[0];
+		persistent_memory::set_modem_baudrate(def_bell202->baudrate);
+		serial_format_t serial_format;
+		serial_format.data_bits = 7;
+		serial_format.parity = EVEN;
+		serial_format.stop_bits = 1;
+		serial_format.bit_order = LSB_FIRST;
+		persistent_memory::set_serial_format(serial_format);
+
+		field_frequency.set_value(receiver_model.tuning_frequency());
+		field_frequency.set_step(100);
+		field_frequency.on_change = [this](rf::Frequency f)
+		{
+			update_freq(f);
+		};
+		field_frequency.on_edit = [this, &nav]()
+		{
+			auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+			new_view->on_changed = [this](rf::Frequency f)
+			{
+				update_freq(f);
+				field_frequency.set_value(f);
+			};
+		};
+
+		button_modem_setup.on_select = [&nav](Button&)
+		{
+			nav.push<ModemSetupView>();
+		};
+
+
+		// Auto-configure modem for LCR RX (will be removed later)
+		baseband::set_nrf(persistent_memory::modem_baudrate(), 8, 0, false);
+
+		audio::set_rate(audio::Rate::Hz_24000);
+		audio::output::start();
+
+		receiver_model.set_sampling_rate(4000000);
+		receiver_model.set_baseband_bandwidth(4000000);
+		receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+		receiver_model.enable();
+	}
+
+	void NRFRxView::on_data(uint32_t value, bool is_data)
+	{
+		//std::string str_console = "\x1B";
+		std::string str_console = "";
+		if (is_data)
+		{
+			// Colorize differently after message splits
+			//str_console += (char)((console_color & 3) + 9);
+
+			//value &= 0xFF;											// ABCDEFGH
+			//value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
+			//value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
+			//value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
+			//value &= 0x7F;											// Ignore parity, which is the MSB now
+
+			//if ((value >= 32) && (value < 127)) {
+			//	str_console += (char)value;							// Printable
+			//}
+
+			//str_console += (char)'A';
+			//str_console += (char)value;
+			//str_console += "[" + to_string_hex(value, 2) + "]";
+			str_console += " " + to_string_hex(value, 2) ;
+			console.write(str_console);
+
+
+
+			/*if ((value != 0x7F) && (prev_value == 0x7F)) {
+				// Message split
+				console.writeln("");
+				console_color++;
+
+
+			}*/
+			//prev_value = value;
+		}
+		else
+		{
+			// Baudrate estimation
+			//text_debug.set("~" + to_string_dec_uint(value));
+			if (value == 'A')
+			{
+				console.write("addr:");
+			}
+			else if (value == 'B')
+			{
+				console.write(" data:");
+			}
+			else if (value == 'C')
+			{
+				console.writeln("");
+				console.writeln("");
+			}
+			//console.writeln("");
+		}
+	}
+
+	NRFRxView::~NRFRxView()
+	{
+		audio::output::stop();
+		receiver_model.disable();
+		baseband::shutdown();
+	}
 
 } /* namespace ui */
