@@ -25,7 +25,7 @@ To support the people behind the hardware, please buy a genuine [HackRF](https:/
 The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently which have the latest features but may contain incomplete or buggy functionality (at  least until the bug is found!).
 
 ### Is this the newest firmware for my PortaPack? 
-As the firmware for Mayhem is being updated daily and more information about the device is understood and shared then we consider this to be the bleeding edge for this device, so in our opinion currently **YES**.
+Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new/choose) them*.
 
 ### Which one is actually the newest?
 There is a lot of confusion of which is the latest version because no old version used any actual "version number". Additionally, since the files were distributed on facebook groups, github issue links and similar temporal sources, then there was no central location for them. 
@@ -38,7 +38,7 @@ This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://
 * jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
 * GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
 
-### How can I collaborate
+## How can I collaborate
 You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), fix bugs and [answer issues](https://github.com/eried/portapack-mayhem/issues) or add new functionality. Please check the following [guide](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) with details.
 
 Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. 
@@ -52,5 +52,5 @@ First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki)
 
 You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook. 
 
-## What if I find a bug, issue, grammatical or spelling error in the text?
-Please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
+### What if I find incongruencies, or grammatical errors in the text?
+If is on the [Wiki](https://github.com/eried/portapack-mayhem/wiki), you can modify it directly. If is on files of the repository, you can send corrections as [pull requests](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate#coding-new-stuff-or-fixing-bugs). As a last resource, open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
