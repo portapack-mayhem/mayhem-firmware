@@ -51,6 +51,9 @@ extern ClockManager clock_manager;
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 
+extern bool speaker_mode;
+void set_speaker_mode(const bool v);
+
 extern uint8_t bl_tick_counter;
 extern bool antenna_bias;
 

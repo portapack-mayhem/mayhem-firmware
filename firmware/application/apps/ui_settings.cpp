@@ -29,6 +29,7 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "audio.hpp"
 #include "portapack.hpp"
 using portapack::receiver_model;
 using namespace portapack;
@@ -240,12 +241,14 @@ void SetPlayDeadView::focus() {
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
 		//&checkbox_login,
+		&checkbox_speaker,
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
 		&button_ok
 	});
 	
+	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	//checkbox_login.set_value(persistent_memory::config_login());
 	
@@ -257,6 +260,15 @@ SetUIView::SetUIView(NavigationView& nav) {
 	} else {
 		options_bloff.set_selected_index(0);
 	}
+
+	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
+    		if (v) audio::output::speaker_mute();		//Just mute audio if speaker is disabled
+
+			persistent_memory::set_config_speaker(v);	//Store Speaker status
+
+        StatusRefreshMessage message { };				//Refresh status bar with/out speaker
+        EventDispatcher::send_message(message);
+    };
 
 	button_ok.on_select = [&nav, this](Button&) {
 		if (checkbox_bloff.value())

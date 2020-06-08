@@ -81,6 +81,7 @@ void ScannerView::handle_retune(uint32_t i) {
 	text_cycle.set(	to_string_dec_uint(i) + "/" +
 					to_string_dec_uint(frequency_list.size()) + " : " +
 					to_string_dec_uint(frequency_list[i]) );
+	desc_cycle.set( description_list[i] );
 }
 
 void ScannerView::focus() {
@@ -109,6 +110,7 @@ ScannerView::ScannerView(
 		&field_wait,
 		//&record_view,
 		&text_cycle,
+		&desc_cycle,
 		//&waterfall,
 	});
 
@@ -119,19 +121,28 @@ ScannerView::ScannerView(
 			if (entry.type == RANGE) {
 				for (uint32_t i=entry.frequency_a; i < entry.frequency_b; i+= 1000000) {
 					frequency_list.push_back(i);
+					description_list.push_back("RNG " + to_string_dec_uint(entry.frequency_a) + ">" + to_string_dec_uint(entry.frequency_b));
 				}
 			} else {
 				frequency_list.push_back(entry.frequency_a);
+				description_list.push_back(entry.description);
 			}
 		}
 	} else {
 		// DEBUG
+		// TODO: Clean this
 		frequency_list.push_back(466025000);
+		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466050000);
+		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466075000);
+		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466175000);
+		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466206250);
+		description_list.push_back("POCSAG-France");
 		frequency_list.push_back(466231250);
+		description_list.push_back("POCSAG-France");
 	}
 
 	field_bw.set_selected_index(2);
