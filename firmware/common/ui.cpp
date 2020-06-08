@@ -24,74 +24,87 @@
 
 #include <algorithm>
 
-namespace ui {
+namespace ui
+{
 
-// CGA palette
-Color term_colors[16] = {
-	Color::black(),
-	Color::dark_blue(),
-	Color::dark_green(),
-	Color::dark_cyan(),
-	Color::dark_red(),
-	Color::dark_magenta(),
-	Color::dark_yellow(),
-	Color::light_grey(),
-	Color::dark_grey(),
-	Color::blue(),
-	Color::green(),
-	Color::cyan(),
-	Color::red(),
-	Color::magenta(),
-	Color::yellow(),
-	Color::white()
-};
+	// CGA palette
+	Color term_colors[16] =
+	{
+		Color::black(),
+		Color::dark_blue(),
+		Color::dark_green(),
+		Color::dark_cyan(),
+		Color::dark_red(),
+		Color::dark_magenta(),
+		Color::dark_yellow(),
+		Color::light_grey(),
+		Color::dark_grey(),
+		Color::blue(),
+		Color::green(),
+		Color::cyan(),
+		Color::red(),
+		Color::magenta(),
+		Color::yellow(),
+		Color::white()
+	};
 
-bool Rect::contains(const Point p) const {
-	return (p.x() >= left()) && (p.y() >= top()) &&
-	       (p.x() < right()) && (p.y() < bottom());
-}
-
-Rect Rect::intersect(const Rect& o) const {
-	const auto x1 = std::max(left(), o.left());
-	const auto x2 = std::min(right(), o.right());
-	const auto y1 = std::max(top(), o.top());
-	const auto y2 = std::min(bottom(), o.bottom());
-	if( (x2 >= x1) && (y2 > y1) ) {
-		return { x1, y1, x2 - x1, y2 - y1 };
-	} else {
-		return { };
+	bool Rect::contains(const Point p) const
+	{
+		return (p.x() >= left()) && (p.y() >= top()) &&
+		       (p.x() < right()) && (p.y() < bottom());
 	}
-}
 
-// TODO: This violates the principle of least surprise!
-// This does a union, but that might not be obvious from "+=" syntax.
-Rect& Rect::operator+=(const Rect& p) {
-	if( is_empty() ) {
-		*this = p;
+	Rect Rect::intersect(const Rect& o) const
+	{
+		const auto x1 = std::max(left(), o.left());
+		const auto x2 = std::min(right(), o.right());
+		const auto y1 = std::max(top(), o.top());
+		const auto y2 = std::min(bottom(), o.bottom());
+		if( (x2 >= x1) && (y2 > y1) )
+		{
+			return { x1, y1, x2 - x1, y2 - y1 };
+		}
+		else
+		{
+			return { };
+		}
 	}
-	if( !p.is_empty() ) {
-		const auto x1 = std::min(left(), p.left());
-		const auto y1 = std::min(top(), p.top());
-		_pos = { x1, y1 };
-		const auto x2 = std::max(right(), p.right());
-		const auto y2 = std::max(bottom(), p.bottom());
-		_size = { x2 - x1, y2 - y1 };
+
+	// TODO: This violates the principle of least surprise!
+	// This does a union, but that might not be obvious from "+=" syntax.
+	Rect& Rect::operator+=(const Rect& p)
+	{
+		if( is_empty() )
+		{
+			*this = p;
+		}
+		if( !p.is_empty() )
+		{
+			const auto x1 = std::min(left(), p.left());
+			const auto y1 = std::min(top(), p.top());
+			_pos = { x1, y1 };
+			const auto x2 = std::max(right(), p.right());
+			const auto y2 = std::max(bottom(), p.bottom());
+			_size = { x2 - x1, y2 - y1 };
+		}
+		return *this;
 	}
-	return *this;
-}
 
-Rect& Rect::operator+=(const Point& p) {
-	_pos += p;
-	return *this;
-}
+	Rect& Rect::operator+=(const Point& p)
+	{
+		_pos += p;
+		return *this;
+	}
 
-Rect& Rect::operator-=(const Point& p) {
-	_pos -= p;
-	return *this;
-}
+	Rect& Rect::operator-=(const Point& p)
+	{
+		_pos -= p;
+		return *this;
+	}
 
-Point polar_to_point(float angle, uint32_t distance) {
-	return Point(sin_f32(DEG_TO_RAD(angle) + (pi / 2)) * distance, -sin_f32(DEG_TO_RAD(angle)) * distance);
-}
+	Point polar_to_point(float angle, uint32_t distance)
+	{
+		return Point(sin_f32(DEG_TO_RAD(angle) + (pi / 2)) * distance, -sin_f32(DEG_TO_RAD(angle)) * distance);
+	}
 
 } /* namespace ui */

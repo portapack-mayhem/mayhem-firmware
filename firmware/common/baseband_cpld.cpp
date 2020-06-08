@@ -24,15 +24,18 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
-namespace baseband {
+namespace baseband
+{
 
-void CPLD::init() {
-	set_invert(false);
-	gpio_baseband_invert.output();
-}
+	void CPLD::init()
+	{
+		set_invert(false);
+		gpio_baseband_invert.output();
+	}
 
-void CPLD::set_invert(const bool invert) {
-	gpio_baseband_invert.write(invert);
-}
+	void CPLD::set_invert(const bool invert)
+	{
+		gpio_baseband_invert.write(invert);
+	}
 
 }

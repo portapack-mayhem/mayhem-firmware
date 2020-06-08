@@ -21,12 +21,14 @@
 
 #include "rtc_time.hpp"
 
-namespace rtc_time {
+namespace rtc_time
+{
 
-Signal<> signal_tick_second;
+	Signal<> signal_tick_second;
 
-void on_tick_second() {
-	signal_tick_second.emit();
-}
+	void on_tick_second()
+	{
+		signal_tick_second.emit();
+	}
 
 } /* namespace rtc_time */

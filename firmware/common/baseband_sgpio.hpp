@@ -28,38 +28,45 @@
 
 #include "hal.h"
 
-namespace baseband {
+namespace baseband
+{
 
-class SGPIO {
-public:
-	void init();
+	class SGPIO
+	{
+		public:
+			void init();
 
-	void configure(const Direction direction);
+			void configure(const Direction direction);
 
-	void streaming_enable() {
-		/* TODO: Any reason not to control from general GPIO facility? */
-		LPC_SGPIO->GPIO_OUTREG &= ~(1U << 10);
-	}
+			void streaming_enable()
+			{
+				/* TODO: Any reason not to control from general GPIO facility? */
+				LPC_SGPIO->GPIO_OUTREG &= ~(1U << 10);
+			}
 
-	void streaming_disable() {
-		/* TODO: Any reason not to control from general GPIO facility? */
-		LPC_SGPIO->GPIO_OUTREG |= (1U << 10);
-	}
+			void streaming_disable()
+			{
+				/* TODO: Any reason not to control from general GPIO facility? */
+				LPC_SGPIO->GPIO_OUTREG |= (1U << 10);
+			}
 
-	bool streaming_is_enabled() const {
-		/* TODO: Any reason not to control from general GPIO facility? */
-		return (LPC_SGPIO->GPIO_OUTREG >> 10) & 1;
-	}
+			bool streaming_is_enabled() const
+			{
+				/* TODO: Any reason not to control from general GPIO facility? */
+				return (LPC_SGPIO->GPIO_OUTREG >> 10) & 1;
+			}
 
-private:
-	void disable_all_slice_counters() {
-		set_slice_counter_enables(0);
-	}
+		private:
+			void disable_all_slice_counters()
+			{
+				set_slice_counter_enables(0);
+			}
 
-	void set_slice_counter_enables(const uint16_t enable_mask) {
-		LPC_SGPIO->CTRL_ENABLE = enable_mask;
-	}
-};
+			void set_slice_counter_enables(const uint16_t enable_mask)
+			{
+				LPC_SGPIO->CTRL_ENABLE = enable_mask;
+			}
+	};
 
 }
 

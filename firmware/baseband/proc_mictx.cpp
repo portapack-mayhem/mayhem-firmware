@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,102 +28,123 @@
 
 #include <cstdint>
 
-void MicTXProcessor::execute(const buffer_c8_t& buffer){
+void MicTXProcessor::execute(const buffer_c8_t& buffer)
+{
 
 	// This is called at 1536000/2048 = 750Hz
-	
+
 	if (!configured) return;
-	
+
 	audio_input.read_audio_buffer(audio_buffer);
 
-	for (size_t i = 0; i < buffer.count; i++) {
-		
-		if (!play_beep) {
+	for (size_t i = 0; i < buffer.count; i++)
+	{
+
+		if (!play_beep)
+		{
 			sample = audio_buffer.p[i >> 6] >> 8;			// 1536000 / 64 = 24000
 			sample *= audio_gain;
-			
+
 			power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
-			
-			if (power_acc_count) {
+
+			if (power_acc_count)
+			{
 				power_acc_count--;
-			} else {
+			}
+			else
+			{
 				power_acc_count = divider;
 				level_message.value = power_acc / (divider / 4);	// Why ?
 				shared_memory.application_queue.push(level_message);
 				power_acc = 0;
 			}
-		} else {
-			if (beep_timer) {
+		}
+		else
+		{
+			if (beep_timer)
+			{
 				beep_timer--;
-			} else {
+			}
+			else
+			{
 				beep_timer = baseband_fs * 0.05;			// 50ms
-				
-				if (beep_index == BEEP_TONES_NB) {
+
+				if (beep_index == BEEP_TONES_NB)
+				{
 					configured = false;
 					shared_memory.application_queue.push(txprogress_message);
-				} else {
+				}
+				else
+				{
 					beep_gen.configure(beep_deltas[beep_index], 1.0);
 					beep_index++;
 				}
 			}
-			
+
 			sample = beep_gen.process(0);
 		}
-		
+
 		sample = tone_gen.process(sample);
-		
+
 		// FM
-		if (configured) {
+		if (configured)
+		{
 			delta = sample * fm_delta;
-			
+
 			phase += delta;
 			sphase = phase >> 24;
 
 			re = (sine_table_i8[(sphase + 64) & 255]);
 			im = (sine_table_i8[sphase]);
-		} else {
+		}
+		else
+		{
 			re = 0;
 			im = 0;
 		}
-		
+
 		buffer.p[i] = { re, im };
 	}
 }
 
-void MicTXProcessor::on_message(const Message* const msg) {
+void MicTXProcessor::on_message(const Message* const msg)
+{
 	const AudioTXConfigMessage config_message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
 	const RequestSignalMessage request_message = *reinterpret_cast<const RequestSignalMessage*>(msg);
-	
-	switch(msg->id) {
-		case Message::ID::AudioTXConfig:
-			fm_delta = config_message.deviation_hz * (0xFFFFFFUL / baseband_fs);
-			
-			audio_gain = config_message.audio_gain;
-			divider = config_message.divider;
-			power_acc_count = 0;
-			
-			tone_gen.configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
-			
-			txprogress_message.done = true;
 
-			play_beep = false;
-			configured = true;
-			break;
-		
-		case Message::ID::RequestSignal:
-			if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
-				beep_index = 0;
-				beep_timer = 0;
-				play_beep = true;
-			}
-			break;
+	switch(msg->id)
+	{
+	case Message::ID::AudioTXConfig:
+		fm_delta = config_message.deviation_hz * (0xFFFFFFUL / baseband_fs);
 
-		default:
-			break;
+		audio_gain = config_message.audio_gain;
+		divider = config_message.divider;
+		power_acc_count = 0;
+
+		tone_gen.configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
+
+		txprogress_message.done = true;
+
+		play_beep = false;
+		configured = true;
+		break;
+
+	case Message::ID::RequestSignal:
+		if (request_message.signal == RequestSignalMessage::Signal::BeepRequest)
+		{
+			beep_index = 0;
+			beep_timer = 0;
+			play_beep = true;
+		}
+		break;
+
+	default:
+		break;
 	}
 }
 
-int main() {
+int main()
+{
 	EventDispatcher event_dispatcher { std::make_unique<MicTXProcessor>() };
 	event_dispatcher.run();
 	return 0;

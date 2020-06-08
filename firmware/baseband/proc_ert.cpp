@@ -25,7 +25,8 @@
 
 #include "event_m4.hpp"
 
-float ERTProcessor::abs(const complex8_t& v) {
+float ERTProcessor::abs(const complex8_t& v)
+{
 	// const int16_t r = v.real() - offset_i;
 	// const int16_t i = v.imag() - offset_q;
 	// const uint32_t r2 = r * r;
@@ -40,7 +41,8 @@ float ERTProcessor::abs(const complex8_t& v) {
 	return std::sqrt(r2_i2);
 }
 
-void ERTProcessor::execute(const buffer_c8_t& buffer) {
+void ERTProcessor::execute(const buffer_c8_t& buffer)
+{
 	/* 4.194304MHz, 2048 samples */
 
 	const complex8_t* src = &buffer.p[0];
@@ -49,7 +51,8 @@ void ERTProcessor::execute(const buffer_c8_t& buffer) {
 	average_i += src->real();
 	average_q += src->imag();
 	average_count++;
-	if( average_count == average_window ) {
+	if( average_count == average_window )
+	{
 		offset_i = static_cast<float>(average_i) / average_window;
 		offset_q = static_cast<float>(average_q) / average_window;
 		average_i = 0;
@@ -60,9 +63,11 @@ void ERTProcessor::execute(const buffer_c8_t& buffer) {
 	const float gain = 128 * samples_per_symbol;
 	const float k = 1.0f / gain;
 
-	while(src < src_end) {
+	while(src < src_end)
+	{
 		float sum = 0.0f;
-		for(size_t i=0; i<(samples_per_symbol / 2); i++) {
+		for(size_t i = 0; i < (samples_per_symbol / 2); i++)
+		{
 			sum += abs(*(src++));
 		}
 		sum_half_period[1] = sum_half_period[0];
@@ -83,28 +88,32 @@ void ERTProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void ERTProcessor::consume_symbol(
-	const float raw_symbol
-) {
+    const float raw_symbol
+)
+{
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	scm_builder.execute(sliced_symbol);
 	idm_builder.execute(sliced_symbol);
 }
 
 void ERTProcessor::scm_handler(
-	const baseband::Packet& packet
-) {
+    const baseband::Packet& packet
+)
+{
 	const ERTPacketMessage message { ert::Packet::Type::SCM, packet };
 	shared_memory.application_queue.push(message);
 }
 
 void ERTProcessor::idm_handler(
-	const baseband::Packet& packet
-) {
+    const baseband::Packet& packet
+)
+{
 	const ERTPacketMessage message { ert::Packet::Type::IDM, packet };
 	shared_memory.application_queue.push(message);
 }
 
-int main() {
+int main()
+{
 	EventDispatcher event_dispatcher { std::make_unique<ERTProcessor>() };
 	event_dispatcher.run();
 	return 0;

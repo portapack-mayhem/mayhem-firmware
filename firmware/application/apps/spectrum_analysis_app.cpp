@@ -24,8 +24,10 @@
 #include "portapack.hpp"
 using namespace portapack;
 
-SpectrumAnalysisModel::SpectrumAnalysisModel() {
-	receiver_model.set_baseband_configuration({
+SpectrumAnalysisModel::SpectrumAnalysisModel()
+{
+	receiver_model.set_baseband_configuration(
+	{
 		.mode = 4,
 		.sampling_rate = 20000000,
 		.decimation_factor = 1,

@@ -3,7 +3,7 @@
  * Copyright (C) 2016 Furrtek
  *
  * BCH Encoder/Decoder - Adapted from GNURadio
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,35 +27,36 @@
 
 #include <vector>
 
-class BCHCode {
-public:
-	BCHCode(std::vector<int> p_init, int m, int n, int k, int t);
-	~BCHCode();
-	
-	BCHCode(const BCHCode&) = delete;
-	BCHCode(BCHCode&&) = delete;
-	BCHCode& operator=(const BCHCode&) = delete;
-	BCHCode& operator=(BCHCode&&) = delete;
+class BCHCode
+{
+	public:
+		BCHCode(std::vector<int> p_init, int m, int n, int k, int t);
+		~BCHCode();
 
-	int * encode(int data[]);
-	int decode(int recd[]);
-	
-private:
-	void gen_poly();
-	void generate_gf();
-	
-	bool valid { false };
+		BCHCode(const BCHCode&) = delete;
+		BCHCode(BCHCode&&) = delete;
+		BCHCode& operator=(const BCHCode&) = delete;
+		BCHCode& operator=(BCHCode&&) = delete;
 
-	int d { };
-	int * p { };			// coefficients of primitive polynomial used to generate GF(2**5)
-	int m { };				// order of the field GF(2**5) = 5
-	int n { };				// 2**5 - 1 = 31
-	int k { };				// n - deg(g(x)) = 21 = dimension
-	int t { };				// 2 = error correcting capability
-	int * alpha_to { };		// log table of GF(2**5)
-	int * index_of { };		// antilog table of GF(2**5)
-	int * g { };			// coefficients of generator polynomial, g(x) [n - k + 1]=[11]
-	int * bb { };			// coefficients of redundancy polynomial ( x**(10) i(x) ) modulo g(x)
+		int * encode(int data[]);
+		int decode(int recd[]);
+
+	private:
+		void gen_poly();
+		void generate_gf();
+
+		bool valid { false };
+
+		int d { };
+		int * p { };			// coefficients of primitive polynomial used to generate GF(2**5)
+		int m { };				// order of the field GF(2**5) = 5
+		int n { };				// 2**5 - 1 = 31
+		int k { };				// n - deg(g(x)) = 21 = dimension
+		int t { };				// 2 = error correcting capability
+		int * alpha_to { };		// log table of GF(2**5)
+		int * index_of { };		// antilog table of GF(2**5)
+		int * g { };			// coefficients of generator polynomial, g(x) [n - k + 1]=[11]
+		int * bb { };			// coefficients of redundancy polynomial ( x**(10) i(x) ) modulo g(x)
 };
 
 #endif/*__BCHCODE_H__*/

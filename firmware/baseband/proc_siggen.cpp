@@ -27,52 +27,70 @@
 
 #include <cstdint>
 
-void SigGenProcessor::execute(const buffer_c8_t& buffer) {
+void SigGenProcessor::execute(const buffer_c8_t& buffer)
+{
 	if (!configured) return;
-	
-	for (size_t i = 0; i < buffer.count; i++) {
-		
-		if (!sample_count && auto_off) {
+
+	for (size_t i = 0; i < buffer.count; i++)
+	{
+
+		if (!sample_count && auto_off)
+		{
 			txprogress_message.done = true;
 			shared_memory.application_queue.push(txprogress_message);
-		} else
+		}
+		else
 			sample_count--;
-		
-		if (tone_shape == 0) {
+
+		if (tone_shape == 0)
+		{
 			// CW
 			re = 0;
 			im = 0;
-		} else {
-			
-			if (tone_shape == 1) {
+		}
+		else
+		{
+
+			if (tone_shape == 1)
+			{
 				// Sine
 				sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
-			} else if (tone_shape == 2) {
+			}
+			else if (tone_shape == 2)
+			{
 				// Tri
 				int8_t a = (tone_phase & 0xFF000000) >> 24;
 				sample = (a & 0x80) ? ((a << 1) ^ 0xFF) - 0x80 : (a << 1) + 0x80;
-			} else if (tone_shape == 3) {
+			}
+			else if (tone_shape == 3)
+			{
 				// Saw up
 				sample = ((tone_phase & 0xFF000000) >> 24);
-			} else if (tone_shape == 4) {
+			}
+			else if (tone_shape == 4)
+			{
 				// Saw down
 				sample = ((tone_phase & 0xFF000000) >> 24) ^ 0xFF;
-			} else if (tone_shape == 5) {
+			}
+			else if (tone_shape == 5)
+			{
 				// Square
 				sample = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;
-			} else if (tone_shape == 6) {
+			}
+			else if (tone_shape == 6)
+			{
 				// Noise
 				sample = (lfsr & 0xFF000000) >> 24;
 				feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
 				lfsr = (lfsr << 1) | feedback;
 				if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
 			}
-			
+
 			tone_phase += tone_delta;
-			
+
 			// Do FM
 			delta = sample * fm_delta;
-			
+
 			phase += delta;
 			sphase = phase + (64 << 24);
 
@@ -84,40 +102,46 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 	}
 };
 
-void SigGenProcessor::on_message(const Message* const msg) {
+void SigGenProcessor::on_message(const Message* const msg)
+{
 	const auto message = *reinterpret_cast<const SigGenConfigMessage*>(msg);
-	
-	switch(msg->id) {
-		case Message::ID::SigGenConfig:
-			if (!message.bw) {
-				configured = false;
-				return;
-			}
-			
-			if (message.duration) {
-				sample_count = message.duration;
-				auto_off = true;
-			} else
-				auto_off = false;
-			
-			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
-			tone_shape = message.shape;
-			
-			lfsr = 0x54DF0119;
 
-			configured = true;
-			break;
-		
-		case Message::ID::SigGenTone:
-			tone_delta = reinterpret_cast<const SigGenToneMessage*>(msg)->tone_delta;
-			break;
+	switch(msg->id)
+	{
+	case Message::ID::SigGenConfig:
+		if (!message.bw)
+		{
+			configured = false;
+			return;
+		}
 
-		default:
-			break;
+		if (message.duration)
+		{
+			sample_count = message.duration;
+			auto_off = true;
+		}
+		else
+			auto_off = false;
+
+		fm_delta = message.bw * (0xFFFFFFULL / 1536000);
+		tone_shape = message.shape;
+
+		lfsr = 0x54DF0119;
+
+		configured = true;
+		break;
+
+	case Message::ID::SigGenTone:
+		tone_delta = reinterpret_cast<const SigGenToneMessage*>(msg)->tone_delta;
+		break;
+
+	default:
+		break;
 	}
 }
 
-int main() {
+int main()
+{
 	EventDispatcher event_dispatcher { std::make_unique<SigGenProcessor>() };
 	event_dispatcher.run();
 	return 0;

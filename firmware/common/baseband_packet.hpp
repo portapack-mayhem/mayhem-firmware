@@ -27,45 +27,55 @@
 #include <cstddef>
 #include <bitset>
 
-namespace baseband {
+namespace baseband
+{
 
-class Packet {
-public:
-	void set_timestamp(const Timestamp& value) {
-		timestamp_ = value;
-	}
-	
-	Timestamp timestamp() const {
-		return timestamp_;
-	}
+	class Packet
+	{
+		public:
+			void set_timestamp(const Timestamp& value)
+			{
+				timestamp_ = value;
+			}
 
-	void add(const bool symbol) {
-		if( count < capacity() ) {
-			data[count++] = symbol;
-		}
-	}
+			Timestamp timestamp() const
+			{
+				return timestamp_;
+			}
 
-	uint_fast8_t operator[](const size_t index) const {
-		return (index < size()) ? data[index] : 0;
-	}
+			void add(const bool symbol)
+			{
+				if( count < capacity() )
+				{
+					data[count++] = symbol;
+				}
+			}
 
-	size_t size() const {
-		return count;
-	}
+			uint_fast8_t operator[](const size_t index) const
+			{
+				return (index < size()) ? data[index] : 0;
+			}
 
-	size_t capacity() const {
-		return data.size();
-	}
+			size_t size() const
+			{
+				return count;
+			}
 
-	void clear() {
-		count = 0;
-	}
+			size_t capacity() const
+			{
+				return data.size();
+			}
 
-private:
-	std::bitset<2560> data { };
-	Timestamp timestamp_ { };
-	size_t count { 0 };
-};
+			void clear()
+			{
+				count = 0;
+			}
+
+		private:
+			std::bitset<2560> data { };
+			Timestamp timestamp_ { };
+			size_t count { 0 };
+	};
 
 } /* namespace baseband */
 

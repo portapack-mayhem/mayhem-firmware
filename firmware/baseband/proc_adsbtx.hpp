@@ -26,29 +26,31 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class ADSBTXProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const p) override;
+class ADSBTXProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	bool configured = false;
-	
-	BasebandThread baseband_thread { 4000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	const complex8_t am_lut[4] = {
-		{ 127, 0 },
-		{ 0, 127 },
-		{ -127, 0 },
-		{ 0, -127 }		
-	};
-	
-    uint32_t bit_pos { 0 };
-    uint32_t cur_bit { 0 };
-	uint32_t phase { 0 };
-	
-	TXProgressMessage txprogress_message { };
+		void on_message(const Message* const p) override;
+
+	private:
+		bool configured = false;
+
+		BasebandThread baseband_thread { 4000000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+		const complex8_t am_lut[4] =
+		{
+			{ 127, 0 },
+			{ 0, 127 },
+			{ -127, 0 },
+			{ 0, -127 }
+		};
+
+		uint32_t bit_pos { 0 };
+		uint32_t cur_bit { 0 };
+		uint32_t phase { 0 };
+
+		TXProgressMessage txprogress_message { };
 };
 
 #endif

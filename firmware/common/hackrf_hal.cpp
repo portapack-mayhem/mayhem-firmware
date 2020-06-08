@@ -25,8 +25,10 @@
 
 using namespace lpc43xx;
 
-namespace hackrf {
-namespace one {
+namespace hackrf
+{
+	namespace one
+	{
 
-} /* namespace one */
+	} /* namespace one */
 } /* namespace hackrf */

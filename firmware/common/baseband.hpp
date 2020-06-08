@@ -25,15 +25,17 @@
 #include "complex.hpp"
 #include "buffer.hpp"
 
-namespace baseband {
+namespace baseband
+{
 
-using sample_t = complex8_t;
-using buffer_t = buffer_t<sample_t>;
+	using sample_t = complex8_t;
+	using buffer_t = buffer_t<sample_t>;
 
-enum class Direction {
-	Receive = 0,
-	Transmit = 1,
-};
+	enum class Direction
+	{
+		Receive = 0,
+		Transmit = 1,
+	};
 
 } /* namespace baseband */
 

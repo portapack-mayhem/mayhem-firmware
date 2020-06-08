@@ -29,66 +29,78 @@
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
 
-namespace ui {
+namespace ui
+{
 
-class WhipCalcView : public View {
-public:
-	WhipCalcView(NavigationView& nav);
-	
-	void focus() override;
-	
-	std::string title() const override { return "Whip calculator"; };
+	class WhipCalcView : public View
+	{
+		public:
+			WhipCalcView(NavigationView& nav);
 
-private:
-	const double speed_of_light_mps = 299792458.0;		// m/s
-	const double speed_of_light_fps = 983571087.90472;	// feet/s
-	
-	const std::string frac_str[4] = { "", "1/4 ", "1/2 ", "3/4 " };
-	
-	void update_result();
-	
-	Labels labels {
-		{ { 2 * 8, 2 * 16 }, "Frequency:", Color::light_grey() },
-		{ { 2 * 8, 3 * 16 }, "Type:", Color::light_grey() }
-	};
+			void focus() override;
 
-	FrequencyField field_frequency {
-		{ 13 * 8, 2 * 16 },
-	};
+			std::string title() const override
+			{
+				return "Whip calculator";
+			};
 
-	OptionsField options_type {
-		{ 8 * 8, 3 * 16 },
-		12,
-		{
-			{ "Full wave", 8 },
-			{ "Half wave", 4 },
-			{ "Quarter wave", 2 },
-			{ "3/4 wave", 6 },
-			{ "1/8 wave", 1 },
-			{ "3/8 wave", 3 },
-			{ "5/8 wave", 5 },
-			{ "7/8 wave", 7 }
-		}
+		private:
+			const double speed_of_light_mps = 299792458.0;		// m/s
+			const double speed_of_light_fps = 983571087.90472;	// feet/s
+
+			const std::string frac_str[4] = { "", "1/4 ", "1/2 ", "3/4 " };
+
+			void update_result();
+
+			Labels labels
+			{
+				{ { 2 * 8, 2 * 16 }, "Frequency:", Color::light_grey() },
+				{ { 2 * 8, 3 * 16 }, "Type:", Color::light_grey() }
+			};
+
+			FrequencyField field_frequency
+			{
+				{ 13 * 8, 2 * 16 },
+			};
+
+			OptionsField options_type
+			{
+				{ 8 * 8, 3 * 16 },
+				12,
+				{
+					{ "Full wave", 8 },
+					{ "Half wave", 4 },
+					{ "Quarter wave", 2 },
+					{ "3/4 wave", 6 },
+					{ "1/8 wave", 1 },
+					{ "3/8 wave", 3 },
+					{ "5/8 wave", 5 },
+					{ "7/8 wave", 7 }
+				}
+			};
+
+			Text text_result_metric
+			{
+				{ 3 * 8, 5 * 16, 10 * 16, 16 },
+				"-"
+			};
+			Text text_result_imperial
+			{
+				{ 2 * 8, 6 * 16, 10 * 16, 16 },
+				"-"
+			};
+			Text text_result_ant500
+			{
+				{ 2 * 8, 8 * 16, 26 * 16, 16 },
+				"-"
+			};
+
+			Button button_exit
+			{
+				{ 72, 264, 96, 32 },
+				"Exit"
+			};
 	};
-	
-	Text text_result_metric {
-		{ 3 * 8, 5 * 16, 10 * 16, 16 },
-		"-"
-	};
-	Text text_result_imperial {
-		{ 2 * 8, 6 * 16, 10 * 16, 16 },
-		"-"
-	};
-	Text text_result_ant500 {
-		{ 2 * 8, 8 * 16, 26 * 16, 16 },
-		"-"
-	};
-	
-	Button button_exit {
-		{ 72, 264, 96, 32 },
-		"Exit"
-	};
-};
 
 } /* namespace ui */
 

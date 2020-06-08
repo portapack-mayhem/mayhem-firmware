@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,39 +28,40 @@
 #include "tone_gen.hpp"
 #include "stream_output.hpp"
 
-class AudioTXProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const msg) override;
+class AudioTXProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	static constexpr size_t baseband_fs = 1536000;
-	
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	std::unique_ptr<StreamOutput> stream { };
-	
-	ToneGen tone_gen { };
-	
-	uint32_t resample_inc { }, resample_acc { };
-	uint32_t fm_delta { 0 };
-	uint32_t phase { 0 }, sphase { 0 };
-	uint8_t audio_sample { };
-	int32_t sample { 0 }, delta { };
-	int8_t re { 0 }, im { 0 };
-	
-	size_t progress_interval_samples, progress_samples = 0;
-	
-	bool configured { false };
-	uint32_t bytes_read { 0 };
-	
-	void samplerate_config(const SamplerateConfigMessage& message);
-	void audio_config(const AudioTXConfigMessage& message);
-	void replay_config(const ReplayConfigMessage& message);
-	
-	TXProgressMessage txprogress_message { };
-	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
+		void on_message(const Message* const msg) override;
+
+	private:
+		static constexpr size_t baseband_fs = 1536000;
+
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+		std::unique_ptr<StreamOutput> stream { };
+
+		ToneGen tone_gen { };
+
+		uint32_t resample_inc { }, resample_acc { };
+		uint32_t fm_delta { 0 };
+		uint32_t phase { 0 }, sphase { 0 };
+		uint8_t audio_sample { };
+		int32_t sample { 0 }, delta { };
+		int8_t re { 0 }, im { 0 };
+
+		size_t progress_interval_samples, progress_samples = 0;
+
+		bool configured { false };
+		uint32_t bytes_read { 0 };
+
+		void samplerate_config(const SamplerateConfigMessage& message);
+		void audio_config(const AudioTXConfigMessage& message);
+		void replay_config(const ReplayConfigMessage& message);
+
+		TXProgressMessage txprogress_message { };
+		RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
 };
 
 #endif

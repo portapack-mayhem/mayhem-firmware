@@ -21,7 +21,8 @@
  */
 
 #pragma pack(push, 1)
-struct bmp_header_t {
+struct bmp_header_t
+{
 	uint16_t signature;
 	uint32_t size;
 	uint16_t reserved_1;
@@ -42,8 +43,10 @@ struct bmp_header_t {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct bmp_palette_t {
-	struct color_t {
+struct bmp_palette_t
+{
+	struct color_t
+	{
 		uint8_t B;
 		uint8_t G;
 		uint8_t R;

@@ -24,18 +24,19 @@
 
 #include <cstddef>
 
-namespace portapack {
+namespace portapack
+{
 
-/* ADC0 */
+	/* ADC0 */
 
-constexpr size_t adc0_touch_yp_input = 0;
-constexpr size_t adc0_touch_yn_input = 2;
-constexpr size_t adc0_touch_xp_input = 5;
-constexpr size_t adc0_touch_xn_input = 6;
+	constexpr size_t adc0_touch_yp_input = 0;
+	constexpr size_t adc0_touch_yn_input = 2;
+	constexpr size_t adc0_touch_xp_input = 5;
+	constexpr size_t adc0_touch_xn_input = 6;
 
-/* ADC1 */
+	/* ADC1 */
 
-constexpr size_t adc1_rssi_input = 1;
+	constexpr size_t adc1_rssi_input = 1;
 
 } /* namespace portapack */
 

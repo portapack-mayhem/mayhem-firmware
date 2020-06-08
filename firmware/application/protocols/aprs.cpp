@@ -27,22 +27,24 @@
 
 using namespace ax25;
 
-namespace aprs {
+namespace aprs
+{
 
-void make_aprs_frame(const char * src_address, const uint32_t src_ssid,
-	const char * dest_address, const uint32_t dest_ssid,
-	const std::string& payload) {
-	
-	AX25Frame frame;
-	
-	char address[14] = { 0 };
-	
-	memcpy(&address[0], dest_address, 6);
-	address[6] = (dest_ssid & 15) << 1;
-	memcpy(&address[7], src_address, 6);
-	address[13] = (src_ssid & 15) << 1;
-	
-	frame.make_ui_frame(address, 0x03, protocol_id_t::NO_LAYER3, payload);
-}
+	void make_aprs_frame(const char * src_address, const uint32_t src_ssid,
+	                     const char * dest_address, const uint32_t dest_ssid,
+	                     const std::string& payload)
+	{
+
+		AX25Frame frame;
+
+		char address[14] = { 0 };
+
+		memcpy(&address[0], dest_address, 6);
+		address[6] = (dest_ssid & 15) << 1;
+		memcpy(&address[7], src_address, 6);
+		address[13] = (src_ssid & 15) << 1;
+
+		frame.make_ui_frame(address, 0x03, protocol_id_t::NO_LAYER3, payload);
+	}
 
 } /* namespace aprs */

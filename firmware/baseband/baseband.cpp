@@ -30,7 +30,8 @@
 
 #include "audio_dma.hpp"
 
-static void init() {
+static void init()
+{
 	audio::dma::init();
 	audio::dma::configure();
 	audio::dma::enable();
@@ -38,50 +39,54 @@ static void init() {
 	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
-static void halt() {
+static void halt()
+{
 	port_disable();
-	while(true) {
+	while(true)
+	{
 		port_wait_for_interrupt();
 	}
 }
 
 extern "C" {
 
-void __late_init(void) {
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
+	void __late_init(void)
+	{
+		/*
+		 * System initializations.
+		 * - HAL initialization, this also initializes the configured device drivers
+		 *   and performs the board-specific initializations.
+		 * - Kernel initialization, the main() function becomes a thread and the
+		 *   RTOS is active.
+		 */
+		halInit();
 
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
+		/* After this call, scheduler, systick, heap, etc. are available. */
+		/* By doing chSysInit() here, it runs before C++ constructors, which may
+		 * require the heap.
+		 */
+		chSysInit();
 
-	/* Baseband initialization */
-	init();
-}
+		/* Baseband initialization */
+		init();
+	}
 
-void _default_exit(void) {
-	// TODO: Is this complete?
-	
-	nvicDisableVector(DMA_IRQn);
-	
-	chSysDisable();
+	void _default_exit(void)
+	{
+		// TODO: Is this complete?
 
-	systick_stop();
+		nvicDisableVector(DMA_IRQn);
 
-	ShutdownMessage shutdown_message;
-	shared_memory.application_queue.push(shutdown_message);
+		chSysDisable();
 
-	shared_memory.baseband_message = nullptr;
+		systick_stop();
 
-	halt();
-}
+		ShutdownMessage shutdown_message;
+		shared_memory.application_queue.push(shutdown_message);
+
+		shared_memory.baseband_message = nullptr;
+
+		halt();
+	}
 
 }

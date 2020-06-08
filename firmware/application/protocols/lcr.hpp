@@ -28,9 +28,10 @@
 #ifndef __LCR_H__
 #define __LCR_H__
 
-namespace lcr {
+namespace lcr
+{
 
-std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
+	std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
 
 } /* namespace lcr */
 

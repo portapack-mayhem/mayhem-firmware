@@ -28,52 +28,57 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 
-namespace ui {
-	
+namespace ui
+{
+
 #define MAX_TABS 5
 
-class Tab : public Widget {
-public:
-	Tab();
+	class Tab : public Widget
+	{
+		public:
+			Tab();
 
-	void paint(Painter& painter) override;
-	
-	bool on_key(const KeyEvent key) override;
-	bool on_touch(const TouchEvent event) override;
-	
-	void set(uint32_t index, Dim width, std::string text, Color text_color);
+			void paint(Painter& painter) override;
 
-private:
-	std::string text_ { };
-	Color text_color_ { };
-	uint32_t index_ { };
-};
+			bool on_key(const KeyEvent key) override;
+			bool on_touch(const TouchEvent event) override;
 
-class TabView : public View {
-public:
-	struct TabDef {
-		std::string text;
-		ui::Color color;
-		View* view;
-	};
-	
-	TabView(std::initializer_list<TabDef> tab_definitions);
-	~TabView();
-	
-	void focus() override;
-	void on_show() override;
-	
-	void set_selected(uint32_t index);
-	uint32_t selected() {
-		return current_tab;
+			void set(uint32_t index, Dim width, std::string text, Color text_color);
+
+		private:
+			std::string text_ { };
+			Color text_color_ { };
+			uint32_t index_ { };
 	};
 
-private:
-	size_t n_tabs { };
-	std::array<Tab, MAX_TABS> tabs { };
-	std::array<View*, MAX_TABS> views { };
-	uint32_t current_tab { 0 };
-};
+	class TabView : public View
+	{
+		public:
+			struct TabDef
+			{
+				std::string text;
+				ui::Color color;
+				View* view;
+			};
+
+			TabView(std::initializer_list<TabDef> tab_definitions);
+			~TabView();
+
+			void focus() override;
+			void on_show() override;
+
+			void set_selected(uint32_t index);
+			uint32_t selected()
+			{
+				return current_tab;
+			};
+
+		private:
+			size_t n_tabs { };
+			std::array<Tab, MAX_TABS> tabs { };
+			std::array<View*, MAX_TABS> views { };
+			uint32_t current_tab { 0 };
+	};
 
 } /* namespace ui */
 

@@ -29,24 +29,27 @@
 
 #include <cstdint>
 
-void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+void WidebandFMAudio::execute(const buffer_c8_t& buffer)
+{
+	if( !configured )
+	{
 		return;
 	}
-	
+
 	std::fill(spectrum.begin(), spectrum.end(), 0);
 
-	for(size_t i=0; i<spectrum.size(); i++) {
+	for(size_t i = 0; i < spectrum.size(); i++)
+	{
 		spectrum[i] += buffer.p[i];
 	}
 
-	const buffer_c16_t buffer_c16 {spectrum.data(),spectrum.size(),buffer.sampling_rate};
+	const buffer_c16_t buffer_c16 {spectrum.data(), spectrum.size(), buffer.sampling_rate};
 	channel_spectrum.feed(buffer_c16);
 
-        int8_t re, im;
+	int8_t re, im;
 	int8_t mag;
 
-        for (size_t i = 0; i < 128; i++) 
+	for (size_t i = 0; i < 128; i++)
 	{
 		re = buffer.p[i].real();
 		im = buffer.p[i].imag();
@@ -58,8 +61,10 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
 	shared_memory.application_queue.push(message);
 }
 
-void WidebandFMAudio::on_message(const Message* const message) {
-	switch(message->id) {
+void WidebandFMAudio::on_message(const Message* const message)
+{
+	switch(message->id)
+	{
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(message);
@@ -68,18 +73,20 @@ void WidebandFMAudio::on_message(const Message* const message) {
 	case Message::ID::WFMConfigure:
 		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
 		break;
-		
+
 	default:
 		break;
 	}
 }
 
-void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
+void WidebandFMAudio::configure(const WFMConfigureMessage& message)
+{
 	configured = true;
 }
 
 
-int main() {
+int main()
+{
 	EventDispatcher event_dispatcher { std::make_unique<WidebandFMAudio>() };
 	event_dispatcher.run();
 	return 0;

@@ -28,112 +28,121 @@
 
 #include <cstddef>
 
-namespace jtag {
+namespace jtag
+{
 
-class GPIOTarget : public Target {
-public:
-	// Tightly control how this object can be constructor or copied, since
-	// it initializes GPIOs in the constructor. I don't want it re-
-	// initializing a bunch as the object gets passed around. So don't let
-	// it get passed around...
-	/*
-	GPIOTarget() = delete;
-	GPIOTarget(const GPIOTarget&) = delete;
-	GPIOTarget(GPIOTarget&&) = delete;
-	GPIOTarget& operator=(const GPIOTarget&) = delete;
-	GPIOTarget& operator=(GPIOTarget&&) = delete;
-	*/
-	GPIOTarget(
-		GPIO gpio_tck,
-		GPIO gpio_tms,
-		GPIO gpio_tdi,
-		GPIO gpio_tdo
-	) : gpio_tck { gpio_tck },
-		gpio_tms { gpio_tms },
-		gpio_tdi { gpio_tdi },
-		gpio_tdo { gpio_tdo }
+	class GPIOTarget : public Target
 	{
-		gpio_tdi.write(1);
-		gpio_tdi.output();
-		gpio_tdi.configure();
+		public:
+			// Tightly control how this object can be constructor or copied, since
+			// it initializes GPIOs in the constructor. I don't want it re-
+			// initializing a bunch as the object gets passed around. So don't let
+			// it get passed around...
+			/*
+			GPIOTarget() = delete;
+			GPIOTarget(const GPIOTarget&) = delete;
+			GPIOTarget(GPIOTarget&&) = delete;
+			GPIOTarget& operator=(const GPIOTarget&) = delete;
+			GPIOTarget& operator=(GPIOTarget&&) = delete;
+			*/
+			GPIOTarget(
+			    GPIO gpio_tck,
+			    GPIO gpio_tms,
+			    GPIO gpio_tdi,
+			    GPIO gpio_tdo
+			) : gpio_tck { gpio_tck },
+				gpio_tms { gpio_tms },
+				gpio_tdi { gpio_tdi },
+				gpio_tdo { gpio_tdo }
+			{
+				gpio_tdi.write(1);
+				gpio_tdi.output();
+				gpio_tdi.configure();
 
-		gpio_tms.write(1);
-		gpio_tms.output();
-		gpio_tms.configure();
+				gpio_tms.write(1);
+				gpio_tms.output();
+				gpio_tms.configure();
 
-		gpio_tck.write(0);
-		gpio_tck.output();
-		gpio_tck.configure();
+				gpio_tck.write(0);
+				gpio_tck.output();
+				gpio_tck.configure();
 
-		gpio_tdo.input();
-		gpio_tdo.configure();
-	}
+				gpio_tdo.input();
+				gpio_tdo.configure();
+			}
 
-	~GPIOTarget() {
-		gpio_tdi.input();
-		gpio_tms.input();
-		gpio_tck.input();
-	}
+			~GPIOTarget()
+			{
+				gpio_tdi.input();
+				gpio_tms.input();
+				gpio_tck.input();
+			}
 
-	void delay(const size_t clocks) override {
-		/* TODO: Use more precise timing mechanism, using the frequency
-		 * specified by SVF file.
-		 */
-        halPolledDelay(clocks * systicks_per_tck);
-	}
+			void delay(const size_t clocks) override
+			{
+				/* TODO: Use more precise timing mechanism, using the frequency
+				 * specified by SVF file.
+				 */
+				halPolledDelay(clocks * systicks_per_tck);
+			}
 
-	Target::bit_t clock(
-		const Target::bit_t tms_value,
-		const Target::bit_t tdi_value
-	) override {
-		/* TODO: Use more precise timing mechanism, using the frequency
-		 * specified by SVF file.
-		 */
-		const auto result = tdo();
-		tms(tms_value);
-		tdi(tdi_value);
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		tck(1);
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		tck(0);
-		return result;
-	}
+			Target::bit_t clock(
+			    const Target::bit_t tms_value,
+			    const Target::bit_t tdi_value
+			) override
+			{
+				/* TODO: Use more precise timing mechanism, using the frequency
+				 * specified by SVF file.
+				 */
+				const auto result = tdo();
+				tms(tms_value);
+				tdi(tdi_value);
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				tck(1);
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				__asm__("nop");
+				tck(0);
+				return result;
+			}
 
-private:
-	/* At 200MHz, one 18MHz cycle is 11 systicks. */
-	static constexpr size_t systicks_per_tck = 11;
+		private:
+			/* At 200MHz, one 18MHz cycle is 11 systicks. */
+			static constexpr size_t systicks_per_tck = 11;
 
-	GPIO gpio_tck;
-	GPIO gpio_tms;
-	GPIO gpio_tdi;
-	GPIO gpio_tdo;
+			GPIO gpio_tck;
+			GPIO gpio_tms;
+			GPIO gpio_tdi;
+			GPIO gpio_tdo;
 
-	void tck(const Target::bit_t value) {
-		gpio_tck.write(value);
-	}
+			void tck(const Target::bit_t value)
+			{
+				gpio_tck.write(value);
+			}
 
-	void tdi(const Target::bit_t value) {
-		gpio_tdi.write(value);
-	}
+			void tdi(const Target::bit_t value)
+			{
+				gpio_tdi.write(value);
+			}
 
-	void tms(const bit_t value) {
-		gpio_tms.write(value);
-	}
+			void tms(const bit_t value)
+			{
+				gpio_tms.write(value);
+			}
 
-	Target::bit_t tdo() {
-		return gpio_tdo.read();
-	}
-};
+			Target::bit_t tdo()
+			{
+				return gpio_tdo.read();
+			}
+	};
 
 } /* namespace jtag */
 

@@ -23,14 +23,17 @@
 
 #include "utility.hpp"
 
-bool Debounce::feed(const uint8_t bit) {
+bool Debounce::feed(const uint8_t bit)
+{
 	history_ = (history_ << 1) | (bit & 1);
 
-	if( history_ == 0b00001111 ) {
+	if( history_ == 0b00001111 )
+	{
 		state_ = 1;
 		return true;
 	}
-	if( history_ == 0b11110000 ) {
+	if( history_ == 0b11110000 )
+	{
 		state_ = 0;
 		return true;
 	}

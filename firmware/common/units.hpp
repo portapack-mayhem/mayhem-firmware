@@ -24,57 +24,64 @@
 
 #include <cstdint>
 
-namespace units {
+namespace units
+{
 
-class Pressure {
-public:
-	constexpr Pressure(
-	) : kpa_ { 0 }
+	class Pressure
 	{
-	}
+		public:
+			constexpr Pressure(
+			) : kpa_ { 0 }
+			{
+			}
 
-	constexpr Pressure(
-		const int kilopascal
-	) : kpa_ { static_cast<int16_t>(kilopascal) }
+			constexpr Pressure(
+			    const int kilopascal
+			) : kpa_ { static_cast<int16_t>(kilopascal) }
+			{
+			}
+
+			int kilopascal() const
+			{
+				return kpa_;
+			}
+
+			int psi() const
+			{
+				return kpa_ * 1000 / 6895;
+			}
+
+		private:
+			int16_t kpa_;
+	};
+
+	class Temperature
 	{
-	}
+		public:
+			constexpr Temperature(
+			) : c_ { 0 }
+			{
+			}
 
-	int kilopascal() const {
-		return kpa_;
-	}
+			constexpr Temperature(
+			    const int celsius
+			) : c_ { static_cast<int16_t>(celsius) }
+			{
+			}
 
-	int psi() const {
-		return kpa_ * 1000 / 6895;
-	}
+			int celsius() const
+			{
+				return c_;
+			}
 
-private:
-	int16_t kpa_;
-};
+			int fahrenheit() const
+			{
+				return (c_ * 9 / 5) + 32;
+			}
 
-class Temperature {
-public:
-	constexpr Temperature(
-	) : c_ { 0 }
-	{
-	}
-
-	constexpr Temperature(
-		const int celsius
-	) : c_ { static_cast<int16_t>(celsius) }
-	{
-	}
-
-	int celsius() const {
-		return c_;
-	}
-
-	int fahrenheit() const {
-		return (c_ * 9 / 5) + 32;
-	}
-
-private:
-	int16_t c_;
-};
+		private:
+			int16_t c_;
+	};
 
 } /* namespace units */
 

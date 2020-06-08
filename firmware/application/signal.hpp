@@ -40,46 +40,53 @@
 using SignalToken = uint32_t;
 
 template<class... Args>
-struct Signal {
-	using Callback = std::function<void (Args...)>;
+struct Signal
+{
+		using Callback = std::function<void (Args...)>;
 
-	SignalToken operator+=(const Callback& callback) {
-		const SignalToken token = next_token++;
-		entries.emplace_back(std::make_unique<CallbackEntry>(callback, token));
-		return token;
-	}
-
-	bool operator-=(const SignalToken token) {
-		entries.remove_if([token](EntryType& entry) {
-			return entry.get()->token == token;
-		});
-		return true;
-	}
-
-	void emit(Args... args) {
-		for(auto& entry : entries) {
-			entry.get()->callback(args...);
-		};
-	}
-
-private:
-	struct CallbackEntry {
-		const Callback callback;
-		const SignalToken token;
-
-		constexpr CallbackEntry(
-			const Callback& callback,
-			const SignalToken token
-		) : callback { callback },
-			token { token }
+		SignalToken operator+=(const Callback& callback)
 		{
+			const SignalToken token = next_token++;
+			entries.emplace_back(std::make_unique<CallbackEntry>(callback, token));
+			return token;
 		}
-	};
 
-	using EntryType = std::unique_ptr<CallbackEntry>;
-	
-	std::list<EntryType> entries { };
-	SignalToken next_token = 1;
+		bool operator-=(const SignalToken token)
+		{
+			entries.remove_if([token](EntryType & entry)
+			{
+				return entry.get()->token == token;
+			});
+			return true;
+		}
+
+		void emit(Args... args)
+		{
+			for(auto& entry : entries)
+			{
+				entry.get()->callback(args...);
+			};
+		}
+
+	private:
+		struct CallbackEntry
+		{
+			const Callback callback;
+			const SignalToken token;
+
+			constexpr CallbackEntry(
+			    const Callback& callback,
+			    const SignalToken token
+			) : callback { callback },
+				token { token }
+			{
+			}
+		};
+
+		using EntryType = std::unique_ptr<CallbackEntry>;
+
+		std::list<EntryType> entries { };
+		SignalToken next_token = 1;
 };
 
 #endif/*__SIGNAL_H__*/

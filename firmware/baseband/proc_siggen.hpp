@@ -27,26 +27,27 @@
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
 
-class SigGenProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const msg) override;
+class SigGenProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	bool configured { false };
-	
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
-	uint32_t tone_delta { 0 }, fm_delta { };
-	uint32_t lfsr { }, feedback { }, tone_shape { };
-    uint32_t sample_count { 0 };
-    bool auto_off { };
-	uint32_t tone_phase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
-	int8_t sample { 0 };
-	int8_t re { 0 }, im { 0 };
-	
-	TXProgressMessage txprogress_message { };
+		void on_message(const Message* const msg) override;
+
+	private:
+		bool configured { false };
+
+		BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+		uint32_t tone_delta { 0 }, fm_delta { };
+		uint32_t lfsr { }, feedback { }, tone_shape { };
+		uint32_t sample_count { 0 };
+		bool auto_off { };
+		uint32_t tone_phase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
+		int8_t sample { 0 };
+		int8_t re { 0 }, im { 0 };
+
+		TXProgressMessage txprogress_message { };
 };
 
 #endif

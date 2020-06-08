@@ -22,41 +22,53 @@
 
 #include "ui_sd_wipe.hpp"
 
-namespace ui {
+namespace ui
+{
 
-Thread* WipeSDView::thread { nullptr };
+	Thread* WipeSDView::thread { nullptr };
 
-WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav) {
-	add_children({
-		&text_info,
-		&progress,
-		&dummy
-	});
-}
+	WipeSDView::WipeSDView(NavigationView& nav) : nav_ (nav)
+	{
+		add_children(
+		{
+			&text_info,
+			&progress,
+			&dummy
+		});
+	}
 
-WipeSDView::~WipeSDView() {
-	if (thread)
-		chThdTerminate(thread);
-}
+	WipeSDView::~WipeSDView()
+	{
+		if (thread)
+			chThdTerminate(thread);
+	}
 
-void WipeSDView::focus() {
-	BlockDeviceInfo block_device_info;
-	
-	dummy.focus();
-	
-	if (!confirmed) {
-		nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card?", YESCANCEL, [this](bool choice) {
+	void WipeSDView::focus()
+	{
+		BlockDeviceInfo block_device_info;
+
+		dummy.focus();
+
+		if (!confirmed)
+		{
+			nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card?", YESCANCEL, [this](bool choice)
+			{
 				if (choice)
 					confirmed = true;
 			}
-		);
-	} else {
-		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
-			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
-		} else {
-			nav_.pop();		// Just silently abort for now
+			                           );
+		}
+		else
+		{
+			if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS)
+			{
+				thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
+			}
+			else
+			{
+				nav_.pop();		// Just silently abort for now
+			}
 		}
 	}
-}
 
 } /* namespace ui */

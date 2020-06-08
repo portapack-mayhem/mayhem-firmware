@@ -30,88 +30,96 @@
 
 #include <string>
 
-namespace audio {
+namespace audio
+{
 
-class Codec {
-public:
-	virtual ~Codec() { }
+	class Codec
+	{
+		public:
+			virtual ~Codec() { }
 
-	virtual std::string name() const = 0;
+			virtual std::string name() const = 0;
 
-	virtual bool reset() = 0;
-	virtual void init() = 0;
+			virtual bool reset() = 0;
+			virtual void init() = 0;
 
-	virtual void speaker_enable() = 0;
- 	virtual void speaker_disable() = 0;
+			virtual void speaker_enable() = 0;
+			virtual void speaker_disable() = 0;
 
-	virtual void headphone_enable() = 0;
-	virtual void headphone_disable() = 0;
-	virtual volume_range_t headphone_gain_range() const = 0;
-	virtual void set_headphone_volume(const volume_t volume) = 0;
+			virtual void headphone_enable() = 0;
+			virtual void headphone_disable() = 0;
+			virtual volume_range_t headphone_gain_range() const = 0;
+			virtual void set_headphone_volume(const volume_t volume) = 0;
 
-	virtual void microphone_enable() = 0;
-	virtual void microphone_disable() = 0;
+			virtual void microphone_enable() = 0;
+			virtual void microphone_disable() = 0;
 
-	virtual size_t reg_count() const = 0;
-	virtual size_t reg_bits() const = 0;
-	virtual uint32_t reg_read(const size_t register_number) = 0;
-};
+			virtual size_t reg_count() const = 0;
+			virtual size_t reg_bits() const = 0;
+			virtual uint32_t reg_read(const size_t register_number) = 0;
+	};
 
-namespace output {
+	namespace output
+	{
 
-void start();
-void stop();
+		void start();
+		void stop();
 
-void mute();
-void unmute();
+		void mute();
+		void unmute();
 
-void speaker_mute();
-void speaker_unmute();
+		void speaker_mute();
+		void speaker_unmute();
 
-} /* namespace output */
+	} /* namespace output */
 
-namespace input {
+	namespace input
+	{
 
-void start();
-void stop();
+		void start();
+		void stop();
 
-} /* namespace input */
+	} /* namespace input */
 
-namespace headphone {
+	namespace headphone
+	{
 
-volume_range_t volume_range();
+		volume_range_t volume_range();
 
-void set_volume(const volume_t volume);
+		void set_volume(const volume_t volume);
 
-} /* namespace headphone */
+	} /* namespace headphone */
 
-namespace speaker {
+	namespace speaker
+	{
 
-volume_range_t volume_range();
+		volume_range_t volume_range();
 
-void set_volume(const volume_t volume);
+		void set_volume(const volume_t volume);
 
-} /* namespace speaker */
+	} /* namespace speaker */
 
-namespace debug {
+	namespace debug
+	{
 
-size_t reg_count();
-uint32_t reg_read(const size_t register_number);
-std::string codec_name();
-size_t reg_bits();
+		size_t reg_count();
+		uint32_t reg_read(const size_t register_number);
+		std::string codec_name();
+		size_t reg_bits();
 
-} /* namespace debug */
+	} /* namespace debug */
 
-void init(audio::Codec* const codec);
-void shutdown();
+	void init(audio::Codec* const codec);
+	void shutdown();
 
-enum class Rate {
-	Hz_12000 = 4,
-	Hz_24000 = 2,
-	Hz_48000 = 1,
-};
+	enum class Rate
+	{
+		Hz_12000 = 4,
+		Hz_24000 = 2,
+		Hz_48000 = 1,
+	};
 
-void set_rate(const Rate rate);
+	void set_rate(const Rate rate);
 
 } /* namespace audio */
 

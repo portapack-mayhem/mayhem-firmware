@@ -33,7 +33,8 @@
  * a knot to tackle at the moment, though...
  */
 #if defined(LPC43XX_M4)
-struct Timestamp {
+struct Timestamp
+{
 	uint32_t tv_date { 0 };
 	uint32_t tv_time { 0 };
 
@@ -48,7 +49,8 @@ using Timestamp = lpc43xx::rtc::RTC;
 #endif
 
 template<typename T>
-struct buffer_t {
+struct buffer_t
+{
 	T* const p;
 	const size_t count;
 	const uint32_t sampling_rate;
@@ -63,7 +65,7 @@ struct buffer_t {
 	}
 
 	constexpr buffer_t(
-		const buffer_t<T>& other
+	    const buffer_t<T>& other
 	) : p { other.p },
 		count { other.count },
 		sampling_rate { other.sampling_rate },
@@ -72,10 +74,10 @@ struct buffer_t {
 	}
 
 	constexpr buffer_t(
-		T* const p,
-		const size_t count,
-		const uint32_t sampling_rate = 0,
-		const Timestamp timestamp = { }
+	    T* const p,
+	    const size_t count,
+	    const uint32_t sampling_rate = 0,
+	    const Timestamp timestamp = { }
 	) : p { p },
 		count { count },
 		sampling_rate { sampling_rate },
@@ -83,7 +85,8 @@ struct buffer_t {
 	{
 	}
 
-	operator bool() const {
+	operator bool() const
+	{
 		return (p != nullptr);
 	}
 };

@@ -25,13 +25,15 @@
 using namespace lpc43xx;
 
 #if defined(LPC43XX_M0)
-void MessageQueue::signal() {
+void MessageQueue::signal()
+{
 	creg::m0apptxevent::assert();
 }
 #endif
 
 #if defined(LPC43XX_M4)
-void MessageQueue::signal() {
+void MessageQueue::signal()
+{
 	creg::m4txevent::assert();
 }
 #endif

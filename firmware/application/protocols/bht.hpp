@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,8 +36,9 @@ using namespace encoders;
 #define EPAR_BIT_DURATION	(OOK_SAMPLERATE / 580)
 #define EPAR_REPEAT_COUNT	26
 #define EPAR_MAX_CITY		255
-	
-struct bht_city {
+
+struct bht_city
+{
 	std::string name;
 	uint8_t freq_index;
 	bool recent;
@@ -46,6 +47,6 @@ struct bht_city {
 size_t gen_message_ep(uint8_t city_code, size_t family_code_ep, uint32_t relay_state_A, uint32_t relay_state_B);
 std::string gen_message_xy(const std::string& code);
 std::string gen_message_xy(size_t header_code_a, size_t header_code_b, size_t city_code, size_t family_code,
-							bool subfamily_wc, size_t subfamily_code, bool id_wc, size_t receiver_code,
-							size_t relay_state_A, size_t relay_state_B, size_t relay_state_C, size_t relay_state_D);
+                           bool subfamily_wc, size_t subfamily_code, bool id_wc, size_t receiver_code,
+                           size_t relay_state_A, size_t relay_state_B, size_t relay_state_C, size_t relay_state_D);
 std::string ccir_to_ascii(uint8_t * ccir);

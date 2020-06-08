@@ -28,68 +28,81 @@
 
 #include "baseband.hpp"
 
-namespace pocsag {
+namespace pocsag
+{
 
-enum BitRate : uint32_t {
-	UNKNOWN,
-	FSK512 = 512,
-	FSK1200 = 1200,
-	FSK2400 = 2400
-};
+	enum BitRate : uint32_t
+	{
+		UNKNOWN,
+		FSK512 = 512,
+		FSK1200 = 1200,
+		FSK2400 = 2400
+	};
 
-enum PacketFlag : uint32_t {
-	NORMAL,
-	TIMED_OUT,
-	TOO_LONG
-};
+	enum PacketFlag : uint32_t
+	{
+		NORMAL,
+		TIMED_OUT,
+		TOO_LONG
+	};
 
-class POCSAGPacket {
-public:
-	void set_timestamp(const Timestamp& value) {
-		timestamp_ = value;
-	}
-	
-	Timestamp timestamp() const {
-		return timestamp_;
-	}
+	class POCSAGPacket
+	{
+		public:
+			void set_timestamp(const Timestamp& value)
+			{
+				timestamp_ = value;
+			}
 
-	void set(const size_t index, const uint32_t data) {
-		if (index < 16)
-			codewords[index] = data;
-	}
+			Timestamp timestamp() const
+			{
+				return timestamp_;
+			}
 
-	uint32_t operator[](const size_t index) const {
-		return (index < 16) ? codewords[index] : 0;
-	}
-	
-	void set_bitrate(const BitRate bitrate) {
-		bitrate_ = bitrate;
-	}
-	
-	BitRate bitrate() const {
-		return bitrate_;
-	}
-	
-	void set_flag(const PacketFlag flag) {
-		flag_ = flag;
-	}
-	
-	PacketFlag flag() const {
-		return flag_;
-	}
+			void set(const size_t index, const uint32_t data)
+			{
+				if (index < 16)
+					codewords[index] = data;
+			}
 
-	void clear() {
-		codewords.fill(0);
-		bitrate_ = UNKNOWN;
-		flag_ = NORMAL;
-	}
+			uint32_t operator[](const size_t index) const
+			{
+				return (index < 16) ? codewords[index] : 0;
+			}
 
-private:
-	BitRate bitrate_ { UNKNOWN };
-	PacketFlag flag_ { NORMAL };
-	std::array <uint32_t, 16> codewords;
-	Timestamp timestamp_ { };
-};
+			void set_bitrate(const BitRate bitrate)
+			{
+				bitrate_ = bitrate;
+			}
+
+			BitRate bitrate() const
+			{
+				return bitrate_;
+			}
+
+			void set_flag(const PacketFlag flag)
+			{
+				flag_ = flag;
+			}
+
+			PacketFlag flag() const
+			{
+				return flag_;
+			}
+
+			void clear()
+			{
+				codewords.fill(0);
+				bitrate_ = UNKNOWN;
+				flag_ = NORMAL;
+			}
+
+		private:
+			BitRate bitrate_ { UNKNOWN };
+			PacketFlag flag_ { NORMAL };
+			std::array <uint32_t, 16> codewords;
+			Timestamp timestamp_ { };
+	};
 
 } /* namespace pocsag */
 

@@ -26,26 +26,28 @@
 
 using namespace portapack;
 
-namespace serializer {
-	
-/* Raw:		00110110100111
- * NRZ-L:	00110110100111
- * NRZ-M:	00100100111010	(1 = transition)
- * NRZ-S:	?0001110010000	(0 = transition)
- * RZ:		00 00 10 10 00 10 10 00 10 00 00 10 10 10	(half bits)
- * Bi-L:	01 01 10 10 01 10 10 01 10 01 01 10 10 10	(1 = high to low, 0 = low to high)
- * Bi-M:	00 11 01 01 00 10 10 11 01 00 11 01 01 01	(1 = mid-bit transition, 0 = invert last level)
- * Bi-S:	01 01 00 11 01 00 11 01 00 10 10 11 00 11	(the opposite)
- * Diff M.:	...
- */
+namespace serializer
+{
 
-size_t symbol_count(const serial_format_t& serial_format) {
-	size_t count;
-	
-	count = 1 + serial_format.data_bits + serial_format.stop_bits;	// Start + data + stop
-	if (serial_format.parity) count++;
-	
-	return count;
-};
+	/* Raw:		00110110100111
+	 * NRZ-L:	00110110100111
+	 * NRZ-M:	00100100111010	(1 = transition)
+	 * NRZ-S:	?0001110010000	(0 = transition)
+	 * RZ:		00 00 10 10 00 10 10 00 10 00 00 10 10 10	(half bits)
+	 * Bi-L:	01 01 10 10 01 10 10 01 10 01 01 10 10 10	(1 = high to low, 0 = low to high)
+	 * Bi-M:	00 11 01 01 00 10 10 11 01 00 11 01 01 01	(1 = mid-bit transition, 0 = invert last level)
+	 * Bi-S:	01 01 00 11 01 00 11 01 00 10 10 11 00 11	(the opposite)
+	 * Diff M.:	...
+	 */
+
+	size_t symbol_count(const serial_format_t& serial_format)
+	{
+		size_t count;
+
+		count = 1 + serial_format.data_bits + serial_format.stop_bits;	// Start + data + stop
+		if (serial_format.parity) count++;
+
+		return count;
+	};
 
 } /* namespace serializer */

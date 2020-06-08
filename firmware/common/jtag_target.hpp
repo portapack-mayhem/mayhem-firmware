@@ -25,21 +25,24 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace jtag {
+namespace jtag
+{
 
-class Target {
-public:
-	using bit_t = uint_fast8_t;
+	class Target
+	{
+		public:
+			using bit_t = uint_fast8_t;
 
-	virtual ~Target() {
-	}
+			virtual ~Target()
+			{
+			}
 
-	virtual void delay(const size_t n) = 0;
-	virtual bit_t clock(
-		const bit_t tms_value,
-		const bit_t tdi_value
-	) = 0;
-};
+			virtual void delay(const size_t n) = 0;
+			virtual bit_t clock(
+			    const bit_t tms_value,
+			    const bit_t tdi_value
+			) = 0;
+	};
 
 } /* namespace jtag */
 

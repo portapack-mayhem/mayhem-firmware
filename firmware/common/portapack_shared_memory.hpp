@@ -28,26 +28,30 @@
 
 #include "message_queue.hpp"
 
-struct JammerChannel {
+struct JammerChannel
+{
 	bool enabled;
 	uint64_t center;
 	uint32_t width;
 	uint32_t duration;
 };
 
-struct ToneDef {
+struct ToneDef
+{
 	uint32_t delta;
 	uint32_t duration;
 };
-	
-struct ToneData {
+
+struct ToneData
+{
 	ToneDef tone_defs[32];
 	uint32_t silence;
 	uint8_t message[256];
 };
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
-struct SharedMemory {
+struct SharedMemory
+{
 	static constexpr size_t application_queue_k = 11;
 	static constexpr size_t app_local_queue_k = 11;
 
@@ -58,8 +62,9 @@ struct SharedMemory {
 	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
 
 	char m4_panic_msg[32] { 0 };
-	
-	union {
+
+	union
+	{
 		ToneData tones_data;
 		JammerChannel jammer_channels[24];
 		uint8_t data[512];

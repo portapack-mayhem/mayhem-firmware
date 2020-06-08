@@ -27,17 +27,19 @@
 #ifndef __ENCODERS_H__
 #define __ENCODERS_H__
 
-namespace encoders {
-	
-	#define ENC_TYPES_COUNT 14
-	#define OOK_SAMPLERATE	2280000U
-	
-	#define ENCODER_UM3750	8
-	
+namespace encoders
+{
+
+#define ENC_TYPES_COUNT 14
+#define OOK_SAMPLERATE	2280000U
+
+#define ENCODER_UM3750	8
+
 	size_t make_bitstream(std::string& fragments);
 	void bitstream_append(size_t& bitstream_length, uint32_t bit_count, uint32_t bits);
 
-	struct encoder_def_t {
+	struct encoder_def_t
+	{
 		char name[16];							// Encoder chip ref/name
 		char address_symbols[8];				// List of possible symbols like "01", "01F"...
 		char data_symbols[8];					// Same
@@ -53,7 +55,8 @@ namespace encoders {
 	};
 
 	// Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !
-	constexpr encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
+	constexpr encoder_def_t encoder_defs[ENC_TYPES_COUNT] =
+	{
 		// PT2260-R2
 		{
 			"2260-R2",
@@ -65,7 +68,7 @@ namespace encoders {
 			150000,	2,
 			0
 		},
-		
+
 		// PT2260-R4
 		{
 			"2260-R4",
@@ -77,7 +80,7 @@ namespace encoders {
 			150000,	2,
 			0
 		},
-		
+
 		// PT2262
 		{
 			"2262   ",
@@ -89,7 +92,7 @@ namespace encoders {
 			20000,	4,
 			0
 		},
-		
+
 		// 16-bit ?
 		{
 			"16-bit ",
@@ -101,7 +104,7 @@ namespace encoders {
 			25000,	50,
 			0	// ?
 		},
-		
+
 		// RT1527
 		{
 			"1527   ",
@@ -113,7 +116,7 @@ namespace encoders {
 			100000,	4,
 			10	// ?
 		},
-		
+
 		// HK526E
 		{
 			"526E   ",
@@ -125,7 +128,7 @@ namespace encoders {
 			20000, 4,
 			10	// ?
 		},
-		
+
 		// HT12E
 		{
 			"12E    ",
@@ -137,7 +140,7 @@ namespace encoders {
 			3000, 4,
 			10	// ?
 		},
-			
+
 		// VD5026 13 bits ?
 		{
 			"5026   ",
@@ -149,7 +152,7 @@ namespace encoders {
 			100000,	4,
 			10	// ?
 		},
-		
+
 		// UM3750
 		{
 			"UM3750 ",
@@ -161,7 +164,7 @@ namespace encoders {
 			100000,	4,
 			(3 * 12) - 6	// Compensates for pause delay bug in proc_ook
 		},
-		
+
 		// UM3758
 		{
 			"UM3758 ",
@@ -173,7 +176,7 @@ namespace encoders {
 			160000,	4,
 			10	// ?
 		},
-		
+
 		// BA5104
 		{
 			"BA5104 ",
@@ -185,7 +188,7 @@ namespace encoders {
 			455000,	4,
 			10	// ?
 		},
-			
+
 		// MC145026
 		{
 			"145026 ",
@@ -197,7 +200,7 @@ namespace encoders {
 			455000,	2,
 			2
 		},
-		
+
 		// HT6*** TODO: Add individual variations
 		{
 			"HT6*** ",
@@ -209,7 +212,7 @@ namespace encoders {
 			80000,	3,
 			10	// ?
 		},
-		
+
 		// TC9148
 		{
 			"TC9148 ",

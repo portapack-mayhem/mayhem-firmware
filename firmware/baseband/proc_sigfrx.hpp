@@ -27,11 +27,12 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 
-class SIGFRXProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
+class SIGFRXProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
+	private:
 
 };
 

@@ -34,25 +34,26 @@
 #include <array>
 #include <complex>
 
-class WidebandSpectrum : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
+class WidebandSpectrum : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message* const message) override;
+		void on_message(const Message* const message) override;
 
-private:
-	bool configured = false;
-	
-	size_t baseband_fs = 20000000;
+	private:
+		bool configured = false;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+		size_t baseband_fs = 20000000;
 
-	SpectrumCollector channel_spectrum { };
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20 };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 256> spectrum { };
+		SpectrumCollector channel_spectrum { };
 
-	size_t phase = 0, trigger = 127;
+		std::array<complex16_t, 256> spectrum { };
+
+		size_t phase = 0, trigger = 127;
 };
 
 #endif/*__PROC_WIDEBAND_SPECTRUM_H__*/

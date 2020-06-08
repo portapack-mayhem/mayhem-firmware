@@ -32,20 +32,23 @@ WORKING_AREA(rssi_thread_wa, 128);
 
 Thread* RSSIThread::thread = nullptr;
 
-RSSIThread::RSSIThread(const tprio_t priority) {
+RSSIThread::RSSIThread(const tprio_t priority)
+{
 	thread = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
-		priority, ThreadBase::fn,
-		this
-	);
+	                           priority, ThreadBase::fn,
+	                           this
+	                          );
 }
 
-RSSIThread::~RSSIThread() {
+RSSIThread::~RSSIThread()
+{
 	chThdTerminate(thread);
 	chThdWait(thread);
 	thread = nullptr;
 }
 
-void RSSIThread::run() {
+void RSSIThread::run()
+{
 	rf::rssi::init();
 	rf::rssi::dma::allocate(4, 400);
 
@@ -53,19 +56,22 @@ void RSSIThread::run() {
 
 	rf::rssi::start();
 
-	while( !chThdShouldTerminate() ) {
+	while( !chThdShouldTerminate() )
+	{
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
-		const rf::rssi::buffer_t buffer {
+		const rf::rssi::buffer_t buffer
+		{
 			buffer_tmp.p, buffer_tmp.count, sampling_rate
 		};
 
 		stats.process(
-			buffer,
-			[](const RSSIStatistics& statistics) {
-				const RSSIStatisticsMessage message { statistics };
-				shared_memory.application_queue.push(message);
-			}
+		    buffer,
+		    [](const RSSIStatistics & statistics)
+		{
+			const RSSIStatisticsMessage message { statistics };
+			shared_memory.application_queue.push(message);
+		}
 		);
 	}
 

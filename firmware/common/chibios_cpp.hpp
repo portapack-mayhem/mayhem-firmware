@@ -33,10 +33,11 @@ void operator delete[](void* p);
 void operator delete(void* ptr, std::size_t);
 void operator delete[](void* ptr, std::size_t);
 
-namespace chibios {
+namespace chibios
+{
 
-size_t heap_size();
-size_t heap_used();
+	size_t heap_size();
+	size_t heap_used();
 
 } /* namespace chibios */
 

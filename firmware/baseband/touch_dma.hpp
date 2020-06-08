@@ -26,25 +26,27 @@
 
 #include <cstddef>
 
-namespace touch {
-namespace dma {
+namespace touch
+{
+	namespace dma
+	{
 
-using sample_t = uint32_t;
-using buffer_t = buffer_t<sample_t>;
+		using sample_t = uint32_t;
+		using buffer_t = buffer_t<sample_t>;
 
-void init();
+		void init();
 
-void allocate();
-void free();
+		void allocate();
+		void free();
 
-void enable();
-bool is_enabled();
+		void enable();
+		bool is_enabled();
 
-void disable();
+		void disable();
 
-buffer_t wait_for_buffer();
+		buffer_t wait_for_buffer();
 
-} /* namespace dma */
+	} /* namespace dma */
 } /* namespace touch */
 
 #endif/*__TOUCH_DMA_H__*/

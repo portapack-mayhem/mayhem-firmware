@@ -33,32 +33,33 @@ using namespace adsb;
 
 #define ADSB_PREAMBLE_LENGTH 16
 
-class ADSBRXProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
-	
-	void on_message(const Message* const message) override;
+class ADSBRXProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	static constexpr float k = 1.0f / 128.0f;
-	
-	static constexpr size_t baseband_fs = 2000000;
-	
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
-	
-	ADSBFrame frame { };
-	bool configured { false };
-	float prev_mag { 0 };
-	float threshold { }, threshold_low { }, threshold_high { };
-	size_t null_count { 0 }, bit_count { 0 }, sample_count { 0 };
-	std::pair<float, uint8_t> shifter[ADSB_PREAMBLE_LENGTH];
-	bool decoding { };
-	bool preamble { }, active { };
-    uint16_t bit_pos { 0 };
-    uint8_t cur_bit { 0 };
-	uint32_t sample { 0 };
-	int8_t re { }, im { };
+		void on_message(const Message* const message) override;
+
+	private:
+		static constexpr float k = 1.0f / 128.0f;
+
+		static constexpr size_t baseband_fs = 2000000;
+
+		BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
+
+		ADSBFrame frame { };
+		bool configured { false };
+		float prev_mag { 0 };
+		float threshold { }, threshold_low { }, threshold_high { };
+		size_t null_count { 0 }, bit_count { 0 }, sample_count { 0 };
+		std::pair<float, uint8_t> shifter[ADSB_PREAMBLE_LENGTH];
+		bool decoding { };
+		bool preamble { }, active { };
+		uint16_t bit_pos { 0 };
+		uint8_t cur_bit { 0 };
+		uint32_t sample { 0 };
+		int8_t re { }, im { };
 };
 
 #endif

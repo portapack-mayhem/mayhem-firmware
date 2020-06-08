@@ -26,52 +26,59 @@
 
 #include "spi_pp.hpp"
 
-namespace spi {
-namespace arbiter {
-
-class Arbiter {
-public:
-	constexpr Arbiter(
-		SPI& bus
-	) : _bus(bus),
-		_config(nullptr)
+namespace spi
+{
+	namespace arbiter
 	{
-	}
 
-	void transfer(const SPIConfig* const config, void* const data, const size_t count) {
-		if( config != _config ) {
-			_bus.stop();
-			_bus.start(*config);
-			_config = config;
-		}
-		_bus.transfer(data, count);
-	}
+		class Arbiter
+		{
+			public:
+				constexpr Arbiter(
+				    SPI& bus
+				) : _bus(bus),
+					_config(nullptr)
+				{
+				}
 
-private:
-	SPI& _bus;
-	const SPIConfig* _config;
-};
+				void transfer(const SPIConfig* const config, void* const data, const size_t count)
+				{
+					if( config != _config )
+					{
+						_bus.stop();
+						_bus.start(*config);
+						_config = config;
+					}
+					_bus.transfer(data, count);
+				}
 
-class Target {
-public:
-	constexpr Target(
-		Arbiter& arbiter,
-		const SPIConfig& config
-	) : _arbiter(arbiter),
-		_config(config)
-	{
-	}
+			private:
+				SPI& _bus;
+				const SPIConfig* _config;
+		};
 
-	void transfer(void* const data, const size_t count) {
-		_arbiter.transfer(&_config, data, count);
-	}
+		class Target
+		{
+			public:
+				constexpr Target(
+				    Arbiter& arbiter,
+				    const SPIConfig& config
+				) : _arbiter(arbiter),
+					_config(config)
+				{
+				}
 
-private:
-	Arbiter& _arbiter;
-	const SPIConfig _config;
-};
+				void transfer(void* const data, const size_t count)
+				{
+					_arbiter.transfer(&_config, data, count);
+				}
 
-} /* arbiter */
+			private:
+				Arbiter& _arbiter;
+				const SPIConfig _config;
+		};
+
+	} /* arbiter */
 } /* spi */
 
 #endif/*__SPI_ARBITER_H__*/

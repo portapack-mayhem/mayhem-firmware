@@ -23,91 +23,106 @@
 
 #include <array>
 
-namespace lpc43xx {
-namespace gpdma {
-
-namespace {
-
-struct ChannelHandlers {
-	TCHandler tc;
-	ErrHandler err;
-
-	constexpr ChannelHandlers(
-	) : tc(nullptr),
-		err(nullptr)
+namespace lpc43xx
+{
+	namespace gpdma
 	{
-	}
-};
 
-}
+		namespace
+		{
 
-static std::array<ChannelHandlers, channels.size()> handlers_table { {} };
+			struct ChannelHandlers
+			{
+				TCHandler tc;
+				ErrHandler err;
 
-namespace channel {
-
-void Channel::set_handlers(const TCHandler tc_handler, const ErrHandler err_handler) const {
-	handlers_table[number].tc = tc_handler;
-	handlers_table[number].err = err_handler;
-}
-
-void Channel::configure(
-	const LLI& first_lli,
-	const uint32_t config
-) const {
-	disable();
-	clear_interrupts();
-
-	LPC_GPDMA_Channel_Type* const channel = &LPC_GPDMA->CH[number];
-	channel->SRCADDR = first_lli.srcaddr;
-	channel->DESTADDR = first_lli.destaddr;
-	channel->LLI = first_lli.lli;
-	channel->CONTROL = first_lli.control;
-	channel->CONFIG = config;
-}
-
-} /* namespace channel */
-
-extern "C" {
-
-CH_IRQ_HANDLER(DMA_IRQHandler) {
-	CH_IRQ_PROLOGUE();
-
-	chSysLockFromIsr();
-
-	const auto tc_stat = LPC_GPDMA->INTTCSTAT;
-	/* TODO: Service the higher channel numbers first, they're higher priority
-	 * right?!?
-	 */
-	for(size_t i=0; i<handlers_table.size(); i++) {
-		if( (tc_stat >> i) & 1 ) {
-			if( handlers_table[i].tc ) {
-				handlers_table[i].tc();
-			}
-		}
-	}
-	LPC_GPDMA->INTTCCLR = tc_stat;
-
-	/* Test for *any* error first, before looping, since errors should be
-	 * exceptional and we should spend as little time on them in the common
-	 * case.
-	 */
-	const auto err_stat = LPC_GPDMA->INTERRSTAT;
-	if( err_stat ) {
-		for(size_t i=0; i<handlers_table.size(); i++) {
-			if( (err_stat >> i) & 1 ) {
-				if( handlers_table[i].err ) {
-					handlers_table[i].err();
+				constexpr ChannelHandlers(
+				) : tc(nullptr),
+					err(nullptr)
+				{
 				}
+			};
+
+		}
+
+		static std::array<ChannelHandlers, channels.size()> handlers_table { {} };
+
+		namespace channel
+		{
+
+			void Channel::set_handlers(const TCHandler tc_handler, const ErrHandler err_handler) const
+			{
+				handlers_table[number].tc = tc_handler;
+				handlers_table[number].err = err_handler;
+			}
+
+			void Channel::configure(
+			    const LLI& first_lli,
+			    const uint32_t config
+			) const
+			{
+				disable();
+				clear_interrupts();
+
+				LPC_GPDMA_Channel_Type* const channel = &LPC_GPDMA->CH[number];
+				channel->SRCADDR = first_lli.srcaddr;
+				channel->DESTADDR = first_lli.destaddr;
+				channel->LLI = first_lli.lli;
+				channel->CONTROL = first_lli.control;
+				channel->CONFIG = config;
+			}
+
+		} /* namespace channel */
+
+		extern "C" {
+
+			CH_IRQ_HANDLER(DMA_IRQHandler)
+			{
+				CH_IRQ_PROLOGUE();
+
+				chSysLockFromIsr();
+
+				const auto tc_stat = LPC_GPDMA->INTTCSTAT;
+				/* TODO: Service the higher channel numbers first, they're higher priority
+				 * right?!?
+				 */
+				for(size_t i = 0; i < handlers_table.size(); i++)
+				{
+					if( (tc_stat >> i) & 1 )
+					{
+						if( handlers_table[i].tc )
+						{
+							handlers_table[i].tc();
+						}
+					}
+				}
+				LPC_GPDMA->INTTCCLR = tc_stat;
+
+				/* Test for *any* error first, before looping, since errors should be
+				 * exceptional and we should spend as little time on them in the common
+				 * case.
+				 */
+				const auto err_stat = LPC_GPDMA->INTERRSTAT;
+				if( err_stat )
+				{
+					for(size_t i = 0; i < handlers_table.size(); i++)
+					{
+						if( (err_stat >> i) & 1 )
+						{
+							if( handlers_table[i].err )
+							{
+								handlers_table[i].err();
+							}
+						}
+					}
+					LPC_GPDMA->INTERRCLR = err_stat;
+				}
+
+				chSysUnlockFromIsr();
+
+				CH_IRQ_EPILOGUE();
 			}
 		}
-		LPC_GPDMA->INTERRCLR = err_stat;
-	}
 
-	chSysUnlockFromIsr();
-
-	CH_IRQ_EPILOGUE();
-}
-}
-
-} /* namespace gpdma */
+	} /* namespace gpdma */
 } /* namespace lpc43xx */

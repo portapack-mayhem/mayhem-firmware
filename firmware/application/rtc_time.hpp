@@ -24,11 +24,12 @@
 
 #include "signal.hpp"
 
-namespace rtc_time {
+namespace rtc_time
+{
 
-extern Signal<> signal_tick_second;
+	extern Signal<> signal_tick_second;
 
-void on_tick_second();
+	void on_tick_second();
 
 } /* namespace rtc_time */
 

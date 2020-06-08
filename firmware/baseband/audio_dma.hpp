@@ -27,31 +27,36 @@
 
 #include "buffer.hpp"
 
-namespace audio {
+namespace audio
+{
 
-struct sample_t {
-	union {
-		struct {
-			int16_t left;
-			int16_t right;
+	struct sample_t
+	{
+		union
+		{
+			struct
+			{
+				int16_t left;
+				int16_t right;
+			};
+			uint32_t raw;
 		};
-		uint32_t raw;
 	};
-};
 
-using buffer_t = buffer_t<sample_t>;
+	using buffer_t = buffer_t<sample_t>;
 
-namespace dma {
+	namespace dma
+	{
 
-void init();
-void configure();
-void enable();
-void disable();
+		void init();
+		void configure();
+		void enable();
+		void disable();
 
-audio::buffer_t tx_empty_buffer();
-audio::buffer_t rx_empty_buffer();
+		audio::buffer_t tx_empty_buffer();
+		audio::buffer_t rx_empty_buffer();
 
-} /* namespace dma */
+	} /* namespace dma */
 } /* namespace audio */
 
 #endif/*__AUDIO_DMA_H__*/

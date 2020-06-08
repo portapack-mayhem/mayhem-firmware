@@ -24,7 +24,7 @@
 BufferExchange* BufferExchange::obj { nullptr };
 
 BufferExchange::BufferExchange(
-	CaptureConfig* const config
+    CaptureConfig* const config
 )	// : config_capture { config }
 {
 	obj = this;
@@ -34,7 +34,7 @@ BufferExchange::BufferExchange(
 }
 
 BufferExchange::BufferExchange(
-	ReplayConfig* const config
+    ReplayConfig* const config
 )	// : config_replay { config }
 {
 	obj = this;
@@ -43,18 +43,22 @@ BufferExchange::BufferExchange(
 	fifo_buffers_for_application = config->fifo_buffers_empty;
 }
 
-BufferExchange::~BufferExchange() {
+BufferExchange::~BufferExchange()
+{
 	obj = nullptr;
 	fifo_buffers_for_baseband = nullptr;
 	fifo_buffers_for_application = nullptr;
 }
 
-StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
-	while(true) {
+StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo)
+{
+	while(true)
+	{
 		StreamBuffer* p { nullptr };
 		fifo->out(p);
-		
-		if( p ) {
+
+		if( p )
+		{
 			return p;
 		}
 
@@ -66,9 +70,10 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 	}
 }
 
-StreamBuffer* BufferExchange::get_prefill(FIFO<StreamBuffer*>* fifo) {
+StreamBuffer* BufferExchange::get_prefill(FIFO<StreamBuffer*>* fifo)
+{
 	StreamBuffer* p { nullptr };
 	fifo->out(p);
-	
+
 	return p;
 }

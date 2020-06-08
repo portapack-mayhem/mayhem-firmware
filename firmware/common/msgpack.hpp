@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,47 +55,49 @@
 #define MSGPACK_TYPE_MAP16	0xDE
 #define MSGPACK_TYPE_MAP32	0xDF
 
-class MsgPack {
-public:
+class MsgPack
+{
+	public:
 
-	enum RecID {
-		TestListA = 0,
-		TestListB = 1,
-		TestListC = 2,
-		TestListD = 3,
-		TestListE = 4
-	};
+		enum RecID
+		{
+			TestListA = 0,
+			TestListB = 1,
+			TestListC = 2,
+			TestListD = 3,
+			TestListE = 4
+		};
 
-	// Read
-	bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, bool * value);
-	bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, uint8_t * value);
-	bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, int64_t * value);
-	bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, std::string& value);
-	
-	// Write
-	void msgpack_init(const void * buffer, size_t * ptr);
-	void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, bool value);
-	void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, uint8_t value);
-	void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, int64_t value);
-	bool msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, std::string value);
+		// Read
+		bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, bool * value);
+		bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, uint8_t * value);
+		bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, int64_t * value);
+		bool msgpack_get(const void * buffer, const size_t size, const RecID record_id, std::string& value);
 
-private:
-	bool get_raw_byte(const void * buffer, const bool inc, uint8_t * byte);
-	bool get_raw_word(const void * buffer, const bool inc, uint16_t * word);
-	bool get_bool(const void * buffer, const bool inc, bool * value);
-	bool get_u8(const void * buffer, const bool inc, uint8_t * value);
-	bool get_u16(const void * buffer, const bool inc, uint16_t * value);
-	bool get_s32(const void * buffer, const bool inc, int32_t * value);
-	bool get_string(const void * buffer, const bool inc, std::string& value);
-	
-	void add_key(const void * buffer, size_t * ptr, const RecID record_id);
-	
-	bool init_search(const void * buffer, const size_t size);
-	bool search_key(const void * buffer, const RecID record_id);
-	bool skip(const void * buffer);
-	
-	size_t seek_ptr = 0;
-	size_t buffer_size;
+		// Write
+		void msgpack_init(const void * buffer, size_t * ptr);
+		void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, bool value);
+		void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, uint8_t value);
+		void msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, int64_t value);
+		bool msgpack_add(const void * buffer, size_t * ptr, const RecID record_id, std::string value);
+
+	private:
+		bool get_raw_byte(const void * buffer, const bool inc, uint8_t * byte);
+		bool get_raw_word(const void * buffer, const bool inc, uint16_t * word);
+		bool get_bool(const void * buffer, const bool inc, bool * value);
+		bool get_u8(const void * buffer, const bool inc, uint8_t * value);
+		bool get_u16(const void * buffer, const bool inc, uint16_t * value);
+		bool get_s32(const void * buffer, const bool inc, int32_t * value);
+		bool get_string(const void * buffer, const bool inc, std::string& value);
+
+		void add_key(const void * buffer, size_t * ptr, const RecID record_id);
+
+		bool init_search(const void * buffer, const size_t size);
+		bool search_key(const void * buffer, const RecID record_id);
+		bool skip(const void * buffer);
+
+		size_t seek_ptr = 0;
+		size_t buffer_size;
 };
 
 #endif

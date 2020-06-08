@@ -33,36 +33,38 @@
 #include <cstddef>
 #include <utility>
 
-class CaptureThread {
-public:
-	CaptureThread(
-		std::unique_ptr<stream::Writer> writer,
-		size_t write_size,
-		size_t buffer_count,
-		std::function<void()> success_callback,
-		std::function<void(File::Error)> error_callback
-	);
-	~CaptureThread();
+class CaptureThread
+{
+	public:
+		CaptureThread(
+		    std::unique_ptr<stream::Writer> writer,
+		    size_t write_size,
+		    size_t buffer_count,
+		    std::function<void()> success_callback,
+		    std::function<void(File::Error)> error_callback
+		);
+		~CaptureThread();
 
-	CaptureThread(const CaptureThread&) = delete;
-	CaptureThread(CaptureThread&&) = delete;
-	CaptureThread& operator=(const CaptureThread&) = delete;
-	CaptureThread& operator=(CaptureThread&&) = delete;
+		CaptureThread(const CaptureThread&) = delete;
+		CaptureThread(CaptureThread&&) = delete;
+		CaptureThread& operator=(const CaptureThread&) = delete;
+		CaptureThread& operator=(CaptureThread&&) = delete;
 
-	const CaptureConfig& state() const {
-		return config;
-	}
+		const CaptureConfig& state() const
+		{
+			return config;
+		}
 
-private:
-	CaptureConfig config;
-	std::unique_ptr<stream::Writer> writer;
-	std::function<void()> success_callback;
-	std::function<void(File::Error)> error_callback;
-	Thread* thread { nullptr };
+	private:
+		CaptureConfig config;
+		std::unique_ptr<stream::Writer> writer;
+		std::function<void()> success_callback;
+		std::function<void(File::Error)> error_callback;
+		Thread* thread { nullptr };
 
-	static msg_t static_fn(void* arg);
+		static msg_t static_fn(void* arg);
 
-	Optional<File::Error> run();
+		Optional<File::Error> run();
 };
 
 #endif/*__CAPTURE_THREAD_H__*/

@@ -24,35 +24,39 @@
 
 #include "spi_arbiter.hpp"
 
-namespace max5864 {
+namespace max5864
+{
 
-enum class Mode : uint8_t {
-	Shutdown	= 0x00,
-	Idle		= 0x01,
-	Receive		= 0x02,
-	Transmit	= 0x03,
-	Transceiver	= 0x04,
-	Standby		= 0x05,
-};
-
-class MAX5864 {
-public:
-	constexpr MAX5864(
-		spi::arbiter::Target& target
-	) : _target(target)
+	enum class Mode : uint8_t
 	{
-	}
+		Shutdown	= 0x00,
+		Idle		= 0x01,
+		Receive		= 0x02,
+		Transmit	= 0x03,
+		Transceiver	= 0x04,
+		Standby		= 0x05,
+	};
 
-	void init() {
-		/* Shut down explicitly, as there is no other reset mechanism. */
-		set_mode(Mode::Shutdown);
-	}
+	class MAX5864
+	{
+		public:
+			constexpr MAX5864(
+			    spi::arbiter::Target& target
+			) : _target(target)
+			{
+			}
 
-	void set_mode(const Mode mode);
+			void init()
+			{
+				/* Shut down explicitly, as there is no other reset mechanism. */
+				set_mode(Mode::Shutdown);
+			}
 
-private:
-	spi::arbiter::Target& _target;
-};
+			void set_mode(const Mode mode);
+
+		private:
+			spi::arbiter::Target& _target;
+	};
 
 }
 

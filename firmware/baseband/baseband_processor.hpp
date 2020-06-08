@@ -28,19 +28,20 @@
 
 #include "message.hpp"
 
-class BasebandProcessor {
-public:
-	virtual ~BasebandProcessor() = default;
+class BasebandProcessor
+{
+	public:
+		virtual ~BasebandProcessor() = default;
 
-	virtual void execute(const buffer_c8_t& buffer) = 0;
+		virtual void execute(const buffer_c8_t& buffer) = 0;
 
-	virtual void on_message(const Message* const) { };
+		virtual void on_message(const Message* const) { };
 
-protected:
-	void feed_channel_stats(const buffer_c16_t& channel);
+	protected:
+		void feed_channel_stats(const buffer_c16_t& channel);
 
-private:
-	ChannelStatsCollector channel_stats { };
+	private:
+		ChannelStatsCollector channel_stats { };
 };
 
 #endif/*__BASEBAND_PROCESSOR_H__*/

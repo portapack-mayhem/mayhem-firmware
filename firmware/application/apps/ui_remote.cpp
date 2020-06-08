@@ -27,29 +27,35 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui
+{
 
-void RemoteView::focus() {
-	button.focus();
-}
+	void RemoteView::focus()
+	{
+		button.focus();
+	}
 
-RemoteView::~RemoteView() {
-	//transmitter_model.disable();
-	//baseband::shutdown();
-}
+	RemoteView::~RemoteView()
+	{
+		//transmitter_model.disable();
+		//baseband::shutdown();
+	}
 
 
-RemoteView::RemoteView(
-	NavigationView& nav
-) {
-	add_children({
-		&labels,
-		&button
-	});
-	
-	button.on_select = [this, &nav](Button&) {
-		nav.pop();
-	};
-}
+	RemoteView::RemoteView(
+	    NavigationView& nav
+	)
+	{
+		add_children(
+		{
+			&labels,
+			&button
+		});
+
+		button.on_select = [this, &nav](Button&)
+		{
+			nav.pop();
+		};
+	}
 
 } /* namespace ui */

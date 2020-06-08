@@ -52,26 +52,28 @@
 
 extern "C" {
 
-void __late_init(void) {
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
+	void __late_init(void)
+	{
+		/*
+		 * System initializations.
+		 * - HAL initialization, this also initializes the configured device drivers
+		 *   and performs the board-specific initializations.
+		 * - Kernel initialization, the main() function becomes a thread and the
+		 *   RTOS is active.
+		 */
+		halInit();
 
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
+		/* After this call, scheduler, systick, heap, etc. are available. */
+		/* By doing chSysInit() here, it runs before C++ constructors, which may
+		 * require the heap.
+		 */
+		chSysInit();
+	}
+
 }
 
-}
-
-static void init() {
+static void init()
+{
 	audio::dma::init();
 	audio::dma::configure();
 	audio::dma::enable();
@@ -85,18 +87,21 @@ static void init() {
 	touch::dma::enable();
 }
 
-static void halt() {
+static void halt()
+{
 	port_disable();
-	while(true) {
+	while(true)
+	{
 		port_wait_for_interrupt();
 	}
 }
 
-static void shutdown() {
+static void shutdown()
+{
 	// TODO: Is this complete?
-	
+
 	nvicDisableVector(DMA_IRQn);
-	
+
 	chSysDisable();
 
 	systick_stop();
@@ -107,7 +112,8 @@ static void shutdown() {
 	halt();
 }
 
-int main(void) {
+int main(void)
+{
 	init();
 
 	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */

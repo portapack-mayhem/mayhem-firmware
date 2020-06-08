@@ -50,61 +50,70 @@ constexpr size_t idm_preamble_and_sync_length { 64 - 16 };
 
 constexpr size_t idm_payload_length_max { 1408 };
 
-class ERTProcessor : public BasebandProcessor {
-public:
-	void execute(const buffer_c8_t& buffer) override;
+class ERTProcessor : public BasebandProcessor
+{
+	public:
+		void execute(const buffer_c8_t& buffer) override;
 
-private:
-	const uint32_t baseband_sampling_rate = 4194304;
-	const size_t decimation = 1;
-	const float symbol_rate = 32768;
+	private:
+		const uint32_t baseband_sampling_rate = 4194304;
+		const size_t decimation = 1;
+		const float symbol_rate = 32768;
 
-	const uint32_t channel_sampling_rate = baseband_sampling_rate / decimation;
-	const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
-	const float clock_recovery_rate = symbol_rate * 2;
+		const uint32_t channel_sampling_rate = baseband_sampling_rate / decimation;
+		const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
+		const float clock_recovery_rate = symbol_rate * 2;
 
-	BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+		BasebandThread baseband_thread { baseband_sampling_rate, this, NORMALPRIO + 20, baseband::Direction::Receive };
+		RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
-		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },
-		[this](const float symbol) { this->consume_symbol(symbol); }
-	};
+		clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery
+		{
+			clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },
+			[this](const float symbol)
+			{
+				this->consume_symbol(symbol);
+			}
+		};
 
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> scm_builder {
-		{ scm_preamble_and_sync_manchester, scm_preamble_and_sync_length, 1 },
-		{ },
-		{ scm_payload_length_max },
-		[this](const baseband::Packet& packet) {
-			this->scm_handler(packet);
-		}
-	};
+		PacketBuilder<BitPattern, NeverMatch, FixedLength> scm_builder
+		{
+			{ scm_preamble_and_sync_manchester, scm_preamble_and_sync_length, 1 },
+			{ },
+			{ scm_payload_length_max },
+			[this](const baseband::Packet & packet)
+			{
+				this->scm_handler(packet);
+			}
+		};
 
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> idm_builder {
-		{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
-		{ },
-		{ idm_payload_length_max },
-		[this](const baseband::Packet& packet) {
-			this->idm_handler(packet);
-		}
-	};
+		PacketBuilder<BitPattern, NeverMatch, FixedLength> idm_builder
+		{
+			{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
+			{ },
+			{ idm_payload_length_max },
+			[this](const baseband::Packet & packet)
+			{
+				this->idm_handler(packet);
+			}
+		};
 
-	void consume_symbol(const float symbol);
-	void scm_handler(const baseband::Packet& packet);
-	void idm_handler(const baseband::Packet& packet);
+		void consume_symbol(const float symbol);
+		void scm_handler(const baseband::Packet& packet);
+		void idm_handler(const baseband::Packet& packet);
 
-	float sum_half_period[2];
-	float sum_period[3];
-	float manchester[3];
+		float sum_half_period[2];
+		float sum_period[3];
+		float manchester[3];
 
-	const size_t average_window { 2048 };
-	int32_t average_i { 0 };
-	int32_t average_q { 0 };
-	size_t average_count { 0 };
-	float offset_i { 0.0f };
-	float offset_q { 0.0f };
+		const size_t average_window { 2048 };
+		int32_t average_i { 0 };
+		int32_t average_q { 0 };
+		size_t average_count { 0 };
+		float offset_i { 0.0f };
+		float offset_q { 0.0f };
 
-	float abs(const complex8_t& v);
+		float abs(const complex8_t& v);
 };
 
 #endif/*__PROC_ERT_H__*/

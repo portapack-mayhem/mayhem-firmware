@@ -28,47 +28,53 @@
 #include "core_control.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
-namespace ui {
+namespace ui
+{
 
-enum ViewID {
-	Receiver,
-	AudioTX,
-	CloseCall,
-	Xylos,
-	EPAR,
-	LCR,
-	SoundBoard,
-	AnalogAudio,
-	RDS,
-	Jammer
-};
+	enum ViewID
+	{
+		Receiver,
+		AudioTX,
+		CloseCall,
+		Xylos,
+		EPAR,
+		LCR,
+		SoundBoard,
+		AnalogAudio,
+		RDS,
+		Jammer
+	};
 
-class LoadModuleView : public View {
-public:
-	LoadModuleView(NavigationView& nav, const char * hash, ViewID viewid);
-	void loadmodule();
-	
-	void on_show() override;
-	void focus() override;
+	class LoadModuleView : public View
+	{
+		public:
+			LoadModuleView(NavigationView& nav, const char * hash, ViewID viewid);
+			void loadmodule();
 
-private:
-	int load_image(void);
-	const char * _hash;
-	bool _mod_loaded = false;
-	
-	Text text_info {
-		{ 8, 64, 224, 16 },
-		"-"
+			void on_show() override;
+			void focus() override;
+
+		private:
+			int load_image(void);
+			const char * _hash;
+			bool _mod_loaded = false;
+
+			Text text_info
+			{
+				{ 8, 64, 224, 16 },
+				"-"
+			};
+			Text text_infob
+			{
+				{ 8, 64 + 16, 224, 16 },
+				"-"
+			};
+
+			Button button_ok
+			{
+				{ 88, 128, 64, 32 },
+				"OK"
+			};
 	};
-	Text text_infob {
-		{ 8, 64+16, 224, 16 },
-		"-"
-	};
-	
-	Button button_ok {
-		{ 88, 128, 64, 32 },
-		"OK"
-	};
-};
 
 } /* namespace ui */

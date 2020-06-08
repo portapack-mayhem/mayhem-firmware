@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,21 +26,22 @@
 #include <cstdint>
 #include <cstddef>
 
-class ToneGen {
-public:
-	/*ToneGen(const size_t sample_rate
-	) : sample_rate_ { sample_rate }
-	{};*/
+class ToneGen
+{
+	public:
+		/*ToneGen(const size_t sample_rate
+		) : sample_rate_ { sample_rate }
+		{};*/
 
-	void configure(const uint32_t delta, const float tone_mix_weight);
-	int32_t process(const int32_t sample_in);
+		void configure(const uint32_t delta, const float tone_mix_weight);
+		int32_t process(const int32_t sample_in);
 
-private:
-	//size_t sample_rate_;
-	float input_mix_weight_ { 1 };
-	float tone_mix_weight_ { 0 };
-	uint32_t delta_ { 0 };
-	uint32_t tone_phase_ { 0 };
+	private:
+		//size_t sample_rate_;
+		float input_mix_weight_ { 1 };
+		float tone_mix_weight_ { 0 };
+		uint32_t delta_ { 0 };
+		uint32_t tone_phase_ { 0 };
 };
 
 #endif

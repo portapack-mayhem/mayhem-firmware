@@ -24,35 +24,42 @@
 
 #include "gpio.hpp"
 
-struct LED {
-	constexpr LED(const GPIO gpio) :
-		_gpio { gpio } {
-	}
+struct LED
+{
+		constexpr LED(const GPIO gpio) :
+			_gpio { gpio }
+		{
+		}
 
-	void setup() const {
-		_gpio.clear();
-		_gpio.output();
-		_gpio.configure();
-	}
+		void setup() const
+		{
+			_gpio.clear();
+			_gpio.output();
+			_gpio.configure();
+		}
 
-	void on() const {
-		_gpio.set();
-	}
+		void on() const
+		{
+			_gpio.set();
+		}
 
-	void off() const {
-		_gpio.clear();
-	}
+		void off() const
+		{
+			_gpio.clear();
+		}
 
-	void toggle() const {
-		_gpio.toggle();
-	}
+		void toggle() const
+		{
+			_gpio.toggle();
+		}
 
-	void write(const bool value) const {
-		_gpio.write(value);
-	}
+		void write(const bool value) const
+		{
+			_gpio.write(value);
+		}
 
-private:
-	const GPIO _gpio;
+	private:
+		const GPIO _gpio;
 };
 
 #endif/*__LED_H__*/

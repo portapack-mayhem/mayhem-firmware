@@ -28,37 +28,39 @@
 
 #include <ch.h>
 
-class BasebandThread : public ThreadBase {
-public:
-	BasebandThread(
-		uint32_t sampling_rate,
-		BasebandProcessor* const baseband_processor,
-		const tprio_t priority,
-		const baseband::Direction direction = baseband::Direction::Receive
-	);
-	~BasebandThread();
+class BasebandThread : public ThreadBase
+{
+	public:
+		BasebandThread(
+		    uint32_t sampling_rate,
+		    BasebandProcessor* const baseband_processor,
+		    const tprio_t priority,
+		    const baseband::Direction direction = baseband::Direction::Receive
+		);
+		~BasebandThread();
 
-	BasebandThread(const BasebandThread&) = delete;
-	BasebandThread(BasebandThread&&) = delete;
-	BasebandThread& operator=(const BasebandThread&) = delete;
-	BasebandThread& operator=(BasebandThread&&) = delete;
-	
-	// This getter should die, it's just here to leak information to code that
-	// isn't in the right place to begin with.
-	baseband::Direction direction() const {
-		return _direction;
-	}
-	
-	void set_sampling_rate(uint32_t new_sampling_rate);
+		BasebandThread(const BasebandThread&) = delete;
+		BasebandThread(BasebandThread&&) = delete;
+		BasebandThread& operator=(const BasebandThread&) = delete;
+		BasebandThread& operator=(BasebandThread&&) = delete;
 
-private:
-	static Thread* thread;
+		// This getter should die, it's just here to leak information to code that
+		// isn't in the right place to begin with.
+		baseband::Direction direction() const
+		{
+			return _direction;
+		}
 
-	BasebandProcessor* baseband_processor { nullptr };
-	baseband::Direction _direction { baseband::Direction::Receive };
-	uint32_t sampling_rate { 0 };
+		void set_sampling_rate(uint32_t new_sampling_rate);
 
-	void run() override;
+	private:
+		static Thread* thread;
+
+		BasebandProcessor* baseband_processor { nullptr };
+		baseband::Direction _direction { baseband::Direction::Receive };
+		uint32_t sampling_rate { 0 };
+
+		void run() override;
 };
 
 #endif/*__BASEBAND_THREAD_H__*/

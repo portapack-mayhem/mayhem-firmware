@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,8 @@
 #define DTMF_R2	TONES_F2D(852, TONES_SAMPLERATE)
 #define DTMF_R3	TONES_F2D(941, TONES_SAMPLERATE)
 
-const std::array<uint32_t, 16> ccir_deltas = {
+const std::array<uint32_t, 16> ccir_deltas =
+{
 	TONES_F2D(1981, TONES_SAMPLERATE),
 	TONES_F2D(1124, TONES_SAMPLERATE),
 	TONES_F2D(1197, TONES_SAMPLERATE),
@@ -60,7 +61,8 @@ const std::array<uint32_t, 16> ccir_deltas = {
 };
 
 // 0123456789ABCD#*
-const uint32_t dtmf_deltas[16][2] = {
+const uint32_t dtmf_deltas[16][2] =
+{
 	{ DTMF_C1, DTMF_R3 },
 	{ DTMF_C0, DTMF_R0 },
 	{ DTMF_C1, DTMF_R0 },
@@ -79,7 +81,8 @@ const uint32_t dtmf_deltas[16][2] = {
 	{ DTMF_C0, DTMF_R3 }
 };
 
-const std::array<uint32_t, 16> eia_deltas = {
+const std::array<uint32_t, 16> eia_deltas =
+{
 	TONES_F2D(600, TONES_SAMPLERATE),
 	TONES_F2D(741, TONES_SAMPLERATE),
 	TONES_F2D(882, TONES_SAMPLERATE),
@@ -98,7 +101,8 @@ const std::array<uint32_t, 16> eia_deltas = {
 	TONES_F2D(1091, TONES_SAMPLERATE)
 };
 
-const std::array<uint32_t, 16> zvei_deltas = {
+const std::array<uint32_t, 16> zvei_deltas =
+{
 	TONES_F2D(2400, TONES_SAMPLERATE),
 	TONES_F2D(1060, TONES_SAMPLERATE),
 	TONES_F2D(1160, TONES_SAMPLERATE),
@@ -117,7 +121,8 @@ const std::array<uint32_t, 16> zvei_deltas = {
 	TONES_F2D(680, TONES_SAMPLERATE)
 };
 
-const uint32_t beep_deltas[BEEP_TONES_NB] = {
+const uint32_t beep_deltas[BEEP_TONES_NB] =
+{
 	TONES_F2D(1475, TONES_SAMPLERATE),
 	TONES_F2D(740, TONES_SAMPLERATE),
 	TONES_F2D(587, TONES_SAMPLERATE),

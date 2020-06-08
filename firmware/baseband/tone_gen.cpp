@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,18 +23,20 @@
 #include "tone_gen.hpp"
 #include "sine_table_int8.hpp"
 
-void ToneGen::configure(const uint32_t delta, const float tone_mix_weight) {
+void ToneGen::configure(const uint32_t delta, const float tone_mix_weight)
+{
 	delta_ = delta;
 	tone_mix_weight_ = tone_mix_weight;
 	input_mix_weight_ = 1.0 - tone_mix_weight;
 }
 
-int32_t ToneGen::process(const int32_t sample_in) {
+int32_t ToneGen::process(const int32_t sample_in)
+{
 	if (!delta_)
 		return sample_in;
-	
+
 	int32_t tone_sample = sine_table_i8[(tone_phase_ & 0xFF000000U) >> 24];
 	tone_phase_ += delta_;
-	
+
 	return (sample_in * input_mix_weight_) + (tone_sample * tone_mix_weight_);
 }

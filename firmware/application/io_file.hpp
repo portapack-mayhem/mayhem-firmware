@@ -28,44 +28,48 @@
 
 #include <cstdint>
 
-class FileReader : public stream::Reader {
-public:
-	FileReader() = default;
+class FileReader : public stream::Reader
+{
+	public:
+		FileReader() = default;
 
-	FileReader(const FileReader&) = delete;
-	FileReader& operator=(const FileReader&) = delete;
-	FileReader(FileReader&& file) = delete;
-	FileReader& operator=(FileReader&&) = delete;
+		FileReader(const FileReader&) = delete;
+		FileReader& operator=(const FileReader&) = delete;
+		FileReader(FileReader&& file) = delete;
+		FileReader& operator=(FileReader&&) = delete;
 
-	Optional<File::Error> open(const std::filesystem::path& filename) {
-		return file.open(filename);
-	}
-	
-	File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
-	
-protected:
-	File file { };
-	uint64_t bytes_read { 0 };
+		Optional<File::Error> open(const std::filesystem::path& filename)
+		{
+			return file.open(filename);
+		}
+
+		File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
+
+	protected:
+		File file { };
+		uint64_t bytes_read { 0 };
 };
 
-class FileWriter : public stream::Writer {
-public:
-	FileWriter() = default;
+class FileWriter : public stream::Writer
+{
+	public:
+		FileWriter() = default;
 
-	FileWriter(const FileWriter&) = delete;
-	FileWriter& operator=(const FileWriter&) = delete;
-	FileWriter(FileWriter&& file) = delete;
-	FileWriter& operator=(FileWriter&&) = delete;
+		FileWriter(const FileWriter&) = delete;
+		FileWriter& operator=(const FileWriter&) = delete;
+		FileWriter(FileWriter&& file) = delete;
+		FileWriter& operator=(FileWriter&&) = delete;
 
-	Optional<File::Error> create(const std::filesystem::path& filename) {
-		return file.create(filename);
-	}
+		Optional<File::Error> create(const std::filesystem::path& filename)
+		{
+			return file.create(filename);
+		}
 
-	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
-	
-protected:
-	File file { };
-	uint64_t bytes_written { 0 };
+		File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
+
+	protected:
+		File file { };
+		uint64_t bytes_written { 0 };
 };
 
 using RawFileWriter = FileWriter;

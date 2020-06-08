@@ -27,52 +27,57 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace radio {
+namespace radio
+{
 
-struct Configuration {
-	rf::Frequency tuning_frequency;
-	uint32_t baseband_rate;
-	uint32_t baseband_filter_bandwidth;
-	rf::Direction direction;
-	bool rf_amp;
-	int8_t lna_gain;
-	int8_t vga_gain;
-};
+	struct Configuration
+	{
+		rf::Frequency tuning_frequency;
+		uint32_t baseband_rate;
+		uint32_t baseband_filter_bandwidth;
+		rf::Direction direction;
+		bool rf_amp;
+		int8_t lna_gain;
+		int8_t vga_gain;
+	};
 
-void init();
+	void init();
 
-void set_direction(const rf::Direction new_direction);
-bool set_tuning_frequency(const rf::Frequency frequency);
-void set_rf_amp(const bool rf_amp);
-void set_lna_gain(const int_fast8_t db);
-void set_vga_gain(const int_fast8_t db);
-void set_tx_gain(const int_fast8_t db);
-void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
-void set_baseband_rate(const uint32_t rate);
-void set_antenna_bias(const bool on);
+	void set_direction(const rf::Direction new_direction);
+	bool set_tuning_frequency(const rf::Frequency frequency);
+	void set_rf_amp(const bool rf_amp);
+	void set_lna_gain(const int_fast8_t db);
+	void set_vga_gain(const int_fast8_t db);
+	void set_tx_gain(const int_fast8_t db);
+	void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
+	void set_baseband_rate(const uint32_t rate);
+	void set_antenna_bias(const bool on);
 
-void enable(Configuration configuration);
-void configure(Configuration configuration);
-void disable();
+	void enable(Configuration configuration);
+	void configure(Configuration configuration);
+	void disable();
 
-namespace debug {
+	namespace debug
+	{
 
-namespace first_if {
+		namespace first_if
+		{
 
-uint32_t register_read(const size_t register_number);
+			uint32_t register_read(const size_t register_number);
 
-} /* namespace first_if */
+		} /* namespace first_if */
 
-namespace second_if {
+		namespace second_if
+		{
 
-uint32_t register_read(const size_t register_number);
+			uint32_t register_read(const size_t register_number);
 
-// TODO: This belongs somewhere else.
-uint8_t temp_sense();
+			// TODO: This belongs somewhere else.
+			uint8_t temp_sense();
 
-} /* namespace second_if */
+		} /* namespace second_if */
 
-} /* namespace debug */
+	} /* namespace debug */
 
 } /* namespace radio */
 

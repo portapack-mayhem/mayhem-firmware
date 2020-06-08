@@ -36,19 +36,22 @@
 using namespace ui;
 using namespace std;
 
-enum freqman_error {
+enum freqman_error
+{
 	NO_ERROR = 0,
 	ERROR_ACCESS,
 	ERROR_NOFILES,
 	ERROR_DUPLICATE
 };
 
-enum freqman_entry_type {
+enum freqman_entry_type
+{
 	SINGLE = 0,
 	RANGE
 };
 
-struct freqman_entry {
+struct freqman_entry
+{
 	rf::Frequency frequency_a { 0 };
 	rf::Frequency frequency_b { 0 };
 	std::string description { };

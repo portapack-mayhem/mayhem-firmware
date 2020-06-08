@@ -30,29 +30,30 @@
 #include <array>
 #include <memory>
 
-class StreamInput {
-public:
-	StreamInput(CaptureConfig* const config);
+class StreamInput
+{
+	public:
+		StreamInput(CaptureConfig* const config);
 
-	StreamInput(const StreamInput&) = delete;
-	StreamInput(StreamInput&&) = delete;
-	StreamInput& operator=(const StreamInput&) = delete;
-	StreamInput& operator=(StreamInput&&) = delete;
+		StreamInput(const StreamInput&) = delete;
+		StreamInput(StreamInput&&) = delete;
+		StreamInput& operator=(const StreamInput&) = delete;
+		StreamInput& operator=(StreamInput&&) = delete;
 
-	size_t write(const void* const data, const size_t length);
+		size_t write(const void* const data, const size_t length);
 
-private:
-	static constexpr size_t buffer_count_max_log2 = 3;
-	static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
-	
-	FIFO<StreamBuffer*> fifo_buffers_empty;
-	FIFO<StreamBuffer*> fifo_buffers_full;
-	std::array<StreamBuffer, buffer_count_max> buffers { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_empty { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_full { };
-	StreamBuffer* active_buffer { nullptr };
-	CaptureConfig* const config { nullptr };
-	std::unique_ptr<uint8_t[]> data { };
+	private:
+		static constexpr size_t buffer_count_max_log2 = 3;
+		static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
+
+		FIFO<StreamBuffer*> fifo_buffers_empty;
+		FIFO<StreamBuffer*> fifo_buffers_full;
+		std::array<StreamBuffer, buffer_count_max> buffers { };
+		std::array<StreamBuffer*, buffer_count_max> buffers_empty { };
+		std::array<StreamBuffer*, buffer_count_max> buffers_full { };
+		StreamBuffer* active_buffer { nullptr };
+		CaptureConfig* const config { nullptr };
+		std::unique_ptr<uint8_t[]> data { };
 };
 
 #endif/*__STREAM_INPUT_H__*/

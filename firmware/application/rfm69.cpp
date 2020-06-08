@@ -24,53 +24,60 @@
 #include "crc.hpp"
 #include "portapack_shared_memory.hpp"
 
-uint32_t RFM69::gen_frame(std::vector<uint8_t>& payload) {
+uint32_t RFM69::gen_frame(std::vector<uint8_t>& payload)
+{
 	CRC<16> crc { 0x1021, 0x1D0F, 0xFFFF };
 	std::vector<uint8_t> frame { };
 	uint8_t byte_out = 0;
-	
+
 	// Preamble
 	// Really is 0xAA but the RFM69 skips the very last bit (bug ?)
 	// so the whole preamble is shifted right to simulate that
 	frame.insert(frame.begin(), num_preamble_, 0x55);
-	
+
 	// Sync word
 	frame.push_back(sync_word_ >> 8);
 	frame.push_back(sync_word_ & 0xFF);
-	
+
 	// Payload length
 	payload.insert(payload.begin(), payload.size());
-	
+
 	crc.process_bytes(payload.data(), payload.size());
-	
-	if (CRC_) {
+
+	if (CRC_)
+	{
 		payload.push_back(crc.checksum() >> 8);
 		payload.push_back(crc.checksum() & 0xFF);
 	}
-	
+
 	// Manchester-encode payload
-	if (manchester_) {
-		for (auto byte : payload) {
-			for (uint32_t b = 0; b < 8; b++) {
+	if (manchester_)
+	{
+		for (auto byte : payload)
+		{
+			for (uint32_t b = 0; b < 8; b++)
+			{
 				byte_out <<= 2;
-				
+
 				if (byte & 0x80)
 					byte_out |= 0b10;
 				else
 					byte_out |= 0b01;
-				
+
 				if ((b & 3) == 3)
 					frame.push_back(byte_out);
-				
+
 				byte <<= 1;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		frame.insert(frame.end(), payload.begin(), payload.end());
 	}
-	
+
 	memcpy(shared_memory.bb_data.data, frame.data(), frame.size());
-	
+
 	// Copy for baseband
 	return frame.size();
 }

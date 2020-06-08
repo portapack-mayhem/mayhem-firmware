@@ -21,17 +21,21 @@
 
 #include "io_file.hpp"
 
-File::Result<File::Size> FileReader::read(void* const buffer, const File::Size bytes) {
+File::Result<File::Size> FileReader::read(void* const buffer, const File::Size bytes)
+{
 	auto read_result = file.read(buffer, bytes) ;
-	if( read_result.is_ok() ) {
+	if( read_result.is_ok() )
+	{
 		bytes_read += read_result.value();
 	}
 	return read_result;
 }
 
-File::Result<File::Size> FileWriter::write(const void* const buffer, const File::Size bytes) {
+File::Result<File::Size> FileWriter::write(const void* const buffer, const File::Size bytes)
+{
 	auto write_result = file.write(buffer, bytes) ;
-	if( write_result.is_ok() ) {
+	if( write_result.is_ok() )
+	{
 		bytes_written += write_result.value();
 	}
 	return write_result;

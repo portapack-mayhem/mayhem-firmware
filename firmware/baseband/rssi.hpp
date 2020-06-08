@@ -27,17 +27,19 @@
 
 #include "buffer.hpp"
 
-namespace rf {
-namespace rssi {
+namespace rf
+{
+	namespace rssi
+	{
 
-using sample_t = uint8_t;
-using buffer_t = buffer_t<sample_t>;
+		using sample_t = uint8_t;
+		using buffer_t = buffer_t<sample_t>;
 
-void init();
-void start();
-void stop();
+		void init();
+		void start();
+		void stop();
 
-} /* namespace rssi */
+	} /* namespace rssi */
 } /* namespace rf */
 
 #endif/*__RSSI_H__*/

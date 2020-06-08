@@ -25,18 +25,20 @@
 
 #include "dsp_types.hpp"
 
-namespace dsp {
+namespace dsp
+{
 
-class GoertzelDetector {
-public:
-	GoertzelDetector(const float frequency, const uint32_t sample_rate);
-	
-	float execute(const buffer_s16_t& src);
+	class GoertzelDetector
+	{
+		public:
+			GoertzelDetector(const float frequency, const uint32_t sample_rate);
 
-private:
-	float coefficient { };
-	int16_t s[2] { 0 };
-};
+			float execute(const buffer_s16_t& src);
+
+		private:
+			float coefficient { };
+			int16_t s[2] { 0 };
+	};
 
 } /* namespace dsp */
 

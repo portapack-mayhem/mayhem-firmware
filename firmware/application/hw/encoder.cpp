@@ -23,29 +23,31 @@
 
 #include "utility.hpp"
 
-static const int8_t transition_map[] = {
-	 0,	// 0000: noop
-	 0,	// 0001: start
-	 0,	// 0010: start
-	 0,	// 0011: rate
-	 1,	// 0100: end
-	 0,	// 0101: noop
-	 0,	// 0110: rate
+static const int8_t transition_map[] =
+{
+	0,	// 0000: noop
+	0,	// 0001: start
+	0,	// 0010: start
+	0,	// 0011: rate
+	1,	// 0100: end
+	0,	// 0101: noop
+	0,	// 0110: rate
 	-1,	// 0111: end
 	-1,	// 1000: end
-	 0,	// 1001: rate
-	 0,	// 1010: noop
-	 1,	// 1011: end
-	 0,	// 1100: rate
-	 0,	// 1101: start
-	 0,	// 1110: start
-	 0,	// 1111: noop
+	0,	// 1001: rate
+	0,	// 1010: noop
+	1,	// 1011: end
+	0,	// 1100: rate
+	0,	// 1101: start
+	0,	// 1110: start
+	0,	// 1111: noop
 };
 
 int_fast8_t Encoder::update(
-	const uint_fast8_t phase_0,
-	const uint_fast8_t phase_1
-) {
+    const uint_fast8_t phase_0,
+    const uint_fast8_t phase_1
+)
+{
 	state <<= 1;
 	state |= phase_0;
 	state <<= 1;

@@ -24,12 +24,14 @@
 
 #include "ui_text.hpp"
 
-namespace ui {
-namespace font {
+namespace ui
+{
+	namespace font
+	{
 
-extern const ui::Font fixed_8x16;
+		extern const ui::Font fixed_8x16;
 
-} /* namespace font */
+	} /* namespace font */
 } /* namspace ui */
 
 #endif/*__UI_FONT_FIXED_8X16_H__*/

@@ -32,31 +32,35 @@
 
 #include <cstdint>
 
-namespace ui {
+namespace ui
+{
 
-class Channel : public Widget {
-public:
-	Channel(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		max_db_ { -120 }
+	class Channel : public Widget
 	{
-	}
+		public:
+			Channel(
+			    const Rect parent_rect
+			) : Widget { parent_rect },
+				max_db_ { -120 }
+			{
+			}
 
-	void paint(Painter& painter) override;
+			void paint(Painter& painter) override;
 
-private:
-	int32_t max_db_;
+		private:
+			int32_t max_db_;
 
-	MessageHandlerRegistration message_handler_stats {
-		Message::ID::ChannelStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
-		}
+			MessageHandlerRegistration message_handler_stats
+			{
+				Message::ID::ChannelStatistics,
+				[this](const Message * const p)
+				{
+					this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
+				}
+			};
+
+			void on_statistics_update(const ChannelStatistics& statistics);
 	};
-
-	void on_statistics_update(const ChannelStatistics& statistics);
-};
 
 }
 

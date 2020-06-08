@@ -24,82 +24,100 @@
 
 #include <cstdint>
 
-class volume_t {
-public:
-	constexpr volume_t operator-() const {
-		return { -cb };
-	}
+class volume_t
+{
+	public:
+		constexpr volume_t operator-() const
+		{
+			return { -cb };
+		}
 
-	constexpr volume_t operator+(const volume_t& other) const {
-		return { cb + other.cb };
-	}
+		constexpr volume_t operator+(const volume_t& other) const
+		{
+			return { cb + other.cb };
+		}
 
-	constexpr volume_t operator-(const volume_t& other) const {
-		return { cb - other.cb };
-	}
+		constexpr volume_t operator-(const volume_t& other) const
+		{
+			return { cb - other.cb };
+		}
 
-	volume_t& operator+=(const volume_t& other) {
-		cb += other.cb;
-		return *this;
-	}
+		volume_t& operator+=(const volume_t& other)
+		{
+			cb += other.cb;
+			return *this;
+		}
 
-	constexpr bool operator<(const volume_t& other) const {
-		return cb < other.cb;
-	}
+		constexpr bool operator<(const volume_t& other) const
+		{
+			return cb < other.cb;
+		}
 
-	constexpr bool operator>(const volume_t& other) const {
-		return cb > other.cb;
-	}
+		constexpr bool operator>(const volume_t& other) const
+		{
+			return cb > other.cb;
+		}
 
-	static constexpr volume_t centibel(const int cb) {
-		return { cb };
-	}
+		static constexpr volume_t centibel(const int cb)
+		{
+			return { cb };
+		}
 
-	static constexpr volume_t decibel(const int db) {
-		return { db * 10 };
-	}
+		static constexpr volume_t decibel(const int db)
+		{
+			return { db * 10 };
+		}
 
-	int32_t centibel() const {
-		return cb;
-	}
+		int32_t centibel() const
+		{
+			return cb;
+		}
 
-	int32_t decibel() const {
-		return cb / 10;
-	}
+		int32_t decibel() const
+		{
+			return cb / 10;
+		}
 
-private:
-	int32_t cb;
+	private:
+		int32_t cb;
 
-	constexpr volume_t(
-		const int cb
-	) : cb(cb)
-	{
-	}
+		constexpr volume_t(
+		    const int cb
+		) : cb(cb)
+		{
+		}
 };
 
-constexpr volume_t operator"" _cB(long double v) {
+constexpr volume_t operator"" _cB(long double v)
+{
 	return volume_t::centibel(v);
 }
 
-constexpr volume_t operator"" _dB(long double v) {
+constexpr volume_t operator"" _dB(long double v)
+{
 	return volume_t::centibel(v * 10);
 }
 
-struct volume_range_t {
+struct volume_range_t
+{
 	volume_t min;
 	volume_t max;
 
-	volume_t limit(const volume_t value) const {
-		if( value < min ) {
+	volume_t limit(const volume_t value) const
+	{
+		if( value < min )
+		{
 			return min;
 		}
-		if( value > max ) {
+		if( value > max )
+		{
 			return max;
 		}
 		return value;
 	}
 
-	volume_t normalize(const volume_t value) const {
+	volume_t normalize(const volume_t value) const
+	{
 		/* Limit volume to specified range, and adjust minimum value to 0. */
 		return limit(value) - min;
 	}

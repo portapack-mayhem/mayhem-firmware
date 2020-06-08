@@ -31,7 +31,8 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-enum TimeFormat {
+enum TimeFormat
+{
 	YMDHMS = 0,
 	HMS = 1,
 	HM = 2

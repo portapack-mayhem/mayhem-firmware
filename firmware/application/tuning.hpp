@@ -24,44 +24,48 @@
 
 #include "rf_path.hpp"
 
-namespace tuning {
-namespace config {
-
-struct Config {
-	/* Empty config to denote an error, in lieu of throwing an exception. */
-	constexpr Config(
-	) : first_lo_frequency(0),
-		second_lo_frequency(0),
-		rf_path_band(rf::path::Band::Mid),
-		baseband_invert(false)
+namespace tuning
+{
+	namespace config
 	{
-	}
 
-	constexpr Config(
-		rf::Frequency first_lo_frequency,
-		rf::Frequency second_lo_frequency,
-		rf::path::Band rf_path_band,
-		bool baseband_invert
-	) : first_lo_frequency(first_lo_frequency),
-		second_lo_frequency(second_lo_frequency),
-		rf_path_band(rf_path_band),
-		baseband_invert(baseband_invert)
-	{
-	}
+		struct Config
+		{
+			/* Empty config to denote an error, in lieu of throwing an exception. */
+			constexpr Config(
+			) : first_lo_frequency(0),
+				second_lo_frequency(0),
+				rf_path_band(rf::path::Band::Mid),
+				baseband_invert(false)
+			{
+			}
 
-	bool is_valid() const {
-		return (second_lo_frequency != 0);
-	}
+			constexpr Config(
+			    rf::Frequency first_lo_frequency,
+			    rf::Frequency second_lo_frequency,
+			    rf::path::Band rf_path_band,
+			    bool baseband_invert
+			) : first_lo_frequency(first_lo_frequency),
+				second_lo_frequency(second_lo_frequency),
+				rf_path_band(rf_path_band),
+				baseband_invert(baseband_invert)
+			{
+			}
 
-	const rf::Frequency first_lo_frequency;
-	const rf::Frequency second_lo_frequency;
-	const rf::path::Band rf_path_band;
-	const bool baseband_invert;
-};
+			bool is_valid() const
+			{
+				return (second_lo_frequency != 0);
+			}
 
-Config create(const rf::Frequency target_frequency);
+			const rf::Frequency first_lo_frequency;
+			const rf::Frequency second_lo_frequency;
+			const rf::path::Band rf_path_band;
+			const bool baseband_invert;
+		};
 
-} /* namespace config */
+		Config create(const rf::Frequency target_frequency);
+
+	} /* namespace config */
 } /* namespace tuning */
 
 #endif/*__TUNING_H__*/

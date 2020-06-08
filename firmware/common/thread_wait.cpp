@@ -21,7 +21,8 @@
 
 #include "thread_wait.hpp"
 
-int ThreadWait::sleep() {
+int ThreadWait::sleep()
+{
 	chSysLock();
 	thread_to_wake = chThdSelf();
 	chSchGoSleepS(THD_STATE_SUSPENDED);
@@ -30,13 +31,17 @@ int ThreadWait::sleep() {
 	return result;
 }
 
-bool ThreadWait::wake_from_interrupt(const int value) {
-	if( thread_to_wake ) {
+bool ThreadWait::wake_from_interrupt(const int value)
+{
+	if( thread_to_wake )
+	{
 		thread_to_wake->p_u.rdymsg = value;
 		chSchReadyI(thread_to_wake);
 		thread_to_wake = nullptr;
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }

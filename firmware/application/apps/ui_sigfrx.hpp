@@ -33,55 +33,64 @@
 #include "volume.hpp"
 #include "receiver_model.hpp"
 
-namespace ui {
+namespace ui
+{
 
-class SIGFRXView : public View {
-public:
-	SIGFRXView(NavigationView& nav);
-	~SIGFRXView();
-	void on_channel_spectrum(const ChannelSpectrum& spectrum);
-	
-	void on_show() override;
-	void on_hide() override;
-	void focus() override;
-	void paint(Painter& painter) override;
+	class SIGFRXView : public View
+	{
+		public:
+			SIGFRXView(NavigationView& nav);
+			~SIGFRXView();
+			void on_channel_spectrum(const ChannelSpectrum& spectrum);
 
-private:	
-	uint8_t last_channel;
-	uint8_t detect_counter = 0;
-	
-	const Style style_white {
-		.font = font::fixed_8x16,
-		.background = Color::white(),
-		.foreground = Color::black()
+			void on_show() override;
+			void on_hide() override;
+			void focus() override;
+			void paint(Painter& painter) override;
+
+		private:
+			uint8_t last_channel;
+			uint8_t detect_counter = 0;
+
+			const Style style_white
+			{
+				.font = font::fixed_8x16,
+				.background = Color::white(),
+				.foreground = Color::black()
+			};
+
+			const uint16_t sigfrx_marks[18] =
+			{
+				10,		8, 		0,
+				60,		52,		90,
+				119, 	95,		180,
+				121, 	122,	220,
+				179, 	171,	310,
+				230, 	214,	400
+			};
+
+			Text text_type
+			{
+				{ 1 * 8, 1 * 16, 28 * 8, 16 },
+				"SIGFOX interceptor. Yap !"
+			};
+
+			Text text_channel
+			{
+				{ 1 * 8, 3 * 16, 28 * 8, 16 },
+				"PL: "
+			};
+			Text text_data
+			{
+				{ 1 * 8, 4 * 16, 28 * 8, 16 },
+				"??: "
+			};
+
+			Button button_exit
+			{
+				{ 22 * 8, 160 - 32, 56, 32 },
+				"Exit"
+			};
 	};
-	
-	const uint16_t sigfrx_marks[18] = {
-		10,		8, 		0,
-		60,		52,		90, 
-		119, 	95,		180, 
-		121, 	122,	220, 
-		179, 	171,	310, 
-		230, 	214,	400 };
-	
-	Text text_type {
-		{ 1 * 8, 1 * 16, 28 * 8, 16 },
-		"SIGFOX interceptor. Yap !"
-	};
-	
-	Text text_channel {
-		{ 1 * 8, 3 * 16, 28 * 8, 16 },
-		"PL: "
-	};
-	Text text_data {
-		{ 1 * 8, 4 * 16, 28 * 8, 16 },
-		"??: "
-	};
-	
-	Button button_exit {
-		{ 22 * 8, 160 - 32, 56, 32 },
-		"Exit"
-	};
-};
 
 } /* namespace ui */
