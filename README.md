@@ -14,13 +14,13 @@ The intention of the current repository is to try to get all the latest features
 
 ### Does it work on H1/H2 PortaPack?
 
-Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a clone that includes everything you need. Sadly, the people making the H2 never published the updated PCB, so it is not "optimal" for the community.
+Yes, those are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated PCB available, which is not ideal (and against the license).
+
+To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
 ### Where is the latest firmware?
 
-The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
-
-There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently, but these may contain incomplete functionality.
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently, but these may contain incomplete functionality.
 
 ### Is this the newest firmware for my PortaPack? 
 Probably **YES**.
@@ -41,7 +41,8 @@ You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), f
 
 Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. 
 
-As a last option, if you want to send money directly to me for getting more boards, antennas and such, please use:
+As a last option, if you want to send money directly to me for getting more boards, antennas and such:
+
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
 ### What if I need help?
