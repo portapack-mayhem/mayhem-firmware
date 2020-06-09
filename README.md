@@ -16,7 +16,7 @@ To clarify any basic questions, please read the following common ones:
 
 ## Does it work on H1/H2 PortaPack?
 
-Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [Portapack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license).
+Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dSMPvNo), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license).
 
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
@@ -34,7 +34,7 @@ This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://
 
 ## What about Havoc/GridRF/jamesshao8/jboone's?
 * jboone's PortaPack: the [vanilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
-* Havoc: It was the most popular fork of jboone's PortaPack, currrently it in Archive status so it is not being developed
+* Havoc: It was the most popular fork of jboone's PortaPack, currrently, it is not being maintained nor updated
 * jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
 * GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
 
