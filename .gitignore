@@ -63,3 +63,4 @@ CMakeFiles/
 # Host OS leftovers
 .DS_Store
 /firmware/CMakeCache.txt
+.vscode/settings.json
