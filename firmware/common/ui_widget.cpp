@@ -1023,26 +1023,25 @@ bool NewButton::on_key(const KeyEvent key) {
 	return false;
 }
 
-// bool NewButton::on_touch(const TouchEvent event) {
-// 	switch(event.type) {
-// 	case TouchEvent::Type::Start:
-// 		set_highlighted(true);
-// 		set_dirty();
-// 		return true;
+//bool NewButton::on_touch(const TouchEvent event) {
+//	switch(event.type) {
+//	case TouchEvent::Type::Start:
+//		set_highlighted(true);
+//		set_dirty();
+//		return true;
 
+//	case TouchEvent::Type::End:
+//		set_highlighted(false);
+//		set_dirty();
+//		if( on_select ) {
+//			on_select();
+//		}
+//		return true;
 
-// 	case TouchEvent::Type::End:
-// 		set_highlighted(false);
-// 		set_dirty();
-// 		if( on_select ) {
-// 			on_select();
-// 		}
-// 		return true;
-
-// 	default:
-// 		return false;
-// 	}
-// }
+//	default:
+//		return false;
+//	}
+//}
 
 /* Image *****************************************************************/
 
