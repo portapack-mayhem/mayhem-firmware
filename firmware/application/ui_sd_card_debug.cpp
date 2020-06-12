@@ -46,6 +46,18 @@ public:
 		Incomplete = 0,
 		OK = 1,
 	};
+	std::string ResultStr[10] = {
+		"Compare",
+		"Read incomplete",
+		"Write incomplete",
+		"Abort",
+		"File Open Read",
+		"File Open Write",
+		"Heap",
+		"Thread",
+		"Incomplete",
+		"OK",
+	};
 
 	struct Stats {
 		halrtcnt_t write_duration_min { 0 };
@@ -423,7 +435,7 @@ void SDCardDebugView::on_test() {
 			format_bytes_per_ticks_as_mib(stats.read_bytes, stats.read_test_duration)
 		);
 	} else {
-		text_test_write_time_value.set("Fail: " + to_string_dec_int(toUType(thread.result()), 4));
+		text_test_write_time_value.set("Fail: " + thread.ResultStr[thread.result() + 8]);
 	}
 }
 
