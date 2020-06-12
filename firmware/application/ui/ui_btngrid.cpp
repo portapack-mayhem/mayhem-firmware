@@ -217,4 +217,25 @@ bool BtnGridView::on_encoder(const EncoderEvent event) {
 	return set_highlighted(highlighted_item + event);
 }
 
+bool BtnGridView::on_touch(const TouchEvent event) {
+	size_t i = 0;
+	for(const auto child : children_) {
+		if( child->screen_rect().contains(event.point) ) {
+			switch(event.type) {
+			case TouchEvent::Type::Start:
+				return set_highlighted(i-1);
+			case TouchEvent::Type::End:
+				if( menu_items[highlighted_item].on_select ) 
+					menu_items[highlighted_item].on_select();
+				return true;
+
+			default:
+				return false;
+			}
+		}
+		i++;
+	}
+	return false;
+}
+
 } /* namespace ui */

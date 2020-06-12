@@ -418,7 +418,7 @@ public:
 
 	void on_focus() override;
 	bool on_key(const KeyEvent key) override;
-	bool on_touch(const TouchEvent event) override;
+	//bool on_touch(const TouchEvent event) override;
 
 	void paint(Painter& painter) override;
 
