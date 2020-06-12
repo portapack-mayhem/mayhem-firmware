@@ -1,0 +1,67 @@
+/firmware/baseband/*.img
+/firmware/application/application.bin
+/CMakeCache.txt
+/Makefile
+/.vscode
+/firmware/Makefile
+/firmware/baseband/Makefile
+/firmware/bootstrap/Makefile
+/firmware/application/Makefile
+/firmware/application/portapack_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.hpp
+/sdcard/ADSB/world_map.bin
+/sdcard/FREQMAN/BHT*
+/sdcard/FREQMAN/R.TXT
+/sdcard/FREQMAN/XXX.TXT
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+/firmware/baseband/*.bin
+
+# Other compiler/linker outputs
+*.make
+*.elf
+*.map
+*.lst
+.dep/
+build/
+CMakeFiles/
+
+# Debugging
+.gdbinit*
+
+# Editor files
+*.sublime-project
+*.sublime-workspace
+
+# Host OS leftovers
+.DS_Store
+/firmware/CMakeCache.txt
+firmware/.vscode/c_cpp_properties.json
