@@ -43,6 +43,8 @@ You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), f
 
 Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. 
 
+For coding related questions, if something does not fit as an issue, please join our [Channel in Discord](https://discord.gg/yrdKjGN).
+
 As a last option, if you want to send money directly to me for getting more boards, antennas and such:
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
