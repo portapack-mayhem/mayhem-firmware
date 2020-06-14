@@ -1,0 +1,23 @@
+// Some CB channels
+a=27000000,b=27300000,d=CB_A,s=1
+a=27300000,b=27400000,d=CB_B,s=2
+// AIR BAND
+f=118100000,d= Air Band
+f=118900000,d= Air Band
+f=121850000,d= Air Band
+f=121900000,d= Air Band
+f=125000000,d= Air Band
+f=131070000,d= Air Band
+f=131085000,d= Air Band
+f=131625000,d= Air Band
+f=131775000,d= Air Band
+f=131800000,d= Air Band
+f=132075000,d= Air Band
+f=132315000,d= Air Band
+f=132390000,d= Air Band
+f=132620000,d= Air Band
+f=133350000,d= Air Band
+f=134750000,d= Air Band
+f=6015000,d=test1
+f=9420000,d=test2
+f=9600000,d=test3
