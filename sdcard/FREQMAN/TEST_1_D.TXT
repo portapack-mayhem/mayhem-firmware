@@ -1,0 +1,115 @@
+//DEBUG
+// TEST COMMENT
+// test freq f:
+f=10000000,d=L1 OK
+f=
+f=,d=test
+f=0
+f=8000000000
+f=-10000
+
+// test freq a:
+a=20000000,b=30000000,d=L2 ok
+a=
+a=0
+a=-1000000
+a=8000000000
+
+// test freq b:
+a=30000000,b=40000000,d=L3 ok
+b=
+b=0
+b=-1000000
+b=8000000000
+
+// test freq a + b
+a=433000000,b=436000000,d=L4 ok
+a=433000000,b=436000000,d=
+a=433000000,b=436000000
+a=1500000,b=,d=test
+a=9433000000,b=436000000,d=aa
+a=433000000,b=9436000000,d=bb 
+a=433000000,b=422000000,d=cc
+a=0,b=45454000,d=trr
+
+// only desc
+d=Test
+
+// weird line
+  
+s=pireuptyprypzr
+t=yypyyi
+ljmmmrqqn;vmd,vqggkqqd
+f=27075000,d=CH10f=119100000,a=1000000 ok
+a=433050000,b=434790000,d=ISM 433 3a=1100000,b=1160000,d=test,s=12
+// EOL
+a=433000000,b=436000000,d=L450 ok
+f=27035000,d=CH07-here OD
+a=433000000,b=436000000,d=L451 ok
+f=27115000,d=CH13-here
+// No comma
+f=27025000d=CH06 NO COMMA
+
+// long des
+a=162930000,b=162970000,d=AFSKhhhhhhhhhhhhhheuudnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+a=162930000,b=162970000,d=9 OK AFSKhhhhh,hhhhhhhhheuudnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+a=433050000,b=434790000,d=10 ok
+f=123000000,d=11 ttrrrrrrrzvtrllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+
+//Test too many lines
+f=25615000,d=CH 1 S/S/I
+f=25625000,d=CH 2 S/S/I
+f=25635000,d=CH 3 S/S/I
+f=25645000,d=CH 3bis S/S/I
+f=25655000,d=CH 4 S/S/I
+f=25665000,d=CH 5 S/S/I
+f=25675000,d=CH 6 S/S/I
+f=25685000,d=CH 7 S/S/I
+f=25695000,d=CH 7bis S/S/I
+f=25705000,d=CH 8 S/S/I
+f=25715000,d=CH 9 S/S/I
+f=25725000,d=CH 10 S/S/I
+f=25735000,d=CH 11 S/S/I
+f=25745000,d=CH 11	bis S/S/I
+f=25755000,d=CH 12 S/S/I
+f=25765000,d=CH 13 S/S/I
+f=25775000,d=CH 14 S/S/I
+f=25785000,d=CH 15 S/S/I
+f=25795000,d=CH 15	bis S/S/I
+f=25805000,d=CH 16 S/S/I
+f=25815000,d=CH 17 S/S/I
+f=25825000,d=CH 18 S/S/I
+f=25835000,d=CH 19 S/S/I
+f=25845000,d=CH 19	bis S/S/I
+f=25855000,d=CH 20 S/S/I
+f=25865000,d=CH 21 S/S/I
+f=25875000,d=CH 22 S/S/I
+f=25885000,d=CH 23 S/S/I
+f=25895000,d=CH 24 S/S/I
+f=25905000,d=CH 25 S/S/I
+f=25915000,d=CH 26 S/S/I
+f=25925000,d=CH 27 S/S/I
+f=25935000,d=CH 28 S/S/I
+f=25945000,d=CH 29 S/S/I
+f=25955000,d=CH 30 S/S/I
+f=25965000,d=CH 31 S/S/I
+f=25975000,d=CH 32 S/S/I
+f=25985000,d=CH 33 S/S/I
+f=25995000,d=CH 34 S/S/I
+f=26005000,d=CH 35 S/S/I
+f=26015000,d=CH 36 S/S/I
+f=26025000,d=CH 37 S/S/I
+f=26035000,d=CH 38 S/S/I
+f=26045000,d=CH 39 S/S/I
+f=26055000,d=CH 40 S/S/I
+   
+f=26065000,d=CH 1	S/I
+f=26075000,d=CH 2	S/I
+f=26085000,d=CH 3	S/I
+f=26095000,d=CH 3	bis	S/I
+f=26105000,d=CH 4	S/I
+f=26115000,d=CH 5	S/I
+f=26125000,d=CH 6	S/I
+f=26135000,d=CH 7	S/I
+f=26145000,d=CH 7	bisS/I
+f=26155000,d=CH 8	S/I
