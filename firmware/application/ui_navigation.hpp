@@ -109,7 +109,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "MAYHEM v1.1.0"; // TODO: Move the version somewhere
+	static constexpr auto default_title = "MAYHEM v1.1.1"; // TODO: Move the version somewhere
 	
 	NavigationView& nav_;
 
@@ -221,6 +221,12 @@ class ReceiversMenuView : public BtnGridView {
 public:
 	ReceiversMenuView(NavigationView& nav);
 	std::string title() const override { return "Receivers"; };
+};
+
+class ScannerMenuView : public BtnGridView {
+public:
+	ScannerMenuView(NavigationView& nav);
+	std::string title() const override { return "Scanners"; };
 };
 
 class TransmittersMenuView : public BtnGridView {
