@@ -36,8 +36,18 @@ void WhipCalcView::focus() {
 	field_frequency.focus();
 }
 
+double ui::WhipCalcView::get_decimals(double num, int16_t mult, bool round) {
+ 	num -= int(num);				//keep decimals only
+ 	num *= mult;					//Shift decimals into integers
+ 	if (!round) return num;				
+ 	int16_t intnum = int(num);		//Round it up if necessary
+ 	num -= intnum;					//Get decimal part
+ 	if (num > .5) intnum++;			//Round up
+ 	return intnum;
+ }
+
 void WhipCalcView::update_result() {
-	double length, divider;
+	double length, calclength, divider;
 	
 	divider = ((double)options_type.selected_index_value() / 8.0);
 	
@@ -45,8 +55,12 @@ void WhipCalcView::update_result() {
 	length = (speed_of_light_mps / (double)field_frequency.value()) * divider;
 	
 	auto m = to_string_dec_int((int)length, 2);
-	auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
-	auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1);
+/* 	auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
+	auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1); */
+
+ 	calclength = get_decimals(length,100);				//cm
+ 	auto cm = to_string_dec_int(int(calclength), 2);
+ 	auto mm = to_string_dec_int(int(get_decimals(calclength,10,true)), 1);
 	
 	text_result_metric.set(m + "m " + cm + "." + mm + "cm");
 
@@ -60,11 +74,16 @@ void WhipCalcView::update_result() {
 	}
 
 	// Imperial
-	length = (speed_of_light_fps / (double)field_frequency.value()) * divider;
+	calclength = (speed_of_light_fps / (double)field_frequency.value()) * divider;
 	
-	auto feet = to_string_dec_int((int)length, 3);
+/* 	auto feet = to_string_dec_int((int)length, 3);
 	auto inch = to_string_dec_int(int(length * 10.0) % 12, 2);
-	auto inch_c = to_string_dec_int(int(length * 100.0) % 10, 1);
+	auto inch_c = to_string_dec_int(int(length * 100.0) % 10, 1); */
+
+	auto feet = to_string_dec_int(int(calclength), 3);
+ 	calclength = get_decimals(calclength,12);				//inches
+ 	auto inch = to_string_dec_int(int(calclength), 2);
+ 	auto inch_c = to_string_dec_int(int(get_decimals(calclength,10,true)), 1);
 	
 	text_result_imperial.set(feet + "ft " + inch + "." + inch_c + "in");
 }

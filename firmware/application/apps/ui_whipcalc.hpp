@@ -37,7 +37,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Whip calculator"; };
+	std::string title() const override { return "Antenna length"; };
 
 private:
 	const double speed_of_light_mps = 299792458.0;		// m/s
@@ -45,6 +45,7 @@ private:
 	
 	const std::string frac_str[4] = { "", "1/4 ", "1/2 ", "3/4 " };
 	
+	double get_decimals(double num, int16_t mult, bool round = false);
 	void update_result();
 	
 	Labels labels {
