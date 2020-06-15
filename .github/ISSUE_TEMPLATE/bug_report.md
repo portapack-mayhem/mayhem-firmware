@@ -20,10 +20,10 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Affected versions**
-Please try to reproduce the problem, and write any difference related with the Expected behavior, on the maximum number of versions:
+Please write any difference related with the Expected behavior, on the following versions:
 * Latest Stable Release
-* Original PortaPack (if possible; this firmware is also included inside the Release package)
-* Any previous version (if possible; i.e.: you remember this working on a previous Release)
+* Previous one (if any) that did not presented the issue
+* Old versions available here: https://github.com/eried/Research/tree/master/HackRF/PortaPack/old_legacy_firmware
 
 **Additional**
 If the bug is difficult to explain, additionally to the text please include images and videos.
