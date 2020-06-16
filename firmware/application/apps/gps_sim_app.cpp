@@ -234,6 +234,8 @@ GpsSimAppView::~GpsSimAppView() {
 void GpsSimAppView::on_hide() {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
+	if( is_active() )
+		stop(false);
 	waterfall.on_hide();
 	View::on_hide();
 }
