@@ -338,7 +338,8 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	record_view.set_sampling_rate(sampling_rate);
 
 	if( !is_wideband_spectrum_mode ) {
-		audio::output::unmute();
+		//audio::output::unmute();
+		portapack::set_speaker_mode(portapack::speaker_mode); //Now depends on speaker mode
 	}
 }
 

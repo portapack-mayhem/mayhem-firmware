@@ -136,7 +136,8 @@ namespace output {
 
 void start() {
 	i2s::i2s0::tx_start();
-	unmute();
+	//unmute();
+	portapack::set_speaker_mode(portapack::speaker_mode); //Now depends on speaker mode
 }
 
 void stop() {

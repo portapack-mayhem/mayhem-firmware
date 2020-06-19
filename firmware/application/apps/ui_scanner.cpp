@@ -174,7 +174,7 @@ ScannerView::ScannerView(
 	
 	audio::output::start();
 	
-	audio::output::mute();
+	//audio::output::mute(); //No need for this
 	baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
 	receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
 	receiver_model.set_sampling_rate(3072000);
@@ -182,7 +182,7 @@ ScannerView::ScannerView(
 	receiver_model.enable();
 	receiver_model.set_squelch_level(0);
 	receiver_model.set_nbfm_configuration(field_bw.selected_index());
-	audio::output::unmute();
+	//audio::output::unmute(); //No need for this
 	
 	// TODO: Scanning thread here
 	scan_thread = std::make_unique<ScannerThread>(frequency_list);

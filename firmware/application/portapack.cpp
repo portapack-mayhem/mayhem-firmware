@@ -97,9 +97,15 @@ bool speaker_mode { false };
  void set_speaker_mode(const bool v) {
  	speaker_mode = v;
  	if (speaker_mode)
+	{
+	 	audio::output::mute();   //Mute headphones
  		audio::output::speaker_unmute();
+	}
  	else
+	 {
  		audio::output::speaker_mute();
+		audio::output::unmute(); //Unmute headphones
+	 }
  }
 
 static constexpr uint32_t systick_count(const uint32_t clock_source_f) {
