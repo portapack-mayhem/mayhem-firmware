@@ -141,7 +141,11 @@ void start() {
 }
 
 void stop() {
-	mute();
+	//mute();  //Now it depends on speaker mode
+	if (portapack::speaker_mode)
+ 		speaker_mute();
+ 	else
+ 		mute();   //Mute headphones
 	i2s::i2s0::tx_stop();
 }
 
