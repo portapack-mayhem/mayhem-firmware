@@ -140,7 +140,7 @@ WhipCalcView::WhipCalcView(
  		for (size_t pointer=0; pointer < antennas_file.size();pointer++) {
  			antennas_file.seek(pointer);
  			antennas_file.read(one_char, 1);
- 			if ((int)one_char[0] > 31) {			//ascii space upwards
+ 			if ((int)one_char[0] > ' ') {			//ascii space upwards
  				line += one_char[0];				//Add it to the textline
  			}
  			else if (one_char[0] == '\n') {			//New Line
@@ -181,10 +181,11 @@ WhipCalcView::WhipCalcView(
 
 void ui::WhipCalcView::txtline_process(std::string& line) {
  	if (line.find("#") != std::string::npos) return;	//Line is just a comment
+	char separator = ',';
  	size_t previous = 0;
  	uint16_t value = 0;
  	antenna_entry new_antenna;
- 	size_t current = line.find(" ");
+ 	size_t current = line.find(separator);
  	while (current != std::string::npos) {
  		if (!previous) {								//first space found
  			new_antenna.label.assign(line,0,current);	//antenna label
@@ -194,7 +195,7 @@ void ui::WhipCalcView::txtline_process(std::string& line) {
  			new_antenna.elements.push_back(value);		//Store this new element
  		}
  		previous = current + 1;
- 		current = line.find(" ",previous);				//Search for next space delimiter
+ 		current = line.find(separator,previous);				//Search for next space delimiter
  	}
  	if (!previous) return;								//Not even a label ? drop this antenna!
  	value = std::stoi(line.substr(previous,current - previous)); //Last element
