@@ -570,7 +570,10 @@ Console::Console(
 {
 }
 
-void Console::clear() {
+void Console::clear(bool clear_buffer = false) {
+	if(clear_buffer)
+		buffer.clear();
+		
 	display.fill_rectangle(
 		screen_rect(),
 		Color::black()
@@ -595,10 +598,7 @@ void Console::write(std::string message) {
 					pen_color = s.foreground;
 				escape = false;
 			} else {
-				if (c=='\f') {	//Add FORM FEED (clear screen)
- 					clear();
- 					buffer.clear();
- 				} else if (c == '\n') {
+				if (c == '\n') {
 					crlf();
 				} else if (c == '\x1B') {
 					escape = true;

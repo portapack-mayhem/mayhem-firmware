@@ -312,7 +312,7 @@ class Console : public Widget {
 public:
 	Console(Rect parent_rect);
 	
-	void clear();
+	void clear(bool clear_buffer);
 	void write(std::string message);
 	void writeln(std::string message);
 
