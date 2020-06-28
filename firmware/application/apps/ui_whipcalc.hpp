@@ -28,6 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include <vector>
 
 namespace ui {
 
@@ -43,50 +44,67 @@ private:
 	const double speed_of_light_mps = 299792458.0;		// m/s
 	const double speed_of_light_fps = 983571087.90472;	// feet/s
 	
-	const std::string frac_str[4] = { "", "1/4 ", "1/2 ", "3/4 " };
+	const std::string frac_str[4] = { "", " 1/4", " 1/2", " 3/4" };
+
+ 	struct antenna_entry {
+ 		std::string label { };
+ 		std::vector <uint16_t> elements { };
+ 	};
+
+ 	std::vector<antenna_entry> antenna_db { };
 	
 	double get_decimals(double num, int16_t mult, bool round = false);
 	void update_result();
+
+	uint16_t string_to_number(std::string);
+ 	void txtline_process(std::string&);
+ 	void antenna_Default();
 	
 	Labels labels {
+		{ { 5 * 8, 1 * 16 }, "Loaded:", Color::light_grey() },
 		{ { 2 * 8, 2 * 16 }, "Frequency:", Color::light_grey() },
-		{ { 2 * 8, 3 * 16 }, "Type:", Color::light_grey() }
+		{ { 7 * 8, 3 * 16 }, "Wave:", Color::light_grey() },
+ 		{ { 5 * 8, 4 * 16 }, "Metric:", Color::light_grey() },
+ 		{ { 3 * 8, 5 * 16 }, "Imperial:", Color::light_grey() }
 	};
+
+	Text antennas_on_memory {
+ 		{ 13 * 8, 1 * 16, 2 * 16, 16 },
+ 	};
 
 	FrequencyField field_frequency {
 		{ 13 * 8, 2 * 16 },
 	};
 
 	OptionsField options_type {
-		{ 8 * 8, 3 * 16 },
-		12,
+		{ 13 * 8, 3 * 16 },
+ 		7,
 		{
-			{ "Full wave", 8 },
-			{ "Half wave", 4 },
-			{ "Quarter wave", 2 },
-			{ "3/4 wave", 6 },
-			{ "1/8 wave", 1 },
-			{ "3/8 wave", 3 },
-			{ "5/8 wave", 5 },
-			{ "7/8 wave", 7 }
+			{ "Full", 8 },
+ 			{ "Half", 4 },
+ 			{ "Quarter", 2 },
+ 			{ "3/4", 6 },
+ 			{ "1/8", 1 },
+ 			{ "3/8", 3 },
+ 			{ "5/8", 5 },
+ 			{ "7/8", 7 }
 		}
 	};
 	
 	Text text_result_metric {
-		{ 3 * 8, 5 * 16, 10 * 16, 16 },
+		{ 13 * 8, 4 * 16, 10 * 16, 16 },
 		"-"
 	};
 	Text text_result_imperial {
-		{ 2 * 8, 6 * 16, 10 * 16, 16 },
+		{ 13 * 8, 5 * 16, 10 * 16, 16 },
 		"-"
 	};
-	Text text_result_ant500 {
-		{ 2 * 8, 8 * 16, 26 * 16, 16 },
-		"-"
-	};
+	Console console {
+ 		{ 0, 7 * 16, 240, 144 }		//Allows to show up to 8 antennas
+ 	};
 	
 	Button button_exit {
-		{ 72, 264, 96, 32 },
+		{ 72, 17 * 16, 96, 32 },
 		"Exit"
 	};
 };
