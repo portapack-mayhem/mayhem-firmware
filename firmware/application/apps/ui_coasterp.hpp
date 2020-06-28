@@ -39,7 +39,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Si44xx transmit"; };
+	std::string title() const override { return "Si44xx TX"; };
 
 private:
 	enum tx_modes {
