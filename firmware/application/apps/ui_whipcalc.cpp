@@ -163,7 +163,7 @@ WhipCalcView::WhipCalcView(
 	options_type.set_selected_index(2);		// Quarter wave
 	
 	field_frequency.set_value(transmitter_model.tuning_frequency());
-	field_frequency.set_step(500000);		// 500kHz step
+	field_frequency.set_step(1000000);		// 1MHz step
 	field_frequency.on_change = [this](rf::Frequency) {
 		this->update_result();
 	};
