@@ -11,6 +11,7 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 # Quick overview
 
 If you are new to the HackRF+PortaPack+Mayhem, there is an awesome introductory video by [Tech Minds](https://www.youtube.com/channel/UC9a8Z6Sp6eb2s3O79pX5Zvg) available for you:
+
 [![Setup and overview](https://img.youtube.com/vi/kjFB58Y1TAo/0.jpg)](https://www.youtube.com/watch?v=kjFB58Y1TAo)
 
 # Frequently Asked Questions
