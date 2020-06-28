@@ -8,11 +8,14 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 *[PortaPack H2](https://s.click.aliexpress.com/e/_dSMPvNo) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
 
-# FAQ
+# Quick overview
+
+If you are new to the HackRF+PortaPack+Mayhem, there is an awesome introductory video by [Tech Minds](https://www.youtube.com/channel/UC9a8Z6Sp6eb2s3O79pX5Zvg) available for you:
+[![Setup and overview](https://img.youtube.com/vi/kjFB58Y1TAo/0.jpg)](https://www.youtube.com/watch?v=kjFB58Y1TAo)
+
+# Frequently Asked Questions
 
 This repository expands upon the previous work by many people and aims to constantly add new features, bugfixes and generate documentation to make further development easier.  In a project such as this [collaboration](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) is always welcomed and appreciated.
-
-To clarify any basic questions, please read the following common ones:
 
 ## Does it work on H1/H2 PortaPack?
 
@@ -22,7 +25,7 @@ To support the people behind the hardware, please buy a genuine [HackRF](https:/
 
 ## Where is the latest firmware?
 
-The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated frequently which have the latest features but may contain incomplete or buggy functionality (at  least until the bug is found!).
+The current stable release is on the [Release](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated periodically, which include the latest commits, but they may contain incomplete or buggy functionality.
 
 ## Is this the newest firmware for my PortaPack? 
 Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new/choose) them*.
