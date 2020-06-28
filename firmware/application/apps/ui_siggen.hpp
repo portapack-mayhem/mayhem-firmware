@@ -40,7 +40,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Signal generator"; };
+	std::string title() const override { return "Generator"; };
 
 private:
 	void start_tx();
