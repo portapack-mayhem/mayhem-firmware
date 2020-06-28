@@ -570,7 +570,10 @@ Console::Console(
 {
 }
 
-void Console::clear() {
+void Console::clear(bool clear_buffer = false) {
+	if(clear_buffer)
+		buffer.clear();
+		
 	display.fill_rectangle(
 		screen_rect(),
 		Color::black()
