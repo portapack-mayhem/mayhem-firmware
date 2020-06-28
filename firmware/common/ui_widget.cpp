@@ -595,7 +595,10 @@ void Console::write(std::string message) {
 					pen_color = s.foreground;
 				escape = false;
 			} else {
-				if (c == '\n') {
+				if (c=='\f') {	//Add FORM FEED (clear screen)
+ 					clear();
+ 					buffer.clear();
+ 				} else if (c == '\n') {
 					crlf();
 				} else if (c == '\x1B') {
 					escape = true;
