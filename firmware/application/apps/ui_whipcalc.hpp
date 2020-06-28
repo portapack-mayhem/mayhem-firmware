@@ -61,23 +61,23 @@ private:
  	void antenna_Default();
 	
 	Labels labels {
-		{ { 5 * 8, 1 * 16 }, "Loaded:", Color::light_grey() },
-		{ { 2 * 8, 2 * 16 }, "Frequency:", Color::light_grey() },
-		{ { 7 * 8, 3 * 16 }, "Wave:", Color::light_grey() },
- 		{ { 5 * 8, 4 * 16 }, "Metric:", Color::light_grey() },
- 		{ { 3 * 8, 5 * 16 }, "Imperial:", Color::light_grey() }
+		//{ { 5 * 8, 1 * 16 }, "Loaded:", Color::light_grey() },
+		{ { 2 * 8, 1 * 16 }, "Frequency:", Color::light_grey() },
+		{ { 7 * 8, 2 * 16 }, "Wave:", Color::light_grey() },
+ 		{ { 5 * 8, 3 * 16 }, "Metric:", Color::light_grey() },
+ 		{ { 3 * 8, 4 * 16 }, "Imperial:", Color::light_grey() }
 	};
 
-	Text antennas_on_memory {
+	/*Text antennas_on_memory {
  		{ 13 * 8, 1 * 16, 2 * 16, 16 },
- 	};
+ 	};*/
 
 	FrequencyField field_frequency {
-		{ 13 * 8, 2 * 16 },
+		{ 13 * 8, 1 * 16 },
 	};
 
 	OptionsField options_type {
-		{ 13 * 8, 3 * 16 },
+		{ 13 * 8, 2 * 16 },
  		7,
 		{
 			{ "Full", 8 },
@@ -92,20 +92,20 @@ private:
 	};
 	
 	Text text_result_metric {
-		{ 13 * 8, 4 * 16, 10 * 16, 16 },
+		{ 13 * 8, 3 * 16, 10 * 16, 16 },
 		"-"
 	};
 	Text text_result_imperial {
-		{ 13 * 8, 5 * 16, 10 * 16, 16 },
+		{ 13 * 8, 4 * 16, 10 * 16, 16 },
 		"-"
 	};
 	Console console {
- 		{ 0, 7 * 16, 240, 144 }		//Allows to show up to 8 antennas
+ 		{ 0, 6 * 16, 240, 160 }
  	};
 	
 	Button button_exit {
 		{ 72, 17 * 16, 96, 32 },
-		"Exit"
+		"Back"
 	};
 };
 

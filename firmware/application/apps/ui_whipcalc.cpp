@@ -48,25 +48,39 @@ double ui::WhipCalcView::get_decimals(double num, int16_t mult, bool round) {
 
 void WhipCalcView::update_result() {
 	double length, calclength, divider;
-	
+	console.clear(true);
 	divider = ((double)options_type.selected_index_value() / 8.0);
-	
-	// Metric
-	length = (speed_of_light_mps / (double)field_frequency.value()) * divider;
-	
-	auto m = to_string_dec_int((int)length, 0);
-/* 	auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
-	auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1); */
 
- 	calclength = get_decimals(length,100);				//cm
- 	auto cm = to_string_dec_int(int(calclength), 0);
- 	auto mm = to_string_dec_int(int(get_decimals(calclength,10,true)), 0);
-	
-	text_result_metric.set(m + "m " + cm + "." + mm + "cm");
+	// Antenna lengths fields
+	if (field_frequency.value() > 0)
+	{
+		// Metric
+		length = (speed_of_light_mps / (double)field_frequency.value()) * divider;
+		auto m = to_string_dec_int((int)length, 0);
+		//auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
+		//auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1); 
+		calclength = get_decimals(length, 100); //cm
+		auto cm = to_string_dec_int(int(calclength), 0);
+		auto mm = to_string_dec_int(int(get_decimals(calclength, 10, true)), 0);
+		text_result_metric.set(m + "m " + cm + "." + mm + "cm");
+
+		// Imperial
+		calclength = (speed_of_light_fps / (double)field_frequency.value()) * divider;
+		auto feet = to_string_dec_int(int(calclength), 0);
+		calclength = get_decimals(calclength, 12); //inches
+		auto inch = to_string_dec_int(int(calclength), 0);
+		auto inch_c = to_string_dec_int(int(get_decimals(calclength, 10, true)), 0);
+		text_result_imperial.set(feet + "ft " + inch + "." + inch_c + "in");
+	}
+	else
+	{
+		text_result_metric.set("infinity+");
+		text_result_imperial.set("infinity+");
+		return;
+	}
 
 	uint8_t ant_count = 9;	//Shown antennas counter
- 	console.write("\f"); //Equivalent to clear console and string buffer.
-	length *= 1000;		 //Get length in mm needed to extend the antenna
+ 	length *= 1000;		 //Get length in mm needed to extend the antenna
 	for (antenna_entry antenna : antenna_db)
 	{ //go thru all antennas available
 		uint16_t element, refined_quarter = 0;
@@ -107,20 +121,9 @@ void WhipCalcView::update_result() {
 		console.write(antenna.label + ": " + to_string_dec_int(element, 1) + frac_str[refined_quarter] + " elements\n");
 		ant_count--; // For now, just showing all.
 	}
-
-	// Imperial
-	calclength = (speed_of_light_fps / (double)field_frequency.value()) * divider;
-	auto feet = to_string_dec_int(int(calclength), 0);
- 	calclength = get_decimals(calclength,12);				//inches
- 	auto inch = to_string_dec_int(int(calclength), 0);
- 	auto inch_c = to_string_dec_int(int(get_decimals(calclength,10,true)), 0);
-	
-	text_result_imperial.set(feet + "ft " + inch + "." + inch_c + "in");
 }
 
-WhipCalcView::WhipCalcView(
-	NavigationView& nav
-) {
+WhipCalcView::WhipCalcView(NavigationView& nav) {
 
 	add_children({
 		&labels,
@@ -133,14 +136,14 @@ WhipCalcView::WhipCalcView(
 		&button_exit
 	});
 
-	File antennas_file; 		//LOAD /WHIPCALC/ANTENNAS.TXT from microSD
+	File antennas_file;
  	auto result = antennas_file.open("WHIPCALC/ANTENNAS.TXT");
- 	antenna_db.clear();			//Start with fresh db
+
  	if (result.is_valid()) {
- 		antenna_Default(); 		//There is no txt, store a default ant500
+ 		antenna_Default(); 		// default ant500
  	} else {
- 		std::string line;		//There is a txt file
- 		char one_char[1];		//Read it char by char
+ 		std::string line;
+ 		char one_char[1];
  		for (size_t pointer=0; pointer < antennas_file.size();pointer++) {
  			antennas_file.seek(pointer);
  			antennas_file.read(one_char, 1);
@@ -157,12 +160,11 @@ WhipCalcView::WhipCalcView(
  	}
  	antennas_on_memory.set(to_string_dec_int(antenna_db.size(),0) + " antennas");	//tell user
 	
+	options_type.set_selected_index(2);		// Quarter wave
 	options_type.on_change = [this](size_t, OptionsField::value_t) {
 		this->update_result();
 	};
-	options_type.set_selected_index(2);		// Quarter wave
 	
-	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(1000000);		// 1MHz step
 	field_frequency.on_change = [this](rf::Frequency) {
 		this->update_result();
@@ -171,8 +173,8 @@ WhipCalcView::WhipCalcView(
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->update_result();
 			this->field_frequency.set_value(f);
+			this->update_result();
 		};
 	};
 	
@@ -180,7 +182,7 @@ WhipCalcView::WhipCalcView(
 		nav.pop();
 	};
 	
-	update_result();
+	field_frequency.set_value(transmitter_model.tuning_frequency());
 }
 
 void ui::WhipCalcView::txtline_process(std::string& line) {
