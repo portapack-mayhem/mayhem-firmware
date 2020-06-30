@@ -16,7 +16,7 @@ If you are new to *HackRF+PortaPack+Mayhem*, there is an awesome introductory vi
 
 # Frequently Asked Questions
 
-This repository expands upon the previous work by many people and aims to constantly add new features, bugfixes and generate documentation to make further development easier.  In a project such as this [collaboration](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) is always welcomed and appreciated.
+This repository expands upon the previous work by many people and aims to constantly add new features, bugfixes and generate documentation to make further development easier.  [Collaboration](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) is always welcomed and appreciated.
 
 ## Does it work on H1/H2 PortaPack?
 
