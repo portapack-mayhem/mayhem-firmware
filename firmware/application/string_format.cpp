@@ -171,7 +171,7 @@ std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
 	}
 	
 	string += to_string_dec_uint(value.hour(), 2, '0') + ":" +
-	string += to_string_dec_uint(value.minute(), 2, '0');
+				to_string_dec_uint(value.minute(), 2, '0');
 	
 	if ((format == YMDHMS) || (format == HMS))
 		string += ":" + to_string_dec_uint(value.second(), 2, '0');
