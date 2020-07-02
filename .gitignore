@@ -59,6 +59,7 @@ CMakeFiles/
 # Editor files
 *.sublime-project
 *.sublime-workspace
+.vscode
 
 # Host OS leftovers
 .DS_Store
