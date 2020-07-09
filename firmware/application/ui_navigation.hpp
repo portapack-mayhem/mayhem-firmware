@@ -87,6 +87,8 @@ public:
 	void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
 
 	void focus() override;
+	
+	
 
 private:
 	std::vector<std::unique_ptr<View>> view_stack { };
@@ -109,7 +111,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "MAYHEM v1.1.1"; // TODO: Move the version somewhere
+	static constexpr auto default_title = "MAYHEM v2.0.0"; // TODO: Move the version somewhere
 	
 	NavigationView& nav_;
 

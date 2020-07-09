@@ -54,7 +54,7 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_remote.hpp"
-#include "ui_scanner.hpp"
+
 #include "ui_search.hpp"
 #include "ui_sd_wipe.hpp"
 #include "ui_settings.hpp"
@@ -84,6 +84,7 @@
 
 #include "file.hpp"
 #include "png_writer.hpp"
+#include "ui_scanner.hpp"
 
 using portapack::receiver_model;
 using portapack::transmitter_model;
@@ -101,7 +102,6 @@ SystemStatusView::SystemStatusView(
 		.background = Color::dark_grey(),
 		.foreground = Color::white(),
 	};
-	
 	add_children({
 		&backdrop,
 		&button_back,
@@ -115,6 +115,8 @@ SystemStatusView::SystemStatusView(
 		&image_clock_status,
 		&sd_card_status_view,
 	});
+	// DELETE DEBUG.TXT FILE
+const std::filesystem::path mpath = "/DEBUG.TXT"; delete_file(mpath); DEBUG (0, "System Status view START DEBUG FILE") ;
 	
 	if (portapack::persistent_memory::config_speaker()) 
 		button_speaker.hidden(false);
@@ -199,6 +201,7 @@ void SystemStatusView::set_back_enabled(bool new_value) {
 }
 
 void SystemStatusView::set_title(const std::string new_value) {
+	
 	if( new_value.empty() ) {
 		title.set(default_title);
 	} else {
@@ -219,9 +222,7 @@ void SystemStatusView::on_speaker() {
  		button_speaker.set_foreground(Color::light_grey());
 		button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
  	}
-
- }
-
+}
 
 void SystemStatusView::on_stealth() {
 	bool mode = not portapack::persistent_memory::stealth_mode();
@@ -293,7 +294,6 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 
 	const auto p = new_view.get();
 	view_stack.emplace_back(std::move(new_view));
-
 	update_view();
 
 	return p;
@@ -372,14 +372,17 @@ Widget* NavigationView::view() const {
 }
 
 void NavigationView::focus() {
+
 	if( view() ) {
 		view()->focus();
 	}
 }
 
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
+		
 	add_items({
 		//{ "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		{ "ADS-B", 		ui::Color::green(),		&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBRxView>(); }, },
@@ -408,6 +411,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 /* TransmittersMenuView **************************************************/
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
+	
 	add_items({
 		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		{ "ADS-B [S]",		ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
@@ -464,17 +468,18 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
+	
 	add_items({
 		//{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
 		{ "Receive", 	ui::Color::cyan(),		&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
 		{ "Transmit", 	ui::Color::cyan(),			&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",	ui::Color::red(),			&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",		ui::Color::green(),		&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "Replay",		ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanners",	ui::Color::green(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerMenuView>(); } },
-		{ "Tools",		ui::Color::cyan(),	&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
+		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		{ "Debug",		ui::Color::light_grey(),		&bitmap_icon_debug,   				[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,   	[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});
@@ -486,13 +491,14 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 
 
 ScannerMenuView::ScannerMenuView(NavigationView& nav) {
+	
 	add_items({
-		{ "Scan AM",	ui::Color::yellow(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView_AM>(); } },
-		{ "Scan NFM",	ui::Color::cyan(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView_NFM>(); } },
-		{ "Scan FM",	ui::Color::red(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView_FM>(); } },
-		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+		{ "<AM>",	ui::Color::yellow(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(AM); } },
+		{ "<NFM>",	ui::Color::cyan(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(NFM); } },
+		{ "<FM>",	ui::Color::red(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(FM); } },
+		{ "<ANY>",	ui::Color::grey(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(ANY); } },
 	});
-	set_max_rows(1); 		// allow wider buttons
+	set_max_rows(2); 		// allow wider buttons
 	set_highlighted(1);		// Startup selection ( same as before)
 }
 /* SystemView ************************************************************/
@@ -510,7 +516,7 @@ SystemView::SystemView(
 	context_(context)
 {
 	set_style(&style_default);
-
+	
 	constexpr ui::Dim status_view_height = 16;
 	
 	add_child(&status_view);
@@ -531,6 +537,8 @@ SystemView::SystemView(
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
 		this->status_view.set_title(new_view.title());
 	};
+	
+
 
 	// portapack::persistent_memory::set_playdead_sequence(0x8D1);
 				
