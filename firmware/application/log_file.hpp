@@ -36,11 +36,26 @@ public:
 	}
 
 	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
-
+/*
+	 void pr_debug(const std::string& entry)    // NEW
+        {   
+              write_line (entry);
+        } 
+*/
 private:
-	File file { };
 
 	Optional<File::Error> write_line(const std::string& message);
+	File file { };
 };
+
+void DEBUG(const uint32_t Type, std::string logline) ;
+
+/*
+Text text_AD {
+		{ 0, 14 * 8, 24 * 8, 16 },
+		
+	};
+	*/
+
 
 #endif/*__LOG_FILE_H__*/

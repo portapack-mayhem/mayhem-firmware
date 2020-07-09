@@ -20,6 +20,7 @@
  */
 
 #include "log_file.hpp"
+#include "file.hpp"
 
 #include "string_format.hpp"
 
@@ -35,3 +36,44 @@ Optional<File::Error> LogFile::write_line(const std::string& message) {
 	}
 	return error;
 }
+
+void DEBUG(const uint32_t Type, std::string logline) {
+
+	rtc::RTC datetime;
+	File file;
+	rtcGetTime(&RTCD1, &datetime);
+	
+	auto text1 =to_string_dec_uint(chCoreStatus())+":" + 		
+				to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
+				to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
+				to_string_dec_uint(datetime.second(), 2, '0') + ":" ;  
+	
+	switch (Type) 	{
+					case 0:		logline = "-INF-" + logline	;  	break ;
+					case 1: 	logline = "-ERR-" + logline	;	break ;
+					case 2:    	logline = "-DEB-" + logline ; 	break ;	
+					case 3:				break ;    // no info
+					default:	logline = "-ERROR-TYPE !!!!!" + logline	; 
+					}			
+logline = text1 + logline ;  
+		 
+	if (sdcIsCardInserted(&SDCD1)) {		  	
+		
+		file.append(u"DEBUG.TXT");
+		file.write_line_n(logline); 
+		
+
+//		text_AD.set(logline);	
+	//chThdSleepMilliseconds(5000);
+	
+	}
+	else {						// NO SD CARD
+							// NEED TO PRINT ON SCREEN PLUS TIMER
+/*
+text_AD.set(logline);	
+chThdSleepMilliseconds(5000);
+*/
+	}
+	
+	}
+
