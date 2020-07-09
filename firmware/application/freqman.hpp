@@ -25,6 +25,7 @@
 #include "file.hpp"
 #include "ui_receiver.hpp"
 #include "string_format.hpp"
+#include "log_file.hpp"
 
 #ifndef __FREQMAN_H__
 #define __FREQMAN_H__
@@ -32,7 +33,7 @@
 #define FREQMAN_DESC_MAX_LEN 30
 #define FREQMAN_MAX_PER_FILE 99
 #define FREQMAN_MAX_PER_FILE_STR "99"
-#define MAX_DB_ENTRY 250
+
 
 using namespace ui;
 using namespace std;
@@ -47,7 +48,8 @@ enum freqman_error {
 enum freqman_entry_type {
 	SINGLE = 0,
 	RANGE,
-	ERROR							
+	ERROR,
+	COMMENT
 };
 
 enum freqman_entry_step {
@@ -60,39 +62,9 @@ enum freqman_entry_step {
 	FM_2,								// 50 Khz
 	N_1,									// 25 Khz
 	N_2,									// 250 Khz
+	AIRBAND,							// AIRBAND 8,33 Khz
 	ERROR_STEP
 };
-
-/*   to implement
-
-				{ "  100",      100 },
-				{ "  1k ",     1000 },
-				{ "  3k ",     3000 },	 Approximate SSB bandwidth 
-				{ "  5k ",     5000 },
-				{ "  6k3",     6250 },
-				{ "  9k ",     9000 },	 channel spacing for LF, MF in some regions 
-				{ " 10k ",    10000 },
-				{ " 12k5",    12500 },
-				{ " 25k ",    25000 },
-				{ "100k ",   100000 },
-				{ "  1M ",  1000000 },
-				{ " 10M ", 10000000 },
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 struct freqman_entry {
