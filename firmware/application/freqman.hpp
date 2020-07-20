@@ -48,11 +48,28 @@ enum freqman_entry_type {
 	RANGE
 };
 
+//Entry step placed for AlainD freqman version (or any other enhanced version)
+enum freqman_entry_step {
+	STEP_DEF = 0,	// default
+	AM_US,			// 10 Khz   AM/CB
+	AM_EUR,			// 9 Khz	LW/MW
+	NFM_1,			// 12,5 Khz (Analogic PMR 446)
+	NFM_2,			// 6,25 Khz  (Digital PMR 446)
+	FM_1,			// 100 Khz
+	FM_2,			// 50 Khz
+	N_1,			// 25 Khz
+	N_2,			// 250 Khz
+	AIRBAND,		// AIRBAND 8,33 Khz
+	ERROR_STEP
+};
+
+// freqman_entry_step step added, as above, to provide compatibility / future enhancement.
 struct freqman_entry {
 	rf::Frequency frequency_a { 0 };
 	rf::Frequency frequency_b { 0 };
 	std::string description { };
 	freqman_entry_type type { };
+	freqman_entry_step step { };
 };
 
 using freqman_db = std::vector<freqman_entry>;

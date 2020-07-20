@@ -20,20 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ui.hpp"
 #include "receiver_model.hpp"
 
 #include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "ui_spectrum.hpp"
 #include "freqman.hpp"
+#include "log_file.hpp"
+#include "analog_audio_app.hpp"
+
+
+#define MAX_DB_ENTRY 500
 
 namespace ui {
+
+enum modulation_type { AM = 0,WFM,NFM };
+	
+string const mod_name[3] = {"AM", "WFM", "NFM"};
+size_t const mod_step[3] = {9000, 100000, 12500 };
 
 class ScannerThread {
 public:
 	ScannerThread(std::vector<rf::Frequency> frequency_list);
 	~ScannerThread();
-	
+
 	void set_scanning(const bool v);
+	bool is_scanning();
+
+	void set_userpause(const bool v);
+	bool is_userpause();
+
+	void stop();
 
 	ScannerThread(const ScannerThread&) = delete;
 	ScannerThread(ScannerThread&&) = delete;
@@ -45,38 +63,64 @@ private:
 	Thread* thread { nullptr };
 	
 	bool _scanning { true };
-
+	bool _userpause { false };
 	static msg_t static_fn(void* arg);
-	
 	void run();
 };
 
 class ScannerView : public View {
 public:
-	ScannerView(NavigationView&);
+	ScannerView(NavigationView& nav);
 	~ScannerView();
 	
 	void focus() override;
+
+	void big_display_freq(rf::Frequency f);
+
+	const Style style_grey {		// scanning
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::grey(),
+	};
 	
-	std::string title() const override { return "Scanner"; };
+	const Style style_green {		//Found signal
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::green(),
+	};
+
+	std::string title() const override { return "SCANNER"; };
+	std::vector<rf::Frequency> frequency_list{ };
+	std::vector<string> description_list { };
+
+//void set_parent_rect(const Rect new_parent_rect) override;
 
 private:
+	NavigationView& nav_;
+
+	void start_scan_thread();
+	size_t change_mode(uint8_t mod_type);
+	void show_max();
+	void scan_pause();
+	void scan_resume();
+
 	void on_statistics_update(const ChannelStatistics& statistics);
 	void on_headphone_volume_changed(int32_t v);
 	void handle_retune(uint32_t i);
-	
-	std::vector<rf::Frequency> frequency_list { };
-	std::vector<string> description_list { };
-	int32_t trigger { 0 };
+
+	jammer::jammer_range_t frequency_range { false, 0, 0 };  //perfect for manual scan task too...
 	int32_t squelch { 0 };
 	uint32_t timer { 0 };
 	uint32_t wait { 0 };
+	size_t	def_step { 0 };
 	freqman_db database { };
 	
 	Labels labels {
-		{ { 0 * 8, 0 * 16 }, "LNA:    TRIGGER:  /99   VOL:", Color::light_grey() },
-		{ { 0 * 8, 1 * 16 }, "VGA:    SQUELCH:  /99   AMP:", Color::light_grey() },
-		{ { 0 * 8, 2 * 16 }, " BW:       WAIT:", Color::light_grey() },
+		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
+		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:  /99 WAIT:", Color::light_grey() },
+		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
+		{ { 0 * 8, 14 * 16 }, "MODE:", Color::light_grey() },
+		{ { 11 * 8, 14 * 16 }, "STEP:", Color::light_grey() },
 	};
 	
 	LNAGainField field_lna {
@@ -84,15 +128,15 @@ private:
 	};
 
 	VGAGainField field_vga {
-		{ 4 * 8, 1 * 16 }
+		{ 11 * 8, 0 * 16 }
 	};
 	
 	RFAmpField field_rf_amp {
-		{ 28 * 8, 1 * 16 }
+		{ 18 * 8, 0 * 16 }
 	};
 	
 	NumberField field_volume {
-		{ 28 * 8, 0 * 16 },
+		{ 24 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -100,25 +144,13 @@ private:
 	};
 
 	OptionsField field_bw {
-		{ 4 * 8, 2 * 16 },
-		3,
-		{
-			{ "8k5", 0 },
-			{ "11k", 0 },
-			{ "16k", 0 },
-		}
-	};
+		{ 3 * 8, 1 * 16 },
+		4,
+		{ }
+	};		
 
-	NumberField field_trigger {
-		{ 16 * 8, 0 * 16 },
-		2,
-		{ 0, 99 },
-		1,
-		' ',
-	};
-	
 	NumberField field_squelch {
-		{ 16 * 8, 1 * 16 },
+		{ 15 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -126,20 +158,84 @@ private:
 	};
 
 	NumberField field_wait {
-		{ 16 * 8, 2 * 16 },
+		{ 26 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
 		' ',
 	};
 
+	RSSI rssi {
+		{ 0 * 16, 2 * 16, 15 * 16, 8 },
+	}; 
+
 	Text text_cycle {
-		{ 0, 5 * 16, 240, 16 },
-		"--/--"
+		{ 0, 3 * 16, 3 * 8, 16 },  
 	};
+
+	Text text_max {
+		{ 4 * 8, 3 * 16, 18 * 8, 16 },  
+	};
+	
 	Text desc_cycle {
-		{0, 6 * 16, 240, 16 },
-		" "
+		{0, 4 * 16, 240, 16 },	   
+	};
+
+	BigFrequency big_display {		//Show frequency in glamour
+		{ 4, 6 * 16, 28 * 8, 52 },
+		0
+	};
+
+	Button button_manual_start {
+		{ 0 * 8, 11 * 16, 11 * 8, 28 },
+		""
+	};
+
+	Button button_manual_end {
+		{ 12 * 8, 11 * 16, 11 * 8, 28 },
+		""
+	};
+
+	Button button_manual_scan {
+		{ 24 * 8, 11 * 16, 6 * 8, 28 },
+		"SCAN"
+	};
+
+	OptionsField field_mode {
+		{ 5 * 8, 14 * 16 },
+		6,
+		{
+			{ " AM  ", 0 },
+			{ " WFM ", 1 },
+			{ " NFM ", 2 },
+		}
+	};
+
+	OptionsField step_mode {
+		{ 17 * 8, 14 * 16 },
+		12,
+		{
+			{ "5Khz (SA AM)", 	5000 },
+			{ "9Khz (EU AM)", 	9000 },
+			{ "10Khz(US AM)", 	10000 },
+			{ "50Khz (FM1)", 	50000 },
+			{ "100Khz(FM2)", 	100000 },
+			{ "6.25khz(NFM)",	6250 },
+			{ "12.5khz(NFM)",	12500 },
+			{ "25khz (N1)",		25000 },
+			{ "250khz (N2)",	250000 },
+			{ "8.33khz(AIR)",	8330 }
+		}
+	};
+
+	Button button_pause {
+		{ 12, 17 * 16, 96, 24 },
+		"PAUSE"
+	};
+
+	Button button_audio_app {
+		{ 124, 17 * 16, 96, 24 },
+		"AUDIO APP"
 	};
 	
 	std::unique_ptr<ScannerThread> scan_thread { };
