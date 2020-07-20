@@ -25,9 +25,7 @@
 
 #include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "ui_spectrum.hpp"
 #include "freqman.hpp"
-#include "log_file.hpp"
 #include "analog_audio_app.hpp"
 
 
