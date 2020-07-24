@@ -97,7 +97,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
@@ -172,7 +172,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 			GeoPos::alt_unit::FEET,
 			entry_copy.pos.latitude,
 			entry_copy.pos.longitude,
-			0,
+			entry_copy.velo.heading,
 			[this]() {
 				send_updates = false;
 			});
@@ -214,6 +214,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		
 		if (frame.get_DF() == DF_ADSB) {
 			uint8_t msg_type = frame.get_msg_type();
+			uint8_t msg_sub = frame.get_msg_sub();
 			uint8_t * raw_data = frame.get_raw_data();
 			
 			if ((msg_type >= 1) && (msg_type <= 4)) {
@@ -236,6 +237,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					if (send_updates)
 						details_view->update(entry);
 				}
+			} else if(msg_type == 19 && (msg_sub >= 1 && msg_sub <= 4)){
+				entry.set_frame_velo(frame);
 			}
 		}
 		recent_entries_view.set_dirty(); 

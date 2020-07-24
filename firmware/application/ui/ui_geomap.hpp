@@ -130,7 +130,7 @@ public:
 	}
 
 private:
-	void draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color);
+	void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
 	
 	GeoMapMode mode_ { };
 	File map_file { };
@@ -141,7 +141,7 @@ private:
 	int32_t prev_x_pos { 0xFFFF }, prev_y_pos { 0xFFFF };
 	float lat_ { };
 	float lon_ { };
-	float angle_ { };
+	uint16_t angle_ { };
 	std::string tag_ { };
 };
 
@@ -154,7 +154,7 @@ public:
 		GeoPos::alt_unit altitude_unit,
 		float lat,
 		float lon,
-		float angle,
+		uint16_t angle,
 		const std::function<void(void)> on_close = nullptr
 	);
 	GeoMapView(NavigationView& nav,
@@ -173,7 +173,7 @@ public:
 	
 	void focus() override;
 	
-	void update_position(float lat, float lon);
+	void update_position(float lat, float lon, uint16_t angle);
 	
 	std::string title() const override { return "Map view"; };
 
@@ -190,7 +190,7 @@ private:
 	GeoPos::alt_unit altitude_unit_ { };
 	float lat_ { };
 	float lon_ { };
-	float angle_ { };
+	uint16_t angle_ { };
 	std::function<void(void)> on_close_ { nullptr };
 	
 	bool map_opened { };

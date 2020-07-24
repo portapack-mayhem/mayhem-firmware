@@ -49,7 +49,7 @@ struct AircraftRecentEntry {
 	uint16_t hits { 0 };
 	uint32_t age { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
-	
+	adsb_vel velo { false, 0, 0 };
 	ADSBFrame frame_pos_even { };
 	ADSBFrame frame_pos_odd { };
 	
@@ -85,6 +85,10 @@ struct AircraftRecentEntry {
 			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < 20)
 				pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
 		}
+	}
+
+	void set_frame_velo(ADSBFrame& frame){
+		velo = decode_frame_velo(frame);
 	}
 	
 	void set_info_string(std::string& new_info_string) {

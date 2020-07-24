@@ -168,10 +168,15 @@ void GeoMap::paint(Painter& painter) {
 		// Cross
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
-	} else {
-		draw_bearing(r.center(), angle_, 10, Color::red());
-		//center tag above bearing
-		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
+	} else if (angle_ < 360){
+		//if we have a valid angle just draw bearing
+		draw_bearing({ 120, 32 + 144 }, angle_, 10, Color::red());
+		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
+	}
+	else {
+		//draw a small cross
+		display.fill_rectangle({ r.center() - Point(8, 1), { 16, 2 } }, Color::red());
+		display.fill_rectangle({ r.center() - Point(1, 8), { 2, 16 } }, Color::red());
 	}
 }
 
@@ -231,7 +236,7 @@ void GeoMap::set_mode(GeoMapMode mode) {
 	mode_ = mode;
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color) {
+void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
 	Point arrow_a, arrow_b, arrow_c;
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
@@ -254,9 +259,10 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
-void GeoMapView::update_position(float lat, float lon) {
+void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
+	angle_ = angle;
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
 	geomap.move(lon_, lat_);
@@ -307,7 +313,7 @@ GeoMapView::GeoMapView(
 	GeoPos::alt_unit altitude_unit,
 	float lat,
 	float lon,
-	float angle,
+	uint16_t angle,
 	const std::function<void(void)> on_close
 ) : nav_ (nav),
 	altitude_ (altitude),

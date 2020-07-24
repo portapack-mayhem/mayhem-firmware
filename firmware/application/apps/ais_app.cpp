@@ -240,7 +240,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 void AISRecentEntryDetailView::update_position() {
 	if (send_updates)
-		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()));
+		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading);
 }
 
 void AISRecentEntryDetailView::focus() {
