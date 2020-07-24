@@ -92,7 +92,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 		text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 	
 	text_infos.set(entry_copy.info_string);
-	
+	text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading));
 	text_frame_pos_even.set(to_string_hex_array(entry_copy.frame_pos_even.get_raw_data(), 14));
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
@@ -123,6 +123,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_airline,
 		&text_country,
 		&text_infos,
+		&text_info2,
 		&text_frame_pos_even,
 		&text_frame_pos_odd,
 		&button_see_map
@@ -237,8 +238,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					if (send_updates)
 						details_view->update(entry);
 				}
-			} else if(msg_type == 19 && (msg_sub >= 1 && msg_sub <= 4)){
+			} else if(msg_type == 19 && msg_sub >= 1 && msg_sub <= 4){
 				entry.set_frame_velo(frame);
+				if (send_updates)
+					details_view->update(entry);
 			}
 		}
 		recent_entries_view.set_dirty(); 
