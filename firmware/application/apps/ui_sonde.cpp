@@ -91,7 +91,7 @@ SondeView::SondeView(NavigationView& nav) {
 			GeoPos::alt_unit::METERS,
 			latitude,
 			longitude,
-			0);
+			999); //set a dummy heading out of range to draw a cross...probably not ideal?
 	};
 	
 	logger = std::make_unique<SondeLogger>();
