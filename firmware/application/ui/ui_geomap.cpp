@@ -59,7 +59,7 @@ GeoPos::GeoPos(
 	set_altitude(0);
 	set_lat(0);
 	set_lon(0);
-	
+
 	const auto changed_fn = [this](int32_t) {
 		float lat_value = lat();
 		float lon_value = lon();
@@ -169,9 +169,11 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else if (angle_ < 360){
-		//if we have a valid angle just draw bearing
+		//if we have a valid angle draw bearing
 		draw_bearing({ 120, 32 + 144 }, angle_, 10, Color::red());
-		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
+		if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
+			painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
+		}
 	}
 	else {
 		//draw a small cross
@@ -262,9 +264,9 @@ void GeoMapView::focus() {
 void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
-	angle_ = angle;
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();
 }
@@ -275,7 +277,7 @@ void GeoMapView::setup() {
 	geopos.set_altitude(altitude_);
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
-	
+
 	geopos.on_change = [this](int32_t altitude, float lat, float lon) {
 		altitude_ = altitude;
 		lat_ = lat;
@@ -334,6 +336,7 @@ GeoMapView::GeoMapView(
 	
 	geomap.set_mode(mode_);
 	geomap.set_tag(tag);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	
 	geopos.set_read_only(true);
