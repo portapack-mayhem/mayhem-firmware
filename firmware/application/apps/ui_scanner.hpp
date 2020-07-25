@@ -22,7 +22,6 @@
 
 #include "ui.hpp"
 #include "receiver_model.hpp"
-
 #include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "freqman.hpp"
@@ -30,6 +29,7 @@
 
 
 #define MAX_DB_ENTRY 500
+#define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
 namespace ui {
 
@@ -49,6 +49,9 @@ public:
 	void set_userpause(const bool v);
 	bool is_userpause();
 
+	void set_freq_lock(const uint32_t v);
+	uint32_t is_freq_lock();
+
 	void stop();
 
 	ScannerThread(const ScannerThread&) = delete;
@@ -62,6 +65,7 @@ private:
 	
 	bool _scanning { true };
 	bool _userpause { false };
+	uint32_t _freq_lock { 0 };
 	static msg_t static_fn(void* arg);
 	void run();
 };
@@ -81,6 +85,12 @@ public:
 		.foreground = Color::grey(),
 	};
 	
+	const Style style_yellow {		//Found signal
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::dark_yellow(),
+	};
+
 	const Style style_green {		//Found signal
 		.font = font::fixed_8x16,
 		.background = Color::black(),

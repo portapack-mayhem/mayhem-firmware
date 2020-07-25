@@ -21,7 +21,7 @@
  */
 
 #include "ui_scanner.hpp"
-
+#include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
@@ -66,6 +66,14 @@ bool ScannerThread::is_userpause() {
 	return _userpause;
 }
 
+void ScannerThread::set_freq_lock(const uint32_t v) {
+	_freq_lock = v;
+}
+
+uint32_t ScannerThread::is_freq_lock() {
+	return _freq_lock;
+}
+
 msg_t ScannerThread::static_fn(void* arg) {
 	auto obj = static_cast<ScannerThread*>(arg);
 	obj->run();
@@ -75,27 +83,44 @@ msg_t ScannerThread::static_fn(void* arg) {
 void ScannerThread::run() {
 	if (frequency_list_.size())	{				//IF THERE IS A FREQUENCY LIST ...	
 		RetuneMessage message { };
-		uint32_t frequency_index = 0;
+		uint32_t frequency_index = frequency_list_.size();
+		uint32_t freqlock_counter=0;
 		while( !chThdShouldTerminate() ) {
 			if (_scanning) {
-				// Retune
-				receiver_model.set_tuning_frequency(frequency_list_[frequency_index]);			
-				message.range = frequency_index;
+				if (_freq_lock == 0) {	//normal scanning 
+					frequency_index++;
+					if (frequency_index >= frequency_list_.size())
+						frequency_index = 0;		
+					receiver_model.set_tuning_frequency(frequency_list_[frequency_index]);	// Retune
+				} else {
+					chThdSleepMilliseconds(25); //Extra time ?
+				}
+		
+				message.range = frequency_index;	//Inform freq (for coloring purposes also!)
 				EventDispatcher::send_message(message);
-			
-				frequency_index++;
-				if (frequency_index >= frequency_list_.size())
-					frequency_index = 0;
 			}
-			chThdSleepMilliseconds(50);  //50 is enough for reception stabilization, increase for more precise scanning ?
+			chThdSleepMilliseconds(50);
 		}
 	}
 }
 
 void ScannerView::handle_retune(uint32_t i) {
-	big_display.set(frequency_list[i]);	//Show the big Freq
-	text_cycle.set( to_string_dec_uint(i + 1,3) );
-	if (description_list[i].size() > 0) desc_cycle.set( description_list[i] );	//If this is a new description: show
+	switch (scan_thread->is_freq_lock())
+	{
+	case 0:		//NO FREQ LOCK, ONGOING STANDARD SCANNING
+		text_cycle.set( to_string_dec_uint(i + 1,3) );
+		if (description_list[i].size() > 0) desc_cycle.set( description_list[i] );	//If this is a new description: show
+		break;
+	case 1:
+		big_display.set_style(&style_yellow);	//STARTING LOCK FREQ
+		break;
+	case MAX_FREQ_LOCK:
+		big_display.set_style(&style_green);	//FREQ LOCK FULL, GREEN!
+		break;
+	default:	//freq lock is checking the signal, do not update display
+		return;
+	}
+	big_display.set(frequency_list[i]);	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
 }
 
 void ScannerView::focus() {
@@ -145,7 +170,14 @@ ScannerView::ScannerView(
 	def_step = change_mode(AM);	//Start on AM
 	field_mode.set_by_value(AM);	//Reflect the mode into the manual selector
 
-	big_display.set_style(&style_green);	//Start with green color
+	big_display.set_style(&style_grey);	//Start with gray color
+
+	//HELPER: Pre-setting a manual range, based on stored frequency
+	rf::Frequency stored_freq = persistent_memory::tuned_frequency();
+	frequency_range.min = stored_freq - 1000000;
+	button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+	frequency_range.max = stored_freq + 1000000;
+	button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
 	button_manual_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
@@ -165,10 +197,9 @@ ScannerView::ScannerView(
 
 	button_pause.on_select = [this](Button&) {
 		if (scan_thread->is_userpause()) { 
-			timer = wait * 10;						//Unlock timer pause on_statistics_update
+			timer = wait * 10;					//Unlock timer pause on_statistics_update
 			button_pause.set_text("PAUSE");		//resume scanning (show button for pause)	
-			scan_thread->set_userpause(false);
-			//scan_resume();
+			scan_thread->set_userpause(false);	//Signal user's will
 		} else {
 			scan_pause();
 			scan_thread->set_userpause(true);
@@ -190,13 +221,14 @@ ScannerView::ScannerView(
 		} else if (frequency_range.min > frequency_range.max) {
 			nav_.display_modal("Error", "END freq\nis lower than START");
 		} else {
+		audio::output::stop();
 		scan_thread->stop();	//STOP SCANNER THREAD
 		frequency_list.clear();
 		description_list.clear();
 		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
 
 		description_list.push_back(
-			"M:" + to_string_short_freq(frequency_range.min) + ">"
+			"M:" + to_string_short_freq(frequency_range.min) + " >"
 	 		+ to_string_short_freq(frequency_range.max) + " S:" 
 	 		+ to_string_short_freq(def_step)
 		);
@@ -249,7 +281,7 @@ ScannerView::ScannerView(
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
 					description_list.push_back("R:" + to_string_short_freq(entry.frequency_a)
-						+ ">" + to_string_short_freq(entry.frequency_b)
+						+ " >" + to_string_short_freq(entry.frequency_b)
 						+ " S:" + to_string_short_freq(def_step));
 					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
@@ -287,12 +319,21 @@ void ScannerView::on_statistics_update(const ChannelStatistics& statistics) {
 		} 
 		else if (!timer) 
 		{
-			if (statistics.max_db > -squelch) {  //There is something on the air...
-				scan_pause();
-				timer++;
-			} 
+			if (statistics.max_db > -squelch) {  		//There is something on the air...
+				if (scan_thread->is_freq_lock() >= MAX_FREQ_LOCK) { //checking time reached
+					scan_pause();
+					timer++;	
+				} else {
+					scan_thread->set_freq_lock( scan_thread->is_freq_lock() + 1 ); //in lock period, still analyzing the signal
+				}
+			} else {									//There is NOTHING on the air
+				if (scan_thread->is_freq_lock() > 0) {	//But are we already in freq_lock ?
+					big_display.set_style(&style_grey);	//Back to grey color
+					scan_thread->set_freq_lock(0); 		//Reset the scanner lock, since there is no signal
+				}				
+			}
 		} 
-		else 
+		else 	//Ongoing wait time
 		{
 				timer++;
 		}
@@ -301,6 +342,7 @@ void ScannerView::on_statistics_update(const ChannelStatistics& statistics) {
 
 void ScannerView::scan_pause() {
 	if (scan_thread->is_scanning()) {
+		scan_thread->set_freq_lock(0); 		//Reset the scanner lock (because user paused, or MAX_FREQ_LOCK reached) for next freq scan	
 		scan_thread->set_scanning(false); // WE STOP SCANNING
 		audio::output::start();
 	}
@@ -309,6 +351,7 @@ void ScannerView::scan_pause() {
 void ScannerView::scan_resume() {
 	if (!scan_thread->is_scanning()) {
 		audio::output::stop();
+		big_display.set_style(&style_grey);	//Back to grey color
 		scan_thread->set_scanning(true);   // WE RESCAN
 	}
 }
