@@ -344,11 +344,13 @@ adsb_vel decode_frame_velo(ADSBFrame& frame){
 		if((frame_data[7]&0x80) >> 7) velo_ns *= -1; //check ns direction sign
 
 		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
+		
 		if(velo.speed){
 			//calculate heading in degrees from ew/ns velocities
-			velo.heading = (uint16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
+			int16_t heading_temp = (int16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
 			// We don't want negative values but a 0-360 scale. 
-			if (velo.heading < 0) velo.heading += 360.0;
+			if (heading_temp < 0) heading_temp += 360.0;
+			velo.heading = (uint16_t)heading_temp;
 		}
 		
 	}else if(velo_type == 3 || velo_type == 4){ //Airspeed
