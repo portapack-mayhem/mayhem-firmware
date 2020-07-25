@@ -170,9 +170,10 @@ void GeoMap::paint(Painter& painter) {
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
 	} else if (angle_ < 360){
 		//if we have a valid angle draw bearing
-		draw_bearing({ 120, 32 + 144 }, angle_, 10, Color::red());
+		draw_bearing(r.center(), angle_, 10, Color::red());
+		//center tag above bearing
 		if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
-			painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
+			painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
 		}
 	}
 	else {
