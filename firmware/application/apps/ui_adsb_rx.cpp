@@ -92,7 +92,11 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 		text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 	
 	text_infos.set(entry_copy.info_string);
-	text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading));
+	if(entry_copy.velo.heading < 360 && entry_copy.velo.speed >=0){ //I don't like this but...
+		text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading) + " Spd:" + to_string_dec_int(entry_copy.velo.speed));
+	}else{
+		text_info2.set("");
+	}
 	text_frame_pos_even.set(to_string_hex_array(entry_copy.frame_pos_even.get_raw_data(), 14));
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
@@ -200,7 +204,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 
 	auto frame = message->frame;
 	uint32_t ICAO_address = frame.get_ICAO_address();
-	
+
 	if (frame.check_CRC() && frame.get_ICAO_address()) {
 		rtcGetTime(&RTCD1, &datetime);
 		auto& entry = ::on_packet(recent, ICAO_address);
