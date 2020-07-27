@@ -120,8 +120,8 @@ void FrequencyScale::paint(Painter& painter) {
 	
 	if (_blink) {
 		const Rect r_cursor {
-			120 + cursor_position, r.bottom() - filter_band_height,
-			2, filter_band_height
+			118 + cursor_position, r.bottom() - filter_band_height,
+			5, filter_band_height
 		};
 		painter.fill_rectangle(
 			r_cursor,
