@@ -28,6 +28,10 @@
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
 #include "ui_mictx.hpp"
+#include "portapack_persistent_memory.hpp"
+#include "baseband_api.hpp"
+#include "string_format.hpp"
+#include "file.hpp"
 
 
 #define MAX_DB_ENTRY 500
@@ -53,6 +57,8 @@ public:
 
 	void set_freq_del(const uint32_t v);
 
+	void change_scanning_direction();
+
 	void stop();
 
 	ScannerThread(const ScannerThread&) = delete;
@@ -65,6 +71,7 @@ private:
 	Thread* thread { nullptr };
 	
 	bool _scanning { true };
+	bool _fwd { true };
 	uint32_t _freq_lock { 0 };
 	uint32_t _freq_del { 0 };
 	static msg_t static_fn(void* arg);
@@ -137,8 +144,8 @@ private:
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
 		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:  /99 WAIT:", Color::light_grey() },
 		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
-		{ { 0 * 8, 27 * 8 }, "MODE:", Color::light_grey() },
-		{ { 11 * 8, 27 * 8 }, "STEP:", Color::light_grey() },
+		{ { 0 * 8, (26 * 8) + 4 }, "MODE:", Color::light_grey() },
+		{ { 11 * 8, (26 * 8) + 4 }, "STEP:", Color::light_grey() },
 	};
 	
 	LNAGainField field_lna {
@@ -220,7 +227,7 @@ private:
 	};
 
 	OptionsField field_mode {
-		{ 5 * 8, 27 * 8 },
+		{ 5 * 8, (26 * 8) + 4 },
 		6,
 		{
 			{ " AM  ", 0 },
@@ -230,7 +237,7 @@ private:
 	};
 
 	OptionsField step_mode {
-		{ 17 * 8, 27 * 8 },
+		{ 17 * 8, (26 * 8) + 4 },
 		12,
 		{
 			{ "5Khz (SA AM)", 	5000 },
@@ -247,23 +254,33 @@ private:
 	};
 
 	Button button_pause {
-		{ 12, 15 * 16, 96, 24 },
+		{ 0, (15 * 16) - 4, 72, 28 },
 		"PAUSE"
 	};
 
-	Button button_audio_app {
-		{ 124, 15 * 16, 96, 24 },
-		"AUDIO APP"
+	Button button_dir {
+		{ 0,  (35 * 8) - 4, 72, 28 },
+		"FW><RV"
 	};
 
-		Button button_remove {
-		{ 12, 17 * 16, 96, 24 },
-		"DEL FREQ"
+	Button button_audio_app {
+		{ 84, (15 * 16) - 4, 72, 28 },
+		"AUDIO"
 	};
 
 	Button button_mic_app {
-		{ 124, 17 * 16, 96, 24 },
-		"MIC TX APP"
+		{ 84,  (35 * 8) - 4, 72, 28 },
+		"MIC TX"
+	};
+
+	Button button_add {
+		{ 168, (15 * 16) - 4, 72, 28 },
+		"ADD FQ"
+	};
+
+	Button button_remove {
+		{ 168, (35 * 8) - 4, 72, 28 },
+		"DEL FQ"
 	};
 	
 	std::unique_ptr<ScannerThread> scan_thread { };
