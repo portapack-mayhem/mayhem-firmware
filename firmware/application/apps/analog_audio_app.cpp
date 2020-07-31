@@ -36,8 +36,6 @@ using namespace tonekey;
 
 #include "string_format.hpp"
 
-#define SPEC 2000000
-
 namespace ui {
 
 /* AMOptionsView *********************************************************/
