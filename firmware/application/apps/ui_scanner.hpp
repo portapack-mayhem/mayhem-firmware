@@ -22,16 +22,20 @@
 
 #include "ui.hpp"
 #include "receiver_model.hpp"
-
 #include "ui_receiver.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "ui_spectrum.hpp"
 #include "freqman.hpp"
-#include "log_file.hpp"
 #include "analog_audio_app.hpp"
+#include "audio.hpp"
+#include "ui_mictx.hpp"
+#include "portapack_persistent_memory.hpp"
+#include "baseband_api.hpp"
+#include "string_format.hpp"
+#include "file.hpp"
 
 
 #define MAX_DB_ENTRY 500
+#define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
 namespace ui {
 
@@ -48,8 +52,12 @@ public:
 	void set_scanning(const bool v);
 	bool is_scanning();
 
-	void set_userpause(const bool v);
-	bool is_userpause();
+	void set_freq_lock(const uint32_t v);
+	uint32_t is_freq_lock();
+
+	void set_freq_del(const uint32_t v);
+
+	void change_scanning_direction();
 
 	void stop();
 
@@ -63,7 +71,9 @@ private:
 	Thread* thread { nullptr };
 	
 	bool _scanning { true };
-	bool _userpause { false };
+	bool _fwd { true };
+	uint32_t _freq_lock { 0 };
+	uint32_t _freq_del { 0 };
 	static msg_t static_fn(void* arg);
 	void run();
 };
@@ -83,10 +93,22 @@ public:
 		.foreground = Color::grey(),
 	};
 	
+	const Style style_yellow {		//Found signal
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::dark_yellow(),
+	};
+
 	const Style style_green {		//Found signal
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::green(),
+	};
+
+	const Style style_red {		//erasing freq
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::red(),
 	};
 
 	std::string title() const override { return "SCANNER"; };
@@ -103,6 +125,7 @@ private:
 	void show_max();
 	void scan_pause();
 	void scan_resume();
+	void user_resume();
 
 	void on_statistics_update(const ChannelStatistics& statistics);
 	void on_headphone_volume_changed(int32_t v);
@@ -114,13 +137,15 @@ private:
 	uint32_t wait { 0 };
 	size_t	def_step { 0 };
 	freqman_db database { };
+	uint32_t current_index { 0 };
+	bool userpause { false };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:  /99 WAIT:", Color::light_grey() },
+		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:   db WAIT:", Color::light_grey() },
 		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
-		{ { 0 * 8, 14 * 16 }, "MODE:", Color::light_grey() },
-		{ { 11 * 8, 14 * 16 }, "STEP:", Color::light_grey() },
+		{ { 0 * 8, (26 * 8) + 4 }, "MODE:", Color::light_grey() },
+		{ { 11 * 8, (26 * 8) + 4 }, "STEP:", Color::light_grey() },
 	};
 	
 	LNAGainField field_lna {
@@ -151,8 +176,8 @@ private:
 
 	NumberField field_squelch {
 		{ 15 * 8, 1 * 16 },
-		2,
-		{ 0, 99 },
+		3,
+ 		{ -90, 20 },
 		1,
 		' ',
 	};
@@ -202,7 +227,7 @@ private:
 	};
 
 	OptionsField field_mode {
-		{ 5 * 8, 14 * 16 },
+		{ 5 * 8, (26 * 8) + 4 },
 		6,
 		{
 			{ " AM  ", 0 },
@@ -212,7 +237,7 @@ private:
 	};
 
 	OptionsField step_mode {
-		{ 17 * 8, 14 * 16 },
+		{ 17 * 8, (26 * 8) + 4 },
 		12,
 		{
 			{ "5Khz (SA AM)", 	5000 },
@@ -229,13 +254,33 @@ private:
 	};
 
 	Button button_pause {
-		{ 12, 17 * 16, 96, 24 },
+		{ 0, (15 * 16) - 4, 72, 28 },
 		"PAUSE"
 	};
 
+	Button button_dir {
+		{ 0,  (35 * 8) - 4, 72, 28 },
+		"FW><RV"
+	};
+
 	Button button_audio_app {
-		{ 124, 17 * 16, 96, 24 },
-		"AUDIO APP"
+		{ 84, (15 * 16) - 4, 72, 28 },
+		"AUDIO"
+	};
+
+	Button button_mic_app {
+		{ 84,  (35 * 8) - 4, 72, 28 },
+		"MIC TX"
+	};
+
+	Button button_add {
+		{ 168, (15 * 16) - 4, 72, 28 },
+		"ADD FQ"
+	};
+
+	Button button_remove {
+		{ 168, (35 * 8) - 4, 72, 28 },
+		"DEL FQ"
 	};
 	
 	std::unique_ptr<ScannerThread> scan_thread { };
