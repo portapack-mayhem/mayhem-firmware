@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![buddy pipeline](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276/badge.svg?token=48cd59d53de0589a8fbe26bc751d77a59a011cf72581da049343879402991c34 "buddy pipeline")](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack)
 [![Discord Chat](https://img.shields.io/discord/719669764804444213.svg)](https://discord.gg/fU9PsKW)  
+[![Post a bounty!](https://api.bountysource.com/badge/tracker?tracker_id=550206)](https://www.bountysource.com/teams/portapack-mayhem/issues)
 
 This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork is a derivate, in this case one that has extra features and fixes when compared to the older versions.
 
@@ -46,16 +47,21 @@ This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://
 ## How can I collaborate
 You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), fix bugs and [answer issues](https://github.com/eried/portapack-mayhem/issues) or add new functionality. Please check the following [guide](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) with details.
 
-Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. For coding related questions, if something does not fit as an issue, please join our [Channel in Discord](https://discord.gg/fU9PsKW).
+Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. For coding related questions, if something does not fit as an issue, please join our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
 As a last option, if you want to send money directly to me for getting more boards, antennas and such:
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
+## What if I really want to pay for something?
+You can create a bounty and invite people to your own bounty. This will incentivize coders to work on a new feature, solving a bug or even writting documentation. Start a bounty by [creating](https://github.com/eried/portapack-mayhem/issues/new/choose) or [choosing](https://github.com/eried/portapack-mayhem/issues/) an existing issue. Then, go to [Bountysource](https://www.bountysource.com/) and post a bounty using the link to that specific [issue](https://www.bountysource.com/teams/portapack-mayhem/issues).
+
+Promote your bounty over our Discord by clicking the chat badge on [top](#portapack-mayhem).
+
 ## What if I need help?
 First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
-You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook. 
+You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook, and our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
 ## What if I find incongruencies, or grammatical errors in the text?
 If is on the [Wiki](https://github.com/eried/portapack-mayhem/wiki), you can modify it directly. If is on files of the repository, you can send corrections as [pull requests](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate#coding-new-stuff-or-fixing-bugs). As a last resource, open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
