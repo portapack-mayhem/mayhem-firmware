@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![buddy pipeline](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276/badge.svg?token=48cd59d53de0589a8fbe26bc751d77a59a011cf72581da049343879402991c34 "buddy pipeline")](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack)
 [![Discord Chat](https://img.shields.io/discord/719669764804444213.svg)](https://discord.gg/fU9PsKW)  
-[![Post a bounty!](https://api.bountysource.com/badge/tracker?tracker_id=550206)](https://www.bountysource.com/teams/portapack-mayhem/issues)
+[![Post a bounty!](https://api.bountysource.com/badge/team?team_id=550206)](https://www.bountysource.com/teams/portapack-mayhem/issues)
 
 This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork is a derivate, in this case one that has extra features and fixes when compared to the older versions.
 
