@@ -249,7 +249,11 @@ FileLoadView::FileLoadView(
 
 void FileManagerView::on_rename(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-		rename_file(get_selected_path(), buffer);
+		std::string destination_path = current_path.string();
+		if (destination_path.back() != '/')
+			destination_path += '/';
+		destination_path = destination_path + buffer;
+		rename_file(get_selected_path(), destination_path);
 		load_directory_contents(current_path);
 		refresh_list();
 	});
