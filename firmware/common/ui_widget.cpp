@@ -1046,6 +1046,16 @@ bool NewButton::on_touch(const TouchEvent event) {
 		return false;
 	}
 }
+/* DateTimeButton ********************************************************/
+
+DateTimeButton::DateTimeButton(
+	Rect parent_rect,
+	std::string text
+) : Button { parent_rect , text_}
+{
+	set_focusable(true);
+}
+
 
 /* Image *****************************************************************/
 

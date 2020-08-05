@@ -428,6 +428,16 @@ private:
 	const Bitmap* bitmap_;
 };
 
+class DateTimeButton : public Button {
+public:
+	DateTimeButton(Rect parent_rect, std::string text);
+	void paint(Painter& painter) override;
+private:
+	std::string text_;
+	void on_tick_second();
+
+};
+
 class Image : public Widget {
 public:
 	Image();
