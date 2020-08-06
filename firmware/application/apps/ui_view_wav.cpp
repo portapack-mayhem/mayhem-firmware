@@ -22,6 +22,7 @@
 
 #include "ui_view_wav.hpp"
 #include "ui_fileman.hpp"
+#include "log_file.hpp"
 
 using namespace portapack;
 
@@ -41,9 +42,7 @@ void ViewWavView::refresh_waveform() {
 		wav_reader->data_seek(position + (i * scale));
 		wav_reader->read(&waveform_buffer[i], sizeof(int16_t));
 	}
-	
 	waveform.set_dirty();
-	
 	// Window
 	uint64_t w_start = (position * 240) / wav_reader->sample_count();
 	uint64_t w_width = (scale * 240) / (wav_reader->sample_count() / 240);
@@ -55,7 +54,6 @@ void ViewWavView::refresh_waveform() {
 
 void ViewWavView::refresh_measurements() {
 	uint64_t span_ns = ns_per_pixel * abs(field_cursor_b.value() - field_cursor_a.value());
-	
 	if (span_ns)
 		text_delta.set(unit_auto_scale(span_ns, 0, 3) + "s (" + to_string_dec_uint(1000000000UL / span_ns) + "Hz)");
 	else
@@ -81,22 +79,11 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
 	int16_t sample;
 	uint32_t average;
 
-	if (!wav_reader->open(file_path)) {
-		nav_.display_modal("Error", "Couldn't open file.", INFO, nullptr);
-		return;
-	}
-	
-	if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
-		nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.", INFO, nullptr);
-		return;
-	}
-	
 	text_filename.set(file_path.filename().string());
 	auto ms_duration = wav_reader->ms_duration();
 	text_duration.set(unit_auto_scale(ms_duration, 2, 3) + "s");
 	
 	wav_reader->rewind();
-	
 	text_samplerate.set(to_string_dec_uint(wav_reader->sample_rate()) + "Hz");
 	text_title.set(wav_reader->title());
 	
@@ -111,7 +98,6 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
 			wav_reader->read(&sample, 2);
 			average += (abs(sample) >> 8);
 		}
-		
 		amplitude_buffer[i] = average / subsampling_factor;
 	}
 	
@@ -148,10 +134,23 @@ ViewWavView::ViewWavView(
 		&field_cursor_b,
 		&text_delta
 	});
-	
+	reset_controls();
 	button_open.on_select = [this, &nav](Button&) {
 		auto open_view = nav.push<FileLoadView>(".WAV");
 		open_view->on_changed = [this](std::filesystem::path file_path) {
+			
+	// NEW	
+			if (!wav_reader->open(file_path)) {
+		nav_.display_modal("Error", "Couldn't open file.", INFO, nullptr);
+		return;
+	}
+
+	if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
+		nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.", INFO, nullptr);
+		return;
+	}
+	// END
+			
 			load_wav(file_path);
 			field_pos_seconds.focus();
 		};
@@ -176,7 +175,6 @@ ViewWavView::ViewWavView(
 		refresh_measurements();
 	};
 	
-	reset_controls();
 }
 
 void ViewWavView::focus() {
