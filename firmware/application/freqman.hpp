@@ -45,6 +45,12 @@ enum freqman_error {
 	ERROR_DUPLICATE
 };
 
+	enum scan_error {
+	N_FERROR = 0,
+	N_SD,
+	N_FILE
+};
+
 enum freqman_entry_type {
 	SINGLE = 0,
 	RANGE,
@@ -79,8 +85,13 @@ using freqman_db = std::vector<freqman_entry>;
 
 std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db& db);
+
+
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
 std::string freqman_item_string(freqman_entry &item, size_t max_length);
+
+bool load_scan_file( std::string& scan_src_file, std::string& scan_dest_file, uint32_t step) ;
+
 
 #endif/*__FREQMAN_H__*/
