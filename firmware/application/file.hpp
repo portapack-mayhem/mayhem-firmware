@@ -339,14 +339,19 @@ public:
 	}
 
 	Optional<Error> write_line(const std::string& s);
+	Optional<Error> write_line_n(const std::string& s) ;
 
 	// TODO: Return Result<>.
 	Optional<Error> sync();
+	//NEW
+	Optional<Error> close();
 
 private:
-	FIL f { };
+
+	FIL  f { };
 
 	Optional<Error> open_fatfs(const std::filesystem::path& filename, BYTE mode);
+	
 };
 
 #endif/*__FILE_H__*/

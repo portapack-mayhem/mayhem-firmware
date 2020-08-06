@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// AD 27/7/2020
 #include "file.hpp"
-
 #include <algorithm>
 #include <locale>
 #include <codecvt>
@@ -36,7 +36,6 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
 			}
 		}
 	}
-
 	if( result == FR_OK ) {
 		return { };
 	} else {
@@ -101,6 +100,7 @@ File::Size File::size() {
 	return { static_cast<File::Size>(f_size(&f)) };
 }
 
+// write line with CR/LF
 Optional<File::Error> File::write_line(const std::string& s) {
 	const auto result_s = write(s.c_str(), s.size());
 	if( result_s.is_error() ) {
@@ -115,6 +115,24 @@ Optional<File::Error> File::write_line(const std::string& s) {
 	return { };
 }
 
+
+
+// write line with LF only
+Optional<File::Error> File::write_line_n(const std::string& s) {
+	const auto result_s = write(s.c_str(), s.size());
+	if( result_s.is_error() ) {
+		return { result_s.error() };
+	}
+
+	const auto result_lf = write("\n", 1);
+	if( result_lf.is_error() ) {
+		return { result_lf.error() };
+	}
+
+	return { };
+}
+
+
 Optional<File::Error> File::sync() {
 	const auto result = f_sync(&f);
 	if( result == FR_OK ) {
@@ -123,6 +141,25 @@ Optional<File::Error> File::sync() {
 		return { result };
 	}
 }
+
+//NEW
+Optional<File::Error> File::close() {
+	const auto result = f_close(&f);
+	if( result == FR_OK ) {
+		return { };
+	} else {
+		return { result };
+	}
+}
+
+
+
+
+
+
+
+
+
 
 static std::filesystem::path find_last_file_matching_pattern(const std::filesystem::path& pattern) {
 	std::filesystem::path last_match;
