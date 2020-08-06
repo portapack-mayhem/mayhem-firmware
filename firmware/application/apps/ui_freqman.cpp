@@ -19,6 +19,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+ 
+ // AD V 3.004/8/2020
+ 
 
 #include "ui_freqman.hpp"
 
@@ -35,6 +38,7 @@ FreqManBaseView::FreqManBaseView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
+	//DEBUG (3," FreqManBaseView");
 	file_list = get_freqman_files();
 	
 	add_children({
@@ -43,14 +47,20 @@ FreqManBaseView::FreqManBaseView(
 	});
 	
 	if (file_list.size()) {
+		//DEBUG (3," File list ok");
 		add_child(&options_category);
 		populate_categories();
 	} else
-		error_ = ERROR_NOFILES;
+	{	
+//DEBUG (3," File list pas ok");
+	error_ = ERROR_NOFILES;}
+	
+	// NEW
+	change_category(0);
 	
 	// Default function
 	on_change_category = [this](int32_t category_id) {
-//		DEBUG (3,"CHANGE FILE: " + to_string_dec_uint(category_id));
+	//	DEBUG (3,"CHANGE FILE: " + to_string_dec_uint(category_id));
 		change_category(category_id);
 	};
 	
@@ -73,7 +83,7 @@ void FreqManBaseView::focus() {
 
 void FreqManBaseView::populate_categories() {
 	categories.clear();
-//	DEBUG (3,"populate categories");
+	//DEBUG (3,"populate categories");
 	for (size_t n = 0; n < file_list.size(); n++)
 		categories.emplace_back(std::make_pair(file_list[n].substr(0, 14), n));
 	
@@ -93,10 +103,14 @@ void FreqManBaseView::populate_categories() {
 
 void FreqManBaseView::change_category(int32_t category_id) {
 	
+	
+//	DEBUG(3, "change category " + to_string_dec_uint(category_id) );
 	if (!file_list.size()) return;
 	
 	last_category_id = current_category_id = category_id;
 	
+	//DEBUG(3, "Freqman: " + file_list[categories[current_category_id].second] );
+	//DEBUG(3, "Freqman: Load fREQMAN" );
 	if (!load_freqman_file(file_list[categories[current_category_id].second], database))
 		error_ = ERROR_ACCESS;
 	else
@@ -105,8 +119,10 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
 void FreqManBaseView::refresh_list() {
 	
+	
+		//DEBUG (3,"REFRESH LIST");
 	if (!database.size()) {
-	//	DEBUG (3,"REFRESH DATA OK");
+	//	//DEBUG (3,"REFRESH DATA OK");
 		if (on_refresh_widgets)
 			on_refresh_widgets(true);
 	} else {
@@ -140,19 +156,20 @@ void FrequencySaveView::save_current_file() {
 			[this](bool choice) {
 				if (choice) {
 					database.resize(FREQMAN_MAX_PER_FILE);
+					//DEBUG(3, "Freqman1: " + file_list[categories[current_category_id].second] );
 					save_freqman_file(file_list[categories[current_category_id].second], database);
 				}
 				nav_.pop();
 			}
 		);
 	} else {
+	
 		save_freqman_file(file_list[categories[current_category_id].second], database);
 		nav_.pop();
 	}
 }
 
 void FrequencySaveView::on_save_name() {
-//	DEBUG (3,"ON SAVE NAME");
 	text_prompt(nav_, desc_buffer, 28, [this](std::string& buffer) {
 		database.push_back({ value_, 0, buffer, SINGLE });
 		save_current_file();
@@ -160,7 +177,6 @@ void FrequencySaveView::on_save_name() {
 }
 
 void FrequencySaveView::on_save_timestamp() {
-	//DEBUG (3,"ON SAVE TIME");
 	database.push_back({ value_, 0, live_timestamp.string(), SINGLE });
 	save_current_file();
 }
@@ -188,7 +204,7 @@ FrequencySaveView::FrequencySaveView(
 		&button_save_timestamp,
 		&live_timestamp
 	});
-	
+//	DEBUG (3,"FREQ-save-view");
 	big_display.set(value);
 	
 	button_save_name.on_select = [this, &nav](Button&) {
@@ -258,6 +274,7 @@ FrequencyLoadView::FrequencyLoadView(
 void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
 	
 		database[menu_view.highlighted_index()].frequency_a = f;
+		//DEBUG(3, "Freqman3: " + file_list[categories[current_category_id].second] );
 		save_freqman_file(file_list[categories[current_category_id].second], database);
 		refresh_list();
 	
@@ -266,10 +283,11 @@ void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
 void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
 	
 	if ((database[menu_view.highlighted_index()].type != ERROR) && (database[menu_view.highlighted_index()].type != COMMENT)) {
-	//	DEBUG (3, "ON EDIT DESC NO ERROR"  );
+	//DEBUG (3, "ON EDIT DESC NO ERROR"  );
 		text_prompt(nav, desc_buffer, 28, [this](std::string& buffer) {
 		database[menu_view.highlighted_index()].description = buffer;
 		refresh_list();
+		//DEBUG(3, "Freqman4: " + file_list[categories[current_category_id].second] );
 		save_freqman_file(file_list[categories[current_category_id].second], database);
 	});
 	}
@@ -291,6 +309,7 @@ void FrequencyManagerView::on_new_category(NavigationView& nav) {
 void FrequencyManagerView::on_delete() {
 	
 		database.erase(database.begin() + menu_view.highlighted_index());
+		//DEBUG(3, "Freqman5: " + file_list[categories[current_category_id].second] );
 		save_freqman_file(file_list[categories[current_category_id].second], database);
 		refresh_list();
 	
@@ -299,7 +318,6 @@ void FrequencyManagerView::on_delete() {
 void FrequencyManagerView::refresh_widgets(const bool v) {
 	//DEBUG (3, "IN refresh " + to_string_dec_uint(database[menu_view.highlighted_index()].type) );
 	
-	//DEBUG (3, "IN REFRESH: " +  to_string_dec_uint(v) + ":" );
 	
 	button_edit_freq.hidden(v);
 	button_edit_desc.hidden(v);
@@ -353,7 +371,7 @@ FrequencyManagerView::FrequencyManagerView(
 	button_edit_freq.on_select = [this, &nav](Button&) {
 		
 		if ((database[menu_view.highlighted_index()].type != ERROR) && (database[menu_view.highlighted_index()].type != COMMENT)) {
-	//	DEBUG (3, "ON EDIT FREQ NO ERROR"  );
+	//DEBUG (3, "ON EDIT FREQ NO ERROR"  );
 		auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.highlighted_index()].frequency_a);
 		
 		new_view->on_changed = [this](rf::Frequency f) {
@@ -369,14 +387,14 @@ FrequencyManagerView::FrequencyManagerView(
 	button_edit_desc.on_select = [this, &nav](Button&) {
 		
 		desc_buffer = database[menu_view.highlighted_index()].description;
-	//	DEBUG(3,"EDIT-desc " + desc_buffer);
+		//DEBUG(3,"EDIT-desc " + desc_buffer);
 		on_edit_desc(nav);
 	};
 	
 	button_delete.on_select = [this, &nav](Button&) {
 		
 	if ((database[menu_view.highlighted_index()].type != ERROR) && (database[menu_view.highlighted_index()].type != COMMENT)) {
-//		DEBUG (3, "ON DELETE NO ERROR" );
+	//DEBUG (3, "ON DELETE NO ERROR" );
 		nav.push<ModalMessageView>("Confirm", "Are you sure ?", YESNO,
 			[this](bool choice) {
 				if (choice)
@@ -386,7 +404,7 @@ FrequencyManagerView::FrequencyManagerView(
 		}
 		else {
 			
-		// DEBUG (3, "ON DELETE ERROR" );
+		 //DEBUG (3, "ON DELETE ERROR" );
 		}
 	};
 }
