@@ -19,7 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// AD 27/7/2020
 #include "string_format.hpp"
+
 
 static char* to_string_dec_uint_internal(
 	char* p,
@@ -77,6 +79,7 @@ std::string to_string_dec_uint(
 ) {
 	char p[16];
 	auto term = p + sizeof(p) - 1;
+	
 	auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
 
 	// Right justify.
@@ -86,6 +89,63 @@ std::string to_string_dec_uint(
 
 	return q;
 }
+//************************ NEW
+
+static char* to_string_dec_uint_internal64(
+	char* p,
+	uint64_t n
+) {
+	*p = 0;
+	auto q = p;
+
+	do {
+		const uint64_t d = n % 10;
+		const char c = d + 48;
+		*(--q) = c;
+		n /= 10;
+	} while( n != 0 );
+
+	return q;
+}
+
+static char* to_string_dec_uint_pad_internal64(
+	char* const term,
+	const uint64_t n,
+	const int64_t l,
+	const char fill
+) {
+	auto q = to_string_dec_uint_internal64(term, n);
+
+	if( fill ) {
+		while( (term - q) < l ) {
+			*(--q) = fill;
+		}
+	}
+
+	return q;
+}
+
+
+std::string to_string_dec_uint64(
+	const uint64_t n,
+	const int64_t l,
+	const char fill
+) {
+	char p[20];
+	auto term = p + sizeof(p) - 1;
+	auto q = to_string_dec_uint_pad_internal64(term, n, l, fill);
+
+	// Right justify.
+	while( (term - q) < l ) {
+		*(--q) = ' ';
+	}
+
+	return q;
+}
+
+//*************************
+
+
 
 std::string to_string_dec_int(
 	const int32_t n,
