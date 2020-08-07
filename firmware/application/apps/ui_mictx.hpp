@@ -24,7 +24,6 @@
 #define __UI_MICTX_H__
 
 #include "ui.hpp"
-#include "ui_painter.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
