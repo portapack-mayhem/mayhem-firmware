@@ -126,15 +126,15 @@ void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
 
 void MicTXView::rxaudio(bool is_on) {
 	if (is_on) {
+		audio::input::stop();
 		baseband::shutdown();
 		baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
 		receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-		//receiver_model.set_sampling_rate(sampling_rate); //**
-		//receiver_model.set_baseband_bandwidth(1750000);	//**
-		receiver_model.enable();
+		receiver_model.set_sampling_rate(3072000);
+		receiver_model.set_baseband_bandwidth(1750000);	
 		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
-		audio::output::start();	
-
+		receiver_model.enable();
+		audio::output::start();
 	} else {	//These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
 		receiver_model.disable();
 		baseband::shutdown();
@@ -255,6 +255,7 @@ MicTXView::MicTXView(
 		receiver_model.set_squelch_level(100 - v);	
 	};
 	field_squelch.set_value(0);
+	receiver_model.set_squelch_level(0);
 
 	transmitter_model.set_sampling_rate(sampling_rate);
 	transmitter_model.set_baseband_bandwidth(1750000);
