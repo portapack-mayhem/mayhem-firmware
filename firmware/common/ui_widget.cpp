@@ -625,7 +625,8 @@ void Console::write(std::string message) {
 
 void Console::writeln(std::string message) {
 	write(message);
-	crlf();
+	write("\n");
+	//crlf();
 }
 
 void Console::paint(Painter&) {
