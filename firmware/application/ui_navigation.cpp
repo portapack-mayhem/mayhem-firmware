@@ -306,6 +306,32 @@ void SystemStatusView::on_title() {
 	nav_.push<AboutView>();
 }
 
+/* Information View *****************************************************/
+
+InformationView::InformationView(
+	NavigationView& nav
+) : nav_ (nav)
+{
+		static constexpr Style style_infobar {
+		.font = font::fixed_8x16,
+		.background = {33, 33, 33},
+		.foreground = Color::white(),
+	};
+
+	add_children({
+	&backdrop,
+	&version,
+	&ltime
+	});
+
+	version.set_style(&style_infobar);
+	ltime.set_style(&style_infobar);
+	ltime.set_seconds_enabled(true);
+	ltime.set_date_enabled(false);
+
+	set_dirty();
+}
+
 /* Navigation ************************************************************/
 
 bool NavigationView::is_top() const {
@@ -502,6 +528,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
+	set_arrow_enabled(false);
 	//set_highlighted(1);		// Startup selection
 }
 
@@ -522,6 +549,7 @@ SystemView::SystemView(
 	set_style(&style_default);
 
 	constexpr ui::Dim status_view_height = 16;
+	constexpr ui::Dim info_view_height = 16;
 	
 	add_child(&status_view);
 	status_view.set_parent_rect({
@@ -537,13 +565,29 @@ SystemView::SystemView(
 		{ 0, status_view_height },
 		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
 	});
+
+	add_child(&info_view);
+	info_view.set_parent_rect({
+		{0, 19 * 16},
+		{ parent_rect.width(), info_view_height }
+	});
+
 	navigation_view.on_view_changed = [this](const View& new_view) {
+		
+		if(!this->navigation_view.is_top()){
+			remove_child(&info_view);
+		}
+		else{
+			add_child(&info_view);
+		}
+		
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
 		this->status_view.set_title_image_enabled(this->navigation_view.is_top());
-		this->status_view.set_dirty();
 		this->status_view.set_title(new_view.title());
+		this->status_view.set_dirty();
+		
 	};
-	
+
 
 	// portapack::persistent_memory::set_playdead_sequence(0x8D1);
 				
@@ -557,6 +601,9 @@ SystemView::SystemView(
 		
 		if (portapack::persistent_memory::config_splash())
 			navigation_view.push<BMPView>();
+			status_view.set_back_enabled(false);
+			status_view.set_title_image_enabled(true);
+			status_view.set_dirty();
 		//else
 		//	navigation_view.push<SystemMenuView>();
 			
