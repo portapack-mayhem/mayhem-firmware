@@ -213,11 +213,8 @@ public:
 	InformationView(NavigationView& nav);
 	
 private:
-	void refresh();
 	static constexpr auto version_string = "v1.1.1";
 	NavigationView& nav_;
-
-	rtc::RTC datetime;
 
 	Rectangle backdrop {
 		{ 0, 0 * 16, 240, 16 },

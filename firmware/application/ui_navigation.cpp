@@ -579,7 +579,6 @@ SystemView::SystemView(
 		}
 		else{
 			add_child(&info_view);
-			//this->info_view.set_dirty();
 		}
 		
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
