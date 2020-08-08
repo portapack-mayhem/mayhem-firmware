@@ -211,54 +211,27 @@ private:
 class InformationView : public View {
 public:
 	InformationView(NavigationView& nav);
-	void update_time();
 	
-
 private:
 	void refresh();
 	static constexpr auto version_string = "v1.1.1";
 	NavigationView& nav_;
 
-	void on_time();
-
 	rtc::RTC datetime;
 
 	Rectangle backdrop {
-	{ 0, 0 * 16, 240, 16 },
-	{33, 33, 33}
+		{ 0, 0 * 16, 240, 16 },
+		{33, 33, 33}
 	};
 
 	Text version {
 		{0, 0, 11 * 8, 16},
 		version_string
 	};
-
-	ImageButton test {
-		{80, 0, 16, 16},
-		&bitmap_icon_camera,
-		Color::white(),
-		Color::dark_grey()
-	};
 	
-	Button time {
-		{120, 0, 11 * 8, 16},
-		""
-	};
-/*
 	LiveDateTime ltime {
-		{120, 0, 11 * 8, 16}
+		{176, 0, 8 * 8, 16}
 	};
-*/	
-
-	
-
-	MessageHandlerRegistration message_handler_refresh {
-	Message::ID::InfoRefresh,
-	[this](const Message* const p) {
-		(void)p;
-		this->refresh();
-	}
-	};	
 };
 
 class BMPView : public View {
@@ -314,8 +287,6 @@ public:
 	Context& context() const override;
 
 private:
-	void on_tick_second();
-
 	SystemStatusView status_view { navigation_view };
 	InformationView info_view { navigation_view };
 	NavigationView navigation_view { };

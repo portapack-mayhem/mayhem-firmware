@@ -321,38 +321,14 @@ InformationView::InformationView(
 	add_children({
 	&backdrop,
 	&version,
-	&test,
-	&time
+	&ltime
 	});
 
-	test.on_select = [this](ImageButton&){
-		update_time();
-	};
-
-	this->set_focusable(true);
-	this->set_visible(true);
-	time.set_focusable(true);
 	version.set_style(&style_infobar);
+	ltime.set_style(&style_infobar);
+	ltime.set_seconds_enabled(true);
+	ltime.set_date_enabled(false);
 
-	time.on_select = [this](Button&) {
-		this->on_time();
-	};
-
-	refresh();
-}
-
-void InformationView::refresh() {
-	update_time();
-	set_dirty();
-}
-
-void InformationView::on_time(){
-	update_time();
-}
-
-void InformationView::update_time() {
-	rtcGetTime(&RTCD1, &datetime);
-	time.set_text(to_string_datetime(datetime));
 	set_dirty();
 }
 
@@ -584,17 +560,18 @@ SystemView::SystemView(
 		this->navigation_view.pop();
 	};
 
+	add_child(&navigation_view);
+	navigation_view.set_parent_rect({
+		{ 0, status_view_height },
+		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height) }
+	});
+
 	add_child(&info_view);
 	info_view.set_parent_rect({
 		{0, 19 * 16},
 		{ parent_rect.width(), info_view_height }
 	});
 
-	add_child(&navigation_view);
-	navigation_view.set_parent_rect({
-		{ 0, status_view_height },
-		{ parent_rect.width(), static_cast<ui::Dim>(parent_rect.height() - status_view_height - info_view_height) }
-	});
 	navigation_view.on_view_changed = [this](const View& new_view) {
 		
 		if(!this->navigation_view.is_top()){
@@ -602,7 +579,7 @@ SystemView::SystemView(
 		}
 		else{
 			add_child(&info_view);
-			this->info_view.update_time();
+			//this->info_view.set_dirty();
 		}
 		
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
@@ -610,8 +587,6 @@ SystemView::SystemView(
 		this->status_view.set_title(new_view.title());
 		this->status_view.set_dirty();
 		
-		
-		//this->info_view.focus();
 	};
 
 
@@ -638,10 +613,6 @@ SystemView::SystemView(
 
 Context& SystemView::context() const {
 	return context_;
-}
-
-void SystemView::on_tick_second() {
-	this->info_view.update_time();
 }
 
 /* ***********************************************************************/

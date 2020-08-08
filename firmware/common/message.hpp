@@ -111,7 +111,6 @@ public:
 		AudioLevelReport = 51,
 		CodedSquelch = 52,
 		AudioSpectrum = 53,
-		InfoRefresh = 54,
 		MAX
 	};
 
@@ -231,14 +230,6 @@ class StatusRefreshMessage : public Message {
 public:
 	constexpr StatusRefreshMessage(
 	) : Message { ID::StatusRefresh }
-	{
-	}
-};
-
-class InfoRefreshMessage : public Message {
-public:
-	constexpr InfoRefreshMessage(
-	) : Message { ID::InfoRefresh }
 	{
 	}
 };
