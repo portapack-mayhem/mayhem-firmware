@@ -150,8 +150,8 @@ private:
 		{ { 0 * 8, 2 * 16 }, "Last seen:", Color::light_grey() },
 		{ { 0 * 8, 3 * 16 }, "Airline:", Color::light_grey() },
 		{ { 0 * 8, 5 * 16 }, "Country:", Color::light_grey() },
-		{ { 0 * 8, 12 * 16 }, "Even position frame:", Color::light_grey() },
-		{ { 0 * 8, 14 * 16 }, "Odd position frame:", Color::light_grey() }
+		{ { 0 * 8, 13 * 16 }, "Even position frame:", Color::light_grey() },
+		{ { 0 * 8, 15 * 16 }, "Odd position frame:", Color::light_grey() }
 	};
 	
 	Text text_callsign {
@@ -185,16 +185,16 @@ private:
 	};
 
 	Text text_frame_pos_even {
-		{ 0 * 8, 13 * 16, 30 * 8, 16 },
+		{ 0 * 8, 14 * 16, 30 * 8, 16 },
 		"-"
 	};
 	Text text_frame_pos_odd {
-		{ 0 * 8, 15 * 16, 30 * 8, 16 },
+		{ 0 * 8, 16 * 16, 30 * 8, 16 },
 		"-"
 	};
 	
 	Button button_see_map {
-		{ 8 * 8, 8 * 16, 14 * 8, 3 * 16 },
+		{ 8 * 8, 9 * 16, 14 * 8, 3 * 16 },
 		"See on map"
 	};
 };
