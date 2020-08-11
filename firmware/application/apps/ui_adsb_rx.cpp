@@ -230,7 +230,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
-					str_info = "Alt:" + to_string_dec_uint(entry.pos.altitude) +
+					str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
 						" Lat:" + to_string_dec_int(entry.pos.latitude) +
 						"." + to_string_dec_int((int)abs(entry.pos.latitude * 1000) % 100, 2, '0') +
 						" Lon:" + to_string_dec_int(entry.pos.longitude) +
