@@ -244,6 +244,9 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				}
 			} else if(msg_type == 19 && msg_sub >= 1 && msg_sub <= 4){
 				entry.set_frame_velo(frame);
+				logentry += "Type:" + to_string_dec_uint(msg_sub) +
+							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
+							" Spd: "+ to_string_dec_int(entry.velo.speed);
 				if (send_updates)
 					details_view->update(entry);
 			}

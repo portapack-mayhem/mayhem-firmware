@@ -332,16 +332,19 @@ adsb_vel decode_frame_velo(ADSBFrame& frame){
 	}
 
 	if(velo_type == 1 || velo_type == 2){ //Ground Speed
-		int32_t velo_ew = (((frame_data[5] & 0x03) << 8) | frame_data[6]) - 1;
-		int32_t velo_ns = ((frame_data[7] & 0x7f) << 3) | ((frame_data[8]) >> 5) - 1;
+		int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
+		int32_t velo_ew = raw_ew - 1; //velocities are all offset by one (this is part of the spec)
+
+		int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
+		int32_t velo_ns = raw_ns - 1;
 
 		if (velo_type == 2){ // supersonic indicator so multiply by 4
 			velo_ew = velo_ew << 2;
 			velo_ns = velo_ns << 2;
 		}
 
-		if((frame_data[5]&4) >> 2) velo_ew *= -1; //check ew direction sign
-		if((frame_data[7]&0x80) >> 7) velo_ns *= -1; //check ns direction sign
+		if(frame_data[5]&0x04) velo_ew *= -1; //check ew direction sign
+		if(frame_data[7]&0x80) velo_ns *= -1; //check ns direction sign
 
 		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
 		
