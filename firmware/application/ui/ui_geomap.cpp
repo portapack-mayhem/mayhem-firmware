@@ -163,7 +163,10 @@ void GeoMap::paint(Painter& painter) {
 		prev_x_pos = x_pos;
 		prev_y_pos = y_pos;
 	}
-	
+	//center tag above point
+	if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
+		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
+	}
 	if (mode_ == PROMPT) {
 		// Cross
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
@@ -171,10 +174,6 @@ void GeoMap::paint(Painter& painter) {
 	} else if (angle_ < 360){
 		//if we have a valid angle draw bearing
 		draw_bearing(r.center(), angle_, 10, Color::red());
-		//center tag above bearing
-		if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
-			painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
-		}
 	}
 	else {
 		//draw a small cross
