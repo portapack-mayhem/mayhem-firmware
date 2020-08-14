@@ -416,7 +416,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "Analog TV", 	ui::Color::yellow(),	&bitmap_icon_sstv,		[&nav](){ nav.push<AnalogTvView>(); } },
 		{ "ERT Meter", 	ui::Color::green(), 	&bitmap_icon_ert,		[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 	ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
-		{ "Radiosnde", 	ui::Color::yellow(),	&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
+		{ "Radiosnde", 	ui::Color::green(),		&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
 		{ "TPMS Cars", 	ui::Color::green(),		&bitmap_icon_tpms,		[&nav](){ nav.push<TPMSAppView>(); } },
 		/*{ "APRS", 		ui::Color::dark_grey(),	&bitmap_icon_aprs,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
