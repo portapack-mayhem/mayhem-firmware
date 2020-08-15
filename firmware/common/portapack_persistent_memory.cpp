@@ -63,6 +63,10 @@ using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
 constexpr int32_t modem_repeat_reset_value { 5 };
 
+using touchsensible_range_t = range_t<uint32_t>;
+constexpr touchsensible_range_t touchsensible_range { 1, 3 };
+constexpr uint32_t touchsensible_reset_value { 2 };
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -91,6 +95,7 @@ struct data_t {
 	uint32_t pocsag_ignore_address;
 	
 	int32_t tone_mix;
+	uint32_t touchsense_level;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -183,6 +188,15 @@ uint8_t modem_repeat() {
 
 void set_modem_repeat(const uint32_t new_value) {
 	data->modem_repeat = modem_repeat_range.clip(new_value);
+}
+
+uint32_t touchsensible() {
+	touchsensible_range.reset_if_outside(data->touchsense_level, touchsensible_reset_value);
+	return data->touchsense_level;
+}
+
+void set_touchsensible(const uint32_t new_value) {
+	data->touchsense_level = touchsensible_range.clip(new_value);
 }
 
 serial_format_t serial_format() {
