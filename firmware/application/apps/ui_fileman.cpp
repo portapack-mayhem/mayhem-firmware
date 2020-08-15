@@ -92,31 +92,37 @@ FileManBaseView::FileManBaseView(
 ) : nav_ (nav),
 	extension_filter { filter }
 {
-	load_directory_contents(current_path);
-	
-	if (!entry_list.size())
-		empty_root = true;
-	
 	add_children({
 		&labels,
 		&text_current,
 		&button_exit
 	});
 
-	menu_view.on_left = [&nav, this]() {
-		load_directory_contents(get_parent_dir());
-		refresh_list();
-	};
-	
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};
-};
+
+	if (!sdcIsCardInserted(&SDCD1)) {
+		empty_root=true;
+		text_current.set("NO SD CARD!");
+	} else {
+		load_directory_contents(current_path);
+		if (!entry_list.size())
+		{
+			empty_root = true;
+			text_current.set("EMPTY SD CARD!");
+		} else {
+			menu_view.on_left = [&nav, this]() {
+				load_directory_contents(get_parent_dir());
+				refresh_list();
+			};
+		}
+	}
+}
 
 void FileManBaseView::focus() {
 	if (empty_root) {
 		button_exit.focus();
-		nav_.display_modal("Error", "No files in root.", ABORT, nullptr);
 	} else {
 		menu_view.focus();
 	}
@@ -190,7 +196,6 @@ void FileManBaseView::refresh_list() {
 		nav_.pop();
 	});
 }
-
 FileSaveView::FileSaveView(
 	NavigationView& nav
 ) : FileManBaseView(nav)
@@ -244,7 +249,11 @@ FileLoadView::FileLoadView(
 
 void FileManagerView::on_rename(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-		rename_file(get_selected_path(), buffer);
+		std::string destination_path = current_path.string();
+		if (destination_path.back() != '/')
+			destination_path += '/';
+		destination_path = destination_path + buffer;
+		rename_file(get_selected_path(), destination_path);
 		load_directory_contents(current_path);
 		refresh_list();
 	});
@@ -271,57 +280,59 @@ FileManagerView::FileManagerView(
 	NavigationView& nav
 ) : FileManBaseView(nav, "")
 {
-	on_refresh_widgets = [this](bool v) {
-		refresh_widgets(v);
-	};
-	
-	add_children({
-		&menu_view,
-		&labels,
-		&text_date,
-		&button_rename,
-		&button_new_dir,
-		&button_delete
-	});
-	
-	menu_view.on_highlight = [this]() {
-		text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_path())));
-	};
-	
-	refresh_list();
-	
-	on_select_entry = [this]() {
-		if (entry_list[menu_view.highlighted_index()].is_directory) {
-			load_directory_contents(get_selected_path());
-			refresh_list();
-		} else
-			button_rename.focus();
-	};
-	
-	button_new_dir.on_select = [this, &nav](Button&) {
-		name_buffer.clear();
+	if (!empty_root) {
+		on_refresh_widgets = [this](bool v) {
+			refresh_widgets(v);
+		};
 		
-		text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-			make_new_directory(current_path.string() + '/' + buffer);
-			load_directory_contents(current_path);
-			refresh_list();
+		add_children({
+			&menu_view,
+			&labels,
+			&text_date,
+			&button_rename,
+			&button_new_dir,
+			&button_delete
 		});
-	};
-	
-	button_rename.on_select = [this, &nav](Button&) {
-		name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
-		on_rename(nav);
-	};
-	
-	button_delete.on_select = [this, &nav](Button&) {
-		// Use display_modal ?
-		nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
-			[this](bool choice) {
-				if (choice)
-					on_delete();
-			}
-		);
-	};
+		
+		menu_view.on_highlight = [this]() {
+			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_path())));
+		};
+		
+		refresh_list();
+		
+		on_select_entry = [this]() {
+			if (entry_list[menu_view.highlighted_index()].is_directory) {
+				load_directory_contents(get_selected_path());
+				refresh_list();
+			} else
+				button_rename.focus();
+		};
+		
+		button_new_dir.on_select = [this, &nav](Button&) {
+			name_buffer.clear();
+			
+			text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+				make_new_directory(current_path.string() + '/' + buffer);
+				load_directory_contents(current_path);
+				refresh_list();
+			});
+		};
+		
+		button_rename.on_select = [this, &nav](Button&) {
+			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
+			on_rename(nav);
+		};
+		
+		button_delete.on_select = [this, &nav](Button&) {
+			// Use display_modal ?
+			nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
+				[this](bool choice) {
+					if (choice)
+						on_delete();
+				}
+			);
+		};
+	} 
 }
 
 }

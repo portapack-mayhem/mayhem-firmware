@@ -54,7 +54,7 @@ SondeView::SondeView(NavigationView& nav) {
 	});
 
 	field_frequency.set_value(target_frequency_);
-	field_frequency.set_step(10000);
+	field_frequency.set_step(500);		//euquiq: was 10000, but we are using this for fine-tunning
 	field_frequency.on_change = [this](rf::Frequency f) {
 		set_target_frequency(f);
 		field_frequency.set_value(f);
@@ -86,11 +86,11 @@ SondeView::SondeView(NavigationView& nav) {
 
 	button_see_map.on_select = [this, &nav](Button&) {
 		nav.push<GeoMapView>(
-			"",
-			altitude,
+			sonde_id,
+			gps_info.alt,
 			GeoPos::alt_unit::METERS,
-			latitude,
-			longitude,
+			gps_info.lat,
+			gps_info.lon,
 			999); //set a dummy heading out of range to draw a cross...probably not ideal?
 	};
 	
@@ -113,16 +113,15 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 	//const auto hex_formatted = packet.symbols_formatted();
 	
 	text_signature.set(packet.type_string());
-	text_serial.set(packet.serial_number());
+	sonde_id = packet.serial_number();	//used also as tag on the geomap
+	text_serial.set(sonde_id);
 	text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
+
+	gps_info = packet.get_GPS_data();
 	
-	altitude = packet.GPS_altitude();
-	latitude = packet.GPS_latitude();
-	longitude = packet.GPS_longitude();
-	
-	geopos.set_altitude(altitude);
-	geopos.set_lat(latitude);
-	geopos.set_lon(longitude);
+	geopos.set_altitude(gps_info.alt);
+	geopos.set_lat(gps_info.lat);
+	geopos.set_lon(gps_info.lon);
 	
 	if (logger && logging) {
 		logger->on_packet(packet);

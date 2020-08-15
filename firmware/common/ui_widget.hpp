@@ -243,13 +243,20 @@ public:
 	~LiveDateTime();
 
 	void paint(Painter& painter) override;
-	
+
+	void set_seconds_enabled(bool new_value);
+	void set_date_enabled(bool new_value);
+
 	std::string& string() {
 		return text;
 	}
 
 private:
 	void on_tick_second();
+	
+	uint16_t init_delay = 4;
+	bool date_enabled = true;
+	bool seconds_enabled = false;
 	
 	rtc::RTC datetime { };
 	SignalToken signal_token_tick_second { };

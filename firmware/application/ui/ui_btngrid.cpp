@@ -95,6 +95,15 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
 	update_items();
 }
 
+void BtnGridView::set_arrow_enabled(bool new_value) {
+	if(new_value){
+		add_child(&arrow_more);
+	}
+	else{
+		remove_child(&arrow_more);
+	}
+};
+
 void BtnGridView::on_tick_second() {
 	if (more && blink)
 		arrow_more.set_foreground(Color::white());
