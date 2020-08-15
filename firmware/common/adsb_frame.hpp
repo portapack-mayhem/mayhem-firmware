@@ -41,6 +41,10 @@ public:
 		return (raw_data[4] >> 3);
 	}
 
+	uint8_t get_msg_sub() {
+		return (raw_data[4] & 7);
+	}
+
 	uint32_t get_ICAO_address() {
 		return (raw_data[1] << 16) + (raw_data[2] << 8) + raw_data[3];
 	}

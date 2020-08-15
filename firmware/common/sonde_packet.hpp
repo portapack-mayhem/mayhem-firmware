@@ -32,6 +32,12 @@
 
 namespace sonde {
 
+	struct GPS_data {
+		uint32_t alt { 0 };
+		float lat { 0 };
+		float lon { 0 };
+	};
+
 class Packet {
 public:
 	enum class Type : uint32_t {
@@ -41,7 +47,7 @@ public:
 		Meteomodem_M2K2 = 3,
 		Vaisala_RS41_SG = 4,
 	};
-	
+
 	Packet(const baseband::Packet& packet, const Type type);
 
 	size_t length() const;
@@ -56,9 +62,7 @@ public:
 	std::string serial_number() const;
 	uint32_t battery_voltage() const;
 	
-	uint32_t GPS_altitude() const;
-	float GPS_latitude() const;
-	float GPS_longitude() const;
+	GPS_data get_GPS_data() const;
 
 	FormattedSymbols symbols_formatted() const;
 
@@ -75,14 +79,17 @@ private:
 		0xD0, 0xBC, 0xB4, 0xB6, 0x06, 0xAA, 0xF4, 0x23,
 		0x78, 0x6E, 0x3B, 0xAE, 0xBF, 0x7B, 0x4C, 0xC1
 	};
+
+	GPS_data ecef_to_gps() const;
 	
-	//uint8_t vaisala_descramble(const uint32_t pos);
+	uint8_t vaisala_descramble(uint32_t pos) const;
 
 	const baseband::Packet packet_;
 	const BiphaseMDecoder decoder_;
 	const FieldReader<BiphaseMDecoder, BitRemapNone> reader_bi_m;
 	Type type_;
 
+	using packetReader = FieldReader<baseband::Packet, BitRemapByteReverse>; //baseband::Packet instead of BiphaseMDecoder
 	bool crc_ok_M10() const;
 };
 

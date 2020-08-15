@@ -56,6 +56,13 @@ struct adsb_pos {
 	int32_t altitude;
 };
 
+struct adsb_vel {
+	bool valid;
+	int32_t speed;  //knot
+	uint16_t heading; //degree
+	int32_t v_rate; //ft/min
+};
+
 const float CPR_MAX_VALUE = 131072.0;
 
 const float adsb_lat_lut[58] = {
@@ -88,6 +95,8 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd);
 
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate);
+
+adsb_vel decode_frame_velo(ADSBFrame& frame);
 
 //void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
 

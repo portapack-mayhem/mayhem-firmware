@@ -30,6 +30,7 @@
 #include "transmitter_model.hpp"
 #include "tone_key.hpp"
 #include "message.hpp"
+#include "receiver_model.hpp"
 
 namespace ui {
 
@@ -54,11 +55,11 @@ public:
 			return false;
 	};
 	
-	std::string title() const override { return "Microphone TX"; };
+	std::string title() const override { return "Mic TX RX"; };
 
 private:
 	static constexpr uint32_t sampling_rate = 1536000U;
-	static constexpr uint32_t lcd_frame_duration = (256 * 1000UL) / 60;	// 1 frame @ 60fps in ms .8 fixed point
+	static constexpr uint32_t lcd_frame_duration = (256 * 1000UL) / 60;	// 1 frame @ 60fps in ms .8 fixed point  /60
 	
 	void update_vumeter();
 	void do_timing();
@@ -66,10 +67,14 @@ private:
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_tx_progress(const bool done);
 	void configure_baseband();
+
+	void rxaudio(bool is_on);
+	void on_headphone_volume_changed(int32_t v);
 	
 	bool transmitting { false };
-	bool va_enabled { };
-	bool rogerbeep_enabled { };
+	bool va_enabled { false };
+	bool rogerbeep_enabled { false };
+	bool rx_enabled { false };
 	uint32_t tone_key_index { };
 	float mic_gain { 1.0 };
 	uint32_t audio_level { 0 };
@@ -80,23 +85,25 @@ private:
 	uint32_t decay_timer { 0 };
 	
 	Labels labels {
-		{ { 7 * 8, 1 * 8 }, "Mic. gain:", Color::light_grey() },
-		{ { 7 * 8, 4 * 8 }, "Frequency:", Color::light_grey() },
-		{ { 7 * 8, 6 * 8 }, "Bandwidth:   kHz", Color::light_grey() },
-		{ { 9 * 8, 13 * 8 }, "Level:   /255", Color::light_grey() },
-		{ { 9 * 8, 15 * 8 }, "Attack:   ms", Color::light_grey() },
-		{ { 9 * 8, 17 * 8 }, "Decay:    ms", Color::light_grey() },
-		{ { 7 * 8, 21 * 8 }, "Tone key:", Color::light_grey() }
+		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
+		{ { 3 * 8, 3 * 8 }, "FREQUENCY:", Color::light_grey() },
+		{ { 3 * 8, 5 * 8 }, "BANDWIDTH:   kHz", Color::light_grey() },
+		{ { 7 * 8, 11 * 8 }, "LEVEL:   /255", Color::light_grey() },
+		{ { 6 * 8, 13 * 8 }, "ATTACK:   ms", Color::light_grey() },
+		{ { 7 * 8, 15 * 8 }, "DECAY:    ms", Color::light_grey() },
+		{ { 4 * 8, 18 * 8 }, "TONE KEY:", Color::light_grey() },
+		{ { 9 * 8, 30 * 8 }, "VOL:", Color::light_grey() },
+		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() }
 	};
 	
 	VuMeter vumeter {
-		{ 1 * 8, 2 * 8, 5 * 8, 32 * 8 },
-		20,
-		false
+		{ 0 * 8, 1 * 8, 2 * 8, 33 * 8 },
+		12,
+		true
 	};
 	
 	OptionsField options_gain {
-		{ 17 * 8, 1 * 8 },
+		{ 13 * 8, 1 * 8 },
 		4,
 		{
 			{ "x0.5", 5 },
@@ -107,10 +114,10 @@ private:
 	};
 	
 	FrequencyField field_frequency {
-		{ 17 * 8, 4 * 8 },
+		{ 13 * 8, 3 * 8 },
 	};
 	NumberField field_bw {
-		{ 17 * 8, 6 * 8 },
+		{ 13 * 8, 5 * 8 },
 		3,
 		{ 0, 150 },
 		1,
@@ -118,28 +125,28 @@ private:
 	};
 	
 	Checkbox check_va {
-		{ 7 * 8, 10 * 8 },
+		{ 3 * 8, (9 * 8) - 4 },
 		7,
 		"Voice activation",
 		false
 	};
 	
 	NumberField field_va_level {
-		{ 15 * 8, 13 * 8 },
+		{ 13 * 8, 11 * 8 },
 		3,
 		{ 0, 255 },
 		2,
 		' '
 	};
 	NumberField field_va_attack {
-		{ 16 * 8, 15 * 8 },
+		{ 13 * 8, 13 * 8 },
 		3,
 		{ 0, 999 },
 		20,
 		' '
 	};
 	NumberField field_va_decay {
-		{ 15 * 8, 17 * 8 },
+		{ 13 * 8, 15 * 8 },
 		4,
 		{ 0, 9999 },
 		100,
@@ -147,28 +154,52 @@ private:
 	};
 	
 	OptionsField options_tone_key {
-		{ 7 * 8, 23 * 8 },
+		{ 10 * 8, 20 * 8 },
 		23,
 		{ }
 	};
 
 	Checkbox check_rogerbeep {
-		{ 7 * 8, 26 * 8 },
+		{ 3 * 8, 23 * 8 },
 		10,
 		"Roger beep",
 		false
 	};
-	
-	Text text_ptt {
-		{ 7 * 8, 17 * 16, 16 * 8, 16 },
-		"PTT: RIGHT BUTTON"
+
+	Checkbox check_rxactive {
+		{ 3 * 8, (27 * 8) + 4 },
+		8,
+		"RX audio listening",
+		false
+	};
+
+	NumberField field_volume {
+		{ 13 * 8, 30 * 8 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
 	};
 	
+	NumberField field_squelch {
+		{ 13 * 8, 32 * 8 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
+	};
+
+	Text text_ptt {
+		{ 7 * 8, 35 * 8, 16 * 8, 16 },
+		"PTT: RIGHT BUTTON"
+	};
+
+
 	MessageHandlerRegistration message_handler_lcd_sync {
 		Message::ID::DisplayFrameSync,
 		[this](const Message* const) {
-			this->update_vumeter();
 			this->do_timing();
+			this->update_vumeter();
 		}
 	};
 	

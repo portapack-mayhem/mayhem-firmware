@@ -94,6 +94,43 @@ private:
 	};
 };
 
+class AnalogAudioView;
+
+class SPECOptionsView : public View {
+public:
+	SPECOptionsView(AnalogAudioView* view, const Rect parent_rect, const Style* const style);
+
+private:
+	Text label_config {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"BW",
+	};
+	OptionsField options_config {
+		{ 3 * 8, 0 * 16 },
+		4,
+		{
+			{ "20m ", 20000000 },
+			{ "10m ", 10000000 },
+			{ " 5m ", 5000000 },
+			{ " 2m ", 2000000 },
+			{ " 1m ", 1000000 },
+			{ "500k", 500000 },
+		}
+	};
+	
+	Text text_speed {
+		{ 9 * 8, 0 * 16, 8 * 8, 1 * 16 },
+		"SP   /63"
+	};
+	NumberField field_speed {
+		{ 12 * 8, 0 * 16 },
+		2,
+		{ 0, 63 },
+		1,
+		' ',
+	};
+};
+
 class AnalogAudioView : public View {
 public:
 	AnalogAudioView(NavigationView& nav);
@@ -106,12 +143,22 @@ public:
 	void focus() override;
 
 	std::string title() const override { return "Analog audio"; };
-	
+
+	size_t get_spec_bw_index();
+	void set_spec_bw(size_t index, uint32_t bw);
+
+	uint16_t get_spec_trigger();
+	void set_spec_trigger(uint16_t trigger);
+
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
+
+	size_t spec_bw_index = 0;
+	uint32_t spec_bw = 20000000;
+	uint16_t spec_trigger = 63;
 
 	NavigationView& nav_;
 	//bool exit_on_squelch { false };

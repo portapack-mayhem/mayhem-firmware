@@ -59,7 +59,7 @@ GeoPos::GeoPos(
 	set_altitude(0);
 	set_lat(0);
 	set_lon(0);
-	
+
 	const auto changed_fn = [this](int32_t) {
 		float lat_value = lat();
 		float lon_value = lon();
@@ -163,15 +163,22 @@ void GeoMap::paint(Painter& painter) {
 		prev_x_pos = x_pos;
 		prev_y_pos = y_pos;
 	}
-	
+	//center tag above point
+	if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
+		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
+	}
 	if (mode_ == PROMPT) {
 		// Cross
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
-	} else {
+	} else if (angle_ < 360){
+		//if we have a valid angle draw bearing
 		draw_bearing(r.center(), angle_, 10, Color::red());
-		//center tag above bearing
-		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
+	}
+	else {
+		//draw a small cross
+		display.fill_rectangle({ r.center() - Point(8, 1), { 16, 2 } }, Color::red());
+		display.fill_rectangle({ r.center() - Point(1, 8), { 2, 16 } }, Color::red());
 	}
 }
 
@@ -231,7 +238,7 @@ void GeoMap::set_mode(GeoMapMode mode) {
 	mode_ = mode;
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color) {
+void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
 	Point arrow_a, arrow_b, arrow_c;
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
@@ -254,11 +261,12 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
-void GeoMapView::update_position(float lat, float lon) {
+void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();
 }
@@ -269,7 +277,7 @@ void GeoMapView::setup() {
 	geopos.set_altitude(altitude_);
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
-	
+
 	geopos.on_change = [this](int32_t altitude, float lat, float lon) {
 		altitude_ = altitude;
 		lat_ = lat;
@@ -307,7 +315,7 @@ GeoMapView::GeoMapView(
 	GeoPos::alt_unit altitude_unit,
 	float lat,
 	float lon,
-	float angle,
+	uint16_t angle,
 	const std::function<void(void)> on_close
 ) : nav_ (nav),
 	altitude_ (altitude),
@@ -328,6 +336,7 @@ GeoMapView::GeoMapView(
 	
 	geomap.set_mode(mode_);
 	geomap.set_tag(tag);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	
 	geopos.set_read_only(true);
