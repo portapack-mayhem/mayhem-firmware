@@ -92,12 +92,16 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 		text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 	
 	text_infos.set(entry_copy.info_string);
-	
+	if(entry_copy.velo.heading < 360 && entry_copy.velo.speed >=0){ //I don't like this but...
+		text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading) + " Spd:" + to_string_dec_int(entry_copy.velo.speed));
+	}else{
+		text_info2.set("");
+	}
 	text_frame_pos_even.set(to_string_hex_array(entry_copy.frame_pos_even.get_raw_data(), 14));
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
@@ -123,6 +127,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_airline,
 		&text_country,
 		&text_infos,
+		&text_info2,
 		&text_frame_pos_even,
 		&text_frame_pos_odd,
 		&button_see_map
@@ -172,7 +177,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 			GeoPos::alt_unit::FEET,
 			entry_copy.pos.latitude,
 			entry_copy.pos.longitude,
-			0,
+			entry_copy.velo.heading,
 			[this]() {
 				send_updates = false;
 			});
@@ -199,7 +204,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 
 	auto frame = message->frame;
 	uint32_t ICAO_address = frame.get_ICAO_address();
-	
+
 	if (frame.check_CRC() && frame.get_ICAO_address()) {
 		rtcGetTime(&RTCD1, &datetime);
 		auto& entry = ::on_packet(recent, ICAO_address);
@@ -214,6 +219,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		
 		if (frame.get_DF() == DF_ADSB) {
 			uint8_t msg_type = frame.get_msg_type();
+			uint8_t msg_sub = frame.get_msg_sub();
 			uint8_t * raw_data = frame.get_raw_data();
 			
 			if ((msg_type >= 1) && (msg_type <= 4)) {
@@ -224,10 +230,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
-					str_info = "Alt:" + to_string_dec_uint(entry.pos.altitude) +
-						" Lat" + to_string_dec_int(entry.pos.latitude) +
+					str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
+						" Lat:" + to_string_dec_int(entry.pos.latitude) +
 						"." + to_string_dec_int((int)abs(entry.pos.latitude * 1000) % 100, 2, '0') +
-						" Lon" + to_string_dec_int(entry.pos.longitude) +
+						" Lon:" + to_string_dec_int(entry.pos.longitude) +
 						"." + to_string_dec_int((int)abs(entry.pos.longitude * 1000) % 100, 2, '0');
 					
 					entry.set_info_string(str_info);
@@ -236,6 +242,13 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					if (send_updates)
 						details_view->update(entry);
 				}
+			} else if(msg_type == 19 && msg_sub >= 1 && msg_sub <= 4){
+				entry.set_frame_velo(frame);
+				logentry += "Type:" + to_string_dec_uint(msg_sub) +
+							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
+							" Spd: "+ to_string_dec_int(entry.velo.speed);
+				if (send_updates)
+					details_view->update(entry);
 			}
 		}
 		recent_entries_view.set_dirty(); 
