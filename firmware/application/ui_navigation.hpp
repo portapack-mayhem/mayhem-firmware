@@ -222,12 +222,12 @@ private:
 	};
 
 	Text version {
-		{0, 0, 11 * 8, 16},
+		{2, 0, 11 * 8, 16},
 		version_string
 	};
 	
 	LiveDateTime ltime {
-		{176, 0, 8 * 8, 16}
+		{174, 0, 8 * 8, 16}
 	};
 };
 
