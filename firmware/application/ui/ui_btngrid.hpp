@@ -62,6 +62,7 @@ public:
 	uint32_t highlighted_index();
 
 	void set_parent_rect(const Rect new_parent_rect) override;
+	void set_arrow_enabled(bool new_value);
 	void on_focus() override;
 	void on_blur() override;
 	bool on_key(const KeyEvent event) override;

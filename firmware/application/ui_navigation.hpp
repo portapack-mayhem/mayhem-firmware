@@ -110,7 +110,7 @@ public:
 	void set_title(const std::string new_value);
 
 private:
-	static constexpr auto default_title = "        v1.1.1"; // TODO: Move the version somewhere
+	static constexpr auto default_title = "";
 	
 	NavigationView& nav_;
 
@@ -208,6 +208,29 @@ private:
 	};
 };
 
+class InformationView : public View {
+public:
+	InformationView(NavigationView& nav);
+	
+private:
+	static constexpr auto version_string = "v1.1.1";
+	NavigationView& nav_;
+
+	Rectangle backdrop {
+		{ 0, 0 * 16, 240, 16 },
+		{33, 33, 33}
+	};
+
+	Text version {
+		{2, 0, 11 * 8, 16},
+		version_string
+	};
+	
+	LiveDateTime ltime {
+		{174, 0, 8 * 8, 16}
+	};
+};
+
 class BMPView : public View {
 public:
 	BMPView(NavigationView& nav);
@@ -262,6 +285,7 @@ public:
 
 private:
 	SystemStatusView status_view { navigation_view };
+	InformationView info_view { navigation_view };
 	NavigationView navigation_view { };
 	Context& context_;
 };
