@@ -303,7 +303,10 @@ void SystemStatusView::on_camera() {
 }
 
 void SystemStatusView::on_title() {
-	nav_.push<AboutView>();
+	if(nav_.is_top())
+		nav_.push<AboutView>();
+	else
+		nav_.pop();
 }
 
 /* Information View *****************************************************/
