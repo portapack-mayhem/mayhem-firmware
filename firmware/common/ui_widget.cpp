@@ -418,7 +418,16 @@ void LiveDateTime::on_tick_second() {
 	text = text + to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
 
 	if(seconds_enabled){
-		text = text + ":" + to_string_dec_uint(datetime.second(), 2, '0');
+		text += ":";
+
+		if(init_delay==0)
+			text += to_string_dec_uint(datetime.second(), 2, '0');
+		else
+		{
+			// Placeholder while the seconds are not updated
+			text += "XX";
+			init_delay--;
+		}
 	}
 	set_dirty();
 }
@@ -640,7 +649,8 @@ void Console::write(std::string message) {
 
 void Console::writeln(std::string message) {
 	write(message);
-	crlf();
+	//crlf();
+	write("\n");
 }
 
 void Console::paint(Painter&) {

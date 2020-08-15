@@ -254,6 +254,7 @@ public:
 private:
 	void on_tick_second();
 	
+	uint16_t init_delay = 4;
 	bool date_enabled = true;
 	bool seconds_enabled = false;
 	
