@@ -300,8 +300,8 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 	
 	v_rate_coded = (v_rate / 64) + 1;
 	
-	velo_ew_abs = abs(velo_ew);
-	velo_ns_abs = abs(velo_ns);
+	velo_ew_abs = abs(velo_ew) + 1; 
+	velo_ns_abs = abs(velo_ns) + 1;
 	v_rate_coded_abs = abs(v_rate_coded);
 	
 	make_frame_adsb(frame, ICAO_address);
@@ -315,6 +315,54 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 	frame.push_byte(0);
 	
 	frame.make_CRC();
+}
+
+// Decoding method from dump1090
+adsb_vel decode_frame_velo(ADSBFrame& frame){
+	adsb_vel velo {false, 0, 0};
+
+	uint8_t * frame_data = frame.get_raw_data();
+	uint8_t velo_type = frame.get_msg_sub();
+
+	if(velo_type >= 1 && velo_type <= 4){ //vertical rate is always present
+
+		velo.v_rate = (((frame_data[8] & 0x07 ) << 6) | ((frame_data[9]) >> 2) - 1) * 64;
+
+		if((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1; //check v_rate sign
+	}
+
+	if(velo_type == 1 || velo_type == 2){ //Ground Speed
+		int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
+		int32_t velo_ew = raw_ew - 1; //velocities are all offset by one (this is part of the spec)
+
+		int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
+		int32_t velo_ns = raw_ns - 1;
+
+		if (velo_type == 2){ // supersonic indicator so multiply by 4
+			velo_ew = velo_ew << 2;
+			velo_ns = velo_ns << 2;
+		}
+
+		if(frame_data[5]&0x04) velo_ew *= -1; //check ew direction sign
+		if(frame_data[7]&0x80) velo_ns *= -1; //check ns direction sign
+
+		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
+		
+		if(velo.speed){
+			//calculate heading in degrees from ew/ns velocities
+			int16_t heading_temp = (int16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
+			// We don't want negative values but a 0-360 scale. 
+			if (heading_temp < 0) heading_temp += 360.0;
+			velo.heading = (uint16_t)heading_temp;
+		}
+		
+	}else if(velo_type == 3 || velo_type == 4){ //Airspeed
+		velo.valid = frame_data[5] & (1<<2);
+		velo.heading = ((((frame_data[5] & 0x03)<<8) | frame_data[6]) * 45) << 7;
+	} 
+
+	return velo;
+
 }
 
 } /* namespace adsb */

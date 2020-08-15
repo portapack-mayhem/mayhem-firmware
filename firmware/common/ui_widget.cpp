@@ -409,10 +409,26 @@ void Labels::paint(Painter& painter) {
 
 void LiveDateTime::on_tick_second() {
 	rtcGetTime(&RTCD1, &datetime);
+	text = "";
 	
-	text = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " " +
-			to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
+	if(date_enabled){
+		text = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " ";
+	}
 	
+	text = text + to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
+
+	if(seconds_enabled){
+		text += ":";
+
+		if(init_delay==0)
+			text += to_string_dec_uint(datetime.second(), 2, '0');
+		else
+		{
+			// Placeholder while the seconds are not updated
+			text += "XX";
+			init_delay--;
+		}
+	}
 	set_dirty();
 }
 
@@ -442,6 +458,14 @@ void LiveDateTime::paint(Painter& painter) {
 		s,
 		text
 	);
+}
+
+void LiveDateTime::set_date_enabled(bool new_value){
+	this->date_enabled = new_value;
+}
+
+void LiveDateTime::set_seconds_enabled(bool new_value) {
+	this->seconds_enabled = new_value;
 }
 
 /* BigFrequency **********************************************************/
@@ -1760,13 +1784,13 @@ void VuMeter::paint(Painter& painter) {
 				lit = true;
 			
 			if (bar == 0)
-				color = lit ? Color::red() : Color::dark_red();
+				color = lit ? Color::red() : Color::dark_grey();
 			else if (bar == 1)
-				color = lit ? Color::orange() : Color::dark_orange();
+				color = lit ? Color::orange() : Color::dark_grey();
 			else if ((bar == 2) || (bar == 3))
-				color = lit ? Color::yellow() : Color::dark_yellow();
+				color = lit ? Color::yellow() : Color::dark_grey();
 			else
-				color = lit ? Color::green() : Color::dark_green();
+				color = lit ? Color::green() : Color::dark_grey();
 			
 			painter.fill_rectangle({ pos.x(), pos.y() + (Coord)(bar * (LED_height + 1)), width, (Coord)LED_height }, color);
 		}

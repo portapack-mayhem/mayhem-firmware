@@ -83,6 +83,32 @@ NBFMOptionsView::NBFMOptionsView(
 	};
 }
 
+/* SPECOptionsView *******************************************************/
+
+SPECOptionsView::SPECOptionsView(
+	AnalogAudioView* view, const Rect parent_rect, const Style* const style
+) : View { parent_rect }
+{
+	set_style(style);
+
+	add_children({
+		&label_config,
+		&options_config,
+		&text_speed,
+		&field_speed
+	});
+
+	options_config.set_selected_index(view->get_spec_bw_index());
+	options_config.on_change = [this, view](size_t n, OptionsField::value_t bw) {
+		view->set_spec_bw(n, bw);
+	};
+
+	field_speed.set_value(view->get_spec_trigger());
+	field_speed.on_change = [this, view](int32_t v) {
+		view->set_spec_trigger(v);
+	};
+}
+
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
@@ -155,6 +181,29 @@ AnalogAudioView::AnalogAudioView(
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
     on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
+}
+
+size_t AnalogAudioView::get_spec_bw_index() {
+    return spec_bw_index;
+}
+
+void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
+    spec_bw_index = index;
+    spec_bw = bw;
+
+    baseband::set_spectrum(bw, spec_trigger);
+    receiver_model.set_sampling_rate(bw);
+    receiver_model.set_baseband_bandwidth(bw/2);
+}
+
+uint16_t AnalogAudioView::get_spec_trigger() {
+    return spec_trigger;
+}
+
+void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
+    spec_trigger = trigger;
+
+    baseband::set_spectrum(spec_bw, spec_trigger);
 }
 
 AnalogAudioView::~AnalogAudioView() {
@@ -272,6 +321,7 @@ void AnalogAudioView::on_show_options_modulation() {
 		break;
 	
 	case ReceiverModel::Mode::SpectrumAnalysis:
+		widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, &style_options_group);
 		waterfall.show_audio_spectrum_view(false);
 		text_ctcss.hidden(true);
 		break;
@@ -315,15 +365,17 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	}
 
 	baseband::run_image(image_tag);
-	
+
 	if (modulation == ReceiverModel::Mode::SpectrumAnalysis) {
-		baseband::set_spectrum(20000000, 127);
+		baseband::set_spectrum(spec_bw, spec_trigger);
 	}
 
 	const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_modulation(modulation);
-	receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? 20000000 : 3072000);
-	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? 12000000 : 1750000);
+
+	receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
+	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw/2 : 1750000);
+
 	receiver_model.enable();
 
 	// TODO: This doesn't belong here! There's a better way.
