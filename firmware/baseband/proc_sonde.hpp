@@ -140,7 +140,8 @@ private:
 		}
 	};
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
-		{ 0b00001000011011010101001110001000, 32, 1 },
+		{ 0b00001000011011010101001110001000, 32, 1 }, //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
+		//{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
 		{ },
 		{ 320 * 8 },
 		[this](const baseband::Packet& packet) {

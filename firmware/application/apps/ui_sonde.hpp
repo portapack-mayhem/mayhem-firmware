@@ -65,11 +65,10 @@ public:
 
 private:
 	std::unique_ptr<SondeLogger> logger { };
-	uint32_t target_frequency_ { 402000000 };
+	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
-	int32_t altitude { 0 };
-	float latitude { 0 };
-	float longitude { 0 };
+	sonde::GPS_data gps_info;
+	std::string sonde_id;
 	
 	Labels labels {
 		{ { 0 * 8, 2 * 16 }, "Signature:", Color::light_grey() },
