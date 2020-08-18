@@ -53,27 +53,27 @@ TouchCalibrationView::TouchCalibrationView(
 	button_cancel.on_select = [this](Button&){ this->on_cancel(); };
 	button_ok.on_select = [this](Button&){ this->on_ok(); };
 
-	field_sensitivity.set_by_value(persistent_memory::touchsensible());
-	adjust_sensitivity(field_sensitivity.selected_index_value());
+	field_sensitivity.set_by_value((uint32_t)persistent_memory::touch_threshold());
+	adjust_threshold(field_sensitivity.selected_index_value());
 	field_sensitivity.on_change = [this](size_t, OptionsField::value_t v) {
-		adjust_sensitivity(v);
+		adjust_threshold(v);
 	};
 
 	set_phase(Phase::Calibrate0);
 }
 
-void TouchCalibrationView::adjust_sensitivity(uint32_t level) {
-	switch (level) {
-	case 2:		//ENHANCED
-		r_touch_threshold = 480;
+void TouchCalibrationView::adjust_threshold(uint32_t new_threshold)
+{
+	r_touch_threshold = new_threshold;
+	switch (new_threshold)
+	{
+	case 480:
 		samples_limit = 30;
 		break;
-	case 3:		//EXTREME
-		r_touch_threshold = 320;
+	case 320:
 		samples_limit = 20;
 		break;
-	default:	//STANDARD (original values)
-		r_touch_threshold = 640;
+	default: //STANDARD (original value)
 		samples_limit = 40;
 	}
 }
@@ -179,7 +179,7 @@ void TouchCalibrationView::touch_complete() {
 void TouchCalibrationView::on_ok() {
 	if( phase == Phase::Success ) {
 		persistent_memory::set_touch_calibration(calibration);
-		persistent_memory::set_touchsensible(field_sensitivity.selected_index_value()); //Save current sensitivity index	
+		persistent_memory::set_touch_threshold(r_touch_threshold); //Save current sensitivity
 		touch::r_touch_threshold = r_touch_threshold; //Pass the sensitivity threshold into the touch routine	
 		nav.pop();
 	}

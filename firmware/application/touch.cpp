@@ -93,18 +93,8 @@ void Manager::feed(const Frame& frame) {
 	if( touch_raw ) {
 		const auto metrics = calculate_metrics(frame);
 
-		if (!r_touch_threshold) {	//Assigns the correct value from persistent memory at startup
-			switch (persistent_memory::touchsensible()) { 
-			case 2:	//Enhanced
-				r_touch_threshold = 480;
-				break;
-			case 3:	//Extreme
-				r_touch_threshold = 320;
-				break;
-			default:	//standard
-				r_touch_threshold = 640;
-			}
-		}
+		if (r_touch_threshold < 320)	//Assigns the correct value from persistent memory at startup
+			r_touch_threshold = persistent_memory::touch_threshold();
 
 		touch_pressure = (metrics.r < r_touch_threshold);
 		if( touch_pressure ) {
