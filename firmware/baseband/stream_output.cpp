@@ -67,7 +67,7 @@ size_t StreamOutput::read(void* const data, const size_t length) {
 			}
 			// Tell M0 (IRQ) that a buffer has been consumed.
 			active_buffer = nullptr;
-			creg::m4txevent::assert();
+			creg::m4txevent::assert_event();
 		}
 	}
 
