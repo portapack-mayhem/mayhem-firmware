@@ -65,7 +65,7 @@ size_t StreamInput::write(const void* const data, const size_t length) {
 				break;
 			}
 			active_buffer = nullptr;
-			creg::m4txevent::assert();
+			creg::m4txevent::assert_event();
 		}
 	}
 
