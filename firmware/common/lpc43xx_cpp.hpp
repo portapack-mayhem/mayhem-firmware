@@ -69,7 +69,7 @@ inline void disable() {
 #endif
 
 #if defined(LPC43XX_M4)
-inline void assert() {
+inline void assert_event() {
 	__SEV();
 }
 #endif
@@ -93,7 +93,7 @@ inline void disable() {
 #endif
 
 #if defined(LPC43XX_M0)
-inline void assert() {
+inline void assert_event() {
 	__SEV();
 }
 #endif

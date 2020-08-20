@@ -39,7 +39,7 @@ static void send_message(const Message* const message) {
 	// If message is only sent by this function via one thread, no need to check if
 	// another message is present before setting new message.
 	shared_memory.baseband_message = message;
-	creg::m0apptxevent::assert();
+	creg::m0apptxevent::assert_event();
 	while(shared_memory.baseband_message);
 }
 
