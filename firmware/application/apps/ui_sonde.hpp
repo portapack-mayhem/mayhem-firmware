@@ -67,6 +67,7 @@ private:
 	std::unique_ptr<SondeLogger> logger { };
 	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
+	bool use_crc { false };
 	sonde::GPS_data gps_info;
 	std::string sonde_id;
 	
@@ -101,6 +102,12 @@ private:
 		"Log"
 	};
 	
+	Checkbox check_crc {
+		{ 22 * 8, 5 * 16 },
+		3,
+		"CRC"
+	};
+	
 	Text text_signature {
 		{ 10 * 8, 2 * 16, 10 * 8, 16 },
 		"..."
@@ -115,12 +122,12 @@ private:
 	};
 	
 	GeoPos geopos {
-		{ 0, 6 * 16 },
+		{ 0, 7 * 16 },
 		GeoPos::alt_unit::METERS
 	};
 	
 	Button button_see_map {
-		{ 8 * 8, 10 * 16, 14 * 8, 3 * 16 },
+		{ 8 * 8, 11 * 16, 14 * 8, 3 * 16 },
 		"See on map"
 	};
 
