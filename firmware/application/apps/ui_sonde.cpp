@@ -46,6 +46,7 @@ SondeView::SondeView(NavigationView& nav) {
 		&field_vga,
 		&rssi,
 		&check_log,
+		&check_crc,
 		&text_signature,
 		&text_serial,
 		&text_voltage,
@@ -72,6 +73,10 @@ SondeView::SondeView(NavigationView& nav) {
 	
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
+	};
+
+	check_crc.on_select = [this](Checkbox&, bool v) {
+		use_crc = v;
 	};
 	
 	radio::enable({
@@ -110,8 +115,10 @@ void SondeView::focus() {
 }
 
 void SondeView::on_packet(const sonde::Packet& packet) {
-	//const auto hex_formatted = packet.symbols_formatted();
-	
+
+	if (use_crc && !packet.crc_ok())	//euquiq: Reject bad packet if crc is on
+		return;
+
 	text_signature.set(packet.type_string());
 	sonde_id = packet.serial_number();	//used also as tag on the geomap
 	text_serial.set(sonde_id);
@@ -126,9 +133,6 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 	if (logger && logging) {
 		logger->on_packet(packet);
 	}
-	
-	/*if( packet.crc_ok() ) {
-	}*/
 }
 
 void SondeView::set_target_frequency(const uint32_t new_value) {

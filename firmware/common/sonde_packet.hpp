@@ -91,6 +91,8 @@ private:
 
 	using packetReader = FieldReader<baseband::Packet, BitRemapByteReverse>; //baseband::Packet instead of BiphaseMDecoder
 	bool crc_ok_M10() const;
+	bool crc_ok_RS41() const;
+	bool crc16rs41(uint32_t field_start) const;
 };
 
 } /* namespace sonde */

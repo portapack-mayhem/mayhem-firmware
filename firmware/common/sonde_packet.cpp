@@ -29,6 +29,10 @@ namespace sonde {
 
 //Defines for Vaisala RS41, from https://github.com/rs1729/RS/blob/master/rs41/rs41sg.c
 #define MASK_LEN 64
+
+//Following values include the 4 bytes less shift, consumed in detecting the header on proc_sonde
+#define block_status  0x35	//0x039  // 40 bytes
+#define block_gpspos  0x10E	//0x112  // 21 bytes
 #define pos_FrameNb   0x37	//0x03B  // 2 byte
 #define pos_SondeID   0x39	//0x03D  // 8 byte
 #define pos_Voltage   0x041	//0x045  // 3 bytes (but first one is the important one) voltage x 10 ie: 26 = 2.6v
@@ -80,136 +84,221 @@ Packet::Type Packet::type() const {
 //RS41SG 320 bits header, 320bytes frame (or more if it is an "extended frame")
 //The raw data is xor-scrambled with the values in the 64 bytes vaisala_mask (see.hpp)
 
-
-uint8_t Packet::vaisala_descramble(const uint32_t pos) const {
-	//return reader_raw.read(pos * 8, 8) ^ vaisala_mask[pos & 63];  
+uint8_t Packet::vaisala_descramble(const uint32_t pos) const
+{
+	//return reader_raw.read(pos * 8, 8) ^ vaisala_mask[pos & 63];
 	// packet_[i]; its a bit;  packet_.size the total (should be 2560 bits)
 	uint8_t value = 0;
-	for (uint8_t i = 0; i < 8; i++) 
-		value = (value << 1) | packet_[(pos * 8) + (7 -i)];	//get the byte from the bits collection
+	for (uint8_t i = 0; i < 8; i++)
+		value = (value << 1) | packet_[(pos * 8) + (7 - i)]; //get the byte from the bits collection
 
 	//packetReader reader { packet_ };				//This works just as above.
 	//value = reader.read(pos * 8,8);
 	//shift pos because first 4 bytes are consumed by proc_sonde in finding the vaisala signature
 	uint32_t mask_pos = pos + 4;
-	value = value ^ vaisala_mask[mask_pos % MASK_LEN];	//descramble with the xor pseudorandom table
+	value = value ^ vaisala_mask[mask_pos % MASK_LEN]; //descramble with the xor pseudorandom table
 	return value;
 };
 
-GPS_data Packet::get_GPS_data() const {
+GPS_data Packet::get_GPS_data() const
+{
 	GPS_data result;
-	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2)) {
+	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2))
+	{
 
 		result.alt = (reader_bi_m.read(22 * 8, 32) / 1000) - 48;
 		result.lat = reader_bi_m.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
 		result.lon = reader_bi_m.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
-
-	} else if (type_ == Type::Vaisala_RS41_SG) {
+	}
+	else if (type_ == Type::Vaisala_RS41_SG)
+	{
 
 		uint8_t XYZ_bytes[4];
 		int32_t XYZ; // 32bit
 		double_t X[3];
-		for (int32_t k = 0; k < 3; k++) {		//Get X,Y,Z ECEF position from GPS
-			for (int32_t i = 0; i < 4; i++)		//each one is 4 bytes (32 bits)
-				XYZ_bytes[i] = vaisala_descramble(pos_GPSecefX + (4*k) + i);
+		for (int32_t k = 0; k < 3; k++)
+		{									//Get X,Y,Z ECEF position from GPS
+			for (int32_t i = 0; i < 4; i++) //each one is 4 bytes (32 bits)
+				XYZ_bytes[i] = vaisala_descramble(pos_GPSecefX + (4 * k) + i);
 			memcpy(&XYZ, XYZ_bytes, 4);
 			X[k] = XYZ / 100.0;
 		}
 
 		double_t a = 6378137.0;
 		double_t b = 6356752.31424518;
-		double_t e  = sqrt( (a*a - b*b) / (a*a) );
-		double_t ee = sqrt( (a*a - b*b) / (b*b) );
+		double_t e = sqrt((a * a - b * b) / (a * a));
+		double_t ee = sqrt((a * a - b * b) / (b * b));
 
-		double_t lam = atan2( X[1] , X[0] );
-		double_t p = sqrt( X[0]*X[0] + X[1]*X[1] );
-		double_t t = atan2( X[2]*a , p*b );
-		double_t phi = atan2( X[2] + ee*ee * b * sin(t)*sin(t)*sin(t) ,
-					p - e*e * a * cos(t)*cos(t)*cos(t) );
+		double_t lam = atan2(X[1], X[0]);
+		double_t p = sqrt(X[0] * X[0] + X[1] * X[1]);
+		double_t t = atan2(X[2] * a, p * b);
+		double_t phi = atan2(X[2] + ee * ee * b * sin(t) * sin(t) * sin(t),
+							 p - e * e * a * cos(t) * cos(t) * cos(t));
 
-		double_t R = a / sqrt( 1 - e*e*sin(phi)*sin(phi) );
+		double_t R = a / sqrt(1 - e * e * sin(phi) * sin(phi));
 
 		result.alt = p / cos(phi) - R;
-		result.lat = phi*180/PI;
-		result.lon = lam*180/PI;
-
+		result.lat = phi * 180 / PI;
+		result.lon = lam * 180 / PI;
 	}
 	return result;
 }
 
-uint32_t Packet::battery_voltage() const {
+uint32_t Packet::battery_voltage() const
+{
 	if (type_ == Type::Meteomodem_M10)
 		return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
 	else if (type_ == Type::Meteomodem_M2K2)
-		return reader_bi_m.read(69 * 8, 8) * 66;	// Actually 65.8
-	 else if (type_ == Type::Vaisala_RS41_SG) {
-		uint32_t voltage = vaisala_descramble(pos_Voltage) * 100; 	//byte 69 = voltage * 10 (check if this value needs to be multiplied)
+		return reader_bi_m.read(69 * 8, 8) * 66; // Actually 65.8
+	else if (type_ == Type::Vaisala_RS41_SG)
+	{
+		uint32_t voltage = vaisala_descramble(pos_Voltage) * 100; //byte 69 = voltage * 10 (check if this value needs to be multiplied)
 		return voltage;
-	 }
-	else {
-		return 0;	// Unknown
-	}		
-}
-
-std::string Packet::type_string() const {
-	switch (type_) {
-		case Type::Unknown: 				return "Unknown";
-		case Type::Meteomodem_unknown:		return "Meteomodem ???";
-		case Type::Meteomodem_M10:			return "Meteomodem M10";
-		case Type::Meteomodem_M2K2:			return "Meteomodem M2K2";
-		case Type::Vaisala_RS41_SG:			return "Vaisala RS41-SG";
-		default:							return "? 0x" + symbols_formatted().data.substr(0, 6);
+	}
+	else
+	{
+		return 0; // Unknown
 	}
 }
 
-std::string Packet::serial_number() const {
-	if (type() == Type::Meteomodem_M10) {
+std::string Packet::type_string() const
+{
+	switch (type_)
+	{
+	case Type::Unknown:
+		return "Unknown";
+	case Type::Meteomodem_unknown:
+		return "Meteomodem ???";
+	case Type::Meteomodem_M10:
+		return "Meteomodem M10";
+	case Type::Meteomodem_M2K2:
+		return "Meteomodem M2K2";
+	case Type::Vaisala_RS41_SG:
+		return "Vaisala RS41-SG";
+	default:
+		return "? 0x" + symbols_formatted().data.substr(0, 6);
+	}
+}
+
+std::string Packet::serial_number() const
+{
+	if (type() == Type::Meteomodem_M10)
+	{
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606
 		// Starting at byte #93: 00000000 11111111 22222222 33333333 44444444
 		//                           CCCC          AAAABBBB
 		//                                                  44444444 33333333
 		//                                                  DDDEEEEE EEEEEEEE
-		
+
 		return to_string_hex(reader_bi_m.read(93 * 8 + 16, 4), 1) +
-			to_string_dec_uint(reader_bi_m.read(93 * 8 + 20, 4), 2, '0') + " " +
-			to_string_hex(reader_bi_m.read(93 * 8 + 4, 4), 1) + " " +
-			to_string_dec_uint(reader_bi_m.read(93 * 8 + 24, 3), 1) +
-			to_string_dec_uint(reader_bi_m.read(93 * 8 + 27, 13), 4, '0');
-	
-	} else if(type() == Type::Vaisala_RS41_SG) {
+			   to_string_dec_uint(reader_bi_m.read(93 * 8 + 20, 4), 2, '0') + " " +
+			   to_string_hex(reader_bi_m.read(93 * 8 + 4, 4), 1) + " " +
+			   to_string_dec_uint(reader_bi_m.read(93 * 8 + 24, 3), 1) +
+			   to_string_dec_uint(reader_bi_m.read(93 * 8 + 27, 13), 4, '0');
+	}
+	else if (type() == Type::Vaisala_RS41_SG)
+	{
 		std::string serial_id = "";
 		uint8_t achar;
-		for (uint8_t i=0; i<8; i++) {	//euquiq: Serial ID is 8 bytes long, each byte a char
+		for (uint8_t i = 0; i < 8; i++)
+		{ //euquiq: Serial ID is 8 bytes long, each byte a char
 			achar = vaisala_descramble(pos_SondeID + i);
-			if (achar < 32 || achar > 126) return "?"; //Maybe there are ids with less than 8 bytes and this is not OK.
+			if (achar < 32 || achar > 126)
+				return "?"; //Maybe there are ids with less than 8 bytes and this is not OK.
 			serial_id += (char)achar;
 		}
 		return serial_id;
-	} else 
+	}
+	else
 		return "?";
 }
 
-FormattedSymbols Packet::symbols_formatted() const {
-	if (type() == Type::Vaisala_RS41_SG) {	//Euquiq: now we distinguish different types
-		uint32_t bytes = packet_.size() / 8;  //Need the byte amount, which if full, it SHOULD be 320 size() should return 2560
+FormattedSymbols Packet::symbols_formatted() const
+{
+	if (type() == Type::Vaisala_RS41_SG)
+	{										 //euquiq: now we distinguish different types
+		uint32_t bytes = packet_.size() / 8; //Need the byte amount, which if full, it SHOULD be 320 size() should return 2560
 		std::string hex_data;
 		std::string hex_error;
 		hex_data.reserve(bytes * 2); //2 hexa chars per byte
-		hex_error.reserve(1);				
-		for (uint32_t i=0; i < bytes; i++) //log will show the packet starting on the last 4 bytes from signature 93DF1A60
-			hex_data += to_string_hex(vaisala_descramble(i),2);
-		return { hex_data, hex_error };
-
-	} else {
+		hex_error.reserve(1);
+		for (uint32_t i = 0; i < bytes; i++) //log will show the packet starting on the last 4 bytes from signature 93DF1A60
+			hex_data += to_string_hex(vaisala_descramble(i), 2);
+		return {hex_data, hex_error};
+	}
+	else
+	{
 		return format_symbols(decoder_);
 	}
 }
 
-bool Packet::crc_ok() const {
-	switch(type()) {
-	case Type::Meteomodem_M10:	return crc_ok_M10();
-	default:					return false;
+bool Packet::crc_ok() const
+{
+	switch (type())
+	{
+	case Type::Meteomodem_M10:
+		return crc_ok_M10();
+	case Type::Vaisala_RS41_SG:
+		return crc_ok_RS41();
+	default:
+		return false;
 	}
+}
+
+//from 0x008 to 0x037 (48 bytes reed-solomon error correction data)
+//each data block has a 2 byte header, data, and 2 byte tail: 
+// 1st byte: block ID
+// 2nd byte: data length (without header or tail)
+// <data>
+// 2 bytes CRC16 over the data.
+bool Packet::crc_ok_RS41() const
+{
+	if (!crc16rs41(block_status))
+		return false;
+
+		if (!crc16rs41(block_gpspos))
+		return false;
+
+	return true;
+}
+
+//euquiq: Checks CRC16 on a RS41 field:
+bool Packet::crc16rs41(uint32_t field_start) const
+{
+	int crc16poly = 0x1021;
+	int rem = 0xFFFF, b, j;
+	int xbyte;
+	uint32_t pos = field_start + 1;
+	uint8_t length = vaisala_descramble(pos);
+
+	if (pos + length + 2 > packet_.size() / 8)
+		return false; //Packet too short!
+
+	for (b = 0; b < length; b++)
+	{
+		pos++;
+		xbyte = vaisala_descramble(pos);
+		rem = rem ^ (xbyte << 8);
+		for (j = 0; j < 8; j++)
+		{
+			if (rem & 0x8000)
+			{
+				rem = (rem << 1) ^ crc16poly;
+			}
+			else
+			{
+				rem = (rem << 1);
+			}
+			rem &= 0xFFFF;
+		}
+	}
+	//euquiq: Check calculated CRC against packet's one
+	pos++;
+	int crcok = vaisala_descramble(pos) | (vaisala_descramble(pos + 1) << 8);
+	if (crcok != rem)
+		return false;
+	else
+		return true;
 }
 
 bool Packet::crc_ok_M10() const {
