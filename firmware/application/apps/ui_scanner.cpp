@@ -277,9 +277,9 @@ ScannerView::ScannerView(
 		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
 
 		description_list.push_back(
-			"M:" + to_string_short_freq(frequency_range.min) + " >"
-	 		+ to_string_short_freq(frequency_range.max) + " S:" 
-	 		+ to_string_short_freq(def_step)
+			"M" + to_string_short_freq(frequency_range.min) + ">"
+	 		+ to_string_short_freq(frequency_range.max) + "S" 
+	 		+ to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
 		);
 
 		rf::Frequency frequency = frequency_range.min;
@@ -375,9 +375,10 @@ ScannerView::ScannerView(
 					case AIRBAND:def_step= 8330;  	break ;
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
-					description_list.push_back("R:" + to_string_short_freq(entry.frequency_a)
-						+ " >" + to_string_short_freq(entry.frequency_b)
-						+ " S:" + to_string_short_freq(def_step));
+					description_list.push_back("R" + to_string_short_freq(entry.frequency_a)
+						+ ">" + to_string_short_freq(entry.frequency_b)
+						+ " S" + to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
+						);
 					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
 						frequency_list.push_back(entry.frequency_a);
@@ -485,6 +486,7 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		bw.emplace_back("DSB", 0);
 		bw.emplace_back("USB", 0);
 		bw.emplace_back("LSB", 0);
+		bw.emplace_back("CW ", 0);
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_am_audio);
