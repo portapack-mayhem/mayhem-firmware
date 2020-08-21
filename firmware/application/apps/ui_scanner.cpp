@@ -207,15 +207,15 @@ ScannerView::ScannerView(
 	//HELPER: Pre-setting a manual range, based on stored frequency
 	rf::Frequency stored_freq = persistent_memory::tuned_frequency();
 	frequency_range.min = stored_freq - 1000000;
-	button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+	button_manual_start.set_text(to_string_short_freq_no_padding(frequency_range.min));
 	frequency_range.max = stored_freq + 1000000;
-	button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+	button_manual_end.set_text(to_string_short_freq_no_padding(frequency_range.max));
 
 	button_manual_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			frequency_range.min = f;
-			button_manual_start.set_text(to_string_short_freq(f));
+			button_manual_start.set_text(to_string_short_freq_no_padding(f));
 		};
 	};
 	
@@ -223,7 +223,7 @@ ScannerView::ScannerView(
 		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
 			frequency_range.max = f;
-			button_manual_end.set_text(to_string_short_freq(f));
+			button_manual_end.set_text(to_string_short_freq_no_padding(f));
 		};
 	};
 
@@ -277,9 +277,9 @@ ScannerView::ScannerView(
 		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
 
 		description_list.push_back(
-			"M:" + to_string_short_freq(frequency_range.min) + " >"
-	 		+ to_string_short_freq(frequency_range.max) + " S:" 
-	 		+ to_string_short_freq(def_step)
+			"M:" + to_string_short_freq_no_padding(frequency_range.min) + " >"
+	 		+ to_string_short_freq_no_padding(frequency_range.max) + " S:" 
+	 		+ to_string_short_freq_no_padding(def_step)
 		);
 
 		rf::Frequency frequency = frequency_range.min;
@@ -375,9 +375,9 @@ ScannerView::ScannerView(
 					case AIRBAND:def_step= 8330;  	break ;
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
-					description_list.push_back("R:" + to_string_short_freq(entry.frequency_a)
-						+ " >" + to_string_short_freq(entry.frequency_b)
-						+ " S:" + to_string_short_freq(def_step));
+					description_list.push_back("R:" + to_string_short_freq_no_padding(entry.frequency_a)
+						+ " >" + to_string_short_freq_no_padding(entry.frequency_b)
+						+ " S:" + to_string_short_freq_no_padding(def_step));
 					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
 						frequency_list.push_back(entry.frequency_a);
