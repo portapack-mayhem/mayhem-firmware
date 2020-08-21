@@ -88,10 +88,12 @@ private:
 		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "FREQUENCY:", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "BANDWIDTH:   kHz", Color::light_grey() },
-		{ { 7 * 8, 11 * 8 }, "LEVEL:   /255", Color::light_grey() },
-		{ { 6 * 8, 13 * 8 }, "ATTACK:   ms", Color::light_grey() },
-		{ { 7 * 8, 15 * 8 }, "DECAY:    ms", Color::light_grey() },
-		{ { 4 * 8, 18 * 8 }, "TONE KEY:", Color::light_grey() },
+		{ { 3 * 8, 7 * 8 }, "RFGAIN:", Color::light_grey() },
+		{ {13 * 8, 7 * 8 }, "Amp:", Color::light_grey() },
+		{ { 7 * 8, 12 * 8 }, "LEVEL:   /255", Color::light_grey() },
+		{ { 6 * 8, 14 * 8 }, "ATTACK:   ms", Color::light_grey() },
+		{ { 7 * 8, 16 * 8 }, "DECAY:    ms", Color::light_grey() },
+		{ { 4 * 8, ( 19 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 9 * 8, 30 * 8 }, "VOL:", Color::light_grey() },
 		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() }
 	};
@@ -124,29 +126,44 @@ private:
 		' '
 	};
 	
+	NumberField field_rfgain {
+		{ 10 * 8, 7 * 8 },
+		2,
+		{ 0, 47 },
+		1,
+		' '
+	};
+	NumberField field_rfamp {
+		{ 17 * 8, 7 * 8 },
+		2,
+		{ 0, 14 },
+		14,
+		' '
+	};
+	
 	Checkbox check_va {
-		{ 3 * 8, (9 * 8) - 4 },
+		{ 3 * 8, (10 * 8) - 4 },
 		7,
 		"Voice activation",
 		false
 	};
 	
 	NumberField field_va_level {
-		{ 13 * 8, 11 * 8 },
+		{ 13 * 8, 12 * 8 },
 		3,
 		{ 0, 255 },
 		2,
 		' '
 	};
 	NumberField field_va_attack {
-		{ 13 * 8, 13 * 8 },
+		{ 13 * 8, 14 * 8 },
 		3,
 		{ 0, 999 },
 		20,
 		' '
 	};
 	NumberField field_va_decay {
-		{ 13 * 8, 15 * 8 },
+		{ 13 * 8, 16 * 8 },
 		4,
 		{ 0, 9999 },
 		100,
@@ -154,7 +171,7 @@ private:
 	};
 	
 	OptionsField options_tone_key {
-		{ 10 * 8, 20 * 8 },
+		{ 10 * 8, ( 21 * 8 ) - 2 },
 		23,
 		{ }
 	};

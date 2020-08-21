@@ -140,11 +140,13 @@ void MicTXView::rxaudio(bool is_on) {
 		baseband::shutdown();
 		baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		audio::input::start();
-		transmitter_model.enable();		
+//		transmitter_model.enable();		
 		portapack::pin_i2s0_rx_sda.mode(3);
-		transmitting = false;
+//		transmitting = false;
 		configure_baseband();
-		transmitter_model.disable();
+//		transmitter_model.disable();
+		transmitter_model.set_tx_gain(transmitter_model.tx_gain());
+		transmitter_model.set_rf_amp(transmitter_model.rf_amp());
 	}
 }
 
@@ -172,6 +174,8 @@ MicTXView::MicTXView(
 		&field_va_attack,
 		&field_va_decay,
 		&field_bw,
+		&field_rfgain,
+		&field_rfamp,
 		&field_frequency,
 		&options_tone_key,
 		&check_rogerbeep,
@@ -213,6 +217,17 @@ MicTXView::MicTXView(
 	};
 	field_bw.set_value(10);
 	
+	field_rfgain.on_change = [this](int32_t v) {
+		transmitter_model.set_tx_gain(v);
+	};
+	field_rfgain.set_value(transmitter_model.tx_gain());
+	
+	field_rfamp.on_change = [this](int32_t v) {
+		transmitter_model.set_rf_amp((bool)v);
+	};
+	field_rfamp.set_value(transmitter_model.rf_amp() ? 14 : 0);
+	
+	
 	check_va.on_select = [this](Checkbox&, bool v) {
 		va_enabled = v;
 		text_ptt.hidden(v);			//hide / show PTT text
@@ -241,7 +256,7 @@ MicTXView::MicTXView(
 	field_va_decay.set_value(1000);
 
 	check_rxactive.on_select = [this](Checkbox&, bool v) {
-		//vumeter.set_value(0);	//Start with a clean vumeter
+//		vumeter.set_value(0);	//Start with a clean vumeter
 		rx_enabled = v;
 		check_va.hidden(v); 	//Hide or show voice activation
 		rxaudio(v);				//Activate-Deactivate audio rx accordingly
