@@ -113,9 +113,12 @@ std::string to_string_dec_int(
 }
 
 std::string to_string_short_freq(const uint64_t f) {
-	//was...		 to_string_dec_int(f / 1000000)
-	//Why throw formatting away?
 	auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
+	return final_str;
+}
+
+std::string to_string_short_freq_no_padding(const uint64_t f) {
+	auto final_str = to_string_dec_int(f / 1000000) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
 	return final_str;
 }
 
