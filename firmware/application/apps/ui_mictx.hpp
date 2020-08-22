@@ -48,7 +48,7 @@ public:
 	
 	// PTT: Enable through KeyEvent (only works with presses), disable by polling :(
 	bool on_key(const KeyEvent key) {
-		if ((key == KeyEvent::Right) && (!va_enabled)) {
+		if ((key == KeyEvent::Right) && (!va_enabled) && ptt_enabled) {
 			set_tx(true);
 			return true;
 		} else
@@ -70,9 +70,12 @@ private:
 
 	void rxaudio(bool is_on);
 	void on_headphone_volume_changed(int32_t v);
+
+	void set_ptt_visibility(bool v);
 	
 	bool transmitting { false };
 	bool va_enabled { false };
+	bool ptt_enabled { true };
 	bool rogerbeep_enabled { false };
 	bool rx_enabled { false };
 	uint32_t tone_key_index { };
@@ -83,6 +86,12 @@ private:
 	uint32_t decay_ms { };
 	uint32_t attack_timer { 0 };
 	uint32_t decay_timer { 0 };
+	int32_t tx_gain { 47 };
+    bool rf_amp { false };
+	int32_t rx_lna { 32 };
+	int32_t rx_vga { 32 };
+	bool rx_amp { false };
+
 	
 	Labels labels {
 		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
@@ -90,12 +99,16 @@ private:
 		{ { 3 * 8, 5 * 8 }, "BANDWIDTH:   kHz", Color::light_grey() },
 		{ { 3 * 8, 7 * 8 }, "RFGAIN:", Color::light_grey() },
 		{ {13 * 8, 7 * 8 }, "Amp:", Color::light_grey() },
+		{ { 3 * 8, 10 * 8 }, "TX Activation:", Color::light_grey() },
 		{ { 7 * 8, 12 * 8 }, "LEVEL:   /255", Color::light_grey() },
 		{ { 6 * 8, 14 * 8 }, "ATTACK:   ms", Color::light_grey() },
 		{ { 7 * 8, 16 * 8 }, "DECAY:    ms", Color::light_grey() },
 		{ { 4 * 8, ( 19 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 9 * 8, 30 * 8 }, "VOL:", Color::light_grey() },
-		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() }
+		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() },
+		{ { 5 * 8, 34 * 8 }, "LNA:", Color::light_grey()},
+		{ {12 * 8, 34 * 8 }, "VGA:", Color::light_grey()},
+		{ {19 * 8, 34 * 8 }, "AMP:", Color::light_grey()}
 	};
 	
 	VuMeter vumeter {
@@ -140,14 +153,25 @@ private:
 		14,
 		' '
 	};
-	
+	/*
 	Checkbox check_va {
 		{ 3 * 8, (10 * 8) - 4 },
 		7,
 		"Voice activation",
 		false
 	};
-	
+	*/
+
+	OptionsField field_va {
+		{ 17 * 8, 10 * 8 },
+		3,
+		{
+			{" OFF", 0},
+			{" PTT", 1},
+			{"AUTO", 2}
+		}
+	};
+
 	NumberField field_va_level {
 		{ 13 * 8, 12 * 8 },
 		3,
@@ -206,9 +230,41 @@ private:
 		' ',
 	};
 
-	Text text_ptt {
-		{ 7 * 8, 35 * 8, 16 * 8, 16 },
-		"PTT: RIGHT BUTTON"
+	NumberField field_rxlna {
+		{ 9 * 8, 34 * 8 },
+		2,
+		{ 0, 40 },
+		8,
+		' ',
+	};
+
+	NumberField field_rxvga {
+		{ 16 * 8, 34 * 8 },
+		2,
+		{ 0, 62 },
+		2,
+		' ',
+	};
+
+	NumberField field_rxamp {
+		{ 23 * 8, 34 * 8 },
+		2,
+		{ 0, 14 },
+		14,
+		' ',
+	};
+
+	Text text_ptt_1 {
+		{ 22 * 8, 13 * 8, 7 * 8, 8 },
+		"PTT:   "
+	};
+	Text text_ptt_2 {
+		{ 22 * 8, 15 * 8, 7 * 8, 8 },
+		"RIGHT "
+	};
+	Text text_ptt_3 {
+		{ 22 * 8, 17 * 8, 7 * 8, 8 },
+		"BUTTON"
 	};
 
 
