@@ -65,6 +65,8 @@ void MicTXView::set_tx(bool enable) {
 			rxaudio(false); //Then turn off audio RX
 		transmitting = true;
 		configure_baseband();
+		transmitter_model.set_tx_gain(tx_gain);
+		transmitter_model.set_rf_amp(rf_amp);
 		transmitter_model.enable();
 		portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
 	} else {
@@ -133,6 +135,9 @@ void MicTXView::rxaudio(bool is_on) {
 		receiver_model.set_sampling_rate(3072000);
 		receiver_model.set_baseband_bandwidth(1750000);	
 		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
+		receiver_model.set_lna(rx_lna);
+		receiver_model.set_vga(rx_vga);
+		receiver_model.set_rf_amp(rx_amp);
 		receiver_model.enable();
 		audio::output::start();
 	} else {	//These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
@@ -157,6 +162,12 @@ void MicTXView::on_headphone_volume_changed(int32_t v) {
 	//}
 }
 
+void MicTXView::set_ptt_visibility(bool v) {
+	text_ptt_1.hidden(!v);
+	text_ptt_2.hidden(!v);
+	text_ptt_3.hidden(!v);
+}
+
 MicTXView::MicTXView(
 	NavigationView& nav
 )
@@ -169,7 +180,8 @@ MicTXView::MicTXView(
 		&labels,
 		&vumeter,
 		&options_gain,
-		&check_va,
+//		&check_va,
+		&field_va,
 		&field_va_level,
 		&field_va_attack,
 		&field_va_decay,
@@ -182,7 +194,12 @@ MicTXView::MicTXView(
 		&check_rxactive,
 		&field_volume,
 		&field_squelch,
-		&text_ptt
+		&field_rxlna,
+		&field_rxvga,
+		&field_rxamp,
+		&text_ptt_1,
+		&text_ptt_2,
+		&text_ptt_3
 	});
 
 	tone_keys_populate(options_tone_key);
@@ -217,24 +234,57 @@ MicTXView::MicTXView(
 	};
 	field_bw.set_value(10);
 	
+	tx_gain = transmitter_model.tx_gain();
 	field_rfgain.on_change = [this](int32_t v) {
-		transmitter_model.set_tx_gain(v);
+		tx_gain = v;
+		
 	};
-	field_rfgain.set_value(transmitter_model.tx_gain());
-	
+	field_rfgain.set_value(tx_gain);
+
+	rf_amp = transmitter_model.rf_amp();
 	field_rfamp.on_change = [this](int32_t v) {
-		transmitter_model.set_rf_amp((bool)v);
+		rf_amp = (bool)v;
 	};
-	field_rfamp.set_value(transmitter_model.rf_amp() ? 14 : 0);
+	field_rfamp.set_value(rf_amp ? 14 : 0);
 	
-	
+	/*
 	check_va.on_select = [this](Checkbox&, bool v) {
 		va_enabled = v;
 		text_ptt.hidden(v);			//hide / show PTT text
 		check_rxactive.hidden(v); 	//hide / show the RX AUDIO
 		set_dirty();				//Refresh display
 	};
+	*/
+	field_va.set_selected_index(1);
+	field_va.on_change = [this](size_t, int32_t v) {
+		switch(v) {
+			case 0:
+				va_enabled = 0;
+				this->set_ptt_visibility(0);
+				check_rxactive.hidden(0);
+				ptt_enabled = 0;
+				break;
+			case 1:
+				va_enabled = 0;
+				this->set_ptt_visibility(1);
+				check_rxactive.hidden(0);
+				ptt_enabled = 1;
+				break;
+			case 2:
+				if (!rx_enabled) {
+					va_enabled = 1;
+					this->set_ptt_visibility(0);
+					check_rxactive.hidden(1);
+					ptt_enabled = 0;
+				} else {
+					field_va.set_selected_index(1);
+				}
+				break;
+		}
+		set_dirty();
+	};
 	
+
 	check_rogerbeep.on_select = [this](Checkbox&, bool v) {
 		rogerbeep_enabled = v;
 	};
@@ -258,7 +308,7 @@ MicTXView::MicTXView(
 	check_rxactive.on_select = [this](Checkbox&, bool v) {
 //		vumeter.set_value(0);	//Start with a clean vumeter
 		rx_enabled = v;
-		check_va.hidden(v); 	//Hide or show voice activation
+//		check_va.hidden(v); 	//Hide or show voice activation
 		rxaudio(v);				//Activate-Deactivate audio rx accordingly
 		set_dirty();			//Refresh interface
 	};
@@ -271,6 +321,28 @@ MicTXView::MicTXView(
 	};
 	field_squelch.set_value(0);
 	receiver_model.set_squelch_level(0);
+
+	
+	rx_lna = receiver_model.lna();
+	field_rxlna.on_change = [this](int32_t v) {
+		rx_lna = v;
+		receiver_model.set_lna(v);
+	};
+	field_rxlna.set_value(rx_lna);
+
+	rx_vga = receiver_model.vga();
+	field_rxvga.on_change = [this](int32_t v) {
+		rx_vga = v;
+		receiver_model.set_vga(v);
+	};
+	field_rxvga.set_value(rx_vga);
+
+	rx_amp = receiver_model.rf_amp();
+	field_rxamp.on_change = [this](int32_t v) {
+		rx_amp = (bool)v;
+		receiver_model.set_rf_amp(rx_amp);
+	};
+	field_rxamp.set_value(rx_amp ? 14 : 0);
 
 	transmitter_model.set_sampling_rate(sampling_rate);
 	transmitter_model.set_baseband_bandwidth(1750000);
