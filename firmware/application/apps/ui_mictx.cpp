@@ -45,7 +45,7 @@ void MicTXView::focus() {
 			field_rxfrequency.focus();
 			break;
 		default:
-			field_frequency.focus();
+			field_va.focus();
 			break;
 	}	
 }
@@ -126,7 +126,7 @@ void MicTXView::do_timing() {
 	} else {
 		// Check for PTT release
 		const auto switches_state = get_switches_state();
-		if (!switches_state[0] && transmitting)		// Right button
+		if (!switches_state[4] && transmitting && !button_touch)		// Select button
 			set_tx(false);
 	}
 }
@@ -175,9 +175,7 @@ void MicTXView::on_headphone_volume_changed(int32_t v) {
 }
 
 void MicTXView::set_ptt_visibility(bool v) {
-	text_ptt_1.hidden(!v);
-	text_ptt_2.hidden(!v);
-	text_ptt_3.hidden(!v);
+	tx_button.hidden(!v);
 }
 
 MicTXView::MicTXView(
@@ -210,9 +208,7 @@ MicTXView::MicTXView(
 		&field_rxlna,
 		&field_rxvga,
 		&field_rxamp,
-		&text_ptt_1,
-		&text_ptt_2,
-		&text_ptt_3
+		&tx_button
 	});
 
 	tone_keys_populate(options_tone_key);
@@ -236,10 +232,10 @@ MicTXView::MicTXView(
 			transmitter_model.set_tuning_frequency(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
+		focused_ui = 0;
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(tx_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
-			focused_ui = 0;
 			tx_frequency = f;
 			if(!rx_enabled)
 				transmitter_model.set_tuning_frequency(f);
@@ -350,10 +346,10 @@ MicTXView::MicTXView(
 			receiver_model.set_tuning_frequency(f);
 	};
 	field_rxfrequency.on_edit = [this, &nav]() {
+		focused_ui = 1;
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(rx_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
-			focused_ui = 1;
 			rx_frequency = f;
 			if(rx_enabled)
 				receiver_model.set_tuning_frequency(f);
@@ -383,6 +379,26 @@ MicTXView::MicTXView(
 		receiver_model.set_rf_amp(rx_amp);
 	};
 	field_rxamp.set_value(rx_amp);
+
+	tx_button.on_select = [this](TxButton&) {
+		if(ptt_enabled && !transmitting) {
+			button_touch = true;
+			set_tx(true);
+		}
+	};
+
+	tx_button.on_release = [this](TxButton&) {
+		if(button_touch) {
+			button_touch = false;
+			set_tx(false);
+		}
+	};
+
+	tx_button.on_buttonpress = [this](TxButton&) {
+		if(ptt_enabled && !transmitting) {
+			set_tx(true);
+		}
+	};
 
 	transmitter_model.set_sampling_rate(sampling_rate);
 	transmitter_model.set_baseband_bandwidth(1750000);
