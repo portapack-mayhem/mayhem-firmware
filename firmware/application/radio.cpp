@@ -157,13 +157,14 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 
 void set_rf_amp(const bool rf_amp) {
 	rf_path.set_rf_amp(rf_amp);
-	
+	/*
 	if (direction == rf::Direction::Transmit) {
 		if (rf_amp)
 			led_tx.on();
 		else
 			led_tx.off();
 	}
+	*/
 }
 
 void set_lna_gain(const int_fast8_t db) {

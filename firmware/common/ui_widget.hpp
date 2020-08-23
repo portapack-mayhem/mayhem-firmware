@@ -401,6 +401,34 @@ private:
 	std::string text_;
 };
 
+class TxButton : public Widget {
+public:
+	std::function<void(TxButton&)> on_select { }; // Touch only.
+	std::function<void(TxButton&)> on_release { }; // Touch only. There's no way (or complicated) for detecting a button's release :(
+	std::function<void(TxButton&)> on_buttonpress { }; 
+	std::function<bool(TxButton&, KeyEvent)> on_dir { };
+	std::function<void(TxButton&)> on_highlight { };
+
+	TxButton(Rect parent_rect, std::string text);
+
+	TxButton(
+	) : TxButton { { }, { } }
+	{
+	}
+
+	void set_text(const std::string value);
+	std::string text() const;
+
+	void paint(Painter& painter) override;
+
+	void on_focus() override;
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+
+private:
+	std::string text_;
+};
+
 class NewButton : public Widget {
 public:
 	std::function<void(void)> on_select { };
