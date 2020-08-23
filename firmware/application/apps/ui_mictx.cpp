@@ -37,7 +37,17 @@ using namespace portapack;
 namespace ui {
 
 void MicTXView::focus() {
-	field_frequency.focus();
+	switch(focused_ui) {
+		case 0:
+			field_frequency.focus();
+			break;
+		case 1:
+			field_rxfrequency.focus();
+			break;
+		default:
+			field_frequency.focus();
+			break;
+	}	
 }
 
 void MicTXView::update_vumeter() {
@@ -65,6 +75,7 @@ void MicTXView::set_tx(bool enable) {
 			rxaudio(false); //Then turn off audio RX
 		transmitting = true;
 		configure_baseband();
+		transmitter_model.set_tuning_frequency(tx_frequency);
 		transmitter_model.set_tx_gain(tx_gain);
 		transmitter_model.set_rf_amp(rf_amp);
 		transmitter_model.enable();
@@ -120,11 +131,13 @@ void MicTXView::do_timing() {
 	}
 }
 
+/* Hmmmm. Maybe useless now.
 void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
 	//if ( rx_enabled )
 		receiver_model.set_tuning_frequency(f); //Update freq also for RX
 }
+*/
 
 void MicTXView::rxaudio(bool is_on) {
 	if (is_on) {
@@ -134,7 +147,8 @@ void MicTXView::rxaudio(bool is_on) {
 		receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
 		receiver_model.set_sampling_rate(3072000);
 		receiver_model.set_baseband_bandwidth(1750000);	
-		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
+//		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
+		receiver_model.set_tuning_frequency(rx_frequency); // Now with seperate controls!
 		receiver_model.set_lna(rx_lna);
 		receiver_model.set_vga(rx_vga);
 		receiver_model.set_rf_amp(rx_amp);
@@ -150,8 +164,6 @@ void MicTXView::rxaudio(bool is_on) {
 //		transmitting = false;
 		configure_baseband();
 //		transmitter_model.disable();
-		transmitter_model.set_tx_gain(transmitter_model.tx_gain());
-		transmitter_model.set_rf_amp(transmitter_model.rf_amp());
 	}
 }
 
@@ -194,6 +206,7 @@ MicTXView::MicTXView(
 		&check_rxactive,
 		&field_volume,
 		&field_squelch,
+		&field_rxfrequency,
 		&field_rxlna,
 		&field_rxvga,
 		&field_rxamp,
@@ -214,16 +227,22 @@ MicTXView::MicTXView(
 	};
 	options_gain.set_selected_index(1);		// x1.0
 	
+	tx_frequency = transmitter_model.tuning_frequency();
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		tx_frequency = f;
+		if(!rx_enabled)
+			transmitter_model.set_tuning_frequency(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(tx_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
+			focused_ui = 0;
+			tx_frequency = f;
+			if(!rx_enabled)
+				transmitter_model.set_tuning_frequency(f);
 			this->field_frequency.set_value(f);
 			set_dirty();
 		};
@@ -322,6 +341,27 @@ MicTXView::MicTXView(
 	field_squelch.set_value(0);
 	receiver_model.set_squelch_level(0);
 
+	rx_frequency = receiver_model.tuning_frequency();
+	field_rxfrequency.set_value(rx_frequency);
+	field_rxfrequency.set_step(receiver_model.frequency_step());
+	field_rxfrequency.on_change = [this](rf::Frequency f) {
+		rx_frequency = f;
+		if(rx_enabled)
+			receiver_model.set_tuning_frequency(f);
+	};
+	field_rxfrequency.on_edit = [this, &nav]() {
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(rx_frequency);
+		new_view->on_changed = [this](rf::Frequency f) {
+			focused_ui = 1;
+			rx_frequency = f;
+			if(rx_enabled)
+				receiver_model.set_tuning_frequency(f);
+			this->field_rxfrequency.set_value(f);
+			set_dirty();
+		};
+	};
+
 	
 	rx_lna = receiver_model.lna();
 	field_rxlna.on_change = [this](int32_t v) {
@@ -339,10 +379,10 @@ MicTXView::MicTXView(
 
 	rx_amp = receiver_model.rf_amp();
 	field_rxamp.on_change = [this](int32_t v) {
-		rx_amp = (bool)v;
+		rx_amp = v;
 		receiver_model.set_rf_amp(rx_amp);
 	};
-	field_rxamp.set_value(rx_amp ? 14 : 0);
+	field_rxamp.set_value(rx_amp);
 
 	transmitter_model.set_sampling_rate(sampling_rate);
 	transmitter_model.set_baseband_bandwidth(1750000);
@@ -355,6 +395,7 @@ MicTXView::MicTXView(
 
 MicTXView::~MicTXView() {
 	audio::input::stop();
+	transmitter_model.set_tuning_frequency(tx_frequency); // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
 	transmitter_model.disable();
 	if (rx_enabled) //Also turn off audio rx if enabled
 		rxaudio(false);

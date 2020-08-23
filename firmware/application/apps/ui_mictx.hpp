@@ -64,7 +64,7 @@ private:
 	void update_vumeter();
 	void do_timing();
 	void set_tx(bool enable);
-	void on_tuning_frequency_changed(rf::Frequency f);
+//	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_tx_progress(const bool done);
 	void configure_baseband();
 
@@ -91,6 +91,9 @@ private:
 	int32_t rx_lna { 32 };
 	int32_t rx_vga { 32 };
 	bool rx_amp { false };
+	rf::Frequency tx_frequency { 0 };
+	rf::Frequency rx_frequency { 0 };
+	int32_t focused_ui { 0 };
 
 	
 	Labels labels {
@@ -106,9 +109,10 @@ private:
 		{ { 4 * 8, ( 19 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 9 * 8, 30 * 8 }, "VOL:", Color::light_grey() },
 		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() },
-		{ { 5 * 8, 34 * 8 }, "LNA:", Color::light_grey()},
-		{ {12 * 8, 34 * 8 }, "VGA:", Color::light_grey()},
-		{ {19 * 8, 34 * 8 }, "AMP:", Color::light_grey()}
+		{ { 5 * 8, 34 * 8 }, "FREQUENCY:", Color::light_grey() },
+		{ { 5 * 8, 36 * 8 }, "LNA:", Color::light_grey()},
+		{ {12 * 8, 36 * 8 }, "VGA:", Color::light_grey()},
+		{ {19 * 8, 36 * 8 }, "AMP:", Color::light_grey()}
 	};
 	
 	VuMeter vumeter {
@@ -230,8 +234,12 @@ private:
 		' ',
 	};
 
+	FrequencyField field_rxfrequency {
+		{ 15 * 8, 34 * 8 },
+	};
+
 	NumberField field_rxlna {
-		{ 9 * 8, 34 * 8 },
+		{ 9 * 8, 36 * 8 },
 		2,
 		{ 0, 40 },
 		8,
@@ -239,7 +247,7 @@ private:
 	};
 
 	NumberField field_rxvga {
-		{ 16 * 8, 34 * 8 },
+		{ 16 * 8, 36 * 8 },
 		2,
 		{ 0, 62 },
 		2,
@@ -247,10 +255,10 @@ private:
 	};
 
 	NumberField field_rxamp {
-		{ 23 * 8, 34 * 8 },
-		2,
-		{ 0, 14 },
-		14,
+		{ 23 * 8, 36 * 8 },
+		1,
+		{ 0, 1 },
+		1,
 		' ',
 	};
 
