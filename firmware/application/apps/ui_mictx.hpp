@@ -47,6 +47,8 @@ public:
 	void focus() override;
 	
 	// PTT: Enable through KeyEvent (only works with presses), disable by polling :(
+	// This is the old "RIGHT BUTTON" method.
+	/*
 	bool on_key(const KeyEvent key) {
 		if ((key == KeyEvent::Right) && (!va_enabled) && ptt_enabled) {
 			set_tx(true);
@@ -54,7 +56,8 @@ public:
 		} else
 			return false;
 	};
-	
+	*/
+
 	std::string title() const override { return "Mic TX RX"; };
 
 private:
@@ -93,26 +96,27 @@ private:
 	bool rx_amp { false };
 	rf::Frequency tx_frequency { 0 };
 	rf::Frequency rx_frequency { 0 };
-	int32_t focused_ui { 0 };
+	int32_t focused_ui { 2 };
+	bool button_touch { true };
 
 	
 	Labels labels {
 		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
-		{ { 3 * 8, 3 * 8 }, "FREQUENCY:", Color::light_grey() },
-		{ { 3 * 8, 5 * 8 }, "BANDWIDTH:   kHz", Color::light_grey() },
-		{ { 3 * 8, 7 * 8 }, "RFGAIN:", Color::light_grey() },
-		{ {13 * 8, 7 * 8 }, "Amp:", Color::light_grey() },
-		{ { 3 * 8, 10 * 8 }, "TX Activation:", Color::light_grey() },
-		{ { 7 * 8, 12 * 8 }, "LEVEL:   /255", Color::light_grey() },
-		{ { 6 * 8, 14 * 8 }, "ATTACK:   ms", Color::light_grey() },
-		{ { 7 * 8, 16 * 8 }, "DECAY:    ms", Color::light_grey() },
-		{ { 4 * 8, ( 19 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
-		{ { 9 * 8, 30 * 8 }, "VOL:", Color::light_grey() },
-		{ { 5 * 8, 32 * 8 }, "SQUELCH:", Color::light_grey() },
-		{ { 5 * 8, 34 * 8 }, "FREQUENCY:", Color::light_grey() },
-		{ { 5 * 8, 36 * 8 }, "LNA:", Color::light_grey()},
-		{ {12 * 8, 36 * 8 }, "VGA:", Color::light_grey()},
-		{ {19 * 8, 36 * 8 }, "AMP:", Color::light_grey()}
+		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "BW:   kHz", Color::light_grey() },
+		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
+		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
+		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },
+		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },
+		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
+		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
+		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
+		{ { 9 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
+		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
+		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
+		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
+		{ {12 * 8, 27 * 8 }, "VGA:", Color::light_grey()},
+		{ {19 * 8, 27 * 8 }, "AMP:", Color::light_grey()}
 	};
 	
 	VuMeter vumeter {
@@ -120,6 +124,7 @@ private:
 		12,
 		true
 	};
+
 	
 	OptionsField options_gain {
 		{ 13 * 8, 1 * 8 },
@@ -133,10 +138,10 @@ private:
 	};
 	
 	FrequencyField field_frequency {
-		{ 13 * 8, 3 * 8 },
+		{ 5 * 8, 3 * 8 },
 	};
 	NumberField field_bw {
-		{ 13 * 8, 5 * 8 },
+		{ 18 * 8, 3 * 8 },
 		3,
 		{ 0, 150 },
 		1,
@@ -144,14 +149,14 @@ private:
 	};
 	
 	NumberField field_rfgain {
-		{ 10 * 8, 7 * 8 },
+		{ 8 * 8, 5 * 8 },
 		2,
 		{ 0, 47 },
 		1,
 		' '
 	};
 	NumberField field_rfamp {
-		{ 17 * 8, 7 * 8 },
+		{ 15 * 8, 5 * 8 },
 		2,
 		{ 0, 14 },
 		14,
@@ -167,7 +172,7 @@ private:
 	*/
 
 	OptionsField field_va {
-		{ 17 * 8, 10 * 8 },
+		{ 17 * 8, 8 * 8 },
 		3,
 		{
 			{" OFF", 0},
@@ -177,21 +182,21 @@ private:
 	};
 
 	NumberField field_va_level {
-		{ 13 * 8, 12 * 8 },
+		{ 8 * 8, 10 * 8 },
 		3,
 		{ 0, 255 },
 		2,
 		' '
 	};
 	NumberField field_va_attack {
-		{ 13 * 8, 14 * 8 },
+		{ 16 * 8, 10 * 8 },
 		3,
 		{ 0, 999 },
 		20,
 		' '
 	};
 	NumberField field_va_decay {
-		{ 13 * 8, 16 * 8 },
+		{ 24 * 8, 10 * 8 },
 		4,
 		{ 0, 9999 },
 		100,
@@ -199,27 +204,27 @@ private:
 	};
 	
 	OptionsField options_tone_key {
-		{ 10 * 8, ( 21 * 8 ) - 2 },
+		{ 10 * 8, ( 15 * 8 ) - 2 },
 		23,
 		{ }
 	};
 
 	Checkbox check_rogerbeep {
-		{ 3 * 8, 23 * 8 },
+		{ 3 * 8, ( 16 * 8 ) + 4 },
 		10,
 		"Roger beep",
 		false
 	};
 
 	Checkbox check_rxactive {
-		{ 3 * 8, (27 * 8) + 4 },
+		{ 3 * 8, ( 21 * 8 ) - 4 },
 		8,
 		"RX audio listening",
 		false
 	};
 
 	NumberField field_volume {
-		{ 13 * 8, 30 * 8 },
+		{ 13 * 8, 23 * 8 },
 		2,
 		{ 0, 99 },
 		1,
@@ -227,7 +232,7 @@ private:
 	};
 	
 	NumberField field_squelch {
-		{ 13 * 8, 32 * 8 },
+		{ 20 * 8, 25 * 8 },
 		2,
 		{ 0, 99 },
 		1,
@@ -235,11 +240,11 @@ private:
 	};
 
 	FrequencyField field_rxfrequency {
-		{ 15 * 8, 34 * 8 },
+		{ 7 * 8, 25 * 8 },
 	};
 
 	NumberField field_rxlna {
-		{ 9 * 8, 36 * 8 },
+		{ 9 * 8, 27 * 8 },
 		2,
 		{ 0, 40 },
 		8,
@@ -247,7 +252,7 @@ private:
 	};
 
 	NumberField field_rxvga {
-		{ 16 * 8, 36 * 8 },
+		{ 16 * 8, 27 * 8 },
 		2,
 		{ 0, 62 },
 		2,
@@ -255,24 +260,16 @@ private:
 	};
 
 	NumberField field_rxamp {
-		{ 23 * 8, 36 * 8 },
+		{ 23 * 8, 27 * 8 },
 		1,
 		{ 0, 1 },
 		1,
 		' ',
 	};
 
-	Text text_ptt_1 {
-		{ 22 * 8, 13 * 8, 7 * 8, 8 },
-		"PTT:   "
-	};
-	Text text_ptt_2 {
-		{ 22 * 8, 15 * 8, 7 * 8, 8 },
-		"RIGHT "
-	};
-	Text text_ptt_3 {
-		{ 22 * 8, 17 * 8, 7 * 8, 8 },
-		"BUTTON"
+	TxButton tx_button {
+		{ 10 * 8, 30 * 8, 10 * 8, 5 * 8 },
+		"TX"
 	};
 
 
