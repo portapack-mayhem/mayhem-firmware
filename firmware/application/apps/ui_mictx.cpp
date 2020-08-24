@@ -397,7 +397,9 @@ MicTXView::MicTXView(
 	};
 
 	tx_button.on_touch_press = [this](Button&) {
-		button_touch = true;
+		if(!transmitting) {
+			button_touch = true;
+		}	
 	};
 
 	transmitter_model.set_sampling_rate(sampling_rate);
