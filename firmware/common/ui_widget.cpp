@@ -827,9 +827,11 @@ bool Checkbox::on_touch(const TouchEvent event) {
 
 Button::Button(
 	Rect parent_rect,
-	std::string text
+	std::string text,
+	bool instant_exec
 ) : Widget { parent_rect },
-	text_ { text }
+	text_ { text },
+	instant_exec_ { instant_exec }
 {
 	set_focusable(true);
 }
@@ -899,14 +901,23 @@ bool Button::on_touch(const TouchEvent event) {
 	case TouchEvent::Type::Start:
 		set_highlighted(true);
 		set_dirty();
+		if( on_touch_press) {
+			on_touch_press(*this);
+		}
+		if( on_select && instant_exec_ ) {
+			on_select(*this);
+		}
 		return true;
 
 
 	case TouchEvent::Type::End:
 		set_highlighted(false);
 		set_dirty();
-		if( on_select ) {
+		if( on_select && !instant_exec_ ) {
 			on_select(*this);
+		}
+		if( on_touch_release) {
+			on_touch_release(*this);
 		}
 		return true;
 
@@ -944,101 +955,6 @@ bool Button::on_touch(const TouchEvent event) {
 		return false;
 	}
 #endif
-}
-
-/* TxButton ****************************************************************/
-
-TxButton::TxButton(
-	Rect parent_rect,
-	std::string text
-) : Widget { parent_rect },
-	text_ { text }
-{
-	set_focusable(true);
-}
-
-void TxButton::set_text(const std::string value) {
-	text_ = value;
-	set_dirty();
-}
-
-std::string TxButton::text() const {
-	return text_;
-}
-
-void TxButton::paint(Painter& painter) {
-	Color bg, fg;
-	const auto r = screen_rect();
-
-	if (has_focus() || highlighted()) {
-		bg = style().foreground;
-		fg = Color::black();
-	} else {
-		bg = Color::grey();
-		fg = style().foreground;
-	}
-	
-	const Style paint_style = { style().font, bg, fg };
-	
-	painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
-	painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
-	painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
-
-	painter.fill_rectangle(
-		{ r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2 },
-		paint_style.background
-	);
-
-	const auto label_r = paint_style.font.size_of(text_);
-	painter.draw_string(
-		{ r.location().x() + (r.size().width() - label_r.width()) / 2, r.location().y() + (r.size().height() - label_r.height()) / 2 },
-		paint_style,
-		text_
-	);
-}
-
-void TxButton::on_focus() {
-	if( on_highlight )
-		on_highlight(*this);
-}
-
-bool TxButton::on_key(const KeyEvent key) {
-	if( key == KeyEvent::Select ) {
-		if( on_buttonpress ) {
-			on_buttonpress(*this);
-			return true;
-		}
-	} else {
-		if( on_dir ) {
-			return on_dir(*this, key);
-		}
-	}
-
-	return false;
-}
-
-bool TxButton::on_touch(const TouchEvent event) {
-	switch(event.type) {
-	case TouchEvent::Type::Start:
-		set_highlighted(true);
-		set_dirty();
-		if( on_select ) {
-			on_select(*this);
-		}
-		return true;
-
-
-	case TouchEvent::Type::End:
-		set_highlighted(false);
-		set_dirty();
-		if( on_release ) {
-			on_release(*this);
-		}
-		return true;
-
-	default:
-		return false;
-	}
 }
 
 /* NewButton ****************************************************************/

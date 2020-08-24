@@ -97,7 +97,7 @@ private:
 	rf::Frequency tx_frequency { 0 };
 	rf::Frequency rx_frequency { 0 };
 	int32_t focused_ui { 2 };
-	bool button_touch { true };
+	bool button_touch { false };
 
 	
 	Labels labels {
@@ -267,9 +267,10 @@ private:
 		' ',
 	};
 
-	TxButton tx_button {
+	Button tx_button {
 		{ 10 * 8, 30 * 8, 10 * 8, 5 * 8 },
-		"TX"
+		"TX",
+		true
 	};
 
 

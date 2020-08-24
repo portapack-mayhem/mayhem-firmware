@@ -378,10 +378,18 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select { };
+	std::function<void(Button&)> on_touch_release { }; // Executed when releasing touch, after on_select.
+	std::function<void(Button&)> on_touch_press { }; // Executed when touching, before on_select.
 	std::function<bool(Button&, KeyEvent)> on_dir { };
 	std::function<void(Button&)> on_highlight { };
 
-	Button(Rect parent_rect, std::string text);
+	Button(Rect parent_rect, std::string text, bool instant_exec); // instant_exec: Execute on_select when you touching instead of releasing
+	Button(
+		Rect parent_rect,
+		std::string text
+	) : Button { parent_rect, text, false }
+	{
+	}
 
 	Button(
 	) : Button { { }, { } }
@@ -399,34 +407,7 @@ public:
 
 private:
 	std::string text_;
-};
-
-class TxButton : public Widget {
-public:
-	std::function<void(TxButton&)> on_select { }; // Touch only.
-	std::function<void(TxButton&)> on_release { }; // Touch only. There's no way (or complicated) for detecting a button's release :(
-	std::function<void(TxButton&)> on_buttonpress { }; 
-	std::function<bool(TxButton&, KeyEvent)> on_dir { };
-	std::function<void(TxButton&)> on_highlight { };
-
-	TxButton(Rect parent_rect, std::string text);
-
-	TxButton(
-	) : TxButton { { }, { } }
-	{
-	}
-
-	void set_text(const std::string value);
-	std::string text() const;
-
-	void paint(Painter& painter) override;
-
-	void on_focus() override;
-	bool on_key(const KeyEvent key) override;
-	bool on_touch(const TouchEvent event) override;
-
-private:
-	std::string text_;
+	bool instant_exec_ { false };
 };
 
 class NewButton : public Widget {

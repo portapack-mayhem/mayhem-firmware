@@ -362,42 +362,42 @@ MicTXView::MicTXView(
 	rx_lna = receiver_model.lna();
 	field_rxlna.on_change = [this](int32_t v) {
 		rx_lna = v;
-		receiver_model.set_lna(v);
+		if(rx_enabled)
+			receiver_model.set_lna(v);
 	};
 	field_rxlna.set_value(rx_lna);
 
 	rx_vga = receiver_model.vga();
 	field_rxvga.on_change = [this](int32_t v) {
 		rx_vga = v;
-		receiver_model.set_vga(v);
+		if(rx_enabled)
+			receiver_model.set_vga(v);
 	};
 	field_rxvga.set_value(rx_vga);
 
 	rx_amp = receiver_model.rf_amp();
 	field_rxamp.on_change = [this](int32_t v) {
 		rx_amp = v;
-		receiver_model.set_rf_amp(rx_amp);
+		if(rx_enabled)
+			receiver_model.set_rf_amp(rx_amp);
 	};
 	field_rxamp.set_value(rx_amp);
 
-	tx_button.on_select = [this](TxButton&) {
+	tx_button.on_select = [this](Button&) {
 		if(ptt_enabled && !transmitting) {
-			button_touch = true;
 			set_tx(true);
 		}
 	};
 
-	tx_button.on_release = [this](TxButton&) {
+	tx_button.on_touch_release = [this](Button&) {
 		if(button_touch) {
 			button_touch = false;
 			set_tx(false);
 		}
 	};
 
-	tx_button.on_buttonpress = [this](TxButton&) {
-		if(ptt_enabled && !transmitting) {
-			set_tx(true);
-		}
+	tx_button.on_touch_press = [this](Button&) {
+		button_touch = true;
 	};
 
 	transmitter_model.set_sampling_rate(sampling_rate);
