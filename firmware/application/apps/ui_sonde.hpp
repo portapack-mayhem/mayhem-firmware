@@ -67,18 +67,26 @@ private:
 	std::unique_ptr<SondeLogger> logger { };
 	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
+	bool use_crc { false };
 	sonde::GPS_data gps_info;
+	sonde::temp_humid temp_humid_info;
 	std::string sonde_id;
 	
 	Labels labels {
-		{ { 0 * 8, 2 * 16 }, "Signature:", Color::light_grey() },
-		{ { 3 * 8, 3 * 16 }, "Serial:", Color::light_grey() },
-		{ { 4 * 8, 4 * 16 }, "Vbatt:", Color::light_grey() }
+		{ { 4 * 8, 2 * 16 }, "Type:", Color::light_grey() },
+		{ { 6 * 8, 3 * 16 }, "ID:", Color::light_grey() },
+		{ { 0 * 8, 4 * 16 }, "DateTime:", Color::light_grey() },
+
+		{ { 3 * 8, 5 * 16 }, "Vbatt:", Color::light_grey() },
+		{ { 3 * 8, 6 * 16 }, "Frame:", Color::light_grey() },
+		{ { 4 * 8, 7 * 16 }, "Temp:", Color::light_grey() },
+		{ { 0 * 8, 8 * 16 }, "Humidity:", Color::light_grey() }
 	};
 
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
 	};
+
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
 	};
@@ -96,31 +104,59 @@ private:
 	};
 	
 	Checkbox check_log {
-		{ 22 * 8, 3 * 16 },
+		{ 23 * 8, 6 * 16 },
 		3,
 		"Log"
 	};
 	
-	Text text_signature {
-		{ 10 * 8, 2 * 16, 10 * 8, 16 },
-		"..."
-	};
-	Text text_serial {
-		{ 10 * 8, 3 * 16, 11 * 8, 16 },
-		"..."
-	};
-	Text text_voltage {
-		{ 10 * 8, 4 * 16, 10 * 8, 16 },
-		"..."
+	Checkbox check_crc {
+		{ 23 * 8, 8 * 16 },
+		3,
+		"CRC"
 	};
 	
+	Text text_signature {
+		{ 9 * 8, 2 * 16, 10 * 8, 16 },
+		"..."
+	};
+
+	Text text_serial {
+		{ 9 * 8, 3 * 16, 11 * 8, 16 },
+		"..."
+	};
+
+	Text text_timestamp {
+		{ 9 * 8, 4 * 16, 11 * 8, 16 },
+		"..."
+	};
+
+	Text text_voltage {
+		{ 9 * 8, 5 * 16, 10 * 8, 16 },
+		"..."
+	};
+
+	Text text_frame {
+		{ 9 * 8, 6 * 16, 10 * 8, 16 },
+		"..."
+	};
+
+	Text text_temp {
+		{ 9 * 8, 7 * 16, 10 * 8, 16 },
+		"..."
+	};
+
+	Text text_humid {
+		{ 9 * 8, 8 * 16, 10 * 8, 16 },
+		"..."
+	};
+
 	GeoPos geopos {
-		{ 0, 6 * 16 },
+		{ 0, 12 * 16 },
 		GeoPos::alt_unit::METERS
 	};
 	
 	Button button_see_map {
-		{ 8 * 8, 10 * 16, 14 * 8, 3 * 16 },
+		{ 8 * 8, 16 * 16, 14 * 8, 3 * 16 },
 		"See on map"
 	};
 

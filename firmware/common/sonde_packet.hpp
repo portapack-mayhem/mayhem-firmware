@@ -32,10 +32,18 @@
 
 namespace sonde {
 
+	static uint8_t calibytes[51*16];	//need these vars to survive
+	static uint8_t calfrchk[51];		//so subframes are preserved while populated
+
 	struct GPS_data {
 		uint32_t alt { 0 };
 		float lat { 0 };
 		float lon { 0 };
+	};
+
+	struct temp_humid {
+		float temp { 0 };
+		float humid { 0 };
 	};
 
 class Packet {
@@ -52,8 +60,6 @@ public:
 
 	size_t length() const;
 	
-	bool is_valid() const;
-
 	Timestamp received_at() const;
 
 	Type type() const;
@@ -61,8 +67,9 @@ public:
 	
 	std::string serial_number() const;
 	uint32_t battery_voltage() const;
-	
 	GPS_data get_GPS_data() const;
+	uint32_t frame() const;	
+	temp_humid get_temp_humid() const;
 
 	FormattedSymbols symbols_formatted() const;
 
@@ -90,7 +97,10 @@ private:
 	Type type_;
 
 	using packetReader = FieldReader<baseband::Packet, BitRemapByteReverse>; //baseband::Packet instead of BiphaseMDecoder
+
 	bool crc_ok_M10() const;
+	bool crc_ok_RS41() const;
+	bool crc16rs41(uint32_t field_start) const;
 };
 
 } /* namespace sonde */

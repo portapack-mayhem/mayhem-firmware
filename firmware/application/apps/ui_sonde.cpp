@@ -24,9 +24,14 @@
 #include "baseband_api.hpp"
 
 #include "portapack.hpp"
+#include <cstring>
+#include <stdio.h>
+
 using namespace portapack;
 
 #include "string_format.hpp"
+#include "complex.hpp"
+
 
 void SondeLogger::on_packet(const sonde::Packet& packet) {
 	const auto formatted = packet.symbols_formatted();
@@ -46,9 +51,14 @@ SondeView::SondeView(NavigationView& nav) {
 		&field_vga,
 		&rssi,
 		&check_log,
+		&check_crc,
 		&text_signature,
 		&text_serial,
+		&text_timestamp,
 		&text_voltage,
+		&text_frame,
+		&text_temp,
+		&text_humid,
 		&geopos,
 		&button_see_map
 	});
@@ -72,6 +82,10 @@ SondeView::SondeView(NavigationView& nav) {
 	
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
+	};
+
+	check_crc.on_select = [this](Checkbox&, bool v) {
+		use_crc = v;
 	};
 	
 	radio::enable({
@@ -109,26 +123,46 @@ void SondeView::focus() {
 	field_vga.focus();
 }
 
-void SondeView::on_packet(const sonde::Packet& packet) {
-	//const auto hex_formatted = packet.symbols_formatted();
-	
-	text_signature.set(packet.type_string());
-	sonde_id = packet.serial_number();	//used also as tag on the geomap
-	text_serial.set(sonde_id);
-	text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
+void SondeView::on_packet(const sonde::Packet &packet)
+{
+	if (!use_crc || packet.crc_ok()) //euquiq: Reject bad packet if crc is on
+	{
+		text_signature.set(packet.type_string());
 
-	gps_info = packet.get_GPS_data();
-	
-	geopos.set_altitude(gps_info.alt);
-	geopos.set_lat(gps_info.lat);
-	geopos.set_lon(gps_info.lon);
-	
-	if (logger && logging) {
-		logger->on_packet(packet);
+		sonde_id = packet.serial_number(); //used also as tag on the geomap
+		text_serial.set(sonde_id);
+
+		text_timestamp.set(to_string_timestamp(packet.received_at()));
+
+		text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 2) + "V");
+
+		text_frame.set(to_string_dec_uint(packet.frame(),0)); //euquiq: integrate frame #, temp & humid.
+		
+		temp_humid_info = packet.get_temp_humid();
+		if (temp_humid_info.humid != 0)
+		{
+			double decimals = abs(get_decimals(temp_humid_info.humid, 10, true));
+			//if (decimals < 0)
+			//	decimals = -decimals;
+			text_humid.set(to_string_dec_int((int)temp_humid_info.humid) + "." + to_string_dec_uint(decimals, 1) + "%");
+		}
+
+		if (temp_humid_info.temp != 0)
+		{
+			double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
+			// if (decimals < 0)
+			// 	decimals = -decimals;
+			text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + "C");
+		}
+
+		gps_info = packet.get_GPS_data();
+		geopos.set_altitude(gps_info.alt);
+		geopos.set_lat(gps_info.lat);
+		geopos.set_lon(gps_info.lon);
+
+		if (logger && logging)
+			logger->on_packet(packet);
 	}
-	
-	/*if( packet.crc_ok() ) {
-	}*/
 }
 
 void SondeView::set_target_frequency(const uint32_t new_value) {
