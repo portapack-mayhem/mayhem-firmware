@@ -23,7 +23,7 @@ import sys
 import struct
 from PIL import Image
 
-outfile = open('../../sdcard/world_map.bin', 'wb')
+outfile = open('../../sdcard/ADSB/world_map.bin', 'wb')
 
 # Allow for bigger images
 Image.MAX_IMAGE_PIXELS = None
