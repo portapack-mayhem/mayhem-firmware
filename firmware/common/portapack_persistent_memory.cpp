@@ -242,7 +242,7 @@ bool config_login() {
 }
 
 uint32_t config_backlight_timer() {
-	const uint32_t timer_seconds[8] = { 0, 5, 15, 60, 300, 600, 600, 600 };
+	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 
 	return timer_seconds[data->ui_config & 0x00000007UL];
 }
