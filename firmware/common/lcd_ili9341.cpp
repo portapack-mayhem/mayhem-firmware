@@ -422,7 +422,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 }
 
 /*
-	Read a RAW image from SD card. (Mainly for spash screen)
+	Read a RAW image from SD card. (Mainly for splash screen)
 	RAW image structure:
 		First 3 bytes: 	file header "RAW"
 		Byte 4:			file type, 0: RGB565, 1: RGB, 2: RGBA (alpha ignored)
