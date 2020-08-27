@@ -426,15 +426,14 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 	RAW image structure:
 		First 3 bytes: 	file header "RAW"
 		Byte 4:			file type, 0: RGB565, 1: RGB, 2: RGBA (alpha ignored)
-		Byte 5-6:		height (not used)
+		Byte 5-6:		height
 		Byte 7-8:		width
 */
 bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 	File rawimage;
 	size_t file_pos = 0;
 	uint16_t pointer = 0;
-	uint16_t color_buffer = 0;
-	uint16_t px = 0, py, width;
+	uint16_t px = 0, py, width, height;
 	uint8_t type = 0;
 	char buffer[257];
 	ui::Color line_buffer[240];
@@ -463,6 +462,7 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 
 	type = buffer[0]; // 0: RGB565, 1: RGB, 2: RGBA(Alpha ignored). Default to RGBA.
 
+	height = (uint16_t)buffer[1] + ((uint16_t)buffer[2] << 8);
 	width = (uint16_t)buffer[3] + ((uint16_t)buffer[4] << 8);
 
 	py += 16;
@@ -482,7 +482,7 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 			while(pointer < 256) {
 				switch(type) {
 					case 0:
-						line_buffer[px] = (uint16_t)buffer[pointer+ 1] + ((uint16_t)buffer[0] << 8);
+						line_buffer[px] = ui::Color((uint16_t)buffer[pointer] + ((uint16_t)buffer[pointer + 1] << 8));
 						pointer += 2;
 						file_pos += 2;
 						break;
@@ -510,7 +510,7 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 		px = 0;
 		py++;
 
-		if(read_size.value() < 256)
+		if(read_size.value() < 256 || py > height + 16)
 			break;
 	}
 	return true;
