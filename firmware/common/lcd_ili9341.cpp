@@ -30,7 +30,12 @@ using namespace portapack;
 
 #include "ch.h"
 
+#include "file.hpp"
+
 #include <complex>
+
+#include <cstring>
+#include <string>
 
 namespace lcd {
 
@@ -414,6 +419,101 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 			}
 		} while (1);
 	}
+}
+
+/*
+	Read a RAW image from SD card. (Mainly for spash screen)
+	RAW image structure:
+		First 3 bytes: 	file header "RAW"
+		Byte 4:			file type, 0: RGB565, 1: RGB, 2: RGBA (alpha ignored)
+		Byte 5-6:		height (not used)
+		Byte 7-8:		width
+*/
+bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
+	File rawimage;
+	size_t file_pos = 0;
+	uint16_t pointer = 0;
+	uint16_t color_buffer = 0;
+	uint16_t px = 0, py, width;
+	uint8_t type = 0;
+	char buffer[257];
+	ui::Color line_buffer[240];
+
+	auto result = rawimage.open(file);
+	if(result.is_valid())
+		return false;
+
+	rawimage.seek(file_pos);
+	memset(buffer, 0, 3);
+	auto read_size = rawimage.read(buffer, 3);
+	buffer[3] = '\0';
+	if(strcmp(buffer, "RAW")) {
+		return false; // Not a generated RAW file
+	}
+
+	file_pos += 3;
+
+	rawimage.seek(file_pos);
+	memset(buffer, 0, 5);
+	read_size = rawimage.read(buffer, 5);
+	if (read_size.is_error())
+		return false;
+
+	py = 0;
+
+	type = buffer[0]; // 0: RGB565, 1: RGB, 2: RGBA(Alpha ignored). Default to RGBA.
+
+	width = (uint16_t)buffer[3] + ((uint16_t)buffer[4] << 8);
+
+	py += 16;
+
+	file_pos += 5;
+
+	while(1) {
+		while(px < width) {
+			rawimage.seek(file_pos);
+
+			memset(buffer, 0, 257);
+			read_size = rawimage.read(buffer, 256);
+			if (read_size.is_error())
+				return false;	// Read error
+
+			pointer = 0;
+			while(pointer < 256) {
+				switch(type) {
+					case 0:
+						line_buffer[px] = (uint16_t)buffer[pointer+ 1] + ((uint16_t)buffer[0] << 8);
+						pointer += 2;
+						file_pos += 2;
+						break;
+					case 1:
+						line_buffer[px] = ui::Color(buffer[pointer], buffer[pointer + 1], buffer[pointer + 2]);
+						pointer += 3;
+						file_pos += 3;
+						break;
+					case 2:
+					default:
+						line_buffer[px] = ui::Color(buffer[pointer], buffer[pointer + 1], buffer[pointer + 2]);
+						pointer += 4;
+						file_pos += 4;
+						break;
+				}
+				px++;
+				if(px >= width) {
+					break;
+				}
+			}
+			if(read_size.value() != 256)
+				break;
+		}
+		render_line({ p.x(), p.y() + py }, px, line_buffer);
+		px = 0;
+		py++;
+
+		if(read_size.value() < 256)
+			break;
+	}
+	return true;
 }
 
 void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Color color) {
