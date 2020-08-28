@@ -59,6 +59,7 @@ private:
 	
 	uint32_t playing_id { };
 	uint32_t page = 1;
+	uint32_t c_page = 1;
 	
 	std::vector<std::filesystem::path> file_list { };
 
@@ -86,8 +87,13 @@ private:
 	};
 
 	Button button_next_page {
-		{ 18 * 10, 25 * 8, 10 * 4, 2 * 16 },
+		{ 30 * 7, 25 * 8, 10 * 3, 2 * 14 },
 		"=>"
+	};
+
+	Button button_prev_page {
+		{ 17 * 10, 25 * 8, 10 * 3, 2 * 14 },
+		"<="
 	};
 
 	Text page_info {
@@ -124,7 +130,7 @@ private:
 	};
 	
 	Checkbox check_random {
-		{ 10 * 8, 25 * 8 + 4 },
+		{ 10 * 7, 25 * 8 + 4 },
 		6,
 		"Random"
 	};

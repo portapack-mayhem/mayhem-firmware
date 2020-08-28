@@ -141,7 +141,7 @@ void SoundBoardView::refresh_list() {
 	auto reader = std::make_unique<WAVFileReader>();
 	
 	file_list.clear();
-	uint32_t c_page = page;
+	c_page = page;
 	
 	// List directories and files, put directories up top
 	uint32_t count = 0;
@@ -231,6 +231,7 @@ SoundBoardView::SoundBoardView(
 		&page_info,
 		&check_loop,
 		&check_random,
+		&button_prev_page,
 		&button_next_page,
 		&tx_view
 	});
@@ -239,6 +240,13 @@ SoundBoardView::SoundBoardView(
 
 	button_next_page.on_select = [this](Button&) {
 		this->refresh_list();
+	};
+
+	button_prev_page.on_select = [this](Button&) {
+		if (c_page == 1) return;
+		if (c_page == 2) page = 1;
+		page = c_page - 1;
+		refresh_list();
 	};
 	
 	//text_title.set(to_string_dec_uint(file_list.size()));
