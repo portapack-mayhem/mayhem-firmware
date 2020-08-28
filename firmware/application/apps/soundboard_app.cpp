@@ -205,7 +205,7 @@ void SoundBoardView::refresh_list() {
 			});
 		}
 
-		page_info.set("Page: " + to_string_dec_uint(c_page) + "    Songs: " + to_string_dec_uint(file_list.size()));
+		page_info.set("Page: " + to_string_dec_uint(c_page) + "    Sounds: " + to_string_dec_uint(file_list.size()));
 		menu_view.set_highlighted(0);	// Refresh
 	}
 
