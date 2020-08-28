@@ -462,8 +462,8 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 
 	type = buffer[0]; // 0: RGB565, 1: RGB, 2: RGBA(Alpha ignored). Default to RGBA.
 
-	height = (uint16_t)buffer[1] + ((uint16_t)buffer[2] << 8);
-	width = (uint16_t)buffer[3] + ((uint16_t)buffer[4] << 8);
+	height = (uint16_t)buffer[1] | ((uint16_t)buffer[2] << 8);
+	width = (uint16_t)buffer[3] | ((uint16_t)buffer[4] << 8);
 
 	py += 16;
 
@@ -482,7 +482,7 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 			while(pointer < 256) {
 				switch(type) {
 					case 0:
-						line_buffer[px] = ui::Color((uint16_t)buffer[pointer] + ((uint16_t)buffer[pointer + 1] << 8));
+						line_buffer[px] = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
 						pointer += 2;
 						file_pos += 2;
 						break;
@@ -511,6 +511,113 @@ bool ILI9341::drawRAW(const ui::Point p, const std::string file) {
 		py++;
 
 		if(read_size.value() < 256 || py > height + 16)
+			break;
+	}
+	return true;
+}
+
+/*
+	Draw BMP from SD card.
+	Currently supported formats:
+		16bpp ARGB, RGB565
+		24bpp RGB
+		32bpp ARGB
+*/
+bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
+	File bmpimage;
+	size_t file_pos = 0;
+	uint16_t pointer = 0;
+	int16_t px = 0, py, width, height;
+	bmp_header_t bmp_header;
+	uint8_t type = 0;
+	char buffer[257];
+	ui::Color line_buffer[240];
+
+	auto result = bmpimage.open(file);
+	if(result.is_valid())
+		return false;
+
+	bmpimage.seek(file_pos);
+	auto read_size = bmpimage.read(&bmp_header, sizeof(bmp_header));
+	if (!((bmp_header.signature == 0x4D42) && // "BM" Signature
+		(bmp_header.planes == 1) && // Seems always to be 1
+		(bmp_header.compression == 0 || bmp_header.compression == 3 ))) {	// No compression
+			return false;
+	}
+
+	switch(bmp_header.bpp) {
+		case 16:
+			file_pos = 0x36;
+			memset(buffer, 0, 16);
+			bmpimage.read(buffer, 16);
+			if(buffer[1] == 0x7C)
+				type = 3; // A1R5G5B5
+			else
+				type = 0; // R5G6B5
+			break;
+		case 24:
+			type = 1;
+			break;
+		case 32:
+		default:
+			type = 2;
+			break;
+	}
+
+	width = bmp_header.width;
+	height = bmp_header.height;
+
+	file_pos = bmp_header.image_data;
+
+	py = height + 16;
+
+	while(1) {
+		while(px < width) {
+			bmpimage.seek(file_pos);
+			memset(buffer, 0, 257);
+			read_size = bmpimage.read(buffer, 256);
+			if (read_size.is_error())
+				return false;	// Read error
+
+			pointer = 0;
+			while(pointer < 256) {
+				if(pointer + 4 > 256)
+					break;
+				switch(type) {
+					case 0:
+					case 3:
+						if(!type)
+							line_buffer[px] = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
+						else
+							line_buffer[px] = ui::Color(((uint16_t)buffer[pointer] & 0x1F) | ((uint16_t)buffer[pointer] & 0xE0) << 1 | ((uint16_t)buffer[pointer + 1] & 0x7F) << 9);
+						pointer += 2;
+						file_pos += 2;
+						break;
+					case 1:
+					default:
+						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+						pointer += 3;
+						file_pos += 3;
+						break;
+					case 2:
+						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+						pointer += 4;
+						file_pos += 4;
+						break;
+				}
+				px++;
+				if(px >= width) {
+					break;
+				}
+			}
+			if(read_size.value() != 256)
+				break;
+		}
+		render_line({ p.x(), p.y() + py }, px, line_buffer);
+		px = 0;
+		py--;
+
+		if(read_size.value() < 256 || py < 0)
 			break;
 	}
 	return true;
