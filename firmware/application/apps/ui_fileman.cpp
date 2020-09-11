@@ -41,10 +41,12 @@ void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_p
 	// List directories and files, put directories up top
 	if (dir_path.string().length())
 		entry_list.push_back({ u"..", 0, true });
-	
+
 	for (const auto& entry : std::filesystem::directory_iterator(dir_path, u"*")) {
-		if (std::filesystem::is_regular_file(entry.status())) {
-			if (entry.path().string().length()) {
+
+		// do not display dir / files starting with '.' (hidden / tmp)
+		if (entry.path().string().length() && entry.path().filename().string()[0] != '.') {
+			if (std::filesystem::is_regular_file(entry.status())) {
 				bool matched = true;
 				if (filtering) {
 					auto entry_extension = entry.path().extension().string();
@@ -58,9 +60,9 @@ void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_p
 				
 				if (matched)
 					entry_list.push_back({ entry.path(), (uint32_t)entry.size(), false });
+			} else if (std::filesystem::is_directory(entry.status())) {
+				entry_list.insert(entry_list.begin(), { entry.path(), 0, true });
 			}
-		} else if (std::filesystem::is_directory(entry.status())) {
-			entry_list.insert(entry_list.begin(), { entry.path(), 0, true });
 		}
 	}
 }
