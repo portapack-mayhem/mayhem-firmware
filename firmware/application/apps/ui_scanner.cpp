@@ -226,7 +226,6 @@ ScannerView::ScannerView(
 				// get the filename without txt extension so we can use load_freqman_file fcn
 				std::string str_file_name = new_file_path.stem().string();
 				frequency_file_load(str_file_name, true);
-				nav_.display_modal("LOAD FREQ FILE", "Successfully loaded:\n" + str_file_name + ".TXT");
 			} else {
 				nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
 			}
