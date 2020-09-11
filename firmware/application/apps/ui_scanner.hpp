@@ -138,6 +138,7 @@ private:
 	uint32_t wait { 0 };
 	size_t	def_step { 0 };
 	freqman_db database { };
+	std::string loaded_file_name;
 	uint32_t current_index { 0 };
 	bool userpause { false };
 	

@@ -335,7 +335,8 @@ ScannerView::ScannerView(
 
 	button_add.on_select = [this](Button&) {  //frequency_list[current_index]
 		File scanner_file;
-		auto result = scanner_file.open("FREQMAN/SCANNER.TXT");	//First search if freq is already in txt
+		std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
+		auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
 		if (!result.is_valid()) {
 			std::string frequency_to_add = "f=" 
 				+ to_string_dec_uint(frequency_list[current_index] / 1000) 
@@ -363,12 +364,12 @@ ScannerView::ScannerView(
 				big_display.set(frequency_list[current_index]);		//After showing an error
 			}
 			else {
-				auto result = scanner_file.append("FREQMAN/SCANNER.TXT"); //Second: append if it is not there
+				auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
 				scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 			}
 		} else
 		{
-			nav_.display_modal("Error", "Cannot open SCANNER.TXT\nfor appending freq.");
+			nav_.display_modal("Error", "Cannot open " + loaded_file_name + ".TXT\nfor appending freq.");
 			big_display.set(frequency_list[current_index]);		//After showing an error
 		}
 	};
@@ -385,6 +386,8 @@ ScannerView::ScannerView(
 }
 
 void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
+
+	loaded_file_name = file_name; // keep loaded filename in memory
 
 	// stop everything running now if required
 	if (stop_all_before) {
