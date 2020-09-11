@@ -387,8 +387,6 @@ ScannerView::ScannerView(
 
 void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
 
-	loaded_file_name = file_name; // keep loaded filename in memory
-
 	// stop everything running now if required
 	if (stop_all_before) {
 		scan_thread->stop();
@@ -398,6 +396,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	}
 
 	if ( load_freqman_file(file_name, database)  ) {
+		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
 			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
@@ -435,6 +434,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	} 
 	else 
 	{
+		loaded_file_name = 'SCANNER'; // back to the default frequency file
 		desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 	}
 	audio::output::stop();
