@@ -21,6 +21,7 @@
  */
 
 #include "ui_scanner.hpp"
+#include "ui_fileman.hpp"
 
 using namespace portapack;
 
@@ -182,6 +183,7 @@ ScannerView::ScannerView(
 		&field_bw,
 		&field_squelch,
 		&field_wait,
+		&button_load,
 		&rssi,
 		&text_cycle,
 		&text_max,
@@ -210,6 +212,26 @@ ScannerView::ScannerView(
 	button_manual_start.set_text(to_string_short_freq(frequency_range.min));
 	frequency_range.max = stored_freq + 1000000;
 	button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+
+	button_load.on_select = [this, &nav](Button&) {
+		// load txt files from the FREQMAN folder
+		auto open_view = nav.push<FileLoadView>(".TXT");
+		open_view->on_changed = [this](std::filesystem::path new_file_path) {
+
+			std::string dir_filter = "FREQMAN/";
+			std::string str_file_path = new_file_path.string();
+
+			if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
+				scan_pause();
+				// get the filename without txt extension so we can use load_freqman_file fcn
+				std::string str_file_name = new_file_path.stem().string();
+				frequency_file_load(str_file_name, true);
+				nav_.display_modal("LOAD FREQ FILE", "Successfully loaded:\n" + str_file_name + ".TXT");
+			} else {
+				nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+			}
+		};
+	};
 
 	button_manual_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
@@ -357,22 +379,36 @@ ScannerView::ScannerView(
 	field_squelch.on_change = [this](int32_t v) {	squelch = v;	}; 	field_squelch.set_value(-10);
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
+
 	// LEARN FREQUENCIES
 	std::string scanner_txt = "SCANNER";
-	if ( load_freqman_file(scanner_txt, database)  ) {
+	frequency_file_load(scanner_txt);
+}
+
+void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
+
+	// stop everything running now if required
+	if (stop_all_before) {
+		scan_thread->stop();
+		frequency_list.clear(); // clear the existing frequency list (expected behavior)
+		description_list.clear();
+		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
+	}
+
+	if ( load_freqman_file(file_name, database)  ) {
 		for(auto& entry : database) {									// READ LINE PER LINE
 			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
 					switch (entry.step) {
-					case AM_US:	def_step = 10000;  	break ;
-					case AM_EUR:def_step = 9000;  	break ;
-					case NFM_1: def_step = 12500;  	break ;
-					case NFM_2: def_step = 6250;	break ;	
-					case FM_1:	def_step = 100000; 	break ;
-					case FM_2:	def_step = 50000; 	break ;
-					case N_1:	def_step = 25000;  	break ;
-					case N_2:	def_step = 250000; 	break ;
-					case AIRBAND:def_step= 8330;  	break ;
+						case AM_US:	def_step = 10000;  	break ;
+						case AM_EUR:def_step = 9000;  	break ;
+						case NFM_1: def_step = 12500;  	break ;
+						case NFM_2: def_step = 6250;	break ;	
+						case FM_1:	def_step = 100000; 	break ;
+						case FM_2:	def_step = 50000; 	break ;
+						case N_1:	def_step = 25000;  	break ;
+						case N_2:	def_step = 250000; 	break ;
+						case AIRBAND:def_step= 8330;  	break ;
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
 					description_list.push_back("R:" + to_string_short_freq(entry.frequency_a)
@@ -397,7 +433,7 @@ ScannerView::ScannerView(
 	} 
 	else 
 	{
-		desc_cycle.set(" NO SCANNER.TXT FILE ..." );
+		desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 	}
 	audio::output::stop();
 	step_mode.set_by_value(def_step); //Impose the default step into the manual step selector
