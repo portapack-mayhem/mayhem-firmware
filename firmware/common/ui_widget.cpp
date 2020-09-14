@@ -827,9 +827,11 @@ bool Checkbox::on_touch(const TouchEvent event) {
 
 Button::Button(
 	Rect parent_rect,
-	std::string text
+	std::string text,
+	bool instant_exec
 ) : Widget { parent_rect },
-	text_ { text }
+	text_ { text },
+	instant_exec_ { instant_exec }
 {
 	set_focusable(true);
 }
@@ -899,14 +901,23 @@ bool Button::on_touch(const TouchEvent event) {
 	case TouchEvent::Type::Start:
 		set_highlighted(true);
 		set_dirty();
+		if( on_touch_press) {
+			on_touch_press(*this);
+		}
+		if( on_select && instant_exec_ ) {
+			on_select(*this);
+		}
 		return true;
 
 
 	case TouchEvent::Type::End:
 		set_highlighted(false);
 		set_dirty();
-		if( on_select ) {
+		if( on_select && !instant_exec_ ) {
 			on_select(*this);
+		}
+		if( on_touch_release) {
+			on_touch_release(*this);
 		}
 		return true;
 
