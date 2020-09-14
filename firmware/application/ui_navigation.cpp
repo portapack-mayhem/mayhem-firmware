@@ -634,7 +634,8 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter&) {
-	portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
+	if(!portapack::display.drawBMP2({ 0, 0 }, "splash.bmp"))
+		portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
 }
 
 /* NotImplementedView ****************************************************/
