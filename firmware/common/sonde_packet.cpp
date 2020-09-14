@@ -33,12 +33,12 @@ namespace sonde {
 //Following values include the 4 bytes less shift, consumed in detecting the header on proc_sonde
 #define block_status  0x35	//0x039  // 40 bytes
 #define block_gpspos  0x10E	//0x112  // 21 bytes
+#define block_meas    0x61	//0x65  // 42 bytes
 #define pos_FrameNb   0x37	//0x03B  // 2 byte
 #define pos_SondeID   0x39	//0x03D  // 8 byte
 #define pos_Voltage   0x041	//0x045  // 3 bytes (but first one is the important one) voltage x 10 ie: 26 = 2.6v
 #define pos_CalData   0x04E	//0x052  // 1 byte, counter 0x00..0x32
-#define pos_GPSweek   0x091	//0x095  // 2 byte
-#define pos_GPSTOW    0x093	//0x097  // 4 byte
+#define pos_temp	  0x063	//0x067  // 3 bytes (uint24_t)
 #define pos_GPSecefX  0x110	//0x114  // 4 byte
 #define pos_GPSecefY  0x114	//0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
 #define pos_GPSecefZ  0x118	//0x11C  // 4 byte (same as Y)
@@ -68,10 +68,6 @@ size_t Packet::length() const {
 	return decoder_.symbols_count();
 }
 
-bool Packet::is_valid() const {
-	return true;	// TODO
-}
-
 Timestamp Packet::received_at() const {
 	return packet_.timestamp();
 }
@@ -83,10 +79,10 @@ Packet::Type Packet::type() const {
 //euquiq here:
 //RS41SG 320 bits header, 320bytes frame (or more if it is an "extended frame")
 //The raw data is xor-scrambled with the values in the 64 bytes vaisala_mask (see.hpp)
+//from 0x008 to 0x037 (48 bytes reed-solomon error correction data)
 
 uint8_t Packet::vaisala_descramble(const uint32_t pos) const
-{
-	//return reader_raw.read(pos * 8, 8) ^ vaisala_mask[pos & 63];
+{ //vaisala_descramble(const uint32_t pos) const {
 	// packet_[i]; its a bit;  packet_.size the total (should be 2560 bits)
 	uint8_t value = 0;
 	for (uint8_t i = 0; i < 8; i++)
@@ -161,6 +157,115 @@ uint32_t Packet::battery_voltage() const
 	}
 }
 
+uint32_t Packet::frame() const
+{
+	if (type_ == Type::Vaisala_RS41_SG)
+	{
+		uint32_t frame_number = vaisala_descramble(pos_FrameNb) | (vaisala_descramble(pos_FrameNb + 1) << 8);
+		return frame_number;
+	}
+	else
+	{
+		return 0; // Unknown
+	}
+}
+
+temp_humid Packet::get_temp_humid() const
+{
+	temp_humid result;
+	result.humid = 0;
+	result.temp = 0;
+
+	if ( type_ == Type::Vaisala_RS41_SG && crc_ok_RS41() )  //Only process if packet is healthy
+	{
+		//memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
+		//original code from https://github.com/rs1729/RS/blob/master/rs41/rs41ptu.c
+		float Rf1,      // ref-resistor f1 (750 Ohm)
+			Rf2,      // ref-resistor f2 (1100 Ohm)
+			co1[3],   // { -243.911 , 0.187654 , 8.2e-06 }
+			calT1[3], // calibration T1
+			co2[3],   // { -243.911 , 0.187654 , 8.2e-06 }
+			calT2[3], // calibration T2-Hum
+			calH[2];  // calibration Hum
+
+		uint32_t meas[12], i;
+
+		//-------------- get_CalData
+
+		//-------------- populate calibytes (from getFrameConf)
+
+		uint8_t calfr = vaisala_descramble(pos_CalData); //get subframe #slot
+
+		for (i = 0; i < 16; i++) //Load subrfame calibration page (16 bytes) into #slot
+			calibytes[calfr * 16 + i] = vaisala_descramble(pos_CalData + 1 + i); //pos = pos_CalData + 1 + i ; vaisala_descramble(pos)
+
+		calfrchk[calfr] = 1; //flag this #slot as populated
+
+		memcpy(&Rf1, calibytes + 61, 4); // 0x03*0x10+13
+		memcpy(&Rf2, calibytes + 65, 4); // 0x04*0x10+ 1
+
+		memcpy(co1 + 0, calibytes + 77, 4); // 0x04*0x10+13
+		memcpy(co1 + 1, calibytes + 81, 4); // 0x05*0x10+ 1
+		memcpy(co1 + 2, calibytes + 85, 4); // 0x05*0x10+ 5
+
+		memcpy(calT1 + 0, calibytes + 89, 4); // 0x05*0x10+ 9
+		memcpy(calT1 + 1, calibytes + 93, 4); // 0x05*0x10+13
+		memcpy(calT1 + 2, calibytes + 97, 4); // 0x06*0x10+ 1
+
+		memcpy(calH + 0, calibytes + 117, 4); // 0x07*0x10+ 5
+		memcpy(calH + 1, calibytes + 121, 4); // 0x07*0x10+ 9
+
+		memcpy(co2 + 0, calibytes + 293, 4); // 0x12*0x10+ 5
+		memcpy(co2 + 1, calibytes + 297, 4); // 0x12*0x10+ 9
+		memcpy(co2 + 2, calibytes + 301, 4); // 0x12*0x10+13
+
+		memcpy(calT2 + 0, calibytes + 305, 4); // 0x13*0x10+ 1
+		memcpy(calT2 + 1, calibytes + 309, 4); // 0x13*0x10+ 5
+		memcpy(calT2 + 2, calibytes + 313, 4); // 0x13*0x10+ 9
+		//---------------------------------------
+		for (i = 0; i < 12; i++)
+			meas[i] = vaisala_descramble(pos_temp + (3 * i)) |
+					(vaisala_descramble(pos_temp + (3 * i) + 1) << 8) |
+					(vaisala_descramble(pos_temp + (3 * i) + 2) << 16);
+
+		//----Check if necessary calibytes are already present for calculation
+
+		if (calfrchk[0x03] && calfrchk[0x04] && calfrchk[0x04] && calfrchk[0x05] && calfrchk[0x05] && calfrchk[0x06]) //Calibites OK for Temperature
+		{
+			//----------get_Tc------------------------
+			float *p = co1;
+			float *c = calT1;
+			float g = (float)(meas[2] - meas[1]) / (Rf2 - Rf1),					   // gain
+				Rb = (meas[1] * Rf2 - meas[2] * Rf1) / (float)(meas[2] - meas[1]), // ofs
+				Rc = meas[0] / g - Rb,
+				R = Rc * c[0],
+				T = (p[0] + p[1] * R + p[2] * R * R + c[1]) * (1.0 + c[2]);
+			result.temp = T;
+		}
+
+		if (calfrchk[0x07])
+		{
+			//----------get_RH------------------------
+			float a0 = 7.5;				// empirical
+			float a1 = 350.0 / calH[0]; // empirical
+			float fh = (meas[3] - meas[4]) / (float)(meas[5] - meas[4]);
+			float rh = 100.0 * (a1 * fh - a0);
+			float T0 = 0.0, T1 = -25.0;	  // T/C
+			rh += T0 - result.temp / 5.5; // empir. temperature compensation
+			if (result.temp < T1)
+				rh *= 1.0 + (T1 - result.temp) / 90.0; // empir. temperature compensation
+			if (rh < 0.0)
+				rh = 0.0;
+			if (rh > 100.0)
+				rh = 100.0;
+			if (result.temp < -273.0)
+				rh = -1.0;
+			result.humid = rh;
+		}
+	}
+	return result;
+}
+
 std::string Packet::type_string() const
 {
 	switch (type_)
@@ -182,7 +287,7 @@ std::string Packet::type_string() const
 
 std::string Packet::serial_number() const
 {
-	if (type() == Type::Meteomodem_M10)
+	if (type_ == Type::Meteomodem_M10)
 	{
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606
 		// Starting at byte #93: 00000000 11111111 22222222 33333333 44444444
@@ -196,7 +301,7 @@ std::string Packet::serial_number() const
 			   to_string_dec_uint(reader_bi_m.read(93 * 8 + 24, 3), 1) +
 			   to_string_dec_uint(reader_bi_m.read(93 * 8 + 27, 13), 4, '0');
 	}
-	else if (type() == Type::Vaisala_RS41_SG)
+	else if (type_ == Type::Vaisala_RS41_SG)
 	{
 		std::string serial_id = "";
 		uint8_t achar;
@@ -210,13 +315,15 @@ std::string Packet::serial_number() const
 		return serial_id;
 	}
 	else
+	{
 		return "?";
+	}
 }
 
 FormattedSymbols Packet::symbols_formatted() const
 {
-	if (type() == Type::Vaisala_RS41_SG)
-	{										 //euquiq: now we distinguish different types
+	if (type_ == Type::Vaisala_RS41_SG)
+	{										 //Euquiq: now we distinguish different types
 		uint32_t bytes = packet_.size() / 8; //Need the byte amount, which if full, it SHOULD be 320 size() should return 2560
 		std::string hex_data;
 		std::string hex_error;
@@ -234,35 +341,37 @@ FormattedSymbols Packet::symbols_formatted() const
 
 bool Packet::crc_ok() const
 {
-	switch (type())
+	switch (type_)
 	{
 	case Type::Meteomodem_M10:
 		return crc_ok_M10();
 	case Type::Vaisala_RS41_SG:
 		return crc_ok_RS41();
 	default:
-		return false;
+		return true; //euquiq: it was false, but if no crc routine, then no way to check
 	}
 }
 
-//from 0x008 to 0x037 (48 bytes reed-solomon error correction data)
 //each data block has a 2 byte header, data, and 2 byte tail: 
 // 1st byte: block ID
 // 2nd byte: data length (without header or tail)
 // <data>
 // 2 bytes CRC16 over the data.
-bool Packet::crc_ok_RS41() const
+bool Packet::crc_ok_RS41() const	//check CRC for the data blocks we need
 {
 	if (!crc16rs41(block_status))
 		return false;
 
-		if (!crc16rs41(block_gpspos))
+	if (!crc16rs41(block_gpspos))
+		return false;
+	
+	if (!crc16rs41(block_meas))
 		return false;
 
 	return true;
 }
 
-//euquiq: Checks CRC16 on a RS41 field:
+//Checks CRC16 on a RS41 field:
 bool Packet::crc16rs41(uint32_t field_start) const
 {
 	int crc16poly = 0x1021;
@@ -272,7 +381,7 @@ bool Packet::crc16rs41(uint32_t field_start) const
 	uint8_t length = vaisala_descramble(pos);
 
 	if (pos + length + 2 > packet_.size() / 8)
-		return false; //Packet too short!
+		return false; //Out of packet!
 
 	for (b = 0; b < length; b++)
 	{
@@ -292,20 +401,21 @@ bool Packet::crc16rs41(uint32_t field_start) const
 			rem &= 0xFFFF;
 		}
 	}
-	//euquiq: Check calculated CRC against packet's one
+	//Check calculated CRC against packet's one
 	pos++;
 	int crcok = vaisala_descramble(pos) | (vaisala_descramble(pos + 1) << 8);
 	if (crcok != rem)
 		return false;
-	else
-		return true;
+	return true;
 }
 
-bool Packet::crc_ok_M10() const {
-    uint16_t cs { 0 };
-	uint32_t c0, c1, t, t6, t7, s,b ;
-    
-	for (size_t i = 0; i < packet_.size(); i++) {
+bool Packet::crc_ok_M10() const
+{
+	uint16_t cs{0};
+	uint32_t c0, c1, t, t6, t7, s, b;
+
+	for (size_t i = 0; i < packet_.size(); i++)
+	{
 		b = packet_[i];
 		c1 = cs & 0xFF;
 
@@ -324,9 +434,9 @@ bool Packet::crc_ok_M10() const {
 
 		c0 = b ^ t ^ s;
 
-		cs = ((c1<<8) | c0) & 0xFFFF;
-    }
-
+		cs = ((c1 << 8) | c0) & 0xFFFF;
+	}
+	
 	return ((cs & 0xFFFF) == ((packet_[0x63] << 8) | (packet_[0x63 + 1])));
 }
 

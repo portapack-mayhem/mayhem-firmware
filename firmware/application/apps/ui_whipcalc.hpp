@@ -51,7 +51,6 @@ namespace ui
 		};
 
 		std::vector<antenna_entry> antenna_db{};
-		double get_decimals(double num, int16_t mult, bool round = false);
 		void update_result();
 		uint16_t string_to_number(std::string);
 		void txtline_process(std::string &);

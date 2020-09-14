@@ -38,19 +38,6 @@ namespace ui
 		field_frequency.focus();
 	}
 
-	double ui::WhipCalcView::get_decimals(double num, int16_t mult, bool round)
-	{
-		num -= int(num); //keep decimals only
-		num *= mult;	 //Shift decimals into integers
-		if (!round)
-			return num;
-		int16_t intnum = int(num); //Round it up if necessary
-		num -= intnum;			   //Get decimal part
-		if (num > .5)
-			intnum++; //Round up
-		return intnum;
-	}
-
 	void WhipCalcView::update_result()
 	{
 		double length, calclength, divider;
