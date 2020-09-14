@@ -48,7 +48,7 @@ void SoundBoardView::stop() {
 
 void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
 	stop();
-	progressbar.set_value(0);
+	//progressbar.set_value(0);
 	
 	if (return_code == ReplayThread::END_OF_FILE) {
 		if (check_random.value()) {
@@ -90,7 +90,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 	
 	playing_id = id;
 	
-	progressbar.set_max(reader->sample_count());
+	//progressbar.set_max(reader->sample_count());
 	
 	//button_play.set_bitmap(&bitmap_stop);
 	
@@ -130,7 +130,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
-	progressbar.set_value(progress);
+	//progressbar.set_value(progress);
 }
 
 void SoundBoardView::on_select_entry() {
@@ -141,8 +141,10 @@ void SoundBoardView::refresh_list() {
 	auto reader = std::make_unique<WAVFileReader>();
 	
 	file_list.clear();
+	c_page = page;
 	
 	// List directories and files, put directories up top
+	uint32_t count = 0;
 	for (const auto& entry : std::filesystem::directory_iterator(u"WAV", u"*")) {
 		if (std::filesystem::is_regular_file(entry.status())) {
 			if (entry.path().string().length()) {
@@ -158,21 +160,32 @@ void SoundBoardView::refresh_list() {
 						if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
 							//sounds[c].ms_duration = reader->ms_duration();
 							//sounds[c].path = u"WAV/" + entry.path().native();
-							file_list.push_back(entry.path());
-							if (file_list.size() == 100)
-								break;
+							if (count >= (page - 1) * 100 && count < page * 100){
+								file_list.push_back(entry.path());
+								if (file_list.size() == 100){
+									page++;
+									break;
+								}
+							}
+							count++;
 						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	if (!file_list.size()) {
 		// Hide widgets, show warning
-		menu_view.hidden(true);
-		text_empty.hidden(false);
-		set_dirty();
+		if (page == 1){
+			menu_view.hidden(true);
+			text_empty.hidden(false);
+			set_dirty();
+		}else{
+			page = 1;
+			refresh_list();
+			return;
+		}
 	} else {
 		// Hide warning, show widgets
 		menu_view.hidden(false);
@@ -191,8 +204,13 @@ void SoundBoardView::refresh_list() {
 				}
 			});
 		}
-		
+
+		page_info.set("Page: " + to_string_dec_uint(c_page) + "    Sounds: " + to_string_dec_uint(file_list.size()));
 		menu_view.set_highlighted(0);	// Refresh
+	}
+
+	if (file_list.size() < 100){
+		page = 1;
 	}
 }
 
@@ -209,13 +227,27 @@ SoundBoardView::SoundBoardView(
 		&options_tone_key,
 		//&text_title,
 		//&text_duration,
-		&progressbar,
+		//&progressbar,
+		&page_info,
 		&check_loop,
 		&check_random,
+		&button_prev_page,
+		&button_next_page,
 		&tx_view
 	});
 	
 	refresh_list();
+
+	button_next_page.on_select = [this](Button&) {
+		this->refresh_list();
+	};
+
+	button_prev_page.on_select = [this](Button&) {
+		if (c_page == 1) return;
+		if (c_page == 2) page = 1;
+		page = c_page - 1;
+		refresh_list();
+	};
 	
 	//text_title.set(to_string_dec_uint(file_list.size()));
 	
@@ -243,6 +275,7 @@ SoundBoardView::SoundBoardView(
 }
 
 SoundBoardView::~SoundBoardView() {
+	stop();
 	transmitter_model.disable();
 	baseband::shutdown();
 }

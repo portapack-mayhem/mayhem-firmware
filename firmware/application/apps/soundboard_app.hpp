@@ -58,6 +58,8 @@ private:
 	tx_modes tx_mode = NORMAL;
 	
 	uint32_t playing_id { };
+	uint32_t page = 1;
+	uint32_t c_page = 1;
 	
 	std::vector<std::filesystem::path> file_list { };
 
@@ -83,7 +85,21 @@ private:
 		//{ { 0, 20 * 8 + 4 }, "Title:", Color::light_grey() },
 		{ { 0, 180 }, "Key:", Color::light_grey() }
 	};
-	
+
+	Button button_next_page {
+		{ 30 * 7, 25 * 8, 10 * 3, 2 * 14 },
+		"=>"
+	};
+
+	Button button_prev_page {
+		{ 17 * 10, 25 * 8, 10 * 3, 2 * 14 },
+		"<="
+	};
+
+	Text page_info {
+		{ 0, 30 * 8 - 4, 30 * 8, 16 }
+	};
+
 	MenuView menu_view {
 		{ 0, 0, 240, 175 },
 		true
@@ -114,14 +130,14 @@ private:
 	};
 	
 	Checkbox check_random {
-		{ 10 * 8, 25 * 8 + 4 },
+		{ 10 * 7, 25 * 8 + 4 },
 		6,
 		"Random"
 	};
 	
-	ProgressBar progressbar {
-		{ 0 * 8, 30 * 8 - 4, 30 * 8, 16 }
-	};
+	//ProgressBar progressbar {
+	//	{ 0 * 8, 30 * 8 - 4, 30 * 8, 16 }
+	//};
 	
 	TransmitterView tx_view {
 		16 * 16,
