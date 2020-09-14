@@ -62,7 +62,10 @@ private:
 	void on_ok();
 	void on_cancel();
 
-	const uint32_t samples_limit { 40 };
+	void adjust_threshold(uint32_t new_threshold);
+	float_t r_touch_threshold = 640;
+
+	uint32_t samples_limit { 40 };
 	const uint32_t verify_d_sq_max = 10 * 10;
 
 	uint32_t samples_count { 0 };
@@ -113,6 +116,20 @@ private:
 		&bitmap_target_verify,
 		Color::white(),
 		Color::black()
+	};
+
+	Labels labels {
+		{ { 5 * 8, 16 * 8 }, "TOUCH SENSITIVITY:", Color::light_grey() }
+	};
+
+	OptionsField field_sensitivity {
+		{ 9 * 8, 18 * 8 },
+		10,
+		{
+			{ " STANDARD ", 640 },
+			{ " ENHANCED ", 480 },
+			{ " EXTREME  ", 320 },
+		}
 	};
 
 	Text label_calibrate {
