@@ -523,7 +523,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Replay",		ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanner",	ui::Color::green(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
-		{ "Mic",		ui::Color::green(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
+		{ "Microphone",	ui::Color::yellow(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
 		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
