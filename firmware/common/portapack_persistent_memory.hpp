@@ -93,6 +93,9 @@ void set_pocsag_last_address(uint32_t address);
 uint32_t pocsag_ignore_address();
 void set_pocsag_ignore_address(uint32_t address);
 
+bool clkout_enabled();
+void set_clkout_enabled(bool enable);
+
 } /* namespace persistent_memory */
 } /* namespace portapack */
 

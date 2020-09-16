@@ -144,6 +144,7 @@ SetRadioView::SetRadioView(
 	}
 
 	add_children({
+		&check_clkout,
 		&labels_bias,
 		&check_bias,
 		&button_done,
@@ -155,6 +156,14 @@ SetRadioView::SetRadioView(
 	};
 
 	form_init(model);
+
+	check_clkout.set_value(portapack::persistent_memory::clkout_enabled());
+	check_clkout.on_select = [this](Checkbox&, bool v) {
+		clock_manager.enable_clock_output(v);
+		portapack::persistent_memory::set_clkout_enabled(v);
+		StatusRefreshMessage message { };
+		EventDispatcher::send_message(message);
+	};
 
 	check_bias.set_value(portapack::get_antenna_bias());
 	check_bias.on_select = [this](Checkbox&, bool v) {

@@ -463,3 +463,17 @@ void ClockManager::stop_audio_pll() {
 	cgu::pll0audio::power_down();
 	while( cgu::pll0audio::is_locked() );
 }
+
+void ClockManager::enable_clock_output(bool enable) {
+	if(enable) {
+		clock_generator.enable_output(clock_generator_output_clkout);
+		clock_generator.set_ms_frequency(clock_generator_output_clkout, 10000000, si5351_vco_f, 0);
+	} else {
+		clock_generator.disable_output(clock_generator_output_clkout);
+	}
+
+	if(enable)
+		clock_generator.set_clock_control(clock_generator_output_clkout, si5351_clock_control_common[clock_generator_output_clkout].ms_src(get_reference_clock_generator_pll(reference.source)).clk_pdn(ClockControl::ClockPowerDown::Power_On));
+	else
+		clock_generator.set_clock_control(clock_generator_output_clkout, ClockControl::power_off());
+}
