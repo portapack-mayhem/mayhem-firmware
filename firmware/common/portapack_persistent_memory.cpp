@@ -63,10 +63,6 @@ using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
 constexpr int32_t modem_repeat_reset_value { 5 };
 
-using clkout_config_range_t = range_t<uint32_t>;
-constexpr clkout_config_range_t clkout_config_range { 0, 1 };
-constexpr uint32_t clkout_config_reset_value { 0 };
-
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -89,14 +85,12 @@ struct data_t {
 	uint32_t playdead_sequence;
 	
 	// UI
-	uint32_t ui_config;
+	uint32_t ui_config; 
 	
 	uint32_t pocsag_last_address;
 	uint32_t pocsag_ignore_address;
 	
 	int32_t tone_mix;
-
-	uint32_t clkout_config; // TODO: Add custom frequency output?
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -294,12 +288,11 @@ void set_pocsag_ignore_address(uint32_t address) {
 }
 
 bool clkout_enabled() {
-	clkout_config_range.reset_if_outside(data->clkout_config, clkout_config_reset_value);
-	return (bool)(data->clkout_config & 1);
+	return (data->ui_config & 0x08000000UL);
 }
 
 void set_clkout_enabled(bool enable) {
-	data->clkout_config = (uint32_t)enable;
+	data->ui_config = (data->ui_config & ~0x08000000UL) | (enable << 27); 
 }
 
 } /* namespace persistent_memory */
