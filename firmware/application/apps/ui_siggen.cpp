@@ -43,7 +43,11 @@ SigGenView::~SigGenView() {
 }
 
 void SigGenView::update_config() {
-	baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), field_stop.value());
+	if(checkbox_stop.value())
+		baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), field_stop.value());
+	else
+		baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), 0);
+	
 }
 
 void SigGenView::update_tone() {
@@ -68,8 +72,10 @@ void SigGenView::start_tx() {
 void SigGenView::on_tx_progress(const uint32_t progress, const bool done) {
 	(void) progress;
 	
-	if (done)
+	if (done) {
+		transmitter_model.disable();
 		tx_view.set_transmitting(false);
+	}
 }
 
 SigGenView::SigGenView(
@@ -97,6 +103,8 @@ SigGenView::SigGenView(
 	};
 	options_shape.set_selected_index(0);
 	text_shape.set(shape_strings[0]);
+	
+	field_stop.set_value(1);
 	
 	symfield_tone.set_sym(1, 1);			// Default: 1000 Hz
 	symfield_tone.on_change = [this]() {
