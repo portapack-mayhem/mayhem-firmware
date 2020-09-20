@@ -33,6 +33,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!sample_count && auto_off) {
+			configured = false;
 			txprogress_message.done = true;
 			shared_memory.application_queue.push(txprogress_message);
 		} else
@@ -40,7 +41,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 		
 		if (tone_shape == 0) {
 			// CW
-			re = 0;
+			re = 127;
 			im = 0;
 		} else {
 			
