@@ -69,6 +69,25 @@ static msg_t ookthread_fn(void * arg) {
 	return 0;
 }
 
+static msg_t loopthread_fn(void * arg) {
+	MorseView * arg_c = (MorseView*)arg;
+	uint32_t	wait = arg_c->loop;
+
+	chRegSetThreadName("loopthread");
+
+	for (uint32_t i = 0; i < wait; i++) {
+		if (chThdShouldTerminate()) break;
+
+		arg_c->on_loop_progress(i, false);
+		chThdSleepMilliseconds(1000);
+	}
+
+	arg_c->on_loop_progress(0, true);
+	chThdExit(0);
+	
+	return 0;
+}
+
 void MorseView::on_set_text(NavigationView& nav) {
 	text_prompt(nav, buffer, 28);
 }
@@ -115,9 +134,9 @@ bool MorseView::start_tx() {
 void MorseView::update_tx_duration() {
 	uint32_t duration_ms;
 	
-	time_unit_ms = field_time_unit.value();
+	time_unit_ms = 1200 / field_speed.value();
 	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
-	
+
 	if (symbol_count) {
 		duration_ms = time_units * time_unit_ms;
 		text_tx_duration.set(to_string_dec_uint(duration_ms / 1000) + "." + to_string_dec_uint((duration_ms / 100) % 10, 1) + "s   ");
@@ -130,7 +149,22 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (done) {
 		transmitter_model.disable();
 		progressbar.set_value(0);
-		tx_view.set_transmitting(false);
+
+		if (loop && run) {
+			text_tx_duration.set("wait");
+			progressbar.set_max(loop);
+			progressbar.set_value(0);
+			loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
+		} else {
+			tx_view.set_transmitting(false);
+		}
+	} else
+		progressbar.set_value(progress);
+}
+
+void MorseView::on_loop_progress(const uint32_t progress, const bool done) {
+	if (done) {
+		start_tx();
 	} else
 		progressbar.set_value(progress);
 }
@@ -152,9 +186,10 @@ MorseView::MorseView(
 		&labels,
 		&checkbox_foxhunt,
 		&options_foxhunt,
-		&field_time_unit,
+		&field_speed,
 		&field_tone,
 		&options_modulation,
+		&options_loop,
 		&text_tx_duration,
 		&text_message,
 		&button_message,
@@ -163,9 +198,10 @@ MorseView::MorseView(
 	});
 	
 	// Default settings
-	field_time_unit.set_value(50);				// 50ms unit
+	field_speed.set_value(15);					// 15wps
 	field_tone.set_value(700);					// 700Hz FM tone
 	options_modulation.set_selected_index(0);	// CW mode
+	options_loop.set_selected_index(0);			// Off
 	
 	checkbox_foxhunt.on_select = [this](Checkbox&, bool value) {
 		foxhunt_mode = value;
@@ -182,8 +218,12 @@ MorseView::MorseView(
 	options_modulation.on_change = [this](size_t i, int32_t) {
 		modulation = (modulation_t)i;
 	};
+
+	options_loop.on_change = [this](size_t i, uint32_t n) {
+		loop = n;
+	};
 	
-	field_time_unit.on_change = [this](int32_t) {
+	field_speed.on_change = [this](int32_t) {
 		update_tx_duration();
 	};
 	
@@ -199,12 +239,22 @@ MorseView::MorseView(
 	};
 	
 	tx_view.on_start = [this]() {
-		if (start_tx())
+		if (start_tx()) {
+			run = true;
 			tx_view.set_transmitting(true);
+		}
 	};
 	
 	tx_view.on_stop = [this]() {
+		run = false;
 		if (ookthread) chThdTerminate(ookthread);
+
+		if (loopthread) {
+			chThdTerminate(loopthread);
+			chThdWait(loopthread);
+			loopthread = nullptr;
+		}
+
 		transmitter_model.disable();
 		baseband::kill_tone();
 		tx_view.set_transmitting(false);
