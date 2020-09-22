@@ -115,7 +115,7 @@ bool MorseView::start_tx() {
 void MorseView::update_tx_duration() {
 	uint32_t duration_ms;
 	
-	time_unit_ms = field_time_unit.value();
+	time_unit_ms = 1200 / field_speed.value();
 	symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
 	
 	if (symbol_count) {
@@ -152,7 +152,7 @@ MorseView::MorseView(
 		&labels,
 		&checkbox_foxhunt,
 		&options_foxhunt,
-		&field_time_unit,
+		&field_speed,
 		&field_tone,
 		&options_modulation,
 		&text_tx_duration,
@@ -163,7 +163,7 @@ MorseView::MorseView(
 	});
 	
 	// Default settings
-	field_time_unit.set_value(50);				// 50ms unit
+	field_speed.set_value(15);					// 15wps
 	field_tone.set_value(700);					// 700Hz FM tone
 	options_modulation.set_selected_index(0);	// CW mode
 	
@@ -183,7 +183,7 @@ MorseView::MorseView(
 		modulation = (modulation_t)i;
 	};
 	
-	field_time_unit.on_change = [this](int32_t) {
+	field_speed.on_change = [this](int32_t) {
 		update_tx_duration();
 	};
 	

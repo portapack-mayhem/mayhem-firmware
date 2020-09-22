@@ -80,7 +80,7 @@ private:
 	bool foxhunt_mode { false };
 	
 	Labels labels {
-		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
+		{ { 4 * 8, 6 * 8 }, "Speed:   wps", Color::light_grey() },
 		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
 		{ { 1 * 8, 25 * 8 }, "TX will last", Color::light_grey() }
@@ -109,10 +109,10 @@ private:
 		}
 	};
 	
-	NumberField field_time_unit {
-		{ 14 * 8, 6 * 8 },
+	NumberField field_speed {
+		{ 10 * 8, 6 * 8 },
 		3,
-		{ 10, 999 },
+		{ 10, 45 },
 		1,
 		' '
 	};
