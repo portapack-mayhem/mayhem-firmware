@@ -154,6 +154,12 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
 			text_tx_duration.set("wait");
 			progressbar.set_max(loop);
 			progressbar.set_value(0);
+			
+			if (loopthread) {
+				chThdRelease(loopthread);
+				loopthread = nullptr;
+			}
+			
 			loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
 		} else {
 			tx_view.set_transmitting(false);
