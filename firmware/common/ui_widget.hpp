@@ -378,8 +378,8 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select { };
-	std::function<void(Button&)> on_touch_release { nullptr }; // Executed when releasing touch, after on_select.
-	std::function<void(Button&)> on_touch_press { nullptr }; // Executed when touching, before on_select.
+	std::function<void(Button&)> on_touch_release { }; // Executed when releasing touch, after on_select.
+	std::function<void(Button&)> on_touch_press { }; // Executed when touching, before on_select.
 	std::function<bool(Button&, KeyEvent)> on_dir { };
 	std::function<void(Button&)> on_highlight { };
 

@@ -913,11 +913,11 @@ bool Button::on_touch(const TouchEvent event) {
 	case TouchEvent::Type::End:
 		set_highlighted(false);
 		set_dirty();
-		if( on_select && !instant_exec_ ) {
-			on_select(*this);
-		}
 		if( on_touch_release) {
 			on_touch_release(*this);
+		}
+		if( on_select && !instant_exec_ ) {
+			on_select(*this);
 		}
 		return true;
 
