@@ -21,6 +21,7 @@
  */
 
 #include "ui_scanner.hpp"
+#include "ui_fileman.hpp"
 
 using namespace portapack;
 
@@ -182,6 +183,7 @@ ScannerView::ScannerView(
 		&field_bw,
 		&field_squelch,
 		&field_wait,
+		&button_load,
 		&rssi,
 		&text_cycle,
 		&text_max,
@@ -210,6 +212,25 @@ ScannerView::ScannerView(
 	button_manual_start.set_text(to_string_short_freq(frequency_range.min));
 	frequency_range.max = stored_freq + 1000000;
 	button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+
+	button_load.on_select = [this, &nav](Button&) {
+		// load txt files from the FREQMAN folder
+		auto open_view = nav.push<FileLoadView>(".TXT");
+		open_view->on_changed = [this](std::filesystem::path new_file_path) {
+
+			std::string dir_filter = "FREQMAN/";
+			std::string str_file_path = new_file_path.string();
+
+			if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
+				scan_pause();
+				// get the filename without txt extension so we can use load_freqman_file fcn
+				std::string str_file_name = new_file_path.stem().string();
+				frequency_file_load(str_file_name, true);
+			} else {
+				nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+			}
+		};
+	};
 
 	button_manual_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
@@ -314,7 +335,8 @@ ScannerView::ScannerView(
 
 	button_add.on_select = [this](Button&) {  //frequency_list[current_index]
 		File scanner_file;
-		auto result = scanner_file.open("FREQMAN/SCANNER.TXT");	//First search if freq is already in txt
+		std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
+		auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
 		if (!result.is_valid()) {
 			std::string frequency_to_add = "f=" 
 				+ to_string_dec_uint(frequency_list[current_index] / 1000) 
@@ -342,12 +364,12 @@ ScannerView::ScannerView(
 				big_display.set(frequency_list[current_index]);		//After showing an error
 			}
 			else {
-				auto result = scanner_file.append("FREQMAN/SCANNER.TXT"); //Second: append if it is not there
+				auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
 				scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 			}
 		} else
 		{
-			nav_.display_modal("Error", "Cannot open SCANNER.TXT\nfor appending freq.");
+			nav_.display_modal("Error", "Cannot open " + loaded_file_name + ".TXT\nfor appending freq.");
 			big_display.set(frequency_list[current_index]);		//After showing an error
 		}
 	};
@@ -357,22 +379,37 @@ ScannerView::ScannerView(
 	field_squelch.on_change = [this](int32_t v) {	squelch = v;	}; 	field_squelch.set_value(-10);
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
+
 	// LEARN FREQUENCIES
 	std::string scanner_txt = "SCANNER";
-	if ( load_freqman_file(scanner_txt, database)  ) {
+	frequency_file_load(scanner_txt);
+}
+
+void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
+
+	// stop everything running now if required
+	if (stop_all_before) {
+		scan_thread->stop();
+		frequency_list.clear(); // clear the existing frequency list (expected behavior)
+		description_list.clear();
+		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
+	}
+
+	if ( load_freqman_file(file_name, database)  ) {
+		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
 			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
 					switch (entry.step) {
-					case AM_US:	def_step = 10000;  	break ;
-					case AM_EUR:def_step = 9000;  	break ;
-					case NFM_1: def_step = 12500;  	break ;
-					case NFM_2: def_step = 6250;	break ;	
-					case FM_1:	def_step = 100000; 	break ;
-					case FM_2:	def_step = 50000; 	break ;
-					case N_1:	def_step = 25000;  	break ;
-					case N_2:	def_step = 250000; 	break ;
-					case AIRBAND:def_step= 8330;  	break ;
+						case AM_US:	def_step = 10000;  	break ;
+						case AM_EUR:def_step = 9000;  	break ;
+						case NFM_1: def_step = 12500;  	break ;
+						case NFM_2: def_step = 6250;	break ;	
+						case FM_1:	def_step = 100000; 	break ;
+						case FM_2:	def_step = 50000; 	break ;
+						case N_1:	def_step = 25000;  	break ;
+						case N_2:	def_step = 250000; 	break ;
+						case AIRBAND:def_step= 8330;  	break ;
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
 					description_list.push_back("R" + to_string_short_freq(entry.frequency_a)
@@ -398,7 +435,8 @@ ScannerView::ScannerView(
 	} 
 	else 
 	{
-		desc_cycle.set(" NO SCANNER.TXT FILE ..." );
+		loaded_file_name = 'SCANNER'; // back to the default frequency file
+		desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 	}
 	audio::output::stop();
 	step_mode.set_by_value(def_step); //Impose the default step into the manual step selector
