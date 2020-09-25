@@ -34,6 +34,8 @@ TouchCalibrationView::TouchCalibrationView(
 	calibration { touch::default_calibration() }
 {
 	add_children({
+		&labels,
+		&field_sensitivity,
 		&image_calibrate_0,
 		&image_calibrate_1,
 		&image_calibrate_2,
@@ -51,7 +53,29 @@ TouchCalibrationView::TouchCalibrationView(
 	button_cancel.on_select = [this](Button&){ this->on_cancel(); };
 	button_ok.on_select = [this](Button&){ this->on_ok(); };
 
+	field_sensitivity.set_by_value((uint32_t)persistent_memory::touch_threshold());
+	adjust_threshold(field_sensitivity.selected_index_value());
+	field_sensitivity.on_change = [this](size_t, OptionsField::value_t v) {
+		adjust_threshold(v);
+	};
+
 	set_phase(Phase::Calibrate0);
+}
+
+void TouchCalibrationView::adjust_threshold(uint32_t new_threshold)
+{
+	r_touch_threshold = new_threshold;
+	switch (new_threshold)
+	{
+	case 480:
+		samples_limit = 30;
+		break;
+	case 320:
+		samples_limit = 20;
+		break;
+	default: //STANDARD (original value)
+		samples_limit = 40;
+	}
 }
 
 void TouchCalibrationView::focus() {
@@ -155,6 +179,8 @@ void TouchCalibrationView::touch_complete() {
 void TouchCalibrationView::on_ok() {
 	if( phase == Phase::Success ) {
 		persistent_memory::set_touch_calibration(calibration);
+		persistent_memory::set_touch_threshold(r_touch_threshold); //Save current sensitivity
+		touch::r_touch_threshold = r_touch_threshold; //Pass the sensitivity threshold into the touch routine	
 		nav.pop();
 	}
 	if( phase == Phase::Failure ) {
@@ -185,7 +211,7 @@ void TouchCalibrationView::on_frame_sync() {
 	const auto x = metrics.x * 1024;
 	const auto y = metrics.y * 1024;
 
-	if( metrics.r < 640.0f ) {
+	if( metrics.r < r_touch_threshold ) {  //euquiq was hardcoded to 640.0f
 		if( samples_count > 0 ) {
 			average.x = ((average.x * 7) + x) / 8;
 			average.y = ((average.y * 7) + y) / 8;

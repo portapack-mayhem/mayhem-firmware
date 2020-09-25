@@ -40,6 +40,8 @@ constexpr sample_t sample_max = 1023;
 
 constexpr sample_t touch_threshold = sample_max / 5;
 
+static float r_touch_threshold { 0 };
+
 struct Samples {
 	sample_t xp;
 	sample_t xn;
@@ -212,7 +214,6 @@ private:
 		TouchDetected,
 	};
 
-	static constexpr float r_touch_threshold = 640;
 	static constexpr size_t touch_count_threshold { 3 };
 	static constexpr uint32_t touch_stable_bound { 8 };
 
