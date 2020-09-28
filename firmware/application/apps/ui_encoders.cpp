@@ -73,41 +73,33 @@ void EncodersView::draw_waveform() {
 
 void EncodersView::generate_frame(bool is_debruijn, uint32_t debruijn_bits) {
 	uint8_t i = 0;
+	uint8_t pos = bits_per_packet; //Only need the De Bruijn populated positions inside bits_per_packet (0 based!);
+	char * word_ptr = (char*)encoder_def->word_format;
+
 	frame_fragments.clear();
 
-	if (!is_debruijn) //single tx
-	{
-		for (auto c : encoder_def->word_format)
-		{
-			if (c == 'S')
-				frame_fragments += encoder_def->sync;
-			else
-				frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; //Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
-		}
-	}
-	else //Scaning on de_bruijn sequence:
-	{
-		uint8_t abit;
-		uint8_t pos = bits_per_packet; //Only need the De Bruijn populated positions inside bits_per_packet (0 based!);
+	while (*word_ptr) {
 
-		for (auto c : encoder_def->word_format)
+		if (*word_ptr == 'S')
+			frame_fragments += encoder_def->sync;
+		else if (*word_ptr == 'D')
+			frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; //Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
+		else
 		{
-			if (c == 'S')
-				frame_fragments += encoder_def->sync;
-			else if (c == 'D')		//Data, Take it from the symfield, as configured by user
-				frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; //Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
-			else //Address: inject De Bruijn
-			{		
+			if (!is_debruijn) //single tx
+				frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; //Get the address from user's configured symfield
+			else 			
+			{	//De BRuijn!
 				if ( debruijn_bits & (1 << (31 - pos)) )
-				 	abit = 1;
+				 	frame_fragments += encoder_def->bit_format[1];
 				else
-					abit = 0;
+					frame_fragments += encoder_def->bit_format[0];
 
 				pos--;
 				i++; //Even while grabbing this address bit from debruijn, must move forward on the symfield, in case there is a 'D' further ahead
-				frame_fragments += encoder_def->bit_format[abit];
-			}			
+			}	
 		}
+		word_ptr++;
 	}
 
 	draw_waveform();
