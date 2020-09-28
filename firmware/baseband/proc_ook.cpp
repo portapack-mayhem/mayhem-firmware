@@ -27,6 +27,8 @@
 
 #include <cstdint>
 
+#define OOK_DEFAULT_STEP 	6	// 50 kHz default carrier frequency
+
 void OOKProcessor::execute(const buffer_c8_t& buffer) {
 	int8_t re, im;
 	
@@ -81,11 +83,20 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 		}
 		
 		if (cur_bit) {
-			phase = (phase + 200);			// What ?
-			sphase = phase + (64 << 18);
+			// let's say target carrier freq is fc,
+			// OOK_SAMPLERATE / fc = prescaler
+			// so we have to loop over the sin table in n='prescaler' steps
+			// sin table size is 256
+			// 256 / prescaler = sin_carrier_step
+			phase = phase + OOK_DEFAULT_STEP;
 
-			re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-			im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+			// no phase shift between I and Q here:
+			// phase + 0 = 0°, phase + 64 = +PI/2, and so on.
+			// maybe this would be a nice parameter to add to the OOKConfigure message...
+			sphase = phase + 64;
+
+			re = (sine_table_i8[sphase & 0xFF]);
+			im = (sine_table_i8[phase & 0xFF]);
 		} else {
 			re = 0;
 			im = 0;
