@@ -38,6 +38,8 @@ private:
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	uint32_t samples_per_bit { 0 };
+	uint16_t repeat_skip_bits { 0 };
+	uint8_t sin_carrier_step { 0 };
 	uint8_t repeat { 0 };
 	uint32_t length { 0 };
 	uint32_t pause { 0 };
