@@ -192,6 +192,8 @@ void KeyfobView::start_tx() {
 	baseband::set_ook_data(
 		bitstream_length,
 		subaru_samples_per_bit,
+		0,
+		8,	// 70 kHz carrier frequency, not sure what it was before, to be defined
 		repeats,
 		200		// Pause symbols
 	);
