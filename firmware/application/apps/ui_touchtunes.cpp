@@ -122,6 +122,8 @@ void TouchTunesView::start_tx(const uint32_t button_index) {
 	baseband::set_ook_data(
 		bitstream_length,
 		OOK_SAMPLERATE / 1766,	// 560us
+		0,
+		8,	// 70 kHz carrier frequency, not sure what the TouchTunes carrier freq was before. To be defined.
 		TOUCHTUNES_REPEATS,
 		100						// Pause
 	);
