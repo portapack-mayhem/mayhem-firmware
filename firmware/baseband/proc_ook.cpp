@@ -88,9 +88,9 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 			// so we have to loop over the sin table in n='prescaler' steps
 			// sin table size is 256
 			// 256 / prescaler = sin_carrier_step
-			phase = phase + OOK_DEFAULT_STEP;
+			phase += OOK_DEFAULT_STEP;
 
-			// no phase shift between I and Q here:
+			// 90° phase shift between I and Q here:
 			// phase + 0 = 0°, phase + 64 = +PI/2, and so on.
 			// maybe this would be a nice parameter to add to the OOKConfigure message...
 			sphase = phase + 64;
