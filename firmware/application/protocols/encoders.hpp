@@ -31,6 +31,7 @@ namespace encoders {
 	
 	#define ENC_TYPES_COUNT 	16
 	#define OOK_SAMPLERATE		2280000U
+	#define OOK_DEFAULT_STEP 	8	// 70 kHz carrier frequency
 	
 	#define ENCODER_UM3750		10
 	
@@ -50,6 +51,8 @@ namespace encoders {
 		uint32_t default_speed;					// Default encoder clk frequency (often set by shitty resistor)
 		uint8_t repeat_min;						// Minimum repeat count
 		uint16_t pause_symbols;					// Length of pause between repeats in symbols
+		bool skip_repeat_bits;					// Should we skip the sync/header bits once the first frame has been sent?
+		uint8_t sin_carrier_step;				// The sin table step for the carrier frequency, step = 256 / (2.28 MHz / fc), where 4 <= step < 256
 	};
 
 	// Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !
@@ -63,7 +66,8 @@ namespace encoders {
 			24,	"AAAAAAAAAAAAAAAAAAAAAAAA",
 			"",
 			141260, 32, // repeat=32
-			32
+			32, false,
+			21 // fc = 164 kHz
 		},
 
 		// Test OOK Garage Door
@@ -75,7 +79,8 @@ namespace encoders {
 			8,	"AAAAAAAA",
 			"",
 			285000, 8, // repeat=230, looks like 8 is still working
-			70
+			70, false,
+			6 // fc = ~50 kHz
 		},
 
 		// PT2260-R2
@@ -87,7 +92,8 @@ namespace encoders {
 			12,	"AAAAAAAAAADDS",
 			"10000000000000000000000000000000",
 			150000,	2,
-			0
+			0, false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// PT2260-R4
@@ -99,7 +105,8 @@ namespace encoders {
 			12,	"AAAAAAAADDDDS",
 			"10000000000000000000000000000000",
 			150000,	2,
-			0
+			0, false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// PT2262
@@ -111,7 +118,8 @@ namespace encoders {
 			12,	"AAAAAAAAAAAAS",
 			"10000000000000000000000000000000",
 			20000,	4,
-			0
+			0, false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// 16-bit ?
@@ -123,7 +131,9 @@ namespace encoders {
 			16,	"AAAAAAAAAAAAAAAAS",
 			"100000000000000000000",
 			25000,	50,
-			0	// ?
+			0,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// RT1527
@@ -135,7 +145,9 @@ namespace encoders {
 			24,	"SAAAAAAAAAAAAAAAAAAAADDDD",
 			"10000000000000000000000000000000",
 			100000,	4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// HK526E
@@ -147,7 +159,9 @@ namespace encoders {
 			12,	"AAAAAAAAAAAA",
 			"",
 			20000, 4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// HT12E
@@ -159,7 +173,9 @@ namespace encoders {
 			12,	"SAAAAAAAADDDD",
 			"0000000000000000000000000000000000001",
 			3000, 4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 			
 		// VD5026 13 bits ?
@@ -171,7 +187,9 @@ namespace encoders {
 			12,	"SAAAAAAAAAAAA",
 			"000000000000000000000000000000000000000000000001",		// ?
 			100000,	4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// UM3750
@@ -183,7 +201,9 @@ namespace encoders {
 			12,	"SAAAAAAAAAAAA",
 			"001",
 			100000,	4,
-			(3 * 12) - 6	// Compensates for pause delay bug in proc_ook
+			(3 * 12) - 6,	// Compensates for pause delay bug in proc_ook
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// UM3758
@@ -195,7 +215,9 @@ namespace encoders {
 			18,	"SAAAAAAAAAADDDDDDDD",
 			"1",
 			160000,	4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// BA5104
@@ -207,7 +229,9 @@ namespace encoders {
 			9,	"SDDAAAAAAA",
 			"",
 			455000,	4,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 			
 		// MC145026
@@ -219,7 +243,8 @@ namespace encoders {
 			9,	"SAAAAADDDD",
 			"000000000000000000",
 			455000,	2,
-			2
+			2, false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// HT6*** TODO: Add individual variations
@@ -231,7 +256,9 @@ namespace encoders {
 			18,	"SAAAAAAAAAAAADDDDDD",
 			"0000000000000000000000000000000000001011001011001",
 			80000,	3,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		},
 		
 		// TC9148
@@ -243,7 +270,9 @@ namespace encoders {
 			12,	"AAAAAAAAAAAA",
 			"",
 			455000,	3,
-			10	// ?
+			10,	// ?
+			false,
+			OOK_DEFAULT_STEP
 		}
 	};
 
