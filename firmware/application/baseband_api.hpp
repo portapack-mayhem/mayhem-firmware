@@ -73,8 +73,8 @@ void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_
 
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
 
-void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
-					const uint32_t pause_symbols);
+void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, uint16_t repeat_skip_bits,
+					const uint8_t sin_carrier_step, const uint8_t repeat, const uint32_t pause_symbols);
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift,
 					const uint32_t progress_notice);
 void set_pocsag(const pocsag::BitRate bitrate, bool phase);
