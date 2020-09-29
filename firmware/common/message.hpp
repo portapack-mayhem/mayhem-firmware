@@ -934,10 +934,14 @@ public:
 	constexpr OOKConfigureMessage(
 		const uint32_t stream_length,
 		const uint32_t samples_per_bit,
+		const uint16_t repeat_skip_bits,
+		const uint8_t sin_carrier_step,
 		const uint8_t repeat,
 		const uint32_t pause_symbols
 	) : Message { ID::OOKConfigure },
 		stream_length(stream_length),
+		repeat_skip_bits(repeat_skip_bits),
+		sin_carrier_step(sin_carrier_step),
 		samples_per_bit(samples_per_bit),
 		repeat(repeat),
 		pause_symbols(pause_symbols)
@@ -946,6 +950,8 @@ public:
 
 	const uint32_t stream_length;
 	const uint32_t samples_per_bit;
+	const uint16_t repeat_skip_bits;
+	const uint8_t sin_carrier_step;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
 };
