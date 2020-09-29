@@ -109,10 +109,17 @@ uint32_t EncodersView::samples_per_bit() {
 	return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 }
 
+uint16_t EncodersView::repeat_skip_bits_count() {
+	return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
+}
+
+uint16_t EncodersView::sin_carrier_step() {
+	return encoder_def->sin_carrier_step;
+}
+
 uint32_t EncodersView::pause_symbols() {
 	return encoder_def->pause_symbols;
 }
-
 
 void EncodersView::focus() {
 	options_enctype.set_selected_index(0);
@@ -256,6 +263,8 @@ void EncodersView::update_progress() {
 		baseband::set_ook_data(
 			bitstream_length,
 			samples_per_bit(),
+			repeat_skip_bits_count(),
+			sin_carrier_step(),
 			afsk_repeats,
 			pause_symbols());
 	}

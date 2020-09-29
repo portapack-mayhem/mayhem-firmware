@@ -60,6 +60,8 @@ private:
 	};
 
 	uint32_t samples_per_bit();
+	uint16_t repeat_skip_bits_count();
+	uint16_t sin_carrier_step();
 	uint32_t pause_symbols();
 	void generate_frame(bool is_debruijn, uint32_t debruijn_bits);
 	
