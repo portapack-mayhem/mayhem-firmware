@@ -85,7 +85,7 @@ struct data_t {
 	uint32_t playdead_sequence;
 	
 	// UI
-	uint32_t ui_config;
+	uint32_t ui_config; 
 	
 	uint32_t pocsag_last_address;
 	uint32_t pocsag_ignore_address;
@@ -285,6 +285,14 @@ uint32_t pocsag_ignore_address() {
 
 void set_pocsag_ignore_address(uint32_t address) {
 	data->pocsag_ignore_address = address;
+}
+
+bool clkout_enabled() {
+	return (data->ui_config & 0x08000000UL);
+}
+
+void set_clkout_enabled(bool enable) {
+	data->ui_config = (data->ui_config & ~0x08000000UL) | (enable << 27); 
 }
 
 } /* namespace persistent_memory */

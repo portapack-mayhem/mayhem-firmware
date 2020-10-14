@@ -147,8 +147,14 @@ private:
 	};
 
 	Labels labels_correction {
-		{ { 2 * 8, 4 * 16 }, "Frequency correction:", Color::light_grey() },
-		{ { 6 * 8, 5 * 16 }, "PPM", Color::light_grey() },
+		{ { 2 * 8, 3 * 16 }, "Frequency correction:", Color::light_grey() },
+		{ { 6 * 8, 4 * 16 }, "PPM", Color::light_grey() },
+	};
+
+	Checkbox check_clkout {
+		{ 28, (6 * 16 - 4) },
+		4,
+		"Enable 10MHz CLKOUT"
 	};
 
 	Labels labels_bias {
@@ -159,7 +165,7 @@ private:
 	};
 
 	NumberField field_ppm {
-		{ 2 * 8, 5 * 16 },
+		{ 2 * 8, 4 * 16 },
 		3,
 		{ -50, 50 },
 		1,
