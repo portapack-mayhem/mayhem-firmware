@@ -21,6 +21,7 @@
 
 #include "clock_manager.hpp"
 
+#include "portapack_persistent_memory.hpp"
 #include "portapack_io.hpp"
 
 #include "hackrf_hal.hpp"
@@ -467,7 +468,11 @@ void ClockManager::stop_audio_pll() {
 void ClockManager::enable_clock_output(bool enable) {
 	if(enable) {
 		clock_generator.enable_output(clock_generator_output_clkout);
-		clock_generator.set_ms_frequency(clock_generator_output_clkout, 10000000, si5351_vco_f, 0);
+		if(portapack::persistent_memory::clkout_freq() < 1000) {
+			clock_generator.set_ms_frequency(clock_generator_output_clkout, portapack::persistent_memory::clkout_freq() * 128000, si5351_vco_f, 7);
+		} else {
+			clock_generator.set_ms_frequency(clock_generator_output_clkout, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
+		}
 	} else {
 		clock_generator.disable_output(clock_generator_output_clkout);
 	}

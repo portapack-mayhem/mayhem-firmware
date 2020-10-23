@@ -145,6 +145,9 @@ SetRadioView::SetRadioView(
 
 	add_children({
 		&check_clkout,
+		&field_clkout_freq,
+		&labels_clkout_khz,
+		&value_freq_step,
 		&labels_bias,
 		&check_bias,
 		&button_done,
@@ -165,6 +168,31 @@ SetRadioView::SetRadioView(
 		EventDispatcher::send_message(message);
 	};
 
+	field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
+	value_freq_step.set_style(&style_text);
+
+	field_clkout_freq.on_select = [this](NumberField&) {
+		freq_step_khz++;
+		if(freq_step_khz > 3) {
+			freq_step_khz = 0;
+		}
+		switch(freq_step_khz) {
+			case 0:
+				value_freq_step.set("   |");
+				break;
+			case 1:
+				value_freq_step.set("  | ");
+				break;
+			case 2:
+				value_freq_step.set(" |  ");
+				break;
+			case 3:
+				value_freq_step.set("|   ");
+				break;
+		}
+		field_clkout_freq.set_step(pow(10, freq_step_khz));
+	};
+
 	check_bias.set_value(portapack::get_antenna_bias());
 	check_bias.on_select = [this](Checkbox&, bool v) {
 		portapack::set_antenna_bias(v);
@@ -175,6 +203,8 @@ SetRadioView::SetRadioView(
 	button_done.on_select = [this, &nav](Button&){
 		const auto model = this->form_collect();
 		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
+		portapack::persistent_memory::set_clkout_freq(model.freq);
+		clock_manager.enable_clock_output(portapack::persistent_memory::clkout_enabled());
 		nav.pop();
 	};
 }
@@ -190,6 +220,7 @@ void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
 SetFrequencyCorrectionModel SetRadioView::form_collect() {
 	return {
 		.ppm = static_cast<int8_t>(field_ppm.value()),
+		.freq = static_cast<uint32_t>(field_clkout_freq.value()),
 	};
 }
 

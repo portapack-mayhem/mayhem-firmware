@@ -114,6 +114,7 @@ private:
 
 struct SetFrequencyCorrectionModel {
 	int8_t ppm;
+	uint32_t freq;
 };
 
 class SetRadioView : public View {
@@ -130,6 +131,7 @@ private:
 		.background = Color::black(),
 		.foreground = Color::light_grey(),
 	};
+	uint8_t freq_step_khz = 3;
 
 	Text label_source {
 		{ 0, 1 * 16, 17 * 8, 16 },
@@ -152,9 +154,26 @@ private:
 	};
 
 	Checkbox check_clkout {
-		{ 28, (6 * 16 - 4) },
-		4,
-		"Enable 10MHz CLKOUT"
+		{ 18, (6 * 16 - 4) },
+		13,
+		"Enable CLKOUT"
+	};
+
+	NumberField field_clkout_freq {
+		{ 20 * 8, 6 * 16 },
+		5,
+		{ 10, 60000 },
+		1000,
+		' '
+	};
+
+	Labels labels_clkout_khz {
+		{ { 26 * 8, 6 * 16 }, "kHz", Color::light_grey() }
+	};
+
+	Text value_freq_step {
+		{ 21 * 8, (7 * 16 ), 4 * 8, 16 },
+		"|   "
 	};
 
 	Labels labels_bias {

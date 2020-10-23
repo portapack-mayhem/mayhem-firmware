@@ -63,6 +63,10 @@ using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
 constexpr int32_t modem_repeat_reset_value { 5 };
 
+using clkout_freq_range_t = range_t<uint32_t>;
+constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
+constexpr uint32_t clkout_freq_reset_value { 10000 };
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -293,6 +297,21 @@ bool clkout_enabled() {
 
 void set_clkout_enabled(bool enable) {
 	data->ui_config = (data->ui_config & ~0x08000000UL) | (enable << 27);
+}
+
+uint32_t clkout_freq() {
+	uint16_t freq = (data->ui_config & 0x000FFFF0) >> 4;
+	if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
+		data->ui_config = (data->ui_config & ~0x000FFFF0) | clkout_freq_reset_value << 4;
+		return clkout_freq_reset_value;
+	}
+	else {
+		return freq;
+	}
+}
+
+void set_clkout_freq(uint32_t freq) {
+	data->ui_config = (data->ui_config & ~0x000FFFF0) | (clkout_freq_range.clip(freq) << 4);
 }
 
 } /* namespace persistent_memory */
