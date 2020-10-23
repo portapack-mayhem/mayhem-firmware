@@ -111,6 +111,7 @@ void GlassView::on_hide()
 
 void GlassView::on_show()
 {
+    display.scroll_set_area( 88, 319); //Restart scrolling on the correct coordinates
     baseband::spectrum_streaming_start();
 }
 
@@ -148,8 +149,10 @@ void GlassView::PlotMarker(double pos)
     pos -= f_min;
     pos = pos / marker_pixel_step; //Real pixel 
 
-    portapack::display.fill_rectangle({0, 84, 240, 4}, Color::black()); //Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 1, 84, 3, 4}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({0, 82, 240, 8}, Color::black()); //Clear old marker and whole marker rectangle btw
+    portapack::display.fill_rectangle({pos - 2, 82, 5, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({pos - 1, 84, 3, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({pos, 86, 1, 2}, Color::red()); //Red marker middle
 }
 
 GlassView::GlassView(
