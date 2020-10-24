@@ -64,3 +64,6 @@ CMakeFiles/
 # Host OS leftovers
 .DS_Store
 /firmware/CMakeCache.txt
+
+# Python env
+env/
