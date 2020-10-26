@@ -61,21 +61,21 @@ void GlassView::add_spectrum_pixel(Color color)
 //Each having the radio signal power for it's corresponding frequency slot
 void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
 {
-    uint8_t max_power = 0;
     baseband::spectrum_streaming_stop();
 
     // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
-    for (uint16_t bin = 0; bin < 256; bin++) //Spectrum.db has 256 bins
-    {     // Center 12 bins are ignored (DC spike is blanked) Leftmost and rightmost 2 bins are ignored
-        if (bin > 1 && bin < 122) //> 1
+    // Spectrum.db has 256 bins. Center 12 bins are ignored (DC spike is blanked) Leftmost and rightmost 2 bins are ignored
+    // All things said and done, we actually need 240 of those bins:
+    for(uint8_t bin = 0; bin < 240; bin++) 
+    {
+        if (bin < 120) {
+            if (spectrum.db[134 + bin] > max_power)
+                max_power = spectrum.db[134 + bin];
+        }         
+        else
         {
-            if (spectrum.db[128 + bin] > max_power)
-                max_power = spectrum.db[128 + bin];
-        }
-        else if (bin > 133 && bin < 254) // < 254
-        {
-            if (spectrum.db[bin - 128] > max_power)
-                max_power = spectrum.db[bin - 128];
+            if (spectrum.db[bin - 118] > max_power)
+                    max_power = spectrum.db[bin - 118];  
         }
 
         bins_Hz_size += each_bin_size;   //add this bin Hz count into the "pixel fulfilled bag of Hz"
@@ -88,9 +88,14 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
                 add_spectrum_pixel(0);  //Filtered out, show black
 
             max_power = 0;
-            bins_Hz_size = 0;
-            if (!pixel_index) //a waterfall line has been completed
+
+            if (!pixel_index) //Received indication that a waterfall line has been completed
+            {
+                bins_Hz_size = 0;  //Since this is an entire pixel line, we don't carry "Pixels into next bin"
                 break;
+            } else {
+                bins_Hz_size -= marker_pixel_step; //reset bins size, but carrying the eventual excess Hz into next pixel
+            }
         }
     }
 
@@ -111,7 +116,7 @@ void GlassView::on_hide()
 
 void GlassView::on_show()
 {
-    display.scroll_set_area( 88, 319); //Restart scrolling on the correct coordinates
+    display.scroll_set_area( 109, 319); //Restart scroll on the correct coordinates
     baseband::spectrum_streaming_start();
 }
 
@@ -131,7 +136,13 @@ void GlassView::on_range_changed()
 
     marker_pixel_step = search_span / 240;                                        //Each pixel value in Hz
     text_marker_pm.set(to_string_dec_uint((marker_pixel_step / X2_MHZ_DIV) + 1)); // Give idea of +/- marker precision
-    field_marker.set_step(marker_pixel_step / MHZ_DIV); //step needs to be a pixel wide.
+
+    int32_t marker_step = marker_pixel_step / MHZ_DIV;
+    if (!marker_step) 
+        field_marker.set_step(1); //in case selected range is less than 240 (pixels)
+    else
+        field_marker.set_step(marker_step); //step needs to be a pixel wide.
+
     f_center_ini = f_min + (SEARCH_SLICE_WIDTH / 2);    //Initial center frequency for sweep
     f_center_ini += SEARCH_SLICE_WIDTH;                 //euquiq: Why do I need to move the center ???!!! (shift needed for marker accuracy)
 
@@ -139,20 +150,23 @@ void GlassView::on_range_changed()
 
     f_center = f_center_ini;                        //Reset sweep into first slice
     pixel_index = 0;                                //reset pixel counter
+    max_power = 0;
     bins_Hz_size = 0;                               //reset amount of Hz filled up by pixels
+    
+    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Trigger was 31. Need to understand this parameter.    
     receiver_model.set_tuning_frequency(f_center_ini); //tune rx for this slice
 }
 
-void GlassView::PlotMarker(double pos)
+void GlassView::PlotMarker(rf::Frequency pos)
 {
     pos = pos * MHZ_DIV;
     pos -= f_min;
     pos = pos / marker_pixel_step; //Real pixel 
 
-    portapack::display.fill_rectangle({0, 82, 240, 8}, Color::black()); //Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 2, 82, 5, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos - 1, 84, 3, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos, 86, 1, 2}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({0, 100, 240, 8}, Color::black()); //Clear old marker and whole marker rectangle btw
+    portapack::display.fill_rectangle({pos - 2, 100, 5, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({pos - 1, 103, 3, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({pos, 106, 1, 2}, Color::red()); //Red marker middle
 }
 
 GlassView::GlassView(
@@ -168,18 +182,21 @@ GlassView::GlassView(
                   &text_range,
                   &filter_config,
                   &field_rf_amp,
+                  &range_presets,
                   &field_marker,
                   &text_marker_pm
                 });
+
+    load_Presets(); //Load available presets from TXT files (or default)
     
-    field_frequency_min.set_value(2400);
+    field_frequency_min.set_value(presets_db[0].min);   //Defaults to first preset
     field_frequency_min.on_change = [this](int32_t v) {
         if (v >= field_frequency_max.value())
             field_frequency_max.set_value(v + 240);
         this->on_range_changed();
     };
 
-    field_frequency_max.set_value(2640); 
+    field_frequency_max.set_value(presets_db[0].max);   //Defaults to first preset
     field_frequency_max.on_change = [this](int32_t v) {
         if (v <= field_frequency_min.value())
             field_frequency_min.set_value(v - 240);
@@ -201,6 +218,12 @@ GlassView::GlassView(
 		min_color_power = v;
 	};
 
+	range_presets.on_change = [this](size_t n, OptionsField::value_t v) {
+		field_frequency_min.set_value(presets_db[v].min,false);
+        field_frequency_max.set_value(presets_db[v].max,false);
+        this->on_range_changed();
+	};
+
     field_marker.on_change = [this](int32_t v) {
         PlotMarker(v); //Refresh marker on screen
     };
@@ -214,8 +237,8 @@ GlassView::GlassView(
 		nav_.push<AnalogAudioView>(); //Jump into audio view
     };
 
-    display.scroll_set_area( 88, 319);
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 16);	// Trigger was 31. Need to understand this parameter.
+    display.scroll_set_area( 109, 319);
+    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Trigger was 31. Need to understand this parameter.
 
     on_range_changed();
 
@@ -224,6 +247,79 @@ GlassView::GlassView(
     receiver_model.set_baseband_bandwidth(SEARCH_SLICE_WIDTH); // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
 	receiver_model.enable();
+}
+
+void GlassView::load_Presets() {
+	File presets_file; 		//LOAD /WHIPCALC/ANTENNAS.TXT from microSD
+	auto result = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+	presets_db.clear();			//Start with fresh db
+	if (result.is_valid()) {
+		presets_Default(); 		//There is no txt, store a default range
+	} else {
+
+		std::string line;		//There is a txt file
+		char one_char[1];		//Read it char by char
+		for (size_t pointer=0; pointer < presets_file.size();pointer++) {
+			presets_file.seek(pointer);
+			presets_file.read(one_char, 1);
+			if ((int)one_char[0] > 31) {			//ascii space upwards
+				line += one_char[0];				//Add it to the textline
+			}
+			else if (one_char[0] == '\n') {			//New Line
+				txtline_process(line);				//make sense of this textline
+				line.clear();						//Ready for next textline
+			} 
+		}
+		if (line.length() > 0) txtline_process(line);	//Last line had no newline at end ?
+		if (!presets_db.size()) presets_Default();		//no antenna on txt, use default
+    }
+
+    populate_Presets();
+}
+
+void GlassView::txtline_process(std::string& line) 
+{
+	if (line.find("#") != std::string::npos) return;	//Line is just a comment
+
+	size_t comma = line.find(",");          //Get first comma position
+    if (comma == std::string::npos) return; //No comma at all
+
+	size_t previous = 0;
+	preset_entry new_preset;
+
+    new_preset.min = std::stoi(line.substr(0,comma));
+    if (!new_preset.min) return;    //No frequency!
+    
+    previous = comma + 1;
+    comma = line.find(",",previous);		//Search for next delimiter
+    if (comma == std::string::npos) return; //No comma at all
+
+    new_preset.max = std::stoi(line.substr(previous,comma - previous));
+    if (!new_preset.max) return;    //No frequency!
+
+    new_preset.label = line.substr(comma + 1);
+    if (new_preset.label.size() == 0) return; //No label ?
+    
+    presets_db.push_back(new_preset);   //Add this preset.
+}
+
+void GlassView::populate_Presets() 
+{
+    using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+    options_t entries;
+
+	for (preset_entry preset : presets_db) 
+        {	//go thru all available presets
+            entries.emplace_back(preset.label,entries.size());
+        }
+    range_presets.set_options(entries);
+}
+
+void GlassView::presets_Default() 
+{
+        presets_db.clear();
+        presets_db.push_back({2320, 2560, "DEFAULT WIFI 2.4GHz"});
 }
 
 }
