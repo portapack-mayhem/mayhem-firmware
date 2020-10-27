@@ -100,7 +100,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
     }
 
     if (pixel_index) 
-        f_center += SEARCH_SLICE_WIDTH; //Move into the next bandwidth slice
+        f_center += SEARCH_SLICE_WIDTH; //Move into the next bandwidth slice NOTE: spectrum.sampling_rate = SEARCH_SLICE_WIDTH
     else
         f_center = f_center_ini; //Start a new sweep
 
@@ -153,7 +153,7 @@ void GlassView::on_range_changed()
     max_power = 0;
     bins_Hz_size = 0;                               //reset amount of Hz filled up by pixels
     
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Trigger was 31. Need to understand this parameter.    
+    baseband::set_spectrum(SEARCH_SLICE_WIDTH, field_trigger.value());   
     receiver_model.set_tuning_frequency(f_center_ini); //tune rx for this slice
 }
 
@@ -184,7 +184,8 @@ GlassView::GlassView(
                   &field_rf_amp,
                   &range_presets,
                   &field_marker,
-                  &text_marker_pm
+                  &text_marker_pm,
+                  &field_trigger
                 });
 
     load_Presets(); //Load available presets from TXT files (or default)
@@ -237,8 +238,16 @@ GlassView::GlassView(
 		nav_.push<AnalogAudioView>(); //Jump into audio view
     };
 
+    field_trigger.set_value(32);   //Defaults to 32, as normal triggering resolution
+    field_trigger.on_change = [this](int32_t v) {
+        baseband::set_spectrum(SEARCH_SLICE_WIDTH, v);
+    };
+
     display.scroll_set_area( 109, 319);
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Trigger was 31. Need to understand this parameter.
+    baseband::set_spectrum(SEARCH_SLICE_WIDTH, field_trigger.value());	//trigger:
+    // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute ,
+    // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made, 
+    //at which time it pushes the buffer up with channel_spectrum.feed
 
     on_range_changed();
 

@@ -89,8 +89,8 @@
             {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
             {{0, 1 * 16}, " RANGE:     FILTER:      AMP:", Color::light_grey()},
             {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-            {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()}
-
+            {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
+             {{0, 4 * 16}, "RESOLUTION:    (fft trigger)", Color::light_grey()}
         };
 
          NumberField field_frequency_min {
@@ -150,6 +150,14 @@
         Text text_marker_pm{
             {20 * 8, 3 * 16, 2 * 8, 16},
             ""};
+
+        NumberField field_trigger{
+             {11 * 8, 4 * 16},
+             3,
+             {2, 128},
+             2,
+             ' '};
+
 
      MessageHandlerRegistration message_handler_spectrum_config {
  		Message::ID::ChannelSpectrumConfig,
