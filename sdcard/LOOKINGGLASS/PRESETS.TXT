@@ -1,0 +1,11 @@
+# INI,END,DESCRIPTION 
+# (Freq range in MHz, min separation 240MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+260,500,315/433 MHz KEYFOBS
+2320,2560,BL / WIFI 2.4GHz
+5160,5900,WIFI 5GHz
+10,7250,FULL RANGE
+140,380,VHF MICS AND MARINE
+390,420,RADIOSONDES
+420,660,UHF MICS
