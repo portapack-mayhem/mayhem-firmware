@@ -51,32 +51,37 @@ void AX25Frame::NRZI_add_bit(const uint32_t bit) {
 	}
 }
 
-void AX25Frame::add_byte(uint8_t byte, bool is_flag, bool is_data) {
-	uint32_t bit;
-	
+void AX25Frame::add_byte(uint8_t byte, bool is_flag, bool is_data)
+{
+	bool bit;
+
 	if (is_data)
 		crc_ccitt.process_byte(byte);
-	
-	for (uint32_t i = 0; i < 8; i++) {
+
+	for (uint32_t i = 0; i < 8; i++)
+	{
 		bit = (byte >> i) & 1;
-		
+
+		NRZI_add_bit(bit);
+
 		if (bit)
+		{
 			ones_counter++;
+			if ((ones_counter == 5) && (!is_flag))
+			{
+				NRZI_add_bit(0);
+				ones_counter = 0;
+			}
+		}
 		else
 			ones_counter = 0;
-		
-		if ((ones_counter == 6) && (!is_flag)) {
-			NRZI_add_bit(0);
-			ones_counter = 0;
-		}
-		
-		NRZI_add_bit(bit);
 	}
 }
 
-void AX25Frame::flush() {
+void AX25Frame::flush()
+{
 	if (bit_counter)
-		*bb_data_ptr = current_byte << (7 - bit_counter);
+		*bb_data_ptr = current_byte << (8 - bit_counter); //euquiq: This was 7 but there are 8 bits
 };
 
 void AX25Frame::add_flag() {

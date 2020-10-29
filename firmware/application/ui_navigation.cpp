@@ -81,7 +81,7 @@
 #include "tpms_app.hpp"
 
 #include "core_control.hpp"
-
+#include "ui_looking_glass_app.hpp"
 #include "file.hpp"
 #include "png_writer.hpp"
 
@@ -485,7 +485,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 	add_items({
 		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		{ "ADS-B [S]",		ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "APRS", 			ui::Color::orange(),	&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
+		{ "APRS", 			ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 		ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "GPS Sim",		ui::Color::yellow(),	&bitmap_icon_gps_sim,		[&nav](){ nav.push<GpsSimAppView>(); } },
 		{ "Jammer", 		ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
@@ -548,6 +548,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Lookin'Glass",	ui::Color::red(),		&bitmap_icon_search,	[&nav](){ nav.push<GlassView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
 		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});
