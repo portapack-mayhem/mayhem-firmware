@@ -86,24 +86,26 @@ namespace ui {
 				if (_scanning) {						//Scanning
 					if (_freq_lock == 0) {				//normal scanning (not performing freq_lock)
 						if (!restart_scan) {			//looping at full speed
-							switch( frequency_list_[ 0 ] )
+							switch( frequency_list_[ MS_FLAG_IDX ] )
 							{
-								case -666 : // MANUAL SCAN   indexes: 0 => flag (-666) 1=>start , 2=>end , 3=> step , 4=> current freq
+								case MS_FLAG_VAL : // MANUAL SCAN   indexes: 0=> flag , 1=>start , 2=>end , 3=> step , 4=> current freq
 									if (_fwd) 
 									{	
 										//forward
-										frequency_list_[ 4 ] += frequency_list_[ 3 ];
-										if (frequency_list_[ 4 ] > frequency_list_[ 2 ])
-											frequency_list_[ 4 ] = frequency_list_[ 1 ] ;	
+										frequency_list_[ MS_CUR_FREQ_IDX ] += frequency_list_[ MS_FREQ_STEP_IDX ];
+										if (frequency_list_[ MS_CUR_FREQ_IDX ] > frequency_list_[ MS_MAX_FREQ_IDX ])
+											frequency_list_[ MS_CUR_FREQ_IDX ] = frequency_list_[ MS_MIN_FREQ_IDX ] ;	
 									} 
 									else
 									{	//reverse
-										frequency_list_[ 4 ] -= frequency_list_[ 3 ];
-										if (frequency_list_[ 4 ] < frequency_list_[ 1 ])
-											frequency_list_[ 4 ] = frequency_list_[ 2 ] ;	
+										frequency_list_[ MS_CUR_FREQ_IDX ] -= frequency_list_[ MS_FREQ_STEP_IDX ];
+										if (frequency_list_[ MS_CUR_FREQ_IDX ] < frequency_list_[ MS_MIN_FREQ_IDX ])
+											frequency_list_[ MS_CUR_FREQ_IDX ] = frequency_list_[ MS_MAX_FREQ_IDX ] ;	
 									}
-									receiver_model.set_tuning_frequency( frequency_list_[ 4 ] );	// Retune
-									message.range = -frequency_list_[ 4 ];	//Inform freq (for coloring purposes also!)
+									receiver_model.set_tuning_frequency( frequency_list_[ MS_CUR_FREQ_IDX ] );	// Retune
+									//Inform freq (for coloring purposes also!) 
+									//Negative Values for direct frequency setting (instead of giving an index in frequency_list)
+									message.range = -frequency_list_[ MS_CUR_FREQ_IDX ];			
 									break ;
 								default :
 									if (_fwd) 
@@ -228,7 +230,7 @@ namespace ui {
 		}
 		else
 		{
-			big_display.set( -i );	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
+			big_display.set( -i );	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching) MANUAL SEARCH MODE
 		}
 	}
 

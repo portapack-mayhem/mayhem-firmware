@@ -37,6 +37,14 @@
 #define MAX_DB_ENTRY 500
 #define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
+/* indexes used in frequency_list in case of a manual search */
+#define MS_FLAG_IDX  0       // position of flag in list
+#define MS_FLAG_VAL  -666    // value of flag to tell it's a manual search ordered frequency_list
+#define MS_MIN_FREQ_IDX  1   // position of minimum frequency
+#define MS_MAX_FREQ_IDX  2   // position of maximum frequency
+#define MS_FREQ_STEP_IDX 3   // position or step 
+#define MS_CUR_FREQ_IDX  4   // position of currently used frequency
+
 namespace ui {
 
 enum modulation_type { AM = 0,WFM,NFM };
@@ -141,7 +149,7 @@ private:
 	std::string loaded_file_name;
 	uint32_t current_index { 0 };
 	bool userpause { false };
-	bool manual_search { false };
+	bool manual_search { false }; 
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
