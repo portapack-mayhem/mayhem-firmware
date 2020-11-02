@@ -177,48 +177,53 @@ namespace ui {
 				big_display.set_style(&style_green);
 				if( manual_search && i < 0 )
 				{
+					static long last_freq = 0 ;
+
 					/* pumped from button add freq */
 					File scanner_file;
 					std::string freq_file_path = "FREQMAN/MSEARCHR.TXT";
 
-					auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
-					if (!result.is_valid()) {
-						std::string frequency_to_add = "f=" 
-							+ to_string_dec_uint( -i / 1000) 
-							+ to_string_dec_uint( -i % 1000UL, 3, '0');
-						char one_char[1];		//Read it char by char
-						std::string line;		//and put read line in here
-						bool found=false;
-						for (size_t pointer=0; pointer < scanner_file.size();pointer++) {
+					if( last_freq != i )
+					{
+						auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
+						if (!result.is_valid()) {
+							std::string frequency_to_add = "f=" 
+								+ to_string_dec_uint( -i / 1000) 
+								+ to_string_dec_uint( -i % 1000UL, 3, '0');
+							char one_char[1];		//Read it char by char
+							std::string line;		//and put read line in here
+							bool found=false;
+							for (size_t pointer=0; pointer < scanner_file.size();pointer++) {
 
-							scanner_file.seek(pointer);
-							scanner_file.read(one_char, 1);
-							if ((int)one_char[0] > 31) {			//ascii space upwards
-								line += one_char[0];				//Add it to the textline
-							}
-							else if (one_char[0] == '\n') {			//New Line
-								if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-									found=true;
-									break;
+								scanner_file.seek(pointer);
+								scanner_file.read(one_char, 1);
+								if ((int)one_char[0] > 31) {			//ascii space upwards
+									line += one_char[0];				//Add it to the textline
 								}
-								line.clear();						//Ready for next textline
+								else if (one_char[0] == '\n') {			//New Line
+									if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+										found=true;
+										break;
+									}
+									line.clear();						//Ready for next textline
+								}
+							}
+							if( !found) {
+								auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
+								scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 							}
 						}
-						if( !found) {
+						else
+						{
+							std::string frequency_to_add = "f=" 
+								+ to_string_dec_uint( -i / 1000) 
+								+ to_string_dec_uint( -i % 1000UL, 3, '0');
+
 							auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
 							scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 						}
-					} 
-					else
-					{
-						std::string frequency_to_add = "f=" 
-							+ to_string_dec_uint( -i / 1000) 
-							+ to_string_dec_uint( -i % 1000UL, 3, '0');
-
-						auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
-						scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 					}
-
+					last_freq = i ;
 				}
 				break;
 			default:	//freq lock is checking the signal, do not update display
@@ -379,6 +384,7 @@ namespace ui {
 		};
 
 		button_manual_scan.on_select = [this](Button&) {
+
 			if (!frequency_range.min || !frequency_range.max) {
 				nav_.display_modal("Error", "Both START and END freqs\nneed a value");
 			} else if (frequency_range.min > frequency_range.max) {
