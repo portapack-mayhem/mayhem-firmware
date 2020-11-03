@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_search.hpp"
+#include "ui_calls.hpp"
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -30,7 +30,7 @@ using namespace portapack;
 namespace ui {
 
 template<>
-void RecentEntriesTable<SearchRecentEntries>::draw(
+void RecentEntriesTable<CallsRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -48,16 +48,16 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 	painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
 }
 
-void SearchView::focus() {
+void CallsView::focus() {
 	field_frequency_min.focus();
 }
 
-SearchView::~SearchView() {
+CallsView::~CallsView() {
 	receiver_model.disable();
 	baseband::shutdown();
 }
 
-void SearchView::do_detection() {
+void CallsView::do_detection() {
 	uint8_t power_max = 0;
 	int32_t bin_max = -1;
 	uint32_t slice_max = 0;
@@ -174,7 +174,7 @@ void SearchView::do_detection() {
 	}
 }
 
-void SearchView::add_spectrum_pixel(Color color) {
+void CallsView::add_spectrum_pixel(Color color) {
 	// Is avoiding floats really necessary ?
 	bin_skip_acc += bin_skip_frac;
 	if (bin_skip_acc < 0x10000) 
@@ -186,7 +186,7 @@ void SearchView::add_spectrum_pixel(Color color) {
 		spectrum_row[pixel_index++] = color;
 }
 
-void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+void CallsView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	uint8_t max_power = 0;
 	int16_t max_bin = 0;
 	uint8_t power;
@@ -237,15 +237,15 @@ void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	baseband::spectrum_streaming_start();
 }
 
-void SearchView::on_show() {
+void CallsView::on_show() {
 	baseband::spectrum_streaming_start();
 }
 
-void SearchView::on_hide() {
+void CallsView::on_hide() {
 	baseband::spectrum_streaming_stop();
 }
 
-void SearchView::on_range_changed() {
+void CallsView::on_range_changed() {
 	rf::Frequency slices_span, center_frequency;
 	int64_t offset;
 	size_t slice;
@@ -288,15 +288,15 @@ void SearchView::on_range_changed() {
 	slice_counter = 0;
 }
 
-void SearchView::on_lna_changed(int32_t v_db) {
+void CallsView::on_lna_changed(int32_t v_db) {
 	receiver_model.set_lna(v_db);
 }
 
-void SearchView::on_vga_changed(int32_t v_db) {
+void CallsView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void SearchView::do_timers() {
+void CallsView::do_timers() {
 	
 	if (timing_div >= 60) {
 		// ~1Hz
@@ -340,7 +340,7 @@ void SearchView::do_timers() {
 	timing_div++;
 }
 
-SearchView::SearchView(
+CallsView::CallsView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
@@ -368,7 +368,7 @@ SearchView::SearchView(
 	baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
 	
 	recent_entries_view.set_parent_rect({ 0, 28 * 8, 240, 12 * 8 });
-	recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
+	recent_entries_view.on_select = [this, &nav](const CallsRecentEntry& entry) {
 		nav.push<FrequencyKeypadView>(entry.frequency);
 	};
 	
