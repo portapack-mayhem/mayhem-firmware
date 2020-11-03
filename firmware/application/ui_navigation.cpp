@@ -559,8 +559,8 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Spy",	ui::Color::yellow(),			&bitmap_icon_scanner,   [&nav](){ nav.push<SpyMenuView>(); } },
 		{ "Tools",		ui::Color::cyan(),		&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
+		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
 		//{ "About", 	ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
