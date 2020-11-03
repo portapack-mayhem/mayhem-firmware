@@ -54,6 +54,7 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_remote.hpp"
+#include "ui_search.hpp"
 #include "ui_scanner.hpp"
 #include "ui_calls.hpp"
 #include "ui_sd_wipe.hpp"
@@ -543,6 +544,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Capture",	ui::Color::red(),			&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",		ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<CallsView>(); } },
+		{ "Search",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanner",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Microphone",	ui::Color::yellow(),		&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
 		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
