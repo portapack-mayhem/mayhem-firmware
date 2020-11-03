@@ -87,7 +87,7 @@ public:
 	void on_hide() override;
 	void focus() override;
 	
-	std::string title() const override { return "Search"; };
+	std::string title() const override { return "Calls"; };
 
 private:
 	NavigationView& nav_;

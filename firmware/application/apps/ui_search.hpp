@@ -118,7 +118,7 @@ public:
 		.foreground = Color::red(),
 	};
 
-	std::string title() const override { return "SEARCH"; };
+	std::string title() const override { return "Search"; };
 	std::vector<rf::Frequency> frequency_list{ };
 	std::vector<string> description_list { };
 
