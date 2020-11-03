@@ -531,6 +531,7 @@ SpyMenuView::SpyMenuView(NavigationView& nav) {
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<CallsView>(); } },
 		{ "Search",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<SearchView>(); } },
 		{ "Scanner",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
+		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
 		});
 	set_max_rows(2); // allow wider buttons
 }
@@ -556,7 +557,6 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Replay",	ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Microphone",	ui::Color::yellow(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
 		{ "Spy",	ui::Color::yellow(),			&bitmap_icon_scanner,   [&nav](){ nav.push<SpyMenuView>(); } },
-		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
 		{ "Tools",		ui::Color::cyan(),		&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },

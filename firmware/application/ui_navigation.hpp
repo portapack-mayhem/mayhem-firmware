@@ -271,7 +271,7 @@ public:
 class SpyMenuView : public BtnGridView {
 public:
 	SpyMenuView(NavigationView& nav);
-	std::string title() const override { return "Spy"; };	
+	std::string title() const override { return "SpyFreqs"; };	
 };
 
 class SystemMenuView : public BtnGridView {
