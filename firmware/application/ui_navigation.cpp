@@ -524,6 +524,17 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	set_max_rows(2); // allow wider buttons
 }
 
+
+/* Call Scan Search *****************************************************/
+SpyMenuView::SpyMenuView(NavigationView& nav) {
+	add_items({
+		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<CallsView>(); } },
+		{ "Search",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<SearchView>(); } },
+		{ "Scanner",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
+		});
+	set_max_rows(2); // allow wider buttons
+}
+
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
@@ -542,17 +553,15 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Receive", 	ui::Color::cyan(),			&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
 		{ "Transmit", 	ui::Color::cyan(),			&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",	ui::Color::red(),			&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",		ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
-		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<CallsView>(); } },
-		{ "Search",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<SearchView>(); } },
-		{ "Scanner",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
-		{ "Microphone",	ui::Color::yellow(),		&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
+		{ "Replay",	ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "Microphone",	ui::Color::yellow(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
+		{ "Spy",	ui::Color::yellow(),			&bitmap_icon_scanner,   [&nav](){ nav.push<SpyMenuView>(); } },
 		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
-		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
+		{ "Tools",		ui::Color::cyan(),		&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
-		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+		//{ "About", 	ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 	set_arrow_enabled(false);

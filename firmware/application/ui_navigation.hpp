@@ -268,6 +268,12 @@ public:
 	std::string title() const override { return "Utilities"; };	
 };
 
+class SpyMenuView : public BtnGridView {
+public:
+	SpyMenuView(NavigationView& nav);
+	std::string title() const override { return "Spy"; };	
+};
+
 class SystemMenuView : public BtnGridView {
 public:
 	SystemMenuView(NavigationView& nav);
