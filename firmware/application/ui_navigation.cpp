@@ -556,12 +556,12 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Capture",	ui::Color::red(),			&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
 		{ "Replay",	ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
 		{ "Microphone",	ui::Color::yellow(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
-		{ "Spy",	ui::Color::yellow(),			&bitmap_icon_scanner,   [&nav](){ nav.push<SpyMenuView>(); } },
-		{ "Tools",		ui::Color::cyan(),		&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
-		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
+		{ "RF Spy",	ui::Color::yellow(),			&bitmap_icon_scanner,   [&nav](){ nav.push<SpyMenuView>(); } },
+		{ "Tools",	ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
+		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
-		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
-		//{ "About", 	ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,	[&nav](){ nav.push<DebugMenuView>(); } },
+		//{ "About", 	ui::Color::cyan(),			nullptr,		[&nav](){ nav.push<AboutView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 	set_arrow_enabled(false);
