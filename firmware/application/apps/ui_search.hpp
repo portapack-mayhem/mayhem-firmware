@@ -77,7 +77,7 @@ private:
 	std::vector<rf::Frequency> frequency_list_ { };
 	Thread* thread { nullptr };
 	
-	bool _searching { true };
+	bool _searching { false };
 	bool _fwd { true };
 	uint32_t _freq_lock { 0 };
 	uint32_t _freq_del { 0 };

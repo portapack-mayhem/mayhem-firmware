@@ -384,6 +384,7 @@ namespace ui {
 		};
 
 		button_manual_search.on_select = [this](Button&) {
+			
 
 			if (!frequency_range.min || !frequency_range.max) {
 				nav_.display_modal("Error", "Both START and END freqs\nneed a value");
@@ -429,6 +430,8 @@ namespace ui {
 					user_resume();
 				big_display.set_style(&style_grey);		//Back to grey color
 				start_search_thread(); //RESTART SCANNER THREAD
+				if (!search_thread->is_searching())
+					search_thread->set_searching(true);   // RESUME!
 			}
 		};
 
