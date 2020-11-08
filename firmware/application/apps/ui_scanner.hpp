@@ -154,7 +154,6 @@ private:
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
 		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:   db WAIT:", Color::light_grey() },
-		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
 		{ { 0 * 8, (26 * 8) + 4 }, "MODE:", Color::light_grey() },
 		{ { 11 * 8, (26 * 8) + 4 }, "STEP:", Color::light_grey() },
 	};
