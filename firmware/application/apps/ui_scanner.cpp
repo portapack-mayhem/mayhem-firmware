@@ -286,11 +286,8 @@ namespace ui {
 				&text_max,
 				&desc_cycle,
 				&big_display,
-				&button_manual_start,
-				&button_manual_end,
 				&field_mode,
 				&step_mode,
-				&button_manual_scan,
 				&button_pause,
 				&button_dir,
 				&button_audio_app,
@@ -305,10 +302,6 @@ namespace ui {
 
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
-		frequency_range.min = stored_freq - 1000000;
-		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-		frequency_range.max = stored_freq + 1000000;
-		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
 		button_load.on_select = [this, &nav](Button&) {
 			// load txt files from the FREQMAN folder
@@ -327,22 +320,6 @@ namespace ui {
 				} else {
 					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
 				}
-			};
-		};
-
-		button_manual_start.on_select = [this, &nav](Button& button) {
-			auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
-			new_view->on_changed = [this, &button](rf::Frequency f) {
-				frequency_range.min = f;
-				button_manual_start.set_text(to_string_short_freq(f));
-			};
-		};
-
-		button_manual_end.on_select = [this, &nav](Button& button) {
-			auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
-			new_view->on_changed = [this, &button](rf::Frequency f) {
-				frequency_range.max = f;
-				button_manual_end.set_text(to_string_short_freq(f));
 			};
 		};
 
@@ -380,55 +357,6 @@ namespace ui {
 				scan_thread->set_freq_lock(0); 			//Reset the scanner lock
 				if ( userpause ) 						//If user-paused, resume
 					user_resume();
-			}
-		};
-
-		button_manual_scan.on_select = [this](Button&) {
-
-			if (!frequency_range.min || !frequency_range.max) {
-				nav_.display_modal("Error", "Both START and END freqs\nneed a value");
-			} else if (frequency_range.min > frequency_range.max) {
-				nav_.display_modal("Error", "END freq\nis lower than START");
-			} else {
-				manual_search = true ;
-
-				audio::output::stop();
-				scan_thread->stop();	//STOP SCANNER THREAD
-
-				frequency_list.clear();
-				description_list.clear();
-
-				def_step = step_mode.selected_index_value();		//Use def_step from manual selector
-
-				description_list.push_back(
-						"M" + to_string_short_freq(frequency_range.min) + ">"
-						+ to_string_short_freq(frequency_range.max) + "S" 
-						+ to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
-						);
-
-				frequency_list.push_back( -666 ); 		 // flag for the scanning thread to indicate manual scan
-				frequency_list.push_back( frequency_range.min ); // start value
-				frequency_list.push_back( frequency_range.max ); // end value
-				frequency_list.push_back( def_step );		 // steps
-				frequency_list.push_back( frequency_range.min ); // current value (initialized to start value)
-
-				show_max(); /* display step information */
-				text_cycle.set( "" );
-
-				/* commented old behavior
-				   rf::Frequency frequency = frequency_range.min;
-				   while (frequency_list.size() < MAX_DB_ENTRY &&  frequency <= frequency_range.max) { //add manual range				
-				   frequency_list.push_back(frequency);
-				   description_list.push_back("");				//If empty, will keep showing the last description
-				   frequency+=def_step;
-				   }
-				   show_max();
-				   */
-
-				if ( userpause ) 						//If user-paused, resume
-					user_resume();
-				big_display.set_style(&style_grey);		//Back to grey color
-				start_scan_thread(); //RESTART SCANNER THREAD
 			}
 		};
 

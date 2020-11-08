@@ -222,21 +222,6 @@ private:
 		0
 	};
 
-	Button button_manual_start {
-		{ 0 * 8, 11 * 16, 11 * 8, 28 },
-		""
-	};
-
-	Button button_manual_end {
-		{ 12 * 8, 11 * 16, 11 * 8, 28 },
-		""
-	};
-
-	Button button_manual_scan {
-		{ 24 * 8, 11 * 16, 6 * 8, 28 },
-		"SCAN"
-	};
-
 	OptionsField field_mode {
 		{ 5 * 8, (26 * 8) + 4 },
 		6,
