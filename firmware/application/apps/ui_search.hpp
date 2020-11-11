@@ -297,6 +297,11 @@ private:
 		{ 168, (35 * 8) - 4, 72, 28 },
 		"DEL FQ"
 	};
+	Button button_search_setup {
+		{ 12 * 8, 1 * 16, 96, 24 },
+		"settings"
+	};
+
 	
 	std::unique_ptr<SearchThread> search_thread { };
 	

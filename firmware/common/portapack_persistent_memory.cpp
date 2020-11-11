@@ -63,6 +63,14 @@ using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range { 1, 99 };
 constexpr int32_t modem_repeat_reset_value { 5 };
 
+using search_baudrate_range_t = range_t<int32_t>;
+constexpr search_baudrate_range_t search_baudrate_range { 50, 9600 };
+constexpr int32_t search_baudrate_reset_value { 1200 };
+
+using search_repeat_range_t = range_t<int32_t>;
+constexpr search_repeat_range_t search_repeat_range { 1, 99 };
+constexpr int32_t search_repeat_reset_value { 5 };
+
 using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
 constexpr uint32_t clkout_freq_reset_value { 10000 };
@@ -82,6 +90,8 @@ struct data_t {
 	int32_t afsk_space_freq;
 	int32_t modem_baudrate;
 	int32_t modem_repeat;
+	int32_t search_baudrate;
+	int32_t search_repeat;
 	
 	// Play dead unlock
 	uint32_t playdead_magic;
@@ -188,6 +198,25 @@ uint8_t modem_repeat() {
 void set_modem_repeat(const uint32_t new_value) {
 	data->modem_repeat = modem_repeat_range.clip(new_value);
 }
+
+int32_t search_baudrate() {
+	search_baudrate_range.reset_if_outside(data->search_baudrate, search_baudrate_reset_value);
+	return data->search_baudrate;
+}
+
+void set_search_baudrate(const int32_t new_value) {
+	data->search_baudrate = search_baudrate_range.clip(new_value);
+}
+
+uint8_t search_repeat() {
+	search_repeat_range.reset_if_outside(data->search_repeat, search_repeat_reset_value);
+	return data->search_repeat;
+}
+
+void set_search_repeat(const uint32_t new_value) {
+	data->search_repeat = search_repeat_range.clip(new_value);
+}
+
 
 serial_format_t serial_format() {
 	return data->serial_format;

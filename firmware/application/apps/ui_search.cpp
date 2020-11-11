@@ -22,6 +22,7 @@
 
 #include "ui_search.hpp"
 #include "ui_fileman.hpp"
+#include "ui_searchsetup.hpp"
 
 using namespace std;
 using namespace portapack;
@@ -296,7 +297,8 @@ namespace ui {
 				&button_audio_app,
 				&button_mic_app,
 				&button_add,
-				&button_remove
+				&button_remove,
+				&button_search_setup
 
 		});
 
@@ -491,7 +493,7 @@ namespace ui {
 				big_display.set(frequency_list[current_index]);		//After showing an error
 			}
 		};
-
+		
 		//PRE-CONFIGURATION:
 		field_wait.on_change = [this](int32_t v) {	wait = v;	}; 	field_wait.set_value(5);
 		field_squelch.on_change = [this](int32_t v) {	squelch = v;	}; 	field_squelch.set_value(-10);
@@ -501,6 +503,10 @@ namespace ui {
 		// LEARN FREQUENCIES
 		std::string search_txt = "SCANNER";
 		frequency_file_load(search_txt);
+
+		button_search_setup.on_select = [&nav](Button&) {
+			nav.push<SearchSetupView>(); 
+		};
 	}
 
 	void SearchView::frequency_file_load(std::string file_name, bool stop_all_before) {

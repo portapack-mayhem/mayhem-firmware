@@ -65,6 +65,12 @@ void set_modem_baudrate(const int32_t new_value);
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
 
+int32_t search_baudrate();
+void set_search_baudrate(const int32_t new_value);
+
+uint8_t search_repeat();
+void set_search_repeat(const uint32_t new_value);
+
 uint32_t playing_dead();
 void set_playing_dead(const uint32_t new_value);
 
