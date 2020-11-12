@@ -21,8 +21,8 @@
  */
 
 #include "ui_search.hpp"
-#include "ui_fileman.hpp"
 #include "ui_searchsetup.hpp"
+#include "ui_fileman.hpp"
 
 using namespace std;
 using namespace portapack;
@@ -281,7 +281,6 @@ namespace ui {
 				&field_bw,
 				&field_squelch,
 				&field_wait,
-				&button_load,
 				&rssi,
 				&text_cycle,
 				&text_max,
@@ -297,6 +296,7 @@ namespace ui {
 				&button_audio_app,
 				&button_mic_app,
 				&button_add,
+				&button_load,
 				&button_remove,
 				&button_search_setup
 
@@ -312,25 +312,6 @@ namespace ui {
 		frequency_range.max = stored_freq + 1000000;
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
-		button_load.on_select = [this, &nav](Button&) {
-			// load txt files from the FREQMAN folder
-			auto open_view = nav.push<FileLoadView>(".TXT");
-			open_view->on_changed = [this](std::filesystem::path new_file_path) {
-
-				std::string dir_filter = "FREQMAN/";
-				std::string str_file_path = new_file_path.string();
-
-				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
-					search_pause();
-					// get the filename without txt extension so we can use load_freqman_file fcn
-					std::string str_file_name = new_file_path.stem().string();
-					frequency_file_load(str_file_name, true);
-					manual_search = false ;
-				} else {
-					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
-				}
-			};
-		};
 
 		button_manual_start.on_select = [this, &nav](Button& button) {
 			auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
@@ -386,7 +367,7 @@ namespace ui {
 		};
 
 		button_manual_search.on_select = [this](Button&) {
-			
+
 
 			if (!frequency_range.min || !frequency_range.max) {
 				nav_.display_modal("Error", "Both START and END freqs\nneed a value");
@@ -493,7 +474,28 @@ namespace ui {
 				big_display.set(frequency_list[current_index]);		//After showing an error
 			}
 		};
-		
+
+		button_load.on_select = [this, &nav](Button&) {
+			// load txt files from the FREQMAN folder
+			auto open_view = nav.push<FileLoadView>(".TXT");
+			open_view->on_changed = [this](std::filesystem::path new_file_path) {
+
+				std::string dir_filter = "FREQMAN/";
+				std::string str_file_path = new_file_path.string();
+
+				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
+					search_pause();
+					// get the filename without txt extension so we can use load_freqman_file fcn
+					std::string str_file_name = new_file_path.stem().string();
+					frequency_file_load(str_file_name, true);
+					manual_search = false ;
+				} else {
+					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+				}
+			};
+		};
+
+
 		//PRE-CONFIGURATION:
 		field_wait.on_change = [this](int32_t v) {	wait = v;	}; 	field_wait.set_value(5);
 		field_squelch.on_change = [this](int32_t v) {	squelch = v;	}; 	field_squelch.set_value(-10);
@@ -501,7 +503,7 @@ namespace ui {
 		field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
 
 		// LEARN FREQUENCIES
-		std::string search_txt = "SCANNER";
+		std::string search_txt = "SCANNER"; // add persistance read here
 		frequency_file_load(search_txt);
 
 		button_search_setup.on_select = [&nav](Button&) {
@@ -597,14 +599,14 @@ namespace ui {
 			}
 		}
 	}
-
 	void SearchView::search_pause() {
-		if (search_thread->is_searching()) {
-			search_thread->set_freq_lock(0); 		//Reset the search lock (because user paused, or MAX_FREQ_LOCK reached) for next freq search	
-			search_thread->set_searching(false); // WE STOP SCANNING
+		if (search_thread ->is_searching()) {
+			search_thread ->set_freq_lock(0); 		//Reset the scanner lock (because user paused, or MAX_FREQ_LOCK reached) for next freq scan	
+			search_thread ->set_searching(false); // WE STOP SCANNING
 			audio::output::start();
 		}
 	}
+
 
 	void SearchView::search_resume() {
 		audio::output::stop();
@@ -679,5 +681,6 @@ namespace ui {
 		receiver_model.set_squelch_level(0);
 		search_thread = std::make_unique<SearchThread>(frequency_list);
 	}
+
 
 } /* namespace ui */

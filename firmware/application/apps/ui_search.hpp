@@ -288,10 +288,6 @@ private:
 		"ADD FQ"
 	};
 
-	Button button_load {
-		{ 24 * 8, 3 * 16 - 8, 6 * 8, 22 },
-		"Load"
-	};
 
 	Button button_remove {
 		{ 168, (35 * 8) - 4, 72, 28 },
@@ -299,8 +295,13 @@ private:
 	};
 	Button button_search_setup {
 		{ 12 * 8, 1 * 16, 96, 24 },
-		"settings"
+		"Settings"
 	};
+	Button button_load {
+		{ 24 * 8, 3 * 16 - 8, 6 * 8, 22 },
+		"Load"
+	};
+
 
 	
 	std::unique_ptr<SearchThread> search_thread { };
