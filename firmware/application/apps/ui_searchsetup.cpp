@@ -30,68 +30,39 @@ using namespace portapack;
 namespace ui {
 
 void SearchSetupView::focus() {
-	field_baudrate.focus();
 }
 
 SearchSetupView::SearchSetupView(
 	NavigationView& nav
 )
 {
-	using option_t = std::pair<std::string, int32_t>;
-	using options_t = std::vector<option_t>;
-	options_t search_options;
-	
 	add_children({
 		&labels,
-		&field_baudrate,
-		&field_mark,
-		&field_space,
-		&field_repeat,
-		&options_search,
-		&button_set_search,
-		&sym_format,
+		&button_load_freqs,
+		&text_loaded_file,
+		&button_save_freqs,
+		&text_save_to_file,
+		&checkbox_autosave_freqs,
+		&checkbox_autorotate_file,
 		&button_save
 	});
-	
-	options_search.set_options(search_options);
-	options_search.set_selected_index(0);
-	
-	sym_format.set_symbol_list(0, "6789");		// Data bits
-	sym_format.set_symbol_list(1, "NEo");		// Parity
-	sym_format.set_symbol_list(2, "012");		// Stop bits
-	sym_format.set_symbol_list(3, "ML");		// MSB/LSB first
-	
-	sym_format.set_sym(0, persistent_memory::serial_format().data_bits - 6);
-	sym_format.set_sym(1, persistent_memory::serial_format().parity);
-	sym_format.set_sym(2, persistent_memory::serial_format().stop_bits);
-	sym_format.set_sym(3, persistent_memory::serial_format().bit_order);
-	
-	field_mark.set_value(persistent_memory::afsk_mark_freq());
-	field_space.set_value(persistent_memory::afsk_space_freq());
-	field_repeat.set_value(persistent_memory::search_repeat());
-	
-	field_baudrate.set_value(persistent_memory::search_baudrate());
-	
-	button_set_search.on_select = [this, &nav](Button&) {
-		size_t search_def_index = options_search.selected_index();
-	};
 
+	std::string input_freq_file { "SEARCH.TXT" };
+	std::string output_freq_file { "SEARCHFINDS.TXT" };
+	
+	bool autosave_freqs = persistent_memory::search_autosave_freqs();
+	bool autorotate_file = persistent_memory::search_autorotate_file();
+
+	uint32_t nb_max_freqs = 500 ; /* hard coded, experience will show if max value is too high */
+	uint32_t nb_freqs     = persistent_memory::search_nb_freqs();
+	
+//	checkbox_autosave_freqs =  persistent_memory::search_autosave_freqs();
+//	checkbox_autorotate_file = persistent_memory::search_autorotate_file();
+	
 	button_save.on_select = [this,&nav](Button&) {
-		serial_format_t serial_format;
-		
-		persistent_memory::set_afsk_mark(field_mark.value());
-		persistent_memory::set_afsk_space(field_space.value());
-		
-		persistent_memory::set_search_baudrate(field_baudrate.value());
-		persistent_memory::set_search_repeat(field_repeat.value());
-		
-		serial_format.data_bits = sym_format.get_sym(0) + 6;
-		serial_format.parity = (parity_enum)sym_format.get_sym(1);
-		serial_format.stop_bits = sym_format.get_sym(2);
-		serial_format.bit_order = (order_enum)sym_format.get_sym(3);
-		
-		persistent_memory::set_serial_format(serial_format);
-		
+		persistent_memory::set_search_autosave_freqs(checkbox_autosave_freqs.value());
+		persistent_memory::set_search_autorotate_file(checkbox_autorotate_file.value());
+		//persistent_memory::set_search_nb_freqs(  );
 		nav.pop();
 	};
 }
