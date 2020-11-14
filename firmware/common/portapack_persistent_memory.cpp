@@ -71,14 +71,6 @@ using search_nb_freqs_range_t = range_t<uint32_t>;
 constexpr search_nb_freqs_range_t search_nb_freqs_range{ 10, 500 };
 constexpr uint32_t search_nb_freqs_reset_value { 250 };
 
-using search_autosave_freqs_range_t = range_t<bool>;
-constexpr search_autosave_freqs_range_t search_autosave_freqs_range{ 0, 1 };
-constexpr bool search_autosave_freqs_reset_value { true };
-
-using search_autorotate_file_range_t = range_t<bool>;
-constexpr search_autorotate_file_range_t search_autorotate_file_range{ 0, 1 };
-constexpr bool search_autorotate_file_reset_value { true };
-
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -96,8 +88,7 @@ struct data_t {
 	int32_t modem_repeat;
 
 	// Search
-	bool search_autosave_freqs ;
-	bool search_autorotate_file ;
+	uint32_t search_searchconfig ;
 	uint32_t search_nb_freqs ;
 	
 	// Play dead unlock
@@ -206,23 +197,30 @@ void set_modem_repeat(const uint32_t new_value) {
 	data->modem_repeat = modem_repeat_range.clip(new_value);
 }
 
-bool search_autosave_freqs() {
-	return (data->search_autosave_freqs & 0x10000000UL) ? false : true; // Default true
+void set_search_nb_freqs(const uint32_t i) {
+	data->search_nb_freqs = i ;
 }
-bool set_search_autosave_freqs(bool new_value ){
-	data->search_autosave_freqs = (data->search_autosave_freqs & ~0x10000000UL) | (!new_value << 28); 
+void set_search_autosave_freqs(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x10000000UL) | (!v << 28); 
 }
-bool search_autorotate_file() {
-	return (data->search_autorotate_file & 0x10000000UL) ? false : true; // Default true
+void set_search_autorotate_file(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x20000000UL) | (!v << 29); 
 }
-bool set_search_autorotate_file(bool new_value){
-	data->search_autorotate_file = (data->search_autorotate_file & ~0x10000000UL) | (!new_value << 28); 
+void set_search_autostart_search(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x40000000UL) | (!v << 30); 
 }
+
 uint32_t search_nb_freqs() {
 	return data->search_nb_freqs ;
 }
-void set_search_nb_freqs(const uint32_t new_value) {
-	data->search_nb_freqs = new_value ;
+bool search_autosave_freqs() {
+	return (data->search_searchconfig & 0x10000000UL) ? false : true; // Default true
+}
+bool search_autorotate_file() {
+	return (data->search_searchconfig & 0x20000000UL) ? false : true; // Default true
+}
+bool search_autostart_search() {
+	return (data->search_searchconfig & 0x40000000UL) ? false : true; // Default true
 }
 
 serial_format_t serial_format() {

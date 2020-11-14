@@ -21,50 +21,81 @@
  */
 
 #include "ui_searchsetup.hpp"
+#include "ui_navigation.hpp"
+#include "ui_fileman.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
+using namespace std;
 using namespace portapack;
 
 namespace ui {
 
-void SearchSetupView::focus() {
-}
+	void SearchSetupView::focus() {
+		button_load_freqs.focus();
+	}
 
-SearchSetupView::SearchSetupView(
-	NavigationView& nav
-)
-{
-	add_children({
-		&labels,
-		&button_load_freqs,
-		&text_loaded_file,
-		&button_save_freqs,
-		&text_save_to_file,
-		&checkbox_autosave_freqs,
-		&checkbox_autorotate_file,
-		&button_save
-	});
+	SearchSetupView::SearchSetupView(
+			NavigationView& nav
+			) : nav_ { nav }
 
-	std::string input_freq_file { "SEARCH.TXT" };
-	std::string output_freq_file { "SEARCHFINDS.TXT" };
-	
-	bool autosave_freqs = persistent_memory::search_autosave_freqs();
-	bool autorotate_file = persistent_memory::search_autorotate_file();
+	{
+		add_children({
+				&labels,
+				&button_load_freqs,
+				&text_input_file,
+				&button_save_freqs,
+				&text_output_file,
+				&checkbox_autosave_freqs,
+				&checkbox_autorotate_file,
+				&checkbox_autostart_search,
+				&button_save
+				});
 
-	uint32_t nb_max_freqs = 500 ; /* hard coded, experience will show if max value is too high */
-	uint32_t nb_freqs     = persistent_memory::search_nb_freqs();
-	
-//	checkbox_autosave_freqs =  persistent_memory::search_autosave_freqs();
-//	checkbox_autorotate_file = persistent_memory::search_autorotate_file();
-	
-	button_save.on_select = [this,&nav](Button&) {
-		persistent_memory::set_search_autosave_freqs(checkbox_autosave_freqs.value());
-		persistent_memory::set_search_autorotate_file(checkbox_autorotate_file.value());
-		//persistent_memory::set_search_nb_freqs(  );
-		nav.pop();
-	};
-}
+		checkbox_autosave_freqs.set_value( persistent_memory::search_autosave_freqs() );
+		checkbox_autorotate_file.set_value( persistent_memory::search_autorotate_file() );
+		checkbox_autostart_search.set_value( persistent_memory::search_autostart_search() );
+
+		text_input_file.set( "/FREQMAN/SEARCH.TXT" );	
+		text_output_file.set( "/FREQMAN/SEARCHFINDS.TXT" );	
+
+		button_load_freqs.on_select = [this, &nav](Button&) {
+			auto open_view = nav.push<FileLoadView>(".TXT");
+			open_view->on_changed = [this](std::filesystem::path new_file_path) {
+				std::string dir_filter = "/FREQMAN/";
+				std::string str_file_path = new_file_path.string();
+				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
+					text_input_file.set( str_file_path );
+				} else {
+					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+				}
+			};
+		};
+
+		button_save_freqs.on_select = [this, &nav](Button&) {
+			auto open_view = nav.push<FileLoadView>(".TXT");
+			open_view->on_changed = [this](std::filesystem::path new_file_path) {
+				std::string dir_filter = "FREQMAN/";
+				std::string str_file_path = new_file_path.string();
+				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
+					text_output_file.set( str_file_path );
+				} else {
+					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+				}
+			};
+		};
+
+		button_save.on_select = [this,&nav](Button&) {
+
+			/* add save input_freq_file */
+			/* add save output_freq_file */
+			persistent_memory::set_search_autosave_freqs(checkbox_autosave_freqs.value());
+			persistent_memory::set_search_autorotate_file(checkbox_autorotate_file.value());
+			persistent_memory::set_search_autostart_search(checkbox_autostart_search.value()); 
+			persistent_memory::set_search_nb_freqs( 500 );
+			nav.pop();
+		};
+	}
 
 } /* namespace ui */

@@ -37,13 +37,15 @@ public:
 	std::string title() const override { return "Search setup"; };
 
 private:
+	NavigationView& nav_;
+
 	uint32_t nb_freqs { 250 };
 
 	Button button_load_freqs {
 		{ 1 * 8 , 1 * 16 , 18 * 8 , 22 },
 		"Input freqs File:"
 	};
-	Text text_loaded_file {
+	Text text_input_file {
 		{ 1 * 8 , 8 + 2 * 16, 20 * 8, 22 },  
 		""
 	};
@@ -52,26 +54,33 @@ private:
 		{ 1 * 8 , 4 * 16 , 18 * 8 , 22 },
 		"Save freqs to   :"
 	};
-	Text text_save_to_file {
+	Text text_output_file {
 		{ 1 * 8 , 8 + 5 * 16, 20 * 8, 22 },  
 		""	
 	};
 
 	Labels labels {
-		{ { 1 * 8, 8 * 16 }, "NB Max Freqs/file:"        , Color::light_grey() },
+		{ { 1 * 8, 7 * 16 }, "NB Max Freqs/file:"        , Color::light_grey() },
 	};
 
 	Checkbox checkbox_autosave_freqs {
-		{ 1 * 8, 10 * 16 },
+		{ 1 * 8, 9 * 16 },
 		3,
 		"Auto Save freqs"
 	};
 
 	Checkbox checkbox_autorotate_file {
-		{ 1 * 8, 12 * 16 },
+		{ 1 * 8, 11 * 16 },
 		3,
 		"Auto Rotate file"
 	};
+
+	Checkbox checkbox_autostart_search {
+		{ 1 * 8, 13 * 16 },
+		3,
+		"Auto Start Search"
+	};
+
 
 	Button button_save {
 		{ 9 * 8, 250, 14 * 8 , 40 },
