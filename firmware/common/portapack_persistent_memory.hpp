@@ -65,15 +65,15 @@ void set_modem_baudrate(const int32_t new_value);
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
 
-uint32_t search_nb_freqs();
+/* Search app */
 bool     search_autosave_freqs();
-bool     search_autorotate_file();
 bool     search_autostart_search();
-
-void set_search_nb_freqs(const uint32_t i);
+bool     search_powersave();
+bool     search_filemode();
 void set_search_autosave_freqs(bool v);
-void set_search_autorotate_file(bool v);
 void set_search_autostart_search(bool v);
+void set_search_powersave(bool v);
+void set_search_filemode(bool v);
 
 uint32_t playing_dead();
 void set_playing_dead(const uint32_t new_value);

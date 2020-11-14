@@ -42,23 +42,23 @@ namespace ui {
 
 	{
 		add_children({
-				&labels,
 				&button_load_freqs,
 				&text_input_file,
 				&button_save_freqs,
 				&text_output_file,
 				&checkbox_autosave_freqs,
-				&checkbox_autorotate_file,
 				&checkbox_autostart_search,
+				&checkbox_powersave,
+				&checkbox_filemode,
 				&button_save
 				});
 
 		checkbox_autosave_freqs.set_value( persistent_memory::search_autosave_freqs() );
-		checkbox_autorotate_file.set_value( persistent_memory::search_autorotate_file() );
 		checkbox_autostart_search.set_value( persistent_memory::search_autostart_search() );
+		checkbox_powersave.set_value( persistent_memory::search_powersave() );
 
 		text_input_file.set( "/FREQMAN/SEARCH.TXT" );	
-		text_output_file.set( "/FREQMAN/SEARCHFINDS.TXT" );	
+		text_output_file.set( "/FREQMAN/SEARCHRESULTS.TXT" );	
 
 		button_load_freqs.on_select = [this, &nav](Button&) {
 			auto open_view = nav.push<FileLoadView>(".TXT");
@@ -91,9 +91,8 @@ namespace ui {
 			/* add save input_freq_file */
 			/* add save output_freq_file */
 			persistent_memory::set_search_autosave_freqs(checkbox_autosave_freqs.value());
-			persistent_memory::set_search_autorotate_file(checkbox_autorotate_file.value());
-			persistent_memory::set_search_autostart_search(checkbox_autostart_search.value()); 
-			persistent_memory::set_search_nb_freqs( 500 );
+			persistent_memory::set_search_autostart_search(checkbox_autostart_search.value());
+			persistent_memory::set_search_powersave(checkbox_powersave.value()); 
 			nav.pop();
 		};
 	}

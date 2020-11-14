@@ -59,28 +59,28 @@ private:
 		""	
 	};
 
-	Labels labels {
-		{ { 1 * 8, 7 * 16 }, "NB Max Freqs/file:"        , Color::light_grey() },
-	};
-
 	Checkbox checkbox_autosave_freqs {
-		{ 1 * 8, 9 * 16 },
+		{ 1 * 8, 7 * 16 },
 		3,
 		"Auto Save freqs"
 	};
 
-	Checkbox checkbox_autorotate_file {
-		{ 1 * 8, 11 * 16 },
-		3,
-		"Auto Rotate file"
-	};
-
 	Checkbox checkbox_autostart_search {
-		{ 1 * 8, 13 * 16 },
+		{ 1 * 8, 9 * 16 },
 		3,
 		"Auto Start Search"
 	};
 
+	Checkbox checkbox_powersave {
+		{ 1 * 8, 11 * 16 },
+		3,
+		"Slower GUI/more CPU power"
+	};
+	Checkbox checkbox_filemode {
+		{ 1 * 8, 13 * 16 },
+		3,
+		"check:append,else overwrite"
+	};
 
 	Button button_save {
 		{ 9 * 8, 250, 14 * 8 , 40 },
