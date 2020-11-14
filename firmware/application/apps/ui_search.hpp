@@ -149,6 +149,7 @@ private:
 	uint32_t current_index { 0 };
 	bool userpause { false };
 	bool manual_search { false }; 
+	bool settings_loaded { false };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
@@ -294,13 +295,16 @@ private:
 		"DEL FQ"
 	};
 	Button button_search_setup {
-		{ 12 * 8, 1 * 16, 96, 24 },
-		"Settings"
+		{ 21 * 8, 3 * 16 - 8, 8 * 8, 22 },
+		"SETTINGS"
 	};
+	
+	/*
 	Button button_load {
 		{ 24 * 8, 3 * 16 - 8, 6 * 8, 22 },
 		"Load"
 	};
+	*/
 
 
 	
@@ -320,6 +324,7 @@ private:
 			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
 		}
 	};
+
 };
 
 } /* namespace ui */

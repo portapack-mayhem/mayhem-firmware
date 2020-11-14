@@ -296,7 +296,7 @@ namespace ui {
 				&button_audio_app,
 				&button_mic_app,
 				&button_add,
-				&button_load,
+				//&button_load,
 				&button_remove,
 				&button_search_setup
 
@@ -475,7 +475,7 @@ namespace ui {
 			}
 		};
 
-		button_load.on_select = [this, &nav](Button&) {
+		/*button_load.on_select = [this, &nav](Button&) {
 			// load txt files from the FREQMAN folder
 			auto open_view = nav.push<FileLoadView>(".TXT");
 			open_view->on_changed = [this](std::filesystem::path new_file_path) {
@@ -493,7 +493,7 @@ namespace ui {
 					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
 				}
 			};
-		};
+		};*/
 
 
 		//PRE-CONFIGURATION:

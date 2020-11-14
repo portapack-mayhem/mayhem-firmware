@@ -25,12 +25,16 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "string_format.hpp"
 
 namespace ui {
 
 class SearchSetupView : public View {
 public:
 	SearchSetupView(NavigationView& nav);
+	
+	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
+	bool SearchSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 	
 	void focus() override;
 	
@@ -39,7 +43,8 @@ public:
 private:
 	NavigationView& nav_;
 
-	uint32_t nb_freqs { 250 };
+	std::string input_file ;
+	std::string output_file ;
 
 	Button button_load_freqs {
 		{ 1 * 8 , 1 * 16 , 18 * 8 , 22 },
