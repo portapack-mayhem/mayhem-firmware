@@ -150,6 +150,9 @@ private:
 	bool userpause { false };
 	bool manual_search { false }; 
 	bool settings_loaded { false };
+	std::string input_file ;
+	std::string output_file ;
+	bool autosave = { false };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
@@ -295,7 +298,7 @@ private:
 		"DEL FQ"
 	};
 	Button button_search_setup {
-		{ 21 * 8, 3 * 16 - 8, 8 * 8, 22 },
+		{ 20 * 8, 3 * 16 - 8, 9 * 8, 22 },
 		"SETTINGS"
 	};
 	

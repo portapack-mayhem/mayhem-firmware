@@ -34,7 +34,7 @@ using namespace portapack;
 
 namespace ui {
 
-	bool SearchSetupView::SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
+	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
 	{
 		File settings_file;
 		size_t length, n = 0, file_position = 0;
@@ -63,8 +63,7 @@ namespace ui {
 				line_start = file_data;
 				pos=line_start;
 				while ((line_end = strstr(line_start, "\x0A"))) {
-
-					length = std::min(strcspn(pos, ",\x0A"), (size_t)256 );
+					length = line_end - line_start - 1 ;
 					params[ it ]  = string( pos , length );
 					it ++ ;	
 					line_start = line_end + 1;
@@ -84,8 +83,8 @@ namespace ui {
 		if( it < nb_params )
 		{
 			/* bad number of params, setting default */
-			input_file  = "FREQMAN/SEARCH.TXT" ;
-			output_file = "FREQMAN/SEARCHRESULT" ;	
+			input_file  = "SEARCH.TXT" ;
+			output_file = "SEARCHRESULT" ;	
 			return false ;
 		}
 		input_file = params[ 0 ];
@@ -93,10 +92,10 @@ namespace ui {
 		return true ;
 	}
 
-	bool SearchSetupView::SearchSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
+	bool SearchSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
 	{
 		File settings_file;
-	
+
 		auto result = settings_file.create( dest );
 		if( result.is_valid() )
 			return false ;
@@ -104,7 +103,6 @@ namespace ui {
 		settings_file.write_line( output_file );
 		return true ;
 	}
-
 
 	void SearchSetupView::focus() {
 		button_load_freqs.focus();
@@ -132,7 +130,7 @@ namespace ui {
 		checkbox_powersave.set_value( persistent_memory::search_powersave() );
 		checkbox_filemode.set_value( persistent_memory::search_filemode() );
 
-		SearchSetupView::SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+		SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
 
 		text_input_file.set( input_file );	
 		text_output_file.set( output_file );	
@@ -143,7 +141,8 @@ namespace ui {
 				std::string dir_filter = "FREQMAN/";
 				std::string str_file_path = new_file_path.string();
 				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
-					input_file = str_file_path ;
+					// get the filename without txt extension so we can use load_freqman_file fcn
+					input_file = new_file_path.stem().string();
 					text_input_file.set( input_file );
 				} else {
 					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
@@ -157,7 +156,7 @@ namespace ui {
 				std::string dir_filter = "FREQMAN/";
 				std::string str_file_path = new_file_path.string();
 				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
-					output_file = str_file_path ;
+					output_file = new_file_path.stem().string();
 					text_output_file.set( output_file );
 				} else {
 					nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
@@ -170,7 +169,7 @@ namespace ui {
 			persistent_memory::set_search_autostart_search(checkbox_autostart_search.value());
 			persistent_memory::set_search_powersave(checkbox_powersave.value()); 
 			persistent_memory::set_search_filemode(checkbox_filemode.value()); 
-			SearchSetupView::SearchSetupSaveStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+			SearchSetupSaveStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
 			nav.pop();
 		};
 	}

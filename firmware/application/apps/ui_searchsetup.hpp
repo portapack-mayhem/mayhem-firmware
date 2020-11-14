@@ -28,13 +28,14 @@
 #include "string_format.hpp"
 
 namespace ui {
+	
+bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
+bool SearchSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 
 class SearchSetupView : public View {
 public:
 	SearchSetupView(NavigationView& nav);
 	
-	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
-	bool SearchSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 	
 	void focus() override;
 	
@@ -79,12 +80,12 @@ private:
 	Checkbox checkbox_powersave {
 		{ 1 * 8, 11 * 16 },
 		3,
-		"Slower GUI/more CPU power"
+		"Slower GUI,more CPU power"
 	};
 	Checkbox checkbox_filemode {
 		{ 1 * 8, 13 * 16 },
 		3,
-		"check:append,else overwrite"
+		"On:append, Off:overwrite"
 	};
 
 	Button button_save {
