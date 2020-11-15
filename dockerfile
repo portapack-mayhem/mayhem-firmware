@@ -43,4 +43,4 @@ ENV PATH=$PATH:/opt/build/armbin/bin
 CMD cd /havocsrc && git submodule update --init --recursive && \
     mkdir -p /havocsrc/build && cd /havocsrc/build && \
     cmake .. && make firmware && \
-    cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
+    cp /havocsrc/build/firmware/portapack-h1_h2-mayhem.bin /havocbin
