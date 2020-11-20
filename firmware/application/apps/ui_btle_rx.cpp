@@ -54,17 +54,18 @@ BTLERxView::BTLERxView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&field_frequency,
-		&text_debug,
+		//&text_debug,
 		&button_modem_setup,
-		&record_view,
+		//&record_view,
 		&console
 	});
 	
 	// DEBUG
-	record_view.on_error = [&nav](std::string message) {
+	/*record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
 	};
 	record_view.set_sampling_rate(24000);
+	*/
 	
 	// Auto-configure modem for LCR RX (will be removed later)
 	update_freq(2426000000);

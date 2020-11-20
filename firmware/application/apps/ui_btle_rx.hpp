@@ -27,7 +27,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_record_view.hpp"	// DEBUG
+//#include "ui_record_view.hpp"	// DEBUG
 
 #include "utility.hpp"
 
@@ -69,10 +69,10 @@ private:
 		{ 0 * 8, 0 * 16 },
 	};
 	
-	Text text_debug {
+	/*Text text_debug {
 		{ 0 * 8, 1 * 16, 10 * 8, 16 },
 		"DEBUG"
-	};
+	};*/
 	
 	
 	Button button_modem_setup {
@@ -81,11 +81,12 @@ private:
 	};
 	
 	// DEBUG
-	RecordView record_view {
+	/*RecordView record_view {
 		{ 0 * 8, 3 * 16, 30 * 8, 1 * 16 },
 		u"AFS_????", RecordView::FileType::WAV, 4096, 4
 	};
-	
+	*/
+    
 	Console console {
 		{ 0, 4 * 16, 240, 240 }
 	};
