@@ -130,7 +130,7 @@ private:
 
 	void on_statistics_update(const ChannelStatistics& statistics);
 	void on_headphone_volume_changed(int32_t v);
-	void handle_retune( long i );
+	void handle_retune(uint32_t i);
 
 	jammer::jammer_range_t frequency_range { false, 0, 0 };  //perfect for manual scan task too...
 	int32_t squelch { 0 };
@@ -141,7 +141,6 @@ private:
 	std::string loaded_file_name;
 	uint32_t current_index { 0 };
 	bool userpause { false };
-	bool manual_search { false };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
