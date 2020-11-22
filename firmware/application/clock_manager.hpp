@@ -79,6 +79,8 @@ public:
 
 	Reference get_reference() const;
 
+	void enable_clock_output(bool enable);
+
 private:
 	I2C& i2c0;
 	si5351::Si5351& clock_generator;

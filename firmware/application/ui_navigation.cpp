@@ -81,7 +81,7 @@
 #include "tpms_app.hpp"
 
 #include "core_control.hpp"
-
+#include "ui_looking_glass_app.hpp"
 #include "file.hpp"
 #include "png_writer.hpp"
 
@@ -113,7 +113,7 @@ SystemStatusView::SystemStatusView(
 		&button_camera,
 		&button_sleep,
 		&button_bias_tee,
-		&image_clock_status,
+		&button_clock_status,
 		&sd_card_status_view,
 	});
 	
@@ -168,6 +168,10 @@ SystemStatusView::SystemStatusView(
 		DisplaySleepMessage message;
 		EventDispatcher::send_message(message);
 	};
+
+	button_clock_status.on_select = [this](ImageButton&) {
+		this->on_clk();
+	};
 }
 
 void SystemStatusView::refresh() {
@@ -188,11 +192,16 @@ void SystemStatusView::refresh() {
 	}
 	
 	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External) {
-		image_clock_status.set_bitmap(&bitmap_icon_clk_ext);
-		button_bias_tee.set_foreground(ui::Color::green());
+		button_clock_status.set_bitmap(&bitmap_icon_clk_ext);
+//		button_bias_tee.set_foreground(ui::Color::green());   Typo?
 	} else {
-		image_clock_status.set_bitmap(&bitmap_icon_clk_int);
-		button_bias_tee.set_foreground(ui::Color::light_grey());
+		button_clock_status.set_bitmap(&bitmap_icon_clk_int);
+//		button_bias_tee.set_foreground(ui::Color::green());
+	}
+	if(portapack::persistent_memory::clkout_enabled()) {
+		button_clock_status.set_foreground(ui::Color::green());
+	} else {
+		button_clock_status.set_foreground(ui::Color::light_grey());
 	}
 	
 	set_dirty();
@@ -300,6 +309,18 @@ void SystemStatusView::on_camera() {
 		portapack::display.read_pixels({ 0, i, 240, 1 }, row);
 		png.write_scanline(row);
 	}
+}
+
+void SystemStatusView::on_clk() {
+	bool v = portapack::persistent_memory::clkout_enabled();
+	if(v) {
+		v = false;
+	} else {
+		v = true;
+	}
+	portapack::clock_manager.enable_clock_output(v);
+	portapack::persistent_memory::set_clkout_enabled(v);
+	refresh();
 }
 
 void SystemStatusView::on_title() {
@@ -464,7 +485,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 	add_items({
 		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
 		{ "ADS-B [S]",		ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
-		{ "APRS", 			ui::Color::orange(),	&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
+		{ "APRS", 			ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 		ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
 		{ "GPS Sim",		ui::Color::yellow(),	&bitmap_icon_gps_sim,		[&nav](){ nav.push<GpsSimAppView>(); } },
 		{ "Jammer", 		ui::Color::yellow(),	&bitmap_icon_jammer,	[&nav](){ nav.push<JammerView>(); } },
@@ -524,6 +545,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<CallsView>(); } },
 		{ "Scanner",	ui::Color::green(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
 		{ "Microphone",	ui::Color::yellow(),		&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
+		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
 		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
 		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },

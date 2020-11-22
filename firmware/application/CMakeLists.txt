@@ -231,6 +231,7 @@ set(CPPSRC
 	apps/ui_keyfob.cpp
 	apps/ui_lcr.cpp
 	apps/lge_app.cpp
+	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_morse.cpp
