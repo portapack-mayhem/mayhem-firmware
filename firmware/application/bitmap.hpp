@@ -1527,7 +1527,7 @@ static constexpr Bitmap bitmap_icon_sdcard {
 	{ 16, 16 }, bitmap_icon_sdcard_data
 };
 
-static constexpr uint8_t bitmap_icon_search_data[] = {
+static constexpr uint8_t bitmap_icon_calls_data[] = {
 	0xF8, 0x01, 
 	0xFC, 0x03, 
 	0x0E, 0x07, 
@@ -1545,8 +1545,9 @@ static constexpr uint8_t bitmap_icon_search_data[] = {
 	0x00, 0xF0, 
 	0x00, 0x60, 
 };
-static constexpr Bitmap bitmap_icon_search {
-	{ 16, 16 }, bitmap_icon_search_data
+static constexpr Bitmap bitmap_icon_calls {
+	{ 16, 16 }, bitmap_icon_calls_data
+};
 	
 static constexpr uint8_t bitmap_icon_search_data[] = {
 	0xF8, 0x01, 
