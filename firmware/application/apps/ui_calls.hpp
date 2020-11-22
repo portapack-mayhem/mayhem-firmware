@@ -30,15 +30,15 @@
 
 namespace ui {
 
-#define SEARCH_SLICE_WIDTH	2500000					// Search slice bandwidth
-#define SEARCH_BIN_NB			256					// FFT power bins
-#define SEARCH_BIN_NB_NO_DC	(SEARCH_BIN_NB - 16)	// Bins after trimming
-#define SEARCH_BIN_WIDTH		(SEARCH_SLICE_WIDTH / SEARCH_BIN_NB)
+#define CALLS_SLICE_WIDTH	2500000					// Search slice bandwidth
+#define CALLS_BIN_NB			256					// FFT power bins
+#define CALLS_BIN_NB_NO_DC	(CALLS_BIN_NB - 16)	// Bins after trimming
+#define CALLS_BIN_WIDTH		(CALLS_SLICE_WIDTH / CALLS_BIN_NB)
 
 #define DETECT_DELAY		5	// In 100ms units
 #define RELEASE_DELAY		6
 
-struct SearchRecentEntry {
+struct CallsRecentEntry {
 	using Key = rf::Frequency;
 	
 	static constexpr Key invalid_key = 0xffffffff;
@@ -47,12 +47,12 @@ struct SearchRecentEntry {
 	uint32_t duration { 0 };	// In 100ms units
 	std::string time { "" };
 
-	SearchRecentEntry(
-	) : SearchRecentEntry { 0 }
+	CallsRecentEntry(
+	) : CallsRecentEntry { 0 }
 	{
 	}
 	
-	SearchRecentEntry(
+	CallsRecentEntry(
 		const rf::Frequency frequency
 	) : frequency { frequency }
 	{
@@ -71,23 +71,23 @@ struct SearchRecentEntry {
 	}
 };
 
-using SearchRecentEntries = RecentEntries<SearchRecentEntry>;
+using CallsRecentEntries = RecentEntries<CallsRecentEntry>;
 
-class SearchView : public View {
+class CallsView : public View {
 public:
-	SearchView(NavigationView& nav);
-	~SearchView();
+	CallsView(NavigationView& nav);
+	~CallsView();
 	
-	SearchView(const SearchView&) = delete;
-	SearchView(SearchView&&) = delete;
-	SearchView& operator=(const SearchView&) = delete;
-	SearchView& operator=(SearchView&&) = delete;
+	CallsView(const CallsView&) = delete;
+	CallsView(CallsView&&) = delete;
+	CallsView& operator=(const CallsView&) = delete;
+	CallsView& operator=(CallsView&&) = delete;
 	
 	void on_show() override;
 	void on_hide() override;
 	void focus() override;
 	
-	std::string title() const override { return "Search"; };
+	std::string title() const override { return "Calls"; };
 
 private:
 	NavigationView& nav_;
@@ -146,8 +146,8 @@ private:
 		{ "Time", 8 },
 		{ "Duration", 11 }
 	} };
-	SearchRecentEntries recent { };
-	RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view { columns, recent };
+	CallsRecentEntries recent { };
+	RecentEntriesView<RecentEntries<CallsRecentEntry>> recent_entries_view { columns, recent };
 	
 	Labels labels {
 		{ { 1 * 8, 0 }, "Min:      Max:       LNA VGA", Color::light_grey() },

@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_search.hpp"
+#include "ui_calls.hpp"
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -30,7 +30,7 @@ using namespace portapack;
 namespace ui {
 
 template<>
-void RecentEntriesTable<SearchRecentEntries>::draw(
+void RecentEntriesTable<CallsRecentEntries>::draw(
 	const Entry& entry,
 	const Rect& target_rect,
 	Painter& painter,
@@ -48,16 +48,16 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 	painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
 }
 
-void SearchView::focus() {
+void CallsView::focus() {
 	field_frequency_min.focus();
 }
 
-SearchView::~SearchView() {
+CallsView::~CallsView() {
 	receiver_model.disable();
 	baseband::shutdown();
 }
 
-void SearchView::do_detection() {
+void CallsView::do_detection() {
 	uint8_t power_max = 0;
 	int32_t bin_max = -1;
 	uint32_t slice_max = 0;
@@ -74,7 +74,7 @@ void SearchView::do_detection() {
 		spectrum_row
 	);
 	
-	mean_power = mean_acc / (SEARCH_BIN_NB_NO_DC * slices_nb);
+	mean_power = mean_acc / (CALLS_BIN_NB_NO_DC * slices_nb);
 	mean_acc = 0;
 	
 	overall_power_max = 0;
@@ -100,7 +100,7 @@ void SearchView::do_detection() {
 			if ((bin_max != locked_bin) || (!locked)) {
 				
 				if (!locked) {
-					resolved_frequency = slices[slice_max].center_frequency + (SEARCH_BIN_WIDTH * (bin_max - 128));
+					resolved_frequency = slices[slice_max].center_frequency + (CALLS_BIN_WIDTH * (bin_max - 128));
 					
 					if (check_snap.value()) {
 						snap_value = options_snap.selected_index_value();
@@ -174,7 +174,7 @@ void SearchView::do_detection() {
 	}
 }
 
-void SearchView::add_spectrum_pixel(Color color) {
+void CallsView::add_spectrum_pixel(Color color) {
 	// Is avoiding floats really necessary ?
 	bin_skip_acc += bin_skip_frac;
 	if (bin_skip_acc < 0x10000) 
@@ -186,7 +186,7 @@ void SearchView::add_spectrum_pixel(Color color) {
 		spectrum_row[pixel_index++] = color;
 }
 
-void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+void CallsView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	uint8_t max_power = 0;
 	int16_t max_bin = 0;
 	uint8_t power;
@@ -228,7 +228,7 @@ void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 		} else
 			slice_counter++;
 		receiver_model.set_tuning_frequency(slices[slice_counter].center_frequency);
-		baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Clear
+		baseband::set_spectrum(CALLS_SLICE_WIDTH, 31);	// Clear
 	} else {
 		// Unique slice
 		do_detection();
@@ -237,15 +237,15 @@ void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	baseband::spectrum_streaming_start();
 }
 
-void SearchView::on_show() {
+void CallsView::on_show() {
 	baseband::spectrum_streaming_start();
 }
 
-void SearchView::on_hide() {
+void CallsView::on_hide() {
 	baseband::spectrum_streaming_stop();
 }
 
-void SearchView::on_range_changed() {
+void CallsView::on_range_changed() {
 	rf::Frequency slices_span, center_frequency;
 	int64_t offset;
 	size_t slice;
@@ -254,10 +254,10 @@ void SearchView::on_range_changed() {
 	f_max = field_frequency_max.value();
 	search_span = abs(f_max - f_min);
 	
-	if (search_span > SEARCH_SLICE_WIDTH) {
+	if (search_span > CALLS_SLICE_WIDTH) {
 		// ex: 100M~115M (15M span):
 		// slices_nb = (115M-100M)/2.5M = 6
-		slices_nb = (search_span + SEARCH_SLICE_WIDTH - 1) / SEARCH_SLICE_WIDTH;
+		slices_nb = (search_span + CALLS_SLICE_WIDTH - 1) / CALLS_SLICE_WIDTH;
 		if (slices_nb > 32) {
 			text_slices.set("!!");
 			slices_nb = 32;
@@ -265,15 +265,15 @@ void SearchView::on_range_changed() {
 			text_slices.set(to_string_dec_uint(slices_nb, 2, ' '));
 		}
 		// slices_span = 6 * 2.5M = 15M
-		slices_span = slices_nb * SEARCH_SLICE_WIDTH;
+		slices_span = slices_nb * CALLS_SLICE_WIDTH;
 		// offset = 0 + 2.5/2 = 1.25M
-		offset = ((search_span - slices_span) / 2) + (SEARCH_SLICE_WIDTH / 2);
+		offset = ((search_span - slices_span) / 2) + (CALLS_SLICE_WIDTH / 2);
 		// slice_start = 100M + 1.25M = 101.25M
 		center_frequency = std::min(f_min, f_max) + offset;
 		
 		for (slice = 0; slice < slices_nb; slice++) {
 			slices[slice].center_frequency = center_frequency;
-			center_frequency += SEARCH_SLICE_WIDTH;
+			center_frequency += CALLS_SLICE_WIDTH;
 		}
 	} else {
 		slices[0].center_frequency = (f_max + f_min) / 2;
@@ -288,15 +288,15 @@ void SearchView::on_range_changed() {
 	slice_counter = 0;
 }
 
-void SearchView::on_lna_changed(int32_t v_db) {
+void CallsView::on_lna_changed(int32_t v_db) {
 	receiver_model.set_lna(v_db);
 }
 
-void SearchView::on_vga_changed(int32_t v_db) {
+void CallsView::on_vga_changed(int32_t v_db) {
 	receiver_model.set_vga(v_db);
 }
 
-void SearchView::do_timers() {
+void CallsView::do_timers() {
 	
 	if (timing_div >= 60) {
 		// ~1Hz
@@ -340,7 +340,7 @@ void SearchView::do_timers() {
 	timing_div++;
 }
 
-SearchView::SearchView(
+CallsView::CallsView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
@@ -365,10 +365,10 @@ SearchView::SearchView(
 		&recent_entries_view
 	});
 	
-	baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
+	baseband::set_spectrum(CALLS_SLICE_WIDTH, 31);
 	
 	recent_entries_view.set_parent_rect({ 0, 28 * 8, 240, 12 * 8 });
-	recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
+	recent_entries_view.on_select = [this, &nav](const CallsRecentEntry& entry) {
 		nav.push<FrequencyKeypadView>(entry.frequency);
 	};
 	
@@ -425,7 +425,7 @@ SearchView::SearchView(
 	on_range_changed();
 
 	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-	receiver_model.set_sampling_rate(SEARCH_SLICE_WIDTH);
+	receiver_model.set_sampling_rate(CALLS_SLICE_WIDTH);
 	receiver_model.set_baseband_bandwidth(2500000);
 	receiver_model.enable();
 }
