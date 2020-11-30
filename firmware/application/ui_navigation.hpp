@@ -268,6 +268,12 @@ public:
 	std::string title() const override { return "Utilities"; };	
 };
 
+class RFExplorerMenuView : public BtnGridView {
+public:
+	RFExplorerMenuView(NavigationView& nav);
+	std::string title() const override { return "RF Explorer"; };	
+};
+
 class SystemMenuView : public BtnGridView {
 public:
 	SystemMenuView(NavigationView& nav);

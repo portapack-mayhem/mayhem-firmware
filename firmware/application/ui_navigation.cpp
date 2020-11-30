@@ -54,8 +54,9 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_remote.hpp"
-#include "ui_scanner.hpp"
 #include "ui_search.hpp"
+#include "ui_scanner.hpp"
+#include "ui_calls.hpp"
 #include "ui_sd_wipe.hpp"
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
@@ -523,6 +524,18 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	set_max_rows(2); // allow wider buttons
 }
 
+
+/* Call Scan Search Looking Glass ********************************************/
+RFExplorerMenuView::RFExplorerMenuView(NavigationView& nav) {
+	add_items({
+		{ "Calls",		ui::Color::yellow(),	&bitmap_icon_calls,	[&nav](){ nav.push<CallsView>(); } },
+		{ "Search",		ui::Color::yellow(),	&bitmap_icon_search,	[&nav](){ nav.push<SearchView>(); } },
+		{ "Scanner",		ui::Color::yellow(),	&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
+		{ "Looking Glass",	ui::Color::yellow(),	&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
+		});
+	set_max_rows(2); // allow wider buttons
+}
+
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
@@ -541,16 +554,14 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 		{ "Receive", 	ui::Color::cyan(),			&bitmap_icon_receivers,	[&nav](){ nav.push<ReceiversMenuView>(); } },
 		{ "Transmit", 	ui::Color::cyan(),			&bitmap_icon_transmit,	[&nav](){ nav.push<TransmittersMenuView>(); } },
 		{ "Capture",	ui::Color::red(),			&bitmap_icon_capture,	[&nav](){ nav.push<CaptureAppView>(); } },
-		{ "Replay",		ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
-		{ "Calls",		ui::Color::yellow(),	    &bitmap_icon_search,	[&nav](){ nav.push<SearchView>(); } },
-		{ "Scanner",	ui::Color::yellow(),			&bitmap_icon_scanner,	[&nav](){ nav.push<ScannerView>(); } },
-		{ "Microphone",	ui::Color::yellow(),		&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
-		{ "Looking Glass",	ui::Color::yellow(),		&bitmap_icon_looking,	[&nav](){ nav.push<GlassView>(); } },
-		{ "Tools",		ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
-		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	  	[&nav](){ nav.push<SettingsMenuView>(); } },
-		{ "Debug",		ui::Color::light_grey(),	&bitmap_icon_debug,		[&nav](){ nav.push<DebugMenuView>(); } },
+		{ "Replay",	ui::Color::green(),			&bitmap_icon_replay,	[&nav](){ nav.push<ReplayAppView>(); } },
+		{ "Microphone",	ui::Color::yellow(),			&bitmap_icon_microphone,[&nav](){ nav.push<MicTXView>(); } },
+		{ "RF Explorer",ui::Color::yellow(),			&bitmap_icon_rfexplorer,[&nav](){ nav.push<RFExplorerMenuView>(); } },
+		{ "Tools",	ui::Color::cyan(),			&bitmap_icon_utilities,	[&nav](){ nav.push<UtilitiesMenuView>(); } },
+		{ "Options", 	ui::Color::cyan(),			&bitmap_icon_setup,	[&nav](){ nav.push<SettingsMenuView>(); } },
 		{ "HackRF", 	ui::Color::cyan(),			&bitmap_icon_hackrf,	[this, &nav](){ hackrf_mode(nav); } },
-		//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+		{ "Debug",	ui::Color::light_grey(),		&bitmap_icon_debug,	[&nav](){ nav.push<DebugMenuView>(); } },
+		//{ "About", 	ui::Color::cyan(),			nullptr,		[&nav](){ nav.push<AboutView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 	set_arrow_enabled(false);
