@@ -957,6 +957,160 @@ bool Button::on_touch(const TouchEvent event) {
 #endif
 }
 
+/* ButtonWithEncoder ****************************************************************/
+
+ButtonWithEncoder::ButtonWithEncoder(
+	Rect parent_rect,
+	std::string text,
+	bool instant_exec
+) : Widget { parent_rect },
+	text_ { text },
+	instant_exec_ { instant_exec }
+{
+	set_focusable(true);
+}
+
+void ButtonWithEncoder::set_text(const std::string value) {
+	text_ = value;
+	set_dirty();
+}
+int32_t ButtonWithEncoder::get_encoder_delta() {
+	return encoder_delta ;
+}
+void ButtonWithEncoder::set_encoder_delta( int32_t delta )
+{
+	encoder_delta = delta ;
+}
+
+std::string ButtonWithEncoder::text() const {
+	return text_;
+}
+
+void ButtonWithEncoder::paint(Painter& painter) {
+	Color bg, fg;
+	const auto r = screen_rect();
+
+	if (has_focus() || highlighted()) {
+		bg = style().foreground;
+		fg = Color::black();
+	} else {
+		bg = Color::grey();
+		fg = style().foreground;
+	}
+	
+	const Style paint_style = { style().font, bg, fg };
+	
+	painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
+	painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
+	painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+
+	painter.fill_rectangle(
+		{ r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2 },
+		paint_style.background
+	);
+
+	const auto label_r = paint_style.font.size_of(text_);
+	painter.draw_string(
+		{ r.location().x() + (r.size().width() - label_r.width()) / 2, r.location().y() + (r.size().height() - label_r.height()) / 2 },
+		paint_style,
+		text_
+	);
+}
+
+void ButtonWithEncoder::on_focus() {
+	if( on_highlight )
+		on_highlight(*this);
+}
+
+bool ButtonWithEncoder::on_key(const KeyEvent key) {
+	if( key == KeyEvent::Select ) {
+		if( on_select ) {
+			on_select(*this);
+			return true;
+		}
+	} else {
+		if( on_dir ) {
+			return on_dir(*this, key);
+		}
+	}
+
+	return false;
+}
+
+bool ButtonWithEncoder::on_touch(const TouchEvent event) {
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		set_highlighted(true);
+		set_dirty();
+		if( on_touch_press) {
+			on_touch_press(*this);
+		}
+		if( on_select && instant_exec_ ) {
+			on_select(*this);
+		}
+		return true;
+
+
+	case TouchEvent::Type::End:
+		set_highlighted(false);
+		set_dirty();
+		if( on_touch_release) {
+			on_touch_release(*this);
+		}
+		if( on_select && !instant_exec_ ) {
+			on_select(*this);
+		}
+		return true;
+
+	default:
+		return false;
+	}
+#if 0
+	switch(event.type) {
+	case TouchEvent::Type::Start:
+		flags.highlighted = true;
+		set_dirty();
+		return true;
+
+	case TouchEvent::Type::Move:
+		{
+			const bool new_highlighted = screen_rect().contains(event.point);
+			if( flags.highlighted != new_highlighted ) {
+				flags.highlighted = new_highlighted;
+				set_dirty();
+			}
+		}
+		return true;
+
+	case TouchEvent::Type::End:
+		if( flags.highlighted ) {
+			flags.highlighted = false;
+			set_dirty();
+			if( on_select ) {
+				on_select(*this);
+			}
+		}
+		return true;
+
+	default:
+		return false;
+	}
+#endif
+}
+bool ButtonWithEncoder::on_encoder(const EncoderEvent delta) {
+ 	if( delta != 0 )
+	{
+		encoder_delta += delta ;	
+		delta_change = true ;
+		on_change();
+	}
+	else
+		delta_change = 0 ;
+	return true ;
+}
+
+
+
 /* NewButton ****************************************************************/
 
 NewButton::NewButton(

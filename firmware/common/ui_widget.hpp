@@ -410,6 +410,50 @@ private:
 	bool instant_exec_ { false };
 };
 
+
+class ButtonWithEncoder : public Widget {
+public:
+	std::function<void(ButtonWithEncoder&)> on_select { };
+	std::function<void(ButtonWithEncoder&)> on_touch_release { }; // Executed when releasing touch, after on_select.
+	std::function<void(ButtonWithEncoder&)> on_touch_press { }; // Executed when touching, before on_select.
+	std::function<bool(ButtonWithEncoder&, KeyEvent)> on_dir { };
+	std::function<void(ButtonWithEncoder&)> on_highlight { };
+
+	ButtonWithEncoder(Rect parent_rect, std::string text, bool instant_exec); // instant_exec: Execute on_select when you touching instead of releasing
+	ButtonWithEncoder(
+		Rect parent_rect,
+		std::string text
+	) : ButtonWithEncoder { parent_rect, text, false }
+	{
+	}
+
+	ButtonWithEncoder(
+	) : ButtonWithEncoder { { }, { } }
+	{
+	}
+
+	std::function<void()> on_change { };
+
+	void set_text(const std::string value);
+	int32_t get_encoder_delta();
+	void set_encoder_delta( int32_t delta );
+	std::string text() const;
+
+	void paint(Painter& painter) override;
+
+	void on_focus() override;
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+	bool on_encoder(const EncoderEvent delta) override;
+
+private:
+	std::string text_;
+	int32_t encoder_delta  = 0 ;
+	bool delta_change = 0 ;
+	bool instant_exec_ { false };
+};
+
+
 class NewButton : public Widget {
 public:
 	std::function<void(void)> on_select { };
