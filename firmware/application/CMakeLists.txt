@@ -239,8 +239,10 @@ set(CPPSRC
 	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_remote.cpp
-	apps/ui_scanner.cpp
+	apps/ui_searchsetup.cpp
 	apps/ui_search.cpp
+	apps/ui_scanner.cpp
+	apps/ui_calls.cpp
 	apps/ui_sd_wipe.cpp
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
