@@ -65,6 +65,22 @@ void set_modem_baudrate(const int32_t new_value);
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
 
+/* Search app */
+bool     search_autosave_freqs();
+bool     search_autostart_search();
+bool     search_continuous();
+bool     search_clear_output();
+bool     search_load_freqs();
+bool     search_load_ranges();
+bool     search_update_ranges_when_searching();
+void set_search_autosave_freqs(bool v);
+void set_search_autostart_search(bool v);
+void set_search_continuous(bool v);
+void set_search_clear_output(bool v);
+void set_search_load_freqs(bool v);
+void set_search_load_ranges(bool v);
+void set_search_update_ranges_when_searching(bool v);
+
 uint32_t playing_dead();
 void set_playing_dead(const uint32_t new_value);
 

@@ -67,6 +67,10 @@ using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
 constexpr uint32_t clkout_freq_reset_value { 10000 };
 
+using search_nb_freqs_range_t = range_t<uint32_t>;
+constexpr search_nb_freqs_range_t search_nb_freqs_range{ 10, 500 };
+constexpr uint32_t search_nb_freqs_reset_value { 250 };
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -95,6 +99,9 @@ struct data_t {
 	uint32_t pocsag_ignore_address;
 	
 	int32_t tone_mix;
+
+	// Search
+	uint32_t search_searchconfig ;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -188,6 +195,50 @@ uint8_t modem_repeat() {
 void set_modem_repeat(const uint32_t new_value) {
 	data->modem_repeat = modem_repeat_range.clip(new_value);
 }
+
+/* Search app */
+bool search_autosave_freqs() {
+	return (data->search_searchconfig & 0x80000000UL) ? true : false ; //default false
+}
+bool search_autostart_search() {
+	return (data->search_searchconfig & 0x40000000UL) ? false : true; //default true
+}
+bool search_continuous() {
+	return (data->search_searchconfig & 0x20000000UL) ? false : true; //default true
+}
+bool search_clear_output() {
+	return (data->search_searchconfig & 0x10000000UL) ? false : true; //default true
+}
+bool search_load_freqs() {
+	return (data->search_searchconfig & 0x08000000UL) ? true : false; //default false
+}
+bool search_load_ranges() {
+	return (data->search_searchconfig & 0x04000000UL) ? false : true; //default true
+}
+bool search_update_ranges_when_searching() {
+	return (data->search_searchconfig & 0x02000000UL) ? false : true; //default true
+}
+void set_search_autosave_freqs(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x80000000UL) | (v << 31); 
+}
+void set_search_autostart_search(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x40000000UL) | (!v << 30); 
+}
+void set_search_continuous(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x20000000UL) | (!v << 29); 
+}
+void set_search_clear_output(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x10000000UL) | (!v << 28); 
+}
+void set_search_load_freqs(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x08000000UL) | (v << 27); 
+}
+void set_search_load_ranges(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x04000000UL) | (!v << 26); 
+} 
+void set_search_update_ranges_when_searching(bool v ){
+	data->search_searchconfig = (data->search_searchconfig & ~0x02000000UL) | (!v << 25); 
+} 
 
 serial_format_t serial_format() {
 	return data->serial_format;
