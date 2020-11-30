@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2018 Furrtek
  *
  * This file is part of PortaPack.
  *
@@ -21,413 +21,914 @@
  */
 
 #include "ui_search.hpp"
+#include "ui_searchsetup.hpp"
+#include "ui_fileman.hpp"
 
-#include "baseband_api.hpp"
-#include "string_format.hpp"
-
+using namespace std;
 using namespace portapack;
 
 namespace ui {
 
-template<>
-void RecentEntriesTable<SearchRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style
-) {
-	std::string str_duration = "";
-	
-	if (entry.duration < 600)
-		str_duration = to_string_dec_uint(entry.duration / 10) + "." + to_string_dec_uint(entry.duration % 10) + "s";
-	else
-		str_duration = to_string_dec_uint(entry.duration / 600) + "m" + to_string_dec_uint((entry.duration / 10) % 60) + "s";
-		
-	str_duration.resize(target_rect.width() / 8, ' ');
-	
-	painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
-}
+	SearchThread::SearchThread( std::vector<int64_t> frequency_list	) : frequency_list_ {  std::move(frequency_list) } {
+		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, SearchThread::static_fn, this);
+	}
 
-void SearchView::focus() {
-	field_frequency_min.focus();
-}
+	SearchThread::~SearchThread() {
+		stop();
+	}
 
-SearchView::~SearchView() {
-	receiver_model.disable();
-	baseband::shutdown();
-}
-
-void SearchView::do_detection() {
-	uint8_t power_max = 0;
-	int32_t bin_max = -1;
-	uint32_t slice_max = 0;
-	uint32_t snap_value;
-	uint8_t power;
-	rtc::RTC datetime;
-	std::string str_approx, str_timestamp;
-	
-	// Display spectrum
-	bin_skip_acc = 0;
-	pixel_index = 0;
-	display.draw_pixels(
-		{ { 0, 88 }, { (Dim)spectrum_row.size(), 1 } },
-		spectrum_row
-	);
-	
-	mean_power = mean_acc / (SEARCH_BIN_NB_NO_DC * slices_nb);
-	mean_acc = 0;
-	
-	overall_power_max = 0;
-	
-	// Find max power over threshold for all slices
-	for (size_t slice = 0; slice < slices_nb; slice++) {
-		power = slices[slice].max_power;
-		if (power > overall_power_max)
-			overall_power_max = power;
-		
-		if ((power >= mean_power + power_threshold) && (power > power_max)) {
-			power_max = power;
-			bin_max = slices[slice].max_index;
-			slice_max = slice;
+	void SearchThread::stop() {
+		if( thread ) {
+			chThdTerminate(thread);
+			chThdWait(thread);
+			thread = nullptr;
 		}
 	}
-	
-	// Lock / release
-	if ((bin_max >= last_bin - 2) && (bin_max <= last_bin + 2) && (bin_max > -1) && (slice_max == last_slice)) {
-		
-		// Staying around the same bin
-		if (detect_timer >= DETECT_DELAY) {
-			if ((bin_max != locked_bin) || (!locked)) {
-				
-				if (!locked) {
-					resolved_frequency = slices[slice_max].center_frequency + (SEARCH_BIN_WIDTH * (bin_max - 128));
-					
-					if (check_snap.value()) {
-						snap_value = options_snap.selected_index_value();
-						resolved_frequency = round(resolved_frequency / snap_value) * snap_value;
-					}
-					
-					// Check range
-					if ((resolved_frequency >= f_min) && (resolved_frequency <= f_max)) {
-						
-						duration = 0;
-						
-						auto& entry = ::on_packet(recent, resolved_frequency);
-						
-						rtcGetTime(&RTCD1, &datetime);
-						str_timestamp = to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
-										to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
-										to_string_dec_uint(datetime.second(), 2, '0');
-						entry.set_time(str_timestamp);
-						recent_entries_view.set_dirty();
 
-						text_infos.set("Locked ! ");
-						big_display.set_style(&style_locked);
-						
-						locked = true;
-						locked_bin = bin_max;
-						
-						// TODO
-						/*nav_.pop();
-						receiver_model.disable();
-						baseband::shutdown();
-						nav_.pop();*/
+	void SearchThread::set_continuous(const bool v) {
+		_continuous = v;
+	}
 
-						/*if (options_goto.selected_index() == 1)
-							nav_.push<AnalogAudioView>(false);
-						else if (options_goto.selected_index() == 2)
-							nav_.push<POCSAGAppView>();
-						*/
-					} else
-						text_infos.set("Out of range");
-				}
-				
-				big_display.set(resolved_frequency);
+	void SearchThread::set_searching(const bool v) {
+		_searching = v;
+	}
+
+	void SearchThread::set_stepper(const uint32_t v){
+		_stepper = v;
+	}
+
+	bool SearchThread::is_searching() {
+		return _searching;
+	}
+
+	void SearchThread::set_freq_lock(const uint32_t v) {
+		_freq_lock = v;
+	}
+
+	uint32_t SearchThread::is_freq_lock() {
+		return _freq_lock;
+	}
+
+	void SearchThread::change_searching_direction() {
+		_fwd = !_fwd;
+		chThdSleepMilliseconds(300);	//Give some pause after reversing searching direction
+	}
+
+	bool SearchThread::get_searching_direction() {
+		return _fwd ;
+	}
+	void SearchThread::set_searching_direction( bool v) {
+		_fwd = v ;
+	}
+
+
+	msg_t SearchThread::static_fn(void* arg) {
+		auto obj = static_cast<SearchThread*>(arg);
+		obj->run();
+		return 0;
+	}
+
+	void SearchThread::run() {
+		if (frequency_list_.size())	{					//IF THERE IS A FREQUENCY LIST ...	
+			int64_t freq = 0 ;
+			int32_t step = 0 ;
+			int64_t minfreq = 0 ;
+			int64_t maxfreq = 0 ;
+			bool has_looped = false ;
+			RetuneMessage message { };
+			int32_t frequency_index = 0 ;
+			bool restart_search = false;					//Flag whenever searching is restarting after a pause
+			if( frequency_list_[ 0 ] <  0 )
+			{
+				freq = -frequency_list_[ 0 ] ;
+				minfreq = -frequency_list_[ 0 ] ;
+				maxfreq = -frequency_list_[ 1 ] ;
+				step = -frequency_list_[ 2 ] ;
 			}
-		}
-		release_timer = 0;
-	} else {
-		detect_timer = 0;
-		if (locked) {
-			if (release_timer >= RELEASE_DELAY) {
-				locked = false;
-				
-				auto& entry = ::on_packet(recent, resolved_frequency);
-				entry.set_duration(duration);
-				recent_entries_view.set_dirty();
-				
-				text_infos.set("Listening");
-				big_display.set_style(&style_grey);
-			}
-		}
-	}
-	
-	last_bin = bin_max;
-	last_slice = slice_max;
-	search_counter++;
-	
-	// Refresh red tick
-	portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::black());
-	if (bin_max > -1) {
-		last_tick_pos = (Coord)(bin_max / slices_nb);
-		portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::red());
-	}
-}
-
-void SearchView::add_spectrum_pixel(Color color) {
-	// Is avoiding floats really necessary ?
-	bin_skip_acc += bin_skip_frac;
-	if (bin_skip_acc < 0x10000) 
-		return;
-	
-	bin_skip_acc -= 0x10000;
-	
-	if (pixel_index < 240)
-		spectrum_row[pixel_index++] = color;
-}
-
-void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-	uint8_t max_power = 0;
-	int16_t max_bin = 0;
-	uint8_t power;
-	size_t bin;
-	
-	baseband::spectrum_streaming_stop();
-	
-	// Add pixels to spectrum display and find max power for this slice
-	// Center 12 bins are ignored (DC spike is blanked)
-	// Leftmost and rightmost 2 bins are ignored
-	for (bin = 0; bin < 256; bin++) {
-
-		if ((bin < 2) || (bin > 253) || ((bin >= 122) && (bin < 134))) {
-			power = 0;
-		} else {
-			if (bin < 128)
-				power = spectrum.db[128 + bin];
 			else
-				power = spectrum.db[bin - 128];
+			{
+				freq = frequency_list_[ 0 ] ;
+				minfreq = frequency_list_[ 0 ] ;
+				maxfreq = frequency_list_[ 0 ] ;
+				step = 0 ;
+			}
+			while( !chThdShouldTerminate() ) {
+				has_looped = false ;
+				if (_searching || _stepper != 0 ) {					//Scanning
+						if (_freq_lock == 0) {				//normal searching (not performing freq_lock)
+						if (!restart_search) {			//looping at full speed
+							/* we are doing a range */
+							if( frequency_list_[ frequency_index ] <  0 )
+							{
+								receiver_model.set_tuning_frequency( freq );	// Retune
+								//Inform freq (for coloring purposes also!) 
+								message.freq = freq ;
+								message.range = frequency_index ;
+								if ((_fwd&&_stepper==0)||_stepper>0) {	
+									//forward
+									freq += step ;
+									// if bigger than range max
+									if (freq > maxfreq ) {
+										// when going forward we already know that we can skip a whole range => two values in the list
+										frequency_index += 3 ;
+										// looping
+										if( (uint32_t)frequency_index >= frequency_list_.size() )
+										{
+											has_looped = true ;
+											frequency_index = 0  ;
+										}
+										if( frequency_list_[ frequency_index ] < 0 )
+										{
+											freq = -frequency_list_[ frequency_index ];
+											minfreq = -frequency_list_[ frequency_index ];
+											maxfreq = -frequency_list_[ frequency_index + 1 ];
+											step = -frequency_list_[ frequency_index + 2 ];
+										}
+										else
+										{
+											freq = frequency_list_[ frequency_index ];
+											minfreq = frequency_list_[ frequency_index ];
+											maxfreq = frequency_list_[ frequency_index ];
+											step = 0 ;
+										}
+									}
+								}
+								else {	
+									//reverse
+									freq -= step ;
+									// if lower than range min
+									if (freq < minfreq ) {
+										// when back we have to check one step at a time
+										frequency_index -- ;
+										// looping
+										if( frequency_index < 0 )
+										{
+											has_looped = true ;
+											frequency_index = frequency_list_.size() - 1 ;
+										}
+										if( frequency_list_[ frequency_index ] < 0 )
+										{
+											frequency_index -= 2 ;
+											freq = -frequency_list_[ frequency_index + 1];
+											minfreq = -frequency_list_[ frequency_index ];
+											maxfreq = -frequency_list_[ frequency_index + 1 ];
+											step = -frequency_list_[ frequency_index + 2 ];
+										}
+										else
+										{
+											freq = frequency_list_[ frequency_index ];
+											minfreq = frequency_list_[ frequency_index ];
+											maxfreq = frequency_list_[ frequency_index ];
+											step = 0 ;
+										}
+									}
+								}
+							}
+							else
+							{
+								freq = frequency_list_[ frequency_index ] ; 
+								receiver_model.set_tuning_frequency( freq );	// Retune
+								//Inform freq (for coloring purposes also!) 
+								message.freq = freq ;
+								message.range = frequency_index ;
+
+								if ((_fwd&&_stepper==0)||_stepper>0) {					//forward
+									frequency_index++;
+									// looping
+									if( (uint32_t)frequency_index >= frequency_list_.size() )
+									{
+										has_looped = true ;
+										frequency_index = 0 ;
+									}
+									if( frequency_list_[ frequency_index ] < 0 )
+									{
+										freq = -frequency_list_[ frequency_index ];
+										minfreq = -frequency_list_[ frequency_index ];
+										maxfreq = -frequency_list_[ frequency_index + 1 ];
+										step = -frequency_list_[ frequency_index + 2 ];
+									}
+									else
+									{
+										freq = frequency_list_[ frequency_index ];
+										minfreq = frequency_list_[ frequency_index ];
+										maxfreq = frequency_list_[ frequency_index ];
+										step = 0 ;
+									}
+								} 
+								else {		
+									//reverse
+									frequency_index--;
+									// if previous if under the list => go back from end
+									if( frequency_index < 0 )
+									{
+										has_looped = true ;
+										frequency_index =  frequency_list_.size() - 1 ;
+									}
+									// if we are now on a negative value we are on a range max. Skipping 2 more to be positionned on range min
+									if( frequency_list_[ frequency_index ] < 0 )
+									{
+										frequency_index -= 2 ;
+										freq = -frequency_list_[ frequency_index + 1 ];
+										minfreq = -frequency_list_[ frequency_index ];
+										maxfreq = -frequency_list_[ frequency_index + 1 ];
+										step = -frequency_list_[ frequency_index + 2 ];
+									}
+									else
+									{
+										freq = frequency_list_[ frequency_index ];
+										step = 0 ;
+										minfreq = frequency_list_[ frequency_index ];
+										maxfreq = frequency_list_[ frequency_index ];
+									}
+								}
+							}
+						}
+						else
+							restart_search=false;			//Effectively skipping first retuning, giving system time
+					} 
+					EventDispatcher::send_message(message);
+					if( has_looped && !_continuous )
+					{
+						/* prepare values for the next run, when user will resume */
+						if( _fwd )
+						{
+							frequency_index = 0 ;
+							if( frequency_list_[ frequency_index ] < 0 )
+							{
+								freq = -frequency_list_[ frequency_index ];
+								minfreq = -frequency_list_[ frequency_index ];
+								maxfreq = -frequency_list_[ frequency_index + 1 ];
+								step = -frequency_list_[ frequency_index + 2 ];
+							}
+							else
+							{
+								freq = frequency_list_[ frequency_index ];
+								minfreq = frequency_list_[ frequency_index ];
+								maxfreq = frequency_list_[ frequency_index ];
+								step = 0 ;
+							}
+						}
+						else
+						{
+							frequency_index = frequency_list_.size() - 1 ;
+							if( frequency_list_[ frequency_index ] < 0 )
+							{
+								frequency_index -= 2 ;
+								freq = -frequency_list_[ frequency_index + 1];
+								minfreq = -frequency_list_[ frequency_index ];
+								maxfreq = -frequency_list_[ frequency_index + 1 ];
+								step = -frequency_list_[ frequency_index + 2 ];
+							}
+							else
+							{
+								freq = frequency_list_[ frequency_index ];
+								minfreq = frequency_list_[ frequency_index ];
+								maxfreq = frequency_list_[ frequency_index ];
+								step = 0 ;
+							}
+
+						}
+						/* signal pause to handle_retune */
+						receiver_model.set_tuning_frequency( freq );	// Retune
+						message.freq = freq ;
+						message.range = 9999 ;
+						EventDispatcher::send_message(message);
+					}
+					if( _stepper > 0 )
+						_stepper -- ;
+					if( _stepper < 0 )
+						_stepper ++ ;
+				} 
+				chThdSleepMilliseconds(50);				//Needed to (eventually) stabilize the receiver into new freq
+			}
 		}
-		
-		add_spectrum_pixel(spectrum_rgb3_lut[power]);
-		
-		mean_acc += power;
-		if (power > max_power) {
-			max_power = power;
-			max_bin = bin;
+	}
+
+	void SearchView::handle_retune( int64_t freq , uint32_t index ) {
+		static int64_t last_freq = 0 ;
+		static uint32_t last_index = 999999 ;
+		/* special non continuous => set userpause when reaching the end of a range */
+		if( index == 9999 )
+		{
+			timer = 10 * wait ;
+			search_pause();
+			button_pause.set_text("RESTART");		//Show button for non continuous stop
+			userpause=true;	
+			return ;
 		}
-	}
-	
-	slices[slice_counter].max_power = max_power;
-	slices[slice_counter].max_index = max_bin;
-	
-	if (slices_nb > 1) {
-		// Slice sequence
-		if (slice_counter >= slices_nb) {
-			do_detection();
-			slice_counter = 0;
-		} else
-			slice_counter++;
-		receiver_model.set_tuning_frequency(slices[slice_counter].center_frequency);
-		baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);	// Clear
-	} else {
-		// Unique slice
-		do_detection();
-	}
-	
-	baseband::spectrum_streaming_start();
-}
-
-void SearchView::on_show() {
-	baseband::spectrum_streaming_start();
-}
-
-void SearchView::on_hide() {
-	baseband::spectrum_streaming_stop();
-}
-
-void SearchView::on_range_changed() {
-	rf::Frequency slices_span, center_frequency;
-	int64_t offset;
-	size_t slice;
-
-	f_min = field_frequency_min.value();
-	f_max = field_frequency_max.value();
-	search_span = abs(f_max - f_min);
-	
-	if (search_span > SEARCH_SLICE_WIDTH) {
-		// ex: 100M~115M (15M span):
-		// slices_nb = (115M-100M)/2.5M = 6
-		slices_nb = (search_span + SEARCH_SLICE_WIDTH - 1) / SEARCH_SLICE_WIDTH;
-		if (slices_nb > 32) {
-			text_slices.set("!!");
-			slices_nb = 32;
-		} else {
-			text_slices.set(to_string_dec_uint(slices_nb, 2, ' '));
+		current_index = index ;
+		if( current_index != last_index )
+		{
+			if( frequency_list[ current_index ] < 0 )
+			{
+				last_index = current_index ;
+				if( update_ranges )
+				{
+					button_manual_start.set_text( to_string_short_freq( (-frequency_list[ current_index ] ) ) );
+					frequency_range.min = (-frequency_list[ current_index ] );
+					button_manual_end.set_text( to_string_short_freq( ( -frequency_list[ current_index + 1 ] ) ) );
+					frequency_range.max = (-frequency_list[ current_index + 1 ] );
+				}
+			}
 		}
-		// slices_span = 6 * 2.5M = 15M
-		slices_span = slices_nb * SEARCH_SLICE_WIDTH;
-		// offset = 0 + 2.5/2 = 1.25M
-		offset = ((search_span - slices_span) / 2) + (SEARCH_SLICE_WIDTH / 2);
-		// slice_start = 100M + 1.25M = 101.25M
-		center_frequency = std::min(f_min, f_max) + offset;
-		
-		for (slice = 0; slice < slices_nb; slice++) {
-			slices[slice].center_frequency = center_frequency;
-			center_frequency += SEARCH_SLICE_WIDTH;
+		switch (search_thread->is_freq_lock())
+		{
+			case 0:						//NO FREQ LOCK, ONGOING STANDARD SCANNING
+				text_cycle.set( to_string_dec_uint( current_index + 1 , 3 ) );
+				if(description_list[current_index].size() > 0) desc_cycle.set( description_list[current_index] );	//Show new description	
+				break;
+			case 1:						//STARTING LOCK FREQ
+				big_display.set_style(&style_yellow);
+				break;
+			case MAX_FREQ_LOCK:				//FREQ IS STRONG: GREEN and search will pause when on_statistics_update()
+				big_display.set_style(&style_green);
+				if( autosave && last_freq != freq ) {
+					File search_file;
+					std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
+					auto result = search_file.open(freq_file_path);	//First search if freq is already in txt
+					if (!result.is_valid()) {
+						std::string frequency_to_add = "f=" 
+							+ to_string_dec_uint( freq / 1000) 
+							+ to_string_dec_uint( freq % 1000UL, 3, '0');
+						char one_char[1];		//Read it char by char
+						std::string line;		//and put read line in here
+						bool found=false;
+						for (size_t pointer=0; pointer < search_file.size();pointer++) {
+
+							search_file.seek(pointer);
+							search_file.read(one_char, 1);
+							if ((int)one_char[0] > 31) {			//ascii space upwards
+								line += one_char[0];				//Add it to the textline
+							}
+							else if (one_char[0] == '\n') {			//New Line
+								if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+									found=true;
+									break;
+								}
+								line.clear();						//Ready for next textline
+							}
+						}
+						if( !found) {
+							result = search_file.append(freq_file_path); //Second: append if it is not there
+							if( !result.is_valid() )
+							{
+								search_file.write_line(frequency_to_add + ",d=ADD FQ");
+							}
+						}
+					}
+					else {
+						result = search_file.create( freq_file_path );	//First search if freq is already in txt
+						if( !result.is_valid() )
+						{
+							std::string frequency_to_add = "f=" 
+								+ to_string_dec_uint( freq / 1000) 
+								+ to_string_dec_uint( freq % 1000UL, 3, '0');
+							search_file.write_line(frequency_to_add + ",d=ADD FQ");
+						}
+					}
+				}
+				last_freq = freq ;
+				break;
+			default:	//freq lock is checking the signal, do not update display
+				return;
 		}
-	} else {
-		slices[0].center_frequency = (f_max + f_min) / 2;
-		receiver_model.set_tuning_frequency(slices[0].center_frequency);
-
-		slices_nb = 1;
-		text_slices.set(" 1");
-	}
-	
-	bin_skip_frac = 0xF000 / slices_nb;
-
-	slice_counter = 0;
-}
-
-void SearchView::on_lna_changed(int32_t v_db) {
-	receiver_model.set_lna(v_db);
-}
-
-void SearchView::on_vga_changed(int32_t v_db) {
-	receiver_model.set_vga(v_db);
-}
-
-void SearchView::do_timers() {
-	
-	if (timing_div >= 60) {
-		// ~1Hz
-		
-		timing_div = 0;
-		
-		// Update scan rate
-		text_rate.set(to_string_dec_uint(search_counter, 3));
-		search_counter = 0;
-	}
-	
-	if (timing_div % 12 == 0) {
-		// ~5Hz
-		
-		// Update power levels
-		text_mean.set(to_string_dec_uint(mean_power, 3));
-		
-		vu_max.set_value(overall_power_max);
-		vu_max.set_mark(mean_power + power_threshold);
-	}
-	
-	if (timing_div % 6 == 0) {
-		// ~10Hz
-		
-		// Update timing indicator
-		if (locked) {
-			progress_timers.set_max(RELEASE_DELAY);
-			progress_timers.set_value(RELEASE_DELAY - release_timer);
-		} else {
-			progress_timers.set_max(DETECT_DELAY);
-			progress_timers.set_value(detect_timer);
-		}
-		
-		// Increment timers
-		if (detect_timer < DETECT_DELAY) detect_timer++;
-		if (release_timer < RELEASE_DELAY) release_timer++;
-		
-		if (locked) duration++;
+		big_display.set( freq );	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
 	}
 
-	timing_div++;
-}
+	void SearchView::focus() {
+		field_mode.focus();
+	}
 
-SearchView::SearchView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-	
-	add_children({
-		&labels,
-		&field_frequency_min,
-		&field_frequency_max,
-		&field_lna,
-		&field_vga,
-		&field_threshold,
-		&text_mean,
-		&text_slices,
-		&text_rate,
-		&text_infos,
-		&vu_max,
-		&progress_timers,
-		&check_snap,
-		&options_snap,
-		&big_display,
-		&recent_entries_view
-	});
-	
-	baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
-	
-	recent_entries_view.set_parent_rect({ 0, 28 * 8, 240, 12 * 8 });
-	recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
-		nav.push<FrequencyKeypadView>(entry.frequency);
-	};
-	
-	text_mean.set_style(&style_grey);
-	text_slices.set_style(&style_grey);
-	text_rate.set_style(&style_grey);
-	progress_timers.set_style(&style_grey);
-	big_display.set_style(&style_grey);
-	
-	check_snap.set_value(true);
-	options_snap.set_selected_index(1);		// 12.5kHz
-	
-	field_threshold.set_value(80);
-	field_threshold.on_change = [this](int32_t value) {
-		power_threshold = value;
-	};
+	SearchView::~SearchView() {
+		audio::output::stop();
+		receiver_model.disable();
+		baseband::shutdown();
+	}
 
-	field_frequency_min.set_value(receiver_model.tuning_frequency() - 1000000);
-	field_frequency_min.set_step(100000);
-	field_frequency_min.on_change = [this](rf::Frequency) {
-		this->on_range_changed();
-	};
-	field_frequency_min.on_edit = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			this->field_frequency_min.set_value(f);
+	void SearchView::show_max() {		//show total number of freqs to search
+		text_max.set_style(&style_grey);
+		text_max.set( "/ " + to_string_dec_uint(frequency_list.size()));
+	}
+
+	SearchView::SearchView( NavigationView& nav) : nav_ { nav } {
+		add_children( {
+				&labels,
+				&field_lna,
+				&field_vga,
+				&field_rf_amp,
+				&field_volume,
+				&field_bw,
+				&field_squelch,
+				&field_wait,
+				&rssi,
+				&text_cycle,
+				&text_max,
+				&desc_cycle,
+				&big_display,
+				&button_manual_start,
+				&button_manual_end,
+				&field_mode,
+				&step_mode,
+				&button_manual_search,
+				&button_pause,
+				&button_dir,
+				&button_restart,
+				&button_audio_app,
+				&button_mic_app,
+				&button_add,
+				//&button_load,
+				&button_remove,
+				&button_search_setup
+
+		} );
+
+		def_step = change_mode(SEARCH_AM);	//Start on AM
+		field_mode.set_by_value(SEARCH_AM);	//Reflect the mode into the manual selector
+
+		//HELPER: Pre-setting a manual range, based on stored frequency
+		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
+		frequency_range.min = stored_freq - 1000000;
+		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+		frequency_range.max = stored_freq + 1000000;
+		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+
+		SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+
+		button_manual_start.on_select = [this, &nav](Button& button) {
+			auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
+			new_view->on_changed = [this, &button](rf::Frequency f) {
+				frequency_range.min = f;
+				button_manual_start.set_text(to_string_short_freq(f));
+			};
 		};
-	};
-	
-	field_frequency_max.set_value(receiver_model.tuning_frequency() + 1000000);
-	field_frequency_max.set_step(100000);
-	field_frequency_max.on_change = [this](rf::Frequency) {
-		this->on_range_changed();
-	};
-	field_frequency_max.on_edit = [this, &nav]() {
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			this->field_frequency_max.set_value(f);
+
+		button_manual_end.on_select = [this, &nav](Button& button) {
+			auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
+			new_view->on_changed = [this, &button](rf::Frequency f) {
+				frequency_range.max = f;
+				button_manual_end.set_text(to_string_short_freq(f));
+			};
 		};
-	};
-	
-	field_lna.set_value(receiver_model.lna());
-	field_lna.on_change = [this](int32_t v) {
-		this->on_lna_changed(v);
-	};
 
-	field_vga.set_value(receiver_model.vga());
-	field_vga.on_change = [this](int32_t v_db) {
-		this->on_vga_changed(v_db);
-	};
-	
-	progress_timers.set_max(DETECT_DELAY);
-	
-	on_range_changed();
+		button_pause.on_select = [this](ButtonWithEncoder&) {
+			if( userpause )
+				user_resume();
+			else {
+				timer = 10 * wait ;
+				search_pause();
+				button_pause.set_text("<RESUME>");	//PAUSED, show resume
+				userpause=true;
+			}
+		};
+		button_pause.on_change = [this]() {
+			if( userpause )
+			{
+				search_thread->set_stepper( button_pause.get_encoder_delta() );
+			}
+			button_pause.set_encoder_delta( 0 );
+		};
 
-	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-	receiver_model.set_sampling_rate(SEARCH_SLICE_WIDTH);
-	receiver_model.set_baseband_bandwidth(2500000);
-	receiver_model.enable();
-}
+		button_audio_app.on_select = [this](Button&) {
+			search_thread->stop();
+			nav_.pop();
+			nav_.push<AnalogAudioView>();
+		};
+
+		button_mic_app.on_select = [this](Button&) {
+			search_thread->stop();
+			nav_.pop();
+			nav_.push<MicTXView>();
+		};
+
+		button_remove.on_select = [this](Button&) {
+			File search_file;
+			File tmpsearch_file;
+			std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
+			std::string tmp_freq_file_path = "FREQMAN/" + output_file + ".TXT.TMP";
+			auto result = search_file.open( freq_file_path );	//First search if freq is already in txt
+			if (!result.is_valid()) {
+				std::string frequency_to_remove = "f=" 
+					+ to_string_dec_uint(frequency_list[current_index] / 1000) 
+					+ to_string_dec_uint(frequency_list[current_index] % 1000UL, 3, '0');
+				char one_char[1];		//Read it char by char
+				std::string line;		//and put read line in here
+				bool found=false;
+				for (size_t pointer=0; pointer < search_file.size();pointer++) {
+					search_file.seek(pointer);
+					search_file.read(one_char, 1);
+					if ((int)one_char[0] > 31) {			//ascii space upwards
+						line += one_char[0];				//Add it to the textline
+					}
+					else if (one_char[0] == '\n') {			//New Line
+						if (line.compare(0, frequency_to_remove.size(),frequency_to_remove) == 0) {
+							found=true;
+							break;
+						}
+						line.clear();						//Ready for next textline
+					}
+				}
+				if( found )
+				{
+					/* reread and write tmp file */
+					delete_file( tmp_freq_file_path );
+					result = tmpsearch_file.open( tmp_freq_file_path );
+					if ( !result.is_valid() ) {
+						/* re read file and write tmp out */
+						for (size_t pointer=0; pointer < search_file.size();pointer++) {
+							search_file.seek(pointer);
+							search_file.read(one_char, 1);
+							if ((int)one_char[0] > 31) {			//ascii space upwards
+								line += one_char[0];				//Add it to the textline
+							}
+							else if (one_char[0] == '\n') {			//New Line
+								if( line.compare(0, frequency_to_remove.size(),frequency_to_remove) != 0 ) {
+									result = tmpsearch_file.write_line( line );
+								}
+								line.clear();					
+							}
+						}
+						delete &search_file;
+						delete &tmpsearch_file ;
+						delete_file( freq_file_path );
+						rename_file( tmp_freq_file_path , freq_file_path );
+					}
+				}
+			}
+		};
+
+		button_manual_search.on_select = [this](Button&) {
+			if (!frequency_range.min || !frequency_range.max) {
+				nav_.display_modal("Error", "Both START and END freqs\nneed a value");
+			} else if (frequency_range.min > frequency_range.max) {
+				nav_.display_modal("Error", "END freq\nis lower than START");
+			} else {
+				audio::output::stop();
+				search_thread->stop();	//STOP SCANNER THREAD
+
+				frequency_list.clear();
+				description_list.clear();
+
+				def_step = step_mode.selected_index_value();     //Use def_step from manual selector
+
+				description_list.push_back(
+						"R " + to_string_short_freq(frequency_range.min) + ">"
+						+ to_string_short_freq(frequency_range.max) + " S" 	// current Manual range
+						+ to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
+						);
+				frequency_list.push_back( -frequency_range.min ); // min range val
+				description_list.push_back( "!range max val" );
+				frequency_list.push_back( -frequency_range.max ); // max range val
+				description_list.push_back( "!range step val" );
+				frequency_list.push_back( -def_step ); 		  // custom range step
+
+				show_max(); /* display step information */
+				text_cycle.set( " " );
+
+				if ( userpause ) 						//If user-paused, resume
+					user_resume();
+				big_display.set_style(&style_grey);		//Back to grey color
+				start_search_thread(); //RESTART SCANNER THREAD
+				if (!search_thread->is_searching())
+					search_thread->set_searching(true);   // RESUME!
+			}
+		};
+
+		field_mode.on_change = [this](size_t, OptionsField::value_t v) {
+			receiver_model.disable();
+			baseband::shutdown();
+			change_mode(v);
+			if ( !search_thread->is_searching() ) 						//for some motive, audio output gets stopped.
+				audio::output::start();								//So if search was stopped we resume audio
+			receiver_model.enable(); 
+		};
+
+		button_dir.on_select = [this](Button&) {
+			search_thread->change_searching_direction();
+			fwd = search_thread->get_searching_direction();
+			if( fwd )
+			{
+				button_dir.set_text( "FW>" );
+			}
+			else
+			{
+				button_dir.set_text( "<RW" );
+			}
+			if ( userpause ) 						//If user-paused, resume
+				user_resume();
+			big_display.set_style(&style_grey);		//Back to grey color
+		};
+
+		button_restart.on_select = [this](Button&) {
+			frequency_file_load( input_file , true );
+			if (!search_thread->is_searching())
+				search_thread->set_searching(true);   // RESUME!
+			if( fwd )
+			{
+				button_dir.set_text( "FW>" );
+			}
+			else
+			{
+				button_dir.set_text( "<RW" );
+			}
+			timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+			button_pause.set_text("PAUSE");		//Show button for pause
+			userpause=false;	
+		};
+
+
+		button_add.on_select = [this](Button&) {  //frequency_list[current_index]
+			File search_file;
+			std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
+			std::string frequency_to_add = "f=" 
+				+ to_string_dec_uint(frequency_list[current_index] / 1000) 
+				+ to_string_dec_uint(frequency_list[current_index] % 1000UL, 3, '0');
+			auto result = search_file.open(freq_file_path);	//First search if freq is already in txt
+			if (!result.is_valid()) {
+				char one_char[1];		//Read it char by char
+				std::string line;		//and put read line in here
+				bool found=false;
+				for (size_t pointer=0; pointer < search_file.size();pointer++) {
+					search_file.seek(pointer);
+					search_file.read(one_char, 1);
+					if ((int)one_char[0] > 31) {			//ascii space upwards
+						line += one_char[0];				//Add it to the textline
+					}
+					else if (one_char[0] == '\n') {			//New Line
+						if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+							found=true;
+							break;
+						}
+						line.clear();						//Ready for next textline
+					}
+				}
+				if (found) {
+					nav_.display_modal("Error", "Frequency already exists");
+					big_display.set(frequency_list[current_index]);		//After showing an error
+				}
+				else {
+					result = search_file.append(freq_file_path); //Second: append if it is not there
+					if( !result.is_valid() )
+					{
+						search_file.write_line( frequency_to_add + ",d=ADD FQ");
+					}
+				}
+			}
+			else
+			{
+				result = search_file.create(freq_file_path); //third: create if it is not there
+				if( !result.is_valid() )
+				{
+					search_file.write_line( frequency_to_add + ",d=ADD FQ");
+				}
+			}
+		};
+		button_search_setup.on_select = [this,&nav](Button&) {
+			auto open_view = nav.push<SearchSetupView>(); 
+			open_view -> on_changed = [this](std::vector<std::string> result) {
+				input_file = result[0];
+				output_file = result[1];
+				autosave = persistent_memory::search_autosave_freqs();
+				autostart = persistent_memory::search_autostart_search();
+				continuous = persistent_memory::search_continuous();
+				filedelete = persistent_memory::search_clear_output();
+				load_freqs = persistent_memory::search_load_freqs();
+				load_ranges = persistent_memory::search_load_ranges();
+				update_ranges = persistent_memory::search_update_ranges_when_searching();
+				frequency_file_load( input_file , true );
+				/*  User experience will tell how they need the output file to be cleared 
+				 *  actual behavior: clean output file on search app start
+				 *  proposal: also clear it at settings exit
+				 *  proposal: change checkbox by a button 'empty output file'
+				 *
+				 if( !filedelete )
+				 {
+				 delete_file( "FREQMAN/"+output_file+".TXT" );
+				 }
+				 */
+
+				if( autostart )
+				{
+					timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+					button_pause.set_text("PAUSE");		//Show button for pause
+					userpause=false;	
+					search_resume();
+				}
+				else
+				{
+					button_pause.set_text("<RESUME>");		//Show button for pause
+					userpause=true;	
+					search_pause();
+				}
+			};
+		};
+
+		//PRE-CONFIGURATION:
+		field_wait.on_change = [this](int32_t v) {	wait = v;	}; 	field_wait.set_value(5);
+		field_squelch.on_change = [this](int32_t v) {	squelch = v;	}; 	field_squelch.set_value(-10);
+		field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+		field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
+
+		SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+		autostart = persistent_memory::search_autostart_search();
+		autosave = persistent_memory::search_autosave_freqs();
+		continuous = persistent_memory::search_continuous();
+		filedelete = persistent_memory::search_clear_output();
+		load_freqs = persistent_memory::search_load_freqs();
+		load_ranges = persistent_memory::search_load_ranges();
+		update_ranges = persistent_memory::search_update_ranges_when_searching();
+
+		if( filedelete )
+		{
+			delete_file( "FREQMAN/"+output_file+".TXT" );
+		}
+		frequency_file_load( input_file ); // in the end as it's starting thread and using loaded persistence values
+
+		if( autostart )
+		{
+			timer = wait * 10;					//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+			button_pause.set_text("PAUSE");		//Show button for pause
+			userpause=false;	
+			search_resume();
+		}
+		else
+		{
+			button_pause.set_text("<RESUME>");		//Show button for pause
+			userpause=true;	
+			search_pause();
+		}
+	}
+
+	void SearchView::frequency_file_load(std::string file_name, bool stop_all_before) {
+
+		// stop everything running now if required
+		if (stop_all_before) {
+			search_thread->stop();
+			frequency_list.clear(); // clear the existing frequency list (expected behavior)
+			description_list.clear();
+		}
+
+		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
+
+		if ( load_freqman_file(file_name, database)  ) {
+			for(auto& entry : database) {								// READ LINE PER LINE
+				if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
+					if( entry.type == RANGE && load_ranges )  {						//RANGE	
+						switch( entry.step ) {
+							case AM_US:	def_step = 10000;  	break ;
+							case AM_EUR:	def_step = 9000;  	break ;
+							case NFM_1: 	def_step = 12500;  	break ;
+							case NFM_2: 	def_step = 6250;	break ;	
+							case FM_1:	def_step = 100000; 	break ;
+							case FM_2:	def_step = 50000; 	break ;
+							case N_1:	def_step = 25000;  	break ;
+							case N_2:	def_step = 250000; 	break ;
+							case AIRBAND:	def_step= 8330;  	break ;
+						}
+						frequency_list.push_back(-entry.frequency_a);		//Store starting freq and description
+						description_list.push_back( entry.description );
+
+						frequency_list.push_back(-entry.frequency_b);		//Store ending freq and description
+						description_list.push_back("R " + to_string_short_freq(entry.frequency_a)
+								+ ">" + to_string_short_freq(entry.frequency_b)
+								+ " S" + to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
+								);
+						frequency_list.push_back(-def_step);			//Store step 
+						description_list.push_back( "!range step val " );
+
+					} else if ( entry.type == SINGLE && load_freqs )  {
+						frequency_list.push_back(entry.frequency_a);
+						description_list.push_back("S: " + entry.description);
+					}
+				}
+				else
+				{
+					break; //No more space: Stop reading the txt file !
+				}		
+			}
+			show_max();
+		} 
+		else 
+		{
+			desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
+		}
+		audio::output::stop();
+		start_search_thread();
+	}
+
+	void SearchView::on_statistics_update(const ChannelStatistics& statistics) {
+		if ( !userpause ) 									//Scanning not user-paused
+		{
+			if (timer >= (wait * 10) ) 
+			{
+				timer = 0;
+				search_resume();
+			} 
+			else if (!timer) 
+			{
+				if (statistics.max_db > squelch ) {  		//There is something on the air...(statistics.max_db > -squelch) 
+					if (search_thread->is_freq_lock() >= MAX_FREQ_LOCK) { //checking time reached
+						search_pause();
+						timer++;	
+					} else {
+						search_thread->set_freq_lock( search_thread->is_freq_lock() + 1 ); //in lock period, still analyzing the signal
+					}
+				} else {									//There is NOTHING on the air
+					if (search_thread->is_freq_lock() > 0) {	//But are we already in freq_lock ?
+						big_display.set_style(&style_grey);	//Back to grey color
+						search_thread->set_freq_lock(0); 		//Reset the search lock, since there is no signal
+					}				
+				}
+			} 
+			else 	//Ongoing wait time
+			{
+				timer++;
+			}
+		}
+	}
+	void SearchView::search_pause() {
+		if (search_thread ->is_searching()) {
+			search_thread ->set_freq_lock(0); 		//Reset the scanner lock (because user paused, or MAX_FREQ_LOCK reached) for next freq scan	
+			search_thread ->set_searching(false); // WE STOP SCANNING
+			audio::output::start();
+		}
+	}
+
+
+	void SearchView::search_resume() {
+		audio::output::stop();
+		big_display.set_style(&style_grey);		//Back to grey color
+		if (!search_thread->is_searching())
+			search_thread->set_searching(true);   // RESUME!
+	}
+
+	void SearchView::user_resume() {
+		timer = wait * 10;			//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("PAUSE");		//Show button for pause
+		userpause=false;			//Resume searching
+	}
+
+	void SearchView::on_headphone_volume_changed(int32_t v) {
+		const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+		receiver_model.set_headphone_volume(new_volume);
+	}
+
+	size_t SearchView::change_mode(uint8_t new_mod) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
+		using option_t = std::pair<std::string, int32_t>;
+		using options_t = std::vector<option_t>;
+		options_t bw;
+		field_bw.on_change = [this](size_t n, OptionsField::value_t) {	};
+
+		switch (new_mod) {
+			case SEARCH_NFM:	//bw 16k (2) default
+				bw.emplace_back("8k5", 0);
+				bw.emplace_back("11k", 0);
+				bw.emplace_back("16k", 0);			
+				field_bw.set_options(bw);
+
+				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+				field_bw.set_selected_index(2);
+				receiver_model.set_nbfm_configuration(field_bw.selected_index());
+				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
+				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
+				break;
+			case SEARCH_AM:
+				bw.emplace_back("DSB", 0);
+				bw.emplace_back("USB", 0);
+				bw.emplace_back("LSB", 0);
+				bw.emplace_back("CW ", 0);
+				field_bw.set_options(bw);
+
+				baseband::run_image(portapack::spi_flash::image_tag_am_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
+				field_bw.set_selected_index(0);
+				receiver_model.set_am_configuration(field_bw.selected_index());
+				field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
+				receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
+				break;
+			case SEARCH_WFM:
+				bw.emplace_back("16k", 0);
+				field_bw.set_options(bw);
+
+				baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+				field_bw.set_selected_index(0);
+				receiver_model.set_wfm_configuration(field_bw.selected_index());
+				field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
+				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(2000000);	
+				break;
+		}
+
+		return search_mod_step[new_mod];
+	}
+
+	void SearchView::start_search_thread() {
+		receiver_model.enable(); 
+		receiver_model.set_squelch_level(0);
+		search_thread = std::make_unique<SearchThread>(frequency_list);
+		search_thread->set_continuous( continuous );
+		search_thread->set_searching_direction( fwd );
+	}
+
 
 } /* namespace ui */
