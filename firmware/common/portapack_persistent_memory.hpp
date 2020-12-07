@@ -34,87 +34,88 @@ using namespace modems;
 using namespace serializer;
 
 namespace portapack {
-namespace persistent_memory {
 
-using ppb_t = int32_t;
+	namespace persistent_memory {
 
-rf::Frequency tuned_frequency();
-void set_tuned_frequency(const rf::Frequency new_value);
+		using ppb_t = int32_t;
 
-ppb_t correction_ppb();
-void set_correction_ppb(const ppb_t new_value);
+		rf::Frequency tuned_frequency();
+		void set_tuned_frequency(const rf::Frequency new_value);
 
-void set_touch_calibration(const touch::Calibration& new_value);
-const touch::Calibration& touch_calibration();
+		ppb_t correction_ppb();
+		void set_correction_ppb(const ppb_t new_value);
 
-serial_format_t serial_format();
-void set_serial_format(const serial_format_t new_value);
+		void set_touch_calibration(const touch::Calibration& new_value);
+		const touch::Calibration& touch_calibration();
 
-int32_t tone_mix();
-void set_tone_mix(const int32_t new_value);
+		serial_format_t serial_format();
+		void set_serial_format(const serial_format_t new_value);
 
-int32_t afsk_mark_freq();
-void set_afsk_mark(const int32_t new_value);
+		int32_t tone_mix();
+		void set_tone_mix(const int32_t new_value);
 
-int32_t afsk_space_freq();
-void set_afsk_space(const int32_t new_value);
+		int32_t afsk_mark_freq();
+		void set_afsk_mark(const int32_t new_value);
 
-int32_t modem_baudrate();
-void set_modem_baudrate(const int32_t new_value);
+		int32_t afsk_space_freq();
+		void set_afsk_space(const int32_t new_value);
 
-uint8_t modem_repeat();
-void set_modem_repeat(const uint32_t new_value);
+		int32_t modem_baudrate();
+		void set_modem_baudrate(const int32_t new_value);
 
-/* Search app */
-bool     search_autosave_freqs();
-bool     search_autostart_search();
-bool     search_continuous();
-bool     search_clear_output();
-bool     search_load_freqs();
-bool     search_load_ranges();
-bool     search_update_ranges_when_searching();
-void set_search_autosave_freqs(bool v);
-void set_search_autostart_search(bool v);
-void set_search_continuous(bool v);
-void set_search_clear_output(bool v);
-void set_search_load_freqs(bool v);
-void set_search_load_ranges(bool v);
-void set_search_update_ranges_when_searching(bool v);
+		uint8_t modem_repeat();
+		void set_modem_repeat(const uint32_t new_value);
 
-uint32_t playing_dead();
-void set_playing_dead(const uint32_t new_value);
+		uint32_t playing_dead();
+		void set_playing_dead(const uint32_t new_value);
 
-uint32_t playdead_sequence();
-void set_playdead_sequence(const uint32_t new_value);
+		uint32_t playdead_sequence();
+		void set_playdead_sequence(const uint32_t new_value);
 
-bool stealth_mode();
-void set_stealth_mode(const bool v);
+		bool stealth_mode();
+		void set_stealth_mode(const bool v);
 
-bool config_splash();
-bool config_login();
-bool config_speaker();
-uint32_t config_backlight_timer();
+		bool config_splash();
+		bool config_login();
+		bool config_speaker();
+		uint32_t config_backlight_timer();
 
-void set_config_splash(bool v);
-void set_config_login(bool v);
-void set_config_speaker(bool new_value); 
-void set_config_backlight_timer(uint32_t i);
+		void set_config_splash(bool v);
+		void set_config_login(bool v);
+		void set_config_speaker(bool new_value); 
+		void set_config_backlight_timer(uint32_t i);
 
-//uint8_t ui_config_textentry();
-//void set_config_textentry(uint8_t new_value);
+		//uint8_t ui_config_textentry();
+		//void set_config_textentry(uint8_t new_value);
 
-uint32_t pocsag_last_address();
-void set_pocsag_last_address(uint32_t address);
+		uint32_t pocsag_last_address();
+		void set_pocsag_last_address(uint32_t address);
 
-uint32_t pocsag_ignore_address();
-void set_pocsag_ignore_address(uint32_t address);
+		uint32_t pocsag_ignore_address();
+		void set_pocsag_ignore_address(uint32_t address);
 
-bool clkout_enabled();
-void set_clkout_enabled(bool enable);
-uint32_t clkout_freq();
-void set_clkout_freq(uint32_t freq);
+		bool clkout_enabled();
+		void set_clkout_enabled(bool enable);
+		uint32_t clkout_freq();
+		void set_clkout_freq(uint32_t freq);
 
-} /* namespace persistent_memory */
+		/* Search app */
+		bool     search_autosave_freqs();
+		bool     search_autostart_search();
+		bool     search_continuous();
+		bool     search_clear_output();
+		bool     search_load_freqs();
+		bool     search_load_ranges();
+		bool     search_update_ranges_when_searching();
+		void set_search_autosave_freqs(const bool v);
+		void set_search_autostart_search(const bool v);
+		void set_search_continuous(const bool v);
+		void set_search_clear_output(const bool v);
+		void set_search_load_freqs(const bool v);
+		void set_search_load_ranges(const bool v);
+		void set_search_update_ranges_when_searching(const bool v);
+
+	} /* namespace persistent_memory */
 } /* namespace portapack */
 
 #endif/*__PORTAPACK_PERSISTENT_MEMORY_H__*/
