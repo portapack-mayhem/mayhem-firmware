@@ -53,14 +53,13 @@ public:
 
 	void set_freq_lock(const uint32_t v);
 	uint32_t is_freq_lock();
+	int64_t get_current_freq();
 
-	void set_freq_del(const uint32_t v);
-	
-	void set_stepper(const uint32_t v);
+	void set_stepper(const int64_t v);
 
 	void change_searching_direction();
 	bool get_searching_direction();
-	void set_searching_direction( bool v);
+	void set_searching_direction( const bool v);
 	
 	void set_continuous(const bool v);
 
@@ -74,13 +73,13 @@ public:
 private:
 	std::vector<int64_t> frequency_list_ { };
 	Thread* thread { nullptr };
-	
-	bool _searching { false };
+	int64_t freq = 0 ;
+	int64_t step = 0 ;
+	bool _searching { true };
 	bool _fwd { true };
-	bool _continuous { false };
-	int32_t _stepper { 0 };
-	uint32_t _freq_lock { 0 };
-	uint32_t _freq_del { 0 };
+	bool _continuous { true };
+	int64_t _stepper { 0 };
+	int32_t _freq_lock { 0 };
 	static msg_t static_fn(void* arg);
 	void run();
 };
@@ -156,7 +155,7 @@ private:
 	bool load_ranges = { true };
 	bool update_ranges = { true };
 	bool fwd = { true };
-	
+
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
 		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:   db WAIT:", Color::light_grey() },
@@ -227,6 +226,11 @@ private:
 		{ 4, 6 * 16, 28 * 8, 52 },
 		0
 	};
+	
+	Button button_search_setup {
+		{ 22 * 8 + 6, 3 * 16 - 8, 7 * 8, 22 },
+		"PARAMS"
+	};
 
 	Button button_manual_start {
 		{ 0 * 8, 11 * 16, 11 * 8, 28 },
@@ -274,16 +278,7 @@ private:
 	ButtonWithEncoder button_pause {
 		{ 0, (15 * 16) - 4, 72, 28 },
 		"PAUSE"
-	};
-
-	Button button_dir {
-		{ 0,  (35 * 8) - 4, 34, 28 },
-		"FW>"
-	};
-	Button button_restart {
-		{ 37, (35 * 8) - 4 , 35, 28 },
-		"RST"
-	};
+	}; 
 
 
 	Button button_audio_app {
@@ -291,24 +286,35 @@ private:
 		"AUDIO"
 	};
 
+	Button button_add {
+		{ 168, (15 * 16) - 4, 72, 28 },
+		"STORE"
+	};
+
+	Button button_dir {
+		{ 0,  (35 * 8) - 4, 34, 28 },
+		"FW>"
+	};
+	ImageButton button_restart {
+		{ 38, (35 * 8) - 4, 32, 24 },
+		&bitmap_icon_restart,
+		Color::white(),
+		Color::black()
+	};
+/*	Button button_restart {
+		{ 38, (35 * 8) - 4, 34, 28 },
+		"RST"
+	};*/
+
+
 	Button button_mic_app {
 		{ 84,  (35 * 8) - 4, 72, 28 },
 		"MIC TX"
 	};
 
-	Button button_add {
-		{ 168, (15 * 16) - 4, 72, 28 },
-		"ADD FQ"
-	};
-
-
 	Button button_remove {
 		{ 168, (35 * 8) - 4, 72, 28 },
-		"DEL FQ"
-	};
-	Button button_search_setup {
-		{ 22 * 8 + 6, 3 * 16 - 8, 7 * 8, 22 },
-		"PARAMS"
+		"REMOVE"
 	};
 	
 	std::unique_ptr<SearchThread> search_thread { };
