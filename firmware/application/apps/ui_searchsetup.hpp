@@ -83,11 +83,6 @@ private:
 		3,
 		"clear output at start"
 	};
-	Button button_save {
-		{ 9 * 8, 255, 14 * 8 , 40 },
-		"SAVE"
-	};
-
 };
 
 class SearchSetupViewMore : public View {
@@ -114,11 +109,6 @@ private:
 		3,
 		"auto update m-ranges"
 		};
-
-	Button button_save {
-		{ 9 * 8, 255, 14 * 8 , 40 },
-		"SAVE"
-	};
 };
 
 

@@ -35,6 +35,79 @@ using namespace portapack;
 
 namespace ui {
 
+	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
+	{
+		File settings_file;
+		size_t length, file_position = 0;
+		char * pos;
+		char * line_start;
+		char * line_end;
+		char file_data[257];
+
+		uint32_t it = 0 ;
+		uint32_t nb_params = 2 ;
+		std::string params[ 2 ];
+
+		auto result = settings_file.open( source );
+		if( !result.is_valid() )
+		{
+			while( it < nb_params )
+			{
+				// Read a 256 bytes block from file
+				settings_file.seek(file_position);
+				memset(file_data, 0, 257);
+				auto read_size = settings_file.read(file_data, 256);
+				if (read_size.is_error())
+					break ;
+				file_position += 256;
+				// Reset line_start to beginning of buffer
+				line_start = file_data;
+				pos=line_start;
+				while ((line_end = strstr(line_start, "\x0A"))) {
+					length = line_end - line_start - 1 ;
+					params[ it ]  = string( pos , length );
+					it ++ ;	
+					line_start = line_end + 1;
+					pos=line_start ;
+					if (line_start - file_data >= 256) 
+						break;
+					if( it >= nb_params )
+						break ;
+				}			
+				if (read_size.value() != 256)
+					break;	// End of file
+
+				// Restart at beginning of last incomplete line
+				file_position -= (file_data + 256 - line_start);
+			}
+		}
+		if( it < nb_params )
+		{
+			/* bad number of params, setting default */
+			input_file  = "SEARCH" ;
+			output_file = "SEARCHRESULT" ;	
+			return false ;
+		}
+		input_file = params[ 0 ];
+		output_file= params[ 1 ];
+		return true ;
+	}
+
+	bool SearchSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
+	{
+		File settings_file;
+
+		auto result = settings_file.create( dest );
+		if( result.is_valid() )
+			return false ;
+		settings_file.write_line( input_file );
+		settings_file.write_line( output_file );
+
+		return true ;
+	}
+
+
+
 	SearchSetupViewMain::SearchSetupViewMain(
 			NavigationView &nav , Rect parent_rect , std::string input_file , std::string output_file 
 			) : View( parent_rect ) , _input_file { input_file } , _output_file { output_file } 
@@ -135,77 +208,6 @@ namespace ui {
 
 	void SearchSetupViewMore::focus() {
 		checkbox_load_freqs.focus();
-	}
-
-	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
-	{
-		File settings_file;
-		size_t length, file_position = 0;
-		char * pos;
-		char * line_start;
-		char * line_end;
-		char file_data[257];
-
-		uint32_t it = 0 ;
-		uint32_t nb_params = 2 ;
-		std::string params[ 2 ];
-
-		auto result = settings_file.open( source );
-		if( !result.is_valid() )
-		{
-			while( it < nb_params )
-			{
-				// Read a 256 bytes block from file
-				settings_file.seek(file_position);
-				memset(file_data, 0, 257);
-				auto read_size = settings_file.read(file_data, 256);
-				if (read_size.is_error())
-					break ;
-				file_position += 256;
-				// Reset line_start to beginning of buffer
-				line_start = file_data;
-				pos=line_start;
-				while ((line_end = strstr(line_start, "\x0A"))) {
-					length = line_end - line_start - 1 ;
-					params[ it ]  = string( pos , length );
-					it ++ ;	
-					line_start = line_end + 1;
-					pos=line_start ;
-					if (line_start - file_data >= 256) 
-						break;
-					if( it >= nb_params )
-						break ;
-				}			
-				if (read_size.value() != 256)
-					break;	// End of file
-
-				// Restart at beginning of last incomplete line
-				file_position -= (file_data + 256 - line_start);
-			}
-		}
-		if( it < nb_params )
-		{
-			/* bad number of params, setting default */
-			input_file  = "SEARCH" ;
-			output_file = "SEARCHRESULT" ;	
-			return false ;
-		}
-		input_file = params[ 0 ];
-		output_file= params[ 1 ];
-		return true ;
-	}
-
-	bool SearchSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
-	{
-		File settings_file;
-
-		auto result = settings_file.create( dest );
-		if( result.is_valid() )
-			return false ;
-		settings_file.write_line( input_file );
-		settings_file.write_line( output_file );
-
-		return true ;
 	}
 
 	void SearchSetupView::focus() {
