@@ -977,7 +977,7 @@ void ButtonWithEncoder::set_text(const std::string value) {
 int32_t ButtonWithEncoder::get_encoder_delta() {
 	return encoder_delta ;
 }
-void ButtonWithEncoder::set_encoder_delta( int32_t delta )
+void ButtonWithEncoder::set_encoder_delta( const int32_t delta )
 {
 	encoder_delta = delta ;
 }

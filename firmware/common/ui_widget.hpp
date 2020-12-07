@@ -411,6 +411,7 @@ private:
 };
 
 
+
 class ButtonWithEncoder : public Widget {
 public:
 	std::function<void(ButtonWithEncoder&)> on_select { };
@@ -436,7 +437,7 @@ public:
 
 	void set_text(const std::string value);
 	int32_t get_encoder_delta();
-	void set_encoder_delta( int32_t delta );
+	void set_encoder_delta( const int32_t delta );
 	std::string text() const;
 
 	void paint(Painter& painter) override;
