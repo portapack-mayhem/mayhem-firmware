@@ -241,12 +241,11 @@ namespace ui {
 									}
 								}
 							}
-							EventDispatcher::send_message(message);
 						}
 						else
 							restart_search=false;			//Effectively skipping first retuning, giving system time
 					} 
-
+					EventDispatcher::send_message(message);
 					if( has_looped && !_continuous )
 					{
 						/* prepare values for the next run, when user will resume */
