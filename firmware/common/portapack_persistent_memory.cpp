@@ -367,4 +367,5 @@ namespace portapack {
 		} 
 
 	} /* namespace persistent_memory */
+
 } /* namespace portapack */
