@@ -418,7 +418,7 @@ namespace ui {
 	}
 
 	void SearchView::show_max() {		//show total number of freqs to search
-		text_max.set_style(&style_grey);
+		text_max.set_style(&style_white);
 		text_max.set( "/ " + to_string_dec_uint(frequency_list.size()));
 	}
 
@@ -492,21 +492,27 @@ namespace ui {
 		};
 
 		button_pause.on_select = [this](ButtonWithEncoder&) {
-			if( userpause )
-				user_resume();
-			else {
-				userpause=true;
-				search_pause();
-				button_pause.set_text("<RESUME>");	//PAUSED, show resume
-				search_thread->set_freq_lock(0); 	//Reset the search lock, since there is no signal
+			if( search_thread && frequency_list.size() > 0 )
+			{
+				if( userpause )
+					user_resume();
+				else {
+					userpause=true;
+					search_pause();
+					button_pause.set_text("<RESUME>");	//PAUSED, show resume
+					search_thread->set_freq_lock(0); 	//Reset the search lock, since there is no signal
+				}
 			}
 		};
 		button_pause.on_change = [this]() {
-			if( userpause )
+			if( search_thread && frequency_list.size() > 0 )
 			{
-				big_display.set_style(&style_grey);		//Back to grey color
-				search_thread-> set_stepper( button_pause.get_encoder_delta() );
-				button_pause.set_encoder_delta( 0 );
+				if( userpause )
+				{
+					big_display.set_style(&style_white);		//Back to white color
+					search_thread-> set_stepper( button_pause.get_encoder_delta() );
+					button_pause.set_encoder_delta( 0 );
+				}
 			}
 		}; 
 
@@ -523,56 +529,59 @@ namespace ui {
 		};
 
 		button_remove.on_select = [this](Button&) {
-			File search_file;
-			File tmpsearch_file;
-			std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
-			std::string tmp_freq_file_path = "FREQMAN/" + output_file + ".TXT.TMP";
-			auto result = search_file.open( freq_file_path );	//First search if freq is already in txt
-			if (!result.is_valid()) {
-				std::string frequency_to_remove = "f=" 
-					+ to_string_dec_uint(frequency_list[current_index] / 1000) 
-					+ to_string_dec_uint(frequency_list[current_index] % 1000UL, 3, '0');
-				char one_char[1];		//Read it char by char
-				std::string line;		//and put read line in here
-				bool found=false;
-				for (size_t pointer=0; pointer < search_file.size();pointer++) {
-					search_file.seek(pointer);
-					search_file.read(one_char, 1);
-					if ((int)one_char[0] > 31) {			//ascii space upwards
-						line += one_char[0];				//Add it to the textline
-					}
-					else if (one_char[0] == '\n') {			//New Line
-						if (line.compare(0, frequency_to_remove.size(),frequency_to_remove) == 0) {
-							found=true;
-							break;
+			if( search_thread && search_thread->get_current_freq() > 0 )
+			{
+				File search_file;
+				File tmpsearch_file;
+				std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
+				std::string tmp_freq_file_path = "FREQMAN/" + output_file + ".TXT.TMP";
+				auto result = search_file.open( freq_file_path );	//First search if freq is already in txt
+				if (!result.is_valid()) {
+					std::string frequency_to_remove = "f=" 
+						+ to_string_dec_uint(frequency_list[current_index] / 1000) 
+						+ to_string_dec_uint(frequency_list[current_index] % 1000UL, 3, '0');
+					char one_char[1];		//Read it char by char
+					std::string line;		//and put read line in here
+					bool found=false;
+					for (size_t pointer=0; pointer < search_file.size();pointer++) {
+						search_file.seek(pointer);
+						search_file.read(one_char, 1);
+						if ((int)one_char[0] > 31) {			//ascii space upwards
+							line += one_char[0];				//Add it to the textline
 						}
-						line.clear();						//Ready for next textline
-					}
-				}
-				if( found )
-				{
-					/* reread and write tmp file */
-					delete_file( tmp_freq_file_path );
-					result = tmpsearch_file.open( tmp_freq_file_path );
-					if ( !result.is_valid() ) {
-						/* re read file and write tmp out */
-						for (size_t pointer=0; pointer < search_file.size();pointer++) {
-							search_file.seek(pointer);
-							search_file.read(one_char, 1);
-							if ((int)one_char[0] > 31) {			//ascii space upwards
-								line += one_char[0];				//Add it to the textline
+						else if (one_char[0] == '\n') {			//New Line
+							if (line.compare(0, frequency_to_remove.size(),frequency_to_remove) == 0) {
+								found=true;
+								break;
 							}
-							else if (one_char[0] == '\n') {			//New Line
-								if( line.compare(0, frequency_to_remove.size(),frequency_to_remove) != 0 ) {
-									result = tmpsearch_file.write_line( line );
+							line.clear();						//Ready for next textline
+						}
+					}
+					if( found )
+					{
+						/* reread and write tmp file */
+						delete_file( tmp_freq_file_path );
+						result = tmpsearch_file.open( tmp_freq_file_path );
+						if ( !result.is_valid() ) {
+							/* re read file and write tmp out */
+							for (size_t pointer=0; pointer < search_file.size();pointer++) {
+								search_file.seek(pointer);
+								search_file.read(one_char, 1);
+								if ((int)one_char[0] > 31) {			//ascii space upwards
+									line += one_char[0];				//Add it to the textline
 								}
-								line.clear();					
+								else if (one_char[0] == '\n') {			//New Line
+									if( line.compare(0, frequency_to_remove.size(),frequency_to_remove) != 0 ) {
+										result = tmpsearch_file.write_line( line );
+									}
+									line.clear();					
+								}
 							}
+							delete &search_file;
+							delete &tmpsearch_file ;
+							delete_file( freq_file_path );
+							rename_file( tmp_freq_file_path , freq_file_path );
 						}
-						delete &search_file;
-						delete &tmpsearch_file ;
-						delete_file( freq_file_path );
-						rename_file( tmp_freq_file_path , freq_file_path );
 					}
 				}
 			}
@@ -610,7 +619,7 @@ namespace ui {
 
 				if ( userpause ) 						//If user-paused, resume
 					user_resume();
-				big_display.set_style(&style_grey);		//Back to grey color
+				big_display.set_style(&style_white);		//Back to white color
 				start_search_thread(); //RESTART SCANNER THREAD
 				if (!search_thread->is_searching())
 					search_thread->set_searching(true);   // RESUME!
@@ -642,57 +651,79 @@ namespace ui {
 			timer = 10 * wait ;
 			search_resume();
 			search_thread->set_freq_lock(0); 		//Reset the search lock
-			big_display.set_style(&style_grey);		//Back to grey color
+			big_display.set_style(&style_white);		//Back to white color
 		};
 
 		button_restart.on_select = [this](ImageButton&) {
-			def_step = step_mode.selected_index_value();     //Use def_step from manual selector
-			frequency_file_load( input_file , true );
-			if( fwd )
+			if( frequency_list.size() > 0 )
 			{
-				button_dir.set_text( "FW>" );
+				def_step = step_mode.selected_index_value();     //Use def_step from manual selector
+				frequency_file_load( input_file , true );
+				if( fwd )
+				{
+					button_dir.set_text( "FW>" );
+				}
+				else
+				{
+					button_dir.set_text( "<RW" );
+				}
+				timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+				button_pause.set_text("PAUSE");		//Show button for pause
+				userpause=false;	
 			}
-			else
-			{
-				button_dir.set_text( "<RW" );
-			}
-			timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
-			button_pause.set_text("PAUSE");		//Show button for pause
-			userpause=false;	
 		};
 
 
 		button_add.on_select = [this](Button&) {  //frequency_list[current_index]
-			File search_file;
-			std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
-			std::string frequency_to_add = "f=" 
-				+ to_string_dec_uint(search_thread->get_current_freq() / 1000) 
-				+ to_string_dec_uint(search_thread->get_current_freq() % 1000UL, 3, '0');
-			auto result = search_file.open(freq_file_path);	//First search if freq is already in txt
-			if (!result.is_valid()) {
-				char one_char[1];		//Read it char by char
-				std::string line;		//and put read line in here
-				bool found=false;
-				for (size_t pointer=0; pointer < search_file.size();pointer++) {
-					search_file.seek(pointer);
-					search_file.read(one_char, 1);
-					if ((int)one_char[0] > 31) {			//ascii space upwards
-						line += one_char[0];				//Add it to the textline
-					}
-					else if (one_char[0] == '\n') {			//New Line
-						if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-							found=true;
-							break;
+			if( search_thread && search_thread->get_current_freq() > 0 )
+			{
+				File search_file;
+				std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
+				std::string frequency_to_add = "f=" 
+					+ to_string_dec_uint(search_thread->get_current_freq() / 1000) 
+					+ to_string_dec_uint(search_thread->get_current_freq() % 1000UL, 3, '0');
+				auto result = search_file.open(freq_file_path);	//First search if freq is already in txt
+				if (!result.is_valid()) {
+					char one_char[1];		//Read it char by char
+					std::string line;		//and put read line in here
+					bool found=false;
+					for (size_t pointer=0; pointer < search_file.size();pointer++) {
+						search_file.seek(pointer);
+						search_file.read(one_char, 1);
+						if ((int)one_char[0] > 31) {			//ascii space upwards
+							line += one_char[0];				//Add it to the textline
 						}
-						line.clear();						//Ready for next textline
+						else if (one_char[0] == '\n') {			//New Line
+							if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+								found=true;
+								break;
+							}
+							line.clear();						//Ready for next textline
+						}
+					}
+					if (found) {
+						nav_.display_modal("Error", "Frequency already exists");
+						big_display.set( search_thread->get_current_freq() );		//After showing an error
+					}
+					else {
+						result = search_file.append(freq_file_path); //Second: append if it is not there
+						if( !result.is_valid() )
+						{
+							// add current description if it available 
+							if( description_list[current_index].size() > 0)
+							{
+								search_file.write_line(frequency_to_add + ",d=" + description_list[current_index] );
+							}
+							else
+							{
+								search_file.write_line(frequency_to_add + ",d=ADD FQ");
+							}
+						}
 					}
 				}
-				if (found) {
-					nav_.display_modal("Error", "Frequency already exists");
-					big_display.set(frequency_list[current_index]);		//After showing an error
-				}
-				else {
-					result = search_file.append(freq_file_path); //Second: append if it is not there
+				else
+				{
+					result = search_file.create(freq_file_path); //third: create if it is not there
 					if( !result.is_valid() )
 					{
 						// add current description if it available 
@@ -704,22 +735,6 @@ namespace ui {
 						{
 							search_file.write_line(frequency_to_add + ",d=ADD FQ");
 						}
-					}
-				}
-			}
-			else
-			{
-				result = search_file.create(freq_file_path); //third: create if it is not there
-				if( !result.is_valid() )
-				{
-					// add current description if it available 
-					if( description_list[current_index].size() > 0)
-					{
-						search_file.write_line(frequency_to_add + ",d=" + description_list[current_index] );
-					}
-					else
-					{
-						search_file.write_line(frequency_to_add + ",d=ADD FQ");
 					}
 				}
 			}
@@ -770,21 +785,23 @@ namespace ui {
 		}
 
 		frequency_file_load( input_file );
-
-		if( autostart )
+		if( search_thread && frequency_list.size() > 0 )
 		{
-			timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
-			button_pause.set_text("PAUSE");		//Show button for pause
-			userpause=false;	
-			search_resume();
-		}
-		else
-		{
-			userpause=true;
-			search_pause();
-			button_pause.set_text("<RESUME>");	//PAUSED, show resume
-			search_thread->set_freq_lock(0); 		//Reset the search lock, since there is no signal
-		} 
+			if( autostart )
+			{
+				timer = wait * 10;	 		//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
+				button_pause.set_text("PAUSE");		//Show button for pause
+				userpause=false;	
+				search_resume();
+			}
+			else
+			{
+				userpause=true;
+				search_pause();
+				button_pause.set_text("<RESUME>");	//PAUSED, show resume
+				search_thread->set_freq_lock(0); 		//Reset the search lock, since there is no signal
+			}
+		}	
 	}
 
 
@@ -863,7 +880,7 @@ namespace ui {
 					}
 				} else {									//There is NOTHING on the air
 					if (search_thread->is_freq_lock() > 0) {	//But are we already in freq_lock ?
-						big_display.set_style(&style_grey);	//Back to grey color
+						big_display.set_style(&style_white);	//Back to white color
 						search_thread->set_freq_lock(0); 		//Reset the search lock, since there is no signal
 					}				
 				}
@@ -886,7 +903,7 @@ namespace ui {
 
 	void SearchView::search_resume() {
 		audio::output::stop();
-		big_display.set_style(&style_grey);		//Back to grey color
+		big_display.set_style(&style_white);		//Back to white color
 		if (!search_thread->is_searching())
 			search_thread->set_searching(true);   // RESUME!
 	}

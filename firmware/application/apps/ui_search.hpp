@@ -98,6 +98,12 @@ public:
 		.background = Color::black(),
 		.foreground = Color::grey(),
 	};
+
+	const Style style_white {		// searching
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::white(),
+	};
 	
 	const Style style_yellow {		//Found signal
 		.font = font::fixed_8x16,
