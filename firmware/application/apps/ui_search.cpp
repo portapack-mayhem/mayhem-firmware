@@ -96,34 +96,37 @@ namespace ui {
 			RetuneMessage message { };
 			int32_t frequency_index = 0 ;
 			bool restart_search = false;					//Flag whenever searching is restarting after a pause
-			if( frequency_list_[ 0 ] <  0 )
+
+			if( frequency_list_[ 0 ] <  0 ) // first item to search is a range
 			{
 				freq = -frequency_list_[ 0 ] ;
 				minfreq = -frequency_list_[ 0 ] ;
 				maxfreq = -frequency_list_[ 1 ] ;
 				step = -frequency_list_[ 2 ] ;
 			}
-			else
+			else    //first item to search is a single freq
 			{
 				freq = frequency_list_[ 0 ] ;
 				minfreq = frequency_list_[ 0 ] ;
 				maxfreq = frequency_list_[ 0 ] ;
 				step = 0 ;
 			}
+
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
 				if (_searching || _stepper != 0 ) {					//Searching
+					//Inform freq (for coloring purposes also!) 
+					message.freq = freq ;
+					message.range = frequency_index ;
+					EventDispatcher::send_message(message);
+					receiver_model.set_tuning_frequency( freq );	// Retune
 					if (_freq_lock == 0) {				//normal searching (not performing freq_lock)
 						if (!restart_search) {			//looping at full speed
 							/* we are doing a range */
 							if( frequency_list_[ frequency_index ] <  0 )
 							{
-								receiver_model.set_tuning_frequency( freq );	// Retune
-								//Inform freq (for coloring purposes also!) 
-								message.freq = freq ;
-								message.range = frequency_index ;
 
-								if ((_fwd&&_stepper==0)||_stepper>0) {	
+								if ( (_fwd&&_stepper==0) || _stepper > 0 ) {	
 									//forward
 									freq += step ;
 									// if bigger than range max
@@ -152,7 +155,7 @@ namespace ui {
 										}
 									}
 								}
-								else {	
+								if( (!_fwd&&_stepper==0) || _stepper < 0 ) {	
 									//reverse
 									freq -= step ;
 									// if lower than range min
@@ -187,11 +190,8 @@ namespace ui {
 							{
 								freq = frequency_list_[ frequency_index ] ; 
 								receiver_model.set_tuning_frequency( freq );	// Retune
-								//Inform freq (for coloring purposes also!) 
-								message.freq = freq ;
-								message.range = frequency_index ;
 
-								if ((_fwd&&_stepper==0)||_stepper>0) {					//forward
+								if ( (_fwd&&_stepper==0) || _stepper > 0 ) {					//forward
 									frequency_index++;
 									// looping
 									if( (uint32_t)frequency_index >= frequency_list_.size() )
@@ -213,8 +213,8 @@ namespace ui {
 										maxfreq = frequency_list_[ frequency_index ];
 										step = 0 ;
 									}
-								} 
-								else {		
+								}
+								if( (!_fwd&&_stepper==0) || _stepper < 0 ) {		
 									//reverse
 									frequency_index--;
 									// if previous if under the list => go back from end
@@ -245,7 +245,6 @@ namespace ui {
 						else
 							restart_search=false;			//Effectively skipping first retuning, giving system time
 					} 
-					EventDispatcher::send_message(message);
 					if( has_looped && !_continuous )
 					{
 						/* prepare values for the next run, when user will resume */
@@ -293,11 +292,29 @@ namespace ui {
 						message.range = 9999 ;
 						EventDispatcher::send_message(message);
 					}
-					if( _stepper > 0 )
+					if( _stepper > 0 ) {
 						_stepper -- ;
-					if( _stepper < 0 )
+						if( _stepper == 0 ) {
+							//Inform freq (for coloring purposes also!) 
+							message.freq = freq ;
+							message.range = frequency_index ;
+							EventDispatcher::send_message(message);
+							receiver_model.set_tuning_frequency( freq );	// Retune
+
+						}
+					}
+
+					if( _stepper < 0 ) {
 						_stepper ++ ;
-				} 
+						if( _stepper == 0 ) {
+							//Inform freq (for coloring purposes also!) 
+							message.freq = freq ;
+							message.range = frequency_index ;
+							EventDispatcher::send_message(message);
+							receiver_model.set_tuning_frequency( freq );	// Retune
+						}
+					} 
+				}
 				chThdSleepMilliseconds(50);				//Needed to (eventually) stabilize the receiver into new freq
 			}
 		}
@@ -500,7 +517,7 @@ namespace ui {
 					userpause=true;
 					search_pause();
 					button_pause.set_text("<RESUME>");	//PAUSED, show resume
-					search_thread->set_freq_lock(0); 	//Reset the search lock, since there is no signal
+					search_thread->set_freq_lock(0); 		//Reset the search lock, since it's a new signal
 				}
 			}
 		};
