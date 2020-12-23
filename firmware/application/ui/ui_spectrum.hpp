@@ -82,7 +82,7 @@ public:
 	bool on_key(const KeyEvent key) override;
 
 	void set_spectrum_sampling_rate(const int new_sampling_rate);
-	void set_channel_filter(const int pass_frequency, const int stop_frequency);
+	void set_channel_filter(const int low_frequency, const int high_frequency, const int transition);
 
 	void paint(Painter& painter) override;
 
@@ -96,8 +96,9 @@ private:
 	SignalToken signal_token_tick_second { };
 	int spectrum_sampling_rate { 0 };
 	const int spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
-	int channel_filter_pass_frequency { 0 };
-	int channel_filter_stop_frequency { 0 };
+	int channel_filter_low_frequency { 0 };
+	int channel_filter_high_frequency { 0 };
+	int channel_filter_transition { 0 };
 
 	void clear();
 	void clear_background(Painter& painter, const Rect r);
