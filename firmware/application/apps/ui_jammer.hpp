@@ -28,6 +28,7 @@
 #include "transmitter_model.hpp"
 #include "message.hpp"
 #include "jammer.hpp"
+#include "lfsr_random.hpp"
 
 using namespace jammer;
 
@@ -58,10 +59,10 @@ private:
 	};
 	
 	Labels labels {
-		{ { 2 * 8, 9 * 8 + 4 }, "Start", Color::light_grey() },
-		{ { 23 * 8, 9 * 8 + 4 }, "Stop", Color::light_grey() },
-		{ { 12 * 8, 6 * 8 }, "Center", Color::light_grey() },
-		{ { 12 * 8 + 4, 14 * 8 }, "Width", Color::light_grey() }
+		{ { 2 * 8, 8 * 8 + 4 }, "Start", Color::light_grey() },
+		{ { 23 * 8, 8 * 8 + 4 }, "Stop", Color::light_grey() },
+		{ { 12 * 8, 5 * 8 - 4}, "Center", Color::light_grey() },
+		{ { 12 * 8 + 4, 13 * 8 }, "Width", Color::light_grey() }
 	};
 	
 	Checkbox check_enabled {
@@ -76,19 +77,19 @@ private:
 	};
 	
 	Button button_start {
-		{ 0 * 8, 6 * 16, 11 * 8, 28 },
+		{ 0 * 8, 11 * 8, 11 * 8, 28 },
 		""
 	};
 	Button button_stop {
-		{ 19 * 8, 6 * 16, 11 * 8, 28 },
+		{ 19 * 8, 11 * 8, 11 * 8, 28 },
 		""
 	};
 	Button button_center {
-		{ 76, 4 * 16, 11 * 8, 28 },
+		{ 76, 4 * 15 - 4, 11 * 8, 28 },
 		""
 	};
 	Button button_width {
-		{ 76, 8 * 16, 11 * 8, 28 },
+		{ 76, 8 * 15, 11 * 8, 28 },
 		""
 	};
 };
@@ -120,7 +121,8 @@ private:
 	bool jamming { false };
 	bool cooling { false };		//euquiq: Indicates jammer in cooldown
 	uint16_t seconds = 0;		//euquiq: seconds counter for toggling tx / cooldown
-	uint16_t mscounter = 0;		//euquiq: Internal ms counter for do_timer()
+	int16_t mscounter = 0;		//euquiq: Internal ms counter for do_timer()
+	lfsr_word_t lfsr_v = 1;		//euquiq: Used to generate "random" Jitter
 	
 	static constexpr Style style_val {
 		.font = font::fixed_8x16,
@@ -146,17 +148,19 @@ private:
 	};
 	
 	Labels labels {
-		{ { 6 * 8, 12 * 16 }, "Type:", Color::light_grey() },
-		{ { 5 * 8, 13 * 16 }, "Speed:", Color::light_grey() },
-		{ { 7 * 8, 14 * 16 }, "Hop:", Color::light_grey() },
-		{ { 3 * 8, 15 * 16 }, "Time TX:", Color::light_grey() },
-		{ { 0 * 8, 16 * 16 }, "Time Pause:", Color::light_grey() },
-		{ { 16 * 8, 15 * 16 }, "Secs.", Color::light_grey() },
-		{ { 16 * 8, 16 * 16 }, "Secs.", Color::light_grey() }
+		{ { 2 * 8, 23 * 8 }, "Type:", Color::light_grey() },
+		{ { 1 * 8, 25 * 8 }, "Speed:", Color::light_grey() },
+		{ { 3 * 8, 27 * 8 }, "Hop:", Color::light_grey() },
+		{ { 4 * 8, 29 * 8 }, "TX:", Color::light_grey() },
+		{ { 1 * 8, 31 * 8 }, "Sle3p:", Color::light_grey() }, 	//euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+		{ { 0 * 8, 33 * 8 }, "Jitter:", Color::light_grey() },	//Maybe the repository curator can keep the "mystype" for some versions. 
+		{ { 11 * 8, 29 * 8 }, "Secs.", Color::light_grey() }, 
+		{ { 11 * 8, 31 * 8 }, "Secs.", Color::light_grey() },
+		{ { 11 * 8, 33 * 8 }, "/60", Color::light_grey() }
 	};
 	
 	OptionsField options_type {
-		{ 12 * 8, 12 * 16 },
+		{ 7 * 8, 23 * 8 },
 		8,
 		{
 			{ "Rand FSK", 0 },
@@ -167,16 +171,16 @@ private:
 	};
 	
 	Text text_range_number {
-		{ 22 * 8, 12 * 16, 2 * 8, 16 },
+		{ 16 * 8, 23 * 8, 2 * 8, 16 },
 		"--"
 	};
 	Text text_range_total {
-		{ 24 * 8, 12 * 16, 3 * 8, 16 },
+		{ 18 * 8, 23 * 8, 3 * 8, 16 },
 		"/--"
 	};
 	
 	OptionsField options_speed {
-		{ 12 * 8, 13 * 16 },
+		{ 7 * 8, 25 * 8 },
 		6,
 		{
 			{ "10Hz  ", 10 },
@@ -188,7 +192,7 @@ private:
 	};
 	
 	OptionsField options_hop {
-		{ 12 * 8, 14 * 16 },
+		{ 7 * 8, 27 * 8 },
 		5,
 		{
 			{ "10ms ", 1 },
@@ -202,7 +206,7 @@ private:
 	};
 
 	NumberField field_timetx {
-		{ 12 * 8, 15 * 16 },
+		{ 7 * 8, 29 * 8 },
 		3,
 		{ 1, 180 },
 		1,
@@ -210,15 +214,23 @@ private:
 	};
 
 	NumberField field_timepause {
-		{ 12 * 8, 16 * 16 },
+		{ 8 * 8, 31 * 8 },
 		2,
 		{ 1, 60 },
 		1,
 		' ',
 	};
 	
+	NumberField field_jitter {
+		{ 8 * 8, 33 * 8 },
+		2,
+		{ 1, 60 },
+		1,
+		' ',
+	};
+
 	Button button_transmit {
-		{ 18 * 8, 35 * 8, 96, 24 },
+		{ 148, 212, 80, 80},
 		"START"
 	};
 	
