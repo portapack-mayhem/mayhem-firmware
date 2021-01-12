@@ -274,6 +274,7 @@ void JammerView::start_tx() {
 		transmitter_model.enable();
 
 		baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
+		mscounter = 0; //euquiq: Reset internal ms counter for do_timer()
 	} else {
 		if (out_of_ranges)
 			nav_.display_modal("Error", "Jamming bandwidth too large.\nMust be less than 24MHz.");
@@ -289,6 +290,59 @@ void JammerView::stop_tx() {
 	radio::disable();
 	baseband::set_jammer(false, JammerType::TYPE_FSK, 0);
 	jamming = false;
+	cooling = false;
+}
+
+//called each 1/60th of second
+void JammerView::on_timer() {
+	if (++mscounter == 60) {
+		mscounter = 0;
+		if (jamming) 
+		{
+			if (cooling) 
+			{
+				if (++seconds >= field_timepause.value()) 
+				{	//Re-start TX
+					transmitter_model.enable();
+					button_transmit.set_text("STOP");
+					baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
+					
+					int32_t jitter_amount = field_jitter.value();
+					if (jitter_amount) 
+					{
+						lfsr_v = lfsr_iterate(lfsr_v);
+						jitter_amount = (jitter_amount / 2) - (lfsr_v & jitter_amount);
+						mscounter += jitter_amount;
+					}
+
+					cooling = false;
+					seconds = 0;
+				}
+			} 
+			else 
+			{
+				if (++seconds >= field_timetx.value()) //Start cooling period:
+				{
+					transmitter_model.disable();
+					button_transmit.set_text("PAUSED");
+					baseband::set_jammer(false, JammerType::TYPE_FSK, 0);
+					
+					int32_t jitter_amount = field_jitter.value();
+					if (jitter_amount) 
+					{
+						lfsr_v = lfsr_iterate(lfsr_v);
+						jitter_amount = (jitter_amount / 2) - (lfsr_v & jitter_amount);
+						mscounter += jitter_amount;
+					}
+
+					cooling = true;
+					seconds = 0;
+				}
+			}
+
+		}
+
+	}
 }
 	
 JammerView::JammerView(
@@ -309,6 +363,9 @@ JammerView::JammerView(
 		&text_range_total,
 		&options_speed,
 		&options_hop,
+		&field_timetx,
+		&field_timepause,
+		&field_jitter,
 		&button_transmit
 	});
 	
@@ -321,8 +378,11 @@ JammerView::JammerView(
 	options_hop.set_selected_index(1);		// 50ms
 	button_transmit.set_style(&style_val);
 
+	field_timetx.set_value(30);
+	field_timepause.set_value(1);
+
 	button_transmit.on_select = [this](Button&) {
-		if (jamming)
+		if (jamming || cooling)
 			stop_tx();
 		else
 			start_tx();
