@@ -78,12 +78,14 @@ void SpectrumCollector::set_decimation_factor(
 
 void SpectrumCollector::feed(
 	const buffer_c16_t& channel,
-	const uint32_t filter_pass_frequency,
-	const uint32_t filter_stop_frequency
+	const int32_t filter_low_frequency,
+	const int32_t filter_high_frequency,
+	const int32_t filter_transition
 ) {
 	// Called from baseband processing thread.
-	channel_filter_pass_frequency = filter_pass_frequency;
-	channel_filter_stop_frequency = filter_stop_frequency;
+	channel_filter_low_frequency = filter_low_frequency;
+	channel_filter_high_frequency = filter_high_frequency;
+	channel_filter_transition = filter_transition;
 
 	channel_spectrum_decimator.feed(
 		channel,
@@ -136,8 +138,9 @@ void SpectrumCollector::update() {
 
 		ChannelSpectrum spectrum;
 		spectrum.sampling_rate = channel_spectrum_sampling_rate;
-		spectrum.channel_filter_pass_frequency = channel_filter_pass_frequency;
-		spectrum.channel_filter_stop_frequency = channel_filter_stop_frequency;
+		spectrum.channel_filter_low_frequency = channel_filter_low_frequency;
+		spectrum.channel_filter_high_frequency = channel_filter_high_frequency;
+		spectrum.channel_filter_transition = channel_filter_transition;
 		for(size_t i=0; i<spectrum.db.size(); i++) {
 			const auto corrected_sample = spectrum_window_hamming_3(channel_spectrum, i);
 			const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));

@@ -94,13 +94,16 @@ void FrequencyScale::set_spectrum_sampling_rate(const int new_sampling_rate) {
 }
 
 void FrequencyScale::set_channel_filter(
-	const int pass_frequency,
-	const int stop_frequency
+	const int low_frequency, 
+	const int high_frequency, 
+	const int transition
 ) {
-	if( (channel_filter_pass_frequency != pass_frequency) ||
-		(channel_filter_stop_frequency != stop_frequency) ) {
-		channel_filter_pass_frequency = pass_frequency;
-		channel_filter_stop_frequency = stop_frequency;
+	if( (channel_filter_low_frequency != low_frequency) ||
+		(channel_filter_high_frequency != high_frequency) ||
+		(channel_filter_transition != transition) ) {
+		channel_filter_low_frequency = low_frequency;
+		channel_filter_high_frequency = high_frequency;
+		channel_filter_transition = transition;
 		set_dirty();
 	}
 }
@@ -184,41 +187,28 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 }
 
 void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
-	if( channel_filter_pass_frequency ) {
+	if( channel_filter_low_frequency != channel_filter_high_frequency ) {
 		const auto x_center = r.width() / 2;
 
-		const auto pass_offset = channel_filter_pass_frequency * spectrum_bins / spectrum_sampling_rate;
-		const auto stop_offset = channel_filter_stop_frequency * spectrum_bins / spectrum_sampling_rate;
+		const auto x_low = x_center + channel_filter_low_frequency * spectrum_bins / spectrum_sampling_rate;
+		const auto x_high = x_center + channel_filter_high_frequency * spectrum_bins / spectrum_sampling_rate;
 
-		const auto pass_x_lo = x_center - pass_offset;
-		const auto pass_x_hi = x_center + pass_offset;
+		if( channel_filter_transition ) {
+			const auto trans = channel_filter_transition * spectrum_bins / spectrum_sampling_rate;
 
-		if( channel_filter_stop_frequency ) {
-			const auto stop_x_lo = x_center - stop_offset;
-			const auto stop_x_hi = x_center + stop_offset;
-
-			const Rect r_stop_lo {
-				r.left() + stop_x_lo, r.bottom() - filter_band_height,
-				pass_x_lo - stop_x_lo, filter_band_height
+			const Rect r_all {
+				r.left() + x_low - trans, r.bottom() - filter_band_height,
+				x_high - x_low + trans*2, filter_band_height
 			};
 			painter.fill_rectangle(
-				r_stop_lo,
-				Color::yellow()
-			);
-
-			const Rect r_stop_hi {
-				r.left() + pass_x_hi, r.bottom() - filter_band_height,
-				stop_x_hi - pass_x_hi, filter_band_height
-			};
-			painter.fill_rectangle(
-				r_stop_hi,
+				r_all,
 				Color::yellow()
 			);
 		}
 
 		const Rect r_pass {
-			r.left() + pass_x_lo, r.bottom() - filter_band_height,
-			pass_x_hi - pass_x_lo, filter_band_height
+			r.left() + x_low, r.bottom() - filter_band_height,
+			x_high - x_low, filter_band_height
 		};
 		painter.fill_rectangle(
 			r_pass,
@@ -390,8 +380,9 @@ void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 	sampling_rate = spectrum.sampling_rate;
 	frequency_scale.set_spectrum_sampling_rate(sampling_rate);
 	frequency_scale.set_channel_filter(
-		spectrum.channel_filter_pass_frequency,
-		spectrum.channel_filter_stop_frequency
+		spectrum.channel_filter_low_frequency,
+		spectrum.channel_filter_high_frequency,
+		spectrum.channel_filter_transition
 	);
 }
 

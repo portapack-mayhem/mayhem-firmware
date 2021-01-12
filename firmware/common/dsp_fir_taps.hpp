@@ -30,15 +30,17 @@
 
 template<size_t N>
 struct fir_taps_real {
-	float pass_frequency_normalized;
-	float stop_frequency_normalized; 
+	float low_frequency_normalized;
+	float high_frequency_normalized;
+	float transition_normalized;
 	std::array<int16_t, N> taps;
 };
 
 template<size_t N>
 struct fir_taps_complex {
-	float pass_frequency_normalized;
-	float stop_frequency_normalized; 
+	float low_frequency_normalized;
+	float high_frequency_normalized;
+	float transition_normalized;
 	std::array<complex16_t, N> taps;
 };
 
@@ -46,8 +48,9 @@ struct fir_taps_complex {
 
 // IFIR image-reject filter: fs=3072000, pass=8000, stop=344000, decim=8, fout=384000
 constexpr fir_taps_real<24> taps_16k0_decim_0 {
-	.pass_frequency_normalized =   8000.0f / 3072000.0f,
-	.stop_frequency_normalized = 344000.0f / 3072000.0f,
+	.low_frequency_normalized = -8000.0f / 3072000.0f,
+	.high_frequency_normalized = 8000.0f / 3072000.0f,
+	.transition_normalized = 336000.0f / 3072000.0f,
 	.taps = { {
 		     1,     67,    165,    340,    599,    944,   1361,   1820,
 		  2278,   2684,   2988,   3152,   3152,   2988,   2684,   2278,
@@ -57,8 +60,9 @@ constexpr fir_taps_real<24> taps_16k0_decim_0 {
 
 // IFIR prototype filter: fs=384000, pass=8000, stop=40000, decim=8, fout=48000
 constexpr fir_taps_real<32> taps_16k0_decim_1 {
-	.pass_frequency_normalized =  8000.0f / 384000.0f,
-	.stop_frequency_normalized = 40000.0f / 384000.0f,
+	.low_frequency_normalized = -8000.0f / 384000.0f,
+	.high_frequency_normalized = 8000.0f / 384000.0f,
+	.transition_normalized = 32000.0f / 384000.0f,
 	.taps = { {
 		   -26,   -125,   -180,   -275,   -342,   -359,   -286,    -90,
 		   250,    733,   1337,   2011,   2688,   3289,   3740,   3982,
@@ -69,8 +73,9 @@ constexpr fir_taps_real<32> taps_16k0_decim_1 {
 
 // Channel filter: fs=48000, pass=8000, stop=12400, decim=1, fout=48000
 constexpr fir_taps_real<32> taps_16k0_channel {
-	.pass_frequency_normalized =  8000.0f / 48000.0f,
-	.stop_frequency_normalized = 12400.0f / 48000.0f,
+	.low_frequency_normalized = -8000.0f / 48000.0f,
+	.high_frequency_normalized = 8000.0f / 48000.0f,
+	.transition_normalized = 4400.0f / 48000.0f,
 	.taps = { {
 		   -73,   -285,   -376,     -8,    609,    538,   -584,  -1387,
 		  -148,   2173,   1959,  -2146,  -5267,   -297,  12915,  24737,
@@ -83,8 +88,9 @@ constexpr fir_taps_real<32> taps_16k0_channel {
 
 // IFIR image-reject filter: fs=3072000, pass=5500, stop=341500, decim=8, fout=384000
 constexpr fir_taps_real<24> taps_11k0_decim_0 {
-	.pass_frequency_normalized =   5500.0f / 3072000.0f,
-	.stop_frequency_normalized = 341500.0f / 3072000.0f,
+	.low_frequency_normalized = -5500.0f / 3072000.0f,
+	.high_frequency_normalized = 5500.0f / 3072000.0f,
+	.transition_normalized = 336000.0f / 3072000.0f,
 	.taps = { {
 		    38,    102,    220,    406,    668,   1004,   1397,   1822,
 		  2238,   2603,   2875,   3020,   3020,   2875,   2603,   2238,
@@ -94,8 +100,9 @@ constexpr fir_taps_real<24> taps_11k0_decim_0 {
 
 // IFIR prototype filter: fs=384000, pass=5500, stop=42500, decim=8, fout=48000
 constexpr fir_taps_real<32> taps_11k0_decim_1 {
-	.pass_frequency_normalized =  5500.0f / 384000.0f,
-	.stop_frequency_normalized = 42500.0f / 384000.0f,
+	.low_frequency_normalized = -5500.0f / 384000.0f,
+	.high_frequency_normalized = 5500.0f / 384000.0f,
+	.transition_normalized = 37000.0f / 384000.0f,
 	.taps = { {
 		   -42,    -87,   -157,   -234,   -298,   -318,   -255,    -75,
 		   246,    713,   1306,   1976,   2656,   3265,   3724,   3971,
@@ -106,8 +113,9 @@ constexpr fir_taps_real<32> taps_11k0_decim_1 {
 
 // Channel filter: fs=48000, pass=5500, stop=8900, decim=1, fout=48000
 constexpr fir_taps_real<32> taps_11k0_channel {
-	.pass_frequency_normalized = 5500.0f / 48000.0f,
-	.stop_frequency_normalized = 8900.0f / 48000.0f,
+	.low_frequency_normalized = -5500.0f / 48000.0f,
+	.high_frequency_normalized = 5500.0f / 48000.0f,
+	.transition_normalized = 3400.0f / 48000.0f,
 	.taps = { {
 		   -68,   -345,   -675,   -867,   -582,    247,   1222,   1562,
 		   634,  -1379,  -3219,  -3068,    310,   6510,  13331,  17795,
@@ -120,8 +128,9 @@ constexpr fir_taps_real<32> taps_11k0_channel {
 
 // IFIR image-reject filter: fs=3072000, pass=4250, stop=340250, decim=8, fout=384000
 constexpr fir_taps_real<24> taps_4k25_decim_0 {
-	.pass_frequency_normalized =   4250.0f / 3072000.0f,
-	.stop_frequency_normalized = 340250.0f / 3072000.0f,
+	.low_frequency_normalized = -4250.0f / 3072000.0f,
+	.high_frequency_normalized = 4250.0f / 3072000.0f,
+	.transition_normalized = 33600.0f / 3072000.0f,
 	.taps = { {
 		    38,    103,    222,    409,    671,   1006,   1399,   1821,
 		  2236,   2599,   2868,   3012,   3012,   2868,   2599,   2236,
@@ -131,8 +140,9 @@ constexpr fir_taps_real<24> taps_4k25_decim_0 {
 
 // IFIR prototype filter: fs=384000, pass=4250, stop=43750, decim=8, fout=48000
 constexpr fir_taps_real<32> taps_4k25_decim_1 {
-	.pass_frequency_normalized =  4250.0f / 384000.0f,
-	.stop_frequency_normalized = 43750.0f / 384000.0f,
+	.low_frequency_normalized = -4250.0f / 384000.0f,
+	.high_frequency_normalized = 4250.0f / 384000.0f,
+	.transition_normalized = 39500.0f / 384000.0f,
 	.taps = { {
 		   -33,    -74,   -139,   -214,   -280,   -306,   -254,    -87,
 		   222,    682,   1274,   1951,   2644,   3268,   3741,   3996,
@@ -143,8 +153,9 @@ constexpr fir_taps_real<32> taps_4k25_decim_1 {
 
 // Channel filter: fs=48000, pass=4250, stop=7900, decim=1, fout=48000
 constexpr fir_taps_real<32> taps_4k25_channel {
-	.pass_frequency_normalized = 4250.0f / 48000.0f,
-	.stop_frequency_normalized = 7900.0f / 48000.0f,
+	.low_frequency_normalized = -4250.0f / 48000.0f,
+	.high_frequency_normalized = 4250.0f / 48000.0f,
+	.transition_normalized = 3650.0f / 48000.0f,
 	.taps = { {
 		   -58,    -14,    153,    484,    871,   1063,    770,   -141,
 		 -1440,  -2488,  -2435,   -614,   3035,   7771,  12226,  14927,
@@ -161,8 +172,6 @@ constexpr fir_taps_real<32> taps_4k25_channel {
  * sum(abs(taps)): 125270
  */
 /*constexpr fir_taps_real<64> taps_64_lp_025_025 {
-	.pass_frequency_normalized = 0.025f,
-	.stop_frequency_normalized = 0.025f,
 	.taps = { {
 		     0,      0,     -3,     -7,    -13,    -20,    -27,    -32,
 		   -34,    -33,    -25,    -10,     13,     47,     94,    152,
@@ -183,8 +192,9 @@ constexpr fir_taps_real<32> taps_4k25_channel {
  * sum(abs(taps)): 125270
  */
 constexpr fir_taps_real<64> taps_64_lp_025_025 {
-	.pass_frequency_normalized = 0.0125f,
-	.stop_frequency_normalized = 0.0125f,
+	.low_frequency_normalized = 0,
+	.high_frequency_normalized = 0,
+	.transition_normalized = 0,
 	.taps = { {
 		0, 0, 2, 6, 12, 20, 32, 46,
 		64, 85, 110, 138, 169, 204, 241, 281,
@@ -201,8 +211,9 @@ constexpr fir_taps_real<64> taps_64_lp_025_025 {
 
 // IFIR image-reject filter: fs=3072000, pass=3000, stop=339000, decim=8, fout=384000
 constexpr fir_taps_real<24> taps_6k0_decim_0 {
-	.pass_frequency_normalized =   3000.0f / 3072000.0f,
-	.stop_frequency_normalized = 339000.0f / 3072000.0f,
+	.low_frequency_normalized = -3000.0f / 3072000.0f,
+	.high_frequency_normalized = 3000.0f / 3072000.0f,
+	.transition_normalized = 336000.0f / 3072000.0f,
 	.taps = { {
 		    39,    104,    224,    412,    674,   1008,   1400,   1821,
 		  2234,   2594,   2863,   3006,   3006,   2863,   2594,   2234,
@@ -212,8 +223,9 @@ constexpr fir_taps_real<24> taps_6k0_decim_0 {
 
 // IFIR prototype filter: fs=384000, pass=3000, stop=45000, decim=8, fout=48000
 constexpr fir_taps_real<32> taps_6k0_decim_1 {
-	.pass_frequency_normalized =  3000.0f / 384000.0f,
-	.stop_frequency_normalized = 45000.0f / 384000.0f,
+	.low_frequency_normalized = -3000.0f / 384000.0f,
+	.high_frequency_normalized = 3000.0f / 384000.0f,
+	.transition_normalized = 43000.0f / 384000.0f,
 	.taps = { {
 		   -26,    -63,   -123,   -195,   -263,   -295,   -253,    -99,
 		   199,    651,   1242,   1927,   2633,   3273,   3760,   4023,
@@ -224,8 +236,9 @@ constexpr fir_taps_real<32> taps_6k0_decim_1 {
 
 // IFIR prototype filter: fs=48000, pass=3000, stop=6700, decim=4, fout=12000
 constexpr fir_taps_real<32> taps_6k0_decim_2 {
-	.pass_frequency_normalized = 3000.0f / 48000.0f,
-	.stop_frequency_normalized = 6700.0f / 48000.0f,
+	.low_frequency_normalized = -3000.0f / 48000.0f,
+	.high_frequency_normalized = 3000.0f / 48000.0f,
+	.transition_normalized = 3700.0f / 48000.0f,
 	.taps = { {
 		    95,    178,    247,    208,    -21,   -474,  -1080,  -1640,
 		 -1857,  -1411,    -83,   2134,   4978,   7946,  10413,  11815,
@@ -239,8 +252,9 @@ constexpr fir_taps_real<32> taps_6k0_decim_2 {
  * slightly larger than 32767 (33312).
  */
 constexpr fir_taps_complex<64> taps_6k0_dsb_channel {
-	.pass_frequency_normalized = 3000.0f / 12000.0f,
-	.stop_frequency_normalized = 3300.0f / 12000.0f,
+	.low_frequency_normalized = -3000.0f / 12000.0f,
+	.high_frequency_normalized = 3000.0f / 12000.0f,
+	.transition_normalized = 300.0f / 12000.0f,
 	.taps = { {
 		{    -69,      0 }, {   -140,      0 }, {    119,      0 }, {     89,      0 },
 		{   -132,      0 }, {   -134,      0 }, {    197,      0 }, {    167,      0 },
@@ -265,8 +279,9 @@ constexpr fir_taps_complex<64> taps_6k0_dsb_channel {
 
 // IFIR prototype filter: fs=12000, pass=3000, stop=3300, decim=1, fout=12000
 constexpr fir_taps_complex<64> taps_2k8_usb_channel {
-	.pass_frequency_normalized = 3000.0f / 12000.0f,
-	.stop_frequency_normalized = 3300.0f / 12000.0f,
+	.low_frequency_normalized = 0,
+	.high_frequency_normalized = 3000.0f / 12000.0f,
+	.transition_normalized = 300.0f / 12000.0f,
 	.taps = { {
 		{   -146,      0 }, {    -41,    -45 }, {     -1,     10 }, {    -95,     69 },
 		{   -194,    -41 }, {    -91,   -158 }, {     14,    -43 }, {   -150,     67 },
@@ -291,8 +306,9 @@ constexpr fir_taps_complex<64> taps_2k8_usb_channel {
 
 // IFIR prototype filter: fs=12000, pass=3000, stop=3300, decim=1, fout=12000
 constexpr fir_taps_complex<64> taps_2k8_lsb_channel {
-	.pass_frequency_normalized = 3000.0f / 12000.0f,
-	.stop_frequency_normalized = 3300.0f / 12000.0f,
+	.low_frequency_normalized = -3000.0f / 12000.0f,
+	.high_frequency_normalized = 0,
+	.transition_normalized = 300.0f / 12000.0f,
 	.taps = { {
 		{   -146,      0 }, {    -41,     45 }, {     -1,    -10 }, {    -95,    -69 },
 		{   -194,     41 }, {    -91,    158 }, {     14,     43 }, {   -150,    -67 },
@@ -316,8 +332,9 @@ constexpr fir_taps_complex<64> taps_2k8_lsb_channel {
 // USB AM 700Hz filter: fs=12000, start=600, end=800, width=200, stop=40db, decim=1, fout=12000
 
 constexpr fir_taps_complex<64> taps_0k7_usb_channel {
-	.pass_frequency_normalized = 3000.0f / 12000.0f,
-	.stop_frequency_normalized = 3300.0f / 12000.0f,
+	.low_frequency_normalized = 600.0f / 12000.0f,
+	.high_frequency_normalized = 800.0f / 12000.0f,
+	.transition_normalized = 200.0f / 12000.0f,
 	.taps = { {
 		{    531,      0 },	{    192,     73 },	{    181,    163 },	{    129,    254 },
 		{     34,    328 },	{    -97,    364 },	{   -251,    345 },	{   -403,    261 },
@@ -342,8 +359,9 @@ constexpr fir_taps_complex<64> taps_0k7_usb_channel {
 
 // IFIR image-reject filter: fs=3072000, pass=100000, stop=484000, decim=4, fout=768000
 constexpr fir_taps_real<24> taps_200k_wfm_decim_0 = {
-	.pass_frequency_normalized = 100000.0f / 3072000.0f,
-	.stop_frequency_normalized = 484000.0f / 3072000.0f,
+	.low_frequency_normalized = -100000.0f / 3072000.0f,
+	.high_frequency_normalized = 100000.0f / 3072000.0f,
+	.transition_normalized = 384000.0f / 3072000.0f,
 	.taps = { {
 		    48,    -18,   -151,   -364,   -557,   -548,   -139,    789,
 		  2187,   3800,   5230,   6071,   6071,   5230,   3800,   2187,
@@ -353,8 +371,9 @@ constexpr fir_taps_real<24> taps_200k_wfm_decim_0 = {
 
 // IFIR prototype filter: fs=768000, pass=100000, stop=284000, decim=2, fout=384000
 constexpr fir_taps_real<16> taps_200k_wfm_decim_1 = {
-	.pass_frequency_normalized = 100000.0f / 768000.0f,
-	.stop_frequency_normalized = 284000.0f / 768000.0f,
+	.low_frequency_normalized = -100000.0f / 768000.0f,
+	.high_frequency_normalized = 100000.0f / 768000.0f,
+	.transition_normalized = 184000.0f / 768000.0f,
 	.taps = { {
 		   -67,   -123,    388,    622,  -1342,  -2185,   4599,  14486,
 		 14486,   4599,  -2185,  -1342,    622,    388,   -123,    -67,
@@ -369,8 +388,9 @@ constexpr fir_taps_real<16> taps_200k_wfm_decim_1 = {
  * sum(abs(taps)): 125270
  */
 constexpr fir_taps_real<64> taps_64_lp_156_198 {
-	.pass_frequency_normalized = 0.156f,
-	.stop_frequency_normalized = 0.196f,
+	.low_frequency_normalized = -0.156f,
+	.high_frequency_normalized = 0.156f,
+	.transition_normalized = 0.04f,
 	.taps = { {
 	   -27,    166,    104,    -36,   -174,   -129,    109,    287,
 	   148,   -232,   -430,   -130,    427,    597,     49,   -716,
@@ -387,8 +407,9 @@ constexpr fir_taps_real<64> taps_64_lp_156_198 {
 
 // IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400
 static constexpr fir_taps_real<24> taps_200k_decim_0 = {
-	.pass_frequency_normalized = 100000.0f / 2457600.0f,
-	.stop_frequency_normalized = 407200.0f / 2457600.0f,
+	.low_frequency_normalized = -100000.0f / 2457600.0f,
+	.high_frequency_normalized = 100000.0f / 2457600.0f,
+	.transition_normalized = 307200.0f / 2457600.0f,
 	.taps = { {
 	    90,     94,      4,   -240,   -570,   -776,   -563,    309,
 	  1861,   3808,   5618,   6710,   6710,   5618,   3808,   1861,
@@ -398,8 +419,9 @@ static constexpr fir_taps_real<24> taps_200k_decim_0 = {
 
 // IFIR prototype filter: fs=614400, pass=100000, stop=207200, decim=2, fout=307200
 static constexpr fir_taps_real<16> taps_200k_decim_1 = {
-	.pass_frequency_normalized = 100000.0f / 614400.0f,
-	.stop_frequency_normalized = 207200.0f / 614400.0f,
+	.low_frequency_normalized = -100000.0f / 614400.0f,
+	.high_frequency_normalized = 100000.0f / 614400.0f,
+	.transition_normalized = 107200.0f / 614400.0f,
 	.taps = { {
 		  -132,   -256,    545,    834,  -1507,  -2401,   4666,  14583,
 		 14583,   4666,  -2401,  -1507,    834,    545,   -256,   -132,
