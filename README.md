@@ -24,7 +24,7 @@ Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/
 
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
-Beware of hardware mods that use custom firmware, which are not compatible with older forks (https://github.com/eried/portapack-mayhem/issues/264). **Ask the seller if the unit works with an specific firmware before buying, for example pointing to the releases on this repository**
+Beware of hardware mods that use custom firmware, which are [not compatible](https://github.com/eried/portapack-mayhem/issues/264) with older forks. **Ask the seller if the unit works with an specific firmware before buying, for example pointing to the releases on this repository**
 
 ## Where is the latest firmware?
 
