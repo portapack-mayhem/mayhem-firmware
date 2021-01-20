@@ -24,6 +24,8 @@ Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/
 
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
+Beware of hardware mods that use custom firmware, which are not compatible with older forks (https://github.com/eried/portapack-mayhem/issues/264). **Ask the seller if the unit works with an specific firmware before buying, for example pointing to the releases on this repository**
+
 ## Where is the latest firmware?
 
 The current stable release is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated periodically, which include the latest commits, but they may contain incomplete or buggy functionality.
@@ -39,7 +41,7 @@ This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://
 ## What about Havoc/GridRF/jamesshao8/jboone's?
 * jboone's PortaPack: the [vanilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
 * Havoc: It was the most popular fork of jboone's PortaPack, currrently, it is not being maintained nor updated
-* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
+* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything. Latest functions do not follow the license and are not being published with source code, so keep this in mind
 * GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
 
 ## How can I collaborate
