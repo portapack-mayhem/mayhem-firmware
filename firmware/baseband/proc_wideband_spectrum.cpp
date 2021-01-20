@@ -53,7 +53,7 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 		};
 		channel_spectrum.feed(
 			buffer_c16,
-			0, 0
+			0, 0, 0
 		);
 		phase = 0;
 	} else {
