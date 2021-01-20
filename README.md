@@ -1,4 +1,4 @@
-> ⚠ **BEFORE BUYING YOURS:** Beware of hardware mods that use a custom firmware, which are [NOT COMPATIBLE](https://github.com/eried/portapack-mayhem/issues/264) with older forks, and they do not follow the license. **ASK THE SELLER if the unit works with an specific firmware, for example, pointing to the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=latest%20release&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) on this repository**
+> ⚠ **BEFORE BUYING YOURS:** ⚠ Beware of hardware mods that use a custom firmware, which are [NOT COMPATIBLE](https://github.com/eried/portapack-mayhem/issues/264) with older forks, and they do not follow the license. **ASK THE SELLER if the unit works with an specific firmware, for example, pointing to the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=latest%20release&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) on this repository**
 
 # PortaPack Mayhem
 
