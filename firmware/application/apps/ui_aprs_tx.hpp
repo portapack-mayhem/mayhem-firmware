@@ -82,6 +82,7 @@ private:
 		6,
 		SymField::SYMFIELD_ALPHANUM
 	};
+	
 	NumberField num_ssid_dest {
 		{ 19 * 8, 2 * 16 },
 		2,

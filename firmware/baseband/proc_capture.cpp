@@ -52,7 +52,7 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 	spectrum_samples += channel.count;
 	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
-		channel_spectrum.feed(channel, channel_filter_pass_f, channel_filter_stop_f);
+		channel_spectrum.feed(channel, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 	}
 }
 
@@ -85,8 +85,9 @@ void CaptureProcessor::samplerate_config(const SamplerateConfigMessage& message)
 	size_t decim_1_input_fs = decim_0_output_fs;
 	size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
-	channel_filter_pass_f = taps_200k_decim_1.pass_frequency_normalized * decim_1_input_fs;	// 162760.416666667
-	channel_filter_stop_f = taps_200k_decim_1.stop_frequency_normalized * decim_1_input_fs;	// 337239.583333333
+	channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_input_fs;
+	channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * decim_1_input_fs;
+	channel_filter_transition = taps_200k_decim_1.transition_normalized * decim_1_input_fs;
 
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;

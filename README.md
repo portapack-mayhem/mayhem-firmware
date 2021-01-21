@@ -1,3 +1,5 @@
+> ⚠ **BEFORE BUYING YOURS:** Beware of hardware mods that use a custom firmware, which are [NOT COMPATIBLE](https://github.com/eried/portapack-mayhem/issues/264) with older forks, and they do not follow the license. **ASK THE SELLER if the unit works with an specific firmware, for example, pointing to the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=latest%20release&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) on this repository**
+
 # PortaPack Mayhem
 
 [![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![buddy pipeline](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276/badge.svg?token=48cd59d53de0589a8fbe26bc751d77a59a011cf72581da049343879402991c34 "buddy pipeline")](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/total)](https://github.com/eried/portapack-mayhem/releases) [![GitHub Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/latest/total)](https://github.com/eried/portapack-mayhem/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://img.shields.io/discord/719669764804444213.svg)](https://discord.gg/tuwVMv3)  [![Check bounties!](https://img.shields.io/bountysource/team/portapack-mayhem/activity?color=%2333ccff&label=bountysource%20%28USD%29&style=plastic)](https://www.bountysource.com/teams/portapack-mayhem/issues)
@@ -39,7 +41,7 @@ This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://
 ## What about Havoc/GridRF/jamesshao8/jboone's?
 * jboone's PortaPack: the [vanilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
 * Havoc: It was the most popular fork of jboone's PortaPack, currrently, it is not being maintained nor updated
-* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything
+* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything. Latest functions do not follow the license and are not being published with source code, so keep this in mind
 * GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
 
 ## How can I collaborate
