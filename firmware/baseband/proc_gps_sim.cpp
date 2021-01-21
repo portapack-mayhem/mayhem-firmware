@@ -30,8 +30,9 @@
 #include "utility.hpp"
 
 ReplayProcessor::ReplayProcessor() {
-	channel_filter_pass_f = taps_200k_decim_1.pass_frequency_normalized * 1000000;	// 162760.416666667
-	channel_filter_stop_f = taps_200k_decim_1.stop_frequency_normalized * 1000000;	// 337239.583333333
+	channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * 1000000;
+	channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * 1000000;
+	channel_filter_transition = taps_200k_decim_1.transition_normalized * 1000000;
 	
 	spectrum_samples = 0;
 

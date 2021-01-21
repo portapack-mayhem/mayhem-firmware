@@ -197,7 +197,7 @@ void set_serial_format(const serial_format_t new_value) {
 	data->serial_format = new_value;
 }
 
-static constexpr uint32_t playdead_magic = 0x88d3bb57;
+/* static constexpr uint32_t playdead_magic = 0x88d3bb57;
 
 uint32_t playing_dead() {
 	return data->playing_dead;
@@ -220,47 +220,59 @@ uint32_t playdead_sequence() {
 void set_playdead_sequence(const uint32_t new_value) {
 	data->playdead_sequence = new_value;
 	data->playdead_magic = playdead_magic;
+} */
+
+// ui_config is an uint32_t var storing information bitwise
+// bits 0,1,2 store the backlight timer
+// bits 31, 30,29,28,27 stores the different single bit configs depicted below
+// bits on position 4 to 19 (16 bits) store the clkout frequency
+
+bool clkout_enabled() {
+	return data->ui_config & (1 << 27);
 }
 
 bool config_speaker() {
-	return (data->ui_config & 0x10000000UL) ? false : true; // Default true
+	return data->ui_config & (1 << 28);
 }
 bool stealth_mode() {
-	return (data->ui_config & 0x20000000UL) ? true : false;
-}
-
-void set_config_speaker(bool new_value) {
-	data->ui_config = (data->ui_config & ~0x10000000UL) | (!new_value << 28); 
-}
-
-void set_stealth_mode(const bool v) {
-	data->ui_config = (data->ui_config & ~0x20000000UL) | (v << 29);
-}
-
-bool config_splash() {
-	return (data->ui_config & 0x80000000UL) ? true : false;
+	return data->ui_config & (1 << 29);
 }
 
 bool config_login() {
-	return (data->ui_config & 0x40000000UL) ? true : false;
+	return data->ui_config & (1 << 30);
+}
+
+bool config_splash() {
+	return data->ui_config & (1 << 31);
 }
 
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
-
-	return timer_seconds[data->ui_config & 0x00000007UL];
+	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
 }
 
-void set_config_splash(bool v) {
-	data->ui_config = (data->ui_config & ~0x80000000UL) | (v << 31);
+void set_clkout_enabled(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 27)) | (v << 27);
+}
+
+void set_config_speaker(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 28)) | (v << 28);
+}
+
+void set_stealth_mode(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 29)) | (v << 29);
 }
 
 void set_config_login(bool v) {
-	data->ui_config = (data->ui_config & ~0x40000000UL) | (v << 30);
+	data->ui_config = (data->ui_config & ~(1 << 30)) | (v << 30);
+}
+
+void set_config_splash(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 31)) | (v << 31);
 }
 
 void set_config_backlight_timer(uint32_t i) {
-	data->ui_config = (data->ui_config & ~0x00000007UL) | (i & 7);
+	data->ui_config = (data->ui_config & ~7) | (i & 7);
 }
 
 /*void set_config_textentry(uint8_t new_value) {
@@ -291,14 +303,6 @@ void set_pocsag_ignore_address(uint32_t address) {
 	data->pocsag_ignore_address = address;
 }
 
-bool clkout_enabled() {
-	return (data->ui_config & 0x08000000UL);
-}
-
-void set_clkout_enabled(bool enable) {
-	data->ui_config = (data->ui_config & ~0x08000000UL) | (enable << 27);
-}
-
 uint32_t clkout_freq() {
 	uint16_t freq = (data->ui_config & 0x000FFFF0) >> 4;
 	if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
@@ -313,6 +317,7 @@ uint32_t clkout_freq() {
 void set_clkout_freq(uint32_t freq) {
 	data->ui_config = (data->ui_config & ~0x000FFFF0) | (clkout_freq_range.clip(freq) << 4);
 }
+
 
 } /* namespace persistent_memory */
 } /* namespace portapack */

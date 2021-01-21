@@ -60,8 +60,9 @@ private:
 
 	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
 	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
-	uint32_t channel_filter_pass_f = 0;
-	uint32_t channel_filter_stop_f = 0;
+	int32_t channel_filter_low_f = 0;
+	int32_t channel_filter_high_f = 0;
+	int32_t channel_filter_transition = 0;
 
 	std::unique_ptr<StreamInput> stream { };
 

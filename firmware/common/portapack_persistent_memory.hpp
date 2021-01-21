@@ -81,7 +81,7 @@ uint32_t config_backlight_timer();
 
 void set_config_splash(bool v);
 void set_config_login(bool v);
-void set_config_speaker(bool new_value); 
+void set_config_speaker(bool v); 
 void set_config_backlight_timer(uint32_t i);
 
 //uint8_t ui_config_textentry();
@@ -94,7 +94,7 @@ uint32_t pocsag_ignore_address();
 void set_pocsag_ignore_address(uint32_t address);
 
 bool clkout_enabled();
-void set_clkout_enabled(bool enable);
+void set_clkout_enabled(bool v);
 uint32_t clkout_freq();
 void set_clkout_freq(uint32_t freq);
 

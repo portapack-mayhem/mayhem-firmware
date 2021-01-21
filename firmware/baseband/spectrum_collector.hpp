@@ -40,8 +40,9 @@ public:
 
 	void feed(
 		const buffer_c16_t& channel,
-		const uint32_t filter_pass_frequency,
-		const uint32_t filter_stop_frequency
+		const int32_t filter_low_frequency,
+		const int32_t filter_high_frequency,
+		const int32_t filter_transition
 	);
 
 private:
@@ -53,8 +54,9 @@ private:
 	bool streaming { false };
 	std::array<std::complex<float>, 256> channel_spectrum { };
 	uint32_t channel_spectrum_sampling_rate { 0 };
-	uint32_t channel_filter_pass_frequency { 0 };
-	uint32_t channel_filter_stop_frequency { 0 };
+	int32_t channel_filter_low_frequency { 0 };
+	int32_t channel_filter_high_frequency { 0 };
+	int32_t channel_filter_transition { 0 };
 
 	void post_message(const buffer_c16_t& data);
 
