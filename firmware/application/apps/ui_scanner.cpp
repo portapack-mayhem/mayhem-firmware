@@ -435,7 +435,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	} 
 	else 
 	{
-		loaded_file_name = 'SCANNER'; // back to the default frequency file
+		loaded_file_name = "SCANNER"; // back to the default frequency file
 		desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 	}
 	audio::output::stop();
