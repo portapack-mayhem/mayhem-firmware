@@ -87,7 +87,7 @@ public:
 private:
 	BitRate bitrate_ { UNKNOWN };
 	PacketFlag flag_ { NORMAL };
-	std::array <uint32_t, 16> codewords;
+	std::array <uint32_t, 16> codewords { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  };
 	Timestamp timestamp_ { };
 };
 
