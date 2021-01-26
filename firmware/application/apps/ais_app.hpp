@@ -77,6 +77,8 @@ struct AISRecentEntry {
 	{
 	}
 
+	AISRecentEntry& operator=( const AISRecentEntry&)=default;
+	
 	AISRecentEntry(
 		const ais::MMSI& mmsi
 	) : mmsi { mmsi },
@@ -126,6 +128,8 @@ public:
 	void update_position();
 	void focus() override;
 	void paint(Painter&) override;
+	AISRecentEntryDetailView( const AISRecentEntryDetailView &);
+	AISRecentEntryDetailView& operator=( const AISRecentEntryDetailView &);
 
 private:
 	AISRecentEntry entry_ { };
