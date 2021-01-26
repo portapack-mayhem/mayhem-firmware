@@ -68,9 +68,9 @@ private:
 	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
 	bool use_crc { false };
-	sonde::GPS_data gps_info;
-	sonde::temp_humid temp_humid_info;
-	std::string sonde_id;
+	sonde::GPS_data gps_info { };
+	sonde::temp_humid temp_humid_info { };
+	std::string sonde_id { };
 	
 	Labels labels {
 		{ { 4 * 8, 2 * 16 }, "Type:", Color::light_grey() },
