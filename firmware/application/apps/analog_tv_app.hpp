@@ -107,7 +107,7 @@ private:
 
 	std::unique_ptr<Widget> options_widget { };
 
-	tv::TVWidget tv { true };
+	tv::TVWidget tv { };
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
