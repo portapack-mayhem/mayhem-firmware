@@ -226,6 +226,7 @@ MorseView::MorseView(
 	};
 
 	options_loop.on_change = [this](size_t i, uint32_t n) {
+		(void)i; //avoid unused warning
 		loop = n;
 	};
 	
