@@ -34,6 +34,7 @@ namespace portapack {
 namespace spi_flash {
 
 struct image_tag_t {
+
 	constexpr image_tag_t(
 	) : c { 0, 0, 0, 0 }
 	{
@@ -43,6 +44,14 @@ struct image_tag_t {
 		char c0, char c1, char c2, char c3
 	) : c { c0, c1, c2, c3 }
 	{
+	}
+
+	image_tag_t(const image_tag_t& other)
+	{
+		c[0] = other.c[0];
+		c[1] = other.c[1];
+		c[2] = other.c[2];
+		c[3] = other.c[3];
 	}
 
 	image_tag_t& operator=(const image_tag_t& other) {
