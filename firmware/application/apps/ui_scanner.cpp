@@ -364,7 +364,7 @@ ScannerView::ScannerView(
 				big_display.set(frequency_list[current_index]);		//After showing an error
 			}
 			else {
-				auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
+				scanner_file.append(freq_file_path); //Second: append if it is not there
 				scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 			}
 		} else
@@ -409,7 +409,12 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 						case FM_2:	def_step = 50000; 	break ;
 						case N_1:	def_step = 25000;  	break ;
 						case N_2:	def_step = 250000; 	break ;
-						case AIRBAND:def_step= 8330;  	break ;
+						case AIRBAND:   def_step= 8330;  	break ;
+						case ERROR_STEP:
+						case STEP_DEF:
+						default:
+							def_step = step_mode.selected_index_value(); //Use def_step from manual selector
+								 			break ;		
 					}
 					frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
 					description_list.push_back("R" + to_string_short_freq(entry.frequency_a)
@@ -504,7 +509,10 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t bw;
-	field_bw.on_change = [this](size_t n, OptionsField::value_t) {	};
+	field_bw.on_change = [this](size_t n, OptionsField::value_t) { 
+		(void)n;  //avoid unused warning 
+	       	(void)t; //avoid unused warning 
+	};
 
 	switch (new_mod) {
 	case NFM:	//bw 16k (2) default
