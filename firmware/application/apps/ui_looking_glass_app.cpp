@@ -157,9 +157,9 @@ void GlassView::on_range_changed()
     receiver_model.set_tuning_frequency(f_center_ini); //tune rx for this slice
 }
 
-void GlassView::PlotMarker(rf::Frequency pos)
+void GlassView::PlotMarker(rf::Frequency fpos)
 {
-    pos = pos * MHZ_DIV;
+    int32_t pos = fpos * MHZ_DIV;
     pos -= f_min;
     pos = pos / marker_pixel_step; //Real pixel 
 
@@ -216,13 +216,15 @@ GlassView::GlassView(
 
     filter_config.set_selected_index(0);
 	filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n; // avoid unused warning
 		min_color_power = v;
 	};
 
 	range_presets.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n; // avoid unused warning
 		field_frequency_min.set_value(presets_db[v].min,false);
-        field_frequency_max.set_value(presets_db[v].max,false);
-        this->on_range_changed();
+        	field_frequency_max.set_value(presets_db[v].max,false);
+        	this->on_range_changed();
 	};
 
     field_marker.on_change = [this](int32_t v) {
