@@ -172,7 +172,7 @@ void ScannerView::show_max() {		//show total number of freqs to scan
 
 ScannerView::ScannerView(
 	NavigationView& nav
-	) : nav_ { nav }
+	) : nav_ { nav } , loaded_file_name { "SCANNER" }
 {
 	add_children({
 		&labels,
@@ -511,7 +511,6 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 	options_t bw;
 	field_bw.on_change = [this](size_t n, OptionsField::value_t) { 
 		(void)n;  //avoid unused warning 
-	       	(void)t; //avoid unused warning 
 	};
 
 	switch (new_mod) {
