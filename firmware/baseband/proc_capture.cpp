@@ -44,7 +44,11 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 
 	if( stream ) {
 		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-		const auto result = stream->write(decimator_out.p, bytes_to_write);
+		const size_t written = stream->write(decimator_out.p, bytes_to_write);
+		if( written != bytes_to_write )
+		{
+			//TODO eventually report error somewhere
+		}
 	}
 
 	feed_channel_stats(channel);
