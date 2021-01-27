@@ -35,7 +35,7 @@ class ChannelStatsCollector {
 public:
 	template<typename Callback>
 	void feed(const buffer_c16_t& src, Callback callback) {
-		auto src_p = src.p;
+		void *src_p = src.p;
 		while(src_p < &src.p[src.count]) {
 			const uint32_t sample = *__SIMD32(src_p)++;
 			const uint32_t mag_sq = __SMUAD(sample, sample);
