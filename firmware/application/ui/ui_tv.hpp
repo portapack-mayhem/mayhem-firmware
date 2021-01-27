@@ -92,7 +92,7 @@ class TVWidget : public View {
 public:
 	std::function<void(int32_t offset)> on_select { };
 	
-	TVWidget(const bool cursor = false);
+	TVWidget();
 
 	TVWidget(const TVWidget&) = delete;
 	TVWidget(TVWidget&&) = delete;
