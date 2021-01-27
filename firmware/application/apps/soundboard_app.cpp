@@ -130,6 +130,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
+	(void)progress ; // avoid warning
 	//progressbar.set_value(progress);
 }
 
