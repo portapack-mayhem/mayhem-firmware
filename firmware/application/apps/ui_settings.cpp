@@ -155,7 +155,7 @@ SetRadioView::SetRadioView(
 	});
 
 	SetFrequencyCorrectionModel model {
-		static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000)
+		static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000) , 0
 	};
 
 	form_init(model);
