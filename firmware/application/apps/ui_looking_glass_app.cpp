@@ -216,10 +216,12 @@ GlassView::GlassView(
 
     filter_config.set_selected_index(0);
 	filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n;
 		min_color_power = v;
 	};
 
 	range_presets.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n;
 		field_frequency_min.set_value(presets_db[v].min,false);
         field_frequency_max.set_value(presets_db[v].max,false);
         this->on_range_changed();
