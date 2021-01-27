@@ -32,9 +32,6 @@
 
 namespace sonde {
 
-	static uint8_t calibytes[51*16];	//need these vars to survive
-	static uint8_t calfrchk[51];		//so subframes are preserved while populated
-
 	struct GPS_data {
 		uint32_t alt { 0 };
 		float lat { 0 };

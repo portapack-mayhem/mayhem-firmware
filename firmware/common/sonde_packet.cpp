@@ -27,6 +27,9 @@
 
 namespace sonde {
 
+static uint8_t calibytes[51*16];	//need these vars to survive
+static uint8_t calfrchk[51];		//so subframes are preserved while populated
+
 //Defines for Vaisala RS41, from https://github.com/rs1729/RS/blob/master/rs41/rs41sg.c
 #define MASK_LEN 64
 
