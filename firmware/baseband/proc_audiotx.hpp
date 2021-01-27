@@ -50,7 +50,7 @@ private:
 	int32_t sample { 0 }, delta { };
 	int8_t re { 0 }, im { 0 };
 	
-	size_t progress_interval_samples, progress_samples = 0;
+	size_t progress_interval_samples = 0 , progress_samples = 0;
 	
 	bool configured { false };
 	uint32_t bytes_read { 0 };
