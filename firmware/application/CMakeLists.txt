@@ -241,6 +241,8 @@ set(CPPSRC
 	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_search.cpp
+	apps/ui_search_app_settings.cpp
+	apps/ui_search_app.cpp
 	apps/ui_sd_wipe.cpp
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
