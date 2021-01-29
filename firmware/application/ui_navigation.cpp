@@ -55,6 +55,7 @@
 #include "ui_rds.hpp"
 #include "ui_remote.hpp"
 #include "ui_scanner.hpp"
+#include "ui_search_app.hpp"
 #include "ui_search.hpp"
 #include "ui_sd_wipe.hpp"
 #include "ui_settings.hpp"
@@ -468,6 +469,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "POCSAG", 	ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "Radiosnde", 	ui::Color::green(),		&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
 		{ "TPMS Cars", 	ui::Color::green(),		&bitmap_icon_tpms,		[&nav](){ nav.push<TPMSAppView>(); } },
+		{ "Search", 	ui::Color::green(),		&bitmap_icon_scanner,		[&nav](){ nav.push<SearchAppView>(); } },
 		/*{ "APRS", 		ui::Color::dark_grey(),	&bitmap_icon_aprs,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SIGFOX", 	ui::Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
