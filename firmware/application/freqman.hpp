@@ -45,12 +45,22 @@ enum freqman_error {
 
 enum freqman_entry_type {
 	SINGLE = 0,
-	RANGE
+	RANGE,
+	HAMRADIO,
+	ERROR_TYPE
+};
+
+enum freqman_entry_modulation {
+	MOD_DEF = 0,
+	AM,
+	NFM,
+	WFM,
+	ERROR_MOD
 };
 
 //Entry step placed for AlainD freqman version (or any other enhanced version)
 enum freqman_entry_step {
-	STEP_DEF = 0,	// default
+	STEP_DEF = 0,		// default (from current app/ui/settings)
 	AM_US,			// 10 Khz   AM/CB
 	AM_EUR,			// 9 Khz	LW/MW
 	NFM_1,			// 12,5 Khz (Analogic PMR 446)
@@ -69,13 +79,17 @@ struct freqman_entry {
 	rf::Frequency frequency_b { 0 };
 	std::string description { };
 	freqman_entry_type type { };
-	freqman_entry_step step { };
+	uint8_t modulation { 0 };
+	uint8_t bandwidth { 0 };
+	uint32_t step { 0 };
+	uint16_t tone { 0 };
 };
 
 using freqman_db = std::vector<freqman_entry>;
 
 std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db& db);
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs , bool load_ranges , bool load_hamradios );
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
 std::string freqman_item_string(freqman_entry &item, size_t max_length);
