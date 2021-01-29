@@ -43,7 +43,7 @@ size_t const search_mod_step[3] = {9000, 100000, 12500 };
 
 class SearchAppThread {
 public:
-	SearchAppThread(freqman_db frequency_list);
+	SearchAppThread(freqman_db *database );
 	~SearchAppThread();
 
 	void set_searching(const bool v);
@@ -61,8 +61,8 @@ public:
 	
 	void set_continuous(const bool v);
 	uint32_t get_current_modulation();
-
-
+	
+	void run();
 	void stop();
 
 	SearchAppThread(const SearchAppThread&) = delete;
@@ -71,7 +71,7 @@ public:
 	SearchAppThread& operator=(SearchAppThread&&) = delete;
 
 private:
-	freqman_db frequency_list_ ;
+	freqman_db &frequency_list_ ;
 	Thread* thread { nullptr };
 	int64_t freq = 0 ;
 	uint32_t step = 0 ;
@@ -86,7 +86,6 @@ private:
 	int64_t _stepper { 0 };
 	int32_t _freq_lock { 0 };
 	static msg_t static_fn(void* arg);
-	void run();
 };
 
 class SearchAppView : public View {

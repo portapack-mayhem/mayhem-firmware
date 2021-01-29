@@ -35,8 +35,8 @@ using namespace portapack;
 
 namespace ui {
 
-	SearchAppThread::SearchAppThread( freqman_db frequency_list ) : frequency_list_ {  std::move(frequency_list) } {
-		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, SearchAppThread::static_fn, this);
+	SearchAppThread::SearchAppThread( freqman_db *database ) : frequency_list_ { *database } {
+		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, SearchAppThread::static_fn, this );
 	}
 
 	SearchAppThread::~SearchAppThread() {
@@ -95,7 +95,7 @@ namespace ui {
 		_fwd = v ;
 	}
 
-	msg_t SearchAppThread::static_fn(void* arg) {
+	msg_t SearchAppThread::static_fn( void* arg ) {
 		auto obj = static_cast<SearchAppThread*>(arg);
 		obj->run();
 		return 0;
@@ -1031,7 +1031,7 @@ namespace ui {
 	void SearchAppView::start_search_thread() {
 		receiver_model.enable(); 
 		receiver_model.set_squelch_level(0);
-		search_thread = std::make_unique<SearchAppThread>(frequency_list);
+		search_thread = std::make_unique<SearchAppThread>(&frequency_list);
 		search_thread->set_continuous( continuous );
 		search_thread->set_searching_direction( fwd );
 	}
