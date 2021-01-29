@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_searchsetup.hpp"
+#include "ui_search_app_settings.hpp"
 #include "ui_navigation.hpp"
 #include "ui_fileman.hpp"
 #include "ui_textentry.hpp"
@@ -28,12 +28,14 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#define SETTINGS_NAME_MAX_LEN
+
 using namespace std;
 using namespace portapack;
 
 namespace ui {
 
-	bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
+	bool SearchAppSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file )
 	{
 		File settings_file;
 		size_t length, file_position = 0;
@@ -91,7 +93,7 @@ namespace ui {
 		return true ;
 	}
 
-	bool SearchSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
+	bool SearchAppSetupSaveStrings( std::string dest, std::string input_file , std::string output_file )
 	{
 		File settings_file;
 
@@ -106,7 +108,7 @@ namespace ui {
 
 
 
-	SearchSetupViewMain::SearchSetupViewMain(
+	SearchAppSetupViewMain::SearchAppSetupViewMain(
 			NavigationView &nav , Rect parent_rect , std::string input_file , std::string output_file 
 			) : View( parent_rect ) , _input_file { input_file } , _output_file { output_file } 
 	{
@@ -122,12 +124,10 @@ namespace ui {
 				&checkbox_clear_output,
 				});
 
-		checkbox_autosave_freqs.set_value( persistent_memory::search_autosave_freqs() );
-		checkbox_autostart_search.set_value( persistent_memory::search_autostart_search() );
-		checkbox_continuous.set_value( persistent_memory::search_continuous() );
-		checkbox_clear_output.set_value( persistent_memory::search_clear_output() );
-
-		SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , _input_file , _output_file );
+		checkbox_autosave_freqs.set_value( persistent_memory::search_app_autosave_freqs() );
+		checkbox_autostart_search.set_value( persistent_memory::search_app_autostart_search() );
+		checkbox_continuous.set_value( persistent_memory::search_app_continuous() );
+		checkbox_clear_output.set_value( persistent_memory::search_app_clear_output() );
 
 		text_input_file.set( _input_file );	
 		button_output_file.set_text( _output_file );	
@@ -170,25 +170,27 @@ namespace ui {
 		};
 	};
 
-	void SearchSetupViewMain::Save() {
-		persistent_memory::set_search_autosave_freqs(checkbox_autosave_freqs.value());
-		persistent_memory::set_search_autostart_search(checkbox_autostart_search.value());
-		persistent_memory::set_search_continuous(checkbox_continuous.value()); 
-		persistent_memory::set_search_clear_output(checkbox_clear_output.value()); 
-		SearchSetupSaveStrings( "SEARCH/SEARCH.CFG" , _input_file , _output_file );
+	void SearchAppSetupViewMain::Save( std::string &input_file , std::string &output_file ) {
+		persistent_memory::set_search_app_autosave_freqs(checkbox_autosave_freqs.value());
+		persistent_memory::set_search_app_autostart_search(checkbox_autostart_search.value());
+		persistent_memory::set_search_app_continuous(checkbox_continuous.value()); 
+		persistent_memory::set_search_app_clear_output(checkbox_clear_output.value()); 
+		SearchAppSetupSaveStrings( "SEARCH/SEARCH.CFG" , _input_file , _output_file );
+		input_file=_input_file ;
+		output_file=_output_file ;
 	};
-	void SearchSetupViewMore::Save() {
-		persistent_memory::set_search_load_freqs(checkbox_load_freqs.value()); 
-		persistent_memory::set_search_load_ranges(checkbox_load_ranges.value()); 
-		persistent_memory::set_search_update_ranges_when_searching(checkbox_update_ranges_when_searching.value()); 
+	void SearchAppSetupViewMore::Save() {
+		persistent_memory::set_search_app_load_freqs(checkbox_load_freqs.value()); 
+		persistent_memory::set_search_app_load_ranges(checkbox_load_ranges.value()); 
+		persistent_memory::set_search_app_update_ranges_when_searching(checkbox_update_ranges_when_searching.value()); 
 	};
 
-	void SearchSetupViewMain::focus() {
+	void SearchAppSetupViewMain::focus() {
 		button_load_freqs.focus();
 	}
 
-	SearchSetupViewMore::SearchSetupViewMore(
-			NavigationView &nav , Rect parent_rect
+	SearchAppSetupViewMore::SearchAppSetupViewMore(
+			Rect parent_rect
 			) : View( parent_rect ) {
 
 		hidden(true);
@@ -199,22 +201,22 @@ namespace ui {
 				&checkbox_update_ranges_when_searching
 				});
 
-		checkbox_load_freqs.set_value( persistent_memory::search_load_freqs() );
-		checkbox_load_ranges.set_value( persistent_memory::search_load_ranges() );
-		checkbox_update_ranges_when_searching.set_value( persistent_memory::search_update_ranges_when_searching() );
+		checkbox_load_freqs.set_value( persistent_memory::search_app_load_freqs() );
+		checkbox_load_ranges.set_value( persistent_memory::search_app_load_ranges() );
+		checkbox_update_ranges_when_searching.set_value( persistent_memory::search_app_update_ranges_when_searching() );
 	};
 
-	void SearchSetupViewMore::focus() {
+	void SearchAppSetupViewMore::focus() {
 		checkbox_load_freqs.focus();
 	}
 
-	void SearchSetupView::focus() {
+	void SearchAppSetupView::focus() {
 		viewMain.focus();
 	}
 
-	SearchSetupView::SearchSetupView(
-			NavigationView& nav 
-			) : nav_ { nav } 
+	SearchAppSetupView::SearchAppSetupView(
+			NavigationView& nav , std::string _input_file , std::string _output_file 
+			) : nav_ { nav } , input_file { _input_file } , output_file { _output_file }
 
 	{
 		add_children({
@@ -225,9 +227,9 @@ namespace ui {
 				});
 
 		button_save.on_select = [this,&nav](Button&) {
-			viewMain.Save();
+			viewMain.Save(input_file,output_file);
 			viewMore.Save();
-			SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+			//SearchAppSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
 			std::vector<std::string> messages ;
 			messages.push_back( input_file );
 			messages.push_back( output_file );

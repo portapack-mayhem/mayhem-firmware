@@ -29,13 +29,13 @@
 
 namespace ui {
 	
-bool SearchSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
-bool SearchSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
+bool SearchAppSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
+bool SearchAppSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 
-class SearchSetupViewMain : public View {
+class SearchAppSetupViewMain : public View {
 public:
-	SearchSetupViewMain( NavigationView& nav, Rect parent_rect , std::string input_file , std::string output_file );
-	void Save();
+	SearchAppSetupViewMain( NavigationView& nav, Rect parent_rect , std::string input_file , std::string output_file );
+	void Save( std::string &input_file , std::string &output_file );
 	void focus() override;
 	
 private:
@@ -85,9 +85,9 @@ private:
 	};
 };
 
-class SearchSetupViewMore : public View {
+class SearchAppSetupViewMore : public View {
 public:
-	SearchSetupViewMore( NavigationView& nav, Rect parent_rect );
+	SearchAppSetupViewMore( Rect parent_rect );
 	void Save();
 	
 	void focus() override;
@@ -114,9 +114,9 @@ private:
 
 
 
-class SearchSetupView : public View {
+class SearchAppSetupView : public View {
 public:
-	SearchSetupView( NavigationView& nav );
+	SearchAppSetupView( NavigationView& nav , std::string _input_file , std::string _output_file );
 	
 	std::function<void( std::vector<std::string> messages )> on_changed { };
 	
@@ -132,8 +132,8 @@ private:
 	
 	Rect view_rect = { 0, 3 * 8, 240, 230 };
 
-	SearchSetupViewMain viewMain{ nav_ , view_rect , input_file , output_file };
-	SearchSetupViewMore viewMore{ nav_ , view_rect };
+	SearchAppSetupViewMain viewMain{ nav_ , view_rect , input_file , output_file };
+	SearchAppSetupViewMore viewMore{ view_rect };
 
 	TabView tab_view {
 		{ "Main", Color::cyan() , &viewMain },

@@ -41,10 +41,10 @@ enum search_modulation_type { SEARCH_AM = 0,SEARCH_WFM,SEARCH_NFM };
 string const search_mod_name[3] = {"AM", "WFM", "NFM"};
 size_t const search_mod_step[3] = {9000, 100000, 12500 };
 
-class SearchThread {
+class SearchAppThread {
 public:
-	SearchThread(freqman_db frequency_list);
-	~SearchThread();
+	SearchAppThread(freqman_db frequency_list);
+	~SearchAppThread();
 
 	void set_searching(const bool v);
 	bool is_searching();
@@ -65,10 +65,10 @@ public:
 
 	void stop();
 
-	SearchThread(const SearchThread&) = delete;
-	SearchThread(SearchThread&&) = delete;
-	SearchThread& operator=(const SearchThread&) = delete;
-	SearchThread& operator=(SearchThread&&) = delete;
+	SearchAppThread(const SearchAppThread&) = delete;
+	SearchAppThread(SearchAppThread&&) = delete;
+	SearchAppThread& operator=(const SearchAppThread&) = delete;
+	SearchAppThread& operator=(SearchAppThread&&) = delete;
 
 private:
 	freqman_db frequency_list_ ;
@@ -89,10 +89,10 @@ private:
 	void run();
 };
 
-class SearchView : public View {
+class SearchAppView : public View {
 public:
-	SearchView(NavigationView& nav);
-	~SearchView();
+	SearchAppView(NavigationView& nav);
+	~SearchAppView();
 	
 	void focus() override;
 
@@ -170,7 +170,7 @@ private:
 	// maximum usable freq
 	long long int MAX_UFREQ = { 7000000000 };
 	//50ms cycles search locks into freq when signal detected, to verify signal is not spureous
-	uint8_t MAX_FREQ_LOCK = { 10 };
+	uint8_t SEARCH_APP_MAX_FREQ_LOCK = { 10 };
 
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
@@ -311,16 +311,16 @@ private:
 		{ 0,  (35 * 8) - 4, 34, 28 },
 		"FW>"
 	};
-	ImageButton button_restart {
+/*	ImageButton button_restart {
 		{ 38, (35 * 8) - 4, 32, 24 },
 		&bitmap_icon_restart,
 		Color::white(),
 		Color::black()
-	};
-/*	Button button_restart {
+	};*/
+	Button button_restart {
 		{ 38, (35 * 8) - 4, 34, 28 },
 		"RST"
-	};*/
+	};
 
 
 	Button button_mic_app {
@@ -333,7 +333,7 @@ private:
 		"REMOVE"
 	};
 	
-	std::unique_ptr<SearchThread> search_thread { };
+	std::unique_ptr<SearchAppThread> search_thread { };
 	
 	MessageHandlerRegistration message_handler_retune {
 		Message::ID::Retune,

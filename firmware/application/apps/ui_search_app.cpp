@@ -20,11 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_search.hpp"
+#include "ui_search_app.hpp"
 #include "ui_fileman.hpp"
-#include "ui_searchsetup.hpp"
+#include "ui_search_app_settings.hpp"
 
-// Id's for messages between SearchThread and SearchView
+// Id's for messages between SearchAppThread and SearchAppView
 #define MSG_SEARCH_PAUSE 9999				// for handle_retune to know that search thread triggered a pause. f is not important with that message
 #define MSG_SEARCH_SET_MODULATION 10000			// for handle_retune to know that search thread triggered a modulation change. f is the index of the modulation
 #define MSG_SEARCH_SET_BANDWIDTH 20000 			// for handle_retune to know that search thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
@@ -35,15 +35,15 @@ using namespace portapack;
 
 namespace ui {
 
-	SearchThread::SearchThread( freqman_db frequency_list ) : frequency_list_ {  std::move(frequency_list) } {
-		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, SearchThread::static_fn, this);
+	SearchAppThread::SearchAppThread( freqman_db frequency_list ) : frequency_list_ {  std::move(frequency_list) } {
+		thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, SearchAppThread::static_fn, this);
 	}
 
-	SearchThread::~SearchThread() {
+	SearchAppThread::~SearchAppThread() {
 		stop();
 	}
 
-	void SearchThread::stop() {
+	void SearchAppThread::stop() {
 		if( thread ) {
 			chThdTerminate(thread);
 			chThdWait(thread);
@@ -51,57 +51,57 @@ namespace ui {
 		}
 	}
 
-	uint32_t SearchThread::get_current_modulation()
+	uint32_t SearchAppThread::get_current_modulation()
 	{
 		//return last_entry.modulation ;
 		return 0 ;
 	}
 
-	void SearchThread::set_continuous(const bool v) {
+	void SearchAppThread::set_continuous(const bool v) {
 		_continuous = v;
 	}
 
-	void SearchThread::set_searching(const bool v) {
+	void SearchAppThread::set_searching(const bool v) {
 		_searching = v;
 	}
 
-	void SearchThread::set_stepper( const int64_t v){
+	void SearchAppThread::set_stepper( const int64_t v){
 		_stepper = v;
 	}
 
-	bool SearchThread::is_searching() {
+	bool SearchAppThread::is_searching() {
 		return _searching;
 	}
 
-	void SearchThread::set_freq_lock(const uint32_t v) {
+	void SearchAppThread::set_freq_lock(const uint32_t v) {
 		_freq_lock = v;
 	}
-	uint32_t SearchThread::is_freq_lock() {
+	uint32_t SearchAppThread::is_freq_lock() {
 		return _freq_lock;
 	}
-	int64_t SearchThread::get_current_freq() {
+	int64_t SearchAppThread::get_current_freq() {
 		return freq ;
 	}
 
-	void SearchThread::change_searching_direction() {
+	void SearchAppThread::change_searching_direction() {
 		_fwd = !_fwd;
 		chThdSleepMilliseconds(300);	//Give some pause after reversing searching direction
 	}
 
-	bool SearchThread::get_searching_direction() {
+	bool SearchAppThread::get_searching_direction() {
 		return _fwd ;
 	}
-	void SearchThread::set_searching_direction( const bool v) {
+	void SearchAppThread::set_searching_direction( const bool v) {
 		_fwd = v ;
 	}
 
-	msg_t SearchThread::static_fn(void* arg) {
-		auto obj = static_cast<SearchThread*>(arg);
+	msg_t SearchAppThread::static_fn(void* arg) {
+		auto obj = static_cast<SearchAppThread*>(arg);
 		obj->run();
 		return 0;
 	}
 
-	void SearchThread::run() {
+	void SearchAppThread::run() {
 		if (frequency_list_.size() )	{			//IF THERE IS A FREQUENCY LIST ...	
 			int64_t minfreq = 0 ;
 			int64_t maxfreq = 0 ;
@@ -300,12 +300,12 @@ namespace ui {
 		}
 	}
 
-	void SearchView::handle_retune( int64_t freq , uint32_t index ) {
+	void SearchAppView::handle_retune( int64_t freq , uint32_t index ) {
 		static int64_t last_freq = 0 ;
 		static uint32_t last_index = 999999 ;
 		switch( index ) {
 			case MSG_SEARCH_PAUSE:
-				// special non continuous => set userpause when reaching the end of a range ( from SearchThread )
+				// special non continuous => set userpause when reaching the end of a range ( from SearchAppThread )
 				timer = 10 * wait ;
 				search_pause();
 				button_pause.set_text("RESTART");		//Show button for non continuous stop
@@ -363,7 +363,7 @@ namespace ui {
 		} else if( freq_lock == 1 ) {
 			//STARTING LOCK FREQ
 			big_display.set_style(&style_yellow);
-		}else if( freq_lock >= MAX_FREQ_LOCK ) {
+		}else if( freq_lock >= SEARCH_APP_MAX_FREQ_LOCK ) {
 			//FREQ IS STRONG: GREEN and search will pause when on_statistics_update()
 			big_display.set_style(&style_green);
 			if( autosave && last_freq != freq ) {
@@ -427,26 +427,26 @@ namespace ui {
 			//freq lock is checking the signal, do not update display
 			return;
 		}
-		big_display.set( freq );	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
+		big_display.set( freq );	//UPDATE the big Freq after 0, 1 or SEARCH_APP_MAX_FREQ_LOCK (at least, for color synching)
 	}
 
 
-	void SearchView::focus() {
+	void SearchAppView::focus() {
 		field_mode.focus();
 	}
 
-	SearchView::~SearchView() {
+	SearchAppView::~SearchAppView() {
 		audio::output::stop();
 		receiver_model.disable();
 		baseband::shutdown();
 	}
 
-	void SearchView::show_max() {		//show total number of freqs to search
+	void SearchAppView::show_max() {		//show total number of freqs to search
 		text_max.set_style(&style_white);
 		text_max.set( "/ " + to_string_dec_uint(frequency_list.size()));
 	}
 
-	SearchView::SearchView( NavigationView& nav) : nav_ { nav } {
+	SearchAppView::SearchAppView( NavigationView& nav) : nav_ { nav } {
 
 		add_children( {
 				&labels,
@@ -488,16 +488,16 @@ namespace ui {
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
 		// Loading settings
-		autostart = persistent_memory::search_autostart_search();
-		autosave = persistent_memory::search_autosave_freqs();
-		continuous = persistent_memory::search_continuous();
-		filedelete = persistent_memory::search_clear_output();
-		load_freqs = persistent_memory::search_load_freqs();
-		load_ranges = persistent_memory::search_load_ranges();
-		update_ranges = persistent_memory::search_update_ranges_when_searching();
+		autostart = persistent_memory::search_app_autostart_search();
+		autosave = persistent_memory::search_app_autosave_freqs();
+		continuous = persistent_memory::search_app_continuous();
+		filedelete = persistent_memory::search_app_clear_output();
+		load_freqs = persistent_memory::search_app_load_freqs();
+		load_ranges = persistent_memory::search_app_load_ranges();
+		update_ranges = persistent_memory::search_app_update_ranges_when_searching();
 
 		//Loading input and output file from settings
-		SearchSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
+		SearchAppSetupLoadStrings( "SEARCH/SEARCH.CFG" , input_file , output_file );
 
 		button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
 			auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
@@ -729,7 +729,7 @@ namespace ui {
 			big_display.set_style(&style_white);		//Back to white color
 		};
 
-		button_restart.on_select = [this](ImageButton&) {
+		button_restart.on_select = [this](Button&) {
 			if( frequency_list.size() > 0 )
 			{
 				def_step = step_mode.selected_index_value();     //Use def_step from manual selector
@@ -815,17 +815,17 @@ namespace ui {
 			}
 		};
 		button_search_setup.on_select = [this,&nav](Button&) {
-			auto open_view = nav.push<SearchSetupView>(); 
+			auto open_view = nav.push<SearchAppSetupView>(input_file,output_file); 
 			open_view -> on_changed = [this](std::vector<std::string> result) {
 				input_file = result[0];
 				output_file = result[1];
-				autosave = persistent_memory::search_autosave_freqs();
-				autostart = persistent_memory::search_autostart_search();
-				continuous = persistent_memory::search_continuous();
-				filedelete = persistent_memory::search_clear_output();
-				load_freqs = persistent_memory::search_load_freqs();
-				load_ranges = persistent_memory::search_load_ranges();
-				update_ranges = persistent_memory::search_update_ranges_when_searching();
+				autosave = persistent_memory::search_app_autosave_freqs();
+				autostart = persistent_memory::search_app_autostart_search();
+				continuous = persistent_memory::search_app_continuous();
+				filedelete = persistent_memory::search_app_clear_output();
+				load_freqs = persistent_memory::search_app_load_freqs();
+				load_ranges = persistent_memory::search_app_load_ranges();
+				update_ranges = persistent_memory::search_app_update_ranges_when_searching();
 				frequency_file_load( input_file , true );
 				//  User experience will tell how they need the output file to be cleared 
 				// if( !filedelete )
@@ -880,7 +880,7 @@ namespace ui {
 	}
 
 
-	void SearchView::frequency_file_load(std::string file_name, bool stop_all_before) {
+	void SearchAppView::frequency_file_load(std::string file_name, bool stop_all_before) {
 
 		// stop everything running now if required
 		if (stop_all_before) {
@@ -920,7 +920,7 @@ namespace ui {
 		start_search_thread(); 
 	}
 
-	void SearchView::on_statistics_update(const ChannelStatistics& statistics) {
+	void SearchAppView::on_statistics_update(const ChannelStatistics& statistics) {
 		if ( !userpause ) 									//Searching not user-paused
 		{
 			if (timer >= (wait * 10) ) 
@@ -931,7 +931,7 @@ namespace ui {
 			else if (!timer) 
 			{
 				if (statistics.max_db > squelch ) {  		//There is something on the air...(statistics.max_db > -squelch) 
-					if (search_thread->is_freq_lock() >= MAX_FREQ_LOCK) { //checking time reached
+					if (search_thread->is_freq_lock() >= SEARCH_APP_MAX_FREQ_LOCK) { //checking time reached
 						search_pause();
 						timer++;	
 					} else {
@@ -951,34 +951,34 @@ namespace ui {
 		}
 	}
 
-	void SearchView::search_pause() {
+	void SearchAppView::search_pause() {
 		if (search_thread ->is_searching()) {
-			search_thread ->set_freq_lock(0); 		//Reset the search lock (because user paused, or MAX_FREQ_LOCK reached) for next freq search
+			search_thread ->set_freq_lock(0); 		//Reset the search lock (because user paused, or SEARCH_APP_MAX_FREQ_LOCK reached) for next freq search
 			search_thread ->set_searching(false); // WE STOP SCANNING
 			audio::output::start();
 		}
 	}
 
 
-	void SearchView::search_resume() {
+	void SearchAppView::search_resume() {
 		audio::output::stop();
 		big_display.set_style(&style_white);		//Back to white color
 		if (!search_thread->is_searching())
 			search_thread->set_searching(true);   // RESUME!
 	}
 
-	void SearchView::user_resume() {
+	void SearchAppView::user_resume() {
 		timer = wait * 10;			//Will trigger a search_resume() on_statistics_update, also advancing to next freq.
 		button_pause.set_text("PAUSE");		//Show button for pause
 		userpause=false;			//Resume searching
 	}
 
-	void SearchView::on_headphone_volume_changed(int32_t v) {
+	void SearchAppView::on_headphone_volume_changed(int32_t v) {
 		const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
 		receiver_model.set_headphone_volume(new_volume);
 	}
 
-	size_t SearchView::change_mode(uint8_t new_mod) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
+	size_t SearchAppView::change_mode(uint8_t new_mod) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
 		using option_t = std::pair<std::string, int32_t>;
 		using options_t = std::vector<option_t>;
 		options_t bw;
@@ -1028,10 +1028,10 @@ namespace ui {
 		return search_mod_step[new_mod];
 	}
 
-	void SearchView::start_search_thread() {
+	void SearchAppView::start_search_thread() {
 		receiver_model.enable(); 
 		receiver_model.set_squelch_level(0);
-		search_thread = std::make_unique<SearchThread>(frequency_list);
+		search_thread = std::make_unique<SearchAppThread>(frequency_list);
 		search_thread->set_continuous( continuous );
 		search_thread->set_searching_direction( fwd );
 	}
