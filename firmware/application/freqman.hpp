@@ -25,6 +25,7 @@
 #include "file.hpp"
 #include "ui_receiver.hpp"
 #include "string_format.hpp"
+#include "ui_widget.hpp"
 
 #ifndef __FREQMAN_H__
 #define __FREQMAN_H__
@@ -51,16 +52,15 @@ enum freqman_entry_type {
 };
 
 enum freqman_entry_modulation {
-	MOD_DEF = 0,
 	AM,
 	NFM,
 	WFM,
+	MOD_DEF,
 	ERROR_MOD
 };
 
 //Entry step placed for AlainD freqman version (or any other enhanced version)
 enum freqman_entry_step {
-	STEP_DEF = 0,		// default (from current app/ui/settings)
 	AM_US,			// 10 Khz   AM/CB
 	AM_EUR,			// 9 Khz	LW/MW
 	NFM_1,			// 12,5 Khz (Analogic PMR 446)
@@ -70,6 +70,7 @@ enum freqman_entry_step {
 	N_1,			// 25 Khz
 	N_2,			// 250 Khz
 	AIRBAND,		// AIRBAND 8,33 Khz
+	STEP_DEF,		// Use default app step
 	ERROR_STEP
 };
 
@@ -79,8 +80,8 @@ struct freqman_entry {
 	rf::Frequency frequency_b { 0 };
 	std::string description { };
 	freqman_entry_type type { };
-	uint8_t modulation { 0 };
-	uint8_t bandwidth { 0 };
+	int8_t modulation { 0 };
+	int8_t bandwidth { 0 };
 	uint32_t step { 0 };
 	uint16_t tone { 0 };
 };
@@ -93,5 +94,8 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
 std::string freqman_item_string(freqman_entry &item, size_t max_length);
+bool freqman_set_bandwidth_option( int8_t modulation , OptionsField &option );
+bool freqman_set_modulation_option( OptionsField &option );
+bool freqman_set_step_option( OptionsField &option );
 
 #endif/*__FREQMAN_H__*/

@@ -23,6 +23,30 @@
 #include "freqman.hpp"
 #include <algorithm>
 
+// Bandwidth sorted by frequman_entry_modulation value 
+std::vector<std::vector<std::string>> freqman_entry_bandwidth {
+		{"DSB","USB","LSB","CW"},
+		{"8k5","11k","16k"},
+		{"16k"},
+		{"DEF"},
+		{"ERR"}
+};
+
+// Step names
+std::vector<string> freqman_entry_step_names {
+		"AM_US"   ,			
+		"AM_EUR"  ,
+		"NFM_1"   ,
+		"NFM_2",
+		"FM_1",
+		"FM_2",
+		"N_1",
+		"N_2",
+		"AIRBAND",
+		"STEP_DEF",
+		"ERROR_STEP"
+};
+
 std::vector<std::string> get_freqman_files() {
 	std::vector<std::string> file_list;
 
@@ -239,7 +263,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 				tone = strtoll(pos, nullptr, 10);
 			} else
 				tone = 0;
-			
+
 			// Read description until , or LF
 			pos = strstr(line_start, "d=");
 			if (pos) {
@@ -280,7 +304,7 @@ bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 
 	for (size_t n = 0; n < db.size(); n++) {
 		auto& entry = db[n];
-		
+
 		frequency_a = entry.frequency_a;
 
 		if (entry.type == SINGLE) {
@@ -337,14 +361,87 @@ bool create_freqman_file(std::string& file_stem, File& freqman_file) {
 std::string freqman_item_string(freqman_entry &entry, size_t max_length) {
 	std::string item_string;
 
-	if (entry.type == SINGLE) {
-		item_string = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
-	} else {
-		item_string = "Range: " + entry.description;
+	switch( entry.type ){
+		case SINGLE:
+			item_string = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
+		break;
+		case RANGE:
+			item_string = "Range: " + entry.description;
+		break;
+		case HAMRADIO:
+			item_string = "HAMradio: " + entry.description;
+		break;
+		default:
+			item_string = "!UNKNOW TYPE " + entry.description;
+		break;
 	}
 
 	if (item_string.size() > max_length)
 		return item_string.substr(0, max_length - 3) + "...";
 
 	return item_string;
+}
+
+bool freqman_set_bandwidth_option( int8_t modulation , OptionsField &option )
+{
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	options_t bw ;
+	switch( modulation )
+	{
+		case AM:
+			bw.emplace_back("DSB", 0);
+			bw.emplace_back("USB", 0);
+			bw.emplace_back("LSB", 0);
+			bw.emplace_back("CW ", 0);
+			option.set_options(bw);
+			break;
+		case WFM:
+			bw.emplace_back("16k", 0);
+			option.set_options(bw);
+			break;
+		case NFM:
+			bw.emplace_back("8k5", 0);
+			bw.emplace_back("11k", 0);
+			bw.emplace_back("16k", 0);			
+			option.set_options(bw);
+			break;
+
+		default:
+			return false ;
+			break;
+	}	
+	return true ;
+}
+
+bool freqman_set_modulation_option( OptionsField &option )
+{
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	options_t bw ;
+	bw.emplace_back("AM", 0);
+	bw.emplace_back("WFM", 1);
+	bw.emplace_back("NFM", 2);			
+	option.set_options(bw);
+	return true ;
+}
+
+bool freqman_set_step_option( OptionsField &option )
+{
+	using option_t = std::pair<std::string, int32_t>;
+	using options_t = std::vector<option_t>;
+	options_t bw ;
+	bw.emplace_back( "5Khz (SA AM)",	5000 );
+	bw.emplace_back( "9Khz (EU AM)",	9000 );
+	bw.emplace_back( "10Khz(US AM)",	10000 );
+	bw.emplace_back( "50Khz (FM1)", 	50000 );
+	bw.emplace_back( "100Khz(FM2)", 	100000 );
+	bw.emplace_back( "6.25khz(NFM)",	6250 );
+	bw.emplace_back( "12.5khz(NFM)",	12500 );
+	bw.emplace_back( "25khz (N1)",		25000 );
+	bw.emplace_back( "250khz (N2)",		250000 );
+	bw.emplace_back( "8.33khz(AIR)",	8330 );
+	bw.emplace_back( "15 khz(HFM)",		15000 );
+	option.set_options(bw);
+	return true ;
 }
