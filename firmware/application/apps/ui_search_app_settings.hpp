@@ -28,121 +28,121 @@
 #include "string_format.hpp"
 
 namespace ui {
-	
-bool SearchAppSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
-bool SearchAppSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 
-class SearchAppSetupViewMain : public View {
-public:
-	SearchAppSetupViewMain( NavigationView& nav, Rect parent_rect , std::string input_file , std::string output_file );
-	void Save( std::string &input_file , std::string &output_file );
-	void focus() override;
-	
-private:
-	std::string _input_file  = { "SEARCH" };
-	std::string _output_file = { "SEARCHRESULTS" };
-	
-	
-	Button button_load_freqs {
-		{ 1 * 8 , 12 , 18 * 8 , 22 },
-		"select input file"
-	};
-	Text text_input_file {
-		{ 1 * 8 , 4 + 2 * 16, 18 * 8, 22 },  
-		"SEARCH"
-	};
+	bool SearchAppSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file );
+	bool SearchAppSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file );
 
-	Button button_save_freqs {
-		{ 1 * 8 , 4 * 16 - 8 , 18 * 8 , 22 },
-		"select output file"
-	};
-	Button button_output_file {
-		{ 1 * 8 , 5 * 16 - 2, 18 * 8, 22 },  
-		"SEARCHRESULTS"	
-	};
+	class SearchAppSetupViewMain : public View {
+		public:
+			SearchAppSetupViewMain( NavigationView& nav, Rect parent_rect , std::string input_file , std::string output_file );
+			void Save( std::string &input_file , std::string &output_file );
+			void focus() override;
 
-	Checkbox checkbox_autosave_freqs {
-		{ 1 * 8, 7 * 16 - 4 },
-		3,
-		"autosave freqs"
-	};
+		private:
+			std::string _input_file  = { "SEARCH" };
+			std::string _output_file = { "SEARCHRESULTS" };
 
-	Checkbox checkbox_autostart_search {
-		{ 1 * 8, 9 * 16 - 4 },
-		3,
-		"autostart searching"
-	};
 
-	Checkbox checkbox_continuous {
-		{ 1 * 8, 11 * 16 - 4 },
-		3,
-		"continuous"
-	};
-	Checkbox checkbox_clear_output {
-		{ 1 * 8, 13 * 16 - 4 },
-		3,
-		"clear output at start"
-	};
-};
+			Button button_load_freqs {
+				{ 1 * 8 , 12 , 18 * 8 , 22 },
+					"select input file"
+			};
+			Text text_input_file {
+				{ 1 * 8 , 4 + 2 * 16, 18 * 8, 22 },  
+					"SEARCH"
+			};
 
-class SearchAppSetupViewMore : public View {
-public:
-	SearchAppSetupViewMore( Rect parent_rect );
-	void Save();
-	
-	void focus() override;
-	
-private:
-	Checkbox checkbox_load_freqs {
-		{ 1 * 8, 12 },
-		3,
-		"input: load freqs"
+			Button button_save_freqs {
+				{ 1 * 8 , 4 * 16 - 8 , 18 * 8 , 22 },
+					"select output file"
+			};
+			Button button_output_file {
+				{ 1 * 8 , 5 * 16 - 2, 18 * 8, 22 },  
+					"SEARCHRESULTS"	
+			};
+
+			Checkbox checkbox_autosave_freqs {
+				{ 1 * 8, 7 * 16 - 4 },
+					3,
+					"autosave freqs"
+			};
+
+			Checkbox checkbox_autostart_search {
+				{ 1 * 8, 9 * 16 - 4 },
+					3,
+					"autostart searching"
+			};
+
+			Checkbox checkbox_continuous {
+				{ 1 * 8, 11 * 16 - 4 },
+					3,
+					"continuous"
+			};
+			Checkbox checkbox_clear_output {
+				{ 1 * 8, 13 * 16 - 4 },
+					3,
+					"clear output at start"
+			};
 	};
 
-	Checkbox checkbox_load_ranges {
-		{ 1 * 8, 42 },
-		3,
-		"input: load ranges"
+	class SearchAppSetupViewMore : public View {
+		public:
+			SearchAppSetupViewMore( Rect parent_rect );
+			void Save();
+
+			void focus() override;
+
+		private:
+			Checkbox checkbox_load_freqs {
+				{ 1 * 8, 12 },
+					3,
+					"input: load freqs"
+			};
+
+			Checkbox checkbox_load_ranges {
+				{ 1 * 8, 42 },
+					3,
+					"input: load ranges"
+			};
+			Checkbox checkbox_update_ranges_when_searching {
+				{ 1 * 8, 72 },
+					3,
+					"auto update m-ranges"
+			};
 	};
-	Checkbox checkbox_update_ranges_when_searching {
-		{ 1 * 8, 72 },
-		3,
-		"auto update m-ranges"
-		};
-};
 
 
 
 
-class SearchAppSetupView : public View {
-public:
-	SearchAppSetupView( NavigationView& nav , std::string _input_file , std::string _output_file );
-	
-	std::function<void( std::vector<std::string> messages )> on_changed { };
-	
-	void focus() override;
-	
-	std::string title() const override { return "Search setup"; };
+	class SearchAppSetupView : public View {
+		public:
+			SearchAppSetupView( NavigationView& nav , std::string _input_file , std::string _output_file );
 
-private:
-	NavigationView& nav_;
-	
-	std::string input_file  = { "SEARCH" };
-	std::string output_file = { "SEARCHRESULTS" };
-	
-	Rect view_rect = { 0, 3 * 8, 240, 230 };
+			std::function<void( std::vector<std::string> messages )> on_changed { };
 
-	SearchAppSetupViewMain viewMain{ nav_ , view_rect , input_file , output_file };
-	SearchAppSetupViewMore viewMore{ view_rect };
+			void focus() override;
 
-	TabView tab_view {
-		{ "Main", Color::cyan() , &viewMain },
-		{ "More", Color::green(), &viewMore }
+			std::string title() const override { return "Search setup"; };
+
+		private:
+			NavigationView& nav_;
+
+			std::string input_file  = { "SEARCH" };
+			std::string output_file = { "SEARCHRESULTS" };
+
+			Rect view_rect = { 0, 3 * 8, 240, 230 };
+
+			SearchAppSetupViewMain viewMain{ nav_ , view_rect , input_file , output_file };
+			SearchAppSetupViewMore viewMore{ view_rect };
+
+			TabView tab_view {
+				{ "Main", Color::cyan() , &viewMain },
+					{ "More", Color::green(), &viewMore }
+			};
+			Button button_save {
+				{ 9 * 8, 255, 14 * 8 , 40 },
+					"SAVE"
+			};
 	};
-	Button button_save {
-		{ 9 * 8, 255, 14 * 8 , 40 },
-		"SAVE"
-	};
-};
 
 } /* namespace ui */

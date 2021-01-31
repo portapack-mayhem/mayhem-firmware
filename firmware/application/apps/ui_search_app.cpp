@@ -124,33 +124,31 @@ namespace ui {
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
 					step = frequency_list_[ 0 ] . step ;
 					break;
-					/*case HAMRADIO:
-					  freq = frequency_list_[ 0 ] . frequency_a ;
-					  minfreq = frequency_list_[ 0 ] . frequency_a ;
-					  maxfreq = frequency_list_[ 0 ] . frequency_b ;
-					  step = 0 ;
-					  break;*/
+				case HAMRADIO:
+					freq = frequency_list_[ 0 ] . frequency_a ;
+					minfreq = frequency_list_[ 0 ] . frequency_a ;
+					maxfreq = frequency_list_[ 0 ] . frequency_b ;
+					step = 0 ;
+					break;
 				default:
 					break;	
 			}
 
 			// Set modulation / bandwidth if any
-			/*			if( last_entry . modulation != UNDEFINED_MODULATION )
-						{
-						message.freq  = last_entry . modulation  ;
-						message.range = MSG_SEARCH_SET_MODULATION ;
-						EventDispatcher::send_message(message);
-
-						}
-			// Set modulation / bandwidth if any
-			if( last_entry . bandwidth != 0 )
+			if( last_entry . modulation >= 0 && last_entry . modulation < ERROR_MOD )
 			{
-			message.freq  = last_entry . modulation  ;
-			message.range = MSG_SEARCH_SET_BANDWIDTH ;
-			EventDispatcher::send_message(message);
+				message.freq  = last_entry . modulation  ;
+				message.range = MSG_SEARCH_SET_MODULATION ;
+				EventDispatcher::send_message(message);
+			}
 
-			}*/
-
+			// Set modulation / bandwidth if any
+			if( last_entry . bandwidth >= 0 )
+			{
+				message.freq  = last_entry . modulation  ;
+				message.range = MSG_SEARCH_SET_BANDWIDTH ;
+				EventDispatcher::send_message(message);
+			}
 
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
@@ -267,12 +265,12 @@ namespace ui {
 								freq = frequency_list_[ frequency_index ] . frequency_b ;
 							}
 							break;
-							/*	case HAMRADIO:
-								freq = frequency_list_[ frequency_index ] . frequency_a ;
-								minfreq = frequency_list_[ frequency_index ] . frequency_a ;
-								maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-								step = 0 ;
-								break;*/
+						case HAMRADIO:
+							freq = frequency_list_[ frequency_index ] . frequency_a ;
+							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
+							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
+							step = 0 ;
+							break;
 						default:
 							break;	
 					}	
@@ -284,12 +282,12 @@ namespace ui {
 					// signal pause to handle_retune 
 					receiver_model.set_tuning_frequency( freq );	// Retune
 					message.freq = freq ;
-					message.range = 9999 ;
+					message.range = MSG_SEARCH_PAUSE ;
 					EventDispatcher::send_message(message);
 				}
 				if( _stepper != 0 ) {
-					_stepper = 0 ;
 					//Inform freq (for coloring purposes also!) 
+					_stepper = 0 ;
 					message.freq = freq ;
 					message.range = frequency_index ;
 					EventDispatcher::send_message(message);
@@ -319,23 +317,21 @@ namespace ui {
 			case MSG_SEARCH_SET_BANDWIDTH:
 				{
 					field_bw.set_selected_index( freq );
-					/*	switch( search_thread->get_current_modulation() )
-						{
+					switch( search_thread->get_current_modulation() )
+					{
 						case SEARCH_AM:
-						receiver_model.set_am_configuration( freq );
-						return ;
-						break ;
+							receiver_model.set_am_configuration( freq );
+							break ;
 						case SEARCH_NFM:
-						receiver_model.set_nbfm_configuration( freq );
-						return ;
-						break ;
+							receiver_model.set_nbfm_configuration( freq );
+							break ;
 						case SEARCH_WFM:
-						receiver_model.set_wfm_configuration( freq );
-						return ;
-						break ;
-						}
-						return ;
-						break ;*/
+							receiver_model.set_wfm_configuration( freq );
+						default:
+							break ;
+					}
+					return ;
+					break ;
 				}
 		}
 
@@ -854,6 +850,10 @@ namespace ui {
 		field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 		field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
 
+		//FILL STEP OPTIONS
+		freqman_set_modulation_option( field_mode );
+		freqman_set_step_option( step_mode );
+
 		if( !filedelete )
 		{
 			delete_file( "FREQMAN/"+output_file+".TXT" );
@@ -982,49 +982,36 @@ namespace ui {
 		using option_t = std::pair<std::string, int32_t>;
 		using options_t = std::vector<option_t>;
 		options_t bw;
-		field_bw.on_change = [this](size_t n, OptionsField::value_t) {	};
+		field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
 
+		freqman_set_bandwidth_option( new_mod , field_bw );
 		switch (new_mod) {
-			case SEARCH_NFM:	//bw 16k (2) default
-				bw.emplace_back("8k5", 0);
-				bw.emplace_back("11k", 0);
-				bw.emplace_back("16k", 0);			
-				field_bw.set_options(bw);
-
+			case SEARCH_NFM:
+				//bw 16k (2) default
+				field_bw.set_selected_index(2);
 				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-				field_bw.set_selected_index(2);
 				receiver_model.set_nbfm_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
 				break;
 			case SEARCH_AM:
-				bw.emplace_back("DSB", 0);
-				bw.emplace_back("USB", 0);
-				bw.emplace_back("LSB", 0);
-				bw.emplace_back("CW ", 0);
-				field_bw.set_options(bw);
-
+				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_am_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-				field_bw.set_selected_index(0);
 				receiver_model.set_am_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
 				receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
 				break;
 			case SEARCH_WFM:
-				bw.emplace_back("16k", 0);
-				field_bw.set_options(bw);
-
+				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-				field_bw.set_selected_index(0);
 				receiver_model.set_wfm_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(2000000);	
 				break;
 		}
-
 		return search_mod_step[new_mod];
 	}
 
@@ -1035,6 +1022,5 @@ namespace ui {
 		search_thread->set_continuous( continuous );
 		search_thread->set_searching_direction( fwd );
 	}
-
 
 } /* namespace ui */

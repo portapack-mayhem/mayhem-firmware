@@ -28,8 +28,6 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
-#define SETTINGS_NAME_MAX_LEN
-
 using namespace std;
 using namespace portapack;
 
