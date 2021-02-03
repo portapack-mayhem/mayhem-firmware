@@ -37,7 +37,6 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
 	auto audio_oversampled = demod.execute(decim_0_out, work_audio_buffer);
 	// Audio signal processing
 	for (size_t c = 0; c < audio_oversampled.count; c++) {
-		int result;
                 int g_srate = 4; //4 for 250KPS
 		//int g_srate = 1; //1 for 1MPS, not working yet
 		int32_t current_sample = audio_oversampled.p[c]; //if I directly use this, some results can pass crc but not correct.
@@ -48,11 +47,8 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
 
 		skipSamples = skipSamples - 1;
 
-
 		if (skipSamples<1)
 		{
-				
-
 			int32_t threshold_tmp=0;
 			for (int c=0;c<8*g_srate;c++)
 			{
@@ -272,6 +268,7 @@ void NRFRxProcessor::on_message(const Message* const message) {
 }
 
 void NRFRxProcessor::configure(const NRFRxConfigureMessage& message) {	
+	(void)message; //avoir unused warning
 	decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
 	decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
 	demod.configure(audio_fs, 5000);
