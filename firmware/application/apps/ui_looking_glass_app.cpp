@@ -164,9 +164,9 @@ void GlassView::PlotMarker(rf::Frequency fpos)
     pos = pos / marker_pixel_step; //Real pixel 
 
     portapack::display.fill_rectangle({0, 100, 240, 8}, Color::black()); //Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 2, 100, 5, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos - 1, 103, 3, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos, 106, 1, 2}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos - 2, 100, 5, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos - 1, 103, 3, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos, 106, 1, 2}, Color::red()); //Red marker middle
 }
 
 GlassView::GlassView(
