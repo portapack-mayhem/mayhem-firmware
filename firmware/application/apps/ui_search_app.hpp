@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef _UI_SEARCH_APP
+#define _UI_SEARCH_APP
+
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
@@ -35,8 +38,6 @@
 
 
 namespace ui {
-
-	enum search_modulation_type { SEARCH_AM = 0,SEARCH_WFM,SEARCH_NFM };
 
 	string const search_mod_name[3] = {"AM", "WFM", "NFM"};
 	size_t const search_mod_step[3] = {9000, 100000, 12500 };
@@ -60,7 +61,7 @@ namespace ui {
 			void set_searching_direction( const bool v);
 
 			void set_continuous(const bool v);
-			uint32_t get_current_modulation();
+			uint8_t get_current_modulation();
 
 			void run();
 			void stop();
@@ -332,3 +333,5 @@ namespace ui {
 	};
 
 } /* namespace ui */
+
+#endif

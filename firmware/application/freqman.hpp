@@ -20,15 +20,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __FREQMAN_H__
+#define __FREQMAN_H__
+
 #include <cstring>
 #include <string>
 #include "file.hpp"
 #include "ui_receiver.hpp"
 #include "string_format.hpp"
 #include "ui_widget.hpp"
-
-#ifndef __FREQMAN_H__
-#define __FREQMAN_H__
+#include "enum_factory.hpp"
 
 #define FREQMAN_DESC_MAX_LEN 30
 #define FREQMAN_MAX_PER_FILE 99
@@ -36,6 +37,8 @@
 
 using namespace ui;
 using namespace std;
+
+
 
 enum freqman_error {
 	NO_ERROR = 0,
@@ -45,45 +48,75 @@ enum freqman_error {
 };
 
 enum freqman_entry_type {
-	SINGLE = 0,
-	RANGE,
-	HAMRADIO,
+	SINGLE = 0,	//f=
+	RANGE,		//a=,b=
+	HAMRADIO,	//r=,t=
 	ERROR_TYPE
 };
 
-enum freqman_entry_modulation {
-	AM,
-	NFM,
-	WFM,
-	MOD_DEF,
-	ERROR_MOD
-};
 
-//Entry step placed for AlainD freqman version (or any other enhanced version)
-enum freqman_entry_step {
-	AM_US,			// 10 Khz   AM/CB
-	AM_EUR,			// 9 Khz	LW/MW
-	NFM_1,			// 12,5 Khz (Analogic PMR 446)
-	NFM_2,			// 6,25 Khz  (Digital PMR 446)
-	FM_1,			// 100 Khz
-	FM_2,			// 50 Khz
-	N_1,			// 25 Khz
-	N_2,			// 250 Khz
-	AIRBAND,		// AIRBAND 8,33 Khz
-	STEP_DEF,		// Use default app step
-	ERROR_STEP
-};
+/*
+ //add new entries before DEFAULT
+#define FREQMAN_ENTRY_MODULATION(ENTRY) \
+    ENTRY(MOD_AM,=0) \
+    ENTRY(MOD_NFM,) \
+    ENTRY(MOD_WFM,) \
+    ENTRY(DEFAULT_MODULATION,=-1) \
+    ENTRY(ERROR_MODULATION,=-2)
+DECLARE_ENUM( freqman_entry_modulation , FREQMAN_ENTRY_MODULATION );
 
-// freqman_entry_step step added, as above, to provide compatibility / future enhancement.
+ //add new entries before DEFAULT
+#define FREQMAN_ENTRY_BANDWIDTH_AM(ENTRY) \
+    ENTRY(AM_DSB,) \
+    ENTRY(AM_USB,) \
+    ENTRY(AM_LSB,) \
+    ENTRY(AM_CW,) \
+    ENTRY(DEFAULT_BANDWIDTH_AM,=-1) \
+    ENTRY(ERROR_BANDWIDTH_AM,=-2)
+DECLARE_ENUM( freqman_entry_bandwidth_am , FREQMAN_ENTRY_BANDWIDTH_AM );
+
+ //add new entries before DEFAULT
+#define FREQMAN_ENTRY_BANDWIDTH_NFM(ENTRY) \
+    ENTRY(NFM_8k5,) \
+    ENTRY(NFM_11k,) \
+    ENTRY(NFM_16k,) \
+    ENTRY(DEFAULT_BANDWIDTH_NFM,=-1) \
+    ENTRY(ERROR_BANDWIDTH_NFM,=-2)
+DECLARE_ENUM( freqman_entry_bandwidth_nfm , FREQMAN_ENTRY_BANDWIDTH_NFM );
+
+//add new entries before DEFAULT
+#define FREQMAN_ENTRY_BANDWIDTH_WFM(ENTRY) \
+    ENTRY(WFM_16k,) \
+    ENTRY(DEFAULT_BANDWIDTH_WFM,=-1) \
+    ENTRY(ERROR_BANDWIDTH_WFM,=-2)
+DECLARE_ENUM( freqman_entry_bandwidth_wfm , FREQMAN_ENTRY_BANDWIDTH_WFM );
+
+ //add new entries before DEFAULT
+#define FREQMAN_ENTRY_STEP(ENTRY) \
+	ENTRY(SA_AM,=5000) \
+	ENTRY(NFM_2,=6250) \
+	ENTRY(AIRBAND,=8330) \
+	ENTRY(AM_EUR,=9000) \
+	ENTRY(AM_US,=10000) \
+	ENTRY(NFM_1,=12500) \
+	ENTRY(N_1,=25000) \
+	ENTRY(FM_2,=50000) \
+	ENTRY(FM_1,=100000) \
+	ENTRY(N_2,=250000) \
+	ENTRY(DEFAULT_STEP,=-1) \
+	ENTRY(ERROR_STEP,=-2)
+DECLARE_ENUM( freqman_entry_step , FREQMAN_ENTRY_STEP );
+*/
+
 struct freqman_entry {
-	rf::Frequency frequency_a { 0 };
-	rf::Frequency frequency_b { 0 };
-	std::string description { };
-	freqman_entry_type type { };
-	int8_t modulation { 0 };
-	int8_t bandwidth { 0 };
-	uint32_t step { 0 };
-	uint16_t tone { 0 };
+	rf::Frequency frequency_a { 0 };	// 'f=freq' or 'a=freq_start' or 'r=recv_freq'
+	rf::Frequency frequency_b { 0 };	// 'b=freq_end' or 't=tx_freq'
+	std::string description { };		// 'd=desc'
+	freqman_entry_type type { };		// SINGLE,RANGE,HAMRADIO
+	int8_t modulation { };	// AM,NFM,WFM
+	int8_t bandwidth { };	// AM_DSB, ...
+	int8_t step { };
+	uint16_t tone { };
 };
 
 using freqman_db = std::vector<freqman_entry>;

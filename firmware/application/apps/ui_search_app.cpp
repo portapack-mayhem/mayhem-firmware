@@ -28,8 +28,9 @@
 #define MSG_SEARCH_PAUSE 9999				// for handle_retune to know that search thread triggered a pause. f is not important with that message
 #define MSG_SEARCH_SET_MODULATION 10000			// for handle_retune to know that search thread triggered a modulation change. f is the index of the modulation
 #define MSG_SEARCH_SET_BANDWIDTH 20000 			// for handle_retune to know that search thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
-#define MSG_SEARCH_SET_RECEIVER_BANDWIDTH 30000 	// for handle_retune to know that search thread triggered a receiver bandwidth change. f is the new bandwidth in hz
-#define MSG_SEARCH_SET_RECEIVER_SAMPLERATE 40000 	// for handle_retune to know that search thread triggered a receiver samplerate change. f is the new samplerate in hz/s
+#define MSG_SEARCH_SET_STEP 30000 			// for handle_retune to know that search thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
+#define MSG_SEARCH_SET_RECEIVER_BANDWIDTH 40000 	// for handle_retune to know that search thread triggered a receiver bandwidth change. f is the new bandwidth in hz
+#define MSG_SEARCH_SET_RECEIVER_SAMPLERATE 50000 	// for handle_retune to know that search thread triggered a receiver samplerate change. f is the new samplerate in hz/s
 
 using namespace portapack;
 
@@ -51,10 +52,9 @@ namespace ui {
 		}
 	}
 
-	uint32_t SearchAppThread::get_current_modulation()
+	uint8_t SearchAppThread::get_current_modulation()
 	{
-		//return last_entry.modulation ;
-		return 0 ;
+		return last_entry.modulation ;
 	}
 
 	void SearchAppThread::set_continuous(const bool v) {
@@ -133,38 +133,51 @@ namespace ui {
 				default:
 					break;	
 			}
-
-			// Set modulation / bandwidth if any
-			if( last_entry . modulation >= 0 && last_entry . modulation < ERROR_MOD )
-			{
-				message.freq  = last_entry . modulation  ;
-				message.range = MSG_SEARCH_SET_MODULATION ;
-				EventDispatcher::send_message(message);
-			}
-
-			// Set modulation / bandwidth if any
-			if( last_entry . bandwidth >= 0 )
-			{
-				message.freq  = last_entry . modulation  ;
-				message.range = MSG_SEARCH_SET_BANDWIDTH ;
-				EventDispatcher::send_message(message);
-			}
+			// setting to default 
+			last_entry . modulation = -1 ;
+			last_entry . bandwidth = -1 ;
+			last_entry . step = 0 ;
 
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
 				entry_has_changed = false ;
-				if (_searching || _stepper != 0 ) {					//Searching
+				if (_searching || _stepper != 0 ) {	//Searching
 					//Inform freq (for coloring purposes also!) 
 					message.freq = freq ;
 					message.range = frequency_index ;
 					EventDispatcher::send_message(message);
+					// Set modulation if any
+					if( last_entry . modulation != frequency_list_[ frequency_index ] . modulation && frequency_list_[ frequency_index ] . modulation >= 0  )
+					{
+						last_entry . modulation = frequency_list_[ frequency_index ]. modulation;
+						message.freq  = last_entry . modulation  ;
+						message.range = MSG_SEARCH_SET_MODULATION ;
+						EventDispatcher::send_message(message);
+					}
+					// Set bandwidth if any
+					if( last_entry . bandwidth != frequency_list_[ frequency_index ] . bandwidth && frequency_list_[ frequency_index ] . bandwidth >= 0 )
+					{
+						last_entry . bandwidth = frequency_list_[ frequency_index ]. bandwidth;
+						message.freq  = last_entry . bandwidth  ;
+						message.range = MSG_SEARCH_SET_BANDWIDTH ;
+						EventDispatcher::send_message(message);
+					}
+					// Set step if any
+					if( last_entry . step != frequency_list_[ frequency_index ] . step && frequency_list_[ frequency_index ] . step > 0 )
+					{
+						last_entry . step = frequency_list_[ frequency_index ]. step ;
+						message.freq  = last_entry . step ;
+						message.range = MSG_SEARCH_SET_STEP ;
+						EventDispatcher::send_message(message);
+					}
+
 					receiver_model.set_tuning_frequency( freq );	// Retune
 					if (_freq_lock == 0) {				//normal searching (not performing freq_lock)
 						if (!restart_search) {			//looping at full speed
 							/* we are doing a range */
 							if( frequency_list_[ frequency_index ] . type == RANGE ) {
 
-								if ( (_fwd&&_stepper==0) || _stepper > 0 ) {	
+								if ( _fwd || _stepper > 0 ) {	
 									//forward
 									freq += step ;
 									// if bigger than range max
@@ -180,7 +193,7 @@ namespace ui {
 										}
 									}
 								}
-								else  if( (!_fwd&&_stepper==0) || _stepper < 0 ) {	
+								else  if( !_fwd || _stepper < 0 ) {	
 									//reverse
 									freq -= step ;
 									// if lower than range min
@@ -201,7 +214,7 @@ namespace ui {
 								freq = frequency_list_[ frequency_index ] . frequency_a ; 
 								receiver_model.set_tuning_frequency( freq );	// Retune
 
-								if ( (_fwd&&_stepper==0) || _stepper > 0 ) {					//forward
+								if ( _fwd || _stepper > 0 ) {					//forward
 									frequency_index++;
 									entry_has_changed = true ;
 									// looping
@@ -211,7 +224,7 @@ namespace ui {
 										frequency_index = 0 ;
 									}
 								}
-								else if( (!_fwd&&_stepper==0) || _stepper < 0 ) {		
+								else if( !_fwd || _stepper < 0 ) {		
 									//reverse
 									frequency_index--;
 									entry_has_changed = true ;
@@ -239,7 +252,7 @@ namespace ui {
 						frequency_index = 0 ;
 					}
 					else
-					{
+					{	
 						frequency_index = frequency_list_.size() - 1 ;
 					}
 				}
@@ -280,19 +293,14 @@ namespace ui {
 				if( has_looped && !_continuous )
 				{
 					// signal pause to handle_retune 
-					receiver_model.set_tuning_frequency( freq );	// Retune
+					receiver_model.set_tuning_frequency( freq );	// Retune to actual freq
 					message.freq = freq ;
 					message.range = MSG_SEARCH_PAUSE ;
 					EventDispatcher::send_message(message);
 				}
-				if( _stepper != 0 ) {
-					//Inform freq (for coloring purposes also!) 
-					_stepper = 0 ;
-					message.freq = freq ;
-					message.range = frequency_index ;
-					EventDispatcher::send_message(message);
-					receiver_model.set_tuning_frequency( freq );	// Retune
-				}
+				if( _stepper < 0 ) _stepper ++ ;
+				if( _stepper > 0 ) _stepper -- ;
+
 				chThdSleepMilliseconds(50);				//Needed to (eventually) stabilize the receiver into new freq
 			}
 		}
@@ -312,27 +320,30 @@ namespace ui {
 				break ;
 			case MSG_SEARCH_SET_MODULATION :
 				change_mode( freq );
+				field_mode.set_selected_index( freq );
 				return ;
 				break ;
 			case MSG_SEARCH_SET_BANDWIDTH:
+				field_bw.set_selected_index( freq );
+				switch( search_thread->get_current_modulation() )
 				{
-					field_bw.set_selected_index( freq );
-					switch( search_thread->get_current_modulation() )
-					{
-						case SEARCH_AM:
-							receiver_model.set_am_configuration( freq );
-							break ;
-						case SEARCH_NFM:
-							receiver_model.set_nbfm_configuration( freq );
-							break ;
-						case SEARCH_WFM:
-							receiver_model.set_wfm_configuration( freq );
-						default:
-							break ;
-					}
-					return ;
-					break ;
+					case MOD_AM:
+						receiver_model.set_am_configuration( freq );
+						break ;
+					case MOD_NFM:
+						receiver_model.set_nbfm_configuration( freq );
+						break ;
+					case MOD_WFM:
+						receiver_model.set_wfm_configuration( freq );
+					default:
+						break ;
 				}
+				return ;
+				break ;
+			case MSG_SEARCH_SET_STEP:
+				step_mode.set_selected_index( freq );
+				return ;
+				break ;
 		}
 
 		current_index = index ;
@@ -391,14 +402,15 @@ namespace ui {
 						result = search_file.append(freq_file_path); //Second: append if it is not there
 						if( !result.is_valid() )
 						{
+							std::string freq_options = ",m=" +  get_freqman_entry_modulation_string( frequency_list[current_index] . modulation ) + ",bw=" +  get_freqman_entry_bandwidth_string( frequency_list[current_index] . bandwidth );
 							// add current description if it available 
 							if( frequency_list[current_index].description.size() > 0 ) 
 							{
-								search_file.write_line(frequency_to_add + ",d=" + frequency_list[current_index].description );
+								search_file.write_line(frequency_to_add + freq_options + "d=" + frequency_list[current_index].description );
 							}
 							else
 							{
-								search_file.write_line(frequency_to_add + ",d=ADD FQ");
+								search_file.write_line(frequency_to_add + freq_options + ",d=ADD FQ");
 							}
 						}
 					}
@@ -407,15 +419,17 @@ namespace ui {
 					result = search_file.create( freq_file_path );	//First freq if no output file
 					if( !result.is_valid() )
 					{
+						std::string freq_options = ",m=" +  get_enum_string( frequency_list[current_index] . modulation ) + ",bw=" +  get_enum_string( frequency_list[current_index] . bandwidth );
 						// add current description if it available 
-						if( frequency_list[current_index].description.size() > 0)
+						if( frequency_list[current_index].description.size() > 0 ) 
 						{
-							search_file.write_line(frequency_to_add + ",d=" + frequency_list[current_index].description);
+							search_file.write_line(frequency_to_add + freq_options + "d=" + frequency_list[current_index].description );
 						}
 						else
 						{
-							search_file.write_line(frequency_to_add + ",d=ADD FQ");
+							search_file.write_line(frequency_to_add + freq_options + ",d=ADD FQ");
 						}
+
 					}
 				}
 			}
@@ -473,8 +487,8 @@ namespace ui {
 				&button_remove
 		} );
 
-		def_step = change_mode(SEARCH_AM);	//Start on AM
-		field_mode.set_by_value(SEARCH_AM);	//Reflect the mode into the manual selector
+		def_step = change_mode(MOD_AM);	//Start on AM
+		field_mode.set_by_value(MOD_AM);	//Reflect the mode into the manual selector
 
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
@@ -677,6 +691,10 @@ namespace ui {
 					+ to_string_short_freq(frequency_range.max) + " S" 	// current Manual range
 					+ to_string_short_freq(def_step).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
 				manual_freq_entry . frequency_a = frequency_range.min ; // min range val
+				manual_freq_entry . frequency_b = frequency_range.max ; // max range val
+				manual_freq_entry . modulation = -1 ; // max range val
+				manual_freq_entry . bandwidth = -1 ; // max range val
+				manual_freq_entry . step = step_mode.selected_index_value(); // max range val
 				manual_freq_entry . frequency_b = frequency_range.max ; // max range val
 				frequency_list . push_back( manual_freq_entry );
 
@@ -903,7 +921,6 @@ namespace ui {
 						case N_1:	def_step = 25000;  	break ;
 						case N_2:	def_step = 250000; 	break ;
 						case AIRBAND:	def_step= 8330;  	break ;
-						case STEP_DEF:
 						default: def_step=step_mode.selected_index_value();	break ; 
 					}
 					entry.step = def_step ;
@@ -986,7 +1003,7 @@ namespace ui {
 
 		freqman_set_bandwidth_option( new_mod , field_bw );
 		switch (new_mod) {
-			case SEARCH_NFM:
+			case MOD_NFM:
 				//bw 16k (2) default
 				field_bw.set_selected_index(2);
 				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
@@ -995,7 +1012,7 @@ namespace ui {
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
 				break;
-			case SEARCH_AM:
+			case MOD_AM:
 				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_am_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
@@ -1003,7 +1020,7 @@ namespace ui {
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
 				receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
 				break;
-			case SEARCH_WFM:
+			case MOD_WFM:
 				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
