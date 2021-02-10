@@ -110,6 +110,18 @@ rf::Frequency FrequencyField::clamp_value(rf::Frequency value) {
 
 /* FrequencyKeypadView ***************************************************/
 
+bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
+	focused_button += delta;
+	if (focused_button < 0) {
+		focused_button = buttons.size() - 1;
+	}
+	else if (focused_button >= (int16_t)buttons.size()) {
+		focused_button = 0;
+	}
+	buttons[focused_button].focus();
+	return true;
+}
+
 FrequencyKeypadView::FrequencyKeypadView(
 	NavigationView& nav,
 	const rf::Frequency value
@@ -127,6 +139,10 @@ FrequencyKeypadView::FrequencyKeypadView(
 		add_child(&button);
 		const std::string label {
 			key_caps[n]
+		};
+		button.id = n;
+		button.on_highlight = [this](Button& button) {
+			focused_button = button.id;
 		};
 		button.on_select = button_fn;
 		button.set_parent_rect({

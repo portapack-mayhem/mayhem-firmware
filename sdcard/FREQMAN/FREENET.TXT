@@ -1,0 +1,6 @@
+f=149025000,d=Freenet CH 1
+f=149037000,d=Freenet CH 2
+f=149050000,d=Freenet CH 3
+f=149087500,d=Freenet CH 4
+f=149100000,d=Freenet CH 5
+f=149112500,d=Freenet CH 6

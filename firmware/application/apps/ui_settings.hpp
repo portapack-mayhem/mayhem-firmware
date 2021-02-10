@@ -101,11 +101,11 @@ private:
 
 	Button button_done {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"Done"
+		"Save"
 	};
 	Button button_cancel {
 		{ 16 * 8, 16 * 16, 12 * 8, 32 },
-		"Cancel",
+		"Cancel"
 	};
 
 	void form_init(const SetDateTimeModel& model);
@@ -114,6 +114,7 @@ private:
 
 struct SetFrequencyCorrectionModel {
 	int8_t ppm;
+	uint32_t freq;
 };
 
 class SetRadioView : public View {
@@ -130,6 +131,7 @@ private:
 		.background = Color::black(),
 		.foreground = Color::light_grey(),
 	};
+	uint8_t freq_step_khz = 3;
 
 	Text label_source {
 		{ 0, 1 * 16, 17 * 8, 16 },
@@ -147,8 +149,31 @@ private:
 	};
 
 	Labels labels_correction {
-		{ { 2 * 8, 4 * 16 }, "Frequency correction:", Color::light_grey() },
-		{ { 6 * 8, 5 * 16 }, "PPM", Color::light_grey() },
+		{ { 2 * 8, 3 * 16 }, "Frequency correction:", Color::light_grey() },
+		{ { 6 * 8, 4 * 16 }, "PPM", Color::light_grey() },
+	};
+
+	Checkbox check_clkout {
+		{ 18, (6 * 16 - 4) },
+		13,
+		"Enable CLKOUT"
+	};
+
+	NumberField field_clkout_freq {
+		{ 20 * 8, 6 * 16 },
+		5,
+		{ 10, 60000 },
+		1000,
+		' '
+	};
+
+	Labels labels_clkout_khz {
+		{ { 26 * 8, 6 * 16 }, "kHz", Color::light_grey() }
+	};
+
+	Text value_freq_step {
+		{ 21 * 8, (7 * 16 ), 4 * 8, 16 },
+		"|   "
 	};
 
 	Labels labels_bias {
@@ -159,7 +184,7 @@ private:
 	};
 
 	NumberField field_ppm {
-		{ 2 * 8, 5 * 16 },
+		{ 2 * 8, 4 * 16 },
 		3,
 		{ -50, 50 },
 		1,
@@ -174,7 +199,7 @@ private:
 
 	Button button_done {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"Done"
+		"Save"
 	};
 	Button button_cancel {
 		{ 16 * 8, 16 * 16, 12 * 8, 32 },
@@ -194,12 +219,17 @@ public:
 	std::string title() const override { return "UI settings"; };
 	
 private:
-	Checkbox checkbox_login {
+	/*Checkbox checkbox_login {
 		{ 3 * 8, 2 * 16 },
 		20,
 		"Login with play dead"
-	};
+	};*/
 	
+	Checkbox checkbox_speaker {
+		{ 3 * 8, 2 * 16 },
+		20,
+		"Hide H1 Speaker option"
+	};
 	Checkbox checkbox_bloff {
 		{ 3 * 8, 5 * 16 },
 		20,
@@ -212,7 +242,9 @@ private:
 		{
 			{ "5 seconds", 5 },
 			{ "15 seconds", 15 },
+			{ "30 seconds", 30 },
 			{ "1 minute", 60 },
+			{ "3 minutes", 180 },
 			{ "5 minutes", 300 },
 			{ "10 minutes", 600 }
 		}
@@ -226,7 +258,7 @@ private:
 	
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"OK"
+		"Save"
 	};
 };
 
@@ -253,10 +285,11 @@ private:
 	
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
-		"OK"
+		"Save"
 	};
 };
 
+/*
 class SetPlayDeadView : public View {
 public:
 	SetPlayDeadView(NavigationView& nav);
@@ -284,7 +317,7 @@ private:
 		{ 128, 192, 96, 24 },
 		"Cancel"
 	};
-};
+};*/
 
 /*class ModInfoView : public View {
 public:
@@ -356,7 +389,7 @@ private:
 	};
 };*/
 
-class SettingsMenuView : public MenuView {
+class SettingsMenuView : public BtnGridView {
 public:
 	SettingsMenuView(NavigationView& nav);
 	

@@ -53,8 +53,7 @@ static std::string latlon(const Latitude latitude, const Longitude longitude) {
 }
 
 static float latlon_float(const int32_t normalized) {
-	const uint32_t normalized_abs = std::abs(normalized);
-	return ((((float) normalized_abs) * 5) / 3) / (100 * 10000);
+	return ((((float) normalized) * 5) / 3) / (100 * 10000);
 }
 
 static std::string mmsi(
@@ -241,7 +240,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 void AISRecentEntryDetailView::update_position() {
 	if (send_updates)
-		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()));
+		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading);
 }
 
 void AISRecentEntryDetailView::focus() {

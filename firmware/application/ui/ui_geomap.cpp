@@ -30,6 +30,7 @@
 using namespace portapack;
 
 #include "string_format.hpp"
+#include "complex.hpp"
 
 namespace ui {
 
@@ -58,7 +59,7 @@ GeoPos::GeoPos(
 	set_altitude(0);
 	set_lat(0);
 	set_lon(0);
-	
+
 	const auto changed_fn = [this](int32_t) {
 		float lat_value = lat();
 		float lon_value = lon();
@@ -120,11 +121,19 @@ void GeoPos::set_lon(float lon) {
 }
 
 float GeoPos::lat() {
-	return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+	if (field_lat_degrees.value() < 0) {
+	  return -1 * ( -1 * field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0));
+        } else {
+	  return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+	}
 };
 
 float GeoPos::lon() {
-	return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+	if (field_lon_degrees.value() < 0) {
+	  return -1 * (-1 * field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0));
+	} else {
+	  return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+	}
 };
 
 int32_t GeoPos::altitude() {
@@ -139,7 +148,7 @@ GeoMap::GeoMap(
 }
 
 void GeoMap::paint(Painter& painter) {
-	Coord line;
+	u_int16_t line;
 	std::array<ui::Color, 240> map_line_buffer;
 	const auto r = screen_rect();
 	
@@ -154,14 +163,22 @@ void GeoMap::paint(Painter& painter) {
 		prev_x_pos = x_pos;
 		prev_y_pos = y_pos;
 	}
-	
+	//center tag above point
+	if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
+		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
+	}
 	if (mode_ == PROMPT) {
 		// Cross
 		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
 		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
-	} else {
-		draw_bearing({ 120, 32 + 144 }, angle_, 16, Color::red());
-		painter.draw_string({ 120 - ((int)tag_.length() * 8 / 2), 32 + 144 - 32 }, style(), tag_);
+	} else if (angle_ < 360){
+		//if we have a valid angle draw bearing
+		draw_bearing(r.center(), angle_, 10, Color::red());
+	}
+	else {
+		//draw a small cross
+		display.fill_rectangle({ r.center() - Point(8, 1), { 16, 2 } }, Color::red());
+		display.fill_rectangle({ r.center() - Point(1, 8), { 2, 16 } }, Color::red());
 	}
 }
 
@@ -183,10 +200,16 @@ void GeoMap::move(const float lon, const float lat) {
 	
 	Rect map_rect = screen_rect();
 	
-	// Map is in Equidistant "Plate Carrée" projection
-	x_pos = map_center_x - (map_rect.width() / 2) + (lon_ / lon_ratio);
-	y_pos = map_center_y - (map_rect.height() / 2) + (lat_ / lat_ratio) + 16;
-	
+	// Using WGS 84/Pseudo-Mercator projection
+	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
+
+	// Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
+	double map_bottom = sin(-85.05 * pi / 180); // Map bitmap only goes from about -85 to 85 lat
+	double lat_rad = sin(lat * pi / 180);
+	double map_world_lon = map_width / (2 * pi); 
+    double map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
+	y_pos = map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset) - 128; // Offset added for the GUI
+
 	// Cap position
 	if (x_pos > (map_width - map_rect.width()))
 		x_pos = map_width - map_rect.width();
@@ -215,13 +238,13 @@ void GeoMap::set_mode(GeoMapMode mode) {
 	mode_ = mode;
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint32_t angle, uint32_t size, const Color color) {
+void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
 	Point arrow_a, arrow_b, arrow_c;
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
 		arrow_a = polar_to_point(angle, size) + origin;
-		arrow_b = polar_to_point(angle + 180 - 30, size) + origin;
-		arrow_c = polar_to_point(angle + 180 + 30, size) + origin;
+		arrow_b = polar_to_point(angle + 180 - 35, size) + origin;
+		arrow_c = polar_to_point(angle + 180 + 35, size) + origin;
 		
 		display.draw_line(arrow_a, arrow_b, color);
 		display.draw_line(arrow_b, arrow_c, color);
@@ -238,11 +261,12 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
-void GeoMapView::update_position(float lat, float lon) {
+void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();
 }
@@ -253,7 +277,7 @@ void GeoMapView::setup() {
 	geopos.set_altitude(altitude_);
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
-	
+
 	geopos.on_change = [this](int32_t altitude, float lat, float lon) {
 		altitude_ = altitude;
 		lat_ = lat;
@@ -291,7 +315,7 @@ GeoMapView::GeoMapView(
 	GeoPos::alt_unit altitude_unit,
 	float lat,
 	float lon,
-	float angle,
+	uint16_t angle,
 	const std::function<void(void)> on_close
 ) : nav_ (nav),
 	altitude_ (altitude),
@@ -312,6 +336,7 @@ GeoMapView::GeoMapView(
 	
 	geomap.set_mode(mode_);
 	geomap.set_tag(tag);
+	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	
 	geopos.set_read_only(true);

@@ -1,125 +1,67 @@
-![HAVOC banner](doc/banner.png)
+> ⚠ **BEFORE BUYING YOURS:** Beware of hardware mods that use a custom firmware, which are [NOT COMPATIBLE](https://github.com/eried/portapack-mayhem/issues/264) with older forks, and they do not follow the license. **ASK THE SELLER if the unit works with an specific firmware, for example, pointing to the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=latest%20release&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) on this repository**
 
-HAVOC is a fork of the PortaPack H1 firmware, a portability add-on for the [HackRF One software-defined radio](http://greatscottgadgets.com/hackrf/).
+# PortaPack Mayhem
 
-Hardware is available at [ShareBrained Technology](http://sharebrained.com/portapack).
+[![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![buddy pipeline](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276/badge.svg?token=48cd59d53de0589a8fbe26bc751d77a59a011cf72581da049343879402991c34 "buddy pipeline")](https://app.buddy.works/eried/portapack/pipelines/pipeline/252276) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/total)](https://github.com/eried/portapack-mayhem/releases) [![GitHub Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/latest/total)](https://github.com/eried/portapack-mayhem/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://img.shields.io/discord/719669764804444213.svg)](https://discord.gg/tuwVMv3)  [![Check bounties!](https://img.shields.io/bountysource/team/portapack-mayhem/activity?color=%2333ccff&label=bountysource%20%28USD%29&style=plastic)](https://www.bountysource.com/teams/portapack-mayhem/issues)
 
-It is build on top of [ShareBrained's firmware](https://github.com/sharebrained/portapack-hackrf/), meaning that the original functionalities are kept (except when I don't sync for 2 months).
+This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork is a derivate, in this case one that has extra features and fixes when compared to the older versions.
 
-# Documentation
+[<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_front.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_inside.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview#portapack-internals)
 
-[READ THE WIKI](https://github.com/furrtek/portapack-havoc/wiki/Home/)
+*[PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dZ7lA96) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
 
-If you want to submit a bug report, suggest something... Don't hesitate, use this page: https://github.com/furrtek/portapack-havoc/issues (Check the progress list below first).
+# Quick overview
 
-# Summary
+If you are new to *HackRF+PortaPack+Mayhem*, there is an awesome introductory video by [Tech Minds](https://www.youtube.com/channel/UC9a8Z6Sp6eb2s3O79pX5Zvg) available:
 
-As its name implies, HAVOC's functionalities can be fun, mean and even useful sometimes. You shouldn't use them. No ! Bad ! Put it down.
+[![Setup and overview](https://img.youtube.com/vi/kjFB58Y1TAo/0.jpg)](https://www.youtube.com/watch?v=kjFB58Y1TAo)
 
-**In most countries, radio transmissions are tightly regulated. Transmitting outside of free/public bands without a licence or authorization, even at very low power, is certainly forbidden where you live. Always bear that in mind. You're the ONLY ONE responsible for what you do with this software.**
+# Frequently Asked Questions
 
-# Fork features
+This repository expands upon the previous work by many people and aims to constantly add new features, bugfixes and generate documentation to make further development easier.  [Collaboration](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) is always welcomed and appreciated.
 
-* IQ file replay
-* Microphone FM transmit with CTCSS
-* CTCSS decoder
-* Frequency manager (save & load from SD card, with categories and notes)
-* File manager
-* "Soundboard" wave file player (put 8-bit mono files in SD card /wav directory)
-* ADS-B receiver with map view
-* ADS-B transmitter (aircraft spoof)
-* SSTV transmitter
-* Fully configurable jammer
-* POCSAG transmitter
-* POCSAG receiver/decoder
-* Morse transmitter (FM tone and CW)
-* OOK transmitter for common remote encoders (PT2262, doorbells, remote outlets, some garage doors, ...)
-* RDS (Radio Data System) PSN, RadioText and Time groups transmitter
-* Meteorological radiosonde receiver for M10 and M2K2...
-* AFSK receiver
-* AFSK transmitter (Bell202...)
-* Nuoptix DTMF sync transmitter (quite specific but can be useful in some theme parks :) )
-* TouchTunes jukebox universal remote (by Notpike)
-* LCR (Language de Commande Routier) message generator
-* Street lighting control transmitter (CCIR tones)
-* "Play Dead" in case of emergency
-* Fully configurable RF signal generator
-* RSSI audio output as pitch (for direction finding)
+## Does it work on H1/H2 PortaPack?
 
-# Progress
+Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dZ7lA96), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license). Most members of the community are using a clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_dS6liw4), which does not include any battery functionality, but it is a cheaper alternative.
 
-Feature | Progress | Notes
-------- | -------- | -----
-POCSAG RX   | 95% | Needs support for numeric messages
-Morse TX    | 95% | Needs fox hunt scheduler and live keying mode
-Mic. TX     | 95% | Carrier leak bug, need to find guard tones for various brands of wireless mics
-ADS-B RX    | 90% | Needs angle and speed decoding
-Close-Call™ | 85% | Needs adjustments and optimization for wider frequency range
-ADS-B TX    | 85% | Works but baseband module needs cleaning
-SSTV TX     | 80% | Needs better bitmap file handling, support for other modes (ROBOT ?) and callsign FSK ID
-Radiosondes | 75% | Needs support for other models
-Wave visualizer | 70% | Needs cleaning and handling of other sample formats, high priority
-AFSK RX     | 70% | Needs work regarding flexibility
-Sigfox RX   | 40% | Tuning basics done, needs decoding code and testing
-Generic TXs | 30% | Raw AX.25, AFSK, FSK, CCIR, DTMF... Tonesets are ready
-CC1101 TRX  | 10% | And other sub-GHz transceiver chips like SI4032...
-SSTV RX     | 0%  | 
-Scanner     | 0%  | Easy, could be used with POCSAG RX to catch jumping channels
-SSB TX      | 0%  | Requested but math is hard :(
-OOK RX      | 0%  | See if rtl_433's author is fine with using protocol defs
-Analog TV TX| 0%  | Enough CPU ? B&W and no sound ?
-LoJack RX   | 0%  | Basically AFSK RX
-DMR info RX | 0%  | Retrieve DMR channel info. **No voice** because of vocoder complexity and possible legal issue
-Tetra info? | 0%  | Same
+To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
-# Screenshots
+## Where is the latest firmware?
 
-![HAVOC screenshots](doc/screenshots.png)
+The current stable release is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. There is also [nightly builds](https://github.com/eried/portapack-mayhem/releases/tag/nightly) generated periodically, which include the latest commits, but they may contain incomplete or buggy functionality.
 
-# Thanks
+## Is this the newest firmware for my PortaPack? 
+Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new/choose) them*.
 
-* Sig and cLx for research on AFSK LCR, Xylos, and for lending remote-controlled outlets
-* Pyr3x, Rainer Matla and DC1RDB for the donations :)
-* Keld Norman and Giorgio Campiotti for ideas and suggestions
+## Which one is actually the newest?
+There is a lot of confusion of which is the latest version because no old version used any actual "version number". Additionally, since the files were distributed on facebook groups, github issue links and similar temporal sources, then there was no central location for them. 
 
-# License
+This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://en.wikipedia.org/wiki/Software_versioning), so you can always compare your current version with the latest from [Releases](https://github.com/eried/portapack-mayhem/releases/latest).
 
-Except where specified in subdirectories of this project, all work is offered under the following license:
+## What about Havoc/GridRF/jamesshao8/jboone's?
+* jboone's PortaPack: the [vanilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
+* Havoc: It was the most popular fork of jboone's PortaPack, currrently, it is not being maintained nor updated
+* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything. Latest functions do not follow the license and are not being published with source code, so keep this in mind
+* GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
 
-Copyright (C) 2013-2019 Jared Boone, ShareBrained Technology, Inc.
+## How can I collaborate
+You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), fix bugs and [answer issues](https://github.com/eried/portapack-mayhem/issues) or add new functionality. Please check the following [guide](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) with details.
 
-Copyright (C) 2015-2016 Furrtek
+Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. For coding related questions, if something does not fit as an issue, please join our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+As a last option, if you want to send money directly to me for getting more boards, antennas and such:
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.
+## What if I really want to pay for something?
+You can create a bounty and invite people to your own bounty. This will incentivize coders to work on a new feature, solving a bug or even writting documentation. Start a bounty by [creating](https://github.com/eried/portapack-mayhem/issues/new/choose) or [choosing](https://github.com/eried/portapack-mayhem/issues/) an existing issue. Then, go to [Bountysource](https://www.bountysource.com/) and post a bounty using the link to that specific [issue](https://www.bountysource.com/teams/portapack-mayhem/issues).
 
-# Contact
+Promote your bounty over our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
-## Original firmware and hardware
+## What if I need help?
+First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
-Jared Boone <jared@sharebrained.com>
+You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook, and our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
-ShareBrained Technology, Inc.
-
-<http://www.sharebrained.com/>
-
-The latest version of this repository can be found at
-https://github.com/sharebrained/portapack-hackrf/
-
-## HAVOC specific things
-
-Furrtek <furrtek@gmail.com>
-
-<http://www.furrtek.org>
+## What if I find incongruencies, or grammatical errors in the text?
+If is on the [Wiki](https://github.com/eried/portapack-mayhem/wiki), you can modify it directly. If is on files of the repository, you can send corrections as [pull requests](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate#coding-new-stuff-or-fixing-bugs). As a last resource, open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).

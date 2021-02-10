@@ -55,7 +55,7 @@ private:
 	//uint8_t scan_count;
 	//double scan_progress;
 	//unsigned int scan_index;
-	int16_t waveform_buffer[512];
+	int16_t waveform_buffer[550];
 	const encoder_def_t * encoder_def { };
 	//uint8_t enc_type = 0;
 

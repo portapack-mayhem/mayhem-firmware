@@ -67,8 +67,9 @@ protected:
 		{ ".TXT", &bitmap_icon_file_text, ui::Color::white() },
 		{ ".PNG", &bitmap_icon_file_image, ui::Color::green() },
 		{ ".BMP", &bitmap_icon_file_image, ui::Color::green() },
+		{ ".C8",  &bitmap_icon_file_iq, ui::Color::blue() },
 		{ ".C16", &bitmap_icon_file_iq, ui::Color::blue() },
-		{ ".WAV", &bitmap_icon_speaker, ui::Color::dark_magenta() },
+		{ ".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta() },
 		{ "", &bitmap_icon_file, ui::Color::light_grey() }
 	};
 	
@@ -80,13 +81,14 @@ protected:
 	std::string extension_filter { "" };
 	
 	void change_category(int32_t category_id);
+	std::filesystem::path get_parent_dir();
 	void refresh_list();
 	
 	Labels labels {
-		{ { 0, 0 }, "Current:", Color::light_grey() }
+		{ { 0, 0 }, "Path:", Color::light_grey() }
 	};
 	Text text_current {
-		{ 8 * 8, 0 * 8, 22 * 8, 16 },
+		{ 6 * 8, 0 * 8, 24 * 8, 16 },
 		"",
 	};
 	
@@ -94,13 +96,9 @@ protected:
 		{ 0, 2 * 8, 240, 26 * 8 },
 		true
 	};
-	Text text_empty {
-		{ 7 * 8, 12 * 8, 16 * 8, 16 },
-		"Empty directory !",
-	};
 	
 	Button button_exit {
-		{ 20 * 8, 34 * 8, 10 * 8, 4 * 8 },
+		{ 16 * 8, 34 * 8, 14 * 8, 32 },
 		"Exit"
 	};
 };
@@ -160,11 +158,11 @@ private:
 	};
 
 	Button button_rename {
-		{ 0 * 8, 29 * 8, 12 * 8, 32 },
+		{ 0 * 8, 29 * 8, 14 * 8, 32 },
 		"Rename"
 	};
 	Button button_delete {
-		{ 18 * 8, 29 * 8, 12 * 8, 32 },
+		{ 16 * 8, 29 * 8, 14 * 8, 32 },
 		"Delete"
 	};
 	

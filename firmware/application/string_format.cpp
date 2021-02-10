@@ -113,7 +113,7 @@ std::string to_string_dec_int(
 }
 
 std::string to_string_short_freq(const uint64_t f) {
-	auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
+	auto final_str = to_string_dec_int(f / 1000000,4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
 	return final_str;
 }
 
@@ -171,7 +171,7 @@ std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
 	}
 	
 	string += to_string_dec_uint(value.hour(), 2, '0') + ":" +
-	string += to_string_dec_uint(value.minute(), 2, '0');
+				to_string_dec_uint(value.minute(), 2, '0');
 	
 	if ((format == YMDHMS) || (format == HMS))
 		string += ":" + to_string_dec_uint(value.second(), 2, '0');
@@ -222,4 +222,14 @@ std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precisi
 		string += unit_prefix[prefix_index];
 	
 	return string;
+}
+
+double get_decimals(double num, int16_t mult, bool round) {
+	num -= int(num);				//keep decimals only
+	num *= mult;					//Shift decimals into integers
+	if (!round) return num;				
+	int16_t intnum = int(num);		//Round it up if necessary
+	num -= intnum;					//Get decimal part
+	if (num > .5) intnum++;			//Round up
+	return intnum;
 }

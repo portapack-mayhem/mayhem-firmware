@@ -64,6 +64,15 @@ void LGEView::generate_lge_frame(const uint8_t command, const uint16_t address_a
 		console.write(to_string_hex(b, 2) + " ");
 }
 
+void LGEView::generate_frame_touche() {
+	// 0001.89s
+	// 0D 96 02 12 0E 00 46 28 01 45 27 01 44 23 66 30
+	std::vector<uint8_t> data { 0x46, 0x28, 0x01, 0x45, 0x27, 0x01, 0x44, 0x23 };
+	
+	console.write("\n\x1B\x07Touche:\x1B\x10");
+	generate_lge_frame(0x96, (field_joueur.value() << 8) | field_salle.value(), 0x0001, data);
+}
+
 void LGEView::generate_frame_pseudo() {
 	// 0040.48s:
 	// 30 02 1A 00 19 00 FF 00 02 19 42 52 45 42 49 53 20 00 00 00 00 00 00 00 00 00
@@ -112,7 +121,7 @@ void LGEView::generate_frame_equipe() {
 	// 0041.83s:
 	// 3D 03 FF FF FF FF 02 03 01 52 4F 55 47 45 00 00 00 00 00 00 00 00 00 00 00 00
 	// 02 56 45 52 54 45 00 00 00 00 00 00 00 00 00 00 00 01 03 42 4C 45 55 45 00 00
-	// 00 00 00 00 00 00 00 00 00 02 43 29 
+	// 00 00 00 00 00 00 00 00 00 02 43 29
 
 	std::vector<uint8_t> data { };
 	std::array<uint8_t, 2> data_header = { 0x02, 0x01 };
@@ -142,7 +151,7 @@ void LGEView::generate_frame_broadcast_pseudo() {
 	// 0043.86s:
 	// 3D 04 FF FF FF FF 02 03 19 42 52 45 42 49 53 20 00 00 00 00 00 00 00 00 00 04
 	// 07 50 4F 4E 45 59 20 00 00 00 00 00 00 00 00 00 00 05 1B 41 42 42 59 20 00 00
-	// 00 00 00 00 00 00 00 00 00 04 0A 02 
+	// 00 00 00 00 00 00 00 00 00 04 0A 02
 
 	std::vector<uint8_t> data { };
 	std::array<uint8_t, 2> data_header = { 0x02, 0x01 };
@@ -172,7 +181,7 @@ void LGEView::generate_frame_broadcast_pseudo() {
 
 void LGEView::generate_frame_start() {
 	// 0166.13s:
-	// 0A 05 FF FF FF FF 02 EC FF FF FF A3 35 
+	// 0A 05 FF FF FF FF 02 EC FF FF FF A3 35
 	std::vector<uint8_t> data { 0x02, 0xEC, 0xFF, 0xFF, 0xFF };
 	
 	//data[0] = field_salle.value();	// ?
@@ -182,10 +191,46 @@ void LGEView::generate_frame_start() {
 }
 
 void LGEView::generate_frame_gameover() {
-	std::vector<uint8_t> data { field_salle.value() };
+	std::vector<uint8_t> data { (uint8_t)field_salle.value() };
 	
 	console.write("\n\x1B\x0CGameover:\x1B\x10");
 	generate_lge_frame(0x0D, data);
+}
+
+void LGEView::generate_frame_collier() {
+	uint8_t flags = 0;
+	
+	// Custom
+	// 0C 00 13 37 13 37 id flags channel playerid zapduty zaptime checksum CRC CRC
+	// channel: field_channel
+	// playerid: field_joueur
+	// zapduty: field_power
+	// zaptime: field_duration
+	
+	if (checkbox_heartbeat.value())
+		flags |= 1;
+	if (checkbox_rxtick.value())
+		flags |= 2;
+	
+	uint8_t checksum = 0;
+	uint8_t id = (uint8_t)field_id.value();
+	
+	std::vector<uint8_t> data {
+		id,
+		flags,
+		(uint8_t)field_salle.value(),
+		(uint8_t)field_joueur.value(),
+		(uint8_t)field_power.value(),
+		(uint8_t)(field_duration.value() * 10)
+	};
+	
+	for (auto &v : data)
+		checksum += v;
+	
+	data.push_back(checksum - id);
+	
+	console.write("\n\x1B\x06" "Config:\x1B\x10");
+	generate_lge_frame(0x00, 0x3713, 0x3713, data);
 }
 
 void LGEView::start_tx() {
@@ -195,7 +240,6 @@ void LGEView::start_tx() {
 		tx_view.set_dirty();
 	}
 	transmitter_model.set_sampling_rate(2280000);
-	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 
@@ -217,11 +261,11 @@ void LGEView::on_tx_progress(const uint32_t progress, const bool done) {
 	
 	transmitter_model.disable();
 	
-	if (repeats < 2) {
+	/*if (repeats < 2) {
 		chThdSleep(100);
 		repeats++;
 		start_tx();
-	} else {
+	} else {*/
 		if (tx_mode == ALL) {
 			if (channel_index < 2) {
 				channel_index++;
@@ -233,7 +277,7 @@ void LGEView::on_tx_progress(const uint32_t progress, const bool done) {
 		} else {
 			stop_tx();
 		}
-	}
+	//}
 }
 
 LGEView::LGEView(NavigationView& nav) {
@@ -246,6 +290,11 @@ LGEView::LGEView(NavigationView& nav) {
 		&button_texte,
 		&field_equipe,
 		&field_joueur,
+		&field_id,
+		&field_power,
+		&field_duration,
+		&checkbox_heartbeat,
+		&checkbox_rxtick,
 		&checkbox_channels,
 		&console,
 		&tx_view
@@ -254,7 +303,9 @@ LGEView::LGEView(NavigationView& nav) {
 	field_salle.set_value(1);
 	field_equipe.set_value(1);
 	field_joueur.set_value(1);
-	checkbox_channels.set_value(true);
+	field_id.set_value(1);
+	field_power.set_value(1);
+	field_duration.set_value(2);
 	
 	button_texte.on_select = [this, &nav](Button&) {
 		text_prompt(
@@ -277,15 +328,19 @@ LGEView::LGEView(NavigationView& nav) {
 		if (tx_mode == IDLE) {
 			auto i = options_trame.selected_index_value();
 			if (i == 0)
-				generate_frame_pseudo();
+				generate_frame_touche();
 			else if (i == 1)
-				generate_frame_equipe();
+				generate_frame_pseudo();
 			else if (i == 2)
-				generate_frame_broadcast_pseudo();
+				generate_frame_equipe();
 			else if (i == 3)
-				generate_frame_start();
+				generate_frame_broadcast_pseudo();
 			else if (i == 4)
+				generate_frame_start();
+			else if (i == 5)
 				generate_frame_gameover();
+			else if (i == 6)
+				generate_frame_collier();
 			
 			repeats = 0;
 			channel_index = 0;

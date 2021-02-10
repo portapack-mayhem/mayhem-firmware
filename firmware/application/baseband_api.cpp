@@ -39,7 +39,7 @@ static void send_message(const Message* const message) {
 	// If message is only sent by this function via one thread, no need to check if
 	// another message is present before setting new message.
 	shared_memory.baseband_message = message;
-	creg::m0apptxevent::assert();
+	creg::m0apptxevent::assert_event();
 	while(shared_memory.baseband_message);
 }
 
@@ -130,6 +130,26 @@ void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_
 	send_message(&message);
 }
 
+void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
+	const BTLERxConfigureMessage message {
+		baudrate,
+		word_length,
+		trigger_value,
+		trigger_word
+	};
+	send_message(&message);
+}
+    
+void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
+	const NRFRxConfigureMessage message {
+		baudrate,
+		word_length,
+		trigger_value,
+		trigger_word
+	};
+	send_message(&message);
+}
+    
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count) {
 	const AFSKTxConfigureMessage message {
@@ -204,9 +224,10 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
 	send_message(&message);
 }
 
-void set_pocsag(const pocsag::BitRate bitrate) {
+void set_pocsag(const pocsag::BitRate bitrate, bool phase) {
 	const POCSAGConfigureMessage message {
-		bitrate
+		bitrate,
+		phase
 	};
 	send_message(&message);
 }

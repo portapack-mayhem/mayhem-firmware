@@ -204,7 +204,6 @@ void RDSView::start_tx() {
 		frame_datetime.clear();
 	
 	transmitter_model.set_sampling_rate(2280000U);
-	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 	

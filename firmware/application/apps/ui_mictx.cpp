@@ -37,7 +37,17 @@ using namespace portapack;
 namespace ui {
 
 void MicTXView::focus() {
-	field_frequency.focus();
+	switch(focused_ui) {
+		case 0:
+			field_frequency.focus();
+			break;
+		case 1:
+			field_rxfrequency.focus();
+			break;
+		default:
+			field_va.focus();
+			break;
+	}	
 }
 
 void MicTXView::update_vumeter() {
@@ -61,24 +71,25 @@ void MicTXView::configure_baseband() {
 
 void MicTXView::set_tx(bool enable) {
 	if (enable) {
+		if (rx_enabled)  //If audio RX is enabled
+			rxaudio(false); //Then turn off audio RX
 		transmitting = true;
 		configure_baseband();
-		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_tuning_frequency(tx_frequency);
+		transmitter_model.set_tx_gain(tx_gain);
+		transmitter_model.set_rf_amp(rf_amp);
 		transmitter_model.enable();
 		portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
-		//gpio_tx.write(1);
-		//led_tx.on();
 	} else {
 		if (transmitting && rogerbeep_enabled) {
-			baseband::request_beep();
-			transmitting = false;
-		} else {
+			baseband::request_beep();	//Transmit the roger beep
+			transmitting = false;		//And flag the end of the transmission so ...
+		} else { // (if roger beep was enabled, this will be executed after the beep ends transmitting.
 			transmitting = false;
 			configure_baseband();
-			transmitter_model.set_rf_amp(false);
 			transmitter_model.disable();
-			//gpio_tx.write(0);
-			//led_tx.off();
+			if (rx_enabled)  //If audio RX is enabled and we've been transmitting
+				rxaudio(true); //Turn back on audio RX
 		}
 	}
 }
@@ -115,13 +126,56 @@ void MicTXView::do_timing() {
 	} else {
 		// Check for PTT release
 		const auto switches_state = get_switches_state();
-		if (!switches_state[0] && transmitting)		// Right button
+		if (!switches_state[4] && transmitting && !button_touch)		// Select button
 			set_tx(false);
 	}
 }
 
+/* Hmmmm. Maybe useless now.
 void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
 	transmitter_model.set_tuning_frequency(f);
+	//if ( rx_enabled )
+		receiver_model.set_tuning_frequency(f); //Update freq also for RX
+}
+*/
+
+void MicTXView::rxaudio(bool is_on) {
+	if (is_on) {
+		audio::input::stop();
+		baseband::shutdown();
+		baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+		receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+		receiver_model.set_sampling_rate(3072000);
+		receiver_model.set_baseband_bandwidth(1750000);	
+//		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
+		receiver_model.set_tuning_frequency(rx_frequency); // Now with seperate controls!
+		receiver_model.set_lna(rx_lna);
+		receiver_model.set_vga(rx_vga);
+		receiver_model.set_rf_amp(rx_amp);
+		receiver_model.enable();
+		audio::output::start();
+	} else {	//These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
+		receiver_model.disable();
+		baseband::shutdown();
+		baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
+		audio::input::start();
+//		transmitter_model.enable();		
+		portapack::pin_i2s0_rx_sda.mode(3);
+//		transmitting = false;
+		configure_baseband();
+//		transmitter_model.disable();
+	}
+}
+
+void MicTXView::on_headphone_volume_changed(int32_t v) {
+	//if (rx_enabled) {
+		const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+		receiver_model.set_headphone_volume(new_volume);
+	//}
+}
+
+void MicTXView::set_ptt_visibility(bool v) {
+	tx_button.hidden(!v);
 }
 
 MicTXView::MicTXView(
@@ -136,17 +190,27 @@ MicTXView::MicTXView(
 		&labels,
 		&vumeter,
 		&options_gain,
-		&check_va,
+//		&check_va,
+		&field_va,
 		&field_va_level,
 		&field_va_attack,
 		&field_va_decay,
 		&field_bw,
+		&field_rfgain,
+		&field_rfamp,
 		&field_frequency,
 		&options_tone_key,
 		&check_rogerbeep,
-		&text_ptt
+		&check_rxactive,
+		&field_volume,
+		&field_squelch,
+		&field_rxfrequency,
+		&field_rxlna,
+		&field_rxvga,
+		&field_rxamp,
+		&tx_button
 	});
-	
+
 	tone_keys_populate(options_tone_key);
 	options_tone_key.on_change = [this](size_t i, int32_t) {
 		tone_key_index = i;
@@ -159,17 +223,24 @@ MicTXView::MicTXView(
 	};
 	options_gain.set_selected_index(1);		// x1.0
 	
+	tx_frequency = transmitter_model.tuning_frequency();
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		tx_frequency = f;
+		if(!rx_enabled)
+			transmitter_model.set_tuning_frequency(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
+		focused_ui = 0;
 		// TODO: Provide separate modal method/scheme?
-		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		auto new_view = nav.push<FrequencyKeypadView>(tx_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
-			this->on_tuning_frequency_changed(f);
+			tx_frequency = f;
+			if(!rx_enabled)
+				transmitter_model.set_tuning_frequency(f);
 			this->field_frequency.set_value(f);
+			set_dirty();
 		};
 	};
 	
@@ -178,18 +249,61 @@ MicTXView::MicTXView(
 	};
 	field_bw.set_value(10);
 	
+	tx_gain = transmitter_model.tx_gain();
+	field_rfgain.on_change = [this](int32_t v) {
+		tx_gain = v;
+		
+	};
+	field_rfgain.set_value(tx_gain);
+
+	rf_amp = transmitter_model.rf_amp();
+	field_rfamp.on_change = [this](int32_t v) {
+		rf_amp = (bool)v;
+	};
+	field_rfamp.set_value(rf_amp ? 14 : 0);
+	
+	/*
 	check_va.on_select = [this](Checkbox&, bool v) {
 		va_enabled = v;
-		text_ptt.hidden(v);
+		text_ptt.hidden(v);			//hide / show PTT text
+		check_rxactive.hidden(v); 	//hide / show the RX AUDIO
+		set_dirty();				//Refresh display
+	};
+	*/
+	field_va.set_selected_index(1);
+	field_va.on_change = [this](size_t, int32_t v) {
+		switch(v) {
+			case 0:
+				va_enabled = 0;
+				this->set_ptt_visibility(0);
+				check_rxactive.hidden(0);
+				ptt_enabled = 0;
+				break;
+			case 1:
+				va_enabled = 0;
+				this->set_ptt_visibility(1);
+				check_rxactive.hidden(0);
+				ptt_enabled = 1;
+				break;
+			case 2:
+				if (!rx_enabled) {
+					va_enabled = 1;
+					this->set_ptt_visibility(0);
+					check_rxactive.hidden(1);
+					ptt_enabled = 0;
+				} else {
+					field_va.set_selected_index(1);
+				}
+				break;
+		}
 		set_dirty();
 	};
-	check_va.set_value(false);
 	
+
 	check_rogerbeep.on_select = [this](Checkbox&, bool v) {
 		rogerbeep_enabled = v;
 	};
-	check_rogerbeep.set_value(false);
-	
+
 	field_va_level.on_change = [this](int32_t v) {
 		va_level = v;
 		vumeter.set_mark(v);
@@ -205,9 +319,90 @@ MicTXView::MicTXView(
 		decay_ms = v;
 	};
 	field_va_decay.set_value(1000);
+
+	check_rxactive.on_select = [this](Checkbox&, bool v) {
+//		vumeter.set_value(0);	//Start with a clean vumeter
+		rx_enabled = v;
+//		check_va.hidden(v); 	//Hide or show voice activation
+		rxaudio(v);				//Activate-Deactivate audio rx accordingly
+		set_dirty();			//Refresh interface
+	};
+
+	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+	field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
+
+	field_squelch.on_change = [this](int32_t v) { 
+		receiver_model.set_squelch_level(100 - v);	
+	};
+	field_squelch.set_value(0);
+	receiver_model.set_squelch_level(0);
+
+	rx_frequency = receiver_model.tuning_frequency();
+	field_rxfrequency.set_value(rx_frequency);
+	field_rxfrequency.set_step(receiver_model.frequency_step());
+	field_rxfrequency.on_change = [this](rf::Frequency f) {
+		rx_frequency = f;
+		if(rx_enabled)
+			receiver_model.set_tuning_frequency(f);
+	};
+	field_rxfrequency.on_edit = [this, &nav]() {
+		focused_ui = 1;
+		// TODO: Provide separate modal method/scheme?
+		auto new_view = nav.push<FrequencyKeypadView>(rx_frequency);
+		new_view->on_changed = [this](rf::Frequency f) {
+			rx_frequency = f;
+			if(rx_enabled)
+				receiver_model.set_tuning_frequency(f);
+			this->field_rxfrequency.set_value(f);
+			set_dirty();
+		};
+	};
+
 	
+	rx_lna = receiver_model.lna();
+	field_rxlna.on_change = [this](int32_t v) {
+		rx_lna = v;
+		if(rx_enabled)
+			receiver_model.set_lna(v);
+	};
+	field_rxlna.set_value(rx_lna);
+
+	rx_vga = receiver_model.vga();
+	field_rxvga.on_change = [this](int32_t v) {
+		rx_vga = v;
+		if(rx_enabled)
+			receiver_model.set_vga(v);
+	};
+	field_rxvga.set_value(rx_vga);
+
+	rx_amp = receiver_model.rf_amp();
+	field_rxamp.on_change = [this](int32_t v) {
+		rx_amp = v;
+		if(rx_enabled)
+			receiver_model.set_rf_amp(rx_amp);
+	};
+	field_rxamp.set_value(rx_amp);
+
+	tx_button.on_select = [this](Button&) {
+		if(ptt_enabled && !transmitting) {
+			set_tx(true);
+		}
+	};
+
+	tx_button.on_touch_release = [this](Button&) {
+		if(button_touch) {
+			button_touch = false;
+			set_tx(false);
+		}
+	};
+
+	tx_button.on_touch_press = [this](Button&) {
+		if(!transmitting) {
+			button_touch = true;
+		}	
+	};
+
 	transmitter_model.set_sampling_rate(sampling_rate);
-	transmitter_model.set_rf_amp(false);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	
 	set_tx(false);
@@ -218,7 +413,10 @@ MicTXView::MicTXView(
 
 MicTXView::~MicTXView() {
 	audio::input::stop();
+	transmitter_model.set_tuning_frequency(tx_frequency); // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
 	transmitter_model.disable();
+	if (rx_enabled) //Also turn off audio rx if enabled
+		rxaudio(false);
 	baseband::shutdown();
 }
 

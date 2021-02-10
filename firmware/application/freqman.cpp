@@ -29,7 +29,11 @@ std::vector<std::string> get_freqman_files() {
 	auto files = scan_root_files(u"FREQMAN", u"*.TXT");
 	
 	for (auto file : files) {
-		file_list.emplace_back(file.stem().string());
+		std::string file_name = file.stem().string();
+		// don't propose tmp / hidden files in freqman's list
+		if (file_name.length() && file_name[0] != '.') {
+			file_list.emplace_back(file_name);
+		}
 	}
 	
 	return file_list;

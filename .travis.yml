@@ -7,16 +7,15 @@ matrix:
       cache: apt
       dist: xenial
 
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#portapack"
-    template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "Change view : %{compare_url}"
-      - "Build details : %{build_url}"
-      # TODO: The "build_number.1" in this URL is almost certainly wrong, but correct value not available from Travis?
-      - "Firmware download : https://portapack-h1-builds.s3.amazonaws.com/%{repository_slug}/%{build_number}/%{build_number}.1/build/firmware/portapack-h1-firmware-%{commit}.tar.bz2"
+env:
+  global:
+    - PROJECT_NAME=PortaPack-HAVOC
+    - SHORT_COMMIT_HASH=`git rev-parse --short HEAD`
+    - VERSION_STRING=nightly-$SHORT_COMMIT_HASH
+    - BUILD_DATE="`date +%Y-%m-%d`"
+    - BUILD_NAME="$PROJECT_NAME-$BUILD_DATE-$SHORT_COMMIT_HASH"
+    - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
+    - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
 before_install:
   - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
@@ -25,17 +24,33 @@ before_install:
 
 script:
   # TODO: Introduce top-level Makefile, this is lame.
+  - sed -e "s/\#set(VERSION.*/set(VERSION \"$VERSION_STRING\")/" -i".bak" CMakeLists.txt
   - mkdir build/
   - pushd build/
   - cmake ..
-  - make release
+  - make firmware
   - popd
+
+after_success:
+  - mkdir -p $ARTEFACT_PATH
+  # Copy firmware to firmware-bin directory
+  - cd $TRAVIS_BUILD_DIR/build
+  - cp firmware/portapack-h1-havoc.bin $ARTEFACT_PATH/
+  - cp hackrf/firmware/hackrf_usb/hackrf_usb.dfu $ARTEFACT_PATH/
+  - cd $TRAVIS_BUILD_DIR
+  - cp LICENSE $ARTEFACT_PATH/
+  # Build the archive
+  - cd $ARTEFACT_BASE
+  - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $BUILD_NAME
+  - md5sum --binary $BUILD_NAME.tar.xz >MD5SUMS
+  - sha256sum --binary $BUILD_NAME.tar.xz >SHA256SUMS
 
 addons:
   apt:
     packages:
+      - coreutils
+      - tar
+      - sed
+      - cmake
       - dfu-util
-  artifacts:
-    paths:
-      - $(ls build/firmware/portapack-h1-havoc-*.tar.bz2 | tr "\n" ":")
-      - $(ls build/firmware/portapack-h1-havoc-*.zip | tr "\n" ":")
+

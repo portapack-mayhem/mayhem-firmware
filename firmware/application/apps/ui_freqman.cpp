@@ -29,6 +29,8 @@ using namespace portapack;
 
 namespace ui {
 
+static int32_t last_category_id { 0 };
+
 FreqManBaseView::FreqManBaseView(
 	NavigationView& nav
 ) : nav_ (nav)
@@ -80,7 +82,7 @@ void FreqManBaseView::populate_categories() {
 	});
 	
 	options_category.set_options(categories);
-	options_category.set_selected_index(0);
+	options_category.set_selected_index(last_category_id);
 	
 	options_category.on_change = [this](size_t category_id, int32_t) {
 		if (on_change_category)
@@ -92,7 +94,7 @@ void FreqManBaseView::change_category(int32_t category_id) {
 	
 	if (!file_list.size()) return;
 	
-	current_category_id = category_id;
+	last_category_id = current_category_id = category_id;
 	
 	if (!load_freqman_file(file_list[categories[current_category_id].second], database))
 		error_ = ERROR_ACCESS;
@@ -219,7 +221,7 @@ FrequencyLoadView::FrequencyLoadView(
 		nav.pop();
 	};
 	
-	change_category(0);
+	change_category(last_category_id);
 	refresh_list();
 	
 	on_select_frequency = [&nav, this]() {
@@ -257,7 +259,7 @@ void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
 }
 
 void FrequencyManagerView::on_new_category(NavigationView& nav) {
-	text_prompt(nav, desc_buffer, 8, [this](std::string& buffer) {
+	text_prompt(nav, desc_buffer, 12, [this](std::string& buffer) {
 		File freqman_file;
 		create_freqman_file(buffer, freqman_file);
 	});
@@ -308,7 +310,7 @@ FrequencyManagerView::FrequencyManagerView(
 		nav.pop();
 	};
 	
-	change_category(0);
+	change_category(last_category_id);
 	refresh_list();
 	
 	on_select_frequency = [this]() {

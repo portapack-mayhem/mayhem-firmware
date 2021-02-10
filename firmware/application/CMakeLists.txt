@@ -206,20 +206,24 @@ set(CPPSRC
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
 	ui/ui_menu.cpp
+	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
+	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
 	ui/ui_transmitter.cpp
-	apps/ui_about.cpp
+	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
 	apps/ui_adsb_tx.cpp
 	apps/ui_afsk_rx.cpp
+	apps/ui_btle_rx.cpp
+	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_coasterp.cpp
-	# apps/ui_debug.cpp
+	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
 	apps/ui_freqman.cpp
@@ -227,6 +231,7 @@ set(CPPSRC
 	apps/ui_keyfob.cpp
 	apps/ui_lcr.cpp
 	apps/lge_app.cpp
+	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_morse.cpp
@@ -250,11 +255,13 @@ set(CPPSRC
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
+	apps/analog_tv_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	apps/replay_app.cpp
+	apps/gps_sim_app.cpp
 	apps/soundboard_app.cpp
 	apps/tpms_app.cpp
 	protocols/aprs.cpp
@@ -270,7 +277,7 @@ set(CPPSRC
 	# ui_numbers.cpp
 	# ui_replay_view.cpp
 	# ui_script.cpp
-	# ui_sd_card_debug.cpp
+	ui_sd_card_debug.cpp
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
@@ -346,8 +353,7 @@ set(CPPWARN "-Wall -Wextra -Wno-psabi")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-
-set(DDEFS -DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -DGIT_REVISION=\"${GIT_REVISION}\")
+set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -408,7 +414,7 @@ add_custom_command(
 add_custom_command(
 	OUTPUT ${HACKRF_CPLD_DATA_CPP}
 	COMMAND ${HACKRF_CPLD_TOOL} --xsvf ${HACKRF_CPLD_XSVF_PATH} --portapack-data ${HACKRF_CPLD_DATA_CPP}
-	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH} hackrf
+	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH}
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})

@@ -71,6 +71,7 @@ bool POCSAGTXView::start_tx() {
 			return false;
 		}
 	}
+	MessageType phase = (MessageType)options_phase.selected_index_value();
 	
 	pocsag_encode(type, BCH_code, options_function.selected_index_value(), message, address, codewords);
 	
@@ -89,7 +90,11 @@ bool POCSAGTXView::start_tx() {
 	
 	bi = 0;
 	for (i = 0; i < codewords.size(); i++) {
+		if (phase == 0)
+			codeword = ~(codewords[i]);
+		else
 		codeword = codewords[i];
+		
 		data_ptr[bi++] = (codeword >> 24) & 0xFF;
 		data_ptr[bi++] = (codeword >> 16) & 0xFF;
 		data_ptr[bi++] = (codeword >> 8) & 0xFF;
@@ -129,6 +134,7 @@ POCSAGTXView::POCSAGTXView(
 		&field_address,
 		&options_type,
 		&options_function,
+		&options_phase,
 		&text_message,
 		&button_message,
 		&progressbar,

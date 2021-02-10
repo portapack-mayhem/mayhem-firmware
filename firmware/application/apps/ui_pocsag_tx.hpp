@@ -71,6 +71,7 @@ private:
 		{ { 3 * 8, 6 * 8 }, "Address:", Color::light_grey() },
 		{ { 6 * 8, 8 * 8 }, "Type:", Color::light_grey() },
 		{ { 2 * 8, 10 * 8 }, "Function:", Color::light_grey() },
+		{ { 5 * 8, 12 * 8 }, "Phase:", Color::light_grey() },
 		{ { 0 * 8, 14 * 8 }, "Message:", Color::light_grey() }
 	};
 	
@@ -108,6 +109,15 @@ private:
 			{ "B", 1 },
 			{ "C", 2 },
 			{ "D", 3 }
+		}
+	};
+
+	OptionsField options_phase {
+		{ 11 * 8, 12 * 8 },
+		1,
+		{
+			{ "P", 0 },
+			{ "N", 1 },
 		}
 	};
 	

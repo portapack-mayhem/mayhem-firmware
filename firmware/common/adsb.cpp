@@ -211,7 +211,7 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 	uint8_t * raw_data;
 	uint32_t latcprE, latcprO, loncprE, loncprO;
-	float latE, latO, m, Dlon;
+	float latE, latO, m, Dlon, cpr_lon_odd, cpr_lon_even, cpr_lat_odd, cpr_lat_even;
 	int ni;
 	adsb_pos position { false, 0, 0, 0 };
 	
@@ -237,10 +237,17 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 	latcprO = ((frame_data_odd[6] & 3) << 15) | (frame_data_odd[7] << 7) | (frame_data_odd[8] >> 1);
 	loncprO = ((frame_data_odd[8] & 1) << 16) | (frame_data_odd[9] << 8) | frame_data_odd[10];
 
+	// Calculate the coefficients
+	cpr_lon_even = loncprE / CPR_MAX_VALUE;
+	cpr_lon_odd = loncprO / CPR_MAX_VALUE;
+
+	cpr_lat_odd = latcprO / CPR_MAX_VALUE;
+	cpr_lat_even = latcprE / CPR_MAX_VALUE;
+
 	// Compute latitude index
-	float j = floor((((59.0 * latcprE) - (60.0 * latcprO)) / 131072.0) + 0.5);
-	latE = (360.0 / 60.0) * (cpr_mod(j, 60) + (latcprE / 131072.0));
-	latO = (360.0 / 59.0) * (cpr_mod(j, 59) + (latcprO / 131072.0));
+	float j = floor(((59.0 * cpr_lat_even) - (60.0 * cpr_lat_odd)) + 0.5);
+	latE = (360.0 / 60.0) * (cpr_mod(j, 60) + cpr_lat_even);
+	latO = (360.0 / 59.0) * (cpr_mod(j, 59) + cpr_lat_odd);
 
 	if (latE >= 270) latE -= 360;
 	if (latO >= 270) latO -= 360;
@@ -255,9 +262,9 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		ni = cpr_N(latE, 0);
 		Dlon = 360.0 / ni;
 		
-		m = floor((((loncprE * (cpr_NL(latE) - 1)) - (loncprO * cpr_NL(latE))) / 131072.0) + 0.5);
+		m = floor((cpr_lon_even * (cpr_NL(latE) - 1)) - (cpr_lon_odd * cpr_NL(latE)) + 0.5);
 		
-		position.longitude = Dlon * (cpr_mod(m, ni) + loncprE / 131072.0);
+		position.longitude = Dlon * (cpr_mod(m, ni) + cpr_lon_even);
 		
 		position.latitude = latE;
 	} else {
@@ -265,9 +272,9 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		ni = cpr_N(latO, 1);
 		Dlon = 360.0 / ni;
 		
-		m = floor((((loncprE * (cpr_NL(latO) - 1)) - (loncprO * cpr_NL(latO))) / 131072.0) + 0.5);
+		m = floor((cpr_lon_even * (cpr_NL(latO) - 1)) - (cpr_lon_odd * cpr_NL(latO)) + 0.5);
 		
-		position.longitude = Dlon * (cpr_mod(m, ni) + loncprO / 131072.0);
+		position.longitude = Dlon * (cpr_mod(m, ni) + cpr_lon_odd);
 		
 		position.latitude = latO;
 	}
@@ -293,8 +300,8 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 	
 	v_rate_coded = (v_rate / 64) + 1;
 	
-	velo_ew_abs = abs(velo_ew);
-	velo_ns_abs = abs(velo_ns);
+	velo_ew_abs = abs(velo_ew) + 1; 
+	velo_ns_abs = abs(velo_ns) + 1;
 	v_rate_coded_abs = abs(v_rate_coded);
 	
 	make_frame_adsb(frame, ICAO_address);
@@ -308,6 +315,54 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 	frame.push_byte(0);
 	
 	frame.make_CRC();
+}
+
+// Decoding method from dump1090
+adsb_vel decode_frame_velo(ADSBFrame& frame){
+	adsb_vel velo {false, 0, 0};
+
+	uint8_t * frame_data = frame.get_raw_data();
+	uint8_t velo_type = frame.get_msg_sub();
+
+	if(velo_type >= 1 && velo_type <= 4){ //vertical rate is always present
+
+		velo.v_rate = (((frame_data[8] & 0x07 ) << 6) | ((frame_data[9]) >> 2) - 1) * 64;
+
+		if((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1; //check v_rate sign
+	}
+
+	if(velo_type == 1 || velo_type == 2){ //Ground Speed
+		int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
+		int32_t velo_ew = raw_ew - 1; //velocities are all offset by one (this is part of the spec)
+
+		int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
+		int32_t velo_ns = raw_ns - 1;
+
+		if (velo_type == 2){ // supersonic indicator so multiply by 4
+			velo_ew = velo_ew << 2;
+			velo_ns = velo_ns << 2;
+		}
+
+		if(frame_data[5]&0x04) velo_ew *= -1; //check ew direction sign
+		if(frame_data[7]&0x80) velo_ns *= -1; //check ns direction sign
+
+		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
+		
+		if(velo.speed){
+			//calculate heading in degrees from ew/ns velocities
+			int16_t heading_temp = (int16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
+			// We don't want negative values but a 0-360 scale. 
+			if (heading_temp < 0) heading_temp += 360.0;
+			velo.heading = (uint16_t)heading_temp;
+		}
+		
+	}else if(velo_type == 3 || velo_type == 4){ //Airspeed
+		velo.valid = frame_data[5] & (1<<2);
+		velo.heading = ((((frame_data[5] & 0x03)<<8) | frame_data[6]) * 45) << 7;
+	} 
+
+	return velo;
+
 }
 
 } /* namespace adsb */

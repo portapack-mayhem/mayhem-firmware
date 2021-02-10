@@ -26,36 +26,11 @@ set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 
 set(EXTRACT_CPLD_DATA ${PROJECT_SOURCE_DIR}/tools/extract_cpld_data.py)
-set(STRIP_DFU ${PROJECT_SOURCE_DIR}/tools/strip_dfu.py)
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 
-set(FIRMWARE_NAME portapack-h1-havoc)
+set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
-
-include(ExternalProject)
-find_program(MAKE_EXE NAMES gmake nmake make)
-ExternalProject_Add(hackrf
-	GIT_REPOSITORY https://github.com/jboone/hackrf.git
-	# SOURCE_SUBDIR firmware
-	# SOURCE_SUBDIR isn't available in CMake 3.5 (Ubuntu 16.04 LTS), so the following is a work-around:
-	CONFIGURE_COMMAND ${CMAKE_COMMAND} "-GUnix Makefiles" ../hackrf/firmware
-	BUILD_COMMAND ${MAKE_EXE} hackrf_usb.dfu
-	INSTALL_COMMAND ""
-)
-ExternalProject_Get_Property(hackrf SOURCE_DIR)
-ExternalProject_Get_Property(hackrf BINARY_DIR)
-set(hackrf_SOURCE_DIR ${SOURCE_DIR})
-set(hackrf_BINARY_DIR ${BINARY_DIR})
-
-set(HACKRF_FIRMWARE_DFU_FILENAME hackrf_usb.dfu)
-set(HACKRF_FIRMWARE_BIN_FILENAME hackrf_usb.bin)
-
-set(HACKRF_FIRMWARE_DFU_IMAGE ${hackrf_BINARY_DIR}/hackrf_usb/${HACKRF_FIRMWARE_DFU_FILENAME})
-set(HACKRF_FIRMWARE_BIN_IMAGE ${hackrf_BINARY_DIR}/hackrf_usb/${HACKRF_FIRMWARE_BIN_FILENAME})
-set(HACKRF_CPLD_TOOL ${hackrf_SOURCE_DIR}/firmware/tools/cpld_bitstream.py)
-set(HACKRF_CPLD_XSVF_FILENAME default.xsvf)
-set(HACKRF_CPLD_XSVF_PATH ${hackrf_SOURCE_DIR}/firmware/cpld/sgpio_if/${HACKRF_CPLD_XSVF_FILENAME})
 
 add_subdirectory(application)
 add_subdirectory(baseband)
@@ -70,8 +45,8 @@ add_custom_command(
 )
 
 add_custom_target(
-	firmware
-	DEPENDS ${FIRMWARE_FILENAME}
+	firmware ALL
+	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
 add_custom_target(
@@ -79,22 +54,29 @@ add_custom_target(
 	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_DFU_IMAGE}
 	COMMAND sleep 3s
 	COMMAND hackrf_spiflash -w ${FIRMWARE_FILENAME}
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_FILENAME}
+	DEPENDS ${FIRMWARE_FILENAME}
 )
 
 # TODO: Bad hack to fix location of LICENSE file for tar.
 add_custom_command(
-	OUTPUT ${FIRMWARE_NAME}-${GIT_REVISION}.tar.bz2 ${FIRMWARE_NAME}-${GIT_REVISION}.zip
+	OUTPUT ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
 	COMMAND cp ${LICENSE_PATH} LICENSE
 	COMMAND cp ${HACKRF_FIRMWARE_DFU_IMAGE} ${HACKRF_FIRMWARE_DFU_FILENAME}
-	COMMAND tar -c -j -f ${FIRMWARE_NAME}-${GIT_REVISION}.tar.bz2 ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
-	COMMAND zip -9 -q ${FIRMWARE_NAME}-${GIT_REVISION}.zip ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
+	COMMAND tar -c -j -f ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
+	COMMAND zip -9 -q ${FIRMWARE_NAME}-${VERSION}.zip ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
 	COMMAND rm -f LICENSE ${HACKRF_FIRMWARE_DFU_FILENAME}
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_FILENAME} ${LICENSE_PATH} ${HACKRF_FIRMWARE_DFU_IMAGE}
+	DEPENDS ${FIRMWARE_FILENAME} ${LICENSE_PATH} ${HACKRF_FIRMWARE_DFU_FILENAME}
 	VERBATIM
+)
+
+add_custom_command(
+	OUTPUT MD5SUMS SHA256SUMS
+	COMMAND md5sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >MD5SUMS
+	COMMAND sha256sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >SHA256SUMS
+	DEPENDS ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
 )
 
 add_custom_target(
 	release
-	DEPENDS ${FIRMWARE_NAME}-${GIT_REVISION}.tar.bz2 ${FIRMWARE_NAME}-${GIT_REVISION}.zip
+	DEPENDS MD5SUMS SHA256SUMS
 )

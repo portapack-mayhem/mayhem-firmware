@@ -54,11 +54,13 @@ public:
 	void paint(Painter& painter) override;
 	
 	void on_tx_progress(const uint32_t progress, const bool done);
+	void on_loop_progress(const uint32_t progress, const bool done);
 	
 	std::string title() const override { return "Morse TX"; };
 	
 	uint32_t time_unit_ms { 0 };
 	size_t symbol_count { 0 };
+	uint32_t loop { 0 };
 private:
 	NavigationView& nav_;
 	std::string buffer { "PORTAPACK" };
@@ -77,12 +79,15 @@ private:
 	void set_foxhunt(size_t i);
 	
 	Thread * ookthread { nullptr };
+	Thread * loopthread { nullptr };
 	bool foxhunt_mode { false };
+	bool run { false };
 	
 	Labels labels {
-		{ { 4 * 8, 6 * 8 }, "Time unit:   ms", Color::light_grey() },
+		{ { 4 * 8, 6 * 8 }, "Speed:   wps", Color::light_grey() },
 		{ { 4 * 8, 8 * 8 }, "Tone:    Hz", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "Modulation:", Color::light_grey() },
+		{ { 4 * 8, 12 * 8 }, "Loop:", Color::light_grey() },
 		{ { 1 * 8, 25 * 8 }, "TX will last", Color::light_grey() }
 	};
 	
@@ -109,10 +114,10 @@ private:
 		}
 	};
 	
-	NumberField field_time_unit {
-		{ 14 * 8, 6 * 8 },
+	NumberField field_speed {
+		{ 10 * 8, 6 * 8 },
 		3,
-		{ 10, 999 },
+		{ 10, 45 },
 		1,
 		' '
 	};
@@ -131,6 +136,20 @@ private:
 		{
 			{ "CW", 0 },
 			{ "FM", 1 }
+		}
+	};
+
+	OptionsField options_loop {
+		{ 9 * 8, 12 * 8 },
+		6,
+		{
+			{ "Off", 0 },
+			{ "5 sec", 5 },
+			{ "10 sec", 10 },
+			{ "30 sec", 30 },
+			{ "1 min", 60 },
+			{ "3 min", 180 },
+			{ "5 min", 300 }
 		}
 	};
 	

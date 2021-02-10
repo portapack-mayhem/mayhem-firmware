@@ -34,7 +34,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Touch calibration"; };
+	std::string title() const override { return "Calibration"; };
 	
 private:
 	enum class Phase {

@@ -54,6 +54,10 @@ AlphanumView::AlphanumView(
 
 	n = 0;
 	for (auto& button : buttons) {
+		button.id = n;
+		button.on_highlight = [this](Button& button) {
+			focused_button = button.id;
+		};
 		button.on_select = button_fn;
 		button.set_parent_rect({
 			static_cast<Coord>((n % 5) * (240 / 5)),
@@ -118,6 +122,18 @@ void AlphanumView::on_button(Button& button) {
 		char_add(c);
 	
 	update_text();
+}
+
+bool AlphanumView::on_encoder(const EncoderEvent delta) {
+	focused_button += delta;
+	if (focused_button < 0) {
+		focused_button = buttons.size() - 1;
+	}
+	else if (focused_button >= (int16_t)buttons.size()) {
+		focused_button = 0;
+	}
+	buttons[focused_button].focus();
+	return true;
 }
 
 }

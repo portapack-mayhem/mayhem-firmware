@@ -76,10 +76,12 @@ void set_stealth_mode(const bool v);
 
 bool config_splash();
 bool config_login();
+bool config_speaker();
 uint32_t config_backlight_timer();
 
 void set_config_splash(bool v);
 void set_config_login(bool v);
+void set_config_speaker(bool v); 
 void set_config_backlight_timer(uint32_t i);
 
 //uint8_t ui_config_textentry();
@@ -90,6 +92,11 @@ void set_pocsag_last_address(uint32_t address);
 
 uint32_t pocsag_ignore_address();
 void set_pocsag_ignore_address(uint32_t address);
+
+bool clkout_enabled();
+void set_clkout_enabled(bool v);
+uint32_t clkout_freq();
+void set_clkout_freq(uint32_t freq);
 
 } /* namespace persistent_memory */
 } /* namespace portapack */

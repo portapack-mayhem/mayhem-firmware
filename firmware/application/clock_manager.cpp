@@ -21,6 +21,7 @@
 
 #include "clock_manager.hpp"
 
+#include "portapack_persistent_memory.hpp"
 #include "portapack_io.hpp"
 
 #include "hackrf_hal.hpp"
@@ -181,8 +182,8 @@ constexpr ClockControls si5351_clock_control_common { {
 	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
 	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
 	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
-	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Invert, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
+	{ ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
 	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off },
 	{ ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self,  ClockControl::ClockInvert::Normal, get_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer,    ClockControl::ClockPowerDown::Power_Off },
 } };
@@ -462,4 +463,22 @@ void ClockManager::stop_audio_pll() {
 	cgu::pll0audio::clock_disable();
 	cgu::pll0audio::power_down();
 	while( cgu::pll0audio::is_locked() );
+}
+
+void ClockManager::enable_clock_output(bool enable) {
+	if(enable) {
+		clock_generator.enable_output(clock_generator_output_clkout);
+		if(portapack::persistent_memory::clkout_freq() < 1000) {
+			clock_generator.set_ms_frequency(clock_generator_output_clkout, portapack::persistent_memory::clkout_freq() * 128000, si5351_vco_f, 7);
+		} else {
+			clock_generator.set_ms_frequency(clock_generator_output_clkout, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
+		}
+	} else {
+		clock_generator.disable_output(clock_generator_output_clkout);
+	}
+
+	if(enable)
+		clock_generator.set_clock_control(clock_generator_output_clkout, si5351_clock_control_common[clock_generator_output_clkout].ms_src(get_reference_clock_generator_pll(reference.source)).clk_pdn(ClockControl::ClockPowerDown::Power_On));
+	else
+		clock_generator.set_clock_control(clock_generator_output_clkout, ClockControl::power_off());
 }

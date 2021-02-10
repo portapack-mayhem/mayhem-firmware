@@ -38,10 +38,12 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+
+	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 
 	feed_channel_stats(channel_out);
-	channel_spectrum.feed(channel_out, channel_filter_pass_f, channel_filter_stop_f);
 
 	if (!pitch_rssi_enabled) {
 		// Normal mode, output demodulated audio
@@ -143,9 +145,10 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	decim_1.configure(message.decim_1_filter.taps, 131072);
 	channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
 	demod.configure(demod_input_fs, message.deviation);
-	channel_filter_pass_f = message.channel_filter.pass_frequency_normalized * channel_filter_input_fs;
-	channel_filter_stop_f = message.channel_filter.stop_frequency_normalized * channel_filter_input_fs;
-	channel_spectrum.set_decimation_factor(std::floor(channel_filter_output_fs / (channel_filter_pass_f + channel_filter_stop_f)));
+	channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
+	channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;
+	channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
+	channel_spectrum.set_decimation_factor(1.0f);
 	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, (float)message.squelch_level / 100.0);
 	
 	hpf.configure(audio_24k_hpf_30hz_config);

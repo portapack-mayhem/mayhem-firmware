@@ -51,7 +51,8 @@ private:
 	ToneGen tone_gen { };
 	ToneGen beep_gen { };
 	
-	uint32_t divider { }, audio_gain { };
+	uint32_t divider { };
+	float audio_gain { };
 	uint64_t power_acc { 0 };
 	uint32_t power_acc_count { 0 };
 	bool play_beep { false };

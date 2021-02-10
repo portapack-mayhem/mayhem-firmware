@@ -1,0 +1,4 @@
+#antenna label,elements length in mm, separated by a commas
+ANT700,95,134,175,206,230,245
+ANT500,185,315,450,586,724,862
+Cheap 11cm,118,183,253,326,399,476

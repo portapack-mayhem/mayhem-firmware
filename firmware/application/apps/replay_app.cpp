@@ -218,8 +218,8 @@ ReplayAppView::ReplayAppView(
 	};
 	
 	button_open.on_select = [this, &nav](Button&) {
-		auto new_view = nav.push<FileLoadView>(".C16");
-		new_view->on_changed = [this](std::filesystem::path new_file_path) {
+		auto open_view = nav.push<FileLoadView>(".C16");
+		open_view->on_changed = [this](std::filesystem::path new_file_path) {
 			on_file_changed(new_file_path);
 		};
 	};
@@ -231,6 +231,7 @@ ReplayAppView::~ReplayAppView() {
 }
 
 void ReplayAppView::on_hide() {
+	stop(false);
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
 	waterfall.on_hide();

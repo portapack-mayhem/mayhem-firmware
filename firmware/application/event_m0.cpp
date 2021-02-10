@@ -343,6 +343,8 @@ void EventDispatcher::handle_encoder() {
 }
 
 void EventDispatcher::handle_touch() {
+	portapack::bl_tick_counter = 0;
+
 	touch_manager.feed(get_touch_frame());
 }
 

@@ -243,13 +243,20 @@ public:
 	~LiveDateTime();
 
 	void paint(Painter& painter) override;
-	
+
+	void set_seconds_enabled(bool new_value);
+	void set_date_enabled(bool new_value);
+
 	std::string& string() {
 		return text;
 	}
 
 private:
 	void on_tick_second();
+	
+	uint16_t init_delay = 4;
+	bool date_enabled = true;
+	bool seconds_enabled = false;
 	
 	rtc::RTC datetime { };
 	SignalToken signal_token_tick_second { };
@@ -312,7 +319,7 @@ class Console : public Widget {
 public:
 	Console(Rect parent_rect);
 	
-	void clear();
+	void clear(bool clear_buffer);
 	void write(std::string message);
 	void writeln(std::string message);
 
@@ -371,10 +378,18 @@ private:
 class Button : public Widget {
 public:
 	std::function<void(Button&)> on_select { };
+	std::function<void(Button&)> on_touch_release { }; // Executed when releasing touch, after on_select.
+	std::function<void(Button&)> on_touch_press { }; // Executed when touching, before on_select.
 	std::function<bool(Button&, KeyEvent)> on_dir { };
 	std::function<void(Button&)> on_highlight { };
 
-	Button(Rect parent_rect, std::string text);
+	Button(Rect parent_rect, std::string text, bool instant_exec); // instant_exec: Execute on_select when you touching instead of releasing
+	Button(
+		Rect parent_rect,
+		std::string text
+	) : Button { parent_rect, text, false }
+	{
+	}
 
 	Button(
 	) : Button { { }, { } }
@@ -392,6 +407,41 @@ public:
 
 private:
 	std::string text_;
+	bool instant_exec_ { false };
+};
+
+class NewButton : public Widget {
+public:
+	std::function<void(void)> on_select { };
+	//std::function<void(NewButton&)> on_select { };
+	std::function<bool(NewButton&, KeyEvent)> on_dir { };
+	std::function<void(NewButton&)> on_highlight { };
+
+	NewButton(const NewButton&) = delete;
+	NewButton& operator=(const NewButton&) = delete;
+	NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
+	NewButton(
+	) : NewButton { { }, { }, { } }
+	{
+	}
+
+	void set_bitmap(const Bitmap* bitmap);
+	void set_text(const std::string value);
+	void set_color(Color value);
+	std::string text() const;
+	const Bitmap* bitmap();
+	ui::Color color();
+
+	void on_focus() override;
+	bool on_key(const KeyEvent key) override;
+	bool on_touch(const TouchEvent event) override;
+
+	void paint(Painter& painter) override;
+
+private:
+	std::string text_;
+	Color color_ = Color::dark_cyan();
+	const Bitmap* bitmap_;
 };
 
 class Image : public Widget {
