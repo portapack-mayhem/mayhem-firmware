@@ -122,7 +122,10 @@ namespace ui {
 					freq = frequency_list_[ 0 ] . frequency_a ;
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
-					step = frequency_list_[ 0 ] . step ;
+					if( frequency_list_[ 0 ] . step >= 0 )
+						step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+					else
+						step = get_freqman_entry_step_value( 0 );
 					break;
 				case HAMRADIO:
 					freq = frequency_list_[ 0 ] . frequency_a ;
@@ -136,7 +139,7 @@ namespace ui {
 			// setting to default 
 			last_entry . modulation = -1 ;
 			last_entry . bandwidth = -1 ;
-			last_entry . step = 0 ;
+			last_entry . step = -1 ;
 
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
@@ -147,7 +150,7 @@ namespace ui {
 					message.range = frequency_index ;
 					EventDispatcher::send_message(message);
 					// Set modulation if any
-					if( last_entry . modulation != frequency_list_[ frequency_index ] . modulation && frequency_list_[ frequency_index ] . modulation >= 0  )
+					if( last_entry . modulation != frequency_list_[ frequency_index ] . modulation && frequency_list_[ frequency_index ] . modulation >= 0 )
 					{
 						last_entry . modulation = frequency_list_[ frequency_index ]. modulation;
 						message.freq  = last_entry . modulation  ;
@@ -166,6 +169,10 @@ namespace ui {
 					if( last_entry . step != frequency_list_[ frequency_index ] . step && frequency_list_[ frequency_index ] . step > 0 )
 					{
 						last_entry . step = frequency_list_[ frequency_index ]. step ;
+						if( frequency_list_[ 0 ] . step >= 0 )
+							step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+						else
+							step = get_freqman_entry_step_value( 0 );
 						message.freq  = last_entry . step ;
 						message.range = MSG_SEARCH_SET_STEP ;
 						EventDispatcher::send_message(message);
@@ -268,7 +275,10 @@ namespace ui {
 						case RANGE:
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-							step = frequency_list_[ frequency_index ] . step ;
+							if( frequency_list_[ 0 ] . step >= 0 )
+								step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+							else
+								step = get_freqman_entry_step_value( 0 );
 							if( _fwd )
 							{
 								freq = frequency_list_[ frequency_index ] . frequency_a ;
@@ -327,13 +337,13 @@ namespace ui {
 				field_bw.set_selected_index( freq );
 				switch( search_thread->get_current_modulation() )
 				{
-					case MOD_AM:
+					case AM_MODULATION:
 						receiver_model.set_am_configuration( freq );
 						break ;
-					case MOD_NFM:
+					case NFM_MODULATION:
 						receiver_model.set_nbfm_configuration( freq );
 						break ;
-					case MOD_WFM:
+					case WFM_MODULATION:
 						receiver_model.set_wfm_configuration( freq );
 					default:
 						break ;
@@ -402,7 +412,7 @@ namespace ui {
 						result = search_file.append(freq_file_path); //Second: append if it is not there
 						if( !result.is_valid() )
 						{
-							std::string freq_options = ",m=" +  get_freqman_entry_modulation_string( frequency_list[current_index] . modulation ) + ",bw=" +  get_freqman_entry_bandwidth_string( frequency_list[current_index] . bandwidth );
+							std::string freq_options = ",m=" + to_string_dec_uint( frequency_list[current_index] . modulation ) + ",bw=" + to_string_dec_uint( frequency_list[current_index] . bandwidth );
 							// add current description if it available 
 							if( frequency_list[current_index].description.size() > 0 ) 
 							{
@@ -419,7 +429,7 @@ namespace ui {
 					result = search_file.create( freq_file_path );	//First freq if no output file
 					if( !result.is_valid() )
 					{
-						std::string freq_options = ",m=" +  get_enum_string( frequency_list[current_index] . modulation ) + ",bw=" +  get_enum_string( frequency_list[current_index] . bandwidth );
+						std::string freq_options = ",m=" + to_string_dec_uint( frequency_list[current_index] . modulation ) + ",bw=" + to_string_dec_uint( frequency_list[current_index] . bandwidth );
 						// add current description if it available 
 						if( frequency_list[current_index].description.size() > 0 ) 
 						{
@@ -487,8 +497,9 @@ namespace ui {
 				&button_remove
 		} );
 
-		def_step = change_mode(MOD_AM);	//Start on AM
-		field_mode.set_by_value(MOD_AM);	//Reflect the mode into the manual selector
+		def_step = 0 ;
+		change_mode(AM_MODULATION);	//Start on AM
+		field_mode.set_by_value(AM_MODULATION);	//Reflect the mode into the manual selector
 
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
@@ -526,7 +537,7 @@ namespace ui {
 		};
 
 		button_manual_start.on_change = [this]() {
-			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * def_step ;
+			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * get_freqman_entry_step_value( def_step );
 			if( frequency_range.min < 1 )
 			{
 				frequency_range.min = 1 ;
@@ -550,7 +561,7 @@ namespace ui {
 		}; 
 
 		button_manual_end.on_change = [this]() {
-			frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * def_step ;
+			frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * get_freqman_entry_step_value( def_step );
 			if( frequency_range.max < ( def_step + 1 ) )
 			{
 				frequency_range.max = ( def_step + 1 );
@@ -684,18 +695,20 @@ namespace ui {
 				frequency_list.clear();
 				freqman_entry manual_freq_entry ;
 
-				manual_freq_entry . step = step_mode.selected_index_value();     //Use def_step from manual selector
+				def_step = step_mode.selected_index(); // max range val
+
+
 				manual_freq_entry . type = RANGE ;
 				manual_freq_entry . description = 
 					"R " + to_string_short_freq(frequency_range.min) + ">"
 					+ to_string_short_freq(frequency_range.max) + " S" 	// current Manual range
-					+ to_string_short_freq(def_step).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
+					+ to_string_short_freq(get_freqman_entry_step_value(def_step)).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
 				manual_freq_entry . frequency_a = frequency_range.min ; // min range val
 				manual_freq_entry . frequency_b = frequency_range.max ; // max range val
-				manual_freq_entry . modulation = -1 ; // max range val
-				manual_freq_entry . bandwidth = -1 ; // max range val
-				manual_freq_entry . step = step_mode.selected_index_value(); // max range val
-				manual_freq_entry . frequency_b = frequency_range.max ; // max range val
+				manual_freq_entry . modulation = -1 ; 
+				manual_freq_entry . bandwidth = -1 ; 
+				manual_freq_entry . step = def_step ;
+				
 				frequency_list . push_back( manual_freq_entry );
 
 				show_max(); /* display step information */
@@ -746,7 +759,7 @@ namespace ui {
 		button_restart.on_select = [this](Button&) {
 			if( frequency_list.size() > 0 )
 			{
-				def_step = step_mode.selected_index_value();     //Use def_step from manual selector
+				def_step = step_mode.selected_index();     //Use def_step from manual selector
 				frequency_file_load( input_file , true );
 				if( fwd )
 				{
@@ -905,31 +918,13 @@ namespace ui {
 			search_thread->stop();
 		}
 
-		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
-		frequency_list.clear();                                 // clear the existing frequency list (expected behavior)
+		def_step = step_mode.selected_index();		//Use def_step from manual selector
+		frequency_list.clear();                         // clear the existing frequency list (expected behavior)
 
 		if( load_freqman_file_ex( file_name, frequency_list, load_freqs, load_ranges, load_hamradios ) ) {
-			for(auto& entry : frequency_list) {								// READ LINE PER LINE
-				if( entry.type == RANGE )  {						//RANGE	
-					switch( entry.step ) {
-						case AM_US:	def_step = 10000;  	break ;
-						case AM_EUR:	def_step = 9000;  	break ;
-						case NFM_1: 	def_step = 12500;  	break ;
-						case NFM_2: 	def_step = 6250;	break ;	
-						case FM_1:	def_step = 100000; 	break ;
-						case FM_2:	def_step = 50000; 	break ;
-						case N_1:	def_step = 25000;  	break ;
-						case N_2:	def_step = 250000; 	break ;
-						case AIRBAND:	def_step= 8330;  	break ;
-						default: def_step=step_mode.selected_index_value();	break ; 
-					}
-					entry.step = def_step ;
-				}
-			} 
 			show_max();
 		}
-		else 
-		{
+		else {
 			desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 		} 
 		audio::output::stop();
@@ -995,24 +990,15 @@ namespace ui {
 		receiver_model.set_headphone_volume(new_volume);
 	}
 
-	size_t SearchAppView::change_mode(uint8_t new_mod) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
-		using option_t = std::pair<std::string, int32_t>;
-		using options_t = std::vector<option_t>;
-		options_t bw;
+	size_t SearchAppView::change_mode( int8_t new_mod ) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
+
 		field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
 
 		freqman_set_bandwidth_option( new_mod , field_bw );
-		switch (new_mod) {
-			case MOD_NFM:
-				//bw 16k (2) default
-				field_bw.set_selected_index(2);
-				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
-				receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-				receiver_model.set_nbfm_configuration(field_bw.selected_index());
-				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
-				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
-				break;
-			case MOD_AM:
+
+		switch( new_mod ) {
+			case AM_MODULATION:
+				//bw DSB (0) default
 				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_am_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
@@ -1020,7 +1006,19 @@ namespace ui {
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
 				receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
 				break;
-			case MOD_WFM:
+			case NFM_MODULATION:
+				//bw 16k (2) default
+				field_bw.set_selected_index(2);
+				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+				receiver_model.set_nbfm_configuration(field_bw.selected_index());
+				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
+				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
+				return get_freqman_entry_bandwidth_value( new_mod , 2 ); 
+				break;
+
+			case WFM_MODULATION:
+				//bw 16k (0) only/default
 				field_bw.set_selected_index(0);
 				baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
 				receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
@@ -1028,8 +1026,11 @@ namespace ui {
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(2000000);	
 				break;
+			default:
+				return def_step ; // stay at def_step if error
+				break;
 		}
-		return search_mod_step[new_mod];
+		return get_freqman_entry_bandwidth_value( new_mod , 0 ); 
 	}
 
 	void SearchAppView::start_search_thread() {

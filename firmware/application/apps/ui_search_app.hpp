@@ -39,9 +39,6 @@
 
 namespace ui {
 
-	string const search_mod_name[3] = {"AM", "WFM", "NFM"};
-	size_t const search_mod_step[3] = {9000, 100000, 12500 };
-
 	class SearchAppThread {
 		public:
 			SearchAppThread(freqman_db *database );
@@ -137,7 +134,7 @@ namespace ui {
 			NavigationView& nav_;
 
 			void start_search_thread();
-			size_t change_mode(uint8_t mod_type);
+			size_t change_mode( int8_t mod_type);
 			void show_max();
 			void search_pause();
 			void search_resume();

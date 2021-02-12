@@ -23,14 +23,45 @@
 #include "freqman.hpp"
 #include <algorithm>
 
-DEFINE_ENUM( freqman_entry_modulation , FREQMAN_ENTRY_MODULATION )
-DEFINE_ENUM( freqman_entry_bandwidth_am , FREQMAN_ENTRY_BANDWIDTH_AM )
-DEFINE_ENUM( freqman_entry_bandwidth_nfm , FREQMAN_ENTRY_BANDWIDTH_NFM )
-DEFINE_ENUM( freqman_entry_bandwidth_wfm , FREQMAN_ENTRY_BANDWIDTH_WFM )
-DEFINE_ENUM( freqman_entry_step , FREQMAN_ENTRY_STEP )
-
 using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
+
+options_t freqman_entry_modulations = {
+		{ "AM", 0 },
+		{ "NFM", 1 },
+		{ "WFM", 2 }
+};
+
+options_t freqman_entry_bandwidths[ 3 ] = {
+	{ //AM
+		{ "DSB", 0 },
+		{ "USB", 1 },
+		{ "LSB", 2 },
+		{ "CW" , 3 }
+	},
+	{ //NFM
+		{ "8k5" , 0 },
+		{ "11k" , 1 },
+		{ "16k" , 2 }
+	},
+	{ //WFM
+		{ "16k" , 0 }
+	}
+};
+
+options_t freqman_entry_steps = {
+	{ "5Khz (SA AM)" , 5000 },
+	{ "6.25Khz(NFM)" , 6250 },
+	{ "8.33Khz(AIR)" , 8330 },
+	{ "9Khz (EU AM)" , 9000 },
+	{ "10Khz(US AM)" , 10000 },
+	{ "12.5Khz(NFM)" , 12500 },
+	{ "15Khz  (HFM)" , 15000 },
+	{ "25Khz   (N1)" , 25000 },
+	{ "50Khz  (FM1)" , 50000 },
+	{ "100Khz (FM2)" , 100000 },
+	{ "250khz  (N2)" , 250000 },
+};
 
 std::vector<std::string> get_freqman_files() {
 	std::vector<std::string> file_list;
@@ -148,8 +179,8 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 	freqman_entry_type type;
 	int8_t modulation = 0 ;
 	int8_t bandwidth = 0 ;
-	uint32_t step = 0 ;
-	uint16_t tone = 0 ;
+	int8_t step = 0 ;
+	int8_t tone = 0 ;
 
 
 	db.clear();
@@ -180,8 +211,8 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 
 			modulation = -1 ;
 			bandwidth = -1 ;
-			step = 0 ;
-			tone = 0 ;
+			step = -1 ;
+			tone = -1 ;
 			type=SINGLE ;
 
 			frequency_a = frequency_b = 0;
@@ -224,13 +255,13 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 			pos = strstr(line_start, "m=");
 			if (pos) {
 				pos += 2;
-				modulation = static_cast<short>(strtoll(pos, nullptr, 10));
+				modulation = strtoll(pos, nullptr, 10);
 			} 
 			// bandwidth if any
 			pos = strstr(line_start, "b=");
 			if (pos) {
 				pos += 2;
-				bandwidth = static_cast<short>(strtoll(pos, nullptr, 10));
+				bandwidth = strtoll(pos, nullptr, 10);
 			} 
 			// step if any
 			pos = strstr(line_start, "s=");
@@ -344,16 +375,16 @@ std::string freqman_item_string(freqman_entry &entry, size_t max_length) {
 	switch( entry.type ){
 		case SINGLE:
 			item_string = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
-		break;
+			break;
 		case RANGE:
 			item_string = "Range: " + entry.description;
-		break;
+			break;
 		case HAMRADIO:
-			item_string = "HAMradio: " + entry.description;
-		break;
+			item_string = "HAMRadio: " + entry.description;
+			break;
 		default:
 			item_string = "!UNKNOW TYPE " + entry.description;
-		break;
+			break;
 	}
 
 	if (item_string.size() > max_length)
@@ -362,60 +393,79 @@ std::string freqman_item_string(freqman_entry &entry, size_t max_length) {
 	return item_string;
 }
 
-bool freqman_set_bandwidth_option( int8_t modulation , OptionsField &option )
+void freqman_set_modulation_option( OptionsField &option )
 {
-	options_t bw ;
-	switch( modulation )
+	option.set_options( freqman_entry_modulations );
+}
+
+void freqman_set_bandwidth_option( int8_t modulation , OptionsField &option )
+{
+	option.set_options( freqman_entry_bandwidths[ modulation ] );
+}
+
+void freqman_set_step_option( OptionsField &option )
+{
+	option.set_options( freqman_entry_steps );
+}
+
+std::string get_freqman_entry_modulation_string( int8_t modulation )
+{
+	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
-		case MOD_AM:
-			bw.emplace_back("DSB", 0);
-			bw.emplace_back("USB", 0);
-			bw.emplace_back("LSB", 0);
-			bw.emplace_back("CW ", 0);
-			option.set_options(bw);
-			break;
-		case MOD_WFM:
-			bw.emplace_back("16k", 0);
-			option.set_options(bw);
-			break;
-		case MOD_NFM:
-			bw.emplace_back("8k5", 0);
-			bw.emplace_back("11k", 0);
-			bw.emplace_back("16k", 0);			
-			option.set_options(bw);
-			break;
-
-		default:
-			return false ;
-			break;
-	}	
-	return true ;
+		return std::string( "?M?" ); // unknown modulation
+	}
+	return freqman_entry_modulations[ modulation ] . first ;
 }
 
-bool freqman_set_modulation_option( OptionsField &option )
+std::string get_freqman_entry_bandwidth_string( int8_t modulation , int8_t bandwidth )
 {
-	options_t bw ;
-	bw.emplace_back("AM", 0);
-	bw.emplace_back("WFM", 1);
-	bw.emplace_back("NFM", 2);			
-	option.set_options(bw);
-	return true ;
+	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
+	{
+		return std::string( "?M?" ); // unknown modulation
+	}
+	if( bandwidth < 0 || (unsigned)bandwidth > freqman_entry_bandwidths[ modulation ] . size() )
+	{
+		return std::string( "?B?" ); // unknown modulation
+	}
+	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . first ;
 }
 
-bool freqman_set_step_option( OptionsField &option )
+std::string get_freqman_entry_step_string( int8_t step )
 {
-	options_t bw ;
-	bw.emplace_back( "5Khz (SA AM)",	5000 );
-	bw.emplace_back( "6.25khz(NFM)",	6250 );
-	bw.emplace_back( "8.33khz(AIR)",	8330 );
-	bw.emplace_back( "9Khz (EU AM)",	9000 );
-	bw.emplace_back( "10Khz(US AM)",	10000 );
-	bw.emplace_back( "12.5khz(NFM)",	12500 );
-	bw.emplace_back( "15khz  (HFM)",	15000 );
-	bw.emplace_back( "25khz   (N1)",	25000 );
-	bw.emplace_back( "50Khz  (FM1)", 	50000 );
-	bw.emplace_back( "100Khz (FM2)", 	100000 );
-	bw.emplace_back( "250khz  (N2)",	250000 );
-	option.set_options(bw);
-	return true ;
+	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
+	{
+		return std::string( "?S?" ); // unknown modulation
+	}
+	return freqman_entry_steps[ step ] . first ;
+}
+
+int32_t get_freqman_entry_modulation_value( int8_t modulation )
+{
+	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
+	{
+		return -1 ; // unknown modulation
+	}
+	return freqman_entry_modulations[ modulation ] . second ;
+}
+
+int32_t get_freqman_entry_bandwidth_value( int8_t modulation , int8_t bandwidth )
+{
+	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
+	{
+		return -1 ; // unknown modulation
+	}
+	if( bandwidth < 0 || (unsigned)bandwidth > freqman_entry_bandwidths[ modulation ] . size() )
+	{
+		return -2 ; // unknown modulation
+	}
+	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . second ;
+}
+
+int32_t get_freqman_entry_step_value( int8_t step )
+{
+	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
+	{
+		return -1 ; // unknown modulation
+	}
+	return freqman_entry_steps[ step ] . second ;
 }
