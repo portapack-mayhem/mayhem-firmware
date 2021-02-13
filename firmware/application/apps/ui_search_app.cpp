@@ -123,9 +123,9 @@ namespace ui {
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
 					if( frequency_list_[ 0 ] . step >= 0 )
-						step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+						step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 					else
-						step = get_freqman_entry_step_value( 0 );
+						step = freqman_entry_get_step_value( 0 );
 					break;
 				case HAMRADIO:
 					freq = frequency_list_[ 0 ] . frequency_a ;
@@ -170,9 +170,9 @@ namespace ui {
 					{
 						last_entry . step = frequency_list_[ frequency_index ]. step ;
 						if( frequency_list_[ 0 ] . step >= 0 )
-							step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+							step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 						else
-							step = get_freqman_entry_step_value( 0 );
+							step = freqman_entry_get_step_value( 0 );
 						message.freq  = last_entry . step ;
 						message.range = MSG_SEARCH_SET_STEP ;
 						EventDispatcher::send_message(message);
@@ -276,9 +276,9 @@ namespace ui {
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
 							if( frequency_list_[ 0 ] . step >= 0 )
-								step = get_freqman_entry_step_value( frequency_list_[ 0 ] . step );
+								step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 							else
-								step = get_freqman_entry_step_value( 0 );
+								step = freqman_entry_get_step_value( 0 );
 							if( _fwd )
 							{
 								freq = frequency_list_[ frequency_index ] . frequency_a ;
@@ -537,7 +537,7 @@ namespace ui {
 		};
 
 		button_manual_start.on_change = [this]() {
-			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * get_freqman_entry_step_value( def_step );
+			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * freqman_entry_get_step_value( def_step );
 			if( frequency_range.min < 1 )
 			{
 				frequency_range.min = 1 ;
@@ -561,7 +561,7 @@ namespace ui {
 		}; 
 
 		button_manual_end.on_change = [this]() {
-			frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * get_freqman_entry_step_value( def_step );
+			frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * freqman_entry_get_step_value( def_step );
 			if( frequency_range.max < ( def_step + 1 ) )
 			{
 				frequency_range.max = ( def_step + 1 );
@@ -702,7 +702,7 @@ namespace ui {
 				manual_freq_entry . description = 
 					"R " + to_string_short_freq(frequency_range.min) + ">"
 					+ to_string_short_freq(frequency_range.max) + " S" 	// current Manual range
-					+ to_string_short_freq(get_freqman_entry_step_value(def_step)).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
+					+ to_string_short_freq(freqman_entry_get_step_value(def_step)).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
 				manual_freq_entry . frequency_a = frequency_range.min ; // min range val
 				manual_freq_entry . frequency_b = frequency_range.max ; // max range val
 				manual_freq_entry . modulation = -1 ; 
@@ -1014,7 +1014,7 @@ namespace ui {
 				receiver_model.set_nbfm_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
-				return get_freqman_entry_bandwidth_value( new_mod , 2 ); 
+				return freqman_entry_get_bandwidth_value( new_mod , 2 ); 
 				break;
 
 			case WFM_MODULATION:
@@ -1030,7 +1030,7 @@ namespace ui {
 				return def_step ; // stay at def_step if error
 				break;
 		}
-		return get_freqman_entry_bandwidth_value( new_mod , 0 ); 
+		return freqman_entry_get_bandwidth_value( new_mod , 0 ); 
 	}
 
 	void SearchAppView::start_search_thread() {

@@ -37,6 +37,9 @@
 using namespace ui;
 using namespace std;
 
+// needs to be signed as -1 means not set
+typedef int8_t freqman_index ;
+
 enum freqman_error {
 	NO_ERROR = 0,
 	ERROR_ACCESS,
@@ -77,10 +80,10 @@ struct freqman_entry {
 	rf::Frequency frequency_b { 0 };	// 'b=freq_end' or 't=tx_freq'
 	std::string description { };		// 'd=desc'
 	freqman_entry_type type { };		// SINGLE,RANGE,HAMRADIO
-	int8_t modulation { };	// AM,NFM,WFM
-	int8_t bandwidth { };	// AM_DSB, ...
-	int8_t step { }; // 5Khz (SA AM,...
-	int8_t tone { }; // 0XZ, 11 1ZB,...
+	freqman_index modulation { };	// AM,NFM,WFM
+	freqman_index bandwidth { };	// AM_DSB, ...
+	freqman_index step { }; // 5Khz (SA AM,...
+	int16_t tone { }; // 0XZ, 11 1ZB,...
 };
 
 using freqman_db = std::vector<freqman_entry>;
@@ -90,15 +93,24 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db);
 bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs , bool load_ranges , bool load_hamradios );
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
+
 std::string freqman_item_string(freqman_entry &item, size_t max_length);
-void freqman_set_bandwidth_option( int8_t modulation , OptionsField &option );
+
+void freqman_set_bandwidth_option( freqman_index modulation , OptionsField &option );
 void freqman_set_modulation_option( OptionsField &option );
 void freqman_set_step_option( OptionsField &option );
-std::string get_freqman_entry_modulation_string( int8_t modulation );
-std::string get_freqman_entry_bandwidth_string( int8_t modulation , int8_t bandwidth );
-std::string get_freqman_entry_step_string( int8_t step );
-int32_t get_freqman_entry_modulation_value( int8_t modulation );
-int32_t get_freqman_entry_bandwidth_value( int8_t modulation , int8_t bandwidth );
-int32_t get_freqman_entry_step_value( int8_t step );
+void freqman_set_tone_option( OptionsField &option );
+
+std::string freqman_entry_get_modulation_string( freqman_index modulation );
+std::string freqman_entry_get_bandwidth_string( freqman_index modulation , freqman_index bandwidth );
+std::string freqman_entry_get_step_string( freqman_index step );
+
+int32_t freqman_entry_get_modulation_value( freqman_index modulation );
+int32_t freqman_entry_get_bandwidth_value( freqman_index modulation , freqman_index bandwidth );
+int32_t freqman_entry_get_step_value( freqman_index step );
+
+freqman_index freqman_entry_get_modulation_from_str( char *str );
+freqman_index freqman_entry_get_bandwidth_from_str( freqman_index modulation , char *str );
+freqman_index freqman_entry_get_step_from_str( char *str );
 
 #endif/*__FREQMAN_H__*/

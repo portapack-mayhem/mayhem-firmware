@@ -37,6 +37,9 @@ extern const tone_key_t tone_keys;
 void tone_keys_populate(OptionsField& field);
 float tone_key_frequency(const uint32_t index);
 
+std::string tone_key_string( const uint32_t index );
+int16_t tone_key_index( char *str );
+
 }
 
 #endif/*__TONE_KEY_H_*/

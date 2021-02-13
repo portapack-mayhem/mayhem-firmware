@@ -177,10 +177,10 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 	rf::Frequency frequency_a, frequency_b;
 	char file_data[257];
 	freqman_entry_type type;
-	int8_t modulation = 0 ;
-	int8_t bandwidth = 0 ;
-	int8_t step = 0 ;
-	int8_t tone = 0 ;
+	freqman_index modulation = 0 ;
+	freqman_index bandwidth = 0 ;
+	freqman_index step = 0 ;
+	freqman_index tone = 0 ;
 
 
 	db.clear();
@@ -255,26 +255,26 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 			pos = strstr(line_start, "m=");
 			if (pos) {
 				pos += 2;
-				modulation = strtoll(pos, nullptr, 10);
+				modulation = freqman_entry_get_modulation_from_str( pos );
 			} 
 			// bandwidth if any
 			pos = strstr(line_start, "b=");
 			if (pos) {
 				pos += 2;
-				bandwidth = strtoll(pos, nullptr, 10);
+				bandwidth = freqman_entry_get_bandwidth_from_str( modulation , pos );
 			} 
 			// step if any
 			pos = strstr(line_start, "s=");
 			if (pos) {
 				pos += 2;
-				step = strtoll(pos, nullptr, 10);
+				step = freqman_entry_get_step_from_str( pos );
 			} 
-			// ctcss tone if any
+			/*// ctcss tone if any
 			pos = strstr(line_start, "c=");
 			if (pos) {
 				pos += 2;
-				tone = strtoll(pos, nullptr, 10);
-			} 
+				tone = freqman_entry_get_tone_from_string( pos );
+			}*/
 			// Read description until , or LF
 			pos = strstr(line_start, "d=");
 			if (pos) {
@@ -335,22 +335,22 @@ bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 			item_string = "r=" + to_string_dec_uint(frequency_a / 1000) + to_string_dec_uint(frequency_a % 1000UL, 3, '0');
 			item_string += ",t=" + to_string_dec_uint(frequency_b / 1000) + to_string_dec_uint(frequency_b % 1000UL, 3, '0');
 		}
-		if( entry.modulation >= 0 )
+		if( entry.modulation >= 0 && (unsigned)entry.modulation < freqman_entry_modulations . size() )
 		{
-			item_string += ",m=" + to_string_dec_uint(entry.modulation);
+			item_string += ",m=" + freqman_entry_get_modulation_string( entry.modulation );
+			if( entry.bandwidth >= 0 && (unsigned)entry.bandwidth < freqman_entry_bandwidths[ entry.modulation ] . size()  )
+			{
+				item_string += ",b=" + freqman_entry_get_bandwidth_string( entry.modulation , entry.bandwidth );
+			}
 		}
-		if( entry.bandwidth >= 0 )
+		if( entry.step >= 0 )
 		{
-			item_string += ",b=" + to_string_dec_uint(entry.bandwidth);
+			item_string += ",s=" + freqman_entry_get_step_string( entry.step );
 		}
-		if( entry.step > 0 )
+		/*if( entry.tone >= 0 )
 		{
-			item_string += ",s=" + to_string_dec_uint(entry.step);
-		}
-		if( entry.tone != 0 )
-		{
-			item_string += ",c=" + to_string_dec_uint(entry.tone);
-		}
+			item_string += ",c=" + freqman_entry_get_tone_string( entry.tone );
+		}*/
 
 		if (entry.description.size())
 			item_string += ",d=" + entry.description;
@@ -377,10 +377,10 @@ std::string freqman_item_string(freqman_entry &entry, size_t max_length) {
 			item_string = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
 			break;
 		case RANGE:
-			item_string = "Range: " + entry.description;
+			item_string = "R: " + entry.description;
 			break;
 		case HAMRADIO:
-			item_string = "HAMRadio: " + entry.description;
+			item_string = "H: " + entry.description;
 			break;
 		default:
 			item_string = "!UNKNOW TYPE " + entry.description;
@@ -398,7 +398,7 @@ void freqman_set_modulation_option( OptionsField &option )
 	option.set_options( freqman_entry_modulations );
 }
 
-void freqman_set_bandwidth_option( int8_t modulation , OptionsField &option )
+void freqman_set_bandwidth_option( freqman_index modulation , OptionsField &option )
 {
 	option.set_options( freqman_entry_bandwidths[ modulation ] );
 }
@@ -408,38 +408,38 @@ void freqman_set_step_option( OptionsField &option )
 	option.set_options( freqman_entry_steps );
 }
 
-std::string get_freqman_entry_modulation_string( int8_t modulation )
+std::string freqman_entry_get_modulation_string( freqman_index modulation )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
-		return std::string( "?M?" ); // unknown modulation
+		return std::string( "" ); // unknown modulation
 	}
 	return freqman_entry_modulations[ modulation ] . first ;
 }
 
-std::string get_freqman_entry_bandwidth_string( int8_t modulation , int8_t bandwidth )
+std::string freqman_entry_get_bandwidth_string( freqman_index modulation , freqman_index bandwidth )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
-		return std::string( "?M?" ); // unknown modulation
+		return std::string( "" ); // unknown modulation
 	}
 	if( bandwidth < 0 || (unsigned)bandwidth > freqman_entry_bandwidths[ modulation ] . size() )
 	{
-		return std::string( "?B?" ); // unknown modulation
+		return std::string( "" ); // unknown modulation
 	}
 	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . first ;
 }
 
-std::string get_freqman_entry_step_string( int8_t step )
+std::string freqman_entry_get_step_string( freqman_index step )
 {
 	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
 	{
-		return std::string( "?S?" ); // unknown modulation
+		return std::string( "" ); // unknown modulation
 	}
 	return freqman_entry_steps[ step ] . first ;
 }
 
-int32_t get_freqman_entry_modulation_value( int8_t modulation )
+int32_t freqman_entry_get_modulation_value( freqman_index modulation )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -448,7 +448,7 @@ int32_t get_freqman_entry_modulation_value( int8_t modulation )
 	return freqman_entry_modulations[ modulation ] . second ;
 }
 
-int32_t get_freqman_entry_bandwidth_value( int8_t modulation , int8_t bandwidth )
+int32_t freqman_entry_get_bandwidth_value( freqman_index modulation , freqman_index bandwidth )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -456,16 +456,54 @@ int32_t get_freqman_entry_bandwidth_value( int8_t modulation , int8_t bandwidth 
 	}
 	if( bandwidth < 0 || (unsigned)bandwidth > freqman_entry_bandwidths[ modulation ] . size() )
 	{
-		return -2 ; // unknown modulation
+		return -1 ; // unknown bandwidth for modulation
 	}
 	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . second ;
 }
 
-int32_t get_freqman_entry_step_value( int8_t step )
+int32_t freqman_entry_get_step_value( freqman_index step )
 {
 	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
 	{
 		return -1 ; // unknown modulation
 	}
 	return freqman_entry_steps[ step ] . second ;
+}
+
+freqman_index freqman_entry_get_modulation_from_str( char *str )
+{
+	if( !str )
+		return -1 ;
+	for( freqman_index index = 0 ; index < freqman_entry_modulations . size() ; index ++ )
+	{
+		if(  freqman_entry_modulations[ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
+}
+
+freqman_index freqman_entry_get_bandwidth_from_str( freqman_index modulation , char *str )
+{
+	if( !str )
+		return -1 ;
+	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
+		return -1 ;
+	for( freqman_index index = 0 ; index < freqman_entry_bandwidths[ modulation ] . size() ; index ++ )
+	{
+		if( freqman_entry_bandwidths[ modulation ][ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
+}
+
+freqman_index freqman_entry_get_step_from_str( char *str )
+{
+	if( !str )
+		return -1 ;
+	for( freqman_index index = 0 ; index < freqman_entry_steps . size() ; index ++ )
+	{
+		if( freqman_entry_steps[ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
 }

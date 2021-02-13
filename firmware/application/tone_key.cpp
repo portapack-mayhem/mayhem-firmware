@@ -108,4 +108,21 @@ float tone_key_frequency(const uint32_t index) {
 	return tone_keys[index].second;
 }
 
+std::string tone_key_string( int16_t index ) {
+	if( index < 0 || (unsigned)index >= tone_keys . size() )
+		return std::string( "" ); 
+	return tone_keys[ index ] .first ;
+}
+
+int16_t tone_key_index( char *str ) {
+	if( !str )
+		return -1 ;
+	for( int16_t index = 0 ; (unsigned)index < tone_keys . size() ; index ++ )
+	{
+		if( tone_keys[ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
+}	
+
 }
