@@ -90,7 +90,8 @@ private:
 		{
 			{ "512bps ", 0 },
 			{ "1200bps", 1 },
-			{ "2400bps", 2 }
+			{ "2400bps", 2 },
+			{ "3200bps", 3 }
 		}
 	};
 	OptionsField options_phase {

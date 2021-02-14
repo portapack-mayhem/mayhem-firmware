@@ -65,10 +65,11 @@ struct POCSAGState {
 	std::string output;
 };
 
-const pocsag::BitRate pocsag_bitrates[3] = {
+const pocsag::BitRate pocsag_bitrates[4] = {
 	pocsag::BitRate::FSK512,
 	pocsag::BitRate::FSK1200,
-	pocsag::BitRate::FSK2400
+	pocsag::BitRate::FSK2400,
+	pocsag::BitRate::FSK3200
 };
 
 std::string bitrate_str(BitRate bitrate);
