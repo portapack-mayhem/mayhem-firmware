@@ -33,6 +33,7 @@
 #define MSG_SEARCH_SET_RECEIVER_SAMPLERATE 50000 	// for handle_retune to know that search thread triggered a receiver samplerate change. f is the new samplerate in hz/s
 
 using namespace portapack;
+using portapack::memory::map::backup_ram;
 
 namespace ui {
 
@@ -501,6 +502,8 @@ namespace ui {
 				&button_remove
 		} );
 
+		persistent_memory::dump_mem();	
+
 		def_step = 0 ;
 		change_mode(AM_MODULATION);	//Start on AM
 		field_mode.set_by_value(AM_MODULATION);	//Reflect the mode into the manual selector
@@ -511,7 +514,6 @@ namespace ui {
 		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
 		frequency_range.max = stored_freq + 1000000;
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-
 		// Loading settings
 		autostart = persistent_memory::search_app_autostart_search();
 		autosave = persistent_memory::search_app_autosave_freqs();
@@ -713,7 +715,7 @@ namespace ui {
 				manual_freq_entry . modulation = -1 ; 
 				manual_freq_entry . bandwidth = -1 ; 
 				manual_freq_entry . step = def_step ;
-				
+
 				frequency_list . push_back( manual_freq_entry );
 
 				show_max(); /* display step information */

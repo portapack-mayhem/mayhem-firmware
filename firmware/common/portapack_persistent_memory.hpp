@@ -115,6 +115,7 @@ namespace portapack {
 		void set_search_app_update_ranges_when_searching(const bool v);
 		bool search_app_load_hamradios();
 		void set_search_app_load_hamradios(const bool v );
+		void dump_mem();
 
 	} /* namespace persistent_memory */
 } /* namespace portapack */
