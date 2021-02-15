@@ -58,7 +58,11 @@ namespace ui {
 			void set_searching_direction( const bool v);
 
 			void set_continuous(const bool v);
-			uint8_t get_current_modulation();
+			freqman_index_t get_current_modulation();
+
+			void set_default_modulation( freqman_index_t index );
+			void set_default_bandwidth( freqman_index_t index );
+			void set_default_step( freqman_index_t index );
 
 			void run();
 			void stop();
@@ -73,9 +77,10 @@ namespace ui {
 			Thread* thread { nullptr };
 			int64_t freq = 0 ;
 			uint32_t step = 0 ;
-			uint8_t modulation  = 0 ;
-			uint8_t bandwidth = 0 ;
-			uint16_t tone = 0 ;
+			freqman_index_t def_modulation  = 0 ;
+			freqman_index_t def_bandwidth = 0 ;
+			freqman_index_t def_step = 0 ;
+			tone_index tone = 0 ;
 			freqman_entry last_entry = { } ;
 
 			bool _searching { true };
@@ -134,7 +139,7 @@ namespace ui {
 			NavigationView& nav_;
 
 			void start_search_thread();
-			size_t change_mode( int8_t mod_type);
+			size_t change_mode( freqman_index_t mod_type);
 			void show_max();
 			void search_pause();
 			void search_resume();

@@ -180,6 +180,7 @@ namespace ui {
 	void SearchAppSetupViewMore::Save() {
 		persistent_memory::set_search_app_load_freqs(checkbox_load_freqs.value()); 
 		persistent_memory::set_search_app_load_ranges(checkbox_load_ranges.value()); 
+		persistent_memory::set_search_app_load_hamradios(checkbox_load_hamradios.value()); 
 		persistent_memory::set_search_app_update_ranges_when_searching(checkbox_update_ranges_when_searching.value()); 
 	};
 
@@ -196,11 +197,13 @@ namespace ui {
 		add_children({
 				&checkbox_load_freqs,
 				&checkbox_load_ranges,
+				&checkbox_load_hamradios,
 				&checkbox_update_ranges_when_searching
 				});
 
 		checkbox_load_freqs.set_value( persistent_memory::search_app_load_freqs() );
 		checkbox_load_ranges.set_value( persistent_memory::search_app_load_ranges() );
+		checkbox_load_hamradios.set_value( persistent_memory::search_app_load_hamradios() );
 		checkbox_update_ranges_when_searching.set_value( persistent_memory::search_app_update_ranges_when_searching() );
 	};
 

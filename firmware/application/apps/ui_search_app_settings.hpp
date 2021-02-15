@@ -104,8 +104,15 @@ namespace ui {
 					3,
 					"input: load ranges"
 			};
-			Checkbox checkbox_update_ranges_when_searching {
+			
+			Checkbox checkbox_load_hamradios {
 				{ 1 * 8, 72 },
+					3,
+					"input: load hamradios"
+			};
+
+			Checkbox checkbox_update_ranges_when_searching {
+				{ 1 * 8, 102 },
 					3,
 					"auto update m-ranges"
 			};

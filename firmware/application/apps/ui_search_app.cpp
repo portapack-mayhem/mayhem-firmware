@@ -52,14 +52,6 @@ namespace ui {
 		}
 	}
 
-	uint8_t SearchAppThread::get_current_modulation()
-	{
-		return last_entry.modulation ;
-	}
-
-	void SearchAppThread::set_continuous(const bool v) {
-		_continuous = v;
-	}
 
 	void SearchAppThread::set_searching(const bool v) {
 		_searching = v;
@@ -95,6 +87,24 @@ namespace ui {
 		_fwd = v ;
 	}
 
+	void SearchAppThread::set_continuous(const bool v) {
+		_continuous = v;
+	}
+
+	freqman_index_t SearchAppThread::get_current_modulation() {
+		return last_entry.modulation ;
+	}
+
+	void SearchAppThread::set_default_modulation( freqman_index_t index ) {
+		def_modulation = index ;
+	}
+	void SearchAppThread::set_default_bandwidth( freqman_index_t index ) {
+		def_bandwidth = index ;
+	}
+	void SearchAppThread::set_default_step( freqman_index_t index ) {
+		def_step = index ;		
+	}
+
 	msg_t SearchAppThread::static_fn( void* arg ) {
 		auto obj = static_cast<SearchAppThread*>(arg);
 		obj->run();
@@ -125,7 +135,7 @@ namespace ui {
 					if( frequency_list_[ 0 ] . step >= 0 )
 						step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 					else
-						step = freqman_entry_get_step_value( 0 );
+						step = freqman_entry_get_step_value( def_step );
 					break;
 				case HAMRADIO:
 					freq = frequency_list_[ 0 ] . frequency_a ;
@@ -136,10 +146,9 @@ namespace ui {
 				default:
 					break;	
 			}
-			// setting to default 
+			// setting to -1 so if there is a change it will be reflected to the tuner 
 			last_entry . modulation = -1 ;
 			last_entry . bandwidth = -1 ;
-			last_entry . step = -1 ;
 
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
@@ -165,14 +174,9 @@ namespace ui {
 						message.range = MSG_SEARCH_SET_BANDWIDTH ;
 						EventDispatcher::send_message(message);
 					}
-					// Set step if any
-					if( last_entry . step != frequency_list_[ frequency_index ] . step && frequency_list_[ frequency_index ] . step > 0 )
+					if( last_entry . step != frequency_list_[ frequency_index ] . step && frequency_list_[ frequency_index ] . step >= 0 )
 					{
 						last_entry . step = frequency_list_[ frequency_index ]. step ;
-						if( frequency_list_[ 0 ] . step >= 0 )
-							step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
-						else
-							step = freqman_entry_get_step_value( 0 );
 						message.freq  = last_entry . step ;
 						message.range = MSG_SEARCH_SET_STEP ;
 						EventDispatcher::send_message(message);
@@ -334,7 +338,6 @@ namespace ui {
 				return ;
 				break ;
 			case MSG_SEARCH_SET_BANDWIDTH:
-				field_bw.set_selected_index( freq );
 				switch( search_thread->get_current_modulation() )
 				{
 					case AM_MODULATION:
@@ -348,6 +351,7 @@ namespace ui {
 					default:
 						break ;
 				}
+				field_bw.set_selected_index( freq );
 				return ;
 				break ;
 			case MSG_SEARCH_SET_STEP:
@@ -515,6 +519,7 @@ namespace ui {
 		filedelete = persistent_memory::search_app_clear_output();
 		load_freqs = persistent_memory::search_app_load_freqs();
 		load_ranges = persistent_memory::search_app_load_ranges();
+		load_hamradios = persistent_memory::search_app_load_hamradios();
 		update_ranges = persistent_memory::search_app_update_ranges_when_searching();
 
 		//Loading input and output file from settings
@@ -777,13 +782,14 @@ namespace ui {
 
 
 		button_add.on_select = [this](Button&) {  //frequency_list[current_index]
-			if( search_thread && search_thread->get_current_freq() > 0 )
+			int64_t freq = search_thread->get_current_freq();
+			if( search_thread && freq > 0 )
 			{
 				File search_file;
 				std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
 				std::string frequency_to_add = "f=" 
-					+ to_string_dec_uint(search_thread->get_current_freq() / 1000) 
-					+ to_string_dec_uint(search_thread->get_current_freq() % 1000UL, 3, '0');
+					+ to_string_dec_uint( freq / 1000) 
+					+ to_string_dec_uint( freq % 1000UL, 3, '0');
 				auto result = search_file.open(freq_file_path);	//First search if freq is already in txt
 				if (!result.is_valid()) {
 					char one_char[1];		//Read it char by char
@@ -805,7 +811,7 @@ namespace ui {
 					}
 					if (found) {
 						nav_.display_modal("Error", "Frequency already exists");
-						big_display.set( search_thread->get_current_freq() );		//After showing an error
+						big_display.set( freq );		//After showing an error
 					}
 					else {
 						result = search_file.append(freq_file_path); //Second: append if it is not there
@@ -852,6 +858,7 @@ namespace ui {
 				filedelete = persistent_memory::search_app_clear_output();
 				load_freqs = persistent_memory::search_app_load_freqs();
 				load_ranges = persistent_memory::search_app_load_ranges();
+				load_hamradios = persistent_memory::search_app_load_hamradios();
 				update_ranges = persistent_memory::search_app_update_ranges_when_searching();
 				frequency_file_load( input_file , true );
 				//  User experience will tell how they need the output file to be cleared 
@@ -990,7 +997,7 @@ namespace ui {
 		receiver_model.set_headphone_volume(new_volume);
 	}
 
-	size_t SearchAppView::change_mode( int8_t new_mod ) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
+	size_t SearchAppView::change_mode( freqman_index_t new_mod ) { //Before this, do a search_thread->stop();  After this do a start_search_thread()
 
 		field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
 

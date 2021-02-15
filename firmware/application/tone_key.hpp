@@ -30,15 +30,17 @@ using namespace ui;
 
 namespace tonekey {
 
+typedef int16_t tone_index ;
+
 using tone_key_t = std::vector<std::pair<std::string, float>>;
 
 extern const tone_key_t tone_keys;
 
 void tone_keys_populate(OptionsField& field);
-float tone_key_frequency(const uint32_t index);
+float tone_key_frequency(const tone_index index);
 
-std::string tone_key_string( const uint32_t index );
-int16_t tone_key_index( char *str );
+std::string tone_key_string( const tone_index index );
+tone_index tone_key_index( char *str );
 
 }
 

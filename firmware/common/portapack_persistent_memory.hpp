@@ -113,6 +113,8 @@ namespace portapack {
 		void set_search_app_load_freqs(const bool v);
 		void set_search_app_load_ranges(const bool v);
 		void set_search_app_update_ranges_when_searching(const bool v);
+		bool search_app_load_hamradios();
+		void set_search_app_load_hamradios(const bool v );
 
 	} /* namespace persistent_memory */
 } /* namespace portapack */

@@ -97,7 +97,7 @@ namespace portapack {
 			int32_t tone_mix;
 
 			// Search
-			uint32_t search_app_searchconfig ;
+			int32_t search_app_searchconfig ;
 		};
 
 		static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
@@ -323,6 +323,56 @@ namespace portapack {
 
 		/* Search app */
 		bool search_app_autosave_freqs() {
+			return data->search_app_searchconfig & (1 << 31);
+		}
+		bool search_app_autostart_search() {
+			return data->search_app_searchconfig & (1 << 30);
+		}
+		bool search_app_continuous() {
+			return data->search_app_searchconfig & (1 << 29);
+		}
+		bool search_app_clear_output() {
+			return data->search_app_searchconfig & (1 << 28);
+		}
+		bool search_app_load_freqs() {
+			return data->search_app_searchconfig & (1 << 27);
+		}
+		bool search_app_load_ranges() {
+			return data->search_app_searchconfig & (1 << 26);
+		}
+		bool search_app_update_ranges_when_searching() {
+			return data->search_app_searchconfig & (1 << 25);
+		}
+		bool search_app_load_hamradios() {
+			return data->search_app_searchconfig & (1 << 24);
+		}
+		void set_search_app_autosave_freqs(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 31)) | (v << 31);
+		}
+		void set_search_app_autostart_search(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 30)) | (v << 30);
+		}
+		void set_search_app_continuous(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 29)) | (v << 29);
+		}
+		void set_search_app_clear_output(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 28)) | (v << 28);
+		}
+		void set_search_app_load_freqs(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 27)) | (v << 27);
+		}
+		void set_search_app_load_ranges(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 26)) | (v << 26);
+		} 
+		void set_search_app_update_ranges_when_searching(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 25)) | (v << 25);
+		}
+		void set_search_app_load_hamradios(const bool v ){
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~(1 << 24)) | (v << 24);
+		} 
+
+		/*
+		bool search_app_autosave_freqs() {
 			return (data->search_app_searchconfig & 0x80000000UL) ? true : false ; //default false
 		}
 		bool search_app_autostart_search() {
@@ -363,7 +413,8 @@ namespace portapack {
 		} 
 		void set_search_app_update_ranges_when_searching(const bool v ){
 			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x02000000UL) | (!v << 25); 
-		}
+		} */
 
 	} /* namespace persistent_memory */
 } /* namespace portapack */
+

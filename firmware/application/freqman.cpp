@@ -27,9 +27,9 @@ using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
 
 options_t freqman_entry_modulations = {
-		{ "AM", 0 },
-		{ "NFM", 1 },
-		{ "WFM", 2 }
+	{ "AM", 0 },
+	{ "NFM", 1 },
+	{ "WFM", 2 }
 };
 
 options_t freqman_entry_bandwidths[ 3 ] = {
@@ -50,17 +50,31 @@ options_t freqman_entry_bandwidths[ 3 ] = {
 };
 
 options_t freqman_entry_steps = {
-	{ "5Khz (SA AM)" , 5000 },
-	{ "6.25Khz(NFM)" , 6250 },
-	{ "8.33Khz(AIR)" , 8330 },
-	{ "9Khz (EU AM)" , 9000 },
-	{ "10Khz(US AM)" , 10000 },
-	{ "12.5Khz(NFM)" , 12500 },
-	{ "15Khz  (HFM)" , 15000 },
-	{ "25Khz   (N1)" , 25000 },
-	{ "50Khz  (FM1)" , 50000 },
-	{ "100Khz (FM2)" , 100000 },
-	{ "250khz  (N2)" , 250000 },
+	{ "5KHz (SA AM)" , 5000 },
+	{ "6.25KHz(NFM)" , 6250 },
+	{ "8.33KHz(AIR)" , 8330 },
+	{ "9KHz (EU AM)" , 9000 },
+	{ "10KHz(US AM)" , 10000 },
+	{ "12.5KHz(NFM)" , 12500 },
+	{ "15KHz  (HFM)" , 15000 },
+	{ "25KHz   (N1)" , 25000 },
+	{ "50KHz  (FM1)" , 50000 },
+	{ "100KHz (FM2)" , 100000 },
+	{ "250kHz  (N2)" , 250000 },
+};
+
+options_t freqman_entry_steps_short = {
+	{ "5KHz"    , 5000 },
+	{ "6.25KHz" , 6250 },
+	{ "8.33KHz" , 8330 },
+	{ "9KHz"    , 9000 },
+	{ "10KHz"   , 10000 },
+	{ "12.5KHz" , 12500 },
+	{ "15KHz"   , 15000 },
+	{ "25KHz"   , 25000 },
+	{ "50KHz"   , 50000 },
+	{ "100KHz"  , 100000 },
+	{ "250khz"  , 250000 },
 };
 
 std::vector<std::string> get_freqman_files() {
@@ -80,7 +94,8 @@ std::vector<std::string> get_freqman_files() {
 };
 
 bool load_freqman_file(std::string& file_stem, freqman_db &db) {
-	File freqman_file;
+	return load_freqman_file_ex( file_stem , db , true , true , true );
+/*	File freqman_file;
 	size_t length, n = 0, file_position = 0;
 	char * pos;
 	char * line_start;
@@ -148,7 +163,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 			} else
 				description = "-";
 
-			db.push_back({ frequency_a, frequency_b, description, type , 0 , 0 , 0 , 0 });
+			db.push_back({ frequency_a, frequency_b, description, type , -1 , -1 , -1 , -1 });
 			n++;
 
 			if (n >= FREQMAN_MAX_PER_FILE) return true;
@@ -163,8 +178,8 @@ bool load_freqman_file(std::string& file_stem, freqman_db &db) {
 		// Restart at beginning of last incomplete line
 		file_position -= (file_data + 256 - line_start);
 	}
-
 	return true;
+*/
 }
 
 bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs , bool load_ranges , bool load_hamradios ) {
@@ -177,10 +192,10 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 	rf::Frequency frequency_a, frequency_b;
 	char file_data[257];
 	freqman_entry_type type;
-	freqman_index modulation = 0 ;
-	freqman_index bandwidth = 0 ;
-	freqman_index step = 0 ;
-	freqman_index tone = 0 ;
+	freqman_index_t modulation = 0 ;
+	freqman_index_t bandwidth = 0 ;
+	freqman_index_t step = 0 ;
+	freqman_index_t tone = 0 ;
 
 
 	db.clear();
@@ -267,14 +282,14 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 			pos = strstr(line_start, "s=");
 			if (pos) {
 				pos += 2;
-				step = freqman_entry_get_step_from_str( pos );
+				step = freqman_entry_get_step_from_str_short( pos );
 			} 
-			/*// ctcss tone if any
+			// ctcss tone if any
 			pos = strstr(line_start, "c=");
 			if (pos) {
 				pos += 2;
-				tone = freqman_entry_get_tone_from_string( pos );
-			}*/
+				tone = tone_key_index( pos );
+			}
 			// Read description until , or LF
 			pos = strstr(line_start, "d=");
 			if (pos) {
@@ -330,10 +345,19 @@ bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 			frequency_b = entry.frequency_b;
 			item_string = "a=" + to_string_dec_uint(frequency_a / 1000) + to_string_dec_uint(frequency_a % 1000UL, 3, '0');
 			item_string += ",b=" + to_string_dec_uint(frequency_b / 1000) + to_string_dec_uint(frequency_b % 1000UL, 3, '0');
+			if( entry.step >= 0 )
+			{
+				item_string += ",s=" + freqman_entry_get_step_string_short( entry.step );
+			}
+
 		} else if( entry.type == HAMRADIO ) {
 			frequency_b = entry.frequency_b;
 			item_string = "r=" + to_string_dec_uint(frequency_a / 1000) + to_string_dec_uint(frequency_a % 1000UL, 3, '0');
 			item_string += ",t=" + to_string_dec_uint(frequency_b / 1000) + to_string_dec_uint(frequency_b % 1000UL, 3, '0');
+			if( entry.tone >= 0 )
+			{
+				item_string += ",c=" + tone_key_string( entry.tone );
+			}
 		}
 		if( entry.modulation >= 0 && (unsigned)entry.modulation < freqman_entry_modulations . size() )
 		{
@@ -343,14 +367,7 @@ bool save_freqman_file(std::string& file_stem, freqman_db &db) {
 				item_string += ",b=" + freqman_entry_get_bandwidth_string( entry.modulation , entry.bandwidth );
 			}
 		}
-		if( entry.step >= 0 )
-		{
-			item_string += ",s=" + freqman_entry_get_step_string( entry.step );
-		}
-		/*if( entry.tone >= 0 )
-		{
-			item_string += ",c=" + freqman_entry_get_tone_string( entry.tone );
-		}*/
+
 
 		if (entry.description.size())
 			item_string += ",d=" + entry.description;
@@ -398,7 +415,7 @@ void freqman_set_modulation_option( OptionsField &option )
 	option.set_options( freqman_entry_modulations );
 }
 
-void freqman_set_bandwidth_option( freqman_index modulation , OptionsField &option )
+void freqman_set_bandwidth_option( freqman_index_t modulation , OptionsField &option )
 {
 	option.set_options( freqman_entry_bandwidths[ modulation ] );
 }
@@ -408,7 +425,7 @@ void freqman_set_step_option( OptionsField &option )
 	option.set_options( freqman_entry_steps );
 }
 
-std::string freqman_entry_get_modulation_string( freqman_index modulation )
+std::string freqman_entry_get_modulation_string( freqman_index_t modulation )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -417,7 +434,7 @@ std::string freqman_entry_get_modulation_string( freqman_index modulation )
 	return freqman_entry_modulations[ modulation ] . first ;
 }
 
-std::string freqman_entry_get_bandwidth_string( freqman_index modulation , freqman_index bandwidth )
+std::string freqman_entry_get_bandwidth_string( freqman_index_t modulation , freqman_index_t bandwidth )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -430,7 +447,7 @@ std::string freqman_entry_get_bandwidth_string( freqman_index modulation , freqm
 	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . first ;
 }
 
-std::string freqman_entry_get_step_string( freqman_index step )
+std::string freqman_entry_get_step_string( freqman_index_t step )
 {
 	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
 	{
@@ -439,7 +456,16 @@ std::string freqman_entry_get_step_string( freqman_index step )
 	return freqman_entry_steps[ step ] . first ;
 }
 
-int32_t freqman_entry_get_modulation_value( freqman_index modulation )
+std::string freqman_entry_get_step_string_short( freqman_index_t step )
+{
+	if( step < 0 || (unsigned)step >= freqman_entry_steps_short . size() )
+	{
+		return std::string( "" ); // unknown modulation
+	}
+	return freqman_entry_steps_short[ step ] . first ;
+}
+
+int32_t freqman_entry_get_modulation_value( freqman_index_t modulation )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -448,7 +474,7 @@ int32_t freqman_entry_get_modulation_value( freqman_index modulation )
 	return freqman_entry_modulations[ modulation ] . second ;
 }
 
-int32_t freqman_entry_get_bandwidth_value( freqman_index modulation , freqman_index bandwidth )
+int32_t freqman_entry_get_bandwidth_value( freqman_index_t modulation , freqman_index_t bandwidth )
 {
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 	{
@@ -461,7 +487,7 @@ int32_t freqman_entry_get_bandwidth_value( freqman_index modulation , freqman_in
 	return freqman_entry_bandwidths[ modulation ][ bandwidth ] . second ;
 }
 
-int32_t freqman_entry_get_step_value( freqman_index step )
+int32_t freqman_entry_get_step_value( freqman_index_t step )
 {
 	if( step < 0 || (unsigned)step >= freqman_entry_steps . size() )
 	{
@@ -470,11 +496,11 @@ int32_t freqman_entry_get_step_value( freqman_index step )
 	return freqman_entry_steps[ step ] . second ;
 }
 
-freqman_index freqman_entry_get_modulation_from_str( char *str )
+freqman_index_t freqman_entry_get_modulation_from_str( char *str )
 {
 	if( !str )
 		return -1 ;
-	for( freqman_index index = 0 ; index < freqman_entry_modulations . size() ; index ++ )
+	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_modulations . size() ; index ++ )
 	{
 		if(  freqman_entry_modulations[ index ] . first . compare( str ) >= 0 )
 			return index ;
@@ -482,13 +508,13 @@ freqman_index freqman_entry_get_modulation_from_str( char *str )
 	return -1 ;	
 }
 
-freqman_index freqman_entry_get_bandwidth_from_str( freqman_index modulation , char *str )
+freqman_index_t freqman_entry_get_bandwidth_from_str( freqman_index_t modulation , char *str )
 {
 	if( !str )
 		return -1 ;
 	if( modulation < 0 || (unsigned)modulation >= freqman_entry_modulations . size() )
 		return -1 ;
-	for( freqman_index index = 0 ; index < freqman_entry_bandwidths[ modulation ] . size() ; index ++ )
+	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_bandwidths[ modulation ] . size() ; index ++ )
 	{
 		if( freqman_entry_bandwidths[ modulation ][ index ] . first . compare( str ) >= 0 )
 			return index ;
@@ -496,13 +522,25 @@ freqman_index freqman_entry_get_bandwidth_from_str( freqman_index modulation , c
 	return -1 ;	
 }
 
-freqman_index freqman_entry_get_step_from_str( char *str )
+freqman_index_t freqman_entry_get_step_from_str( char *str )
 {
 	if( !str )
 		return -1 ;
-	for( freqman_index index = 0 ; index < freqman_entry_steps . size() ; index ++ )
+	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_steps . size() ; index ++ )
 	{
 		if( freqman_entry_steps[ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
+}
+
+freqman_index_t freqman_entry_get_step_from_str_short( char *str )
+{
+	if( !str )
+		return -1 ;
+	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_steps_short . size() ; index ++ )
+	{
+		if( freqman_entry_steps_short[ index ] . first . compare( str ) >= 0 )
 			return index ;
 	}
 	return -1 ;	
