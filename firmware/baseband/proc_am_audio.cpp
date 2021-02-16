@@ -87,7 +87,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-	const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	//const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
