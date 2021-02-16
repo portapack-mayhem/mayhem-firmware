@@ -625,7 +625,9 @@ SystemView::SystemView(
 		navigation_view.push<SystemMenuView>();
 		
 		if (portapack::persistent_memory::config_splash())
+		{
 			navigation_view.push<BMPView>();
+		}
 			status_view.set_back_enabled(false);
 			status_view.set_title_image_enabled(true);
 			status_view.set_dirty();
