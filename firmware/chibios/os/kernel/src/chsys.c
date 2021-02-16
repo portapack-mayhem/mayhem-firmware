@@ -119,7 +119,7 @@ void chSysInit(void) {
      serve interrupts in its context while keeping the lowest energy saving
      mode compatible with the system status.*/
   chThdCreateStatic(_idle_thread_wa, sizeof(_idle_thread_wa), IDLEPRIO,
-                    (tfunc_t)_idle_thread, NULL);
+                    (void *)_idle_thread, NULL);
 #endif
 }
 
