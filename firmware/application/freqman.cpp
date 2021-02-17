@@ -74,7 +74,7 @@ options_t freqman_entry_steps_short = {
 	{ "25KHz"   , 25000 },
 	{ "50KHz"   , 50000 },
 	{ "100KHz"  , 100000 },
-	{ "250khz"  , 250000 },
+	{ "250KHz"  , 250000 },
 };
 
 std::vector<std::string> get_freqman_files() {
