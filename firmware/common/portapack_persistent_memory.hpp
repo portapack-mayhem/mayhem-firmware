@@ -99,13 +99,14 @@ namespace portapack {
 		void set_clkout_freq(uint32_t freq);
 
 		/* Search app */
-		bool     search_app_autosave_freqs();
-		bool     search_app_autostart_search();
-		bool     search_app_continuous();
-		bool     search_app_clear_output();
-		bool     search_app_load_freqs();
-		bool     search_app_load_ranges();
-		bool     search_app_update_ranges_when_searching();
+		bool search_app_autosave_freqs();
+		bool search_app_autostart_search();
+		bool search_app_continuous();
+		bool search_app_clear_output();
+		bool search_app_load_freqs();
+		bool search_app_load_ranges();
+		bool search_app_update_ranges_when_searching();
+		bool search_app_load_hamradios();
 		void set_search_app_autosave_freqs(const bool v);
 		void set_search_app_autostart_search(const bool v);
 		void set_search_app_continuous(const bool v);
@@ -113,7 +114,6 @@ namespace portapack {
 		void set_search_app_load_freqs(const bool v);
 		void set_search_app_load_ranges(const bool v);
 		void set_search_app_update_ranges_when_searching(const bool v);
-		bool search_app_load_hamradios();
 		void set_search_app_load_hamradios(const bool v );
 		void dump_mem();
 

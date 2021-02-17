@@ -375,10 +375,10 @@ namespace portapack {
 
 */
 		bool search_app_autosave_freqs() {
-			return (data->search_app_searchconfig & 0x80000000UL) ? true : false ; //default false
+			return (data->search_app_searchconfig & 0x80000000UL) ? true : false; //default false
 		}
 		bool search_app_autostart_search() {
-			return (data->search_app_searchconfig & 0x40000000UL) ? false : true;  //default false
+			return (data->search_app_searchconfig & 0x40000000UL) ? true : false;  //default false
 		}
 		bool search_app_continuous() {
 			return (data->search_app_searchconfig & 0x20000000UL) ? true : false;  //default true
@@ -403,7 +403,7 @@ namespace portapack {
 			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x80000000UL) | (v << 31); 
 		}
 		void set_search_app_autostart_search(const bool v ){
-			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x40000000UL) | (!v << 30); 
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x40000000UL) | (v << 30); 
 		}
 		void set_search_app_continuous(const bool v ){
 			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x20000000UL) | (v << 29); 
@@ -421,7 +421,7 @@ namespace portapack {
 			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x02000000UL) | (v << 25); 
 		} 
 		void set_search_app_load_hamradios(const bool v ){
-			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x01000000UL) | (v << 25); 
+			data->search_app_searchconfig = (data->search_app_searchconfig & ~0x01000000UL) | (v << 24); 
 		} 
 
 		void dump_mem()
