@@ -121,13 +121,12 @@ namespace ui {
 			RetuneMessage message { };
 			int32_t frequency_index = 0 ;
 			bool restart_search = false;			//Flag whenever searching is restarting after a pause
-			last_entry = frequency_list_[ 0 ] ; 		//Store last used parameters
+			step = freqman_entry_get_step_value( def_step );
 			switch( frequency_list_[ 0 ] . type ){
 				case SINGLE:
 					freq = frequency_list_[ 0 ] . frequency_a ;
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_a ;
-					step = 0 ;
 					break;
 				case RANGE:
 					freq = frequency_list_[ 0 ] . frequency_a ;
@@ -135,22 +134,16 @@ namespace ui {
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
 					if( frequency_list_[ 0 ] . step >= 0 )
 						step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
-					else
-						step = freqman_entry_get_step_value( def_step );
 					break;
 				case HAMRADIO:
 					freq = frequency_list_[ 0 ] . frequency_a ;
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
-					step = 0 ;
 					break;
 				default:
 					break;	
 			}
-			// setting to -1 so if there is a change it will be reflected to the tuner 
-			last_entry . modulation = -1 ;
-			last_entry . bandwidth = -1 ;
-
+			last_entry = frequency_list_[ 0 ] ; 		//Store last used parameters
 			while( !chThdShouldTerminate() ) {
 				has_looped = false ;
 				entry_has_changed = false ;
@@ -181,6 +174,7 @@ namespace ui {
 						message.freq  = last_entry . step ;
 						message.range = MSG_SEARCH_SET_STEP ;
 						EventDispatcher::send_message(message);
+						step = last_entry . step ;
 					}
 
 					receiver_model.set_tuning_frequency( freq );	// Retune
@@ -189,7 +183,7 @@ namespace ui {
 							/* we are doing a range */
 							if( frequency_list_[ frequency_index ] . type == RANGE ) {
 
-								if ( _fwd || _stepper > 0 ) {	
+								if ( ( _fwd && _stepper == 0 ) || _stepper > 0 ) {	
 									//forward
 									freq += step ;
 									// if bigger than range max
@@ -205,7 +199,7 @@ namespace ui {
 										}
 									}
 								}
-								else  if( !_fwd || _stepper < 0 ) {	
+								else  if( (!_fwd && _stepper == 0 ) || _stepper < 0 ) {	
 									//reverse
 									freq -= step ;
 									// if lower than range min
@@ -224,9 +218,8 @@ namespace ui {
 							}
 							else if( frequency_list_[ frequency_index ] . type == SINGLE ) {
 								freq = frequency_list_[ frequency_index ] . frequency_a ; 
-								receiver_model.set_tuning_frequency( freq );	// Retune
 
-								if ( _fwd || _stepper > 0 ) {					//forward
+								if ( (_fwd && _stepper == 0 ) || _stepper > 0 ) {					//forward
 									frequency_index++;
 									entry_has_changed = true ;
 									// looping
@@ -236,7 +229,33 @@ namespace ui {
 										frequency_index = 0 ;
 									}
 								}
-								else if( !_fwd || _stepper < 0 ) {		
+								else if( (!_fwd && _stepper == 0 ) || _stepper < 0 ) {		
+									//reverse
+									frequency_index--;
+									entry_has_changed = true ;
+									// if previous if under the list => go back from end
+									if( frequency_index < 0 )
+									{
+										has_looped = true ;
+										frequency_index =  frequency_list_.size() - 1 ;
+									}
+								}
+							}
+							else if( frequency_list_[ frequency_index ] . type == HAMRADIO )
+							{
+								freq = frequency_list_[ frequency_index ] . frequency_a ; 
+
+								if ( (_fwd && _stepper == 0 ) || _stepper > 0 ) {					//forward
+									frequency_index++;
+									entry_has_changed = true ;
+									// looping
+									if( (uint32_t)frequency_index >= frequency_list_.size() )
+									{
+										has_looped = true ;
+										frequency_index = 0 ;
+									}
+								}
+								else if( (!_fwd  && _stepper == 0 ) || _stepper < 0 ) {		
 									//reverse
 									frequency_index--;
 									entry_has_changed = true ;
@@ -275,15 +294,12 @@ namespace ui {
 							freq = frequency_list_[ frequency_index ] . frequency_a ;
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_a ;
-							step = 0 ;
 							break;
 						case RANGE:
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-							if( frequency_list_[ 0 ] . step >= 0 )
-								step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
-							else
-								step = freqman_entry_get_step_value( 0 );
+							if( frequency_list_[ frequency_index ] . step >= 0 )
+								step = freqman_entry_get_step_value( frequency_list_[ frequency_index ] . step );
 							if( _fwd )
 							{
 								freq = frequency_list_[ frequency_index ] . frequency_a ;
@@ -297,7 +313,6 @@ namespace ui {
 							freq = frequency_list_[ frequency_index ] . frequency_a ;
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-							step = 0 ;
 							break;
 						default:
 							break;	
@@ -334,7 +349,12 @@ namespace ui {
 				return ;
 				break ;
 			case MSG_SEARCH_SET_MODULATION :
+				receiver_model.disable();
+				baseband::shutdown();
 				change_mode( freq );
+				if ( !search_thread->is_searching() ) 						//for some motive, audio output gets stopped.
+					audio::output::start();								//So if search was stopped we resume audio
+				receiver_model.enable(); 
 				field_mode.set_selected_index( freq );
 				return ;
 				break ;
@@ -549,16 +569,16 @@ namespace ui {
 			{
 				frequency_range.min = 1 ;
 			}
-			if( frequency_range.min > ( MAX_UFREQ - def_step ) )
+			if( frequency_range.min > ( MAX_UFREQ - freqman_entry_get_step_value( def_step ) ) )
 			{
-				frequency_range.min = MAX_UFREQ - def_step ;
+				frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value( def_step );
 			}
-			if( frequency_range.min > (frequency_range.max - def_step ) )
+			if( frequency_range.min > (frequency_range.max - freqman_entry_get_step_value( def_step ) ) )
 			{
-				frequency_range.max = frequency_range.min + def_step ;
+				frequency_range.max = frequency_range.min + freqman_entry_get_step_value( def_step );
 				if( frequency_range.max > MAX_UFREQ )
 				{
-					frequency_range.min = MAX_UFREQ - def_step ;
+					frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value( def_step );
 					frequency_range.max = MAX_UFREQ ;
 				}	
 			}
@@ -569,21 +589,21 @@ namespace ui {
 
 		button_manual_end.on_change = [this]() {
 			frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * freqman_entry_get_step_value( def_step );
-			if( frequency_range.max < ( def_step + 1 ) )
+			if( frequency_range.max < ( freqman_entry_get_step_value( def_step ) + 1 ) )
 			{
-				frequency_range.max = ( def_step + 1 );
+				frequency_range.max = ( freqman_entry_get_step_value( def_step ) + 1 );
 			}
 			if( frequency_range.max > MAX_UFREQ )
 			{
 				frequency_range.max = MAX_UFREQ ;
 			}
-			if( frequency_range.max < (frequency_range.min + def_step ) )
+			if( frequency_range.max < (frequency_range.min + freqman_entry_get_step_value( def_step ) ) )
 			{
-				frequency_range.min = frequency_range.max - def_step ;
-				if( frequency_range.max < ( def_step + 1 ) )
+				frequency_range.min = frequency_range.max - freqman_entry_get_step_value( def_step );
+				if( frequency_range.max < ( freqman_entry_get_step_value( def_step ) + 1 ) )
 				{
 					frequency_range.min = 1 ;
-					frequency_range.max = ( def_step + 1 ) ;
+					frequency_range.max = ( freqman_entry_get_step_value( def_step ) + 1 ) ;
 				}	
 			}
 			button_manual_start.set_text( to_string_short_freq(frequency_range.min) );
@@ -937,7 +957,7 @@ namespace ui {
 			desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 		} 
 		audio::output::stop();
-		step_mode.set_by_value(def_step); //Impose the default step into the manual step selector
+		step_mode.set_selected_index(def_step); //Impose the default step into the manual step selector
 		start_search_thread(); 
 	}
 
@@ -1023,7 +1043,6 @@ namespace ui {
 				receiver_model.set_nbfm_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
-				return freqman_entry_get_bandwidth_value( new_mod , 2 ); 
 				break;
 
 			case WFM_MODULATION:
@@ -1036,10 +1055,9 @@ namespace ui {
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(2000000);	
 				break;
 			default:
-				return def_step ; // stay at def_step if error
 				break;
 		}
-		return freqman_entry_get_bandwidth_value( new_mod , 0 ); 
+		return freqman_entry_get_step_value( def_step ); 
 	}
 
 	void SearchAppView::start_search_thread() {

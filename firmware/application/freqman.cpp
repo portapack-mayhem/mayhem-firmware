@@ -502,7 +502,7 @@ freqman_index_t freqman_entry_get_modulation_from_str( char *str )
 		return -1 ;
 	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_modulations . size() ; index ++ )
 	{
-		if(  freqman_entry_modulations[ index ] . first . compare( str ) >= 0 )
+		if(  freqman_entry_modulations[ index ] . first . compare( 0 , freqman_entry_modulations[ index ] . first . size() , str ) == 0 )
 			return index ;
 	}
 	return -1 ;	
@@ -516,7 +516,7 @@ freqman_index_t freqman_entry_get_bandwidth_from_str( freqman_index_t modulation
 		return -1 ;
 	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_bandwidths[ modulation ] . size() ; index ++ )
 	{
-		if( freqman_entry_bandwidths[ modulation ][ index ] . first . compare( str ) >= 0 )
+		if( freqman_entry_bandwidths[ modulation ][ index ] . first . compare( 0 , freqman_entry_bandwidths[ modulation ][ index ] . first . size() , str ) == 0 )
 			return index ;
 	}
 	return -1 ;	
@@ -528,7 +528,7 @@ freqman_index_t freqman_entry_get_step_from_str( char *str )
 		return -1 ;
 	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_steps . size() ; index ++ )
 	{
-		if( freqman_entry_steps[ index ] . first . compare( str ) >= 0 )
+		if( freqman_entry_steps[ index ] . first . compare( 0 , freqman_entry_steps[ index ] . first . size() , str ) == 0 )
 			return index ;
 	}
 	return -1 ;	
@@ -540,7 +540,7 @@ freqman_index_t freqman_entry_get_step_from_str_short( char *str )
 		return -1 ;
 	for( freqman_index_t index = 0 ; (unsigned)index < freqman_entry_steps_short . size() ; index ++ )
 	{
-		if( freqman_entry_steps_short[ index ] . first . compare( str ) >= 0 )
+		if( freqman_entry_steps_short[ index ] . first . compare( 0 , freqman_entry_steps_short[ index ] . first . size() , str ) == 0 )
 			return index ;
 	}
 	return -1 ;	
