@@ -123,27 +123,39 @@ namespace ui {
 			bool restart_search = false;			//Flag whenever searching is restarting after a pause
 
 			if( frequency_list_[ 0 ] . step >= 0 )
-			       step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
+				step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 			else
-			       step = freqman_entry_get_step_value( def_step );
+				step = freqman_entry_get_step_value( def_step );
 
 			switch( frequency_list_[ 0 ] . type ){
 				case SINGLE:
 					freq = frequency_list_[ 0 ] . frequency_a ;
-					minfreq = frequency_list_[ 0 ] . frequency_a ;
-					maxfreq = frequency_list_[ 0 ] . frequency_a ;
 					break;
 				case RANGE:
-					freq = frequency_list_[ 0 ] . frequency_a ;
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
+					if( _fwd )
+					{
+						freq = minfreq ;
+					}
+					else
+					{
+						freq = maxfreq ;
+					}
 					if( frequency_list_[ 0 ] . step >= 0 )
 						step = freqman_entry_get_step_value( frequency_list_[ 0 ] . step );
 					break;
 				case HAMRADIO:
-					freq = frequency_list_[ 0 ] . frequency_a ;
 					minfreq = frequency_list_[ 0 ] . frequency_a ;
 					maxfreq = frequency_list_[ 0 ] . frequency_b ;
+					if( _fwd )
+					{
+						freq = minfreq ;
+					}
+					else
+					{
+						freq = maxfreq ;
+					}
 					break;
 				default:
 					break;	
@@ -160,6 +172,8 @@ namespace ui {
 					message.freq = freq ;
 					message.range = frequency_index ;
 					EventDispatcher::send_message(message);
+					receiver_model.set_tuning_frequency( freq );	// Retune
+
 					// Set modulation if any
 					if( last_entry . modulation != frequency_list_[ frequency_index ] . modulation && frequency_list_[ frequency_index ] . modulation >= 0 )
 					{
@@ -185,7 +199,6 @@ namespace ui {
 						step = freqman_entry_get_step_value( last_entry . step );
 					}
 
-					receiver_model.set_tuning_frequency( freq );	// Retune
 					if (_freq_lock == 0) {				//normal searching (not performing freq_lock)
 						if (!restart_search) {			//looping at full speed
 							/* we are doing a range */
@@ -250,24 +263,38 @@ namespace ui {
 							else if( frequency_list_[ frequency_index ] . type == HAMRADIO )
 							{
 								if ( (_fwd && _stepper == 0 ) || _stepper > 0 ) {					//forward
-									frequency_index++;
-									entry_has_changed = true ;
-									// looping
-									if( (uint32_t)frequency_index >= frequency_list_.size() )
+									if( freq == minfreq )
 									{
-										has_looped = true ;
-										frequency_index = 0 ;
+										freq = maxfreq ;
+									}
+									else
+									{
+										frequency_index++;
+										entry_has_changed = true ;
+										// looping
+										if( (uint32_t)frequency_index >= frequency_list_.size() )
+										{
+											has_looped = true ;
+											frequency_index = 0 ;
+										}
 									}
 								}
 								else if( (!_fwd  && _stepper == 0 ) || _stepper < 0 ) {		
 									//reverse
-									frequency_index--;
-									entry_has_changed = true ;
-									// if previous if under the list => go back from end
-									if( frequency_index < 0 )
+									if( freq == maxfreq )
 									{
-										has_looped = true ;
-										frequency_index =  frequency_list_.size() - 1 ;
+										freq = minfreq ;
+									}
+									else
+									{
+										frequency_index--;
+										entry_has_changed = true ;
+										// if previous if under the list => go back from end
+										if( frequency_index < 0 )
+										{
+											has_looped = true ;
+											frequency_index =  frequency_list_.size() - 1 ;
+										}
 									}
 								}
 							}
@@ -296,8 +323,6 @@ namespace ui {
 					switch( frequency_list_[ frequency_index ] . type ){
 						case SINGLE:
 							freq = frequency_list_[ frequency_index ] . frequency_a ;
-							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
-							maxfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							break;
 						case RANGE:
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
@@ -312,7 +337,8 @@ namespace ui {
 							}
 							break;
 						case HAMRADIO:
-							freq = frequency_list_[ frequency_index ] . frequency_a ;
+							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
+							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
 							if( _fwd )
 							{
 								freq = minfreq ;
