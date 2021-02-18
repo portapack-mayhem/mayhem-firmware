@@ -119,7 +119,7 @@ namespace ui {
 			bool has_looped = false ;
 			bool entry_has_changed = false ;
 			RetuneMessage message { };
-			int32_t frequency_index = 0 ;
+			int16_t frequency_index = 0 ;
 			bool restart_search = false;			//Flag whenever searching is restarting after a pause
 
 			if( frequency_list_[ 0 ] . step >= 0 )
@@ -168,11 +168,11 @@ namespace ui {
 				has_looped = false ;
 				entry_has_changed = false ;
 				if (_searching || _stepper != 0 ) {	//Searching
+					receiver_model.set_tuning_frequency( freq );	// Retune
 					//Inform freq (for coloring purposes also!) 
 					message.freq = freq ;
 					message.range = frequency_index ;
 					EventDispatcher::send_message(message);
-					receiver_model.set_tuning_frequency( freq );	// Retune
 
 					// Set modulation if any
 					if( last_entry . modulation != frequency_list_[ frequency_index ] . modulation && frequency_list_[ frequency_index ] . modulation >= 0 )
@@ -309,11 +309,11 @@ namespace ui {
 				{
 					entry_has_changed = true ;
 					/* prepare values for the next run, when user will resume */
-					if( _fwd )
+					if( ( _fwd && _stepper == 0 ) || _stepper > 0 )
 					{
 						frequency_index = 0 ;
 					}
-					else
+					else if( ( !_fwd && _stepper == 0 ) || _stepper < 0 )
 					{	
 						frequency_index = frequency_list_.size() - 1 ;
 					}
@@ -327,11 +327,11 @@ namespace ui {
 						case RANGE:
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-							if( _fwd )
+							if( ( _fwd && _stepper == 0 ) || _stepper > 0 )
 							{
 								freq = minfreq ;
 							}
-							else
+							else if( ( !_fwd && _stepper == 0 ) || _stepper < 0 )
 							{
 								freq = maxfreq ;
 							}
@@ -339,11 +339,11 @@ namespace ui {
 						case HAMRADIO:
 							minfreq = frequency_list_[ frequency_index ] . frequency_a ;
 							maxfreq = frequency_list_[ frequency_index ] . frequency_b ;
-							if( _fwd )
+							if(  ( _fwd && _stepper == 0 ) || _stepper > 0 )
 							{
 								freq = minfreq ;
 							}
-							else
+							else if( ( !_fwd && _stepper == 0 ) || _stepper < 0 )
 							{
 								freq = maxfreq ;
 							}
