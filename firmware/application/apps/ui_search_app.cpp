@@ -503,6 +503,8 @@ namespace ui {
 				}
 			}
 			last_freq = freq ;
+		}
+		else {
 			//freq lock is checking the signal, do not update display
 			return;
 		}

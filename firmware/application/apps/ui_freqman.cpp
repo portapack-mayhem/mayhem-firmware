@@ -21,7 +21,6 @@
  */
 
 #include "ui_freqman.hpp"
-
 #include "portapack.hpp"
 #include "event_m0.hpp"
 

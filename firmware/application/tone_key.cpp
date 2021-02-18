@@ -114,7 +114,7 @@ std::string tone_key_string( tone_index index ) {
 	return tone_keys[ index ] .first ;
 }
 
-tone_index tone_key_index( char *str ) {
+tone_index tone_key_index_by_string( char *str ) {
 	if( !str )
 		return -1 ;
 	for( tone_index index = 0 ; (unsigned)index < tone_keys . size() ; index ++ )
@@ -124,5 +124,10 @@ tone_index tone_key_index( char *str ) {
 	}
 	return -1 ;	
 }	
+
+tone_index tone_key_index_by_value( int32_t freq )
+{
+	return -1 ;	
+}
 
 }

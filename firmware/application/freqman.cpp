@@ -285,11 +285,12 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 				step = freqman_entry_get_step_from_str_short( pos );
 			} 
 			// ctcss tone if any
+			/* disabled until better form
 			pos = strstr(line_start, "c=");
 			if (pos) {
 				pos += 2;
-				tone = tone_key_index( pos );
-			}
+				tone = tone_key_index_by_value( strtoll( pos , nullptr , 10 ) );
+			} */
 			// Read description until , or LF
 			pos = strstr(line_start, "d=");
 			if (pos) {
