@@ -263,7 +263,7 @@ namespace ui {
 							else if( frequency_list_[ frequency_index ] . type == HAMRADIO )
 							{
 								if ( (_fwd && _stepper == 0 ) || _stepper > 0 ) {					//forward
-									if( freq == minfreq )
+									if( ( minfreq != maxfreq ) && freq == minfreq )
 									{
 										freq = maxfreq ;
 									}
@@ -281,7 +281,7 @@ namespace ui {
 								}
 								else if( (!_fwd  && _stepper == 0 ) || _stepper < 0 ) {		
 									//reverse
-									if( freq == maxfreq )
+									if( ( minfreq != maxfreq ) && freq == maxfreq )
 									{
 										freq = minfreq ;
 									}
