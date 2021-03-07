@@ -77,6 +77,7 @@ private:
 constexpr image_tag_t image_tag_acars				{ 'P', 'A', 'C', 'A' };
 constexpr image_tag_t image_tag_adsb_rx				{ 'P', 'A', 'D', 'R' };
 constexpr image_tag_t image_tag_afsk_rx				{ 'P', 'A', 'F', 'R' };
+constexpr image_tag_t image_tag_aprs_rx				{ 'P', 'A', 'P', 'R' };
 constexpr image_tag_t image_tag_btle_rx				{ 'P', 'B', 'T', 'R' };
 constexpr image_tag_t image_tag_nrf_rx				{ 'P', 'N', 'R', 'R' };
 constexpr image_tag_t image_tag_ais					{ 'P', 'A', 'I', 'S' };

@@ -31,6 +31,7 @@ namespace ui
                 console.writeln("N0vaPixel,klockee,GullCode");
                 console.writeln("jamesshao8,ITAxReal,rascafr");
                 console.writeln("mcules,dqs105,strijar");
+                console.writeln("East2West");
                 console.writeln("");
                 break;
 
