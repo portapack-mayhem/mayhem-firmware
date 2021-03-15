@@ -49,7 +49,7 @@ public:
 	/* The "start_bit" winds up being the MSB of the returned field value. */
 	/* The BitRemap functor determines which bits are read from the source
 	 * packet. */
-	uint32_t read(const size_t start_bit, const size_t length) const {
+	int32_t read(const size_t start_bit, const size_t length) const { //Euquiq: was uint32_t, used for calculating lat / lon in radiosondes, can be negative too
 		uint32_t value = 0;
 		for(size_t i=start_bit; i<(start_bit + length); i++) {
 			value = (value << 1) | data[bit_remap(i)];
