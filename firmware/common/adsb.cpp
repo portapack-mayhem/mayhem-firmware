@@ -319,14 +319,14 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 
 // Decoding method from dump1090
 adsb_vel decode_frame_velo(ADSBFrame& frame){
-	adsb_vel velo {false, 0, 0};
+	adsb_vel velo {false, 0, 0, 0};
 
 	uint8_t * frame_data = frame.get_raw_data();
 	uint8_t velo_type = frame.get_msg_sub();
 
 	if(velo_type >= 1 && velo_type <= 4){ //vertical rate is always present
 
-		velo.v_rate = (((frame_data[8] & 0x07 ) << 6) | ((frame_data[9]) >> 2) - 1) * 64;
+		velo.v_rate = (((frame_data[8] & 0x07 ) << 6) | ((frame_data[9] >> 2) - 1)) * 64;
 
 		if((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1; //check v_rate sign
 	}
