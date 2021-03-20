@@ -1,0 +1,15 @@
+f=468000000
+f=468000000,d=Single Freq
+f=468000000,m=AM,d=Single Freq AM
+f=468000000,m=NFM,d=Single Freq NFM
+f=468000000,m=WFM,d=Single Freq WFM
+f=468000000,m=AM,b=DSB,d=Single Freq AM DSB
+f=468000000,m=AM,b=USB,d=Single Freq AM USB
+f=468000000,m=AM,b=LSB,d=Single Freq AM LSB
+a=87000000,b=110000000
+a=87000000,b=110000000,m=AM,s=100KHz,d=AM radio search
+a=87000000,b=110000000,m=AM,b=DSB,s=250KHz,d=AM radio search LSB
+a=87000000,b=110000000,m=WFM,b=16k,s=50KHz,d=WFM radio search s=50KHz
+r=430150000,t=430550000
+r=430150000,t=430550000,d=HAM radio
+r=430150000,t=430550000,m=AM,b=DSB,d=HAM radio
