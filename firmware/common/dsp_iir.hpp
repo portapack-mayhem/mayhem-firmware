@@ -31,6 +31,9 @@ struct iir_biquad_config_t {
 	std::array<float, 3> a;
 };
 
+// 0..2 - b, 3..5 - a
+typedef std::array<float, 6> iir_biquad_df2_config_t;
+
 constexpr iir_biquad_config_t iir_config_passthrough {
 	{ { 1.0f, 0.0f, 0.0f } },
 	{ { 0.0f, 0.0f, 0.0f } },
@@ -65,6 +68,23 @@ private:
 	iir_biquad_config_t config;
 	std::array<float, 3> x { { 0.0f, 0.0f, 0.0f } };
 	std::array<float, 3> y { { 0.0f, 0.0f, 0.0f } };
+};
+
+class IIRBiquadDF2Filter {
+public:
+
+	void configure(const iir_biquad_df2_config_t& config);
+	float execute(float z);
+
+private:
+	float b0 = 0;
+	float b1 = 0;
+	float b2 = 0;
+	float a1 = 0;
+	float a2 = 0;
+
+	float z0 = 0;
+	float z1 = 0;
 };
 
 #endif/*__DSP_IIR_H__*/

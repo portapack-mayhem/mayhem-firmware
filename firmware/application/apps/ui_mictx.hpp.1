@@ -48,15 +48,15 @@ public:
 	
 	// PTT: Enable through KeyEvent (only works with presses), disable by polling :(
 	// This is the old "RIGHT BUTTON" method.
-	/*
-	bool on_key(const KeyEvent key) {
+	
+/*	bool on_key(const KeyEvent key) {
 		if ((key == KeyEvent::Right) && (!va_enabled) && ptt_enabled) {
 			set_tx(true);
 			return true;
 		} else
 			return false;
-	};
-	*/
+	};  */
+	
 
 	std::string title() const override { return "Mic TX RX"; };
 
@@ -90,7 +90,7 @@ private:
 	uint32_t attack_timer { 0 };
 	uint32_t decay_timer { 0 };
 	int32_t tx_gain { 47 };
-    bool rf_amp { false };
+    	bool rf_amp { false };
 	int32_t rx_lna { 32 };
 	int32_t rx_vga { 32 };
 	bool rx_amp { false };
@@ -98,27 +98,30 @@ private:
 	rf::Frequency rx_frequency { 0 };
 	int32_t focused_ui { 2 };
 	bool button_touch { false };
-
+	
 	//AM TX Stuff
-	bool enable_am { false };
-	bool enable_dsb { false };
 	bool enable_usb { false };
 	bool enable_lsb { false };
+	bool enable_am { false };
+	uint32_t am_carrier_lvl { 20 };
+//	uint32_t am_mod_div { 1 }; 
 
 	
 	Labels labels {
 		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "BW:    FM kHz", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
+//		{ { 21 * 8, (1 * 8) }, "AM Car:", Color::light_grey() },
+//		{ { 20 * 8, (16 * 8) + 2 }, "AMCAR:", Color::light_grey() },
 		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
-		{ { 9 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
+		{ { 5 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
 		{ {17 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
@@ -144,6 +147,17 @@ private:
 			{ "x2.0", 20 }
 		}
 	};
+	OptionsField options_mode {
+		{ 24 * 8, 5 * 8 },
+		3,
+		{
+			{ "FM", 0 },
+			{ "AM", 1 },
+			{ "USB", 2 },
+			{ "LSB", 3 },
+			{ "DSB", 4 }
+		}
+	};
 	
 	FrequencyField field_frequency {
 		{ 5 * 8, 3 * 8 },
@@ -155,6 +169,14 @@ private:
 		1,
 		' '
 	};
+	
+/*	NumberField field_carrier {
+		{ 28 * 8, 1 * 8},
+		2,
+		{ 0, 99},
+		1,
+		' '
+	};*/
 	
 	NumberField field_rfgain {
 		{ 8 * 8, 5 * 8 },
@@ -171,25 +193,13 @@ private:
 		' '
 	};
 	
-	OptionsField options_mode {
-		{ 24 * 8, 5 * 8 },
-		3,
-		{
-			{ "FM", 0 },
-			{ "AM", 1 },
-			{ "USB", 2 },
-			{ "LSB", 3 },
-			{ "DSB", 4 }
-		}
-	};
-	/*
-	Checkbox check_va {
+	/*Checkbox check_va {
 		{ 3 * 8, (10 * 8) - 4 },
 		7,
 		"Voice activation",
 		false
-	};
-	*/
+	};*/
+	
 
 	OptionsField field_va {
 		{ 17 * 8, 8 * 8 },
@@ -199,6 +209,16 @@ private:
 			{" PTT", 1},
 			{"AUTO", 2}
 		}
+	};
+	
+	OptionsField field_rxbw {
+	       { 25 * 8, 23 * 8},
+	       3,
+	       {
+	       		{"8k5", 0},
+	       		{"11k", 1},
+	       		{"16k", 2}
+	       	}
 	};
 
 	NumberField field_va_level {
@@ -240,25 +260,15 @@ private:
 		{ 3 * 8, ( 21 * 8 ) - 4 },
 		8,
 		"RX audio listening",
-		false
+		true
 	};
 
 	NumberField field_volume {
-		{ 13 * 8, 23 * 8 },
+		{ 10 * 8, 23 * 8 },
 		2,
 		{ 0, 99 },
 		1,
 		' ',
-	};
-	
-	OptionsField field_rxbw {
-	       { 25 * 8, 23 * 8},
-	       3,
-	       {
-	       		{"8k5", 0},
-	       		{"11k", 1},
-	       		{"16k", 2}
-	       	}
 	};
 	
 	NumberField field_squelch {
