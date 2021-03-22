@@ -144,7 +144,7 @@ namespace ui {
 
 			TabView tab_view {
 				{ "Main", Color::cyan() , &viewMain },
-					{ "More", Color::green(), &viewMore }
+				{ "More", Color::green(), &viewMore }
 			};
 			Button button_save {
 				{ 9 * 8, 255, 14 * 8 , 40 },
