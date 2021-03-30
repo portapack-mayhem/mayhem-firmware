@@ -30,13 +30,13 @@
 
 namespace ui {
 
-	class FreqmanSetupViewFreq : public View {
+	class FreqmanEditFreq : public View {
 		public:
 			FreqmanSetupViewFreq( NavigationView& nav, Rect parent_rect );
 			void focus() override;
 
 		private:
-			Text text_input_file {
+			Text text_entry_type {
 				{ 1 * 8 , 1 * 16, 18 * 8, 22 },  
 					"Frequency"
 			};
@@ -45,64 +45,42 @@ namespace ui {
 				{ 1 * 8, 2 * 16, 11 * 8, 22 },
 					""
 			};
-	};
-
-	class FreqmanSetupViewRange : public View {
-		public:
-			FreqmanSetupViewRange( Rect parent_rect );
-			void focus() override;
-		private:
-			ButtonWithEncoder button_freq_start {
-				{ 0 * 8, 11 * 16, 11 * 8, 28 },
-					""
+			OptionsField field_mode {
+				{ 5 * 8, (26 * 8) + 4 },
+					6,
+					{
+					}
 			};
-			ButtonWithEncoder button_freq_end {
-				{ 0 * 8, 11 * 16, 11 * 8, 28 },
-					""
+			OptionsField field_bw {
+				{ 3 * 8, 1 * 16 },
+					4,
+					{ }
 			};
 	};
 
-	class FreqmanSetupViewHamRadio : public View {
+	class FreqmanEditView : public View {
 		public:
-			FreqmanSetupViewHamRadio( Rect parent_rect );
-			void focus() override;
-		private:
-			ButtonWithEncoder button_freq_rx {
-				{ 0 * 8, 11 * 16, 11 * 8, 28 },
-					""
-			};
-			ButtonWithEncoder button_freq_tx {
-				{ 0 * 8, 11 * 16, 11 * 8, 28 },
-					""
-			};
-	};
-
-	class FreqmanSaveView : public View {
-		public:
-			FreqmanSetupView( NavigationView& nav , std::string _input_file , std::string _output_file );
+			FreqmanEditView( NavigationView& nav , freqman_entry &_rf_entry );
 
 			std::function<void( std::vector<std::string> messages )> on_changed { };
 
 			void focus() override;
 
-			std::string title() const override { return "Search setup"; };
+			std::string title() const override { return "Freqman Edit View"; };
 
 		private:
 			NavigationView& nav_;
 
-			std::string input_file  = { "SEARCH" };
-			std::string output_file = { "SEARCHRESULTS" };
+			freqman_entry entry ;
 
-			Rect view_rect = { 0, 3 * 8, 240, 230 };
-
-			FreqmanSetupViewFreq viewFreq{ nav_ , view_rect , input_file , output_file };
+  			RFFreqmanSetupViewFreq viewFreq{ nav_ , view_rect , entry , output_file };
 			FreqmanSetupViewRange viewRange{ view_rect };
 			FreqmanSetupViewHamRadio viewHamRadio{ view_rect };
 
 			TabView tab_view {
-				{ "Freq", Color::cyan() , &viewFreq },
+				{ "Freq", Color::red() , &viewFreq },
 				{ "Range", Color::green(), &viewRange },
-				{ "HamRadio", Color::green(), &viewHamRadio }
+				{ "HamRadio", Color::blue(), &viewHamRadio }
 			};
 			Button button_save {
 				{ 9 * 8, 255, 14 * 8 , 40 },
