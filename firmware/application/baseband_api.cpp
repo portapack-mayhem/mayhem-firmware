@@ -130,6 +130,13 @@ void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_
 	send_message(&message);
 }
 
+void set_aprs(const uint32_t baudrate) {
+	const APRSRxConfigureMessage message {
+		baudrate
+	};
+	send_message(&message);
+}
+
 void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
 	const BTLERxConfigureMessage message {
 		baudrate,
