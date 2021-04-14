@@ -856,13 +856,21 @@ public:
 		const float deviation_hz,
 		const float audio_gain,
 		const uint32_t tone_key_delta,
-		const float tone_key_mix_weight
+		const float tone_key_mix_weight,
+		const bool am_enabled,
+		const bool dsb_enabled,
+		const bool usb_enabled,
+		const bool lsb_enabled
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
 		deviation_hz(deviation_hz),
 		audio_gain(audio_gain),
 		tone_key_delta(tone_key_delta),
-		tone_key_mix_weight(tone_key_mix_weight)
+		tone_key_mix_weight(tone_key_mix_weight),
+		am_enabled(am_enabled),
+		dsb_enabled(dsb_enabled),
+		usb_enabled(usb_enabled),
+		lsb_enabled(lsb_enabled)
 	{
 	}
 
@@ -871,6 +879,10 @@ public:
 	const float audio_gain;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
+	const bool am_enabled;
+	const bool dsb_enabled;
+	const bool usb_enabled;
+	const bool lsb_enabled;
 };
 
 class SigGenConfigMessage : public Message {

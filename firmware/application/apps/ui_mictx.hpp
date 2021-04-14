@@ -99,19 +99,27 @@ private:
 	int32_t focused_ui { 2 };
 	bool button_touch { false };
 
+	//AM TX Stuff
+	bool enable_am { false };
+	bool enable_dsb { false };
+	bool enable_usb { false };
+	bool enable_lsb { false };
+
 	
 	Labels labels {
 		{ { 3 * 8, 1 * 8 }, "MIC. GAIN:", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
+		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
 		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },
 		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 9 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
+		{ {17 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -161,6 +169,18 @@ private:
 		{ 0, 14 },
 		14,
 		' '
+	};
+	
+	OptionsField options_mode {
+		{ 24 * 8, 5 * 8 },
+		3,
+		{
+			{ "FM", 0 },
+			{ "AM", 1 },
+			{ "USB", 2 },
+			{ "LSB", 3 },
+			{ "DSB", 4 }
+		}
 	};
 	/*
 	Checkbox check_va {
@@ -229,6 +249,16 @@ private:
 		{ 0, 99 },
 		1,
 		' ',
+	};
+	
+	OptionsField field_rxbw {
+	       { 25 * 8, 23 * 8},
+	       3,
+	       {
+	       		{"8k5", 0},
+	       		{"11k", 1},
+	       		{"16k", 2}
+	       	}
 	};
 	
 	NumberField field_squelch {
