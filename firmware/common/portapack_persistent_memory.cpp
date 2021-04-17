@@ -226,6 +226,19 @@ void set_playdead_sequence(const uint32_t new_value) {
 // bits 0,1,2 store the backlight timer
 // bits 31, 30,29,28,27 stores the different single bit configs depicted below
 // bits on position 4 to 19 (16 bits) store the clkout frequency
+// bits 24,25,26 Hardware version selection function
+
+bool hwver_set_enabled_flag() {
+	return data->ui_config & (1 << 24);
+}
+
+bool hwver_set_enabled() {
+	return data->ui_config & (1 << 25);
+}
+
+bool config_hwver() {
+	return data->ui_config & (1 << 26);
+}
 
 bool clkout_enabled() {
 	return data->ui_config & (1 << 27);
@@ -234,6 +247,7 @@ bool clkout_enabled() {
 bool config_speaker() {
 	return data->ui_config & (1 << 28);
 }
+
 bool stealth_mode() {
 	return data->ui_config & (1 << 29);
 }
@@ -249,6 +263,18 @@ bool config_splash() {
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
+}
+
+void set_hwver_enabled_flag(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
+}
+
+void set_hwver_enabled(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
+}
+
+void set_hwver_mode(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 26)) | (v << 26);
 }
 
 void set_clkout_enabled(bool v) {

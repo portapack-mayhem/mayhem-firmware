@@ -98,6 +98,14 @@ void set_clkout_enabled(bool v);
 uint32_t clkout_freq();
 void set_clkout_freq(uint32_t freq);
 
+/*Hardware version selection function*/
+bool hwver_set_enabled_flag() ;
+void set_hwver_enabled_flag(bool v);
+bool hwver_set_enabled() ;
+bool config_hwver() ;
+void set_hwver_enabled(bool v) ;
+void set_hwver_mode(bool v);
+
 } /* namespace persistent_memory */
 } /* namespace portapack */
 

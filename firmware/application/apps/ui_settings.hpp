@@ -256,6 +256,23 @@ private:
 		"Show splash"
 	};
 	
+	/*Hardware version selection enable*/
+		Checkbox checkbox_HwVer{
+		{ 3 * 8, 12 * 16 },
+		2,
+		"Hardware version:"
+	};
+
+	/*Hardware version selection*/
+	OptionsField options_HwVer {
+		{ 52, 13* 16 + 8 },
+		1,
+		{
+			{ "R1_20150901", 0 },
+			{ "R2_20170522", 1 },
+		}
+	};
+
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"

@@ -285,13 +285,18 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
+		&checkbox_HwVer,//Hardware version selection enable
+		&options_HwVer,//Hardware version selection
 		&button_ok
 	});
 	
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	//checkbox_login.set_value(persistent_memory::config_login());
-	
+	/*Hardware version selection function*/
+	checkbox_HwVer.set_value(persistent_memory::hwver_set_enabled());
+	options_HwVer.set_by_value(persistent_memory::config_hwver());
+
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
 	
 	if (backlight_timer) {
@@ -318,6 +323,10 @@ SetUIView::SetUIView(NavigationView& nav) {
 		
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		//persistent_memory::set_config_login(checkbox_login.value());
+		/*Hardware version selection function*/
+		persistent_memory::set_hwver_enabled(checkbox_HwVer.value());
+		if(checkbox_HwVer.value())persistent_memory::set_hwver_enabled_flag(0);
+		persistent_memory::set_hwver_mode(options_HwVer.selected_index());
 		nav.pop();
 	};
 }
