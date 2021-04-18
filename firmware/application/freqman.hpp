@@ -57,9 +57,11 @@ enum freqman_entry_type {
 };
 
 enum freqman_entry_modulation {
-	AM_MODULATION = 0,
-	NFM_MODULATION,
-	WFM_MODULATION
+	MODULATION_DEF = -1 ,
+	AM_MODULATION = 0 ,
+	NFM_MODULATION ,
+	WFM_MODULATION ,
+	ERROR_MODULATION ,
 };
 
 //Entry step placed for AlainD freqman version (or any other enhanced version)
@@ -85,7 +87,7 @@ struct freqman_entry {
 	freqman_index_t modulation { };    // AM,NFM,WFM
 	freqman_index_t bandwidth { };     // AM_DSB, ...
 	freqman_index_t step { };          // 5Khz (SA AM,...
-	tone_index tone { };                // 0XZ, 11 1ZB,...
+	tone_index tone { };               // 0XZ, 11 1ZB,...
 };
 
 using freqman_db = std::vector<freqman_entry>;
