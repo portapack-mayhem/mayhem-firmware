@@ -32,7 +32,7 @@ namespace ui
                 console.writeln("jamesshao8,ITAxReal,rascafr");
                 console.writeln("mcules,dqs105,strijar");
                 console.writeln("zhang00963,RedFox-Fr");
-                console.writeln("East2West");
+                console.writeln("East2West,fossum");
                 console.writeln("");
                 break;
 
