@@ -203,7 +203,7 @@ namespace ui {
 							}
 						}
 						if( !found) {
-							auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
+							scanner_file.append(freq_file_path); //Second: append if it is not there
 							scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 						}
 					} 
@@ -213,7 +213,7 @@ namespace ui {
 							+ to_string_dec_uint( -i / 1000) 
 							+ to_string_dec_uint( -i % 1000UL, 3, '0');
 
-						auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
+						scanner_file.append(freq_file_path); //Second: append if it is not there
 						scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 					}
 
@@ -262,7 +262,7 @@ namespace ui {
 
 	ScannerView::ScannerView(
 			NavigationView& nav
-			) : nav_ { nav }
+			) : nav_ { nav } 
 	{
 		add_children({
 				&labels,
@@ -471,7 +471,7 @@ namespace ui {
 					big_display.set(frequency_list[current_index]);		//After showing an error
 				}
 				else {
-					auto result = scanner_file.append(freq_file_path); //Second: append if it is not there
+					scanner_file.append(freq_file_path); //Second: append if it is not there
 					scanner_file.write_line(frequency_to_add + ",d=ADD FQ");
 				}
 			} else
@@ -499,24 +499,17 @@ namespace ui {
 			scan_thread->stop();
 			frequency_list.clear(); // clear the existing frequency list (expected behavior)
 			description_list.clear();
-			def_step = step_mode.selected_index_value();		//Use def_step from manual selector
 		}
 
 		if ( load_freqman_file(file_name, database)  ) {
 			loaded_file_name = file_name; // keep loaded filename in memory
-			for(auto& entry : database) {									// READ LINE PER LINE
-				if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
-					if (entry.type == RANGE)  {								//RANGE	
-						switch (entry.step) {
-							case AM_US:	def_step = 10000;  	break ;
-							case AM_EUR:def_step = 9000;  	break ;
-							case NFM_1: def_step = 12500;  	break ;
-							case NFM_2: def_step = 6250;	break ;	
-							case FM_1:	def_step = 100000; 	break ;
-							case FM_2:	def_step = 50000; 	break ;
-							case N_1:	def_step = 25000;  	break ;
-							case N_2:	def_step = 250000; 	break ;
-							case AIRBAND:def_step= 8330;  	break ;
+			for(auto& entry : database) {						// READ LINE PER LINE
+				if (frequency_list.size() < MAX_DB_ENTRY) {			//We got space!
+					def_step = step_mode.selected_index_value();		//Use def_step from manual selector
+					if (entry.type == RANGE)  {				//RANGE	
+						if( entry.step != -1 )
+					       	{
+							def_step = freqman_entry_get_step_value( entry.step );
 						}
 						frequency_list.push_back(entry.frequency_a);		//Store starting freq and description
 						description_list.push_back("R" + to_string_short_freq(entry.frequency_a)
@@ -542,7 +535,7 @@ namespace ui {
 		} 
 		else 
 		{
-			loaded_file_name = 'SCANNER'; // back to the default frequency file
+			loaded_file_name = "SCANNER"; // back to the default frequency file
 			desc_cycle.set(" NO " + file_name + ".TXT FILE ..." );
 		}
 		audio::output::stop();
@@ -611,7 +604,7 @@ namespace ui {
 		using option_t = std::pair<std::string, int32_t>;
 		using options_t = std::vector<option_t>;
 		options_t bw;
-		field_bw.on_change = [this](size_t n, OptionsField::value_t) {	};
+		field_bw.on_change = [this](size_t n, OptionsField::value_t) {	(void)n; };
 
 		switch (new_mod) {
 			case NFM:	//bw 16k (2) default

@@ -950,7 +950,7 @@ namespace ui {
 		freqman_set_modulation_option( field_mode );
 		freqman_set_step_option( step_mode );
 
-		if( !filedelete )
+		if( filedelete )
 		{
 			delete_file( "FREQMAN/"+output_file+".TXT" );
 		}
