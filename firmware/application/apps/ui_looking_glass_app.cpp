@@ -100,7 +100,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
     }
 
     if (pixel_index) 
-        f_center += SEARCH_SLICE_WIDTH; //Move into the next bandwidth slice NOTE: spectrum.sampling_rate = SEARCH_SLICE_WIDTH
+        f_center += LOOKING_GLASS_SLICE_WIDTH; //Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
     else
         f_center = f_center_ini; //Start a new sweep
 
@@ -143,8 +143,8 @@ void GlassView::on_range_changed()
     else
         field_marker.set_step(marker_step); //step needs to be a pixel wide.
 
-    f_center_ini = f_min + (SEARCH_SLICE_WIDTH / 2);    //Initial center frequency for sweep
-    f_center_ini += SEARCH_SLICE_WIDTH;                 //euquiq: Why do I need to move the center ???!!! (shift needed for marker accuracy)
+    f_center_ini = f_min + (LOOKING_GLASS_SLICE_WIDTH / 2);    //Initial center frequency for sweep
+    f_center_ini += LOOKING_GLASS_SLICE_WIDTH;                 //euquiq: Why do I need to move the center ???!!! (shift needed for marker accuracy)
 
     PlotMarker(field_marker.value()); //Refresh marker on screen
 
@@ -153,20 +153,20 @@ void GlassView::on_range_changed()
     max_power = 0;
     bins_Hz_size = 0;                               //reset amount of Hz filled up by pixels
     
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, field_trigger.value());   
+    baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());   
     receiver_model.set_tuning_frequency(f_center_ini); //tune rx for this slice
 }
 
-void GlassView::PlotMarker(rf::Frequency pos)
+void GlassView::PlotMarker(rf::Frequency fpos)
 {
-    pos = pos * MHZ_DIV;
+    int64_t pos = fpos * MHZ_DIV;
     pos -= f_min;
     pos = pos / marker_pixel_step; //Real pixel 
 
     portapack::display.fill_rectangle({0, 100, 240, 8}, Color::black()); //Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 2, 100, 5, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos - 1, 103, 3, 3}, Color::red()); //Red marker middle
-    portapack::display.fill_rectangle({pos, 106, 1, 2}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos - 2, 100, 5, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos - 1, 103, 3, 3}, Color::red()); //Red marker middle
+    portapack::display.fill_rectangle({(int16_t)pos, 106, 1, 2}, Color::red()); //Red marker middle
 }
 
 GlassView::GlassView(
@@ -216,10 +216,12 @@ GlassView::GlassView(
 
     filter_config.set_selected_index(0);
 	filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n;
 		min_color_power = v;
 	};
 
 	range_presets.on_change = [this](size_t n, OptionsField::value_t v) {
+		(void)n;
 		field_frequency_min.set_value(presets_db[v].min,false);
         field_frequency_max.set_value(presets_db[v].max,false);
         this->on_range_changed();
@@ -240,11 +242,11 @@ GlassView::GlassView(
 
     field_trigger.set_value(32);   //Defaults to 32, as normal triggering resolution
     field_trigger.on_change = [this](int32_t v) {
-        baseband::set_spectrum(SEARCH_SLICE_WIDTH, v);
+        baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, v);
     };
 
     display.scroll_set_area( 109, 319);
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, field_trigger.value());	//trigger:
+    baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());	//trigger:
     // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute ,
     // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made, 
     //at which time it pushes the buffer up with channel_spectrum.feed
@@ -252,8 +254,8 @@ GlassView::GlassView(
     on_range_changed();
 
     receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-	receiver_model.set_sampling_rate(SEARCH_SLICE_WIDTH); //20mhz
-    receiver_model.set_baseband_bandwidth(SEARCH_SLICE_WIDTH); // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
+	receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH); //20mhz
+    receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH); // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
 	receiver_model.enable();
 }

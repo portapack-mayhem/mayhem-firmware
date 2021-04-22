@@ -36,6 +36,7 @@
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
 #include "tpms_packet.hpp"
 #include "jammer.hpp"
@@ -111,6 +112,8 @@ public:
 		AudioLevelReport = 51,
 		CodedSquelch = 52,
 		AudioSpectrum = 53,
+		APRSPacket = 54,
+		APRSRxConfigure = 55,
 		MAX
 	};
 
@@ -725,6 +728,18 @@ public:
 	const bool trigger_word;
 };
 
+class APRSRxConfigureMessage : public Message {
+public:
+	constexpr APRSRxConfigureMessage(
+		const uint32_t baudrate
+	) : Message { ID::APRSRxConfigure },
+		baudrate(baudrate)
+	{
+	}
+	
+	const uint32_t baudrate;
+};
+
 class BTLERxConfigureMessage : public Message {
 public:
 	constexpr BTLERxConfigureMessage(
@@ -856,13 +871,21 @@ public:
 		const float deviation_hz,
 		const float audio_gain,
 		const uint32_t tone_key_delta,
-		const float tone_key_mix_weight
+		const float tone_key_mix_weight,
+		const bool am_enabled,
+		const bool dsb_enabled,
+		const bool usb_enabled,
+		const bool lsb_enabled
 	) : Message { ID::AudioTXConfig },
 		divider(divider),
 		deviation_hz(deviation_hz),
 		audio_gain(audio_gain),
 		tone_key_delta(tone_key_delta),
-		tone_key_mix_weight(tone_key_mix_weight)
+		tone_key_mix_weight(tone_key_mix_weight),
+		am_enabled(am_enabled),
+		dsb_enabled(dsb_enabled),
+		usb_enabled(usb_enabled),
+		lsb_enabled(lsb_enabled)
 	{
 	}
 
@@ -871,6 +894,10 @@ public:
 	const float audio_gain;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
+	const bool am_enabled;
+	const bool dsb_enabled;
+	const bool usb_enabled;
+	const bool lsb_enabled;
 };
 
 class SigGenConfigMessage : public Message {
@@ -1001,6 +1028,19 @@ public:
 	const pocsag::BitRate bitrate;
 	const bool phase;
 };
+
+class APRSPacketMessage : public Message {
+public:
+	constexpr APRSPacketMessage(
+		const aprs::APRSPacket& packet
+	) : Message { ID::APRSPacket },
+		packet { packet }
+	{
+	}
+	
+	aprs::APRSPacket packet;
+};
+
 
 class ADSBConfigureMessage : public Message {
 public:

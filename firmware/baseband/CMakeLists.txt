@@ -113,6 +113,8 @@ set(CPPSRC
 	baseband_stats_collector.cpp
 	dsp_decimate.cpp
 	dsp_demodulate.cpp
+	dsp_hilbert.cpp
+	dsp_modulate.cpp
 	dsp_goertzel.cpp
 	matched_filter.cpp
 	spectrum_collector.cpp
@@ -125,6 +127,7 @@ set(CPPSRC
 	${COMMON}/dsp_fft.cpp
 	${COMMON}/dsp_fir_taps.cpp
 	${COMMON}/dsp_iir.cpp
+	${COMMON}/dsp_sos.cpp
 	fxpt_atan2.cpp
 	rssi.cpp
 	rssi_dma.cpp
@@ -312,6 +315,14 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+
+### APRS RX
+
+set(MODE_CPPSRC
+	proc_aprsrx.cpp
+)
+DeclareTargets(PAPR aprsrx)
+
 ### NRF RX
 
 set(MODE_CPPSRC

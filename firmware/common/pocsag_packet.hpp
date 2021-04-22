@@ -34,7 +34,8 @@ enum BitRate : uint32_t {
 	UNKNOWN,
 	FSK512 = 512,
 	FSK1200 = 1200,
-	FSK2400 = 2400
+	FSK2400 = 2400,
+	FSK3200 = 3200
 };
 
 enum PacketFlag : uint32_t {
@@ -87,7 +88,7 @@ public:
 private:
 	BitRate bitrate_ { UNKNOWN };
 	PacketFlag flag_ { NORMAL };
-	std::array <uint32_t, 16> codewords;
+	std::array <uint32_t, 16> codewords { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  };
 	Timestamp timestamp_ { };
 };
 

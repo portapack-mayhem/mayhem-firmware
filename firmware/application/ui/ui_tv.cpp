@@ -182,7 +182,7 @@ void TVView::clear() {
 
 /* TVWidget *******************************************************/
 
-TVWidget::TVWidget(const bool cursor) {
+TVWidget::TVWidget() {
 	add_children({
 		&tv_view,
 		&field_xcorr

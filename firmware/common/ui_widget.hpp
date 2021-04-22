@@ -325,6 +325,7 @@ public:
 
 	void paint(Painter&) override;
 	
+	void enable_scrolling(bool enable);
 	void on_show() override;
 	void on_hide() override;
 
@@ -332,6 +333,7 @@ private:
 	//bool visible = false;
 	Point pos { 0, 0 };
 	std::string buffer { };
+	static bool scrolling_enabled;
 
 	void crlf();
 };
@@ -545,7 +547,7 @@ public:
 
 	size_t selected_index() const;
 	size_t selected_index_value() const;
-	void set_selected_index(const size_t new_index);
+	void set_selected_index(const size_t new_index, bool trigger_change = true);
 
 	void set_by_value(value_t v);
 

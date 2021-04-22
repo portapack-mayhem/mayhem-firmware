@@ -28,9 +28,11 @@ namespace ui
                 console.writeln("\x1B\x06Mayhem:\x1B\x10");
                 console.writeln("eried,euquiq,gregoryfenton");
                 console.writeln("johnelder,jwetzell,nnemanjan00");
-                console.writeln("N0vaPixel,klockee,jamesshao8");
-                console.writeln("ITAxReal,rascafr,mcules");
-                console.writeln("dqs105,strijar");
+                console.writeln("N0vaPixel,klockee,GullCode");
+                console.writeln("jamesshao8,ITAxReal,rascafr");
+                console.writeln("mcules,dqs105,strijar");
+                console.writeln("zhang00963,RedFox-Fr");
+                console.writeln("East2West,fossum");
                 console.writeln("");
                 break;
 

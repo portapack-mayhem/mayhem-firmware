@@ -179,6 +179,24 @@ public:
 				}
 			}
 		}
+		else if( event == ui::KeyEvent::Up ) {
+			if(selected_key == recent.front().key()){
+				return false;
+			}
+			else {
+				advance(-1);
+				return true;
+			}
+		}
+		else if( event == ui::KeyEvent::Down ) {
+			if( selected_key == recent.back().key()) {
+				return false;
+			}
+			else {
+				advance(1);
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -264,7 +282,7 @@ public:
 		// TODO: What happens here shouldn't matter if I do proper damage detection!
 	}
 
-	void on_focus() override {
+	void focus() override {
 		_table.focus();
 	}
 

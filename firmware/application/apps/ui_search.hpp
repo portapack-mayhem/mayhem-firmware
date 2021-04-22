@@ -212,12 +212,14 @@ private:
 		true
 	};
 	OptionsField options_snap {
-		{ 17 * 8, 15 * 8 },
-		7,
-		{
+		{ 17 * 8, 15 * 8 }, // Position
+		7,                  // Length
+		{                   // Options
 			{ "25kHz  ", 25000 },
 			{ "12.5kHz", 12500 },
-			{ "8.33kHz", 8333 }
+			{ "8.33kHz", 8333 },
+			{ "2.5kHz", 2500 },
+			{ "500Hz", 500 }
 		}
 	};
 	

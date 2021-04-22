@@ -18,7 +18,7 @@ RUN apt-get update && \
 	apt-get -qy autoremove
 
 #Install current pip from PyPa
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
 	python get-pip.py
 
 #Fetch additional dependencies from Python 2.x pip

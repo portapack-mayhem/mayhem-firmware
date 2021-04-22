@@ -42,6 +42,7 @@ struct DateTime {
 
 template<size_t FieldSize, int32_t DegMax, uint32_t NAValue>
 struct LatLonBase {
+	
 	constexpr LatLonBase(
 	) : LatLonBase { raw_not_available }
 	{
@@ -58,6 +59,8 @@ struct LatLonBase {
 	) : raw_ { other.raw_ }
 	{
 	}
+	
+	LatLonBase& operator=( const LatLonBase &)=default;
 
 	int32_t normalized() const {
 		return static_cast<int32_t>(raw() << sign_extend_shift) / (1 << sign_extend_shift);

@@ -110,7 +110,11 @@ void SoundBoardView::start_tx(const uint32_t id) {
 		1536000 / 20,		// Update vu-meter at 20Hz
 		transmitter_model.channel_bandwidth(),
 		0,	// Gain is unused
-		TONES_F2D(tone_key_frequency(tone_key_index), 1536000)
+		TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
+		0, //AM
+		0, //DSB
+		0, //USB
+		0 //LSB
 	);
 	baseband::set_sample_rate(sample_rate);
 	
@@ -130,6 +134,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
+	(void)progress ; // avoid warning
 	//progressbar.set_value(progress);
 }
 

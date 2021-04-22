@@ -50,6 +50,8 @@ struct ERTKey {
 	{
 	}
 
+	ERTKey( const ERTKey& other ) = default;
+
 	ERTKey& operator=(const ERTKey& other) {
 		id = other.id;
 		commodity_type = other.commodity_type;

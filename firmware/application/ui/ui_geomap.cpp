@@ -264,8 +264,13 @@ void GeoMapView::focus() {
 void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
+	
+	// Stupid hack to avoid an event loop
+	geopos.set_report_change(false);
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
+	geopos.set_report_change(true);
+
 	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();

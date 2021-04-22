@@ -95,7 +95,7 @@ private:
 	bool configured = false;
 	rx_states rx_state { WAITING };
 	pocsag::BitRate bitrate { pocsag::BitRate::FSK1200 };
-	bool phase;
+	bool phase = false ;
 	uint32_t codeword_count { 0 };
 	pocsag::POCSAGPacket packet { };
 	

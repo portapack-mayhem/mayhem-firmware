@@ -199,7 +199,7 @@ void AnalogTvView::on_show_options_rf_gain() {
 void AnalogTvView::on_show_options_modulation() {
 	std::unique_ptr<Widget> widget;
 
-	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
+	static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	tv.show_audio_spectrum_view(true);
 	
 	set_options_widget(std::move(widget));
@@ -216,6 +216,7 @@ void AnalogTvView::on_reference_ppm_correction_changed(int32_t v) {
 }
 
 void AnalogTvView::on_headphone_volume_changed(int32_t v) {
+	(void)v; //avoid warning
 	//tv::TVView::set_headphone_volume(this,v);
 }
 

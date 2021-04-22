@@ -53,7 +53,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 	auto audio_oversampled = demod.execute(buffer_c16, work_audio_buffer);*/
 	// Audio signal processing
 	for (size_t c = 0; c < audio_oversampled.count; c++) {
-		int result;
 
 		/*const int32_t sample_int = audio_oversampled.p[c] * 32768.0f;
 		int32_t current_sample = __SSAT(sample_int, 16);
@@ -107,9 +106,9 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 				uint8_t packet_data[500];
 				int packet_length;
 				uint32_t packet_crc;
-				uint32_t calced_crc;
+				//uint32_t calced_crc; // NOTE: restore when CRC is passing
 				uint64_t packet_addr_l;
-				uint32_t result;
+				//uint32_t result; // NOTE: restore when CRC is passing
 				uint8_t crc[3];
 				uint8_t packet_header_arr[2];
 
@@ -255,21 +254,21 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 				    counter = counter + 1;
 				}
 				for (v=0;v<3;v++) crc_result=(crc_result<<8)|crc[v];
-				calced_crc = crc_result;
+				//calced_crc = crc_result; // NOTE: restore when CRC is passing
 
 				packet_crc=0;
 				for (int c=0;c<3;c++) packet_crc=(packet_crc<<8)|packet_data[packet_length+2+c];
 
 				if (packet_addr_l==0x8E89BED6)
-				//if (packet_crc==calced_crc)
+				//if (packet_crc==calced_crc) // NOTE: restore when CRC is passing
 				{
 				    uint8_t mac_data[6];
 				    int counter = 0;
 				    for (int i = 7; i >= 2; i--) 
 				    {
 				        uint8_t byte_temp6 = (uint8_t) (((packet_data[i] * 0x0802LU & 0x22110LU) | (packet_data[i] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-					//result = byte_temp6;
-					mac_data[counter] = byte_temp6;
+					//result = byte_temp6; // NOTE: restore when CRC is passing
+					mac_data[counter] = byte_temp6; 
 					counter = counter + 1;
 				    }
 
@@ -325,6 +324,7 @@ void BTLERxProcessor::on_message(const Message* const message) {
 }
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {	
+	(void)message; //avoid warning
 	decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
 	decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
 	demod.configure(audio_fs, 5000);
