@@ -114,7 +114,7 @@ AM::AM() {
 
 void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
 	int32_t         sample = 0;
-	int8_t          re, im;
+	int8_t          re = 0, im = 0;
 	float		q = 0.0;
 	
 	for (size_t counter = 0; counter < buffer.count; counter++) {
@@ -125,8 +125,8 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
 		q = sample / 32768.0f;
 		q *= 64.0f;
 		switch (mode) {
-			case Mode::AM:	re = q + 20; im = q + 20;
-			case Mode::DSB:	re = q; im = q;
+			case Mode::AM:	re = q + 20; im = q + 20; break;
+			case Mode::DSB:	re = q; im = q; break;
 			default:	break;
 		}
 		buffer.p[counter] = { re, im };
