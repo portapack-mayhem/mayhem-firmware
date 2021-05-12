@@ -339,9 +339,9 @@ private:
 		std::string lat_str = "";
 		std::string lng_str = "";
 
-		bool is_north;
-		bool is_west;
-		uint8_t lng_offset;
+		bool is_north = false;
+		bool is_west = false;
+		uint8_t lng_offset = 0;
 		for(uint8_t i = DESTINATION_START; i < DESTINATION_START + ADDRESS_SIZE - 1; i++){
 			uint8_t ascii = payload[i] >> 1;
 
