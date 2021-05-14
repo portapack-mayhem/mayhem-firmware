@@ -124,8 +124,8 @@ private:
 	};
 
 	Text text_bw {
-		{ 11 * 8, 1 * 8, 9 * 8, 1 * 16 },
-		"BW:   kHz"
+		{ 18 * 8, 1 * 8, 3 * 8, 1 * 16 },
+		"kHz"
 	};
 	NumberField field_bw {
 		{ 14 * 8, 1 * 8 },
@@ -151,6 +151,10 @@ private:
 	Button button_start {
 		{ 21 * 8, 1 * 8, 9 * 8, 32 },
 		"START"
+	};
+	
+	FrequencyStepView field_frequency_step {
+		{ 10 * 8 - 4, 1 * 8 },
 	};
 
 	void on_tuning_frequency_changed(rf::Frequency f);
