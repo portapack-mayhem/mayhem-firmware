@@ -128,7 +128,7 @@ private:
 		"kHz"
 	};
 	NumberField field_bw {
-		{ 14 * 8, 1 * 8 },
+		{ 15 * 8, 1 * 8 },
 		3,
 		{ 1, 150 },
 		1,
