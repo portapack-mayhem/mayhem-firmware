@@ -244,6 +244,7 @@ public:
 
 	void paint(Painter& painter) override;
 
+	void set_hide_clock(bool new_value);
 	void set_seconds_enabled(bool new_value);
 	void set_date_enabled(bool new_value);
 
@@ -255,6 +256,7 @@ private:
 	void on_tick_second();
 	
 	uint16_t init_delay = 4;
+	bool hide_clock = false;
 	bool date_enabled = true;
 	bool seconds_enabled = false;
 	
