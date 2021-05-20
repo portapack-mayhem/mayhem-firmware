@@ -392,9 +392,10 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	}
 	record_view.set_sampling_rate(sampling_rate);
 
-	if( !is_wideband_spectrum_mode ) {
-		audio::output::unmute();
-	}
+    // respect audio settings
+	//if( !is_wideband_spectrum_mode ) {
+	//	audio::output::unmute();
+	//}
 }
 
 /*void AnalogAudioView::squelched() {

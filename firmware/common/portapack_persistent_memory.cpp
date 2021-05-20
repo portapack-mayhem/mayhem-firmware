@@ -200,38 +200,17 @@ void set_serial_format(const serial_format_t new_value) {
 	data->serial_format = new_value;
 }
 
-/* static constexpr uint32_t playdead_magic = 0x88d3bb57;
-
-uint32_t playing_dead() {
-	return data->playing_dead;
-}
-
-void set_playing_dead(const uint32_t new_value) {
-	if( data->playdead_magic != playdead_magic ) {
-		set_playdead_sequence(0x8D1);	// U D L R
-	}
-	data->playing_dead = new_value;
-}
-
-uint32_t playdead_sequence() {
-	if( data->playdead_magic != playdead_magic ) {
-		set_playdead_sequence(0x8D1);	// U D L R
-	}
-	return data->playdead_sequence;
-}
-
-void set_playdead_sequence(const uint32_t new_value) {
-	data->playdead_sequence = new_value;
-	data->playdead_magic = playdead_magic;
-} */
 
 // ui_config is an uint32_t var storing information bitwise
-// bits 0,1,2 store the backlight timer
-// bits 31, 30,29,28,27, 26, 25 stores the different single bit configs depicted below
-// bits on position 4 to 19 (16 bits) store the clkout frequency
-
+// bits 0-2 store the backlight timer
+// bits 4-19 (16 bits) store the clkout frequency
+// bits 23-31 store the different single bit configs depicted below
 bool show_bigger_qr_code() { // show bigger QR code
 	return data->ui_config & (1 << 23);
+}
+
+bool speaker_enabled() { // enable speaker
+	return data->ui_config & (1 << 24);
 }
 
 bool hide_clock() { // clock hidden from main menu
@@ -270,8 +249,13 @@ uint32_t config_backlight_timer() {
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
 }
 
+
 void set_show_bigger_qr_code(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 23)) | (v << 23);
+}
+
+void set_speaker_enabled(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
 }
 
 void set_clock_hidden(bool v) {
@@ -309,18 +293,6 @@ void set_config_cpld(uint8_t i) {
 void set_config_backlight_timer(uint32_t i) {
 	data->ui_config = (data->ui_config & ~7) | (i & 7);
 }
-
-/*void set_config_textentry(uint8_t new_value) {
-	data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
-}
-
-uint8_t ui_config_textentry() {
-	return ((data->ui_config >> 2) & 1);
-}*/
-
-/*void set_ui_config(const uint32_t new_value) {
-	data->ui_config = new_value;
-}*/
 
 uint32_t pocsag_last_address() {
 	return data->pocsag_last_address;

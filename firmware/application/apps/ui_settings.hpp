@@ -282,17 +282,23 @@ public:
 	
 private:
 	Labels labels {
-		{ { 2 * 8, 3 * 16 }, "Tone key mix:   %", Color::light_grey() },
+		{ { 3 * 8, 3 * 16 }, "Tone key mix:   %", Color::light_grey() },
 	};
 	
 	NumberField field_tone_mix {
-		{ 16 * 8, 3 * 16 },
+		{ 17 * 8, 3 * 16 },
 		2,
 		{ 10, 99 },
 		1,
 		'0'
 	};
-	
+
+	Checkbox checkbox_speaker_enabled {
+		{ 3 * 8, 5 * 16 },
+		20,
+		"Enable speaker"
+	};	
+
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"

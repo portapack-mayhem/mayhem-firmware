@@ -83,6 +83,7 @@ bool hide_clock();
 bool clock_with_date();
 bool config_login();
 bool config_speaker();
+bool speaker_enabled();
 uint32_t config_backlight_timer();
 
 void set_config_splash(bool v);
@@ -91,6 +92,7 @@ void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);
 void set_config_speaker(bool v); 
+void set_speaker_enabled(bool v);
 void set_config_backlight_timer(uint32_t i);
 
 //uint8_t ui_config_textentry();

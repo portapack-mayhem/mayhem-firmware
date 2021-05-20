@@ -118,10 +118,21 @@ SystemStatusView::SystemStatusView(
 		&sd_card_status_view,
 	});
 	
-	if (portapack::persistent_memory::config_speaker()) 
-		button_speaker.hidden(false);
-	else
+	if (!portapack::persistent_memory::config_speaker()){ 
+		button_speaker.hidden(false);	
+		if(!portapack::persistent_memory::speaker_enabled()){
+			button_speaker.set_foreground(Color::light_grey());
+			button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
+		}
+		else{
+ 		    
+ 		    button_speaker.set_foreground(Color::green());
+		    button_speaker.set_bitmap(&bitmap_icon_speaker);
+ 	    }
+	}		
+	else{
 		button_speaker.hidden(true);
+	}
 
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
@@ -176,10 +187,18 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::refresh() {
-	if (!portapack::persistent_memory::config_speaker()) {
-		button_speaker.set_foreground(Color::light_grey());
-		button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
-		button_speaker.hidden(false);
+	if (!portapack::persistent_memory::config_speaker()) { 
+		button_speaker.hidden(false);	
+		if(!portapack::persistent_memory::speaker_enabled()){
+			button_speaker.set_foreground(Color::light_grey());
+			button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
+		}
+		else
+		{
+ 		    
+ 		    button_speaker.set_foreground(Color::green());
+		    button_speaker.set_bitmap(&bitmap_icon_speaker);
+ 	    }
 	}		
 	else {
 		button_speaker.hidden(true);
