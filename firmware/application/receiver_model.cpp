@@ -171,7 +171,11 @@ void ReceiverModel::enable() {
 	update_baseband_bandwidth();
 	update_sampling_rate();
 	update_modulation();
+	
+	// TODO: would challenge if this should belong to the
+	// receiver_model namespace:
 	update_headphone_volume();
+
 	led_rx.on();
 }
 
@@ -182,6 +186,10 @@ void ReceiverModel::disable() {
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
+
+	// TODO: we are doing this repeatedly in different levels of the
+	// call stack. Keeping it for now, but there seem to be too many
+	// redundant calls:
 	led_rx.off();
 }
 
