@@ -48,7 +48,7 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
 ) {
 	char aged_color;
 	Color target_color;
-	auto entry_age = entry.age;
+	// auto entry_age = entry.age;
 	
 	target_color = Color::green();
 
@@ -342,7 +342,7 @@ void APRSDetailsView::set_entry(const APRSRecentEntry& entry){
 
 void APRSDetailsView::update() {	
 	if(!hidden()){		
-		uint32_t age = entry_copy.age;
+		//uint32_t age = entry_copy.age;
 		
 		console.clear(true);
 		console.write(entry_copy.info_string);

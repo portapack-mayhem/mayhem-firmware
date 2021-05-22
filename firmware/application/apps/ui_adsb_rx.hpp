@@ -49,7 +49,7 @@ struct AircraftRecentEntry {
 	uint16_t hits { 0 };
 	uint32_t age { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
-	adsb_vel velo { false, 0, 999 };
+	adsb_vel velo { false, 0, 999, 0 };
 	ADSBFrame frame_pos_even { };
 	ADSBFrame frame_pos_odd { };
 	
