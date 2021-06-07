@@ -75,11 +75,15 @@ bool stealth_mode();
 void set_stealth_mode(const bool v);
 
 bool config_splash();
+bool hide_clock();
+bool clock_with_date();
 bool config_login();
 bool config_speaker();
 uint32_t config_backlight_timer();
 
 void set_config_splash(bool v);
+void set_clock_hidden(bool v);
+void set_clock_with_date(bool v);
 void set_config_login(bool v);
 void set_config_speaker(bool v); 
 void set_config_backlight_timer(uint32_t i);

@@ -285,20 +285,28 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
+		&checkbox_showclock,
+		&options_clockformat,		
 		&button_ok
 	});
 	
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
+	checkbox_showclock.set_value(!persistent_memory::hide_clock());
 	//checkbox_login.set_value(persistent_memory::config_login());
 	
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
-	
 	if (backlight_timer) {
 		checkbox_bloff.set_value(true);
 		options_bloff.set_by_value(backlight_timer);
 	} else {
 		options_bloff.set_selected_index(0);
+	}
+
+	if (persistent_memory::clock_with_date()) {
+		options_clockformat.set_selected_index(1);
+	} else {
+		options_clockformat.set_selected_index(0);
 	}
 
 	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
@@ -316,7 +324,14 @@ SetUIView::SetUIView(NavigationView& nav) {
 		else
 			persistent_memory::set_config_backlight_timer(0);
 		
+		if (checkbox_showclock.value()){
+		    if (options_clockformat.selected_index() == 1)
+			    persistent_memory::set_clock_with_date(true);    
+     		else
+			    persistent_memory::set_clock_with_date(false);		
+		}		
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
+		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
 		//persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
 	};

@@ -51,8 +51,8 @@ public:
 
 private:
 	Labels labels {
-		{ { 6 * 8, 7 * 16 }, "YYYY/MM/DD HH:MM:SS", Color::grey() },
-		{ { 10 * 8, 9 * 16 }, "/  /     :  :", Color::light_grey() }
+		{ { 6 * 8, 7 * 16 }, "YYYY-MM-DD HH:MM:SS", Color::grey() },
+		{ { 10 * 8, 9 * 16 }, "-  -     :  :", Color::light_grey() }
 	};
 	
 	NumberField field_year {
@@ -226,19 +226,19 @@ private:
 	};*/
 	
 	Checkbox checkbox_speaker {
-		{ 3 * 8, 2 * 16 },
+		{ 3 * 8, 4 * 16 },
 		20,
 		"Hide H1 Speaker option"
 	};
+	
 	Checkbox checkbox_bloff {
-		{ 3 * 8, 5 * 16 },
+		{ 3 * 8, 6 * 16 },
 		20,
 		"Backlight off after:"
 	};
-
 	OptionsField options_bloff {
-		{ 52, 6 * 16 + 8 },
-		10,
+		{ 52, 7 * 16 + 8 },
+		20,
 		{
 			{ "5 seconds", 5 },
 			{ "15 seconds", 15 },
@@ -252,9 +252,24 @@ private:
 	
 	Checkbox checkbox_showsplash {
 		{ 3 * 8, 9 * 16 },
-		11,
+		20,
 		"Show splash"
 	};
+	
+	Checkbox checkbox_showclock {	
+		{ 3 * 8, 11 * 16 },
+		20,
+		"Show clock with:"
+	};
+
+	OptionsField options_clockformat {
+		{ 52, 12 * 16 + 8 },
+		20,
+		{
+			{ "time only", 0 },
+			{ "time and date", 1 }
+		}
+	};	
 	
 	Button button_ok {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
