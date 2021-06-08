@@ -22,6 +22,7 @@
 
 #include "ui_sonde.hpp"
 #include "baseband_api.hpp"
+#include "audio.hpp"
 
 #include "portapack.hpp"
 #include <cstring>
@@ -50,6 +51,8 @@ SondeView::SondeView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&rssi,
+		&field_volume,
+		&check_beep,
 		&check_log,
 		&check_crc,
 		&text_signature,
@@ -80,6 +83,10 @@ SondeView::SondeView(NavigationView& nav) {
 	
 	geopos.set_read_only(true);
 	
+	check_beep.on_select = [this](Checkbox&, bool v) {
+		beep = v;
+	};
+
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
 	};
@@ -107,16 +114,30 @@ SondeView::SondeView(NavigationView& nav) {
 			gps_info.lon,
 			999); //set a dummy heading out of range to draw a cross...probably not ideal?
 	};
-	
+
 	logger = std::make_unique<SondeLogger>();
 	if (logger)
 		logger->append(u"sonde.txt");
+
+	// initialize audio:
 	
+	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+	
+	field_volume.on_change = [this](int32_t v) {
+		this->on_headphone_volume_changed(v);
+	};
+
+	audio::output::start();
+	audio::output::speaker_unmute();
+
+	baseband::set_pitch_rssi(0, true);
 }
 
 SondeView::~SondeView() {
+	baseband::set_pitch_rssi(0, false);
 	radio::disable();
 	baseband::shutdown();
+	audio::output::stop();
 }
 
 void SondeView::focus() {
@@ -156,13 +177,24 @@ void SondeView::on_packet(const sonde::Packet &packet)
 		}
 
 		gps_info = packet.get_GPS_data();
+
 		geopos.set_altitude(gps_info.alt);
 		geopos.set_lat(gps_info.lat);
 		geopos.set_lon(gps_info.lon);
 
-		if (logger && logging)
+		if (logger && logging) {
 			logger->on_packet(packet);
+		}
+
+		if(beep) {
+			baseband::request_beep();
+		}
 	}
+}
+
+void SondeView::on_headphone_volume_changed(int32_t v) {
+	const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+	receiver_model.set_headphone_volume(new_volume);
 }
 
 void SondeView::set_target_frequency(const uint32_t new_value) {
