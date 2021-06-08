@@ -103,19 +103,19 @@ private:
 	};
 	
 	Labels labels {
-		{ { 2 * 8, 14 * 8 }, "Save as:", Color::white() }
+		{ { 1 * 8, 12 * 8 }, "Save as:", Color::white() }
 	};
 	
 	Button button_save_name {
-		{ 2 * 8, 17 * 8, 14 * 8, 48 },
+		{ 1 * 8, 17 * 8, 12 * 8, 48 },
 		"Name (set)"
 	};
 	Button button_save_timestamp {
-		{ 2 * 8, 25 * 8, 14 * 8, 48 },
+		{ 1 * 8, 25 * 8, 12 * 8, 48 },
 		"Timestamp:"
 	};
 	LiveDateTime live_timestamp {
-		{ 17 * 8, 27 * 8, 11 * 8, 16 }
+		{ 14 * 8, 27 * 8, 16 * 8, 16 }
 	};
 };
 

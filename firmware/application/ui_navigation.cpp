@@ -68,7 +68,7 @@
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
 
-#include "acars_app.hpp"
+//#include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "analog_tv_app.hpp"
@@ -350,11 +350,19 @@ InformationView::InformationView(
 	});
 
 	version.set_style(&style_infobar);
+
+	ltime.set_hide_clock(portapack::persistent_memory::hide_clock());
 	ltime.set_style(&style_infobar);
 	ltime.set_seconds_enabled(true);
-	ltime.set_date_enabled(false);
-
+	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());
 	set_dirty();
+}
+
+void InformationView::refresh() {
+	ltime.set_hide_clock(portapack::persistent_memory::hide_clock());
+	ltime.set_seconds_enabled(true);
+	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());	
+
 }
 
 /* Navigation ************************************************************/
@@ -387,6 +395,7 @@ void NavigationView::pop() {
 
 		update_view();
 	}
+
 }
 
 void NavigationView::pop_modal() {
@@ -606,6 +615,7 @@ SystemView::SystemView(
 		}
 		else{
 			add_child(&info_view);
+			info_view.refresh();
 		}
 		
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
