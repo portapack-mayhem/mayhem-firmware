@@ -130,6 +130,13 @@ SondeView::SondeView(NavigationView& nav) {
 	audio::output::start();
 	audio::output::speaker_unmute();
 
+	// inject a PitchRSSIConfigureMessage in order to arm 
+	// the pitch rssi events that will be used by the 
+	// processor:
+	const PitchRSSIConfigureMessage message { true, 0 };
+
+	shared_memory.application_queue.push(message);
+
 	baseband::set_pitch_rssi(0, true);
 }
 

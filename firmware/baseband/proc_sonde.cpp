@@ -114,7 +114,7 @@ void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message)
 	// log_file.write_entry(datetime, "pitch_rssi_config: message.rssi: " + message.rssi);
 
 	pitch_rssi_enabled = message.enabled;
-	tone_delta = (message.rssi * 10 + 1000) * ((1ULL << 32) / 24000);
+	tone_delta = (message.rssi + 1000) * ((1ULL << 32) / 24000);
 
 	// log_file.write_entry(datetime, "pitch_rssi_config: tone_delta: " + tone_delta);
 }
