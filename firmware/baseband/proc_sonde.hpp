@@ -88,6 +88,13 @@
 #include "message.hpp"
 #include "portapack_shared_memory.hpp"
 
+#include "audio_output.hpp"
+#include "tone_gen.hpp"
+#include "tonesets.hpp"
+#include "sine_table_int8.hpp"
+
+#include "buffer.hpp"
+
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
@@ -97,10 +104,27 @@ public:
 	SondeProcessor();
 	
 	void execute(const buffer_c8_t& buffer) override;
-
+	void on_message(const Message* const msg);
 private:
+
 	static constexpr size_t baseband_fs = 2457600;
-	
+	static constexpr size_t beep_iterations = 60;
+
+	std::array<int16_t, 16> audio { };
+
+	const buffer_s16_t audio_buffer {
+		(int16_t*) audio.data(),
+		sizeof(audio) / sizeof(int16_t)
+	};
+
+	AudioOutput audio_output { };
+
+	bool beep_playing { false };
+	bool pitch_rssi_enabled { false };
+
+	uint32_t tone_delta { 0 };
+	uint32_t tone_phase { 0 };
+
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
@@ -149,6 +173,14 @@ private:
 			shared_memory.application_queue.push(message);
 		}
 	};
+
+	void play_beep();
+	void stop_beep();
+	
+	void beep_loop();
+	void silence_loop();
+	
+	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
 #endif/*__PROC_ERT_H__*/
