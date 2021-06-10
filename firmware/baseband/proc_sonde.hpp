@@ -91,7 +91,7 @@
 #include "audio_output.hpp"
 #include "tone_gen.hpp"
 #include "tonesets.hpp"
-#include "sine_table_int8.hpp"
+#include "sine_table_int16.hpp"
 
 #include "buffer.hpp"
 
@@ -110,7 +110,7 @@ private:
 	static constexpr size_t baseband_fs = 2457600;
 	static constexpr size_t beep_iterations = 60;
 
-	std::array<int16_t, 16> audio { };
+	std::array<int16_t, 32> audio { };
 
 	const buffer_s16_t audio_buffer {
 		(int16_t*) audio.data(),
@@ -124,6 +124,7 @@ private:
 
 	uint32_t tone_delta { 0 };
 	uint32_t tone_phase { 0 };
+	uint8_t curr_sample { 0 };
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
@@ -177,8 +178,8 @@ private:
 	void play_beep();
 	void stop_beep();
 	
-	void beep_loop();
-	void silence_loop();
+	void generate_beep();
+	void generate_silence();
 	
 	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };

@@ -53,13 +53,11 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 		}
 	}
 
-	if(pitch_rssi_enabled) {
-		if(beep_playing) {
-			beep_loop();	
-		}
-		else {
-			silence_loop();
-		}
+	if(pitch_rssi_enabled && beep_playing) {
+		generate_beep();
+	}
+	else {
+		generate_silence();
 	}
 }
 
@@ -90,33 +88,41 @@ void SondeProcessor::stop_beep() {
 	beep_playing = false;
 }
 
-void SondeProcessor::beep_loop() {
-	for (size_t i = 0; i < sizeof(audio_buffer.p); i++) {
-		audio_buffer.p[i] = (sine_table_i8[(tone_phase & 0xFF000000U) >> 24]) * 128;
+void SondeProcessor::generate_beep() {
+	// if(curr_sample == sizeof(audio_buffer.p)) {
+	// 	audio_output.write(audio_buffer);
+	// 	curr_sample = 0;
+	// 	//tone_phase = 0;
+	// }
+	// else if(beep_playing) {
+	// 	audio_buffer.p[curr_sample++] = (sine_table_i16[(tone_phase & 0xFF000000U) >> 24]);
+	// 	tone_phase += tone_delta;
+	// }
+	// else {
+	// 	audio_buffer.p[curr_sample++] = 0;
+	// 	tone_phase = 0;
+	// }
+
+	for(uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
+		audio_buffer.p[i] = (sine_table_i16_1024[(tone_phase & 0xFFC00000U) >> 22]);
 		tone_phase += tone_delta;
 	}
-	
+
 	audio_output.write(audio_buffer);
 }
 
-void SondeProcessor::silence_loop() {
-	for (size_t i = 0; i < sizeof(audio_buffer.p); i++) {
+void SondeProcessor::generate_silence() {
+	for(uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
 		audio_buffer.p[i] = 0;
+		tone_phase = 0;
 	}
 
 	audio_output.write(audio_buffer);
 }
 
 void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
-	// rtc::RTC datetime;
-	// rtcGetTime(&RTCD1, &datetime);
-
-	// log_file.write_entry(datetime, "pitch_rssi_config: message.rssi: " + message.rssi);
-
 	pitch_rssi_enabled = message.enabled;
 	tone_delta = (message.rssi + 1000) * ((1ULL << 32) / 24000);
-
-	// log_file.write_entry(datetime, "pitch_rssi_config: tone_delta: " + tone_delta);
 }
 
 int main() {

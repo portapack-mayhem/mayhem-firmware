@@ -75,8 +75,10 @@ void RSSI::paint(Painter& painter) {
 		Color::black()
 	);
 	
-	if (pitch_rssi_enabled)
-		baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
+	if (pitch_rssi_enabled) {
+		//baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
+		baseband::set_pitch_rssi((min_ - raw_min) * 2000 / raw_delta, true);
+	}
 }
 
 void RSSI::set_pitch_rssi(bool enabled) {
