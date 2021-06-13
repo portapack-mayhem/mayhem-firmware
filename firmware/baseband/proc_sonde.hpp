@@ -97,6 +97,13 @@
 #include <cstddef>
 #include <bitset>
 
+
+#define BEEP_MIN_DURATION 			80
+#define BEEP_DURATION_RANGE 		150
+#define RSSI_CEILING	 			1000
+#define PROPORTIONAL_BEEP_THRES		0.8
+#define RSSI_PITCH_WEIGHT			0.7
+
 class SondeProcessor : public BasebandProcessor {
 public:
 	SondeProcessor();
@@ -119,6 +126,8 @@ private:
 	bool beep_play { false };
 	bool silence_play { false };
 	bool pitch_rssi_enabled { false };
+
+	uint32_t last_rssi { 0 };
 
 	ToneGen tone_gen { };
 

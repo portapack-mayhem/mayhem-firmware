@@ -77,8 +77,21 @@ void SondeProcessor::on_message(const Message* const msg) {
 	switch(msg->id) {		
 		case Message::ID::RequestSignal:
 			if ((*reinterpret_cast<const RequestSignalMessage*>(msg)).signal == RequestSignalMessage::Signal::BeepRequest) {
+				float rssi_ratio = (float) last_rssi / (float) RSSI_CEILING;
+				int beep_duration = 0;
+
+				if(rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
+					beep_duration = BEEP_MIN_DURATION;
+				}
+				else if(rssi_ratio < 1) {
+					beep_duration =  (int) rssi_ratio * BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
+				}
+				else {
+					beep_duration =  BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
+				}
+				
 				play_beep();
-				chThdSleepMilliseconds(150);
+				chThdSleepMilliseconds(beep_duration);
 				stop_beep();
 			}		
 			break;
@@ -122,7 +135,8 @@ void SondeProcessor::generate_silence() {
 
 void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
 	pitch_rssi_enabled = message.enabled;
-	uint32_t tone_delta = (message.rssi + 1000) * ((1ULL << 32) / 24000);
+	uint32_t tone_delta = (int) ((float) message.rssi * (float) RSSI_PITCH_WEIGHT + (float) 1000) * ((float) (1ULL << 32) / (float) 24000);
+	last_rssi = message.rssi;
 	tone_gen.configure(tone_delta, 1.0, ToneGen::tone_type::square);
 }
 
