@@ -55,14 +55,6 @@ class SondeView : public View {
 public:
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
-	static constexpr int rssi_sample_range = 256;
-	static constexpr float rssi_voltage_min = 0.4;
-	static constexpr float rssi_voltage_max = 2.2;
-	static constexpr float adc_voltage_max = 3.3;
-
-	static constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-	static constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
-	static constexpr int raw_delta = raw_max - raw_min;
 		
 	SondeView(NavigationView& nav);
 	~SondeView();

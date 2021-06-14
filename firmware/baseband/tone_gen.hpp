@@ -25,22 +25,41 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <bitset>
+
+static const std::bitset<2048> wave_bits (0xFFFFFF);
 
 class ToneGen {
 public:
+	enum tone_type { sine, square };
+
 	/*ToneGen(const size_t sample_rate
 	) : sample_rate_ { sample_rate }
 	{};*/
 
 	void configure(const uint32_t delta, const float tone_mix_weight);
+	void configure(const uint32_t delta, const float tone_mix_weight, const tone_type tone_type);
+
 	int32_t process(const int32_t sample_in);
 
 private:
+	tone_type current_tone_type_ { sine };
+
 	//size_t sample_rate_;
 	float input_mix_weight_ { 1 };
 	float tone_mix_weight_ { 0 };
 	uint32_t delta_ { 0 };
 	uint32_t tone_phase_ { 0 };
+
+	/**
+	 * Generator function for sine waves:
+	 */
+	int32_t tone_from_sine_table();
+
+	/**
+	 * Generator function for square waves:
+	 */	
+	int32_t tone_square();
 };
 
-#endif
+#endif /* __TONE_GEN_H__ */

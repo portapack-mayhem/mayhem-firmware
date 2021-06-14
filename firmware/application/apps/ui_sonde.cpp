@@ -66,6 +66,9 @@ SondeView::SondeView(NavigationView& nav) {
 		&button_see_map
 	});
 
+	// start from the frequency currently stored in the receiver_model:
+	target_frequency_ = receiver_model.tuning_frequency();
+
 	field_frequency.set_value(target_frequency_);
 	field_frequency.set_step(500);		//euquiq: was 10000, but we are using this for fine-tunning
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -129,6 +132,13 @@ SondeView::SondeView(NavigationView& nav) {
 
 	audio::output::start();
 	audio::output::speaker_unmute();
+
+	// inject a PitchRSSIConfigureMessage in order to arm 
+	// the pitch rssi events that will be used by the 
+	// processor:
+	const PitchRSSIConfigureMessage message { true, 0 };
+
+	shared_memory.application_queue.push(message);
 
 	baseband::set_pitch_rssi(0, true);
 }
@@ -199,7 +209,9 @@ void SondeView::on_headphone_volume_changed(int32_t v) {
 
 void SondeView::set_target_frequency(const uint32_t new_value) {
 	target_frequency_ = new_value;
-	radio::set_tuning_frequency(tuning_frequency());
+	//radio::set_tuning_frequency(tuning_frequency());
+	// we better remember the tuned frequency, by using this function instead:
+	receiver_model.set_tuning_frequency(tuning_frequency());
 }
 
 uint32_t SondeView::tuning_frequency() const {
