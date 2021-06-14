@@ -125,7 +125,7 @@ private:
 	uint32_t sample_bits { 0 };
 	uint32_t phase { }, phase_inc { };
 	int32_t sample_mixed { }, prev_mixed { }, sample_filtered { }, prev_filtered { };
-	uint8_t last_bit;
+	uint8_t last_bit = 0;
 	uint8_t ones_count = 0;
 	uint8_t current_byte = 0;
 	uint8_t byte_index = 0;
@@ -136,7 +136,7 @@ private:
 	bool wait_start { };
 	bool bit_value { };
 
-	aprs::APRSPacket aprs_packet;
+	aprs::APRSPacket aprs_packet  { };
 
 	void configure(const APRSRxConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
