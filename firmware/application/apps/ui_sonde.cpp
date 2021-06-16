@@ -211,7 +211,7 @@ void SondeView::set_target_frequency(const uint32_t new_value) {
 	target_frequency_ = new_value;
 	//radio::set_tuning_frequency(tuning_frequency());
 	// we better remember the tuned frequency, by using this function instead:
-	receiver_model.set_tuning_frequency(tuning_frequency());
+	receiver_model.set_tuning_frequency(target_frequency_);
 }
 
 uint32_t SondeView::tuning_frequency() const {
