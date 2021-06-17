@@ -98,11 +98,13 @@
 #include <bitset>
 
 
-#define BEEP_MIN_DURATION 			80
-#define BEEP_DURATION_RANGE 		150
+#define BEEP_MIN_DURATION 			60
+#define BEEP_DURATION_RANGE 		100
+#define BEEP_BASE_FREQ				200
 #define RSSI_CEILING	 			1000
 #define PROPORTIONAL_BEEP_THRES		0.8
-#define RSSI_PITCH_WEIGHT			0.7
+#define RSSI_PITCH_WEIGHT			0.5
+#define AUDIO_SAMPLE_RATE			24000
 
 class SondeProcessor : public BasebandProcessor {
 public:
