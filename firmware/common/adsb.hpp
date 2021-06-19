@@ -83,6 +83,10 @@ const float adsb_lat_lut[58] = {
     86.53536998,    87.00000000
 };
 
+const float PI = 3.14159265358979323846;
+
+const float NZ = 15;
+
 void make_frame_adsb(ADSBFrame& frame, const uint32_t ICAO_address);
 
 void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign);

@@ -36,9 +36,33 @@ using namespace adsb;
 
 namespace ui {
 
-#define ADSB_DECAY_A 10		// In seconds
-#define ADSB_DECAY_B 30
-#define ADSB_DECAY_C 60		// Can be used for removing old entries, RecentEntries already caps to 64
+#define ADSB_DECAY_A 		10		// In seconds
+#define ADSB_DECAY_B 		30
+#define ADSB_DECAY_C 		60		// Can be used for removing old entries, RecentEntries already caps to 64
+
+#define AIRCRAFT_ID_L		1		// aircraft ID message type (lowest type id)
+#define AIRCRAFT_ID_H		4		// aircraft ID message type (highest type id)
+
+#define SURFACE_POS_L		5		// surface position (lowest type id)
+#define SURFACE_POS_H		8		// surface position (highest type id)
+
+#define AIRBORNE_POS_BARO_L	9		// airborne position (lowest type id)
+#define AIRBORNE_POS_BARO_H	18		// airborne position (highest type id)
+
+#define AIRBORNE_VEL		19		// airborne velocities
+
+#define AIRBORNE_POS_GPS_L	20		// airborne position (lowest type id)
+#define AIRBORNE_POS_GPS_H	22		// airborne position (highest type id)
+
+#define RESERVED_L			23		// reserved for other uses
+#define RESERVED_H			31		// reserved for other uses
+
+#define VEL_GND_SUBSONIC		1
+#define VEL_GND_SUPERSONIC		2
+#define VEL_AIR_SUBSONIC		3
+#define VEL_AIR_SUPERSONIC		4
+
+#define O_E_FRAME_TIMEOUT		20	// timeout between odd and even frames
 
 struct AircraftRecentEntry {
 	using Key = uint32_t;
@@ -82,7 +106,7 @@ struct AircraftRecentEntry {
 			frame_pos_odd = frame;
 		
 		if (!frame_pos_even.empty() && !frame_pos_odd.empty()) {
-			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < 20)
+			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < O_E_FRAME_TIMEOUT)
 				pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
 		}
 	}

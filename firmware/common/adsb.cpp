@@ -141,7 +141,11 @@ float cpr_mod(float a, float b) {
 	return a - (b * floor(a / b));
 }
 
-int cpr_NL(float lat) {
+int cpr_NL_precise(float lat) {
+	return (int) floor(2 * PI / acos(1 - ((1 - cos(PI / (2 * NZ))) / pow(cos(PI * lat / 180), 2))));
+}
+
+int cpr_NL_approx(float lat) {
 	if (lat < 0)
 		lat = -lat;		// Symmetry
 	
@@ -150,7 +154,11 @@ int cpr_NL(float lat) {
 			return 59 - c;
 	}
 	
-	return 1;
+	return 1;	
+}
+
+int cpr_NL(float lat) {
+	return cpr_NL_precise(lat);
 }
 
 int cpr_N(float lat, int is_odd) {
@@ -258,7 +266,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 
 	// Compute longitude
 	if (time_even > time_odd) {
-		// Use even frame
+		// Use even frame2
 		ni = cpr_N(latE, 0);
 		Dlon = 360.0 / ni;
 		
@@ -279,7 +287,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		position.latitude = latO;
 	}
 	
-	if (position.longitude > 180) position.longitude -= 360;
+	if (position.longitude >= 180) position.longitude -= 360;
 	
 	position.valid = true;
 
