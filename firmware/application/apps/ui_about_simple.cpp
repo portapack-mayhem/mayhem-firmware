@@ -31,8 +31,9 @@ namespace ui
                 console.writeln("N0vaPixel,klockee,GullCode");
                 console.writeln("jamesshao8,ITAxReal,rascafr");
                 console.writeln("mcules,dqs105,strijar");
-                console.writeln("zhang00963,RedFox-Fr");
+                console.writeln("zhang00963,RedFox-Fr,aldude999");
                 console.writeln("East2West,fossum,ArjanOnwezen");
+                console.writeln("vXxOinvizioNxX,teixeluis");
                 console.writeln("");
                 break;
 
