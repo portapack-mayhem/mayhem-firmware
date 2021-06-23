@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <strings.h>
 
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
@@ -234,49 +235,38 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
-					std::string latitude_str(8, '\0');
-					std::string longitude_str(8, '\0');
-
-					int written = std::snprintf(&latitude_str[0], latitude_str.size(), "%.2f", entry.pos.latitude);
-					latitude_str.resize(written);
-
-					written = std::snprintf(&longitude_str[0], longitude_str.size(), "%.2f", entry.pos.longitude);
-					longitude_str.resize(written);
-
 					str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-						" Lat:" + latitude_str +
-						" Lon:" +  longitude_str;
+						" Lat:" + to_string_decimal(entry.pos.latitude, 2) +
+						" Lon:" + to_string_decimal(entry.pos.longitude, 2);
 
 					// printing the coordinates in the log file with more
 					// resolution, as we are not constrained by screen 
 					// real estate there:
 
-					latitude_str.resize(13, '\0');
-					longitude_str.resize(13, '\0');
-
-					written = std::snprintf(&latitude_str[0], latitude_str.size(), "%.7f", entry.pos.latitude);
-					latitude_str.resize(written);
-
-					written = std::snprintf(&longitude_str[0], longitude_str.size(), "%.7f", entry.pos.longitude);
-					longitude_str.resize(written);
-
 					std::string log_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-						" Lat:" + latitude_str +
-						" Lon:" +  longitude_str;
+						" Lat:" + to_string_decimal(entry.pos.latitude, 7) +
+						" Lon:" + to_string_decimal(entry.pos.longitude, 7);
 
 					entry.set_info_string(str_info);
 					logentry+=log_info + " ";
 
-					if (send_updates)
+					if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
+						// we only want to update the details view if the frame
+						// we received has the same ICAO address, i.e. belongs to
+						// the same aircraft:
 						details_view->update(entry);
+					}
 				}
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
 				logentry += "Type:" + to_string_dec_uint(msg_sub) +
 							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 							" Spd: "+ to_string_dec_int(entry.velo.speed);
-				if (send_updates)
+
+				if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
+					// same here:
 					details_view->update(entry);
+				}
 			}
 		}
 		recent_entries_view.set_dirty(); 

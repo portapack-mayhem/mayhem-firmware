@@ -63,17 +63,9 @@ GeoPos::GeoPos(
 	const auto changed_fn = [this](int32_t) {
 		float lat_value = lat();
 		float lon_value = lon();
-		double integer_part;
-		double fractional_part;
-		
-		fractional_part = modf(lat_value, &integer_part) * 100000;
-		if (fractional_part < 0)
-			fractional_part = -fractional_part;
-		text_lat_decimal.set(to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, 5));
-		fractional_part = modf(lon_value, &integer_part) * 100000;
-		if (fractional_part < 0)
-			fractional_part = -fractional_part;
-		text_lon_decimal.set(to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, 5));
+
+		text_lat_decimal.set(to_string_decimal(lat_value, 5));
+		text_lon_decimal.set(to_string_decimal(lon_value, 5));
 	
 		if (on_change && report_change)
 			on_change(altitude(), lat_value, lon_value);

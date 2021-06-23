@@ -199,18 +199,18 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 	// CPR encoding
 	// Info from: http://antena.fe.uni-lj.si/literatura/Razno/Avionika/modes/CPRencoding.pdf
 	
-	delta_lat = 360.0 / ((4.0 * 15.0) - time_parity);		// NZ = 15
-	yz = floor(131072.0 * (cpr_mod(latitude, delta_lat) / delta_lat) + 0.5);
-	rlat = delta_lat * ((yz / 131072.0) + floor(latitude / delta_lat));
+	delta_lat = 360.0 / ((4.0 * NZ) - time_parity);		// NZ = 15
+	yz = floor(CPR_MAX_VALUE * (cpr_mod(latitude, delta_lat) / delta_lat) + 0.5);
+	rlat = delta_lat * ((yz / CPR_MAX_VALUE) + floor(latitude / delta_lat));
 	
 	if ((cpr_NL(rlat) - time_parity) > 0)
 		delta_lon = 360.0 / cpr_N(rlat, time_parity);
 	else
 		delta_lon = 360.0;
-	xz = floor(131072.0 * (cpr_mod(longitude, delta_lon) / delta_lon) + 0.5);
+	xz = floor(CPR_MAX_VALUE * (cpr_mod(longitude, delta_lon) / delta_lon) + 0.5);
 	
-	lat = cpr_mod(yz, 131072.0);
-	lon = cpr_mod(xz, 131072.0);
+	lat = cpr_mod(yz, CPR_MAX_VALUE);
+	lon = cpr_mod(xz, CPR_MAX_VALUE);
 	
 	frame.push_byte((altitude_coded << 4) | ((uint32_t)time_parity << 2) | (lat >> 15));	// T = 0
 	frame.push_byte(lat >> 7);
