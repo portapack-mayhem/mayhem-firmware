@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
 
@@ -233,14 +234,38 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
+					std::string latitude_str(8, '\0');
+					std::string longitude_str(8, '\0');
+
+					int written = std::snprintf(&latitude_str[0], latitude_str.size(), "%.2f", entry.pos.latitude);
+					latitude_str.resize(written);
+
+					written = std::snprintf(&longitude_str[0], longitude_str.size(), "%.2f", entry.pos.longitude);
+					longitude_str.resize(written);
+
 					str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-						" Lat:" + to_string_dec_int(entry.pos.latitude) +
-						"." + to_string_dec_int((int)abs(entry.pos.latitude * 1000) % 100, 2, '0') +
-						" Lon:" + to_string_dec_int(entry.pos.longitude) +
-						"." + to_string_dec_int((int)abs(entry.pos.longitude * 1000) % 100, 2, '0');
-					
+						" Lat:" + latitude_str +
+						" Lon:" +  longitude_str;
+
+					// printing the coordinates in the log file with more
+					// resolution, as we are not constrained by screen 
+					// real estate there:
+
+					latitude_str.resize(13, '\0');
+					longitude_str.resize(13, '\0');
+
+					written = std::snprintf(&latitude_str[0], latitude_str.size(), "%.7f", entry.pos.latitude);
+					latitude_str.resize(written);
+
+					written = std::snprintf(&longitude_str[0], longitude_str.size(), "%.7f", entry.pos.longitude);
+					longitude_str.resize(written);
+
+					std::string log_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
+						" Lat:" + latitude_str +
+						" Lon:" +  longitude_str;
+
 					entry.set_info_string(str_info);
-					logentry+=str_info+ " ";
+					logentry+=log_info + " ";
 
 					if (send_updates)
 						details_view->update(entry);

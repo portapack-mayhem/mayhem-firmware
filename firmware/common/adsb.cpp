@@ -158,6 +158,12 @@ int cpr_NL_approx(float lat) {
 }
 
 int cpr_NL(float lat) {
+	// TODO prove that the approximate function is good
+	// enough for the precision we need. Uncomment if
+	// that is true:
+
+	//return cpr_NL_approx(lat);
+
 	return cpr_NL_precise(lat);
 }
 
