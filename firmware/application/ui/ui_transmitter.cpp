@@ -103,6 +103,7 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 
 void TransmitterView::on_show() {
 	field_frequency.set_value(transmitter_model.tuning_frequency());
+	field_frequency_step.set_by_value(receiver_model.frequency_step());
 
 	field_gain.set_value(transmitter_model.tx_gain());
 	field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
@@ -122,6 +123,7 @@ TransmitterView::TransmitterView(
 	
 	add_children({
 		&field_frequency,
+		&field_frequency_step,
 		&text_gain,
 		&field_gain,
 		&button_start,
@@ -156,6 +158,10 @@ TransmitterView::TransmitterView(
 	field_frequency.on_edit = [this]() {
 		if (on_edit_frequency)
 			on_edit_frequency();
+	};
+	
+	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
+		this->field_frequency.set_step(v);
 	};
 
 	field_gain.on_change = [this](uint32_t tx_gain) {

@@ -111,14 +111,12 @@ void set_direction(const rf::Direction new_direction) {
 	// Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction
 	// Use CPLD's EEPROM config when transmitting
 	// Use the SRAM overlay when receiving
-	if (direction != new_direction) {
-		if (new_direction == rf::Direction::Transmit) {
-			hackrf::cpld::init_from_eeprom();
-		} else {
-			if( !hackrf::cpld::load_sram() ) {
-				chSysHalt();
-			}
-		}
+
+	// teixeluis: undone "Hack to fix the CPLD (clocking ?) bug".
+	// Apparently with current CPLD code from the hackrf repo,
+	// toggling CPLD overlay should no longer be necessary:
+	if (direction != new_direction && new_direction == rf::Direction::Transmit) {
+		hackrf::cpld::init_from_eeprom();
 	}
 	
 	direction = new_direction;
