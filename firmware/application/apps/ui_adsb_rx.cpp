@@ -250,10 +250,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					entry.set_info_string(str_info);
 					logentry+=log_info + " ";
 
+					// we only want to update the details view if the frame
+					// we received has the same ICAO address, i.e. belongs to
+					// the same aircraft:
 					if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-						// we only want to update the details view if the frame
-						// we received has the same ICAO address, i.e. belongs to
-						// the same aircraft:
 						details_view->update(entry);
 					}
 				}
@@ -263,8 +263,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 							" Spd: "+ to_string_dec_int(entry.velo.speed);
 
+				// same here:
 				if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-					// same here:
 					details_view->update(entry);
 				}
 			}

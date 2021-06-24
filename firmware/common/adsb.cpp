@@ -160,7 +160,9 @@ int cpr_NL_approx(float lat) {
 int cpr_NL(float lat) {
 	// TODO prove that the approximate function is good
 	// enough for the precision we need. Uncomment if
-	// that is true:
+	// that is true. No performance penalty was noticed
+	// from testing, but if you find it might be an issue,
+	// switch to cpr_NL_approx() instead:
 
 	//return cpr_NL_approx(lat);
 

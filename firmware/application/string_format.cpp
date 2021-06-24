@@ -124,7 +124,7 @@ std::string to_string_decimal(float decimal, int8_t precision) {
 		fractional_part = -fractional_part;
 	}
 
-	result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision);
+	result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
 
 	return result;
 }
