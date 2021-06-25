@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <strings.h>
+
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
 
@@ -205,7 +207,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	auto frame = message->frame;
 	uint32_t ICAO_address = frame.get_ICAO_address();
 
-	if (frame.check_CRC() && frame.get_ICAO_address()) {
+	if (frame.check_CRC() && ICAO_address) {
 		rtcGetTime(&RTCD1, &datetime);
 		auto& entry = ::on_packet(recent, ICAO_address);
 		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
@@ -222,33 +224,49 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 			uint8_t msg_sub = frame.get_msg_sub();
 			uint8_t * raw_data = frame.get_raw_data();
 			
-			if ((msg_type >= 1) && (msg_type <= 4)) {
+			if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
 				callsign = decode_frame_id(frame);
 				entry.set_callsign(callsign);
 				logentry+=callsign+" ";
-			} else if (((msg_type >= 9) && (msg_type <= 18)) || ((msg_type >= 20) && (msg_type <= 22))) {
+			} 
+			// 
+			else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) || 
+				((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
 				
 				if (entry.pos.valid) {
 					str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-						" Lat:" + to_string_dec_int(entry.pos.latitude) +
-						"." + to_string_dec_int((int)abs(entry.pos.latitude * 1000) % 100, 2, '0') +
-						" Lon:" + to_string_dec_int(entry.pos.longitude) +
-						"." + to_string_dec_int((int)abs(entry.pos.longitude * 1000) % 100, 2, '0');
-					
-					entry.set_info_string(str_info);
-					logentry+=str_info+ " ";
+						" Lat:" + to_string_decimal(entry.pos.latitude, 2) +
+						" Lon:" + to_string_decimal(entry.pos.longitude, 2);
 
-					if (send_updates)
+					// printing the coordinates in the log file with more
+					// resolution, as we are not constrained by screen 
+					// real estate there:
+
+					std::string log_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
+						" Lat:" + to_string_decimal(entry.pos.latitude, 7) +
+						" Lon:" + to_string_decimal(entry.pos.longitude, 7);
+
+					entry.set_info_string(str_info);
+					logentry+=log_info + " ";
+
+					// we only want to update the details view if the frame
+					// we received has the same ICAO address, i.e. belongs to
+					// the same aircraft:
+					if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
 						details_view->update(entry);
+					}
 				}
-			} else if(msg_type == 19 && msg_sub >= 1 && msg_sub <= 4){
+			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
 				logentry += "Type:" + to_string_dec_uint(msg_sub) +
 							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 							" Spd: "+ to_string_dec_int(entry.velo.speed);
-				if (send_updates)
+
+				// same here:
+				if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
 					details_view->update(entry);
+				}
 			}
 		}
 		recent_entries_view.set_dirty(); 

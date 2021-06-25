@@ -112,6 +112,23 @@ std::string to_string_dec_int(
 	return q;
 }
 
+std::string to_string_decimal(float decimal, int8_t precision) {
+	double integer_part;
+	double fractional_part;
+
+	std::string result;
+	
+	fractional_part = modf(decimal, &integer_part) * pow(10, precision);
+
+	if (fractional_part < 0) {
+		fractional_part = -fractional_part;
+	}
+
+	result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
+
+	return result;
+}
+
 std::string to_string_short_freq(const uint64_t f) {
 	auto final_str = to_string_dec_int(f / 1000000,4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
 	return final_str;
