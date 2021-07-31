@@ -1,0 +1,7 @@
+f=13560000,d=Worldwide 13.56 MHz
+f=27120000,d=Worldwide 27MHz
+f=40660000,d=Worldwide 40MHz
+f=433920000,d=ITU Reg 1 433 MHz
+f=915000000,d=ITU Reg 2 915 MHz
+f=2450000000,d=Worldwide 2.4 GHz
+f=5800000000,d=Worldwide 5.8 GHz
