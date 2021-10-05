@@ -139,7 +139,12 @@ void ReplayAppView::start() {
 			}
 		);
 	}
-	
+    field_rfgain.on_change = [this](int32_t v) {
+		tx_gain = v;
+	};  
+	field_rfgain.set_value(tx_gain);
+	receiver_model.set_tx_gain(tx_gain); 
+    
 	radio::enable({
 		receiver_model.tuning_frequency(),
 		sample_rate * 8 ,
@@ -180,6 +185,8 @@ ReplayAppView::ReplayAppView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
+
+	tx_gain = 35;field_rfgain.set_value(tx_gain);
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
@@ -190,7 +197,7 @@ ReplayAppView::ReplayAppView(
 		&text_duration,
 		&progressbar,
 		&field_frequency,
-		&field_lna,
+		&field_rfgain, 
 		&field_rf_amp,
 		&check_loop,
 		&button_play,
