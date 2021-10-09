@@ -298,6 +298,12 @@ void EventDispatcher::handle_switches() {
 	}
 
 	if( in_key_event ) {
+		if (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up])
+		{
+			const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
+			context.focus_manager().update(top_widget, event);
+		}
+
 		// If we're in a key event, return. We will ignore all additional key
 		// presses until the first key is released. We also want to ignore events
 		// where the last key held generates a key event when other pressed keys
