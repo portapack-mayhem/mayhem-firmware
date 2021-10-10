@@ -33,6 +33,7 @@
 #include "dsp_demodulate.hpp"
 
 #include "pocsag_packet.hpp"
+#include "extract_frame_pager.hpp"
 
 #include "pocsag.hpp"
 #include "message.hpp"
@@ -41,11 +42,90 @@
 
 #include <cstdint>
 
-class POCSAGProcessor : public BasebandProcessor {
+
+template <class ValType, class CalcType>
+class SmoothVals
+{
+protected:
+	ValType *	m_lastVals;	// Previoius N values
+	int			m_size;		// The size N
+	CalcType	m_sumVal;	// Running sum of lastVals
+	int			m_pos;		// Current position in last vals ring buffer
+	int			m_count;    //
+
+public:
+	SmoothVals() : m_lastVals(NULL), m_size(1), m_sumVal(0), m_pos(0), m_count(0)
+	{
+		m_lastVals = new ValType[m_size];
+	}
+
+	// --------------------------------------------------
+	// --------------------------------------------------
+	virtual ~SmoothVals()
+	{
+		delete[] m_lastVals;
+	}
+
+	// --------------------------------------------------
+	// Set size of smoothing
+	// --------------------------------------------------
+	void SetSize(int size)
+	{
+		m_size = std::max(size, 1);
+		m_pos = 0;
+		delete[] m_lastVals;
+		m_lastVals = new ValType[m_size];
+		m_sumVal = 0;
+	}
+
+	// --------------------------------------------------
+	// Get size of smoothing
+	// --------------------------------------------------
+	int Size() { return m_size; }
+
+	// --------------------------------------------------
+	// In place processing
+	// --------------------------------------------------
+	void Process(ValType * valBuff, int numVals)
+	{
+		ValType tmpVal;
+
+		if (m_count > (1024*10))
+		{
+			// Recalculate the sum value occasionaly, stops accumulated errors when using float
+			m_count = 0;
+			m_sumVal = 0;
+			for (int i = 0; i < m_size; ++i) { m_sumVal += (CalcType)m_lastVals[i]; }
+		}
+
+		// Use a rolling smoothed value while processing the buffer
+		for (int buffPos = 0; buffPos < numVals; ++buffPos)
+		{
+			m_pos = (m_pos + 1);								// Increment the position in the stored values
+			if (m_pos >= m_size) { m_pos = 0; }					// loop if reached the end of the stored values 
+
+			m_sumVal -= (CalcType)m_lastVals[m_pos];			// Subtract the oldest value
+			m_lastVals[m_pos] = valBuff[buffPos];				// Store the new value
+			m_sumVal += (CalcType)m_lastVals[m_pos];			// Add on the new value
+
+			tmpVal = (ValType)(m_sumVal / m_size);			    // Scale by number of values smoothed
+			valBuff[buffPos] = tmpVal;
+		}
+
+		m_count += numVals;
+	}
+};
+
+
+
+class POCSAGProcessor : public BasebandProcessor, extract_frame_pager {
 public:
 	void execute(const buffer_c8_t& buffer) override;
 	
 	void on_message(const Message* const message) override;
+
+	virtual int OnDataFrame(int len, int baud);
+	virtual int OnDataWord(uint32_t word, int pos);
 
 private:
 	enum rx_states {
@@ -79,8 +159,9 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	dsp::demodulate::FM demod { };
+	SmoothVals<float, float> smooth;
 	
-	//AudioOutput audio_output { };
+	AudioOutput audio_output { };
 
 	uint32_t sync_timeout { 0 };
 	uint32_t msg_timeout { 0 };
@@ -95,7 +176,7 @@ private:
 	bool configured = false;
 	rx_states rx_state { WAITING };
 	pocsag::BitRate bitrate { pocsag::BitRate::FSK1200 };
-	bool phase = false ;
+	bool phase;
 	uint32_t codeword_count { 0 };
 	pocsag::POCSAGPacket packet { };
 	

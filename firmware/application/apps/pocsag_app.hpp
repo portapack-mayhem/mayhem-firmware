@@ -61,7 +61,7 @@ private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
 
 	bool logging { true };
-	bool ignore { false };
+	bool ignore { true };
 	uint32_t last_address = 0xFFFFFFFF;
 	pocsag::POCSAGState pocsag_state { };
 
@@ -80,6 +80,9 @@ private:
 	Channel channel {
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
+	Audio audio{
+		{ 21 * 8, 10, 6 * 8, 4 },
+	};
 	
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
@@ -90,8 +93,7 @@ private:
 		{
 			{ "512bps ", 0 },
 			{ "1200bps", 1 },
-			{ "2400bps", 2 },
-			{ "3200bps", 3 }
+			{ "2400bps", 2 }
 		}
 	};
 	OptionsField options_phase {
@@ -107,6 +109,13 @@ private:
 		3,
 		"LOG",
 		true
+	};
+	NumberField field_volume{
+		{ 28 * 8, 0 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
 	};
 	
 	Checkbox check_ignore {
@@ -134,6 +143,7 @@ private:
 	void on_packet(const POCSAGPacketMessage * message);
 
 	void on_config_changed(const uint32_t new_bitrate, const bool phase);
+	void on_headphone_volume_changed(int32_t v);
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);
