@@ -32,6 +32,8 @@
 #include "adsb.hpp"
 #include "message.hpp"
 
+#include "crc.hpp"
+
 using namespace adsb;
 
 namespace ui {
@@ -71,6 +73,8 @@ struct AircraftRecentEntry {
 	
 	uint32_t ICAO_address { };
 	uint16_t hits { 0 };
+	// FXSBT did I add age_state or 1.40
+	uint16_t age_state { 0 };
 	uint32_t age { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
 	adsb_vel velo { false, 0, 999, 0 };
@@ -106,6 +110,7 @@ struct AircraftRecentEntry {
 			frame_pos_odd = frame;
 		
 		if (!frame_pos_even.empty() && !frame_pos_odd.empty()) {
+			// FIXSBT shouldn't need 20 s
 			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < O_E_FRAME_TIMEOUT)
 				pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
 		}
@@ -129,6 +134,7 @@ struct AircraftRecentEntry {
 	
 	void inc_age() {
 		age++;
+		age_state = (age < ADSB_DECAY_A) ? 0 : (age < ADSB_DECAY_B) ? 1 : 2;
 	}
 };
 
@@ -161,8 +167,6 @@ public:
 	void update(const AircraftRecentEntry& entry);
 	
 	std::string title() const override { return "Details"; };
-
-	AircraftRecentEntry get_current_entry() { return entry_copy; }
 	
 private:
 	AircraftRecentEntry entry_copy { 0 };
@@ -239,6 +243,10 @@ public:
 	
 	std::string title() const override { return "ADS-B receive"; };
 
+	void replace_entry(AircraftRecentEntry & entry);
+	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
+	void sort_entries_by_state();
+
 private:
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
@@ -285,6 +293,9 @@ private:
 			this->on_frame(message);
 		}
 	};
+
+	// FIXSBT is this used
+	//Dump1090Crc dump1090Crc;
 };
 
 } /* namespace ui */
