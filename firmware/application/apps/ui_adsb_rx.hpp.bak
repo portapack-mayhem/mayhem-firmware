@@ -167,8 +167,6 @@ public:
 	void update(const AircraftRecentEntry& entry);
 	
 	std::string title() const override { return "Details"; };
-
-	AircraftRecentEntry get_current_entry() { return entry_copy; }
 	
 private:
 	AircraftRecentEntry entry_copy { 0 };

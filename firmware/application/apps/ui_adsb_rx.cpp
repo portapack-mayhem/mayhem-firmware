@@ -288,9 +288,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					// we received has the same ICAO address, i.e. belongs to
 					// the same aircraft:
 					// FIXSBT does this still cause too many refreshes
-					if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-						details_view->update(entry);
-					}
+					//if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
+					//if (send_updates && detailed_entry_key == ICAO_address) {
+					//	details_view->update(entry);
+					//}
 				}
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
@@ -300,9 +301,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 
 				// same here:
 			    // FIXSBT does this still cause too many refreshes
-				if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-					details_view->update(entry);
-				}
+				//if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
+				//if (send_updates && detailed_entry_key == ICAO_address) {
+				//	details_view->update(entry);
+				//}
 			}
 		}
 		replace_entry(entry);
@@ -324,15 +326,15 @@ void ADSBRxView::on_tick_second() {
 		entry.inc_age();
 		
 		if (details_view) {
-			if (send_updates && (entry.key() == detailed_entry_key))
+			if (send_updates && (entry.key() == detailed_entry_key)) // Check if the ICAO address match
 				details_view->update(entry);
 		}
 		// FIXSBT following block is new, check if it is required 
-		else 
-		{
-			if ((entry.age == ADSB_DECAY_A) || (entry.age == ADSB_DECAY_B))
-				recent_entries_view.set_dirty();
-		}
+		//else 
+		//{
+		//	if ((entry.age == ADSB_DECAY_A) || (entry.age == ADSB_DECAY_B))
+		//		recent_entries_view.set_dirty();
+		//}
 	}
 
 	// Sort the list if it is being displayed
