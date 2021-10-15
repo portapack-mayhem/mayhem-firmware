@@ -36,6 +36,7 @@ std::string bitrate_str(BitRate bitrate) {
 		case BitRate::FSK512:	return "512bps ";
 		case BitRate::FSK1200:	return "1200bps";
 		case BitRate::FSK2400:	return "2400bps";
+		case BitRate::FSK3200:	return "3200bps";
 		default:				return "????";
 	}
 }
@@ -219,7 +220,176 @@ void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t fun
 	} while (char_idx < message_size);
 }
 
+
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+inline int bitsDiff(unsigned long left, unsigned long right)
+{
+	unsigned long xord = left ^ right;
+	int count = 0;
+	for (int i = 0; i<32; i++)
+	{
+		if ((xord & 0x01) != 0) ++count;
+		xord = xord >> 1;
+	}
+	return(count);
+
+}
+
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+static uint32_t ecs[32];        /* error correction sequence */
+static uint32_t bch[1025];
+static int eccSetup = 0;
+
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+void setupecc()
+{
+	unsigned int srr = 0x3b4;
+	unsigned int i, n, j, k;
+
+	/* calculate all information needed to implement error correction */
+	// Note : this is only for 31,21 code used in pocsag & flex
+	//        one should probably also make use of 32nd parity bit
+	for (i = 0; i <= 20; i++)
+	{
+		ecs[i] = srr;
+		if ((srr & 0x01) != 0) srr = (srr >> 1) ^ 0x3B4; else srr = srr >> 1;
+	}
+
+	/* bch holds a syndrome look-up table telling which bits to correct */
+	// first 5 bits hold location of first error; next 5 bits hold location
+	// of second error; bits 12 & 13 tell how many bits are bad
+	for (i = 0; i<1024; i++) bch[i] = 0;
+
+	/* two errors in data */
+	for (n = 0; n <= 20; n++)
+	{
+		for (i = 0; i <= 20; i++)
+		{
+			j = (i << 5) + n;
+			k = ecs[n] ^ ecs[i];
+			bch[k] = j + 0x2000;
+		}
+	}
+
+	/* one error in data */
+	for (n = 0; n <= 20; n++)
+	{
+		k = ecs[n];
+		j = n + (0x1f << 5);
+		bch[k] = j + 0x1000;
+	}
+
+	/* one error in data and one error in ecc portion */
+	for (n = 0; n <= 20; n++)
+	{
+		for (i = 0; i<10; i++)  /* ecc screwed up bit */
+		{
+			k = ecs[n] ^ (1 << i);
+			j = n + (0x1f << 5);
+			bch[k] = j + 0x2000;
+		}
+	}
+
+	/* one error in ecc */
+	for (n = 0; n<10; n++)
+	{
+		k = 1 << n;
+		bch[k] = 0x3ff + 0x1000;
+	}
+
+	/* two errors in ecc */
+	for (n = 0; n<10; n++)
+	{
+		for (i = 0; i<10; i++)
+		{
+			if (i != n)
+			{
+				k = (1 << n) ^ (1 << i);
+				bch[k] = 0x3ff + 0x2000;
+			}
+		}
+	}
+}
+
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+inline int errorCorrection(uint32_t * val)
+{
+	// Set up the tables the first time
+	if (eccSetup == 0)
+	{
+		setupecc();
+		eccSetup = 1;
+	}
+
+	int i, synd, errl, acc, pari, ecc, b1, b2;
+
+	errl = 0;
+	pari = 0;
+
+	/* run through error detection and correction routine */
+
+	//  for (i=0; i<=20; i++)
+	ecc = 0;
+	for (i = 31; i >= 11; --i)
+	{
+		if ((*val&(1 << i))) { ecc = ecc ^ ecs[31 - i]; pari = pari ^ 0x01; }
+	}
+
+	//  for (i=21; i<=30; i++)
+	acc = 0;
+	for (i = 10; i >= 1; --i)
+	{
+		acc = acc << 1;
+		if ((*val&(1 << i))) { acc = acc ^ 0x01; }
+	}
+
+	synd = ecc ^ acc;
+
+	errl = 0;
+
+	if (synd != 0)		/* if nonzero syndrome we have error */
+	{
+
+		if (bch[synd] != 0)		/* check for correctable error */
+		{
+			b1 = bch[synd] & 0x1f;
+			b2 = bch[synd] >> 5;
+			b2 = b2 & 0x1f;
+
+			if (b2 != 0x1f)
+			{
+				*val ^= 0x01 << (31 - b2);
+				ecc = ecc ^ ecs[b2];
+			}
+
+			if (b1 != 0x1f)
+			{
+				*val ^= 0x01 << (31 - b1);
+				ecc = ecc ^ ecs[b1];
+			}
+
+			errl = bch[synd] >> 12;
+		}
+		else
+		{
+			errl = 3;
+		}
+
+		if (errl == 1) pari = pari ^ 0x01;
+	}
+
+	if (errl == 4) errl = 3;
+
+	return errl;
+}
+
+
 void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
+	int errors = 0;
 	uint32_t codeword;
 	char ascii_char;
 	std::string output_text = "";
@@ -230,15 +400,21 @@ void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 	for (size_t i = 0; i < 16; i++) {
 		codeword = batch[i];
 		
+		errorCorrection(&codeword);
+		errors = errorCorrection(&codeword);
+
 		if (!(codeword & 0x80000000U)) {
 			// Address codeword
 			if (state->mode == STATE_CLEAR) {
-				if (codeword != POCSAG_IDLEWORD) {
+				//if (codeword != POCSAG_IDLEWORD) {
+				if (! (bitsDiff(codeword, POCSAG_IDLEWORD) < 1)){
+
 					state->function = (codeword >> 11) & 3;
 					state->address = (codeword >> 10) & 0x1FFFF8U;	// 18 MSBs are transmitted
 					state->mode = STATE_HAVE_ADDRESS;
 					state->out_type = ADDRESS;
-					
+					state->errors = errors;
+
 					state->ascii_idx = 0;
 					state->ascii_data = 0;
 				}
@@ -246,6 +422,7 @@ void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
 				state->mode = STATE_CLEAR;				// New address = new message
 			}
 		} else {
+			state->errors += errors;
 			// Message codeword
 			if (state->mode == STATE_HAVE_ADDRESS) {
 				// First message codeword: complete address
@@ -270,7 +447,10 @@ void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state) {
    
 				// Translate non-printable chars
 				if ((ascii_char < 32) || (ascii_char > 126))
-					output_text += "[" + to_string_dec_uint(ascii_char) + "]";
+				{
+					//output_text += "[" + to_string_dec_uint(ascii_char) + "]";
+					output_text += ".";
+				}
 				else
 					output_text += ascii_char;
 			}

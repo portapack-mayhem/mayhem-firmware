@@ -30,6 +30,7 @@ using namespace pocsag;
 
 #include "string_format.hpp"
 #include "utility.hpp"
+#include "audio.hpp"
 
 void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
 	std::string entry = "Raw: F:" + to_string_dec_uint(frequency) + "Hz " +
@@ -64,6 +65,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	add_children({
 		&rssi,
 		&channel,
+		&audio,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
@@ -71,6 +73,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&options_bitrate,
 		&options_phase,
 		&check_log,
+		&field_volume,
 		&check_ignore,
 		&sym_ignore,
 		&console
@@ -107,6 +110,12 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	options_phase.on_change = [this](size_t, OptionsField::value_t v) {
 		on_config_changed(options_bitrate.selected_index_value(),v);
 	};
+
+	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+	field_volume.on_change = [this](int32_t v) {
+		this->on_headphone_volume_changed(v);
+	};
+
 	check_ignore.set_value(ignore);
 	check_ignore.on_select = [this](Checkbox&, bool v) {
 		ignore = v;
@@ -121,9 +130,15 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	logger = std::make_unique<POCSAGLogger>();
 	if (logger)
 		logger->append("pocsag.txt");
+
+	audio::output::start();
+	audio::output::unmute();
+
 }
 
 POCSAGAppView::~POCSAGAppView() {	
+	audio::output::stop();
+
 	// Save ignored address
 	persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
 	
@@ -134,6 +149,12 @@ POCSAGAppView::~POCSAGAppView() {
 void POCSAGAppView::focus() {
 	field_frequency.focus();
 }
+
+void POCSAGAppView::on_headphone_volume_changed(int32_t v) {
+	const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+	receiver_model.set_headphone_volume(new_volume);
+}
+
 
 // Useless ?
 void POCSAGAppView::set_parent_rect(const Rect new_parent_rect) {
@@ -154,6 +175,11 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 			//			" Ignored address " + to_string_dec_uint(pocsag_state.address));
 			return;
 		}
+		// Too many errors for reliable decode
+		if ((ignore) && (pocsag_state.errors >= 3)) {
+			return;
+		}
+
 
 		std::string console_info;
 		

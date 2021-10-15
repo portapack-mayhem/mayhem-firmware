@@ -39,98 +39,58 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 	auto audio = demod.execute(channel_out, audio_buffer);
-	//audio_output.write(audio);
+	smooth.Process(audio.p, audio.count); // Smooth the data to  make decoding more accurate
+	audio_output.write(audio);
 	
-	for (uint32_t c = 0; c < 16; c++) {
-		
-		const int32_t sample_int = audio.p[c] * 32768.0f;
-		const int32_t audio_sample = __SSAT(sample_int, 16);
-		
-		slicer_sr <<= 1;
-		if (phase == 0)
-			slicer_sr |= (audio_sample < 0);		// Do we need hysteresis ?
+	processDemodulatedSamples(audio.p, 16);
+	extractFrames();
+
+}
+
+// ====================================================================
+//
+// ====================================================================
+int POCSAGProcessor::OnDataWord(uint32_t word, int pos)
+{
+	packet.set(pos, word);
+	return 0;
+}
+
+// ====================================================================
+//
+// ====================================================================
+int POCSAGProcessor::OnDataFrame(int len, int baud)
+{
+	if (len > 0)
+	{
+		if (baud > 492 && baud < 542)
+		{
+			bitrate = pocsag::BitRate::FSK512;
+		}
+		else if (baud > 1000 && baud < 1400)
+		{
+			bitrate = pocsag::BitRate::FSK1200;
+		}
+		else if (baud > 2300 && baud < 2500)
+		{
+			bitrate = pocsag::BitRate::FSK2400;
+		}
+		else if (baud > 3100 && baud < 3300)
+		{
+			bitrate = pocsag::BitRate::FSK3200;
+		}
 		else
-			slicer_sr |= !(audio_sample < 0);
-			
-		// Detect transitions to adjust clock
-		if ((slicer_sr ^ (slicer_sr >> 1)) & 1) {
-			if (sphase < (0x8000u - sphase_delta_half))
-				sphase += sphase_delta_eighth;
-			else
-				sphase -= sphase_delta_eighth;
+		{
+			bitrate = pocsag::BitRate::UNKNOWN;
 		}
-		
-		sphase += sphase_delta;
-		
-		// Symbol time elapsed
-		if (sphase >= 0x10000u) {
-			sphase &= 0xFFFFu;
-			
-			rx_data <<= 1;
-			rx_data |= (slicer_sr & 1);
-			
-			switch (rx_state) {
-				
-				case WAITING:
-					if (rx_data == 0xAAAAAAAA) {
-						rx_state = PREAMBLE;
-						sync_timeout = 0;
-					}
-					break;
-				
-				case PREAMBLE:
-					if (sync_timeout < POCSAG_TIMEOUT) {
-						sync_timeout++;
 
-						if (rx_data == POCSAG_SYNCWORD) {
-							packet.clear();
-							codeword_count = 0;
-							rx_bit = 0;
-							msg_timeout = 0;
-							rx_state = SYNC;
-						}
-						
-					} else {
-						// Timeout here is normal (end of message)
-						rx_state = WAITING;
-						//push_packet(pocsag::PacketFlag::TIMED_OUT);
-					}
-					break;
-				
-				case SYNC:
-					if (msg_timeout < POCSAG_BATCH_LENGTH) {
-						msg_timeout++;
-						rx_bit++;
-						
-						if (rx_bit >= 32) {
-							rx_bit = 0;
-							
-							// Got a complete codeword
-							
-							//pocsag_brute_repair(&s->l2.pocsag, &rx_data);
-							
-							packet.set(codeword_count, rx_data);
-							
-							if (codeword_count < 15) {
-								codeword_count++;
-							} else {
-								push_packet(pocsag::PacketFlag::NORMAL);
-								rx_state = PREAMBLE;
-								sync_timeout = 0;
-							}
-						}
-					} else {
-						packet.set(0, codeword_count);	// Replace first codeword with count, for debug
-						push_packet(pocsag::PacketFlag::TIMED_OUT);
-						rx_state = WAITING;
-					}
-					break;
-
-				default:
-					break;
-			}
-		}
+		packet.set_bitrate(bitrate);
+		packet.set_flag(pocsag::PacketFlag::NORMAL);
+		packet.set_timestamp(Timestamp::now());
+		const POCSAGPacketMessage message(packet);
+		shared_memory.application_queue.push(message);
 	}
+	return 0;
 }
 
 void POCSAGProcessor::push_packet(pocsag::PacketFlag flag) {
@@ -162,7 +122,8 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 	channel_filter.configure(taps_11k0_channel.taps, 2);
 	demod.configure(demod_input_fs, 4500);
-	//audio_output.configure(false);
+	smooth.SetSize(9);
+	audio_output.configure(false);
 
 	bitrate = message.bitrate;
 	phase = message.phase;
@@ -171,6 +132,9 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	sphase_delta_eighth = sphase_delta / 8;
 	
 	rx_state = WAITING;
+
+	setParams(demod_input_fs, 6000, 300, 32);
+
 	configured = true;
 }
 
