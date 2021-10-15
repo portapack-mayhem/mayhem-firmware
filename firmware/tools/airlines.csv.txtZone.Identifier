@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://www.bountysource.com/
+HostUrl=https://github-repository-files.githubusercontent.com/251043704/4747359?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20211011%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20211011T232519Z&X-Amz-Expires=300&X-Amz-Signature=25180babeea757c128d1a995735486006e018abe6941ab5493597d194dc7b994&X-Amz-SignedHeaders=host&actor_id=21973866&key_id=0&repo_id=251043704&response-content-disposition=attachment%3Bfilename%3Dairlines.csv.txt&response-content-type=text%2Fplain
