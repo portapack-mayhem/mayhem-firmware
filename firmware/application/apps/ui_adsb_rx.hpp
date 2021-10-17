@@ -126,7 +126,7 @@ struct AircraftRecentEntry {
 	void set_time_string(std::string& new_time_string) {
 		time_string = new_time_string;
 	}
-	
+
 	void reset_age() {
 		age = 0;
 	}
@@ -254,10 +254,18 @@ private:
 	void on_tick_second();
 	
 	const RecentEntriesColumns columns { {
+#if false
 		{ "ICAO", 6 },
 		{ "Callsign", 9 },
 		{ "Hits", 4 },
 		{ "Time", 8 }
+#else
+		{ "ICAO/Call", 9 },
+		{ "Alt", 6 },
+		{ "Spd", 4 },
+		{ "Hits", 4 },
+		{ "Age", 4 }
+#endif
 	} };
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };

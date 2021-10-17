@@ -60,10 +60,19 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	
 	std::string entry_string = "\x1B";
 	entry_string += aged_color;
+#if false
 	entry_string += to_string_hex(entry.ICAO_address, 6) + " " +
 		entry.callsign + "  " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
 		entry.time_string;
+#else
+	entry_string += 
+		(entry.callsign[0]!=' ' ? entry.callsign + "  " : to_string_hex(entry.ICAO_address, 6) + "    ") +
+		to_string_dec_int(entry.pos.altitude,5) + "   " +
+		to_string_dec_int(entry.velo.speed,3) + "  " +
+		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
+		to_string_dec_uint(entry.age, 3);
+#endif
 	
 	painter.draw_string(
 		target_rect.location(),
