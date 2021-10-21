@@ -105,7 +105,7 @@ private:
 		}
 	};
 	Checkbox check_log {
-		{ 22 * 8, 21 },
+		{ 24 * 8, 21 },
 		3,
 		"LOG",
 		true
@@ -119,19 +119,19 @@ private:
 	};
 	
 	Checkbox check_ignore {
-		{ 1 * 8, 40 },
-		15,
-		"Ignore address:",
+		{ 1 * 8, 21 },
+		12,
+		"Ignore addr:",
 		true
 	};
 	SymField sym_ignore {
-		{ 19 * 8, 40 },
+		{ 16 * 8, 21 },
 		7,
 		SymField::SYMFIELD_DEC
 	};
 
 	Console console {
-		{ 0, 4 * 16, 240, 240 }
+		{ 0, 3 * 16, 240, 256 }
 	};
 
 	std::unique_ptr<POCSAGLogger> logger { };

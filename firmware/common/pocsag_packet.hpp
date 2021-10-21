@@ -63,11 +63,11 @@ public:
 		return (index < 16) ? codewords[index] : 0;
 	}
 	
-	void set_bitrate(const BitRate bitrate) {
+	void set_bitrate(const uint16_t bitrate) {
 		bitrate_ = bitrate;
 	}
 	
-	BitRate bitrate() const {
+	uint16_t bitrate() const {
 		return bitrate_;
 	}
 	
@@ -81,12 +81,12 @@ public:
 
 	void clear() {
 		codewords.fill(0);
-		bitrate_ = UNKNOWN;
+		bitrate_ = 0u;
 		flag_ = NORMAL;
 	}
 
 private:
-	BitRate bitrate_ { UNKNOWN };
+	uint16_t bitrate_ { 0 };
 	PacketFlag flag_ { NORMAL };
 	std::array <uint32_t, 16> codewords { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  };
 	Timestamp timestamp_ { };
