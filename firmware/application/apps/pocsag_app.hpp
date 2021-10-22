@@ -87,23 +87,6 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
 	};
-	OptionsField options_bitrate {
-		{ 12 * 8, 21 },
-		7,
-		{
-			{ "512bps ", 0 },
-			{ "1200bps", 1 },
-			{ "2400bps", 2 }
-		}
-	};
-	OptionsField options_phase {
-		{ 6 * 8, 21 },
-		1,
-		{
-			{ "P", 0 },
-			{ "N", 1 },
-		}
-	};
 	Checkbox check_log {
 		{ 24 * 8, 21 },
 		3,
@@ -142,7 +125,6 @@ private:
 
 	void on_packet(const POCSAGPacketMessage * message);
 
-	void on_config_changed(const uint32_t new_bitrate, const bool phase);
 	void on_headphone_volume_changed(int32_t v);
 
 	uint32_t target_frequency() const;

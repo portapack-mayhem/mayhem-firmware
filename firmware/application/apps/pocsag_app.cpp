@@ -123,6 +123,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	audio::output::start();
 	audio::output::unmute();
 
+	baseband::set_pocsag(pocsag::BitRate::FSK1200, true);
 }
 
 POCSAGAppView::~POCSAGAppView() {	
@@ -215,10 +216,6 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	// Log raw data whatever it contains
 	if (logger && logging)
 		logger->log_raw_data(message->packet, target_frequency());
-}
-
-void POCSAGAppView::on_config_changed(const uint32_t new_bitrate, bool new_phase) {
-	baseband::set_pocsag(pocsag_bitrates[new_bitrate], new_phase);
 }
 
 void POCSAGAppView::set_target_frequency(const uint32_t new_value) {
