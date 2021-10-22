@@ -87,25 +87,8 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
 	};
-	OptionsField options_bitrate {
-		{ 12 * 8, 21 },
-		7,
-		{
-			{ "512bps ", 0 },
-			{ "1200bps", 1 },
-			{ "2400bps", 2 }
-		}
-	};
-	OptionsField options_phase {
-		{ 6 * 8, 21 },
-		1,
-		{
-			{ "P", 0 },
-			{ "N", 1 },
-		}
-	};
 	Checkbox check_log {
-		{ 22 * 8, 21 },
+		{ 24 * 8, 21 },
 		3,
 		"LOG",
 		true
@@ -119,19 +102,19 @@ private:
 	};
 	
 	Checkbox check_ignore {
-		{ 1 * 8, 40 },
-		15,
-		"Ignore address:",
+		{ 1 * 8, 21 },
+		12,
+		"Ignore addr:",
 		true
 	};
 	SymField sym_ignore {
-		{ 19 * 8, 40 },
+		{ 16 * 8, 21 },
 		7,
 		SymField::SYMFIELD_DEC
 	};
 
 	Console console {
-		{ 0, 4 * 16, 240, 240 }
+		{ 0, 3 * 16, 240, 256 }
 	};
 
 	std::unique_ptr<POCSAGLogger> logger { };
@@ -142,7 +125,6 @@ private:
 
 	void on_packet(const POCSAGPacketMessage * message);
 
-	void on_config_changed(const uint32_t new_bitrate, const bool phase);
 	void on_headphone_volume_changed(int32_t v);
 
 	uint32_t target_frequency() const;

@@ -34,7 +34,7 @@ using namespace pocsag;
 
 void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
 	std::string entry = "Raw: F:" + to_string_dec_uint(frequency) + "Hz " +
-						pocsag::bitrate_str(packet.bitrate()) + " Codewords:";
+						to_string_dec_uint(packet.bitrate()) + " Codewords:";
 	
 	// Raw hex dump of all the codewords
 	for (size_t c = 0; c < 16; c++)
@@ -70,8 +70,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&field_frequency,
-		&options_bitrate,
-		&options_phase,
 		&check_log,
 		&field_volume,
 		&check_ignore,
@@ -102,15 +100,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		logging = v;
 	};
 	
-	options_bitrate.on_change = [this](size_t, OptionsField::value_t v) {
-		on_config_changed(v, options_phase.selected_index_value());
-	};
-	options_bitrate.set_selected_index(1);	// 1200bps
-	
-	options_phase.on_change = [this](size_t, OptionsField::value_t v) {
-		on_config_changed(options_bitrate.selected_index_value(),v);
-	};
-
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
@@ -134,6 +123,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	audio::output::start();
 	audio::output::unmute();
 
+	baseband::set_pocsag(pocsag::BitRate::FSK1200, true);
 }
 
 POCSAGAppView::~POCSAGAppView() {	
@@ -182,9 +172,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 
 
 		std::string console_info;
-		
+		const uint32_t roundVal = 50;
+		const uint32_t bitrate = roundVal * ((message->packet.bitrate() + (roundVal/2))/roundVal);
 		console_info = "\n" + to_string_datetime(message->packet.timestamp(), HM);
-		console_info += " " + pocsag::bitrate_str(message->packet.bitrate());
+		console_info += " " + to_string_dec_uint(bitrate);
 		console_info += " ADDR:" + to_string_dec_uint(pocsag_state.address);
 		console_info += " F" + to_string_dec_uint(pocsag_state.function);
 
@@ -225,10 +216,6 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage * message) {
 	// Log raw data whatever it contains
 	if (logger && logging)
 		logger->log_raw_data(message->packet, target_frequency());
-}
-
-void POCSAGAppView::on_config_changed(const uint32_t new_bitrate, bool new_phase) {
-	baseband::set_pocsag(pocsag_bitrates[new_bitrate], new_phase);
 }
 
 void POCSAGAppView::set_target_frequency(const uint32_t new_value) {
