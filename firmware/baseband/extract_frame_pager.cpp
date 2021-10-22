@@ -94,9 +94,8 @@ void extract_frame_pager::resetVals()
 // ====================================================================
 //
 // ====================================================================
-void extract_frame_pager::setParams(long a_samplesPerSec, long a_maxBaud, long a_minBaud, long maxRunOfSameValue)
+void extract_frame_pager::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud, long a_minBaud, long maxRunOfSameValue)
 {
-
 	m_samplesPerSec = a_samplesPerSec;
 	m_minSymSamples_1024 = (uint32_t)(1024.0f * (float)a_samplesPerSec / (float)a_maxBaud);
 	m_maxSymSamples_1024 = (uint32_t)(1024.0f*(float)a_samplesPerSec / (float)a_minBaud);

@@ -23,6 +23,8 @@
 #include <bitset> 
 using namespace std;
 
+// This class extracts a POCSAG message from a FM demodulated sample stream
+// TODO extend to also process FLEX frames
 #define MAX_CODEWORDS (16)
 class extract_frame_pager
 {
@@ -41,7 +43,7 @@ public:
 
 
 	void resetVals();
-	void setParams(long a_samplesPerSec, long a_maxBaud = 8000, long a_minBaud = 200, long maxRunOfSameValue = 32);
+	void setFrameExtractParams(long a_samplesPerSec, long a_maxBaud = 8000, long a_minBaud = 200, long maxRunOfSameValue = 32);
 
 	int	 processDemodulatedSamples(float * sampleBuff, int noOfSamples);
 	int  extractFrames();

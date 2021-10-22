@@ -1016,17 +1016,10 @@ public:
 
 class POCSAGConfigureMessage : public Message {
 public:
-	constexpr POCSAGConfigureMessage(
-		const pocsag::BitRate bitrate,
-		const bool phase
-	) : Message { ID::POCSAGConfigure },
-		bitrate(bitrate),
-		phase(phase)
+	constexpr POCSAGConfigureMessage() 
+	: Message { ID::POCSAGConfigure }
 	{
 	}
-
-	const pocsag::BitRate bitrate;
-	const bool phase;
 };
 
 class APRSPacketMessage : public Message {

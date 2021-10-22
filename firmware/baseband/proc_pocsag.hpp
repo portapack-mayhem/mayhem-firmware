@@ -118,6 +118,9 @@ public:
 
 
 
+// --------------------------------------------------
+// Class to process base band data to pocsag frames
+// --------------------------------------------------
 class POCSAGProcessor : public BasebandProcessor, extract_frame_pager {
 public:
 	void execute(const buffer_c8_t& buffer) override;
@@ -128,17 +131,6 @@ public:
 	virtual int OnDataWord(uint32_t word, int pos);
 
 private:
-	enum rx_states {
-		WAITING = 0,
-		PREAMBLE = 32,
-		SYNC = 64,
-		//LOSING_SYNC = 65,
-		//LOST_SYNC = 66,
-		//ADDRESS = 67,
-		//MESSAGE = 68,
-		//END_OF_MESSAGE = 69
-	};
-
 	static constexpr size_t baseband_fs = 3072000;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
@@ -163,24 +155,9 @@ private:
 	
 	AudioOutput audio_output { };
 
-	uint32_t sync_timeout { 0 };
-	uint32_t msg_timeout { 0 };
-
-	uint32_t slicer_sr { 0 };
-	uint32_t sphase { 0 };
-	uint32_t sphase_delta { 0 };
-	uint32_t sphase_delta_half { 0 };
-	uint32_t sphase_delta_eighth { 0 };
-	uint32_t rx_data { 0 };
-	uint32_t rx_bit { 0 };
 	bool configured = false;
-	rx_states rx_state { WAITING };
-	pocsag::BitRate bitrate { pocsag::BitRate::FSK1200 };
-	bool phase;
-	uint32_t codeword_count { 0 };
 	pocsag::POCSAGPacket packet { };
 	
-	void push_packet(pocsag::PacketFlag flag);
 	void configure(const POCSAGConfigureMessage& message);
 	
 };
