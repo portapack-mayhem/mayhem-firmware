@@ -63,42 +63,13 @@ int POCSAGProcessor::OnDataFrame(int len, int baud)
 {
 	if (len > 0)
 	{
-		if (baud > 492 && baud < 542)
-		{
-			bitrate = pocsag::BitRate::FSK512;
-		}
-		else if (baud > 1000 && baud < 1400)
-		{
-			bitrate = pocsag::BitRate::FSK1200;
-		}
-		else if (baud > 2300 && baud < 2500)
-		{
-			bitrate = pocsag::BitRate::FSK2400;
-		}
-		else if (baud > 3100 && baud < 3300)
-		{
-			bitrate = pocsag::BitRate::FSK3200;
-		}
-		else
-		{
-			bitrate = pocsag::BitRate::UNKNOWN;
-		}
-
-		packet.set_bitrate(bitrate);
+		packet.set_bitrate(baud);
 		packet.set_flag(pocsag::PacketFlag::NORMAL);
 		packet.set_timestamp(Timestamp::now());
 		const POCSAGPacketMessage message(packet);
 		shared_memory.application_queue.push(message);
 	}
 	return 0;
-}
-
-void POCSAGProcessor::push_packet(pocsag::PacketFlag flag) {
-	packet.set_bitrate(bitrate);
-	packet.set_flag(flag);
-	packet.set_timestamp(Timestamp::now());
-	const POCSAGPacketMessage message(packet);
-	shared_memory.application_queue.push(message);
 }
 
 void POCSAGProcessor::on_message(const Message* const message) {
@@ -122,19 +93,15 @@ void POCSAGProcessor::configure(const POCSAGConfigureMessage& message) {
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 	channel_filter.configure(taps_11k0_channel.taps, 2);
 	demod.configure(demod_input_fs, 4500);
-	smooth.SetSize(9);
+	// Smoothing should be roughly sample rate over max baud
+	// 24k / 3.2k is 7.5
+	smooth.SetSize(8);
 	audio_output.configure(false);
 
-	bitrate = message.bitrate;
-	phase = message.phase;
-	sphase_delta = 0x10000u * bitrate / POCSAG_AUDIO_RATE;
-	sphase_delta_half = sphase_delta / 2;			// Just for speed
-	sphase_delta_eighth = sphase_delta / 8;
-	
-	rx_state = WAITING;
+	// Set up the frame extraction, limits of baud
+	setFrameExtractParams(demod_input_fs, 4000, 300, 32);
 
-	setParams(demod_input_fs, 6000, 300, 32);
-
+	// Mark the class as ready to accept data
 	configured = true;
 }
 

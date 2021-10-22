@@ -123,7 +123,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	audio::output::start();
 	audio::output::unmute();
 
-	baseband::set_pocsag(pocsag::BitRate::FSK1200, true);
+	baseband::set_pocsag();
 }
 
 POCSAGAppView::~POCSAGAppView() {	
