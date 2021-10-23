@@ -105,7 +105,7 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	}
 }
 
-/* 3 types of Spectrum Windowing shapes declaration , but only used Hamming  ,  shapes for  FFT  
+/* 3 types of Windowing time domain shapes declaration , but only used Hamming  ,  shapes for  FFT  
     gcc10 compile sintax error c/m  (1/2), 
           The primary diff. between const and constexpr variables is that 
           the initialization of a const var can be deferred until run time. 
@@ -113,7 +113,7 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	      A var. can be declared with constexpr , when it has a literal type and is initialized.
 	gcc10 compile sintax error c/m (2/2)
  	      Static assert --> Tests a software assertion at compile time for debugging.
-		  we keep the same safety  compile protection , just changing slightly the sintax but checking the array_size = power of 2.
+		  we keep the same safety  compile protection , just changing slightly the sintax  checking that the size of the called array is power of 2.
 	      if the bool  "constant expression" is TRUE (normal case) , the declaration has no effect.
 		  if the bool  "constant expression" is FALSE (abnormal array size) , it is aborted the compile with a msg error. 
 		  	  */ 
