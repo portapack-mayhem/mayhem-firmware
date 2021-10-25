@@ -22,6 +22,9 @@
 #ifndef __SPECTRUM_COLLECTOR_H__
 #define __SPECTRUM_COLLECTOR_H__
 
+#define ARRAY_ELEMENTS(x) (sizeof(x) / sizeof(x[0]))     
+/* sizeof() compile-time operator that returns #bytes of (data type). We used it to get #elements_array */
+
 #include "dsp_types.hpp"
 #include "complex.hpp"
 
