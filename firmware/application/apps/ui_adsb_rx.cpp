@@ -46,11 +46,10 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	auto entry_age = entry.age;
 	
 	// Color decay for flights not being updated anymore
-	// FIXSBT this had been a switch on entry.age_state, did I change this or 1.40
 	if (entry_age < ADSB_DECAY_A) {
 		aged_color = 0x10;
 		target_color = Color::green();
-	} else if ((entry_age >= ADSB_DECAY_A) && (entry_age < ADSB_DECAY_B)) {
+	} else if (entry_age < ADSB_DECAY_B) {
 		aged_color = 0x07;
 		target_color = Color::light_grey();
 	} else {
@@ -204,6 +203,8 @@ void ADSBRxView::focus() {
 }
 
 ADSBRxView::~ADSBRxView() {
+	receiver_model.set_tuning_frequency(prevFreq);
+
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
@@ -216,6 +217,7 @@ AircraftRecentEntry ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
 	if (it == std::end(recent)){
 		recent.emplace_front(ICAO_address); // Add it
 		truncate_entries(recent); // Truncate the list
+		sort_entries_by_state();
 		it = find(recent, ICAO_address); // Find it again
 	}
 	return *it;
@@ -293,14 +295,6 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					entry.set_info_string(str_info);
 					logentry+=log_info + " ";
 
-					// we only want to update the details view if the frame
-					// we received has the same ICAO address, i.e. belongs to
-					// the same aircraft:
-					// FIXSBT does this still cause too many refreshes
-					//if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-					//if (send_updates && detailed_entry_key == ICAO_address) {
-					//	details_view->update(entry);
-					//}
 				}
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
@@ -308,12 +302,6 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 							" Spd: "+ to_string_dec_int(entry.velo.speed);
 
-				// same here:
-			    // FIXSBT does this still cause too many refreshes
-				//if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-				//if (send_updates && detailed_entry_key == ICAO_address) {
-				//	details_view->update(entry);
-				//}
 			}
 		}
 		replace_entry(entry);
@@ -338,12 +326,6 @@ void ADSBRxView::on_tick_second() {
 			if (send_updates && (entry.key() == detailed_entry_key)) // Check if the ICAO address match
 				details_view->update(entry);
 		}
-		// FIXSBT following block is new, check if it is required 
-		//else 
-		//{
-		//	if ((entry.age == ADSB_DECAY_A) || (entry.age == ADSB_DECAY_B))
-		//		recent_entries_view.set_dirty();
-		//}
 	}
 
 	// Sort the list if it is being displayed
@@ -379,9 +361,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		on_tick_second();
 	};
 	
-	// Initialise the CRC tables
-	// FIXSBT is this used
-	//dump1090Crc.modesChecksumInit(1);
+	prevFreq = receiver_model.tuning_frequency();
 
 	baseband::set_adsb();
 	

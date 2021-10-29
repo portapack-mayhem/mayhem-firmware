@@ -74,7 +74,7 @@ struct AircraftRecentEntry {
 	uint32_t ICAO_address { };
 	uint16_t hits { 0 };
 	
-	uint16_t age_state { 0 };
+	uint16_t age_state { 1 };
 	uint32_t age { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
 	adsb_vel velo { false, 0, 999, 0 };
@@ -133,7 +133,14 @@ struct AircraftRecentEntry {
 	
 	void inc_age() {
 		age++;
-		age_state = (age < ADSB_DECAY_A) ? 0 : (age < ADSB_DECAY_B) ? 1 : 2;
+		if (age < ADSB_DECAY_A)
+		{
+			age_state = pos.valid ? 0 : 1;
+		}
+		else
+		{
+			age_state = (age < ADSB_DECAY_B) ? 2 : 3;
+		}
 	}
 };
 
@@ -249,6 +256,7 @@ public:
 	void sort_entries_by_state();
 
 private:
+	rf::Frequency prevFreq;
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
@@ -302,9 +310,6 @@ private:
 			this->on_frame(message);
 		}
 	};
-
-	// FIXSBT is this used
-	//Dump1090Crc dump1090Crc;
 };
 
 } /* namespace ui */
