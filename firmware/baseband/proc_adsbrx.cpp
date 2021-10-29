@@ -54,7 +54,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 			
 			// 1 bit lasts 2 samples
 			if (sample_count & 1) {
-				if (bit_count >= 112)
+				if (bit_count >= msgLen)
 				{
 					const ADSBFrameMessage message(frame);
 					shared_memory.application_queue.push(message);
@@ -80,6 +80,10 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				if (!(bit_count & 7)) {
 					// Got one byte
 					frame.push_byte(byte);
+					// Check at the end of the first byte of the message
+					if ( (bit_count == 8) && !(byte & (0x10<<3)) ) { 
+						msgLen = 56; // DFs 16 or greater are long 112. DFs 15 or less are short 56.
+					}
 				}
 			} // Second sample of each bit
 			sample_count++;
@@ -126,6 +130,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					{
 						//if (c == ADSB_PREAMBLE_LENGTH) {
 						decoding = true;
+						msgLen = 112;
 						sample_count = 0;
 						bit_count = 0;
 						frame.clear();
