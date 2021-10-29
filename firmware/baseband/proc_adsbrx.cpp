@@ -87,8 +87,6 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 			// Look for preamble
 			
 			// Shift
-			// FIXSBT make this a ring buffer
-			// FIXSBT store level in int16 for quick compare to preamble
 			for (c = 0; c < (ADSB_PREAMBLE_LENGTH - 1); c++)
 			{
 				shifter[c] = shifter[c + 1];
@@ -132,12 +130,6 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 						bit_count = 0;
 						frame.clear();
 
-						// Compute preamble pulses power to set thresholds
-						//threshold = (shifter[0] + shifter[2] + shifter[7] + shifter[9]) / 4;
-						// FIXSBT other use max * 0.2
-						// FIXSBT threshold_high and threshold_low should be ditched 
-						//threshold_high = threshold * 1.414f;		// +3dB
-						//threshold_low = threshold * 0.707f;		// -3dB
 					} // 11-14 low
 				} // 4 & 5 high
 			} // Check for preamble pattern
