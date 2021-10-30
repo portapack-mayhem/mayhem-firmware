@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_SONDE_H__
-#define __UI_SONDE_H__
+#ifndef __UI_EPIRB_H__
+#define __UI_EPIRB_H__
 
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -198,4 +198,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_SONDE_H__*/
+#endif/*__UI_EPIRB_H__*/

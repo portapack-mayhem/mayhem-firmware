@@ -38,6 +38,7 @@
 #include "pocsag_packet.hpp"
 #include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
+#include "epirb_packet.hpp"
 #include "tpms_packet.hpp"
 #include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
@@ -84,7 +85,7 @@ public:
 
 		TXProgress = 30,
 		Retune = 31,
-		
+
 		TonesConfigure = 32,
 		AFSKTxConfigure = 33,
 		PitchRSSIConfigure = 34,
@@ -100,20 +101,21 @@ public:
 		SSTVConfigure = 44,
 		SigGenConfig = 43,
 		SigGenTone = 44,
-		
+
 		POCSAGPacket = 45,
 		ADSBFrame = 46,
 		AFSKData = 47,
 		TestAppPacket = 48,
-		
+
 		RequestSignal = 49,
 		FIFOData = 50,
-		
+
 		AudioLevelReport = 51,
 		CodedSquelch = 52,
 		AudioSpectrum = 53,
 		APRSPacket = 54,
 		APRSRxConfigure = 55,
+		EpirbPacket = 56,
 		MAX
 	};
 
@@ -311,7 +313,7 @@ using ChannelSpectrumFIFO = FIFO<ChannelSpectrum>;
 class ChannelSpectrumConfigMessage : public Message {
 public:
 	static constexpr size_t fifo_k = 2;
-	
+
 	constexpr ChannelSpectrumConfigMessage(
 		ChannelSpectrumFIFO* fifo
 	) : Message { ID::ChannelSpectrumConfig },
@@ -357,7 +359,7 @@ public:
 		packet { packet }
 	{
 	}
-	
+
 	pocsag::POCSAGPacket packet;
 };
 
@@ -381,7 +383,7 @@ public:
 		frame { frame }
 	{
 	}
-	
+
 	adsb::ADSBFrame frame;
 };
 
@@ -395,7 +397,7 @@ public:
 		value { value }
 	{
 	}
-	
+
 	bool is_data;
 	uint32_t value;
 };
@@ -408,7 +410,7 @@ public:
 		value { value }
 	{
 	}
-	
+
 	uint32_t value;
 };
 
@@ -448,6 +450,22 @@ public:
 	}
 
 	sonde::Packet::Type type;
+
+	baseband::Packet packet;
+};
+
+class EpirbPacketMessage : public Message {
+public:
+	constexpr EpirbPacketMessage(
+		const epirb::Packet::Type type,
+		const baseband::Packet& packet
+	) : Message { ID::EpirbPacket },
+		type { type },
+		packet { packet }
+	{
+	}
+
+	epirb::Packet::Type type;
 
 	baseband::Packet packet;
 };
@@ -586,7 +604,7 @@ public:
 		used_ += copy_size;
 		return copy_size;
 	}
-	
+
 	size_t read(void* p, const size_t count) {
 		const auto copy_size = std::min(used_, count);
 		memcpy(p, &data_[capacity_ - used_], copy_size);
@@ -597,7 +615,7 @@ public:
 	bool is_full() const {
 		return used_ >= capacity_;
 	}
-	
+
 	bool is_empty() const {
 		return used_ == 0;
 	}
@@ -609,7 +627,7 @@ public:
 	size_t size() const {
 		return used_;
 	}
-	
+
 	size_t capacity() const {
 		return capacity_;
 	}
@@ -702,7 +720,7 @@ public:
 	) : Message { ID::TXProgress }
 	{
 	}
-	
+
 	uint32_t progress = 0;
 	bool done = false;
 };
@@ -721,7 +739,7 @@ public:
 		trigger_word(trigger_word)
 	{
 	}
-	
+
 	const uint32_t baudrate;
 	const uint32_t word_length;
 	const uint32_t trigger_value;
@@ -736,7 +754,7 @@ public:
 		baudrate(baudrate)
 	{
 	}
-	
+
 	const uint32_t baudrate;
 };
 
@@ -790,7 +808,7 @@ public:
 		rssi(rssi)
 	{
 	}
-	
+
 	const bool enabled;
 	const int32_t rssi;
 };
@@ -827,7 +845,7 @@ public:
 		length(length)
 	{
 	}
-	
+
 	const uint16_t length = 0;
 };
 
@@ -837,7 +855,7 @@ public:
 	) : Message { ID::Retune }
 	{
 	}
-	
+
 	int64_t freq = 0;
 	uint32_t range = 0;
 };
@@ -850,7 +868,7 @@ public:
 		sample_rate(sample_rate)
 	{
 	}
-	
+
 	const uint32_t sample_rate = 0;
 };
 
@@ -860,7 +878,7 @@ public:
 	) : Message { ID::AudioLevelReport }
 	{
 	}
-	
+
 	uint32_t value = 0;
 };
 
@@ -1037,7 +1055,7 @@ public:
 		packet { packet }
 	{
 	}
-	
+
 	aprs::APRSPacket packet;
 };
 

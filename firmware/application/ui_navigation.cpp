@@ -42,6 +42,7 @@
 #include "ui_coasterp.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
+#include "ui_epirb.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"

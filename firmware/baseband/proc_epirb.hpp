@@ -69,8 +69,8 @@
  *
  * */
 
-#ifndef __PROC_SONDE_H__
-#define __PROC_SONDE_H__
+#ifndef __PROC_EPIRB_H__
+#define __PROC_EPIRB_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
@@ -200,4 +200,4 @@ private:
 	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
-#endif/*__PROC_ERT_H__*/
+#endif/*__PROC_EPRIB_H__*/
