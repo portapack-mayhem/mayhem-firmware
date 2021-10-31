@@ -61,11 +61,11 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Radioepirb RX"; };
+	std::string title() const override { return "EPIRB RX"; };
 
 private:
 	std::unique_ptr<EpirbLogger> logger { };
-	uint32_t target_frequency_ { 402700000 };
+	uint32_t target_frequency_ { 406028000 };
 	bool logging { false };
 	bool use_crc { false };
 	bool beep { false };

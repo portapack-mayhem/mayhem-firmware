@@ -82,6 +82,7 @@ public:
 		SamplerateConfig = 24,
 		BTLERxConfigure = 25,
 		NRFRxConfigure = 26,
+		EpirbPacket = 27,
 
 		TXProgress = 30,
 		Retune = 31,
@@ -115,7 +116,7 @@ public:
 		AudioSpectrum = 53,
 		APRSPacket = 54,
 		APRSRxConfigure = 55,
-		EpirbPacket = 56,
+
 		MAX
 	};
 

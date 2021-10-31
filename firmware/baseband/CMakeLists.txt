@@ -390,7 +390,7 @@ DeclareTargets(PSON sonde)
 set(MODE_CPPSRC
 	proc_epirb.cpp
 )
-DeclareTargets(PSON epirb)
+DeclareTargets(PEPI epirb)
 
 ### FSK TX
 
