@@ -77,14 +77,25 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				
 				byte = bit | (byte << 1);
 				bit_count++;
+
+				// Only DF 17 are used so reset if anything else if found
 				if (!(bit_count & 7)) {
-					// Got one byte
+
+					// Store the byte
 					frame.push_byte(byte);
+
 					// Check at the end of the first byte of the message
 					if ( (bit_count == 8) && !(byte & (0x10<<3)) ) { 
 						msgLen = 56; // DFs 16 or greater are long 112. DFs 15 or less are short 56.
 					}
-				}
+
+					// If not DF type 17
+					if ( (bit_count == 8) && (byte>>3 != 17) ) { 
+						decoding = false;
+						bit =  (prev_mag > mag) ? 1 : 0;
+					}
+
+				} // last bit of a byte
 			} // Second sample of each bit
 			sample_count++;
 		} else {
