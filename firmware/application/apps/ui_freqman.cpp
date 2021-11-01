@@ -48,6 +48,9 @@ FreqManBaseView::FreqManBaseView(
 	} else
 		error_ = ERROR_NOFILES;
 	
+	// initialize
+	change_category(last_category_id);
+	
 	// Default function
 	on_change_category = [this](int32_t category_id) {
 		change_category(category_id);

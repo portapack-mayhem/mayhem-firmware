@@ -141,7 +141,11 @@ float cpr_mod(float a, float b) {
 	return a - (b * floor(a / b));
 }
 
-int cpr_NL(float lat) {
+int cpr_NL_precise(float lat) {
+	return (int) floor(2 * PI / acos(1 - ((1 - cos(PI / (2 * NZ))) / pow(cos(PI * lat / 180), 2))));
+}
+
+int cpr_NL_approx(float lat) {
 	if (lat < 0)
 		lat = -lat;		// Symmetry
 	
@@ -150,7 +154,19 @@ int cpr_NL(float lat) {
 			return 59 - c;
 	}
 	
-	return 1;
+	return 1;	
+}
+
+int cpr_NL(float lat) {
+	// TODO prove that the approximate function is good
+	// enough for the precision we need. Uncomment if
+	// that is true. No performance penalty was noticed
+	// from testing, but if you find it might be an issue,
+	// switch to cpr_NL_approx() instead:
+
+	//return cpr_NL_approx(lat);
+
+	return cpr_NL_precise(lat);
 }
 
 int cpr_N(float lat, int is_odd) {
@@ -185,18 +201,18 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 	// CPR encoding
 	// Info from: http://antena.fe.uni-lj.si/literatura/Razno/Avionika/modes/CPRencoding.pdf
 	
-	delta_lat = 360.0 / ((4.0 * 15.0) - time_parity);		// NZ = 15
-	yz = floor(131072.0 * (cpr_mod(latitude, delta_lat) / delta_lat) + 0.5);
-	rlat = delta_lat * ((yz / 131072.0) + floor(latitude / delta_lat));
+	delta_lat = 360.0 / ((4.0 * NZ) - time_parity);		// NZ = 15
+	yz = floor(CPR_MAX_VALUE * (cpr_mod(latitude, delta_lat) / delta_lat) + 0.5);
+	rlat = delta_lat * ((yz / CPR_MAX_VALUE) + floor(latitude / delta_lat));
 	
 	if ((cpr_NL(rlat) - time_parity) > 0)
 		delta_lon = 360.0 / cpr_N(rlat, time_parity);
 	else
 		delta_lon = 360.0;
-	xz = floor(131072.0 * (cpr_mod(longitude, delta_lon) / delta_lon) + 0.5);
+	xz = floor(CPR_MAX_VALUE * (cpr_mod(longitude, delta_lon) / delta_lon) + 0.5);
 	
-	lat = cpr_mod(yz, 131072.0);
-	lon = cpr_mod(xz, 131072.0);
+	lat = cpr_mod(yz, CPR_MAX_VALUE);
+	lon = cpr_mod(xz, CPR_MAX_VALUE);
 	
 	frame.push_byte((altitude_coded << 4) | ((uint32_t)time_parity << 2) | (lat >> 15));	// T = 0
 	frame.push_byte(lat >> 7);
@@ -258,7 +274,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 
 	// Compute longitude
 	if (time_even > time_odd) {
-		// Use even frame
+		// Use even frame2
 		ni = cpr_N(latE, 0);
 		Dlon = 360.0 / ni;
 		
@@ -279,7 +295,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 		position.latitude = latO;
 	}
 	
-	if (position.longitude > 180) position.longitude -= 360;
+	if (position.longitude >= 180) position.longitude -= 360;
 	
 	position.valid = true;
 

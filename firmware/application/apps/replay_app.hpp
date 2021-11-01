@@ -51,6 +51,7 @@ private:
 	static constexpr ui::Dim header_height = 3 * 16;
 	
 	uint32_t sample_rate = 0;
+	int32_t tx_gain { 47 };
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 	const size_t read_size { 16384 };
 	const size_t buffer_count { 3 };
@@ -75,7 +76,7 @@ private:
 	bool ready_signal { false };
 
 	Labels labels {
-		{ { 10 * 8, 2 * 16 }, "LNA:   A:", Color::light_grey() }
+		{ { 10 * 8, 2 * 16 }, "GAIN   A:", Color::light_grey() }
 	};
 	
 	Button button_open {
@@ -103,8 +104,13 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 2 * 16 },
 	};
-	LNAGainField field_lna {
-		{ 14 * 8, 2 * 16 }
+	
+	NumberField field_rfgain {
+		{ 14 * 8, 2 * 16 },
+		2,
+		{ 0, 47 },
+		1,
+		' '	
 	};
 	RFAmpField field_rf_amp {
 		{ 19 * 8, 2 * 16 }

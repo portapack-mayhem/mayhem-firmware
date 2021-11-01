@@ -112,6 +112,23 @@ std::string to_string_dec_int(
 	return q;
 }
 
+std::string to_string_decimal(float decimal, int8_t precision) {
+	double integer_part;
+	double fractional_part;
+
+	std::string result;
+	
+	fractional_part = modf(decimal, &integer_part) * pow(10, precision);
+
+	if (fractional_part < 0) {
+		fractional_part = -fractional_part;
+	}
+
+	result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
+
+	return result;
+}
+
 std::string to_string_short_freq(const uint64_t f) {
 	auto final_str = to_string_dec_int(f / 1000000,4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
 	return final_str;
@@ -165,8 +182,8 @@ std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
 	std::string string { "" };
 	
 	if (format == YMDHMS) {
-		string += to_string_dec_uint(value.year(), 4) + "/" +
-					to_string_dec_uint(value.month(), 2, '0') + "/" +
+		string += to_string_dec_uint(value.year(), 4) + "-" +
+					to_string_dec_uint(value.month(), 2, '0') + "-" +
 					to_string_dec_uint(value.day(), 2, '0') + " ";
 	}
 	
@@ -189,11 +206,11 @@ std::string to_string_timestamp(const rtc::RTC& value) {
 }
 
 std::string to_string_FAT_timestamp(const FATTimestamp& timestamp) {
-	return to_string_dec_uint((timestamp.FAT_date >> 9) + 1980) + "/" +
-		to_string_dec_uint((timestamp.FAT_date >> 5) & 0xF, 2) + "/" +
-		to_string_dec_uint((timestamp.FAT_date & 0x1F), 2) + " " +
-		to_string_dec_uint((timestamp.FAT_time >> 11), 2) + ":" +
-		to_string_dec_uint((timestamp.FAT_time >> 5) & 0x3F, 2);
+	return to_string_dec_uint((timestamp.FAT_date >> 9) + 1980) + "-" +
+		to_string_dec_uint((timestamp.FAT_date >> 5) & 0xF, 2, '0') + "-" +
+		to_string_dec_uint((timestamp.FAT_date & 0x1F), 2, '0') + " " +
+		to_string_dec_uint((timestamp.FAT_time >> 11), 2, '0') + ":" +
+		to_string_dec_uint((timestamp.FAT_time >> 5) & 0x3F, 2, '0');
 }
 
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision) {

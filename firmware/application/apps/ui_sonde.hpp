@@ -55,7 +55,7 @@ class SondeView : public View {
 public:
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
-
+		
 	SondeView(NavigationView& nav);
 	~SondeView();
 
@@ -68,10 +68,14 @@ private:
 	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
 	bool use_crc { false };
+	bool beep { false };
+
 	sonde::GPS_data gps_info { };
 	sonde::temp_humid temp_humid_info { };
 	std::string sonde_id { };
 	
+	// AudioOutput audio_output { };
+
 	Labels labels {
 		{ { 4 * 8, 2 * 16 }, "Type:", Color::light_grey() },
 		{ { 6 * 8, 3 * 16 }, "ID:", Color::light_grey() },
@@ -103,14 +107,29 @@ private:
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
 	
+	NumberField field_volume {
+		{ 28 * 8, 0 * 16 },
+		2,
+		{ 0, 99 },
+		1,
+		' ',
+	};
+	
+
+	Checkbox check_beep {
+		{ 22 * 8, 6 * 16 },
+		3,
+		"Beep"
+	};
+
 	Checkbox check_log {
-		{ 23 * 8, 6 * 16 },
+		{ 22 * 8, 8 * 16 },
 		3,
 		"Log"
 	};
 	
 	Checkbox check_crc {
-		{ 23 * 8, 8 * 16 },
+		{ 22 * 8, 10 * 16 },
 		3,
 		"CRC"
 	};
@@ -170,7 +189,10 @@ private:
 	};
 
 	void on_packet(const sonde::Packet& packet);
+	void on_headphone_volume_changed(int32_t v);
+	
 	void set_target_frequency(const uint32_t new_value);
+
 	uint32_t tuning_frequency() const;
 };
 

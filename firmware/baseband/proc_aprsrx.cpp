@@ -141,12 +141,11 @@ bool APRSRxProcessor::parse_bit(const uint8_t current_bit){
 	uint8_t decoded_bit = ~(current_bit ^ last_bit) & 0x1;
 	last_bit = current_bit;
 
-	int16_t log = decoded_bit == 0 ? -32768 : 32767;
-				
-	//if( stream ) {
-	//	const size_t bytes_to_write = sizeof(log) * 1;
-//		const auto result = stream->write(&log, bytes_to_write);
-//	}
+    //int16_t log = decoded_bit == 0 ? -32768 : 32767;
+    //if(stream){
+    //    const size_t bytes_to_write = sizeof(log) * 1;
+    //    const auto result = stream->write(&log, bytes_to_write);
+    //}
 
 	if(decoded_bit & 0x1){
 		if(ones_count < 8){
