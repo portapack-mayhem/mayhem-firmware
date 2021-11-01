@@ -88,17 +88,14 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					if ( (bit_count == 8) && !(byte & (0x10<<3)) ) { 
 						msgLen = 56; // DFs 16 or greater are long 112. DFs 15 or less are short 56.
 					}
-
-					// If not DF type 17
-					if ( (bit_count == 8) && (byte>>3 != 17) ) { 
-						decoding = false;
-						bit =  (prev_mag > mag) ? 1 : 0;
-					}
-
 				} // last bit of a byte
 			} // Second sample of each bit
 			sample_count++;
-		} else {
+		}
+
+		// Continue looking for preamble even if in a packet
+		// switch is new preamble id higher magnitude
+		{
 			// Look for preamble
 			
 			// Shift
@@ -126,7 +123,8 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				// of the high spikes level. We don't test bits too near to
 				// the high levels as signals can be out of phase so part of the
 				// energy can be in the near samples
-				float high = (shifter[0] + shifter[2] + shifter[7] + shifter[9]) / 12;
+				float thisAmp = (shifter[0] + shifter[2] + shifter[7] + shifter[9]);
+				float high = thisAmp / 6.0f;
 				if (shifter[4] < high &&
 					shifter[5] < high)
 				{
@@ -139,12 +137,26 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 						shifter[13] < high &&
 						shifter[14] < high)
 					{
+						bool newPacket = false;
+						if (decoding == false)
+						{
+							newPacket = true;
+						}
+						else if (decoding == true)
+						{
+							if(thisAmp > amp)
+								newPacket = true;
+						}
 						//if (c == ADSB_PREAMBLE_LENGTH) {
-						decoding = true;
-						msgLen = 112;
-						sample_count = 0;
-						bit_count = 0;
-						frame.clear();
+						if (newPacket == true)
+						{
+							decoding = true;
+							msgLen = 112;
+							amp = thisAmp;
+							sample_count = 0;
+							bit_count = 0;
+							frame.clear();
+						}
 
 					} // 11-14 low
 				} // 4 & 5 high
