@@ -56,7 +56,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 			if (sample_count & 1) {
 				if (bit_count >= msgLen)
 				{
-					const ADSBFrameMessage message(frame);
+					const ADSBFrameMessage message(frame, amp);
 					shared_memory.application_queue.push(message);
 					decoding = false;
 					bit = (prev_mag > mag) ? 1 : 0;

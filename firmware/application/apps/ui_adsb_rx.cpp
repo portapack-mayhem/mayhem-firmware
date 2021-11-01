@@ -65,10 +65,12 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
 		entry.time_string;
 #else
+	// SBT
 	entry_string += 
-		(entry.callsign[0]!=' ' ? entry.callsign + "  " : to_string_hex(entry.ICAO_address, 6) + "    ") +
-		to_string_dec_int(entry.pos.altitude,5) + "   " +
-		to_string_dec_int(entry.velo.speed,3) + "  " +
+		(entry.callsign[0]!=' ' ? entry.callsign + " " : to_string_hex(entry.ICAO_address, 6) + "   ") +
+		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
+		to_string_dec_uint((unsigned int)entry.velo.speed,4) + " " +
+		to_string_dec_uint((unsigned int)(entry.amp*100),3) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
 		to_string_dec_uint(entry.age, 3);
 #endif
@@ -80,7 +82,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	);
 	
 	if (entry.pos.valid)
-		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, target_color, style.background);
+		painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0), bitmap_target, target_color, style.background);
 }
 
 void ADSBLogger::log_str(std::string& logline) {
@@ -253,6 +255,12 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		auto entry = find_or_create_entry(ICAO_address);
 		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 		entry.reset_age();
+		if (entry.hits==0)
+		{ 
+			entry.amp = message->amp;
+		} else {
+			entry.amp = ((entry.amp*9.0f)+message->amp)/10.0f;
+		}
 		str_timestamp = to_string_datetime(datetime, HMS);
 		entry.set_time_string(str_timestamp);
 
