@@ -59,20 +59,12 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					const ADSBFrameMessage message(frame);
 					shared_memory.application_queue.push(message);
 					decoding = false;
-
-					if (prev_mag > mag)
-						bit = 1;
-					else
-						bit = 0;
-
+					bit = (prev_mag > mag) ? 1 : 0;
 				}
 				else 
 				{
 					//confidence = true;
-					if (prev_mag > mag)
-						bit = 1;
-					else
-						bit = 0;
+					bit = (prev_mag > mag) ? 1 : 0;
 				}
 				
 				byte = bit | (byte << 1);
@@ -88,11 +80,18 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					if ( (bit_count == 8) && !(byte & (0x10<<3)) ) { 
 						msgLen = 56; // DFs 16 or greater are long 112. DFs 15 or less are short 56.
 					}
+
+					// Abondon all frames that arent DF17
+					if ( (bit_count == 8) && ((byte>>3) != 17) ) { 
+						decoding = false;
+						bit = (prev_mag > mag) ? 1 : 0;
+						frame.clear();
+					}
 				} // last bit of a byte
 			} // Second sample of each bit
 			sample_count++;
 		}
-
+		//else
 		// Continue looking for preamble even if in a packet
 		// switch is new preamble id higher magnitude
 		{
@@ -124,7 +123,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				// the high levels as signals can be out of phase so part of the
 				// energy can be in the near samples
 				float thisAmp = (shifter[0] + shifter[2] + shifter[7] + shifter[9]);
-				float high = thisAmp / 6.0f;
+				float high = thisAmp / 7.0f;
 				if (shifter[4] < high &&
 					shifter[5] < high)
 				{
@@ -137,18 +136,8 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 						shifter[13] < high &&
 						shifter[14] < high)
 					{
-						bool newPacket = false;
-						if (decoding == false)
-						{
-							newPacket = true;
-						}
-						else if (decoding == true)
-						{
-							if(thisAmp > amp)
-								newPacket = true;
-						}
-						//if (c == ADSB_PREAMBLE_LENGTH) {
-						if (newPacket == true)
+						if ( (decoding == false) ||						// New preamble
+							 ((decoding == true)&& (thisAmp > amp)) )   // Higher power than existing packet
 						{
 							decoding = true;
 							msgLen = 112;

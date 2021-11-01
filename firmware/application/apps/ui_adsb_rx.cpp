@@ -304,8 +304,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 
 			}
 		}
+
 		replace_entry(entry);
-		recent_entries_view.set_dirty(); 
 		
 		logger = std::make_unique<ADSBLogger>();
         if (logger) {
