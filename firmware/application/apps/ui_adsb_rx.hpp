@@ -76,6 +76,7 @@ struct AircraftRecentEntry {
 	
 	uint16_t age_state { 1 };
 	uint32_t age { 0 };
+	float amp {0.0f};
 	adsb_pos pos { false, 0, 0, 0 };
 	adsb_vel velo { false, 0, 999, 0 };
 	ADSBFrame frame_pos_even { };
@@ -269,10 +270,11 @@ private:
 		{ "Time", 8 }
 #else
 		{ "ICAO/Call", 9 },
-		{ "Alt", 6 },
-		{ "Spd", 4 },
-		{ "Hits", 4 },
-		{ "Age", 4 }
+		{ "Lvl", 3 },
+		{ "Spd", 3 },
+		{ "Amp", 3 },
+		{ "Hit", 3 },
+		{ "Age", 3 }
 #endif
 	} };
 	AircraftRecentEntries recent { };
