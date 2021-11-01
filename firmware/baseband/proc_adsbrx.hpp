@@ -62,6 +62,7 @@ private:
     uint8_t cur_bit { 0 };
 	uint32_t sample { 0 };
 	int8_t re { }, im { };
+	float amp {0.0f};
 };
 
 #endif
