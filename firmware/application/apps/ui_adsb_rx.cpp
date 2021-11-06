@@ -69,8 +69,8 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	entry_string += 
 		(entry.callsign[0]!=' ' ? entry.callsign + " " : to_string_hex(entry.ICAO_address, 6) + "   ") +
 		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
-		to_string_dec_uint((unsigned int)entry.velo.speed,4) + " " +
-		to_string_dec_uint((unsigned int)(entry.amp*100),3) + " " +
+		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
+		to_string_dec_uint((unsigned int)(entry.amp),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
 		to_string_dec_uint(entry.age, 3);
 #endif
@@ -259,7 +259,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		{ 
 			entry.amp = message->amp;
 		} else {
-			entry.amp = ((entry.amp*9.0f)+message->amp)/10.0f;
+			entry.amp = ((entry.amp*15)+message->amp)>>4;
 		}
 		str_timestamp = to_string_datetime(datetime, HMS);
 		entry.set_time_string(str_timestamp);
