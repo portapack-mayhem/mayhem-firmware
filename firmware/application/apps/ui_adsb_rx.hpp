@@ -76,7 +76,7 @@ struct AircraftRecentEntry {
 	
 	uint16_t age_state { 1 };
 	uint32_t age { 0 };
-	float amp {0.0f};
+	uint32_t amp { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
 	adsb_vel velo { false, 0, 999, 0 };
 	ADSBFrame frame_pos_even { };
