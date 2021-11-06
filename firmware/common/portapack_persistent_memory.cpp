@@ -228,16 +228,19 @@ void set_playdead_sequence(const uint32_t new_value) {
 // bits on position 4 to 19 (16 bits) store the clkout frequency
 // bits 24,25,26 Hardware version selection function
 
-bool hwver_set_enabled_flag() {
-	return data->ui_config & (1 << 24);
-}
+ bool upgrad_cpld_enabled_flag() {
+ 	//return data->ui_config & (1 << 24);
+ 	return *(uint32_t *) (LPC_SPIFI_DATA_BASE+0xFFFFF) & (1 << 3);
+ }
 
 bool hwver_set_enabled() {
-	return data->ui_config & (1 << 25);
+	//return data->ui_config & (1 << 25);
+	return *(uint32_t *) (LPC_SPIFI_DATA_BASE+0xFFFFF) & (1 << 2);
 }
 
-bool config_hwver() {
-	return data->ui_config & (1 << 26);
+char config_hwver() {
+	//return data->ui_config & (1 << 26);
+	return *(uint32_t *) (LPC_SPIFI_DATA_BASE+0xFFFFF) & 0x03;
 }
 
 bool clkout_enabled() {
@@ -265,17 +268,17 @@ uint32_t config_backlight_timer() {
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
 }
 
-void set_hwver_enabled_flag(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
-}
+// void set_upgrad_cpld_enabled_flag(bool v) {
+// 	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
+// }
 
-void set_hwver_enabled(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
-}
+// void set_hwver_enabled(bool v) {
+// 	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
+// }
 
-void set_hwver_mode(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 26)) | (v << 26);
-}
+// void set_hwver_mode(bool v) {
+// 	data->ui_config = (data->ui_config & ~(1 << 26)) | (v << 26);
+// }
 
 void set_clkout_enabled(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 27)) | (v << 27);

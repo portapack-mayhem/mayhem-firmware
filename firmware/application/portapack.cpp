@@ -181,21 +181,22 @@ static PortaPackModel portapack_model() {
 	if( !model.is_valid() ) {
 		/*For the time being, it is impossible to distinguish the hardware of R1 and R2 from the software level*/
 		/*At this point, I2c is not ready.*/
-		if(persistent_memory::hwver_set_enabled()){//Hardware selection enabled
-			if( persistent_memory::config_hwver() ) {
-				model = PortaPackModel::R2_20170522;
-			} else {
-				model = PortaPackModel::R1_20150901;
+		if(((*(uint32_t *) (LPC_SPIFI_DATA_BASE+0xFFFFF))&0xF0) == 0xA0){
+		 	if(persistent_memory::hwver_set_enabled()){//Hardware selection enabled Turn off the hardware selection and detect the hardware,It takes about 5S to reprogram CPLD by reset device   
+		 		if( persistent_memory::config_hwver() == 1) {//H1
+		 			model = PortaPackModel::R1_20150901;
+		 		} 
+				if( persistent_memory::config_hwver() == 2) {//H2 or H2+
+		 			model = PortaPackModel::R2_20170522;
+		 		}
 			}
-		}else{//Turn off the hardware selection and detect the hardware,It takes about 5S to reprogram CPLD by reset device   
-			if( persistent_memory::config_hwver() ) {
+		}else{//old
+			if( audio_codec_wm8731.detected() ) {
 				model = PortaPackModel::R1_20150901;
-				persistent_memory::set_hwver_mode(0) ;
 			} else {
 				model = PortaPackModel::R2_20170522;
-				persistent_memory::set_hwver_mode(1) ;
 			}
-		}
+		 }
 	}
 
 	return model.value();
@@ -324,17 +325,23 @@ static void shutdown_base() {
  */
 
 bool init() {
-/*UI default Value*/	
-	if(persistent_memory::hwver_set_enabled_flag())//persistent_memory::hwver_set_enabled()&&
-	persistent_memory::set_hwver_enabled(0);
 
 	set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
 	i2c0.start(i2c_config_boot_clock);
 
-	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		shutdown_base();
-		return false;
+	if(((*(uint32_t *) (LPC_SPIFI_DATA_BASE+0xFFFFF))&0xF0) == 0xA0){//cpld update
+		if(persistent_memory::upgrad_cpld_enabled_flag()){
+			if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+				shutdown_base();
+				return false;
+			}
+		}
+	}else{//old
+		if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+			shutdown_base();
+			return false;
+		}
 	}
 
 	if( !hackrf::cpld::load_sram() ) {
