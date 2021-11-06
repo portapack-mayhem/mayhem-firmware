@@ -70,7 +70,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		(entry.callsign[0]!=' ' ? entry.callsign + " " : to_string_hex(entry.ICAO_address, 6) + "   ") +
 		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
 		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
-		to_string_dec_uint((unsigned int)(entry.amp),4) + " " +
+		to_string_dec_uint((unsigned int)(entry.amp>>7),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
 		to_string_dec_uint(entry.age, 3);
 #endif
