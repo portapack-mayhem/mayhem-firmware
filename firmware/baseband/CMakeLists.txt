@@ -431,7 +431,6 @@ DeclareTargets(POOK ook)
 
 set(MODE_CPPSRC
 	proc_pocsag.cpp
-	extract_frame_pager.cpp
 )
 DeclareTargets(PPOC pocsag)
 

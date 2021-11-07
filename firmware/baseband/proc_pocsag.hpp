@@ -33,7 +33,6 @@
 #include "dsp_demodulate.hpp"
 
 #include "pocsag_packet.hpp"
-#include "extract_frame_pager.hpp"
 
 #include "pocsag.hpp"
 #include "message.hpp"
@@ -41,8 +40,11 @@
 #include "portapack_shared_memory.hpp"
 
 #include <cstdint>
+#include <bitset> 
+using namespace std;
 
-
+// Class used to smooth demodulated waveform prior to decoding
+// -----------------------------------------------------------
 template <class ValType, class CalcType>
 class SmoothVals
 {
@@ -121,14 +123,15 @@ public:
 // --------------------------------------------------
 // Class to process base band data to pocsag frames
 // --------------------------------------------------
-class POCSAGProcessor : public BasebandProcessor, extract_frame_pager {
+class POCSAGProcessor : public BasebandProcessor{
 public:
+
 	void execute(const buffer_c8_t& buffer) override;
 	
 	void on_message(const Message* const message) override;
 
-	virtual int OnDataFrame(int len, int baud);
-	virtual int OnDataWord(uint32_t word, int pos);
+	int OnDataFrame(int len, int baud);
+	int OnDataWord(uint32_t word, int pos);
 
 private:
 	static constexpr size_t baseband_fs = 3072000;
@@ -157,8 +160,65 @@ private:
 
 	bool configured = false;
 	pocsag::POCSAGPacket packet { };
-	
-	void configure(const POCSAGConfigureMessage& message);
+
+	void configure();
+
+	// ----------------------------------------
+	// Frame extractraction methods and members
+	// ----------------------------------------
+private:
+	void initFrameExtraction();
+	struct FIFOStruct {
+		unsigned long	codeword;
+		int				numBits;
+	};
+
+	#define BIT_BUF_SIZE (64)
+
+	void resetVals();
+	void setFrameExtractParams(long a_samplesPerSec, long a_maxBaud = 8000, long a_minBaud = 200, long maxRunOfSameValue = 32);
+
+	int	 processDemodulatedSamples(float * sampleBuff, int noOfSamples);
+	int  extractFrames();
+
+	void	storeBit();
+	short	getBit();
+
+	int		getNoOfBits();
+	uint32_t getRate();
+
+	uint32_t	m_averageSymbolLen_1024{0};
+	uint32_t	m_lastStableSymbolLen_1024{0};
+
+	uint32_t m_samplesPerSec{0};
+	uint32_t m_goodTransitions{0};
+	uint32_t m_badTransitions{0};
+
+	uint32_t m_sampleNo{0};
+	float  m_sample{0};
+	float  m_valMid{0.0f};
+	float  m_lastSample{0.0f};
+
+	uint32_t  m_lastTransPos_1024{0};
+	uint32_t  m_lastSingleBitPos_1024{0};
+
+	uint32_t m_nextBitPosInt{0}; // Integer rounded up version to save on ops
+	uint32_t m_nextBitPos_1024{0};
+	uint32_t m_lastBitPos_1024{0};
+
+	uint32_t m_shortestGoodTrans_1024{0};
+	uint32_t m_minSymSamples_1024{0};
+	uint32_t m_maxSymSamples_1024{0};
+	uint32_t m_maxRunOfSameValue{0};
+
+	bitset<(size_t)BIT_BUF_SIZE> m_bits{0};
+	long		m_bitsStart{0};
+	long		m_bitsEnd{0};
+
+	FIFOStruct		m_fifo{0,0};
+	bool			m_gotSync{false};
+	int				m_numCode{0};
+	bool			m_inverted{false};
 	
 };
 
