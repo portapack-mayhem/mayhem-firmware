@@ -129,7 +129,8 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	on_close_(on_close)
 {
 	char file_buffer[32] { 0 };
-	bool found = false;
+	bool found = false;i
+	int number_of_airlines = 0;	
 	std::string airline_code;
 	size_t c;
 	
@@ -153,7 +154,8 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	// Try getting the airline's name from airlines.db
 	auto result = db_file.open("ADSB/airlines.db");
 	if (!result.is_valid()) {
-		// Search for 3-letter code in 0x0000~0x2000
+		// Search for 3-letter code
+		number_of_airlines = (db_file.size() / 68); // determine number of airlines in file
 		airline_code = entry_copy.callsign.substr(0, 3);
 		c = 0;
 		do {
@@ -164,10 +166,10 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 				found = true;
 			else
 				c++;
-		} while (!found);
+		} while (!found && (c < number_of_airlines));
 		
 		if (found) {
-			db_file.seek(0x2000 + (c << 6));
+			db_file.seek((number_of_airlines * 4) + (c << 6)); // seek starting after index
 			db_file.read(file_buffer, 32);
 			text_airline.set(file_buffer);
 			db_file.read(file_buffer, 32);
