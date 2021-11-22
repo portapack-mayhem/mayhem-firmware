@@ -129,7 +129,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	on_close_(on_close)
 {
 	char file_buffer[32] { 0 };
-	bool found = false;i
+	bool found = false;
 	int number_of_airlines = 0;	
 	std::string airline_code;
 	size_t c;
