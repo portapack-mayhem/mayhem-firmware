@@ -376,13 +376,16 @@ public:
 class ADSBFrameMessage : public Message {
 public:
 	constexpr ADSBFrameMessage(
-		const adsb::ADSBFrame& frame
+		const adsb::ADSBFrame& frame,
+		const uint32_t amp
 	) : Message { ID::ADSBFrame },
-		frame { frame }
+		frame { frame },
+		amp(amp)
 	{
 	}
 	
 	adsb::ADSBFrame frame;
+	uint32_t amp;
 };
 
 class AFSKDataMessage : public Message {
