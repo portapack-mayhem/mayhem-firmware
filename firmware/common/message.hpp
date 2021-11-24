@@ -376,13 +376,16 @@ public:
 class ADSBFrameMessage : public Message {
 public:
 	constexpr ADSBFrameMessage(
-		const adsb::ADSBFrame& frame
+		const adsb::ADSBFrame& frame,
+		const uint32_t amp
 	) : Message { ID::ADSBFrame },
-		frame { frame }
+		frame { frame },
+		amp(amp)
 	{
 	}
 	
 	adsb::ADSBFrame frame;
+	uint32_t amp;
 };
 
 class AFSKDataMessage : public Message {
@@ -1016,17 +1019,10 @@ public:
 
 class POCSAGConfigureMessage : public Message {
 public:
-	constexpr POCSAGConfigureMessage(
-		const pocsag::BitRate bitrate,
-		const bool phase
-	) : Message { ID::POCSAGConfigure },
-		bitrate(bitrate),
-		phase(phase)
+	constexpr POCSAGConfigureMessage() 
+	: Message { ID::POCSAGConfigure }
 	{
 	}
-
-	const pocsag::BitRate bitrate;
-	const bool phase;
 };
 
 class APRSPacketMessage : public Message {

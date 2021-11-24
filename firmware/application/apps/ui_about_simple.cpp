@@ -34,6 +34,7 @@ namespace ui
                 console.writeln("zhang00963,RedFox-Fr,aldude999");
                 console.writeln("East2West,fossum,ArjanOnwezen");
                 console.writeln("vXxOinvizioNxX,teixeluis");
+                console.writeln("heurist1,intoxsick");
                 console.writeln("");
                 break;
 
