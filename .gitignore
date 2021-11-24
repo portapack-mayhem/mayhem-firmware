@@ -67,3 +67,6 @@ CMakeFiles/
 
 # Python env
 env/
+
+# Other
+*.bak

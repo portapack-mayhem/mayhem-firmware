@@ -32,6 +32,8 @@
 #include "adsb.hpp"
 #include "message.hpp"
 
+#include "crc.hpp"
+
 using namespace adsb;
 
 namespace ui {
@@ -71,7 +73,10 @@ struct AircraftRecentEntry {
 	
 	uint32_t ICAO_address { };
 	uint16_t hits { 0 };
+	
+	uint16_t age_state { 1 };
 	uint32_t age { 0 };
+	uint32_t amp { 0 };
 	adsb_pos pos { false, 0, 0, 0 };
 	adsb_vel velo { false, 0, 999, 0 };
 	ADSBFrame frame_pos_even { };
@@ -122,13 +127,21 @@ struct AircraftRecentEntry {
 	void set_time_string(std::string& new_time_string) {
 		time_string = new_time_string;
 	}
-	
+
 	void reset_age() {
 		age = 0;
 	}
 	
 	void inc_age() {
 		age++;
+		if (age < ADSB_DECAY_A)
+		{
+			age_state = pos.valid ? 0 : 1;
+		}
+		else
+		{
+			age_state = (age < ADSB_DECAY_B) ? 2 : 3;
+		}
 	}
 };
 
@@ -239,16 +252,30 @@ public:
 	
 	std::string title() const override { return "ADS-B receive"; };
 
+	void replace_entry(AircraftRecentEntry & entry);
+	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
+	void sort_entries_by_state();
+
 private:
+	rf::Frequency prevFreq;
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
 	
 	const RecentEntriesColumns columns { {
+#if false
 		{ "ICAO", 6 },
 		{ "Callsign", 9 },
 		{ "Hits", 4 },
 		{ "Time", 8 }
+#else
+		{ "ICAO/Call", 9 },
+		{ "Lvl", 3 },
+		{ "Spd", 3 },
+		{ "Amp", 3 },
+		{ "Hit", 3 },
+		{ "Age", 3 }
+#endif
 	} };
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
