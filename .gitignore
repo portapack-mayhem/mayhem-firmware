@@ -64,3 +64,4 @@ CMakeFiles/
 # Host OS leftovers
 .DS_Store
 /firmware/CMakeCache.txt
+*.bak
