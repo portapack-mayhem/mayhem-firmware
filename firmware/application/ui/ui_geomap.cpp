@@ -134,7 +134,7 @@ int32_t GeoPos::altitude() {
 
 GeoMap::GeoMap(
 	Rect parent_rect
-) : Widget { parent_rect }
+) : Widget { parent_rect }, markerListLen(0)
 {
 	//set_focusable(true);
 }
@@ -144,34 +144,44 @@ void GeoMap::paint(Painter& painter) {
 	std::array<ui::Color, 240> map_line_buffer;
 	const auto r = screen_rect();
 	
-	// Ony redraw map if it moved by at least 1 pixel
-	if ((x_pos != prev_x_pos) || (y_pos != prev_y_pos)) {
+	// Ony redraw map if it moved by at least 1 pixel 
+	// or there have been 5 updates without a movement to allow other markers to refresh
+	// or this is the second ever redraw so that it can draw the other markers which dont exist at creation
+	if ((redraws>redrawToRefresh) || (redraws==1) || (x_pos != prev_x_pos) || (y_pos != prev_y_pos)) {
 		for (line = 0; line < r.height(); line++) {
 			map_file.seek(4 + ((x_pos + (map_width * (y_pos + line))) << 1));
 			map_file.read(map_line_buffer.data(), r.width() << 1);
 			display.draw_pixels({ 0, r.top() + line, r.width(), 1 }, map_line_buffer);
 		}
-		
 		prev_x_pos = x_pos;
 		prev_y_pos = y_pos;
+
+		for ( int i=0; i<markerListLen; ++i )
+		{
+			GeoMarker & item = markerList[i];
+			double lat_rad = sin(item.lat * pi / 180);
+			int x = (map_width * (item.lon+180)/360) - x_pos;
+			int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos; // Offset added for the GUI
+			if ((x>=0) && (x<r.width()) && 
+				(y>10) && (y<r.height()) ) // Dont draw within symbol size of top
+			{
+				ui::Point itemPoint(x,y+r.top());
+				if(y>=32) { // Dont draw text if it would overlap top
+					// Text and symbol
+					draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::grey() );
+				} else {
+					// Only symbol
+					draw_bearing( itemPoint, item.angle, 10, Color::blue());
+				}
+			}
+		} // Loop through other markers
+		redrawToRefresh = redraws+5; // Set the time of the next redraw
 	}
-	//center tag above point
-	if(tag_.find_first_not_of(' ') != tag_.npos){ //only draw tag if we have something other than spaces
-		painter.draw_string(r.center() - Point(((int)tag_.length() * 8 / 2), 2 * 16), style(), tag_);
-	}
-	if (mode_ == PROMPT) {
-		// Cross
-		display.fill_rectangle({ r.center() - Point(16, 1), { 32, 2 } }, Color::red());
-		display.fill_rectangle({ r.center() - Point(1, 16), { 2, 32 } }, Color::red());
-	} else if (angle_ < 360){
-		//if we have a valid angle draw bearing
-		draw_bearing(r.center(), angle_, 10, Color::red());
-	}
-	else {
-		//draw a small cross
-		display.fill_rectangle({ r.center() - Point(8, 1), { 16, 2 } }, Color::red());
-		display.fill_rectangle({ r.center() - Point(1, 8), { 2, 16 } }, Color::red());
-	}
+
+	redraws++;
+	
+	//Draw the marker in the center
+	draw_marker(painter, r.center(), angle_, tag_, Color::red() );
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
@@ -196,10 +206,11 @@ void GeoMap::move(const float lon, const float lat) {
 	x_pos = map_width * (lon_+180)/360  - (map_rect.width() / 2);
 
 	// Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
-	double map_bottom = sin(-85.05 * pi / 180); // Map bitmap only goes from about -85 to 85 lat
+	// Some parameters moved so they are only calculated once
+	//double map_bottom = sin(-85.05 * pi / 180); // Map bitmap only goes from about -85 to 85 lat
+	//double map_world_lon = map_width / (2 * pi); 
+    //double map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 	double lat_rad = sin(lat * pi / 180);
-	double map_world_lon = map_width / (2 * pi); 
-    double map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 	y_pos = map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset) - 128; // Offset added for the GUI
 
 	// Cap position
@@ -222,7 +233,11 @@ bool GeoMap::init() {
 	
 	lon_ratio = 180.0 / map_center_x;
 	lat_ratio = -90.0 / map_center_y;
-	
+
+	map_bottom = sin(-85.05 * pi / 180); // Map bitmap only goes from about -85 to 85 lat
+	map_world_lon = map_width / (2 * pi); 
+    map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
+
 	return true;
 }
 
@@ -246,14 +261,51 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
 	}
 }
 
+void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, 
+	                     const Color color, const Color fontColor, const Color backColor )
+{
+	//center tag above point
+	if(itemTag.find_first_not_of(' ') != itemTag.npos){ //only draw tag if we have something other than spaces
+		painter.draw_string( itemPoint - Point(((int)itemTag.length() * 8 / 2), 2 * 16), 
+						     style().font, fontColor, backColor, itemTag);
+	}
+	if (mode_ == PROMPT) {
+		// Cross
+		display.fill_rectangle({ itemPoint - Point(16, 1), { 32, 2 } }, color);
+		display.fill_rectangle({ itemPoint - Point(1, 16), { 2, 32 } }, color);
+	} else if (angle_ < 360){
+		//if we have a valid angle draw bearing
+		draw_bearing( itemPoint, itemAngle, 10, color);
+	}
+	else {
+		//draw a small cross
+		display.fill_rectangle({ itemPoint - Point(8, 1), { 16, 2 } }, color);
+		display.fill_rectangle({ itemPoint - Point(1, 8), { 2, 16 } }, color);
+	}
+}
+
+void  GeoMap::store_marker(GeoMarker & marker, const int pos)
+{
+	if (pos<0)
+	{
+		markerListLen = 0;
+	}
+	else if (pos<NumMarkerListElements)
+	{
+		markerList[pos] = marker;
+		markerListLen = pos+1;
+	}
+}
+
+
 void GeoMapView::focus() {
 	geopos.focus();
 	
 	if (!map_opened)
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
-}
+} 
 
-void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
+void GeoMapView::update_position(const float lat, const float lon, const uint16_t angle) {
 	lat_ = lat;
 	lon_ = lon;
 	
@@ -266,6 +318,10 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
 	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
 	geomap.set_dirty();
+}
+
+void GeoMapView::update_tag(const std::string tag) {
+	geomap.set_tag(tag);
 }
 	
 void GeoMapView::setup() {
@@ -323,7 +379,7 @@ GeoMapView::GeoMapView(
 	on_close_(on_close)
 {
 	mode_ = DISPLAY;
-	
+
 	add_child(&geopos);
 	
 	map_opened = geomap.init();
@@ -371,6 +427,12 @@ GeoMapView::GeoMapView(
 			on_done(altitude_, lat_, lon_);
 		nav.pop();
 	};
+}
+
+
+void  GeoMapView::store_marker(GeoMarker & marker, const int pos)
+{
+	geomap.store_marker(marker, pos);
 }
 
 } /* namespace ui */

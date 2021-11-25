@@ -37,6 +37,24 @@ enum GeoMapMode {
 	PROMPT
 };
 
+struct GeoMarker {
+	public:
+		float lat {0};
+		float lon {0};
+		uint16_t angle {0};
+		std::string tag {""};
+
+		GeoMarker & operator=(GeoMarker & rhs){ 
+			lat = rhs.lat;
+			lon = rhs.lon;
+			angle = rhs.angle;
+			tag = rhs.tag;
+
+			return *this;
+		} 
+};
+
+
 class GeoPos : public View {
 public:
 	enum alt_unit {
@@ -133,20 +151,34 @@ public:
 		angle_ = new_angle;
 	}
 
+	void store_marker(GeoMarker & marker, const int pos);
+
 private:
 	void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
-	
+	void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, 
+	                 const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black() );
+
 	GeoMapMode mode_ { };
 	File map_file { };
 	uint16_t map_width { }, map_height { };
 	int32_t map_center_x { }, map_center_y { };
 	float lon_ratio { }, lat_ratio { };
+	double map_bottom { };
+	double map_world_lon { }; 
+    double map_offset { };
+
 	int32_t x_pos { }, y_pos { };
 	int32_t prev_x_pos { 0xFFFF }, prev_y_pos { 0xFFFF };
 	float lat_ { };
 	float lon_ { };
 	uint16_t angle_ { };
 	std::string tag_ { };
+
+	static const int NumMarkerListElements = 10;
+	int markerListLen {0};
+	GeoMarker markerList[NumMarkerListElements];
+	int redrawToRefresh {0};
+	int redraws {0};
 };
 
 class GeoMapView : public View {
@@ -177,9 +209,14 @@ public:
 	
 	void focus() override;
 	
-	void update_position(float lat, float lon, uint16_t angle);
+	void update_position(const float lat, const float lon, const uint16_t angle);
 	
 	std::string title() const override { return "Map view"; };
+
+	void  store_marker(GeoMarker & marker, const int pos);
+
+	void update_tag(const std::string tag);
+
 
 private:
 	NavigationView& nav_;
