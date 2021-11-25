@@ -114,7 +114,10 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
 	if (send_updates)
+	{
+		geomap_view->update_tag(entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6));
 		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
+	}
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
@@ -186,7 +189,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	button_see_map.on_select = [this, &nav](Button&) {
 		if (!send_updates) { // Prevent recursivley launching the map
 			geomap_view = nav.push<GeoMapView>(
-				entry_copy.callsign,
+				entry_copy.callsign[0]!=' ' ? entry_copy.callsign : to_string_hex(entry_copy.ICAO_address, 6),
 				entry_copy.pos.altitude,
 				GeoPos::alt_unit::FEET,
 				entry_copy.pos.latitude,
@@ -326,14 +329,34 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 }
 
 void ADSBRxView::on_tick_second() {
+	int idx = 0;
+	ui::GeoMarker marker;
+	AircraftRecentEntry * selectedEntry = nullptr;
+
 	// Decay and refresh if needed
 	for (auto& entry : recent) {
 		entry.inc_age();
 		
-		if (details_view) {
-			if (send_updates && (entry.key() == detailed_entry_key)) // Check if the ICAO address match
-				details_view->update(entry);
+		if (send_updates && details_view) {
+			if (entry.key() == detailed_entry_key) // Check if the ICAO address match
+			{
+				selectedEntry = &entry;
+			} 
+			else if (details_view->geomap_view && (entry.age_state==0)) 
+			{
+				marker.lon = entry.pos.longitude;
+				marker.lat = entry.pos.latitude;
+				marker.angle = entry.velo.heading;
+				marker.tag = entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6);
+				details_view->geomap_view->store_marker(marker,idx);
+				idx++;
+			}
 		}
+	}
+
+	// Don't update the selected item until we have populated the other items
+	if (send_updates && selectedEntry){
+		details_view->update(*selectedEntry);
 	}
 
 	// Sort the list if it is being displayed

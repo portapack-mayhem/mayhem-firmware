@@ -177,10 +177,10 @@ public:
 
 	AircraftRecentEntry get_current_entry() { return entry_copy; }
 	
+	GeoMapView* geomap_view { nullptr };
 private:
 	AircraftRecentEntry entry_copy { 0 };
 	std::function<void(void)> on_close_ { };
-	GeoMapView* geomap_view { nullptr };
 	bool send_updates { false };
 	File db_file { };
 	
