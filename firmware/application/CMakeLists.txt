@@ -433,7 +433,14 @@ add_custom_command(
 	DEPENDS ${PROJECT_NAME}.elf
 )
 
+add_custom_command(
+	OUTPUT ${PROJECT_NAME}_R1_20150901.bin
+	COMMAND ${CMAKE_OBJCOPY} -O binary -D R1_20150901 ${PROJECT_NAME}.elf ${PROJECT_NAME}_R1_20150901.bin
+	DEPENDS ${PROJECT_NAME}.elf
+)
+
 add_custom_target(
 	${PROJECT_NAME}
 	DEPENDS ${PROJECT_NAME}.bin
+	DEPENDS ${PROJECT_NAME}_R1_20150901.bin
 )
