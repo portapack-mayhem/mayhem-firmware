@@ -422,13 +422,15 @@ add_custom_command(
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_executable(${PROJECT_NAME}_R1_20150901.elf ${CSRC} ${CPPSRC} ${ASMSRC})
-target_compile_definitions(${PROJECT_NAME}_R1_20150901.elf PUBLIC R1_20150901)
+target_compile_definitions(${PROJECT_NAME}_R1_20150901.elf PUBLIC compile_R1_20150901=1)
 set_target_properties(${PROJECT_NAME}_R1_20150901.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+target_link_libraries(${PROJECT_NAME}_R1_20150901.elf ${LIBS})
+target_link_libraries(${PROJECT_NAME}_R1_20150901.elf -Wl,-Map=${PROJECT_NAME}_R1_20150901.map)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
@@ -445,5 +447,4 @@ add_custom_command(
 add_custom_target(
 	${PROJECT_NAME}
 	DEPENDS ${PROJECT_NAME}.bin
-	DEPENDS ${PROJECT_NAME}_R1_20150901.bin
 )
