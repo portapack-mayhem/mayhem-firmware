@@ -31,6 +31,7 @@ set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
+set(FIRMWARE_R1_20150901_FILENAME ${FIRMWARE_NAME}_R1_20150901.bin)
 
 add_subdirectory(application)
 add_subdirectory(baseband)
@@ -42,6 +43,20 @@ add_custom_command(
 	DEPENDS baseband application ${MAKE_SPI_IMAGE}
 		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 	VERBATIM
+)
+
+add_custom_command(
+        OUTPUT ${FIRMWARE_R1_20150901_FILENAME}
+        COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_R1_20150901_FILENAME}
+        DEPENDS baseband application ${MAKE_SPI_IMAGE}
+                 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
+        VERBATIM
+)
+
+
+add_custom_target(
+	firmware_R1_20150901 ALL
+	DEPENDS ${FIRMWARE_R1_20150901_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
 add_custom_target(

@@ -184,7 +184,11 @@ static PortaPackModel portapack_model() {
 		//if( audio_codec_wm8731.detected() ) {
 		//	model = PortaPackModel::R1_20150901;
 		//} else {
+		#ifdef R1_20150901
+			model = PortaPackModel::R1_20150901;
+		#else
 			model = PortaPackModel::R2_20170522;
+		#endif
 		//}
 	}
 
