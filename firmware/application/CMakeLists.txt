@@ -447,4 +447,5 @@ add_custom_command(
 add_custom_target(
 	${PROJECT_NAME}
 	DEPENDS ${PROJECT_NAME}.bin
+	DEPENDS ${PROJECT_NAME}_R1_20150901.bin
 )

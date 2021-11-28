@@ -47,7 +47,7 @@ add_custom_command(
 
 add_custom_command(
         OUTPUT ${FIRMWARE_R1_20150901_FILENAME}
-        COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_R1_20150901_FILENAME}
+        COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application_R1_20150901.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_R1_20150901_FILENAME}
         DEPENDS baseband application ${MAKE_SPI_IMAGE}
                  ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
         VERBATIM
