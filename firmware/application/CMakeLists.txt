@@ -421,6 +421,9 @@ add_custom_command(
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
+add_executable(${PROJECT_NAME}_R1_20150901.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+target_compile_definitions(${PROJECT_NAME}_R1_20150901.elf PUBLIC R1_20150901)
+set_target_properties(${PROJECT_NAME}_R1_20150901.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
@@ -435,7 +438,7 @@ add_custom_command(
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}_R1_20150901.bin
-	COMMAND ${CMAKE_OBJCOPY} -O binary -D R1_20150901 ${PROJECT_NAME}.elf ${PROJECT_NAME}_R1_20150901.bin
+	COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}_R1_20150901.elf ${PROJECT_NAME}_R1_20150901.bin
 	DEPENDS ${PROJECT_NAME}.elf
 )
 
