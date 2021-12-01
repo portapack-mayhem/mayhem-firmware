@@ -159,6 +159,88 @@ private:
 };
 
 
+class ADSBRxAircraftDetailsView : public View {
+public:
+	ADSBRxAircraftDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
+	~ADSBRxAircraftDetailsView();
+
+	ADSBRxAircraftDetailsView(const ADSBRxAircraftDetailsView&) = delete;
+	ADSBRxAircraftDetailsView(ADSBRxAircraftDetailsView&&) = delete;
+	ADSBRxAircraftDetailsView& operator=(const ADSBRxAircraftDetailsView&) = delete;
+	ADSBRxAircraftDetailsView& operator=(ADSBRxAircraftDetailsView&&) = delete;
+	
+	void focus() override;
+	
+	void update(const AircraftRecentEntry& entry);
+	
+	std::string title() const override { return "AC Details"; };
+
+	AircraftRecentEntry get_current_entry() { return entry_copy; }
+	
+private:
+	AircraftRecentEntry entry_copy { 0 };
+	std::function<void(void)> on_close_ { };
+	bool send_updates { false };
+	File db_file { };
+	
+	Labels labels {
+	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
+		{ { 0 * 8, 2 * 16 }, "Registration:", Color::light_grey() },
+		{ { 0 * 8, 3 * 16 }, "Manufacturer:", Color::light_grey() },
+		{ { 0 * 8, 5 * 16 }, "Model:", Color::light_grey() },
+		{ { 0 * 8, 7 * 16 }, "Type:", Color::light_grey() },
+		{ { 0 * 8, 8 * 16 }, "Number of engines:", Color::light_grey() },
+		{ { 0 * 8, 9 * 16 }, "Engine type:", Color::light_grey() },
+                { { 0 * 8, 10 * 16 }, "Owner:", Color::light_grey() }
+	};
+	
+        Text text_icao_address {
+		{ 5 * 8, 1 * 16, 6 * 8, 16},
+		"-"	
+        };
+
+	Text text_registration {
+		{ 13 * 8, 2 * 16, 8 * 8, 16 },
+		"-"
+	};
+	
+	Text text_manufacturer {
+		{ 0 * 8, 4 * 16, 19 * 8, 16 },
+		"-"
+	};
+	
+	Text text_model {
+		{ 0 * 8, 6 * 16, 30 * 8, 16 },
+		"-"
+	};
+	
+	Text text_type {
+		{ 5 * 8, 7 * 16, 22 * 8, 16 },
+		"-"
+	};
+	
+	Text text_number_of_engines {
+		{ 18 * 8, 8 * 16, 30 * 8, 16 },
+		"-"
+	};
+
+	Text text_engine_type {
+		{ 12 * 8, 9 * 16, 30 * 8, 16},
+		"-"
+	};
+
+	Text text_owner {
+		{ 0 * 8, 11 * 16, 30 * 8, 16 },
+		"-"
+	};
+
+	Button button_close {
+		{ 9 * 8, 16 * 16, 12 * 8, 3 * 16 },
+		"Back"
+	};
+};
+
+
 class ADSBRxDetailsView : public View {
 public:
 	ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
@@ -181,11 +263,13 @@ private:
 	AircraftRecentEntry entry_copy { 0 };
 	std::function<void(void)> on_close_ { };
 	GeoMapView* geomap_view { nullptr };
+	ADSBRxAircraftDetailsView* aircraft_details_view { nullptr };
 	bool send_updates { false };
 	File db_file { };
 	
 	Labels labels {
-		{ { 0 * 8, 1 * 16 }, "Callsign:", Color::light_grey() },
+	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
+		{ { 13 * 8, 1 * 16 }, "Callsign:", Color::light_grey() },
 		{ { 0 * 8, 2 * 16 }, "Last seen:", Color::light_grey() },
 		{ { 0 * 8, 3 * 16 }, "Airline:", Color::light_grey() },
 		{ { 0 * 8, 5 * 16 }, "Country:", Color::light_grey() },
@@ -193,8 +277,13 @@ private:
 		{ { 0 * 8, 15 * 16 }, "Odd position frame:", Color::light_grey() }
 	};
 	
+        Text text_icao_address {
+		{ 5 * 8, 1 * 16, 6 * 8, 16},
+		"-"	
+        };
+
 	Text text_callsign {
-		{ 9 * 8, 1 * 16, 8 * 8, 16 },
+		{ 22 * 8, 1 * 16, 8 * 8, 16 },
 		"-"
 	};
 	
@@ -232,11 +321,17 @@ private:
 		"-"
 	};
 	
+	Button button_aircraft_details {
+		{ 2 * 8, 9 * 16, 12 * 8, 3 * 16 },
+		"A/C details" 
+	};		
+
 	Button button_see_map {
-		{ 8 * 8, 9 * 16, 14 * 8, 3 * 16 },
+		{ 16 * 8, 9 * 16, 12 * 8, 3 * 16 },
 		"See on map"
 	};
 };
+
 	
 class ADSBRxView : public View {
 public:
