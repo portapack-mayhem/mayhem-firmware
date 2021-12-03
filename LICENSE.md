@@ -1,5 +1,5 @@
 # License 
-Portapack Mayhem is distributed under GPL v3.0, however some sub projects might have different (GPL v3.0 compatible) licenses.
+Portapack Mayhem is distributed under [GPL v3.0](LICENSE), however some sub projects might have different (GPL v3.0 compatible) licenses.
 
 ## Other Licenses (compatible with GPL v3.0)
 - Most of Portapack Mayhem is distributed under GPL-2.0-or-later. [license](LICENSE.GPL-2.0-or-later)

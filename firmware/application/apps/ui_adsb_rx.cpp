@@ -91,6 +91,141 @@ void ADSBLogger::log_str(std::string& logline) {
 	log_file.write_entry(datetime,logline);
 }
 
+
+// Aircraft Details
+void ADSBRxAircraftDetailsView::focus() {
+	button_close.focus();
+}
+
+ADSBRxAircraftDetailsView::~ADSBRxAircraftDetailsView() {
+	on_close_();
+}
+
+ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
+	NavigationView& nav,
+	const AircraftRecentEntry& entry,
+	const std::function<void(void)> on_close
+) : entry_copy(entry),
+	on_close_(on_close)
+{
+	char file_buffer[32] { 0 };
+	bool found = false;
+	size_t number_of_icao_codes = 0;	
+	std::string icao_code;
+	
+	add_children({
+		&labels,
+		&text_icao_address,
+		&text_registration,
+		&text_manufacturer,
+		&text_model,
+		&text_type,
+		&text_number_of_engines,
+		&text_engine_type,
+		&text_owner,
+		&button_close
+	});
+	
+	std::unique_ptr<ADSBLogger> logger { };
+	//update(entry_copy);
+
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+
+	// Try getting the aircraft information from icao24.db
+	auto result = db_file.open("ADSB/icao24.db");
+	if (!result.is_valid()) {
+		number_of_icao_codes = (db_file.size() / 115); // determine number of ICAO24 codes in file
+		icao_code = to_string_hex(entry_copy.ICAO_address, 6);
+
+  		// binary search
+    		int first = 0,         				// First search element       
+    		last = number_of_icao_codes - 1,        	// Last search element       
+    		middle,                				// Mid point of search       
+    		position = -1;         				// Position of search value   
+    		while (!found && first <= last) {  
+        		middle = (first + last) / 2;     	// Calculate mid point      
+        		db_file.seek(middle * 7); 
+			db_file.read(file_buffer, 6);
+			if (file_buffer == icao_code) {     	// If value is found at mid        
+                		found = true;         
+                		position = middle;      
+        		}      
+        		else if (file_buffer > icao_code)  	// If value is in lower half         
+            			last = middle - 1;      
+        		else         
+            			first = middle + 1;          	// If value is in upper half   
+    		}   
+		
+		if (position > -1) {
+			db_file.seek((number_of_icao_codes * 7) + (position * 108)); // seek starting after index
+			db_file.read(file_buffer, 8);
+			text_registration.set(file_buffer);
+			db_file.read(file_buffer, 32);
+			text_manufacturer.set(file_buffer);
+			db_file.read(file_buffer, 32);
+			text_model.set(file_buffer);
+
+			
+
+			db_file.read(file_buffer, 4); //todo split in engine type, numbe rof engines,etc
+			if(strlen(file_buffer) == 3) {
+				switch(file_buffer[0]) {
+					case 'L': 
+						text_type.set("Landplane"); 
+						break;
+					case 'S': 
+						text_type.set("Seaplane"); 
+						break;
+					case 'A': 
+						text_type.set("Amphibian"); 
+						break;
+					case 'H': 
+						text_type.set("Helicopter"); 
+						break;
+					case 'G': 
+						text_type.set("Gyrocopter"); 
+						break;
+					case 'T': 
+						text_type.set("Tilt-wing aircraft"); 
+						break;					
+				}
+				text_number_of_engines.set(std::string(1, file_buffer[1]));
+				switch(file_buffer[2]) {
+					case 'P': 
+						text_engine_type.set("Piston engine"); 
+						break;
+					case 'T': 
+						text_engine_type.set("Turboprop/Turboshaft engine"); 
+						break;
+					case 'J': 
+						text_engine_type.set("Jet engine"); 
+						break;
+					case 'E': 
+						text_engine_type.set("Electric engine"); 
+						break;
+				}
+
+			}			
+			db_file.read(file_buffer, 32);
+			text_owner.set(file_buffer);
+		} else {
+			text_registration.set("Unknown");
+			text_manufacturer.set("Unknown");
+		}
+	} else {
+		text_manufacturer.set("No icao24.db file");
+	}
+
+
+	button_close.on_select =  [&nav](Button&){
+		nav.pop();
+	};
+
+};
+
+// End of Aicraft details
+
 void ADSBRxDetailsView::focus() {
 	button_see_map.focus();
 }
@@ -130,12 +265,13 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 {
 	char file_buffer[32] { 0 };
 	bool found = false;
-	int number_of_airlines = 0;	
+	size_t number_of_airlines = 0;	
 	std::string airline_code;
 	size_t c;
 	
 	add_children({
 		&labels,
+		&text_icao_address,
 		&text_callsign,
 		&text_last_seen,
 		&text_airline,
@@ -144,6 +280,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_info2,
 		&text_frame_pos_even,
 		&text_frame_pos_odd,
+		&button_aircraft_details,
 		&button_see_map
 	});
 	
@@ -184,9 +321,20 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	}
 	
 	text_callsign.set(entry_copy.callsign);
-	
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+        button_aircraft_details.on_select = [this, &nav](Button&) {
+		//detailed_entry_key = entry.key();
+		aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(
+			entry_copy,
+			[this]() {
+				send_updates = false;
+			});
+		send_updates = false;
+	};
+
 	button_see_map.on_select = [this, &nav](Button&) {
-		if (!send_updates) { // Prevent recursivley launching the map
+		if (!send_updates) { // Prevent recursively launching the map
 			geomap_view = nav.push<GeoMapView>(
 				entry_copy.callsign,
 				entry_copy.pos.altitude,
@@ -201,6 +349,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		}
 	};
 };
+
 
 void ADSBRxView::focus() {
 	field_vga.focus();
