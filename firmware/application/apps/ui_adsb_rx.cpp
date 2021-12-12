@@ -206,6 +206,32 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 						break;
 				}
 
+			}
+			// check for ICAO type designator
+			else if(strlen(file_buffer) == 4) {
+				switch(file_buffer[0]) {
+					case 'SHIP': 
+						text_type.set("Airship");
+						break;
+					case 'BALL': 
+						text_type.set("Balloon");
+						break;
+					case 'GLID': 
+						text_type.set("Glider / sailplane");
+						break;
+					case 'ULAC': 
+						text_type.set("Micro/ultralight aircraft");
+						break;
+					case 'GYRO': 
+						text_type.set("Micro/ultralight autogyro");
+						break;
+					case 'UHEL': 
+						text_type.set("Micro/ultralight helicopter");
+						break;
+					case 'PARA': 
+						text_type.set("Powered parachute/paraplane");
+						break;
+				}
 			}			
 			db_file.read(file_buffer, 32);
 			text_owner.set(file_buffer);
