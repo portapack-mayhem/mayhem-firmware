@@ -168,7 +168,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 
 			
 
-			db_file.read(file_buffer, 4); //todo split in engine type, numbe rof engines,etc
+			db_file.read(file_buffer, 4); // ICAO type decripton
 			if(strlen(file_buffer) == 3) {
 				switch(file_buffer[0]) {
 					case 'L': 
@@ -293,7 +293,6 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	bool found = false;
 	size_t number_of_airlines = 0;	
 	std::string airline_code;
-	//size_t c;
 	
 	add_children({
 		&labels,
@@ -320,16 +319,6 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		// Search for 3-letter code
 		number_of_airlines = (db_file.size() / 68); // determine number of airlines in file
 		airline_code = entry_copy.callsign.substr(0, 3);
-		//c = 0;
-		//do {
-		//	db_file.read(file_buffer, 4);
-		//	if (!file_buffer[0])
-		//		break;
-		//	if (!airline_code.compare(0, 4, file_buffer))
-		//		found = true;
-		//	else
-		//		c++;
-		//} while (!found && (c < number_of_airlines));
 
   		// binary search
     		int first = 0,         				// First search element       
@@ -351,7 +340,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     		}   
 		
 		if (position > -1) {
-			db_file.seek((number_of_airlines * 4) + (c << 6)); // seek starting after index
+			db_file.seek((number_of_airlines * 4) + (position << 6)); // seek starting after index
 			db_file.read(file_buffer, 32);
 			text_airline.set(file_buffer);
 			db_file.read(file_buffer, 32);
