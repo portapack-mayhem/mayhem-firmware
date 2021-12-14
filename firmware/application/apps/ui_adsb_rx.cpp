@@ -168,7 +168,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 
 			
 
-			db_file.read(file_buffer, 4); //todo split in engine type, numbe rof engines,etc
+			db_file.read(file_buffer, 4); // ICAO type decripton
 			if(strlen(file_buffer) == 3) {
 				switch(file_buffer[0]) {
 					case 'L': 
@@ -206,6 +206,32 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 						break;
 				}
 
+			}
+			// check for ICAO type designator
+			else if(strlen(file_buffer) == 4) {
+				switch(file_buffer[0]) {
+					case 'SHIP': 
+						text_type.set("Airship");
+						break;
+					case 'BALL': 
+						text_type.set("Balloon");
+						break;
+					case 'GLID': 
+						text_type.set("Glider / sailplane");
+						break;
+					case 'ULAC': 
+						text_type.set("Micro/ultralight aircraft");
+						break;
+					case 'GYRO': 
+						text_type.set("Micro/ultralight autogyro");
+						break;
+					case 'UHEL': 
+						text_type.set("Micro/ultralight helicopter");
+						break;
+					case 'PARA': 
+						text_type.set("Powered parachute/paraplane");
+						break;
+				}
 			}			
 			db_file.read(file_buffer, 32);
 			text_owner.set(file_buffer);
@@ -267,7 +293,6 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	bool found = false;
 	size_t number_of_airlines = 0;	
 	std::string airline_code;
-	size_t c;
 	
 	add_children({
 		&labels,
@@ -294,19 +319,28 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		// Search for 3-letter code
 		number_of_airlines = (db_file.size() / 68); // determine number of airlines in file
 		airline_code = entry_copy.callsign.substr(0, 3);
-		c = 0;
-		do {
-			db_file.read(file_buffer, 4);
-			if (!file_buffer[0])
-				break;
-			if (!airline_code.compare(0, 4, file_buffer))
-				found = true;
-			else
-				c++;
-		} while (!found && (c < number_of_airlines));
+
+  		// binary search
+    		int first = 0,         				// First search element       
+    		last = number_of_airlines - 1,        	 	// Last search element       
+    		middle,                				// Mid point of search       
+    		position = -1;         				// Position of search value   
+    		while (!found && first <= last) {  
+        		middle = (first + last) / 2;     	// Calculate mid point      
+        		db_file.seek(middle * 4); 
+			db_file.read(file_buffer, 3);
+			if (file_buffer == airline_code) {     	// If value is found at mid        
+                		found = true;         
+                		position = middle;      
+        		}      
+        		else if (file_buffer > airline_code)  	// If value is in lower half         
+            			last = middle - 1;      
+        		else         
+            			first = middle + 1;          	// If value is in upper half   
+    		}   
 		
-		if (found) {
-			db_file.seek((number_of_airlines * 4) + (c << 6)); // seek starting after index
+		if (position > -1) {
+			db_file.seek((number_of_airlines * 4) + (position << 6)); // seek starting after index
 			db_file.read(file_buffer, 32);
 			text_airline.set(file_buffer);
 			db_file.read(file_buffer, 32);
