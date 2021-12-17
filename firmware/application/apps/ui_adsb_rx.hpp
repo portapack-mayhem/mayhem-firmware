@@ -191,7 +191,8 @@ private:
 		{ { 0 * 8, 7 * 16 }, "Type:", Color::light_grey() },
 		{ { 0 * 8, 8 * 16 }, "Number of engines:", Color::light_grey() },
 		{ { 0 * 8, 9 * 16 }, "Engine type:", Color::light_grey() },
-                { { 0 * 8, 10 * 16 }, "Owner:", Color::light_grey() }
+                { { 0 * 8, 11 * 16 }, "Owner:", Color::light_grey() },
+                { { 0 * 8, 13 * 16 }, "Operator:", Color::light_grey() }
 	};
 	
         Text text_icao_address {
@@ -225,12 +226,17 @@ private:
 	};
 
 	Text text_engine_type {
-		{ 12 * 8, 9 * 16, 30 * 8, 16},
+		{ 0 * 8, 10 * 16, 30 * 8, 16},
 		"-"
 	};
 
 	Text text_owner {
-		{ 0 * 8, 11 * 16, 30 * 8, 16 },
+		{ 0 * 8, 12 * 16, 30 * 8, 16 },
+		"-"
+	};
+
+	Text text_operator {
+		{ 0 * 8, 14 * 16, 30 * 8, 16 },
 		"-"
 	};
 

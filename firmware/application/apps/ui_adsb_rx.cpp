@@ -123,6 +123,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 		&text_number_of_engines,
 		&text_engine_type,
 		&text_owner,
+		&text_operator,
 		&button_close
 	});
 	
@@ -135,7 +136,8 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	// Try getting the aircraft information from icao24.db
 	auto result = db_file.open("ADSB/icao24.db");
 	if (!result.is_valid()) {
-		number_of_icao_codes = (db_file.size() / 115); // determine number of ICAO24 codes in file
+		// determine number of ICAO24 codes in file, total size / (single index + record size)
+		number_of_icao_codes = (db_file.size() / 153); 
 		icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 
   		// binary search
@@ -158,17 +160,14 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
     		}   
 		
 		if (position > -1) {
-			db_file.seek((number_of_icao_codes * 7) + (position * 108)); // seek starting after index
-			db_file.read(file_buffer, 8);
+			db_file.seek((number_of_icao_codes * 7) + (position * 146)); // seek starting after index
+			db_file.read(file_buffer, 9);
 			text_registration.set(file_buffer);
-			db_file.read(file_buffer, 32);
+			db_file.read(file_buffer, 33);
 			text_manufacturer.set(file_buffer);
-			db_file.read(file_buffer, 32);
+			db_file.read(file_buffer, 33);
 			text_model.set(file_buffer);
-
-			
-
-			db_file.read(file_buffer, 4); // ICAO type decripton
+			db_file.read(file_buffer, 5); // ICAO type decripton
 			if(strlen(file_buffer) == 3) {
 				switch(file_buffer[0]) {
 					case 'L': 
@@ -209,32 +208,19 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 			}
 			// check for ICAO type designator
 			else if(strlen(file_buffer) == 4) {
-				switch(file_buffer[0]) {
-					case 'SHIP': 
-						text_type.set("Airship");
-						break;
-					case 'BALL': 
-						text_type.set("Balloon");
-						break;
-					case 'GLID': 
-						text_type.set("Glider / sailplane");
-						break;
-					case 'ULAC': 
-						text_type.set("Micro/ultralight aircraft");
-						break;
-					case 'GYRO': 
-						text_type.set("Micro/ultralight autogyro");
-						break;
-					case 'UHEL': 
-						text_type.set("Micro/ultralight helicopter");
-						break;
-					case 'PARA': 
-						text_type.set("Powered parachute/paraplane");
-						break;
-				}
+				if(strcmp(file_buffer,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(file_buffer,"BALL") == 0) text_type.set("Balloon");
+				else if(strcmp(file_buffer,"GLID") == 0) text_type.set("Glider / sailplane");
+				else if(strcmp(file_buffer,"ULAC") == 0) text_type.set("Micro/ultralight aircraft");
+				else if(strcmp(file_buffer,"GYRO") == 0) text_type.set("Micro/ultralight autogyro");
+				else if(strcmp(file_buffer,"UHEL") == 0) text_type.set("Micro/ultralight helicopter");
+				else if(strcmp(file_buffer,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(file_buffer,"PARA") == 0) text_type.set("Powered parachute/paraplane");
 			}			
-			db_file.read(file_buffer, 32);
+			db_file.read(file_buffer, 33);
 			text_owner.set(file_buffer);
+			db_file.read(file_buffer, 33);
+			text_operator.set(file_buffer);
 		} else {
 			text_registration.set("Unknown");
 			text_manufacturer.set("Unknown");

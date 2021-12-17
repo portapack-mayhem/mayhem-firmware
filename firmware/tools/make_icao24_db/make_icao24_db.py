@@ -44,23 +44,18 @@ with open('aircraftDatabase.csv', 'rt') as csv_file:
                 if len(row[8]) == 3:  
                     actype=row[8][:3].encode('ascii', 'ignore') 
                 else:
-                    actype=row[5][:4].encode('ascii', 'ignore')
-
+                    actype=row[5][:4].encode('ascii', 'ignore')                
                 owner=row[13][:32].encode('ascii', 'ignore')
+                operator=row[9][:32].encode('ascii', 'ignore')
                 #padding
-                registration_padding=bytearray()
-                manufacturer_padding=bytearray()
-                model_padding=bytearray()
-                actype_padding=bytearray()
-                owner_padding=bytearray()
-                # debug print(icao24_code,' - ', registration,' - ', manufacturer, '-', model, '-', actype, '-', owner)
                 icao24_codes=icao24_codes+bytearray(icao24_code+'\0', encoding='ascii')
-                registration_padding=bytearray('\0' * (8 - len(registration)), encoding='ascii')    
-                manufacturer_padding=bytearray('\0' * (32 - len(manufacturer)), encoding='ascii')
-                model_padding=bytearray('\0' * (32 - len(model)), encoding='ascii')
-                actype_padding=bytearray('\0' * (4 - len(actype)), encoding='ascii')
-                owner_padding=bytearray('\0' * (32 - len(owner)), encoding='ascii')
-                data=data+bytearray(registration+registration_padding+manufacturer+manufacturer_padding+model+model_padding+actype+actype_padding+owner+owner_padding)
+                registration_padding=bytearray('\0' * (9 - len(registration)), encoding='ascii')    
+                manufacturer_padding=bytearray('\0' * (33 - len(manufacturer)), encoding='ascii')
+                model_padding=bytearray('\0' * (33 - len(model)), encoding='ascii')
+                actype_padding=bytearray('\0' * (5 - len(actype)), encoding='ascii')
+                owner_padding=bytearray('\0' * (33 - len(owner)), encoding='ascii')
+                operator_padding=bytearray('\0' * (33 - len(operator)), encoding='ascii')
+                data=data+bytearray(registration+registration_padding+manufacturer+manufacturer_padding+model+model_padding+actype+actype_padding+owner+owner_padding+operator+operator_padding)
                 row_count+=1
 
 database.write(icao24_codes+data)
