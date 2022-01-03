@@ -172,6 +172,7 @@ set(CPPSRC
 	irq_rtc.cpp
 	log_file.cpp
 	portapack.cpp
+	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
 	recent_entries.cpp
@@ -206,6 +207,7 @@ set(CPPSRC
 	ui/ui_channel.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
+        ui/ui_qrcode.cpp
 	ui/ui_menu.cpp
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
