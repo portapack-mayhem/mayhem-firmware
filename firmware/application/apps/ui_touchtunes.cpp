@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * Copyright (C) 2017 NotPike
+ * Copyright (C) 2022 NotPike
  *
  * This file is part of PortaPack.
  *
@@ -26,6 +26,7 @@
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+
 
 using namespace portapack;
 using namespace encoders;
@@ -70,6 +71,14 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 			}
 		}
 	}
+}
+
+void TouchTunesView::start_ew() {
+	text_status.set("Jamming...");
+}
+
+void TouchTunesView::stop_ew() {
+	text_status.set("Ready");
 }
 
 void TouchTunesView::start_tx(const uint32_t button_index) {
@@ -136,6 +145,7 @@ TouchTunesView::TouchTunesView(
 		&labels,
 		&field_pin,
 		&check_scan,
+		&check_ew,
 		&text_status,
 		&progressbar
 	});
@@ -144,6 +154,15 @@ TouchTunesView::TouchTunesView(
 	
 	field_pin.on_change = [this](int32_t v) {
 		pin = v;
+	};
+
+	// EW Mode
+	check_ew.on_select = [this](Checkbox&, bool v) {
+		if(v){
+			start_ew();
+		} else {
+			stop_ew();
+		}
 	};
 	
 	const auto button_fn = [this](Button& button) {

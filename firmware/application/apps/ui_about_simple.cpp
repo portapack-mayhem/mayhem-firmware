@@ -43,7 +43,7 @@ namespace ui
             case 2:
                 // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2020-04-12&from=2015-07-31&type=c
                 console.writeln("\x1B\x06Havoc:\x1B\x10");
-                console.writeln("furrtek,mrmookie,notpike");
+                console.writeln("furrtek,mrmookie,NotPike");
                 console.writeln("mjwaxios,ImDroided,Giorgiofox");
                 console.writeln("F4GEV,z4ziggy,xmycroftx");
                 console.writeln("troussos,silascutler");
