@@ -79,6 +79,11 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 	}
 }
 
+// EW (Electronic Warfare) Mode will jam the receiving jukebox
+// while still alowing you (the hacker) to send commands
+// to the target jukebox.
+// EW Mode works by transmitting a CW on 433.92MHz inbetween
+// transmission events.
 void TouchTunesView::start_ew() {
 	transmitter_model.set_tuning_frequency(433920000);
 	transmitter_model.set_sampling_rate(3072000U);
