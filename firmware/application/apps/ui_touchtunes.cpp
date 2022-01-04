@@ -85,18 +85,28 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 // EW Mode works by transmitting a CW on 433.92MHz inbetween
 // transmission events.
 void TouchTunesView::start_ew() {
+	// Radio
 	transmitter_model.set_tuning_frequency(433920000);
 	transmitter_model.set_sampling_rate(3072000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(3500000U);
 	transmitter_model.set_tx_gain(47);
 	transmitter_model.enable();
+
+	//UI
 	text_status.set("Jamming...");
+	progressbar.set_max(1);
+	progressbar.set_value(1);
+
 }
 
 void TouchTunesView::stop_ew() {
+	// Radio
 	transmitter_model.disable();
+
+	// UI
 	text_status.set("Ready");
+	progressbar.set_value(0);
 }
 
 void TouchTunesView::start_tx(const uint32_t button_index) {
