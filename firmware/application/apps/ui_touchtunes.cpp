@@ -46,7 +46,13 @@ void TouchTunesView::stop_tx() {
 	transmitter_model.disable();
 	tx_mode = IDLE;
 	progressbar.set_value(0);
-	text_status.set("Ready");
+
+	// EW Mode Check
+	if(check_ew.value()) {
+		start_ew();
+	} else {
+ 		text_status.set("Ready");
+	}
 }
 
 void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
@@ -74,14 +80,27 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 }
 
 void TouchTunesView::start_ew() {
+	transmitter_model.set_tuning_frequency(433920000);
+	transmitter_model.set_sampling_rate(3072000U);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(3500000U);
+	transmitter_model.set_tx_gain(47);
+	transmitter_model.enable();
 	text_status.set("Jamming...");
 }
 
 void TouchTunesView::stop_ew() {
+	transmitter_model.disable();
 	text_status.set("Ready");
 }
 
 void TouchTunesView::start_tx(const uint32_t button_index) {
+
+	// Check EW Mode
+	if(check_ew.value()) {
+		stop_ew();
+	}
+
 	std::string fragments = { "" };
 	size_t bit;
 	uint64_t frame_data;
