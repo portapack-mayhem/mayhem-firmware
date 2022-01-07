@@ -106,7 +106,7 @@ public:
 	std::string title() const override { return "TPMS"; };
 
 private:
-	static constexpr uint32_t initial_target_frequency = 315000000;
+	static constexpr uint32_t initial_target_frequency = 433920000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
@@ -133,8 +133,8 @@ private:
 		{ 0 * 8, 0 * 16 },
 		3,
 		{
+			{ "433", 433920000 },
 			{ "315", 315000000 },
-			{ "434", 433920000 },
 		}
 	};
 
