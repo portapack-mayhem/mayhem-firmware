@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portapack_Hardware_version_select", "Portapack_Hardware_version_select\Portapack_Hardware_version_select.csproj", "{C89F45EC-01FF-4269-8B28-0B708B9C58CC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C89F45EC-01FF-4269-8B28-0B708B9C58CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C89F45EC-01FF-4269-8B28-0B708B9C58CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C89F45EC-01FF-4269-8B28-0B708B9C58CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C89F45EC-01FF-4269-8B28-0B708B9C58CC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F7A4E9E-E01A-4C7C-8B34-3E2BC6C7AC5D}
+	EndGlobalSection
+EndGlobal
