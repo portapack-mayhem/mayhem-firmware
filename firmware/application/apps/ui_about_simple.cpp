@@ -36,7 +36,8 @@ namespace ui
                 console.writeln("East2West,fossum,ArjanOnwezen");
                 console.writeln("vXxOinvizioNxX,teixeluis");
                 console.writeln("Brumi-2021,texasyojimbo");
-                console.writeln("heurist1,intoxsick");
+                console.writeln("heurist1,intoxsick,ckuethe");
+                console.writeln("notpike");
                 console.writeln("");
                 break;
 
