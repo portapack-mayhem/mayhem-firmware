@@ -72,7 +72,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
 		to_string_dec_uint((unsigned int)(entry.amp>>9),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
-		to_string_dec_uint(entry.age, 3);
+		to_string_dec_uint(entry.age, 4);
 #endif
 	
 	painter.draw_string(

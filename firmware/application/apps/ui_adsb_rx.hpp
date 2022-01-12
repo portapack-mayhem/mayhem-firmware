@@ -375,7 +375,7 @@ private:
 		{ "Spd", 3 },
 		{ "Amp", 3 },
 		{ "Hit", 3 },
-		{ "Age", 3 }
+		{ "Age", 4 }
 #endif
 	} };
 	AircraftRecentEntries recent { };
