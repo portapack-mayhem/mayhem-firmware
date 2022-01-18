@@ -58,7 +58,7 @@ void QRCodeImage::paint(Painter& painter) {
 	for (uint8_t y = 0; y < qrcode.size; y++) {
     		for (uint8_t x = 0; x < qrcode.size; x++) {
         		if (qrcode_getModule(&qrcode, x, y)) {
-                        display.fill_rectangle(Rect(30+(x*8), 40+(y*8), 8, 8), Color::black());
+        			display.fill_rectangle(Rect(30+(x*8), 40+(y*8), 8, 8), Color::black());
         		}
     		}
 	}
