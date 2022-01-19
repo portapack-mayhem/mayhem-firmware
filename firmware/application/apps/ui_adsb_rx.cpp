@@ -107,11 +107,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	const std::function<void(void)> on_close
 ) : entry_copy(entry),
 	on_close_(on_close)
-{
-	char file_buffer[32] { 0 };
-	bool found = false;
-	size_t number_of_icao_codes = 0;	
-	std::string icao_code;
+{	
 	
 	add_children({
 		&labels,
@@ -130,46 +126,22 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	std::unique_ptr<ADSBLogger> logger { };
 	//update(entry_copy);
 
+
+	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
-
 	// Try getting the aircraft information from icao24.db
-	auto result = db_file.open("ADSB/icao24.db");
-	if (!result.is_valid()) {
-		// determine number of ICAO24 codes in file, total size / (single index + record size)
-		number_of_icao_codes = (db_file.size() / 153); 
-		icao_code = to_string_hex(entry_copy.ICAO_address, 6);
-
-  		// binary search
-    		int first = 0,         				// First search element       
-    		last = number_of_icao_codes - 1,        	// Last search element       
-    		middle,                				// Mid point of search       
-    		position = -1;         				// Position of search value   
-    		while (!found && first <= last) {  
-        		middle = (first + last) / 2;     	// Calculate mid point      
-        		db_file.seek(middle * 7); 
-			db_file.read(file_buffer, 6);
-			if (file_buffer == icao_code) {     	// If value is found at mid        
-                		found = true;         
-                		position = middle;      
-        		}      
-        		else if (file_buffer > icao_code)  	// If value is in lower half         
-            			last = middle - 1;      
-        		else         
-            			first = middle + 1;          	// If value is in upper half   
-    		}   
-		
-		if (position > -1) {
-			db_file.seek((number_of_icao_codes * 7) + (position * 146)); // seek starting after index
-			db_file.read(file_buffer, 9);
-			text_registration.set(file_buffer);
-			db_file.read(file_buffer, 33);
-			text_manufacturer.set(file_buffer);
-			db_file.read(file_buffer, 33);
-			text_model.set(file_buffer);
-			db_file.read(file_buffer, 5); // ICAO type decripton
-			if(strlen(file_buffer) == 3) {
-				switch(file_buffer[0]) {
+	return_code = db.retrieve_aircraft_record(&aircraft_record, icao_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_registration.set(aircraft_record.aircraft_registration);
+			text_manufacturer.set(aircraft_record.aircraft_manufacturer);
+			text_model.set(aircraft_record.aircraft_model);	
+			text_owner.set(aircraft_record.aircraft_owner);
+			text_operator.set(aircraft_record.aircraft_operator);
+			// Check for ICAO type, e.g. L2J
+			if(strlen(aircraft_record.icao_type) == 3) {
+				switch(aircraft_record.icao_type[0]) {
 					case 'L': 
 						text_type.set("Landplane"); 
 						break;
@@ -189,8 +161,8 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 						text_type.set("Tilt-wing aircraft"); 
 						break;					
 				}
-				text_number_of_engines.set(std::string(1, file_buffer[1]));
-				switch(file_buffer[2]) {
+				text_number_of_engines.set(std::string(1, aircraft_record.icao_type[1]));
+				switch(aircraft_record.icao_type[2]) {
 					case 'P': 
 						text_engine_type.set("Piston engine"); 
 						break;
@@ -206,30 +178,22 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 				}
 
 			}
-			// check for ICAO type designator
-			else if(strlen(file_buffer) == 4) {
-				if(strcmp(file_buffer,"SHIP") == 0) text_type.set("Airship");
-				else if(strcmp(file_buffer,"BALL") == 0) text_type.set("Balloon");
-				else if(strcmp(file_buffer,"GLID") == 0) text_type.set("Glider / sailplane");
-				else if(strcmp(file_buffer,"ULAC") == 0) text_type.set("Micro/ultralight aircraft");
-				else if(strcmp(file_buffer,"GYRO") == 0) text_type.set("Micro/ultralight autogyro");
-				else if(strcmp(file_buffer,"UHEL") == 0) text_type.set("Micro/ultralight helicopter");
-				else if(strcmp(file_buffer,"SHIP") == 0) text_type.set("Airship");
-				else if(strcmp(file_buffer,"PARA") == 0) text_type.set("Powered parachute/paraplane");
-			}			
-			db_file.read(file_buffer, 33);
-			text_owner.set(file_buffer);
-			db_file.read(file_buffer, 33);
-			text_operator.set(file_buffer);
-		} else {
-			text_registration.set("Unknown");
-			text_manufacturer.set("Unknown");
-		}
-	} else {
-		text_manufacturer.set("No icao24.db file");
+			// Check for ICAO type designator
+			else if(strlen(aircraft_record.icao_type) == 4) {
+				if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"BALL") == 0) text_type.set("Balloon");
+				else if(strcmp(aircraft_record.icao_type,"GLID") == 0) text_type.set("Glider / sailplane");
+				else if(strcmp(aircraft_record.icao_type,"ULAC") == 0) text_type.set("Micro/ultralight aircraft");
+				else if(strcmp(aircraft_record.icao_type,"GYRO") == 0) text_type.set("Micro/ultralight autogyro");
+				else if(strcmp(aircraft_record.icao_type,"UHEL") == 0) text_type.set("Micro/ultralight helicopter");
+				else if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"PARA") == 0) text_type.set("Powered parachute/paraplane");
+			}
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_manufacturer.set("No icao24.db file");
+			break;	
 	}
-
-
 	button_close.on_select =  [&nav](Button&){
 		nav.pop();
 	};
@@ -275,11 +239,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 ) : entry_copy(entry),
 	on_close_(on_close)
 {
-	char file_buffer[32] { 0 };
-	bool found = false;
-	size_t number_of_airlines = 0;	
-	std::string airline_code;
-	
+
 	add_children({
 		&labels,
 		&text_icao_address,
@@ -300,46 +260,19 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 
 	// The following won't (shouldn't !) change for a given airborne aircraft
 	// Try getting the airline's name from airlines.db
-	auto result = db_file.open("ADSB/airlines.db");
-	if (!result.is_valid()) {
-		// Search for 3-letter code
-		number_of_airlines = (db_file.size() / 68); // determine number of airlines in file
-		airline_code = entry_copy.callsign.substr(0, 3);
-
-  		// binary search
-    		int first = 0,         				// First search element       
-    		last = number_of_airlines - 1,        	 	// Last search element       
-    		middle,                				// Mid point of search       
-    		position = -1;         				// Position of search value   
-    		while (!found && first <= last) {  
-        		middle = (first + last) / 2;     	// Calculate mid point      
-        		db_file.seek(middle * 4); 
-			db_file.read(file_buffer, 3);
-			if (file_buffer == airline_code) {     	// If value is found at mid        
-                		found = true;         
-                		position = middle;      
-        		}      
-        		else if (file_buffer > airline_code)  	// If value is in lower half         
-            			last = middle - 1;      
-        		else         
-            			first = middle + 1;          	// If value is in upper half   
-    		}   
-		
-		if (position > -1) {
-			db_file.seek((number_of_airlines * 4) + (position << 6)); // seek starting after index
-			db_file.read(file_buffer, 32);
-			text_airline.set(file_buffer);
-			db_file.read(file_buffer, 32);
-			text_country.set(file_buffer);
-		} else {
-			text_airline.set("Unknown");
-			text_country.set("Unknown");
-		}
-	} else {
-		text_airline.set("No airlines.db file");
-		text_country.set("No airlines.db file");
+	airline_code = entry_copy.callsign.substr(0, 3);
+	return_code = db.retrieve_airline_record(&airline_record, airline_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_airline.set(airline_record.airline);
+			text_country.set(airline_record.country);	
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_airline.set("No airlines.db file");
+			break;
 	}
-	
+
+
 	text_callsign.set(entry_copy.callsign);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
