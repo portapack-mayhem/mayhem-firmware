@@ -36,3 +36,4 @@ f=147325000,d=CH Swissphone 2
 f=147375000,d=CH Swissphone 3
 f=147400000,d=CH Swissphone 4
 f=169700000,d=CH Swissphone 5
+f=173250000,d=SLO Fire
