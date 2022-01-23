@@ -351,7 +351,7 @@ void APRSDetailsView::update() {
 	}	
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0, 0);
 }
 
 APRSDetailsView::~APRSDetailsView() {

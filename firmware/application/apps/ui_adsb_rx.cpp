@@ -261,7 +261,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading, entry_copy.pos.altitude);
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
