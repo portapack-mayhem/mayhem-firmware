@@ -224,6 +224,12 @@ private:
 		20,
 		"Login with play dead"
 	};*/
+
+	Checkbox checkbox_enable_touchscreen {
+		{ 3 * 8, 2 * 16 },
+		20,
+		"Enable touchscreen"
+	};
 	
 	Checkbox checkbox_speaker {
 		{ 3 * 8, 4 * 16 },

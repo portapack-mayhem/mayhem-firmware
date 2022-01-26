@@ -224,8 +224,12 @@ void set_playdead_sequence(const uint32_t new_value) {
 
 // ui_config is an uint32_t var storing information bitwise
 // bits 0,1,2 store the backlight timer
-// bits 31, 30,29,28,27, 26, 25 stores the different single bit configs depicted below
+// bits 31, 30,29,28,27, 26, 25, 24 stores the different single bit configs depicted below
 // bits on position 4 to 19 (16 bits) store the clkout frequency
+
+bool enable_touchscreen() { // Option to disable touch screen
+	return data->ui_config & (1 << 24);
+}
 
 bool hide_clock() { // clock hidden from main menu
 	return data->ui_config & (1 << 25);
@@ -254,13 +258,13 @@ bool config_splash() {
 	return data->ui_config & (1 << 31);
 }
 
-bool touch_screen_enabled() {
-	return data->ui_config & (1 << 32);
-}
-
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
+}
+
+void set_enable_touchscreen(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
 }
 
 void set_clock_hidden(bool v) {
@@ -293,10 +297,6 @@ void set_config_splash(bool v) {
 
 void set_config_backlight_timer(uint32_t i) {
 	data->ui_config = (data->ui_config & ~7) | (i & 7);
-}
-
-void set_touch_screen_enabled(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 32)) | (v << 32);
 }
 
 /*void set_config_textentry(uint8_t new_value) {
