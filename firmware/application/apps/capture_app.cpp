@@ -75,8 +75,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 	option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
 		sampling_rate = 8 * base_rate;	// Decimation by 8 done on baseband side
   	    /* base_rate  is used for FFT calculation and display LCD, and also in  recording writing SD Card  rate. */
-		/* ex. sampling_rate values, 4Mhz, when recording 500 khz (BW) and fs 8 Mhz , when selected 1 Mhz BW ...*/ 
-	    /* ex. recording 500khz BW  to .C16 file, base_rate clock 500khz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card  */
+		/* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz , when selected 1 Mhz BW ...*/ 
+	    /* ex. recording 500kHz BW  to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card  */
 
 		waterfall.on_hide();
 		record_view.set_sampling_rate(sampling_rate);
@@ -85,12 +85,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		
 		switch(sampling_rate) {   // we use the var fs (sampling_rate) , to set up BPF aprox < fs_max/2 by Nyquist theorem. 
 	  
-	  			case 0 ... 2000000:  //  BW Captured range  (0 <= 250Khz max )  fs = 8 x 250 Khz 
+	  			case 0 ... 2000000:  //  BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz 
 					anti_alias_baseband_bandwidth_filter = 1750000;  // Minimum BPF MAX2837 for all those lower BW options.
         	 		break;
 
-				case 4000000 ... 6000000:    // BW capture  range (500k ... 750Khz max )  fs_max = 8 x 750Khz = 6Mhz 
-     				//  BW 500k ... 750khz   ,  ex. 500khz   (fs = 8*BW =  4Mhz) , BW 600Khz (fs = 4,8Mhz) , BW  750 Khz (fs = 6Mhz)  
+				case 4000000 ... 6000000:    // BW capture  range (500k ... 750kHz max )  fs_max = 8 x 750kHz = 6Mhz 
+     				//  BW 500k ... 750kHz   ,  ex. 500kHz   (fs = 8*BW =  4Mhz) , BW 600kHz (fs = 4,8Mhz) , BW  750 kHz (fs = 6Mhz)  
 					anti_alias_baseband_bandwidth_filter = 2500000;  // in some IC MAX2837 appear 2250000 , but both works similar. 
 					break;	
 
@@ -123,7 +123,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 		waterfall.on_show();
 	};
 	
-	option_bandwidth.set_selected_index(7);		// 500k,  Preselected starting default option 500khz 
+	option_bandwidth.set_selected_index(7);		// 500k,  Preselected starting default option 500kHz 
 	
 	receiver_model.set_modulation(ReceiverModel::Mode::Capture);
 	receiver_model.enable();
