@@ -254,6 +254,10 @@ bool config_splash() {
 	return data->ui_config & (1 << 31);
 }
 
+bool touch_screen_enabled() {
+	return data->ui_config & (1 << 32);
+}
+
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
@@ -289,6 +293,10 @@ void set_config_splash(bool v) {
 
 void set_config_backlight_timer(uint32_t i) {
 	data->ui_config = (data->ui_config & ~7) | (i & 7);
+}
+
+void set_touch_screen_enabled(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 32)) | (v << 32);
 }
 
 /*void set_config_textentry(uint8_t new_value) {
