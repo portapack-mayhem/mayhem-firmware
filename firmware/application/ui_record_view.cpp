@@ -99,13 +99,13 @@ void RecordView::focus() {
 
 void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
     
-	/* We are changing "REC" icon background to yellow in  BW rec Options >600Khz 
+	/* We are changing "REC" icon background to yellow in  BW rec Options >600kHz 
 	where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
 	Those decimated recorded files,has not the full IQ  samples . 
 	are ok as recorded spectrum indication, but they  should not be used by Replay app. 
 	 	
 	We keep original black  background in all the correct IQ .C16 files BW's Options */ 
-	if (new_sampling_rate > 4800000) {   // > BW >600Khz  (fs=8*BW), (750Khz ...2750Khz)
+	if (new_sampling_rate > 4800000) {   // > BW >600kHz  (fs=8*BW), (750kHz ...2750kHz)
 		button_record.set_background(ui::Color::yellow());		
 	} else {
 		button_record.set_background(ui::Color::black());				
