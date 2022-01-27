@@ -225,10 +225,10 @@ private:
 		"Login with play dead"
 	};*/
 
-	Checkbox checkbox_enable_touchscreen {
+	Checkbox checkbox_disable_touchscreen {
 		{ 3 * 8, 2 * 16 },
 		20,
-		"Enable touchscreen"
+		"Disable touchscreen"
 	};
 	
 	Checkbox checkbox_speaker {

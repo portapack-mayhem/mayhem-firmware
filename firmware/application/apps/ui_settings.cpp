@@ -281,7 +281,7 @@ void SetPlayDeadView::focus() {
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
 		//&checkbox_login,
-		&checkbox_enable_touchscreen,
+		&checkbox_disable_touchscreen,
 		&checkbox_speaker,
 		&checkbox_bloff,
 		&options_bloff,
@@ -291,7 +291,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&button_ok
 	});
 	
-	checkbox_enable_touchscreen.set_value(persistent_memory::enable_touchscreen());
+	checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
@@ -334,7 +334,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 		}		
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
-		persistent_memory::set_enable_touchscreen(checkbox_enable_touchscreen.value());
+		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
 		//persistent_memory::set_config_login(checkbox_login.value());
 		nav.pop();
 	};

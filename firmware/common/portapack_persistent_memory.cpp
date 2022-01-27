@@ -227,7 +227,7 @@ void set_playdead_sequence(const uint32_t new_value) {
 // bits 31, 30,29,28,27, 26, 25, 24 stores the different single bit configs depicted below
 // bits on position 4 to 19 (16 bits) store the clkout frequency
 
-bool enable_touchscreen() { // Option to disable touch screen
+bool disable_touchscreen() { // Option to disable touch screen
 	return data->ui_config & (1 << 24);
 }
 
@@ -263,7 +263,7 @@ uint32_t config_backlight_timer() {
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
 }
 
-void set_enable_touchscreen(bool v) {
+void set_disable_touchscreen(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
 }
 
