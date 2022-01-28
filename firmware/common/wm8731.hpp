@@ -330,11 +330,24 @@ public:
 	}
 
 	void headphone_mute() {
-		set_headphone_volume(headphone_gain_range().min);
+	//	set_headphone_volume(headphone_gain_range().min);
+		// enable dac soft mute first to avoid audible pops
+	 	map.r.digital_audio_path_control.dacmu = 1;
+	 	write(Register::DigitalAudioPathControl);
+
+	 	map.r.power_down_control.outpd = 1;
+	 	write(Register::PowerDownControl);
+
 	}
 
 	void headphone_enable() override {
-		set_headphone_volume(headphone_volume);
+	//	set_headphone_volume(headphone_volume);
+
+	 	map.r.digital_audio_path_control.dacmu = 0;
+	 	write(Register::DigitalAudioPathControl);
+
+	 	map.r.power_down_control.outpd = 0;
+	 	write(Register::PowerDownControl);	
 	}
 
 	void headphone_disable() override {
