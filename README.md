@@ -6,7 +6,7 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_front.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/eried/portapack-mayhem/img/hw_overview_h2_inside.png" height="400">](https://github.com/eried/portapack-mayhem/wiki/Hardware-overview#portapack-internals)
 
-*[PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dZ7lA96) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
+*[PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_9zbXMk) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
 
 # Quick overview
 
@@ -20,7 +20,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## Does it work on H1/H2 PortaPack?
 
-Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_dZ7lA96), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license). Most members of the community are using a clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_dS6liw4), which does not include any battery functionality, but it is a cheaper alternative.
+Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_9zbXMk), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license). Most members of the community are using a clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_dS6liw4), which does not include any battery functionality, but it is a cheaper alternative.
 
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 

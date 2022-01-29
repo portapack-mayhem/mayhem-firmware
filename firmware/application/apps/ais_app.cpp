@@ -59,7 +59,7 @@ static float latlon_float(const int32_t normalized) {
 static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
-	return to_string_dec_uint(mmsi, 9);
+	return to_string_dec_uint(mmsi, 9, '0'); // MMSI is always is always 9 characters pre-padded with zeros
 }
 
 static std::string navigational_status(const unsigned int value) {
@@ -240,7 +240,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 void AISRecentEntryDetailView::update_position() {
 	if (send_updates)
-		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading);
+		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0);
 }
 
 void AISRecentEntryDetailView::focus() {

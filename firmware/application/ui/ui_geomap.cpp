@@ -253,14 +253,16 @@ void GeoMapView::focus() {
 		nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
 }
 
-void GeoMapView::update_position(float lat, float lon, uint16_t angle) {
+void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude) {
 	lat_ = lat;
 	lon_ = lon;
+	altitude_ = altitude;
 	
 	// Stupid hack to avoid an event loop
 	geopos.set_report_change(false);
 	geopos.set_lat(lat_);
 	geopos.set_lon(lon_);
+	geopos.set_altitude(altitude_);
 	geopos.set_report_change(true);
 
 	geomap.set_angle(angle);

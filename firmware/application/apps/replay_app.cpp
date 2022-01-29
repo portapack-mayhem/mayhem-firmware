@@ -145,16 +145,23 @@ void ReplayAppView::start() {
 	field_rfgain.set_value(tx_gain);
 	receiver_model.set_tx_gain(tx_gain); 
     
+
+ 	field_rfamp.on_change = [this](int32_t v) {
+		rf_amp = (bool)v;
+	};
+	field_rfamp.set_value(rf_amp ? 14 : 0);
+		
 	radio::enable({
 		receiver_model.tuning_frequency(),
 		sample_rate * 8 ,
 		baseband_bandwidth,
 		rf::Direction::Transmit,
-		receiver_model.rf_amp(),
+        rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga())
-	});
-}
+	}); 
+	 
+} 
 
 void ReplayAppView::stop(const bool do_loop) {
 	if( is_active() )
@@ -186,7 +193,9 @@ ReplayAppView::ReplayAppView(
 ) : nav_ (nav)
 {
 
-	tx_gain = 35;field_rfgain.set_value(tx_gain);
+	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
+	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
+
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
@@ -198,7 +207,7 @@ ReplayAppView::ReplayAppView(
 		&progressbar,
 		&field_frequency,
 		&field_rfgain, 
-		&field_rf_amp,
+		&field_rfamp,       // let's not use common rf_amp
 		&check_loop,
 		&button_play,
 		&waterfall,
