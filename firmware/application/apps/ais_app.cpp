@@ -307,13 +307,8 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 	recent_entry_detail_view.hidden(true);
 
 	target_frequency_ = initial_target_frequency;
-  
-    receiver_model.set_tuning_frequency(tuning_frequency());
-    receiver_model.set_sampling_rate(sampling_rate);
-    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
 
-/*  radio::enable({     //  this can be removed, previous version,no DC-bias control.
+	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
@@ -321,8 +316,8 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-	}); */
-	
+	});
+
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
@@ -342,8 +337,7 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 }
 
 AISAppView::~AISAppView() {
-/*	radio::disable();  */
-	receiver_model.disable();   // to switch off all, including DC bias.
+	radio::disable();
 
 	baseband::shutdown();
 }
