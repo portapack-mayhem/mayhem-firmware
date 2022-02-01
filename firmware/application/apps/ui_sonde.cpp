@@ -100,7 +100,12 @@ SondeView::SondeView(NavigationView& nav) {
 		use_crc = v;
 	};
 	
-	radio::enable({
+    receiver_model.set_tuning_frequency(tuning_frequency());
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    receiver_model.enable();   // Before using radio::enable(), but not updating Ant.DC-Bias.
+	
+	/* radio::enable({        // this can be removed, previous version, no DC-bias ant. control.
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
@@ -108,7 +113,7 @@ SondeView::SondeView(NavigationView& nav) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-	});
+	}); */
 
 
         // QR code with geo URI
@@ -153,7 +158,8 @@ SondeView::SondeView(NavigationView& nav) {
 
 SondeView::~SondeView() {
 	baseband::set_pitch_rssi(0, false);
-	radio::disable();
+/* 	radio::disable(); */  
+    receiver_model.disable();   // to switch off all, including DC bias.
 	baseband::shutdown();
 	audio::output::stop();
 }
