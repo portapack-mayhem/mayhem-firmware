@@ -31,7 +31,7 @@
 
 class MicTXProcessor : public BasebandProcessor {
 public:
-	void execute(const buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t& buffer) override;   //  TODO : revisar
 	
 	void on_message(const Message* const msg) override;
 
@@ -49,8 +49,8 @@ private:
 	};
 	
 	AudioInput audio_input { };
-	ToneGen tone_gen { };
-	ToneGen beep_gen { };
+	// ToneGen tone_gen { };   moved to  dsp_modulate.cpp
+	// ToneGen beep_gen { };   moved to  dsp_modulate.cpp	
 	dsp::modulate::Modulator *modulator;
 
 	bool am_enabled { false };
