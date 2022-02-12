@@ -28,19 +28,36 @@
 
 class ToneGen {
 public:
+	enum tone_type { sine, square };
+
 	/*ToneGen(const size_t sample_rate
 	) : sample_rate_ { sample_rate }
 	{};*/
 
 	void configure(const uint32_t delta, const float tone_mix_weight);
+	void configure(const uint32_t freq, const float tone_mix_weight, const tone_type tone_type, const uint32_t sample_rate);
+
 	int32_t process(const int32_t sample_in);
 
 private:
-	//size_t sample_rate_;
+	tone_type current_tone_type_ { sine };
+
 	float input_mix_weight_ { 1 };
 	float tone_mix_weight_ { 0 };
-	uint32_t delta_ { 0 };
-	uint32_t tone_phase_ { 0 };
+
+	uint8_t delta_ { 0 };
+	uint8_t tone_phase_ { 0 };
+
+	/**
+	 * Generator function which selects every other sample from the reference sine waveform to the output sample:
+	 */
+	int32_t tone_sine();
+
+
+	/**
+	 * Generator function for square waves:
+	 */	
+	int32_t tone_square();
 };
 
-#endif
+#endif /* __TONE_GEN_H__ */

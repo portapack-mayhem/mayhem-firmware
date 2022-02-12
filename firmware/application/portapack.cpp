@@ -83,7 +83,7 @@ TransmitterModel transmitter_model;
 TemperatureLogger temperature_logger;
 
 bool antenna_bias { false };
-uint8_t bl_tick_counter { 0 };
+uint32_t bl_tick_counter { 0 };
 
 void set_antenna_bias(const bool v) {
 	antenna_bias = v;
@@ -179,20 +179,23 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		if( audio_codec_wm8731.detected() ) {
-			model = PortaPackModel::R1_20150901;
-		} else {
+		/*For the time being, it is impossible to distinguish the hardware of R1 and R2 from the software level*/
+		/*At this point, I2c is not ready.*/
+		//if( audio_codec_wm8731.detected() ) {
+		//	model = PortaPackModel::R1_20150901;
+		//} else {
 			model = PortaPackModel::R2_20170522;
-		}
+		//}
 	}
 
 	return model.value();
 }
 
 static audio::Codec* portapack_audio_codec() {
-	return (portapack_model() == PortaPackModel::R2_20170522)
-		? static_cast<audio::Codec*>(&audio_codec_ak4951)
-		: static_cast<audio::Codec*>(&audio_codec_wm8731)
+	/* I2C ready OK, Automatic recognition of audio chip */
+	return (audio_codec_wm8731.detected())
+		? static_cast<audio::Codec*>(&audio_codec_wm8731)
+		: static_cast<audio::Codec*>(&audio_codec_ak4951)
 		;
 }
 

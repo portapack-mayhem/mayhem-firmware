@@ -325,6 +325,7 @@ enum class KeyEvent {
 	Down = 2,
 	Up = 3,
 	Select = 4,
+	Back = 5, /* Left and Up together */
 };
 
 using EncoderEvent = int32_t;

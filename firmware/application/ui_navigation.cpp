@@ -34,6 +34,7 @@
 #include "ui_adsb_rx.hpp"
 #include "ui_adsb_tx.hpp"
 #include "ui_afsk_rx.hpp"
+#include "ui_aprs_rx.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_nrf_rx.hpp"
 #include "ui_aprs_tx.hpp"
@@ -68,7 +69,7 @@
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
 
-#include "acars_app.hpp"
+//#include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "analog_tv_app.hpp"
@@ -350,11 +351,19 @@ InformationView::InformationView(
 	});
 
 	version.set_style(&style_infobar);
+
+	ltime.set_hide_clock(portapack::persistent_memory::hide_clock());
 	ltime.set_style(&style_infobar);
 	ltime.set_seconds_enabled(true);
-	ltime.set_date_enabled(false);
-
+	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());
 	set_dirty();
+}
+
+void InformationView::refresh() {
+	ltime.set_hide_clock(portapack::persistent_memory::hide_clock());
+	ltime.set_seconds_enabled(true);
+	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());	
+
 }
 
 /* Navigation ************************************************************/
@@ -387,6 +396,7 @@ void NavigationView::pop() {
 
 		update_view();
 	}
+
 }
 
 void NavigationView::pop_modal() {
@@ -470,7 +480,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "Radiosnde", 	ui::Color::green(),		&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
 		{ "TPMS Cars", 	ui::Color::green(),		&bitmap_icon_tpms,		[&nav](){ nav.push<TPMSAppView>(); } },
 		{ "Search", 	ui::Color::green(),		&bitmap_icon_scanner,		[&nav](){ nav.push<SearchAppView>(); } },
-		/*{ "APRS", 		ui::Color::dark_grey(),	&bitmap_icon_aprs,		[&nav](){ nav.push<NotImplementedView>(); } },
+		{ "APRS", 		ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSRXView>(); } }
+		/*
 		{ "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SIGFOX", 	ui::Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
 		{ "LoRa", 		ui::Color::dark_grey(),	&bitmap_icon_lora,		[&nav](){ nav.push<NotImplementedView>(); } },
@@ -606,6 +617,7 @@ SystemView::SystemView(
 		}
 		else{
 			add_child(&info_view);
+			info_view.refresh();
 		}
 		
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
@@ -660,7 +672,8 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter&) {
-	portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
+	if(!portapack::display.drawBMP2({ 0, 0 }, "splash.bmp"))
+		portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
 }
 
 /* NotImplementedView ****************************************************/

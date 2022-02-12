@@ -140,6 +140,9 @@ Continuous (Fox-oring)
 #include "sd_card.hpp"
 
 #include <string.h>
+ 
+#include "rffc507x.hpp"      /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
+rffc507x::RFFC507x first_if;
 
 static void event_loop() {
 	ui::Context context;
@@ -160,6 +163,7 @@ static void event_loop() {
 }
 
 int main(void) {
+	first_if.init();    /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 	if( portapack::init() ) {
 		portapack::display.init();
 

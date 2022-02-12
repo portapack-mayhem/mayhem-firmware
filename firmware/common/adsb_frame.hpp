@@ -69,7 +69,7 @@ public:
 	}
 
 	uint8_t * get_raw_data() const {
-		return (uint8_t* const)raw_data;
+		return (uint8_t* )raw_data;
 	}
 	
 	void make_CRC() {

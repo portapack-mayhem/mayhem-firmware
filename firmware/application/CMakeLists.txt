@@ -140,6 +140,7 @@ set(CPPSRC
 	${COMMON}/png_writer.cpp
 	${COMMON}/pocsag.cpp
 	${COMMON}/pocsag_packet.cpp
+	${COMMON}/aprs_packet.cpp
 	${COMMON}/portapack_io.cpp
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
@@ -171,6 +172,7 @@ set(CPPSRC
 	irq_rtc.cpp
 	log_file.cpp
 	portapack.cpp
+	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
 	recent_entries.cpp
@@ -205,6 +207,7 @@ set(CPPSRC
 	ui/ui_channel.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
+        ui/ui_qrcode.cpp
 	ui/ui_menu.cpp
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
@@ -218,6 +221,7 @@ set(CPPSRC
 	apps/ui_adsb_rx.cpp
 	apps/ui_adsb_tx.cpp
 	apps/ui_afsk_rx.cpp
+	apps/ui_aprs_rx.cpp
 	apps/ui_btle_rx.cpp
 	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * Copyright (C) 2018 NotPike
+ * Copyright (C) 2022 NotPike
  *
  * This file is part of PortaPack.
  *
@@ -127,6 +127,8 @@ private:
 	void start_tx(const uint32_t button_index);
 	void stop_tx();
 	void on_tx_progress(const uint32_t progress, const bool done);
+	void start_ew();
+	void stop_ew();
 
 	struct remote_layout_t {
 		Point position;
@@ -191,9 +193,15 @@ private:
 	};
 	
 	Checkbox check_scan {
-		{ 2 * 8, 27 * 8 },
+		{ 2 * 8, 25 * 8 },
 		4,
 		"Scan"
+	};
+
+	Checkbox check_ew {
+		{ 2 * 8, 29 * 8 },
+		4,
+		"EW Mode"
 	};
 
 	Text text_status {

@@ -410,23 +410,29 @@ void Labels::paint(Painter& painter) {
 void LiveDateTime::on_tick_second() {
 	rtcGetTime(&RTCD1, &datetime);
 	text = "";
-	
-	if(date_enabled){
-		text = to_string_dec_uint(datetime.month(), 2, '0') + "/" + to_string_dec_uint(datetime.day(), 2, '0') + " ";
-	}
-	
-	text = text + to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
+	if(!hide_clock) {
+		if(date_enabled){
+			text = to_string_dec_uint(datetime.year(), 4, '0') + "-" +
+				   to_string_dec_uint(datetime.month(), 2, '0') + "-" + 
+				   to_string_dec_uint(datetime.day(), 2, '0') + " ";
+		}
+		else{
+			text = "           ";
+		}
+		
+		text = text + to_string_dec_uint(datetime.hour(), 2, '0') + ":" + to_string_dec_uint(datetime.minute(), 2, '0');
 
-	if(seconds_enabled){
-		text += ":";
+		if(seconds_enabled){
+			text += ":";
 
-		if(init_delay==0)
-			text += to_string_dec_uint(datetime.second(), 2, '0');
-		else
-		{
-			// Placeholder while the seconds are not updated
-			text += "XX";
-			init_delay--;
+			if(init_delay==0)
+				text += to_string_dec_uint(datetime.second(), 2, '0');
+			else
+			{
+				// Placeholder while the seconds are not updated
+				text += "XX";
+				init_delay--;
+			}
 		}
 	}
 	set_dirty();
@@ -458,6 +464,9 @@ void LiveDateTime::paint(Painter& painter) {
 		s,
 		text
 	);
+}
+void LiveDateTime::set_hide_clock(bool new_value){
+	this->hide_clock = new_value;
 }
 
 void LiveDateTime::set_date_enabled(bool new_value){
@@ -597,11 +606,14 @@ Console::Console(
 void Console::clear(bool clear_buffer = false) {
 	if(clear_buffer)
 		buffer.clear();
-		
-	display.fill_rectangle(
-		screen_rect(),
-		Color::black()
-	);
+
+	if(!hidden() && visible()){
+		display.fill_rectangle(
+			screen_rect(),
+			Color::black()
+		);
+	}
+	
 	pos = { 0, 0 };
 }
 
@@ -648,8 +660,7 @@ void Console::write(std::string message) {
 }
 
 void Console::writeln(std::string message) {
-	write(message);
-	write("\n");
+	write(message + "\n");
 	//crlf();
 }
 
@@ -658,18 +669,31 @@ void Console::paint(Painter&) {
 }
 
 void Console::on_show() {
-	const auto screen_r = screen_rect();
-	display.scroll_set_area(screen_r.top(), screen_r.bottom());
-	display.scroll_set_position(0);
+	enable_scrolling(true);
 	clear();
 	//visible = true;
+}
+
+bool Console::scrolling_enabled = false;
+
+void Console::enable_scrolling(bool enable){
+	if(enable){
+		const auto screen_r = screen_rect();
+		display.scroll_set_area(screen_r.top(), screen_r.bottom());
+		display.scroll_set_position(0);
+		scrolling_enabled = true;
+	}
+	else {
+		display.scroll_disable();
+		scrolling_enabled = false;
+	}	
 }
 
 void Console::on_hide() {
 	/* TODO: Clear region to eliminate brief flash of content at un-shifted
 	 * position?
 	 */
-	display.scroll_disable();
+	enable_scrolling(false);
 	//visible = false;
 }
 
@@ -682,6 +706,9 @@ void Console::crlf() {
 	pos = { 0, pos.y() + line_height };
 	const int32_t y_excess = pos.y() + line_height - sr.height();
 	if( y_excess > 0 ) {
+		if(!scrolling_enabled){
+			enable_scrolling(true);
+		}
 		display.scroll(-y_excess);
 		pos = { pos.x(), pos.y() - y_excess };
 
@@ -1447,9 +1474,9 @@ size_t OptionsField::selected_index_value() const {
 	return options[selected_index_].second;
 }
 
-void OptionsField::set_selected_index(const size_t new_index) {
+void OptionsField::set_selected_index(const size_t new_index, bool trigger_change) {
 	if( new_index < options.size() ) {
-		if( new_index != selected_index() ) {
+		if( new_index != selected_index() || trigger_change) {
 			selected_index_ = new_index;
 			if( on_change ) {
 				on_change(selected_index(), options[selected_index()].second);
