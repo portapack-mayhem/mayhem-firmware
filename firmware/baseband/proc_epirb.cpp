@@ -50,8 +50,8 @@ void EpirbProcessor::execute(const buffer_c8_t& buffer) {
 
 	for (size_t i=0; i<decimator_out.count; i++) {
 		if( mf.execute_once(decimator_out.p[i]) ) {
-			clock_recovery_fsk_9600(mf.get_output());
-			clock_recovery_fsk_4800(mf.get_output());
+			clock_recovery_fsk_800(mf.get_output());
+			// clock_recovery_fsk_4800(mf.get_output());
 		}
 	}
 

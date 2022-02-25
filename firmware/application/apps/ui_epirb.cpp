@@ -67,7 +67,7 @@ EpirbView::EpirbView(NavigationView& nav) {
 	});
 
 	// start from the frequency currently stored in the receiver_model:
-	target_frequency_ = receiver_model.tuning_frequency();
+	target_frequency_ = 406028000;
 
 	field_frequency.set_value(target_frequency_);
 	field_frequency.set_step(500);		//euquiq: was 10000, but we are using this for fine-tunning

@@ -47,9 +47,9 @@ class Packet {
 public:
 	enum class Type : uint32_t {
 		Unknown = 0,
-		Meteomodem_unknown = 1,
-		Meteomodem_M10 = 2,
-		Meteomodem_M2K2 = 3,
+		Epirb_unknown = 1,
+		Epirb_Test = 2,
+		Epirb_Distress = 3,
 		Vaisala_RS41_SG = 4,
 	};
 

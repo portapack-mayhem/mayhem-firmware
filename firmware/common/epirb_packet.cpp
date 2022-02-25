@@ -56,14 +56,14 @@ Packet::Packet(
 	reader_bi_m { decoder_ },
 	type_ { type }
 {
-	if (type_ == Type::Meteomodem_unknown) {
-		// Right now we're just sure that the sync is from a Meteomodem epirb, differentiate between models now
+	if (type_ == Type::Epirb_unknown) {
+		// Right now we're just sure that the sync is from a EPIRB, differentiate between message type now (Test, Distress)
 		const uint32_t id_byte = reader_bi_m.read(0 * 8, 16);
 
-		if (id_byte == 0x649F)
-			type_ = Type::Meteomodem_M10;
-		else if (id_byte == 0x648F)
-			type_ = Type::Meteomodem_M2K2;
+		if (id_byte == 0xD0)
+			type_ = Type::Epirb_Test;
+		else if (id_byte == 0x2F)
+			type_ = Type::Epirb_Distress;
 	}
 }
 
@@ -102,7 +102,7 @@ uint8_t Packet::vaisala_descramble(const uint32_t pos) const
 GPS_data Packet::get_GPS_data() const
 {
 	GPS_data result;
-	if ((type_ == Type::Meteomodem_M10) || (type_ == Type::Meteomodem_M2K2))
+	if ((type_ == Type::Epirb_Test) || (type_ == Type::Epirb_Distress))
 	{
 
 		result.alt = (reader_bi_m.read(22 * 8, 32) / 1000) - 48;
@@ -145,9 +145,9 @@ GPS_data Packet::get_GPS_data() const
 
 uint32_t Packet::battery_voltage() const
 {
-	if (type_ == Type::Meteomodem_M10)
+	if (type_ == Type::Epirb_Test)
 		return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
-	else if (type_ == Type::Meteomodem_M2K2)
+	else if (type_ == Type::Epirb_Distress)
 		return reader_bi_m.read(69 * 8, 8) * 66; // Actually 65.8
 	else if (type_ == Type::Vaisala_RS41_SG)
 	{
@@ -275,11 +275,11 @@ std::string Packet::type_string() const
 	{
 	case Type::Unknown:
 		return "Unknown";
-	case Type::Meteomodem_unknown:
+	case Type::Epirb_unknown:
 		return "Meteomodem ???";
-	case Type::Meteomodem_M10:
+	case Type::Epirb_Test:
 		return "Meteomodem M10";
-	case Type::Meteomodem_M2K2:
+	case Type::Epirb_Distress:
 		return "Meteomodem M2K2";
 	case Type::Vaisala_RS41_SG:
 		return "Vaisala RS41-SG";
@@ -290,7 +290,7 @@ std::string Packet::type_string() const
 
 std::string Packet::serial_number() const
 {
-	if (type_ == Type::Meteomodem_M10)
+	if (type_ == Type::Epirb_Test)
 	{
 		// See https://github.com/rs1729/RS/blob/master/m10/m10x.c line 606
 		// Starting at byte #93: 00000000 11111111 22222222 33333333 44444444
@@ -346,7 +346,7 @@ bool Packet::crc_ok() const
 {
 	switch (type_)
 	{
-	case Type::Meteomodem_M10:
+	case Type::Epirb_Test:
 		return crc_ok_M10();
 	case Type::Vaisala_RS41_SG:
 		return crc_ok_RS41();

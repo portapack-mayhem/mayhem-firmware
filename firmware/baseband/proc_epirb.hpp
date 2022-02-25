@@ -67,6 +67,10 @@
  *
  * See ais_baseband.hpp
  *
+ * ------------------------------------------------------------------------
+ *
+ * EPIRB runs at 400 baud manchester encoded (Manchester Bitrate = 800 bps)
+ *
  * */
 
 #ifndef __PROC_EPIRB_H__
@@ -146,41 +150,41 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
-	// Actually 4800bits/s but the Manchester coding doubles the symbol rate
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_9600 {
-		19200, 9600, { 0.0555f },
+	// Actually 400bits/s but the Manchester coding doubles the symbol rate
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_800 {
+		19200, 800, { 0.0555f },
 		[this](const float raw_symbol) {
 			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
+			this->packet_builder_fsk_800_Epirb.execute(sliced_symbol);
 		}
 	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_9600_Meteomodem {
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_800_Epirb {
 		{ 0b00110011001100110101100110110011, 32, 1 },
 		{ },
 		{ 88 * 2 * 8 },
 		[this](const baseband::Packet& packet) {
-			const EpirbPacketMessage message { epirb::Packet::Type::Meteomodem_unknown, packet };
+			const EpirbPacketMessage message { epirb::Packet::Type::Epirb_unknown, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};
 
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
-		19200, 4800, { 0.0555f },
-		[this](const float raw_symbol) {
-			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
-		}
-	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
-		{ 0b00001000011011010101001110001000, 32, 1 }, //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
-		//{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
-		{ },
-		{ 320 * 8 },
-		[this](const baseband::Packet& packet) {
-			const EpirbPacketMessage message { epirb::Packet::Type::Vaisala_RS41_SG, packet };
-			shared_memory.application_queue.push(message);
-		}
-	};
+	// clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
+	// 	19200, 4800, { 0.0555f },
+	// 	[this](const float raw_symbol) {
+	// 		const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+	// 		this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
+	// 	}
+	// };
+	// PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
+	// 	{ 0b 00001000 01101101 01010011 10001000, 32, 1 }, //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
+	// 	//{ 0b 00001000 01101101 01010011 10001000 01000100 01101001 01001000 00011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
+	// 	{ },
+	// 	{ 320 * 8 },
+	// 	[this](const baseband::Packet& packet) {
+	// 		const EpirbPacketMessage message { epirb::Packet::Type::Vaisala_RS41_SG, packet };
+	// 		shared_memory.application_queue.push(message);
+	// 	}
+	// };
 
 	void play_beep();
 	void stop_beep();
