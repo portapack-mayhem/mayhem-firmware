@@ -48,7 +48,7 @@ private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
 	uint32_t sampling_rate = 0;
-	static constexpr uint32_t baseband_bandwidth = 2500000;
+	uint32_t anti_alias_baseband_bandwidth_filter = 2500000; // we rename the previous var , and change type static constexpr to normal var.
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 
@@ -95,7 +95,14 @@ private:
 			{ " 50k ", 50000 },
 			{ "100k ", 100000 },
 			{ "250k ", 250000 },
-			{ "500k ", 500000 }
+			{ "500k ", 500000 },   // Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.
+			{ "600k ", 600000 },   // That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec)  
+ 			{ "750k ", 750000 },   // From that BW onwards, the LCD is ok, but the recorded file is auto decimated,(not real file size) 
+			{ "1100k", 1100000 },
+	       	{ "1750k", 1750000 },
+			{ "2000k", 2000000 },
+			{ "2500k", 2500000 },
+			{ "2750k", 2750000 }    // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)
 		}
 	};
 	

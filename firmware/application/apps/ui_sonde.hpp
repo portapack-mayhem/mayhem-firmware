@@ -26,6 +26,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
+#include "ui_qrcode.hpp"
 #include "ui_geomap.hpp"
 
 #include "event_m0.hpp"
@@ -63,12 +64,16 @@ public:
 
 	std::string title() const override { return "Radiosonde RX"; };
 
+	
+
 private:
 	std::unique_ptr<SondeLogger> logger { };
 	uint32_t target_frequency_ { 402700000 };
 	bool logging { false };
 	bool use_crc { false };
 	bool beep { false };
+
+	char geo_uri[32]  = {};
 
 	sonde::GPS_data gps_info { };
 	sonde::temp_humid temp_humid_info { };
@@ -173,9 +178,15 @@ private:
 		{ 0, 12 * 16 },
 		GeoPos::alt_unit::METERS
 	};
-	
+
+
+	Button button_see_qr {
+		{ 2 * 8, 15 * 16, 12 * 8, 3 * 16 },
+		"See QR" 
+	};		
+
 	Button button_see_map {
-		{ 8 * 8, 16 * 16, 14 * 8, 3 * 16 },
+		{ 16 * 8, 15 * 16, 12 * 8, 3 * 16 },
 		"See on map"
 	};
 
@@ -190,7 +201,7 @@ private:
 
 	void on_packet(const sonde::Packet& packet);
 	void on_headphone_volume_changed(int32_t v);
-	
+	char * float_to_char(float x, char *p);
 	void set_target_frequency(const uint32_t new_value);
 
 	uint32_t tuning_frequency() const;

@@ -52,6 +52,7 @@ private:
 	
 	uint32_t sample_rate = 0;
 	int32_t tx_gain { 47 };
+	bool rf_amp { true }; // aux private var to store temporal, Replay App rf_amp user selection.
 	static constexpr uint32_t baseband_bandwidth = 2500000;
 	const size_t read_size { 16384 };
 	const size_t buffer_count { 3 };
@@ -112,8 +113,12 @@ private:
 		1,
 		' '	
 	};
-	RFAmpField field_rf_amp {
-		{ 19 * 8, 2 * 16 }
+	NumberField field_rfamp {     // previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
+		{ 19 * 8, 2 * 16 },
+		2,
+		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic App
+		14,
+		' '
 	};
 	Checkbox check_loop {
 		{ 21 * 8, 2 * 16 },

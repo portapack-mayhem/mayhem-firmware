@@ -62,6 +62,7 @@ struct POCSAGState {
 	OutputType out_type = EMPTY;
 	uint32_t ascii_data;
 	uint32_t ascii_idx;
+	uint32_t errors;
 	std::string output;
 };
 
