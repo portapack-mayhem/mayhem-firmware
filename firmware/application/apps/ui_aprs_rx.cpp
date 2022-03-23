@@ -115,9 +115,6 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect) : View(parent_rect
 		if(i == 2){
 			field_frequency.set_value(145175000);
 		}		
-		if(i == 3){
-			field_frequency.set_value(144575000);
-		}		
 	};
 	
 	field_frequency.set_value(receiver_model.tuning_frequency());
