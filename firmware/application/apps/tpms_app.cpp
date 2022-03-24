@@ -34,6 +34,8 @@ namespace tpms {
 
 namespace format {
 
+static bool use_kpa = true;
+
 std::string type(Reading::Type type) {
 	return to_string_dec_uint(toUType(type), 2);
 }
@@ -43,7 +45,11 @@ std::string id(TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-	return to_string_dec_int(pressure.kilopascal(), 3);
+	if(use_kpa){
+		return to_string_dec_int(pressure.kilopascal(), 3);
+	}
+	return to_string_dec_int(pressure.psi(), 3);
+	
 }
 
 std::string temperature(Temperature temperature) {
@@ -163,10 +169,10 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	options_type.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
-			// field_frequency.set_value(144390000);			
+			tpms::format::use_kpa = true;		
 		}
 		if(i == 1){
-			// field_frequency.set_value(144800000);
+			tpms::format::use_kpa = false;
 		}	
 	};
 
