@@ -169,15 +169,9 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	options_type.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
 			tpms::format::use_kpa = true;
-			// remove_child(&recent_entries_view_psi);
-			// add_child(&recent_entries_view_kpa);
-			// recent_entries_view_kpa.set_parent_rect(view_normal_rect);
 		}
 		if(i == 1){
 			tpms::format::use_kpa = false;
-			// remove_child(&recent_entries_view_kpa);
-			// add_child(&recent_entries_view_psi);
-			// recent_entries_view_psi.set_parent_rect(view_normal_rect);
 		}	
 		update_type();
 	};
