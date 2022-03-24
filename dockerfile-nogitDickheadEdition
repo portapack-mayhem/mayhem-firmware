@@ -1,0 +1,36 @@
+FROM armswdev/arm-tools:bare-metal-compilers
+
+ENV PATH=$PATH:$HOME/bin:/opt/build/armbin/bin
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+#Create volume /havoc/bin for compiled firmware binaries
+VOLUME /havoc
+WORKDIR /havoc/firmware
+
+# Fetch dependencies from APT
+RUN sudo apt-get update && \
+		sudo apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 curl python3-distutils python3-apt && \
+		sudo apt-get -qy autoremove
+
+#Install current pip from PyPa
+RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
+		sudo python3 get-pip.py
+
+#Fetch additional dependencies from Python 3.x
+RUN sudo pip3 install pyyaml
+RUN sudo ln -s /usr/bin/python3 /usr/bin/python && \
+    sudo ln -s /usr/bin/pip3 /usr/bin/pip
+
+#Ugly hack for old 9.2.1
+RUN cd /home/ubuntu/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi && \
+		sudo ln -s /home/ubuntu/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1 /home/ubuntu/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/9.2.1
+
+#Set custom path for this project
+RUN	sudo mkdir -p /opt/build && \
+		cd /opt/build && \
+		sudo ln -s /home/ubuntu/gcc-arm-none-eabi-10.3-2021.10/ /opt/build/armbin
+
+#Auto build havoc, which is just here as a throwback as mayhem has taken over 8)
+CMD cd .. && cd build && \
+    cmake .. && make firmware
