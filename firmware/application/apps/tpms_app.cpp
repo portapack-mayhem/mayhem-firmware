@@ -142,6 +142,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
+		&options_type,
 		&recent_entries_view,
 	});
 
@@ -159,6 +160,17 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		this->on_band_changed(v);
 	};
 	options_band.set_by_value(target_frequency());
+
+	options_type.on_change = [this](size_t, int32_t i) {		
+		if (i == 0){
+			// field_frequency.set_value(144390000);			
+		}
+		if(i == 1){
+			// field_frequency.set_value(144800000);
+		}	
+	};
+
+	options_type.set_selected_index(0, true);
 
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {

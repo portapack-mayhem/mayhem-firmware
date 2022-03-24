@@ -138,6 +138,15 @@ private:
 		}
 	};
 
+	OptionsField options_type {
+		{ 5 * 8, 0 * 16 },
+		3,
+		{
+			{ "kPa", 0 },
+			{ "PSI", 1 }
+		}
+	};
+
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
 	};
