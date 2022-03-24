@@ -169,8 +169,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	options_type.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
 			tpms::format::use_kpa = true;
-		}
-		if(i == 1){
+		} else if (i == 1){
 			tpms::format::use_kpa = false;
 		}	
 		update_type();
