@@ -149,8 +149,14 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_lna,
 		&field_vga,
 		&options_type,
-		&recent_entries_view,
+		// &recent_entries_view,
+		// &recent_entries_view_psi,
 	});
+
+	// remove_children({
+	// 	&recent_entries_view,
+	// 	// &recent_entries_view_psi,
+	// });
 
 	radio::enable({
 		tuning_frequency(),
@@ -169,10 +175,14 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	options_type.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
-			tpms::format::use_kpa = true;		
+			tpms::format::use_kpa = true;
+			remove_child(&recent_entries_view_psi);
+			add_child(&recent_entries_view);
 		}
 		if(i == 1){
 			tpms::format::use_kpa = false;
+			remove_child(&recent_entries_view);
+			add_child(&recent_entries_view_psi);
 		}	
 	};
 
@@ -197,6 +207,7 @@ void TPMSAppView::focus() {
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
+	recent_entries_view_psi.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
@@ -209,13 +220,23 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 		const auto reading = reading_opt.value();
 		auto& entry = ::on_packet(recent, TPMSRecentEntry::Key { reading.type(), reading.id() });
 		entry.update(reading);
-		recent_entries_view.set_dirty();
+		
+		if(tpms::format::use_kpa){
+			recent_entries_view.set_dirty();
+		} else {
+			recent_entries_view_psi.set_dirty();
+		}
 	}
 }
 
 void TPMSAppView::on_show_list() {
-	recent_entries_view.hidden(false);
-	recent_entries_view.focus();
+	if(tpms::format::use_kpa){
+		recent_entries_view.hidden(false);
+		recent_entries_view.focus();
+	} else {
+		recent_entries_view_psi.hidden(false);
+		recent_entries_view_psi.focus();
+	}
 }
 
 void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {

@@ -172,6 +172,16 @@ private:
 	} };
 	TPMSRecentEntriesView recent_entries_view { columns, recent };
 
+	const RecentEntriesColumns columns_psi { {
+		{ "Tp", 2 },
+		{ "ID", 8 },
+		{ "PSI", 3 },
+		{ "C", 3 },
+		{ "Cnt", 3 },
+		{ "Fl", 2 },
+	} };
+	TPMSRecentEntriesView recent_entries_view_psi { columns_psi, recent };
+
 	uint32_t target_frequency_ = initial_target_frequency;
 
 	void on_packet(const tpms::Packet& packet);
