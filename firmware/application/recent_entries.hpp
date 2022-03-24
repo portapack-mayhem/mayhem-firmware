@@ -100,14 +100,14 @@ public:
 	using ContainerType = std::vector<RecentEntriesColumn>;
 
 	RecentEntriesColumns(
-		const std::initializer_list<RecentEntriesColumn> columns
+		std::initializer_list<RecentEntriesColumn> columns
 	);
 
 	ContainerType::const_iterator begin() const { return std::begin(_columns); }
 	ContainerType::const_iterator end() const { return std::end(_columns); }
 
 private:
-	const ContainerType _columns;
+	ContainerType _columns;
 };
 
 class RecentEntriesHeader : public Widget {

@@ -164,7 +164,7 @@ private:
 	TPMSRecentEntries recent { };
 	std::unique_ptr<TPMSLogger> logger { };
 
-	const RecentEntriesColumns columns_kpa { {
+	RecentEntriesColumns columns { {
 		{ "Tp", 2 },
 		{ "ID", 8 },
 		{ "kPa", 3 },
@@ -172,17 +172,8 @@ private:
 		{ "Cnt", 3 },
 		{ "Fl", 2 },
 	} };
-	TPMSRecentEntriesView recent_entries_view_kpa { columns_kpa, recent };
-
-	const RecentEntriesColumns columns_psi { {
-		{ "Tp", 2 },
-		{ "ID", 8 },
-		{ "PSI", 3 },
-		{ "C", 3 },
-		{ "Cnt", 3 },
-		{ "Fl", 2 },
-	} };
-	TPMSRecentEntriesView recent_entries_view_psi { columns_psi, recent };
+	
+	TPMSRecentEntriesView recent_entries_view { columns, recent };
 
 	uint32_t target_frequency_ = initial_target_frequency;
 

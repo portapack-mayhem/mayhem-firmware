@@ -149,6 +149,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_lna,
 		&field_vga,
 		&options_type,
+		&recent_entries_view,
 	});
 
 	radio::enable({
@@ -194,22 +195,31 @@ void TPMSAppView::focus() {
 }
 
 void TPMSAppView::update_type() {
-	if (tpms::format::use_kpa){
-		remove_child(&recent_entries_view_psi);
-		add_child(&recent_entries_view_kpa);
-		recent_entries_view_kpa.set_parent_rect(view_normal_rect);
+	if(tpms::format::use_kpa) {
+		columns = {
+			{ "Tp", 2 },
+			{ "ID", 8 },
+			{ "kPa", 3 },
+			{ "C", 3 },
+			{ "Cnt", 3 },
+			{ "Fl", 2 },
+		};
 	} else {
-		remove_child(&recent_entries_view_kpa);
-		add_child(&recent_entries_view_psi);
-		recent_entries_view_psi.set_parent_rect(view_normal_rect);
-	}	
+		columns = {
+			{ "Tp", 2 },
+			{ "ID", 8 },
+			{ "PSI", 3 },
+			{ "C", 3 },
+			{ "Cnt", 3 },
+			{ "Fl", 2 },
+		};
+	}
+	recent_entries_view.set_parent_rect(view_normal_rect);	
 }
 
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-
 	view_normal_rect  = { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
-
 	update_type();
 }
 
@@ -223,23 +233,13 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 		const auto reading = reading_opt.value();
 		auto& entry = ::on_packet(recent, TPMSRecentEntry::Key { reading.type(), reading.id() });
 		entry.update(reading);
-		
-		if(tpms::format::use_kpa){
-			recent_entries_view_kpa.set_dirty();
-		} else {
-			recent_entries_view_psi.set_dirty();
-		}
+		recent_entries_view.set_dirty();
 	}
 }
 
 void TPMSAppView::on_show_list() {
-	if(tpms::format::use_kpa){
-		recent_entries_view_kpa.hidden(false);
-		recent_entries_view_kpa.focus();
-	} else {
-		recent_entries_view_psi.hidden(false);
-		recent_entries_view_psi.focus();
-	}
+	recent_entries_view.hidden(false);
+	recent_entries_view.focus();
 }
 
 void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {
