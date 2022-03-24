@@ -166,6 +166,22 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	};
 	options_band.set_by_value(target_frequency());
 
+	options_type.on_change = [this](size_t, int32_t i) {		
+		if (i == 0){
+			tpms::format::use_kpa = true;
+			// remove_child(&recent_entries_view_psi);
+			// add_child(&recent_entries_view_kpa);
+			// recent_entries_view_kpa.set_parent_rect(view_normal_rect);
+		}
+		if(i == 1){
+			tpms::format::use_kpa = false;
+			// remove_child(&recent_entries_view_kpa);
+			// add_child(&recent_entries_view_psi);
+			// recent_entries_view_psi.set_parent_rect(view_normal_rect);
+		}	
+		update_type();
+	};
+
 	options_type.set_selected_index(0, true);
 
 	logger = std::make_unique<TPMSLogger>();
@@ -184,24 +200,24 @@ void TPMSAppView::focus() {
 	options_band.focus();
 }
 
+void TPMSAppView::update_type() {
+	if (tpms::format::use_kpa){
+		remove_child(&recent_entries_view_psi);
+		add_child(&recent_entries_view_kpa);
+		recent_entries_view_kpa.set_parent_rect(view_normal_rect);
+	} else {
+		remove_child(&recent_entries_view_kpa);
+		add_child(&recent_entries_view_psi);
+		recent_entries_view_psi.set_parent_rect(view_normal_rect);
+	}	
+}
+
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	options_type.on_change = [this](size_t, int32_t i) {		
-		if (i == 0){
-			tpms::format::use_kpa = true;
-			remove_child(&recent_entries_view_psi);
-			add_child(&recent_entries_view_kpa);
-		}
-		if(i == 1){
-			tpms::format::use_kpa = false;
-			remove_child(&recent_entries_view_kpa);
-			add_child(&recent_entries_view_psi);
-		}	
-	};
+	view_normal_rect  = { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 
-	recent_entries_view_kpa.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
-	recent_entries_view_psi.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
+	update_type();
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {

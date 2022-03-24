@@ -121,6 +121,8 @@ private:
 
 	static constexpr ui::Dim header_height = 1 * 16;
 
+	ui::Rect view_normal_rect { };
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
@@ -186,6 +188,7 @@ private:
 
 	void on_packet(const tpms::Packet& packet);
 	void on_show_list();
+	void update_type();
 
 	void on_band_changed(const uint32_t new_band_frequency);
 
