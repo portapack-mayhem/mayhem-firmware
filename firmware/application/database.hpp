@@ -44,6 +44,12 @@ public:
 #define DATABASE_NOT_FOUND		-1		// database not found / could not be opened
 #define DATABASE_RECORD_NOT_FOUND	-2		// record could not be found in database
 
+	struct MidDBRecord {
+		char 	country[32];			// country name
+	};
+
+	int retrieve_mid_record(MidDBRecord* record, std::string search_term);
+
 	struct AirlinesDBRecord {
 		char 	airline[32];			// airline name
 		char 	country[32];			// country name
