@@ -108,12 +108,12 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect) : View(parent_rect
 	options_region.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
 			field_frequency.set_value(144390000);			
-		}
-		if(i == 1){
+		} else if(i == 1){
 			field_frequency.set_value(144800000);
-		}
-		if(i == 2){
+		} else if(i == 2){
 			field_frequency.set_value(145175000);
+		} else if(i == 3){
+			field_frequency.set_value(144575000);
 		}		
 	};
 	
