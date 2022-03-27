@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyleft  (ↄ) 2022 NotPike
  *
  * This file is part of PortaPack.
  *
@@ -97,7 +98,6 @@ void ReplayAppView::focus() {
 }
 
 void ReplayAppView::file_error() {
-	//stop(false);   // Fixes TX bug if there's a file error
 	nav_.display_modal("Error", "File read error.");
 }
 
