@@ -27,6 +27,16 @@
 
 namespace std {
 
+int database::retrieve_mid_record(MidDBRecord* record, std::string search_term){
+        
+	file_path = "AIS/mids.db";
+	index_item_length = 4;
+	record_length = 32;
+
+	result = std::database::retrieve_record(file_path, index_item_length, record_length, record, search_term);
+
+	return(result);
+}
 
 int database::retrieve_airline_record(AirlinesDBRecord* record, std::string search_term){
         
