@@ -212,7 +212,7 @@ namespace ui
 		void refresh();
 
 	private:
-		static constexpr auto version_string = "v1.4.3";
+		static constexpr auto version_string = "v1.4.4";
 		NavigationView &nav_;
 
 		Rectangle backdrop{
