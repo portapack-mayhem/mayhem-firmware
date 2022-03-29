@@ -63,6 +63,8 @@ public:
 
 	bool is_active() const;
 
+	void set_filename_date_frequency(bool set);
+
 private:
 	void toggle();
 	//void toggle_pitch_rssi();
@@ -75,6 +77,11 @@ private:
 	void handle_error(const File::Error error);
 
 	//bool pitch_rssi_enabled = false;
+	
+	// Time Stamp
+	bool filename_date_frequency = false;
+    rtc::RTC datetime { };
+
 	const std::filesystem::path filename_stem_pattern;
 	const FileType file_type;
 	const size_t write_size;
