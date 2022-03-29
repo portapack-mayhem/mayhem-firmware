@@ -32,8 +32,6 @@
 
 #include "tone_key.hpp"
 
-#include "string_format.hpp"
-
 
 namespace ui {
 
