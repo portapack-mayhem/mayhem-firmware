@@ -154,7 +154,7 @@ void RecordView::start() {
 		return;
 	}
 
-	// 
+	 
     std::filesystem::path base_path;
 	if(filename_date_frequency) {
      	rtcGetTime(&RTCD1, &datetime);
