@@ -38,7 +38,7 @@ if ("$ENV{EnvironmentVariableName}" STREQUAL "")
 	if (GIT_VERSION_FOUND)
 		set(VERSION "unknown")
 	else (GIT_VERSION_FOUND)
-		set(VERSION "git-${GIT_VERSION}")
+		set(VERSION "${GIT_VERSION}")
 	endif (GIT_VERSION_FOUND)
 endif()
 
