@@ -212,7 +212,7 @@ namespace ui
 		void refresh();
 
 	private:
-		static constexpr auto version_string = "v1.4.4";
+		// static constexpr auto version_string = "v1.4.4";
 		NavigationView &nav_;
 
 		Rectangle backdrop{
@@ -221,7 +221,7 @@ namespace ui
 
 		Text version{
 			{2, 0, 11 * 8, 16},
-			version_string};
+			VERSION_STRING};
 
 		LiveDateTime ltime{
 			{86, 0, 19 * 8, 16}};
