@@ -1,0 +1,71 @@
+# ToDo: only trigger after 24 hours if there are actually changes: https://github.community/t/trigger-action-on-schedule-only-if-there-are-changes-to-the-branch/17887/4
+
+name: Nightly Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+    
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Checkout 
+        uses: actions/checkout@master
+        with:
+          ref: next
+          submodules: true
+      - name: Git Sumbodule Update
+        run: |
+          git submodule update --init --recursive
+      - name: Build the Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
+      - name: Make build folder
+        run: mkdir ${{ github.workspace }}/build
+      - name: Run the Docker image
+        run: docker run -i -v ${{ github.workspace }}:/havoc portapack-dev
+      - name: Create Firmware ZIP
+        run: |
+          zip --junk-paths firmware build/firmware/portapack-h1_h2-mayhem.bin
+      - name: Create SD Card ZIP
+        run: |
+          zip -r sdcard.zip sdcard
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly-tag-${{ steps.date.outputs.date }}
+          release_name: Nightly-release - ${{ steps.date.outputs.date }}
+          body: |
+            **Nightly release - ${{ steps.date.outputs.date }}**
+            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
+            You can find the changes in this commit ${{ github.sha }}
+          draft: false
+          prerelease: true
+      - name: Upload Firmware Asset
+        id: upload-firmware-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./firmware.zip
+          asset_name: mayhem_nightly_${{ steps.date.outputs.date }}_FIRMWARE.zip
+          asset_content_type: application/zip
+      - name: Upload SD Card Assets
+        id: upload-sd-card-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sdcard.zip
+          asset_name: mayhem_nightly_${{ steps.date.outputs.date }}_COPY_TO_SDCARD.zip
+          asset_content_type: application/zip
