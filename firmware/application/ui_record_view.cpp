@@ -127,6 +127,11 @@ void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
 	}
 }
 
+// Setter for datetime and frequency filename
+void RecordView::set_filename_date_frequency(bool set) {
+	filename_date_frequency = set;
+}
+
 bool RecordView::is_active() const {
 	return (bool)capture_thread;
 }
@@ -149,7 +154,24 @@ void RecordView::start() {
 		return;
 	}
 
-	auto base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+	 
+    std::filesystem::path base_path;
+	if(filename_date_frequency) {
+     	rtcGetTime(&RTCD1, &datetime);
+
+		//ISO 8601 
+		std::string date_time = to_string_dec_uint(datetime.year(), 4, '0')  +
+			                    to_string_dec_uint(datetime.month(), 2, '0') + 
+			                    to_string_dec_uint(datetime.day(), 2, '0')   + "T" +
+								to_string_dec_uint(datetime.hour())          +
+								to_string_dec_uint(datetime.minute())        +
+								to_string_dec_uint(datetime.second());
+
+		base_path = filename_stem_pattern.string() + "_" + date_time + "_" + to_string_freq(receiver_model.tuning_frequency()) + "Hz";
+	} else {
+		base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+	}
+
 	if( base_path.empty() ) {
 		return;
 	}
