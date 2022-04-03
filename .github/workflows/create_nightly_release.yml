@@ -55,8 +55,7 @@ jobs:
           zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
-          # CHANGELOG=$(git log next --since="24 hours" --pretty=format:"- %h - @%an: %s") # Commented out as username are currently broken
-          CHANGELOG=$(git log next --since="24 hours" --pretty=format:"- %h - %s")
+          CHANGELOG=$(python3 .github/workflows/changelog.py)
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
