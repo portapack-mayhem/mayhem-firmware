@@ -95,5 +95,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./sdcard.zip
-          asset_name: mayhem_nightly_${{ steps.date.outputs.date }}_COPY_TO_SDCARD.zip
+          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_COPY_TO_SDCARD.zip
           asset_content_type: application/zip
