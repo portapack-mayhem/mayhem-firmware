@@ -24,6 +24,7 @@
 
 #include "dsp_types.hpp"
 #include "dsp_hilbert.hpp"
+#include "tone_gen.hpp"
 
 namespace dsp {
 namespace modulate {
@@ -74,6 +75,7 @@ public:
 
 	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer);
 	void set_fm_delta(uint32_t new_delta);
+	void set_tone_gen_configure(const uint32_t delta, const float tone_mix_weight); 
 
 ///
 
@@ -81,6 +83,7 @@ private:
 	uint32_t	fm_delta { 0 };
 	uint32_t	phase { 0 }, sphase { 0 };
 	int32_t		sample { 0 }, delta { };
+	ToneGen 	tone_gen { };
 };
 
 class AM : public Modulator {

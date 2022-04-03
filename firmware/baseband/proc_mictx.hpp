@@ -49,7 +49,7 @@ private:
 	};
 	
 	AudioInput audio_input { };
-	ToneGen tone_gen { };
+	// ToneGen tone_gen { };   moved to  dsp_modulate.cpp
 	ToneGen beep_gen { };
 	dsp::modulate::Modulator *modulator;
 

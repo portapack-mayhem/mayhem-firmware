@@ -88,15 +88,19 @@ void FM::set_fm_delta(uint32_t new_delta) {
 	fm_delta = new_delta;
 }
 
+void FM::set_tone_gen_configure(const uint32_t set_delta, const float set_tone_mix_weight) {
+	 tone_gen.configure(set_delta, set_tone_mix_weight);
+}	
+
 void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
 	int32_t		sample = 0;
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
-		if (counter % over == 0) {
-		    sample = audio.p[counter / over] >> 8;
-		    delta = sample * fm_delta;
-		}
+	    sample = audio.p[counter / over] >> 8;
+	
+		sample = tone_gen.process(sample);
+	    delta = sample * fm_delta;
 
 		phase += delta;
 		sphase = phase >> 24;
