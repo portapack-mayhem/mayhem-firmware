@@ -179,8 +179,6 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		/*For the time being, it is impossible to distinguish the hardware of R1 and R2 from the software level*/
-		/*At this point, I2c is not ready.*/
 		if( audio_codec_wm8731.detected() ) {
 			model = PortaPackModel::R1_20150901;
 		} else {
