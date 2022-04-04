@@ -186,19 +186,12 @@ static PortaPackModel portapack_model() {
 		} else {
 			model = PortaPackModel::R2_20170522;
 		}
-
-		// model = PortaPackModel::R1_20150901;
-
-		// ToDo: Do validation here to check if R2_20170522 or R1_20150901 (Gen1)
 	}
 
 	return model.value();
 }
 
 static audio::Codec* portapack_audio_codec() {
-
-	// Maybe we c ould change the model here
-
 	/* I2C ready OK, Automatic recognition of audio chip */
 	return (audio_codec_wm8731.detected())
 		? static_cast<audio::Codec*>(&audio_codec_wm8731)
@@ -207,9 +200,6 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
-	// This function here is teh decider if the device boots or not.
-
-	// return portapack::cpld::rev_20150901::config; // R1_20150901
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? portapack::cpld::rev_20170522::config
 		: portapack::cpld::rev_20150901::config
@@ -217,7 +207,6 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 }
 
 Backlight* backlight() {
-	// return static_cast<portapack::Backlight*>(&backlight_on_off); // This should work for R1_20150901
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? static_cast<portapack::Backlight*>(&backlight_cat4004) // R2_20170522
 		: static_cast<portapack::Backlight*>(&backlight_on_off); // R1_20150901
@@ -329,6 +318,7 @@ bool init() {
 
 	i2c0.start(i2c_config_boot_clock);
 
+	// Keeping this here for now incase we need to revert
 	// if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 	// 	shutdown_base();
 	// 	return false;
@@ -349,7 +339,7 @@ bool init() {
 	set_clock_config(clock_config_irc);
 
 	cgu::pll1::disable();
-	
+
 	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
 	 * core clock speed to the 110 - 204MHz range.
 	 */
