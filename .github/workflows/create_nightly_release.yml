@@ -35,6 +35,7 @@ jobs:
       - name: Checkout 
         uses: actions/checkout@master
         with:
+          fetch-depth: 0
           ref: next
           submodules: true
       - name: Git Sumbodule Update
@@ -52,6 +53,14 @@ jobs:
       - name: Create SD Card ZIP
         run: |
           zip -r sdcard.zip sdcard
+      - name: Create changelog
+        run: |
+          CHANGELOG=$(python3 .github/workflows/changelog.py)
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "::set-output name=content::$CHANGELOG"
+        id: changelog
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -59,12 +68,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: nightly-tag-${{ steps.date.outputs.date }}
-          release_name: Nightly-release - ${{ steps.date.outputs.date }}
+          release_name: Nightly Release - ${{ steps.date.outputs.date }}
           body: |
             **Nightly release - ${{ steps.date.outputs.date }}**
             This build is the latest and greatest, although may not be the most stable as this is a nightly release.
-            Version: ${{ steps.version_date.outputs.date }}
-            You can find the changes in this commit ${{ github.sha }}
+            ## Release notes
+            ###  Revision (${{ steps.version_date.outputs.date }}):
+            ${{ steps.changelog.outputs.content }}
           draft: false
           prerelease: true
       - name: Upload Firmware Asset
@@ -85,5 +95,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./sdcard.zip
-          asset_name: mayhem_nightly_${{ steps.date.outputs.date }}_COPY_TO_SDCARD.zip
+          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_COPY_TO_SDCARD.zip
           asset_content_type: application/zip
