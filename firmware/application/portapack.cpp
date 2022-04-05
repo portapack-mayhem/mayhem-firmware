@@ -179,18 +179,24 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		if( audio_codec_wm8731.detected() ) {
-			model = PortaPackModel::R1_20150901;
+		if( audio_codec_wm8731.detected() && audio_codec_ak4951.detected()) {
+			model = PortaPackModel::R2_20170522; // H2+
+		} else if( audio_codec_wm8731.detected() ) {
+			model = PortaPackModel::R1_20150901; // H1R1
 		} else {
-			model = PortaPackModel::R2_20170522;
+			model = PortaPackModel::R2_20170522; // H1R2
 		}
 	}
 
 	return model.value();
 }
 
+//audio_codec_wm8731 = H1R1 & H2
+//audio_codec_ak4951 = H1R2 (China/mine)
+
 static audio::Codec* portapack_audio_codec() {
 	/* I2C ready OK, Automatic recognition of audio chip */
+	// return static_cast<audio::Codec*>(&audio_codec_wm8731);
 	return (audio_codec_wm8731.detected())
 		? static_cast<audio::Codec*>(&audio_codec_wm8731)
 		: static_cast<audio::Codec*>(&audio_codec_ak4951)
