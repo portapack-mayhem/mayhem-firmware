@@ -191,12 +191,11 @@ static PortaPackModel portapack_model() {
 	return model.value();
 }
 
-//audio_codec_wm8731 = H1R1 & H2
-//audio_codec_ak4951 = H1R2 (China/mine)
+//audio_codec_wm8731 = H1R1 & H2+
+//audio_codec_ak4951 = H1R2
 
 static audio::Codec* portapack_audio_codec() {
 	/* I2C ready OK, Automatic recognition of audio chip */
-	// return static_cast<audio::Codec*>(&audio_codec_wm8731);
 	return (audio_codec_wm8731.detected())
 		? static_cast<audio::Codec*>(&audio_codec_wm8731)
 		: static_cast<audio::Codec*>(&audio_codec_ak4951)
