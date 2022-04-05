@@ -169,7 +169,7 @@ int main(void) {
 
 		sdcStart(&SDCD1, nullptr);
 
-		controls_init();
+		// controls_init(); // Commented out as now happens in portapack.cpp
 		lcd_frame_sync_configure();
 		rtc_interrupt_enable();
 

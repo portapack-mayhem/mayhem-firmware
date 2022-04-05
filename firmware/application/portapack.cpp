@@ -29,6 +29,7 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
+
 #include "clock_manager.hpp"
 #include "event_m0.hpp"
 
@@ -45,6 +46,7 @@ using asahi_kasei::ak4951::AK4951;
 #include "cpld_update.hpp"
 
 #include "optional.hpp"
+#include "irq_controls.hpp"
 
 namespace portapack {
 
@@ -179,12 +181,10 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		if( audio_codec_wm8731.detected() && audio_codec_ak4951.detected()) {
-			model = PortaPackModel::R2_20170522; // H2+
-		} else if( audio_codec_wm8731.detected() ) {
+		if( audio_codec_wm8731.detected() ) {
 			model = PortaPackModel::R1_20150901; // H1R1
 		} else {
-			model = PortaPackModel::R2_20170522; // H1R2
+			model = PortaPackModel::R2_20170522; // H1R2, H2+
 		}
 	}
 
@@ -203,6 +203,15 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
+
+	const auto switches_state = get_switches_state();
+	if (switches_state[(size_t)ui::KeyEvent::Up]){
+		return portapack::cpld::rev_20150901::config;
+	}
+	if (switches_state[(size_t)ui::KeyEvent::Down]){
+		return portapack::cpld::rev_20170522::config;
+	}
+
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? portapack::cpld::rev_20170522::config
 		: portapack::cpld::rev_20150901::config
@@ -381,6 +390,21 @@ bool init() {
 
 	i2c0.start(i2c_config_fast_clock);
 
+	touch::adc::init();
+	controls_init();
+
+	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
+	clock_manager.enable_first_if_clock();
+	clock_manager.enable_second_if_clock();
+	clock_manager.enable_codec_clocks();
+	radio::init();	
+	
+
+	LPC_CREG->DMAMUX = portapack::gpdma_mux;
+	gpdma::controller.enable();
+
+	audio::init(portapack_audio_codec());
+
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		shutdown_base();
 		return false;
@@ -389,20 +413,6 @@ bool init() {
 	if( !hackrf::cpld::load_sram() ) {
 		chSysHalt();
 	}
-
-	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-
-	audio::init(portapack_audio_codec());
-	
-	clock_manager.enable_first_if_clock();
-	clock_manager.enable_second_if_clock();
-	clock_manager.enable_codec_clocks();
-	radio::init();
-
-	touch::adc::init();
-
-	LPC_CREG->DMAMUX = portapack::gpdma_mux;
-	gpdma::controller.enable();
 
 	return true;
 }
