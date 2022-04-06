@@ -82,6 +82,9 @@ struct data_t {
 	int32_t afsk_space_freq;
 	int32_t modem_baudrate;
 	int32_t modem_repeat;
+
+	// Hardware
+	uint32_t hardware_config;
 	
 	// Play dead unlock
 	uint32_t playdead_magic;
@@ -254,6 +257,10 @@ bool config_splash() {
 	return data->ui_config & (1 << 31);
 }
 
+uint8_t config_cpld() {
+	return data->hardware_config;
+}
+
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
@@ -285,6 +292,10 @@ void set_config_login(bool v) {
 
 void set_config_splash(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 31)) | (v << 31);
+}
+
+void set_config_cpld(uint8_t i) {
+	data->hardware_config = i;
 }
 
 void set_config_backlight_timer(uint32_t i) {
