@@ -203,19 +203,28 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
-
 	const auto switches_state = get_switches_state();
 	if (switches_state[(size_t)ui::KeyEvent::Up]){
-		return portapack::cpld::rev_20150901::config;
-	}
-	if (switches_state[(size_t)ui::KeyEvent::Down]){
+		persistent_memory::set_config_cpld(1);
 		return portapack::cpld::rev_20170522::config;
 	}
+	if (switches_state[(size_t)ui::KeyEvent::Down]){
+		persistent_memory::set_config_cpld(2);
+		return portapack::cpld::rev_20150901::config;
+	}
+	if (switches_state[(size_t)ui::KeyEvent::Select]){
+		persistent_memory::set_config_cpld(0);
+	}
+	
 
+	if (portapack::persistent_memory::config_cpld() == 1) {
+		return portapack::cpld::rev_20170522::config;
+	} else if (portapack::persistent_memory::config_cpld() == 2) {
+		return portapack::cpld::rev_20150901::config;
+	}
 	return (portapack_model() == PortaPackModel::R2_20170522)
-		? portapack::cpld::rev_20170522::config
-		: portapack::cpld::rev_20150901::config
-		;
+			? portapack::cpld::rev_20170522::config
+			: portapack::cpld::rev_20150901::config;
 }
 
 Backlight* backlight() {

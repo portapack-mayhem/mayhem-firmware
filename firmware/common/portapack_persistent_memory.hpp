@@ -74,6 +74,9 @@ void set_playdead_sequence(const uint32_t new_value);
 bool stealth_mode();
 void set_stealth_mode(const bool v);
 
+uint8_t config_cpld();
+void set_config_cpld(uint8_t i);
+
 bool config_splash();
 bool hide_clock();
 bool clock_with_date();
