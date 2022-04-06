@@ -49,7 +49,7 @@ jobs:
         run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev
       - name: Create Firmware ZIP
         run: |
-          zip --junk-paths firmware build/firmware/portapack-h1_h2-mayhem.bin
+          zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
           zip -r sdcard.zip sdcard
