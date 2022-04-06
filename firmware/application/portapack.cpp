@@ -228,11 +228,6 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 }
 
 Backlight* backlight() {
-	// if (portapack::persistent_memory::config_cpld() == 1) {
-	// 	return static_cast<portapack::Backlight*>(&backlight_cat4004);
-	// } else if (portapack::persistent_memory::config_cpld() == 2) {
-	// 	return static_cast<portapack::Backlight*>(&backlight_on_off);
-	// }
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? static_cast<portapack::Backlight*>(&backlight_cat4004) // R2_20170522
 		: static_cast<portapack::Backlight*>(&backlight_on_off); // R1_20150901
