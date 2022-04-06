@@ -212,6 +212,9 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 		persistent_memory::set_config_cpld(2);
 		return portapack::cpld::rev_20150901::config;
 	}
+	if (switches_state[(size_t)ui::KeyEvent::Left]){
+		persistent_memory::set_config_cpld(3);
+	}
 	if (switches_state[(size_t)ui::KeyEvent::Select]){
 		persistent_memory::set_config_cpld(0);
 	}
@@ -415,9 +418,8 @@ bool init() {
 	audio::init(portapack_audio_codec());
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		const auto switches_state = get_switches_state();
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (!switches_state[(size_t)ui::KeyEvent::Left]){
+		if (portapack::persistent_memory::config_cpld() != 3){
 			shutdown_base();
 			return false;
 		}
