@@ -83,9 +83,6 @@ struct data_t {
 	int32_t modem_baudrate;
 	int32_t modem_repeat;
 
-	// Hardware
-	uint32_t hardware_config;
-	
 	// Play dead unlock
 	uint32_t playdead_magic;
 	uint32_t playing_dead;
@@ -98,6 +95,9 @@ struct data_t {
 	uint32_t pocsag_ignore_address;
 	
 	int32_t tone_mix;
+
+	// Hardware
+	uint32_t hardware_config;
 };
 
 static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
