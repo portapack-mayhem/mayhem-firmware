@@ -181,12 +181,11 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		// if( audio_codec_wm8731.detected() ) {
-		// 	model = PortaPackModel::R1_20150901; // H1R1
-		// } else {
-		// 	model = PortaPackModel::R2_20170522; // H1R2, H2+
-		// }
-		model = PortaPackModel::R2_20170522;
+		if( audio_codec_wm8731.detected() ) {
+			model = PortaPackModel::R1_20150901; // H1R1
+		} else {
+			model = PortaPackModel::R2_20170522; // H1R2, H2+
+		}
 	}
 
 	return model.value();
