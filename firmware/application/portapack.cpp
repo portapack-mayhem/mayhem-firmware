@@ -29,6 +29,7 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
+
 #include "clock_manager.hpp"
 #include "event_m0.hpp"
 
@@ -45,6 +46,7 @@ using asahi_kasei::ak4951::AK4951;
 #include "cpld_update.hpp"
 
 #include "optional.hpp"
+#include "irq_controls.hpp"
 
 namespace portapack {
 
@@ -179,17 +181,18 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		/*For the time being, it is impossible to distinguish the hardware of R1 and R2 from the software level*/
-		/*At this point, I2c is not ready.*/
-		//if( audio_codec_wm8731.detected() ) {
-		//	model = PortaPackModel::R1_20150901;
-		//} else {
-			model = PortaPackModel::R2_20170522;
-		//}
+		if( audio_codec_wm8731.detected() ) {
+			model = PortaPackModel::R1_20150901; // H1R1
+		} else {
+			model = PortaPackModel::R2_20170522; // H1R2, H2+
+		}
 	}
 
 	return model.value();
 }
+
+//audio_codec_wm8731 = H1R1 & H2+
+//audio_codec_ak4951 = H1R2
 
 static audio::Codec* portapack_audio_codec() {
 	/* I2C ready OK, Automatic recognition of audio chip */
@@ -200,16 +203,37 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
+	const auto switches_state = get_switches_state();
+	if (switches_state[(size_t)ui::KeyEvent::Up]){
+		persistent_memory::set_config_cpld(1);
+		return portapack::cpld::rev_20170522::config;
+	}
+	if (switches_state[(size_t)ui::KeyEvent::Down]){
+		persistent_memory::set_config_cpld(2);
+		return portapack::cpld::rev_20150901::config;
+	}
+	if (switches_state[(size_t)ui::KeyEvent::Left]){
+		persistent_memory::set_config_cpld(3);
+	}
+	if (switches_state[(size_t)ui::KeyEvent::Select]){
+		persistent_memory::set_config_cpld(0);
+	}
+	
+
+	if (portapack::persistent_memory::config_cpld() == 1) {
+		return portapack::cpld::rev_20170522::config;
+	} else if (portapack::persistent_memory::config_cpld() == 2) {
+		return portapack::cpld::rev_20150901::config;
+	}
 	return (portapack_model() == PortaPackModel::R2_20170522)
-		? portapack::cpld::rev_20170522::config
-		: portapack::cpld::rev_20150901::config
-		;
+			? portapack::cpld::rev_20170522::config
+			: portapack::cpld::rev_20150901::config;
 }
 
 Backlight* backlight() {
 	return (portapack_model() == PortaPackModel::R2_20170522)
-		? static_cast<portapack::Backlight*>(&backlight_cat4004)
-		: static_cast<portapack::Backlight*>(&backlight_on_off);
+		? static_cast<portapack::Backlight*>(&backlight_cat4004) // R2_20170522
+		: static_cast<portapack::Backlight*>(&backlight_on_off); // R1_20150901
 }
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
@@ -318,14 +342,15 @@ bool init() {
 
 	i2c0.start(i2c_config_boot_clock);
 
-	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		shutdown_base();
-		return false;
-	}
+	// Keeping this here for now incase we need to revert
+	// if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+	// 	shutdown_base();
+	// 	return false;
+	// }
 
-	if( !hackrf::cpld::load_sram() ) {
-		chSysHalt();
-	}
+	// if( !hackrf::cpld::load_sram() ) {
+	// 	chSysHalt();
+	// }
 
 	configure_pins_portapack();
 	
@@ -336,7 +361,6 @@ bool init() {
 	i2c0.stop();
 
 	set_clock_config(clock_config_irc);
-
 	cgu::pll1::disable();
 
 	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
@@ -377,19 +401,37 @@ bool init() {
 
 	i2c0.start(i2c_config_fast_clock);
 
-	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
+	touch::adc::init();
+	controls_init();
 
-	audio::init(portapack_audio_codec());
-	
+	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
 	clock_manager.enable_codec_clocks();
-	radio::init();
+	radio::init();	
 
-	touch::adc::init();
+	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
+		const auto switches_state = get_switches_state();
+		/*
+		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
+		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
+		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
+		 */
+		if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
+			shutdown_base();
+			return false;
+		}
+	}
+
+	if( !hackrf::cpld::load_sram() ) {
+		chSysHalt();
+	}
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
+
+	audio::init(portapack_audio_codec());
 
 	return true;
 }
