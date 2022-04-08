@@ -99,7 +99,7 @@ private:
 		'0',
 	};
 
-	Button button_done {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
 	};
@@ -197,7 +197,7 @@ private:
 		"Turn on bias voltage"
 	};
 
-	Button button_done {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
 	};
@@ -272,9 +272,14 @@ private:
 		}
 	};	
 	
-	Button button_ok {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
 	};
 };
 
@@ -317,7 +322,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "QR code settings"; };
+	std::string title() const override { return "QR code"; };
 	
 private:
 	Checkbox checkbox_bigger_qr {
