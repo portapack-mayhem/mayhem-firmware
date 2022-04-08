@@ -43,7 +43,7 @@ namespace ui {
 SetDateTimeView::SetDateTimeView(
 	NavigationView& nav
 ) {
-	button_done.on_select = [&nav, this](Button&){
+	button_save.on_select = [&nav, this](Button&){
 		const auto model = this->form_collect();
 		const rtc::RTC new_datetime {
 			model.year, model.month, model.day,
@@ -65,7 +65,7 @@ SetDateTimeView::SetDateTimeView(
 		&field_hour,
 		&field_minute,
 		&field_second,
-		&button_done,
+		&button_save,
 		&button_cancel,
 	});
 
@@ -150,7 +150,7 @@ SetRadioView::SetRadioView(
 		&value_freq_step,
 		&labels_bias,
 		&check_bias,
-		&button_done,
+		&button_save,
 		&button_cancel
 	});
 
@@ -200,7 +200,7 @@ SetRadioView::SetRadioView(
 		EventDispatcher::send_message(message);
 	};
 
-	button_done.on_select = [this, &nav](Button&){
+	button_save.on_select = [this, &nav](Button&){
 		const auto model = this->form_collect();
 		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
 		portapack::persistent_memory::set_clkout_freq(model.freq);
@@ -210,7 +210,7 @@ SetRadioView::SetRadioView(
 }
 
 void SetRadioView::focus() {
-	button_done.focus();
+	button_save.focus();
 }
 
 void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
@@ -227,7 +227,6 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
 
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
-		//&checkbox_login,
 		&checkbox_disable_touchscreen,
 		&checkbox_speaker,
 		&checkbox_bloff,
@@ -235,7 +234,8 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&checkbox_showsplash,
 		&checkbox_showclock,
 		&options_clockformat,
-		&button_ok
+		&button_save,
+		&button_cancel
 	});
 	
 	checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
@@ -257,16 +257,14 @@ SetUIView::SetUIView(NavigationView& nav) {
 		options_clockformat.set_selected_index(0);
 	}
 
-	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
-    		if (v) audio::output::speaker_mute();		//Just mute audio if speaker is disabled
+	//checkbox_speaker.on_select = [this](Checkbox&, bool v) {
+    	//	if (v) audio::output::speaker_mute();			//Just mute audio if speaker is disabled
+	//		persistent_memory::set_config_speaker(v);	//Store Speaker status
+        //	StatusRefreshMessage message { };			//Refresh status bar with/out speaker
+        //	EventDispatcher::send_message(message);
+    	//};
 
-			persistent_memory::set_config_speaker(v);	//Store Speaker status
-
-        StatusRefreshMessage message { };				//Refresh status bar with/out speaker
-        EventDispatcher::send_message(message);
-    };
-
-	button_ok.on_select = [&nav, this](Button&) {
+	button_save.on_select = [&nav, this](Button&) {
 		if (checkbox_bloff.value())
 			persistent_memory::set_config_backlight_timer(options_bloff.selected_index() + 1);
 		else
@@ -277,17 +275,25 @@ SetUIView::SetUIView(NavigationView& nav) {
 			    persistent_memory::set_clock_with_date(true);    
      		else
 			    persistent_memory::set_clock_with_date(false);		
-		}		
+		}
+
+		if (checkbox_speaker.value())  audio::output::speaker_mute();		//Just mute audio if speaker is disabled
+		persistent_memory::set_config_speaker(checkbox_speaker.value());	//Store Speaker status
+        	StatusRefreshMessage message { };					//Refresh status bar with/out speaker
+        	EventDispatcher::send_message(message);
+	
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
 		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
-		//persistent_memory::set_config_login(checkbox_login.value());
+		nav.pop();
+	};
+	button_cancel.on_select = [&nav, this](Button&) {
 		nav.pop();
 	};
 }
 
 void SetUIView::focus() {
-	button_ok.focus();
+	button_save.focus();
 }
 
 SetAudioView::SetAudioView(NavigationView& nav) {
