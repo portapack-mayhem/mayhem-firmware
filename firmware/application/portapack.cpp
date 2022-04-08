@@ -195,21 +195,6 @@ static PortaPackModel portapack_model() {
 //audio_codec_ak4951 = H1R2
 
 static audio::Codec* portapack_audio_codec() {
-	//Remove this after testing
-	// if (portapack::persistent_memory::config_cpld() == 1) {
-	// 	return static_cast<audio::Codec*>(&audio_codec_wm8731);
-	// } else if (portapack::persistent_memory::config_cpld() == 2) {
-	// 	return static_cast<audio::Codec*>(&audio_codec_ak4951);
-	// }
-
-	const auto switches_state = get_switches_state();
-	if (switches_state[(size_t)ui::KeyEvent::Up]){
-		return static_cast<audio::Codec*>(&audio_codec_wm8731);
-	}
-	if (switches_state[(size_t)ui::KeyEvent::Down]){
-		return static_cast<audio::Codec*>(&audio_codec_ak4951);
-	}
-
 	/* I2C ready OK, Automatic recognition of audio chip */
 	return (audio_codec_wm8731.detected())
 		? static_cast<audio::Codec*>(&audio_codec_wm8731)
@@ -425,12 +410,14 @@ bool init() {
 	clock_manager.enable_codec_clocks();
 	radio::init();	
 
-	// volatile uint32_t delay2 = 1000000;
-	// while(delay2--);
-
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		const auto switches_state = get_switches_state();
+		/*
+		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
+		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
+		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
+		 */
 		if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
 			shutdown_base();
 			return false;
