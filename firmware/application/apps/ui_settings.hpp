@@ -220,6 +220,12 @@ public:
 	
 private:
 
+	Checkbox checkbox_disable_touchscreen {
+		{ 3 * 8, 2 * 16 },
+		20,
+		"Disable touchscreen"
+	};
+	
 	Checkbox checkbox_speaker {
 		{ 3 * 8, 4 * 16 },
 		20,
