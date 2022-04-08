@@ -230,6 +230,10 @@ void set_playdead_sequence(const uint32_t new_value) {
 // bits 31, 30,29,28,27, 26, 25 stores the different single bit configs depicted below
 // bits on position 4 to 19 (16 bits) store the clkout frequency
 
+bool show_bigger_qr_code() { // show bigger QR code
+	return data->ui_config & (1 << 23);
+}
+
 bool hide_clock() { // clock hidden from main menu
 	return data->ui_config & (1 << 25);
 }
@@ -264,6 +268,10 @@ uint8_t config_cpld() {
 uint32_t config_backlight_timer() {
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
+}
+
+void set_show_bigger_qr_code(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 23)) | (v << 23);
 }
 
 void set_clock_hidden(bool v) {
