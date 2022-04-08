@@ -412,7 +412,13 @@ bool init() {
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (portapack::persistent_memory::config_cpld() != 3){
+		const auto switches_state = get_switches_state();
+		/*
+		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
+		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
+		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
+		 */
+		if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
 			shutdown_base();
 			return false;
 		}
