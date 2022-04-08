@@ -159,6 +159,7 @@ set(CPPSRC
 	capture_thread.cpp
 	clock_manager.cpp
 	core_control.cpp
+	database.cpp
 	de_bruijn.cpp
 	#emu_cc1101.cpp
 	rfm69.cpp

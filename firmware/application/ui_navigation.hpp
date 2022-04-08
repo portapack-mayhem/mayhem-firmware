@@ -190,7 +190,7 @@ namespace ui
 		void on_speaker();
 		void on_stealth();
 		void on_bias_tee();
-		//void on_textentry();
+		// void on_textentry();
 		void on_camera();
 		void on_title();
 		void refresh();
@@ -212,7 +212,7 @@ namespace ui
 		void refresh();
 
 	private:
-		static constexpr auto version_string = "v1.4.3";
+		// static constexpr auto version_string = "v1.4.4"; // This is commented out as we are now setting the version via ENV (VERSION_STRING=v1.0.0)
 		NavigationView &nav_;
 
 		Rectangle backdrop{
@@ -221,7 +221,7 @@ namespace ui
 
 		Text version{
 			{2, 0, 11 * 8, 16},
-			version_string};
+			VERSION_STRING};
 
 		LiveDateTime ltime{
 			{86, 0, 19 * 8, 16}};

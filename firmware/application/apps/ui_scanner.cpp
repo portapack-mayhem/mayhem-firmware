@@ -484,6 +484,7 @@ void ScannerView::scan_pause() {
 		scan_thread->set_freq_lock(0); 		//Reset the scanner lock (because user paused, or MAX_FREQ_LOCK reached) for next freq scan	
 		scan_thread->set_scanning(false); // WE STOP SCANNING
 		audio::output::start();
+		on_headphone_volume_changed(field_volume.value()); // quick fix to make sure WM8731S chips don't stay silent after pause
 	}
 }
 

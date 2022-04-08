@@ -1,0 +1,99 @@
+name: Nightly Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+    
+  workflow_dispatch:
+
+jobs:
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+
+      - name: check latest commit is less than a day
+        id: should_run
+        continue-on-error: true
+        run: test -z $(git rev-list  --after="24 hours" ${{ github.sha }}) && echo "::set-output name=should_run::false"
+  build:
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Get version date
+        id: version_date
+        run: echo "::set-output name=date::n_$(date +'%y%m%d')"
+      - name: Checkout 
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          ref: next
+          submodules: true
+      - name: Git Sumbodule Update
+        run: |
+          git submodule update --init --recursive
+      - name: Build the Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
+      - name: Make build folder
+        run: mkdir ${{ github.workspace }}/build
+      - name: Run the Docker image
+        run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev
+      - name: Create Firmware ZIP
+        run: |
+          zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
+      - name: Create SD Card ZIP
+        run: |
+          zip -r sdcard.zip sdcard
+      - name: Create changelog
+        run: |
+          CHANGELOG=$(python3 .github/workflows/changelog.py)
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "::set-output name=content::$CHANGELOG"
+        id: changelog
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly-tag-${{ steps.date.outputs.date }}
+          release_name: Nightly Release - ${{ steps.date.outputs.date }}
+          body: |
+            **Nightly release - ${{ steps.date.outputs.date }}**
+            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
+            ## Release notes
+            ###  Revision (${{ steps.version_date.outputs.date }}):
+            ${{ steps.changelog.outputs.content }}
+          draft: false
+          prerelease: true
+      - name: Upload Firmware Asset
+        id: upload-firmware-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./firmware.zip
+          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_FIRMWARE.zip
+          asset_content_type: application/zip
+      - name: Upload SD Card Assets
+        id: upload-sd-card-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sdcard.zip
+          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_COPY_TO_SDCARD.zip
+          asset_content_type: application/zip

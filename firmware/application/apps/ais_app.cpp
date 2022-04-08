@@ -22,6 +22,7 @@
 #include "ais_app.hpp"
 
 #include "string_format.hpp"
+#include "database.hpp"
 
 #include "baseband_api.hpp"
 
@@ -60,6 +61,25 @@ static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
 	return to_string_dec_uint(mmsi, 9, '0'); // MMSI is always is always 9 characters pre-padded with zeros
+}
+
+
+static std::string mid(
+	const ais::MMSI& mmsi
+) {
+	std::database 			db;
+	std::string 			mid_code = "";
+	std::database::MidDBRecord 	mid_record = {};
+	int 				return_code = 0;
+
+	// Try getting the country name from mids.db using MID code for given MMSI
+	mid_code = to_string_dec_uint(mmsi, 9, ' ').substr(0, 3);
+	return_code = db.retrieve_mid_record(&mid_record, mid_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 	return mid_record.country;	
+		case DATABASE_NOT_FOUND: 	return "No mids.db file";
+		default:			return "";
+	}
 }
 
 static std::string navigational_status(const unsigned int value) {
@@ -271,6 +291,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	auto field_rect = Rect { rect.left(), rect.top() + 16, rect.width(), 16 };
 
 	field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
+	field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
 	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
@@ -307,8 +328,13 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 	recent_entry_detail_view.hidden(true);
 
 	target_frequency_ = initial_target_frequency;
+  
+    receiver_model.set_tuning_frequency(tuning_frequency());
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
 
-	radio::enable({
+/*  radio::enable({     //  this can be removed, previous version,no DC-bias control.
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
@@ -316,8 +342,8 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-	});
-
+	}); */
+	
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
@@ -337,7 +363,8 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 }
 
 AISAppView::~AISAppView() {
-	radio::disable();
+/*	radio::disable();  */
+	receiver_model.disable();   // to switch off all, including DC bias.
 
 	baseband::shutdown();
 }

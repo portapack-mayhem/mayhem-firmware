@@ -131,11 +131,11 @@ private:
 	AISRecentEntry entry_ { };
 
 	Button button_done {
-		{ 125, 216, 96, 24 },
+		{ 125, 224, 96, 24 },
 		"Done"
 	};
 	Button button_see_map {
-		{ 19, 216, 96, 24 },
+		{ 19, 224, 96, 24 },
 		"See on map"
 	};
 	GeoMapView* geomap_view { nullptr };
@@ -169,6 +169,7 @@ private:
 	static constexpr uint32_t initial_target_frequency = 162025000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
+
 	NavigationView& nav_;
 
 	AISRecentEntries recent { };
