@@ -25,6 +25,7 @@
 #include "dsp_types.hpp"
 #include "dsp_hilbert.hpp"
 #include "tone_gen.hpp"
+#include "baseband_processor.hpp"
 
 namespace dsp {
 namespace modulate {
@@ -42,13 +43,28 @@ enum class Mode {
 
 class Modulator {
 public:
-	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) = 0;
+	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer,bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) = 0;
 	virtual ~Modulator();
 
 	Mode get_mode();
 	void set_mode(Mode new_mode);
 
     void set_over(uint32_t new_over);
+	void set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep );
+	int32_t apply_gain_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message );
+
+private: 
+	static constexpr size_t baseband_fs = 1536000U;
+	AudioLevelReportMessage level_message { };
+	TXProgressMessage txprogress_message { };
+	uint32_t divider { };
+	float 	audio_gain { };
+	uint64_t power_acc { 0 };
+	uint32_t power_acc_count { 0 };
+	bool play_beep { false };
+    ToneGen  beep_gen { };
+	uint32_t beep_index { }, beep_timer { };
+
 
 protected:
     uint32_t    over = 1;
@@ -61,7 +77,7 @@ class SSB : public Modulator {
 public:
 	SSB();
 
-	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer);
+	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message);
 
 private:
 	dsp::HilbertTransform	hilbert;
@@ -73,7 +89,7 @@ class FM : public Modulator {
 public:
 	FM();
 
-	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer);
+	virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message) ;
 	void set_fm_delta(uint32_t new_delta);
 	void set_tone_gen_configure(const uint32_t delta, const float tone_mix_weight); 
 
@@ -84,13 +100,15 @@ private:
 	uint32_t	phase { 0 }, sphase { 0 };
 	int32_t		sample { 0 }, delta { };
 	ToneGen 	tone_gen { };
+	
+
 };
 
 class AM : public Modulator {
 public:
         AM();
 
-        virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer);
+        virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message );
 };
 
 } /* namespace modulate */

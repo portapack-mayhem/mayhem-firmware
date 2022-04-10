@@ -21,6 +21,8 @@
 
 #include "dsp_modulate.hpp"
 #include "sine_table_int8.hpp"
+#include "portapack_shared_memory.hpp"
+#include "tonesets.hpp"
 
 namespace dsp {
 namespace modulate {
@@ -40,13 +42,44 @@ void Modulator::set_over(uint32_t new_over) {
     over = new_over;
 }
 
+void Modulator::set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep ) {
+     audio_gain = new_audio_gain ;    
+	  play_beep = new_play_beep; 
+
+}
+
+int32_t Modulator::apply_gain_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
+
+	if (!play_beep) {	// Apply GAIN  Scale factor.
+    		sample_in *= audio_gain;   
+
+	} else {			// We need to add audio beep sample.
+			if (new_beep_timer) {
+				new_beep_timer--;
+			} else {
+				new_beep_timer = baseband_fs * 0.05;			// 50ms
+				
+				if (new_beep_index == BEEP_TONES_NB) {
+					configured_in = false;
+					shared_memory.application_queue.push(new_txprogress_message);
+				} else {
+					beep_gen.configure(beep_deltas[new_beep_index], 1.0); // config sequentially the audio beep tone.
+					new_beep_index++;
+				}
+			}
+		    sample_in = beep_gen.process(0);    // Get sample of the selected sequence of 6  beep tones , and overwrite audio sample. Mix 0%.
+		}
+	return sample_in;    // Return audio mic scaled with gain , 8 bit sample or audio beep sample.		
+}
+
+
 ///
 
 SSB::SSB() : hilbert() {
 	mode = Mode::LSB;
 }
 
-void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
+void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer,TXProgressMessage& new_txprogress_message ) {
 	int32_t		sample = 0;
 	int8_t		re = 0, im = 0;
 	
@@ -92,15 +125,31 @@ void FM::set_tone_gen_configure(const uint32_t set_delta, const float set_tone_m
 	 tone_gen.configure(set_delta, set_tone_mix_weight);
 }	
 
-void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
+void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
 	int32_t		sample = 0;
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 	    sample = audio.p[counter / over] >> 8;
+
+	sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and update vu-meter.
+
+    /*  
+	// Update vu-meter bar in the LCD screen.(of both cases , audio mic or beep )
+	    power_acc += (sample_in < 0) ? -sample_in : sample_in;	// Power average for UI vu-meter
 	
-		sample = tone_gen.process(sample);
-	    delta = sample * fm_delta;
+		if (power_acc_count) {
+			power_acc_count--;
+		} else {
+			power_acc_count = divider;
+			level_message.value = power_acc / (divider / 4);	// Why ?
+			shared_memory.application_queue.push(level_message);
+			power_acc = 0;
+		}	
+    */    
+
+		sample = tone_gen.process(sample);			// Add Key_Tone or CTCSS subtone
+	    delta = sample * fm_delta;					// Modulate FM
 
 		phase += delta;
 		sphase = phase >> 24;
@@ -116,7 +165,7 @@ AM::AM() {
 	mode = Mode::AM;
 }
 
-void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer) {
+void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message) {
 	int32_t         sample = 0;
 	int8_t          re = 0, im = 0;
 	float		q = 0.0;

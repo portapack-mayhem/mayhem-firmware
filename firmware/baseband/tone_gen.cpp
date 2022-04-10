@@ -78,7 +78,7 @@ void ToneGen::configure(const uint32_t freq, const float tone_mix_weight, const 
 
 
 
-//  ----Original available core code from fw 1.3.1 ,  Working also well in Mic App CTSSS Gen from fw 1.4.0 onwards
+//  ----Original available core SW code from fw 1.3.1 ,  Working also well in Mic App CTCSS Gen from fw 1.4.0 onwards
 
 // Original direct-look-up synthesis algorithm with Fractional delta phase. It is OK
 // Delta  and Accumulator fase are stored in 32 bits (4 bytes), 1st top byte used as Modulo-256 Sine look-up table [index]

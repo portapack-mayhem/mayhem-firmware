@@ -35,8 +35,10 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	if (!configured) return;
 	
 	audio_input.read_audio_buffer(audio_buffer);
-	modulator->execute(audio_buffer, buffer);	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
-
+	modulator->set_gain_vumeter_beep(audio_gain, play_beep) ;	
+	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message);	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
+    
+   /*
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!play_beep) {
@@ -69,7 +71,8 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 			}
 			sample = beep_gen.process(0);    // TODO : Pending how to move inside modulate.cpp
 			
-		}
+		} 
+	 */ 	
 		
 		
        /* Previous  good reference FM moulation version, including "key tones CTCSS"  fw 1.3.1 
@@ -90,8 +93,8 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 		}
 		
 		buffer.p[i] = { re, im };
-		*/
-	}  
+		
+	}  */
 }
 
 void MicTXProcessor::on_message(const Message* const msg) {
