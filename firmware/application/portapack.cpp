@@ -199,7 +199,6 @@ static PortaPackModel portapack_model() {
 
 static audio::Codec* portapack_audio_codec() {
 	/* I2C ready OK, Automatic recognition of audio chip */
-	// return static_cast<audio::Codec*>(&audio_codec_wm8731);
 	return (audio_codec_wm8731.detected())
 		? static_cast<audio::Codec*>(&audio_codec_wm8731)
 		: static_cast<audio::Codec*>(&audio_codec_ak4951)
@@ -409,24 +408,10 @@ bool init() {
 	controls_init();
 
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-	
-	// audio::init(portapack_audio_codec());
-
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
 	clock_manager.enable_codec_clocks();
-	radio::init();	
-
-	// touch::adc::init();
-
-	// if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-	// 	shutdown_base();
-	// 	return false;
-	// }
-
-	// if( !hackrf::cpld::load_sram() ) {
-	// 	chSysHalt();
-	// }
+	radio::init();
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
