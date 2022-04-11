@@ -213,12 +213,10 @@ int read_file(std::string name) {
 
 static int load_config(){
 	int8_t value = portapack::persistent_memory::config_cpld();
-	if(value == 0){
-		if(sd_card::status() == sd_card::Status::Mounted){
-			int data = read_file("/hardware/settings.txt");
-			if(data != -1) {
-				return data;
-			}
+	if(value == 0 && sd_card::status() == sd_card::Status::Mounted){
+		int data = read_file("/hardware/settings.txt");
+		if(data != -1) {
+			return data;
 		}
 	}
 	return value;
