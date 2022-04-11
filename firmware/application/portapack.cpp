@@ -48,6 +48,10 @@ using asahi_kasei::ak4951::AK4951;
 #include "optional.hpp"
 #include "irq_controls.hpp"
 
+#include "file.hpp" 
+#include "sd_card.hpp"
+#include "string_format.hpp"
+
 namespace portapack {
 
 portapack::IO io {
@@ -177,6 +181,47 @@ enum class PortaPackModel {
 	R2_20170522,
 };
 
+static bool save_config(int8_t value){
+	persistent_memory::set_config_cpld(value);
+	if(sd_card::status() == sd_card::Status::Mounted){
+		make_new_directory("/hardware"); 
+		File file;
+		auto sucess = file.create("/hardware/settings.txt");
+		if(!sucess.is_valid()) {
+			file.write_line(to_string_dec_uint(value));
+		}
+	}
+	return true;
+}
+
+int read_file(std::string name) {
+	std::string return_string = "";
+	File file;
+	auto success = file.open(name);
+
+	if(!success.is_valid()) {
+		char one_char[1];
+		for(size_t pointer = 0; pointer < file.size() ; pointer++) {
+			file.seek(pointer);
+			file.read(one_char, 1);
+			return_string += one_char[0];
+		}
+		return std::stoi(return_string);
+	} 
+	return -1; 
+}
+
+static int load_config(){
+	int8_t value = portapack::persistent_memory::config_cpld();
+	if(value == 0 && sd_card::status() == sd_card::Status::Mounted){
+		int data = read_file("/hardware/settings.txt");
+		if(data != -1) {
+			return data;
+		}
+	}
+	return value;
+}
+
 static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
@@ -205,24 +250,24 @@ static audio::Codec* portapack_audio_codec() {
 static const portapack::cpld::Config& portapack_cpld_config() {
 	const auto switches_state = get_switches_state();
 	if (switches_state[(size_t)ui::KeyEvent::Up]){
-		persistent_memory::set_config_cpld(1);
+		save_config(1);
 		return portapack::cpld::rev_20170522::config;
 	}
 	if (switches_state[(size_t)ui::KeyEvent::Down]){
-		persistent_memory::set_config_cpld(2);
+		save_config(2);
 		return portapack::cpld::rev_20150901::config;
 	}
 	if (switches_state[(size_t)ui::KeyEvent::Left]){
-		persistent_memory::set_config_cpld(3);
+		save_config(3);
 	}
 	if (switches_state[(size_t)ui::KeyEvent::Select]){
-		persistent_memory::set_config_cpld(0);
+		save_config(0);
 	}
 	
 
-	if (portapack::persistent_memory::config_cpld() == 1) {
+	if (load_config() == 1) {
 		return portapack::cpld::rev_20170522::config;
-	} else if (portapack::persistent_memory::config_cpld() == 2) {
+	} else if (load_config() == 2) {
 		return portapack::cpld::rev_20150901::config;
 	}
 	return (portapack_model() == PortaPackModel::R2_20170522)
@@ -410,6 +455,10 @@ bool init() {
 	clock_manager.enable_codec_clocks();
 	radio::init();	
 
+	sdcStart(&SDCD1, nullptr);
+
+	sd_card::poll_inserted();
+
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		const auto switches_state = get_switches_state();
@@ -418,7 +467,7 @@ bool init() {
 		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
 		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
 		 */
-		if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
+		if (!switches_state[(size_t)ui::KeyEvent::Left] && load_config() != 3){
 			shutdown_base();
 			return false;
 		}
@@ -432,6 +481,7 @@ bool init() {
 	gpdma::controller.enable();
 
 	audio::init(portapack_audio_codec());
+	
 
 	return true;
 }
