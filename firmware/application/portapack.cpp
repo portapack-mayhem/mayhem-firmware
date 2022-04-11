@@ -465,16 +465,11 @@ bool init() {
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
 	
-	chThdSleepMilliseconds(10);
+	chThdSleepMilliseconds(1);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+		chThdSleepMilliseconds(1);
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		/*
-		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
-		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
-		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
-		 */
-		chThdSleepMilliseconds(10);
 		if (load_config() != 3){
 			shutdown_base();
 			return false;
