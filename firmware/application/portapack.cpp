@@ -425,8 +425,6 @@ bool init() {
 	// 	chSysHalt();
 	// }
 
-
-
 	configure_pins_portapack();
 	
 	portapack::io.init();
@@ -437,7 +435,6 @@ bool init() {
 
 	set_clock_config(clock_config_irc);
 	cgu::pll1::disable();
-	
 
 	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
 	 * core clock speed to the 110 - 204MHz range.
@@ -461,7 +458,6 @@ bool init() {
 		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
 	});
 
-	
 	cgu::pll1::enable();
 	while( !cgu::pll1::is_locked() );
 
