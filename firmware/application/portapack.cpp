@@ -181,14 +181,34 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		// if( audio_codec_wm8731.detected() ) {
-		// 	model = PortaPackModel::R1_20150901; // H1R1
-		// } else {
-		// 	model = PortaPackModel::R2_20170522; // H1R2, H2+
-		// }
-		model = PortaPackModel::R2_20170522;
+		const auto switches_state = get_switches_state();
+		if (switches_state[(size_t)ui::KeyEvent::Up]){
+			persistent_memory::set_config_cpld(1);
+			model = PortaPackModel::R2_20170522;
+		}
+		else if (switches_state[(size_t)ui::KeyEvent::Down]){
+			persistent_memory::set_config_cpld(2);
+			model = PortaPackModel::R1_20150901;
+		}
+		else if (switches_state[(size_t)ui::KeyEvent::Left]){
+			persistent_memory::set_config_cpld(3);
+		}
+		else if (switches_state[(size_t)ui::KeyEvent::Select]){
+			persistent_memory::set_config_cpld(0);
+		}
+		
 
-		//Here is what is causing the issue of the device not loadiong audio correctly
+		if (portapack::persistent_memory::config_cpld() == 1) {
+			model = PortaPackModel::R2_20170522;
+		} else if (portapack::persistent_memory::config_cpld() == 2) {
+			model = PortaPackModel::R1_20150901;
+		} else {
+			if( audio_codec_wm8731.detected() ) {
+				model = PortaPackModel::R1_20150901; // H1R1
+			} else {
+				model = PortaPackModel::R2_20170522; // H1R2, H2+
+			}
+		}
 	}
 
 	return model.value();
@@ -206,34 +226,35 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
-	const auto switches_state = get_switches_state();
-	if (switches_state[(size_t)ui::KeyEvent::Up]){
-		persistent_memory::set_config_cpld(1);
-		return portapack::cpld::rev_20170522::config;
-	}
-	if (switches_state[(size_t)ui::KeyEvent::Down]){
-		persistent_memory::set_config_cpld(2);
-		return portapack::cpld::rev_20150901::config;
-	}
-	if (switches_state[(size_t)ui::KeyEvent::Left]){
-		persistent_memory::set_config_cpld(3);
-	}
-	if (switches_state[(size_t)ui::KeyEvent::Select]){
-		persistent_memory::set_config_cpld(0);
-	}
+	// const auto switches_state = get_switches_state();
+	// if (switches_state[(size_t)ui::KeyEvent::Up]){
+	// 	persistent_memory::set_config_cpld(1);
+	// 	return portapack::cpld::rev_20170522::config;
+	// }
+	// if (switches_state[(size_t)ui::KeyEvent::Down]){
+	// 	persistent_memory::set_config_cpld(2);
+	// 	return portapack::cpld::rev_20150901::config;
+	// }
+	// if (switches_state[(size_t)ui::KeyEvent::Left]){
+	// 	persistent_memory::set_config_cpld(3);
+	// }
+	// if (switches_state[(size_t)ui::KeyEvent::Select]){
+	// 	persistent_memory::set_config_cpld(0);
+	// }
 	
 
-	if (portapack::persistent_memory::config_cpld() == 1) {
-		return portapack::cpld::rev_20170522::config;
-	} else if (portapack::persistent_memory::config_cpld() == 2) {
-		return portapack::cpld::rev_20150901::config;
-	}
+	// if (portapack::persistent_memory::config_cpld() == 1) {
+	// 	return portapack::cpld::rev_20170522::config;
+	// } else if (portapack::persistent_memory::config_cpld() == 2) {
+	// 	return portapack::cpld::rev_20150901::config;
+	// }
 	return (portapack_model() == PortaPackModel::R2_20170522)
 			? portapack::cpld::rev_20170522::config
 			: portapack::cpld::rev_20150901::config;
 }
 
 Backlight* backlight() {
+	// return static_cast<portapack::Backlight*>(&backlight_cat4004);
 	return (portapack_model() == PortaPackModel::R2_20170522)
 		? static_cast<portapack::Backlight*>(&backlight_cat4004) // R2_20170522
 		: static_cast<portapack::Backlight*>(&backlight_on_off); // R1_20150901
