@@ -137,6 +137,7 @@ Continuous (Fox-oring)
 
 #include "gcc.hpp"
 
+#include "file.hpp" 
 #include "sd_card.hpp"
 
 #include <string.h>
@@ -167,13 +168,24 @@ int main(void) {
 	if( portapack::init() ) {
 		portapack::display.init();
 
-		sdcStart(&SDCD1, nullptr);
+		// sdcStart(&SDCD1, nullptr);
+
+		// sd_card::poll_inserted();
 
 		// controls_init(); // Commented out as now happens in portapack.cpp
 		lcd_frame_sync_configure();
 		rtc_interrupt_enable();
 
 		event_loop();
+
+		// if(sd_card::status() == sd_card::Status::Mounted){
+		// 	make_new_directory("/2hardware"); 
+		// 	File file;                                                                     // Create File object
+		// 	auto sucess = file.append("/2hardware/1atest.txt");                         // Open file
+		// 	if(!sucess.is_valid()) {                                                       // 0 is success
+		// 		file.write_line("My Test string");
+		// 	}
+		// }
 
 		sdcDisconnect(&SDCD1);
 		sdcStop(&SDCD1);

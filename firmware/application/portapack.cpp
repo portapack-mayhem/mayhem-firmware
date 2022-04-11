@@ -48,6 +48,9 @@ using asahi_kasei::ak4951::AK4951;
 #include "optional.hpp"
 #include "irq_controls.hpp"
 
+#include "file.hpp" 
+#include "sd_card.hpp"
+
 namespace portapack {
 
 portapack::IO io {
@@ -217,6 +220,15 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 	}
 	if (switches_state[(size_t)ui::KeyEvent::Select]){
 		persistent_memory::set_config_cpld(0);
+	}
+
+	if(sd_card::status() == sd_card::Status::Mounted){
+		make_new_directory("/hardware"); 
+		File file;
+		auto sucess = file.append("/hardware/settings.txt");
+		if(!sucess.is_valid()) {
+			file.write_line("Some settings data to show here");
+		}
 	}
 	
 
@@ -410,6 +422,10 @@ bool init() {
 	clock_manager.enable_codec_clocks();
 	radio::init();	
 
+	sdcStart(&SDCD1, nullptr);
+
+	sd_card::poll_inserted();
+
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		const auto switches_state = get_switches_state();
@@ -432,6 +448,7 @@ bool init() {
 	gpdma::controller.enable();
 
 	audio::init(portapack_audio_codec());
+	
 
 	return true;
 }
