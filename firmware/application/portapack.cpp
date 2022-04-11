@@ -509,13 +509,12 @@ bool init() {
 		chSysHalt();
 	}
 
-	chThdSleepMilliseconds( 10 );
+	chThdSleepMilliseconds( 1 );
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
 
 	audio::init(portapack_audio_codec());
-	
 
 	return true;
 }

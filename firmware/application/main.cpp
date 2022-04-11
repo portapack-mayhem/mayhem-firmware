@@ -175,7 +175,6 @@ int main(void) {
 
 		event_loop();
 
-
 		sdcDisconnect(&SDCD1);
 		sdcStop(&SDCD1);
 
