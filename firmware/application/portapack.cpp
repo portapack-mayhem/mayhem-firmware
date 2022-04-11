@@ -196,18 +196,18 @@ static bool save_config(int8_t value){
 
 int read_file(std::string name) {
 	std::string return_string = "";
-    File file;
-    auto success = file.open(name);
+	File file;
+	auto success = file.open(name);
 
-    if(!success.is_valid()) {
-        char one_char[1];
-        for(size_t pointer = 0; pointer < file.size() ; pointer++) {
-            file.seek(pointer);
-            file.read(one_char, 1);
-            return_string += one_char[0];
-        }
+	if(!success.is_valid()) {
+		char one_char[1];
+		for(size_t pointer = 0; pointer < file.size() ; pointer++) {
+			file.seek(pointer);
+			file.read(one_char, 1);
+			return_string += one_char[0];
+		}
 		return std::stoi(return_string);
-    } 
+	} 
 	return -1; 
 }
 
