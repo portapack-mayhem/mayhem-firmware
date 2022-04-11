@@ -222,7 +222,7 @@ void EventDispatcher::handle_local_queue() {
 }
 
 void EventDispatcher::handle_rtc_tick() {
-	// sd_card::poll_inserted();
+	sd_card::poll_inserted();
 
 	portapack::temperature_logger.second_tick();
 	
