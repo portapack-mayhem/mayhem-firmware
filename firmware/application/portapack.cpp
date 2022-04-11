@@ -265,15 +265,6 @@ static const portapack::cpld::Config& portapack_cpld_config() {
 	if (switches_state[(size_t)ui::KeyEvent::Select]){
 		save_config(0);
 	}
-
-	// if(sd_card::status() == sd_card::Status::Mounted){
-	// 	make_new_directory("/hardware"); 
-	// 	File file;
-	// 	auto sucess = file.create("/hardware/settings.txt");
-	// 	if(!sucess.is_valid()) {
-	// 		file.write_line("Some settings data to show here");
-	// 	}
-	// }
 	
 
 	if (load_config() == 1) {
