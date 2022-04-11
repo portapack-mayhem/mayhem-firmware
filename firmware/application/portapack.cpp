@@ -486,7 +486,7 @@ bool init() {
 	clock_manager.enable_codec_clocks();
 	radio::init();
 	
-	chThdSleepMilliseconds( 1 );
+	chThdSleepMilliseconds(1);
 
 	sdcStart(&SDCD1, nullptr);
 
@@ -509,7 +509,7 @@ bool init() {
 		chSysHalt();
 	}
 
-	chThdSleepMilliseconds( 1 );
+	chThdSleepMilliseconds(1); // This delay seems to solve white noise audio issues
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
