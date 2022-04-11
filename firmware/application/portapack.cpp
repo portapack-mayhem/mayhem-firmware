@@ -477,20 +477,16 @@ bool init() {
 	touch::adc::init();
 	controls_init();
 
-	sdcStart(&SDCD1, nullptr);
-	sd_card::poll_inserted();
-
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
 	clock_manager.enable_codec_clocks();
 	radio::init();
-	
-	chThdSleepMilliseconds(1);
 
 	sdcStart(&SDCD1, nullptr);
-
 	sd_card::poll_inserted();
+	
+	chThdSleepMilliseconds(1);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
