@@ -485,44 +485,20 @@ bool init() {
 	sd_card::poll_inserted();
 
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-	
-	
-
 	clock_manager.enable_first_if_clock();
 	clock_manager.enable_second_if_clock();
 	clock_manager.enable_codec_clocks();
 	radio::init();
-
-	// touch::adc::init();
-	// controls_init();
-
 	
-
-	//not working
-
-	// if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-	// 	shutdown_base();
-	// 	return false;
-	// }
-	// audio::init(portapack_audio_codec());
-
-
-	// volatile uint32_t delay2 = 20000;
-	// while(delay2--);
-	
-	
+	chThdSleepMilliseconds( 1 );
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		const auto switches_state = get_switches_state();
 		/*
 		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
 		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
 		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
 		 */
-		// if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
-		// if (portapack::persistent_memory::config_cpld() != 3){
-		// if (!switches_state[(size_t)ui::KeyEvent::Left] && load_config() != 3){
 		if (load_config() != 3){
 			shutdown_base();
 			return false;
@@ -533,29 +509,7 @@ bool init() {
 		chSysHalt();
 	}
 
-	
-
-	// if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-	// 	// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-	// 	const auto switches_state = get_switches_state();
-	// 	/*
-	// 	 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
-	// 	 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
-	// 	 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
-	// 	 */
-	// 	if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
-	// 		shutdown_base();
-	// 		return false;
-	// 	}
-	// }
-
-	// if( !hackrf::cpld::load_sram() ) {
-	// 	chSysHalt();
-	// }
-
-	// audio::init(portapack_audio_codec());
-
-	// audio::init(portapack_audio_codec());
+	chThdSleepMilliseconds( 10 );
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
