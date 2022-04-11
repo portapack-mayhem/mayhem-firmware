@@ -492,6 +492,10 @@ bool init() {
 	
 	chThdSleepMilliseconds( 1 );
 
+	sdcStart(&SDCD1, nullptr);
+
+	sd_card::poll_inserted();
+
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		/*
@@ -515,6 +519,7 @@ bool init() {
 	gpdma::controller.enable();
 
 	audio::init(portapack_audio_codec());
+	
 
 	return true;
 }
