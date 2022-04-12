@@ -371,8 +371,8 @@ namespace ui
 
 	void EncodersView::start_bruteforce_tx()
 	{
-		text_status.set("Coming soon...");
 		stop_tx();
+		text_format.set("Coming soon...");
 	}
 
 	void EncodersView::tx()
