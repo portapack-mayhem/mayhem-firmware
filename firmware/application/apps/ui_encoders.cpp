@@ -361,13 +361,7 @@ namespace ui
 			// NOTE: done shoul always be true, so to assess if this is done, we need to check the
 			// index instead and compare it with the count
 
-			debruijn_index = debruijn_index + 1;
-
-			if (debruijn_index == debruijn_max)
-			{
-				stop_tx();
-				return;
-			}
+			debruijn_index++;
 
 			// emit the next packet
 			tick_debruijn_tx();
@@ -418,10 +412,17 @@ namespace ui
 
 	void EncodersView::tick_debruijn_tx()
 	{
+
 		if (debruijn_index == 0)
 		{
 			uint32_t debruijn_total = debruijn_seq.init(encoder_def->word_length);
 			debruijn_max = (debruijn_total / encoder_def->word_length) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
+		}
+
+		if (debruijn_index == debruijn_max)
+		{
+			stop_tx();
+			return;
 		}
 
 		debruijn_bits = debruijn_seq.compute(encoder_def->word_length); // bits sequence for this step
