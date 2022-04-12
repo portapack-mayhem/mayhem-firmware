@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2022 José Moreira
  *
  * This file is part of PortaPack.
  *
@@ -45,8 +46,9 @@ namespace ui
 		enum tx_modes
 		{
 			TX_MODE_IDLE = 0,
-			TX_MODE_SINGLE = 1,
-			TX_MODE_DEBRUIJN = 2
+			TX_MODE_MANUAL = 1,
+			TX_MODE_DEBRUIJN = 2,
+			TX_MODE_BRUTEFORCE = 3
 		};
 
 		void init_progress();
@@ -82,6 +84,7 @@ namespace ui
 		void start_single_tx();
 		void start_debruijn_tx();
 		void tick_debruijn_tx();
+		void start_bruteforce_tx();
 		void tx();
 		void stop_tx();
 		void on_tx_progress(const uint32_t progress, const bool done);
@@ -109,8 +112,9 @@ namespace ui
 			{5 * 8, 2 * 8},
 			8,
 			{
-				{"Single", TX_MODE_SINGLE},
+				{"Manual", TX_MODE_MANUAL},
 				{"DeBruijn", TX_MODE_DEBRUIJN},
+				{"Brtefrce", TX_MODE_BRUTEFORCE},
 			}};
 
 		NumberField field_clk{

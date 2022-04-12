@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2022 José Moreira
  *
  * This file is part of PortaPack.
  *
@@ -112,11 +113,14 @@ namespace ui
 			// Start transmitting
 			switch (options_txmethod.selected_index_value())
 			{
-			case TX_MODE_SINGLE:
+			case TX_MODE_MANUAL:
 				start_single_tx();
 				break;
 			case TX_MODE_DEBRUIJN:
 				start_debruijn_tx();
+				break;
+			case TX_MODE_BRUTEFORCE:
+				start_bruteforce_tx();
 				break;
 			}
 		};
@@ -138,12 +142,13 @@ namespace ui
 	{
 		switch (selected_tx_mode)
 		{
-		case TX_MODE_SINGLE:
+		case TX_MODE_MANUAL:
 			// show the symbols field
 			symfield_word.hidden(false);
 			// labels.hidden(false);
 			break;
 		case TX_MODE_DEBRUIJN:
+		case TX_MODE_BRUTEFORCE:
 			// hide the symbols field
 			symfield_word.hidden(true);
 			// labels[6].hidden(true);
@@ -262,7 +267,7 @@ namespace ui
 	{
 		std::string str_buffer;
 
-		if (tx_mode == TX_MODE_SINGLE)
+		if (tx_mode == TX_MODE_MANUAL)
 		{
 			str_buffer = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(repeat_min);
 			text_status.set(str_buffer);
@@ -285,7 +290,7 @@ namespace ui
 
 	void EncodersView::on_tx_progress(const uint32_t progress, const bool done)
 	{
-		if (tx_mode == TX_MODE_SINGLE)
+		if (tx_mode == TX_MODE_MANUAL)
 		{
 			if (done)
 			{
@@ -300,6 +305,11 @@ namespace ui
 
 		if (tx_mode == TX_MODE_DEBRUIJN)
 		{
+			// NOTE: done shoul always be true, so to assess if this is done, we need to check the
+			// index instead and compare it with the count
+
+			debruijn_index = debruijn_index + 1;
+
 			if (debruijn_index == debruijn_count)
 			{
 				stop_tx();
@@ -313,7 +323,7 @@ namespace ui
 
 	void EncodersView::start_single_tx()
 	{
-		tx_mode = TX_MODE_SINGLE;
+		tx_mode = TX_MODE_MANUAL;
 		repeat_index = 1;
 		repeat_min = encoder_def->repeat_min;
 		afsk_repeats = encoder_def->repeat_min;
@@ -351,6 +361,11 @@ namespace ui
 
 		generate_frame(true, debruijn_bits);
 		tx();
+	}
+
+	void EncodersView::start_bruteforce_tx()
+	{
+		text_status.set("Coming soon...");
 	}
 
 	void EncodersView::tx()
