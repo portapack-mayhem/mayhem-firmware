@@ -30,8 +30,8 @@
 namespace encoders
 {
 
-#define ENC_TYPES_COUNT 16
-#define ENCODER_UM3750 10
+#define ENC_TYPES_COUNT 20
+#define ENCODER_UM3750 14
 #define OOK_SAMPLERATE 2280000U
 #define OOK_DEFAULT_STEP 8 // 70 kHz carrier frequency
 
@@ -52,10 +52,81 @@ namespace encoders
 		uint32_t default_speed;	   // Default encoder clk frequency (often set by shitty resistor)
 		uint8_t repeat_min;		   // Minimum repeat count
 		uint16_t pause_symbols;	   // Length of pause between repeats in symbols
+		bool is_vuln_to_debruijn;  // True if the encoder is vulnerable to the debruijn attack
 	};
 
 	// Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !
 	constexpr encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
+		// generic 8-bit encoder
+		{
+			"g8bit",
+			"01",
+			"01",
+			32,
+			8,
+			{"1000", "1110"},
+			8,
+			"AAAAAAAA",
+			"",
+			25000,
+			50,
+			0,
+			true,
+		},
+
+		// generic 16-bit encoder
+		{
+			"g16bit",
+			"01",
+			"01",
+			32,
+			8,
+			{"1000", "1110"},
+			16,
+			"AAAAAAAAAAAAAAAA",
+			"",
+			25000,
+			50,
+			0,
+			true,
+		},
+
+		// generic 8-bit encoder reversed
+		{
+			"g8bitr",
+			"01",
+			"01",
+			32,
+			8,
+			{"1110",
+			 "1000"},
+			8,
+			"AAAAAAAA",
+			"",
+			25000,
+			50,
+			0,
+			true,
+		},
+
+		// generic 16-bit encoder reversed
+		{
+			"g16bitr",
+			"01",
+			"01",
+			32,
+			8,
+			{"1110",
+			 "1000"},
+			16,
+			"AAAAAAAAAAAAAAAA",
+			"",
+			25000,
+			50,
+			0,
+			true,
+		},
+
 		// Test OOK Doorbell
 		{
 			"Doorbel",
@@ -69,7 +140,9 @@ namespace encoders
 			"",
 			141260,
 			32, // repeat=32
-			32},
+			32,
+			true,
+		},
 
 		// Test OOK Garage Door
 		{
@@ -84,7 +157,9 @@ namespace encoders
 			"",
 			285000,
 			8, // repeat=230, looks like 8 is still working
-			70},
+			70,
+			true,
+		},
 
 		// PT2260-R2
 		{
@@ -100,6 +175,7 @@ namespace encoders
 			150000,
 			2,
 			0,
+			false, // as it contains a preamble and sync
 		},
 
 		// PT2260-R4
@@ -116,11 +192,12 @@ namespace encoders
 			150000,
 			2,
 			0,
+			false, // as it contains a preamble and sync
 		},
 
 		// PT2262
 		{
-			"2262   ",
+			"2262",
 			"01F",
 			"01F",
 			32,
@@ -132,11 +209,12 @@ namespace encoders
 			20000,
 			4,
 			0,
+			false, // as it contains a preamble and sync
 		},
 
 		// 16-bit ?
 		{
-			"16-bit ",
+			"16-bit",
 			"01",
 			"01",
 			32,
@@ -147,12 +225,13 @@ namespace encoders
 			"100000000000000000000",
 			25000,
 			50,
-			0, // ?
+			0,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// RT1527
 		{
-			"1527   ",
+			"1527",
 			"01",
 			"01",
 			128,
@@ -163,12 +242,13 @@ namespace encoders
 			"10000000000000000000000000000000",
 			100000,
 			4,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// HK526E
 		{
-			"526E   ",
+			"526E",
 			"01",
 			"01",
 			24,
@@ -180,11 +260,12 @@ namespace encoders
 			20000,
 			4,
 			10, // ?
+			true,
 		},
 
 		// HT12E
 		{
-			"12E    ",
+			"12E",
 			"01",
 			"01",
 			3,
@@ -195,12 +276,13 @@ namespace encoders
 			"0000000000000000000000000000000000001",
 			3000,
 			4,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// VD5026 13 bits ?
 		{
-			"5026   ",
+			"5026",
 			"0123",
 			"0123",
 			128,
@@ -211,12 +293,13 @@ namespace encoders
 			"000000000000000000000000000000000000000000000001", // ?
 			100000,
 			4,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// UM3750
 		{
-			"UM3750 ",
+			"UM3750",
 			"01",
 			"01",
 			96,
@@ -228,11 +311,12 @@ namespace encoders
 			100000,
 			4,
 			(3 * 12) - 6, // Compensates for pause delay bug in proc_ook
+			false,		  // as it contains a preamble and sync
 		},
 
 		// UM3758
 		{
-			"UM3758 ",
+			"UM3758",
 			"01F",
 			"01",
 			96,
@@ -243,12 +327,13 @@ namespace encoders
 			"1",
 			160000,
 			4,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// BA5104
 		{
-			"BA5104 ",
+			"BA5104",
 			"01",
 			"01",
 			3072,
@@ -259,12 +344,13 @@ namespace encoders
 			"",
 			455000,
 			4,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// MC145026
 		{
-			"145026 ",
+			"145026",
 			"01F",
 			"01",
 			16,
@@ -276,11 +362,12 @@ namespace encoders
 			455000,
 			2,
 			2,
+			false, // as it contains a preamble and sync
 		},
 
 		// HT6*** TODO: Add individual variations
 		{
-			"HT6*** ",
+			"HT6***",
 			"01F",
 			"01",
 			198,
@@ -291,12 +378,13 @@ namespace encoders
 			"0000000000000000000000000000000000001011001011001",
 			80000,
 			3,
-			10, // ?
+			10,	   // ?
+			false, // as it contains a preamble and sync
 		},
 
 		// TC9148
 		{
-			"TC9148 ",
+			"TC9148",
 			"01",
 			"01",
 			48,
@@ -311,6 +399,7 @@ namespace encoders
 			455000,
 			3,
 			10, // ?
+			true,
 		},
 	};
 

@@ -139,6 +139,7 @@ namespace ui
 		reset_symfield();
 		generate_frame();
 		draw_waveform();
+		check_if_encoder_is_vuln_to_debruijn();
 	}
 
 	void EncodersView::on_encoder_change(size_t index)
@@ -151,6 +152,22 @@ namespace ui
 		reset_symfield();
 		generate_frame();
 		draw_waveform();
+		check_if_encoder_is_vuln_to_debruijn();
+	}
+
+	void EncodersView::check_if_encoder_is_vuln_to_debruijn()
+	{
+		// if the selected tx method is DEBRUIJN, check if the encoder is vulnerable to DEBRUIJN
+		if (options_tx_method.selected_index_value() == TX_MODE_DEBRUIJN && !encoder_def->is_vuln_to_debruijn)
+		{
+			text_progress.set_style(&style_err);
+			text_progress.set("Not vuln to DeBruijn");
+			tx_view.set_focusable(false);
+			return;
+		}
+
+		tx_view.set_focusable(true);
+		update_progress();
 	}
 
 	void EncodersView::reset_symfield()
@@ -270,6 +287,7 @@ namespace ui
 
 		if (tx_mode == TX_MODE_MANUAL)
 		{
+			text_progress.set_style(&style_info);
 			str_buffer = "Manual: " + to_string_dec_uint(tx_repeat_index) + "/" + to_string_dec_uint(tx_repeat_min);
 			text_progress.set(str_buffer);
 			progress_bar.set_value(tx_repeat_index);
@@ -277,6 +295,7 @@ namespace ui
 
 		if (tx_mode == TX_MODE_DEBRUIJN)
 		{
+			text_progress.set_style(&style_info);
 			str_buffer = "De Bruijn: " + to_string_dec_uint(debruijn_index) + "/" + to_string_dec_uint(debruijn_max);
 			text_progress.set(str_buffer);
 			progress_bar.set_value(debruijn_index);
@@ -284,6 +303,7 @@ namespace ui
 
 		if (tx_mode == TX_MODE_BRUTEFORCE)
 		{
+			text_progress.set_style(&style_info);
 			str_buffer = to_string_dec_uint(bruteforce_index) + "/" + to_string_dec_uint(bruteforce_max) + " (" + to_string_dec_uint(tx_repeat_index) + "/" + to_string_dec_uint(tx_repeat_min) + ")";
 			text_progress.set(str_buffer);
 			progress_bar.set_value(debruijn_index);
@@ -291,6 +311,7 @@ namespace ui
 
 		if (tx_mode == TX_MODE_IDLE)
 		{
+			text_progress.set_style(&style_success);
 			text_progress.set("Ready");
 			progress_bar.set_value(0);
 		}
@@ -355,6 +376,14 @@ namespace ui
 
 	void EncodersView::start_debruijn_tx()
 	{
+		// before procesing, check if the encoder is vulneravle to Debruijn
+		if (!encoder_def->is_vulnerable_to_debruijn())
+		{
+			stop_tx();
+			check_if_encoder_is_vuln_to_debruijn();
+			return;
+		}
+
 		symfield_word.set_focusable(false);
 
 		debruijn_index = 0; // Scanning, and this is first time

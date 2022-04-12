@@ -43,6 +43,22 @@ namespace ui
 	private:
 		NavigationView &nav_;
 
+		static constexpr Style style_success{
+			.font = font::fixed_8x16,
+			.background = Color::black(),
+			.foreground = Color::green(),
+		};
+		static constexpr Style style_info{
+			.font = font::fixed_8x16,
+			.background = Color::black(),
+			.foreground = Color::green(),
+		};
+		static constexpr Style style_err{
+			.font = font::fixed_8x16,
+			.background = Color::black(),
+			.foreground = Color::red(),
+		};
+
 		enum tx_modes
 		{
 			TX_MODE_IDLE = 0,
@@ -88,6 +104,7 @@ namespace ui
 
 		void draw_waveform();
 		void reset_symfield();
+		void check_if_encoder_is_vuln_to_debruijn();
 
 		void start_single_tx();
 		void start_debruijn_tx();
