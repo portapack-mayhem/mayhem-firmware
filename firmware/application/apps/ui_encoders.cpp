@@ -242,9 +242,9 @@ namespace ui
 
 		if (mode == TX_MODE_MANUAL || mode == TX_MODE_BRUTEFORCE)
 		{
-			for (auto c : encoder_def->word_format)
+			for (i = 0; i < encoder_def->word_length; i++)
 			{
-				if (c == 'S')
+				if (encoder_def->word_format[i] == 'S')
 					frame_fragments += encoder_def->sync;
 				else
 					frame_fragments += get_encoder_bit_format(symfield_word.get_sym(i++));
@@ -259,14 +259,12 @@ namespace ui
 				return;
 			}
 
-			while (i < 32)
+			for (i = 0; i < 32; i++)
 			{
 				if (debruijn_bits & (1 << (31 - i)))
 					frame_fragments += get_encoder_bit_format(1);
 				else
 					frame_fragments += get_encoder_bit_format(0);
-
-				i++;
 			}
 		}
 	}
