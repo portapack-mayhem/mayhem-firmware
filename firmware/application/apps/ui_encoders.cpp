@@ -48,6 +48,7 @@ namespace ui
 					  &field_clk,
 					  &field_frameduration,
 					  &field_repeat_min,
+					  &checkbox_reversed,
 					  &symfield_word,
 					  &text_format,
 					  &waveform,
@@ -57,15 +58,43 @@ namespace ui
 
 		options_encoder.on_change = [this](size_t index, int32_t)
 		{
-			on_encoder_change(index);
+			encoder_def = &encoder_defs[index];
+
+			field_clk.set_value(encoder_def->default_speed / 1000);
+			field_repeat_min.set_value(encoder_def->repeat_min);
+
+			// reset reversed checkbox
+			checkbox_reversed.set_value(false);
+
+			// reset the debruijn sequencer in case the encoder is vulnerable
+			if (encoder_def->is_vuln_to_debruijn)
+			{
+				debruijn_seq.init(encoder_def->word_length);
+			}
+
+			reset_symfield();
+			generate_frame();
+			draw_waveform();
+			check_if_encoder_is_vuln_to_debruijn();
+			check_if_encoder_can_be_reversed();
 		};
 
-		options_tx_method.on_change = [this](size_t, int32_t selected)
+		options_tx_method.on_change = [this](size_t, int32_t)
 		{
-			on_tx_method_change(selected);
+			reset_symfield();
+			generate_frame();
+			draw_waveform();
+			check_if_encoder_is_vuln_to_debruijn();
 		};
 
 		symfield_word.on_change = [this]()
+		{
+			generate_frame();
+			draw_waveform();
+		};
+
+		// whenever the checkbox changes, rerender the waveform
+		checkbox_reversed.on_select = [this](Checkbox &, bool)
 		{
 			generate_frame();
 			draw_waveform();
@@ -129,30 +158,10 @@ namespace ui
 		options_encoder.set_selected_index(0);
 	}
 
-	void EncodersView::focus()
+	void
+	EncodersView::focus()
 	{
 		options_encoder.focus();
-	}
-
-	void EncodersView::on_tx_method_change(int32_t selected_tx_mode)
-	{
-		reset_symfield();
-		generate_frame();
-		draw_waveform();
-		check_if_encoder_is_vuln_to_debruijn();
-	}
-
-	void EncodersView::on_encoder_change(size_t index)
-	{
-		encoder_def = &encoder_defs[index];
-
-		field_clk.set_value(encoder_def->default_speed / 1000);
-		field_repeat_min.set_value(encoder_def->repeat_min);
-
-		reset_symfield();
-		generate_frame();
-		draw_waveform();
-		check_if_encoder_is_vuln_to_debruijn();
 	}
 
 	void EncodersView::check_if_encoder_is_vuln_to_debruijn()
@@ -168,6 +177,20 @@ namespace ui
 
 		tx_view.set_focusable(true);
 		update_progress();
+	}
+
+	void EncodersView::check_if_encoder_can_be_reversed()
+	{
+		// if the selected tx method is DEBRUIJN, check if the encoder is vulnerable to DEBRUIJN
+		if (sizeof(encoder_def->bit_format) == 2)
+		{
+			checkbox_reversed.set_focusable(true);
+		}
+		else
+		{
+			checkbox_reversed.set_focusable(false);
+			checkbox_reversed.set_value(false);
+		}
 	}
 
 	void EncodersView::reset_symfield()
@@ -200,11 +223,21 @@ namespace ui
 		text_format.set(format_string);
 	}
 
+	const char *EncodersView::get_encoder_bit_format(const uint32_t index)
+	{
+		if (checkbox_reversed.value())
+		{
+			return encoder_def->bit_format[(index == 0) ? 1 : 0];
+		}
+
+		return encoder_def->bit_format[index];
+	}
+
 	void EncodersView::generate_frame()
 	{
 		uint8_t i = 0;
 
-		int32_t mode = (tx_mode != TX_MODE_IDLE) ? tx_mode : options_tx_method.selected_index_value();
+		int32_t mode = (tx_mode != TX_MODE_IDLE) ? static_cast<int32_t>(tx_mode) : options_tx_method.selected_index_value();
 		frame_fragments.clear();
 
 		if (mode == TX_MODE_MANUAL || mode == TX_MODE_BRUTEFORCE)
@@ -214,35 +247,26 @@ namespace ui
 				if (c == 'S')
 					frame_fragments += encoder_def->sync;
 				else
-					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
+					frame_fragments += get_encoder_bit_format(symfield_word.get_sym(i++));
 			}
 		}
 
 		if (mode == TX_MODE_DEBRUIJN)
 		{ // De Bruijn!
-			char *word_ptr = (char *)encoder_def->word_format;
-			uint8_t pos = 0;
-
-			while (*word_ptr)
+			if (!encoder_def->is_vuln_to_debruijn)
 			{
+				frame_fragments = "0";
+				return;
+			}
 
-				if (*word_ptr == 'S')
-					frame_fragments += encoder_def->sync;
-				else if (*word_ptr == 'D')
-					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
+			while (i < 32)
+			{
+				if (debruijn_bits & (1 << (31 - i)))
+					frame_fragments += get_encoder_bit_format(1);
 				else
-				{
+					frame_fragments += get_encoder_bit_format(0);
 
-					if (debruijn_bits & (1 << (31 - pos)))
-						frame_fragments += encoder_def->bit_format[1];
-					else
-						frame_fragments += encoder_def->bit_format[0];
-
-					pos--;
-					i++; // Even while grabbing this address bit from debruijn, must move forward on the symfield, in case there is a 'D' further ahead
-				}
-
-				word_ptr++;
+				i++;
 			}
 		}
 	}
@@ -377,7 +401,7 @@ namespace ui
 	void EncodersView::start_debruijn_tx()
 	{
 		// before procesing, check if the encoder is vulneravle to Debruijn
-		if (!encoder_def->is_vulnerable_to_debruijn())
+		if (!encoder_def->is_vuln_to_debruijn)
 		{
 			stop_tx();
 			check_if_encoder_is_vuln_to_debruijn();
@@ -396,16 +420,11 @@ namespace ui
 	{
 		if (debruijn_index == 0)
 		{
-			debruijn_bits_per_packet = 0; // Determine the A (Addresses) bit quantity
-			for (uint8_t c = 0; c < encoder_def->word_length; c++)
-				if (encoder_def->word_format[c] == 'A') // Address bit found
-					debruijn_bits_per_packet++;
-
-			uint32_t debruijn_total = debruijn_seq.init(debruijn_bits_per_packet);
-			debruijn_max = (debruijn_total / debruijn_bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
+			uint32_t debruijn_total = debruijn_seq.init(encoder_def->word_length);
+			debruijn_max = (debruijn_total / encoder_def->word_length) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
 		}
 
-		debruijn_bits = debruijn_seq.compute(debruijn_bits_per_packet); // bits sequence for this step
+		debruijn_bits = debruijn_seq.compute(encoder_def->word_length); // bits sequence for this step
 
 		afsk_repeats = 1;
 		tx();
@@ -421,8 +440,8 @@ namespace ui
 		bruteforce_index = symfield_word.get_possibility();
 		bruteforce_max = symfield_word.get_possibilities_count();
 		init_progress();
-
 		afsk_repeats = tx_repeat_min;
+
 		tx();
 	}
 
@@ -467,8 +486,15 @@ namespace ui
 		text_progress.set("Done");
 		tx_view.set_transmitting(false);
 
+		if (encoder_def->is_vuln_to_debruijn)
+		{
+			debruijn_seq.init(encoder_def->word_length);
+		}
+
 		tx_repeat_index = 0;
 		tx_repeat_min = 0;
 		init_progress();
+		generate_frame();
+		draw_waveform();
 	}
 } /* namespace ui */

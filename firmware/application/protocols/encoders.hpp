@@ -30,8 +30,8 @@
 namespace encoders
 {
 
-#define ENC_TYPES_COUNT 20
-#define ENCODER_UM3750 14
+#define ENC_TYPES_COUNT 18
+#define ENCODER_UM3750 12
 #define OOK_SAMPLERATE 2280000U
 #define OOK_DEFAULT_STEP 8 // 70 kHz carrier frequency
 
@@ -82,42 +82,6 @@ namespace encoders
 			32,
 			8,
 			{"1000", "1110"},
-			16,
-			"AAAAAAAAAAAAAAAA",
-			"",
-			25000,
-			50,
-			0,
-			true,
-		},
-
-		// generic 8-bit encoder reversed
-		{
-			"g8bitr",
-			"01",
-			"01",
-			32,
-			8,
-			{"1110",
-			 "1000"},
-			8,
-			"AAAAAAAA",
-			"",
-			25000,
-			50,
-			0,
-			true,
-		},
-
-		// generic 16-bit encoder reversed
-		{
-			"g16bitr",
-			"01",
-			"01",
-			32,
-			8,
-			{"1110",
-			 "1000"},
 			16,
 			"AAAAAAAAAAAAAAAA",
 			"",
