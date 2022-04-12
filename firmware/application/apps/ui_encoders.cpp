@@ -408,6 +408,12 @@ namespace ui
 
 	void EncodersView::tick_bruteforce_tx()
 	{
+		if (bruteforce_index == bruteforce_max)
+		{
+			stop_tx();
+			return;
+		}
+
 		symfield_word.set_next_possibility();
 		bruteforce_index++;
 		tx();
