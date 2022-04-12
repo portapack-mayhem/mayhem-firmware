@@ -65,7 +65,7 @@ namespace ui
 
 		symfield_word.on_change = [this]()
 		{
-			generate_frame();
+			generate_frame(false, 0);
 		};
 
 		// Selecting input clock changes symbol and word duration
@@ -149,7 +149,8 @@ namespace ui
 	void EncodersConfigView::generate_frame(bool is_debruijn, uint32_t debruijn_bits)
 	{
 		uint8_t i = 0;
-		uint8_t pos = bits_per_packet; // Only need the De Bruijn populated positions inside bits_per_packet (0 based!);
+		uint8_t pos = 0;
+		// uint8_t pos = bits_per_packet; // Only need the De Bruijn populated positions inside bits_per_packet (0 based!);
 		char *word_ptr = (char *)encoder_def->word_format;
 
 		frame_fragments.clear();
@@ -182,19 +183,14 @@ namespace ui
 		draw_waveform();
 	}
 
-	uint8_t EncodersConfigView::repeat_min()
-	{
-		return encoder_def->repeat_min;
-	}
-
 	uint32_t EncodersConfigView::samples_per_bit()
 	{
 		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 	}
 
-	uint32_t EncodersConfigView::pause_symbols()
+	uint16_t EncodersConfigView::repeat_skip_bits_count()
 	{
-		return encoder_def->pause_symbols;
+		return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
 	}
 
 	void EncodersScanView::focus()
@@ -338,8 +334,8 @@ namespace ui
 			{
 				scan_index = 0;		 // Scanning, and this is first time
 				bits_per_packet = 0; // Determine the A (Addresses) bit quantity
-				for (uint8_t c = 0; c < encoder_def->word_length; c++)
-					if (encoder_def->word_format[c] == 'A') // Address bit found
+				for (uint8_t c = 0; c < view_config.encoder_def->word_length; c++)
+					if (view_config.encoder_def->word_format[c] == 'A') // Address bit found
 						bits_per_packet++;
 
 				uint32_t debruijn_total = debruijn_seq.init(bits_per_packet);
@@ -356,13 +352,13 @@ namespace ui
 
 			debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
 			update_progress();
-			generate_frame(true, debruijn_bits);
+			view_config.generate_frame(true, debruijn_bits);
 		}
 		else
 		{
 			tx_mode = SINGLE;
 			repeat_index = 1;
-			afsk_repeats = encoder_def->repeat_min;
+			afsk_repeats = view_config.encoder_def->repeat_min;
 			progressbar.set_max(afsk_repeats);
 			update_progress();
 
@@ -385,10 +381,10 @@ namespace ui
 		baseband::set_ook_data(
 			bitstream_length,
 			view_config.samples_per_bit(),
-			repeat_skip_bits_count(),
-			sin_carrier_step(),
+			view_config.repeat_skip_bits_count(),
+			view_config.encoder_def->sin_carrier_step,
 			afsk_repeats,
-			view_config.pause_symbols());
+			view_config.encoder_def->pause_symbols);
 	}
 
 	EncodersView::EncodersView(

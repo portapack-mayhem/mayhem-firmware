@@ -44,30 +44,18 @@ namespace ui
 
 		void focus() override;
 		void on_show() override;
-
-		uint8_t repeat_min();
-
-		uint32_t samples_per_bit();
-		uint16_t repeat_skip_bits_count();
-		uint16_t sin_carrier_step();
-		uint32_t pause_symbols();
-		void generate_frame(bool is_debruijn, uint32_t debruijn_bits);
+		void generate_frame(const bool is_debruijn, const uint32_t debruijn_bits);
 
 		std::string frame_fragments = "0";
 
-	private:
-		bool abort_scan = false;
-		uint8_t scan_count;
-		uint8_t scan_index;
-		double scan_progress;
-		int16_t waveform_buffer[550];
+		uint32_t samples_per_bit();
+		uint16_t repeat_skip_bits_count();
 		const encoder_def_t *encoder_def{};
-		uint8_t enc_type = 0;
-		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
-		char str[16];
 
-		uint8_t afsk_repeats;
-		de_bruijn debruijn_seq;
+	private:
+		int16_t waveform_buffer[550];
+		uint8_t enc_type = 0;
+		char str[16];
 
 		void draw_waveform();
 		void on_bitfield();
@@ -156,8 +144,14 @@ namespace ui
 		~EncodersView();
 
 		void focus() override;
+		void update_progress();
 
 		std::string title() const override { return "OOK transmit"; };
+
+		uint8_t scan_index;
+		uint8_t scan_count;
+		double scan_progress;
+		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
 
 	private:
 		NavigationView &nav_;
@@ -170,10 +164,13 @@ namespace ui
 		};
 
 		tx_modes tx_mode = IDLE;
-		uint8_t repeat_index{0};
 		uint8_t repeat_min{0};
+		uint8_t repeat_index{0};
+		bool abort_scan = false;
 
-		void update_progress();
+		uint8_t afsk_repeats;
+		de_bruijn debruijn_seq;
+
 		void start_tx(const bool scan);
 		void on_tx_progress(const uint32_t progress, const bool done);
 

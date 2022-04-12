@@ -30,11 +30,11 @@
 namespace encoders
 {
 
-#define ENC_TYPES_COUNT 14
+#define ENC_TYPES_COUNT 16
 #define OOK_SAMPLERATE 2280000U
 #define OOK_DEFAULT_STEP 8 // 70 kHz carrier frequency
 
-#define ENCODER_UM3750 8 // TODO: should this be 10?
+#define ENCODER_UM3750 10
 
 	size_t make_bitstream(std::string &fragments);
 	void bitstream_append(size_t &bitstream_length, uint32_t bit_count, uint32_t bits);
@@ -334,7 +334,8 @@ namespace encoders
 			3,
 			10, // ?
 			false,
-			OOK_DEFAULT_STEP};
+			OOK_DEFAULT_STEP},
+	};
 
 } /* namespace encoders */
 

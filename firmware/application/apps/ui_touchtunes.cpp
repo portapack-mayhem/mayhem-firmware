@@ -161,12 +161,14 @@ void TouchTunesView::start_tx(const uint32_t button_index) {
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
-	
+
 	baseband::set_ook_data(
 		bitstream_length,
-		OOK_SAMPLERATE / 1766,	// 560us
+		OOK_SAMPLERATE / 1766, // 560us
+		0,
+		8, // 70 kHz carrier frequency, not sure what it was before, to be defined
 		TOUCHTUNES_REPEATS,
-		100						// Pause
+		100 // Pause
 	);
 }
 
