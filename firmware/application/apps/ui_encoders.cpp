@@ -136,19 +136,6 @@ namespace ui
 
 	void EncodersView::on_tx_method_change(int32_t selected_tx_mode)
 	{
-		switch (selected_tx_mode)
-		{
-		case TX_MODE_MANUAL:
-			// show the symbols field
-			symfield_word.set_focusable(true);
-			break;
-		case TX_MODE_DEBRUIJN:
-		case TX_MODE_BRUTEFORCE:
-			// hide the symbols field
-			symfield_word.set_focusable(false);
-			break;
-		}
-
 		reset_symfield();
 		generate_frame();
 		draw_waveform();
@@ -368,6 +355,8 @@ namespace ui
 
 	void EncodersView::start_debruijn_tx()
 	{
+		symfield_word.set_focusable(false);
+
 		debruijn_index = 0; // Scanning, and this is first time
 		tx_mode = TX_MODE_DEBRUIJN;
 		init_progress();
@@ -395,6 +384,8 @@ namespace ui
 
 	void EncodersView::start_bruteforce_tx()
 	{
+		symfield_word.set_focusable(false);
+
 		tx_mode = TX_MODE_BRUTEFORCE;
 		tx_repeat_index = 1;
 		tx_repeat_min = field_repeat_min.value();
@@ -441,6 +432,7 @@ namespace ui
 
 	void EncodersView::stop_tx()
 	{
+		symfield_word.set_focusable(true);
 		transmitter_model.disable();
 		tx_mode = TX_MODE_IDLE;
 		text_progress.set("Done");
