@@ -53,7 +53,7 @@ namespace ui
 
 		void init_progress();
 		void update_progress();
-		void generate_frame(const bool is_debruijn, const uint32_t debruijn_bits);
+		void generate_frame();
 
 		std::string frame_fragments = "0";
 
@@ -63,6 +63,7 @@ namespace ui
 
 		uint8_t debruijn_index;
 		uint8_t debruijn_count;
+		uint32_t debruijn_bits;
 		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
 
 		tx_modes tx_mode = TX_MODE_IDLE;

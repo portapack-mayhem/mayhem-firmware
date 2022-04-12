@@ -76,7 +76,7 @@ namespace ui
 
 		symfield_word.on_change = [this]()
 		{
-			generate_frame(false, 0);
+			generate_frame();
 		};
 
 		// Selecting input clock changes symbol and word duration
@@ -190,7 +190,7 @@ namespace ui
 
 		text_format.set(format_string);
 
-		generate_frame(false, 0);
+		generate_frame();
 	}
 
 	void EncodersView::draw_waveform()
@@ -204,7 +204,7 @@ namespace ui
 		waveform.set_dirty();
 	}
 
-	void EncodersView::generate_frame(bool is_debruijn, uint32_t debruijn_bits)
+	void EncodersView::generate_frame()
 	{
 		uint8_t i = 0;
 		uint8_t pos = 0;
@@ -221,9 +221,12 @@ namespace ui
 				frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
 			else
 			{
-				if (!is_debruijn)															// single tx
+				if (tx_mode == TX_MODE_MANUAL)
+				{
 					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get the address from user's configured symfield
-				else
+				}
+
+				if (tx_mode == TX_MODE_DEBRUIJN)
 				{ // De Bruijn!
 					if (debruijn_bits & (1 << (31 - pos)))
 						frame_fragments += encoder_def->bit_format[1];
@@ -232,6 +235,11 @@ namespace ui
 
 					pos--;
 					i++; // Even while grabbing this address bit from debruijn, must move forward on the symfield, in case there is a 'D' further ahead
+				}
+
+				if (tx_mode == TX_MODE_BRUTEFORCE)
+				{
+					// TODO: bruteforce
 				}
 			}
 			word_ptr++;
@@ -278,7 +286,7 @@ namespace ui
 		{
 			str_buffer = to_string_dec_uint(debruijn_index) + "/" + to_string_dec_uint(debruijn_count);
 			text_status.set(str_buffer);
-			progressbar.set_value(repeat_index);
+			progressbar.set_value(debruijn_index);
 		}
 
 		if (tx_mode == TX_MODE_IDLE)
@@ -329,7 +337,7 @@ namespace ui
 		afsk_repeats = encoder_def->repeat_min;
 		init_progress();
 
-		generate_frame(false, 0);
+		generate_frame();
 		tx();
 	}
 
@@ -343,8 +351,6 @@ namespace ui
 
 	void EncodersView::tick_debruijn_tx()
 	{
-		uint32_t debruijn_bits;
-
 		if (debruijn_index == 0)
 		{
 			bits_per_packet = 0; // Determine the A (Addresses) bit quantity
@@ -359,13 +365,14 @@ namespace ui
 		afsk_repeats = 1;
 		debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
 
-		generate_frame(true, debruijn_bits);
+		generate_frame();
 		tx();
 	}
 
 	void EncodersView::start_bruteforce_tx()
 	{
 		text_status.set("Coming soon...");
+		stop_tx();
 	}
 
 	void EncodersView::tx()
