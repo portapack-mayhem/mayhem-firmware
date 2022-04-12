@@ -68,7 +68,7 @@ namespace ui
 			on_type_change(index);
 		};
 
-		options_txmethod.on_change = [this](size_t index, int32_t selected)
+		options_txmethod.on_change = [this](size_t, int32_t selected)
 		{
 			on_tx_method_change(selected);
 		};
@@ -203,7 +203,6 @@ namespace ui
 	{
 		uint8_t i = 0;
 		uint8_t pos = 0;
-		// uint8_t pos = bits_per_packet; // Only need the De Bruijn populated positions inside bits_per_packet (0 based!);
 		char *word_ptr = (char *)encoder_def->word_format;
 
 		frame_fragments.clear();
@@ -252,6 +251,13 @@ namespace ui
 		baseband::shutdown();
 	}
 
+	// NOTE: should be called after changing the tx_mode
+	void EncodersView::init_progress()
+	{
+		progressbar.set_max(repeat_min);
+		update_progress();
+	}
+
 	void EncodersView::update_progress()
 	{
 		std::string str_buffer;
@@ -262,7 +268,15 @@ namespace ui
 			text_status.set(str_buffer);
 			progressbar.set_value(repeat_index);
 		}
-		else
+
+		if (tx_mode == TX_MODE_DEBRUIJN)
+		{
+			str_buffer = to_string_dec_uint(debruijn_index) + "/" + to_string_dec_uint(debruijn_count);
+			text_status.set(str_buffer);
+			progressbar.set_value(repeat_index);
+		}
+
+		if (tx_mode == TX_MODE_IDLE)
 		{
 			text_status.set("Ready");
 			progressbar.set_value(0);
@@ -271,81 +285,79 @@ namespace ui
 
 	void EncodersView::on_tx_progress(const uint32_t progress, const bool done)
 	{
-		// char str[16];
-
-		if (!done)
+		if (tx_mode == TX_MODE_SINGLE)
 		{
+			if (done)
+			{
+				stop_tx();
+				return;
+			}
+
 			// Repeating...
 			repeat_index = progress + 1;
 			update_progress();
 		}
-		else
+
+		if (tx_mode == TX_MODE_DEBRUIJN)
 		{
-			transmitter_model.disable();
-			tx_mode = TX_MODE_IDLE;
-			text_status.set("Done");
-			progressbar.set_value(0);
-			tx_view.set_transmitting(false);
+			if (debruijn_index == debruijn_count)
+			{
+				stop_tx();
+				return;
+			}
+
+			// emit the next packet
+			tick_debruijn_tx();
 		}
+	}
+
+	void EncodersView::start_single_tx()
+	{
+		tx_mode = TX_MODE_SINGLE;
+		repeat_index = 1;
+		repeat_min = encoder_def->repeat_min;
+		afsk_repeats = encoder_def->repeat_min;
+		init_progress();
+
+		generate_frame(false, 0);
+		tx();
 	}
 
 	void EncodersView::start_debruijn_tx()
 	{
-		size_t bitstream_length = 0;
+		debruijn_index = 0; // Scanning, and this is first time
+		tx_mode = TX_MODE_DEBRUIJN;
+		init_progress();
+		tick_debruijn_tx();
+	}
+
+	void EncodersView::tick_debruijn_tx()
+	{
 		uint32_t debruijn_bits;
 
-		if (tx_mode != TX_MODE_DEBRUIJN)
+		if (debruijn_index == 0)
 		{
-			scan_index = 0;		 // Scanning, and this is first time
 			bits_per_packet = 0; // Determine the A (Addresses) bit quantity
 			for (uint8_t c = 0; c < encoder_def->word_length; c++)
 				if (encoder_def->word_format[c] == 'A') // Address bit found
 					bits_per_packet++;
 
 			uint32_t debruijn_total = debruijn_seq.init(bits_per_packet);
-			scan_count = (debruijn_total / bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
-
-			scan_progress = 1;
-			repeat_index = 1;
-			afsk_repeats = 1; // on scanning send just one time each code //encoder_def->repeat_min;
-			tx_mode = TX_MODE_DEBRUIJN;
-			progressbar.set_max(scan_count * afsk_repeats);
+			debruijn_count = (debruijn_total / bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
 		}
-		// euquiq: maybe here goes an else, and get the debruijn bits above for the first time and do a debruijn_bits>>=1 to clear the last bit which apparently the debruijn function is placing
-		// in extra, the first time it is called. On the else, again just issue the same command as below, loading the debruikn_bits normally.
 
+		afsk_repeats = 1;
 		debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
-		update_progress();
+
 		generate_frame(true, debruijn_bits);
-
-		bitstream_length = make_bitstream(frame_fragments);
-
-		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
-		transmitter_model.set_rf_amp(true);
-		transmitter_model.set_baseband_bandwidth(1750000);
-		transmitter_model.enable();
-
-		baseband::set_ook_data(
-			bitstream_length,
-			samples_per_bit(),
-			repeat_skip_bits_count(),
-			encoder_def->sin_carrier_step,
-			afsk_repeats,
-			encoder_def->pause_symbols);
+		tx();
 	}
 
-	void EncodersView::start_single_tx()
+	void EncodersView::tx()
 	{
-		size_t bitstream_length = 0;
-
-		tx_mode = TX_MODE_SINGLE;
-		repeat_index = 1;
-		afsk_repeats = encoder_def->repeat_min;
-		progressbar.set_max(afsk_repeats);
 		update_progress();
 
-		generate_frame(false, 0);
-		bitstream_length = make_bitstream(frame_fragments);
+		size_t bitstream_length = make_bitstream(frame_fragments);
 
 		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
 		transmitter_model.set_rf_amp(true);
@@ -361,4 +373,15 @@ namespace ui
 			encoder_def->pause_symbols);
 	}
 
+	void EncodersView::stop_tx()
+	{
+		transmitter_model.disable();
+		tx_mode = TX_MODE_IDLE;
+		text_status.set("Done");
+		tx_view.set_transmitting(false);
+
+		repeat_index = 0;
+		repeat_min = 0;
+		init_progress();
+	}
 } /* namespace ui */

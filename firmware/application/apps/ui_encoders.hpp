@@ -49,6 +49,7 @@ namespace ui
 			TX_MODE_DEBRUIJN = 2
 		};
 
+		void init_progress();
 		void update_progress();
 		void generate_frame(const bool is_debruijn, const uint32_t debruijn_bits);
 
@@ -58,9 +59,8 @@ namespace ui
 		uint16_t repeat_skip_bits_count();
 		const encoder_def_t *encoder_def{};
 
-		uint8_t scan_index;
-		uint8_t scan_count;
-		double scan_progress;
+		uint8_t debruijn_index;
+		uint8_t debruijn_count;
 		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
 
 		tx_modes tx_mode = TX_MODE_IDLE;
@@ -81,6 +81,9 @@ namespace ui
 		void on_tx_method_change(int32_t selected_tx_mode);
 		void start_single_tx();
 		void start_debruijn_tx();
+		void tick_debruijn_tx();
+		void tx();
+		void stop_tx();
 		void on_tx_progress(const uint32_t progress, const bool done);
 
 		Rect view_rect = {0, 4 * 8, 240, 168};
