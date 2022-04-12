@@ -21,7 +21,6 @@
  */
 
 #include "ui.hpp"
-#include "ui_tabview.hpp"
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
@@ -31,19 +30,26 @@ using namespace encoders;
 
 namespace ui
 {
-
-	class EncodersConfigView : public View
+	class EncodersView : public View
 	{
 	public:
-		EncodersConfigView(NavigationView &nav, Rect parent_rect);
-
-		EncodersConfigView(const EncodersConfigView &) = delete;
-		EncodersConfigView(EncodersConfigView &&) = delete;
-		EncodersConfigView &operator=(const EncodersConfigView &) = delete;
-		EncodersConfigView &operator=(EncodersConfigView &&) = delete;
+		EncodersView(NavigationView &nav);
+		~EncodersView();
 
 		void focus() override;
-		void on_show() override;
+		std::string title() const override { return "OOK transmit"; };
+
+	private:
+		NavigationView &nav_;
+
+		enum tx_modes
+		{
+			TX_MODE_IDLE = 0,
+			TX_MODE_SINGLE = 1,
+			TX_MODE_DEBRUIJN = 2
+		};
+
+		void update_progress();
 		void generate_frame(const bool is_debruijn, const uint32_t debruijn_bits);
 
 		std::string frame_fragments = "0";
@@ -52,7 +58,19 @@ namespace ui
 		uint16_t repeat_skip_bits_count();
 		const encoder_def_t *encoder_def{};
 
-	private:
+		uint8_t scan_index;
+		uint8_t scan_count;
+		double scan_progress;
+		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
+
+		tx_modes tx_mode = TX_MODE_IDLE;
+		uint8_t repeat_min{0};
+		uint8_t repeat_index{0};
+		bool abort_scan = false;
+
+		uint8_t afsk_repeats;
+		de_bruijn debruijn_seq;
+
 		int16_t waveform_buffer[550];
 		uint8_t enc_type = 0;
 		char str[16];
@@ -60,20 +78,37 @@ namespace ui
 		void draw_waveform();
 		void on_bitfield();
 		void on_type_change(size_t index);
+		void on_tx_method_change(int32_t selected_tx_mode);
+		void start_single_tx();
+		void start_debruijn_tx();
+		void on_tx_progress(const uint32_t progress, const bool done);
+
+		Rect view_rect = {0, 4 * 8, 240, 168};
 
 		Labels labels{
 			{{1 * 8, 0}, "Type:", Color::light_grey()},
+			{{1 * 8, 2 * 8}, "TX:", Color::light_grey()},
 			{{16 * 8, 0}, "Clk:", Color::light_grey()},
 			{{24 * 8, 0}, "kHz", Color::light_grey()},
 			{{14 * 8, 2 * 8}, "Frame:", Color::light_grey()},
 			{{26 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{2 * 8, 4 * 8}, "Symbols:", Color::light_grey()},
-			{{1 * 8, 11 * 8}, "Waveform:", Color::light_grey()}};
+			{{1 * 8, 4 * 8}, "Symbols:", Color::light_grey()},
+			{{1 * 8, 20 * 8}, "Waveform:", Color::light_grey()}};
 
-		OptionsField options_enctype{// Options are loaded at runtime
-									 {6 * 8, 0},
-									 7,
-									 {}};
+		OptionsField options_enctype{
+			{7 * 8, 0},
+			7,
+			{
+				// Options are loaded at runtime
+			}};
+
+		OptionsField options_txmethod{
+			{5 * 8, 2 * 8},
+			8,
+			{
+				{"Single", TX_MODE_SINGLE},
+				{"DeBruijn", TX_MODE_DEBRUIJN},
+			}};
 
 		NumberField field_clk{
 			{21 * 8, 0},
@@ -90,121 +125,28 @@ namespace ui
 			' '};
 
 		SymField symfield_word{
-			{2 * 8, 6 * 8},
+			{1 * 8, 6 * 8},
 			20,
 			SymField::SYMFIELD_DEF};
 
 		Text text_format{
-			{2 * 8, 8 * 8, 24 * 8, 16},
+			{1 * 8, 8 * 8, 25 * 8, 16},
 			""};
 
 		Waveform waveform{
-			{0, 14 * 8, 240, 32},
+			{0, 10 * 16, 240, 32},
 			waveform_buffer,
 			0,
 			0,
 			true,
 			Color::yellow()};
-	};
-
-	class EncodersScanView : public View
-	{
-	public:
-		EncodersScanView(NavigationView &nav, Rect parent_rect);
-
-		void focus() override;
-
-	private:
-		Labels labels{
-			{{1 * 8, 1 * 8}, "Coming soon...", Color::light_grey()}};
-
-		// DEBUG
-		NumberField field_debug{
-			{1 * 8, 6 * 8},
-			2,
-			{3, 16},
-			1,
-			' '};
-
-		// DEBUG
-		Text text_debug{
-			{1 * 8, 8 * 8, 24 * 8, 16},
-			""};
-
-		// DEBUG
-		Text text_length{
-			{1 * 8, 10 * 8, 24 * 8, 16},
-			""};
-	};
-
-	class EncodersView : public View
-	{
-	public:
-		EncodersView(NavigationView &nav);
-		~EncodersView();
-
-		void focus() override;
-		void update_progress();
-
-		std::string title() const override { return "OOK transmit"; };
-
-		uint8_t scan_index;
-		uint8_t scan_count;
-		double scan_progress;
-		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
-
-	private:
-		NavigationView &nav_;
-
-		enum tx_modes
-		{
-			IDLE = 0,
-			SINGLE,
-			SCAN
-		};
-
-		tx_modes tx_mode = IDLE;
-		uint8_t repeat_min{0};
-		uint8_t repeat_index{0};
-		bool abort_scan = false;
-
-		uint8_t afsk_repeats;
-		de_bruijn debruijn_seq;
-
-		void start_tx(const bool scan);
-		void on_tx_progress(const uint32_t progress, const bool done);
-
-		/*const Style style_address {
-			.font = font::fixed_8x16,
-			.background = Color::black(),
-			.foreground = Color::red(),
-		};
-		const Style style_data {
-			.font = font::fixed_8x16,
-			.background = Color::black(),
-			.foreground = Color::blue(),
-		};*/
-
-		Rect view_rect = {0, 4 * 8, 240, 168};
-
-		EncodersConfigView view_config{nav_, view_rect};
-		EncodersScanView view_scan{nav_, view_rect};
-
-		TabView tab_view{
-			{"Config", Color::cyan(), &view_config},
-			{"Scan", Color::green(), &view_scan},
-		};
 
 		Text text_status{
-			{2 * 8, 13 * 16, 128, 16},
+			{1 * 8, 13 * 16, 128, 16},
 			"Ready"};
 
-		Button button_scan{
-			{8 * 8, 11 * 16, 120, 28},
-			"DE BRUIJN TX"};
-
 		ProgressBar progressbar{
-			{2 * 8, 13 * 16 + 20, 208, 16}};
+			{1 * 8, 13 * 16 + 20, 224, 16}};
 
 		TransmitterView tx_view{
 			16 * 16,

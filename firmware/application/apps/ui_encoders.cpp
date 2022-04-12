@@ -30,38 +30,48 @@ using namespace portapack;
 namespace ui
 {
 
-	EncodersConfigView::EncodersConfigView(
-		NavigationView &, Rect parent_rect)
+	EncodersView::EncodersView(
+		NavigationView &nav) : nav_{nav}
 	{
+		baseband::run_image(portapack::spi_flash::image_tag_ook);
+
 		using option_t = std::pair<std::string, int32_t>;
 		std::vector<option_t> enc_options;
 		size_t i;
 
-		set_parent_rect(parent_rect);
-		hidden(true);
-
 		// Default encoder def
 		encoder_def = &encoder_defs[0];
 
+		// Load encoder types in option field
+		for (i = 0; i < ENC_TYPES_COUNT; i++)
+		{
+			enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+		}
+
+		options_enctype.set_options(enc_options);
+		options_enctype.set_selected_index(0);
+
 		add_children({&labels,
 					  &options_enctype,
+					  &options_txmethod,
 					  &field_clk,
 					  &field_frameduration,
 					  &symfield_word,
 					  &text_format,
-					  &waveform});
-
-		// Load encoder types in option field
-		for (i = 0; i < ENC_TYPES_COUNT; i++)
-			enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+					  &waveform,
+					  &text_status,
+					  &progressbar,
+					  &tx_view});
 
 		options_enctype.on_change = [this](size_t index, int32_t)
 		{
 			on_type_change(index);
 		};
 
-		options_enctype.set_options(enc_options);
-		options_enctype.set_selected_index(0);
+		options_txmethod.on_change = [this](size_t index, int32_t selected)
+		{
+			on_tx_method_change(selected);
+		};
 
 		symfield_word.on_change = [this]()
 		{
@@ -85,14 +95,63 @@ namespace ui
 			if (new_value != field_clk.value())
 				field_clk.set_value(1000000 / new_value, false);
 		};
+
+		tx_view.on_edit_frequency = [this, &nav]()
+		{
+			auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+			new_view->on_changed = [this](rf::Frequency f)
+			{
+				transmitter_model.set_tuning_frequency(f);
+			};
+		};
+
+		tx_view.on_start = [this]()
+		{
+			tx_view.set_transmitting(true);
+
+			// Start transmitting
+			switch (options_txmethod.selected_index_value())
+			{
+			case TX_MODE_SINGLE:
+				start_single_tx();
+				break;
+			case TX_MODE_DEBRUIJN:
+				start_debruijn_tx();
+				break;
+			}
+		};
+
+		tx_view.on_stop = [this]()
+		{
+			tx_view.set_transmitting(false);
+		};
+
+		on_type_change(0);
 	}
 
-	void EncodersConfigView::focus()
+	void EncodersView::focus()
 	{
 		options_enctype.focus();
 	}
 
-	void EncodersConfigView::on_type_change(size_t index)
+	void EncodersView::on_tx_method_change(int32_t selected_tx_mode)
+	{
+		switch (selected_tx_mode)
+		{
+		case TX_MODE_SINGLE:
+			// show the symbols field
+			symfield_word.hidden(false);
+			// labels.hidden(false);
+			break;
+		case TX_MODE_DEBRUIJN:
+			// hide the symbols field
+			symfield_word.hidden(true);
+			// labels[6].hidden(true);
+			break;
+		}
+	}
+
+	void EncodersView::on_type_change(size_t index)
 	{
 		std::string format_string = "";
 		size_t word_length;
@@ -129,13 +188,7 @@ namespace ui
 		generate_frame(false, 0);
 	}
 
-	void EncodersConfigView::on_show()
-	{
-		options_enctype.set_selected_index(0);
-		on_type_change(0);
-	}
-
-	void EncodersConfigView::draw_waveform()
+	void EncodersView::draw_waveform()
 	{
 		size_t length = frame_fragments.length();
 
@@ -146,7 +199,7 @@ namespace ui
 		waveform.set_dirty();
 	}
 
-	void EncodersConfigView::generate_frame(bool is_debruijn, uint32_t debruijn_bits)
+	void EncodersView::generate_frame(bool is_debruijn, uint32_t debruijn_bits)
 	{
 		uint8_t i = 0;
 		uint8_t pos = 0;
@@ -167,7 +220,7 @@ namespace ui
 				if (!is_debruijn)															// single tx
 					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get the address from user's configured symfield
 				else
-				{ // De BRuijn!
+				{ // De Bruijn!
 					if (debruijn_bits & (1 << (31 - pos)))
 						frame_fragments += encoder_def->bit_format[1];
 					else
@@ -183,55 +236,14 @@ namespace ui
 		draw_waveform();
 	}
 
-	uint32_t EncodersConfigView::samples_per_bit()
+	uint32_t EncodersView::samples_per_bit()
 	{
 		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 	}
 
-	uint16_t EncodersConfigView::repeat_skip_bits_count()
+	uint16_t EncodersView::repeat_skip_bits_count()
 	{
 		return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
-	}
-
-	void EncodersScanView::focus()
-	{
-		field_debug.focus();
-	}
-
-	EncodersScanView::EncodersScanView(
-		NavigationView &, Rect parent_rect)
-	{
-		set_parent_rect(parent_rect);
-		hidden(true);
-
-		add_children({&labels,
-					  &field_debug,
-					  &text_debug,
-					  &text_length});
-
-		// DEBUG
-		field_debug.on_change = [this](int32_t value)
-		{
-			uint32_t l;
-			size_t length;
-
-			de_bruijn debruijn_seq;
-			length = debruijn_seq.init(value);
-
-			l = 1;
-			l <<= value;
-			l--;
-			if (l > 25)
-				l = 25;
-			text_debug.set(to_string_bin(debruijn_seq.compute(l), 25));
-
-			text_length.set(to_string_dec_uint(length));
-		};
-	}
-
-	void EncodersView::focus()
-	{
-		tab_view.focus();
 	}
 
 	EncodersView::~EncodersView()
@@ -244,24 +256,11 @@ namespace ui
 	{
 		std::string str_buffer;
 
-		// text_status.set("            ");
-
-		if (tx_mode == SINGLE)
+		if (tx_mode == TX_MODE_SINGLE)
 		{
 			str_buffer = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(repeat_min);
 			text_status.set(str_buffer);
 			progressbar.set_value(repeat_index);
-
-			/*} else if (tx_mode == SCAN) {
-				strcpy(str, to_string_dec_uint(repeat_index).c_str());
-				strcat(str, "/");
-				strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
-				strcat(str, " ");
-				strcat(str, to_string_dec_uint(scan_index + 1).c_str());
-				strcat(str, "/");
-				strcat(str, to_string_dec_uint(scan_count).c_str());
-				text_status.set(str);
-				progress.set_value(scan_progress);*/
 		}
 		else
 		{
@@ -278,146 +277,88 @@ namespace ui
 		{
 			// Repeating...
 			repeat_index = progress + 1;
-
-			/*if (tx_mode == SCAN) {
-				scan_progress++;
-				update_progress();
-			} else {*/
 			update_progress();
-			//}
 		}
 		else
 		{
-			// Done transmitting
-			/*if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
-				transmitter_model.disable();
-				if (abort_scan) {
-					// Kill scan process
-					strcpy(str, "Abort @");
-					strcat(str, rgsb);
-					text_status.set(str);
-					progress.set_value(0);
-					tx_mode = IDLE;
-					abort_scan = false;
-					button_scan.set_style(&style_val);
-					button_scan.set_text("SCAN");
-				} else {
-					// Next address
-					scan_index++;
-					strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[scan_index * 5]);
-					scan_progress++;
-					repeat_index = 1;
-					update_progress();
-					start_tx(true);
-				}
-			} else {*/
 			transmitter_model.disable();
-			tx_mode = IDLE;
+			tx_mode = TX_MODE_IDLE;
 			text_status.set("Done");
 			progressbar.set_value(0);
 			tx_view.set_transmitting(false);
-			//}
 		}
 	}
 
-	void EncodersView::start_tx(const bool scan)
+	void EncodersView::start_debruijn_tx()
 	{
-		(void)scan;
 		size_t bitstream_length = 0;
-
-		// repeat_min = view_config.repeat_min();
 		uint32_t debruijn_bits;
 
-		if (scan)
+		if (tx_mode != TX_MODE_DEBRUIJN)
 		{
-			if (tx_mode != SCAN)
-			{
-				scan_index = 0;		 // Scanning, and this is first time
-				bits_per_packet = 0; // Determine the A (Addresses) bit quantity
-				for (uint8_t c = 0; c < view_config.encoder_def->word_length; c++)
-					if (view_config.encoder_def->word_format[c] == 'A') // Address bit found
-						bits_per_packet++;
+			scan_index = 0;		 // Scanning, and this is first time
+			bits_per_packet = 0; // Determine the A (Addresses) bit quantity
+			for (uint8_t c = 0; c < encoder_def->word_length; c++)
+				if (encoder_def->word_format[c] == 'A') // Address bit found
+					bits_per_packet++;
 
-				uint32_t debruijn_total = debruijn_seq.init(bits_per_packet);
-				scan_count = (debruijn_total / bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
+			uint32_t debruijn_total = debruijn_seq.init(bits_per_packet);
+			scan_count = (debruijn_total / bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
 
-				scan_progress = 1;
-				repeat_index = 1;
-				afsk_repeats = 1; // on scanning send just one time each code //encoder_def->repeat_min;
-				tx_mode = SCAN;
-				progressbar.set_max(scan_count * afsk_repeats);
-			}
-			// euquiq: maybe here goes an else, and get the debruijn bits above for the first time and do a debruijn_bits>>=1 to clear the last bit which apparently the debruijn function is placing
-			// in extra, the first time it is called. On the else, again just issue the same command as below, loading the debruikn_bits normally.
-
-			debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
-			update_progress();
-			view_config.generate_frame(true, debruijn_bits);
-		}
-		else
-		{
-			tx_mode = SINGLE;
+			scan_progress = 1;
 			repeat_index = 1;
-			afsk_repeats = view_config.encoder_def->repeat_min;
-			progressbar.set_max(afsk_repeats);
-			update_progress();
-
-			view_config.generate_frame(false, 0);
+			afsk_repeats = 1; // on scanning send just one time each code //encoder_def->repeat_min;
+			tx_mode = TX_MODE_DEBRUIJN;
+			progressbar.set_max(scan_count * afsk_repeats);
 		}
+		// euquiq: maybe here goes an else, and get the debruijn bits above for the first time and do a debruijn_bits>>=1 to clear the last bit which apparently the debruijn function is placing
+		// in extra, the first time it is called. On the else, again just issue the same command as below, loading the debruikn_bits normally.
 
-		bitstream_length = make_bitstream(view_config.frame_fragments);
+		debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
+		update_progress();
+		generate_frame(true, debruijn_bits);
+
+		bitstream_length = make_bitstream(frame_fragments);
 
 		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
 		transmitter_model.set_rf_amp(true);
 		transmitter_model.set_baseband_bandwidth(1750000);
 		transmitter_model.enable();
 
-		// baseband::set_ook_data(
-		// 	bitstream_length,
-		// 	view_config.samples_per_bit(),
-		// 	repeat_min,
-		// 	view_config.pause_symbols());
+		baseband::set_ook_data(
+			bitstream_length,
+			samples_per_bit(),
+			repeat_skip_bits_count(),
+			encoder_def->sin_carrier_step,
+			afsk_repeats,
+			encoder_def->pause_symbols);
+	}
+
+	void EncodersView::start_single_tx()
+	{
+		size_t bitstream_length = 0;
+
+		tx_mode = TX_MODE_SINGLE;
+		repeat_index = 1;
+		afsk_repeats = encoder_def->repeat_min;
+		progressbar.set_max(afsk_repeats);
+		update_progress();
+
+		generate_frame(false, 0);
+		bitstream_length = make_bitstream(frame_fragments);
+
+		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
+		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_baseband_bandwidth(1750000);
+		transmitter_model.enable();
 
 		baseband::set_ook_data(
 			bitstream_length,
-			view_config.samples_per_bit(),
-			view_config.repeat_skip_bits_count(),
-			view_config.encoder_def->sin_carrier_step,
+			samples_per_bit(),
+			repeat_skip_bits_count(),
+			encoder_def->sin_carrier_step,
 			afsk_repeats,
-			view_config.encoder_def->pause_symbols);
-	}
-
-	EncodersView::EncodersView(
-		NavigationView &nav) : nav_{nav}
-	{
-		baseband::run_image(portapack::spi_flash::image_tag_ook);
-
-		add_children({&tab_view,
-					  &view_config,
-					  &view_scan,
-					  &text_status,
-					  &progressbar,
-					  &tx_view});
-
-		tx_view.on_edit_frequency = [this, &nav]()
-		{
-			auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
-			new_view->on_changed = [this](rf::Frequency f)
-			{
-				transmitter_model.set_tuning_frequency(f);
-			};
-		};
-
-		tx_view.on_start = [this]()
-		{
-			tx_view.set_transmitting(true);
-			start_tx(false);
-		};
-
-		tx_view.on_stop = [this]()
-		{
-			tx_view.set_transmitting(false);
-		};
+			encoder_def->pause_symbols);
 	}
 
 } /* namespace ui */
