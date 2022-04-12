@@ -1924,6 +1924,21 @@ namespace ui
 		return count;
 	}
 
+	// get the current possibility to the entire field
+	uint32_t SymField::get_possibility()
+	{
+		uint32_t possibility = 0;
+		uint32_t count = 1;
+
+		for (uint32_t c = 0; c < length_; c++)
+		{
+			possibility += values_[c] * count;
+			count *= symbol_list_[c].size();
+		}
+
+		return possibility;
+	}
+
 	// change the sym to the next possibility
 	void SymField::set_next_possibility()
 	{
@@ -1932,6 +1947,7 @@ namespace ui
 			if (values_[c] < (symbol_list_[c].size() - 1))
 			{
 				values_[c]++;
+				set_dirty();
 				return;
 			}
 			else
@@ -1939,6 +1955,8 @@ namespace ui
 				values_[c] = 0;
 			}
 		}
+
+		set_dirty();
 	}
 
 	/* Waveform **************************************************************/

@@ -218,14 +218,11 @@ namespace baseband
 		send_message(&message);
 	}
 
-	void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint16_t repeat_skip_bits,
-					  const uint8_t sin_carrier_step, const uint8_t repeat, const uint32_t pause_symbols)
+	void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat, const uint32_t pause_symbols)
 	{
 		const OOKConfigureMessage message{
 			stream_length,
 			samples_per_bit,
-			repeat_skip_bits,
-			sin_carrier_step,
 			repeat,
 			pause_symbols};
 

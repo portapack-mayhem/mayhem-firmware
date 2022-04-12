@@ -398,7 +398,7 @@ namespace ui
 		tx_mode = TX_MODE_BRUTEFORCE;
 		tx_repeat_index = 1;
 		tx_repeat_min = field_repeat_min.value();
-		bruteforce_index = 0;
+		bruteforce_index = symfield_word.get_possibility();
 		bruteforce_max = symfield_word.get_possibilities_count();
 		init_progress();
 

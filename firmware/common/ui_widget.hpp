@@ -644,6 +644,7 @@ namespace ui
 		void set_length(const uint32_t new_length);
 		void set_symbol_list(const uint32_t index, const std::string symbol_list);
 		void set_next_possibility();
+		uint32_t get_possibility();
 		uint32_t get_possibilities_count();
 		uint32_t
 		value_dec_u32();
