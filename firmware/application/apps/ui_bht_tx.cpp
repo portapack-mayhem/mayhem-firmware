@@ -83,8 +83,6 @@ namespace ui
 			baseband::set_ook_data(
 				bitstream_length,
 				EPAR_BIT_DURATION,
-				0,
-				encoder_defs[ENCODER_UM3750].sin_carrier_step,
 				EPAR_REPEAT_COUNT,
 				encoder_defs[ENCODER_UM3750].pause_symbols);
 		}

@@ -30,46 +30,37 @@ using namespace portapack;
 
 namespace ui
 {
-
 	EncodersView::EncodersView(
 		NavigationView &nav) : nav_{nav}
 	{
 		baseband::run_image(portapack::spi_flash::image_tag_ook);
 
+		// Default encoder def
+		encoder_def = &encoder_defs[0];
+
 		using option_t = std::pair<std::string, int32_t>;
 		std::vector<option_t> enc_options;
 		size_t i;
 
-		// Default encoder def
-		encoder_def = &encoder_defs[0];
-
-		// Load encoder types in option field
-		for (i = 0; i < ENC_TYPES_COUNT; i++)
-		{
-			enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
-		}
-
-		options_enctype.set_options(enc_options);
-		options_enctype.set_selected_index(0);
-
 		add_children({&labels,
-					  &options_enctype,
-					  &options_txmethod,
+					  &options_encoder,
+					  &options_tx_method,
 					  &field_clk,
 					  &field_frameduration,
+					  &field_repeat_min,
 					  &symfield_word,
 					  &text_format,
 					  &waveform,
-					  &text_status,
-					  &progressbar,
+					  &text_progress,
+					  &progress_bar,
 					  &tx_view});
 
-		options_enctype.on_change = [this](size_t index, int32_t)
+		options_encoder.on_change = [this](size_t index, int32_t)
 		{
-			on_type_change(index);
+			on_encoder_change(index);
 		};
 
-		options_txmethod.on_change = [this](size_t, int32_t selected)
+		options_tx_method.on_change = [this](size_t, int32_t selected)
 		{
 			on_tx_method_change(selected);
 		};
@@ -77,6 +68,7 @@ namespace ui
 		symfield_word.on_change = [this]()
 		{
 			generate_frame();
+			draw_waveform();
 		};
 
 		// Selecting input clock changes symbol and word duration
@@ -111,7 +103,7 @@ namespace ui
 			tx_view.set_transmitting(true);
 
 			// Start transmitting
-			switch (options_txmethod.selected_index_value())
+			switch (options_tx_method.selected_index_value())
 			{
 			case TX_MODE_MANUAL:
 				start_single_tx();
@@ -127,15 +119,19 @@ namespace ui
 
 		tx_view.on_stop = [this]()
 		{
-			tx_view.set_transmitting(false);
+			stop_tx();
 		};
 
-		on_type_change(0);
+		// Load encoder types in option field
+		for (i = 0; i < ENC_TYPES_COUNT; i++)
+			enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+		options_encoder.set_options(enc_options);
+		options_encoder.set_selected_index(0);
 	}
 
 	void EncodersView::focus()
 	{
-		options_enctype.focus();
+		options_encoder.focus();
 	}
 
 	void EncodersView::on_tx_method_change(int32_t selected_tx_mode)
@@ -144,31 +140,40 @@ namespace ui
 		{
 		case TX_MODE_MANUAL:
 			// show the symbols field
-			symfield_word.hidden(false);
-			// labels.hidden(false);
+			symfield_word.set_focusable(true);
 			break;
 		case TX_MODE_DEBRUIJN:
 		case TX_MODE_BRUTEFORCE:
 			// hide the symbols field
-			symfield_word.hidden(true);
-			// labels[6].hidden(true);
+			symfield_word.set_focusable(false);
 			break;
 		}
+
+		reset_symfield();
+		generate_frame();
+		draw_waveform();
 	}
 
-	void EncodersView::on_type_change(size_t index)
+	void EncodersView::on_encoder_change(size_t index)
 	{
-		std::string format_string = "";
-		size_t word_length;
-		char symbol_type;
-
 		encoder_def = &encoder_defs[index];
 
 		field_clk.set_value(encoder_def->default_speed / 1000);
+		field_repeat_min.set_value(encoder_def->repeat_min);
 
-		// SymField setup
-		word_length = encoder_def->word_length;
+		reset_symfield();
+		generate_frame();
+		draw_waveform();
+	}
+
+	void EncodersView::reset_symfield()
+	{
+		char symbol_type;
+		std::string format_string = "";
+		size_t word_length = encoder_def->word_length;
+
 		symfield_word.set_length(word_length);
+
 		size_t n = 0, i = 0;
 		while (n < word_length)
 		{
@@ -189,8 +194,53 @@ namespace ui
 		format_string.append(24 - format_string.size(), ' ');
 
 		text_format.set(format_string);
+	}
 
-		generate_frame();
+	void EncodersView::generate_frame()
+	{
+		uint8_t i = 0;
+
+		int32_t mode = (tx_mode != TX_MODE_IDLE) ? tx_mode : options_tx_method.selected_index_value();
+		frame_fragments.clear();
+
+		if (mode == TX_MODE_MANUAL || mode == TX_MODE_BRUTEFORCE)
+		{
+			for (auto c : encoder_def->word_format)
+			{
+				if (c == 'S')
+					frame_fragments += encoder_def->sync;
+				else
+					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
+			}
+		}
+
+		if (mode == TX_MODE_DEBRUIJN)
+		{ // De Bruijn!
+			char *word_ptr = (char *)encoder_def->word_format;
+			uint8_t pos = 0;
+
+			while (*word_ptr)
+			{
+
+				if (*word_ptr == 'S')
+					frame_fragments += encoder_def->sync;
+				else if (*word_ptr == 'D')
+					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
+				else
+				{
+
+					if (debruijn_bits & (1 << (31 - pos)))
+						frame_fragments += encoder_def->bit_format[1];
+					else
+						frame_fragments += encoder_def->bit_format[0];
+
+					pos--;
+					i++; // Even while grabbing this address bit from debruijn, must move forward on the symfield, in case there is a 'D' further ahead
+				}
+
+				word_ptr++;
+			}
+		}
 	}
 
 	void EncodersView::draw_waveform()
@@ -204,59 +254,15 @@ namespace ui
 		waveform.set_dirty();
 	}
 
-	void EncodersView::generate_frame()
-	{
-		uint8_t i = 0;
-		uint8_t pos = 0;
-		char *word_ptr = (char *)encoder_def->word_format;
-
-		frame_fragments.clear();
-
-		while (*word_ptr)
-		{
-
-			if (*word_ptr == 'S')
-				frame_fragments += encoder_def->sync;
-			else if (*word_ptr == 'D')
-				frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get_sym brings the index of the char chosen in the symfield, so 0, 1 or eventually 2
-			else
-			{
-				if (tx_mode == TX_MODE_MANUAL)
-				{
-					frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)]; // Get the address from user's configured symfield
-				}
-
-				if (tx_mode == TX_MODE_DEBRUIJN)
-				{ // De Bruijn!
-					if (debruijn_bits & (1 << (31 - pos)))
-						frame_fragments += encoder_def->bit_format[1];
-					else
-						frame_fragments += encoder_def->bit_format[0];
-
-					pos--;
-					i++; // Even while grabbing this address bit from debruijn, must move forward on the symfield, in case there is a 'D' further ahead
-				}
-
-				if (tx_mode == TX_MODE_BRUTEFORCE)
-				{
-					// TODO: bruteforce
-				}
-			}
-			word_ptr++;
-		}
-
-		draw_waveform();
-	}
-
 	uint32_t EncodersView::samples_per_bit()
 	{
 		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 	}
 
-	uint16_t EncodersView::repeat_skip_bits_count()
-	{
-		return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
-	}
+	// uint16_t EncodersView::repeat_skip_bits_count()
+	// {
+	// 	return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
+	// }
 
 	EncodersView::~EncodersView()
 	{
@@ -267,7 +273,7 @@ namespace ui
 	// NOTE: should be called after changing the tx_mode
 	void EncodersView::init_progress()
 	{
-		progressbar.set_max(repeat_min);
+		progress_bar.set_max(tx_repeat_min);
 		update_progress();
 	}
 
@@ -277,22 +283,29 @@ namespace ui
 
 		if (tx_mode == TX_MODE_MANUAL)
 		{
-			str_buffer = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(repeat_min);
-			text_status.set(str_buffer);
-			progressbar.set_value(repeat_index);
+			str_buffer = "Manual: " + to_string_dec_uint(tx_repeat_index) + "/" + to_string_dec_uint(tx_repeat_min);
+			text_progress.set(str_buffer);
+			progress_bar.set_value(tx_repeat_index);
 		}
 
 		if (tx_mode == TX_MODE_DEBRUIJN)
 		{
-			str_buffer = to_string_dec_uint(debruijn_index) + "/" + to_string_dec_uint(debruijn_count);
-			text_status.set(str_buffer);
-			progressbar.set_value(debruijn_index);
+			str_buffer = "De Bruijn: " + to_string_dec_uint(debruijn_index) + "/" + to_string_dec_uint(debruijn_max);
+			text_progress.set(str_buffer);
+			progress_bar.set_value(debruijn_index);
+		}
+
+		if (tx_mode == TX_MODE_BRUTEFORCE)
+		{
+			str_buffer = to_string_dec_uint(bruteforce_index) + "/" + to_string_dec_uint(bruteforce_max) + " (" + to_string_dec_uint(tx_repeat_index) + "/" + to_string_dec_uint(tx_repeat_min) + ")";
+			text_progress.set(str_buffer);
+			progress_bar.set_value(debruijn_index);
 		}
 
 		if (tx_mode == TX_MODE_IDLE)
 		{
-			text_status.set("Ready");
-			progressbar.set_value(0);
+			text_progress.set("Ready");
+			progress_bar.set_value(0);
 		}
 	}
 
@@ -307,7 +320,7 @@ namespace ui
 			}
 
 			// Repeating...
-			repeat_index = progress + 1;
+			tx_repeat_index = progress + 1;
 			update_progress();
 		}
 
@@ -318,7 +331,7 @@ namespace ui
 
 			debruijn_index = debruijn_index + 1;
 
-			if (debruijn_index == debruijn_count)
+			if (debruijn_index == debruijn_max)
 			{
 				stop_tx();
 				return;
@@ -327,17 +340,29 @@ namespace ui
 			// emit the next packet
 			tick_debruijn_tx();
 		}
+
+		if (tx_mode == TX_MODE_BRUTEFORCE)
+		{
+			if (done)
+			{
+				tick_bruteforce_tx();
+				return;
+			}
+
+			// Repeating...
+			tx_repeat_index = progress + 1;
+			update_progress();
+		}
 	}
 
 	void EncodersView::start_single_tx()
 	{
 		tx_mode = TX_MODE_MANUAL;
-		repeat_index = 1;
-		repeat_min = encoder_def->repeat_min;
-		afsk_repeats = encoder_def->repeat_min;
+		tx_repeat_index = 1;
+		tx_repeat_min = field_repeat_min.value();
 		init_progress();
 
-		generate_frame();
+		afsk_repeats = tx_repeat_min;
 		tx();
 	}
 
@@ -353,30 +378,45 @@ namespace ui
 	{
 		if (debruijn_index == 0)
 		{
-			bits_per_packet = 0; // Determine the A (Addresses) bit quantity
+			debruijn_bits_per_packet = 0; // Determine the A (Addresses) bit quantity
 			for (uint8_t c = 0; c < encoder_def->word_length; c++)
 				if (encoder_def->word_format[c] == 'A') // Address bit found
-					bits_per_packet++;
+					debruijn_bits_per_packet++;
 
-			uint32_t debruijn_total = debruijn_seq.init(bits_per_packet);
-			debruijn_count = (debruijn_total / bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
+			uint32_t debruijn_total = debruijn_seq.init(debruijn_bits_per_packet);
+			debruijn_max = (debruijn_total / debruijn_bits_per_packet) + 1; // get total number of packets to tx, plus one, be sure of sending whatever is left from division
 		}
 
-		afsk_repeats = 1;
-		debruijn_bits = debruijn_seq.compute(bits_per_packet); // bits sequence for this step
+		debruijn_bits = debruijn_seq.compute(debruijn_bits_per_packet); // bits sequence for this step
 
-		generate_frame();
+		afsk_repeats = 1;
 		tx();
 	}
 
 	void EncodersView::start_bruteforce_tx()
 	{
-		stop_tx();
-		text_format.set("Coming soon...");
+		tx_mode = TX_MODE_BRUTEFORCE;
+		tx_repeat_index = 1;
+		tx_repeat_min = field_repeat_min.value();
+		bruteforce_index = 0;
+		bruteforce_max = symfield_word.get_possibilities_count();
+		init_progress();
+
+		afsk_repeats = tx_repeat_min;
+		tx();
+	}
+
+	void EncodersView::tick_bruteforce_tx()
+	{
+		symfield_word.set_next_possibility();
+		bruteforce_index++;
+		tx();
 	}
 
 	void EncodersView::tx()
 	{
+		generate_frame();
+		draw_waveform();
 		update_progress();
 
 		size_t bitstream_length = make_bitstream(frame_fragments);
@@ -389,8 +429,6 @@ namespace ui
 		baseband::set_ook_data(
 			bitstream_length,
 			samples_per_bit(),
-			repeat_skip_bits_count(),
-			encoder_def->sin_carrier_step,
 			afsk_repeats,
 			encoder_def->pause_symbols);
 	}
@@ -399,11 +437,11 @@ namespace ui
 	{
 		transmitter_model.disable();
 		tx_mode = TX_MODE_IDLE;
-		text_status.set("Done");
+		text_progress.set("Done");
 		tx_view.set_transmitting(false);
 
-		repeat_index = 0;
-		repeat_min = 0;
+		tx_repeat_index = 0;
+		tx_repeat_min = 0;
 		init_progress();
 	}
 } /* namespace ui */

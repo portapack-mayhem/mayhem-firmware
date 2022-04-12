@@ -61,34 +61,41 @@ namespace ui
 		uint16_t repeat_skip_bits_count();
 		const encoder_def_t *encoder_def{};
 
-		uint8_t debruijn_index;
-		uint8_t debruijn_count;
-		uint32_t debruijn_bits;
-		uint8_t bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
-
 		tx_modes tx_mode = TX_MODE_IDLE;
-		uint8_t repeat_min{0};
-		uint8_t repeat_index{0};
-		bool abort_scan = false;
-
+		uint8_t tx_repeat_min{0};
+		uint8_t tx_repeat_index{0};
 		uint8_t afsk_repeats;
-		de_bruijn debruijn_seq;
 
 		int16_t waveform_buffer[550];
 		uint8_t enc_type = 0;
 		char str[16];
 
-		void draw_waveform();
+		// debruijn
+		de_bruijn debruijn_seq;
+		uint8_t debruijn_index;
+		uint8_t debruijn_max;
+		uint32_t debruijn_bits;
+		uint8_t debruijn_bits_per_packet; // Euquiq: the number of bits needed from de_bruijn, depends on the encoder's needs
+
+		// bruteforce
+		uint32_t bruteforce_index = 0;
+		uint32_t bruteforce_max = 0;
+
 		void on_bitfield();
-		void on_type_change(size_t index);
+		void on_encoder_change(size_t index);
 		void on_tx_method_change(int32_t selected_tx_mode);
+		void on_tx_progress(const uint32_t progress, const bool done);
+
+		void draw_waveform();
+		void reset_symfield();
+
 		void start_single_tx();
 		void start_debruijn_tx();
 		void tick_debruijn_tx();
 		void start_bruteforce_tx();
+		void tick_bruteforce_tx();
 		void tx();
 		void stop_tx();
-		void on_tx_progress(const uint32_t progress, const bool done);
 
 		Rect view_rect = {0, 4 * 8, 240, 168};
 
@@ -96,64 +103,72 @@ namespace ui
 			{{1 * 8, 0}, "Type:", Color::light_grey()},
 			{{1 * 8, 2 * 8}, "TX:", Color::light_grey()},
 			{{16 * 8, 0}, "Clk:", Color::light_grey()},
-			{{24 * 8, 0}, "kHz", Color::light_grey()},
-			{{14 * 8, 2 * 8}, "Frame:", Color::light_grey()},
-			{{26 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{1 * 8, 4 * 8}, "Symbols:", Color::light_grey()},
-			{{1 * 8, 20 * 8}, "Waveform:", Color::light_grey()}};
+			{{26 * 8, 0}, "kHz", Color::light_grey()},
+			{{16 * 8, 2 * 8}, "Frame:", Color::light_grey()},
+			{{16 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
+			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
+			{{1 * 8, 5 * 8}, "Symbols:", Color::light_grey()},
+			{{1 * 8, 18 * 8}, "Waveform:", Color::light_grey()}};
 
-		OptionsField options_enctype{
+		OptionsField options_encoder{
 			{7 * 8, 0},
 			7,
 			{
 				// Options are loaded at runtime
 			}};
 
-		OptionsField options_txmethod{
+		OptionsField options_tx_method{
 			{5 * 8, 2 * 8},
-			8,
+			10,
 			{
 				{"Manual", TX_MODE_MANUAL},
+				{"Bruteforce", TX_MODE_BRUTEFORCE},
 				{"DeBruijn", TX_MODE_DEBRUIJN},
-				{"Brtefrce", TX_MODE_BRUTEFORCE},
 			}};
 
 		NumberField field_clk{
-			{21 * 8, 0},
+			{23 * 8, 0},
 			3,
 			{1, 500},
 			1,
 			' '};
 
 		NumberField field_frameduration{
-			{21 * 8, 2 * 8},
+			{23 * 8, 2 * 8},
 			5,
 			{300, 99999},
 			100,
 			' '};
 
+		NumberField field_repeat_min{
+			{23 * 8, 4 * 8},
+			5,
+			{1, 100},
+			1,
+			' '};
+
 		SymField symfield_word{
-			{1 * 8, 6 * 8},
+			{1 * 8, 7 * 8},
 			20,
 			SymField::SYMFIELD_DEF};
 
 		Text text_format{
-			{1 * 8, 8 * 8, 25 * 8, 16},
+			{1 * 8, 9 * 8, 25 * 8, 16},
 			""};
 
 		Waveform waveform{
-			{0, 10 * 16, 240, 32},
+			{0, 21 * 8, 240, 32},
 			waveform_buffer,
 			0,
 			0,
 			true,
 			Color::yellow()};
 
-		Text text_status{
-			{1 * 8, 13 * 16, 128, 16},
+		Text text_progress{
+			{1 * 8, 13 * 16, 224, 16},
 			"Ready"};
 
-		ProgressBar progressbar{
+		ProgressBar progress_bar{
 			{1 * 8, 13 * 16 + 20, 224, 16}};
 
 		TransmitterView tx_view{
