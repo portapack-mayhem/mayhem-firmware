@@ -57,13 +57,14 @@ namespace encoders
 		char sync_bit_fragment[64];				 // Like symbols_bit_fragments
 
 		// timing
-		uint16_t clk_per_symbol;	// Oscillator periods per symbol
+		uint16_t period_per_symbol; // Oscillator periods per symbol
 		uint32_t default_clk_speed; // Default encoder clk frequency (often set by shitty resistor)
 		uint16_t pause_symbols;		// Length of pause between repeats in symbols
 	};
 
 	// Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !
 	constexpr encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
+
 		// generic 8-bit encoder
 		{
 			// Encoder details
@@ -83,7 +84,7 @@ namespace encoders
 			"",				  // sync_bit_fragment
 
 			// Speed and clocks
-			32,	   // clk_per_symbol
+			32,	   // period_per_symbol
 			25000, // default_clk_speed
 			0,	   // pause_symbols
 		},
@@ -107,7 +108,7 @@ namespace encoders
 			"",				  // sync_bit_fragment
 
 			// Speed and clocks
-			32,	   // clk_per_symbol
+			32,	   // period_per_symbol
 			25000, // default_clk_speed
 			0,	   // pause_symbols
 		},
@@ -131,7 +132,7 @@ namespace encoders
 			"",				  // sync_bit_fragment
 
 			// Speed and clocks
-			228,	// clk_per_symbol
+			228,	// period_per_symbol
 			141260, // default_clk_speed
 			32,		// pause_symbols
 		},
@@ -151,11 +152,11 @@ namespace encoders
 			"01",					  // symfield_address_symbols
 			"01",					  // symfield_data_symbols
 			8,						  // bit_fragments_length_per_symbol
-			{"10000000", "11110000"}, // symbols_bit_fragments
+			{"11110000", "10000000"}, // symbols_bit_fragments
 			"",						  // sync_bit_fragment
 
 			// Speed and clocks
-			920,	// clk_per_symbol
+			920,	// period_per_symbol
 			285000, // default_clk_speed
 			70,		// pause_symbols
 		},
@@ -179,7 +180,7 @@ namespace encoders
 			"10000000000000000000000000000000",	  // sync_bit_fragment
 
 			// Speed and clocks
-			1024,	// clk_per_symbol
+			1024,	// period_per_symbol
 			150000, // default_clk_speed
 			0,		// pause_symbols
 		},
@@ -203,7 +204,7 @@ namespace encoders
 			"10000000000000000000000000000000",	  // sync_bit_fragment
 
 			// Speed and clocks
-			1024,	// clk_per_symbol
+			1024,	// period_per_symbol
 			150000, // default_clk_speed
 			0,		// pause_symbols
 		},
@@ -227,7 +228,7 @@ namespace encoders
 			"10000000000000000000000000000000",	  // sync_bit_fragment
 
 			// Speed and clocks
-			32,	   // clk_per_symbol
+			32,	   // period_per_symbol
 			20000, // default_clk_speed
 			0,	   // pause_symbols
 		},
@@ -251,7 +252,7 @@ namespace encoders
 			"100000000000000000000", // sync_bit_fragment
 
 			// Speed and clocks
-			32,	   // clk_per_symbol
+			32,	   // period_per_symbol
 			25000, // default_clk_speed
 			0,	   // pause_symbols
 		},
@@ -275,7 +276,7 @@ namespace encoders
 			"10000000000000000000000000000000", // sync_bit_fragment
 
 			// Speed and clocks
-			128,	// clk_per_symbol
+			128,	// period_per_symbol
 			100000, // default_clk_speed
 			10,		// pause_symbols
 		},
@@ -299,7 +300,7 @@ namespace encoders
 			"",				// sync_bit_fragment
 
 			// Speed and clocks
-			24,	   // clk_per_symbol
+			24,	   // period_per_symbol
 			20000, // default_clk_speed
 			10,	   // pause_symbols
 		},
@@ -323,7 +324,7 @@ namespace encoders
 			"0000000000000000000000000000000000001", // sync_bit_fragment
 
 			// Speed and clocks
-			3,	  // clk_per_symbol
+			3,	  // period_per_symbol
 			3000, // default_clk_speed
 			10,	  // pause_symbols
 		},
@@ -347,7 +348,7 @@ namespace encoders
 			"000000000000000000000000000000000000000000000001",								  // sync_bit_fragment						  // ?
 
 			// Speed and clocks
-			128,	// clk_per_symbol
+			128,	// period_per_symbol
 			100000, // default_clk_speed
 			10,		// pause_symbols
 		},
@@ -374,7 +375,7 @@ namespace encoders
 
 			// Word and Symbol format (Address, Data, Sync)
 			// Speed and clocks
-			96,		// clk_per_symbol
+			96,		// period_per_symbol
 			100000, // default_clk_speed
 
 			// Symbol setup - Address + Data + Sync bit fragments
@@ -382,7 +383,7 @@ namespace encoders
 		},
 
 		// Speed and clocks
-		// UM3758 // clk_per_symbol
+		// UM3758
 		{
 			// Encoder details
 			"UM3758", // name
@@ -401,7 +402,7 @@ namespace encoders
 			"1",							// sync_bit_fragment
 
 			// Speed and clocks
-			96,		// clk_per_symbol
+			96,		// period_per_symbol
 			160000, // default_clk_speed
 			10,		// pause_symbols
 		},
@@ -425,7 +426,7 @@ namespace encoders
 			"",				  // sync_bit_fragment
 
 			// Speed and clocks
-			3072,	// clk_per_symbol
+			3072,	// period_per_symbol
 			455000, // default_clk_speed
 			10,		// pause_symbols
 		},
@@ -449,7 +450,7 @@ namespace encoders
 			"000000000000000000",										  // sync_bit_fragment
 
 			// Speed and clocks
-			16,		// clk_per_symbol
+			16,		// period_per_symbol
 			455000, // default_clk_speed
 			2,		// pause_symbols
 		},
@@ -473,7 +474,7 @@ namespace encoders
 			"0000000000000000000000000000000000001011001011001", // sync_bit_fragment
 
 			// Speed and clocks
-			198,   // clk_per_symbol
+			198,   // period_per_symbol
 			80000, // default_clk_speed
 			10,	   // pause_symbols
 		},
@@ -497,7 +498,7 @@ namespace encoders
 			"",				  // sync_bit_fragment
 
 			// Speed and clocks
-			48,		// clk_per_symbol
+			48,		// period_per_symbol
 			455000, // default_clk_speed
 			10,		// pause_symbols
 		},

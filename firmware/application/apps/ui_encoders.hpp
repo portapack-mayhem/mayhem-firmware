@@ -118,12 +118,15 @@ namespace ui
 		Labels labels{
 			{{1 * 8, 0}, "Type:", Color::light_grey()},
 			{{1 * 8, 2 * 8}, "TX:", Color::light_grey()},
-			{{16 * 8, 0}, "Clk:", Color::light_grey()},
-			{{26 * 8, 0}, "kHz", Color::light_grey()},
-			{{16 * 8, 2 * 8}, "Frame:", Color::light_grey()},
+			{{14 * 8, 0}, "Frame Clk:", Color::light_grey()},
+			{{27 * 8, 0}, "kHz", Color::light_grey()},
+			{{14 * 8, 2 * 8}, "Duration:", Color::light_grey()},
+			{{14 * 8, 4 * 8}, "S Period:", Color::light_grey()},
 			{{1 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
+			{{1 * 8, 6 * 8}, "Pause:", Color::light_grey()},
 			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{1 * 8, 6 * 8}, "Symbols:", Color::light_grey()},
+			{{28 * 8, 4 * 8}, "us", Color::light_grey()},
+			{{1 * 8, 10 * 8}, "Symbols:", Color::light_grey()},
 			{{1 * 8, 18 * 8}, "Waveform:", Color::light_grey()}};
 
 		Checkbox checkbox_reversed{
@@ -141,41 +144,80 @@ namespace ui
 
 		OptionsField options_tx_method{
 			{5 * 8, 2 * 8},
-			10,
+			8,
 			{
 				{"Manual", TX_MODE_MANUAL},
-				{"Bruteforce", TX_MODE_BRUTEFORCE},
+				{"Brutefrc", TX_MODE_BRUTEFORCE},
 				{"DeBruijn", TX_MODE_DEBRUIJN},
-			}};
+			},
+		};
 
 		NumberField field_clk{
-			{23 * 8, 0},
+			{24 * 8, 0},
 			3,
 			{1, 500},
 			1,
-			' '};
+			' ',
+		};
 
 		NumberField field_frameduration{
 			{23 * 8, 2 * 8},
 			5,
 			{300, 99999},
 			100,
-			' '};
+			' ',
+		};
+
+		OptionsField options_period_per_symbol{
+			{23 * 8, 4 * 8},
+			5,
+			{
+				{"2", 2},
+				{"3", 3},
+				{"4", 4},
+				{"8", 8},
+				{"16", 16},
+				{"24", 24},
+				{"32", 32},
+				{"48", 48},
+				{"96", 96},
+				{"128", 128},
+				{"198", 198},
+				{"228", 228},
+				{"256", 256},
+				{"512", 512},
+				{"768", 768},
+				{"920", 920},
+				{"1024", 1024},
+				{"1280", 1280},
+				{"2048", 2048},
+				{"4144", 4144},
+			},
+		};
 
 		NumberField field_repeat_min{
 			{8 * 8, 4 * 8},
 			5,
 			{1, 100},
 			1,
-			' '};
+			' ',
+		};
+
+		NumberField field_pause_symbols{
+			{8 * 8, 6 * 8},
+			5,
+			{0, 100},
+			1,
+			' ',
+		};
 
 		SymField symfield_word{
-			{1 * 8, 8 * 8},
+			{1 * 8, 12 * 8},
 			20,
 			SymField::SYMFIELD_DEF};
 
 		Text text_format{
-			{1 * 8, 10 * 8, 25 * 8, 16},
+			{1 * 8, 14 * 8, 25 * 8, 16},
 			""};
 
 		Waveform waveform{

@@ -50,7 +50,9 @@ namespace ui
 					  &options_tx_method,
 					  &field_clk,
 					  &field_frameduration,
+					  &options_period_per_symbol,
 					  &field_repeat_min,
+					  &field_pause_symbols,
 					  &checkbox_reversed,
 					  &symfield_word,
 					  &text_format,
@@ -65,6 +67,8 @@ namespace ui
 
 			field_clk.set_value(encoder_def->default_clk_speed / 1000);
 			field_repeat_min.set_value(encoder_def->repeat_min);
+			options_period_per_symbol.set_by_value(encoder_def->period_per_symbol);
+			field_pause_symbols.set_value(encoder_def->pause_symbols);
 
 			// reset reversed checkbox
 			checkbox_reversed.set_value(false);
@@ -82,8 +86,19 @@ namespace ui
 			check_if_encoder_can_be_reversed();
 		};
 
-		options_tx_method.on_change = [this](size_t, int32_t)
+		options_tx_method.on_change = [this](size_t, int32_t value)
 		{
+			if (value == TX_MODE_DEBRUIJN)
+			{
+				// Set the repeat to 0
+				field_repeat_min.set_value(0);
+			}
+			else
+			{
+				// set to the default repeat min at the selected encoder
+				field_repeat_min.set_value(encoder_def->repeat_min);
+			}
+
 			reset_symfield();
 			generate_frame();
 			draw_waveform();
@@ -107,7 +122,7 @@ namespace ui
 		field_clk.on_change = [this](int32_t value)
 		{
 			// value is in kHz, new_value is in us
-			int32_t new_value = (encoder_def->clk_per_symbol * 1000000) / (value * 1000);
+			int32_t new_value = (options_period_per_symbol.selected_index_value() * 1000000) / (value * 1000);
 			if (new_value != field_frameduration.value())
 				field_frameduration.set_value(new_value * encoder_def->word_length, false);
 		};
@@ -116,9 +131,16 @@ namespace ui
 		field_frameduration.on_change = [this](int32_t value)
 		{
 			// value is in us, new_value is in kHz
-			int32_t new_value = (value * 1000) / (encoder_def->word_length * encoder_def->clk_per_symbol);
+			int32_t new_value = (value * 1000) / (encoder_def->word_length * options_period_per_symbol.selected_index_value());
 			if (new_value != field_clk.value())
 				field_clk.set_value(1000000 / new_value, false);
+		};
+
+		options_period_per_symbol.on_change = [this](size_t, int32_t)
+		{
+			// trigger the change on both fields
+			field_clk.on_change(field_clk.value());
+			field_frameduration.on_change(field_frameduration.value());
 		};
 
 		tx_view.on_edit_frequency = [this, &nav]()
@@ -157,6 +179,7 @@ namespace ui
 		// Load encoder types in option field
 		for (i = 0; i < ENC_TYPES_COUNT; i++)
 			enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+
 		options_encoder.set_options(enc_options);
 		options_encoder.set_selected_index(0);
 	}
@@ -285,7 +308,7 @@ namespace ui
 
 	uint32_t EncodersView::samples_per_bit()
 	{
-		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / (encoder_def->clk_per_symbol / encoder_def->bit_fragments_length_per_symbol));
+		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / (options_period_per_symbol.selected_index_value() / encoder_def->bit_fragments_length_per_symbol));
 	}
 
 	EncodersView::~EncodersView()
@@ -468,7 +491,7 @@ namespace ui
 			bitstream_length,
 			samples_per_bit(),
 			afsk_repeats,
-			encoder_def->pause_symbols);
+			field_pause_symbols.value());
 	}
 
 	void EncodersView::stop_tx()
