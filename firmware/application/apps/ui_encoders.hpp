@@ -118,7 +118,7 @@ namespace ui
 		Labels labels{
 			{{1 * 8, 0}, "Type:", Color::light_grey()},
 			{{1 * 8, 2 * 8}, "TX:", Color::light_grey()},
-			{{14 * 8, 0}, "Frame Clk:", Color::light_grey()},
+			{{14 * 8, 0}, "Frm Clk:", Color::light_grey()},
 			{{27 * 8, 0}, "kHz", Color::light_grey()},
 			{{14 * 8, 2 * 8}, "Duration:", Color::light_grey()},
 			{{14 * 8, 4 * 8}, "S Period:", Color::light_grey()},
@@ -153,9 +153,9 @@ namespace ui
 		};
 
 		NumberField field_clk{
-			{24 * 8, 0},
+			{22 * 8, 0},
 			3,
-			{1, 500},
+			{1, 99999},
 			1,
 			' ',
 		};
@@ -163,7 +163,7 @@ namespace ui
 		NumberField field_frameduration{
 			{23 * 8, 2 * 8},
 			5,
-			{300, 99999},
+			{100, 99999},
 			100,
 			' ',
 		};
