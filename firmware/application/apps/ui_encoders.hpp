@@ -70,7 +70,7 @@ namespace ui
 		void init_progress();
 		void update_progress();
 		void generate_frame();
-		const char *get_encoder_bit_format(const uint32_t index);
+		const char *get_symbols_bit_fragments(const uint32_t index);
 
 		std::string frame_fragments = "0";
 
@@ -121,9 +121,9 @@ namespace ui
 			{{16 * 8, 0}, "Clk:", Color::light_grey()},
 			{{26 * 8, 0}, "kHz", Color::light_grey()},
 			{{16 * 8, 2 * 8}, "Frame:", Color::light_grey()},
-			{{16 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
+			{{1 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
 			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{1 * 8, 4 * 8}, "Symbols:", Color::light_grey()},
+			{{1 * 8, 6 * 8}, "Symbols:", Color::light_grey()},
 			{{1 * 8, 18 * 8}, "Waveform:", Color::light_grey()}};
 
 		Checkbox checkbox_reversed{
@@ -163,19 +163,19 @@ namespace ui
 			' '};
 
 		NumberField field_repeat_min{
-			{23 * 8, 4 * 8},
+			{8 * 8, 4 * 8},
 			5,
 			{1, 100},
 			1,
 			' '};
 
 		SymField symfield_word{
-			{1 * 8, 6 * 8},
+			{1 * 8, 8 * 8},
 			20,
 			SymField::SYMFIELD_DEF};
 
 		Text text_format{
-			{1 * 8, 8 * 8, 25 * 8, 16},
+			{1 * 8, 10 * 8, 25 * 8, 16},
 			""};
 
 		Waveform waveform{

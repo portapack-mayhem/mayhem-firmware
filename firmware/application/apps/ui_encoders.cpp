@@ -35,6 +35,9 @@ namespace ui
 	{
 		baseband::run_image(portapack::spi_flash::image_tag_ook);
 
+		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
+		transmitter_model.set_baseband_bandwidth(1750000);
+
 		// Default encoder def
 		encoder_def = &encoder_defs[0];
 
@@ -60,7 +63,7 @@ namespace ui
 		{
 			encoder_def = &encoder_defs[index];
 
-			field_clk.set_value(encoder_def->default_speed / 1000);
+			field_clk.set_value(encoder_def->default_clk_speed / 1000);
 			field_repeat_min.set_value(encoder_def->repeat_min);
 
 			// reset reversed checkbox
@@ -182,7 +185,7 @@ namespace ui
 	void EncodersView::check_if_encoder_can_be_reversed()
 	{
 		// if the selected tx method is DEBRUIJN, check if the encoder is vulnerable to DEBRUIJN
-		if (sizeof(encoder_def->bit_format) == 2)
+		if (sizeof(encoder_def->symbols_bit_fragments) == 2)
 		{
 			checkbox_reversed.set_focusable(true);
 		}
@@ -207,12 +210,12 @@ namespace ui
 			symbol_type = encoder_def->word_format[i++];
 			if (symbol_type == 'A')
 			{
-				symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
+				symfield_word.set_symbol_list(n++, encoder_def->symfield_address_symbols);
 				format_string += 'A';
 			}
 			else if (symbol_type == 'D')
 			{
-				symfield_word.set_symbol_list(n++, encoder_def->data_symbols);
+				symfield_word.set_symbol_list(n++, encoder_def->symfield_data_symbols);
 				format_string += 'D';
 			}
 		}
@@ -223,14 +226,14 @@ namespace ui
 		text_format.set(format_string);
 	}
 
-	const char *EncodersView::get_encoder_bit_format(const uint32_t index)
+	const char *EncodersView::get_symbols_bit_fragments(const uint32_t index)
 	{
 		if (checkbox_reversed.value())
 		{
-			return encoder_def->bit_format[(index == 0) ? 1 : 0];
+			return encoder_def->symbols_bit_fragments[(index == 0) ? 1 : 0];
 		}
 
-		return encoder_def->bit_format[index];
+		return encoder_def->symbols_bit_fragments[index];
 	}
 
 	void EncodersView::generate_frame()
@@ -245,9 +248,9 @@ namespace ui
 			for (i = 0; i < encoder_def->word_length; i++)
 			{
 				if (encoder_def->word_format[i] == 'S')
-					frame_fragments += encoder_def->sync;
+					frame_fragments += encoder_def->sync_bit_fragment;
 				else
-					frame_fragments += get_encoder_bit_format(symfield_word.get_sym(i++));
+					frame_fragments += get_symbols_bit_fragments(symfield_word.get_sym(i));
 			}
 		}
 
@@ -262,9 +265,9 @@ namespace ui
 			for (i = 0; i < 32; i++)
 			{
 				if (debruijn_bits & (1 << (31 - i)))
-					frame_fragments += get_encoder_bit_format(1);
+					frame_fragments += get_symbols_bit_fragments(1);
 				else
-					frame_fragments += get_encoder_bit_format(0);
+					frame_fragments += get_symbols_bit_fragments(0);
 			}
 		}
 	}
@@ -282,13 +285,8 @@ namespace ui
 
 	uint32_t EncodersView::samples_per_bit()
 	{
-		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
+		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / (encoder_def->clk_per_symbol / encoder_def->bit_fragments_length_per_symbol));
 	}
-
-	// uint16_t EncodersView::repeat_skip_bits_count()
-	// {
-	// 	return encoder_def->skip_repeat_bits ? strlen(encoder_def->sync) : 0;
-	// }
 
 	EncodersView::~EncodersView()
 	{
@@ -465,11 +463,7 @@ namespace ui
 
 		size_t bitstream_length = make_bitstream(frame_fragments);
 
-		transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
-		transmitter_model.set_rf_amp(true);
-		transmitter_model.set_baseband_bandwidth(1750000);
 		transmitter_model.enable();
-
 		baseband::set_ook_data(
 			bitstream_length,
 			samples_per_bit(),
@@ -479,11 +473,11 @@ namespace ui
 
 	void EncodersView::stop_tx()
 	{
-		symfield_word.set_focusable(true);
 		transmitter_model.disable();
 		tx_mode = TX_MODE_IDLE;
 		text_progress.set("Done");
 		tx_view.set_transmitting(false);
+		symfield_word.set_focusable(true);
 
 		if (encoder_def->is_vuln_to_debruijn)
 		{

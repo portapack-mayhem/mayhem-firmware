@@ -40,330 +40,466 @@ namespace encoders
 
 	struct encoder_def_t
 	{
-		char name[16];			   // Encoder chip ref/name
-		char address_symbols[8];   // List of possible symbols like "01", "01F"...
-		char data_symbols[8];	   // Same
-		uint16_t clk_per_symbol;   // Oscillator periods per symbol
-		uint16_t clk_per_fragment; // Oscillator periods per symbol fragment (state)
-		char bit_format[4][20];	   // List of fragments for each symbol in previous *_symbols list order
-		uint8_t word_length;	   // Total # of symbols (not counting sync)
-		char word_format[32];	   // A for Address, D for Data, S for sync
-		char sync[64];			   // Like bit_format
-		uint32_t default_speed;	   // Default encoder clk frequency (often set by shitty resistor)
-		uint8_t repeat_min;		   // Minimum repeat count
-		uint16_t pause_symbols;	   // Length of pause between repeats in symbols
-		bool is_vuln_to_debruijn;  // True if the encoder is vulnerable to the debruijn attack
+		// Encoder details
+		char name[16];			  // Encoder chip ref/name
+		bool is_vuln_to_debruijn; // True if the encoder is vulnerable to the debruijn attack
+		uint8_t repeat_min;		  // Minimum repeat count (ignored on DeBruijn mode)
+
+		// Word and Symbol format (Address, Data, Sync)
+		uint8_t word_length;  // Total # of symbols (not counting sync)
+		char word_format[32]; // A for Address, D for Data, S for sync
+
+		// Symbol setup - Address + Data + Sync bit fragments
+		char symfield_address_symbols[8];		 // List of possible symbols like "01", "01F"...
+		char symfield_data_symbols[8];			 // Same as symfield_address_symbols
+		uint8_t bit_fragments_length_per_symbol; // Indicates the length of the symbols_bit_fragmentss. Will be used to divide the symbol clock osc periods
+		char symbols_bit_fragments[4][20];		 // List of fragments for each symbol in previous *_symbols list order
+		char sync_bit_fragment[64];				 // Like symbols_bit_fragments
+
+		// timing
+		uint16_t clk_per_symbol;	// Oscillator periods per symbol
+		uint32_t default_clk_speed; // Default encoder clk frequency (often set by shitty resistor)
+		uint16_t pause_symbols;		// Length of pause between repeats in symbols
 	};
 
 	// Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !
 	constexpr encoder_def_t encoder_defs[ENC_TYPES_COUNT] = {
 		// generic 8-bit encoder
 		{
-			"g8bit",
-			"01",
-			"01",
-			32,
-			8,
-			{"1000", "1110"},
-			8,
-			"AAAAAAAA",
-			"",
-			25000,
-			50,
-			0,
-			true,
+			// Encoder details
+			"8-bits", // name
+			true,	  // is_vuln_to_debruijn
+			50,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			8,			// word_length
+			"AAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			  // symfield_address_symbols
+			"01",			  // symfield_data_symbols
+			4,				  // bit_fragments_length_per_symbol
+			{"1000", "1110"}, // symbols_bit_fragments
+			"",				  // sync_bit_fragment
+
+			// Speed and clocks
+			32,	   // clk_per_symbol
+			25000, // default_clk_speed
+			0,	   // pause_symbols
 		},
 
 		// generic 16-bit encoder
 		{
-			"g16bit",
-			"01",
-			"01",
-			32,
-			8,
-			{"1000", "1110"},
-			16,
-			"AAAAAAAAAAAAAAAA",
-			"",
-			25000,
-			50,
-			0,
-			true,
+			// Encoder details
+			"16-bits", // name
+			true,	   // is_vuln_to_debruijn
+			50,		   // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			16,					// word_length
+			"AAAAAAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			  // symfield_address_symbols
+			"01",			  // symfield_data_symbols
+			4,				  // bit_fragments_length_per_symbol
+			{"1000", "1110"}, // symbols_bit_fragments
+			"",				  // sync_bit_fragment
+
+			// Speed and clocks
+			32,	   // clk_per_symbol
+			25000, // default_clk_speed
+			0,	   // pause_symbols
 		},
 
 		// Test OOK Doorbell
 		{
-			"Doorbel",
-			"01",
-			"01",
-			228,
-			57,
-			{"1000", "1110"},
-			24,
-			"AAAAAAAAAAAAAAAAAAAAAAAA",
-			"",
-			141260,
-			32, // repeat=32
-			32,
-			true,
+			// Encoder details
+			"Doorbel", // name
+			true,	   // is_vuln_to_debruijn
+			32,		   // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			24,							// word_length
+			"AAAAAAAAAAAAAAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			  // symfield_address_symbols
+			"01",			  // symfield_data_symbols
+			4,				  // bit_fragments_length_per_symbol
+			{"1000", "1110"}, // symbols_bit_fragments
+			"",				  // sync_bit_fragment
+
+			// Speed and clocks
+			228,	// clk_per_symbol
+			141260, // default_clk_speed
+			32,		// pause_symbols
 		},
 
 		// Test OOK Garage Door
 		{
-			"OH200DC",
-			"01",
-			"01",
-			920,
-			115,
-			{"10000000", "11110000"},
-			8,
-			"AAAAAAAA",
-			"",
-			285000,
-			8, // repeat=230, looks like 8 is still working
-			70,
-			true,
+			// Encoder details
+			"OH200DC", // name
+			true,	   // is_vuln_to_debruijn
+			8,		   // repeat_min=230, looks like 8 is still working
+
+			// Word and Symbol format (Address, Data, Sync)
+			8,			// word_length
+			"AAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",					  // symfield_address_symbols
+			"01",					  // symfield_data_symbols
+			8,						  // bit_fragments_length_per_symbol
+			{"10000000", "11110000"}, // symbols_bit_fragments
+			"",						  // sync_bit_fragment
+
+			// Speed and clocks
+			920,	// clk_per_symbol
+			285000, // default_clk_speed
+			70,		// pause_symbols
 		},
 
 		// PT2260-R2
 		{
-			"2260-R2",
-			"01F",
-			"01",
-			1024,
-			128,
-			{"10001000", "11101110", "10001110"},
-			12,
-			"AAAAAAAAAADDS",
-			"10000000000000000000000000000000",
-			150000,
-			2,
-			0,
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"2260-R2", // name
+			false,	   // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			2,		   // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"AAAAAAAAAADDS", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",								  // symfield_address_symbols
+			"01",								  // symfield_data_symbols
+			8,									  // bit_fragments_length_per_symbol
+			{"10001000", "11101110", "10001110"}, // symbols_bit_fragments
+			"10000000000000000000000000000000",	  // sync_bit_fragment
+
+			// Speed and clocks
+			1024,	// clk_per_symbol
+			150000, // default_clk_speed
+			0,		// pause_symbols
 		},
 
 		// PT2260-R4
 		{
-			"2260-R4",
-			"01F",
-			"01",
-			1024,
-			128,
-			{"10001000", "11101110", "10001110"},
-			12,
-			"AAAAAAAADDDDS",
-			"10000000000000000000000000000000",
-			150000,
-			2,
-			0,
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"2260-R4", // name
+			false,	   // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			2,		   // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"AAAAAAAADDDDS", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",								  // symfield_address_symbols
+			"01",								  // symfield_data_symbols
+			8,									  // bit_fragments_length_per_symbol
+			{"10001000", "11101110", "10001110"}, // symbols_bit_fragments
+			"10000000000000000000000000000000",	  // sync_bit_fragment
+
+			// Speed and clocks
+			1024,	// clk_per_symbol
+			150000, // default_clk_speed
+			0,		// pause_symbols
 		},
 
 		// PT2262
 		{
-			"2262",
-			"01F",
-			"01F",
-			32,
-			4,
-			{"10001000", "11101110", "10001110"},
-			12,
-			"AAAAAAAAAAAAS",
-			"10000000000000000000000000000000",
-			20000,
-			4,
-			0,
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"2262", // name
+			false,	// is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		// repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"AAAAAAAAAAAAS", // // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",								  // symfield_address_symbols
+			"01F",								  // symfield_data_symbols
+			8,									  // bit_fragments_length_per_symbol
+			{"10001000", "11101110", "10001110"}, // symbols_bit_fragments
+			"10000000000000000000000000000000",	  // sync_bit_fragment
+
+			// Speed and clocks
+			32,	   // clk_per_symbol
+			20000, // default_clk_speed
+			0,	   // pause_symbols
 		},
 
 		// 16-bit ?
 		{
-			"16-bit",
-			"01",
-			"01",
-			32,
-			8,
-			{"1110", "1000"}, // Opposite ?
-			16,
-			"AAAAAAAAAAAAAAAAS",
-			"100000000000000000000",
-			25000,
-			50,
-			0,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"16-bit", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			50,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			16,					 // word_length
+			"AAAAAAAAAAAAAAAAS", // // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",					 // symfield_address_symbols
+			"01",					 // symfield_data_symbols
+			4,						 // bit_fragments_length_per_symbol
+			{"1110", "1000"},		 // symbols_bit_fragments
+			"100000000000000000000", // sync_bit_fragment
+
+			// Speed and clocks
+			32,	   // clk_per_symbol
+			25000, // default_clk_speed
+			0,	   // pause_symbols
 		},
 
 		// RT1527
 		{
-			"1527",
-			"01",
-			"01",
-			128,
-			32,
-			{"1000", "1110"},
-			24,
-			"SAAAAAAAAAAAAAAAAAAAADDDD",
-			"10000000000000000000000000000000",
-			100000,
-			4,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"1527", // name
+			false,	// is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		// repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			24,							 // word_length
+			"SAAAAAAAAAAAAAAAAAAAADDDD", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",								// symfield_address_symbols
+			"01",								// symfield_data_symbols
+			4,									// bit_fragments_length_per_symbol
+			{"1000", "1110"},					// symbols_bit_fragments
+			"10000000000000000000000000000000", // sync_bit_fragment
+
+			// Speed and clocks
+			128,	// clk_per_symbol
+			100000, // default_clk_speed
+			10,		// pause_symbols
 		},
 
 		// HK526E
 		{
-			"526E",
-			"01",
-			"01",
-			24,
-			8,
-			{"110", "100"},
-			12,
-			"AAAAAAAAAAAA",
-			"",
-			20000,
-			4,
-			10, // ?
-			true,
+			// Encoder details
+			"526E", // name
+			true,	// is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		// repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				// word_length
+			"AAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			// symfield_address_symbols
+			"01",			// symfield_data_symbols
+			3,				// bit_fragments_length_per_symbol
+			{"110", "100"}, // symbols_bit_fragments
+			"",				// sync_bit_fragment
+
+			// Speed and clocks
+			24,	   // clk_per_symbol
+			20000, // default_clk_speed
+			10,	   // pause_symbols
 		},
 
 		// HT12E
 		{
-			"12E",
-			"01",
-			"01",
-			3,
-			1,
-			{"011", "001"},
-			12,
-			"SAAAAAAAADDDD",
-			"0000000000000000000000000000000000001",
-			3000,
-			4,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"12E", // name
+			false, // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,	   // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"SAAAAAAAADDDD", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",									 // symfield_address_symbols
+			"01",									 // symfield_data_symbols
+			3,										 // bit_fragments_length_per_symbol
+			{"011", "001"},							 // symbols_bit_fragments
+			"0000000000000000000000000000000000001", // sync_bit_fragment
+
+			// Speed and clocks
+			3,	  // clk_per_symbol
+			3000, // default_clk_speed
+			10,	  // pause_symbols
 		},
 
 		// VD5026 13 bits ?
 		{
-			"5026",
-			"0123",
-			"0123",
-			128,
-			8,
-			{"1000000010000000", "1111111011111110", "1111111010000000", "1000000011111110"},
-			12,
-			"SAAAAAAAAAAAA",
-			"000000000000000000000000000000000000000000000001", // ?
-			100000,
-			4,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"5026", // name
+			false,	// is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		// repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"SAAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"0123",																			  // symfield_address_symbols
+			"0123",																			  // symfield_data_symbols
+			16,																				  // bit_fragments_length_per_symbol
+			{"1000000010000000", "1111111011111110", "1111111010000000", "1000000011111110"}, // symbols_bit_fragments
+			"000000000000000000000000000000000000000000000001",								  // sync_bit_fragment						  // ?
+
+			// Speed and clocks
+			128,	// clk_per_symbol
+			100000, // default_clk_speed
+			10,		// pause_symbols
 		},
 
 		// UM3750
 		{
-			"UM3750",
-			"01",
-			"01",
-			96,
-			32,
-			{"011", "001"},
-			12,
-			"SAAAAAAAAAAAA",
-			"001",
-			100000,
-			4,
-			(3 * 12) - 6, // Compensates for pause delay bug in proc_ook
-			false,		  // as it contains a preamble and sync
+			// Encoder details
+			"UM3750", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				 // word_length
+			"SAAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			// symfield_address_symbols
+			"01",			// symfield_data_symbols
+			3,				// bit_fragments_length_per_symbol
+			{"011", "001"}, // symbols_bit_fragments
+
+			// Encoder details
+			"001", // sync_bit_fragment
+
+			// Word and Symbol format (Address, Data, Sync)
+			// Speed and clocks
+			96,		// clk_per_symbol
+			100000, // default_clk_speed
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			(3 * 12) - 6, // pause_symbols Compensates for pause delay bug in proc_ook
 		},
 
-		// UM3758
+		// Speed and clocks
+		// UM3758 // clk_per_symbol
 		{
-			"UM3758",
-			"01F",
-			"01",
-			96,
-			16,
-			{"011011", "001001", "011001"},
-			18,
-			"SAAAAAAAAAADDDDDDDD",
-			"1",
-			160000,
-			4,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"UM3758", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			18,					   // word_length
+			"SAAAAAAAAAADDDDDDDD", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",							// symfield_address_symbols
+			"01",							// symfield_data_symbols
+			6,								// bit_fragments_length_per_symbol
+			{"011011", "001001", "011001"}, // symbols_bit_fragments
+			"1",							// sync_bit_fragment
+
+			// Speed and clocks
+			96,		// clk_per_symbol
+			160000, // default_clk_speed
+			10,		// pause_symbols
 		},
 
 		// BA5104
 		{
-			"BA5104",
-			"01",
-			"01",
-			3072,
-			768,
-			{"1000", "1110"},
-			9,
-			"SDDAAAAAAA",
-			"",
-			455000,
-			4,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"BA5104", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			4,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			9,			  // word_length
+			"SDDAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			  // symfield_address_symbols
+			"01",			  // symfield_data_symbols
+			4,				  // bit_fragments_length_per_symbol
+			{"1000", "1110"}, // symbols_bit_fragments
+			"",				  // sync_bit_fragment
+
+			// Speed and clocks
+			3072,	// clk_per_symbol
+			455000, // default_clk_speed
+			10,		// pause_symbols
 		},
 
 		// MC145026
 		{
-			"145026",
-			"01F",
-			"01",
-			16,
-			1,
-			{"0111111101111111", "0100000001000000", "0111111101000000"},
-			9,
-			"SAAAAADDDD",
-			"000000000000000000",
-			455000,
-			2,
-			2,
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"145026", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			2,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			9,			  // word_length
+			"SAAAAADDDD", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",														  // symfield_address_symbols
+			"01",														  // symfield_data_symbols
+			16,															  // bit_fragments_length_per_symbol
+			{"0111111101111111", "0100000001000000", "0111111101000000"}, // symbols_bit_fragments
+			"000000000000000000",										  // sync_bit_fragment
+
+			// Speed and clocks
+			16,		// clk_per_symbol
+			455000, // default_clk_speed
+			2,		// pause_symbols
 		},
 
 		// HT6*** TODO: Add individual variations
 		{
-			"HT6***",
-			"01F",
-			"01",
-			198,
-			33,
-			{"011011", "001001", "001011"},
-			18,
-			"SAAAAAAAAAAAADDDDDD",
-			"0000000000000000000000000000000000001011001011001",
-			80000,
-			3,
-			10,	   // ?
-			false, // as it contains a preamble and sync
+			// Encoder details
+			"HT6***", // name
+			false,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			3,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			18,					   // word_length
+			"SAAAAAAAAAAAADDDDDD", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01F",												 // symfield_address_symbols
+			"01",												 // symfield_data_symbols
+			6,													 // bit_fragments_length_per_symbol
+			{"011011", "001001", "001011"},						 // symbols_bit_fragments
+			"0000000000000000000000000000000000001011001011001", // sync_bit_fragment
+
+			// Speed and clocks
+			198,   // clk_per_symbol
+			80000, // default_clk_speed
+			10,	   // pause_symbols
 		},
 
 		// TC9148
 		{
-			"TC9148",
-			"01",
-			"01",
-			48,
-			12,
-			{
-				"1000",
-				"1110",
-			},
-			12,
-			"AAAAAAAAAAAA",
-			"",
-			455000,
-			3,
-			10, // ?
-			true,
+			// Encoder details
+			"TC9148", // name
+			true,	  // is_vuln_to_debruijn - false, as it contains a preamble and sync
+			3,		  // repeat_min
+
+			// Word and Symbol format (Address, Data, Sync)
+			12,				// word_length
+			"AAAAAAAAAAAA", // word_format
+
+			// Symbol setup - Address + Data + Sync bit fragments
+			"01",			  // symfield_address_symbols
+			"01",			  // symfield_data_symbols
+			4,				  // bit_fragments_length_per_symbol
+			{"1000", "1110"}, // symbols_bit_fragments
+			"",				  // sync_bit_fragment
+
+			// Speed and clocks
+			48,		// clk_per_symbol
+			455000, // default_clk_speed
+			10,		// pause_symbols
 		},
 	};
 
