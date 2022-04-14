@@ -130,13 +130,15 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
-	    sample = audio.p[counter / over] >> 8;
+	    sample = audio.p[counter>>6] >> 8;					// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
 
-	sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and update vu-meter.
+	sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and apply beep
 
+   /* 
     /*  
+   /* 
 	// Update vu-meter bar in the LCD screen.(of both cases , audio mic or beep )
-	    power_acc += (sample_in < 0) ? -sample_in : sample_in;	// Power average for UI vu-meter
+	    power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
 	
 		if (power_acc_count) {
 			power_acc_count--;
@@ -174,6 +176,7 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 		if (counter % 128 == 0) {
 			sample = audio.p[counter / over] >> 2;
 		}
+		sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
 
 		q = sample / 32768.0f;
 		q *= 256.0f;										 // Original 64.0f,now x4 (+12 dB's BB_modulation in AM & DSB)	
