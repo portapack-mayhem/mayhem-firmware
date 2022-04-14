@@ -20,13 +20,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_OOK_H__
-#define __PROC_OOK_H__
+#ifndef __proc_ooktx_H__
+#define __proc_ooktx_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 
-class OOKProcessor : public BasebandProcessor
+class OOKTxProcessor : public BasebandProcessor
 {
 public:
 	void execute(const buffer_c8_t &buffer) override;

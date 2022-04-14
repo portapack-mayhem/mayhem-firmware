@@ -379,7 +379,7 @@ namespace encoders
 			100000, // default_clk_speed
 
 			// Symbol setup - Address + Data + Sync bit fragments
-			(3 * 12) - 6, // pause_symbols Compensates for pause delay bug in proc_ook
+			(3 * 12) - 6, // pause_symbols Compensates for pause delay bug in proc_ooktx
 		},
 
 		// Speed and clocks

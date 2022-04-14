@@ -423,7 +423,7 @@ DeclareTargets(PNOP no_operation)
 ### OOK
 
 set(MODE_CPPSRC
-	proc_ook.cpp
+	proc_ooktx.cpp
 )
 DeclareTargets(POOK ook)
 

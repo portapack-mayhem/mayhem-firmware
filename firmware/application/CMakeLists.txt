@@ -161,6 +161,7 @@ set(CPPSRC
 	core_control.cpp
 	database.cpp
 	de_bruijn.cpp
+	de_bruijn_cusspvz.cpp
 	#emu_cc1101.cpp
 	rfm69.cpp
 	event_m0.cpp
@@ -229,7 +230,7 @@ set(CPPSRC
 	apps/ui_bht_tx.cpp
 	apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
-	apps/ui_encoders.cpp
+	apps/ui_ook_tx.cpp
 	apps/ui_fileman.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp
