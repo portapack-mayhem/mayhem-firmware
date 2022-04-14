@@ -24,24 +24,23 @@
 #ifndef __DE_BRUIJN_H__
 #define __DE_BRUIJN_H__
 
-struct de_bruijn
+class de_bruijn
 {
 public:
-	uint32_t init(const uint8_t k_arg, const uint8_t n_arg); // returns length
+	void init(const std::string alphabet_str, const uint8_t wordlength);
 	void reset();
-	void compute();
+	void db(uint8_t t, uint8_t p);
+	void generate();
 
-	std::string frame = "";
+	std::string alphabet = "";
+	std::string sequence = "";
 	uint32_t length = 0;
 
 	uint8_t k = 2; // radix
 	uint8_t n = 8; // data length
-private:
-	void feed_frame();
 
-	uint32_t t = 1;
-	uint32_t p = 1;
-	uint32_t o = 0;
+private:
+	void feed_sequence();
 	uint8_t a[101] = {};
 };
 

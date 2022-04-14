@@ -22,19 +22,17 @@
 
 #include "de_bruijn_cusspvz.hpp"
 #include <math.h> /* pow */
-#include "string_format.hpp"
 
-uint32_t de_bruijn::init(const uint8_t k_arg, const uint8_t n_arg)
+void de_bruijn::init(std::string alphabet_str, uint8_t wordlength)
 {
-	k = k_arg;
-	n = n_arg;
+	alphabet = alphabet_str;
+	k = alphabet_str.length();
+	n = wordlength;
 
 	// calculate new length
 	length = pow(k, n) + (n - 1);
 
 	reset();
-
-	return length;
 }
 
 void de_bruijn::reset()
@@ -45,52 +43,33 @@ void de_bruijn::reset()
 		a[i] = 0;
 	};
 
-	t = 1;
-	p = 1;
-	o = 0;
-
-	frame.clear();
+	sequence.clear();
 }
 
-void de_bruijn::compute()
+void de_bruijn::db(uint8_t t, uint8_t p)
 {
-	if (o > n)
-		return;
-
 	if (t > n)
-		return feed_frame();
+	{
+		if (n % p == 0)
+			for (uint32_t j = 1; j <= p; j++)
+				sequence += alphabet[a[j]];
+
+		return;
+	}
 
 	a[t] = a[t - p];
-
-	if (a[t] > 0)
-		o++;
-
-	t++;
-	compute();
-
-	uint32_t t_loop = t;
-	// uint32_t p_loop = p;
-	// uint32_t o_loop = o;
-	for (int32_t j = a[t - p] + 1; j <= k - 1; j++)
+	db(t + 1, p);
+	for (uint8_t j = a[t - p] + 1; j < k; j++)
 	{
-		a[t_loop] = j;
-		t = t_loop + 1;
-		p = t_loop;
-		compute();
+		a[t] = j;
+		db(t + 1, t);
 	}
 }
 
-void de_bruijn::feed_frame()
+void de_bruijn::generate()
 {
-	if (n % p != 0)
-		return;
+	db(1, 1);
 
-	if (k != 2)
-		return;
-
-	for (uint32_t j = 1; j <= p; j++)
-	{
-		t = a[j];
-		frame += to_string_dec_uint(t);
-	};
+	for (uint8_t i = 0, nremain = n - 1; nremain > 0; i += 2, nremain--)
+		sequence += sequence[i % sequence.length()];
 }
