@@ -27,6 +27,7 @@
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
 #include "de_bruijn_cusspvz.hpp"
+#include "io_file.hpp"
 
 using namespace encoders;
 
@@ -216,22 +217,35 @@ namespace ui
 	};
 
 	///////////////////////////////////////////////////////////////////////////////
-	// OOKTxLoaderView
+	// OOKTxFilesView
 
-	class OOKTxLoaderView : public View
+	class OOKTxFilesView : public View
 	{
 	public:
 		std::function<void()> on_waveform_change_request{};
 		std::function<void(std::string)> on_status_change{};
 
-		OOKTxLoaderView(NavigationView &nav, Rect parent_rect);
+		OOKTxFilesView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
 		uint32_t get_repeat_total();
 		uint32_t get_frame_part_total();
 		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
+		void refresh_list();
+
 	private:
+		std::vector<std::filesystem::path>
+			file_list{};
+		uint32_t playing_id{};
+		uint32_t page = 1;
+		uint32_t c_page = 1;
+
+		void on_select_entry();
+		void file_error();
+
+		// UI related
+
 		Labels labels{
 			{{1 * 8, 0 * 8}, "OOK file loader soon", Color::light_grey()},
 		};
@@ -249,43 +263,61 @@ namespace ui
 		OOKTxDeBruijnView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
+		void reset_debruijn();
+		void reset_symfield();
+
 		uint32_t get_repeat_total();
 		uint32_t get_frame_part_total();
 		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
 	private:
 		de_bruijn debruijn_sequencer;
+		std::string symfield_symbols = "01";
 
+		// UI related
 		Labels labels{
-			{{1 * 8, 0 * 8}, "init compute", Color::light_grey()},
+			{{1 * 8, 0 * 8}, "Word Length:", Color::light_grey()},
+			{{1 * 8, 2 * 8}, "Fragments #:", Color::light_grey()},
+			{{1 * 8, 4 * 8}, "Short Pulse:", Color::light_grey()},
+
+			// frame descriptors
+			{{0 * 8, 10 * 8}, "Frag 0:", Color::light_grey()},
+			{{0 * 8, 12 * 8}, "Frag 1:", Color::light_grey()},
 		};
 
-		// DEBUG
-		NumberField field_init{
-			{1 * 8, 2 * 8},
+		NumberField field_wordlength{
+			{13 * 8, 0 * 8},
 			2,
-			{1, 99},
-			1,
-			' ',
-		};
-		NumberField field_compute{
-			{8 * 8, 2 * 8},
-			3,
-			{0, 999},
+			{1, 12},
 			1,
 			' ',
 		};
 
-		// DEBUG
-		Text text_debug{
-			{1 * 8, 4 * 8, 24 * 8, 16},
-			"",
+		NumberField field_fragments{
+			{13 * 8, 2 * 8},
+			2,
+			{1, 16},
+			1,
+			' ',
 		};
 
-		// DEBUG
-		Text text_length{
-			{1 * 8, 8 * 8, 24 * 8, 16},
-			"",
+		NumberField field_short_pulse{
+			{13 * 8, 4 * 8},
+			2,
+			{1, 999},
+			1,
+			' ',
+		};
+
+		SymField symfield_fragment_0{
+			{8 * 8, 10 * 8},
+			16,
+			SymField::SYMFIELD_DEF,
+		};
+		SymField symfield_fragment_1{
+			{8 * 8, 12 * 8},
+			16,
+			SymField::SYMFIELD_DEF,
 		};
 	};
 
@@ -329,13 +361,13 @@ namespace ui
 		NavigationView &nav_;
 		Rect view_rect = {0, 4 * 8, 30 * 8, 17 * 8};
 
-		OOKTxLoaderView view_loader{nav_, view_rect};
+		OOKTxFilesView view_files{nav_, view_rect};
 		OOKTxGeneratorView view_generator{nav_, view_rect};
 		OOKTxDeBruijnView view_debruijn{nav_, view_rect};
 
 		TabView tab_view{
-			{"Loader", Color::green(), &view_loader},
-			{"Generator", Color::cyan(), &view_generator},
+			{"Files", Color::green(), &view_files},
+			{"Encoders", Color::cyan(), &view_generator},
 			{"DeBruijn", Color::green(), &view_debruijn},
 		};
 

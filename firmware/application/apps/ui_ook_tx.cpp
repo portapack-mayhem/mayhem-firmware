@@ -22,7 +22,6 @@
  */
 
 #include "ui_ook_tx.hpp"
-
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -225,7 +224,7 @@ namespace ui
 
 		debruijn_sequencer.init("01", encoder_def->word_length, 32);
 
-		// this screws stuff up... :|
+		// TODO: this screws stuff up... :|
 		// debruijn_sequencer.generate();
 	}
 
@@ -316,9 +315,9 @@ namespace ui
 	}
 
 	// 	///////////////////////////////////////////////////////////////////////////////
-	// 	// OOKTxLoaderView
+	// 	// OOKTxFilesView
 
-	OOKTxLoaderView::OOKTxLoaderView(
+	OOKTxFilesView::OOKTxFilesView(
 		NavigationView &, Rect parent_rect)
 	{
 		set_parent_rect(parent_rect);
@@ -329,7 +328,7 @@ namespace ui
 		});
 	}
 
-	void OOKTxLoaderView::focus()
+	void OOKTxFilesView::focus()
 	{
 		// field_debug.focus();
 
@@ -337,12 +336,105 @@ namespace ui
 			on_waveform_change_request();
 	}
 
-	uint32_t OOKTxLoaderView::get_repeat_total() { return 1; }
-	uint32_t OOKTxLoaderView::get_frame_part_total() { return 1; }
+	uint32_t OOKTxFilesView::get_repeat_total() { return 1; }
+	uint32_t OOKTxFilesView::get_frame_part_total() { return 1; }
 
-	std::string OOKTxLoaderView::generate_frame_part(const uint32_t frame_part_index, const bool reversed)
+	std::string OOKTxFilesView::generate_frame_part(const uint32_t frame_part_index, const bool reversed)
 	{
 		return "0";
+	}
+
+	void OOKTxFilesView::refresh_list()
+	{
+		// auto reader = std::make_unique<FileReader>();
+
+		// file_list.clear();
+		// c_page = page;
+
+		// // List directories and files, put directories up top
+		// uint32_t count = 0;
+		// for (const auto &entry : std::filesystem::directory_iterator(u"OOK", u"*"))
+		// {
+		// 	if (std::filesystem::is_regular_file(entry.status()))
+		// 	{
+		// 		if (entry.path().string().length())
+		// 		{
+
+		// 			auto entry_extension = entry.path().extension().string();
+
+		// 			for (auto &c : entry_extension)
+		// 				c = toupper(c);
+
+		// 			if (entry_extension == ".OOK")
+		// 			{
+
+		// 				if (reader->open(u"/WAV/" + entry.path().native()))
+		// 				{
+		// 					if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
+		// 					{
+		// 						// sounds[c].ms_duration = reader->ms_duration();
+		// 						// sounds[c].path = u"WAV/" + entry.path().native();
+		// 						if (count >= (page - 1) * 100 && count < page * 100)
+		// 						{
+		// 							file_list.push_back(entry.path());
+		// 							if (file_list.size() == 100)
+		// 							{
+		// 								page++;
+		// 								break;
+		// 							}
+		// 						}
+		// 						count++;
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		// if (!file_list.size())
+		// {
+		// 	// Hide widgets, show warning
+		// 	if (page == 1)
+		// 	{
+		// 		menu_view.hidden(true);
+		// 		text_empty.hidden(false);
+		// 		set_dirty();
+		// 	}
+		// 	else
+		// 	{
+		// 		page = 1;
+		// 		refresh_list();
+		// 		return;
+		// 	}
+		// }
+		// else
+		// {
+		// 	// Hide warning, show widgets
+		// 	menu_view.hidden(false);
+		// 	text_empty.hidden(true);
+		// 	set_dirty();
+
+		// 	menu_view.clear();
+
+		// 	for (size_t n = 0; n < file_list.size(); n++)
+		// 	{
+		// 		menu_view.add_item({file_list[n].string().substr(0, 30),
+		// 							ui::Color::white(),
+		// 							nullptr,
+		// 							[this]()
+		// 							{
+		// 								on_select_entry();
+		// 							}});
+		// 	}
+
+		// 	page_info.set("Page: " + to_string_dec_uint(c_page) + "    Sounds: " + to_string_dec_uint(file_list.size()));
+		// 	menu_view.set_highlighted(0); // Refresh
+		// }
+
+		// if (file_list.size() < 100)
+		// {
+		// 	page = 1;
+		// }
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -356,40 +448,62 @@ namespace ui
 
 		add_children({
 			&labels,
-			&field_init,
-			&field_compute,
-			&text_debug,
-			&text_length,
+			&field_wordlength,
+			&field_fragments,
+			&field_short_pulse,
+			&symfield_fragment_0,
+			&symfield_fragment_1,
 		});
 
-		field_init.on_change = [this](int32_t value)
+		field_wordlength.on_change = [this](uint32_t)
 		{
-			debruijn_sequencer.init("01", value, 128); // 128 bits per frame part
-			debruijn_sequencer.generate();
-			field_compute.set_value(0);
-			text_length.set("Len: " + to_string_dec_uint(debruijn_sequencer.length));
-
-			if (on_waveform_change_request)
-				on_waveform_change_request();
+			reset_debruijn();
 		};
 
-		field_compute.on_change = [this](int32_t offset)
+		field_fragments.on_change = [this](uint32_t)
 		{
-			size_t len = debruijn_sequencer.sequence.length();
-
-			uint32_t min = offset + 25 > len ? len - 25 : offset;
-			uint32_t max = 25;
-
-			text_debug.set(debruijn_sequencer.sequence.substr(min, max));
+			reset_symfield();
 		};
 	}
 
 	void OOKTxDeBruijnView::focus()
 	{
-		field_init.focus();
+		field_wordlength.focus();
 
 		if (on_waveform_change_request)
 			on_waveform_change_request();
+	}
+
+	void OOKTxDeBruijnView::reset_symfield()
+	{
+		char symbol_type;
+		std::string format_string = "";
+		uint32_t fragments_length = field_fragments.value();
+
+		symfield_fragment_0.set_length(fragments_length);
+		symfield_fragment_1.set_length(fragments_length);
+
+		for (uint32_t i = 0; i < fragments_length; i++)
+		{
+			symfield_fragment_0.set_symbol_list(i, symfield_symbols);
+			symfield_fragment_1.set_symbol_list(i, symfield_symbols);
+		}
+	}
+
+	void OOKTxDeBruijnView::reset_debruijn()
+	{
+		uint32_t word_length = field_wordlength.value();
+
+		if (
+			debruijn_sequencer.k == 2 &&
+			debruijn_sequencer.n == word_length &&
+			debruijn_sequencer.sequence.length() > 0)
+			return;
+
+		debruijn_sequencer.init(symfield_symbols, word_length, 32);
+
+		// TODO: this screws stuff up... :|
+		// debruijn_sequencer.generate();
 	}
 
 	uint32_t OOKTxDeBruijnView::get_repeat_total() { return 1; }
@@ -416,7 +530,7 @@ namespace ui
 
 			// tab views
 			&view_debruijn,
-			&view_loader,
+			&view_files,
 			&view_generator,
 
 			&checkbox_reversed,
@@ -456,7 +570,7 @@ namespace ui
 		// View hooks
 
 		view_debruijn.on_waveform_change_request =
-			view_loader.on_waveform_change_request =
+			view_files.on_waveform_change_request =
 				view_generator.on_waveform_change_request = [this]()
 		{
 			generate_frame_part();
@@ -464,7 +578,7 @@ namespace ui
 		};
 
 		view_debruijn.on_status_change =
-			view_loader.on_status_change =
+			view_files.on_status_change =
 				view_generator.on_status_change = [this](const std::string e)
 		{
 			if (err != e)
@@ -479,6 +593,9 @@ namespace ui
 			// reset reversed checkbox
 			checkbox_reversed.set_value(false);
 		};
+
+		// start on debruijn generator
+		tab_view.set_selected(2);
 	}
 
 	void OOKTxView::focus()
@@ -498,7 +615,7 @@ namespace ui
 		frame_fragments.clear();
 
 		if (tab_view.selected() == 0)
-			frame_fragments += view_loader.generate_frame_part(
+			frame_fragments += view_files.generate_frame_part(
 				tx_mode,
 				checkbox_reversed.value());
 
@@ -686,8 +803,8 @@ namespace ui
 		{
 		// Loader View TX
 		case 0:
-			repeat_cursor.total = view_loader.get_repeat_total();
-			frame_parts_cursor.total = view_loader.get_frame_part_total();
+			repeat_cursor.total = view_files.get_repeat_total();
+			frame_parts_cursor.total = view_files.get_frame_part_total();
 			break;
 
 		// Generator View TX
