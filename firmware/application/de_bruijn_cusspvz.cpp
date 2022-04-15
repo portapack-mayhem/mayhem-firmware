@@ -35,7 +35,7 @@ void de_bruijn::init(std::string alphabet_str, uint8_t wordlength, uint8_t bytes
 
 	// calculate the number of parts
 	std::div_t tmp = div(length, bytes_per_part);
-	_total_parts = tmp.quot + (tmp.rem > 0) ? 1 : 0;
+	_total_parts = tmp.quot + ((tmp.rem > 0) ? 1 : 0);
 
 	reset();
 }
@@ -91,5 +91,6 @@ std::string de_bruijn::get_part(uint32_t part_index)
 		return "";
 	}
 
-	return sequence.substr(part_index * _bytes_per_part, _bytes_per_part);
+	uint32_t offset = part_index * _bytes_per_part;
+	return sequence.substr(offset, ((offset + _bytes_per_part) > length) ? length - offset : _bytes_per_part);
 }

@@ -143,7 +143,7 @@ namespace ui
 			{{27 * 8, 0}, "kHz", Color::light_grey()},
 			{{14 * 8, 2 * 8}, "Duration:", Color::light_grey()},
 			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{14 * 8, 4 * 8}, "S Period:", Color::light_grey()},
+			{{14 * 8, 4 * 8}, "Sh Pulse:", Color::light_grey()},
 			{{28 * 8, 4 * 8}, "us", Color::light_grey()},
 			{{1 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
 			{{1 * 8, 6 * 8}, "Pause:", Color::light_grey()},
@@ -172,7 +172,7 @@ namespace ui
 			{22 * 8, 0},
 			3,
 			{1, 99999},
-			1,
+			10,
 			' ',
 		};
 
@@ -281,19 +281,14 @@ namespace ui
 		Labels labels{
 			{{1 * 8, 0 * 8}, "Word Length:", Color::light_grey()},
 			{{1 * 8, 2 * 8}, "Fragments #:", Color::light_grey()},
-
-			{{1 * 8, 4 * 8}, "Short Pulse:", Color::light_grey()},
-			{{20 * 8, 4 * 8}, "us", Color::light_grey()},
-			{{1 * 8, 6 * 8}, "Symbl Pause:", Color::light_grey()},
-			{{20 * 8, 6 * 8}, "us", Color::light_grey()},
-			{{1 * 8, 8 * 8}, "Frame Duration:", Color::light_grey()},
-			{{20 * 8, 8 * 8}, "us", Color::light_grey()},
+			{{1 * 8, 6 * 8}, "Pause:", Color::light_grey()},
 
 			{{17 * 8, 0}, "Clck:", Color::light_grey()},
 			{{27 * 8, 0}, "kHz", Color::light_grey()},
-			{{14 * 8, 2 * 8}, "Frm:", Color::light_grey()},
+			{{17 * 8, 2 * 8}, "Frm:", Color::light_grey()},
 			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
-
+			{{14 * 8, 4 * 8}, "Sh Pulse:", Color::light_grey()},
+			{{28 * 8, 4 * 8}, "us", Color::light_grey()},
 			// frame descriptors
 			{{0 * 8, 10 * 8}, "Frag 0:", Color::light_grey()},
 			{{0 * 8, 12 * 8}, "Frag 1:", Color::light_grey()},
@@ -319,7 +314,7 @@ namespace ui
 			{23 * 8, 0},
 			3,
 			{1, 99999},
-			1,
+			10,
 			' ',
 		};
 
@@ -332,13 +327,13 @@ namespace ui
 		};
 
 		OptionsField options_period_per_symbol{
-			{14 * 8, 4 * 8},
+			{23 * 8, 4 * 8},
 			5,
 			PERIODS_PER_SYMBOL,
 		};
 
 		NumberField field_pause_between_symbols{
-			{14 * 8, 4 * 8},
+			{8 * 8, 6 * 8},
 			5,
 			{0, 100},
 			1,

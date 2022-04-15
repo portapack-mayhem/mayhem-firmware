@@ -448,6 +448,7 @@ namespace ui
 			&field_clk,
 			&field_frameduration,
 			&options_period_per_symbol,
+			&field_pause_between_symbols,
 			&symfield_fragment_0,
 			&symfield_fragment_1,
 		});
@@ -508,7 +509,7 @@ namespace ui
 		field_wordlength.set_value(4);
 		field_fragments.set_value(4);
 		field_clk.set_value(250);
-		options_period_per_symbol.set_by_value(32);
+		options_period_per_symbol.set_by_value(10);
 		symfield_fragment_0.set_next_possibility();
 
 		for (uint32_t i = 0; i < field_fragments.value(); i++)
