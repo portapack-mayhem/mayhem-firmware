@@ -27,7 +27,7 @@
 class de_bruijn
 {
 public:
-	void init(const std::string alphabet_str, const uint8_t wordlength);
+	void init(const std::string alphabet_str, const uint8_t wordlength, const uint8_t bytes_per_part);
 	void reset();
 	void db(uint8_t t, uint8_t p);
 	void generate();
@@ -39,9 +39,17 @@ public:
 	uint8_t k = 2; // radix
 	uint8_t n = 8; // data length
 
+	// parts related - might be useful to distribute the computing
+	// into a stream later down the road
+	std::string
+	get_part(uint32_t part_index);
+	uint32_t get_total_parts();
+
 private:
 	void feed_sequence();
 	uint8_t a[101] = {};
+	uint32_t _total_parts;
+	uint8_t _bytes_per_part;
 };
 
 #endif /*__DE_BRUIJN_H__*/

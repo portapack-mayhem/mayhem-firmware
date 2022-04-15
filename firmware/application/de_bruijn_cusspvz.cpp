@@ -23,14 +23,19 @@
 #include "de_bruijn_cusspvz.hpp"
 #include <math.h> /* pow */
 
-void de_bruijn::init(std::string alphabet_str, uint8_t wordlength)
+void de_bruijn::init(std::string alphabet_str, uint8_t wordlength, uint8_t bytes_per_part)
 {
 	alphabet = alphabet_str;
 	k = alphabet_str.length();
 	n = wordlength;
+	_bytes_per_part = bytes_per_part;
 
 	// calculate new length
 	length = pow(k, n) + (n - 1);
+
+	// calculate the number of parts
+	std::div_t tmp = div(length, bytes_per_part);
+	_total_parts = tmp.quot + (tmp.rem > 0) ? 1 : 0;
 
 	reset();
 }
@@ -72,4 +77,19 @@ void de_bruijn::generate()
 
 	for (uint8_t i = 0, nremain = n - 1; nremain > 0; i += 2, nremain--)
 		sequence += sequence[i % sequence.length()];
+}
+
+uint32_t de_bruijn::get_total_parts()
+{
+	return _total_parts;
+}
+
+std::string de_bruijn::get_part(uint32_t part_index)
+{
+	if (part_index >= _total_parts)
+	{
+		return "";
+	}
+
+	return sequence.substr(part_index * _bytes_per_part, _bytes_per_part);
 }

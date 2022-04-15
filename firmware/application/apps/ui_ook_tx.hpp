@@ -58,6 +58,24 @@ namespace ui
 		TX_MODE_LOADER = 4,
 	};
 
+	struct cursor
+	{
+	public:
+		uint8_t index;
+		uint8_t total;
+
+		void reset()
+		{
+			index = 0;
+			total = 0;
+		}
+
+		bool is_done()
+		{
+			return index >= total;
+		}
+	};
+
 	///////////////////////////////////////////////////////////////////////////////
 	// OOKTxGeneratorView
 
@@ -66,6 +84,7 @@ namespace ui
 	public:
 		// allow the main view to hook change events
 		std::function<void()> on_waveform_change_request{};
+		std::function<void(std::string)> on_status_change{};
 		std::function<void()> on_encoder_change{};
 
 		OOKTxGeneratorView(NavigationView &nav, Rect parent_rect);
@@ -76,17 +95,20 @@ namespace ui
 		void focus() override;
 		void on_show() override;
 
-		std::string generate_frame(const tx_modes tx_mode, const bool reversed);
-		const char *get_symbols_bit_fragments(const uint32_t index, const bool reversed);
-		uint32_t samples_per_bit();
-		uint16_t repeat_skip_bits_count();
-		const encoder_def_t *encoder_def{};
-		void reset_symfield();
-		void check_if_encoder_is_vuln_to_debruijn();
-		void check_if_encoder_can_be_reversed();
+		// 	uint16_t get_repeat_total();
+		// 	uint16_t get_frame_part_total();
+		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
 
-		de_bruijn debruijn_seq;
-		void reset_debruijn();
+		// 	const char *get_symbols_bit_fragments(const uint8_t index, const bool reversed);
+		// 	uint32_t samples_per_bit();
+		// 	uint16_t repeat_skip_bits_count();
+		const encoder_def_t *encoder_def{};
+		// 	void reset_symfield();
+		// 	void check_if_encoder_is_vuln_to_debruijn();
+		// 	void check_if_encoder_can_be_reversed();
+
+		de_bruijn debruijn_sequencer;
+		// 	void reset_debruijn();
 
 		// UI related
 
@@ -200,9 +222,14 @@ namespace ui
 	{
 	public:
 		std::function<void()> on_waveform_change_request{};
+		std::function<void(std::string)> on_status_change{};
 
 		OOKTxLoaderView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
+
+		// uint16_t get_repeat_total();
+		// uint16_t get_frame_part_total();
+		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
 
 	private:
 		Labels labels{
@@ -211,20 +238,23 @@ namespace ui
 	};
 
 	///////////////////////////////////////////////////////////////////////////////
-	// OOKTxDebugView - used to debug some underneath logic
+	// OOKTxDeBruijnView - used to debug some underneath logic
 
-	class OOKTxDebugView : public View
+	class OOKTxDeBruijnView : public View
 	{
 	public:
 		std::function<void()> on_waveform_change_request{};
+		std::function<void(std::string)> on_status_change{};
 
-		OOKTxDebugView(NavigationView &nav, Rect parent_rect);
+		OOKTxDeBruijnView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
-		std::string generate_frame(const tx_modes tx_mode, const bool reversed);
+		// 	uint16_t get_repeat_total();
+		// 	uint16_t get_frame_part_total();
+		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
 
 	private:
-		de_bruijn debruijn_seq;
+		de_bruijn debruijn_sequencer;
 
 		Labels labels{
 			{{1 * 8, 0 * 8}, "init compute", Color::light_grey()},
@@ -271,38 +301,29 @@ namespace ui
 		std::string title() const override { return "OOK TX"; };
 
 	private:
+		std::string err;
+
 		// TX related
 
-		void init_progress();
-		void update_progress();
+		void progress_reset();
+		void progress_update();
 		void draw_waveform();
 
-		void generate_frame();
+		void reset_cursors();
+		void generate_frame_part();
 
-		void start_single_tx();
-		void start_debruijn_tx();
-		// void tick_debruijn_tx();
-		void start_bruteforce_tx();
-		void tick_bruteforce_tx();
+		void start_tx();
+		void on_tx_progress(const uint32_t progress, const bool done);
 		void tx();
 		void stop_tx();
 
-		void on_tx_progress(const uint32_t progress, const bool done);
-
 		// general
 		tx_modes tx_mode = TX_MODE_IDLE;
-		uint8_t tx_repeat_min{0};
-		uint8_t tx_repeat_index{0};
-		uint8_t afsk_repeats;
+		cursor frame_parts_cursor{}; // cursor to navigate through the frame parts in case it has more than one
+		cursor repeat_cursor{};		 // cursor to navigate through the repeat parts in case it has more than one
+
 		std::string frame_fragments = "0";
-
 		int16_t waveform_buffer[550];
-		uint8_t enc_type = 0;
-		char str[16];
-
-		// bruteforce
-		uint32_t bruteforce_index = 0;
-		uint32_t bruteforce_max = 0;
 
 		// UI related
 		NavigationView &nav_;
@@ -310,12 +331,12 @@ namespace ui
 
 		OOKTxLoaderView view_loader{nav_, view_rect};
 		OOKTxGeneratorView view_generator{nav_, view_rect};
-		OOKTxDebugView view_debug{nav_, view_rect};
+		OOKTxDeBruijnView view_debruijn{nav_, view_rect};
 
 		TabView tab_view{
 			{"Loader", Color::green(), &view_loader},
 			{"Generator", Color::cyan(), &view_generator},
-			{"Debug", Color::green(), &view_debug},
+			{"DeBruijn", Color::green(), &view_debruijn},
 		};
 
 		Labels labels{

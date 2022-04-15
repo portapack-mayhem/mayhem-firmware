@@ -1978,6 +1978,11 @@ namespace ui
 		// previous_data.resize(length_, 0);
 	}
 
+	uint32_t Waveform::length() const
+	{
+		return length_;
+	}
+
 	void Waveform::set_cursor(const uint32_t i, const int16_t position)
 	{
 		if (i < 2)
