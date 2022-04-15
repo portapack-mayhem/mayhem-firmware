@@ -61,8 +61,8 @@ namespace ui
 	struct cursor
 	{
 	public:
-		uint8_t index;
-		uint8_t total;
+		uint32_t index;
+		uint32_t total;
 
 		void reset()
 		{
@@ -95,20 +95,20 @@ namespace ui
 		void focus() override;
 		void on_show() override;
 
-		// 	uint16_t get_repeat_total();
-		// 	uint16_t get_frame_part_total();
-		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
+		uint32_t get_repeat_total();
+		uint32_t get_frame_part_total();
+		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
-		// 	const char *get_symbols_bit_fragments(const uint8_t index, const bool reversed);
-		// 	uint32_t samples_per_bit();
-		// 	uint16_t repeat_skip_bits_count();
+		const char *get_symbols_bit_fragments(const uint8_t index, const bool reversed);
+		uint32_t samples_per_bit();
+		uint16_t repeat_skip_bits_count();
 		const encoder_def_t *encoder_def{};
-		// 	void reset_symfield();
-		// 	void check_if_encoder_is_vuln_to_debruijn();
-		// 	void check_if_encoder_can_be_reversed();
+		void reset_symfield();
+		void check_if_encoder_is_vuln_to_debruijn();
+		void check_if_encoder_can_be_reversed();
 
 		de_bruijn debruijn_sequencer;
-		// 	void reset_debruijn();
+		void reset_debruijn();
 
 		// UI related
 
@@ -227,9 +227,9 @@ namespace ui
 		OOKTxLoaderView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
-		// uint16_t get_repeat_total();
-		// uint16_t get_frame_part_total();
-		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
+		uint32_t get_repeat_total();
+		uint32_t get_frame_part_total();
+		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
 	private:
 		Labels labels{
@@ -249,9 +249,9 @@ namespace ui
 		OOKTxDeBruijnView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
-		uint16_t get_repeat_total();
-		uint16_t get_frame_part_total();
-		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
+		uint32_t get_repeat_total();
+		uint32_t get_frame_part_total();
+		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
 	private:
 		de_bruijn debruijn_sequencer;
