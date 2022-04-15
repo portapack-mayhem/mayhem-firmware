@@ -35,8 +35,8 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	if (!configured) return;
 	
 	audio_input.read_audio_buffer(audio_buffer);
-	modulator->set_gain_vumeter_beep(audio_gain, play_beep) ;	
-	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message);	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
+	modulator->set_gain_vumeter_beep(audio_gain, play_beep ) ;	
+	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider );	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
     
    /*
 	for (size_t i = 0; i < buffer.count; i++) {

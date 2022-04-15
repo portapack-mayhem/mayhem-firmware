@@ -76,7 +76,7 @@ SSB::SSB() : hilbert() {
 	mode = Mode::LSB;
 }
 
-void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer,TXProgressMessage& new_txprogress_message ) {
+void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer,TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message,  uint32_t& new_power_acc_count, uint32_t& new_divider ) {
 	int32_t		sample = 0;
 	int8_t		re = 0, im = 0;
 	
@@ -85,7 +85,7 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
 			float	i = 0.0, q = 0.0;
 
 		    sample = audio.p[counter / over] >> 2;
-			sample *= audio_gain;      // Apply GAIN  Scale factor.
+			sample *= audio_gain;      //  Apply GAIN  Scale factor to the audio TX modulation.
 
 			//switch (mode) {
 				//case Mode::LSB:	
@@ -124,33 +124,33 @@ void FM::set_tone_gen_configure(const uint32_t set_delta, const float set_tone_m
 	 tone_gen.configure(set_delta, set_tone_mix_weight);
 }	
 
-void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
+void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider  ) {
 	int32_t		sample = 0;
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 	    sample = audio.p[counter>>6] >> 8;			// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
-		sample *= audio_gain;      					// Apply GAIN  Scale factor.
+		sample *= audio_gain;      					// Apply GAIN  Scale factor to the audio TX modulation.
 
-	sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and apply beep
-
-   /* 
-    /*  
-   /* 
-	// Update vu-meter bar in the LCD screen.(of both cases , audio mic or beep )
-	    power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
-	
-		if (power_acc_count) {
-			power_acc_count--;
+		if (play_beep) {
+			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Apply beep -if selected - atom sample by sample.
 		} else {
-			power_acc_count = divider;
-			level_message.value = power_acc / (divider / 4);	// Why ?
-			shared_memory.application_queue.push(level_message);
-			power_acc = 0;
+			// Update vu-meter bar in the LCD screen.
+	    	power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
+	
+			if (new_power_acc_count) {
+				new_power_acc_count--;
+			} else {				// power_acc_count = 0
+				new_power_acc_count = new_divider;
+				new_level_message.value = power_acc / (new_divider / 4);	// Why ?
+				shared_memory.application_queue.push(new_level_message);
+				power_acc = 0;
+			}	
+			// TODO: pending to optimize CPU running code. 
+			// So far , we can not handle all 3 issues at the same time (vu-meter , CTCSS, bee).
+			sample = tone_gen.process(sample);			// Add Key_Tone or CTCSS subtone , atom sample by sample.
 		}	
-    */    
-
-		sample = tone_gen.process(sample);			// Add Key_Tone or CTCSS subtone
+  
 	    delta = sample * fm_delta;					// Modulate FM
 
 		phase += delta;
@@ -167,7 +167,7 @@ AM::AM() {
 	mode = Mode::AM;
 }
 
-void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message) {
+void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider ) {
 	int32_t         sample = 0;
 	int8_t          re = 0, im = 0;
 	float		q = 0.0;
@@ -175,9 +175,11 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 		if (counter % 128 == 0) {
 			sample = audio.p[counter / over] >> 2;
-			sample *= audio_gain;      					// Apply GAIN  Scale factor.
+			sample *= audio_gain;      					 // Apply GAIN  Scale factor to the audio TX modulation.
 		}
-		// sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
+		if (play_beep) {
+			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
+		}
 
 		q = sample / 32768.0f;
 		q *= 256.0f;										 // Original 64.0f,now x4 (+12 dB's BB_modulation in AM & DSB)	
