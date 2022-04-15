@@ -77,6 +77,29 @@ namespace ui
 		}
 	};
 
+	const std::vector<std::pair<std::string, int32_t>> PERIODS_PER_SYMBOL = {
+		{"2", 2},
+		{"3", 3},
+		{"4", 4},
+		{"8", 8},
+		{"16", 16},
+		{"24", 24},
+		{"32", 32},
+		{"48", 48},
+		{"96", 96},
+		{"128", 128},
+		{"198", 198},
+		{"228", 228},
+		{"256", 256},
+		{"512", 512},
+		{"768", 768},
+		{"920", 920},
+		{"1024", 1024},
+		{"1280", 1280},
+		{"2048", 2048},
+		{"4144", 4144},
+	};
+
 	///////////////////////////////////////////////////////////////////////////////
 	// OOKTxGeneratorView
 
@@ -119,11 +142,11 @@ namespace ui
 			{{14 * 8, 0}, "Frm Clk:", Color::light_grey()},
 			{{27 * 8, 0}, "kHz", Color::light_grey()},
 			{{14 * 8, 2 * 8}, "Duration:", Color::light_grey()},
+			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
 			{{14 * 8, 4 * 8}, "S Period:", Color::light_grey()},
+			{{28 * 8, 4 * 8}, "us", Color::light_grey()},
 			{{1 * 8, 4 * 8}, "Repeat:", Color::light_grey()},
 			{{1 * 8, 6 * 8}, "Pause:", Color::light_grey()},
-			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
-			{{28 * 8, 4 * 8}, "us", Color::light_grey()},
 			{{1 * 8, 8 * 8}, "Symbols:", Color::light_grey()},
 		};
 
@@ -164,28 +187,7 @@ namespace ui
 		OptionsField options_period_per_symbol{
 			{23 * 8, 4 * 8},
 			5,
-			{
-				{"2", 2},
-				{"3", 3},
-				{"4", 4},
-				{"8", 8},
-				{"16", 16},
-				{"24", 24},
-				{"32", 32},
-				{"48", 48},
-				{"96", 96},
-				{"128", 128},
-				{"198", 198},
-				{"228", 228},
-				{"256", 256},
-				{"512", 512},
-				{"768", 768},
-				{"920", 920},
-				{"1024", 1024},
-				{"1280", 1280},
-				{"2048", 2048},
-				{"4144", 4144},
-			},
+			PERIODS_PER_SYMBOL,
 		};
 
 		NumberField field_repeat_min{
@@ -196,7 +198,7 @@ namespace ui
 			' ',
 		};
 
-		NumberField field_pause_symbols{
+		NumberField field_pause_between_symbols{
 			{8 * 8, 6 * 8},
 			5,
 			{0, 100},
@@ -266,11 +268,12 @@ namespace ui
 		void reset_debruijn();
 		void reset_symfield();
 
+		uint32_t samples_per_bit();
 		uint32_t get_repeat_total();
 		uint32_t get_frame_part_total();
 		std::string generate_frame_part(const uint32_t frame_part_index, const bool reversed);
 
-	private:
+		// private:
 		de_bruijn debruijn_sequencer;
 		std::string symfield_symbols = "01";
 
@@ -278,7 +281,18 @@ namespace ui
 		Labels labels{
 			{{1 * 8, 0 * 8}, "Word Length:", Color::light_grey()},
 			{{1 * 8, 2 * 8}, "Fragments #:", Color::light_grey()},
+
 			{{1 * 8, 4 * 8}, "Short Pulse:", Color::light_grey()},
+			{{20 * 8, 4 * 8}, "us", Color::light_grey()},
+			{{1 * 8, 6 * 8}, "Symbl Pause:", Color::light_grey()},
+			{{20 * 8, 6 * 8}, "us", Color::light_grey()},
+			{{1 * 8, 8 * 8}, "Frame Duration:", Color::light_grey()},
+			{{20 * 8, 8 * 8}, "us", Color::light_grey()},
+
+			{{17 * 8, 0}, "Clck:", Color::light_grey()},
+			{{27 * 8, 0}, "kHz", Color::light_grey()},
+			{{14 * 8, 2 * 8}, "Frm:", Color::light_grey()},
+			{{28 * 8, 2 * 8}, "us", Color::light_grey()},
 
 			// frame descriptors
 			{{0 * 8, 10 * 8}, "Frag 0:", Color::light_grey()},
@@ -286,7 +300,7 @@ namespace ui
 		};
 
 		NumberField field_wordlength{
-			{13 * 8, 0 * 8},
+			{14 * 8, 0 * 8},
 			2,
 			{1, 12},
 			1,
@@ -294,17 +308,39 @@ namespace ui
 		};
 
 		NumberField field_fragments{
-			{13 * 8, 2 * 8},
+			{14 * 8, 2 * 8},
 			2,
 			{1, 16},
 			1,
 			' ',
 		};
 
-		NumberField field_short_pulse{
-			{13 * 8, 4 * 8},
-			2,
-			{1, 999},
+		NumberField field_clk{
+			{23 * 8, 0},
+			3,
+			{1, 99999},
+			1,
+			' ',
+		};
+
+		NumberField field_frameduration{
+			{23 * 8, 2 * 8},
+			4,
+			{100, 99999},
+			100,
+			' ',
+		};
+
+		OptionsField options_period_per_symbol{
+			{14 * 8, 4 * 8},
+			5,
+			PERIODS_PER_SYMBOL,
+		};
+
+		NumberField field_pause_between_symbols{
+			{14 * 8, 4 * 8},
+			5,
+			{0, 100},
 			1,
 			' ',
 		};
@@ -330,6 +366,7 @@ namespace ui
 		OOKTxView(NavigationView &nav);
 		~OOKTxView();
 		void focus() override;
+		void refresh();
 		std::string title() const override { return "OOK TX"; };
 
 	private:
@@ -355,6 +392,8 @@ namespace ui
 		cursor repeat_cursor{};		 // cursor to navigate through the repeat parts in case it has more than one
 
 		std::string frame_fragments = "0";
+		uint32_t samples_per_bit;
+		uint32_t pause_between_symbols;
 		int16_t waveform_buffer[550];
 
 		// UI related

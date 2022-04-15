@@ -57,7 +57,7 @@ namespace ui
 			&field_frameduration,
 			&options_period_per_symbol,
 			&field_repeat_min,
-			&field_pause_symbols,
+			&field_pause_between_symbols,
 			&symfield_word,
 			&text_format,
 		});
@@ -69,7 +69,7 @@ namespace ui
 			field_clk.set_value(encoder_def->default_clk_speed / 1000);
 			field_repeat_min.set_value(encoder_def->repeat_min);
 			options_period_per_symbol.set_by_value(encoder_def->period_per_symbol);
-			field_pause_symbols.set_value(encoder_def->pause_symbols);
+			field_pause_between_symbols.set_value(encoder_def->pause_symbols);
 
 			reset_symfield();
 			check_if_encoder_is_vuln_to_debruijn();
@@ -145,9 +145,6 @@ namespace ui
 	void OOKTxGeneratorView::focus()
 	{
 		options_encoder.focus();
-
-		if (on_waveform_change_request)
-			on_waveform_change_request();
 	}
 
 	void OOKTxGeneratorView::on_show()
@@ -224,7 +221,8 @@ namespace ui
 
 		debruijn_sequencer.init("01", encoder_def->word_length, 32);
 
-		// TODO: this screws stuff up... :|
+		// TODO: we need to stream the debruijn sequence instead of generating it all at once!
+		// disabled in the encoder view as it just screws up on 16bits
 		// debruijn_sequencer.generate();
 	}
 
@@ -300,7 +298,7 @@ namespace ui
 
 			for (uint8_t i = 0; i < frame_part.length(); i++)
 			{
-				frame_fragments += get_symbols_bit_fragments(("1" == &frame_part.at(i)) ? 1 : 0, reversed);
+				frame_fragments += get_symbols_bit_fragments(("1" == &frame_part[i]) ? 1 : 0, reversed);
 			}
 
 			return frame_fragments;
@@ -331,9 +329,6 @@ namespace ui
 	void OOKTxFilesView::focus()
 	{
 		// field_debug.focus();
-
-		if (on_waveform_change_request)
-			on_waveform_change_request();
 	}
 
 	uint32_t OOKTxFilesView::get_repeat_total() { return 1; }
@@ -450,7 +445,9 @@ namespace ui
 			&labels,
 			&field_wordlength,
 			&field_fragments,
-			&field_short_pulse,
+			&field_clk,
+			&field_frameduration,
+			&options_period_per_symbol,
 			&symfield_fragment_0,
 			&symfield_fragment_1,
 		});
@@ -458,25 +455,78 @@ namespace ui
 		field_wordlength.on_change = [this](uint32_t)
 		{
 			reset_debruijn();
+
+			if (on_waveform_change_request)
+				on_waveform_change_request();
 		};
 
 		field_fragments.on_change = [this](uint32_t)
 		{
 			reset_symfield();
+
+			if (on_waveform_change_request)
+				on_waveform_change_request();
 		};
+
+		symfield_fragment_0.on_change = [this]()
+		{
+			if (on_waveform_change_request)
+				on_waveform_change_request();
+		};
+		symfield_fragment_1.on_change = [this]()
+		{
+			if (on_waveform_change_request)
+				on_waveform_change_request();
+		};
+
+		// Selecting input clock changes symbol and word duration
+		field_clk.on_change = [this](int32_t value)
+		{
+			// value is in kHz, new_value is in us
+			int32_t new_value = (options_period_per_symbol.selected_index_value() * 1000000) / (value * 1000);
+			if (new_value != field_frameduration.value())
+				field_frameduration.set_value(new_value * field_wordlength.value(), false);
+		};
+
+		// Selecting word duration changes input clock and symbol duration
+		field_frameduration.on_change = [this](int32_t value)
+		{
+			// value is in us, new_value is in kHz
+			int32_t new_value = (value * 1000) / (field_wordlength.value() * options_period_per_symbol.selected_index_value());
+			if (new_value != field_clk.value())
+				field_clk.set_value(1000000 / new_value, false);
+		};
+
+		options_period_per_symbol.on_change = [this](size_t, int32_t)
+		{
+			// trigger the change on both fields
+			field_clk.on_change(field_clk.value());
+			field_frameduration.on_change(field_frameduration.value());
+		};
+
+		// set default values
+		field_wordlength.set_value(4);
+		field_fragments.set_value(4);
+		field_clk.set_value(250);
+		options_period_per_symbol.set_by_value(32);
+		symfield_fragment_0.set_next_possibility();
+
+		for (uint32_t i = 0; i < field_fragments.value(); i++)
+			symfield_fragment_1.set_sym(i, 1);
 	}
 
 	void OOKTxDeBruijnView::focus()
 	{
 		field_wordlength.focus();
+	}
 
-		if (on_waveform_change_request)
-			on_waveform_change_request();
+	uint32_t OOKTxDeBruijnView::samples_per_bit()
+	{
+		return OOK_SAMPLERATE / ((field_clk.value() * 1000) / (options_period_per_symbol.selected_index_value() / field_fragments.value()));
 	}
 
 	void OOKTxDeBruijnView::reset_symfield()
 	{
-		char symbol_type;
 		std::string format_string = "";
 		uint32_t fragments_length = field_fragments.value();
 
@@ -502,17 +552,44 @@ namespace ui
 
 		debruijn_sequencer.init(symfield_symbols, word_length, 32);
 
-		// TODO: this screws stuff up... :|
-		// debruijn_sequencer.generate();
+		// TODO: we need to stream the debruijn sequence instead of generating it all at once!
+		debruijn_sequencer.generate();
 	}
 
 	uint32_t OOKTxDeBruijnView::get_repeat_total() { return 1; }
-	uint32_t OOKTxDeBruijnView::get_frame_part_total() { return debruijn_sequencer.get_total_parts(); }
+	uint32_t OOKTxDeBruijnView::get_frame_part_total()
+	{
+		return debruijn_sequencer.get_total_parts();
+	}
 
 	std::string OOKTxDeBruijnView::generate_frame_part(const uint32_t frame_part_index, const bool reverse)
 	// TODO: we still need to implement the reverse flag
 	{
-		return debruijn_sequencer.get_part(frame_part_index);
+		uint32_t fragments_length = field_fragments.value();
+		std::string fragment_0 = ""; // symfield_fragment_0.value_string();
+		std::string fragment_1 = ""; // symfield_fragment_1.value_string();
+
+		// build fragments
+		for (uint32_t i = 0; i < fragments_length; i++)
+		{
+			fragment_0 += symfield_symbols[symfield_fragment_0.get_sym(i)];
+			fragment_1 += symfield_symbols[symfield_fragment_1.get_sym(i)];
+		}
+
+		std::string frame_fragments = "";
+		std::string frame_part = debruijn_sequencer.get_part(frame_part_index);
+
+		for (uint32_t i = 0; i < frame_part.length(); i++)
+		{
+			bool bit = frame_part[i] == symfield_symbols[1];
+
+			if (reverse)
+				bit = !bit;
+
+			frame_fragments += (bit) ? fragment_1 : fragment_0;
+		}
+
+		return frame_fragments;
 	}
 
 	// 	///////////////////////////////////////////////////////////////////////////////
@@ -526,6 +603,7 @@ namespace ui
 		transmitter_model.set_baseband_bandwidth(1750000);
 
 		add_children({
+			&labels,
 			&tab_view,
 
 			// tab views
@@ -563,23 +641,41 @@ namespace ui
 		// whenever the checkbox changes, rerender the waveform
 		checkbox_reversed.on_select = [this](Checkbox &, bool)
 		{
-			generate_frame_part();
-			draw_waveform();
+			refresh();
 		};
 
 		// View hooks
 
-		view_debruijn.on_waveform_change_request =
-			view_files.on_waveform_change_request =
-				view_generator.on_waveform_change_request = [this]()
+		view_files.on_waveform_change_request = [this]()
 		{
-			generate_frame_part();
-			draw_waveform();
+			refresh();
+		};
+		view_generator.on_waveform_change_request = [this]()
+		{
+			refresh();
+		};
+		view_debruijn.on_waveform_change_request = [this]()
+		{
+			refresh();
 		};
 
-		view_debruijn.on_status_change =
-			view_files.on_status_change =
-				view_generator.on_status_change = [this](const std::string e)
+		view_debruijn.on_status_change = [this](const std::string e)
+		{
+			if (err != e)
+			{
+				err = e;
+				progress_update();
+			}
+		};
+		view_files.on_status_change = [this](const std::string e)
+		{
+			if (err != e)
+			{
+				err = e;
+				progress_update();
+			}
+		};
+		view_generator.on_status_change = [this](const std::string e)
 		{
 			if (err != e)
 			{
@@ -601,6 +697,15 @@ namespace ui
 	void OOKTxView::focus()
 	{
 		tab_view.focus();
+		refresh();
+	}
+
+	void OOKTxView::refresh()
+	{
+		reset_cursors();
+		generate_frame_part();
+		progress_update();
+		draw_waveform();
 	}
 
 	OOKTxView::~OOKTxView()
@@ -647,7 +752,7 @@ namespace ui
 		else if (tx_mode == TX_MODE_IDLE)
 		{
 			text_progress.set_style(&style_success);
-			text_progress.set("Ready");
+			text_progress.set("Ready F(" + to_string_dec_uint(frame_parts_cursor.total) + ")" + "R(" + to_string_dec_uint(repeat_cursor.total) + ")");
 			progress_bar.set_value(0);
 		}
 		else
@@ -665,12 +770,23 @@ namespace ui
 	{
 		switch (tab_view.selected())
 		{
-		// Loader View TX
+		// File Loader View TX
 		case 0:
+
+			// samples_per_bit = view_generator.samples_per_bit();
+			// pause_between_symbols = view_generator.field_pause_between_symbols.value();
+
 			break;
 
 		// Generator View TX
 		case 1:
+			// TODO: disable access to all inputs
+
+			view_generator.symfield_word.set_focusable(false);
+
+			samples_per_bit = view_generator.samples_per_bit();
+			pause_between_symbols = view_generator.field_pause_between_symbols.value();
+
 			switch (view_generator.options_tx_method.selected_index_value())
 			{
 			case TX_MODE_MANUAL:
@@ -686,20 +802,26 @@ namespace ui
 				}
 
 				tx_mode = TX_MODE_DEBRUIJN;
-				view_generator.symfield_word.set_focusable(false);
 				view_generator.reset_debruijn();
 				break;
 
 			case TX_MODE_BRUTEFORCE:
 				tx_mode = TX_MODE_BRUTEFORCE;
 				frame_parts_cursor.index = view_generator.symfield_word.get_possibility();
-				view_generator.symfield_word.set_focusable(false);
 				break;
 			}
 			break;
 
 		// DeBruijn View TX
 		case 2:
+			tx_mode = TX_MODE_DEBRUIJN;
+			view_debruijn.reset_debruijn();
+
+			// TODO: disable access to all inputs
+
+			samples_per_bit = view_debruijn.samples_per_bit();
+			pause_between_symbols = view_debruijn.field_pause_between_symbols.value();
+
 			break;
 		}
 
@@ -766,15 +888,16 @@ namespace ui
 		size_t bitstream_length = make_bitstream(frame_fragments);
 
 		transmitter_model.enable();
+
 		baseband::set_ook_data(
 			bitstream_length,
-			view_generator.samples_per_bit(),
+			samples_per_bit,
 			repeat_cursor.total,
-			view_generator.field_pause_symbols.value());
+			pause_between_symbols);
 
 		// we're only pushing the ui updates past the baseband comm to ensure
 		// we decrease the delay on TX frame burst cases
-		// draw_waveform();
+		draw_waveform();
 	}
 
 	void OOKTxView::stop_tx()
@@ -801,7 +924,7 @@ namespace ui
 		// Generator
 		switch (tab_view.selected())
 		{
-		// Loader View TX
+		// File Loader View TX
 		case 0:
 			repeat_cursor.total = view_files.get_repeat_total();
 			frame_parts_cursor.total = view_files.get_frame_part_total();
