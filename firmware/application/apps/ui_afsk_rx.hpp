@@ -27,7 +27,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_record_view.hpp"	// DEBUG
-
+#include "app_settings.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 
@@ -57,6 +57,10 @@ public:
 private:
 	void on_data(uint32_t value, bool is_data);
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	uint8_t console_color { 0 };
 	uint32_t prev_value { 0 };
 	std::string str_log { "" };

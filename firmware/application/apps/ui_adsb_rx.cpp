@@ -309,8 +309,11 @@ void ADSBRxView::focus() {
 }
 
 ADSBRxView::~ADSBRxView() {
-	receiver_model.set_tuning_frequency(prevFreq);
 
+	// save app settings
+	settings.save("rx_adsb", &app_settings);
+
+	receiver_model.set_tuning_frequency(prevFreq);
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
@@ -458,6 +461,21 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		&recent_entries_view
 	});
 	
+
+	// load app settings
+	auto rc = settings.load("rx_adsb", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+	}
+	else
+	{
+		field_lna.set_value(40);
+		field_vga.set_value(40);
+	}
+
+
 	recent_entries_view.set_parent_rect({ 0, 16, 240, 272 });
 	recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
 		detailed_entry_key = entry.key();
@@ -478,8 +496,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::set_adsb();
 	
 	receiver_model.set_tuning_frequency(1090000000);
-	field_lna.set_value(40);
-	field_vga.set_value(40);
 	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_sampling_rate(2000000);
 	receiver_model.set_baseband_bandwidth(2500000);

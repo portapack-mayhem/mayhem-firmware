@@ -27,7 +27,7 @@
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
-
+#include "app_settings.hpp"
 #include "event_m0.hpp"
 
 #include "log_file.hpp"
@@ -109,6 +109,10 @@ private:
 	static constexpr uint32_t initial_target_frequency = 315000000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::TPMSPacket,
