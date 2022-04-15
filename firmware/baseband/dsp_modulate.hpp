@@ -51,17 +51,17 @@ public:
 
     void set_over(uint32_t new_over);
 	void set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep );
-	int32_t apply_gain_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message );
+	int32_t apply_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message );
+	float 	audio_gain { };
+	bool play_beep { false };
 
 private: 
 	static constexpr size_t baseband_fs = 1536000U;
 	AudioLevelReportMessage level_message { };
 	TXProgressMessage txprogress_message { };
 	uint32_t divider { };
-	float 	audio_gain { };
 	uint64_t power_acc { 0 };
 	uint32_t power_acc_count { 0 };
-	bool play_beep { false };
     ToneGen  beep_gen { };
 	uint32_t beep_index { }, beep_timer { };
 

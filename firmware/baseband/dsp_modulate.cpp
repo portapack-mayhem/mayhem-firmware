@@ -43,17 +43,14 @@ void Modulator::set_over(uint32_t new_over) {
 }
 
 void Modulator::set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep ) {
-     audio_gain = new_audio_gain ;    
+      audio_gain = new_audio_gain ;    
 	  play_beep = new_play_beep; 
 
 }
 
-int32_t Modulator::apply_gain_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
+int32_t Modulator::apply_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
 
-	if (!play_beep) {	// Apply GAIN  Scale factor.
-    		sample_in *= audio_gain;   
-
-	} else {			// We need to add audio beep sample.
+	if (play_beep) {	   		// We need to add audio beep sample.
 			if (new_beep_timer) {
 				new_beep_timer--;
 			} else {
@@ -88,6 +85,8 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
 			float	i = 0.0, q = 0.0;
 
 		    sample = audio.p[counter / over] >> 2;
+			sample *= audio_gain;      // Apply GAIN  Scale factor.
+
 			//switch (mode) {
 				//case Mode::LSB:	
 			hilbert.execute(sample / 32768.0f, i, q);
@@ -130,9 +129,10 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
-	    sample = audio.p[counter>>6] >> 8;					// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
+	    sample = audio.p[counter>>6] >> 8;			// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
+		sample *= audio_gain;      					// Apply GAIN  Scale factor.
 
-	sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and apply beep
+	sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Scale sample by gain , and apply beep
 
    /* 
     /*  
@@ -175,8 +175,9 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 		if (counter % 128 == 0) {
 			sample = audio.p[counter / over] >> 2;
+			sample *= audio_gain;      					// Apply GAIN  Scale factor.
 		}
-		sample = apply_gain_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
+		// sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
 
 		q = sample / 32768.0f;
 		q *= 256.0f;										 // Original 64.0f,now x4 (+12 dB's BB_modulation in AM & DSB)	
