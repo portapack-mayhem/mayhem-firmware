@@ -252,6 +252,7 @@ namespace ui
 	// 			return symfield_word.get_possibilities_count();
 
 	// 		case TX_MODE_DEBRUIJN: // check the size of the whole debruijn sequence
+	// return debruijn_sequencer.get_total_parts();
 	// 		case TX_MODE_MANUAL:
 	// 			return 1;
 	// 		}
@@ -345,21 +346,26 @@ namespace ui
 			&text_length,
 		});
 
-		// 		field_init.on_change = [this](int32_t value)
-		// 		{
-		// 			debruijn_sequencer.init("01", value, 32);
-		// 			debruijn_sequencer.generate();
-		// 			text_length.set(to_string_dec_uint(debruijn_sequencer.length));
-		// 			field_compute.set_value(0);
+		field_init.on_change = [this](int32_t value)
+		{
+			debruijn_sequencer.init("01", value, 128); // 128 bits per frame part
+			debruijn_sequencer.generate();
+			field_compute.set_value(0);
+			text_length.set("Len: " + to_string_dec_uint(debruijn_sequencer.length));
 
-		// 			if (on_waveform_change_request)
-		// 				on_waveform_change_request();
-		// 		};
+			if (on_waveform_change_request)
+				on_waveform_change_request();
+		};
 
-		// 		field_compute.on_change = [this](int32_t offset)
-		// 		{
-		// 			text_debug.set((debruijn_sequencer.sequence.length() > offset + 25) ? debruijn_sequencer.sequence.substr(offset, 25) : debruijn_sequencer.sequence);
-		// 		};
+		field_compute.on_change = [this](int32_t offset)
+		{
+			size_t len = debruijn_sequencer.sequence.length();
+
+			uint32_t min = offset + 25 > len ? len - 25 : offset;
+			uint32_t max = 25;
+
+			text_debug.set(debruijn_sequencer.sequence.substr(min, max));
+		};
 	}
 
 	void OOKTxDeBruijnView::focus()
@@ -367,8 +373,8 @@ namespace ui
 		field_init.focus();
 	}
 
-	// 	uint16_t OOKTxDeBruijnView::get_repeat_total() { return 1; }
-	// 	uint16_t OOKTxDeBruijnView::get_frame_part_total() { return 1; }
+	uint16_t OOKTxDeBruijnView::get_repeat_total() { return 1; }
+	uint16_t OOKTxDeBruijnView::get_frame_part_total() { return debruijn_sequencer.get_total_parts(); }
 
 	std::string OOKTxDeBruijnView::generate_frame_part(const uint16_t frame_part_index, const bool reverse)
 	// TODO: we still need to implement the reverse flag
@@ -473,17 +479,17 @@ namespace ui
 		frame_fragments.clear();
 
 		if (tab_view.selected() == 0)
-			frame_fragments = view_loader.generate_frame_part(
+			frame_fragments += view_loader.generate_frame_part(
 				tx_mode,
 				checkbox_reversed.value());
 
 		if (tab_view.selected() == 1)
-			frame_fragments = view_generator.generate_frame_part(
+			frame_fragments += view_generator.generate_frame_part(
 				tx_mode,
 				checkbox_reversed.value());
 
 		if (tab_view.selected() == 2)
-			frame_fragments = view_debruijn.generate_frame_part(
+			frame_fragments += view_debruijn.generate_frame_part(
 				tx_mode,
 				checkbox_reversed.value());
 	}
@@ -491,7 +497,7 @@ namespace ui
 	// NOTE: should be called after changing the tx_mode
 	void OOKTxView::progress_reset()
 	{
-		// progress_bar.set_max(frame_parts_cursor.total * repeat_cursor.total);
+		progress_bar.set_max(frame_parts_cursor.total * repeat_cursor.total);
 		progress_update();
 	}
 
@@ -511,12 +517,12 @@ namespace ui
 		else
 		{
 			text_progress.set_style(&style_info);
-			// text_progress.set(
-			// 	to_string_dec_uint(frame_parts_cursor.index) + "/" + to_string_dec_uint(frame_parts_cursor.total) +
-			// 	" (" + to_string_dec_uint(repeat_cursor.index) + "/" + to_string_dec_uint(repeat_cursor.total) + ")");
+			text_progress.set(
+				to_string_dec_uint(frame_parts_cursor.index) + "/" + to_string_dec_uint(frame_parts_cursor.total) +
+				" (" + to_string_dec_uint(repeat_cursor.index) + "/" + to_string_dec_uint(repeat_cursor.total) + ")");
 		}
 
-		// progress_bar.set_value(frame_parts_cursor.index * repeat_cursor.total + repeat_cursor.index);
+		progress_bar.set_value(frame_parts_cursor.index * repeat_cursor.total + repeat_cursor.index);
 	}
 
 	void OOKTxView::start_tx()
@@ -552,7 +558,7 @@ namespace ui
 
 		// 			case TX_MODE_BRUTEFORCE:
 		// 				tx_mode = TX_MODE_BRUTEFORCE;
-		// 				// frame_parts_cursor.index = view_generator.symfield_word.get_possibility();
+		// 				frame_parts_cursor.index = view_generator.symfield_word.get_possibility();
 		// 				view_generator.symfield_word.set_focusable(false);
 		// 				break;
 		// 			}
@@ -631,62 +637,44 @@ namespace ui
 
 	void OOKTxView::reset_cursors()
 	{
-		// 		// repeat_cursor.reset();
-		// 		// frame_parts_cursor.reset();
+		repeat_cursor.reset();
+		frame_parts_cursor.reset();
 
-		// 		// // get the correct repeat min
-		// 		// repeat_cursor.total = view_generator.field_repeat_min.value();
+		// get the correct repeat min
+		repeat_cursor.total = view_generator.field_repeat_min.value();
 
-		// 		// // Generator
-		// 		// switch (tab_view.selected())
-		// 		// {
-		// 		// // Loader View TX
-		// 		// case 0:
-		// 		// 	repeat_cursor.total = view_loader.get_repeat_total();
-		// 		// 	frame_parts_cursor.total = view_loader.get_frame_part_total();
-		// 		// 	break;
+		// Generator
+		switch (tab_view.selected())
+		{
+		// // Loader View TX
+		// case 0:
+		// 	repeat_cursor.total = view_loader.get_repeat_total();
+		// 	frame_parts_cursor.total = view_loader.get_frame_part_total();
+		// 	break;
 
-		// 		// // Generator View TX
-		// 		// case 1:
-		// 		// 	repeat_cursor.total = view_generator.get_repeat_total();
-		// 		// 	frame_parts_cursor.total = view_generator.get_frame_part_total();
-		// 		// 	break;
+		// // Generator View TX
+		// case 1:
+		// 	repeat_cursor.total = view_generator.get_repeat_total();
+		// 	frame_parts_cursor.total = view_generator.get_frame_part_total();
+		// 	break;
 
-		// 		// // DeBruijn TX
-		// 		// case 2:
-		// 		// 	repeat_cursor.total = view_generator.get_repeat_total();
-		// 		// 	frame_parts_cursor.total = view_generator.get_frame_part_total();
-		// 		// 	break;
-		// 		// }
+		// DeBruijn TX
+		case 2:
+			repeat_cursor.total = view_debruijn.get_repeat_total();
+			frame_parts_cursor.total = view_debruijn.get_frame_part_total();
+			break;
+		}
 	}
 
 	void OOKTxView::draw_waveform()
 	{
 		size_t length = frame_fragments.length();
-		bool is_dirty = false;
-		int16_t tmp_bit;
 
-		for (int32_t n = 0; n < length; n++)
-		{
-			tmp_bit = frame_fragments[n];
+		for (int16_t n = 0; n < length; n++)
+			waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
 
-			if (tmp_bit != waveform_buffer[n])
-			{
-				waveform_buffer[n] = tmp_bit;
-				is_dirty = true;
-			}
-		}
-
-		if (waveform.length() != length)
-		{
-			waveform.set_length(length);
-			is_dirty = true;
-		}
-
-		if (is_dirty)
-		{
-			waveform.set_dirty();
-		}
+		waveform.set_length(length);
+		waveform.set_dirty();
 	}
 
 } /* namespace ui */

@@ -249,8 +249,8 @@ namespace ui
 		OOKTxDeBruijnView(NavigationView &nav, Rect parent_rect);
 		void focus() override;
 
-		// 	uint16_t get_repeat_total();
-		// 	uint16_t get_frame_part_total();
+		uint16_t get_repeat_total();
+		uint16_t get_frame_part_total();
 		std::string generate_frame_part(const uint16_t frame_part_index, const bool reversed);
 
 	private:
