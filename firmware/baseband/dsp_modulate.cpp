@@ -133,7 +133,7 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 		sample *= audio_gain;      					// Apply GAIN  Scale factor to the audio TX modulation.
 
 		if (play_beep) {
-			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Apply beep -if selected - atom sample by sample.
+			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message ); 	// Apply beep -if selected - atom ,sample by sample.
 		} else {
 			// Update vu-meter bar in the LCD screen.
 	    	power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
@@ -142,16 +142,16 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 				new_power_acc_count--;
 			} else {				// power_acc_count = 0
 				new_power_acc_count = new_divider;
-				new_level_message.value = power_acc / (new_divider / 4);	// Why ?
+				new_level_message.value = power_acc / (new_divider / 4);	// Why ?  . This division is to adj vu-meter sentitivity, to match saturation point to red-muter .
 				shared_memory.application_queue.push(new_level_message);
 				power_acc = 0;
 			}	
 			// TODO: pending to optimize CPU running code. 
-			// So far , we can not handle all 3 issues at the same time (vu-meter , CTCSS, bee).
-			sample = tone_gen.process(sample);			// Add Key_Tone or CTCSS subtone , atom sample by sample.
+			// So far , we can not handle all 3 issues at the same time (vu-meter , CTCSS, beep).
+			sample = tone_gen.process(sample);			// Add selected Key_Tone or CTCSS subtone , atom function() , sample by sample.
 		}	
   
-	    delta = sample * fm_delta;					// Modulate FM
+	    delta = sample * fm_delta;						// Modulate FM
 
 		phase += delta;
 		sphase = phase >> 24;
@@ -170,16 +170,29 @@ AM::AM() {
 void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider ) {
 	int32_t         sample = 0;
 	int8_t          re = 0, im = 0;
-	float		q = 0.0;
+	float			q = 0.0;
 	
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 		if (counter % 128 == 0) {
 			sample = audio.p[counter / over] >> 2;
 			sample *= audio_gain;      					 // Apply GAIN  Scale factor to the audio TX modulation.
 		}
+
 		if (play_beep) {
-			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<8 ; 	// Scale sample by gain , and apply beep if activated  .
-		}
+			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<4; 	// Apply beep -if selected - atom sample by sample.
+		} else {
+			// Update vu-meter bar in the LCD screen.
+	    	power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
+	
+			if (new_power_acc_count) {
+				new_power_acc_count--;
+			} else {				// power_acc_count = 0
+				new_power_acc_count = new_divider;
+				new_level_message.value = power_acc / (new_divider *8);	// Why ?orig / (new_divider / 4);	// Why ?
+				shared_memory.application_queue.push(new_level_message);
+				power_acc = 0;
+			}	
+		}	
 
 		q = sample / 32768.0f;
 		q *= 256.0f;										 // Original 64.0f,now x4 (+12 dB's BB_modulation in AM & DSB)	
