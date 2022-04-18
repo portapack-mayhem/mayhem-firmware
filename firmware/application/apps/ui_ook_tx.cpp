@@ -722,17 +722,17 @@ namespace ui
 
 		if (tab_view.selected() == 0)
 			frame_fragments += view_files.generate_frame_part(
-				tx_mode,
+				frame_parts_cursor.index,
 				checkbox_reversed.value());
 
 		if (tab_view.selected() == 1)
 			frame_fragments += view_generator.generate_frame_part(
-				tx_mode,
+				frame_parts_cursor.index,
 				checkbox_reversed.value());
 
 		if (tab_view.selected() == 2)
 			frame_fragments += view_debruijn.generate_frame_part(
-				tx_mode,
+				frame_parts_cursor.index,
 				checkbox_reversed.value());
 	}
 
