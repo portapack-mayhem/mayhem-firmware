@@ -1,41 +1,41 @@
-FROM ubuntu:xenial
+FROM armswdev/arm-tools:bare-metal-compilers
 
-# Set location to download ARM toolkit from.
-# This will need to be changed over time or replaced with a static link to the latest release.
-ENV ARMBINURL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=108bd959-44bd-4619-9c19-26187abf5225&la=en&hash=E788CE92E5DFD64B2A8C246BBA91A249CB8E2D2D \
-	PATH=$HOME/bin:$PATH:/opt/build/armbin/bin
+#Enviroment for 9.2.1
+ENV ARMBINURL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339"
+
+#Enviroment setup
+ENV PATH=$PATH:$HOME/bin:/opt/build/armbin/bin
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 #Create volume /havoc/bin for compiled firmware binaries
 VOLUME /havoc
 WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
-RUN apt-get update && \
-	apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 curl && \
-	apt-get -qy autoremove
+RUN sudo apt-get update && \
+		sudo apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 curl python3-distutils python3-apt && \
+		sudo apt-get -qy autoremove
 
 #Install current pip from PyPa
 RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
-	python3 get-pip.py
+		sudo python3 get-pip.py
 
-#Fetch additional dependencies from Python 3.x pip
-RUN pip install pyyaml
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+#Fetch additional dependencies from Python 3.x
+RUN sudo pip3 install pyyaml
+RUN sudo ln -s /usr/bin/python3 /usr/bin/python && \
+    sudo ln -s /usr/bin/pip3 /usr/bin/pip
 
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
+#Grab the GNU ARM toolchain from arm.com for old 9.2.1
+#Then extract contents to /opt/build/armbin/
+RUN sudo mkdir -p /opt/build/armbin && cd /opt/build && \
+	sudo wget -O gcc-arm-none-eabi $ARMBINURL && \
+	sudo tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
 
-# Grab the GNU ARM toolchain from arm.com
-# Then extract contents to /opt/build/armbin/
-RUN mkdir /opt/build && cd /opt/build && \
-	wget -O gcc-arm-none-eabi $ARMBINURL && \
-	mkdir armbin && \
-	tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
+#Then jam 10.3.1 libs in badly
+RUN cd /opt/build/armbin/lib/gcc/arm-none-eabi && \
+		sudo ln -s /home/ubuntu/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1 /opt/build/armbin/lib/gcc/arm-none-eabi/10.3.1
 
-# Configure CCACHE
-RUN mkdir ~/bin && cd ~/bin && \
-	for tool in gcc g++ cpp c++;do ln -s $(which ccache) arm-none-eabi-$tool;done
-
+#Auto build havoc, which is just here as a throwback as mayhem has taken over 8)
 CMD cd .. && cd build && \
     cmake .. && make firmware
