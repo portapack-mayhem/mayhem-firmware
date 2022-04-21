@@ -127,6 +127,9 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 
+    AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry);
+    AISRecentEntryDetailView &operator=(const AISRecentEntryDetailView&Entry);
+
 private:
 	AISRecentEntry entry_ { };
 
