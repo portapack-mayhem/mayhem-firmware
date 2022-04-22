@@ -43,8 +43,25 @@ QRCodeImage::QRCodeImage(
 	
 }
 
+QRCodeImage::~QRCodeImage( )
+{
+
+}
+
+QRCodeImage::QRCodeImage(const QRCodeImage&Image) : Widget { }
+{
+    (void)Image;
+}
+
+QRCodeImage & QRCodeImage::operator=(const QRCodeImage&Image)
+{
+    (void)Image;
+    return *this;
+}
+
 void QRCodeImage::paint(Painter& painter) {
 
+    (void)painter ;
 
 	// The structure to manage the QR code
 	QRCode qrcode;
