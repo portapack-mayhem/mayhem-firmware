@@ -40,7 +40,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "LGE tool"; };
+	std::string title() const override { return "LGE tool TX"; };
 
 private:
 	enum tx_modes {

@@ -361,7 +361,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B receive"; };
+	std::string title() const override { return "ADS-B RX"; };
 
 	void replace_entry(AircraftRecentEntry & entry);
 	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);

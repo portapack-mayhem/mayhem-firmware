@@ -352,7 +352,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 		{ "SD Card",		ui::Color::dark_cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
 		{ "Peripherals",	ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
 		{ "Temperature",	ui::Color::dark_cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
-		{ "Buttons test",	ui::Color::dark_cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
+		{ "Buttons Test",	ui::Color::dark_cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
 	});
 	set_max_rows(2); // allow wider buttons
 }

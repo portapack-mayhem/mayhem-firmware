@@ -348,10 +348,10 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
 	add_items({
 		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },
-		{ "Interface", 		ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
+		{ "User Interface", 		ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
 		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,		[&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Touchscreen",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "QR code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,		[&nav](){ nav.push<SetQRCodeView>(); } }
+		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,		[&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }

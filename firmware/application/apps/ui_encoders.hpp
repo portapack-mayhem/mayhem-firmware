@@ -158,7 +158,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "OOK transmit"; };
+	std::string title() const override { return "OOK TX"; };
 
 private:
 	NavigationView& nav_;

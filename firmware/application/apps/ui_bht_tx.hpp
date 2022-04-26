@@ -178,7 +178,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "BHT transmit"; };
+	std::string title() const override { return "BHT Xy/EP TX"; };
 
 private:
 	void on_tx_progress(const uint32_t progress, const bool done);

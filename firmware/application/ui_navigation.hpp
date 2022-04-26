@@ -248,14 +248,14 @@ namespace ui
 	{
 	public:
 		ReceiversMenuView(NavigationView &nav);
-		std::string title() const override { return "Receivers"; };
+		std::string title() const override { return "Receive"; };
 	};
 
 	class TransmittersMenuView : public BtnGridView
 	{
 	public:
 		TransmittersMenuView(NavigationView &nav);
-		std::string title() const override { return "Transmitters"; };
+		std::string title() const override { return "Transmit"; };
 	};
 
 	class UtilitiesMenuView : public BtnGridView
