@@ -47,7 +47,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Set Date/Time"; };
+	std::string title() const override { return "Date/Time"; };
 
 private:
 	Labels labels {
@@ -322,7 +322,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "QR code"; };
+	std::string title() const override { return "QR Code"; };
 	
 private:
 	Checkbox checkbox_bigger_qr {

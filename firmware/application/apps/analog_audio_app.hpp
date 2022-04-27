@@ -143,7 +143,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Analog audio"; };
+	std::string title() const override { return "Audio RX"; };
 
 	size_t get_spec_bw_index();
 	void set_spec_bw(size_t index, uint32_t bw);
