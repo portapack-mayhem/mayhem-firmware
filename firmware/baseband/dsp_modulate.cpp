@@ -77,6 +77,7 @@ SSB::SSB() : hilbert() {
 }
 
 void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer,TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message,  uint32_t& new_power_acc_count, uint32_t& new_divider ) {
+	// No way to activate correctly  the roger beep in this option, Maybe not enough M4 CPU power , Let's  block roger beep in SSB  selection by now . 
 	int32_t		sample = 0;
 	int8_t		re = 0, im = 0;
 	
@@ -86,8 +87,8 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
 
 		    sample = audio.p[counter / over] >> 2;
 			sample *= audio_gain;      //  Apply GAIN  Scale factor to the audio TX modulation.
-
-			//switch (mode) {
+	
+				//switch (mode) {
 				//case Mode::LSB:	
 			hilbert.execute(sample / 32768.0f, i, q);
 				//case Mode::USB:	hilbert.execute(sample / 32768.0f, q, i);
@@ -104,9 +105,23 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
 			//re = q;
 			//im = i;
 			//break;
+				
 		}
 		
 		buffer.p[counter] = { re, im };
+		
+		// Update vu-meter bar in the LCD screen.
+	    	power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
+	
+			if (new_power_acc_count) {
+				new_power_acc_count--;
+			} else {				// power_acc_count = 0
+				new_power_acc_count = new_divider;
+				new_level_message.value = power_acc / (new_divider *8);	// Why ?  . This division is to adj vu-meter sentitivity, to match saturation point to red-muter .
+				shared_memory.application_queue.push(new_level_message);
+				power_acc = 0;
+			}	
+	
 	}
 }
 
@@ -129,6 +144,7 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	int8_t		re, im;
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
+	 
 	    sample = audio.p[counter>>6] >> 8;			// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
 		sample *= audio_gain;      					// Apply GAIN  Scale factor to the audio TX modulation.
 
@@ -179,7 +195,7 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 		}
 
 		if (play_beep) {
-			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<4; 	// Apply beep -if selected - atom sample by sample.
+			sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message )<<5; 	// Apply beep -if selected - atom sample by sample.
 		} else {
 			// Update vu-meter bar in the LCD screen.
 	    	power_acc += (sample < 0) ? -sample : sample;	// Power average for UI vu-meter
