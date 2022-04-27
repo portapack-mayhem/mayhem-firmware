@@ -436,7 +436,7 @@ ASF,Austrian Air Force,AUSTRIAN AIRFORCE,Austria
 ASG,African Star Airways (PTY) Ltd.,AFRICAN STAR,South Africa
 ASH,Mesa Airlines,AIR SHUTTLE,United States
 ASI,Aerosun International Inc.,AEROSUN,United States
-ASJ,Air Satellite,,Canada
+ASJ,AstonJet,,France
 ASK,Aerosky,MULTISKY,Spain
 ASL,Air Serbia,AIR SERBIA,Serbia
 ASM,Awesome Flight Services (PTY) Ltd.,AWESOME,South Africa
@@ -508,6 +508,7 @@ AVG,Aviation Legacy,AVILEF,Gambia
 AVH,AV8 Helicopters,KENT HELI,United Kingdom
 AVJ,Avia Traffic Company,ATOMIC,Kyrgyzstan
 AVK,AV8 Helicopters,AVIATE-COPTER,South Africa
+AVL,Aviation Adventures,SKY VENTURES,United States
 AVM,Aviación Ejecutiva Mexicana S.A.,AVEMEX,Mexico
 AVN,Air Vanuatu,AIR VAN,Vanuatu
 AVO,Aviation at Work,AVIATION WORK,South Africa
@@ -1293,6 +1294,7 @@ CRX,Cross Aviation,CROSSAIR,United Kingdom
 CRY,Primavia Limited,CARRIERS,United Kingdom
 CRZ,Cruzeiro do Sul Servicos Aereos,,Brazil
 CSA,Czech Airlines,CSA,Czech Republic
+CSB,21 Air,CARGO SOUTH,United States
 CSC,Sichuan Airlines,SI CHUAN,China
 CSD,Courier Services,DELIVERY,United States
 CSE,CSE Aviation,OXFORD,United Kingdom
@@ -1685,6 +1687,7 @@ EFS,EFAOS- Agencia De Viagens e Turismo,EFAOS,Angola
 EFT,Embassy Freight Company,EMBASSY FREIGHT,United States
 EFX,Easy Fly Express,EASY EXPRESS,BD
 EFY,EasyFly,,Colombia
+EGC,First Wing Aircraft Charter and Maintenance,EAGLE CREEK,United States
 EGF,American Eagle Airlines,EAGLE FLIGHT,United States
 EGH,BBN-Airways,,United Kingdom
 EGJ,Eagle Jet Charter,EAGLE JET,United States
@@ -1862,6 +1865,7 @@ EVN,Euraviation,EURAVIATION,Italy
 EVR,Aeronautical Academy of Europe,DIANA,Portugal
 EVT,Everett Limited,,Tanzania
 EVX,ATR,GREEN SPIRIT,France
+EVY,Royal Australian Air Force,,Australia
 EWA,East-West Airlines,,Australia
 EWE,Eurowings Europe,,Austria
 EWG,Eurowings,EUROWINGS,Germany
@@ -2009,6 +2013,7 @@ FGY,Froggy Corporate Aviation,,Australia
 FHE,Hello,FLYHELLO,Switzerland
 FHI,FlyHigh Airlines Ireland (FH),,Ireland
 FHL,Fast Helicopters,FINDON,United Kingdom
+FHM,Freebird Airlines Europe,EUROBIRD,Malta
 FHS,Forth and Clyde Helicopter Services,HELISCOT,United Kingdom
 FHY,Freebird Airlines,FREEBIRD AIR,Turkey
 FI5,Fly One,,Moldova
@@ -2029,6 +2034,7 @@ FJI,Fiji Airways,PACIFIC,Fiji
 FJK,Fly Jet Kz,,Kazakhstan
 FJM,Fly Jamaica Airways,GREENHEART,Jamaica
 FJO,Flexjet Operations Malta Limited,FLEX MALTA,Malta
+FRJ,Fly Jordan,SOLITAIRE AIR,Jordan
 FJS,Florida Jet Service,FLORIDAJET,United States
 FKA,Flying kangaroo Airline,,Australia
 FKI,FLM Aviation Mohrdieck,KIEL AIR,Germany
@@ -2139,6 +2145,7 @@ FTH,Mountain Aviation,FOOTHILL,United States
 FTI,FTI Fluggesellschaft,,Germany
 FTL,Flightline,FLIGHT-AVIA,Spain
 FTM,Flyteam Aviation,FLYTEAM,United Kingdom
+FTN,Victory Air,FRONTRUNNER,United States
 FTP,Keystone Aerial Surveys,FOOTPRINT,United States
 FTR,Finist'air,FINISTAIR,France
 FTS,First Sabre,FIRST SABRE,Mexico
@@ -2230,6 +2237,7 @@ GCC,GECAS,GECAS,Ireland
 GCF,Aeronor,AEROCARTO,Spain
 GCH,Gama Aviation Switzerland,GAMA SWISS,Switzerland
 GCK,Aerogem Cargo,,Ghana
+GCL,CargoLogic Germany,SAXONIAN,Germany
 GCM,Comair Flight Services,GLOBECOM,South Africa
 GCN,Gulf Central Airlines,GULF CENTRAL,United States
 GCO,Gemini Air Cargo,GEMINI,United States
@@ -2321,6 +2329,7 @@ GJM,Airhub Airlines,AIRHUB,Malta
 GJS,GoJet Airlines,LINDBERGH,United States
 GJT,Gestión Aérea Ejecutiva,BANJET,Spain
 GKA,US Army Parachute Team,GOLDEN KNIGHTS,United States
+GKY,Gama Aviation,GAMA CAYMAN,Cayman Islands
 GLA,Great Lakes Airlines,LAKES AIR,United States
 GLB,Global Airways (GLB),GLO-AIR,United States
 GLC,Global Aircargo,,Bahrain
@@ -2348,6 +2357,7 @@ GMI,Germania,GERMANIA,Germany
 GMJ,Gamisa Aviación,GAMISA,Spain
 GML,G & L Aviation,GEEANDEL,South Africa
 GMM,Aerotaxis Guamuchil,AEROGUAMUCHIL,Mexico
+GMN,Garmin,GARMIN,United States
 GMQ,Germania Express,CORGI,Germany
 GMR,Golden Myanmar Airlines,GOLDEN MYANMAR,Myanmar
 GMS,Aeroservicios Gama,SERVICIOS GAMA,Mexico
@@ -2383,11 +2393,12 @@ GPA,Golden Pacific Airlines,GOLDEN PAC,United States
 GPC,Gulf Pearl Air Lines,AIR GULFPEARL,Libya
 GPD,Tradewind Aviation,GOODSPEED,United States
 GPE,GP Express Airlines,REGIONAL EXPRESS,United States
-GPL,DLR,,Germany
+GPL,DLR,GERMAN POLAR,Germany
 GPM,Grup Air-Med,GRUPOMED,Spain
 GPR,GPM Aeroservicio,GPM AEROSERVICIO,Mexico
 GPX,GP Aviation,,Bulgaria
 GRA,Guardian Air Asset Management,FLEX,South Africa
+GRB,Phoenix Air Group,GREY BIRD,United States
 GRD,National Grid plc,GRID,United Kingdom
 GRE,Air Scotland,GREECE AIRWAYS,Greece
 GRG,Air Georgia,AIR GEORGIA,Georgia
@@ -2455,6 +2466,7 @@ GXY,Galaxy Airlines,GALAX,Japan
 GYP,Eagle Aviation,GYPSY,United Kingdom
 GZA,Excellent Air,EXCELLENT AIR,Germany
 GZD,Grizodubova Air Company,GRIZODUBOVA AIR,Russia
+GZO,Aeromanagement Group,GEZIRA,United States
 GZP,Gazpromavia,GAZPROMAVIA,Russia
 GZQ,Zagros Air,ZAGROS,Iran
 HA1,Hankook Air US,,United States
@@ -2515,6 +2527,7 @@ HEJ,Hellas Jet,,Greece
 HEL,Helicol,HELICOL,Colombia
 HEM,CHC Helicopter,HEMS,Australia
 HEN,Helicópteros Y Vehículos Nacionales Aéreos,HELINAC,Mexico
+HEP,Oslo Politidistrikt Helikoptertjenesten,HELIPOLICE,Norway
 HER,Hera Flight,,United States
 HES,Holiday Europe,HOLIDAY EUROPE,Bulgaria
 HET,TAF Helicopters,HELITAF,Spain
@@ -2588,6 +2601,7 @@ HLT,Helitafe,HELITAFE,Mexico
 HLU,Heli Union Heli Prestations,HELI UNION,France
 HLW,Heliworks,HELIWORKS,Chile
 HLX,Hapag-Lloyd Express (TUIfly),YELLOW CAB,Germany
+HLY,Heli Air,WHISPER,United Kingdom
 HMA,Air Tahoma,TAHOMA,United States
 HMB,CHC Global Operations Canada,HUMMINGBIRD,Canada
 HMC,Heliamerica De Mexico,HELIAMERICA,Mexico
@@ -2628,6 +2642,7 @@ HQO,Avinor,,Norway
 HRA,Heli-Iberica,ERICA,Spain
 HRB,Haiti International Airline,HAITI AIRLINE,Haiti
 HRC,Harco Aviation,HARCO,United States
+HRE,FFH Sudwestdeutsche Verkehrsfliegerschule,HART AIR,Germany
 HRH,Royal Tongan Airlines,TONGA ROYAL,Tonga
 HRI,Skyraidybos Mokymo Centras,HELIRIM,Lithuania
 HRM,Hermes Airlines,,Greece
@@ -2747,6 +2762,7 @@ ICT,Intercontinental de Aviación,CONTAVIA,Colombia
 ICU,Reignwood Asia Aviation Co Ltd,ASIA MEDICAL,China
 ICV,Cargolux Italia,CARGO MED,Italy
 ICX,International Charter Xpress,,United States
+ICY,Intercity Air,INTERCITY,Malaysia
 IDA,Indonesia Air Transport,INTRA,Indonesia
 IDE,Independence Air,,United States
 IDG,IDG Technology Air,INDIGO,Czech Republic
@@ -2819,6 +2835,7 @@ INC,Insel Air International,INSELAIR,Netherlands Antilles
 IND,Iona National Airways,IONA,Ireland
 INE,International Europe,,Spain
 ING,Aeroingenieria,,Chile
+INI,Initium Aviation,INITIUM,Spain
 INK,Sincom-Avia,SINCOM AVIA,Ukraine
 INL,Intal Avia,INTAL AVIA,Kyrgyzstan
 INO,Aeroservicios Intergrados de Norte,INTENOR,Mexico
@@ -3055,6 +3072,7 @@ JSE,Jets Y Servicios Ejecutivos,,Mexico
 JSH,Jetstream Air,,Hungary
 JSI,Jet Air Group,,Russia
 JSJ,JS Air,,Pakistan
+JSL,SelectJet,SELECTJET,United States
 JSM,Jet Stream,,Moldova
 JSN,Suncor Energy Inc,JETSUN,Canada
 JSP,Palmer Aviation,PALMER,United Kingdom
@@ -3519,6 +3537,7 @@ LRW,Al Rida Airways,AL RIDA,Mauritania
 LSA,LANSA,INTERNACIONAL,Dominican Republic
 LSC,Los Cedros Aviación,CEDROS,Chile
 LSE,Línea De Aeroservicios,,Chile
+LSI,Aliscargo Airlines,ALIS,Italy
 LSK,Aurela,AURELA,Lithuania
 LSM,Aerobusinessservice,,Russia
 LSP,Spectrum Aviation Incorporated,AIR TONY,United Kingdom
@@ -3775,10 +3794,12 @@ MMD,Air Alsie,MERMAID,Denmark
 MMF,Netherlands Air Force,,Netherlands
 MMG,Aereo Ruta Maya,RUTA MAYA,Guatemala
 MMH,McMahon Helicopter,NIGHT RIDER,United States
+MMI,Marina Militare Italiana,ITALIAN NAVY,Italy
 MMJ,Macau Jet International,MACAUJET,China
 MML,Hunnu Air,TRANS MONGOLIA,Mongolia
 MMM,Aviation Company Meridian,AVIAMERIDIAN,Russia
 MMN,Pro Airways,,United States
+MMO,Malta MedAir,MALIT,Malta
 MMP,AMP Incorporated,AMP-INC,United States
 MMR,Musrata Air Transport,MUSRATA AIR,Libya
 MMS,SAAD (A320) Limited,MUSAAD AIR,Cayman Islands
@@ -3933,6 +3954,7 @@ MXS,Millon Express,MILLON EXPRESS,United States
 MXT,México Transportes Aéreos,TRANSMEX,Mexico
 MXU,Maximus Air Cargo,CARGO MAX,United Arab Emirates
 MXX,Merchant Express Aviation,MERCHANT,Nigeria
+MXY,Breeze Airways,MOXY,United States
 MYA,Myflug,MYFLUG,Iceland
 MYD,Maya Island Air,MYLAND,Belize
 MYI,Mayair,MAYAIR,Mexico
@@ -3961,7 +3983,7 @@ NAF,Royal Netherlands Air Force,NETHERLANDS AIR FORCE,Netherlands
 NAH,Nahanni Air Services Ltd,NAHANNI,Canada
 NAI,North Adria Aviation,NORTH-ADRIA,Croatia
 NAJ,North American Jet Charter Group,JET GROUP,United States
-NAK,École Nationale de l'Aviation Civile,ENAC SCHOOL,France
+NAK,ENAC,ENAC SCHOOL,France
 NAL,Northway Aviation Ltd,NORTHWAY,Canada
 NAM,Nortland Air Manitoba,MANITOBA,Canada
 NAN,Norwegian Air Norway,NORSHIP,Norway
@@ -4134,6 +4156,7 @@ NSA,Nile Safaris Aviation,NILE SAFARIS,Sudan
 NSC,Societe De Transport Aerien De Mauritanie,TRANS-SOCIETE,Mauritania
 NSE,SATENA,SATENA,Colombia
 NSF,Northamptonshire School of Flying,NORTON,United Kingdom
+NSH,Sterling Aviation,NORTH-SHORE,United States
 NSJ,Nanshan Jet,NANSHAN,China
 NSK,Air Intersalonika,INTERSALONIKA,Greece
 NSL,Neric,NERICAIR,United Kingdom
@@ -4150,6 +4173,7 @@ NTB,Servicios Aéreos Del Norte,SERVINORTE,Mexico
 NTC,Gibson Aviation,NIGHT CHASE,United States
 NTD,Aero Norte,,Mexico
 NTE,Interaire,INTERMEX,Mexico
+NTF,OK Business Aircraft,NETFLIGHT,Czech Republic
 NTG,Servicios Integrales De Aviación,INTEGRALES,Mexico
 NTH,Hokkaido Air System,NORTH AIR,Japan
 NTJ,NextJet,NEXTJET,Sweden
@@ -4183,6 +4207,7 @@ NVR,Novair,NAVIGATOR,Sweden
 NVS,Nouvelle Air Affaires Gabon,NOUVELLE AFFAIRES,GA
 NVY,Royal Navy,NAVY,United Kingdom
 NWA,Delta Airlines,NORTHWEST,United States
+NWC,Aircompany North-West LLC,WEST WAY,Russia
 NWD,New World Jet Corporation,NEW WORLD,United States
 NWE,Northwest Aero Associates,,United States
 NWF,Northwest Flyers,SECOND CITY,United States
@@ -4273,6 +4298,7 @@ OLV,Aerolíneas Olve,OLVE,Mexico
 OLX,Olimex Aerotaxi,OLIMEX,Czech Republic
 OLY,Olympic Aviation,OLAVIA,Greece
 OMA,Oman Air,OMAN AIR,Oman
+OMD,Nomadic Aviation,NOMADIC,United States
 OME,Homer Air,,Germany
 OMF,Omniflys,OMNIFLYS,Mexico
 OMG,Aeromega,OMEGA,United Kingdom
@@ -4855,6 +4881,7 @@ RJA,Royal Jordanian,JORDANIAN,Jordan
 RJC,Richmor Aviation,COLUMBIA JET,United States
 RJD,Rotana Jet,,United Arab Emirates
 RJM,Millen Corporation,MILLEN,United Kingdom
+RJR,Air CM Global,MELITA,Malta
 RJS,Aeroservicios Jet,ASERJET,Mexico
 RJT,RA Jet Aeroservicios,RA JET,Mexico
 RJZ,Royal Jordanian Air Force,JORDAN AIR FORCE,Jordan
@@ -5046,7 +5073,6 @@ RYR,Ryanair,RYANAIR,Ireland
 RYS,Buzz (Ryanair),MAGIC SUN,Poland
 RYT,Raya Jet,,Jordan
 RYZ,Ryazan State Air Enterprise,RYAZAN AIR,Russia
-RZ,Superna Airlines,YANGTZE RIVER,China
 RZA,Jet Fighter Flights,,Australia
 RZL,Aero Zambia,AERO ZAMBIA,Zambia
 RZN,Aero Zano,ZANO,Mexico
@@ -5131,6 +5157,7 @@ SDC,Sunrise Airlines,SUNDANCE,United States
 SDD,Skymaster Air Taxi,SKY DANCE,United States
 SDE,Air Partners Corp.,STAMPEDE,Canada
 SDF,Sundorph Aeronautical Corporation,SUNDORPH,United States
+SDG,Star Air,HI STAR,India
 SDH,Servicio De Helicopteros,ARCOS,Spain
 SDI,San Dima Air,,United States
 SDJ,Club 328,SPACEJET,United Kingdom
@@ -5568,6 +5595,7 @@ SXA,Southern Cross Aviation,FERRY,United States
 SXC,Sky Exec Aviation Services,SKY EXEC,Nigeria
 SXD,Sunexpress Deutschland,SUNRISE,Germany
 SXE,Southeast Express Airlines,DOGWOOD EXPRESS,United States
+SXI,Southern Cross International,SOUTHERN CROSS,Netherlands
 SXL,Skyline Flight,SKYLINE,United States
 SXM,Servicios Aéreos Especializados Mexicanos,SERVIMEX,Mexico
 SXN,SaxonAir,SAXONAIR,United Kingdom
@@ -5709,6 +5737,7 @@ TFK,Transafrik International,,São Tomé and Príncipe
 TFL,TUI Airlines Netherlands,ORANGE,Netherlands
 TFN,Norwegian Aviation College,SPIRIT,Norway
 TFO,Transportes Aéreos del Pacífico,TRANSPORTES PACIFICO,Mexico
+TFR,Air Freight NZ Cargo,TOLL FREIGHT,New Zealand
 TFT,Thai Flying Service,THAI FLYING,Thailand
 TFU,213th Flight Unit,THJY,Russia
 TFX,Toll Priority,TOLL EXPRESS,AU
@@ -5763,6 +5792,7 @@ TIS,Tesis,TESIS,Russia
 TIV,Thrive Aviation,THRIVE,United States
 TIW,Transcarga Intl Airways,TIACA,Venezuela
 TJA,T.J. Air,,United States
+TJD,Aliserio,ALISERIO,Italy
 TJJ,Top Jets,THUNDERBOLT,Bulgaria
 TJK,Tajikair,TAJIKAIR,Tajikistan
 TJN,Tien-Shan,NERON,Kazakhstan
@@ -5969,6 +5999,7 @@ TVI,Tiramavia,TIRAMAVIA,Moldova
 TVJ,Thai Vietjet Air,THAIVIET JET,Thailand
 TVL,Travel Service,TRAVEL SERVICE,Hungary
 TVO,Transavio,TRANS-BALLERIO,Italy
+TVP,Smartwings Poland,JET TRAVEL,Poland
 TVR,Tavrey Airlines,TAVREY,Ukraine
 TVS,Smartwings,SKYTRAVEL,Czech Republic
 TVV,Travira Air,PARAMITA,Indonesia
@@ -6036,6 +6067,7 @@ UAL,United Airlines,UNITED,United States
 UAR,Aerostar Airlines,AEROSTAR,Ukraine
 UAS,University Air Squadron,,United Kingdom
 UAT,Ukraine Atlantic,,Ukraine
+UAW,UAS/AEF St Athan,,United Kingdom
 UAY,University of Birmingham Air Squadron (RAF),,United Kingdom
 UBA,Myanma Airways,UNIONAIR,Myanmar
 UBD,United Airways,UNITED BANGLADESH,Bangladesh
@@ -6331,6 +6363,7 @@ VSR,Aviostart AS,AVIOSTART,Bulgaria
 VSS,Virign Islands Seaplane Shuttle,WATERBIRD,United States
 VSV,Scat Air,VLASTA,Kazakhstan
 VTA,Air Tahiti,AIR TAHITI,French Polynesia
+VTB,Jet Strean Charter,SUXAIR,Hungary
 VTC,Vuelos Especializados Tollocan,VUELOS TOLLOCAN,Mexico
 VTE,Contour Airlines,VOLUNTEER,United States
 VTG,Aviação Transportes Aéreos e Cargas,ATACARGO,Angola
@@ -6389,6 +6422,7 @@ WAU,Wizz Air Ukraine,,Ukraine
 WAV,Warbelow's Air Ventures,WARBELOW,United States
 WAW,Wings Airways,WING SHUTTLE,United States
 WAY,Airways,GARONNE,France
+WAZ,Wizz Air,WIZZ SKY,United Arab Emirates
 WBA,Finncomm Airlines,WESTBIRD,Finland
 WBR,Multi-Aero,WEBER,United States
 WCA,West Coast Airways,WEST-LEONE,Sierra Leone
@@ -6401,6 +6435,7 @@ WCR,West Caribbean Costa Rica,WEST CARIBBEAN,Costa Rica
 WCW,West Caribbean Airways,WEST,Colombia
 WCY,Viking Express,TITAN AIR,United States
 WDA,Wimbi Dira Airways,WIMBI DIRA,Democratic Republic of Congo
+WDE,Pallas Aviation,SANDSTONE,United States
 WDG,Ministry of Agriculture Fisheries and Food,WATCHDOG,United Kingdom
 WDK,Oxford Air Services,WOODSTOCK,United Kingdom
 WDL,WDL Aviation,WDL,Germany
@@ -6463,6 +6498,7 @@ WLV,Aviation North,WOLVERINE,United States
 WLX,West Air Luxembourg,WEST LUX,Luxembourg
 WMA,Watermakers Air,WATERMAKERS,United States
 WML,Chantilly Air,MARLIN,United States
+WMN,Trident Aircraft,WATERMAN,United States
 WNA,Winair,WINAIR,United States
 WNR,Wondair on Demand Aviation,WONDAIR,Spain
 WOA,World Airways,WORLD,United States
@@ -6537,6 +6573,7 @@ XBM,CBM America,,United States
 XBO,Baseops International,,United States
 XCA,Colt Transportes Aereos,COLT,Brazil
 XCC,Ecoturistica de Xcalak,XCALAK,Mexico
+XCH,Jet Exchange,EXCHANGE,United Kingdom
 XCL,Contel ASC,,United States
 XCO,Compuflight Operations Service,,United States
 XCS,Compuserve Incorporated,,United States
@@ -6557,6 +6594,7 @@ XFS,American Flight Service Systems,,United States
 XFX,Airways Corporation of New Zealand,AIRCORP,New Zealand
 XGA,General Aviation Terminal,,Canada
 XGG,IMP Group Aviation Services,,Canada
+XGN,NexGen Flight Solutions,NEXGEN,United States
 XGO,AirGO Flugservice GmbH & Co KG,PASTIS,Germany
 XGS,Global System,,United States
 XGW,Global Weather Dynamics,,United States

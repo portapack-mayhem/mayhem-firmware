@@ -23,6 +23,7 @@
 #include "ui_qrcode.hpp"
 #include "qrcodegen.hpp"
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -42,26 +43,74 @@ QRCodeImage::QRCodeImage(
 	
 }
 
+QRCodeImage::~QRCodeImage( )
+{
+
+}
+
+QRCodeImage::QRCodeImage(const QRCodeImage&Image) : Widget { }
+{
+    (void)Image;
+}
+
+QRCodeImage & QRCodeImage::operator=(const QRCodeImage&Image)
+{
+    (void)Image;
+    return *this;
+}
+
 void QRCodeImage::paint(Painter& painter) {
+
+    (void)painter ;
+
 	// The structure to manage the QR code
 	QRCode qrcode;
-	int qr_version = 10; // bigger versions aren't handled very well
-
-	// Allocate a chunk of memory to store the QR code
-	uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
-
-	qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
 
-	display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
+	//Either small or large QR code can be shown..
 
-	for (uint8_t y = 0; y < qrcode.size; y++) {
-    		for (uint8_t x = 0; x < qrcode.size; x++) {
-        		if (qrcode_getModule(&qrcode, x, y)) {
-            			display.draw_pixel(Point(95+x,100+y), Color::black());
+	if(portapack::persistent_memory::show_bigger_qr_code()) { // show large QR code
+		int qr_version =  2; 
 
-        		} 
-    		}
+		// Allocate a chunk of memory to store the QR code
+		uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
+
+		qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
+
+
+		display.fill_rectangle(Rect(10, 30, 220, 220), Color::white());
+
+		for (uint8_t y = 0; y < qrcode.size; y++) {
+    			for (uint8_t x = 0; x < qrcode.size; x++) {
+        			if (qrcode_getModule(&qrcode, x, y)) {
+            				display.fill_rectangle(Rect(20+(x*8), 40+(y*8), 8, 8), Color::black());
+
+        			} 
+    			}
+		}
+
+	}
+
+	else { // show small QR code
+		int qr_version =  10; 
+
+		// Allocate a chunk of memory to store the QR code
+		uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
+
+		qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
+
+
+		display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
+
+		for (uint8_t y = 0; y < qrcode.size; y++) {
+    			for (uint8_t x = 0; x < qrcode.size; x++) {
+        			if (qrcode_getModule(&qrcode, x, y)) {
+            				display.draw_pixel(Point(95+x,100+y), Color::black());
+
+        			} 
+    			}
+		}
+
 	}
 }
 
@@ -84,10 +133,9 @@ QRCodeView::QRCodeView(
 
 
         add_children({
-		&text_qr,
 		&qr_code,
 		&button_close});
-        text_qr.set(qr_text);	
+        //text_qr.set(qr_text);	
 	qr_code.set_text(qr_text);
 
 	button_close.on_select =  [&nav](Button&){

@@ -27,6 +27,7 @@
 #include "ui_font_fixed_8x16.hpp"
 
 #include "file.hpp"
+#include "database.hpp"
 #include "recent_entries.hpp"
 #include "log_file.hpp"
 #include "adsb.hpp"
@@ -176,13 +177,17 @@ public:
 	std::string title() const override { return "AC Details"; };
 
 	AircraftRecentEntry get_current_entry() { return entry_copy; }
+
+	std::database::AircraftDBRecord aircraft_record = {};
 	
 private:
-	AircraftRecentEntry entry_copy { 0 };
-	std::function<void(void)> on_close_ { };
-	bool send_updates { false };
-	File db_file { };
-	
+	AircraftRecentEntry 		entry_copy { 0 };
+	std::function<void(void)> 	on_close_ { };
+	bool 				send_updates { false };
+	std::database 			db = { };
+	std::string 			icao_code = "";
+	int 				return_code = 0;
+
 	Labels labels {
 	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
 		{ { 0 * 8, 2 * 16 }, "Registration:", Color::light_grey() },
@@ -264,14 +269,19 @@ public:
 	std::string title() const override { return "Details"; };
 
 	AircraftRecentEntry get_current_entry() { return entry_copy; }
+
+
+	std::database::AirlinesDBRecord airline_record = {};
 	
 private:
-	AircraftRecentEntry entry_copy { 0 };
-	std::function<void(void)> on_close_ { };
-	GeoMapView* geomap_view { nullptr };
-	ADSBRxAircraftDetailsView* aircraft_details_view { nullptr };
-	bool send_updates { false };
-	File db_file { };
+	AircraftRecentEntry 		entry_copy { 0 };
+	std::function<void(void)> 	on_close_ { };
+	GeoMapView* 			geomap_view { nullptr };
+	ADSBRxAircraftDetailsView* 	aircraft_details_view { nullptr };
+	bool 				send_updates { false };
+	std::database 			db = { };	
+	std::string 			airline_code = "";
+	int 				return_code = 0;
 	
 	Labels labels {
 	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
@@ -358,7 +368,7 @@ public:
 	void sort_entries_by_state();
 
 private:
-	rf::Frequency prevFreq;
+	rf::Frequency prevFreq = { 0 };
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();

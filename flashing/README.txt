@@ -1,0 +1,1 @@
+Plug HackRF+Portapack, set it in HackRF mode, launch flash_portapack_mayhem.bat

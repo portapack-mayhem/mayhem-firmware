@@ -142,7 +142,23 @@ static int32_t rect_distances(
 		return -1;
 	}
 
-	return (std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) * (on_axis_distance + 1);
+
+	switch(direction) {
+	case KeyEvent::Right:
+	case KeyEvent::Left:
+		return ((std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) ^ 3) * sqrt((on_axis_distance + 1));
+		break;
+
+	case KeyEvent::Up:
+	case KeyEvent::Down:
+		return (sqrt(std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1)) * ((on_axis_distance + 1) ^ 3);
+		break;
+
+	default:
+		return 0;
+	}
+
+	
 }
 
 void FocusManager::update(

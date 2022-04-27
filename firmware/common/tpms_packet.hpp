@@ -39,7 +39,7 @@ namespace tpms {
 
 using Flags = uint8_t;
 
-enum SignalType : uint32_t {
+enum SignalType {
 	FSK_19k2_Schrader = 1,
 	OOK_8k192_Schrader = 2,
 	OOK_8k4_Schrader = 3,
