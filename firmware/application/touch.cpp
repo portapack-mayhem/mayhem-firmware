@@ -109,7 +109,7 @@ void Manager::feed(const Frame& frame) {
 
 	switch(state) {
 	case State::NoTouch:
-		if( touch_stable && touch_pressure ) {
+		if( touch_stable && touch_pressure && !persistent_memory::disable_touchscreen()) {
 			if( point_stable() ) {
 				state = State::TouchDetected;
 				touch_started();

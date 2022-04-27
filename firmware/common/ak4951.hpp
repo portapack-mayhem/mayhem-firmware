@@ -773,40 +773,41 @@ constexpr RegisterMap default_after_reset { Register_Type {
 		.REV = 0b1100,
 	},
 	
-	.e1_coefficient_0 = { .l = 0x00 },
-	.e1_coefficient_1 = { .h = 0x00 },
-	.e1_coefficient_2 = { .l = 0x00 },
-	.e1_coefficient_3 = { .h = 0x00 },
-	.e1_coefficient_4 = { .l = 0x00 },
-	.e1_coefficient_5 = { .h = 0x00 },
+	// just pre-loading into memory, 30 bytes =  EQ 1,2,3,4,5  x A,B,C (2 x bytes) coefficients, but it will be written from ak4951.cpp 
+	.e1_coefficient_0 = { .l = 0xCA },		//EQ1 Coefficient A  : A7...A0,		BW : 300Hz - 1700Hz  (fo = 1150Hz , fb= 1700Hz) , k=1,8 peaking 
+	.e1_coefficient_1 = { .h = 0x05 },		//EQ1 Coefficient A  : A15..A8
+	.e1_coefficient_2 = { .l = 0xEB },		//EQ1 Coefficient B  : B7...B0
+	.e1_coefficient_3 = { .h = 0x38 },		//EQ1 Coefficient B  : B15...B8
+	.e1_coefficient_4 = { .l = 0x6F },		//EQ1 Coefficient C  : C7...C0
+	.e1_coefficient_5 = { .h = 0xE6 },		//EQ1 Coefficient C  : C15..C8
 	
-	.e2_coefficient_0 = { .l = 0x00 },
-	.e2_coefficient_1 = { .h = 0x00 },
-	.e2_coefficient_2 = { .l = 0x00 },
-	.e2_coefficient_3 = { .h = 0x00 },
-	.e2_coefficient_4 = { .l = 0x00 },
-	.e2_coefficient_5 = { .h = 0x00 },
+	.e2_coefficient_0 = { .l = 0x05 },		//EQ2 Coefficient A  : A7...A0,		BW : 250Hz - 2700Hz  (fo = 1475Hz , fb= 2450Hz) , k=1,8 peaking  
+	.e2_coefficient_1 = { .h = 0x08 },		//EQ2 Coefficient A  : A15..A8
+	.e2_coefficient_2 = { .l = 0x11 },		//EQ2 Coefficient B  : B7...B0
+	.e2_coefficient_3 = { .h = 0x36 },		//EQ2 Coefficient B  : B15...B8
+	.e2_coefficient_4 = { .l = 0xE9 },		//EQ2 Coefficient C  : C7...C0
+	.e2_coefficient_5 = { .h = 0xE8 },		//EQ2 Coefficient C  : C15..C8
 	
-	.e3_coefficient_0 = { .l = 0x00 },
-	.e3_coefficient_1 = { .h = 0x00 },
-	.e3_coefficient_2 = { .l = 0x00 },
-	.e3_coefficient_3 = { .h = 0x00 },
-	.e3_coefficient_4 = { .l = 0x00 },
-	.e3_coefficient_5 = { .h = 0x00 },
+	.e3_coefficient_0 = { .l = 0x00 },		//EQ3 Coefficient A  : A7...A0,		not used  currently 
+	.e3_coefficient_1 = { .h = 0x00 },		//EQ3 Coefficient A  : A15..A8
+	.e3_coefficient_2 = { .l = 0x00 },		//EQ3 Coefficient B  : B7...B0
+	.e3_coefficient_3 = { .h = 0x00 },		//EQ3 Coefficient B  : B15...B8
+	.e3_coefficient_4 = { .l = 0x00 },		//EQ3 Coefficient C  : C7...C0
+	.e3_coefficient_5 = { .h = 0x00 },		//EQ3 Coefficient C  : C15..C8
 	
-	.e4_coefficient_0 = { .l = 0x00 },
-	.e4_coefficient_1 = { .h = 0x00 },
-	.e4_coefficient_2 = { .l = 0x00 },
-	.e4_coefficient_3 = { .h = 0x00 },
-	.e4_coefficient_4 = { .l = 0x00 },
-	.e4_coefficient_5 = { .h = 0x00 },
+	.e4_coefficient_0 = { .l = 0x00 },		//EQ4 Coefficient A  : A7...A0,		not used  currently
+	.e4_coefficient_1 = { .h = 0x00 },		//EQ4 Coefficient A  : A15..A8
+	.e4_coefficient_2 = { .l = 0x00 },		//EQ4 Coefficient B  : B7...B0
+	.e4_coefficient_3 = { .h = 0x00 },		//EQ4 Coefficient B  : B15...B8
+	.e4_coefficient_4 = { .l = 0x00 },		//EQ4 Coefficient C  : C7...C0
+	.e4_coefficient_5 = { .h = 0x00 },		//EQ4 Coefficient C  : C15..C8
 
-	.e5_coefficient_0 = { .l = 0x00 },
-	.e5_coefficient_1 = { .h = 0x00 },
-	.e5_coefficient_2 = { .l = 0x00 },
-	.e5_coefficient_3 = { .h = 0x00 },
-	.e5_coefficient_4 = { .l = 0x00 },
-	.e5_coefficient_5 = { .h = 0x00 },
+	.e5_coefficient_0 = { .l = 0x00 },		//EQ5 Coefficient A  : A7...A0,		not used currently
+	.e5_coefficient_1 = { .h = 0x00 },		//EQ5 Coefficient A  : A15..A8
+	.e5_coefficient_2 = { .l = 0x00 },		//EQ5 Coefficient B  : B7...B0
+	.e5_coefficient_3 = { .h = 0x00 },		//EQ5 Coefficient B  : B15...B8
+	.e5_coefficient_4 = { .l = 0x00 },		//EQ5 Coefficient C  : C7...C0
+	.e5_coefficient_5 = { .h = 0x00 },		//EQ5 Coefficient C  : C15..C8
 } };
 
 class AK4951 : public audio::Codec  {
@@ -822,6 +823,8 @@ public:
 	std::string name() const override {
 		return "AK4951";
 	}
+
+	bool detected();
 	
 	void init() override;
 	bool reset() override;
@@ -839,7 +842,7 @@ public:
 	void set_headphone_volume(const volume_t volume) override;
 	void headphone_mute();
 
-	void microphone_enable();
+	void microphone_enable(int8_t alc_mode); 	// added user GUI parameter , to set up AK4951 ALC mode.
 	void microphone_disable();
 
 	size_t reg_count() const override {

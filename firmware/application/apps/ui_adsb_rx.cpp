@@ -49,7 +49,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	if (entry_age < ADSB_DECAY_A) {
 		aged_color = 0x10;
 		target_color = Color::green();
-	} else if ((entry_age >= ADSB_DECAY_A) && (entry_age < ADSB_DECAY_B)) {
+	} else if (entry_age < ADSB_DECAY_B) {
 		aged_color = 0x07;
 		target_color = Color::light_grey();
 	} else {
@@ -59,10 +59,21 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	
 	std::string entry_string = "\x1B";
 	entry_string += aged_color;
+#if false
 	entry_string += to_string_hex(entry.ICAO_address, 6) + " " +
 		entry.callsign + "  " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
 		entry.time_string;
+#else
+	// SBT
+	entry_string += 
+		(entry.callsign[0]!=' ' ? entry.callsign + " " : to_string_hex(entry.ICAO_address, 6) + "   ") +
+		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
+		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
+		to_string_dec_uint((unsigned int)(entry.amp>>9),4) + " " +
+		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
+		to_string_dec_uint(entry.age, 4);
+#endif
 	
 	painter.draw_string(
 		target_rect.location(),
@@ -71,7 +82,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	);
 	
 	if (entry.pos.valid)
-		painter.draw_bitmap(target_rect.location() + Point(15 * 8, 0), bitmap_target, target_color, style.background);
+		painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0), bitmap_target, target_color, style.background);
 }
 
 void ADSBLogger::log_str(std::string& logline) {
@@ -79,6 +90,117 @@ void ADSBLogger::log_str(std::string& logline) {
 	rtcGetTime(&RTCD1, &datetime);
 	log_file.write_entry(datetime,logline);
 }
+
+
+// Aircraft Details
+void ADSBRxAircraftDetailsView::focus() {
+	button_close.focus();
+}
+
+ADSBRxAircraftDetailsView::~ADSBRxAircraftDetailsView() {
+	on_close_();
+}
+
+ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
+	NavigationView& nav,
+	const AircraftRecentEntry& entry,
+	const std::function<void(void)> on_close
+) : entry_copy(entry),
+	on_close_(on_close)
+{	
+	
+	add_children({
+		&labels,
+		&text_icao_address,
+		&text_registration,
+		&text_manufacturer,
+		&text_model,
+		&text_type,
+		&text_number_of_engines,
+		&text_engine_type,
+		&text_owner,
+		&text_operator,
+		&button_close
+	});
+	
+	std::unique_ptr<ADSBLogger> logger { };
+	//update(entry_copy);
+
+
+	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+	// Try getting the aircraft information from icao24.db
+	return_code = db.retrieve_aircraft_record(&aircraft_record, icao_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_registration.set(aircraft_record.aircraft_registration);
+			text_manufacturer.set(aircraft_record.aircraft_manufacturer);
+			text_model.set(aircraft_record.aircraft_model);	
+			text_owner.set(aircraft_record.aircraft_owner);
+			text_operator.set(aircraft_record.aircraft_operator);
+			// Check for ICAO type, e.g. L2J
+			if(strlen(aircraft_record.icao_type) == 3) {
+				switch(aircraft_record.icao_type[0]) {
+					case 'L': 
+						text_type.set("Landplane"); 
+						break;
+					case 'S': 
+						text_type.set("Seaplane"); 
+						break;
+					case 'A': 
+						text_type.set("Amphibian"); 
+						break;
+					case 'H': 
+						text_type.set("Helicopter"); 
+						break;
+					case 'G': 
+						text_type.set("Gyrocopter"); 
+						break;
+					case 'T': 
+						text_type.set("Tilt-wing aircraft"); 
+						break;					
+				}
+				text_number_of_engines.set(std::string(1, aircraft_record.icao_type[1]));
+				switch(aircraft_record.icao_type[2]) {
+					case 'P': 
+						text_engine_type.set("Piston engine"); 
+						break;
+					case 'T': 
+						text_engine_type.set("Turboprop/Turboshaft engine"); 
+						break;
+					case 'J': 
+						text_engine_type.set("Jet engine"); 
+						break;
+					case 'E': 
+						text_engine_type.set("Electric engine"); 
+						break;
+				}
+
+			}
+			// Check for ICAO type designator
+			else if(strlen(aircraft_record.icao_type) == 4) {
+				if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"BALL") == 0) text_type.set("Balloon");
+				else if(strcmp(aircraft_record.icao_type,"GLID") == 0) text_type.set("Glider / sailplane");
+				else if(strcmp(aircraft_record.icao_type,"ULAC") == 0) text_type.set("Micro/ultralight aircraft");
+				else if(strcmp(aircraft_record.icao_type,"GYRO") == 0) text_type.set("Micro/ultralight autogyro");
+				else if(strcmp(aircraft_record.icao_type,"UHEL") == 0) text_type.set("Micro/ultralight helicopter");
+				else if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"PARA") == 0) text_type.set("Powered parachute/paraplane");
+			}
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_manufacturer.set("No icao24.db file");
+			break;	
+	}
+	button_close.on_select =  [&nav](Button&){
+		nav.pop();
+	};
+
+};
+
+// End of Aicraft details
 
 void ADSBRxDetailsView::focus() {
 	button_see_map.focus();
@@ -103,7 +225,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading, entry_copy.pos.altitude);
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
@@ -117,13 +239,10 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 ) : entry_copy(entry),
 	on_close_(on_close)
 {
-	char file_buffer[32] { 0 };
-	bool found = false;
-	std::string airline_code;
-	size_t c;
-	
+
 	add_children({
 		&labels,
+		&text_icao_address,
 		&text_callsign,
 		&text_last_seen,
 		&text_airline,
@@ -132,6 +251,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_info2,
 		&text_frame_pos_even,
 		&text_frame_pos_odd,
+		&button_aircraft_details,
 		&button_see_map
 	});
 	
@@ -140,61 +260,88 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 
 	// The following won't (shouldn't !) change for a given airborne aircraft
 	// Try getting the airline's name from airlines.db
-	auto result = db_file.open("ADSB/airlines.db");
-	if (!result.is_valid()) {
-		// Search for 3-letter code in 0x0000~0x2000
-		airline_code = entry_copy.callsign.substr(0, 3);
-		c = 0;
-		do {
-			db_file.read(file_buffer, 4);
-			if (!file_buffer[0])
-				break;
-			if (!airline_code.compare(0, 4, file_buffer))
-				found = true;
-			else
-				c++;
-		} while (!found);
-		
-		if (found) {
-			db_file.seek(0x2000 + (c << 6));
-			db_file.read(file_buffer, 32);
-			text_airline.set(file_buffer);
-			db_file.read(file_buffer, 32);
-			text_country.set(file_buffer);
-		} else {
-			text_airline.set("Unknown");
-			text_country.set("Unknown");
-		}
-	} else {
-		text_airline.set("No airlines.db file");
-		text_country.set("No airlines.db file");
+	airline_code = entry_copy.callsign.substr(0, 3);
+	return_code = db.retrieve_airline_record(&airline_record, airline_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_airline.set(airline_record.airline);
+			text_country.set(airline_record.country);	
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_airline.set("No airlines.db file");
+			break;
 	}
-	
+
+
 	text_callsign.set(entry_copy.callsign);
-	
-	button_see_map.on_select = [this, &nav](Button&) {
-		geomap_view = nav.push<GeoMapView>(
-			entry_copy.callsign,
-			entry_copy.pos.altitude,
-			GeoPos::alt_unit::FEET,
-			entry_copy.pos.latitude,
-			entry_copy.pos.longitude,
-			entry_copy.velo.heading,
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+        button_aircraft_details.on_select = [this, &nav](Button&) {
+		//detailed_entry_key = entry.key();
+		aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(
+			entry_copy,
 			[this]() {
 				send_updates = false;
 			});
-		send_updates = true;
+		send_updates = false;
+	};
+
+	button_see_map.on_select = [this, &nav](Button&) {
+		if (!send_updates) { // Prevent recursively launching the map
+			geomap_view = nav.push<GeoMapView>(
+				entry_copy.callsign,
+				entry_copy.pos.altitude,
+				GeoPos::alt_unit::FEET,
+				entry_copy.pos.latitude,
+				entry_copy.pos.longitude,
+				entry_copy.velo.heading,
+				[this]() {
+				send_updates = false;
+			});
+			send_updates = true;
+		}
 	};
 };
+
 
 void ADSBRxView::focus() {
 	field_vga.focus();
 }
 
 ADSBRxView::~ADSBRxView() {
+	receiver_model.set_tuning_frequency(prevFreq);
+
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
+}
+
+AircraftRecentEntry ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
+	auto it = find(recent, ICAO_address);
+
+	// If not found
+	if (it == std::end(recent)){
+		recent.emplace_front(ICAO_address); // Add it
+		truncate_entries(recent); // Truncate the list
+		sort_entries_by_state();
+		it = find(recent, ICAO_address); // Find it again
+	}
+	return *it;
+}
+
+void ADSBRxView::replace_entry(AircraftRecentEntry & entry)
+{
+	uint32_t ICAO_address = entry.ICAO_address;
+
+	std::replace_if( recent.begin(), recent.end(), 
+		[ICAO_address](const AircraftRecentEntry & compEntry) {return ICAO_address == compEntry.ICAO_address;},
+		entry);
+}
+
+void ADSBRxView::sort_entries_by_state()
+{
+	// Sorting List pn age_state using lambda function as comparator
+	recent.sort([](const AircraftRecentEntry & left, const AircraftRecentEntry & right){return (left.age_state < right.age_state); });
 }
 
 void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
@@ -209,9 +356,15 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 
 	if (frame.check_CRC() && ICAO_address) {
 		rtcGetTime(&RTCD1, &datetime);
-		auto& entry = ::on_packet(recent, ICAO_address);
+		auto entry = find_or_create_entry(ICAO_address);
 		frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 		entry.reset_age();
+		if (entry.hits==0)
+		{ 
+			entry.amp = message->amp;
+		} else {
+			entry.amp = ((entry.amp*15)+message->amp)>>4;
+		}
 		str_timestamp = to_string_datetime(datetime, HMS);
 		entry.set_time_string(str_timestamp);
 
@@ -224,12 +377,16 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 			uint8_t msg_sub = frame.get_msg_sub();
 			uint8_t * raw_data = frame.get_raw_data();
 			
+			// 4: // surveillance, altitude reply
 			if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
 				callsign = decode_frame_id(frame);
 				entry.set_callsign(callsign);
 				logentry+=callsign+" ";
 			} 
-			// 
+			// 9:
+			// 18: { // Extended squitter/non-transponder
+			// 21: // Comm-B, identity reply
+			// 20: // Comm-B, altitude reply
 			else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) || 
 				((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
 				entry.set_frame_pos(frame, raw_data[6] & 4);
@@ -250,12 +407,6 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 					entry.set_info_string(str_info);
 					logentry+=log_info + " ";
 
-					// we only want to update the details view if the frame
-					// we received has the same ICAO address, i.e. belongs to
-					// the same aircraft:
-					if(send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-						details_view->update(entry);
-					}
 				}
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
@@ -263,13 +414,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 							" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 							" Spd: "+ to_string_dec_int(entry.velo.speed);
 
-				// same here:
-				if (send_updates && details_view->get_current_entry().ICAO_address == ICAO_address) {
-					details_view->update(entry);
-				}
 			}
 		}
-		recent_entries_view.set_dirty(); 
+
+		replace_entry(entry);
 		
 		logger = std::make_unique<ADSBLogger>();
         if (logger) {
@@ -287,12 +435,15 @@ void ADSBRxView::on_tick_second() {
 		entry.inc_age();
 		
 		if (details_view) {
-			if (send_updates && (entry.key() == detailed_entry_key))
+			if (send_updates && (entry.key() == detailed_entry_key)) // Check if the ICAO address match
 				details_view->update(entry);
-		} else {
-			if ((entry.age == ADSB_DECAY_A) || (entry.age == ADSB_DECAY_B))
-				recent_entries_view.set_dirty();
 		}
+	}
+
+	// Sort the list if it is being displayed
+	if (!send_updates) {
+		sort_entries_by_state();
+		recent_entries_view.set_dirty();
 	}
 }
 
@@ -322,6 +473,8 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		on_tick_second();
 	};
 	
+	prevFreq = receiver_model.tuning_frequency();
+
 	baseband::set_adsb();
 	
 	receiver_model.set_tuning_frequency(1090000000);

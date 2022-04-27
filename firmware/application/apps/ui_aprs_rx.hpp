@@ -57,12 +57,12 @@ struct APRSRecentEntry {
 	uint16_t hits { 0 };
 	uint32_t age { 0 };	
 	
-	uint64_t source;
+	uint64_t source { 0 };
 	std::string source_formatted { "        " };
 	std::string time_string { "" };
 	std::string info_string { "" };
 	
-	aprs::aprs_pos pos;
+	aprs::aprs_pos pos { 0 , 0 , 0 , 0 };
 	bool has_position = false;
 	APRSRecentEntry(uint64_t src)
 	{
@@ -217,7 +217,8 @@ private:
 		{
 			{ "NA ", 0 },
 			{ "EUR", 1 },
-			{ "AUS", 2 }
+			{ "AUS", 2 },
+			{ "NZ ", 3 }
 		}
 	};
 	

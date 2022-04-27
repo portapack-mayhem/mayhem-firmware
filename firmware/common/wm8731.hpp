@@ -345,8 +345,9 @@ public:
  	void speaker_disable() {};
 
 
-	void microphone_enable() override {
-		// TODO: Implement
+	void microphone_enable(int8_t alc_mode) override {
+		(void)alc_mode; 		// to avoid "unused warning" when compiling. (@WM8731 we do not use that parameter) 
+		// TODO: Implement,
 	}
 
 	void microphone_disable() override {

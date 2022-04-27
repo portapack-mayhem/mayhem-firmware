@@ -41,6 +41,7 @@ void SondeLogger::on_packet(const sonde::Packet& packet) {
 
 namespace ui {
 
+
 SondeView::SondeView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_sonde);
 
@@ -63,6 +64,7 @@ SondeView::SondeView(NavigationView& nav) {
 		&text_temp,
 		&text_humid,
 		&geopos,
+                &button_see_qr,
 		&button_see_map
 	});
 
@@ -98,7 +100,12 @@ SondeView::SondeView(NavigationView& nav) {
 		use_crc = v;
 	};
 	
-	radio::enable({
+    receiver_model.set_tuning_frequency(tuning_frequency());
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    receiver_model.enable();   // Before using radio::enable(), but not updating Ant.DC-Bias.
+	
+	/* radio::enable({        // this can be removed, previous version, no DC-bias ant. control.
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
@@ -106,7 +113,13 @@ SondeView::SondeView(NavigationView& nav) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-	});
+	}); */
+
+
+        // QR code with geo URI
+	button_see_qr.on_select = [this, &nav](Button&) {
+		nav.push<QRCodeView>(geo_uri);
+	};
 
 	button_see_map.on_select = [this, &nav](Button&) {
 		nav.push<GeoMapView>(
@@ -145,7 +158,8 @@ SondeView::SondeView(NavigationView& nav) {
 
 SondeView::~SondeView() {
 	baseband::set_pitch_rssi(0, false);
-	radio::disable();
+/* 	radio::disable(); */  
+    receiver_model.disable();   // to switch off all, including DC bias.
 	baseband::shutdown();
 	audio::output::stop();
 }
@@ -154,10 +168,56 @@ void SondeView::focus() {
 	field_vga.focus();
 }
 
+
+// used to convert float to character pointer, since unfortunately function like
+// sprintf and c_str aren't supported.
+char * SondeView::float_to_char(float x, char *p) 
+{
+
+    	char *s = p + 9; // go to end of buffer
+    	uint16_t decimals;  // variable to store the decimals
+    	int units;  // variable to store the units (part to left of decimal place)
+    	if (x < 0) { // take care of negative numbers
+        	decimals = (int)(x * -100000) % 100000; // make 1000 for 3 decimals etc.
+        	units = (int)(-1 * x);
+    	} else { // positive numbers
+        	decimals = (int)(x * 100000) % 100000;
+        	units = (int)x;
+    	}
+
+	// TODO: more elegant solution (loop?)
+    	*--s = (decimals % 10) + '0';
+    	decimals /= 10; 
+    	*--s = (decimals % 10) + '0';
+    	decimals /= 10; 
+    	*--s = (decimals % 10) + '0';
+    	decimals /= 10; 
+    	*--s = (decimals % 10) + '0';
+    	decimals /= 10; 
+    	*--s = (decimals % 10) + '0';
+    	*--s = '.';
+
+    	while (units > 0) {
+        	*--s = (units % 10) + '0';
+        	units /= 10;
+    	}
+    	if (x < 0) *--s = '-'; // unary minus sign for negative numbers
+    	return s;
+}
+
 void SondeView::on_packet(const sonde::Packet &packet)
 {
 	if (!use_crc || packet.crc_ok()) //euquiq: Reject bad packet if crc is on
 	{
+
+		char buffer_lat[10] = {};
+		char buffer_lon[10] = {};
+
+		strcpy(geo_uri, "geo:");
+		strcat(geo_uri, float_to_char(gps_info.lat, buffer_lat));
+        	strcat(geo_uri, ",");
+		strcat(geo_uri, float_to_char(gps_info.lon, buffer_lon));
+
 		text_signature.set(packet.type_string());
 
 		sonde_id = packet.serial_number(); //used also as tag on the geomap

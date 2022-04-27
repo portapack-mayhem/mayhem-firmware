@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<dpinst>
+  <deleteBinaries/>
+  <installAllOrNone/>
+  <suppressAddRemovePrograms/>
+  <suppressWizard/>
+</dpinst>
