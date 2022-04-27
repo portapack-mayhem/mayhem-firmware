@@ -42,6 +42,7 @@
 #include "ui_coasterp.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
+#include "ui_epirb.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
@@ -102,7 +103,7 @@ SystemStatusView::SystemStatusView(
 		.background = Color::dark_grey(),
 		.foreground = Color::white(),
 	};
-	
+
 	add_children({
 		&backdrop,
 		&button_back,
@@ -117,25 +118,25 @@ SystemStatusView::SystemStatusView(
 		&button_clock_status,
 		&sd_card_status_view,
 	});
-	
-	if (portapack::persistent_memory::config_speaker()) 
+
+	if (portapack::persistent_memory::config_speaker())
 		button_speaker.hidden(false);
 	else
 		button_speaker.hidden(true);
 
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
-	
+
 	if (portapack::persistent_memory::stealth_mode())
 		button_stealth.set_foreground(ui::Color::green());
-	
+
 	/*if (!portapack::persistent_memory::ui_config_textentry())
 		button_textentry.set_bitmap(&bitmap_icon_keyboard);
 	else
 		button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
 
 	refresh();
-	
+
 	button_back.on_select = [this](ImageButton&){
 		if (this->on_back)
 			this->on_back();
@@ -144,19 +145,19 @@ SystemStatusView::SystemStatusView(
 	button_title.on_select = [this](ImageButton&) {
 		this->on_title();
 	};
-	
+
 	button_speaker.on_select = [this](ImageButton&) {
  		this->on_speaker();
  	};
-	
+
 	button_stealth.on_select = [this](ImageButton&) {
 		this->on_stealth();
 	};
-	
+
 	button_bias_tee.on_select = [this](ImageButton&) {
 		this->on_bias_tee();
 	};
-	
+
 	/*button_textentry.on_select = [this](ImageButton&) {
 		this->on_textentry();
 	};*/
@@ -180,7 +181,7 @@ void SystemStatusView::refresh() {
 		button_speaker.set_foreground(Color::light_grey());
 		button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
 		button_speaker.hidden(false);
-	}		
+	}
 	else {
 		button_speaker.hidden(true);
 	}
@@ -191,7 +192,7 @@ void SystemStatusView::refresh() {
 		button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
 		button_bias_tee.set_foreground(ui::Color::light_grey());
 	}
-	
+
 	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External) {
 		button_clock_status.set_bitmap(&bitmap_icon_clk_ext);
 //		button_bias_tee.set_foreground(ui::Color::green());   Typo?
@@ -204,12 +205,12 @@ void SystemStatusView::refresh() {
 	} else {
 		button_clock_status.set_foreground(ui::Color::light_grey());
 	}
-	
+
 	set_dirty();
 }
 
 void SystemStatusView::set_back_enabled(bool new_value) {
-	
+
 	if(new_value){
 		add_child(&button_back);
 	}
@@ -237,7 +238,7 @@ void SystemStatusView::set_title(const std::string new_value) {
 }
 
 void SystemStatusView::on_speaker() {
- 	if (!portapack::speaker_mode) 
+ 	if (!portapack::speaker_mode)
  	{
  		portapack::set_speaker_mode(true);
  		button_speaker.set_foreground(Color::green());
@@ -255,7 +256,7 @@ void SystemStatusView::on_speaker() {
 
 void SystemStatusView::on_stealth() {
 	bool mode = not portapack::persistent_memory::stealth_mode();
-	
+
 	portapack::persistent_memory::set_stealth_mode(mode);
 
 	button_stealth.set_foreground(mode ? Color::green() : Color::light_grey());
@@ -283,10 +284,10 @@ void SystemStatusView::on_bias_tee() {
 
 /*void SystemStatusView::on_textentry() {
 	uint8_t cfg;
-	
+
 	cfg = portapack::persistent_memory::ui_config_textentry();
 	portapack::persistent_memory::set_config_textentry(cfg ^ 1);
-	
+
 	if (!cfg)
 		button_textentry.set_bitmap(&bitmap_icon_unistroke);
 	else
@@ -361,7 +362,7 @@ InformationView::InformationView(
 void InformationView::refresh() {
 	ltime.set_hide_clock(portapack::persistent_memory::hide_clock());
 	ltime.set_seconds_enabled(true);
-	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());	
+	ltime.set_date_enabled(portapack::persistent_memory::clock_with_date());
 
 }
 
@@ -439,10 +440,10 @@ void NavigationView::free_view() {
 
 void NavigationView::update_view() {
 	const auto new_view = view_stack.back().get();
-	
+
 	add_child(new_view);
 	new_view->set_parent_rect({ {0, 0}, size() });
-	
+
 	focus();
 	set_dirty();
 
@@ -471,12 +472,13 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "AIS Boats",	ui::Color::green(),		&bitmap_icon_ais,		[&nav](){ nav.push<AISAppView>(); } },
 		{ "AFSK", 		ui::Color::yellow(),	&bitmap_icon_modem,	[&nav](){ nav.push<AFSKRxView>(); } },
 		{ "BTLE",		ui::Color::yellow(),	&bitmap_icon_btle,		[&nav](){ nav.push<BTLERxView>(); } },
-		{ "NRF", 		ui::Color::yellow(),	&bitmap_icon_nrf,		[&nav](){ nav.push<NRFRxView>(); } }, 
+		{ "NRF", 		ui::Color::yellow(),	&bitmap_icon_nrf,		[&nav](){ nav.push<NRFRxView>(); } },
 		{ "Audio", 		ui::Color::green(),		&bitmap_icon_speaker,	[&nav](){ nav.push<AnalogAudioView>(); } },
 		{ "Analog TV", 	ui::Color::yellow(),	&bitmap_icon_sstv,		[&nav](){ nav.push<AnalogTvView>(); } },
 		{ "ERT Meter", 	ui::Color::green(), 	&bitmap_icon_ert,		[&nav](){ nav.push<ERTAppView>(); } },
 		{ "POCSAG", 	ui::Color::green(),		&bitmap_icon_pocsag,	[&nav](){ nav.push<POCSAGAppView>(); } },
 		{ "Radiosnde", 	ui::Color::green(),		&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
+		{ "EPIRB",  	ui::Color::green(),		&bitmap_icon_epirb,		[&nav](){ nav.push<EpirbView>(); } },
 		{ "TPMS Cars", 	ui::Color::green(),		&bitmap_icon_tpms,		[&nav](){ nav.push<TPMSAppView>(); } },
 		{ "APRS", 		ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSRXView>(); } }
 		/*
@@ -486,7 +488,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "SSTV", 		ui::Color::dark_grey(), &bitmap_icon_sstv,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TETRA", 		ui::Color::dark_grey(),	&bitmap_icon_tetra,		[&nav](){ nav.push<NotImplementedView>(); } },*/
 	});
-	
+
 	//set_highlighted(4);		// Default selection is "Audio"
 }
 
@@ -586,7 +588,7 @@ SystemView::SystemView(
 
 	constexpr ui::Dim status_view_height = 16;
 	constexpr ui::Dim info_view_height = 16;
-	
+
 	add_child(&status_view);
 	status_view.set_parent_rect({
 		{ 0, 0 },
@@ -609,7 +611,7 @@ SystemView::SystemView(
 	});
 
 	navigation_view.on_view_changed = [this](const View& new_view) {
-		
+
 		if(!this->navigation_view.is_top()){
 			remove_child(&info_view);
 		}
@@ -617,25 +619,25 @@ SystemView::SystemView(
 			add_child(&info_view);
 			info_view.refresh();
 		}
-		
+
 		this->status_view.set_back_enabled(!this->navigation_view.is_top());
 		this->status_view.set_title_image_enabled(this->navigation_view.is_top());
 		this->status_view.set_title(new_view.title());
 		this->status_view.set_dirty();
-		
+
 	};
 
 
 	// portapack::persistent_memory::set_playdead_sequence(0x8D1);
-				
+
 	// Initial view
 	/*if ((portapack::persistent_memory::playing_dead() == 0x5920C1DF) ||		// Enable code
 		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
 		navigation_view.push<PlayDeadView>();
 	} else {*/
-	
+
 		navigation_view.push<SystemMenuView>();
-		
+
 		if (portapack::persistent_memory::config_splash())
 		{
 			navigation_view.push<BMPView>();
@@ -645,7 +647,7 @@ SystemView::SystemView(
 			status_view.set_dirty();
 		//else
 		//	navigation_view.push<SystemMenuView>();
-			
+
 	//}
 }
 
@@ -663,7 +665,7 @@ BMPView::BMPView(NavigationView& nav) {
 	add_children({
 		&button_done
 	});
-	
+
 	button_done.on_select = [this, &nav](Button&){
 		nav.pop();
 	};
@@ -706,7 +708,7 @@ ModalMessageView::ModalMessageView(
 {
 	if (type == INFO) {
 		add_child(&button_ok);
-		
+
 		button_ok.on_select = [&nav](Button&){
 			nav.pop();
 		};
@@ -715,7 +717,7 @@ ModalMessageView::ModalMessageView(
 			&button_yes,
 			&button_no
 		});
-		
+
 		button_yes.on_select = [this, &nav](Button&){
 			if (on_choice_) on_choice_(true);
 			nav.pop();
@@ -729,7 +731,7 @@ ModalMessageView::ModalMessageView(
 			&button_yes,
 			&button_no
 		});
-		
+
 		button_yes.on_select = [this, &nav](Button&){
 			if (on_choice_) on_choice_(true);
 			nav.pop();
@@ -740,7 +742,7 @@ ModalMessageView::ModalMessageView(
 		};
 	} else {	// ABORT
 		add_child(&button_ok);
-		
+
 		button_ok.on_select = [this, &nav](Button&){
 			if (on_choice_) on_choice_(true);
 			nav.pop_modal();
@@ -750,9 +752,9 @@ ModalMessageView::ModalMessageView(
 
 void ModalMessageView::paint(Painter& painter) {
 	size_t pos, i = 0, start = 0;
-	
+
 	portapack::display.drawBMP({ 100, 48 }, modal_warning_bmp, false);
-	
+
 	// Terrible...
 	while ((pos = message_.find("\n", start)) != std::string::npos) {
 		painter.draw_string(

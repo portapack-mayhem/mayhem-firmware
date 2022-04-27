@@ -126,6 +126,7 @@ set(CPPSRC
 	${COMMON}/cpld_xilinx.cpp
 	${COMMON}/debug.cpp
 	${COMMON}/ert_packet.cpp
+	${COMMON}/epirb_packet.cpp
 	${COMMON}/event.cpp
 	${COMMON}/gcc.cpp
 	${COMMON}/hackrf_hal.cpp
@@ -230,6 +231,7 @@ set(CPPSRC
 	apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
+	apps/ui_epirb.cpp
 	apps/ui_fileman.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp

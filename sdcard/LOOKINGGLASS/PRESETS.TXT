@@ -1,4 +1,4 @@
-# INI,END,DESCRIPTION 
+# INI,END,DESCRIPTION
 # (Freq range in MHz, min separation 240MHz)
 # (Description up to 20 char)
 # (fields comma delimiter)
@@ -8,6 +8,7 @@
 10,7250,FULL RANGE
 140,380,VHF MICS AND MARINE
 390,420,RADIOSONDES
+406,407 EPIRB
 420,660,UHF MICS
 
 # https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging

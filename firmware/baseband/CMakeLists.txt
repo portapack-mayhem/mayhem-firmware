@@ -385,6 +385,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSON sonde)
 
+### EPIRB
+
+set(MODE_CPPSRC
+	proc_epirb.cpp
+)
+DeclareTargets(PEPI epirb)
+
 ### FSK TX
 
 set(MODE_CPPSRC
@@ -529,7 +536,7 @@ set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
 #######################################################################
 
 project(baseband)
-	
+
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.img
 	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img
