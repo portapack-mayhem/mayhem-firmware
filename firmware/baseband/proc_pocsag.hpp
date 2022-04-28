@@ -68,6 +68,16 @@ public:
 		delete[] m_lastVals;
 	}
 
+    SmoothVals(const SmoothVals<float, float>&)
+    {
+
+    }
+
+    SmoothVals & operator=(const SmoothVals<float, float>&)
+    {
+        return *this ;
+    }
+
 	// --------------------------------------------------
 	// Set size of smoothing
 	// --------------------------------------------------
@@ -154,7 +164,7 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	dsp::demodulate::FM demod { };
-	SmoothVals<float, float> smooth;
+	SmoothVals<float, float> smooth = { };
 	
 	AudioOutput audio_output { };
 

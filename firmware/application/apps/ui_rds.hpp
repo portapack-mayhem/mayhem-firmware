@@ -144,7 +144,7 @@ public:
 	
 	void focus() override;
 
-	std::string title() const override { return "RDS transmit"; };
+	std::string title() const override { return "RDS TX"; };
 
 private:
 	NavigationView& nav_;

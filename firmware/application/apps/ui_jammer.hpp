@@ -106,7 +106,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Jammer"; };
+	std::string title() const override { return "Jammer TX"; };
 	
 private:
 	NavigationView& nav_;
