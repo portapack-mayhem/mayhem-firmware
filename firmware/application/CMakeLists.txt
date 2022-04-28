@@ -266,6 +266,7 @@ set(CPPSRC
 	apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	apps/replay_app.cpp
+	apps/ui_playlist.cpp
 	apps/gps_sim_app.cpp
 	apps/soundboard_app.cpp
 	apps/tpms_app.cpp
