@@ -53,7 +53,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Analog TV"; };
+	std::string title() const override { return "Analog TV RX"; };
 	
 private:
 	static constexpr ui::Dim header_height = 3 * 16;

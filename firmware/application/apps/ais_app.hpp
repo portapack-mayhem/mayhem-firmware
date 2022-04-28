@@ -127,6 +127,9 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 
+    AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry);
+    AISRecentEntryDetailView &operator=(const AISRecentEntryDetailView&Entry);
+
 private:
 	AISRecentEntry entry_ { };
 
@@ -163,7 +166,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "AIS"; };
+	std::string title() const override { return "AIS Boats RX"; };
 
 private:
 	static constexpr uint32_t initial_target_frequency = 162025000;

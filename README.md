@@ -26,7 +26,9 @@ To support the people behind the hardware, please buy a genuine [HackRF](https:/
 
 ## Where is the latest firmware?
 
-The current stable release is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
+The **latest (nightly) release** can be found [here](https://github.com/eried/portapack-mayhem/releases/).
+
+The current **stable release** is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
 
 ## Is this the newest firmware for my PortaPack? 
 Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new/choose) them*.
