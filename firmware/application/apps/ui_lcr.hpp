@@ -39,7 +39,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "LCR transmit"; };
+	std::string title() const override { return "TEDI/LCR TX"; };
 	
 private:
 	struct scan_list_t {

@@ -254,8 +254,18 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 		
 	};
-	
-	
+}
+
+
+AISRecentEntryDetailView::AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry) : View()
+{
+    (void)Entry;
+}
+
+AISRecentEntryDetailView & AISRecentEntryDetailView::operator=(const AISRecentEntryDetailView&Entry) 
+{
+    (void)Entry;
+    return *this;
 }
 
 void AISRecentEntryDetailView::update_position() {
