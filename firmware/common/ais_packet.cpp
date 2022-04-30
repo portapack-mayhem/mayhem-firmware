@@ -191,7 +191,7 @@ bool Packet::crc_ok() const {
 		ais_fcs.process_byte(field_crc.read(i, 8));
 	}
 
-	return (ais_fcs.checksum() == field_crc.read(data_length(), fcs_length));
+	return (ais_fcs.checksum() == (unsigned)field_crc.read(data_length(), fcs_length));
 }
 
 size_t Packet::data_and_fcs_length() const {

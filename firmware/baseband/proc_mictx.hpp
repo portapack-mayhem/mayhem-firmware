@@ -51,7 +51,8 @@ private:
 	AudioInput audio_input { };
 	// ToneGen tone_gen { };   moved to  dsp_modulate.cpp
 	// ToneGen beep_gen { };   moved to  dsp_modulate.cpp	
-	dsp::modulate::Modulator *modulator;
+	dsp::modulate::Modulator *modulator = NULL ;
+
 
 	bool am_enabled { false };
 	bool fm_enabled { true };

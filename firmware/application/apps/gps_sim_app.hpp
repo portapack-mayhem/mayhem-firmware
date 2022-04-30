@@ -44,7 +44,7 @@ public:
 	void set_parent_rect(const Rect new_parent_rect) override;
 	void focus() override;
 
-	std::string title() const override { return "GPS Simulator"; };
+	std::string title() const override { return "GPS Sim TX"; };
 	
 private:
 	NavigationView& nav_;
