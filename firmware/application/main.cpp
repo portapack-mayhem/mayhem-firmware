@@ -167,13 +167,14 @@ int main(void) {
 	if( portapack::init() ) {
 		portapack::display.init();
 
-		sdcStart(&SDCD1, nullptr);
+		// sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
 
-		controls_init();
+		// controls_init(); // Commented out as now happens in portapack.cpp
 		lcd_frame_sync_configure();
 		rtc_interrupt_enable();
 
 		event_loop();
+
 
 		sdcDisconnect(&SDCD1);
 		sdcStop(&SDCD1);

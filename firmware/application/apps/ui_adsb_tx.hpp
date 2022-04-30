@@ -152,7 +152,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B transmit"; };
+	std::string title() const override { return "ADS-B TX"; };
 
 private:
 	/*enum tx_modes {

@@ -39,7 +39,6 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
 /firmware/baseband/*.bin
