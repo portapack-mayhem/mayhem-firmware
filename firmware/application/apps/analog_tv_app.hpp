@@ -29,7 +29,7 @@
 #include "ui_receiver.hpp"
 #include "ui_tv.hpp"
 #include "ui_record_view.hpp"
-
+#include "app_settings.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 #include "tone_key.hpp"
@@ -57,6 +57,10 @@ public:
 	
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
