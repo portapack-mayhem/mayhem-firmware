@@ -341,23 +341,37 @@ MicTXView::MicTXView(
 				enable_dsb = false;
 				field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
 				//if (rx_enabled)
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				options_tone_key.hidden(0);				// we are in FM mode , we should have active the Key-tones & CTCSS option.
+				field_rxbw.hidden(0);					// we are in FM mode,  we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K) 
 				break;
 			case 1:
 				enable_am = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				options_tone_key.set_selected_index(0);	// we are NOT in FM mode ,  we reset the possible previous key-tones &CTCSS selection.
+				set_dirty();							// Refresh display	
+				options_tone_key.hidden(1);				// we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
+				field_rxbw.hidden(1);					// we hide the NFM BW selection in other modes non_FM  (no meaning in AM/DSB/SSB)
+				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
 				break;
 			case 2:
 				enable_usb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
+				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
+				set_dirty();							// Refresh display
 				break;
 			case 3:
 				enable_lsb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
+				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
+				set_dirty();							// Refresh display
 				break;
 			case 4:
 				enable_dsb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
 				break;
 		}
 		//configure_baseband();
