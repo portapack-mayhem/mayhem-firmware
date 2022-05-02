@@ -151,6 +151,16 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&options_type,
 	});
 
+	// load app settings
+	auto rc = settings.load("rx_tpms", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		options_band.set_by_value(app_settings.rx_frequency);
+	}
+	else options_band.set_by_value(receiver_model.tuning_frequency());
+
 	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
@@ -184,6 +194,12 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 }
 
 TPMSAppView::~TPMSAppView() {
+
+
+	// save app settings
+	app_settings.rx_frequency = target_frequency_;
+	settings.save("rx_tpms", &app_settings);
+
 	radio::disable();
 
 	baseband::shutdown();

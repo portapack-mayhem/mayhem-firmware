@@ -154,6 +154,7 @@ set(CPPSRC
 	${COMMON}/ui_widget.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
 	capture_thread.cpp

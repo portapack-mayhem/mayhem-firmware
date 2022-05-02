@@ -77,11 +77,20 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&console
 	});
 	
+	// load app settings
+	auto rc = settings.load("rx_pocsag", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		field_frequency.set_value(app_settings.rx_frequency);
+	}
+	else field_frequency.set_value(receiver_model.tuning_frequency());
+
 	receiver_model.set_sampling_rate(3072000);
 	receiver_model.set_baseband_bandwidth(1750000);
 	receiver_model.enable();
 	
-	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
 		update_freq(f);
@@ -127,6 +136,11 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 }
 
 POCSAGAppView::~POCSAGAppView() {	
+
+	// save app settings
+	app_settings.rx_frequency = field_frequency.value();
+	settings.save("rx_pocsag", &app_settings);
+
 	audio::output::stop();
 
 	// Save ignored address
