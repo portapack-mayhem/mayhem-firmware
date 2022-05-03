@@ -129,10 +129,20 @@ AnalogAudioView::AnalogAudioView(
 		&waterfall
 	});
 
+	// load app settings
+	auto rc = settings.load("rx_audio", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		receiver_model.set_rf_amp(app_settings.rx_amp);
+		field_frequency.set_value(app_settings.rx_frequency);
+	}
+	else field_frequency.set_value(receiver_model.tuning_frequency());
+	
+
 	//Filename Datetime and Frequency
 	record_view.set_filename_date_frequency(true);
 
-	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
 		this->on_tuning_frequency_changed(f);
@@ -210,6 +220,11 @@ void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
 }
 
 AnalogAudioView::~AnalogAudioView() {
+
+	// save app settings
+	app_settings.rx_frequency = field_frequency.value();
+	settings.save("rx_audio", &app_settings);
+
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
 	// both?
 	audio::output::stop();
