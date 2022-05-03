@@ -28,7 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_record_view.hpp"	// DEBUG
 #include "ui_geomap.hpp"
-
+#include "app_settings.hpp"
 #include "recent_entries.hpp"
 #include "ui_tabview.hpp"
 
@@ -131,6 +131,7 @@ private:
 	GeoMapView* geomap_view { nullptr };
 	bool send_updates { false };
 	
+
 	Console console {
 		{ 0, 0 * 16, 240, 224 }		
 	};
@@ -192,6 +193,11 @@ private:
 	void on_data(uint32_t value, bool is_data);
 	bool reset_console = false;
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
+
 	uint8_t console_color { 0 };
 	std::string str_log { "" };
 

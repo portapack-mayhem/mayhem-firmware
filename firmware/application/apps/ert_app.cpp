@@ -105,6 +105,15 @@ ERTAppView::ERTAppView(NavigationView&) {
 		&recent_entries_view,
 	});
 
+	// load app settings
+	auto rc = settings.load("rx_ert", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+	}
+
+
 	radio::enable({
 		initial_target_frequency,
 		sampling_rate,
@@ -122,6 +131,10 @@ ERTAppView::ERTAppView(NavigationView&) {
 }
 
 ERTAppView::~ERTAppView() {
+
+	// save app settings
+	settings.save("rx_ert", &app_settings);
+
 	radio::disable();
 
 	baseband::shutdown();

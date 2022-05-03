@@ -32,7 +32,7 @@
 #include "log_file.hpp"
 #include "adsb.hpp"
 #include "message.hpp"
-
+#include "app_settings.hpp"
 #include "crc.hpp"
 
 using namespace adsb;
@@ -372,6 +372,9 @@ private:
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	const RecentEntriesColumns columns { {
 #if false

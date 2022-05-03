@@ -34,7 +34,7 @@
 #include "log_file.hpp"
 
 #include "sonde_packet.hpp"
-
+#include "app_settings.hpp"
 #include <cstddef>
 #include <string>
 
@@ -74,6 +74,9 @@ private:
 	bool beep { false };
 
 	char geo_uri[32]  = {};
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };	 
 
 	sonde::GPS_data gps_info { };
 	sonde::temp_humid temp_humid_info { };
