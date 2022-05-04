@@ -466,9 +466,9 @@ void NavigationView::focus() {
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
     if( portapack::persistent_memory::show_gui_return_icon() )
     {
-        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
     }
-   add_items( {
+    add_items( {
 		{ "ADS-B", 		ui::Color::green(),		&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBRxView>(); }, },
 		//{ "ACARS", 		ui::Color::yellow(),	&bitmap_icon_adsb,		[&nav](){ nav.push<ACARSAppView>(); }, },
 		{ "AIS Boats",	ui::Color::green(),		&bitmap_icon_ais,		[&nav](){ nav.push<AISAppView>(); } },
@@ -498,7 +498,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
     if( portapack::persistent_memory::show_gui_return_icon() )
     {
-        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
     }
     add_items({
 		{ "ADS-B [S]",		ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
@@ -527,7 +527,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     if( portapack::persistent_memory::show_gui_return_icon() )
     {
-        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
     }
 	add_items({
 		//{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
