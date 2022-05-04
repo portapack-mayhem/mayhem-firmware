@@ -271,6 +271,12 @@ private:
 			{ "time and date", 1 }
 		}
 	};	
+
+    Checkbox checkbox_guireturnflag {	
+		{ 3 * 8, 14 * 16 },
+		25,
+		"add return icon in GUI"
+	};
 	
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
