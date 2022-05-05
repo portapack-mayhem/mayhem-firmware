@@ -36,7 +36,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Key fob TX (beta)"; };
+	std::string title() const override { return "Key fob TX"; };
 
 private:
 	NavigationView& nav_;
