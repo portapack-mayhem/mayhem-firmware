@@ -234,6 +234,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&checkbox_showsplash,
 		&checkbox_showclock,
 		&options_clockformat,
+		&checkbox_guireturnflag,
 		&button_save,
 		&button_cancel
 	});
@@ -242,6 +243,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
+	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
 	
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
 	if (backlight_timer) {
@@ -278,6 +280,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 	
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
+		persistent_memory::set_gui_return_icon(checkbox_guireturnflag.value());
 		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
 		nav.pop();
 	};
@@ -372,6 +375,10 @@ void SetQRCodeView::focus() {
 // Settings main menu
 // ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+    }
 	add_items({
 		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },

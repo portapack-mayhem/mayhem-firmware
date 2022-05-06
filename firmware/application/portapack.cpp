@@ -403,6 +403,7 @@ bool init() {
 	// if( !hackrf::cpld::load_sram() ) {
 	// 	chSysHalt();
 	// }
+	chThdSleepMilliseconds(100);
 
 	configure_pins_portapack();
 	
@@ -411,6 +412,8 @@ bool init() {
 	clock_manager.init_clock_generator();
 
 	i2c0.stop();
+
+	chThdSleepMilliseconds(10);
 
 	set_clock_config(clock_config_irc);
 	cgu::pll1::disable();
@@ -452,9 +455,11 @@ bool init() {
 	cgu::pll1::direct();
 
 	i2c0.start(i2c_config_fast_clock);
+	chThdSleepMilliseconds(10);
 
 	touch::adc::init();
 	controls_init();
+	chThdSleepMilliseconds(10);
 
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_first_if_clock();
@@ -465,10 +470,10 @@ bool init() {
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
 	
-	chThdSleepMilliseconds(1);
+	chThdSleepMilliseconds(10);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		chThdSleepMilliseconds(1);
+		chThdSleepMilliseconds(10);
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		if (load_config() != 3){
 			shutdown_base();
@@ -480,10 +485,12 @@ bool init() {
 		chSysHalt();
 	}
 
-	chThdSleepMilliseconds(1); // This delay seems to solve white noise audio issues
+	chThdSleepMilliseconds(10); // This delay seems to solve white noise audio issues
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
+
+	chThdSleepMilliseconds(10);
 
 	audio::init(portapack_audio_codec());
 	

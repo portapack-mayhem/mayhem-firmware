@@ -204,6 +204,12 @@ void set_serial_format(const serial_format_t new_value) {
 // bits 0-2 store the backlight timer
 // bits 4-19 (16 bits) store the clkout frequency
 // bits 21-31 store the different single bit configs depicted below
+// bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
+
+bool show_gui_return_icon(){ // add return icon in touchscreen menue
+return data->ui_config & (1 << 20);
+}
+
 bool load_app_settings() { // load (last saved) app settings on startup of app
 	return data->ui_config & (1 << 21);
 }
@@ -256,6 +262,10 @@ uint32_t config_backlight_timer() {
 	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
 }
 
+void set_gui_return_icon(bool v) {
+	data->ui_config = (data->ui_config & ~(1 << 20)) | (v << 20);
+}
+
 void set_load_app_settings(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 21)) | (v << 21);
 }
@@ -271,7 +281,7 @@ void set_show_bigger_qr_code(bool v) {
 void set_disable_touchscreen(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
 }
-  
+
 void set_clock_hidden(bool v) {
 	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
 }
