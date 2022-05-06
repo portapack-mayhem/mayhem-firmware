@@ -201,6 +201,16 @@ ReplayAppView::ReplayAppView(
 	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
 	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
 
+	field_rfamp.on_change = [this](int32_t v) {	// allow initial value change just after opened file.	
+		rf_amp = (bool)v;
+	};
+	field_rfamp.set_value(rf_amp ? 14 : 0);
+
+    field_rfgain.on_change = [this](int32_t v) { // allow initial value change just after opened file.
+		tx_gain = v;
+	};  
+	field_rfgain.set_value(tx_gain);
+
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
