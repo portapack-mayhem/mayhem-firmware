@@ -39,7 +39,7 @@ using namespace portapack;
 namespace ui {
 
 void LGEView::focus() {
-	options_trame.focus();
+	options_frame.focus();
 }
 
 LGEView::~LGEView() {
@@ -74,10 +74,10 @@ void LGEView::generate_frame_touche() {
 	std::vector<uint8_t> data { 0x46, 0x28, 0x01, 0x45, 0x27, 0x01, 0x44, 0x23 };
 	
 	console.write("\n\x1B\x07Touche:\x1B\x10");
-	generate_lge_frame(0x96, (field_joueur.value() << 8) | field_salle.value(), 0x0001, data);
+	generate_lge_frame(0x96, (field_player.value() << 8) | field_room.value(), 0x0001, data);
 }
 
-void LGEView::generate_frame_pseudo() {
+void LGEView::generate_frame_nickname() {
 	// 0040.48s:
 	// 30 02 1A 00 19 00 FF 00 02 19 42 52 45 42 49 53 20 00 00 00 00 00 00 00 00 00
 	// 04 01 B0 04 7F 1F 11 33 40 1F 22 01 07 00 00 01 07 00 00 63 05 00 00 99 A2 
@@ -94,15 +94,15 @@ void LGEView::generate_frame_pseudo() {
 	};
 	uint32_t c;
 	
-	//data_header[2] = field_salle.value();	// ?
-	//data_footer[0] = field_salle.value();	// ?
+	//data_header[2] = field_room.value();	// ?
+	//data_footer[0] = field_room.value();	// ?
 	
 	data.insert(data.begin(), data_header.begin(), data_header.end());
 	
-	data.push_back(field_joueur.value());
+	data.push_back(field_player.value());
 	
 	c = 0;
-	for (auto &ch : pseudo) {
+	for (auto &ch : nickname) {
 		data.push_back(ch);
 		c++;
 	}
@@ -112,16 +112,16 @@ void LGEView::generate_frame_pseudo() {
 	while (++c < 16)
 		data.push_back(0x00);
 	
-	data.push_back(field_equipe.value());
+	data.push_back(field_team.value());
 	
 	data.insert(data.end(), data_footer.begin(), data_footer.end());
 	
-	console.write("\n\x1B\x0ESet pseudo:\x1B\x10");
+	console.write("\n\x1B\x0ESet nickname:\x1B\x10");
 	
-	generate_lge_frame(0x02, 0x001A, field_joueur.value(), data);
+	generate_lge_frame(0x02, 0x001A, field_player.value(), data);
 }
 
-void LGEView::generate_frame_equipe() {
+void LGEView::generate_frame_team() {
 	// 0041.83s:
 	// 3D 03 FF FF FF FF 02 03 01 52 4F 55 47 45 00 00 00 00 00 00 00 00 00 00 00 00
 	// 02 56 45 52 54 45 00 00 00 00 00 00 00 00 00 00 00 01 03 42 4C 45 55 45 00 00
@@ -133,10 +133,10 @@ void LGEView::generate_frame_equipe() {
 
 	data.insert(data.begin(), data_header.begin(), data_header.end());
 	
-	data.push_back(field_equipe.value());
+	data.push_back(field_team.value());
 	
 	c = 0;
-	for (auto &ch : pseudo) {
+	for (auto &ch : nickname) {
 		data.push_back(ch);
 		c++;
 	}
@@ -144,14 +144,14 @@ void LGEView::generate_frame_equipe() {
 	while (c++ < 16)
 		data.push_back(0x00);
 	
-	data.push_back(field_equipe.value() - 1);	// Color ?
+	data.push_back(field_team.value() - 1);	// Color ?
 	
-	console.write("\n\x1B\x0ASet equipe:\x1B\x10");
+	console.write("\n\x1B\x0ASet team:\x1B\x10");
 	
 	generate_lge_frame(0x03, data);
 }
 
-void LGEView::generate_frame_broadcast_pseudo() {
+void LGEView::generate_frame_broadcast_nickname() {
 	// 0043.86s:
 	// 3D 04 FF FF FF FF 02 03 19 42 52 45 42 49 53 20 00 00 00 00 00 00 00 00 00 04
 	// 07 50 4F 4E 45 59 20 00 00 00 00 00 00 00 00 00 00 05 1B 41 42 42 59 20 00 00
@@ -163,10 +163,10 @@ void LGEView::generate_frame_broadcast_pseudo() {
 
 	data.insert(data.begin(), data_header.begin(), data_header.end());
 	
-	data.push_back(field_joueur.value());
+	data.push_back(field_player.value());
 	
 	c = 0;
-	for (auto &ch : pseudo) {
+	for (auto &ch : nickname) {
 		data.push_back(ch);
 		c++;
 	}
@@ -176,9 +176,9 @@ void LGEView::generate_frame_broadcast_pseudo() {
 	while (++c < 16)
 		data.push_back(0x00);
 	
-	data.push_back(field_equipe.value());
+	data.push_back(field_team.value());
 	
-	console.write("\n\x1B\x09" "Broadcast pseudo:\x1B\x10");
+	console.write("\n\x1B\x09" "Broadcast nickname:\x1B\x10");
 	
 	generate_lge_frame(0x04, data);
 }
@@ -188,14 +188,14 @@ void LGEView::generate_frame_start() {
 	// 0A 05 FF FF FF FF 02 EC FF FF FF A3 35
 	std::vector<uint8_t> data { 0x02, 0xEC, 0xFF, 0xFF, 0xFF };
 	
-	//data[0] = field_salle.value();	// ?
+	//data[0] = field_room.value();	// ?
 	
 	console.write("\n\x1B\x0DStart:\x1B\x10");
 	generate_lge_frame(0x05, data);
 }
 
 void LGEView::generate_frame_gameover() {
-	std::vector<uint8_t> data { (uint8_t)field_salle.value() };
+	std::vector<uint8_t> data { (uint8_t)field_room.value() };
 	
 	console.write("\n\x1B\x0CGameover:\x1B\x10");
 	generate_lge_frame(0x0D, data);
@@ -207,7 +207,7 @@ void LGEView::generate_frame_collier() {
 	// Custom
 	// 0C 00 13 37 13 37 id flags channel playerid zapduty zaptime checksum CRC CRC
 	// channel: field_channel
-	// playerid: field_joueur
+	// playerid: field_player
 	// zapduty: field_power
 	// zaptime: field_duration
 	
@@ -222,8 +222,8 @@ void LGEView::generate_frame_collier() {
 	std::vector<uint8_t> data {
 		id,
 		flags,
-		(uint8_t)field_salle.value(),
-		(uint8_t)field_joueur.value(),
+		(uint8_t)field_room.value(),
+		(uint8_t)field_player.value(),
 		(uint8_t)field_power.value(),
 		(uint8_t)(field_duration.value() * 10)
 	};
@@ -289,11 +289,11 @@ LGEView::LGEView(NavigationView& nav) {
 	
 	add_children({
 		&labels,
-		&options_trame,
-		&field_salle,
-		&button_texte,
-		&field_equipe,
-		&field_joueur,
+		&options_frame,
+		&field_room,
+		&button_text,
+		&field_team,
+		&field_player,
 		&field_id,
 		&field_power,
 		&field_duration,
@@ -313,20 +313,20 @@ LGEView::LGEView(NavigationView& nav) {
 		transmitter_model.set_tx_gain(app_settings.tx_gain);		
 	}
 
-	field_salle.set_value(1);
-	field_equipe.set_value(1);
-	field_joueur.set_value(1);
+	field_room.set_value(1);
+	field_team.set_value(1);
+	field_player.set_value(1);
 	field_id.set_value(1);
 	field_power.set_value(1);
 	field_duration.set_value(2);
 	
-	button_texte.on_select = [this, &nav](Button&) {
+	button_text.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,
-			pseudo,
+			nickname,
 			15,
 			[this](std::string& buffer) {
-				button_texte.set_text(buffer);
+				button_text.set_text(buffer);
 			});
 	};
 	
@@ -339,15 +339,15 @@ LGEView::LGEView(NavigationView& nav) {
 	
 	tx_view.on_start = [this]() {
 		if (tx_mode == IDLE) {
-			auto i = options_trame.selected_index_value();
+			auto i = options_frame.selected_index_value();
 			if (i == 0)
 				generate_frame_touche();
 			else if (i == 1)
-				generate_frame_pseudo();
+				generate_frame_nickname();
 			else if (i == 2)
-				generate_frame_equipe();
+				generate_frame_team();
 			else if (i == 3)
-				generate_frame_broadcast_pseudo();
+				generate_frame_broadcast_nickname();
 			else if (i == 4)
 				generate_frame_start();
 			else if (i == 5)

@@ -96,9 +96,9 @@ void BHTView::on_tx_progress(const uint32_t progress, const bool done) {
 	if (target_system == XYLOS) {
 		if (done) {
 			if (tx_mode == SINGLE) {
-				if (checkbox_cligno.value()) {
+				if (checkbox_flashing.value()) {
 					// TODO: Thread !
-					chThdSleepMilliseconds(field_tempo.value() * 1000);	// Dirty :(
+					chThdSleepMilliseconds(field_speed.value() * 1000);	// Dirty :(
 					view_xylos.flip_relays();
 					start_tx();
 				} else
@@ -120,9 +120,9 @@ void BHTView::on_tx_progress(const uint32_t progress, const bool done) {
 			} else {
 				view_EPAR.half = false;
 				if (tx_mode == SINGLE) {
-					if (checkbox_cligno.value()) {
+					if (checkbox_flashing.value()) {
 						// TODO: Thread !
-						chThdSleepMilliseconds(field_tempo.value() * 1000);	// Dirty :(
+						chThdSleepMilliseconds(field_speed.value() * 1000);	// Dirty :(
 						view_EPAR.flip_relays();
 						start_tx();
 					} else
@@ -154,8 +154,8 @@ BHTView::BHTView(NavigationView& nav) {
 		&view_xylos,
 		&view_EPAR,
 		&checkbox_scan,
-		&checkbox_cligno,
-		&field_tempo,
+		&checkbox_flashing,
+		&field_speed,
 		&progressbar,
 		&tx_view
 	});
@@ -169,7 +169,7 @@ BHTView::BHTView(NavigationView& nav) {
 		transmitter_model.set_tx_gain(app_settings.tx_gain);		
 	}
 
-	field_tempo.set_value(1);
+	field_speed.set_value(1);
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

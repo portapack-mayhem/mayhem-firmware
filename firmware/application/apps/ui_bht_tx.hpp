@@ -225,12 +225,12 @@ private:
 		"Scan"
 	};
 	
-	Checkbox checkbox_cligno {
+	Checkbox checkbox_flashing {
 		{ 16 * 8, 25 * 8 },
 		8,
 		"Flashing"
 	};
-	NumberField field_tempo {
+	NumberField field_speed {
 		{ 26 * 8, 25 * 8 + 4 },
 		2,
 		{ 1, 99 },

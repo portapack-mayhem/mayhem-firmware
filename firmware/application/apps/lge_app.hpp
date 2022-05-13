@@ -61,7 +61,7 @@ private:
 	uint32_t frame_size { 0 };
 	uint32_t repeats { 0 };
 	uint32_t channel_index { 0 };
-	std::string pseudo { "ABCDEF" };
+	std::string nickname { "ABCDEF" };
 	
 	rf::Frequency channels[3] = { 868067000, 868183000, 868295000 };
 
@@ -73,9 +73,9 @@ private:
 	}
 	void generate_lge_frame(const uint8_t command, const uint16_t address_a, const uint16_t address_b, std::vector<uint8_t>& data);
 	void generate_frame_touche();
-	void generate_frame_pseudo();
-	void generate_frame_equipe();
-	void generate_frame_broadcast_pseudo();
+	void generate_frame_nickname();
+	void generate_frame_team();
+	void generate_frame_broadcast_nickname();
 	void generate_frame_start();
 	void generate_frame_gameover();
 	void generate_frame_collier();
@@ -87,7 +87,7 @@ private:
 		{ { 1 * 8, 1 * 8 }, "Frame:", Color::light_grey() },
 		{ { 2 * 8, 3 * 8 }, "Room:", Color::light_grey() },
 		{ { 14 * 8, 3 * 8 }, "Text:", Color::light_grey() },
-		{ { 1 * 8, 5 * 8 }, "Group:", Color::light_grey() },
+		{ { 2 * 8, 5 * 8 }, "Team:", Color::light_grey() },
 		{ { 0 * 8, 7 * 8 }, "Player:", Color::light_grey() },
 		{ { 0 * 8, 10 * 8 }, "Vest:", Color::light_grey() },
 		{ { 4 * 8, 12 * 8 }, "ID:", Color::light_grey() },
@@ -95,7 +95,7 @@ private:
 		{ { 2 * 8, 16 * 8 }, "Time:  x100ms", Color::light_grey() }
 	};
 	
-	OptionsField options_trame {
+	OptionsField options_frame {
 		{ 7 * 8, 1 * 8 },
 		13,
 		{
@@ -116,7 +116,7 @@ private:
 		true
 	};
 	
-	NumberField field_salle {
+	NumberField field_room {
 		{ 7 * 8, 3 * 8 },
 		1,
 		{ 1, 2 },
@@ -124,12 +124,12 @@ private:
 		'0'
 	};
 	
-	Button button_texte {
+	Button button_text {
 		{ 14 * 8, 5 * 8, 16 * 8, 3 * 8 },
 		"ABCDEF"
 	};
 	
-	NumberField field_equipe {
+	NumberField field_team {
 		{ 7 * 8, 5 * 8 },
 		1,
 		{ 1, 6 },
@@ -137,7 +137,7 @@ private:
 		'0'
 	};
 	
-	NumberField field_joueur {
+	NumberField field_player {
 		{ 7 * 8, 7 * 8 },
 		2,
 		{ 1, 50 },
