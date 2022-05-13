@@ -139,7 +139,6 @@ AnalogAudioView::AnalogAudioView(
 	}
 	else field_frequency.set_value(receiver_model.tuning_frequency());
 	
-
 	//Filename Datetime and Frequency
 	record_view.set_filename_date_frequency(true);
 
@@ -170,6 +169,7 @@ AnalogAudioView::AnalogAudioView(
 
 	const auto modulation = receiver_model.modulation();
 	options_modulation.set_by_value(toUType(modulation));
+
 	options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
 	};
@@ -193,7 +193,7 @@ AnalogAudioView::AnalogAudioView(
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
-    on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
+    	on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {
@@ -412,9 +412,6 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	}
 }
 
-/*void AnalogAudioView::squelched() {
-	if (exit_on_squelch) nav_.pop();
-}*/
 
 void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
 	float diff, min_diff = value;

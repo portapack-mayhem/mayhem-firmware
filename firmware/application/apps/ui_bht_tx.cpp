@@ -140,6 +140,10 @@ void BHTView::on_tx_progress(const uint32_t progress, const bool done) {
 }
 
 BHTView::~BHTView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_bht", &app_settings);
+
 	transmitter_model.disable();
 }
 
@@ -156,6 +160,15 @@ BHTView::BHTView(NavigationView& nav) {
 		&tx_view
 	});
 	
+	// load app settings
+	auto rc = settings.load("tx_bht", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	field_tempo.set_value(1);
 	
 	tx_view.on_edit_frequency = [this, &nav]() {

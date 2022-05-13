@@ -30,6 +30,7 @@
 #include "message.hpp"
 #include "transmitter_model.hpp"
 #include "portapack.hpp"
+#include "app_settings.hpp"
 
 namespace ui {
 
@@ -48,10 +49,14 @@ private:
 		SINGLE,
 		ALL
 	};
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	tx_modes tx_mode = IDLE;
 	
-    RFM69 rfm69 { 5, 0x2DD4, true, true };
+    	RFM69 rfm69 { 5, 0x2DD4, true, true };
     
 	uint32_t frame_size { 0 };
 	uint32_t repeats { 0 };
@@ -79,28 +84,28 @@ private:
 	
 	Labels labels {
 		//{ { 7 * 8, 1 * 8 }, "NO FUN ALLOWED !", Color::red() },
-		{ { 1 * 8, 1 * 8 }, "Trame:", Color::light_grey() },
-		{ { 1 * 8, 3 * 8 }, "Salle:", Color::light_grey() },
-		{ { 14 * 8, 3 * 8 }, "Texte:", Color::light_grey() },
-		{ { 0 * 8, 5 * 8 }, "Equipe:", Color::light_grey() },
-		{ { 0 * 8, 7 * 8 }, "Joueur:", Color::light_grey() },
-		{ { 0 * 8, 10 * 8 }, "Collier:", Color::light_grey() },
+		{ { 1 * 8, 1 * 8 }, "Frame:", Color::light_grey() },
+		{ { 2 * 8, 3 * 8 }, "Room:", Color::light_grey() },
+		{ { 14 * 8, 3 * 8 }, "Text:", Color::light_grey() },
+		{ { 1 * 8, 5 * 8 }, "Group:", Color::light_grey() },
+		{ { 0 * 8, 7 * 8 }, "Player:", Color::light_grey() },
+		{ { 0 * 8, 10 * 8 }, "Vest:", Color::light_grey() },
 		{ { 4 * 8, 12 * 8 }, "ID:", Color::light_grey() },
 		{ { 3 * 8, 14 * 8 }, "Pow:  /10", Color::light_grey() },
-		{ { 1 * 8, 16 * 8 }, "Duree:  x100ms", Color::light_grey() }
+		{ { 2 * 8, 16 * 8 }, "Time:  x100ms", Color::light_grey() }
 	};
 	
 	OptionsField options_trame {
 		{ 7 * 8, 1 * 8 },
 		13,
 		{
-			{ "Touche", 0 },
-			{ "Set pseudo", 1 },
-			{ "Set equipe", 2 },
-			{ "Brdcst pseudo", 3 },
+			{ "Key", 0 },
+			{ "Set nickname", 1 },
+			{ "Set team", 2 },
+			{ "Brdcst nick", 3 },
 			{ "Start", 4 },
 			{ "Game over", 5 },
-			{ "Set collier", 6 }
+			{ "Set vest", 6 }
 		}
 	};
 	
