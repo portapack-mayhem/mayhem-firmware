@@ -46,13 +46,18 @@ public:
 #define SETTINGS_DISABLED		-3		// load/save settings disabled in settings
 
 
-	// store settings that can't be set directly, but have to be stored in app	
+
 	struct AppSettings {
 		uint32_t 	baseband_bandwidth;
+		uint32_t 	channel_bandwidth;
 		uint8_t 	lna;
+		uint8_t		modulation;
 		uint8_t 	rx_amp;
 		uint32_t 	rx_frequency;
 		uint32_t 	sampling_rate;
+		uint8_t 	tx_amp;
+		uint32_t 	tx_frequency;
+		uint8_t 	tx_gain;
 		uint8_t 	vga;
 	};
 
@@ -62,12 +67,16 @@ public:
 
 private:
 
+#define MAX_FILE_CONTENT_SIZE 1000
 
-	char 		file_content[257] = {};	
+	char 		file_content[MAX_FILE_CONTENT_SIZE] = {};	
 	std::string 	file_path = "";
 	std::string 	folder = "SETTINGS";
 	int		rc = SETTINGS_OK;
-	File 		settings_file { };	
+	File 		settings_file { };
+	long long int	setting_value {} ;	
+
+	long long int read_long_long(char* file_content, const char* setting_text);
 
 
 }; // class app_settings

@@ -26,6 +26,7 @@
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
 #include "de_bruijn.hpp"
+#include "app_settings.hpp"
 
 using namespace encoders;
 
@@ -169,6 +170,10 @@ private:
 		SCAN
 	};
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	tx_modes tx_mode = IDLE;
 	uint8_t repeat_index { 0 };
 	uint8_t repeat_min { 0 };

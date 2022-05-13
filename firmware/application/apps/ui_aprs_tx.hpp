@@ -29,6 +29,7 @@
 
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "portapack.hpp"
 
 namespace ui {
@@ -40,17 +41,14 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "APRS TX (beta)"; };
+	std::string title() const override { return "APRS TX"; };
 
 private:
-	/*enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SEQUENCE
-	};
 	
-	tx_modes tx_mode = IDLE;*/
-	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	std::string payload { "" };
 	
 	void start_tx();
@@ -103,7 +101,7 @@ private:
 	TransmitterView tx_view {
 		16 * 16,
 		5000,
-		10
+		0 // disable setting bandwith, since APRS used fixed 10k bandwidth
 	};
 	
 	MessageHandlerRegistration message_handler_tx_progress {

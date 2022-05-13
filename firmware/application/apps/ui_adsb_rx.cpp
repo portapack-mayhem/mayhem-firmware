@@ -313,6 +313,7 @@ ADSBRxView::~ADSBRxView() {
 	// save app settings
 	settings.save("rx_adsb", &app_settings);
 
+	//TODO: once all apps keep there own settin previous frequency logic can be removed
 	receiver_model.set_tuning_frequency(prevFreq);
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
