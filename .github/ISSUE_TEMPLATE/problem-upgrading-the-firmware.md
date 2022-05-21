@@ -7,11 +7,14 @@ assignees: ''
 
 ---
 
+----
 Before creating this issue, **do the following**: 
 * Read the Wiki on booting: https://github.com/eried/portapack-mayhem/wiki/Won't-boot
 * Read: https://github.com/eried/portapack-havoc/wiki/Update-firmware
 * Watch carefully: https://www.youtube.com/watch?v=_zx4ZvurgOs
 * (if you are not in Windows) also check: https://www.youtube.com/watch?v=kjFB58Y1TAo
+
+----
 
 **Describe the issue**
 A clear and concise description of what the issue you are facing is. 
