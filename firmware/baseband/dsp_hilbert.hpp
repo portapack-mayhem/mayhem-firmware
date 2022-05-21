@@ -35,8 +35,8 @@ public:
 
 private:
 	uint8_t			n = 0;
-	SOSFilter<5>	sos_i;
-	SOSFilter<5>	sos_q;
+	SOSFilter<5>	sos_i = {};
+	SOSFilter<5>	sos_q = {};
 };
 
 } /* namespace dsp */

@@ -43,7 +43,7 @@ namespace ui {
 SetDateTimeView::SetDateTimeView(
 	NavigationView& nav
 ) {
-	button_done.on_select = [&nav, this](Button&){
+	button_save.on_select = [&nav, this](Button&){
 		const auto model = this->form_collect();
 		const rtc::RTC new_datetime {
 			model.year, model.month, model.day,
@@ -65,7 +65,7 @@ SetDateTimeView::SetDateTimeView(
 		&field_hour,
 		&field_minute,
 		&field_second,
-		&button_done,
+		&button_save,
 		&button_cancel,
 	});
 
@@ -150,7 +150,7 @@ SetRadioView::SetRadioView(
 		&value_freq_step,
 		&labels_bias,
 		&check_bias,
-		&button_done,
+		&button_save,
 		&button_cancel
 	});
 
@@ -200,7 +200,7 @@ SetRadioView::SetRadioView(
 		EventDispatcher::send_message(message);
 	};
 
-	button_done.on_select = [this, &nav](Button&){
+	button_save.on_select = [this, &nav](Button&){
 		const auto model = this->form_collect();
 		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
 		portapack::persistent_memory::set_clkout_freq(model.freq);
@@ -210,7 +210,7 @@ SetRadioView::SetRadioView(
 }
 
 void SetRadioView::focus() {
-	button_done.focus();
+	button_save.focus();
 }
 
 void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
@@ -224,76 +224,26 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
 	};
 }
 
-/*
-SetPlayDeadView::SetPlayDeadView(NavigationView& nav) {
-	add_children({
-		&text_sequence,
-		&button_enter,
-		&button_cancel
-	});
-
-	button_enter.on_select = [this, &nav](Button&){
-		if (!entermode) {
-			sequence = 0;
-			keycount = 0;
-			memset(sequence_txt, '-', 10);
-			text_sequence.set(sequence_txt);
-			entermode = true;
-			button_cancel.hidden(true);
-			set_dirty();
-		} else {
-			if (sequence == 0x8D1)	// U D L R
-				nav.display_modal("Warning", "Default sequence entered !", ABORT, nullptr);
-			else {
-				persistent_memory::set_playdead_sequence(sequence);
-				nav.pop();
-			}
-		}
-	};
-	
-	button_enter.on_dir = [this](Button&, KeyEvent key){
-		if ((entermode == true) && (keycount < 10)) {
-			key_code = static_cast<std::underlying_type<KeyEvent>::type>(key);
-			if (key_code == 0)
-				sequence_txt[keycount] = 'R';
-			else if (key_code == 1)
-				sequence_txt[keycount] = 'L';
-			else if (key_code == 2)
-				sequence_txt[keycount] = 'D';
-			else if (key_code == 3)
-				sequence_txt[keycount] = 'U';
-			text_sequence.set(sequence_txt);
-			sequence = (sequence << 3) | (key_code + 1);
-			keycount++;
-			return true;
-		}
-		return false;
-	};
-	
-	button_cancel.on_select = [&nav](Button&){ nav.pop(); };
-}
-
-void SetPlayDeadView::focus() {
-	button_cancel.focus();
-}
-*/
 
 SetUIView::SetUIView(NavigationView& nav) {
 	add_children({
-		//&checkbox_login,
+		&checkbox_disable_touchscreen,
 		&checkbox_speaker,
 		&checkbox_bloff,
 		&options_bloff,
 		&checkbox_showsplash,
 		&checkbox_showclock,
-		&options_clockformat,		
-		&button_ok
+		&options_clockformat,
+		&checkbox_guireturnflag,
+		&button_save,
+		&button_cancel
 	});
 	
+	checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
-	//checkbox_login.set_value(persistent_memory::config_login());
+	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
 	
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
 	if (backlight_timer) {
@@ -309,16 +259,8 @@ SetUIView::SetUIView(NavigationView& nav) {
 		options_clockformat.set_selected_index(0);
 	}
 
-	checkbox_speaker.on_select = [this](Checkbox&, bool v) {
-    		if (v) audio::output::speaker_mute();		//Just mute audio if speaker is disabled
 
-			persistent_memory::set_config_speaker(v);	//Store Speaker status
-
-        StatusRefreshMessage message { };				//Refresh status bar with/out speaker
-        EventDispatcher::send_message(message);
-    };
-
-	button_ok.on_select = [&nav, this](Button&) {
+	button_save.on_select = [&nav, this](Button&) {
 		if (checkbox_bloff.value())
 			persistent_memory::set_config_backlight_timer(options_bloff.selected_index() + 1);
 		else
@@ -329,225 +271,122 @@ SetUIView::SetUIView(NavigationView& nav) {
 			    persistent_memory::set_clock_with_date(true);    
      		else
 			    persistent_memory::set_clock_with_date(false);		
-		}		
+		}
+
+		if (checkbox_speaker.value())  audio::output::speaker_mute();		//Just mute audio if speaker is disabled
+		persistent_memory::set_config_speaker(checkbox_speaker.value());	//Store Speaker status
+        	StatusRefreshMessage message { };					//Refresh status bar with/out speaker
+        	EventDispatcher::send_message(message);
+	
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
-		//persistent_memory::set_config_login(checkbox_login.value());
+		persistent_memory::set_gui_return_icon(checkbox_guireturnflag.value());
+		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
+		nav.pop();
+	};
+	button_cancel.on_select = [&nav, this](Button&) {
 		nav.pop();
 	};
 }
 
 void SetUIView::focus() {
-	button_ok.focus();
+	button_save.focus();
+}
+
+
+// ---------------------------------------------------------
+// Appl. Settings
+// ---------------------------------------------------------
+SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
+	add_children({
+		&checkbox_load_app_settings,
+		&checkbox_save_app_settings,
+		&button_save,
+		&button_cancel
+	});
+	
+	checkbox_load_app_settings.set_value(persistent_memory::load_app_settings());
+	checkbox_save_app_settings.set_value(persistent_memory::save_app_settings());
+
+
+	button_save.on_select = [&nav, this](Button&) {
+		persistent_memory::set_load_app_settings(checkbox_load_app_settings.value());
+		persistent_memory::set_save_app_settings(checkbox_save_app_settings.value());
+		nav.pop();
+	};
+	button_cancel.on_select = [&nav, this](Button&) {
+		nav.pop();
+	};
+}
+
+void SetAppSettingsView::focus() {
+	button_save.focus();
 }
 
 SetAudioView::SetAudioView(NavigationView& nav) {
 	add_children({
 		&labels,
 		&field_tone_mix,
-		&button_ok
+		&button_save,
+		&button_cancel
 	});
 
 	field_tone_mix.set_value(persistent_memory::tone_mix());
 	
-	button_ok.on_select = [&nav, this](Button&) {
+	button_save.on_select = [&nav, this](Button&) {
 		persistent_memory::set_tone_mix(field_tone_mix.value());
+		nav.pop();
+	};
+
+	button_cancel.on_select = [&nav, this](Button&) {
 		nav.pop();
 	};
 }
 
 void SetAudioView::focus() {
-	field_tone_mix.focus();
+	button_save.focus();
 }
 
-/*void ModInfoView::on_show() {
-	if (modules_nb) update_infos(0);
-}
+SetQRCodeView::SetQRCodeView(NavigationView& nav) {
+	add_children({
+		&checkbox_bigger_qr,
+		&button_save,
+		&button_cancel
+	});
 
-void ModInfoView::update_infos(uint8_t modn) {
-	char info_str[27];
-	char ch;
-	uint8_t c;
-	Point pos = { 0, 0 };
-	Rect rect = { { 16, 144 }, { 208, 144 } };
+	checkbox_bigger_qr.set_value(persistent_memory::show_bigger_qr_code());
 	
-	info_str[0] = 0;
-	strcat(info_str, module_list[modn].name);
-	text_namestr.set(info_str);
-	
-	info_str[0] = 0;
-	strcat(info_str, to_string_dec_uint(module_list[modn].size).c_str());
-	strcat(info_str, " bytes");
-	text_sizestr.set(info_str);
-	
-	info_str[0] = 0;
-	for (c = 0; c < 8; c++)
-		strcat(info_str, to_string_hex(module_list[modn].md5[c], 2).c_str());
-	text_md5_a.set(info_str);
-
-	info_str[0] = 0;
-	for (c = 8; c < 16; c++)
-		strcat(info_str, to_string_hex(module_list[modn].md5[c], 2).c_str());
-	text_md5_b.set(info_str);
-	
-	// TODO: Use ui_console
-	display.fill_rectangle(rect, Color::black());
-	
-	const Font& font = font::fixed_8x16;
-	const auto line_height = font.line_height();
-	c = 0;
-	while((ch = module_list[modn].description[c++])) {
-		const auto glyph = font.glyph(ch);
-		const auto advance = glyph.advance();
-		if((pos.x + advance.x) > rect.width()) {
-			pos.x = 0;
-			pos.y += line_height;
-		}
-		const Point pos_glyph {
-			static_cast<Coord>(rect.pos.x + pos.x),
-			static_cast<Coord>(rect.pos.y + pos.y)
-		};
-		display.draw_glyph(pos_glyph, glyph, Color::white(), Color::black());
-		pos.x += advance.x;
-	}
-}
-
-ModInfoView::ModInfoView(NavigationView& nav) {
-	const char magic[4] = {'P', 'P', 'M', ' '};
-	UINT bw;
-	uint8_t i;
-	char read_buf[16];
-	char info_str[25];
-	FILINFO modinfo;
-	FIL modfile;
-	DIR rootdir;
-	FRESULT res;
-	uint8_t c;
-	
-	using option_t = std::pair<std::string, int32_t>;
-	using options_t = std::vector<option_t>;
-	option_t opt;
-	options_t opts;
-	
-	static constexpr Style style_orange {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::orange(),
-	};
-	
-	add_children({{
-		&text_modcount,
-		&text_name,
-		&text_namestr,
-		&text_size,
-		&text_sizestr,
-		&text_md5,
-		&text_md5_a,
-		&text_md5_b,
-		&button_ok
-	}});
-	
-	text_name.set_style(&style_orange);
-	text_size.set_style(&style_orange);
-	text_md5.set_style(&style_orange);
-
-	// TODO: Find a way to merge this with m4_load_image() in m4_startup.cpp
-	
-	// Scan SD card root directory for files starting with the magic bytes
-	c = 0;
-	if (f_opendir(&rootdir, "/") == FR_OK) {
-		for (;;) {
-			res = f_readdir(&rootdir, &modinfo);
-			if (res != FR_OK || modinfo.fname[0] == 0) break;	// Reached last file, abort
-			// Only care about files with .bin extension
-			if ((!(modinfo.fattrib & AM_DIR)) && (modinfo.fname[9] == 'B') && (modinfo.fname[10] == 'I') && (modinfo.fname[11] == 'N')) {
-				f_open(&modfile, modinfo.fname, FA_OPEN_EXISTING | FA_READ);
-				// Magic bytes check
-				f_read(&modfile, &read_buf, 4, &bw);
-				for (i = 0; i < 4; i++)
-					if (read_buf[i] != magic[i]) break;
-				if (i == 4) {
-					memcpy(&module_list[c].filename, modinfo.fname, 8);
-					module_list[c].filename[8] = 0;
-					
-					f_lseek(&modfile, 4);
-					f_read(&modfile, &module_list[c].version, 2, &bw);
-					f_lseek(&modfile, 6);
-					f_read(&modfile, &module_list[c].size, 4, &bw);
-					f_lseek(&modfile, 10);
-					f_read(&modfile, &module_list[c].name, 16, &bw);
-					f_lseek(&modfile, 26);
-					f_read(&modfile, &module_list[c].md5, 16, &bw);
-					f_lseek(&modfile, 42);
-					f_read(&modfile, &module_list[c].description, 214, &bw);
-					f_lseek(&modfile, 256);
-					
-					// Sanitize
-					module_list[c].name[15] = 0;
-					module_list[c].description[213] = 0;
-					
-					memcpy(info_str, module_list[c].filename, 16);
-					strcat(info_str, "(V");
-					strcat(info_str, to_string_dec_uint(module_list[c].version, 4, '0').c_str());
-					strcat(info_str, ")");
-					while(strlen(info_str) < 24)
-						strcat(info_str, " ");
-					
-					opt = std::make_pair(info_str, c);
-					opts.insert(opts.end(), opt);
-					
-					c++;
-				}
-				f_close(&modfile);
-			}
-			if (c == 8) break;
-		}
-	}
-	f_closedir(&rootdir);
-	
-	modules_nb = c;
-
-	if (modules_nb) {
-		strcpy(info_str, "Found ");
-		strcat(info_str, to_string_dec_uint(modules_nb, 1).c_str());
-		strcat(info_str, " module(s)");
-		
-		text_modcount.set(info_str);
-		option_modules.set_options(opts);
-		
-		add_child(&option_modules);
-		
-		option_modules.on_change = [this](size_t n, OptionsField::value_t v) {
-			(void)n;
-			update_infos(v);
-		};
-	} else {
-		strcpy(info_str, "No modules found");
-		text_modcount.set(info_str);
-	}
-
-	button_ok.on_select = [&nav,this](Button&){
+	button_save.on_select = [&nav, this](Button&) {
+		persistent_memory::set_show_bigger_qr_code(checkbox_bigger_qr.value());
 		nav.pop();
 	};
+
+	button_cancel.on_select = [&nav, this](Button&) {
+		nav.pop();
+	};
+
 }
 
-void ModInfoView::focus() {
-	if (modules_nb)
-		option_modules.focus();
-	else
-		button_ok.focus();
-}*/
+void SetQRCodeView::focus() {
+	button_save.focus();
+}
 
+// ---------------------------------------------------------
+// Settings main menu
+// ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+    }
 	add_items({
-		//{ "..", 			  ui::Color::light_grey(), &bitmap_icon_previous,		  [&nav](){ nav.pop(); } },
-		{ "Audio", 			ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
-		{ "Radio",			ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },
-		{ "Interface", 		ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
-		//{ "SD card modules", ui::Color::dark_cyan(), 								  [&nav](){ nav.push<ModInfoView>(); } },
-		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,	[&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Touchscreen",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
-		//{ "Play dead",	   ui::Color::dark_cyan(), &bitmap_icon_playdead,		  [&nav](){ nav.push<SetPlayDeadView>(); } }
+		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
+		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },
+		{ "User Interface", 	ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
+		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,		[&nav](){ nav.push<SetDateTimeView>(); } },
+		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "App Settings",	ui::Color::dark_cyan(), &bitmap_icon_setup,			[&nav](){ nav.push<SetAppSettingsView>(); } },
+		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,			[&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }

@@ -103,27 +103,13 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	}
 }
 
-/* 3 types of Windowing time domain shapes declaration , but only used Hamming  ,  shapes for  FFT  
-    GCC10 compile sintax error c/m  (1/2), 
-          The primary diff. between const and constexpr variables is that 
-          the initialization of a const var can be deferred until run time. 
-	      A constexpr var. must be initialized at compile time. ... 
-	      A var. can be declared with constexpr , when it has a literal type and is initialized.
-	 GCC compile sintax error c/m (2/2)
- 	      Static assert --> Tests a software assertion at compile time for debugging.
-		  we keep the same safety  compile protection , just changing slightly the sintax  checking that the size of the called array is power of 2.
-	      if the bool  "constant expression" is TRUE (normal case) , the declaration has no effect.
-		  if the bool  "constant expression" is FALSE (abnormal array size) , it is aborted the compile with a msg error. 
-		  	  */ 
-
-
-template<typename T> // Although currently we are not using that Windowing shape, we apply the same GCC10 compile error c/m 
+template<typename T>
 static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
 static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
 	return s[i];
 };
 
-template<typename T>   // Currently we are calling and using that Window shape.
+template<typename T>
 static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
     static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
 	const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
@@ -131,7 +117,7 @@ static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t
 	return s[i] * 0.54f + (s[(i-1) & mask] + s[(i+1) & mask]) * -0.23f;
 };
 
-template<typename T>   // Although currently we are not using that Windowing shape, we apply the same GCC10 compile error c/m  
+template<typename T>
 static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
     static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
     const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const

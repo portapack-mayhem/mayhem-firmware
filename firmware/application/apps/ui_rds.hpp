@@ -24,7 +24,7 @@
 #include "ui_transmitter.hpp"
 #include "ui_textentry.hpp"
 #include "ui_tabview.hpp"
-
+#include "app_settings.hpp"
 #include "rds.hpp"
 
 using namespace rds;
@@ -144,12 +144,17 @@ public:
 	
 	void focus() override;
 
-	std::string title() const override { return "RDS transmit"; };
+	std::string title() const override { return "RDS TX"; };
 
 private:
 	NavigationView& nav_;
 	RDS_flags rds_flags { };
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
+
 	std::vector<RDSGroup> frame_psn { };
 	std::vector<RDSGroup> frame_radiotext { };
 	std::vector<RDSGroup> frame_datetime { };

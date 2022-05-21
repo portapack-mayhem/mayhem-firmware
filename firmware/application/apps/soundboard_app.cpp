@@ -240,6 +240,15 @@ SoundBoardView::SoundBoardView(
 		&button_next_page,
 		&tx_view
 	});
+
+	// load app settings
+	auto rc = settings.load("tx_soundboard", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
 	
 	refresh_list();
 
@@ -280,6 +289,10 @@ SoundBoardView::SoundBoardView(
 }
 
 SoundBoardView::~SoundBoardView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_soundboard", &app_settings);
+
 	stop();
 	transmitter_model.disable();
 	baseband::shutdown();

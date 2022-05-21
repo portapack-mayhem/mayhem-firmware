@@ -38,6 +38,8 @@ public:
 
 	void focus() override;
 
+	std::string title() const override { return "SD Card"; };
+
 private:
 	SignalToken sd_card_status_signal_token { };
 

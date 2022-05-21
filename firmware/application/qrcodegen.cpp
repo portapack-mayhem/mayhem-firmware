@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#pragma mark - Error Correction Lookup tables
+/* #pragma mark - Error Correction Lookup tables */
 
 #if LOCK_VERSION == 0
 
@@ -101,7 +101,7 @@ static int abs(int value) {
 */
 
 
-#pragma mark - Mode testing and conversion
+/* #pragma mark - Mode testing and conversion */
 
 static int8_t getAlphanumeric(char c) {
     
@@ -140,7 +140,7 @@ static bool isNumeric(const char *text, uint16_t length) {
 }
 
 
-#pragma mark - Counting
+/* #pragma mark - Counting */
 
 // We store the following tightly packed (less 8) in modeInfo
 //               <=9  <=26  <= 40
@@ -167,7 +167,7 @@ static char getModeBits(uint8_t version, uint8_t mode) {
 }
 
 
-#pragma mark - BitBucket
+/* #pragma mark - BitBucket */
 
 typedef struct BitBucket {
     uint32_t bitOffsetOrWidth;
@@ -251,7 +251,7 @@ static bool bb_getBit(BitBucket *bitGrid, uint8_t x, uint8_t y) {
 }
 
 
-#pragma mark - Drawing Patterns
+/* #pragma mark - Drawing Patterns */
 
 // XORs the data modules in this QR Code with the given mask pattern. Due to XOR's mathematical
 // properties, calling applyMask(m) twice with the same value is equivalent to no change at all.
@@ -474,7 +474,7 @@ static void drawCodewords(BitBucket *modules, BitBucket *isFunction, BitBucket *
 
 
 
-#pragma mark - Penalty Calculation
+/* #pragma mark - Penalty Calculation */
 
 #define PENALTY_N1      3
 #define PENALTY_N2      3
@@ -574,7 +574,7 @@ static uint32_t getPenaltyScore(BitBucket *modules) {
 }
 
 
-#pragma mark - Reed-Solomon Generator
+/* #pragma mark - Reed-Solomon Generator */
 
 static uint8_t rs_multiply(uint8_t x, uint8_t y) {
     // Russian peasant multiplication
@@ -628,7 +628,7 @@ static void rs_getRemainder(uint8_t degree, uint8_t *coeff, uint8_t *data, uint8
 
 
 
-#pragma mark - QrCode
+/* #pragma mark - QrCode */
 
 static int8_t encodeDataCodewords(BitBucket *dataCodewords, const uint8_t *text, uint16_t length, uint8_t version) {
     int8_t mode = MODE_BYTE;
@@ -769,7 +769,7 @@ static void performErrorCorrection(uint8_t version, uint8_t ecc, BitBucket *data
 static const uint8_t ECC_FORMAT_BITS = (0x02 << 6) | (0x03 << 4) | (0x00 << 2) | (0x01 << 0);
 
 
-#pragma mark - Public QRCode functions
+/* #pragma mark - Public QRCode functions */
 
 uint16_t qrcode_getBufferSize(uint8_t version) {
     return bb_getGridSizeBytes(4 * version + 17);
@@ -857,7 +857,7 @@ int8_t qrcode_initText(QRCode *qrcode, uint8_t *modules, uint8_t version, uint8_
 }
 
 bool qrcode_getModule(QRCode *qrcode, uint8_t x, uint8_t y) {
-    if (x < 0 || x >= qrcode->size || y < 0 || y >= qrcode->size) {
+    if ( x >= qrcode->size || y >= qrcode->size) {
         return false;
     }
 

@@ -284,6 +284,11 @@ void ADSBTxView::focus() {
 }
 
 ADSBTxView::~ADSBTxView() {
+
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_adsb", &app_settings);
+
 	transmitter_model.disable();
 	baseband::shutdown();
 }
@@ -334,8 +339,16 @@ ADSBTxView::ADSBTxView(
 		&view_squawk,
 		&text_frame,
 		&tx_view
-	});
-	
+	});	
+
+	// load app settings
+	auto rc = settings.load("tx_adsb", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
