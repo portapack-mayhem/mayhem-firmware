@@ -26,7 +26,8 @@ Steps to reproduce the behavior:
 
 
 **My Hardware**
-Please specify what PortaPack hardware version you are using. You can find the list of verions here: https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions
+Please specify what PortaPack hardware version you are using. 
+You can find the list of versions here: https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions
 
 **Affected versions**
 Please tell us what version you are running. 
