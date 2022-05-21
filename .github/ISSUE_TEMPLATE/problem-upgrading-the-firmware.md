@@ -29,7 +29,9 @@ Steps to reproduce the behavior:
 Please specify what PortaPack hardware version you are using. You can find the list of verions here: https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions
 
 **Affected versions**
-Please tell us what version you are running. Also please try the latest nightly release before submitting this. You can find the latest nightly verison here https://github.com/eried/portapack-mayhem/releases
+Please tell us what version you are running. 
+Also please try the latest nightly release before submitting this. 
+You can find the latest nightly version here https://github.com/eried/portapack-mayhem/releases
 
 **Were you able to update the firmware before?**
 Things might be confusing the first time, please check the video available on the link above.
