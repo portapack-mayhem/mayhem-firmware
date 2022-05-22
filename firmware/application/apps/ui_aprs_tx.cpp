@@ -43,6 +43,10 @@ void APRSTXView::focus() {
 }
 
 APRSTXView::~APRSTXView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_aprs", &app_settings);
+
 	transmitter_model.disable();
 	baseband::shutdown();
 }
@@ -66,7 +70,7 @@ void APRSTXView::start_tx() {
 		1200,
 		2200,
 		1,
-		10000,	//transmitter_model.channel_bandwidth(),
+		10000,	//APRS uses fixed 10k bandwidth
 		8
 	);
 }
@@ -95,6 +99,15 @@ APRSTXView::APRSTXView(NavigationView& nav) {
 		&tx_view
 	});
 	
+
+	// load app settings
+	auto rc = settings.load("tx_aprs", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	button_set.on_select = [this, &nav](Button&) {
 		text_prompt(
 			nav,

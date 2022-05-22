@@ -136,6 +136,9 @@ void KeyfobView::focus() {
 }
 
 KeyfobView::~KeyfobView() {
+	// save app settings
+	settings.save("tx_keyfob", &app_settings);
+
 	transmitter_model.disable();
 	baseband::shutdown();
 }
@@ -214,6 +217,13 @@ KeyfobView::KeyfobView(
 		&tx_view
 	});
 	
+	// load app settings
+	auto rc = settings.load("tx_keyfob", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	frame[0] = 0x55;
 	update_symfields();
 	
