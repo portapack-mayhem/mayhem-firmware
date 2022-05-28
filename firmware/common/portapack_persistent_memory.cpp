@@ -28,7 +28,8 @@
 #include "utility.hpp"
 
 #include "memory_map.hpp"
-using portapack::memory::map::backup_ram;
+
+#include "crc.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -67,8 +68,193 @@ using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
 constexpr uint32_t clkout_freq_reset_value { 10000 };
 
+enum data_structure_version_enum : uint32_t {
+	VERSION_CURRENT = 0x10000002,
+};
+
+static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
+
+struct ui_config_t {
+private:
+	enum bits_t {
+		BacklightTimeoutLSB    =  0,
+		BacklightTimeoutEnable =  3,
+		ClkoutFreqLSB          =  4,
+		ShowGUIReturnIcon      = 20,
+		LoadAppSettings        = 21,
+		SaveAppSettings        = 22,
+		ShowBiggerQRCode       = 23,
+		DisableTouchscreen     = 24,
+		HideClock              = 25,
+		ClockWithDate          = 26,
+		ClkOutEnabled          = 27,
+		ConfigSpeaker          = 28,
+		StealthMode            = 29,
+		ConfigLogin            = 30,
+		ConfigSplash           = 31,
+	};
+
+	enum bits_mask_t : uint32_t {
+		BacklightTimeoutMask = ((1 <<  3) - 1) << bits_t::BacklightTimeoutLSB,
+		ClkoutFreqMask       = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
+	};
+
+	uint32_t values;
+
+	constexpr bool bit_read(const bits_t n) const {
+		return ((values >> n) & 1) != 0;
+	}
+
+	constexpr void bit_write(const bits_t n, const bool v) {
+		if(bit_read(n) != v) {
+			values ^= 1 << n;
+		}
+	}
+
+public:
+	backlight_config_t config_backlight_timer() {
+		const auto timeout_enum = (backlight_timeout_t)((values & bits_mask_t::BacklightTimeoutMask) >> bits_t::BacklightTimeoutLSB);
+		const bool timeout_enabled = bit_read(bits_t::BacklightTimeoutEnable);
+		return backlight_config_t(timeout_enum, timeout_enabled);
+	}
+
+	void set_config_backlight_timer(const backlight_config_t& new_value) {
+		values = (values & ~bits_mask_t::BacklightTimeoutMask)
+			| ((new_value.timeout_enum() << bits_t::BacklightTimeoutLSB) & bits_mask_t::BacklightTimeoutMask);
+		bit_write(bits_t::BacklightTimeoutEnable, new_value.timeout_enabled());
+	}
+
+	constexpr uint32_t clkout_freq() {
+		uint32_t freq = (values & bits_mask_t::ClkoutFreqMask) >> bits_t::ClkoutFreqLSB;
+		if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
+			values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_reset_value << bits_t::ClkoutFreqLSB);
+			return clkout_freq_reset_value;
+		}
+		else {
+			return freq;
+		}
+	}
+
+	constexpr void set_clkout_freq(uint32_t freq) {
+		values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_range.clip(freq) << bits_t::ClkoutFreqLSB);
+	}
+
+	// ui_config is an uint32_t var storing information bitwise
+	// bits 0-2 store the backlight timer
+	// bits 4-19 (16 bits) store the clkout frequency
+	// bits 21-31 store the different single bit configs depicted below
+	// bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
+
+	constexpr bool show_gui_return_icon() const { // add return icon in touchscreen menue
+		return bit_read(bits_t::ShowGUIReturnIcon);
+	}
+
+	constexpr void set_gui_return_icon(bool v) {
+		bit_write(bits_t::ShowGUIReturnIcon, v);
+	}
+
+	constexpr bool load_app_settings() const { // load (last saved) app settings on startup of app
+		return bit_read(bits_t::LoadAppSettings);
+	}
+
+	constexpr void set_load_app_settings(bool v) {
+		bit_write(bits_t::LoadAppSettings, v);
+	}
+
+	constexpr bool save_app_settings() const { // save app settings when closing app
+		return bit_read(bits_t::SaveAppSettings);
+	}
+
+	constexpr void set_save_app_settings(bool v) {
+		bit_write(bits_t::SaveAppSettings, v);
+	}
+
+	constexpr bool show_bigger_qr_code() const { // show bigger QR code
+		return bit_read(bits_t::ShowBiggerQRCode);
+	}
+
+	constexpr void set_show_bigger_qr_code(bool v) {
+		bit_write(bits_t::ShowBiggerQRCode, v);
+	}
+
+	constexpr bool disable_touchscreen() const { // Option to disable touch screen
+		return bit_read(bits_t::DisableTouchscreen);
+	}
+
+	constexpr void set_disable_touchscreen(bool v) {
+		bit_write(bits_t::DisableTouchscreen, v);
+	}
+
+	constexpr bool hide_clock() const { // clock hidden from main menu
+		return bit_read(bits_t::HideClock);
+	}
+
+	constexpr void set_clock_hidden(bool v) {
+		bit_write(bits_t::HideClock, v);
+	}
+
+	constexpr bool clock_with_date() const { // show clock with date, if not hidden
+		return bit_read(bits_t::ClockWithDate);
+	}
+
+	constexpr void set_clock_with_date(bool v) {
+		bit_write(bits_t::ClockWithDate, v);
+	}
+
+	constexpr bool clkout_enabled() const {
+		return bit_read(bits_t::ClkOutEnabled);
+	}
+
+	constexpr void set_clkout_enabled(bool v) {
+		bit_write(bits_t::ClkOutEnabled, v);
+	}
+
+	constexpr bool config_speaker() const {
+		return bit_read(bits_t::ConfigSpeaker);
+	}
+
+	constexpr void set_config_speaker(bool v) {
+		bit_write(bits_t::ConfigSpeaker, v);
+	}
+
+	constexpr bool stealth_mode() const {
+		return bit_read(bits_t::StealthMode);
+	}
+
+	constexpr void set_stealth_mode(bool v) {
+		bit_write(bits_t::StealthMode, v);
+	}
+
+	constexpr bool config_login() const {
+		return bit_read(bits_t::ConfigLogin);
+	}
+
+	constexpr void set_config_login(bool v) {
+		bit_write(bits_t::ConfigLogin, v);
+	}
+
+	constexpr bool config_splash() const {
+		return bit_read(bits_t::ConfigSplash);
+	}
+
+	constexpr void set_config_splash(bool v) {
+		bit_write(bits_t::ConfigSplash, v);
+	}
+
+	constexpr ui_config_t() :
+		values(
+		      (1 << ConfigSplash)
+			| (1 << ConfigSpeaker)
+			| (clkout_freq_reset_value << ClkoutFreqLSB)
+			| (7 << BacklightTimeoutLSB)
+		)
+	{
+	}
+};
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
+	data_structure_version_enum structure_version;
 	int64_t tuned_frequency;
 	int32_t correction_ppb;
 	uint32_t touch_calibration_magic;
@@ -89,7 +275,7 @@ struct data_t {
 	uint32_t playdead_sequence;
 	
 	// UI
-	uint32_t ui_config;
+	ui_config_t ui_config;
 	
 	uint32_t pocsag_last_address;
 	uint32_t pocsag_ignore_address;
@@ -98,11 +284,142 @@ struct data_t {
 
 	// Hardware
 	uint32_t hardware_config;
+
+	constexpr data_t() :
+		structure_version(data_structure_version_enum::VERSION_CURRENT),
+		tuned_frequency(tuned_frequency_reset_value),
+		correction_ppb(ppb_reset_value),
+		touch_calibration_magic(TOUCH_CALIBRATION_MAGIC),
+		touch_calibration(touch::Calibration()),
+
+		modem_def_index(0),			// TODO: Unused?
+		serial_format(),
+		modem_bw(15000),			// TODO: Unused?
+		afsk_mark_freq(afsk_mark_reset_value),
+		afsk_space_freq(afsk_space_reset_value),
+		modem_baudrate(modem_baudrate_reset_value),
+		modem_repeat(modem_repeat_reset_value),
+
+		playdead_magic(),			// TODO: Unused?
+		playing_dead(),				// TODO: Unused?
+		playdead_sequence(),		// TODO: Unused?
+
+		ui_config(),
+
+		pocsag_last_address(0),		// TODO: A better default?
+		pocsag_ignore_address(0),	// TODO: A better default?
+
+		tone_mix(tone_mix_reset_value),
+
+		hardware_config(0)
+	{
+	}
 };
 
-static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
+struct backup_ram_t {
+private:
+	uint32_t regfile[63];
+	uint32_t check_value;
 
-static data_t* const data = reinterpret_cast<data_t*>(backup_ram.base());
+	static void copy(const backup_ram_t& src, backup_ram_t& dst) {
+		for(size_t i=0; i<63; i++) {
+			dst.regfile[i] = src.regfile[i];
+		}
+		dst.check_value = src.check_value;
+	}
+
+	static void copy_from_data_t(const data_t& src, backup_ram_t& dst) {
+		const uint32_t* const src_words = (uint32_t*)&src;
+		const size_t word_count = (sizeof(data_t) + 3) / 4;
+		for(size_t i=0; i<63; i++) {
+			if(i<word_count) {
+				dst.regfile[i] = src_words[i];
+			} else {
+				dst.regfile[i] = 0;
+			}
+		}
+	}
+
+	uint32_t compute_check_value() {
+		CRC<32> crc { 0x04c11db7, 0xffffffff, 0xffffffff };
+		for(size_t i=0; i<63; i++) {
+			const auto word = regfile[i];
+			crc.process_byte((word >>  0) & 0xff);
+			crc.process_byte((word >>  8) & 0xff);
+			crc.process_byte((word >> 16) & 0xff);
+			crc.process_byte((word >> 24) & 0xff);
+		}
+		return crc.checksum();
+	}
+
+public:
+	/* default constructor */
+	backup_ram_t() :
+		check_value(0)
+	{
+		const data_t defaults = data_t();
+		copy_from_data_t(defaults, *this);
+	}
+
+	/* copy-assignment operator */
+	backup_ram_t& operator=(const backup_ram_t& src) {
+		copy(src, *this);
+		return *this;
+	}
+
+	/* Calculate a check value from `this`, and check against
+	 * the stored value.
+	 */
+	bool is_valid() {
+		return compute_check_value() == check_value;
+	}
+
+	/* Assuming `this` contains valid data, update the checksum
+	 * and copy to the destination.
+	 */
+	void persist_to(backup_ram_t& dst) {
+		check_value = compute_check_value();
+		copy(*this, dst);
+	}
+};
+
+static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
+static_assert(sizeof(data_t) <= sizeof(backup_ram_t) - sizeof(uint32_t));
+
+static backup_ram_t* const backup_ram = reinterpret_cast<backup_ram_t*>(memory::map::backup_ram.base());
+
+static backup_ram_t cached_backup_ram;
+static data_t* const data = reinterpret_cast<data_t*>(&cached_backup_ram);
+
+namespace cache {
+
+void defaults() {
+	cached_backup_ram = backup_ram_t();
+}
+
+void init() {
+	if(backup_ram->is_valid()) {
+		// Copy valid persistent data into cache.
+		cached_backup_ram = *backup_ram;
+
+		// Check that structure data we copied into cache is the expected
+		// version. If not, initialize cache to defaults.
+		if(data->structure_version != data_structure_version_enum::VERSION_CURRENT) {
+			// TODO: Can provide version-to-version upgrade functions here,
+			// if we want to be fancy.
+			defaults();
+		}
+	} else {
+		// Copy defaults into cache.
+		defaults();
+	}
+}
+
+void persist() {
+	cached_backup_ram.persist_to(*backup_ram);
+}
+
+} /* namespace cache */
 
 rf::Frequency tuned_frequency() {
 	rf::tuning_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
@@ -124,16 +441,14 @@ void set_correction_ppb(const ppb_t new_value) {
 	portapack::clock_manager.set_reference_ppb(clipped_value);
 }
 
-static constexpr uint32_t touch_calibration_magic = 0x074af82f;
-
 void set_touch_calibration(const touch::Calibration& new_value) {
 	data->touch_calibration = new_value;
-	data->touch_calibration_magic = touch_calibration_magic;
+	data->touch_calibration_magic = TOUCH_CALIBRATION_MAGIC;
 }
 
 const touch::Calibration& touch_calibration() {
-	if( data->touch_calibration_magic != touch_calibration_magic ) {
-		set_touch_calibration(touch::default_calibration());
+	if( data->touch_calibration_magic != TOUCH_CALIBRATION_MAGIC ) {
+		set_touch_calibration(touch::Calibration());
 	}
 	return data->touch_calibration;
 }
@@ -200,122 +515,116 @@ void set_serial_format(const serial_format_t new_value) {
 	data->serial_format = new_value;
 }
 
-// ui_config is an uint32_t var storing information bitwise
-// bits 0-2 store the backlight timer
-// bits 4-19 (16 bits) store the clkout frequency
-// bits 21-31 store the different single bit configs depicted below
-// bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
-
-bool show_gui_return_icon(){ // add return icon in touchscreen menue
-return data->ui_config & (1 << 20);
+bool show_gui_return_icon() { // add return icon in touchscreen menue
+	return data->ui_config.show_gui_return_icon();
 }
 
 bool load_app_settings() { // load (last saved) app settings on startup of app
-	return data->ui_config & (1 << 21);
+	return data->ui_config.load_app_settings();
 }
 
 bool save_app_settings() { // save app settings when closing app
-	return data->ui_config & (1 << 22);
+	return data->ui_config.save_app_settings();
 }
   
 bool show_bigger_qr_code() { // show bigger QR code
-	return data->ui_config & (1 << 23);
+	return data->ui_config.show_bigger_qr_code();
 }
 
 bool disable_touchscreen() { // Option to disable touch screen
-	return data->ui_config & (1 << 24);
+	return data->ui_config.disable_touchscreen();
 }
 
 bool hide_clock() { // clock hidden from main menu
-	return data->ui_config & (1 << 25);
+	return data->ui_config.hide_clock();
 }
 
 bool clock_with_date() { // show clock with date, if not hidden
-	return data->ui_config & (1 << 26);
+	return data->ui_config.clock_with_date();
 }
 
 bool clkout_enabled() {
-	return data->ui_config & (1 << 27);
+	return data->ui_config.clkout_enabled();
 }
 
 bool config_speaker() {
-	return data->ui_config & (1 << 28);
+	return data->ui_config.config_speaker();
 }
+
 bool stealth_mode() {
-	return data->ui_config & (1 << 29);
+	return data->ui_config.stealth_mode();
 }
 
 bool config_login() {
-	return data->ui_config & (1 << 30);
+	return data->ui_config.config_login();
 }
 
 bool config_splash() {
-	return data->ui_config & (1 << 31);
+	return data->ui_config.config_splash();
 }
 
 uint8_t config_cpld() {
 	return data->hardware_config;
 }
 
-uint32_t config_backlight_timer() {
-	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
-	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
+backlight_config_t config_backlight_timer() {
+	return data->ui_config.config_backlight_timer();
 }
 
 void set_gui_return_icon(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 20)) | (v << 20);
+	data->ui_config.set_gui_return_icon(v);
 }
 
 void set_load_app_settings(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 21)) | (v << 21);
+	data->ui_config.set_load_app_settings(v);
 }
 
 void set_save_app_settings(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 22)) | (v << 22);
+	data->ui_config.set_save_app_settings(v);
 }
 
 void set_show_bigger_qr_code(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 23)) | (v << 23);
+	data->ui_config.set_show_bigger_qr_code(v);
 }
 
 void set_disable_touchscreen(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
+	data->ui_config.set_disable_touchscreen(v);
 }
 
 void set_clock_hidden(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
+	data->ui_config.set_clock_hidden(v);
 }
 
 void set_clock_with_date(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 26)) | (v << 26);
+	data->ui_config.set_clock_with_date(v);
 }
 
 void set_clkout_enabled(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 27)) | (v << 27);
+	data->ui_config.set_clkout_enabled(v);
 }
 
 void set_config_speaker(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 28)) | (v << 28);
+	data->ui_config.set_config_speaker(v);
 }
 
 void set_stealth_mode(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 29)) | (v << 29);
+	data->ui_config.set_stealth_mode(v);
 }
 
 void set_config_login(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 30)) | (v << 30);
+	data->ui_config.set_config_login(v);
 }
 
 void set_config_splash(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 31)) | (v << 31);
+	data->ui_config.set_config_splash(v);
 }
 
 void set_config_cpld(uint8_t i) {
 	data->hardware_config = i;
 }
 
-void set_config_backlight_timer(uint32_t i) {
-	data->ui_config = (data->ui_config & ~7) | (i & 7);
+void set_config_backlight_timer(const backlight_config_t& new_value) {
+	data->ui_config.set_config_backlight_timer(new_value);
 }
 
 /*void set_config_textentry(uint8_t new_value) {
@@ -347,18 +656,11 @@ void set_pocsag_ignore_address(uint32_t address) {
 }
 
 uint32_t clkout_freq() {
-	uint16_t freq = (data->ui_config & 0x000FFFF0) >> 4;
-	if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
-		data->ui_config = (data->ui_config & ~0x000FFFF0) | clkout_freq_reset_value << 4;
-		return clkout_freq_reset_value;
-	}
-	else {
-		return freq;
-	}
+	return data->ui_config.clkout_freq();
 }
 
 void set_clkout_freq(uint32_t freq) {
-	data->ui_config = (data->ui_config & ~0x000FFFF0) | (clkout_freq_range.clip(freq) << 4);
+	data->ui_config.set_clkout_freq(freq);
 }
 
 
