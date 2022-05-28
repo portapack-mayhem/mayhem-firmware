@@ -245,10 +245,10 @@ SetUIView::SetUIView(NavigationView& nav) {
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
 	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
 	
-	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
-	if (backlight_timer) {
+	const auto backlight_timer = persistent_memory::config_backlight_timer();
+	if (backlight_timer.is_valid()) {
 		checkbox_bloff.set_value(true);
-		options_bloff.set_by_value(backlight_timer);
+		options_bloff.set_by_value(backlight_timer.value());
 	} else {
 		options_bloff.set_selected_index(0);
 	}

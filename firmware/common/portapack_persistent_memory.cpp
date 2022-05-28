@@ -385,9 +385,14 @@ uint8_t config_cpld() {
 	return data->hardware_config;
 }
 
-uint32_t config_backlight_timer() {
+Optional<uint32_t> config_backlight_timer() {
+	const auto table_index = data->ui_config & 7;
+	if(table_index == 0) {
+		return {};
+	}
+
 	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
-	return timer_seconds[data->ui_config & 7]; //first three bits, 8 possible values
+	return timer_seconds[table_index];
 }
 
 void set_gui_return_icon(bool v) {

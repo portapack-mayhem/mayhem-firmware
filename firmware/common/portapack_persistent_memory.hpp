@@ -25,6 +25,8 @@
 
 #include <cstdint>
 
+#include "optional.hpp"
+
 #include "rf_path.hpp"
 #include "touch.hpp"
 #include "modems.hpp"
@@ -102,7 +104,7 @@ bool hide_clock();
 bool clock_with_date();
 bool config_login();
 bool config_speaker();
-uint32_t config_backlight_timer();
+Optional<uint32_t> config_backlight_timer();
 bool disable_touchscreen();
 
 void set_gui_return_icon(bool v);
