@@ -109,12 +109,7 @@ struct data_t {
 		touch_calibration(touch::Calibration()),
 
 		modem_def_index(0),			// TODO: Unused?
-		serial_format({
-			.data_bits = 7,
-			.parity = parity_enum::EVEN,
-			.stop_bits = 1,
-			.bit_order = order_enum::LSB_FIRST,
-		}),
+		serial_format(),
 		modem_bw(15000),			// TODO: Unused?
 		afsk_mark_freq(afsk_mark_reset_value),
 		afsk_space_freq(afsk_space_reset_value),
