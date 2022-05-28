@@ -35,6 +35,22 @@ using namespace serializer;
 
 namespace portapack {
 namespace persistent_memory {
+    
+namespace cache {
+
+/* Set values in cache to sensible defaults. */
+void defaults();
+
+/* Load cached settings from values in persistent RAM, replacing with defaults
+ * if persistent RAM contents appear to be invalid. */
+void init();
+
+/* Calculate a check value for cached settings, and copy the check value and
+ * settings into persistent RAM. Intended to be called periodically to update
+ * persistent settings with current settings. */
+void persist();
+
+} /* namespace cache */
 
 using ppb_t = int32_t;
 

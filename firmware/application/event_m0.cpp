@@ -235,6 +235,8 @@ void EventDispatcher::handle_rtc_tick() {
 	}
 
 	rtc_time::on_tick_second();
+
+	portapack::persistent_memory::cache::persist();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {

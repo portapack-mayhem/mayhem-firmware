@@ -28,7 +28,8 @@
 #include "utility.hpp"
 
 #include "memory_map.hpp"
-using portapack::memory::map::backup_ram;
+
+#include "crc.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -100,9 +101,100 @@ struct data_t {
 	uint32_t hardware_config;
 };
 
-static_assert(sizeof(data_t) <= backup_ram.size(), "Persistent memory structure too large for VBAT-maintained region");
+struct backup_ram_t {
+private:
+	uint32_t regfile[63];
+	uint32_t check_value;
 
-static data_t* const data = reinterpret_cast<data_t*>(backup_ram.base());
+	static void copy(const backup_ram_t& src, backup_ram_t& dst) {
+		for(size_t i=0; i<63; i++) {
+			dst.regfile[i] = src.regfile[i];
+		}
+		dst.check_value = src.check_value;
+	}
+
+	static void copy_from_data_t(const data_t& src, backup_ram_t& dst) {
+		const uint32_t* const src_words = (uint32_t*)&src;
+		const size_t word_count = (sizeof(data_t) + 3) / 4;
+		for(size_t i=0; i<63; i++) {
+			if(i<word_count) {
+				dst.regfile[i] = src_words[i];
+			} else {
+				dst.regfile[i] = 0;
+			}
+		}
+	}
+
+	uint32_t compute_check_value() {
+		CRC<32> crc { 0x04c11db7, 0xffffffff, 0xffffffff };
+		for(size_t i=0; i<63; i++) {
+			const auto word = regfile[i];
+			crc.process_byte((word >>  0) & 0xff);
+			crc.process_byte((word >>  8) & 0xff);
+			crc.process_byte((word >> 16) & 0xff);
+			crc.process_byte((word >> 24) & 0xff);
+		}
+		return crc.checksum();
+	}
+
+public:
+	/* default constructor */
+	backup_ram_t() {
+		const data_t defaults = data_t();
+		copy_from_data_t(defaults, *this);
+	}
+
+	/* copy-assignment operator */
+	backup_ram_t& operator=(const backup_ram_t& src) {
+		copy(src, *this);
+		return *this;
+	}
+
+	/* Calculate a check value from `this`, and check against
+	 * the stored value.
+	 */
+	bool is_valid() {
+		return compute_check_value() == check_value;
+	}
+
+	/* Assuming `this` contains valid data, update the checksum
+	 * and copy to the destination.
+	 */
+	void persist_to(backup_ram_t& dst) {
+		check_value = compute_check_value();
+		copy(*this, dst);
+	}
+};
+
+static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
+static_assert(sizeof(data_t) <= sizeof(backup_ram_t) - sizeof(uint32_t));
+
+static backup_ram_t* const backup_ram = reinterpret_cast<backup_ram_t*>(memory::map::backup_ram.base());
+
+static backup_ram_t cached_backup_ram;
+static data_t* const data = reinterpret_cast<data_t*>(&cached_backup_ram);
+
+namespace cache {
+
+void defaults() {
+	cached_backup_ram = backup_ram_t();
+}
+
+void init() {
+	if(backup_ram->is_valid()) {
+		// Copy valid persistent data into cache.
+		cached_backup_ram = *backup_ram;
+	} else {
+		// Copy defaults into cache.
+		defaults();
+	}
+}
+
+void persist() {
+	cached_backup_ram.persist_to(*backup_ram);
+}
+
+} /* namespace cache */
 
 rf::Frequency tuned_frequency() {
 	rf::tuning_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);

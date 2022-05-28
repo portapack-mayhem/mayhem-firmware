@@ -457,6 +457,9 @@ bool init() {
 	i2c0.start(i2c_config_fast_clock);
 	chThdSleepMilliseconds(10);
 
+	/* Cache some configuration data from persistent memory. */
+	persistent_memory::cache::init();
+
 	touch::adc::init();
 	controls_init();
 	chThdSleepMilliseconds(10);
