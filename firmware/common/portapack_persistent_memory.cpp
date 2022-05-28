@@ -68,10 +68,15 @@ using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
 constexpr uint32_t clkout_freq_reset_value { 10000 };
 
+enum data_structure_version_enum : uint32_t {
+	VERSION_CURRENT = 0x10000002,
+};
+
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
+	data_structure_version_enum structure_version;
 	int64_t tuned_frequency;
 	int32_t correction_ppb;
 	uint32_t touch_calibration_magic;
@@ -103,6 +108,7 @@ struct data_t {
 	uint32_t hardware_config;
 
 	constexpr data_t() :
+		structure_version(data_structure_version_enum::VERSION_CURRENT),
 		tuned_frequency(tuned_frequency_reset_value),
 		correction_ppb(ppb_reset_value),
 		touch_calibration_magic(TOUCH_CALIBRATION_MAGIC),
@@ -222,6 +228,14 @@ void init() {
 	if(backup_ram->is_valid()) {
 		// Copy valid persistent data into cache.
 		cached_backup_ram = *backup_ram;
+
+		// Check that structure data we copied into cache is the expected
+		// version. If not, initialize cache to defaults.
+		if(data->structure_version != data_structure_version_enum::VERSION_CURRENT) {
+			// TODO: Can provide version-to-version upgrade functions here,
+			// if we want to be fancy.
+			defaults();
+		}
 	} else {
 		// Copy defaults into cache.
 		defaults();
