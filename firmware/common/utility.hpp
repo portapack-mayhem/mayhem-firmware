@@ -95,27 +95,27 @@ struct range_t {
 	const T minimum;
 	const T maximum;
 
-	const T& clip(const T& value) const {
+	constexpr const T& clip(const T& value) const {
 		return std::max(std::min(value, maximum), minimum);
 	}
 
-	void reset_if_outside(T& value, const T& reset_value) const {
+	constexpr void reset_if_outside(T& value, const T& reset_value) const {
 		if( (value < minimum ) ||
 			(value > maximum ) ) {
 			value = reset_value;
 		}
 	}
 
-	bool below_range(const T& value) const {
+	constexpr bool below_range(const T& value) const {
 		return value < minimum;
 	}
 
-	bool contains(const T& value) const {
+	constexpr bool contains(const T& value) const {
 		// TODO: Subtle gotcha here! Range test doesn't include maximum!
 		return (value >= minimum) && (value < maximum);
 	}
 
-	bool out_of_range(const T& value) const {
+	constexpr bool out_of_range(const T& value) const {
 		// TODO: Subtle gotcha here! Range test in contains() doesn't include maximum!
 		return !contains(value);
 	}
