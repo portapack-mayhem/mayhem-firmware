@@ -133,7 +133,7 @@ void set_touch_calibration(const touch::Calibration& new_value) {
 
 const touch::Calibration& touch_calibration() {
 	if( data->touch_calibration_magic != touch_calibration_magic ) {
-		set_touch_calibration(touch::default_calibration());
+		set_touch_calibration(touch::Calibration());
 	}
 	return data->touch_calibration;
 }
