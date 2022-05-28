@@ -186,7 +186,7 @@ void MicTXView::rxaudio(bool is_on) {
 
 		baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		audio::output::stop();
-		audio::input::start();	// set up audio input =  mic config of any audio coded AK4951/WM8731, (in WM8731 parameter will be ignored)
+		audio::input::start(ak4951_alc_GUI_selected);	// set up audio input =  mic config of any audio coded AK4951/WM8731, (in WM8731 parameter will be ignored)
 		portapack::pin_i2s0_rx_sda.mode(3);
 		configure_baseband();
 	}
@@ -211,8 +211,7 @@ MicTXView::MicTXView(
 	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 	
-	
-	if (true ) {       // Temporary , disabling ALC feature , (pending to solve -No Audio in Mic app ,in some H2/H2+ WM /QFP100 CPLS users-  if ( audio_codec_wm8731.detected() ) {
+	if (audio::debug::codec_name() =="WM8731" ) {
 	add_children({		
 		&labels_WM8731,		// we have audio codec WM8731, same MIC menu  as original.
 		&vumeter,
@@ -285,7 +284,7 @@ MicTXView::MicTXView(
 	
 	options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
 	      ak4951_alc_GUI_selected  = v;
-		  audio::input::start();
+		  audio::input::start(ak4951_alc_GUI_selected);
 	};
 	// options_ak4951_alc_mode.set_selected_index(0);
 	 
@@ -539,7 +538,7 @@ MicTXView::MicTXView(
 	set_tx(false);
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	audio::input::start();		// originally , audio::input::start();  (we added parameter)
+	audio::input::start(ak4951_alc_GUI_selected);		// originally , audio::input::start();  (we added parameter)
 }
 
 MicTXView::~MicTXView() {

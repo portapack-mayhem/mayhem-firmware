@@ -171,7 +171,7 @@ private:
 		{ 20 * 8, 1 * 8 },				// Coordinates are: int:x (px), int:y (px)				
 		11,
 		{
-			{ " OFF-20kHz", 0 },	// Nothing changed from ORIGINAL,keeping ALL programm. AK4951 Dig. block->OFF)
+			{ " OFF-12kHz", 0 },	// Nothing changed from ORIGINAL,keeping ALL programmable  AK4951 Digital Block->OFF, sampling 24Khz)
 			{ "+12dB-6kHz", 1 },	// ALC-> on, (+12dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
 			{ "+09dB-6kHz", 2 },	// ALC-> on, (+09dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
 			{ "+06dB-6kHz", 3 },	// ALC-> on, (+06dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
