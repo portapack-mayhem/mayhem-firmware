@@ -74,6 +74,194 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
+struct ui_config_t {
+private:
+	enum bits_t {
+		BacklightTimeoutLSB =  0,
+		ClkoutFreqLSB       =  4,
+		ShowGUIReturnIcon   = 20,
+		LoadAppSettings     = 21,
+		SaveAppSettings     = 22,
+		ShowBiggerQRCode    = 23,
+		DisableTouchscreen  = 24,
+		HideClock           = 25,
+		ClockWithDate       = 26,
+		ClkOutEnabled       = 27,
+		ConfigSpeaker       = 28,
+		StealthMode         = 29,
+		ConfigLogin         = 30,
+		ConfigSplash        = 31,
+	};
+
+	enum bits_mask_t : uint32_t {
+		BacklightTimeoutMask = ((1 <<  4) - 1) << bits_t::BacklightTimeoutLSB,
+		ClkoutFreqMask       = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
+	};
+
+	uint32_t values;
+
+	constexpr bool bit_read(const bits_t n) const {
+		return ((values >> n) & 1) != 0;
+	}
+
+	constexpr void bit_write(const bits_t n, const bool v) {
+		if(bit_read(n) != v) {
+			values ^= 1 << n;
+		}
+	}
+
+public:
+	Optional<uint32_t> config_backlight_timer() {
+		const auto table_index = (values & bits_mask_t::BacklightTimeoutMask) >> bits_t::BacklightTimeoutLSB;
+		if(table_index == 0) {
+			return {};
+		}
+
+		const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
+		return timer_seconds[table_index];
+	}
+
+	void set_config_backlight_timer(Optional<uint32_t> new_value) {
+		uint32_t new_index = 0;
+		if(new_value.is_valid()) {
+			new_index = new_value.value();			
+			if(new_index > 7) {
+				new_index = 7;
+			}
+		}
+
+		values = (values & ~bits_mask_t::BacklightTimeoutMask)
+			| ((new_index << bits_t::BacklightTimeoutLSB) & bits_mask_t::BacklightTimeoutMask);
+	}
+
+	constexpr uint32_t clkout_freq() {
+		uint32_t freq = (values & bits_mask_t::ClkoutFreqMask) >> bits_t::ClkoutFreqLSB;
+		if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
+			values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_reset_value << bits_t::ClkoutFreqLSB);
+			return clkout_freq_reset_value;
+		}
+		else {
+			return freq;
+		}
+	}
+
+	constexpr void set_clkout_freq(uint32_t freq) {
+		values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_range.clip(freq) << bits_t::ClkoutFreqLSB);
+	}
+
+	// ui_config is an uint32_t var storing information bitwise
+	// bits 0-2 store the backlight timer
+	// bits 4-19 (16 bits) store the clkout frequency
+	// bits 21-31 store the different single bit configs depicted below
+	// bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
+
+	constexpr bool show_gui_return_icon() const { // add return icon in touchscreen menue
+		return bit_read(bits_t::ShowGUIReturnIcon);
+	}
+
+	constexpr void set_gui_return_icon(bool v) {
+		bit_write(bits_t::ShowGUIReturnIcon, v);
+	}
+
+	constexpr bool load_app_settings() const { // load (last saved) app settings on startup of app
+		return bit_read(bits_t::LoadAppSettings);
+	}
+
+	constexpr void set_load_app_settings(bool v) {
+		bit_write(bits_t::LoadAppSettings, v);
+	}
+
+	constexpr bool save_app_settings() const { // save app settings when closing app
+		return bit_read(bits_t::SaveAppSettings);
+	}
+
+	constexpr void set_save_app_settings(bool v) {
+		bit_write(bits_t::SaveAppSettings, v);
+	}
+
+	constexpr bool show_bigger_qr_code() const { // show bigger QR code
+		return bit_read(bits_t::ShowBiggerQRCode);
+	}
+
+	constexpr void set_show_bigger_qr_code(bool v) {
+		bit_write(bits_t::ShowBiggerQRCode, v);
+	}
+
+	constexpr bool disable_touchscreen() const { // Option to disable touch screen
+		return bit_read(bits_t::DisableTouchscreen);
+	}
+
+	constexpr void set_disable_touchscreen(bool v) {
+		bit_write(bits_t::DisableTouchscreen, v);
+	}
+
+	constexpr bool hide_clock() const { // clock hidden from main menu
+		return bit_read(bits_t::HideClock);
+	}
+
+	constexpr void set_clock_hidden(bool v) {
+		bit_write(bits_t::HideClock, v);
+	}
+
+	constexpr bool clock_with_date() const { // show clock with date, if not hidden
+		return bit_read(bits_t::ClockWithDate);
+	}
+
+	constexpr void set_clock_with_date(bool v) {
+		bit_write(bits_t::ClockWithDate, v);
+	}
+
+	constexpr bool clkout_enabled() const {
+		return bit_read(bits_t::ClkOutEnabled);
+	}
+
+	constexpr void set_clkout_enabled(bool v) {
+		bit_write(bits_t::ClkOutEnabled, v);
+	}
+
+	constexpr bool config_speaker() const {
+		return bit_read(bits_t::ConfigSpeaker);
+	}
+
+	constexpr void set_config_speaker(bool v) {
+		bit_write(bits_t::ConfigSpeaker, v);
+	}
+
+	constexpr bool stealth_mode() const {
+		return bit_read(bits_t::StealthMode);
+	}
+
+	constexpr void set_stealth_mode(bool v) {
+		bit_write(bits_t::StealthMode, v);
+	}
+
+	constexpr bool config_login() const {
+		return bit_read(bits_t::ConfigLogin);
+	}
+
+	constexpr void set_config_login(bool v) {
+		bit_write(bits_t::ConfigLogin, v);
+	}
+
+	constexpr bool config_splash() const {
+		return bit_read(bits_t::ConfigSplash);
+	}
+
+	constexpr void set_config_splash(bool v) {
+		bit_write(bits_t::ConfigSplash, v);
+	}
+
+	constexpr ui_config_t() :
+		values(
+		      (1 << ConfigSplash)
+			| (1 << ConfigSpeaker)
+			| (clkout_freq_reset_value << ClkoutFreqLSB)
+			| (7 << BacklightTimeoutLSB)
+		)
+	{
+	}
+};
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	data_structure_version_enum structure_version;
@@ -97,7 +285,7 @@ struct data_t {
 	uint32_t playdead_sequence;
 	
 	// UI
-	uint32_t ui_config;
+	ui_config_t ui_config;
 	
 	uint32_t pocsag_last_address;
 	uint32_t pocsag_ignore_address;
@@ -126,12 +314,7 @@ struct data_t {
 		playing_dead(),				// TODO: Unused?
 		playdead_sequence(),		// TODO: Unused?
 
-		ui_config(					// TODO: Use `constexpr` setters in this constructor.
-		      (1 << 31)							// Show splash
-			| (1 << 28)							// Disable speaker
-			| (clkout_freq_reset_value << 4)	// CLKOUT frequency.
-			| (7 << 0)							// Backlight timer at maximum.
-		),
+		ui_config(),
 
 		pocsag_last_address(0),		// TODO: A better default?
 		pocsag_ignore_address(0),	// TODO: A better default?
@@ -342,57 +525,52 @@ void set_serial_format(const serial_format_t new_value) {
 	data->serial_format = new_value;
 }
 
-// ui_config is an uint32_t var storing information bitwise
-// bits 0-2 store the backlight timer
-// bits 4-19 (16 bits) store the clkout frequency
-// bits 21-31 store the different single bit configs depicted below
-// bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
-
-bool show_gui_return_icon(){ // add return icon in touchscreen menue
-return data->ui_config & (1 << 20);
+bool show_gui_return_icon() { // add return icon in touchscreen menue
+	return data->ui_config.show_gui_return_icon();
 }
 
 bool load_app_settings() { // load (last saved) app settings on startup of app
-	return data->ui_config & (1 << 21);
+	return data->ui_config.load_app_settings();
 }
 
 bool save_app_settings() { // save app settings when closing app
-	return data->ui_config & (1 << 22);
+	return data->ui_config.save_app_settings();
 }
   
 bool show_bigger_qr_code() { // show bigger QR code
-	return data->ui_config & (1 << 23);
+	return data->ui_config.show_bigger_qr_code();
 }
 
 bool disable_touchscreen() { // Option to disable touch screen
-	return data->ui_config & (1 << 24);
+	return data->ui_config.disable_touchscreen();
 }
 
 bool hide_clock() { // clock hidden from main menu
-	return data->ui_config & (1 << 25);
+	return data->ui_config.hide_clock();
 }
 
 bool clock_with_date() { // show clock with date, if not hidden
-	return data->ui_config & (1 << 26);
+	return data->ui_config.clock_with_date();
 }
 
 bool clkout_enabled() {
-	return data->ui_config & (1 << 27);
+	return data->ui_config.clkout_enabled();
 }
 
 bool config_speaker() {
-	return data->ui_config & (1 << 28);
+	return data->ui_config.config_speaker();
 }
+
 bool stealth_mode() {
-	return data->ui_config & (1 << 29);
+	return data->ui_config.stealth_mode();
 }
 
 bool config_login() {
-	return data->ui_config & (1 << 30);
+	return data->ui_config.config_login();
 }
 
 bool config_splash() {
-	return data->ui_config & (1 << 31);
+	return data->ui_config.config_splash();
 }
 
 uint8_t config_cpld() {
@@ -400,61 +578,55 @@ uint8_t config_cpld() {
 }
 
 Optional<uint32_t> config_backlight_timer() {
-	const auto table_index = data->ui_config & 7;
-	if(table_index == 0) {
-		return {};
-	}
-
-	const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
-	return timer_seconds[table_index];
+	return data->ui_config.config_backlight_timer();
 }
 
 void set_gui_return_icon(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 20)) | (v << 20);
+	data->ui_config.set_gui_return_icon(v);
 }
 
 void set_load_app_settings(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 21)) | (v << 21);
+	data->ui_config.set_load_app_settings(v);
 }
 
 void set_save_app_settings(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 22)) | (v << 22);
+	data->ui_config.set_save_app_settings(v);
 }
 
 void set_show_bigger_qr_code(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 23)) | (v << 23);
+	data->ui_config.set_show_bigger_qr_code(v);
 }
 
 void set_disable_touchscreen(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 24)) | (v << 24);
+	data->ui_config.set_disable_touchscreen(v);
 }
 
 void set_clock_hidden(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 25)) | (v << 25);
+	data->ui_config.set_clock_hidden(v);
 }
 
 void set_clock_with_date(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 26)) | (v << 26);
+	data->ui_config.set_clock_with_date(v);
 }
 
 void set_clkout_enabled(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 27)) | (v << 27);
+	data->ui_config.set_clkout_enabled(v);
 }
 
 void set_config_speaker(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 28)) | (v << 28);
+	data->ui_config.set_config_speaker(v);
 }
 
 void set_stealth_mode(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 29)) | (v << 29);
+	data->ui_config.set_stealth_mode(v);
 }
 
 void set_config_login(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 30)) | (v << 30);
+	data->ui_config.set_config_login(v);
 }
 
 void set_config_splash(bool v) {
-	data->ui_config = (data->ui_config & ~(1 << 31)) | (v << 31);
+	data->ui_config.set_config_splash(v);
 }
 
 void set_config_cpld(uint8_t i) {
@@ -462,7 +634,7 @@ void set_config_cpld(uint8_t i) {
 }
 
 void set_config_backlight_timer(uint32_t i) {
-	data->ui_config = (data->ui_config & ~7) | (i & 7);
+	data->ui_config.set_config_backlight_timer(i);
 }
 
 /*void set_config_textentry(uint8_t new_value) {
@@ -494,18 +666,11 @@ void set_pocsag_ignore_address(uint32_t address) {
 }
 
 uint32_t clkout_freq() {
-	uint16_t freq = (data->ui_config & 0x000FFFF0) >> 4;
-	if(freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
-		data->ui_config = (data->ui_config & ~0x000FFFF0) | clkout_freq_reset_value << 4;
-		return clkout_freq_reset_value;
-	}
-	else {
-		return freq;
-	}
+	return data->ui_config.clkout_freq();
 }
 
 void set_clkout_freq(uint32_t freq) {
-	data->ui_config = (data->ui_config & ~0x000FFFF0) | (clkout_freq_range.clip(freq) << 4);
+	data->ui_config.set_clkout_freq(freq);
 }
 
 
