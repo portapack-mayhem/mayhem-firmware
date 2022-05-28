@@ -77,24 +77,25 @@ static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 struct ui_config_t {
 private:
 	enum bits_t {
-		BacklightTimeoutLSB =  0,
-		ClkoutFreqLSB       =  4,
-		ShowGUIReturnIcon   = 20,
-		LoadAppSettings     = 21,
-		SaveAppSettings     = 22,
-		ShowBiggerQRCode    = 23,
-		DisableTouchscreen  = 24,
-		HideClock           = 25,
-		ClockWithDate       = 26,
-		ClkOutEnabled       = 27,
-		ConfigSpeaker       = 28,
-		StealthMode         = 29,
-		ConfigLogin         = 30,
-		ConfigSplash        = 31,
+		BacklightTimeoutLSB    =  0,
+		BacklightTimeoutEnable =  3,
+		ClkoutFreqLSB          =  4,
+		ShowGUIReturnIcon      = 20,
+		LoadAppSettings        = 21,
+		SaveAppSettings        = 22,
+		ShowBiggerQRCode       = 23,
+		DisableTouchscreen     = 24,
+		HideClock              = 25,
+		ClockWithDate          = 26,
+		ClkOutEnabled          = 27,
+		ConfigSpeaker          = 28,
+		StealthMode            = 29,
+		ConfigLogin            = 30,
+		ConfigSplash           = 31,
 	};
 
 	enum bits_mask_t : uint32_t {
-		BacklightTimeoutMask = ((1 <<  4) - 1) << bits_t::BacklightTimeoutLSB,
+		BacklightTimeoutMask = ((1 <<  3) - 1) << bits_t::BacklightTimeoutLSB,
 		ClkoutFreqMask       = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
 	};
 
@@ -111,27 +112,16 @@ private:
 	}
 
 public:
-	Optional<uint32_t> config_backlight_timer() {
-		const auto table_index = (values & bits_mask_t::BacklightTimeoutMask) >> bits_t::BacklightTimeoutLSB;
-		if(table_index == 0) {
-			return {};
-		}
-
-		const uint32_t timer_seconds[8] = { 0, 5, 15, 30, 60, 180, 300, 600 };
-		return timer_seconds[table_index];
+	backlight_config_t config_backlight_timer() {
+		const auto timeout_enum = (backlight_timeout_t)((values & bits_mask_t::BacklightTimeoutMask) >> bits_t::BacklightTimeoutLSB);
+		const bool timeout_enabled = bit_read(bits_t::BacklightTimeoutEnable);
+		return backlight_config_t(timeout_enum, timeout_enabled);
 	}
 
-	void set_config_backlight_timer(Optional<uint32_t> new_value) {
-		uint32_t new_index = 0;
-		if(new_value.is_valid()) {
-			new_index = new_value.value();			
-			if(new_index > 7) {
-				new_index = 7;
-			}
-		}
-
+	void set_config_backlight_timer(const backlight_config_t& new_value) {
 		values = (values & ~bits_mask_t::BacklightTimeoutMask)
-			| ((new_index << bits_t::BacklightTimeoutLSB) & bits_mask_t::BacklightTimeoutMask);
+			| ((new_value.timeout_enum() << bits_t::BacklightTimeoutLSB) & bits_mask_t::BacklightTimeoutMask);
+		bit_write(bits_t::BacklightTimeoutEnable, new_value.timeout_enabled());
 	}
 
 	constexpr uint32_t clkout_freq() {
@@ -577,7 +567,7 @@ uint8_t config_cpld() {
 	return data->hardware_config;
 }
 
-Optional<uint32_t> config_backlight_timer() {
+backlight_config_t config_backlight_timer() {
 	return data->ui_config.config_backlight_timer();
 }
 
@@ -633,8 +623,8 @@ void set_config_cpld(uint8_t i) {
 	data->hardware_config = i;
 }
 
-void set_config_backlight_timer(uint32_t i) {
-	data->ui_config.set_config_backlight_timer(i);
+void set_config_backlight_timer(const backlight_config_t& new_value) {
+	data->ui_config.set_config_backlight_timer(new_value);
 }
 
 /*void set_config_textentry(uint8_t new_value) {

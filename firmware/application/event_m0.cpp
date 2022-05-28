@@ -227,8 +227,8 @@ void EventDispatcher::handle_rtc_tick() {
 	portapack::temperature_logger.second_tick();
 	
 	const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
-	if (backlight_timer.is_valid()) {
-		if (portapack::bl_tick_counter == backlight_timer.value())
+	if (backlight_timer.timeout_enabled()) {
+		if (portapack::bl_tick_counter == backlight_timer.timeout_seconds())
 			set_display_sleep(true);
 		else
 			portapack::bl_tick_counter++;
