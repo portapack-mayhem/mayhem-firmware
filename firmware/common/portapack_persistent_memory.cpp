@@ -68,6 +68,8 @@ using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range { 10, 60000 };
 constexpr uint32_t clkout_freq_reset_value { 10000 };
 
+static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
+
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
 	int64_t tuned_frequency;
@@ -99,6 +101,45 @@ struct data_t {
 
 	// Hardware
 	uint32_t hardware_config;
+
+	constexpr data_t() :
+		tuned_frequency(tuned_frequency_reset_value),
+		correction_ppb(ppb_reset_value),
+		touch_calibration_magic(TOUCH_CALIBRATION_MAGIC),
+		touch_calibration(touch::Calibration()),
+
+		modem_def_index(0),			// TODO: Unused?
+		serial_format({
+			.data_bits = 7,
+			.parity = parity_enum::EVEN,
+			.stop_bits = 1,
+			.bit_order = order_enum::LSB_FIRST,
+		}),
+		modem_bw(15000),			// TODO: Unused?
+		afsk_mark_freq(afsk_mark_reset_value),
+		afsk_space_freq(afsk_space_reset_value),
+		modem_baudrate(modem_baudrate_reset_value),
+		modem_repeat(modem_repeat_reset_value),
+
+		playdead_magic(),			// TODO: Unused?
+		playing_dead(),				// TODO: Unused?
+		playdead_sequence(),		// TODO: Unused?
+
+		ui_config(					// TODO: Use `constexpr` setters in this constructor.
+		      (1 << 31)							// Show splash
+			| (1 << 28)							// Disable speaker
+			| (clkout_freq_reset_value << 4)	// CLKOUT frequency.
+			| (7 << 0)							// Backlight timer at maximum.
+		),
+
+		pocsag_last_address(0),		// TODO: A better default?
+		pocsag_ignore_address(0),	// TODO: A better default?
+
+		tone_mix(tone_mix_reset_value),
+
+		hardware_config(0)
+	{
+	}
 };
 
 struct backup_ram_t {
@@ -139,7 +180,9 @@ private:
 
 public:
 	/* default constructor */
-	backup_ram_t() {
+	backup_ram_t() :
+		check_value(0)
+	{
 		const data_t defaults = data_t();
 		copy_from_data_t(defaults, *this);
 	}
@@ -216,15 +259,13 @@ void set_correction_ppb(const ppb_t new_value) {
 	portapack::clock_manager.set_reference_ppb(clipped_value);
 }
 
-static constexpr uint32_t touch_calibration_magic = 0x074af82f;
-
 void set_touch_calibration(const touch::Calibration& new_value) {
 	data->touch_calibration = new_value;
-	data->touch_calibration_magic = touch_calibration_magic;
+	data->touch_calibration_magic = TOUCH_CALIBRATION_MAGIC;
 }
 
 const touch::Calibration& touch_calibration() {
-	if( data->touch_calibration_magic != touch_calibration_magic ) {
+	if( data->touch_calibration_magic != TOUCH_CALIBRATION_MAGIC ) {
 		set_touch_calibration(touch::Calibration());
 	}
 	return data->touch_calibration;
