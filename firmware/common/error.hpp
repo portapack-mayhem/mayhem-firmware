@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2022 José Moreira @cusspvz
  *
  * This file is part of PortaPack.
  *
@@ -19,26 +19,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <string>
+
 #pragma once
 
-#include "result.hpp"
-#include "error.hpp"
-
-namespace stream
+struct Error
 {
+    constexpr Error() = default;
+    constexpr Error(uint32_t err) : err{err}
+    {
+    }
+    uint32_t code() const
+    {
+        return err;
+    }
 
-	class Reader
-	{
-	public:
-		virtual Result<size_t, Error> read(void *const buffer, const size_t bytes) = 0;
-		virtual ~Reader() = default;
-	};
+    std::string what() const;
 
-	class Writer
-	{
-	public:
-		virtual Result<size_t, Error> write(const void *const buffer, const size_t bytes) = 0;
-		virtual ~Writer() = default;
-	};
-
-} /* namespace stream */
+    uint32_t err{0};
+};
