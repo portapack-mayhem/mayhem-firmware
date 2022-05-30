@@ -28,54 +28,55 @@
 #include "dsp_iir.hpp"
 #include "dsp_squelch.hpp"
 
-#include "stream_input.hpp"
+#include "stream_data_exchange.hpp"
 #include "block_decimator.hpp"
 #include "audio_stats_collector.hpp"
 
 #include <cstdint>
 #include <memory>
 
-class AudioOutput {
+class AudioOutput
+{
 public:
 	void configure(const bool do_proc);
-	
+
 	void configure(
-		const iir_biquad_config_t& hpf_config,
-		const iir_biquad_config_t& deemph_config = iir_config_passthrough,
-		const float squelch_threshold = 0.0f
-	);
+		const iir_biquad_config_t &hpf_config,
+		const iir_biquad_config_t &deemph_config = iir_config_passthrough,
+		const float squelch_threshold = 0.0f);
 
-	void write(const buffer_s16_t& audio);
-	void write(const buffer_f32_t& audio);
+	void write(const buffer_s16_t &audio);
+	void write(const buffer_f32_t &audio);
 
-	void set_stream(std::unique_ptr<StreamInput> new_stream) {
+	void set_stream(std::unique_ptr<StreamDataExchange> new_stream)
+	{
 		stream = std::move(new_stream);
 	}
-	
+
 	bool is_squelched();
 
 private:
 	static constexpr float k = 32768.0f;
 	static constexpr float ki = 1.0f / k;
 
-	BlockDecimator<float, 32> block_buffer { 1 };	
+	BlockDecimator<float, 32> block_buffer{1};
 
-	IIRBiquadFilter hpf { };
-	IIRBiquadFilter deemph { };
-	FMSquelch squelch { };
+	IIRBiquadFilter hpf{};
+	IIRBiquadFilter deemph{};
+	FMSquelch squelch{};
 
-	std::unique_ptr<StreamInput> stream { };
+	std::unique_ptr<StreamDataExchange> stream{};
 
-	AudioStatsCollector audio_stats { };
+	AudioStatsCollector audio_stats{};
 
 	uint64_t audio_present_history = 0;
-	
+
 	bool audio_present = false;
 	bool do_processing = true;
 
-	void on_block(const buffer_f32_t& audio);
-	void fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo);
-	void feed_audio_stats(const buffer_f32_t& audio);
+	void on_block(const buffer_f32_t &audio);
+	void fill_audio_buffer(const buffer_f32_t &audio, const bool send_to_fifo);
+	void feed_audio_stats(const buffer_f32_t &audio);
 };
 
-#endif/*__AUDIO_OUTPUT_H__*/
+#endif /*__AUDIO_OUTPUT_H__*/

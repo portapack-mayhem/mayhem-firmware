@@ -27,8 +27,10 @@
 
 #include <array>
 
-void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+void NarrowbandAMAudio::execute(const buffer_c8_t &buffer)
+{
+	if (!configured)
+	{
 		return;
 	}
 
@@ -48,35 +50,42 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 	audio_output.write(audio);
 }
 
-buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
-	if( modulation_ssb ) {
+buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t &channel)
+{
+	if (modulation_ssb)
+	{
 		return demod_ssb.execute(channel, audio_buffer);
-	} else {
+	}
+	else
+	{
 		return demod_am.execute(channel, audio_buffer);
 	}
 }
 
-void NarrowbandAMAudio::on_message(const Message* const message) {
-	switch(message->id) {
+void NarrowbandAMAudio::on_message(const Message *const message)
+{
+	switch (message->id)
+	{
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(message);
 		break;
 
 	case Message::ID::AMConfigure:
-		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
+		configure(*reinterpret_cast<const AMConfigureMessage *>(message));
 		break;
 
 	case Message::ID::CaptureConfig:
-		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 		break;
-		
+
 	default:
 		break;
 	}
 }
 
-void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
+void NarrowbandAMAudio::configure(const AMConfigureMessage &message)
+{
 	constexpr size_t decim_0_input_fs = baseband_fs;
 	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
@@ -87,7 +96,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-	//const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	// const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
@@ -103,16 +112,21 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	configured = true;
 }
 
-void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
-	if( message.config ) {
-		audio_output.set_stream(std::make_unique<StreamInput>(message.config));
-	} else {
+void NarrowbandAMAudio::stream_config(const StreamDataExchangeMessage &message)
+{
+	if (message.config)
+	{
+		audio_output.set_stream(std::make_unique<StreamDataExchange>(message.config));
+	}
+	else
+	{
 		audio_output.set_stream(nullptr);
 	}
 }
 
-int main() {
-	EventDispatcher event_dispatcher { std::make_unique<NarrowbandAMAudio>() };
+int main()
+{
+	EventDispatcher event_dispatcher{std::make_unique<NarrowbandAMAudio>()};
 	event_dispatcher.run();
 	return 0;
 }

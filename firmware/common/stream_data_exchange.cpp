@@ -22,6 +22,8 @@
 #include "stream_data_exchange.hpp"
 #include "portapack_shared_memory.hpp"
 
+const size_of_shared_data = sizeof(shared_memory.bb_data.data);
+
 StreamDataExchange::StreamDataExchange(const stream_exchange_direction direction) : _direction{direction}
 {
 #if defined(LPC43XX_M0)
@@ -34,15 +36,15 @@ StreamDataExchange::StreamDataExchange(const stream_exchange_direction direction
     if (direction == STREAM_EXCHANGE_DUPLEX)
     {
         // use the shared data to setup the circular buffers for duplex comms
-        buffer_from_baseband_to_application = new CircularBuffer(&(shared_memory.bb_data.data[0]), 256);
-        buffer_from_application_to_baseband = new CircularBuffer(&(shared_memory.bb_data.data[256]), 256);
+        buffer_from_baseband_to_application = new CircularBuffer(&(shared_memory.bb_data.data[0]), size_of_shared_data / 2);
+        buffer_from_application_to_baseband = new CircularBuffer(&(shared_memory.bb_data.data[size_of_shared_data / 2]), size_of_shared_data / 2);
     }
 
     if (direction == STREAM_EXCHANGE_APP_TO_BB)
-        buffer_from_application_to_baseband = new CircularBuffer(&(shared_memory.bb_data.data[0]), 512);
+        buffer_from_application_to_baseband = new CircularBuffer(&(shared_memory.bb_data.data[0]), size_of_shared_data);
 
     if (direction == STREAM_EXCHANGE_BB_TO_APP)
-        buffer_from_baseband_to_application = new CircularBuffer(&(shared_memory.bb_data.data[0]), 512);
+        buffer_from_baseband_to_application = new CircularBuffer(&(shared_memory.bb_data.data[0]), size_of_shared_data);
 
     if (buffer_from_baseband_to_application != nullptr)
         buffer_from_baseband_to_application->clear_data();

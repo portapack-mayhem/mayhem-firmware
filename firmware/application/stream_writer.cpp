@@ -21,12 +21,12 @@
 
 #include "stream_reader.hpp"
 
-StreamReader::StreamReader(std::unique_ptr<stream::Reader> reader) : reader{std::move(reader)}
+StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> writer) : writer{std::move(writer)}
 {
-    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamReader::static_fn, this);
+    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamWriter::static_fn, this);
 };
 
-StreamReader::~StreamReader()
+StreamWriter::~StreamWriter()
 {
     if (thread)
     {
@@ -40,7 +40,7 @@ StreamReader::~StreamReader()
     }
 };
 
-uint32_t StreamReader::run()
+uint32_t StreamWriter::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -49,11 +49,13 @@ uint32_t StreamReader::run()
         size_t block_bytes = 0;
         size_t block_bytes_written = 0;
 
-        if (!reader)
-            return NO_READER;
+        if (!writer)
+            return NO_WRITER;
+
+        data_exchange.setup_baseband_stream();
 
         // read from reader
-        auto read_result = reader->read(buffer_block, sizeof(*buffer_block));
+        auto read_result = data_exchange->read(buffer_block, sizeof(*buffer_block));
 
         if (read_result.is_error())
             return READ_ERROR;
@@ -66,32 +68,27 @@ uint32_t StreamReader::run()
         while (block_bytes_written < block_bytes && !chThdShouldTerminate())
         {
             // write to baseband
-            auto write_result = data_exchange.write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
+            auto write_result = writer.write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
 
             if (read_result.is_error())
                 return WRITE_ERROR;
 
             if (write_result.value() > 0)
                 block_bytes_written += write_result.value();
-
-            if (data_exchange.buffer_from_application_to_baseband->is_full())
-                data_exchange.setup_baseband_stream();
         }
-
-        data_exchange.setup_baseband_stream();
     }
 
     return TERMINATED;
 };
 
-msg_t StreamReader::static_fn(void *arg)
+msg_t StreamWriter::static_fn(void *arg)
 {
-    auto obj = static_cast<StreamReader *>(arg);
+    auto obj = static_cast<StreamWriter *>(arg);
 
     const uint32_t return_code = obj->run();
 
-    // TODO: adapt this to the new stream reader interface
-    StreamReaderDoneMessage message{return_code};
+    // adapt this to the new stream reader interface
+    StreamWriterDoneMessage message{return_code};
     EventDispatcher::send_message(message);
 
     return 0;

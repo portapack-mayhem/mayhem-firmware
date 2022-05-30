@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2022 José Moreira @cusspvz
  *
  * This file is part of PortaPack.
  *
@@ -20,29 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __AUDIO_INPUT_H__
-#define __AUDIO_INPUT_H__
-
-#include "dsp_types.hpp"
-
-#include "dsp_iir.hpp"
-#include "dsp_squelch.hpp"
-
+#include <cstring>
+#include "io.hpp"
+#include "event_m0.hpp"
 #include "stream_data_exchange.hpp"
 
-#include <cstdint>
-#include <memory>
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
 
-class AudioInput
+class StreamWriter
 {
 public:
-	void read_audio_buffer(buffer_s16_t &audio);
+    StreamWriter(std::unique_ptr<stream::Writer> writer);
+    ~StreamWriter();
+
+    StreamWriter(const StreamWriter &) = delete;
+    StreamWriter(StreamWriter &&) = delete;
+    StreamWriter &operator=(const StreamWriter &) = delete;
+    StreamWriter &operator=(StreamWriter &&) = delete;
+
+    enum StreamWriter_return
+    {
+        END_OF_STREAM = 0,
+        NO_READER,
+        READ_ERROR,
+        WRITE_ERROR,
+        TERMINATED
+    };
 
 private:
-	/*static constexpr float k = 32768.0f;
-	static constexpr float ki = 1.0f / k;
+    std::unique_ptr<stream::Writer> writer{nullptr};
+    StreamDataExchange data_exchange{STREAM_EXCHANGE_BB_TO_APP};
+    Thread *thread{nullptr};
 
-	IIRBiquadFilter hpf { };*/
+    static msg_t static_fn(void *arg);
+    uint32_t run();
 };
-
-#endif /*__AUDIO_INPUT_H__*/
