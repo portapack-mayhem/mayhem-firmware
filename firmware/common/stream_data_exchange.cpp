@@ -22,13 +22,12 @@
 #include "portapack_shared_memory.hpp"
 #include "stream_data_exchange.hpp"
 
-const auto size_of_shared_data = sizeof(shared_memory.bb_data.data);
-
 StreamDataExchange::StreamDataExchange(const stream_exchange_direction direction) : _direction{direction}
 {
 #if defined(LPC43XX_M0)
     last_instance = this;
 #endif
+    const auto size_of_shared_data = sizeof(shared_memory.bb_data.data);
 
     buffer_from_baseband_to_application = nullptr;
     buffer_from_application_to_baseband = nullptr;
