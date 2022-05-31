@@ -108,6 +108,7 @@ set(CPPSRC
 	${COMMON}/baseband_sgpio.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/buffer.cpp
+	${COMMON}/stream_data_exchange.cpp
 	baseband_thread.cpp
 	baseband_processor.cpp
 	baseband_stats_collector.cpp
@@ -119,8 +120,6 @@ set(CPPSRC
 	matched_filter.cpp
 	spectrum_collector.cpp
 	tv_collector.cpp
-	stream_input.cpp
-	stream_output.cpp
 	dsp_squelch.cpp
 	clock_recovery.cpp
 	packet_builder.cpp

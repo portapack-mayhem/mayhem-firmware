@@ -20,11 +20,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #ifndef __FILE_H__
 #define __FILE_H__
 
 #include "ff.h"
+#include "io.hpp"
 
+#include "error.hpp"
+#include "result.hpp"
 #include "optional.hpp"
 
 #include <cstddef>
@@ -39,31 +44,6 @@ namespace std
 {
 	namespace filesystem
 	{
-
-		struct filesystem_error
-		{
-			constexpr filesystem_error() = default;
-
-			constexpr filesystem_error(
-				FRESULT fatfs_error) : err{fatfs_error}
-			{
-			}
-
-			constexpr filesystem_error(
-				unsigned int other_error) : err{other_error}
-			{
-			}
-
-			uint32_t code() const
-			{
-				return err;
-			}
-
-			std::string what() const;
-
-		private:
-			uint32_t err{FR_OK};
-		};
 
 		struct path
 		{
@@ -272,67 +252,10 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 class File
 {
 public:
-	using Size = uint64_t;
-	using Offset = uint64_t;
+	using Size = size_t;
+	using Offset = size_t;
 	using Timestamp = uint32_t;
-	using Error = std::filesystem::filesystem_error;
-
-	template <typename T>
-	struct Result
-	{
-		enum class Type
-		{
-			Success,
-			Error,
-		} type;
-		union
-		{
-			T value_;
-			Error error_;
-		};
-
-		bool is_ok() const
-		{
-			return type == Type::Success;
-		}
-
-		bool is_error() const
-		{
-			return type == Type::Error;
-		}
-
-		const T &value() const
-		{
-			return value_;
-		}
-
-		Error error() const
-		{
-			return error_;
-		}
-
-		Result() = delete;
-
-		constexpr Result(
-			T value) : type{Type::Success},
-					   value_{value}
-		{
-		}
-
-		constexpr Result(
-			Error error) : type{Type::Error},
-						   error_{error}
-		{
-		}
-
-		~Result()
-		{
-			if (type == Type::Success)
-			{
-				value_.~T();
-			}
-		}
-	};
+	using FsError = Error;
 
 	File(){};
 	~File();
@@ -342,32 +265,32 @@ public:
 	File &operator=(const File &) = delete;
 
 	// TODO: Return Result<>.
-	Optional<Error> open(const std::filesystem::path &filename);
-	Optional<Error> append(const std::filesystem::path &filename);
-	Optional<Error> create(const std::filesystem::path &filename);
+	Optional<FsError> open(const std::filesystem::path &filename);
+	Optional<FsError> append(const std::filesystem::path &filename);
+	Optional<FsError> create(const std::filesystem::path &filename);
 
-	Result<Size> read(void *const data, const Size bytes_to_read);
-	Result<Size> write(const void *const data, const Size bytes_to_write);
+	Result<Size, FsError> read(void *const data, const Size bytes_to_read);
+	Result<Size, FsError> write(const void *const data, const Size bytes_to_write);
 
-	Result<Offset> seek(const uint64_t Offset);
+	Result<Offset, FsError> seek(const size_t Offset);
 	Timestamp created_date();
 	Size size();
 
 	template <size_t N>
-	Result<Size> write(const std::array<uint8_t, N> &data)
+	Result<Size, FsError> write(const std::array<uint8_t, N> &data)
 	{
 		return write(data.data(), N);
 	}
 
-	Optional<Error> write_line(const std::string &s);
+	Optional<FsError> write_line(const std::string &s);
 
 	// TODO: Return Result<>.
-	Optional<Error> sync();
+	Optional<FsError> sync();
 
 private:
 	FIL f{};
 
-	Optional<Error> open_fatfs(const std::filesystem::path &filename, BYTE mode);
+	Optional<FsError> open_fatfs(const std::filesystem::path &filename, BYTE mode);
 };
 
 #endif /*__FILE_H__*/

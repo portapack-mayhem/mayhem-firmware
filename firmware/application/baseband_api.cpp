@@ -210,6 +210,13 @@ namespace baseband
 		send_message(&message);
 	}
 
+	void set_stream_data_exchange(StreamDataExchangeConfig *const config)
+	{
+		const StreamDataExchangeMessage message{
+			config};
+		send_message(&message);
+	}
+
 	void set_pitch_rssi(int32_t avg, bool enabled)
 	{
 		const PitchRSSIConfigureMessage message{
@@ -341,30 +348,6 @@ namespace baseband
 	void set_sample_rate(const uint32_t sample_rate)
 	{
 		SamplerateConfigMessage message{sample_rate};
-		send_message(&message);
-	}
-
-	void capture_start(CaptureConfig *const config)
-	{
-		StreamDataExchangeMessage message{config};
-		send_message(&message);
-	}
-
-	void capture_stop()
-	{
-		StreamDataExchangeMessage message{nullptr};
-		send_message(&message);
-	}
-
-	void replay_start(ReplayConfig *const config)
-	{
-		ReplayConfigMessage message{config};
-		send_message(&message);
-	}
-
-	void replay_stop()
-	{
-		ReplayConfigMessage message{nullptr};
 		send_message(&message);
 	}
 

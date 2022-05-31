@@ -29,50 +29,49 @@
 
 #include "spectrum_collector.hpp"
 
-#include "stream_output.hpp"
+#include "stream_data_exchange.hpp"
 
 #include <array>
 #include <memory>
 
-class ReplayProcessor : public BasebandProcessor {
+class ReplayProcessor : public BasebandProcessor
+{
 public:
 	ReplayProcessor();
 
-	void execute(const buffer_c8_t& buffer) override;
+	void execute(const buffer_c8_t &buffer) override;
 
-	void on_message(const Message* const message) override;
+	void on_message(const Message *const message) override;
 
 private:
 	size_t baseband_fs = 0;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
-	std::array<complex8_t, 2048> iq { };
-	const buffer_c8_t iq_buffer {
+	std::array<complex8_t, 2048> iq{};
+	const buffer_c8_t iq_buffer{
 		iq.data(),
 		iq.size(),
-		baseband_fs 
-	};
-	
+		baseband_fs};
+
 	int32_t channel_filter_low_f = 0;
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
 
-	std::unique_ptr<StreamOutput> stream { };
+	std::unique_ptr<StreamDataExchange> stream{};
 
-	SpectrumCollector channel_spectrum { };
+	SpectrumCollector channel_spectrum{};
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
-	
-	bool configured { false };
-	uint32_t bytes_read { 0 };
 
-	void samplerate_config(const SamplerateConfigMessage& message);
-	void replay_config(const ReplayConfigMessage& message);
-	
-	TXProgressMessage txprogress_message { };
-	RequestSignalMessage sig_message { RequestSignalMessage::Signal::FillRequest };
+	bool configured{false};
+	uint32_t bytes_read{0};
+
+	void samplerate_config(const SamplerateConfigMessage &message);
+	void stream_config(const StreamDataExchangeMessage &message);
+
+	TXProgressMessage txprogress_message{};
 };
 
-#endif/*__PROC_GPS_SIM_HPP__*/
+#endif /*__PROC_GPS_SIM_HPP__*/

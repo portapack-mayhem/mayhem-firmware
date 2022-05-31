@@ -245,7 +245,7 @@ void APRSRxProcessor::on_message(const Message *const message)
 {
 	if (message->id == Message::ID::APRSRxConfigure)
 		configure(*reinterpret_cast<const APRSRxConfigureMessage *>(message));
-	if (message->id == Message::ID::CaptureConfig)
+	if (message->id == Message::ID::StreamDataExchangeConfig)
 		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 }
 

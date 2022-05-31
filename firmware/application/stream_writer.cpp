@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "stream_reader.hpp"
+#include "stream_writer.hpp"
 
 StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> writer) : writer{std::move(writer)}
 {
@@ -55,7 +55,7 @@ uint32_t StreamWriter::run()
         data_exchange.setup_baseband_stream();
 
         // read from reader
-        auto read_result = data_exchange->read(buffer_block, sizeof(*buffer_block));
+        auto read_result = data_exchange.read(buffer_block, sizeof(*buffer_block));
 
         if (read_result.is_error())
             return READ_ERROR;
@@ -68,7 +68,7 @@ uint32_t StreamWriter::run()
         while (block_bytes_written < block_bytes && !chThdShouldTerminate())
         {
             // write to baseband
-            auto write_result = writer.write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
+            auto write_result = writer->write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
 
             if (read_result.is_error())
                 return WRITE_ERROR;

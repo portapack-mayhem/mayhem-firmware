@@ -70,13 +70,13 @@ namespace ui
 	private:
 		void toggle();
 		// void toggle_pitch_rssi();
-		Optional<File::Error> write_metadata_file(const std::filesystem::path &filename);
+		Optional<File::FsError> write_metadata_file(const std::filesystem::path &filename);
 
 		void on_tick_second();
 		void update_status_display();
 
-		void handle_stream_writer_done(const File::Error error);
-		void handle_error(const File::Error error);
+		void handle_stream_writer_done(const File::FsError error);
+		void handle_error(const File::FsError error);
 
 		// bool pitch_rssi_enabled = false;
 
@@ -123,7 +123,7 @@ namespace ui
 			"",
 		};
 
-		std::unique_ptr<CaptureThread> stream_writer{};
+		std::unique_ptr<StreamWriter> stream_writer{};
 
 		MessageHandlerRegistration message_handler_stream_writer_error{
 			Message::ID::StreamWriterDone,

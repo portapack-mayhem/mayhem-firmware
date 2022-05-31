@@ -20,14 +20,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <cstdint>
+#include "portapack_shared_memory.hpp"
 #include "proc_wfm_audio.hpp"
 
-#include "portapack_shared_memory.hpp"
-#include "audio_output.hpp"
 #include "dsp_fft.hpp"
 #include "event_m4.hpp"
-
-#include <cstdint>
 
 void WidebandFMAudio::execute(const buffer_c8_t &buffer)
 {
@@ -145,7 +143,7 @@ void WidebandFMAudio::post_message(const buffer_c16_t &data)
 	fft_step = 0;
 }
 
-void WidebandFMAudio::on_message(const Message *const message)
+void WidebandFMAudio::on_message(const Message *message)
 {
 	switch (message->id)
 	{
@@ -158,7 +156,7 @@ void WidebandFMAudio::on_message(const Message *const message)
 		configure(*reinterpret_cast<const WFMConfigureMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchange:
+	case Message::ID::StreamDataExchangeConfig:
 		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 		break;
 

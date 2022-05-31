@@ -47,8 +47,8 @@ void CaptureProcessor::execute(const buffer_c8_t &buffer)
 	if (stream)
 	{
 		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-		const size_t written = stream->write(decimator_out.p, bytes_to_write);
-		if (written != bytes_to_write)
+		const auto written = stream->write(decimator_out.p, bytes_to_write);
+		if (written.value() != bytes_to_write)
 		{
 			// TODO eventually report error somewhere
 		}
@@ -77,7 +77,7 @@ void CaptureProcessor::on_message(const Message *const message)
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchange:
+	case Message::ID::StreamDataExchangeConfig:
 		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 		break;
 
@@ -106,13 +106,13 @@ void CaptureProcessor::samplerate_config(const SamplerateConfigMessage &message)
 
 void CaptureProcessor::stream_config(const StreamDataExchangeMessage &message)
 {
-	if (!message->config)
+	if (!message.config)
 		return;
 
 	if (stream)
 		stream.reset();
 
-	stream = std::make_unique<StreamDataExchange>(message->config);
+	stream = std::make_unique<StreamDataExchange>(message.config);
 }
 
 int main()

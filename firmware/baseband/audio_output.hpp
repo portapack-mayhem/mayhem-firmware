@@ -23,17 +23,17 @@
 #ifndef __AUDIO_OUTPUT_H__
 #define __AUDIO_OUTPUT_H__
 
+#include <cstdint>
+#include <memory>
 #include "dsp_types.hpp"
 
 #include "dsp_iir.hpp"
 #include "dsp_squelch.hpp"
 
-#include "stream_data_exchange.hpp"
 #include "block_decimator.hpp"
 #include "audio_stats_collector.hpp"
 
-#include <cstdint>
-#include <memory>
+#include "stream_data_exchange.hpp"
 
 class AudioOutput
 {

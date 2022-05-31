@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include <cstring>
 #include "io.hpp"
 #include "message.hpp"
@@ -35,7 +37,7 @@ class StreamDataExchange : public stream::Reader, public stream::Writer
 {
 public:
     StreamDataExchange(const stream_exchange_direction direction);
-    StreamDataExchange(const StreamDataExchangeConfig *config);
+    StreamDataExchange(const StreamDataExchangeConfig *);
 
     ~StreamDataExchange();
     StreamDataExchange(const StreamDataExchange &) = delete;

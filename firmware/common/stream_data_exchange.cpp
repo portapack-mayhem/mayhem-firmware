@@ -19,10 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "stream_data_exchange.hpp"
 #include "portapack_shared_memory.hpp"
+#include "stream_data_exchange.hpp"
 
-const size_of_shared_data = sizeof(shared_memory.bb_data.data);
+const auto size_of_shared_data = sizeof(shared_memory.bb_data.data);
 
 StreamDataExchange::StreamDataExchange(const stream_exchange_direction direction) : _direction{direction}
 {

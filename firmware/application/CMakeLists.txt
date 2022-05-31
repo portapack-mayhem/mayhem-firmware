@@ -119,7 +119,6 @@ set(CPPSRC
 	${COMMON}/baseband_cpld.cpp
 	${COMMON}/bch_code.cpp
 	${COMMON}/buffer.cpp
-	${COMMON}/buffer_exchange.cpp
 	${COMMON}/chibios_cpp.cpp
 	${COMMON}/cpld_max5.cpp
 	${COMMON}/cpld_update.cpp
@@ -144,6 +143,7 @@ set(CPPSRC
 	${COMMON}/portapack_io.cpp
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
+	${COMMON}/stream_data_exchange.cpp
 	${COMMON}/sonde_packet.cpp
 	# ${COMMON}/test_packet.cpp
 	${COMMON}/tpms_packet.cpp
@@ -157,7 +157,8 @@ set(CPPSRC
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
-	capture_thread.cpp
+	stream_reader.cpp
+	stream_writer.cpp
 	clock_manager.cpp
 	core_control.cpp
 	database.cpp
@@ -178,7 +179,6 @@ set(CPPSRC
 	radio.cpp
 	receiver_model.cpp
 	recent_entries.cpp
-	replay_thread.cpp
 	rf_path.cpp
 	rtc_time.cpp
 	sd_card.cpp

@@ -75,7 +75,7 @@ public:
 		ChannelSpectrumConfig = 15,
 		SpectrumStreamingConfig = 16,
 		DisplaySleep = 17,
-		StreamDataExchange = 18,
+		StreamDataExchangeConfig = 18,
 		StreamWriterDone = 19,
 		StreamReaderDone = 20,
 		AFSKRxConfigure = 21,
@@ -1007,7 +1007,7 @@ class StreamDataExchangeMessage : public Message
 {
 public:
 	constexpr StreamDataExchangeMessage(
-		StreamDataExchangeConfig *const config) : Message{ID::StreamDataExchange},
+		StreamDataExchangeConfig *const config) : Message{ID::StreamDataExchangeConfig},
 												  config{config}
 	{
 	}

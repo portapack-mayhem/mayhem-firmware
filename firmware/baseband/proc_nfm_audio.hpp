@@ -99,7 +99,6 @@ private:
 	void configure(const NBFMConfigureMessage &message);
 	void stream_config(const StreamDataExchangeMessage &message);
 
-	// RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
 	CodedSquelchMessage ctcss_message{0};
 };
 

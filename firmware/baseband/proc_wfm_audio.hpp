@@ -32,8 +32,8 @@
 #include "dsp_demodulate.hpp"
 #include "block_decimator.hpp"
 
-#include "audio_output.hpp"
 #include "spectrum_collector.hpp"
+#include "audio_output.hpp"
 
 class WidebandFMAudio : public BasebandProcessor
 {

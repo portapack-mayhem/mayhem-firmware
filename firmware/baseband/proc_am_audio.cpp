@@ -75,7 +75,7 @@ void NarrowbandAMAudio::on_message(const Message *const message)
 		configure(*reinterpret_cast<const AMConfigureMessage *>(message));
 		break;
 
-	case Message::ID::CaptureConfig:
+	case Message::ID::StreamDataExchangeConfig:
 		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 		break;
 

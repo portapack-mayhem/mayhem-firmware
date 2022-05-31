@@ -109,9 +109,6 @@ void NarrowbandFMAudio::execute(const buffer_c8_t &buffer)
 
 		/*new_state = audio_output.is_squelched();
 
-		if (new_state && !old_state)
-			shared_memory.application_queue.push(sig_message);
-
 		old_state = new_state;*/
 	}
 }
@@ -129,7 +126,7 @@ void NarrowbandFMAudio::on_message(const Message *const message)
 		configure(*reinterpret_cast<const NBFMConfigureMessage *>(message));
 		break;
 
-	case Message::ID::CaptureConfig:
+	case Message::ID::StreamDataExchangeConfig:
 		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
 		break;
 
