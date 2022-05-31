@@ -23,6 +23,7 @@
 #ifndef __REPLAY_APP_HPP__
 #define __REPLAY_APP_HPP__
 
+#include "io_file.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"

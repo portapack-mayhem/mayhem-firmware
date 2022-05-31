@@ -54,7 +54,7 @@ namespace ui
 		stop();
 		// progressbar.set_value(0);
 
-		if (return_code == StreamReader::END_OF_FILE)
+		if (return_code == StreamReader::END_OF_STREAM)
 		{
 			if (check_random.value())
 			{
@@ -112,14 +112,7 @@ namespace ui
 		sample_rate = reader->sample_rate();
 
 		replay_thread = std::make_unique<StreamReader>(
-			std::move(reader),
-			read_size, buffer_count,
-			&ready_signal,
-			[](uint32_t return_code)
-			{
-				StreamReaderDoneMessage message{return_code};
-				EventDispatcher::send_message(message);
-			});
+			std::move(reader));
 
 		baseband::set_audiotx_config(
 			1536000 / 20, // Update vu-meter at 20Hz

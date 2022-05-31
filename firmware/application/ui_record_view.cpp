@@ -301,12 +301,13 @@ namespace ui
 
 	void RecordView::update_status_display()
 	{
-		if (is_active())
-		{
-			const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
-			const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
-			text_record_dropped.set(s);
-		}
+		// TODO: reimplement the dropped percentage display
+		// if (is_active())
+		// {
+		// 	const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
+		// 	const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+		// 	text_record_dropped.set(s);
+		// }
 
 		/*if (pitch_rssi_enabled) {
 			button_pitch_rssi.invert_colors();

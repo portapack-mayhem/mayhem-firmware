@@ -23,7 +23,7 @@
 #define __UI_RECORD_VIEW_H__
 
 #include "ui_widget.hpp"
-
+#include "io_file.hpp"
 #include "stream_writer.hpp"
 #include "signal.hpp"
 

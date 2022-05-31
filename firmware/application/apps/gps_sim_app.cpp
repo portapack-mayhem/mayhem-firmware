@@ -152,14 +152,7 @@ namespace ui
 			baseband::set_sample_rate(sample_rate);
 
 			replay_thread = std::make_unique<StreamReader>(
-				std::move(reader),
-				read_size, buffer_count,
-				&ready_signal,
-				[](uint32_t return_code)
-				{
-					StreamReaderDoneMessage message{return_code};
-					EventDispatcher::send_message(message);
-				});
+				std::move(reader));
 		}
 		field_rfgain.on_change = [this](int32_t v)
 		{
@@ -203,7 +196,7 @@ namespace ui
 
 	void GpsSimAppView::handle_replay_thread_done(const uint32_t return_code)
 	{
-		if (return_code == StreamReader::END_OF_FILE)
+		if (return_code == StreamReader::END_OF_STREAM)
 		{
 			stop(true);
 		}
