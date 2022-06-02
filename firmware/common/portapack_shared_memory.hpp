@@ -67,7 +67,7 @@ struct SharedMemory
 	{
 		ToneData tones_data;
 		JammerChannel jammer_channels[24];
-		uint8_t data[1024];
+		uint8_t data[2048];
 	} bb_data{{{{0, 0}}, 0, {0}}};
 };
 

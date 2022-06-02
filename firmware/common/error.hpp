@@ -26,15 +26,19 @@
 struct Error
 {
     constexpr Error() = default;
-    constexpr Error(uint32_t err) : err{err}
+    Error(uint32_t err = 0, std::string message = "") : err{err}, message{message}
     {
     }
+
     uint32_t code() const
     {
         return err;
     }
 
-    std::string what() const;
+    std::string what() const {
+        return message;
+    };
 
     uint32_t err{0};
+    std::string message{""};
 };

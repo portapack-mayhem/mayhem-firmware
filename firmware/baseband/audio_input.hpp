@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// TODO: change this later to a stream transformer
+
 #ifndef __AUDIO_INPUT_H__
 #define __AUDIO_INPUT_H__
 

@@ -22,6 +22,7 @@
 
 #include <cstring>
 #include "io.hpp"
+#include "error.hpp"
 #include "event_m0.hpp"
 #include "stream_data_exchange.hpp"
 
@@ -39,14 +40,11 @@ public:
     StreamReader &operator=(const StreamReader &) = delete;
     StreamReader &operator=(StreamReader &&) = delete;
 
-    enum StreamReader_return
-    {
-        END_OF_STREAM = 0,
-        NO_READER,
-        READ_ERROR,
-        WRITE_ERROR,
-        TERMINATED
-    };
+    inline static const Error END_OF_STREAM = Error(0, "End of stream");
+    inline static const Error NO_READER = Error(1, "No reader");
+    inline static const Error READ_ERROR = Error(2, "Read error");
+    inline static const Error WRITE_ERROR = Error(3, "Write error");
+    inline static const Error TERMINATED = Error(4, "Terminated");
 
 private:
     std::unique_ptr<stream::Reader> reader{nullptr};
@@ -54,5 +52,5 @@ private:
     Thread *thread{nullptr};
 
     static msg_t static_fn(void *arg);
-    uint32_t run();
+    Error run();
 };

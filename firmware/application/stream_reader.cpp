@@ -21,7 +21,7 @@
 
 #include "stream_reader.hpp"
 
-StreamReader::StreamReader(std::unique_ptr<stream::Reader> reader) : reader{std::move(reader)}
+StreamReader::StreamReader(std::unique_ptr<stream::Reader> _reader) : reader{std::move(_reader)}
 {
     thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamReader::static_fn, this);
 };
@@ -40,7 +40,7 @@ StreamReader::~StreamReader()
     }
 };
 
-uint32_t StreamReader::run()
+Error StreamReader::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -81,17 +81,18 @@ uint32_t StreamReader::run()
         data_exchange.setup_baseband_stream();
     }
 
+    data_exchange.teardown_baseband_stream();
+
     return TERMINATED;
 };
 
 msg_t StreamReader::static_fn(void *arg)
 {
     auto obj = static_cast<StreamReader *>(arg);
-
-    const uint32_t return_code = obj->run();
+    const auto error = obj->run();
 
     // TODO: adapt this to the new stream reader interface
-    StreamReaderDoneMessage message{return_code};
+    StreamReaderDoneMessage message{error};
     EventDispatcher::send_message(message);
 
     return 0;

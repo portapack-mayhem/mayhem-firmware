@@ -54,6 +54,7 @@ public:
 #if defined(LPC43XX_M0)
     Thread *isr_thread{nullptr};
     void setup_baseband_stream();
+    void teardown_baseband_stream();
     void wait_for_isr_event();
     void wakeup_isr();
 

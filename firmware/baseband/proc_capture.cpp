@@ -47,10 +47,17 @@ void CaptureProcessor::execute(const buffer_c8_t &buffer)
 	if (stream)
 	{
 		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-		const auto written = stream->write(decimator_out.p, bytes_to_write);
-		if (written.value() != bytes_to_write)
+
+		// loop to write
+		auto write_index = 0;
+		while (write_index < bytes_to_write)
 		{
-			// TODO eventually report error somewhere
+			const auto result = stream->write(decimator_out.p + write_index, bytes_to_write - write_index);
+
+			if (result.is_error())
+				break; // should not happen, TODO: we might want to let the UI know about this :/
+
+			write_index += result.value();
 		}
 	}
 

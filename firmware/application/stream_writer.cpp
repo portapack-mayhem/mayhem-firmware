@@ -21,7 +21,7 @@
 
 #include "stream_writer.hpp"
 
-StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> writer) : writer{std::move(writer)}
+StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> _writer) : writer{std::move(_writer)}
 {
     thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamWriter::static_fn, this);
 };
@@ -40,7 +40,7 @@ StreamWriter::~StreamWriter()
     }
 };
 
-uint32_t StreamWriter::run()
+Error StreamWriter::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -78,17 +78,18 @@ uint32_t StreamWriter::run()
         }
     }
 
+    data_exchange.teardown_baseband_stream();
+
     return TERMINATED;
 };
 
 msg_t StreamWriter::static_fn(void *arg)
 {
     auto obj = static_cast<StreamWriter *>(arg);
-
-    const uint32_t return_code = obj->run();
+    const auto error = obj->run();
 
     // adapt this to the new stream reader interface
-    StreamWriterDoneMessage message{return_code};
+    StreamWriterDoneMessage message{error};
     EventDispatcher::send_message(message);
 
     return 0;

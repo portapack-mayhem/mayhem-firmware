@@ -27,7 +27,7 @@ StreamDataExchange::StreamDataExchange(const stream_exchange_direction direction
 #if defined(LPC43XX_M0)
     last_instance = this;
 #endif
-    const auto size_of_shared_data = sizeof(shared_memory.bb_data.data);
+    const size_t size_of_shared_data = sizeof(shared_memory.bb_data.data);
 
     buffer_from_baseband_to_application = nullptr;
     buffer_from_application_to_baseband = nullptr;
@@ -116,6 +116,7 @@ Result<size_t, Error> StreamDataExchange::write(const void *p, const size_t coun
 
     auto result = buffer_from_application_to_baseband->write(p, count);
     bytes_written += result;
+
     return {result};
 }
 
@@ -132,13 +133,21 @@ void StreamDataExchange::setup_baseband_stream()
         .buffer_from_baseband_to_application = buffer_from_baseband_to_application,
         .buffer_from_application_to_baseband = buffer_from_application_to_baseband});
 }
+void StreamDataExchange::teardown_baseband_stream()
+{
+    if (!baseband_ready)
+        return;
+
+    baseband_ready = false;
+    baseband::set_stream_data_exchange(nullptr);
+}
 
 void StreamDataExchange::wait_for_isr_event()
 {
     // Put thread to sleep, woken up by M4 IRQ
     chSysLock();
     isr_thread = chThdSelf();
-    chSchGoSleepTimeoutS(THD_STATE_SUSPENDED, 500);
+    chSchGoSleepTimeoutS(THD_STATE_SUSPENDED, 100);
     chSysUnlock();
 }
 
@@ -148,6 +157,7 @@ void StreamDataExchange::wakeup_isr()
     if (thread_tmp)
     {
         isr_thread = nullptr;
+        // NOTE: no need to call the chSysLock here as it is already being called
         chSchReadyI(thread_tmp);
     }
 }
@@ -162,8 +172,8 @@ Result<size_t, Error> StreamDataExchange::read(void *p, const size_t count)
         return {0};
 
     // signal the application from the baseband that we need more data
-    // if (!buffer_from_application_to_baseband->is_full())
-    //     creg::m4txevent::assert_event();
+    if (!buffer_from_application_to_baseband->is_full())
+        creg::m4txevent::assert_event();
 
     auto result = buffer_from_application_to_baseband->read(p, count);
     bytes_read += result;
@@ -177,8 +187,10 @@ Result<size_t, Error> StreamDataExchange::write(const void *p, const size_t coun
         return {0};
 
     // signal the application from the baseband that we need it to read the data
-    // if (!buffer_from_baseband_to_application->is_empty())
-    //     creg::m4txevent::assert_event();
+    // checking if it not empty, instead of full, to ensure the stream flows continuously
+    // instead of waiting for the buffer to become full and then consume it
+    if (!buffer_from_baseband_to_application->is_empty())
+        creg::m4txevent::assert_event();
 
     auto result = buffer_from_baseband_to_application->write(p, count);
     bytes_written += result;

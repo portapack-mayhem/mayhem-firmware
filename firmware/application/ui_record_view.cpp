@@ -197,6 +197,7 @@ namespace ui
 		}
 
 		std::unique_ptr<stream::Writer> writer;
+
 		switch (file_type)
 		{
 		case FileType::WAV:
@@ -301,13 +302,14 @@ namespace ui
 
 	void RecordView::update_status_display()
 	{
-		// TODO: reimplement the dropped percentage display
-		// if (is_active())
-		// {
-		// 	const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
-		// 	const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
-		// 	text_record_dropped.set(s);
-		// }
+		if (is_active())
+		{
+			// TODO: reimplement the dropped percentage display
+			// const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
+			const auto dropped_percent = 0;
+			const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+			text_record_dropped.set(s);
+		}
 
 		/*if (pitch_rssi_enabled) {
 			button_pitch_rssi.invert_colors();
@@ -330,21 +332,17 @@ namespace ui
 		}
 	}
 
-	void RecordView::handle_stream_writer_done(const File::FsError error)
+	void RecordView::handle_stream_writer_done(const Error<StreamWriter::return_code> error)
 	{
 		stop();
 		if (error.code())
-		{
 			handle_error(error);
-		}
 	}
 
-	void RecordView::handle_error(const File::FsError error)
+	void RecordView::handle_error(const Error<StreamWriter::return_code> error)
 	{
 		if (on_error)
-		{
-			on_error(error.what());
-		}
+			on_error("error " + to_string_dec_uint(error.code()));
 	}
 
 } /* namespace ui */

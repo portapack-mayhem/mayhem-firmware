@@ -41,4 +41,15 @@ namespace stream
 		virtual ~Writer() = default;
 	};
 
+	// Think on a better way to introduce stream pipelines into the mix.
+	// we can later discard the thread-based stream reader/writer and have a centralized mechanism to handle
+	// all the stream pipelines.
+	// class Duplex : public Reader, Writer
+	// {
+	// public:
+	// 	virtual private Result<size_t, Error> transform(const void *const buffer, const size_t bytes) = 0;
+	//  void pipe(Writer& writer)
+	//  void unpipe(Writer& writer)
+	// };
+
 } /* namespace stream */

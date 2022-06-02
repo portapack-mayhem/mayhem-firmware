@@ -31,6 +31,7 @@
 #include <algorithm>
 
 #include "baseband_packet.hpp"
+#include "error.hpp"
 
 #include "acars_packet.hpp"
 #include "adsb_frame.hpp"
@@ -1019,24 +1020,24 @@ class StreamWriterDoneMessage : public Message
 {
 public:
 	constexpr StreamWriterDoneMessage(
-		uint32_t error = 0) : Message{ID::StreamWriterDone},
+		Error *error) : Message{ID::StreamWriterDone},
 							  error{error}
 	{
 	}
 
-	uint32_t error;
+	Error *error;
 };
 
 class StreamReaderDoneMessage : public Message
 {
 public:
 	constexpr StreamReaderDoneMessage(
-		uint32_t return_code = 0) : Message{ID::StreamReaderDone},
-									return_code{return_code}
+		Error *error) : Message{ID::StreamReaderDone},
+							  error{error}
 	{
 	}
 
-	uint32_t return_code;
+	Error *error;
 };
 
 #endif /*__MESSAGE_H__*/
