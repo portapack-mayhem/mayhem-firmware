@@ -54,7 +54,7 @@ namespace ui
 		stop();
 		// progressbar.set_value(0);
 
-		if (return_code == StreamReader::END_OF_STREAM)
+		if (return_code == StreamReader::END_OF_STREAM.code)
 		{
 			if (check_random.value())
 			{
@@ -68,7 +68,7 @@ namespace ui
 				start_tx(playing_id);
 			}
 		}
-		else if (return_code == StreamReader::READ_ERROR)
+		else if (return_code == StreamReader::READ_ERROR.code)
 		{
 			file_error();
 		}

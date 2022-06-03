@@ -41,7 +41,7 @@ StreamWriter::~StreamWriter()
     }
 };
 
-const Error *StreamWriter::run()
+const Error StreamWriter::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -51,7 +51,7 @@ const Error *StreamWriter::run()
         size_t block_bytes_written = 0;
 
         if (!writer)
-            return &NO_WRITER;
+            return NO_WRITER;
 
         data_exchange.setup_baseband_stream();
 
@@ -59,10 +59,10 @@ const Error *StreamWriter::run()
         auto read_result = data_exchange.read(buffer_block, sizeof(*buffer_block));
 
         if (read_result.is_error())
-            return &READ_ERROR;
+            return READ_ERROR;
 
         if (read_result.value() == 0) // end of stream
-            return &END_OF_STREAM;
+            return END_OF_STREAM;
 
         block_bytes = read_result.value();
 
@@ -72,7 +72,7 @@ const Error *StreamWriter::run()
             auto write_result = writer->write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
 
             if (read_result.is_error())
-                return &WRITE_ERROR;
+                return WRITE_ERROR;
 
             if (write_result.value() > 0)
                 block_bytes_written += write_result.value();
@@ -81,13 +81,13 @@ const Error *StreamWriter::run()
 
     data_exchange.teardown_baseband_stream();
 
-    return &TERMINATED;
+    return TERMINATED;
 };
 
 msg_t StreamWriter::static_fn(void *arg)
 {
     auto obj = static_cast<StreamWriter *>(arg);
-    const Error *error = obj->run();
+    const Error error = obj->run();
 
     // adapt this to the new stream reader interface
     StreamWriterDoneMessage message{error};

@@ -201,11 +201,11 @@ namespace ui
 
 	void ReplayAppView::handle_replay_thread_done(const uint32_t return_code)
 	{
-		if (return_code == StreamReader::END_OF_STREAM)
+		if (return_code == StreamReader::END_OF_STREAM.code)
 		{
 			stop(true);
 		}
-		else if (return_code == StreamReader::READ_ERROR)
+		else if (return_code == StreamReader::READ_ERROR.code)
 		{
 			stop(false);
 			file_error();

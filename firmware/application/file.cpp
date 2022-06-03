@@ -277,62 +277,63 @@ uint32_t make_new_directory(const std::filesystem::path &dir_path)
 	return f_mkdir(reinterpret_cast<const TCHAR *>(dir_path.c_str()));
 }
 
-std::string Error::what() const
-{
-	switch (err)
-	{
-	case FR_OK:
-		return "ok";
-	case FR_DISK_ERR:
-		return "disk error";
-	case FR_INT_ERR:
-		return "insanity detected";
-	case FR_NOT_READY:
-		return "SD card not ready";
-	case FR_NO_FILE:
-		return "no file";
-	case FR_NO_PATH:
-		return "no path";
-	case FR_INVALID_NAME:
-		return "invalid name";
-	case FR_DENIED:
-		return "denied";
-	case FR_EXIST:
-		return "exists";
-	case FR_INVALID_OBJECT:
-		return "invalid object";
-	case FR_WRITE_PROTECTED:
-		return "write protected";
-	case FR_INVALID_DRIVE:
-		return "invalid drive";
-	case FR_NOT_ENABLED:
-		return "not enabled";
-	case FR_NO_FILESYSTEM:
-		return "no filesystem";
-	case FR_MKFS_ABORTED:
-		return "mkfs aborted";
-	case FR_TIMEOUT:
-		return "timeout";
-	case FR_LOCKED:
-		return "locked";
-	case FR_NOT_ENOUGH_CORE:
-		return "not enough core";
-	case FR_TOO_MANY_OPEN_FILES:
-		return "too many open files";
-	case FR_INVALID_PARAMETER:
-		return "invalid parameter";
-	case FR_EOF:
-		return "end of file";
-	case FR_DISK_FULL:
-		return "disk full";
-	case FR_BAD_SEEK:
-		return "bad seek";
-	case FR_UNEXPECTED:
-		return "unexpected";
-	default:
-		return "unknown";
-	}
-}
+// TODO: change to const static errors so we can reference these with pointers
+// std::string Error::what() const
+// {
+// 	switch (err)
+// 	{
+// 	case FR_OK:
+// 		return "ok";
+// 	case FR_DISK_ERR:
+// 		return "disk error";
+// 	case FR_INT_ERR:
+// 		return "insanity detected";
+// 	case FR_NOT_READY:
+// 		return "SD card not ready";
+// 	case FR_NO_FILE:
+// 		return "no file";
+// 	case FR_NO_PATH:
+// 		return "no path";
+// 	case FR_INVALID_NAME:
+// 		return "invalid name";
+// 	case FR_DENIED:
+// 		return "denied";
+// 	case FR_EXIST:
+// 		return "exists";
+// 	case FR_INVALID_OBJECT:
+// 		return "invalid object";
+// 	case FR_WRITE_PROTECTED:
+// 		return "write protected";
+// 	case FR_INVALID_DRIVE:
+// 		return "invalid drive";
+// 	case FR_NOT_ENABLED:
+// 		return "not enabled";
+// 	case FR_NO_FILESYSTEM:
+// 		return "no filesystem";
+// 	case FR_MKFS_ABORTED:
+// 		return "mkfs aborted";
+// 	case FR_TIMEOUT:
+// 		return "timeout";
+// 	case FR_LOCKED:
+// 		return "locked";
+// 	case FR_NOT_ENOUGH_CORE:
+// 		return "not enough core";
+// 	case FR_TOO_MANY_OPEN_FILES:
+// 		return "too many open files";
+// 	case FR_INVALID_PARAMETER:
+// 		return "invalid parameter";
+// 	case FR_EOF:
+// 		return "end of file";
+// 	case FR_DISK_FULL:
+// 		return "disk full";
+// 	case FR_BAD_SEEK:
+// 		return "bad seek";
+// 	case FR_UNEXPECTED:
+// 		return "unexpected";
+// 	default:
+// 		return "unknown";
+// 	}
+// }
 
 namespace std
 {

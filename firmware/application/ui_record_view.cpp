@@ -332,14 +332,14 @@ namespace ui
 		}
 	}
 
-	void RecordView::handle_stream_writer_done(const Error<StreamWriter::return_code> error)
+	void RecordView::handle_stream_writer_done(Error error)
 	{
 		stop();
 		if (error.code > 0)
 			handle_error(error);
 	}
 
-	void RecordView::handle_error(const Error<StreamWriter::return_code> error)
+	void RecordView::handle_error(Error error)
 	{
 		if (on_error)
 			on_error("error " + to_string_dec_uint(error.code));

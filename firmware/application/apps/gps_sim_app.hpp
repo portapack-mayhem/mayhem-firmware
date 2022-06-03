@@ -132,8 +132,9 @@ namespace ui
 			Message::ID::StreamReaderDone,
 			[this](const Message *const p)
 			{
-				const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
-				this->handle_replay_thread_done(message.return_code);
+				const auto message = *reinterpret_cast<const 
+				StreamReaderDoneMessage *>(p);
+				this->handle_replay_thread_done(message.error.code);
 			}};
 
 		MessageHandlerRegistration message_handler_fifo_signal{

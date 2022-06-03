@@ -1016,28 +1016,28 @@ public:
 	StreamDataExchangeConfig *const config;
 };
 
-class StreamWriterDoneMessage : public Message
-{
-public:
-	constexpr StreamWriterDoneMessage(
-		const Error *error) : Message{ID::StreamWriterDone},
-							  error{error}
-	{
-	}
-
-	const Error *error;
-};
-
 class StreamReaderDoneMessage : public Message
 {
 public:
 	constexpr StreamReaderDoneMessage(
-		const Error *error) : Message{ID::StreamReaderDone},
+		const Error &error) : Message{ID::StreamReaderDone},
 							  error{error}
 	{
 	}
 
-	const Error *error;
+	const Error error;
+};
+
+class StreamWriterDoneMessage : public Message
+{
+public:
+	constexpr StreamWriterDoneMessage(
+		const Error &error) : Message{ID::StreamWriterDone},
+							  error{error}
+	{
+	}
+
+	const Error error;
 };
 
 #endif /*__MESSAGE_H__*/
