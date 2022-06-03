@@ -271,7 +271,7 @@ namespace ui
 		update_status_display();
 	}
 
-	Optional<File::FsError> RecordView::write_metadata_file(const std::filesystem::path &filename)
+	Optional<Error> RecordView::write_metadata_file(const std::filesystem::path &filename)
 	{
 		File file;
 		const auto create_error = file.create(filename);
@@ -335,14 +335,14 @@ namespace ui
 	void RecordView::handle_stream_writer_done(const Error<StreamWriter::return_code> error)
 	{
 		stop();
-		if (error.code())
+		if (error.code > 0)
 			handle_error(error);
 	}
 
 	void RecordView::handle_error(const Error<StreamWriter::return_code> error)
 	{
 		if (on_error)
-			on_error("error " + to_string_dec_uint(error.code()));
+			on_error("error " + to_string_dec_uint(error.code));
 	}
 
 } /* namespace ui */

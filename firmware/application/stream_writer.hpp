@@ -52,5 +52,5 @@ private:
     Thread *thread{nullptr};
 
     static msg_t static_fn(void *arg);
-    Error run();
+    const Error *run();
 };

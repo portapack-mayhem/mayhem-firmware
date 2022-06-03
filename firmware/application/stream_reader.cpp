@@ -20,6 +20,7 @@
  */
 
 #include "stream_reader.hpp"
+#include "message.hpp"
 
 StreamReader::StreamReader(std::unique_ptr<stream::Reader> _reader) : reader{std::move(_reader)}
 {
@@ -40,7 +41,7 @@ StreamReader::~StreamReader()
     }
 };
 
-Error StreamReader::run()
+const Error *StreamReader::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -50,16 +51,16 @@ Error StreamReader::run()
         size_t block_bytes_written = 0;
 
         if (!reader)
-            return NO_READER;
+            return &NO_READER;
 
         // read from reader
         auto read_result = reader->read(buffer_block, sizeof(*buffer_block));
 
         if (read_result.is_error())
-            return READ_ERROR;
+            return &READ_ERROR;
 
         if (read_result.value() == 0) // end of stream
-            return END_OF_STREAM;
+            return &END_OF_STREAM;
 
         block_bytes = read_result.value();
 
@@ -69,7 +70,7 @@ Error StreamReader::run()
             auto write_result = data_exchange.write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
 
             if (read_result.is_error())
-                return WRITE_ERROR;
+                return &WRITE_ERROR;
 
             if (write_result.value() > 0)
                 block_bytes_written += write_result.value();
@@ -83,13 +84,13 @@ Error StreamReader::run()
 
     data_exchange.teardown_baseband_stream();
 
-    return TERMINATED;
+    return &TERMINATED;
 };
 
 msg_t StreamReader::static_fn(void *arg)
 {
     auto obj = static_cast<StreamReader *>(arg);
-    const auto error = obj->run();
+    const Error *error = obj->run();
 
     // TODO: adapt this to the new stream reader interface
     StreamReaderDoneMessage message{error};

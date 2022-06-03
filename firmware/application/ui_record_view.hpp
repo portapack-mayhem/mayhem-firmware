@@ -70,13 +70,13 @@ namespace ui
 	private:
 		void toggle();
 		// void toggle_pitch_rssi();
-		Optional<File::FsError> write_metadata_file(const std::filesystem::path &filename);
+		Optional<Error> write_metadata_file(const std::filesystem::path &filename);
 
 		void on_tick_second();
 		void update_status_display();
 
-		void handle_stream_writer_done(const File::FsError error);
-		void handle_error(const File::FsError error);
+		void handle_stream_writer_done(const Error error);
+		void handle_error(const Error error);
 
 		// bool pitch_rssi_enabled = false;
 

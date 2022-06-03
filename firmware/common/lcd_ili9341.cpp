@@ -480,7 +480,7 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
 		while(px < width) {
 			bmpimage.seek(file_pos);
 			memset(buffer, 0, 257);
-			read_size = bmpimage.read(buffer, 256);
+			auto read_size = bmpimage.read(buffer, 256);
 			if (read_size.is_error())
 				return false;	// Read error
 

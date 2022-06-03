@@ -21,7 +21,7 @@
 
 #include "io_file.hpp"
 
-Result<File::Size, File::FsError> FileReader::read(void *const buffer, const File::Size bytes)
+Result<File::Size> FileReader::read(void *const buffer, const File::Size bytes)
 {
 	auto read_result = file.read(buffer, bytes);
 	if (read_result.is_ok())
@@ -31,7 +31,7 @@ Result<File::Size, File::FsError> FileReader::read(void *const buffer, const Fil
 	return read_result;
 }
 
-Result<File::Size, File::FsError> FileWriter::write(const void *const buffer, const File::Size bytes)
+Result<File::Size> FileWriter::write(const void *const buffer, const File::Size bytes)
 {
 	auto write_result = file.write(buffer, bytes);
 	if (write_result.is_ok())

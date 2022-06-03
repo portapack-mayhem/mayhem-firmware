@@ -255,7 +255,6 @@ public:
 	using Size = size_t;
 	using Offset = size_t;
 	using Timestamp = uint32_t;
-	using FsError = Error;
 
 	File(){};
 	~File();
@@ -265,32 +264,32 @@ public:
 	File &operator=(const File &) = delete;
 
 	// TODO: Return Result<>.
-	Optional<FsError> open(const std::filesystem::path &filename);
-	Optional<FsError> append(const std::filesystem::path &filename);
-	Optional<FsError> create(const std::filesystem::path &filename);
+	Optional<Error> open(const std::filesystem::path &filename);
+	Optional<Error> append(const std::filesystem::path &filename);
+	Optional<Error> create(const std::filesystem::path &filename);
 
-	Result<Size, FsError> read(void *const data, const Size bytes_to_read);
-	Result<Size, FsError> write(const void *const data, const Size bytes_to_write);
+	Result<Size> read(void *const data, const Size bytes_to_read);
+	Result<Size> write(const void *const data, const Size bytes_to_write);
 
-	Result<Offset, FsError> seek(const size_t Offset);
+	Result<Offset> seek(const size_t Offset);
 	Timestamp created_date();
 	Size size();
 
 	template <size_t N>
-	Result<Size, FsError> write(const std::array<uint8_t, N> &data)
+	Result<Size> write(const std::array<uint8_t, N> &data)
 	{
 		return write(data.data(), N);
 	}
 
-	Optional<FsError> write_line(const std::string &s);
+	Optional<Error> write_line(const std::string &s);
 
 	// TODO: Return Result<>.
-	Optional<FsError> sync();
+	Optional<Error> sync();
 
 private:
 	FIL f{};
 
-	Optional<FsError> open_fatfs(const std::filesystem::path &filename, BYTE mode);
+	Optional<Error> open_fatfs(const std::filesystem::path &filename, BYTE mode);
 };
 
 #endif /*__FILE_H__*/

@@ -1020,24 +1020,24 @@ class StreamWriterDoneMessage : public Message
 {
 public:
 	constexpr StreamWriterDoneMessage(
-		Error *error) : Message{ID::StreamWriterDone},
+		const Error *error) : Message{ID::StreamWriterDone},
 							  error{error}
 	{
 	}
 
-	Error *error;
+	const Error *error;
 };
 
 class StreamReaderDoneMessage : public Message
 {
 public:
 	constexpr StreamReaderDoneMessage(
-		Error *error) : Message{ID::StreamReaderDone},
+		const Error *error) : Message{ID::StreamReaderDone},
 							  error{error}
 	{
 	}
 
-	Error *error;
+	const Error *error;
 };
 
 #endif /*__MESSAGE_H__*/

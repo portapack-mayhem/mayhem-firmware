@@ -178,7 +178,7 @@ public:
 		update_header();
 	}
 
-	Optional<File::FsError> create(
+	Optional<Error> create(
 		const std::filesystem::path &filename,
 		size_t sampling_rate,
 		const std::string &title_set);
@@ -188,6 +188,6 @@ private:
 	uint32_t info_chunk_size{0};
 	std::string title{};
 
-	Optional<File::FsError> update_header();
-	Optional<File::FsError> write_tags();
+	Optional<Error> update_header();
+	Optional<Error> write_tags();
 };

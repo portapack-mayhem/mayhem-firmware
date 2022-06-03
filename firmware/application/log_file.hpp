@@ -32,17 +32,17 @@ using namespace lpc43xx;
 class LogFile
 {
 public:
-	Optional<File::FsError> append(const std::filesystem::path &filename)
+	Optional<Error> append(const std::filesystem::path &filename)
 	{
 		return file.append(filename);
 	}
 
-	Optional<File::FsError> write_entry(const rtc::RTC &datetime, const std::string &entry);
+	Optional<Error> write_entry(const rtc::RTC &datetime, const std::string &entry);
 
 private:
 	File file{};
 
-	Optional<File::FsError> write_line(const std::string &message);
+	Optional<Error> write_line(const std::string &message);
 };
 
 #endif /*__LOG_FILE_H__*/

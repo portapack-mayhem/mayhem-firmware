@@ -38,12 +38,12 @@ public:
 	FileReader(FileReader &&file) = delete;
 	FileReader &operator=(FileReader &&) = delete;
 
-	Optional<File::FsError> open(const std::filesystem::path &filename)
+	Optional<Error> open(const std::filesystem::path &filename)
 	{
 		return file.open(filename);
 	}
 
-	Result<File::Size, File::FsError> read(void *const buffer, const File::Size bytes) override;
+	Result<File::Size> read(void *const buffer, const File::Size bytes) override;
 
 protected:
 	File file{};
@@ -60,12 +60,12 @@ public:
 	FileWriter(FileWriter &&file) = delete;
 	FileWriter &operator=(FileWriter &&) = delete;
 
-	Optional<File::FsError> create(const std::filesystem::path &filename)
+	Optional<Error> create(const std::filesystem::path &filename)
 	{
 		return file.create(filename);
 	}
 
-	Result<File::Size, File::FsError> write(const void *const buffer, const File::Size bytes) override;
+	Result<File::Size> write(const void *const buffer, const File::Size bytes) override;
 
 protected:
 	File file{};

@@ -20,6 +20,7 @@
  */
 
 #include "stream_writer.hpp"
+#include "message.hpp"
 
 StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> _writer) : writer{std::move(_writer)}
 {
@@ -40,7 +41,7 @@ StreamWriter::~StreamWriter()
     }
 };
 
-Error StreamWriter::run()
+const Error *StreamWriter::run()
 {
     uint8_t *buffer_block = new uint8_t[128];
 
@@ -50,7 +51,7 @@ Error StreamWriter::run()
         size_t block_bytes_written = 0;
 
         if (!writer)
-            return NO_WRITER;
+            return &NO_WRITER;
 
         data_exchange.setup_baseband_stream();
 
@@ -58,10 +59,10 @@ Error StreamWriter::run()
         auto read_result = data_exchange.read(buffer_block, sizeof(*buffer_block));
 
         if (read_result.is_error())
-            return READ_ERROR;
+            return &READ_ERROR;
 
         if (read_result.value() == 0) // end of stream
-            return END_OF_STREAM;
+            return &END_OF_STREAM;
 
         block_bytes = read_result.value();
 
@@ -71,7 +72,7 @@ Error StreamWriter::run()
             auto write_result = writer->write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
 
             if (read_result.is_error())
-                return WRITE_ERROR;
+                return &WRITE_ERROR;
 
             if (write_result.value() > 0)
                 block_bytes_written += write_result.value();
@@ -80,13 +81,13 @@ Error StreamWriter::run()
 
     data_exchange.teardown_baseband_stream();
 
-    return TERMINATED;
+    return &TERMINATED;
 };
 
 msg_t StreamWriter::static_fn(void *arg)
 {
     auto obj = static_cast<StreamWriter *>(arg);
-    const auto error = obj->run();
+    const Error *error = obj->run();
 
     // adapt this to the new stream reader interface
     StreamWriterDoneMessage message{error};

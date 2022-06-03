@@ -21,8 +21,9 @@
 
 #pragma once
 #include <utility>
+#include "error.hpp"
 
-template <typename T, typename E>
+template <typename T>
 struct Result
 {
     enum class Type
@@ -33,7 +34,7 @@ struct Result
     union
     {
         T value_;
-        E error_;
+        Error error_;
     };
 
     bool is_ok() const
@@ -51,7 +52,7 @@ struct Result
         return value_;
     }
 
-    E error() const
+    Error error() const
     {
         return error_;
     }
@@ -65,7 +66,7 @@ struct Result
     }
 
     constexpr Result(
-        E error) : type{Type::Error},
+        Error error) : type{Type::Error},
                    error_{error}
     {
     }

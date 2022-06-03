@@ -151,7 +151,7 @@ uint16_t WAVFileReader::bits_per_sample()
 	return header.fmt.wBitsPerSample;
 }
 
-Optional<File::FsError> WAVFileWriter::create(
+Optional<Error> WAVFileWriter::create(
 	const std::filesystem::path &filename,
 	size_t sampling_rate_set,
 	const std::string &title_set)
@@ -169,7 +169,7 @@ Optional<File::FsError> WAVFileWriter::create(
 	}
 }
 
-Optional<File::FsError> WAVFileWriter::update_header()
+Optional<Error> WAVFileWriter::update_header()
 {
 	header_t header{sampling_rate, (uint32_t)bytes_written - sizeof(header_t), info_chunk_size};
 
@@ -196,7 +196,7 @@ Optional<File::FsError> WAVFileWriter::update_header()
 	return {};
 }
 
-Optional<File::FsError> WAVFileWriter::write_tags()
+Optional<Error> WAVFileWriter::write_tags()
 {
 	tags_t tags{title};
 

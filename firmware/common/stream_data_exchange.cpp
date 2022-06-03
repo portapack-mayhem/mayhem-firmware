@@ -79,7 +79,7 @@ StreamDataExchange::~StreamDataExchange()
 
 // Methods for the Application
 #if defined(LPC43XX_M0)
-Result<size_t, Error> StreamDataExchange::read(void *p, const size_t count)
+Result<size_t> StreamDataExchange::read(void *p, const size_t count)
 {
     // cannot read if we're only writing to the baseband
     if (_direction == STREAM_EXCHANGE_APP_TO_BB)
@@ -99,7 +99,7 @@ Result<size_t, Error> StreamDataExchange::read(void *p, const size_t count)
     return {result};
 }
 
-Result<size_t, Error> StreamDataExchange::write(const void *p, const size_t count)
+Result<size_t> StreamDataExchange::write(const void *p, const size_t count)
 {
     // cannot write if we're only reading from the baseband
     if (_direction == STREAM_EXCHANGE_BB_TO_APP)
@@ -165,7 +165,7 @@ void StreamDataExchange::wakeup_isr()
 
 // Methods for the Baseband
 #if defined(LPC43XX_M4)
-Result<size_t, Error> StreamDataExchange::read(void *p, const size_t count)
+Result<size_t> StreamDataExchange::read(void *p, const size_t count)
 {
     // cannot read if we're only writing to the baseband
     if (_direction == STREAM_EXCHANGE_BB_TO_APP)
@@ -180,7 +180,7 @@ Result<size_t, Error> StreamDataExchange::read(void *p, const size_t count)
     return {result};
 }
 
-Result<size_t, Error> StreamDataExchange::write(const void *p, const size_t count)
+Result<size_t> StreamDataExchange::write(const void *p, const size_t count)
 {
     // cannot write if we're only reading from the baseband
     if (_direction == STREAM_EXCHANGE_APP_TO_BB)

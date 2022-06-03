@@ -25,20 +25,15 @@
 
 struct Error
 {
-    constexpr Error() = default;
-    Error(uint32_t err = 0, std::string message = "") : err{err}, message{message}
+    // constexpr Error() = default;
+    Error(uint32_t code = 0, std::string message = "") : code{code}
     {
+        if (message.empty())
+            message = "Error " + std::to_string(code);
+
+        this->message = message.c_str();
     }
 
-    uint32_t code() const
-    {
-        return err;
-    }
-
-    std::string what() const {
-        return message;
-    };
-
-    uint32_t err{0};
-    std::string message{""};
+    const uint32_t code{0};
+    const char *message{""};
 };

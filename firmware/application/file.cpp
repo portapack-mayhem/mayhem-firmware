@@ -26,7 +26,7 @@
 #include <locale>
 #include <codecvt>
 
-Optional<File::FsError> File::open_fatfs(const std::filesystem::path &filename, BYTE mode)
+Optional<Error> File::open_fatfs(const std::filesystem::path &filename, BYTE mode)
 {
 	auto result = f_open(&f, reinterpret_cast<const TCHAR *>(filename.c_str()), mode);
 	if (result == FR_OK)
@@ -47,21 +47,21 @@ Optional<File::FsError> File::open_fatfs(const std::filesystem::path &filename, 
 	}
 	else
 	{
-		return {File::FsError{result}};
+		return {Error{result}};
 	}
 }
 
-Optional<File::FsError> File::open(const std::filesystem::path &filename)
+Optional<Error> File::open(const std::filesystem::path &filename)
 {
 	return open_fatfs(filename, FA_READ);
 }
 
-Optional<File::FsError> File::append(const std::filesystem::path &filename)
+Optional<Error> File::append(const std::filesystem::path &filename)
 {
 	return open_fatfs(filename, FA_WRITE | FA_OPEN_ALWAYS);
 }
 
-Optional<File::FsError> File::create(const std::filesystem::path &filename)
+Optional<Error> File::create(const std::filesystem::path &filename)
 {
 	return open_fatfs(filename, FA_WRITE | FA_CREATE_ALWAYS);
 }
@@ -71,7 +71,7 @@ File::~File()
 	f_close(&f);
 }
 
-Result<File::Size, File::FsError> File::read(void *const data, const Size bytes_to_read)
+Result<File::Size> File::read(void *const data, const Size bytes_to_read)
 {
 	UINT bytes_read = 0;
 	const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
@@ -81,11 +81,11 @@ Result<File::Size, File::FsError> File::read(void *const data, const Size bytes_
 	}
 	else
 	{
-		return {File::FsError{result}};
+		return {Error{result}};
 	}
 }
 
-Result<File::Size, File::FsError> File::write(const void *const data, const Size bytes_to_write)
+Result<File::Size> File::write(const void *const data, const Size bytes_to_write)
 {
 	UINT bytes_written = 0;
 	const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
@@ -97,27 +97,27 @@ Result<File::Size, File::FsError> File::write(const void *const data, const Size
 		}
 		else
 		{
-			return File::FsError{FR_DISK_FULL};
+			return Error{FR_DISK_FULL};
 		}
 	}
 	else
 	{
-		return {File::FsError{result}};
+		return {Error{result}};
 	}
 }
 
-Result<File::Offset, File::FsError> File::seek(const Offset new_position)
+Result<File::Offset> File::seek(const Offset new_position)
 {
 	/* NOTE: Returns *old* position, not new position */
 	const auto old_position = f_tell(&f);
 	const auto result = f_lseek(&f, new_position);
 	if (result != FR_OK)
 	{
-		return {File::FsError{result}};
+		return {Error{result}};
 	}
 	if (f_tell(&f) != new_position)
 	{
-		return {File::FsError{FR_BAD_SEEK}};
+		return {Error{FR_BAD_SEEK}};
 	}
 	return {static_cast<File::Offset>(old_position)};
 }
@@ -127,7 +127,7 @@ File::Size File::size()
 	return {static_cast<File::Size>(f_size(&f))};
 }
 
-Optional<File::FsError> File::write_line(const std::string &s)
+Optional<Error> File::write_line(const std::string &s)
 {
 	const auto result_s = write(s.c_str(), s.size());
 	if (result_s.is_error())
@@ -144,7 +144,7 @@ Optional<File::FsError> File::write_line(const std::string &s)
 	return {};
 }
 
-Optional<File::FsError> File::sync()
+Optional<Error> File::sync()
 {
 	const auto result = f_sync(&f);
 	if (result == FR_OK)
@@ -153,7 +153,7 @@ Optional<File::FsError> File::sync()
 	}
 	else
 	{
-		return {File::FsError{result}};
+		return {Error{result}};
 	}
 }
 
@@ -277,7 +277,7 @@ uint32_t make_new_directory(const std::filesystem::path &dir_path)
 	return f_mkdir(reinterpret_cast<const TCHAR *>(dir_path.c_str()));
 }
 
-std::string File::FsError::what() const
+std::string Error::what() const
 {
 	switch (err)
 	{

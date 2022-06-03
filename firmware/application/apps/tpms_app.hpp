@@ -80,7 +80,7 @@ using TPMSRecentEntries = RecentEntries<TPMSRecentEntry>;
 class TPMSLogger
 {
 public:
-	Optional<File::FsError> append(const std::filesystem::path &filename)
+	Optional<Error> append(const std::filesystem::path &filename)
 	{
 		return log_file.append(filename);
 	}

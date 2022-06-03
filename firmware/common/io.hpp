@@ -30,14 +30,14 @@ namespace stream
 	class Reader
 	{
 	public:
-		virtual Result<size_t, Error> read(void *const buffer, const size_t bytes) = 0;
+		virtual Result<size_t> read(void *const buffer, const size_t bytes) = 0;
 		virtual ~Reader() = default;
 	};
 
 	class Writer
 	{
 	public:
-		virtual Result<size_t, Error> write(const void *const buffer, const size_t bytes) = 0;
+		virtual Result<size_t> write(const void *const buffer, const size_t bytes) = 0;
 		virtual ~Writer() = default;
 	};
 
@@ -47,7 +47,7 @@ namespace stream
 	// class Duplex : public Reader, Writer
 	// {
 	// public:
-	// 	virtual private Result<size_t, Error> transform(const void *const buffer, const size_t bytes) = 0;
+	// 	virtual private Result<size_t> transform(const void *const buffer, const size_t bytes) = 0;
 	//  void pipe(Writer& writer)
 	//  void unpipe(Writer& writer)
 	// };

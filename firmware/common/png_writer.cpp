@@ -55,7 +55,7 @@ static constexpr std::array<uint8_t, 12> png_iend{{
 	0xae, 0x42, 0x60, 0x82, // CRC
 }};
 
-Optional<File::FsError> PNGWriter::create(
+Optional<Error> PNGWriter::create(
 	const std::filesystem::path &filename)
 {
 	const auto create_error = file.create(filename);

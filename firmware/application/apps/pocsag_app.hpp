@@ -35,7 +35,7 @@
 class POCSAGLogger
 {
 public:
-	Optional<File::FsError> append(const std::string &filename)
+	Optional<Error> append(const std::string &filename)
 	{
 		return log_file.append(filename);
 	}

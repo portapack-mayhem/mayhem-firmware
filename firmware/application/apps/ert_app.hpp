@@ -96,7 +96,7 @@ struct ERTRecentEntry
 class ERTLogger
 {
 public:
-	Optional<File::FsError> append(const std::filesystem::path &filename)
+	Optional<Error> append(const std::filesystem::path &filename)
 	{
 		return log_file.append(filename);
 	}

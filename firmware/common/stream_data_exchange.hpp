@@ -45,8 +45,8 @@ public:
     StreamDataExchange &operator=(const StreamDataExchange &) = delete;
     StreamDataExchange &operator=(StreamDataExchange &&) = delete;
 
-    Result<size_t, Error> read(void *p, const size_t count);
-    Result<size_t, Error> write(const void *p, const size_t count);
+    Result<size_t> read(void *p, const size_t count);
+    Result<size_t> write(const void *p, const size_t count);
 
     size_t bytes_read{0};
     size_t bytes_written{0};
