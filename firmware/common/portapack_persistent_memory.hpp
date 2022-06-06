@@ -25,6 +25,8 @@
 
 #include <cstdint>
 
+#include "optional.hpp"
+
 #include "rf_path.hpp"
 #include "touch.hpp"
 #include "modems.hpp"
@@ -35,6 +37,77 @@ using namespace serializer;
 
 namespace portapack {
 namespace persistent_memory {
+
+enum backlight_timeout_t {
+    Timeout5Sec    = 0,
+    Timeout15Sec   = 1,
+    Timeout30Sec   = 2,
+    Timeout60Sec   = 3,
+    Timeout180Sec  = 4,
+    Timeout300Sec  = 5,
+    Timeout600Sec  = 6,
+    Timeout3600Sec = 7,
+};
+
+struct backlight_config_t {
+public:
+    backlight_config_t() :
+        _timeout_enum(backlight_timeout_t::Timeout600Sec),
+        _timeout_enabled(false)
+    {
+    }
+
+    backlight_config_t(
+        backlight_timeout_t timeout_enum,
+        bool timeout_enabled
+    ) :
+        _timeout_enum(timeout_enum),
+        _timeout_enabled(timeout_enabled)
+    {
+    }
+
+    bool timeout_enabled() const {
+        return _timeout_enabled;
+    }
+
+    backlight_timeout_t timeout_enum() const {
+        return _timeout_enum;
+    }
+
+    uint32_t timeout_seconds() const {
+        switch(timeout_enum()) {
+            case Timeout5Sec:    return    5;
+            case Timeout15Sec:   return   15;
+            case Timeout30Sec:   return   30;
+            case Timeout60Sec:   return   60;
+            case Timeout180Sec:  return  180;
+            case Timeout300Sec:  return  300;
+            default:
+            case Timeout600Sec:  return  600;
+            case Timeout3600Sec: return 3600;
+        }
+    }
+
+private:
+    backlight_timeout_t _timeout_enum;
+    bool _timeout_enabled;
+};
+
+namespace cache {
+
+/* Set values in cache to sensible defaults. */
+void defaults();
+
+/* Load cached settings from values in persistent RAM, replacing with defaults
+ * if persistent RAM contents appear to be invalid. */
+void init();
+
+/* Calculate a check value for cached settings, and copy the check value and
+ * settings into persistent RAM. Intended to be called periodically to update
+ * persistent settings with current settings. */
+void persist();
+
+} /* namespace cache */
 
 using ppb_t = int32_t;
 
@@ -86,7 +159,7 @@ bool hide_clock();
 bool clock_with_date();
 bool config_login();
 bool config_speaker();
-uint32_t config_backlight_timer();
+backlight_config_t config_backlight_timer();
 bool disable_touchscreen();
 
 void set_gui_return_icon(bool v);
@@ -98,7 +171,7 @@ void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);
 void set_config_speaker(bool v); 
-void set_config_backlight_timer(uint32_t i);
+void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 
 //uint8_t ui_config_textentry();
