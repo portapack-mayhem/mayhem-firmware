@@ -540,7 +540,7 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		field_bw.set_selected_index(0);
 		receiver_model.set_am_configuration(field_bw.selected_index());
 		field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
-		receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
+		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000); 
 		break;
 	case WFM:
 		bw.emplace_back("16k", 0);
