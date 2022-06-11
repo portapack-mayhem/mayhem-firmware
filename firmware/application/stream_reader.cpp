@@ -81,7 +81,9 @@ namespace stream
     msg_t StreamReader::static_fn(void *arg)
     {
         auto obj = static_cast<StreamReader *>(arg);
+        obj->io_exchange->config.application->is_ready = true;
         const Error error = obj->run();
+        obj->io_exchange->config.application->is_ready = false;
 
         // TODO: adapt this to the new stream reader interface
         StreamReaderDoneMessage message{error};

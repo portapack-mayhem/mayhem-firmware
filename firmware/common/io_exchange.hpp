@@ -50,8 +50,10 @@ namespace stream
         IoExchange &operator=(IoExchange &&) = delete;
 
         const IoExchangeConfig config;
+        void clear();
 
-        Result<size_t> read(void *p, const size_t count);
+        Result<size_t>
+        read(void *p, const size_t count);
         Result<size_t> write(const void *p, const size_t count);
 
         inline static constexpr Error REQUESTED_TERMINATION{20, "Requested termination"};

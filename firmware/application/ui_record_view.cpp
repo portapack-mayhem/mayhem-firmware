@@ -262,6 +262,11 @@ namespace ui
 
 	void RecordView::stop()
 	{
+
+		// in case there's a io_exchange instance, reset the counters and data
+		// if (io_exchange)
+		// 	io_exchange->clear();
+
 		if (is_active())
 		{
 			stream_writer.reset();
@@ -336,8 +341,10 @@ namespace ui
 	{
 		stop();
 
-		// if (error.code > 0)
-		handle_error(error);
+		if (
+			error.code != stream::StreamWriter::END_OF_STREAM.code &&
+			error.code != stream::StreamWriter::TERMINATED.code)
+			handle_error(error);
 	}
 
 	void RecordView::handle_error(Error error)
@@ -346,10 +353,10 @@ namespace ui
 		{
 			std::string ss{" "};
 
-			ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
-			ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
-			ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
-			ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
+			// ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
+			// ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
+			// ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
+			// ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
 
 			on_error("error " + to_string_dec_uint(error.code) + ss);
 		}

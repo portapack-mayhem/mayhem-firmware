@@ -67,7 +67,7 @@ struct SharedMemory
 	{
 		ToneData tones_data;
 		JammerChannel jammer_channels[24];
-		uint8_t data[512];
+		uint8_t data[512]; // TODO: this needs to go later once we refactor all the processors to use streams instead of full shared frames
 	} bb_data{{{{0, 0}}, 0, {0}}};
 };
 

@@ -27,7 +27,7 @@
 namespace stream
 {
 
-	const size_t BASE_BLOCK_SIZE = 4096;
+	const size_t BASE_BLOCK_SIZE = 8192;
 
 	class Reader
 	{

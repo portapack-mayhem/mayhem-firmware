@@ -108,7 +108,8 @@ set(CPPSRC
 	${COMMON}/baseband_sgpio.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/buffer.cpp
-	${COMMON}/stream_data_exchange.cpp
+	${COMMON}/io.cpp
+	${COMMON}/io_exchange.cpp
 	baseband_thread.cpp
 	baseband_processor.cpp
 	baseband_stats_collector.cpp

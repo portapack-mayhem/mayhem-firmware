@@ -134,6 +134,31 @@ namespace stream
 #endif
     };
 
+    void IoExchange::clear()
+    {
+        if (config.application)
+        {
+            config.application->bytes_read = 0;
+            config.application->bytes_written = 0;
+            config.application->is_ready = false;
+        }
+
+        if (config.baseband)
+        {
+            // reset the buckets
+            config.baseband->bytes_read = 0;
+            config.baseband->bytes_written = 0;
+            config.baseband->is_ready = false;
+        }
+
+        // resets both buffers
+        if (config.application && config.application->buffer != nullptr)
+            config.application->buffer->clear_data();
+
+        if (config.baseband && config.baseband->buffer != nullptr)
+            config.baseband->buffer->clear_data();
+    }
+
 // Methods for the Application
 #if defined(LPC43XX_M0)
     Result<size_t> IoExchange::read(void *p, const size_t count)
