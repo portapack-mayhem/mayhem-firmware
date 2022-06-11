@@ -24,33 +24,37 @@
 #include "io.hpp"
 #include "error.hpp"
 #include "event_m0.hpp"
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-class StreamWriter
+namespace stream
 {
-public:
-    StreamWriter(std::unique_ptr<stream::Writer> writer);
-    ~StreamWriter();
+    class StreamWriter
+    {
+    public:
+        StreamWriter(IoExchange *io_exchange, std::unique_ptr<Writer> writer);
+        ~StreamWriter();
 
-    StreamWriter(const StreamWriter &) = delete;
-    StreamWriter(StreamWriter &&) = delete;
-    StreamWriter &operator=(const StreamWriter &) = delete;
-    StreamWriter &operator=(StreamWriter &&) = delete;
+        StreamWriter(const StreamWriter &) = delete;
+        StreamWriter(StreamWriter &&) = delete;
+        StreamWriter &operator=(const StreamWriter &) = delete;
+        StreamWriter &operator=(StreamWriter &&) = delete;
 
-    inline static const Error END_OF_STREAM = Error(0, "End of stream");
-    inline static const Error NO_WRITER = Error(1, "No writer");
-    inline static const Error READ_ERROR = Error(2, "Read error");
-    inline static const Error WRITE_ERROR = Error(3, "Write error");
-    inline static const Error TERMINATED = Error(4, "Terminated");
+        inline static constexpr Error END_OF_STREAM{0, "End of stream"};
+        inline static constexpr Error NO_WRITER{1, "No writer"};
+        inline static constexpr Error READ_ERROR{2, "Read error"};
+        inline static constexpr Error WRITE_ERROR{3, "Write error"};
+        inline static constexpr Error TERMINATED{4, "Terminated"};
 
-private:
-    std::unique_ptr<stream::Writer> writer{nullptr};
-    StreamDataExchange data_exchange{STREAM_EXCHANGE_BB_TO_APP};
-    Thread *thread{nullptr};
+    private:
+        IoExchange *io_exchange;
+        std::unique_ptr<Writer> writer{nullptr};
+        Thread *thread{nullptr};
 
-    static msg_t static_fn(void *arg);
-    const Error run();
-};
+        static msg_t static_fn(void *arg);
+        const Error run();
+    };
+
+} /* namespace stream */

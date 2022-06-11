@@ -248,7 +248,7 @@ namespace ui
 		{
 			text_record_filename.set(base_path.replace_extension().string());
 			button_record.set_bitmap(&bitmap_stop);
-			stream_writer = std::make_unique<StreamWriter>(std::move(writer));
+			stream_writer = std::make_unique<stream::StreamWriter>(io_exchange.get(), std::move(writer));
 		}
 
 		update_status_display();
@@ -304,7 +304,7 @@ namespace ui
 	{
 		if (is_active())
 		{
-			// TODO: reimplement the dropped percentage display
+			// TODO: before commit reimplement the dropped percentage display
 			// const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
 			const auto dropped_percent = 0;
 			const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
@@ -335,14 +335,24 @@ namespace ui
 	void RecordView::handle_stream_writer_done(Error error)
 	{
 		stop();
-		if (error.code > 0)
-			handle_error(error);
+
+		// if (error.code > 0)
+		handle_error(error);
 	}
 
 	void RecordView::handle_error(Error error)
 	{
 		if (on_error)
-			on_error("error " + to_string_dec_uint(error.code));
+		{
+			std::string ss{" "};
+
+			ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
+			ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
+			ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
+			ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
+
+			on_error("error " + to_string_dec_uint(error.code) + ss);
+		}
 	}
 
 } /* namespace ui */

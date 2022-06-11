@@ -19,22 +19,35 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <string>
-
 #pragma once
 
-struct Error
-{
-    // constexpr Error() = default;
-    constexpr Error(uint32_t code_, const char * message_) : code{code_}, message{message_} {}
-    Error(uint32_t code_ = 0, const std::string& message_ = "") : code{code_}
-    {
-        if (message_.empty())
-            message = std::string("Error " + std::to_string(code)).c_str();
-        else 
-            message = message_.c_str();  
-    }
+#include "circular_buffer.hpp"
 
-    const uint32_t code{0};
-    const char *message{nullptr};
-};
+namespace stream
+{
+
+    enum IoExchangeDirection
+    {
+        APP_TO_BB = 1,
+        BB_TO_APP = 2,
+        DUPLEX = 0
+    };
+
+    struct IoExchangeBucket
+    {
+        CircularBuffer *buffer{nullptr};
+        size_t bytes_read{0};
+        size_t bytes_written{0};
+
+        bool is_setup{false};
+        bool is_ready{false};
+    };
+
+    struct IoExchangeConfig
+    {
+        stream::IoExchangeDirection direction{stream::DUPLEX};
+        stream::IoExchangeBucket *baseband{nullptr};    // bucket_from_baseband_to_application;
+        stream::IoExchangeBucket *application{nullptr}; // bucket_from_application_to_baseband;
+    };
+
+} /* namespace stream */

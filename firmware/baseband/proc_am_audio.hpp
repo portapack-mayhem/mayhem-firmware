@@ -77,7 +77,6 @@ private:
 
 	bool configured{false};
 	void configure(const AMConfigureMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 
 	buffer_f32_t demodulate(const buffer_c16_t &channel);
 };

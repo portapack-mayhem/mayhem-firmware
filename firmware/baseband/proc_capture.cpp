@@ -21,11 +21,8 @@
  */
 
 #include "proc_capture.hpp"
-
 #include "dsp_fir_taps.hpp"
-
 #include "event_m4.hpp"
-
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor()
@@ -44,21 +41,15 @@ void CaptureProcessor::execute(const buffer_c8_t &buffer)
 	const auto &decimator_out = decim_1_out;
 	const auto &channel = decimator_out;
 
-	if (stream)
+	if (io_exchange.config.application->is_ready)
 	{
-		const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
+		const size_t bytes_to_write = sizeof(decimator_out.p) * decimator_out.count;
+		auto res_written = io_exchange.write_full(decimator_out.p, bytes_to_write);
 
-		// loop to write
-		auto write_index = 0;
-		while (write_index < bytes_to_write)
-		{
-			const auto result = stream->write(decimator_out.p + write_index, bytes_to_write - write_index);
-
-			if (result.is_error())
-				break; // should not happen, TODO: we might want to let the UI know about this :/
-
-			write_index += result.value();
-		}
+		// if (res_written.is_error())
+		// 	chDbgPanic(std::string("stream write error: " + std::to_string(res_written.error().code)).c_str());
+		// else if (res_written.value() != bytes_to_write)
+		// 	chDbgPanic(std::string("incomplete: " + std::to_string(res_written.value()) + " " + std::to_string(bytes_to_write)).c_str());
 	}
 
 	feed_channel_stats(channel);
@@ -84,10 +75,6 @@ void CaptureProcessor::on_message(const Message *const message)
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchangeConfig:
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
-		break;
-
 	default:
 		break;
 	}
@@ -109,17 +96,9 @@ void CaptureProcessor::samplerate_config(const SamplerateConfigMessage &message)
 
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
-}
 
-void CaptureProcessor::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (!message.config)
-		return;
-
-	if (stream)
-		stream.reset();
-
-	stream = std::make_unique<StreamDataExchange>(message.config);
+	// set the io_exchange baseband config as ready
+	io_exchange.config.baseband->is_ready = true;
 }
 
 int main()

@@ -55,11 +55,11 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 	// 2048 samples * 2 bytes per sample = 4096 bytes
 	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
 	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
-	if (stream)
+	if (io_exchange.config.application->is_ready)
 	{
 		const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8); // *2 (C16), /8 (oversampling) should be == 1024
-		auto result = stream->read(iq_buffer.p, bytes_to_read);
-		bytes_read += result.value();
+		auto res_read = io_exchange.read_full(iq_buffer.p, bytes_to_read);
+		bytes_read += res_read.value();
 	}
 
 	// Fill and "stretch"
@@ -102,12 +102,6 @@ void ReplayProcessor::on_message(const Message *const message)
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchangeConfig:
-		configured = false;
-		bytes_read = 0;
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
-		break;
-
 	// App has prefilled the buffers, we're ready to go now
 	case Message::ID::FIFOData:
 		configured = true;
@@ -123,19 +117,6 @@ void ReplayProcessor::samplerate_config(const SamplerateConfigMessage &message)
 	baseband_fs = message.sample_rate;
 	baseband_thread.set_sampling_rate(baseband_fs);
 	spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
-}
-
-void ReplayProcessor::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (message.config)
-	{
-
-		stream = std::make_unique<StreamDataExchange>(message.config);
-	}
-	else
-	{
-		stream.reset();
-	}
 }
 
 int main()

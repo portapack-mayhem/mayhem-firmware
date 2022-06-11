@@ -126,10 +126,6 @@ void NarrowbandFMAudio::on_message(const Message *const message)
 		configure(*reinterpret_cast<const NBFMConfigureMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchangeConfig:
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
-		break;
-
 	case Message::ID::PitchRSSIConfigure:
 		pitch_rssi_config(*reinterpret_cast<const PitchRSSIConfigureMessage *>(message));
 		break;
@@ -172,18 +168,6 @@ void NarrowbandFMAudio::pitch_rssi_config(const PitchRSSIConfigureMessage &messa
 {
 	pitch_rssi_enabled = message.enabled;
 	tone_delta = (message.rssi + 1000) * ((1ULL << 32) / 24000);
-}
-
-void NarrowbandFMAudio::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (message.config)
-	{
-		audio_output.set_stream(std::make_unique<StreamDataExchange>(message.config));
-	}
-	else
-	{
-		audio_output.set_stream(nullptr);
-	}
 }
 
 int main()

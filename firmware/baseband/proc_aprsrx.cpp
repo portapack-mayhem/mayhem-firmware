@@ -245,22 +245,6 @@ void APRSRxProcessor::on_message(const Message *const message)
 {
 	if (message->id == Message::ID::APRSRxConfigure)
 		configure(*reinterpret_cast<const APRSRxConfigureMessage *>(message));
-	if (message->id == Message::ID::StreamDataExchangeConfig)
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
-}
-
-void APRSRxProcessor::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (message.config)
-	{
-		// stream = std::make_unique<StreamDataExchange>(message.config);
-		audio_output.set_stream(std::make_unique<StreamDataExchange>(message.config));
-	}
-	else
-	{
-		// stream.reset();
-		audio_output.set_stream(nullptr);
-	}
 }
 
 void APRSRxProcessor::configure(const APRSRxConfigureMessage &message)

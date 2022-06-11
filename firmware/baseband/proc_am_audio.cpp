@@ -75,10 +75,6 @@ void NarrowbandAMAudio::on_message(const Message *const message)
 		configure(*reinterpret_cast<const AMConfigureMessage *>(message));
 		break;
 
-	case Message::ID::StreamDataExchangeConfig:
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
-		break;
-
 	default:
 		break;
 	}
@@ -110,18 +106,6 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage &message)
 	audio_output.configure(message.audio_hpf_config);
 
 	configured = true;
-}
-
-void NarrowbandAMAudio::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (message.config)
-	{
-		audio_output.set_stream(std::make_unique<StreamDataExchange>(message.config));
-	}
-	else
-	{
-		audio_output.set_stream(nullptr);
-	}
 }
 
 int main()

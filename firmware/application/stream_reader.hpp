@@ -24,33 +24,38 @@
 #include "io.hpp"
 #include "error.hpp"
 #include "event_m0.hpp"
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-class StreamReader
+namespace stream
 {
-public:
-    StreamReader(std::unique_ptr<stream::Reader> reader);
-    ~StreamReader();
 
-    StreamReader(const StreamReader &) = delete;
-    StreamReader(StreamReader &&) = delete;
-    StreamReader &operator=(const StreamReader &) = delete;
-    StreamReader &operator=(StreamReader &&) = delete;
+    class StreamReader
+    {
+    public:
+        StreamReader(IoExchange *io_exchange, std::unique_ptr<Reader> reader);
+        ~StreamReader();
 
-    inline static const Error END_OF_STREAM = Error(0, "End of stream");
-    inline static const Error NO_READER = Error(1, "No reader");
-    inline static const Error READ_ERROR = Error(2, "Read error");
-    inline static const Error WRITE_ERROR = Error(3, "Write error");
-    inline static const Error TERMINATED = Error(4, "Terminated");
+        StreamReader(const StreamReader &) = delete;
+        StreamReader(StreamReader &&) = delete;
+        StreamReader &operator=(const StreamReader &) = delete;
+        StreamReader &operator=(StreamReader &&) = delete;
 
-private:
-    std::unique_ptr<stream::Reader> reader{nullptr};
-    StreamDataExchange data_exchange{STREAM_EXCHANGE_APP_TO_BB};
-    Thread *thread{nullptr};
+        inline static constexpr Error END_OF_STREAM{0, "End of stream"};
+        inline static constexpr Error NO_READER{1, "No reader"};
+        inline static constexpr Error READ_ERROR{2, "Read error"};
+        inline static constexpr Error WRITE_ERROR{3, "Write error"};
+        inline static constexpr Error TERMINATED{4, "Terminated"};
 
-    static msg_t static_fn(void *arg);
-    const Error run();
-};
+    private:
+        IoExchange *io_exchange;
+        std::unique_ptr<Reader> reader{nullptr};
+        Thread *thread{nullptr};
+
+        static msg_t static_fn(void *arg);
+        const Error run();
+    };
+
+} /* namespace stream */

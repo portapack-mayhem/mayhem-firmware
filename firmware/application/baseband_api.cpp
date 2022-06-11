@@ -210,9 +210,9 @@ namespace baseband
 		send_message(&message);
 	}
 
-	void set_stream_data_exchange(StreamDataExchangeConfig *const config)
+	void set_stream_data_exchange(const stream::IoExchangeConfig config)
 	{
-		const StreamDataExchangeMessage message{
+		const IoExchangeMessage message{
 			config};
 		send_message(&message);
 	}

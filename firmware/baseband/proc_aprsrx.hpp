@@ -29,7 +29,7 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include "audio_output.hpp"
 
@@ -111,7 +111,7 @@ private:
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 	dsp::decimate::FIRAndDecimateComplex channel_filter{};
 
-	std::unique_ptr<StreamDataExchange> stream{};
+	std::unique_ptr<stream::IoExchange> stream{};
 
 	dsp::demodulate::FM demod{};
 
@@ -138,7 +138,6 @@ private:
 	aprs::APRSPacket aprs_packet{};
 
 	void configure(const APRSRxConfigureMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 	void parse_packet();
 	bool parse_bit(const uint8_t bit);
 	void parse_ax25();

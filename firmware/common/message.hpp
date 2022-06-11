@@ -43,8 +43,8 @@
 #include "jammer.hpp"
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
-#include "circular_buffer.hpp"
 #include "fifo.hpp"
+#include "io_exchange_config.hpp"
 
 #include "utility.hpp"
 
@@ -76,7 +76,7 @@ public:
 		ChannelSpectrumConfig = 15,
 		SpectrumStreamingConfig = 16,
 		DisplaySleep = 17,
-		StreamDataExchangeConfig = 18,
+		IoExchangeConfig = 18,
 		StreamWriterDone = 19,
 		StreamReaderDone = 20,
 		AFSKRxConfigure = 21,
@@ -989,31 +989,16 @@ public:
 	const int8_t *data;
 };
 
-enum stream_exchange_direction
-{
-	STREAM_EXCHANGE_APP_TO_BB = 1,
-	STREAM_EXCHANGE_BB_TO_APP = 2,
-	STREAM_EXCHANGE_DUPLEX = 0
-};
-
-struct StreamDataExchangeConfig
-{
-	stream_exchange_direction direction{STREAM_EXCHANGE_DUPLEX};
-
-	// buffer to store data in and out
-	CircularBuffer *buffer_from_baseband_to_application{nullptr};
-	CircularBuffer *buffer_from_application_to_baseband{nullptr};
-};
-class StreamDataExchangeMessage : public Message
+class IoExchangeMessage : public Message
 {
 public:
-	constexpr StreamDataExchangeMessage(
-		StreamDataExchangeConfig *const config) : Message{ID::StreamDataExchangeConfig},
-												  config{config}
+	constexpr IoExchangeMessage(
+		const stream::IoExchangeConfig config) : Message{ID::IoExchangeConfig},
+												 config{config}
 	{
 	}
 
-	StreamDataExchangeConfig *const config;
+	const stream::IoExchangeConfig config;
 };
 
 class StreamReaderDoneMessage : public Message

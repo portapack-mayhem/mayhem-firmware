@@ -35,7 +35,7 @@
 #include "block_decimator.hpp"
 #include "audio_stats_collector.hpp"
 
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 class AudioOutput
 {
@@ -50,11 +50,6 @@ public:
 	void write(const buffer_s16_t &audio);
 	void write(const buffer_f32_t &audio);
 
-	void set_stream(std::unique_ptr<StreamDataExchange> new_stream)
-	{
-		stream = std::move(new_stream);
-	}
-
 	bool is_squelched();
 
 private:
@@ -67,7 +62,8 @@ private:
 	IIRBiquadFilter deemph{};
 	FMSquelch squelch{};
 
-	std::unique_ptr<StreamDataExchange> stream{};
+	uint8_t stream_buffer[stream::BASE_BLOCK_SIZE];
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &stream_buffer, stream::BASE_BLOCK_SIZE};
 
 	AudioStatsCollector audio_stats{};
 

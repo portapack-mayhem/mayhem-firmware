@@ -46,7 +46,6 @@ namespace ui
 		tx_view.set_transmitting(false);
 
 		// button_play.set_bitmap(&bitmap_play);
-		ready_signal = false;
 	}
 
 	void SoundBoardView::handle_replay_thread_done(const uint32_t return_code)
@@ -54,7 +53,7 @@ namespace ui
 		stop();
 		// progressbar.set_value(0);
 
-		if (return_code == StreamReader::END_OF_STREAM.code)
+		if (return_code == stream::StreamReader::END_OF_STREAM.code)
 		{
 			if (check_random.value())
 			{
@@ -68,15 +67,10 @@ namespace ui
 				start_tx(playing_id);
 			}
 		}
-		else if (return_code == StreamReader::READ_ERROR.code)
+		else if (return_code == stream::StreamReader::READ_ERROR.code)
 		{
 			file_error();
 		}
-	}
-
-	void SoundBoardView::set_ready()
-	{
-		ready_signal = true;
 	}
 
 	void SoundBoardView::focus()
@@ -111,8 +105,7 @@ namespace ui
 
 		sample_rate = reader->sample_rate();
 
-		replay_thread = std::make_unique<StreamReader>(
-			std::move(reader));
+		replay_thread = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 
 		baseband::set_audiotx_config(
 			1536000 / 20, // Update vu-meter at 20Hz

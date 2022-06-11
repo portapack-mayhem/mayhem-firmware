@@ -32,7 +32,7 @@
 
 #include "irq_controls.hpp"
 
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include "ch.h"
 
@@ -51,8 +51,8 @@ extern "C"
 		CH_IRQ_PROLOGUE();
 
 		chSysLockFromIsr();
+		stream::IoExchange::handle_isr();
 		EventDispatcher::check_fifo_isr();
-		StreamDataExchange::handle_isr();
 		chSysUnlockFromIsr();
 
 		creg::m4txevent::clear();

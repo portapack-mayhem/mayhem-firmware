@@ -28,8 +28,8 @@ struct Result
 {
     enum class Type
     {
-        Success,
-        Error,
+        ResSuccess,
+        ResError,
     } type;
     union
     {
@@ -39,12 +39,12 @@ struct Result
 
     bool is_ok() const
     {
-        return type == Type::Success;
+        return type == Type::ResSuccess;
     }
 
     bool is_error() const
     {
-        return type == Type::Error;
+        return type == Type::ResError;
     }
 
     const T &value() const
@@ -60,20 +60,20 @@ struct Result
     Result() = delete;
 
     constexpr Result(
-        T value) : type{Type::Success},
+        T value) : type{Type::ResSuccess},
                    value_{value}
     {
     }
 
     constexpr Result(
-        Error error) : type{Type::Error},
-                   error_{error}
+        Error error) : type{Type::ResError},
+                       error_{error}
     {
     }
 
     ~Result()
     {
-        if (type == Type::Success)
+        if (type == Type::ResSuccess)
         {
             value_.~T();
         }

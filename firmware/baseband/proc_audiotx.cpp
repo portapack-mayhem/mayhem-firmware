@@ -26,7 +26,7 @@
 #include "event_m4.hpp"
 
 #include <cstdint>
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 void AudioTXProcessor::execute(const buffer_c8_t &buffer)
 {
@@ -41,9 +41,9 @@ void AudioTXProcessor::execute(const buffer_c8_t &buffer)
 		if (resample_acc >= 0x10000)
 		{
 			resample_acc -= 0x10000;
-			if (stream)
+			if (io_exchange.config.application->is_ready)
 			{
-				stream->read(&audio_sample, 1);
+				io_exchange.read_full(&audio_sample, 1);
 				bytes_read++;
 			}
 		}
@@ -78,21 +78,13 @@ void AudioTXProcessor::on_message(const Message *const message)
 	switch (message->id)
 	{
 	case Message::ID::AudioTXConfig:
-		audio_config(*reinterpret_cast<const AudioTXConfigMessage *>(message));
-		break;
-
-	case Message::ID::StreamDataExchangeConfig:
 		configured = false;
 		bytes_read = 0;
-		stream_config(*reinterpret_cast<const StreamDataExchangeMessage *>(message));
+		audio_config(*reinterpret_cast<const AudioTXConfigMessage *>(message));
 		break;
 
 	case Message::ID::SamplerateConfig:
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
-		break;
-
-	case Message::ID::FIFOData:
-		configured = true;
 		break;
 
 	default:
@@ -106,18 +98,6 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage &message)
 	tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
 	progress_interval_samples = message.divider;
 	resample_acc = 0;
-}
-
-void AudioTXProcessor::stream_config(const StreamDataExchangeMessage &message)
-{
-	if (message.config)
-	{
-		stream = std::make_unique<StreamDataExchange>(message.config);
-	}
-	else
-	{
-		stream.reset();
-	}
 }
 
 void AudioTXProcessor::samplerate_config(const SamplerateConfigMessage &message)

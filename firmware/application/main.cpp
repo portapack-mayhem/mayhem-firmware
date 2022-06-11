@@ -62,7 +62,6 @@
 // TODO: Open files in File Manager
 // TODO: Ask for filename after record
 // TODO: Super simple text file viewer
-// TODO: Clean up StreamReader
 // TODO: Cap Wav viewer position
 // TODO: Adapt wav viewer position step
 // TODO: Use unit_auto_scale

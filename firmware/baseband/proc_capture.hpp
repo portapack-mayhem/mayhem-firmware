@@ -31,7 +31,7 @@
 
 #include "spectrum_collector.hpp"
 
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include <array>
 #include <memory>
@@ -64,14 +64,14 @@ private:
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
 
-	std::unique_ptr<StreamDataExchange> stream{nullptr};
-
 	SpectrumCollector channel_spectrum{};
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 
+	uint8_t stream_buffer[stream::BASE_BLOCK_SIZE];
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &stream_buffer, stream::BASE_BLOCK_SIZE};
+
 	void samplerate_config(const SamplerateConfigMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 };
 
 #endif /*__PROC_CAPTURE_HPP__*/

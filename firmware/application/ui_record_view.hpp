@@ -123,8 +123,20 @@ namespace ui
 			"",
 		};
 
-		std::unique_ptr<StreamWriter> stream_writer{};
+		// handle io exchange
+		std::unique_ptr<stream::IoExchange> io_exchange{};
+		MessageHandlerRegistration io_exchange_handler_registration{
+			Message::ID::IoExchangeConfig,
+			[this](const Message *const message)
+			{
+				if (io_exchange)
+					io_exchange.reset();
 
+				const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
+				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
+			}};
+
+		std::unique_ptr<stream::StreamWriter> stream_writer{};
 		MessageHandlerRegistration message_handler_stream_writer_error{
 			Message::ID::StreamWriterDone,
 			[this](const Message *const p)

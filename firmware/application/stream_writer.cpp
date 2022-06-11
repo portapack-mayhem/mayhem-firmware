@@ -22,76 +22,73 @@
 #include "stream_writer.hpp"
 #include "message.hpp"
 
-StreamWriter::StreamWriter(std::unique_ptr<stream::Writer> _writer) : writer{std::move(_writer)}
+namespace stream
 {
-    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamWriter::static_fn, this);
-};
-
-StreamWriter::~StreamWriter()
-{
-    if (thread)
+    StreamWriter::StreamWriter(IoExchange *io_exchange, std::unique_ptr<Writer> _writer) : io_exchange{io_exchange}, writer{std::move(_writer)}
     {
-        if (thread->p_state != THD_STATE_FINAL)
+        thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, StreamWriter::static_fn, this);
+    };
+
+    StreamWriter::~StreamWriter()
+    {
+        if (thread)
         {
-            chThdTerminate(thread);
-            chThdWait(thread);
+            if (thread->p_state != THD_STATE_FINAL)
+            {
+                chThdTerminate(thread);
+                chThdWait(thread);
+            }
+
+            thread = nullptr;
         }
+    };
 
-        thread = nullptr;
-    }
-};
-
-const Error StreamWriter::run()
-{
-    uint8_t *buffer_block = new uint8_t[128];
-
-    while (!chThdShouldTerminate())
+    const Error StreamWriter::run()
     {
-        size_t block_bytes = 0;
-        size_t block_bytes_written = 0;
+        uint8_t *buffer_block = new uint8_t[BASE_BLOCK_SIZE];
 
-        if (!writer)
-            return NO_WRITER;
-
-        data_exchange.setup_baseband_stream();
-
-        // read from reader
-        auto read_result = data_exchange.read(buffer_block, sizeof(*buffer_block));
-
-        if (read_result.is_error())
-            return READ_ERROR;
-
-        if (read_result.value() == 0) // end of stream
-            return END_OF_STREAM;
-
-        block_bytes = read_result.value();
-
-        while (block_bytes_written < block_bytes && !chThdShouldTerminate())
+        while (!chThdShouldTerminate())
         {
-            // write to baseband
-            auto write_result = writer->write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
+            if (!writer)
+                return NO_WRITER;
+
+            // read from reader
+            auto read_result = io_exchange->read_full(buffer_block, BASE_BLOCK_SIZE);
+
+            // handle thd terminate flag
+            if (chThdShouldTerminate())
+                break;
+
+            if (read_result.is_error())
+                return READ_ERROR;
+
+            if (read_result.value() == 0) // end of stream
+                return END_OF_STREAM;
+
+            // write to writer
+            auto write_result = writer->write_full(buffer_block, read_result.value());
 
             if (read_result.is_error())
                 return WRITE_ERROR;
 
-            if (write_result.value() > 0)
-                block_bytes_written += write_result.value();
+            // we're going to loop, no need to handle thd terminate flag
         }
-    }
 
-    data_exchange.teardown_baseband_stream();
+        return TERMINATED;
+    };
 
-    return TERMINATED;
-};
+    msg_t StreamWriter::static_fn(void *arg)
+    {
+        auto obj = static_cast<StreamWriter *>(arg);
+        obj->io_exchange->config.application->is_ready = true;
+        const Error error = obj->run();
+        obj->io_exchange->config.application->is_ready = false;
 
-msg_t StreamWriter::static_fn(void *arg)
-{
-    auto obj = static_cast<StreamWriter *>(arg);
-    const Error error = obj->run();
+        // adapt this to the new stream reader interface
+        StreamWriterDoneMessage message{error};
+        EventDispatcher::send_message(message);
 
-    // adapt this to the new stream reader interface
-    StreamWriterDoneMessage message{error};
-    EventDispatcher::send_message(message);
+        return 0;
+    };
 
-    return 0;
-};
+} /* namespace stream */

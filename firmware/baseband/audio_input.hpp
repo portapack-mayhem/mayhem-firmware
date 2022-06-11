@@ -30,7 +30,7 @@
 #include "dsp_iir.hpp"
 #include "dsp_squelch.hpp"
 
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 #include <cstdint>
 #include <memory>

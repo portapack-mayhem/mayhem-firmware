@@ -26,7 +26,7 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "tone_gen.hpp"
-#include "stream_data_exchange.hpp"
+#include "io_exchange.hpp"
 
 class AudioTXProcessor : public BasebandProcessor
 {
@@ -40,7 +40,8 @@ private:
 
 	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
-	std::unique_ptr<StreamDataExchange> stream{};
+	uint8_t stream_buffer[stream::BASE_BLOCK_SIZE];
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &stream_buffer, stream::BASE_BLOCK_SIZE};
 
 	ToneGen tone_gen{};
 
@@ -58,7 +59,6 @@ private:
 
 	void samplerate_config(const SamplerateConfigMessage &message);
 	void audio_config(const AudioTXConfigMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 
 	TXProgressMessage txprogress_message{};
 };

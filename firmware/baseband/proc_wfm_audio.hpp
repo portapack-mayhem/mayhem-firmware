@@ -96,7 +96,6 @@ private:
 
 	bool configured{false};
 	void configure(const WFMConfigureMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 	void post_message(const buffer_c16_t &data);
 };
 

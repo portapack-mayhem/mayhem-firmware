@@ -36,11 +36,6 @@ using namespace portapack;
 namespace ui
 {
 
-	void ReplayAppView::set_ready()
-	{
-		ready_signal = true;
-	}
-
 	void ReplayAppView::on_file_changed(std::filesystem::path new_file_path)
 	{
 		File data_file, info_file;
@@ -152,8 +147,7 @@ namespace ui
 			button_play.set_bitmap(&bitmap_stop);
 			baseband::set_sample_rate(sample_rate * 8);
 
-			replay_thread = std::make_unique<StreamReader>(
-				std::move(reader));
+			replay_thread = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 		}
 		field_rfgain.on_change = [this](int32_t v)
 		{
@@ -195,17 +189,15 @@ namespace ui
 			radio::disable();
 			button_play.set_bitmap(&bitmap_play);
 		}
-
-		ready_signal = false;
 	}
 
 	void ReplayAppView::handle_replay_thread_done(const uint32_t return_code)
 	{
-		if (return_code == StreamReader::END_OF_STREAM.code)
+		if (return_code == stream::StreamReader::END_OF_STREAM.code)
 		{
 			stop(true);
 		}
-		else if (return_code == StreamReader::READ_ERROR.code)
+		else if (return_code == stream::StreamReader::READ_ERROR.code)
 		{
 			stop(false);
 			file_error();

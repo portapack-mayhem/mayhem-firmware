@@ -22,79 +22,72 @@
 #include "stream_reader.hpp"
 #include "message.hpp"
 
-StreamReader::StreamReader(std::unique_ptr<stream::Reader> _reader) : reader{std::move(_reader)}
+namespace stream
 {
-    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, StreamReader::static_fn, this);
-};
 
-StreamReader::~StreamReader()
-{
-    if (thread)
+    StreamReader::StreamReader(IoExchange *io_exchange, std::unique_ptr<Reader> _reader) : io_exchange{io_exchange}, reader{std::move(_reader)}
     {
-        if (thread->p_state != THD_STATE_FINAL)
+        thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, StreamReader::static_fn, this);
+    };
+
+    StreamReader::~StreamReader()
+    {
+        if (thread)
         {
-            chThdTerminate(thread);
-            chThdWait(thread);
+            if (thread->p_state != THD_STATE_FINAL)
+            {
+                chThdTerminate(thread);
+                chThdWait(thread);
+            }
+
+            thread = nullptr;
         }
+    };
 
-        thread = nullptr;
-    }
-};
-
-const Error StreamReader::run()
-{
-    uint8_t *buffer_block = new uint8_t[128];
-
-    while (!chThdShouldTerminate())
+    const Error StreamReader::run()
     {
-        size_t block_bytes = 0;
-        size_t block_bytes_written = 0;
+        uint8_t *buffer_block = new uint8_t[BASE_BLOCK_SIZE];
 
-        if (!reader)
-            return NO_READER;
-
-        // read from reader
-        auto read_result = reader->read(buffer_block, sizeof(*buffer_block));
-
-        if (read_result.is_error())
-            return READ_ERROR;
-
-        if (read_result.value() == 0) // end of stream
-            return END_OF_STREAM;
-
-        block_bytes = read_result.value();
-
-        while (block_bytes_written < block_bytes && !chThdShouldTerminate())
+        while (!chThdShouldTerminate())
         {
+            if (!reader)
+                return NO_READER;
+
+            // read from reader
+            auto read_result = reader->read_full(buffer_block, BASE_BLOCK_SIZE);
+
+            // handle thd terminate flag
+            if (chThdShouldTerminate())
+                break;
+
+            if (read_result.is_error())
+                return READ_ERROR;
+
+            if (read_result.value() == 0) // end of stream
+                return END_OF_STREAM;
+
             // write to baseband
-            auto write_result = data_exchange.write(buffer_block + block_bytes_written, block_bytes - block_bytes_written);
+            auto write_result = io_exchange->write_full(buffer_block, read_result.value());
 
             if (read_result.is_error())
                 return WRITE_ERROR;
 
-            if (write_result.value() > 0)
-                block_bytes_written += write_result.value();
-
-            if (data_exchange.buffer_from_application_to_baseband->is_full())
-                data_exchange.setup_baseband_stream();
+            // we're going to loop, no need to handle thd terminate flag
         }
 
-        data_exchange.setup_baseband_stream();
-    }
+        return TERMINATED;
+    };
 
-    data_exchange.teardown_baseband_stream();
+    msg_t StreamReader::static_fn(void *arg)
+    {
+        auto obj = static_cast<StreamReader *>(arg);
+        const Error error = obj->run();
 
-    return TERMINATED;
-};
+        // TODO: adapt this to the new stream reader interface
+        StreamReaderDoneMessage message{error};
+        EventDispatcher::send_message(message);
 
-msg_t StreamReader::static_fn(void *arg)
-{
-    auto obj = static_cast<StreamReader *>(arg);
-    const Error error = obj->run();
+        return 0;
+    };
 
-    // TODO: adapt this to the new stream reader interface
-    StreamReaderDoneMessage message{error};
-    EventDispatcher::send_message(message);
-
-    return 0;
-};
+} /* namespace stream */

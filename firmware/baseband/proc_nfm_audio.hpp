@@ -97,7 +97,6 @@ private:
 	bool configured{false};
 	void pitch_rssi_config(const PitchRSSIConfigureMessage &message);
 	void configure(const NBFMConfigureMessage &message);
-	void stream_config(const StreamDataExchangeMessage &message);
 
 	CodedSquelchMessage ctcss_message{0};
 };

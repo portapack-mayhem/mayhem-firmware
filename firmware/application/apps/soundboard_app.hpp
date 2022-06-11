@@ -73,8 +73,6 @@ namespace ui
 
 		const size_t read_size{2048}; // Less ?
 		const size_t buffer_count{3};
-		std::unique_ptr<StreamReader> replay_thread{};
-		bool ready_signal{false};
 		lfsr_word_t lfsr_v = 1;
 
 		// void show_infos();
@@ -82,7 +80,6 @@ namespace ui
 		// void on_ctcss_changed(uint32_t v);
 		void stop();
 		bool is_active() const;
-		void set_ready();
 		void handle_replay_thread_done(const uint32_t return_code);
 		void file_error();
 		void on_tx_progress(const uint32_t progress);
@@ -152,16 +149,20 @@ namespace ui
 				this->handle_replay_thread_done(message.error.code);
 			}};
 
-		MessageHandlerRegistration message_handler_fifo_signal{
-			Message::ID::RequestSignal,
-			[this](const Message *const p)
+		// handle io exchange
+		std::unique_ptr<stream::IoExchange> io_exchange{};
+		MessageHandlerRegistration io_exchange_handler_registration{
+			Message::ID::IoExchangeConfig,
+			[this](const Message *const message)
 			{
-				const auto message = static_cast<const RequestSignalMessage *>(p);
-				if (message->signal == RequestSignalMessage::Signal::FillRequest)
-				{
-					this->set_ready();
-				}
+				if (io_exchange)
+					io_exchange.reset();
+
+				const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
+				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
 			}};
+
+		std::unique_ptr<stream::StreamReader> replay_thread{};
 
 		MessageHandlerRegistration message_handler_tx_progress{
 			Message::ID::TXProgress,

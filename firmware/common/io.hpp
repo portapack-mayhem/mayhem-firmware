@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2022 José Moreira @cusspvz
  *
  * This file is part of PortaPack.
  *
@@ -27,11 +27,15 @@
 namespace stream
 {
 
+	const size_t BASE_BLOCK_SIZE = 4096;
+
 	class Reader
 	{
 	public:
 		virtual Result<size_t> read(void *const buffer, const size_t bytes) = 0;
 		virtual ~Reader() = default;
+
+		Result<size_t> read_full(void *p, const size_t count);
 	};
 
 	class Writer
@@ -39,6 +43,12 @@ namespace stream
 	public:
 		virtual Result<size_t> write(const void *const buffer, const size_t bytes) = 0;
 		virtual ~Writer() = default;
+
+		Result<size_t> write_full(const void *p, const size_t count);
+	};
+
+	class Duplex : public Reader, public Writer
+	{
 	};
 
 	// Think on a better way to introduce stream pipelines into the mix.

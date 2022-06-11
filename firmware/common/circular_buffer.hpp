@@ -27,6 +27,8 @@
 #include <cstring>
 #include <memory>
 
+#include <hal.h>
+
 class CircularBuffer
 {
     uint8_t *_data;
@@ -55,6 +57,8 @@ public:
     {
         for (size_t i = 0; i < _capacity; i++)
             _data[i] = 0;
+
+        __DSB();
     }
 
     void *data() const
@@ -101,6 +105,8 @@ public:
         if (_write_head == _capacity)
             _write_head = 0;
 
+        __DSB();
+
         return copy_size;
     }
 
@@ -117,6 +123,8 @@ public:
 
         if (_read_head == _capacity)
             _read_head = 0;
+
+        __DSB();
 
         return copy_size;
     }

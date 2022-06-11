@@ -72,13 +72,25 @@ namespace ui
 		void start();
 		void stop(const bool do_loop);
 		bool is_active() const;
-		void set_ready();
 		void handle_replay_thread_done(const uint32_t return_code);
 		void file_error();
 
 		std::filesystem::path file_path{};
-		std::unique_ptr<StreamReader> replay_thread{};
-		bool ready_signal{false};
+
+		// handle io exchange
+		std::unique_ptr<stream::IoExchange> io_exchange{};
+		MessageHandlerRegistration io_exchange_handler_registration{
+			Message::ID::IoExchangeConfig,
+			[this](const Message *const message)
+			{
+				if (io_exchange)
+					io_exchange.reset();
+
+				const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
+				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
+			}};
+
+		std::unique_ptr<stream::StreamReader> replay_thread{};
 
 		Labels labels{
 			{{10 * 8, 2 * 16}, "GAIN   A:", Color::light_grey()}};
@@ -132,20 +144,8 @@ namespace ui
 			Message::ID::StreamReaderDone,
 			[this](const Message *const p)
 			{
-				const auto message = *reinterpret_cast<const 
-				StreamReaderDoneMessage *>(p);
+				const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
 				this->handle_replay_thread_done(message.error.code);
-			}};
-
-		MessageHandlerRegistration message_handler_fifo_signal{
-			Message::ID::RequestSignal,
-			[this](const Message *const p)
-			{
-				const auto message = static_cast<const RequestSignalMessage *>(p);
-				if (message->signal == RequestSignalMessage::Signal::FillRequest)
-				{
-					this->set_ready();
-				}
 			}};
 
 		MessageHandlerRegistration message_handler_tx_progress{
