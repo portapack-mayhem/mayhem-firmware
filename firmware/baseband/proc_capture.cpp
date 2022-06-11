@@ -41,7 +41,7 @@ void CaptureProcessor::execute(const buffer_c8_t &buffer)
 	const auto &decimator_out = decim_1_out;
 	const auto &channel = decimator_out;
 
-	if (io_exchange.config.application->is_ready)
+	if (io_exchange.config.application->is_setup && io_exchange.config.application->is_ready)
 	{
 		const size_t bytes_to_write = sizeof(decimator_out.p) * decimator_out.count;
 		auto res_written = io_exchange.write_full(decimator_out.p, bytes_to_write);
@@ -73,9 +73,6 @@ void CaptureProcessor::on_message(const Message *const message)
 
 	case Message::ID::SamplerateConfig:
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
-
-		// set the io_exchange baseband config as ready
-		io_exchange.config.baseband->is_ready = true;
 		break;
 
 	default:

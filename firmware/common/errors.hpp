@@ -47,8 +47,9 @@ namespace errors
     static constexpr Error FR_INVALID_PARAMETER{19, "FR_INVALID_PARAMETER"};     /* (19) Given parameter is invalid */
     static constexpr Error FILE_ALREADY_OPENED{20, "FILE_ALREADY_OPENED"};
 
-    static constexpr Error END_OF_STREAM{100, "End of stream"};
-    static constexpr Error THREAD_TERMINATED{101, "Terminated"};
+    static constexpr Error END_OF_STREAM{99, "End of stream"};
+    static constexpr Error THREAD_TERMINATED{100, "Terminated"};
+    static constexpr Error NO_IO_EXCHANGE{101, "No IO exchange"};
     static constexpr Error NO_READER{102, "No reader"};
     static constexpr Error NO_WRITER{103, "No writer"};
     static constexpr Error READ_ERROR_GENERIC{104, "Read error"};

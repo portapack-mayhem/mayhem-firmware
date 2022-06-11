@@ -26,6 +26,7 @@ using namespace portapack;
 
 #include "io_file.hpp"
 #include "io_wave.hpp"
+#include "errors.hpp"
 
 #include "baseband_api.hpp"
 #include "rtc_time.hpp"
@@ -337,24 +338,17 @@ namespace ui
 	{
 		stop();
 
-		// if (
-		// 	error.code != stream::StreamWriter::END_OF_STREAM.code &&
-		// 	error.code != stream::StreamWriter::TERMINATED.code)
-		handle_error(error);
+		if (
+			error.code != errors::END_OF_STREAM.code &&
+			error.code != errors::THREAD_TERMINATED.code)
+			handle_error(error);
 	}
 
 	void RecordView::handle_error(const Error error)
 	{
 		if (on_error)
 		{
-			std::string ss{" "};
-
-			// ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
-			// ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
-			// ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
-			// ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
-
-			on_error("error " + to_string_dec_uint(error.code) + ss);
+			on_error("error " + to_string_dec_uint(error.code));
 		}
 	}
 

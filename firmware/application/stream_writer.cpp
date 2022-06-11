@@ -32,6 +32,9 @@ namespace stream
 
     StreamWriter::~StreamWriter()
     {
+        if (io_exchange)
+            io_exchange->config.application->is_ready = false;
+
         if (thread)
         {
             if (thread->p_state != THD_STATE_FINAL)
@@ -43,9 +46,11 @@ namespace stream
             thread = nullptr;
         }
 
-        // // in case there's a io_exchange instance, reset the counters and data
-        // if (io_exchange)
-        //     io_exchange->clear();
+        if (io_exchange)
+        {
+            io_exchange->clear();
+            io_exchange = nullptr;
+        }
     };
 
     const Error StreamWriter::run()
@@ -54,8 +59,11 @@ namespace stream
 
         while (!chThdShouldTerminate())
         {
+            if (!io_exchange)
+                return errors::NO_IO_EXCHANGE;
+
             if (!writer)
-                return errors::NO_READER;
+                return errors::NO_WRITER;
 
             // read from reader
             auto read_result = io_exchange->read_full(buffer_block, BASE_BLOCK_SIZE);

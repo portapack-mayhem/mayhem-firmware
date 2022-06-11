@@ -20,7 +20,7 @@
  */
 
 #include "io.hpp"
-#include <hal.h>
+#include "ch.h"
 
 namespace stream
 {
@@ -30,7 +30,9 @@ namespace stream
         uint8_t *b = static_cast<uint8_t *>(p);
         size_t inner_bytes_read = 0;
 
-        while (!chThdShouldTerminate() && inner_bytes_read < count)
+        while (
+            // !chThdShouldTerminate() &&
+            inner_bytes_read < count)
         {
             auto read_result = read(&b[inner_bytes_read], count - inner_bytes_read);
 
@@ -49,7 +51,9 @@ namespace stream
 
         size_t inner_bytes_written = 0;
 
-        while (!chThdShouldTerminate() && inner_bytes_written < count)
+        while (
+            // !chThdShouldTerminate() &&
+            inner_bytes_written < count)
         {
             auto write_result = write(&b[inner_bytes_written], count - inner_bytes_written);
 

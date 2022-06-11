@@ -57,7 +57,7 @@ private:
 	int32_t channel_filter_transition = 0;
 
 	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
-	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::APP_TO_BB, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
 
 	SpectrumCollector channel_spectrum{};
 	size_t spectrum_interval_samples = 0;
