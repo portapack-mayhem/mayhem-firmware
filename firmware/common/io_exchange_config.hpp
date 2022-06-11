@@ -39,7 +39,7 @@ namespace stream
         size_t bytes_read{0};
         size_t bytes_written{0};
 
-        bool is_setup{false};
+        bool is_configured{false};
         bool is_ready{false};
     };
 

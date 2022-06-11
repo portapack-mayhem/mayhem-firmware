@@ -52,8 +52,8 @@ namespace stream
         const IoExchangeConfig config;
         void clear();
 
-        Result<size_t>
-        read(void *p, const size_t count);
+        bool has_read_data();
+        Result<size_t> read(void *p, const size_t count);
         Result<size_t> write(const void *p, const size_t count);
 
 #if defined(LPC43XX_M0)

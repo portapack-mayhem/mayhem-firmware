@@ -45,7 +45,7 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 {
 	/* 4MHz, 2048 samples */
 
-	if (!io_exchange.config.application->is_ready)
+	if (!io_exchange.has_read_data())
 		return;
 
 	// File data is in C16 format, we need C8
@@ -56,7 +56,7 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
 	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
 	const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8); // *2 (C16), /8 (oversampling) should be == 1024
-	auto res_read = io_exchange.read_full(iq_buffer.p, bytes_to_read);
+	auto res_read = io_exchange.fully_read(iq_buffer.p, bytes_to_read);
 
 	// Fill and "stretch"
 	for (size_t i = 0; i < buffer.count; i++)

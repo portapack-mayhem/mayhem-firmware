@@ -25,13 +25,20 @@
 namespace stream
 {
 
-    Result<size_t> Reader::read_full(void *p, const size_t count)
+    Result<size_t> Reader::fully_read(void *p, const size_t count)
+    {
+        return fully_read_up_to_max_iterations(p, count, 25);
+    };
+
+    Result<size_t> Reader::fully_read_up_to_max_iterations(void *p, const size_t count, const size_t max_zero_iterations)
     {
         uint8_t *b = static_cast<uint8_t *>(p);
         size_t inner_bytes_read = 0;
+        size_t zero_iterations = 0;
 
         while (
             !chThdShouldTerminate() &&
+            zero_iterations < max_zero_iterations &&
             inner_bytes_read < count)
         {
             auto read_result = read(&b[inner_bytes_read], count - inner_bytes_read);
@@ -40,19 +47,31 @@ namespace stream
                 return read_result; // propagate error
 
             inner_bytes_read += read_result.value();
+
+            if (read_result.value() == 0)
+                zero_iterations++;
+            else
+                zero_iterations = 0;
         }
 
         return {inner_bytes_read};
-    }
+    };
 
-    Result<size_t> Writer::write_full(const void *p, const size_t count)
+    Result<size_t> Writer::fully_write(const void *p, const size_t count)
+    {
+        return fully_write_up_to_max_iterations(p, count, 25);
+    };
+
+    Result<size_t> Writer::fully_write_up_to_max_iterations(const void *p, const size_t count, const size_t max_zero_iterations)
     {
         const uint8_t *b = static_cast<const uint8_t *>(p);
 
         size_t inner_bytes_written = 0;
+        size_t zero_iterations = 0;
 
         while (
             !chThdShouldTerminate() &&
+            zero_iterations < max_zero_iterations &&
             inner_bytes_written < count)
         {
             auto write_result = write(&b[inner_bytes_written], count - inner_bytes_written);
@@ -61,6 +80,11 @@ namespace stream
                 return write_result; // propagate error
 
             inner_bytes_written += write_result.value();
+
+            if (write_result.value() == 0)
+                zero_iterations++;
+            else
+                zero_iterations = 0;
         }
 
         return {inner_bytes_written};

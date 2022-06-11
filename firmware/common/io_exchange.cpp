@@ -32,14 +32,14 @@ namespace stream
                                        .buffer = nullptr,
                                        .bytes_read = 0,
                                        .bytes_written = 0,
-                                       .is_setup = false,
+                                       .is_configured = false,
                                        .is_ready = false,
                                    },
                                    .application = new IoExchangeBucket{
                                        .buffer = nullptr,
                                        .bytes_read = 0,
                                        .bytes_written = 0,
-                                       .is_setup = false,
+                                       .is_configured = false,
                                        .is_ready = false,
                                    },
                                } {
@@ -52,14 +52,14 @@ namespace stream
                                                                                                                         .buffer = nullptr,
                                                                                                                         .bytes_read = 0,
                                                                                                                         .bytes_written = 0,
-                                                                                                                        .is_setup = false,
+                                                                                                                        .is_configured = false,
                                                                                                                         .is_ready = false,
                                                                                                                     },
                                                                                                                     .application = new IoExchangeBucket{
                                                                                                                         .buffer = nullptr,
                                                                                                                         .bytes_read = 0,
                                                                                                                         .bytes_written = 0,
-                                                                                                                        .is_setup = false,
+                                                                                                                        .is_configured = false,
                                                                                                                         .is_ready = false,
                                                                                                                     },
                                                                                                                 }
@@ -104,18 +104,18 @@ namespace stream
 
 #if defined(LPC43XX_M0)
         // set the application bucket as ready
-        config.application->is_setup = true;
+        config.application->is_configured = true;
 
-        if (!config.baseband->is_setup)
+        if (!config.baseband->is_configured)
         {
             baseband::set_stream_data_exchange(config);
         }
 #endif
 #if defined(LPC43XX_M4)
         // set the baseband bucket as ready
-        config.baseband->is_setup = true;
+        config.baseband->is_configured = true;
 
-        if (!config.application->is_setup)
+        if (!config.application->is_configured)
         {
             const IoExchangeMessage message{config};
             shared_memory.application_queue.push(message);
@@ -162,10 +162,15 @@ namespace stream
 
 // Methods for the Application
 #if defined(LPC43XX_M0)
+    bool IoExchange::has_read_data()
+    {
+        return config.direction != stream::APP_TO_BB && config.baseband->is_configured && config.baseband->buffer && config.baseband->buffer->used() > 0;
+    }
+
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.baseband->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config.baseband->is_configured || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
             return {errors::READ_ERROR_CANNOT_READ_FROM_BASEBAND};
 
         // suspend in case the target buffer is full
@@ -185,7 +190,7 @@ namespace stream
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.baseband->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config.baseband->is_configured || !config.application->buffer || config.direction == stream::BB_TO_APP)
             return {errors::WRITE_ERROR_CANNOT_WRITE_TO_BASEBAND};
 
         // suspend in case the target buffer is full
@@ -225,11 +230,15 @@ namespace stream
 
 // Methods for the Baseband
 #if defined(LPC43XX_M4)
+    bool IoExchange::has_read_data()
+    {
+        return config.direction != stream::BB_TO_APP && config.application->is_configured && config.application->buffer && config.application->buffer->used() > 0;
+    }
 
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.application->is_ready || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config.application->is_configured || !config.application->buffer || config.direction == stream::BB_TO_APP)
             return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
         // if (config.application->buffer->is_empty())

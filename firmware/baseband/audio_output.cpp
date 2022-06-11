@@ -119,7 +119,7 @@ void AudioOutput::fill_audio_buffer(const buffer_f32_t &audio, const bool send_t
 	}
 	if (send_to_fifo)
 	{
-		io_exchange.write_full(audio_int.data(), audio_buffer.count * sizeof(audio_int[0]));
+		io_exchange.fully_write(audio_int.data(), audio_buffer.count * sizeof(audio_int[0]));
 	}
 
 	feed_audio_stats(audio);

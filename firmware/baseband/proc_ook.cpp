@@ -59,7 +59,7 @@ void OOKProcessor::execute(const buffer_c8_t &buffer)
 						{
 
 							// read next bit from file
-							auto read_result = io_exchange.read_full(&bit_buffer, sizeof(bit_buffer));
+							auto read_result = io_exchange.fully_read(&bit_buffer, sizeof(bit_buffer));
 
 							if (read_result.is_error() || read_result.value() == 0)
 								done();

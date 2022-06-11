@@ -27,7 +27,7 @@
 namespace stream
 {
 
-	const size_t BASE_BLOCK_SIZE = 4096;
+	const size_t BASE_BLOCK_SIZE = 8192;
 
 	class Reader
 	{
@@ -35,7 +35,8 @@ namespace stream
 		virtual Result<size_t> read(void *const buffer, const size_t bytes) = 0;
 		virtual ~Reader() = default;
 
-		Result<size_t> read_full(void *p, const size_t count);
+		Result<size_t> fully_read(void *p, const size_t count);
+		Result<size_t> fully_read_up_to_max_iterations(void *p, const size_t count, const size_t max_zero_iterations);
 	};
 
 	class Writer
@@ -44,7 +45,8 @@ namespace stream
 		virtual Result<size_t> write(const void *const buffer, const size_t bytes) = 0;
 		virtual ~Writer() = default;
 
-		Result<size_t> write_full(const void *p, const size_t count);
+		Result<size_t> fully_write(const void *p, const size_t count);
+		Result<size_t> fully_write_up_to_max_iterations(const void *p, const size_t count, const size_t max_zero_iterations);
 	};
 
 	class Duplex : public Reader, public Writer

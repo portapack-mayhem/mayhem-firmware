@@ -59,7 +59,7 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 	if (io_exchange.config.application->is_ready)
 	{																		 // sizeof(*buffer.p) = sizeof(C8) = 2*int8 = 2 bytes //buffer.count = 2048
 		const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count); // *2 (C16), /8 (oversampling) should be == 1024
-		auto result = io_exchange.read_full(iq_buffer.p, bytes_to_read);
+		auto result = io_exchange.fully_read(iq_buffer.p, bytes_to_read);
 		bytes_read += result.value();
 	}
 
