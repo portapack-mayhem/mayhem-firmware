@@ -21,6 +21,7 @@
 
 #include "stream_writer.hpp"
 #include "message.hpp"
+#include "errors.hpp"
 
 namespace stream
 {
@@ -42,9 +43,9 @@ namespace stream
             thread = nullptr;
         }
 
-        // in case there's a io_exchange instance, reset the counters and data
-        if (io_exchange)
-            io_exchange->clear();
+        // // in case there's a io_exchange instance, reset the counters and data
+        // if (io_exchange)
+        //     io_exchange->clear();
     };
 
     const Error StreamWriter::run()
@@ -54,7 +55,7 @@ namespace stream
         while (!chThdShouldTerminate())
         {
             if (!writer)
-                return NO_WRITER;
+                return errors::NO_READER;
 
             // read from reader
             auto read_result = io_exchange->read_full(buffer_block, BASE_BLOCK_SIZE);
@@ -64,21 +65,21 @@ namespace stream
                 break;
 
             if (read_result.is_error())
-                return READ_ERROR;
+                return read_result.error();
 
             if (read_result.value() == 0) // end of stream
-                return END_OF_STREAM;
+                return errors::END_OF_STREAM;
 
             // write to writer
             auto write_result = writer->write_full(buffer_block, read_result.value());
 
             if (write_result.is_error())
-                return WRITE_ERROR;
+                return write_result.error();
 
             // we're going to loop, no need to handle thd terminate flag
         }
 
-        return TERMINATED;
+        return errors::THREAD_TERMINATED;
     };
 
     msg_t StreamWriter::static_fn(void *arg)

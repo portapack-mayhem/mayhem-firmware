@@ -43,12 +43,6 @@ namespace stream
         StreamReader &operator=(const StreamReader &) = delete;
         StreamReader &operator=(StreamReader &&) = delete;
 
-        inline static constexpr Error END_OF_STREAM{0, "End of stream"};
-        inline static constexpr Error NO_READER{1, "No reader"};
-        inline static constexpr Error READ_ERROR{2, "Read error"};
-        inline static constexpr Error WRITE_ERROR{3, "Write error"};
-        inline static constexpr Error TERMINATED{4, "Terminated"};
-
     private:
         IoExchange *io_exchange;
         std::unique_ptr<Reader> reader{nullptr};

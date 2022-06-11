@@ -26,6 +26,7 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
+#include "errors.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
@@ -102,7 +103,7 @@ namespace ui
 		button_open.focus();
 	}
 
-	void ReplayAppView::handle_error(Error error)
+	void ReplayAppView::handle_error(const Error error)
 	{
 		std::string ss{" "};
 
@@ -198,13 +199,11 @@ namespace ui
 		}
 	}
 
-	void ReplayAppView::handle_stream_reader_done(Error error)
+	void ReplayAppView::handle_stream_reader_done(const Error error)
 	{
-		if (error.code == stream::StreamReader::END_OF_STREAM.code)
-		{
+		if (error.code == errors::END_OF_STREAM.code)
 			stop(true);
-		}
-		else if (error.code == stream::StreamReader::READ_ERROR.code)
+		else
 		{
 			stop(false);
 			handle_error(error);

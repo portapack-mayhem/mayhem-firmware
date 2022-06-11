@@ -56,14 +56,6 @@ namespace stream
         read(void *p, const size_t count);
         Result<size_t> write(const void *p, const size_t count);
 
-        inline static constexpr Error REQUESTED_TERMINATION{20, "Requested termination"};
-        inline static constexpr Error CANNOT_READ_FROM_BASEBAND{21, "Cannot read from baseband"};
-        inline static constexpr Error CANNOT_READ_FROM_APP{22, "Cannot read from app"};
-        inline static constexpr Error CANNOT_WRITE_TO_BASEBAND{23, "Cannot write to baseband"};
-        inline static constexpr Error CANNOT_WRITE_TO_APP{24, "Cannot write to app"};
-        inline static constexpr Error TARGET_BUFFER_FULL{25, "Target buffer is full"};
-        inline static constexpr Error TARGET_BUFFER_EMPTY{26, "Target buffer is empty"};
-
 #if defined(LPC43XX_M0)
         // isr thread suspension/resumption
         Thread *isr_thread{nullptr};

@@ -333,17 +333,17 @@ namespace ui
 		}
 	}
 
-	void RecordView::handle_stream_writer_done(Error error)
+	void RecordView::handle_stream_writer_done(const Error error)
 	{
 		stop();
 
-		if (
-			error.code != stream::StreamWriter::END_OF_STREAM.code &&
-			error.code != stream::StreamWriter::TERMINATED.code)
-			handle_error(error);
+		// if (
+		// 	error.code != stream::StreamWriter::END_OF_STREAM.code &&
+		// 	error.code != stream::StreamWriter::TERMINATED.code)
+		handle_error(error);
 	}
 
-	void RecordView::handle_error(Error error)
+	void RecordView::handle_error(const Error error)
 	{
 		if (on_error)
 		{

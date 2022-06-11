@@ -72,8 +72,8 @@ namespace ui
 		void start();
 		void stop(const bool do_loop);
 		bool is_active() const;
-		void handle_stream_reader_done(const uint32_t return_code);
-		void file_error();
+		void handle_stream_reader_done(const Error error);
+		void handle_error(const Error error);
 
 		std::filesystem::path file_path{};
 

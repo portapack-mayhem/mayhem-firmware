@@ -21,6 +21,7 @@
 
 #include "portapack_shared_memory.hpp"
 #include "io_exchange.hpp"
+#include "errors.hpp"
 
 namespace stream
 {
@@ -165,7 +166,7 @@ namespace stream
     {
         // cannot read if we're only writing to the baseband
         if (!config.baseband->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
-            return {CANNOT_READ_FROM_BASEBAND};
+            return {errors::READ_ERROR_CANNOT_READ_FROM_BASEBAND};
 
         // suspend in case the target buffer is full
         while (config.baseband->buffer->is_empty())
@@ -173,7 +174,7 @@ namespace stream
             wait_for_isr_event();
 
             if (chThdShouldTerminate())
-                return {REQUESTED_TERMINATION};
+                return {errors::THREAD_TERMINATED};
         }
 
         auto result = config.baseband->buffer->read(p, count);
@@ -185,7 +186,7 @@ namespace stream
     {
         // cannot write if we're only reading from the baseband
         if (!config.baseband->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
-            return {CANNOT_WRITE_TO_BASEBAND};
+            return {errors::WRITE_ERROR_CANNOT_WRITE_TO_BASEBAND};
 
         // suspend in case the target buffer is full
         while (config.application->buffer->is_full())
@@ -193,7 +194,7 @@ namespace stream
             wait_for_isr_event();
 
             if (chThdShouldTerminate())
-                return {REQUESTED_TERMINATION};
+                return {errors::THREAD_TERMINATED};
         }
 
         auto result = config.application->buffer->write(p, count);
@@ -229,10 +230,10 @@ namespace stream
     {
         // cannot read if we're only writing to the baseband
         if (!config.application->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
-            return {CANNOT_READ_FROM_APP};
+            return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
         // if (config.application->buffer->is_empty())
-        //     return {TARGET_BUFFER_EMPTY};
+        //     return {errors::TARGET_BUFFER_EMPTY};
 
         auto result = config.application->buffer->read(p, count);
         config.baseband->bytes_read += result;
@@ -247,10 +248,10 @@ namespace stream
     {
         // cannot write if we're only reading from the baseband
         if (!config.application->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
-            return {CANNOT_WRITE_TO_APP};
+            return {errors::WRITE_ERROR_CANNOT_WRITE_TO_APP};
 
         // if (config.baseband->buffer->is_full())
-        //     return {TARGET_BUFFER_FULL};
+        //     return {errors::TARGET_BUFFER_FULL};
 
         auto result = config.baseband->buffer->write(p, count);
         config.baseband->bytes_written += result;

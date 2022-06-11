@@ -26,6 +26,7 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
+#include "errors.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
@@ -45,7 +46,7 @@ namespace ui
 		auto data_open_error = data_file.open("/" + new_file_path.string());
 		if (data_open_error.is_valid())
 		{
-			file_error();
+			handle_error(data_open_error.value());
 			return;
 		}
 
@@ -102,7 +103,7 @@ namespace ui
 		button_open.focus();
 	}
 
-	void GpsSimAppView::file_error()
+	void GpsSimAppView::handle_error(const Error error)
 	{
 		nav_.display_modal("Error", "File read error.");
 	}
@@ -134,7 +135,7 @@ namespace ui
 		auto open_error = p->open(file_path);
 		if (open_error.is_valid())
 		{
-			file_error();
+			handle_error(open_error.value());
 		}
 		else
 		{
@@ -186,16 +187,14 @@ namespace ui
 		}
 	}
 
-	void GpsSimAppView::handle_stream_reader_done(const uint32_t return_code)
+	void GpsSimAppView::handle_stream_reader_done(const Error error)
 	{
-		if (return_code == stream::StreamReader::END_OF_STREAM.code)
-		{
+		if (error.code == errors::END_OF_STREAM.code)
 			stop(true);
-		}
-		else if (return_code == stream::StreamReader::READ_ERROR.code)
+		else
 		{
 			stop(false);
-			file_error();
+			handle_error(error);
 		}
 
 		progressbar.set_value(0);

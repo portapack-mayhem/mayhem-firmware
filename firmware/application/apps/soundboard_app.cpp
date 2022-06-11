@@ -25,6 +25,7 @@
 #include "soundboard_app.hpp"
 #include "string_format.hpp"
 #include "tonesets.hpp"
+#include "errors.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -48,12 +49,12 @@ namespace ui
 		// button_play.set_bitmap(&bitmap_play);
 	}
 
-	void SoundBoardView::handle_stream_reader_done(const uint32_t return_code)
+	void SoundBoardView::handle_stream_reader_done(const Error error)
 	{
 		stop();
 		// progressbar.set_value(0);
 
-		if (return_code == stream::StreamReader::END_OF_STREAM.code)
+		if (error.code == errors::END_OF_STREAM.code)
 		{
 			if (check_random.value())
 			{
@@ -67,9 +68,9 @@ namespace ui
 				start_tx(playing_id);
 			}
 		}
-		else if (return_code == stream::StreamReader::READ_ERROR.code)
+		else
 		{
-			file_error();
+			handle_error(error);
 		}
 	}
 
@@ -78,7 +79,7 @@ namespace ui
 		menu_view.focus();
 	}
 
-	void SoundBoardView::file_error()
+	void SoundBoardView::handle_error(const Error error)
 	{
 		nav_.display_modal("Error", "File read error.");
 	}
@@ -91,9 +92,10 @@ namespace ui
 
 		stop();
 
-		if (!reader->open(u"/WAV/" + file_list[id].native()))
+		auto open_error = reader->open(u"/WAV/" + file_list[id].native());
+		if (!open_error.is_valid())
 		{
-			file_error();
+			handle_error(open_error.value());
 			return;
 		}
 
@@ -168,8 +170,9 @@ namespace ui
 
 					if (entry_extension == ".WAV")
 					{
+						auto open_error = reader->open(u"/WAV/" + entry.path().native());
 
-						if (reader->open(u"/WAV/" + entry.path().native()))
+						if (!open_error.is_valid())
 						{
 							if ((reader->channels() == 1) && (reader->bits_per_sample() == 8))
 							{

@@ -112,7 +112,7 @@ public:
 
 	virtual ~WAVFileReader() = default;
 
-	bool open(const std::filesystem::path &path);
+	Optional<Error> open(const std::filesystem::path &path);
 	void data_seek(const uint64_t Offset);
 	void rewind();
 	uint32_t ms_duration();

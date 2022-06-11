@@ -21,8 +21,9 @@
  */
 
 #include "io_wave.hpp"
+#include "errors.hpp"
 
-bool WAVFileReader::open(const std::filesystem::path &path)
+Optional<Error> WAVFileReader::open(const std::filesystem::path &path)
 {
 	size_t i = 0;
 	char ch;
@@ -35,66 +36,64 @@ bool WAVFileReader::open(const std::filesystem::path &path)
 	if (path.string() == last_path.string())
 	{
 		rewind();
-		return true;
+		return errors::FILE_ALREADY_OPENED;
 	}
 
 	auto error = file.open(path);
 
-	if (!error.is_valid())
+	if (error.is_valid())
 	{
-		file.read((void *)&header, sizeof(header)); // Read header (RIFF and WAVE)
+		return error.value();
+	}
 
-		riff_size = header.cksize + 8;
-		data_start = header.fmt.cksize + 28;
-		data_size_ = header.data.cksize;
-		data_end = data_start + data_size_ + 1;
+	file.read((void *)&header, sizeof(header)); // Read header (RIFF and WAVE)
 
-		// Look for INAM (title) tag
-		if (data_end < riff_size)
+	riff_size = header.cksize + 8;
+	data_start = header.fmt.cksize + 28;
+	data_size_ = header.data.cksize;
+	data_end = data_start + data_size_ + 1;
+
+	// Look for INAM (title) tag
+	if (data_end < riff_size)
+	{
+		file.seek(data_end);
+		while (file.read((void *)&ch, 1).is_ok())
 		{
-			file.seek(data_end);
-			while (file.read((void *)&ch, 1).is_ok())
+			if (ch == tag_INAM[i++])
 			{
-				if (ch == tag_INAM[i++])
+				if (i == 4)
 				{
-					if (i == 4)
-					{
-						// Tag found, copy title
-						file.read((void *)&title_size, sizeof(uint32_t));
-						if (title_size > 32)
-							title_size = 32;
-						file.read((void *)&title_buffer, title_size);
-						title_string = title_buffer;
-						break;
-					}
-				}
-				else
-				{
-					if (ch == tag_INAM[0])
-						i = 1;
-					else
-						i = 0;
-				}
-				if (search_limit == 256)
+					// Tag found, copy title
+					file.read((void *)&title_size, sizeof(uint32_t));
+					if (title_size > 32)
+						title_size = 32;
+					file.read((void *)&title_buffer, title_size);
+					title_string = title_buffer;
 					break;
-				else
-					search_limit++;
+				}
 			}
+			else
+			{
+				if (ch == tag_INAM[0])
+					i = 1;
+				else
+					i = 0;
+			}
+			if (search_limit == 256)
+				break;
+			else
+				search_limit++;
 		}
-
-		sample_rate_ = header.fmt.nSamplesPerSec;
-		bytes_per_sample = header.fmt.wBitsPerSample / 8;
-
-		rewind();
-
-		last_path = path;
-
-		return true;
 	}
-	else
-	{
-		return false;
-	}
+
+	sample_rate_ = header.fmt.nSamplesPerSec;
+	bytes_per_sample = header.fmt.wBitsPerSample / 8;
+
+	rewind();
+
+	last_path = path;
+
+	return {};
 }
 
 void WAVFileReader::rewind()

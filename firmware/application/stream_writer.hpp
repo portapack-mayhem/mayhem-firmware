@@ -42,12 +42,6 @@ namespace stream
         StreamWriter &operator=(const StreamWriter &) = delete;
         StreamWriter &operator=(StreamWriter &&) = delete;
 
-        inline static constexpr Error END_OF_STREAM{0, "End of stream"};
-        inline static constexpr Error NO_WRITER{1, "No writer"};
-        inline static constexpr Error READ_ERROR{2, "Read error"};
-        inline static constexpr Error WRITE_ERROR{3, "Write error"};
-        inline static constexpr Error TERMINATED{4, "Terminated"};
-
     private:
         IoExchange *io_exchange;
         std::unique_ptr<Writer> writer{nullptr};
