@@ -164,7 +164,7 @@ namespace stream
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.baseband->is_ready || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config.baseband->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
             return {CANNOT_READ_FROM_BASEBAND};
 
         // suspend in case the target buffer is full
@@ -184,7 +184,7 @@ namespace stream
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.baseband->is_ready || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config.baseband->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
             return {CANNOT_WRITE_TO_BASEBAND};
 
         // suspend in case the target buffer is full
@@ -228,7 +228,7 @@ namespace stream
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.application->is_ready || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config.application->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
             return {CANNOT_READ_FROM_APP};
 
         // if (config.application->buffer->is_empty())
@@ -246,7 +246,7 @@ namespace stream
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.application->is_ready || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config.application->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
             return {CANNOT_WRITE_TO_APP};
 
         // if (config.baseband->buffer->is_full())

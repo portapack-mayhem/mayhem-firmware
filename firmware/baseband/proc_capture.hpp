@@ -68,8 +68,8 @@ private:
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 
-	uint8_t stream_buffer[stream::BASE_BLOCK_SIZE];
-	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &stream_buffer, stream::BASE_BLOCK_SIZE};
+	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
 
 	void samplerate_config(const SamplerateConfigMessage &message);
 };

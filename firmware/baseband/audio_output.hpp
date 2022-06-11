@@ -62,8 +62,8 @@ private:
 	IIRBiquadFilter deemph{};
 	FMSquelch squelch{};
 
-	uint8_t stream_buffer[stream::BASE_BLOCK_SIZE];
-	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &stream_buffer, stream::BASE_BLOCK_SIZE};
+	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
+	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
 
 	AudioStatsCollector audio_stats{};
 

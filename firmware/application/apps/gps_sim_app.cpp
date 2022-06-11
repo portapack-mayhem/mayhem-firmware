@@ -109,7 +109,7 @@ namespace ui
 
 	bool GpsSimAppView::is_active() const
 	{
-		return (bool)replay_thread;
+		return (bool)stream_reader;
 	}
 
 	void GpsSimAppView::toggle()
@@ -146,7 +146,7 @@ namespace ui
 			button_play.set_bitmap(&bitmap_stop);
 			baseband::set_sample_rate(sample_rate);
 
-			replay_thread = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
+			stream_reader = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 		}
 		field_rfgain.on_change = [this](int32_t v)
 		{
@@ -173,7 +173,7 @@ namespace ui
 	void GpsSimAppView::stop(const bool do_loop)
 	{
 		if (is_active())
-			replay_thread.reset();
+			stream_reader.reset();
 
 		if (do_loop && check_loop.value())
 		{
@@ -186,7 +186,7 @@ namespace ui
 		}
 	}
 
-	void GpsSimAppView::handle_replay_thread_done(const uint32_t return_code)
+	void GpsSimAppView::handle_stream_reader_done(const uint32_t return_code)
 	{
 		if (return_code == stream::StreamReader::END_OF_STREAM.code)
 		{

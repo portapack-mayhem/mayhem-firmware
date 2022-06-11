@@ -41,6 +41,10 @@ namespace stream
 
             thread = nullptr;
         }
+
+        // in case there's a io_exchange instance, reset the counters and data
+        if (io_exchange)
+            io_exchange->clear();
     };
 
     const Error StreamWriter::run()
@@ -68,7 +72,7 @@ namespace stream
             // write to writer
             auto write_result = writer->write_full(buffer_block, read_result.value());
 
-            if (read_result.is_error())
+            if (write_result.is_error())
                 return WRITE_ERROR;
 
             // we're going to loop, no need to handle thd terminate flag

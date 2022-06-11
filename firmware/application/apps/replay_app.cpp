@@ -45,7 +45,7 @@ namespace ui
 		auto data_open_error = data_file.open("/" + new_file_path.string());
 		if (data_open_error.is_valid())
 		{
-			file_error();
+			handle_error(data_open_error.value());
 			return;
 		}
 
@@ -102,14 +102,21 @@ namespace ui
 		button_open.focus();
 	}
 
-	void ReplayAppView::file_error()
+	void ReplayAppView::handle_error(Error error)
 	{
-		nav_.display_modal("Error", "File read error.");
+		std::string ss{" "};
+
+		ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
+		ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
+		ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
+		ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
+
+		nav_.display_modal("Error", "error " + to_string_dec_uint(error.code) + ss);
 	}
 
 	bool ReplayAppView::is_active() const
 	{
-		return (bool)replay_thread;
+		return (bool)stream_reader;
 	}
 
 	void ReplayAppView::toggle()
@@ -134,7 +141,7 @@ namespace ui
 		auto open_error = p->open(file_path);
 		if (open_error.is_valid())
 		{
-			file_error();
+			handle_error(open_error.value());
 			return; // Fixes TX bug if there's a file error
 		}
 		else
@@ -147,7 +154,7 @@ namespace ui
 			button_play.set_bitmap(&bitmap_stop);
 			baseband::set_sample_rate(sample_rate * 8);
 
-			replay_thread = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
+			stream_reader = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 		}
 		field_rfgain.on_change = [this](int32_t v)
 		{
@@ -177,7 +184,7 @@ namespace ui
 	void ReplayAppView::stop(const bool do_loop)
 	{
 		if (is_active())
-			replay_thread.reset();
+			stream_reader.reset();
 
 		if (do_loop && check_loop.value())
 		{
@@ -191,16 +198,16 @@ namespace ui
 		}
 	}
 
-	void ReplayAppView::handle_replay_thread_done(const uint32_t return_code)
+	void ReplayAppView::handle_stream_reader_done(Error error)
 	{
-		if (return_code == stream::StreamReader::END_OF_STREAM.code)
+		if (error.code == stream::StreamReader::END_OF_STREAM.code)
 		{
 			stop(true);
 		}
-		else if (return_code == stream::StreamReader::READ_ERROR.code)
+		else if (error.code == stream::StreamReader::READ_ERROR.code)
 		{
 			stop(false);
-			file_error();
+			handle_error(error);
 		}
 
 		progressbar.set_value(0);

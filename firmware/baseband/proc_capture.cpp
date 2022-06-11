@@ -73,6 +73,9 @@ void CaptureProcessor::on_message(const Message *const message)
 
 	case Message::ID::SamplerateConfig:
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
+
+		// set the io_exchange baseband config as ready
+		io_exchange.config.baseband->is_ready = true;
 		break;
 
 	default:
@@ -96,9 +99,6 @@ void CaptureProcessor::samplerate_config(const SamplerateConfigMessage &message)
 
 	spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
 	spectrum_samples = 0;
-
-	// set the io_exchange baseband config as ready
-	io_exchange.config.baseband->is_ready = true;
 }
 
 int main()

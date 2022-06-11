@@ -45,7 +45,7 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 {
 	/* 4MHz, 2048 samples */
 
-	if (!configured)
+	if (!io_exchange.config.application->is_ready)
 		return;
 
 	// File data is in C16 format, we need C8
@@ -55,12 +55,8 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 	// 2048 samples * 2 bytes per sample = 4096 bytes
 	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
 	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
-	if (io_exchange.config.application->is_ready)
-	{
-		const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8); // *2 (C16), /8 (oversampling) should be == 1024
-		auto res_read = io_exchange.read_full(iq_buffer.p, bytes_to_read);
-		bytes_read += res_read.value();
-	}
+	const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8); // *2 (C16), /8 (oversampling) should be == 1024
+	auto res_read = io_exchange.read_full(iq_buffer.p, bytes_to_read);
 
 	// Fill and "stretch"
 	for (size_t i = 0; i < buffer.count; i++)
@@ -83,7 +79,7 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 		spectrum_samples -= spectrum_interval_samples;
 		channel_spectrum.feed(iq_buffer, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 
-		txprogress_message.progress = bytes_read; // Inform UI about progress
+		txprogress_message.progress = io_exchange.config.application->bytes_read; // Inform UI about progress
 		txprogress_message.done = false;
 		shared_memory.application_queue.push(txprogress_message);
 	}
@@ -100,11 +96,6 @@ void ReplayProcessor::on_message(const Message *const message)
 
 	case Message::ID::SamplerateConfig:
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
-		break;
-
-	// App has prefilled the buffers, we're ready to go now
-	case Message::ID::FIFOData:
-		configured = true;
 		break;
 
 	default:

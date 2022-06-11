@@ -72,7 +72,7 @@ namespace ui
 		void start();
 		void stop(const bool do_loop);
 		bool is_active() const;
-		void handle_replay_thread_done(const uint32_t return_code);
+		void handle_stream_reader_done(const uint32_t return_code);
 		void file_error();
 
 		std::filesystem::path file_path{};
@@ -90,7 +90,7 @@ namespace ui
 				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
 			}};
 
-		std::unique_ptr<stream::StreamReader> replay_thread{};
+		std::unique_ptr<stream::StreamReader> stream_reader{};
 
 		Labels labels{
 			{{10 * 8, 2 * 16}, "GAIN   A:", Color::light_grey()}};
@@ -140,12 +140,12 @@ namespace ui
 
 		spectrum::WaterfallWidget waterfall{};
 
-		MessageHandlerRegistration message_handler_replay_thread_error{
+		MessageHandlerRegistration message_handler_stream_reader_error{
 			Message::ID::StreamReaderDone,
 			[this](const Message *const p)
 			{
 				const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
-				this->handle_replay_thread_done(message.error.code);
+				this->handle_stream_reader_done(message.error.code);
 			}};
 
 		MessageHandlerRegistration message_handler_tx_progress{

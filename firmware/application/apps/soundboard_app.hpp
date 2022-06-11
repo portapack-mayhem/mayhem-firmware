@@ -80,7 +80,7 @@ namespace ui
 		// void on_ctcss_changed(uint32_t v);
 		void stop();
 		bool is_active() const;
-		void handle_replay_thread_done(const uint32_t return_code);
+		void handle_stream_reader_done(const uint32_t return_code);
 		void file_error();
 		void on_tx_progress(const uint32_t progress);
 		void refresh_list();
@@ -141,12 +141,12 @@ namespace ui
 			5000,
 			12};
 
-		MessageHandlerRegistration message_handler_replay_thread_error{
+		MessageHandlerRegistration message_handler_stream_reader_error{
 			Message::ID::StreamReaderDone,
 			[this](const Message *const p)
 			{
 				const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
-				this->handle_replay_thread_done(message.error.code);
+				this->handle_stream_reader_done(message.error.code);
 			}};
 
 		// handle io exchange
@@ -162,7 +162,7 @@ namespace ui
 				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
 			}};
 
-		std::unique_ptr<stream::StreamReader> replay_thread{};
+		std::unique_ptr<stream::StreamReader> stream_reader{};
 
 		MessageHandlerRegistration message_handler_tx_progress{
 			Message::ID::TXProgress,

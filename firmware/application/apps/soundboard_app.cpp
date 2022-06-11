@@ -34,13 +34,13 @@ namespace ui
 
 	bool SoundBoardView::is_active() const
 	{
-		return (bool)replay_thread;
+		return (bool)stream_reader;
 	}
 
 	void SoundBoardView::stop()
 	{
 		if (is_active())
-			replay_thread.reset();
+			stream_reader.reset();
 
 		transmitter_model.disable();
 		tx_view.set_transmitting(false);
@@ -48,7 +48,7 @@ namespace ui
 		// button_play.set_bitmap(&bitmap_play);
 	}
 
-	void SoundBoardView::handle_replay_thread_done(const uint32_t return_code)
+	void SoundBoardView::handle_stream_reader_done(const uint32_t return_code)
 	{
 		stop();
 		// progressbar.set_value(0);
@@ -105,7 +105,7 @@ namespace ui
 
 		sample_rate = reader->sample_rate();
 
-		replay_thread = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
+		stream_reader = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 
 		baseband::set_audiotx_config(
 			1536000 / 20, // Update vu-meter at 20Hz

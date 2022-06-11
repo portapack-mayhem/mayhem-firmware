@@ -263,10 +263,6 @@ namespace ui
 	void RecordView::stop()
 	{
 
-		// in case there's a io_exchange instance, reset the counters and data
-		// if (io_exchange)
-		// 	io_exchange->clear();
-
 		if (is_active())
 		{
 			stream_writer.reset();
