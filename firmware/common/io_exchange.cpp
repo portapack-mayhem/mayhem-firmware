@@ -229,7 +229,7 @@ namespace stream
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.application->is_setup || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config.application->is_ready || !config.application->buffer || config.direction == stream::BB_TO_APP)
             return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
         // if (config.application->buffer->is_empty())
@@ -247,7 +247,7 @@ namespace stream
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.application->is_setup || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config.application->is_ready || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
             return {errors::WRITE_ERROR_CANNOT_WRITE_TO_APP};
 
         // if (config.baseband->buffer->is_full())
