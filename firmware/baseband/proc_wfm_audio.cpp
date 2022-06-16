@@ -145,10 +145,6 @@ void WidebandFMAudio::on_message(const Message* const message) {
 		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
 		break;
 
-	case Message::ID::CaptureConfig:
-		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
-		break;
-		
 	default:
 		break;
 	}
