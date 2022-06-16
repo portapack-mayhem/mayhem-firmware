@@ -35,10 +35,9 @@
 #include <cstdint>
 #include <memory>
 
-class AudioInput
-{
+class AudioInput {
 public:
-	void read_audio_buffer(buffer_s16_t &audio);
+	void read_audio_buffer(buffer_s16_t& audio);
 
 private:
 	/*static constexpr float k = 32768.0f;
@@ -47,4 +46,4 @@ private:
 	IIRBiquadFilter hpf { };*/
 };
 
-#endif /*__AUDIO_INPUT_H__*/
+#endif/*__AUDIO_INPUT_H__*/

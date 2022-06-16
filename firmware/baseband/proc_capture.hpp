@@ -36,42 +36,42 @@
 #include <array>
 #include <memory>
 
-class CaptureProcessor : public BasebandProcessor
-{
+class CaptureProcessor : public BasebandProcessor {
 public:
 	CaptureProcessor();
 
-	void execute(const buffer_c8_t &buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message *const message) override;
+	void on_message(const Message* const message) override;
 
 private:
 	// TODO: Repeated value needs to be transmitted from application side.
 	size_t baseband_fs = 0;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-	RSSIThread rssi_thread{NORMALPRIO + 10};
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst{};
-	const buffer_c16_t dst_buffer{
+	std::array<complex16_t, 512> dst { };
+	const buffer_c16_t dst_buffer {
 		dst.data(),
-		dst.size()};
+		dst.size()
+	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
 	int32_t channel_filter_low_f = 0;
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
 
-	SpectrumCollector channel_spectrum{};
+	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 
 	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
 	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
 
-	void samplerate_config(const SamplerateConfigMessage &message);
+	void samplerate_config(const SamplerateConfigMessage& message);
 };
 
-#endif /*__PROC_CAPTURE_HPP__*/
+#endif/*__PROC_CAPTURE_HPP__*/

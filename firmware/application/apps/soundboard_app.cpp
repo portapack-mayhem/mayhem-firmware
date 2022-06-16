@@ -81,7 +81,7 @@ namespace ui
 
 	void SoundBoardView::handle_error(const Error error)
 	{
-		nav_.display_modal("Error", "File read error.");
+		nav_.display_modal("Error", "Error code: " + to_string_dec_uint(error.code));
 	}
 
 	void SoundBoardView::start_tx(const uint32_t id)

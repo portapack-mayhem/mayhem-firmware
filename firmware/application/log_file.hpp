@@ -29,20 +29,18 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-class LogFile
-{
+class LogFile {
 public:
-	Optional<Error> append(const std::filesystem::path &filename)
-	{
+	Optional<Error> append(const std::filesystem::path& filename) {
 		return file.append(filename);
 	}
 
-	Optional<Error> write_entry(const rtc::RTC &datetime, const std::string &entry);
+	Optional<Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
 private:
-	File file{};
+	File file { };
 
-	Optional<Error> write_line(const std::string &message);
+	Optional<Error> write_line(const std::string& message);
 };
 
-#endif /*__LOG_FILE_H__*/
+#endif/*__LOG_FILE_H__*/

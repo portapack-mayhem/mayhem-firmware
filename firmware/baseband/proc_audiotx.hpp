@@ -28,39 +28,38 @@
 #include "tone_gen.hpp"
 #include "io_exchange.hpp"
 
-class AudioTXProcessor : public BasebandProcessor
-{
+class AudioTXProcessor : public BasebandProcessor {
 public:
-	void execute(const buffer_c8_t &buffer) override;
-
-	void on_message(const Message *const msg) override;
+	void execute(const buffer_c8_t& buffer) override;
+	
+	void on_message(const Message* const msg) override;
 
 private:
 	static constexpr size_t baseband_fs = 1536000;
-
-	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
-
+	
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	
 	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
 	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
 
-	ToneGen tone_gen{};
+	ToneGen tone_gen { };
+	
+	uint32_t resample_inc { }, resample_acc { };
+	uint32_t fm_delta { 0 };
+	uint32_t phase { 0 }, sphase { 0 };
+	uint8_t audio_sample { };
+	int32_t sample { 0 }, delta { };
+	int8_t re { 0 }, im { 0 };
+	
+	size_t progress_interval_samples = 0 , progress_samples = 0;
+	
+	bool configured { false };
+	uint32_t bytes_read { 0 };
+	
+	void samplerate_config(const SamplerateConfigMessage& message);
+	void audio_config(const AudioTXConfigMessage& message);
 
-	uint32_t resample_inc{}, resample_acc{};
-	uint32_t fm_delta{0};
-	uint32_t phase{0}, sphase{0};
-	uint8_t audio_sample{};
-	int32_t sample{0}, delta{};
-	int8_t re{0}, im{0};
-
-	size_t progress_interval_samples = 0, progress_samples = 0;
-
-	bool configured{false};
-	uint32_t bytes_read{0};
-
-	void samplerate_config(const SamplerateConfigMessage &message);
-	void audio_config(const AudioTXConfigMessage &message);
-
-	TXProgressMessage txprogress_message{};
+	TXProgressMessage txprogress_message { };
 };
 
 #endif

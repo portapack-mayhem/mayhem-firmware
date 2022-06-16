@@ -28,25 +28,22 @@
 
 #include "utility.hpp"
 
-ReplayProcessor::ReplayProcessor()
-{
+ReplayProcessor::ReplayProcessor() {
 	channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * 1000000;
 	channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * 1000000;
 	channel_filter_transition = taps_200k_decim_1.transition_normalized * 1000000;
-
+	
 	spectrum_samples = 0;
 
 	channel_spectrum.set_decimation_factor(1);
-
+	
 	configured = false;
 }
 
-void ReplayProcessor::execute(const buffer_c8_t &buffer)
-{
+void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	/* 4MHz, 2048 samples */
 
-	if (!io_exchange.has_read_data())
-		return;
+	if (!io_exchange.has_read_data()) return;
 
 	// File data is in C16 format, we need C8
 	// File samplerate is 500kHz, we're at 4MHz
@@ -58,37 +55,31 @@ void ReplayProcessor::execute(const buffer_c8_t &buffer)
 	const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8); // *2 (C16), /8 (oversampling) should be == 1024
 	auto res_read = io_exchange.fully_read(iq_buffer.p, bytes_to_read);
 
+	
 	// Fill and "stretch"
-	for (size_t i = 0; i < buffer.count; i++)
-	{
-		if (i & 3)
-		{
+	for (size_t i = 0; i < buffer.count; i++) {
+		if (i & 3) {
 			buffer.p[i] = buffer.p[i - 1];
-		}
-		else
-		{
+		} else {
 			auto re_out = iq_buffer.p[i >> 3].real() >> 8;
 			auto im_out = iq_buffer.p[i >> 3].imag() >> 8;
-			buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
+			buffer.p[i] = { (int8_t)re_out, (int8_t)im_out };
 		}
 	}
-
+	
 	spectrum_samples += buffer.count;
-	if (spectrum_samples >= spectrum_interval_samples)
-	{
+	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
 		channel_spectrum.feed(iq_buffer, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
-
+		
 		txprogress_message.progress = io_exchange.config.application->bytes_read; // Inform UI about progress
 		txprogress_message.done = false;
 		shared_memory.application_queue.push(txprogress_message);
 	}
 }
 
-void ReplayProcessor::on_message(const Message *const message)
-{
-	switch (message->id)
-	{
+void ReplayProcessor::on_message(const Message* const message) {
+	switch(message->id) {
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(message);
@@ -103,16 +94,14 @@ void ReplayProcessor::on_message(const Message *const message)
 	}
 }
 
-void ReplayProcessor::samplerate_config(const SamplerateConfigMessage &message)
-{
+void ReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
 	baseband_fs = message.sample_rate;
 	baseband_thread.set_sampling_rate(baseband_fs);
 	spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
 }
 
-int main()
-{
-	EventDispatcher event_dispatcher{std::make_unique<ReplayProcessor>()};
+int main() {
+	EventDispatcher event_dispatcher { std::make_unique<ReplayProcessor>() };
 	event_dispatcher.run();
 	return 0;
 }

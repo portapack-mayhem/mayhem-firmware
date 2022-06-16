@@ -112,7 +112,7 @@ namespace ui
 		ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
 		ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
 
-		nav_.display_modal("Error", "error " + to_string_dec_uint(error.code) + ss);
+		nav_.display_modal("Error", "Error code: " + to_string_dec_uint(error.code) + ss);
 	}
 
 	bool ReplayAppView::is_active() const

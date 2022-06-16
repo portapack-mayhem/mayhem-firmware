@@ -29,17 +29,16 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "io_exchange.hpp"
 
 #include "audio_output.hpp"
 
 #include "fifo.hpp"
 #include "message.hpp"
 
-#include "aprs_packet.hpp"
+#include  "aprs_packet.hpp"
 
 static uint16_t crc_ccitt_tab[256] = {
-	0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
+    0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
 	0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
 	0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
 	0x9cc9, 0x8d40, 0xbfdb, 0xae52, 0xdaed, 0xcb64, 0xf9ff, 0xe876,
@@ -70,77 +69,78 @@ static uint16_t crc_ccitt_tab[256] = {
 	0xe70e, 0xf687, 0xc41c, 0xd595, 0xa12a, 0xb0a3, 0x8238, 0x93b1,
 	0x6b46, 0x7acf, 0x4854, 0x59dd, 0x2d62, 0x3ceb, 0x0e70, 0x1ff9,
 	0xf78f, 0xe606, 0xd49d, 0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330,
-	0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78};
+	0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
+};
 
-class APRSRxProcessor : public BasebandProcessor
-{
+class APRSRxProcessor : public BasebandProcessor {
 public:
-	void execute(const buffer_c8_t &buffer) override;
+	void execute(const buffer_c8_t& buffer) override;
 
-	void on_message(const Message *const message) override;
-
+	void on_message(const Message* const message) override;
+	
 private:
 	static constexpr size_t baseband_fs = 3072000;
 	static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
-
-	size_t samples_per_bit{};
-
-	enum State
-	{
+		
+	size_t samples_per_bit { };
+	
+	enum State {
 		WAIT_FLAG,
 		WAIT_FRAME,
 		IN_FRAME
 	};
-
-	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-	RSSIThread rssi_thread{NORMALPRIO + 10};
-
-	std::array<complex16_t, 512> dst{};
-	const buffer_c16_t dst_buffer{
+	
+	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
+	RSSIThread rssi_thread { NORMALPRIO + 10 };
+	
+	std::array<complex16_t, 512> dst { };
+	const buffer_c16_t dst_buffer {
 		dst.data(),
-		dst.size()};
-	std::array<float, 32> audio{};
-	const buffer_f32_t audio_buffer{
+		dst.size()
+	};
+	std::array<float, 32> audio { };
+	const buffer_f32_t audio_buffer {
 		audio.data(),
-		audio.size()};
-
+		audio.size()
+	};
+	
 	// Array size ok down to 375 bauds (24000 / 375)
-	std::array<int32_t, 64> delay_line{0};
-
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-	dsp::decimate::FIRAndDecimateComplex channel_filter{};
-
+	std::array<int32_t, 64> delay_line { 0 };
+	
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+	dsp::decimate::FIRAndDecimateComplex channel_filter { };
+	
 	std::unique_ptr<stream::IoExchange> stream{};
 
-	dsp::demodulate::FM demod{};
+	dsp::demodulate::FM demod { };
+	
+	AudioOutput audio_output { };
 
-	AudioOutput audio_output{};
-
-	State state{};
-	size_t delay_line_index{};
-	uint32_t bit_counter{0};
-	uint32_t word_bits{0};
-	uint32_t sample_bits{0};
-	uint32_t phase{}, phase_inc{};
-	int32_t sample_mixed{}, prev_mixed{}, sample_filtered{}, prev_filtered{};
+	State state { };
+	size_t delay_line_index { };	
+	uint32_t bit_counter { 0 };
+	uint32_t word_bits { 0 };
+	uint32_t sample_bits { 0 };
+	uint32_t phase { }, phase_inc { };
+	int32_t sample_mixed { }, prev_mixed { }, sample_filtered { }, prev_filtered { };
 	uint8_t last_bit = 0;
-	uint8_t ones_count = 0;
+	uint8_t ones_count = 0 ;
 	uint8_t current_byte = 0;
 	uint8_t byte_index = 0;
 	uint8_t packet_buffer[256];
 	size_t packet_buffer_size = 0;
 
-	bool configured{false};
-	bool wait_start{0};
-	bool bit_value{0};
+	bool configured { false };
+	bool wait_start { 0 };
+	bool bit_value { 0 };
 
-	aprs::APRSPacket aprs_packet{};
+	aprs::APRSPacket aprs_packet { };
 
-	void configure(const APRSRxConfigureMessage &message);
+	void configure(const APRSRxConfigureMessage& message);
 	void parse_packet();
 	bool parse_bit(const uint8_t bit);
 	void parse_ax25();
 };
 
-#endif /*__PROC_TPMS_H__*/
+#endif/*__PROC_TPMS_H__*/

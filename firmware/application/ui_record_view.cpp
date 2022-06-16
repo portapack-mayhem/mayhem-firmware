@@ -348,7 +348,7 @@ namespace ui
 	{
 		if (on_error)
 		{
-			on_error("error " + to_string_dec_uint(error.code));
+			on_error("Error code: " + to_string_dec_uint(error.code));
 		}
 	}
 
