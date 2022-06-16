@@ -34,8 +34,7 @@
 
 using namespace portapack;
 
-namespace ui
-{
+namespace ui {
 
 	void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path)
 	{
