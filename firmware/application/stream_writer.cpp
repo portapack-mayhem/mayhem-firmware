@@ -28,13 +28,13 @@ namespace stream
     StreamWriter::StreamWriter(IoExchange *io_exchange, std::unique_ptr<Writer> _writer) : io_exchange{io_exchange}, writer{std::move(_writer)}
     {
         thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, StreamWriter::static_fn, this);
+
+        if (thread == NULL)
+            chDbgPanic("Can not allocate memory");
     };
 
     StreamWriter::~StreamWriter()
     {
-        if (io_exchange)
-            io_exchange->config.application->is_ready = false;
-
         if (thread)
         {
             if (thread->p_state != THD_STATE_FINAL)
@@ -44,12 +44,6 @@ namespace stream
             }
 
             thread = nullptr;
-        }
-
-        if (io_exchange)
-        {
-            io_exchange->clear();
-            io_exchange = nullptr;
         }
     };
 
@@ -91,9 +85,14 @@ namespace stream
     msg_t StreamWriter::static_fn(void *arg)
     {
         auto obj = static_cast<StreamWriter *>(arg);
-        obj->io_exchange->config.application->is_ready = true;
+
+        if (obj && obj->io_exchange)
+            obj->io_exchange->config->application.is_ready = true;
+
         const Error error = obj->run();
-        obj->io_exchange->config.application->is_ready = false;
+
+        if (obj && obj->io_exchange)
+            obj->io_exchange->config->reset();
 
         // adapt this to the new stream reader interface
         StreamWriterDoneMessage message{error};

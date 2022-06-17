@@ -53,6 +53,9 @@ void WipeSDView::focus() {
 	} else {
 		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
 			thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
+
+			if (thread == NULL)
+				chDbgPanic("Can not allocate memory");
 		} else {
 			nav_.pop();		// Just silently abort for now
 		}

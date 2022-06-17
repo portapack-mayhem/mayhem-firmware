@@ -39,7 +39,7 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 	const auto& decimator_out = decim_1_out;
 	const auto& channel = decimator_out;
 
-	if (io_exchange.config.application->is_configured && io_exchange.config.application->is_ready)
+	if (io_exchange_config.application.is_configured && io_exchange_config.application.is_ready)
 	{
 		const size_t bytes_to_write = sizeof(decimator_out.p) * decimator_out.count;
 		auto res_written = io_exchange.fully_write(decimator_out.p, bytes_to_write);

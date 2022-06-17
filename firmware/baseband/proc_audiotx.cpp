@@ -37,7 +37,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer){
 		resample_acc += resample_inc;
 		if (resample_acc >= 0x10000) {
 			resample_acc -= 0x10000;
-			if (io_exchange.config.application->is_ready) {
+			if (io_exchange.config->application.is_ready) {
 				io_exchange.fully_read(&audio_sample, 1);
 				bytes_read++;
 			}

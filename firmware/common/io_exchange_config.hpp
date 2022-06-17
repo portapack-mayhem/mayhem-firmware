@@ -45,9 +45,14 @@ namespace stream
 
     struct IoExchangeConfig
     {
+        IoExchangeConfig();
+        IoExchangeConfig(const IoExchangeDirection direction, void *const buffer, const size_t buffer_size);
+
+        void reset();
+
         stream::IoExchangeDirection direction{stream::DUPLEX};
-        stream::IoExchangeBucket *baseband{nullptr};    // bucket_from_baseband_to_application;
-        stream::IoExchangeBucket *application{nullptr}; // bucket_from_application_to_baseband;
+        stream::IoExchangeBucket baseband;    // bucket_from_baseband_to_application;
+        stream::IoExchangeBucket application; // bucket_from_application_to_baseband;
     };
 
 } /* namespace stream */

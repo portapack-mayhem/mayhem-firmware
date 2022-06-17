@@ -49,7 +49,7 @@ void SoundBoardView::stop() {
 void SoundBoardView::handle_stream_reader_done(const Error error) {
 	stop();
 	//progressbar.set_value(0);
-	
+
 	if (error.code == errors::END_OF_STREAM.code) {
 		if (check_random.value()) {
 			lfsr_v = lfsr_iterate(lfsr_v);
@@ -59,7 +59,7 @@ void SoundBoardView::handle_stream_reader_done(const Error error) {
 		} else if (check_loop.value()) {
 			start_tx(playing_id);
 		}
-	} else {
+	} else if (error.code != errors::THREAD_TERMINATED.code) {
 		handle_error(error);
 	}
 }

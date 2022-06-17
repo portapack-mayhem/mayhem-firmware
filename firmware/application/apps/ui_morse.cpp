@@ -165,6 +165,9 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
 			}
 			
 			loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
+
+			if (loopthread == NULL)
+				chDbgPanic("Can not allocate memory");
 		} else {
 			tx_view.set_transmitting(false);
 		}

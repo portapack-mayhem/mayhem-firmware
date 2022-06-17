@@ -45,8 +45,8 @@ namespace stream
 
     private:
         uint8_t buffer_block[BASE_BLOCK_SIZE];
-        IoExchange *io_exchange;
         std::unique_ptr<Reader> reader{nullptr};
+        IoExchange *io_exchange{nullptr};
         Thread *thread{nullptr};
 
         static msg_t static_fn(void *arg);

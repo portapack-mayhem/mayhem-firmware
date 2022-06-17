@@ -60,14 +60,12 @@ private:
 	int32_t channel_filter_transition = 0;
 
 	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
-	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
+	stream::IoExchangeConfig io_exchange_config{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
+	stream::IoExchange io_exchange{&io_exchange_config};
 
 	SpectrumCollector channel_spectrum { };
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
-	
-	bool configured { false };
-	uint32_t bytes_read { 0 };
 
 	void samplerate_config(const SamplerateConfigMessage& message);
 	

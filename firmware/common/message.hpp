@@ -993,12 +993,12 @@ class IoExchangeMessage : public Message
 {
 public:
 	constexpr IoExchangeMessage(
-		const stream::IoExchangeConfig config) : Message{ID::IoExchangeConfig},
+		stream::IoExchangeConfig* const config) : Message{ID::IoExchangeConfig},
 												 config{config}
 	{
 	}
 
-	const stream::IoExchangeConfig config;
+	stream::IoExchangeConfig* const config;
 };
 
 class StreamReaderDoneMessage : public Message

@@ -76,6 +76,9 @@ public:
 	SDCardTestThread(
 	) {
 		thread = chThdCreateFromHeap(NULL, 3072, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
+
+        if (thread == NULL)
+            chDbgPanic("Can not allocate memory");
 	}
 
 	Result result() const {

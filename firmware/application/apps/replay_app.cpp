@@ -97,10 +97,10 @@ void ReplayAppView::focus() {
 void ReplayAppView::handle_error(const Error error) {
 	std::string ss{" "};
 
-	ss += to_string_dec_uint(io_exchange->config.baseband->bytes_read) + " ";
-	ss += to_string_dec_uint(io_exchange->config.baseband->bytes_written) + " ";
-	ss += to_string_dec_uint(io_exchange->config.application->bytes_read) + " ";
-	ss += to_string_dec_uint(io_exchange->config.application->bytes_written);
+	ss += to_string_dec_uint(io_exchange->config->baseband.bytes_read) + " ";
+	ss += to_string_dec_uint(io_exchange->config->baseband.bytes_written) + " ";
+	ss += to_string_dec_uint(io_exchange->config->application.bytes_read) + " ";
+	ss += to_string_dec_uint(io_exchange->config->application.bytes_written);
 
 	nav_.display_modal("Error", "Error code: " + to_string_dec_uint(error.code) + ss);
 }
@@ -168,8 +168,10 @@ void ReplayAppView::stop(const bool do_loop) {
 }
 
 void ReplayAppView::handle_stream_reader_done(const Error error) {
-	if (error.code == errors::END_OF_STREAM.code || error.code == errors::THREAD_TERMINATED.code) {
+	if (error.code == errors::END_OF_STREAM.code) {
 		stop(true);
+	} else if (error.code == errors::THREAD_TERMINATED.code) {
+		stop(false);
 	} else {
 		stop(false);
 		handle_error(error);

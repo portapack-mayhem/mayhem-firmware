@@ -165,13 +165,15 @@ void GpsSimAppView::stop(const bool do_loop) {
 }
 
 void GpsSimAppView::handle_stream_reader_done(const Error error) {
-	if (error.code == errors::END_OF_STREAM.code || error.code == errors::THREAD_TERMINATED.code) {
+	if (error.code == errors::END_OF_STREAM.code) {
 		stop(true);
+	} else if (error.code == errors::THREAD_TERMINATED.code) {
+		stop(false);
 	} else {
 		stop(false);
 		handle_error(error);
 	}
-	
+
 	progressbar.set_value(0);
 }
 

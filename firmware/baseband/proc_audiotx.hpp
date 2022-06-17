@@ -40,7 +40,8 @@ private:
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
 	uint8_t io_exchange_buffer[stream::BASE_BLOCK_SIZE];
-	stream::IoExchange io_exchange{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
+	stream::IoExchangeConfig io_exchange_config{stream::IoExchangeDirection::BB_TO_APP, &io_exchange_buffer, stream::BASE_BLOCK_SIZE};
+	stream::IoExchange io_exchange{&io_exchange_config};
 
 	ToneGen tone_gen { };
 	

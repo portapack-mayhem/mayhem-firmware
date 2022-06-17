@@ -37,14 +37,12 @@ ReplayProcessor::ReplayProcessor() {
 	spectrum_samples = 0;
 
 	channel_spectrum.set_decimation_factor(1);
-	
-	configured = false;
 }
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	/* 4MHz, 2048 samples */
 	
-	if (!configured) return;
+	if (!io_exchange_config.application.is_ready) return;
 	
 	// File data is in C16 format, we need C8
 	// File samplerate is 500kHz, we're at 4MHz
@@ -53,13 +51,12 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	// 2048 samples * 2 bytes per sample = 4096 bytes
 	// Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
 	// So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
-	if (io_exchange.config.application->is_ready)
-	{																		 // sizeof(*buffer.p) = sizeof(C8) = 2*int8 = 2 bytes //buffer.count = 2048
-		const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count); // *2 (C16), /8 (oversampling) should be == 1024
-		auto result = io_exchange.fully_read(iq_buffer.p, bytes_to_read);
-		bytes_read += result.value();
-	}
-	
+	// sizeof(*buffer.p) = sizeof(C8) = 2*int8 = 2 bytes //buffer.count = 2048
+	const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count); // *2 (C16), /8 (oversampling) should be == 1024
+	auto res_read = io_exchange.fully_read(iq_buffer.p, bytes_to_read);
+
+	if (res_read.is_error() || (res_read.value() < bytes_to_read)) return;
+
 	// Fill and "stretch"
 	for (size_t i = 0; i < buffer.count; i++) {               
         auto re_out = iq_buffer.p[i].real() ;
@@ -71,7 +68,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 	if( spectrum_samples >= spectrum_interval_samples ) {
 		spectrum_samples -= spectrum_interval_samples;
 
-		txprogress_message.progress = bytes_read / 1024;	// Inform UI about progress
+		txprogress_message.progress = io_exchange_config.application.bytes_read / 1024; // Inform UI about progress
 
 		txprogress_message.done = false;
 		shared_memory.application_queue.push(txprogress_message);
@@ -82,18 +79,11 @@ void ReplayProcessor::on_message(const Message* const message) {
 	switch(message->id) {
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
-		configured = false;
-		bytes_read = 0;
 		channel_spectrum.on_message(message);
 		break;
 
 	case Message::ID::SamplerateConfig:
 		samplerate_config(*reinterpret_cast<const SamplerateConfigMessage *>(message));
-		break;
-
-	// App has prefilled the buffers, we're ready to go now
-	case Message::ID::FIFOData:
-		configured = true;
 		break;
 
 	default:

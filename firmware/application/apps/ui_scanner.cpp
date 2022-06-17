@@ -32,6 +32,9 @@ ScannerThread::ScannerThread(
 ) : frequency_list_ {  std::move(frequency_list) }
 {
 	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ScannerThread::static_fn, this);
+
+	if (thread == NULL)
+		chDbgPanic("Can not allocate memory");
 }
 
 ScannerThread::~ScannerThread() {

@@ -109,6 +109,7 @@ set(CPPSRC
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/buffer.cpp
 	${COMMON}/io.cpp
+	${COMMON}/io_exchange_config.cpp
 	${COMMON}/io_exchange.cpp
 	baseband_thread.cpp
 	baseband_processor.cpp

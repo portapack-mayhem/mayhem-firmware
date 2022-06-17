@@ -29,13 +29,13 @@ namespace stream
     StreamReader::StreamReader(IoExchange *io_exchange, std::unique_ptr<Reader> _reader) : io_exchange{io_exchange}, reader{std::move(_reader)}
     {
         thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, StreamReader::static_fn, this);
+
+        if (thread == NULL)
+            chDbgPanic("Can not allocate memory");
     };
 
     StreamReader::~StreamReader()
     {
-        if (io_exchange)
-            io_exchange->config.application->is_ready = false;
-
         if (thread)
         {
             if (thread->p_state != THD_STATE_FINAL)
@@ -45,12 +45,6 @@ namespace stream
             }
 
             thread = nullptr;
-        }
-
-        if (io_exchange)
-        {
-            io_exchange->clear();
-            io_exchange = nullptr;
         }
     };
 
@@ -92,9 +86,14 @@ namespace stream
     msg_t StreamReader::static_fn(void *arg)
     {
         auto obj = static_cast<StreamReader *>(arg);
-        obj->io_exchange->config.application->is_ready = true;
+
+        if (obj && obj->io_exchange)
+            obj->io_exchange->config->application.is_ready = true;
+
         const Error error = obj->run();
-        obj->io_exchange->config.application->is_ready = false;
+
+        if (obj && obj->io_exchange)
+            obj->io_exchange->config->reset();
 
         // TODO: adapt this to the new stream reader interface
         StreamReaderDoneMessage message{error};

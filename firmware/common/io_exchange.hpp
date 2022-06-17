@@ -39,9 +39,7 @@ namespace stream
 
     {
     public:
-        IoExchange();
-        IoExchange(const IoExchangeDirection direction, void *const buffer, const size_t buffer_size);
-        IoExchange(const IoExchangeConfig &config);
+        IoExchange(IoExchangeConfig* const config);
         ~IoExchange();
 
         IoExchange(const IoExchange &) = delete;
@@ -49,8 +47,7 @@ namespace stream
         IoExchange &operator=(const IoExchange &) = delete;
         IoExchange &operator=(IoExchange &&) = delete;
 
-        const IoExchangeConfig config;
-        void clear();
+        IoExchangeConfig* const config;
 
         bool has_read_data();
         Result<size_t> read(void *p, const size_t count);

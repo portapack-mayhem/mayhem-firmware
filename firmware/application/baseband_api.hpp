@@ -64,7 +64,7 @@ void set_audiotx_config(const uint32_t divider, const float deviation_hz, const 
 			const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled,
 			const bool usb_enabled, const bool lsb_enabled);
 void set_fifo_data(const int8_t * data);
-void set_stream_data_exchange(const stream::IoExchangeConfig config);
+void set_stream_data_exchange(stream::IoExchangeConfig* const config);
 void set_pitch_rssi(int32_t avg, bool enabled);
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count);

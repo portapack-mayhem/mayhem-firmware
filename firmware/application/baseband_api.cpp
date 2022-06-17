@@ -206,7 +206,7 @@ void set_fifo_data(const int8_t * data) {
 	send_message(&message);
 }
 
-void set_stream_data_exchange(const stream::IoExchangeConfig config)
+void set_stream_data_exchange(stream::IoExchangeConfig* const config)
 {
 	const IoExchangeMessage message{
 		config};

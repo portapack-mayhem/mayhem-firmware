@@ -127,6 +127,9 @@ RDSThread::RDSThread(
 ) : frames_ { std::move(frames) }
 {
 	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, RDSThread::static_fn, this);
+
+	if (thread == NULL)
+		chDbgPanic("Can not allocate memory");
 }
 
 RDSThread::~RDSThread() {

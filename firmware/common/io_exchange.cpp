@@ -26,76 +26,8 @@
 namespace stream
 {
 
-    IoExchange::IoExchange() : config{
-                                   .direction = IoExchangeDirection::DUPLEX,
-                                   .baseband = new IoExchangeBucket{
-                                       .buffer = nullptr,
-                                       .bytes_read = 0,
-                                       .bytes_written = 0,
-                                       .is_configured = false,
-                                       .is_ready = false,
-                                   },
-                                   .application = new IoExchangeBucket{
-                                       .buffer = nullptr,
-                                       .bytes_read = 0,
-                                       .bytes_written = 0,
-                                       .is_configured = false,
-                                       .is_ready = false,
-                                   },
-                               } {
-                                   // do nothing
-                               };
-
-    IoExchange::IoExchange(const IoExchangeDirection direction, void *const buffer, const size_t buffer_size) : config{
-                                                                                                                    .direction = direction,
-                                                                                                                    .baseband = new IoExchangeBucket{
-                                                                                                                        .buffer = nullptr,
-                                                                                                                        .bytes_read = 0,
-                                                                                                                        .bytes_written = 0,
-                                                                                                                        .is_configured = false,
-                                                                                                                        .is_ready = false,
-                                                                                                                    },
-                                                                                                                    .application = new IoExchangeBucket{
-                                                                                                                        .buffer = nullptr,
-                                                                                                                        .bytes_read = 0,
-                                                                                                                        .bytes_written = 0,
-                                                                                                                        .is_configured = false,
-                                                                                                                        .is_ready = false,
-                                                                                                                    },
-                                                                                                                }
+    IoExchange::IoExchange(IoExchangeConfig* const config) : config{config}
     {
-        uint8_t *rbuffer = static_cast<uint8_t *>(buffer);
-
-        if (direction == stream::DUPLEX)
-        {
-            const size_t half_buffer_size = buffer_size / 2;
-            config.application->buffer = new CircularBuffer(&rbuffer[0], half_buffer_size);
-            config.baseband->buffer = new CircularBuffer(&rbuffer[half_buffer_size], half_buffer_size);
-        }
-
-        if (direction == stream::APP_TO_BB)
-            config.application->buffer = new CircularBuffer(&rbuffer[0], buffer_size);
-
-        if (direction == stream::BB_TO_APP)
-            config.baseband->buffer = new CircularBuffer(&rbuffer[0], buffer_size);
-
-        if (config.application->buffer != nullptr)
-            config.application->buffer->clear_data();
-
-        if (config.baseband->buffer != nullptr)
-            config.baseband->buffer->clear_data();
-
-        initialize();
-    };
-
-    IoExchange::IoExchange(const IoExchangeConfig &config) : config{config}
-    {
-        initialize();
-    };
-
-    void IoExchange::initialize()
-    {
-        // logic that is common to both constructors
 
 #if defined(LPC43XX_M0)
         // control ISR wakeups on the application
@@ -104,18 +36,18 @@ namespace stream
 
 #if defined(LPC43XX_M0)
         // set the application bucket as ready
-        config.application->is_configured = true;
+        config->application.is_configured = true;
 
-        if (!config.baseband->is_configured)
+        if (!config->baseband.is_configured)
         {
             baseband::set_stream_data_exchange(config);
         }
 #endif
 #if defined(LPC43XX_M4)
         // set the baseband bucket as ready
-        config.baseband->is_configured = true;
+        config->baseband.is_configured = true;
 
-        if (!config.application->is_configured)
+        if (!config->application.is_configured)
         {
             const IoExchangeMessage message{config};
             shared_memory.application_queue.push(message);
@@ -135,46 +67,21 @@ namespace stream
 #endif
     };
 
-    void IoExchange::clear()
-    {
-        if (config.application)
-        {
-            config.application->bytes_read = 0;
-            config.application->bytes_written = 0;
-            config.application->is_ready = false;
-        }
-
-        if (config.baseband)
-        {
-            // reset the buckets
-            config.baseband->bytes_read = 0;
-            config.baseband->bytes_written = 0;
-            config.baseband->is_ready = false;
-        }
-
-        // resets both buffers
-        if (config.application && config.application->buffer != nullptr)
-            config.application->buffer->clear_data();
-
-        if (config.baseband && config.baseband->buffer != nullptr)
-            config.baseband->buffer->clear_data();
-    }
-
 // Methods for the Application
 #if defined(LPC43XX_M0)
     bool IoExchange::has_read_data()
     {
-        return config.direction != stream::APP_TO_BB && config.baseband->is_configured && config.baseband->buffer && config.baseband->buffer->used() > 0;
+        return config->direction != stream::APP_TO_BB && config->baseband.is_configured && config->baseband.buffer && config->baseband.buffer->used() > 0;
     }
 
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.baseband->is_configured || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config->baseband.is_configured || !config->baseband.buffer || config->direction == stream::APP_TO_BB)
             return {errors::READ_ERROR_CANNOT_READ_FROM_BASEBAND};
 
         // suspend in case the target buffer is full
-        while (config.baseband->buffer->is_empty())
+        while (config->baseband.buffer->is_empty())
         {
             wait_for_isr_event();
 
@@ -182,19 +89,19 @@ namespace stream
                 return {errors::THREAD_TERMINATED};
         }
 
-        auto result = config.baseband->buffer->read(p, count);
-        config.application->bytes_read += result;
+        auto result = config->baseband.buffer->read(p, count);
+        config->application.bytes_read += result;
         return {result};
     }
 
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.baseband->is_configured || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config->baseband.is_configured || !config->application.buffer || config->direction == stream::BB_TO_APP)
             return {errors::WRITE_ERROR_CANNOT_WRITE_TO_BASEBAND};
 
         // suspend in case the target buffer is full
-        while (config.application->buffer->is_full())
+        while (config->application.buffer->is_full())
         {
             wait_for_isr_event();
 
@@ -202,8 +109,8 @@ namespace stream
                 return {errors::THREAD_TERMINATED};
         }
 
-        auto result = config.application->buffer->write(p, count);
-        config.application->bytes_written += result;
+        auto result = config->application.buffer->write(p, count);
+        config->application.bytes_written += result;
         return {result};
     }
 
@@ -232,20 +139,20 @@ namespace stream
 #if defined(LPC43XX_M4)
     bool IoExchange::has_read_data()
     {
-        return config.direction != stream::BB_TO_APP && config.application->is_configured && config.application->buffer && config.application->buffer->used() > 0;
+        return config->direction != stream::BB_TO_APP && config->application.is_configured && config->application.buffer && config->application.buffer->used() > 0;
     }
 
     Result<size_t> IoExchange::read(void *p, const size_t count)
     {
         // cannot read if we're only writing to the baseband
-        if (!config.application->is_configured || !config.application->buffer || config.direction == stream::BB_TO_APP)
+        if (!config->application.is_configured || !config->application.buffer || config->direction == stream::BB_TO_APP)
             return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
-        // if (config.application->buffer->is_empty())
+        // if (config->application.buffer->is_empty())
         //     return {errors::TARGET_BUFFER_EMPTY};
 
-        auto result = config.application->buffer->read(p, count);
-        config.baseband->bytes_read += result;
+        auto result = config->application.buffer->read(p, count);
+        config->baseband.bytes_read += result;
 
         if (result > 0)
             creg::m4txevent::assert_event();
@@ -256,14 +163,14 @@ namespace stream
     Result<size_t> IoExchange::write(const void *p, const size_t count)
     {
         // cannot write if we're only reading from the baseband
-        if (!config.application->is_ready || !config.baseband->buffer || config.direction == stream::APP_TO_BB)
+        if (!config->application.is_ready || !config->baseband.buffer || config->direction == stream::APP_TO_BB)
             return {errors::WRITE_ERROR_CANNOT_WRITE_TO_APP};
 
-        // if (config.baseband->buffer->is_full())
+        // if (config->baseband.buffer->is_full())
         //     return {errors::TARGET_BUFFER_FULL};
 
-        auto result = config.baseband->buffer->write(p, count);
-        config.baseband->bytes_written += result;
+        auto result = config->baseband.buffer->write(p, count);
+        config->baseband.bytes_written += result;
 
         if (result > 0)
             creg::m4txevent::assert_event();

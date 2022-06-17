@@ -213,6 +213,9 @@ ADSBTXThread::ADSBTXThread(
 ) : frames_ {  std::move(frames) }
 {
 	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ADSBTXThread::static_fn, this);
+
+	if (thread == NULL)
+		chDbgPanic("Can not allocate memory");
 }
 
 ADSBTXThread::~ADSBTXThread() {

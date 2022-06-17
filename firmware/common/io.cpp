@@ -27,7 +27,7 @@ namespace stream
 
     Result<size_t> Reader::fully_read(void *p, const size_t count)
     {
-        return fully_read_up_to_max_iterations(p, count, 25);
+        return fully_read_up_to_max_iterations(p, count, 10);
     };
 
     Result<size_t> Reader::fully_read_up_to_max_iterations(void *p, const size_t count, const size_t max_zero_iterations)
@@ -59,7 +59,7 @@ namespace stream
 
     Result<size_t> Writer::fully_write(const void *p, const size_t count)
     {
-        return fully_write_up_to_max_iterations(p, count, 25);
+        return fully_write_up_to_max_iterations(p, count, 10);
     };
 
     Result<size_t> Writer::fully_write_up_to_max_iterations(const void *p, const size_t count, const size_t max_zero_iterations)
