@@ -144,6 +144,7 @@ set(CPPSRC
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
 	${COMMON}/io.cpp
+	${COMMON}/io_exchange_config.cpp
 	${COMMON}/io_exchange.cpp
 	${COMMON}/sonde_packet.cpp
 	# ${COMMON}/test_packet.cpp
