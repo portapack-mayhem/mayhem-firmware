@@ -35,321 +35,276 @@ using namespace portapack;
 
 #include <cstdint>
 
-namespace ui
+namespace ui {
+
+/*void RecordView::toggle_pitch_rssi() {
+	pitch_rssi_enabled = !pitch_rssi_enabled;
+	
+	// Send to RSSI widget
+	const PitchRSSIConfigureMessage message {
+		pitch_rssi_enabled,
+		0
+	};
+	shared_memory.application_queue.push(message);
+	
+	if( !pitch_rssi_enabled ) {
+		button_pitch_rssi.set_foreground(Color::orange());
+	} else {
+		button_pitch_rssi.set_foreground(Color::green());
+	}
+}*/
+
+RecordView::RecordView(
+	const Rect parent_rect,
+	std::filesystem::path filename_stem_pattern,
+	const FileType file_type,
+	const size_t write_size,
+	const size_t buffer_count
+) : View { parent_rect },
+	filename_stem_pattern { filename_stem_pattern },
+	file_type { file_type },
+	write_size { write_size },
+	buffer_count { buffer_count }
 {
+	add_children({
+		&rect_background,
+		//&button_pitch_rssi,
+		&button_record,
+		&text_record_filename,
+		&text_record_dropped,
+		&text_time_available,
+	});
+	
+	rect_background.set_parent_rect({ { 0, 0 }, size() });
+	
+	/*button_pitch_rssi.on_select = [this](ImageButton&) {
+		this->toggle_pitch_rssi();
+	};*/
 
-	/*void RecordView::toggle_pitch_rssi() {
-		pitch_rssi_enabled = !pitch_rssi_enabled;
+	button_record.on_select = [this](ImageButton&) {
+		this->toggle();
+	};
 
-		// Send to RSSI widget
-		const PitchRSSIConfigureMessage message {
-			pitch_rssi_enabled,
-			0
-		};
-		shared_memory.application_queue.push(message);
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+		this->on_tick_second();
+	};
+}
 
-		if( !pitch_rssi_enabled ) {
-			button_pitch_rssi.set_foreground(Color::orange());
-		} else {
-			button_pitch_rssi.set_foreground(Color::green());
-		}
-	}*/
+RecordView::~RecordView() {
+	rtc_time::signal_tick_second -= signal_token_tick_second;
+}
 
-	RecordView::RecordView(
-		const Rect parent_rect,
-		std::filesystem::path filename_stem_pattern,
-		const FileType file_type,
-		const size_t write_size,
-		const size_t buffer_count) : View{parent_rect},
-									 filename_stem_pattern{filename_stem_pattern},
-									 file_type{file_type},
-									 write_size{write_size},
-									 buffer_count{buffer_count}
-	{
-		add_children({
-			&rect_background,
-			//&button_pitch_rssi,
-			&button_record,
-			&text_record_filename,
-			&text_record_dropped,
-			&text_time_available,
-		});
+void RecordView::focus() {
+	button_record.focus();
+}
 
-		rect_background.set_parent_rect({{0, 0}, size()});
-
-		/*button_pitch_rssi.on_select = [this](ImageButton&) {
-			this->toggle_pitch_rssi();
-		};*/
-
-		button_record.on_select = [this](ImageButton &)
-		{
-			this->toggle();
-		};
-
-		signal_token_tick_second = rtc_time::signal_tick_second += [this]()
-		{
-			this->on_tick_second();
-		};
+void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
+    
+	/* We are changing "REC" icon background to yellow in  BW rec Options >600kHz 
+	where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
+	Those decimated recorded files,has not the full IQ  samples . 
+	are ok as recorded spectrum indication, but they  should not be used by Replay app. 
+	 	
+	We keep original black  background in all the correct IQ .C16 files BW's Options */ 
+	if (new_sampling_rate > 4800000) {   // > BW >600kHz  (fs=8*BW), (750kHz ...2750kHz)
+		button_record.set_background(ui::Color::yellow());		
+	} else {
+		button_record.set_background(ui::Color::black());				
 	}
-
-	RecordView::~RecordView()
-	{
-		rtc_time::signal_tick_second -= signal_token_tick_second;
-	}
-
-	void RecordView::focus()
-	{
-		button_record.focus();
-	}
-
-	void RecordView::set_sampling_rate(const size_t new_sampling_rate)
-	{
-
-		/* We are changing "REC" icon background to yellow in  BW rec Options >600kHz
-		where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
-		Those decimated recorded files,has not the full IQ  samples .
-		are ok as recorded spectrum indication, but they  should not be used by Replay app.
-
-		We keep original black  background in all the correct IQ .C16 files BW's Options */
-		if (new_sampling_rate > 4800000)
-		{ // > BW >600kHz  (fs=8*BW), (750kHz ...2750kHz)
-			button_record.set_background(ui::Color::yellow());
-		}
-		else
-		{
-			button_record.set_background(ui::Color::black());
-		}
-
-		if (new_sampling_rate != sampling_rate)
-		{
-			stop();
-
-			sampling_rate = new_sampling_rate;
-			baseband::set_sample_rate(sampling_rate);
-
-			button_record.hidden(sampling_rate == 0);
-			text_record_filename.hidden(sampling_rate == 0);
-			text_record_dropped.hidden(sampling_rate == 0);
-			text_time_available.hidden(sampling_rate == 0);
-			rect_background.hidden(sampling_rate != 0);
-
-			update_status_display();
-		}
-	}
-
-	// Setter for datetime and frequency filename
-	void RecordView::set_filename_date_frequency(bool set)
-	{
-		filename_date_frequency = set;
-	}
-
-	bool RecordView::is_active() const
-	{
-		return (bool)stream_writer;
-	}
-
-	void RecordView::toggle()
-	{
-		if (is_active())
-		{
-			stop();
-		}
-		else
-		{
-			start();
-		}
-	}
-
-	void RecordView::start()
-	{
+	
+	if( new_sampling_rate != sampling_rate ) {
 		stop();
+		
+		sampling_rate = new_sampling_rate;
+		baseband::set_sample_rate(sampling_rate);
 
-		text_record_filename.set("");
-		text_record_dropped.set("");
+		button_record.hidden(sampling_rate == 0);
+		text_record_filename.hidden(sampling_rate == 0);
+		text_record_dropped.hidden(sampling_rate == 0);
+		text_time_available.hidden(sampling_rate == 0);
+		rect_background.hidden(sampling_rate != 0);
 
-		if (sampling_rate == 0)
-		{
-			return;
-		}
+		update_status_display();
+	}
+}
 
-		std::filesystem::path base_path;
-		if (filename_date_frequency)
-		{
-			rtcGetTime(&RTCD1, &datetime);
+// Setter for datetime and frequency filename
+void RecordView::set_filename_date_frequency(bool set) {
+	filename_date_frequency = set;
+}
 
-			// ISO 8601
-			std::string date_time = to_string_dec_uint(datetime.year(), 4, '0') +
-									to_string_dec_uint(datetime.month(), 2, '0') +
-									to_string_dec_uint(datetime.day(), 2, '0') + "T" +
-									to_string_dec_uint(datetime.hour()) +
-									to_string_dec_uint(datetime.minute()) +
-									to_string_dec_uint(datetime.second());
+bool RecordView::is_active() const {
+	return (bool)stream_writer;
+}
 
-			base_path = filename_stem_pattern.string() + "_" + date_time + "_" + to_string_freq(receiver_model.tuning_frequency()) + "Hz";
-		}
-		else
-		{
-			base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
-		}
+void RecordView::toggle() {
+	if( is_active() ) {
+		stop();
+	} else {
+		start();
+	}
+}
 
-		if (base_path.empty())
-		{
-			return;
-		}
+void RecordView::start() {
+	stop();
 
-		std::unique_ptr<stream::Writer> writer;
+	text_record_filename.set("");
+	text_record_dropped.set("");
 
-		switch (file_type)
-		{
-		case FileType::WAV:
+	if( sampling_rate == 0 ) {
+		return;
+	}
+
+	 
+    std::filesystem::path base_path;
+	if(filename_date_frequency) {
+     	rtcGetTime(&RTCD1, &datetime);
+
+		//ISO 8601 
+		std::string date_time = to_string_dec_uint(datetime.year(), 4, '0')  +
+			                    to_string_dec_uint(datetime.month(), 2, '0') + 
+			                    to_string_dec_uint(datetime.day(), 2, '0')   + "T" +
+								to_string_dec_uint(datetime.hour())          +
+								to_string_dec_uint(datetime.minute())        +
+								to_string_dec_uint(datetime.second());
+
+		base_path = filename_stem_pattern.string() + "_" + date_time + "_" + to_string_freq(receiver_model.tuning_frequency()) + "Hz";
+	} else {
+		base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+	}
+
+	if( base_path.empty() ) {
+		return;
+	}
+
+	std::unique_ptr<stream::Writer> writer;
+	switch(file_type) {
+	case FileType::WAV:
 		{
 			auto p = std::make_unique<WAVFileWriter>();
 			auto create_error = p->create(
 				base_path.replace_extension(u".WAV"),
 				sampling_rate,
-				to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz");
-			if (create_error.is_valid())
-			{
+				to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz"
+			);
+			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
-			}
-			else
-			{
+			} else {
 				writer = std::move(p);
 			}
 		}
 		break;
 
-		case FileType::RawS16:
+	case FileType::RawS16:
 		{
 			const auto metadata_file_error = write_metadata_file(base_path.replace_extension(u".TXT"));
-			if (metadata_file_error.is_valid())
-			{
+			if( metadata_file_error.is_valid() ) {
 				handle_error(metadata_file_error.value());
 				return;
 			}
 
 			auto p = std::make_unique<RawFileWriter>();
 			auto create_error = p->create(base_path.replace_extension(u".C16"));
-			if (create_error.is_valid())
-			{
+			if( create_error.is_valid() ) {
 				handle_error(create_error.value());
-			}
-			else
-			{
+			} else {
 				writer = std::move(p);
 			}
 		}
 		break;
 
-		default:
-			break;
-		};
+	default:
+		break;
+	};
 
-		if (writer)
-		{
-			text_record_filename.set(base_path.replace_extension().string());
-			button_record.set_bitmap(&bitmap_stop);
-			stream_writer = std::make_unique<stream::StreamWriter>(io_exchange.get(), std::move(writer));
+	if( writer ) {
+		text_record_filename.set(base_path.replace_extension().string());
+		button_record.set_bitmap(&bitmap_stop);
+		stream_writer = std::make_unique<stream::StreamWriter>(io_exchange.get(), std::move(writer));
+	}
+
+	update_status_display();
+}
+
+void RecordView::on_hide()
+{
+	stop(); // Stop current recording
+	View::on_hide();
+}
+
+void RecordView::stop() {
+	if( is_active() ) {
+		stream_writer.reset();
+		button_record.set_bitmap(&bitmap_record);
+	}
+
+	update_status_display();
+}
+
+Optional<Error> RecordView::write_metadata_file(const std::filesystem::path& filename) {
+	File file;
+	const auto create_error = file.create(filename);
+	if( create_error.is_valid() ) {
+		return create_error;
+	} else {
+		const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate / 8));
+		if( error_line1.is_valid() ) {
+			return error_line1;
 		}
-
-		update_status_display();
-	}
-
-	void RecordView::on_hide()
-	{
-		stop(); // Stop current recording
-		View::on_hide();
-	}
-
-	void RecordView::stop()
-	{
-
-		if (is_active())
-		{
-			stream_writer.reset();
-			button_record.set_bitmap(&bitmap_record);
+		const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
+		if( error_line2.is_valid() ) {
+			return error_line2;
 		}
+		return { };
+	}
+}
 
-		update_status_display();
+void RecordView::on_tick_second() {
+	update_status_display();
+}
+
+void RecordView::update_status_display() {
+	if( is_active() ) {
+		// TODO: before commit reimplement the dropped percentage display
+		// const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
+		const auto dropped_percent = 0;
+		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+		text_record_dropped.set(s);
 	}
 
-	Optional<Error> RecordView::write_metadata_file(const std::filesystem::path &filename)
-	{
-		File file;
-		const auto create_error = file.create(filename);
-		if (create_error.is_valid())
-		{
-			return create_error;
-		}
-		else
-		{
-			const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate / 8));
-			if (error_line1.is_valid())
-			{
-				return error_line1;
-			}
-			const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
-			if (error_line2.is_valid())
-			{
-				return error_line2;
-			}
-			return {};
-		}
+	/*if (pitch_rssi_enabled) {
+		button_pitch_rssi.invert_colors();
+	}*/
+
+	if( sampling_rate ) {
+		const auto space_info = std::filesystem::space(u"");
+		const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);
+		const uint32_t available_seconds = space_info.free / bytes_per_second;
+		const uint32_t seconds = available_seconds % 60;
+		const uint32_t available_minutes = available_seconds / 60;
+		const uint32_t minutes = available_minutes % 60;
+		const uint32_t hours = available_minutes / 60;
+		const std::string available_time =
+			to_string_dec_uint(hours, 3, ' ') + ":" +
+			to_string_dec_uint(minutes, 2, '0') + ":" +
+			to_string_dec_uint(seconds, 2, '0');
+		text_time_available.set(available_time);
 	}
+}
 
-	void RecordView::on_tick_second()
-	{
-		update_status_display();
-	}
+void RecordView::handle_stream_writer_done(const Error error) {
+	stop();
 
-	void RecordView::update_status_display()
-	{
-		if (is_active())
-		{
-			// TODO: before commit reimplement the dropped percentage display
-			// const auto dropped_percent = std::min(99U, stream_writer->state().dropped_percent());
-			const auto dropped_percent = 0;
-			const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
-			text_record_dropped.set(s);
-		}
+	if (
+		error.code != errors::END_OF_STREAM.code &&
+		error.code != errors::THREAD_TERMINATED.code
+	)
+		handle_error(error);
+}
 
-		/*if (pitch_rssi_enabled) {
-			button_pitch_rssi.invert_colors();
-		}*/
-
-		if (sampling_rate)
-		{
-			const auto space_info = std::filesystem::space(u"");
-			const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);
-			const uint32_t available_seconds = space_info.free / bytes_per_second;
-			const uint32_t seconds = available_seconds % 60;
-			const uint32_t available_minutes = available_seconds / 60;
-			const uint32_t minutes = available_minutes % 60;
-			const uint32_t hours = available_minutes / 60;
-			const std::string available_time =
-				to_string_dec_uint(hours, 3, ' ') + ":" +
-				to_string_dec_uint(minutes, 2, '0') + ":" +
-				to_string_dec_uint(seconds, 2, '0');
-			text_time_available.set(available_time);
-		}
-	}
-
-	void RecordView::handle_stream_writer_done(const Error error)
-	{
-		stop();
-
-		if (
-			error.code != errors::END_OF_STREAM.code &&
-			error.code != errors::THREAD_TERMINATED.code)
-			handle_error(error);
-	}
-
-	void RecordView::handle_error(const Error error)
-	{
-		if (on_error)
-		{
-			on_error("Error code: " + to_string_dec_uint(error.code));
-		}
-	}
+void RecordView::handle_error(const Error error) {
+	if (on_error)
+		on_error("Error code: " + to_string_dec_uint(error.code));
+}
 
 } /* namespace ui */

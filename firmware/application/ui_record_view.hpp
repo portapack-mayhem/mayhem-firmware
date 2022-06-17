@@ -33,119 +33,119 @@
 #include <string>
 #include <memory>
 
-namespace ui
-{
+namespace ui {
 
-	class RecordView : public View
-	{
-	public:
-		std::function<void(std::string)> on_error{};
+class RecordView : public View {
+public:
+	std::function<void(std::string)> on_error { };
 
-		enum FileType
-		{
-			RawS16 = 2,
-			WAV = 3,
-		};
-
-		RecordView(
-			const Rect parent_rect,
-			std::filesystem::path filename_stem_pattern,
-			FileType file_type,
-			const size_t write_size,
-			const size_t buffer_count);
-		~RecordView();
-
-		void focus() override;
-
-		void set_sampling_rate(const size_t new_sampling_rate);
-
-		void start();
-		void stop();
-		void on_hide() override;
-
-		bool is_active() const;
-
-		void set_filename_date_frequency(bool set);
-
-	private:
-		void toggle();
-		// void toggle_pitch_rssi();
-		Optional<Error> write_metadata_file(const std::filesystem::path &filename);
-
-		void on_tick_second();
-		void update_status_display();
-
-		void handle_stream_writer_done(const Error error);
-		void handle_error(const Error error);
-
-		// bool pitch_rssi_enabled = false;
-
-		// Time Stamp
-		bool filename_date_frequency = false;
-		rtc::RTC datetime{};
-
-		const std::filesystem::path filename_stem_pattern;
-		const FileType file_type;
-		const size_t write_size;
-		const size_t buffer_count;
-		size_t sampling_rate{0};
-		SignalToken signal_token_tick_second{};
-
-		Rectangle rect_background{
-			Color::black()};
-
-		/*ImageButton button_pitch_rssi {
-			{ 2, 0 * 16, 3 * 8, 1 * 16 },
-			&bitmap_rssipwm,
-			Color::orange(),
-			Color::black()
-		};*/
-
-		ImageButton button_record{
-			//{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
-			{0 * 8, 0 * 16, 2 * 8, 1 * 16},
-			&bitmap_record,
-			Color::red(),
-			Color::black()};
-
-		Text text_record_filename{
-			{7 * 8, 0 * 16, 8 * 8, 16},
-			"",
-		};
-
-		Text text_record_dropped{
-			{16 * 8, 0 * 16, 3 * 8, 16},
-			"",
-		};
-
-		Text text_time_available{
-			{21 * 8, 0 * 16, 9 * 8, 16},
-			"",
-		};
-
-		// handle io exchange
-		std::unique_ptr<stream::IoExchange> io_exchange{};
-		MessageHandlerRegistration io_exchange_handler_registration{
-			Message::ID::IoExchangeConfig,
-			[this](const Message *const message)
-			{
-				if (io_exchange)
-					io_exchange.reset();
-
-				const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
-				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
-			}};
-
-		std::unique_ptr<stream::StreamWriter> stream_writer{};
-		MessageHandlerRegistration message_handler_stream_writer_error{
-			Message::ID::StreamWriterDone,
-			[this](const Message *const p)
-			{
-				const auto message = *reinterpret_cast<const StreamWriterDoneMessage *>(p);
-				this->handle_stream_writer_done(message.error);
-			}};
+	enum FileType {
+		RawS16 = 2,
+		WAV = 3,
 	};
+
+	RecordView(
+		const Rect parent_rect,
+		std::filesystem::path filename_stem_pattern,
+		FileType file_type,
+		const size_t write_size,
+		const size_t buffer_count
+	);
+	~RecordView();
+
+	void focus() override;
+
+	void set_sampling_rate(const size_t new_sampling_rate);
+
+	void start();
+	void stop();
+	void on_hide() override;
+
+	bool is_active() const;
+
+	void set_filename_date_frequency(bool set);
+
+private:
+	void toggle();
+	//void toggle_pitch_rssi();
+	Optional<Error> write_metadata_file(const std::filesystem::path& filename);
+
+	void on_tick_second();
+	void update_status_display();
+
+	void handle_stream_writer_done(const Error error);
+	void handle_error(const Error error);
+
+	//bool pitch_rssi_enabled = false;
+	
+	// Time Stamp
+	bool filename_date_frequency = false;
+    rtc::RTC datetime { };
+
+	const std::filesystem::path filename_stem_pattern;
+	const FileType file_type;
+	const size_t write_size;
+	const size_t buffer_count;
+	size_t sampling_rate { 0 };
+	SignalToken signal_token_tick_second { };
+
+	Rectangle rect_background {
+		Color::black()
+	};
+	
+	/*ImageButton button_pitch_rssi {
+		{ 2, 0 * 16, 3 * 8, 1 * 16 },
+		&bitmap_rssipwm,
+		Color::orange(),
+		Color::black()
+	};*/
+
+	ImageButton button_record {
+		//{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		&bitmap_record,
+		Color::red(),
+		Color::black()
+	};
+
+	Text text_record_filename {
+		{ 7 * 8, 0 * 16, 8 * 8, 16 },
+		"",
+	};
+
+	Text text_record_dropped {
+		{ 16 * 8, 0 * 16, 3 * 8, 16 },
+		"",
+	};
+
+	Text text_time_available {
+		{ 21 * 8, 0 * 16, 9 * 8, 16 },
+		"",
+	};
+
+	// handle io exchange
+	std::unique_ptr<stream::IoExchange> io_exchange{};
+	MessageHandlerRegistration io_exchange_handler_registration{
+		Message::ID::IoExchangeConfig,
+		[this](const Message *const message)
+		{
+			if (io_exchange)
+				io_exchange.reset();
+
+			const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
+			io_exchange = std::make_unique<stream::IoExchange>(msg->config);
+		}};
+
+	std::unique_ptr<stream::StreamWriter> stream_writer{};
+	MessageHandlerRegistration message_handler_stream_writer_error{
+		Message::ID::StreamWriterDone,
+		[this](const Message *const p)
+		{
+			const auto message = *reinterpret_cast<const StreamWriterDoneMessage *>(p);
+			this->handle_stream_writer_done(message.error);
+		}};
+};
 
 } /* namespace ui */
 
-#endif /*__UI_RECORD_VIEW_H__*/
+#endif/*__UI_RECORD_VIEW_H__*/
