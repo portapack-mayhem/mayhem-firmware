@@ -56,8 +56,6 @@ namespace stream
 
     const Error StreamReader::run()
     {
-        uint8_t *buffer_block = new uint8_t[BASE_BLOCK_SIZE];
-
         while (!chThdShouldTerminate())
         {
             if (!reader)
@@ -67,7 +65,7 @@ namespace stream
                 return errors::NO_IO_EXCHANGE;
 
             // read from reader
-            auto read_result = reader->fully_read(buffer_block, BASE_BLOCK_SIZE);
+            auto read_result = reader->fully_read(&buffer_block, BASE_BLOCK_SIZE);
 
             // handle thd terminate flag
             if (chThdShouldTerminate())
@@ -80,7 +78,7 @@ namespace stream
                 return errors::END_OF_STREAM;
 
             // write to baseband
-            auto write_result = io_exchange->fully_write(buffer_block, read_result.value());
+            auto write_result = io_exchange->fully_write(&buffer_block, read_result.value());
 
             if (write_result.is_error())
                 return write_result.error();

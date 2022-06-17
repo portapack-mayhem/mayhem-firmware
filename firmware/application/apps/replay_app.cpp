@@ -131,23 +131,14 @@ void ReplayAppView::start() {
 		reader = std::move(p);
 	}
 
-	if( reader ) {
-		button_play.set_bitmap(&bitmap_stop);
-		baseband::set_sample_rate(sample_rate * 8);
-
-		stream_reader = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
+	if (!reader) {
+		return;
 	}
-    field_rfgain.on_change = [this](int32_t v) {
-		tx_gain = v;
-	};  
-	field_rfgain.set_value(tx_gain);
-	receiver_model.set_tx_gain(tx_gain); 
-    
 
- 	field_rfamp.on_change = [this](int32_t v) {
-		rf_amp = (bool)v;
-	};
-	field_rfamp.set_value(rf_amp ? 14 : 0);
+	button_play.set_bitmap(&bitmap_stop);
+	baseband::set_sample_rate(sample_rate * 8);
+
+	stream_reader = std::make_unique<stream::StreamReader>(io_exchange.get(), std::move(reader));
 
 	//Enable Bias Tee if selected
 	radio::set_antenna_bias(portapack::get_antenna_bias());
@@ -177,7 +168,7 @@ void ReplayAppView::stop(const bool do_loop) {
 }
 
 void ReplayAppView::handle_stream_reader_done(const Error error) {
-	if (error.code == errors::END_OF_STREAM.code) {
+	if (error.code == errors::END_OF_STREAM.code || error.code == errors::THREAD_TERMINATED.code) {
 		stop(true);
 	} else {
 		stop(false);
@@ -192,7 +183,8 @@ ReplayAppView::ReplayAppView(
 ) : nav_ (nav)
 {
 
-	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
+	tx_gain = 35;
+	field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
 	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
 
 	field_rfamp.on_change = [this](int32_t v) {	// allow initial value change just after opened file.	

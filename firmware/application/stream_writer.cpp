@@ -55,8 +55,6 @@ namespace stream
 
     const Error StreamWriter::run()
     {
-        uint8_t *buffer_block = new uint8_t[BASE_BLOCK_SIZE];
-
         while (!chThdShouldTerminate())
         {
             if (!io_exchange)
@@ -66,7 +64,7 @@ namespace stream
                 return errors::NO_WRITER;
 
             // read from reader
-            auto read_result = io_exchange->fully_read(buffer_block, BASE_BLOCK_SIZE);
+            auto read_result = io_exchange->fully_read(&buffer_block, BASE_BLOCK_SIZE);
 
             // handle thd terminate flag
             if (chThdShouldTerminate())
@@ -79,7 +77,7 @@ namespace stream
                 return errors::END_OF_STREAM;
 
             // write to writer
-            auto write_result = writer->fully_write(buffer_block, read_result.value());
+            auto write_result = writer->fully_write(&buffer_block, read_result.value());
 
             if (write_result.is_error())
                 return write_result.error();

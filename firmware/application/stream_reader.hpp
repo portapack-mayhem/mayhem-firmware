@@ -44,6 +44,7 @@ namespace stream
         StreamReader &operator=(StreamReader &&) = delete;
 
     private:
+        uint8_t buffer_block[BASE_BLOCK_SIZE];
         IoExchange *io_exchange;
         std::unique_ptr<Reader> reader{nullptr};
         Thread *thread{nullptr};

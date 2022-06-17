@@ -142,16 +142,13 @@ ViewWavView::ViewWavView(
 	reset_controls();
 	button_open.on_select = [this, &nav](Button&) {
 		auto open_view = nav.push<FileLoadView>(".WAV");
-		open_view->on_changed = [this](std::filesystem::path file_path)
-		{
+		open_view->on_changed = [this](std::filesystem::path file_path) {
 			auto open_error = wav_reader->open(file_path);
-			if (open_error.is_valid())
-			{
+			if (open_error.is_valid()) {
 				nav_.display_modal("Error", "Couldn't open file.", INFO, nullptr);
 				return;
 			}
-			if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16))
-			{
+			if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
 				nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.", INFO, nullptr);
 				return;
 			}
