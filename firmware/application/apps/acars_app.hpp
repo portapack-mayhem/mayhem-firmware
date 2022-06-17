@@ -36,7 +36,7 @@ public:
 	Optional<Error> append(const std::string& filename) {
 		return log_file.append(filename);
 	}
-
+	
 	void log_raw_data(const acars::Packet& packet, const uint32_t frequency);
 	//void log_decoded(const acars::Packet& packet, const std::string text);
 
@@ -113,4 +113,4 @@ private:
 
 } /* namespace ui */
 
-#endif /*__ACARS_APP_H__*/
+#endif/*__ACARS_APP_H__*/

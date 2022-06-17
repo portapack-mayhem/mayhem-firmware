@@ -33,130 +33,136 @@
 #include <string>
 #include <memory>
 
-namespace ui
-{
+namespace ui {
 
-	class ReplayAppView : public View
-	{
-	public:
-		ReplayAppView(NavigationView &nav);
-		~ReplayAppView();
+class ReplayAppView : public View {
+public:
+	ReplayAppView(NavigationView& nav);
+	~ReplayAppView();
 
-		void on_hide() override;
-		void set_parent_rect(const Rect new_parent_rect) override;
-		void focus() override;
+	void on_hide() override;
+	void set_parent_rect(const Rect new_parent_rect) override;
+	void focus() override;
 
-		std::string title() const override { return "Replay"; };
+	std::string title() const override { return "Replay"; };
+	
+private:
+	NavigationView& nav_;
+	
+	static constexpr ui::Dim header_height = 3 * 16;
+	
+	uint32_t sample_rate = 0;
+	int32_t tx_gain { 47 };
+	bool rf_amp { true }; // aux private var to store temporal, Replay App rf_amp user selection.
+	static constexpr uint32_t baseband_bandwidth = 2500000;
 
-	private:
-		NavigationView &nav_;
+	void on_file_changed(std::filesystem::path new_file_path);
+	void on_target_frequency_changed(rf::Frequency f);
+	void on_tx_progress(const uint32_t progress);
+	
+	void set_target_frequency(const rf::Frequency new_value);
+	rf::Frequency target_frequency() const;
 
-		static constexpr ui::Dim header_height = 3 * 16;
+	void toggle();
+	void start();
+	void stop(const bool do_loop);
+	bool is_active() const;
+	void handle_stream_reader_done(const Error error);
+	void handle_error(const Error error);
 
-		uint32_t sample_rate = 0;
-		int32_t tx_gain{47};
-		bool rf_amp{true}; // aux private var to store temporal, Replay App rf_amp user selection.
-		static constexpr uint32_t baseband_bandwidth = 2500000;
-		const size_t read_size{16384};
-		const size_t buffer_count{3};
+	std::filesystem::path file_path { };
 
-		void on_file_changed(std::filesystem::path new_file_path);
-		void on_target_frequency_changed(rf::Frequency f);
-		void on_tx_progress(const uint32_t progress);
+	// handle io exchange
+	std::unique_ptr<stream::IoExchange> io_exchange{};
+	MessageHandlerRegistration io_exchange_handler_registration{
+		Message::ID::IoExchangeConfig,
+		[this](const Message *const message)
+		{
+			if (io_exchange)
+				io_exchange.reset();
 
-		void set_target_frequency(const rf::Frequency new_value);
-		rf::Frequency target_frequency() const;
+			const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
+			io_exchange = std::make_unique<stream::IoExchange>(msg->config);
+		}};
 
-		void toggle();
-		void start();
-		void stop(const bool do_loop);
-		bool is_active() const;
-		void handle_stream_reader_done(const Error error);
-		void handle_error(const Error error);
+	std::unique_ptr<stream::StreamReader> stream_reader{};
 
-		std::filesystem::path file_path{};
+	MessageHandlerRegistration message_handler_stream_reader_error{
+		Message::ID::StreamReaderDone,
+		[this](const Message *const p)
+		{
+			const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
+			this->handle_stream_reader_done(message.error);
+		}};
 
-		// handle io exchange
-		std::unique_ptr<stream::IoExchange> io_exchange{};
-		MessageHandlerRegistration io_exchange_handler_registration{
-			Message::ID::IoExchangeConfig,
-			[this](const Message *const message)
-			{
-				if (io_exchange)
-					io_exchange.reset();
-
-				const auto *const msg = reinterpret_cast<const IoExchangeMessage *>(message);
-				io_exchange = std::make_unique<stream::IoExchange>(msg->config);
-			}};
-
-		std::unique_ptr<stream::StreamReader> stream_reader{};
-
-		MessageHandlerRegistration message_handler_stream_reader_error{
-			Message::ID::StreamReaderDone,
-			[this](const Message *const p)
-			{
-				const auto message = *reinterpret_cast<const StreamReaderDoneMessage *>(p);
-				this->handle_stream_reader_done(message.error);
-			}};
-
-		Labels labels{
-			{{10 * 8, 2 * 16}, "GAIN   A:", Color::light_grey()}};
-
-		Button button_open{
-			{0 * 8, 0 * 16, 10 * 8, 2 * 16},
-			"Open file"};
-
-		Text text_filename{
-			{11 * 8, 0 * 16, 12 * 8, 16},
-			"-"};
-		Text text_sample_rate{
-			{24 * 8, 0 * 16, 6 * 8, 16},
-			"-"};
-
-		Text text_duration{
-			{11 * 8, 1 * 16, 6 * 8, 16},
-			"-"};
-		ProgressBar progressbar{
-			{18 * 8, 1 * 16, 12 * 8, 16}};
-
-		FrequencyField field_frequency{
-			{0 * 8, 2 * 16},
-		};
-
-		NumberField field_rfgain{
-			{14 * 8, 2 * 16},
-			2,
-			{0, 47},
-			1,
-			' '};
-		NumberField field_rfamp{// previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
-								{19 * 8, 2 * 16},
-								2,
-								{0, 14}, // this time we will display GUI , 0 or 14 dBs same as Mic App
-								14,
-								' '};
-		Checkbox check_loop{
-			{21 * 8, 2 * 16},
-			4,
-			"Loop",
-			true};
-		ImageButton button_play{
-			{28 * 8, 2 * 16, 2 * 8, 1 * 16},
-			&bitmap_play,
-			Color::green(),
-			Color::black()};
-
-		spectrum::WaterfallWidget waterfall{};
-
-		MessageHandlerRegistration message_handler_tx_progress{
-			Message::ID::TXProgress,
-			[this](const Message *const p)
-			{
-				const auto message = *reinterpret_cast<const TXProgressMessage *>(p);
-				this->on_tx_progress(message.progress);
-			}};
+	Labels labels {
+		{ { 10 * 8, 2 * 16 }, "GAIN   A:", Color::light_grey() }
 	};
+	
+	Button button_open {
+		{ 0 * 8, 0 * 16, 10 * 8, 2 * 16 },
+		"Open file"
+	};
+	
+	Text text_filename {
+		{ 11 * 8, 0 * 16, 12 * 8, 16 },
+		"-"
+	};
+	Text text_sample_rate {
+		{ 24 * 8, 0 * 16, 6 * 8, 16 },
+		"-"
+	};
+	
+	Text text_duration {
+		{ 11 * 8, 1 * 16, 6 * 8, 16 },
+		"-"
+	};
+	ProgressBar progressbar {
+		{ 18 * 8, 1 * 16, 12 * 8, 16 }
+	};
+	
+	FrequencyField field_frequency {
+		{ 0 * 8, 2 * 16 },
+	};
+	
+	NumberField field_rfgain {
+		{ 14 * 8, 2 * 16 },
+		2,
+		{ 0, 47 },
+		1,
+		' '	
+	};
+	NumberField field_rfamp {     // previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
+		{ 19 * 8, 2 * 16 },
+		2,
+		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic App
+		14,
+		' '
+	};
+	Checkbox check_loop {
+		{ 21 * 8, 2 * 16 },
+		4,
+		"Loop",
+		true
+	};
+	ImageButton button_play {
+		{ 28 * 8, 2 * 16, 2 * 8, 1 * 16 },
+		&bitmap_play,
+		Color::green(),
+		Color::black()
+	};
+
+	spectrum::WaterfallWidget waterfall { };
+
+	MessageHandlerRegistration message_handler_tx_progress {
+		Message::ID::TXProgress,
+		[this](const Message* const p) {
+			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+			this->on_tx_progress(message.progress);
+		}
+	};
+};
 
 } /* namespace ui */
 
-#endif /*__REPLAY_APP_HPP__*/
+#endif/*__REPLAY_APP_HPP__*/
