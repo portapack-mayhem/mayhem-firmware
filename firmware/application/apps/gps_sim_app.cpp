@@ -165,7 +165,7 @@ void GpsSimAppView::stop(const bool do_loop) {
 }
 
 void GpsSimAppView::handle_stream_reader_done(const Error error) {
-	if (error.code == errors::END_OF_STREAM.code) {
+	if (error.code == errors::END_OF_STREAM.code || error.code == errors::THREAD_TERMINATED.code) {
 		stop(true);
 	} else {
 		stop(false);
