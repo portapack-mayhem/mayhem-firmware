@@ -66,6 +66,9 @@ namespace stream
         baseband.bytes_read = 0;
         baseband.bytes_written = 0;
 
+    };
+
+    void IoExchangeConfig::clear_buffers() {
         if (application.buffer != nullptr){
             application.buffer->reset();
             application.buffer->clear_data();
@@ -75,6 +78,6 @@ namespace stream
             application.buffer->reset();
             baseband.buffer->clear_data();
         }
-    };
+    }
 
 }

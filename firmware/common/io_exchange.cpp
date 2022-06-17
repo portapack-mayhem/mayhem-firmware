@@ -148,8 +148,8 @@ namespace stream
         if (!config->application.is_configured || !config->application.buffer || config->direction == stream::BB_TO_APP)
             return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
-        // if (config->application.buffer->is_empty())
-        //     return {errors::TARGET_BUFFER_EMPTY};
+        if (config->application.buffer->is_empty() && !config->application.is_ready)
+            return {errors::READ_ERROR_CANNOT_READ_FROM_APP};
 
         auto result = config->application.buffer->read(p, count);
         config->baseband.bytes_read += result;
@@ -166,8 +166,8 @@ namespace stream
         if (!config->application.is_ready || !config->baseband.buffer || config->direction == stream::APP_TO_BB)
             return {errors::WRITE_ERROR_CANNOT_WRITE_TO_APP};
 
-        // if (config->baseband.buffer->is_full())
-        //     return {errors::TARGET_BUFFER_FULL};
+        if (config->application.buffer->is_full() && !config->application.is_ready)
+            return {errors::WRITE_ERROR_CANNOT_WRITE_TO_APP};
 
         auto result = config->baseband.buffer->write(p, count);
         config->baseband.bytes_written += result;

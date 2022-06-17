@@ -49,6 +49,7 @@ namespace stream
         IoExchangeConfig(const IoExchangeDirection direction, void *const buffer, const size_t buffer_size);
 
         void reset();
+        void clear_buffers();
 
         stream::IoExchangeDirection direction{stream::DUPLEX};
         stream::IoExchangeBucket baseband;    // bucket_from_baseband_to_application;

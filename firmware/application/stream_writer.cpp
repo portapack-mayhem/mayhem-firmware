@@ -91,8 +91,10 @@ namespace stream
 
         const Error error = obj->run();
 
-        if (obj && obj->io_exchange)
+        if (obj && obj->io_exchange) {
             obj->io_exchange->config->reset();
+            // obj->io_exchange->config->clear_buffers();
+        }
 
         // adapt this to the new stream reader interface
         StreamWriterDoneMessage message{error};
