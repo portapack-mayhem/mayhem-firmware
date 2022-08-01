@@ -67,7 +67,7 @@ private:
 	Labels labels {
 		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },
 		{ { 16 * 8, 0 }, "Clk:", Color::light_grey() },
-		{ { 24 * 8, 0 }, "kHz", Color::light_grey() },
+		{ { 25 * 8, 0 }, "kHz", Color::light_grey() },
 		{ { 14 * 8, 2 * 8 }, "Frame:", Color::light_grey() },
 		{ { 26 * 8, 2 * 8 }, "us", Color::light_grey() },
 		{ { 2 * 8, 4 * 8 }, "Symbols:", Color::light_grey() },
@@ -83,8 +83,8 @@ private:
 
 	NumberField field_clk {
 		{ 21 * 8, 0 },
-		3,
-		{ 1, 500 },
+		4,
+		{ 1, 1000 },
 		1,
 		' '
 	};
