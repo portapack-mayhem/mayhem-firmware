@@ -46,7 +46,9 @@ EncodersConfigView::EncodersConfigView(
 		&labels,
 		&options_enctype,
 		&field_clk,
+		&field_clk_step,
 		&field_frameduration,
+		&field_frameduration_step,
 		&symfield_word,
 		&text_format,
 		&waveform
@@ -74,6 +76,10 @@ EncodersConfigView::EncodersConfigView(
 		if (new_value != field_frameduration.value())
 			field_frameduration.set_value(new_value * encoder_def->word_length, false);
 	};
+
+	field_clk_step.on_change = [this](size_t, int32_t value) {
+		field_clk.set_step(value);
+	};
 	
 	// Selecting word duration changes input clock and symbol duration
 	field_frameduration.on_change = [this](int32_t value) {
@@ -81,6 +87,10 @@ EncodersConfigView::EncodersConfigView(
 		int32_t new_value = (value * 1000) / (encoder_def->word_length * encoder_def->clk_per_symbol);
 		if (new_value != field_clk.value())
 			field_clk.set_value(1000000 / new_value, false);
+	};
+
+	field_frameduration_step.on_change = [this](size_t, int32_t value) {
+		field_frameduration.set_step(value);
 	};
 }
 
