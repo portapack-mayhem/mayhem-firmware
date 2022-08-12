@@ -31,7 +31,7 @@ namespace ui {
 TouchCalibrationView::TouchCalibrationView(
 	NavigationView& nav
 ) : nav { nav },
-	calibration { touch::default_calibration() }
+	calibration { touch::Calibration() }
 {
 	add_children({
 		&image_calibrate_0,

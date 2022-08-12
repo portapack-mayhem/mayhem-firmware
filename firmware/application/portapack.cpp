@@ -215,7 +215,7 @@ static int load_config(){
 	static Optional<int> config_value;
 	if(!config_value.is_valid()){
 		int8_t value = portapack::persistent_memory::config_cpld();
-		if((value <= 0 || value >= 4) && sd_card::status() == sd_card::Status::Mounted){
+		if((value <= 0 || value >= 5) && sd_card::status() == sd_card::Status::Mounted){
 			int data = read_file("/hardware/settings.txt");
 			if(data != -1) {
 				config_value = data;
@@ -235,14 +235,19 @@ static PortaPackModel portapack_model() {
 		const auto switches_state = get_switches_state();
 		if (switches_state[(size_t)ui::KeyEvent::Up]){
 			save_config(1);
-			model = PortaPackModel::R2_20170522;
+			// model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
 		}
 		else if (switches_state[(size_t)ui::KeyEvent::Down]){
 			save_config(2);
-			model = PortaPackModel::R1_20150901;
+			// model = PortaPackModel::R1_20150901;
 		}
 		else if (switches_state[(size_t)ui::KeyEvent::Left]){
 			save_config(3);
+			// model = PortaPackModel::R1_20150901;
+		}
+		else if (switches_state[(size_t)ui::KeyEvent::Right]){
+			save_config(4);
+			// model = PortaPackModel::R2_20170522;
 		}
 		else if (switches_state[(size_t)ui::KeyEvent::Select]){
 			save_config(0);
@@ -253,6 +258,10 @@ static PortaPackModel portapack_model() {
 			model = PortaPackModel::R2_20170522;
 		} else if (load_config() == 2) {
 			model = PortaPackModel::R1_20150901;
+		} else if (load_config() == 3) {
+			model = PortaPackModel::R1_20150901;
+		} else if (load_config() == 4) {
+			model = PortaPackModel::R2_20170522;
 		} else {
 			if( audio_codec_wm8731.detected() ) {
 				model = PortaPackModel::R1_20150901; // H1R1
@@ -403,6 +412,7 @@ bool init() {
 	// if( !hackrf::cpld::load_sram() ) {
 	// 	chSysHalt();
 	// }
+	chThdSleepMilliseconds(100);
 
 	configure_pins_portapack();
 	
@@ -411,6 +421,8 @@ bool init() {
 	clock_manager.init_clock_generator();
 
 	i2c0.stop();
+
+	chThdSleepMilliseconds(10);
 
 	set_clock_config(clock_config_irc);
 	cgu::pll1::disable();
@@ -452,9 +464,14 @@ bool init() {
 	cgu::pll1::direct();
 
 	i2c0.start(i2c_config_fast_clock);
+	chThdSleepMilliseconds(10);
+
+	/* Cache some configuration data from persistent memory. */
+	persistent_memory::cache::init();
 
 	touch::adc::init();
 	controls_init();
+	chThdSleepMilliseconds(10);
 
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_first_if_clock();
@@ -465,12 +482,12 @@ bool init() {
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
 	
-	chThdSleepMilliseconds(1);
+	chThdSleepMilliseconds(10);
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-		chThdSleepMilliseconds(1);
+		chThdSleepMilliseconds(10);
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (load_config() != 3){
+		if (load_config() != 3 && load_config() != 4){
 			shutdown_base();
 			return false;
 		}
@@ -480,10 +497,12 @@ bool init() {
 		chSysHalt();
 	}
 
-	chThdSleepMilliseconds(1); // This delay seems to solve white noise audio issues
+	chThdSleepMilliseconds(10); // This delay seems to solve white noise audio issues
 
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
+
+	chThdSleepMilliseconds(10);
 
 	audio::init(portapack_audio_codec());
 	

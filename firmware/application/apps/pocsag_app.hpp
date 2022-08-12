@@ -28,7 +28,7 @@
 #include "ui_rssi.hpp"
 
 #include "log_file.hpp"
-
+#include "app_settings.hpp"
 #include "pocsag.hpp"
 #include "pocsag_packet.hpp"
 
@@ -59,6 +59,10 @@ public:
 
 private:
 	static constexpr uint32_t initial_target_frequency = 466175000;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 
 	bool logging { true };
 	bool ignore { true };

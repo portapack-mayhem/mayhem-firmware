@@ -137,6 +137,15 @@ struct Calibration {
 	{
 	}
 
+	constexpr Calibration() :
+		Calibration(
+			/* Values derived from one PortaPack H1 unit. */
+			{ { { 256, 731 }, { 880, 432 }, { 568, 146 } } },
+			{ { {  32,  48 }, { 208, 168 }, { 120, 288 } } }
+		)
+	{
+	}
+
 	ui::Point translate(const DigitizerPoint& p) const;
 
 private:
@@ -148,8 +157,6 @@ private:
 	int32_t e;
 	int32_t f;
 };
-
-const Calibration default_calibration();
 
 template<size_t N>
 class Filter {
