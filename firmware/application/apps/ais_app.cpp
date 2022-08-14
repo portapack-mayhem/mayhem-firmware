@@ -76,7 +76,7 @@ static std::string mid(
 	mid_code = to_string_dec_uint(mmsi, 9, ' ').substr(0, 3);
 	return_code = db.retrieve_mid_record(&mid_record, mid_code);
 	switch(return_code) {
-		case DATABASE_RECORD_FOUND: 	return mid_record.country;	
+		case DATABASE_RECORD_FOUND: 	return mid_record.country;
 		case DATABASE_NOT_FOUND: 	return "No mids.db file";
 		default:			return "";
 	}
@@ -164,7 +164,7 @@ void AISLogger::on_packet(const ais::Packet& packet) {
 	}
 
 	log_file.write_entry(packet.received_at(), entry);
-}	
+}
 
 void AISRecentEntry::update(const ais::Packet& packet) {
 	received_count++;
@@ -195,11 +195,35 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 		destination = packet.text(302, 20);
 		break;
 
+	case 18:
+	    last_position.timestamp = packet.received_at();
+		last_position.speed_over_ground = packet.read(46, 10);
+		last_position.latitude = packet.latitude(85);
+		last_position.longitude = packet.longitude(57);
+		last_position.course_over_ground = packet.read(112, 12);
+		last_position.true_heading = packet.read(124, 9);
+	    break;
+
 	case 21:
 		name = packet.text(43, 20);
 		last_position.timestamp = packet.received_at();
 		last_position.latitude = packet.latitude(192);
 		last_position.longitude = packet.longitude(164);
+		break;
+
+	case 24:
+		switch (packet.read(38, 2))
+		{
+		case 0:
+			name = packet.text(40, 20);
+			break;
+
+		case 1:
+			call_sign = packet.text(90, 7);
+		default:
+			break;
+		}
+
 		break;
 
 	default:
@@ -252,7 +276,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 			});
 			send_updates = true;
 
-		
+
 	};
 }
 
@@ -262,7 +286,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(const AISRecentEntryDetailVie
     (void)Entry;
 }
 
-AISRecentEntryDetailView & AISRecentEntryDetailView::operator=(const AISRecentEntryDetailView&Entry) 
+AISRecentEntryDetailView & AISRecentEntryDetailView::operator=(const AISRecentEntryDetailView&Entry)
 {
     (void)Entry;
     return *this;
@@ -352,7 +376,7 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
     	receiver_model.set_sampling_rate(sampling_rate);
     	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     	receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
-	
+
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
