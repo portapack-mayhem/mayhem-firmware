@@ -82,6 +82,12 @@ static std::string mid(
 	}
 }
 
+static std::string text(const std::string &text) {
+	size_t end = text.find_last_not_of("@");
+    return (end == std::string::npos) ? "" : text.substr(0, end + 1);
+
+}
+
 static std::string navigational_status(const unsigned int value) {
 	switch(value) {
 		case 0: return "under way w/engine";
@@ -244,9 +250,9 @@ void RecentEntriesTable<AISRecentEntries>::draw(
 ) {
 	std::string line = ais::format::mmsi(entry.mmsi) + " ";
 	if( !entry.name.empty() ) {
-		line += entry.name;
+		line += ais::format::text(entry.name);
 	} else {
-		line += entry.call_sign;
+		line += ais::format::text(entry.call_sign);
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
@@ -267,7 +273,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 	button_see_map.on_select = [this, &nav](Button&) {
 		geomap_view = nav.push<GeoMapView>(
-			entry_.name,
+			ais::format::text(entry_.name),
 			0,
 			GeoPos::alt_unit::METERS,
 			ais::format::latlon_float(entry_.last_position.latitude.normalized()),
@@ -328,8 +334,8 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 
 	field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
-	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
-	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
+	field_rect = draw_field(painter, field_rect, s, "Name", ais::format::text(entry_.name));
+	field_rect = draw_field(painter, field_rect, s, "Call", ais::format::text(entry_.call_sign));
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
 	field_rect = draw_field(painter, field_rect, s, "Last", to_string_datetime(entry_.last_position.timestamp));
 	field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
