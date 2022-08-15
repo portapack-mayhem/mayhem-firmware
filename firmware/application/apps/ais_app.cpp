@@ -336,7 +336,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Name", ais::format::text(entry_.name));
 	field_rect = draw_field(painter, field_rect, s, "Call", ais::format::text(entry_.call_sign));
-	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
+	field_rect = draw_field(painter, field_rect, s, "Dest", ais::format::text(entry_.destination));
 	field_rect = draw_field(painter, field_rect, s, "Last", to_string_datetime(entry_.last_position.timestamp));
 	field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
