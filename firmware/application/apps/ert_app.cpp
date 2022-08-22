@@ -139,7 +139,7 @@ ERTAppView::~ERTAppView() {
 	// save app settings
 	settings.save("rx_ert", &app_settings);
 
-	radio::disable();
+	receiver_model.disable(); // to switch off all, including DC bias and change flag enabled_
 
 	baseband::shutdown();
 }

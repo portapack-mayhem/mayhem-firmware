@@ -205,7 +205,7 @@ TPMSAppView::~TPMSAppView() {
 	app_settings.rx_frequency = target_frequency_;
 	settings.save("rx_tpms", &app_settings);
 
-	radio::disable();
+	receiver_model.disable(); // to switch off all, including DC bias and change flag enabled_
 
 	baseband::shutdown();
 }
