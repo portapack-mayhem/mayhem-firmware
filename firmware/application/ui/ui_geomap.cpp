@@ -145,9 +145,10 @@ void GeoMap::paint(Painter& painter) {
 	const auto r = screen_rect();
 	
 	// Ony redraw map if it moved by at least 1 pixel 
-	// or there have been 5 updates without a movement to allow other markers to refresh
-	// or this is the second ever redraw so that it can draw the other markers which dont exist at creation
-	if ((redraws>redrawToRefresh) || (redraws==1) || (x_pos != prev_x_pos) || (y_pos != prev_y_pos)) {
+	// or the markers list was updated
+	int x_diff = abs(x_pos-prev_x_pos);
+	int y_diff = abs(y_pos-prev_y_pos);
+	if (markerListUpdated || (x_diff>=3) || (y_diff>=3)) {
 		for (line = 0; line < r.height(); line++) {
 			map_file.seek(4 + ((x_pos + (map_width * (y_pos + line))) << 1));
 			map_file.read(map_line_buffer.data(), r.width() << 1);
@@ -156,6 +157,7 @@ void GeoMap::paint(Painter& painter) {
 		prev_x_pos = x_pos;
 		prev_y_pos = y_pos;
 
+		// Draw the other markers
 		for ( int i=0; i<markerListLen; ++i )
 		{
 			GeoMarker & item = markerList[i];
@@ -168,20 +170,18 @@ void GeoMap::paint(Painter& painter) {
 				ui::Point itemPoint(x,y+r.top());
 				if(y>=32) { // Dont draw text if it would overlap top
 					// Text and symbol
-					draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::grey() );
+					draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::blue(), Color::magenta() );
 				} else {
 					// Only symbol
 					draw_bearing( itemPoint, item.angle, 10, Color::blue());
 				}
 			}
-		} // Loop through other markers
-		redrawToRefresh = redraws+5; // Set the time of the next redraw
+			markerListUpdated = false;
+		} // Draw the other markers
 	}
-
-	redraws++;
 	
 	//Draw the marker in the center
-	draw_marker(painter, r.center(), angle_, tag_, Color::red() );
+	draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black() );
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
@@ -264,23 +264,27 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, 
 	                     const Color color, const Color fontColor, const Color backColor )
 {
-	//center tag above point
-	if(itemTag.find_first_not_of(' ') != itemTag.npos){ //only draw tag if we have something other than spaces
-		painter.draw_string( itemPoint - Point(((int)itemTag.length() * 8 / 2), 2 * 16), 
-						     style().font, fontColor, backColor, itemTag);
-	}
+	int tagOffset = 10;
 	if (mode_ == PROMPT) {
 		// Cross
 		display.fill_rectangle({ itemPoint - Point(16, 1), { 32, 2 } }, color);
 		display.fill_rectangle({ itemPoint - Point(1, 16), { 2, 32 } }, color);
+		tagOffset = 16;
 	} else if (angle_ < 360){
 		//if we have a valid angle draw bearing
 		draw_bearing( itemPoint, itemAngle, 10, color);
+		tagOffset = 10;
 	}
 	else {
 		//draw a small cross
 		display.fill_rectangle({ itemPoint - Point(8, 1), { 16, 2 } }, color);
 		display.fill_rectangle({ itemPoint - Point(1, 8), { 2, 16 } }, color);
+		tagOffset = 8;
+	}
+	//center tag above point
+	if(itemTag.find_first_not_of(' ') != itemTag.npos){ //only draw tag if we have something other than spaces
+		painter.draw_string( itemPoint - Point(((int)itemTag.length() * 8 / 2), 14 + tagOffset ), 
+						     style().font, fontColor, backColor, itemTag);
 	}
 }
 
@@ -294,6 +298,7 @@ void  GeoMap::store_marker(GeoMarker & marker, const int pos)
 	{
 		markerList[pos] = marker;
 		markerListLen = pos+1;
+		markerListUpdated = true;
 	}
 }
 
@@ -317,6 +322,7 @@ void GeoMapView::update_position(const float lat, const float lon, const uint16_
 
 	geomap.set_angle(angle);
 	geomap.move(lon_, lat_);
+
 	geomap.set_dirty();
 }
 

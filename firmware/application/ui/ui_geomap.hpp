@@ -174,11 +174,10 @@ private:
 	uint16_t angle_ { };
 	std::string tag_ { };
 
-	static const int NumMarkerListElements = 10;
+	static const int NumMarkerListElements = 30;
 	int markerListLen {0};
 	GeoMarker markerList[NumMarkerListElements];
-	int redrawToRefresh {0};
-	int redraws {0};
+	bool markerListUpdated {false};
 };
 
 class GeoMapView : public View {

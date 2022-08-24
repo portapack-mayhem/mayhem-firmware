@@ -25,6 +25,7 @@
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "string_format.hpp"
 
 #include "file.hpp"
 #include "recent_entries.hpp"
@@ -82,14 +83,15 @@ struct AircraftRecentEntry {
 	ADSBFrame frame_pos_even { };
 	ADSBFrame frame_pos_odd { };
 	
+	std::string icaoStr {"      "};
 	std::string callsign { "        " };
-	std::string time_string { "" };
 	std::string info_string { "" };
 	
 	AircraftRecentEntry(
 		const uint32_t ICAO_address
 	) : ICAO_address { ICAO_address }
 	{
+		this->icaoStr = to_string_hex(ICAO_address, 6); 
 	}
 
 	Key key() const {
@@ -124,10 +126,6 @@ struct AircraftRecentEntry {
 		info_string = new_info_string;
 	}
 	
-	void set_time_string(std::string& new_time_string) {
-		time_string = new_time_string;
-	}
-
 	void reset_age() {
 		age = 0;
 	}
@@ -257,25 +255,22 @@ public:
 	void sort_entries_by_state();
 
 private:
-	rf::Frequency prevFreq;
+	rf::Frequency prevFreq; // Stores frequnecy at startup, restores on exit
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
+	void update();
+	bool update_required { false };
+	#define MARKER_UPDATE_SECONDS (5)
+	int ticksSinceMarkerRefresh { MARKER_UPDATE_SECONDS-1 };
 	
 	const RecentEntriesColumns columns { {
-#if false
-		{ "ICAO", 6 },
-		{ "Callsign", 9 },
-		{ "Hits", 4 },
-		{ "Time", 8 }
-#else
 		{ "ICAO/Call", 9 },
 		{ "Lvl", 3 },
 		{ "Spd", 3 },
 		{ "Amp", 3 },
 		{ "Hit", 3 },
 		{ "Age", 3 }
-#endif
 	} };
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };

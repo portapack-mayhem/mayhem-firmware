@@ -59,21 +59,13 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	
 	std::string entry_string = "\x1B";
 	entry_string += aged_color;
-#if false
-	entry_string += to_string_hex(entry.ICAO_address, 6) + " " +
-		entry.callsign + "  " +
-		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+") + " " + 
-		entry.time_string;
-#else
-	// SBT
 	entry_string += 
-		(entry.callsign[0]!=' ' ? entry.callsign + " " : to_string_hex(entry.ICAO_address, 6) + "   ") +
+		(entry.callsign[0]!=' ' ? entry.callsign + " " : entry.icaoStr + "   ") +
 		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
 		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
 		to_string_dec_uint((unsigned int)(entry.amp>>9),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
 		to_string_dec_uint(entry.age, 3);
-#endif
 	
 	painter.draw_string(
 		target_rect.location(),
@@ -115,7 +107,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	
 	if (send_updates)
 	{
-		geomap_view->update_tag(entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6));
+		geomap_view->update_tag(trimr(entry.callsign[0]!=' ' ? entry.callsign : entry.icaoStr));
 		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
 	}
 }
@@ -189,7 +181,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	button_see_map.on_select = [this, &nav](Button&) {
 		if (!send_updates) { // Prevent recursivley launching the map
 			geomap_view = nav.push<GeoMapView>(
-				entry_copy.callsign[0]!=' ' ? entry_copy.callsign : to_string_hex(entry_copy.ICAO_address, 6),
+				trimr(entry_copy.callsign[0]!=' ' ? entry_copy.callsign : entry_copy.icaoStr),
 				entry_copy.pos.altitude,
 				GeoPos::alt_unit::FEET,
 				entry_copy.pos.latitude,
@@ -208,7 +200,7 @@ void ADSBRxView::focus() {
 }
 
 ADSBRxView::~ADSBRxView() {
-	receiver_model.set_tuning_frequency(prevFreq);
+	receiver_model.set_tuning_frequency(prevFreq); // Restore previous frequency on exit
 
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
@@ -221,8 +213,6 @@ AircraftRecentEntry ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
 	// If not found
 	if (it == std::end(recent)){
 		recent.emplace_front(ICAO_address); // Add it
-		truncate_entries(recent); // Truncate the list
-		sort_entries_by_state();
 		it = find(recent, ICAO_address); // Find it again
 	}
 	return *it;
@@ -245,7 +235,6 @@ void ADSBRxView::sort_entries_by_state()
 
 void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	rtc::RTC datetime;
-	std::string str_timestamp;
 	std::string callsign;
 	std::string str_info;
 	std::string logentry;
@@ -260,16 +249,14 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		entry.reset_age();
 		if (entry.hits==0)
 		{ 
-			entry.amp = message->amp;
+			entry.amp = message->amp; // Store amplitude on first hit
 		} else {
-			entry.amp = ((entry.amp*15)+message->amp)>>4;
+			entry.amp = ((entry.amp*15)+message->amp)>>4; // Update smoothed amplitude on updates
 		}
-		str_timestamp = to_string_datetime(datetime, HMS);
-		entry.set_time_string(str_timestamp);
 
 		entry.inc_hit();
 		logentry += to_string_hex_array(frame.get_raw_data(), 14) + " ";
-		logentry += "ICAO:" + to_string_hex(ICAO_address, 6) + " ";
+		logentry += "ICAO:" + entry.icaoStr + " ";
 		
 		if (frame.get_DF() == DF_ADSB) {
 			uint8_t msg_type = frame.get_msg_type();
@@ -317,7 +304,11 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		}
 
 		replace_entry(entry);
-		
+
+		if (update_required) {
+			update();
+		}
+
 		logger = std::make_unique<ADSBLogger>();
         if (logger) {
                 logger->append(u"adsb.txt");
@@ -328,12 +319,35 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	}
 }
 
-void ADSBRxView::on_tick_second() {
+void ADSBRxView::on_tick_second() { 
+
+	if (update_required) {
+		update();
+	}
+	else {
+		update_required = true;
+	}
+}
+
+
+void ADSBRxView::update() {
+	update_required = false;
 	int idx = 0;
 	ui::GeoMarker marker;
 	AircraftRecentEntry * selectedEntry = nullptr;
+	bool storeNewMarkers = false;
 
-	// Decay and refresh if needed
+	// Calculate if it is time to update markers
+	if (send_updates && details_view && details_view->geomap_view) {
+		if (ticksSinceMarkerRefresh++ >= MARKER_UPDATE_SECONDS) { // Update other aircraft every N seconds
+			storeNewMarkers = true;
+			ticksSinceMarkerRefresh=0;
+		}
+	} else {
+		ticksSinceMarkerRefresh = MARKER_UPDATE_SECONDS; // Send the markers as soon as the geoview exists
+	}
+
+	// Increment age, and pass to map
 	for (auto& entry : recent) {
 		entry.inc_age();
 		
@@ -342,26 +356,25 @@ void ADSBRxView::on_tick_second() {
 			{
 				selectedEntry = &entry;
 			} 
-			else if (details_view->geomap_view && (entry.age_state==0)) 
+			else if (storeNewMarkers && details_view && details_view->geomap_view && (entry.age_state==0)) 
 			{
 				marker.lon = entry.pos.longitude;
 				marker.lat = entry.pos.latitude;
 				marker.angle = entry.velo.heading;
-				marker.tag = entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6);
+				marker.tag = trimr(entry.callsign[0]!=' ' ? entry.callsign : entry.icaoStr);
 				details_view->geomap_view->store_marker(marker,idx);
 				idx++;
 			}
 		}
 	}
 
-	// Don't update the selected item until we have populated the other items
-	if (send_updates && selectedEntry){
-		details_view->update(*selectedEntry);
-	}
-
-	// Sort the list if it is being displayed
-	if (!send_updates) {
-		sort_entries_by_state();
+	// Sort and truncate the entries, grouped, newest group first
+	sort_entries_by_state();
+	truncate_entries(recent);
+	
+	if (send_updates) { // If the details of the map is seletced
+		if(selectedEntry){ details_view->update(*selectedEntry);}
+	} else { // Redraw the list of aircraft
 		recent_entries_view.set_dirty();
 	}
 }
@@ -392,7 +405,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		on_tick_second();
 	};
 	
-	prevFreq = receiver_model.tuning_frequency();
+	prevFreq = receiver_model.tuning_frequency(); // Store previous frequency on creation
 
 	baseband::set_adsb();
 	
