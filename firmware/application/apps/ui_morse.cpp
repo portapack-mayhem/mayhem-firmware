@@ -26,6 +26,7 @@
 #include "baseband_api.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack_shared_memory.hpp"
+#include "cpld_update.hpp"
 #include "ui_textentry.hpp"
 #include "string_format.hpp"
 
@@ -102,7 +103,8 @@ MorseView::~MorseView() {
 	settings.save("tx_morse", &app_settings);
 
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void MorseView::paint(Painter&) {

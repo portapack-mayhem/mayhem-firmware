@@ -27,6 +27,7 @@
 #include "lge_app.hpp"
 
 #include "baseband_api.hpp"
+#include "cpld_update.hpp"
 #include "ui_textentry.hpp"
 
 #include "string_format.hpp"
@@ -48,7 +49,8 @@ LGEView::~LGEView() {
 	settings.save("tx_lge", &app_settings);
 
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown();// better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void LGEView::generate_lge_frame(const uint8_t command, const uint16_t address_a, const uint16_t address_b, std::vector<uint8_t>& data) {
