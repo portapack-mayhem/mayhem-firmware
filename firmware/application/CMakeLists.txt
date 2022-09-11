@@ -269,6 +269,9 @@ set(CPPSRC
 	apps/replay_app.cpp
 	apps/gps_sim_app.cpp
 	apps/soundboard_app.cpp
+	apps/ui_recon.cpp  
+	apps/ui_recon_settings.cpp
+	apps/tpms_app.cpp
 	apps/tpms_app.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
