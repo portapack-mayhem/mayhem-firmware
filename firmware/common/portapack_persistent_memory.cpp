@@ -285,6 +285,9 @@ struct data_t {
 	// Hardware
 	uint32_t hardware_config;
 
+    // Recon App
+    uint64_t recon_config;
+
 	constexpr data_t() :
 		structure_version(data_structure_version_enum::VERSION_CURRENT),
 		tuned_frequency(tuned_frequency_reset_value),
@@ -311,7 +314,8 @@ struct data_t {
 
 		tone_mix(tone_mix_reset_value),
 
-		hardware_config(0)
+		hardware_config(0),
+		recon_config(0)
 	{
 	}
 };
@@ -663,6 +667,61 @@ void set_clkout_freq(uint32_t freq) {
 	data->ui_config.set_clkout_freq(freq);
 }
 
+bool recon_autosave_freqs() {
+    return (data->recon_config & 0x80000000UL) ? true : false; 
+}
+bool recon_autostart_recon() {
+    return (data->recon_config & 0x40000000UL) ? true : false;
+}
+bool recon_continuous() {
+    return (data->recon_config & 0x20000000UL) ? true : false; 
+}
+bool recon_clear_output() {
+    return (data->recon_config & 0x10000000UL) ? true : false; 
+}
+bool recon_load_freqs() {
+    return (data->recon_config & 0x08000000UL) ? true : false; 
+}
+bool recon_load_ranges() {
+    return (data->recon_config & 0x04000000UL) ? true : false; 
+}
+bool recon_update_ranges_when_recon() {
+    return (data->recon_config & 0x02000000UL) ? true : false; 
+}
+bool recon_load_hamradios() {
+    return (data->recon_config & 0x01000000UL) ? true : false; 
+}
+bool recon_match_mode() {
+    return (data->recon_config & 0x00800000UL) ? true : false; 
+}
+
+void set_recon_autosave_freqs(const bool v ){
+    data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31); 
+}
+void set_recon_autostart_recon(const bool v ){
+    data->recon_config = (data->recon_config & ~0x40000000UL) | (v << 30); 
+}
+void set_recon_continuous(const bool v ){
+    data->recon_config = (data->recon_config & ~0x20000000UL) | (v << 29); 
+}
+void set_recon_clear_output(const bool v ){
+    data->recon_config = (data->recon_config & ~0x10000000UL) | (v << 28); 
+}
+void set_recon_load_freqs(const bool v ){
+    data->recon_config = (data->recon_config & ~0x08000000UL) | (v << 27); 
+}
+void set_recon_load_ranges(const bool v ){
+    data->recon_config = (data->recon_config & ~0x04000000UL) | (v << 26); 
+} 
+void set_recon_update_ranges_when_recon(const bool v ){
+    data->recon_config = (data->recon_config & ~0x02000000UL) | (v << 25); 
+} 
+void set_recon_load_hamradios(const bool v ){
+    data->recon_config = (data->recon_config & ~0x01000000UL) | (v << 24); 
+} 
+void set_recon_match_mode(const bool v ) {
+    data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23); 
+}
 
 } /* namespace persistent_memory */
 } /* namespace portapack */
