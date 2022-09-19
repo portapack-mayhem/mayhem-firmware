@@ -62,6 +62,7 @@ void PlaylistView::set_ready() {
 				txtline_process(line); 
 			}
 		}
+		playlist_masterdb = playlist_db;
 		return ;
 		}
 
@@ -214,6 +215,9 @@ void PlaylistView::stop(const bool do_loop) {
 	}
 	if (do_loop) {
 		if (playlist_db.size() > 0 ) {
+			start();
+		} else {
+			playlist_db = playlist_masterdb;
 			start();
 		}
 	} else {
