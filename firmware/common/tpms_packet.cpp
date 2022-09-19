@@ -40,7 +40,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 	case 64:
 		return Reading {
 			Reading::Type::FLM_64,
-			reader_.read(0, 32),
+			(uint32_t)reader_.read(0, 32),
 			Pressure { static_cast<int>(reader_.read(32, 8)) * 4 / 3 },
 			Temperature { static_cast<int>(reader_.read(40, 8) & 0x7f) - 56 }
 		};
@@ -48,7 +48,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 	case 72:
 		return Reading {
 			Reading::Type::FLM_72,
-			reader_.read(0, 32),
+			(uint32_t)reader_.read(0, 32),
 			Pressure { static_cast<int>(reader_.read(40, 8)) * 4 / 3 },
 			Temperature { static_cast<int>(reader_.read(48, 8)) - 56 }
 		};
@@ -56,7 +56,7 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 	case 80:
 		return Reading {
 			Reading::Type::FLM_80,
-			reader_.read(8, 32),
+			(uint32_t)reader_.read(8, 32),
 			Pressure { static_cast<int>(reader_.read(48, 8)) * 4 / 3 },
 			Temperature { static_cast<int>(reader_.read(56, 8)) - 56 }
 		};
@@ -85,7 +85,7 @@ Optional<Reading> Packet::reading_ook_8k192_schrader() const {
 	if( (checksum_calculated & 3) == 3 ) {
 		return Reading {
 			Reading::Type::Schrader,
-			reader_.read(3, 24),
+			(uint32_t)reader_.read(3, 24),
 			Pressure { static_cast<int>(reader_.read(27, 8)) * 4 / 3 },
 			{ },
 			Flags { static_cast<Flags>((flags << 4) | checksum) }
@@ -122,7 +122,7 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 	if( checksum_calculated == checksum ) {
 		return Reading {
 			Reading::Type::GMC_96,
-			id,
+			(uint32_t)id,
 			Pressure { static_cast<int>(value_1) * 4 / 3 },
 			Temperature { static_cast<int>(value_0) - 56 }
 		};

@@ -25,8 +25,8 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex
 
 project(portapack-h1)
 
-#set(VERSION "")
-if (NOT DEFINED VERSION)
+set(VERSION "$ENV{VERSION_STRING}")
+if ("$ENV{VERSION_STRING}" STREQUAL "")
 	execute_process(
 		COMMAND git log -n 1 --format=%h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -38,7 +38,7 @@ if (NOT DEFINED VERSION)
 	if (GIT_VERSION_FOUND)
 		set(VERSION "unknown")
 	else (GIT_VERSION_FOUND)
-		set(VERSION "local-${GIT_VERSION}")
+		set(VERSION "${GIT_VERSION}")
 	endif (GIT_VERSION_FOUND)
 endif()
 

@@ -47,7 +47,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Set Date/Time"; };
+	std::string title() const override { return "Date/Time"; };
 
 private:
 	Labels labels {
@@ -99,7 +99,7 @@ private:
 		'0',
 	};
 
-	Button button_done {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
 	};
@@ -197,7 +197,7 @@ private:
 		"Turn on bias voltage"
 	};
 
-	Button button_done {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
 	};
@@ -219,11 +219,12 @@ public:
 	std::string title() const override { return "UI settings"; };
 	
 private:
-	/*Checkbox checkbox_login {
+
+	Checkbox checkbox_disable_touchscreen {
 		{ 3 * 8, 2 * 16 },
 		20,
-		"Login with play dead"
-	};*/
+		"Disable touchscreen"
+	};
 	
 	Checkbox checkbox_speaker {
 		{ 3 * 8, 4 * 16 },
@@ -270,10 +271,54 @@ private:
 			{ "time and date", 1 }
 		}
 	};	
+
+    Checkbox checkbox_guireturnflag {	
+		{ 3 * 8, 14 * 16 },
+		25,
+		"add return icon in GUI"
+	};
 	
-	Button button_ok {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
+	};
+};
+
+class SetAppSettingsView : public View {
+public:
+	SetAppSettingsView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "App Settings"; };
+	
+private:
+
+	Checkbox checkbox_load_app_settings {
+		{ 3 * 8, 2 * 16 },
+		25,
+		"Load app settings"
+	};
+	
+	Checkbox checkbox_save_app_settings {
+		{ 3 * 8, 4 * 16 },
+		25,
+		"Save app settings"
+	};
+	
+	Button button_save {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
 	};
 };
 
@@ -298,111 +343,43 @@ private:
 		'0'
 	};
 	
-	Button button_ok {
+	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
 	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
+	};
 };
 
-/*
-class SetPlayDeadView : public View {
-public:
-	SetPlayDeadView(NavigationView& nav);
-	
-	void focus() override;
-	
-	std::string title() const override { return "Playdead settings"; };
-	
-private:
-	bool entermode = false;
-	uint32_t sequence { 0 };
-	uint8_t keycount { 0 }, key_code { };
-	char sequence_txt[11] = { 0 };
-	
-	Text text_sequence {
-		{ 64, 32, 14 * 8, 16 },
-		"Enter sequence",
-	};
-	
-	Button button_enter {
-		{ 16, 192, 96, 24 },
-		"Enter"
-	};
-	Button button_cancel {
-		{ 128, 192, 96, 24 },
-		"Cancel"
-	};
-};*/
 
-/*class ModInfoView : public View {
+class SetQRCodeView : public View {
 public:
-	ModInfoView(NavigationView& nav);
+	SetQRCodeView(NavigationView& nav);
+	
 	void focus() override;
-	void on_show() override;
+	
+	std::string title() const override { return "QR Code"; };
 	
 private:
-	void update_infos(uint8_t modn);
-	
-	typedef struct moduleinfo_t{
-		char filename[9];
-		uint16_t version;
-		uint32_t size;
-		char md5[16];
-		char name[16];
-		char description[214];
-	} moduleinfo_t;
-	
-	moduleinfo_t module_list[8];	// 8 max for now
-	
-	uint8_t modules_nb;
-	
-	Text text_modcount {
-		{ 2 * 8, 1 * 16, 18 * 8, 16 },
-		"Searching..."
+	Checkbox checkbox_bigger_qr {
+		{ 3 * 8, 9 * 16 },
+		20,
+		"Show large QR code"
 	};
 	
-	OptionsField option_modules {
-		{ 2 * 8, 2 * 16 },
-		24,
-		{
-			{ "-", 0 }
-		}
+	Button button_save {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Save"
 	};
 	
-	Text text_name {
-		{ 2 * 8, 4 * 16, 5 * 8, 16 },
-		"Name:"
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
 	};
-	Text text_namestr {
-		{ 8 * 8, 4 * 16, 16 * 8, 16 },
-		"..."
-	};
-	Text text_size {
-		{ 2 * 8, 5 * 16, 5 * 8, 16 },
-		"Size:"
-	};
-	Text text_sizestr {
-		{ 8 * 8, 5 * 16, 16 * 8, 16 },
-		"..."
-	};
-	Text text_md5 {
-		{ 2 * 8, 6 * 16, 4 * 8, 16 },
-		"MD5:"
-	};
-	Text text_md5_a {
-		{ 7 * 8, 6 * 16, 16 * 8, 16 },
-		"..."
-	};
-	Text text_md5_b {
-		{ 7 * 8, 7 * 16, 16 * 8, 16 },
-		"..."
-	};
-	
-	Button button_ok {
-		{ 4 * 8, 272, 64, 24 },
-		"Ok"
-	};
-};*/
+};
 
 class SettingsMenuView : public BtnGridView {
 public:

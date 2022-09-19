@@ -60,6 +60,14 @@ NRFRxView::NRFRxView(NavigationView& nav) {
 		&console
 	});
 	
+	// load app settings
+	auto rc = settings.load("rx_nrf", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+	}
+
 	// DEBUG
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
@@ -157,6 +165,11 @@ void NRFRxView::on_data(uint32_t value, bool is_data) {
 }
 
 NRFRxView::~NRFRxView() {
+
+	// save app settings
+	app_settings.rx_frequency = field_frequency.value();
+	settings.save("rx_nrf", &app_settings);
+
 	audio::output::stop();
 	receiver_model.disable();
 	baseband::shutdown();

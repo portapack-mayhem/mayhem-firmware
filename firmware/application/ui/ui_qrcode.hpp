@@ -40,10 +40,13 @@ public:
 		qr_text_ = qr_text;
 	}
 	void paint(Painter& painter) override;
-
+                                                   // for -weffc++ to be killed
+    ~QRCodeImage();                                // destructor 
+    QRCodeImage(const QRCodeImage&Image);
+    QRCodeImage & operator=(const QRCodeImage &Image); // assignment
 
 private:
-	const char * qr_text_ ;
+	const char * qr_text_ = NULL ;
 };
 
 class QRCodeView : public View {
@@ -74,13 +77,13 @@ private:
 		{ 50, 100, 100, 100  }
 	};
 
-	Text text_qr {
-		{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
-		"-"
-	};
+	//Text text_qr {
+	//	{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
+	//	"-"
+	//};
 
 	Button button_close {
-		{ 9 * 8, 15 * 16, 12 * 8, 3 * 16 },
+		{ 9 * 8, 31 * 8, 12 * 8, 3 * 16 },
 		"Back"
 	};
 };

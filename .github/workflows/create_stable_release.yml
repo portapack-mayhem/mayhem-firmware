@@ -1,0 +1,93 @@
+name: Stable Release
+
+on:    
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Checkout 
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          ref: next
+          submodules: true
+      - name: Git Sumbodule Update
+        run: |
+          git submodule update --init --recursive
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
+      - name: Get past version
+        id: past_version
+        run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
+      - name: Build the Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
+      - name: Make build folder
+        run: mkdir ${{ github.workspace }}/build
+      - name: Run the Docker image
+        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev
+      - name: Create Firmware ZIP
+        run: |
+          zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
+      - name: Create SD Card ZIP
+        run: |
+          zip -r sdcard.zip sdcard
+      - name: Create changelog
+        run: |
+          CHANGELOG=$(python3 .github/workflows/stable_changelog.py ${{ steps.past_version.outputs.past_version }})
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "::set-output name=content::$CHANGELOG"
+        id: changelog
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Mayhem firmware ${{ steps.version.outputs.version }}
+          body: |
+            **Stable release - ${{ steps.version.outputs.version }}**
+            This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/eried/portapack-mayhem/blob/master/README.md) for details.
+            ## Release notes
+            ###  Revision (${{ steps.version.outputs.version }}):
+            ${{ steps.changelog.outputs.content }}
+            
+            **Full Changelog**: https://github.com/eried/portapack-mayhem/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
+
+            ## Installation
+            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
+
+            ### MicroSD card files
+
+            For certain functionality, like the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
+          draft: true
+          prerelease: false
+      - name: Upload Firmware Asset
+        id: upload-firmware-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./firmware.zip
+          asset_name: mayhem_${{ steps.version.outputs.version }}_FIRMWARE.zip
+          asset_content_type: application/zip
+      - name: Upload SD Card Assets
+        id: upload-sd-card-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sdcard.zip
+          asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD.zip
+          asset_content_type: application/zip
+     
