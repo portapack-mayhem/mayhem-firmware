@@ -78,6 +78,9 @@ uint8_t config_cpld();
 void set_config_cpld(uint8_t i);
 
 bool config_splash();
+bool show_gui_return_icon();
+bool load_app_settings();
+bool save_app_settings();
 bool show_bigger_qr_code();
 bool hide_clock();
 bool clock_with_date();
@@ -86,8 +89,11 @@ bool config_speaker();
 uint32_t config_backlight_timer();
 bool disable_touchscreen();
 
-void set_config_splash(bool v);
+void set_gui_return_icon(bool v);
+void set_load_app_settings(bool v);
+void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
+void set_config_splash(bool v);
 void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);

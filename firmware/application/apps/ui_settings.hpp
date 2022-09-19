@@ -271,6 +271,45 @@ private:
 			{ "time and date", 1 }
 		}
 	};	
+
+    Checkbox checkbox_guireturnflag {	
+		{ 3 * 8, 14 * 16 },
+		25,
+		"add return icon in GUI"
+	};
+	
+	Button button_save {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
+	};
+};
+
+class SetAppSettingsView : public View {
+public:
+	SetAppSettingsView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "App Settings"; };
+	
+private:
+
+	Checkbox checkbox_load_app_settings {
+		{ 3 * 8, 2 * 16 },
+		25,
+		"Load app settings"
+	};
+	
+	Checkbox checkbox_save_app_settings {
+		{ 3 * 8, 4 * 16 },
+		25,
+		"Save app settings"
+	};
 	
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },

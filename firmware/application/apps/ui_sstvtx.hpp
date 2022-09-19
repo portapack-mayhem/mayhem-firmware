@@ -34,6 +34,7 @@
 #include "sstv.hpp"
 #include "file.hpp"
 #include "bmp.hpp"
+#include "app_settings.hpp"
 
 using namespace sstv;
 
@@ -58,7 +59,10 @@ private:
 	NavigationView& nav_;
 	
 	sstv_scanline scanline_buffer { };
-	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };	
+
 	bool file_error { false };
 	File bmp_file { };
 	bmp_header_t bmp_header { };

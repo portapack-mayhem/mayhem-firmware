@@ -168,8 +168,8 @@ void speaker_mute() {
 
 namespace input {
 
-void start(int8_t alc_mode) {
-	audio_codec->microphone_enable(alc_mode);   // added user-GUI selection for AK4951, ALC mode parameter.
+void start() {
+	audio_codec->microphone_enable();
 	i2s::i2s0::rx_start();
 }
 

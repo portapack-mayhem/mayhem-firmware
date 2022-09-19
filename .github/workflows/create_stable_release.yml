@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.5.1
+          tag_name: ${{ steps.version.outputs.version }}
           release_name: Mayhem firmware ${{ steps.version.outputs.version }}
           body: |
             **Stable release - ${{ steps.version.outputs.version }}**

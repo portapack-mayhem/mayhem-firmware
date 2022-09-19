@@ -30,6 +30,7 @@
 #include "lfsr_random.hpp"
 #include "io_wave.hpp"
 #include "tone_key.hpp"
+#include "app_settings.hpp"
 
 namespace ui {
 
@@ -49,6 +50,10 @@ public:
 	
 private:
 	NavigationView& nav_;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	enum tx_modes {
 		NORMAL = 0,

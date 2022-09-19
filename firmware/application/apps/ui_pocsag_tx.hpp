@@ -31,6 +31,7 @@
 #include "bch_code.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "pocsag.hpp"
 
 using namespace pocsag;
@@ -62,6 +63,10 @@ private:
 		5, 31, 21, 2
 	};
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	void on_set_text(NavigationView& nav);
 	void on_tx_progress(const uint32_t progress, const bool done);
 	bool start_tx();

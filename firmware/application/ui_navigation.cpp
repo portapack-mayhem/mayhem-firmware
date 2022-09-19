@@ -465,8 +465,11 @@ void NavigationView::focus() {
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
-	add_items({
-		//{ "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
+    }
+    add_items( {
 		{ "ADS-B", 		ui::Color::green(),		&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBRxView>(); }, },
 		//{ "ACARS", 		ui::Color::yellow(),	&bitmap_icon_adsb,		[&nav](){ nav.push<ACARSAppView>(); }, },
 		{ "AIS Boats",	ui::Color::green(),		&bitmap_icon_ais,		[&nav](){ nav.push<AISAppView>(); } },
@@ -486,16 +489,19 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "LoRa", 		ui::Color::dark_grey(),	&bitmap_icon_lora,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "SSTV", 		ui::Color::dark_grey(), &bitmap_icon_sstv,		[&nav](){ nav.push<NotImplementedView>(); } },
 		{ "TETRA", 		ui::Color::dark_grey(),	&bitmap_icon_tetra,		[&nav](){ nav.push<NotImplementedView>(); } },*/
-	});
-	
-	//set_highlighted(4);		// Default selection is "Audio"
+	} );
+
+	//set_highlighted(0);		// Default selection is "Audio"
 }
 
 /* TransmittersMenuView **************************************************/
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
-	add_items({
-		//{ "..",				ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } },
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
+    }
+    add_items({
 		{ "ADS-B [S]",		ui::Color::yellow(), 	&bitmap_icon_adsb,		[&nav](){ nav.push<ADSBTxView>(); } },
 		{ "APRS", 			ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSTXView>(); } },
 		{ "BHT Xy/EP", 		ui::Color::green(), 	&bitmap_icon_bht,		[&nav](){ nav.push<BHTView>(); } },
@@ -522,9 +528,12 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 /* UtilitiesMenuView *****************************************************/
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
+    }
 	add_items({
 		//{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
-		//{ "..", 			ui::Color::light_grey(),&bitmap_icon_previous,		[&nav](){ nav.pop(); } },
 		{ "Freq. manager",	ui::Color::green(), 	&bitmap_icon_freqman,		[&nav](){ nav.push<FrequencyManagerView>(); } },
 		{ "File manager", 	ui::Color::yellow(),	&bitmap_icon_dir,			[&nav](){ nav.push<FileManagerView>(); } },
 		//{ "Notepad",		ui::Color::dark_grey(),	&bitmap_icon_notepad,		[&nav](){ nav.push<NotImplementedView>(); } },
@@ -532,7 +541,8 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 		//{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
 		{ "Wav viewer",	ui::Color::yellow(),	&bitmap_icon_soundboard,	[&nav](){ nav.push<ViewWavView>(); } },
 		{ "Antenna length",	ui::Color::green(),		&bitmap_icon_tools_antenna,	[&nav](){ nav.push<WhipCalcView>(); } },
-		{ "Wipe SD Card",	ui::Color::red(),		&bitmap_icon_tools_wipesd,	[&nav](){ nav.push<WipeSDView>(); } },
+
+		{ "Wipe SD card",	ui::Color::red(),		&bitmap_icon_tools_wipesd,	[&nav](){ nav.push<WipeSDView>(); } },
 	});
 	set_max_rows(2); // allow wider buttons
 }

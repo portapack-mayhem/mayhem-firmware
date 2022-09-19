@@ -234,6 +234,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 		&checkbox_showsplash,
 		&checkbox_showclock,
 		&options_clockformat,
+		&checkbox_guireturnflag,
 		&button_save,
 		&button_cancel
 	});
@@ -242,6 +243,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 	checkbox_speaker.set_value(persistent_memory::config_speaker());
 	checkbox_showsplash.set_value(persistent_memory::config_splash());
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
+	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
 	
 	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
 	if (backlight_timer) {
@@ -257,12 +259,6 @@ SetUIView::SetUIView(NavigationView& nav) {
 		options_clockformat.set_selected_index(0);
 	}
 
-	//checkbox_speaker.on_select = [this](Checkbox&, bool v) {
-    	//	if (v) audio::output::speaker_mute();			//Just mute audio if speaker is disabled
-	//		persistent_memory::set_config_speaker(v);	//Store Speaker status
-        //	StatusRefreshMessage message { };			//Refresh status bar with/out speaker
-        //	EventDispatcher::send_message(message);
-    	//};
 
 	button_save.on_select = [&nav, this](Button&) {
 		if (checkbox_bloff.value())
@@ -284,6 +280,7 @@ SetUIView::SetUIView(NavigationView& nav) {
 	
 		persistent_memory::set_config_splash(checkbox_showsplash.value());
 		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
+		persistent_memory::set_gui_return_icon(checkbox_guireturnflag.value());
 		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
 		nav.pop();
 	};
@@ -293,6 +290,36 @@ SetUIView::SetUIView(NavigationView& nav) {
 }
 
 void SetUIView::focus() {
+	button_save.focus();
+}
+
+
+// ---------------------------------------------------------
+// Appl. Settings
+// ---------------------------------------------------------
+SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
+	add_children({
+		&checkbox_load_app_settings,
+		&checkbox_save_app_settings,
+		&button_save,
+		&button_cancel
+	});
+	
+	checkbox_load_app_settings.set_value(persistent_memory::load_app_settings());
+	checkbox_save_app_settings.set_value(persistent_memory::save_app_settings());
+
+
+	button_save.on_select = [&nav, this](Button&) {
+		persistent_memory::set_load_app_settings(checkbox_load_app_settings.value());
+		persistent_memory::set_save_app_settings(checkbox_save_app_settings.value());
+		nav.pop();
+	};
+	button_cancel.on_select = [&nav, this](Button&) {
+		nav.pop();
+	};
+}
+
+void SetAppSettingsView::focus() {
 	button_save.focus();
 }
 
@@ -344,14 +371,22 @@ void SetQRCodeView::focus() {
 	button_save.focus();
 }
 
+// ---------------------------------------------------------
+// Settings main menu
+// ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+    if( portapack::persistent_memory::show_gui_return_icon() )
+    {
+        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+    }
 	add_items({
 		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
 		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },
-		{ "User Interface", 		ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
+		{ "User Interface", 	ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
 		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,		[&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,		[&nav](){ nav.push<SetQRCodeView>(); } }
+		{ "App Settings",	ui::Color::dark_cyan(), &bitmap_icon_setup,			[&nav](){ nav.push<SetAppSettingsView>(); } },
+		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,			[&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }
