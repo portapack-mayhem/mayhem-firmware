@@ -183,12 +183,13 @@ void kill_afsk() {
 }
 
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain,
-					const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled,
-					const bool usb_enabled, const bool lsb_enabled) {
+					uint8_t audio_shift_bits_s16, const uint32_t tone_key_delta, const bool am_enabled, 
+					const bool dsb_enabled, const bool usb_enabled, const bool lsb_enabled) {
 	const AudioTXConfigMessage message {
 		divider,
 		deviation_hz,
 		audio_gain,
+		audio_shift_bits_s16,
 		tone_key_delta,
 		(float)persistent_memory::tone_mix() / 100.0f,
 		am_enabled,

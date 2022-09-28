@@ -42,10 +42,16 @@ void Modulator::set_over(uint32_t new_over) {
     over = new_over;
 }
 
-void Modulator::set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep ) {
-      audio_gain = new_audio_gain ;    
+void Modulator::set_gain_shiftbits_vumeter_beep(float new_audio_gain ,uint8_t new_audio_shift_bits_s16, bool new_play_beep ) {
+	//new_audio_shift_bits_s16 are the direct shift bits (FM mod >>x) , and can be 8 fixed (AK) or  4,5,6 (WM boost OFF) or 8 (WM boost ON)
+      audio_gain = new_audio_gain ;
+	  audio_shift_bits_s16_FM = new_audio_shift_bits_s16;  //FM :        >>8(AK) fixed ,  >>4,5,6 (WM boost OFF)
+	  if (new_audio_shift_bits_s16==8) {				   //FM : we are in AK codec IC => for AM-SSB-DSB we were using >>2 fixed (wm boost ON) .	
+			audio_shift_bits_s16_AM_DSB_SSB = 2;	       //AM-DSB-SSB: >>2(AK) fixed ,  >>0,1,2 (WM boost OFF)	  
+	  } else {
+		    audio_shift_bits_s16_AM_DSB_SSB = (new_audio_shift_bits_s16-4) ; //AM-DSB-SSB: >>0,1,2 (WM boost OFF)	  
+	  }
 	  play_beep = new_play_beep; 
-
 }
 
 int32_t Modulator::apply_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message ) {
@@ -85,7 +91,7 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
 		if (counter % 128 == 0) {
 			float	i = 0.0, q = 0.0;
 
-		    sample = audio.p[counter / over] >> 2;
+		    sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB;			// originally fixed   >> 2, now >>2 for AK,   0,1,2,3 for WM (boost off)
 			sample *= audio_gain;      //  Apply GAIN  Scale factor to the audio TX modulation.
 	
 				//switch (mode) {
@@ -145,7 +151,7 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 	 
-	    sample = audio.p[counter>>6] >> 8;			// 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
+	    sample = audio.p[counter>>6] >> audio_shift_bits_s16_FM ;			// Orig. >>8 , 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
 		sample *= audio_gain;      					// Apply GAIN  Scale factor to the audio TX modulation.
 
 		if (play_beep) {
@@ -190,7 +196,7 @@ void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
 	
 	for (size_t counter = 0; counter < buffer.count; counter++) {
 		if (counter % 128 == 0) {
-			sample = audio.p[counter / over] >> 2;
+			sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB; // originally fixed >> 2, now >>2 for AK, 0,1,2,3 for WM (boost off)
 			sample *= audio_gain;      					 // Apply GAIN  Scale factor to the audio TX modulation.
 		}
 

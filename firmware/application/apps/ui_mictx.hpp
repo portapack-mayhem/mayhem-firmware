@@ -83,7 +83,7 @@ private:
 	bool rx_enabled { false };
 	uint32_t tone_key_index { };
 	float mic_gain { 1.0 };
-    uint8_t  ak4951_alc_GUI_selected { 0 }; 
+    uint8_t  ak_alc_GUI_selected  { 0 }; 
 	uint32_t audio_level { 0 };
 	uint32_t va_level { };
 	uint32_t attack_ms { };
@@ -99,6 +99,7 @@ private:
 	rf::Frequency rx_frequency { 0 };
 	int32_t focused_ui { 2 };
 	bool button_touch { false };
+	uint8_t shift_bits_s16 {4} ; // shift bits factor to the captured ADC S16 audio sample.
 
 	//AM TX Stuff
 	bool enable_am { false };
@@ -109,6 +110,7 @@ private:
 	
 	Labels labels_WM8731 {		
 		{ { 3 * 8, 1 * 8 }, "MIC-GAIN:", Color::light_grey() },
+		{ { 17 * 8, 1 * 8 }, "Boost", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
 		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
@@ -183,6 +185,17 @@ private:
 			{ "-06dB-6kHz", 9 },	// ALC-> on, (-06dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
 			{ "-09dB-6kHz", 10 },	// ALC-> on, (-09dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz - Pre-amp MIC -3dB (18dB's) 
 			{ "-12dB-6kHz", 11 },	// ALC-> on, (-12dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz - Pre-amp MIC -6dB (15dB's) 	
+		}
+	};
+
+OptionsField options_wm8731_boost_mode {
+		{ 22 * 8, 1 * 8 },				// Coordinates are: int:x (px), int:y (px)				
+		4,
+		{
+			{ "ON +00dB", 0 },	// WM8731 Mic Boost ON ,original condition, easy to saturate ADC sat in high voice  ,relative G = +00 dB's (ref level) sampling 24Khz
+			{ "OFF+04dB", 1 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  +04 dB's (respect ref level) sampling 24Khz
+			{ "OFF-02dB", 2 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -02 dB's (respect ref level) 
+			{ "OFF-08dB", 3 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level) 
 		}
 	};
 

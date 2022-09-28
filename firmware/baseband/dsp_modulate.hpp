@@ -50,9 +50,11 @@ public:
 	void set_mode(Mode new_mode);
 
     void set_over(uint32_t new_over);
-	void set_gain_vumeter_beep(float new_audio_gain , bool new_play_beep );
+	void set_gain_shiftbits_vumeter_beep(float new_audio_gain ,uint8_t new_audio_shift_bits_s16, bool new_play_beep );
 	int32_t apply_beep(int32_t sample_in, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message );
 	float audio_gain { };
+	uint8_t audio_shift_bits_s16_FM { }; 		// shift bits factor to the captured ADC S16 audio sample.
+	uint8_t	audio_shift_bits_s16_AM_DSB_SSB { };
 	bool play_beep { false };
 	uint32_t power_acc_count { 0 };		// this var it is initialized from Proc_mictx.cpp
 	uint32_t divider { };				// this var it is initialized from Proc_mictx.cpp
