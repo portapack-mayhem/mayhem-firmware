@@ -83,7 +83,7 @@ private:
 	bool rx_enabled { false };
 	uint32_t tone_key_index { };
 	float mic_gain { 1.0 };
-    uint8_t  ak_alc_GUI_selected  { 0 }; 
+    uint8_t  ak4951_alc_and_wm8731_boost_GUI  { 0 }; 
 	uint32_t audio_level { 0 };
 	uint32_t va_level { };
 	uint32_t attack_ms { };
@@ -190,12 +190,13 @@ private:
 
 OptionsField options_wm8731_boost_mode {
 		{ 22 * 8, 1 * 8 },				// Coordinates are: int:x (px), int:y (px)				
-		4,
+		5,
 		{
-			{ "ON +00dB", 0 },	// WM8731 Mic Boost ON ,original condition, easy to saturate ADC sat in high voice  ,relative G = +00 dB's (ref level) sampling 24Khz
-			{ "OFF+04dB", 1 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  +04 dB's (respect ref level) sampling 24Khz
-			{ "OFF-02dB", 2 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -02 dB's (respect ref level) 
-			{ "OFF-08dB", 3 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level) 
+			{ "ON +12dB", 0 },	// WM8731 Mic Boost ON ,original+12dBs condition, easy to saturate ADC sat in high voice  ,relative G = +12 dB's respect ref level
+			{ "ON +06dB", 1 },	// WM8731 Mic Boost ON ,original+6 dBs condition, easy to saturate ADC sat in high voice  ,relative G = +06 dB's respect ref level
+			{ "OFF+04dB", 2 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  +04 dB's (respect ref level) , always effective sampling 24khz 
+			{ "OFF-02dB", 3 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -02 dB's (respect ref level) 
+			{ "OFF-08dB", 4 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level) 
 		}
 	};
 
