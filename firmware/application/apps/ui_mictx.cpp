@@ -30,6 +30,7 @@ using wolfson::wm8731::WM8731;
 
 #include "tonesets.hpp"
 #include "portapack_hal.hpp"
+#include "cpld_update.hpp"
 #include "string_format.hpp"
 #include "irq_controls.hpp"
 
@@ -178,6 +179,7 @@ void MicTXView::rxaudio(bool is_on) {
 		receiver_model.set_vga(rx_vga);
 		receiver_model.set_rf_amp(rx_amp);
 		receiver_model.enable();
+		hackrf::cpld::load_sram_no_verify();  // to have a good RX without any ghost inside Mic App
 		audio::output::start();
 	} else {	//These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
 		receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio); //This fixes something with AM RX...
@@ -548,7 +550,8 @@ MicTXView::~MicTXView() {
 	transmitter_model.disable();
 	if (rx_enabled) //Also turn off audio rx if enabled
 		rxaudio(false);
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  //  to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 }
