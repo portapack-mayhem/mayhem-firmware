@@ -80,6 +80,21 @@ void RSSI::paint(Painter& painter) {
 	}
 }
 
+int32_t RSSI::get_min()
+{ 
+    return min_ ;
+}
+
+int32_t RSSI::get_avg()
+{ 
+    return avg_ ;
+}
+
+int32_t RSSI::get_max()
+{ 
+    return max_ ;
+}
+
 void RSSI::set_pitch_rssi(bool enabled) {
 	pitch_rssi_enabled = enabled;
 	if (!enabled) baseband::set_pitch_rssi(0, false);

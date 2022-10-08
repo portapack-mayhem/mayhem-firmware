@@ -104,8 +104,30 @@ void tone_keys_populate(OptionsField& field) {
 	field.set_options(tone_key_options);
 }
 
-float tone_key_frequency(const uint32_t index) {
+float tone_key_frequency(const tone_index index) {
 	return tone_keys[index].second;
 }
+
+std::string tone_key_string( tone_index index ) {
+	if( index < 0 || (unsigned)index >= tone_keys . size() )
+		return std::string( "" ); 
+	return tone_keys[ index ] .first ;
+}
+
+tone_index tone_key_index_by_string( char *str ) {
+	if( !str )
+		return -1 ;
+	for( tone_index index = 0 ; (unsigned)index < tone_keys . size() ; index ++ )
+	{
+		if( tone_keys[ index ] . first . compare( str ) >= 0 )
+			return index ;
+	}
+	return -1 ;	
+}	
+
+/* tone_index tone_key_index_by_value( int32_t freq )
+{
+	return -1 ;	
+} */
 
 }
