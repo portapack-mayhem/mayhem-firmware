@@ -68,7 +68,7 @@ private:
 		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },
 		{ { 1 * 8, 2 * 8 }, "Clk:", Color::light_grey() },
 		{ { 10 * 8, 2 * 8 }, "kHz", Color::light_grey() },
-        { { 17 * 8, 2 * 8 }, "Step:", Color::light_grey() },
+                { { 17 * 8, 2 * 8 }, "Step:", Color::light_grey() },
 		{ { 1 * 8, 4 * 8 }, "Frame:", Color::light_grey() },
 		{ { 13 * 8, 4 * 8 }, "us", Color::light_grey() },		
 		{ { 17 * 8, 4 * 8 }, "Step", Color::light_grey() },
