@@ -868,6 +868,7 @@ public:
 		const uint32_t divider,
 		const float deviation_hz,
 		const float audio_gain,
+		const uint8_t audio_shift_bits_s16,
 		const uint32_t tone_key_delta,
 		const float tone_key_mix_weight,
 		const bool am_enabled,
@@ -878,6 +879,7 @@ public:
 		divider(divider),
 		deviation_hz(deviation_hz),
 		audio_gain(audio_gain),
+		audio_shift_bits_s16(audio_shift_bits_s16),
 		tone_key_delta(tone_key_delta),
 		tone_key_mix_weight(tone_key_mix_weight),
 		am_enabled(am_enabled),
@@ -890,6 +892,7 @@ public:
 	const uint32_t divider;
 	const float deviation_hz;
 	const float audio_gain;
+	const uint8_t audio_shift_bits_s16;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
 	const bool am_enabled;

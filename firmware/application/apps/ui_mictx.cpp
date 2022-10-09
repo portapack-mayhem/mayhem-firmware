@@ -74,6 +74,7 @@ void MicTXView::configure_baseband() {
 		sampling_rate / 20,		// Update vu-meter at 20Hz
 		transmitting ? transmitter_model.channel_bandwidth() : 0,
 		mic_gain,
+		shift_bits_s16,			// to be used in dsp_modulate
 		TONES_F2D(tone_key_frequency(tone_key_index), sampling_rate),
 		enable_am,
 		enable_dsb,
@@ -188,7 +189,7 @@ void MicTXView::rxaudio(bool is_on) {
 
 		baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		audio::output::stop();
-		audio::input::start();	// set up audio input =  mic config of any audio coded AK4951/WM8731, (in WM8731 parameter will be ignored)
+		audio::input::start(ak4951_alc_and_wm8731_boost_GUI);	// When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
 		portapack::pin_i2s0_rx_sda.mode(3);
 		configure_baseband();
 	}
@@ -213,12 +214,12 @@ MicTXView::MicTXView(
 	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 	
-	
-	if (true ) {       // Temporary , disabling ALC feature , (pending to solve -No Audio in Mic app ,in some H2/H2+ WM /QFP100 CPLS users-  if ( audio_codec_wm8731.detected() ) {
+	if (audio::debug::codec_name() =="WM8731" ) {
 	add_children({		
 		&labels_WM8731,		// we have audio codec WM8731, same MIC menu  as original.
 		&vumeter,
 		&options_gain,		// MIC GAIN float factor on the GUI.
+		&options_wm8731_boost_mode,
 //		&check_va,
 		&field_va,
 		&field_va_level,
@@ -283,13 +284,43 @@ MicTXView::MicTXView(
 		mic_gain = v / 10.0;
 		configure_baseband();
 	};
-	options_gain.set_selected_index(1);		// x1.0
+	options_gain.set_selected_index(1);		// x1.0  preselected default.
+
+ 	if (audio::debug::codec_name() =="WM8731") {
+		options_wm8731_boost_mode.on_change = [this](size_t, int8_t v) {
+
+			switch(v) {
+			case 0: 	                // +12 dB’s respect reference level orig fw 1.5.x fw FM : when +20dB's boost ON) and shift bits (>>8), 
+				shift_bits_s16 = 6; 	//  now mic-boost on (+20dBs) and shift bits (>>6), +20+12=32 dB’s (orig fw +20 dBs+ 0dBs)=> +12dB's respect ref.
+				break;					
+			case 1: 	                // +06 dB’s reference level , (when +20dB's boost ON) 
+				shift_bits_s16 = 7; 	// now mic-boost on (+20dBs) and shift bits (>>7), +20+06=26 dB’s (orig fw +20 dBs+ 0dBs) => +06dB's respect ref.	 
+				break;					
+			case 2: 	                
+				shift_bits_s16 = 4; 	// +04 dB’s respect ref level , (when +20dB's boost OFF) 
+				break;					// now mic-boost off (+00dBs) shift bits (4) (+0+24dB's)=24 dBs => +04dB's respect ref.	 
+			case 3:
+				shift_bits_s16 = 5;		// -02 dB’s respect ref level , (when +20dB's boost OFF) 
+				break;					// now mic-boost off (+00dBs) shift bits (5) (+0+18dB's)=18 dBs => -02dB's respect ref.	 
+			case 4:
+				shift_bits_s16 = 6;     // -08 dB’s respect ref level , (when +20dB's boost OFF) 
+				break;					// now mic-boost off (+00dBs) shift bits (6) (+0+12dB's)=12 dBs => -08dB's respect ref.	
+			}
+			ak4951_alc_and_wm8731_boost_GUI   = v;	//  0,..4 WM8731_boost dB's options, (combination boost on/off , and effective gain in captured data >>x) 
+			audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731) , set up the proper wm_boost on/off , 0..4 (0,1) boost_on , (2,3,4) boost_0ff
+			configure_baseband(); 					// to update in real timme,sending msg ,  var-parameters >>shift_bits FM msg ,to audio_tx from M0 to M4 Proc -
+		};
+		options_wm8731_boost_mode.set_selected_index(3);	// preset GUI index 3 as default WM -> -02 dB's .	
+	} else {
+	   	shift_bits_s16 = 8;         	// Initialized default fixed >>8_FM for FM tx mod ,  shift audio data for AK4951  ,using top 8 bits s16 data (>>8)
+	  	options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
+	    	ak4951_alc_and_wm8731_boost_GUI   = v;   				// 0,..11,  AK4951 Mic -Automatic volume Level Control  options, 
+			audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  	// Detected (AK4951) ==> Set up proper ALC mode from 0..11 options
+			configure_baseband(); 									// sending fixed >>8_FM , var-parameters msg ,  to audiotx from this M0 to M4 process.
+		};
+	}
 	
-	options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
-	      ak4951_alc_GUI_selected  = v;
-		  audio::input::start();
-	};
-	// options_ak4951_alc_mode.set_selected_index(0);
+   	// options_ak4951_alc_mode.set_selected_index(0);
 	 
 	tx_frequency = transmitter_model.tuning_frequency();
 	field_frequency.set_value(transmitter_model.tuning_frequency());
@@ -539,9 +570,9 @@ MicTXView::MicTXView(
 	transmitter_model.set_baseband_bandwidth(1750000);
 	
 	set_tx(false);
-	
-	audio::set_rate(audio::Rate::Hz_24000);
-	audio::input::start();		// originally , audio::input::start();  (we added parameter)
+
+  	audio::set_rate(audio::Rate::Hz_24000);
+	audio::input::start(ak4951_alc_and_wm8731_boost_GUI);	// When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.	
 }
 
 MicTXView::~MicTXView() {

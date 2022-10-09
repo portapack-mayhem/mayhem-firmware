@@ -111,6 +111,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 		1536000 / 20,		// Update vu-meter at 20Hz
 		transmitter_model.channel_bandwidth(),
 		0,	// Gain is unused
+		8,	// shift_bits_s16, default 8 bits, but  also unused
 		TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
 		0, //AM
 		0, //DSB
