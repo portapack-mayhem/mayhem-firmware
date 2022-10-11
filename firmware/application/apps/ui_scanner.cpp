@@ -160,9 +160,9 @@ ScannerView::~ScannerView() {
 }
 
 void ScannerView::show_max() {		//show total number of freqs to scan
-	if (frequency_list.size() == MAX_DB_ENTRY) {
+	if (frequency_list.size() == FREQMAN_MAX_PER_FILE ) {
 		text_max.set_style(&style_red);
-		text_max.set( "/ " + to_string_dec_uint(MAX_DB_ENTRY) + " (DB MAX!)");
+		text_max.set( "/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE ) + " (DB MAX!)");
 	}
 	else {
 		text_max.set_style(&style_grey);
@@ -304,7 +304,7 @@ ScannerView::ScannerView(
 		);
 
 		rf::Frequency frequency = frequency_range.min;
-		while (frequency_list.size() < MAX_DB_ENTRY &&  frequency <= frequency_range.max) { //add manual range				
+		while (frequency_list.size() < FREQMAN_MAX_PER_FILE  &&  frequency <= frequency_range.max) { //add manual range				
 			frequency_list.push_back(frequency);
 			description_list.push_back("");				//If empty, will keep showing the last description
 			frequency+=def_step;
@@ -398,7 +398,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	if ( load_freqman_file(file_name, database)  ) {
 		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
-			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
+			if (frequency_list.size() < FREQMAN_MAX_PER_FILE ) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
 					switch (entry.step) {
 						case AM_US:	def_step = 10000;  	break ;
@@ -421,7 +421,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 						+ ">" + to_string_short_freq(entry.frequency_b)
 						+ " S" + to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
 						);
-					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
+					while (frequency_list.size() < FREQMAN_MAX_PER_FILE  && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
 						frequency_list.push_back(entry.frequency_a);
 						description_list.push_back("");				//Token (keep showing the last description)
