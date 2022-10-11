@@ -32,8 +32,8 @@
 #include "ui_widget.hpp"
 
 #define FREQMAN_DESC_MAX_LEN 30
-#define FREQMAN_MAX_PER_FILE 99
-#define FREQMAN_MAX_PER_FILE_STR "99"
+#define FREQMAN_MAX_PER_FILE 500        /* MAX PER FILES */
+#define FREQMAN_MAX_PER_FILE_STR "500"  /*STRING OF FREQMAN_MAX_PER_FILE */
 
 using namespace ui;
 using namespace std;
