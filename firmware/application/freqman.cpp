@@ -58,6 +58,7 @@ options_t freqman_entry_steps = {
     { "12.5KHz(NFM)" , 12500 },
     { "15KHz  (HFM)" , 15000 },
     { "25KHz   (N1)" , 25000 },
+    { "30KHz (OIRT)" , 30000 },
     { "50KHz  (FM1)" , 50000 },
     { "100KHz (FM2)" , 100000 },
     { "250KHz  (N2)" , 250000 },
@@ -74,6 +75,7 @@ options_t freqman_entry_steps_short = {
     { "12.5KHz" , 12500 },
     { "15KHz"   , 15000 },
     { "25KHz"   , 25000 },
+    { "30KHz"   , 30000 },
     { "50KHz"   , 50000 },
     { "100KHz"  , 100000 },
     { "250KHz"  , 250000 },
@@ -99,91 +101,6 @@ std::vector<std::string> get_freqman_files() {
 
 bool load_freqman_file(std::string& file_stem, freqman_db &db) {
     return load_freqman_file_ex( file_stem , db , true , true , true );
-    /*	File freqman_file;
-        size_t length, n = 0, file_position = 0;
-        char * pos;
-        char * line_start;
-        char * line_end;
-        std::string description;
-        rf::Frequency frequency_a, frequency_b;
-        char file_data[257];
-        freqman_entry_type type;
-
-        db.clear();
-
-        auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
-        if (result.is_valid())
-        return false;
-
-        while (1) {
-    // Read a 256 bytes block from file
-    freqman_file.seek(file_position);
-
-    memset(file_data, 0, 257);
-    auto read_size = freqman_file.read(file_data, 256);
-    if (read_size.is_error())
-    return false;	// Read error
-
-    file_position += 256;
-
-    // Reset line_start to beginning of buffer
-    line_start = file_data;
-
-    if (!strstr(file_data, "f=") && !strstr(file_data, "a="))
-    break;
-
-    // Look for complete lines in buffer
-    while ((line_end = strstr(line_start, "\x0A"))) {
-    // Read frequency
-    pos = strstr(line_start, "f=");
-    frequency_b = 0;
-    type = SINGLE;
-    if (pos) {
-    pos += 2;
-    frequency_a = strtoll(pos, nullptr, 10);
-    } else {
-    // ...or range
-    pos = strstr(line_start, "a=");
-    if (pos) {
-    pos += 2;
-    frequency_a = strtoll(pos, nullptr, 10);
-    type = RANGE;
-    pos = strstr(line_start, "b=");
-    if (pos) {
-    pos += 2;
-    frequency_b = strtoll(pos, nullptr, 10);
-    } else
-    frequency_b = 0;
-    } else
-    frequency_a = 0;
-    }
-
-    // Read description until , or LF
-    pos = strstr(line_start, "d=");
-    if (pos) {
-    pos += 2;
-    length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
-    description = string(pos, length);
-    } else
-    description = "-";
-
-    db.push_back({ frequency_a, frequency_b, description, type , -1 , -1 , -1 , -1 });
-    n++;
-
-    if (n >= FREQMAN_MAX_PER_FILE) return true;
-
-    line_start = line_end + 1;
-    if (line_start - file_data >= 256) break;
-}
-
-if (read_size.value() != 256)
-    break;	// End of file
-
-    // Restart at beginning of last incomplete line
-    file_position -= (file_data + 256 - line_start);
-    }
-return true;
-*/
 }
 
 bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs , bool load_ranges , bool load_hamradios ) {

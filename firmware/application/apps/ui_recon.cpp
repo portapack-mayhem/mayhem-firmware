@@ -26,12 +26,12 @@
 #include "file.hpp"
 
 // Id's for messages between ReconThread and ReconView
-#define MSG_RECON_PAUSE 9999				// for handle_retune to know that recon thread triggered a pause. f is not important with that message
-#define MSG_RECON_SET_MODULATION 10000			// for handle_retune to know that recon thread triggered a modulation change. f is the index of the modulation
-#define MSG_RECON_SET_BANDWIDTH 20000 			// for handle_retune to know that recon thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
-#define MSG_RECON_SET_STEP 30000 			// for handle_retune to know that recon thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
+#define MSG_RECON_PAUSE 9999                    // for handle_retune to know that recon thread triggered a pause. f is not important with that message
+#define MSG_RECON_SET_MODULATION 10000          // for handle_retune to know that recon thread triggered a modulation change. f is the index of the modulation
+#define MSG_RECON_SET_BANDWIDTH 20000           // for handle_retune to know that recon thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
+#define MSG_RECON_SET_STEP 30000                // for handle_retune to know that recon thread triggered a bandwidth change. f is the new bandwidth value index for current modulation
 #define MSG_RECON_SET_RECEIVER_BANDWIDTH 40000 	// for handle_retune to know that recon thread triggered a receiver bandwidth change. f is the new bandwidth in hz
-#define MSG_RECON_SET_RECEIVER_SAMPLERATE 50000 	// for handle_retune to know that recon thread triggered a receiver samplerate change. f is the new samplerate in hz/s
+#define MSG_RECON_SET_RECEIVER_SAMPLERATE 50000 // for handle_retune to know that recon thread triggered a receiver samplerate change. f is the new samplerate in hz/s
 
 
 using namespace portapack;
