@@ -34,7 +34,6 @@
 #include "file.hpp"
 
 
-#define MAX_DB_ENTRY 500
 #define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
 namespace ui {
