@@ -162,16 +162,23 @@ void MicTXView::rxaudio(bool is_on) {
 		if (enable_am || enable_usb || enable_lsb || enable_dsb) {
 			baseband::run_image(portapack::spi_flash::image_tag_am_audio);
 			receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);	
-			if (options_mode.selected_index() < 4)
-				receiver_model.set_am_configuration(options_mode.selected_index() - 1);
-			else
-				receiver_model.set_am_configuration(0);
+			if (options_mode.selected_index() < 5)       // We will called here, 2,3,4,5 , and we are excluding DSB case (5) , "NFM/FM",0 ," WFM  ",1 ,  "  AM  ",2, " USB  ", 3, " LSB  ",4, " DSB  ", 5
+				receiver_model.set_am_configuration(options_mode.selected_index() - 2);  // selecting proper filter. 2-2=0=>6k(0) , 3-2=1=>usb(1), 4-2=2lsb(2),
+			else										 
+				receiver_model.set_am_configuration(0);	// DSB case (5) , same BW as AM config(5)
 		}
-		else {
-			baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
-			receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+		else {    // We are in NFM/FM or WFM    (NFM BW:8k5 or 11k / FM BW 16k  / WFM  BW:200k) 
 			
-		}
+			if (enable_wfm) {     // WFM , BW 200Khz aprox ,
+				baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+				receiver_model.set_wfm_configuration(0);  // there are only  1  x config filters 200k WFM . (not like 8k5/11k/16k)
+			} else {     // NFM BW:8k5 or  11k / FM BW 16k 
+				baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+				receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio); // 	
+				// receiver_model.set_nbfm_configuration(n); is called above  , depending 8k5, 11k, 16k  
+			}
+		} 
 		receiver_model.set_sampling_rate(3072000);
 		receiver_model.set_baseband_bandwidth(1750000);	
 //		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
@@ -346,7 +353,8 @@ MicTXView::MicTXView(
 	field_bw.on_change = [this](uint32_t v) {
 		transmitter_model.set_channel_bandwidth(v * 1000);
 	};
-	field_bw.set_value(10);
+	field_bw.set_value(10);	// pre-default first time, TX  deviation FM for NFM / FM
+	
 	
 	tx_gain = transmitter_model.tx_gain();
 	field_rfgain.on_change = [this](int32_t v) {
@@ -361,47 +369,80 @@ MicTXView::MicTXView(
 	};
 	field_rfamp.set_value(rf_amp ? 14 : 0);
 	
-	options_mode.on_change = [this](size_t, int32_t v) {
-		enable_am = false;
+	options_mode.on_change = [this](size_t, int32_t v) {   //{ "FM", 0 },{ "AM", 1 },{ "USB", 2 },{ "LSB", 3 },{ "DSB", 4 }
+		enable_am  = false;
 		enable_usb = false;
 		enable_lsb = false;
 		enable_dsb = false;
+		enable_wfm = false;
+
+		using option_t = std::pair<std::string, int32_t>;
+		using options_t = std::vector<option_t>;
+		options_t rxbw;				// Aux structure to change dynamically  field_rxbw contents,  
+		
 		switch(v) {
-			case 0:
-				enable_am = false;
+			case 0:					 //{ "FM", 0 }
+				enable_am  = false;
 				enable_usb = false;
 				enable_lsb = false;
 				enable_dsb = false;
-				field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
+				field_bw.set_value(10);	// pre-default deviation FM for WFM
+				// field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
 				//if (rx_enabled)
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				options_tone_key.hidden(0);				// we are in FM mode , we should have active the Key-tones & CTCSS option.
+				
+				rxbw.emplace_back("8k5-NFM ", 0); 		// restore the original dynamic field_rxbw value.
+				rxbw.emplace_back("11k-NFM ", 1);
+				rxbw.emplace_back("16k-FM  ", 2);			
+				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
+							
 				field_rxbw.hidden(0);					// we are in FM mode,  we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K) 
+				field_bw.hidden(0);						// we are in FM mode, we need to allow FM deviation parameter , in non FM mode.
 				break;
-			case 1:
+			case 1:					 //{ "WFM", 1 }
+				enable_am  = false;
+				enable_usb = false;
+				enable_lsb = false;
+				enable_dsb = false;
+				enable_wfm = true;
+				field_bw.set_value(75);	// pre-default deviation FM for WFM
+				// field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
+				//if (rx_enabled)
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				options_tone_key.hidden(0);				// we are in WFM mode , we should have active the Key-tones & CTCSS option.
+
+				rxbw.emplace_back("200K-WFM", 0);		// locked a fixed option , to display it .
+				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
+
+				field_rxbw.hidden(0);					// we are in WFM mode,  we need to show to the user the selected BW WFM filer . 
+				field_bw.hidden(0);						// we are in WFM mode, we need to allow WFM deviation parameter , in non FM mode.
+				break;
+			case 2:					 //{ "AM", 2 }
 				enable_am = true;
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				options_tone_key.set_selected_index(0);	// we are NOT in FM mode ,  we reset the possible previous key-tones &CTCSS selection.
 				set_dirty();							// Refresh display	
 				options_tone_key.hidden(1);				// we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
 				field_rxbw.hidden(1);					// we hide the NFM BW selection in other modes non_FM  (no meaning in AM/DSB/SSB)
-				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
+				field_bw.hidden(1);						// we hide the FM deviation parameter , in non FM mode.
+				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.					
 				break;
-			case 2:
+			case 3:					 //{ "USB", 3 }
 				enable_usb = true;
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
 				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
 				set_dirty();							// Refresh display
 				break;
-			case 3:
+			case 4:					 //{ "LSB", 4 }
 				enable_lsb = true;
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
 				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
 				set_dirty();							// Refresh display
 				break;
-			case 4:
+			case 5:				 	//{ "DSB", 5 }
 				enable_dsb = true;
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
@@ -480,20 +521,24 @@ MicTXView::MicTXView(
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
 
-	field_rxbw.on_change = [this](size_t, int32_t v) {
-		switch(v) {
+	// In Previous fw versions, that nbfm_configuration(n)  was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in NFM-FM .
+	if (!(enable_am || enable_usb || enable_lsb || enable_dsb || enable_wfm )) { 
+			//we are in NFM/FM case, here it has meaning to set the selected NFM/FM mode.
+		field_rxbw.on_change = [this](size_t, int32_t v) {
+			switch(v) {
 			case 0:
-				receiver_model.set_nbfm_configuration(0);
+				receiver_model.set_nbfm_configuration(0);  // NFM BW 8K5
 				break;
 			case 1:
-				receiver_model.set_nbfm_configuration(1);
+				receiver_model.set_nbfm_configuration(1);	// NFM BW 11K
 				break;
 			case 2:
-				receiver_model.set_nbfm_configuration(2);
+				receiver_model.set_nbfm_configuration(2);	// FM BW 16K 
 				break;
-		}
-	};
-	field_rxbw.set_selected_index(2);
+			}
+		};
+		field_rxbw.set_selected_index(2);		// preselected FM BW 16K
+	}
 
 	field_squelch.on_change = [this](int32_t v) { 
 		receiver_model.set_squelch_level(100 - v);	
