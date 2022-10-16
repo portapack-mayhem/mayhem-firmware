@@ -106,13 +106,14 @@ private:
 	bool enable_dsb { false };
 	bool enable_usb { false };
 	bool enable_lsb { false };
+	bool enable_wfm { false };	// added to distinguish in the FM mode ,  RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
 
 	
 	Labels labels_WM8731 {		
 		{ { 3 * 8, 1 * 8 }, "MIC-GAIN:", Color::light_grey() },
 		{ { 17 * 8, 1 * 8 }, "Boost", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },		// to be more symetric and consistent to the below FM RXBW
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
@@ -122,7 +123,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {15 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -133,7 +134,7 @@ private:
 		{ { 3 * 8, 1 * 8 }, "MIC-GAIN:", Color::light_grey() },
 		{ { 17 * 8, 1 * 8 }, "ALC", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
@@ -142,8 +143,8 @@ private:
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
-		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {15 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ { (6 * 8)+4, 23 * 8 }, "VOL:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -204,7 +205,7 @@ OptionsField options_wm8731_boost_mode {
 		{ 5 * 8, 3 * 8 },
 	};
 	NumberField field_bw {
-		{ 18 * 8, 3 * 8 },
+		{ 23 * 8, 3 * 8 },
 		3,
 		{ 0, 150 },
 		1,
@@ -228,13 +229,14 @@ OptionsField options_wm8731_boost_mode {
 	
 	OptionsField options_mode {
 		{ 24 * 8, 5 * 8 },
-		3,
+		4,
 		{
-			{ "FM", 0 },
-			{ "AM", 1 },
-			{ "USB", 2 },
-			{ "LSB", 3 },
-			{ "DSB", 4 }
+			{ "NFM/FM", 0 },
+			{ " WFM  ", 1 },
+			{ "  AM  ", 2 },
+			{ " USB  ", 3 },
+			{ " LSB  ", 4 },
+			{ " DSB  ", 5 }
 		}
 	};
 	/*
@@ -307,13 +309,13 @@ OptionsField options_wm8731_boost_mode {
 	};
 	
 	OptionsField field_rxbw {
-	       { 23* 8, 23 * 8},
+	       { 22* 8, 23 * 8},
 	       3,
 	       {
-	       		{"8k5", 0},
-	       		{"11k", 1},
-	       		{"16k", 2}
-	       	}
+	       		{"8k5-NFM", 0},
+	       		{"11k-NFM", 1},
+	       		{"16k-FM ", 2},
+		   	}
 	};
 	
 	NumberField field_squelch {
