@@ -45,7 +45,7 @@ options_t freqman_entry_bandwidths[ 4 ] = {
         { "16k" , 2 }
     },
     { //WFM
-        { "16k" , 0 },
+        { "200k" , 0 },
     }
 };
 
@@ -62,7 +62,7 @@ options_t freqman_entry_steps = {
     { "50KHz  (FM1)" , 50000 },
     { "100KHz (FM2)" , 100000 },
     { "250KHz  (N2)" , 250000 },
-    { "500KHz      " , 500000 },
+    { "500KHz (WFM)" , 500000 },
     { "1MHz        " , 1000000 }
 };
 
