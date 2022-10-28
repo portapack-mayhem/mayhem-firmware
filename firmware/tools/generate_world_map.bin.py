@@ -32,7 +32,7 @@ pix = im.load()
 # Write as unsigned short (2 bytes) as little endian
 outfile.write(struct.pack('<H', im.size[0]))
 outfile.write(struct.pack('<H', im.size[1]))
-print("image \t size[0]=" + str(im.size[0]) + "\tsize[1]=" + str(im.size[1]) *"pixels\n");
+print("image \t size[0]=" + str(im.size[0]) + "\tsize[1]=" + str(im.size[1]) + "pixels\n");
 print("Generating: \t" + outfile.name + "\n from\t\t" + im.filename + "\n please wait...");
 
 for y in range (0, im.size[1]):
