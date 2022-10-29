@@ -123,7 +123,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {14 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },				//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -144,7 +144,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { (6 * 8)+4, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {14 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },			//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -233,10 +233,10 @@ OptionsField options_wm8731_boost_mode {
 		{
 			{ "NFM/FM", 0 },
 			{ " WFM  ", 1 },
-			{ "  AM  ", 2 },
+			{ "  AM  ", 2 },			// in fact that TX mode = AM -DSB with carrier .
 			{ " USB  ", 3 },
 			{ " LSB  ", 4 },
-			{ " DSB  ", 5 }
+			{ "DSB-SC", 5 }				// We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).  
 		}
 	};
 	/*
@@ -309,12 +309,12 @@ OptionsField options_wm8731_boost_mode {
 	};
 	
 	OptionsField field_rxbw {
-	       { 22* 8, 23 * 8},
+	       { 19* 8, 23 * 8},
 	       3,
 	       {
-	       		{"8k5-NFM", 0},
-	       		{"11k-NFM", 1},
-	       		{"16k-FM ", 2},
+	       		{" NFM1:8k5  ", 0},
+	       		{" NFM2:11k  ", 1},
+	       		{" FM  :16k  ", 2},
 		   	}
 	};
 	
