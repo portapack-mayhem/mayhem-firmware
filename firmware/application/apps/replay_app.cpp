@@ -26,7 +26,7 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
-
+#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -258,7 +258,12 @@ ReplayAppView::ReplayAppView(
 
 ReplayAppView::~ReplayAppView() {
 	radio::disable();
-	baseband::shutdown();
+ 
+ 	display.fill_rectangle({ 0,0,240, 320 },Color::black()); //Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels. 
+	chThdSleepMilliseconds(40);	// (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )  
+	hackrf::cpld::load_sram_no_verify();  // to leave all  RX reception ok, without "ghost interference signal problem" at the exit .
+
+	baseband::shutdown(); // better this function at the end, after load_sram(). If not , sometimes produced hang up (now not , it is ok).
 }
 
 void ReplayAppView::on_hide() {
