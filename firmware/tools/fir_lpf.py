@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import math
 
 m = 64 - 1
