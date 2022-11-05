@@ -36,16 +36,17 @@ EncodersConfigView::EncodersConfigView(
 	using option_t = std::pair<std::string, int32_t>;
 	std::vector<option_t> enc_options;
 	size_t i;
-	
+
 	set_parent_rect(parent_rect);
 	hidden(true);
-	
+
 	// Default encoder def
 	encoder_def = &encoder_defs[0];
-	
+
 	add_children({
 		&labels,
 		&options_enctype,
+		&field_repeat_min,
 		&field_clk,
 		&field_clk_step,
 		&field_frameduration,
@@ -58,18 +59,18 @@ EncodersConfigView::EncodersConfigView(
 	// Load encoder types in option field
 	for (i = 0; i < ENC_TYPES_COUNT; i++)
 		enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
-	
+
 	options_enctype.on_change = [this](size_t index, int32_t) {
 		on_type_change(index);
 	};
-	
+
 	options_enctype.set_options(enc_options);
 	options_enctype.set_selected_index(0);
-	
+
 	symfield_word.on_change = [this]() {
 		generate_frame();
 	};
-	
+
 	// Selecting input clock changes symbol and word duration
 	field_clk.on_change = [this](int32_t value) {
 		// value is in kHz, new_value is in us
@@ -81,7 +82,7 @@ EncodersConfigView::EncodersConfigView(
 	field_clk_step.on_change = [this](size_t, int32_t value) {
 		field_clk.set_step(value);
 	};
-	
+
 	// Selecting word duration changes input clock and symbol duration
 	field_frameduration.on_change = [this](int32_t value) {
 		// value is in us, new_value is in kHz
@@ -107,7 +108,8 @@ void EncodersConfigView::on_type_change(size_t index) {
 	encoder_def = &encoder_defs[index];
 
 	field_clk.set_value(encoder_def->default_speed / 1000);
-	
+	field_repeat_min.set_value(encoder_def->repeat_min);
+
 	// SymField setup
 	word_length = encoder_def->word_length;
 	symfield_word.set_length(word_length);
@@ -122,10 +124,10 @@ void EncodersConfigView::on_type_change(size_t index) {
 			format_string += 'D';
 		}
 	}
-	
+
 	// Ugly :( Pad to erase
 	format_string.append(24 - format_string.size(), ' ');
-	
+
 	text_format.set(format_string);
 
 	generate_frame();
@@ -141,28 +143,28 @@ void EncodersConfigView::draw_waveform() {
 
 	for (size_t n = 0; n < length; n++)
 		waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
-	
+
 	waveform.set_length(length);
 	waveform.set_dirty();
 }
 
 void EncodersConfigView::generate_frame() {
 	size_t i = 0;
-	
+
 	frame_fragments.clear();
-	
+
 	for (auto c : encoder_def->word_format) {
 		if (c == 'S')
 			frame_fragments += encoder_def->sync;
 		else
 			frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
 	}
-	
+
 	draw_waveform();
 }
 
 uint8_t EncodersConfigView::repeat_min() {
-	return encoder_def->repeat_min;
+	return field_repeat_min.value();
 }
 
 uint32_t EncodersConfigView::samples_per_bit() {
@@ -174,7 +176,38 @@ uint32_t EncodersConfigView::pause_symbols() {
 }
 
 void EncodersScanView::focus() {
-	field_debug.focus();
+	field_length.focus();
+}
+
+unsigned int EncodersScanView::scan_sequence(const int n, uint8_t *dest) {
+	const int k = 2;
+	int l = 1;
+	int idx = 0;
+	uint8_t v[n];
+
+	memset(v, 0, sizeof(v));
+
+	// Duval's algorithm for generating de Bruijn sequence
+	while (1) {
+		if (n % l == 0) {
+			for (int i = 0; i < l; i++) {
+				dest[idx >> 3] |= v[i] << (7 - (idx % 8));
+				idx++;
+			}
+		}
+
+		for (int i = l; i < n; i++)
+			v[i] = v[i - l];
+
+		for (l = n; l > 0 && v[l - 1] >= k - 1; l--) ;
+
+		if (l == 0)
+			break;
+
+		v[l - 1]++;
+	}
+
+	return idx;
 }
 
 EncodersScanView::EncodersScanView(
@@ -182,31 +215,13 @@ EncodersScanView::EncodersScanView(
 ) {
 	set_parent_rect(parent_rect);
 	hidden(true);
-	
+
 	add_children({
 		&labels,
-		&field_debug,
-		&text_debug,
-		&text_length
+		&field_length
 	});
-	
-	// DEBUG
-	field_debug.on_change = [this](int32_t value) {
-		uint32_t l;
-		size_t length;
-		
-		de_bruijn debruijn_seq;
-		length = debruijn_seq.init(value);
-		
-		l = 1;
-		l <<= value;
-		l--;
-		if (l > 25)
-			l = 25;
-		text_debug.set(to_string_bin(debruijn_seq.compute(l), 25));
-		
-		text_length.set(to_string_dec_uint(length));
-	};
+
+	field_length.set_value(8);
 }
 
 void EncodersView::focus() {
@@ -215,7 +230,7 @@ void EncodersView::focus() {
 
 EncodersView::~EncodersView() {
 	// save app settings
-	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();
 	settings.save("tx_ook", &app_settings);
 
 	transmitter_model.disable();
@@ -225,24 +240,11 @@ EncodersView::~EncodersView() {
 
 void EncodersView::update_progress() {
 	std::string str_buffer;
-	
-	// text_status.set("            ");
-	
-	if (tx_mode == SINGLE) {
+
+	if (tx_mode == SINGLE || tx_mode == SCAN) {
 		str_buffer = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(repeat_min);
 		text_status.set(str_buffer);
 		progressbar.set_value(repeat_index);
-		
-	/*} else if (tx_mode == SCAN) {
-		strcpy(str, to_string_dec_uint(repeat_index).c_str());
-		strcat(str, "/");
-		strcat(str, to_string_dec_uint(portapack::persistent_memory::afsk_repeats()).c_str());
-		strcat(str, " ");
-		strcat(str, to_string_dec_uint(scan_index + 1).c_str());
-		strcat(str, "/");
-		strcat(str, to_string_dec_uint(scan_count).c_str());
-		text_status.set(str);
-		progress.set_value(scan_progress);*/
 	} else {
 		text_status.set("Ready");
 		progressbar.set_value(0);
@@ -250,84 +252,46 @@ void EncodersView::update_progress() {
 }
 
 void EncodersView::on_tx_progress(const uint32_t progress, const bool done) {
-	//char str[16];
-	
 	if (!done) {
 		// Repeating...
 		repeat_index = progress + 1;
-		
-		/*if (tx_mode == SCAN) {
-			scan_progress++;
-			update_progress();
-		} else {*/
-			update_progress();
-		//}
+		update_progress();
 	} else {
 		// Done transmitting
-		/*if ((tx_mode == SCAN) && (scan_index < (scan_count - 1))) {
-			transmitter_model.disable();
-			if (abort_scan) {
-				// Kill scan process
-				strcpy(str, "Abort @");
-				strcat(str, rgsb);
-				text_status.set(str);
-				progress.set_value(0);
-				tx_mode = IDLE;
-				abort_scan = false;
-				button_scan.set_style(&style_val);
-				button_scan.set_text("SCAN");
-			} else {
-				// Next address
-				scan_index++;
-				strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[scan_index * 5]);
-				scan_progress++;
-				repeat_index = 1;
-				update_progress();
-				start_tx(true);
-			}
-		} else {*/
-			transmitter_model.disable();
-			tx_mode = IDLE;
-			text_status.set("Done");
-			progressbar.set_value(0);
-			tx_view.set_transmitting(false);
-		//}
+		transmitter_model.disable();
+		tx_mode = IDLE;
+		text_status.set("Done");
+		progressbar.set_value(0);
+		tx_view.set_transmitting(false);
 	}
 }
 
 void EncodersView::start_tx(const bool scan) {
-	(void)scan;
 	size_t bitstream_length = 0;
-	
+
 	repeat_min = view_config.repeat_min();
-	
-	/*if (scan) {
-		if (tx_mode != SCAN) {
-			scan_index = 0;
-			scan_count = scan_list[options_scanlist.selected_index()].count;
-			scan_progress = 1;
-			repeat_index = 1;
-			tx_mode = SCAN;
-			strcpy(rgsb, &scan_list[options_scanlist.selected_index()].addresses[0]);
-			progress.set_max(scan_count * afsk_repeats);
-			update_progress();
-		}
-	} else {*/
+
+	if (scan) {
+		tx_mode = SCAN;
+		int n = view_scan.field_length.value();
+		uint8_t *bitstream = shared_memory.bb_data.data;
+		const size_t size = (1 << (n - 1)) / 4;
+		memset(bitstream, 0, size);
+		bitstream_length = view_scan.scan_sequence(n, bitstream);
+	} else {
 		tx_mode = SINGLE;
-		repeat_index = 1;
-		progressbar.set_max(repeat_min);
-		update_progress();
-	//}
-	
-	view_config.generate_frame();
-	
-	bitstream_length = make_bitstream(view_config.frame_fragments);
+		view_config.generate_frame();
+		bitstream_length = make_bitstream(view_config.frame_fragments);
+	}
+
+	repeat_index = 1;
+	progressbar.set_max(repeat_min);
+	update_progress();
 
 	transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
-	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
-	
+
 	baseband::set_ook_data(
 		bitstream_length,
 		view_config.samples_per_bit(),
@@ -350,14 +314,14 @@ EncodersView::EncodersView(
 		&progressbar,
 		&tx_view
 	});
-	
+
 	// load app settings
 	auto rc = settings.load("tx_ook", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		transmitter_model.set_rf_amp(app_settings.tx_amp);
 		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
 		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
-		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+		transmitter_model.set_tx_gain(app_settings.tx_gain);
 	}
 
 	tx_view.on_edit_frequency = [this, &nav]() {
@@ -366,12 +330,12 @@ EncodersView::EncodersView(
 			transmitter_model.set_tuning_frequency(f);
 		};
 	};
-	
+
 	tx_view.on_start = [this]() {
 		tx_view.set_transmitting(true);
-		start_tx(false);
+		start_tx(tab_view.selected());
 	};
-	
+
 	tx_view.on_stop = [this]() {
 		tx_view.set_transmitting(false);
 	};
