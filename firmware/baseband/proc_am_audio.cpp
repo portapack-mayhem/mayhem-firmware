@@ -37,7 +37,8 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 
 	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 
-	const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
+	const auto ddc_out = ddc.execute(decim_1_out, dst_buffer);
+	const auto decim_2_out = decim_2.execute(ddc_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
 	// TODO: Feed channel_stats post-decimation data?
@@ -71,6 +72,10 @@ void NarrowbandAMAudio::on_message(const Message* const message) {
 		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
 		break;
 		
+	case Message::ID::DDCConfig:
+		ddc_config(*reinterpret_cast<const DDCConfigMessage*>(message));
+		break;
+		
 	default:
 		break;
 	}
@@ -100,6 +105,9 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);
 	audio_output.configure(message.audio_hpf_config);
 
+	ddc.set_sample_rate(decim_1_output_fs);
+	ddc.set_freq(0.0f);
+
 	configured = true;
 }
 
@@ -109,6 +117,10 @@ void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		audio_output.set_stream(nullptr);
 	}
+}
+
+void NarrowbandAMAudio::ddc_config(const DDCConfigMessage& message) {
+	ddc.set_freq(message.freq);
 }
 
 int main() {

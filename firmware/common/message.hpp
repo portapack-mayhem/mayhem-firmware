@@ -109,6 +109,7 @@ public:
 		AudioSpectrum = 52,
 		APRSPacket = 53,
 		APRSRxConfigure = 54,
+		DDCConfig = 55,
 		MAX
 	};
 
@@ -1138,6 +1139,18 @@ public:
 	}
 
 	uint32_t return_code;
+};
+
+class DDCConfigMessage : public Message {
+public:
+	constexpr DDCConfigMessage(
+		int32_t freq
+	) : Message { ID::DDCConfig },
+		freq { freq }
+	{
+	}
+
+	int32_t freq = 0;
 };
 
 #endif/*__MESSAGE_H__*/

@@ -136,15 +136,18 @@ AnalogAudioView::AnalogAudioView(
 		field_vga.set_value(app_settings.vga);
 		receiver_model.set_rf_amp(app_settings.rx_amp);
 		field_frequency.set_value(app_settings.rx_frequency);
+		current_freq = app_settings.rx_frequency;
+	} else {
+		field_frequency.set_value(receiver_model.tuning_frequency());
+		current_freq = receiver_model.tuning_frequency();
 	}
-	else field_frequency.set_value(receiver_model.tuning_frequency());
 	
 	//Filename Datetime and Frequency
 	record_view.set_filename_date_frequency(true);
 
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
+		this->on_field_frequency_changed(f);
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
@@ -254,7 +257,38 @@ void AnalogAudioView::focus() {
 }
 
 void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
-	receiver_model.set_tuning_frequency(f);
+	current_freq = f;
+
+	DDCConfigMessage packet_message { 0 };
+	shared_memory.application_queue.push(packet_message);
+
+	baseband::set_ddc_freq(0);
+	receiver_model.set_tuning_frequency(current_freq);
+}
+
+void AnalogAudioView::on_field_frequency_changed(rf::Frequency f) {
+	if (!ddc_enable) {
+		on_tuning_frequency_changed(f);
+		return;
+	}
+
+	static const int32_t limit = 16000;
+	
+	int32_t ddc_freq = f - current_freq;
+	
+	if (ddc_freq < -limit) {
+		current_freq = current_freq + ddc_freq + limit;
+		ddc_freq = -limit;
+	} else if (ddc_freq > limit) {
+		current_freq = current_freq + ddc_freq - limit;
+		ddc_freq = limit;
+	}
+	
+	DDCConfigMessage packet_message { ddc_freq };
+	shared_memory.application_queue.push(packet_message);
+
+	baseband::set_ddc_freq(ddc_freq);
+	receiver_model.set_tuning_frequency(current_freq);
 }
 
 void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
@@ -325,23 +359,27 @@ void AnalogAudioView::on_show_options_modulation() {
 		widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
 		waterfall.show_audio_spectrum_view(false);
 		text_ctcss.hidden(true);
+		ddc_enable = true;
 		break;
 
 	case ReceiverModel::Mode::NarrowbandFMAudio:
 		widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
 		waterfall.show_audio_spectrum_view(false);
 		text_ctcss.hidden(false);
+		ddc_enable = true;
 		break;
 	
 	case ReceiverModel::Mode::WidebandFMAudio:
 		waterfall.show_audio_spectrum_view(true);
 		text_ctcss.hidden(true);
+		ddc_enable = false;
 		break;
 	
 	case ReceiverModel::Mode::SpectrumAnalysis:
 		widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, &style_options_group);
 		waterfall.show_audio_spectrum_view(false);
 		text_ctcss.hidden(true);
+		ddc_enable = false;
 		break;
 		
 	default:

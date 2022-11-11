@@ -41,7 +41,8 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 
 	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 
-	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+	const auto ddc_out = ddc.execute(decim_1_out, dst_buffer);
+	const auto channel_out = channel_filter.execute(ddc_out, dst_buffer);
 
 	feed_channel_stats(channel_out);
 
@@ -123,6 +124,10 @@ void NarrowbandFMAudio::on_message(const Message* const message) {
 	case Message::ID::PitchRSSIConfigure:
 		pitch_rssi_config(*reinterpret_cast<const PitchRSSIConfigureMessage*>(message));
 		break;
+
+	case Message::ID::DDCConfig:
+		ddc_config(*reinterpret_cast<const DDCConfigMessage*>(message));
+		break;
 		
 	default:
 		break;
@@ -154,6 +159,9 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	hpf.configure(audio_24k_hpf_30hz_config);
 	ctcss_filter.configure(taps_64_lp_025_025.taps);
 
+	ddc.set_sample_rate(decim_1_output_fs);
+	ddc.set_freq(0.0f);
+
 	configured = true;
 }
 
@@ -168,6 +176,10 @@ void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {
 	} else {
 		audio_output.set_stream(nullptr);
 	}
+}
+
+void NarrowbandFMAudio::ddc_config(const DDCConfigMessage& message) {
+	ddc.set_freq(message.freq);
 }
 
 int main() {

@@ -139,6 +139,7 @@ void SpectrumCollector::update() {
 		spectrum.channel_filter_low_frequency = channel_filter_low_frequency;
 		spectrum.channel_filter_high_frequency = channel_filter_high_frequency;
 		spectrum.channel_filter_transition = channel_filter_transition;
+		
 		for(size_t i=0; i<spectrum.db.size(); i++) {
 			const auto corrected_sample = spectrum_window_hamming_3(channel_spectrum, i);
 			const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));

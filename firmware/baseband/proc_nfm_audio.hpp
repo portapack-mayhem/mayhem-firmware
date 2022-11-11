@@ -30,6 +30,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_iir.hpp"
+#include "dsp_ddc.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -76,6 +77,8 @@ private:
 	int32_t channel_filter_low_f = 0;
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
+
+	dsp::DDC ddc { };
 	
 	// For CTCSS decoding
 	dsp::decimate::FIR64AndDecimateBy2Real ctcss_filter { };
@@ -101,6 +104,7 @@ private:
 	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 	void configure(const NBFMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
+	void ddc_config(const DDCConfigMessage& message);
 	
 	//RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
 	CodedSquelchMessage ctcss_message { 0 };

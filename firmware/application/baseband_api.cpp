@@ -335,6 +335,11 @@ void set_sample_rate(const uint32_t sample_rate) {
 	send_message(&message);
 }
 
+void set_ddc_freq(const int32_t freq) {
+	DDCConfigMessage message { freq };
+	send_message(&message);
+}
+
 void capture_start(CaptureConfig* const config) {
 	CaptureConfigMessage message { config };
 	send_message(&message);

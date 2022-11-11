@@ -164,6 +164,9 @@ private:
 	size_t spec_bw_index = 0;
 	uint32_t spec_bw = 20000000;
 	uint16_t spec_trigger = 63;
+	
+	rf::Frequency current_freq = 0;
+	bool ddc_enable = false;
 
 	NavigationView& nav_;
 	//bool exit_on_squelch { false };
@@ -229,6 +232,7 @@ private:
 	spectrum::WaterfallWidget waterfall { true };
 
 	void on_tuning_frequency_changed(rf::Frequency f);
+	void on_field_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
 	void on_modulation_changed(const ReceiverModel::Mode modulation);
 	void on_show_options_frequency();

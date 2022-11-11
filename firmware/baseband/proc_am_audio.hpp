@@ -29,6 +29,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "audio_compressor.hpp"
+#include "dsp_ddc.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -68,6 +69,8 @@ private:
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
 
+	dsp::DDC ddc { };
+
 	bool modulation_ssb = false;
 	dsp::demodulate::AM demod_am { };
 	dsp::demodulate::SSB demod_ssb { };
@@ -79,6 +82,7 @@ private:
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);
 	void capture_config(const CaptureConfigMessage& message);
+	void ddc_config(const DDCConfigMessage& message);
 
 	buffer_f32_t demodulate(const buffer_c16_t& channel);
 };
