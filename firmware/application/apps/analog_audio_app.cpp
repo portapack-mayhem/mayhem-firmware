@@ -270,6 +270,7 @@ void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
 	center_freq = f;
 
 	update_ddc(0);
+	receiver_model.set_tuning_frequency(center_freq);
 }
 
 void AnalogAudioView::on_field_frequency_changed(rf::Frequency f) {
