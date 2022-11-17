@@ -44,7 +44,8 @@ public:
 
 private:
 	static constexpr size_t baseband_fs = 3072000;
-	static constexpr size_t decim_2_decimation_factor = 4;
+	static constexpr auto spectrum_rate_hz = 50.0f;
+	static constexpr size_t decim_2_decimation_factor = 8;
 	static constexpr size_t channel_filter_decimation_factor = 1;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
@@ -61,7 +62,7 @@ private:
 		audio.size()
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::decimate::FIRAndDecimateComplex decim_2 { };
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
@@ -78,6 +79,11 @@ private:
 	AudioOutput audio_output { };
 
 	SpectrumCollector channel_spectrum { };
+	size_t spectrum_interval_samples = 0;
+	size_t spectrum_samples = 0;
+	float spectrum_zoom = 4.0f;
+
+	void set_spectrum_zoom(float x);
 
 	bool configured { false };
 	void configure(const AMConfigureMessage& message);

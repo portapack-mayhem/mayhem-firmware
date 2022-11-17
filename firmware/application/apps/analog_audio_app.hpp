@@ -166,6 +166,7 @@ private:
 	uint16_t spec_trigger = 63;
 	
 	rf::Frequency current_freq = 0;
+	rf::Frequency center_freq = 0;
 	bool ddc_enable = false;
 
 	NavigationView& nav_;
@@ -231,6 +232,7 @@ private:
 
 	spectrum::WaterfallWidget waterfall { true };
 
+	void update_ddc(int32_t f);
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_field_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);

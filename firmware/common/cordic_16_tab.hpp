@@ -19,30 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __DSP_DDC_H__
-#define __DSP_DDC_H__
+#define CORDIC_TAB 16
 
-#include <cstdint>
-#include <cstddef>
-#include "dsp_types.hpp"
-
-namespace dsp {
-
-class DDC {
-
-public:
-
-    void set_sample_rate(const int32_t x);
-    void set_freq(const int32_t x);
-    
-    buffer_c16_t execute(const buffer_c16_t& src, const buffer_c16_t& dst);
-
-private:
-
-	int32_t	sample_rate { 0 };
-	int32_t	phase_inc { 0 };
-	int32_t	phase { 0 };
+static int32_t cordic_tab [CORDIC_TAB] = {
+	12867, 7596, 4013, 2037, 1022, 511, 255, 
+	127, 63, 31, 15, 7, 3, 1, 0, 0, 
 };
-}
 
-#endif/*__DSP_DDC_H__*/
+#define CORDIC_SCALE	16384.0

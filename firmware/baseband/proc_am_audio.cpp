@@ -28,15 +28,19 @@
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+	if (!configured) {
 		return;
 	}
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+
+	spectrum_samples += decim_0_out.count;
+	if( spectrum_samples >= spectrum_interval_samples ) {
+		spectrum_samples -= spectrum_interval_samples;
+		channel_spectrum.feed(decim_0_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+	}
+
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-
-	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
-
 	const auto ddc_out = ddc.execute(decim_1_out, dst_buffer);
 	const auto decim_2_out = decim_2.execute(ddc_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
@@ -92,7 +96,6 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-	//const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
@@ -101,9 +104,11 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
 	channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;
 	channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
-	channel_spectrum.set_decimation_factor(1.0f);
 	modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);
 	audio_output.configure(message.audio_hpf_config);
+
+	channel_spectrum.set_decimation_factor(spectrum_zoom);
+	spectrum_interval_samples = decim_0_output_fs / (spectrum_rate_hz * spectrum_zoom);
 
 	ddc.set_sample_rate(decim_1_output_fs);
 	ddc.set_freq(0.0f);

@@ -19,30 +19,43 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __DSP_DDC_H__
-#define __DSP_DDC_H__
-
-#include <cstdint>
-#include <cstddef>
-#include "dsp_types.hpp"
+#include "cordic.hpp"
 
 namespace dsp {
 
-class DDC {
+void cordic(int32_t theta, int32_t *s, int32_t *c) {
+	uint8_t pi = 0;
 
-public:
+	if (theta > CORDIC_HALF_PI) {
+		theta -= CORDIC_PI;
+		pi = 1;
+	} else if (theta < -CORDIC_HALF_PI) {
+		theta += CORDIC_PI;
+		pi = 1;
+	}
 
-    void set_sample_rate(const int32_t x);
-    void set_freq(const int32_t x);
-    
-    buffer_c16_t execute(const buffer_c16_t& src, const buffer_c16_t& dst);
+  	int32_t d, tx, ty, tz;
+  	int32_t x = *c, y = *s, z = theta;
+  
+  	for (uint8_t k = 0; k < CORDIC_TAB; k++) {
+    	d = (z >= 0) ? 0 : -1;
 
-private:
+    	tx = x - (((y >> k) ^ d) - d);
+    	ty = y + (((x >> k) ^ d) - d);
+    	tz = z - ((cordic_tab[k] ^ d) - d);
 
-	int32_t	sample_rate { 0 };
-	int32_t	phase_inc { 0 };
-	int32_t	phase { 0 };
-};
+    	x = tx;
+    	y = ty;
+    	z = tz;
+  	}
+
+	if (pi) {
+ 		x = -x; 
+ 		y = -y;
+ 	}
+
+	*c = x; 
+	*s = y;
 }
 
-#endif/*__DSP_DDC_H__*/
+}

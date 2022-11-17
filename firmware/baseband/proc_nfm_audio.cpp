@@ -37,10 +37,14 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 	}
 	
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+
+	spectrum_samples += decim_0_out.count;
+	if( spectrum_samples >= spectrum_interval_samples ) {
+		spectrum_samples -= spectrum_interval_samples;
+		channel_spectrum.feed(decim_0_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+	}
+
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-
-	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
-
 	const auto ddc_out = ddc.execute(decim_1_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(ddc_out, dst_buffer);
 
@@ -153,7 +157,10 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 	channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
 	channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;
 	channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
-	channel_spectrum.set_decimation_factor(1.0f);
+
+	channel_spectrum.set_decimation_factor(spectrum_zoom);
+	spectrum_interval_samples = decim_0_output_fs / (spectrum_rate_hz * spectrum_zoom);
+
 	audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, (float)message.squelch_level / 100.0);
 	
 	hpf.configure(audio_24k_hpf_30hz_config);

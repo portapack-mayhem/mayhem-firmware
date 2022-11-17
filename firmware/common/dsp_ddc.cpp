@@ -19,30 +19,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <math.h>
 #include "dsp_ddc.hpp"
-
-#ifndef M_PI
-#define M_PI (3.14159265358979323846264338327950288)
-#endif
+#include "cordic.hpp"
 
 namespace dsp {
 
-void DDC::set_sample_rate(float x) {
+void DDC::set_sample_rate(const int32_t x) {
 	sample_rate = x;
-
-	osc_vect_i = 0;
-	osc_vect_q = 1;
 }
 
-void DDC::set_freq(const float x) {
-	double rate = (2 * M_PI * x) / sample_rate;
-	
-	osc_sin = sin(rate);
-	osc_cos = cos(rate);
-
-	osc_vect_i = 0;
-	osc_vect_q = 1;
+void DDC::set_freq(const int32_t x) {
+	phase_inc = (2.0 * CORDIC_PI * x) / sample_rate;
 }
 
 buffer_c16_t DDC::execute(const buffer_c16_t& src, const buffer_c16_t& dst) {
@@ -50,30 +37,25 @@ buffer_c16_t DDC::execute(const buffer_c16_t& src, const buffer_c16_t& dst) {
 	auto dst_p = dst.p;
 
 	for (size_t count = 0; count < src.count; count++) {
-		// Oscillator
-	
-		double osc_i = (osc_vect_i * osc_cos) + (osc_vect_q * osc_sin);
-		double osc_q = (osc_vect_q * osc_cos) - (osc_vect_i * osc_sin);
-
-		osc_vect_q = osc_q;
-		osc_vect_i = osc_i;
-	
-		// DDC
-	
-		double i = src_p->real();
-		double q = src_p->imag();
+		int32_t i = src_p->real() * 0.607252935 * 16384;
+		int32_t q = src_p->imag() * 0.607252935 * 16384;
 		
-		dst_p->real((i * osc_q) + (q * osc_i));
-		dst_p->imag((q * osc_q) - (i * osc_i));
+		cordic(phase, &i, &q);
+		
+		dst_p->real(i / 16384);
+		dst_p->imag(q / 16384);
+		
+		phase += phase_inc;
+
+		if (phase < -CORDIC_PI) {
+			phase += CORDIC_PI * 2;
+		} else if (phase > CORDIC_PI) {
+			phase -= CORDIC_PI * 2;
+		}
 		
 		src_p++;
 		dst_p++;
 	}
-
-	double gain = (3.0f - ((osc_vect_q * osc_vect_q) + (osc_vect_i * osc_vect_i))) / 2.0f;
-
-	osc_vect_q *= gain;
-	osc_vect_i *= gain;
 
 	return { dst.p, src.count, src.sampling_rate };
 }

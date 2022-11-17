@@ -61,7 +61,7 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 		decim_0,
 		decim_1,
 		channel,
-		2,
+		4,
 		deviation,
 		audio_24k_hpf_300hz_config,
 		audio_24k_deemph_300_6_config,

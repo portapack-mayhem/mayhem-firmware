@@ -45,6 +45,7 @@ public:
 
 private:
 	static constexpr size_t baseband_fs = 3072000;
+	static constexpr auto spectrum_rate_hz = 50.0f;
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
@@ -71,7 +72,7 @@ private:
 		sizeof(tone) / sizeof(int16_t)
 	};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
 	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
 	dsp::decimate::FIRAndDecimateComplex channel_filter { };
 	int32_t channel_filter_low_f = 0;
@@ -89,7 +90,10 @@ private:
 	AudioOutput audio_output { };
 
 	SpectrumCollector channel_spectrum { };
-	
+	size_t spectrum_interval_samples = 0;
+	size_t spectrum_samples = 0;
+	float spectrum_zoom = 4.0f;
+
 	uint32_t tone_phase { 0 };
 	uint32_t tone_delta { 0 };
 	bool pitch_rssi_enabled { false };

@@ -137,9 +137,11 @@ AnalogAudioView::AnalogAudioView(
 		receiver_model.set_rf_amp(app_settings.rx_amp);
 		field_frequency.set_value(app_settings.rx_frequency);
 		current_freq = app_settings.rx_frequency;
+		center_freq = current_freq;
 	} else {
 		field_frequency.set_value(receiver_model.tuning_frequency());
 		current_freq = receiver_model.tuning_frequency();
+		center_freq = current_freq;
 	}
 	
 	//Filename Datetime and Frequency
@@ -256,14 +258,18 @@ void AnalogAudioView::focus() {
 	field_frequency.focus();
 }
 
-void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
-	current_freq = f;
-
-	DDCConfigMessage packet_message { 0 };
+void AnalogAudioView::update_ddc(int32_t f) {
+	DDCConfigMessage packet_message { f };
 	shared_memory.application_queue.push(packet_message);
 
-	baseband::set_ddc_freq(0);
-	receiver_model.set_tuning_frequency(current_freq);
+	baseband::set_ddc_freq(f);
+}
+
+void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
+	current_freq = f;
+	center_freq = f;
+
+	update_ddc(0);
 }
 
 void AnalogAudioView::on_field_frequency_changed(rf::Frequency f) {
@@ -272,23 +278,24 @@ void AnalogAudioView::on_field_frequency_changed(rf::Frequency f) {
 		return;
 	}
 
-	static const int32_t limit = 16000;
+	current_freq = f;
+	static const int32_t limit = 40000;
 	
-	int32_t ddc_freq = f - current_freq;
+	int32_t ddc_freq = f - center_freq;
 	
 	if (ddc_freq < -limit) {
-		current_freq = current_freq + ddc_freq + limit;
+		center_freq = center_freq + ddc_freq + limit;
+		receiver_model.set_tuning_frequency(center_freq);
+
 		ddc_freq = -limit;
 	} else if (ddc_freq > limit) {
-		current_freq = current_freq + ddc_freq - limit;
+		center_freq = center_freq + ddc_freq - limit;
+		receiver_model.set_tuning_frequency(center_freq);
+
 		ddc_freq = limit;
 	}
-	
-	DDCConfigMessage packet_message { ddc_freq };
-	shared_memory.application_queue.push(packet_message);
 
-	baseband::set_ddc_freq(ddc_freq);
-	receiver_model.set_tuning_frequency(current_freq);
+	update_ddc(ddc_freq);
 }
 
 void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
@@ -444,6 +451,10 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 		break;
 	}
 	record_view.set_sampling_rate(sampling_rate);
+
+	center_freq = current_freq;	
+	receiver_model.set_tuning_frequency(center_freq);
+	update_ddc(0);
 
 	if( !is_wideband_spectrum_mode ) {
 		audio::output::unmute();
