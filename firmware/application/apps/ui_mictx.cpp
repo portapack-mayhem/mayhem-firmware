@@ -163,7 +163,7 @@ void MicTXView::rxaudio(bool is_on) {
 			baseband::run_image(portapack::spi_flash::image_tag_am_audio);
 			receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);	// that AM demodulation engine is common to all Amplitude mod : AM/USB/LSB/DSB (2,3,4,5)	
 			if (options_mode.selected_index() < 5)       // We will be called here with 2,3,4,5 . We treat here demod. filter 2,3,4; (excluding DSB-C case (5) it is treated more down).  
-				receiver_model.set_am_configuration(options_mode.selected_index() - 2);  // selecting proper filter(2,3,4). 2-2=0=>6k-AM(0) , 3-2=1=>+3k-USB(1), 4-2=2=>-3K-LSB(2),
+				receiver_model.set_am_configuration(options_mode.selected_index() - 1);  // selecting proper filter(2,3,4). 2-1=1=>6k-AM(1) , 3-1=2=>+3k-USB(2), 4-1=3=>-3K-LSB(3),
 		}
 		else {    // We are in NFM/FM or WFM    (NFM BW:8k5 or 11k / FM BW 16k  / WFM  BW:200k) 
 			
@@ -423,7 +423,8 @@ MicTXView::MicTXView(
 				set_dirty();							// Refresh display	
 				options_tone_key.hidden(1);				// we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
 				
-				rxbw.emplace_back("  6k-AM    ", 0);		// locked a fixed option , to display it .
+				rxbw.emplace_back(" DSB1-9k   ", 0);		// we offer in AM DSB two audio BW 9k / 6k  .
+				rxbw.emplace_back(" DSB2-6k   ", 1);		
 				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
 	
 				field_rxbw.hidden(0);					// we show fixed RX  AM BW 6Khz 
@@ -436,7 +437,7 @@ MicTXView::MicTXView(
 				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
 				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
 
-				rxbw.emplace_back("  3k-USB   ", 0);		// locked a fixed option , to display it .
+				rxbw.emplace_back("  USB+3k   ", 0);		// locked a fixed option , to display it .
 				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
 
 				set_dirty();							// Refresh display
@@ -447,7 +448,7 @@ MicTXView::MicTXView(
 				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
 				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
 				
-				rxbw.emplace_back("  3k-LSB   ", 0);		// locked a fixed option , to display it .
+				rxbw.emplace_back("  LSB-3k   ", 0);		// locked a fixed option , to display it .
 				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
 				
 				set_dirty();							// Refresh display
@@ -457,8 +458,8 @@ MicTXView::MicTXView(
 				rxaudio(rx_enabled); 					//Update now if we have RX audio on
 				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
 			
-				rxbw.emplace_back("SSB1:3k-USB", 0); 		// added dynamically two options (index 0,1) to that DSB-C case to the  field_rxbw value.
-				rxbw.emplace_back("SSB2:3k-LSB", 1);
+				rxbw.emplace_back("SSB1:USB+3k", 0); 	// added dynamically two options (index 0,1) to that DSB-C case to the  field_rxbw value.
+				rxbw.emplace_back("SSB2:LSB-3k", 1);
 		
 				field_rxbw.set_options(rxbw);			// store that aux GUI option to the field_rxbw.
 
@@ -542,9 +543,13 @@ MicTXView::MicTXView(
 				// In Previous fw versions, that nbfm_configuration(n)  was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM) 
 				receiver_model.set_nbfm_configuration(v ); // we are in  NFM/FM case, we need to  select proper NFM/FM RX channel filter , NFM BW 8K5(0), NFM BW 11K(1) , FM BW 16K (2)
 		}
-		else {					// we are not in  NFM/FM mode  .(we could be in any of the rest : AM /USB/LSB/DSB-C)
-			if (enable_dsb) { 	// we are in DSB-SC in TX mode , we will allow both independent RX SSB demodulation (USB / LSB side band)
-				receiver_model.set_am_configuration(v +1 );  // we are in DSB-C TX mode , we need to  select proper SSB filter. 0+1 =>usb(1), 1+1=2 =>lsb(2),
+		else {					// we are not in  NFM/FM mode  .(we could be in any of the rest : AM /USB/LSB/DSB-SC)
+			if (enable_am) { 	// we are in AM TX mode , we will allow both independent RX audio BW :  AM 9K (9K00AE3 / AM 6K (6K00AE3). (In AM option v can be 0 (9k) , 1 (6k) 
+				receiver_model.set_am_configuration(v );  // we are in AM TX mode , we need to  select proper AM full path config AM-9K filter. 0+0 =>AM-9K(0), 0+1=1 =>AM-6K(1),
+			} 
+	
+			if (enable_dsb) { 	// we are in DSB-SC in TX mode , we will allow both independent RX SSB demodulation (USB / LSB side band). in that submenu, v is 0 (SSB1 USB) or 1 (SSB2 LSB)
+				receiver_model.set_am_configuration(v +2 );  // we are in DSB-SC TX mode , we need to  select proper SSB filter. 0+2 =>usb(2), 1+2=3 =>lsb(3),
 			} 
 		}		 
 	};
