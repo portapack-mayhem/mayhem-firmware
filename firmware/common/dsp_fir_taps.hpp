@@ -247,20 +247,20 @@ constexpr fir_taps_real<32> taps_6k0_decim_2 {
 	} },
 }; 
 
-// IFIR prototype filter fs=48000 ; pass=4500 , stop=7800, decim=4, fout=12000
-// For Europe AM commercial  broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivated from taps_6k0_decim_2 ): 
-// Pre-decimate LPF FIR filter design Created by SciPy Python with the "window method", num_taps = 32, cut_off = 4950. sample_rate = 48000 # Hz, 
-// Created with h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',49)) , achieving good  STOP band plot < -60 dB's with some ripple.
-// post-escaled h taps to avoid decimals , targetting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15) and similar H(f)gain
+// IFIR prototype filter fs=48000 ; pass=4500 (cutt off -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
+// For Europe AM commercial  broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivated from taps_6k0_decim_2 ) 
+// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cut_off = 5150. sample_rate = 48000 # Hz, 
+// Created with h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
+// post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15) and similar H(f)gain
 constexpr fir_taps_real<32> taps_9k0_decim_2 {
 	.low_frequency_normalized  = -4500.0f / 48000.0f,	// Negative -cutt off freq -3dB (real achieved data ,in the plot and measurements)
 	.high_frequency_normalized =  4500.0f / 48000.0f,	// Positive +cutt off freq -3dB (idem) 
-	.transition_normalized     =  3300.0f / 48000.0f,	// 3300 Hz = (7800 Hz - 4500 Hz) (both from plot H(f) curve plot)
+	.transition_normalized     =  3500.0f / 48000.0f,	// 3500 Hz = (8000 Hz - 4500 Hz) (both from plot H(f) curve plot)
 	.taps = { {
-			  -40,     	3,	    98,   239,   340,   266,   -96,  -726,
-			-1391, 	-1659, 	 -1041,   772,  3691,  7156, 10271, 12118,
-			12118, 	10271,	  7156,  3691,   772, -1041, -1659, -1391,
-			 -726,    -96,	   266,   340,   239,    98,     3,   -40 
+			  -53, 	  -30, 	   47,    198, 	 355, 	372,    89,	 -535,
+		 	-1307, 	-1771, 	-1353, 	  370, 	3384,  7109, 10535, 12591, 
+			12591,  10535,   7109, 	 3384, 	 370, -1353, -1771, -1307, 
+			 -535, 	   89, 	  372, 	  355,   198,    47,   -30,   -53
 	} },
 };
 
@@ -292,32 +292,32 @@ constexpr fir_taps_complex<64> taps_6k0_dsb_channel {
 	} },
 };
 
-// Channel filter: fs=12000, pass=4450, stop=4800, decim=1, fout=12000   (4k45 selected = aprox 4k5, after several iterative plot H(f) test, best trade off curve)
+// Channel filter: fs=12000, pass=4500 (cutt off -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
 // For Europe AM commercial broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivative from  taps_6k0_dsb_channel) 
-// FIR filter design created by SciPy Python with the "window method"; num_taps = 64, cut_off = 4450. sample_rate = 12000 # Hz, 
-// Created with : h=signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)), achieving good STOP band plot  < -60 dB's with some ripple.
-// post-escaled h taps to avoid decimals , targetting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15), (29253)  and similar H(f)gain
+// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cut_off = 4575. sample_rate = 12000 # Hz, 
+// Created with : h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
+// post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15), (29625)  and similar H(f)gain
 constexpr fir_taps_complex<64> taps_9k0_dsb_channel {
 	.low_frequency_normalized  = -4500.0f / 12000.0f,  	// Negative -cutt off freq -3dB (in the H(f) curve plot)
 	.high_frequency_normalized =  4500.0f / 12000.0f,  	// Positive +cutt off freq -3dB (in the H(f) curve plot) 
-	.transition_normalized     =   350.0f / 12000.0f,	// 350Hz = (4800 Hz -4450 Hz)  cut-3dB's (both data comes from H(f) curve plot and confirmed by  measurements )
+	.transition_normalized     =   440.0f / 12000.0f,	// 440Hz = (4940 Hz -4500 Hz)  cut-3dB's (both data comes from H(f) curve plot and confirmed by  measurements )
 	.taps = { {
-		{    -34,      0 }, {     23,      0 }, {    -13,      0 }, {    -19,      0 },
-		{     55,      0 }, {    -65,      0 }, {     25,      0 }, {     59,      0 },
-		{   -137,      0 }, {    141,      0 }, {    -35,      0 }, {   -146,      0 },
-		{    287,      0 }, {   -262,      0 }, {     26,      0 }, {    317,      0 },
-		{   -544,      0 }, {    441,      0 }, {     29,      0 }, {   -638,      0 },
-		{    980,      0 }, {   -707,      0 }, {   -191,      0 }, {   1272,      0 },
-		{  -1805,      0 }, {   1175,      0 }, {    660,      0 }, {  -2934,      0 },
-		{   4214,      0 }, {  -2774,      0 }, {  -3655,      0 }, {  29253,      0 },
-		{  29253,      0 }, {  -3655,      0 }, {  -2774,      0 }, {   4214,      0 },
-		{  -2934,      0 }, {    660,      0 }, {   1175,      0 }, {  -1805,      0 },
-		{   1272,      0 }, {   -191,      0 }, {   -707,      0 }, {    980,      0 },
-		{   -638,      0 }, {     29,      0 }, {    441,      0 }, {   -544,      0 },
-		{    317,      0 }, {     26,      0 }, {   -262,      0 }, {    287,      0 },
-		{   -146,      0 }, {    -35,      0 }, {    141,      0 }, {   -137,      0 },
-		{     59,      0 }, {     25,      0 }, {    -65,      0 }, {     55,      0 },
-		{    -19,      0 }, {    -13,      0 }, {     23,      0 }, {    -34,      0 },
+		{      2,      0 }, {    -18,      0 }, {     34,      0 }, {    -33,      0 },
+		{      6,      0 }, {     44,      0 }, {    -91,      0 }, {     96,      0 },
+		{    -35,      0 }, {    -80,      0 }, {    193,      0 }, {   -223,      0 },
+		{    116,      0 }, {    112,      0 }, {   -353,      0 }, {    452,      0 },
+		{   -293,      0 }, {   -111,      0 }, {    584,      0 }, {   -844,      0 },
+		{    653,      0 }, {     22,      0 }, {   -921,      0 }, {   1554,      0 },
+		{  -1422,      0 }, {    301,      0 }, {   1533,      0 }, {  -3282,      0 },
+		{   3804,      0 }, {  -1819,      0 }, {  -4605,      0 }, {  29625,      0 },
+		{  29625,      0 }, {  -4605,      0 }, {  -1819,      0 }, {   3804,      0 },
+		{  -3282,      0 }, {   1533,      0 }, {    301,      0 }, {  -1422,      0 },
+		{   1554,      0 }, {   -921,      0 }, {     22,      0 }, {    653,      0 },
+		{   -844,      0 }, {    584,      0 }, {   -111,      0 }, {   -293,      0 },
+		{    452,      0 }, {   -353,      0 }, {    112,      0 }, {    116,      0 },
+		{   -223,      0 }, {    193,      0 }, {    -80,      0 }, {    -35,      0 },
+		{     96,      0 }, {    -91,      0 }, {     44,      0 }, {      6,      0 },
+		{    -33,      0 }, {     34,      0 }, {    -18,      0 }, {      2,      0 },
 	} },
 };
 
