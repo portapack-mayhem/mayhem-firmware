@@ -34,10 +34,11 @@ options_t freqman_entry_modulations = {
 
 options_t freqman_entry_bandwidths[ 4 ] = {
     { //AM
-        { "DSB", 0 },
-        { "USB", 1 },
-        { "LSB", 2 },
-        { "CW" , 3 }
+        { "DSB+9k" , 0 },
+        { "DSB+6k" , 1 },
+        { "USB+3k" , 2 },
+        { "LSB-3k" , 3 },
+        { "CW"     , 4 }
     },
     { //NFM
         { "8k5" , 0 },

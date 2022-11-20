@@ -1690,7 +1690,7 @@ namespace ui {
                 break;
             case WFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
-                //bw 16k (0) only/default
+                //bw 200k (0) only/default
                 field_bw.set_selected_index(0);
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
