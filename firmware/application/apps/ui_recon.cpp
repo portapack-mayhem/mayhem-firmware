@@ -1000,23 +1000,32 @@ namespace ui {
                 delete_file( "FREQMAN/"+output_file+".TXT" );
             }
 
-            if( recon_thread )
-            {
-                recon_thread->set_freq_index( current_index );
-                timer = 0 ;
+	    if( recon_thread )
+	    {
+		timer = 0 ;
+		
+		recon_thread->set_freq_index( current_index );
+		
+		RetuneMessage message { };
+		receiver_model.set_tuning_frequency( frequency_list[ current_index ] . frequency_a );	// Retune
+		message.freq = frequency_list[ current_index ] . frequency_a ;
+		message.range = current_index ;
+		EventDispatcher::send_message(message);
+		
+		chThdSleepMilliseconds( recon_lock_duration ); // give some time to Thread::Run to pause
+							       
+		if( previous_userpause )
+		{
+		    user_pause();
+		}
+		else
+		{
+		    user_resume();
+		}
 
-                if( previous_userpause )
-                {
-                    user_pause();
-                }
-                else
-                {
-                    user_resume();
-                }
-                recon_thread->set_recon( previous_is_recon );
-                recon_thread->set_freq_delete(false);
-                chThdSleepMilliseconds( recon_lock_duration ); // give some time to Thread::Run to pause
-            }
+		recon_thread->set_freq_delete(false);
+		recon_thread->set_recon( previous_is_recon );
+	    }
         };
 
         button_remove.on_change = [this]() {
