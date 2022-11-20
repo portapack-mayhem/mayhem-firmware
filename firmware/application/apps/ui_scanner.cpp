@@ -533,8 +533,7 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		bw.emplace_back("DSB+6k" , 1 );
 		bw.emplace_back("USB+3k" , 2 );
 		bw.emplace_back("LSB-3k" , 3 );
-		bw.emplace_back("LSB-3k" , 4 );
-		bw.emplace_back("CW    " , 5 );
+		bw.emplace_back("CW    " , 4 );
 
 		field_bw.set_options(bw);
 
