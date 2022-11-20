@@ -529,10 +529,12 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
 		break;
 	case AM:
-		bw.emplace_back("DSB", 0);
-		bw.emplace_back("USB", 0);
-		bw.emplace_back("LSB", 0);
-		bw.emplace_back("CW ", 0);
+		bw.emplace_back("DSB 9k" , 0 );
+		bw.emplace_back("DSB 6k" , 1 );
+		bw.emplace_back("USB+3k" , 2 );
+		bw.emplace_back("LSB-3k" , 3 );
+		bw.emplace_back("CW    " , 4 );
+
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_am_audio);

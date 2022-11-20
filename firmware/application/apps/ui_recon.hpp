@@ -207,7 +207,7 @@ namespace ui {
             Labels labels 
             { 
                 { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey() },
-                    { { 0  * 8 , 1  * 16      }, "BW:    SQ:    W,L:     ,     ", Color::light_grey() },
+                    { { 0  * 8 , 1  * 16      }, "BW:      SQ:    W,L:     ,     ", Color::light_grey() },
                     { { 3  * 8 , 10 * 16      }, "START       END     MANUAL", Color::light_grey() },
                     { { 0  * 8 , (26 * 8) + 4 }, "MODE:", Color::light_grey() },
                     { { 11 * 8 , (26 * 8) + 4 }, "STEP:", Color::light_grey() },
@@ -235,12 +235,12 @@ namespace ui {
 
             OptionsField field_bw {
                 { 3 * 8, 1 * 16 },
-                    4,
+                    6,
                     { }
             };		
 
             NumberField field_squelch {
-                { 10 * 8, 1 * 16 },
+                { 12 * 8, 1 * 16 },
                     3,
                     { -90, 20 },
                     1,
@@ -248,7 +248,7 @@ namespace ui {
             };
 
             NumberField field_wait {
-                { 18 * 8, 1 * 16 },
+                { 20 * 8, 1 * 16 },
                     5,
                     { -9000, 9000 },
                     100,
@@ -256,7 +256,7 @@ namespace ui {
             };
 
             NumberField field_lock_wait {
-                { 24 * 8, 1 * 16 },
+                { 26 * 8, 1 * 16 },
                     4,
                     { 100 , 9000 },
                     100,
