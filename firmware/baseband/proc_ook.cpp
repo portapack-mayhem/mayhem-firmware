@@ -49,11 +49,11 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 						} else if (pause_counter == 1) {
 							if (repeat_counter < repeat) {
 								// Repeat
-								bit_pos = 0;
 								cur_bit = shared_memory.bb_data.data[0] & 0x80;
 								txprogress_message.progress = repeat_counter + 1;
 								txprogress_message.done = false;
 								shared_memory.application_queue.push(txprogress_message);
+								bit_pos = 1;
 								repeat_counter++;
 							} else {
 								// Stop
