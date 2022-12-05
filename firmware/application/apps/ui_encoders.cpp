@@ -252,7 +252,7 @@ void EncodersView::start_tx(const bool scan) {
 		scan_width = view_scan.field_length.value();
 		samples_per_bit =
 			((view_scan.bit_length_10.value() * 10 + view_scan.bit_length.value()) * OOK_SAMPLERATE) / 1000000UL;
-		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * samples_per_bit / 2048;
+		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * ((uint64_t) samples_per_bit) / 2048UL;
 		progressbar.set_max(seq_len);
 		repeat_min = seq_len;
 	} else {
