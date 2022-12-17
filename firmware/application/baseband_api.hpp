@@ -62,7 +62,7 @@ void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint1
 void kill_tone();
 void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration);
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain,
-			uint8_t audio_shift_bits_s16, const uint32_t tone_key_delta, const bool am_enabled, 
+			uint8_t audio_shift_bits_s16, const uint32_t tone_key_delta, const bool am_enabled,
 			const bool dsb_enabled,	const bool usb_enabled, const bool lsb_enabled);
 void set_fifo_data(const int8_t * data);
 void set_pitch_rssi(int32_t avg, bool enabled);
@@ -77,7 +77,8 @@ void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
 
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
-					const uint32_t pause_symbols);
+					const uint32_t pause_symbols, const uint8_t de_bruijn_length = 0);
+void kill_ook();
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift,
 					const uint32_t progress_notice);
 void set_pocsag();
