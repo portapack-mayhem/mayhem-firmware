@@ -209,7 +209,7 @@ public:
 	
 	void focus() override;
 	
-	void update_position(const float lat, const float lon, const uint16_t angle);
+	void update_position(float lat, float lon, uint16_t angle, int32_t altitude);
 	
 	std::string title() const override { return "Map view"; };
 

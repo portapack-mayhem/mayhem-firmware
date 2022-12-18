@@ -27,8 +27,6 @@
 #include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include "event_m4.hpp"
-
 #include <algorithm>
 
 void SpectrumCollector::on_message(const Message* const message) {
@@ -107,22 +105,22 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 
 template<typename T>
 static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
-	static_assert(power_of_two(s.size()), "Array size must be power of 2");
+static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
 	return s[i];
 };
 
 template<typename T>
 static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
-	static_assert(power_of_two(s.size()), "Array size must be power of 2");
-	constexpr size_t mask = s.size() - 1;
+    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
+	const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
 	// Three point Hamming window.
 	return s[i] * 0.54f + (s[(i-1) & mask] + s[(i+1) & mask]) * -0.23f;
 };
 
 template<typename T>
 static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
-	static_assert(power_of_two(s.size()), "Array size must be power of 2");
-	constexpr size_t mask = s.size() - 1;
+    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
+    const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
 	// Three term Blackman window.
 	constexpr float alpha = 0.42f;
 	constexpr float beta = 0.5f * 0.5f;

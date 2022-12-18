@@ -22,6 +22,7 @@
 #include "ais_app.hpp"
 
 #include "string_format.hpp"
+#include "database.hpp"
 
 #include "baseband_api.hpp"
 
@@ -59,7 +60,26 @@ static float latlon_float(const int32_t normalized) {
 static std::string mmsi(
 	const ais::MMSI& mmsi
 ) {
-	return to_string_dec_uint(mmsi, 9);
+	return to_string_dec_uint(mmsi, 9, '0'); // MMSI is always is always 9 characters pre-padded with zeros
+}
+
+
+static std::string mid(
+	const ais::MMSI& mmsi
+) {
+	std::database 			db;
+	std::string 			mid_code = "";
+	std::database::MidDBRecord 	mid_record = {};
+	int 				return_code = 0;
+
+	// Try getting the country name from mids.db using MID code for given MMSI
+	mid_code = to_string_dec_uint(mmsi, 9, ' ').substr(0, 3);
+	return_code = db.retrieve_mid_record(&mid_record, mid_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 	return mid_record.country;	
+		case DATABASE_NOT_FOUND: 	return "No mids.db file";
+		default:			return "";
+	}
 }
 
 static std::string navigational_status(const unsigned int value) {
@@ -234,13 +254,23 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 		
 	};
-	
-	
+}
+
+
+AISRecentEntryDetailView::AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry) : View()
+{
+    (void)Entry;
+}
+
+AISRecentEntryDetailView & AISRecentEntryDetailView::operator=(const AISRecentEntryDetailView&Entry) 
+{
+    (void)Entry;
+    return *this;
 }
 
 void AISRecentEntryDetailView::update_position() {
 	if (send_updates)
-		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading);
+		geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0);
 }
 
 void AISRecentEntryDetailView::focus() {
@@ -271,6 +301,7 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 	auto field_rect = Rect { rect.left(), rect.top() + 16, rect.width(), 16 };
 
 	field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
+	field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
 	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
 	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
@@ -304,20 +335,24 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 		&recent_entry_detail_view,
 	});
 
+
+	// load app settings
+	auto rc = settings.load("rx_ais", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		target_frequency_ = app_settings.rx_frequency;
+	}
+	else target_frequency_ = initial_target_frequency;
+
 	recent_entry_detail_view.hidden(true);
 
-	target_frequency_ = initial_target_frequency;
-
-	radio::enable({
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	});
-
+    	receiver_model.set_tuning_frequency(tuning_frequency());
+    	receiver_model.set_sampling_rate(sampling_rate);
+    	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    	receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+	
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
@@ -337,7 +372,12 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 }
 
 AISAppView::~AISAppView() {
-	radio::disable();
+
+	// save app settings
+	app_settings.rx_frequency = target_frequency_;
+	settings.save("rx_ais", &app_settings);
+
+	receiver_model.disable();   // to switch off all, including DC bias.
 
 	baseband::shutdown();
 }

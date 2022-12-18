@@ -72,7 +72,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
 		to_string_dec_uint((unsigned int)(entry.amp>>9),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
-		to_string_dec_uint(entry.age, 3);
+		to_string_dec_uint(entry.age, 4);
 #endif
 	
 	painter.draw_string(
@@ -90,6 +90,117 @@ void ADSBLogger::log_str(std::string& logline) {
 	rtcGetTime(&RTCD1, &datetime);
 	log_file.write_entry(datetime,logline);
 }
+
+
+// Aircraft Details
+void ADSBRxAircraftDetailsView::focus() {
+	button_close.focus();
+}
+
+ADSBRxAircraftDetailsView::~ADSBRxAircraftDetailsView() {
+	on_close_();
+}
+
+ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
+	NavigationView& nav,
+	const AircraftRecentEntry& entry,
+	const std::function<void(void)> on_close
+) : entry_copy(entry),
+	on_close_(on_close)
+{	
+	
+	add_children({
+		&labels,
+		&text_icao_address,
+		&text_registration,
+		&text_manufacturer,
+		&text_model,
+		&text_type,
+		&text_number_of_engines,
+		&text_engine_type,
+		&text_owner,
+		&text_operator,
+		&button_close
+	});
+	
+	std::unique_ptr<ADSBLogger> logger { };
+	//update(entry_copy);
+
+
+	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+	// Try getting the aircraft information from icao24.db
+	return_code = db.retrieve_aircraft_record(&aircraft_record, icao_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_registration.set(aircraft_record.aircraft_registration);
+			text_manufacturer.set(aircraft_record.aircraft_manufacturer);
+			text_model.set(aircraft_record.aircraft_model);	
+			text_owner.set(aircraft_record.aircraft_owner);
+			text_operator.set(aircraft_record.aircraft_operator);
+			// Check for ICAO type, e.g. L2J
+			if(strlen(aircraft_record.icao_type) == 3) {
+				switch(aircraft_record.icao_type[0]) {
+					case 'L': 
+						text_type.set("Landplane"); 
+						break;
+					case 'S': 
+						text_type.set("Seaplane"); 
+						break;
+					case 'A': 
+						text_type.set("Amphibian"); 
+						break;
+					case 'H': 
+						text_type.set("Helicopter"); 
+						break;
+					case 'G': 
+						text_type.set("Gyrocopter"); 
+						break;
+					case 'T': 
+						text_type.set("Tilt-wing aircraft"); 
+						break;					
+				}
+				text_number_of_engines.set(std::string(1, aircraft_record.icao_type[1]));
+				switch(aircraft_record.icao_type[2]) {
+					case 'P': 
+						text_engine_type.set("Piston engine"); 
+						break;
+					case 'T': 
+						text_engine_type.set("Turboprop/Turboshaft engine"); 
+						break;
+					case 'J': 
+						text_engine_type.set("Jet engine"); 
+						break;
+					case 'E': 
+						text_engine_type.set("Electric engine"); 
+						break;
+				}
+
+			}
+			// Check for ICAO type designator
+			else if(strlen(aircraft_record.icao_type) == 4) {
+				if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"BALL") == 0) text_type.set("Balloon");
+				else if(strcmp(aircraft_record.icao_type,"GLID") == 0) text_type.set("Glider / sailplane");
+				else if(strcmp(aircraft_record.icao_type,"ULAC") == 0) text_type.set("Micro/ultralight aircraft");
+				else if(strcmp(aircraft_record.icao_type,"GYRO") == 0) text_type.set("Micro/ultralight autogyro");
+				else if(strcmp(aircraft_record.icao_type,"UHEL") == 0) text_type.set("Micro/ultralight helicopter");
+				else if(strcmp(aircraft_record.icao_type,"SHIP") == 0) text_type.set("Airship");
+				else if(strcmp(aircraft_record.icao_type,"PARA") == 0) text_type.set("Powered parachute/paraplane");
+			}
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_manufacturer.set("No icao24.db file");
+			break;	
+	}
+	button_close.on_select =  [&nav](Button&){
+		nav.pop();
+	};
+
+};
+
+// End of Aicraft details
 
 void ADSBRxDetailsView::focus() {
 	button_see_map.focus();
@@ -116,7 +227,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	if (send_updates)
 	{
 		geomap_view->update_tag(entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6));
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading, entry_copy.pos.altitude);
 	}
 }
 
@@ -131,13 +242,10 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 ) : entry_copy(entry),
 	on_close_(on_close)
 {
-	char file_buffer[32] { 0 };
-	bool found = false;
-	std::string airline_code;
-	size_t c;
-	
+
 	add_children({
 		&labels,
+		&text_icao_address,
 		&text_callsign,
 		&text_last_seen,
 		&text_airline,
@@ -146,6 +254,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 		&text_info2,
 		&text_frame_pos_even,
 		&text_frame_pos_odd,
+		&button_aircraft_details,
 		&button_see_map
 	});
 	
@@ -154,40 +263,34 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 
 	// The following won't (shouldn't !) change for a given airborne aircraft
 	// Try getting the airline's name from airlines.db
-	auto result = db_file.open("ADSB/airlines.db");
-	if (!result.is_valid()) {
-		// Search for 3-letter code in 0x0000~0x2000
-		airline_code = entry_copy.callsign.substr(0, 3);
-		c = 0;
-		do {
-			db_file.read(file_buffer, 4);
-			if (!file_buffer[0])
-				break;
-			if (!airline_code.compare(0, 4, file_buffer))
-				found = true;
-			else
-				c++;
-		} while (!found);
-		
-		if (found) {
-			db_file.seek(0x2000 + (c << 6));
-			db_file.read(file_buffer, 32);
-			text_airline.set(file_buffer);
-			db_file.read(file_buffer, 32);
-			text_country.set(file_buffer);
-		} else {
-			text_airline.set("Unknown");
-			text_country.set("Unknown");
-		}
-	} else {
-		text_airline.set("No airlines.db file");
-		text_country.set("No airlines.db file");
+	airline_code = entry_copy.callsign.substr(0, 3);
+	return_code = db.retrieve_airline_record(&airline_record, airline_code);
+	switch(return_code) {
+		case DATABASE_RECORD_FOUND: 
+			text_airline.set(airline_record.airline);
+			text_country.set(airline_record.country);	
+			break;
+		case DATABASE_NOT_FOUND: 
+			text_airline.set("No airlines.db file");
+			break;
 	}
-	
+
+
 	text_callsign.set(entry_copy.callsign);
-	
+	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+
+        button_aircraft_details.on_select = [this, &nav](Button&) {
+		//detailed_entry_key = entry.key();
+		aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(
+			entry_copy,
+			[this]() {
+				send_updates = false;
+			});
+		send_updates = false;
+	};
+
 	button_see_map.on_select = [this, &nav](Button&) {
-		if (!send_updates) { // Prevent recursivley launching the map
+		if (!send_updates) { // Prevent recursively launching the map
 			geomap_view = nav.push<GeoMapView>(
 				entry_copy.callsign[0]!=' ' ? entry_copy.callsign : to_string_hex(entry_copy.ICAO_address, 6),
 				entry_copy.pos.altitude,
@@ -203,13 +306,18 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	};
 };
 
+
 void ADSBRxView::focus() {
 	field_vga.focus();
 }
 
 ADSBRxView::~ADSBRxView() {
-	receiver_model.set_tuning_frequency(prevFreq);
 
+	// save app settings
+	settings.save("rx_adsb", &app_settings);
+
+	//TODO: once all apps keep there own settin previous frequency logic can be removed
+	receiver_model.set_tuning_frequency(prevFreq);
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	receiver_model.disable();
 	baseband::shutdown();
@@ -377,6 +485,21 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 		&recent_entries_view
 	});
 	
+
+	// load app settings
+	auto rc = settings.load("rx_adsb", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+	}
+	else
+	{
+		field_lna.set_value(40);
+		field_vga.set_value(40);
+	}
+
+
 	recent_entries_view.set_parent_rect({ 0, 16, 240, 272 });
 	recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
 		detailed_entry_key = entry.key();
@@ -397,8 +520,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 	baseband::set_adsb();
 	
 	receiver_model.set_tuning_frequency(1090000000);
-	field_lna.set_value(40);
-	field_vga.set_value(40);
 	receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
 	receiver_model.set_sampling_rate(2000000);
 	receiver_model.set_baseband_bandwidth(2500000);

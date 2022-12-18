@@ -27,7 +27,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
-
+#include "app_settings.hpp"
 #include "portapack.hpp"
 #include "message.hpp"
 #include "volume.hpp"
@@ -67,6 +67,10 @@ private:
 	std::string message { };
 	uint32_t time_units { 0 };
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	enum modulation_t {
 		CW = 0,
 		FM = 1

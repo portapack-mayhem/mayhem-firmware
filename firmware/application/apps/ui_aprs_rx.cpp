@@ -98,6 +98,15 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect) : View(parent_rect
 		&console
 	});
 	
+	// load app settings
+	auto rc = settings.load("rx_aprs", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+	}
+
+
 	// DEBUG
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
@@ -108,12 +117,12 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect) : View(parent_rect
 	options_region.on_change = [this](size_t, int32_t i) {		
 		if (i == 0){
 			field_frequency.set_value(144390000);			
-		}
-		if(i == 1){
+		} else if(i == 1){
 			field_frequency.set_value(144800000);
-		}
-		if(i == 2){
+		} else if(i == 2){
 			field_frequency.set_value(145175000);
+		} else if(i == 3){
+			field_frequency.set_value(144575000);
 		}		
 	};
 	
@@ -211,6 +220,10 @@ void APRSRxView::on_show(){
 }
 
 APRSRxView::~APRSRxView() {
+
+	// save app settings
+	settings.save("rx_aprs", &app_settings);
+
 	audio::output::stop();
 	receiver_model.disable();
 	baseband::shutdown();
@@ -351,7 +364,7 @@ void APRSDetailsView::update() {
 	}	
 	
 	if (send_updates)
-		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0);
+		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0, 0);
 }
 
 APRSDetailsView::~APRSDetailsView() {

@@ -197,12 +197,12 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
 	return directory_list;
 }
 
-void delete_file(const std::filesystem::path& file_path) {
-	f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()));
+uint32_t delete_file(const std::filesystem::path& file_path) {
+	return f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()));
 }
 
-void rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name) {
-	f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str()));
+uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name) {
+	return f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str()));
 }
 
 FATTimestamp file_created_date(const std::filesystem::path& file_path) {

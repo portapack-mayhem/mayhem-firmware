@@ -259,7 +259,7 @@ private:
 	bool valid_checksum = false;
 	uint8_t payload[256];
 	char address_buffer[15];
-	uint8_t payload_size;
+	uint8_t payload_size = 0 ;
 	Timestamp timestamp_ { };
 
 	float parse_lat_str_cmp(const std::string& lat_str){
