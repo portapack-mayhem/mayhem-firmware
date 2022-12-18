@@ -44,7 +44,7 @@ public:
 	void set_parent_rect(const Rect new_parent_rect) override;
 	void focus() override;
 
-	std::string title() const override { return "GPS Simulator"; };
+	std::string title() const override { return "GPS Sim TX"; };
 	
 private:
 	NavigationView& nav_;
@@ -52,6 +52,8 @@ private:
 	static constexpr ui::Dim header_height = 3 * 16;
 	
 	uint32_t sample_rate = 0;
+	int32_t tx_gain { 47 };
+	bool rf_amp { true }; // aux private var to store temporal, same as Replay App rf_amp user selection.
 	static constexpr uint32_t baseband_bandwidth = 3000000; //filter bandwidth
 	const size_t read_size { 16384 };
 	const size_t buffer_count { 3 };
@@ -76,7 +78,7 @@ private:
 	bool ready_signal { false };
 
 	Labels labels {
-		{ { 10 * 8, 2 * 16 }, "LNA:   A:", Color::light_grey() }
+		{ { 10 * 8, 2 * 16 }, "GAIN   A:", Color::light_grey() }
 	};
 	
 	Button button_open {
@@ -104,11 +106,19 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 2 * 16 },
 	};
-	LNAGainField field_lna {
-		{ 14 * 8, 2 * 16 }
+	NumberField field_rfgain {
+		{ 14 * 8, 2 * 16 },
+		2,
+		{ 0, 47 },
+		1,
+		' '	
 	};
-	RFAmpField field_rf_amp {
-		{ 19 * 8, 2 * 16 }
+	NumberField field_rfamp {     // previously we were using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
+		{ 19 * 8, 2 * 16 },
+		2,
+		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic and Replay App
+		14,
+		' '
 	};
 	Checkbox check_loop {
 		{ 21 * 8, 2 * 16 },

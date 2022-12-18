@@ -34,6 +34,8 @@ namespace tpms {
 
 namespace format {
 
+static bool use_kpa = true;
+
 std::string type(Reading::Type type) {
 	return to_string_dec_uint(toUType(type), 2);
 }
@@ -43,7 +45,11 @@ std::string id(TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-	return to_string_dec_int(pressure.kilopascal(), 3);
+	if(use_kpa){
+		return to_string_dec_int(pressure.kilopascal(), 3);
+	}
+	return to_string_dec_int(pressure.psi(), 3);
+	
 }
 
 std::string temperature(Temperature temperature) {
@@ -142,8 +148,18 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
-		&recent_entries_view,
+		&options_type,
 	});
+
+	// load app settings
+	auto rc = settings.load("rx_tpms", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		options_band.set_by_value(app_settings.rx_frequency);
+	}
+	else options_band.set_by_value(receiver_model.tuning_frequency());
 
 	radio::enable({
 		tuning_frequency(),
@@ -160,6 +176,17 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	};
 	options_band.set_by_value(target_frequency());
 
+	options_type.on_change = [this](size_t, int32_t i) {		
+		if (i == 0){
+			tpms::format::use_kpa = true;
+		} else if (i == 1){
+			tpms::format::use_kpa = false;
+		}	
+		update_type();
+	};
+
+	options_type.set_selected_index(0, true);
+
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
 		logger->append(u"tpms.txt");
@@ -167,6 +194,12 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 }
 
 TPMSAppView::~TPMSAppView() {
+
+
+	// save app settings
+	app_settings.rx_frequency = target_frequency_;
+	settings.save("rx_tpms", &app_settings);
+
 	radio::disable();
 
 	baseband::shutdown();
@@ -176,9 +209,24 @@ void TPMSAppView::focus() {
 	options_band.focus();
 }
 
+void TPMSAppView::update_type() {
+	if (tpms::format::use_kpa){
+		remove_child(&recent_entries_view_psi);
+		add_child(&recent_entries_view_kpa);
+		recent_entries_view_kpa.set_parent_rect(view_normal_rect);
+	} else {
+		remove_child(&recent_entries_view_kpa);
+		add_child(&recent_entries_view_psi);
+		recent_entries_view_psi.set_parent_rect(view_normal_rect);
+	}	
+}
+
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
+
+	view_normal_rect  = { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
+
+	update_type();
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
@@ -191,13 +239,23 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 		const auto reading = reading_opt.value();
 		auto& entry = ::on_packet(recent, TPMSRecentEntry::Key { reading.type(), reading.id() });
 		entry.update(reading);
-		recent_entries_view.set_dirty();
+		
+		if(tpms::format::use_kpa){
+			recent_entries_view_kpa.set_dirty();
+		} else {
+			recent_entries_view_psi.set_dirty();
+		}
 	}
 }
 
 void TPMSAppView::on_show_list() {
-	recent_entries_view.hidden(false);
-	recent_entries_view.focus();
+	if(tpms::format::use_kpa){
+		recent_entries_view_kpa.hidden(false);
+		recent_entries_view_kpa.focus();
+	} else {
+		recent_entries_view_psi.hidden(false);
+		recent_entries_view_psi.focus();
+	}
 }
 
 void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {

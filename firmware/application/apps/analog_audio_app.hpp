@@ -28,10 +28,10 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-
 #include "ui_font_fixed_8x16.hpp"
-
+#include "app_settings.hpp"
 #include "tone_key.hpp"
+
 
 namespace ui {
 
@@ -143,7 +143,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Analog audio"; };
+	std::string title() const override { return "Audio RX"; };
 
 	size_t get_spec_bw_index();
 	void set_spec_bw(size_t index, uint32_t bw);
@@ -153,6 +153,10 @@ public:
 
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
@@ -216,7 +220,10 @@ private:
 
 	RecordView record_view {
 		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		u"AUD_????", RecordView::FileType::WAV, 4096, 4
+		u"AUD",
+		RecordView::FileType::WAV, 
+		4096, 
+		4
 	};
 
 	spectrum::WaterfallWidget waterfall { true };

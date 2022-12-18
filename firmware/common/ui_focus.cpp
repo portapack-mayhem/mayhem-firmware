@@ -142,7 +142,23 @@ static int32_t rect_distances(
 		return -1;
 	}
 
-	return (std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) * (on_axis_distance + 1);
+
+	switch(direction) {
+	case KeyEvent::Right:
+	case KeyEvent::Left:
+		return ((std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) ^ 3) * sqrt((on_axis_distance + 1));
+		break;
+
+	case KeyEvent::Up:
+	case KeyEvent::Down:
+		return (sqrt(std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1)) * ((on_axis_distance + 1) ^ 3);
+		break;
+
+	default:
+		return 0;
+	}
+
+	
 }
 
 void FocusManager::update(
@@ -179,7 +195,14 @@ void FocusManager::update(
 		};
 
 		const auto nearest = std::min_element(collection.cbegin(), collection.cend(), compare_fn);
-		if( nearest != collection.cend() ) {
+		// Up and left to indicate back
+		if (event == KeyEvent::Back) {
+			collection.clear();
+			widget_collect_visible(top_widget, find_back_fn, collection);
+			if (!collection.empty())
+				set_focus_widget(collection[0].first);
+		}
+		else if( nearest != collection.cend() ) {
 			//focus->blur();
 			const auto new_focus = (*nearest).first;
 			set_focus_widget(new_focus);

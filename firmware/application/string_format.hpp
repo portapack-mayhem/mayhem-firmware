@@ -48,6 +48,7 @@ std::string to_string_decimal(float decimal, int8_t precision);
 std::string to_string_hex(const uint64_t n, const int32_t l = 0);
 std::string to_string_hex_array(uint8_t * const array, const int32_t l = 0);
 
+std::string to_string_freq(const uint64_t f);
 std::string to_string_short_freq(const uint64_t f);
 std::string to_string_time_ms(const uint32_t ms);
 

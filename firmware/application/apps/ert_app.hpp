@@ -28,7 +28,7 @@
 #include "ui_channel.hpp"
 
 #include "event_m0.hpp"
-
+#include "app_settings.hpp"
 #include "log_file.hpp"
 
 #include "ert_packet.hpp"
@@ -125,11 +125,16 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "ERT"; };
+	std::string title() const override { return "ERT Meter RX"; };
 
 private:
 	ERTRecentEntries recent { };
 	std::unique_ptr<ERTLogger> logger { };
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 
 	const RecentEntriesColumns columns { {
 		{ "ID", 10 },

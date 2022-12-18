@@ -115,6 +115,10 @@ void AK4951::init() {
 	// update(Register::DigitalFilterMode);
 }
 
+bool AK4951::detected() {
+	return reset();
+}
+
 bool AK4951::reset() {
 	io.audio_reset_state(true);
 

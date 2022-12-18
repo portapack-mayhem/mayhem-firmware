@@ -822,6 +822,8 @@ public:
 	std::string name() const override {
 		return "AK4951";
 	}
+
+	bool detected();
 	
 	void init() override;
 	bool reset() override;

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * Copyright (C) 2017 NotPike
+ * Copyright (C) 2022 NotPike
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +27,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
+
 using namespace portapack;
 using namespace encoders;
 
@@ -45,7 +46,13 @@ void TouchTunesView::stop_tx() {
 	transmitter_model.disable();
 	tx_mode = IDLE;
 	progressbar.set_value(0);
-	text_status.set("Ready");
+
+	// EW Mode Check
+	if(check_ew.value()) {
+		start_ew();
+	} else {
+ 		text_status.set("Ready");
+	}
 }
 
 void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
@@ -72,7 +79,43 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 	}
 }
 
+// EW (Electronic Warfare) Mode will jam the receiving jukebox
+// while still alowing you (the hacker) to send commands
+// to the target jukebox.
+// EW Mode works by transmitting a CW on 433.92MHz inbetween
+// transmission events.
+void TouchTunesView::start_ew() {
+	// Radio
+	transmitter_model.set_tuning_frequency(433920000);
+	transmitter_model.set_sampling_rate(3072000U);
+	transmitter_model.set_rf_amp(true);
+	transmitter_model.set_baseband_bandwidth(3500000U);
+	transmitter_model.set_tx_gain(47);
+	transmitter_model.enable();
+
+	//UI
+	text_status.set("Jamming...");
+	progressbar.set_max(1);
+	progressbar.set_value(1);
+
+}
+
+void TouchTunesView::stop_ew() {
+	// Radio
+	transmitter_model.disable();
+
+	// UI
+	text_status.set("Ready");
+	progressbar.set_value(0);
+}
+
 void TouchTunesView::start_tx(const uint32_t button_index) {
+
+	// Check EW Mode
+	if(check_ew.value()) {
+		stop_ew();
+	}
+
 	std::string fragments = { "" };
 	size_t bit;
 	uint64_t frame_data;
@@ -136,6 +179,7 @@ TouchTunesView::TouchTunesView(
 		&labels,
 		&field_pin,
 		&check_scan,
+		&check_ew,
 		&text_status,
 		&progressbar
 	});
@@ -144,6 +188,15 @@ TouchTunesView::TouchTunesView(
 	
 	field_pin.on_change = [this](int32_t v) {
 		pin = v;
+	};
+
+	// EW Mode
+	check_ew.on_select = [this](Checkbox&, bool v) {
+		if(v){
+			start_ew();
+		} else {
+			stop_ew();
+		}
 	};
 	
 	const auto button_fn = [this](Button& button) {

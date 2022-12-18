@@ -24,6 +24,10 @@
 
 #include "baseband_api.hpp"
 #include "audio.hpp"
+
+#include "wm8731.hpp"
+using wolfson::wm8731::WM8731;
+
 #include "tonesets.hpp"
 #include "portapack_hal.hpp"
 #include "string_format.hpp"
@@ -33,6 +37,10 @@
 
 using namespace tonekey;
 using namespace portapack;
+
+
+WM8731 audio_codec_wm8731 { i2c0, 0x1a };
+
 
 namespace ui {
 
@@ -178,7 +186,7 @@ void MicTXView::rxaudio(bool is_on) {
 
 		baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 		audio::output::stop();
-		audio::input::start();	
+		audio::input::start();	// set up audio input =  mic config of any audio coded AK4951/WM8731, (in WM8731 parameter will be ignored)
 		portapack::pin_i2s0_rx_sda.mode(3);
 		configure_baseband();
 	}
@@ -203,10 +211,12 @@ MicTXView::MicTXView(
 	
 	baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 	
-	add_children({
-		&labels,
+	
+	if (true ) {       // Temporary , disabling ALC feature , (pending to solve -No Audio in Mic app ,in some H2/H2+ WM /QFP100 CPLS users-  if ( audio_codec_wm8731.detected() ) {
+	add_children({		
+		&labels_WM8731,		// we have audio codec WM8731, same MIC menu  as original.
 		&vumeter,
-		&options_gain,
+		&options_gain,		// MIC GAIN float factor on the GUI.
 //		&check_va,
 		&field_va,
 		&field_va_level,
@@ -229,6 +239,37 @@ MicTXView::MicTXView(
 		&field_rxamp,
 		&tx_button
 	});
+    
+	} else {			
+	add_children({
+		&labels_AK4951,		// we have audio codec AK4951, enable Automatic Level Control
+		&vumeter,
+		&options_gain,
+		&options_ak4951_alc_mode,
+//		&check_va,
+		&field_va,
+		&field_va_level,
+		&field_va_attack,
+		&field_va_decay,
+		&field_bw,
+		&field_rfgain,
+		&field_rfamp,
+		&options_mode,
+		&field_frequency,
+		&options_tone_key,
+		&check_rogerbeep,
+		&check_rxactive,
+		&field_volume,
+		&field_rxbw,
+		&field_squelch,
+		&field_rxfrequency,
+		&field_rxlna,
+		&field_rxvga,
+		&field_rxamp,
+		&tx_button
+	});
+	
+	}
 
 	tone_keys_populate(options_tone_key);
 	options_tone_key.on_change = [this](size_t i, int32_t) {
@@ -242,6 +283,12 @@ MicTXView::MicTXView(
 	};
 	options_gain.set_selected_index(1);		// x1.0
 	
+	options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
+	      ak4951_alc_GUI_selected  = v;
+		  audio::input::start();
+	};
+	// options_ak4951_alc_mode.set_selected_index(0);
+	 
 	tx_frequency = transmitter_model.tuning_frequency();
 	field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -294,23 +341,37 @@ MicTXView::MicTXView(
 				enable_dsb = false;
 				field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
 				//if (rx_enabled)
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				options_tone_key.hidden(0);				// we are in FM mode , we should have active the Key-tones & CTCSS option.
+				field_rxbw.hidden(0);					// we are in FM mode,  we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K) 
 				break;
 			case 1:
 				enable_am = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				options_tone_key.set_selected_index(0);	// we are NOT in FM mode ,  we reset the possible previous key-tones &CTCSS selection.
+				set_dirty();							// Refresh display	
+				options_tone_key.hidden(1);				// we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
+				field_rxbw.hidden(1);					// we hide the NFM BW selection in other modes non_FM  (no meaning in AM/DSB/SSB)
+				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
 				break;
 			case 2:
 				enable_usb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
+				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
+				set_dirty();							// Refresh display
 				break;
 			case 3:
 				enable_lsb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.set_value(false);		// reset the possible activation of roger beep, because it is not compatible with SSB , by now. 
+				check_rogerbeep.hidden(1);				// hide that roger beep selection. 
+				set_dirty();							// Refresh display
 				break;
 			case 4:
 				enable_dsb = true;
-				rxaudio(rx_enabled); //Update now if we have RX audio on
+				rxaudio(rx_enabled); 					//Update now if we have RX audio on
+				check_rogerbeep.hidden(0);				// make visible again the "rogerbeep" selection.
 				break;
 		}
 		//configure_baseband();
@@ -478,7 +539,7 @@ MicTXView::MicTXView(
 	set_tx(false);
 	
 	audio::set_rate(audio::Rate::Hz_24000);
-	audio::input::start();
+	audio::input::start();		// originally , audio::input::start();  (we added parameter)
 }
 
 MicTXView::~MicTXView() {

@@ -28,6 +28,7 @@
 #include "ui_transmitter.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "portapack.hpp"
 
 using namespace adsb;
@@ -152,7 +153,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B transmit"; };
+	std::string title() const override { return "ADS-B TX"; };
 
 private:
 	/*enum tx_modes {
@@ -189,6 +190,10 @@ private:
 		-1,
 		-1
 	};*/
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	//tx_modes tx_mode = IDLE;
 	NavigationView& nav_;
