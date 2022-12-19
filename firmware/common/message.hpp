@@ -306,7 +306,7 @@ using ChannelSpectrumFIFO = FIFO<ChannelSpectrum>;
 class ChannelSpectrumConfigMessage : public Message {
 public:
 	static constexpr size_t fifo_k = 2;
-	
+
 	constexpr ChannelSpectrumConfigMessage(
 		ChannelSpectrumFIFO* fifo
 	) : Message { ID::ChannelSpectrumConfig },
@@ -352,7 +352,7 @@ public:
 		packet { packet }
 	{
 	}
-	
+
 	pocsag::POCSAGPacket packet;
 };
 
@@ -378,7 +378,7 @@ public:
 		amp(amp)
 	{
 	}
-	
+
 	adsb::ADSBFrame frame;
 	uint32_t amp;
 };
@@ -393,7 +393,7 @@ public:
 		value { value }
 	{
 	}
-	
+
 	bool is_data;
 	uint32_t value;
 };
@@ -406,7 +406,7 @@ public:
 		value { value }
 	{
 	}
-	
+
 	uint32_t value;
 };
 
@@ -584,7 +584,7 @@ public:
 		used_ += copy_size;
 		return copy_size;
 	}
-	
+
 	size_t read(void* p, const size_t count) {
 		const auto copy_size = std::min(used_, count);
 		memcpy(p, &data_[capacity_ - used_], copy_size);
@@ -595,7 +595,7 @@ public:
 	bool is_full() const {
 		return used_ >= capacity_;
 	}
-	
+
 	bool is_empty() const {
 		return used_ == 0;
 	}
@@ -607,7 +607,7 @@ public:
 	size_t size() const {
 		return used_;
 	}
-	
+
 	size_t capacity() const {
 		return capacity_;
 	}
@@ -700,7 +700,7 @@ public:
 	) : Message { ID::TXProgress }
 	{
 	}
-	
+
 	uint32_t progress = 0;
 	bool done = false;
 };
@@ -719,7 +719,7 @@ public:
 		trigger_word(trigger_word)
 	{
 	}
-	
+
 	const uint32_t baudrate;
 	const uint32_t word_length;
 	const uint32_t trigger_value;
@@ -734,7 +734,7 @@ public:
 		baudrate(baudrate)
 	{
 	}
-	
+
 	const uint32_t baudrate;
 };
 
@@ -788,7 +788,7 @@ public:
 		rssi(rssi)
 	{
 	}
-	
+
 	const bool enabled;
 	const int32_t rssi;
 };
@@ -825,7 +825,7 @@ public:
 		length(length)
 	{
 	}
-	
+
 	const uint16_t length = 0;
 };
 
@@ -835,7 +835,7 @@ public:
 	) : Message { ID::Retune }
 	{
 	}
-	
+
 	int64_t freq = 0;
 	uint32_t range = 0;
 };
@@ -848,7 +848,7 @@ public:
 		sample_rate(sample_rate)
 	{
 	}
-	
+
 	const uint32_t sample_rate = 0;
 };
 
@@ -858,7 +858,7 @@ public:
 	) : Message { ID::AudioLevelReport }
 	{
 	}
-	
+
 	uint32_t value = 0;
 };
 
@@ -868,6 +868,7 @@ public:
 		const uint32_t divider,
 		const float deviation_hz,
 		const float audio_gain,
+		const uint8_t audio_shift_bits_s16,
 		const uint32_t tone_key_delta,
 		const float tone_key_mix_weight,
 		const bool am_enabled,
@@ -878,6 +879,7 @@ public:
 		divider(divider),
 		deviation_hz(deviation_hz),
 		audio_gain(audio_gain),
+		audio_shift_bits_s16(audio_shift_bits_s16),
 		tone_key_delta(tone_key_delta),
 		tone_key_mix_weight(tone_key_mix_weight),
 		am_enabled(am_enabled),
@@ -890,6 +892,7 @@ public:
 	const uint32_t divider;
 	const float deviation_hz;
 	const float audio_gain;
+	const uint8_t audio_shift_bits_s16;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
 	const bool am_enabled;
@@ -961,12 +964,14 @@ public:
 		const uint32_t stream_length,
 		const uint32_t samples_per_bit,
 		const uint8_t repeat,
-		const uint32_t pause_symbols
+		const uint32_t pause_symbols,
+		const uint8_t de_bruijn_length
 	) : Message { ID::OOKConfigure },
 		stream_length(stream_length),
 		samples_per_bit(samples_per_bit),
 		repeat(repeat),
-		pause_symbols(pause_symbols)
+		pause_symbols(pause_symbols),
+		de_bruijn_length(de_bruijn_length)
 	{
 	}
 
@@ -974,6 +979,7 @@ public:
 	const uint32_t samples_per_bit;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
+	const uint8_t de_bruijn_length;
 };
 
 class SSTVConfigureMessage : public Message {
@@ -1014,7 +1020,7 @@ public:
 
 class POCSAGConfigureMessage : public Message {
 public:
-	constexpr POCSAGConfigureMessage() 
+	constexpr POCSAGConfigureMessage()
 	: Message { ID::POCSAGConfigure }
 	{
 	}
@@ -1028,7 +1034,7 @@ public:
 		packet { packet }
 	{
 	}
-	
+
 	aprs::APRSPacket packet;
 };
 

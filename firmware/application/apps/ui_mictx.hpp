@@ -83,7 +83,7 @@ private:
 	bool rx_enabled { false };
 	uint32_t tone_key_index { };
 	float mic_gain { 1.0 };
-    uint8_t  ak4951_alc_GUI_selected { 0 }; 
+    uint8_t  ak4951_alc_and_wm8731_boost_GUI  { 0 }; 
 	uint32_t audio_level { 0 };
 	uint32_t va_level { };
 	uint32_t attack_ms { };
@@ -99,18 +99,21 @@ private:
 	rf::Frequency rx_frequency { 0 };
 	int32_t focused_ui { 2 };
 	bool button_touch { false };
+	uint8_t shift_bits_s16 {4} ; // shift bits factor to the captured ADC S16 audio sample.
 
 	//AM TX Stuff
 	bool enable_am { false };
 	bool enable_dsb { false };
 	bool enable_usb { false };
 	bool enable_lsb { false };
+	bool enable_wfm { false };	// added to distinguish in the FM mode ,  RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
 
 	
 	Labels labels_WM8731 {		
 		{ { 3 * 8, 1 * 8 }, "MIC-GAIN:", Color::light_grey() },
+		{ { 17 * 8, 1 * 8 }, "Boost", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },		// to be more symetric and consistent to the below FM RXBW
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
@@ -120,7 +123,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {15 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },				//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -131,7 +134,7 @@ private:
 		{ { 3 * 8, 1 * 8 }, "MIC-GAIN:", Color::light_grey() },
 		{ { 17 * 8, 1 * 8 }, "ALC", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
-		{ { 15 * 8, 3 * 8 }, "BW:   FM kHz", Color::light_grey() },
+		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },
 		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
 		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
@@ -140,8 +143,8 @@ private:
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
-		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {15 * 8, 23 * 8 }, "FM RXBW:", Color::light_grey() },
+		{ { (6 * 8)+4, 23 * 8 }, "VOL:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },			//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -171,7 +174,7 @@ private:
 		{ 20 * 8, 1 * 8 },				// Coordinates are: int:x (px), int:y (px)				
 		11,
 		{
-			{ " OFF-20kHz", 0 },	// Nothing changed from ORIGINAL,keeping ALL programm. AK4951 Dig. block->OFF)
+			{ " OFF-12kHz", 0 },	// Nothing changed from ORIGINAL,keeping ALL programmable  AK4951 Digital Block->OFF, sampling 24Khz)
 			{ "+12dB-6kHz", 1 },	// ALC-> on, (+12dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
 			{ "+09dB-6kHz", 2 },	// ALC-> on, (+09dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
 			{ "+06dB-6kHz", 3 },	// ALC-> on, (+06dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
@@ -186,11 +189,23 @@ private:
 		}
 	};
 
+OptionsField options_wm8731_boost_mode {
+		{ 22 * 8, 1 * 8 },				// Coordinates are: int:x (px), int:y (px)				
+		5,
+		{
+			{ "ON +12dB", 0 },	// WM8731 Mic Boost ON ,original+12dBs condition, easy to saturate ADC sat in high voice  ,relative G = +12 dB's respect ref level
+			{ "ON +06dB", 1 },	// WM8731 Mic Boost ON ,original+6 dBs condition, easy to saturate ADC sat in high voice  ,relative G = +06 dB's respect ref level
+			{ "OFF+04dB", 2 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  +04 dB's (respect ref level) , always effective sampling 24khz 
+			{ "OFF-02dB", 3 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -02 dB's (respect ref level) 
+			{ "OFF-08dB", 4 },	// WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level) 
+		}
+	};
+
 	FrequencyField field_frequency {
 		{ 5 * 8, 3 * 8 },
 	};
 	NumberField field_bw {
-		{ 18 * 8, 3 * 8 },
+		{ 23 * 8, 3 * 8 },
 		3,
 		{ 0, 150 },
 		1,
@@ -214,13 +229,14 @@ private:
 	
 	OptionsField options_mode {
 		{ 24 * 8, 5 * 8 },
-		3,
+		4,
 		{
-			{ "FM", 0 },
-			{ "AM", 1 },
-			{ "USB", 2 },
-			{ "LSB", 3 },
-			{ "DSB", 4 }
+			{ "NFM/FM", 0 },
+			{ " WFM  ", 1 },
+			{ "  AM  ", 2 },			// in fact that TX mode = AM -DSB with carrier .
+			{ " USB  ", 3 },
+			{ " LSB  ", 4 },
+			{ "DSB-SC", 5 }				// We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).  
 		}
 	};
 	/*
@@ -293,13 +309,13 @@ private:
 	};
 	
 	OptionsField field_rxbw {
-	       { 23* 8, 23 * 8},
+	       { 19* 8, 23 * 8},
 	       3,
 	       {
-	       		{"8k5", 0},
-	       		{"11k", 1},
-	       		{"16k", 2}
-	       	}
+	       		{" NFM1:8k5  ", 0},
+	       		{" NFM2:11k  ", 1},
+	       		{" FM  :16k  ", 2},
+		   	}
 	};
 	
 	NumberField field_squelch {

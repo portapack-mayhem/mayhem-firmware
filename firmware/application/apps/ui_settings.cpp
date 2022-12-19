@@ -245,13 +245,9 @@ SetUIView::SetUIView(NavigationView& nav) {
 	checkbox_showclock.set_value(!persistent_memory::hide_clock());
 	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
 	
-	uint32_t backlight_timer = persistent_memory::config_backlight_timer();
-	if (backlight_timer) {
-		checkbox_bloff.set_value(true);
-		options_bloff.set_by_value(backlight_timer);
-	} else {
-		options_bloff.set_selected_index(0);
-	}
+	const auto backlight_config = persistent_memory::config_backlight_timer();
+	checkbox_bloff.set_value(backlight_config.timeout_enabled());
+	options_bloff.set_by_value(backlight_config.timeout_enum());
 
 	if (persistent_memory::clock_with_date()) {
 		options_clockformat.set_selected_index(1);
@@ -261,11 +257,11 @@ SetUIView::SetUIView(NavigationView& nav) {
 
 
 	button_save.on_select = [&nav, this](Button&) {
-		if (checkbox_bloff.value())
-			persistent_memory::set_config_backlight_timer(options_bloff.selected_index() + 1);
-		else
-			persistent_memory::set_config_backlight_timer(0);
-		
+		persistent_memory::set_config_backlight_timer({
+			(persistent_memory::backlight_timeout_t)options_bloff.selected_index_value(),
+			checkbox_bloff.value()
+		});
+				
 		if (checkbox_showclock.value()){
 		    if (options_clockformat.selected_index() == 1)
 			    persistent_memory::set_clock_with_date(true);    

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
@@ -80,7 +80,7 @@ def print_block(block):
 	for n in range(0, len(block), 8):
 		chunk = block[n:n+8]
 		line = ['0x%04x,' % v for v in chunk]
-		print('\t%s' % ' '.join(line))
+		print(('\t%s' % ' '.join(line)))
 
 def crc32(blocks):
 	import zlib
@@ -92,7 +92,7 @@ def crc32(blocks):
 			crc_bytes.append((word >> 8) & 0xff)
 	return zlib.crc32(bytearray(crc_bytes)) & 0xffffffff
 
-print("""#include "portapack_cpld_data.hpp"
+print(("""#include "portapack_cpld_data.hpp"
 
 #include <cstdint>
 #include <array>
@@ -100,23 +100,23 @@ print("""#include "portapack_cpld_data.hpp"
 namespace portapack {
 namespace cpld {
 namespace %s {
-""" % revision_name)
+""" % revision_name))
 
-print('const std::array<uint16_t, %d> block_0 { {' % len(block_0))
+print(('const std::array<uint16_t, %d> block_0 { {' % len(block_0)))
 print_block(block_0)
 
 print("""} };
 """)
 
-print('const std::array<uint16_t, %d> block_1 { {' % len(block_1))
+print(('const std::array<uint16_t, %d> block_1 { {' % len(block_1)))
 print_block(block_1)
 
-print("""} };
+print(("""} };
 
 } /* namespace %s */
 } /* namespace cpld */
 } /* namespace portapack */
-""" % revision_name)
+""" % revision_name))
 
 if calculate_crc:
 	# Apply post-programming modification to make post-programming CRC correct:
@@ -124,4 +124,4 @@ if calculate_crc:
 	programmed_block_0[0] &= 0xfbff
 
 	crc = crc32((programmed_block_0, block_1))
-	print('%08x' % crc)
+	print(('%08x' % crc))

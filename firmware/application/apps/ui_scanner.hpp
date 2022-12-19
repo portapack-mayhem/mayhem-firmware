@@ -34,7 +34,6 @@
 #include "file.hpp"
 
 
-#define MAX_DB_ENTRY 500
 #define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
 namespace ui {
@@ -144,7 +143,7 @@ private:
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:   db WAIT:", Color::light_grey() },
+		{ { 0 * 8, 1* 16 }, "BW:       SQLCH:   db WAIT:", Color::light_grey() },
 		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
 		{ { 0 * 8, (26 * 8) + 4 }, "MODE:", Color::light_grey() },
 		{ { 11 * 8, (26 * 8) + 4 }, "STEP:", Color::light_grey() },
@@ -177,7 +176,7 @@ private:
 	};		
 
 	NumberField field_squelch {
-		{ 15 * 8, 1 * 16 },
+		{ 18 * 8, 1 * 16 },
 		3,
  		{ -90, 20 },
 		1,
@@ -185,7 +184,7 @@ private:
 	};
 
 	NumberField field_wait {
-		{ 26 * 8, 1 * 16 },
+		{ 27 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
