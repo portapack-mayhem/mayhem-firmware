@@ -1,11 +1,17 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve the software
 title: ''
 labels: bug
 assignees: ''
 
 ---
+
+----
+
+(Please try the latest nightly release before submitting this. You can find the latest nightly verison here: https://github.com/eried/portapack-mayhem/releases)
+
+----
 
 **Describe the bug**
 A clear and concise description of what the bug is. 
@@ -21,9 +27,9 @@ A clear and concise description of what you expected to happen.
 
 **Affected versions**
 Please write any difference related with the Expected behavior, on the following versions:
-* Latest Stable Release
-* Previous one (if any) that did not presented the issue
-* Old versions available here: https://github.com/eried/Research/tree/master/HackRF/PortaPack/old_legacy_firmware
+* Latest Stable release:
+* Latest Nightly release:
+* Previous working release:
 
 **Additional**
 If the bug is difficult to explain, additionally to the text please include images and videos.

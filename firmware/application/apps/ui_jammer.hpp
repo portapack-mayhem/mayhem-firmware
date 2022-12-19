@@ -156,7 +156,9 @@ private:
 		{ { 0 * 8, 33 * 8 }, "Jitter:", Color::light_grey() },	//Maybe the repository curator can keep the "mystype" for some versions. 
 		{ { 11 * 8, 29 * 8 }, "Secs.", Color::light_grey() }, 
 		{ { 11 * 8, 31 * 8 }, "Secs.", Color::light_grey() },
-		{ { 11 * 8, 33 * 8 }, "/60", Color::light_grey() }
+		{ { 11 * 8, 33 * 8 }, "/60", Color::light_grey() },
+		{ { 2 * 8, 35 * 8 }, "Gain:", Color::light_grey() },
+		{ { 11 * 8, 35 * 8 }, "A:", Color::light_grey() }
 	};
 	
 	OptionsField options_type {
@@ -229,8 +231,24 @@ private:
 		' ',
 	};
 
+	NumberField field_gain {
+		{ 8 * 8, 35 * 8 },
+		2,
+		{ 0, 47 },
+		1,
+		' ',
+	};
+
+	NumberField field_amp {
+		{ 13 * 8, 35 * 8 },
+		1,
+		{ 0, 1 },
+		1,
+		' ',
+	};
+
 	Button button_transmit {
-		{ 148, 212, 80, 80},
+		{ 148, 216, 80, 80},
 		"START"
 	};
 	

@@ -35,7 +35,7 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	if (!configured) return;
 	
 	audio_input.read_audio_buffer(audio_buffer);
-	modulator->set_gain_vumeter_beep(audio_gain, play_beep ) ;	
+	modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, play_beep ) ;	
 	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider );	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
     
    /* Original fw 1.3.1  good reference, beep and vu-meter
@@ -141,6 +141,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 			}
 			
 			audio_gain = config_message.audio_gain;
+			audio_shift_bits_s16 = config_message.audio_shift_bits_s16;
 			divider = config_message.divider;
 			power_acc_count = 0;
 

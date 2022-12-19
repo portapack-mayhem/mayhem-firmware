@@ -27,6 +27,7 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "ff.h"
+#include "portapack_persistent_memory.hpp"
 
 #include <cstdint>
 
@@ -210,6 +211,8 @@ private:
 	SetFrequencyCorrectionModel form_collect();
 };
 
+using portapack::persistent_memory::backlight_timeout_t;
+
 class SetUIView : public View {
 public:
 	SetUIView(NavigationView& nav);
@@ -241,13 +244,14 @@ private:
 		{ 52, 7 * 16 + 8 },
 		20,
 		{
-			{ "5 seconds", 5 },
-			{ "15 seconds", 15 },
-			{ "30 seconds", 30 },
-			{ "1 minute", 60 },
-			{ "3 minutes", 180 },
-			{ "5 minutes", 300 },
-			{ "10 minutes", 600 }
+			{ "5 seconds",  backlight_timeout_t::Timeout5Sec    },
+			{ "15 seconds", backlight_timeout_t::Timeout15Sec   },
+			{ "30 seconds", backlight_timeout_t::Timeout30Sec   },
+			{ "1 minute",   backlight_timeout_t::Timeout60Sec   },
+			{ "3 minutes",  backlight_timeout_t::Timeout180Sec  },
+			{ "5 minutes",  backlight_timeout_t::Timeout300Sec  },
+			{ "10 minutes", backlight_timeout_t::Timeout600Sec  },
+			{ "1 hour",     backlight_timeout_t::Timeout3600Sec },
 		}
 	};
 	

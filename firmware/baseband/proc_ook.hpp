@@ -29,19 +29,20 @@
 class OOKProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
-	
+
 	void on_message(const Message* const p) override;
 
 private:
 	bool configured = false;
-	
+
 	BasebandThread baseband_thread { 2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
+
 	uint32_t samples_per_bit { 0 };
 	uint8_t repeat { 0 };
 	uint32_t length { 0 };
 	uint32_t pause { 0 };
-	
+	uint8_t de_bruijn_length { 0 };
+
 	uint32_t pause_counter { 0 };
 	uint8_t repeat_counter { 0 };
 	uint8_t s { 0 };
@@ -50,8 +51,19 @@ private:
     uint32_t sample_count { 0 };
 	uint32_t tone_phase { 0 }, phase { 0 }, sphase { 0 };
 	int32_t tone_sample { 0 }, sig { 0 }, frq { 0 };
-	
+
 	TXProgressMessage txprogress_message { };
+
+	static constexpr auto MAX_DE_BRUIJN_ORDER = 24;
+	uint8_t v[MAX_DE_BRUIJN_ORDER];
+	unsigned int idx { 0 };
+	unsigned int k { 0 };
+	size_t bit_ptr{ 0 };
+	size_t scan_progress{ 0 };
+	uint8_t scan_done { true };
+
+	void write_sample(const buffer_c8_t& buffer, uint8_t bit_value, size_t i);
+	void duval_algo(const buffer_c8_t& buffer);
 };
 
 #endif

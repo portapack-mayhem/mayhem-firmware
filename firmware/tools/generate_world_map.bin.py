@@ -29,10 +29,10 @@ outfile = open('../../sdcard/ADSB/world_map.bin', 'wb')
 Image.MAX_IMAGE_PIXELS = None
 im = Image.open("../../sdcard/ADSB/world_map.jpg")
 pix = im.load()
-
-outfile.write(struct.pack('H', im.size[0]))
-outfile.write(struct.pack('H', im.size[1]))
-
+# Write as unsigned short (2 bytes) as little endian
+outfile.write(struct.pack('<H', im.size[0]))
+outfile.write(struct.pack('<H', im.size[1]))
+print("image \t size[0]=" + str(im.size[0]) + "\tsize[1]=" + str(im.size[1]) + " pixels");
 print("Generating: \t" + outfile.name + "\n from\t\t" + im.filename + "\n please wait...");
 
 for y in range (0, im.size[1]):
@@ -47,8 +47,9 @@ for y in range (0, im.size[1]):
 		# pixel_lcd = (pix[x, y][0] >> 5) << 5
 		# pixel_lcd |= (pix[x, y][1] >> 5) << 2
 		# pixel_lcd |= (pix[x, y][2] >> 6)
-		line += struct.pack('H', pixel_lcd)
+		line += struct.pack('<H', pixel_lcd)
 	outfile.write(line)
 	print(str(y) + '/' + str(im.size[1]) + '\r', end="")
 
+outfile.close();
 print("Ready.");

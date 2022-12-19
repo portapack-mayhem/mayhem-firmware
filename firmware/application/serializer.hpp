@@ -45,6 +45,14 @@ struct serial_format_t {
 	parity_enum parity;
 	uint8_t stop_bits;
 	order_enum bit_order;
+
+	constexpr serial_format_t() :
+		data_bits(7),
+		parity(parity_enum::EVEN),
+		stop_bits(1),
+		bit_order(order_enum::LSB_FIRST)
+	{
+	}
 };
 
 size_t symbol_count(const serial_format_t& serial_format);

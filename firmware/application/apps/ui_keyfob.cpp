@@ -23,6 +23,7 @@
 #include "ui_keyfob.hpp"
 
 #include "baseband_api.hpp"
+#include "cpld_update.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -140,7 +141,8 @@ KeyfobView::~KeyfobView() {
 	settings.save("tx_keyfob", &app_settings);
 
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void KeyfobView::update_progress(const uint32_t progress) {

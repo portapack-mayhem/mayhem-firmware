@@ -345,18 +345,28 @@ public:
  	void speaker_disable() {};
 
 
-	void microphone_enable() override {
-		// TODO: Implement
-	}
+void microphone_enable(int8_t wm8731_boost_GUI) override {
+		microphone_mute(true); 								// c/m to reduce "plop noise" when changing wm8731_boost_GUI.
+		// chThdSleepMilliseconds(20);  					// does not help to reduce the "plop noise"
+		microphone_boost((wm8731_boost_GUI<2) ? 1 : 0 ); 	// 1 = Enable Boost (+20 dBs) .  0 = Disable Boost (0dBs).
+		chThdSleepMilliseconds(120);						// >50 msegs, very effective , >100 msegs minor improvement ,120 msegs trade off speed .
+		microphone_mute(false); 
+		//	(void)alc_mode; 		In prev. fw version ,  when we did not use at all param., to avoid "unused warning" when compiling.) 
+}
 
 	void microphone_disable() override {
 		// TODO: Implement
 	}
 
-	// void microphone_mute(const bool mute) {
-	// 	map.r.analog_audio_path_control.mutemic = (mute ? 0 : 1);
-	// 	write(Register::AnalogAudioPathControl);
-	// }
+	void microphone_boost(const bool boost) {
+		map.r.analog_audio_path_control.micboost = (boost ? 1 : 0);
+	 	write(Register::AnalogAudioPathControl);
+	}
+
+	void microphone_mute(const bool mute) {
+		map.r.analog_audio_path_control.mutemic = (mute ? 1 : 0);	//1 = Enable Mute ,  0 = Disable Mute
+	 	write(Register::AnalogAudioPathControl);
+	}
 
 	// void set_adc_source(const ADCSource adc_source) {
 	// 	map.r.analog_audio_path_control.insel = toUType(adc_source);

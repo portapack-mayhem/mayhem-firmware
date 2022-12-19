@@ -26,6 +26,7 @@
 #include "manchester.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
+#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 
 #include <cstring>
@@ -290,8 +291,9 @@ ADSBTxView::~ADSBTxView() {
 	settings.save("tx_adsb", &app_settings);
 
 	transmitter_model.disable();
-	baseband::shutdown();
-}
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, withouth ghost signal problem at the exit .
+	baseband::shutdown();				  // better this function at the end, not load_sram() that sometimes produces hang up.
+	}
 
 void ADSBTxView::generate_frames() {
 	const uint32_t ICAO_address = sym_icao.value_hex_u64();
