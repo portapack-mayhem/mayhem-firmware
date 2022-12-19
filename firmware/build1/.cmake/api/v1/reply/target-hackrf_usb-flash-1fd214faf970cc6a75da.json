@@ -1,0 +1,80 @@
+{
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"DeclareTargets"
+		],
+		"files" : 
+		[
+			"hackrf/firmware/hackrf-common.cmake",
+			"hackrf/firmware/hackrf_usb/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 83,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 226,
+				"parent" : 1
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "hackrf_usb.bin::@bd3394120a3c016399dd"
+		}
+	],
+	"id" : "hackrf_usb-flash::@bd3394120a3c016399dd",
+	"name" : "hackrf_usb-flash",
+	"paths" : 
+	{
+		"build" : "hackrf/firmware/hackrf_usb",
+		"source" : "hackrf/firmware/hackrf_usb"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb-flash",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb-flash.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

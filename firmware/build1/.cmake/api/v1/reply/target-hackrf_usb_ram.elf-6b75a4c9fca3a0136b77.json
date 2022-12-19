@@ -1,0 +1,520 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "hackrf/firmware/hackrf_usb/hackrf_usb_ram.elf"
+		}
+	],
+	"backtrace" : 3,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"DeclareTarget",
+			"DeclareTargets",
+			"link_directories",
+			"add_dependencies",
+			"include_directories",
+			"include"
+		],
+		"files" : 
+		[
+			"hackrf/firmware/hackrf-common.cmake",
+			"hackrf/firmware/hackrf_usb/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 83,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 211,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 123,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 184,
+				"parent" : 1
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 124,
+				"parent" : 2
+			},
+			{
+				"command" : 6,
+				"file" : 1,
+				"line" : 26,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 6
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 116,
+				"parent" : 7
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 117,
+				"parent" : 7
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 5,
+			"id" : "libopencm3_hackrf_usb::@bd3394120a3c016399dd"
+		},
+		{
+			"id" : "hackrf_usb_ram_objects::@bd3394120a3c016399dd"
+		}
+	],
+	"id" : "hackrf_usb_ram.elf::@bd3394120a3c016399dd",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-nostartfiles -Wl,--gc-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T/home/fred/heurist1-mayhem/hackrf/firmware/common/LPC4320_M4_memory.ld -Tlibopencm3_lpc43xx.ld -T/home/fred/heurist1-mayhem/hackrf/firmware/common/LPC43xx_M4_M0_image_from_text.ld -Xlinker -Map=m4.map",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/fred/heurist1-mayhem/hackrf/firmware/common",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/fred/heurist1-mayhem/hackrf/firmware/libopencm3/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/fred/heurist1-mayhem/hackrf/firmware/libopencm3/lib/lpc43xx",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/usr/lib/arm-none-eabi/lib/armv7e-m/fpu",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-lc",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lnosys",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencm3_lpc43xx",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lm",
+				"role" : "libraries"
+			}
+		],
+		"language" : "C"
+	},
+	"name" : "hackrf_usb_ram.elf",
+	"nameOnDisk" : "hackrf_usb_ram.elf",
+	"paths" : 
+	{
+		"build" : "hackrf/firmware/hackrf_usb",
+		"source" : "hackrf/firmware/hackrf_usb"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Object Libraries",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/hackrf_usb.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/tuning.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/streaming.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_bulk_buffer.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/usb.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/usb_request.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/usb_standard_request.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_descriptor.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_device.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_endpoint.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_board_info.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_cpld.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_register.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_spiflash.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_transceiver.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_operacake.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_sweep.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/usb_api_ui.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/usb_queue.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/fault_handler.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/cpld_jtag.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/cpld_xc2c.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/hackrf_cpld_data.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/xapp058/lenval.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/xapp058/micro.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/xapp058/ports.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/crc.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/rom_iap.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/operacake.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/portapack.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/ui_portapack.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/hackrf_core.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/sgpio.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/rf_path.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/si5351c.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/max2837.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/max2837_target.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/max5864.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/max5864_target.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/mixer.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/i2c_bus.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/i2c_lpc.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/w25q80bv.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/w25q80bv_target.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/spi_bus.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/spi_ssp.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/gpio_lpc.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/hackrf_ui.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/rffc5071.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/__/common/rffc5071_spi.c.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/hackrf_usb_ram_objects.dir/m0_bin.s.obj",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

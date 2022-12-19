@@ -1,0 +1,146 @@
+{
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"ExternalProject_Add",
+			"include"
+		],
+		"files" : 
+		[
+			"/usr/share/cmake-3.16/Modules/ExternalProject.cmake",
+			"hackrf/firmware/hackrf-common.cmake",
+			"hackrf/firmware/hackrf_usb/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 26,
+				"parent" : 0
+			},
+			{
+				"file" : 1,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 47,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 3182,
+				"parent" : 3
+			}
+		]
+	},
+	"folder" : 
+	{
+		"name" : "ExternalProjectTargets/libopencm3_hackrf_usb"
+	},
+	"id" : "libopencm3_hackrf_usb::@bd3394120a3c016399dd",
+	"name" : "libopencm3_hackrf_usb",
+	"paths" : 
+	{
+		"build" : "hackrf/firmware/hackrf_usb",
+		"source" : "hackrf/firmware/hackrf_usb"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 4,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/libopencm3_hackrf_usb",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/libopencm3_hackrf_usb.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/CMakeFiles/libopencm3_hackrf_usb-complete.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-install.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-mkdir.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-download.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-update.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-patch.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-configure.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "firmware/build/hackrf/firmware/hackrf_usb/libopencm3_hackrf_usb-prefix/src/libopencm3_hackrf_usb-stamp/libopencm3_hackrf_usb-build.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

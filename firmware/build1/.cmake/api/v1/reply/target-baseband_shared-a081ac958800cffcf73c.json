@@ -1,0 +1,1436 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/crt0.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4/vectors.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore_v7m.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/common/ARMCMx/nvic.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chsys.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdebug.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chlists.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chvt.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chschd.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chthreads.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdynamic.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chregistry.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chsem.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmtx.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chcond.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chevents.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmsg.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmboxes.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chqueues.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmemcore.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chheap.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmempools.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/test.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testthd.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testsem.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testmtx.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testmsg.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testmbox.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testevt.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testheap.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testpools.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testdyn.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testqueues.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testbmk.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/hal.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/adc.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/can.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/ext.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/gpt.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/i2c.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/icu.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/mac.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/mmc_spi.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/mmcsd.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/pal.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/pwm.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/rtc.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/sdc.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/serial.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/serial_usb.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/spi.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/tm.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/uart.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/hal/src/usb.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx_M4/hal_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/i2c_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/pal_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/rtc_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/sdc_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/serial_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/spi_lld.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/lpc43xx.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/boards/PORTAPACK_BASEBAND/board.c.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/baseband.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/message_queue.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/event.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/event_m4.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/thread_wait.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/gpdma.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/baseband_dma.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/baseband_sgpio.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/portapack_shared_memory.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/buffer.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/baseband_thread.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/baseband_processor.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/baseband_stats_collector.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_decimate.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_demodulate.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_hilbert.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_modulate.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_goertzel.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/matched_filter.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/spectrum_collector.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/tv_collector.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/stream_input.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/stream_output.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/dsp_squelch.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/clock_recovery.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/packet_builder.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/dsp_fft.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/dsp_fir_taps.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/dsp_iir.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/dsp_sos.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/fxpt_atan2.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/rssi.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/rssi_dma.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/rssi_thread.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/audio_compressor.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/audio_output.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/audio_input.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/audio_dma.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/audio_stats_collector.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/utility.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/chibios_cpp.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/debug.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/__/common/gcc.cpp.obj"
+		},
+		{
+			"path" : "firmware/baseband/CMakeFiles/baseband_shared.dir/tone_gen.cpp.obj"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"add_definitions",
+			"DeclareTargets",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"firmware/baseband/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 254,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 289,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 267,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 255,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-mcpu=cortex-m4 -O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs -ffunction-sections -fdata-sections -fno-common -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -std=gnu99 -Wall -Wextra -Wstrict-prototypes -mno-thumb-interwork -mthumb -DTHUMB   -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"'"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "CORTEX_USE_FPU=TRUE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "THUMB_NO_INTERWORKING"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "THUMB_PRESENT"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/baseband/."
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/common"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/common/ARMCMx/CMSIS/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/common/ARMCMx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/GCC/ARMCMx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/kernel/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/test"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/hal/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/hal/platforms/LPC43xx_M4"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/hal/platforms/LPC43xx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/boards/PORTAPACK_BASEBAND"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/various"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-mcpu=cortex-m4 -O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs -ffunction-sections -fdata-sections -fno-common -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -std=c++17 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wall -Wextra -mno-thumb-interwork -mthumb -DTHUMB   -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"' -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"local-b7c25a4f\"'"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "CORTEX_USE_FPU=TRUE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "THUMB_NO_INTERWORKING"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "THUMB_PRESENT"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/baseband/."
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/common"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/common/ARMCMx/CMSIS/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/common/ARMCMx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/ports/GCC/ARMCMx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/kernel/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/test"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/hal/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/hal/platforms/LPC43xx_M4"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/os/hal/platforms/LPC43xx"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios-portapack/boards/PORTAPACK_BASEBAND"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/fred/heurist1-mayhem/firmware/chibios/os/various"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108
+			]
+		}
+	],
+	"id" : "baseband_shared::@0d331d6589186493665e",
+	"name" : "baseband_shared",
+	"paths" : 
+	{
+		"build" : "firmware/baseband",
+		"source" : "firmware/baseband"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/ports/GCC/ARMCMx/crt0.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4/vectors.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/ports/GCC/ARMCMx/chcore.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/ports/GCC/ARMCMx/chcore_v7m.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/ports/common/ARMCMx/nvic.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chsys.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chdebug.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chlists.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chvt.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chschd.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chthreads.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chdynamic.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chregistry.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chsem.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chmtx.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chcond.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chevents.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chmsg.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chmboxes.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chqueues.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chmemcore.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chheap.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/kernel/src/chmempools.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/test.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testthd.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testsem.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testmtx.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testmsg.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testmbox.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testevt.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testheap.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testpools.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testdyn.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testqueues.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/test/testbmk.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/hal.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/adc.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/can.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/ext.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/gpt.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/i2c.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/icu.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/mac.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/mmc_spi.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/mmcsd.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/pal.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/pwm.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/rtc.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/sdc.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/serial.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/serial_usb.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/spi.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/tm.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/uart.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios/os/hal/src/usb.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx_M4/hal_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/i2c_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/pal_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/rtc_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/sdc_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/serial_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/spi_lld.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/os/hal/platforms/LPC43xx/lpc43xx.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "firmware/chibios-portapack/boards/PORTAPACK_BASEBAND/board.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/baseband.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/message_queue.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/event.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/event_m4.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/thread_wait.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/gpdma.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/baseband_dma.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/baseband_sgpio.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/portapack_shared_memory.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/buffer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/baseband_thread.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/baseband_processor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/baseband_stats_collector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_decimate.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_demodulate.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_hilbert.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_modulate.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_goertzel.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/matched_filter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/spectrum_collector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/tv_collector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/stream_input.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/stream_output.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/dsp_squelch.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/clock_recovery.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/packet_builder.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/dsp_fft.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/dsp_fir_taps.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/dsp_iir.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/dsp_sos.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/fxpt_atan2.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/rssi.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/rssi_dma.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/rssi_thread.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/audio_compressor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/audio_output.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/audio_input.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/audio_dma.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/audio_stats_collector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/utility.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/chibios_cpp.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/debug.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/common/gcc.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "firmware/baseband/tone_gen.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "OBJECT_LIBRARY"
+}

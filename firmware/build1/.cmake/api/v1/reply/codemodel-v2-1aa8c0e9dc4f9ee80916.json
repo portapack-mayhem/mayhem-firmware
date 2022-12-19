@@ -1,0 +1,646 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.9"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "hackrf/firmware/hackrf_usb",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1.3"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "hackrf/firmware/hackrf_usb",
+					"targetIndexes" : 
+					[
+						37,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						44,
+						45,
+						46,
+						47,
+						48,
+						49,
+						50,
+						51
+					]
+				},
+				{
+					"build" : "firmware",
+					"childIndexes" : 
+					[
+						3,
+						4
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.9"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "firmware",
+					"targetIndexes" : 
+					[
+						36,
+						52,
+						53
+					]
+				},
+				{
+					"build" : "firmware/application",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.9"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 3,
+					"source" : "firmware/application",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				},
+				{
+					"build" : "firmware/baseband",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.9"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 4,
+					"source" : "firmware/baseband",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						30,
+						31,
+						32,
+						33,
+						34,
+						35
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "portapack-h1"
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "hackrf_usb",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						37,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						44,
+						45,
+						46,
+						47,
+						48,
+						49,
+						50,
+						51
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "firmware",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						36,
+						52,
+						53
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "application",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "baseband",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						30,
+						31,
+						32,
+						33,
+						34,
+						35
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 3,
+					"id" : "application::@126a9c69b7a8d35ef3db",
+					"jsonFile" : "target-application-409c0046ad14fce433ac.json",
+					"name" : "application",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "application.elf::@126a9c69b7a8d35ef3db",
+					"jsonFile" : "target-application.elf-00060b2f4ef8fdce2f4b.json",
+					"name" : "application.elf",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband-4377e47ab2402e2d9da8.json",
+					"name" : "baseband",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_acars.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_acars.elf-4a19ca8053b109b6e767.json",
+					"name" : "baseband_acars.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_adsbrx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_adsbrx.elf-813c14ce2db5057a4b5f.json",
+					"name" : "baseband_adsbrx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_adsbtx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_adsbtx.elf-bad6745534a99b168b69.json",
+					"name" : "baseband_adsbtx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_afskrx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_afskrx.elf-b0f0eabf31033d0af4e4.json",
+					"name" : "baseband_afskrx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_afsktx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_afsktx.elf-14cce43a21f3db316dfa.json",
+					"name" : "baseband_afsktx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_ais.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_ais.elf-0ee359ea3477f4a6fb2f.json",
+					"name" : "baseband_ais.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_am_audio.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_am_audio.elf-1068cf4cfaec9ccc68ff.json",
+					"name" : "baseband_am_audio.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_am_tv.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_am_tv.elf-a4b94d0a21df3aa41358.json",
+					"name" : "baseband_am_tv.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_aprsrx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_aprsrx.elf-5caa6a805c1ba59222a4.json",
+					"name" : "baseband_aprsrx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_audio_tx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_audio_tx.elf-646226daed80aa0b11fa.json",
+					"name" : "baseband_audio_tx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_btlerx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_btlerx.elf-7c19b4ea47078fb324fc.json",
+					"name" : "baseband_btlerx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_capture.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_capture.elf-360e1dceca869d65d8e2.json",
+					"name" : "baseband_capture.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_ert.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_ert.elf-8b5987b5fc75afea251c.json",
+					"name" : "baseband_ert.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_fsktx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_fsktx.elf-30db3135f379db56085f.json",
+					"name" : "baseband_fsktx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_gps_sim.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_gps_sim.elf-f1bfd36bc0cb7df91add.json",
+					"name" : "baseband_gps_sim.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_jammer.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_jammer.elf-76e02e2f186bbacb3a51.json",
+					"name" : "baseband_jammer.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_mic_tx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_mic_tx.elf-2a3e43727554cf5e5d19.json",
+					"name" : "baseband_mic_tx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_nfm_audio.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_nfm_audio.elf-ffe96d0558bfbdafce6b.json",
+					"name" : "baseband_nfm_audio.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_no_operation.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_no_operation.elf-ddaa1e5795e4b5ad6aa4.json",
+					"name" : "baseband_no_operation.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_nrfrx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_nrfrx.elf-ea1bf8a4fa422a2784d0.json",
+					"name" : "baseband_nrfrx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_ook.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_ook.elf-94c6916771b5079564d6.json",
+					"name" : "baseband_ook.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_pocsag.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_pocsag.elf-ab25f59c5cff4d6a7d48.json",
+					"name" : "baseband_pocsag.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_rds.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_rds.elf-227b5724aeb1a061be97.json",
+					"name" : "baseband_rds.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_replay.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_replay.elf-c5c3b8acb6e36919a0ef.json",
+					"name" : "baseband_replay.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_shared::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_shared-a081ac958800cffcf73c.json",
+					"name" : "baseband_shared",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_siggen.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_siggen.elf-3def56a8880e61f0c161.json",
+					"name" : "baseband_siggen.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_sonde.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_sonde.elf-2a451e76db65b9d340dc.json",
+					"name" : "baseband_sonde.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_sstvtx.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_sstvtx.elf-6fcfd5dfa1253abf1904.json",
+					"name" : "baseband_sstvtx.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_test.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_test.elf-b0e6a70df3dc12032b8e.json",
+					"name" : "baseband_test.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_tones.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_tones.elf-3e2a05acadc528b73580.json",
+					"name" : "baseband_tones.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_tpms.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_tpms.elf-9d8dee37697e32ba7d45.json",
+					"name" : "baseband_tpms.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_wfm_audio.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_wfm_audio.elf-8565b89e15330cb61e75.json",
+					"name" : "baseband_wfm_audio.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "baseband_wideband_spectrum.elf::@0d331d6589186493665e",
+					"jsonFile" : "target-baseband_wideband_spectrum.elf-bb37709b5c916c817992.json",
+					"name" : "baseband_wideband_spectrum.elf",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "firmware::@6803ff53fabcca0f8fe3",
+					"jsonFile" : "target-firmware-fed016c000b53ac83d55.json",
+					"name" : "firmware",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb-flash::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb-flash-1fd214faf970cc6a75da.json",
+					"name" : "hackrf_usb-flash",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb-program::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb-program-23229608626e5b8c98cf.json",
+					"name" : "hackrf_usb-program",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb.bin::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb.bin-4f40cec253de1b8c4be4.json",
+					"name" : "hackrf_usb.bin",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb.dfu::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb.dfu-ad8652f5339a76d993a0.json",
+					"name" : "hackrf_usb.dfu",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb.elf::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb.elf-63fc9d71d1c26ddb0876.json",
+					"name" : "hackrf_usb.elf",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_dfu.bin::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_dfu.bin-7619106517cab131fdb6.json",
+					"name" : "hackrf_usb_dfu.bin",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_dfu.elf::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_dfu.elf-74a7a44e2ab5ec8cd13e.json",
+					"name" : "hackrf_usb_dfu.elf",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_dfu_objects::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_dfu_objects-160c3c2e49ee3bd529f1.json",
+					"name" : "hackrf_usb_dfu_objects",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_m0.bin::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_m0.bin-aeaf1dc8b7a851dcde77.json",
+					"name" : "hackrf_usb_m0.bin",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_m0.elf::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_m0.elf-b867efee62f58d3b1640.json",
+					"name" : "hackrf_usb_m0.elf",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_objects::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_objects-5fa5c02c6f66b7faf88a.json",
+					"name" : "hackrf_usb_objects",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_ram.bin::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_ram.bin-caafd9ea47b29926521f.json",
+					"name" : "hackrf_usb_ram.bin",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_ram.elf::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_ram.elf-6b75a4c9fca3a0136b77.json",
+					"name" : "hackrf_usb_ram.elf",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "hackrf_usb_ram_objects::@bd3394120a3c016399dd",
+					"jsonFile" : "target-hackrf_usb_ram_objects-387efcfb786f452fa36c.json",
+					"name" : "hackrf_usb_ram_objects",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "libopencm3_hackrf_usb::@bd3394120a3c016399dd",
+					"jsonFile" : "target-libopencm3_hackrf_usb-04cda9cb31d3514bc9f6.json",
+					"name" : "libopencm3_hackrf_usb",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "program::@6803ff53fabcca0f8fe3",
+					"jsonFile" : "target-program-0b006a41229752bd335e.json",
+					"name" : "program",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "release::@6803ff53fabcca0f8fe3",
+					"jsonFile" : "target-release-86904f53511ef8f7b121.json",
+					"name" : "release",
+					"projectIndex" : 2
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/fred/heurist1-mayhem/firmware/build",
+		"source" : "/home/fred/heurist1-mayhem"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}
