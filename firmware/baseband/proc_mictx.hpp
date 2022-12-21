@@ -61,6 +61,8 @@ private:
 
 	uint32_t divider { };
 	float audio_gain { };
+	uint8_t audio_shift_bits_s16 { } ; // shift bits factor to the captured ADC S16 audio sample.
+
 	uint64_t power_acc { 0 };
 	uint32_t power_acc_count { 0 };
 	bool play_beep { false };

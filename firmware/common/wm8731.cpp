@@ -84,7 +84,7 @@ void WM8731::init() {
 	});
 
 	write(AnalogAudioPathControl {
-		.micboost = 1,	// Enable 20dB boost
+		.micboost = 0,	// Disable 20dB boost by default
 		.mutemic = 0,	// Disable mute (unmute)
 		.insel = 1,		// Microphone input to ADC
 		.bypass = 0,

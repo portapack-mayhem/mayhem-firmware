@@ -576,6 +576,127 @@ public:
 	{
 	}
 
+	size_t write(const void* p, const size_t count) {
+		const auto copy_size = std::min(capacity_ - used_, count);
+		memcpy(&data_[used_], p, copy_size);
+		used_ += copy_size;
+		return copy_size;
+	}
+
+	size_t read(void* p, const size_t count) {
+		const auto copy_size = std::min(used_, count);
+		memcpy(p, &data_[capacity_ - used_], copy_size);
+		used_ -= copy_size;
+		return copy_size;
+	}
+
+	bool is_full() const {
+		return used_ >= capacity_;
+	}
+
+	bool is_empty() const {
+		return used_ == 0;
+	}
+
+	void* data() const {
+		return data_;
+	}
+
+	size_t size() const {
+		return used_;
+	}
+
+	size_t capacity() const {
+		return capacity_;
+	}
+
+	void set_size(const size_t value) {
+		used_ = value;
+	}
+
+	void empty() {
+		used_ = 0;
+	}
+};
+
+struct CaptureConfig {
+	const size_t write_size;
+	const size_t buffer_count;
+	uint64_t baseband_bytes_received;
+	uint64_t baseband_bytes_dropped;
+	FIFO<StreamBuffer*>* fifo_buffers_empty;
+	FIFO<StreamBuffer*>* fifo_buffers_full;
+
+	constexpr CaptureConfig(
+		const size_t write_size,
+		const size_t buffer_count
+	) : write_size { write_size },
+		buffer_count { buffer_count },
+		baseband_bytes_received { 0 },
+		baseband_bytes_dropped { 0 },
+		fifo_buffers_empty { nullptr },
+		fifo_buffers_full { nullptr }
+	{
+	}
+
+	size_t dropped_percent() const {
+		if( baseband_bytes_dropped == 0 ) {
+			return 0;
+		} else {
+			const size_t percent = baseband_bytes_dropped * 100U / baseband_bytes_received;
+			return std::max(1U, percent);
+		}
+	}
+};
+
+class CaptureConfigMessage : public Message {
+public:
+	constexpr CaptureConfigMessage(
+		CaptureConfig* const config
+	) : Message { ID::CaptureConfig },
+		config { config }
+	{
+	}
+
+	CaptureConfig* const config;
+};
+
+struct ReplayConfig {
+	const size_t read_size;
+	const size_t buffer_count;
+	uint64_t baseband_bytes_received;
+	FIFO<StreamBuffer*>* fifo_buffers_empty;
+	FIFO<StreamBuffer*>* fifo_buffers_full;
+
+	constexpr ReplayConfig(
+		const size_t read_size,
+		const size_t buffer_count
+	) : read_size { read_size },
+		buffer_count { buffer_count },
+		baseband_bytes_received { 0 },
+		fifo_buffers_empty { nullptr },
+		fifo_buffers_full { nullptr }
+	{
+	}
+};
+
+class ReplayConfigMessage : public Message {
+public:
+	constexpr ReplayConfigMessage(
+		ReplayConfig* const config
+	) : Message { ID::ReplayConfig },
+		config { config }
+	{
+	}
+	ReplayConfig* const config;
+};
+
+class TXProgressMessage : public Message {
+public:
+	constexpr TXProgressMessage(
+	) : Message { ID::TXProgress }
+	{
+	}
 	uint32_t progress = 0;
 	bool done = false;
 };
@@ -744,27 +865,31 @@ public:
 		const uint32_t divider,
 		const float deviation_hz,
 		const float audio_gain,
+		const uint8_t audio_shift_bits_s16,
 		const uint32_t tone_key_delta,
 		const float tone_key_mix_weight,
 		const bool am_enabled,
 		const bool dsb_enabled,
 		const bool usb_enabled,
-		const bool lsb_enabled) : Message{ID::AudioTXConfig},
-								  divider(divider),
-								  deviation_hz(deviation_hz),
-								  audio_gain(audio_gain),
-								  tone_key_delta(tone_key_delta),
-								  tone_key_mix_weight(tone_key_mix_weight),
-								  am_enabled(am_enabled),
-								  dsb_enabled(dsb_enabled),
-								  usb_enabled(usb_enabled),
-								  lsb_enabled(lsb_enabled)
+		const bool lsb_enabled
+	) : Message { ID::AudioTXConfig },
+		divider(divider),
+		deviation_hz(deviation_hz),
+		audio_gain(audio_gain),
+		audio_shift_bits_s16(audio_shift_bits_s16),
+		tone_key_delta(tone_key_delta),
+		tone_key_mix_weight(tone_key_mix_weight),
+		am_enabled(am_enabled),
+		dsb_enabled(dsb_enabled),
+		usb_enabled(usb_enabled),
+		lsb_enabled(lsb_enabled)
 	{
 	}
 
 	const uint32_t divider;
 	const float deviation_hz;
 	const float audio_gain;
+	const uint8_t audio_shift_bits_s16;
 	const uint32_t tone_key_delta;
 	const float tone_key_mix_weight;
 	const bool am_enabled;
@@ -837,11 +962,14 @@ public:
 		const uint32_t stream_length,
 		const uint32_t samples_per_bit,
 		const uint8_t repeat,
-		const uint32_t pause_symbols) : Message{ID::OOKConfigure},
-										stream_length(stream_length),
-										samples_per_bit(samples_per_bit),
-										repeat(repeat),
-										pause_symbols(pause_symbols)
+		const uint32_t pause_symbols,
+		const uint8_t de_bruijn_length
+	) : Message { ID::OOKConfigure },
+		stream_length(stream_length),
+		samples_per_bit(samples_per_bit),
+		repeat(repeat),
+		pause_symbols(pause_symbols),
+		de_bruijn_length(de_bruijn_length)
 	{
 	}
 
@@ -849,6 +977,7 @@ public:
 	const uint32_t samples_per_bit;
 	const uint8_t repeat;
 	const uint32_t pause_symbols;
+	const uint8_t de_bruijn_length;
 };
 
 class SSTVConfigureMessage : public Message

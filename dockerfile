@@ -1,6 +1,6 @@
 #Download base image.
-#The ubuntu:latest tag points to the "latest LTS"
-FROM ubuntu:latest
+#The ubuntu:20.04 tag points to the "20.04 LTS"
+FROM ubuntu:20.04
 
 #Set location to download ARM toolkit from.
 # This will need to be changed over time or replaced with a static link to the latest release.
@@ -14,16 +14,18 @@ COPY ./ /havocsrc
 
 #Fetch dependencies from APT
 RUN apt-get update && \
-	apt-get install -y tar wget dfu-util cmake python bzip2 curl && \
-	apt-get -qy autoremove
+        apt-get install -y tar wget dfu-util cmake python bzip2 curl python3 python3-yaml && \
+        apt-get -qy autoremove
 
 #Install current pip from PyPa
 RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
-	python get-pip.py
+        python get-pip.py
 
 #Fetch additional dependencies from Python 2.x pip
 RUN pip install pyyaml
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
+RUN rm -rf /usr/bin/python && \
+    rm -rf /usr/bin/pip && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV LANG C.UTF-8
@@ -32,9 +34,9 @@ ENV LC_ALL C.UTF-8
 #Grab the GNU ARM toolchain from arm.com
 #Then extract contents to /opt/build/armbin/
 RUN mkdir /opt/build && cd /opt/build && \
-	wget -O gcc-arm-none-eabi $ARMBINURL && \
-	mkdir armbin && \
-	tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
+        wget -O gcc-arm-none-eabi $ARMBINURL && \
+        mkdir armbin && \
+        tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
     
 #Set environment variable so compiler knows where the toolchain lives
 ENV PATH=$PATH:/opt/build/armbin/bin
@@ -43,3 +45,4 @@ CMD cd /havocsrc && \
     mkdir build && cd build && \ 
     cmake .. && make firmware && \
     cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
+

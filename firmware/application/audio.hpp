@@ -49,7 +49,7 @@ public:
 	virtual volume_range_t headphone_gain_range() const = 0;
 	virtual void set_headphone_volume(const volume_t volume) = 0;
 
-	virtual void microphone_enable() = 0;
+	virtual void microphone_enable(int8_t alc_mode) = 0;	// added user-GUI  AK4951 ,selected ALC mode.
 	virtual void microphone_disable() = 0;
 
 	virtual size_t reg_count() const = 0;
@@ -59,7 +59,7 @@ public:
 
 namespace output {
 
-void start();
+void start();		// this  other start(),no changed. ,in namespace output , used to config audio playback mode, 
 void stop();
 
 void mute();
@@ -72,7 +72,7 @@ void speaker_unmute();
 
 namespace input {
 
-void start();
+void start(int8_t alc_mode);  // added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
 void stop();
 
 } /* namespace input */

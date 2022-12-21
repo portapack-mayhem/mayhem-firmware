@@ -45,11 +45,11 @@ static void send_message(const Message* const message) {
 
 void AMConfig::apply() const {
 	const AMConfigureMessage message {
-		taps_6k0_decim_0,
-		taps_6k0_decim_1,
-		taps_6k0_decim_2,
-		channel,
-		modulation,
+		taps_6k0_decim_0,	// common FIR filter taps pre-decim_0 to all 5 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW)
+		taps_6k0_decim_1,	// common FIR filter taps pre-decim_1 to all 5 x AM mod. types.
+		decim_2,			// var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k all rest AM modes)
+		channel,			// var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW)
+		modulation,         // var parameter .
 		audio_12k_hpf_300hz_config
 	};
 	send_message(&message);
@@ -146,7 +146,7 @@ void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_
 	};
 	send_message(&message);
 }
-    
+
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
 	const NRFRxConfigureMessage message {
 		baudrate,
@@ -156,7 +156,7 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
 	};
 	send_message(&message);
 }
-    
+
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space,
 					const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count) {
 	const AFSKTxConfigureMessage message {
@@ -183,12 +183,13 @@ void kill_afsk() {
 }
 
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain,
-					const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled,
-					const bool usb_enabled, const bool lsb_enabled) {
+					uint8_t audio_shift_bits_s16, const uint32_t tone_key_delta, const bool am_enabled,
+					const bool dsb_enabled, const bool usb_enabled, const bool lsb_enabled) {
 	const AudioTXConfigMessage message {
 		divider,
 		deviation_hz,
 		audio_gain,
+		audio_shift_bits_s16,
 		tone_key_delta,
 		(float)persistent_memory::tone_mix() / 100.0f,
 		am_enabled,
@@ -218,16 +219,28 @@ void set_pitch_rssi(int32_t avg, bool enabled) {
 		enabled,
 		avg
 	};
-	send_message(&message);	
+	send_message(&message);
 }
 
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat,
-					const uint32_t pause_symbols) {
+					const uint32_t pause_symbols, const uint8_t de_bruijn_length) {
 	const OOKConfigureMessage message {
 		stream_length,
 		samples_per_bit,
 		repeat,
-		pause_symbols
+		pause_symbols,
+		de_bruijn_length
+	};
+	send_message(&message);
+}
+
+void kill_ook() {
+	const OOKConfigureMessage message {
+		0,
+		0,
+		0,
+		0,
+		0
 	};
 	send_message(&message);
 }
@@ -257,7 +270,7 @@ void set_adsb() {
 
 void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed) {
 	const JammerConfigureMessage message {
-		run, 
+		run,
 		type,
 		speed
 	};
@@ -318,7 +331,7 @@ void shutdown() {
 	send_message(&message);
 
 	shared_memory.application_queue.reset();
-	
+
 	baseband_image_running = false;
 }
 

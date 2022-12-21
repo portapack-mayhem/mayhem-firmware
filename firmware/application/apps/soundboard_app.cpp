@@ -26,6 +26,7 @@
 #include "string_format.hpp"
 #include "tonesets.hpp"
 #include "errors.hpp"
+#include "cpld_update.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -100,6 +101,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 		1536000 / 20,		// Update vu-meter at 20Hz
 		transmitter_model.channel_bandwidth(),
 		0,	// Gain is unused
+		8,	// shift_bits_s16, default 8 bits, but  also unused
 		TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
 		0, //AM
 		0, //DSB
@@ -287,7 +289,8 @@ SoundBoardView::~SoundBoardView() {
 
 	stop();
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 }

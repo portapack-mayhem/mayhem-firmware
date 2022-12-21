@@ -46,6 +46,9 @@ public:
 	}
 
 	void paint(Painter& painter) override;
+    int32_t get_min();
+    int32_t get_avg();
+    int32_t get_max();
 	
 private:
 	int32_t min_;

@@ -38,11 +38,12 @@ using namespace portapack;
 
 namespace {
 
-static constexpr std::array<baseband::AMConfig, 4> am_configs { {
-	{ taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },
-	{ taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },
-	{ taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },	
-	{ taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB },
+static constexpr std::array<baseband::AMConfig, 5> am_configs { {	// we config here all the non COMMON  parameters to each AM modulation type in RX.
+	{ taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB },		// AM DSB-C  BW 9khz  (+-4k5)	commercial EU bandwidth .
+	{ taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },		// AM DSB-C  BW 6khz  (+-3k0)	narrow AM , ham equipments.
+	{ taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },		// SSB USB   BW 2K8   (+ 2K8)
+	{ taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },		// SSB LSB   BW 2K8   (- 2K8)
+	{ taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB },		// SSB USB   BW 0K7   (+ 0K7)  used to get audio tone from CW Morse, assuming tx shifted +700hz aprox 
 } };
 
 static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs { {
