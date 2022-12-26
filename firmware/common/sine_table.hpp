@@ -128,21 +128,25 @@ static constexpr std::array<float, sine_table_f32_period + 1> sine_table_f32 { {
 	-2.45412285e-02,   0.00000000e+00,
 } };
 
-inline float sin_f32(const float w) {
-	constexpr float normalize = 1.0 / (2 * pi);
+inline float sin_f32(const float w) {			// w (in_parameter, RADIANS units), could be +/-. 
+ 	constexpr float normalize = 1.0 / (2 * pi);	
 
-	const float x = w * normalize;
-	const int32_t x_int = std::floor(x);
-	const float x_frac = x - x_int;
+	const float x = w * normalize;				// x range [-1..+1], normalize ,Ex  +-2 x pi RADIANS ,+-6,2831 x RAD (Ex 360º)=1
+	const int32_t x_int = std::floor(x);		// Computes the largest integer RADs value not greater than arg. 		
+	const float x_frac  = x - x_int;			// Fractional part of the normalized x(RAD), always is (+) from floor(x) ref.
 
-	const float n = x_frac * sine_table_f32_period;
-	const int32_t n_int = static_cast<uint32_t>(n) & sine_table_f32_index_mask;
-	const float n_frac = n - n_int;
+	const float n = x_frac * sine_table_f32_period;  // Calculating Float n_index (with decimals) pointing between 0.XX  to 255.XX  array samples.
+	const int32_t n_int = static_cast<uint32_t>(n) & sine_table_f32_index_mask;  // lower closer integer index array_sin-table_256. 
+	float n_frac = n - n_int;					// Fractional part of the array_index (0.XX) of sine_table_f32 index(we have only 256 discrete values)
 
-	const float p0 = sine_table_f32[n_int + 0];
-	const float p1 = sine_table_f32[n_int + 1];
-	const float diff = p1 - p0;
-	const float result = p0 + n_frac * diff;
+	const float p0 = sine_table_f32[(n_int + 0)& sine_table_f32_index_mask];	//  base sample value of the table, when fractional is zero.
+	const float p1 = sine_table_f32[(n_int + 1)& sine_table_f32_index_mask];	//	next adj discrete sin(x)_256 sample value, (to be used when fractional is !=0 )
+	const float diff = p1 - p0;													//  anount of the  diff. to be used in the interpolation.
+
+	if (n_frac >1) {n_frac = 0;}				// c/m to solve issue #755 , strange jump at 179->180º Bearing adj. (ADSB_TX) . 
+	// Orig algoritmus & formulas seems correct. But we had strange compute behaviour at (180º in RAD point), in our compiled bin. 
+	// n_frac = fractional part , of float index ,should be in a range [0.0 .. 1.0]. It is fractional index part before jumping to next index+1.
+	const float result = p0 + (n_frac * diff);	// Correct interpolation code,  from 2 adjacent samples of sine_table_f32
 	return result;
 }
 
