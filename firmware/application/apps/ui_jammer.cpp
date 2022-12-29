@@ -25,6 +25,7 @@
 #include "ui_freqman.hpp"
 
 #include "baseband_api.hpp"
+#include "cpld_update.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -183,7 +184,8 @@ void JammerView::focus() {
 
 JammerView::~JammerView() {
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
@@ -268,9 +270,9 @@ void JammerView::start_tx() {
 		button_transmit.set_text("STOP");
 		
 		transmitter_model.set_sampling_rate(3072000U);
-		transmitter_model.set_rf_amp(true);
+		transmitter_model.set_rf_amp(field_amp.value());
 		transmitter_model.set_baseband_bandwidth(3500000U);
-		transmitter_model.set_tx_gain(47);
+		transmitter_model.set_tx_gain(field_gain.value());
 		transmitter_model.enable();
 
 		baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
@@ -366,6 +368,8 @@ JammerView::JammerView(
 		&field_timetx,
 		&field_timepause,
 		&field_jitter,
+		&field_gain,
+		&field_amp,
 		&button_transmit
 	});
 	
@@ -380,6 +384,8 @@ JammerView::JammerView(
 
 	field_timetx.set_value(30);
 	field_timepause.set_value(1);
+	field_gain.set_value(transmitter_model.tx_gain());
+	field_amp.set_value(transmitter_model.rf_amp());
 
 	button_transmit.on_select = [this](Button&) {
 		if (jamming || cooling)

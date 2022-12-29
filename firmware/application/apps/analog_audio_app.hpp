@@ -53,12 +53,13 @@ private:
 
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
-		4,
+		5,
 		{
-			{ "DSB ", 0 },
-			{ "USB ", 0 },
-			{ "LSB ", 0 },
-			{ "CW  ", 0 },
+			{ "DSB 9k ", 0 },
+			{ "DSB 6k ", 0 },
+			{ "USB+3k ", 0 },
+			{ "LSB-3k ", 0 },
+			{ "CW     ", 0 },
 		}
 	};
 };

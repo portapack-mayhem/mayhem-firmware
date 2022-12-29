@@ -161,7 +161,12 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	}
 	else options_band.set_by_value(receiver_model.tuning_frequency());
 
-	radio::enable({
+    receiver_model.set_tuning_frequency(tuning_frequency());
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+	
+/*	radio::enable({
 		tuning_frequency(),
 		sampling_rate,
 		baseband_bandwidth,
@@ -169,7 +174,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		receiver_model.rf_amp(),
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga()),
-	});
+	}); */
 
 	options_band.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_band_changed(v);
@@ -200,7 +205,7 @@ TPMSAppView::~TPMSAppView() {
 	app_settings.rx_frequency = target_frequency_;
 	settings.save("rx_tpms", &app_settings);
 
-	radio::disable();
+	receiver_model.disable(); // to switch off all, including DC bias and change flag enabled_
 
 	baseband::shutdown();
 }

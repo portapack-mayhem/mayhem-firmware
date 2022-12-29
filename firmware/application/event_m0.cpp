@@ -226,15 +226,17 @@ void EventDispatcher::handle_rtc_tick() {
 
 	portapack::temperature_logger.second_tick();
 	
-	uint32_t backlight_timer = portapack::persistent_memory::config_backlight_timer();
-	if (backlight_timer) {
-		if (portapack::bl_tick_counter == backlight_timer)
+	const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
+	if (backlight_timer.timeout_enabled()) {
+		if (portapack::bl_tick_counter == backlight_timer.timeout_seconds())
 			set_display_sleep(true);
 		else
 			portapack::bl_tick_counter++;
 	}
 
 	rtc_time::on_tick_second();
+
+	portapack::persistent_memory::cache::persist();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {

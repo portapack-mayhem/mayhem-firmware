@@ -160,9 +160,9 @@ ScannerView::~ScannerView() {
 }
 
 void ScannerView::show_max() {		//show total number of freqs to scan
-	if (frequency_list.size() == MAX_DB_ENTRY) {
+	if (frequency_list.size() == FREQMAN_MAX_PER_FILE ) {
 		text_max.set_style(&style_red);
-		text_max.set( "/ " + to_string_dec_uint(MAX_DB_ENTRY) + " (DB MAX!)");
+		text_max.set( "/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE ) + " (DB MAX!)");
 	}
 	else {
 		text_max.set_style(&style_grey);
@@ -304,7 +304,7 @@ ScannerView::ScannerView(
 		);
 
 		rf::Frequency frequency = frequency_range.min;
-		while (frequency_list.size() < MAX_DB_ENTRY &&  frequency <= frequency_range.max) { //add manual range				
+		while (frequency_list.size() < FREQMAN_MAX_PER_FILE  &&  frequency <= frequency_range.max) { //add manual range				
 			frequency_list.push_back(frequency);
 			description_list.push_back("");				//If empty, will keep showing the last description
 			frequency+=def_step;
@@ -398,7 +398,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	if ( load_freqman_file(file_name, database)  ) {
 		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
-			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
+			if (frequency_list.size() < FREQMAN_MAX_PER_FILE ) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
 					switch (entry.step) {
 						case AM_US:	def_step = 10000;  	break ;
@@ -421,7 +421,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 						+ ">" + to_string_short_freq(entry.frequency_b)
 						+ " S" + to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
 						);
-					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
+					while (frequency_list.size() < FREQMAN_MAX_PER_FILE  && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
 						frequency_list.push_back(entry.frequency_a);
 						description_list.push_back("");				//Token (keep showing the last description)
@@ -529,10 +529,12 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
 		break;
 	case AM:
-		bw.emplace_back("DSB", 0);
-		bw.emplace_back("USB", 0);
-		bw.emplace_back("LSB", 0);
-		bw.emplace_back("CW ", 0);
+		bw.emplace_back("DSB 9k" , 0 );
+		bw.emplace_back("DSB 6k" , 1 );
+		bw.emplace_back("USB+3k" , 2 );
+		bw.emplace_back("LSB-3k" , 3 );
+		bw.emplace_back("CW    " , 4 );
+
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_am_audio);
@@ -540,10 +542,10 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		field_bw.set_selected_index(0);
 		receiver_model.set_am_configuration(field_bw.selected_index());
 		field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
-		receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
+		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000); 
 		break;
 	case WFM:
-		bw.emplace_back("16k", 0);
+		bw.emplace_back("200k", 0);
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);

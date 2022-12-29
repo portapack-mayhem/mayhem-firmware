@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (C) 2016 Furrtek
 #
@@ -42,7 +42,7 @@ def convert_png(file):
 	rgb_im = im.convert('RGBA')
 
 	if rgb_im.size[0] % 8 or rgb_im.size[1] % 8:
-		print(file + ": Size isn\'t a multiple of 8")
+		print((file + ": Size isn\'t a multiple of 8"))
 		sys.exit(-1)
 
 	name = path.basename(file).split(".")[0].lower();
@@ -112,4 +112,4 @@ f.write("\n")
 f.write("} /* namespace ui */\n\n")
 f.write("#endif/*__BITMAP_HPP__*/\n")
 
-print("Converted " + str(count) + " files")
+print(("Converted " + str(count) + " files"))

@@ -57,6 +57,7 @@ private:
 		uint32_t next_delay{};
 	};
 	std::deque<playlist_entry> playlist_db{};
+	std::deque<playlist_entry> playlist_masterdb{};
 	uint32_t sample_rate = 0;
 	int32_t tx_gain { 47 };
 	bool rf_amp { true }; // aux private var to store temporal, Replay App rf_amp user selection.
