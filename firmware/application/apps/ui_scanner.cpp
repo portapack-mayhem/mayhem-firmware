@@ -584,9 +584,9 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 
 	switch (new_mod) {
 	case NFM:	//bw 16k (2) default
-		bw.emplace_back("8k5", 0);
-		bw.emplace_back("11k", 0);
-		bw.emplace_back("16k", 0);			
+		bw.emplace_back("8k5   ", 0);
+		bw.emplace_back("11k   ", 0);
+		bw.emplace_back("16k   ", 0);			
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
@@ -613,7 +613,7 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000); 
 		break;
 	case WFM:
-		bw.emplace_back("200k", 0);
+		bw.emplace_back("200k  ", 0);
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
