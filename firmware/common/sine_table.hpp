@@ -37,7 +37,7 @@ print(v)
 */
 constexpr uint16_t sine_table_f32_period = 256;	
 // periode is 256 . means sine_table_f32[0]= sine_table_f32[0+256], sine_table_f32[1]=sine_table_f32[1+256] (those two added manualy)
-// Then table has 257 values , [0,..255] + [256] and [257], those two are  used when we interpolate[255] with [255+1], and [256] with [256+1]
+// Then table has 258 values ,256:[0,..255] + [256] and [257], those two are  used when we interpolate[255] with [255+1], and [256] with [256+1]
 // [256] index is needed in the function sin_f32() when we are inputing very small radian values , example , sin_f32((-1e-14) in radians) 
 
 static constexpr std::array<float, sine_table_f32_period + 2> sine_table_f32{
