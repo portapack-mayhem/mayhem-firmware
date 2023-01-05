@@ -307,19 +307,18 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate) {
 	
-	int32_t velo_ew, velo_ns, v_rate_coded;
+	int32_t velo_ew, velo_ns;
 	uint32_t velo_ew_abs, velo_ns_abs, v_rate_coded_abs;
 	
 	// To get NS and EW speeds from speed and bearing, a polar to cartesian conversion is enough
 	velo_ew = static_cast<int32_t>(sin_f32(DEG_TO_RAD(angle)  ) * speed);	            // East direction, is the projection from West -> East is directly sin(angle=Compas Bearing) , (90º is the max +1, EAST) max velo_EW 	
 	velo_ns = static_cast<int32_t>(sin_f32( (pi/2 - DEG_TO_RAD(angle) )  ) * speed);    // North direction,is the projection of North = cos(angle=Compas Bearing), cos(angle)= sen(90-angle) (0º is the max +1 NORTH) max velo_NS                                    
 	
-	v_rate_coded = (v_rate / 64) + 1;											//encoding vertical rate source.  (Decoding, VR ft/min = (Decimal v_rate_value - 1)* 64) 
+	v_rate_coded_abs = (abs(v_rate) / 64) + 1;									//encoding vertical rate source.  (Decoding, VR ft/min = (Decimal v_rate_value - 1)* 64) 
 	
 	velo_ew_abs = abs(velo_ew) + 1; 											// encoding Velo speed EW , when sign Direction is 0 (+): West->East, (-) 1: East->West
 	velo_ns_abs = abs(velo_ns) + 1;												// encoding Velo speed NS , when sign Direction is 0 (+): South->North , (-) 1: North->South
-	v_rate_coded_abs = abs(v_rate_coded);
-	
+		
 	make_frame_adsb(frame, ICAO_address);
 	
 	// Airborne velocities are all transmitted with Type Code 19 ( TC=19, using 5 bits ,TC=19 [Binary: 10011]), the following 3 bits are Subt-type Code ,SC= 1,2,3,4 
@@ -334,7 +333,7 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 	frame.push_byte(((velo_ew < 0 ? 1 : 0) << 2) | (velo_ew_abs >> 8));
 	frame.push_byte(velo_ew_abs);
 	frame.push_byte(((velo_ns < 0 ? 1 : 0) << 7) | (velo_ns_abs >> 3));
-	frame.push_byte((velo_ns_abs << 5) | ((v_rate_coded < 0 ? 1 : 0) << 3) | (v_rate_coded_abs >> 6));	// VrSrc = 0
+	frame.push_byte((velo_ns_abs << 5) | ((v_rate < 0 ? 1 : 0) << 3) | (v_rate_coded_abs >> 6));	// VrSrc = 0
 	frame.push_byte(v_rate_coded_abs << 2);
 	frame.push_byte(0);
 	
