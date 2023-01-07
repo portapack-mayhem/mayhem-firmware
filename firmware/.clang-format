@@ -1,0 +1,39 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Unix style of Cpp programming
+UseCRLF: false
+ColumnLimit: 120
+
+# Use tabs for indentation, with width of 4 spaces
+UseTab: ForContinuationAndIndentation
+IndentWidth: 4
+TabWidth: 4
+
+# End-of-line brace style
+BraceStyle: EndOfLine
+
+# Pointers on Variable definition should be at left
+PointerAlignment: Left
+
+# Spaces in between variable names and bracket cast parenthesis
+SpaceAfterCStyleCast: true
+
+# Don't align content in open brackets
+AlignAfterOpenBracket: BlockIndent
+
+# Enforce multi-line function parameters
+BreakBeforeClosingBracket: true
+
+# Spaces
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInCStyleCastParentheses: false
+SpaceBeforeCpp11BracedList: true
+Cpp11BracedListStyle: false
+
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
