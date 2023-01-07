@@ -29,7 +29,7 @@
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
 #include "ui_font_fixed_8x16.hpp"
-
+#include "app_settings.hpp"
 #include "tone_key.hpp"
 
 
@@ -53,12 +53,13 @@ private:
 
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
-		4,
+		5,
 		{
-			{ "DSB ", 0 },
-			{ "USB ", 0 },
-			{ "LSB ", 0 },
-			{ "CW  ", 0 },
+			{ "DSB 9k ", 0 },
+			{ "DSB 6k ", 0 },
+			{ "USB+3k ", 0 },
+			{ "LSB-3k ", 0 },
+			{ "CW     ", 0 },
 		}
 	};
 };
@@ -143,7 +144,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Analog audio"; };
+	std::string title() const override { return "Audio RX"; };
 
 	size_t get_spec_bw_index();
 	void set_spec_bw(size_t index, uint32_t bw);
@@ -153,6 +154,10 @@ public:
 
 private:
 	static constexpr ui::Dim header_height = 3 * 16;
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };

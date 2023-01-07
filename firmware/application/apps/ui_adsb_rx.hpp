@@ -32,7 +32,7 @@
 #include "log_file.hpp"
 #include "adsb.hpp"
 #include "message.hpp"
-
+#include "app_settings.hpp"
 #include "crc.hpp"
 
 using namespace adsb;
@@ -184,7 +184,7 @@ private:
 	AircraftRecentEntry 		entry_copy { 0 };
 	std::function<void(void)> 	on_close_ { };
 	bool 				send_updates { false };
-	std::database 			db;
+	std::database 			db = { };
 	std::string 			icao_code = "";
 	int 				return_code = 0;
 
@@ -279,7 +279,7 @@ private:
 	GeoMapView* 			geomap_view { nullptr };
 	ADSBRxAircraftDetailsView* 	aircraft_details_view { nullptr };
 	bool 				send_updates { false };
-	std::database 			db;	
+	std::database 			db = { };	
 	std::string 			airline_code = "";
 	int 				return_code = 0;
 	
@@ -361,17 +361,20 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B receive"; };
+	std::string title() const override { return "ADS-B RX"; };
 
 	void replace_entry(AircraftRecentEntry & entry);
 	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
 	void sort_entries_by_state();
 
 private:
-	rf::Frequency prevFreq;
+	rf::Frequency prevFreq = { 0 };
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	const RecentEntriesColumns columns { {
 #if false

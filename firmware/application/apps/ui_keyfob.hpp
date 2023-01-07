@@ -23,6 +23,7 @@
 #include "ui.hpp"
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "encoders.hpp"
 
 using namespace encoders;
@@ -36,11 +37,15 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Keyfob (BETA)"; };
+	std::string title() const override { return "Key fob TX"; };
 
 private:
 	NavigationView& nav_;
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	// 1013210ns / bit
 	static constexpr uint32_t subaru_samples_per_bit = (OOK_SAMPLERATE * 0.00101321);
 	static constexpr uint32_t repeats = 4;

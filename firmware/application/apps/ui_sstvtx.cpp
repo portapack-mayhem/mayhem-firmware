@@ -25,6 +25,7 @@
 
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
+#include "cpld_update.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -88,8 +89,13 @@ void SSTVTXView::paint(Painter&) {
 }
 
 SSTVTXView::~SSTVTXView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_sstv", &app_settings);
+
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void SSTVTXView::on_tuning_frequency_changed(rf::Frequency f) {
@@ -214,6 +220,15 @@ SSTVTXView::SSTVTXView(
 	options_t bitmap_options;
 	options_t mode_options;
 	uint32_t c;
+
+	// load app settings
+	auto rc = settings.load("tx_sstv", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
 
 	// Search for valid bitmaps
 	file_list = scan_root_files(u"/sstv", u"*.bmp");

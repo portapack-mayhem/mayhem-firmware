@@ -31,11 +31,21 @@ ScannerThread::ScannerThread(
 	std::vector<rf::Frequency> frequency_list
 ) : frequency_list_ {  std::move(frequency_list) }
 {
-	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ScannerThread::static_fn, this);
+	create_thread();
+}
+
+ScannerThread::ScannerThread(const jammer::jammer_range_t& frequency_range, size_t def_step) : frequency_range_(frequency_range), def_step_(def_step)
+{
+	create_thread();
 }
 
 ScannerThread::~ScannerThread() {
 	stop();
+}
+
+void ScannerThread::create_thread()
+{
+	thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ScannerThread::static_fn, this);
 }
 
 void ScannerThread::stop() {
@@ -102,12 +112,13 @@ void ScannerThread::run() {
 					else
 						restart_scan=false;			//Effectively skipping first retuning, giving system time
 				} 
+				message.freq = frequency_list_[frequency_index];
 				message.range = frequency_index;	//Inform freq (for coloring purposes also!)
 				EventDispatcher::send_message(message);
 			} 
 			else {									//NOT scanning 									
 				if (_freq_del != 0) {				//There is a frequency to delete
-					for (uint16_t i = 0; i < frequency_list_.size(); i++) {	//Search for the freq to delete
+					for (uint32_t i = 0; i < frequency_list_.size(); i++) {	//Search for the freq to delete
 						if (frequency_list_[i] == _freq_del) 
 						{							//found: Erase it
 							frequency_list_.erase(frequency_list_.begin() + i);
@@ -126,16 +137,58 @@ void ScannerThread::run() {
 			}
 			chThdSleepMilliseconds(50);				//Needed to (eventually) stabilize the receiver into new freq
 		}
+	}else if(def_step_ > 0) // manual mode
+	{
+		RetuneMessage message { };
+		int64_t frequency_index = 0;
+		int64_t size = (frequency_range_.max - frequency_range_.min) / def_step_;
+		bool restart_scan = false;					//Flag whenever scanning is restarting after a pause
+		while( !chThdShouldTerminate() ) {
+			if (_scanning) {						//Scanning
+				if (_freq_lock == 0) {				//normal scanning (not performing freq_lock)
+					if (!restart_scan) {			//looping at full speed
+						if (_fwd) {					//forward
+							frequency_index++;
+							if (frequency_index >= size)
+								frequency_index = 0;	
+
+						} else {					//reverse
+							if (frequency_index < 1)
+								frequency_index = size;
+							frequency_index--;
+						}
+						receiver_model.set_tuning_frequency(frequency_range_.min + frequency_index * def_step_);	// Retune
+					}
+					else
+						restart_scan=false;			//Effectively skipping first retuning, giving system time
+				} 
+				message.freq = frequency_range_.min + frequency_index * def_step_;
+				message.range = 0;	//Inform freq (for coloring purposes also!)
+				EventDispatcher::send_message(message);
+			} 
+			else {									//NOT scanning 									
+				restart_scan=true;					//Flag the need for skipping a cycle when restarting scan
+			}
+			chThdSleepMilliseconds(50);				//Needed to (eventually) stabilize the receiver into new freq
+		}
 	}
 }
 
-void ScannerView::handle_retune(uint32_t i) {
+void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
+
+	current_index = freq_idx;	//since it is an ongoing scan, this is a new index
+	current_frequency = freq;
+
 	switch (scan_thread->is_freq_lock())
 	{
 	case 0:										//NO FREQ LOCK, ONGOING STANDARD SCANNING
-		text_cycle.set( to_string_dec_uint(i + 1,3) );
-		current_index = i;		//since it is an ongoing scan, this is a new index
-		if (description_list[current_index].size() > 0) desc_cycle.set( description_list[current_index] );	//Show new description	
+		if (frequency_list.size() > 0) {
+			text_cycle.set( to_string_dec_uint(freq_idx + 1,3) );
+		}
+
+		if (freq_idx < description_list.size() && description_list[freq_idx].size() > 0) {
+			desc_cycle.set( description_list[freq_idx] );	//Show new description	
+		}
 		break;
 	case 1:										//STARTING LOCK FREQ
 		big_display.set_style(&style_yellow);
@@ -146,7 +199,7 @@ void ScannerView::handle_retune(uint32_t i) {
 	default:	//freq lock is checking the signal, do not update display
 		return;
 	}
-	big_display.set(frequency_list[current_index]);	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
+	big_display.set(freq);	//UPDATE the big Freq after 0, 1 or MAX_FREQ_LOCK (at least, for color synching)
 }
 
 void ScannerView::focus() {
@@ -154,15 +207,17 @@ void ScannerView::focus() {
 }
 
 ScannerView::~ScannerView() {
+	// make sure to stop the thread before shutting down the receiver
+	scan_thread.reset();
 	audio::output::stop();
 	receiver_model.disable();
 	baseband::shutdown();
 }
 
 void ScannerView::show_max() {		//show total number of freqs to scan
-	if (frequency_list.size() == MAX_DB_ENTRY) {
+	if (frequency_list.size() == FREQMAN_MAX_PER_FILE ) {
 		text_max.set_style(&style_red);
-		text_max.set( "/ " + to_string_dec_uint(MAX_DB_ENTRY) + " (DB MAX!)");
+		text_max.set( "/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE ) + " (DB MAX!)");
 	}
 	else {
 		text_max.set_style(&style_grey);
@@ -297,23 +352,15 @@ ScannerView::ScannerView(
 		description_list.clear();
 		def_step = step_mode.selected_index_value();		//Use def_step from manual selector
 
-		description_list.push_back(
-			"M" + to_string_short_freq(frequency_range.min) + ">"
-	 		+ to_string_short_freq(frequency_range.max) + "S" 
-	 		+ to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
-		);
-
-		rf::Frequency frequency = frequency_range.min;
-		while (frequency_list.size() < MAX_DB_ENTRY &&  frequency <= frequency_range.max) { //add manual range				
-			frequency_list.push_back(frequency);
-			description_list.push_back("");				//If empty, will keep showing the last description
-			frequency+=def_step;
-		}
 		show_max();
+		desc_cycle.set("");
+		text_max.set("");
+		text_cycle.set("");
+
 		if ( userpause ) 						//If user-paused, resume
 			user_resume();
 		big_display.set_style(&style_grey);		//Back to grey color
-		start_scan_thread(); //RESTART SCANNER THREAD
+		start_scan_thread(frequency_range, def_step); //RESTART SCANNER THREAD
 		}
 	};
 
@@ -333,35 +380,56 @@ ScannerView::ScannerView(
 		big_display.set_style(&style_grey);		//Back to grey color
 	};
 
-	button_add.on_select = [this](Button&) {  //frequency_list[current_index]
+
+	button_add.on_select = [this](Button&) {  // current_frequency
+	
 		File scanner_file;
-		std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
+		const std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
 		auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
+		
 		if (!result.is_valid()) {
-			std::string frequency_to_add = "f=" 
-				+ to_string_dec_uint(frequency_list[current_index] / 1000) 
-				+ to_string_dec_uint(frequency_list[current_index] % 1000UL, 3, '0');
-			char one_char[1];		//Read it char by char
-			std::string line;		//and put read line in here
+			const std::string frequency_to_add = "f=" 
+				+ to_string_dec_uint(current_frequency / 1000) 
+				+ to_string_dec_uint(current_frequency % 1000UL, 3, '0');
+
 			bool found=false;
-			for (size_t pointer=0; pointer < scanner_file.size();pointer++) {
+			constexpr size_t buffer_size = 1024;
+			char buffer[buffer_size];
+
+			for (size_t pointer = 0, freq_str_idx = 0; pointer < scanner_file.size(); pointer += buffer_size) {
+				size_t adjusted_buffer_size;
+				if (pointer + buffer_size >= scanner_file.size()) {
+					memset(buffer, 0, sizeof(buffer));
+					adjusted_buffer_size = scanner_file.size() - pointer;
+				}
+				else {
+					adjusted_buffer_size = buffer_size;
+				}
 
 				scanner_file.seek(pointer);
-				scanner_file.read(one_char, 1);
-				if ((int)one_char[0] > 31) {			//ascii space upwards
-					line += one_char[0];				//Add it to the textline
-				}
-				else if (one_char[0] == '\n') {			//New Line
-					if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-						found=true;
-						break;
+				scanner_file.read(buffer, adjusted_buffer_size);
+
+				for (size_t i = 0; i < adjusted_buffer_size; ++i) {
+					if (buffer[i] == frequency_to_add.data()[freq_str_idx]) {
+						++freq_str_idx;
+						if (freq_str_idx >= frequency_to_add.size()) {
+							found = true;
+							break;
+						}
 					}
-					line.clear();						//Ready for next textline
+					else {
+						freq_str_idx = 0;
+					}
 				}
-			}
+
+				if (found) {
+					break;
+				}
+			}	
+
 			if (found) {
 				nav_.display_modal("Error", "Frequency already exists");
-				big_display.set(frequency_list[current_index]);		//After showing an error
+				big_display.set(current_frequency);		//After showing an error
 			}
 			else {
 				scanner_file.append(freq_file_path); //Second: append if it is not there
@@ -370,7 +438,7 @@ ScannerView::ScannerView(
 		} else
 		{
 			nav_.display_modal("Error", "Cannot open " + loaded_file_name + ".TXT\nfor appending freq.");
-			big_display.set(frequency_list[current_index]);		//After showing an error
+			big_display.set(current_frequency);		//After showing an error
 		}
 	};
 
@@ -398,7 +466,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 	if ( load_freqman_file(file_name, database)  ) {
 		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
-			if (frequency_list.size() < MAX_DB_ENTRY) {					//We got space!
+			if (frequency_list.size() < FREQMAN_MAX_PER_FILE ) {					//We got space!
 				if (entry.type == RANGE)  {								//RANGE	
 					switch (entry.step) {
 						case AM_US:	def_step = 10000;  	break ;
@@ -421,7 +489,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 						+ ">" + to_string_short_freq(entry.frequency_b)
 						+ " S" + to_string_short_freq(def_step).erase(0,1) //euquiq: lame kludge to reduce spacing in step freq
 						);
-					while (frequency_list.size() < MAX_DB_ENTRY && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
+					while (frequency_list.size() < FREQMAN_MAX_PER_FILE  && entry.frequency_a <= entry.frequency_b) { //add the rest of the range
 						entry.frequency_a+=def_step;
 						frequency_list.push_back(entry.frequency_a);
 						description_list.push_back("");				//Token (keep showing the last description)
@@ -484,6 +552,7 @@ void ScannerView::scan_pause() {
 		scan_thread->set_freq_lock(0); 		//Reset the scanner lock (because user paused, or MAX_FREQ_LOCK reached) for next freq scan	
 		scan_thread->set_scanning(false); // WE STOP SCANNING
 		audio::output::start();
+		on_headphone_volume_changed(field_volume.value()); // quick fix to make sure WM8731S chips don't stay silent after pause
 	}
 }
 
@@ -515,9 +584,9 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 
 	switch (new_mod) {
 	case NFM:	//bw 16k (2) default
-		bw.emplace_back("8k5", 0);
-		bw.emplace_back("11k", 0);
-		bw.emplace_back("16k", 0);			
+		bw.emplace_back("8k5   ", 0);
+		bw.emplace_back("11k   ", 0);
+		bw.emplace_back("16k   ", 0);			
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
@@ -528,10 +597,12 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);	
 		break;
 	case AM:
-		bw.emplace_back("DSB", 0);
-		bw.emplace_back("USB", 0);
-		bw.emplace_back("LSB", 0);
-		bw.emplace_back("CW ", 0);
+		bw.emplace_back("DSB 9k" , 0 );
+		bw.emplace_back("DSB 6k" , 1 );
+		bw.emplace_back("USB+3k" , 2 );
+		bw.emplace_back("LSB-3k" , 3 );
+		bw.emplace_back("CW    " , 4 );
+
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_am_audio);
@@ -539,10 +610,10 @@ size_t ScannerView::change_mode(uint8_t new_mod) { //Before this, do a scan_thre
 		field_bw.set_selected_index(0);
 		receiver_model.set_am_configuration(field_bw.selected_index());
 		field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};		
-		receiver_model.set_sampling_rate(2000000);receiver_model.set_baseband_bandwidth(2000000); 
+		receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000); 
 		break;
 	case WFM:
-		bw.emplace_back("16k", 0);
+		bw.emplace_back("200k  ", 0);
 		field_bw.set_options(bw);
 
 		baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
@@ -561,6 +632,12 @@ void ScannerView::start_scan_thread() {
 	receiver_model.enable(); 
 	receiver_model.set_squelch_level(0);
 	scan_thread = std::make_unique<ScannerThread>(frequency_list);
+}
+
+void ScannerView::start_scan_thread(const jammer::jammer_range_t& frequency_range, size_t def_step) {
+	receiver_model.enable(); 
+	receiver_model.set_squelch_level(0);
+	scan_thread = std::make_unique<ScannerThread>(frequency_range, def_step);
 }
 
 } /* namespace ui */

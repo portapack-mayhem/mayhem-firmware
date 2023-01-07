@@ -154,6 +154,7 @@ set(CPPSRC
 	${COMMON}/ui_widget.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
 	capture_thread.cpp
@@ -266,8 +267,12 @@ set(CPPSRC
 	apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	apps/replay_app.cpp
+	apps/ui_playlist.cpp
 	apps/gps_sim_app.cpp
 	apps/soundboard_app.cpp
+	apps/ui_recon.cpp  
+	apps/ui_recon_settings.cpp
+	apps/tpms_app.cpp
 	apps/tpms_app.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp

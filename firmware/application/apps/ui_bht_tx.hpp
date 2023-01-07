@@ -32,6 +32,7 @@
 #include "message.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
+#include "app_settings.hpp"
 #include "portapack.hpp"
 
 namespace ui {
@@ -50,11 +51,11 @@ public:
 private:
 	Labels labels {
 		{ { 8 * 8, 1 * 8 }, "Header:", Color::light_grey() },
-		{ { 4 * 8, 3 * 8 }, "Code ville:", Color::light_grey() },
-		{ { 7 * 8, 5 * 8 }, "Famille:", Color::light_grey() },
-		{ { 2 * 8, 7 * 8 + 2 }, "Sous-famille:", Color::light_grey() },
-		{ { 2 * 8, 11 * 8 }, "ID recepteur:", Color::light_grey() },
-		{ { 2 * 8, 14 * 8 }, "Relais:", Color::light_grey() }
+		{ { 4 * 8, 3 * 8 }, "City code:", Color::light_grey() },
+		{ { 7 * 8, 5 * 8 }, "Family:", Color::light_grey() },
+		{ { 2 * 8, 7 * 8 + 2 }, "Subfamily:", Color::light_grey() },
+		{ { 2 * 8, 11 * 8 }, "Receiver ID:", Color::light_grey() },
+		{ { 2 * 8, 14 * 8 }, "Relay:", Color::light_grey() }
 	};
 	
 	NumberField field_header_a {
@@ -98,8 +99,8 @@ private:
 	
 	Checkbox checkbox_wcsubfamily {
 		{ 20 * 8, 6 * 8 + 6 },
-		6,
-		"Toutes"
+		3,
+		"All"
 	};
 	
 	NumberField field_receiver {
@@ -111,8 +112,8 @@ private:
 	};
 	Checkbox checkbox_wcid {
 		{ 20 * 8, 10 * 8 + 4 },
-		4,
-		"Tous"
+		3,
+		"All"
 	};
 	
 	std::array<ImageOptionsField, 4> relay_states { };
@@ -139,9 +140,9 @@ public:
 	
 private:
 	Labels labels {
-		{ { 4 * 8, 1 * 8 }, "Code ville:", Color::light_grey() },
-		{ { 8 * 8, 3 * 8 }, "Groupe:", Color::light_grey() },
-		{ { 8 * 8, 7 * 8 }, "Relais:", Color::light_grey() }
+		{ { 4 * 8, 1 * 8 }, "City code:", Color::light_grey() },
+		{ { 8 * 8, 3 * 8 }, "Group:", Color::light_grey() },
+		{ { 8 * 8, 7 * 8 }, "Relay:", Color::light_grey() }
 	};
 	
 	NumberField field_city {
@@ -178,9 +179,13 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "BHT transmit"; };
+	std::string title() const override { return "BHT Xy/EP TX"; };
 
 private:
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	void on_tx_progress(const uint32_t progress, const bool done);
 	void start_tx();
 	void stop_tx();
@@ -220,12 +225,12 @@ private:
 		"Scan"
 	};
 	
-	Checkbox checkbox_cligno {
+	Checkbox checkbox_flashing {
 		{ 16 * 8, 25 * 8 },
-		6,
-		"Cligno"
+		8,
+		"Flashing"
 	};
-	NumberField field_tempo {
+	NumberField field_speed {
 		{ 26 * 8, 25 * 8 + 4 },
 		2,
 		{ 1, 99 },

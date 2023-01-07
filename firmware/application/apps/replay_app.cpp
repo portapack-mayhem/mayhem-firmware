@@ -26,7 +26,7 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
-
+#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -201,6 +201,16 @@ ReplayAppView::ReplayAppView(
 	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
 	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
 
+	field_rfamp.on_change = [this](int32_t v) {	// allow initial value change just after opened file.	
+		rf_amp = (bool)v;
+	};
+	field_rfamp.set_value(rf_amp ? 14 : 0);
+
+    field_rfgain.on_change = [this](int32_t v) { // allow initial value change just after opened file.
+		tx_gain = v;
+	};  
+	field_rfgain.set_value(tx_gain);
+
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
@@ -248,7 +258,12 @@ ReplayAppView::ReplayAppView(
 
 ReplayAppView::~ReplayAppView() {
 	radio::disable();
-	baseband::shutdown();
+ 
+ 	display.fill_rectangle({ 0,0,240, 320 },Color::black()); //Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels. 
+	chThdSleepMilliseconds(40);	// (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )  
+	hackrf::cpld::load_sram_no_verify();  // to leave all  RX reception ok, without "ghost interference signal problem" at the exit .
+
+	baseband::shutdown(); // better this function at the end, after load_sram(). If not , sometimes produced hang up (now not , it is ok).
 }
 
 void ReplayAppView::on_hide() {

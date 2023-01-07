@@ -76,10 +76,16 @@ static std::string mid(
 	mid_code = to_string_dec_uint(mmsi, 9, ' ').substr(0, 3);
 	return_code = db.retrieve_mid_record(&mid_record, mid_code);
 	switch(return_code) {
-		case DATABASE_RECORD_FOUND: 	return mid_record.country;	
+		case DATABASE_RECORD_FOUND: 	return mid_record.country;
 		case DATABASE_NOT_FOUND: 	return "No mids.db file";
 		default:			return "";
 	}
+}
+
+static std::string text(const std::string &text) {
+	size_t end = text.find_last_not_of("@");
+    return (end == std::string::npos) ? "" : text.substr(0, end + 1);
+
 }
 
 static std::string navigational_status(const unsigned int value) {
@@ -164,7 +170,7 @@ void AISLogger::on_packet(const ais::Packet& packet) {
 	}
 
 	log_file.write_entry(packet.received_at(), entry);
-}	
+}
 
 void AISRecentEntry::update(const ais::Packet& packet) {
 	received_count++;
@@ -195,11 +201,37 @@ void AISRecentEntry::update(const ais::Packet& packet) {
 		destination = packet.text(302, 20);
 		break;
 
+	case 18:
+	    last_position.timestamp = packet.received_at();
+		last_position.speed_over_ground = packet.read(46, 10);
+		last_position.latitude = packet.latitude(85);
+		last_position.longitude = packet.longitude(57);
+		last_position.course_over_ground = packet.read(112, 12);
+		last_position.true_heading = packet.read(124, 9);
+	    break;
+
 	case 21:
 		name = packet.text(43, 20);
 		last_position.timestamp = packet.received_at();
 		last_position.latitude = packet.latitude(192);
 		last_position.longitude = packet.longitude(164);
+		break;
+
+	case 24:
+		switch (packet.read(38, 2))
+		{
+		case 0:
+			name = packet.text(40, 20);
+			break;
+
+		case 1:
+			call_sign = packet.text(90, 7);
+			break;
+
+		default:
+			break;
+		}
+
 		break;
 
 	default:
@@ -218,9 +250,9 @@ void RecentEntriesTable<AISRecentEntries>::draw(
 ) {
 	std::string line = ais::format::mmsi(entry.mmsi) + " ";
 	if( !entry.name.empty() ) {
-		line += entry.name;
+		line += ais::format::text(entry.name);
 	} else {
-		line += entry.call_sign;
+		line += ais::format::text(entry.call_sign);
 	}
 
 	line.resize(target_rect.width() / 8, ' ');
@@ -241,7 +273,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
 	button_see_map.on_select = [this, &nav](Button&) {
 		geomap_view = nav.push<GeoMapView>(
-			entry_.name,
+			ais::format::text(entry_.name),
 			0,
 			GeoPos::alt_unit::METERS,
 			ais::format::latlon_float(entry_.last_position.latitude.normalized()),
@@ -252,10 +284,20 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 			});
 			send_updates = true;
 
-		
+
 	};
-	
-	
+}
+
+
+AISRecentEntryDetailView::AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry) : View()
+{
+    (void)Entry;
+}
+
+AISRecentEntryDetailView & AISRecentEntryDetailView::operator=(const AISRecentEntryDetailView&Entry)
+{
+    (void)Entry;
+    return *this;
 }
 
 void AISRecentEntryDetailView::update_position() {
@@ -292,9 +334,9 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 
 	field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
 	field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
-	field_rect = draw_field(painter, field_rect, s, "Name", entry_.name);
-	field_rect = draw_field(painter, field_rect, s, "Call", entry_.call_sign);
-	field_rect = draw_field(painter, field_rect, s, "Dest", entry_.destination);
+	field_rect = draw_field(painter, field_rect, s, "Name", ais::format::text(entry_.name));
+	field_rect = draw_field(painter, field_rect, s, "Call", ais::format::text(entry_.call_sign));
+	field_rect = draw_field(painter, field_rect, s, "Dest", ais::format::text(entry_.destination));
 	field_rect = draw_field(painter, field_rect, s, "Last", to_string_datetime(entry_.last_position.timestamp));
 	field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
 	field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
@@ -325,25 +367,24 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 		&recent_entry_detail_view,
 	});
 
+
+	// load app settings
+	auto rc = settings.load("rx_ais", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		target_frequency_ = app_settings.rx_frequency;
+	}
+	else target_frequency_ = initial_target_frequency;
+
 	recent_entry_detail_view.hidden(true);
 
-	target_frequency_ = initial_target_frequency;
-  
-    receiver_model.set_tuning_frequency(tuning_frequency());
-    receiver_model.set_sampling_rate(sampling_rate);
-    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+    	receiver_model.set_tuning_frequency(tuning_frequency());
+    	receiver_model.set_sampling_rate(sampling_rate);
+    	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    	receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
 
-/*  radio::enable({     //  this can be removed, previous version,no DC-bias control.
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	}); */
-	
 	options_channel.on_change = [this](size_t, OptionsField::value_t v) {
 		this->on_frequency_changed(v);
 	};
@@ -363,7 +404,11 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 }
 
 AISAppView::~AISAppView() {
-/*	radio::disable();  */
+
+	// save app settings
+	app_settings.rx_frequency = target_frequency_;
+	settings.save("rx_ais", &app_settings);
+
 	receiver_model.disable();   // to switch off all, including DC bias.
 
 	baseband::shutdown();

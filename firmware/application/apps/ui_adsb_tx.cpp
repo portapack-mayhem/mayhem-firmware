@@ -26,6 +26,7 @@
 #include "manchester.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
+#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 
 #include <cstring>
@@ -161,13 +162,16 @@ ADSBSpeedView::ADSBSpeedView(
 	
 	add_children({
 		&labels_speed,
+		&labels_vert_rate,
 		&compass,
 		&field_angle,
-		&field_speed
+		&field_speed,
+		&field_vert_rate
 	});
 	
 	field_angle.set_value(0);
 	field_speed.set_value(400);
+	field_vert_rate.set_value(0);
 	
 	field_angle.on_change = [this](int32_t v) {
 		compass.set_value(v);
@@ -180,7 +184,7 @@ void ADSBSpeedView::collect_frames(const uint32_t ICAO_address, std::vector<ADSB
 	ADSBFrame temp_frame;
 	
 	encode_frame_velo(temp_frame, ICAO_address, field_speed.value(),
-		field_angle.value(), 0);	// TODO: v_rate
+		field_angle.value(), field_vert_rate.value());				// Added v_rate ,  ft/min  ,  (+) climb ,  (-) descend .
 	
 	frame_list.emplace_back(temp_frame);
 }
@@ -284,9 +288,15 @@ void ADSBTxView::focus() {
 }
 
 ADSBTxView::~ADSBTxView() {
+
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_adsb", &app_settings);
+
 	transmitter_model.disable();
-	baseband::shutdown();
-}
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, withouth ghost signal problem at the exit .
+	baseband::shutdown();				  // better this function at the end, not load_sram() that sometimes produces hang up.
+	}
 
 void ADSBTxView::generate_frames() {
 	const uint32_t ICAO_address = sym_icao.value_hex_u64();
@@ -334,8 +344,16 @@ ADSBTxView::ADSBTxView(
 		&view_squawk,
 		&text_frame,
 		&tx_view
-	});
-	
+	});	
+
+	// load app settings
+	auto rc = settings.load("tx_adsb", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {

@@ -43,6 +43,8 @@ public:
 
 	void focus() override;
 
+	std::string title() const override { return "Memory"; };
+
 private:
 	Text text_title {
 		{ 96, 96, 48, 16 },
@@ -112,6 +114,8 @@ public:
 	explicit TemperatureView(NavigationView& nav);
 
 	void focus() override;
+
+	std::string title() const override { return "Temperature"; };
 
 private:
 	Text text_title {
@@ -251,6 +255,8 @@ public:
 	explicit DebugControlsView(NavigationView& nav);
 
 	void focus() override;
+
+	std::string title() const override { return "Buttons Test"; };
 
 private:
 	Text text_title {

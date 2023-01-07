@@ -23,6 +23,7 @@
 #include "ui_sonde.hpp"
 #include "baseband_api.hpp"
 #include "audio.hpp"
+#include "app_settings.hpp"
 
 #include "portapack.hpp"
 #include <cstring>
@@ -43,6 +44,8 @@ namespace ui {
 
 
 SondeView::SondeView(NavigationView& nav) {
+	
+
 	baseband::run_image(portapack::spi_flash::image_tag_sonde);
 
 	add_children({
@@ -68,8 +71,17 @@ SondeView::SondeView(NavigationView& nav) {
 		&button_see_map
 	});
 
-	// start from the frequency currently stored in the receiver_model:
-	target_frequency_ = receiver_model.tuning_frequency();
+
+	// load app settings
+	auto rc = settings.load("rx_sonde", &app_settings);
+	if(rc == SETTINGS_OK) {
+		field_lna.set_value(app_settings.lna);
+		field_vga.set_value(app_settings.vga);
+		field_rf_amp.set_value(app_settings.rx_amp);
+		target_frequency_ = app_settings.rx_frequency;
+	}
+	else target_frequency_ = receiver_model.tuning_frequency();
+
 
 	field_frequency.set_value(target_frequency_);
 	field_frequency.set_step(500);		//euquiq: was 10000, but we are using this for fine-tunning
@@ -104,16 +116,6 @@ SondeView::SondeView(NavigationView& nav) {
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();   // Before using radio::enable(), but not updating Ant.DC-Bias.
-	
-	/* radio::enable({        // this can be removed, previous version, no DC-bias ant. control.
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	}); */
 
 
         // QR code with geo URI
@@ -157,9 +159,13 @@ SondeView::SondeView(NavigationView& nav) {
 }
 
 SondeView::~SondeView() {
+	// save app settings
+	app_settings.rx_frequency = target_frequency_;
+	settings.save("rx_sonde", &app_settings);
+
 	baseband::set_pitch_rssi(0, false);
-/* 	radio::disable(); */  
-    receiver_model.disable();   // to switch off all, including DC bias.
+
+    	receiver_model.disable();   // to switch off all, including DC bias.
 	baseband::shutdown();
 	audio::output::stop();
 }

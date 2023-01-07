@@ -49,9 +49,9 @@ private:
 	};
 	
 	AudioInput audio_input { };
-	ToneGen tone_gen { };
-	ToneGen beep_gen { };
-	dsp::modulate::Modulator *modulator;
+	// ToneGen tone_gen { };   moved to  dsp_modulate.cpp
+	// ToneGen beep_gen { };   moved to  dsp_modulate.cpp	
+	dsp::modulate::Modulator *modulator = NULL ;
 
 	bool am_enabled { false };
 	bool fm_enabled { true };
@@ -61,6 +61,8 @@ private:
 
 	uint32_t divider { };
 	float audio_gain { };
+	uint8_t audio_shift_bits_s16 { } ; // shift bits factor to the captured ADC S16 audio sample.
+
 	uint64_t power_acc { 0 };
 	uint32_t power_acc_count { 0 };
 	bool play_beep { false };

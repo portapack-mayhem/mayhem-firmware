@@ -34,7 +34,6 @@
 #include "file.hpp"
 
 
-#define MAX_DB_ENTRY 500
 #define MAX_FREQ_LOCK 10 		//50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
 namespace ui {
@@ -47,6 +46,7 @@ size_t const mod_step[3] = {9000, 100000, 12500 };
 class ScannerThread {
 public:
 	ScannerThread(std::vector<rf::Frequency> frequency_list);
+	ScannerThread(const jammer::jammer_range_t& frequency_range, size_t def_step);
 	~ScannerThread();
 
 	void set_scanning(const bool v);
@@ -68,6 +68,8 @@ public:
 
 private:
 	std::vector<rf::Frequency> frequency_list_ { };
+	jammer::jammer_range_t frequency_range_ {false, 0, 0};
+	size_t	def_step_ { 0 };
 	Thread* thread { nullptr };
 	
 	bool _scanning { true };
@@ -76,6 +78,7 @@ private:
 	uint32_t _freq_del { 0 };
 	static msg_t static_fn(void* arg);
 	void run();
+	void create_thread();
 };
 
 class ScannerView : public View {
@@ -111,7 +114,7 @@ public:
 		.foreground = Color::red(),
 	};
 
-	std::string title() const override { return "SCANNER"; };
+	std::string title() const override { return "Scanner"; };
 	std::vector<rf::Frequency> frequency_list{ };
 	std::vector<string> description_list { };
 
@@ -121,6 +124,7 @@ private:
 	NavigationView& nav_;
 
 	void start_scan_thread();
+	void start_scan_thread(const jammer::jammer_range_t& frequency_range, size_t def_step);
 	size_t change_mode(uint8_t mod_type);
 	void show_max();
 	void scan_pause();
@@ -130,7 +134,7 @@ private:
 
 	void on_statistics_update(const ChannelStatistics& statistics);
 	void on_headphone_volume_changed(int32_t v);
-	void handle_retune(uint32_t i);
+	void handle_retune(int64_t freq, uint32_t freq_idx);
 
 	jammer::jammer_range_t frequency_range { false, 0, 0 };  //perfect for manual scan task too...
 	int32_t squelch { 0 };
@@ -140,11 +144,12 @@ private:
 	freqman_db database { };
 	std::string loaded_file_name;
 	uint32_t current_index { 0 };
+	rf::Frequency current_frequency { 0 };
 	bool userpause { false };
 	
 	Labels labels {
 		{ { 0 * 8, 0 * 16 }, "LNA:   VGA:   AMP:  VOL:", Color::light_grey() },
-		{ { 0 * 8, 1* 16 }, "BW:    SQUELCH:   db WAIT:", Color::light_grey() },
+		{ { 0 * 8, 1* 16 }, "BW:       SQLCH:   db WAIT:", Color::light_grey() },
 		{ { 3 * 8, 10 * 16 }, "START        END     MANUAL", Color::light_grey() },
 		{ { 0 * 8, (26 * 8) + 4 }, "MODE:", Color::light_grey() },
 		{ { 11 * 8, (26 * 8) + 4 }, "STEP:", Color::light_grey() },
@@ -177,7 +182,7 @@ private:
 	};		
 
 	NumberField field_squelch {
-		{ 15 * 8, 1 * 16 },
+		{ 18 * 8, 1 * 16 },
 		3,
  		{ -90, 20 },
 		1,
@@ -185,7 +190,7 @@ private:
 	};
 
 	NumberField field_wait {
-		{ 26 * 8, 1 * 16 },
+		{ 27 * 8, 1 * 16 },
 		2,
 		{ 0, 99 },
 		1,
@@ -296,7 +301,7 @@ private:
 		Message::ID::Retune,
 		[this](const Message* const p) {
 			const auto message = *reinterpret_cast<const RetuneMessage*>(p);
-			this->handle_retune(message.range);
+			this->handle_retune(message.freq, message.range);
 		}
 	};
 	

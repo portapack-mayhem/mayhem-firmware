@@ -28,6 +28,7 @@
 
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "portapack.hpp"
 
 namespace ui {
@@ -39,7 +40,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Si44xx TX"; };
+	std::string title() const override { return "BurgerPgr TX"; };
 
 private:
 	enum tx_modes {
@@ -50,6 +51,10 @@ private:
 	
 	tx_modes tx_mode = IDLE;
 	
+	// app save settings
+	std::app_settings 		settings { };
+	std::app_settings::AppSettings 	app_settings { };
+
 	void start_tx();
 	void generate_frame();
 	void on_tx_progress(const uint32_t progress, const bool done);

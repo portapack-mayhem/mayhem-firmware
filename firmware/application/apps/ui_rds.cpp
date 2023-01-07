@@ -24,6 +24,7 @@
 
 #include "portapack.hpp"
 #include "baseband_api.hpp"
+#include "cpld_update.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cstring>
@@ -175,8 +176,13 @@ void RDSView::focus() {
 }
 
 RDSView::~RDSView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_rds", &app_settings);
+
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void RDSView::start_tx() {
@@ -226,11 +232,17 @@ RDSView::RDSView(
 		&view_radiotext,
 		&view_datetime,
 		&view_audio,
-		//&options_countrycode,
-		//&options_coverage,
 		&tx_view,
 	});
-	
+
+	// load app settings
+	auto rc = settings.load("tx_rds", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}	
 	check_TP.set_value(true);
 	
 	sym_pi_code.set_sym(0, 0xF);
@@ -242,8 +254,6 @@ RDSView::RDSView(
 	};
 	
 	options_pty.set_selected_index(0);				// None
-	//options_countrycode.set_selected_index(18);		// Baguette du fromage
-	//options_coverage.set_selected_index(0);			// Local
 	
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

@@ -28,6 +28,7 @@
 #include "ui_transmitter.hpp"
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 #include "portapack.hpp"
 
 using namespace adsb;
@@ -95,6 +96,10 @@ private:
 		{ { 1 * 8, 6 * 16 }, "Speed:    kn  Bearing:    *", Color::light_grey() }
 	};
 	
+	Labels labels_vert_rate {
+		{ { 1 * 8, 8 * 16 }, "Vert. rate:    ft/min, (+/-)", Color::light_grey() }
+	};
+
 	Compass compass {
 		{ 21 * 8, 2 * 16 }
 	};
@@ -105,6 +110,10 @@ private:
 	
 	NumberField field_speed {
 		{ 8 * 8, 6 * 16 }, 3, { 0, 999 }, 5, ' '
+	};
+	
+	NumberField field_vert_rate {
+		{ 11 * 8, 8 * 16 }, 5, { -4096, 4096 }, 64, ' '			// Let's limit to +/-5k aprox , Ex. max safe descent vertical rate aprox -1000 ft/min on an instrument approach. , std step is 64  
 	};
 };
 
@@ -152,7 +161,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "ADS-B transmit"; };
+	std::string title() const override { return "ADS-B TX"; };
 
 private:
 	/*enum tx_modes {
@@ -189,6 +198,10 @@ private:
 		-1,
 		-1
 	};*/
+
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
 	
 	//tx_modes tx_mode = IDLE;
 	NavigationView& nav_;

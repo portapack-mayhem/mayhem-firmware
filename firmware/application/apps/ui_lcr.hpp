@@ -27,6 +27,7 @@
 
 #include "message.hpp"
 #include "transmitter_model.hpp"
+#include "app_settings.hpp"
 
 namespace ui {
 	
@@ -39,7 +40,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "LCR transmit"; };
+	std::string title() const override { return "TEDI/LCR TX"; };
 	
 private:
 	struct scan_list_t {
@@ -81,6 +82,10 @@ private:
 		SCAN
 	};
 	
+	// app save settings
+	std::app_settings 		settings { }; 		
+	std::app_settings::AppSettings 	app_settings { };
+
 	tx_modes tx_mode = IDLE;
 	uint8_t scan_count { 0 }, scan_index { 0 };
 	uint32_t scan_progress { 0 };

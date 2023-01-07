@@ -27,6 +27,7 @@
 #include "modems.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+#include "cpld_update.hpp"
 
 #include "serializer.hpp"
 
@@ -39,8 +40,13 @@ void LCRView::focus() {
 }
 
 LCRView::~LCRView() {
+	// save app settings
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	settings.save("tx_lcr", &app_settings);
+
 	transmitter_model.disable();
-	baseband::shutdown();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 /*
@@ -173,6 +179,15 @@ LCRView::LCRView(NavigationView& nav) {
 		&tx_view
 	});
 	
+	// load app settings
+	auto rc = settings.load("tx_lcr", &app_settings);
+	if(rc == SETTINGS_OK) {
+		transmitter_model.set_rf_amp(app_settings.tx_amp);
+		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
+		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
+		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+	}
+
 	options_scanlist.set_selected_index(0);
 	
 	const auto button_set_am_fn = [this, &nav](Button& button) {
