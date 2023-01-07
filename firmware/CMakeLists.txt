@@ -35,12 +35,24 @@ set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 add_subdirectory(application)
 add_subdirectory(baseband)
 
+# Linting and Formatting
+find_program(CLANG_FORMAT NAMES "clang-format" DOC "Path to clang-format executable")
+
+if(CLANG_FORMAT)
+	file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.hpp *.h)
+	add_custom_target(
+		format
+		COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_SOURCE_FILES}
+		DEPENDS ${ALL_SOURCE_FILES}
+	)
+endif()
+
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
 add_custom_command(
 	OUTPUT ${FIRMWARE_FILENAME}
 	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME}
 	DEPENDS baseband application ${MAKE_SPI_IMAGE}
-		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
+	${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 	VERBATIM
 )
 
