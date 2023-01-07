@@ -66,13 +66,12 @@ int database::retrieve_record(
 
 	auto result = db_file.open(file_path);
 	if (!result.is_valid()) {
-		number_of_records =
-			(db_file.size() / (index_item_length + record_length)); // determine number of records in file
-																	// binary search tree
-		int first = 0,                                              // First search element
-			last = number_of_records - 1,                           // Last search element
-			middle,                                                 // Mid point of search
-			position = -1;                                          // Position of search value
+		number_of_records = (db_file.size() / (index_item_length + record_length)); // determine number of records in
+																					// file binary search tree
+		int first = 0,                    // First search element
+			last = number_of_records - 1, // Last search element
+			middle,                       // Mid point of search
+			position = -1;                // Position of search value
 
 		while (!found && first <= last) {
 			middle = (first + last) / 2; // Calculate mid point

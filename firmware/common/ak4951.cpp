@@ -237,8 +237,9 @@ void AK4951::microphone_enable(int8_t alc_mode) {
 											   // ("00":3.7Hz, "01":14,8Hz, "10":118,4Hz)
 	update(Register::DigitalFilterSelect1);
 
-	// map.r.r_ch_mic_gain_setting.MGR = 0x80;	// Microphone sensitivity correction = 0dB.,  (not used by now , original
-	// code cond.) update(Register::RchMicGainSetting);		// (those two lines , not activated, same as original)
+	// map.r.r_ch_mic_gain_setting.MGR = 0x80;	// Microphone sensitivity correction = 0dB.,  (not used by now ,
+	// original code cond.) update(Register::RchMicGainSetting);		// (those two lines , not activated, same as
+	// original)
 
 	// pre-load 4 byes LPF coefficicients (.lpf_coefficient_0,1,2,3), FSA 14..0, FSB 14..0 , (fcut initial 6kHz, fs
 	// 48Khz). it will be default pre-loading coeff. for al  ALC modes,  LPF bit is activated down, for all ALC digital

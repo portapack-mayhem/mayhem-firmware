@@ -482,7 +482,8 @@
  */
 #if !defined(THREAD_EXT_EXIT_HOOK) || defined(__DOXYGEN__)
 #define THREAD_EXT_EXIT_HOOK(tp)                                                                                       \
-	{ /* Add threads finalization code here.*/ }
+	{ /* Add threads finalization code here.*/                                                                         \
+	}
 #endif
 
 /**
@@ -505,7 +506,8 @@
  */
 #if !defined(IDLE_LOOP_HOOK) || defined(__DOXYGEN__)
 #define IDLE_LOOP_HOOK()                                                                                               \
-	{ /* Idle loop code here.*/ }
+	{ /* Idle loop code here.*/                                                                                        \
+	}
 #endif
 
 /**
@@ -515,7 +517,8 @@
  */
 #if !defined(SYSTEM_TICK_EVENT_HOOK) || defined(__DOXYGEN__)
 #define SYSTEM_TICK_EVENT_HOOK()                                                                                       \
-	{ /* System tick event code here.*/ }
+	{ /* System tick event code here.*/                                                                                \
+	}
 #endif
 
 /**
@@ -525,7 +528,8 @@
  */
 #if !defined(SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
 #define SYSTEM_HALT_HOOK()                                                                                             \
-	{ /* System halt code here.*/ }
+	{ /* System halt code here.*/                                                                                      \
+	}
 #endif
 
 /** @} */

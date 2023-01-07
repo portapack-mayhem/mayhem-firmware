@@ -329,8 +329,8 @@ class WM8731 : public audio::Codec {
 		chThdSleepMilliseconds(120
 		); // >50 msegs, very effective , >100 msegs minor improvement ,120 msegs trade off speed .
 		microphone_mute(false);
-		//	(void)alc_mode; 		In prev. fw version ,  when we did not use at all param., to avoid "unused warning" when
-		//compiling.)
+		//	(void)alc_mode; 		In prev. fw version ,  when we did not use at all param., to avoid "unused warning"
+		//when compiling.)
 	}
 
 	void microphone_disable() override {

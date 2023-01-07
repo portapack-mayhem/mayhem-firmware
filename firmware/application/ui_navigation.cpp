@@ -495,7 +495,8 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 		//{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
 		{ "Freq. manager", ui::Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); } },
 		{ "File manager", ui::Color::yellow(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); } },
-		//{ "Notepad",		ui::Color::dark_grey(),	&bitmap_icon_notepad,		[&nav](){ nav.push<NotImplementedView>(); }
+		//{ "Notepad",		ui::Color::dark_grey(),	&bitmap_icon_notepad,		[&nav](){ nav.push<NotImplementedView>();
+		//}
 		//},
 		{ "Signal gen", ui::Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); } },
 		//{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); }
@@ -525,7 +526,8 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
 	add_items({
-		//{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); }
+		//{ "Play dead",				ui::Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>();
+		//}
 		//},
 		{ "Receive", ui::Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); } },
 		{ "Transmit", ui::Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); } },

@@ -127,14 +127,18 @@ class JammerView : public View {
 	};
 
 	Labels labels {
-		{ { 2 * 8, 23 * 8 }, "Type:", Color::light_grey() },   { { 1 * 8, 25 * 8 }, "Speed:", Color::light_grey() },
-		{ { 3 * 8, 27 * 8 }, "Hop:", Color::light_grey() },    { { 4 * 8, 29 * 8 }, "TX:", Color::light_grey() },
-		{ { 1 * 8, 31 * 8 }, "Sle3p:", Color::light_grey() }, // euquiq: Token of appreciation to TheSle3p, which made
-															  // this ehnancement a reality with his bounty.
+		{ { 2 * 8, 23 * 8 }, "Type:", Color::light_grey() },
+		{ { 1 * 8, 25 * 8 }, "Speed:", Color::light_grey() },
+		{ { 3 * 8, 27 * 8 }, "Hop:", Color::light_grey() },
+		{ { 4 * 8, 29 * 8 }, "TX:", Color::light_grey() },
+		{ { 1 * 8, 31 * 8 }, "Sle3p:", Color::light_grey() },  // euquiq: Token of appreciation to TheSle3p, which made
+															   // this ehnancement a reality with his bounty.
 		{ { 0 * 8, 33 * 8 }, "Jitter:", Color::light_grey() }, // Maybe the repository curator can keep the "mystype"
 															   // for some versions.
-		{ { 11 * 8, 29 * 8 }, "Secs.", Color::light_grey() },  { { 11 * 8, 31 * 8 }, "Secs.", Color::light_grey() },
-		{ { 11 * 8, 33 * 8 }, "/60", Color::light_grey() },    { { 2 * 8, 35 * 8 }, "Gain:", Color::light_grey() },
+		{ { 11 * 8, 29 * 8 }, "Secs.", Color::light_grey() },
+		{ { 11 * 8, 31 * 8 }, "Secs.", Color::light_grey() },
+		{ { 11 * 8, 33 * 8 }, "/60", Color::light_grey() },
+		{ { 2 * 8, 35 * 8 }, "Gain:", Color::light_grey() },
 		{ { 11 * 8, 35 * 8 }, "A:", Color::light_grey() }
 	};
 
