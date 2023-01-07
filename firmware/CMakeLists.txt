@@ -51,7 +51,7 @@ endif()
 add_custom_command(
 	OUTPUT ${FIRMWARE_FILENAME}
 	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME}
-	DEPENDS baseband application ${MAKE_SPI_IMAGE}
+	DEPENDS format baseband application ${MAKE_SPI_IMAGE}
 	${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 	VERBATIM
 )
