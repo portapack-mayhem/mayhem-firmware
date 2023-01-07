@@ -36,3 +36,6 @@ Cpp11BracedListStyle: false
 # Inline short rules
 AllowShortLoopsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: true
+
+# Includes
+SortIncludes: false
