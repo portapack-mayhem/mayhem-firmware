@@ -12,7 +12,7 @@ IndentWidth: 4
 TabWidth: 4
 
 # End-of-line brace style
-BraceStyle: EndOfLine
+# BraceStyle: EndOfLine
 
 # Pointers on Variable definition should be at left
 PointerAlignment: Left
@@ -23,8 +23,8 @@ SpaceAfterCStyleCast: true
 # Don't align content in open brackets
 AlignAfterOpenBracket: BlockIndent
 
-# Enforce multi-line function parameters
-BreakBeforeClosingBracket: true
+# # Enforce multi-line function parameters
+# BreakBeforeClosingBracket: true
 
 # Spaces
 SpacesInParentheses: false
@@ -33,7 +33,6 @@ SpacesInCStyleCastParentheses: false
 SpaceBeforeCpp11BracedList: true
 Cpp11BracedListStyle: false
 
-AlignEscapedNewlines: Left
-AlignOperands: true
-AlignTrailingComments: true
-AllowAllParametersOfDeclarationOnNextLine: false
+# Inline short rules
+AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
