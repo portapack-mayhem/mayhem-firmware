@@ -22,6 +22,4 @@
 
 #include "adsb_frame.hpp"
 
-namespace adsb {
-
-} /* namespace adsb */
+namespace adsb {} /* namespace adsb */

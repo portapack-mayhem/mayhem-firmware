@@ -47,43 +47,39 @@ struct MenuItem {
 };
 
 class MenuItemView : public Widget {
-public:
-	MenuItemView(
-		bool keep_highlight
-	) : keep_highlight { keep_highlight }
-	{
-	}
-	
+  public:
+	MenuItemView(bool keep_highlight) : keep_highlight { keep_highlight } {}
+
 	MenuItemView(const MenuItemView&) = delete;
 	MenuItemView(MenuItemView&&) = delete;
 	MenuItemView& operator=(const MenuItemView&) = delete;
 	MenuItemView& operator=(MenuItemView&&) = delete;
 
 	void paint(Painter& painter) override;
-	
+
 	void set_item(MenuItem* item_);
 
 	void highlight();
 	void unhighlight();
 
-private:
+  private:
 	MenuItem* item { nullptr };
 	bool keep_highlight = false;
 };
 
 class MenuView : public View {
-public:
-	std::function<void(void)> on_left { };
+  public:
+	std::function<void(void)> on_left {};
 	std::function<void(void)> on_highlight { nullptr };
 
 	MenuView(Rect new_parent_rect = { 0, 0, 240, 304 }, bool keep_highlight = false);
-	
+
 	~MenuView();
 
 	void add_item(MenuItem new_item);
 	void add_items(std::initializer_list<MenuItem> new_items);
 	void clear();
-	
+
 	MenuItemView* item_view(size_t index) const;
 
 	bool set_highlighted(int32_t new_value);
@@ -94,23 +90,18 @@ public:
 	void on_blur() override;
 	bool on_key(const KeyEvent event) override;
 	bool on_encoder(const EncoderEvent event) override;
-	
-private:
+
+  private:
 	void update_items();
 	void on_tick_second();
-	
+
 	bool keep_highlight { false };
-	
-	SignalToken signal_token_tick_second { };
-	std::vector<MenuItem> menu_items { };
-	std::vector<MenuItemView*> menu_item_views { };
-	
-	Image arrow_more {
-		{ 228, 320 - 8, 8, 8 },
-		&bitmap_more,
-		Color::white(),
-		Color::black()
-	};
+
+	SignalToken signal_token_tick_second {};
+	std::vector<MenuItem> menu_items {};
+	std::vector<MenuItemView*> menu_item_views {};
+
+	Image arrow_more { { 228, 320 - 8, 8, 8 }, &bitmap_more, Color::white(), Color::black() };
 
 	const size_t item_height = 24;
 	bool blink = false;
@@ -122,4 +113,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_MENU_H__*/
+#endif /*__UI_MENU_H__*/

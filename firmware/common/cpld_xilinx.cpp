@@ -33,7 +33,7 @@ void XC2C64A::write_sram(const verify_blocks_t& blocks) {
 	enable();
 
 	shift_ir(instruction_t::ISC_WRITE);
-	for(const auto& block : blocks) {
+	for (const auto& block : blocks) {
 		tap.state(state_t::shift_dr);
 		tap.shift({ block.data.data(), block_length }, false);
 		tap.shift({ &block.id, block_id_length }, true);
@@ -61,12 +61,12 @@ bool XC2C64A::verify_sram(const verify_blocks_t& blocks) {
 
 	tap.state(state_t::shift_dr);
 	tap.shift(empty_row, false);
-	
+
 	auto error = false;
-	for(const auto& block : blocks) {
+	for (const auto& block : blocks) {
 		tap.shift({ &block.id, block_id_length }, true);
 		tap.state(state_t::run_test_idle);
-		
+
 		tap.state(state_t::shift_dr);
 		error |= tap.shift(empty_row, { block.data.data(), block_length }, { block.mask.data(), block_length }, false);
 	}
@@ -97,7 +97,7 @@ bool XC2C64A::verify_eeprom(const verify_blocks_t& blocks) {
 	const jtag::tap::bits_t empty_row { block_length };
 
 	auto error = false;
-	for(const auto& block : blocks) {
+	for (const auto& block : blocks) {
 		tap.set_end_dr(state_t::pause_dr);
 		tap.shift_dr({ &block.id, block_id_length });
 		tap.set_end_ir(state_t::run_test_idle);
@@ -126,7 +126,7 @@ void XC2C64A::init_from_eeprom() {
 
 	discharge();
 	init();
-	
+
 	disable();
 	bypass();
 
@@ -149,9 +149,7 @@ void XC2C64A::enable() {
 	tap.wait(state_t::run_test_idle, state_t::run_test_idle, 800);
 }
 
-void XC2C64A::enable_otf() {
-	shift_ir(instruction_t::ISC_ENABLE_OTF);
-}
+void XC2C64A::enable_otf() { shift_ir(instruction_t::ISC_ENABLE_OTF); }
 
 void XC2C64A::discharge() {
 	shift_ir(instruction_t::ISC_INIT);
@@ -171,9 +169,7 @@ void XC2C64A::disable() {
 	tap.wait(state_t::run_test_idle, state_t::run_test_idle, 100);
 }
 
-bool XC2C64A::bypass() {
-	return shift_ir(instruction_t::BYPASS);
-}
+bool XC2C64A::bypass() { return shift_ir(instruction_t::BYPASS); }
 
 } /* namespace xilinx */
 } /* namespace cpld */

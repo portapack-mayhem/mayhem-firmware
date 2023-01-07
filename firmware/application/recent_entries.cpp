@@ -23,17 +23,10 @@
 
 namespace ui {
 
-RecentEntriesColumns::RecentEntriesColumns(
-	const std::initializer_list<RecentEntriesColumn> columns
-) : _columns { columns }
-{
-}
+RecentEntriesColumns::RecentEntriesColumns(const std::initializer_list<RecentEntriesColumn> columns)
+	: _columns { columns } {}
 
-RecentEntriesHeader::RecentEntriesHeader(
-	const RecentEntriesColumns& columns
-) : _columns { columns }
-{
-}
+RecentEntriesHeader::RecentEntriesHeader(const RecentEntriesColumns& columns) : _columns { columns } {}
 
 void RecentEntriesHeader::paint(Painter& painter) {
 	const auto r = screen_rect();
@@ -46,10 +39,10 @@ void RecentEntriesHeader::paint(Painter& painter) {
 	};
 
 	auto p = r.location();
-	for(const auto& column : _columns) {
+	for (const auto& column : _columns) {
 		const auto width = column.second;
 		auto text = column.first;
-		if( width > text.length() ) {
+		if (width > text.length()) {
 			text.append(width - text.length(), ' ');
 		}
 

@@ -30,17 +30,15 @@
 using namespace lpc43xx;
 
 class LogFile {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return file.append(filename);
-	}
+  public:
+	Optional<File::Error> append(const std::filesystem::path& filename) { return file.append(filename); }
 
 	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
-private:
-	File file { };
+  private:
+	File file {};
 
 	Optional<File::Error> write_line(const std::string& message);
 };
 
-#endif/*__LOG_FILE_H__*/
+#endif /*__LOG_FILE_H__*/

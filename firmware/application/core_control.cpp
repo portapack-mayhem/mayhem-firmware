@@ -39,9 +39,10 @@ using namespace lpc43xx;
  * cause an exception and effectively halt the M4. But that feels gross.
  */
 void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to) {
-	const portapack::spi_flash::chunk_t* chunk = reinterpret_cast<const portapack::spi_flash::chunk_t*>(portapack::spi_flash::images.base());
-	while(chunk->tag) {
-		if( chunk->tag == image_tag ) {
+	const portapack::spi_flash::chunk_t* chunk =
+		reinterpret_cast<const portapack::spi_flash::chunk_t*>(portapack::spi_flash::images.base());
+	while (chunk->tag) {
+		if (chunk->tag == image_tag) {
 			/* Initialize M4 code RAM */
 			std::memcpy(reinterpret_cast<void*>(to.base()), &chunk->data[0], chunk->length);
 
@@ -61,13 +62,11 @@ void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack:
 	chDbgPanic("NoImg");
 }
 
-void m4_request_shutdown() {
-	baseband::shutdown();
-}
+void m4_request_shutdown() { baseband::shutdown(); }
 
 void m0_halt() {
 	rgu::reset(rgu::Reset::M0APP);
-	while(true) {
+	while (true) {
 		port_wait_for_interrupt();
 	}
 }

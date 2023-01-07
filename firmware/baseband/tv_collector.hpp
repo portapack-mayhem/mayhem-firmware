@@ -34,23 +34,21 @@
 #include "message.hpp"
 
 class TvCollector {
-public:
+  public:
 	void on_message(const Message* const message);
 
 	void set_decimation_factor(const size_t decimation_factor);
 
-	void feed(
-		const buffer_c16_t& channel
-	);
+	void feed(const buffer_c16_t& channel);
 
-private:
+  private:
 	BlockDecimator<complex16_t, 256> channel_spectrum_decimator { 1 };
-	ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k] { };
+	ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k] {};
 	ChannelSpectrumFIFO fifo { fifo_data, ChannelSpectrumConfigMessage::fifo_k };
 
 	volatile bool channel_spectrum_request_update { false };
 	bool streaming { false };
-	std::array<std::complex<float>, 256> channel_spectrum { };
+	std::array<std::complex<float>, 256> channel_spectrum {};
 	uint32_t channel_spectrum_sampling_rate { 0 };
 
 	void post_message(const buffer_c16_t& data);
@@ -60,7 +58,6 @@ private:
 	void stop();
 
 	void update();
-
 };
 
-#endif/*__TV_COLLECTOR_H__*/
+#endif /*__TV_COLLECTOR_H__*/

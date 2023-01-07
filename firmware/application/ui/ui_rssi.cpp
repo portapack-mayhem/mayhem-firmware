@@ -46,54 +46,30 @@ void RSSI::paint(Painter& painter) {
 	const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
 
 	const Rect r0 { r.left(), r.top(), x_min, r.height() };
-	painter.fill_rectangle(
-		r0,
-		Color::blue()
-	);
+	painter.fill_rectangle(r0, Color::blue());
 
 	const Rect r1 { r.left() + x_min, r.top(), x_avg - x_min, r.height() };
-	painter.fill_rectangle(
-		r1,
-		Color::red()
-	);
+	painter.fill_rectangle(r1, Color::red());
 
 	const Rect r2 { r.left() + x_avg, r.top(), 1, r.height() };
-	painter.fill_rectangle(
-		r2,
-		Color::white()
-	);
+	painter.fill_rectangle(r2, Color::white());
 
 	const Rect r3 { r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height() };
-	painter.fill_rectangle(
-		r3,
-		Color::red()
-	);
+	painter.fill_rectangle(r3, Color::red());
 
 	const Rect r4 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
-	painter.fill_rectangle(
-		r4,
-		Color::black()
-	);
-	
+	painter.fill_rectangle(r4, Color::black());
+
 	if (pitch_rssi_enabled) {
 		baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
 	}
 }
 
-int32_t RSSI::get_min()
-{ 
-    return min_ ;
-}
+int32_t RSSI::get_min() { return min_; }
 
-int32_t RSSI::get_avg()
-{ 
-    return avg_ ;
-}
+int32_t RSSI::get_avg() { return avg_; }
 
-int32_t RSSI::get_max()
-{ 
-    return max_ ;
-}
+int32_t RSSI::get_max() { return max_; }
 
 void RSSI::set_pitch_rssi(bool enabled) {
 	pitch_rssi_enabled = enabled;

@@ -126,142 +126,142 @@ enum class Register : address_t {
 static_assert(toUType(Register::_count) == reg_count, "Register::_count != reg_count");
 
 struct PowerManagement1 {
-	reg_t PMADL     : 1;
-	reg_t PMADR     : 1;
-	reg_t PMDAC     : 1;
+	reg_t PMADL : 1;
+	reg_t PMADR : 1;
+	reg_t PMDAC : 1;
 	reg_t reserved0 : 2;
-	reg_t PMBP      : 1;
-	reg_t PMVCM     : 1;
-	reg_t PMPFIL    : 1;
+	reg_t PMBP : 1;
+	reg_t PMVCM : 1;
+	reg_t PMPFIL : 1;
 };
 
 static_assert(sizeof(PowerManagement1) == sizeof(reg_t), "wrong size `struct");
 
 struct PowerManagement2 {
-	reg_t LOSEL     : 1;
-	reg_t PMSL      : 1;
-	reg_t PMPLL     : 1;
-	reg_t MS        : 1;
-	reg_t PMHPL     : 1;
-	reg_t PMHPR     : 1;
+	reg_t LOSEL : 1;
+	reg_t PMSL : 1;
+	reg_t PMPLL : 1;
+	reg_t MS : 1;
+	reg_t PMHPL : 1;
+	reg_t PMHPR : 1;
 	reg_t reserved0 : 1;
-	reg_t PMOSC     : 1;
+	reg_t PMOSC : 1;
 };
 
 static_assert(sizeof(PowerManagement2) == sizeof(reg_t), "wrong size struct");
 
 struct SignalSelect1 {
-	reg_t MGAIN20   : 3;
-	reg_t PMMP      : 1;
-	reg_t MPSEL     : 1;
-	reg_t DACS      : 1;
-	reg_t MGAIN3    : 1;
-	reg_t SLPSN     : 1;
+	reg_t MGAIN20 : 3;
+	reg_t PMMP : 1;
+	reg_t MPSEL : 1;
+	reg_t DACS : 1;
+	reg_t MGAIN3 : 1;
+	reg_t SLPSN : 1;
 };
 
 static_assert(sizeof(SignalSelect1) == sizeof(reg_t), "wrong size struct");
 
 struct SignalSelect2 {
-	reg_t INR       : 2;
-	reg_t INL       : 2;
-	reg_t MICL      : 1;
+	reg_t INR : 2;
+	reg_t INL : 2;
+	reg_t MICL : 1;
 	reg_t reserved0 : 1;
-	reg_t SPKG      : 2;
+	reg_t SPKG : 2;
 };
 
 static_assert(sizeof(SignalSelect2) == sizeof(reg_t), "wrong size struct");
 
 struct SignalSelect3 {
-	reg_t MONO      : 2;
-	reg_t PTS       : 2;
+	reg_t MONO : 2;
+	reg_t PTS : 2;
 	reg_t reserved0 : 1;
-	reg_t DACL      : 1;
-	reg_t LVCM      : 2;
+	reg_t DACL : 1;
+	reg_t LVCM : 2;
 };
 
 static_assert(sizeof(SignalSelect3) == sizeof(reg_t), "wrong size struct");
 
 struct ModeControl1 {
-	reg_t DIF       : 2;
-	reg_t CKOFF     : 1;
-	reg_t BCKO      : 1;
-	reg_t PLL       : 4;
+	reg_t DIF : 2;
+	reg_t CKOFF : 1;
+	reg_t BCKO : 1;
+	reg_t PLL : 4;
 };
 
 static_assert(sizeof(ModeControl1) == sizeof(reg_t), "wrong size struct");
 
 struct ModeControl2 {
-	reg_t FS        : 4;
+	reg_t FS : 4;
 	reg_t reserved0 : 2;
-	reg_t CM        : 2;
+	reg_t CM : 2;
 };
 
 static_assert(sizeof(ModeControl2) == sizeof(reg_t), "wrong size struct");
 
 struct ModeControl3 {
 	reg_t reserved0 : 2;
-	reg_t IVOLC     : 1;
+	reg_t IVOLC : 1;
 	reg_t reserved1 : 1;
-	reg_t DVOLC     : 1;
-	reg_t SMUTE     : 1;
-	reg_t THDET     : 1;
-	reg_t TSDSEL    : 1;
+	reg_t DVOLC : 1;
+	reg_t SMUTE : 1;
+	reg_t THDET : 1;
+	reg_t TSDSEL : 1;
 };
 
 static_assert(sizeof(ModeControl3) == sizeof(reg_t), "wrong size struct");
 
 struct DigitalMIC {
-	reg_t DMIC      : 1;
-	reg_t DCLKP     : 1;
+	reg_t DMIC : 1;
+	reg_t DCLKP : 1;
 	reg_t reserved0 : 1;
-	reg_t DCLKE     : 1;
-	reg_t PMDML     : 1;
-	reg_t PMDMR     : 1;
+	reg_t DCLKE : 1;
+	reg_t PMDML : 1;
+	reg_t PMDMR : 1;
 	reg_t reserved1 : 1;
-	reg_t READ      : 1;
+	reg_t READ : 1;
 };
 
 static_assert(sizeof(DigitalMIC) == sizeof(reg_t), "wrong size struct");
 
 struct TimerSelect {
-	reg_t DVTM      : 1;
-	reg_t MOFF      : 1;
+	reg_t DVTM : 1;
+	reg_t MOFF : 1;
 	reg_t reserved0 : 2;
-	reg_t FRN       : 1;
-	reg_t FRATT     : 1;
-	reg_t ADRST     : 2;
+	reg_t FRN : 1;
+	reg_t FRATT : 1;
+	reg_t ADRST : 2;
 };
 
 static_assert(sizeof(TimerSelect) == sizeof(reg_t), "wrong size struct");
 
 struct ALCTimerSelect {
-	reg_t RFST      : 2;
-	reg_t WTM       : 2;
-	reg_t EQFC      : 2;
-	reg_t IVTM      : 1;
+	reg_t RFST : 2;
+	reg_t WTM : 2;
+	reg_t EQFC : 2;
+	reg_t IVTM : 1;
 	reg_t reserved0 : 1;
 };
 
 static_assert(sizeof(ALCTimerSelect) == sizeof(reg_t), "wrong size struct");
 
 struct ALCModeControl1 {
-	reg_t LMTH10    : 2;
-	reg_t RGAIN     : 3;
-	reg_t ALC       : 1;
-	reg_t LMTH2     : 1;
-	reg_t ALCEQN    : 1;
+	reg_t LMTH10 : 2;
+	reg_t RGAIN : 3;
+	reg_t ALC : 1;
+	reg_t LMTH2 : 1;
+	reg_t ALCEQN : 1;
 };
 
 static_assert(sizeof(ALCModeControl1) == sizeof(reg_t), "wrong size struct");
 
 struct ALCModeControl2 {
-	reg_t REF       : 8;
+	reg_t REF : 8;
 };
 
 static_assert(sizeof(ALCModeControl2) == sizeof(reg_t), "wrong size struct");
 
 struct InputVolumeControl {
-	reg_t IV        : 8;
+	reg_t IV : 8;
 };
 
 static_assert(sizeof(InputVolumeControl) == sizeof(reg_t), "wrong size struct");
@@ -270,29 +270,29 @@ using LchInputVolumeControl = InputVolumeControl;
 using RchInputVolumeControl = InputVolumeControl;
 
 struct ALCVolume {
-	reg_t VOL       : 8;
+	reg_t VOL : 8;
 };
 
 static_assert(sizeof(ALCVolume) == sizeof(reg_t), "wrong size struct");
 
 struct RchMICGainSetting {
-	reg_t MGR       : 8;
+	reg_t MGR : 8;
 };
 
 static_assert(sizeof(RchMICGainSetting) == sizeof(reg_t), "wrong size struct");
 
 struct BeepControl {
-	reg_t BPLVL     : 4;
-	reg_t BEEPH     : 1;
-	reg_t BEEPS     : 1;
-	reg_t BPVCM     : 1;
-	reg_t HPZ       : 1;
+	reg_t BPLVL : 4;
+	reg_t BEEPH : 1;
+	reg_t BEEPS : 1;
+	reg_t BPVCM : 1;
+	reg_t HPZ : 1;
 };
 
 static_assert(sizeof(BeepControl) == sizeof(reg_t), "wrong size struct");
 
 struct DigitalVolumeControl {
-	reg_t DV        : 8;
+	reg_t DV : 8;
 };
 
 static_assert(sizeof(DigitalVolumeControl) == sizeof(reg_t), "wrong size struct");
@@ -302,18 +302,18 @@ using RchDigitalVolumeControl = DigitalVolumeControl;
 
 struct EQCommonGainSelect {
 	reg_t reserved0 : 1;
-	reg_t EQC2      : 1;
-	reg_t EQC3      : 1;
-	reg_t EQC4      : 1;
-	reg_t EQC5      : 1;
+	reg_t EQC2 : 1;
+	reg_t EQC3 : 1;
+	reg_t EQC4 : 1;
+	reg_t EQC5 : 1;
 	reg_t reserved1 : 3;
 };
 
 static_assert(sizeof(EQCommonGainSelect) == sizeof(reg_t), "wrong size struct");
 
 struct EQCommonGainSetting {
-	reg_t EQnT      : 2;
-	reg_t EQnG      : 6;
+	reg_t EQnT : 2;
+	reg_t EQnG : 6;
 };
 
 static_assert(sizeof(EQCommonGainSetting) == sizeof(reg_t), "wrong size struct");
@@ -324,49 +324,49 @@ using EQ4CommonGainSetting = EQCommonGainSetting;
 using EQ5CommonGainSetting = EQCommonGainSetting;
 
 struct AutoHPFControl {
-	reg_t STG       : 2;
-	reg_t SENC      : 3;
-	reg_t AHPF      : 1;
+	reg_t STG : 2;
+	reg_t SENC : 3;
+	reg_t AHPF : 1;
 	reg_t reserved0 : 2;
 };
 
 static_assert(sizeof(AutoHPFControl) == sizeof(reg_t), "wrong size struct");
 
 struct DigitalFilterSelect1 {
-	reg_t HPFAD     : 1;
-	reg_t HPFC      : 2;
+	reg_t HPFAD : 1;
+	reg_t HPFC : 2;
 	reg_t reserved0 : 5;
 };
 
 static_assert(sizeof(DigitalFilterSelect1) == sizeof(reg_t), "wrong size struct");
 
 struct DigitalFilterSelect2 {
-	reg_t HPF       : 1;
-	reg_t LPF       : 1;
+	reg_t HPF : 1;
+	reg_t LPF : 1;
 	reg_t reserved0 : 2;
-	reg_t FIL3      : 1;
-	reg_t EQ0       : 1;
-	reg_t GN        : 2;
+	reg_t FIL3 : 1;
+	reg_t EQ0 : 1;
+	reg_t GN : 2;
 };
 
 static_assert(sizeof(DigitalFilterSelect2) == sizeof(reg_t), "wrong size struct");
 
 struct DigitalFilterMode {
-	reg_t PFSDO     : 1;
-	reg_t ADCPF     : 1;
-	reg_t PFDAC     : 2;
-	reg_t PFVOL     : 2;
+	reg_t PFSDO : 1;
+	reg_t ADCPF : 1;
+	reg_t PFDAC : 2;
+	reg_t PFVOL : 2;
 	reg_t reserved0 : 2;
 };
 
 static_assert(sizeof(DigitalFilterMode) == sizeof(reg_t), "wrong size struct");
 
 struct Coefficient14L {
-	reg_t l         : 8;
+	reg_t l : 8;
 };
 
 struct Coefficient14H {
-	reg_t h         : 6;
+	reg_t h : 6;
 	reg_t reserved0 : 2;
 };
 
@@ -376,7 +376,7 @@ static_assert(sizeof(Coefficient14H) == sizeof(reg_t), "wrong size struct");
 using Coefficient16L = Coefficient14L;
 
 struct Coefficient16H {
-	reg_t h         : 8;
+	reg_t h : 8;
 };
 
 static_assert(sizeof(Coefficient16H) == sizeof(reg_t), "wrong size struct");
@@ -412,19 +412,19 @@ using EQCoefficient4 = Coefficient16L;
 using EQCoefficient5 = Coefficient16H;
 
 struct DigitalFilterSelect3 {
-	reg_t EQ1       : 1;
-	reg_t EQ2       : 1;
-	reg_t EQ3       : 1;
-	reg_t EQ4       : 1;
-	reg_t EQ5       : 1;
+	reg_t EQ1 : 1;
+	reg_t EQ2 : 1;
+	reg_t EQ3 : 1;
+	reg_t EQ4 : 1;
+	reg_t EQ5 : 1;
 	reg_t reserved0 : 3;
 };
 
 static_assert(sizeof(DigitalFilterSelect3) == sizeof(reg_t), "wrong size struct");
 
 struct DeviceInformation {
-	reg_t DVN       : 4;
-	reg_t REV       : 4;
+	reg_t DVN : 4;
+	reg_t REV : 4;
 };
 
 static_assert(sizeof(DeviceInformation) == sizeof(reg_t), "wrong size struct");
@@ -465,96 +465,92 @@ using E5Coefficient4 = Coefficient16L;
 using E5Coefficient5 = Coefficient16H;
 
 struct Register_Type {
-	PowerManagement1		power_management_1;
-	PowerManagement2		power_management_2;
-	SignalSelect1			signal_select_1;
-	SignalSelect2			signal_select_2;
-	SignalSelect3			signal_select_3;
-	ModeControl1			mode_control_1;
-	ModeControl2			mode_control_2;
-	ModeControl3			mode_control_3;
-	DigitalMIC				digital_mic;
-	TimerSelect				timer_select;
-	ALCTimerSelect			alc_timer_select;
-	ALCModeControl1			alc_mode_control_1;
-	ALCModeControl2			alc_mode_control_2;
-	LchInputVolumeControl	l_ch_input_volume_control;
-	RchInputVolumeControl	r_ch_input_volume_control;
-	ALCVolume				alc_volume;
-	reg_t					_reserved_0x10;
-	RchMICGainSetting		r_ch_mic_gain_setting;
-	BeepControl				beep_control;
-	LchDigitalVolumeControl	l_ch_digital_volume_control;
-	RchDigitalVolumeControl	r_ch_digital_volume_control;
-	EQCommonGainSelect		eq_common_gain_select;
-	EQ2CommonGainSetting	eq2_common_gain_setting;
-	EQ3CommonGainSetting	eq3_common_gain_setting;
-	EQ4CommonGainSetting	eq4_common_gain_setting;
-	EQ5CommonGainSetting	eq5_common_gain_setting;
-	AutoHPFControl			auto_hpf_control;
-	DigitalFilterSelect1	digital_filter_select_1;
-	DigitalFilterSelect2	digital_filter_select_2;
-	DigitalFilterMode		digital_filter_mode;
-	HPF2Coefficient0		hpf_2_coefficient_0;
-	HPF2Coefficient1		hpf_2_coefficient_1;
-	HPF2Coefficient2		hpf_2_coefficient_2;
-	HPF2Coefficient3		hpf_2_coefficient_3;
-	LPFCoefficient0			lpf_coefficient_0;
-	LPFCoefficient1			lpf_coefficient_1;
-	LPFCoefficient2			lpf_coefficient_2;
-	LPFCoefficient3			lpf_coefficient_3;
-	FIL3Coefficient0		fil_3_coefficient_0;
-	FIL3Coefficient1		fil_3_coefficient_1;
-	FIL3Coefficient2		fil_3_coefficient_2;
-	FIL3Coefficient3		fil_3_coefficient_3;
-	EQCoefficient0			eq_coefficient_0;
-	EQCoefficient1			eq_coefficient_1;
-	EQCoefficient2			eq_coefficient_2;
-	EQCoefficient3			eq_coefficient_3;
-	EQCoefficient4			eq_coefficient_4;
-	EQCoefficient5			eq_coefficient_5;
-	DigitalFilterSelect3	digital_filter_select_3;
-	DeviceInformation		device_information;
-	E1Coefficient0			e1_coefficient_0;
-	E1Coefficient1			e1_coefficient_1;
-	E1Coefficient2			e1_coefficient_2;
-	E1Coefficient3			e1_coefficient_3;
-	E1Coefficient4			e1_coefficient_4;
-	E1Coefficient5			e1_coefficient_5;
-	E2Coefficient0			e2_coefficient_0;
-	E2Coefficient1			e2_coefficient_1;
-	E2Coefficient2			e2_coefficient_2;
-	E2Coefficient3			e2_coefficient_3;
-	E2Coefficient4			e2_coefficient_4;
-	E2Coefficient5			e2_coefficient_5;
-	E3Coefficient0			e3_coefficient_0;
-	E3Coefficient1			e3_coefficient_1;
-	E3Coefficient2			e3_coefficient_2;
-	E3Coefficient3			e3_coefficient_3;
-	E3Coefficient4			e3_coefficient_4;
-	E3Coefficient5			e3_coefficient_5;
-	E4Coefficient0			e4_coefficient_0;
-	E4Coefficient1			e4_coefficient_1;
-	E4Coefficient2			e4_coefficient_2;
-	E4Coefficient3			e4_coefficient_3;
-	E4Coefficient4			e4_coefficient_4;
-	E4Coefficient5			e4_coefficient_5;
-	E5Coefficient0			e5_coefficient_0;
-	E5Coefficient1			e5_coefficient_1;
-	E5Coefficient2			e5_coefficient_2;
-	E5Coefficient3			e5_coefficient_3;
-	E5Coefficient4			e5_coefficient_4;
-	E5Coefficient5			e5_coefficient_5;
+	PowerManagement1 power_management_1;
+	PowerManagement2 power_management_2;
+	SignalSelect1 signal_select_1;
+	SignalSelect2 signal_select_2;
+	SignalSelect3 signal_select_3;
+	ModeControl1 mode_control_1;
+	ModeControl2 mode_control_2;
+	ModeControl3 mode_control_3;
+	DigitalMIC digital_mic;
+	TimerSelect timer_select;
+	ALCTimerSelect alc_timer_select;
+	ALCModeControl1 alc_mode_control_1;
+	ALCModeControl2 alc_mode_control_2;
+	LchInputVolumeControl l_ch_input_volume_control;
+	RchInputVolumeControl r_ch_input_volume_control;
+	ALCVolume alc_volume;
+	reg_t _reserved_0x10;
+	RchMICGainSetting r_ch_mic_gain_setting;
+	BeepControl beep_control;
+	LchDigitalVolumeControl l_ch_digital_volume_control;
+	RchDigitalVolumeControl r_ch_digital_volume_control;
+	EQCommonGainSelect eq_common_gain_select;
+	EQ2CommonGainSetting eq2_common_gain_setting;
+	EQ3CommonGainSetting eq3_common_gain_setting;
+	EQ4CommonGainSetting eq4_common_gain_setting;
+	EQ5CommonGainSetting eq5_common_gain_setting;
+	AutoHPFControl auto_hpf_control;
+	DigitalFilterSelect1 digital_filter_select_1;
+	DigitalFilterSelect2 digital_filter_select_2;
+	DigitalFilterMode digital_filter_mode;
+	HPF2Coefficient0 hpf_2_coefficient_0;
+	HPF2Coefficient1 hpf_2_coefficient_1;
+	HPF2Coefficient2 hpf_2_coefficient_2;
+	HPF2Coefficient3 hpf_2_coefficient_3;
+	LPFCoefficient0 lpf_coefficient_0;
+	LPFCoefficient1 lpf_coefficient_1;
+	LPFCoefficient2 lpf_coefficient_2;
+	LPFCoefficient3 lpf_coefficient_3;
+	FIL3Coefficient0 fil_3_coefficient_0;
+	FIL3Coefficient1 fil_3_coefficient_1;
+	FIL3Coefficient2 fil_3_coefficient_2;
+	FIL3Coefficient3 fil_3_coefficient_3;
+	EQCoefficient0 eq_coefficient_0;
+	EQCoefficient1 eq_coefficient_1;
+	EQCoefficient2 eq_coefficient_2;
+	EQCoefficient3 eq_coefficient_3;
+	EQCoefficient4 eq_coefficient_4;
+	EQCoefficient5 eq_coefficient_5;
+	DigitalFilterSelect3 digital_filter_select_3;
+	DeviceInformation device_information;
+	E1Coefficient0 e1_coefficient_0;
+	E1Coefficient1 e1_coefficient_1;
+	E1Coefficient2 e1_coefficient_2;
+	E1Coefficient3 e1_coefficient_3;
+	E1Coefficient4 e1_coefficient_4;
+	E1Coefficient5 e1_coefficient_5;
+	E2Coefficient0 e2_coefficient_0;
+	E2Coefficient1 e2_coefficient_1;
+	E2Coefficient2 e2_coefficient_2;
+	E2Coefficient3 e2_coefficient_3;
+	E2Coefficient4 e2_coefficient_4;
+	E2Coefficient5 e2_coefficient_5;
+	E3Coefficient0 e3_coefficient_0;
+	E3Coefficient1 e3_coefficient_1;
+	E3Coefficient2 e3_coefficient_2;
+	E3Coefficient3 e3_coefficient_3;
+	E3Coefficient4 e3_coefficient_4;
+	E3Coefficient5 e3_coefficient_5;
+	E4Coefficient0 e4_coefficient_0;
+	E4Coefficient1 e4_coefficient_1;
+	E4Coefficient2 e4_coefficient_2;
+	E4Coefficient3 e4_coefficient_3;
+	E4Coefficient4 e4_coefficient_4;
+	E4Coefficient5 e4_coefficient_5;
+	E5Coefficient0 e5_coefficient_0;
+	E5Coefficient1 e5_coefficient_1;
+	E5Coefficient2 e5_coefficient_2;
+	E5Coefficient3 e5_coefficient_3;
+	E5Coefficient4 e5_coefficient_4;
+	E5Coefficient5 e5_coefficient_5;
 };
 
 static_assert(sizeof(Register_Type) == reg_count * sizeof(reg_t), "Register_Type wrong size");
 
 struct RegisterMap {
-	constexpr RegisterMap(
-		Register_Type values
-	) : r(values)
-	{
-	}
+	constexpr RegisterMap(Register_Type values) : r(values) {}
 
 	union {
 		Register_Type r;
@@ -810,28 +806,18 @@ constexpr RegisterMap default_after_reset { Register_Type {
 	.e5_coefficient_5 = { .h = 0x00 },		//EQ5 Coefficient C  : C15..C8
 } };
 
-class AK4951 : public audio::Codec  {
-public:
-	constexpr AK4951(
-		I2C& bus,
-		const I2C::address_t bus_address
-	) : bus(bus),
-		bus_address(bus_address)
-	{
-	}
+class AK4951 : public audio::Codec {
+  public:
+	constexpr AK4951(I2C& bus, const I2C::address_t bus_address) : bus(bus), bus_address(bus_address) {}
 
-	std::string name() const override {
-		return "AK4951";
-	}
+	std::string name() const override { return "AK4951"; }
 
 	bool detected();
-	
+
 	void init() override;
 	bool reset() override;
 
-	volume_range_t headphone_gain_range() const override {
-		return { -89.5_dB, 12.0_dB }; 
-	}
+	volume_range_t headphone_gain_range() const override { return { -89.5_dB, 12.0_dB }; }
 
 	void headphone_enable() override;
 	void headphone_disable() override;
@@ -842,22 +828,16 @@ public:
 	void set_headphone_volume(const volume_t volume) override;
 	void headphone_mute();
 
-	void microphone_enable(int8_t alc_mode); 	// added user GUI parameter , to set up AK4951 ALC mode.
+	void microphone_enable(int8_t alc_mode); // added user GUI parameter , to set up AK4951 ALC mode.
 	void microphone_disable();
 
-	size_t reg_count() const override {
-		return asahi_kasei::ak4951::reg_count;
-	}
+	size_t reg_count() const override { return asahi_kasei::ak4951::reg_count; }
 
-	size_t reg_bits() const override {
-		return 8;
-	}
+	size_t reg_bits() const override { return 8; }
 
-	uint32_t reg_read(const size_t reg_address) override {
-		return read(reg_address);
-	}
+	uint32_t reg_read(const size_t reg_address) override { return read(reg_address); }
 
-private:
+  private:
 	I2C& bus;
 	const I2C::address_t bus_address;
 	RegisterMap map { default_after_reset };
@@ -884,4 +864,4 @@ private:
 } /* namespace ak4951 */
 } /* namespace asahi_kasei */
 
-#endif/*__AK4951_H__*/
+#endif /*__AK4951_H__*/

@@ -34,10 +34,7 @@ namespace max2837 {
 
 namespace lna {
 
-constexpr std::array<uint8_t, 8> lookup_8db_steps {
-	0b111, 0b011, 0b110, 0b010,
-	0b100, 0b000, 0b000, 0b000
-};
+constexpr std::array<uint8_t, 8> lookup_8db_steps { 0b111, 0b011, 0b110, 0b010, 0b100, 0b000, 0b000, 0b000 };
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range.clip(db);
@@ -82,7 +79,8 @@ static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
  * temperature sense conversion from the ADC.
  */
 constexpr float seconds_for_temperature_sense_adc_conversion = 30.0e-6;
-constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion = (base_m4_clk_f * seconds_for_temperature_sense_adc_conversion + 1);
+constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion =
+	(base_m4_clk_f * seconds_for_temperature_sense_adc_conversion + 1);
 
 constexpr uint32_t reference_frequency = max2837_reference_f;
 constexpr uint32_t pll_factor = 1.0 / (4.0 / 3.0 / reference_frequency) + 0.5;
@@ -101,21 +99,21 @@ void MAX2837::init() {
 	_map.r.lpf_3_vga_1.VGAMUX_enable = 1;
 	_map.r.lpf_3_vga_1.VGA_EN = 1;
 
-	_map.r.hpfsm_3.HPC_STOP = 1;	/* 1kHz */
+	_map.r.hpfsm_3.HPC_STOP = 1; /* 1kHz */
 
-	_map.r.rx_top_rx_bias.LNAgain_SPI_EN = 1;	/* control LNA gain from SPI */
+	_map.r.rx_top_rx_bias.LNAgain_SPI_EN = 1; /* control LNA gain from SPI */
 	_map.r.rxrf_2.L = 0b000;
 
-	_map.r.rx_top_rx_bias.VGAgain_SPI_EN = 1;	/* control VGA gain from SPI */
+	_map.r.rx_top_rx_bias.VGAgain_SPI_EN = 1; /* control VGA gain from SPI */
 	_map.r.vga_2.VGA = 0b01010;
 
-	_map.r.lpf_3_vga_1.BUFF_VCM = 0b00;		/* TODO: Check values out of ADC */
+	_map.r.lpf_3_vga_1.BUFF_VCM = 0b00; /* TODO: Check values out of ADC */
 
-	_map.r.lpf_1.LPF_EN = 1;				/* Enable low-pass filter */
-	_map.r.lpf_1.ModeCtrl = 0b01;			/* Rx LPF */
-	_map.r.lpf_1.FT = 0b0000;				/* 5MHz LPF */
+	_map.r.lpf_1.LPF_EN = 1;      /* Enable low-pass filter */
+	_map.r.lpf_1.ModeCtrl = 0b01; /* Rx LPF */
+	_map.r.lpf_1.FT = 0b0000;     /* 5MHz LPF */
 
-	_map.r.spi_en.EN_SPI = 1;				/* enable chip functions when ENABLE pin set */
+	_map.r.spi_en.EN_SPI = 1; /* enable chip functions when ENABLE pin set */
 
 	_map.r.lo_gen.LOGEN_2GM = 0;
 
@@ -132,7 +130,7 @@ void MAX2837::init() {
 #endif
 
 	_map.r.vga_3_rx_top.RSSI_EN_SPIenables = 1;
-	_map.r.vga_3_rx_top.RSSI_MODE = 1;		/* RSSI independent of RXHP */
+	_map.r.vga_3_rx_top.RSSI_MODE = 1; /* RSSI independent of RXHP */
 
 	_dirty.set();
 	flush();
@@ -147,9 +145,9 @@ void MAX2837::set_mode(const Mode mode) {
 }
 
 void MAX2837::flush() {
-	if( _dirty ) {
-		for(size_t n=0; n<reg_count; n++) {
-			if( _dirty[n] ) {
+	if (_dirty) {
+		for (size_t n = 0; n < reg_count; n++) {
+			if (_dirty[n]) {
 				write(n, _map.w[n]);
 			}
 		}
@@ -174,13 +172,9 @@ reg_t MAX2837::read(const address_t reg_num) {
 	return t & 0x3ffU;
 }
 
-void MAX2837::write(const Register reg, const reg_t value) {
-	write(toUType(reg), value);
-}
+void MAX2837::write(const Register reg, const reg_t value) { write(toUType(reg), value); }
 
-reg_t MAX2837::read(const Register reg) {
-	return read(toUType(reg));
-}
+reg_t MAX2837::read(const Register reg) { return read(toUType(reg)); }
 
 void MAX2837::set_tx_vga_gain(const int_fast8_t db) {
 	_map.r.tx_gain.TXVGA_GAIN_SPI = tx::gain_ordinal(db);
@@ -208,18 +202,18 @@ void MAX2837::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
 
 bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	/* TODO: This is a sad implementation. Refactor. */
-	if( lo::band[0].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b00;	/* 2300 - 2399.99MHz */
-		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo::band[1].contains(lo_frequency)  ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b01;	/* 2400 - 2499.99MHz */
-		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
-	} else if( lo::band[2].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b10;	/* 2500 - 2599.99MHz */
-		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
-	} else if( lo::band[3].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b11;	/* 2600 - 2700Hz */
-		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
+	if (lo::band[0].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b00; /* 2300 - 2399.99MHz */
+		_map.r.rxrf_1.LNAband = 0;           /* 2.3 - 2.5GHz */
+	} else if (lo::band[1].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b01; /* 2400 - 2499.99MHz */
+		_map.r.rxrf_1.LNAband = 0;           /* 2.3 - 2.5GHz */
+	} else if (lo::band[2].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b10; /* 2500 - 2599.99MHz */
+		_map.r.rxrf_1.LNAband = 1;           /* 2.5 - 2.7GHz */
+	} else if (lo::band[3].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b11; /* 2600 - 2700Hz */
+		_map.r.rxrf_1.LNAband = 1;           /* 2.5 - 2.7GHz */
 	} else {
 		return false;
 	}
@@ -271,7 +265,7 @@ void MAX2837::set_rx_buff_vcm(const size_t v) {
 }
 
 reg_t MAX2837::temp_sense() {
-	if( !_map.r.rx_top.ts_en ) {
+	if (!_map.r.rx_top.ts_en) {
 		_map.r.rx_top.ts_en = 1;
 		flush_one(Register::RX_TOP);
 
@@ -291,4 +285,4 @@ reg_t MAX2837::temp_sense() {
 	return value;
 }
 
-}
+} // namespace max2837

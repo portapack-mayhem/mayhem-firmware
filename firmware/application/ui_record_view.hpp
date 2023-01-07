@@ -36,8 +36,8 @@
 namespace ui {
 
 class RecordView : public View {
-public:
-	std::function<void(std::string)> on_error { };
+  public:
+	std::function<void(std::string)> on_error {};
 
 	enum FileType {
 		RawS16 = 2,
@@ -45,11 +45,8 @@ public:
 	};
 
 	RecordView(
-		const Rect parent_rect,
-		std::filesystem::path filename_stem_pattern,
-		FileType file_type,
-		const size_t write_size,
-		const size_t buffer_count
+		const Rect parent_rect, std::filesystem::path filename_stem_pattern, FileType file_type,
+		const size_t write_size, const size_t buffer_count
 	);
 	~RecordView();
 
@@ -65,9 +62,9 @@ public:
 
 	void set_filename_date_frequency(bool set);
 
-private:
+  private:
 	void toggle();
-	//void toggle_pitch_rssi();
+	// void toggle_pitch_rssi();
 	Optional<File::Error> write_metadata_file(const std::filesystem::path& filename);
 
 	void on_tick_second();
@@ -76,23 +73,21 @@ private:
 	void handle_capture_thread_done(const File::Error error);
 	void handle_error(const File::Error error);
 
-	//bool pitch_rssi_enabled = false;
-	
+	// bool pitch_rssi_enabled = false;
+
 	// Time Stamp
 	bool filename_date_frequency = false;
-    rtc::RTC datetime { };
+	rtc::RTC datetime {};
 
 	const std::filesystem::path filename_stem_pattern;
 	const FileType file_type;
 	const size_t write_size;
 	const size_t buffer_count;
 	size_t sampling_rate { 0 };
-	SignalToken signal_token_tick_second { };
+	SignalToken signal_token_tick_second {};
 
-	Rectangle rect_background {
-		Color::black()
-	};
-	
+	Rectangle rect_background { Color::black() };
+
 	/*ImageButton button_pitch_rssi {
 		{ 2, 0 * 16, 3 * 8, 1 * 16 },
 		&bitmap_rssipwm,
@@ -100,12 +95,11 @@ private:
 		Color::black()
 	};*/
 
-	ImageButton button_record {
-		//{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
-		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
-		&bitmap_record,
-		Color::red(),
-		Color::black()
+	ImageButton button_record { //{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
+								{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+								&bitmap_record,
+								Color::red(),
+								Color::black()
 	};
 
 	Text text_record_filename {
@@ -123,7 +117,7 @@ private:
 		"",
 	};
 
-	std::unique_ptr<CaptureThread> capture_thread { };
+	std::unique_ptr<CaptureThread> capture_thread {};
 
 	MessageHandlerRegistration message_handler_capture_thread_error {
 		Message::ID::CaptureThreadDone,
@@ -136,4 +130,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_RECORD_VIEW_H__*/
+#endif /*__UI_RECORD_VIEW_H__*/

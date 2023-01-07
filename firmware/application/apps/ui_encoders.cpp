@@ -30,9 +30,7 @@ using namespace portapack;
 
 namespace ui {
 
-EncodersConfigView::EncodersConfigView(
-	NavigationView&, Rect parent_rect
-) {
+EncodersConfigView::EncodersConfigView(NavigationView&, Rect parent_rect) {
 	using option_t = std::pair<std::string, int32_t>;
 	std::vector<option_t> enc_options;
 	size_t i;
@@ -43,33 +41,18 @@ EncodersConfigView::EncodersConfigView(
 	// Default encoder def
 	encoder_def = &encoder_defs[0];
 
-	add_children({
-		&labels,
-		&options_enctype,
-		&field_repeat_min,
-		&field_clk,
-		&field_clk_step,
-		&field_frameduration,
-		&field_frameduration_step,
-		&symfield_word,
-		&text_format,
-		&waveform
-	});
+	add_children({ &labels, &options_enctype, &field_repeat_min, &field_clk, &field_clk_step, &field_frameduration,
+				   &field_frameduration_step, &symfield_word, &text_format, &waveform });
 
 	// Load encoder types in option field
-	for (i = 0; i < ENC_TYPES_COUNT; i++)
-		enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
+	for (i = 0; i < ENC_TYPES_COUNT; i++) enc_options.emplace_back(std::make_pair(encoder_defs[i].name, i));
 
-	options_enctype.on_change = [this](size_t index, int32_t) {
-		on_type_change(index);
-	};
+	options_enctype.on_change = [this](size_t index, int32_t) { on_type_change(index); };
 
 	options_enctype.set_options(enc_options);
 	options_enctype.set_selected_index(0);
 
-	symfield_word.on_change = [this]() {
-		generate_frame();
-	};
+	symfield_word.on_change = [this]() { generate_frame(); };
 
 	// Selecting input clock changes symbol and word duration
 	field_clk.on_change = [this](int32_t value) {
@@ -79,26 +62,19 @@ EncodersConfigView::EncodersConfigView(
 			field_frameduration.set_value(new_value * encoder_def->word_length, false);
 	};
 
-	field_clk_step.on_change = [this](size_t, int32_t value) {
-		field_clk.set_step(value);
-	};
+	field_clk_step.on_change = [this](size_t, int32_t value) { field_clk.set_step(value); };
 
 	// Selecting word duration changes input clock and symbol duration
 	field_frameduration.on_change = [this](int32_t value) {
 		// value is in us, new_value is in kHz
 		int32_t new_value = (value * 1000) / (encoder_def->word_length * encoder_def->clk_per_symbol);
-		if (new_value != field_clk.value())
-			field_clk.set_value(1000000 / new_value, false);
+		if (new_value != field_clk.value()) field_clk.set_value(1000000 / new_value, false);
 	};
 
-	field_frameduration_step.on_change = [this](size_t, int32_t value) {
-		field_frameduration.set_step(value);
-	};
+	field_frameduration_step.on_change = [this](size_t, int32_t value) { field_frameduration.set_step(value); };
 }
 
-void EncodersConfigView::focus() {
-	options_enctype.focus();
-}
+void EncodersConfigView::focus() { options_enctype.focus(); }
 
 void EncodersConfigView::on_type_change(size_t index) {
 	std::string format_string = "";
@@ -141,8 +117,7 @@ void EncodersConfigView::on_show() {
 void EncodersConfigView::draw_waveform() {
 	size_t length = frame_fragments.length();
 
-	for (size_t n = 0; n < length; n++)
-		waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
+	for (size_t n = 0; n < length; n++) waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
 
 	waveform.set_length(length);
 	waveform.set_dirty();
@@ -163,43 +138,28 @@ void EncodersConfigView::generate_frame() {
 	draw_waveform();
 }
 
-uint8_t EncodersConfigView::repeat_min() {
-	return field_repeat_min.value();
-}
+uint8_t EncodersConfigView::repeat_min() { return field_repeat_min.value(); }
 
 uint32_t EncodersConfigView::samples_per_bit() {
 	return OOK_SAMPLERATE / ((field_clk.value() * 1000) / encoder_def->clk_per_fragment);
 }
 
-uint32_t EncodersConfigView::pause_symbols() {
-	return encoder_def->pause_symbols;
-}
+uint32_t EncodersConfigView::pause_symbols() { return encoder_def->pause_symbols; }
 
-void EncodersScanView::focus() {
-	field_length.focus();
-}
+void EncodersScanView::focus() { field_length.focus(); }
 
-EncodersScanView::EncodersScanView(
-	NavigationView&, Rect parent_rect
-) {
+EncodersScanView::EncodersScanView(NavigationView&, Rect parent_rect) {
 	set_parent_rect(parent_rect);
 	hidden(true);
 
-	add_children({
-		&labels,
-		&field_length,
-		&bit_length_10,
-		&bit_length
-	});
+	add_children({ &labels, &field_length, &bit_length_10, &bit_length });
 
 	field_length.set_value(8);
 	bit_length_10.set_value(40);
 	bit_length.set_value(0);
 }
 
-void EncodersView::focus() {
-	tab_view.focus();
-}
+void EncodersView::focus() { tab_view.focus(); }
 
 EncodersView::~EncodersView() {
 	// save app settings
@@ -208,7 +168,7 @@ EncodersView::~EncodersView() {
 
 	transmitter_model.disable();
 	hackrf::cpld::load_sram_no_verify(); // ghost signal c/m to the problem at the exit .
-	baseband::shutdown(); // better this function after load_sram()
+	baseband::shutdown();                // better this function after load_sram()
 }
 
 void EncodersView::update_progress() {
@@ -271,29 +231,13 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
 
-	baseband::set_ook_data(
-		bitstream_length,
-		samples_per_bit,
-		repeat_min,
-		view_config.pause_symbols(),
-		scan_width
-	);
+	baseband::set_ook_data(bitstream_length, samples_per_bit, repeat_min, view_config.pause_symbols(), scan_width);
 }
 
-EncodersView::EncodersView(
-	NavigationView& nav
-) : nav_ { nav }
-{
+EncodersView::EncodersView(NavigationView& nav) : nav_ { nav } {
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-	add_children({
-		&tab_view,
-		&view_config,
-		&view_scan,
-		&text_status,
-		&progressbar,
-		&tx_view
-	});
+	add_children({ &tab_view, &view_config, &view_scan, &text_status, &progressbar, &tx_view });
 
 	// load app settings
 	auto rc = settings.load("tx_ook", &app_settings);
@@ -306,9 +250,7 @@ EncodersView::EncodersView(
 
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			transmitter_model.set_tuning_frequency(f);
-		};
+		new_view->on_changed = [this](rf::Frequency f) { transmitter_model.set_tuning_frequency(f); };
 	};
 
 	tx_view.on_start = [this]() {

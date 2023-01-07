@@ -46,7 +46,7 @@ struct GridItem {
 };
 
 class BtnGridView : public View {
-public:
+  public:
 	BtnGridView(Rect new_parent_rect = { 0, 0, 240, 304 }, bool keep_highlight = false);
 
 	~BtnGridView();
@@ -68,23 +68,18 @@ public:
 	bool on_key(const KeyEvent event) override;
 	bool on_encoder(const EncoderEvent event) override;
 
-private:
+  private:
 	int rows_ { 3 };
 	void update_items();
 	void on_tick_second();
 
 	bool keep_highlight { false };
 
-	SignalToken signal_token_tick_second { };
-	std::vector<GridItem> menu_items { };
-	std::vector<NewButton*> menu_item_views { };
+	SignalToken signal_token_tick_second {};
+	std::vector<GridItem> menu_items {};
+	std::vector<NewButton*> menu_item_views {};
 
-	Image arrow_more {
-		{ 228, 320 - 8, 8, 8 },
-		&bitmap_more,
-		Color::white(),
-		Color::black()
-	};
+	Image arrow_more { { 228, 320 - 8, 8, 8 }, &bitmap_more, Color::white(), Color::black() };
 
 	int button_w = 240 / rows_;
 	static constexpr int button_h = 48;
@@ -97,4 +92,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_BTNGRID_H__*/
+#endif /*__UI_BTNGRID_H__*/

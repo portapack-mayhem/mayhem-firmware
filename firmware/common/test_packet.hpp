@@ -33,17 +33,11 @@
 namespace testapp {
 
 class Packet {
-public:
-	Packet(
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		decoder_ { packet_ },
-		reader_ { decoder_ }
-	{
-	}
+  public:
+	Packet(const baseband::Packet& packet) : packet_ { packet }, decoder_ { packet_ }, reader_ { decoder_ } {}
 
 	size_t length() const;
-	
+
 	bool is_valid() const;
 
 	Timestamp received_at() const;
@@ -59,9 +53,9 @@ public:
 
 	FormattedSymbols symbols_formatted() const;
 
-	//bool crc_ok() const;
+	// bool crc_ok() const;
 
-private:
+  private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
@@ -71,4 +65,4 @@ private:
 
 } /* namespace testapp */
 
-#endif/*__TEST_PACKET_H__*/
+#endif /*__TEST_PACKET_H__*/

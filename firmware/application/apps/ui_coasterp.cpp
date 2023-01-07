@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,38 +33,34 @@ using namespace portapack;
 
 namespace ui {
 
-void CoasterPagerView::focus() {
-	sym_data.focus();
-}
+void CoasterPagerView::focus() { sym_data.focus(); }
 
 CoasterPagerView::~CoasterPagerView() {
 	// save app settings
-	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();
 	settings.save("tx_coaster", &app_settings);
 
 	transmitter_model.disable();
-	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	hackrf::cpld::load_sram_no_verify(); // to leave all RX ok, without ghost signal problem at the exit .
 	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void CoasterPagerView::generate_frame() {
 	uint8_t frame[19];
 	uint32_t c;
-	
+
 	// Preamble (8 bytes)
-	for (c = 0; c < 8; c++)
-		frame[c] = 0x55;		// Isn't this 0xAA ?
-	
+	for (c = 0; c < 8; c++) frame[c] = 0x55; // Isn't this 0xAA ?
+
 	// Sync word
 	frame[8] = 0x2D;
 	frame[9] = 0xD4;
-	
+
 	// Data length
 	frame[10] = 8;
-	
+
 	// Data
-	for (c = 0; c < 8; c++)
-		frame[c + 11] = (sym_data.get_sym(c * 2) << 4) | sym_data.get_sym(c * 2 + 1);
+	for (c = 0; c < 8; c++) frame[c + 11] = (sym_data.get_sym(c * 2) << 4) | sym_data.get_sym(c * 2 + 1);
 
 	// Copy for baseband
 	memcpy(shared_memory.bb_data.data, frame, 19);
@@ -72,7 +68,7 @@ void CoasterPagerView::generate_frame() {
 
 void CoasterPagerView::start_tx() {
 	generate_frame();
-	
+
 	transmitter_model.set_sampling_rate(2280000);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
@@ -81,11 +77,11 @@ void CoasterPagerView::start_tx() {
 }
 
 void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) {
-	(void)progress;
-	
+	(void) progress;
+
 	uint16_t address = 0;
 	uint32_t c;
-	
+
 	if (done) {
 		if (tx_mode == SINGLE) {
 			transmitter_model.disable();
@@ -93,19 +89,19 @@ void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) 
 			tx_view.set_transmitting(false);
 		} else if (tx_mode == SCAN) {
 			// Increment address
-			
+
 			for (c = 0; c < 4; c++) {
 				address <<= 4;
 				address |= sym_data.get_sym(12 + c);
 			}
-			
+
 			address++;
-			
+
 			for (c = 0; c < 4; c++) {
 				sym_data.set_sym(15 - c, address & 0x0F);
 				address >>= 4;
 			}
-			
+
 			start_tx();
 		}
 	}
@@ -114,41 +110,32 @@ void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) 
 CoasterPagerView::CoasterPagerView(NavigationView& nav) {
 	const uint8_t data_init[8] = { 0x44, 0x01, 0x3B, 0x30, 0x30, 0x30, 0x34, 0xBC };
 	uint32_t c;
-	
+
 	baseband::run_image(portapack::spi_flash::image_tag_fsktx);
-	
-	add_children({
-		&labels,
-		&sym_data,
-		&checkbox_scan,
-		&text_message,
-		&tx_view
-	});
-	
+
+	add_children({ &labels, &sym_data, &checkbox_scan, &text_message, &tx_view });
+
 	// load app settings
 	auto rc = settings.load("tx_coaster", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		transmitter_model.set_rf_amp(app_settings.tx_amp);
 		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
 		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
-		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+		transmitter_model.set_tx_gain(app_settings.tx_gain);
 	}
 
 	// Bytes to nibbles
-	for (c = 0; c < 16; c++)
-		sym_data.set_sym(c, (data_init[c >> 1] >> ((c & 1) ? 0 : 4)) & 0x0F);
-	
+	for (c = 0; c < 16; c++) sym_data.set_sym(c, (data_init[c >> 1] >> ((c & 1) ? 0 : 4)) & 0x0F);
+
 	checkbox_scan.set_value(false);
-	
+
 	generate_frame();
-	
+
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
-		new_view->on_changed = [this](rf::Frequency f) {
-			receiver_model.set_tuning_frequency(f);
-		};
+		new_view->on_changed = [this](rf::Frequency f) { receiver_model.set_tuning_frequency(f); };
 	};
-	
+
 	tx_view.on_start = [this]() {
 		if (tx_mode == IDLE) {
 			if (checkbox_scan.value())
@@ -159,7 +146,7 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
 			start_tx();
 		}
 	};
-	
+
 	tx_view.on_stop = [this]() {
 		tx_view.set_transmitting(false);
 		tx_mode = IDLE;

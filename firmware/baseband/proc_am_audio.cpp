@@ -28,7 +28,7 @@
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+	if (!configured) {
 		return;
 	}
 
@@ -49,7 +49,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 }
 
 buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
-	if( modulation_ssb ) {
+	if (modulation_ssb) {
 		return demod_ssb.execute(channel, audio_buffer);
 	} else {
 		return demod_am.execute(channel, audio_buffer);
@@ -57,7 +57,7 @@ buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
 }
 
 void NarrowbandAMAudio::on_message(const Message* const message) {
-	switch(message->id) {
+	switch (message->id) {
 	case Message::ID::UpdateSpectrum:
 	case Message::ID::SpectrumStreamingConfig:
 		channel_spectrum.on_message(message);
@@ -70,7 +70,7 @@ void NarrowbandAMAudio::on_message(const Message* const message) {
 	case Message::ID::CaptureConfig:
 		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
 		break;
-		
+
 	default:
 		break;
 	}
@@ -87,7 +87,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-	//const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	// const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
@@ -104,7 +104,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 }
 
 void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
-	if( message.config ) {
+	if (message.config) {
 		audio_output.set_stream(std::make_unique<StreamInput>(message.config));
 	} else {
 		audio_output.set_stream(nullptr);

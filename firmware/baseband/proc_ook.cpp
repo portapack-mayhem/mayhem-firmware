@@ -31,7 +31,7 @@ inline void OOKProcessor::write_sample(const buffer_c8_t& buffer, uint8_t bit_va
 	int8_t re, im;
 
 	if (bit_value) {
-		phase = (phase + 200);			// What ?
+		phase = (phase + 200); // What ?
 		sphase = phase + (64 << 18);
 
 		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
@@ -41,7 +41,7 @@ inline void OOKProcessor::write_sample(const buffer_c8_t& buffer, uint8_t bit_va
 		im = 0;
 	}
 
-	buffer.p[i] = {re, im};
+	buffer.p[i] = { re, im };
 }
 
 inline void OOKProcessor::duval_algo(const buffer_c8_t& buffer) {
@@ -73,19 +73,18 @@ inline void OOKProcessor::duval_algo(const buffer_c8_t& buffer) {
 			k = 0;
 		}
 
-		for (unsigned int j = 0; j < w - idx; j++)
-			v[idx + j] = v[j];
+		for (unsigned int j = 0; j < w - idx; j++) v[idx + j] = v[j];
 
-		for (idx = w; idx > 0 && v[idx - 1]; idx--) ;
+		for (idx = w; idx > 0 && v[idx - 1]; idx--)
+			;
 
-		if (idx)
-			v[idx - 1] = 1;
+		if (idx) v[idx - 1] = 1;
 	}
 
 	// clear the buffer in case we have any bytes left
 	if (buf_ptr < buffer.count) {
 		for (size_t i = buf_ptr; i < buffer.count; i++) {
-			buffer.p[i] = {0, 0};
+			buffer.p[i] = { 0, 0 };
 		}
 	}
 

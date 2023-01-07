@@ -29,41 +29,33 @@
 #include "event_m0.hpp"
 
 #include "message.hpp"
- 
+
 #include <cstdint>
 
 namespace ui {
 
 class RSSI : public Widget {
-public:
-	RSSI(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		min_ { 0 },
-		avg_ { 0 },
-		max_ { 0 }
-	{
-	}
+  public:
+	RSSI(const Rect parent_rect) : Widget { parent_rect }, min_ { 0 }, avg_ { 0 }, max_ { 0 } {}
 
 	void paint(Painter& painter) override;
-    int32_t get_min();
-    int32_t get_avg();
-    int32_t get_max();
-	
-private:
+	int32_t get_min();
+	int32_t get_avg();
+	int32_t get_max();
+
+  private:
 	int32_t min_;
 	int32_t avg_;
 	int32_t max_;
-	
+
 	bool pitch_rssi_enabled = false;
 
-	MessageHandlerRegistration message_handler_stats {
-		Message::ID::RSSIStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
-		}
-	};
-	
+	MessageHandlerRegistration message_handler_stats { Message::ID::RSSIStatistics, [this](const Message* const p) {
+														  this->on_statistics_update(
+															  static_cast<const RSSIStatisticsMessage*>(p)->statistics
+														  );
+													  } };
+
 	MessageHandlerRegistration message_handler_pitch_rssi {
 		Message::ID::PitchRSSIConfigure,
 		[this](const Message* const p) {
@@ -76,6 +68,6 @@ private:
 	void set_pitch_rssi(bool enabled);
 };
 
-}
+} // namespace ui
 
-#endif/*__UI_RSSI_H__*/
+#endif /*__UI_RSSI_H__*/

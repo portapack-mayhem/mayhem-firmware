@@ -45,16 +45,18 @@ constexpr size_t scm_preamble_and_sync_length { 42 - 10 };
 constexpr size_t scm_payload_length_max { 150 };
 
 // ''.join(['%d%d' % (c, 1-c) for c in map(int, bin(0x555516a3)[2:].zfill(32))])
-constexpr uint64_t idm_preamble_and_sync_manchester { 0b0110011001100110011001100110011001010110011010011001100101011010 };
+constexpr uint64_t idm_preamble_and_sync_manchester {
+	0b0110011001100110011001100110011001010110011010011001100101011010
+};
 constexpr size_t idm_preamble_and_sync_length { 64 - 16 };
 
 constexpr size_t idm_payload_length_max { 1408 };
 
 class ERTProcessor : public BasebandProcessor {
-public:
+  public:
 	void execute(const buffer_c8_t& buffer) override;
 
-private:
+  private:
 	const uint32_t baseband_sampling_rate = 4194304;
 	const size_t decimation = 1;
 	const float symbol_rate = 32768;
@@ -67,26 +69,21 @@ private:
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
 	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery {
-		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f },
-		[this](const float symbol) { this->consume_symbol(symbol); }
+		clock_recovery_rate, symbol_rate, { 1.0f / 18.0f }, [this](const float symbol) { this->consume_symbol(symbol); }
 	};
 
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> scm_builder {
 		{ scm_preamble_and_sync_manchester, scm_preamble_and_sync_length, 1 },
-		{ },
+		{},
 		{ scm_payload_length_max },
-		[this](const baseband::Packet& packet) {
-			this->scm_handler(packet);
-		}
+		[this](const baseband::Packet& packet) { this->scm_handler(packet); }
 	};
 
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> idm_builder {
 		{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
-		{ },
+		{},
 		{ idm_payload_length_max },
-		[this](const baseband::Packet& packet) {
-			this->idm_handler(packet);
-		}
+		[this](const baseband::Packet& packet) { this->idm_handler(packet); }
 	};
 
 	void consume_symbol(const float symbol);
@@ -107,4 +104,4 @@ private:
 	float abs(const complex8_t& v);
 };
 
-#endif/*__PROC_ERT_H__*/
+#endif /*__PROC_ERT_H__*/

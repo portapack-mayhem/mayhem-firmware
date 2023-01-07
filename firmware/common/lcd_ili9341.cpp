@@ -66,13 +66,9 @@ void lcd_sleep_out() {
 	chThdSleepMilliseconds(120);
 }
 
-void lcd_display_on() {
-	io.lcd_data_write_command_and_data(0x29, {});
-}
+void lcd_display_on() { io.lcd_data_write_command_and_data(0x29, {}); }
 
-void lcd_display_off() {
-	io.lcd_data_write_command_and_data(0x28, {});
-}
+void lcd_display_off() { io.lcd_data_write_command_and_data(0x28, {}); }
 
 void lcd_sleep() {
 	lcd_display_off();
@@ -134,11 +130,11 @@ void lcd_init() {
 	io.lcd_data_write_command_and_data(0xB6, { 0x0A, 0xA2, 0x27, 0x00 });
 
 	// Power Control 1
-	//VRH[5:0]
+	// VRH[5:0]
 	io.lcd_data_write_command_and_data(0xC0, { 0x1B });
 
 	// Power Control 2
-	//SAP[2:0];BT[3:0]
+	// SAP[2:0];BT[3:0]
 	io.lcd_data_write_command_and_data(0xC1, { 0x12 });
 
 	// VCOM Control 1
@@ -150,26 +146,29 @@ void lcd_init() {
 	// Memory Access Control
 	// Invert X and Y memory access order, so upper-left of
 	// screen is (0,0) when writing to display.
-	io.lcd_data_write_command_and_data(0x36, {
-		(1 << 7) |	// MY=1
-		(1 << 6) |	// MX=1
-		(0 << 5) |	// MV=0
-		(1 << 4) |	// ML=1: reverse vertical refresh to simplify scrolling logic
-		(1 << 3)	// BGR=1: For Kingtech LCD, BGR filter.
-	});
+	io.lcd_data_write_command_and_data(
+		0x36,
+		{
+			(1 << 7) | // MY=1
+			(1 << 6) | // MX=1
+			(0 << 5) | // MV=0
+			(1 << 4) | // ML=1: reverse vertical refresh to simplify scrolling logic
+			(1 << 3)   // BGR=1: For Kingtech LCD, BGR filter.
+		}
+	);
 
 	// COLMOD: Pixel Format Set
 	// DPI=101 (16 bits/pixel), DBI=101 (16 bits/pixel)
 	io.lcd_data_write_command_and_data(0x3A, { 0x55 });
 
-	//io.lcd_data_write_command_and_data(0xF6, { 0x01, 0x30 });
-	// WEMODE=1 (reset column and page number on overflow)
-	// MDT[1:0]
-	// EPF[1:0]=00 (use channel MSB for LSB)
-	// RIM=0 (If COLMOD[6:4]=101 (65k color), 16-bit RGB interface (1 transfer/pixel))
-	// RM=0 (system interface/VSYNC interface)
-	// DM[1:0]=00 (internal clock operation)
-	// ENDIAN=0 (doesn't matter with 16-bit interface)
+	// io.lcd_data_write_command_and_data(0xF6, { 0x01, 0x30 });
+	//  WEMODE=1 (reset column and page number on overflow)
+	//  MDT[1:0]
+	//  EPF[1:0]=00 (use channel MSB for LSB)
+	//  RIM=0 (If COLMOD[6:4]=101 (65k color), 16-bit RGB interface (1 transfer/pixel))
+	//  RM=0 (system interface/VSYNC interface)
+	//  DM[1:0]=00 (internal clock operation)
+	//  ENDIAN=0 (doesn't matter with 16-bit interface)
 	io.lcd_data_write_command_and_data(0xF6, { 0x01, 0x30, 0x00 });
 
 	// 3Gamma Function Disable
@@ -179,16 +178,14 @@ void lcd_init() {
 	io.lcd_data_write_command_and_data(0x26, { 0x01 });
 
 	// Set Gamma
-	io.lcd_data_write_command_and_data(0xE0, {
-		0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63,
-		0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04
-	});
+	io.lcd_data_write_command_and_data(
+		0xE0, { 0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63, 0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04 }
+	);
 
 	// Set Gamma
-	io.lcd_data_write_command_and_data(0xE1, {
-		0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
-		0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05
-	});
+	io.lcd_data_write_command_and_data(
+		0xE1, { 0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25, 0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05 }
+	);
 
 	lcd_wake();
 
@@ -197,105 +194,74 @@ void lcd_init() {
 }
 
 void lcd_set(const uint_fast8_t command, const uint_fast16_t start, const uint_fast16_t end) {
-	io.lcd_data_write_command_and_data(command, {
-		static_cast<uint8_t>(start >> 8), static_cast<uint8_t>(start & 0xff),
-		static_cast<uint8_t>(end   >> 8), static_cast<uint8_t>(end   & 0xff)
-	});
+	io.lcd_data_write_command_and_data(
+		command, { static_cast<uint8_t>(start >> 8), static_cast<uint8_t>(start & 0xff), static_cast<uint8_t>(end >> 8),
+				   static_cast<uint8_t>(end & 0xff) }
+	);
 }
 
-void lcd_ramwr_start() {
-	io.lcd_data_write_command_and_data(0x2c, {});
-}
+void lcd_ramwr_start() { io.lcd_data_write_command_and_data(0x2c, {}); }
 
 void lcd_ramrd_start() {
 	io.lcd_data_write_command_and_data(0x2e, {});
 	io.lcd_read_word();
 }
 
-void lcd_caset(const uint_fast16_t start_column, uint_fast16_t end_column) {
-	lcd_set(0x2a, start_column, end_column);
-}
+void lcd_caset(const uint_fast16_t start_column, uint_fast16_t end_column) { lcd_set(0x2a, start_column, end_column); }
 
-void lcd_paset(const uint_fast16_t start_page, const uint_fast16_t end_page) {
-	lcd_set(0x2b, start_page, end_page);
-}
+void lcd_paset(const uint_fast16_t start_page, const uint_fast16_t end_page) { lcd_set(0x2b, start_page, end_page); }
 
-void lcd_start_ram_write(
-	const ui::Point p,
-	const ui::Size s
-) {
-	lcd_caset(p.x(), p.x() + s.width()  - 1);
+void lcd_start_ram_write(const ui::Point p, const ui::Size s) {
+	lcd_caset(p.x(), p.x() + s.width() - 1);
 	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramwr_start();
 }
 
-void lcd_start_ram_read(
-	const ui::Point p,
-	const ui::Size s
-) {
-	lcd_caset(p.x(), p.x() + s.width()  - 1);
+void lcd_start_ram_read(const ui::Point p, const ui::Size s) {
+	lcd_caset(p.x(), p.x() + s.width() - 1);
 	lcd_paset(p.y(), p.y() + s.height() - 1);
 	lcd_ramrd_start();
 }
 
-void lcd_start_ram_write(
-	const ui::Rect& r
-) {
-	lcd_start_ram_write(r.location(), r.size());
-}
+void lcd_start_ram_write(const ui::Rect& r) { lcd_start_ram_write(r.location(), r.size()); }
 
-void lcd_start_ram_read(
-	const ui::Rect& r
-) {
-	lcd_start_ram_read(r.location(), r.size());
-}
+void lcd_start_ram_read(const ui::Rect& r) { lcd_start_ram_read(r.location(), r.size()); }
 
 void lcd_vertical_scrolling_definition(
-	const uint_fast16_t top_fixed_area,
-	const uint_fast16_t vertical_scrolling_area,
+	const uint_fast16_t top_fixed_area, const uint_fast16_t vertical_scrolling_area,
 	const uint_fast16_t bottom_fixed_area
 ) {
-	io.lcd_data_write_command_and_data(0x33, {
-		static_cast<uint8_t>(top_fixed_area            >> 8),
-		static_cast<uint8_t>(top_fixed_area          & 0xff),
-		static_cast<uint8_t>(vertical_scrolling_area   >> 8),
-		static_cast<uint8_t>(vertical_scrolling_area & 0xff),
-		static_cast<uint8_t>(bottom_fixed_area         >> 8),
-		static_cast<uint8_t>(bottom_fixed_area       & 0xff)
-	});
+	io.lcd_data_write_command_and_data(
+		0x33,
+		{ static_cast<uint8_t>(top_fixed_area >> 8), static_cast<uint8_t>(top_fixed_area & 0xff),
+		  static_cast<uint8_t>(vertical_scrolling_area >> 8), static_cast<uint8_t>(vertical_scrolling_area & 0xff),
+		  static_cast<uint8_t>(bottom_fixed_area >> 8), static_cast<uint8_t>(bottom_fixed_area & 0xff) }
+	);
 }
 
-void lcd_vertical_scrolling_start_address(
-	const uint_fast16_t vertical_scrolling_pointer
-) {
-	io.lcd_data_write_command_and_data(0x37, {
-		static_cast<uint8_t>(vertical_scrolling_pointer >> 8),
-		static_cast<uint8_t>(vertical_scrolling_pointer & 0xff)
-	});
+void lcd_vertical_scrolling_start_address(const uint_fast16_t vertical_scrolling_pointer) {
+	io.lcd_data_write_command_and_data(
+		0x37, { static_cast<uint8_t>(vertical_scrolling_pointer >> 8),
+				static_cast<uint8_t>(vertical_scrolling_pointer & 0xff) }
+	);
 }
 
-}
+} // namespace
 
 void ILI9341::init() {
 	lcd_reset();
 	lcd_init();
 }
 
-void ILI9341::shutdown() {
-	lcd_reset();
-}
+void ILI9341::shutdown() { lcd_reset(); }
 
-void ILI9341::sleep() {
-	lcd_sleep();
-}
+void ILI9341::sleep() { lcd_sleep(); }
 
-void ILI9341::wake() {
-	lcd_wake();
-}
+void ILI9341::wake() { lcd_wake(); }
 
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
-	if( !r_clipped.is_empty() ) {
+	if (!r_clipped.is_empty()) {
 		lcd_start_ram_write(r_clipped);
 		size_t count = r_clipped.width() * r_clipped.height();
 		io.lcd_write_pixels(c, count);
@@ -304,7 +270,7 @@ void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
 
 void ILI9341::fill_rectangle_unrolled8(ui::Rect r, const ui::Color c) {
 	const auto r_clipped = r.intersect(screen_rect());
-	if( !r_clipped.is_empty() ) {
+	if (!r_clipped.is_empty()) {
 		lcd_start_ram_write(r_clipped);
 		size_t count = r_clipped.width() * r_clipped.height();
 		io.lcd_write_pixels_unrolled8(c, count);
@@ -322,27 +288,25 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 }
 
 // RLE_4 BMP loader (delta not implemented)
-void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool transparency) {
-	const bmp_header_t * bmp_header = (const bmp_header_t *)bitmap;
+void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency) {
+	const bmp_header_t* bmp_header = (const bmp_header_t*) bitmap;
 	uint32_t data_idx;
 	uint8_t by, c, count, transp_idx = 0;
 	ui::Color line_buffer[240];
 	uint16_t px = 0, py;
 	ui::Color palette[16];
-	
+
 	// Abort if bad depth or no RLE
-	if ((bmp_header->bpp != 4) ||
-		(bmp_header->compression != 2)) return;
+	if ((bmp_header->bpp != 4) || (bmp_header->compression != 2)) return;
 
 	data_idx = bmp_header->image_data;
-	const bmp_palette_t * bmp_palette = (const bmp_palette_t *)&bitmap[bmp_header->BIH_size + 14];
-	
+	const bmp_palette_t* bmp_palette = (const bmp_palette_t*) &bitmap[bmp_header->BIH_size + 14];
+
 	// Convert palette and find pure magenta index (alpha color key)
 	for (c = 0; c < 16; c++) {
 		palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
-		if ((bmp_palette->color[c].R == 0xFF) &&
-			(bmp_palette->color[c].G == 0x00) &&
-			(bmp_palette->color[c].B == 0xFF)) transp_idx = c;
+		if ((bmp_palette->color[c].R == 0xFF) && (bmp_palette->color[c].G == 0x00) && (bmp_palette->color[c].B == 0xFF))
+			transp_idx = c;
 	}
 
 	if (!transparency) {
@@ -360,7 +324,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 			} else {
 				by = bitmap[data_idx++];
 				if (by == 0) {
-					render_line({p.x(), p.y() + py}, bmp_header->width, line_buffer);
+					render_line({ p.x(), p.y() + py }, bmp_header->width, line_buffer);
 					py--;
 					px = 0;
 				} else if (by == 1) {
@@ -386,10 +350,17 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 				count = by >> 1;
 				by = bitmap[data_idx++];
 				for (c = 0; c < count; c++) {
-					if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by >> 4]);
+					if ((by >> 4) != transp_idx)
+						draw_pixel(
+							{ static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py) }, palette[by >> 4]
+						);
 					px++;
 					if (px < bmp_header->width) {
-						if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by & 15]);
+						if ((by & 15) != transp_idx)
+							draw_pixel(
+								{ static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py) },
+								palette[by & 15]
+							);
 					}
 					px++;
 				}
@@ -407,10 +378,18 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t * bitmap, const bool tran
 					count = by >> 1;
 					for (c = 0; c < count; c++) {
 						by = bitmap[data_idx++];
-						if ((by >> 4) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by >> 4]);
+						if ((by >> 4) != transp_idx)
+							draw_pixel(
+								{ static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py) },
+								palette[by >> 4]
+							);
 						px++;
 						if (px < bmp_header->width) {
-							if ((by & 15) != transp_idx) draw_pixel({static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py)}, palette[by & 15]);
+							if ((by & 15) != transp_idx)
+								draw_pixel(
+									{ static_cast<ui::Coord>(p.x() + px), static_cast<ui::Coord>(p.y() + py) },
+									palette[by & 15]
+								);
 						}
 						px++;
 					}
@@ -439,34 +418,33 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
 	ui::Color line_buffer[240];
 
 	auto result = bmpimage.open(file);
-	if(result.is_valid())
-		return false;
+	if (result.is_valid()) return false;
 
 	bmpimage.seek(file_pos);
 	auto read_size = bmpimage.read(&bmp_header, sizeof(bmp_header));
-	if (!((bmp_header.signature == 0x4D42) && // "BM" Signature
-		(bmp_header.planes == 1) && // Seems always to be 1
-		(bmp_header.compression == 0 || bmp_header.compression == 3 ))) {	// No compression
-			return false;
+	if (!((bmp_header.signature == 0x4D42) &&                              // "BM" Signature
+		  (bmp_header.planes == 1) &&                                      // Seems always to be 1
+		  (bmp_header.compression == 0 || bmp_header.compression == 3))) { // No compression
+		return false;
 	}
 
-	switch(bmp_header.bpp) {
-		case 16:
-			file_pos = 0x36;
-			memset(buffer, 0, 16);
-			bmpimage.read(buffer, 16);
-			if(buffer[1] == 0x7C)
-				type = 3; // A1R5G5B5
-			else
-				type = 0; // R5G6B5
-			break;
-		case 24:
-			type = 1;
-			break;
-		case 32:
-		default:
-			type = 2;
-			break;
+	switch (bmp_header.bpp) {
+	case 16:
+		file_pos = 0x36;
+		memset(buffer, 0, 16);
+		bmpimage.read(buffer, 16);
+		if (buffer[1] == 0x7C)
+			type = 3; // A1R5G5B5
+		else
+			type = 0; // R5G6B5
+		break;
+	case 24:
+		type = 1;
+		break;
+	case 32:
+	default:
+		type = 2;
+		break;
 	}
 
 	width = bmp_header.width;
@@ -476,54 +454,53 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
 
 	py = height + 16;
 
-	while(1) {
-		while(px < width) {
+	while (1) {
+		while (px < width) {
 			bmpimage.seek(file_pos);
 			memset(buffer, 0, 257);
 			read_size = bmpimage.read(buffer, 256);
-			if (read_size.is_error())
-				return false;	// Read error
+			if (read_size.is_error()) return false; // Read error
 
 			pointer = 0;
-			while(pointer < 256) {
-				if(pointer + 4 > 256)
+			while (pointer < 256) {
+				if (pointer + 4 > 256) break;
+				switch (type) {
+				case 0:
+				case 3:
+					if (!type)
+						line_buffer[px] = ui::Color((uint16_t) buffer[pointer] | ((uint16_t) buffer[pointer + 1] << 8));
+					else
+						line_buffer[px] = ui::Color(
+							((uint16_t) buffer[pointer] & 0x1F) | ((uint16_t) buffer[pointer] & 0xE0) << 1 |
+							((uint16_t) buffer[pointer + 1] & 0x7F) << 9
+						);
+					pointer += 2;
+					file_pos += 2;
 					break;
-				switch(type) {
-					case 0:
-					case 3:
-						if(!type)
-							line_buffer[px] = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
-						else
-							line_buffer[px] = ui::Color(((uint16_t)buffer[pointer] & 0x1F) | ((uint16_t)buffer[pointer] & 0xE0) << 1 | ((uint16_t)buffer[pointer + 1] & 0x7F) << 9);
-						pointer += 2;
-						file_pos += 2;
-						break;
-					case 1:
-					default:
-						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
-						pointer += 3;
-						file_pos += 3;
-						break;
-					case 2:
-						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
-						pointer += 4;
-						file_pos += 4;
-						break;
+				case 1:
+				default:
+					line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+					pointer += 3;
+					file_pos += 3;
+					break;
+				case 2:
+					line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+					pointer += 4;
+					file_pos += 4;
+					break;
 				}
 				px++;
-				if(px >= width) {
+				if (px >= width) {
 					break;
 				}
 			}
-			if(read_size.value() != 256)
-				break;
+			if (read_size.value() != 256) break;
 		}
 		render_line({ p.x(), p.y() + py }, px, line_buffer);
 		px = 0;
 		py--;
 
-		if(read_size.value() < 256 || py < 0)
-			break;
+		if (read_size.value() < 256 || py < 0) break;
 	}
 	return true;
 }
@@ -533,30 +510,33 @@ void ILI9341::draw_line(const ui::Point start, const ui::Point end, const ui::Co
 	int y0 = start.y();
 	int x1 = end.x();
 	int y1 = end.y();
-	
-	int dx = std::abs(x1-x0), sx = x0<x1 ? 1 : -1;
-	int dy = std::abs(y1-y0), sy = y0<y1 ? 1 : -1; 
-	int err = (dx>dy ? dx : -dy)/2, e2;
- 
-	for(;;){
-		draw_pixel({static_cast<ui::Coord>(x0), static_cast<ui::Coord>(y0)}, color);
-		if (x0==x1 && y0==y1) break;
+
+	int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int dy = std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int err = (dx > dy ? dx : -dy) / 2, e2;
+
+	for (;;) {
+		draw_pixel({ static_cast<ui::Coord>(x0), static_cast<ui::Coord>(y0) }, color);
+		if (x0 == x1 && y0 == y1) break;
 		e2 = err;
-		if (e2 >-dx) { err -= dy; x0 += sx; }
-		if (e2 < dy) { err += dx; y0 += sy; }
+		if (e2 > -dx) {
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dy) {
+			err += dx;
+			y0 += sy;
+		}
 	}
 }
 
 void ILI9341::fill_circle(
-	const ui::Point center,
-	const ui::Dim radius,
-	const ui::Color foreground,
-	const ui::Color background
+	const ui::Point center, const ui::Dim radius, const ui::Color foreground, const ui::Color background
 ) {
 	const uint32_t radius2 = radius * radius;
-	for(int32_t y=-radius; y<radius; y++) {
+	for (int32_t y = -radius; y < radius; y++) {
 		const int32_t y2 = y * y;
-		for(int32_t x=-radius; x<radius; x++) {
+		for (int32_t x = -radius; x < radius; x++) {
 			const int32_t x2 = x * x;
 			const uint32_t d2 = x2 + y2;
 			const bool inside = d2 < radius2;
@@ -566,77 +546,52 @@ void ILI9341::fill_circle(
 	}
 }
 
-void ILI9341::draw_pixel(
-	const ui::Point p,
-	const ui::Color color
-) {
-	if( screen_rect().contains(p) ) {
+void ILI9341::draw_pixel(const ui::Point p, const ui::Color color) {
+	if (screen_rect().contains(p)) {
 		lcd_start_ram_write(p, { 1, 1 });
 		io.lcd_write_pixel(color);
 	}
 }
 
-void ILI9341::draw_pixels(
-	const ui::Rect r,
-	const ui::Color* const colors,
-	const size_t count
-) {
+void ILI9341::draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count) {
 	/* TODO: Assert that rectangle width x height < count */
 	lcd_start_ram_write(r);
 	io.lcd_write_pixels(colors, count);
 }
 
-void ILI9341::read_pixels(
-	const ui::Rect r,
-	ui::ColorRGB888* const colors,
-	const size_t count
-) {
+void ILI9341::read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count) {
 	/* TODO: Assert that rectangle width x height < count */
 	lcd_start_ram_read(r);
-	io.lcd_read_bytes(
-		reinterpret_cast<uint8_t*>(colors),
-		count * sizeof(ui::ColorRGB888)
-	);
+	io.lcd_read_bytes(reinterpret_cast<uint8_t*>(colors), count * sizeof(ui::ColorRGB888));
 }
 
 void ILI9341::draw_bitmap(
-	const ui::Point p,
-	const ui::Size size,
-	const uint8_t* const pixels,
-	const ui::Color foreground,
+	const ui::Point p, const ui::Size size, const uint8_t* const pixels, const ui::Color foreground,
 	const ui::Color background
 ) {
 	lcd_start_ram_write(p, size);
 
 	const size_t count = size.width() * size.height();
-	for(size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
 		io.lcd_write_pixel(pixel ? foreground : background);
 	}
 }
 
 void ILI9341::draw_glyph(
-	const ui::Point p,
-	const ui::Glyph& glyph,
-	const ui::Color foreground,
-	const ui::Color background
+	const ui::Point p, const ui::Glyph& glyph, const ui::Color foreground, const ui::Color background
 ) {
 	draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background);
 }
 
-void ILI9341::scroll_set_area(
-	const ui::Coord top_y,
-	const ui::Coord bottom_y
-) {
+void ILI9341::scroll_set_area(const ui::Coord top_y, const ui::Coord bottom_y) {
 	scroll_state.top_area = top_y;
 	scroll_state.bottom_area = height() - bottom_y;
 	scroll_state.height = bottom_y - top_y;
 	lcd_vertical_scrolling_definition(scroll_state.top_area, scroll_state.height, scroll_state.bottom_area);
 }
 
-ui::Coord ILI9341::scroll_set_position(
-	const ui::Coord position
-) {
+ui::Coord ILI9341::scroll_set_position(const ui::Coord position) {
 	scroll_state.current_position = position % scroll_state.height;
 	const uint_fast16_t address = scroll_state.top_area + scroll_state.current_position;
 	lcd_vertical_scrolling_start_address(address);

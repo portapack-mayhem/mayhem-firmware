@@ -49,7 +49,7 @@ namespace debug {
 
 uint8_t switches();
 
-} /* debug */
-} /* control */
+} // namespace debug
+} // namespace control
 
-#endif/*__IRQ_CONTROLS_H__*/
+#endif /*__IRQ_CONTROLS_H__*/

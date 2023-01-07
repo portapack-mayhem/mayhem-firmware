@@ -105,7 +105,7 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	io_stb_deassert();
 
 	data_write_low(save_data);
-	if( dir ) {	/* 0 (write) -> 1 (read) */
+	if (dir) { /* 0 (write) -> 1 (read) */
 		dir_read();
 	}
 	gpio_addr.write(addr);
@@ -113,4 +113,4 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	return switches_raw;
 }
 
-}
+} // namespace portapack

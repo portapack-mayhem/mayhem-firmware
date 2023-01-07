@@ -37,11 +37,13 @@ namespace ais {
 // Length: 4 taps, 1 symbol, 1/4 cycle of sinusoid
 // Gain: 1.0 (sinusoid / len(taps))
 constexpr std::array<std::complex<float>, 4> square_taps_38k4_1t_p { {
-	{ 0.25000000f, 0.00000000f }, { 0.23096988f, 0.09567086f },
-	{ 0.17677670f, 0.17677670f }, { 0.09567086f, 0.23096988f },
+	{ 0.25000000f, 0.00000000f },
+	{ 0.23096988f, 0.09567086f },
+	{ 0.17677670f, 0.17677670f },
+	{ 0.09567086f, 0.23096988f },
 } };
 
 } /* namespace ais */
 } /* namespace baseband */
 
-#endif/*__AIS_BASEBAND_H__*/
+#endif /*__AIS_BASEBAND_H__*/

@@ -62,10 +62,10 @@ constexpr gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 constexpr gpdma::channel::Control control(const size_t number_of_transfers) {
 	return {
 		.transfersize = number_of_transfers,
-		.sbsize = 0,  /* Burst size: 1 transfer */
-		.dbsize = 0,  /* Burst size: 1 transfer */
-		.swidth = 0,  /* Source transfer width: byte (8 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
+		.sbsize = 0, /* Burst size: 1 transfer */
+		.dbsize = 0, /* Burst size: 1 transfer */
+		.swidth = 0, /* Source transfer width: byte (8 bits) */
+		.dwidth = 2, /* Destination transfer width: word (32 bits) */
 		.s = gpdma_ahb_master_peripheral,
 		.d = gpdma_ahb_master_memory,
 		.si = 0,
@@ -96,10 +96,10 @@ struct buffers_config_t {
 	size_t items_per_buffer;
 };
 
-static buffers_config_t			buffers_config;
+static buffers_config_t buffers_config;
 
-static sample_t				*samples	{ nullptr };
-static gpdma::channel::LLI	*lli		{ nullptr };
+static sample_t* samples { nullptr };
+static gpdma::channel::LLI* lli { nullptr };
 
 static ThreadWait thread_wait;
 
@@ -131,7 +131,7 @@ void allocate(size_t buffer_count, size_t items_per_buffer) {
 	samples = new sample_t[buffers_config.count * buffers_config.items_per_buffer];
 	lli = new gpdma::channel::LLI[buffers_config.count];
 
-	for(size_t i=0; i<buffers_config.count; i++) {
+	for (size_t i = 0; i < buffers_config.count; i++) {
 		const auto memory = reinterpret_cast<uint32_t>(&samples[i * buffers_config.items_per_buffer]);
 		lli[i].srcaddr = peripheral;
 		lli[i].destaddr = memory;
@@ -151,18 +151,14 @@ void enable() {
 	gpdma_channel.enable();
 }
 
-bool is_enabled() {
-	return gpdma_channel.is_enabled();
-}
+bool is_enabled() { return gpdma_channel.is_enabled(); }
 
-void disable() {
-	gpdma_channel.disable();
-}
+void disable() { gpdma_channel.disable(); }
 
 rf::rssi::buffer_t wait_for_buffer() {
 	const auto next_index = thread_wait.sleep();
 
-	if( next_index >= 0 ) {
+	if (next_index >= 0) {
 		const size_t free_index = (next_index + buffers_config.count - 2) % buffers_config.count;
 		return { reinterpret_cast<sample_t*>(lli[free_index].destaddr), buffers_config.items_per_buffer };
 	} else {

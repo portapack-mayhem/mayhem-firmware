@@ -31,27 +31,22 @@
 #include <cstddef>
 
 class BasebandStatsCollector {
-public:
+  public:
 	BasebandStatsCollector(
-		const Thread* const thread_idle,
-		const Thread* const thread_main,
-		const Thread* const thread_rssi,
+		const Thread* const thread_idle, const Thread* const thread_main, const Thread* const thread_rssi,
 		const Thread* const thread_baseband
-	) : thread_idle { thread_idle },
-		thread_main { thread_main },
-		thread_rssi { thread_rssi },
-		thread_baseband { thread_baseband }
-	{
-	}
+	)
+		: thread_idle { thread_idle }, thread_main { thread_main }, thread_rssi { thread_rssi }, thread_baseband {
+			  thread_baseband
+		  } {}
 
-	template<typename Callback>
-	void process(const buffer_c8_t& buffer, Callback callback) {
-		if( process(buffer) ) {
+	template <typename Callback> void process(const buffer_c8_t& buffer, Callback callback) {
+		if (process(buffer)) {
 			callback(capture_statistics());
 		}
 	}
 
-private:
+  private:
 	static constexpr float report_interval { 1.0f };
 	size_t samples { 0 };
 	size_t samples_last_report { 0 };
@@ -68,4 +63,4 @@ private:
 	BasebandStatistics capture_statistics();
 };
 
-#endif/*__BASEBAND_STATS_COLLECTOR_H__*/
+#endif /*__BASEBAND_STATS_COLLECTOR_H__*/

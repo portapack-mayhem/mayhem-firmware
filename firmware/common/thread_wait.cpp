@@ -31,7 +31,7 @@ int ThreadWait::sleep() {
 }
 
 bool ThreadWait::wake_from_interrupt(const int value) {
-	if( thread_to_wake ) {
+	if (thread_to_wake) {
 		thread_to_wake->p_u.rdymsg = value;
 		chSchReadyI(thread_to_wake);
 		thread_to_wake = nullptr;

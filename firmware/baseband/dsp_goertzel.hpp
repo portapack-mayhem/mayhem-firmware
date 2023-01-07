@@ -28,16 +28,16 @@
 namespace dsp {
 
 class GoertzelDetector {
-public:
+  public:
 	GoertzelDetector(const float frequency, const uint32_t sample_rate);
-	
+
 	float execute(const buffer_s16_t& src);
 
-private:
-	float coefficient { };
+  private:
+	float coefficient {};
 	int16_t s[2] { 0 };
 };
 
 } /* namespace dsp */
 
-#endif/*__DSP_GOERTZEL_H__*/
+#endif /*__DSP_GOERTZEL_H__*/

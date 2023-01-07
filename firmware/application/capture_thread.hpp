@@ -34,13 +34,10 @@
 #include <utility>
 
 class CaptureThread {
-public:
+  public:
 	CaptureThread(
-		std::unique_ptr<stream::Writer> writer,
-		size_t write_size,
-		size_t buffer_count,
-		std::function<void()> success_callback,
-		std::function<void(File::Error)> error_callback
+		std::unique_ptr<stream::Writer> writer, size_t write_size, size_t buffer_count,
+		std::function<void()> success_callback, std::function<void(File::Error)> error_callback
 	);
 	~CaptureThread();
 
@@ -49,11 +46,9 @@ public:
 	CaptureThread& operator=(const CaptureThread&) = delete;
 	CaptureThread& operator=(CaptureThread&&) = delete;
 
-	const CaptureConfig& state() const {
-		return config;
-	}
+	const CaptureConfig& state() const { return config; }
 
-private:
+  private:
 	CaptureConfig config;
 	std::unique_ptr<stream::Writer> writer;
 	std::function<void()> success_callback;
@@ -65,4 +60,4 @@ private:
 	Optional<File::Error> run();
 };
 
-#endif/*__CAPTURE_THREAD_H__*/
+#endif /*__CAPTURE_THREAD_H__*/

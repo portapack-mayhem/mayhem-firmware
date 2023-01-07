@@ -35,12 +35,9 @@
 #include <utility>
 
 class ReplayThread {
-public:
+  public:
 	ReplayThread(
-		std::unique_ptr<stream::Reader> reader,
-		size_t read_size,
-		size_t buffer_count,
-		bool* ready_signal,
+		std::unique_ptr<stream::Reader> reader, size_t read_size, size_t buffer_count, bool* ready_signal,
 		std::function<void(uint32_t return_code)> terminate_callback
 	);
 	~ReplayThread();
@@ -50,17 +47,11 @@ public:
 	ReplayThread& operator=(const ReplayThread&) = delete;
 	ReplayThread& operator=(ReplayThread&&) = delete;
 
-	const ReplayConfig& state() const {
-		return config;
-	};
+	const ReplayConfig& state() const { return config; };
 
-	enum replaythread_return {
-		READ_ERROR = 0,
-		END_OF_FILE,
-		TERMINATED
-	};
+	enum replaythread_return { READ_ERROR = 0, END_OF_FILE, TERMINATED };
 
-private:
+  private:
 	ReplayConfig config;
 	std::unique_ptr<stream::Reader> reader;
 	bool* ready_sig;
@@ -72,4 +63,4 @@ private:
 	uint32_t run();
 };
 
-#endif/*__REPLAY_THREAD_H__*/
+#endif /*__REPLAY_THREAD_H__*/

@@ -27,28 +27,24 @@
 
 void TemperatureLogger::second_tick() {
 	sample_phase++;
-	if( sample_phase >= sample_interval ) {
+	if (sample_phase >= sample_interval) {
 		push_sample(read_sample());
 	}
 }
 
-size_t TemperatureLogger::size() const {
-	return std::min(capacity(), samples_count);
-}
+size_t TemperatureLogger::size() const { return std::min(capacity(), samples_count); }
 
-size_t TemperatureLogger::capacity() const {
-	return samples.size();
-}
+size_t TemperatureLogger::capacity() const { return samples.size(); }
 
 std::vector<TemperatureLogger::sample_t> TemperatureLogger::history() const {
 	std::vector<sample_t> result;
 
 	const auto n = size();
 	result.resize(n);
-	
+
 	// Copy the last N samples from the buffer, since new samples are added at the end.
 	std::copy(samples.cend() - n, samples.cend(), result.data());
-	
+
 	return result;
 }
 

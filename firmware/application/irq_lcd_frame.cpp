@@ -42,11 +42,8 @@ void lcd_frame_sync_configure() {
 	LPC_GPIO_INT->CIENF = (1U << 4);
 	LPC_GPIO_INT->IST = (1U << 4);
 
-	LPC_SCU->PINTSEL1 =
-		  (LPC_SCU->PINTSEL1 & ~(0xffU << 0))
-		| (portapack::gpio_lcd_te.pad() << 0)
-		| (portapack::gpio_lcd_te.port() << 5)
-		;
+	LPC_SCU->PINTSEL1 = (LPC_SCU->PINTSEL1 & ~(0xffU << 0)) | (portapack::gpio_lcd_te.pad() << 0) |
+						(portapack::gpio_lcd_te.port() << 5);
 
 	pin_int4_interrupt_enable();
 }
@@ -64,5 +61,4 @@ CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
 
 	CH_IRQ_EPILOGUE();
 }
-
 }

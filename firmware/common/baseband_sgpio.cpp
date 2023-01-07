@@ -141,16 +141,16 @@ enum {
 };
 
 enum class Slice : uint8_t {
-	A =  0,
-	B =  1,
-	C =  2,
-	D =  3,
-	E =  4,
-	F =  5,
-	G =  6,
-	H =  7,
-	I =  8,
-	J =  9,
+	A = 0,
+	B = 1,
+	C = 2,
+	D = 3,
+	E = 4,
+	F = 5,
+	G = 6,
+	H = 7,
+	I = 8,
+	J = 9,
 	K = 10,
 	L = 11,
 	M = 12,
@@ -165,22 +165,8 @@ constexpr uint8_t pos_count_multi_slice = 0x1f;
 constexpr uint8_t pos_count_single_slice = 0x03;
 
 constexpr Slice slice_order[] {
-	Slice::A,
-	Slice::I,
-	Slice::E,
-	Slice::J,
-	Slice::C,
-	Slice::K,
-	Slice::F,
-	Slice::L,
-	Slice::B,
-	Slice::M,
-	Slice::G,
-	Slice::N,
-	Slice::D,
-	Slice::O,
-	Slice::H,
-	Slice::P,
+	Slice::A, Slice::I, Slice::E, Slice::J, Slice::C, Slice::K, Slice::F, Slice::L,
+	Slice::B, Slice::M, Slice::G, Slice::N, Slice::D, Slice::O, Slice::H, Slice::P,
 };
 
 constexpr uint32_t gpio_outreg(const Direction direction) {
@@ -188,111 +174,48 @@ constexpr uint32_t gpio_outreg(const Direction direction) {
 }
 
 constexpr uint32_t gpio_oenreg(const Direction direction) {
-	return
-		  (0U << PIN_P78)
-		| (0U << PIN_P81)
-		| (0U << PIN_SYNC_EN)
-		| (0U << PIN_INVERT)
-		| (1U << PIN_DIRECTION)
-		| (1U << PIN_DISABLE)
-		| (0U << PIN_CAPTURE)
-		| (0U << PIN_CLKIN)
-		| ((direction == Direction::Transmit) ? 0xffU : 0x00U)
-		;
+	return (0U << PIN_P78) | (0U << PIN_P81) | (0U << PIN_SYNC_EN) | (0U << PIN_INVERT) | (1U << PIN_DIRECTION) |
+		   (1U << PIN_DISABLE) | (0U << PIN_CAPTURE) | (0U << PIN_CLKIN) |
+		   ((direction == Direction::Transmit) ? 0xffU : 0x00U);
 }
 
 constexpr uint32_t out_mux_cfg(const P_OUT_CFG out, const P_OE_CFG oe) {
-	return
-		  (toUType(out) << 0)
-		| (toUType(oe) << 4)
-		;
+	return (toUType(out) << 0) | (toUType(oe) << 4);
 }
 
-constexpr uint32_t data_sgpio_mux_cfg(
-	const CONCAT_ENABLE concat_enable,
-	const CONCAT_ORDER concat_order
-) {
-	return
-		  (1U << 0)
-		| (0U << 1)
-		| (0U << 3)
-		| (3U << 5)
-		| (1U << 7)
-		| (0U << 9)
-		| (toUType(concat_enable) << 11)
-		| (toUType(concat_order) << 12)
-		;
+constexpr uint32_t data_sgpio_mux_cfg(const CONCAT_ENABLE concat_enable, const CONCAT_ORDER concat_order) {
+	return (1U << 0) | (0U << 1) | (0U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) |
+		   (toUType(concat_order) << 12);
 }
 
-constexpr uint32_t data_slice_mux_cfg(
-	const PARALLEL_MODE parallel_mode,
-	const CLK_CAPTURE_MODE clk_capture_mode
-) {
-	return
-		  (0U << 0)
-		| (toUType(clk_capture_mode) << 1)
-		| (1U << 2)
-		| (0U << 3)
-		| (0U << 4)
-		| (toUType(parallel_mode) << 6)
-		| (0U << 8)
-		;
+constexpr uint32_t data_slice_mux_cfg(const PARALLEL_MODE parallel_mode, const CLK_CAPTURE_MODE clk_capture_mode) {
+	return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (0U << 4) |
+		   (toUType(parallel_mode) << 6) | (0U << 8);
 }
 
-constexpr uint32_t pos(
-	const uint32_t pos,
-	const uint32_t pos_reset
-) {
-	return
-		  (pos << 0)
-		| (pos_reset << 8)
-		;
-}
-constexpr uint32_t data_pos(
-	const bool multi_slice
-) {
+constexpr uint32_t pos(const uint32_t pos, const uint32_t pos_reset) { return (pos << 0) | (pos_reset << 8); }
+constexpr uint32_t data_pos(const bool multi_slice) {
 	return pos(
 		(multi_slice ? pos_count_multi_slice : pos_count_single_slice),
 		(multi_slice ? pos_count_multi_slice : pos_count_single_slice)
 	);
 }
 
-constexpr CONCAT_ENABLE data_concat_enable(
-	const bool input_slice,
-	const bool single_slice
-) {
-	return (input_slice || single_slice)
-		? CONCAT_ENABLE::EXTERNAL_DATA_PIN
-		: CONCAT_ENABLE::CONCATENATE_DATA
-		;
+constexpr CONCAT_ENABLE data_concat_enable(const bool input_slice, const bool single_slice) {
+	return (input_slice || single_slice) ? CONCAT_ENABLE::EXTERNAL_DATA_PIN : CONCAT_ENABLE::CONCATENATE_DATA;
 }
 
-constexpr CONCAT_ORDER data_concat_order(
-	const bool input_slice,
-	const bool single_slice
-) {
-	return (input_slice || single_slice)
-		? CONCAT_ORDER::SELF_LOOP
-		: CONCAT_ORDER::EIGHT_SLICES
-		;
+constexpr CONCAT_ORDER data_concat_order(const bool input_slice, const bool single_slice) {
+	return (input_slice || single_slice) ? CONCAT_ORDER::SELF_LOOP : CONCAT_ORDER::EIGHT_SLICES;
 }
 
-constexpr CLK_CAPTURE_MODE data_clk_capture_mode(
-	const Direction direction
-) {
-	return (direction == Direction::Transmit)
-		? CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
-		: CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
-		;
+constexpr CLK_CAPTURE_MODE data_clk_capture_mode(const Direction direction) {
+	return (direction == Direction::Transmit) ? CLK_CAPTURE_MODE::RISING_CLOCK_EDGE
+											  : CLK_CAPTURE_MODE::RISING_CLOCK_EDGE;
 }
 
-constexpr P_OUT_CFG data_p_out_cfg(
-	const bool multi_slice
-) {
-	return (multi_slice)
-		? P_OUT_CFG::DOUT_DOUTM8C
-		: P_OUT_CFG::DOUT_DOUTM8A
-		;
+constexpr P_OUT_CFG data_p_out_cfg(const bool multi_slice) {
+	return (multi_slice) ? P_OUT_CFG::DOUT_DOUTM8C : P_OUT_CFG::DOUT_DOUTM8A;
 }
 
 static const sgpio_resources_t sgpio_resources = {
@@ -316,17 +239,17 @@ void SGPIO::configure(const Direction direction) {
 	// Now that data pins are inputs, safe to change CPLD direction.
 	LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
 
-	LPC_SGPIO->OUT_MUX_CFG[ 8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[ 9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[11] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[12] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[13] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[14] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1,	P_OE_CFG::GPIO_OE);
-	LPC_SGPIO->OUT_MUX_CFG[15] = out_mux_cfg(P_OUT_CFG::GPIO_OUT,		P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[11] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[12] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[13] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[14] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
+	LPC_SGPIO->OUT_MUX_CFG[15] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
 
 	const auto data_out_mux_cfg = out_mux_cfg(data_p_out_cfg(slice_mode_multislice), P_OE_CFG::GPIO_OE);
-	for(size_t i=0; i<8; i++) {
+	for (size_t i = 0; i < 8; i++) {
 		LPC_SGPIO->OUT_MUX_CFG[i] = data_out_mux_cfg;
 	}
 
@@ -340,21 +263,16 @@ void SGPIO::configure(const Direction direction) {
 	const auto single_slice = !slice_mode_multislice;
 
 	uint32_t slice_enable_mask = 0;
-	for(size_t i=0; i<slice_count; i++) {
+	for (size_t i = 0; i < slice_count; i++) {
 		const auto slice = slice_order[i];
 		const auto slice_index = toUType(slice);
 		const auto input_slice = (i == 0) && (direction != Direction::Transmit);
 		const auto concat_order = data_concat_order(input_slice, single_slice);
 		const auto concat_enable = data_concat_enable(input_slice, single_slice);
 
-		LPC_SGPIO->SGPIO_MUX_CFG[slice_index] = data_sgpio_mux_cfg(
-			concat_enable,
-			concat_order
-		);
-		LPC_SGPIO->SLICE_MUX_CFG[slice_index] = data_slice_mux_cfg(
-			PARALLEL_MODE::SHIFT_1_BYTE_PER_CLOCK,
-			clk_capture_mode
-		);
+		LPC_SGPIO->SGPIO_MUX_CFG[slice_index] = data_sgpio_mux_cfg(concat_enable, concat_order);
+		LPC_SGPIO->SLICE_MUX_CFG[slice_index] =
+			data_slice_mux_cfg(PARALLEL_MODE::SHIFT_1_BYTE_PER_CLOCK, clk_capture_mode);
 
 		LPC_SGPIO->PRESET[slice_index] = 0;
 		LPC_SGPIO->COUNT[slice_index] = 0;
@@ -365,17 +283,13 @@ void SGPIO::configure(const Direction direction) {
 		slice_enable_mask |= (1U << slice_index);
 	}
 
-	if( !slice_mode_multislice ) {
+	if (!slice_mode_multislice) {
 		const auto slice_index = toUType(slice_gpdma);
 
-		LPC_SGPIO->SGPIO_MUX_CFG[slice_index] = data_sgpio_mux_cfg(
-			CONCAT_ENABLE::CONCATENATE_DATA,
-			CONCAT_ORDER::SELF_LOOP
-		);
-		LPC_SGPIO->SLICE_MUX_CFG[slice_index] = data_slice_mux_cfg(
-			PARALLEL_MODE::SHIFT_1_BIT_PER_CLOCK,
-			clk_capture_mode
-		);
+		LPC_SGPIO->SGPIO_MUX_CFG[slice_index] =
+			data_sgpio_mux_cfg(CONCAT_ENABLE::CONCATENATE_DATA, CONCAT_ORDER::SELF_LOOP);
+		LPC_SGPIO->SLICE_MUX_CFG[slice_index] =
+			data_slice_mux_cfg(PARALLEL_MODE::SHIFT_1_BIT_PER_CLOCK, clk_capture_mode);
 
 		LPC_SGPIO->PRESET[slice_index] = 0;
 		LPC_SGPIO->COUNT[slice_index] = 0;

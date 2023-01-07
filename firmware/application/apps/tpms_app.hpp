@@ -54,20 +54,13 @@ struct TPMSRecentEntry {
 
 	size_t received_count { 0 };
 
-	Optional<Pressure> last_pressure { };
-	Optional<Temperature> last_temperature { };
-	Optional<tpms::Flags> last_flags { };
+	Optional<Pressure> last_pressure {};
+	Optional<Temperature> last_temperature {};
+	Optional<tpms::Flags> last_flags {};
 
-	TPMSRecentEntry(
-		const Key& key
-	) : type { key.first },
-		id { key.second }
-	{
-	}
+	TPMSRecentEntry(const Key& key) : type { key.first }, id { key.second } {}
 
-	Key key() const {
-		return { type, id };
-	}
+	Key key() const { return { type, id }; }
 
 	void update(const tpms::Reading& reading);
 };
@@ -75,15 +68,13 @@ struct TPMSRecentEntry {
 using TPMSRecentEntries = RecentEntries<TPMSRecentEntry>;
 
 class TPMSLogger {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return log_file.append(filename);
-	}
-	
+  public:
+	Optional<File::Error> append(const std::filesystem::path& filename) { return log_file.append(filename); }
+
 	void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
 
-private:
-	LogFile log_file { };
+  private:
+	LogFile log_file {};
 };
 
 namespace ui {
@@ -91,7 +82,7 @@ namespace ui {
 using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
 
 class TPMSAppView : public View {
-public:
+  public:
 	TPMSAppView(NavigationView& nav);
 	~TPMSAppView();
 
@@ -99,20 +90,20 @@ public:
 
 	// Prevent painting of region covered entirely by a child.
 	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
-	void paint(Painter&) override { };
+	void paint(Painter&) override {};
 
 	void focus() override;
 
 	std::string title() const override { return "TPMS Cars RX"; };
 
-private:
+  private:
 	static constexpr uint32_t initial_target_frequency = 315000000;
 	static constexpr uint32_t sampling_rate = 2457600;
 	static constexpr uint32_t baseband_bandwidth = 1750000;
 
 	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
+	std::app_settings settings {};
+	std::app_settings::AppSettings app_settings {};
 
 	MessageHandlerRegistration message_handler_packet {
 		Message::ID::TPMSPacket,
@@ -125,7 +116,7 @@ private:
 
 	static constexpr ui::Dim header_height = 1 * 16;
 
-	ui::Rect view_normal_rect { };
+	ui::Rect view_normal_rect {};
 
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
@@ -135,38 +126,23 @@ private:
 		{ 21 * 8, 5, 6 * 8, 4 },
 	};
 
-	OptionsField options_band {
-		{ 0 * 8, 0 * 16 },
-		3,
-		{
-			{ "315", 315000000 },
-			{ "433", 433920000 },
-		}
-	};
+	OptionsField options_band { { 0 * 8, 0 * 16 },
+								3,
+								{
+									{ "315", 315000000 },
+									{ "433", 433920000 },
+								} };
 
-	OptionsField options_type {
-		{ 5 * 8, 0 * 16 },
-		3,
-		{
-			{ "kPa", 0 },
-			{ "PSI", 1 }
-		}
-	};
+	OptionsField options_type { { 5 * 8, 0 * 16 }, 3, { { "kPa", 0 }, { "PSI", 1 } } };
 
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
-	};
+	RFAmpField field_rf_amp { { 13 * 8, 0 * 16 } };
 
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
+	LNAGainField field_lna { { 15 * 8, 0 * 16 } };
 
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
+	VGAGainField field_vga { { 18 * 8, 0 * 16 } };
 
-	TPMSRecentEntries recent { };
-	std::unique_ptr<TPMSLogger> logger { };
+	TPMSRecentEntries recent {};
+	std::unique_ptr<TPMSLogger> logger {};
 
 	const RecentEntriesColumns columns_kpa { {
 		{ "Tp", 2 },
@@ -204,4 +180,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__TPMS_APP_H__*/
+#endif /*__TPMS_APP_H__*/

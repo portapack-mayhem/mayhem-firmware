@@ -68,7 +68,6 @@ void __late_init(void) {
 	 */
 	chSysInit();
 }
-
 }
 
 static void init() {
@@ -87,16 +86,16 @@ static void init() {
 
 static void halt() {
 	port_disable();
-	while(true) {
+	while (true) {
 		port_wait_for_interrupt();
 	}
 }
 
 static void shutdown() {
 	// TODO: Is this complete?
-	
+
 	nvicDisableVector(DMA_IRQn);
-	
+
 	chSysDisable();
 
 	systick_stop();

@@ -43,8 +43,8 @@ const auto adc1_interrupt_mask = flp2(adc1_sel);
 
 constexpr adc::CR adc1_cr {
 	.sel = adc1_sel,
-	.clkdiv = 49,		/* 400kHz sample rate, 2.5us/sample @ 200MHz PCLK */
-	.resolution = 9,	/* Ten clocks */
+	.clkdiv = 49,    /* 400kHz sample rate, 2.5us/sample @ 200MHz PCLK */
+	.resolution = 9, /* Ten clocks */
 	.edge = 0,
 };
 constexpr adc::Config adc1_config {

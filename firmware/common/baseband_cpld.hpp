@@ -27,14 +27,14 @@
 namespace baseband {
 
 class CPLD {
-public:
+  public:
 	void init();
 
 	void set_invert(const bool invert);
-	
-private:
+
+  private:
 };
 
-}
+} // namespace baseband
 
-#endif/*__BASEBAND_CPLD_H__*/
+#endif /*__BASEBAND_CPLD_H__*/

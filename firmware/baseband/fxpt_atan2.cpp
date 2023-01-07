@@ -49,16 +49,16 @@ static inline int16_t q15_from_double(const double d) {
  * @param i 16-bit signed integer
  * @return negative absolute value of i; defined for all values of i
  */
- /*
+/*
 static inline int16_t s16_nabs(const int16_t j) {
 #if (((int16_t)-1) >> 1) == ((int16_t)-1)
-	// signed right shift sign-extends (arithmetic)
-	const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
-	// if j is positive (negSign is -1), xor will invert j and sub will add 1
-	// otherwise j is unchanged
-	return (j ^ negSign) - negSign;
+   // signed right shift sign-extends (arithmetic)
+   const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
+   // if j is positive (negSign is -1), xor will invert j and sub will add 1
+   // otherwise j is unchanged
+   return (j ^ negSign) - negSign;
 #else
-	return (j < 0 ? j : -j);
+   return (j < 0 ? j : -j);
 #endif
 }
 */
@@ -72,11 +72,11 @@ static inline int16_t s16_nabs(const int16_t j) {
  */
 static inline int16_t q15_mul(const int16_t j, const int16_t k) {
 	const int32_t intermediate = j * k;
-#if 0 // don't round
+#if 0   // don't round
 	return intermediate >> 15;
 #elif 0 // biased rounding
 	return (intermediate + 0x4000) >> 15;
-#else // unbiased rounding
+#else   // unbiased rounding
 	return (intermediate + ((intermediate & 0x7FFF) == 0x4000 ? 0 : 0x4000)) >> 15;
 #endif
 }
@@ -112,14 +112,14 @@ static inline int16_t q15_div(const int16_t numer, const int16_t denom) {
  */
 
 static inline int16_t nabs(const int16_t j) {
-	//return -abs(x);
+	// return -abs(x);
 	return (j < 0 ? j : -j);
 }
 
 int16_t fxpt_atan2(const int16_t y, const int16_t x) {
 	static const int16_t k1 = 2847;
 	static const int16_t k2 = 11039;
-	if (x == y) { // x/y or y/x would return -1 since 1 isn't representable
+	if (x == y) {    // x/y or y/x would return -1 since 1 isn't representable
 		if (y > 0) { // 1/8
 			return 8192;
 		} else if (y < 0) { // 5/8

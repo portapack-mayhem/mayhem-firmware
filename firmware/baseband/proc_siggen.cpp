@@ -29,22 +29,22 @@
 
 void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 	if (!configured) return;
-	
+
 	for (size_t i = 0; i < buffer.count; i++) {
-		
+
 		if (!sample_count && auto_off) {
 			configured = false;
 			txprogress_message.done = true;
 			shared_memory.application_queue.push(txprogress_message);
 		} else
 			sample_count--;
-		
+
 		if (tone_shape == 0) {
 			// CW
 			re = 127;
 			im = 0;
 		} else {
-			
+
 			if (tone_shape == 1) {
 				// Sine
 				sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
@@ -66,14 +66,14 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 				sample = (lfsr & 0xFF000000) >> 24;
 				feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
 				lfsr = (lfsr << 1) | feedback;
-				if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
+				if (!lfsr) lfsr = 0x1337; // Shouldn't do this :(
 			}
-			
+
 			tone_phase += tone_delta;
-			
+
 			// Do FM
 			delta = sample * fm_delta;
-			
+
 			phase += delta;
 			sphase = phase + (64 << 24);
 
@@ -81,40 +81,40 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 			im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
 		}
 
-		buffer.p[i] = {re, im};
+		buffer.p[i] = { re, im };
 	}
 };
 
 void SigGenProcessor::on_message(const Message* const msg) {
 	const auto message = *reinterpret_cast<const SigGenConfigMessage*>(msg);
-	
-	switch(msg->id) {
-		case Message::ID::SigGenConfig:
-			if (!message.bw) {
-				configured = false;
-				return;
-			}
-			
-			if (message.duration) {
-				sample_count = message.duration;
-				auto_off = true;
-			} else
-				auto_off = false;
-			
-			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
-			tone_shape = message.shape;
-			
-			lfsr = 0x54DF0119;
 
-			configured = true;
-			break;
-		
-		case Message::ID::SigGenTone:
-			tone_delta = reinterpret_cast<const SigGenToneMessage*>(msg)->tone_delta;
-			break;
+	switch (msg->id) {
+	case Message::ID::SigGenConfig:
+		if (!message.bw) {
+			configured = false;
+			return;
+		}
 
-		default:
-			break;
+		if (message.duration) {
+			sample_count = message.duration;
+			auto_off = true;
+		} else
+			auto_off = false;
+
+		fm_delta = message.bw * (0xFFFFFFULL / 1536000);
+		tone_shape = message.shape;
+
+		lfsr = 0x54DF0119;
+
+		configured = true;
+		break;
+
+	case Message::ID::SigGenTone:
+		tone_delta = reinterpret_cast<const SigGenToneMessage*>(msg)->tone_delta;
+		break;
+
+	default:
+		break;
 	}
 }
 

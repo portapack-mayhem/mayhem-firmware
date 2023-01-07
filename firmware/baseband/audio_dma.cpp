@@ -40,11 +40,11 @@ constexpr uint32_t gpdma_ahb_master_peripheral = 1;
 constexpr uint32_t gpdma_ahb_master_memory = 0;
 constexpr uint32_t gpdma_ahb_master_lli_fetch = 0;
 
-constexpr uint32_t gpdma_rx_peripheral = 0x9;		/* I2S0 DMA request 1 */
+constexpr uint32_t gpdma_rx_peripheral = 0x9; /* I2S0 DMA request 1 */
 constexpr uint32_t gpdma_rx_src_peripheral = gpdma_rx_peripheral;
 constexpr uint32_t gpdma_rx_dest_peripheral = gpdma_rx_peripheral;
 
-constexpr uint32_t gpdma_tx_peripheral = 0xa;		/* I2S0 DMA request 2 */
+constexpr uint32_t gpdma_tx_peripheral = 0xa; /* I2S0 DMA request 2 */
 constexpr uint32_t gpdma_tx_src_peripheral = gpdma_tx_peripheral;
 constexpr uint32_t gpdma_tx_dest_peripheral = gpdma_tx_peripheral;
 
@@ -59,10 +59,10 @@ constexpr gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 constexpr gpdma::channel::Control control_tx(const size_t transfer_bytes) {
 	return {
 		.transfersize = gpdma::buffer_words(transfer_bytes, 4),
-		.sbsize = 4,  /* Burst size: 32 */
-		.dbsize = 4,  /* Burst size: 32 */
-		.swidth = 2,  /* Source transfer width: word (32 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
+		.sbsize = 4, /* Burst size: 32 */
+		.dbsize = 4, /* Burst size: 32 */
+		.swidth = 2, /* Source transfer width: word (32 bits) */
+		.dwidth = 2, /* Destination transfer width: word (32 bits) */
 		.s = gpdma_ahb_master_memory,
 		.d = gpdma_ahb_master_peripheral,
 		.si = 1,
@@ -91,10 +91,10 @@ constexpr gpdma::channel::Config config_tx() {
 constexpr gpdma::channel::Control control_rx(const size_t transfer_bytes) {
 	return {
 		.transfersize = gpdma::buffer_words(transfer_bytes, 4),
-		.sbsize = 4,  /* Burst size: 32 */
-		.dbsize = 4,  /* Burst size: 32 */
-		.swidth = 2,  /* Source transfer width: word (32 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
+		.sbsize = 4, /* Burst size: 32 */
+		.dbsize = 4, /* Burst size: 32 */
+		.swidth = 2, /* Source transfer width: word (32 bits) */
+		.dwidth = 2, /* Destination transfer width: word (32 bits) */
 		.s = gpdma_ahb_master_peripheral,
 		.d = gpdma_ahb_master_memory,
 		.si = 0,
@@ -144,21 +144,13 @@ static constexpr auto& gpdma_channel_i2s0_rx = gpdma::channels[portapack::i2s0_r
 static volatile const gpdma::channel::LLI* tx_next_lli = nullptr;
 static volatile const gpdma::channel::LLI* rx_next_lli = nullptr;
 
-static void tx_transfer_complete() {
-	tx_next_lli = gpdma_channel_i2s0_tx.next_lli();
-}
+static void tx_transfer_complete() { tx_next_lli = gpdma_channel_i2s0_tx.next_lli(); }
 
-static void tx_error() {
-	disable();
-}
+static void tx_error() { disable(); }
 
-static void rx_transfer_complete() {
-	rx_next_lli = gpdma_channel_i2s0_rx.next_lli();
-}
+static void rx_transfer_complete() { rx_next_lli = gpdma_channel_i2s0_rx.next_lli(); }
 
-static void rx_error() {
-	disable();
-}
+static void rx_error() { disable(); }
 
 void init() {
 	gpdma_channel_i2s0_tx.set_handlers(tx_transfer_complete, tx_error);
@@ -171,7 +163,7 @@ void init() {
 static void configure_tx() {
 	const auto peripheral = reinterpret_cast<uint32_t>(&LPC_I2S0->TXFIFO);
 	const auto control_value = control_tx(transfer_bytes);
-	for(size_t i=0; i<lli_tx_loop.size(); i++) {
+	for (size_t i = 0; i < lli_tx_loop.size(); i++) {
 		const auto memory = reinterpret_cast<uint32_t>(&buffer_tx[i * transfer_samples]);
 		lli_tx_loop[i].srcaddr = memory;
 		lli_tx_loop[i].destaddr = peripheral;
@@ -183,7 +175,7 @@ static void configure_tx() {
 static void configure_rx() {
 	const auto peripheral = reinterpret_cast<uint32_t>(&LPC_I2S0->RXFIFO);
 	const auto control_value = control_rx(transfer_bytes);
-	for(size_t i=0; i<lli_rx_loop.size(); i++) {
+	for (size_t i = 0; i < lli_rx_loop.size(); i++) {
 		const auto memory = reinterpret_cast<uint32_t>(&buffer_rx[i * transfer_samples]);
 		lli_rx_loop[i].srcaddr = peripheral;
 		lli_rx_loop[i].destaddr = memory;
@@ -215,7 +207,7 @@ void disable() {
 
 buffer_t tx_empty_buffer() {
 	const auto next_lli = tx_next_lli;
-	if( next_lli ) {
+	if (next_lli) {
 		const size_t next_index = next_lli - &lli_tx_loop[0];
 		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 		return { reinterpret_cast<sample_t*>(lli_tx_loop[free_index].srcaddr), transfer_samples };
@@ -226,7 +218,7 @@ buffer_t tx_empty_buffer() {
 
 buffer_t rx_empty_buffer() {
 	const auto next_lli = rx_next_lli;
-	if( next_lli ) {
+	if (next_lli) {
 		const size_t next_index = next_lli - &lli_rx_loop[0];
 		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 		return { reinterpret_cast<sample_t*>(lli_rx_loop[free_index].destaddr), transfer_samples };

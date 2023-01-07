@@ -31,7 +31,7 @@
 namespace baseband {
 
 class SGPIO {
-public:
+  public:
 	void init();
 
 	void configure(const Direction direction);
@@ -51,16 +51,12 @@ public:
 		return (LPC_SGPIO->GPIO_OUTREG >> 10) & 1;
 	}
 
-private:
-	void disable_all_slice_counters() {
-		set_slice_counter_enables(0);
-	}
+  private:
+	void disable_all_slice_counters() { set_slice_counter_enables(0); }
 
-	void set_slice_counter_enables(const uint16_t enable_mask) {
-		LPC_SGPIO->CTRL_ENABLE = enable_mask;
-	}
+	void set_slice_counter_enables(const uint16_t enable_mask) { LPC_SGPIO->CTRL_ENABLE = enable_mask; }
 };
 
-}
+} // namespace baseband
 
-#endif/*__BASEBAND_GPIO_H__*/
+#endif /*__BASEBAND_GPIO_H__*/

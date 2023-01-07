@@ -38,14 +38,9 @@ namespace ui {
 void TransmitterView::paint(Painter& painter) {
 	size_t c;
 	Point pos = { 0, screen_pos().y() };
-	
+
 	for (c = 0; c < 20; c++) {
-		painter.draw_bitmap(
-			pos,
-			bitmap_stripes,
-			ui::Color(191, 191, 0),
-			ui::Color::black()
-		);
+		painter.draw_bitmap(pos, bitmap_stripes, ui::Color(191, 191, 0), ui::Color::black());
 		if (c != 9)
 			pos += { 24, 0 };
 		else
@@ -53,9 +48,7 @@ void TransmitterView::paint(Painter& painter) {
 	}
 }
 
-void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
-	transmitter_model.set_tuning_frequency(f);
-}
+void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) { transmitter_model.set_tuning_frequency(f); }
 
 void TransmitterView::on_channel_bandwidth_changed(uint32_t channel_bandwidth) {
 	transmitter_model.set_channel_bandwidth(channel_bandwidth);
@@ -72,14 +65,14 @@ void TransmitterView::on_tx_amp_changed(bool rf_amp) {
 }
 
 void TransmitterView::update_gainlevel_styles() {
-	const Style *new_style_ptr = NULL;
+	const Style* new_style_ptr = NULL;
 	int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
-	
-	if(tot_gain > POWER_THRESHOLD_HIGH) {
+
+	if (tot_gain > POWER_THRESHOLD_HIGH) {
 		new_style_ptr = &style_power_high;
-	} else if(tot_gain > POWER_THRESHOLD_MED) {
+	} else if (tot_gain > POWER_THRESHOLD_MED) {
 		new_style_ptr = &style_power_med;
-	} else if(tot_gain > POWER_THRESHOLD_LOW) {
+	} else if (tot_gain > POWER_THRESHOLD_LOW) {
 		new_style_ptr = &style_power_low;
 	}
 
@@ -97,7 +90,7 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 		button_start.set_text("START");
 		button_start.set_style(&style_start);
 	}
-	
+
 	transmitting_ = transmitting;
 }
 
@@ -111,16 +104,14 @@ void TransmitterView::on_show() {
 	update_gainlevel_styles();
 }
 
-void TransmitterView::focus() {
-	button_start.focus();
-}
+void TransmitterView::focus() { button_start.focus(); }
 
 TransmitterView::TransmitterView(
 	const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock
-) :	lock_ { lock }
-{
+)
+	: lock_ { lock } {
 	set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
-	
+
 	add_children({
 		&field_frequency,
 		&field_frequency_step,
@@ -130,55 +121,39 @@ TransmitterView::TransmitterView(
 		&text_amp,
 		&field_amp,
 	});
-	
+
 	set_transmitting(false);
-	
+
 	if (lock_) {
 		field_frequency.set_focusable(false);
 		field_frequency.set_style(&style_locked);
 	} else {
 		if (channel_bandwidth) {
-			add_children({
-				&text_bw,
-				&field_bw
-			});
-			
-			field_bw.on_change = [this](int32_t v) {
-				on_channel_bandwidth_changed(v * 1000);
-			};
+			add_children({ &text_bw, &field_bw });
+
+			field_bw.on_change = [this](int32_t v) { on_channel_bandwidth_changed(v * 1000); };
 			field_bw.set_value(channel_bandwidth);
 		}
 	}
 
-	//field_frequency.set_value(transmitter_model.tuning_frequency());
+	// field_frequency.set_value(transmitter_model.tuning_frequency());
 	field_frequency.set_step(frequency_step);
-	field_frequency.on_change = [this](rf::Frequency f) {
-		on_tuning_frequency_changed(f);
-	};
+	field_frequency.on_change = [this](rf::Frequency f) { on_tuning_frequency_changed(f); };
 	field_frequency.on_edit = [this]() {
-		if (on_edit_frequency)
-			on_edit_frequency();
-	};
-	
-	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
-		this->field_frequency.set_step(v);
+		if (on_edit_frequency) on_edit_frequency();
 	};
 
-	field_gain.on_change = [this](uint32_t tx_gain) {
-		on_tx_gain_changed(tx_gain);
-	};
-	
-	field_amp.on_change = [this](uint32_t rf_amp) {
-		on_tx_amp_changed((bool) rf_amp);
-	};
+	field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) { this->field_frequency.set_step(v); };
 
-	button_start.on_select = [this](Button&){
+	field_gain.on_change = [this](uint32_t tx_gain) { on_tx_gain_changed(tx_gain); };
+
+	field_amp.on_change = [this](uint32_t rf_amp) { on_tx_amp_changed((bool) rf_amp); };
+
+	button_start.on_select = [this](Button&) {
 		if (transmitting_) {
-			if (on_stop)
-				on_stop();
+			if (on_stop) on_stop();
 		} else {
-			if (on_start)
-				on_start();
+			if (on_start) on_start();
 		}
 	};
 }

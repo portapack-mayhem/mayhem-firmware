@@ -43,7 +43,7 @@ constexpr Style style_options_group_new {
 };
 
 class AnalogTvView : public View {
-public:
+  public:
 	AnalogTvView(NavigationView& nav);
 	~AnalogTvView();
 
@@ -54,19 +54,19 @@ public:
 	void focus() override;
 
 	std::string title() const override { return "Analog TV RX"; };
-	
-private:
+
+  private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
 	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
+	std::app_settings settings {};
+	std::app_settings::AppSettings app_settings {};
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
 
 	NavigationView& nav_;
-	
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
@@ -83,35 +83,25 @@ private:
 		{ 5 * 8, 0 * 16 },
 	};
 
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
+	LNAGainField field_lna { { 15 * 8, 0 * 16 } };
 
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
+	VGAGainField field_vga { { 18 * 8, 0 * 16 } };
 
-	OptionsField options_modulation {
-		{ 0 * 8, 0 * 16 },
-		4,
-		{
-			{ "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-			{ "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-			{ "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-		}
-	};
+	OptionsField options_modulation { { 0 * 8, 0 * 16 },
+									  4,
+									  {
+										  { "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
+										  { "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
+										  { "TV ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
+									  } };
 
 	NumberField field_volume {
-		{ 27 * 8, 0 * 16 },
-		3,
-		{ 0, 255 },
-		1,
-		' ',
+		{ 27 * 8, 0 * 16 }, 3, { 0, 255 }, 1, ' ',
 	};
 
-	std::unique_ptr<Widget> options_widget { };
+	std::unique_ptr<Widget> options_widget {};
 
-	tv::TVWidget tv { };
+	tv::TVWidget tv {};
 
 	void on_tuning_frequency_changed(rf::Frequency f);
 	void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
@@ -128,10 +118,8 @@ private:
 	void set_options_widget(std::unique_ptr<Widget> new_widget);
 
 	void update_modulation(const ReceiverModel::Mode modulation);
-	
-
 };
 
 } /* namespace ui */
 
-#endif/*__ANALOG_TV_APP_H__*/
+#endif /*__ANALOG_TV_APP_H__*/

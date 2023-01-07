@@ -38,18 +38,14 @@ using namespace hackrf::one;
 namespace touch {
 namespace adc {
 
-constexpr uint8_t adc0_sel =
-	  (1 << portapack::adc0_touch_xp_input)
-	| (1 << portapack::adc0_touch_xn_input)
-	| (1 << portapack::adc0_touch_yp_input)
-	| (1 << portapack::adc0_touch_yn_input)
-	;
+constexpr uint8_t adc0_sel = (1 << portapack::adc0_touch_xp_input) | (1 << portapack::adc0_touch_xn_input) |
+							 (1 << portapack::adc0_touch_yp_input) | (1 << portapack::adc0_touch_yn_input);
 const auto adc0_interrupt_mask = flp2(adc0_sel);
 
 constexpr lpc43xx::adc::CR adc0_cr {
 	.sel = adc0_sel,
-	.clkdiv = 49,		/* 400kHz sample rate, 2.5us/sample @ 200MHz PCLK */
-	.resolution = 9,	/* Ten clocks */
+	.clkdiv = 49,    /* 400kHz sample rate, 2.5us/sample @ 200MHz PCLK */
+	.resolution = 9, /* Ten clocks */
 	.edge = 0,
 };
 constexpr lpc43xx::adc::Config adc0_config {
@@ -63,9 +59,7 @@ void init() {
 	adc0::interrupts_enable(adc0_interrupt_mask);
 }
 
-void start() {
-	adc0::start_burst();
-}
+void start() { adc0::start_burst(); }
 
 // static constexpr bool monitor_overruns_and_not_dones = false;
 

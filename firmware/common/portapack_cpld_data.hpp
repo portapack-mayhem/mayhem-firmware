@@ -54,4 +54,4 @@ const Config config { block_0, block_1 };
 } /* namespace cpld */
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_CPLD_DATA_H__*/
+#endif /*__PORTAPACK_CPLD_DATA_H__*/

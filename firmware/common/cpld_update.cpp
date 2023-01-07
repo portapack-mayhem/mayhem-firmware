@@ -33,15 +33,9 @@
 namespace portapack {
 namespace cpld {
 
-bool update_if_necessary(
-	const Config config
-) {
-	jtag::GPIOTarget target {
-		portapack::gpio_cpld_tck,
-		portapack::gpio_cpld_tms,
-		portapack::gpio_cpld_tdi,
-		portapack::gpio_cpld_tdo
-	};
+bool update_if_necessary(const Config config) {
+	jtag::GPIOTarget target { portapack::gpio_cpld_tck, portapack::gpio_cpld_tms, portapack::gpio_cpld_tdi,
+							  portapack::gpio_cpld_tdo };
 	jtag::JTAG jtag { target };
 	CPLD cpld { jtag };
 
@@ -50,7 +44,7 @@ bool update_if_necessary(
 	cpld.run_test_idle();
 
 	/* Run-Test/Idle */
-	if( !cpld.idcode_ok() ) {
+	if (!cpld.idcode_ok()) {
 		return false;
 	}
 
@@ -61,7 +55,7 @@ bool update_if_necessary(
 	/* If silicon ID doesn't match, there's a serious problem. Leave CPLD
 	 * in passive state.
 	 */
-	if( !cpld.silicon_id_ok() ) {
+	if (!cpld.silicon_id_ok()) {
 		return false;
 	}
 
@@ -69,14 +63,14 @@ bool update_if_necessary(
 	auto ok = cpld.verify(config.block_0, config.block_1);
 
 	/* CPLD verifies incorrectly. Erase and program with current bitstream. */
-	if( !ok ) {
+	if (!ok) {
 		ok = cpld.program(config.block_0, config.block_1);
 	}
 
 	/* If programming OK, reset CPLD to user mode. Otherwise leave it in
 	 * passive (ISP) state.
 	 */
-	if( ok ) {
+	if (ok) {
 		cpld.disable();
 		cpld.bypass();
 
@@ -115,15 +109,15 @@ bool load_sram() {
 }
 
 void load_sram_no_verify() {
-	// CoolRunner II family has Hybrid memory CPLD arquitecture (SRAM+NVM) 
-	// It seems that after using TX App somehow , I do not why , the CPLD_SRAM part needs to be re_loaded to solve #637 ghost beat 
-    // load_sram() it is already called at each boot in portapack.cpp ,including verify CPLD part.
-	// Here we skipped CPLD verify part,just to be quicker (in case any CPLD problem it will be detected in the boot process).
+	// CoolRunner II family has Hybrid memory CPLD arquitecture (SRAM+NVM)
+	// It seems that after using TX App somehow , I do not why , the CPLD_SRAM part needs to be re_loaded to solve #637
+	// ghost beat load_sram() it is already called at each boot in portapack.cpp ,including verify CPLD part. Here we
+	// skipped CPLD verify part,just to be quicker (in case any CPLD problem it will be detected in the boot process).
 
 	auto jtag_target_hackrf_cpld = jtag_target_hackrf();
 	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
- 	hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
+	hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
 
 	return;
 }
@@ -133,7 +127,7 @@ bool verify_eeprom() {
 	hackrf::one::cpld::CPLD hackrf_cpld { jtag_target_hackrf_cpld };
 
 	const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
-	
+
 	return ok;
 }
 

@@ -26,8 +26,8 @@
 #include <cstdint>
 
 void NOOPProcessor::execute(const buffer_c8_t& buffer) {
-	for (size_t i = 0; i<buffer.count; i++) {
-		buffer.p[i] = {0, 0};
+	for (size_t i = 0; i < buffer.count; i++) {
+		buffer.p[i] = { 0, 0 };
 	}
 }
 

@@ -46,23 +46,19 @@ CH_IRQ_HANDLER(MAPP_IRQHandler) {
 
 	CH_IRQ_EPILOGUE();
 }
-
 }
 
 Thread* EventDispatcher::thread_event_loop = nullptr;
 
-EventDispatcher::EventDispatcher(
-	std::unique_ptr<BasebandProcessor> baseband_processor
-) : baseband_processor { std::move(baseband_processor) }
-{
-}
+EventDispatcher::EventDispatcher(std::unique_ptr<BasebandProcessor> baseband_processor)
+	: baseband_processor { std::move(baseband_processor) } {}
 
 void EventDispatcher::run() {
 	thread_event_loop = chThdSelf();
 
 	lpc43xx::creg::m0apptxevent::enable();
 
-	while(is_running) {
+	while (is_running) {
 		const auto events = wait();
 		dispatch(events);
 	}
@@ -70,33 +66,29 @@ void EventDispatcher::run() {
 	lpc43xx::creg::m0apptxevent::disable();
 }
 
-void EventDispatcher::request_stop() {
-	is_running = false;
-}
+void EventDispatcher::request_stop() { is_running = false; }
 
-eventmask_t EventDispatcher::wait() {
-	return chEvtWaitAny(ALL_EVENTS);
-}
+eventmask_t EventDispatcher::wait() { return chEvtWaitAny(ALL_EVENTS); }
 
 void EventDispatcher::dispatch(const eventmask_t events) {
-	if( events & EVT_MASK_BASEBAND ) {
+	if (events & EVT_MASK_BASEBAND) {
 		handle_baseband_queue();
 	}
 
-	if( events & EVT_MASK_SPECTRUM ) {
+	if (events & EVT_MASK_SPECTRUM) {
 		handle_spectrum();
 	}
 }
 
 void EventDispatcher::handle_baseband_queue() {
 	const auto message = shared_memory.baseband_message;
-	if( message ) {
+	if (message) {
 		on_message(message);
 	}
 }
 
 void EventDispatcher::on_message(const Message* const message) {
-	switch(message->id) {
+	switch (message->id) {
 	case Message::ID::Shutdown:
 		on_message_shutdown(*reinterpret_cast<const ShutdownMessage*>(message));
 		break;
@@ -108,13 +100,9 @@ void EventDispatcher::on_message(const Message* const message) {
 	}
 }
 
-void EventDispatcher::on_message_shutdown(const ShutdownMessage&) {
-	request_stop();
-}
+void EventDispatcher::on_message_shutdown(const ShutdownMessage&) { request_stop(); }
 
-void EventDispatcher::on_message_default(const Message* const message) {
-	baseband_processor->on_message(message);
-}
+void EventDispatcher::on_message_default(const Message* const message) { baseband_processor->on_message(message); }
 
 void EventDispatcher::handle_spectrum() {
 	const UpdateSpectrumMessage message;

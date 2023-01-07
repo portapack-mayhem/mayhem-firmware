@@ -55,7 +55,7 @@ Metrics calculate_metrics(const Frame& frame) {
 	const float z2_norm = float(z2_position - z_min) / z_range;
 
 	const float r_x_plate = 330.0f;
-	//const float r_y_plate = 600.0f;
+	// const float r_y_plate = 600.0f;
 	const float r_touch = r_x_plate * x_norm * (z2_norm / z1_norm - 1.0f);
 
 	return {
@@ -79,18 +79,18 @@ ui::Point Calibration::translate(const DigitizerPoint& p) const {
 void Manager::feed(const Frame& frame) {
 	// touch_debounce.feed(touch_raw);
 	const auto touch_raw = frame.touch;
-	//const auto touch_stable = touch_debounce.state();
+	// const auto touch_stable = touch_debounce.state();
 	const auto touch_stable = frame.touch;
 	bool touch_pressure = false;
 
 	// Only feed coordinate averaging if there's a touch.
 	// TODO: Separate threshold to gate coordinates for filtering?
-	if( touch_raw ) {
+	if (touch_raw) {
 		const auto metrics = calculate_metrics(frame);
 
 		// TODO: Add touch pressure hysteresis?
 		touch_pressure = (metrics.r < r_touch_threshold);
-		if( touch_pressure ) {
+		if (touch_pressure) {
 			filter_x.feed(metrics.x * 1024);
 			filter_y.feed(metrics.y * 1024);
 		}
@@ -99,10 +99,10 @@ void Manager::feed(const Frame& frame) {
 		filter_y.reset();
 	}
 
-	switch(state) {
+	switch (state) {
 	case State::NoTouch:
-		if( touch_stable && touch_pressure && !persistent_memory::disable_touchscreen()) {
-			if( point_stable() ) {
+		if (touch_stable && touch_pressure && !persistent_memory::disable_touchscreen()) {
+			if (point_stable()) {
 				state = State::TouchDetected;
 				touch_started();
 			}
@@ -110,7 +110,7 @@ void Manager::feed(const Frame& frame) {
 		break;
 
 	case State::TouchDetected:
-		if( touch_stable && touch_pressure ) {
+		if (touch_stable && touch_pressure) {
 			touch_moved();
 		} else {
 			state = State::NoTouch;

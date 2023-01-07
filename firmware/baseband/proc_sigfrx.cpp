@@ -24,6 +24,4 @@
 #include <cstdint>
 #include <cstddef>
 
-void SIGFRXProcessor::execute(const buffer_c8_t& buffer) {
-	/* Called every 2048/3072000 second -- 1500Hz. */
-}
+void SIGFRXProcessor::execute(const buffer_c8_t& buffer) { /* Called every 2048/3072000 second -- 1500Hz. */ }

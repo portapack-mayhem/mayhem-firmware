@@ -36,29 +36,13 @@ struct vec4_s8 {
 };
 
 struct vec2_s16 {
-	constexpr vec2_s16(
-	) : v { 0, 0 }
-	{
-	}
+	constexpr vec2_s16() : v { 0, 0 } {}
 
-	constexpr vec2_s16(
-		const int16_t v
-	) : v { v, v }
-	{
-	}
-	
-	constexpr vec2_s16(
-		const int16_t v0,
-		const int16_t v1
-	) : v { v0, v1 }
-	{
-	}
+	constexpr vec2_s16(const int16_t v) : v { v, v } {}
 
-	constexpr vec2_s16(
-		const vec2_s16& other
-	) : w { other.w }
-	{
-	}
+	constexpr vec2_s16(const int16_t v0, const int16_t v1) : v { v0, v1 } {}
+
+	constexpr vec2_s16(const vec2_s16& other) : w { other.w } {}
 
 	vec2_s16& operator=(const vec2_s16& other) {
 		w = other.w;
@@ -111,4 +95,4 @@ static inline int32_t smlad(const vec2_s16 v1, const vec2_s16 v2, const int32_t 
 
 #endif /* defined(LPC43XX_M4) */
 
-#endif/*__SIMD_H__*/
+#endif /*__SIMD_H__*/

@@ -31,11 +31,7 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-enum TimeFormat {
-	YMDHMS = 0,
-	HMS = 1,
-	HM = 2
-};
+enum TimeFormat { YMDHMS = 0, HMS = 1, HM = 2 };
 
 const char unit_prefix[7] { 'n', 'u', 'm', 0, 'k', 'M', 'G' };
 
@@ -46,7 +42,7 @@ std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char f
 std::string to_string_decimal(float decimal, int8_t precision);
 
 std::string to_string_hex(const uint64_t n, const int32_t l = 0);
-std::string to_string_hex_array(uint8_t * const array, const int32_t l = 0);
+std::string to_string_hex_array(uint8_t* const array, const int32_t l = 0);
 
 std::string to_string_freq(const uint64_t f);
 std::string to_string_short_freq(const uint64_t f);
@@ -57,5 +53,5 @@ std::string to_string_timestamp(const rtc::RTC& value);
 std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
-double get_decimals(double num, int16_t mult,  bool round = false); //euquiq added
-#endif/*__STRING_FORMAT_H__*/
+double get_decimals(double num, int16_t mult, bool round = false); // euquiq added
+#endif                                                             /*__STRING_FORMAT_H__*/

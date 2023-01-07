@@ -36,7 +36,6 @@ using namespace lpc43xx;
 namespace touch {
 namespace dma {
 
-
 /* TODO: SO MUCH REPEATED CODE FROM rssi_dma.cpp!!! */
 
 static constexpr auto& gpdma_channel = gpdma::channels[portapack::adc0_gpdma_channel_number];
@@ -59,10 +58,10 @@ constexpr gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 constexpr gpdma::channel::Control control(const size_t number_of_transfers) {
 	return {
 		.transfersize = number_of_transfers,
-		.sbsize = 2,  /* Burst size: 8 transfers */
-		.dbsize = 2,  /* Burst size: 8 transfers */
-		.swidth = 2,  /* Source transfer width: word (32 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
+		.sbsize = 2, /* Burst size: 8 transfers */
+		.dbsize = 2, /* Burst size: 8 transfers */
+		.swidth = 2, /* Source transfer width: word (32 bits) */
+		.dwidth = 2, /* Destination transfer width: word (32 bits) */
 		.s = gpdma_ahb_master_peripheral,
 		.d = gpdma_ahb_master_memory,
 		.si = 1,
@@ -88,18 +87,17 @@ constexpr gpdma::channel::Config config() {
 	};
 }
 
-static gpdma::channel::LLI	lli;
+static gpdma::channel::LLI lli;
 
 constexpr size_t channels_per_sample = 8;
-//constexpr size_t samples_per_frame = 40;
-//constexpr size_t channel_samples_per_frame = channels_per_sample * samples_per_frame;
+// constexpr size_t samples_per_frame = 40;
+// constexpr size_t channel_samples_per_frame = channels_per_sample * samples_per_frame;
 
-void init() {
-}
+void init() {}
 
 void allocate() {
-	//samples = new sample_t[channel_samples_per_frame];
-	//lli = new gpdma::channel::LLI;
+	// samples = new sample_t[channel_samples_per_frame];
+	// lli = new gpdma::channel::LLI;
 	lli.srcaddr = reinterpret_cast<uint32_t>(&LPC_ADC0->DR[0]);
 	lli.destaddr = reinterpret_cast<uint32_t>(&shared_memory.touch_adc_frame.dr[0]);
 	lli.lli = lli_pointer(&lli);
@@ -107,8 +105,8 @@ void allocate() {
 }
 
 void free() {
-	//delete samples;
-	//delete lli;
+	// delete samples;
+	// delete lli;
 }
 
 void enable() {
@@ -117,13 +115,9 @@ void enable() {
 	gpdma_channel.enable();
 }
 
-bool is_enabled() {
-	return gpdma_channel.is_enabled();
-}
+bool is_enabled() { return gpdma_channel.is_enabled(); }
 
-void disable() {
-	gpdma_channel.disable();
-}
+void disable() { gpdma_channel.disable(); }
 
 } /* namespace dma */
 } /* namespace touch */

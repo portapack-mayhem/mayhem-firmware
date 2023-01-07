@@ -26,21 +26,15 @@ namespace dsp {
 namespace interpolation {
 
 class LinearResampler {
-public:
-	void configure(
-		const float input_rate,
-		const float output_rate
-	) {
+  public:
+	void configure(const float input_rate, const float output_rate) {
 		phase_increment = calculate_increment(input_rate, output_rate);
 	}
 
-	template<typename InterpolatedSampleHandler>
-	void operator()(
-		const float sample,
-		InterpolatedSampleHandler interpolated_sample_handler
-	) {
+	template <typename InterpolatedSampleHandler>
+	void operator()(const float sample, InterpolatedSampleHandler interpolated_sample_handler) {
 		const float sample_delta = sample - last_sample;
-		while( phase < 1.0f ) {
+		while (phase < 1.0f) {
 			const float interpolated_value = last_sample + phase * sample_delta;
 			interpolated_sample_handler(interpolated_value);
 			phase += phase_increment;
@@ -49,11 +43,9 @@ public:
 		phase -= 1.0f;
 	}
 
-	void advance(const float fraction) {
-		phase += (fraction * phase_increment);
-	}
+	void advance(const float fraction) { phase += (fraction * phase_increment); }
 
-private:
+  private:
 	float last_sample { 0.0f };
 	float phase { 0.0f };
 	float phase_increment { 0.0f };
@@ -66,4 +58,4 @@ private:
 } /* namespace interpolation */
 } /* namespace dsp */
 
-#endif/*__LINEAR_RESAMPLER_H__*/
+#endif /*__LINEAR_RESAMPLER_H__*/

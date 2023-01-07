@@ -80,11 +80,11 @@ constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];
 
 /* LEDs */
 
-constexpr LED led_usb	{ gpio_led_usb };
-constexpr LED led_rx	{ gpio_led_rx };
-constexpr LED led_tx	{ gpio_led_tx };
+constexpr LED led_usb { gpio_led_usb };
+constexpr LED led_rx { gpio_led_rx };
+constexpr LED led_tx { gpio_led_tx };
 
 } /* namespace one */
 } /* namespace hackrf */
 
-#endif/*__HACKRF_GPIO_H__*/
+#endif /*__HACKRF_GPIO_H__*/

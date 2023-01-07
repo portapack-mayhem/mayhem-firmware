@@ -33,17 +33,13 @@ constexpr rf::Frequency low_band_second_lo_frequency(const rf::Frequency target_
 }
 
 constexpr rf::Frequency high_band_second_lo_regions_2_and_3(const rf::Frequency target_frequency) {
-	return (target_frequency < 5100000000)
-		? (2350000000 + ((target_frequency - 3600000000) / 5))
-		: (2500000000 + ((target_frequency - 5100000000) / 9))
-		;
+	return (target_frequency < 5100000000) ? (2350000000 + ((target_frequency - 3600000000) / 5))
+										   : (2500000000 + ((target_frequency - 5100000000) / 9));
 }
 
 constexpr rf::Frequency high_band_second_lo_frequency(const rf::Frequency target_frequency) {
-	return (target_frequency < 3600000000)
-		? (2150000000 + (((target_frequency - 2750000000) * 60) / 85))
-		: high_band_second_lo_regions_2_and_3(target_frequency)
-		;
+	return (target_frequency < 3600000000) ? (2150000000 + (((target_frequency - 2750000000) * 60) / 85))
+										   : high_band_second_lo_regions_2_and_3(target_frequency);
 }
 
 Config low_band(const rf::Frequency target_frequency) {
@@ -53,9 +49,7 @@ Config low_band(const rf::Frequency target_frequency) {
 	return { first_lo_frequency, second_lo_frequency, rf::path::Band::Low, baseband_invert };
 }
 
-Config mid_band(const rf::Frequency target_frequency) {
-	return { 0, target_frequency, rf::path::Band::Mid, false };
-}
+Config mid_band(const rf::Frequency target_frequency) { return { 0, target_frequency, rf::path::Band::Mid, false }; }
 
 Config high_band(const rf::Frequency target_frequency) {
 	const rf::Frequency first_lo_frequency = target_frequency - high_band_second_lo_frequency(target_frequency);
@@ -68,14 +62,14 @@ Config high_band(const rf::Frequency target_frequency) {
 
 Config create(const rf::Frequency target_frequency) {
 	/* TODO: This is some lame code. */
-	if( rf::path::band_low.contains(target_frequency) ) {
+	if (rf::path::band_low.contains(target_frequency)) {
 		return low_band(target_frequency);
-	} else if( rf::path::band_mid.contains(target_frequency) ) {
+	} else if (rf::path::band_mid.contains(target_frequency)) {
 		return mid_band(target_frequency);
-	} else if( rf::path::band_high.contains(target_frequency) ) {
+	} else if (rf::path::band_high.contains(target_frequency)) {
 		return high_band(target_frequency);
 	} else {
-		return { };
+		return {};
 	}
 }
 

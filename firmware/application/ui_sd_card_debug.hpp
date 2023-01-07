@@ -30,7 +30,7 @@
 namespace ui {
 
 class SDCardDebugView : public View {
-public:
+  public:
 	SDCardDebugView(NavigationView& nav);
 
 	void on_show() override;
@@ -40,8 +40,8 @@ public:
 
 	std::string title() const override { return "SD Card"; };
 
-private:
-	SignalToken sd_card_status_signal_token { };
+  private:
+	SignalToken sd_card_status_signal_token {};
 
 	void on_status(const sd_card::Status status);
 	void on_test();
@@ -190,17 +190,11 @@ private:
 
 	///////////////////////////////////////////////////////////////////////
 
-	Button button_test {
-		{ 16, 17 * 16, 96, 24 },
-		"Test"
-	};
+	Button button_test { { 16, 17 * 16, 96, 24 }, "Test" };
 
-	Button button_ok {
-		{ 240 - 96 - 16, 17 * 16, 96, 24 },
-		"OK"
-	};
+	Button button_ok { { 240 - 96 - 16, 17 * 16, 96, 24 }, "OK" };
 };
 
 } /* namespace ui */
 
-#endif/*__UI_SD_CARD_DEBUG_H__*/
+#endif /*__UI_SD_CARD_DEBUG_H__*/

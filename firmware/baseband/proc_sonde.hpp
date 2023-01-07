@@ -22,51 +22,52 @@
  */
 
 /* Notes to self (or others, welcome !):
- * Sharebrained wrote in matched_filter.hpp that taps should be those of a complex low-pass filter combined with a complex sinusoid, so
- * that the filter shifts the spectrum where we want (signal of interest around 0Hz).
- * 
+ * Sharebrained wrote in matched_filter.hpp that taps should be those of a complex low-pass filter combined with a
+ * complex sinusoid, so that the filter shifts the spectrum where we want (signal of interest around 0Hz).
+ *
  * In this baseband processor, after decim_0 and decim_1, the signal ends up being sampled at 38400Hz (2457600 / 8 / 8)
- * Since the applied shift in ui_sonde.cpp is -fs/4 = -2457600/4 = -614400Hz to avoid the DC spike, the FSK signal ends up being
- * shifted by 614400 / 8 / 8 = 9600Hz. So decim_1_out should look like this:
- * 
+ * Since the applied shift in ui_sonde.cpp is -fs/4 = -2457600/4 = -614400Hz to avoid the DC spike, the FSK signal ends
+ * up being shifted by 614400 / 8 / 8 = 9600Hz. So decim_1_out should look like this:
+ *
  *   _______________|______/'\______
  * -C               A       B       C
- * 
+ *
  * A is the DC spike at 0Hz
  * B is the FSK signal shifted right at 9600Hz
  * C is the bandwidth edge at 19200Hz
- * 
+ *
  * Taps should be computed to shift the whole spectrum by -9600Hz ("left") so that it looks like this:
- * 
+ *
  *   ______________/'\______________
  * -C               D               C
- * 
+ *
  * Anything unwanted (like A) should have been filtered off
  * D is B around 0Hz now
- * 
+ *
  * Then the clock_recovery function should be happy :)
- * 
+ *
  * Mathworks.com says:
- * In the case of a single-rate FIR design, we simply multiply each set of coefficients by (aka 'heterodyne with') a complex exponential.
- * 
+ * In the case of a single-rate FIR design, we simply multiply each set of coefficients by (aka 'heterodyne with') a
+ * complex exponential.
+ *
  * Can SciPy's remez function be used for this ? See tools/firtest.py
  * GnuRadio's firdes only outputs an odd number of taps
- * 
+ *
  * ---------------------------------------------------------------------
- * 
+ *
  * Looking at the AIS baseband processor:
- * 
+ *
  * Copied everything necessary to get decim_1_out (so same 8 * 8 = 64 decimation factor)
  * The samplerate is also the same (2457600)
- * After the matching filter, the data is decimated by 2 so the final samplerate for clock_recovery is 38400 / 2 = 19200Hz.
- * Like here, the shift used is fs/4, so decim_1_out should be looking similar.
- * The AIS signal deviates by 2400 (4800Hz signal width), the symbol rate is 9600.
- * 
+ * After the matching filter, the data is decimated by 2 so the final samplerate for clock_recovery is 38400 / 2 =
+ * 19200Hz. Like here, the shift used is fs/4, so decim_1_out should be looking similar. The AIS signal deviates by 2400
+ * (4800Hz signal width), the symbol rate is 9600.
+ *
  * The matched filter's input samplerate is 38400Hz, to get a 9600Hz shift it must use 4 taps ?
  * To obtain unity gain, the sinusoid length must be / by the number of taps ?
- * 
+ *
  * See ais_baseband.hpp
- * 
+ *
  * */
 
 #ifndef __PROC_SONDE_H__
@@ -97,33 +98,29 @@
 #include <cstddef>
 #include <bitset>
 
-
-#define BEEP_MIN_DURATION 			60
-#define BEEP_DURATION_RANGE 		100
-#define BEEP_BASE_FREQ				200
-#define RSSI_CEILING	 			1000
-#define PROPORTIONAL_BEEP_THRES		0.8
-#define RSSI_PITCH_WEIGHT			0.5
-#define AUDIO_SAMPLE_RATE			24000
+#define BEEP_MIN_DURATION 60
+#define BEEP_DURATION_RANGE 100
+#define BEEP_BASE_FREQ 200
+#define RSSI_CEILING 1000
+#define PROPORTIONAL_BEEP_THRES 0.8
+#define RSSI_PITCH_WEIGHT 0.5
+#define AUDIO_SAMPLE_RATE 24000
 
 class SondeProcessor : public BasebandProcessor {
-public:
+  public:
 	SondeProcessor();
-	
+
 	void execute(const buffer_c8_t& buffer) override;
 	void on_message(const Message* const msg);
-private:
 
+  private:
 	static constexpr size_t baseband_fs = 2457600;
 
-	std::array<int16_t, 32> audio { };
+	std::array<int16_t, 32> audio {};
 
-	const buffer_s16_t audio_buffer {
-		(int16_t*) audio.data(),
-		sizeof(audio) / sizeof(int16_t)
-	};
+	const buffer_s16_t audio_buffer { (int16_t*) audio.data(), sizeof(audio) / sizeof(int16_t) };
 
-	AudioOutput audio_output { };
+	AudioOutput audio_output {};
 
 	bool beep_play { false };
 	bool silence_play { false };
@@ -131,50 +128,45 @@ private:
 
 	uint32_t last_rssi { 0 };
 
-	ToneGen tone_gen { };
+	ToneGen tone_gen {};
 
 	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
 	RSSIThread rssi_thread { NORMALPRIO + 10 };
 
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
+	std::array<complex16_t, 512> dst {};
+	const buffer_c16_t dst_buffer { dst.data(), dst.size() };
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 {};
+	dsp::decimate::FIRC16xR16x32Decim8 decim_1 {};
 	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
 
 	// Actually 4800bits/s but the Manchester coding doubles the symbol rate
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_9600 {
-		19200, 9600, { 0.0555f },
-		[this](const float raw_symbol) {
-			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
-		}
-	};
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter>
+		clock_recovery_fsk_9600 { 19200, 9600, { 0.0555f }, [this](const float raw_symbol) {
+									 const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+									 this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
+								 } };
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_9600_Meteomodem {
 		{ 0b00110011001100110101100110110011, 32, 1 },
-		{ },
+		{},
 		{ 88 * 2 * 8 },
 		[this](const baseband::Packet& packet) {
 			const SondePacketMessage message { sonde::Packet::Type::Meteomodem_unknown, packet };
 			shared_memory.application_queue.push(message);
 		}
 	};
-	
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
-		19200, 4800, { 0.0555f },
-		[this](const float raw_symbol) {
-			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
-		}
-	};
+
+	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter>
+		clock_recovery_fsk_4800 { 19200, 4800, { 0.0555f }, [this](const float raw_symbol) {
+									 const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+									 this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
+								 } };
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
-		{ 0b00001000011011010101001110001000, 32, 1 }, //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
-		//{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
-		{ },
+		{ 0b00001000011011010101001110001000, 32, 1 }, // euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw
+													   // format) (these bits are not passed at the beginning of packet)
+		//{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection
+		//would be 8 bytes.
+		{},
 		{ 320 * 8 },
 		[this](const baseband::Packet& packet) {
 			const SondePacketMessage message { sonde::Packet::Type::Vaisala_RS41_SG, packet };
@@ -184,11 +176,11 @@ private:
 
 	void play_beep();
 	void stop_beep();
-	
+
 	/**
 	 * Used for filling the audio buffer with the waveform
 	 * generated by the ToneGen class:
-	 * 
+	 *
 	 */
 	void generate_beep();
 
@@ -196,8 +188,8 @@ private:
 	 * Used for filling the audio buffer with silence:
 	 */
 	void generate_silence();
-	
+
 	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
-#endif/*__PROC_ERT_H__*/
+#endif /*__PROC_ERT_H__*/

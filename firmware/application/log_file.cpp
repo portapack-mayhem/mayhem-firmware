@@ -30,7 +30,7 @@ Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::
 
 Optional<File::Error> LogFile::write_line(const std::string& message) {
 	auto error = file.write_line(message);
-	if( !error.is_valid() ) {
+	if (!error.is_valid()) {
 		file.sync();
 	}
 	return error;

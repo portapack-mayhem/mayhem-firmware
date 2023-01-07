@@ -29,11 +29,9 @@
 #include <ch.h>
 
 class BasebandThread : public ThreadBase {
-public:
+  public:
 	BasebandThread(
-		uint32_t sampling_rate,
-		BasebandProcessor* const baseband_processor,
-		const tprio_t priority,
+		uint32_t sampling_rate, BasebandProcessor* const baseband_processor, const tprio_t priority,
 		const baseband::Direction direction = baseband::Direction::Receive
 	);
 	~BasebandThread();
@@ -42,16 +40,14 @@ public:
 	BasebandThread(BasebandThread&&) = delete;
 	BasebandThread& operator=(const BasebandThread&) = delete;
 	BasebandThread& operator=(BasebandThread&&) = delete;
-	
+
 	// This getter should die, it's just here to leak information to code that
 	// isn't in the right place to begin with.
-	baseband::Direction direction() const {
-		return _direction;
-	}
-	
+	baseband::Direction direction() const { return _direction; }
+
 	void set_sampling_rate(uint32_t new_sampling_rate);
 
-private:
+  private:
 	static Thread* thread;
 
 	BasebandProcessor* baseband_processor { nullptr };
@@ -61,4 +57,4 @@ private:
 	void run() override;
 };
 
-#endif/*__BASEBAND_THREAD_H__*/
+#endif /*__BASEBAND_THREAD_H__*/

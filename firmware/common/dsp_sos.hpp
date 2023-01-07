@@ -27,25 +27,20 @@
 #include <cstdint>
 #include <cstddef>
 
-template <size_t N>
-class SOSFilter {
+template <size_t N> class SOSFilter {
 
-public:
+  public:
+	void configure(const iir_biquad_df2_config_t config[N]) {
+		for (size_t i = 0; i < N; i++) filters[i].configure(config[i]);
+	}
 
-    void configure(const iir_biquad_df2_config_t config[N]) {
-        for (size_t i = 0; i < N; i++)
-            filters[i].configure(config[i]);
-    }
+	float execute(float value) {
+		for (auto& filter : filters) value = filter.execute(value);
+		return value;
+	}
 
-    float execute(float value) {
-        for (auto &filter : filters)
-            value = filter.execute(value);
-        return value;
-    }
-
-private:
-
-    IIRBiquadDF2Filter filters[N];
+  private:
+	IIRBiquadDF2Filter filters[N];
 };
 
-#endif/*__DSP_SOS_H__*/
+#endif /*__DSP_SOS_H__*/

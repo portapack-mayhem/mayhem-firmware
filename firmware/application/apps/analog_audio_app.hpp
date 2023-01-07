@@ -32,7 +32,6 @@
 #include "app_settings.hpp"
 #include "tone_key.hpp"
 
-
 namespace ui {
 
 constexpr Style style_options_group {
@@ -42,99 +41,79 @@ constexpr Style style_options_group {
 };
 
 class AMOptionsView : public View {
-public:
+  public:
 	AMOptionsView(const Rect parent_rect, const Style* const style);
 
-private:
+  private:
 	Text label_config {
 		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
 		"BW",
 	};
 
-	OptionsField options_config {
-		{ 3 * 8, 0 * 16 },
-		5,
-		{
-			{ "DSB 9k ", 0 },
-			{ "DSB 6k ", 0 },
-			{ "USB+3k ", 0 },
-			{ "LSB-3k ", 0 },
-			{ "CW     ", 0 },
-		}
-	};
+	OptionsField options_config { { 3 * 8, 0 * 16 },
+								  5,
+								  {
+									  { "DSB 9k ", 0 },
+									  { "DSB 6k ", 0 },
+									  { "USB+3k ", 0 },
+									  { "LSB-3k ", 0 },
+									  { "CW     ", 0 },
+								  } };
 };
 
 class NBFMOptionsView : public View {
-public:
+  public:
 	NBFMOptionsView(const Rect parent_rect, const Style* const style);
 
-private:
+  private:
 	Text label_config {
 		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
 		"BW",
 	};
-	OptionsField options_config {
-		{ 3 * 8, 0 * 16 },
-		4,
-		{
-			{ " 8k5", 0 },
-			{ "11k ", 0 },
-			{ "16k ", 0 },
-		}
-	};
-	
-	Text text_squelch {
-		{ 9 * 8, 0 * 16, 8 * 8, 1 * 16 },
-		"SQ   /99"
-	};
+	OptionsField options_config { { 3 * 8, 0 * 16 },
+								  4,
+								  {
+									  { " 8k5", 0 },
+									  { "11k ", 0 },
+									  { "16k ", 0 },
+								  } };
+
+	Text text_squelch { { 9 * 8, 0 * 16, 8 * 8, 1 * 16 }, "SQ   /99" };
 	NumberField field_squelch {
-		{ 12 * 8, 0 * 16 },
-		2,
-		{ 0, 99 },
-		1,
-		' ',
+		{ 12 * 8, 0 * 16 }, 2, { 0, 99 }, 1, ' ',
 	};
 };
 
 class AnalogAudioView;
 
 class SPECOptionsView : public View {
-public:
+  public:
 	SPECOptionsView(AnalogAudioView* view, const Rect parent_rect, const Style* const style);
 
-private:
+  private:
 	Text label_config {
 		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
 		"BW",
 	};
-	OptionsField options_config {
-		{ 3 * 8, 0 * 16 },
-		4,
-		{
-			{ "20m ", 20000000 },
-			{ "10m ", 10000000 },
-			{ " 5m ", 5000000 },
-			{ " 2m ", 2000000 },
-			{ " 1m ", 1000000 },
-			{ "500k", 500000 },
-		}
-	};
-	
-	Text text_speed {
-		{ 9 * 8, 0 * 16, 8 * 8, 1 * 16 },
-		"SP   /63"
-	};
+	OptionsField options_config { { 3 * 8, 0 * 16 },
+								  4,
+								  {
+									  { "20m ", 20000000 },
+									  { "10m ", 10000000 },
+									  { " 5m ", 5000000 },
+									  { " 2m ", 2000000 },
+									  { " 1m ", 1000000 },
+									  { "500k", 500000 },
+								  } };
+
+	Text text_speed { { 9 * 8, 0 * 16, 8 * 8, 1 * 16 }, "SP   /63" };
 	NumberField field_speed {
-		{ 12 * 8, 0 * 16 },
-		2,
-		{ 0, 63 },
-		1,
-		' ',
+		{ 12 * 8, 0 * 16 }, 2, { 0, 63 }, 1, ' ',
 	};
 };
 
 class AnalogAudioView : public View {
-public:
+  public:
 	AnalogAudioView(NavigationView& nav);
 	~AnalogAudioView();
 
@@ -152,12 +131,12 @@ public:
 	uint16_t get_spec_trigger();
 	void set_spec_trigger(uint16_t trigger);
 
-private:
+  private:
 	static constexpr ui::Dim header_height = 3 * 16;
 
 	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
+	std::app_settings settings {};
+	std::app_settings::AppSettings app_settings {};
 
 	const Rect options_view_rect { 0 * 8, 1 * 16, 30 * 8, 1 * 16 };
 	const Rect nbfm_view_rect { 0 * 8, 1 * 16, 18 * 8, 1 * 16 };
@@ -167,8 +146,8 @@ private:
 	uint16_t spec_trigger = 63;
 
 	NavigationView& nav_;
-	//bool exit_on_squelch { false };
-	
+	// bool exit_on_squelch { false };
+
 	RSSI rssi {
 		{ 21 * 8, 0, 6 * 8, 4 },
 	};
@@ -185,47 +164,28 @@ private:
 		{ 5 * 8, 0 * 16 },
 	};
 
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
+	LNAGainField field_lna { { 15 * 8, 0 * 16 } };
 
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
+	VGAGainField field_vga { { 18 * 8, 0 * 16 } };
 
-	OptionsField options_modulation {
-		{ 0 * 8, 0 * 16 },
-		4,
-		{
-			{ " AM ", toUType(ReceiverModel::Mode::AMAudio) },
-			{ "NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio) },
-			{ "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
-			{ "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
-		}
-	};
+	OptionsField options_modulation { { 0 * 8, 0 * 16 },
+									  4,
+									  {
+										  { " AM ", toUType(ReceiverModel::Mode::AMAudio) },
+										  { "NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio) },
+										  { "WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio) },
+										  { "SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis) },
+									  } };
 
 	NumberField field_volume {
-		{ 28 * 8, 0 * 16 },
-		2,
-		{ 0, 99 },
-		1,
-		' ',
-	};
-	
-	Text text_ctcss {
-		{ 19 * 8, 1 * 16, 11 * 8, 1 * 16 },
-		""
+		{ 28 * 8, 0 * 16 }, 2, { 0, 99 }, 1, ' ',
 	};
 
-	std::unique_ptr<Widget> options_widget { };
+	Text text_ctcss { { 19 * 8, 1 * 16, 11 * 8, 1 * 16 }, "" };
 
-	RecordView record_view {
-		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		u"AUD",
-		RecordView::FileType::WAV, 
-		4096, 
-		4
-	};
+	std::unique_ptr<Widget> options_widget {};
+
+	RecordView record_view { { 0 * 8, 2 * 16, 30 * 8, 1 * 16 }, u"AUD", RecordView::FileType::WAV, 4096, 4 };
 
 	spectrum::WaterfallWidget waterfall { true };
 
@@ -244,10 +204,10 @@ private:
 	void set_options_widget(std::unique_ptr<Widget> new_widget);
 
 	void update_modulation(const ReceiverModel::Mode modulation);
-	
-	//void squelched();
+
+	// void squelched();
 	void handle_coded_squelch(const uint32_t value);
-	
+
 	/*MessageHandlerRegistration message_handler_squelch_signal {
 		Message::ID::RequestSignal,
 		[this](const Message* const p) {
@@ -255,16 +215,15 @@ private:
 			this->squelched();
 		}
 	};*/
-	
-	MessageHandlerRegistration message_handler_coded_squelch {
-		Message::ID::CodedSquelch,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
-			this->handle_coded_squelch(message.value);
-		}
-	};
+
+	MessageHandlerRegistration message_handler_coded_squelch { Message::ID::CodedSquelch,
+															   [this](const Message* const p) {
+																   const auto message =
+																	   *reinterpret_cast<const CodedSquelchMessage*>(p);
+																   this->handle_coded_squelch(message.value);
+															   } };
 };
 
 } /* namespace ui */
 
-#endif/*__ANALOG_AUDIO_APP_H__*/
+#endif /*__ANALOG_AUDIO_APP_H__*/

@@ -31,62 +31,39 @@
 
 /* FIFO implementation inspired by Linux kfifo. */
 
-template<typename T>
-class FIFO {
-public:
-	constexpr FIFO(
-		T* data,
-		size_t k
-	) : _data { data },
-		_size { 1U << k },
-		_in { 0 },
-		_out { 0 }
-	{
-	}
+template <typename T> class FIFO {
+  public:
+	constexpr FIFO(T* data, size_t k) : _data { data }, _size { 1U << k }, _in { 0 }, _out { 0 } {}
 
-	void reset() {
-		_in = _out = 0;
-	}
+	void reset() { _in = _out = 0; }
 
-	void reset_in() {
-		_in = _out;
-	}
-	
-	void reset_out() {
-		_out = _in;
-	}
+	void reset_in() { _in = _out; }
 
-	size_t len() const {
-		return _in - _out;
-	}
+	void reset_out() { _out = _in; }
 
-	size_t unused() const {
-		return size() - (_in - _out);
-	}
+	size_t len() const { return _in - _out; }
 
-	bool is_empty() const {
-		return _in == _out;
-	}
+	size_t unused() const { return size() - (_in - _out); }
 
-	bool is_full() const {
-		return unused() == 0;
-	}
+	bool is_empty() const { return _in == _out; }
+
+	bool is_full() const { return unused() == 0; }
 
 	bool in(const T& val) {
-		if( is_full() ) {
+		if (is_full()) {
 			return false;
 		}
 
 		_data[_in & mask()] = val;
 		smp_wmb();
 		_in += 1;
-		
+
 		return true;
 	}
 
 	size_t in(const T* const buf, size_t len) {
 		const size_t l = unused();
-		if( len > l ) {
+		if (len > l) {
 			len = l;
 		}
 
@@ -96,24 +73,24 @@ public:
 	}
 
 	size_t in_r(const void* const buf, const size_t len) {
-		if( (len + recsize()) > unused() ) {
+		if ((len + recsize()) > unused()) {
 			return 0;
 		}
 
 		poke_n(len);
-		copy_in((const T*)buf, len, _in + recsize());
+		copy_in((const T*) buf, len, _in + recsize());
 		_in += len + recsize();
 		return len;
 	}
 
 	bool out(T& val) {
-		if( is_empty() ) {
+		if (is_empty()) {
 			return false;
 		}
 
-		val = _data[_out & mask()];		// Crashes
-		smp_wmb();						// Ok
-		_out += 1;						// Crashes
+		val = _data[_out & mask()]; // Crashes
+		smp_wmb();                  // Ok
+		_out += 1;                  // Crashes
 
 		return true;
 	}
@@ -125,7 +102,7 @@ public:
 	}
 
 	bool skip() {
-		if( is_empty() ) {
+		if (is_empty()) {
 			return false;
 		}
 
@@ -135,50 +112,40 @@ public:
 	}
 
 	size_t peek_r(void* const buf, size_t len) {
-		if( is_empty() ) {
+		if (is_empty()) {
 			return 0;
 		}
 
 		size_t n;
-		len = out_copy_r((T*)buf, len, &n);
+		len = out_copy_r((T*) buf, len, &n);
 		return len;
 	}
 
 	size_t out_r(void* const buf, size_t len) {
-		if( is_empty() ) {
+		if (is_empty()) {
 			return 0;
 		}
 
 		size_t n;
-		len = out_copy_r((T*)buf, len, &n);
+		len = out_copy_r((T*) buf, len, &n);
 		_out += n + recsize();
 		return len;
 	}
 
-private:
-	size_t size() const {
-		return _size;
-	}
+  private:
+	size_t size() const { return _size; }
 
-	static constexpr size_t esize() {
-		return sizeof(T);
-	}
+	static constexpr size_t esize() { return sizeof(T); }
 
-	size_t mask() const {
-		return size() - 1;
-	}
+	size_t mask() const { return size() - 1; }
 
-	static constexpr size_t recsize() {
-		return 2;
-	}
+	static constexpr size_t recsize() { return 2; }
 
-	void smp_wmb() {
-		__DMB();
-	}
+	void smp_wmb() { __DMB(); }
 
 	size_t peek_n() {
 		size_t l = _data[_out & mask()];
-		if( recsize() > 1 ) {
+		if (recsize() > 1) {
 			l |= _data[(_out + 1) & mask()] << 8;
 		}
 		return l;
@@ -186,7 +153,7 @@ private:
 
 	void poke_n(const size_t n) {
 		_data[_in & mask()] = n & 0xff;
-		if( recsize() > 1 ) {
+		if (recsize() > 1) {
 			_data[(_in + 1) & mask()] = (n >> 8) & 0xff;
 		}
 	}
@@ -209,20 +176,20 @@ private:
 		smp_wmb();
 	}
 
-	size_t out_copy_r(void *buf, size_t len, size_t* const n) {
+	size_t out_copy_r(void* buf, size_t len, size_t* const n) {
 		*n = peek_n();
 
-		if( len > *n ) {
+		if (len > *n) {
 			len = *n;
 		}
 
-		copy_out((T*)buf, len, _out + recsize());
+		copy_out((T*) buf, len, _out + recsize());
 		return len;
 	}
 
 	size_t out_peek(T* const buf, size_t buf_len) {
 		const size_t l = len();
-		if( buf_len > l ) {
+		if (buf_len > l) {
 			buf_len = l;
 		}
 
@@ -236,4 +203,4 @@ private:
 	volatile size_t _out;
 };
 
-#endif/*__FIFO_H__*/
+#endif /*__FIFO_H__*/

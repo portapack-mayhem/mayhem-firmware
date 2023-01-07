@@ -55,9 +55,10 @@ static void debug_indicate_error_update() {
 static void runtime_error() {
 	debug_indicate_error_init();
 
-	while(true) {
+	while (true) {
 		volatile size_t n = 1000000U;
-		while(n--);
+		while (n--)
+			;
 		debug_indicate_error_update();
 	}
 }
@@ -67,8 +68,8 @@ extern "C" {
 void port_halt(void) {
 	// Copy debug panic message to M0 region.
 	const auto* p = dbg_panic_msg;
-	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
-		if( *p == 0 ) {
+	for (size_t i = 0; i < sizeof(shared_memory.m4_panic_msg); i++) {
+		if (*p == 0) {
 			shared_memory.m4_panic_msg[i] = 0;
 		} else {
 			shared_memory.m4_panic_msg[i] = *(p++);
@@ -104,5 +105,4 @@ CH_IRQ_HANDLER(UsageFaultVector) {
 #endif
 }
 #endif
-
 }

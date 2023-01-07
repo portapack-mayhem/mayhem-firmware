@@ -33,4 +33,4 @@ void MAX5864::set_mode(const Mode mode) {
 	_target.transfer(command.data(), command.size());
 }
 
-}
+} // namespace max5864

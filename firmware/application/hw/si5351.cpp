@@ -38,26 +38,17 @@ void Si5351::reset() {
 	write_register(Register::OEBPinEnableControlMask, 0xff);
 	write_register(Register::PLLInputSource, 0x00);
 
-	set_clock_control({
-		ClockControl::power_off(), ClockControl::power_off(),
-		ClockControl::power_off(), ClockControl::power_off(),
-		ClockControl::power_off(), ClockControl::power_off(),
-		ClockControl::power_off(), ClockControl::power_off()
-	});
+	set_clock_control({ ClockControl::power_off(), ClockControl::power_off(), ClockControl::power_off(),
+						ClockControl::power_off(), ClockControl::power_off(), ClockControl::power_off(),
+						ClockControl::power_off(), ClockControl::power_off() });
 
 	write(std::array<uint8_t, 70> { Register::CLK3_0DisableState });
 
-	write(std::array<uint8_t, 14>{
-		Register::SpreadSpectrumParameters_Base
-	});
+	write(std::array<uint8_t, 14> { Register::SpreadSpectrumParameters_Base });
 
-	write(std::array<uint8_t, 4>{
-		Register::VCXOParameters_Base
-	});
+	write(std::array<uint8_t, 4> { Register::VCXOParameters_Base });
 
-	write(std::array<uint8_t, 7>{
-		Register::CLKInitialPhaseOffset_Base
-	});
+	write(std::array<uint8_t, 7> { Register::CLKInitialPhaseOffset_Base });
 
 	write_register(Register::CrystalInternalLoadCapacitance, 0b11010010);
 	write_register(Register::FanoutEnable, 0x00);
@@ -74,10 +65,7 @@ Si5351::regvalue_t Si5351::read_register(const uint8_t reg) {
 }
 
 void Si5351::set_ms_frequency(
-	const size_t ms_number,
-	const uint32_t frequency,
-	const uint32_t vco_frequency,
-	const size_t r_div
+	const size_t ms_number, const uint32_t frequency, const uint32_t vco_frequency, const size_t r_div
 ) {
 	/* TODO: Factor out the VCO frequency, which should be an attribute held
 	 * by the Si5351 object.

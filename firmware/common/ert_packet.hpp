@@ -40,25 +40,18 @@ constexpr CommodityType invalid_commodity_type = -1;
 constexpr Consumption invalid_consumption = 0;
 
 class Packet {
-public:
+  public:
 	enum class Type : uint32_t {
 		Unknown = 0,
 		IDM = 1,
 		SCM = 2,
 	};
 
-	Packet(
-		const Type type,
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		decoder_ { packet_ },
-		reader_ { decoder_ },
-		type_ { type }
-	{
-	}
+	Packet(const Type type, const baseband::Packet& packet)
+		: packet_ { packet }, decoder_ { packet_ }, reader_ { decoder_ }, type_ { type } {}
 
 	size_t length() const;
-	
+
 	bool is_valid() const;
 
 	Timestamp received_at() const;
@@ -72,7 +65,7 @@ public:
 
 	bool crc_ok() const;
 
-private:
+  private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
@@ -86,4 +79,4 @@ private:
 
 } /* namespace ert */
 
-#endif/*__ERT_PACKET_H__*/
+#endif /*__ERT_PACKET_H__*/

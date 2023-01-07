@@ -29,28 +29,26 @@
 #include <cstddef>
 
 class AudioStatsCollector {
-public:
-	template<typename Callback>
-	void feed(const buffer_f32_t& src, Callback callback) {
-		if( feed(src) ) {
+  public:
+	template <typename Callback> void feed(const buffer_f32_t& src, Callback callback) {
+		if (feed(src)) {
 			callback(statistics);
 		}
 	}
 
-	template<typename Callback>
-	void mute(const size_t sample_count, const size_t sampling_rate, Callback callback) {
-		if( mute(sample_count, sampling_rate) ) {
+	template <typename Callback> void mute(const size_t sample_count, const size_t sampling_rate, Callback callback) {
+		if (mute(sample_count, sampling_rate)) {
 			callback(statistics);
 		}
 	}
 
-private:
+  private:
 	static constexpr float update_interval { 0.1f };
 	float squared_sum { 0 };
 	float max_squared { 0 };
 	size_t count { 0 };
 
-	AudioStatistics statistics { };
+	AudioStatistics statistics {};
 
 	void consume_audio_buffer(const buffer_f32_t& src);
 
@@ -60,4 +58,4 @@ private:
 	bool mute(const size_t sample_count, const size_t sampling_rate);
 };
 
-#endif/*__AUDIO_STATS_COLLECTOR_H__*/
+#endif /*__AUDIO_STATS_COLLECTOR_H__*/

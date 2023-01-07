@@ -25,11 +25,12 @@ float GainComputer::operator()(const float x) const {
 	const auto abs_x = std::abs(x);
 	const auto db = (abs_x < lin_floor) ? db_floor : log2_db_k * fast_log2(abs_x);
 	const auto overshoot_db = db - threshold_db;
-	if( knee_width_db > 0.0f ) {
+	if (knee_width_db > 0.0f) {
 		const auto w2 = knee_width_db / 2.0f;
 		const auto a = w2 / (knee_width_db * knee_width_db);
 		const auto in_transition = (overshoot_db > -w2) && (overshoot_db < w2);
-		const auto rectified_overshoot = in_transition ? (a * std::pow(overshoot_db + w2, 2.0f)) : std::max(overshoot_db, 0.0f);
+		const auto rectified_overshoot =
+			in_transition ? (a * std::pow(overshoot_db + w2, 2.0f)) : std::max(overshoot_db, 0.0f);
 		return rectified_overshoot * slope;
 	} else {
 		const auto rectified_overshoot = std::max(overshoot_db, 0.0f);
@@ -39,7 +40,7 @@ float GainComputer::operator()(const float x) const {
 
 void FeedForwardCompressor::execute_in_place(const buffer_f32_t& buffer) {
 	constexpr float makeup_gain = std::pow(10.0f, (threshold - (threshold / ratio)) / -20.0f);
-	for(size_t i=0; i<buffer.count; i++) {
+	for (size_t i = 0; i < buffer.count; i++) {
 		buffer.p[i] = execute_once(buffer.p[i]) * makeup_gain;
 	}
 }

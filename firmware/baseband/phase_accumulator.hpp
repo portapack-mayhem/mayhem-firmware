@@ -25,12 +25,8 @@
 #include <cstdint>
 
 class PhaseAccumulator {
-public:
-	constexpr PhaseAccumulator(
-		const uint32_t phase_inc
-	) : phase_inc { phase_inc }
-	{
-	}
+  public:
+	constexpr PhaseAccumulator(const uint32_t phase_inc) : phase_inc { phase_inc } {}
 
 	bool operator()() {
 		const auto last_phase = phase;
@@ -38,13 +34,11 @@ public:
 		return (phase < last_phase);
 	}
 
-	void set_inc(const uint32_t new_phase_inc) {
-		phase_inc = new_phase_inc;
-	}
+	void set_inc(const uint32_t new_phase_inc) { phase_inc = new_phase_inc; }
 
-private:
+  private:
 	uint32_t phase { 0 };
 	uint32_t phase_inc;
 };
 
-#endif/*__PHASE_ACCUMULATOR_HPP__*/
+#endif /*__PHASE_ACCUMULATOR_HPP__*/

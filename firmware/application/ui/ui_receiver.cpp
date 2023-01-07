@@ -34,25 +34,19 @@ namespace ui {
 
 /* FrequencyField ********************************************************/
 
-FrequencyField::FrequencyField(
-	const Point parent_pos
-) : Widget { { parent_pos, { 8 * 10, 16 } } },
-	length_ { 11 },
-	range(rf::tuning_range)
-{
+FrequencyField::FrequencyField(const Point parent_pos)
+	: Widget { { parent_pos, { 8 * 10, 16 } } }, length_ { 11 }, range(rf::tuning_range) {
 	set_focusable(true);
 }
 
-rf::Frequency FrequencyField::value() const {
-	return value_;
-}
+rf::Frequency FrequencyField::value() const { return value_; }
 
 void FrequencyField::set_value(rf::Frequency new_value) {
 	new_value = clamp_value(new_value);
 
-	if( new_value != value_ ) {
+	if (new_value != value_) {
 		value_ = new_value;
-		if( on_change ) {
+		if (on_change) {
 			on_change(value_);
 		}
 		set_dirty();
@@ -69,16 +63,12 @@ void FrequencyField::paint(Painter& painter) {
 
 	const auto paint_style = has_focus() ? style().invert() : style();
 
-	painter.draw_string(
-		screen_pos(),
-		paint_style,
-		str_value
-	);
+	painter.draw_string(screen_pos(), paint_style, str_value);
 }
 
 bool FrequencyField::on_key(const ui::KeyEvent event) {
-	if( event == ui::KeyEvent::Select ) {
-		if( on_edit ) {
+	if (event == ui::KeyEvent::Select) {
+		if (on_edit) {
 			on_edit();
 			return true;
 		}
@@ -92,21 +82,19 @@ bool FrequencyField::on_encoder(const EncoderEvent delta) {
 }
 
 bool FrequencyField::on_touch(const TouchEvent event) {
-	if( event.type == TouchEvent::Type::Start ) {
+	if (event.type == TouchEvent::Type::Start) {
 		focus();
 	}
 	return true;
 }
 
 void FrequencyField::on_focus() {
-	if( on_show_options ) {
+	if (on_show_options) {
 		on_show_options();
 	}
 }
 
-rf::Frequency FrequencyField::clamp_value(rf::Frequency value) {
-	return range.clip(value);
-}
+rf::Frequency FrequencyField::clamp_value(rf::Frequency value) { return range.clip(value); }
 
 /* FrequencyKeypadView ***************************************************/
 
@@ -114,64 +102,42 @@ bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
 	focused_button += delta;
 	if (focused_button < 0) {
 		focused_button = buttons.size() - 1;
-	}
-	else if (focused_button >= (int16_t)buttons.size()) {
+	} else if (focused_button >= (int16_t) buttons.size()) {
 		focused_button = 0;
 	}
 	buttons[focused_button].focus();
 	return true;
 }
 
-FrequencyKeypadView::FrequencyKeypadView(
-	NavigationView& nav,
-	const rf::Frequency value
-) {
+FrequencyKeypadView::FrequencyKeypadView(NavigationView& nav, const rf::Frequency value) {
 	add_child(&text_value);
 
-	const auto button_fn = [this](Button& button) {
-		this->on_button(button);
-	};
+	const auto button_fn = [this](Button& button) { this->on_button(button); };
 
 	const char* const key_caps = "123456789<0.";
 
 	int n = 0;
-	for(auto& button : buttons) {
+	for (auto& button : buttons) {
 		add_child(&button);
-		const std::string label {
-			key_caps[n]
-		};
+		const std::string label { key_caps[n] };
 		button.id = n;
-		button.on_highlight = [this](Button& button) {
-			focused_button = button.id;
-		};
+		button.on_highlight = [this](Button& button) { focused_button = button.id; };
 		button.on_select = button_fn;
-		button.set_parent_rect({
-			(n % 3) * button_w,
-			(n / 3) * button_h + 24,
-			button_w, button_h
-		});
+		button.set_parent_rect({ (n % 3) * button_w, (n / 3) * button_h + 24, button_w, button_h });
 		button.set_text(label);
 		n++;
 	}
-	
-	add_children({
-		&button_save,
-		&button_load,
-		&button_close
-	});
-	
-	button_save.on_select = [this, &nav](Button&) {
-		nav.push<FrequencySaveView>(this->value());
-	};
+
+	add_children({ &button_save, &button_load, &button_close });
+
+	button_save.on_select = [this, &nav](Button&) { nav.push<FrequencySaveView>(this->value()); };
 	button_load.on_select = [this, &nav](Button&) {
 		auto load_view = nav.push<FrequencyLoadView>();
-		load_view->on_frequency_loaded = [this](rf::Frequency value) {
-			set_value(value);
-		};
+		load_view->on_frequency_loaded = [this](rf::Frequency value) { set_value(value); };
 	};
 
 	button_close.on_select = [this, &nav](Button&) {
-		if( on_changed ) {
+		if (on_changed) {
 			on_changed(this->value());
 		}
 		nav.pop();
@@ -180,13 +146,9 @@ FrequencyKeypadView::FrequencyKeypadView(
 	set_value(value);
 }
 
-void FrequencyKeypadView::focus() {
-	button_close.focus();
-}
+void FrequencyKeypadView::focus() { button_close.focus(); }
 
-rf::Frequency FrequencyKeypadView::value() const {
-	return mhz.as_int() * 1000000ULL + submhz.as_int() * submhz_base;
-}
+rf::Frequency FrequencyKeypadView::value() const { return mhz.as_int() * 1000000ULL + submhz.as_int() * submhz_base; }
 
 void FrequencyKeypadView::set_value(const rf::Frequency new_value) {
 	mhz.set(new_value / 1000000);
@@ -200,9 +162,9 @@ void FrequencyKeypadView::set_value(const rf::Frequency new_value) {
 
 void FrequencyKeypadView::on_button(Button& button) {
 	const auto s = button.text();
-	if( s == "." ) {
+	if (s == ".") {
 		field_toggle();
-	} else if( s == "<" ) {
+	} else if (s == "<") {
 		digit_delete();
 	} else {
 		digit_add(s[0]);
@@ -211,8 +173,8 @@ void FrequencyKeypadView::on_button(Button& button) {
 }
 
 void FrequencyKeypadView::digit_add(const char c) {
-	if( state == State::DigitMHz ) {
-		if( clear_field_if_digits_entered ) {
+	if (state == State::DigitMHz) {
+		if (clear_field_if_digits_entered) {
 			mhz.clear();
 		}
 		mhz.add_digit(c);
@@ -223,7 +185,7 @@ void FrequencyKeypadView::digit_add(const char c) {
 }
 
 void FrequencyKeypadView::digit_delete() {
-	if( state == State::DigitMHz ) {
+	if (state == State::DigitMHz) {
 		mhz.delete_digit();
 	} else {
 		submhz.delete_digit();
@@ -231,7 +193,7 @@ void FrequencyKeypadView::digit_delete() {
 }
 
 void FrequencyKeypadView::field_toggle() {
-	if( state == State::DigitMHz ) {
+	if (state == State::DigitMHz) {
 		state = State::DigitSubMHz;
 		submhz.clear();
 	} else {
@@ -247,79 +209,57 @@ void FrequencyKeypadView::update_text() {
 
 /* FrequencyOptionsView **************************************************/
 
-FrequencyOptionsView::FrequencyOptionsView(
-	const Rect parent_rect,
-	const Style* const style
-) : View { parent_rect }
-{
+FrequencyOptionsView::FrequencyOptionsView(const Rect parent_rect, const Style* const style) : View { parent_rect } {
 	set_style(style);
 
 	field_step.on_change = [this](size_t n, OptionsField::value_t v) {
-		(void)n;
+		(void) n;
 		this->on_step_changed(v);
 	};
 
-	field_ppm.on_change = [this](int32_t v) {
-		this->on_reference_ppm_correction_changed(v);
-	};
+	field_ppm.on_change = [this](int32_t v) { this->on_reference_ppm_correction_changed(v); };
 
 	add_children({
 		&text_step,
 		&field_step,
 	});
 
-	if( portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::Xtal ) {
+	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::Xtal) {
 		add_child(&field_ppm);
 		add_child(&text_ppm);
 	}
 }
 
-void FrequencyOptionsView::set_step(rf::Frequency f) {
-	field_step.set_by_value(f);
-}
+void FrequencyOptionsView::set_step(rf::Frequency f) { field_step.set_by_value(f); }
 
-void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {
-	field_ppm.set_value(v);
-}
+void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) { field_ppm.set_value(v); }
 
 void FrequencyOptionsView::on_step_changed(rf::Frequency v) {
-	if( on_change_step ) {
+	if (on_change_step) {
 		on_change_step(v);
 	}
 }
 
 void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
-	if( on_change_reference_ppm_correction ) {
+	if (on_change_reference_ppm_correction) {
 		on_change_reference_ppm_correction(v);
 	}
 }
 
 /* RFAmpField ************************************************************/
 
-RFAmpField::RFAmpField(
-	Point parent_pos
-) : NumberField {
-		parent_pos,
-		1,
-		{ 0, 1 },
-		1,
-		' ',
-	}
-{
+RFAmpField::RFAmpField(Point parent_pos)
+	: NumberField {
+		  parent_pos, 1, { 0, 1 }, 1, ' ',
+	  } {
 	set_value(receiver_model.rf_amp());
 
-	on_change = [](int32_t v) {
-		receiver_model.set_rf_amp(v);
-	};
+	on_change = [](int32_t v) { receiver_model.set_rf_amp(v); };
 }
 
 /* RadioGainOptionsView **************************************************/
 
-RadioGainOptionsView::RadioGainOptionsView(
-	const Rect parent_rect,
-	const Style* const style
-) : View { parent_rect }
-{
+RadioGainOptionsView::RadioGainOptionsView(const Rect parent_rect, const Style* const style) : View { parent_rect } {
 	set_style(style);
 
 	add_children({
@@ -330,50 +270,44 @@ RadioGainOptionsView::RadioGainOptionsView(
 
 /* LNAGainField **********************************************************/
 
-LNAGainField::LNAGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max2837::lna::gain_db_range.minimum, max2837::lna::gain_db_range.maximum },
-		max2837::lna::gain_db_step,
-		' ',
-	}
-{
+LNAGainField::LNAGainField(Point parent_pos)
+	: NumberField {
+		  parent_pos,
+		  2,
+		  { max2837::lna::gain_db_range.minimum, max2837::lna::gain_db_range.maximum },
+		  max2837::lna::gain_db_step,
+		  ' ',
+	  } {
 	set_value(receiver_model.lna());
 
-	on_change = [](int32_t v) {
-		receiver_model.set_lna(v);
-	};
+	on_change = [](int32_t v) { receiver_model.set_lna(v); };
 }
 
 void LNAGainField::on_focus() {
-	//Widget::on_focus();
-	if( on_show_options ) {
+	// Widget::on_focus();
+	if (on_show_options) {
 		on_show_options();
 	}
 }
 
 /* VGAGainField **********************************************************/
 
-VGAGainField::VGAGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
-		max2837::vga::gain_db_step,
-		' ',
-	}
-{
+VGAGainField::VGAGainField(Point parent_pos)
+	: NumberField {
+		  parent_pos,
+		  2,
+		  { max2837::vga::gain_db_range.minimum, max2837::vga::gain_db_range.maximum },
+		  max2837::vga::gain_db_step,
+		  ' ',
+	  } {
 	set_value(receiver_model.vga());
 
-	on_change = [](int32_t v) {
-		receiver_model.set_vga(v);
-	};
+	on_change = [](int32_t v) { receiver_model.set_vga(v); };
 }
 
 void VGAGainField::on_focus() {
-	//Widget::on_focus();
-	if( on_show_options ) {
+	// Widget::on_focus();
+	if (on_show_options) {
 		on_show_options();
 	}
 }

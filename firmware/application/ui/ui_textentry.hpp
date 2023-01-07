@@ -29,15 +29,15 @@
 namespace ui {
 
 class TextEntryView : public View {
-public:
-	std::function<void(std::string&)> on_changed { };
-	
+  public:
+	std::function<void(std::string&)> on_changed {};
+
 	void focus() override;
 	std::string title() const override { return "Text entry"; };
-	
-protected:
+
+  protected:
 	TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
-	
+
 	TextEntryView(const TextEntryView&) = delete;
 	TextEntryView(TextEntryView&&) = delete;
 	TextEntryView& operator=(const TextEntryView&) = delete;
@@ -47,23 +47,20 @@ protected:
 	void char_delete();
 	void draw_cursor();
 	void update_text();
-	
+
 	std::string& _str;
 	size_t _max_length;
 	uint32_t cursor_pos { 0 };
-	
-	Text text_input {
-		{ 0, 0, 240, 16 }
-	};
-	
-	Button button_ok {
-		{ 10 * 8, 33 * 8, 9 * 8, 32 },
-		"OK"
-	};
+
+	Text text_input { { 0, 0, 240, 16 } };
+
+	Button button_ok { { 10 * 8, 33 * 8, 9 * 8, 32 }, "OK" };
 };
 
-void text_prompt(NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string&)> on_done = nullptr);
+void text_prompt(
+	NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string&)> on_done = nullptr
+);
 
 } /* namespace ui */
 
-#endif/*__UI_TEXTENTRY_H__*/
+#endif /*__UI_TEXTENTRY_H__*/

@@ -39,7 +39,7 @@ struct ToneDef {
 	uint32_t delta;
 	uint32_t duration;
 };
-	
+
 struct ToneData {
 	ToneDef tone_defs[32];
 	uint32_t silence;
@@ -58,7 +58,7 @@ struct SharedMemory {
 	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
 
 	char m4_panic_msg[32] { 0 };
-	
+
 	union {
 		ToneData tones_data;
 		JammerChannel jammer_channels[24];
@@ -68,4 +68,4 @@ struct SharedMemory {
 
 extern SharedMemory& shared_memory;
 
-#endif/*__PORTAPACK_SHARED_MEMORY_H__*/
+#endif /*__PORTAPACK_SHARED_MEMORY_H__*/

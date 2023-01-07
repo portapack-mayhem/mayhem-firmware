@@ -25,38 +25,24 @@
 
 #include <ch.h>
 
-void* operator new(size_t size) {
-	return chHeapAlloc(0x0, size);
-}
+void* operator new(size_t size) { return chHeapAlloc(0x0, size); }
 
-void* operator new[](size_t size) {
-	return chHeapAlloc(0x0, size);
-}
+void* operator new[](size_t size) { return chHeapAlloc(0x0, size); }
 
-void operator delete(void* p) noexcept {
-	chHeapFree(p);
-}
+void operator delete(void* p) noexcept { chHeapFree(p); }
 
-void operator delete[](void* p) noexcept {
-	chHeapFree(p);
-}
+void operator delete[](void* p) noexcept { chHeapFree(p); }
 
-void operator delete(void* ptr, std::size_t) noexcept {
-	::operator delete(ptr);
-}
+void operator delete(void* ptr, std::size_t) noexcept { ::operator delete(ptr); }
 
-void operator delete[](void* ptr, std::size_t) noexcept {
-	::operator delete(ptr);
-}
+void operator delete[](void* ptr, std::size_t) noexcept { ::operator delete(ptr); }
 
 extern uint8_t __heap_base__[];
 extern uint8_t __heap_end__[];
 
 namespace chibios {
 
-size_t heap_size() {
-	return __heap_end__ - __heap_base__;
-}
+size_t heap_size() { return __heap_end__ - __heap_base__; }
 
 size_t heap_used() {
 	const auto core_free = chCoreStatus();

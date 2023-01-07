@@ -55,10 +55,10 @@ constexpr gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 constexpr gpdma::channel::Control control(const baseband::Direction direction, const size_t buffer_words) {
 	return {
 		.transfersize = buffer_words,
-		.sbsize = 0,  /* Burst size: 1 */
-		.dbsize = 0,  /* Burst size: 1 */
-		.swidth = 2,  /* Source transfer width: word (32 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
+		.sbsize = 0, /* Burst size: 1 */
+		.dbsize = 0, /* Burst size: 1 */
+		.swidth = 2, /* Source transfer width: word (32 bits) */
+		.dwidth = 2, /* Destination transfer width: word (32 bits) */
 		.s = (direction == baseband::Direction::Transmit) ? gpdma_ahb_master_memory : gpdma_ahb_master_sgpio,
 		.d = (direction == baseband::Direction::Transmit) ? gpdma_ahb_master_sgpio : gpdma_ahb_master_memory,
 		.si = (direction == baseband::Direction::Transmit) ? 1U : 0U,
@@ -75,9 +75,8 @@ constexpr gpdma::channel::Config config(const baseband::Direction direction) {
 		.e = 0,
 		.srcperipheral = gpdma_src_peripheral,
 		.destperipheral = gpdma_dest_peripheral,
-		.flowcntrl = (direction == baseband::Direction::Transmit)
-			? gpdma::FlowControl::MemoryToPeripheral_DMAControl
-			: gpdma::FlowControl::PeripheralToMemory_DMAControl,
+		.flowcntrl = (direction == baseband::Direction::Transmit) ? gpdma::FlowControl::MemoryToPeripheral_DMAControl
+																  : gpdma::FlowControl::PeripheralToMemory_DMAControl,
 		.ie = 1,
 		.itc = 1,
 		.l = 0,
@@ -127,13 +126,10 @@ void init() {
 #endif
 }
 
-void configure(
-	baseband::sample_t* const buffer_base,
-	const baseband::Direction direction
-) {
+void configure(baseband::sample_t* const buffer_base, const baseband::Direction direction) {
 	const auto peripheral = reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0]);
 	const auto control_value = control(direction, gpdma::buffer_words(transfer_bytes, 4));
-	for(size_t i=0; i<lli_loop.size(); i++) {
+	for (size_t i = 0; i < lli_loop.size(); i++) {
 		const auto memory = reinterpret_cast<uint32_t>(&buffer_base[i * transfer_samples]);
 		lli_loop[i].srcaddr = (direction == Direction::Transmit) ? memory : peripheral;
 		lli_loop[i].destaddr = (direction == Direction::Transmit) ? peripheral : memory;
@@ -148,25 +144,21 @@ void enable(const baseband::Direction direction) {
 	gpdma_channel_sgpio.enable();
 }
 
-bool is_enabled() {
-	return gpdma_channel_sgpio.is_enabled();
-}
+bool is_enabled() { return gpdma_channel_sgpio.is_enabled(); }
 
-void disable() {
-	gpdma_channel_sgpio.disable();
-}
+void disable() { gpdma_channel_sgpio.disable(); }
 
 baseband::buffer_t wait_for_buffer() {
 	const auto next_index = thread_wait.sleep();
-	
-	if( next_index >= 0 ) {
+
+	if (next_index >= 0) {
 		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
 		const auto src = lli_loop[free_index].srcaddr;
 		const auto dst = lli_loop[free_index].destaddr;
 		const auto p = (src == reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0])) ? dst : src;
 		return { reinterpret_cast<sample_t*>(p), transfer_samples };
 	} else {
-		return { };
+		return {};
 	}
 }
 

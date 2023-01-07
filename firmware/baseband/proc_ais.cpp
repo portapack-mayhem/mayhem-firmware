@@ -42,25 +42,21 @@ void AISProcessor::execute(const buffer_c8_t& buffer) {
 	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 
-	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
+	for (size_t i = 0; i < decimator_out.count; i++) {
+		if (mf.execute_once(decimator_out.p[i])) {
 			clock_recovery(mf.get_output());
 		}
 	}
 }
 
-void AISProcessor::consume_symbol(
-	const float raw_symbol
-) {
+void AISProcessor::consume_symbol(const float raw_symbol) {
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	const auto decoded_symbol = nrzi_decode(sliced_symbol);
 
 	packet_builder.execute(decoded_symbol);
 }
 
-void AISProcessor::payload_handler(
-	const baseband::Packet& packet
-) {
+void AISProcessor::payload_handler(const baseband::Packet& packet) {
 	const AISPacketMessage message { packet };
 	shared_memory.application_queue.push(message);
 }

@@ -27,9 +27,7 @@
 namespace portapack {
 namespace cpld {
 
-bool update_if_necessary(
-	const Config config
-);
+bool update_if_necessary(const Config config);
 
 } /* namespace cpld */
 } /* namespace portapack */
@@ -45,4 +43,4 @@ void init_from_eeprom();
 } /* namespace cpld */
 } /* namespace hackrf */
 
-#endif/*__CPLD_UPDATE_H__*/
+#endif /*__CPLD_UPDATE_H__*/

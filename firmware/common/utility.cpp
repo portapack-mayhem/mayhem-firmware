@@ -68,7 +68,7 @@ float fast_log2(const float val) {
 	} u = { val };
 	float log_2 = (((u.x >> 23) & 255) - 128);
 	u.x &= ~(255 << 23);
-	u.x +=  (127 << 23);
+	u.x += (127 << 23);
 	log_2 += ((-0.34484843f) * u.val + 2.02466578f) * u.val - 0.67487759f;
 	return log_2;
 }
@@ -83,9 +83,9 @@ float fast_pow2(const float val) {
 }
 
 float mag2_to_dbv_norm(const float mag2) {
-	constexpr float mag2_log2_max = 0.0f; //std::log2(1.0f);
+	constexpr float mag2_log2_max = 0.0f; // std::log2(1.0f);
 	constexpr float log_mag2_mag_factor = 0.5f;
-	constexpr float log2_log10_factor = 0.3010299956639812f; //std::log10(2.0f);
+	constexpr float log2_log10_factor = 0.3010299956639812f; // std::log10(2.0f);
 	constexpr float log10_dbv_factor = 20.0f;
 	constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
 	return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;
@@ -106,34 +106,19 @@ static constexpr uint32_t gcd_u_odd_v_even(const uint32_t u, const uint32_t v) {
 }
 
 static constexpr uint32_t gcd_v_odd(const uint32_t u, const uint32_t v) {
-	return (v & 1)
-		? gcd_top(u >> 1, v)
-		: (gcd_top(u >> 1, v >> 1) << 1);
+	return (v & 1) ? gcd_top(u >> 1, v) : (gcd_top(u >> 1, v >> 1) << 1);
 }
 
 static constexpr uint32_t gcd_u_even(const uint32_t u, const uint32_t v) {
-	return (~u & 1)
-		? gcd_v_odd(u, v)
-		: gcd_u_odd_v_even(u, v)
-		;
+	return (~u & 1) ? gcd_v_odd(u, v) : gcd_u_odd_v_even(u, v);
 }
 
-static constexpr uint32_t gcd_v_zero(const uint32_t u, const uint32_t v) {
-	return (v == 0) ? u : gcd_u_even(u, v);
-}
+static constexpr uint32_t gcd_v_zero(const uint32_t u, const uint32_t v) { return (v == 0) ? u : gcd_u_even(u, v); }
 
-static constexpr uint32_t gcd_u_zero(const uint32_t u, const uint32_t v) {
-	return (u == 0) ? v : gcd_v_zero(u, v);
-}
+static constexpr uint32_t gcd_u_zero(const uint32_t u, const uint32_t v) { return (u == 0) ? v : gcd_v_zero(u, v); }
 
-static constexpr uint32_t gcd_uv_equal(const uint32_t u, const uint32_t v) {
-	return (u == v) ? u : gcd_u_zero(u, v);
-}
+static constexpr uint32_t gcd_uv_equal(const uint32_t u, const uint32_t v) { return (u == v) ? u : gcd_u_zero(u, v); }
 
-static constexpr uint32_t gcd_top(const uint32_t u, const uint32_t v) {
-	return gcd_uv_equal(u, v);
-}
+static constexpr uint32_t gcd_top(const uint32_t u, const uint32_t v) { return gcd_uv_equal(u, v); }
 
-uint32_t gcd(const uint32_t u, const uint32_t v) {
-	return gcd_top(u, v);
-}
+uint32_t gcd(const uint32_t u, const uint32_t v) { return gcd_top(u, v); }

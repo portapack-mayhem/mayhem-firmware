@@ -35,75 +35,55 @@ using namespace portapack;
 #include "radio.hpp"
 #include "audio.hpp"
 
-rf::Frequency TransmitterModel::tuning_frequency() const {
-	return persistent_memory::tuned_frequency();
-}
+rf::Frequency TransmitterModel::tuning_frequency() const { return persistent_memory::tuned_frequency(); }
 
 void TransmitterModel::set_tuning_frequency(rf::Frequency f) {
 	persistent_memory::set_tuned_frequency(f);
 	update_tuning_frequency();
 }
 
-void TransmitterModel::set_antenna_bias() {
-	update_antenna_bias();
-}
+void TransmitterModel::set_antenna_bias() { update_antenna_bias(); }
 
-bool TransmitterModel::rf_amp() const {
-	return rf_amp_;
-}
+bool TransmitterModel::rf_amp() const { return rf_amp_; }
 
 void TransmitterModel::set_rf_amp(bool enabled) {
 	rf_amp_ = enabled;
 	update_rf_amp();
 }
 
-int32_t TransmitterModel::lna() const {
-	return lna_gain_db_;
-}
+int32_t TransmitterModel::lna() const { return lna_gain_db_; }
 
 void TransmitterModel::set_lna(int32_t v_db) {
 	lna_gain_db_ = v_db;
 	update_lna();
 }
 
-uint32_t TransmitterModel::baseband_bandwidth() const {
-	return baseband_bandwidth_;
-}
+uint32_t TransmitterModel::baseband_bandwidth() const { return baseband_bandwidth_; }
 
 void TransmitterModel::set_baseband_bandwidth(uint32_t v) {
 	baseband_bandwidth_ = v;
 	update_baseband_bandwidth();
 }
 
-int32_t TransmitterModel::vga() const {
-	return vga_gain_db_;
-}
+int32_t TransmitterModel::vga() const { return vga_gain_db_; }
 
 void TransmitterModel::set_vga(int32_t v_db) {
 	vga_gain_db_ = v_db;
 	update_vga();
 }
 
-uint32_t TransmitterModel::channel_bandwidth() const {
-	return channel_bandwidth_;
-}
+uint32_t TransmitterModel::channel_bandwidth() const { return channel_bandwidth_; }
 
-void TransmitterModel::set_channel_bandwidth(uint32_t v) {
-	channel_bandwidth_ = v;
-}
+void TransmitterModel::set_channel_bandwidth(uint32_t v) { channel_bandwidth_ = v; }
 
-uint32_t TransmitterModel::sampling_rate() const {
-	return sampling_rate_;
-}
+uint32_t TransmitterModel::sampling_rate() const { return sampling_rate_; }
 
 void TransmitterModel::set_sampling_rate(uint32_t v) {
 	sampling_rate_ = v;
 	update_sampling_rate();
 }
 
-int32_t TransmitterModel::tx_gain() const {
-	return tx_gain_db_;
-}
+int32_t TransmitterModel::tx_gain() const { return tx_gain_db_; }
 
 void TransmitterModel::set_tx_gain(int32_t v_db) {
 	tx_gain_db_ = v_db;
@@ -111,8 +91,7 @@ void TransmitterModel::set_tx_gain(int32_t v_db) {
 }
 
 void TransmitterModel::on_tick_second() {
-	if (portapack::persistent_memory::stealth_mode())
-		led_tx.toggle();
+	if (portapack::persistent_memory::stealth_mode()) led_tx.toggle();
 }
 
 void TransmitterModel::enable() {
@@ -125,11 +104,9 @@ void TransmitterModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_sampling_rate();
-	
+
 	led_tx.on();
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
+	signal_token_tick_second = rtc_time::signal_tick_second += [this]() { this->on_tick_second(); };
 	if (portapack::persistent_memory::stealth_mode()) {
 		DisplaySleepMessage message;
 		EventDispatcher::send_message(message);
@@ -143,39 +120,26 @@ void TransmitterModel::disable() {
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
-	
+
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	led_tx.off();
 }
 
-void TransmitterModel::update_tuning_frequency() {
-	radio::set_tuning_frequency(persistent_memory::tuned_frequency());
-}
+void TransmitterModel::update_tuning_frequency() { radio::set_tuning_frequency(persistent_memory::tuned_frequency()); }
 
 void TransmitterModel::update_antenna_bias() {
-	if (enabled_)
-		radio::set_antenna_bias(portapack::get_antenna_bias());
+	if (enabled_) radio::set_antenna_bias(portapack::get_antenna_bias());
 }
 
-void TransmitterModel::update_rf_amp() {
-	radio::set_rf_amp(rf_amp_);
-}
+void TransmitterModel::update_rf_amp() { radio::set_rf_amp(rf_amp_); }
 
-void TransmitterModel::update_lna() {
-	radio::set_lna_gain(lna_gain_db_);
-}
+void TransmitterModel::update_lna() { radio::set_lna_gain(lna_gain_db_); }
 
-void TransmitterModel::update_baseband_bandwidth() {
-	radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
-}
+void TransmitterModel::update_baseband_bandwidth() { radio::set_baseband_filter_bandwidth(baseband_bandwidth_); }
 
-void TransmitterModel::update_vga() {
-	radio::set_vga_gain(vga_gain_db_);
-}
+void TransmitterModel::update_vga() { radio::set_vga_gain(vga_gain_db_); }
 
-void TransmitterModel::update_tx_gain() {
-	radio::set_tx_gain(tx_gain_db_);
-}
+void TransmitterModel::update_tx_gain() { radio::set_tx_gain(tx_gain_db_); }
 
 void TransmitterModel::update_sampling_rate() {
 	// TODO: Move more low-level radio control stuff to M4. It'll enable tighter
@@ -183,7 +147,7 @@ void TransmitterModel::update_sampling_rate() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	
+
 	radio::set_baseband_rate(sampling_rate());
 	update_tuning_frequency();
 }

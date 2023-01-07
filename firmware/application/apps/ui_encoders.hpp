@@ -33,7 +33,7 @@ using namespace encoders;
 namespace ui {
 
 class EncodersConfigView : public View {
-public:
+  public:
 	EncodersConfigView(NavigationView& nav, Rect parent_rect);
 
 	EncodersConfigView(const EncodersConfigView&) = delete;
@@ -51,132 +51,60 @@ public:
 
 	std::string frame_fragments = "0";
 
-private:
+  private:
 	int16_t waveform_buffer[550];
-	const encoder_def_t * encoder_def { };
+	const encoder_def_t* encoder_def {};
 
 	void draw_waveform();
 	void on_bitfield();
 	void on_type_change(size_t index);
 
 	Labels labels {
-		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },
-		{ { 17 * 8, 0 }, "Repeat:", Color::light_grey() },
-		{ { 1 * 8, 2 * 8 }, "Clk:", Color::light_grey() },
-		{ { 10 * 8, 2 * 8 }, "kHz", Color::light_grey() },
-		{ { 17 * 8, 2 * 8 }, "Step:", Color::light_grey() },
-		{ { 1 * 8, 4 * 8 }, "Frame:", Color::light_grey() },
-		{ { 13 * 8, 4 * 8 }, "us", Color::light_grey() },
-		{ { 17 * 8, 4 * 8 }, "Step:", Color::light_grey() },
-		{ { 2 * 8, 7 * 8 }, "Symbols:", Color::light_grey() },
-		{ { 1 * 8, 14 * 8 }, "Waveform:", Color::light_grey() }
+		{ { 1 * 8, 0 }, "Type:", Color::light_grey() },        { { 17 * 8, 0 }, "Repeat:", Color::light_grey() },
+		{ { 1 * 8, 2 * 8 }, "Clk:", Color::light_grey() },     { { 10 * 8, 2 * 8 }, "kHz", Color::light_grey() },
+		{ { 17 * 8, 2 * 8 }, "Step:", Color::light_grey() },   { { 1 * 8, 4 * 8 }, "Frame:", Color::light_grey() },
+		{ { 13 * 8, 4 * 8 }, "us", Color::light_grey() },      { { 17 * 8, 4 * 8 }, "Step:", Color::light_grey() },
+		{ { 2 * 8, 7 * 8 }, "Symbols:", Color::light_grey() }, { { 1 * 8, 14 * 8 }, "Waveform:", Color::light_grey() }
 	};
 
-	OptionsField options_enctype {		// Options are loaded at runtime
-		{ 6 * 8, 0 },
-		7,
-		{
-		}
+	OptionsField options_enctype { // Options are loaded at runtime
+								   { 6 * 8, 0 },
+								   7,
+								   {}
 	};
 
-	NumberField field_clk {
-		{ 5 * 8, 2 * 8 },
-		4,
-		{ 1, 1000 },
-		1,
-		' '
-	};
+	NumberField field_clk { { 5 * 8, 2 * 8 }, 4, { 1, 1000 }, 1, ' ' };
 
-	NumberField field_repeat_min {
-		{ 24 * 8, 0 },
-		2,
-		{ 1, 99 },
-		1,
-		' '
-	};
+	NumberField field_repeat_min { { 24 * 8, 0 }, 2, { 1, 99 }, 1, ' ' };
 
-	OptionsField field_clk_step {
-		{ 22 * 8, 2 * 8 },
-		7,
-		{
-			{ "1", 1 },
-			{ "10", 10 },
-			{ "100", 100 }
-		}
-	};
+	OptionsField field_clk_step { { 22 * 8, 2 * 8 }, 7, { { "1", 1 }, { "10", 10 }, { "100", 100 } } };
 
-	NumberField field_frameduration {
-		{ 7 * 8, 4 * 8 },
-		5,
-		{ 300, 99999 },
-		100,
-		' '
-	};
+	NumberField field_frameduration { { 7 * 8, 4 * 8 }, 5, { 300, 99999 }, 100, ' ' };
 
-	OptionsField field_frameduration_step {
-		{ 22 * 8, 4 * 8 },
-		7,
-		{
-			{ "1", 1 },
-			{ "10", 10 },
-			{ "100", 100 },
-			{ "1000", 1000 }
-		}
-	};
+	OptionsField field_frameduration_step { { 22 * 8, 4 * 8 },
+											7,
+											{ { "1", 1 }, { "10", 10 }, { "100", 100 }, { "1000", 1000 } } };
 
-	SymField symfield_word {
-		{ 2 * 8, 9 * 8 },
-		20,
-		SymField::SYMFIELD_DEF
-	};
+	SymField symfield_word { { 2 * 8, 9 * 8 }, 20, SymField::SYMFIELD_DEF };
 
-	Text text_format {
-		{ 2 * 8, 11 * 8, 24 * 8, 16 },
-		""
-	};
+	Text text_format { { 2 * 8, 11 * 8, 24 * 8, 16 }, "" };
 
-	Waveform waveform {
-		{ 0, 17 * 8, 240, 32 },
-		waveform_buffer,
-		0,
-		0,
-		true,
-		Color::yellow()
-	};
+	Waveform waveform { { 0, 17 * 8, 240, 32 }, waveform_buffer, 0, 0, true, Color::yellow() };
 };
 
-
 class EncodersScanView : public View {
-public:
+  public:
 	EncodersScanView(NavigationView& nav, Rect parent_rect);
 
-	NumberField field_length {
-		{ 8 * 8, 0 },
-		2,
-		{ 3, 24 },
-		1,
-		' '
-	};
+	NumberField field_length { { 8 * 8, 0 }, 2, { 3, 24 }, 1, ' ' };
 
-	NumberField bit_length_10 {
-		{ 12 * 8, 2 * 8 },
-		2,
-		{ 1, 88 },
-		1,
-		' '
-	};
+	NumberField bit_length_10 { { 12 * 8, 2 * 8 }, 2, { 1, 88 }, 1, ' ' };
 
-	NumberField bit_length {
-		{ 14 * 8, 2 * 8 },
-		1,
-		{ 0, 9 },
-		1,
-		' '
-	};
+	NumberField bit_length { { 14 * 8, 2 * 8 }, 1, { 0, 9 }, 1, ' ' };
 
 	void focus() override;
 
-private:
+  private:
 	Labels labels {
 		{ { 1 * 8, 0 * 8 }, "Length:", Color::light_grey() },
 		{ { 1 * 8, 2 * 8 }, "Bit length:", Color::light_grey() },
@@ -185,7 +113,7 @@ private:
 };
 
 class EncodersView : public View {
-public:
+  public:
 	EncodersView(NavigationView& nav);
 	~EncodersView();
 
@@ -193,18 +121,14 @@ public:
 
 	std::string title() const override { return "OOK TX"; };
 
-private:
+  private:
 	NavigationView& nav_;
 
-	enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SCAN
-	};
+	enum tx_modes { IDLE = 0, SINGLE, SCAN };
 
 	// app save settings
-	std::app_settings 		settings { };
-	std::app_settings::AppSettings 	app_settings { };
+	std::app_settings settings {};
+	std::app_settings::AppSettings app_settings {};
 
 	tx_modes tx_mode = IDLE;
 	uint32_t repeat_index { 0 };
@@ -235,28 +159,17 @@ private:
 		{ "de Bruijn", Color::green(), &view_scan },
 	};
 
-	Text text_status {
-		{ 2 * 8, 13 * 16, 128, 16 },
-		"Ready"
-	};
+	Text text_status { { 2 * 8, 13 * 16, 128, 16 }, "Ready" };
 
-	ProgressBar progressbar {
-		{ 2 * 8, 13 * 16 + 20, 208, 16 }
-	};
+	ProgressBar progressbar { { 2 * 8, 13 * 16 + 20, 208, 16 } };
 
-	TransmitterView tx_view {
-		16 * 16,
-		50000,
-		9
-	};
+	TransmitterView tx_view { 16 * 16, 50000, 9 };
 
-	MessageHandlerRegistration message_handler_tx_progress {
-		Message::ID::TXProgress,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-			this->on_tx_progress(message.progress, message.done);
-		}
-	};
+	MessageHandlerRegistration message_handler_tx_progress { Message::ID::TXProgress, [this](const Message* const p) {
+																const auto message =
+																	*reinterpret_cast<const TXProgressMessage*>(p);
+																this->on_tx_progress(message.progress, message.done);
+															} };
 };
 
 } /* namespace ui */

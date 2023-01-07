@@ -53,7 +53,7 @@ void WM8731::init() {
 	reset();
 
 	write(PowerDownControl {
-		.lineinpd = 1,	
+		.lineinpd = 1,
 		.micpd = 0,
 		.adcpd = 0,
 		.dacpd = 0,
@@ -84,9 +84,9 @@ void WM8731::init() {
 	});
 
 	write(AnalogAudioPathControl {
-		.micboost = 0,	// Disable 20dB boost by default
-		.mutemic = 0,	// Disable mute (unmute)
-		.insel = 1,		// Microphone input to ADC
+		.micboost = 0, // Disable 20dB boost by default
+		.mutemic = 0,  // Disable mute (unmute)
+		.insel = 1,    // Microphone input to ADC
 		.bypass = 0,
 		.dacsel = 1,
 		.sidetone = 0,
@@ -99,21 +99,15 @@ void WM8731::init() {
 		.reserved0 = 0,
 	});
 
-	//set_line_in_volume(0.0_dB);
+	// set_line_in_volume(0.0_dB);
 	headphone_mute();
 }
 
-bool WM8731::detected() {
-	return reset();
-}
+bool WM8731::detected() { return reset(); }
 
-bool WM8731::reset() {
-	return write(0x0f, 0);
-}
+bool WM8731::reset() { return write(0x0f, 0); }
 
-bool WM8731::write(const Register reg) {
-	return write(toUType(reg), map.w[toUType(reg)]);
-}
+bool WM8731::write(const Register reg) { return write(toUType(reg), map.w[toUType(reg)]); }
 
 bool WM8731::write(const address_t reg_address, const reg_t value) {
 	const uint16_t word = (reg_address << 9) | value;
@@ -124,9 +118,7 @@ bool WM8731::write(const address_t reg_address, const reg_t value) {
 	return bus.transmit(bus_address, values.data(), values.size());
 }
 
-uint32_t WM8731::reg_read(const size_t reg_address) {
-	return map.w[reg_address];
-}
+uint32_t WM8731::reg_read(const size_t reg_address) { return map.w[reg_address]; }
 
 void WM8731::write(const LeftLineIn value) {
 	map.r.left_line_in = value;

@@ -34,7 +34,7 @@ namespace ui {
 namespace detail {
 
 const Bitmap& bitmap_sd_card(const sd_card::Status status) {
-	switch(status) {
+	switch (status) {
 	case sd_card::Status::IOError:
 	case sd_card::Status::MountError:
 	case sd_card::Status::ConnectError:
@@ -59,7 +59,7 @@ static constexpr Color color_sd_card_unknown = Color::yellow();
 static constexpr Color color_sd_card_ok = Color::green();
 
 const Color color_sd_card(const sd_card::Status status) {
-	switch(status) {
+	switch (status) {
 	case sd_card::Status::IOError:
 	case sd_card::Status::MountError:
 	case sd_card::Status::ConnectError:
@@ -81,21 +81,15 @@ const Color color_sd_card(const sd_card::Status status) {
 
 } /* namespace detail */
 
-SDCardStatusView::SDCardStatusView(
-	const Rect parent_rect
-) : Image { parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::dark_grey() }
-{
-}
+SDCardStatusView::SDCardStatusView(const Rect parent_rect)
+	: Image { parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::dark_grey() } {}
 
 void SDCardStatusView::on_show() {
-	sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
-		this->on_status(status);
-	};
+	sd_card_status_signal_token = sd_card::status_signal +=
+		[this](const sd_card::Status status) { this->on_status(status); };
 }
 
-void SDCardStatusView::on_hide() {
-	sd_card::status_signal -= sd_card_status_signal_token;
-}
+void SDCardStatusView::on_hide() { sd_card::status_signal -= sd_card_status_signal_token; }
 
 void SDCardStatusView::paint(Painter& painter) {
 	const auto status = sd_card::status();

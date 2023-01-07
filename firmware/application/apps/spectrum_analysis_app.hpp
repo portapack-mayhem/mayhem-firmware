@@ -26,19 +26,18 @@
 #include "ui_spectrum.hpp"
 
 class SpectrumAnalysisModel {
-public:
+  public:
 	SpectrumAnalysisModel();
 };
 
 namespace ui {
 
 class SpectrumAnalysisView : public spectrum::WaterfallWidget {
-public:
-
-private:
+  public:
+  private:
 	SpectrumAnalysisModel model;
 };
 
 } /* namespace ui */
 
-#endif/*__SPECTRUM_ANALYSIS_APP_H__*/
+#endif /*__SPECTRUM_ANALYSIS_APP_H__*/

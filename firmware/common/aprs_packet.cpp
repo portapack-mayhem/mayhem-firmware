@@ -22,6 +22,4 @@
 
 #include "aprs_packet.hpp"
 
-namespace aprs {
-
-} /* namespace zwave */
+namespace aprs {} // namespace aprs

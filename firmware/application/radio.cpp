@@ -42,13 +42,9 @@ using namespace hackrf::one;
 
 namespace radio {
 
-static constexpr uint32_t ssp1_cpsr      = 2;
+static constexpr uint32_t ssp1_cpsr = 2;
 
-static constexpr uint32_t ssp_scr(
-	const float pclk_f,
-	const uint32_t cpsr,
-	const float spi_f
-) {
+static constexpr uint32_t ssp_scr(const float pclk_f, const uint32_t cpsr, const float spi_f) {
 	return static_cast<uint8_t>(pclk_f / cpsr / spi_f - 1);
 }
 
@@ -56,11 +52,7 @@ static constexpr SPIConfig ssp_config_max2837 = {
 	.end_cb = NULL,
 	.ssport = gpio_max2837_select.port(),
 	.sspad = gpio_max2837_select.pad(),
-	.cr0 =
-		  CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max2837_spi_f))
-		| CR0_FRFSPI
-		| CR0_DSS16BIT
-		,
+	.cr0 = CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max2837_spi_f)) | CR0_FRFSPI | CR0_DSS16BIT,
 	.cpsr = ssp1_cpsr,
 };
 
@@ -68,25 +60,15 @@ static constexpr SPIConfig ssp_config_max5864 = {
 	.end_cb = NULL,
 	.ssport = gpio_max5864_select.port(),
 	.sspad = gpio_max5864_select.pad(),
-	.cr0 =
-		  CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max5864_spi_f))
-		| CR0_FRFSPI
-		| CR0_DSS8BIT
-		,
+	.cr0 = CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max5864_spi_f)) | CR0_FRFSPI | CR0_DSS8BIT,
 	.cpsr = ssp1_cpsr,
 };
 
 static spi::arbiter::Arbiter ssp1_arbiter(portapack::ssp1);
 
-static spi::arbiter::Target ssp1_target_max2837 {
-	ssp1_arbiter,
-	ssp_config_max2837
-};
+static spi::arbiter::Target ssp1_target_max2837 { ssp1_arbiter, ssp_config_max2837 };
 
-static spi::arbiter::Target ssp1_target_max5864 {
-	ssp1_arbiter,
-	ssp_config_max5864
-};
+static spi::arbiter::Target ssp1_target_max5864 { ssp1_arbiter, ssp_config_max5864 };
 
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
@@ -107,7 +89,7 @@ void init() {
 void set_direction(const rf::Direction new_direction) {
 	/* TODO: Refactor all the various "Direction" enumerations into one. */
 	/* TODO: Only make changes if direction changes, but beware of clock enabling. */
-	
+
 	// Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction
 	// Use CPLD's EEPROM config when transmitting
 	// Use the SRAM overlay when receiving
@@ -118,9 +100,9 @@ void set_direction(const rf::Direction new_direction) {
 	if (direction != new_direction && new_direction == rf::Direction::Transmit) {
 		hackrf::cpld::init_from_eeprom();
 	}
-	
+
 	direction = new_direction;
-	
+
 	second_if.set_mode((direction == rf::Direction::Transmit) ? max2837::Mode::Transmit : max2837::Mode::Receive);
 	rf_path.set_direction(direction);
 
@@ -134,10 +116,10 @@ void set_direction(const rf::Direction new_direction) {
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
 	const auto tuning_config = tuning::config::create(frequency);
-	if( tuning_config.is_valid() ) {
+	if (tuning_config.is_valid()) {
 		first_if.disable();
 
-		if( tuning_config.first_lo_frequency ) {
+		if (tuning_config.first_lo_frequency) {
 			first_if.set_frequency(tuning_config.first_lo_frequency);
 			first_if.enable();
 		}
@@ -155,7 +137,7 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 
 void set_rf_amp(const bool rf_amp) {
 	rf_path.set_rf_amp(rf_amp);
-	
+
 	if (direction == rf::Direction::Transmit) {
 		if (rf_amp)
 			led_tx.on();
@@ -164,25 +146,17 @@ void set_rf_amp(const bool rf_amp) {
 	}
 }
 
-void set_lna_gain(const int_fast8_t db) {
-	second_if.set_lna_gain(db);
-}
+void set_lna_gain(const int_fast8_t db) { second_if.set_lna_gain(db); }
 
-void set_vga_gain(const int_fast8_t db) {
-	second_if.set_vga_gain(db);
-}
+void set_vga_gain(const int_fast8_t db) { second_if.set_vga_gain(db); }
 
-void set_tx_gain(const int_fast8_t db) {
-	second_if.set_tx_vga_gain(db);
-}
+void set_tx_gain(const int_fast8_t db) { second_if.set_tx_vga_gain(db); }
 
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
 	second_if.set_lpf_rf_bandwidth(bandwidth_minimum);
 }
 
-void set_baseband_rate(const uint32_t rate) {
-	portapack::clock_manager.set_sampling_frequency(rate);
-}
+void set_baseband_rate(const uint32_t rate) { portapack::clock_manager.set_sampling_frequency(rate); }
 
 void set_antenna_bias(const bool on) {
 	/* Pull MOSFET gate low to turn on antenna bias. */
@@ -195,14 +169,12 @@ void disable() {
 	second_if.set_mode(max2837::Mode::Standby);
 	first_if.disable();
 	set_rf_amp(false);
-	
+
 	led_rx.off();
 	led_tx.off();
 }
 
-void enable(Configuration configuration) {
-	configure(configuration);
-}
+void enable(Configuration configuration) { configure(configuration); }
 
 void configure(Configuration configuration) {
 	set_tuning_frequency(configuration.tuning_frequency);
@@ -218,21 +190,15 @@ namespace debug {
 
 namespace first_if {
 
-uint32_t register_read(const size_t register_number) {
-	return radio::first_if.read(register_number);
-}
+uint32_t register_read(const size_t register_number) { return radio::first_if.read(register_number); }
 
 } /* namespace first_if */
 
 namespace second_if {
 
-uint32_t register_read(const size_t register_number) {
-	return radio::second_if.read(register_number);
-}
+uint32_t register_read(const size_t register_number) { return radio::second_if.read(register_number); }
 
-uint8_t temp_sense() {
-	return radio::second_if.temp_sense() & 0x1f;
-}
+uint8_t temp_sense() { return radio::second_if.temp_sense() & 0x1f; }
 
 } /* namespace second_if */
 

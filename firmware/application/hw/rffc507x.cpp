@@ -75,7 +75,7 @@ size_t divider_log2(const rf::Frequency lo_frequency) {
 	/* Compute LO divider. */
 	auto lo_divider_log2 = lo::divider_log2_min;
 	auto vco_frequency = lo_frequency;
-	while( vco::range.below_range(vco_frequency) ) {
+	while (vco::range.below_range(vco_frequency)) {
 		vco_frequency <<= 1;
 		lo_divider_log2 += 1;
 	}
@@ -96,10 +96,8 @@ constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
 constexpr size_t divider_log2(const rf::Frequency vco_frequency) {
-	return (vco_frequency > (prescaler::divider_min * prescaler::max_frequency))
-		? prescaler::divider_log2_max
-		: prescaler::divider_log2_min
-		;
+	return (vco_frequency > (prescaler::divider_min * prescaler::max_frequency)) ? prescaler::divider_log2_max
+																				 : prescaler::divider_log2_min;
 }
 
 } /* namespace prescaler */
@@ -109,9 +107,7 @@ struct SynthConfig {
 	const size_t prescaler_divider_log2;
 	const uint64_t n_divider_q24;
 
-	static SynthConfig calculate(
-		const rf::Frequency lo_frequency
-	) {
+	static SynthConfig calculate(const rf::Frequency lo_frequency) {
 		/* RFFC507x frequency synthesizer is is accurate to about 2ppb (two parts
 		 * per BILLION). There's not much point to worrying about rounding and
 		 * tuning error, when it amounts to 8Hz at 5GHz!
@@ -167,9 +163,9 @@ void RFFC507x::reset() {
 }
 
 void RFFC507x::flush() {
-	if( _dirty ) {
-		for(size_t i=0; i<_map.w.size(); i++) {
-			if( _dirty[i] ) {
+	if (_dirty) {
+		for (size_t i = 0; i < _map.w.size(); i++) {
+			if (_dirty[i]) {
 				write(i, _map.w[i]);
 			}
 		}
@@ -177,21 +173,13 @@ void RFFC507x::flush() {
 	}
 }
 
-void RFFC507x::write(const address_t reg_num, const spi::reg_t value) {
-	_bus.write(reg_num, value);
-}
+void RFFC507x::write(const address_t reg_num, const spi::reg_t value) { _bus.write(reg_num, value); }
 
-spi::reg_t RFFC507x::read(const address_t reg_num) {
-	return _bus.read(reg_num);
-}
+spi::reg_t RFFC507x::read(const address_t reg_num) { return _bus.read(reg_num); }
 
-void RFFC507x::write(const Register reg, const spi::reg_t value) {
-	write(toUType(reg), value);
-}
+void RFFC507x::write(const Register reg, const spi::reg_t value) { write(toUType(reg), value); }
 
-spi::reg_t RFFC507x::read(const Register reg) {
-	return read(toUType(reg));
-}
+spi::reg_t RFFC507x::read(const Register reg) { return read(toUType(reg)); }
 
 void RFFC507x::flush_one(const Register reg) {
 	const auto reg_num = toUType(reg);
@@ -238,7 +226,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 	/* Boost charge pump leakage if VCO frequency > 3.2GHz, indicated by
 	 * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).
 	 */
-	if( synth_config.prescaler_divider_log2 == 2 ) {
+	if (synth_config.prescaler_divider_log2 == 2) {
 		_map.r.lf.pllcpl = 3;
 	} else {
 		_map.r.lf.pllcpl = 2;
@@ -257,7 +245,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 }
 
 void RFFC507x::set_gpo1(const bool new_value) {
-	if( new_value ) {
+	if (new_value) {
 		_map.r.gpo.p2gpo |= 1;
 		_map.r.gpo.p1gpo |= 1;
 	} else {

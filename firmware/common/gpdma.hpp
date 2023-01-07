@@ -191,24 +191,12 @@ struct MUX {
 	Peripheral15 peripheral_15;
 
 	constexpr operator uint32_t() const {
-		return
-			  (toUType(peripheral_0 ) <<  0)
-			| (toUType(peripheral_1 ) <<  2)
-			| (toUType(peripheral_2 ) <<  4)
-			| (toUType(peripheral_3 ) <<  6)
-			| (toUType(peripheral_4 ) <<  8)
-			| (toUType(peripheral_5 ) << 10)
-			| (toUType(peripheral_6 ) << 12)
-			| (toUType(peripheral_7 ) << 14)
-			| (toUType(peripheral_8 ) << 16)
-			| (toUType(peripheral_9 ) << 18)
-			| (toUType(peripheral_10) << 20)
-			| (toUType(peripheral_11) << 22)
-			| (toUType(peripheral_12) << 24)
-			| (toUType(peripheral_13) << 26)
-			| (toUType(peripheral_14) << 28)
-			| (toUType(peripheral_15) << 30)
-			;
+		return (toUType(peripheral_0) << 0) | (toUType(peripheral_1) << 2) | (toUType(peripheral_2) << 4) |
+			   (toUType(peripheral_3) << 6) | (toUType(peripheral_4) << 8) | (toUType(peripheral_5) << 10) |
+			   (toUType(peripheral_6) << 12) | (toUType(peripheral_7) << 14) | (toUType(peripheral_8) << 16) |
+			   (toUType(peripheral_9) << 18) | (toUType(peripheral_10) << 20) | (toUType(peripheral_11) << 22) |
+			   (toUType(peripheral_12) << 24) | (toUType(peripheral_13) << 26) | (toUType(peripheral_14) << 28) |
+			   (toUType(peripheral_15) << 30);
 	}
 };
 
@@ -228,13 +216,7 @@ struct LLIPointer {
 	uint32_t r;
 	uint32_t lli;
 
-	constexpr operator uint32_t() const {
-		return
-			  ((lm & 1) << 0)
-			| ((r & 1) << 1)
-			| (lli & 0xfffffffc)
-			;
-	}
+	constexpr operator uint32_t() const { return ((lm & 1) << 0) | ((r & 1) << 1) | (lli & 0xfffffffc); }
 };
 
 struct Control {
@@ -253,21 +235,9 @@ struct Control {
 	uint32_t i;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((transfersize & 0xfff) << 0)
-			| ((sbsize & 7) << 12)
-			| ((dbsize & 7) << 15)
-			| ((swidth & 7) << 18)
-			| ((dwidth & 7) << 21)
-			| ((s & 1) << 24)
-			| ((d & 1) << 25)
-			| ((si & 1) << 26)
-			| ((di & 1) << 27)
-			| ((prot1 & 1) << 28)
-			| ((prot2 & 1) << 29)
-			| ((prot3 & 1) << 30)
-			| ((i & 1) << 31)
-			;
+		return ((transfersize & 0xfff) << 0) | ((sbsize & 7) << 12) | ((dbsize & 7) << 15) | ((swidth & 7) << 18) |
+			   ((dwidth & 7) << 21) | ((s & 1) << 24) | ((d & 1) << 25) | ((si & 1) << 26) | ((di & 1) << 27) |
+			   ((prot1 & 1) << 28) | ((prot2 & 1) << 29) | ((prot3 & 1) << 30) | ((i & 1) << 31);
 	}
 };
 
@@ -283,39 +253,21 @@ struct Config {
 	uint32_t h;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((e & 1) << 0)
-			| ((srcperipheral & 0x1f) << 1)
-			| ((destperipheral & 0x1f) << 6)
-			| ((toUType(flowcntrl) & 7) << 11)
-			| ((ie & 1) << 14)
-			| ((itc & 1) << 15)
-			| ((l & 1) << 16)
-			| ((a & 1) << 17)
-			| ((h & 1) << 18)
-			;
+		return ((e & 1) << 0) | ((srcperipheral & 0x1f) << 1) | ((destperipheral & 0x1f) << 6) |
+			   ((toUType(flowcntrl) & 7) << 11) | ((ie & 1) << 14) | ((itc & 1) << 15) | ((l & 1) << 16) |
+			   ((a & 1) << 17) | ((h & 1) << 18);
 	}
 };
 
 class Channel {
-public:
-	constexpr Channel(
-		const size_t number
-	) : number(number)
-	{
-	}
+  public:
+	constexpr Channel(const size_t number) : number(number) {}
 
-	void enable() const {
-		LPC_GPDMA->CH[number].CONFIG |= (1U << 0);
-	}
+	void enable() const { LPC_GPDMA->CH[number].CONFIG |= (1U << 0); }
 
-	bool is_enabled() const {
-		return LPC_GPDMA->CH[number].CONFIG & (1U << 0);
-	}
+	bool is_enabled() const { return LPC_GPDMA->CH[number].CONFIG & (1U << 0); }
 
-	void disable() const {
-		LPC_GPDMA->CH[number].CONFIG &= ~(1U << 0);
-	}
+	void disable() const { LPC_GPDMA->CH[number].CONFIG &= ~(1U << 0); }
 
 	void clear_interrupts() const {
 		LPC_GPDMA->INTTCCLR = (1U << number);
@@ -326,29 +278,33 @@ public:
 
 	void configure(const LLI& first_lli, const uint32_t config) const;
 
-	const LLI* next_lli() const {
-		return reinterpret_cast<LLI*>(LPC_GPDMA->CH[number].LLI);
-	}
+	const LLI* next_lli() const { return reinterpret_cast<LLI*>(LPC_GPDMA->CH[number].LLI); }
 
-private:
+  private:
 	const size_t number;
 };
 
 } /* namespace channel */
 
 constexpr std::array<channel::Channel, 8> channels { {
-	{ 0 }, { 1 }, { 2 }, { 3 },
-	{ 4 }, { 5 }, { 6 }, { 7 },
+	{ 0 },
+	{ 1 },
+	{ 2 },
+	{ 3 },
+	{ 4 },
+	{ 5 },
+	{ 6 },
+	{ 7 },
 } };
 
 static const gpdma_resources_t gpdma_resources = {
-  .base = { .clk = &LPC_CGU->BASE_M4_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 3) },
-  .branch = { .cfg = &LPC_CCU1->CLK_M4_DMA_CFG, .stat = &LPC_CCU1->CLK_M4_DMA_STAT },
-  .reset = { .output_index = 19 },
+	.base = { .clk = &LPC_CGU->BASE_M4_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 3) },
+	.branch = { .cfg = &LPC_CCU1->CLK_M4_DMA_CFG, .stat = &LPC_CCU1->CLK_M4_DMA_STAT },
+	.reset = { .output_index = 19 },
 };
 
 class Controller {
-public:
+  public:
 	void enable() const {
 		base_clock_enable(&gpdma_resources.base);
 		branch_clock_enable(&gpdma_resources.branch);
@@ -357,7 +313,7 @@ public:
 	}
 
 	void disable() const {
-		for(const auto& channel : channels) {
+		for (const auto& channel : channels) {
 			channel.disable();
 		}
 		LPC_GPDMA->CONFIG &= ~(1U << 0);
@@ -372,4 +328,4 @@ constexpr Controller controller;
 } /* namespace gpdma */
 } /* namespace lpc43xx */
 
-#endif/*__GPDMA_H__*/
+#endif /*__GPDMA_H__*/

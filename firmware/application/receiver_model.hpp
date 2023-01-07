@@ -31,14 +31,8 @@
 #include "volume.hpp"
 
 class ReceiverModel {
-public:
-	enum class Mode {
-		AMAudio = 0,
-		NarrowbandFMAudio = 1,
-		WidebandFMAudio = 2,
-		SpectrumAnalysis = 3,
-		Capture = 4
-	};
+  public:
+	enum class Mode { AMAudio = 0, NarrowbandFMAudio = 1, WidebandFMAudio = 2, SpectrumAnalysis = 3, Capture = 4 };
 
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
@@ -47,7 +41,7 @@ public:
 	void set_frequency_step(rf::Frequency f);
 
 	void set_antenna_bias();
-	
+
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
@@ -62,7 +56,7 @@ public:
 
 	int32_t tx_gain() const;
 	void set_tx_gain(int32_t v_db);
-	
+
 	uint32_t sampling_rate() const;
 	void set_sampling_rate(uint32_t v);
 
@@ -71,7 +65,7 @@ public:
 
 	volume_t headphone_volume() const;
 	void set_headphone_volume(volume_t v);
-	
+
 	uint8_t squelch_level() const;
 	void set_squelch_level(uint8_t v);
 
@@ -87,7 +81,7 @@ public:
 	size_t wfm_configuration() const;
 	void set_wfm_configuration(const size_t n);
 
-private:
+  private:
 	rf::Frequency frequency_step_ { 25000 };
 	bool enabled_ { false };
 	bool rf_amp_ { false };
@@ -121,4 +115,4 @@ private:
 	void update_wfm_configuration();
 };
 
-#endif/*__RECEIVER_MODEL_H__*/
+#endif /*__RECEIVER_MODEL_H__*/

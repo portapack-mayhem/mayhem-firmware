@@ -36,29 +36,27 @@ using namespace portapack;
 
 namespace ui {
 
-void GpsSimAppView::set_ready() {
-	ready_signal = true;
-}
+void GpsSimAppView::set_ready() { ready_signal = true; }
 
 void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path) {
 	File data_file, info_file;
 	char file_data[257];
-	
+
 	// Get file size
 	auto data_open_error = data_file.open("/" + new_file_path.string());
 	if (data_open_error.is_valid()) {
 		file_error();
 		return;
 	}
-	
+
 	file_path = new_file_path;
-	
+
 	// Get original record frequency if available
 	std::filesystem::path info_file_path = file_path;
 	info_file_path.replace_extension(u".TXT");
-	
+
 	sample_rate = 500000;
-	
+
 	auto info_open_error = info_file.open("/" + info_file_path.string());
 	if (!info_open_error.is_valid()) {
 		memset(file_data, 0, 257);
@@ -69,7 +67,7 @@ void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path) {
 				pos1 += 17;
 				field_frequency.set_value(strtoll(pos1, nullptr, 10));
 			}
-			
+
 			auto pos2 = strstr(file_data, "sample_rate=");
 			if (pos2) {
 				pos2 += 12;
@@ -77,37 +75,29 @@ void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path) {
 			}
 		}
 	}
-	
+
 	text_sample_rate.set(unit_auto_scale(sample_rate, 3, 1) + "Hz");
-	
+
 	auto file_size = data_file.size();
 	auto duration = (file_size * 1000) / (1 * 2 * sample_rate);
-	
+
 	progressbar.set_max(file_size / 1024);
 	text_filename.set(file_path.filename().string().substr(0, 12));
 	text_duration.set(to_string_time_ms(duration));
-	
+
 	button_play.focus();
 }
 
-void GpsSimAppView::on_tx_progress(const uint32_t progress) {
-	progressbar.set_value(progress);
-}
+void GpsSimAppView::on_tx_progress(const uint32_t progress) { progressbar.set_value(progress); }
 
-void GpsSimAppView::focus() {
-	button_open.focus();
-}
+void GpsSimAppView::focus() { button_open.focus(); }
 
-void GpsSimAppView::file_error() {
-	nav_.display_modal("Error", "File read error.");
-}
+void GpsSimAppView::file_error() { nav_.display_modal("Error", "File read error."); }
 
-bool GpsSimAppView::is_active() const {
-	return (bool)replay_thread;
-}
+bool GpsSimAppView::is_active() const { return (bool) replay_thread; }
 
 void GpsSimAppView::toggle() {
-	if( is_active() ) {
+	if (is_active()) {
 		stop(false);
 	} else {
 		start();
@@ -118,63 +108,51 @@ void GpsSimAppView::start() {
 	stop(false);
 
 	std::unique_ptr<stream::Reader> reader;
-	
+
 	auto p = std::make_unique<FileReader>();
 	auto open_error = p->open(file_path);
-	if( open_error.is_valid() ) {
+	if (open_error.is_valid()) {
 		file_error();
 	} else {
 		reader = std::move(p);
 	}
 
-	if( reader ) {
+	if (reader) {
 		button_play.set_bitmap(&bitmap_stop);
-		baseband::set_sample_rate(sample_rate );
-		
+		baseband::set_sample_rate(sample_rate);
+
 		replay_thread = std::make_unique<ReplayThread>(
-			std::move(reader),
-			read_size, buffer_count,
-			&ready_signal,
+			std::move(reader), read_size, buffer_count, &ready_signal,
 			[](uint32_t return_code) {
 				ReplayThreadDoneMessage message { return_code };
 				EventDispatcher::send_message(message);
 			}
 		);
 	}
-	field_rfgain.on_change = [this](int32_t v) {
-		tx_gain = v;
-	};  
+	field_rfgain.on_change = [this](int32_t v) { tx_gain = v; };
 	field_rfgain.set_value(tx_gain);
-	receiver_model.set_tx_gain(tx_gain); 
-    
+	receiver_model.set_tx_gain(tx_gain);
 
- 	field_rfamp.on_change = [this](int32_t v) {
-		rf_amp = (bool)v;
-	};
+	field_rfamp.on_change = [this](int32_t v) { rf_amp = (bool) v; };
 	field_rfamp.set_value(rf_amp ? 14 : 0);
-	
-	radio::enable({
-		receiver_model.tuning_frequency(),
-		sample_rate ,
-		baseband_bandwidth,
-		rf::Direction::Transmit,
-		rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga())
-	});
+
+	radio::enable(
+		{ receiver_model.tuning_frequency(), sample_rate, baseband_bandwidth, rf::Direction::Transmit,
+		  rf_amp, //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
+		  static_cast<int8_t>(receiver_model.lna()), static_cast<int8_t>(receiver_model.vga()) }
+	);
 }
 
 void GpsSimAppView::stop(const bool do_loop) {
-	if( is_active() )
-		replay_thread.reset();
-	
+	if (is_active()) replay_thread.reset();
+
 	if (do_loop && check_loop.value()) {
 		start();
 	} else {
 		radio::disable();
 		button_play.set_bitmap(&bitmap_play);
 	}
-	
+
 	ready_signal = false;
 }
 
@@ -185,17 +163,15 @@ void GpsSimAppView::handle_replay_thread_done(const uint32_t return_code) {
 		stop(false);
 		file_error();
 	}
-	
+
 	progressbar.set_value(0);
 }
 
-GpsSimAppView::GpsSimAppView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max 47dBs ).
-	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
-	
+GpsSimAppView::GpsSimAppView(NavigationView& nav) : nav_(nav) {
+	tx_gain = 35;
+	field_rfgain.set_value(tx_gain);        // Initial default  value (-12 dB's max 47dBs ).
+	field_rfamp.set_value(rf_amp ? 14 : 0); // Initial default value True. (TX RF amp on , +14dB's)
+
 	baseband::run_image(portapack::spi_flash::image_tag_gps);
 
 	add_children({
@@ -207,17 +183,15 @@ GpsSimAppView::GpsSimAppView(
 		&progressbar,
 		&field_frequency,
 		&field_rfgain,
-		&field_rfamp,       // let's not use common persistent rf_amp , local rfamp is enough
+		&field_rfamp, // let's not use common persistent rf_amp , local rfamp is enough
 		&check_loop,
 		&button_play,
 		&waterfall,
 	});
-	
+
 	field_frequency.set_value(target_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_target_frequency_changed(f);
-	};
+	field_frequency.on_change = [this](rf::Frequency f) { this->on_target_frequency_changed(f); };
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
@@ -228,30 +202,25 @@ GpsSimAppView::GpsSimAppView(
 	};
 
 	field_frequency.set_step(5000);
-	
-	button_play.on_select = [this](ImageButton&) {
-		this->toggle();
-	};
-	
+
+	button_play.on_select = [this](ImageButton&) { this->toggle(); };
+
 	button_open.on_select = [this, &nav](Button&) {
 		auto open_view = nav.push<FileLoadView>(".C8");
-		open_view->on_changed = [this](std::filesystem::path new_file_path) {
-			on_file_changed(new_file_path);
-		};
+		open_view->on_changed = [this](std::filesystem::path new_file_path) { on_file_changed(new_file_path); };
 	};
 }
 
 GpsSimAppView::~GpsSimAppView() {
 	radio::disable();
-	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
+	hackrf::cpld::load_sram_no_verify(); // to leave all RX ok, without ghost signal problem at the exit .
 	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void GpsSimAppView::on_hide() {
 	// TODO: Terrible kludge because widget system doesn't notify Waterfall that
 	// it's being shown or hidden.
-	if( is_active() )
-		stop(false);
+	if (is_active()) stop(false);
 	waterfall.on_hide();
 	View::on_hide();
 }
@@ -259,20 +228,18 @@ void GpsSimAppView::on_hide() {
 void GpsSimAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
-	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
+	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(),
+									new_parent_rect.height() - header_height };
 	waterfall.set_parent_rect(waterfall_rect);
 }
 
-void GpsSimAppView::on_target_frequency_changed(rf::Frequency f) {
-	set_target_frequency(f);
-}
+void GpsSimAppView::on_target_frequency_changed(rf::Frequency f) { set_target_frequency(f); }
 
 void GpsSimAppView::set_target_frequency(const rf::Frequency new_value) {
-	persistent_memory::set_tuned_frequency(new_value);;
+	persistent_memory::set_tuned_frequency(new_value);
+	;
 }
 
-rf::Frequency GpsSimAppView::target_frequency() const {
-	return persistent_memory::tuned_frequency();
-}
+rf::Frequency GpsSimAppView::target_frequency() const { return persistent_memory::tuned_frequency(); }
 
 } /* namespace ui */

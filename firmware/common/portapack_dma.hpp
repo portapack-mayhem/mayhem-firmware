@@ -44,16 +44,16 @@ constexpr size_t adc1_gpdma_channel_number = 4;
 constexpr size_t adc0_gpdma_channel_number = 5;
 
 constexpr gpdma::mux::MUX gpdma_mux {
-	.peripheral_0  = gpdma::mux::Peripheral0::SGPIO14,
-	.peripheral_1  = gpdma::mux::Peripheral1::TIMER0_MATCH_0,
-	.peripheral_2  = gpdma::mux::Peripheral2::TIMER0_MATCH_1,
-	.peripheral_3  = gpdma::mux::Peripheral3::TIMER1_MATCH_0,
-	.peripheral_4  = gpdma::mux::Peripheral4::TIMER1_MATCH_1,
-	.peripheral_5  = gpdma::mux::Peripheral5::TIMER2_MATCH_0,
-	.peripheral_6  = gpdma::mux::Peripheral6::TIMER2_MATCH_1,
-	.peripheral_7  = gpdma::mux::Peripheral7::TIMER3_MATCH_0,
-	.peripheral_8  = gpdma::mux::Peripheral8::TIMER3_MATCH_1,
-	.peripheral_9  = gpdma::mux::Peripheral9::I2S0_DMAREQ_1,
+	.peripheral_0 = gpdma::mux::Peripheral0::SGPIO14,
+	.peripheral_1 = gpdma::mux::Peripheral1::TIMER0_MATCH_0,
+	.peripheral_2 = gpdma::mux::Peripheral2::TIMER0_MATCH_1,
+	.peripheral_3 = gpdma::mux::Peripheral3::TIMER1_MATCH_0,
+	.peripheral_4 = gpdma::mux::Peripheral4::TIMER1_MATCH_1,
+	.peripheral_5 = gpdma::mux::Peripheral5::TIMER2_MATCH_0,
+	.peripheral_6 = gpdma::mux::Peripheral6::TIMER2_MATCH_1,
+	.peripheral_7 = gpdma::mux::Peripheral7::TIMER3_MATCH_0,
+	.peripheral_8 = gpdma::mux::Peripheral8::TIMER3_MATCH_1,
+	.peripheral_9 = gpdma::mux::Peripheral9::I2S0_DMAREQ_1,
 	.peripheral_10 = gpdma::mux::Peripheral10::I2S0_DMAREQ_2,
 	.peripheral_11 = gpdma::mux::Peripheral11::SSP1_RX,
 	.peripheral_12 = gpdma::mux::Peripheral12::SSP1_TX,
@@ -64,4 +64,4 @@ constexpr gpdma::mux::MUX gpdma_mux {
 
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_DMA_H__*/
+#endif /*__PORTAPACK_DMA_H__*/

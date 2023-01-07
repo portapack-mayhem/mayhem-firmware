@@ -25,14 +25,11 @@
 #include <cstdint>
 
 class Encoder {
-public:
-	int_fast8_t update(
-		const uint_fast8_t phase_0,
-		const uint_fast8_t phase_1
-	);
+  public:
+	int_fast8_t update(const uint_fast8_t phase_0, const uint_fast8_t phase_1);
 
-private:
+  private:
 	uint_fast8_t state { 0 };
 };
 
-#endif/*__ENCODER_H__*/
+#endif /*__ENCODER_H__*/

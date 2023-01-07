@@ -31,12 +31,12 @@
 namespace ui {
 
 class BasebandStatsView : public View {
-public:
+  public:
 	BasebandStatsView();
 
-private:
+  private:
 	Text text_stats {
-		{  0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16 },
+		{ 0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16 },
 		"",
 	};
 
@@ -52,4 +52,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_BASEBAND_STATS_VIEW_H__*/
+#endif /*__UI_BASEBAND_STATS_VIEW_H__*/

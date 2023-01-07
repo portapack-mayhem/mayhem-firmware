@@ -39,58 +39,52 @@ namespace portapack {
 namespace persistent_memory {
 
 enum backlight_timeout_t {
-    Timeout5Sec    = 0,
-    Timeout15Sec   = 1,
-    Timeout30Sec   = 2,
-    Timeout60Sec   = 3,
-    Timeout180Sec  = 4,
-    Timeout300Sec  = 5,
-    Timeout600Sec  = 6,
-    Timeout3600Sec = 7,
+	Timeout5Sec = 0,
+	Timeout15Sec = 1,
+	Timeout30Sec = 2,
+	Timeout60Sec = 3,
+	Timeout180Sec = 4,
+	Timeout300Sec = 5,
+	Timeout600Sec = 6,
+	Timeout3600Sec = 7,
 };
 
 struct backlight_config_t {
-public:
-    backlight_config_t() :
-        _timeout_enum(backlight_timeout_t::Timeout600Sec),
-        _timeout_enabled(false)
-    {
-    }
+  public:
+	backlight_config_t() : _timeout_enum(backlight_timeout_t::Timeout600Sec), _timeout_enabled(false) {}
 
-    backlight_config_t(
-        backlight_timeout_t timeout_enum,
-        bool timeout_enabled
-    ) :
-        _timeout_enum(timeout_enum),
-        _timeout_enabled(timeout_enabled)
-    {
-    }
+	backlight_config_t(backlight_timeout_t timeout_enum, bool timeout_enabled)
+		: _timeout_enum(timeout_enum), _timeout_enabled(timeout_enabled) {}
 
-    bool timeout_enabled() const {
-        return _timeout_enabled;
-    }
+	bool timeout_enabled() const { return _timeout_enabled; }
 
-    backlight_timeout_t timeout_enum() const {
-        return _timeout_enum;
-    }
+	backlight_timeout_t timeout_enum() const { return _timeout_enum; }
 
-    uint32_t timeout_seconds() const {
-        switch(timeout_enum()) {
-            case Timeout5Sec:    return    5;
-            case Timeout15Sec:   return   15;
-            case Timeout30Sec:   return   30;
-            case Timeout60Sec:   return   60;
-            case Timeout180Sec:  return  180;
-            case Timeout300Sec:  return  300;
-            default:
-            case Timeout600Sec:  return  600;
-            case Timeout3600Sec: return 3600;
-        }
-    }
+	uint32_t timeout_seconds() const {
+		switch (timeout_enum()) {
+		case Timeout5Sec:
+			return 5;
+		case Timeout15Sec:
+			return 15;
+		case Timeout30Sec:
+			return 30;
+		case Timeout60Sec:
+			return 60;
+		case Timeout180Sec:
+			return 180;
+		case Timeout300Sec:
+			return 300;
+		default:
+		case Timeout600Sec:
+			return 600;
+		case Timeout3600Sec:
+			return 3600;
+		}
+	}
 
-private:
-    backlight_timeout_t _timeout_enum;
-    bool _timeout_enabled;
+  private:
+	backlight_timeout_t _timeout_enum;
+	bool _timeout_enabled;
 };
 
 namespace cache {
@@ -170,12 +164,12 @@ void set_config_splash(bool v);
 void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);
-void set_config_speaker(bool v); 
+void set_config_speaker(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 
-//uint8_t ui_config_textentry();
-//void set_config_textentry(uint8_t new_value);
+// uint8_t ui_config_textentry();
+// void set_config_textentry(uint8_t new_value);
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);
@@ -189,26 +183,26 @@ uint32_t clkout_freq();
 void set_clkout_freq(uint32_t freq);
 
 /* Recon app */
-        bool recon_autosave_freqs();
-        bool recon_autostart_recon();
-        bool recon_continuous();
-        bool recon_clear_output();
-        bool recon_load_freqs();
-        bool recon_load_ranges();
-        bool recon_update_ranges_when_recon();
-        bool recon_load_hamradios();
-        bool recon_match_mode();
-        void set_recon_autosave_freqs(const bool v);
-        void set_recon_autostart_recon(const bool v);
-        void set_recon_continuous(const bool v);
-        void set_recon_clear_output(const bool v);
-        void set_recon_load_freqs(const bool v);
-        void set_recon_load_ranges(const bool v);
-        void set_recon_update_ranges_when_recon(const bool v);
-        void set_recon_load_hamradios(const bool v );
-        void set_recon_match_mode( const bool v );
+bool recon_autosave_freqs();
+bool recon_autostart_recon();
+bool recon_continuous();
+bool recon_clear_output();
+bool recon_load_freqs();
+bool recon_load_ranges();
+bool recon_update_ranges_when_recon();
+bool recon_load_hamradios();
+bool recon_match_mode();
+void set_recon_autosave_freqs(const bool v);
+void set_recon_autostart_recon(const bool v);
+void set_recon_continuous(const bool v);
+void set_recon_clear_output(const bool v);
+void set_recon_load_freqs(const bool v);
+void set_recon_load_ranges(const bool v);
+void set_recon_update_ranges_when_recon(const bool v);
+void set_recon_load_hamradios(const bool v);
+void set_recon_match_mode(const bool v);
 
 } /* namespace persistent_memory */
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_PERSISTENT_MEMORY_H__*/
+#endif /*__PORTAPACK_PERSISTENT_MEMORY_H__*/

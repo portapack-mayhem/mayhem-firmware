@@ -30,7 +30,7 @@
 #include <algorithm>
 
 void SpectrumCollector::on_message(const Message* const message) {
-	switch(message->id) {
+	switch (message->id) {
 	case Message::ID::UpdateSpectrum:
 		update();
 		break;
@@ -45,7 +45,7 @@ void SpectrumCollector::on_message(const Message* const message) {
 }
 
 void SpectrumCollector::set_state(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+	if (message.mode == SpectrumStreamingConfigMessage::Mode::Running) {
 		start();
 	} else {
 		stop();
@@ -63,9 +63,7 @@ void SpectrumCollector::stop() {
 	fifo.reset_in();
 }
 
-void SpectrumCollector::set_decimation_factor(
-	const size_t decimation_factor
-) {
+void SpectrumCollector::set_decimation_factor(const size_t decimation_factor) {
 	channel_spectrum_decimator.set_factor(decimation_factor);
 }
 
@@ -75,9 +73,7 @@ void SpectrumCollector::set_decimation_factor(
  */
 
 void SpectrumCollector::feed(
-	const buffer_c16_t& channel,
-	const int32_t filter_low_frequency,
-	const int32_t filter_high_frequency,
+	const buffer_c16_t& channel, const int32_t filter_low_frequency, const int32_t filter_high_frequency,
 	const int32_t filter_transition
 ) {
 	// Called from baseband processing thread.
@@ -85,17 +81,12 @@ void SpectrumCollector::feed(
 	channel_filter_high_frequency = filter_high_frequency;
 	channel_filter_transition = filter_transition;
 
-	channel_spectrum_decimator.feed(
-		channel,
-		[this](const buffer_c16_t& data) {
-			this->post_message(data);
-		}
-	);
+	channel_spectrum_decimator.feed(channel, [this](const buffer_c16_t& data) { this->post_message(data); });
 }
 
 void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	// Called from baseband processing thread.
-	if( streaming && !channel_spectrum_request_update ) {
+	if (streaming && !channel_spectrum_request_update) {
 		fft_swap(data, channel_spectrum);
 		channel_spectrum_sampling_rate = data.sampling_rate;
 		channel_spectrum_request_update = true;
@@ -103,34 +94,38 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 	}
 }
 
-template<typename T>
-static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
-static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
+template <typename T> static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
+	static_assert(
+		power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2"
+	); // c/m compile error GCC10 , OK for all GCC versions.
 	return s[i];
 };
 
-template<typename T>
-static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
-    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
-	const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
+template <typename T> static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
+	static_assert(
+		power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2"
+	);                                // c/m compile error GCC10 , OK for all GCC versions.
+	const size_t mask = s.size() - 1; // c/m compile error GCC10 , constexpr->const
 	// Three point Hamming window.
-	return s[i] * 0.54f + (s[(i-1) & mask] + s[(i+1) & mask]) * -0.23f;
+	return s[i] * 0.54f + (s[(i - 1) & mask] + s[(i + 1) & mask]) * -0.23f;
 };
 
-template<typename T>
-static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
-    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
-    const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
+template <typename T> static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
+	static_assert(
+		power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2"
+	);                                // c/m compile error GCC10 , OK for all GCC versions.
+	const size_t mask = s.size() - 1; // c/m compile error GCC10 , constexpr->const
 	// Three term Blackman window.
 	constexpr float alpha = 0.42f;
 	constexpr float beta = 0.5f * 0.5f;
 	constexpr float gamma = 0.08f * 0.05f;
-	return s[i] * alpha - (s[(i-1) & mask] + s[(i+1) & mask]) * beta + (s[(i-2) & mask] + s[(i+2) & mask]) * gamma;
+	return s[i] * alpha - (s[(i - 1) & mask] + s[(i + 1) & mask]) * beta +
+		   (s[(i - 2) & mask] + s[(i + 2) & mask]) * gamma;
 };
 
 void SpectrumCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
-	if( streaming && channel_spectrum_request_update ) {
+	if (streaming && channel_spectrum_request_update) {
 		/* Decimated buffer is full. Compute spectrum. */
 		fft_c_preswapped(channel_spectrum, 0, 8);
 
@@ -139,7 +134,7 @@ void SpectrumCollector::update() {
 		spectrum.channel_filter_low_frequency = channel_filter_low_frequency;
 		spectrum.channel_filter_high_frequency = channel_filter_high_frequency;
 		spectrum.channel_filter_transition = channel_filter_transition;
-		for(size_t i=0; i<spectrum.db.size(); i++) {
+		for (size_t i = 0; i < spectrum.db.size(); i++) {
 			const auto corrected_sample = spectrum_window_hamming_3(channel_spectrum, i);
 			const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));
 			const float db = mag2_to_dbv_norm(mag2);

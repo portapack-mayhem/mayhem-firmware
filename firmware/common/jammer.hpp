@@ -34,12 +34,8 @@ typedef struct jammer_range {
 	int64_t max;
 } jammer_range_t;
 
-enum JammerType : uint32_t {
-	TYPE_FSK = 0,
-	TYPE_TONE = 1,
-	TYPE_SWEEP = 2
-};
+enum JammerType : uint32_t { TYPE_FSK = 0, TYPE_TONE = 1, TYPE_SWEEP = 2 };
 
 } /* namespace jammer */
 
-#endif/*__JAMMER_H__*/
+#endif /*__JAMMER_H__*/

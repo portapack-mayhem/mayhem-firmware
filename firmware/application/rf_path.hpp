@@ -39,9 +39,9 @@ enum class Direction {
 
 namespace path {
 
-constexpr FrequencyRange band_low  {                0,        2150000000 };
-constexpr FrequencyRange band_high {       2750000000,        7250000000 };
-constexpr FrequencyRange band_mid  { band_low.maximum, band_high.minimum };
+constexpr FrequencyRange band_low { 0, 2150000000 };
+constexpr FrequencyRange band_high { 2750000000, 7250000000 };
+constexpr FrequencyRange band_mid { band_low.maximum, band_high.minimum };
 
 enum class Band {
 	/* Zero-based, used as index into frequency_bands table */
@@ -51,14 +51,14 @@ enum class Band {
 };
 
 class Path {
-public:
+  public:
 	void init();
 
 	void set_direction(const Direction direction);
 	void set_band(const Band band);
 	void set_rf_amp(const bool rf_amp);
 
-private:
+  private:
 	Direction direction { Direction::Receive };
 	Band band { Band::Mid };
 	bool rf_amp { false };
@@ -66,10 +66,10 @@ private:
 	void update();
 };
 
-} /* path */
+} // namespace path
 
 constexpr FrequencyRange tuning_range { path::band_low.minimum, path::band_high.maximum };
 
-} /* rf */
+} // namespace rf
 
-#endif/*__RF_PATH_H__*/
+#endif /*__RF_PATH_H__*/

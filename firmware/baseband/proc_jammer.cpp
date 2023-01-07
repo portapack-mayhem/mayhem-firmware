@@ -29,7 +29,7 @@
 
 void JammerProcessor::execute(const buffer_c8_t& buffer) {
 	if (!configured) return;
-	
+
 	for (size_t i = 0; i < buffer.count; i++) {
 
 		if (!jammer_duration) {
@@ -38,10 +38,10 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 				current_range++;
 				if (current_range == JAMMER_MAX_CH) current_range = 0;
 			} while (!jammer_channels[current_range].enabled);
-			
+
 			jammer_duration = jammer_channels[current_range].duration;
-			jammer_bw = jammer_channels[current_range].width / 2;		// TODO: Exact value
-			
+			jammer_bw = jammer_channels[current_range].width / 2; // TODO: Exact value
+
 			// Ask for retune
 			message.freq = jammer_channels[current_range].center;
 			message.range = current_range;
@@ -49,58 +49,57 @@ void JammerProcessor::execute(const buffer_c8_t& buffer) {
 		} else {
 			jammer_duration--;
 		}
-		
+
 		// Phase noise
 		if (!period_counter) {
 			period_counter = noise_period;
-			
+
 			if (noise_type == JammerType::TYPE_FSK) {
 				sample = (sample + lfsr) >> 1;
 			} else if (noise_type == JammerType::TYPE_TONE) {
-				tone_delta = 150000 + (lfsr >> 9);	// Approx 100Hz to 6kHz
+				tone_delta = 150000 + (lfsr >> 9); // Approx 100Hz to 6kHz
 			} else if (noise_type == JammerType::TYPE_SWEEP) {
-				sample++;							// This is like saw wave FM
+				sample++; // This is like saw wave FM
 			}
-			
+
 			feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
 			lfsr = (lfsr << 1) | feedback;
-			if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
+			if (!lfsr) lfsr = 0x1337; // Shouldn't do this :(
 		} else {
 			period_counter--;
 		}
-		
+
 		if (noise_type == JammerType::TYPE_TONE) {
 			aphase += tone_delta;
 			sample = sine_table_i8[(aphase & 0xFF000000) >> 24];
 		}
-		
+
 		delta = sample * jammer_bw;
-		
+
 		phase += delta;
 		sphase = phase + (64 << 24);
 
 		re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
 		im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
 
-		buffer.p[i] = {re, im};
+		buffer.p[i] = { re, im };
 	}
 };
 
 void JammerProcessor::on_message(const Message* const msg) {
 	if (msg->id == Message::ID::JammerConfigure) {
 		const auto message = *reinterpret_cast<const JammerConfigureMessage*>(msg);
-		
+
 		if (message.run) {
-			jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
+			jammer_channels = (JammerChannel*) shared_memory.bb_data.data;
 			noise_type = message.type;
 			noise_period = 3072000 / message.speed;
-			if (noise_type == JammerType::TYPE_SWEEP)
-				noise_period >>= 8;
+			if (noise_type == JammerType::TYPE_SWEEP) noise_period >>= 8;
 			period_counter = 0;
 			jammer_duration = 0;
 			current_range = 0;
 			lfsr = 0xDEAD0012;
-			
+
 			configured = true;
 		} else {
 			configured = false;

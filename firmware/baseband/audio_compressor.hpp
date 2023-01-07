@@ -34,19 +34,13 @@
  */
 
 class GainComputer {
-public:
-	constexpr GainComputer(
-		float ratio,
-		float threshold
-	) : ratio { ratio },
-		slope { 1.0f / ratio - 1.0f },
-		threshold_db { threshold }
-	{
-	}
+  public:
+	constexpr GainComputer(float ratio, float threshold)
+		: ratio { ratio }, slope { 1.0f / ratio - 1.0f }, threshold_db { threshold } {}
 
 	float operator()(const float x) const;
 
-private:
+  private:
 	const float ratio;
 	const float slope;
 	const float threshold_db;
@@ -59,14 +53,8 @@ private:
 };
 
 class PeakDetectorBranchingSmooth {
-public:
-	constexpr PeakDetectorBranchingSmooth(
-		float att_a,
-		float rel_a
-	) : att_a { att_a },
-		rel_a { rel_a }
-	{
-	}
+  public:
+	constexpr PeakDetectorBranchingSmooth(float att_a, float rel_a) : att_a { att_a }, rel_a { rel_a } {}
 
 	float operator()(const float db) {
 		const auto a = (db > state) ? att_a : rel_a;
@@ -74,17 +62,17 @@ public:
 		return state;
 	}
 
-private:
+  private:
 	float state { 0.0f };
 	const float att_a;
 	const float rel_a;
 };
 
 class FeedForwardCompressor {
-public:
+  public:
 	void execute_in_place(const buffer_f32_t& buffer);
 
-private:
+  private:
 	static constexpr float fs = 12000.0f;
 	static constexpr float ratio = 10.0f;
 	static constexpr float threshold = -30.0f;
@@ -94,9 +82,7 @@ private:
 
 	float execute_once(const float x);
 
-	static constexpr float tau_alpha(const float tau, const float fs) {
-		return std::exp(-1.0f / (tau * fs));
-	}
+	static constexpr float tau_alpha(const float tau, const float fs) { return std::exp(-1.0f / (tau * fs)); }
 };
 
-#endif/*__AUDIO_COMPRESSOR_H__*/
+#endif /*__AUDIO_COMPRESSOR_H__*/
