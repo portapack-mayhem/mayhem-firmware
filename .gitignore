@@ -51,6 +51,11 @@
 .dep/
 build/
 CMakeFiles/
+*.cmake
+
+# Firmware build specifics
+firmware/application/portapack_cpld*data*
+firmware/*.bin
 
 # Debugging
 .gdbinit*
