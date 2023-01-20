@@ -51,6 +51,7 @@ int app_settings::load(std::string application, AppSettings* settings) {
 			settings->tx_amp=std::app_settings::read_long_long(file_content, "tx_amp=");
 			settings->tx_frequency=std::app_settings::read_long_long(file_content, "tx_frequency=");
 			settings->tx_gain=std::app_settings::read_long_long(file_content, "tx_gain=");
+			settings->step=std::app_settings::read_long_long(file_content, "step=");
 			rc = SETTINGS_OK;
 		}
 		else rc = SETTINGS_UNABLE_TO_LOAD;
@@ -79,6 +80,7 @@ int app_settings::save(std::string application, AppSettings* settings) {
 			// Save other settings from struct
 			settings_file.write_line("rx_frequency="+to_string_dec_uint(settings->rx_frequency));
 			settings_file.write_line("tx_frequency="+to_string_dec_uint(settings->tx_frequency));
+			settings_file.write_line("step="+to_string_dec_uint(settings->step));
 
 			rc = SETTINGS_OK;
 		}

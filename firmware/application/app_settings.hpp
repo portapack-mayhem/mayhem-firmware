@@ -59,6 +59,7 @@ public:
 		uint32_t 	tx_frequency;
 		uint8_t 	tx_gain;
 		uint8_t 	vga;
+		uint32_t 	step;
 	};
 
 	int load(std::string application, AppSettings* settings);
