@@ -52,6 +52,12 @@ int app_settings::load(std::string application, AppSettings* settings) {
 			settings->tx_frequency=std::app_settings::read_long_long(file_content, "tx_frequency=");
 			settings->tx_gain=std::app_settings::read_long_long(file_content, "tx_gain=");
 			settings->step=std::app_settings::read_long_long(file_content, "step=");
+			settings->modulation=std::app_settings::read_long_long(file_content, "modulation=");
+			settings->am_config_index=std::app_settings::read_long_long(file_content, "am_config_index=");
+			settings->nbfm_config_index=std::app_settings::read_long_long(file_content, "nbfm_config_index=");
+			settings->wfm_config_index=std::app_settings::read_long_long(file_content, "wfm_config_index=");
+			settings->squelch=std::app_settings::read_long_long(file_content, "squelch=");
+
 			rc = SETTINGS_OK;
 		}
 		else rc = SETTINGS_UNABLE_TO_LOAD;
@@ -81,6 +87,11 @@ int app_settings::save(std::string application, AppSettings* settings) {
 			settings_file.write_line("rx_frequency="+to_string_dec_uint(settings->rx_frequency));
 			settings_file.write_line("tx_frequency="+to_string_dec_uint(settings->tx_frequency));
 			settings_file.write_line("step="+to_string_dec_uint(settings->step));
+			settings_file.write_line("modulation="+to_string_dec_uint(settings->modulation));
+			settings_file.write_line("am_config_index="+to_string_dec_uint(settings->am_config_index));
+			settings_file.write_line("nbfm_config_index="+to_string_dec_uint(settings->nbfm_config_index));
+			settings_file.write_line("wfm_config_index="+to_string_dec_uint(settings->wfm_config_index));
+			settings_file.write_line("squelch="+to_string_dec_uint(settings->squelch));
 
 			rc = SETTINGS_OK;
 		}
