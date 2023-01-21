@@ -194,30 +194,30 @@ AnalogAudioView::AnalogAudioView(
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
-    on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
+	on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {
-    return spec_bw_index;
+	return spec_bw_index;
 }
 
 void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
-    spec_bw_index = index;
-    spec_bw = bw;
+	spec_bw_index = index;
+	spec_bw = bw;
 
-    baseband::set_spectrum(bw, spec_trigger);
-    receiver_model.set_sampling_rate(bw);
-    receiver_model.set_baseband_bandwidth(bw/2);
+	baseband::set_spectrum(bw, spec_trigger);
+	receiver_model.set_sampling_rate(bw);
+	receiver_model.set_baseband_bandwidth(bw/2);
 }
 
 uint16_t AnalogAudioView::get_spec_trigger() {
-    return spec_trigger;
+	return spec_trigger;
 }
 
 void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
-    spec_trigger = trigger;
+	spec_trigger = trigger;
 
-    baseband::set_spectrum(spec_bw, spec_trigger);
+	baseband::set_spectrum(spec_bw, spec_trigger);
 }
 
 AnalogAudioView::~AnalogAudioView() {

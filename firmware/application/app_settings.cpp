@@ -68,7 +68,7 @@ int app_settings::load(std::string application, AppSettings* settings) {
 
 int app_settings::save(std::string application, AppSettings* settings) {
 
-	if (portapack::persistent_memory::save_app_settings()) {        
+	if (portapack::persistent_memory::save_app_settings()) {
 		file_path = folder+"/"+application+".ini";
 		make_new_directory(folder);
 
