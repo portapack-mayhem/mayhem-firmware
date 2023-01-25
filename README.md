@@ -18,11 +18,17 @@ If you are new to *HackRF+PortaPack+Mayhem*, there is an awesome introductory vi
 
 This repository expands upon the previous work by many people and aims to constantly add new features, bugfixes and generate documentation to make further development easier.  [Collaboration](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) is always welcomed and appreciated.
 
-## Does it work on H1/H2 PortaPack?
+## What to buy?
 
-Yes, both devices are the [same](https://github.com/eried/portapack-mayhem/wiki/First-steps). The one I am using to test all changes is this [PortaPack H2+HackRF+battery+case](https://s.click.aliexpress.com/e/_DmU7GQX), which is a kit that includes everything you need. Sadly, the people making the H2 never made the updated schematics available, which is not ideal (and goes against the terms of the license). Most members of the community are using a clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_Dkbqs2X).
+A recommended one is this [PortaPack H2+HackRF+battery+case](https://s.click.aliexpress.com/e/_DmU7GQX) pack, that includes everything you need. Sadly, the people making the H2 never made the updated schematics available (against the terms of the license). Another popular option is the clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_Dkbqs2X).
 
-To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
+Be cautious, *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this is a sign that something is not compatible:
+
+![image](https://user-images.githubusercontent.com/1091420/214579017-9ad970b9-0917-48f6-a550-588226d3f89b.png)
+
+If it looks **too different**, this might mean that they are using their own recipe, check the [different models](https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions) in our wiki. For example all the H3 and clones of that version use their own version of the firmware. They do not contribute the changes back and eventually you will be left with a device that nobody maintains:
+
+![image](https://user-images.githubusercontent.com/1091420/214581333-424900ee-26f8-4e96-be2f-69d8dc995ba9.png)
 
 ## Where is the latest firmware?
 
@@ -50,6 +56,8 @@ You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), f
 Consider that the hardware and firmware has been created and maintain by a [lot](https://github.com/mossmann/hackrf/graphs/contributors) of [people](https://github.com/eried/portapack-mayhem/graphs/contributors), so always try colaborating your time and effort first. For coding related questions, if something does not fit as an issue, please join our Discord by clicking the chat badge on [top](#portapack-mayhem).
 
 [![Contributors](https://contrib.rocks/image?repo=eried/portapack-mayhem)](https://github.com/eried/portapack-mayhem/graphs/contributors)
+
+To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
 As a last option, if you want to send money directly to me for getting more boards, antennas and such:
 
