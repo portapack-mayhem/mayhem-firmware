@@ -30,25 +30,9 @@ If it looks **too different**, this might mean that they are using their own rec
 
 ![image](https://user-images.githubusercontent.com/1091420/214581333-424900ee-26f8-4e96-be2f-69d8dc995ba9.png)
 
-## Where is the latest firmware?
+## Where is the latest version?
 
-The **latest (nightly) release** can be found [here](https://github.com/eried/portapack-mayhem/releases/).
-
-The current **stable release** is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
-
-## Is this the newest firmware for my PortaPack? 
-Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new?labels=enhancement&template=feature_request.md) them*.
-
-## Which one is actually the newest?
-There is a lot of confusion of which is the latest version because no old version used any actual "version number". Additionally, since the files were distributed on facebook groups, github issue links and similar temporal sources, then there was no central location for them. 
-
-This fork (**Mayhem**) uses *major.minor.release* [semantic versioning](https://en.wikipedia.org/wiki/Software_versioning), so you can always compare your current version with the latest from [Releases](https://github.com/eried/portapack-mayhem/releases/latest).
-
-## What about Havoc/GridRF/jamesshao8/jboone's?
-* jboone's PortaPack: the [vanilla](https://en.wikipedia.org/wiki/Vanilla_software) experience
-* Havoc: It was the most popular fork of jboone's PortaPack, currrently, it is not being maintained nor updated
-* jamesshao8: He keeps his own version of the fork, while not attached as a fork to anything. Latest functions do not follow the license and are not being published with source code, so keep this in mind
-* GridRF: They sell PortaPack clones with their own firmware based on a old version, which has no sourcecode available
+The current **stable release** is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. The **latest (nightly) release** can be found [here](https://github.com/eried/portapack-mayhem/releases/).
 
 ## How can I collaborate
 You can write [documentation](https://github.com/eried/portapack-mayhem/wiki), fix bugs and [answer issues](https://github.com/eried/portapack-mayhem/issues) or add new functionality. Please check the following [guide](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate) with details.
@@ -63,7 +47,9 @@ As a last option, if you want to send money directly to me for getting more boar
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
 
-## What if I really want to pay for something?
+## What if I really want something specific?
+If what you need can be relevant in general, you can [request a feature](https://github.com/eried/portapack-mayhem/issues/new?labels=enhancement&template=feature_request.md).
+
 You can create a bounty and invite people to your own bounty. This will incentivize coders to work on a new feature, solving a bug or even writting documentation. Start a bounty by [creating](https://github.com/eried/portapack-mayhem/issues/new/choose) or [choosing](https://github.com/eried/portapack-mayhem/issues/) an existing issue. Then, go to [Bountysource](https://www.bountysource.com/) and post a bounty using the link to that specific [issue](https://www.bountysource.com/teams/portapack-mayhem/issues).
 
 Promote your bounty over our Discord by clicking the chat badge on [top](#portapack-mayhem).
@@ -72,6 +58,3 @@ Promote your bounty over our Discord by clicking the chat badge on [top](#portap
 First, check the [documentation](https://github.com/eried/portapack-mayhem/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
 
 You can reach the [official community](https://www.facebook.com/groups/177623356165819) in Facebook, and our Discord by clicking the chat badge on [top](#portapack-mayhem).
-
-## What if I find incongruencies, or grammatical errors in the text?
-If is on the [Wiki](https://github.com/eried/portapack-mayhem/wiki), you can modify it directly. If is on files of the repository, you can send corrections as [pull requests](https://github.com/eried/portapack-mayhem/wiki/How-to-collaborate#coding-new-stuff-or-fixing-bugs). As a last resource, open an [issue](https://github.com/eried/portapack-mayhem/issues/new/choose).
