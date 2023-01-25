@@ -31,7 +31,7 @@ The **latest (nightly) release** can be found [here](https://github.com/eried/po
 The current **stable release** is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/eried/portapack-mayhem?label=Releases&style=social)](https://github.com/eried/portapack-mayhem/releases/latest) page. Follow the instructions you can find in the release description. 
 
 ## Is this the newest firmware for my PortaPack? 
-Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new/choose) them*.
+Most probably: **YES**. *If you find new features somewhere else, please [suggest](https://github.com/eried/portapack-mayhem/issues/new?labels=enhancement&template=feature_request.md) them*.
 
 ## Which one is actually the newest?
 There is a lot of confusion of which is the latest version because no old version used any actual "version number". Additionally, since the files were distributed on facebook groups, github issue links and similar temporal sources, then there was no central location for them. 
