@@ -22,7 +22,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 A recommended one is this [PortaPack H2+HackRF+battery+case](https://s.click.aliexpress.com/e/_DmU7GQX) pack, that includes everything you need. Sadly, the people making the H2 never made the updated schematics available (against the terms of the license). Another popular option is the clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_Dkbqs2X).
 
-Be cautious, *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this is a sign that something is not compatible:
+:warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
 ![image](https://user-images.githubusercontent.com/1091420/214579017-9ad970b9-0917-48f6-a550-588226d3f89b.png)
 
