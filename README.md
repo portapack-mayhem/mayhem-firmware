@@ -20,13 +20,15 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
-A recommended one is this [PortaPack H2+HackRF+battery+case](https://s.click.aliexpress.com/e/_DmU7GQX) pack, that includes everything you need. Sadly, the people making the H2 never made the updated schematics available (against the terms of the license). Another popular option is the clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_Dkbqs2X).
+:heavy_check_mark: A recommended one is this [PortaPack H2+HackRF+battery+case](https://s.click.aliexpress.com/e/_DmU7GQX) pack, that includes everything you need. Sadly, the people making the H2 never made the updated schematics available (against the terms of the license). 
+
+:heavy_check_mark: Another popular option is the clone of the [PortaPack H1+HackRF+metal case](https://s.click.aliexpress.com/e/_Dkbqs2X).
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
 ![image](https://user-images.githubusercontent.com/1091420/214579017-9ad970b9-0917-48f6-a550-588226d3f89b.png)
 
-If it looks **too different**, this might mean that they are using their own recipe, check the [different models](https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions) in our wiki. For example all the H3 and clones of that version use their own version of the firmware. They do not contribute the changes back and eventually you will be left with a device that nobody maintains:
+:warning: If it looks **too different**, this might mean that they are using their own recipe, check the [different models](https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions) in our wiki. For example all the H3 and clones of that version use their own version of the firmware. They do not contribute the changes back and eventually you will be left with a device that nobody maintains:
 
 ![image](https://user-images.githubusercontent.com/1091420/214581333-424900ee-26f8-4e96-be2f-69d8dc995ba9.png)
 
