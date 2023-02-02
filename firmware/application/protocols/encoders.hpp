@@ -28,12 +28,12 @@
 #define __ENCODERS_H__
 
 namespace encoders {
-	
+
 	#define ENC_TYPES_COUNT 14
 	#define OOK_SAMPLERATE	2280000U
-	
+
 	#define ENCODER_UM3750	8
-	
+
 	size_t make_bitstream(std::string& fragments);
 	void bitstream_append(size_t& bitstream_length, uint32_t bit_count, uint32_t bits);
 
@@ -65,7 +65,7 @@ namespace encoders {
 			150000,	2,
 			0
 		},
-		
+
 		// PT2260-R4
 		{
 			"2260-R4",
@@ -77,7 +77,7 @@ namespace encoders {
 			150000,	2,
 			0
 		},
-		
+
 		// PT2262
 		{
 			"2262   ",
@@ -89,7 +89,7 @@ namespace encoders {
 			20000,	4,
 			0
 		},
-		
+
 		// 16-bit ?
 		{
 			"16-bit ",
@@ -101,7 +101,7 @@ namespace encoders {
 			25000,	50,
 			0	// ?
 		},
-		
+
 		// RT1527
 		{
 			"1527   ",
@@ -111,9 +111,9 @@ namespace encoders {
 			24,	"SAAAAAAAAAAAAAAAAAAAADDDD",
 			"10000000000000000000000000000000",
 			100000,	4,
-			10	// ?
+			0
 		},
-		
+
 		// HK526E
 		{
 			"526E   ",
@@ -125,7 +125,7 @@ namespace encoders {
 			20000, 4,
 			10	// ?
 		},
-		
+
 		// HT12E
 		{
 			"12E    ",
@@ -137,7 +137,7 @@ namespace encoders {
 			3000, 4,
 			10	// ?
 		},
-			
+
 		// VD5026 13 bits ?
 		{
 			"5026   ",
@@ -149,7 +149,7 @@ namespace encoders {
 			100000,	4,
 			10	// ?
 		},
-		
+
 		// UM3750
 		{
 			"UM3750 ",
@@ -161,7 +161,7 @@ namespace encoders {
 			100000,	4,
 			(3 * 12) - 6	// Compensates for pause delay bug in proc_ook
 		},
-		
+
 		// UM3758
 		{
 			"UM3758 ",
@@ -173,7 +173,7 @@ namespace encoders {
 			160000,	4,
 			10	// ?
 		},
-		
+
 		// BA5104
 		{
 			"BA5104 ",
@@ -185,7 +185,7 @@ namespace encoders {
 			455000,	4,
 			10	// ?
 		},
-			
+
 		// MC145026
 		{
 			"145026 ",
@@ -197,7 +197,7 @@ namespace encoders {
 			455000,	2,
 			2
 		},
-		
+
 		// HT6*** TODO: Add individual variations
 		{
 			"HT6*** ",
@@ -209,7 +209,7 @@ namespace encoders {
 			80000,	3,
 			10	// ?
 		},
-		
+
 		// TC9148
 		{
 			"TC9148 ",

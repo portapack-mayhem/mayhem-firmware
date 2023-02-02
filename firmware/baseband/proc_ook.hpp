@@ -46,9 +46,9 @@ private:
 	uint32_t pause_counter { 0 };
 	uint8_t repeat_counter { 0 };
 	uint8_t s { 0 };
-    uint16_t bit_pos { 0 };
-    uint8_t cur_bit { 0 };
-    uint32_t sample_count { 0 };
+	uint16_t bit_pos { 0 };
+	uint8_t cur_bit { 0 };
+	uint32_t sample_count { 0 };
 	uint32_t tone_phase { 0 }, phase { 0 }, sphase { 0 };
 	int32_t tone_sample { 0 }, sig { 0 }, frq { 0 };
 
@@ -56,14 +56,22 @@ private:
 
 	static constexpr auto MAX_DE_BRUIJN_ORDER = 24;
 	uint8_t v[MAX_DE_BRUIJN_ORDER];
+	uint8_t v_tmp[MAX_DE_BRUIJN_ORDER];
 	unsigned int idx { 0 };
 	unsigned int k { 0 };
-	size_t bit_ptr{ 0 };
+	unsigned int duval_symbols { 0 };
+	unsigned int duval_length { 0 };
+	unsigned int duval_bit { 0 };
+	unsigned int duval_sample_bit { 0 };
+	unsigned int duval_symbol { 0 };
 	size_t scan_progress{ 0 };
 	uint8_t scan_done { true };
 
+	size_t duval_algo_step();
+	void scan_process(const buffer_c8_t& buffer);
+	bool scan_init(unsigned int order);
+	bool scan_encode(const buffer_c8_t& buffer, size_t& buf_ptr);
 	void write_sample(const buffer_c8_t& buffer, uint8_t bit_value, size_t i);
-	void duval_algo(const buffer_c8_t& buffer);
 };
 
 #endif
