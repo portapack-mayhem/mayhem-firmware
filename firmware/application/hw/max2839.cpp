@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Great Scott Gadgets
  *
  * This file is part of PortaPack.
  *
@@ -19,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "max2837.hpp"
+#include "max2839.hpp"
 
 #include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
@@ -30,17 +31,15 @@ using namespace hackrf::one;
 
 #include <algorithm>
 
-namespace max2837 {
-
-using namespace max283x;
+namespace max2839 {
 
 namespace lna {
 
 using namespace max283x::lna;
 
 constexpr std::array<uint8_t, 8> lookup_8db_steps {
-	0b111, 0b011, 0b110, 0b010,
-	0b100, 0b000, 0b000, 0b000
+	0b11, 0b11, 0b10, 0b10,
+	0b01, 0b00, 0b00, 0b00
 };
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
@@ -54,9 +53,11 @@ namespace vga {
 
 using namespace max283x::vga;
 
+constexpr range_t<int8_t> gain_db_range_internal { 0, 63 };
+
 static uint_fast8_t gain_ordinal(const int8_t db) {
-	const auto db_sat = gain_db_range.clip(db);
-	return ((db_sat >> 1) & 0b11111) ^ 0b11111;
+	const auto db_sat = gain_db_range_internal.clip(db);
+	return (db_sat & 0b111111) ^ 0b111111;
 }
 
 } /* namespace vga */
@@ -67,10 +68,7 @@ using namespace max283x::tx;
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range.clip(db);
-	uint8_t value = db_sat & 0x0f;
-	value = (db_sat >= 16) ? (value | 0x20) : value;
-	value = (db_sat >= 32) ? (value | 0x10) : value;
-	return (value & 0b111111) ^ 0b111111;
+	return 47 - db_sat;
 }
 
 } /* namespace tx */
@@ -97,52 +95,47 @@ constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion = (base_m4_clk_f
 constexpr uint32_t reference_frequency = max283x_reference_f;
 constexpr uint32_t pll_factor = 1.0 / (4.0 / 3.0 / reference_frequency) + 0.5;
 
-void MAX2837::init() {
+static int_fast8_t requested_rx_lna_gain = 0;
+static int_fast8_t requested_rx_vga_gain = 0;
+
+void MAX2839::init() {
 	set_mode(Mode::Shutdown);
 
 	gpio_max283x_enable.output();
-	gpio_max2837_rxenable.output();
-	gpio_max2837_txenable.output();
+	gpio_max2839_rxtx.output();
 
-	_map.r.tx_gain.TXVGA_GAIN_SPI_EN = 1;
-	_map.r.tx_gain.TXVGA_GAIN_MSB_SPI_EN = 1;
+	_map.r.rxrf_1.MIMOmode = 1;			/* enable RXINB */
+
+	_map.r.pa_drv.TXVGA_GAIN_SPI_EN = 1;
 	_map.r.tx_gain.TXVGA_GAIN_SPI = 0x00;
 
-	_map.r.lpf_3_vga_1.VGAMUX_enable = 1;
-	_map.r.lpf_3_vga_1.VGA_EN = 1;
+	_map.r.hpfsm_3.HPC_STOP = 1;		/* 1kHz */
 
-	_map.r.hpfsm_3.HPC_STOP = 1;	/* 1kHz */
+	_map.r.rxrf_2.LNAgain_SPI_EN = 1;	/* control LNA gain from SPI */
+	_map.r.lpf_vga_1.L = 0b000;
+	_map.r.lpf_vga_2.L = 0b000;
 
-	_map.r.rx_top_rx_bias.LNAgain_SPI_EN = 1;	/* control LNA gain from SPI */
-	_map.r.rxrf_2.L = 0b000;
+	_map.r.rx_top_1.VGAgain_SPI_EN = 1;	/* control VGA gain from SPI */
+	_map.r.lpf_vga_1.VGA = 0b000000;
+	_map.r.lpf_vga_2.VGA = 0b010101;
 
-	_map.r.rx_top_rx_bias.VGAgain_SPI_EN = 1;	/* control VGA gain from SPI */
-	_map.r.vga_2.VGA = 0b01010;
+	_map.r.lpf_vga_2.BUFF_VCM = 0b11;	/* maximum RX output common-mode voltage */
 
-	_map.r.lpf_3_vga_1.BUFF_VCM = 0b00;		/* TODO: Check values out of ADC */
+	_map.r.lpf_vga_1.ModeCtrl = 0b01;	/* Rx LPF */
+	_map.r.lpf.FT = 0b0000;				/* 1.75 MHz LPF */
 
-	_map.r.lpf_1.LPF_EN = 1;				/* Enable low-pass filter */
-	_map.r.lpf_1.ModeCtrl = 0b01;			/* Rx LPF */
-	_map.r.lpf_1.FT = 0b0000;				/* 5MHz LPF */
-
-	_map.r.spi_en.EN_SPI = 1;				/* enable chip functions when ENABLE pin set */
+	_map.r.spi_en.EN_SPI = 1;			/* enable chip functions when ENABLE pin set */
 
 	_map.r.lo_gen.LOGEN_2GM = 0;
 
-#if 0
-	_map.r.rxrf_1.LNA_EN = 1;
-	_map.r.rxrf_1.Mixer_EN = 1;
-	_map.r.rxrf_1.RxLO_EN = 1;
+	_map.r.rssi_vga.RSSI_MODE = 1;		/* RSSI independent of RXHP */
 
-	_map.r.rx_top.DOUT_DRVH = 0;			/* slow down DOUT edges */
-
-	_map.r.hpfsm_4.DOUT_CSB_SEL	= 0;		/* DOUT not tri-stated, is independent of CSB */
-
-	_map.r.xtal_cfg.XTAL_CLKOUT_EN = 0;		/* CLKOUT pin disabled. (Seems to have no effect.) */
-#endif
-
-	_map.r.vga_3_rx_top.RSSI_EN_SPIenables = 1;
-	_map.r.vga_3_rx_top.RSSI_MODE = 1;		/* RSSI independent of RXHP */
+	/*
+	 * There are two LNA band settings, but we only use one of them.
+	 * Switching to the other one doesn't make the overall spectrum any
+	 * flatter but adds a surprise step in the middle.
+	 */
+	_map.r.rxrf_1.LNAband = 0;			/* 2.3 - 2.5GHz */
 
 	_dirty.set();
 	flush();
@@ -151,13 +144,12 @@ void MAX2837::init() {
 }
 
 enum class Mask {
-	Enable   = 0b001,
-	RxEnable = 0b010,
-	TxEnable = 0b100,
-	Shutdown = 0b000,
-	Standby  = Enable,
-	Receive  = Enable | RxEnable,
-	Transmit = Enable | TxEnable,
+	Enable   = 0b01,
+	RxTx     = 0b10,
+	Shutdown = 0b00,
+	Standby  = RxTx,
+	Receive  = Enable | RxTx,
+	Transmit = Enable,
 };
 
 Mask mode_mask(const Mode mode) {
@@ -169,14 +161,13 @@ Mask mode_mask(const Mode mode) {
 	}
 }
 
-void MAX2837::set_mode(const Mode mode) {
+void MAX2839::set_mode(const Mode mode) {
 	Mask mask = mode_mask(mode);
 	gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
-	gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
-	gpio_max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
+	gpio_max2839_rxtx.write(toUType(mask) & toUType(Mask::RxTx));
 }
 
-void MAX2837::flush() {
+void MAX2839::flush() {
 	if( _dirty ) {
 		for(size_t n=0; n<reg_count; n++) {
 			if( _dirty[n] ) {
@@ -187,74 +178,123 @@ void MAX2837::flush() {
 	}
 }
 
-void MAX2837::flush_one(const Register reg) {
+void MAX2839::flush_one(const Register reg) {
 	const auto reg_num = toUType(reg);
 	write(reg_num, _map.w[reg_num]);
 	_dirty.clear(reg_num);
 }
 
-void MAX2837::write(const address_t reg_num, const reg_t value) {
+void MAX2839::write(const address_t reg_num, const reg_t value) {
 	uint16_t t = (0U << 15) | (reg_num << 10) | (value & 0x3ffU);
 	_target.transfer(&t, 1);
 }
 
-reg_t MAX2837::read(const address_t reg_num) {
+reg_t MAX2839::read(const address_t reg_num) {
 	uint16_t t = (1U << 15) | (reg_num << 10);
 	_target.transfer(&t, 1U);
 	return t & 0x3ffU;
 }
 
-void MAX2837::write(const Register reg, const reg_t value) {
+void MAX2839::write(const Register reg, const reg_t value) {
 	write(toUType(reg), value);
 }
 
-reg_t MAX2837::read(const Register reg) {
+reg_t MAX2839::read(const Register reg) {
 	return read(toUType(reg));
 }
 
-void MAX2837::set_tx_vga_gain(const int_fast8_t db) {
+void MAX2839::set_tx_vga_gain(const int_fast8_t db) {
 	_map.r.tx_gain.TXVGA_GAIN_SPI = tx::gain_ordinal(db);
 	_dirty[Register::TX_GAIN] = 1;
 	flush();
 }
 
-void MAX2837::set_lna_gain(const int_fast8_t db) {
-	_map.r.rxrf_2.L = lna::gain_ordinal(db);
+/*
+ * MAX2839 gain rain ranges differ slightly from MAX2837's but are close
+ * enough that it makes sense to emulate MAX2837 gain ranges for a consistent
+ * user experience.
+ */
+void MAX2839::configure_rx_gain() {
+	/* Apply MAX2837 restrictions to requested gain settings. */
+	int_fast8_t lna_gain = lna::gain_db_range.clip(requested_rx_lna_gain);
+	lna_gain &= 0x38;
+	int_fast8_t vga_gain = vga::gain_db_range.clip(requested_rx_vga_gain);
+	vga_gain &= 0x3e;
+
+	/*
+	 * MAX2839 has lower full-scale RX output voltage than MAX2837, so we
+	 * adjust the VGA (baseband) gain to compensate.
+	 */
+	vga_gain += 3;
+
+	/*
+	 * If that adjustment puts VGA gain out of range, use LNA gain to
+	 * compensate.  MAX2839 VGA gain can be any number from 0 through 63.
+	 */
+	if (vga_gain > 63) {
+		if (lna_gain <= 32) {
+			vga_gain -= 8;
+			lna_gain += 8;
+		} else {
+			vga_gain = 63;
+		}
+	}
+
+	/*
+	 * MAX2839 lacks max-24 dB (16 dB) and max-40 dB (0 dB) LNA gain
+	 * settings, so we use VGA gain to compensate.
+	 */
+	if (lna_gain == 0) {
+		lna_gain = 8;
+		vga_gain = (vga_gain >= 8) ? vga_gain - 8 : 0;
+	}
+	if (lna_gain == 16) {
+		if (vga_gain > 32) {
+			vga_gain -= 8;
+			lna_gain += 8;
+		} else {
+			vga_gain += 8;
+			lna_gain -= 8;
+		}
+	}
+
+	_map.r.lpf_vga_2.L = lna::gain_ordinal(lna_gain);
 	_dirty[Register::RXRF_2] = 1;
+	_map.r.lpf_vga_2.VGA = vga::gain_ordinal(vga_gain);
+	_dirty[Register::LPF_VGA_2] = 1;
 	flush();
 }
 
-void MAX2837::set_vga_gain(const int_fast8_t db) {
-	_map.r.vga_2.VGA = vga::gain_ordinal(db);
-	_dirty[Register::VGA_2] = 1;
+void MAX2839::set_lna_gain(const int_fast8_t db) {
+	requested_rx_lna_gain = db;
+	configure_rx_gain();
+}
+
+void MAX2839::set_vga_gain(const int_fast8_t db) {
+	requested_rx_vga_gain = db;
+	configure_rx_gain();
+}
+
+void MAX2839::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
+	_map.r.lpf.FT = filter::bandwidth_ordinal(bandwidth_minimum);
+	_dirty[Register::LPF] = 1;
 	flush();
 }
 
-void MAX2837::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
-	_map.r.lpf_1.FT = filter::bandwidth_ordinal(bandwidth_minimum);
-	_dirty[Register::LPF_1] = 1;
-	flush();
-}
-
-bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
+bool MAX2839::set_frequency(const rf::Frequency lo_frequency) {
 	/* TODO: This is a sad implementation. Refactor. */
 	if( lo::band[0].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b00;	/* 2300 - 2399.99MHz */
-		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
 	} else if( lo::band[1].contains(lo_frequency)  ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b01;	/* 2400 - 2499.99MHz */
-		_map.r.rxrf_1.LNAband = 0;				/* 2.3 - 2.5GHz */
 	} else if( lo::band[2].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b10;	/* 2500 - 2599.99MHz */
-		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
 	} else if( lo::band[3].contains(lo_frequency) ) {
 		_map.r.syn_int_div.LOGEN_BSW = 0b11;	/* 2600 - 2700Hz */
-		_map.r.rxrf_1.LNAband = 1;				/* 2.5 - 2.7GHz */
 	} else {
 		return false;
 	}
 	_dirty[Register::SYN_INT_DIV] = 1;
-	_dirty[Register::RXRF_1] = 1;
 
 	const uint64_t div_q20 = (lo_frequency * (1 << 20)) / pll_factor;
 
@@ -272,51 +312,41 @@ bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {
 	return true;
 }
 
-void MAX2837::set_rx_lo_iq_calibration(const size_t v) {
-	_map.r.rx_top_rx_bias.RX_IQERR_SPI_EN = 1;
-	_dirty[Register::RX_TOP_RX_BIAS] = 1;
-	_map.r.rxrf_2.iqerr_trim = v;
+void MAX2839::set_rx_lo_iq_calibration(const size_t v) {
+	_map.r.rxrf_2.RX_IQERR_SPI_EN = 1;
 	_dirty[Register::RXRF_2] = 1;
+	_map.r.rxrf_1.iqerr_trim = v;
+	_dirty[Register::RXRF_1] = 1;
 	flush();
 }
 
-void MAX2837::set_rx_bias_trim(const size_t v) {
-	_map.r.rx_top_rx_bias.EN_Bias_Trim = 1;
-	_map.r.rx_top_rx_bias.BIAS_TRIM_SPI = v;
-	_dirty[Register::RX_TOP_RX_BIAS] = 1;
+void MAX2839::set_rx_buff_vcm(const size_t v) {
+	_map.r.lpf_vga_2.BUFF_VCM = v;
+	_dirty[Register::LPF_VGA_2] = 1;
 	flush();
 }
 
-void MAX2837::set_vco_bias(const size_t v) {
-	_map.r.vco_cfg.VCO_BIAS_SPI_EN = 1;
-	_map.r.vco_cfg.VCO_BIAS_SPI = v;
-	_dirty[Register::VCO_CFG] = 1;
-	flush();
-}
-
-void MAX2837::set_rx_buff_vcm(const size_t v) {
-	_map.r.lpf_3_vga_1.BUFF_VCM = v;
-	_dirty[Register::LPF_3_VGA_1] = 1;
-	flush();
-}
-
-reg_t MAX2837::temp_sense() {
-	if( !_map.r.rx_top.ts_en ) {
-		_map.r.rx_top.ts_en = 1;
-		flush_one(Register::RX_TOP);
+reg_t MAX2839::temp_sense() {
+	if( !_map.r.rx_top_2.ts_en ) {
+		_map.r.rx_top_2.ts_en = 1;
+		flush_one(Register::RX_TOP_2);
 
 		chThdSleepMilliseconds(1);
 	}
 
-	_map.r.rx_top.ts_adc_trigger = 1;
-	flush_one(Register::RX_TOP);
+	_map.r.rx_top_2.ts_adc_trigger = 1;
+	flush_one(Register::RX_TOP_2);
 
 	halPolledDelay(ticks_for_temperature_sense_adc_conversion);
 
+	/*
+	 * Things look very similar to MAX2837, so this probably works, but the
+	 * MAX2839 data sheet does not describe the TEMP_SENSE register contents.
+	 */
 	const auto value = read(Register::TEMP_SENSE);
 
-	_map.r.rx_top.ts_adc_trigger = 0;
-	flush_one(Register::RX_TOP);
+	_map.r.rx_top_2.ts_adc_trigger = 0;
+	flush_one(Register::RX_TOP_2);
 
 	return value;
 }

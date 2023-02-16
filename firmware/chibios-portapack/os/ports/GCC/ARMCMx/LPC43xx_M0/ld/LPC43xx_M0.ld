@@ -41,6 +41,10 @@ SECTIONS
     startup : ALIGN(16) SUBALIGN(16)
     {
         KEEP(*(vectors))
+	. = ALIGN(0x400);
+        ASSERT(. == 0x400, "Error: attempting to place firmware information section at incorrect location");
+        KEEP(*(.firmware_info));
+
     } > flash
 
     constructors : ALIGN(4) SUBALIGN(4)

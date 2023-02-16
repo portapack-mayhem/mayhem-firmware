@@ -29,7 +29,6 @@
 #include "ui_navigation.hpp"
 
 #include "rffc507x.hpp"
-#include "max2837.hpp"
 #include "portapack.hpp"
 
 #include <functional>

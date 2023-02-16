@@ -41,7 +41,7 @@ constexpr rf::Frequency high_band_second_lo_regions_2_and_3(const rf::Frequency 
 
 constexpr rf::Frequency high_band_second_lo_frequency(const rf::Frequency target_frequency) {
 	return (target_frequency < 3600000000)
-		? (2150000000 + (((target_frequency - 2750000000) * 60) / 85))
+		? (2170000000 + (((target_frequency - 2740000000) * 57) / 86))
 		: high_band_second_lo_regions_2_and_3(target_frequency)
 		;
 }
@@ -49,8 +49,8 @@ constexpr rf::Frequency high_band_second_lo_frequency(const rf::Frequency target
 Config low_band(const rf::Frequency target_frequency) {
 	const rf::Frequency first_lo_frequency = target_frequency + low_band_second_lo_frequency(target_frequency);
 	const rf::Frequency second_lo_frequency = first_lo_frequency - target_frequency;
-	const bool baseband_invert = true;
-	return { first_lo_frequency, second_lo_frequency, rf::path::Band::Low, baseband_invert };
+	const bool mixer_invert = true;
+	return { first_lo_frequency, second_lo_frequency, rf::path::Band::Low, mixer_invert };
 }
 
 Config mid_band(const rf::Frequency target_frequency) {
@@ -60,8 +60,8 @@ Config mid_band(const rf::Frequency target_frequency) {
 Config high_band(const rf::Frequency target_frequency) {
 	const rf::Frequency first_lo_frequency = target_frequency - high_band_second_lo_frequency(target_frequency);
 	const rf::Frequency second_lo_frequency = target_frequency - first_lo_frequency;
-	const bool baseband_invert = false;
-	return { first_lo_frequency, second_lo_frequency, rf::path::Band::High, baseband_invert };
+	const bool mixer_invert = false;
+	return { first_lo_frequency, second_lo_frequency, rf::path::Band::High, mixer_invert };
 }
 
 } /* namespace */

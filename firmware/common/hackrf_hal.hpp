@@ -47,23 +47,28 @@ constexpr ClockFrequency base_apb3_clk_f	= base_m4_clk_f;
 constexpr ClockFrequency ssp1_pclk_f		= base_m4_clk_f;
 
 constexpr ClockFrequency max5864_spi_f		= 20000000U;
-constexpr ClockFrequency max2837_spi_f 		= 20000000U;
+constexpr ClockFrequency max283x_spi_f 		= 20000000U;
 
 constexpr ClockFrequency rffc5072_reference_f	= 40000000U;
-constexpr ClockFrequency max2837_reference_f	= 40000000U;
-constexpr ClockFrequency mcu_clkin_f			= 40000000U;
+constexpr ClockFrequency max283x_reference_f	= 40000000U;
+constexpr ClockFrequency mcu_clkin_og_f		= 40000000U;
+constexpr ClockFrequency mcu_clkin_r9_f		= 10000000U;
 
 constexpr uint8_t si5351_i2c_address = 0x60;
 
 /* Clock Generator */
 
-constexpr size_t clock_generator_output_codec		= 0;
-constexpr size_t clock_generator_output_cpld		= 1;
-constexpr size_t clock_generator_output_sgpio		= 2;
-constexpr size_t clock_generator_output_clkout		= 3;
-constexpr size_t clock_generator_output_first_if	= 4;
-constexpr size_t clock_generator_output_second_if	= 5;
-constexpr size_t clock_generator_output_mcu_clkin	= 7;
+constexpr size_t clock_generator_output_og_codec		= 0;
+constexpr size_t clock_generator_output_og_cpld			= 1;
+constexpr size_t clock_generator_output_og_sgpio		= 2;
+constexpr size_t clock_generator_output_og_clkout		= 3;
+constexpr size_t clock_generator_output_og_first_if		= 4;
+constexpr size_t clock_generator_output_og_second_if		= 5;
+constexpr size_t clock_generator_output_og_mcu_clkin		= 7;
+
+constexpr size_t clock_generator_output_r9_if			= 0;
+constexpr size_t clock_generator_output_r9_sgpio		= 1;
+constexpr size_t clock_generator_output_r9_mcu_clkin		= 2;
 
 /* ADC0 */
 
