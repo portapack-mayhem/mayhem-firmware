@@ -24,9 +24,9 @@ RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
 #Fetch additional dependencies from Python 2.x pip
 RUN pip install pyyaml
 RUN rm -rf /usr/bin/python && \
-    rm -rf /usr/bin/pip && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+        rm -rf /usr/bin/pip && \
+        ln -s /usr/bin/python3 /usr/bin/python && \
+        ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
@@ -37,12 +37,12 @@ RUN mkdir /opt/build && cd /opt/build && \
         wget -O gcc-arm-none-eabi $ARMBINURL && \
         mkdir armbin && \
         tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
-    
+
 #Set environment variable so compiler knows where the toolchain lives
 ENV PATH=$PATH:/opt/build/armbin/bin
 
 CMD cd /havocsrc && \
-    mkdir build && cd build && \ 
-    cmake .. && make firmware && \
-    cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
+        mkdir build && cd build && \ 
+        cmake .. && make firmware && \
+        cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
 
