@@ -1,0 +1,9 @@
+version: '3.9'
+
+services:
+  portapack-mayhem-dev:
+    build:
+      context: .
+      dockerfile: dockerfile-nogit-alpine
+    volumes:
+      - ".:/havoc"
