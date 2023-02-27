@@ -40,9 +40,9 @@ using namespace adsb;
 
 namespace ui {
 
-#define ADSB_DECAY_A 		10		// In seconds
-#define ADSB_DECAY_B 		30
-#define ADSB_DECAY_C 		60		// Can be used for removing old entries, RecentEntries already caps to 64
+#define ADSB_DECAY_A 		10		// Seconds
+#define ADSB_DECAY_B 		30		// Seconds
+#define ADSB_DECAY_C 		300		// Used for removing old entries
 
 #define AIRCRAFT_ID_L		1		// aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H		4		// aircraft ID message type (highest type id)
@@ -133,13 +133,14 @@ struct AircraftRecentEntry {
 	
 	void inc_age(int delta) {
 		age+=delta;
-		if (age < ADSB_DECAY_A)
-		{
+		if (age < ADSB_DECAY_A){
 			age_state = pos.valid ? 0 : 1;
-		}
-		else
-		{
-			age_state = (age < ADSB_DECAY_B) ? 2 : 3;
+		} else if(age < ADSB_DECAY_B){
+			age_state = 2;
+		} else if(age < ADSB_DECAY_C){
+			age_state = 3;
+		} else{
+			age_state = 4;
 		}
 	}
 };
@@ -362,6 +363,7 @@ public:
 	std::string title() const override { return "ADS-B RX"; };
 
 	void replace_entry(AircraftRecentEntry & entry);
+	void remove_old_entries();
 	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
 	void sort_entries_by_state();
 

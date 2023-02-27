@@ -116,8 +116,6 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	});
 	
 	std::unique_ptr<ADSBLogger> logger { };
-	//update(entry_copy);
-
 
 	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
@@ -218,7 +216,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 	
 	if (send_updates)
 	{
-		geomap_view->update_tag(entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6));
+		geomap_view->update_tag(trimr(entry.callsign[0]!=' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6)));
 		geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading, entry_copy.pos.altitude);
 	}
 }
@@ -272,12 +270,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
         button_aircraft_details.on_select = [this, &nav](Button&) {
-		//detailed_entry_key = entry.key();
-		aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(
-			entry_copy,
-			[this]() {
-				send_updates = false;
-			});
+		aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(entry_copy,	[this]() { send_updates = false;});
 		send_updates = false;
 	};
 
@@ -334,6 +327,21 @@ void ADSBRxView::replace_entry(AircraftRecentEntry & entry)
 	std::replace_if( recent.begin(), recent.end(), 
 		[ICAO_address](const AircraftRecentEntry & compEntry) {return ICAO_address == compEntry.ICAO_address;},
 		entry);
+}
+
+void ADSBRxView::remove_old_entries()
+{
+	auto it = recent.rbegin();
+	auto end = recent.rend();
+	while (it != end)
+	{
+		if (it->age_state>=4) {
+			std::advance(it, 1);
+			recent.erase( it.base() );
+		} else {
+			break; // stop looking because the list is sorted
+		}
+	}
 }
 
 void ADSBRxView::sort_entries_by_state()
@@ -440,7 +448,7 @@ void ADSBRxView::on_tick_second() {
 void ADSBRxView::update() {
 	if (updateState==0)
 	{
-		if (recent.size() < 30){ // If there aren't many entries then there should be time to update everything
+		if (recent.size() < 16){ // If there aren't many entries update everything (16 is one screen full)
 			updateDetailsAndMap(1);
 			updateRecentEntries();
 		} else { // Uodate only the setails and map
@@ -463,6 +471,7 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
 	// Sort and truncate the entries, grouped, newest group first
 	sort_entries_by_state();
 	truncate_entries(recent);
+	remove_old_entries();
 
 	// Calculate if it is time to update markers
 	if (send_updates && details_view && details_view->geomap_view) {
