@@ -27,7 +27,7 @@
 
 #include "message.hpp"
 #include "rf_path.hpp"
-#include "max2837.hpp"
+#include "max283x.hpp"
 #include "volume.hpp"
 
 class ReceiverModel {
@@ -87,12 +87,14 @@ public:
 	size_t wfm_configuration() const;
 	void set_wfm_configuration(const size_t n);
 
+	void set_configuration_without_init(const Mode new_mode, const rf::Frequency new_frequency_step, const size_t new_am_config_index, const size_t new_nbfm_config_index, const size_t new_wfm_config_index, uint8_t new_squelch_level);
+
 private:
 	rf::Frequency frequency_step_ { 25000 };
 	bool enabled_ { false };
 	bool rf_amp_ { false };
 	int32_t lna_gain_db_ { 32 };
-	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
+	uint32_t baseband_bandwidth_ { max283x::filter::bandwidth_minimum };
 	int32_t vga_gain_db_ { 32 };
 	int32_t tx_gain_db_ { 47 };
 	Mode mode_ { Mode::NarrowbandFMAudio };

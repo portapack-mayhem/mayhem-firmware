@@ -322,17 +322,19 @@ void DebugControlsView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
+	const char * max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
+	const char * si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
 	add_items({
 		{ "RFFC5072",    ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 16 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			"MAX2837", RegistersWidgetConfig { 32, 10 },
+		{ max283x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, max283x](){ nav.push<RegistersView>(
+			max283x, RegistersWidgetConfig { 32, 10 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			"Si5351C", RegistersWidgetConfig { 96, 8 },
+		{ si5351x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, si5351x](){ nav.push<RegistersView>(
+			si5351x, RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
 		{ audio::debug::codec_name(), ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(

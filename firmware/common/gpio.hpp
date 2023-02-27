@@ -197,24 +197,10 @@ struct Pin {
 
 	constexpr Pin(
 		const uint8_t port,
-		const uint8_t pad,
-		const PinConfig initial_config
+		const uint8_t pad
 	) : _pin_port { port },
-		_pin_pad { pad },
-		_initial_config { initial_config }
+		_pin_pad { pad }
 	{
-	}
-/*
-	constexpr Pin(
-		const Pin& pin
-	) : _pin_port { pin._pin_port },
-		_pin_pad { pin._pin_pad },
-		_initial_config { pin._initial_config }
-	{
-	}
-*/
-	void init() const {
-		LPC_SCU->SFSP[_pin_port][_pin_pad] = _initial_config;
 	}
 
 	void mode(const uint_fast16_t mode) const {
@@ -228,7 +214,6 @@ struct Pin {
 
 	uint8_t _pin_port;
 	uint8_t _pin_pad;
-	uint16_t _initial_config;
 };
 
 struct GPIO {

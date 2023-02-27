@@ -103,6 +103,7 @@ set(CSRC
 	${PLATFORMSRC}
 	${BOARDSRC}
 	${FATFSSRC}
+	firmware_info.c
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -193,6 +194,7 @@ set(CPPSRC
 	hw/debounce.cpp
 	hw/encoder.cpp
 	hw/max2837.cpp
+	hw/max2839.cpp
 	hw/max5864.cpp
 	hw/rffc507x.cpp
 	hw/rffc507x_spi.cpp

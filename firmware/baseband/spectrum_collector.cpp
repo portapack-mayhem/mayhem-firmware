@@ -105,22 +105,25 @@ void SpectrumCollector::post_message(const buffer_c16_t& data) {
 
 template<typename T>
 static typename T::value_type spectrum_window_none(const T& s, const size_t i) {
-static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
+	constexpr size_t length = sizeof(s)/sizeof(s[0]);
+	static_assert(power_of_two(length), "Array length must be power of 2");
 	return s[i];
 };
 
 template<typename T>
 static typename T::value_type spectrum_window_hamming_3(const T& s, const size_t i) {
-    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
-	const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
+	constexpr size_t length = sizeof(s)/sizeof(s[0]);
+	static_assert((length), "Array length must be power of 2");
+	constexpr size_t mask = length - 1;
 	// Three point Hamming window.
 	return s[i] * 0.54f + (s[(i-1) & mask] + s[(i+1) & mask]) * -0.23f;
 };
 
 template<typename T>
 static typename T::value_type spectrum_window_blackman_3(const T& s, const size_t i) {
-    static_assert(power_of_two(ARRAY_ELEMENTS(s)), "Array number of elements must be power of 2");   // c/m compile error GCC10 , OK for all GCC versions. 
-    const size_t mask = s.size() - 1;          // c/m compile error GCC10 , constexpr->const
+	constexpr size_t length = sizeof(s)/sizeof(s[0]);
+	static_assert(power_of_two(length), "Array length must be power of 2");
+	constexpr size_t mask = length - 1;
 	// Three term Blackman window.
 	constexpr float alpha = 0.42f;
 	constexpr float beta = 0.5f * 0.5f;

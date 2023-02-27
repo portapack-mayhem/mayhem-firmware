@@ -38,7 +38,7 @@ using namespace lpc43xx;
  * I suppose I could force M4MEMMAP to an invalid memory reason which would
  * cause an exception and effectively halt the M4. But that feels gross.
  */
-void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to) {
+void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to, const bool full_reset) {
 	const portapack::spi_flash::chunk_t* chunk = reinterpret_cast<const portapack::spi_flash::chunk_t*>(portapack::spi_flash::images.base());
 	while(chunk->tag) {
 		if( chunk->tag == image_tag ) {
@@ -50,8 +50,11 @@ void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack:
 			 */
 			LPC_CREG->M4MEMMAP = to.base();
 
-			/* Reset M4 core */
-			LPC_RGU->RESET_CTRL[0] = (1 << 13);
+			/* Reset M4 core and optionally all peripherals */
+			LPC_RGU->RESET_CTRL[0] = (full_reset) ?
+				  (1 << 1)  // PERIPH_RST
+				: (1 << 13) // M4_RST
+				;
 
 			return;
 		}

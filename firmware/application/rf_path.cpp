@@ -20,6 +20,7 @@
  */
 
 #include "rf_path.hpp"
+#include "platform.hpp"
 
 #include <array>
 #include <initializer_list>
@@ -34,14 +35,12 @@ namespace path {
 
 namespace {
 
-using GPIOs = std::array<GPIO, 13>;
+using GPIOs = std::array<GPIO, 11>;
 
 /* TODO: ARM GCC 4.8 2014q3 doesn't like this array inside struct Config.
  * No idea why.
  */
 constexpr GPIOs gpios {
-	gpio_tx,
-	gpio_rx,
 	gpio_mix_bypass,
 	gpio_not_mix_bypass,
 	gpio_tx_mix_bp,
@@ -122,15 +121,39 @@ struct Config {
 	}
 
 	static void gpio_init() {
-		for(auto gpio : gpios) {
+		if (hackrf_r9) {
+			gpio_r9_rx.output();
+		} else {
+			gpio_og_tx.output();
+			gpio_og_rx.output();
+		}
+		for (auto gpio : gpios) {
 			gpio.output();
 		}
 	}
 
 	void apply() const {
-		/* NOTE: Assumes order in gpios[] and Config bitfield match. */
-		for(size_t n=0; n<gpios.size(); n++) {
-			gpios[n].write((*this)[n]);
+		/* NOTE: Assumes order in gpios[] and Config bitfield match,
+		 * after the 'tx' and 'rx' fields which are handled specially. */
+		for (size_t n = 0; n < gpios.size() + 2; n++) {
+			bool value = (*this)[n];
+			switch (n) {
+				case 0:
+					if (!hackrf_r9) {
+						gpio_og_tx.write(value);
+					}
+					break;
+				case 1:
+					if (hackrf_r9) {
+						gpio_r9_rx.write(value);
+					} else {
+						gpio_og_rx.write(value);
+					}
+					break;
+				default:
+					gpios[n - 2].write(value);
+					break;
+			}
 		}
 	}
 };

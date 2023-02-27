@@ -35,11 +35,12 @@ w = numpy.arange(length, dtype=numpy.float64) * (2 * numpy.pi / length)
 v = numpy.sin(w)
 print(v)
 */
-constexpr size_t sine_table_f32_period_log2 = 8;
-constexpr size_t sine_table_f32_period = 1 << sine_table_f32_period_log2;
-constexpr uint32_t sine_table_f32_index_mask = sine_table_f32_period - 1;
+constexpr uint16_t sine_table_f32_period = 256;	
+// periode is 256 . means sine_table_f32[0]= sine_table_f32[0+256], sine_table_f32[1]=sine_table_f32[1+256] (those two added manualy)
+// Then table has 258 values ,256:[0,..255] + [256] and [257], those two are  used when we interpolate[255] with [255+1], and [256] with [256+1]
+// [256] index is needed in the function sin_f32() when we are inputing very small radian values , example , sin_f32((-1e-14) in radians) 
 
-static constexpr std::array<float, sine_table_f32_period + 1> sine_table_f32 { {
+static constexpr std::array<float, sine_table_f32_period + 2> sine_table_f32{
 	 0.00000000e+00,   2.45412285e-02,   4.90676743e-02,
 	 7.35645636e-02,   9.80171403e-02,   1.22410675e-01,
 	 1.46730474e-01,   1.70961889e-01,   1.95090322e-01,
@@ -125,24 +126,22 @@ static constexpr std::array<float, sine_table_f32_period + 1> sine_table_f32 { {
 	-2.42980180e-01,  -2.19101240e-01,  -1.95090322e-01,
 	-1.70961889e-01,  -1.46730474e-01,  -1.22410675e-01,
 	-9.80171403e-02,  -7.35645636e-02,  -4.90676743e-02,
-	-2.45412285e-02,   0.00000000e+00,
-} };
+	-2.45412285e-02,   0.00000000e+00,   2.45412285e-02
+};
 
 inline float sin_f32(const float w) {
-	constexpr float normalize = 1.0 / (2 * pi);
-
-	const float x = w * normalize;
-	const int32_t x_int = std::floor(x);
-	const float x_frac = x - x_int;
+	const float x = w / (2 * pi); // normalization
+	const float x_frac = x - std::floor(x); // [0, 1]
 
 	const float n = x_frac * sine_table_f32_period;
-	const int32_t n_int = static_cast<uint32_t>(n) & sine_table_f32_index_mask;
+	const uint16_t n_int = static_cast<uint16_t>(n);
 	const float n_frac = n - n_int;
 
-	const float p0 = sine_table_f32[n_int + 0];
+	const float p0 = sine_table_f32[n_int];
 	const float p1 = sine_table_f32[n_int + 1];
 	const float diff = p1 - p0;
-	const float result = p0 + n_frac * diff;
+	const float result = p0 + n_frac * diff; // linear interpolation
+
 	return result;
 }
 
