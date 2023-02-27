@@ -131,8 +131,8 @@ struct AircraftRecentEntry {
 		age = 0;
 	}
 	
-	void inc_age() {
-		age++;
+	void inc_age(int delta) {
+		age+=delta;
 		if (age < ADSB_DECAY_A)
 		{
 			age_state = pos.valid ? 0 : 1;
@@ -275,7 +275,6 @@ public:
 private:
 	AircraftRecentEntry 		entry_copy { 0 };
 	std::function<void(void)> 	on_close_ { };
-	GeoMapView* 			geomap_view { nullptr };
 	ADSBRxAircraftDetailsView* 	aircraft_details_view { nullptr };
 	bool 				send_updates { false };
 	std::database 			db = { };	
@@ -372,11 +371,14 @@ private:
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
 	void update();
-	bool update_required { false };
+	int updateState = { 0 };
+	void updateRecentEntries();
+	void updateDetailsAndMap(int ageStep);
+
 	#define MARKER_UPDATE_SECONDS (5)
 	int ticksSinceMarkerRefresh { MARKER_UPDATE_SECONDS-1 };
 	// app save settings
-	std::app_settings 		settings { }; 		
+	std::app_settings 				settings { }; 		
 	std::app_settings::AppSettings 	app_settings { };
 	
 	const RecentEntriesColumns columns { {

@@ -130,6 +130,12 @@ private:
 	};
 };
 
+enum MapMarkerStored {
+	MARKER_NOT_STORED,
+	MARKER_STORED,
+	MARKER_LIST_FULL
+};
+
 class GeoMap : public Widget {
 public:
 	std::function<void(float, float)> on_move { };
@@ -151,7 +157,10 @@ public:
 		angle_ = new_angle;
 	}
 
-	void store_marker(GeoMarker & marker, const int pos);
+	static const int NumMarkerListElements = 30;
+
+	void clear_markers();
+	MapMarkerStored store_marker(GeoMarker & marker);
 
 private:
 	void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
@@ -174,7 +183,6 @@ private:
 	uint16_t angle_ { };
 	std::string tag_ { };
 
-	static const int NumMarkerListElements = 30;
 	int markerListLen {0};
 	GeoMarker markerList[NumMarkerListElements];
 	bool markerListUpdated {false};
@@ -212,7 +220,8 @@ public:
 	
 	std::string title() const override { return "Map view"; };
 
-	void  store_marker(GeoMarker & marker, const int pos);
+	void clear_markers();
+	MapMarkerStored store_marker(GeoMarker & marker);
 
 	void update_tag(const std::string tag);
 

@@ -82,6 +82,7 @@ float fast_pow2(const float val) {
 	return u.f;
 }
 
+
 float mag2_to_dbv_norm(const float mag2) {
 	constexpr float mag2_log2_max = 0.0f; //std::log2(1.0f);
 	constexpr float log_mag2_mag_factor = 0.5f;
@@ -89,6 +90,71 @@ float mag2_to_dbv_norm(const float mag2) {
 	constexpr float log10_dbv_factor = 20.0f;
 	constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
 	return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;
+}
+
+// Integer in and out approximation
+// found to be >40 times faster sqrt(x*x+y*y) in float
+int fast_int_magnitude(int y, int x)
+{
+  if(y<0){y=-y;}
+  if(x<0){x=-x;}
+  if (x>y)  {
+    return ((x*61)+(y*26)+32)/64;
+  } else {
+    return ((y*61)+(x*26)+32)/64;
+  }
+}
+
+// Integer x and y returning an integer bearing in degrees
+int int_atan2(int y, int x)
+{
+	// Number of bits to shift up before doing the maths.  A larger
+	// may beable to gain accuracy, but it would cause the correction
+	// entries to be larger than 1 byte
+	// Testsed on M0+ to be >60 times faster than atan2
+	static const int bits = 10; 
+	static const int pi4 = (1 << bits);
+	static const int pi34 = (3 << bits);
+
+	// Special case
+	if (x == 0 && y == 0) { return 0; }
+
+	// Form an approximate angle
+	const int yabs = y >= 0 ? y : -y;
+	int angle;
+	if (x >= 0) {
+		angle = pi4 - pi4 * (x - yabs) / (x + yabs);
+	} else {
+		angle = pi34 - pi4 * (x + yabs) / (yabs - x);
+	}
+	// Correct the result using a lookup table
+	static const int8_t correct[32] = { 0, -23, -42, -59, -72, -83 ,-89 ,-92 ,-92 ,-88 ,-81, -71, -58, -43 ,-27, -9, 9, 27,	43,	58,	71,	81,	88,	92,	92,	89,	83,	72,	59,	42,	23,	0 };
+	static const int rnd = (1 << (bits - 1)) / 45; // Minor correction to round to correction values better (add 0.5)
+	const int idx = ((angle + rnd) >> (bits - 4)) & 0x1F;
+	angle += correct[idx];
+
+	// Scale for output in degrees
+	static const int half = (1 << (bits - 1));
+	angle = ((angle * 45)+half) >> bits; // Add on half before rounding
+	if (y < 0) { angle = -angle; }
+	return angle;
+}
+
+int32_t int16_sin_s4(int32_t x)
+{
+	static const int qN = 14, qA = 16, qR=12, B = 19900, C = 3516;
+
+	const int32_t c = x << (30 - qN); // Semi-circle info into carry.
+	x -= 1 << qN;                     // sine -> cosine calc
+
+	x = x << (31 - qN);               // Mask with PI
+	x = x >> (31 - qN);               // Note: SIGNED shift! (to qN)
+	x = x*x >> (2 * qN - 14);         // x=x^2 To Q14
+
+	int32_t y = B - (x*C >> 14);      // B - x^2*C
+	y = (1 << qA) - (x*y >> qR);      // A - x^2*(B-x^2*C)
+
+	return c >= 0 ? y : -y;
 }
 
 /* GCD implementation derived from recursive implementation at

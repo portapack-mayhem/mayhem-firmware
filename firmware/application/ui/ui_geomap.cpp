@@ -249,9 +249,9 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
 	Point arrow_a, arrow_b, arrow_c;
 	
 	for (size_t thickness = 0; thickness < 3; thickness++) {
-		arrow_a = polar_to_point(angle, size) + origin;
-		arrow_b = polar_to_point(angle + 180 - 35, size) + origin;
-		arrow_c = polar_to_point(angle + 180 + 35, size) + origin;
+		arrow_a = fast_polar_to_point((int)angle, size) + origin;
+		arrow_b = fast_polar_to_point((int)(angle + 180 - 35), size) + origin;
+		arrow_c = fast_polar_to_point((int)(angle + 180 + 35), size) + origin;
 		
 		display.draw_line(arrow_a, arrow_b, color);
 		display.draw_line(arrow_b, arrow_c, color);
@@ -288,18 +288,39 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
 	}
 }
 
-void  GeoMap::store_marker(GeoMarker & marker, const int pos)
+void GeoMap::clear_markers()
 {
-	if (pos<0)
+	markerListLen = 0;
+}
+
+MapMarkerStored GeoMap::store_marker(GeoMarker & marker)
+{
+	MapMarkerStored ret;
+
+	//int x = (map_width * (marker.lon+180)/360) - x_pos;
+	//const auto width = screen_rect().width();
+	//if ((x<0) || (x>=width)){
+
+	// Check if it could be on screen
+	// Only checking one direction to reduce CPU
+	const auto r = screen_rect();
+	double lat_rad = sin(marker.lat * pi / 180);
+	int x = (map_width * (marker.lon+180)/360) - x_pos;
+	int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos; // Offset added for the GUI
+	if (false==((x>=0) && (x<r.width()) && (y>10) && (y<r.height()))) // Dont draw within symbol size of top
 	{
-		markerListLen = 0;
+		ret = MARKER_NOT_STORED;
 	}
-	else if (pos<NumMarkerListElements)
+	else if (markerListLen<NumMarkerListElements)
 	{
-		markerList[pos] = marker;
-		markerListLen = pos+1;
+		markerList[markerListLen] = marker;
+		markerListLen++;
 		markerListUpdated = true;
+		ret = MARKER_STORED;
+	} else {
+		ret = MARKER_LIST_FULL;
 	}
+	return ret;
 }
 
 
@@ -437,10 +458,14 @@ GeoMapView::GeoMapView(
 	};
 }
 
-
-void  GeoMapView::store_marker(GeoMarker & marker, const int pos)
+void GeoMapView::clear_markers()
 {
-	geomap.store_marker(marker, pos);
+	geomap.clear_markers();
+}
+
+MapMarkerStored GeoMapView::store_marker(GeoMarker & marker)
+{
+	return geomap.store_marker(marker);
 }
 
 } /* namespace ui */

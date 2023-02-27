@@ -90,6 +90,10 @@ inline float magnitude_squared(const std::complex<float> c) {
 	return r2 + i2;
 }
 
+int fast_int_magnitude(int y, int x);
+int int_atan2(int y, int x);
+int32_t int16_sin_s4(int32_t x);
+
 template<class T>
 struct range_t {
 	const T minimum;
