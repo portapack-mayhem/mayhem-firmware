@@ -40,9 +40,9 @@ using namespace adsb;
 
 namespace ui {
 
-#define ADSB_DECAY_A 		10		// Seconds
-#define ADSB_DECAY_B 		30		// Seconds
-#define ADSB_DECAY_C 		300		// Used for removing old entries
+#define ADSB_CURRENT 		10		// Seconds
+#define ADSB_RECENT 		30		// Seconds
+#define ADSB_REMOVE 		300		// Used for removing old entries
 
 #define AIRCRAFT_ID_L		1		// aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H		4		// aircraft ID message type (highest type id)
@@ -133,11 +133,11 @@ struct AircraftRecentEntry {
 	
 	void inc_age(int delta) {
 		age+=delta;
-		if (age < ADSB_DECAY_A){
+		if (age < ADSB_CURRENT){
 			age_state = pos.valid ? 0 : 1;
-		} else if(age < ADSB_DECAY_B){
+		} else if(age < ADSB_RECENT){
 			age_state = 2;
-		} else if(age < ADSB_DECAY_C){
+		} else if(age < ADSB_REMOVE){
 			age_state = 3;
 		} else{
 			age_state = 4;
@@ -372,7 +372,6 @@ private:
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
-	void update();
 	int updateState = { 0 };
 	void updateRecentEntries();
 	void updateDetailsAndMap(int ageStep);

@@ -46,10 +46,10 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	auto entry_age = entry.age;
 	
 	// Color decay for flights not being updated anymore
-	if (entry_age < ADSB_DECAY_A) {
+	if (entry_age < ADSB_CURRENT) {
 		aged_color = 0x10;
 		target_color = Color::green();
-	} else if (entry_age < ADSB_DECAY_B) {
+	} else if (entry_age < ADSB_RECENT) {
 		aged_color = 0x07;
 		target_color = Color::light_grey();
 	} else {
@@ -61,7 +61,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 	entry_string += aged_color;
 	entry_string += 
 		(entry.callsign[0]!=' ' ? entry.callsign + " " : entry.icaoStr + "   ") +
-		to_string_dec_uint((unsigned int)((entry.pos.altitude+50)/100),4) +
+		to_string_dec_uint(((((unsigned int)entry.pos.altitude*41u)+2048u)>>13u),4) + // Divide approx 100 without a divide
 		to_string_dec_uint((unsigned int)entry.velo.speed,4) +
 		to_string_dec_uint((unsigned int)(entry.amp>>9),4) + " " +
 		(entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
@@ -440,25 +440,15 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 	}
 }
 
-void ADSBRxView::on_tick_second() { 
-	update();
-}
-
 // Alternate updateing age and map, and the table view
-void ADSBRxView::update() {
-	if (updateState==0)
-	{
-		if (recent.size() < 16){ // If there aren't many entries update everything (16 is one screen full)
-			updateDetailsAndMap(1);
-			updateRecentEntries();
-		} else { // Uodate only the setails and map
-			
-			updateState = 1;
-			updateDetailsAndMap(2);
-		}
-	}
-	else
-	{
+void ADSBRxView::on_tick_second() { 
+	if (recent.size() <= 16){ 		// Not many entries update everything (16 is one screen full)
+		updateDetailsAndMap(1);
+		updateRecentEntries();
+	} else if (updateState==0) { 	// Even second
+		updateState = 1;
+		updateDetailsAndMap(2);
+	} else { 						// Odd second only performed when there are many entries
 		updateState = 0;
 		updateRecentEntries();
 	}
@@ -475,7 +465,8 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
 
 	// Calculate if it is time to update markers
 	if (send_updates && details_view && details_view->geomap_view) {
-		if (ticksSinceMarkerRefresh++ >= MARKER_UPDATE_SECONDS) { // Update other aircraft every N seconds
+		ticksSinceMarkerRefresh += ageStep;
+		if (ticksSinceMarkerRefresh >= MARKER_UPDATE_SECONDS) { // Update other aircraft every few seconds
 			storeNewMarkers = true;
 			ticksSinceMarkerRefresh=0;
 		}
@@ -487,9 +478,11 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
 	const bool otherMarkersCanBeSent = send_updates && storeNewMarkers && details_view && details_view->geomap_view; // Save retesting all of this
 	MapMarkerStored markerStored = MARKER_NOT_STORED;
 	if (otherMarkersCanBeSent) {details_view->geomap_view->clear_markers();}
+	// Loop through all entries
 	for (auto& entry : recent) {
 		entry.inc_age(ageStep);
 		
+		// Only if there is a details view
 		if (send_updates && details_view) {
 			if (entry.key() == detailed_entry_key) // Check if the ICAO address match
 			{
@@ -505,7 +498,7 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
 				markerStored = details_view->geomap_view->store_marker(marker);
 			}
 		}
-	}  // Loop through all entries
+	}  // Loop through all entries, if only to update the age
 }
 
 void ADSBRxView::updateRecentEntries() {

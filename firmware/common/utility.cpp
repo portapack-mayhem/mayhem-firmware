@@ -93,7 +93,8 @@ float mag2_to_dbv_norm(const float mag2) {
 }
 
 // Integer in and out approximation
-// found to be >40 times faster sqrt(x*x+y*y) in float
+// >40 times faster float sqrt(x*x+y*y) on Cortex M0
+// derived from https://dspguru.com/dsp/tricks/magnitude-estimator/
 int fast_int_magnitude(int y, int x)
 {
   if(y<0){y=-y;}
@@ -106,12 +107,13 @@ int fast_int_magnitude(int y, int x)
 }
 
 // Integer x and y returning an integer bearing in degrees
+// Accurate to 0.5 degrees, so output scaled to whole degrees
+// >60 times faster than float atan2 on Cortex M0
 int int_atan2(int y, int x)
 {
-	// Number of bits to shift up before doing the maths.  A larger
+	// Number of bits to shift up before doing the maths.  A larger shift
 	// may beable to gain accuracy, but it would cause the correction
 	// entries to be larger than 1 byte
-	// Testsed on M0+ to be >60 times faster than atan2
 	static const int bits = 10; 
 	static const int pi4 = (1 << bits);
 	static const int pi34 = (3 << bits);
@@ -140,6 +142,11 @@ int int_atan2(int y, int x)
 	return angle;
 }
 
+// 16 bit value represents a full cycle in but can handle multiples of this. 
+// Output in range +/- 16 bit value representing +/- 1.0
+// 4th order cosine approximation has very small error
+// >200 times faster tan float sin on Cortex M0
+// see https://www.coranac.com/2009/07/sines/
 int32_t int16_sin_s4(int32_t x)
 {
 	static const int qN = 14, qA = 16, qR=12, B = 19900, C = 3516;
