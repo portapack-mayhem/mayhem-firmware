@@ -182,7 +182,7 @@ int main(void) {
 		portapack::shutdown();
 	}
 
-	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf);
+	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf, true);
 	m0_halt();
 
 	return 0;

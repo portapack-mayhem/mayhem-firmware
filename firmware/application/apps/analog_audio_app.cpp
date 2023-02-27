@@ -136,6 +136,7 @@ AnalogAudioView::AnalogAudioView(
 		field_vga.set_value(app_settings.vga);
 		receiver_model.set_rf_amp(app_settings.rx_amp);
 		field_frequency.set_value(app_settings.rx_frequency);
+		receiver_model.set_configuration_without_init(static_cast<ReceiverModel::Mode>(app_settings.modulation), app_settings.step, app_settings.am_config_index, app_settings.nbfm_config_index, app_settings.wfm_config_index, app_settings.squelch);
 	}
 	else field_frequency.set_value(receiver_model.tuning_frequency());
 	
@@ -193,36 +194,45 @@ AnalogAudioView::AnalogAudioView(
 	audio::output::start();
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
-    	on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
+	on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {
-    return spec_bw_index;
+	return spec_bw_index;
 }
 
 void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
-    spec_bw_index = index;
-    spec_bw = bw;
+	spec_bw_index = index;
+	spec_bw = bw;
 
-    baseband::set_spectrum(bw, spec_trigger);
-    receiver_model.set_sampling_rate(bw);
-    receiver_model.set_baseband_bandwidth(bw/2);
+	baseband::set_spectrum(bw, spec_trigger);
+	receiver_model.set_sampling_rate(bw);
+	receiver_model.set_baseband_bandwidth(bw/2);
 }
 
 uint16_t AnalogAudioView::get_spec_trigger() {
-    return spec_trigger;
+	return spec_trigger;
 }
 
 void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
-    spec_trigger = trigger;
+	spec_trigger = trigger;
 
-    baseband::set_spectrum(spec_bw, spec_trigger);
+	baseband::set_spectrum(spec_bw, spec_trigger);
 }
 
 AnalogAudioView::~AnalogAudioView() {
 
 	// save app settings
 	app_settings.rx_frequency = field_frequency.value();
+	app_settings.lna = receiver_model.lna();
+	app_settings.vga = receiver_model.vga();
+	app_settings.rx_amp = receiver_model.rf_amp();
+	app_settings.step = receiver_model.frequency_step();
+	app_settings.modulation = (uint8_t)receiver_model.modulation();
+	app_settings.am_config_index = receiver_model.am_configuration();
+	app_settings.nbfm_config_index = receiver_model.nbfm_configuration();
+	app_settings.wfm_config_index = receiver_model.wfm_configuration();
+	app_settings.squelch = receiver_model.squelch_level();
 	settings.save("rx_audio", &app_settings);
 
 	// TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do

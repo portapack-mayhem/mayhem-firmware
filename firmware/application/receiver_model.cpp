@@ -313,3 +313,12 @@ size_t ReceiverModel::wfm_configuration() const {
 void ReceiverModel::update_wfm_configuration() {
 	wfm_configs[wfm_config_index].apply();
 }
+
+void ReceiverModel::set_configuration_without_init(const Mode new_mode, const rf::Frequency new_frequency_step, const size_t new_am_config_index, const size_t new_nbfm_config_index, const size_t new_wfm_config_index, uint8_t new_squelch_level) {
+	mode_ = new_mode;
+	frequency_step_ = new_frequency_step;
+	am_config_index = new_am_config_index;
+	nbfm_config_index = new_nbfm_config_index;
+	wfm_config_index = new_wfm_config_index;
+	squelch_level_ = new_squelch_level;
+}

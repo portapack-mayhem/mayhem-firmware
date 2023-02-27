@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <array>
 
+#include "platform.hpp"
 #include "gpio.hpp"
 #include "ui.hpp"
 

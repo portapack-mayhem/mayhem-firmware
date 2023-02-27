@@ -57,13 +57,13 @@ static msg_t ookthread_fn(void * arg) {
 		v = (symbol < 2) ? 1 : 0;	// TX on for dot or dash, off for pause
 		delay = morse_symbols[symbol];
 		
-		gpio_tx.write(v);
+		gpio_og_tx.write(v);
 		arg_c->on_tx_progress(i, false);
 		
 		chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
 	}
 	
-	gpio_tx.write(0);				// Ensure TX is off
+	gpio_og_tx.write(0);				// Ensure TX is off
 	arg_c->on_tx_progress(0, true);
 	chThdExit(0);
 	

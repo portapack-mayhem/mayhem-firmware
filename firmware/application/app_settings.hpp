@@ -59,6 +59,11 @@ public:
 		uint32_t 	tx_frequency;
 		uint8_t 	tx_gain;
 		uint8_t 	vga;
+		uint32_t 	step;
+		uint8_t 	am_config_index;
+		uint8_t 	nbfm_config_index;
+		uint8_t 	wfm_config_index;
+		uint8_t 	squelch;
 	};
 
 	int load(std::string application, AppSettings* settings);
