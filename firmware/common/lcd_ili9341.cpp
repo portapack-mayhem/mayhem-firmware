@@ -606,12 +606,35 @@ void ILI9341::draw_bitmap(
 	const ui::Color foreground,
 	const ui::Color background
 ) {
-	lcd_start_ram_write(p, size);
+	// Not a transparent background
+	if (ui::Color::magenta().v!=background.v)
+	{
+		lcd_start_ram_write(p, size);
 
-	const size_t count = size.width() * size.height();
-	for(size_t i=0; i<count; i++) {
-		const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-		io.lcd_write_pixel(pixel ? foreground : background);
+		const size_t count = size.width() * size.height();
+		for(size_t i=0; i<count; i++) {
+			const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+			io.lcd_write_pixel(pixel ? foreground : background);
+		}
+	}
+	else
+	{
+		int x = p.x();
+		int y = p.y();
+		int maxX = x + size.width();
+		const size_t count = size.width() * size.height();
+		for(size_t i=0; i<count; i++) {
+			const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+			if (pixel) {
+				draw_pixel(ui::Point(x,y), foreground);
+			}
+			// Move to the next pixel
+			x++;
+			if (x>=maxX){
+				x = p.x();
+				y++;
+			}
+		}
 	}
 }
 
