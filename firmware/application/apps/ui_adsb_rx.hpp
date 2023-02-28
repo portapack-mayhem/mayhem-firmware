@@ -272,6 +272,7 @@ public:
 
 	std::database::AirlinesDBRecord airline_record = {};
 	
+	GeoMapView* geomap_view { nullptr };
 private:
 	AircraftRecentEntry 		entry_copy { 0 };
 	std::function<void(void)> 	on_close_ { };
