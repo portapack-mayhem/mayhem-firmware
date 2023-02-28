@@ -255,3 +255,9 @@ double get_decimals(double num, int16_t mult, bool round) {
 	if (num > .5) intnum++;			//Round up
 	return intnum;
 }
+
+std::string trimr(std::string str)
+{
+	size_t last = str.find_last_not_of(' ');
+	return (last!=std::string::npos) ? str.substr(0, last+1) : ""; // Remove the trailing spaces
+}
