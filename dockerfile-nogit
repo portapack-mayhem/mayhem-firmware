@@ -21,7 +21,7 @@ RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
 #Fetch additional dependencies from Python 3.x pip
 RUN pip install pyyaml
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+	ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
@@ -38,4 +38,4 @@ RUN mkdir ~/bin && cd ~/bin && \
 	for tool in gcc g++ cpp c++;do ln -s $(which ccache) arm-none-eabi-$tool;done
 
 CMD cd .. && cd build && \
-    cmake .. && make firmware
+	cmake .. && make firmware
