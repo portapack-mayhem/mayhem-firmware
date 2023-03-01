@@ -343,6 +343,8 @@ struct TouchEvent {
 
 Point polar_to_point(float angle, uint32_t distance);
 
+Point fast_polar_to_point(int32_t angle, uint32_t distance);
+
 } /* namespace ui */
 
 #endif/*__UI_H__*/

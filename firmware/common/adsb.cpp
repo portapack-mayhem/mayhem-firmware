@@ -22,6 +22,7 @@
 
 #include "adsb.hpp"
 #include "sine_table.hpp"
+#include "utility.hpp"
 
 #include <math.h>
 
@@ -369,11 +370,11 @@ adsb_vel decode_frame_velo(ADSBFrame& frame){
 		if(frame_data[5]&0x04) velo_ew *= -1; //check ew direction sign
 		if(frame_data[7]&0x80) velo_ns *= -1; //check ns direction sign
 
-		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
+		velo.speed = fast_int_magnitude(velo_ns,velo_ew);
 		
 		if(velo.speed){
 			//calculate heading in degrees from ew/ns velocities
-			int16_t heading_temp = (int16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
+			int16_t heading_temp = (int16_t)(int_atan2(velo_ew,velo_ns)); // Nearest degree
 			// We don't want negative values but a 0-360 scale. 
 			if (heading_temp < 0) heading_temp += 360.0;
 			velo.heading = (uint16_t)heading_temp;
