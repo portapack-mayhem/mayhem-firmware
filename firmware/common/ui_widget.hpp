@@ -676,6 +676,7 @@ public:
 	void set_sym(const uint32_t index, const uint32_t new_value);
 	void set_length(const uint32_t new_length);
 	void set_symbol_list(const uint32_t index, const std::string symbol_list);
+	uint16_t concatenate_4_octal_u16();
 	uint32_t value_dec_u32();
 	uint64_t value_hex_u64();
 	std::string value_string();
