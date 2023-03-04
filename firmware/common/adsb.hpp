@@ -33,7 +33,8 @@ namespace adsb {
 
 enum downlink_format {
 	DF_ADSB = 17,
-	DF_EHS_SQUAWK = 21
+	DF_EHS_SQUAWK = 21,		//  DF 21: Comm-B with identity reply . Mode S enhanced surveillance of squawk + (MB_field = Track and turn report (BDS 5,0)). 
+							//  Confirmed that it is Detected correctly by dump1090. and sdrangel. 
 };
 
 enum type_code {
@@ -104,7 +105,7 @@ adsb_vel decode_frame_velo(ADSBFrame& frame);
 
 //void encode_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code);
 
-void encode_frame_squawk(ADSBFrame& frame, const uint32_t squawk);
+void encode_frame_squawk(ADSBFrame& frame, const uint16_t squawk);
 
 } /* namespace adsb */
 

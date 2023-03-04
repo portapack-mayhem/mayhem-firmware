@@ -1662,6 +1662,20 @@ SymField::SymField(
 	set_focusable(true);
 }
 
+uint16_t SymField::concatenate_4_octal_u16() {
+// input array 4  octal digits , return 12 bits, same order,  trippled A4-A2-A1|B4-B2-B1|C4-C2-C1|D4-D2-D1
+	uint32_t mul = 1; 	uint16_t v = 0;
+	
+	if (type_ == SYMFIELD_OCT ) {
+		for (uint32_t c = 0; c < length_; c++) {
+			v += values_[(length_ - 1 - c)] * mul;
+			mul *= 8;	// shift 3 bits to the right every new octal squawk digit
+		}
+		return v;		
+	} else 
+		return 0;
+}
+
 uint32_t SymField::value_dec_u32() {
 	uint32_t mul = 1, v = 0;
 	
