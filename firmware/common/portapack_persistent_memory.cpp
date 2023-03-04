@@ -399,6 +399,17 @@ namespace cache {
 
 void defaults() {
 	cached_backup_ram = backup_ram_t();
+
+	// defaults values for recon app
+	set_recon_autosave_freqs( false );
+	set_recon_autostart_recon( true );
+	set_recon_continuous( true );
+	set_recon_clear_output( false );
+	set_recon_load_freqs( true );
+	set_recon_load_ranges( true );
+	set_recon_update_ranges_when_recon( true );
+	set_recon_load_hamradios( true );
+	set_recon_match_mode( 0 );
 }
 
 void init() {
