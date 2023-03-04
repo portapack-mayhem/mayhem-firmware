@@ -410,7 +410,6 @@ void defaults() {
     set_recon_update_ranges_when_recon( true );
     set_recon_load_hamradios( true );
     set_recon_match_mode( 0 );
-
 }
 
 void init() {
