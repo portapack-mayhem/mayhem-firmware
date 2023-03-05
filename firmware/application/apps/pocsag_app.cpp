@@ -77,6 +77,11 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 		&console
 	});
 	
+	// Set on_change before initialising the field
+	field_frequency.on_change = [this](rf::Frequency f) {
+		update_freq(f);
+	};
+
 	// load app settings
 	auto rc = settings.load("rx_pocsag", &app_settings);
 	if(rc == SETTINGS_OK) {
@@ -94,9 +99,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 	receiver_model.enable();
 	
 	field_frequency.set_step(receiver_model.frequency_step());
-	field_frequency.on_change = [this](rf::Frequency f) {
-		update_freq(f);
-	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
