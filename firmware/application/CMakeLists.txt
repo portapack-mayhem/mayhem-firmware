@@ -275,7 +275,6 @@ set(CPPSRC
 	apps/ui_recon.cpp  
 	apps/ui_recon_settings.cpp
 	apps/ui_level.cpp  
-	apps/ui_level_settings.cpp
 	apps/tpms_app.cpp
 	apps/tpms_app.cpp
 	protocols/aprs.cpp

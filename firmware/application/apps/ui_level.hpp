@@ -40,72 +40,6 @@
 
 namespace ui {
 
-    class LevelThread {
-        public:
-            LevelThread(freqman_db *database );
-            ~LevelThread();
-
-            void set_level(const bool v);
-            void set_freq_delete(const bool v);
-            bool is_level();
-
-            void set_lock_duration( const uint32_t v );
-            uint32_t get_lock_duration();
-            void set_lock_nb_match( const uint32_t v );
-            void set_match_mode( const uint32_t v );
-            uint32_t get_lock_nb_match();
-
-            void set_freq_lock(const uint32_t v);
-            uint32_t is_freq_lock();
-            int64_t get_current_freq();
-
-            void set_stepper(const int64_t v);
-
-            void change_level_direction();
-            bool get_level_direction();
-            void set_level_direction( const bool v);
-
-            void set_continuous(const bool v);
-
-            void set_default_modulation( freqman_index_t index );
-            freqman_index_t get_current_modulation();
-            void set_default_bandwidth( freqman_index_t index );
-            freqman_index_t get_current_bandwidth();
-            void set_default_step( freqman_index_t index );
-            void set_freq_index( int16_t index );
-            int16_t get_freq_index();
-
-            void run();
-            void stop();
-
-            LevelThread(const LevelThread&) = delete;
-            LevelThread(LevelThread&&) = delete;
-            LevelThread& operator=(const LevelThread&) = delete;
-            LevelThread& operator=(LevelThread&&) = delete;
-
-        private:
-            freqman_db &frequency_list_ ;
-            Thread* thread { nullptr };
-            int64_t freq = 0 ;
-            uint32_t step = 0 ;
-            freqman_index_t def_modulation  = 0 ;
-            freqman_index_t def_bandwidth = 0 ;
-            freqman_index_t def_step = 0 ;
-            tone_index tone = 0 ;
-            freqman_entry last_entry = { } ;
-            int16_t frequency_index = 0 ;
-
-            bool _level { true };
-            bool _freq_delete { false };
-            bool _fwd { true };
-            bool _continuous { true };
-            int64_t _stepper { 0 };
-            int32_t _freq_lock { 0 };
-            uint32_t _lock_duration { 50 };
-            uint32_t _lock_nb_match { 10 };
-            static msg_t static_fn(void* arg);
-    };
-
     class LevelView : public View {
         public:
             LevelView(NavigationView& nav);
@@ -158,59 +92,20 @@ namespace ui {
         private:
             NavigationView& nav_;
 
-            void start_level_thread();
             size_t change_mode( freqman_index_t mod_type);
-            void show_max( bool refresh_display = false );
-            void level_pause();
-            void level_resume();
-            void user_pause();
-            void user_resume();
-            void frequency_file_load( bool stop_all_before = false);
             void on_statistics_update(const ChannelStatistics& statistics);
-            void on_headphone_volume_changed(int32_t v);
             void set_display_freq( int64_t freq );
-            void handle_retune( int64_t freq , uint32_t index );
             bool check_sd_card();
 
-            jammer::jammer_range_t frequency_range { false, 0, 0 };  //perfect for manual level task too...
-            int32_t squelch { 0 };
             int32_t db { 0 };
-            int32_t timer { 0 };
-            int32_t wait { 5000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
-            uint32_t lock_wait { 500 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
-            int32_t def_step { 0 };
-            freqman_db frequency_list  = { };
-            uint32_t current_index { 0 };
-            bool userpause { false };
-            bool continuous_lock { false };
-            std::string input_file = { "LEVEL" };
-            std::string output_file = { "LEVEL_RESULTS" };
-            bool autosave    = { true };
-            bool autostart   = { true };
-            bool continuous  = { true }; 
-            bool filedelete  = { true };
-            bool load_freqs  = { true };
-            bool load_ranges = { true };
-            bool load_hamradios = { true };
-            bool update_ranges = { true };
-            bool fwd = { true };
-            // maximum usable freq
-            long long int MAX_UFREQ = { 7200000000 };
-            uint32_t level_lock_nb_match = { 10 };
-            uint32_t level_lock_duration = { 50 };
-            uint32_t level_match_mode = { 0 };
-            bool scanner_mode { false };
-            bool manual_mode { false };
+            long long int MAX_UFREQ = { 7200000000 }; // maximum usable freq
             bool sd_card_mounted = false ;
-            int32_t volume = 40 ;
+            rf::Frequency freq = { 0 } ;
 
             Labels labels 
             { 
-                { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey() },
-                    { { 0  * 8 , 1  * 16      }, "BW:      SQ:    W,L:     ,     ", Color::light_grey() },
-                    { { 3  * 8 , 10 * 16      }, "START       END     MANUAL", Color::light_grey() },
-                    { { 0  * 8 , (26 * 8) + 4 }, "MODE:", Color::light_grey() },
-                    { { 11 * 8 , (26 * 8) + 4 }, "STEP:", Color::light_grey() },
+                    { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  ", Color::light_grey() },
+                    { { 0  * 8 , 1  * 16      }, "BW:       MODE:    S:   ", Color::light_grey() },
             };
 
             LNAGainField field_lna {
@@ -225,168 +120,41 @@ namespace ui {
                 { 18 * 8, 0 * 16 }
             };
 
-            NumberField field_volume {
-                { 24 * 8, 0 * 16 },
-                    2,
-                    { 0, 99 },
-                    1,
-                    ' ',
-            };
-
             OptionsField field_bw {
                 { 3 * 8, 1 * 16 },
                     6,
                     { }
             };		
-
-            NumberField field_squelch {
-                { 12 * 8, 1 * 16 },
-                    3,
-                    { -90, 20 },
-                    1,
-                    ' ',
-            };
-
-            NumberField field_wait {
-                { 20 * 8, 1 * 16 },
-                    5,
-                    { -9000, 9000 },
-                    100,
-                    ' ',
-            };
-
-            NumberField field_lock_wait {
-                { 26 * 8, 1 * 16 },
-                    4,
-                    { 100 , 9000 },
-                    100,
-                    ' ',
-            };
-
-            RSSI rssi {
-                { 0 * 16, 2 * 16, 15 * 16, 8 },
-            }; 
-
-            Text text_cycle {
-                { 0, 3 * 16, 3 * 8, 16 },  
-            };
-
-            Text text_max {
-                { 3 * 8, 3 * 16, 20 * 8 , 16 },  
-            };
-
-            Text desc_cycle {
-                {0, 4 * 16, 240, 16 },	   
-            };
-
-            /* BigFrequency big_display {		//Show frequency in glamour
-               { 4, 7 * 16 - 8 , 28 * 8, 52 },
-               0
-               }; */
-
-            Text big_display {		//Show frequency in text mode
-                { 0, 5 * 16 , 28 * 8, 16 },
-            };
-
-            Text freq_stats {		//Show frequency stats in text mode
-                { 0, 6 * 16 , 28 * 8, 16 },
-            };
-
-            Text text_timer {		//Show frequency stats in text mode
-                { 0, 7 * 16 , 28 * 8, 16 },
-            };
-
-            Button button_level_setup {
-                { 25 * 8 , 2 * 16 + 8 , 4 * 8, 28 },
-                    "OPT"
-            };
-
-            Button button_scanner_mode {
-                { 21 * 8 , 8 * 16 , 9 * 8, 28 },
-                    "LEVEL"
-            };
-
-            Text file_name {		//Show file used
-                { 0 , 8 * 16 + 4 , 20 * 8, 16 },
-            };
-
-
-            ButtonWithEncoder button_manual_start {
-                { 0 * 8, 11 * 16, 11 * 8, 28 },
-                    ""
-            };
-
-            ButtonWithEncoder button_manual_end {
-                { 12 * 8 - 6, 11 * 16, 11 * 8, 28 },
-                    ""
-            };
-
-            Button button_manual_level {
-                { 23 * 8 - 3, 11 * 16, 7 * 8 , 28 },
-                    "SEARCH"
-            };
-
+            
             OptionsField field_mode {
-                { 5 * 8, (26 * 8) + 4 },
-                    6,
+                { 15 * 8, 1 * 16 },
+                    3,
                     {
                     }
             };
 
             OptionsField step_mode {
-                { 17 * 8, (26 * 8) + 4 },
+                { 21 * 8, 1 * 16 },
                     12,
                     {
                     }
             };
 
-            ButtonWithEncoder button_pause {
-                { 0, (15 * 16) - 4, 72, 28 },
-                    "PAUSE"
+            Text freq_stats {		
+                { 6 * 8 , 2 * 16 , 28 * 8, 16 },
+            };
+
+            RSSI rssi { // 240x320  => 
+                { 160  , 3 * 16 , 6 * 8 , 320 - 3 * 16 },
             }; 
 
-
-            Button button_audio_app {
-                { 84, (15 * 16) - 4, 72, 28 },
-                    "AUDIO"
-            };
-
-            ButtonWithEncoder button_add {
-                { 168, (15 * 16) - 4, 72, 28 },
-                    "<STORE>"
-            };
-
-            Button button_dir {
-                { 0,  (35 * 8) - 4, 34, 28 },
-                    "FW>"
-            };
-
-            Button button_restart {
-                { 38, (35 * 8) - 4, 34, 28 },
-                    "RST"
+            ButtonWithEncoder button_frequency {
+                { 0 * 8 , 160 - 2 * 8 , 16 * 8, 4 * 8 },
+                    ""
             };
 
 
-            Button button_mic_app {
-                { 84,  (35 * 8) - 4, 72, 28 },
-                    "MIC TX"
-            };
-
-            ButtonWithEncoder button_remove {
-                { 168, (35 * 8) - 4, 72, 28 },
-                    "<REMOVE>"
-            };
-
-            std::unique_ptr<LevelThread> level_thread { };
-
-            MessageHandlerRegistration message_handler_retune {
-                Message::ID::Retune,
-                    [this](const Message* const p) {
-                        const auto message = *reinterpret_cast<const RetuneMessage*>(p);
-                        this->handle_retune(message.freq,message.range);
-                    }
-            };
-
+          
             MessageHandlerRegistration message_handler_stats {
                 Message::ID::ChannelStatistics,
                     [this](const Message* const p) {
