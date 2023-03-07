@@ -38,46 +38,106 @@ void RSSI::paint(Painter& painter) {
 	constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
 	constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
 	constexpr int raw_delta = raw_max - raw_min;
-	const range_t<int> x_avg_range { 0, r.width() - 1 };
-	const auto x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
-	const range_t<int> x_min_range { 0, x_avg };
-	const auto x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
-	const range_t<int> x_max_range { x_avg + 1, r.width() };
-	const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
 
-	const Rect r0 { r.left(), r.top(), x_min, r.height() };
-	painter.fill_rectangle(
-		r0,
-		Color::blue()
-	);
 
-	const Rect r1 { r.left() + x_min, r.top(), x_avg - x_min, r.height() };
-	painter.fill_rectangle(
-		r1,
-		Color::red()
-	);
+    if( !vertical_rssi_enabled )
+    {
+        // horizontal left to right level meters
+	    const range_t<int> x_avg_range { 0, r.width() - 1 };
+    	const auto x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
+	    const range_t<int> x_min_range { 0, x_avg };
+	    const auto x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
+	    const range_t<int> x_max_range { x_avg + 1, r.width() };
+	    const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
 
-	const Rect r2 { r.left() + x_avg, r.top(), 1, r.height() };
-	painter.fill_rectangle(
-		r2,
-		Color::white()
-	);
+        // x_min
+    	const Rect r0 { r.left(), r.top(), x_min, r.height() };
+    	painter.fill_rectangle(
+    		r0,
+    		Color::blue()
+    	);
+    
+        // x_avg
+    	const Rect r1 { r.left() + x_min, r.top(), x_avg - x_min, r.height() };
+    	painter.fill_rectangle(
+    		r1,
+    		Color::red()
+    	);
+    
+        // x_avg middle marker
+    	const Rect r2 { r.left() + x_avg, r.top(), 1, r.height() };
+    	painter.fill_rectangle(
+    		r2,
+    		Color::white()
+    	);
+    
+        // x_max
+    	const Rect r3 { r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height() };
+    	painter.fill_rectangle(
+    		r3,
+    		Color::red()
+    	);
+    
+        // filling last part in black
+    	const Rect r4 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
+    	painter.fill_rectangle(
+    		r4,
+    		Color::black()
+    	);
+        
+    }
+    else
+    {
+        // vertical bottom to top level meters
+        const range_t<int> y_avg_range { 0, r.height() - 1 };
+    	const auto y_avg = y_avg_range.clip((avg_ - raw_min) * r.height() / raw_delta);
+	    const range_t<int> y_min_range { 0, y_avg };
+	    const auto y_min = y_min_range.clip((min_ - raw_min) * r.height() / raw_delta);
+	    const range_t<int> y_max_range { y_avg + 1, r.height() };
+	    const auto y_max = y_max_range.clip((max_ - raw_min) * r.height() / raw_delta);
 
-	const Rect r3 { r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height() };
-	painter.fill_rectangle(
-		r3,
-		Color::red()
-	);
+        // y_min
+        const Rect r0 { r.left(), r.bottom() - y_min, r.width() , y_min };
+    	painter.fill_rectangle(
+    		r0,
+    		Color::blue()
+    	);
+   
+        // y_avg
+        const Rect r1 { r.left(), r.bottom() - y_avg , r.width() , y_avg - y_min };
+    	painter.fill_rectangle(
+    		r1,
+    		Color::red()
+    	);
+    
+       
+        // y_avg middle marker
+        const Rect r2 { r.left(), r.bottom() - y_avg , r.width() , 1 };
+    	painter.fill_rectangle(
+    		r2,
+    		Color::white()
+    	);
 
-	const Rect r4 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
-	painter.fill_rectangle(
-		r4,
-		Color::black()
-	);
-	
-	if (pitch_rssi_enabled) {
-		baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
-	}
+        // y_max
+        const Rect r3 {  r.left(), r.bottom() - y_max , r.width() , y_max - y_avg - 1 };
+    	painter.fill_rectangle(
+    		r3,
+    		Color::red()
+    	);
+        
+        // fill last part of level in black
+        const Rect r4 { r.left(), r.top() , r.width() , r.height() - y_max };
+    	painter.fill_rectangle(
+    		r4,
+    		Color::black()
+    	);
+
+    }
+        
+    if (pitch_rssi_enabled) {
+    	baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
+    }
+    
 }
 
 int32_t RSSI::get_min()
@@ -99,6 +159,14 @@ void RSSI::set_pitch_rssi(bool enabled) {
 	pitch_rssi_enabled = enabled;
 	if (!enabled) baseband::set_pitch_rssi(0, false);
 }
+
+void RSSI::set_vertical_rssi(bool enabled) {
+    if( enabled )
+        vertical_rssi_enabled = true ;
+    else
+	    vertical_rssi_enabled = false ;
+}
+
 
 void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
 	min_ = statistics.min;

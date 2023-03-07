@@ -49,6 +49,7 @@ public:
     int32_t get_min();
     int32_t get_avg();
     int32_t get_max();
+	void set_vertical_rssi(bool enabled);
 	
 private:
 	int32_t min_;
@@ -56,6 +57,7 @@ private:
 	int32_t max_;
 	
 	bool pitch_rssi_enabled = false;
+    bool vertical_rssi_enabled = false;
 
 	MessageHandlerRegistration message_handler_stats {
 		Message::ID::RSSIStatistics,
