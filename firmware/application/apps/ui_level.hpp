@@ -33,6 +33,7 @@
 #include "ui_mictx.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"
+#include "ui_spectrum.hpp"
 #include "string_format.hpp"
 #include "file.hpp"
 #include "app_settings.hpp"
@@ -104,7 +105,7 @@ namespace ui {
 
             Labels labels 
             { 
-                    { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  ", Color::light_grey() },
+                { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  ", Color::light_grey() },
                     { { 0  * 8 , 1  * 16      }, "BW:       MODE:    S:   ", Color::light_grey() },
             };
 
@@ -125,7 +126,7 @@ namespace ui {
                     6,
                     { }
             };		
-            
+
             OptionsField field_mode {
                 { 15 * 8, 1 * 16 },
                     3,
@@ -140,21 +141,63 @@ namespace ui {
                     }
             };
 
-            Text freq_stats {		
-                { 6 * 8 , 2 * 16 , 28 * 8, 16 },
-            };
-
             RSSI rssi { // 240x320  => 
-                { 160  , 3 * 16 , 6 * 8 , 320 - 3 * 16 },
+                { 240 - 5 * 8 , 2 * 16 + 12 , 5 * 8 , 320 - 3 * 16 - 4  },
             }; 
 
             ButtonWithEncoder button_frequency {
-                { 0 * 8 , 160 - 2 * 8 , 16 * 8, 4 * 8 },
+                { 0 * 8 , 2 * 16 + 8 , 15 * 8 , 1 * 8 },
                     ""
             };
 
+            Text text_ctcss {
+                { 17 * 8, 2 * 16 + 4 , 14 * 8, 1 * 8 },
+                    ""
+            };
 
-          
+            Text freq_stats_rssi {		
+                { 0 * 8 , 3 * 16 + 4 , 20 * 8, 16 },
+            };
+
+            Text freq_stats_db {		
+                { 0 * 8 , 4 * 16 + 4 , 15 * 8, 16 },
+            };
+
+            OptionsField audio_mode {
+                { 1 * 8, 5 * 16 + 4 },
+                    6,
+                    {
+                        {"audio:none", 0},
+                        {"audio:demod",1},
+                        {"audio:tone", 2}
+                    }
+            };		
+
+            OptionsField peak_mode {
+                { 44 + 8 * 8, 5 * 16 + 4 },
+                    10,
+                    {
+                        {"peak:none", 0},
+                        {"peak:0.25s",250},
+                        {"peak:0.5s",500},
+                        {"peak:1s",1000},
+                        {"peak:3s",3000},
+                        {"peak:5s",5000},
+                        {"peak:10s",10000},
+                    }
+            };		
+
+            void handle_coded_squelch(const uint32_t value);
+
+
+            MessageHandlerRegistration message_handler_coded_squelch {
+                Message::ID::CodedSquelch,
+                    [this](const Message* const p) {
+                        const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
+                        this->handle_coded_squelch(message.value);
+                    }
+            };
+
             MessageHandlerRegistration message_handler_stats {
                 Message::ID::ChannelStatistics,
                     [this](const Message* const p) {

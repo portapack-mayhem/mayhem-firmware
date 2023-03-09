@@ -39,7 +39,7 @@ namespace ui {
     }
 
     LevelView::~LevelView() {
-        
+
         // save app settings
         app_settings.lna = field_lna.value();
         app_settings.vga = field_vga.value();
@@ -59,11 +59,15 @@ namespace ui {
                 &field_vga,
                 &field_rf_amp,
                 &field_bw,
-                &rssi,
-                &freq_stats,
-                &button_frequency,
                 &field_mode,
                 &step_mode,
+                &button_frequency,
+                &text_ctcss,
+                &freq_stats_rssi,
+                &freq_stats_db,
+                &audio_mode,
+                &peak_mode,
+                &rssi
                 } );
 
         rssi.set_vertical_rssi( true );
@@ -74,8 +78,8 @@ namespace ui {
             sd_card_mounted = true ;
         }
 
-        change_mode(AM_MODULATION);	//Start on AM
-        field_mode.set_by_value(AM_MODULATION);	//Reflect the mode into the manual selector
+        change_mode(NFM_MODULATION);	//Start on AM
+        field_mode.set_by_value(NFM_MODULATION);	//Reflect the mode into the manual selector
 
         //HELPER: Pre-setting a manual range, based on stored frequency
         freq = persistent_memory::tuned_frequency();
@@ -130,17 +134,54 @@ namespace ui {
             }
         };
 
+        peak_mode.on_change = [this](size_t, OptionsField::value_t v) {
+            if( v == 0 )
+            {
+                rssi.set_peak( false , 0 );
+            }
+            else
+            {
+                rssi.set_peak( true , v );
+            }
+        };
+
+        // default peak value 
+        peak_mode.set_selected_index(1);
         //FILL STEP OPTIONS
         freqman_set_modulation_option( field_mode );
         freqman_set_step_option_short( step_mode );
-        freq_stats.set_style(&style_white);
+        freq_stats_rssi.set_style(&style_white);
+        freq_stats_db.set_style(&style_white);
     }
 
     void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
-        if(  statistics.max_db != 0 && db != statistics.max_db )
+        static int last_max_db = -1000 ;
+        static int last_min_rssi = -1000 ;
+        static int last_med_rssi = -1000 ;
+        static int last_max_rssi = -1000 ;
+
+        bool refresh_db = false ;
+        bool refresh_rssi = false ;
+
+        if(  last_max_db != statistics.max_db )
         {
-            db =  statistics.max_db ;
-            freq_stats.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
+            refresh_db = true ;
+        }
+        if( last_min_rssi != rssi.get_min() || last_med_rssi != rssi.get_avg() || last_max_rssi != rssi.get_max() )
+        {
+            refresh_rssi = true ;
+        }
+        if( refresh_db )
+        {
+            last_max_db =  statistics.max_db ;
+            freq_stats_db.set( "Power: "+to_string_dec_int( statistics.max_db )+" db" );
+        }
+        if( refresh_rssi )
+        {
+            last_min_rssi = rssi.get_min();
+            last_med_rssi = rssi.get_avg();
+            last_max_rssi = rssi.get_max();
+            freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
         }
     } /* on_statistic_updates */
 
@@ -184,5 +225,28 @@ namespace ui {
         }
         return step_mode.selected_index();
     }
+
+
+    void LevelView::handle_coded_squelch(const uint32_t value) {
+        float diff, min_diff = value;
+        size_t min_idx { 0 };
+        size_t c;
+
+        // Find nearest match
+        for (c = 0; c < tone_keys.size(); c++) {
+            diff = abs(((float)value / 100.0) - tone_keys[c].second);
+            if (diff < min_diff) {
+                min_idx = c;
+                min_diff = diff;
+            }
+        }
+
+        // Arbitrary confidence threshold
+        if (min_diff < 40)
+            text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
+        else
+            text_ctcss.set("???");
+    }
+
 
 } /* namespace ui */
