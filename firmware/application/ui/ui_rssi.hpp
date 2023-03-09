@@ -50,14 +50,20 @@ public:
     int32_t get_avg();
     int32_t get_max();
 	void set_vertical_rssi(bool enabled);
+	void set_peak(bool enabled, size_t duration);
 	
 private:
 	int32_t min_;
 	int32_t avg_;
 	int32_t max_;
+	int32_t peak_ = 0 ;
+    size_t peak_duration_ = 0 ;
 	
 	bool pitch_rssi_enabled = false;
-    bool vertical_rssi_enabled = false;
+    bool vertical_rssi_enabled = false; // scale [vertically/from bottom to top]
+                                        // instead of [horizontally/from left to right]
+    bool peak_enabled = false;
+    size_t peak_duration = 1000;        // peak duration in msec before being reset to actual max_rssi 
 
 	MessageHandlerRegistration message_handler_stats {
 		Message::ID::RSSIStatistics,
