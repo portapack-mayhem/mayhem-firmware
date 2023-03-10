@@ -105,7 +105,7 @@ namespace ui {
 
             Labels labels 
             { 
-                { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  ", Color::light_grey() },
+                { { 0  * 8 , 0  * 16      }, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey() },
                     { { 0  * 8 , 1  * 16      }, "BW:       MODE:    S:   ", Color::light_grey() },
             };
 
@@ -119,6 +119,14 @@ namespace ui {
 
             RFAmpField field_rf_amp {
                 { 18 * 8, 0 * 16 }
+            };
+
+            NumberField field_volume {
+                { 24 * 8, 0 * 16 },
+                    2,
+                    { 0, 99 },
+                    1,
+                    ' ',
             };
 
             OptionsField field_bw {
@@ -140,13 +148,13 @@ namespace ui {
                     {
                     }
             };
-
+            
             RSSIGraph rssi_graph { // 240x320  => 
-                { 0 , 6 * 16 + 4 , 240 - 5 * 8 , 320 - 6 * 16 - 4 },
+                { 0 , 5 * 16 + 4 , 240 - 5 * 8 , 320 - 5 * 16 - 4 },
             }; 
 
             RSSI rssi { // 240x320  => 
-                { 240 - 5 * 8 , 6 * 16 + 4 , 5 * 8 , 320 - 6 * 16 - 4 },
+                { 240 - 5 * 8 , 5 * 16 + 4 , 5 * 8 , 320 - 5 * 16 - 4 },
             }; 
 
 
@@ -154,6 +162,18 @@ namespace ui {
                 { 0 * 8 , 2 * 16 + 8 , 15 * 8 , 1 * 8 },
                     ""
             };
+
+            OptionsField audio_mode {
+                { 16 * 8, 2 * 16 + 4 },
+                    9,
+                    {
+                        {"audio off", 0},
+                        {"audio on",1}
+                        //{"tone on", 2},
+                        //{"tone off", 2},
+                    }
+            };		
+
 
             Text text_ctcss {
                 { 17 * 8, 2 * 16 + 4 , 14 * 8, 1 * 8 },
@@ -168,18 +188,9 @@ namespace ui {
                 { 0 * 8 , 4 * 16 + 4 , 15 * 8, 16 },
             };
 
-            OptionsField audio_mode {
-                { 1 * 8, 5 * 16 + 4 },
-                    6,
-                    {
-                        {"audio:none", 0},
-                        {"audio:demod",1},
-                        {"audio:tone", 2}
-                    }
-            };		
-
+           
             OptionsField peak_mode {
-                { 44 + 8 * 8, 5 * 16 + 4 },
+                { 44 + 10 * 8, 4 * 16 + 4 },
                     10,
                     {
                         {"peak:none", 0},
@@ -193,6 +204,7 @@ namespace ui {
             };		
 
             void handle_coded_squelch(const uint32_t value);
+            void on_headphone_volume_changed(int32_t v);
 
             MessageHandlerRegistration message_handler_coded_squelch {
                 Message::ID::CodedSquelch,

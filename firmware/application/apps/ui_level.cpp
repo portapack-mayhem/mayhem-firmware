@@ -58,6 +58,7 @@ namespace ui {
                 &field_lna,
                 &field_vga,
                 &field_rf_amp,
+                &field_volume,
                 &field_bw,
                 &field_mode,
                 &step_mode,
@@ -72,6 +73,9 @@ namespace ui {
                 } );
 
         rssi.set_vertical_rssi( true );
+
+        field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v);	};
+        field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
         // Level directory
         if( check_sd_card() ) {                     // Check to see if SD Card is mounted
@@ -131,9 +135,30 @@ namespace ui {
                 receiver_model.disable();
                 baseband::shutdown();
                 change_mode(v);
+                if( audio_mode.selected_index() != 0 )
+                {
+                    audio::output::start();								
+                }
                 receiver_model.enable();
             }
         };
+
+        audio_mode.on_change = [this](size_t, OptionsField::value_t v) {
+            if( v == 0 )
+            {
+                audio::output::stop();
+            }
+            else if( v == 1 )
+            {
+                audio::output::start();
+                this->on_headphone_volume_changed( (receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99 );
+            }
+            else
+            {
+
+            }
+        };
+
 
         peak_mode.on_change = [this](size_t, OptionsField::value_t v) {
             if( v == 0 )
@@ -155,13 +180,19 @@ namespace ui {
         freq_stats_db.set_style(&style_white);
     }
 
+    void LevelView::on_headphone_volume_changed(int32_t v) {
+        const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+        receiver_model.set_headphone_volume(new_volume);
+    }
+
+
     void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         static int last_max_db = -1000 ;
         static int last_min_rssi = -1000 ;
         static int last_avg_rssi = -1000 ;
         static int last_max_rssi = -1000 ;
 
-        rssi_graph.add_values( rssi.get_min() , rssi.get_avg() , rssi.get_max() );
+        rssi_graph.add_values( rssi.get_min() , rssi.get_avg() , rssi.get_max() , statistics.max_db );
 
         bool refresh_db = false ;
         bool refresh_rssi = false ;
