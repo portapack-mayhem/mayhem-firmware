@@ -485,7 +485,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 		{ "Radiosnde", 	ui::Color::green(),		&bitmap_icon_sonde,		[&nav](){ nav.push<SondeView>(); } },
 		{ "TPMS Cars", 	ui::Color::green(),		&bitmap_icon_tpms,		[&nav](){ nav.push<TPMSAppView>(); } },
        	{ "Recon", 	    ui::Color::green(),		&bitmap_icon_scanner,	[&nav](){ nav.push<ReconView>(); } },
-       	{ "Level", 	    ui::Color::green(),		&bitmap_icon_scanner,	[&nav](){ nav.push<LevelView>(); } },
+       	{ "Level", 	    ui::Color::green(),		&bitmap_icon_options_radio,	[&nav](){ nav.push<LevelView>(); } },
 		{ "APRS", 		ui::Color::green(),		&bitmap_icon_aprs,		[&nav](){ nav.push<APRSRXView>(); } }
 		/*
 		{ "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
