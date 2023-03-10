@@ -88,6 +88,7 @@ struct RSSIGraph_entry {
 	int32_t rssi_min { 0 };
 	int32_t rssi_avg { 0 };
 	int32_t rssi_max { 0 };
+	int32_t db { 0 };
 };
 
 using RSSIGraphList = std::vector<RSSIGraph_entry>;
@@ -100,7 +101,7 @@ public:
 	{
 	}
 	void paint(Painter& painter) override;
-	void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max );
+	void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db );
 	
 private:
 	RSSIGraphList graph_list { } ;

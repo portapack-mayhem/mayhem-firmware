@@ -51,7 +51,7 @@ namespace ui {
             const auto x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
             const range_t<int> x_min_range { 0, x_avg };
             const auto x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
-            const range_t<int> x_max_range { x_avg + 1, r.width() };
+            const range_t<int> x_max_range { x_avg + 1, r.width() - 1 };
             const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
             const auto peak =  x_max_range.clip((peak_ - raw_min) * r.width() / raw_delta);
 
@@ -107,7 +107,7 @@ namespace ui {
             const auto y_avg = y_avg_range.clip((avg_ - raw_min) * r.height() / raw_delta);
             const range_t<int> y_min_range { 0, y_avg };
             const auto y_min = y_min_range.clip((min_ - raw_min) * r.height() / raw_delta);
-            const range_t<int> y_max_range { y_avg + 1, r.height() };
+            const range_t<int> y_max_range { y_avg + 1, r.height() - 1 };
             const auto y_max = y_max_range.clip((max_ - raw_min) * r.height() / raw_delta);
             const range_t<int> peak_range { 0, r.height() - 1 };
             const auto peak =  peak_range.clip((peak_ - raw_min) * r.height() / raw_delta);
@@ -132,13 +132,6 @@ namespace ui {
                     r2,
                     Color::white()
                     );
-
-            /*        // y_avg
-                      const Rect r2 { r.left(), r.bottom() - y_avg , r.width() , y_avg - y_min };
-                      painter.fill_rectangle(
-                      r2,
-                      Color::white()
-                      ); */
 
             // y_max
             const Rect r3 {  r.left(), r.bottom() - y_max , r.width() , y_max - y_avg };
@@ -165,7 +158,6 @@ namespace ui {
                         );
             }
         }
-
         if (pitch_rssi_enabled) {
             baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
         }
@@ -231,32 +223,6 @@ namespace ui {
             auto& entry = graph_list[graph_list.size()-n];
             auto& prev_entry = graph_list[graph_list.size()-(n-1)];
 
-         /*   // black
-            const Point p0{ r.right() - n , r.top() };
-            painter.draw_vline(
-                    p0,
-                    r.height()-entry.rssi_max,
-                    Color::black());
-
-            // y_max
-            const Point p1{ r.right() - n , r.bottom() - entry.rssi_max };
-            painter.draw_vline(
-                    p1,
-                    entry.rssi_max,
-                    Color::red());
-            // y_avg    
-            const Point p2{ r.right() - n , r.bottom() - entry.rssi_avg };
-            painter.draw_vline(
-                    p2,
-                    entry.rssi_avg,
-                    Color::white());
-
-            // y_min
-            const Point p3{ r.right() - n , r.bottom() - entry.rssi_min };
-            painter.draw_vline(
-                    p3,
-                    entry.rssi_min,
-                    Color::blue()); */
             // black
             const Point p0{ r.right() - n , r.top() };
             painter.draw_vline(
@@ -296,10 +262,21 @@ namespace ui {
                     p3,
                     width_y,
                     Color::blue());
+
+            // hack to display db
+            top_y_val = max( entry.db , prev_entry.db );
+            width_y = abs(  entry.db - prev_entry.db );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p4{ r.right() - n , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p4,
+                    width_y,
+                    Color::green());
         }
     }
 
-    void RSSIGraph::add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max )
+    void RSSIGraph::add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db )
     {
         const auto r = screen_rect();
 
@@ -316,10 +293,15 @@ namespace ui {
         const auto y_avg = y_avg_range.clip((rssi_avg - raw_min) * r.height() / raw_delta);
         const range_t<int> y_min_range { 0, y_avg };
         const auto y_min = y_min_range.clip((rssi_min - raw_min) * r.height() / raw_delta);
-        const range_t<int> y_max_range { y_avg + 1, r.height() };
+        const range_t<int> y_max_range { y_avg + 1, r.height() - 1 };
         const auto y_max = y_max_range.clip((rssi_max - raw_min) * r.height() / raw_delta);
+        const range_t<int> db_range { -100 , 20 };
+        auto db_ = db_range.clip( db );
+        db_ = db_ - 20 ;
+        db_ = db_ * r.height() / 120 ;
+        db_ = r.height() + db_ ;
 
-        graph_list . push_back( { y_min, y_avg, y_max } );
+        graph_list . push_back( { y_min, y_avg, y_max , db_ } );
         if( graph_list.size() >  (unsigned)r.width() )
         {
             graph_list.erase( graph_list.begin() );
