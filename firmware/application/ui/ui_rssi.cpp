@@ -26,6 +26,10 @@
 
 #include <algorithm>
 
+#define min(a,b) ((a)<(b)?(a):(b))
+#define max(a,b) ((a)>(b)?(a):(b))
+#define abs(x) ((x)>0?(x):-(x))
+
 namespace ui {
 
     void RSSI::paint(Painter& painter) {
@@ -223,10 +227,11 @@ namespace ui {
     void RSSIGraph::paint(Painter& painter) {
         const auto r = screen_rect();
 
-        for ( int n = 1; (unsigned)n <= graph_list.size(); n++) {
+        for ( int n = 2 ; (unsigned)n <= graph_list.size(); n++) {
             auto& entry = graph_list[graph_list.size()-n];
+            auto& prev_entry = graph_list[graph_list.size()-(n-1)];
 
-            // black
+         /*   // black
             const Point p0{ r.right() - n , r.top() };
             painter.draw_vline(
                     p0,
@@ -251,6 +256,45 @@ namespace ui {
             painter.draw_vline(
                     p3,
                     entry.rssi_min,
+                    Color::blue()); */
+            // black
+            const Point p0{ r.right() - n , r.top() };
+            painter.draw_vline(
+                    p0,
+                    r.height(),
+                    Color::black());
+
+            // y_max
+            int32_t top_y_val = max( entry.rssi_max , prev_entry.rssi_max );
+            int32_t width_y = abs(  entry.rssi_max - prev_entry.rssi_max  );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p1{ r.right() - n , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p1,
+                    width_y,
+                    Color::red());
+
+            // y_avg    
+            top_y_val = max( entry.rssi_avg , prev_entry.rssi_avg );
+            width_y = abs(  entry.rssi_avg - prev_entry.rssi_avg  );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p2{ r.right() - n , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p2,
+                    width_y,
+                    Color::white());
+
+            // y_min
+            top_y_val = max( entry.rssi_min , prev_entry.rssi_min );
+            width_y = abs(  entry.rssi_min - prev_entry.rssi_min  );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p3{ r.right() - n , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p3,
+                    width_y,
                     Color::blue());
         }
     }
