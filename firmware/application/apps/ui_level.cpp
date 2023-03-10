@@ -202,7 +202,7 @@ namespace ui {
                 receiver_model.set_am_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
-                text_ctcss.hidden(true);
+                text_ctcss.set("             ");
                 break;
             case NFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
@@ -213,7 +213,6 @@ namespace ui {
                 receiver_model.set_nbfm_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
-                text_ctcss.hidden(false);
                 break;
             case WFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
@@ -224,7 +223,7 @@ namespace ui {
                 receiver_model.set_wfm_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
-                text_ctcss.hidden(false);
+                text_ctcss.set("             ");
                 break;
             default:
                 break;
@@ -234,9 +233,17 @@ namespace ui {
 
 
     void LevelView::handle_coded_squelch(const uint32_t value) {
+        static int32_t last_idx = -1 ;
+
         float diff, min_diff = value;
         size_t min_idx { 0 };
         size_t c;
+
+        if( field_mode.selected_index() != NFM_MODULATION )
+        {
+            text_ctcss.set("             ");
+            return ;
+        }
 
         // Find nearest match
         for (c = 0; c < tone_keys.size(); c++) {
@@ -248,10 +255,14 @@ namespace ui {
         }
 
         // Arbitrary confidence threshold
-        if (min_diff < 40)
-            text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
-        else
-            text_ctcss.set("???");
+        if( last_idx < 0 || (unsigned)last_idx != min_idx )
+        {
+            last_idx = min_idx ;
+            if (min_diff < 40)
+                text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
+            else
+                text_ctcss.set("             ");
+        }
     }
 
 } /* namespace ui */
