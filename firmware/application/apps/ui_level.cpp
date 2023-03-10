@@ -290,7 +290,7 @@ namespace ui {
         {
             last_idx = min_idx ;
             if (min_diff < 40)
-                text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
+                text_ctcss.set(tone_keys[min_idx].first);
             else
                 text_ctcss.set("             ");
         }
