@@ -47,8 +47,10 @@ namespace ui {
             ~LevelView();
 
             void focus() override;
-
+	    
             void big_display_freq( int64_t f );
+
+	        void on_audio_spectrum(const AudioSpectrum* spectrum);
 
             const Style style_grey {		// level
                 .font = font::fixed_8x16,
@@ -87,8 +89,6 @@ namespace ui {
             };
 
             std::string title() const override { return "Level"; };
-
-            //void set_parent_rect(const Rect new_parent_rect) override;
 
         private:
             NavigationView& nav_;
@@ -141,9 +141,14 @@ namespace ui {
                     }
             };
 
-            RSSI rssi { // 240x320  => 
-                { 240 - 5 * 8 , 2 * 16 + 12 , 5 * 8 , 320 - 3 * 16 - 4  },
+            RSSIGraph rssi_graph { // 240x320  => 
+                { 0 , 6 * 16 , 240 - 5 * 8 , 320 - 6 * 16 },
             }; 
+
+            RSSI rssi { // 240x320  => 
+                { 240 - 5 * 8 , 6 * 16 , 5 * 8 , 320 - 6 * 16 },
+            }; 
+
 
             ButtonWithEncoder button_frequency {
                 { 0 * 8 , 2 * 16 + 8 , 15 * 8 , 1 * 8 },
@@ -188,7 +193,6 @@ namespace ui {
             };		
 
             void handle_coded_squelch(const uint32_t value);
-
 
             MessageHandlerRegistration message_handler_coded_squelch {
                 Message::ID::CodedSquelch,

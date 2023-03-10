@@ -67,7 +67,8 @@ namespace ui {
                 &freq_stats_db,
                 &audio_mode,
                 &peak_mode,
-                &rssi
+                &rssi,
+                &rssi_graph
                 } );
 
         rssi.set_vertical_rssi( true );
@@ -157,8 +158,10 @@ namespace ui {
     void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         static int last_max_db = -1000 ;
         static int last_min_rssi = -1000 ;
-        static int last_med_rssi = -1000 ;
+        static int last_avg_rssi = -1000 ;
         static int last_max_rssi = -1000 ;
+
+        rssi_graph.add_values( rssi.get_min() , rssi.get_avg() , rssi.get_max() );
 
         bool refresh_db = false ;
         bool refresh_rssi = false ;
@@ -167,7 +170,7 @@ namespace ui {
         {
             refresh_db = true ;
         }
-        if( last_min_rssi != rssi.get_min() || last_med_rssi != rssi.get_avg() || last_max_rssi != rssi.get_max() )
+        if( last_min_rssi != rssi.get_min() || last_avg_rssi != rssi.get_avg() || last_max_rssi != rssi.get_max() )
         {
             refresh_rssi = true ;
         }
@@ -179,7 +182,7 @@ namespace ui {
         if( refresh_rssi )
         {
             last_min_rssi = rssi.get_min();
-            last_med_rssi = rssi.get_avg();
+            last_avg_rssi = rssi.get_avg();
             last_max_rssi = rssi.get_max();
             freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
         }
@@ -199,6 +202,7 @@ namespace ui {
                 receiver_model.set_am_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                text_ctcss.hidden(true);
                 break;
             case NFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
@@ -209,6 +213,7 @@ namespace ui {
                 receiver_model.set_nbfm_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                text_ctcss.hidden(false);
                 break;
             case WFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
@@ -219,6 +224,7 @@ namespace ui {
                 receiver_model.set_wfm_configuration(field_bw.selected_index());
                 field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
                 receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                text_ctcss.hidden(false);
                 break;
             default:
                 break;
@@ -247,6 +253,5 @@ namespace ui {
         else
             text_ctcss.set("???");
     }
-
 
 } /* namespace ui */
