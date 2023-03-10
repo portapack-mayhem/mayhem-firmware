@@ -219,4 +219,67 @@ namespace ui {
         set_dirty();
     }
 
+
+    void RSSIGraph::paint(Painter& painter) {
+        const auto r = screen_rect();
+
+        for ( int n = 1; (unsigned)n <= graph_list.size(); n++) {
+            auto& entry = graph_list[graph_list.size()-n];
+
+            // black
+            const Point p0{ r.right() - n , r.top() };
+            painter.draw_vline(
+                    p0,
+                    r.height()-entry.rssi_max,
+                    Color::black());
+
+            // y_max
+            const Point p1{ r.right() - n , r.bottom() - entry.rssi_max };
+            painter.draw_vline(
+                    p1,
+                    entry.rssi_max,
+                    Color::red());
+            // y_avg    
+            const Point p2{ r.right() - n , r.bottom() - entry.rssi_avg };
+            painter.draw_vline(
+                    p2,
+                    entry.rssi_avg,
+                    Color::white());
+
+            // y_min
+            const Point p3{ r.right() - n , r.bottom() - entry.rssi_min };
+            painter.draw_vline(
+                    p3,
+                    entry.rssi_min,
+                    Color::blue());
+        }
+    }
+
+    void RSSIGraph::add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max )
+    {
+        const auto r = screen_rect();
+
+        constexpr int rssi_sample_range = 256;
+        constexpr float rssi_voltage_min = 0.4;
+        constexpr float rssi_voltage_max = 2.2;
+        constexpr float adc_voltage_max = 3.3;
+        constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
+        constexpr int raw_delta = raw_max - raw_min;
+
+        // vertical bottom to top level meters
+        const range_t<int> y_avg_range { 0, r.height() - 1 };
+        const auto y_avg = y_avg_range.clip((rssi_avg - raw_min) * r.height() / raw_delta);
+        const range_t<int> y_min_range { 0, y_avg };
+        const auto y_min = y_min_range.clip((rssi_min - raw_min) * r.height() / raw_delta);
+        const range_t<int> y_max_range { y_avg + 1, r.height() };
+        const auto y_max = y_max_range.clip((rssi_max - raw_min) * r.height() / raw_delta);
+
+        graph_list . push_back( { y_min, y_avg, y_max } );
+        if( graph_list.size() >  (unsigned)r.width() )
+        {
+            graph_list.erase( graph_list.begin() );
+        }
+        set_dirty();
+    }
 } /* namespace ui */

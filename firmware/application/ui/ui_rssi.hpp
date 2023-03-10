@@ -84,6 +84,28 @@ private:
 	void set_pitch_rssi(bool enabled);
 };
 
+struct RSSIGraph_entry {
+	int32_t rssi_min { 0 };
+	int32_t rssi_avg { 0 };
+	int32_t rssi_max { 0 };
+};
+
+using RSSIGraphList = std::vector<RSSIGraph_entry>;
+
+class RSSIGraph : public Widget {
+public:
+	RSSIGraph(
+		const Rect parent_rect
+	) : Widget { parent_rect }
+	{
+	}
+	void paint(Painter& painter) override;
+	void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max );
+	
+private:
+	RSSIGraphList graph_list { } ;
+};
+
 }
 
 #endif/*__UI_RSSI_H__*/
