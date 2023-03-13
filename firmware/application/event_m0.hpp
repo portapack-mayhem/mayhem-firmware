@@ -98,7 +98,6 @@ private:
 	static bool is_running;
 	bool sd_card_present = false;
 	static bool display_sleep;
-	bool halt = false;
 	bool in_key_event = false;
 
 	eventmask_t wait();

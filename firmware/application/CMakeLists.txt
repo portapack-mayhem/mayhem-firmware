@@ -125,7 +125,7 @@ set(CPPSRC
 	${COMMON}/cpld_max5.cpp
 	${COMMON}/cpld_update.cpp
 	${COMMON}/cpld_xilinx.cpp
-	${COMMON}/debug.cpp
+	debug.cpp
 	${COMMON}/ert_packet.cpp
 	${COMMON}/event.cpp
 	${COMMON}/gcc.cpp
