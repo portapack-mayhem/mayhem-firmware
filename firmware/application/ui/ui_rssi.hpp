@@ -49,6 +49,7 @@ public:
     int32_t get_min();
     int32_t get_avg();
     int32_t get_max();
+    int32_t get_delta();
 	void set_vertical_rssi(bool enabled);
 	void set_peak(bool enabled, size_t duration);
 	
