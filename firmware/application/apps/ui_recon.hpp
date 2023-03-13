@@ -31,6 +31,7 @@
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
 #include "ui_mictx.hpp"
+#include "ui_level.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -307,9 +308,8 @@ namespace ui {
             };
 
             Text file_name {		//Show file used
-                { 0 , 8 * 16 + 4 , 20 * 8, 16 },
+                { 0 , 8 * 16 + 4 , 21 * 8, 16 },
             };
-
 
             ButtonWithEncoder button_manual_start {
                 { 0 * 8, 11 * 16, 11 * 8, 28 },

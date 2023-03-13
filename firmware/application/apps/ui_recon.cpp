@@ -524,15 +524,21 @@ namespace ui {
                 if(frequency_list[index].description.size() > 0) desc_cycle.set( frequency_list[index].description );	//Show new description
             }
             big_display.set_style(&style_white);
+            if( !userpause )
+                button_pause.set_text("<PAUSE>");	
+            else
+                button_pause.set_text("<RESUME>");	
         }
         else if( freq_lock == 1 && recon_lock_nb_match != 1 )
         {
             //STARTING LOCK FREQ
             big_display.set_style(&style_yellow);
+            button_pause.set_text("<SKPLCK>");	
         }
         else if( index < 1000 && freq_lock >= recon_thread -> get_lock_nb_match() )
         {
             big_display.set_style( &style_green);
+            button_pause.set_text("<UNLOCK>");	
 
             //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
             if( (!scanner_mode) && autosave && last_freq != freq ) {
@@ -873,6 +879,13 @@ namespace ui {
             recon_thread->stop();
             nav_.pop();
             nav_.push<AnalogAudioView>();
+        };
+        
+        rssi.set_focusable(true);
+        rssi.on_select = [this](RSSI&) {
+            recon_thread->stop();
+            nav_.pop();
+            nav_.push<LevelView>();
         };
 
         button_mic_app.on_select = [this](Button&) {
@@ -1653,7 +1666,7 @@ namespace ui {
 
     void ReconView::user_pause() {
         timer = 0 ; 	 		        // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-        button_pause.set_text("<RESUME>");	//PAUSED, show resume
+        //button_pause.set_text("<RESUME>");	//PAUSED, show resume
         userpause=true;
         continuous_lock=false;
         recon_pause();
@@ -1661,7 +1674,7 @@ namespace ui {
 
     void ReconView::user_resume() {
         timer = 0 ; 	 		        // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-        button_pause.set_text("<PAUSE>");		//Show button for pause
+        //button_pause.set_text("<PAUSE>");		//Show button for pause
         userpause=false;			    // Resume recon
         continuous_lock=false;
         recon_resume();
