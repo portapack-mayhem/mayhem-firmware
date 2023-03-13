@@ -25,88 +25,96 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
-
 #include "event_m0.hpp"
-
 #include "message.hpp"
- 
 #include <cstdint>
 
 namespace ui {
 
-class RSSI : public Widget {
-public:
-	RSSI(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		min_ { 0 },
-		avg_ { 0 },
-		max_ { 0 }
-	{
-	}
+    class RSSI : public Widget {
+        public:
+            std::function<void(RSSI&)> on_select { };
+            std::function<void(RSSI&)> on_touch_release { }; // Executed when releasing touch, after on_select.
+            std::function<void(RSSI&)> on_touch_press { }; // Executed when touching, before on_select.
+            std::function<bool(RSSI&, KeyEvent)> on_dir { };
+            std::function<void(RSSI&)> on_highlight { };
 
-	void paint(Painter& painter) override;
-    int32_t get_min();
-    int32_t get_avg();
-    int32_t get_max();
-    int32_t get_delta();
-	void set_vertical_rssi(bool enabled);
-	void set_peak(bool enabled, size_t duration);
-	
-private:
-	int32_t min_;
-	int32_t avg_;
-	int32_t max_;
-	int32_t peak_ = 0 ;
-    size_t peak_duration_ = 0 ;
-	
-	bool pitch_rssi_enabled = false;
-    bool vertical_rssi_enabled = false; // scale [vertically/from bottom to top]
-                                        // instead of [horizontally/from left to right]
-    bool peak_enabled = false;
-    size_t peak_duration = 1000;        // peak duration in msec before being reset to actual max_rssi 
+            RSSI(
+                    const Rect parent_rect
+                ) : Widget { parent_rect },
+                min_ { 0 },
+                avg_ { 0 },
+                max_ { 0 }
+            {
+            }
 
-	MessageHandlerRegistration message_handler_stats {
-		Message::ID::RSSIStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
-		}
-	};
-	
-	MessageHandlerRegistration message_handler_pitch_rssi {
-		Message::ID::PitchRSSIConfigure,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const PitchRSSIConfigureMessage*>(p);
-			this->set_pitch_rssi(message.enabled);
-		}
-	};
+            int32_t get_min();
+            int32_t get_avg();
+            int32_t get_max();
+            int32_t get_delta();
+            void set_vertical_rssi(bool enabled);
+            void set_peak(bool enabled, size_t duration);
+            
+            void paint(Painter& painter) override;
+            void on_focus() override;
+            bool on_key(const KeyEvent key) override;
+            bool on_touch(const TouchEvent event) override;
 
-	void on_statistics_update(const RSSIStatistics& statistics);
-	void set_pitch_rssi(bool enabled);
-};
+        private:
+            int32_t min_;
+            int32_t avg_;
+            int32_t max_;
+            int32_t peak_ = 0 ;
+            size_t peak_duration_ = 0 ;
+	        bool instant_exec_ { false };
 
-struct RSSIGraph_entry {
-	int32_t rssi_min { 0 };
-	int32_t rssi_avg { 0 };
-	int32_t rssi_max { 0 };
-	int32_t db { 0 };
-};
+            bool pitch_rssi_enabled = false;
+            bool vertical_rssi_enabled = false; // scale [vertically/from bottom to top]
+                                                // instead of [horizontally/from left to right]
+            bool peak_enabled = false;
+            size_t peak_duration = 1000;        // peak duration in msec before being reset to actual max_rssi 
 
-using RSSIGraphList = std::vector<RSSIGraph_entry>;
+            MessageHandlerRegistration message_handler_stats {
+                Message::ID::RSSIStatistics,
+                    [this](const Message* const p) {
+                        this->on_statistics_update(static_cast<const RSSIStatisticsMessage*>(p)->statistics);
+                    }
+            };
 
-class RSSIGraph : public Widget {
-public:
-	RSSIGraph(
-		const Rect parent_rect
-	) : Widget { parent_rect }
-	{
-	}
-	void paint(Painter& painter) override;
-	void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db );
-	
-private:
-	RSSIGraphList graph_list { } ;
-};
+            MessageHandlerRegistration message_handler_pitch_rssi {
+                Message::ID::PitchRSSIConfigure,
+                    [this](const Message* const p) {
+                        const auto message = *reinterpret_cast<const PitchRSSIConfigureMessage*>(p);
+                        this->set_pitch_rssi(message.enabled);
+                    }
+            };
+
+            void on_statistics_update(const RSSIStatistics& statistics);
+            void set_pitch_rssi(bool enabled);
+    };
+
+    struct RSSIGraph_entry {
+        int32_t rssi_min { 0 };
+        int32_t rssi_avg { 0 };
+        int32_t rssi_max { 0 };
+        int32_t db { 0 };
+    };
+
+    using RSSIGraphList = std::vector<RSSIGraph_entry>;
+
+    class RSSIGraph : public Widget {
+        public:
+            RSSIGraph(
+                    const Rect parent_rect
+                    ) : Widget { parent_rect }
+            {
+            }
+            void paint(Painter& painter) override;
+            void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db );
+
+        private:
+            RSSIGraphList graph_list { } ;
+    };
 
 }
 
