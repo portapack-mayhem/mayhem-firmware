@@ -666,6 +666,7 @@ namespace ui {
                 &field_lock_wait,
                 &button_recon_setup,
                 &button_scanner_mode,
+                &button_looking_glass,
                 &file_name,
                 &rssi,
                 &text_cycle,
@@ -880,6 +881,13 @@ namespace ui {
             nav_.pop();
             nav_.push<AnalogAudioView>();
         };
+
+        button_looking_glass.on_select = [this](Button&) {
+            recon_thread->stop();
+            nav_.pop();
+            nav_.push<GlassView>();
+        };
+
         
         rssi.set_focusable(true);
         rssi.on_select = [this](RSSI&) {
@@ -1104,7 +1112,7 @@ namespace ui {
                 show_max(); /* display step information */
                 text_cycle.set( "MANUAL SEARCH" );
                 button_scanner_mode.set_style( &style_white );
-                button_scanner_mode.set_text( "M-SEARCH" );
+                button_scanner_mode.set_text( "MSEARCH" );
                 file_name.set_style( &style_white );
                 file_name.set( "USE: MANUAL RANGE" );
 
