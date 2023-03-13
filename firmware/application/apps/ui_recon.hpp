@@ -299,7 +299,7 @@ namespace ui {
             };
 
             Button button_recon_setup {
-                { 25 * 8 , 2 * 16 + 8 , 4 * 8, 28 },
+                { 240 - 4 * 8 , 2 * 16 + 8 , 4 * 8, 28 },
                     "OPT"
             };
 
