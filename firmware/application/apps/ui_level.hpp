@@ -47,10 +47,8 @@ namespace ui {
             ~LevelView();
 
             void focus() override;
-	    
-            void big_display_freq( int64_t f );
 
-	        void on_audio_spectrum(const AudioSpectrum* spectrum);
+            void big_display_freq( int64_t f );
 
             const Style style_grey {		// level
                 .font = font::fixed_8x16,
@@ -143,18 +141,18 @@ namespace ui {
             };
 
             OptionsField step_mode {
-                { 21 * 8, 1 * 16 },
+                { 16 * 8, 2 * 16 + 4 },
                     12,
                     {
                     }
             };
-            
+
             RSSIGraph rssi_graph { // 240x320  => 
-                { 0 , 5 * 16 + 4 , 240 - 5 * 8 , 320 - 5 * 16 - 4 },
+                { 0 , 5 * 16 + 4 , 240 - 5 * 8 , 216 },
             }; 
 
-            RSSI rssi { // 240x320  => 
-                { 240 - 5 * 8 , 5 * 16 + 4 , 5 * 8 , 320 - 5 * 16 - 4 },
+            RSSI rssi { // 240x320  =>  
+                { 240 - 5 * 8 , 5 * 16 + 4 , 5 * 8 , 216 },
             }; 
 
 
@@ -164,7 +162,7 @@ namespace ui {
             };
 
             OptionsField audio_mode {
-                { 16 * 8, 2 * 16 + 4 },
+                { 21 * 8, 1 * 16 },
                     9,
                     {
                         {"audio off", 0},
@@ -188,7 +186,7 @@ namespace ui {
                 { 0 * 8 , 4 * 16 + 4 , 15 * 8, 16 },
             };
 
-           
+
             OptionsField peak_mode {
                 { 44 + 10 * 8, 4 * 16 + 4 },
                     10,

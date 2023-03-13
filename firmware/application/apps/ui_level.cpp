@@ -215,7 +215,7 @@ namespace ui {
             last_min_rssi = rssi.get_min();
             last_avg_rssi = rssi.get_avg();
             last_max_rssi = rssi.get_max();
-            freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
+            freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db, dt: "+to_string_dec_int( rssi.get_delta() )+" db" );
         }
     } /* on_statistic_updates */
 
