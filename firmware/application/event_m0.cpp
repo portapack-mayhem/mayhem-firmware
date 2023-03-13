@@ -23,6 +23,7 @@
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "debug.hpp"
 
 #include "sd_card.hpp"
 #include "rtc_time.hpp"
@@ -141,37 +142,10 @@ eventmask_t EventDispatcher::wait() {
 
 void EventDispatcher::dispatch(const eventmask_t events) {
 	if( shared_memory.m4_panic_msg[0] != 0 ) {
-		halt = true;
-	}
-
-	if( halt ) {
-		if( shared_memory.m4_panic_msg[0] != 0 ) {
-			painter.fill_rectangle(
-				{ 0, 0, portapack::display.width(), portapack::display.height() },
-				ui::Color::red()
-			);
-
-			constexpr int border = 8;
-			painter.fill_rectangle(
-				{ border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2) },
-				ui::Color::black()
-			);
-
-			painter.draw_string({ 48, 24 }, top_widget->style(), "M4 Guru Meditation");
-
-			shared_memory.m4_panic_msg[sizeof(shared_memory.m4_panic_msg) - 1] = 0;
-			const std::string message = shared_memory.m4_panic_msg;
-			const int x_offset = (portapack::display.width() - (message.size() * 8)) / 2;
-			constexpr int y_offset = (portapack::display.height() - 16) / 2;
-			painter.draw_string(
-				{ x_offset, y_offset },
-				top_widget->style(),
-				message
-			);
-
-			shared_memory.m4_panic_msg[0] = 0;
-		}
-		return;
+		if (shared_memory.bb_data.data[0] == 0)
+			draw_guru_meditation(CORTEX_M4, shared_memory.m4_panic_msg);
+		else
+			draw_guru_meditation(CORTEX_M4, shared_memory.m4_panic_msg, (struct extctx *)&shared_memory.bb_data.data[4]);
 	}
 
 	if( events & EVT_MASK_APPLICATION ) {

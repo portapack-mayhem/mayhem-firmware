@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
  *
@@ -26,60 +27,36 @@
 
 #include "portapack_shared_memory.hpp"
 
-#if defined(LPC43XX_M0)
-static void debug_indicate_error_init() {
-	// TODO: Get knowledge of LED GPIO port/bit from shared place.
-	LPC_GPIO->CLR[2] = (1 << 2);
-}
+void write_m4_panic_msg(const char *panic_message, struct extctx *ctxp) {
+    if (ctxp == nullptr) {
+        shared_memory.bb_data.data[0] = 0;
+    }
+    else {
+        shared_memory.bb_data.data[0] = 1;
+        memcpy(&shared_memory.bb_data.data[4], ctxp, sizeof(struct extctx));
+    }
 
-static void debug_indicate_error_update() {
-	// Flash RX (yellow) LED to indicate baseband error.
-	// TODO: Get knowledge of LED GPIO port/bit from shared place.
-	LPC_GPIO->NOT[2] = (1 << 2);
-}
-#endif
-
-#if defined(LPC43XX_M4)
-static void debug_indicate_error_init() {
-	// TODO: Get knowledge of LED GPIO port/bit from shared place.
-	LPC_GPIO->CLR[2] = (1 << 8);
-}
-
-static void debug_indicate_error_update() {
-	// Flash TX (red) LED to indicate baseband error.
-	// TODO: Get knowledge of LED GPIO port/bit from shared place.
-	LPC_GPIO->NOT[2] = (1 << 8);
-}
-#endif
-
-static void runtime_error() {
-	debug_indicate_error_init();
-
-	while(true) {
-		volatile size_t n = 1000000U;
-		while(n--);
-		debug_indicate_error_update();
+	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
+		if( *panic_message == 0 ) {
+			shared_memory.m4_panic_msg[i] = 0;
+		} else {
+			shared_memory.m4_panic_msg[i] = *(panic_message++);
+		}
 	}
 }
 
 extern "C" {
-
+#if CH_DBG_ENABLED
 void port_halt(void) {
-	// Copy debug panic message to M0 region.
-	const auto* p = dbg_panic_msg;
-	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
-		if( *p == 0 ) {
-			shared_memory.m4_panic_msg[i] = 0;
-		} else {
-			shared_memory.m4_panic_msg[i] = *(p++);
-		}
-	}
-
 	port_disable();
-	runtime_error();
-}
 
-#if defined(LPC43XX_M4)
+    if (dbg_panic_msg == nullptr)
+        dbg_panic_msg = "system halted";
+
+    write_m4_panic_msg(dbg_panic_msg, nullptr);
+}
+#endif
+
 CH_IRQ_HANDLER(MemManageVector) {
 #if CH_DBG_ENABLED
 	chDbgPanic("MemManage");
@@ -103,6 +80,31 @@ CH_IRQ_HANDLER(UsageFaultVector) {
 	chSysHalt();
 #endif
 }
+
+CH_IRQ_HANDLER(HardFaultVector) {
+#if CH_DBG_ENABLED
+    regarm_t _saved_lr;
+    asm volatile ("mov     %0, lr" : "=r" (_saved_lr) : : "memory");
+	CH_IRQ_PROLOGUE();
+
+    struct extctx *ctxp;
+    port_lock_from_isr();
+
+    if ((uint32_t)_saved_lr & 0x04)
+        ctxp = (struct extctx *)__get_PSP();
+    else
+        ctxp = (struct extctx *)__get_MSP();
+
+    write_m4_panic_msg("Hard Fault", ctxp);
+
+	port_disable();
+    while (true);
+
+    CH_IRQ_EPILOGUE();
+#else
+	chSysHalt();
 #endif
+}
 
 }
+

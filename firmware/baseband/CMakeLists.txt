@@ -139,7 +139,7 @@ set(CPPSRC
 	audio_stats_collector.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/chibios_cpp.cpp
-	${COMMON}/debug.cpp
+	debug.cpp
 	${COMMON}/gcc.cpp
 	tone_gen.cpp
 )
