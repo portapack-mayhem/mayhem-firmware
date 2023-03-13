@@ -36,10 +36,11 @@ namespace ui {
         const auto r = screen_rect();
 
         constexpr int rssi_sample_range = 256;
-        constexpr float rssi_voltage_min = 0.4;
+        //constexpr float rssi_voltage_min = 0.4;
         constexpr float rssi_voltage_max = 2.2;
         constexpr float adc_voltage_max = 3.3;
-        constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_min = 0 ;
         constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
         constexpr int raw_delta = raw_max - raw_min;
 
@@ -178,6 +179,12 @@ namespace ui {
         return max_ ;
     }
 
+    int32_t RSSI::get_delta()
+    { 
+        return max_ - min_ ;
+    }
+
+
     void RSSI::set_pitch_rssi(bool enabled) {
         pitch_rssi_enabled = enabled;
         if (!enabled) baseband::set_pitch_rssi(0, false);
@@ -272,7 +279,7 @@ namespace ui {
             painter.draw_vline(
                     p4,
                     width_y,
-                    Color::green());
+                    Color::green() );
         }
     }
 
@@ -281,10 +288,11 @@ namespace ui {
         const auto r = screen_rect();
 
         constexpr int rssi_sample_range = 256;
-        constexpr float rssi_voltage_min = 0.4;
+        //constexpr float rssi_voltage_min = 0.4;
         constexpr float rssi_voltage_max = 2.2;
         constexpr float adc_voltage_max = 3.3;
-        constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_min = 0 ;
         constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
         constexpr int raw_delta = raw_max - raw_min;
 
@@ -308,4 +316,5 @@ namespace ui {
         }
         set_dirty();
     }
+
 } /* namespace ui */

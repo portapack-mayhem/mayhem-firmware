@@ -51,6 +51,8 @@ options_t freqman_entry_bandwidths[ 4 ] = {
 };
 
 options_t freqman_entry_steps = {
+    { "0.1KHz      " , 100 },
+    { "1KHz        " , 1000 },
     { "5KHz (SA AM)" , 5000 },
     { "6.25KHz(NFM)" , 6250 },
     { "8.33KHz(AIR)" , 8330 },
@@ -68,6 +70,8 @@ options_t freqman_entry_steps = {
 };
 
 options_t freqman_entry_steps_short = {
+    { "0.1KHz"  , 100 },
+    { "1KHz"    , 1000 },
     { "5KHz"    , 5000 },
     { "6.25KHz" , 6250 },
     { "8.33KHz" , 8330 },
