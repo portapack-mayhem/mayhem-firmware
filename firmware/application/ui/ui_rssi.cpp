@@ -162,6 +162,14 @@ namespace ui {
         if (pitch_rssi_enabled) {
             baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
         }
+        if( has_focus() || highlighted() ) 
+        {
+            const Rect r6 { r.left(), r.top(), r.width(), r.height() };
+            painter.draw_rectangle(
+                    r6,
+                    Color::white()
+                    );
+        }
     }
 
     int32_t RSSI::get_min()
@@ -317,4 +325,43 @@ namespace ui {
         set_dirty();
     }
 
+    void RSSI::on_focus() {
+        if( on_highlight )
+            on_highlight(*this);
+    }
+
+    bool RSSI::on_key(const KeyEvent key) {
+        if( key == KeyEvent::Select ) {
+            if( on_select ) {
+                on_select(*this);
+                return true;
+            }
+        } else {
+            if( on_dir ) {
+                return on_dir(*this, key);
+            }
+        }
+        return false;
+    }
+
+    bool RSSI::on_touch(const TouchEvent event) {
+        switch(event.type) {
+            case TouchEvent::Type::Start:
+                set_highlighted(true);
+                set_dirty();
+                if( on_touch_press) {
+                    on_touch_press(*this);
+                }
+                return true;
+            case TouchEvent::Type::End:
+                set_highlighted(false);
+                set_dirty();
+                if( on_touch_release) {
+                    on_touch_release(*this);
+                }
+                return true;
+            default:
+                return false;
+        }
+    }
 } /* namespace ui */
