@@ -39,12 +39,15 @@ namespace ui {
             std::function<bool(RSSI&, KeyEvent)> on_dir { };
             std::function<void(RSSI&)> on_highlight { };
 
+            RSSI(Rect parent_rect, bool instant_exec); // instant_exec: Execute on_select when you touching instead of releasing
             RSSI(
-                    const Rect parent_rect
-                ) : Widget { parent_rect },
-                min_ { 0 },
-                avg_ { 0 },
-                max_ { 0 }
+                    Rect parent_rect
+                ) : RSSI { parent_rect, false }
+                 {
+                 }
+
+            RSSI(
+                ) : RSSI { { }, { } }
             {
             }
 
@@ -54,19 +57,19 @@ namespace ui {
             int32_t get_delta();
             void set_vertical_rssi(bool enabled);
             void set_peak(bool enabled, size_t duration);
-            
+
             void paint(Painter& painter) override;
             void on_focus() override;
             bool on_key(const KeyEvent key) override;
             bool on_touch(const TouchEvent event) override;
 
         private:
-            int32_t min_;
-            int32_t avg_;
-            int32_t max_;
+            int32_t min_ = 0;
+            int32_t avg_ = 0;
+            int32_t max_ = 0;
             int32_t peak_ = 0 ;
             size_t peak_duration_ = 0 ;
-	        bool instant_exec_ { false };
+            bool instant_exec_ { false };
 
             bool pitch_rssi_enabled = false;
             bool vertical_rssi_enabled = false; // scale [vertically/from bottom to top]

@@ -32,6 +32,14 @@
 
 namespace ui {
 
+    RSSI::RSSI(
+            Rect parent_rect,
+            bool instant_exec
+            ) : Widget { parent_rect },
+        instant_exec_ { instant_exec }
+    {
+    }
+
     void RSSI::paint(Painter& painter) {
         const auto r = screen_rect();
 
@@ -352,12 +360,18 @@ namespace ui {
                 if( on_touch_press) {
                     on_touch_press(*this);
                 }
+                if( on_select && instant_exec_ ) {
+                    on_select(*this);
+                }
                 return true;
             case TouchEvent::Type::End:
                 set_highlighted(false);
                 set_dirty();
                 if( on_touch_release) {
                     on_touch_release(*this);
+                }
+                if( on_select && !instant_exec_ ) {
+                    on_select(*this);
                 }
                 return true;
             default:

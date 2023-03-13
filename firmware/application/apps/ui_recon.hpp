@@ -266,7 +266,7 @@ namespace ui {
             };
 
             RSSI rssi {
-                { 0 * 16, 2 * 16, 15 * 16, 8 },
+                { 0 * 16, 2 * 16, 240 - 4 * 8 , 16 },
             }; 
 
             Text text_cycle {
@@ -278,7 +278,7 @@ namespace ui {
             };
 
             Text desc_cycle {
-                {0, 4 * 16, 240, 16 },	   
+                {0, 4 * 16, 240 , 16 },	   
             };
 
             /* BigFrequency big_display {		//Show frequency in glamour
@@ -299,12 +299,12 @@ namespace ui {
             };
 
             Button button_recon_setup {
-                { 240 - 4 * 8 , 2 * 16 + 8 , 4 * 8, 28 },
+                { 240 - 4 * 8 , 2 * 16 , 4 * 8, 28 },
                     "OPT"
             };
 
             Button button_looking_glass {
-                { 240 - 5 * 8 , 6 * 16 , 5 * 8, 28 },
+                { 240 - 5 * 8 , 6 * 16 - 4 , 5 * 8, 28 },
                     "GLASS"
             };
 
@@ -314,7 +314,7 @@ namespace ui {
             };
 
             Text file_name {		//Show file used
-                { 0 , 8 * 16 + 4 , 21 * 8, 16 },
+                { 0 , 8 * 16 + 6 , 21 * 8, 16 },
             };
 
             ButtonWithEncoder button_manual_start {
