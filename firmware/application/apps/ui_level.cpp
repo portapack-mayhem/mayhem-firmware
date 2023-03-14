@@ -62,6 +62,7 @@ namespace ui {
                 &field_bw,
                 &field_mode,
                 &step_mode,
+                &rssi_resolution,
                 &button_frequency,
                 &text_ctcss,
                 &freq_stats_rssi,
@@ -143,6 +144,13 @@ namespace ui {
             }
         };
 
+        rssi_resolution.on_change = [this](size_t, OptionsField::value_t v) {
+            if( v != -1 )
+            {
+                rssi_graph.set_nb_columns( v );
+            }
+        };
+
         audio_mode.on_change = [this](size_t, OptionsField::value_t v) {
             if( v == 0 )
             {
@@ -215,7 +223,7 @@ namespace ui {
             last_min_rssi = rssi.get_min();
             last_avg_rssi = rssi.get_avg();
             last_max_rssi = rssi.get_max();
-            freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db, dt: "+to_string_dec_int( rssi.get_delta() )+" db" );
+            freq_stats_rssi.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+",dt: "+to_string_dec_int( rssi.get_delta() ) );
         }
     } /* on_statistic_updates */
 
@@ -290,7 +298,7 @@ namespace ui {
         {
             last_idx = min_idx ;
             if (min_diff < 40)
-                text_ctcss.set(tone_keys[min_idx].first);
+                text_ctcss.set("T: "+tone_keys[min_idx].first);
             else
                 text_ctcss.set("             ");
         }
