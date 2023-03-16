@@ -184,6 +184,7 @@ namespace ui
                       &field_lna,
                       &field_vga,
                       &text_range,
+                      &steps_config,
                       &filter_config,
                       &field_rf_amp,
                       &range_presets,
@@ -194,19 +195,69 @@ namespace ui
         load_Presets(); // Load available presets from TXT files (or default)
 
         field_frequency_min.set_value(presets_db[0].min); // Defaults to first preset
+        field_frequency_min.set_step( steps );
         field_frequency_min.on_change = [this](int32_t v)
         {
-            if (v >= field_frequency_max.value())
-                field_frequency_max.set_value(v + 240);
+            int32_t steps_ = steps ;
+            if( steps_ < 20 )
+                steps_ = 20 ;
+            if( v > 7200 - steps_ )
+            {
+                v = 7200 - steps_ ;
+                field_frequency_min.set_value( v ); 
+            }
+            if (v >= (field_frequency_max.value() - steps_ ) )
+                field_frequency_max.set_value( v + steps_ );
             this->on_range_changed();
         };
 
+        field_frequency_min.on_select = [this, &nav](NumberField& field) {
+            auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_min.value()*1000000);
+            new_view->on_changed = [this, &field](rf::Frequency f) {
+                int32_t freq = f / 1000000 ;
+                int32_t steps_ = steps ;
+                if( steps_ < 20 )
+                    steps_ = 20 ;
+                if( freq > (7200 - steps_ ) )
+                    freq= 7200 - steps_  ;
+                field_frequency_min.set_value( freq );
+                if( field_frequency_max.value() < ( freq + steps_ ) )
+                    field_frequency_max.set_value( freq + steps_ );
+                this->on_range_changed();
+            };
+        };
+
         field_frequency_max.set_value(presets_db[0].max); // Defaults to first preset
+        field_frequency_max.set_step( steps );
         field_frequency_max.on_change = [this](int32_t v)
-        {
-            if (v <= field_frequency_min.value())
-                field_frequency_min.set_value(v - 240);
+        {          
+            int32_t steps_ = steps ;
+            if( steps_ < 20 )
+                steps_ = 20 ;
+            if( v < steps_ )
+            {
+                v = steps_ ;
+                field_frequency_max.set_value( v ); 
+            }
+            if (v < (field_frequency_min.value() + steps_) )
+                field_frequency_min.set_value(v - steps_);
             this->on_range_changed();
+        };
+
+        field_frequency_max.on_select = [this, &nav](NumberField& field) {
+            auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value()*1000000);
+            new_view->on_changed = [this, &field](rf::Frequency f) {
+                int32_t steps_ = steps ;
+                if( steps_ < 20 )
+                    steps_ = 20 ;
+                int32_t freq = f / 1000000 ;
+                if( freq < 20 )
+                    freq = 20 ;
+                field_frequency_max.set_value( freq );
+                if( field_frequency_min.value() > ( freq - steps) ) 
+                    field_frequency_min.set_value( freq - steps );
+                this->on_range_changed();
+            };
         };
 
         field_lna.set_value(receiver_model.lna());
@@ -221,11 +272,13 @@ namespace ui
             this->on_vga_changed(v_db);
         };
 
-        filter_config.set_selected_index(0);
-        filter_config.on_change = [this](size_t n, OptionsField::value_t v)
+        steps_config.set_selected_index(3); //default of 250 Mhz steps
+        steps_config.on_change = [this](size_t n, OptionsField::value_t v)
         {
             (void)n;
-            min_color_power = v;
+            field_frequency_min.set_step( v );
+            field_frequency_max.set_step( v );
+            steps = v ;
         };
 
         range_presets.on_change = [this](size_t n, OptionsField::value_t v)
