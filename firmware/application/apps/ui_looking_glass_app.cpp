@@ -199,7 +199,10 @@ namespace ui
         field_frequency_min.on_change = [this](int32_t v)
         {
             if( v > 7200 - steps )
+            {
                 v = 7200 - steps ;
+                field_frequency_min.set_value( v ); 
+            }
             if (v >= (field_frequency_max.value() - steps ) )
                 field_frequency_max.set_value( v + steps );
             this->on_range_changed();
@@ -214,6 +217,7 @@ namespace ui
                 field_frequency_min.set_value( freq );
                 if( field_frequency_max.value() < ( freq + steps ) )
                     field_frequency_max.set_value( freq + steps );
+                this->on_range_changed();
             };
         };
 
@@ -222,7 +226,10 @@ namespace ui
         field_frequency_max.on_change = [this](int32_t v)
         {
             if( v < steps )
+            {
                 v = steps ;
+                field_frequency_max.set_value( v ); 
+            }
             if (v < (field_frequency_min.value() + steps) )
                 field_frequency_min.set_value(v - steps);
             this->on_range_changed();
@@ -237,6 +244,7 @@ namespace ui
                 field_frequency_max.set_value( freq );
                 if( field_frequency_min.value() > ( freq - steps) ) 
                     field_frequency_min.set_value( freq - steps );
+                this->on_range_changed();
             };
         };
 
@@ -258,6 +266,7 @@ namespace ui
             (void)n;
             field_frequency_min.set_step( v );
             field_frequency_max.set_step( v );
+            steps = v ;
         };
 
         range_presets.on_change = [this](size_t n, OptionsField::value_t v)
