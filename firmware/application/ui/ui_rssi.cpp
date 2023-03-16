@@ -57,12 +57,12 @@ namespace ui {
         {
             // horizontal left to right level meters
             const range_t<int> x_avg_range { 0, r.width() - 1 };
-            const auto x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
+            const int16_t x_avg = x_avg_range.clip((avg_ - raw_min) * r.width() / raw_delta);
             const range_t<int> x_min_range { 0, x_avg };
-            const auto x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
+            const int16_t x_min = x_min_range.clip((min_ - raw_min) * r.width() / raw_delta);
             const range_t<int> x_max_range { x_avg + 1, r.width() - 1 };
-            const auto x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
-            const auto peak =  x_max_range.clip((peak_ - raw_min) * r.width() / raw_delta);
+            const int16_t x_max = x_max_range.clip((max_ - raw_min) * r.width() / raw_delta);
+            const int16_t peak =  x_max_range.clip((peak_ - raw_min) * r.width() / raw_delta);
 
             // x_min
             const Rect r0 { r.left(), r.top(), x_min, r.height() };
@@ -113,13 +113,13 @@ namespace ui {
         {
             // vertical bottom to top level meters
             const range_t<int> y_avg_range { 0, r.height() - 1 };
-            const auto y_avg = y_avg_range.clip((avg_ - raw_min) * r.height() / raw_delta);
+            const int16_t y_avg = y_avg_range.clip((avg_ - raw_min) * r.height() / raw_delta);
             const range_t<int> y_min_range { 0, y_avg };
-            const auto y_min = y_min_range.clip((min_ - raw_min) * r.height() / raw_delta);
+            const int16_t y_min = y_min_range.clip((min_ - raw_min) * r.height() / raw_delta);
             const range_t<int> y_max_range { y_avg + 1, r.height() - 1 };
-            const auto y_max = y_max_range.clip((max_ - raw_min) * r.height() / raw_delta);
+            const int16_t y_max = y_max_range.clip((max_ - raw_min) * r.height() / raw_delta);
             const range_t<int> peak_range { 0, r.height() - 1 };
-            const auto peak =  peak_range.clip((peak_ - raw_min) * r.height() / raw_delta);
+            const int16_t peak =  peak_range.clip((peak_ - raw_min) * r.height() / raw_delta);
 
             // y_min
             const Rect r0 { r.left(), r.bottom() - y_min, r.width() , y_min };
@@ -180,22 +180,22 @@ namespace ui {
         }
     }
 
-    int32_t RSSI::get_min()
+    int16_t RSSI::get_min()
     { 
         return min_ ;
     }
 
-    int32_t RSSI::get_avg()
+    int16_t RSSI::get_avg()
     { 
         return avg_ ;
     }
 
-    int32_t RSSI::get_max()
+    int16_t RSSI::get_max()
     { 
         return max_ ;
     }
 
-    int32_t RSSI::get_delta()
+    int16_t RSSI::get_delta()
     { 
         return max_ - min_ ;
     }
@@ -241,27 +241,32 @@ namespace ui {
 
     void RSSIGraph::paint(Painter& painter) {
         const auto r = screen_rect();
+        int16_t size = r.width() /  nb_columns ;
+        int16_t top_y_val = 0 ;
+        int16_t width_y = 0 ;
 
+        if( size < 1 )
+            size = 1 ;
+
+       int xpos = r.right() ; 
         for ( int n = 2 ; (unsigned)n <= graph_list.size(); n++) {
             auto& entry = graph_list[graph_list.size()-n];
             auto& prev_entry = graph_list[graph_list.size()-(n-1)];
 
             // black
-            const Point p0{ r.right() - n , r.top() };
-            painter.draw_vline(
-                    p0,
-                    r.height(),
-                    Color::black());
+            const Rect r0{ xpos - size , r.top() , size , r.height() };
+            painter.fill_rectangle(
+                r0,
+                Color::black());
 
             // y_max
-            int32_t top_y_val = max( entry.rssi_max , prev_entry.rssi_max );
-            int32_t width_y = abs(  entry.rssi_max - prev_entry.rssi_max  );
+            top_y_val = max( entry.rssi_max , prev_entry.rssi_max );
+            width_y = abs(  entry.rssi_max - prev_entry.rssi_max  );
             if( width_y == 0 )
                 width_y = 1 ;
-            const Point p1{ r.right() - n , r.bottom() - top_y_val };
-            painter.draw_vline(
-                    p1,
-                    width_y,
+            const Rect r1{ xpos - size , r.bottom() - top_y_val , size , width_y };
+            painter.fill_rectangle(
+                    r1,
                     Color::red());
 
             // y_avg    
@@ -269,10 +274,9 @@ namespace ui {
             width_y = abs(  entry.rssi_avg - prev_entry.rssi_avg  );
             if( width_y == 0 )
                 width_y = 1 ;
-            const Point p2{ r.right() - n , r.bottom() - top_y_val };
-            painter.draw_vline(
-                    p2,
-                    width_y,
+            const Rect r2{ xpos - size , r.bottom() - top_y_val , size , width_y };
+            painter.fill_rectangle(
+                    r2,
                     Color::white());
 
             // y_min
@@ -280,10 +284,9 @@ namespace ui {
             width_y = abs(  entry.rssi_min - prev_entry.rssi_min  );
             if( width_y == 0 )
                 width_y = 1 ;
-            const Point p3{ r.right() - n , r.bottom() - top_y_val };
-            painter.draw_vline(
-                    p3,
-                    width_y,
+            const Rect r3{ xpos - size , r.bottom() - top_y_val , size , width_y };
+            painter.fill_rectangle(
+                    r3,
                     Color::blue());
 
             // hack to display db
@@ -291,15 +294,22 @@ namespace ui {
             width_y = abs(  entry.db - prev_entry.db );
             if( width_y == 0 )
                 width_y = 1 ;
-            const Point p4{ r.right() - n , r.bottom() - top_y_val };
-            painter.draw_vline(
-                    p4,
-                    width_y,
-                    Color::green() );
+            const Rect r4{ xpos - size , r.bottom() - top_y_val , size , width_y };
+            painter.fill_rectangle(
+                    r4,
+                    Color::green());
+            xpos = xpos - size ;
+        }
+        if( xpos > r.left() )
+        {
+            const Rect r5{ r.left() , r.top() , xpos - r.left() , r.height() };
+            painter.fill_rectangle(
+                    r5,
+                    Color::black());
         }
     }
 
-    void RSSIGraph::add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db )
+    void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max, int16_t db )
     {
         const auto r = screen_rect();
 
@@ -314,23 +324,28 @@ namespace ui {
 
         // vertical bottom to top level meters
         const range_t<int> y_avg_range { 0, r.height() - 1 };
-        const auto y_avg = y_avg_range.clip((rssi_avg - raw_min) * r.height() / raw_delta);
+        const int16_t y_avg = y_avg_range.clip((rssi_avg - raw_min) * r.height() / raw_delta);
         const range_t<int> y_min_range { 0, y_avg };
-        const auto y_min = y_min_range.clip((rssi_min - raw_min) * r.height() / raw_delta);
+        const int16_t y_min = y_min_range.clip((rssi_min - raw_min) * r.height() / raw_delta);
         const range_t<int> y_max_range { y_avg + 1, r.height() - 1 };
-        const auto y_max = y_max_range.clip((rssi_max - raw_min) * r.height() / raw_delta);
-        const range_t<int> db_range { -100 , 20 };
-        auto db_ = db_range.clip( db );
-        db_ = db_ - 20 ;
-        db_ = db_ * r.height() / 120 ;
+        const int16_t y_max = y_max_range.clip((rssi_max - raw_min) * r.height() / raw_delta);
+        const range_t<int> db_range { -80 , 10 };
+        int16_t db_ = db_range.clip( db );
+        db_ = db_ - 10 ;
+        db_ = db_ * r.height() / 90 ;
         db_ = r.height() + db_ ;
 
         graph_list . push_back( { y_min, y_avg, y_max , db_ } );
-        if( graph_list.size() >  (unsigned)r.width() )
+        while( graph_list.size() >  nb_columns )
         {
             graph_list.erase( graph_list.begin() );
         }
         set_dirty();
+    }
+
+    void RSSIGraph::set_nb_columns( int16_t nb )
+    {
+        nb_columns = nb ;
     }
 
     void RSSI::on_focus() {
