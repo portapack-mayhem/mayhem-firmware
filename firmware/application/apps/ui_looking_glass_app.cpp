@@ -198,13 +198,17 @@ namespace ui
         field_frequency_min.set_step( steps );
         field_frequency_min.on_change = [this](int32_t v)
         {
-            if( v > 7200 - steps )
+            int32_t steps_ = steps ;
+            if( steps_ < 20 )
+                steps_ = 20 ;
+
+            if( v > 7200 - steps_ )
             {
-                v = 7200 - steps ;
+                v = 7200 - steps_ ;
                 field_frequency_min.set_value( v ); 
             }
-            if (v >= (field_frequency_max.value() - steps ) )
-                field_frequency_max.set_value( v + steps );
+            if (v >= (field_frequency_max.value() - steps_ ) )
+                field_frequency_max.set_value( v + steps_ );
             this->on_range_changed();
         };
 
@@ -224,14 +228,18 @@ namespace ui
         field_frequency_max.set_value(presets_db[0].max); // Defaults to first preset
         field_frequency_max.set_step( steps );
         field_frequency_max.on_change = [this](int32_t v)
-        {
-            if( v < steps )
+        {          
+            int32_t steps_ = steps ;
+            if( steps_ < 20 )
+                steps_ = 20 ;
+
+            if( v < steps_ )
             {
-                v = steps ;
+                v = steps_ ;
                 field_frequency_max.set_value( v ); 
             }
-            if (v < (field_frequency_min.value() + steps) )
-                field_frequency_min.set_value(v - steps);
+            if (v < (field_frequency_min.value() + steps_) )
+                field_frequency_min.set_value(v - steps_);
             this->on_range_changed();
         };
 
