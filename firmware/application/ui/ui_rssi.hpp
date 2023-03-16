@@ -51,10 +51,10 @@ namespace ui {
             {
             }
 
-            int32_t get_min();
-            int32_t get_avg();
-            int32_t get_max();
-            int32_t get_delta();
+            int16_t get_min();
+            int16_t get_avg();
+            int16_t get_max();
+            int16_t get_delta();
             void set_vertical_rssi(bool enabled);
             void set_peak(bool enabled, size_t duration);
 
@@ -64,10 +64,10 @@ namespace ui {
             bool on_touch(const TouchEvent event) override;
 
         private:
-            int32_t min_ = 0;
-            int32_t avg_ = 0;
-            int32_t max_ = 0;
-            int32_t peak_ = 0 ;
+            int16_t min_ = 0;
+            int16_t avg_ = 0;
+            int16_t max_ = 0;
+            int16_t peak_ = 0 ;
             size_t peak_duration_ = 0 ;
             bool instant_exec_ { false };
 
@@ -97,10 +97,10 @@ namespace ui {
     };
 
     struct RSSIGraph_entry {
-        int32_t rssi_min { 0 };
-        int32_t rssi_avg { 0 };
-        int32_t rssi_max { 0 };
-        int32_t db { 0 };
+        int16_t rssi_min { 0 };
+        int16_t rssi_avg { 0 };
+        int16_t rssi_max { 0 };
+        int16_t db { 0 };
     };
 
     using RSSIGraphList = std::vector<RSSIGraph_entry>;
@@ -113,9 +113,11 @@ namespace ui {
             {
             }
             void paint(Painter& painter) override;
-            void add_values(int32_t rssi_min, int32_t rssi_avg, int32_t rssi_max, int32_t db );
+            void add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max, int16_t db );
+            void set_nb_columns( int16_t nb );
 
         private:
+            uint16_t nb_columns = 16 ;
             RSSIGraphList graph_list { } ;
     };
 

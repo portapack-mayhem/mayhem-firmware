@@ -174,12 +174,13 @@ namespace ui {
 
 
             Text text_ctcss {
-                { 20 * 8, 3 * 16 + 4 , 14 * 8, 1 * 8 },
+                { 22 * 8, 3 * 16 + 4 , 14 * 8, 1 * 8 },
                     ""
             };
 
+            // RSSI: XX/XX/XXX,dt: XX
             Text freq_stats_rssi {		
-                { 0 * 8 , 3 * 16 + 4 , 20 * 8, 16 },
+                { 0 * 8 , 3 * 16 + 4 , 22 * 8, 16 },
             };
 
             Text freq_stats_db {		
@@ -188,7 +189,7 @@ namespace ui {
 
 
             OptionsField peak_mode {
-                { 44 + 10 * 8, 4 * 16 + 4 },
+                { 40 + 10 * 8, 4 * 16 + 4 },
                     10,
                     {
                         {"peak:none", 0},
@@ -200,6 +201,18 @@ namespace ui {
                         {"peak:10s",10000},
                     }
             };		
+            OptionsField rssi_resolution {
+                { 44 + 20 * 8, 4 * 16 + 4},
+                    4,
+                    {
+                        {"16x",  16},
+                        {"32x",  32},
+                        {"64x",  64},
+                        {"128x", 128},
+                        {"240x", 240},
+                    }
+            };		
+
 
             void handle_coded_squelch(const uint32_t value);
             void on_headphone_volume_changed(int32_t v);
