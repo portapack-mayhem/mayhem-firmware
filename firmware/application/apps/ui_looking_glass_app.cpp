@@ -247,8 +247,8 @@ namespace ui
             auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value()*1000000);
             new_view->on_changed = [this, &field](rf::Frequency f) {
                 int32_t freq = f / 1000000 ;
-                if( freq < steps )
-                    freq= steps ;
+                if( freq < 20 )
+                    freq = 20 ;
                 field_frequency_max.set_value( freq );
                 if( field_frequency_min.value() > ( freq - steps) ) 
                     field_frequency_min.set_value( freq - steps );
