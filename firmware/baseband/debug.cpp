@@ -33,7 +33,8 @@ void write_m4_panic_msg(const char *panic_message, struct extctx *ctxp) {
     }
     else {
         shared_memory.bb_data.data[0] = 1;
-        memcpy(&shared_memory.bb_data.data[4], ctxp, sizeof(struct extctx));
+        *((uint32_t *)&shared_memory.bb_data.data[4]) = SCB->CFSR;
+        memcpy(&shared_memory.bb_data.data[8], ctxp, sizeof(struct extctx));
     }
 
 	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
@@ -54,6 +55,10 @@ void port_halt(void) {
         dbg_panic_msg = "system halted";
 
     write_m4_panic_msg(dbg_panic_msg, nullptr);
+
+    while (true) {
+        HALT_IF_DEBUGGING();
+    }
 }
 #endif
 
@@ -85,7 +90,6 @@ CH_IRQ_HANDLER(HardFaultVector) {
 #if CH_DBG_ENABLED
     regarm_t _saved_lr;
     asm volatile ("mov     %0, lr" : "=r" (_saved_lr) : : "memory");
-	CH_IRQ_PROLOGUE();
 
     struct extctx *ctxp;
     port_lock_from_isr();
@@ -95,12 +99,18 @@ CH_IRQ_HANDLER(HardFaultVector) {
     else
         ctxp = (struct extctx *)__get_MSP();
 
-    write_m4_panic_msg("Hard Fault", ctxp);
+    volatile uint32_t stack_space_left = get_free_stack_space();
+    if (stack_space_left < 16)
+        write_m4_panic_msg("Stack Overflow", ctxp);
+    
+    else write_m4_panic_msg("Hard Fault", ctxp);
 
 	port_disable();
-    while (true);
 
-    CH_IRQ_EPILOGUE();
+    while (true) {
+        HALT_IF_DEBUGGING();
+    }
+
 #else
 	chSysHalt();
 #endif
