@@ -31,6 +31,8 @@
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
 #include "ui_mictx.hpp"
+#include "ui_level.hpp"
+#include "ui_looking_glass_app.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -264,7 +266,7 @@ namespace ui {
             };
 
             RSSI rssi {
-                { 0 * 16, 2 * 16, 15 * 16, 8 },
+                { 0 * 16, 2 * 16, 240 - 4 * 8 , 16 },
             }; 
 
             Text text_cycle {
@@ -276,7 +278,7 @@ namespace ui {
             };
 
             Text desc_cycle {
-                {0, 4 * 16, 240, 16 },	   
+                {0, 4 * 16, 240 , 16 },	   
             };
 
             /* BigFrequency big_display {		//Show frequency in glamour
@@ -285,31 +287,35 @@ namespace ui {
                }; */
 
             Text big_display {		//Show frequency in text mode
-                { 0, 5 * 16 , 28 * 8, 16 },
+                { 0, 5 * 16 , 21 * 8, 16 },
             };
 
             Text freq_stats {		//Show frequency stats in text mode
-                { 0, 6 * 16 , 28 * 8, 16 },
+                { 0, 6 * 16 , 21 * 8, 16 },
             };
 
             Text text_timer {		//Show frequency stats in text mode
-                { 0, 7 * 16 , 28 * 8, 16 },
+                { 0, 7 * 16 , 21 * 8, 16 },
             };
 
             Button button_recon_setup {
-                { 25 * 8 , 2 * 16 + 8 , 4 * 8, 28 },
+                { 240 - 4 * 8 , 2 * 16 , 4 * 8, 28 },
                     "OPT"
             };
 
+            Button button_looking_glass {
+                { 240 - 5 * 8 , 6 * 16 - 4 , 5 * 8, 28 },
+                    "GLASS"
+            };
+
             Button button_scanner_mode {
-                { 21 * 8 , 8 * 16 , 9 * 8, 28 },
+                { 240 - 8 * 8 , 8 * 16 , 8 * 8, 28 },
                     "RECON"
             };
 
             Text file_name {		//Show file used
-                { 0 , 8 * 16 + 4 , 20 * 8, 16 },
+                { 0 , 8 * 16 + 6 , 21 * 8, 16 },
             };
-
 
             ButtonWithEncoder button_manual_start {
                 { 0 * 8, 11 * 16, 11 * 8, 28 },

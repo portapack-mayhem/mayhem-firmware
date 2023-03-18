@@ -32,14 +32,23 @@
 
 namespace ui {
 
+    RSSI::RSSI(
+            Rect parent_rect,
+            bool instant_exec
+            ) : Widget { parent_rect },
+        instant_exec_ { instant_exec }
+    {
+    }
+
     void RSSI::paint(Painter& painter) {
         const auto r = screen_rect();
 
         constexpr int rssi_sample_range = 256;
-        constexpr float rssi_voltage_min = 0.4;
+        //constexpr float rssi_voltage_min = 0.4;
         constexpr float rssi_voltage_max = 2.2;
         constexpr float adc_voltage_max = 3.3;
-        constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_min = 0 ;
         constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
         constexpr int raw_delta = raw_max - raw_min;
 
@@ -161,6 +170,14 @@ namespace ui {
         if (pitch_rssi_enabled) {
             baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
         }
+        if( has_focus() || highlighted() ) 
+        {
+            const Rect r6 { r.left(), r.top(), r.width(), r.height() };
+            painter.draw_rectangle(
+                    r6,
+                    Color::white()
+                    );
+        }
     }
 
     int32_t RSSI::get_min()
@@ -177,6 +194,12 @@ namespace ui {
     { 
         return max_ ;
     }
+
+    int32_t RSSI::get_delta()
+    { 
+        return max_ - min_ ;
+    }
+
 
     void RSSI::set_pitch_rssi(bool enabled) {
         pitch_rssi_enabled = enabled;
@@ -272,7 +295,7 @@ namespace ui {
             painter.draw_vline(
                     p4,
                     width_y,
-                    Color::green());
+                    Color::green() );
         }
     }
 
@@ -281,10 +304,11 @@ namespace ui {
         const auto r = screen_rect();
 
         constexpr int rssi_sample_range = 256;
-        constexpr float rssi_voltage_min = 0.4;
+        //constexpr float rssi_voltage_min = 0.4;
         constexpr float rssi_voltage_max = 2.2;
         constexpr float adc_voltage_max = 3.3;
-        constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_min = 0 ;
         constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
         constexpr int raw_delta = raw_max - raw_min;
 
@@ -307,5 +331,51 @@ namespace ui {
             graph_list.erase( graph_list.begin() );
         }
         set_dirty();
+    }
+
+    void RSSI::on_focus() {
+        if( on_highlight )
+            on_highlight(*this);
+    }
+
+    bool RSSI::on_key(const KeyEvent key) {
+        if( key == KeyEvent::Select ) {
+            if( on_select ) {
+                on_select(*this);
+                return true;
+            }
+        } else {
+            if( on_dir ) {
+                return on_dir(*this, key);
+            }
+        }
+        return false;
+    }
+
+    bool RSSI::on_touch(const TouchEvent event) {
+        switch(event.type) {
+            case TouchEvent::Type::Start:
+                set_highlighted(true);
+                set_dirty();
+                if( on_touch_press) {
+                    on_touch_press(*this);
+                }
+                if( on_select && instant_exec_ ) {
+                    on_select(*this);
+                }
+                return true;
+            case TouchEvent::Type::End:
+                set_highlighted(false);
+                set_dirty();
+                if( on_touch_release) {
+                    on_touch_release(*this);
+                }
+                if( on_select && !instant_exec_ ) {
+                    on_select(*this);
+                }
+                return true;
+            default:
+                return false;
+        }
     }
 } /* namespace ui */

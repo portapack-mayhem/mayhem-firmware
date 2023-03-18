@@ -20,6 +20,9 @@
   * Boston, MA 02110-1301, USA.
   */
 
+#ifndef _UI_GLASS
+#define _UI_GLASS
+
  #include "ui.hpp"
  #include "portapack.hpp"
  #include "baseband_api.hpp"
@@ -184,4 +187,4 @@
 
      };
  } 
- 
+#endif
