@@ -144,6 +144,7 @@ SetRadioView::SetRadioView(
 	}
 
 	add_children({
+        &check_hamitup,
 		&check_clkout,
 		&field_clkout_freq,
 		&labels_clkout_khz,
@@ -166,6 +167,11 @@ SetRadioView::SetRadioView(
 		portapack::persistent_memory::set_clkout_enabled(v);
 		StatusRefreshMessage message { };
 		EventDispatcher::send_message(message);
+	};
+
+    check_hamitup.set_value(portapack::persistent_memory::config_hamitup());
+	check_hamitup.on_select = [this](Checkbox&, bool v) {
+		portapack::persistent_memory::set_config_hamitup(v);
 	};
 
 	field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
@@ -376,13 +382,13 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
     }
 	add_items({
-		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,			[&nav](){ nav.push<SetAudioView>(); } },
-		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,		[&nav](){ nav.push<SetRadioView>(); } },
-		{ "User Interface", 	ui::Color::dark_cyan(), &bitmap_icon_options_ui,		[&nav](){ nav.push<SetUIView>(); } },
-		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,		[&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,		[&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "App Settings",	ui::Color::dark_cyan(), &bitmap_icon_setup,			[&nav](){ nav.push<SetAppSettingsView>(); } },
-		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,			[&nav](){ nav.push<SetQRCodeView>(); } }
+		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,               [&nav](){ nav.push<SetAudioView>(); } },
+		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,         [&nav](){ nav.push<SetRadioView>(); } },
+		{ "User Interface", 	ui::Color::dark_cyan(), &bitmap_icon_options_ui,    [&nav](){ nav.push<SetUIView>(); } },
+		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,  [&nav](){ nav.push<SetDateTimeView>(); } },
+		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,     [&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "App Settings",	ui::Color::dark_cyan(), &bitmap_icon_setup,             [&nav](){ nav.push<SetAppSettingsView>(); } },
+		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,           [&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }

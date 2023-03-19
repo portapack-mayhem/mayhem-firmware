@@ -154,7 +154,7 @@ private:
 		{ { 6 * 8, 4 * 16 }, "PPM", Color::light_grey() },
 	};
 
-	Checkbox check_clkout {
+   	Checkbox check_clkout {
 		{ 18, (6 * 16 - 4) },
 		13,
 		"Enable CLKOUT"
@@ -193,10 +193,17 @@ private:
 	};
 	
 	Checkbox check_bias {
-		{ 28, 13 * 16 },
+		{ 18, 12 * 16 },
 		5,
 		"Turn on bias voltage"
 	};
+
+    Checkbox check_hamitup {
+		{ 18, 14 * 16},
+		7,
+		"HamItUp"
+	};
+
 
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
