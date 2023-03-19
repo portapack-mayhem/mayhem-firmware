@@ -145,7 +145,11 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 		if (shared_memory.bb_data.data[0] == 0)
 			draw_guru_meditation(CORTEX_M4, shared_memory.m4_panic_msg);
 		else
-			draw_guru_meditation(CORTEX_M4, shared_memory.m4_panic_msg, (struct extctx *)&shared_memory.bb_data.data[4]);
+			draw_guru_meditation(
+				CORTEX_M4,
+				shared_memory.m4_panic_msg,
+				(struct extctx *)&shared_memory.bb_data.data[8],
+				*(uint32_t *)&shared_memory.bb_data.data[4]);
 	}
 
 	if( events & EVT_MASK_APPLICATION ) {

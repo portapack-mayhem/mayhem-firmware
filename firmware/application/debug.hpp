@@ -26,6 +26,18 @@
 #include "hackrf_gpio.hpp"
 
 extern void draw_guru_meditation(uint8_t, const char *);
-extern void draw_guru_meditation(uint8_t, const char *, struct extctx *);
+extern void draw_guru_meditation(uint8_t, const char *, struct extctx *, uint32_t);
+
+extern uint32_t __process_stack_base__;
+extern uint32_t __process_stack_end__;
+#define CRT0_STACKS_FILL_PATTERN    0x55555555
+
+inline uint32_t get_free_stack_space(){
+    uint32_t *p;
+    for (p = &__process_stack_base__; *p == CRT0_STACKS_FILL_PATTERN && p < &__process_stack_end__; p++);
+    auto stack_space_left = p - &__process_stack_base__;
+
+    return stack_space_left;
+}
 
 #endif/*__DEBUG_H__*/

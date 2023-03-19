@@ -29,13 +29,14 @@
 #include "ui_painter.hpp"
 #include "portapack.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "string_format.hpp"
 
 void runtime_error(LED);
 std::string number_to_hex_string(uint32_t);
 void draw_line(int32_t, const char *, regarm_t);
 static bool error_shown = false;
 
-extern void draw_guru_meditation_header(uint8_t source, const char *hint) {
+void draw_guru_meditation_header(uint8_t source, const char *hint) {
     ui::Painter painter;
     ui::Style style_default {
         .font = ui::font::fixed_8x16,
@@ -81,7 +82,7 @@ void draw_guru_meditation(uint8_t source, const char *hint) {
     	runtime_error(hackrf::one::led_tx);
 }
 
-void draw_guru_meditation(uint8_t source, const char *hint, struct extctx *ctxp) {
+void draw_guru_meditation(uint8_t source, const char *hint, struct extctx *ctxp, uint32_t cfsr = 0) {
     if(error_shown == false)
     {
         error_shown = true;
@@ -102,6 +103,10 @@ void draw_guru_meditation(uint8_t source, const char *hint, struct extctx *ctxp)
             // to see whats causing the fault.
             draw_line(80 + i++ * 20, "lr:", ctxp->lr_thd);
             draw_line(80 + i++ * 20, "pc:", ctxp->pc);
+
+            // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
+            if (cfsr != 0)
+                draw_line(80 + i++ * 20, "cfsr:", (void *)cfsr);
         }
     }
     
@@ -121,23 +126,7 @@ void draw_line(int32_t y_offset, const char *label, regarm_t value){
     };
 
     painter.draw_string({ 15, y_offset }, style_default, label);
-    painter.draw_string({ 15 + 8*8, y_offset }, style_default, number_to_hex_string((uint32_t)value));
-}
-
-std::string number_to_hex_string(uint32_t number){
-    char str[16];
-    char* p = &str[16];
-    do {
-        p--;
-        uint32_t digit = number % 16; 
-        number /= 16;
-        *p = digit>=10 ? 'A' + (digit-10) : '0' + digit;
-    } while ( number > 0 );
-    p--;
-    *p = 'x';
-    p--;
-    *p = '0';
-    return std::string(p, &str[16]-p);
+    painter.draw_string({ 15 + 8*8, y_offset }, style_default, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(LED led) {
@@ -198,6 +187,11 @@ CH_IRQ_HANDLER(HardFaultVector) {
         ctxp = (struct extctx *)__get_MSP();
 
     port_disable();
+
+    auto stack_space_left = get_free_stack_space();
+    if (stack_space_left < 16)
+        draw_guru_meditation(CORTEX_M0, "Stack Overflow", ctxp);
+
     draw_guru_meditation(CORTEX_M0, "Hard Fault", ctxp);
 
     CH_IRQ_EPILOGUE();
