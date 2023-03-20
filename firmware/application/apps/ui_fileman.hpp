@@ -48,7 +48,7 @@ public:
 	void load_directory_contents(const std::filesystem::path& dir_path);
 	std::filesystem::path get_selected_path();
 	
-	std::string title() const override { return "File manager"; };
+	std::string title() const override { return "Fileman"; };
 	
 protected:
 	NavigationView& nav_;

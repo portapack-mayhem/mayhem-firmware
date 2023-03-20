@@ -309,7 +309,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "App"; };
+	std::string title() const override { return "AppSettings"; };
 	
 private:
 

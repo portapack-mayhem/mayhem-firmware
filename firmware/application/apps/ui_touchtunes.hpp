@@ -110,7 +110,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "TouchTunes TX"; };
+	std::string title() const override { return "TouchTunes"; };
 
 private:
 	uint32_t scan_button_index { };

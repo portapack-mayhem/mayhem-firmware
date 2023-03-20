@@ -40,7 +40,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "BurgerPgr TX"; };
+	std::string title() const override { return "BurgerPgrTX"; };
 
 private:
 	enum tx_modes {
