@@ -103,7 +103,7 @@ public:
 
 	void focus() override;
 	
-    std::string title() const override { return "TPMS RX"; };
+	std::string title() const override { return "TPMS RX"; };
 
 private:
 	static constexpr uint32_t initial_target_frequency = 315000000;
