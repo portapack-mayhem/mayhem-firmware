@@ -402,13 +402,13 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
     }
 	add_items({
-		{ "Audio", 		ui::Color::dark_cyan(), &bitmap_icon_speaker,               [&nav](){ nav.push<SetAudioView>(); } },
-		{ "Radio",		ui::Color::dark_cyan(), &bitmap_icon_options_radio,         [&nav](){ nav.push<SetRadioView>(); } },
-		{ "User Interface", 	ui::Color::dark_cyan(), &bitmap_icon_options_ui,    [&nav](){ nav.push<SetUIView>(); } },
-		{ "Date/Time",		ui::Color::dark_cyan(), &bitmap_icon_options_datetime,  [&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Calibration",	ui::Color::dark_cyan(), &bitmap_icon_options_touch,     [&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "App Settings",	ui::Color::dark_cyan(), &bitmap_icon_setup,             [&nav](){ nav.push<SetAppSettingsView>(); } },
-		{ "QR Code",		ui::Color::dark_cyan(), &bitmap_icon_qr_code,           [&nav](){ nav.push<SetQRCodeView>(); } }
+		{ "Audio",          ui::Color::dark_cyan(), &bitmap_icon_speaker,          [&nav](){ nav.push<SetAudioView>(); } },
+		{ "Radio",          ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetRadioView>(); } },
+		{ "User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui,       [&nav](){ nav.push<SetUIView>(); } },
+		{ "Date/Time",      ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav](){ nav.push<SetDateTimeView>(); } },
+		{ "Calibration",    ui::Color::dark_cyan(), &bitmap_icon_options_touch,    [&nav](){ nav.push<TouchCalibrationView>(); } },
+		{ "App Settings",   ui::Color::dark_cyan(), &bitmap_icon_setup,            [&nav](){ nav.push<SetAppSettingsView>(); } },
+		{ "QR Code",        ui::Color::dark_cyan(), &bitmap_icon_qr_code,          [&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons
 }
