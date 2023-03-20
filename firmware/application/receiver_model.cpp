@@ -195,21 +195,10 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-    if( (modulation() == Mode::SpectrumAnalysis) ) {
-        if( persistent_memory::config_hamitup() ) {
-            return persistent_memory::config_hamitup_freq() ;
-        } else
+    if( (modulation() == Mode::SpectrumAnalysis) )
             return 0;
-    } else {
-        if( persistent_memory::config_hamitup() ) {
-            // clamp max tuned to 7200MHz - 125MHz
-            if( persistent_memory::tuned_frequency() > (7200000000 -  persistent_memory::config_hamitup_freq()) ) {
-                persistent_memory::set_tuned_frequency(7200000000 -  persistent_memory::config_hamitup_freq());
-            }
-            return (  persistent_memory::config_hamitup_freq() -(sampling_rate() / 4) );
-        }
+    else 
         return -(sampling_rate() / 4);
-    }
 }
 
 void ReceiverModel::update_tuning_frequency() {
