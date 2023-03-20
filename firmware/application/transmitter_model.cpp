@@ -149,7 +149,10 @@ void TransmitterModel::disable() {
 }
 
 void TransmitterModel::update_tuning_frequency() {
-	radio::set_tuning_frequency(persistent_memory::tuned_frequency());
+	if( portapack::persistent_memory::config_hamitup() )
+        radio::set_tuning_frequency(persistent_memory::tuned_frequency() + portapack::persistent_memory::config_hamitup_freq());
+    else
+        radio::set_tuning_frequency(persistent_memory::tuned_frequency());
 }
 
 void TransmitterModel::update_antenna_bias() {
