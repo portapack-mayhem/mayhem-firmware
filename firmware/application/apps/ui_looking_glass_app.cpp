@@ -199,8 +199,8 @@ namespace ui
         field_frequency_min.on_change = [this](int32_t v)
         {
             int32_t steps_ = steps ;
-            if( steps_ < 20 )
-                steps_ = 20 ;
+            if( steps_ < 24 )
+                steps_ = 24 ;
             if( v > 7200 - steps_ )
             {
                 v = 7200 - steps_ ;
@@ -216,8 +216,8 @@ namespace ui
             new_view->on_changed = [this, &field](rf::Frequency f) {
                 int32_t freq = f / 1000000 ;
                 int32_t steps_ = steps ;
-                if( steps_ < 20 )
-                    steps_ = 20 ;
+                if( steps_ < 24 )
+                    steps_ = 24 ;
                 if( freq > (7200 - steps_ ) )
                     freq= 7200 - steps_  ;
                 field_frequency_min.set_value( freq );
@@ -232,8 +232,8 @@ namespace ui
         field_frequency_max.on_change = [this](int32_t v)
         {          
             int32_t steps_ = steps ;
-            if( steps_ < 20 )
-                steps_ = 20 ;
+            if( steps_ < 24 )
+                steps_ = 24 ;
             if( v < steps_ )
             {
                 v = steps_ ;
@@ -248,11 +248,11 @@ namespace ui
             auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value()*1000000);
             new_view->on_changed = [this, &field](rf::Frequency f) {
                 int32_t steps_ = steps ;
-                if( steps_ < 20 )
-                    steps_ = 20 ;
+                if( steps_ < 24 )
+                    steps_ = 24 ;
                 int32_t freq = f / 1000000 ;
-                if( freq < 20 )
-                    freq = 20 ;
+                if( freq < 24 )
+                    freq = 24 ;
                 field_frequency_max.set_value( freq );
                 if( field_frequency_min.value() > ( freq - steps) ) 
                     field_frequency_min.set_value( freq - steps );
