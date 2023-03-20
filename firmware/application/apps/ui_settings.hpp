@@ -124,7 +124,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Radio settings"; };
+	std::string title() const override { return "Radio"; };
 
 private:
 	const Style style_text {
@@ -203,7 +203,10 @@ private:
 		7,
 		"HamItUp"
 	};
-
+    Button button_hamitup_freq {
+		{ 18 + 12 * 8, 14 * 16 + 8 , 13 * 8 , 1 * 8 },
+		"",
+	};
 
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
@@ -226,7 +229,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "UI settings"; };
+	std::string title() const override { return "UI"; };
 	
 private:
 
@@ -306,7 +309,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "App Settings"; };
+	std::string title() const override { return "App"; };
 	
 private:
 
@@ -339,7 +342,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Audio settings"; };
+	std::string title() const override { return "Audio"; };
 	
 private:
 	Labels labels {
