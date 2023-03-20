@@ -146,8 +146,8 @@ SetRadioView::SetRadioView(
 	}
 
 	add_children({
-        &check_hamitup,
-        &button_hamitup_freq,
+		&check_hamitup,
+		&button_hamitup_freq,
 		&check_clkout,
 		&field_clkout_freq,
 		&labels_clkout_khz,
