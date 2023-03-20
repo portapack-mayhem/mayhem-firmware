@@ -288,8 +288,9 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    // HamItUp +127MHz offset
+    // HamItUp (+125MHz offset by default, configurable)
     bool hamitup;
+    int64_t hamitup_freq;
 
 	constexpr data_t() :
 		structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -319,7 +320,8 @@ struct data_t {
 
 		hardware_config(0),
 		recon_config(0),
-        hamitup(0)
+        hamitup(0),
+        hamitup_freq(125000000)
 	{
 	}
 };
@@ -737,14 +739,17 @@ void set_recon_load_hamradios(const bool v ){
 void set_recon_match_mode(const bool v ) {
     data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23); 
 }
-
 bool config_hamitup() {
     return data->hamitup;
 }
-
 void set_config_hamitup(const bool v ){
     data-> hamitup = v ;
 }
-
+int64_t config_hamitup_freq() {
+    return data->hamitup_freq ;
+}
+void set_config_hamitup_freq(const int64_t v ){
+    data-> hamitup_freq = v ;
+}
 } /* namespace persistent_memory */
 } /* namespace portapack */

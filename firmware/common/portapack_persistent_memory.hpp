@@ -152,6 +152,8 @@ void set_config_cpld(uint8_t i);
 
 bool config_splash();
 bool config_hamitup();
+int64_t config_hamitup_freq();
+void set_config_hamitup_freq(const int64_t v );
 bool show_gui_return_icon();
 bool load_app_settings();
 bool save_app_settings();
