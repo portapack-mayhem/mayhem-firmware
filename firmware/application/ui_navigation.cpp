@@ -127,11 +127,6 @@ SystemStatusView::SystemStatusView(
 	else
 		button_speaker.hidden(true);
 
-    if (portapack::persistent_memory::config_hamitup()) 
-		button_hamitup.hidden(false);
-	else
-		button_hamitup.hidden(true);
-
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
 	
@@ -192,12 +187,10 @@ void SystemStatusView::refresh() {
     if( portapack::persistent_memory::config_hamitup() ) 
     {
  		button_hamitup.set_foreground(Color::red());
-		button_hamitup.hidden(false);
     }
     else
     {
  		button_hamitup.set_foreground(Color::light_grey());
-        button_hamitup.hidden(true);
     }
     // Retune to take hamitup change in account
 	receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
@@ -269,13 +262,11 @@ void SystemStatusView::on_hamitup() {
  	{
  		portapack::persistent_memory::set_config_hamitup( true );
  		button_hamitup.set_foreground(Color::red());
-		button_hamitup.set_bitmap(&bitmap_icon_hamitup);
  	}
  	else
  	{
  		portapack::persistent_memory::set_config_hamitup( false );
  		button_hamitup.set_foreground(Color::light_grey());
-		button_hamitup.set_bitmap(&bitmap_icon_hamitup);
  	}
 	receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// Retune
  }
