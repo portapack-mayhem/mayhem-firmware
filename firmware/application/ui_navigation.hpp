@@ -142,7 +142,7 @@ namespace ui
 			Color::dark_grey()};
 
 		ImageButton button_speaker{
-			{14 * 8, 0, 3 * 8, 1 * 16},
+			{15 * 8, 0, 2 * 8, 1 * 16},
 			&bitmap_icon_speaker_mute,
 			Color::light_grey(),
 			Color::dark_grey()};
