@@ -204,7 +204,7 @@ private:
 		"HamItUp"
 	};
     Button button_hamitup_freq {
-		{ 18 + 12 * 8, 14 * 16 + 8 , 13 * 8 , 1 * 8 },
+		{ 240 - 15 * 8 , 14 * 16 , 15 * 8 , 24 },
 		"",
 	};
 
