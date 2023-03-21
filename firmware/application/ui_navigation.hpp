@@ -141,18 +141,18 @@ namespace ui
 			Color::white(),
 			Color::dark_grey()};
 
-       	ImageButton button_hamitup{
+		ImageButton button_speaker{
 			{14 * 8, 0, 3 * 8, 1 * 16},
+			&bitmap_icon_speaker_mute,
+			Color::light_grey(),
+			Color::dark_grey()};
+
+		ImageButton button_hamitup{
+			{17 * 8, 0, 2 * 8, 1 * 16},
 			&bitmap_icon_hamitup,
 			Color::light_grey(),
 			Color::dark_grey()
 		};
-
-		ImageButton button_speaker{
-			{17 * 8, 0, 2 * 8, 1 * 16},
-			&bitmap_icon_speaker_mute,
-			Color::light_grey(),
-			Color::dark_grey()};
 
 		ImageButton button_stealth{
 			{19 * 8, 0, 2 * 8, 1 * 16},
