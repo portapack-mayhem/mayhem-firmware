@@ -49,7 +49,7 @@ namespace ui
             GlassView& operator=(const GlassView &nav);
 
             ~GlassView();
-            std::string title() const override { return "LookingGlass"; };
+            std::string title() const override { return "LookngGlass"; };
 
             void on_show() override;
             void on_hide() override;
