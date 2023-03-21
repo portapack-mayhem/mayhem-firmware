@@ -56,15 +56,17 @@ if len(sys.argv) == 4:
 		for i in range(4 - (len(input_image) & 3)):
 			input_image.append(0)
 
-	input_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image) - 4)
-	write_image(input_image, output_path)
+	output_image = bytearray()
+	output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image) - 4)
+	output_image += input_image
+	write_image(output_image, output_path)
 
 elif len(sys.argv) == 2:
-	input_image = bytearray()
+	null_image = bytearray()
 	tag = (0, 0, 0, 0)
 	output_path = sys.argv[1]
-	input_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], 0)
-	write_image(input_image, output_path)
+	null_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], 0)
+	write_image(null_image, output_path)
 
 else:
 	print(usage_message)
