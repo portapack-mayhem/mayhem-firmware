@@ -27,7 +27,7 @@ import struct
 usage_message = """
 PortaPack image chunk writer
 
-Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary> [<chunk max size>]
+Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary>
 """
 
 def read_image(path):
@@ -41,24 +41,29 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-compressed_data_size = 0
-
 if len(sys.argv) == 4:
 	input_image = read_image(sys.argv[1])
+	input_image = bytearray(input_image)
 	tag = tuple(map(ord, sys.argv[2]))
 	output_path = sys.argv[3]
 
-	if input_image[5] & 4 == 4:
-		input_image = input_image[19:]
+	if input_image[4] & 8 == 8:
+		input_image = input_image[15:]
 	else:
-		input_image = input_image[11:]
+		input_image = input_image[7:]
 
-	compressed_data_size = len(input_image)
+	if (len(input_image) & 3) != 0:
+		for i in range(4 - (len(input_image) & 3)):
+			input_image.append(0)
+
+	output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image) - 4)
 
 elif len(sys.argv) == 2:
 	input_image = bytearray()
 	tag = (0, 0, 0, 0)
 	output_path = sys.argv[1]
+	output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], 0)
+
 else:
 	print(usage_message)
 	sys.exit(-1)
@@ -67,15 +72,6 @@ if len(tag) != 4:
 	print(usage_message)
 	sys.exit(-2)
 
-if (len(input_image) & 3) != 0:
-	input_image = bytearray(input_image)
-
-	for i in range(4 - (len(input_image) & 3)):
-		input_image.append(0)
-
 output_image = bytearray()
-output_image += struct.pack('<4BII', tag[0], tag[1], tag[2], tag[3], len(input_image), compressed_data_size)
-
 output_image += input_image
-
 write_image(output_image, output_path)
