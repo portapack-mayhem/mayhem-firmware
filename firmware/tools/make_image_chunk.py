@@ -41,13 +41,20 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-input_image_max_length = 32768
-if len(sys.argv) in (4, 5):
+compressed_data_size = 0
+
+if len(sys.argv) == 4:
 	input_image = read_image(sys.argv[1])
 	tag = tuple(map(ord, sys.argv[2]))
 	output_path = sys.argv[3]
-	if len(sys.argv) == 5:
-		input_image_max_length = int(sys.argv[4])
+
+	if input_image[5] & 4 == 4:
+		input_image = input_image[19:]
+	else:
+		input_image = input_image[11:]
+
+	compressed_data_size = len(input_image)
+
 elif len(sys.argv) == 2:
 	input_image = bytearray()
 	tag = (0, 0, 0, 0)
@@ -60,13 +67,15 @@ if len(tag) != 4:
 	print(usage_message)
 	sys.exit(-2)
 
-if len(input_image) > input_image_max_length:
-	raise RuntimeError('image size of %d exceeds device size of %d bytes' % (len(input_image), input_image_max_length))
 if (len(input_image) & 3) != 0:
-	raise RuntimeError('image size of %d is not multiple of four' % (len(input_image,)))
+	input_image = bytearray(input_image)
+
+	for i in range(4 - (len(input_image) & 3)):
+		input_image.append(0)
 
 output_image = bytearray()
-output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image))
+output_image += struct.pack('<4BII', tag[0], tag[1], tag[2], tag[3], len(input_image), compressed_data_size)
+
 output_image += input_image
 
 write_image(output_image, output_path)

@@ -114,6 +114,7 @@ constexpr image_tag_t image_tag_hackrf				{ 'H', 'R', 'F', '1' };
 struct chunk_t {
 	const image_tag_t tag;
 	const uint32_t length;
+	const uint32_t compressed_data_size;
 	const uint8_t data[];
 
 	const chunk_t* next() const {
