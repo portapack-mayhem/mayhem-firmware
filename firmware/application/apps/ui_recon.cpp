@@ -890,6 +890,7 @@ namespace ui {
 
         
         rssi.set_focusable(true);
+        rssi.set_peak( true , 1000 );
         rssi.on_select = [this](RSSI&) {
             recon_thread->stop();
             nav_.pop();
