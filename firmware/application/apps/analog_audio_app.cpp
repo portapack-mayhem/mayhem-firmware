@@ -143,7 +143,7 @@ AnalogAudioView::AnalogAudioView(
 		// field_frequency.set_value(app_settings.rx_frequency);
 		receiver_model.set_configuration_without_init(static_cast<ReceiverModel::Mode>(app_settings.modulation), app_settings.step, app_settings.am_config_index, app_settings.nbfm_config_index, app_settings.wfm_config_index, app_settings.squelch);
 	}
-	else field_frequency.set_value(receiver_model.tuning_frequency());
+	field_frequency.set_value(receiver_model.tuning_frequency());
 	
 	//Filename Datetime and Frequency
 	record_view.set_filename_date_frequency(true);
