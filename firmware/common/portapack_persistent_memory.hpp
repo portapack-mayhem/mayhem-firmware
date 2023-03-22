@@ -151,6 +151,8 @@ uint8_t config_cpld();
 void set_config_cpld(uint8_t i);
 
 bool config_splash();
+bool config_hamitup();
+int64_t config_hamitup_freq();
 bool show_gui_return_icon();
 bool load_app_settings();
 bool save_app_settings();
@@ -167,6 +169,8 @@ void set_load_app_settings(bool v);
 void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
 void set_config_splash(bool v);
+void set_config_hamitup(bool v);
+void set_config_hamitup_freq(const int64_t v );
 void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);

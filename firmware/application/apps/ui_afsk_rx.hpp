@@ -52,7 +52,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "AFSK RX (beta)"; };
+	std::string title() const override { return "AFSK RX"; };
 	
 private:
 	void on_data(uint32_t value, bool is_data);

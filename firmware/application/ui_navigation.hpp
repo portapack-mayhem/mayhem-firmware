@@ -142,10 +142,17 @@ namespace ui
 			Color::dark_grey()};
 
 		ImageButton button_speaker{
-			{17 * 8, 0, 2 * 8, 1 * 16},
+			{15 * 8, 0, 2 * 8, 1 * 16},
 			&bitmap_icon_speaker_mute,
 			Color::light_grey(),
 			Color::dark_grey()};
+
+		ImageButton button_hamitup{
+			{17 * 8, 0, 2 * 8, 1 * 16},
+			&bitmap_icon_hamitup,
+			Color::light_grey(),
+			Color::dark_grey()
+		};
 
 		ImageButton button_stealth{
 			{19 * 8, 0, 2 * 8, 1 * 16},
@@ -187,6 +194,7 @@ namespace ui
 		SDCardStatusView sd_card_status_view{
 			{28 * 8, 0 * 16, 2 * 8, 1 * 16}};
 
+		void on_hamitup();
 		void on_speaker();
 		void on_stealth();
 		void on_bias_tee();

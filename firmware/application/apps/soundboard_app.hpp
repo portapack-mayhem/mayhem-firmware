@@ -46,7 +46,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Soundboard TX"; };
+	std::string title() const override { return "Soundbrd TX"; };
 	
 private:
 	NavigationView& nav_;

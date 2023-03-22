@@ -124,7 +124,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Radio settings"; };
+	std::string title() const override { return "Radio"; };
 
 private:
 	const Style style_text {
@@ -154,7 +154,7 @@ private:
 		{ { 6 * 8, 4 * 16 }, "PPM", Color::light_grey() },
 	};
 
-	Checkbox check_clkout {
+   	Checkbox check_clkout {
 		{ 18, (6 * 16 - 4) },
 		13,
 		"Enable CLKOUT"
@@ -193,9 +193,19 @@ private:
 	};
 	
 	Checkbox check_bias {
-		{ 28, 13 * 16 },
+		{ 18, 12 * 16 },
 		5,
 		"Turn on bias voltage"
+	};
+
+    Checkbox check_hamitup {
+		{ 18, 14 * 16},
+		7,
+		"HamItUp"
+	};
+    Button button_hamitup_freq {
+		{ 240 - 15 * 8 , 14 * 16 , 15 * 8 , 24 },
+		"",
 	};
 
 	Button button_save {
@@ -219,7 +229,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "UI settings"; };
+	std::string title() const override { return "UI"; };
 	
 private:
 
@@ -299,7 +309,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "App Settings"; };
+	std::string title() const override { return "AppSettings"; };
 	
 private:
 
@@ -332,7 +342,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Audio settings"; };
+	std::string title() const override { return "Audio"; };
 	
 private:
 	Labels labels {

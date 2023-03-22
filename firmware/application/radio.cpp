@@ -40,6 +40,7 @@ using namespace hackrf::one;
 #include "cpld_update.hpp"
 
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 namespace radio {
 
@@ -168,7 +169,11 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
-	const auto tuning_config = tuning::config::create(frequency);
+	rf::Frequency final_frequency = frequency ;
+	if( portapack::persistent_memory::config_hamitup() ) {
+		final_frequency = frequency + portapack::persistent_memory::config_hamitup_freq();
+	}
+	const auto tuning_config = tuning::config::create(final_frequency);
 	if( tuning_config.is_valid() ) {
 		first_if.disable();
 

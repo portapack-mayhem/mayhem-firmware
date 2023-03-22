@@ -37,7 +37,7 @@ namespace ui
 	public:
 		WhipCalcView(NavigationView &nav);
 		void focus() override;
-		std::string title() const override { return "Antenna length"; };
+		std::string title() const override { return "Ant. length"; };
 
 	private:
 		const double speed_of_light_mps = 299792458.0;	   // m/s

@@ -53,7 +53,7 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 	
-	std::string title() const override { return "SSTV TX (beta)"; };
+	std::string title() const override { return "SSTV TX"; };
 	
 private:
 	NavigationView& nav_;
