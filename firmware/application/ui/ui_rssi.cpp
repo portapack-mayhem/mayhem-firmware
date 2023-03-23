@@ -238,8 +238,96 @@ namespace ui {
         set_dirty();
     }
 
+	void RSSIGraph::paint(Painter& painter) {
+        const auto r = screen_rect();
 
-    void RSSIGraph::paint(Painter& painter) {
+        RSSIGraph_entry& prev_entry = graph_list[0];
+		int xpos = 0 , prev_xpos = r.width();
+		
+        for( int n = 1 ; (unsigned)n <= graph_list.size() ; n++ )
+		{
+			xpos = ( r.width() * (graph_list.size() - n ) ) / graph_list.size() ;
+			int size = abs( xpos - prev_xpos );
+			RSSIGraph_entry& entry = graph_list[ n - 1 ];
+
+			// black
+	        const Rect r0{ r.right() - prev_xpos , r.top() , size , r.height() };
+		    painter.fill_rectangle(
+                r0,
+                Color::black());
+
+            // y_max
+            int top_y_val = max( entry.rssi_max , prev_entry.rssi_max );
+            int width_y = abs(  entry.rssi_max - prev_entry.rssi_max  );
+            if( width_y == 0 )
+                width_y = 1 ;
+			const Point p1v{ r.right() - prev_xpos , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p1v,
+					width_y,
+                    Color::red());
+			const Point p1h{ r.right() - prev_xpos , r.bottom() - entry.rssi_max };
+            painter.draw_hline(
+                    p1h,
+					size,
+                    Color::red());
+
+            // y_avg    
+            top_y_val = max( entry.rssi_avg , prev_entry.rssi_avg );
+            width_y = abs(  entry.rssi_avg - prev_entry.rssi_avg  );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p2v{ r.right() - prev_xpos , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p2v,
+					width_y,
+                    Color::white());
+			const Point p2h{ r.right() - prev_xpos , r.bottom() - entry.rssi_avg };
+            painter.draw_hline(
+                    p2h,
+					size,
+                    Color::white());
+
+            // y_min
+            top_y_val = max( entry.rssi_min , prev_entry.rssi_min );
+            width_y = abs(  entry.rssi_min - prev_entry.rssi_min  );
+            if( width_y == 0 )
+                width_y = 1 ;
+			const Point p3v{ r.right() - prev_xpos , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p3v,
+					width_y,
+                    Color::blue());
+			const Point p3h{ r.right() - prev_xpos , r.bottom() - entry.rssi_min };
+            painter.draw_hline(
+                    p3h,
+					size,
+                    Color::blue());
+
+            // hack to display db
+            top_y_val = max( entry.db , prev_entry.db );
+            width_y = abs(  entry.db - prev_entry.db );
+            if( width_y == 0 )
+                width_y = 1 ;
+            const Point p4v{ r.right() - prev_xpos , r.bottom() - top_y_val };
+            painter.draw_vline(
+                    p4v,
+					width_y,
+                    Color::green());
+			const Point p4h{ r.right() - prev_xpos , r.bottom() - entry.db };
+            painter.draw_hline(
+                    p4h,
+					size,
+                    Color::green());
+
+			prev_entry = entry ;
+			prev_xpos = xpos ;
+        }
+    }
+
+
+
+    /*void RSSIGraph::paintOld(Painter& painter) {
         const auto r = screen_rect();
         int16_t size = r.width() /  nb_columns ;
         int16_t top_y_val = 0 ;
@@ -307,7 +395,7 @@ namespace ui {
                     r5,
                     Color::black());
         }
-    }
+    }*/
 
     void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max, int16_t db )
     {
@@ -340,7 +428,7 @@ namespace ui {
         {
             graph_list.erase( graph_list.begin() );
         }
-        set_dirty();
+		set_dirty();
     }
 
     void RSSIGraph::set_nb_columns( int16_t nb )
