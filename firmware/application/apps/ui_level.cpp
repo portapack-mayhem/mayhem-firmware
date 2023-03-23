@@ -180,7 +180,7 @@ namespace ui {
         };
 
         // default peak value 
-        peak_mode.set_selected_index(3);
+        peak_mode.set_selected_index(2);
         rssi_resolution.set_selected_index(1);
         //FILL STEP OPTIONS
         freqman_set_modulation_option( field_mode );
