@@ -537,7 +537,22 @@ namespace ui {
 			if( index < 1000 && index < frequency_list.size() )
 			{
 				text_cycle.set_text( to_string_dec_uint( index + 1 , 3 ) );
-				if(frequency_list[index].description.size() > 0) desc_cycle.set( frequency_list[index].description );	//Show new description
+				if(frequency_list[index].description.size() > 0) 
+				{
+					switch( frequency_list[current_index].type )
+					{
+						case RANGE:
+							desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
+							break ;
+						case HAMRADIO:
+							desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
+							break ;
+						default:
+						case SINGLE:
+							desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
+							break ;
+					}
+				}
 			}
 			big_display.set_style(&style_white);
 			if( !userpause )
@@ -983,7 +998,19 @@ namespace ui {
 						recon_thread->set_freq_index( current_index );
 						if(frequency_list[current_index].description.size() > 0)
 						{
-							desc_cycle.set( frequency_list[current_index].description ); //Show new description
+							switch( frequency_list[current_index].type )
+							{
+								case RANGE:
+									desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
+									break ;
+								case HAMRADIO:
+									desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
+									break ;
+								default:
+								case SINGLE:
+									desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
+									break ;
+							}
 						}
 						else
 						{
@@ -1552,7 +1579,7 @@ namespace ui {
 			else
 			{
 				file_name.set_style( &style_blue );
-				file_name.set( "USE: "+input_file );
+				file_name.set( "USE: "+input_file + ".TXT" );
 			}
 			step_mode.set_selected_index(def_step); //Impose the default step into the manual step selector
 		}
@@ -1568,7 +1595,7 @@ namespace ui {
 			}
 			else
 			{
-				file_name.set( "USE: "+output_file );
+				file_name.set( "USE: "+output_file + ".TXT" );
 				file_name.set_style( &style_red );
 			}
 			step_mode.set_selected_index(def_step); //Impose the default step into the manual step selector
