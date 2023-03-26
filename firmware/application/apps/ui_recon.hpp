@@ -62,6 +62,7 @@ namespace ui {
 			int64_t get_current_freq();
 
 			void set_stepper(const int64_t v);
+			void set_index_stepper(const int64_t v);
 
 			void change_recon_direction();
 			bool get_recon_direction();
@@ -101,7 +102,9 @@ namespace ui {
 			bool _freq_delete { false };
 			bool _fwd { true };
 			bool _continuous { true };
+			bool entry_has_changed = false ;
 			int64_t _stepper { 0 };
+			int64_t _index_stepper { 0 };
 			int32_t _freq_lock { 0 };
 			uint32_t _lock_duration { 50 };
 			uint32_t _lock_nb_match { 10 };
@@ -267,7 +270,7 @@ namespace ui {
 			};
 
 			RSSI rssi {
-				{ 0 * 16, 2 * 16, 240 - 4 * 8 , 16 },
+				{ 0 * 16, 2 * 16, 240 - 4 * 8 - 1 , 16 },
 			}; 
 
 			ButtonWithEncoder text_cycle {
