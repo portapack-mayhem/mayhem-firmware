@@ -676,7 +676,7 @@ namespace ui {
 		{
 			if( refresh_display )
 			{
-				text_max.set( " " );
+				text_max.set( to_string_dec_int( db ) + " db" );
 				freq_stats.set( "RSSI: " +to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
 				text_timer.set( "TIMER: " + to_string_dec_int( timer ) );
 			}

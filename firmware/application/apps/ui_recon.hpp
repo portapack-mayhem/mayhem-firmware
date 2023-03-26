@@ -270,7 +270,7 @@ namespace ui {
 			};
 
 			RSSI rssi {
-				{ 0 * 16, 2 * 16, 240 - 4 * 8 - 1 , 16 },
+				{ 0 * 16, 2 * 16, 240 - 5 * 8 - 1 , 16 },
 			}; 
 
 			ButtonWithEncoder text_cycle {
@@ -304,28 +304,30 @@ namespace ui {
 				{ 0, 7 * 16 , 11 * 8, 16 },
 			};
 
+			// T: Senn. 32.000k
 			Text text_ctcss {
 				{ 12 * 8 + 4, 7 * 16 , 14 * 8, 1 * 8 },
 					""
 			};
 
 			Button button_recon_setup {
-				{ 240 - 4 * 8 , 2 * 16 , 4 * 8, 28 },
+				{ 240 - 5 * 8 , 2 * 16 , 5 * 8, 28 },
 					"OPT"
 			};
 
 			Button button_looking_glass {
-				{ 240 - 5 * 8 , 6 * 16 - 4 , 5 * 8, 28 },
+				{ 240 - 5 * 8 , 5 * 16 , 5 * 8, 28 },
 					"GLASS"
 			};
 
+			// Button can be RECON or SCANNER
 			Button button_scanner_mode {
-				{ 240 - 8 * 8 , 8 * 16 , 8 * 8, 28 },
+				{ 240 - 7 * 8 , 8 * 16 , 7 * 8, 28 },
 					"RECON"
 			};
 
 			Text file_name {		//Show file used
-				{ 0 , 8 * 16 + 6 , 21 * 8, 16 },
+				{ 0 , 8 * 16 + 6 , 240 - 7 * 8, 16 },
 			};
 
 			ButtonWithEncoder button_manual_start {
