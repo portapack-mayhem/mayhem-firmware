@@ -146,8 +146,6 @@ SetRadioView::SetRadioView(
 	}
 
 	add_children({
-		&check_hamitup,
-		&button_hamitup_freq,
 		&check_clkout,
 		&field_clkout_freq,
 		&labels_clkout_khz,
@@ -172,29 +170,7 @@ SetRadioView::SetRadioView(
 		EventDispatcher::send_message(message);
 	};
 
-    check_hamitup.set_value(portapack::persistent_memory::config_hamitup());
-	check_hamitup.on_select = [this](Checkbox&, bool v) {
-        portapack::persistent_memory::set_config_hamitup(v);
-        // Retune to take hamitup change in account
-	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
-        //Refresh status bar with/out UP!
-        StatusRefreshMessage message { };				
-       	EventDispatcher::send_message(message);
-	};
-
-    button_hamitup_freq.set_text( to_string_short_freq( portapack::persistent_memory::config_hamitup_freq() ) + "MHz");
-
-    button_hamitup_freq.on_select = [this, &nav](Button& button) {
-            auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_hamitup_freq() );
-            new_view->on_changed = [this, &button](rf::Frequency f) {
-                portapack::persistent_memory::set_config_hamitup_freq( f );
-                // Retune to take hamitup change in account
-        	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
-                button_hamitup_freq.set_text( "<" + to_string_short_freq( f ) + " MHz>" );
-            };
-        };
-	
-	field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
+   	field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
 	value_freq_step.set_style(&style_text);
 
 	field_clkout_freq.on_select = [this](NumberField&) {
@@ -345,6 +321,70 @@ void SetAppSettingsView::focus() {
 	button_save.focus();
 }
 
+// ---------------------------------------------------------
+// Converter Settings
+// ---------------------------------------------------------
+SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
+	add_children({
+		&check_show_converter,
+		&check_converter,
+		&converter_mode,
+		&button_converter_freq,
+		&button_save,
+		&button_cancel
+	});
+
+	check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
+	check_show_converter.on_select = [this](Checkbox&, bool v) {
+        portapack::persistent_memory::set_config_hide_converter(!v);
+        // Retune to take converter change in account
+	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+        //Refresh status bar with/out converter
+        StatusRefreshMessage message { };				
+       	EventDispatcher::send_message(message);
+	};
+
+	check_converter.set_value(portapack::persistent_memory::config_converter());
+	check_converter.on_select = [this](Checkbox&, bool v) {
+        portapack::persistent_memory::set_config_converter(v);
+        // Retune to take converter change in account
+	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+        //Refresh status bar with/out converter
+        StatusRefreshMessage message { };				
+       	EventDispatcher::send_message(message);
+	};
+
+	converter_mode.set_by_value( portapack::persistent_memory::config_updown_converter() );
+	converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
+		portapack::persistent_memory::set_config_updown_converter( v );
+		//Refresh status bar with icon up or down
+        StatusRefreshMessage message { };				
+       	EventDispatcher::send_message(message);
+	};
+				
+    button_converter_freq.set_text( to_string_short_freq( portapack::persistent_memory::config_converter_freq() ) + "MHz");
+    button_converter_freq.on_select = [this, &nav](Button& button) {
+            auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq() );
+            new_view->on_changed = [this, &button](rf::Frequency f) {
+                portapack::persistent_memory::set_config_converter_freq( f );
+                // Retune to take converter change in account
+        	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+                button_converter_freq.set_text( "<" + to_string_short_freq( f ) + " MHz>" );
+            };
+        };
+	
+	button_save.on_select = [&nav, this](Button&) {
+		nav.pop();
+	};
+	button_cancel.on_select = [&nav, this](Button&) {
+		nav.pop();
+	};
+}
+
+void SetConverterSettingsView::focus() {
+	button_save.focus();
+}
+
 SetAudioView::SetAudioView(NavigationView& nav) {
 	add_children({
 		&labels,
@@ -408,6 +448,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
 		{ "Date/Time",      ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav](){ nav.push<SetDateTimeView>(); } },
 		{ "Calibration",    ui::Color::dark_cyan(), &bitmap_icon_options_touch,    [&nav](){ nav.push<TouchCalibrationView>(); } },
 		{ "App Settings",   ui::Color::dark_cyan(), &bitmap_icon_setup,            [&nav](){ nav.push<SetAppSettingsView>(); } },
+		{ "Converter",      ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetConverterSettingsView>(); } },
 		{ "QR Code",        ui::Color::dark_cyan(), &bitmap_icon_qr_code,          [&nav](){ nav.push<SetQRCodeView>(); } }
 	});
 	set_max_rows(2); // allow wider buttons

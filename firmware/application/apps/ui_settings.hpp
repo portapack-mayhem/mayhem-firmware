@@ -198,16 +198,6 @@ private:
 		"Turn on bias voltage"
 	};
 
-    Checkbox check_hamitup {
-		{ 18, 14 * 16},
-		7,
-		"HamItUp"
-	};
-    Button button_hamitup_freq {
-		{ 240 - 15 * 8 , 14 * 16 , 15 * 8 , 24 },
-		"",
-	};
-
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
@@ -323,6 +313,53 @@ private:
 		{ 3 * 8, 4 * 16 },
 		25,
 		"Save app settings"
+	};
+	
+	Button button_save {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
+	};
+};
+
+class SetConverterSettingsView : public View {
+public:
+	SetConverterSettingsView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "Converter"; };
+	
+private:
+
+    Checkbox check_show_converter {
+		{ 18, 4 * 16},
+		19,
+		"show/hide converter"
+	};
+
+	Checkbox check_converter {
+		{ 18, 6 * 16},
+		7,
+		"enable/disable converter"
+	};
+
+	OptionsField converter_mode {
+		{ 18 , 8 * 16 + 4 },
+		0,
+		{
+			{" + ",0}, // up converter
+			{" - ",1}  // down converter
+		}
+	};		
+
+    Button button_converter_freq {
+		{ 18 + 4 * 8 , 8 * 16 , 16 * 8 , 24 },
+		"",
 	};
 	
 	Button button_save {
