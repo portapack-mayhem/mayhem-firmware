@@ -288,9 +288,14 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    // HamItUp (+125MHz offset by default, configurable)
-    bool hamitup;
-    int64_t hamitup_freq;
+    // converter: show or hide icon. Hiding cause auto disable to avoid mistakes
+	bool hide_converter ;
+    // enable or disable converter
+	bool converter ;
+	//  set up converter (false) or down converter (true) converter
+    bool updown_converter ;
+	// up/down converter offset
+    int64_t converter_frequency_offset ;
 
 	constexpr data_t() :
 		structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -320,8 +325,10 @@ struct data_t {
 
 		hardware_config(0),
 		recon_config(0),
-        hamitup(0),
-        hamitup_freq(125000000)
+        hide_converter(0),
+        converter(0),
+        updown_converter(0),
+		converter_frequency_offset(0)
 	{
 	}
 };
@@ -739,17 +746,33 @@ void set_recon_load_hamradios(const bool v ){
 void set_recon_match_mode(const bool v ) {
     data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23); 
 }
-bool config_hamitup() {
-    return data->hamitup;
+bool config_hide_converter() {
+    return data->hide_converter;
 }
-void set_config_hamitup(const bool v ){
-    data-> hamitup = v ;
+bool config_converter() {
+    return data->converter;
 }
-int64_t config_hamitup_freq() {
-    return data->hamitup_freq ;
+bool config_updown_converter() {
+    return data->updown_converter;
 }
-void set_config_hamitup_freq(const int64_t v ){
-    data-> hamitup_freq = v ;
+int64_t config_converter_freq() {
+    return data->converter_frequency_offset ;
+}
+void set_config_hide_converter(const bool v ){
+    data-> hide_converter = v ;
+	if( v )
+	{
+		data -> converter = false ;
+	}
+}
+void set_config_converter(const bool v ){
+    data-> converter = v ;
+}
+void set_config_updown_converter(const bool v){
+    data-> updown_converter = v ;
+}
+void set_config_converter_freq(const int64_t v ){
+    data-> converter_frequency_offset = v ;
 }
 } /* namespace persistent_memory */
 } /* namespace portapack */
