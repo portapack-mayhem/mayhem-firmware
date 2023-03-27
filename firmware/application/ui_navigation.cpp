@@ -111,7 +111,7 @@ SystemStatusView::SystemStatusView(
 		&button_back,
 		&title,
 		&button_title,
-		&button_hamitup,
+		&button_converter,
 		&button_speaker,
 		&button_stealth,
 		//&button_textentry,
@@ -126,6 +126,24 @@ SystemStatusView::SystemStatusView(
 		button_speaker.hidden(false);
 	else
 		button_speaker.hidden(true);
+
+
+	if( portapack::persistent_memory::config_hide_converter() ) 
+	{
+		button_converter.hidden(true);
+	}
+	else
+	{
+		button_converter.hidden(false);
+		if( portapack::persistent_memory::config_converter() ) 
+		{
+			button_converter.set_foreground(Color::red());
+		}
+		else
+		{
+			button_converter.set_foreground(Color::light_grey());
+		}
+	}
 
 	button_back.id = -1;	// Special ID used by FocusManager
 	title.set_style(&style_systemstatus);
@@ -149,8 +167,8 @@ SystemStatusView::SystemStatusView(
 		this->on_title();
 	};
 	
-	button_hamitup.on_select = [this](ImageButton&) {
- 		this->on_hamitup();
+	button_converter.on_select = [this](ImageButton&) {
+ 		this->on_converter();
 	};
 
 	button_speaker.on_select = [this](ImageButton&) {
@@ -184,16 +202,33 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::refresh() {
-	if( portapack::persistent_memory::config_hamitup() ) 
+	if( portapack::persistent_memory::config_hide_converter() ) 
 	{
- 		button_hamitup.set_foreground(Color::red());
+		button_converter.hidden(true);
 	}
 	else
 	{
- 		button_hamitup.set_foreground(Color::light_grey());
+		if( portapack::persistent_memory::config_updown_converter() )
+		{
+			button_converter.set_bitmap(&bitmap_icon_downconvert); 
+		}
+		else
+		{
+			button_converter.set_bitmap(&bitmap_icon_upconvert); 
+		}
+		button_converter.hidden(false);
+		if( portapack::persistent_memory::config_converter() ) 
+		{
+			button_converter.set_foreground(Color::red());
+		}
+		else
+		{
+			button_converter.set_foreground(Color::light_grey());
+		}
 	}
-	// Retune to take hamitup change in account
+	// Retune to take converter change in account
 	receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+	transmitter_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
 
 	if (!portapack::persistent_memory::config_speaker()) {
 		button_speaker.set_foreground(Color::light_grey());
@@ -257,16 +292,16 @@ void SystemStatusView::set_title(const std::string new_value) {
 	}
 }
 
-void SystemStatusView::on_hamitup() {
- 	if(!portapack::persistent_memory::config_hamitup()) 
+void SystemStatusView::on_converter() {
+ 	if(!portapack::persistent_memory::config_converter()) 
  	{
- 		portapack::persistent_memory::set_config_hamitup( true );
- 		button_hamitup.set_foreground(Color::red());
+ 		portapack::persistent_memory::set_config_converter( true );
+ 		button_converter.set_foreground(Color::red());
  	}
  	else
  	{
- 		portapack::persistent_memory::set_config_hamitup( false );
- 		button_hamitup.set_foreground(Color::light_grey());
+ 		portapack::persistent_memory::set_config_converter( false );
+ 		button_converter.set_foreground(Color::light_grey());
  	}
 	receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// Retune
  }

@@ -147,9 +147,9 @@ namespace ui
 			Color::light_grey(),
 			Color::dark_grey()};
 
-		ImageButton button_hamitup{
+		ImageButton button_converter{
 			{17 * 8, 0, 2 * 8, 1 * 16},
-			&bitmap_icon_hamitup,
+			&bitmap_icon_upconvert,
 			Color::light_grey(),
 			Color::dark_grey()
 		};
@@ -194,7 +194,7 @@ namespace ui
 		SDCardStatusView sd_card_status_view{
 			{28 * 8, 0 * 16, 2 * 8, 1 * 16}};
 
-		void on_hamitup();
+		void on_converter();
 		void on_speaker();
 		void on_stealth();
 		void on_bias_tee();
