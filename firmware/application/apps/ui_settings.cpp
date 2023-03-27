@@ -337,6 +337,10 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
 	check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
 	check_show_converter.on_select = [this](Checkbox&, bool v) {
         portapack::persistent_memory::set_config_hide_converter(!v);
+        if( !v )
+        {
+		    check_converter.set_value(false);
+        }
         // Retune to take converter change in account
 	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
         //Refresh status bar with/out converter
@@ -346,6 +350,11 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
 
 	check_converter.set_value(portapack::persistent_memory::config_converter());
 	check_converter.on_select = [this](Checkbox&, bool v) {
+        if( v )
+        {
+            check_show_converter.set_value(true);
+            portapack::persistent_memory::set_config_hide_converter(false);
+        }
         portapack::persistent_memory::set_config_converter(v);
         // Retune to take converter change in account
 	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
