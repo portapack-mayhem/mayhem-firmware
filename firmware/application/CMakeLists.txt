@@ -234,6 +234,7 @@ set(CPPSRC
 	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
+	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp
 	apps/ui_keyfob.cpp

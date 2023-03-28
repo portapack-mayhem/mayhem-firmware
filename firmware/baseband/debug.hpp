@@ -36,11 +36,17 @@ inline uint32_t get_free_stack_space(){
     return stack_space_left;
 }
 
+/* Executes a breakpoint only when a debugger is attached. */
 #define HALT_IF_DEBUGGING()                              \
   do {                                                   \
     if ((*(volatile uint32_t *)0xE000EDF0) & (1 << 0)) { \
       __asm__ __volatile__("bkpt 1");                    \
     }                                                    \
 } while (0)
+
+/* Stops execution until a debugger is attached. */
+#define HALT_UNTIL_DEBUGGING()                                \
+  while (!((*(volatile uint32_t *)0xE000EDF0) & (1 << 0))) {} \
+  __asm__ __volatile__("bkpt 1")
 
 #endif/*__DEBUG_H__*/
