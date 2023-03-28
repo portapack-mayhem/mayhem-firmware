@@ -27,7 +27,7 @@ import struct
 usage_message = """
 PortaPack image chunk writer
 
-Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary> [<chunk max size>]
+Usage: <command> <input_binary> <four-characer tag> <output_tagged_binary>
 """
 
 def read_image(path):
@@ -41,17 +41,33 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-input_image_max_length = 32768
-if len(sys.argv) in (4, 5):
+if len(sys.argv) == 4:
 	input_image = read_image(sys.argv[1])
+	input_image = bytearray(input_image)
 	tag = tuple(map(ord, sys.argv[2]))
 	output_path = sys.argv[3]
-	if len(sys.argv) == 5:
-		input_image_max_length = int(sys.argv[4])
+
+	if input_image[4] & 8 == 8:
+		input_image = input_image[15:]
+	else:
+		input_image = input_image[7:]
+
+	if (len(input_image) & 3) != 0:
+		for i in range(4 - (len(input_image) & 3)):
+			input_image.append(0)
+
+	output_image = bytearray()
+	output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image) - 4)
+	output_image += input_image
+	write_image(output_image, output_path)
+
 elif len(sys.argv) == 2:
-	input_image = bytearray()
+	null_image = bytearray()
 	tag = (0, 0, 0, 0)
 	output_path = sys.argv[1]
+	null_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], 0)
+	write_image(null_image, output_path)
+
 else:
 	print(usage_message)
 	sys.exit(-1)
@@ -59,14 +75,3 @@ else:
 if len(tag) != 4:
 	print(usage_message)
 	sys.exit(-2)
-
-if len(input_image) > input_image_max_length:
-	raise RuntimeError('image size of %d exceeds device size of %d bytes' % (len(input_image), input_image_max_length))
-if (len(input_image) & 3) != 0:
-	raise RuntimeError('image size of %d is not multiple of four' % (len(input_image,)))
-
-output_image = bytearray()
-output_image += struct.pack('<4BI', tag[0], tag[1], tag[2], tag[3], len(input_image))
-output_image += input_image
-
-write_image(output_image, output_path)

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
  *
@@ -28,22 +29,20 @@ using namespace lpc43xx;
 
 #include "message.hpp"
 #include "baseband_api.hpp"
+#include "lz4.h"
 
 #include <cstring>
 
-/* TODO: OK, this is cool, but how do I put the M4 to sleep so I can switch to
- * a different image? Other than asking the old image to sleep while the M0
- * makes changes?
- *
- * I suppose I could force M4MEMMAP to an invalid memory reason which would
- * cause an exception and effectively halt the M4. But that feels gross.
- */
 void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to, const bool full_reset) {
 	const portapack::spi_flash::chunk_t* chunk = reinterpret_cast<const portapack::spi_flash::chunk_t*>(portapack::spi_flash::images.base());
 	while(chunk->tag) {
-		if( chunk->tag == image_tag ) {
-			/* Initialize M4 code RAM */
-			std::memcpy(reinterpret_cast<void*>(to.base()), &chunk->data[0], chunk->length);
+		if(chunk->tag == image_tag) {
+
+			const void *src = &chunk->data[0];
+			void *dst = reinterpret_cast<void*>(to.base());
+
+			/* extract and initialize M4 code RAM */
+			unlz4_len(src, dst, chunk->compressed_data_size);
 
 			/* M4 core is assumed to be sleeping with interrupts off, so we can mess
 			 * with its address space and RAM without concern.

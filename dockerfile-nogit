@@ -11,7 +11,7 @@ WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
 RUN apt-get update && \
-	apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 curl && \
+	apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl && \
 	apt-get -qy autoremove
 
 #Install current pip from PyPa
