@@ -119,7 +119,11 @@
  * @brief   Enables the SDC subsystem.
  */
 #if !defined(HAL_USE_SDC) || defined(__DOXYGEN__)
+#ifdef BASEBAND_flash_utility
+#define HAL_USE_SDC                 TRUE
+#else
 #define HAL_USE_SDC                 FALSE
+#endif /* BASEBAND_flash_utility */
 #endif
 
 /**
