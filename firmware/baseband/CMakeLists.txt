@@ -515,6 +515,31 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFUT flash_utility)
 
+### SD over USB   ${PATH_HACKRF_FIRMWARE} 
+
+set(MODE_INCDIR
+	${HACKRF_PATH}/firmware
+	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware/libopencm3/include
+)
+set(MODE_CPPSRC
+	sd_over_usb/proc_sd_over_usb.cpp
+	
+	sd_over_usb/sd_over_usb.c
+	sd_over_usb/usb_descriptor.c
+	sd_over_usb/usb_device.c
+	sd_over_usb/usb_endpoint.c
+
+	${HACKRF_PATH}/firmware/common/usb.c
+	${HACKRF_PATH}/firmware/common/usb_queue.c
+	${HACKRF_PATH}/firmware/common/usb_request.c
+	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/sync.c
+
+)
+DeclareTargets(PUSB sd_over_usb)
+
 ### HackRF "factory" firmware
 
 add_custom_command(

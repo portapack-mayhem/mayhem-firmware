@@ -71,6 +71,7 @@
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
 #include "ui_flash_utility.hpp"
+#include "ui_sd_over_usb.hpp"
 
 //#include "acars_app.hpp"
 #include "ais_app.hpp"
@@ -614,8 +615,8 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 		{ "Antenna length",	ui::Color::green(),		&bitmap_icon_tools_antenna,	[&nav](){ nav.push<WhipCalcView>(); } },
 
 		{ "Wipe SD card",	ui::Color::red(),		&bitmap_icon_tools_wipesd,	[&nav](){ nav.push<WipeSDView>(); } },
-		{ "Flash Utility",  ui::Color::red(),		&bitmap_icon_temperature,	[&nav](){ nav.push<FlashUtilityView>(); } },
-		
+		{ "Flash Utility",	ui::Color::red(),		&bitmap_icon_temperature,	[&nav](){ nav.push<FlashUtilityView>(); } },
+		{ "SD over USB",	ui::Color::yellow(),	&bitmap_icon_hackrf,		[&nav](){ nav.push<SdOverUsbView>(); } },
 	});
 	set_max_rows(2); // allow wider buttons
 }
