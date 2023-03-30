@@ -45,8 +45,59 @@ const usb_request_handlers_t usb_request_handlers = {
 };
 
 
+void usb_configuration_changed(usb_device_t* const device)
+{
+	/* Reset transceiver to idle state until other commands are received */
+	// request_transceiver_mode(TRANSCEIVER_MODE_OFF);
+	// if (device->configuration->number == 1) {
+	// 	// transceiver configuration
+	// 	led_on(LED1);
+	// } else {
+	// 	/* Configuration number equal 0 means usb bus reset. */
+	// 	led_off(LED1);
+	// }
+	usb_endpoint_init(&usb_endpoint_bulk_in);
+	usb_endpoint_init(&usb_endpoint_bulk_out);
+}
+
 
 void start_usb(void) {
+
+	/* use XTAL_OSC as clock source for PLL0USB */
+	// CGU_PLL0USB_CTRL = 
+	// 	CGU_PLL0USB_CTRL_PD(1) /* PLL0 power down */ | 
+	// 	CGU_PLL0USB_CTRL_AUTOBLOCK(1) /* Block clock automatically during frequency change */ |
+	// 	CGU_PLL0USB_CTRL_CLK_SEL(CGU_SRC_XTAL); /* Clock source selection */
+
+	// while (CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK) {}
+
+	/* configure PLL0USB to produce 480 MHz clock from 12 MHz XTAL_OSC */
+	/* Values from User Manual v1.4 Table 94, for 12MHz oscillator. */
+	
+	// CGU_PLL0USB_MDIV = 0x06167FFA;
+	// CGU_PLL0USB_NP_DIV = 0x00302062;
+
+	// CGU_PLL0USB_CTRL |=
+	// 	CGU_PLL0USB_CTRL_PD(1)  /* PLL0 power down */ | 
+	// 	CGU_PLL0USB_CTRL_DIRECTI(1) /* PLL0 direct input */ |
+	// 	CGU_PLL0USB_CTRL_DIRECTO(1) /* PLL0 direct output */ | 
+	// 	CGU_PLL0USB_CTRL_CLKEN(1) /* PLL0 clock enable */;
+
+	// /* power on PLL0USB and wait until stable */
+	// CGU_PLL0USB_CTRL &= ~CGU_PLL0USB_CTRL_PD_MASK /* PLL0 power down */ ;
+
+	// while (!(CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK)) {}
+
+	/* use PLL0USB as clock source for USB0 */
+	// CGU_BASE_USB0_CLK = CGU_BASE_USB0_CLK_AUTOBLOCK(1) |
+	// 	CGU_BASE_USB0_CLK_CLK_SEL(CGU_SRC_PLL0USB);
+
+	detect_hardware_platform();
+	pin_setup();
+	cpu_clock_init();
+
+
+	usb_set_configuration_changed_cb(usb_configuration_changed);
 	usb_peripheral_reset();
 
 	usb_device_init(0, &usb_device);

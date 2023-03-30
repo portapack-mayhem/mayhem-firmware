@@ -534,8 +534,29 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${HACKRF_PATH}/firmware/common/platform_detect.c
+	${HACKRF_PATH}/firmware/common/hackrf_core.c
+	${HACKRF_PATH}/firmware/common/gpio_lpc.c
+	${HACKRF_PATH}/firmware/common/firmware_info.c
+	${HACKRF_PATH}/firmware/common/si5351c.c
+	${HACKRF_PATH}/firmware/common/i2c_bus.c
+	${HACKRF_PATH}/firmware/common/mixer.c
+	${HACKRF_PATH}/firmware/common/clkin.c
+	${HACKRF_PATH}/firmware/common/spi_bus.c
+	${HACKRF_PATH}/firmware/common/sgpio.c
+	${HACKRF_PATH}/firmware/common/rf_path.c
+	${HACKRF_PATH}/firmware/common/i2c_lpc.c
+	${HACKRF_PATH}/firmware/common/spi_ssp.c
+	${HACKRF_PATH}/firmware/common/rffc5071_spi.c
+	${HACKRF_PATH}/firmware/common/rffc5071.c
+	${HACKRF_PATH}/firmware/common/clkin.c
+	${HACKRF_PATH}/firmware/common/gpdma.c
+
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/sync.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/scu.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 
 )
 DeclareTargets(PUSB sd_over_usb)

@@ -40,10 +40,35 @@ CH_IRQ_HANDLER(Vector60) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<USBProcessor>() };
-	HALT_UNTIL_DEBUGGING();
+	//EventDispatcher event_dispatcher { std::make_unique<USBProcessor>() };
+
+	//HALT_UNTIL_DEBUGGING();
+
+	//LPC_CGU->PLL0USB_CTRL.PD = 1;
+	//LPC_CGU->PLL0USB_CTRL.AUTOBLOCK = 1;
+	//LPC_CGU->PLL0USB_CTRL.CLK_SEL = 0x06;
+//
+	//while (LPC_CGU->PLL0USB_STAT.LOCK) {}
+ //
+	//LPC_CGU->PLL0USB_MDIV = 0x06167FFA; // 0x71A7FAA; //
+	//LPC_CGU->PLL0USB_NP_DIV = 0x00302062;
+//
+	////LPC_CGU->PLL0USB_CTRL.PD |= 1;
+	//LPC_CGU->PLL0USB_CTRL.DIRECTI = 1;
+	//LPC_CGU->PLL0USB_CTRL.DIRECTO = 1;
+	//LPC_CGU->PLL0USB_CTRL.CLKEN = 1;
+//
+	//LPC_CGU->PLL0USB_CTRL.PD = 0;
+//
+	//while (!(LPC_CGU->PLL0USB_STAT.LOCK)) {}
+	////chThdSleepMilliseconds(800);
+//
+	//LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
+	//LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
+
 	start_usb();
-	event_dispatcher.run();
+	//event_dispatcher.run();
+	while (true);
 	stop_usb();
 	return 0;
 }

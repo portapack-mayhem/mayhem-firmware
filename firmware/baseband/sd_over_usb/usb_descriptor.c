@@ -186,18 +186,26 @@ uint8_t usb_descriptor_string_manufacturer[] = {
 
 uint8_t usb_descriptor_string_product[] = {
 #ifdef HACKRF_ONE
-	22,                         // bLength
+	43,                         // bLength
 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
-	'H', 0x00,
+	'P', 0x00,
+	'o', 0x00,
+	'r', 0x00,
+	't', 0x00,
+	'a', 0x00,
+	'P', 0x00,
 	'a', 0x00,
 	'c', 0x00,
 	'k', 0x00,
-	'R', 0x00,
-	'F', 0x00,
 	' ', 0x00,
-	'O', 0x00,
-	'n', 0x00,
+
+	'M', 0x00,
+	'a', 0x00,
+	'y', 0x00,
+	'h', 0x00,
 	'e', 0x00,
+	'm', 0x00,
+
 #elif JAWBREAKER
 	36,                         // bLength
 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType

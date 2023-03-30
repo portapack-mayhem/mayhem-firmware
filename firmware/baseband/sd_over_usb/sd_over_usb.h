@@ -30,6 +30,9 @@
 #include "usb_device.h"
 #include "usb_endpoint.h"
 #include <libopencm3/lpc43xx/m4/nvic.h>
+#include <libopencm3/lpc43xx/cgu.h>
+#include "platform_detect.h"
+#include "hackrf_core.h"
 
 void start_usb(void);
 void stop_usb(void);
