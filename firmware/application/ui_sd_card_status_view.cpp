@@ -21,14 +21,11 @@
  */
 
 #include "ui_sd_card_status_view.hpp"
-#include "portapack_persistent_memory.hpp"
 
 #include <string>
 #include <algorithm>
 
 #include "bitmap.hpp"
-#include "file.hpp"
-
 
 namespace ui {
 
@@ -75,16 +72,7 @@ const Color color_sd_card(const sd_card::Status status) {
 		return color_sd_card_unknown;
 
 	case sd_card::Status::Mounted:
-	{
-		File pmem_flag_file_handle ;
-		std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG" ;
-		auto result = pmem_flag_file_handle.open(pmem_flag_file);	
-		if(!result.is_valid()) 
-		{
-			portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings");
-		}
 		return color_sd_card_ok;
-	}
 
 	default:
 		return color_sd_card_unknown;
