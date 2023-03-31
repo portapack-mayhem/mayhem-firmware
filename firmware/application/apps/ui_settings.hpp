@@ -438,7 +438,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Mem Mgmt"; };
+	std::string title() const override { return "P.Mem Mgmt"; };
 	
 private:
 

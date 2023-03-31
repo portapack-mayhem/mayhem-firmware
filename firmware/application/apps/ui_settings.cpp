@@ -428,11 +428,11 @@ namespace ui {
 					auto result = pmem_flag_file_handle.create(pmem_flag_file); //third: create if it is not there
 					if( !result.is_valid() )
 					{
-						text_pmem_status.set("pmem flag file created!");
+						text_pmem_status.set("pmem flag file created");
 					}
 					else
 					{
-						text_pmem_status.set("err. creating pmem flag file");
+						text_pmem_status.set("!err. creating pmem flagfile!");
 					}
 				}
 				else
@@ -445,14 +445,40 @@ namespace ui {
 				auto result = delete_file( pmem_flag_file );
 				if( result != 0 )
 				{
-					text_pmem_status.set("err. deleting pmem flag file");
+					text_pmem_status.set("!err. deleting pmem flagfile!");
 				}
 				else
 				{
-					text_pmem_status.set("pmem flag file deleted!");
+					text_pmem_status.set("pmem flag file deleted");
 				}
 			}
 		};
+
+		button_save_mem_to_file.on_select = [&nav, this](Button&) {
+			if( !portapack::persistent_memory::save_persistent_settings_to_file("SETTINGS/pmem_settings") )
+			{
+				text_pmem_status.set("!problem saving settings!");
+			}
+			else
+			{
+				text_pmem_status.set("settings saved");
+			}
+		};
+
+		button_load_mem_from_file.on_select = [&nav, this](Button&) {
+			if( !portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings") )
+			{
+				text_pmem_status.set("!problem loading settings!");
+			}
+			else
+			{
+				text_pmem_status.set("settings loaded");
+				//Refresh status bar with icon up or down
+				StatusRefreshMessage message { };				
+				EventDispatcher::send_message(message);
+			}
+		};
+
 
 		button_return.on_select = [&nav, this](Button&) {
 			nav.pop();
@@ -466,7 +492,6 @@ namespace ui {
 	//
 	// Audio settings
 	//
-
 	SetAudioView::SetAudioView(NavigationView& nav) {
 		add_children({
 				&labels,
