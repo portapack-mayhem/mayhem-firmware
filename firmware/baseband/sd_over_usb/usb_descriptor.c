@@ -85,7 +85,7 @@ uint8_t usb_descriptor_configuration_full_speed[] = {
 	USB_WORD(32),                      // wTotalLength
 	0x01,                              // bNumInterfaces
 	0x01,                              // bConfigurationValue
-	0x03,                              // iConfiguration
+	0x00,                              // iConfiguration
 	0x80,                              // bmAttributes: USB-powered
 	250,                               // bMaxPower: 500mA
 
@@ -94,9 +94,9 @@ uint8_t usb_descriptor_configuration_full_speed[] = {
 	0x00,                          // bInterfaceNumber
 	0x00,                          // bAlternateSetting
 	0x02,                          // bNumEndpoints
-	0xFF,                          // bInterfaceClass: vendor-specific
-	0xFF,                          // bInterfaceSubClass
-	0xFF,                          // bInterfaceProtocol: vendor-specific
+	0x08,                          // bInterfaceClass: vendor-specific
+	0x06,                          // bInterfaceSubClass
+	0x50,                          // bInterfaceProtocol: vendor-specific
 	0x00,                          // iInterface
 
 	7,                                // bLength
@@ -122,7 +122,7 @@ uint8_t usb_descriptor_configuration_high_speed[] = {
 	USB_WORD(32),                      // wTotalLength
 	0x01,                              // bNumInterfaces
 	0x01,                              // bConfigurationValue
-	0x03,                              // iConfiguration
+	0x00,                              // iConfiguration
 	0x80,                              // bmAttributes: USB-powered
 	250,                               // bMaxPower: 500mA
 
@@ -131,9 +131,9 @@ uint8_t usb_descriptor_configuration_high_speed[] = {
 	0x00,                          // bInterfaceNumber
 	0x00,                          // bAlternateSetting
 	0x02,                          // bNumEndpoints
-	0xFF,                          // bInterfaceClass: vendor-specific
-	0xFF,                          // bInterfaceSubClass
-	0xFF,                          // bInterfaceProtocol: vendor-specific
+	0x08,                          // bInterfaceClass: vendor-specific
+	0x06,                          // bInterfaceSubClass
+	0x50,                          // bInterfaceProtocol: vendor-specific
 	0x00,                          // iInterface
 
 	7,                                // bLength

@@ -33,10 +33,11 @@
 #include <libopencm3/lpc43xx/cgu.h>
 #include "platform_detect.h"
 #include "hackrf_core.h"
+#include "usb_bulk_buffer.h"
 
 void start_usb(void);
 void stop_usb(void);
-
-
+void irq_usb(void);
+void usb_transfer(void);
 
 #endif /* __USB_SD_OVER_USB_H__ */

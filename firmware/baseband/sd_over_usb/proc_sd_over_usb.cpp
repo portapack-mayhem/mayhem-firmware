@@ -33,6 +33,7 @@ extern "C" {
 void start_usb(void);
 void stop_usb(void);
 void irq_usb(void);
+void usb_transfer(void);
 
 CH_IRQ_HANDLER(Vector60) {
 	irq_usb();
@@ -68,7 +69,9 @@ int main() {
 
 	start_usb();
 	//event_dispatcher.run();
-	while (true);
+	while (true) {
+		usb_transfer();
+	}
 	stop_usb();
 	return 0;
 }
