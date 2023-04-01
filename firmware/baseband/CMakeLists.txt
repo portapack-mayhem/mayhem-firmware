@@ -515,7 +515,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFUT flash_utility)
 
-### SD over USB   ${PATH_HACKRF_FIRMWARE} 
+### SD over USB
 
 set(MODE_INCDIR
 	${HACKRF_PATH}/firmware
@@ -526,17 +526,18 @@ set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 	
 	sd_over_usb/scsi.c
+	sd_over_usb/diskio.c
 	sd_over_usb/sd_over_usb.c
 	sd_over_usb/usb_descriptor.c
 	sd_over_usb/usb_device.c
 	sd_over_usb/usb_endpoint.c
 	sd_over_usb/usb.c
+	sd_over_usb/hackrf_core.c
 
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
-	${HACKRF_PATH}/firmware/common/hackrf_core.c
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/firmware_info.c
 	${HACKRF_PATH}/firmware/common/si5351c.c
@@ -558,7 +559,6 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/scu.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
-
 )
 DeclareTargets(PUSB sd_over_usb)
 

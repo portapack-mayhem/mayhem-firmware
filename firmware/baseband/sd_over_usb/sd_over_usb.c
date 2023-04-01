@@ -94,16 +94,16 @@ usb_request_status_t usb_vendor_request(
 {
 	usb_request_status_t status = USB_REQUEST_STATUS_STALL;
 
-	volatile uint_fast8_t address = endpoint->address;
+	// volatile uint_fast8_t address = endpoint->address;
 	volatile uint8_t request = endpoint->setup.request;
-	volatile uint32_t b = 0;
+	// volatile uint32_t b = 0;
 
 	if (request == 25) { // unknown code
 		return report_magic_scsi(endpoint, stage);
 	}
 
-	b = request + (address << 16);
-	HALT_UNTIL_DEBUGGING();
+	// b = request + (address << 16);
+	// HALT_UNTIL_DEBUGGING();
 
 
 	return status;
@@ -115,16 +115,15 @@ usb_request_status_t usb_class_request(
 {
 	usb_request_status_t status = USB_REQUEST_STATUS_STALL;
 
-	volatile uint_fast8_t address = endpoint->address;
 	volatile uint8_t request = endpoint->setup.request;
-	volatile uint32_t b = 0;
+	// volatile uint32_t b = 0;
 
 	if (request == 0xFE) {
 		return report_max_lun(endpoint, stage);
 	}
 
-	b = request + (address << 16);
-	HALT_UNTIL_DEBUGGING();
+	// b = request + (address << 16);
+	// HALT_UNTIL_DEBUGGING();
 
 	// if (address == 0x80) {
 
@@ -149,7 +148,7 @@ usb_request_status_t usb_class_request(
 
 
 	// HALT_UNTIL_DEBUGGING();
-	return status + b;
+	return status;
 }
 
 const usb_request_handlers_t usb_request_handlers = {
@@ -168,7 +167,7 @@ void usb_configuration_changed(usb_device_t* const device)
 void start_usb(void) {
 	detect_hardware_platform();
 	pin_setup();
-	cpu_clock_init();
+	cpu_clock_init(); // required
 
 	usb_set_configuration_changed_cb(usb_configuration_changed);
 	usb_peripheral_reset();

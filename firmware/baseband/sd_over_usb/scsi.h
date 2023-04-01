@@ -13,6 +13,9 @@
 #include "hackrf_core.h"
 #include "usb_bulk_buffer.h"
 
+#define MSD_CBW_SIGNATURE               0x43425355
+#define MSD_CSW_SIGNATURE               0x53425355
+
 #define SCSI_CMD_TEST_UNIT_READY                0x00
 #define SCSI_CMD_REQUEST_SENSE                  0x03
 #define SCSI_CMD_INQUIRY                        0x12
@@ -70,6 +73,67 @@ typedef struct {
   uint8_t   cmd_len;
   uint8_t   cmd_data[16];
 } __attribute__((packed)) msd_cbw_t;
+
+typedef struct {
+  uint8_t peripheral;
+  uint8_t removable;
+  uint8_t version;
+  uint8_t response_data_format;
+  uint8_t additional_length;
+  uint8_t sccstp;
+  uint8_t bqueetc;
+  uint8_t cmdque;
+  uint8_t vendorID[8];
+  uint8_t productID[16];
+  uint8_t productRev[4];
+} scsi_inquiry_response_t;
+
+typedef struct {
+  uint32_t  signature;
+  uint32_t  tag;
+  uint32_t  data_residue;
+  uint8_t   status;
+} __attribute__((packed)) msd_csw_t;
+
+typedef struct {
+  uint8_t header[4];
+  uint8_t blocknum[4];
+  uint8_t blocklen[4];
+} scsi_read_format_capacities_response_t;
+
+typedef struct {
+  uint8_t header[4];
+  uint8_t blocknum[4];
+  uint8_t blocklen[4];
+  uint8_t blocknum2[4];
+  uint8_t blocklen2[4];
+} scsi_read_format_capacities_double_response_t;
+
+typedef struct {
+  uint32_t last_block_addr;
+  uint32_t block_size;
+} scsi_read_capacity10_response_t;
+
+typedef struct {
+  uint8_t byte[18];
+} scsi_sense_response_t;
+
+typedef struct {
+  uint8_t   byte[4];
+} scsi_mode_sense6_response_t;
+
+typedef struct {
+  uint32_t first_lba;
+  uint16_t blk_cnt;
+} data_request_t;
+
+typedef struct {
+  uint8_t peripheral;
+  uint8_t page_code;
+  uint8_t reserved;
+  uint8_t page_length;
+  uint8_t serialNumber[8];
+} scsi_unit_serial_number_inquiry_response_t;
 
 static inline uint16_t bswap_16(const uint16_t x)
     __attribute__ ((warn_unused_result))

@@ -27,7 +27,6 @@
 
 #include "debug.hpp"
 #include "portapack_shared_memory.hpp"
-#include "event_m4.hpp"
 
 extern "C" {
 void start_usb(void);
@@ -40,34 +39,22 @@ CH_IRQ_HANDLER(Vector60) {
 }
 }
 
+//uint8_t buf[512];
+
 int main() {
-	//EventDispatcher event_dispatcher { std::make_unique<USBProcessor>() };
 
-	//HALT_UNTIL_DEBUGGING();
+	sdcStart(&SDCD1, nullptr);
+	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
 
-	//LPC_CGU->PLL0USB_CTRL.PD = 1;
-	//LPC_CGU->PLL0USB_CTRL.AUTOBLOCK = 1;
-	//LPC_CGU->PLL0USB_CTRL.CLK_SEL = 0x06;
-//
-	//while (LPC_CGU->PLL0USB_STAT.LOCK) {}
- //
-	//LPC_CGU->PLL0USB_MDIV = 0x06167FFA; // 0x71A7FAA; //
-	//LPC_CGU->PLL0USB_NP_DIV = 0x00302062;
-//
-	////LPC_CGU->PLL0USB_CTRL.PD |= 1;
-	//LPC_CGU->PLL0USB_CTRL.DIRECTI = 1;
-	//LPC_CGU->PLL0USB_CTRL.DIRECTO = 1;
-	//LPC_CGU->PLL0USB_CTRL.CLKEN = 1;
-//
-	//LPC_CGU->PLL0USB_CTRL.PD = 0;
-//
-	//while (!(LPC_CGU->PLL0USB_STAT.LOCK)) {}
-	////chThdSleepMilliseconds(800);
-//
-	//LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
-	//LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
+	// memset(&buf[0], 0, 512);
+	// if (sdcRead(&SDCD1, 0, &buf[0], 1) == CH_FAILED) chDbgPanic("no sd card #2");
+
 
 	start_usb();
+
+	// memset(&buf[0], 0, 512);
+	// if (sdcRead(&SDCD1, 0, &buf[0], 1) == CH_FAILED) chDbgPanic("no sd card #3");
+
 	//event_dispatcher.run();
 	while (true) {
 		usb_transfer();
