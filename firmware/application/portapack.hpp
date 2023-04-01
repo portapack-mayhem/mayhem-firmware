@@ -63,7 +63,7 @@ void set_antenna_bias(const bool v);
 bool get_antenna_bias();
 
 bool init();
-void shutdown();
+void shutdown(const bool leave_screen_on = false);
 
 Backlight* backlight();
 

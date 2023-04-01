@@ -119,7 +119,7 @@
  * @brief   Enables the SDC subsystem.
  */
 #if !defined(HAL_USE_SDC) || defined(__DOXYGEN__)
-#ifdef BASEBAND_flash_utility
+#if defined(BASEBAND_flash_utility) || defined(BASEBAND_sd_over_usb)
 #define HAL_USE_SDC                 TRUE
 #else
 #define HAL_USE_SDC                 FALSE

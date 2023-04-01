@@ -107,6 +107,7 @@ constexpr image_tag_t image_tag_siggen				{ 'P', 'S', 'I', 'G' };
 constexpr image_tag_t image_tag_sstv_tx				{ 'P', 'S', 'T', 'X' };
 constexpr image_tag_t image_tag_tones				{ 'P', 'T', 'O', 'N' };
 constexpr image_tag_t image_tag_flash_utility		{ 'P', 'F', 'U', 'T' };
+constexpr image_tag_t image_tag_usb_sd				{ 'P', 'U', 'S', 'B' };
 
 constexpr image_tag_t image_tag_noop				{ 'P', 'N', 'O', 'P' };
 
