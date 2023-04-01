@@ -515,11 +515,13 @@ bool init() {
 	return true;
 }
 
-void shutdown() {
+void shutdown(const bool leave_screen_on) {
 	gpdma::controller.disable();
 
-	backlight()->off();
-	display.shutdown();
+	if (leave_screen_on) {
+		backlight()->off();
+		display.shutdown();
+	}
 	
 	radio::disable();
 	audio::shutdown();

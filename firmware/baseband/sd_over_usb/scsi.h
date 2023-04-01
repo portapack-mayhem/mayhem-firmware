@@ -5,8 +5,8 @@
 #include <common/usb.h>
 #include <common/usb_request.h>
 #include <common/usb_standard_request.h>
-#include "usb_device.h"
-#include "usb_endpoint.h"
+#include <hackrf_usb/usb_device.h>
+#include <hackrf_usb/usb_endpoint.h>
 #include <libopencm3/lpc43xx/m4/nvic.h>
 #include <libopencm3/lpc43xx/cgu.h>
 #include "platform_detect.h"
@@ -100,14 +100,6 @@ typedef struct {
   uint8_t blocknum[4];
   uint8_t blocklen[4];
 } scsi_read_format_capacities_response_t;
-
-typedef struct {
-  uint8_t header[4];
-  uint8_t blocknum[4];
-  uint8_t blocklen[4];
-  uint8_t blocknum2[4];
-  uint8_t blocklen2[4];
-} scsi_read_format_capacities_double_response_t;
 
 typedef struct {
   uint32_t last_block_addr;

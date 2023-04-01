@@ -37,7 +37,6 @@ namespace ui {
 class SdOverUsbView : public View {
 public:
 	SdOverUsbView(NavigationView& nav);
-	~SdOverUsbView();
 
 	void focus() override;
 
@@ -47,15 +46,13 @@ private:
 	NavigationView& nav_;
 	
 	Labels labels {
-		{ { 4, 4 }, "Use USB", Color::white() }
+		{ { 40, 4 }, "This will provide access\nto the SD card over USB.", Color::white() }
 	};
 
-	Button button_close {
+	Button button_run {
 		{ 2 * 8, 15 * 16, 12 * 8, 3 * 16 },
-		"Close" 
+		"Run" 
 	};		
-
-
 };
 
 } /* namespace ui */

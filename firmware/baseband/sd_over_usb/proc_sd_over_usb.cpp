@@ -24,13 +24,10 @@
 #include "hal.h"
 
 #include "proc_sd_over_usb.hpp"
-
-#include "debug.hpp"
 #include "portapack_shared_memory.hpp"
 
 extern "C" {
 void start_usb(void);
-void stop_usb(void);
 void irq_usb(void);
 void usb_transfer(void);
 
@@ -40,7 +37,6 @@ CH_IRQ_HANDLER(Vector60) {
 }
 
 int main() {
-
 	sdcStart(&SDCD1, nullptr);
 	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
 
@@ -49,8 +45,6 @@ int main() {
 	while (true) {
 		usb_transfer();
 	}
-
-	stop_usb();
 
 	return 0;
 }

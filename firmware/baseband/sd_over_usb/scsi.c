@@ -1,11 +1,6 @@
 #include "scsi.h"
 #include "diskio.h"
 
-#define HALT_UNTIL_DEBUGGING()                                \
-  while (!((*(volatile uint32_t *)0xE000EDF0) & (1 << 0))) {} \
-  __asm__ __volatile__("bkpt 1")
-
-
 volatile bool usb_bulk_block_done = false;
 
 void usb_bulk_block_cb(void* user_data, unsigned int bytes_transferred) {
@@ -104,8 +99,6 @@ uint8_t read_format_capacities(msd_cbw_t *msd_cbw_data) {
             .header = {0, 0, 0, 1 * 8 /* num_entries * 8 */},
             .blocknum = {((num_blocks) >> 24)& 0xff, ((num_blocks) >> 16)& 0xff, ((num_blocks) >> 8)& 0xff, num_blocks & 0xff},
             .blocklen = {0b10 /* formated */, 0, (512) >> 8, 0},
-            // .blocknum2 = {((num_blocks) >> 24)& 0xff, ((num_blocks) >> 16)& 0xff, ((num_blocks) >> 8)& 0xff, num_blocks & 0xff},
-            // .blocklen2 = {0 /* formated */, 0, (512) >> 8, 0}
         };
 
         memcpy(&usb_bulk_buffer[0], &ret, sizeof(scsi_read_format_capacities_response_t));
@@ -155,7 +148,7 @@ uint8_t mode_sense6(msd_cbw_t *msd_cbw_data) {
         .byte = { 
             sizeof(scsi_mode_sense6_response_t) - 1,
             0,
-            0,  // 0x01 << 7, // 0 for not write protected
+            0,
             0 }
     };
 
@@ -166,7 +159,6 @@ uint8_t mode_sense6(msd_cbw_t *msd_cbw_data) {
 }
 
 static data_request_t decode_data_request(const uint8_t *cmd) {
-
   data_request_t req;
   uint32_t lba;
   uint16_t blk;
@@ -207,7 +199,6 @@ void scsi_command(msd_cbw_t *msd_cbw_data) {
 
     switch (msd_cbw_data->cmd_data[0]) {
         case SCSI_CMD_INQUIRY:
-            //status = handle_inquiry(msd_cbw_data);
             if ((msd_cbw_data->cmd_data[1] & 0b1) && msd_cbw_data->cmd_data[2] == 0x80) {
                 status = handle_inquiry_serial_number(msd_cbw_data);
             }
