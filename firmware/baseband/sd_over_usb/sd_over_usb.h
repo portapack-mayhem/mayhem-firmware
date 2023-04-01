@@ -1,7 +1,8 @@
 /*
- * Copyright 2023 Bernd Herzog
+ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Bernd Herzog
  *
- * This file is part of HackRF.
+ * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
