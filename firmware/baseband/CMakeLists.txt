@@ -187,7 +187,7 @@ set(AOPT)
 set(TOPT "-mthumb -DTHUMB")
 
 # Define C warning options here
-set(CWARN "-Wall -Wextra -Wstrict-prototypes")
+set(CWARN "-Wall -Wextra")
 
 # Define C++ warning options here
 set(CPPWARN "-Wall -Wextra")

@@ -23,9 +23,6 @@
 #include "ch.h"
 #include "hal.h"
 
-#include "proc_sd_over_usb.hpp"
-#include "portapack_shared_memory.hpp"
-
 extern "C" {
 void start_usb(void);
 void irq_usb(void);

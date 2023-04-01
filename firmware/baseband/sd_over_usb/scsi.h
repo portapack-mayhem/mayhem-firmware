@@ -133,7 +133,6 @@ static inline uint16_t bswap_16(const uint16_t x)
     __attribute__ ((always_inline));
 
 static inline uint16_t bswap_16(const uint16_t x) {
-
     uint8_t                             tmp;
     union { uint16_t x; uint8_t b[2]; } data;
     
@@ -150,9 +149,7 @@ static inline uint32_t bswap_32(const uint32_t x)
     __attribute__ ((const))
     __attribute__ ((always_inline));
 
-
 static inline uint32_t bswap_32(const uint32_t x) {
-    
     uint8_t                             tmp;
     union { uint32_t x; uint8_t b[4]; } data;
     
@@ -172,8 +169,6 @@ static inline uint32_t bswap_32(const uint32_t x) {
 
 #define cpu_to_be16(x)           bswap_16(x)
 #define cpu_to_be32(x)           bswap_32(x)
-
-
 
 void scsi_command(msd_cbw_t *msd_cbw_data);
 

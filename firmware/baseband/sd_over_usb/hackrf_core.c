@@ -744,8 +744,6 @@ void cpu_clock_init(void)
 	CGU_BASE_SSP1_CLK =
 		CGU_BASE_SSP1_CLK_AUTOBLOCK(1) | CGU_BASE_SSP1_CLK_CLK_SEL(CGU_SRC_PLL1);
 
-	// \/ breaks below
-
 #if (defined JAWBREAKER || defined HACKRF_ONE)
 	/* Disable unused clocks */
 	/* Start with PLLs */
@@ -774,9 +772,6 @@ void cpu_clock_init(void)
 	CGU_BASE_AUDIO_CLK = CGU_BASE_AUDIO_CLK_PD(1);
 	CGU_BASE_CGU_OUT0_CLK = CGU_BASE_CGU_OUT0_CLK_PD(1);
 	CGU_BASE_CGU_OUT1_CLK = CGU_BASE_CGU_OUT1_CLK_PD(1);
-
-// /\ breaks above
-
 
 	/* Disable unused peripheral clocks */
 	CCU1_CLK_APB1_CAN1_CFG = 0;

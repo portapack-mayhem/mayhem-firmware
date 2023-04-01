@@ -22,7 +22,6 @@
 #ifndef __USB_SD_OVER_USB_H__
 #define __USB_SD_OVER_USB_H__
 
-
 #include <stddef.h>
 #include <common/usb.h>
 #include <common/usb_request.h>
