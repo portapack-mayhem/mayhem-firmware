@@ -6,17 +6,17 @@
   __asm__ __volatile__("bkpt 1")
 
 
-volatile bool usb_bulk_block_send = false;
+volatile bool usb_bulk_block_done = false;
 
 void usb_bulk_block_cb(void* user_data, unsigned int bytes_transferred) {
-    usb_bulk_block_send = true;
+    usb_bulk_block_done = true;
 
     (void)user_data;
     (void)bytes_transferred;
 }
 
 void usb_send_bulk(void* const data, const uint32_t maximum_length) {
-    usb_bulk_block_send = false;
+    usb_bulk_block_done = false;
 
     usb_transfer_schedule_block(
         &usb_endpoint_bulk_in,
@@ -25,7 +25,20 @@ void usb_send_bulk(void* const data, const uint32_t maximum_length) {
         usb_bulk_block_cb,
         NULL);
 
-    while (!usb_bulk_block_send);
+    while (!usb_bulk_block_done);
+}
+
+void usb_receive_bulk(void* const data, const uint32_t maximum_length) {
+    usb_bulk_block_done = false;
+
+    usb_transfer_schedule_block(
+        &usb_endpoint_bulk_out,
+        data,
+        maximum_length,
+        usb_bulk_block_cb,
+        NULL);
+
+    while (!usb_bulk_block_done);
 }
 
 void usb_send_csw(msd_cbw_t *msd_cbw_data, uint8_t status) {
@@ -135,7 +148,7 @@ uint8_t request_sense(msd_cbw_t *msd_cbw_data) {
     return 0;
 }
 
-uint8_t mode_sense6 (msd_cbw_t *msd_cbw_data) {
+uint8_t mode_sense6(msd_cbw_t *msd_cbw_data) {
      (void)msd_cbw_data;
 
    scsi_mode_sense6_response_t ret = {
@@ -178,31 +191,12 @@ uint8_t data_read10(msd_cbw_t *msd_cbw_data) {
     return 0;
 }
 
-volatile uint32_t write10_blocks_send = 0;
-void write10_cb(void* user_data, unsigned int bytes_transferred)
-{
-    write10_blocks_send++;
-    
-    (void)user_data;
-    (void)bytes_transferred;
-}
-
 uint8_t data_write10(msd_cbw_t *msd_cbw_data) {
-    write10_blocks_send = 0;
-
     data_request_t req = decode_data_request(msd_cbw_data->cmd_data);
 
     for (size_t block_index = 0; block_index < req.blk_cnt; block_index++) {
-        usb_transfer_schedule_block(
-            &usb_endpoint_bulk_out,
-            &usb_bulk_buffer[0],
-            512,
-            write10_cb,
-            msd_cbw_data);
-
-        while (write10_blocks_send <= block_index);
-
-        //TODO: write to SD
+        usb_receive_bulk(&usb_bulk_buffer[0], 512);
+        write_block(req.first_lba + block_index, &usb_bulk_buffer[0], 1 /* n blocks */);
     }
 
     return 0;

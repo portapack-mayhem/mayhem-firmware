@@ -39,26 +39,18 @@ CH_IRQ_HANDLER(Vector60) {
 }
 }
 
-//uint8_t buf[512];
-
 int main() {
 
 	sdcStart(&SDCD1, nullptr);
 	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
 
-	// memset(&buf[0], 0, 512);
-	// if (sdcRead(&SDCD1, 0, &buf[0], 1) == CH_FAILED) chDbgPanic("no sd card #2");
-
-
 	start_usb();
 
-	// memset(&buf[0], 0, 512);
-	// if (sdcRead(&SDCD1, 0, &buf[0], 1) == CH_FAILED) chDbgPanic("no sd card #3");
-
-	//event_dispatcher.run();
 	while (true) {
 		usb_transfer();
 	}
+
 	stop_usb();
+
 	return 0;
 }
