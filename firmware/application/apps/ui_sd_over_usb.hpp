@@ -46,11 +46,15 @@ private:
 	NavigationView& nav_;
 	
 	Labels labels {
-		{ { 40, 4 }, "This will provide access\nto the SD card over USB.", Color::white() }
+		{ { 3 * 8, 2 * 16 }, "Click Run to start the", Color::white() },
+		{ { 3 * 8, 3 * 16 }, "USB Mass Storage Mode.", Color::white() },
+		{ { 3 * 8, 5 * 16 }, "It can take up to 20s", Color::white() },
+		{ { 3 * 8, 6 * 16 }, "for the drive to be.", Color::white() },
+		{ { 3 * 8, 7 * 16 }, "available.", Color::white() },
 	};
 
 	Button button_run {
-		{ 2 * 8, 15 * 16, 12 * 8, 3 * 16 },
+		{ 9 * 8, 15 * 16, 12 * 8, 3 * 16 },
 		"Run" 
 	};		
 };

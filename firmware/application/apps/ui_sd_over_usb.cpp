@@ -32,6 +32,19 @@ SdOverUsbView::SdOverUsbView(NavigationView& nav) : nav_ (nav) {
 	});
 
 	button_run.on_select = [this](Button&) {
+		ui::Painter painter;
+			painter.fill_rectangle(
+			{ 0, 0, portapack::display.width(), portapack::display.height() },
+			ui::Color::black()
+		);
+
+		painter.draw_bitmap(
+			{ portapack::display.width()/2-8, portapack::display.height()/2-8 },
+			bitmap_icon_hackrf,
+			ui::Color::yellow(),
+			ui::Color::black()
+		);
+
 		sdcDisconnect(&SDCD1);
 		sdcStop(&SDCD1);
 

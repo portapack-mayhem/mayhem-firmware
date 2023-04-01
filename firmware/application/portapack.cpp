@@ -518,7 +518,7 @@ bool init() {
 void shutdown(const bool leave_screen_on) {
 	gpdma::controller.disable();
 
-	if (leave_screen_on) {
+	if (!leave_screen_on) {
 		backlight()->off();
 		display.shutdown();
 	}
