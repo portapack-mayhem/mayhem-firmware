@@ -42,425 +42,524 @@ using namespace portapack;
 
 namespace ui {
 
-SetDateTimeView::SetDateTimeView(
-	NavigationView& nav
-) {
-	button_save.on_select = [&nav, this](Button&){
-		const auto model = this->form_collect();
-		const rtc::RTC new_datetime {
-			model.year, model.month, model.day,
-			model.hour, model.minute, model.second
+	SetDateTimeView::SetDateTimeView(
+			NavigationView& nav
+			) {
+		button_save.on_select = [&nav, this](Button&){
+			const auto model = this->form_collect();
+			const rtc::RTC new_datetime {
+				model.year, model.month, model.day,
+					model.hour, model.minute, model.second
+			};
+			rtcSetTime(&RTCD1, &new_datetime);
+			nav.pop();
+		},
+
+			button_cancel.on_select = [&nav](Button&){
+				nav.pop();
+			},
+
+			add_children({
+					&labels,
+					&field_year,
+					&field_month,
+					&field_day,
+					&field_hour,
+					&field_minute,
+					&field_second,
+					&button_save,
+					&button_cancel,
+					});
+
+		rtc::RTC datetime;
+		rtcGetTime(&RTCD1, &datetime);
+		SetDateTimeModel model {
+			datetime.year(),
+				datetime.month(),
+				datetime.day(),
+				datetime.hour(),
+				datetime.minute(),
+				datetime.second()
 		};
-		rtcSetTime(&RTCD1, &new_datetime);
-		nav.pop();
-	},
 
-	button_cancel.on_select = [&nav](Button&){
-		nav.pop();
-	},
-
-	add_children({
-		&labels,
-		&field_year,
-		&field_month,
-		&field_day,
-		&field_hour,
-		&field_minute,
-		&field_second,
-		&button_save,
-		&button_cancel,
-	});
-
-	rtc::RTC datetime;
-	rtcGetTime(&RTCD1, &datetime);
-	SetDateTimeModel model {
-		datetime.year(),
-		datetime.month(),
-		datetime.day(),
-		datetime.hour(),
-		datetime.minute(),
-		datetime.second()
-	};
-
-	form_init(model);
-}
-
-void SetDateTimeView::focus() {
-	button_cancel.focus();
-}
-
-void SetDateTimeView::form_init(const SetDateTimeModel& model) {
-	field_year.set_value(model.year);
-	field_month.set_value(model.month);
-	field_day.set_value(model.day);
-	field_hour.set_value(model.hour);
-	field_minute.set_value(model.minute);
-	field_second.set_value(model.second);
-}
-
-SetDateTimeModel SetDateTimeView::form_collect() {
-	return {
-		.year = static_cast<uint16_t>(field_year.value()),
-		.month = static_cast<uint8_t>(field_month.value()),
-		.day = static_cast<uint8_t>(field_day.value()),
-		.hour = static_cast<uint8_t>(field_hour.value()),
-		.minute = static_cast<uint8_t>(field_minute.value()),
-		.second = static_cast<uint8_t>(field_second.value())
-	};
-}
-
-SetRadioView::SetRadioView(
-	NavigationView& nav
-) {
-	button_cancel.on_select = [&nav](Button&){
-		nav.pop();
-	};
-
-	const auto reference = portapack::clock_manager.get_reference();
-	
-	std::string source_name("---");
-	switch(reference.source) {
-	case ClockManager::ReferenceSource::Xtal:      source_name = "HackRF";    break;
-	case ClockManager::ReferenceSource::PortaPack: source_name = "PortaPack"; break;
-	case ClockManager::ReferenceSource::External:  source_name = "External";  break;
+		form_init(model);
 	}
 
-	value_source.set(source_name);
-	value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+	void SetDateTimeView::focus() {
+		button_cancel.focus();
+	}
 
-	label_source.set_style(&style_text);
-	value_source.set_style(&style_text);
-	value_source_frequency.set_style(&style_text);
+	void SetDateTimeView::form_init(const SetDateTimeModel& model) {
+		field_year.set_value(model.year);
+		field_month.set_value(model.month);
+		field_day.set_value(model.day);
+		field_hour.set_value(model.hour);
+		field_minute.set_value(model.minute);
+		field_second.set_value(model.second);
+	}
 
-	add_children({
-		&label_source,
-		&value_source,
-		&value_source_frequency,
-	});
+	SetDateTimeModel SetDateTimeView::form_collect() {
+		return {
+			.year = static_cast<uint16_t>(field_year.value()),
+				.month = static_cast<uint8_t>(field_month.value()),
+				.day = static_cast<uint8_t>(field_day.value()),
+				.hour = static_cast<uint8_t>(field_hour.value()),
+				.minute = static_cast<uint8_t>(field_minute.value()),
+				.second = static_cast<uint8_t>(field_second.value())
+		};
+	}
 
-	if( reference.source == ClockManager::ReferenceSource::Xtal ) {
+	SetRadioView::SetRadioView(
+			NavigationView& nav
+			) {
+		button_cancel.on_select = [&nav](Button&){
+			nav.pop();
+		};
+
+		const auto reference = portapack::clock_manager.get_reference();
+
+		std::string source_name("---");
+		switch(reference.source) {
+			case ClockManager::ReferenceSource::Xtal:      source_name = "HackRF";    break;
+			case ClockManager::ReferenceSource::PortaPack: source_name = "PortaPack"; break;
+			case ClockManager::ReferenceSource::External:  source_name = "External";  break;
+		}
+
+		value_source.set(source_name);
+		value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+
+		label_source.set_style(&style_text);
+		value_source.set_style(&style_text);
+		value_source_frequency.set_style(&style_text);
+
 		add_children({
-			&labels_correction,
-			&field_ppm,
-		});
+				&label_source,
+				&value_source,
+				&value_source_frequency,
+				});
+
+		if( reference.source == ClockManager::ReferenceSource::Xtal ) {
+			add_children({
+					&labels_correction,
+					&field_ppm,
+					});
+		}
+
+		add_children({
+				&check_clkout,
+				&field_clkout_freq,
+				&labels_clkout_khz,
+				&value_freq_step,
+				&labels_bias,
+				&check_bias,
+				&button_save,
+				&button_cancel
+				});
+
+		SetFrequencyCorrectionModel model {
+			static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000) , 0
+		};
+
+		form_init(model);
+
+		check_clkout.set_value(portapack::persistent_memory::clkout_enabled());
+		check_clkout.on_select = [this](Checkbox&, bool v) {
+			clock_manager.enable_clock_output(v);
+			portapack::persistent_memory::set_clkout_enabled(v);
+			StatusRefreshMessage message { };
+			EventDispatcher::send_message(message);
+		};
+
+		field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
+		value_freq_step.set_style(&style_text);
+
+		field_clkout_freq.on_select = [this](NumberField&) {
+			freq_step_khz++;
+			if(freq_step_khz > 3) {
+				freq_step_khz = 0;
+			}
+			switch(freq_step_khz) {
+				case 0:
+					value_freq_step.set("   |");
+					break;
+				case 1:
+					value_freq_step.set("  | ");
+					break;
+				case 2:
+					value_freq_step.set(" |  ");
+					break;
+				case 3:
+					value_freq_step.set("|   ");
+					break;
+			}
+			field_clkout_freq.set_step(pow(10, freq_step_khz));
+		};
+
+		check_bias.set_value(portapack::get_antenna_bias());
+		check_bias.on_select = [this](Checkbox&, bool v) {
+			portapack::set_antenna_bias(v);
+			StatusRefreshMessage message { };
+			EventDispatcher::send_message(message);
+		};
+
+		button_save.on_select = [this, &nav](Button&){
+			const auto model = this->form_collect();
+			portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
+			portapack::persistent_memory::set_clkout_freq(model.freq);
+			clock_manager.enable_clock_output(portapack::persistent_memory::clkout_enabled());
+			nav.pop();
+		};
 	}
 
-	add_children({
-		&check_clkout,
-		&field_clkout_freq,
-		&labels_clkout_khz,
-		&value_freq_step,
-		&labels_bias,
-		&check_bias,
-		&button_save,
-		&button_cancel
-	});
+	void SetRadioView::focus() {
+		button_save.focus();
+	}
 
-	SetFrequencyCorrectionModel model {
-		static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000) , 0
-	};
+	void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
+		field_ppm.set_value(model.ppm);
+	}
 
-	form_init(model);
-
-	check_clkout.set_value(portapack::persistent_memory::clkout_enabled());
-	check_clkout.on_select = [this](Checkbox&, bool v) {
-		clock_manager.enable_clock_output(v);
-		portapack::persistent_memory::set_clkout_enabled(v);
-		StatusRefreshMessage message { };
-		EventDispatcher::send_message(message);
-	};
-
-   	field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
-	value_freq_step.set_style(&style_text);
-
-	field_clkout_freq.on_select = [this](NumberField&) {
-		freq_step_khz++;
-		if(freq_step_khz > 3) {
-			freq_step_khz = 0;
-		}
-		switch(freq_step_khz) {
-			case 0:
-				value_freq_step.set("   |");
-				break;
-			case 1:
-				value_freq_step.set("  | ");
-				break;
-			case 2:
-				value_freq_step.set(" |  ");
-				break;
-			case 3:
-				value_freq_step.set("|   ");
-				break;
-		}
-		field_clkout_freq.set_step(pow(10, freq_step_khz));
-	};
-
-	check_bias.set_value(portapack::get_antenna_bias());
-	check_bias.on_select = [this](Checkbox&, bool v) {
-		portapack::set_antenna_bias(v);
-		StatusRefreshMessage message { };
-		EventDispatcher::send_message(message);
-	};
-
-	button_save.on_select = [this, &nav](Button&){
-		const auto model = this->form_collect();
-		portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
-		portapack::persistent_memory::set_clkout_freq(model.freq);
-		clock_manager.enable_clock_output(portapack::persistent_memory::clkout_enabled());
-		nav.pop();
-	};
-}
-
-void SetRadioView::focus() {
-	button_save.focus();
-}
-
-void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
-	field_ppm.set_value(model.ppm);
-}
-
-SetFrequencyCorrectionModel SetRadioView::form_collect() {
-	return {
-		.ppm = static_cast<int8_t>(field_ppm.value()),
-		.freq = static_cast<uint32_t>(field_clkout_freq.value()),
-	};
-}
-
-
-SetUIView::SetUIView(NavigationView& nav) {
-	add_children({
-		&checkbox_disable_touchscreen,
-		&checkbox_speaker,
-		&checkbox_bloff,
-		&options_bloff,
-		&checkbox_showsplash,
-		&checkbox_showclock,
-		&options_clockformat,
-		&checkbox_guireturnflag,
-		&button_save,
-		&button_cancel
-	});
-	
-	checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
-	checkbox_speaker.set_value(persistent_memory::config_speaker());
-	checkbox_showsplash.set_value(persistent_memory::config_splash());
-	checkbox_showclock.set_value(!persistent_memory::hide_clock());
-	checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
-	
-	const auto backlight_config = persistent_memory::config_backlight_timer();
-	checkbox_bloff.set_value(backlight_config.timeout_enabled());
-	options_bloff.set_by_value(backlight_config.timeout_enum());
-
-	if (persistent_memory::clock_with_date()) {
-		options_clockformat.set_selected_index(1);
-	} else {
-		options_clockformat.set_selected_index(0);
+	SetFrequencyCorrectionModel SetRadioView::form_collect() {
+		return {
+			.ppm = static_cast<int8_t>(field_ppm.value()),
+				.freq = static_cast<uint32_t>(field_clkout_freq.value()),
+		};
 	}
 
 
-	button_save.on_select = [&nav, this](Button&) {
-		persistent_memory::set_config_backlight_timer({
-			(persistent_memory::backlight_timeout_t)options_bloff.selected_index_value(),
-			checkbox_bloff.value()
-		});
-				
-		if (checkbox_showclock.value()){
-		    if (options_clockformat.selected_index() == 1)
-			    persistent_memory::set_clock_with_date(true);    
-     		else
-			    persistent_memory::set_clock_with_date(false);		
+	SetUIView::SetUIView(NavigationView& nav) {
+		add_children({
+				&checkbox_disable_touchscreen,
+				&checkbox_speaker,
+				&checkbox_bloff,
+				&options_bloff,
+				&checkbox_showsplash,
+				&checkbox_showclock,
+				&options_clockformat,
+				&checkbox_guireturnflag,
+				&button_save,
+				&button_cancel
+				});
+
+		checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
+		checkbox_speaker.set_value(persistent_memory::config_speaker());
+		checkbox_showsplash.set_value(persistent_memory::config_splash());
+		checkbox_showclock.set_value(!persistent_memory::hide_clock());
+		checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
+
+		const auto backlight_config = persistent_memory::config_backlight_timer();
+		checkbox_bloff.set_value(backlight_config.timeout_enabled());
+		options_bloff.set_by_value(backlight_config.timeout_enum());
+
+		if (persistent_memory::clock_with_date()) {
+			options_clockformat.set_selected_index(1);
+		} else {
+			options_clockformat.set_selected_index(0);
 		}
 
-		if (checkbox_speaker.value())  audio::output::speaker_mute();		//Just mute audio if speaker is disabled
-		persistent_memory::set_config_speaker(checkbox_speaker.value());	//Store Speaker status
-        	StatusRefreshMessage message { };					//Refresh status bar with/out speaker
-        	EventDispatcher::send_message(message);
-	
-		persistent_memory::set_config_splash(checkbox_showsplash.value());
-		persistent_memory::set_clock_hidden(!checkbox_showclock.value());
-		persistent_memory::set_gui_return_icon(checkbox_guireturnflag.value());
-		persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
-		nav.pop();
-	};
-	button_cancel.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
-}
 
-void SetUIView::focus() {
-	button_save.focus();
-}
+		button_save.on_select = [&nav, this](Button&) {
+			persistent_memory::set_config_backlight_timer({
+					(persistent_memory::backlight_timeout_t)options_bloff.selected_index_value(),
+					checkbox_bloff.value()
+					});
+
+			if (checkbox_showclock.value()){
+				if (options_clockformat.selected_index() == 1)
+					persistent_memory::set_clock_with_date(true);    
+				else
+					persistent_memory::set_clock_with_date(false);		
+			}
+
+			if (checkbox_speaker.value())  audio::output::speaker_mute();		//Just mute audio if speaker is disabled
+			persistent_memory::set_config_speaker(checkbox_speaker.value());	//Store Speaker status
+			StatusRefreshMessage message { };					//Refresh status bar with/out speaker
+			EventDispatcher::send_message(message);
+
+			persistent_memory::set_config_splash(checkbox_showsplash.value());
+			persistent_memory::set_clock_hidden(!checkbox_showclock.value());
+			persistent_memory::set_gui_return_icon(checkbox_guireturnflag.value());
+			persistent_memory::set_disable_touchscreen(checkbox_disable_touchscreen.value());
+			nav.pop();
+		};
+		button_cancel.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+	}
+
+	void SetUIView::focus() {
+		button_save.focus();
+	}
 
 
-// ---------------------------------------------------------
-// Appl. Settings
-// ---------------------------------------------------------
-SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
-	add_children({
-		&checkbox_load_app_settings,
-		&checkbox_save_app_settings,
-		&button_save,
-		&button_cancel
-	});
-	
-	checkbox_load_app_settings.set_value(persistent_memory::load_app_settings());
-	checkbox_save_app_settings.set_value(persistent_memory::save_app_settings());
+	// ---------------------------------------------------------
+	// Appl. Settings
+	// ---------------------------------------------------------
+	SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
+		add_children({
+				&checkbox_load_app_settings,
+				&checkbox_save_app_settings,
+				&button_save,
+				&button_cancel
+				});
+
+		checkbox_load_app_settings.set_value(persistent_memory::load_app_settings());
+		checkbox_save_app_settings.set_value(persistent_memory::save_app_settings());
 
 
-	button_save.on_select = [&nav, this](Button&) {
-		persistent_memory::set_load_app_settings(checkbox_load_app_settings.value());
-		persistent_memory::set_save_app_settings(checkbox_save_app_settings.value());
-		nav.pop();
-	};
-	button_cancel.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
-}
+		button_save.on_select = [&nav, this](Button&) {
+			persistent_memory::set_load_app_settings(checkbox_load_app_settings.value());
+			persistent_memory::set_save_app_settings(checkbox_save_app_settings.value());
+			nav.pop();
+		};
+		button_cancel.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+	}
 
-void SetAppSettingsView::focus() {
-	button_save.focus();
-}
+	void SetAppSettingsView::focus() {
+		button_save.focus();
+	}
 
-// ---------------------------------------------------------
-// Converter Settings
-// ---------------------------------------------------------
-SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
-	add_children({
-		&check_show_converter,
-		&check_converter,
-		&converter_mode,
-		&button_converter_freq,
-		&button_save,
-		&button_cancel
-	});
+	// ---------------------------------------------------------
+	// Converter Settings
+	// ---------------------------------------------------------
+	SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
+		add_children({
+				&check_show_converter,
+				&check_converter,
+				&converter_mode,
+				&button_converter_freq,
+				&button_save,
+				&button_cancel
+				});
 
-	check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
-	check_show_converter.on_select = [this](Checkbox&, bool v) {
-        portapack::persistent_memory::set_config_hide_converter(!v);
-        if( !v )
-        {
-		    check_converter.set_value(false);
-        }
-        // Retune to take converter change in account
-	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
-        //Refresh status bar with/out converter
-        StatusRefreshMessage message { };				
-       	EventDispatcher::send_message(message);
-	};
+		check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
+		check_show_converter.on_select = [this](Checkbox&, bool v) {
+			portapack::persistent_memory::set_config_hide_converter(!v);
+			if( !v )
+			{
+				check_converter.set_value(false);
+			}
+			// Retune to take converter change in account
+			receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+			//Refresh status bar with/out converter
+			StatusRefreshMessage message { };				
+			EventDispatcher::send_message(message);
+		};
 
-	check_converter.set_value(portapack::persistent_memory::config_converter());
-	check_converter.on_select = [this](Checkbox&, bool v) {
-        if( v )
-        {
-            check_show_converter.set_value(true);
-            portapack::persistent_memory::set_config_hide_converter(false);
-        }
-        portapack::persistent_memory::set_config_converter(v);
-        // Retune to take converter change in account
-	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
-        //Refresh status bar with/out converter
-        StatusRefreshMessage message { };				
-       	EventDispatcher::send_message(message);
-	};
+		check_converter.set_value(portapack::persistent_memory::config_converter());
+		check_converter.on_select = [this](Checkbox&, bool v) {
+			if( v )
+			{
+				check_show_converter.set_value(true);
+				portapack::persistent_memory::set_config_hide_converter(false);
+			}
+			portapack::persistent_memory::set_config_converter(v);
+			// Retune to take converter change in account
+			receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+			//Refresh status bar with/out converter
+			StatusRefreshMessage message { };				
+			EventDispatcher::send_message(message);
+		};
 
-	converter_mode.set_by_value( portapack::persistent_memory::config_updown_converter() );
-	converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
-		portapack::persistent_memory::set_config_updown_converter( v );
-		//Refresh status bar with icon up or down
-        StatusRefreshMessage message { };				
-       	EventDispatcher::send_message(message);
-	};
-				
-    button_converter_freq.set_text( to_string_short_freq( portapack::persistent_memory::config_converter_freq() ) + "MHz");
-    button_converter_freq.on_select = [this, &nav](Button& button) {
-            auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq() );
-            new_view->on_changed = [this, &button](rf::Frequency f) {
-                portapack::persistent_memory::set_config_converter_freq( f );
-                // Retune to take converter change in account
-        	    receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
-                button_converter_freq.set_text( "<" + to_string_short_freq( f ) + " MHz>" );
-            };
-        };
-	
-	button_save.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
-	button_cancel.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
-}
+		converter_mode.set_by_value( portapack::persistent_memory::config_updown_converter() );
+		converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
+			portapack::persistent_memory::set_config_updown_converter( v );
+			//Refresh status bar with icon up or down
+			StatusRefreshMessage message { };				
+			EventDispatcher::send_message(message);
+		};
 
-void SetConverterSettingsView::focus() {
-	button_save.focus();
-}
+		button_converter_freq.set_text( to_string_short_freq( portapack::persistent_memory::config_converter_freq() ) + "MHz");
+		button_converter_freq.on_select = [this, &nav](Button& button) {
+			auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq() );
+			new_view->on_changed = [this, &button](rf::Frequency f) {
+				portapack::persistent_memory::set_config_converter_freq( f );
+				// Retune to take converter change in account
+				receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	
+				button_converter_freq.set_text( "<" + to_string_short_freq( f ) + " MHz>" );
+			};
+		};
 
-SetAudioView::SetAudioView(NavigationView& nav) {
-	add_children({
-		&labels,
-		&field_tone_mix,
-		&button_save,
-		&button_cancel
-	});
+		button_save.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+		button_cancel.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+	}
 
-	field_tone_mix.set_value(persistent_memory::tone_mix());
-	
-	button_save.on_select = [&nav, this](Button&) {
-		persistent_memory::set_tone_mix(field_tone_mix.value());
-		nav.pop();
-	};
+	void SetConverterSettingsView::focus() {
+		button_save.focus();
+	}
 
-	button_cancel.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
-}
+	// ---------------------------------------------------------
+	// Persistent Memory Settings
+	// ---------------------------------------------------------
+	SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
+		add_children({
+				&text_pmem_about,
+				&text_pmem_informations,
+				&text_pmem_status,
+				&check_load_mem_at_startup,
+				&button_save_mem_to_file,
+				&button_load_mem_from_file,
+				&button_return
+				});
 
-void SetAudioView::focus() {
-	button_save.focus();
-}
+		bool load_mem_at_startup = false ;
+		File pmem_flag_file_handle ;
+		std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG" ;
+		auto result = pmem_flag_file_handle.open(pmem_flag_file);	
+		if(!result.is_valid()) 
+		{
+			load_mem_at_startup = true ;
+		}
+		check_load_mem_at_startup.set_value(load_mem_at_startup);
+		check_load_mem_at_startup.on_select = [this](Checkbox&, bool v) {
+			File pmem_flag_file_handle ;
+			std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG" ;
+			if( v )
+			{
+				auto result = pmem_flag_file_handle.open(pmem_flag_file);	
+				if(result.is_valid()) 
+				{
+					auto result = pmem_flag_file_handle.create(pmem_flag_file); //third: create if it is not there
+					if( !result.is_valid() )
+					{
+						text_pmem_status.set("pmem flag file created");
+					}
+					else
+					{
+						text_pmem_status.set("!err. creating pmem flagfile!");
+					}
+				}
+				else
+				{
+					text_pmem_status.set("pmem flag already present");
+				}
+			}
+			else
+			{
+				auto result = delete_file( pmem_flag_file );
+				if( result != 0 )
+				{
+					text_pmem_status.set("!err. deleting pmem flagfile!");
+				}
+				else
+				{
+					text_pmem_status.set("pmem flag file deleted");
+				}
+			}
+		};
 
-SetQRCodeView::SetQRCodeView(NavigationView& nav) {
-	add_children({
-		&checkbox_bigger_qr,
-		&button_save,
-		&button_cancel
-	});
+		button_save_mem_to_file.on_select = [&nav, this](Button&) {
+			if( !portapack::persistent_memory::save_persistent_settings_to_file("SETTINGS/pmem_settings") )
+			{
+				text_pmem_status.set("!problem saving settings!");
+			}
+			else
+			{
+				text_pmem_status.set("settings saved");
+			}
+		};
 
-	checkbox_bigger_qr.set_value(persistent_memory::show_bigger_qr_code());
-	
-	button_save.on_select = [&nav, this](Button&) {
-		persistent_memory::set_show_bigger_qr_code(checkbox_bigger_qr.value());
-		nav.pop();
-	};
+		button_load_mem_from_file.on_select = [&nav, this](Button&) {
+			if( !portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings") )
+			{
+				text_pmem_status.set("!problem loading settings!");
+			}
+			else
+			{
+				text_pmem_status.set("settings loaded");
+				//Refresh status bar with icon up or down
+				StatusRefreshMessage message { };				
+				EventDispatcher::send_message(message);
+			}
+		};
 
-	button_cancel.on_select = [&nav, this](Button&) {
-		nav.pop();
-	};
 
-}
+		button_return.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+	}
 
-void SetQRCodeView::focus() {
-	button_save.focus();
-}
+	void SetPersistentMemoryView::focus() {
+		button_return.focus();
+	}
 
-// ---------------------------------------------------------
-// Settings main menu
-// ---------------------------------------------------------
-SettingsMenuView::SettingsMenuView(NavigationView& nav) {
-    if( portapack::persistent_memory::show_gui_return_icon() )
-    {
-        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
-    }
-	add_items({
-		{ "Audio",          ui::Color::dark_cyan(), &bitmap_icon_speaker,          [&nav](){ nav.push<SetAudioView>(); } },
-		{ "Radio",          ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetRadioView>(); } },
-		{ "User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui,       [&nav](){ nav.push<SetUIView>(); } },
-		{ "Date/Time",      ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav](){ nav.push<SetDateTimeView>(); } },
-		{ "Calibration",    ui::Color::dark_cyan(), &bitmap_icon_options_touch,    [&nav](){ nav.push<TouchCalibrationView>(); } },
-		{ "App Settings",   ui::Color::dark_cyan(), &bitmap_icon_setup,            [&nav](){ nav.push<SetAppSettingsView>(); } },
-		{ "Converter",      ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetConverterSettingsView>(); } },
-		{ "QR Code",        ui::Color::dark_cyan(), &bitmap_icon_qr_code,          [&nav](){ nav.push<SetQRCodeView>(); } }
-	});
-	set_max_rows(2); // allow wider buttons
-}
+	//
+	// Audio settings
+	//
+	SetAudioView::SetAudioView(NavigationView& nav) {
+		add_children({
+				&labels,
+				&field_tone_mix,
+				&button_save,
+				&button_cancel
+				});
+
+		field_tone_mix.set_value(persistent_memory::tone_mix());
+
+		button_save.on_select = [&nav, this](Button&) {
+			persistent_memory::set_tone_mix(field_tone_mix.value());
+			nav.pop();
+		};
+
+		button_cancel.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+	}
+
+	void SetAudioView::focus() {
+		button_save.focus();
+	}
+
+	SetQRCodeView::SetQRCodeView(NavigationView& nav) {
+		add_children({
+				&checkbox_bigger_qr,
+				&button_save,
+				&button_cancel
+				});
+
+		checkbox_bigger_qr.set_value(persistent_memory::show_bigger_qr_code());
+
+		button_save.on_select = [&nav, this](Button&) {
+			persistent_memory::set_show_bigger_qr_code(checkbox_bigger_qr.value());
+			nav.pop();
+		};
+
+		button_cancel.on_select = [&nav, this](Button&) {
+			nav.pop();
+		};
+
+	}
+
+	void SetQRCodeView::focus() {
+		button_save.focus();
+	}
+
+	// ---------------------------------------------------------
+	// Settings main menu
+	// ---------------------------------------------------------
+	SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+		if( portapack::persistent_memory::show_gui_return_icon() )
+		{
+			add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
+		}
+		add_items({
+				{ "Audio",          ui::Color::dark_cyan(), &bitmap_icon_speaker,          [&nav](){ nav.push<SetAudioView>(); } },
+				{ "Radio",          ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetRadioView>(); } },
+				{ "User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui,       [&nav](){ nav.push<SetUIView>(); } },
+				{ "Date/Time",      ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav](){ nav.push<SetDateTimeView>(); } },
+				{ "Calibration",    ui::Color::dark_cyan(), &bitmap_icon_options_touch,    [&nav](){ nav.push<TouchCalibrationView>(); } },
+				{ "App Settings",   ui::Color::dark_cyan(), &bitmap_icon_setup,            [&nav](){ nav.push<SetAppSettingsView>(); } },
+				{ "Converter",      ui::Color::dark_cyan(), &bitmap_icon_options_radio,    [&nav](){ nav.push<SetConverterSettingsView>(); } },
+				{ "QR Code",        ui::Color::dark_cyan(), &bitmap_icon_qr_code,          [&nav](){ nav.push<SetQRCodeView>(); } },
+				{ "P.Memory Mgmt",      ui::Color::dark_cyan(), &bitmap_icon_memory,       [&nav](){ nav.push<SetPersistentMemoryView>(); } },
+				});
+		set_max_rows(2); // allow wider buttons
+	}
 
 } /* namespace ui */

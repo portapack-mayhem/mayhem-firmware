@@ -432,6 +432,54 @@ private:
 	};
 };
 
+class SetPersistentMemoryView : public View {
+public:
+	SetPersistentMemoryView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "P.Mem Mgmt"; };
+	
+private:
+
+	Text text_pmem_about {
+		{ 0, 1 * 16, 240 , 16 },
+		"PersistentMemory from/to SD"
+	};
+
+	Text text_pmem_informations {
+		{ 0, 2 * 16, 240 , 16 },
+		"use: when no/dead coin bat."
+	};
+
+	Text text_pmem_status {
+		{ 0, 3 * 16, 240 , 16 },
+		""
+	};
+
+    Checkbox check_load_mem_at_startup {
+		{ 18, 6 * 16},
+		19,
+		"load from sd at startup"
+	};
+
+	Button button_save_mem_to_file {
+		{ 0, 9 * 16, 240, 32 },
+		"save p.mem to sdcard"
+	};
+	
+	Button button_load_mem_from_file {
+		{ 0, 12 * 16, 240, 32 },
+		"load p.mem from sdcard"
+	};
+	
+	Button button_return {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Return",
+	};
+};
+
+
 class SettingsMenuView : public BtnGridView {
 public:
 	SettingsMenuView(NavigationView& nav);

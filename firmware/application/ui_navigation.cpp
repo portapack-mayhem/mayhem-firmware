@@ -723,6 +723,14 @@ SystemView::SystemView(
 	
 		navigation_view.push<SystemMenuView>();
 		
+		File pmem_flag_file_handle ;
+		std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG" ;
+		auto result = pmem_flag_file_handle.open(pmem_flag_file);	
+		if(!result.is_valid()) 
+		{
+			portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings");
+		}
+
 		if (portapack::persistent_memory::config_splash())
 		{
 			navigation_view.push<BMPView>();
