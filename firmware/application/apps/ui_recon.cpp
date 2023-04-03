@@ -766,7 +766,7 @@ namespace ui {
 		}
 		button_scanner_mode.set_style( &style_blue );
 		button_scanner_mode.set_text( "RECON" );
-		file_name.set( "USE:" );
+		file_name.set( "=>" );
 
 		field_squelch.set_value( squelch );
 
@@ -1194,7 +1194,7 @@ namespace ui {
 				button_scanner_mode.set_style( &style_white );
 				button_scanner_mode.set_text( "MSEARCH" );
 				file_name.set_style( &style_white );
-				file_name.set( "USE: MANUAL RANGE" );
+				file_name.set( "=> MANUAL RANGE" );
 
 				start_recon_thread();
 				user_resume();
@@ -1574,12 +1574,12 @@ namespace ui {
 			{
 				desc_cycle.set(" NO " + input_file + ".TXT FILE ..." );
 				file_name.set_style( &style_white );
-				file_name.set( "USE: NO DATA" );
+				file_name.set( "=> NO DATA" );
 			}
 			else
 			{
 				file_name.set_style( &style_blue );
-				file_name.set( "USE: "+input_file + ".TXT" );
+				file_name.set( "=> "+input_file );
 			}
 			step_mode.set_selected_index(def_step); //Impose the default step into the manual step selector
 		}
@@ -1591,11 +1591,11 @@ namespace ui {
 			{
 				desc_cycle.set(" NO " + output_file + ".TXT FILE ..." );
 				file_name.set_style( &style_white );
-				file_name.set( "USE:" );
+				file_name.set( "=> EMPTY" );
 			}
 			else
 			{
-				file_name.set( "USE: "+output_file + ".TXT" );
+				file_name.set( "=> "+output_file );
 				file_name.set_style( &style_red );
 			}
 			step_mode.set_selected_index(def_step); //Impose the default step into the manual step selector
