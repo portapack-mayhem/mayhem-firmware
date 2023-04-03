@@ -270,16 +270,16 @@ namespace ui {
 			};
 
 			RSSI rssi {
-				{ 0 * 16, 2 * 16, 240 - 5 * 8 - 1 , 16 },
+				{ 0 * 16, 2 * 16, 240 - 8 * 8 + 4 , 16 },
 			}; 
 
 			ButtonWithEncoder text_cycle {
-				{ 0, 3 * 16, 3 * 8, 16 },  
+				{ 0, 3 * 16, 4 * 8, 16 },  
 					""
 			};
 
 			Text text_max {
-				{ 3 * 8, 3 * 16, 20 * 8 , 16 },  
+				{ 4 * 8, 3 * 16, 240 - 7 * 8 - 4 * 8 , 16 },  
 			};
 
 			Text desc_cycle {
@@ -292,11 +292,11 @@ namespace ui {
 			   }; */
 
 			Text big_display {		//Show frequency in text mode
-				{ 0, 5 * 16 , 21 * 8, 16 },
+				{ 0, 5 * 16 , 23 * 8, 16 },
 			};
 
 			Text freq_stats {		//Show frequency stats in text mode
-				{ 0, 6 * 16 , 21 * 8, 16 },
+				{ 0, 6 * 16 , 23 * 8, 16 },
 			};
 
 			// TIMER: 9999
@@ -311,12 +311,12 @@ namespace ui {
 			};
 
 			Button button_recon_setup {
-				{ 240 - 5 * 8 , 2 * 16 , 5 * 8, 28 },
-					"OPT"
+				{ 240 - 7 * 8 , 2 * 16 , 7 * 8, 28 },
+					"CONFIG"
 			};
 
 			Button button_looking_glass {
-				{ 240 - 5 * 8 , 5 * 16 , 5 * 8, 28 },
+				{ 240 - 7 * 8 , 5 * 16 , 7 * 8, 28 },
 					"GLASS"
 			};
 
