@@ -102,7 +102,7 @@ namespace ui {
             // show green peak value 
             if( peak_enabled )
             {
-                const Rect r5 { r.left() + peak - 1 , r.top() , 3 , r.height() };
+                const Rect r5 { r.left() + peak - 3 , r.top() , 3 , r.height() };
                 painter.fill_rectangle(
                         r5,
                         Color::green()
@@ -160,7 +160,7 @@ namespace ui {
             // show green peak value if enabled
             if( peak_enabled )
             {
-                const Rect r5 { r.left(), r.bottom() - peak - 1 , r.width() , 3 };
+                const Rect r5 { r.left(), r.bottom() - peak - 3 , r.width() , 3 };
                 painter.fill_rectangle(
                         r5,
                         Color::green()
