@@ -123,7 +123,7 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 		return Reading {
 			Reading::Type::GMC_96,
 			(uint32_t)id,
-			Pressure { static_cast<int>(value_0) * 8 / 3 },
+			Pressure { static_cast<int>(value_0) * 11 / 4 },
 			Temperature { static_cast<int>(value_1) - 61 }
 		};
 	} else {
