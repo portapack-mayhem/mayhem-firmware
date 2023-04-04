@@ -80,6 +80,7 @@ private:
 	bool va_enabled { false };
 	bool ptt_enabled { true };
 	bool rogerbeep_enabled { false };
+    bool bool_same_F_tx_rx_enabled { false };
 	bool rx_enabled { false };
 	uint32_t tone_key_index { };
 	float mic_gain { 1.0 };
@@ -123,9 +124,9 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },				//we remove the label "FM" because we will display all MOD types RX_BW.
-		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
-		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },		//we remove the label "FM" because we will display all MOD types RX_BW.
+		{ {20 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
+		{ { 5 * 8, 25 * 8 }, "F_RX:", Color::light_grey() }, 			
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
 		{ {12 * 8, 27 * 8 }, "VGA:", Color::light_grey()},
 		{ {19 * 8, 27 * 8 }, "AMP:", Color::light_grey()}
@@ -145,8 +146,8 @@ private:
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { (6 * 8)+4, 23 * 8 }, "VOL:", Color::light_grey() },
 		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },			//we remove the label "FM" because we will display all MOD types RX_BW.
-		{ {17 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
-		{ { 5 * 8, 25 * 8 }, "F:", Color::light_grey() },
+		{ {20 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
+		{ { 5 * 8, 25 * 8 }, "F_RX:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
 		{ {12 * 8, 27 * 8 }, "VGA:", Color::light_grey()},
 		{ {19 * 8, 27 * 8 }, "AMP:", Color::light_grey()}
@@ -287,7 +288,7 @@ OptionsField options_wm8731_boost_mode {
 	};
 
 	Checkbox check_rogerbeep {
-		{ 3 * 8, ( 16 * 8 ) + 4 },
+		{ 3 * 8, ( 16 * 8 ) + 7 },
 		10,
 		"Roger beep",
 		false
@@ -295,8 +296,15 @@ OptionsField options_wm8731_boost_mode {
 
 	Checkbox check_rxactive {
 		{ 3 * 8, ( 21 * 8 ) - 4 },
-		8,
+		18,								// it was 8, but if it is string size should be 18
 		"RX audio listening",
+		false
+	};
+
+	Checkbox check_common_freq_tx_rx {
+		{ 18 * 8, ( 16* 8 ) + 7 },
+		8,
+		"F = F_RX",
 		false
 	};
 
@@ -319,7 +327,7 @@ OptionsField options_wm8731_boost_mode {
 	};
 	
 	NumberField field_squelch {
-		{ 20 * 8, 25 * 8 },
+		{ 23 * 8, 25 * 8 },
 		2,
 		{ 0, 99 },
 		1,
@@ -327,7 +335,7 @@ OptionsField options_wm8731_boost_mode {
 	};
 
 	FrequencyField field_rxfrequency {
-		{ 7 * 8, 25 * 8 },
+		{ 10 * 8, 25 * 8 },
 	};
 
 	NumberField field_rxlna {
@@ -347,7 +355,7 @@ OptionsField options_wm8731_boost_mode {
 	};
 
 	NumberField field_rxamp {
-		{ 23 * 8, 27 * 8 },
+		{ 24 * 8, 27 * 8 },
 		1,
 		{ 0, 1 },
 		1,
