@@ -180,7 +180,10 @@ void MicTXView::rxaudio(bool is_on) {
 		receiver_model.set_sampling_rate(3072000);
 		receiver_model.set_baseband_bandwidth(1750000);	
 //		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
-		receiver_model.set_tuning_frequency(rx_frequency); // Now with seperate controls!
+	    if (bool_same_F_tx_rx_enabled) 								// when stop TX ,define to which freq RX we return 
+			    receiver_model.set_tuning_frequency(tx_frequency);  // Update freq also for RX = TX	
+		else 
+		        receiver_model.set_tuning_frequency(rx_frequency);  // Now with seperate freq controls!
 		receiver_model.set_lna(rx_lna);
 		receiver_model.set_vga(rx_vga);
 		receiver_model.set_rf_amp(rx_amp);
@@ -237,6 +240,7 @@ MicTXView::MicTXView(
 		&field_frequency,
 		&options_tone_key,
 		&check_rogerbeep,
+		&check_common_freq_tx_rx,	// added to handle common or separate freq- TX/RX
 		&check_rxactive,
 		&field_volume,
 		&field_rxbw,
@@ -266,6 +270,7 @@ MicTXView::MicTXView(
 		&field_frequency,
 		&options_tone_key,
 		&check_rogerbeep,
+		&check_common_freq_tx_rx,	// added to handle common or separate freq- TX/RX
 		&check_rxactive,
 		&field_volume,
 		&field_rxbw,
@@ -332,8 +337,12 @@ MicTXView::MicTXView(
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_change = [this](rf::Frequency f) {
 		tx_frequency = f;
-		if(!rx_enabled)
+		if(!rx_enabled) {					// not activated receiver. just update freq TX
 			transmitter_model.set_tuning_frequency(f);
+	    } else {							// activated receiver.
+			if (bool_same_F_tx_rx_enabled)	// user selected common freq- TX = RX
+			    receiver_model.set_tuning_frequency(f); //Update common freq also for RX			
+		}	
 	};
 	field_frequency.on_edit = [this, &nav]() {
 		focused_ui = 0;
@@ -341,8 +350,12 @@ MicTXView::MicTXView(
 		auto new_view = nav.push<FrequencyKeypadView>(tx_frequency);
 		new_view->on_changed = [this](rf::Frequency f) {
 			tx_frequency = f;
-			if(!rx_enabled)
+			if(!rx_enabled) {
 				transmitter_model.set_tuning_frequency(f);
+		    } else {
+				if (bool_same_F_tx_rx_enabled)
+				  receiver_model.set_tuning_frequency(f); //Update freq also for RX
+			}	
 			this->field_frequency.set_value(f);
 			set_dirty();
 		};
@@ -511,6 +524,13 @@ MicTXView::MicTXView(
 		rogerbeep_enabled = v;
 	};
 
+    check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
+		bool_same_F_tx_rx_enabled = v;
+		field_rxfrequency.hidden(v); 	//Hide or show separated freq RX field . (When no hide user can enter down indep. freq for RX)
+		set_dirty();					//Refresh GUI interface
+		receiver_model.set_tuning_frequency(v ? tx_frequency : rx_frequency);	// To go to the proper tuned freq. when toggling it
+	};
+
 	field_va_level.on_change = [this](int32_t v) {
 		va_level = v;
 		vumeter.set_mark(v);
@@ -563,12 +583,12 @@ MicTXView::MicTXView(
 	rx_frequency = receiver_model.tuning_frequency();
 	field_rxfrequency.set_value(rx_frequency);
 	field_rxfrequency.set_step(receiver_model.frequency_step());
-	field_rxfrequency.on_change = [this](rf::Frequency f) {
+	field_rxfrequency.on_change = [this](rf::Frequency f) {		// available when field rxfrequency not hidden => user selected separated freq RX/TX-
 		rx_frequency = f;
 		if(rx_enabled)
 			receiver_model.set_tuning_frequency(f);
 	};
-	field_rxfrequency.on_edit = [this, &nav]() {
+	field_rxfrequency.on_edit = [this, &nav]() {				// available when field rxfrequency not hidden => user selected separated freq RX/TX-
 		focused_ui = 1;
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(rx_frequency);
