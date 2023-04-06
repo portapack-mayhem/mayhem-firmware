@@ -49,12 +49,39 @@ namespace ui
         receiver_model.set_vga(v_db);
     }
 
-    void GlassView::add_spectrum_pixel(Color color)
+    void GlassView::add_spectrum_pixel(int16_t color)
     {
-        spectrum_row[pixel_index++] = color;
+		spectrum_row[pixel_index] = spectrum_rgb3_lut[color] ;
+        spectrum_data[pixel_index] = ( 3 * spectrum_data[pixel_index] + color ) / 4 ;
+		pixel_index ++ ;
+
         if (pixel_index == 240) // got an entire waterfall line
         {
-            display.draw_pixels({{0, display.scroll(1)}, {240, 1}}, spectrum_row); // new line at top, one less var, speedier
+			if( live_frequency_view )
+			{
+				constexpr int rssi_sample_range = 256;
+				constexpr float rssi_voltage_min = 0.4;
+			    constexpr float rssi_voltage_max = 2.2;
+		        constexpr float adc_voltage_max = 3.3;
+				constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+				//constexpr int raw_min = 0 ;
+				constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
+			    constexpr int raw_delta = raw_max - raw_min;
+				const range_t<int> y_max_range { 0 , 320 - 108 };
+
+				//drawing
+				//display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+				for( uint16_t xpos = 0 ; xpos < 240 ; xpos ++ )
+				{
+					int16_t point = y_max_range.clip( ( ( spectrum_data[ xpos ] - raw_min ) * ( 320 - 108 ) ) / raw_delta );
+					display.fill_rectangle( { { xpos , 108 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
+					display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { 0 , 0 , 255 } );
+				} 
+			}
+			else
+			{
+				display.draw_pixels({{0, display.scroll(1)}, {240, 1}}, spectrum_row); // new line at top, one less var, speedier
+			}
             pixel_index = 0;                                                       // Start New cascade line
         }
     }
@@ -86,7 +113,7 @@ namespace ui
             if (bins_Hz_size >= marker_pixel_step) // new pixel fullfilled
             {
                 if (min_color_power < max_power)
-                    add_spectrum_pixel(spectrum_rgb3_lut[max_power]); // Pixel will represent max_power
+                    add_spectrum_pixel(max_power); // Pixel will represent max_power
                 else
                     add_spectrum_pixel(0); // Filtered out, show black
 
