@@ -51,9 +51,9 @@ namespace ui
 
     void GlassView::add_spectrum_pixel(int16_t color)
     {
-		spectrum_row[pixel_index] = spectrum_rgb3_lut[color] ;
-        spectrum_data[pixel_index] = ( 3 * spectrum_data[pixel_index] + color ) / 4 ; // smoothing 
-		pixel_index ++ ;
+        spectrum_row[pixel_index] = spectrum_rgb3_lut[color] ;
+        spectrum_data[pixel_index] = ( live_frequency_integrate * spectrum_data[pixel_index] + color ) / (live_frequency_integrate + 1); // smoothing 
+        pixel_index ++ ;
 
         if (pixel_index == 240) // got an entire waterfall line
         {
@@ -214,6 +214,7 @@ namespace ui
                       &text_range,
                       &steps_config,
                       &view_config,
+                      &level_integration,
                       &filter_config,
                       &field_rf_amp,
                       &range_presets,
@@ -310,7 +311,6 @@ namespace ui
             steps = v ;
         };
 
-		view_config.set_selected_index(0); //default spectrum
         view_config.on_change = [this](size_t n, OptionsField::value_t v)
         {
 			(void)n;
@@ -318,15 +318,25 @@ namespace ui
 			if( v )
 			{	
 				display.scroll_disable();
+				level_integration.hidden( false );
 			}
 			else
 			{
+				level_integration.hidden( true );
+				set_dirty();
 				display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
 			}
 			// clear between changes
 			display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
         };
+        view_config.set_selected_index(0); //default spectrum
 
+        level_integration.on_change = [this](size_t n, OptionsField::value_t v)
+        {
+			(void)n;
+			live_frequency_integrate = v ;
+        };
+        level_integration.set_selected_index(2); //default integration of ( 3 * old value + new_value ) / 4
 
         range_presets.on_change = [this](size_t n, OptionsField::value_t v)
         {

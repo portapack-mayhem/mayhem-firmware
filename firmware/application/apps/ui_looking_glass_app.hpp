@@ -93,14 +93,15 @@ namespace ui
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
             int32_t steps = 250 ; // default of 250 Mhz steps
-			bool live_frequency_view = false ;
+            bool live_frequency_view = false ;
+            int16_t live_frequency_integrate = 3 ;
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
                     {{0, 1 * 16}, " RANGE:     FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
                     {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
-                    {{0, 4 * 16}, "RESOLUTION:    STEPS:", Color::light_grey()}
+                    {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}
             };
 
             NumberField field_frequency_min {
@@ -132,7 +133,7 @@ namespace ui
                     ""};
 
             OptionsField steps_config{
-                { 21 * 8, 4 * 16},
+                { 14 * 8, 4 * 16},
                     4,
                     {
                         {"1",    1},
@@ -143,12 +144,28 @@ namespace ui
                     }};
 
 			OptionsField view_config{
-                {25 * 8, 4 * 16},
-                    5,
+                { 19 * 8, 4 * 16},
+                    7,
                     {
-                        {"SPCTR", false },
-                        {"LVL-V", true },
+                        {"SPCTR-V", false },
+                        {"LEVEL-V", true },
                     }};
+
+            OptionsField level_integration{
+                { 27 * 8, 4 * 16},
+                    2,
+                    {
+                        {"x1", 1 },
+                        {"x2", 2 },
+                        {"x3", 3 },
+                        {"x4", 4 },
+                        {"x5", 5 },
+                        {"x6", 6 },
+                        {"x7", 7 },
+                        {"x8", 8 },
+                        {"x9", 9 },
+                    }};
+
 
             OptionsField filter_config{
                 {19 * 8, 1 * 16},
@@ -181,7 +198,7 @@ namespace ui
                     ""};
 
             NumberField field_trigger{
-                {11 * 8, 4 * 16},
+                {4 * 8, 4 * 16},
                     3,
                     {2, 128},
                     2,
