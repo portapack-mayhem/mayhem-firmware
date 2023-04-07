@@ -564,19 +564,11 @@ DeclareTargets(PUSB sd_over_usb)
 
 ### HackRF "factory" firmware
 
-add_custom_target(
-	portapack_mod
-	WORKING_DIRECTORY ${HACKRF_PATH}
-	COMMAND git checkout -- firmware/common/portapack.c
-	COMMAND sed -i 's/return jtag_pp_idcode\(\)/const uint32_t idcode = jtag_pp_idcode\(\)\; return idcode == 0x00025610 || idcode/g' firmware/common/portapack.c
-)
-
 add_custom_command(
 	OUTPUT hackrf.img
 	COMMAND ${LZ4} -f -9 ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf.lz4
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.lz4 HRF1 hackrf.img
-	COMMAND git -C ${HACKRF_PATH} checkout -- firmware/common/portapack.c
-	DEPENDS portapack_mod ${HACKRF_FIRMWARE_BIN_FILENAME} ${MAKE_IMAGE_CHUNK}
+	DEPENDS ${HACKRF_FIRMWARE_BIN_FILENAME} ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )
 
