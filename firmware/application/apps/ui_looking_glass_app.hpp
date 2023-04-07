@@ -72,7 +72,7 @@ namespace ui
             void on_range_changed();
             void on_lna_changed(int32_t v_db);
             void on_vga_changed(int32_t v_db);
-            void add_spectrum_pixel(Color color);
+            void add_spectrum_pixel(int16_t color);
             void PlotMarker(rf::Frequency pos);
             void load_Presets();
             void txtline_process(std::string& line);
@@ -89,16 +89,18 @@ namespace ui
             uint8_t min_color_power { 0 };
             uint32_t pixel_index { 0 };
             std::array<Color, 240> spectrum_row = { 0 };
+            std::array<int16_t, 240> spectrum_data = { 0 };
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
             int32_t steps = 250 ; // default of 250 Mhz steps
+			bool live_frequency_view = false ;
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
                     {{0, 1 * 16}, " RANGE:     FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
                     {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
-                    {{0, 4 * 16}, "RESOLUTION:     STEPS:", Color::light_grey()}
+                    {{0, 4 * 16}, "RESOLUTION:    STEPS:", Color::light_grey()}
             };
 
             NumberField field_frequency_min {
@@ -130,7 +132,7 @@ namespace ui
                     ""};
 
             OptionsField steps_config{
-                { 22 * 8, 4 * 16},
+                { 21 * 8, 4 * 16},
                     4,
                     {
                         {"1",    1},
@@ -138,7 +140,14 @@ namespace ui
                         {"100",  100},
                         {"250",  250}, 
                         {"500",  500},
-                        {"1000", 1000}, 
+                    }};
+
+			OptionsField view_config{
+                {25 * 8, 4 * 16},
+                    5,
+                    {
+                        {"SPCTR", false },
+                        {"LVL-V", true },
                     }};
 
             OptionsField filter_config{
