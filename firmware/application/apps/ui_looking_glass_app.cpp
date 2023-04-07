@@ -52,7 +52,7 @@ namespace ui
     void GlassView::add_spectrum_pixel(int16_t color)
     {
 		spectrum_row[pixel_index] = spectrum_rgb3_lut[color] ;
-        spectrum_data[pixel_index] = ( 3 * spectrum_data[pixel_index] + color ) / 4 ;
+        spectrum_data[pixel_index] = ( 3 * spectrum_data[pixel_index] + color ) / 4 ; // smoothing 
 		pixel_index ++ ;
 
         if (pixel_index == 240) // got an entire waterfall line
@@ -60,11 +60,11 @@ namespace ui
 			if( live_frequency_view )
 			{
 				constexpr int rssi_sample_range = 256;
-				constexpr float rssi_voltage_min = 0.4;
+				//constexpr float rssi_voltage_min = 0.4;
 			    constexpr float rssi_voltage_max = 2.2;
 		        constexpr float adc_voltage_max = 3.3;
-				constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-				//constexpr int raw_min = 0 ;
+				//constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+				constexpr int raw_min = 0 ;
 				constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
 			    constexpr int raw_delta = raw_max - raw_min;
 				const range_t<int> y_max_range { 0 , 320 - 108 };
@@ -74,8 +74,9 @@ namespace ui
 				for( uint16_t xpos = 0 ; xpos < 240 ; xpos ++ )
 				{
 					int16_t point = y_max_range.clip( ( ( spectrum_data[ xpos ] - raw_min ) * ( 320 - 108 ) ) / raw_delta );
+					uint8_t color_gradient = (point * 255) / 212 ;
 					display.fill_rectangle( { { xpos , 108 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
-					display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { 0 , 0 , 255 } );
+					display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { color_gradient , 0 , uint8_t( 255 - color_gradient ) } );
 				} 
 			}
 			else
@@ -212,6 +213,7 @@ namespace ui
                       &field_vga,
                       &text_range,
                       &steps_config,
+                      &view_config,
                       &filter_config,
                       &field_rf_amp,
                       &range_presets,
@@ -307,6 +309,24 @@ namespace ui
             field_frequency_max.set_step( v );
             steps = v ;
         };
+
+		view_config.set_selected_index(0); //default spectrum
+        view_config.on_change = [this](size_t n, OptionsField::value_t v)
+        {
+			(void)n;
+			live_frequency_view = v ;
+			if( v )
+			{	
+				display.scroll_disable();
+			}
+			else
+			{
+				display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
+			}
+			// clear between changes
+			display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+        };
+
 
         range_presets.on_change = [this](size_t n, OptionsField::value_t v)
         {
