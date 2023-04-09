@@ -368,7 +368,6 @@ namespace ui
                 freq_stats.hidden( true );
                 button_jump.hidden( true );
                 button_rst.hidden( true );
-                set_dirty();
                 display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
             }
             else if( v == 1 )
