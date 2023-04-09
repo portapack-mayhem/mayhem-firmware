@@ -338,6 +338,12 @@ namespace ui
         };
         level_integration.set_selected_index(2); //default integration of ( 3 * old value + new_value ) / 4
 
+	filter_config.set_selected_index(0);
+        filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
+            (void)n;
+            min_color_power = v;
+        };
+
         range_presets.on_change = [this](size_t n, OptionsField::value_t v)
         {
             (void)n;
