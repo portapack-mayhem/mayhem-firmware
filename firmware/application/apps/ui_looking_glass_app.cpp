@@ -50,49 +50,71 @@ namespace ui
         receiver_model.set_vga(v_db);
     }
 
+    void GlassView::reset_live_view( bool clear_screen )
+    {
+        max_freq_hold = 0 ;
+        max_freq_power = -1000 ;
+        if( clear_screen )
+        {
+            // only clear screen in peak mode
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 + 32 } , { 240 , 320 - (108 + 32) } } , { 0 , 0 , 0 } );
+            }
+        }
+    }
+
     void GlassView::add_spectrum_pixel(int16_t color)
     {
+        static uint64_t last_max_freq = 0 ;
+
         spectrum_row[pixel_index] = spectrum_rgb3_lut[color] ;
         spectrum_data[pixel_index] = ( live_frequency_integrate * spectrum_data[pixel_index] + color ) / (live_frequency_integrate + 1); // smoothing 
         pixel_index ++ ;
 
         if (pixel_index == 240) // got an entire waterfall line
         {
-			if( live_frequency_view > 0 )
-			{
-				constexpr int rssi_sample_range = 256;
-				//constexpr float rssi_voltage_min = 0.4;
-			    constexpr float rssi_voltage_max = 2.2;
-		        constexpr float adc_voltage_max = 3.3;
-				//constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-				constexpr int raw_min = 0 ;
-				constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
-			    constexpr int raw_delta = raw_max - raw_min;
-				const range_t<int> y_max_range { 0 , 320 - 108 };
+            if( live_frequency_view > 0 )
+            {
+                constexpr int rssi_sample_range = 256;
+                constexpr float rssi_voltage_min = 0.4;
+                constexpr float rssi_voltage_max = 2.2;
+                constexpr float adc_voltage_max = 3.3;
+                constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+                constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
+                constexpr int raw_delta = raw_max - raw_min;
+                const range_t<int> y_max_range { 0 , 320 - ( 108 + 16 ) };
 
-				//drawing and keeping track of max freq
-				for( uint16_t xpos = 0 ; xpos < 240 ; xpos ++ )
-				{
-					// save max powerwull freq 
-					if( spectrum_data[ xpos ] > max_freq_power )
-					{
-						max_freq_power = spectrum_data[ xpos ];
-						max_freq_hold = ( f_center - LOOKING_GLASS_SLICE_WIDTH/2 ) + xpos * bins_Hz_size ;
-					}
-					int16_t point = y_max_range.clip( ( ( spectrum_data[ xpos ] - raw_min ) * ( 320 - 108 ) ) / raw_delta );
-					uint8_t color_gradient = (point * 255) / 212 ;
-					// clear if not in peak view
-					if( live_frequency_view != 2 )
-					{
-						display.fill_rectangle( { { xpos , 108 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
-					}
-					display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { color_gradient , 0 , uint8_t( 255 - color_gradient ) } );
-				} 
-			}
-			else
-			{
-				display.draw_pixels({{0, display.scroll(1)}, {240, 1}}, spectrum_row); // new line at top, one less var, speedier
-			}
+                //drawing and keeping track of max freq
+                for( uint16_t xpos = 0 ; xpos < 240 ; xpos ++ )
+                {
+                    // save max powerwull freq 
+                    if( spectrum_data[ xpos ] > max_freq_power )
+                    {
+                        max_freq_power = spectrum_data[ xpos ];
+                        max_freq_hold = f_min + ( (f_max - f_min) * xpos) / 240 ;
+                    }
+
+                    int16_t point = y_max_range.clip( ( ( spectrum_data[ xpos ] - raw_min ) * ( 320 - ( 108 + 16 ) ) ) / raw_delta );
+                    uint8_t color_gradient = (point * 255) / 212 ;
+                    // clear if not in peak view
+                    if( live_frequency_view != 2 )
+                    {
+                        display.fill_rectangle( { { xpos , 108 + 16 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
+                    }
+                    display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { color_gradient , 0 , uint8_t( 255 - color_gradient ) } );
+                } 
+                if( last_max_freq != max_freq_hold )
+                {
+                    last_max_freq = max_freq_hold ;
+                    freq_stats.set( "MAX:"+to_string_short_freq( max_freq_hold ) );
+                }
+                PlotMarker(field_marker.value());
+            }
+            else
+            {
+                display.draw_pixels({{0, display.scroll(1)}, {240, 1}}, spectrum_row); // new line at top, one less var, speedier
+            }
             pixel_index = 0;                                                       // Start New cascade line
         }
     }
@@ -165,11 +187,7 @@ namespace ui
 
     void GlassView::on_range_changed()
     {
-        max_freq_hold = 0 ;
-        if( live_frequency_view == 2 )
-        {
-            display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-        }
+        reset_live_view( false );
         f_min = field_frequency_min.value();
         f_max = field_frequency_max.value();
         search_span = f_max - f_min;
@@ -209,11 +227,16 @@ namespace ui
         pos = pos * MHZ_DIV;
         pos -= f_min;
         pos = pos / marker_pixel_step; // Real pixel
-
-        portapack::display.fill_rectangle({0, 100, 240, 8}, Color::black());        // Clear old marker and whole marker rectangle btw
-        portapack::display.fill_rectangle({(int)pos - 2, 100, 5, 3}, Color::red()); // Red marker top
-        portapack::display.fill_rectangle({(int)pos - 1, 103, 3, 3}, Color::red()); // Red marker middle
-        portapack::display.fill_rectangle({(int)pos, 106, 1, 2}, Color::red());     // Red marker bottom
+        
+        uint8_t shift_y = 0 ;
+        if( live_frequency_view > 0 )
+        {
+            shift_y = 16 ;
+        }
+        portapack::display.fill_rectangle({0, 100 + shift_y, 240, 8}, Color::black());        // Clear old marker and whole marker rectangle btw
+        portapack::display.fill_rectangle({(int)pos - 2, 100 + shift_y, 5, 3}, Color::red()); // Red marker top
+        portapack::display.fill_rectangle({(int)pos - 1, 103 + shift_y, 3, 3}, Color::red()); // Red marker middle
+        portapack::display.fill_rectangle({(int)pos, 106 + shift_y, 1, 2}, Color::red());     // Red marker bottom
     }
 
     GlassView::GlassView(
@@ -235,7 +258,10 @@ namespace ui
                       &range_presets,
                       &field_marker,
                       &text_marker_pm,
-                      &field_trigger});
+                      &field_trigger,
+                      &button_jump,
+                      &button_rst,
+                      &freq_stats});
 
         load_Presets(); // Load available presets from TXT files (or default)
 
@@ -243,11 +269,7 @@ namespace ui
         field_frequency_min.set_step( steps );
         field_frequency_min.on_change = [this](int32_t v)
         {
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             int32_t steps_ = steps ;
             if( steps_ < 24 )
                 steps_ = 24 ;
@@ -281,11 +303,7 @@ namespace ui
         field_frequency_max.set_step( steps );
         field_frequency_max.on_change = [this](int32_t v)
         {          
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             int32_t steps_ = steps ;
             if( steps_ < 24 )
                 steps_ = 24 ;
@@ -318,22 +336,14 @@ namespace ui
         field_lna.set_value(receiver_model.lna());
         field_lna.on_change = [this](int32_t v)
         {
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             this->on_lna_changed(v);
         };
 
         field_vga.set_value(receiver_model.vga());
         field_vga.on_change = [this](int32_t v_db)
         {
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             this->on_vga_changed(v_db);
         };
 
@@ -349,39 +359,46 @@ namespace ui
         view_config.on_change = [this](size_t n, OptionsField::value_t v)
         {
             (void)n;
-            max_freq_hold = 0 ;
+            // clear between changes
+            reset_live_view( true );
             if( v == 0 )
             {
                 live_frequency_view = 0 ;
                 level_integration.hidden( true );
+                freq_stats.hidden( true );
+                button_jump.hidden( true );
+                button_rst.hidden( true );
                 set_dirty();
                 display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
             }
             else if( v == 1 )
             {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 24 } } , { 0 , 0 , 0 } );
                 live_frequency_view = 1 ;
                 display.scroll_disable();
                 level_integration.hidden( false );
+                freq_stats.hidden( false );
+                button_jump.hidden( false );
+                button_rst.hidden( false );
             }
             else if( v == 2 )
             {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 24 } } , { 0 , 0 , 0 } );
                 live_frequency_view = 2 ;
                 display.scroll_disable();
                 level_integration.hidden( false );
+                freq_stats.hidden( false );
+                button_jump.hidden( false );
+                button_rst.hidden( false );
             }
-            // clear between changes
-            display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            set_dirty();
         };
         view_config.set_selected_index(0); //default spectrum
 
         level_integration.on_change = [this](size_t n, OptionsField::value_t v)
         {
             (void)n;
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             live_frequency_integrate = v ;
         };
         level_integration.set_selected_index(2); //default integration of ( 3 * old value + new_value ) / 4
@@ -389,11 +406,7 @@ namespace ui
         filter_config.set_selected_index(0);
         filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
             (void)n;
-            max_freq_hold = 0 ;
-            if( live_frequency_view == 2 )
-            {
-                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
-            }
+            reset_live_view( true );
             min_color_power = v;
         };
 
@@ -424,6 +437,17 @@ namespace ui
         field_trigger.on_change = [this](int32_t v)
         {
             baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, v);
+        };
+
+        button_jump.on_select = [this](Button&) {
+            receiver_model.set_tuning_frequency(max_freq_hold); // Center tune rx in marker freq.
+            receiver_model.set_frequency_step(MHZ_DIV);    // Preset a 1 MHz frequency step into RX -> AUDIO
+            nav_.pop();
+            nav_.push<AnalogAudioView>(); // Jump into audio view
+        };
+
+        button_rst.on_select = [this](Button&) {
+            reset_live_view( true );
         };
 
         display.scroll_set_area(109, 319);
