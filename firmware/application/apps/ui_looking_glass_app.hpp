@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2020 euquiq
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -36,7 +37,9 @@
 
 namespace ui
 {
-#define LOOKING_GLASS_SLICE_WIDTH	20000000 // Each slice bandwidth 20 MHz
+#define LOOKING_GLASS_SLICE_WIDTH 19999920 // Each slice bandwidth 20 MHz and a multiple of 240
+										   // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
+										   // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
 #define MHZ_DIV	            1000000
 #define X2_MHZ_DIV	        2000000
 
@@ -93,8 +96,10 @@ namespace ui
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
             int32_t steps = 250 ; // default of 250 Mhz steps
-            bool live_frequency_view = false ;
+            uint8_t live_frequency_view = 0 ;
             int16_t live_frequency_integrate = 3 ;
+            uint64_t max_freq_hold = 0 ;
+            int16_t max_freq_power = -1000 ;
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
@@ -147,8 +152,9 @@ namespace ui
                 { 19 * 8, 4 * 16},
                     7,
                     {
-                        {"SPCTR-V", false },
-                        {"LEVEL-V", true },
+                        {"SPCTR-V", 0 },
+                        {"LEVEL-V", 1 },
+                        {"PEAK-V" , 2 },
                     }};
 
             OptionsField level_integration{

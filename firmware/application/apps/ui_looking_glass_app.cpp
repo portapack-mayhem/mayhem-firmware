@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2020 euquiq
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -57,7 +58,7 @@ namespace ui
 
         if (pixel_index == 240) // got an entire waterfall line
         {
-			if( live_frequency_view )
+			if( live_frequency_view > 0 )
 			{
 				constexpr int rssi_sample_range = 256;
 				//constexpr float rssi_voltage_min = 0.4;
@@ -69,13 +70,22 @@ namespace ui
 			    constexpr int raw_delta = raw_max - raw_min;
 				const range_t<int> y_max_range { 0 , 320 - 108 };
 
-				//drawing
-				//display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+				//drawing and keeping track of max freq
 				for( uint16_t xpos = 0 ; xpos < 240 ; xpos ++ )
 				{
+					// save max powerwull freq 
+					if( spectrum_data[ xpos ] > max_freq_power )
+					{
+						max_freq_power = spectrum_data[ xpos ];
+						max_freq_hold = ( f_center - LOOKING_GLASS_SLICE_WIDTH/2 ) + xpos * bins_Hz_size ;
+					}
 					int16_t point = y_max_range.clip( ( ( spectrum_data[ xpos ] - raw_min ) * ( 320 - 108 ) ) / raw_delta );
 					uint8_t color_gradient = (point * 255) / 212 ;
-					display.fill_rectangle( { { xpos , 108 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
+					// clear if not in peak view
+					if( live_frequency_view != 2 )
+					{
+						display.fill_rectangle( { { xpos , 108 } , { 1 , 320 - point } } , { 0 , 0 , 0 } );
+					}
 					display.fill_rectangle( { { xpos , 320 - point } , { 1 , point } } , { color_gradient , 0 , uint8_t( 255 - color_gradient ) } );
 				} 
 			}
@@ -155,6 +165,11 @@ namespace ui
 
     void GlassView::on_range_changed()
     {
+        max_freq_hold = 0 ;
+        if( live_frequency_view == 2 )
+        {
+            display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+        }
         f_min = field_frequency_min.value();
         f_max = field_frequency_max.value();
         search_span = f_max - f_min;
@@ -228,6 +243,11 @@ namespace ui
         field_frequency_min.set_step( steps );
         field_frequency_min.on_change = [this](int32_t v)
         {
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
             int32_t steps_ = steps ;
             if( steps_ < 24 )
                 steps_ = 24 ;
@@ -261,6 +281,11 @@ namespace ui
         field_frequency_max.set_step( steps );
         field_frequency_max.on_change = [this](int32_t v)
         {          
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
             int32_t steps_ = steps ;
             if( steps_ < 24 )
                 steps_ = 24 ;
@@ -293,12 +318,22 @@ namespace ui
         field_lna.set_value(receiver_model.lna());
         field_lna.on_change = [this](int32_t v)
         {
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
             this->on_lna_changed(v);
         };
 
         field_vga.set_value(receiver_model.vga());
         field_vga.on_change = [this](int32_t v_db)
         {
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
             this->on_vga_changed(v_db);
         };
 
@@ -313,34 +348,52 @@ namespace ui
 
         view_config.on_change = [this](size_t n, OptionsField::value_t v)
         {
-			(void)n;
-			live_frequency_view = v ;
-			if( v )
-			{	
-				display.scroll_disable();
-				level_integration.hidden( false );
-			}
-			else
-			{
-				level_integration.hidden( true );
-				set_dirty();
-				display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
-			}
-			// clear between changes
-			display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            (void)n;
+            max_freq_hold = 0 ;
+            if( v == 0 )
+            {
+                live_frequency_view = 0 ;
+                level_integration.hidden( true );
+                set_dirty();
+                display.scroll_set_area(109, 319); // Restart scroll on the correct coordinates
+            }
+            else if( v == 1 )
+            {
+                live_frequency_view = 1 ;
+                display.scroll_disable();
+                level_integration.hidden( false );
+            }
+            else if( v == 2 )
+            {
+                live_frequency_view = 2 ;
+                display.scroll_disable();
+                level_integration.hidden( false );
+            }
+            // clear between changes
+            display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
         };
         view_config.set_selected_index(0); //default spectrum
 
         level_integration.on_change = [this](size_t n, OptionsField::value_t v)
         {
-			(void)n;
-			live_frequency_integrate = v ;
+            (void)n;
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
+            live_frequency_integrate = v ;
         };
         level_integration.set_selected_index(2); //default integration of ( 3 * old value + new_value ) / 4
 
-	filter_config.set_selected_index(0);
+        filter_config.set_selected_index(0);
         filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
             (void)n;
+            max_freq_hold = 0 ;
+            if( live_frequency_view == 2 )
+            {
+                display.fill_rectangle( { { 0 , 108 } , { 240 , 320 - 108 } } , { 0 , 0 , 0 } );
+            }
             min_color_power = v;
         };
 
