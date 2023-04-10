@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2020 euquiq
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -36,7 +37,9 @@
 
 namespace ui
 {
-#define LOOKING_GLASS_SLICE_WIDTH	20000000 // Each slice bandwidth 20 MHz
+#define LOOKING_GLASS_SLICE_WIDTH 19999920 // Each slice bandwidth 20 MHz and a multiple of 240
+										   // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
+										   // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
 #define MHZ_DIV	            1000000
 #define X2_MHZ_DIV	        2000000
 
@@ -66,12 +69,13 @@ namespace ui
             };
 
             std::vector<preset_entry> presets_db{};
-
+            
             void on_channel_spectrum(const ChannelSpectrum& spectrum);
             void do_timers();
             void on_range_changed();
             void on_lna_changed(int32_t v_db);
             void on_vga_changed(int32_t v_db);
+            void reset_live_view( bool clear_screen );
             void add_spectrum_pixel(int16_t color);
             void PlotMarker(rf::Frequency pos);
             void load_Presets();
@@ -93,8 +97,10 @@ namespace ui
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
             int32_t steps = 250 ; // default of 250 Mhz steps
-            bool live_frequency_view = false ;
+            uint8_t live_frequency_view = 0 ;
             int16_t live_frequency_integrate = 3 ;
+            uint64_t max_freq_hold = 0 ;
+            int16_t max_freq_power = -1000 ;
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
@@ -131,41 +137,6 @@ namespace ui
             Text text_range{
                 {7 * 8, 1 * 16, 4 * 8, 16},
                     ""};
-
-            OptionsField steps_config{
-                { 14 * 8, 4 * 16},
-                    4,
-                    {
-                        {"1",    1},
-                        {"50",   50},
-                        {"100",  100},
-                        {"250",  250}, 
-                        {"500",  500},
-                    }};
-
-			OptionsField view_config{
-                { 19 * 8, 4 * 16},
-                    7,
-                    {
-                        {"SPCTR-V", false },
-                        {"LEVEL-V", true },
-                    }};
-
-            OptionsField level_integration{
-                { 27 * 8, 4 * 16},
-                    2,
-                    {
-                        {"x1", 1 },
-                        {"x2", 2 },
-                        {"x3", 3 },
-                        {"x4", 4 },
-                        {"x5", 5 },
-                        {"x6", 6 },
-                        {"x7", 7 },
-                        {"x8", 8 },
-                        {"x9", 9 },
-                    }};
-
 
             OptionsField filter_config{
                 {19 * 8, 1 * 16},
@@ -204,6 +175,55 @@ namespace ui
                     2,
                     ' '};
 
+            OptionsField steps_config{
+                { 14 * 8, 4 * 16},
+                    4,
+                    {
+                        {"1",    1},
+                        {"50",   50},
+                        {"100",  100},
+                        {"250",  250}, 
+                        {"500",  500},
+                    }};
+
+			OptionsField view_config{
+                { 19 * 8, 4 * 16},
+                    7,
+                    {
+                        {"SPCTR-V", 0 },
+                        {"LEVEL-V", 1 },
+                        {"PEAK-V" , 2 },
+                    }};
+
+            OptionsField level_integration{
+                { 27 * 8, 4 * 16},
+                    2,
+                    {
+                        {"x1", 1 },
+                        {"x2", 2 },
+                        {"x3", 3 },
+                        {"x4", 4 },
+                        {"x5", 5 },
+                        {"x6", 6 },
+                        {"x7", 7 },
+                        {"x8", 8 },
+                        {"x9", 9 },
+                    }};
+
+            Button button_jump {
+                { 240 - 4 * 8 , 5 * 16 , 4 * 8, 16 },
+                "JMP"
+            };
+
+            Button button_rst {
+                { 240 - 9 * 8 , 5 * 16 , 4 * 8, 16 },
+                "RST"
+            };
+
+            Text freq_stats{
+                {0 * 8, 5 * 16 , 240 - 10 * 8 , 8 },
+                ""
+            };
 
             MessageHandlerRegistration message_handler_spectrum_config {
                 Message::ID::ChannelSpectrumConfig,
