@@ -59,7 +59,7 @@ namespace ui
             // only clear screen in peak mode
             if( live_frequency_view == 2 )
             {
-                display.fill_rectangle( { { 0 , 108 + 32 } , { 240 , 320 - (108 + 32) } } , { 0 , 0 , 0 } );
+                display.fill_rectangle( { { 0 , 108 + 16 } , { 240 , 320 - (108 + 16) } } , { 0 , 0 , 0 } );
             }
         }
     }
