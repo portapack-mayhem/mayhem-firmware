@@ -1,0 +1,24 @@
+# This is a set of frequencies dedicated to water consumption meters.
+
+# Apator, Santech, Techem
+# https://api.apator.com/uploads/oferta/woda-i-cieplo/systemy/radiowy/at-wmbus--16-2-apt-o3a-1-2/at-wmbus--16-2-karta-katalogowa.pdf
+# https://santech.com.pl/wp-content/uploads/pdf/karta_katalogowa_qmodule5.5_water.pdf
+# https://www.techem.com/content/dam/techem-pl/documents/dokumenty-z-typo-3/wodomierz/Wodomierz_mieszkaniowy.pdf.coredownload.pdf
+f=868950000
+
+# Ecomess
+# https://ecomess.pl/wp-content/uploads/2022/06/wodomierz-radio-i_Flux-JS_-Ecomess.pdf
+f=868600000
+
+# ETW-ECO, Zenner
+# https://odczytyradiowe.pl/Katalogi/Wodomierze-jednostrumieniowe-ETW-ECO.pdf
+# https://www.unisan.net.pl/ckeditor_assets/attachments/314/kt-wwz-pl.pdf
+f=868000000
+
+#
+# https://bazakonkurencyjnosci.funduszeeuropejskie.gov.pl/api/files/114497
+f=863000000
+
+#
+# https://bazakonkurencyjnosci.funduszeeuropejskie.gov.pl/api/files/114497
+f=874400000

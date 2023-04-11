@@ -1,4 +1,4 @@
-# INI,END,DESCRIPTION 
+# INI,END,DESCRIPTION
 # (Freq range in MHz, min separation 240MHz)
 # (Description up to 20 char)
 # (fields comma delimiter)
@@ -9,6 +9,7 @@
 140,380,VHF MICS AND MARINE
 390,420,RADIOSONDES
 420,660,UHF MICS
+660,900, Water meters
 
 # https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging
 35,36,USA PAGERS 35
