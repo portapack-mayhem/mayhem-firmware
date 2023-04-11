@@ -93,7 +93,7 @@ namespace ui
             uint8_t min_color_power { 0 };
             uint32_t pixel_index { 0 };
             std::array<Color, 240> spectrum_row = { 0 };
-            std::array<int16_t, 240> spectrum_data = { 0 };
+            std::array<uint8_t, 240> spectrum_data = { 0 };
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
             int32_t steps = 250 ; // default of 250 Mhz steps
