@@ -37,15 +37,13 @@
 
 namespace ui
 {
-#define LOOKING_GLASS_SLICE_WIDTH 19999920 // Each slice bandwidth 20 MHz and a multiple of 240
-										   // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
-										   // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
 #define MHZ_DIV	            1000000
 #define X2_MHZ_DIV	        2000000
 
     class GlassView : public View
     {
         public:
+			
             GlassView(NavigationView &nav);
 
             GlassView( const GlassView &);
@@ -67,16 +65,33 @@ namespace ui
                 rf::Frequency max{};
                 std::string label{};
             };
+            
+            const Style style_white {		// free range
+                .font = font::fixed_8x16,
+                .background = Color::black(),
+                .foreground = Color::white(),
+            };
+
+            const Style style_red {		// locked range
+                .font = font::fixed_8x16,
+                .background = Color::black(),
+                .foreground = Color::red(),
+            };
 
             std::vector<preset_entry> presets_db{};
             
+            int64_t LOOKING_GLASS_SLICE_WIDTH = 19999920; // Each slice bandwidth 20 MHz and a multiple of 240
+                                                        // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
+                                                        // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
+
+            void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
             void on_channel_spectrum(const ChannelSpectrum& spectrum);
             void do_timers();
             void on_range_changed();
             void on_lna_changed(int32_t v_db);
             void on_vga_changed(int32_t v_db);
             void reset_live_view( bool clear_screen );
-            void add_spectrum_pixel(int16_t color);
+            void add_spectrum_pixel(uint8_t power);
             void PlotMarker(rf::Frequency pos);
             void load_Presets();
             void txtline_process(std::string& line);
@@ -96,15 +111,17 @@ namespace ui
             std::array<uint8_t, 240> spectrum_data = { 0 };
             ChannelSpectrumFIFO* fifo { nullptr }; 
             uint8_t max_power = 0;
-            int32_t steps = 250 ; // default of 250 Mhz steps
+            int32_t steps = 0 ;
             uint8_t live_frequency_view = 0 ;
             int16_t live_frequency_integrate = 3 ;
-            uint64_t max_freq_hold = 0 ;
+            int64_t max_freq_hold = 0 ;
             int16_t max_freq_power = -1000 ;
+            bool fast_scan = true ; // default to legacy fast scan
+            bool locked_range = false ; 
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-                    {{0, 1 * 16}, " RANGE:     FILTER:      AMP:", Color::light_grey()},
+                    {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
                     {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
                     {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}
@@ -134,12 +151,12 @@ namespace ui
                 { 27 * 8, 0 * 16 }
             };
 
-            Text text_range{
+            Button  button_range{
                 {7 * 8, 1 * 16, 4 * 8, 16},
                     ""};
 
             OptionsField filter_config{
-                {19 * 8, 1 * 16},
+                {20 * 8, 1 * 16},
                     4,
                     {
                         {"OFF ", 0},
@@ -176,38 +193,51 @@ namespace ui
                     ' '};
 
             OptionsField steps_config{
-                { 14 * 8, 4 * 16},
-                    4,
-                    {
-                        {"1",    1},
-                        {"50",   50},
-                        {"100",  100},
-                        {"250",  250}, 
-                        {"500",  500},
-                    }};
+                { 13 * 8, 4 * 16},
+                3,
+                {
+                    {"1",    1},
+                    {"25",   25},
+                    {"50",   50},
+                    {"100",  100},
+                    {"250",  250}, 
+                    {"500",  500},
+                }
+            };
 
-			OptionsField view_config{
+			OptionsField scan_type{
+                { 17 * 8, 4 * 16},
+                2,
+                {
+                    {"F-", true },
+                    {"S-", false },
+                }
+            };
+
+            OptionsField view_config{
                 { 19 * 8, 4 * 16},
-                    7,
-                    {
-                        {"SPCTR-V", 0 },
-                        {"LEVEL-V", 1 },
-                        {"PEAK-V" , 2 },
-                    }};
+                7,
+                {
+                    {"SPCTR-V", 0 },
+                    {"LEVEL-V", 1 },
+                    {"PEAK-V" , 2 },
+                }
+            };
 
             OptionsField level_integration{
                 { 27 * 8, 4 * 16},
-                    2,
-                    {
-                        {"x1", 1 },
-                        {"x2", 2 },
-                        {"x3", 3 },
-                        {"x4", 4 },
-                        {"x5", 5 },
-                        {"x6", 6 },
-                        {"x7", 7 },
-                        {"x8", 8 },
-                        {"x9", 9 },
+                2,
+                {
+                    {"x0", 0 },
+                    {"x1", 1 },
+                    {"x2", 2 },
+                    {"x3", 3 },
+                    {"x4", 4 },
+                    {"x5", 5 },
+                    {"x6", 6 },
+                    {"x7", 7 },
+                    {"x8", 8 },
+                    {"x9", 9 },
                     }};
 
             Button button_jump {
