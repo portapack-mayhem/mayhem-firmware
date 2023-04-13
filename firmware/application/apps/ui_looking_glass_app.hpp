@@ -121,7 +121,7 @@ namespace ui
 
             Labels labels{
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-                    {{0, 1 * 16}, "RANGE:      FILTER:      AMP:", Color::light_grey()},
+                    {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
                     {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
                     {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}
@@ -152,11 +152,11 @@ namespace ui
             };
 
             Button  button_range{
-                {6 * 8, 1 * 16, 4 * 8, 16},
+                {7 * 8, 1 * 16, 4 * 8, 16},
                     ""};
 
             OptionsField filter_config{
-                {19 * 8, 1 * 16},
+                {20 * 8, 1 * 16},
                     4,
                     {
                         {"OFF ", 0},
