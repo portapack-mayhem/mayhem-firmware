@@ -119,7 +119,7 @@ namespace ui
                 if( last_max_freq != max_freq_hold )
                 {
                     last_max_freq = max_freq_hold ;
-                    freq_stats.set( "MAX:"+to_string_short_freq( max_freq_hold ) );
+                    freq_stats.set( "MAX HOLD: "+to_string_short_freq( max_freq_hold ) );
                 }
                 PlotMarker(field_marker.value());
             }
