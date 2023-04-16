@@ -265,8 +265,6 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 	return true;
 }
 
-#define RECT_UNUSED { 0, 0, 0, 0 }
-
 void ControlsSwitchesWidget::paint(Painter& painter) {
 	const auto pos = screen_pos();
 

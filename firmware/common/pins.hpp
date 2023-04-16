@@ -215,7 +215,6 @@ constexpr GPIO gpio[] = {
 	[GPIO5_4]  = { pins[P2_4],  5,  4, 4 },
 	[GPIO5_5]  = { pins[P2_5],  5,  5, 4 },
 	[GPIO5_6]  = { pins[P2_6],  5,  6, 4 },
-	//TODO: find right settings
 	[GPIO5_7]  = { pins[P2_8],  5,  7, 4 },
 	[GPIO5_8]  = { pins[P3_1],  5,  8, 4 },
 	[GPIO5_9]  = { pins[P3_2],  5,  9, 4 },
