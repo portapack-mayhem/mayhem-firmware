@@ -265,7 +265,11 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 	return true;
 }
 
+#define RECT_UNUSED { 0, 0, 0, 0 }
+
 void ControlsSwitchesWidget::paint(Painter& painter) {
+	const auto pos = screen_pos();
+
 	const std::array<Rect, 8> button_rects { {
 		{ 64, 32, 16, 16 }, // Right
 		{  0, 32, 16, 16 }, // Left
@@ -274,30 +278,63 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 		{ 32, 32, 16, 16 }, // Select
 		{ 16, 96, 16, 16 }, // Encoder phase 0
 		{ 48, 96, 16, 16 }, // Encoder phase 1
-		{ 80,  0, 16, 16 }, // Dfu
+		{ 96,  0, 16, 16 }, // Dfu
 	} };
-	const auto pos = screen_pos();
-	auto switches_raw = control::debug::switches(); // all 7 + dfu
-	auto switches_debounced = get_switches_state().to_ulong(); // stops at 5, 6 is dfu
-	switches_debounced = (switches_debounced & 0x1f) | ((switches_debounced & 0x40) << 2);
-	auto switches_event = key_event_mask; // 5 keys, 6 is "back", 7 is dfu
-	key_event_mask = (key_event_mask & 0x1f) | ((key_event_mask & 0x80) << 1);
 
 	for(const auto r : button_rects) {
-		const auto c =
-			((switches_event & 1) ?
-				Color::red() :
-				((switches_debounced & 1) ?
-					Color::green() :
-					((switches_raw & 1) ?
-						Color::yellow() :
-						Color::blue()
-					)
-				)
-			);
-		painter.fill_rectangle(r + pos, c);
+		painter.fill_rectangle(r + pos, Color::blue());
+	}
+
+	const std::array<Rect, 8> raw_rects { {
+		{ 64 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Right
+		{  0 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Left
+		{ 32 + 1, 64 + 1, 16 - 2, 16 - 2 }, // Down
+		{ 32 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Up
+		{ 32 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Select
+		{ 16 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 0
+		{ 48 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 1
+		{ 96 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Dfu
+	} };
+
+	auto switches_raw = control::debug::switches();
+	for(const auto r : raw_rects) {
+		if (switches_raw & 1)
+			painter.fill_rectangle(r + pos, Color::yellow());
+
 		switches_raw >>= 1;
+	}
+
+	const std::array<Rect, 6> debounced_rects { {
+		{ 64 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Right
+		{  0 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Left
+		{ 32 + 2, 64 + 2, 16 - 4, 16 - 4 }, // Down
+		{ 32 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Up
+		{ 32 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Select
+		{ 96 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Dfu
+	} };
+
+	auto switches_debounced = get_switches_state().to_ulong();
+	for(const auto r : debounced_rects) {
+		if (switches_debounced & 1)
+			painter.fill_rectangle(r + pos, Color::green());
+
 		switches_debounced >>= 1;
+	}
+
+	const std::array<Rect, 6> events_rects { {
+		{ 64 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Right
+		{  0 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Left
+		{ 32 + 3, 64 + 3, 16 - 6, 16 - 6 }, // Down
+		{ 32 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Up
+		{ 32 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Select
+		{ 96 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Dfu
+	} };
+
+	auto switches_event = key_event_mask;
+	for(const auto r : events_rects) {
+		if (switches_event & 1)
+			painter.fill_rectangle(r + pos, Color::red());
+
 		switches_event >>= 1;
 	}
 }
