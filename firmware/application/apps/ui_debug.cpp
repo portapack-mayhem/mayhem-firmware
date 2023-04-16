@@ -266,7 +266,7 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 }
 
 void ControlsSwitchesWidget::paint(Painter& painter) {
-	const std::array<Rect, 7> button_rects { {
+	const std::array<Rect, 8> button_rects { {
 		{ 64, 32, 16, 16 }, // Right
 		{  0, 32, 16, 16 }, // Left
 		{ 32, 64, 16, 16 }, // Down
@@ -274,10 +274,12 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 		{ 32, 32, 16, 16 }, // Select
 		{ 16, 96, 16, 16 }, // Encoder phase 0
 		{ 48, 96, 16, 16 }, // Encoder phase 1
+		{ 64,  0, 16, 16 }, // Dfu
 	} };
 	const auto pos = screen_pos();
-	auto switches_raw = control::debug::switches();
-	auto switches_debounced = get_switches_state().to_ulong();
+	auto switches_raw = control::debug::switches(); // all 7 + dfu
+	auto switches_debounced = get_switches_state().to_ulong(); // stops at 5, 6 is dfu
+	switches_debounced = (switches_debounced & 0x1f) | ((switches_debounced >> 5) << 7);
 	auto switches_event = key_event_mask;
 
 	for(const auto r : button_rects) {

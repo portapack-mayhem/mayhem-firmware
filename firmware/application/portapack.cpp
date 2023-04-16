@@ -61,7 +61,7 @@ portapack::IO io {
 	portapack::gpio_io_stbx,
 	portapack::gpio_addr,
 	portapack::gpio_lcd_te,
-	portapack::gpio_unused,
+	portapack::gpio_dfu,
 };
 
 portapack::BacklightCAT4004 backlight_cat4004;
