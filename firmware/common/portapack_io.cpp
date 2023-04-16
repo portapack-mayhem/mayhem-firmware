@@ -48,11 +48,7 @@ void IO::init() {
 	gpio_io_stbx.output();
 	gpio_addr.output();
 	gpio_rot_a.input();
-
-    //TODO: find right settings
-	//gpio_rot_b.set();
 	gpio_rot_b.input();
-	//gpio_rot_b.configure();
 }
 
 void IO::lcd_backlight(const bool value) {
@@ -114,8 +110,8 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	}
 	gpio_addr.write(addr);
 
-	auto dfu_btn = portapack::io.dfu_read();
-	return (switches_raw & 0x7f) | (dfu_btn << 7 );
+	auto dfu_btn = portapack::io.dfu_read() & 0x01;
+	return (switches_raw & 0x7f) | (dfu_btn << 7);
 }
 
 }

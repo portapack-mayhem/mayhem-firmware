@@ -274,13 +274,14 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 		{ 32, 32, 16, 16 }, // Select
 		{ 16, 96, 16, 16 }, // Encoder phase 0
 		{ 48, 96, 16, 16 }, // Encoder phase 1
-		{ 64,  0, 16, 16 }, // Dfu
+		{ 80,  0, 16, 16 }, // Dfu
 	} };
 	const auto pos = screen_pos();
 	auto switches_raw = control::debug::switches(); // all 7 + dfu
 	auto switches_debounced = get_switches_state().to_ulong(); // stops at 5, 6 is dfu
-	switches_debounced = (switches_debounced & 0x1f) | ((switches_debounced >> 5) << 7);
-	auto switches_event = key_event_mask;
+	switches_debounced = (switches_debounced & 0x1f) | ((switches_debounced & 0x40) << 2);
+	auto switches_event = key_event_mask; // 5 keys, 6 is "back", 7 is dfu
+	key_event_mask = (key_event_mask & 0x1f) | ((key_event_mask & 0x80) << 1);
 
 	for(const auto r : button_rects) {
 		const auto c =
