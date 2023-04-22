@@ -356,7 +356,7 @@ FileManagerView::FileManagerView(
 		button_refactor.on_select = [this, &nav](Button&) {
 			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
 			on_refactor(nav);
-        };
+		};
 
 		button_delete.on_select = [this, &nav](Button&) {
 			// Use display_modal ?
