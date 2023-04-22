@@ -256,7 +256,6 @@ void FileManagerView::on_rename(NavigationView& nav) {
 		if (destination_path.back() != '/')
 			destination_path += '/';
 		destination_path = destination_path + buffer;
-
 		rename_file(get_selected_path(), destination_path);
 		load_directory_contents(current_path);
 		refresh_list();
@@ -297,7 +296,7 @@ void FileManagerView::on_delete() {
 void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
 	button_new_dir.hidden(v);
-    button_refactor.hidden(v);
+	button_refactor.hidden(v);
 	button_delete.hidden(v);
 	set_dirty();
 }
@@ -320,7 +319,7 @@ FileManagerView::FileManagerView(
 			&labels,
 			&text_date,
 			&button_rename,
-            &button_refactor,
+			&button_refactor,
 			&button_new_dir,
 			&button_delete
 		});
@@ -354,11 +353,11 @@ FileManagerView::FileManagerView(
 			on_rename(nav);
 		};
 
-        button_refactor.on_select = [this, &nav](Button&) {
-            name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
-            on_refactor(nav);
+		button_refactor.on_select = [this, &nav](Button&) {
+			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
+			on_refactor(nav);
         };
-		
+
 		button_delete.on_select = [this, &nav](Button&) {
 			// Use display_modal ?
 			nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
