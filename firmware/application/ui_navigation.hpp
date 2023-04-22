@@ -125,7 +125,7 @@ namespace ui
 			Color::dark_grey()};
 
 		ImageButton button_back{
-			{0, 0 * 16, 16 * 8, 16},//back button is long enough to cover the title area to make it easier to touch
+			{0, 0 * 16, 15 * 8, 16},//back button is long enough to cover the title area to make it easier to touch
 			&bitmap_icon_previous,
 			Color::white(),
 			Color::dark_grey()};
