@@ -214,6 +214,10 @@ public:
 		return gpio_rot_a.read();
 	}
 
+	uint32_t dfu_read() {
+		return gpio_rot_b.read();
+	}
+
 private:
 	const GPIO gpio_dir;
 	const GPIO gpio_lcd_rdx;

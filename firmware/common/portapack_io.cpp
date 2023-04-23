@@ -110,7 +110,8 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
 	}
 	gpio_addr.write(addr);
 
-	return switches_raw;
+	auto dfu_btn = portapack::io.dfu_read() & 0x01;
+	return (switches_raw & 0x7f) | (dfu_btn << 7);
 }
 
 }

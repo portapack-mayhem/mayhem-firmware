@@ -146,6 +146,7 @@ private:
 	
 	void refresh_widgets(const bool v);
 	void on_rename(NavigationView& nav);
+	void on_refactor(NavigationView& nav);
 	void on_delete();
 	
 	Labels labels {
@@ -158,11 +159,17 @@ private:
 	};
 
 	Button button_rename {
-		{ 0 * 8, 29 * 8, 14 * 8, 32 },
+		{ 0 * 8, 29 * 8, 9 * 8, 32 },
 		"Rename"
 	};
+
+	Button button_refactor{
+		{ 10 * 8, 29 * 8, 10 * 8, 32 },
+		"Refactor"
+	};
+
 	Button button_delete {
-		{ 16 * 8, 29 * 8, 14 * 8, 32 },
+		{ 21 * 8, 29 * 8, 9 * 8, 32 },
 		"Delete"
 	};
 	

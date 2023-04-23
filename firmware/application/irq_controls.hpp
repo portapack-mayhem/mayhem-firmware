@@ -33,9 +33,10 @@ enum class Switch {
 	Down = 2,
 	Up = 3,
 	Sel = 4,
+	Dfu = 5,
 };
 
-using SwitchesState = std::bitset<5>;
+using SwitchesState = std::bitset<6>;
 
 using EncoderPosition = uint32_t;
 

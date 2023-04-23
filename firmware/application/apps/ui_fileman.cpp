@@ -262,6 +262,35 @@ void FileManagerView::on_rename(NavigationView& nav) {
 	});
 }
 
+void FileManagerView::on_refactor(NavigationView& nav) {
+	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+		std::string destination_path = current_path.string();
+		if (destination_path.back() != '/')
+			destination_path += '/';
+		destination_path = destination_path + buffer;
+
+		rename_file(get_selected_path(), destination_path);  //rename the selected file
+
+		auto selected_path = get_selected_path();
+		auto extension = selected_path.extension().string();
+
+		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") {
+			// Rename its partner ( C16 <-> TXT ) file.
+			auto partner_file_path = selected_path.string().substr(0, selected_path.string().size() - 4) + ".TXT";
+			destination_path = destination_path.substr(0, destination_path.size() - 4) + ".TXT";
+			rename_file(partner_file_path, destination_path);
+		} else if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "TXT") {
+			// If the file user choose is a TXT file.
+			auto partner_file_path = selected_path.string().substr(0, selected_path.string().size() - 4) + ".C16";
+			destination_path = destination_path.substr(0, destination_path.size() - 4) + ".C16";
+			rename_file(partner_file_path, destination_path);
+		}
+
+		load_directory_contents(current_path);
+		refresh_list();
+	});
+}
+
 void FileManagerView::on_delete() {
 	delete_file(get_selected_path());
 	load_directory_contents(current_path);
@@ -271,6 +300,7 @@ void FileManagerView::on_delete() {
 void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
 	button_new_dir.hidden(v);
+	button_refactor.hidden(v);
 	button_delete.hidden(v);
 	set_dirty();
 }
@@ -293,6 +323,7 @@ FileManagerView::FileManagerView(
 			&labels,
 			&text_date,
 			&button_rename,
+			&button_refactor,
 			&button_new_dir,
 			&button_delete
 		});
@@ -325,7 +356,12 @@ FileManagerView::FileManagerView(
 			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
 			on_rename(nav);
 		};
-		
+
+		button_refactor.on_select = [this, &nav](Button&) {
+			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
+			on_refactor(nav);
+		};
+
 		button_delete.on_select = [this, &nav](Button&) {
 			// Use display_modal ?
 			nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
