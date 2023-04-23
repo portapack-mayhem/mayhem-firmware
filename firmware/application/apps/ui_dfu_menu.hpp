@@ -45,29 +45,25 @@ public:
 private:
 	NavigationView& nav_;
 	
-	Text text_head {{ 6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, "DFU Menu"};
+	Text text_head {{ 6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 11 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, "Performance"};
 
 	Labels labels {
-		{ { 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT }, "M0 heap:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT }, "M0 stack:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT }, "M0 cpu %:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT }, "M4 heap:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT }, "M4 stack:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH,10 * LINE_HEIGHT }, "M4 cpu %:", Color::light_grey() },
-		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "uptime:", Color::light_grey() }
+		{ { 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT }, "M0 heap:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT }, "M0 stack:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT }, "M0 cpu %:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT }, "M4 heap:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT }, "M4 stack:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH,10 * LINE_HEIGHT }, "M4 cpu %:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "uptime:", Color::dark_cyan() }
 	};
 
-	Text text_info_line_1 {{ 16 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_2 {{ 16 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_3 {{ 16 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_4 {{ 16 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_5 {{ 16 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_6 {{ 16 * CHARACTER_WIDTH,10 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_7 {{ 16 * CHARACTER_WIDTH,11 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	
-	// ProgressBar progress {
-	// 	{ 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 16 * CHARACTER_WIDTH, 24 }
-	// };
+	Text text_info_line_1 {{ 15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_2 {{ 15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_3 {{ 15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_4 {{ 15 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_5 {{ 15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_6 {{ 15 * CHARACTER_WIDTH,10 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_7 {{ 15 * CHARACTER_WIDTH,11 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
 };
 
 } /* namespace ui */

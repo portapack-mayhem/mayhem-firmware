@@ -29,6 +29,7 @@
 #include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
@@ -752,11 +753,14 @@ void SystemView::toggle_overlay() {
 	if (overlay_active){
 		this->remove_child(&this->overlay);
 		this->set_dirty();
+		shared_memory.request_m4_performance_counter = 0;
 	}
 	else{
 		this->add_child(&this->overlay);
 		this->set_dirty();
+		shared_memory.request_m4_performance_counter = 1;
 	}
+
 	overlay_active = !overlay_active;
 }
 

@@ -39,9 +39,6 @@ DfuMenu::DfuMenu(NavigationView& nav) : nav_ (nav) {
 }
 
 void DfuMenu::paint(Painter& painter) {
-	//update child values
-	//   if (chThdSelf() == chSysGetIdleThread()) { chThdGetTicks(chThdSelf()) }   
-
 	auto now = chTimeNow();
 	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
 	
@@ -57,19 +54,51 @@ void DfuMenu::paint(Painter& painter) {
 	text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
 	text_info_line_2.set(to_string_dec_uint((uint32_t)get_free_stack_space(), 6));
 	text_info_line_3.set(to_string_dec_uint((time_elapsed - idle_elapsed) / 10, 6));
-	text_info_line_4.set("M4 heap");
-	text_info_line_5.set("M4 stack");
-	text_info_line_6.set("M4 cpu");
+	text_info_line_4.set(to_string_dec_uint(shared_memory.m4_heap_usage, 6));
+	text_info_line_5.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
+	text_info_line_6.set(to_string_dec_uint(shared_memory.m4_cpu_usage, 6));
 	text_info_line_7.set(to_string_dec_uint(chTimeNow()/1000, 6));
 
-	auto screen_size = portapack::display.screen_rect().size();
-	
+	constexpr auto margin = 5;
+
 	painter.fill_rectangle(
 		{
-			{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT},
-			{screen_size.width() - 12 * CHARACTER_WIDTH, screen_size.height() - 6 * LINE_HEIGHT}
+			{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+			{15 * CHARACTER_WIDTH + margin * 2, 9 * LINE_HEIGHT + margin * 2}
 		},
 		ui::Color::black()
+	);
+
+	painter.fill_rectangle(
+		{
+			{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+			{CHARACTER_WIDTH, 9 * LINE_HEIGHT + margin * 2}
+		},
+		ui::Color::dark_cyan()
+	);
+
+	painter.fill_rectangle(
+		{
+			{21 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
+			{CHARACTER_WIDTH, 9 * LINE_HEIGHT + margin * 2}
+		},
+		ui::Color::dark_cyan()
+	);
+
+	painter.fill_rectangle(
+		{
+			{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
+			{17 * CHARACTER_WIDTH + margin * 2, 8}
+		},
+		ui::Color::dark_cyan()
+	);
+
+	painter.fill_rectangle(
+		{
+			{5 * CHARACTER_WIDTH - margin, 12 * LINE_HEIGHT + margin},
+			{17 * CHARACTER_WIDTH + margin * 2, 8}
+		},
+		ui::Color::dark_cyan()
 	);
 }
 
