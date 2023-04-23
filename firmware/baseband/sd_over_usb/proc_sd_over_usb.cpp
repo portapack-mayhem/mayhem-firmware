@@ -45,3 +45,5 @@ int main() {
 
 	return 0;
 }
+
+void update_performance_counters() {}

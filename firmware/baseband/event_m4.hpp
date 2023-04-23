@@ -61,7 +61,6 @@ private:
 	void dispatch(const eventmask_t events);
 
 	void handle_baseband_queue();
-	void update_performance_counters();
 
 	void on_message(const Message* const message);
 	void on_message_shutdown(const ShutdownMessage&);

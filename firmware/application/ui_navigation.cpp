@@ -759,6 +759,9 @@ void SystemView::toggle_overlay() {
 		this->add_child(&this->overlay);
 		this->set_dirty();
 		shared_memory.request_m4_performance_counter = 1;
+		shared_memory.m4_cpu_usage = 0;
+		shared_memory.m4_heap_usage = 0;
+		shared_memory.m4_stack_usage = 0;
 	}
 
 	overlay_active = !overlay_active;

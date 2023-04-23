@@ -65,10 +65,10 @@ struct SharedMemory {
 		uint8_t data[512];
 	} bb_data { { { { 0, 0 } }, 0, { 0 } } };
 
-	uint8_t request_m4_performance_counter{ 0 };
-	uint8_t m4_cpu_usage{ 0 };
-	uint16_t m4_stack_usage{ 0 };
-	uint16_t m4_heap_usage{ 0 };
+	uint8_t volatile request_m4_performance_counter{ 0 };
+	uint8_t volatile m4_cpu_usage{ 0 };
+	uint16_t volatile m4_stack_usage{ 0 };
+	uint16_t volatile m4_heap_usage{ 0 };
 };
 
 extern SharedMemory& shared_memory;

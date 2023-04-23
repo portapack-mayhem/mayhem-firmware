@@ -116,5 +116,35 @@ CH_IRQ_HANDLER(HardFaultVector) {
 #endif
 }
 
+void update_performance_counters() {
+	auto performance_counter_active = shared_memory.request_m4_performance_counter;
+	if (performance_counter_active == 0x00)
+		return;
+	static bool last_paint_state = false;
+	if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
+		return;
+
+	last_paint_state = !last_paint_state;
+
+	auto now = chTimeNow();
+	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
+	
+	static systime_t last_time;
+	static systime_t last_last_time;
+
+	auto time_elapsed = now - last_time;
+	auto idle_elapsed = idle_ticks - last_last_time;
+
+	last_time = now;
+	last_last_time = idle_ticks;
+
+	auto cpu_usage = (time_elapsed - idle_elapsed) / 10;
+	auto free_stack = (uint32_t)get_free_stack_space();
+	auto free_heap = chCoreStatus();
+
+	shared_memory.m4_cpu_usage = cpu_usage;
+	shared_memory.m4_stack_usage = free_stack;
+	shared_memory.m4_heap_usage = free_heap;
 }
 
+} /* extern "C" */
