@@ -20,6 +20,7 @@
  */
 
 #include "event_m4.hpp"
+#include "debug.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -120,3 +121,4 @@ void EventDispatcher::handle_spectrum() {
 	const UpdateSpectrumMessage message;
 	baseband_processor->on_message(&message);
 }
+

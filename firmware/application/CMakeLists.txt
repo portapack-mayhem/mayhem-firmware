@@ -230,6 +230,7 @@ set(CPPSRC
 	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
+	apps/ui_dfu_menu.cpp
 	apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
