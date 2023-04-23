@@ -87,6 +87,7 @@ void ERTProcessor::consume_symbol(
 ) {
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	scm_builder.execute(sliced_symbol);
+	scmplus_builder.execute(sliced_symbol);
 	idm_builder.execute(sliced_symbol);
 }
 
@@ -94,6 +95,13 @@ void ERTProcessor::scm_handler(
 	const baseband::Packet& packet
 ) {
 	const ERTPacketMessage message { ert::Packet::Type::SCM, packet };
+	shared_memory.application_queue.push(message);
+}
+
+void ERTProcessor::scmplus_handler(
+	const baseband::Packet& packet
+) {
+	const ERTPacketMessage message { ert::Packet::Type::SCMPLUS, packet };
 	shared_memory.application_queue.push(message);
 }
 
