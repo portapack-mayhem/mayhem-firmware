@@ -748,6 +748,24 @@ Context& SystemView::context() const {
 	return context_;
 }
 
+void SystemView::toggle_overlay() {
+	if (overlay_active){
+		this->remove_child(&this->overlay);
+		this->set_dirty();
+	}
+	else{
+		this->add_child(&this->overlay);
+		this->set_dirty();
+	}
+	overlay_active = !overlay_active;
+}
+
+void SystemView::paint_overlay() {
+	if (overlay_active){
+		this->overlay.set_dirty();
+	}
+}
+
 /* ***********************************************************************/
 
 void BMPView::focus() {

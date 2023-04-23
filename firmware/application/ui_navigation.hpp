@@ -33,6 +33,7 @@
 #include "ui_channel.hpp"
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
+#include "ui_dfu_menu.hpp"
 
 #include "bitmap.hpp"
 #include "ff.h"
@@ -290,10 +291,15 @@ namespace ui
 			const Rect parent_rect);
 
 		Context &context() const override;
+		void toggle_overlay();
+		void paint_overlay();
 
 	private:
+		bool overlay_active {false};
+
 		SystemStatusView status_view{navigation_view};
 		InformationView info_view{navigation_view};
+		DfuMenu overlay{navigation_view};
 		NavigationView navigation_view{};
 		Context &context_;
 	};
