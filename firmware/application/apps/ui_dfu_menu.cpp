@@ -26,20 +26,50 @@ namespace ui {
 
 DfuMenu::DfuMenu(NavigationView& nav) : nav_ (nav) {
 	add_children({
-		&text_info,
-		&progress,
-		&dummy,
+		&text_head,
+		&labels,
+		&text_info_line_1,
+		&text_info_line_2,
+		&text_info_line_3,
+		&text_info_line_4,
+		&text_info_line_5,
+		&text_info_line_6,
+		&text_info_line_7
 	});
 }
 
-void DfuMenu::focus() {
-	dummy.focus();
-}
-
 void DfuMenu::paint(Painter& painter) {
+	//update child values
+	//   if (chThdSelf() == chSysGetIdleThread()) { chThdGetTicks(chThdSelf()) }   
+
+	auto now = chTimeNow();
+	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
+	
+	static systime_t last_time;
+	static systime_t last_last_time;
+
+	auto time_elapsed = now - last_time;
+	auto idle_elapsed = idle_ticks - last_last_time;
+
+	last_time = now;
+	last_last_time = idle_ticks;
+
+	text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
+	text_info_line_2.set(to_string_dec_uint((uint32_t)get_free_stack_space(), 6));
+	text_info_line_3.set(to_string_dec_uint((time_elapsed - idle_elapsed) / 10, 6));
+	text_info_line_4.set("M4 heap");
+	text_info_line_5.set("M4 stack");
+	text_info_line_6.set("M4 cpu");
+	text_info_line_7.set(to_string_dec_uint(chTimeNow()/1000, 6));
+
+	auto screen_size = portapack::display.screen_rect().size();
+	
 	painter.fill_rectangle(
-		{{50,50} , {50 , 50}},
-		ui::Color::blue()
+		{
+			{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT},
+			{screen_size.width() - 12 * CHARACTER_WIDTH, screen_size.height() - 6 * LINE_HEIGHT}
+		},
+		ui::Color::black()
 	);
 }
 

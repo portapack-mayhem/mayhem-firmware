@@ -761,7 +761,13 @@ void SystemView::toggle_overlay() {
 }
 
 void SystemView::paint_overlay() {
+	static bool last_paint_state = false;
 	if (overlay_active){
+		// paint background only every other second
+		if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
+			return;
+
+		last_paint_state = !last_paint_state;
 		this->overlay.set_dirty();
 	}
 }

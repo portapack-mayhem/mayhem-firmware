@@ -26,6 +26,11 @@
 
 #include "ui_widget.hpp"
 #include "event_m0.hpp"
+#include "debug.hpp"
+#include "string_format.hpp"
+
+#define LINE_HEIGHT 16
+#define CHARACTER_WIDTH 8
 
 namespace ui {
 class NavigationView;
@@ -35,27 +40,34 @@ public:
 	DfuMenu(NavigationView& nav);
 	~DfuMenu() = default;
 
-	void focus() override;
 	void paint(Painter& painter) override;
-
-	std::string title() const override { return "DFU Menu"; };	
 
 private:
 	NavigationView& nav_;
 	
-	Text text_info {
-		{ 10 * 8, 16 * 8, 10 * 8, 16 },
-		"Working..."
+	Text text_head {{ 6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, "DFU Menu"};
+
+	Labels labels {
+		{ { 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT }, "M0 heap:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT }, "M0 stack:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT }, "M0 cpu %:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT }, "M4 heap:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT }, "M4 stack:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH,10 * LINE_HEIGHT }, "M4 cpu %:", Color::light_grey() },
+		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "uptime:", Color::light_grey() }
 	};
+
+	Text text_info_line_1 {{ 16 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_2 {{ 16 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_3 {{ 16 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_4 {{ 16 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_5 {{ 16 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_6 {{ 16 * CHARACTER_WIDTH,10 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_7 {{ 16 * CHARACTER_WIDTH,11 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
 	
-	ProgressBar progress {
-		{ 2 * 8, 19 * 8, 26 * 8, 24 }
-	};
-	
-	Button dummy {
-		{ 240, 0, 0, 0 },
-		""
-	};
+	// ProgressBar progress {
+	// 	{ 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 16 * CHARACTER_WIDTH, 24 }
+	// };
 };
 
 } /* namespace ui */
