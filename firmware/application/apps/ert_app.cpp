@@ -38,9 +38,9 @@ namespace format {
 std::string type(Packet::Type value) {
 	switch(value) {
 	default:
-	case Packet::Type::Unknown:	return "??? ";
-	case Packet::Type::IDM:		return "IDM ";
-	case Packet::Type::SCM:		return "SCM ";
+	case Packet::Type::Unknown:	return "???";
+	case Packet::Type::IDM:		return "IDM";
+	case Packet::Type::SCM:		return "SCM";
 	case Packet::Type::SCMPLUS:	return "SCM+";
 	}
 }
