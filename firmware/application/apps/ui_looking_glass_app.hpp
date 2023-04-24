@@ -37,6 +37,7 @@
 
 namespace ui
 {
+#define LOOKING_GLASS_SLICE_WIDTH_MAX 19999920
 #define MHZ_DIV	            1000000
 #define X2_MHZ_DIV	        2000000
 
@@ -80,11 +81,16 @@ namespace ui
 
             std::vector<preset_entry> presets_db{};
             
-            int64_t LOOKING_GLASS_SLICE_WIDTH = 19999920; // Each slice bandwidth 20 MHz and a multiple of 240
-                                                        // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
-                                                        // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
+            // Each slice bandwidth 20 MHz and a multiple of 240
+            // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
+            // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
+            int64_t LOOKING_GLASS_SLICE_WIDTH = 19999920;
 
+            // frequency rounding helpers
+            int64_t next_mult_of(int64_t num, int64_t multiplier);
+            //int64_t prev_mult_of(int64_t num, int64_t multiplier);
             void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
+
             void on_channel_spectrum(const ChannelSpectrum& spectrum);
             void do_timers();
             void on_range_changed();
