@@ -126,12 +126,9 @@ void update_performance_counters() {
 	if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
 		return;
 
-    volatile auto idle_thread = chSysGetIdleThread();
-   	if (chThdGetTicks(idle_thread) > 0x10000000) {
+    // Idle thread state is sometimes unuseable
+   	if (chThdGetTicks(chSysGetIdleThread()) > 0x10000000)
         return;
-    }
-
-    idle_thread = nullptr;
 
 	last_paint_state = !last_paint_state;
 
