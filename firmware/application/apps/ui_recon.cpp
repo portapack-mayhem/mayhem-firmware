@@ -528,32 +528,28 @@ namespace ui {
 					}
 				}
 			}
-		}
-
-		uint32_t freq_lock = recon_thread->is_freq_lock();
-
-		if( freq_lock == 0 ) {
-			//NO FREQ LOCK, ONGOING STANDARD SCANNING
-			if( index < 1000 && index < frequency_list.size() )
+ 			text_cycle.set_text( to_string_dec_uint( index + 1 , 3 ) );
+			if(frequency_list[index].description.size() > 0) 
 			{
-				text_cycle.set_text( to_string_dec_uint( index + 1 , 3 ) );
-				if(frequency_list[index].description.size() > 0) 
+				switch( frequency_list[current_index].type )
 				{
-					switch( frequency_list[current_index].type )
-					{
-						case RANGE:
-							desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
-							break ;
-						case HAMRADIO:
-							desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
-							break ;
-						default:
-						case SINGLE:
-							desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
-							break ;
-					}
+					case RANGE:
+						desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
+						break ;
+					case HAMRADIO:
+						desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
+						break ;
+					default:
+					case SINGLE:
+						desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
+						break ;
 				}
 			}
+		}
+	
+		uint32_t freq_lock = recon_thread->is_freq_lock();
+		if( freq_lock == 0 ) {
+			//NO FREQ LOCK, ONGOING STANDARD SCANNING
 			big_display.set_style(&style_white);
 			if( !userpause )
 				button_pause.set_text("<PAUSE>");	
