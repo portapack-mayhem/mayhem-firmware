@@ -155,6 +155,7 @@ set(CPPSRC
 	${COMMON}/ui_widget.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/performance_counter.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp

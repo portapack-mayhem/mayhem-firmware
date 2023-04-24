@@ -21,6 +21,7 @@
 
 #include "ui_dfu_menu.hpp"
 #include "portapack_shared_memory.hpp"
+#include "performance_counter.hpp"
 
 namespace ui {
 
@@ -39,21 +40,11 @@ DfuMenu::DfuMenu(NavigationView& nav) : nav_ (nav) {
 }
 
 void DfuMenu::paint(Painter& painter) {
-	auto now = chTimeNow();
-	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
-	
-	static systime_t last_time;
-	static systime_t last_last_time;
-
-	auto time_elapsed = now - last_time;
-	auto idle_elapsed = idle_ticks - last_last_time;
-
-	last_time = now;
-	last_last_time = idle_ticks;
+	auto utilisation = get_cpu_utilisation_in_percent();
 
 	text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
 	text_info_line_2.set(to_string_dec_uint((uint32_t)get_free_stack_space(), 6));
-	text_info_line_3.set(to_string_dec_uint((time_elapsed - idle_elapsed) / 10, 6));
+	text_info_line_3.set(to_string_dec_uint(utilisation, 6));
 	text_info_line_4.set(to_string_dec_uint(shared_memory.m4_heap_usage, 6));
 	text_info_line_5.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
 	text_info_line_6.set(to_string_dec_uint(shared_memory.m4_cpu_usage, 6));

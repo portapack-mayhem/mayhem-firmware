@@ -139,6 +139,7 @@ set(CPPSRC
 	${COMMON}/chibios_cpp.cpp
 	debug.cpp
 	${COMMON}/gcc.cpp
+	${COMMON}/performance_counter.cpp
 	tone_gen.cpp
 )
 
