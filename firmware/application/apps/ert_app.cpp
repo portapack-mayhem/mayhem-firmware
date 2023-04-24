@@ -63,7 +63,8 @@ std::string commodity_type(CommodityType value) {
 
 void ERTLogger::on_packet(const ert::Packet& packet) {
 	const auto formatted = packet.symbols_formatted();
-	log_file.write_entry(packet.received_at(), formatted.data + "/" + formatted.errors);
+	std::string entry = ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors;
+	log_file.write_entry(packet.received_at(), entry);
 }
 
 const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
