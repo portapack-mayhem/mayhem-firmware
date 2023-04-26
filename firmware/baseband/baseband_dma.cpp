@@ -20,6 +20,7 @@
  */
 
 #include "baseband_dma.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -103,8 +104,12 @@ static constexpr auto& gpdma_channel_sgpio = gpdma::channels[portapack::sgpio_gp
 
 static ThreadWait thread_wait;
 
+volatile uint32_t buffer_transfered = 0;
+volatile uint32_t buffer_handled = 0;
+
 static void transfer_complete() {
 	const auto next_lli_index = gpdma_channel_sgpio.next_lli() - &lli_loop[0];
+	buffer_transfered++;
 	thread_wait.wake_from_interrupt(next_lli_index);
 }
 
@@ -158,6 +163,10 @@ void disable() {
 
 baseband::buffer_t wait_for_buffer() {
 	const auto next_index = thread_wait.sleep();
+	buffer_handled++;
+
+	auto buffer_missed = buffer_transfered - buffer_handled;
+	shared_memory.m4_buffer_missed = buffer_missed;
 	
 	if( next_index >= 0 ) {
 		const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
