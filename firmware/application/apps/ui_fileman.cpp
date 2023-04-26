@@ -264,17 +264,24 @@ void FileManagerView::on_rename(NavigationView& nav) {
 
 void FileManagerView::on_refactor(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-		std::string destination_path = current_path.string();
-		if (destination_path.back() != '/')
-			destination_path += '/';
-		destination_path = destination_path + buffer;
 
-		rename_file(get_selected_path(), destination_path);  //rename the selected file
+		std::string destination_path = current_path.string();
+		if (destination_path.back() != '/')//if the path is not ended with '/', add '/'
+			destination_path += '/';
 
 		auto selected_path = get_selected_path();
 		auto extension = selected_path.extension().string();
 
-		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") {
+		if(extension.empty()){// Is Dir
+			destination_path = destination_path + buffer;
+			extension_buffer = "";
+		}else{//is File
+			destination_path = destination_path + buffer + extension_buffer;
+		}
+
+		rename_file(get_selected_path(), destination_path);  //rename the selected file
+
+		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") { //substr(1) is for ignore the dot
 			// Rename its partner ( C16 <-> TXT ) file.
 			auto partner_file_path = selected_path.string().substr(0, selected_path.string().size() - 4) + ".TXT";
 			destination_path = destination_path.substr(0, destination_path.size() - 4) + ".TXT";
@@ -288,7 +295,9 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 
 		load_directory_contents(current_path);
 		refresh_list();
+
 	});
+
 }
 
 void FileManagerView::on_delete() {
@@ -359,6 +368,13 @@ FileManagerView::FileManagerView(
 
 		button_refactor.on_select = [this, &nav](Button&) {
 			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
+			size_t pos = name_buffer.find_last_of(".");
+
+			if (pos != std::string::npos) {
+				extension_buffer = name_buffer.substr(pos);
+				name_buffer = name_buffer.substr(0, pos);
+			}
+
 			on_refactor(nav);
 		};
 

@@ -143,6 +143,7 @@ public:
 
 private:
 	std::string name_buffer { };
+	std::string extension_buffer { };
 	
 	void refresh_widgets(const bool v);
 	void on_rename(NavigationView& nav);
