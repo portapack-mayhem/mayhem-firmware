@@ -159,7 +159,7 @@ private:
 	};
 
 	Button button_rename {
-		{ 0 * 8, 29 * 8, 10 * 8, 32 },
+		{ 0 * 8, 29 * 8, 9 * 8, 32 },
 		"Rename"
 	};
 
@@ -169,7 +169,7 @@ private:
 	};
 
 	Button button_delete {
-		{ 20 * 8, 29 * 8, 10 * 8, 32 },
+		{ 21 * 8, 29 * 8, 9 * 8, 32 },
 		"Delete"
 	};
 	

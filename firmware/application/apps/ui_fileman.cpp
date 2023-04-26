@@ -263,28 +263,32 @@ void FileManagerView::on_rename(NavigationView& nav) {
 }
 
 void FileManagerView::on_refactor(NavigationView& nav) {
-    text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-        std::string destination_path = current_path.string();
-        if (destination_path.back() != '/')
-            destination_path += '/';
-        destination_path = destination_path + buffer;
-        rename_file(get_selected_path(), destination_path);  //rename the selected file
+	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+		std::string destination_path = current_path.string();
+		if (destination_path.back() != '/')
+			destination_path += '/';
+		destination_path = destination_path + buffer;
 
-        if (get_selected_path().extension().string().substr(1) == "C16") {//rename it's partner ( C16 <-> TXT ) file.
-            auto selected_path = get_selected_path();
-            auto partner_file_path = selected_path.string().substr(0, selected_path.string().size()-4) + ".TXT";
-            destination_path = destination_path.substr(0, destination_path.size()-4) + ".TXT";
-            rename_file(partner_file_path, destination_path);
-        }else if (get_selected_path().extension().string().substr(1) == "TXT") {//If the file user choose is a TXT file
-            auto selected_path = get_selected_path();
-            auto partner_file_path = selected_path.string().substr(0, selected_path.string().size()-4) + ".C16";
-            destination_path = destination_path.substr(0, destination_path.size()-4) + ".C16";
-            rename_file(partner_file_path, destination_path);
-        }
+		rename_file(get_selected_path(), destination_path);  //rename the selected file
 
-        load_directory_contents(current_path);
-        refresh_list();
-    });
+		auto selected_path = get_selected_path();
+		auto extension = selected_path.extension().string();
+
+		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") {
+			// Rename its partner ( C16 <-> TXT ) file.
+			auto partner_file_path = selected_path.string().substr(0, selected_path.string().size() - 4) + ".TXT";
+			destination_path = destination_path.substr(0, destination_path.size() - 4) + ".TXT";
+			rename_file(partner_file_path, destination_path);
+		} else if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "TXT") {
+			// If the file user choose is a TXT file.
+			auto partner_file_path = selected_path.string().substr(0, selected_path.string().size() - 4) + ".C16";
+			destination_path = destination_path.substr(0, destination_path.size() - 4) + ".C16";
+			rename_file(partner_file_path, destination_path);
+		}
+
+		load_directory_contents(current_path);
+		refresh_list();
+	});
 }
 
 void FileManagerView::on_delete() {

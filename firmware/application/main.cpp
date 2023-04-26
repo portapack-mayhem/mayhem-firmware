@@ -145,14 +145,14 @@ Continuous (Fox-oring)
 rffc507x::RFFC507x first_if;
 
 static void event_loop() {
-	ui::Context context;
-	ui::SystemView system_view {
+	static ui::Context context;
+	static ui::SystemView system_view {
 		context,
 		portapack::display.screen_rect()
 	};
 
 	EventDispatcher event_dispatcher { &system_view, context };
-	MessageHandlerRegistration message_handler_display_sleep {
+	static MessageHandlerRegistration message_handler_display_sleep {
 		Message::ID::DisplaySleep,
 		[&event_dispatcher](const Message* const) {
 			event_dispatcher.set_display_sleep(true);

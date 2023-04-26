@@ -1,5 +1,4 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
@@ -20,30 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ch.h"
-#include "hal.h"
+#ifndef __PERFORMANCE_COUNTER_H__
+#define __PERFORMANCE_COUNTER_H__
 
-extern "C" {
-void start_usb(void);
-void irq_usb(void);
-void usb_transfer(void);
+#include <stdint.h>
 
-CH_IRQ_HANDLER(Vector60) {
-	irq_usb();
-}
-}
+uint8_t get_cpu_utilisation_in_percent();
 
-int main() {
-	sdcStart(&SDCD1, nullptr);
-	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
-
-	start_usb();
-
-	while (true) {
-		usb_transfer();
-	}
-
-	return 0;
-}
-
-void update_performance_counters() {}
+#endif /* __PERFORMANCE_COUNTER_H__ */

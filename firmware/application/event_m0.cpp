@@ -43,6 +43,7 @@ using namespace lpc43xx;
 #include <array>
 
 #include "ui_font_fixed_8x16.hpp"
+#include "ui_navigation.hpp"
 
 extern "C" {
 
@@ -262,6 +263,8 @@ void EventDispatcher::on_touch_event(ui::TouchEvent event) {
 void EventDispatcher::handle_lcd_frame_sync() {
 	DisplayFrameSyncMessage message;
 	message_map.send(&message);
+
+	static_cast<ui::SystemView *>(top_widget)->paint_overlay();
 	painter.paint_widget_tree(top_widget);
 
 	portapack::backlight()->on();
@@ -304,7 +307,12 @@ void EventDispatcher::handle_switches() {
 		if( switches_state[i] ) {
 			const auto event = static_cast<ui::KeyEvent>(i);
 			if( !event_bubble_key(event) ) {
-				context.focus_manager().update(top_widget, event);
+				if (switches_state[(size_t)ui::KeyEvent::Dfu]) {
+					static_cast<ui::SystemView *>(top_widget)->toggle_overlay();
+				}
+				else {
+					context.focus_manager().update(top_widget, event);
+				}
 			}
 
 			in_key_event = true;

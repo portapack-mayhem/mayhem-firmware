@@ -26,6 +26,7 @@
 #include <hal.h>
 
 #include "portapack_shared_memory.hpp"
+#include "performance_counter.hpp"
 
 void write_m4_panic_msg(const char *panic_message, struct extctx *ctxp) {
     if (ctxp == nullptr) {
@@ -116,5 +117,28 @@ CH_IRQ_HANDLER(HardFaultVector) {
 #endif
 }
 
+void update_performance_counters() {
+	auto performance_counter_active = shared_memory.request_m4_performance_counter;
+	if (performance_counter_active == 0x00)
+		return;
+
+	static bool last_paint_state = false;
+	if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
+		return;
+
+    // Idle thread state is sometimes unuseable
+   	if (chThdGetTicks(chSysGetIdleThread()) > 0x10000000)
+        return;
+
+	last_paint_state = !last_paint_state;
+
+	auto utilisation = get_cpu_utilisation_in_percent();
+	auto free_stack = (uint32_t)get_free_stack_space();
+	auto free_heap = chCoreStatus();
+
+	shared_memory.m4_cpu_usage = utilisation;
+	shared_memory.m4_stack_usage = free_stack;
+	shared_memory.m4_heap_usage = free_heap;
 }
 
+} /* extern "C" */

@@ -29,6 +29,7 @@
 #include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
@@ -746,6 +747,36 @@ SystemView::SystemView(
 
 Context& SystemView::context() const {
 	return context_;
+}
+
+void SystemView::toggle_overlay() {
+	if (overlay_active){
+		this->remove_child(&this->overlay);
+		this->set_dirty();
+		shared_memory.request_m4_performance_counter = 0;
+	}
+	else{
+		this->add_child(&this->overlay);
+		this->set_dirty();
+		shared_memory.request_m4_performance_counter = 1;
+		shared_memory.m4_cpu_usage = 0;
+		shared_memory.m4_heap_usage = 0;
+		shared_memory.m4_stack_usage = 0;
+	}
+
+	overlay_active = !overlay_active;
+}
+
+void SystemView::paint_overlay() {
+	static bool last_paint_state = false;
+	if (overlay_active){
+		// paint background only every other second
+		if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
+			return;
+
+		last_paint_state = !last_paint_state;
+		this->overlay.set_dirty();
+	}
 }
 
 /* ***********************************************************************/

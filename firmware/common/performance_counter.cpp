@@ -1,5 +1,4 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
@@ -20,30 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "performance_counter.hpp"
 #include "ch.h"
-#include "hal.h"
 
-extern "C" {
-void start_usb(void);
-void irq_usb(void);
-void usb_transfer(void);
+uint8_t get_cpu_utilisation_in_percent() {
+	static systime_t last_time = 0;
+	static systime_t last_idle_ticks = 0;
 
-CH_IRQ_HANDLER(Vector60) {
-	irq_usb();
-}
-}
+	auto now = chTimeNow();
+	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
 
-int main() {
-	sdcStart(&SDCD1, nullptr);
-	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
+	if (last_time == 0) {
+		last_time = now;
+		last_idle_ticks = idle_ticks;
 
-	start_usb();
-
-	while (true) {
-		usb_transfer();
+		return 0;
 	}
 
-	return 0;
-}
+	int32_t time_elapsed = now - last_time;
+	int32_t idle_elapsed = idle_ticks - last_idle_ticks;
 
-void update_performance_counters() {}
+	int32_t working_ticks = time_elapsed - idle_elapsed;
+
+	if (working_ticks < 0)
+		working_ticks = 0;
+
+	auto utilisation = working_ticks * 100 / time_elapsed;
+
+	last_time = now;
+	last_idle_ticks = idle_ticks;
+
+	if (utilisation > 100) {
+		return 100;
+	}
+
+    return (uint8_t) utilisation;
+}

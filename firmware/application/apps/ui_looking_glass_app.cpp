@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2020 euquiq
- * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -38,6 +37,16 @@ namespace ui
         receiver_model.disable();
         baseband::shutdown();
     }
+
+    // Returns the next multiple of num that is a multiple of multiplier
+    int64_t GlassView::next_mult_of(int64_t num, int64_t multiplier) {
+        return ((num / multiplier) + 1) * multiplier;
+    }
+
+    // Returns the previous multiple of num that is a multiple of multiplier
+    //int64_t GlassView::prev_mult_of(int64_t num, int64_t multiplier) {
+    //    return (num / multiplier) * multiplier;
+    //}
 
     void GlassView::adjust_range(int64_t* f_min, int64_t* f_max, int64_t width) {
         int64_t span = *f_max - *f_min;
@@ -136,7 +145,7 @@ namespace ui
     void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
     {
         baseband::spectrum_streaming_stop();
-        if( fast_scan )
+        if( fast_scan || ( LOOKING_GLASS_SLICE_WIDTH < LOOKING_GLASS_SLICE_WIDTH_MAX ) )
         {
             // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
             // Spectrum.db has 256 bins. Center 12 bins are ignored (DC spike is blanked) Leftmost and rightmost 2 bins are ignored
@@ -168,7 +177,7 @@ namespace ui
                     if (!pixel_index) // Received indication that a waterfall line has been completed
                     {
                         bins_Hz_size = 0;                      // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                        f_center = f_center_ini;               // Start a new sweep
+                        f_center = f_center_ini - 2 * each_bin_size ;               // Start a new sweep
                         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
                         chThdSleepMilliseconds(10);
                         baseband::spectrum_streaming_start(); // Do the RX
@@ -177,15 +186,14 @@ namespace ui
                     bins_Hz_size -= marker_pixel_step; // reset bins size, but carrying the eventual excess Hz into next pixel
                 }
             }
-
-            f_center += LOOKING_GLASS_SLICE_WIDTH; // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
+            f_center += 240 * each_bin_size ; // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
         }
         else //slow scan
         { 
-            for( int16_t bin = 0 ; bin < 120 ; bin++)
+            for (uint8_t bin = 0; bin < 120 ; bin++)
             {
                 if (spectrum.db[134 + bin] > max_power) // 134
-                        max_power = spectrum.db[134 + bin];
+                    max_power = spectrum.db[134 + bin];
 
                 bins_Hz_size += each_bin_size; // add this bin Hz count into the "pixel fulfilled bag of Hz"
 
@@ -200,8 +208,8 @@ namespace ui
 
                     if (!pixel_index) // Received indication that a waterfall line has been completed
                     {
-                        bins_Hz_size = 0;                      // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                        f_center = f_center_ini;               // Start a new sweep
+                        bins_Hz_size = 0;                              // Since this is an entire pixel line, we don't carry "Pixels into next bin"
+                        f_center = f_center_ini - 2 * each_bin_size ;  // Start a new sweep
                         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
                         chThdSleepMilliseconds(10);
                         baseband::spectrum_streaming_start(); // Do the RX
@@ -210,11 +218,10 @@ namespace ui
                     bins_Hz_size -= marker_pixel_step; // reset bins size, but carrying the eventual excess Hz into next pixel
                 }
             }
-            f_center += LOOKING_GLASS_SLICE_WIDTH / 2 ;
+            f_center += 120 * each_bin_size ;
         }
         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
         chThdSleepMilliseconds(5);
-        // receiver_model.set_tuning_frequency(f_center); //tune rx for this slice
         baseband::spectrum_streaming_start(); // Do the RX
     }
 
@@ -269,7 +276,20 @@ namespace ui
         pixel_index = 0;         // reset pixel counter
         max_power = 0;
         bins_Hz_size = 0; // reset amount of Hz filled up by pixels
-
+        if( next_mult_of( (f_max - f_min) , 240 ) <= LOOKING_GLASS_SLICE_WIDTH_MAX )
+        {
+            LOOKING_GLASS_SLICE_WIDTH = next_mult_of( (f_max - f_min) , 240 );
+            receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);      
+            receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH/2); 
+        }
+        else if( LOOKING_GLASS_SLICE_WIDTH != LOOKING_GLASS_SLICE_WIDTH_MAX )
+        {
+            LOOKING_GLASS_SLICE_WIDTH = LOOKING_GLASS_SLICE_WIDTH_MAX ;
+            receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);      
+            receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH); 
+        }
+        receiver_model.set_squelch_level(0);
+        each_bin_size = LOOKING_GLASS_SLICE_WIDTH / 240 ; 
         baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());
         receiver_model.set_tuning_frequency(f_center_ini); // tune rx for this slice
     }
@@ -324,8 +344,8 @@ namespace ui
             int32_t min_size = steps ;
             if( locked_range )
                 min_size = search_span ;
-            if( min_size < 20 )
-                min_size = 20 ;
+            if( min_size < 2 )
+                min_size = 2 ;
             if( v > 7200 - min_size )
             {
                 v = 7200 - min_size ;
@@ -347,8 +367,8 @@ namespace ui
                 int32_t min_size = steps ;
                 if( locked_range )
                     min_size = search_span ;
-                if( min_size < 20 )
-                    min_size = 20 ;
+                if( min_size < 2 )
+                    min_size = 2 ;
                 if( freq > (7200 - min_size ) )
                     freq = 7200 - min_size  ;
                 field_frequency_min.set_value( freq );
@@ -364,8 +384,8 @@ namespace ui
             int32_t min_size = steps ;
             if( locked_range )
                 min_size = search_span ;
-            if( min_size < 20 )
-                min_size = 20 ;
+            if( min_size < 2 )
+                min_size = 2 ;
             if( v < min_size )
             {
                 v = min_size ;
@@ -386,8 +406,8 @@ namespace ui
                 int32_t min_size = steps ;
                 if( locked_range )
                     min_size = search_span ;
-                if( min_size < 20 )
-                    min_size = 20 ;
+                if( min_size < 2 )
+                    min_size = 2 ;
                 int32_t freq = f / 1000000 ;
                 if( freq < min_size )
                     freq = min_size ;
