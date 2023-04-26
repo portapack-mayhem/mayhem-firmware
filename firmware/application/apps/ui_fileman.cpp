@@ -266,19 +266,20 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
 
 		std::string destination_path = current_path.string();
-		if (destination_path.back() != '/')
+		if (destination_path.back() != '/')//if the path is not ended with '/', add '/'
 			destination_path += '/';
-
-		if(get_selected_path().string().back() != '/'){
-			destination_path = destination_path + buffer + extension_buffer;
-		}else if(get_selected_path().string().back() == '/'){
-			destination_path = destination_path + buffer;
-		}
-
-		rename_file(get_selected_path(), destination_path);  //rename the selected file
 
 		auto selected_path = get_selected_path();
 		auto extension = selected_path.extension().string();
+
+		if(extension.empty()){// Is Dir
+			destination_path = destination_path + buffer;
+			extension_buffer = "";
+		}else{//is File
+			destination_path = destination_path + buffer + extension_buffer;
+		}
+
+		rename_file(get_selected_path(), destination_path);  //rename the selected file
 
 		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") { //substr(1) is for ignore the dot
 			// Rename its partner ( C16 <-> TXT ) file.
