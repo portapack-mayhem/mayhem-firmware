@@ -264,11 +264,16 @@ void FileManagerView::on_rename(NavigationView& nav) {
 
 void FileManagerView::on_refactor(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+
 		std::string destination_path = current_path.string();
 		if (destination_path.back() != '/')
 			destination_path += '/';
 
-		destination_path = get_selected_path().string().back() != '/' ? destination_path + buffer + extension_buffer : destination_path + buffer;
+		if(get_selected_path().string().back() != '/'){
+			destination_path = destination_path + buffer + extension_buffer;
+		}else if(get_selected_path().string().back() == '/'){
+			destination_path = destination_path + buffer;
+		}
 
 		rename_file(get_selected_path(), destination_path);  //rename the selected file
 
@@ -289,9 +294,9 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 
 		load_directory_contents(current_path);
 		refresh_list();
-		extension_buffer.clear();
-		destination_path.clear();
+
 	});
+
 }
 
 void FileManagerView::on_delete() {
