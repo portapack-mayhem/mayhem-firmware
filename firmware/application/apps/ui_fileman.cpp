@@ -289,6 +289,8 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 
 		load_directory_contents(current_path);
 		refresh_list();
+		extension_buffer.clear();
+		destination_path.clear();
 	});
 }
 
