@@ -83,6 +83,12 @@ SSB::SSB() : hilbert() {
 }
 
 void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in,  uint32_t& new_beep_index, uint32_t& new_beep_timer,TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message,  uint32_t& new_power_acc_count, uint32_t& new_divider ) {
+	//unused
+	(void)configured_in ; 
+	(void)new_beep_index ; 
+	(void)new_beep_timer ; 
+	(void)new_txprogress_message ; 
+
 	// No way to activate correctly  the roger beep in this option, Maybe not enough M4 CPU power , Let's  block roger beep in SSB  selection by now . 
 	int32_t		sample = 0;
 	int8_t		re = 0, im = 0;
