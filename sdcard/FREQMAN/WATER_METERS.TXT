@@ -1,0 +1,5 @@
+f=863000000,d=WaterMeter
+f=868000000,d=WaterMeter: ETW-ECO, Zenner
+f=868600000,d=WaterMeter: Ecomess
+f=868950000,d=WaterMeter: Apator/Santech/Techem
+f=874400000,d=WaterMeter
