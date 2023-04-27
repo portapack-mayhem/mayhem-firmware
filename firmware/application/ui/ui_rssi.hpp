@@ -115,8 +115,12 @@ namespace ui {
             void paint(Painter& painter) override;
             void add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max, int16_t db );
             void set_nb_columns( int16_t nb );
+            
+            void on_hide() override ;
+            void on_show() override ;
 
         private:
+            uint16_t nb_columns_before_hide = 16 ;
             uint16_t nb_columns = 16 ;
             RSSIGraphList graph_list { } ;
     };
