@@ -434,6 +434,23 @@ namespace ui {
     void RSSIGraph::set_nb_columns( int16_t nb )
     {
         nb_columns = nb ;
+        while( graph_list.size() >  nb_columns )
+        {
+            graph_list.erase( graph_list.begin() );
+        }
+    }
+
+    void RSSIGraph::on_hide() {
+        nb_columns_before_hide = nb_columns ;
+        nb_columns = 1 ;
+        while( graph_list.size() >  nb_columns )
+        {
+            graph_list.erase( graph_list.begin() );
+        }
+    }
+
+    void RSSIGraph::on_show() {
+        nb_columns = nb_columns_before_hide ;
     }
 
     void RSSI::on_focus() {
