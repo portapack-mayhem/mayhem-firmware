@@ -54,7 +54,8 @@ private:
 		{ { 6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT }, "M4 heap:", Color::dark_cyan() },
 		{ { 6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT }, "M4 stack:", Color::dark_cyan() },
 		{ { 6 * CHARACTER_WIDTH,10 * LINE_HEIGHT }, "M4 cpu %:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "uptime:", Color::dark_cyan() }
+		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "M4 miss:", Color::dark_cyan() },
+		{ { 6 * CHARACTER_WIDTH,12 * LINE_HEIGHT }, "uptime:", Color::dark_cyan() }
 	};
 
 	Text text_info_line_1 {{ 15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
@@ -64,6 +65,7 @@ private:
 	Text text_info_line_5 {{ 15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
 	Text text_info_line_6 {{ 15 * CHARACTER_WIDTH,10 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
 	Text text_info_line_7 {{ 15 * CHARACTER_WIDTH,11 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Text text_info_line_8 {{ 15 * CHARACTER_WIDTH,12 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
 };
 
 } /* namespace ui */
