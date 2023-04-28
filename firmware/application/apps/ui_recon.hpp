@@ -118,8 +118,6 @@ namespace ui {
 
 			void focus() override;
 
-			void big_display_freq( int64_t f );
-
 			const Style style_grey {		// recon
 				.font = font::fixed_8x16,
 					.background = Color::black(),
