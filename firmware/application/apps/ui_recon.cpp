@@ -443,9 +443,7 @@ namespace ui {
 
 	void ReconView::set_display_freq( int64_t freq )
 	{
-		int64_t freqMHz = ( freq / 1000000 );
-		int64_t freqMhzFloatingPart = ( freq - ( 1000000 * freqMHz ) ) / 100 ;
-		big_display.set( "FREQ: "+to_string_dec_int( freqMHz )+"."+to_string_dec_int( freqMhzFloatingPart )+" MHz" );
+		big_display.set( "FREQ: "+to_string_short_freq( freq )+" MHz" );
 	}
 
 	void ReconView::handle_retune( int64_t freq , uint32_t index ) {
