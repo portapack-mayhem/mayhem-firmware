@@ -88,8 +88,6 @@ public:
 	
 	void focus() override;
 
-	void big_display_freq(rf::Frequency f);
-
 	const Style style_grey {		// scanning
 		.font = font::fixed_8x16,
 		.background = Color::black(),
