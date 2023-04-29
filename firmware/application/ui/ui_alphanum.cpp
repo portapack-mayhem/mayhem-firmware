@@ -30,10 +30,6 @@
 
 namespace ui {
 
-void AlphanumView::paint(Painter&) {
-	draw_cursor();
-}
-
 AlphanumView::AlphanumView(
 	NavigationView& nav,
 	std::string& str,
@@ -41,7 +37,7 @@ AlphanumView::AlphanumView(
 ) : TextEntryView(nav, str, max_length)
 {
 	size_t n;
-	
+
 	add_children({
 		&button_mode,
 		&text_raw,
@@ -77,16 +73,7 @@ AlphanumView::AlphanumView(
 	field_raw.set_value('0');
 	field_raw.on_select = [this](NumberField&) {
 		char_add(field_raw.value());
-		update_text();
 	};
-
-	button_ok.on_select = [this, &nav](Button&) {
-		if (on_changed)
-			on_changed(_str);
-		nav.pop();
-	};
-
-	update_text();
 }
 
 void AlphanumView::set_mode(const uint32_t new_mode) {
@@ -120,8 +107,6 @@ void AlphanumView::on_button(Button& button) {
 		char_delete();
 	else
 		char_add(c);
-	
-	update_text();
 }
 
 bool AlphanumView::on_encoder(const EncoderEvent delta) {
