@@ -108,6 +108,7 @@ namespace ui
             rf::Frequency search_span { 0 };
             rf::Frequency f_center { 0 };
             rf::Frequency f_center_ini { 0 };
+            rf::Frequency marker { 0 };
             rf::Frequency marker_pixel_step { 0 };
             rf::Frequency each_bin_size { LOOKING_GLASS_SLICE_WIDTH  / 240 };
             rf::Frequency bins_Hz_size { 0 };
@@ -129,7 +130,7 @@ namespace ui
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
                     {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-                    {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
+                    {{0, 3 * 16}, "MARKER:            MHz", Color::light_grey()},
                     {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}
             };
 
@@ -180,16 +181,10 @@ namespace ui
                         {" NONE (WIFI 2.4GHz)", 0},
                     }};
 
-            NumberField field_marker{
-                {7 * 8, 3 * 16},
-                    4,
-                    {0, 7200},
-                    25,
-                    ' '};
-
-            Text text_marker_pm{
-                {20 * 8, 3 * 16, 2 * 8, 16},
-                    ""};
+            ButtonWithEncoder button_marker{
+                {7 * 8, 3 * 16 , 10 * 8 , 16},
+                " "
+            };
 
             NumberField field_trigger{
                 {4 * 8, 4 * 16},
