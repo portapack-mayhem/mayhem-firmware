@@ -64,6 +64,8 @@ Packet::Packet(
 			type_ = Type::Meteomodem_M10;
 		else if (id_byte == 0x648F)
 			type_ = Type::Meteomodem_M2K2;
+		else if (id_byte == 0x4520) //https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+			type_ = Type::Meteomodem_M20;		
 	}
 }
 
@@ -109,6 +111,12 @@ GPS_data Packet::get_GPS_data() const
 		result.lat = reader_bi_m.read(14 * 8, 32) / ((1ULL << 32) / 360.0);
 		result.lon = reader_bi_m.read(18 * 8, 32) / ((1ULL << 32) / 360.0);
 	}
+	else if (type_ == Type::Meteomodem_M20)
+	{
+		result.alt = ((reader_bi_m.read(8 * 8, 32) / 100) - 48) / 250 ; //Conversion of altitude is actually a bit shifted, needs to be more accurate.
+		result.lat = reader_bi_m.read(28 * 8, 32) / 1000000.0 ; //https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+		result.lon = reader_bi_m.read(32 * 8, 32) / 1000000.0 ; 
+	}
 	else if (type_ == Type::Vaisala_RS41_SG)
 	{
 
@@ -147,6 +155,10 @@ uint32_t Packet::battery_voltage() const
 {
 	if (type_ == Type::Meteomodem_M10)
 		return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
+	else if (type_ == Type::Meteomodem_M20)
+	{
+		return 0; //NOT SUPPPORTED YET
+	}
 	else if (type_ == Type::Meteomodem_M2K2)
 		return reader_bi_m.read(69 * 8, 8) * 66; // Actually 65.8
 	else if (type_ == Type::Vaisala_RS41_SG)
@@ -279,6 +291,8 @@ std::string Packet::type_string() const
 		return "Meteomodem ???";
 	case Type::Meteomodem_M10:
 		return "Meteomodem M10";
+	case Type::Meteomodem_M20:
+		return "Meteomodem M20";
 	case Type::Meteomodem_M2K2:
 		return "Meteomodem M2K2";
 	case Type::Vaisala_RS41_SG:
