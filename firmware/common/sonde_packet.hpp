@@ -51,6 +51,7 @@ public:
 		Meteomodem_M10 = 2,
 		Meteomodem_M2K2 = 3,
 		Vaisala_RS41_SG = 4,
+		Meteomodem_M20 = 5,
 	};
 
 	Packet(const baseband::Packet& packet, const Type type);
