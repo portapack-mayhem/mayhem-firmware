@@ -43,11 +43,6 @@ namespace ui
         return ((num / multiplier) + 1) * multiplier;
     }
 
-    // Returns the previous multiple of num that is a multiple of multiplier
-    //int64_t GlassView::prev_mult_of(int64_t num, int64_t multiplier) {
-    //    return (num / multiplier) * multiplier;
-    //}
-
     void GlassView::adjust_range(int64_t* f_min, int64_t* f_max, int64_t width) {
         int64_t span = *f_max - *f_min;
         int64_t num_intervals = span / width;
@@ -144,6 +139,8 @@ namespace ui
     // Each having the radio signal power for it's corresponding frequency slot
     void GlassView::on_channel_spectrum(const ChannelSpectrum &spectrum)
     {
+        // default fast scan offset 
+        uint8_t offset = 2 ;
         baseband::spectrum_streaming_stop();
         if( fast_scan || ( LOOKING_GLASS_SLICE_WIDTH < LOOKING_GLASS_SLICE_WIDTH_MAX ) )
         {
@@ -181,8 +178,15 @@ namespace ui
                             max_power = spectrum.db[bin - 118];
                     }
                 }
-
-                bins_Hz_size += each_bin_size; // add this bin Hz count into the "pixel fulfilled bag of Hz"
+                
+                if( bin == 120 )
+                {
+                    bins_Hz_size += 12 * each_bin_size; // add DC bin Hz count into the "pixel fulfilled bag of Hz"
+                }
+                else
+                {
+                    bins_Hz_size += each_bin_size; // add this bin Hz count into the "pixel fulfilled bag of Hz"
+                }
 
                 if (bins_Hz_size >= marker_pixel_step) // new pixel fullfilled
                 {
@@ -196,7 +200,7 @@ namespace ui
                     if (!pixel_index) // Received indication that a waterfall line has been completed
                     {
                         bins_Hz_size = 0;                               // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                        f_center = f_center_ini - 2 * each_bin_size ;   // Start a new sweep
+                        f_center = f_center_ini - offset * each_bin_size ;   // Start a new sweep
                         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
                         chThdSleepMilliseconds(10);
                         baseband::spectrum_streaming_start(); // Do the RX
@@ -205,14 +209,25 @@ namespace ui
                     bins_Hz_size -= marker_pixel_step; // reset bins size, but carrying the eventual excess Hz into next pixel
                 }
             }
-            f_center += 238 * each_bin_size ; // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
+            f_center += ( 256 - ( 2 * offset ) ) * each_bin_size ; // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
+                                                                   // lost bins are taken in account so next slice first ignored bins overlap previous kept ones
         }
         else //slow scan
         { 
-            for (uint8_t bin = 0 ; bin < 80 ; bin++)
+            offset = 32 ;
+            uint8_t bin_length = 80 ;
+            for (uint8_t bin = offset ; bin < bin_length + offset ; bin++)
             {
-                if (spectrum.db[134 + bin] > max_power) // 134
-                            max_power = spectrum.db[134 + bin];
+                if (bin < 120)
+                {
+                    if (spectrum.db[134 + bin] > max_power) // 134
+                        max_power = spectrum.db[134 + bin];
+                }
+                else
+                {
+                    if (spectrum.db[bin - 118] > max_power) // 118
+                        max_power = spectrum.db[bin - 118];
+                }
 
                 bins_Hz_size += each_bin_size; // add this bin Hz count into the "pixel fulfilled bag of Hz"
 
@@ -228,7 +243,7 @@ namespace ui
                     if (!pixel_index) // Received indication that a waterfall line has been completed
                     {
                         bins_Hz_size = 0;                              // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                        f_center = f_center_ini - 2 * each_bin_size ;  // Start a new sweep
+                        f_center = f_center_ini - offset * each_bin_size ;  // Start a new sweep
                         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
                         chThdSleepMilliseconds(10);
                         baseband::spectrum_streaming_start(); // Do the RX
@@ -237,7 +252,7 @@ namespace ui
                     bins_Hz_size -= marker_pixel_step; // reset bins size, but carrying the eventual excess Hz into next pixel
                 }
             }
-            f_center +=  80 * each_bin_size ;
+            f_center +=  bin_length * each_bin_size ;
         }
         radio::set_tuning_frequency(f_center); // tune rx for this new slice directly, faster than using persistent memory saving
         chThdSleepMilliseconds(5);
@@ -277,19 +292,16 @@ namespace ui
         adjust_range( &f_min , &f_max , 240 );
 
         marker_pixel_step = (f_max - f_min) / 240;                                        // Each pixel value in Hz
-
-        f_center_ini = f_min + (LOOKING_GLASS_SLICE_WIDTH / 2); // Initial center frequency for sweep
         marker = f_min + (f_max - f_min) / 2 ;
         button_marker.set_text( to_string_short_freq( marker ) );
         PlotMarker( marker ); // Refresh marker on screen
-            
 
         pixel_index = 0;         // reset pixel counter
         max_power = 0;
         bins_Hz_size = 0; // reset amount of Hz filled up by pixels
-        if( next_mult_of( (f_max - f_min) , 240 ) <= LOOKING_GLASS_SLICE_WIDTH_MAX )
+        if( (f_max - f_min) <= LOOKING_GLASS_SLICE_WIDTH_MAX )
         {
-            LOOKING_GLASS_SLICE_WIDTH = next_mult_of( (f_max - f_min) , 240 );
+            LOOKING_GLASS_SLICE_WIDTH = (f_max - f_min) ;
             receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);      
             receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH/2); 
         }
@@ -299,9 +311,15 @@ namespace ui
             receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);      
             receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH); 
         }
+        if( next_mult_of( LOOKING_GLASS_SLICE_WIDTH , 256 ) > LOOKING_GLASS_SLICE_WIDTH_MAX )
+            LOOKING_GLASS_SLICE_WIDTH = LOOKING_GLASS_SLICE_WIDTH_MAX ;
+        else
+            LOOKING_GLASS_SLICE_WIDTH = next_mult_of( LOOKING_GLASS_SLICE_WIDTH , 256 );
+
         receiver_model.set_squelch_level(0);
-        each_bin_size = LOOKING_GLASS_SLICE_WIDTH / 240 ; 
-        f_center = f_center_ini - 2 * each_bin_size ; // Reset sweep into first slice
+        each_bin_size = LOOKING_GLASS_SLICE_WIDTH / 256 ; 
+        f_center_ini = f_min + (LOOKING_GLASS_SLICE_WIDTH / 2) ; // Initial center frequency for sweep
+        f_center = f_center_ini ; // Reset sweep into first slice
         baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());
         receiver_model.set_tuning_frequency(f_center_ini); // tune rx for this slice
     }
