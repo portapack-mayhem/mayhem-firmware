@@ -38,13 +38,14 @@ private:
 	
 	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 	
-	uint32_t tone_delta { 0 }, fm_delta { };
-	uint32_t lfsr { }, feedback { }, tone_shape { };
+	uint32_t tone_delta { 0 }, fm_delta { },tone_phase { 0 };
+	uint8_t tone_shape { };
     uint32_t sample_count { 0 };
     bool auto_off { };
-	uint32_t tone_phase { 0 }, phase { 0 }, delta { 0 }, sphase { 0 };
-	int8_t sample { 0 };
-	int8_t re { 0 }, im { 0 };
+	int32_t phase { 0 }, sphase { 0 }, delta { 0 }; 	// they may have sign .
+	int8_t  sample { 0 }, re { 0 }, im { 0 };			// they may have sign .
+    uint8_t seed_value = {0x56};   						// seed : any nonzero start state will work. 
+	uint8_t lfsr { }, bit { };  						// bit must be 8-bit to allow bit<<7 later in the code */
 	
 	TXProgressMessage txprogress_message { };
 };

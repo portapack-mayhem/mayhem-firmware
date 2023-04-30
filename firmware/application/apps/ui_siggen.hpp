@@ -48,14 +48,16 @@ private:
 	void update_tone();
 	void on_tx_progress(const uint32_t progress, const bool done);
 	
-	const std::string shape_strings[7] = {
-		"CW",
-		"Sine",
-		"Triangle",
-		"Saw up",
-		"Saw down",
-		"Square",
-		"Noise"
+	const std::string shape_strings[9] = {
+		"CW          ",
+		"Sine        ",
+		"Triangle    ",
+		"Saw up      ",
+		"Saw down    ",
+		"Square      ",
+		"Noise n20Khz",
+		"Noise n10khz",
+		"Noise n5khz "
 	};
 	
 	bool auto_update { false };
@@ -78,7 +80,9 @@ private:
 			{ &bitmap_sig_saw_up, 3 },
 			{ &bitmap_sig_saw_down, 4 },
 			{ &bitmap_sig_square, 5 },
-			{ &bitmap_sig_noise, 6 }
+			{ &bitmap_sig_noise, 6 },
+			{ &bitmap_sig_noise, 7 },
+			{ &bitmap_sig_noise, 8 }
 		}
 	};
 	

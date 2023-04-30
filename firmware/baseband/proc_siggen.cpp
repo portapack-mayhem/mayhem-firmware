@@ -49,7 +49,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 				// Sine
 				sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
 			} else if (tone_shape == 2) {
-				// Tri
+				// Triangle
 				int8_t a = (tone_phase & 0xFF000000) >> 24;
 				sample = (a & 0x80) ? ((a << 1) ^ 0xFF) - 0x80 : (a << 1) + 0x80;
 			} else if (tone_shape == 3) {
@@ -61,24 +61,34 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 			} else if (tone_shape == 5) {
 				// Square
 				sample = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;
-			} else if (tone_shape == 6) {
-				// Noise
-				sample = (lfsr & 0xFF000000) >> 24;
-				feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
-				lfsr = (lfsr << 1) | feedback;
-				if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
+			} else if (tone_shape == 6) { // taps: 6 5; feedback polynomial: x^6 + x^5 + 1 , Periode  63 = 2^n-1,it generates armonincs n x 20Khz
+				// White Noise generator, pseudo random noise generator, 8 bits linear-feedback shift register (LFSR) algorithm, variant Fibonacci.
+				// https://en.wikipedia.org/wiki/Linear-feedback_shift_register 
+        		bit = ((lfsr >> 2) ^ (lfsr >> 3)) & 1;	
+		   		lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr;
+			} else if (tone_shape == 7) { // taps: 7 6; feedback polynomial:  x^7 + x^6 + 1 , Periode 127 = 2^n-1,it generates armonincs n x 10Khz 
+				bit = ((lfsr >> 1) ^ (lfsr >> 2)) & 1;	
+				lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr;
+			} else if (tone_shape == 8) { //taps:8,6,5,4;feedback polynomial: x^8 + x^6 + x^5 + x^4 + 1,Periode 255= 2^n-1, armonics  n x 5khz
+				bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4))  & 1;	
+        		lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr;
+			} 
+
+			if (tone_shape < 6) 	{
+				tone_phase += tone_delta;
 			}
 			
-			tone_phase += tone_delta;
-			
-			// Do FM
+			// Do FM modulation
 			delta = sample * fm_delta;
 			
 			phase += delta;
 			sphase = phase + (64 << 24);
 
 			re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
-			im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+			im = (sine_table_i8[( phase & 0xFF000000) >> 24]);
 		}
 
 		buffer.p[i] = {re, im};
@@ -104,7 +114,8 @@ void SigGenProcessor::on_message(const Message* const msg) {
 			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
 			tone_shape = message.shape;
 			
-			lfsr = 0x54DF0119;
+			// lfsr = 0x54DF0119;
+			 lfsr = seed_value ;  
 
 			configured = true;
 			break;
