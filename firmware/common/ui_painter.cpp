@@ -43,7 +43,7 @@ int Painter::draw_char(const Point p, const Style& style, const char c) {
 }
 
 int Painter::draw_string(Point p, const Font& font, const Color foreground,
-	const Color background, const std::string text) {
+	const Color background, const std::string& text) {
 	
 	bool escape = false;
 	size_t width = 0;
@@ -71,7 +71,7 @@ int Painter::draw_string(Point p, const Font& font, const Color foreground,
 	return width;
 }
 
-int Painter::draw_string(Point p, const Style& style, const std::string text) {
+int Painter::draw_string(Point p, const Style& style, const std::string& text) {
 	return draw_string(p, style.font, style.foreground, style.background, text);
 }
 
