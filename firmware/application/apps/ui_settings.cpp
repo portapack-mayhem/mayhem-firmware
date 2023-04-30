@@ -410,6 +410,10 @@ namespace ui {
 
 		bool load_mem_at_startup = false ;
 		File pmem_flag_file_handle ;
+
+		std::string folder = "SETTINGS";
+		make_new_directory(folder);
+
 		std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG" ;
 		auto result = pmem_flag_file_handle.open(pmem_flag_file);	
 		if(!result.is_valid()) 
