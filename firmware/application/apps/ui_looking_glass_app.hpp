@@ -37,7 +37,7 @@
 
 namespace ui
 {
-#define LOOKING_GLASS_SLICE_WIDTH_MAX 19999920
+#define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
 #define MHZ_DIV	            1000000
 #define X2_MHZ_DIV	        2000000
 
@@ -81,14 +81,13 @@ namespace ui
 
             std::vector<preset_entry> presets_db{};
             
-            // Each slice bandwidth 20 MHz and a multiple of 240
-            // since we are using LOOKING_GLASS_SLICE_WIDTH/240 as the each_bin_size
+            // Each slice bandwidth 20 MHz and a multiple of 256
+            // since we are using LOOKING_GLASS_SLICE_WIDTH/256 as the each_bin_size
             // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
-            int64_t LOOKING_GLASS_SLICE_WIDTH = 19999920;
+            int64_t LOOKING_GLASS_SLICE_WIDTH = 20000000;
 
             // frequency rounding helpers
             int64_t next_mult_of(int64_t num, int64_t multiplier);
-            //int64_t prev_mult_of(int64_t num, int64_t multiplier);
             void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
 
             void on_channel_spectrum(const ChannelSpectrum& spectrum);
@@ -108,8 +107,9 @@ namespace ui
             rf::Frequency search_span { 0 };
             rf::Frequency f_center { 0 };
             rf::Frequency f_center_ini { 0 };
+            rf::Frequency marker { 0 };
             rf::Frequency marker_pixel_step { 0 };
-            rf::Frequency each_bin_size { LOOKING_GLASS_SLICE_WIDTH  / 240 };
+            rf::Frequency each_bin_size { LOOKING_GLASS_SLICE_WIDTH  / 256 };
             rf::Frequency bins_Hz_size { 0 };
             uint8_t min_color_power { 0 };
             uint32_t pixel_index { 0 };
@@ -129,7 +129,7 @@ namespace ui
                 {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
                     {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
                     {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-                    {{0, 3 * 16}, "MARKER:     MHz +/-    MHz", Color::light_grey()},
+                    {{0, 3 * 16}, "MARKER:            MHz", Color::light_grey()},
                     {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}
             };
 
@@ -180,16 +180,10 @@ namespace ui
                         {" NONE (WIFI 2.4GHz)", 0},
                     }};
 
-            NumberField field_marker{
-                {7 * 8, 3 * 16},
-                    4,
-                    {0, 7200},
-                    25,
-                    ' '};
-
-            Text text_marker_pm{
-                {20 * 8, 3 * 16, 2 * 8, 16},
-                    ""};
+            ButtonWithEncoder button_marker{
+                {7 * 8, 3 * 16 , 10 * 8 , 16},
+                " "
+            };
 
             NumberField field_trigger{
                 {4 * 8, 4 * 16},
