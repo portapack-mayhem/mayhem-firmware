@@ -123,6 +123,7 @@ struct path {
 		return *this;
 	}
 
+	path parent_path() const;
 	path extension() const;
 	path filename() const;
 	path stem() const;
@@ -151,14 +152,23 @@ struct path {
 		return *this;
 	}
 
+	path& operator/=(const path& p) {
+		if (_s.back() != preferred_separator)
+			_s + preferred_separator;
+		_s += p._s;
+		return *this;
+	}
+
 	path& replace_extension(const path& replacement = path());
 
 private:
 	string_type _s;
 };
 
+bool operator==(const path& lhs, const path& rhs);
 bool operator<(const path& lhs, const path& rhs);
 bool operator>(const path& lhs, const path& rhs);
+path operator/(const path& lhs, const path& rhs);
 
 using file_status = BYTE;
 

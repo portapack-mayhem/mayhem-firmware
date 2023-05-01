@@ -31,7 +31,7 @@
 namespace ui {
 
 struct fileman_entry {
-	std::filesystem::path entry_path { };
+	std::filesystem::path path { };
 	uint32_t size { };
 	bool is_directory { };
 };
@@ -46,47 +46,49 @@ public:
 	void focus() override;
 	
 	void load_directory_contents(const std::filesystem::path& dir_path);
-	std::filesystem::path get_selected_path();
+	std::filesystem::path get_selected_full_path() const;
+	const fileman_entry& get_selected_entry() const;
 	
 	std::string title() const override { return "Fileman"; };
 	
 protected:
-	NavigationView& nav_;
-	
-	static constexpr size_t max_filename_length = 30 - 2;
-	
-	const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
-	
+	static constexpr size_t max_filename_length = 64 - 2; // Necessary?
+
 	struct file_assoc_t {
-		std::string extension;
+		std::filesystem::path extension;
 		const Bitmap* icon;
 		ui::Color color;
 	};
+
+	const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
 	
 	const std::vector<file_assoc_t> file_types = {
-		{ ".TXT", &bitmap_icon_file_text, ui::Color::white() },
-		{ ".PNG", &bitmap_icon_file_image, ui::Color::green() },
-		{ ".BMP", &bitmap_icon_file_image, ui::Color::green() },
-		{ ".C8",  &bitmap_icon_file_iq, ui::Color::dark_cyan() },
-		{ ".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan() },
-		{ ".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta() },
-		{ "", &bitmap_icon_file, ui::Color::light_grey() }
+		{ u".TXT", &bitmap_icon_file_text, ui::Color::white() },
+		{ u".PNG", &bitmap_icon_file_image, ui::Color::green() },
+		{ u".BMP", &bitmap_icon_file_image, ui::Color::green() },
+		{ u".C8",  &bitmap_icon_file_iq, ui::Color::dark_cyan() },
+		{ u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan() },
+		{ u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta() },
+		{ u"", &bitmap_icon_file, ui::Color::light_grey() } // NB: Must be last.
 	};
-	
+
+	void refresh_list();
+	const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
+
+	NavigationView& nav_;
+
 	bool empty_root { false };
 	std::function<void(void)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
+	
 	std::vector<fileman_entry> entry_list { };
 	std::filesystem::path current_path { u"" };
-	std::string extension_filter { "" };
-	
-	void change_category(int32_t category_id);
-	std::filesystem::path get_parent_dir();
-	void refresh_list();
+	std::filesystem::path extension_filter { u"" };
 	
 	Labels labels {
 		{ { 0, 0 }, "Path:", Color::light_grey() }
 	};
+
 	Text text_current {
 		{ 6 * 8, 0 * 8, 24 * 8, 16 },
 		"",
@@ -147,7 +149,7 @@ private:
 	
 	void refresh_widgets(const bool v);
 	void on_rename(NavigationView& nav);
-	void on_refactor(NavigationView& nav);
+	//void on_refactor(NavigationView& nav);
 	void on_delete();
 	
 	Labels labels {
@@ -164,9 +166,14 @@ private:
 		"Rename"
 	};
 
-	Button button_refactor{
+	Button button_copy {
 		{ 10 * 8, 29 * 8, 10 * 8, 32 },
-		"Refactor"
+		"Copy"
+	};
+
+	Button button_move {
+		{ 10 * 8, 29 * 8, 10 * 8, 32 },
+		"Move"
 	};
 
 	Button button_delete {
@@ -174,9 +181,14 @@ private:
 		"Delete"
 	};
 	
+	/*Button button_new_file {
+		{ 0 * 8, 34 * 8, 14 * 8, 32 },
+		"New File"
+	};*/
+
 	Button button_new_dir {
 		{ 0 * 8, 34 * 8, 14 * 8, 32 },
-		"New dir"
+		"New Dir"
 	};
 	
 };

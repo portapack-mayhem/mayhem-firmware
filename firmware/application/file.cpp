@@ -250,6 +250,16 @@ std::string filesystem_error::what() const {
 	}
 }
 
+path path::parent_path() const {
+	const auto t = filename().native();
+	const auto index = t.find_last_of(preferred_separator);
+	if( index == t.npos ) {
+		return *this;
+	} else {
+		return t.substr(0, index);
+	}
+}
+
 path path::extension() const {
 	const auto t = filename().native();
 	const auto index = t.find_last_of(u'.');
@@ -296,12 +306,22 @@ path& path::replace_extension(const path& replacement) {
 	return *this;
 }
 
+bool operator==(const path& lhs, const path& rhs) {
+	return lhs.native() == rhs.native();
+}
+
 bool operator<(const path& lhs, const path& rhs) {
 	return lhs.native() < rhs.native();
 }
 
 bool operator>(const path& lhs, const path& rhs) {
 	return lhs.native() > rhs.native();
+}
+
+path operator/(const path& lhs, const path& rhs) {
+	path result = lhs;
+	result /= rhs;
+	return result;
 }
 
 directory_iterator::directory_iterator(

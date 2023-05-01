@@ -82,6 +82,8 @@ public:
 	
 	void focus() override;
 	std::string title() const override { return "Text entry"; };
+
+	void set_cursor(uint32_t pos);
 	
 protected:
 	TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
@@ -101,7 +103,18 @@ protected:
 	};
 };
 
-void text_prompt(NavigationView& nav, std::string& str, size_t max_length, const std::function<void(std::string&)> on_done = nullptr);
+void text_prompt(
+	NavigationView& nav,
+	std::string& str,
+	size_t max_length,
+	const std::function<void(std::string&)> on_done = nullptr);
+
+void text_prompt(
+	NavigationView& nav,
+	std::string& str,
+	uint32_t cursor_pos,
+	size_t max_length,
+	const std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */
 

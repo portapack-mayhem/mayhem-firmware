@@ -87,7 +87,7 @@ public:
 	MenuItemView* item_view(size_t index) const;
 
 	bool set_highlighted(int32_t new_value);
-	uint32_t highlighted_index();
+	uint32_t highlighted_index() const;
 
 	void set_parent_rect(const Rect new_parent_rect) override;
 	void on_focus() override;

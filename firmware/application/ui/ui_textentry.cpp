@@ -29,9 +29,25 @@ using namespace portapack;
 
 namespace ui {
 
-void text_prompt(NavigationView& nav, std::string& str, const size_t max_length, const std::function<void(std::string&)> on_done) {
+void text_prompt(
+	NavigationView& nav,
+	std::string& str,
+	const size_t max_length,
+	const std::function<void(std::string&)> on_done
+) {
+	text_prompt(nav, str, str.length(), max_length, on_done);
+}
+
+void text_prompt(
+	NavigationView& nav,
+	std::string& str,
+	uint32_t cursor_pos,
+	const size_t max_length,
+	const std::function<void(std::string&)> on_done
+) {
 	//if (persistent_memory::ui_config_textentry() == 0) {
 		auto te_view = nav.push<AlphanumView>(str, max_length);
+		te_view->set_cursor(cursor_pos);
 		te_view->on_changed = [on_done](std::string& value) {
 			if (on_done)
 				on_done(value);
@@ -209,6 +225,10 @@ void TextEntryView::char_delete() {
 
 void TextEntryView::char_add(const char c) {
 	text_input.char_add(c);
+}
+
+void TextEntryView::set_cursor(uint32_t pos) {
+	text_input.set_cursor(pos);
 }
 
 void TextEntryView::focus() {

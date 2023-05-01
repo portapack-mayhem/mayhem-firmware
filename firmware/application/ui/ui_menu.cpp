@@ -238,7 +238,7 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	return true;
 }
 
-uint32_t MenuView::highlighted_index() {
+uint32_t MenuView::highlighted_index() const {
 	return highlighted_item;
 }
 

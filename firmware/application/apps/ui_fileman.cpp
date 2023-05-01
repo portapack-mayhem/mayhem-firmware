@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <algorithm>
 #include "ui_fileman.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
@@ -27,65 +28,92 @@
 
 using namespace portapack;
 
+namespace {
+using namespace ui;
+
+bool is_hidden_file(const std::filesystem::path& path) {
+	return !path.empty() && path.native()[0] == u'.';
+}
+
+// Gets a truncated name from a path for display.
+std::string truncate(const std::filesystem::path& path, size_t max_length = 25) {
+	auto name = path.string();
+	return name.length() <= max_length ? name : name.substr(0, max_length);
+}
+
+// Case insensitive path equality on underlying "native" string.
+bool iequal(
+	const std::filesystem::path& lhs,
+	const std::filesystem::path& rhs
+) {
+	const auto& lhs_str = lhs.native();
+	const auto& rhs_str = rhs.native();
+
+	// NB: Not correct for Unicode/locales.
+	if (lhs_str.length() == rhs_str.length()) {
+		for (size_t i = 0; i < lhs_str.length(); ++i)
+			if (towupper(lhs_str[i]) != towupper(rhs_str[i]))
+				return false;
+
+		return true;
+	}
+
+	return false;
+}
+
+// Inserts the entry into the entry list sorted directories first then by file name.
+void insert_sorted(std::vector<fileman_entry>& entries, fileman_entry&& entry) {
+	auto it = std::lower_bound(std::begin(entries), std::end(entries), entry,
+		[](const fileman_entry& lhs, const fileman_entry& rhs) {
+			if (lhs.is_directory && !rhs.is_directory)
+				return true;
+			else if (rhs.is_directory)
+				return false;
+			else
+				return lhs.path < rhs.path;
+		});
+
+	entries.insert(it, std::move(entry));
+}
+
+}
+
 namespace ui {
 
 void FileManBaseView::load_directory_contents(const std::filesystem::path& dir_path) {
 	current_path = dir_path;
-	
-	text_current.set(dir_path.string().length()? dir_path.string().substr(0, 30 - 6):"(sd root)");
-
 	entry_list.clear();
-	
-	auto filtering = (bool)extension_filter.size();
-	
-	// List directories and files, put directories up top
-	if (dir_path.string().length())
-		entry_list.push_back({ u"..", 0, true });
+	auto filtering = !extension_filter.empty();
 
+	text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path));
+	
 	for (const auto& entry : std::filesystem::directory_iterator(dir_path, u"*")) {
+		// Hide files starting with '.' (hidden / tmp).
+		if (is_hidden_file(entry.path()))
+			continue;
 
-		// do not display dir / files starting with '.' (hidden / tmp)
-		if (entry.path().string().length() && entry.path().filename().string()[0] != '.') {
-			if (std::filesystem::is_regular_file(entry.status())) {
-				bool matched = true;
-				if (filtering) {
-					auto entry_extension = entry.path().extension().string();
-				
-					for (auto &c: entry_extension)
-						c = toupper(c);
-					
-					if (entry_extension != extension_filter)
-						matched = false;
-				}
-				
-				if (matched)
-					entry_list.push_back({ entry.path(), (uint32_t)entry.size(), false });
-			} else if (std::filesystem::is_directory(entry.status())) {
-				entry_list.insert(entry_list.begin(), { entry.path(), 0, true });
-			}
+		if (std::filesystem::is_regular_file(entry.status())) {
+			if (!filtering || iequal(entry.path().extension(), extension_filter))
+				insert_sorted(entry_list, { entry.path(), (uint32_t)entry.size(), false });
+		} else if (std::filesystem::is_directory(entry.status())) {
+			insert_sorted(entry_list, { entry.path(), 0, true });
 		}
 	}
+
+	// Add "parent" directory if not at the root.
+	if (!dir_path.empty())
+		entry_list.insert(entry_list.begin(), { u"..", 0, true });
 }
 
-std::filesystem::path FileManBaseView::get_selected_path() {
-	auto selected_path_str = current_path.string();
-	auto entry_path = entry_list[menu_view.highlighted_index()].entry_path.string();
-	
-	if (entry_path == "..") {
-		selected_path_str = get_parent_dir().string();
-	} else {
-		if (selected_path_str.back() != '/')
-			selected_path_str += '/';
-		
-		selected_path_str += entry_path;
-	}
-	
-	return selected_path_str;
+std::filesystem::path FileManBaseView::get_selected_full_path() const {
+	if (get_selected_entry().path == std::filesystem::path(u".."))
+		return current_path.parent_path();
+
+	return current_path / get_selected_entry().path;
 }
 
-std::filesystem::path FileManBaseView::get_parent_dir() {
-	auto current_path_str = current_path.string();
-	return current_path.string().substr(0, current_path_str.find_last_of('/'));
+const fileman_entry& FileManBaseView::get_selected_entry() const {
+	return entry_list[menu_view.highlighted_index()];
 }
 
 FileManBaseView::FileManBaseView(
@@ -105,20 +133,21 @@ FileManBaseView::FileManBaseView(
 	};
 
 	if (!sdcIsCardInserted(&SDCD1)) {
-		empty_root=true;
+		empty_root = true;
 		text_current.set("NO SD CARD!");
+		return;
+	}
+	
+	load_directory_contents(current_path);
+
+	if (!entry_list.size()) {
+		empty_root = true;
+		text_current.set("EMPTY SD CARD!");
 	} else {
-		load_directory_contents(current_path);
-		if (!entry_list.size())
-		{
-			empty_root = true;
-			text_current.set("EMPTY SD CARD!");
-		} else {
-			menu_view.on_left = [&nav, this]() {
-				load_directory_contents(get_parent_dir());
-				refresh_list();
-			};
-		}
+		menu_view.on_left = [&nav, this]() {
+			load_directory_contents(current_path.parent_path());
+			refresh_list();
+		};
 	}
 }
 
@@ -131,66 +160,67 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::refresh_list() {
+	// TODO: stash previous selected so scroll isn't reset.
 	if (on_refresh_widgets)
 		on_refresh_widgets(false);
 
 	menu_view.clear();
 	
-	for (size_t n = 0; n < entry_list.size(); n++) {
-		auto entry = &entry_list[n];
-		auto entry_name = entry->entry_path.filename().string().substr(0, 20);
-		
-		if (entry->is_directory) {
-			
+	for (const auto& entry : entry_list) {
+		auto entry_name = truncate(entry.path, 20);
+	
+		if (entry.is_directory) {
 			menu_view.add_item({
 				entry_name,
 				ui::Color::yellow(),
 				&bitmap_icon_dir,
-				[this](){
+				[this]() {
 					if (on_select_entry)
 						on_select_entry();
 				}
 			});
-			
+	
 		} else {
-			
-			auto file_size = entry->size;
+			auto file_size = entry.size;
 			size_t suffix_index = 0;
 			
 			while (file_size >= 1024) {
 				file_size /= 1024;
 				suffix_index++;
 			}
+
 			if (suffix_index > 4)
 				suffix_index = 4;
 			
 			std::string size_str = to_string_dec_uint(file_size) + suffix[suffix_index];
-			
-			auto entry_extension = entry->entry_path.extension().string();
-			for (auto &c: entry_extension)
-				c = toupper(c);
-			
-			// Associate extension to icon and color
-			size_t c;
-			for (c = 0; c < file_types.size() - 1; c++) {
-				if (entry_extension == file_types[c].extension)
-					break;
-			}
+			const auto& assoc = get_assoc(entry.path.extension());
 			
 			menu_view.add_item({
 				entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-				file_types[c].color,
-				file_types[c].icon,
-				[this](){
+				assoc.color,
+				assoc.icon,
+				[this]() {
 					if (on_select_entry)
 						on_select_entry();
 				}
 			});
-			
 		}
 	}
 	
-	menu_view.set_highlighted(0);	// Refresh
+	menu_view.set_highlighted(0); // Refresh
+}
+
+const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
+	const std::filesystem::path& ext) const
+{
+	size_t index = 0;
+
+	for (; index < file_types.size() - 1; ++index)
+		if (iequal(ext, file_types[index].extension))
+			return file_types[index];
+
+	// Default to last entry in the list.
+	return file_types[index];
 }
 
 /*void FileSaveView::on_save_name() {
@@ -215,8 +245,7 @@ FileSaveView::FileSaveView(
 	};
 }*/
 
-void FileLoadView::refresh_widgets(const bool v) {
-	(void)v; //avoid unused warning
+void FileLoadView::refresh_widgets(const bool) {
 	set_dirty();
 }
 
@@ -239,37 +268,39 @@ FileLoadView::FileLoadView(
 	refresh_list();
 	
 	on_select_entry = [&nav, this]() {
-		if (entry_list[menu_view.highlighted_index()].is_directory) {
-			load_directory_contents(get_selected_path());
+		if (get_selected_entry().is_directory) {
+			load_directory_contents(get_selected_full_path());
 			refresh_list();
 		} else {
 			nav_.pop();
 			if (on_changed)
-				on_changed(current_path.string() + '/' + entry_list[menu_view.highlighted_index()].entry_path.string());
+				on_changed(get_selected_full_path());
 		}
 	};
 }
 
 void FileManagerView::on_rename(NavigationView& nav) {
+	auto& entry = get_selected_entry();
+
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
 		std::string destination_path = current_path.string();
 		if (destination_path.back() != '/')
 			destination_path += '/';
 		destination_path = destination_path + buffer;
-		rename_file(get_selected_path(), destination_path);
+		rename_file(get_selected_full_path(), destination_path);
 		load_directory_contents(current_path);
 		refresh_list();
 	});
 }
 
-void FileManagerView::on_refactor(NavigationView& nav) {
+/*void FileManagerView::on_refactor(NavigationView& nav) {
 	text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
 
 		std::string destination_path = current_path.string();
 		if (destination_path.back() != '/')//if the path is not ended with '/', add '/'
 			destination_path += '/';
 
-		auto selected_path = get_selected_path();
+		auto selected_path = get_selected_full_path();
 		auto extension = selected_path.extension().string();
 
 		if(extension.empty()){// Is Dir
@@ -279,7 +310,7 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 			destination_path = destination_path + buffer + extension_buffer;
 		}
 
-		rename_file(get_selected_path(), destination_path);  //rename the selected file
+		rename_file(get_selected_full_path(), destination_path);  //rename the selected file
 
 		if (!extension.empty() && selected_path.string().back() != '/' && extension.substr(1) == "C16") { //substr(1) is for ignore the dot
 			// Rename its partner ( C16 <-> TXT ) file.
@@ -298,19 +329,19 @@ void FileManagerView::on_refactor(NavigationView& nav) {
 
 	});
 
-}
+}*/
 
 void FileManagerView::on_delete() {
-	delete_file(get_selected_path());
+	delete_file(get_selected_full_path());
 	load_directory_contents(current_path);
 	refresh_list();
 }
 
 void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
-	button_new_dir.hidden(v);
-	button_refactor.hidden(v);
+	//button_refactor.hidden(v);
 	button_delete.hidden(v);
+	button_new_dir.hidden(v);
 	set_dirty();
 }
 
@@ -332,42 +363,33 @@ FileManagerView::FileManagerView(
 			&labels,
 			&text_date,
 			&button_rename,
-			&button_refactor,
+			//&button_copy,
+			//&button_move,
+			&button_delete,
+			//&button_new_file,
 			&button_new_dir,
-			&button_delete
 		});
 		
 		menu_view.on_highlight = [this]() {
-			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_path())));
+			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
 		};
 		
 		refresh_list();
 		
 		on_select_entry = [this]() {
-			if (entry_list[menu_view.highlighted_index()].is_directory) {
-				load_directory_contents(get_selected_path());
+			if (get_selected_entry().is_directory) {
+				load_directory_contents(get_selected_full_path());
 				refresh_list();
 			} else
 				button_rename.focus();
 		};
 		
-		button_new_dir.on_select = [this, &nav](Button&) {
-			name_buffer.clear();
-			
-			text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
-				make_new_directory(current_path.string() + '/' + buffer);
-				load_directory_contents(current_path);
-				refresh_list();
-			});
-		};
-		
 		button_rename.on_select = [this, &nav](Button&) {
-			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
 			on_rename(nav);
 		};
 
-		button_refactor.on_select = [this, &nav](Button&) {
-			name_buffer = entry_list[menu_view.highlighted_index()].entry_path.filename().string().substr(0, max_filename_length);
+		/*button_refactor.on_select = [this, &nav](Button&) {
+			name_buffer = entry_list[menu_view.highlighted_index()].path.filename().string().substr(0, max_filename_length);
 			size_t pos = name_buffer.find_last_of(".");
 
 			if (pos != std::string::npos) {
@@ -376,16 +398,26 @@ FileManagerView::FileManagerView(
 			}
 
 			on_refactor(nav);
-		};
+		};*/
 
 		button_delete.on_select = [this, &nav](Button&) {
-			// Use display_modal ?
-			nav.push<ModalMessageView>("Delete", "Delete " + entry_list[menu_view.highlighted_index()].entry_path.filename().string() + "\nAre you sure?", YESNO,
+			auto name = get_selected_entry().path.filename().string();
+			nav.push<ModalMessageView>("Delete", "Delete " + name + "\nAre you sure?", YESNO,
 				[this](bool choice) {
 					if (choice)
 						on_delete();
 				}
 			);
+		};
+
+		button_new_dir.on_select = [this, &nav](Button&) {
+			name_buffer.clear();
+			
+			text_prompt(nav, name_buffer, max_filename_length, [this](std::string& buffer) {
+				make_new_directory(current_path / buffer);
+				load_directory_contents(current_path);
+				refresh_list();
+			});
 		};
 	} 
 }
