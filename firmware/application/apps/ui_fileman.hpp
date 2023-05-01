@@ -52,15 +52,13 @@ public:
 	std::string title() const override { return "Fileman"; };
 	
 protected:
-	static constexpr size_t max_filename_length = 64 - 2; // Necessary?
+	static constexpr size_t max_filename_length = 64; // Necessary?
 
 	struct file_assoc_t {
 		std::filesystem::path extension;
 		const Bitmap* icon;
 		ui::Color color;
 	};
-
-	const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
 	
 	const std::vector<file_assoc_t> file_types = {
 		{ u".TXT", &bitmap_icon_file_text, ui::Color::white() },
@@ -82,6 +80,7 @@ protected:
 	std::function<void(bool)> on_refresh_widgets { nullptr };
 	
 	std::vector<fileman_entry> entry_list { };
+	const std::filesystem::path parent_dir_path { u".." };
 	std::filesystem::path current_path { u"" };
 	std::filesystem::path extension_filter { u"" };
 	
@@ -148,9 +147,9 @@ private:
 	std::string extension_buffer { };
 	
 	void refresh_widgets(const bool v);
-	void on_rename(NavigationView& nav);
-	//void on_refactor(NavigationView& nav);
+	void on_rename();
 	void on_delete();
+	void on_new_dir();
 	
 	Labels labels {
 		{ { 0, 26 * 8 }, "Created ", Color::light_grey() }
@@ -166,7 +165,7 @@ private:
 		"Rename"
 	};
 
-	Button button_copy {
+	/*Button button_copy {
 		{ 10 * 8, 29 * 8, 10 * 8, 32 },
 		"Copy"
 	};
@@ -174,7 +173,7 @@ private:
 	Button button_move {
 		{ 10 * 8, 29 * 8, 10 * 8, 32 },
 		"Move"
-	};
+	};*/
 
 	Button button_delete {
 		{ 21 * 8, 29 * 8, 9 * 8, 32 },
@@ -190,7 +189,6 @@ private:
 		{ 0 * 8, 34 * 8, 14 * 8, 32 },
 		"New Dir"
 	};
-	
 };
 
 } /* namespace ui */
