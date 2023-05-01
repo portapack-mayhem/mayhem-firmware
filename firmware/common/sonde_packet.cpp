@@ -113,7 +113,7 @@ GPS_data Packet::get_GPS_data() const
 	}
 	else if (type_ == Type::Meteomodem_M20)
 	{
-		result.alt = result.alt = reader_bi_m.read(8 * 3, 24) / 10 ;         // ((reader_bi_m.read(8 * 8, 32) / 100) - 48) / 250 ;
+		result.alt = reader_bi_m.read(8 * 3, 24) / 100.0 ;         // ((reader_bi_m.read(8 * 8, 32) / 100) - 48) / 250 ;
 		result.lat = reader_bi_m.read(28 * 8, 32) / 1000000.0 ; //https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
 		result.lon = reader_bi_m.read(32 * 8, 32) / 1000000.0 ; 
 	}
