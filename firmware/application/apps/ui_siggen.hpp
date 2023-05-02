@@ -49,12 +49,12 @@ private:
 	void on_tx_progress(const uint32_t progress, const bool done);
 	
 	const std::string shape_strings[10] = {
-		"CW-no mod",
-		"Sine     ",
-		"Triangle ",
-		"Saw up   ",
-		"Saw down ",
-		"Square        ",
+		"CW-just carrier",
+		"Sine signal    ",
+		"Triangle signal",
+		"Saw up signal  ",
+		"Saw down signal",
+		"Square signal  ",
 		"Noise 8-nx20Khz",	// using 8 bits LFSR register, 6 order polynomial feedback.
 		"Noise 8-nx10khz",	// using 8 bits LFSR register, 7 order polynomial feedback.
 		"Noise 8 -nx5khz ",	// using 8 bits LFSR register, 8 order polynomial feedback.
