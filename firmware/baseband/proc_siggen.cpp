@@ -75,6 +75,17 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 				bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4))  & 1;	
         		lfsr = (lfsr >> 1) | (bit << 7);
            		sample = lfsr;
+			} else if (tone_shape == 9) { // 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
+				// Periode 65535= 2^n-1, harmonics every < 1Khz  , quite continuous .  
+				if (counter == 0) {
+					bit_16 = ((lfsr_16 >> 0) ^ (lfsr_16 >> 1) ^ (lfsr_16 >> 3) ^ (lfsr_16 >> 4) ^ (lfsr_16 >> 12) & 1);
+        			lfsr_16 = (lfsr_16 >> 1) | (bit_16 << 15);
+					sample = (lfsr_16 & 0x00FF);
+					counter++;
+				} else {		// counter == 1 , no need to shift the register again, just use the top 8 bits.
+					// sample = ((lfsr_16 & 0XFF00) >> 8);   // it becomes less continuous the spectrum. Better skip it .
+					counter = 0;	
+				}
 			} 
 
 			if (tone_shape < 6) 	{
@@ -114,8 +125,8 @@ void SigGenProcessor::on_message(const Message* const msg) {
 			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
 			tone_shape = message.shape;
 			
-			// lfsr = 0x54DF0119;
-			 lfsr = seed_value ;  
+			 lfsr = seed_value ;  		// init lfsr 8 bits.
+			 lfsr_16 = seed_value_16;	// init lfsr 16 bits.
 
 			configured = true;
 			break;
