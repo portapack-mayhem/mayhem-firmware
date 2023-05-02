@@ -61,21 +61,9 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 			} else if (tone_shape == 5) {
 				// Square
 				sample = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;
-			} else if (tone_shape == 6) { // taps: 6 5; feedback polynomial: x^6 + x^5 + 1 , Periode  63 = 2^n-1,it generates armonincs n x 20Khz
-				// White Noise generator, pseudo random noise generator, 8 bits linear-feedback shift register (LFSR) algorithm, variant Fibonacci.
+			} else if (tone_shape == 6) { 	// White Noise generator, pseudo random noise generator, 8 bits linear-feedback shift register (LFSR) algorithm, variant Fibonacci.
 				// https://en.wikipedia.org/wiki/Linear-feedback_shift_register 
-        		bit = ((lfsr >> 2) ^ (lfsr >> 3)) & 1;	
-		   		lfsr = (lfsr >> 1) | (bit << 7);
-           		sample = lfsr;
-			} else if (tone_shape == 7) { // taps: 7 6; feedback polynomial:  x^7 + x^6 + 1 , Periode 127 = 2^n-1,it generates armonincs n x 10Khz 
-				bit = ((lfsr >> 1) ^ (lfsr >> 2)) & 1;	
-				lfsr = (lfsr >> 1) | (bit << 7);
-           		sample = lfsr;
-			} else if (tone_shape == 8) { //taps:8,6,5,4;feedback polynomial: x^8 + x^6 + x^5 + x^4 + 1,Periode 255= 2^n-1, armonics  n x 5khz
-				bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4))  & 1;	
-        		lfsr = (lfsr >> 1) | (bit << 7);
-           		sample = lfsr;
-			} else if (tone_shape == 9) { // 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
+				// 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
 				// Periode 65535= 2^n-1, harmonics every < 1Khz  , quite continuous .  
 				if (counter == 0) {
 					bit_16 = ((lfsr_16 >> 0) ^ (lfsr_16 >> 1) ^ (lfsr_16 >> 3) ^ (lfsr_16 >> 4) ^ (lfsr_16 >> 12) & 1);
@@ -87,6 +75,20 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 					counter = 0;	
 				}
 			} 
+			
+			/* else if (tone_shape == 7) { 	// 8 bit options,  finally not used-
+        		bit = ((lfsr >> 2) ^ (lfsr >> 3)) & 1;	// taps: 6 5; feedback polynomial: x^6 + x^5 + 1 , Periode  63 = 2^n-1,it generates armonincs n x 20Khz
+		   		lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr;
+			} else if (tone_shape == 8) { // taps: 7 6; feedback polynomial:  x^7 + x^6 + 1 , Periode 127 = 2^n-1,it generates armonincs n x 10Khz 
+				bit = ((lfsr >> 1) ^ (lfsr >> 2)) & 1;	
+				lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr;
+			} else if (tone_shape == 9) { //taps:8,6,5,4;feedback polynomial: x^8 + x^6 + x^5 + x^4 + 1,Periode 255= 2^n-1, armonics  n x 5khz
+				bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4))  & 1;	
+        		lfsr = (lfsr >> 1) | (bit << 7);
+           		sample = lfsr; 		} */ 
+
 
 			if (tone_shape < 6) 	{
 				tone_phase += tone_delta;
@@ -125,7 +127,7 @@ void SigGenProcessor::on_message(const Message* const msg) {
 			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
 			tone_shape = message.shape;
 			
-			 lfsr = seed_value ;  		// init lfsr 8 bits.
+			// lfsr = seed_value ;  		// Finally not used , init lfsr 8 bits.
 			 lfsr_16 = seed_value_16;	// init lfsr 16 bits.
 
 			configured = true;

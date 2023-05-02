@@ -48,17 +48,14 @@ private:
 	void update_tone();
 	void on_tx_progress(const uint32_t progress, const bool done);
 	
-	const std::string shape_strings[10] = {
+	const std::string shape_strings[7] = {
 		"CW-just carrier",
 		"Sine signal    ",
 		"Triangle signal",
 		"Saw up signal  ",
 		"Saw down signal",
 		"Square signal  ",
-		"Noise 8-nx20Khz",	// using 8 bits LFSR register, 6 order polynomial feedback.
-		"Noise 8-nx10khz",	// using 8 bits LFSR register, 7 order polynomial feedback.
-		"Noise 8 -nx5khz ",	// using 8 bits LFSR register, 8 order polynomial feedback.
-		"Noise 16-nx1khz"	// using 16 bits LFSR register, 16 order polynomial feedback.
+		"White Noise    "	// using 16 bits LFSR register, 16 order polynomial feedback.
 	};
 	
 	bool auto_update { false };
@@ -81,10 +78,7 @@ private:
 			{ &bitmap_sig_saw_up, 3 },
 			{ &bitmap_sig_saw_down, 4 },
 			{ &bitmap_sig_square, 5 },
-			{ &bitmap_sig_noise, 6 },
-			{ &bitmap_sig_noise, 7 },
-			{ &bitmap_sig_noise, 8 },
-			{ &bitmap_sig_noise, 9 }
+			{ &bitmap_sig_noise, 6 }
 		}
 	};
 	
