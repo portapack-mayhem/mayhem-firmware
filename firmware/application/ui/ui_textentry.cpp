@@ -32,8 +32,8 @@ namespace ui {
 void text_prompt(
 	NavigationView& nav,
 	std::string& str,
-	const size_t max_length,
-	const std::function<void(std::string&)> on_done
+	size_t max_length,
+	std::function<void(std::string&)> on_done
 ) {
 	text_prompt(nav, str, str.length(), max_length, on_done);
 }
@@ -42,8 +42,8 @@ void text_prompt(
 	NavigationView& nav,
 	std::string& str,
 	uint32_t cursor_pos,
-	const size_t max_length,
-	const std::function<void(std::string&)> on_done
+	size_t max_length,
+	std::function<void(std::string&)> on_done
 ) {
 	//if (persistent_memory::ui_config_textentry() == 0) {
 		auto te_view = nav.push<AlphanumView>(str, max_length);
@@ -70,7 +70,7 @@ TextField::TextField(
 	uint32_t length
 ) : Widget{ { position, { 8 * static_cast<int>(length), 16 } } },
 	text_{ str },
-	max_length_{ std::max<size_t>(max_length, 1) },
+	max_length_{ std::max<size_t>(max_length, str.length()) },
 	char_count_{ std::max<uint32_t>(length, 1) },
 	cursor_pos_{ text_.length() },
 	insert_mode_{ true }
@@ -82,34 +82,9 @@ const std::string& TextField::value() const {
 	return text_;
 }
 
-void TextField::set(const std::string& str) {
-	// Assume that setting the string implies we want the whole thing.
-	max_length_ = std::max(max_length_, str.length());
-
-	text_ = str;
-	cursor_pos_ = str.length();
-	set_cursor(str.length());
-}
-
 void TextField::set_cursor(uint32_t pos) {
 	cursor_pos_ = std::min<size_t>(pos, text_.length());
 	set_dirty();
-}
-
-void TextField::set_max_length(size_t max_length) {
-	// Doesn't make sense, ignore.
-	if (max_length == 0)
-		return;
-
-	if (max_length < text_.length()) {
-		text_.erase(max_length - 1);
-		text_.shrink_to_fit();
-	} else {
-		text_.reserve(max_length);
-	}
-
-	max_length_ = max_length;
-	set_cursor(cursor_pos_);
 }
 
 void TextField::set_insert_mode() {
@@ -247,7 +222,6 @@ TextEntryView::TextEntryView(
 	});
 
 	button_ok.on_select = [this, &str, &nav](Button&) {
-		str.shrink_to_fit(); // NB: str is the TextField string.
 		if (on_changed)
 			on_changed(str);
 		nav.pop();

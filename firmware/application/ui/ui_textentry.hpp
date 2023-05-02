@@ -53,9 +53,7 @@ public:
 
 	const std::string& value() const;
 
-	void set(const std::string& str);
 	void set_cursor(uint32_t pos);
-	void set_max_length(size_t max_length);
 	void set_insert_mode();
 	void set_overwrite_mode();
 
@@ -103,18 +101,22 @@ protected:
 	};
 };
 
+// Show the TextEntry view to receive keyboard input.
+// NB: This function returns immediately. 'str' is taken
+// by reference and its lifetime must be ensured by the
+// caller until the TextEntry view is dismissed.
 void text_prompt(
 	NavigationView& nav,
 	std::string& str,
 	size_t max_length,
-	const std::function<void(std::string&)> on_done = nullptr);
+	std::function<void(std::string&)> on_done = nullptr);
 
 void text_prompt(
 	NavigationView& nav,
 	std::string& str,
 	uint32_t cursor_pos,
 	size_t max_length,
-	const std::function<void(std::string&)> on_done = nullptr);
+	std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */
 

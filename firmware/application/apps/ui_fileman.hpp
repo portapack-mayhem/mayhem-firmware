@@ -43,16 +43,11 @@ public:
 		std::string filter
 	);
 
-	void focus() override;
-	
-	void load_directory_contents(const std::filesystem::path& dir_path);
-	std::filesystem::path get_selected_full_path() const;
-	const fileman_entry& get_selected_entry() const;
-	
+	void focus() override;	
 	std::string title() const override { return "Fileman"; };
 	
 protected:
-	static constexpr size_t max_filename_length = 64; // Necessary?
+	static constexpr size_t max_filename_length = 50;
 
 	struct file_assoc_t {
 		std::filesystem::path extension;
@@ -70,19 +65,26 @@ protected:
 		{ u"", &bitmap_icon_file, ui::Color::light_grey() } // NB: Must be last.
 	};
 
+
+	std::filesystem::path get_selected_full_path() const;
+	const fileman_entry& get_selected_entry() const;
+
 	void refresh_list();
+	void reload_current();
+	void load_directory_contents(const std::filesystem::path& dir_path);
 	const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
 	NavigationView& nav_;
 
 	bool empty_root { false };
-	std::function<void(void)> on_select_entry { nullptr };
+	std::function<void(KeyEvent)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
-	
-	std::vector<fileman_entry> entry_list { };
+
 	const std::filesystem::path parent_dir_path { u".." };
 	std::filesystem::path current_path { u"" };
 	std::filesystem::path extension_filter { u"" };
+
+	std::vector<fileman_entry> entry_list { };
 	
 	Labels labels {
 		{ { 0, 0 }, "Path:", Color::light_grey() }
@@ -143,8 +145,8 @@ public:
 	~FileManagerView();
 
 private:
+	// Passed by ref to other views needing lifetime extension.
 	std::string name_buffer { };
-	std::string extension_buffer { };
 	
 	void refresh_widgets(const bool v);
 	void on_rename();
@@ -165,25 +167,10 @@ private:
 		"Rename"
 	};
 
-	/*Button button_copy {
-		{ 10 * 8, 29 * 8, 10 * 8, 32 },
-		"Copy"
-	};
-
-	Button button_move {
-		{ 10 * 8, 29 * 8, 10 * 8, 32 },
-		"Move"
-	};*/
-
 	Button button_delete {
 		{ 21 * 8, 29 * 8, 9 * 8, 32 },
 		"Delete"
 	};
-	
-	/*Button button_new_file {
-		{ 0 * 8, 34 * 8, 14 * 8, 32 },
-		"New File"
-	};*/
 
 	Button button_new_dir {
 		{ 0 * 8, 34 * 8, 14 * 8, 32 },

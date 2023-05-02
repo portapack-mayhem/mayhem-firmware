@@ -44,7 +44,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav) : nav_ (nav) {
 			filename.string().substr(0, max_filename_length),
 			ui::Color::red(),
 			&bitmap_icon_temperature,
-			[this, path]() {
+			[this, path](KeyEvent) {
 				this->firmware_selected(path);
 			}
 		});

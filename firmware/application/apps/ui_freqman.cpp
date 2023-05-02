@@ -120,7 +120,7 @@ void FreqManBaseView::refresh_list() {
 				freqman_item_string(database[n], 30),
 				ui::Color::white(),
 				nullptr,
-				[this](){
+				[this](KeyEvent){
 					if (on_select_frequency)
 						on_select_frequency();
 				}

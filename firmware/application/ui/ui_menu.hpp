@@ -39,7 +39,7 @@ struct MenuItem {
 	std::string text;
 	ui::Color color;
 	const Bitmap* bitmap;
-	std::function<void(void)> on_select;
+	std::function<void(KeyEvent)> on_select;
 
 	// TODO: Prevent default-constructed MenuItems.
 	// I managed to construct a menu with three extra, unspecified menu items

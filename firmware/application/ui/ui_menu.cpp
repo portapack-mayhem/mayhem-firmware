@@ -262,7 +262,7 @@ bool MenuView::on_key(const KeyEvent key) {
 	case KeyEvent::Select:
 	case KeyEvent::Right:
 		if( menu_items[highlighted_item].on_select ) {
-			menu_items[highlighted_item].on_select();
+			menu_items[highlighted_item].on_select(key);
 		}
 		return true;
 
