@@ -154,7 +154,7 @@ struct path {
 
 	path& operator/=(const path& p) {
 		if (_s.back() != preferred_separator)
-			_s + preferred_separator;
+			_s += preferred_separator;
 		_s += p._s;
 		return *this;
 	}

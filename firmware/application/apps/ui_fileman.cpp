@@ -20,9 +20,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* BUGS:
- * - OOM/paging menu items
- * - Using UI with empty SD card
+/* TODO:
+ * - Paging menu items
+ * - UI with empty SD card
+ * - Copy/Move
  */
 
 #include <algorithm>
@@ -328,7 +329,7 @@ FileLoadView::FileLoadView(
 	
 	on_select_entry = [this](KeyEvent) {
 		if (get_selected_entry().is_directory) {
-			current_path /= get_selected_entry().path;
+			current_path = get_selected_full_path();
 			reload_current();
 		} else {
 			nav_.pop();
@@ -354,20 +355,17 @@ void FileManagerView::on_rename() {
 	text_prompt(nav_, name_buffer, cursor_pos, max_filename_length,
 		[this, &entry](std::string& renamed) {
 			auto renamed_path = fs::path{ renamed };
-			bool has_partner = false;
 			rename_file(get_selected_full_path(), current_path / renamed_path);
 
-			if (iequal(renamed_path.extension(), entry.path.extension())) {
-				has_partner = partner_file_prompt(nav_, entry.path, "Rename",
-					[this, renamed_path](const fs::path& partner, bool should_rename) mutable {
-						if (should_rename) {
-							auto new_name = renamed_path.replace_extension(partner.extension());
-							rename_file(current_path / partner, current_path / new_name);
-						}
-						reload_current();
+			auto has_partner = partner_file_prompt(nav_, entry.path, "Rename",
+				[this, renamed_path](const fs::path& partner, bool should_rename) mutable {
+					if (should_rename) {
+						auto new_name = renamed_path.replace_extension(partner.extension());
+						rename_file(current_path / partner, current_path / new_name);
 					}
-				);
-			}
+					reload_current();
+				}
+			);
 
 			if (!has_partner)
 				reload_current();
