@@ -197,13 +197,6 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
 	return directory_list;
 }
 
-bool file_exists(const std::filesystem::path& file_path) {
-	FILINFO filinfo;
-	auto fr = f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
-	
-	return fr == FR_OK;
-}
-
 uint32_t delete_file(const std::filesystem::path& file_path) {
 	return f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()));
 }
@@ -316,6 +309,10 @@ bool operator==(const path& lhs, const path& rhs) {
 	return lhs.native() == rhs.native();
 }
 
+bool operator!=(const path& lhs, const path& rhs) {
+	return !(lhs == rhs);
+}
+
 bool operator<(const path& lhs, const path& rhs) {
 	return lhs.native() < rhs.native();
 }
@@ -343,7 +340,7 @@ directory_iterator::directory_iterator(
 {
 	impl = std::make_shared<Impl>();
 	const auto result = f_findfirst(&impl->dir, &impl->filinfo, reinterpret_cast<const TCHAR*>(path.c_str()), reinterpret_cast<const TCHAR*>(pattern.c_str()));
-	if( result != FR_OK ) {
+	if( result != FR_OK || impl->filinfo.fname[0] == (TCHAR)'\0') {
 		impl.reset();
 		// TODO: Throw exception if/when I enable exceptions...
 	}
@@ -363,6 +360,20 @@ bool is_directory(const file_status s) {
 
 bool is_regular_file(const file_status s) {
 	return !(s & AM_DIR);
+}
+
+bool file_exists(const path& file_path) {
+	FILINFO filinfo;
+	auto fr = f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
+	
+	return fr == FR_OK;
+}
+
+bool is_directory(const path& file_path) {
+	FILINFO filinfo;
+	auto fr = f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
+	
+	return fr == FR_OK && is_directory(static_cast<file_status>(filinfo.fattrib));
 }
 
 space_info space(const path& p) {

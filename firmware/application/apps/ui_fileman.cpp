@@ -22,7 +22,6 @@
 
 /* TODO:
  * - Paging menu items
- * - UI with empty SD card
  * - Copy/Move
  */
 
@@ -101,6 +100,9 @@ void insert_sorted(std::vector<fileman_entry>& entries, fileman_entry&& entry) {
 
 // Returns the partner file path or an empty path if no partner is found.
 fs::path get_partner_file(fs::path path) {
+	if (fs::is_directory(path))
+		return { };
+
 	const fs::path txt_path{ u".TXT" };
 	const fs::path c16_path{ u".C16" };
 	auto ext = path.extension();
@@ -113,12 +115,13 @@ fs::path get_partner_file(fs::path path) {
 		return { };
 
 	path.replace_extension(ext);
-	return file_exists(path) ? path : fs::path{ };
+	return fs::file_exists(path) && !fs::is_directory(path) ? path : fs::path{ };
 }
 
 // Modal prompt to update the partner file if it exists.
 // Runs continuation on_partner_action to update the partner file.
 // Returns true is a partner is found, otherwise false.
+// Path must be the full path to the file.
 bool partner_file_prompt(
 	NavigationView& nav,
 	const fs::path& path,
@@ -146,6 +149,8 @@ bool partner_file_prompt(
 }
 
 namespace ui {
+
+/* FileManBaseView ***********************************************************/
 
 void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 	current_path = dir_path;
@@ -180,6 +185,7 @@ fs::path FileManBaseView::get_selected_full_path() const {
 }
 
 const fileman_entry& FileManBaseView::get_selected_entry() const {
+	// TODO: return reference to an "empty" entry on OOB?
 	return entry_list[menu_view.highlighted_index()];
 }
 
@@ -212,8 +218,7 @@ FileManBaseView::FileManBaseView(
 		text_current.set("EMPTY SD CARD!");
 	} else {
 		menu_view.on_left = [this]() {
-			current_path = current_path.parent_path();
-			reload_current();
+			pop_dir();
 		};
 	}
 }
@@ -226,10 +231,32 @@ void FileManBaseView::focus() {
 	}
 }
 
+void FileManBaseView::push_dir(const fs::path& path) {
+	if (path == parent_dir_path) {
+		pop_dir();
+	} else {
+		current_path /= path;
+		saved_index_stack.push_back(menu_view.highlighted_index());
+		menu_view.set_highlighted(0);
+		reload_current();
+	}
+}
+
+void FileManBaseView::pop_dir() {
+	if (saved_index_stack.empty())
+		return;
+
+	current_path = current_path.parent_path();
+	reload_current();
+	menu_view.set_highlighted(saved_index_stack.back());
+	saved_index_stack.pop_back();
+}
+
 void FileManBaseView::refresh_list() {
 	if (on_refresh_widgets)
 		on_refresh_widgets(false);
 
+	auto prev_highlight = menu_view.highlighted_index();
 	menu_view.clear();
 	
 	for (const auto& entry : entry_list) {
@@ -262,7 +289,7 @@ void FileManBaseView::refresh_list() {
 		}
 	}
 	
-	menu_view.set_highlighted(0); // Refresh
+	menu_view.set_highlighted(prev_highlight);
 }
 
 void FileManBaseView::reload_current() {
@@ -305,6 +332,8 @@ FileSaveView::FileSaveView(
 	};
 }*/
 
+/* FileLoadView **************************************************************/
+
 void FileLoadView::refresh_widgets(const bool) {
 	set_dirty();
 }
@@ -329,35 +358,32 @@ FileLoadView::FileLoadView(
 	
 	on_select_entry = [this](KeyEvent) {
 		if (get_selected_entry().is_directory) {
-			current_path = get_selected_full_path();
-			reload_current();
+			push_dir(get_selected_entry().path);
 		} else {
-			nav_.pop();
 			if (on_changed)
 				on_changed(get_selected_full_path());
+			nav_.pop();
 		}
 	};
 }
 
+/* FileManagerView ***********************************************************/
+
 void FileManagerView::on_rename() {
 	auto& entry = get_selected_entry();
-
-	// Don't rename ".."
-	if (entry.path == parent_dir_path)
-		return;
-
 	name_buffer = entry.path.filename().string();
-
 	uint32_t cursor_pos = (uint32_t)name_buffer.length();
-	if (auto pos = name_buffer.find_last_of("."); pos != name_buffer.npos)
+
+	if (auto pos = name_buffer.find_last_of(".");
+		pos != name_buffer.npos && !entry.is_directory)
 		cursor_pos = pos;
 
 	text_prompt(nav_, name_buffer, cursor_pos, max_filename_length,
-		[this, &entry](std::string& renamed) {
+		[this](std::string& renamed) {
 			auto renamed_path = fs::path{ renamed };
 			rename_file(get_selected_full_path(), current_path / renamed_path);
 
-			auto has_partner = partner_file_prompt(nav_, entry.path, "Rename",
+			auto has_partner = partner_file_prompt(nav_, get_selected_full_path(), "Rename",
 				[this, renamed_path](const fs::path& partner, bool should_rename) mutable {
 					if (should_rename) {
 						auto new_name = renamed_path.replace_extension(partner.extension());
@@ -373,20 +399,14 @@ void FileManagerView::on_rename() {
 }
 
 void FileManagerView::on_delete() {
-	auto& entry = get_selected_entry();
-
-	// Don't delete ".."
-	if (entry.path == parent_dir_path)
-		return;
-
-	auto name = entry.path.filename().string();
+	auto name = get_selected_entry().path.filename().string();
 	nav_.push<ModalMessageView>("Delete", "Delete " + name + "\nAre you sure?", YESNO,
-		[this, &entry](bool choice) {
+		[this](bool choice) {
 			if (choice) {
 				delete_file(get_selected_full_path());
 
 				auto has_partner = partner_file_prompt(
-					nav_, entry.path, "Delete",
+					nav_, get_selected_full_path(), "Delete",
 					[this](const fs::path& partner, bool should_delete) {
 						if (should_delete)
 							delete_file(current_path / partner);
@@ -407,6 +427,11 @@ void FileManagerView::on_new_dir() {
 		make_new_directory(current_path / dir_name);
 		reload_current();
 	});
+}
+
+bool FileManagerView::selected_is_valid() const {
+	return !entry_list.empty() &&
+		get_selected_entry().path != parent_dir_path;
 }
 
 void FileManagerView::refresh_widgets(const bool v) {
@@ -438,26 +463,31 @@ FileManagerView::FileManagerView(
 		});
 		
 		menu_view.on_highlight = [this]() {
-			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+      // TODO: enable/disable buttons.
+      if (selected_is_valid())
+  			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+      else
+        text_date.set("");
 		};
 		
 		refresh_list();
-		
+	
 		on_select_entry = [this](KeyEvent key) {
 			if (key == KeyEvent::Select && get_selected_entry().is_directory) {
-				load_directory_contents(get_selected_full_path());
-				refresh_list();
+				push_dir(get_selected_entry().path);
 			} else {
 				button_rename.focus();
 			}
 		};
 		
 		button_rename.on_select = [this](Button&) {
-			on_rename();
+			if (selected_is_valid())
+				on_rename();
 		};
 
 		button_delete.on_select = [this](Button&) {
-			on_delete();
+			if (selected_is_valid())
+				on_delete();
 		};
 
 		button_new_dir.on_select = [this](Button&) {
