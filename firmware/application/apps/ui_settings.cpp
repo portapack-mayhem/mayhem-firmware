@@ -403,7 +403,7 @@ namespace ui {
 				&check_load_mem_at_startup,
 				&button_save_mem_to_file,
 				&button_load_mem_from_file,
-                &button_load_mem_defaults,
+  				&button_load_mem_defaults,
 				&button_return
 				});
 
