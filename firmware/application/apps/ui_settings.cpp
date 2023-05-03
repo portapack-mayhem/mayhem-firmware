@@ -485,7 +485,7 @@ namespace ui {
 		button_load_mem_defaults.on_select = [&nav, this](Button&) {
         	nav.push<ModalMessageView>(
 			"Warning!",
-			"This will reset the persistent_memory\nand set the default settings",
+			"This will reset the p.mem\nand set the default settings",
 			YESNO,
 			[this](bool choice) {
 				if (choice) {
