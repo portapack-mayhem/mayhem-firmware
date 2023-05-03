@@ -475,7 +475,7 @@ private:
 
     Button button_load_mem_defaults {
 		{ 0, 12 * 16 + 8 , 240, 32 },
-		"!! reset p.mem, load defaults !!"
+		"! reset p.mem, load defaults !"
 	};
 
 	Button button_return {
