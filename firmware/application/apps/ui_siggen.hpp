@@ -55,7 +55,7 @@ private:
 		"Saw up signal  ",
 		"Saw down signal",
 		"Square signal  ",
-		"White Noise    "	// using 16 bits LFSR register, 16 order polynomial feedback.
+		"Noise signal   "	// using 16 bits LFSR register, 16 order polynomial feedback.
 	};
 	
 	bool auto_update { false };
