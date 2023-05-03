@@ -314,7 +314,7 @@ private:
 		25,
 		"Save app settings"
 	};
-	
+
 	Button button_save {
 		{ 2 * 8, 16 * 16, 12 * 8, 32 },
 		"Save"
@@ -464,15 +464,20 @@ private:
 	};
 
 	Button button_save_mem_to_file {
-		{ 0, 9 * 16, 240, 32 },
+		{ 0, 8 * 16, 240, 32 },
 		"save p.mem to sdcard"
 	};
 	
 	Button button_load_mem_from_file {
-		{ 0, 12 * 16, 240, 32 },
+		{ 0, 10 * 16 + 4 , 240, 32 },
 		"load p.mem from sdcard"
 	};
-	
+
+    Button button_load_mem_defaults {
+		{ 0, 12 * 16 + 8 , 240, 32 },
+		"!! reset p.mem, load defaults !!"
+	};
+
 	Button button_return {
 		{ 16 * 8, 16 * 16, 12 * 8, 32 },
 		"Return",

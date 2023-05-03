@@ -41,7 +41,6 @@ using namespace portapack;
 #include "freqman.hpp"
 
 namespace ui {
-
 	SetDateTimeView::SetDateTimeView(
 			NavigationView& nav
 			) {
@@ -306,7 +305,6 @@ namespace ui {
 		checkbox_load_app_settings.set_value(persistent_memory::load_app_settings());
 		checkbox_save_app_settings.set_value(persistent_memory::save_app_settings());
 
-
 		button_save.on_select = [&nav, this](Button&) {
 			persistent_memory::set_load_app_settings(checkbox_load_app_settings.value());
 			persistent_memory::set_save_app_settings(checkbox_save_app_settings.value());
@@ -405,6 +403,7 @@ namespace ui {
 				&check_load_mem_at_startup,
 				&button_save_mem_to_file,
 				&button_load_mem_from_file,
+                &button_load_mem_defaults,
 				&button_return
 				});
 
@@ -483,6 +482,17 @@ namespace ui {
 			}
 		};
 
+		button_load_mem_defaults.on_select = [&nav, this](Button&) {
+        	nav.push<ModalMessageView>(
+			"Warning!",
+			"This will reset the persistent_memory\nand set the default settings",
+			YESNO,
+			[this](bool choice) {
+				if (choice) {
+                    portapack::persistent_memory::cache::defaults();
+				}
+			} );
+		};
 
 		button_return.on_select = [&nav, this](Button&) {
 			nav.pop();
