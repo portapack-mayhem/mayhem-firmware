@@ -69,6 +69,8 @@ protected:
 	std::filesystem::path get_selected_full_path() const;
 	const fileman_entry& get_selected_entry() const;
 
+	void push_dir(const std::filesystem::path& path);
+	void pop_dir();
 	void refresh_list();
 	void reload_current();
 	void load_directory_contents(const std::filesystem::path& dir_path);
@@ -85,6 +87,7 @@ protected:
 	std::filesystem::path extension_filter { u"" };
 
 	std::vector<fileman_entry> entry_list { };
+	std::vector<uint32_t> saved_index_stack { };
 	
 	Labels labels {
 		{ { 0, 0 }, "Path:", Color::light_grey() }
@@ -152,6 +155,9 @@ private:
 	void on_rename();
 	void on_delete();
 	void on_new_dir();
+
+	// True if the selected entry is a real file item.
+	bool selected_is_valid() const;
 	
 	Labels labels {
 		{ { 0, 26 * 8 }, "Created ", Color::light_grey() }

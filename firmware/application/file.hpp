@@ -166,6 +166,7 @@ private:
 };
 
 bool operator==(const path& lhs, const path& rhs);
+bool operator!=(const path& lhs, const path& rhs);
 bool operator<(const path& lhs, const path& rhs);
 bool operator>(const path& lhs, const path& rhs);
 path operator+(const path& lhs, const path& rhs);
@@ -238,6 +239,8 @@ inline bool operator!=(const directory_iterator& lhs, const directory_iterator& 
 
 bool is_directory(const file_status s);
 bool is_regular_file(const file_status s);
+bool file_exists(const path& file_path);
+bool is_directory(const path& file_path);
 
 space_info space(const path& p);
 
@@ -249,7 +252,6 @@ struct FATTimestamp {
 	uint16_t FAT_time;
 };
 
-bool file_exists(const std::filesystem::path& file_path);
 uint32_t delete_file(const std::filesystem::path& file_path);
 uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
