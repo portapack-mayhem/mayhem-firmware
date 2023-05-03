@@ -123,6 +123,7 @@ struct path {
 		return *this;
 	}
 
+	path parent_path() const;
 	path extension() const;
 	path filename() const;
 	path stem() const;
@@ -151,14 +152,24 @@ struct path {
 		return *this;
 	}
 
+	path& operator/=(const path& p) {
+		if (_s.back() != preferred_separator)
+			_s += preferred_separator;
+		_s += p._s;
+		return *this;
+	}
+
 	path& replace_extension(const path& replacement = path());
 
 private:
 	string_type _s;
 };
 
+bool operator==(const path& lhs, const path& rhs);
 bool operator<(const path& lhs, const path& rhs);
 bool operator>(const path& lhs, const path& rhs);
+path operator+(const path& lhs, const path& rhs);
+path operator/(const path& lhs, const path& rhs);
 
 using file_status = BYTE;
 
@@ -238,6 +249,7 @@ struct FATTimestamp {
 	uint16_t FAT_time;
 };
 
+bool file_exists(const std::filesystem::path& file_path);
 uint32_t delete_file(const std::filesystem::path& file_path);
 uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
@@ -245,6 +257,8 @@ uint32_t make_new_directory(const std::filesystem::path& dir_path);
 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
 std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
+
+/* Gets an auto incrementing filename. */
 std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
 
 /* Values added to FatFs FRESULT enum, values outside the FRESULT data type */

@@ -197,6 +197,13 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
 	return directory_list;
 }
 
+bool file_exists(const std::filesystem::path& file_path) {
+	FILINFO filinfo;
+	auto fr = f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
+	
+	return fr == FR_OK;
+}
+
 uint32_t delete_file(const std::filesystem::path& file_path) {
 	return f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()));
 }
@@ -250,6 +257,15 @@ std::string filesystem_error::what() const {
 	}
 }
 
+path path::parent_path() const {
+	const auto index = _s.find_last_of(preferred_separator);
+	if( index == _s.npos ) {
+		return { }; // NB: Deviation from STL.
+	} else {
+		return _s.substr(0, index);
+	}
+}
+
 path path::extension() const {
 	const auto t = filename().native();
 	const auto index = t.find_last_of(u'.');
@@ -296,12 +312,28 @@ path& path::replace_extension(const path& replacement) {
 	return *this;
 }
 
+bool operator==(const path& lhs, const path& rhs) {
+	return lhs.native() == rhs.native();
+}
+
 bool operator<(const path& lhs, const path& rhs) {
 	return lhs.native() < rhs.native();
 }
 
 bool operator>(const path& lhs, const path& rhs) {
 	return lhs.native() > rhs.native();
+}
+
+path operator+(const path& lhs, const path& rhs) {
+	path result = lhs;
+	result += rhs;
+	return result;
+}
+
+path operator/(const path& lhs, const path& rhs) {
+	path result = lhs;
+	result /= rhs;
+	return result;
 }
 
 directory_iterator::directory_iterator(

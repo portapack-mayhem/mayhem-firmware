@@ -238,7 +238,7 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	return true;
 }
 
-uint32_t MenuView::highlighted_index() {
+uint32_t MenuView::highlighted_index() const {
 	return highlighted_item;
 }
 
@@ -262,7 +262,7 @@ bool MenuView::on_key(const KeyEvent key) {
 	case KeyEvent::Select:
 	case KeyEvent::Right:
 		if( menu_items[highlighted_item].on_select ) {
-			menu_items[highlighted_item].on_select();
+			menu_items[highlighted_item].on_select(key);
 		}
 		return true;
 
