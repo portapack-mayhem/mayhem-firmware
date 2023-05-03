@@ -163,8 +163,8 @@ void MenuView::clear() {
 	}
 	
 	menu_items.clear();
-  highlighted_item = 0;
-  offset = 0;
+	highlighted_item = 0;
+	offset = 0;
 }
 
 void MenuView::add_item(MenuItem new_item) {

@@ -289,7 +289,7 @@ void FileManBaseView::refresh_list() {
 		}
 	}
 	
-  menu_view.set_highlighted(prev_highlight);
+	menu_view.set_highlighted(prev_highlight);
 }
 
 void FileManBaseView::reload_current() {
