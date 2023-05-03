@@ -89,8 +89,11 @@ void Manager::feed(const Frame& frame) {
 	if( touch_raw ) {
 		const auto metrics = calculate_metrics(frame);
 
-		touch_down_pressure = (metrics.r < r_touch_threshold);
-		touch_up_pressure = (metrics.r < r_touch_threshold*2);
+		constexpr float r_touch_down_threshold = 3200.0f;
+		constexpr float r_touch_up_threshold = r_touch_down_threshold * 2.0f;
+
+		touch_down_pressure = (metrics.r < r_touch_down_threshold);
+		touch_up_pressure = (metrics.r < r_touch_up_threshold);
 
 		if( touch_down_pressure ) {
 			filter_x.feed(metrics.x * 1024);
