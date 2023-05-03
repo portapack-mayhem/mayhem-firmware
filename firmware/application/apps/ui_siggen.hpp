@@ -48,29 +48,27 @@ private:
 	void update_tone();
 	void on_tx_progress(const uint32_t progress, const bool done);
 	
-	const std::string shape_strings[9] = {
-		"CW          ",
-		"Sine        ",
-		"Triangle    ",
-		"Saw up      ",
-		"Saw down    ",
-		"Square      ",
-		"Noise n20Khz",
-		"Noise n10khz",
-		"Noise n5khz "
+	const std::string shape_strings[7] = {
+		"CW-just carrier",
+		"Sine signal    ",
+		"Triangle signal",
+		"Saw up signal  ",
+		"Saw down signal",
+		"Square signal  ",
+		"Noise signal   "	// using 16 bits LFSR register, 16 order polynomial feedback.
 	};
 	
 	bool auto_update { false };
 	
 	Labels labels {
-		{ { 6 * 8, 4 + 10 }, "Shape:", Color::light_grey() },
-		{ { 7 * 8, 7 * 8 }, "Tone:      Hz", Color::light_grey() },
+		{ { 3 * 8, 4 + 10 }, "Shape:", Color::light_grey() },
+		{ { 6 * 8, 7 * 8 }, "Tone:      Hz", Color::light_grey() },
 		{ { 22 * 8, 15 * 8 + 4 }, "s.", Color::light_grey() },
 		{ { 8 * 8, 20 * 8 }, "Modulation: FM", Color::light_grey() }
 	};
 	
 	ImageOptionsField options_shape {
-		{ 13 * 8, 4, 32, 32 },
+		{ 10 * 8, 4, 32, 32 },
 		Color::white(),
 		Color::black(),
 		{
@@ -80,14 +78,12 @@ private:
 			{ &bitmap_sig_saw_up, 3 },
 			{ &bitmap_sig_saw_down, 4 },
 			{ &bitmap_sig_square, 5 },
-			{ &bitmap_sig_noise, 6 },
-			{ &bitmap_sig_noise, 7 },
-			{ &bitmap_sig_noise, 8 }
+			{ &bitmap_sig_noise, 6 }
 		}
 	};
 	
 	Text text_shape {
-		{ 18 * 8, 4 + 10, 8 * 8, 16 },
+		{ 15 * 8, 4 + 10, 8 * 8, 16 },
 		""
 	};
 	
@@ -98,12 +94,12 @@ private:
 	};
 	
 	Button button_update {
-		{ 6 * 8, 10 * 8, 8 * 8, 3 * 8 },
+		{ 5 * 8, 10 * 8, 8 * 8, 3 * 8 },
 		"Update"
 	};
 	
 	Checkbox checkbox_auto {
-		{ 16 * 8, 10 * 8 },
+		{ 15 * 8, 10 * 8 },
 		4,
 		"Auto"
 	};
