@@ -489,7 +489,7 @@ namespace ui {
 			YESNO,
 			[this](bool choice) {
 				if (choice) {
-                    portapack::persistent_memory::cache::defaults();
+ 					portapack::persistent_memory::cache::defaults();
 				}
 			} );
 		};
