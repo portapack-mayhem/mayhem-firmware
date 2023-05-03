@@ -360,9 +360,9 @@ FileLoadView::FileLoadView(
 		if (get_selected_entry().is_directory) {
 			push_dir(get_selected_entry().path);
 		} else {
+			nav_.pop();
 			if (on_changed)
 				on_changed(get_selected_full_path());
-			nav_.pop();
 		}
 	};
 }
