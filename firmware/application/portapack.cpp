@@ -500,33 +500,47 @@ bool init() {
 	clock_manager.enable_codec_clocks();
 	radio::init();
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SDCard");
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
 	chThdSleepMilliseconds(10);
 
+	auto config = portapack_cpld_config();
     painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
     painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
     painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 
-	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+	if( !portapack::cpld::update_not_necessary(config) ) {
+    	painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+		chThdSleepMilliseconds(400);
+
+		static_cast<portapack::Backlight*>(&backlight_on_off)->off();
+		display.shutdown();
+		auto ok = portapack::cpld::update(config);
 		chThdSleepMilliseconds(10);
-		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (load_config() != 3 /* left*/ && load_config() != 4 /* right */){
 
-			painter.draw_string({ 8, line++ *20 }, style_default, "CPLD failed. starting HackRf");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! CENTER for autodetect");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! while booting if this");
-			painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
-			chThdSleepMilliseconds(2000);
+		portapack::display.init();
+		portapack::display.wake();
+		static_cast<portapack::Backlight*>(&backlight_on_off)->on();
 
-			static_cast<portapack::Backlight*>(&backlight_on_off)->off();
-			display.shutdown();
-			shutdown_base();
-			return false;
+		if (!ok) {
+			// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
+			if (load_config() != 3 /* left*/ && load_config() != 4 /* right */){
+
+				painter.draw_string({ 8, line++ *20 }, style_default, "CPLD failed. starting HackRf");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! CENTER for autodetect");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! while booting if this");
+				painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
+				chThdSleepMilliseconds(2000);
+
+				static_cast<portapack::Backlight*>(&backlight_on_off)->off();
+				display.shutdown();
+				shutdown_base();
+				return false;
+			}
 		}
 	}
 

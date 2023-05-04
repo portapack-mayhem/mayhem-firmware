@@ -33,7 +33,15 @@
 namespace portapack {
 namespace cpld {
 
-bool update_if_necessary(
+bool update_necessary(
+	const Config config
+);
+bool update(
+	const Config config
+);
+
+
+bool update_not_necessary(
 	const Config config
 ) {
 	jtag::GPIOTarget target {
@@ -67,11 +75,23 @@ bool update_if_necessary(
 
 	/* Verify CPLD contents against current bitstream. */
 	auto ok = cpld.verify(config.block_0, config.block_1);
+	return ok;
+}
+
+bool update(
+	const Config config
+) {
+	jtag::GPIOTarget target {
+		portapack::gpio_cpld_tck,
+		portapack::gpio_cpld_tms,
+		portapack::gpio_cpld_tdi,
+		portapack::gpio_cpld_tdo
+	};
+	jtag::JTAG jtag { target };
+	CPLD cpld { jtag };
 
 	/* CPLD verifies incorrectly. Erase and program with current bitstream. */
-	if( !ok ) {
-		ok = cpld.program(config.block_0, config.block_1);
-	}
+	auto ok = cpld.program(config.block_0, config.block_1);
 
 	/* If programming OK, reset CPLD to user mode. Otherwise leave it in
 	 * passive (ISP) state.
