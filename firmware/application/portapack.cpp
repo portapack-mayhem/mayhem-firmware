@@ -419,7 +419,6 @@ bool init() {
 	
 	portapack::io.init();
 
-
 	portapack::display.init();
 	portapack::display.wake();
 	static_cast<portapack::Backlight*>(&backlight_on_off)->on();
