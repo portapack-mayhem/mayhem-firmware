@@ -1828,7 +1828,7 @@ namespace ui {
 				receiver_model.set_am_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
-				text_ctcss.set("			 ");
+				text_ctcss.set("             ");
 				break;
 			case NFM_MODULATION:
 				freqman_set_bandwidth_option( new_mod , field_bw );
@@ -1849,7 +1849,7 @@ namespace ui {
 				receiver_model.set_wfm_configuration(field_bw.selected_index());
 				field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
 				receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
-				text_ctcss.set("			 ");
+				text_ctcss.set("             ");
 				break;
 			default:
 				break;
@@ -1876,7 +1876,7 @@ namespace ui {
 
 		if( field_mode.selected_index() != NFM_MODULATION )
 		{
-			text_ctcss.set("			 ");
+			text_ctcss.set("             ");
 			return ;
 		}
 
@@ -1896,7 +1896,7 @@ namespace ui {
 			if (min_diff < 40)
 				text_ctcss.set("T: "+tone_keys[min_idx].first);
 			else
-				text_ctcss.set("			 ");
+				text_ctcss.set("             ");
 		}
 	}
 } /* namespace ui */
