@@ -39,6 +39,8 @@
 #include "file.hpp"
 #include "app_settings.hpp"
 
+// maximum usable freq
+#define MAX_UFREQ 7200000000
 
 namespace ui {
 
@@ -176,7 +178,7 @@ namespace ui {
 			bool check_sd_card();
 			void handle_coded_squelch(const uint32_t value);
 
-			jammer::jammer_range_t frequency_range { false, 0, 0 };  //perfect for manual recon task too...
+			jammer::jammer_range_t frequency_range { false, 0, MAX_UFREQ };  //perfect for manual recon task too...
 			int32_t squelch { 0 };
 			int32_t db { 0 };
 			int32_t timer { 0 };
@@ -198,8 +200,6 @@ namespace ui {
 			bool load_hamradios = { true };
 			bool update_ranges = { true };
 			bool fwd = { true };
-			// maximum usable freq
-			long long int MAX_UFREQ = { 7200000000 };
 			uint32_t recon_lock_nb_match = { 10 };
 			uint32_t recon_lock_duration = { 50 };
 			uint32_t recon_match_mode = { 0 };
