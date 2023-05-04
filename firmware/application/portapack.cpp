@@ -486,7 +486,7 @@ bool init() {
 	i2c0.start(i2c_config_fast_clock);
 	chThdSleepMilliseconds(10);
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing persistent");
+    painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
 	/* Cache some configuration data from persistent memory. */
 	persistent_memory::cache::init();
 
@@ -516,7 +516,13 @@ bool init() {
 		if (load_config() != 3 && load_config() != 4){
 
 			painter.draw_string({ 8, line++ *20 }, style_default, "Redirecting to HackRf Mode");
-			chThdSleepMilliseconds(1000);
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! CENTER for autodetect");
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! while booting if this");
+			painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
+			chThdSleepMilliseconds(2000);
 
 			shutdown_base();
 			return false;
