@@ -165,7 +165,8 @@ static void event_loop() {
 int main(void) {
 	first_if.init();    /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 	if( portapack::init() ) {
-		portapack::display.init();
+
+
 
 		// sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
 

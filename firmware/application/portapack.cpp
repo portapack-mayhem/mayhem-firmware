@@ -419,6 +419,20 @@ bool init() {
 	
 	portapack::io.init();
 
+
+	portapack::display.init();
+	portapack::display.wake();
+	static_cast<portapack::Backlight*>(&backlight_on_off)->on();
+	static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
+	int line = 1;
+	ui::Painter painter;
+    ui::Style style_default {
+        .font = ui::font::fixed_8x16,
+        .background = ui::Color::black(),
+        .foreground = ui::Color::white()
+    };
+
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
 	clock_manager.init_clock_generator();
 
 	i2c0.stop();
@@ -472,46 +486,59 @@ bool init() {
 	i2c0.start(i2c_config_fast_clock);
 	chThdSleepMilliseconds(10);
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing persistent");
 	/* Cache some configuration data from persistent memory. */
 	persistent_memory::cache::init();
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
 	touch::adc::init();
 	controls_init();
 	chThdSleepMilliseconds(10);
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_if_clocks();
 	clock_manager.enable_codec_clocks();
 	radio::init();
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SDCard");
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
-	
 	chThdSleepMilliseconds(10);
+
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
+    painter.draw_string({ 8*11, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+    painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		chThdSleepMilliseconds(10);
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 		if (load_config() != 3 && load_config() != 4){
+
+			painter.draw_string({ 8, line++ *20 }, style_default, "Redirecting to HackRf Mode");
+			chThdSleepMilliseconds(1000);
+
 			shutdown_base();
 			return false;
 		}
 	}
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing RAM");
 	if( !hackrf::cpld::load_sram() ) {
 		chSysHalt();
 	}
 
 	chThdSleepMilliseconds(10); // This delay seems to solve white noise audio issues
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing DMA");
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
-
 	chThdSleepMilliseconds(10);
 
+    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing Sound");
 	audio::init(portapack_audio_codec());
 	
-
+    painter.draw_string({ 8, line++ *20 }, style_default, "Boot complete.");
 	return true;
 }
 
