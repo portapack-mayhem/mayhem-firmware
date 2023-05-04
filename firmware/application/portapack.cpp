@@ -510,12 +510,13 @@ bool init() {
     painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
     painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 
-	if( !portapack::cpld::update_not_necessary(config) ) {
-    	painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
-		chThdSleepMilliseconds(400);
+	// painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+	chThdSleepMilliseconds(400);
 
-		static_cast<portapack::Backlight*>(&backlight_on_off)->off();
-		display.shutdown();
+	static_cast<portapack::Backlight*>(&backlight_on_off)->off();
+	display.shutdown();
+
+	if( portapack::cpld::update_possible() && !portapack::cpld::update_not_necessary(config) ) {
 		auto ok = portapack::cpld::update(config);
 		chThdSleepMilliseconds(10);
 
@@ -523,11 +524,23 @@ bool init() {
 		portapack::display.wake();
 		static_cast<portapack::Backlight*>(&backlight_on_off)->on();
 
+		//restore messages
+		line = 1;
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
+		painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+		painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
+    	painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+
 		if (!ok) {
 			// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 			if (load_config() != 3 /* left*/ && load_config() != 4 /* right */){
 
-				painter.draw_string({ 8, line++ *20 }, style_default, "CPLD failed. starting HackRf");
+				painter.draw_string({ 8, line++ *20 }, style_default, "Update failed. starting HackRf");
 				painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
 				painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
 				painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
@@ -542,6 +555,22 @@ bool init() {
 				return false;
 			}
 		}
+	}
+	else{
+		portapack::display.init();
+		portapack::display.wake();
+		static_cast<portapack::Backlight*>(&backlight_on_off)->on();
+
+		//restore messages
+		line = 1;
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
+		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
+		painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+		painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 	}
 
     painter.draw_string({ 8, line++ *20 }, style_default, "Initializing RAM");

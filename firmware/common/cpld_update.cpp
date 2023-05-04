@@ -33,17 +33,7 @@
 namespace portapack {
 namespace cpld {
 
-bool update_necessary(
-	const Config config
-);
-bool update(
-	const Config config
-);
-
-
-bool update_not_necessary(
-	const Config config
-) {
+bool update_possible() {
 	jtag::GPIOTarget target {
 		portapack::gpio_cpld_tck,
 		portapack::gpio_cpld_tms,
@@ -72,6 +62,21 @@ bool update_not_necessary(
 	if( !cpld.silicon_id_ok() ) {
 		return false;
 	}
+
+	return true;
+}
+
+bool update_not_necessary(
+	const Config config
+) {
+	jtag::GPIOTarget target {
+		portapack::gpio_cpld_tck,
+		portapack::gpio_cpld_tms,
+		portapack::gpio_cpld_tdi,
+		portapack::gpio_cpld_tdo
+	};
+	jtag::JTAG jtag { target };
+	CPLD cpld { jtag };
 
 	/* Verify CPLD contents against current bitstream. */
 	auto ok = cpld.verify(config.block_0, config.block_1);
