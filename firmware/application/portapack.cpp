@@ -421,17 +421,17 @@ bool init() {
 
 	portapack::display.init();
 	portapack::display.wake();
+	//static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
 	static_cast<portapack::Backlight*>(&backlight_on_off)->on();
-	static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
 	int line = 1;
 	ui::Painter painter;
-    ui::Style style_default {
-        .font = ui::font::fixed_8x16,
-        .background = ui::Color::black(),
-        .foreground = ui::Color::white()
-    };
+	ui::Style style_default {
+		.font = ui::font::fixed_8x16,
+		.background = ui::Color::black(),
+		.foreground = ui::Color::white()
+	};
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
+	painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
 	clock_manager.init_clock_generator();
 
 	i2c0.stop();
@@ -506,15 +506,15 @@ bool init() {
 	chThdSleepMilliseconds(10);
 
     painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
-    painter.draw_string({ 8*11, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+    painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
     painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		chThdSleepMilliseconds(10);
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (load_config() != 3 && load_config() != 4){
+		if (load_config() != 3 /* left*/ && load_config() != 4 /* right */){
 
-			painter.draw_string({ 8, line++ *20 }, style_default, "Redirecting to HackRf Mode");
+			painter.draw_string({ 8, line++ *20 }, style_default, "CPLD failed. starting HackRf");
 			painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
 			painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
 			painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
@@ -523,6 +523,8 @@ bool init() {
 			painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
 			chThdSleepMilliseconds(2000);
 
+			static_cast<portapack::Backlight*>(&backlight_on_off)->off();
+			display.shutdown();
 			shutdown_base();
 			return false;
 		}
