@@ -229,7 +229,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             {
                 db.push_back({ frequency_a, frequency_b, description, type , modulation , bandwidth , step , tone });
                 n++;
-                if (n >= FREQMAN_MAX_PER_FILE) return true;
+                if (n > FREQMAN_MAX_PER_FILE) return true;
             }
 
             line_start = line_end + 1;
