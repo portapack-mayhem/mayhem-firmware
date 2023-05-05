@@ -33,7 +33,7 @@
 namespace portapack {
 namespace cpld {
 
-uint32_t update_if_necessary(
+CpldUpdateStatus update_if_necessary(
 	const Config config
 ) {
 	jtag::GPIOTarget target {
@@ -51,7 +51,7 @@ uint32_t update_if_necessary(
 
 	/* Run-Test/Idle */
 	if( !cpld.idcode_ok() ) {
-		return 1;
+		return CpldUpdateStatus::Idcode_check_failed;
 	}
 
 	cpld.sample();
@@ -62,7 +62,7 @@ uint32_t update_if_necessary(
 	 * in passive state.
 	 */
 	if( !cpld.silicon_id_ok() ) {
-		return 2;
+		return CpldUpdateStatus::Silicon_id_check_failed;
 	}
 
 	/* Verify CPLD contents against current bitstream. */
@@ -86,7 +86,7 @@ uint32_t update_if_necessary(
 		cpld.disable();
 	}
 
-	return ok ? 0 : 3;
+	return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
 }
 
 } /* namespace cpld */
