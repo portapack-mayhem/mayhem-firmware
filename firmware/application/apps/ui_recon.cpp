@@ -408,15 +408,16 @@ namespace ui {
 										default:
 											break;
 									}
+									restart_recon = true ;
 								} 
 								// send a pause message with the right freq
 								if( has_looped && !_continuous )
 								{
 									// signal pause to handle_retune
-									receiver_model.set_tuning_frequency( freq );	// Retune to actual freq
 									message.freq = freq ;
 									message.range = MSG_RECON_PAUSE ;
 									EventDispatcher::send_message(message);
+									receiver_model.set_tuning_frequency( freq );	// Retune to actual freq
 								}
 								if( _stepper < 0 ) _stepper ++ ;
 								if( _stepper > 0 ) _stepper -- ;
