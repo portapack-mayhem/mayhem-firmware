@@ -87,7 +87,22 @@ bool FrequencyField::on_key(const ui::KeyEvent event) {
 }
 
 bool FrequencyField::on_encoder(const EncoderEvent delta) {
-	set_value(value() + (delta * step));
+	if (step == 0) { // 'Auto' mode.'
+		auto ms = halGetCounterValue() / (halGetCounterFrequency() / 1000);
+		auto delta_ms = last_ms_ <= ms ? ms - last_ms_ : ms;
+		last_ms_ = ms;
+
+		// The goal is to map rate to a range of about 10 to 10M.
+		// Linear doesn't feel right, but hyperbolic is ok.
+		// To get these magic numbers, I graphed the function until the
+		// curve shape seemed about right then tested on device.
+		delta_ms = std::min(270ull, delta_ms) + 3; // Prevent DIV/0
+		double rate = (100'000'000.0 * delta) / (pow(delta_ms, 3) / pow(2, delta));
+
+		set_value(value() + rate);
+	} else {
+		set_value(value() + (delta * step));
+	}
 	return true;
 }
 

@@ -40,7 +40,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Flash Utility"; };	
+	std::string title() const override { return "SD over USB"; };	
 
 private:
 	NavigationView& nav_;
