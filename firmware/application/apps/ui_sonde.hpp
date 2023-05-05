@@ -62,7 +62,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "Radiosonde RX"; };
+	std::string title() const override { return "Radiosnd RX"; };
 
 	
 

@@ -28,11 +28,11 @@ namespace baseband {
 
 void CPLD::init() {
 	set_invert(false);
-	gpio_baseband_invert.output();
+	gpio_q_invert.output();
 }
 
 void CPLD::set_invert(const bool invert) {
-	gpio_baseband_invert.write(invert);
+	gpio_q_invert.write(invert);
 }
 
 }

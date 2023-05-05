@@ -42,7 +42,7 @@ using namespace hackrf::one;
 
 static Thread* thread_controls_event = NULL;
 
-static std::array<Debounce, 7> switch_debounce;
+static std::array<Debounce, 8> switch_debounce;
 
 static Encoder encoder;
 
@@ -193,10 +193,12 @@ void controls_init() {
 
 SwitchesState get_switches_state() {
 	SwitchesState result;
-	for(size_t i=0; i<result.size(); i++) {
+	for(size_t i=0; i<result.size()-1; i++) {
  		// TODO: Ignore multiple keys at the same time?
  		result[i] = switch_debounce[i].state();
 	}
+
+	result[result.size()-1] = switch_debounce[switch_debounce.size()-1].state();
 
 	return result;
 }

@@ -65,11 +65,8 @@ public:
 	void enable_codec_clocks();
 	void disable_codec_clocks();
 
-	void enable_first_if_clock();
-	void disable_first_if_clock();
-
-	void enable_second_if_clock();
-	void disable_second_if_clock();
+	void enable_if_clocks();
+	void disable_if_clocks();
 
 	void set_sampling_frequency(const uint32_t frequency);
 
@@ -99,6 +96,7 @@ private:
 
 	ReferenceSource detect_reference_source();
 	Reference choose_reference();
+	bool loss_of_signal();
 };
 
 #endif/*__CLOCK_MANAGER_H__*/

@@ -508,6 +508,8 @@
 }
 #endif
 
+
+
 /**
  * @brief   System tick event hook.
  * @details This hook is invoked in the system tick handler immediately
@@ -516,6 +518,8 @@
 #if !defined(SYSTEM_TICK_EVENT_HOOK) || defined(__DOXYGEN__)
 #define SYSTEM_TICK_EVENT_HOOK() {                                          \
   /* System tick event code here.*/                                         \
+  extern void update_performance_counters();  \
+  update_performance_counters();  \
 }
 #endif
 

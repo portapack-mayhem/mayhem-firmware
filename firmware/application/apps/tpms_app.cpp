@@ -35,6 +35,7 @@ namespace tpms {
 namespace format {
 
 static bool use_kpa = true;
+static bool use_celsius = true;
 
 std::string type(Reading::Type type) {
 	return to_string_dec_uint(toUType(type), 2);
@@ -45,15 +46,11 @@ std::string id(TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-	if(use_kpa){
-		return to_string_dec_int(pressure.kilopascal(), 3);
-	}
-	return to_string_dec_int(pressure.psi(), 3);
-	
+	return to_string_dec_int(use_kpa? pressure.kilopascal():pressure.psi(), 3);
 }
 
 std::string temperature(Temperature temperature) {
-	return to_string_dec_int(temperature.celsius(), 3);
+	return to_string_dec_int(use_celsius? temperature.celsius():temperature.fahrenheit(), 3);
 }
 
 std::string flags(Flags flags) {
@@ -111,15 +108,15 @@ void RecentEntriesTable<TPMSRecentEntries>::draw(
 	std::string line = tpms::format::type(entry.type) + " " + tpms::format::id(entry.id);
 
 	if( entry.last_pressure.is_valid() ) {
-		line += " " + tpms::format::pressure(entry.last_pressure.value());
+		line += "  " + tpms::format::pressure(entry.last_pressure.value());
 	} else {
-		line += " " "   ";
+		line += "  " "   ";
 	}
 
 	if( entry.last_temperature.is_valid() ) {
-		line += " " + tpms::format::temperature(entry.last_temperature.value());
+		line += "  " + tpms::format::temperature(entry.last_temperature.value());
 	} else {
-		line += " " "   ";
+		line += "  " "   ";
 	}
 
 	if( entry.received_count > 999 ) {
@@ -145,10 +142,12 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 		&rssi,
 		&channel,
 		&options_band,
+		&options_pressure,
+		&options_temperature,	
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
-		&options_type,
+		&recent_entries_view
 	});
 
 	// load app settings
@@ -181,16 +180,19 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 	};
 	options_band.set_by_value(target_frequency());
 
-	options_type.on_change = [this](size_t, int32_t i) {		
-		if (i == 0){
-			tpms::format::use_kpa = true;
-		} else if (i == 1){
-			tpms::format::use_kpa = false;
-		}	
-		update_type();
+	options_pressure.on_change = [this](size_t, int32_t i) {		
+		tpms::format::use_kpa = !i;
+		update_view();
 	};
 
-	options_type.set_selected_index(0, true);
+	options_pressure.set_selected_index(0, true);
+
+	options_temperature.on_change = [this](size_t, int32_t i) {		
+		tpms::format::use_celsius = !i;
+		update_view();
+	};
+
+	options_temperature.set_selected_index(0, true);
 
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
@@ -214,16 +216,8 @@ void TPMSAppView::focus() {
 	options_band.focus();
 }
 
-void TPMSAppView::update_type() {
-	if (tpms::format::use_kpa){
-		remove_child(&recent_entries_view_psi);
-		add_child(&recent_entries_view_kpa);
-		recent_entries_view_kpa.set_parent_rect(view_normal_rect);
-	} else {
-		remove_child(&recent_entries_view_kpa);
-		add_child(&recent_entries_view_psi);
-		recent_entries_view_psi.set_parent_rect(view_normal_rect);
-	}	
+void TPMSAppView::update_view() {
+	recent_entries_view.set_parent_rect(view_normal_rect);
 }
 
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
@@ -231,7 +225,7 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 
 	view_normal_rect  = { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
 
-	update_type();
+	update_view();
 }
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
@@ -244,23 +238,13 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 		const auto reading = reading_opt.value();
 		auto& entry = ::on_packet(recent, TPMSRecentEntry::Key { reading.type(), reading.id() });
 		entry.update(reading);
-		
-		if(tpms::format::use_kpa){
-			recent_entries_view_kpa.set_dirty();
-		} else {
-			recent_entries_view_psi.set_dirty();
-		}
+		recent_entries_view.set_dirty();
 	}
 }
 
 void TPMSAppView::on_show_list() {
-	if(tpms::format::use_kpa){
-		recent_entries_view_kpa.hidden(false);
-		recent_entries_view_kpa.focus();
-	} else {
-		recent_entries_view_psi.hidden(false);
-		recent_entries_view_psi.focus();
-	}
+	recent_entries_view.hidden(false);
+	recent_entries_view.focus();
 }
 
 void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {

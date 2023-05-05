@@ -166,7 +166,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "AIS Boats RX"; };
+	std::string title() const override { return "AIS RX"; };
 
 private:
 	static constexpr uint32_t initial_target_frequency = 162025000;

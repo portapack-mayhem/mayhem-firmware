@@ -266,7 +266,9 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 }
 
 void ControlsSwitchesWidget::paint(Painter& painter) {
-	const std::array<Rect, 7> button_rects { {
+	const auto pos = screen_pos();
+
+	const std::array<Rect, 8> button_rects { {
 		{ 64, 32, 16, 16 }, // Right
 		{  0, 32, 16, 16 }, // Left
 		{ 32, 64, 16, 16 }, // Down
@@ -274,27 +276,63 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 		{ 32, 32, 16, 16 }, // Select
 		{ 16, 96, 16, 16 }, // Encoder phase 0
 		{ 48, 96, 16, 16 }, // Encoder phase 1
+		{ 96,  0, 16, 16 }, // Dfu
 	} };
-	const auto pos = screen_pos();
-	auto switches_raw = control::debug::switches();
-	auto switches_debounced = get_switches_state().to_ulong();
-	auto switches_event = key_event_mask;
 
 	for(const auto r : button_rects) {
-		const auto c =
-			((switches_event & 1) ?
-				Color::red() :
-				((switches_debounced & 1) ?
-					Color::green() :
-					((switches_raw & 1) ?
-						Color::yellow() :
-						Color::blue()
-					)
-				)
-			);
-		painter.fill_rectangle(r + pos, c);
+		painter.fill_rectangle(r + pos, Color::blue());
+	}
+
+	const std::array<Rect, 8> raw_rects { {
+		{ 64 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Right
+		{  0 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Left
+		{ 32 + 1, 64 + 1, 16 - 2, 16 - 2 }, // Down
+		{ 32 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Up
+		{ 32 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Select
+		{ 16 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 0
+		{ 48 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 1
+		{ 96 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Dfu
+	} };
+
+	auto switches_raw = control::debug::switches();
+	for(const auto r : raw_rects) {
+		if (switches_raw & 1)
+			painter.fill_rectangle(r + pos, Color::yellow());
+
 		switches_raw >>= 1;
+	}
+
+	const std::array<Rect, 6> debounced_rects { {
+		{ 64 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Right
+		{  0 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Left
+		{ 32 + 2, 64 + 2, 16 - 4, 16 - 4 }, // Down
+		{ 32 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Up
+		{ 32 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Select
+		{ 96 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Dfu
+	} };
+
+	auto switches_debounced = get_switches_state().to_ulong();
+	for(const auto r : debounced_rects) {
+		if (switches_debounced & 1)
+			painter.fill_rectangle(r + pos, Color::green());
+
 		switches_debounced >>= 1;
+	}
+
+	const std::array<Rect, 6> events_rects { {
+		{ 64 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Right
+		{  0 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Left
+		{ 32 + 3, 64 + 3, 16 - 6, 16 - 6 }, // Down
+		{ 32 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Up
+		{ 32 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Select
+		{ 96 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Dfu
+	} };
+
+	auto switches_event = key_event_mask;
+	for(const auto r : events_rects) {
+		if (switches_event & 1)
+			painter.fill_rectangle(r + pos, Color::red());
+
 		switches_event >>= 1;
 	}
 }
@@ -322,17 +360,19 @@ void DebugControlsView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
+	const char * max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
+	const char * si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
 	add_items({
 		{ "RFFC5072",    ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
 			"RFFC5072", RegistersWidgetConfig { 31, 16 },
 			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
 		); } },
-		{ "MAX2837",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			"MAX2837", RegistersWidgetConfig { 32, 10 },
+		{ max283x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, max283x](){ nav.push<RegistersView>(
+			max283x, RegistersWidgetConfig { 32, 10 },
 			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
 		); } },
-		{ "Si5351C",     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			"Si5351C", RegistersWidgetConfig { 96, 8 },
+		{ si5351x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, si5351x](){ nav.push<RegistersView>(
+			si5351x, RegistersWidgetConfig { 96, 8 },
 			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
 		); } },
 		{ audio::debug::codec_name(), ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(

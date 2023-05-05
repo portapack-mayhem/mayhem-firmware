@@ -106,6 +106,8 @@ constexpr image_tag_t image_tag_gps					{ 'P', 'G', 'P', 'S' };
 constexpr image_tag_t image_tag_siggen				{ 'P', 'S', 'I', 'G' };
 constexpr image_tag_t image_tag_sstv_tx				{ 'P', 'S', 'T', 'X' };
 constexpr image_tag_t image_tag_tones				{ 'P', 'T', 'O', 'N' };
+constexpr image_tag_t image_tag_flash_utility		{ 'P', 'F', 'U', 'T' };
+constexpr image_tag_t image_tag_usb_sd				{ 'P', 'U', 'S', 'B' };
 
 constexpr image_tag_t image_tag_noop				{ 'P', 'N', 'O', 'P' };
 
@@ -114,6 +116,7 @@ constexpr image_tag_t image_tag_hackrf				{ 'H', 'R', 'F', '1' };
 struct chunk_t {
 	const image_tag_t tag;
 	const uint32_t length;
+	const uint32_t compressed_data_size;
 	const uint8_t data[];
 
 	const chunk_t* next() const {

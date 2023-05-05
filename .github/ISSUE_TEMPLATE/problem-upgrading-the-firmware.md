@@ -31,7 +31,7 @@ You can find the list of versions here: https://github.com/eried/portapack-mayhe
 
 **Affected versions**
 Please tell us what version you are running. 
-Also please try the latest nightly release before submitting this. 
+If your device is still functional, try the latest nightly release before submitting this. 
 You can find the latest nightly version here https://github.com/eried/portapack-mayhem/releases
 
 **Were you able to update the firmware before?**

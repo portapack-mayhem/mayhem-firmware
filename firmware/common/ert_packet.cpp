@@ -47,6 +47,9 @@ ID Packet::id() const {
 		const auto lsb = reader_.read(35, 24);
 		return (msb << 24) | lsb;
 	}
+	if( type() == Type::SCMPLUS ) {
+		return reader_.read(2 * 8, 32);
+	}
 	if( type() == Type::IDM ) {
 		return reader_.read(5 * 8, 32);
 	}
@@ -57,6 +60,9 @@ Consumption Packet::consumption() const {
 	if( type() == Type::SCM ) {
 		return reader_.read(11, 24);
 	}
+	if( type() == Type::SCMPLUS ) {
+		return reader_.read(6 * 8, 32);
+	}	
 	if( type() == Type::IDM ) {
 		return reader_.read(25 * 8, 32);
 	}
@@ -67,6 +73,9 @@ CommodityType Packet::commodity_type() const {
 	if( type() == Type::SCM ) {
 		return reader_.read(5, 4);
 	}
+	if( type() == Type::SCMPLUS ) {
+		return reader_.read(1 * 8 + 4, 4);
+	}	
 	if( type() == Type::IDM ) {
 		return reader_.read(4 * 8 + 4, 4);
 	}
@@ -80,7 +89,8 @@ FormattedSymbols Packet::symbols_formatted() const {
 bool Packet::crc_ok() const {
 	switch(type()) {
 	case Type::SCM:	return crc_ok_scm();
-	case Type::IDM:	return crc_ok_idm();
+	case Type::SCMPLUS:
+	case Type::IDM:	return crc_ok_ccitt();
 	default:		return false;
 	}
 }
@@ -95,7 +105,7 @@ bool Packet::crc_ok_scm() const {
 	return ert_bch.checksum() == 0x0000;
 }
 
-bool Packet::crc_ok_idm() const {
+bool Packet::crc_ok_ccitt() const {
 	CRC<16> ert_crc_ccitt { 0x1021, 0xffff, 0x1d0f };
 	for(size_t i=0; i<length(); i+=8) {
 		ert_crc_ccitt.process_byte(reader_.read(i, 8));

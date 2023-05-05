@@ -21,6 +21,7 @@
 
 #include "ui.hpp"
 #include "sine_table.hpp"
+#include "utility.hpp"
 
 #include <algorithm>
 
@@ -94,6 +95,12 @@ Point polar_to_point(float angle, uint32_t distance) {
 	//polar to compass with y negated for screen drawing
 	return Point(sin_f32(DEG_TO_RAD(-angle) + pi) * distance, 
 	             sin_f32(DEG_TO_RAD(-angle) - (pi / 2)) * distance); 
+}
+
+Point fast_polar_to_point(int32_t angle, uint32_t distance) {
+	//polar to compass with y negated for screen drawing
+	return Point((int16_sin_s4(((1<<16)*(-angle + 180))/360) * distance)/(1<<16), 
+	             (int16_sin_s4(((1<<16)*(-angle - 90))/360) * distance)/(1<<16)); 
 }
 
 } /* namespace ui */

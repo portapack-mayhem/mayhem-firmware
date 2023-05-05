@@ -124,7 +124,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "Radio settings"; };
+	std::string title() const override { return "Radio"; };
 
 private:
 	const Style style_text {
@@ -154,7 +154,7 @@ private:
 		{ { 6 * 8, 4 * 16 }, "PPM", Color::light_grey() },
 	};
 
-	Checkbox check_clkout {
+   	Checkbox check_clkout {
 		{ 18, (6 * 16 - 4) },
 		13,
 		"Enable CLKOUT"
@@ -193,7 +193,7 @@ private:
 	};
 	
 	Checkbox check_bias {
-		{ 28, 13 * 16 },
+		{ 18, 12 * 16 },
 		5,
 		"Turn on bias voltage"
 	};
@@ -219,7 +219,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "UI settings"; };
+	std::string title() const override { return "UI"; };
 	
 private:
 
@@ -299,7 +299,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "App Settings"; };
+	std::string title() const override { return "AppSettings"; };
 	
 private:
 
@@ -313,6 +313,53 @@ private:
 		{ 3 * 8, 4 * 16 },
 		25,
 		"Save app settings"
+	};
+
+	Button button_save {
+		{ 2 * 8, 16 * 16, 12 * 8, 32 },
+		"Save"
+	};
+	
+	Button button_cancel {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Cancel",
+	};
+};
+
+class SetConverterSettingsView : public View {
+public:
+	SetConverterSettingsView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "Converter"; };
+	
+private:
+
+    Checkbox check_show_converter {
+		{ 18, 4 * 16},
+		19,
+		"show/hide converter"
+	};
+
+	Checkbox check_converter {
+		{ 18, 6 * 16},
+		7,
+		"enable/disable converter"
+	};
+
+	OptionsField converter_mode {
+		{ 18 , 8 * 16 + 4 },
+		0,
+		{
+			{" + ",0}, // up converter
+			{" - ",1}  // down converter
+		}
+	};		
+
+    Button button_converter_freq {
+		{ 18 + 4 * 8 , 8 * 16 , 16 * 8 , 24 },
+		"",
 	};
 	
 	Button button_save {
@@ -332,7 +379,7 @@ public:
 	
 	void focus() override;
 	
-	std::string title() const override { return "Audio settings"; };
+	std::string title() const override { return "Audio"; };
 	
 private:
 	Labels labels {
@@ -384,6 +431,59 @@ private:
 		"Cancel",
 	};
 };
+
+class SetPersistentMemoryView : public View {
+public:
+	SetPersistentMemoryView(NavigationView& nav);
+	
+	void focus() override;
+	
+	std::string title() const override { return "P.Mem Mgmt"; };
+	
+private:
+
+	Text text_pmem_about {
+		{ 0, 1 * 16, 240 , 16 },
+		"PersistentMemory from/to SD"
+	};
+
+	Text text_pmem_informations {
+		{ 0, 2 * 16, 240 , 16 },
+		"use: when no/dead coin bat."
+	};
+
+	Text text_pmem_status {
+		{ 0, 3 * 16, 240 , 16 },
+		""
+	};
+
+    Checkbox check_load_mem_at_startup {
+		{ 18, 6 * 16},
+		19,
+		"load from sd at startup"
+	};
+
+	Button button_save_mem_to_file {
+		{ 0, 8 * 16, 240, 32 },
+		"save p.mem to sdcard"
+	};
+	
+	Button button_load_mem_from_file {
+		{ 0, 10 * 16 + 4 , 240, 32 },
+		"load p.mem from sdcard"
+	};
+
+    Button button_load_mem_defaults {
+		{ 0, 12 * 16 + 8 , 240, 32 },
+		"! reset p.mem, load defaults !"
+	};
+
+	Button button_return {
+		{ 16 * 8, 16 * 16, 12 * 8, 32 },
+		"Return",
+	};
+};
+
 
 class SettingsMenuView : public BtnGridView {
 public:

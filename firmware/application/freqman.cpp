@@ -51,6 +51,8 @@ options_t freqman_entry_bandwidths[ 4 ] = {
 };
 
 options_t freqman_entry_steps = {
+    { "0.1KHz      " , 100 },
+    { "1KHz        " , 1000 },
     { "5KHz (SA AM)" , 5000 },
     { "6.25KHz(NFM)" , 6250 },
     { "8.33KHz(AIR)" , 8330 },
@@ -68,6 +70,8 @@ options_t freqman_entry_steps = {
 };
 
 options_t freqman_entry_steps_short = {
+    { "0.1KHz"  , 100 },
+    { "1KHz"    , 1000 },
     { "5KHz"    , 5000 },
     { "6.25KHz" , 6250 },
     { "8.33KHz" , 8330 },
@@ -225,7 +229,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             {
                 db.push_back({ frequency_a, frequency_b, description, type , modulation , bandwidth , step , tone });
                 n++;
-                if (n >= FREQMAN_MAX_PER_FILE) return true;
+                if (n > FREQMAN_MAX_PER_FILE) return true;
             }
 
             line_start = line_end + 1;

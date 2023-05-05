@@ -61,7 +61,7 @@ portapack::IO io {
 	portapack::gpio_io_stbx,
 	portapack::gpio_addr,
 	portapack::gpio_lcd_te,
-	portapack::gpio_unused,
+	portapack::gpio_dfu,
 };
 
 portapack::BacklightCAT4004 backlight_cat4004;
@@ -381,8 +381,9 @@ static void shutdown_base() {
  *
  * PLL0USB = powered down
  * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
- * PLL1 = GP_CLKIN * 10 = 200 MHz
- *
+ * PLL1 =
+ * 	OG: GP_CLKIN * 10 = 200 MHz
+ *	r9: GP_CLKIN * 20 = 200 MHz
  * IDIVA = IRC / 1 = 12 MHz
  * IDIVB = PLL1 / 2 = 100 MHz
  * IDIVC = PLL1 / 1 = 200 MHz
@@ -432,9 +433,14 @@ bool init() {
 	 */
 
 	/* Step into the 90-110MHz M4 clock range */
-	/* Fclkin = 40M
-	 * 	/N=2 = 20M = PFDin
-	 * Fcco = PFDin * (M=10) = 200M
+	/* OG:
+	 * 	Fclkin = 40M
+	 * 		/N=2 = 20M = PFDin
+	 * 	Fcco = PFDin * (M=10) = 200M
+	 * r9:
+	 * 	Fclkin = 10M
+	 * 		/N=1 = 10M = PFDin
+	 * 	Fcco = PFDin * (M=20) = 200M
 	 * Fclk = Fcco / (2*(P=1)) = 100M
 	 */
 	cgu::pll1::ctrl({
@@ -444,8 +450,8 @@ bool init() {
 		.direct = 0,
 		.psel = 0,
 		.autoblock = 1,
-		.nsel = 1,
-		.msel = 9,
+		.nsel = hackrf_r9 ? 0UL : 1UL,
+		.msel = hackrf_r9 ? 19UL : 9UL,
 		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
 	});
 
@@ -474,8 +480,7 @@ bool init() {
 	chThdSleepMilliseconds(10);
 
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
-	clock_manager.enable_first_if_clock();
-	clock_manager.enable_second_if_clock();
+	clock_manager.enable_if_clocks();
 	clock_manager.enable_codec_clocks();
 	radio::init();
 
@@ -484,10 +489,13 @@ bool init() {
 	
 	chThdSleepMilliseconds(10);
 
-	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+	portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+	if ( result == portapack::cpld::CpldUpdateStatus::Program_failed ) {
+
 		chThdSleepMilliseconds(10);
-		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (load_config() != 3 && load_config() != 4){
+		// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+		// Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+		if (load_config() != 3 /* left */ && load_config() != 4 /* right */){
 			shutdown_base();
 			return false;
 		}
@@ -510,11 +518,13 @@ bool init() {
 	return true;
 }
 
-void shutdown() {
+void shutdown(const bool leave_screen_on) {
 	gpdma::controller.disable();
 
-	backlight()->off();
-	display.shutdown();
+	if (!leave_screen_on) {
+		backlight()->off();
+		display.shutdown();
+	}
 	
 	radio::disable();
 	audio::shutdown();

@@ -40,7 +40,6 @@ public:
 	AlphanumView& operator=(const AlphanumView&) = delete;
 	AlphanumView& operator=(AlphanumView&&) = delete;
 
-	void paint(Painter& painter) override;
 	bool on_encoder(const EncoderEvent delta) override;
 
 private:

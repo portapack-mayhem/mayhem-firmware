@@ -90,8 +90,6 @@ set(CSRC
 	${PORTSRC}
 	${KERNSRC}
 	${TESTSRC}
-	${HALSRC}
-	${PLATFORMSRC}
 	${BOARDSRC}
 )
 
@@ -139,8 +137,9 @@ set(CPPSRC
 	audio_stats_collector.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/chibios_cpp.cpp
-	${COMMON}/debug.cpp
+	debug.cpp
 	${COMMON}/gcc.cpp
+	${COMMON}/performance_counter.cpp
 	tone_gen.cpp
 )
 
@@ -189,7 +188,7 @@ set(AOPT)
 set(TOPT "-mthumb -DTHUMB")
 
 # Define C warning options here
-set(CWARN "-Wall -Wextra -Wstrict-prototypes")
+set(CWARN "-Wall -Wextra")
 
 # Define C++ warning options here
 set(CPPWARN "-Wall -Wextra")
@@ -262,10 +261,11 @@ macro(DeclareTargets chunk_tag name)
 	project("baseband_${name}")
 
 	include(${RULESPATH}/rules.cmake)
-	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC})
+	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
 	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 	add_definitions(${DEFS})
-	include_directories(. ${INCDIR})
+	target_compile_definitions(${PROJECT_NAME}.elf PUBLIC "-DBASEBAND_${name}")
+	include_directories(. ${INCDIR} ${MODE_INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
@@ -273,7 +273,8 @@ macro(DeclareTargets chunk_tag name)
 	add_custom_command(
 		OUTPUT ${PROJECT_NAME}.bin ${PROJECT_NAME}.img
 		COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
-		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.bin ${chunk_tag} ${PROJECT_NAME}.img
+		COMMAND ${LZ4} -f -9 ${PROJECT_NAME}.bin ${PROJECT_NAME}.lz4
+		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.lz4 ${chunk_tag} ${PROJECT_NAME}.img
 		DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
 		VERBATIM
 	)
@@ -504,11 +505,70 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
+### Flash Utility
+
+include(${CHIBIOS_PORTAPACK}/os/various/fatfs_bindings/fatfs.cmake)
+set(MODE_INCDIR ${FATFSINC})
+set(MODE_CPPSRC
+	proc_flash_utility.cpp
+	w25q80bv.cpp
+	${FATFSSRC}
+)
+DeclareTargets(PFUT flash_utility)
+
+### SD over USB
+
+set(MODE_INCDIR
+	${HACKRF_PATH}/firmware
+	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware/libopencm3/include
+)
+set(MODE_CPPSRC
+	sd_over_usb/proc_sd_over_usb.cpp
+	
+	sd_over_usb/scsi.c
+	sd_over_usb/diskio.c
+	sd_over_usb/sd_over_usb.c
+	sd_over_usb/usb_descriptor.c
+	sd_over_usb/hackrf_core.c
+
+	${HACKRF_PATH}/firmware/common/usb.c
+	${HACKRF_PATH}/firmware/common/usb_queue.c
+	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
+	${HACKRF_PATH}/firmware/hackrf_usb/usb_endpoint.c
+	${HACKRF_PATH}/firmware/common/usb_request.c
+	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${HACKRF_PATH}/firmware/common/platform_detect.c
+	${HACKRF_PATH}/firmware/common/gpio_lpc.c
+	${HACKRF_PATH}/firmware/common/firmware_info.c
+	${HACKRF_PATH}/firmware/common/si5351c.c
+	${HACKRF_PATH}/firmware/common/i2c_bus.c
+	${HACKRF_PATH}/firmware/common/mixer.c
+	${HACKRF_PATH}/firmware/common/clkin.c
+	${HACKRF_PATH}/firmware/common/spi_bus.c
+	${HACKRF_PATH}/firmware/common/sgpio.c
+	${HACKRF_PATH}/firmware/common/rf_path.c
+	${HACKRF_PATH}/firmware/common/i2c_lpc.c
+	${HACKRF_PATH}/firmware/common/spi_ssp.c
+	${HACKRF_PATH}/firmware/common/rffc5071_spi.c
+	${HACKRF_PATH}/firmware/common/rffc5071.c
+	${HACKRF_PATH}/firmware/common/clkin.c
+	${HACKRF_PATH}/firmware/common/gpdma.c
+
+	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/sync.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/scu.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
+)
+DeclareTargets(PUSB sd_over_usb)
+
 ### HackRF "factory" firmware
 
 add_custom_command(
 	OUTPUT hackrf.img
-	COMMAND ${MAKE_IMAGE_CHUNK} ${HACKRF_FIRMWARE_BIN_IMAGE} HRF1 hackrf.img 98304
+	COMMAND ${LZ4} -f -9 ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf.lz4
+	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.lz4 HRF1 hackrf.img
 	DEPENDS ${HACKRF_FIRMWARE_BIN_FILENAME} ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )

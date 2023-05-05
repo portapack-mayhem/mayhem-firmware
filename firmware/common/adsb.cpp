@@ -22,6 +22,7 @@
 
 #include "adsb.hpp"
 #include "sine_table.hpp"
+#include "utility.hpp"
 
 #include <math.h>
 
@@ -29,11 +30,18 @@ namespace adsb {
 
 void make_frame_adsb(ADSBFrame& frame, const uint32_t ICAO_address) {
 	frame.clear();
-	frame.push_byte((DF_ADSB << 3) | 5);	// DF and CA
+	frame.push_byte((DF_ADSB << 3) | 5);		// DF=17 and CA
 	frame.push_byte(ICAO_address >> 16);
 	frame.push_byte(ICAO_address >> 8);
 	frame.push_byte(ICAO_address & 0xFF);
 }
+
+// Civil aircraft ADS-B message type starts with Dowlink Format (DF=17) and frame is 112 bits long. 
+// All known DF's >=16 are long (112 bits). All known DF's <=15 are short (56 bits).(In this case 112 bits)
+// Msg structure consists of five main parts :|DF=17 (5 bits)|CA (3 bits)|ICAO (24 bits)|ME (56 bits)|CRC (24 bits) 
+// Aircraft identification and category  message structure, the ME (56 bits) =  TC,5 bits | CA,3 bits | C1,6 bits | C2,6 bits | C3,6 | C4,6 | C5,6 | C6,6 | C7,6 | C8,6
+// TC : (1..4) : Aircraft identification Type Code . // TC : 9 to 18: Airbone postion // TC : 19 Airbone velocity .  
+// In this encode_frame_identification function  we are using DF = 17 (112 bits long)  and  TC=4)
 
 void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::string& callsign) {
 	std::string callsign_formatted(8, '_');
@@ -41,9 +49,9 @@ void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::s
 	uint32_t c, s;
 	char ch;
 	
-	make_frame_adsb(frame, ICAO_address);
+	make_frame_adsb(frame, ICAO_address);		// Header DF=17 Downlink Format = ADS-B message (frame 112 bits)
 	
-	frame.push_byte(TC_IDENT << 3);		// No aircraft category
+	frame.push_byte(TC_IDENT << 3);				// 5 top bits ME = TC = we use fix 4  , # Type aircraft Identification Category = TC_IDENT = 4,
 	
 	// Translate and encode callsign
 	for (c = 0; c < 8; c++) {
@@ -100,42 +108,77 @@ std::string decode_frame_id(ADSBFrame& frame) {
 	frame.make_CRC();
 }*/
 
-void encode_frame_squawk(ADSBFrame& frame, const uint32_t squawk) {
-	uint32_t squawk_coded;
+// Mode S services. (Mode Select Beacon System). There are two types of Mode S interrogations: The short (56 bits) . and the long (112 bits )
+// All known DF's >=16 are long frame msg  (112 bits). All known DF's <=15 are short frame msgs (56 bits).(In this case 112 bits)
+// Identity squawk replies can be DF=5 (Surveillance Identity reply)(56 bits)  / DF 21 (Comm-B with Identity reply) (112 bits)
+// DF 21: Comm-B with identity reply structure = |DF=21(5 bits)|FS (3 bits)|DR (5 bits)|UM (6 bits) |Identity squawk code (13 bits) |MB (56 bits) |CRC (24 bits) (total 112 bits)
+// Comm-B messages count for a large portion of the Mode S selective interrogation responses.(means, only transmitted information upon selective request)
+// Comm-B messages protocol supports many different types of msg's (up to 255).The three more popular ones are the following ones: 
+// (a) Mode S ELementary Surveillance (ELS) / (b) Mode S EnHanced Surveillance (EHS) / (c) Meteorological information
+// Comm-B Data Selector (BDS) is an 8-bit code that determines which information to be included in the MB fields
+
+void encode_frame_squawk(ADSBFrame& frame, const uint16_t squawk) {
+	uint16_t squawk_coded;   
+	uint8_t  UM_field=0b111101,  FS=0b010, DR=0b00001 ;   
+
+	// To be sent those fields, (56 bits). We should store byte by byte into the frame , and  It will be transmitted byte to byte same  FIFO order.
+	// DF 			  5 bits    5		DF=21 (5 top bits) Downlink Format 
+	// FS 			  3 bits    0b000, 	FS (3 bottom bits) (Flight status ) = 000 : no alert, no SPI, aircraft is airborne
+	// DR 			  5 bits    0b00001  DR (Downlink request) (5 top bits)  = 00000 : no downlink request (In surveillance replies, only values 0, 1, 4, and 5 are used.) 
+	// UM 			  6 bits    0b000010 UM (Utility message)= 000000, Utility message (UM): 6 bits, contains transponder communication status information.(IIS + IDS)
+	// Identity_code 13 bits	squawk id_code in special interleaved format.
+	// MB			 56 bits
+	// CRC partity 	 24 bits    parity checksum , cyclic redundancy chek.
 	
 	frame.clear();
+	frame.push_byte( ( DF_EHS_SQUAWK << 3 ) | FS );		// DF=21 (5bits) + FS (3bits,  010 : alert, NO SPI, aircraft is airborne)
+	frame.push_byte(( DR <<3 ) | ( UM_field>>3) );		// DR  (5bits, 00001 : downlink request + 3 top bits of UM , let's use 0b111000
 	
-	frame.push_byte(DF_EHS_SQUAWK << 3);	// DF
-	frame.push_byte(0);
-	
-	// 12 11 10  9  8  7  6  5  4  3  2  1  0
-	// 31 30 29 28 27 26 25 24 23 22 21 20 19
-	// D4 B4 D2 B2 D1 B1 __ A4 C4 A2 C2 A1 C1
+	// 12 11 10  9  8  7  6  5  4  3  2  1  0         (Original notes) bit weight position----------------------
+	// 32 31 30 29 28 27 26 25 24 23 22 21 20         (it was wrong , now corrected) bit order inside frame msg  
+	// D4 B4 D2 B2 D1 B1 __ A4 C4 A2 C2 A1 C1         standard spec order of the 13 bits,  to be sent , each octal digit = 3 bits , (example A=7 binary A4 A2 A0 = 111
 	// ABCD = code (octal, 0000~7777)
 	
-	// FEDCBA9876543210
-	// xAAAxBBBxCCCxDDD
-	// x421x421x421x421
+	// FEDCBA9876543210       
+	// xAAAxBBBxCCCxDDD   4 x 3 bits (each octal digit)
+	// x421x421x421x421   binary weight of each binary position,  example AAA = 7 = 111 -------------------------
+
+	// Additional , expanded  notes -------------------------------
+	// Identity squawk code ABCD = code (octal, 0000~7777) , input concatenated squawk : 4 octal digits ,A4 A2 A1-B4 B2 B1-C4 C2 C1-D4 D2 D1.
+	// 17	18	19	20	21	22	23	24	25	26	 27	28	29	30	31	32	 	bit position of the frame msg, (Squawk id is bit 20-32, from C1..D4).
+	// UM4	UM2	UM1	C1	A1	C2	A2	C4	A4 	X    B1	D1	B2	D2	B4	D4      3 lower bit UM4,UM2,UM1 of the UM (6bits), and we should re-order the 13 bits ABCD changing 12 bit poistion based on std.
+	// 15	14	13	12	11	10	9	8	7	6	 5	4	3	2	1	0       Two bytes , bit position  to be send.
+		
+ squawk_coded = ( (( UM_field & (0b111)) <<13) | ((squawk <<  9) & 0x1000) ) |  // C1	It also leaves in the top 3 lower bottom bitd part of UM field.						
+				((squawk <<  2) & 0x0800) |  // A1					
+				((squawk <<  6) & 0x0400) |  // C2					
+				((squawk >>  1) & 0x0200) |  // A2					
+				((squawk <<  3) & 0x0100) |  // C4					
+				((squawk >>  4) & 0x0080) |  // A4					
+								
+				((squawk >>  1) & 0x0020) |  // B1					
+				((squawk <<  4) & 0x0010) |  // D1					
+				((squawk >>  4) & 0x0008) |  // B2					
+				((squawk <<  1) & 0x0004) |  // D2					
+				((squawk >>  7) & 0x0002) |  // B4					
+				((squawk >>  2) & 0x0001);   // D4					
+
+	frame.push_byte(squawk_coded>>8);		// UM4	UM2	 UM1 C1	A1	C2	A2	C4  that is the correct order, confirmed with dump1090
+	frame.push_byte(squawk_coded);			// A4   X(1) B1	 D1	B2	D2	B4	D4  that is the correct order, confirmed with dupm1090
+
+	// DF 21 messages , has  56 bits more after 13 bits of squawk, we should add MB (56 bits) 
+	// In this example, we are adding fixed MB = Track and turn report (BDS 5,0) decoding MB example = "F9363D3BBF9CE9" (56 bits)
+		// # -9.7, roll angle (deg) 
+		// # 140.273, track angle (deg) 
+		// # -0.406, track angle rate (deg/s) 
+		// # 476, ground speed (kt)
+		// # 466, TAS (kt) 
 	
-	squawk_coded = ((squawk << 10) & 0x1000) |	// D4
-					((squawk << 1) & 0x0800) |	// B4
-					((squawk << 9) & 0x0400) |	// D2
-					((squawk << 0) & 0x0200) |	// B2
-					((squawk << 8) & 0x0100) |	// D1
-					((squawk >> 1) & 0x0080) |	// B1
-					
-					((squawk >> 9) & 0x0020) |	// A4
-					((squawk >> 2) & 0x0010) |	// C4
-					((squawk >> 10) & 0x0008) |	// A2
-					((squawk >> 3) & 0x0004) |	// C2
-					((squawk >> 11) & 0x0002) |	// A1
-					((squawk >> 4) & 0x0001);	// C1
-	
-	frame.push_byte(squawk_coded >> 5);
-	frame.push_byte(squawk_coded << 3);
-	
+	frame.push_byte(0xF9);frame.push_byte(0x36);frame.push_byte(0x3D);frame.push_byte(0x3B);	// If we deltele those two lines,  to send this fixed MB (56 bits), 
+	frame.push_byte(0xBF);frame.push_byte(0x9C);frame.push_byte(0xE9);  						// current fw is padding with 56 x 0's to complete 112 bits msg.
+
 	frame.make_CRC();
-}
+ }
 
 float cpr_mod(float a, float b) {
 	return a - (b * floor(a / b));
@@ -182,6 +225,13 @@ float cpr_Dlon(float lat, int is_odd) {
     return 360.0 / cpr_N(lat, is_odd);
 }
 
+// An ADS-B frame Civil aircraft message type starts with Dowlink Format (DF=17) and frame is 112 bits long. 
+// All known DF's >=16 are long (112 bits). All known DF's <=15 are short (56 bits). (In this case 112 bits)
+// Msg structure consists of five main parts :|DF=17 (5 bits)|CA (3 bits)|ICAO (24 bits)|ME (56 bits)|CRC (24 bits) 
+// Airborne position msg  struct, the ME (56 bits) = |TC,5 bits| SS, 2 bits | SAF, 1 | ALT, 12 | T, 1 | F, 1 | LAT-CPR, 17 | LON-CPR, 17
+// TC : (1..4) : Aircraft identification Type Code. // TC : 9 to 18: Airbone postion and altitude // TC : 19 Airbone velocity .
+// Airborne position message is used to broadcast the position and altitude of the aircraft. It has the Type Code 9–18 and 20–22. (here , we use TC=11)
+
 void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32_t altitude,
 	const float latitude, const float longitude, const uint32_t time_parity) {
 	
@@ -189,7 +239,7 @@ void encode_frame_pos(ADSBFrame& frame, const uint32_t ICAO_address, const int32
 	uint32_t lat, lon;
 	float delta_lat, yz, rlat, delta_lon, xz;
 	
-	make_frame_adsb(frame, ICAO_address);
+	make_frame_adsb(frame, ICAO_address);		// Header DF=17 (long frame 112 bits)
 	
 	frame.push_byte(TC_AIRBORNE_POS << 3);		// Bits 2~1: Surveillance Status, bit 0: NICsb
 	
@@ -302,31 +352,41 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 	return position;
 }
 
-// speed is in knots
-// vertical rate is in ft/min
+// An ADS-B frame is 112 bits long. Civil aircraft ADS-B message starts with the Downlink Format ,DF=17.
+// Msg structure  consists of five main parts :|DF=17 (5 bits)|CA (3 bits)|ICAO (24 bits)|ME (56 bits)|CRC (24 bits) 
+// Airborne velocities are all transmitted with Type Code 19 ( TC=19 ) inside ME (56 bits)
+// [units] : speed is in knots,    vertical rate climb / descend  is in ft/min
+
 void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint32_t speed,
 	const float angle, const int32_t v_rate) {
 	
-	int32_t velo_ew, velo_ns, v_rate_coded;
+	int32_t velo_ew, velo_ns;
 	uint32_t velo_ew_abs, velo_ns_abs, v_rate_coded_abs;
 	
 	// To get NS and EW speeds from speed and bearing, a polar to cartesian conversion is enough
-	velo_ew = static_cast<int32_t>(sin_f32(DEG_TO_RAD(angle) + (pi / 2)) * speed);
-	velo_ns = static_cast<int32_t>(sin_f32(DEG_TO_RAD(angle)) * speed);
+	velo_ew = static_cast<int32_t>(sin_f32(DEG_TO_RAD(angle)  ) * speed);	            // East direction, is the projection from West -> East is directly sin(angle=Compas Bearing) , (90º is the max +1, EAST) max velo_EW 	
+	velo_ns = static_cast<int32_t>(sin_f32( (pi/2 - DEG_TO_RAD(angle) )  ) * speed);    // North direction,is the projection of North = cos(angle=Compas Bearing), cos(angle)= sen(90-angle) (0º is the max +1 NORTH) max velo_NS                                    
 	
-	v_rate_coded = (v_rate / 64) + 1;
+	v_rate_coded_abs = (abs(v_rate) / 64) + 1;									//encoding vertical rate source.  (Decoding, VR ft/min = (Decimal v_rate_value - 1)* 64) 
 	
-	velo_ew_abs = abs(velo_ew) + 1; 
-	velo_ns_abs = abs(velo_ns) + 1;
-	v_rate_coded_abs = abs(v_rate_coded);
+	velo_ew_abs = abs(velo_ew) + 1; 											// encoding Velo speed EW , when sign Direction is 0 (+): West->East, (-) 1: East->West
+	velo_ns_abs = abs(velo_ns) + 1;												// encoding Velo speed NS , when sign Direction is 0 (+): South->North , (-) 1: North->South
+		
+	make_frame_adsb(frame, ICAO_address);										// Header DF=17 (long frame 112 bits)
 	
-	make_frame_adsb(frame, ICAO_address);
+	// Airborne velocities are all transmitted with Type Code 19 ( TC=19, using 5 bits ,TC=19 [Binary: 10011]), the following 3 bits are Subt-type Code ,SC= 1,2,3,4 
+	// SC Subtypes code  1 and 2 are used to report ground speeds of aircraft. (SC 3,4 to used to report true airspeed. SC 2,4 are for supersonic aircraft (not used in commercial airline).
+	frame.push_byte((TC_AIRBORNE_VELO << 3) | 1);		// 1st byte , top 5 bits Type Code TC=19, and lower 3 bits (38-40 bits), SC=001 Subtype Code SC: 1 (subsonic) , 
 	
-	frame.push_byte((TC_AIRBORNE_VELO << 3) | 1);		// Subtype: 1 (subsonic)
+	// Message A, (ME bits from 14-35) , 22 bits = Sign ew(1 bit) + V_ew (10 bits) + Sign_ns (1 bit)  + V_ns (10 bits) 
+	// Vertical rate source bit VrSrc (ME bit 36) indicates source of the altitude measurements. GNSS altitude(0) /  , barometric altitude(1).
+	// Vertical rate source direction,(ME bit 37)  movement can be read from Svr bit , with 0 and 1 referring to climb and descent, respectively (ft/min)
+    // The encoded vertical rate value VR can be computed using message (ME bits 38 to 46). If the 9-bit block contains all zeros, the vertical rate information is not available.
+	// + Sign VrSrc (vert rate src)  (1 bit)+ VrSrc (9 bits).  
 	frame.push_byte(((velo_ew < 0 ? 1 : 0) << 2) | (velo_ew_abs >> 8));
 	frame.push_byte(velo_ew_abs);
 	frame.push_byte(((velo_ns < 0 ? 1 : 0) << 7) | (velo_ns_abs >> 3));
-	frame.push_byte((velo_ns_abs << 5) | ((v_rate_coded < 0 ? 1 : 0) << 3) | (v_rate_coded_abs >> 6));	// VrSrc = 0
+	frame.push_byte((velo_ns_abs << 5) | ((v_rate < 0 ? 1 : 0) << 3) | (v_rate_coded_abs >> 6));	// VrSrc = 0
 	frame.push_byte(v_rate_coded_abs << 2);
 	frame.push_byte(0);
 	
@@ -362,11 +422,11 @@ adsb_vel decode_frame_velo(ADSBFrame& frame){
 		if(frame_data[5]&0x04) velo_ew *= -1; //check ew direction sign
 		if(frame_data[7]&0x80) velo_ns *= -1; //check ns direction sign
 
-		velo.speed = sqrt(velo_ns*velo_ns + velo_ew*velo_ew);
+		velo.speed = fast_int_magnitude(velo_ns,velo_ew);
 		
 		if(velo.speed){
 			//calculate heading in degrees from ew/ns velocities
-			int16_t heading_temp = (int16_t)(atan2(velo_ew,velo_ns) * 180.0 / pi); 
+			int16_t heading_temp = (int16_t)(int_atan2(velo_ew,velo_ns)); // Nearest degree
 			// We don't want negative values but a 0-360 scale. 
 			if (heading_temp < 0) heading_temp += 360.0;
 			velo.heading = (uint16_t)heading_temp;

@@ -44,10 +44,14 @@ constexpr uint64_t scm_preamble_and_sync_manchester { 0b101010101001011001100110
 constexpr size_t scm_preamble_and_sync_length { 42 - 10 };
 constexpr size_t scm_payload_length_max { 150 };
 
+// ''.join(['%d%d' % (c, 1-c) for c in map(int, bin(0x16a3)[2:].zfill(16))])
+constexpr uint64_t scmplus_preamble_and_sync_manchester { 0b01010110011010011001100101011010 };
+constexpr size_t scmplus_preamble_and_sync_length { 32 - 0 };
+constexpr size_t scmplus_payload_length_max { 224 };
+
 // ''.join(['%d%d' % (c, 1-c) for c in map(int, bin(0x555516a3)[2:].zfill(32))])
 constexpr uint64_t idm_preamble_and_sync_manchester { 0b0110011001100110011001100110011001010110011010011001100101011010 };
 constexpr size_t idm_preamble_and_sync_length { 64 - 16 };
-
 constexpr size_t idm_payload_length_max { 1408 };
 
 class ERTProcessor : public BasebandProcessor {
@@ -80,6 +84,15 @@ private:
 		}
 	};
 
+	PacketBuilder<BitPattern, NeverMatch, FixedLength> scmplus_builder {
+		{ scmplus_preamble_and_sync_manchester, scmplus_preamble_and_sync_length, 1 },
+		{ },
+		{ scmplus_payload_length_max },
+		[this](const baseband::Packet& packet) {
+			this->scmplus_handler(packet);
+		}
+	};
+	
 	PacketBuilder<BitPattern, NeverMatch, FixedLength> idm_builder {
 		{ idm_preamble_and_sync_manchester, idm_preamble_and_sync_length, 1 },
 		{ },
@@ -91,6 +104,7 @@ private:
 
 	void consume_symbol(const float symbol);
 	void scm_handler(const baseband::Packet& packet);
+	void scmplus_handler(const baseband::Packet& packet);
 	void idm_handler(const baseband::Packet& packet);
 
 	float sum_half_period[2];

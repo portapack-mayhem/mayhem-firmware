@@ -38,7 +38,7 @@ public:
 	~WipeSDView();
 	void focus() override;
 	
-	std::string title() const override { return "Wipe SD Card"; };	
+	std::string title() const override { return "Wipe sdcard"; };	
 
 private:
 	NavigationView& nav_;

@@ -219,7 +219,6 @@ private:
 		TouchDetected,
 	};
 
-	static constexpr float r_touch_threshold = 640;
 	static constexpr size_t touch_count_threshold { 3 };
 	static constexpr uint32_t touch_stable_bound { 8 };
 

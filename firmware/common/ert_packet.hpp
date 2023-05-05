@@ -45,6 +45,7 @@ public:
 		Unknown = 0,
 		IDM = 1,
 		SCM = 2,
+		SCMPLUS = 3,
 	};
 
 	Packet(
@@ -80,7 +81,7 @@ private:
 	const Reader reader_;
 	const Type type_;
 
-	bool crc_ok_idm() const;
+	bool crc_ok_ccitt() const;
 	bool crc_ok_scm() const;
 };
 

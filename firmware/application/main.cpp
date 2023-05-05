@@ -145,14 +145,14 @@ Continuous (Fox-oring)
 rffc507x::RFFC507x first_if;
 
 static void event_loop() {
-	ui::Context context;
-	ui::SystemView system_view {
+	static ui::Context context;
+	static ui::SystemView system_view {
 		context,
 		portapack::display.screen_rect()
 	};
 
 	EventDispatcher event_dispatcher { &system_view, context };
-	MessageHandlerRegistration message_handler_display_sleep {
+	static MessageHandlerRegistration message_handler_display_sleep {
 		Message::ID::DisplaySleep,
 		[&event_dispatcher](const Message* const) {
 			event_dispatcher.set_display_sleep(true);
@@ -182,7 +182,7 @@ int main(void) {
 		portapack::shutdown();
 	}
 
-	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf);
+	m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf, true);
 	m0_halt();
 
 	return 0;

@@ -206,7 +206,7 @@ void SoundBoardView::refresh_list() {
 				file_list[n].string().substr(0, 30),
 				ui::Color::white(),
 				nullptr,
-				[this](){
+				[this](KeyEvent){
 					on_select_entry();
 				}
 			});

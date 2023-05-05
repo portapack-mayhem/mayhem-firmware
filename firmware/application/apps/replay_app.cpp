@@ -161,10 +161,16 @@ void ReplayAppView::start() {
 		sample_rate * 8,
 		baseband_bandwidth,
 		rf::Direction::Transmit,
-        rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
+		rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
 		static_cast<int8_t>(receiver_model.lna()),
 		static_cast<int8_t>(receiver_model.vga())
 	});  
+	
+	if (portapack::persistent_memory::stealth_mode()){
+		DisplaySleepMessage message;
+		EventDispatcher::send_message(message);
+	}
+	
 } 
 
 void ReplayAppView::stop(const bool do_loop) {

@@ -125,7 +125,7 @@ public:
 
 	void focus() override;
 
-	std::string title() const override { return "ERT Meter RX"; };
+	std::string title() const override { return "ERT RX"; };
 
 private:
 	ERTRecentEntries recent { };

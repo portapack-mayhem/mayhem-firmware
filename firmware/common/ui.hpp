@@ -325,7 +325,8 @@ enum class KeyEvent {
 	Down = 2,
 	Up = 3,
 	Select = 4,
-	Back = 5, /* Left and Up together */
+	Dfu = 5,
+	Back = 6, /* Left and Up together */
 };
 
 using EncoderEvent = int32_t;
@@ -342,6 +343,8 @@ struct TouchEvent {
 };
 
 Point polar_to_point(float angle, uint32_t distance);
+
+Point fast_polar_to_point(int32_t angle, uint32_t distance);
 
 } /* namespace ui */
 

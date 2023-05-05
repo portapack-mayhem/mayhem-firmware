@@ -26,11 +26,17 @@
 #include <ch.h>
 
 void* operator new(size_t size) {
-	return chHeapAlloc(0x0, size);
+	void *p = chHeapAlloc(0x0, size);
+	if (p == nullptr)
+		chDbgPanic("Out of Memory");
+	return p;
 }
 
 void* operator new[](size_t size) {
-	return chHeapAlloc(0x0, size);
+	void *p = chHeapAlloc(0x0, size);
+	if (p == nullptr)
+		chDbgPanic("Out of Memory");
+	return p;
 }
 
 void operator delete(void* p) noexcept {

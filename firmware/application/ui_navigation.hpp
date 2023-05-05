@@ -33,6 +33,7 @@
 #include "ui_channel.hpp"
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
+#include "ui_dfu_menu.hpp"
 
 #include "bitmap.hpp"
 #include "ff.h"
@@ -75,6 +76,15 @@ namespace ui
 		{
 			return reinterpret_cast<T *>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
 		}
+
+		// Pushes a new view under the current on the stack so the current view returns into this new one.
+		template <class T, class... Args>
+		void push_under_current(Args &&...args)
+		{
+			auto new_view = std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...));
+			view_stack.insert(view_stack.end() - 1, std::move(new_view));
+		}
+
 		template <class T, class... Args>
 		T *replace(Args &&...args)
 		{
@@ -125,7 +135,7 @@ namespace ui
 			Color::dark_grey()};
 
 		ImageButton button_back{
-			{2, 0 * 16, 16, 16},
+			{0, 0 * 16, 12 * 8, 16},//back button is long enough to cover the title area to make it easier to touch
 			&bitmap_icon_previous,
 			Color::white(),
 			Color::dark_grey()};
@@ -142,10 +152,17 @@ namespace ui
 			Color::dark_grey()};
 
 		ImageButton button_speaker{
-			{17 * 8, 0, 2 * 8, 1 * 16},
+			{15 * 8, 0, 2 * 8, 1 * 16},
 			&bitmap_icon_speaker_mute,
 			Color::light_grey(),
 			Color::dark_grey()};
+
+		ImageButton button_converter{
+			{17 * 8, 0, 2 * 8, 1 * 16},
+			&bitmap_icon_upconvert,
+			Color::light_grey(),
+			Color::dark_grey()
+		};
 
 		ImageButton button_stealth{
 			{19 * 8, 0, 2 * 8, 1 * 16},
@@ -187,6 +204,7 @@ namespace ui
 		SDCardStatusView sd_card_status_view{
 			{28 * 8, 0 * 16, 2 * 8, 1 * 16}};
 
+		void on_converter();
 		void on_speaker();
 		void on_stealth();
 		void on_bias_tee();
@@ -282,10 +300,15 @@ namespace ui
 			const Rect parent_rect);
 
 		Context &context() const override;
+		void toggle_overlay();
+		void paint_overlay();
 
 	private:
+		bool overlay_active {false};
+
 		SystemStatusView status_view{navigation_view};
 		InformationView info_view{navigation_view};
+		DfuMenu overlay{navigation_view};
 		NavigationView navigation_view{};
 		Context &context_;
 	};

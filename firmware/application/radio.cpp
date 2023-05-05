@@ -25,6 +25,7 @@
 
 #include "rffc507x.hpp"
 #include "max2837.hpp"
+#include "max2839.hpp"
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 
@@ -39,6 +40,7 @@ using namespace hackrf::one;
 #include "cpld_update.hpp"
 
 #include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 namespace radio {
 
@@ -52,12 +54,12 @@ static constexpr uint32_t ssp_scr(
 	return static_cast<uint8_t>(pclk_f / cpsr / spi_f - 1);
 }
 
-static constexpr SPIConfig ssp_config_max2837 = {
+static constexpr SPIConfig ssp_config_max283x = {
 	.end_cb = NULL,
-	.ssport = gpio_max2837_select.port(),
-	.sspad = gpio_max2837_select.pad(),
+	.ssport = gpio_max283x_select.port(),
+	.sspad = gpio_max283x_select.pad(),
 	.cr0 =
-		  CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max2837_spi_f))
+		  CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f))
 		| CR0_FRFSPI
 		| CR0_DSS16BIT
 		,
@@ -78,9 +80,9 @@ static constexpr SPIConfig ssp_config_max5864 = {
 
 static spi::arbiter::Arbiter ssp1_arbiter(portapack::ssp1);
 
-static spi::arbiter::Target ssp1_target_max2837 {
+static spi::arbiter::Target ssp1_target_max283x {
 	ssp1_arbiter,
-	ssp_config_max2837
+	ssp_config_max283x
 };
 
 static spi::arbiter::Target ssp1_target_max5864 {
@@ -90,16 +92,27 @@ static spi::arbiter::Target ssp1_target_max5864 {
 
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
-max2837::MAX2837 second_if { ssp1_target_max2837 };
+max283x::MAX283x *second_if;
+max2837::MAX2837 second_if_max2837 { ssp1_target_max283x };
+max2839::MAX2839 second_if_max2839 { ssp1_target_max283x };
 static max5864::MAX5864 baseband_codec { ssp1_target_max5864 };
 static baseband::CPLD baseband_cpld;
 
 static rf::Direction direction { rf::Direction::Receive };
+static bool baseband_invert = false;
+static bool mixer_invert = false;
 
 void init() {
+	if (hackrf_r9) {
+		gpio_r9_not_ant_pwr.write(1);
+		gpio_r9_not_ant_pwr.output();
+	}
 	rf_path.init();
 	first_if.init();
-	second_if.init();
+	second_if = hackrf_r9
+		? (max283x::MAX283x *) &second_if_max2839
+		: (max283x::MAX283x *) &second_if_max2837;
+	second_if->init();
 	baseband_codec.init();
 	baseband_cpld.init();
 }
@@ -121,7 +134,30 @@ void set_direction(const rf::Direction new_direction) {
 	
 	direction = new_direction;
 	
-	second_if.set_mode((direction == rf::Direction::Transmit) ? max2837::Mode::Transmit : max2837::Mode::Receive);
+	if (hackrf_r9) {
+		/*
+		 * HackRF One r9 inverts analog baseband only for RX. Previous hardware
+		 * revisions inverted analog baseband for neither direction because of
+		 * compensation in the CPLD. If we ever simplify the CPLD to handle RX
+		 * and TX the same way, we will need to update this baseband_invert
+		 * logic.
+		 */
+		baseband_invert = (direction == rf::Direction::Receive);
+	} else {
+		/*
+		 * Analog baseband is inverted in RX but not TX. The RX inversion is
+		 * corrected by the CPLD, but future hardware or CPLD changes may
+		 * change this for either or both directions. For a given hardware+CPLD
+		 * platform, baseband inversion is set here for RX and/or TX. Spectrum
+		 * inversion resulting from the mixer is tracked separately according
+		 * to the tuning configuration. We ask the CPLD to apply a correction
+		 * for the total inversion.
+		 */
+		baseband_invert = false;
+	}
+	baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
+
+	second_if->set_mode((direction == rf::Direction::Transmit) ? max283x::Mode::Transmit : max283x::Mode::Receive);
 	rf_path.set_direction(direction);
 
 	baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
@@ -133,7 +169,20 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
-	const auto tuning_config = tuning::config::create(frequency);
+	rf::Frequency final_frequency = frequency ;
+	// if feature is enabled
+	if( portapack::persistent_memory::config_converter() ) {
+		//downconvert
+		if( portapack::persistent_memory::config_updown_converter() )
+		{
+			final_frequency = frequency - portapack::persistent_memory::config_converter_freq();
+		}
+		else //upconvert
+		{
+			final_frequency = frequency + portapack::persistent_memory::config_converter_freq();
+		}
+	}
+	const auto tuning_config = tuning::config::create(final_frequency);
 	if( tuning_config.is_valid() ) {
 		first_if.disable();
 
@@ -142,10 +191,11 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 			first_if.enable();
 		}
 
-		const auto result_second_if = second_if.set_frequency(tuning_config.second_lo_frequency);
+		const auto result_second_if = second_if->set_frequency(tuning_config.second_lo_frequency);
 
 		rf_path.set_band(tuning_config.rf_path_band);
-		baseband_cpld.set_invert(tuning_config.baseband_invert);
+		mixer_invert = tuning_config.mixer_invert;
+		baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 
 		return result_second_if;
 	} else {
@@ -165,19 +215,19 @@ void set_rf_amp(const bool rf_amp) {
 }
 
 void set_lna_gain(const int_fast8_t db) {
-	second_if.set_lna_gain(db);
+	second_if->set_lna_gain(db);
 }
 
 void set_vga_gain(const int_fast8_t db) {
-	second_if.set_vga_gain(db);
+	second_if->set_vga_gain(db);
 }
 
 void set_tx_gain(const int_fast8_t db) {
-	second_if.set_tx_vga_gain(db);
+	second_if->set_tx_vga_gain(db);
 }
 
 void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
-	second_if.set_lpf_rf_bandwidth(bandwidth_minimum);
+	second_if->set_lpf_rf_bandwidth(bandwidth_minimum);
 }
 
 void set_baseband_rate(const uint32_t rate) {
@@ -186,13 +236,17 @@ void set_baseband_rate(const uint32_t rate) {
 
 void set_antenna_bias(const bool on) {
 	/* Pull MOSFET gate low to turn on antenna bias. */
-	first_if.set_gpo1(on ? 0 : 1);
+	if (hackrf_r9) {
+		gpio_r9_not_ant_pwr.write(on ? 0 : 1);
+	} else {
+		first_if.set_gpo1(on ? 0 : 1);
+	}
 }
 
 void disable() {
 	set_antenna_bias(false);
 	baseband_codec.set_mode(max5864::Mode::Shutdown);
-	second_if.set_mode(max2837::Mode::Standby);
+	second_if->set_mode(max2837::Mode::Standby);
 	first_if.disable();
 	set_rf_amp(false);
 	
@@ -227,11 +281,11 @@ uint32_t register_read(const size_t register_number) {
 namespace second_if {
 
 uint32_t register_read(const size_t register_number) {
-	return radio::second_if.read(register_number);
+	return radio::second_if->read(register_number);
 }
 
 uint8_t temp_sense() {
-	return radio::second_if.temp_sense() & 0x1f;
+	return radio::second_if->temp_sense() & 0x1f;
 }
 
 } /* namespace second_if */

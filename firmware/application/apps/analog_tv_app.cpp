@@ -57,6 +57,10 @@ AnalogTvView::AnalogTvView(
 		&tv
 	});
 
+	// Set on_change before initialising the field
+	field_frequency.on_change = [this](rf::Frequency f) {
+		this->on_tuning_frequency_changed(f);
+	};
 
 	// load app settings
 	auto rc = settings.load("rx_tv", &app_settings);
@@ -70,9 +74,6 @@ AnalogTvView::AnalogTvView(
 
 
 	field_frequency.set_step(receiver_model.frequency_step());
-	field_frequency.on_change = [this](rf::Frequency f) {
-		this->on_tuning_frequency_changed(f);
-	};
 	field_frequency.on_edit = [this, &nav]() {
 		// TODO: Provide separate modal method/scheme?
 		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());

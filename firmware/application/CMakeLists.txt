@@ -103,6 +103,7 @@ set(CSRC
 	${PLATFORMSRC}
 	${BOARDSRC}
 	${FATFSSRC}
+	firmware_info.c
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -124,7 +125,7 @@ set(CPPSRC
 	${COMMON}/cpld_max5.cpp
 	${COMMON}/cpld_update.cpp
 	${COMMON}/cpld_xilinx.cpp
-	${COMMON}/debug.cpp
+	debug.cpp
 	${COMMON}/ert_packet.cpp
 	${COMMON}/event.cpp
 	${COMMON}/gcc.cpp
@@ -154,6 +155,7 @@ set(CPPSRC
 	${COMMON}/ui_widget.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/performance_counter.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
@@ -193,6 +195,7 @@ set(CPPSRC
 	hw/debounce.cpp
 	hw/encoder.cpp
 	hw/max2837.cpp
+	hw/max2839.cpp
 	hw/max5864.cpp
 	hw/rffc507x.cpp
 	hw/rffc507x_spi.cpp
@@ -228,10 +231,13 @@ set(CPPSRC
 	apps/ui_nrf_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
+	apps/ui_dfu_menu.cpp
 	apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
+	apps/ui_flash_utility.cpp
+	apps/ui_sd_over_usb.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp
 	apps/ui_keyfob.cpp
@@ -272,6 +278,7 @@ set(CPPSRC
 	apps/soundboard_app.cpp
 	apps/ui_recon.cpp  
 	apps/ui_recon_settings.cpp
+	apps/ui_level.cpp  
 	apps/tpms_app.cpp
 	apps/tpms_app.cpp
 	protocols/aprs.cpp
@@ -314,7 +321,10 @@ set(TCSRC)
 set(TCPPSRC)
 
 # List ASM source files here
-set(ASMSRC ${PORTASM})
+set(ASMSRC
+	${PORTASM}
+	lz4.S
+)
 
 set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
 	${HALINC} ${PLATFORMINC} ${BOARDINC}

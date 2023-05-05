@@ -163,6 +163,8 @@ void MenuView::clear() {
 	}
 	
 	menu_items.clear();
+	highlighted_item = 0;
+	offset = 0;
 }
 
 void MenuView::add_item(MenuItem new_item) {
@@ -209,7 +211,7 @@ MenuItemView* MenuView::item_view(size_t index) const {
 bool MenuView::set_highlighted(int32_t new_value) {
 	int32_t item_count = (int32_t)menu_items.size();
 	
-	if (new_value < 0)
+	if (new_value < 0 || item_count == 0)
 		return false;
 	
 	if (new_value >= item_count)
@@ -238,7 +240,7 @@ bool MenuView::set_highlighted(int32_t new_value) {
 	return true;
 }
 
-uint32_t MenuView::highlighted_index() {
+uint32_t MenuView::highlighted_index() const {
 	return highlighted_item;
 }
 
@@ -262,7 +264,7 @@ bool MenuView::on_key(const KeyEvent key) {
 	case KeyEvent::Select:
 	case KeyEvent::Right:
 		if( menu_items[highlighted_item].on_select ) {
-			menu_items[highlighted_item].on_select();
+			menu_items[highlighted_item].on_select(key);
 		}
 		return true;
 

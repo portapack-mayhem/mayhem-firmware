@@ -44,57 +44,118 @@ inline void OOKProcessor::write_sample(const buffer_c8_t& buffer, uint8_t bit_va
 	buffer.p[i] = {re, im};
 }
 
-inline void OOKProcessor::duval_algo(const buffer_c8_t& buffer) {
+bool OOKProcessor::scan_init(unsigned int order) {
+	if (order > MAX_DE_BRUIJN_ORDER)
+		return false;
+
+	scan_done = false;
+	scan_progress = 0;
+
+	k = 0;
+	idx = 1;
+
+	duval_symbols = 2; // 2 for binary, 3 for ternary encoders
+	duval_length = 0;
+	duval_bit = 0;
+	duval_sample_bit = 0;
+	duval_symbol = 0;
+
+	memset(v, 0, sizeof(v));
+	return true;
+}
+
+bool OOKProcessor::scan_encode(const buffer_c8_t& buffer, size_t& buf_ptr) {
+	// encode data: 0 = 1000, 1 = 1110
+	// @TODO: make this user-configurable
+	const uint8_t sym[] = { 0b0001, 0b0111 };
+	constexpr auto symbol_length = 4;
+
+	// iterate over every symbol in the sequence and convert it to bits with required bitrate
+	for (; duval_bit < duval_length; duval_bit++) {
+		auto val = v_tmp[duval_bit];
+		for (; duval_symbol < symbol_length; duval_symbol++) {
+			auto s = sym[val] & (1 << duval_symbol);
+			for (; duval_sample_bit < samples_per_bit; duval_sample_bit++) {
+				if (buf_ptr >= buffer.count) {
+					// buffer is full - continue next time
+					txprogress_message.done = false;
+					txprogress_message.progress = scan_progress++;
+					shared_memory.application_queue.push(txprogress_message);
+					return false;
+				}
+				write_sample(buffer, s, buf_ptr++);
+			}
+			duval_sample_bit = 0;
+		}
+		duval_symbol = 0;
+	}
+	duval_bit = 0;
+	return true;
+}
+
+inline size_t OOKProcessor::duval_algo_step() {
 	size_t buf_ptr = 0;
 	const unsigned int w = de_bruijn_length;
 
 	// Duval's algorithm for generating de Bruijn sequence
 	while (idx) {
 		if (w % idx == 0) {
-			for (; k < idx; k++) {
-				size_t available_size = buffer.count - buf_ptr;
-				size_t len = (samples_per_bit > available_size) ? available_size : samples_per_bit;
-
-				for (; bit_ptr < len; bit_ptr++) {
-					write_sample(buffer, v[k], buf_ptr);
-					buf_ptr++;
-				}
-
-				if (buf_ptr == buffer.count) {
-					txprogress_message.done = false;
-					txprogress_message.progress = scan_progress++;
-					shared_memory.application_queue.push(txprogress_message);
-					return;
-				}
-
-				bit_ptr = 0;
-			}
-
+			for (unsigned int k = 0; k < idx; k++)
+				v_tmp[buf_ptr++] = v[k];
 			k = 0;
 		}
 
 		for (unsigned int j = 0; j < w - idx; j++)
 			v[idx + j] = v[j];
 
-		for (idx = w; idx > 0 && v[idx - 1]; idx--) ;
+		for (idx = w; (idx > 0) && (v[idx - 1] >= duval_symbols - 1); idx--) ;
 
 		if (idx)
-			v[idx - 1] = 1;
-	}
+			v[idx - 1]++;
 
-	// clear the buffer in case we have any bytes left
-	if (buf_ptr < buffer.count) {
-		for (size_t i = buf_ptr; i < buffer.count; i++) {
-			buffer.p[i] = {0, 0};
+		if (buf_ptr) {
+			// we fill at most de_bruijn_length number of elements
+			return buf_ptr;
 		}
 	}
 
-	if (!scan_done) {
-		txprogress_message.done = true;
-		shared_memory.application_queue.push(txprogress_message);
-	}
+	return 0;
+}
 
-	scan_done = 1;
+void OOKProcessor::scan_process(const buffer_c8_t& buffer) {
+	size_t buf_ptr = 0;
+
+	// transmit any leftover bits from previous step
+	if (!scan_encode(buffer, buf_ptr))
+		return;
+
+	while (1) {
+		// calculate next chunk of deBruijn sequence
+		duval_length = duval_algo_step();
+
+		if (duval_length == 0) {
+			// last chunk - done
+			if (!scan_done) {
+				txprogress_message.done = true;
+				shared_memory.application_queue.push(txprogress_message);
+			}
+			scan_done = 1;
+
+			// clear the remaining buffer in case we have any bytes left
+			for (size_t i = buf_ptr; i < buffer.count; i++)
+				buffer.p[i] = { 0, 0 };
+
+			break;
+		}
+
+		duval_bit = 0;
+		duval_sample_bit = 0;
+		duval_symbol = 0;
+
+		// encode the sequence into required format
+		if (!scan_encode(buffer, buf_ptr))
+			break;
+	}
 }
 
 void OOKProcessor::execute(const buffer_c8_t& buffer) {
@@ -103,7 +164,7 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 	if (!configured) return;
 
 	if (de_bruijn_length) {
-		duval_algo(buffer);
+		scan_process(buffer);
 		return;
 	}
 
@@ -175,22 +236,8 @@ void OOKProcessor::on_message(const Message* const p) {
 		}
 
 		if (de_bruijn_length) {
-			if (de_bruijn_length > sizeof(v)) {
+			if (!scan_init(de_bruijn_length))
 				return;
-			}
-
-			if (samples_per_bit > 2048) {
-				// can't handle more than dma::transfer_samples
-				return;
-			}
-
-			k = 0;
-			bit_ptr = 0;
-			idx = 1;
-			scan_done = false;
-			scan_progress = 0;
-
-			memset(v, 0, sizeof(v));
 		} else {
 			samples_per_bit /= 10;
 		}

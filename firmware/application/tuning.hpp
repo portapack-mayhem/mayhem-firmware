@@ -33,7 +33,7 @@ struct Config {
 	) : first_lo_frequency(0),
 		second_lo_frequency(0),
 		rf_path_band(rf::path::Band::Mid),
-		baseband_invert(false)
+		mixer_invert(false)
 	{
 	}
 
@@ -41,11 +41,11 @@ struct Config {
 		rf::Frequency first_lo_frequency,
 		rf::Frequency second_lo_frequency,
 		rf::path::Band rf_path_band,
-		bool baseband_invert
+		bool mixer_invert
 	) : first_lo_frequency(first_lo_frequency),
 		second_lo_frequency(second_lo_frequency),
 		rf_path_band(rf_path_band),
-		baseband_invert(baseband_invert)
+		mixer_invert(mixer_invert)
 	{
 	}
 
@@ -56,7 +56,7 @@ struct Config {
 	const rf::Frequency first_lo_frequency;
 	const rf::Frequency second_lo_frequency;
 	const rf::path::Band rf_path_band;
-	const bool baseband_invert;
+	const bool mixer_invert;
 };
 
 Config create(const rf::Frequency target_frequency);

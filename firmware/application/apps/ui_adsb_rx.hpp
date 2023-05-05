@@ -25,6 +25,7 @@
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "string_format.hpp"
 
 #include "file.hpp"
 #include "database.hpp"
@@ -39,9 +40,9 @@ using namespace adsb;
 
 namespace ui {
 
-#define ADSB_DECAY_A 		10		// In seconds
-#define ADSB_DECAY_B 		30
-#define ADSB_DECAY_C 		60		// Can be used for removing old entries, RecentEntries already caps to 64
+#define ADSB_CURRENT 		10		// Seconds
+#define ADSB_RECENT 		30		// Seconds
+#define ADSB_REMOVE 		300		// Used for removing old entries
 
 #define AIRCRAFT_ID_L		1		// aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H		4		// aircraft ID message type (highest type id)
@@ -83,14 +84,15 @@ struct AircraftRecentEntry {
 	ADSBFrame frame_pos_even { };
 	ADSBFrame frame_pos_odd { };
 	
+	std::string icaoStr {"      "};
 	std::string callsign { "        " };
-	std::string time_string { "" };
 	std::string info_string { "" };
 	
 	AircraftRecentEntry(
 		const uint32_t ICAO_address
 	) : ICAO_address { ICAO_address }
 	{
+		this->icaoStr = to_string_hex(ICAO_address, 6); 
 	}
 
 	Key key() const {
@@ -125,23 +127,20 @@ struct AircraftRecentEntry {
 		info_string = new_info_string;
 	}
 	
-	void set_time_string(std::string& new_time_string) {
-		time_string = new_time_string;
-	}
-
 	void reset_age() {
 		age = 0;
 	}
 	
-	void inc_age() {
-		age++;
-		if (age < ADSB_DECAY_A)
-		{
+	void inc_age(int delta) {
+		age+=delta;
+		if (age < ADSB_CURRENT){
 			age_state = pos.valid ? 0 : 1;
-		}
-		else
-		{
-			age_state = (age < ADSB_DECAY_B) ? 2 : 3;
+		} else if(age < ADSB_RECENT){
+			age_state = 2;
+		} else if(age < ADSB_REMOVE){
+			age_state = 3;
+		} else{
+			age_state = 4;
 		}
 	}
 };
@@ -273,10 +272,10 @@ public:
 
 	std::database::AirlinesDBRecord airline_record = {};
 	
+	GeoMapView* geomap_view { nullptr };
 private:
 	AircraftRecentEntry 		entry_copy { 0 };
 	std::function<void(void)> 	on_close_ { };
-	GeoMapView* 			geomap_view { nullptr };
 	ADSBRxAircraftDetailsView* 	aircraft_details_view { nullptr };
 	bool 				send_updates { false };
 	std::database 			db = { };	
@@ -364,6 +363,7 @@ public:
 	std::string title() const override { return "ADS-B RX"; };
 
 	void replace_entry(AircraftRecentEntry & entry);
+	void remove_old_entries();
 	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
 	void sort_entries_by_state();
 
@@ -372,24 +372,23 @@ private:
 	std::unique_ptr<ADSBLogger> logger { };
 	void on_frame(const ADSBFrameMessage * message);
 	void on_tick_second();
+	int updateState = { 0 };
+	void updateRecentEntries();
+	void updateDetailsAndMap(int ageStep);
+
+	#define MARKER_UPDATE_SECONDS (5)
+	int ticksSinceMarkerRefresh { MARKER_UPDATE_SECONDS-1 };
 	// app save settings
 	std::app_settings 		settings { }; 		
 	std::app_settings::AppSettings 	app_settings { };
 	
 	const RecentEntriesColumns columns { {
-#if false
-		{ "ICAO", 6 },
-		{ "Callsign", 9 },
-		{ "Hits", 4 },
-		{ "Time", 8 }
-#else
 		{ "ICAO/Call", 9 },
 		{ "Lvl", 3 },
 		{ "Spd", 3 },
 		{ "Amp", 3 },
 		{ "Hit", 3 },
 		{ "Age", 4 }
-#endif
 	} };
 	AircraftRecentEntries recent { };
 	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };

@@ -32,7 +32,11 @@ using namespace hackrf::one;
 
 namespace max2837 {
 
+using namespace max283x;
+
 namespace lna {
+
+using namespace max283x::lna;
 
 constexpr std::array<uint8_t, 8> lookup_8db_steps {
 	0b111, 0b011, 0b110, 0b010,
@@ -48,6 +52,8 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 
 namespace vga {
 
+using namespace max283x::vga;
+
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range.clip(db);
 	return ((db_sat >> 1) & 0b11111) ^ 0b11111;
@@ -56,6 +62,8 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 } /* namespace vga */
 
 namespace tx {
+
+using namespace max283x::tx;
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range.clip(db);
@@ -68,6 +76,8 @@ static uint_fast8_t gain_ordinal(const int8_t db) {
 } /* namespace tx */
 
 namespace filter {
+
+using namespace max283x::filter;
 
 static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
 	/* Determine filter setting that will provide bandwidth greater than or
@@ -84,13 +94,13 @@ static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
 constexpr float seconds_for_temperature_sense_adc_conversion = 30.0e-6;
 constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion = (base_m4_clk_f * seconds_for_temperature_sense_adc_conversion + 1);
 
-constexpr uint32_t reference_frequency = max2837_reference_f;
+constexpr uint32_t reference_frequency = max283x_reference_f;
 constexpr uint32_t pll_factor = 1.0 / (4.0 / 3.0 / reference_frequency) + 0.5;
 
 void MAX2837::init() {
 	set_mode(Mode::Shutdown);
 
-	gpio_max2837_enable.output();
+	gpio_max283x_enable.output();
 	gpio_max2837_rxenable.output();
 	gpio_max2837_txenable.output();
 
@@ -140,10 +150,30 @@ void MAX2837::init() {
 	set_mode(Mode::Standby);
 }
 
+enum class Mask {
+	Enable   = 0b001,
+	RxEnable = 0b010,
+	TxEnable = 0b100,
+	Shutdown = 0b000,
+	Standby  = Enable,
+	Receive  = Enable | RxEnable,
+	Transmit = Enable | TxEnable,
+};
+
+Mask mode_mask(const Mode mode) {
+	switch (mode) {
+		case Mode::Standby:  return Mask::Standby;
+		case Mode::Receive:  return Mask::Receive;
+		case Mode::Transmit: return Mask::Transmit;
+		default: return Mask::Shutdown;
+	}
+}
+
 void MAX2837::set_mode(const Mode mode) {
-	gpio_max2837_enable.write(toUType(mode) & toUType(Mode::Mask_Enable));
-	gpio_max2837_rxenable.write(toUType(mode) & toUType(Mode::Mask_RxEnable));
-	gpio_max2837_txenable.write(toUType(mode) & toUType(Mode::Mask_TxEnable));
+	Mask mask = mode_mask(mode);
+	gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
+	gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
+	gpio_max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
 }
 
 void MAX2837::flush() {

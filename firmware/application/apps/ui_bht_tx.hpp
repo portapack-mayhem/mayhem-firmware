@@ -179,7 +179,7 @@ public:
 
 	void focus() override;
 	
-	std::string title() const override { return "BHT Xy/EP TX"; };
+	std::string title() const override { return "BHT TX"; };
 
 private:
 	// app save settings

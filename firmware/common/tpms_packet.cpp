@@ -100,8 +100,8 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 	 * Preamble: 01*40
 	 * System ID: 01100101, ??*20 (not really sure what this data is)
 	 * ID: 32 Manchester symbols
-	 * Value: 8 Manchester symbols (temperature?)
-	 * Value: 8 Manchester symbols (pressure?)
+	 * Value: 8 Manchester symbols (pressure)
+	 * Value: 8 Manchester symbols (temperature)
 	 * Checksum: 8 Manchester symbols (uint8_t sum of bytes starting with system ID)
 	 */
 	/* NOTE: First four bits of packet are consumed in preamble detection.
@@ -123,8 +123,8 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
 		return Reading {
 			Reading::Type::GMC_96,
 			(uint32_t)id,
-			Pressure { static_cast<int>(value_1) * 4 / 3 },
-			Temperature { static_cast<int>(value_0) - 56 }
+			Pressure { static_cast<int>(value_0) * 11 / 4 },
+			Temperature { static_cast<int>(value_1) - 61 }
 		};
 	} else {
 		return { };

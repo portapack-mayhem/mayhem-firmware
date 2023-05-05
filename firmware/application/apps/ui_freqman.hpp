@@ -87,7 +87,7 @@ class FrequencySaveView : public FreqManBaseView {
 public:
 	FrequencySaveView(NavigationView& nav, const rf::Frequency value);
 
-	std::string title() const override { return "Save frequency"; };
+	std::string title() const override { return "Save freq."; };
 	
 private:
 	std::string desc_buffer { };
@@ -126,7 +126,7 @@ public:
 	
 	FrequencyLoadView(NavigationView& nav);
 
-	std::string title() const override { return "Load frequency"; };
+	std::string title() const override { return "Load freq."; };
 	
 private:
 	void refresh_widgets(const bool v);
@@ -137,7 +137,7 @@ public:
 	FrequencyManagerView(NavigationView& nav);
 	~FrequencyManagerView();
 
-	std::string title() const override { return "Freq. manager"; };
+	std::string title() const override { return "Freqman"; };
 	
 private:
 	std::string desc_buffer { };

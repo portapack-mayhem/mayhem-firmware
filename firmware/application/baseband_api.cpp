@@ -307,7 +307,7 @@ void run_image(const portapack::spi_flash::image_tag_t image_tag) {
 
 	creg::m4txevent::clear();
 
-	m4_init(image_tag, portapack::memory::map::m4_code);
+	m4_init(image_tag, portapack::memory::map::m4_code, false);
 	baseband_image_running = true;
 
 	creg::m4txevent::enable();

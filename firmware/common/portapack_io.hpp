@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <array>
 
+#include "platform.hpp"
 #include "gpio.hpp"
 #include "ui.hpp"
 
@@ -211,6 +212,10 @@ public:
 
 	uint32_t lcd_te() {
 		return gpio_rot_a.read();
+	}
+
+	uint32_t dfu_read() {
+		return gpio_rot_b.read();
 	}
 
 private:

@@ -156,6 +156,8 @@ void EncodersConfigView::generate_frame() {
 	for (auto c : encoder_def->word_format) {
 		if (c == 'S')
 			frame_fragments += encoder_def->sync;
+		else if (!c)
+			break;
 		else
 			frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
 	}
@@ -252,7 +254,8 @@ void EncodersView::start_tx(const bool scan) {
 		scan_width = view_scan.field_length.value();
 		samples_per_bit =
 			((view_scan.bit_length_10.value() * 10 + view_scan.bit_length.value()) * OOK_SAMPLERATE) / 1000000UL;
-		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * ((uint64_t) samples_per_bit) / 2048UL;
+		constexpr auto sym_len = 4;
+		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * ((uint64_t) samples_per_bit) * sym_len / 2048UL;
 		progressbar.set_max(seq_len);
 		repeat_min = seq_len;
 	} else {

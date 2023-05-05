@@ -45,8 +45,8 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		// Compute sample's magnitude
-		re = (int32_t)buffer.p[i].real(); // make re float and scale it
-		im = (int32_t)buffer.p[i].imag(); // make re float and scale it
+		re = (int32_t)buffer.p[i].real();
+		im = (int32_t)buffer.p[i].imag();
 		mag = ((uint32_t)(re*re) + (uint32_t)(im*im));
 
 		if (decoding) {
@@ -63,7 +63,6 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 				}
 				else 
 				{
-					//confidence = true;
 					bit = (prev_mag > mag) ? 1 : 0;
 				}
 				
@@ -94,7 +93,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 		}
 
 		// Continue looking for preamble even if in a packet
-		// switch is new preamble id higher magnitude
+		// switch if new preamble is higher magnitude
 			
 		// Shift the preamble
 		for (c = 0; c < (ADSB_PREAMBLE_LENGTH ); c++) { shifter[c] = shifter[c + 1]; }

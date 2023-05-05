@@ -49,7 +49,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 				// Sine
 				sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
 			} else if (tone_shape == 2) {
-				// Tri
+				// Triangle
 				int8_t a = (tone_phase & 0xFF000000) >> 24;
 				sample = (a & 0x80) ? ((a << 1) ^ 0xFF) - 0x80 : (a << 1) + 0x80;
 			} else if (tone_shape == 3) {
@@ -61,24 +61,40 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 			} else if (tone_shape == 5) {
 				// Square
 				sample = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;
-			} else if (tone_shape == 6) {
-				// Noise
-				sample = (lfsr & 0xFF000000) >> 24;
-				feedback = ((lfsr >> 31) ^ (lfsr >> 29) ^ (lfsr >> 15) ^ (lfsr >> 11)) & 1;
-				lfsr = (lfsr << 1) | feedback;
-				if (!lfsr) lfsr = 0x1337;				// Shouldn't do this :(
+			} else if (tone_shape == 6) { 	
+				// Noise generator, pseudo random noise generator, 16 bits linear-feedback shift register (LFSR) algorithm, variant Fibonacci.
+				// https://en.wikipedia.org/wiki/Linear-feedback_shift_register 
+				// 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
+				// Periode 65535= 2^n-1, quite continuous .  
+				if (counter == 0) {		// we slow down the shift register, because the pseudo random noise clock freq was too high for modulator.
+					bit_16 = ((lfsr_16 >> 0) ^ (lfsr_16 >> 1) ^ (lfsr_16 >> 3) ^ (lfsr_16 >> 4) ^ (lfsr_16 >> 12) & 1);
+        			lfsr_16 = (lfsr_16 >> 1) | (bit_16 << 15);
+					sample = (lfsr_16 & 0x00FF);					  // main pseudo random noise generator. 		
+				} 
+				if (counter == 5) {		// after many empiric test, that combination mix of >>4 and >>5, gives a reasonable trade off white noise / good rf power level .
+					sample = ((lfsr_16 & 0b0000111111110000) >> 4);   // just changing the spectrum shape .
+				}
+				if (counter == 10) {
+					sample = ((lfsr_16 & 0b0001111111100000) >> 5);   // just changing the spectrum shape .
+				}
+				counter++;
+				if (counter ==15) {	
+					counter=0; 
+				}		 
+			}
+
+			if (tone_shape < 6) 	{  // we are in periodic signals, we need tone phases update.
+				tone_phase += tone_delta;
 			}
 			
-			tone_phase += tone_delta;
-			
-			// Do FM
+			// Do FM modulation
 			delta = sample * fm_delta;
 			
 			phase += delta;
 			sphase = phase + (64 << 24);
 
 			re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
-			im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+			im = (sine_table_i8[( phase & 0xFF000000) >> 24]);
 		}
 
 		buffer.p[i] = {re, im};
@@ -104,7 +120,8 @@ void SigGenProcessor::on_message(const Message* const msg) {
 			fm_delta = message.bw * (0xFFFFFFULL / 1536000);
 			tone_shape = message.shape;
 			
-			lfsr = 0x54DF0119;
+			// lfsr = seed_value ;  		// Finally not used , init lfsr 8 bits.
+			 lfsr_16 = seed_value_16;	// init lfsr 16 bits.
 
 			configured = true;
 			break;

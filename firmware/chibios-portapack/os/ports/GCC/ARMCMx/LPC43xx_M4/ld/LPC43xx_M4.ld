@@ -25,8 +25,10 @@ MEMORY
 {
     flash (rx)  : org = 0x00000000, len = 32752	/* Local SRAM @ 0x10080000 */
     ram   (rwx) : org = 0x10000000, len = 96k   /* Local SRAM @ 0x10000000 */
+	ram_usb (rwx) : org = 0x20008000, len = 32K
 }
 
+usb_bulk_buffer         = ORIGIN(ram_usb);
 __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;

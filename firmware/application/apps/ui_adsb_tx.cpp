@@ -162,13 +162,16 @@ ADSBSpeedView::ADSBSpeedView(
 	
 	add_children({
 		&labels_speed,
+		&labels_vert_rate,
 		&compass,
 		&field_angle,
-		&field_speed
+		&field_speed,
+		&field_vert_rate
 	});
 	
 	field_angle.set_value(0);
 	field_speed.set_value(400);
+	field_vert_rate.set_value(0);
 	
 	field_angle.on_change = [this](int32_t v) {
 		compass.set_value(v);
@@ -181,7 +184,7 @@ void ADSBSpeedView::collect_frames(const uint32_t ICAO_address, std::vector<ADSB
 	ADSBFrame temp_frame;
 	
 	encode_frame_velo(temp_frame, ICAO_address, field_speed.value(),
-		field_angle.value(), 0);	// TODO: v_rate
+		field_angle.value(), field_vert_rate.value());				// Added v_rate ,  ft/min  ,  (+) climb ,  (-) descend .
 	
 	frame_list.emplace_back(temp_frame);
 }
@@ -204,7 +207,7 @@ void ADSBSquawkView::collect_frames(const uint32_t ICAO_address, std::vector<ADS
 	ADSBFrame temp_frame;
 	(void)ICAO_address;
 	
-	encode_frame_squawk(temp_frame, field_squawk.value_dec_u32());
+	encode_frame_squawk(temp_frame, field_squawk.concatenate_4_octal_u16());
 	
 	frame_list.emplace_back(temp_frame);
 }

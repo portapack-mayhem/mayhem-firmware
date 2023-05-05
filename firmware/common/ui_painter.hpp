@@ -49,8 +49,8 @@ public:
 	int draw_char(const Point p, const Style& style, const char c);
 
 	int draw_string(Point p, const Font& font, const Color foreground,
-		const Color background, const std::string text);
-	int draw_string(Point p, const Style& style, const std::string text);
+		const Color background, const std::string& text);
+	int draw_string(Point p, const Style& style, const std::string& text);
 
 	void draw_bitmap(const Point p, const Bitmap& bitmap, const Color background, const Color foreground);
 
