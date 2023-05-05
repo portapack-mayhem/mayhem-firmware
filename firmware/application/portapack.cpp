@@ -494,7 +494,7 @@ bool init() {
 
 		chThdSleepMilliseconds(10);
 		// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-		// Mode center (autodetect), up (R1) and down (R2,H2,H2) will go into hackrf mode after failing CPLD update
+		// Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
 		if (load_config() != 3 /* left */ && load_config() != 4 /* right */){
 			shutdown_base();
 			return false;
