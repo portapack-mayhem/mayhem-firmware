@@ -44,6 +44,7 @@ void controls_init();
 SwitchesState get_switches_state();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();
+SwitchesState read_raw_switches();
 
 namespace control {
 namespace debug {

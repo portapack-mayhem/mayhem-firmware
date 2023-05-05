@@ -232,7 +232,7 @@ static PortaPackModel portapack_model() {
 	static Optional<PortaPackModel> model;
 
 	if( !model.is_valid() ) {
-		const auto switches_state = get_switches_state();
+		const auto switches_state = read_raw_switches();
 		if (switches_state[(size_t)ui::KeyEvent::Up]){
 			save_config(1);
 			// model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
@@ -419,10 +419,13 @@ bool init() {
 	
 	portapack::io.init();
 
+	auto config = portapack_cpld_config();
+	auto cpld_update_possible = portapack::cpld::update_possible();
+	auto cpld_update_necessary = cpld_update_possible && !portapack::cpld::update_not_necessary(config);
+
 	portapack::display.init();
 	portapack::display.wake();
-	//static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
-	static_cast<portapack::Backlight*>(&backlight_on_off)->on();
+	backlight()->on();
 	int line = 1;
 	ui::Painter painter;
 	ui::Style style_default {
@@ -505,24 +508,23 @@ bool init() {
 	sd_card::poll_inserted();
 	chThdSleepMilliseconds(10);
 
-	auto config = portapack_cpld_config();
     painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
     painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
     painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 
-	// painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
-	chThdSleepMilliseconds(400);
+	if( cpld_update_necessary ) {
+		painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+		chThdSleepMilliseconds(400);
 
-	static_cast<portapack::Backlight*>(&backlight_on_off)->off();
-	display.shutdown();
+		backlight()->off();
+		display.shutdown();
 
-	if( portapack::cpld::update_possible() && !portapack::cpld::update_not_necessary(config) ) {
 		auto ok = portapack::cpld::update(config);
 		chThdSleepMilliseconds(10);
 
 		portapack::display.init();
 		portapack::display.wake();
-		static_cast<portapack::Backlight*>(&backlight_on_off)->on();
+		backlight()->on();
 
 		//restore messages
 		line = 1;
@@ -549,28 +551,12 @@ bool init() {
 				painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
 				chThdSleepMilliseconds(2000);
 
-				static_cast<portapack::Backlight*>(&backlight_on_off)->off();
+				backlight()->off();
 				display.shutdown();
 				shutdown_base();
 				return false;
 			}
 		}
-	}
-	else{
-		portapack::display.init();
-		portapack::display.wake();
-		static_cast<portapack::Backlight*>(&backlight_on_off)->on();
-
-		//restore messages
-		line = 1;
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
-		painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
-		painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
 	}
 
     painter.draw_string({ 8, line++ *20 }, style_default, "Initializing RAM");

@@ -148,6 +148,15 @@ static bool encoder_read() {
 	}
 }
 
+SwitchesState read_raw_switches() {
+	switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
+	switches_update(switches_raw);
+	switches_update(switches_raw);
+	switches_update(switches_raw);
+	switches_update(switches_raw);
+	return get_switches_state();
+}
+
 void timer0_callback(GPTDriver* const) {
 	eventmask_t event_mask = 0;
 	if( touch_update() ) event_mask |= EVT_MASK_TOUCH;
