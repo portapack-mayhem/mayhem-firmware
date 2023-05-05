@@ -489,20 +489,14 @@ bool init() {
 	
 	chThdSleepMilliseconds(10);
 
-	auto pp_config = portapack_cpld_config();
-	auto cpld_update_possible = portapack::cpld::update_possible(); //QFP100 CPLD fails this check. skip CPLD update
-	auto cpld_update_necessary = cpld_update_possible && portapack::cpld::update_necessary(pp_config);
-	if ( cpld_update_necessary ) {
-		auto ok = portapack::cpld::update(pp_config);
-
-		if( !ok ) {
-			chThdSleepMilliseconds(10);
-			// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-			// Mode center (autodetect), up (R1) and down (R2,H2,H2) will go into hackrf mode after failing CPLD update
-			if (load_config() != 3 /* left */ && load_config() != 4 /* right */){
-				shutdown_base();
-				return false;
-			}
+	uint32_t result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+	if ( result == 3 /* program failed */ ) {
+		chThdSleepMilliseconds(10);
+		// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+		// Mode center (autodetect), up (R1) and down (R2,H2,H2) will go into hackrf mode after failing CPLD update
+		if (load_config() != 3 /* left */ && load_config() != 4 /* right */){
+			shutdown_base();
+			return false;
 		}
 	}
 

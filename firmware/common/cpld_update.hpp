@@ -27,13 +27,8 @@
 namespace portapack {
 namespace cpld {
 
-bool update_possible();
 
-bool update_necessary(
-	const Config config
-);
-
-bool update(
+uint32_t update_if_necessary(
 	const Config config
 );
 

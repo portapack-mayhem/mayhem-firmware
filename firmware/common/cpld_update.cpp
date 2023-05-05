@@ -33,7 +33,9 @@
 namespace portapack {
 namespace cpld {
 
-bool update_possible() {
+uint32_t update_if_necessary(
+	const Config config
+) {
 	jtag::GPIOTarget target {
 		portapack::gpio_cpld_tck,
 		portapack::gpio_cpld_tms,
@@ -49,7 +51,7 @@ bool update_possible() {
 
 	/* Run-Test/Idle */
 	if( !cpld.idcode_ok() ) {
-		return false;
+		return 1;
 	}
 
 	cpld.sample();
@@ -60,43 +62,16 @@ bool update_possible() {
 	 * in passive state.
 	 */
 	if( !cpld.silicon_id_ok() ) {
-		return false;
+		return 2;
 	}
-
-	return true;
-}
-
-bool update_necessary(
-	const Config config
-) {
-	jtag::GPIOTarget target {
-		portapack::gpio_cpld_tck,
-		portapack::gpio_cpld_tms,
-		portapack::gpio_cpld_tdi,
-		portapack::gpio_cpld_tdo
-	};
-	jtag::JTAG jtag { target };
-	CPLD cpld { jtag };
 
 	/* Verify CPLD contents against current bitstream. */
 	auto ok = cpld.verify(config.block_0, config.block_1);
-	return !ok;
-}
-
-bool update(
-	const Config config
-) {
-	jtag::GPIOTarget target {
-		portapack::gpio_cpld_tck,
-		portapack::gpio_cpld_tms,
-		portapack::gpio_cpld_tdi,
-		portapack::gpio_cpld_tdo
-	};
-	jtag::JTAG jtag { target };
-	CPLD cpld { jtag };
 
 	/* CPLD verifies incorrectly. Erase and program with current bitstream. */
-	auto ok = cpld.program(config.block_0, config.block_1);
+	if( !ok ) {
+		ok = cpld.program(config.block_0, config.block_1);
+	}
 
 	/* If programming OK, reset CPLD to user mode. Otherwise leave it in
 	 * passive (ISP) state.
@@ -111,7 +86,7 @@ bool update(
 		cpld.disable();
 	}
 
-	return ok;
+	return ok ? 0 : 3;
 }
 
 } /* namespace cpld */
