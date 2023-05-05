@@ -66,7 +66,20 @@ bool update_possible() {
 	return true;
 }
 
-bool update_not_necessary(
+uint32_t get_cpld_id(){
+		jtag::GPIOTarget target {
+		portapack::gpio_cpld_tck,
+		portapack::gpio_cpld_tms,
+		portapack::gpio_cpld_tdi,
+		portapack::gpio_cpld_tdo
+	};
+	jtag::JTAG jtag { target };
+	CPLD cpld { jtag };
+
+	return cpld.get_idcode();
+}
+
+bool update_necessary(
 	const Config config
 ) {
 	jtag::GPIOTarget target {
@@ -80,7 +93,7 @@ bool update_not_necessary(
 
 	/* Verify CPLD contents against current bitstream. */
 	auto ok = cpld.verify(config.block_0, config.block_1);
-	return ok;
+	return !ok;
 }
 
 bool update(

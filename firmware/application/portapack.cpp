@@ -353,6 +353,60 @@ static void shutdown_base() {
 	clock_manager.shutdown();
 }
 
+void ramp_up_cpu_clock(){
+	clock_manager.init_clock_generator();
+
+	i2c0.stop();
+
+	chThdSleepMilliseconds(10);
+
+	set_clock_config(clock_config_irc);
+	cgu::pll1::disable();
+
+	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
+	 * core clock speed to the 110 - 204MHz range.
+	 */
+
+	/* Step into the 90-110MHz M4 clock range */
+	/* OG:
+	 * 	Fclkin = 40M
+	 * 		/N=2 = 20M = PFDin
+	 * 	Fcco = PFDin * (M=10) = 200M
+	 * r9:
+	 * 	Fclkin = 10M
+	 * 		/N=1 = 10M = PFDin
+	 * 	Fcco = PFDin * (M=20) = 200M
+	 * Fclk = Fcco / (2*(P=1)) = 100M
+	 */
+	cgu::pll1::ctrl({
+		.pd = 1,
+		.bypass = 0,
+		.fbsel = 0,
+		.direct = 0,
+		.psel = 0,
+		.autoblock = 1,
+		.nsel = hackrf_r9 ? 0UL : 1UL,
+		.msel = hackrf_r9 ? 19UL : 9UL,
+		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
+	});
+
+	cgu::pll1::enable();
+	while( !cgu::pll1::is_locked() );
+
+	set_clock_config(clock_config_pll1_step);
+
+	/* Delay >50us at 90-110MHz clock speed */
+	volatile uint32_t delay = 1400;
+	while(delay--);
+
+	set_clock_config(clock_config_pll1);
+
+	/* Remove /2P divider from PLL1 output to achieve full speed */
+	cgu::pll1::direct();
+
+	i2c0.start(i2c_config_fast_clock);
+}
+
 /* Clock scheme after exiting bootloader in SPIFI mode:
  * 
  * XTAL_OSC = powered down
@@ -419,14 +473,10 @@ bool init() {
 	
 	portapack::io.init();
 
-	auto config = portapack_cpld_config();
-	auto cpld_update_possible = portapack::cpld::update_possible();
-	auto cpld_update_necessary = cpld_update_possible && !portapack::cpld::update_not_necessary(config);
-
 	portapack::display.init();
 	portapack::display.wake();
 	backlight()->on();
-	int line = 1;
+	int boot_log_line = 1;
 	ui::Painter painter;
 	ui::Style style_default {
 		.font = ui::font::fixed_8x16,
@@ -434,86 +484,46 @@ bool init() {
 		.foreground = ui::Color::white()
 	};
 
-	painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
-	clock_manager.init_clock_generator();
+	auto config = portapack_cpld_config();
+	auto cpld_update_possible = portapack::cpld::update_possible();
 
-	i2c0.stop();
+	uint32_t idcode = portapack::cpld::get_cpld_id();
+    painter.draw_string({ 8*13, boot_log_line *20 }, style_default, to_string_hex((uint32_t)idcode, 8));
+	while(true);
 
+	auto cpld_update_necessary = cpld_update_possible && portapack::cpld::update_necessary(config);
+
+
+	painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing clocks");
+	ramp_up_cpu_clock();
 	chThdSleepMilliseconds(10);
 
-	set_clock_config(clock_config_irc);
-	cgu::pll1::disable();
-
-	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
-	 * core clock speed to the 110 - 204MHz range.
-	 */
-
-	/* Step into the 90-110MHz M4 clock range */
-	/* OG:
-	 * 	Fclkin = 40M
-	 * 		/N=2 = 20M = PFDin
-	 * 	Fcco = PFDin * (M=10) = 200M
-	 * r9:
-	 * 	Fclkin = 10M
-	 * 		/N=1 = 10M = PFDin
-	 * 	Fcco = PFDin * (M=20) = 200M
-	 * Fclk = Fcco / (2*(P=1)) = 100M
-	 */
-	cgu::pll1::ctrl({
-		.pd = 1,
-		.bypass = 0,
-		.fbsel = 0,
-		.direct = 0,
-		.psel = 0,
-		.autoblock = 1,
-		.nsel = hackrf_r9 ? 0UL : 1UL,
-		.msel = hackrf_r9 ? 19UL : 9UL,
-		.clk_sel = cgu::CLK_SEL::GP_CLKIN,
-	});
-
-	cgu::pll1::enable();
-	while( !cgu::pll1::is_locked() );
-
-	set_clock_config(clock_config_pll1_step);
-
-	/* Delay >50us at 90-110MHz clock speed */
-	volatile uint32_t delay = 1400;
-	while(delay--);
-
-	set_clock_config(clock_config_pll1);
-
-	/* Remove /2P divider from PLL1 output to achieve full speed */
-	cgu::pll1::direct();
-
-	i2c0.start(i2c_config_fast_clock);
-	chThdSleepMilliseconds(10);
-
-    painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Init. persistent memory");
 	/* Cache some configuration data from persistent memory. */
 	persistent_memory::cache::init();
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing touchscreen");
 	touch::adc::init();
 	controls_init();
 	chThdSleepMilliseconds(10);
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing radio");
 	clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
 	clock_manager.enable_if_clocks();
 	clock_manager.enable_codec_clocks();
 	radio::init();
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing SD card");
 	sdcStart(&SDCD1, nullptr);
 	sd_card::poll_inserted();
 	chThdSleepMilliseconds(10);
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
-    painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
-    painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing CPLD");
+    painter.draw_string({ 8*13, boot_log_line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "CPLD Mode:");
 
 	if( cpld_update_necessary ) {
-		painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Updating CPLD");
 		chThdSleepMilliseconds(400);
 
 		backlight()->off();
@@ -527,28 +537,28 @@ bool init() {
 		backlight()->on();
 
 		//restore messages
-		line = 1;
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing clocks");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Init. persistent memory");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing touchscreen");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing radio");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing SD card");
-		painter.draw_string({ 8, line++ *20 }, style_default, "Initializing CPLD");
-		painter.draw_string({ 8*13, line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
-		painter.draw_string({ 8, line++ *20 }, style_default, "CPLD Mode:");
-    	painter.draw_string({ 8, line++ *20 }, style_default, "Updating CPLD");
+		boot_log_line = 1;
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing clocks");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Init. persistent memory");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing touchscreen");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing radio");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing SD card");
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing CPLD");
+		painter.draw_string({ 8*13, boot_log_line *20 }, style_default, to_string_hex((uint32_t)load_config(), 8));
+		painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "CPLD Mode:");
+    	painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Updating CPLD");
 
 		if (!ok) {
 			// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
 			if (load_config() != 3 /* left*/ && load_config() != 4 /* right */){
 
-				painter.draw_string({ 8, line++ *20 }, style_default, "Update failed. starting HackRf");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! Please hold");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! LEFT for H1R1");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! CENTER for autodetect");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! while booting if this");
-				painter.draw_string({ 8, line++ *20 }, style_default, "!! message persists");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Update failed. starting HackRf");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! Please hold");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! UP for H1R2, H2, H2+");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! LEFT for H1R1");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! CENTER for autodetect");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! while booting if this");
+				painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "!! message persists");
 				chThdSleepMilliseconds(2000);
 
 				backlight()->off();
@@ -559,22 +569,22 @@ bool init() {
 		}
 	}
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing RAM");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing RAM");
 	if( !hackrf::cpld::load_sram() ) {
 		chSysHalt();
 	}
 
 	chThdSleepMilliseconds(10); // This delay seems to solve white noise audio issues
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing DMA");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing DMA");
 	LPC_CREG->DMAMUX = portapack::gpdma_mux;
 	gpdma::controller.enable();
 	chThdSleepMilliseconds(10);
 
-    painter.draw_string({ 8, line++ *20 }, style_default, "Initializing Sound");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Initializing Sound");
 	audio::init(portapack_audio_codec());
 	
-    painter.draw_string({ 8, line++ *20 }, style_default, "Boot complete.");
+    painter.draw_string({ 8, boot_log_line++ *20 }, style_default, "Boot complete.");
 	return true;
 }
 

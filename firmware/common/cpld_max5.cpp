@@ -22,6 +22,7 @@
 #include "cpld_max5.hpp"
 
 #include "jtag.hpp"
+#include "string_format.hpp"
 
 #include <cstdint>
 #include <array>
@@ -152,6 +153,12 @@ bool CPLD::idcode_ok() {
 	shift_ir(instruction_t::IDCODE);
 	const auto idcode_read = jtag.shift_dr(idcode_length, 0);
 	return (idcode_read == idcode);
+}
+
+uint32_t CPLD::get_idcode() {
+	shift_ir(instruction_t::IDCODE);
+	const auto idcode_read = jtag.shift_dr(idcode_length, 0);
+	return idcode_read;
 }
 
 std::array<uint16_t, 5> CPLD::read_silicon_id() {

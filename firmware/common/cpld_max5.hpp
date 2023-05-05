@@ -61,6 +61,7 @@ public:
 	}
 
 	bool idcode_ok();
+	uint32_t get_idcode();
 
 	void enable();
 

@@ -29,13 +29,15 @@ namespace cpld {
 
 bool update_possible();
 
-bool update_not_necessary(
+bool update_necessary(
 	const Config config
 );
 
 bool update(
 	const Config config
 );
+
+uint32_t get_cpld_id();
 
 } /* namespace cpld */
 } /* namespace portapack */
