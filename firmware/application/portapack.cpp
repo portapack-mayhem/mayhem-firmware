@@ -489,8 +489,9 @@ bool init() {
 	
 	chThdSleepMilliseconds(10);
 
-	uint32_t result = portapack::cpld::update_if_necessary(portapack_cpld_config());
-	if ( result == 3 /* program failed */ ) {
+	portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+	if ( result == portapack::cpld::CpldUpdateStatus::Program_failed ) {
+
 		chThdSleepMilliseconds(10);
 		// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
 		// Mode center (autodetect), up (R1) and down (R2,H2,H2) will go into hackrf mode after failing CPLD update
