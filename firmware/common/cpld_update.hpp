@@ -27,7 +27,14 @@
 namespace portapack {
 namespace cpld {
 
-bool update_if_necessary(
+enum class CpldUpdateStatus {
+	Success = 0,
+	Idcode_check_failed = 1,
+	Silicon_id_check_failed = 2,
+	Program_failed = 3
+};
+
+CpldUpdateStatus update_if_necessary(
 	const Config config
 );
 

@@ -489,10 +489,13 @@ bool init() {
 	
 	chThdSleepMilliseconds(10);
 
-	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
+	portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+	if ( result == portapack::cpld::CpldUpdateStatus::Program_failed ) {
+
 		chThdSleepMilliseconds(10);
-		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (load_config() != 3 && load_config() != 4){
+		// Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+		// Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+		if (load_config() != 3 /* left */ && load_config() != 4 /* right */){
 			shutdown_base();
 			return false;
 		}
