@@ -450,6 +450,32 @@ constexpr fir_taps_real<64> taps_64_lp_156_198 {
 	} },
 };
 
+// WFM 40kHZ filter for NOAA APT reception in 137Mhz band  //////////////////////////////////////////////
+
+// IFIR image-reject filter: fs=3072000, pass=20000, stop=97000, decim=4, fout=768000
+constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
+	.low_frequency_normalized = -20000.0f / 3072000.0f,
+	.high_frequency_normalized = 20000.0f / 3072000.0f,
+	.transition_normalized = 67000.0f / 3072000.0f,
+	.taps = { {
+			 46,  	112,  	230,  	408,  	650,  953, 	1301, 	1671,
+			 2029, 2340, 	2570, 	2692, 	2692, 2570, 2340, 	2029, 
+			 1671, 1301,  	953,  	650,  	408,  230,  112,   	46,
+	} },
+};
+
+// IFIR prototype filter: fs=768000, pass=20000, stop=37000, decim=2, fout=384000
+constexpr fir_taps_real<16> taps_40k_wfm_decim_1 = {
+	.low_frequency_normalized = -20000.0f / 768000.0f,
+	.high_frequency_normalized = 20000.0f / 768000.0f,
+	.transition_normalized = 17000.0f / 768000.0f,
+	.taps = { {
+			83,  	299,  	743, 	1456, 	2396, 	3418, 	4297, 	4808,
+			4808, 	4297, 	3418, 	2396,	1456,  	743,  	299,   	83,
+	} },
+};
+
+
 // TPMS decimation filters ////////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400

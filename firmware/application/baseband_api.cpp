@@ -73,8 +73,8 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 
 void WFMConfig::apply() const {
 	const WFMConfigureMessage message {
-		taps_200k_wfm_decim_0,
-		taps_200k_wfm_decim_1,
+		decim_0,		// 	taps_200k_decim_0 or 	taps_40k_wfm_decim_0
+		decim_1,		// 	taps_200k_decim_1 or 	taps_40k_wfm_decim_1
 		taps_64_lp_156_198,
 		75000,
 		audio_48k_hpf_30hz_config,
@@ -83,6 +83,7 @@ void WFMConfig::apply() const {
 	send_message(&message);
 	audio::set_rate(audio::Rate::Hz_48000);
 }
+
 
 void set_tone(const uint32_t index, const uint32_t delta, const uint32_t duration) {
 	shared_memory.bb_data.tones_data.tone_defs[index].delta = delta;
