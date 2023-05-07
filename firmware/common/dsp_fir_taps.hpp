@@ -450,7 +450,34 @@ constexpr fir_taps_real<64> taps_64_lp_156_198 {
 	} },
 };
 
-// WFM 40kHZ filter for NOAA APT reception in 137Mhz band  //////////////////////////////////////////////
+// WFM 180kHZ General purpose filter with sharp transition , it improves Commercial WFM S/N in weak signals  //////////////////////////////////////////////
+
+// IFIR image-reject filter: fs=3072000, pass=90000, stop=250000, decim=4, fout=768000
+constexpr fir_taps_real<24> taps_180k_wfm_decim_0 = {
+	.low_frequency_normalized = -90000.0f / 3072000.0f,
+	.high_frequency_normalized = 90000.0f / 3072000.0f,
+	.transition_normalized = 160000.0f / 3072000.0f,
+	.taps = { {
+  			55,  	122,  	244,  	424,  	666,  	965, 	1308, 	1669,
+			2019, 	2321, 	2544, 	2663,	2663, 	2544, 	2321, 	2019,
+			1669, 	1308,  	965,  	666,  	424,  	244,  	122,   	55,
+	} },
+};
+
+// IFIR prototype filter: fs=768000, pass=90000, stop=110000, decim=2, fout=384000
+constexpr fir_taps_real<16> taps_180k_wfm_decim_1 = {
+	.low_frequency_normalized = -90000.0f / 768000.0f,
+	.high_frequency_normalized = 90000.0f / 768000.0f,
+	.transition_normalized = 20000.0f / 768000.0f,
+	.taps = { {
+			 55,	19, 	-356,  	-916,  	-529,  	2139,  	6695, 	10392,
+			 10392, 6695, 	2139,	-529,	-916,	-356,	19,		55,
+	} },
+};
+
+
+
+// WFM 40kHZ filter for NOAA APT reception in 137Mhz band with sharp transition  //////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=3072000, pass=20000, stop=97000, decim=4, fout=768000
 constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
@@ -464,11 +491,11 @@ constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
 	} },
 };
 
-// IFIR prototype filter: fs=768000, pass=20000, stop=37000, decim=2, fout=384000
+// IFIR prototype filter: fs=768000, pass=20000, stop=55000, decim=2, fout=384000
 constexpr fir_taps_real<16> taps_40k_wfm_decim_1 = {
 	.low_frequency_normalized = -20000.0f / 768000.0f,
 	.high_frequency_normalized = 20000.0f / 768000.0f,
-	.transition_normalized = 17000.0f / 768000.0f,
+	.transition_normalized = 35000.0f / 768000.0f,
 	.taps = { {
 			83,  	299,  	743, 	1456, 	2396, 	3418, 	4297, 	4808,
 			4808, 	4297, 	3418, 	2396,	1456,  	743,  	299,   	83,
