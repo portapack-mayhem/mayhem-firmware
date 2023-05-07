@@ -20,6 +20,8 @@
  */
 
 #include "ui_spectrum_painter.hpp"
+//#include "hackrf_hal.hpp"
+#include "cpld_update.hpp"
 
 namespace ui {
 
@@ -55,8 +57,15 @@ SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
 }
 
 SpectrumInputTextView::~SpectrumInputTextView() {
+	// save app settings
+	// app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	// settings.save("tx_sstv", &app_settings);
 
+	// transmitter_model.disable();
+	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
 }
+
 void SpectrumInputTextView::focus() {
     button_start.focus();
 }
@@ -64,6 +73,8 @@ void SpectrumInputTextView::focus() {
 SpectrumPainterView::SpectrumPainterView(
 	NavigationView& nav
 ) : nav_ (nav) {
+	baseband::run_image(portapack::spi_flash::image_tag_spectrum_painter);
+
     add_children({
 		&button_exit,
 		&tab_view,

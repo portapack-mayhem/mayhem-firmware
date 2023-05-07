@@ -26,6 +26,7 @@
 
 #include "ui_navigation.hpp"
 #include "ui_tabview.hpp"
+#include "baseband_api.hpp"
 
 namespace ui {
 
