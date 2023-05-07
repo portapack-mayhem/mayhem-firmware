@@ -94,11 +94,11 @@ bool FrequencyField::on_encoder(const EncoderEvent delta) {
 
 		// The goal is to map 'scale' to a range of about 10 to 10M.
 		// The faster the encoder is rotated, the larger the step.
-		// Linear doesn't feel right. Exponential felt better.
+		// Linear doesn't feel right. Hyperbolic felt better.
 		// To get these magic numbers, I graphed the function until the
 		// curve shape seemed about right then tested on device.
 		delta_ms = std::min(145ull, delta_ms) + 5; // Prevent DIV/0
-		int64_t scale = 5'000'000'000 * pow(delta_ms, -4);
+		int64_t scale = 200'000'000 / (0.001'55 * pow(delta_ms, 5.45)) + 8;
 		set_value(value() + (delta * scale));
 	} else {
 		set_value(value() + (delta * step));
