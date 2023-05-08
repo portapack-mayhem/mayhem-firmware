@@ -13,6 +13,7 @@
 /sdcard/FREQMAN/BHT*
 /sdcard/FREQMAN/R.TXT
 /sdcard/FREQMAN/XXX.TXT
+/armbin
 
 # Compiled Object files
 *.slo

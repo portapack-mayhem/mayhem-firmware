@@ -96,6 +96,27 @@ private:
 	};
 };
 
+
+class WFMOptionsView : public View {
+public:
+	WFMOptionsView(const Rect parent_rect, const Style* const style);
+
+private:
+	Text label_config {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"BW",
+	};
+	OptionsField options_config {
+		{ 3 * 8, 0 * 16 },
+		3,
+		{
+			{ "200K", 0 },
+			{ "180K", 1 },
+			{ " 40K", 2 },
+		}
+	};
+};
+
 class AnalogAudioView;
 
 class SPECOptionsView : public View {

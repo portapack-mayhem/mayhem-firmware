@@ -52,8 +52,10 @@ static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs { {
 	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
 } };
 
-static constexpr std::array<baseband::WFMConfig, 1> wfm_configs { {
-	{ },
+static constexpr std::array<baseband::WFMConfig, 3> wfm_configs { {
+	{taps_200k_wfm_decim_0, taps_200k_wfm_decim_1 },
+    {taps_180k_wfm_decim_0,  taps_180k_wfm_decim_1  },
+    {taps_40k_wfm_decim_0,  taps_40k_wfm_decim_1  },
 } };
 
 } /* namespace */
