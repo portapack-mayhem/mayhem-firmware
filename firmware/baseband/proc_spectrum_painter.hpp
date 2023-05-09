@@ -33,5 +33,9 @@ public:
 
 private:
 	bool configured { false };
+	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+
+	std::vector<uint8_t> fifo_data[1 << SpectrumPainterBufferConfigureResponseMessage::fifo_k] { };
+	SpectrumPainterFIFO fifo { fifo_data, SpectrumPainterBufferConfigureResponseMessage::fifo_k };
 
 };

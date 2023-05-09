@@ -26,7 +26,11 @@
 
 #include "ui_navigation.hpp"
 #include "ui_tabview.hpp"
+#include "ui_transmitter.hpp"
 #include "baseband_api.hpp"
+
+#include "portapack.hpp"
+#include "message.hpp"
 
 namespace ui {
 
@@ -38,10 +42,23 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 
+	//std::string get_filename();
+	bool drawBMP_scaled(const ui::Rect r, const std::string file);
+	uint16_t get_width();
+	uint16_t get_height();
+	std::vector<uint8_t> get_line(uint16_t);
+
+	std::function<void()> on_input_avaliable { };
+
 private:
 	bool painted {false};
+	std::string file {""};
+	uint16_t width {0};
+	uint16_t height {0};
+	uint8_t type {0};
+	uint32_t data_start {0};
 	
-	Button button_start {
+	Button button_load_image {
 		{ 0 * 8, 17 * 8, 18 * 8, 28 },
 		"Load Image ..."
 	};
@@ -88,9 +105,32 @@ private:
 		{ "Text", Color::white(), input_views[1] }
 	};
 
-	Button button_exit {
-		{ 20 * 8, 34 * 8, 10 * 8, 4 * 8 },
-		"Paint"
+	ProgressBar progressbar {
+		{ 16, 25 * 8, 208, 16 }
+	};
+	
+	TransmitterView tx_view {
+		16 * 16,
+		10000,
+		12
+	};
+
+	SpectrumPainterFIFO* fifo { nullptr };
+
+	void start_tx();
+
+	// TODO Add Message + hander for initial setup: M4 will send two buffer pointer
+	MessageHandlerRegistration message_handler_fifo_signal {
+		Message::ID::SpectrumPainterBufferConfigure,
+		[this](const Message* const p) {
+			const auto message = static_cast<const SpectrumPainterBufferConfigureResponseMessage*>(p);
+			this->fifo = message->fifo;
+			this->start_tx();
+
+			// if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+			// 	this->OnRequestSignal();
+			// }
+		}
 	};
 };
 

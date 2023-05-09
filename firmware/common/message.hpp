@@ -109,6 +109,7 @@ public:
 		AudioSpectrum = 52,
 		APRSPacket = 53,
 		APRSRxConfigure = 54,
+		SpectrumPainterBufferConfigure = 55,
 		MAX
 	};
 
@@ -1141,6 +1142,36 @@ public:
 	}
 
 	uint32_t return_code;
+};
+
+class SpectrumPainterBufferConfigureRequestMessage : public Message {
+public:
+	constexpr SpectrumPainterBufferConfigureRequestMessage(
+		uint16_t width,
+		uint16_t height
+	) : Message { ID::SpectrumPainterBufferConfigure },
+		width { width },
+		height { height }
+	{
+	}
+
+	uint16_t width;
+	uint16_t height;
+};
+
+using SpectrumPainterFIFO = FIFO<std::vector<uint8_t>>;
+class SpectrumPainterBufferConfigureResponseMessage : public Message {
+public:
+	static constexpr size_t fifo_k = 2;
+
+	constexpr SpectrumPainterBufferConfigureResponseMessage(
+		SpectrumPainterFIFO* fifo
+	) : Message { ID::SpectrumPainterBufferConfigure },
+		fifo { fifo }
+	{
+	}
+
+	SpectrumPainterFIFO* fifo { nullptr };
 };
 
 #endif/*__MESSAGE_H__*/

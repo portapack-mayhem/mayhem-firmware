@@ -25,15 +25,40 @@
 
 #include <cstdint>
 
+constexpr std::complex<int8_t> wave[4] = {{127, 0}, {0, 127}, {-127, 0}, {0, 127}};
+extern "C" void update_performance_counters();
 // This is called at 3072000/2048 = 1500Hz
 void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
+
+	for (uint32_t i = 0; i < buffer.count; i++) {
+		buffer.p[i] = wave[i % 4];
+	}
+
+	//if (!configured) return;
+
 	
-	if (!configured) return;
+  	update_performance_counters();
 
+	if (fifo.is_empty() == false) {
+		std::vector<uint8_t> data;
+		fifo.out(data);
 
+		// line to ifft
+		// 
+
+	}
 }
 
 void SpectrumPainterProcessor::on_message(const Message* const msg) {
+
+	switch(msg->id) {
+		case Message::ID::SpectrumPainterBufferConfigure:
+			const auto message = *reinterpret_cast<const SpectrumPainterBufferConfigureRequestMessage*>(msg);
+			SpectrumPainterBufferConfigureResponseMessage response { &fifo };
+			shared_memory.application_queue.push(response);
+			break;
+	}
+
 }
 
 int main() {
