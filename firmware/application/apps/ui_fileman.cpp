@@ -206,7 +206,7 @@ FileManBaseView::FileManBaseView(
 	};
 
 	if (!sdcIsCardInserted(&SDCD1)) {
-		empty_root = true;
+		empty_ = EmptyReason::NoSDC;
 		text_current.set("NO SD CARD!");
 		return;
 	}
@@ -214,7 +214,7 @@ FileManBaseView::FileManBaseView(
 	load_directory_contents(current_path);
 
 	if (!entry_list.size()) {
-		empty_root = true;
+		empty_ = EmptyReason::NoFiles;
 		text_current.set("EMPTY SD CARD!");
 	} else {
 		menu_view.on_left = [this]() {
@@ -224,7 +224,7 @@ FileManBaseView::FileManBaseView(
 }
 
 void FileManBaseView::focus() {
-	if (empty_root) {
+	if (empty_ != EmptyReason::NotEmpty) {
 		button_exit.focus();
 	} else {
 		menu_view.focus();
@@ -346,7 +346,7 @@ void FileLoadView::refresh_widgets(const bool) {
 }
 
 /* FileSaveView **************************************************************/
-
+/*
 FileSaveView::FileSaveView(
 	NavigationView& nav,
 	const fs::path& path,
@@ -356,6 +356,7 @@ FileSaveView::FileSaveView(
 	file_{ file }
 {
 	add_children({
+		&labels,
 		&text_path,
 		&button_edit_path,
 		&text_name,
@@ -401,7 +402,7 @@ void FileSaveView::refresh_widgets() {
 	text_name.set(truncate(file_, 30));
 	set_dirty();
 }
-
+*/
 /* FileManagerView ***********************************************************/
 
 void FileManagerView::on_rename() {
@@ -431,23 +432,6 @@ void FileManagerView::on_rename() {
 			if (!has_partner)
 				reload_current();
 		});
-}
-
-void FileManagerView::on_copy() {
-	auto& entry = get_selected_entry();
-	/*auto stem = entry.path.stem();
-	auto ext = entry.path.extension();
-	auto serial = 1;
-	fs::path new_path = entry.path;
-
-	// Find a unique name.
-	do {
-		new_path = stem;
-		new_path += to_string_dec_int(serial++);
-		new_path += ext;
-	} while (fs::file_exists(current_path / new_path));*/
-
-	auto save_view = nav_.push<FileSaveView>(current_path, entry.path);
 }
 
 void FileManagerView::on_delete() {
@@ -481,6 +465,30 @@ void FileManagerView::on_new_dir() {
 	});
 }
 
+void FileManagerView::on_paste() {
+	auto stem = copy_path.stem();
+	auto ext = copy_path.extension();
+	auto serial = 1;
+	fs::path new_path = copy_path.filename();
+
+	// Create a unique name.
+	while (fs::file_exists(current_path / new_path)) {
+		new_path = stem;
+		new_path += fs::path{ u"_" };
+		new_path += to_string_dec_int(serial++);
+		new_path += ext;
+	}
+
+	// TODO: handle partner file. Need to fix nav stack first.
+	auto result = copy_file(copy_path, current_path / new_path);
+	if (result.code() != FR_OK)
+		nav_.display_modal("Paste Failed", result.what());
+	
+	copy_path = fs::path{ };
+	menu_view.focus();
+	reload_current();
+}
+
 bool FileManagerView::selected_is_valid() const {
 	return !entry_list.empty() &&
 		get_selected_entry().path != parent_dir_path;
@@ -488,9 +496,10 @@ bool FileManagerView::selected_is_valid() const {
 
 void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
-	button_copy.hidden(v);
 	button_delete.hidden(v);
 	button_new_dir.hidden(v);
+	button_copy.hidden(v);
+	button_paste.hidden(v);
 	set_dirty();
 }
 
@@ -498,58 +507,70 @@ FileManagerView::FileManagerView(
 	NavigationView& nav
 ) : FileManBaseView(nav, "")
 {
-	if (!empty_root) {
-		on_refresh_widgets = [this](bool v) {
-			refresh_widgets(v);
-		};
-		
-		add_children({
-			&menu_view,
-			&labels,
-			&text_date,
-			&button_rename,
-			&button_copy,
-			&button_delete,
-			&button_new_dir,
-		});
-		
-		menu_view.on_highlight = [this]() {
-      // TODO: enable/disable buttons.
-      if (selected_is_valid())
-  			text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
-      else
-        text_date.set("");
-		};
-		
-		refresh_list();
+	// Don't bother with the UI in the case of no SDC.
+	if (empty_ == EmptyReason::NoSDC)
+		return;
+
+	on_refresh_widgets = [this](bool v) {
+		refresh_widgets(v);
+	};
 	
-		on_select_entry = [this](KeyEvent key) {
-			if (key == KeyEvent::Select && get_selected_entry().is_directory) {
-				push_dir(get_selected_entry().path);
-			} else {
-				button_rename.focus();
-			}
-		};
-		
-		button_rename.on_select = [this](Button&) {
-			if (selected_is_valid())
-				on_rename();
-		};
+	add_children({
+		&menu_view,
+		&labels,
+		&text_date,
+		&button_rename,
+		&button_delete,
+		&button_new_dir,
+		&button_copy,
+		&button_paste
+	});
+	
+	menu_view.on_highlight = [this]() {
+	// TODO: enable/disable buttons.
+	if (selected_is_valid())
+		text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+	else
+	text_date.set("");
+	};
+	
+	refresh_list();
 
-		button_copy.on_select = [this](Button&) {
-			if (selected_is_valid() && !get_selected_entry().is_directory)
-				on_copy();
-		};
+	on_select_entry = [this](KeyEvent key) {
+		if (key == KeyEvent::Select && get_selected_entry().is_directory) {
+			push_dir(get_selected_entry().path);
+		} else {
+			button_rename.focus();
+		}
+	};
+	
+	button_rename.on_select = [this](Button&) {
+		if (selected_is_valid())
+			on_rename();
+	};
 
-		button_delete.on_select = [this](Button&) {
-			if (selected_is_valid())
-				on_delete();
-		};
+	button_delete.on_select = [this](Button&) {
+		if (selected_is_valid())
+			on_delete();
+	};
 
-		button_new_dir.on_select = [this](Button&) {
-			on_new_dir();
-		};
-	} 
+	button_new_dir.on_select = [this](Button&) {
+		on_new_dir();
+	};
+
+	button_copy.on_select = [this](Button&) {
+		if (selected_is_valid() && !get_selected_entry().is_directory)
+			copy_path = get_selected_full_path();
+		else
+			nav_.display_modal("Copy", "Can't copy that.");
+	};
+
+	button_paste.on_select = [this](Button&) {
+		if (!copy_path.empty())
+			on_paste();
+		else
+			nav_.display_modal("Paste", "Copy a file first.");
+	};
 }
 
 }

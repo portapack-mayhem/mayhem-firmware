@@ -205,6 +205,35 @@ uint32_t rename_file(const std::filesystem::path& file_path, const std::filesyst
 	return f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str()));
 }
 
+std::filesystem::filesystem_error copy_file(
+	const std::filesystem::path& file_path,
+	const std::filesystem::path& dest_path)
+{
+	File src;
+	File dst;
+	constexpr size_t buffer_size = 512;
+	uint8_t buffer[buffer_size];
+
+	auto error = src.open(file_path);
+	if (error.is_valid()) return error.value();
+
+	error = dst.create(dest_path);
+	if (error.is_valid()) return error.value();
+
+	while (true) {
+		auto result = src.read(buffer, buffer_size);
+		if (result.is_error()) return result.error();
+
+		result = dst.write(buffer, result.value());
+		if (result.is_error()) return result.error();
+
+		if (result.value() < buffer_size)
+			break;
+	}
+
+	return { };
+}
+
 FATTimestamp file_created_date(const std::filesystem::path& file_path) {
 	FILINFO filinfo;
 	

@@ -36,6 +36,12 @@ struct fileman_entry {
 	bool is_directory { };
 };
 
+enum class EmptyReason : uint8_t {
+	NotEmpty,
+	NoFiles,
+	NoSDC
+};
+
 class FileManBaseView : public View {
 public:
 	FileManBaseView(
@@ -67,7 +73,6 @@ protected:
 		{ u"", &bitmap_icon_file, ui::Color::light_grey() } // NB: Must be last.
 	};
 
-
 	std::filesystem::path get_selected_full_path() const;
 	const fileman_entry& get_selected_entry() const;
 
@@ -80,7 +85,7 @@ protected:
 
 	NavigationView& nav_;
 
-	bool empty_root { false };
+	EmptyReason empty_ { EmptyReason::NotEmpty };
 	std::function<void(KeyEvent)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
 
@@ -106,7 +111,7 @@ protected:
 	};
 	
 	Button button_exit {
-		{ 16 * 8, 34 * 8, 14 * 8, 32 },
+		{ 21 * 8, 34 * 8, 9 * 8, 32 },
 		"Exit"
 	};
 };
@@ -122,6 +127,7 @@ private:
 	void refresh_widgets(const bool v);
 };
 
+/*
 // It would be nice to be able to launch FileLoadView
 // but it will OOM if launched from within FileManager.
 class FileSaveView : public View {
@@ -142,37 +148,43 @@ private:
 	std::filesystem::path path_;
 	std::filesystem::path file_;
 	std::string buffer_ { };
-	
+
+	Labels labels {
+		{ { 0 * 8, 1 * 16 }, "Path:", Color::light_grey() },
+		{ { 0 * 8, 6 * 16 }, "Filename:", Color::light_grey() },
+	};
+
 	Text text_path {
-		{ 0 * 8, 1 * 8, 30 * 8, 16 },
+		{ 0 * 8, 2 * 16, 30 * 8, 16 },
 		"",
 	};
 
 	Button button_edit_path {
-		{ 18 * 8, 3 * 8, 11 * 8, 32 },
+		{ 18 * 8, 3 * 16, 11 * 8, 32 },
 		"Edit Path"
 	};
 
 	Text text_name {
-		{ 0 * 8, 8 * 8, 30 * 8, 16 },
+		{ 0 * 8, 7 * 16, 30 * 8, 16 },
 		"",
 	};
 
 	Button button_edit_name {
-		{ 18 * 8, 10 * 8, 11 * 8, 32 },
+		{ 18 * 8, 8 * 16, 11 * 8, 32 },
 		"Edit Name"
 	};
 
 	Button button_save {
-		{ 10 * 8, 32 * 8, 9 * 8, 32 },
+		{ 10 * 8, 16 * 16, 9 * 8, 32 },
 		"Save"
 	};
 
 	Button button_cancel {
-		{ 20 * 8, 32 * 8, 9 * 8, 32 },
+		{ 20 * 8, 16 * 16, 9 * 8, 32 },
 		"Cancel"
 	};
 };
+*/
 
 class FileManagerView : public FileManBaseView {
 public:
@@ -182,12 +194,13 @@ public:
 private:
 	// Passed by ref to other views needing lifetime extension.
 	std::string name_buffer { };
+	std::filesystem::path copy_path { };
 	
 	void refresh_widgets(const bool v);
 	void on_rename();
-	void on_copy();
 	void on_delete();
 	void on_new_dir();
+	void on_paste();
 
 	// True if the selected entry is a real file item.
 	bool selected_is_valid() const;
@@ -206,19 +219,24 @@ private:
 		"Rename"
 	};
 
-	Button button_copy {
-		{ 21 * 4, 29 * 8, 9 * 8, 32 },
-		"Copy"
-	};
-
 	Button button_delete {
-		{ 21 * 8, 29 * 8, 9 * 8, 32 },
+		{ 21 * 4, 29 * 8, 9 * 8, 32 },
 		"Delete"
 	};
 
 	Button button_new_dir {
-		{ 0 * 8, 34 * 8, 14 * 8, 32 },
+		{ 21 * 8, 29 * 8, 9 * 8, 32 },
 		"New Dir"
+	};
+
+	Button button_copy {
+		{ 0 * 8, 34 * 8, 9 * 8, 32 },
+		"Copy"
+	};
+
+	Button button_paste {
+		{ 21 * 4, 34 * 8, 9 * 8, 32 },
+		"Paste"
 	};
 };
 

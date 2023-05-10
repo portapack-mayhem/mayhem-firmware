@@ -414,7 +414,6 @@ private:
 	bool instant_exec_ { false };
 };
 
-
 class ButtonWithEncoder : public Widget {
 public:
 	std::function<void(ButtonWithEncoder&)> on_select { };
@@ -456,8 +455,6 @@ private:
 	bool delta_change = 0 ;
 	bool instant_exec_ { false };
 };
-
-
 
 class NewButton : public Widget {
 public:
