@@ -64,8 +64,8 @@ private:
 	std::app_settings 		settings { }; 		
 	std::app_settings::AppSettings 	app_settings { };
 
-	bool logging { true };
-	bool ignore { true };
+	bool logging { false };
+	bool ignore { false };
 	uint32_t last_address = 0xFFFFFFFF;
 	pocsag::POCSAGState pocsag_state { };
 
@@ -95,7 +95,7 @@ private:
 		{ 24 * 8, 21 },
 		3,
 		"LOG",
-		true
+		false
 	};
 	NumberField field_volume{
 		{ 28 * 8, 0 * 16 },
@@ -109,7 +109,7 @@ private:
 		{ 1 * 8, 21 },
 		12,
 		"Ignore addr:",
-		true
+		false
 	};
 	SymField sym_ignore {
 		{ 16 * 8, 21 },
