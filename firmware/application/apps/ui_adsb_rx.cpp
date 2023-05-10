@@ -117,6 +117,12 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	
 	std::unique_ptr<ADSBLogger> logger { };
 
+    logger = std::make_unique<ADSBLogger>();
+	std::string folder = "LOGS";
+	make_new_directory(folder);
+	if (logger)
+		logger->append(u"LOGS/ADSB.TXT");
+
 	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
@@ -351,7 +357,6 @@ void ADSBRxView::sort_entries_by_state()
 }
 
 void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
-	logger = std::make_unique<ADSBLogger>();
 	rtc::RTC datetime;
 	std::string callsign;
 	std::string str_info;
@@ -432,7 +437,6 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		} // frame.get_DF() == DF_ADSB
 
         if (logger) {
-                logger->append(u"adsb.txt");
                 // will log each frame in format:
                 // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
 				logger->log_str(logentry);
