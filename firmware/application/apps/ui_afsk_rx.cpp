@@ -60,9 +60,9 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&field_frequency,
+		&check_log,
 		&text_debug,
 		&button_modem_setup,
-		&record_view,
 		&console
 	});
 	
@@ -74,13 +74,6 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		field_rf_amp.set_value(app_settings.rx_amp);
 	}
 
-
-	// DEBUG
-	record_view.on_error = [&nav](std::string message) {
-		nav.display_modal("Error", message);
-	};
-	record_view.set_sampling_rate(24000);
-	
 	// Auto-configure modem for LCR RX (will be removed later)
 	update_freq(467225500);	// 462713300
 	auto def_bell202 = &modem_defs[0];
@@ -103,6 +96,11 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 			update_freq(f);
 			field_frequency.set_value(f);
 		};
+	};
+
+    check_log.set_value(logging);
+	check_log.on_select = [this](Checkbox&, bool v) {
+		logging = v;
 	};
 
 	button_modem_setup.on_select = [&nav](Button&) {
@@ -153,22 +151,23 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
 		
 		console.write(str_console);
 		
-		if (logger) str_log += str_byte;
+		if (logger && logging) str_log += str_byte;
 		
 		if ((value != 0x7F) && (prev_value == 0x7F)) {
 			// Message split
 			console.writeln("");
 			console_color++;
 			
-			if (logger) {
+			if (logger && logging) {
 				logger->log_raw_data(str_log);
 				str_log = "";
 			}
 		}
 		prev_value = value;
-	} else {
+	}
+    else {
 		// Baudrate estimation
-		text_debug.set("~" + to_string_dec_uint(value));
+		text_debug.set("Baudrate estimation: ~" + to_string_dec_uint(value));
 	}
 }
 

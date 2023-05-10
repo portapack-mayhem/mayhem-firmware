@@ -54,9 +54,7 @@ NRFRxView::NRFRxView(NavigationView& nav) {
 		&field_lna,
 		&field_vga,
 		&field_frequency,
-		&text_debug,
 		&button_modem_setup,
-		&record_view,
 		&console
 	});
 	
@@ -68,12 +66,6 @@ NRFRxView::NRFRxView(NavigationView& nav) {
 		field_rf_amp.set_value(app_settings.rx_amp);
 	}
 
-	// DEBUG
-	record_view.on_error = [&nav](std::string message) {
-		nav.display_modal("Error", message);
-	};
-	record_view.set_sampling_rate(24000);
-	
 	// Auto-configure modem for LCR RX (will be removed later)
 	update_freq(2480000000);
 	auto def_bell202 = &modem_defs[0];

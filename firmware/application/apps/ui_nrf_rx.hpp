@@ -52,7 +52,6 @@ private:
 
 	uint8_t console_color { 0 };
 	uint32_t prev_value { 0 };
-	std::string str_log { "" };
 
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
@@ -74,21 +73,9 @@ private:
 		{ 0 * 8, 0 * 16 },
 	};
 	
-	Text text_debug {
-		{ 0 * 8, 1 * 16, 10 * 8, 16 },
-		"DEBUG"
-	};
-	
-	
 	Button button_modem_setup {
-		{ 12 * 8, 1 * 16, 96, 24 },
+		{ 240 - 12 * 8, 1 * 16, 96, 24 },
 		"Modem setup"
-	};
-	
-	// DEBUG
-	RecordView record_view {
-		{ 0 * 8, 3 * 16, 30 * 8, 1 * 16 },
-		u"AFS_????", RecordView::FileType::WAV, 4096, 4
 	};
 	
 	Console console {
