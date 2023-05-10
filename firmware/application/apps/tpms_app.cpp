@@ -194,11 +194,9 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
 	options_temperature.set_selected_index(0, true);
 
-	std::string folder = "LOGS";
-	make_new_directory(folder);
 	logger = std::make_unique<TPMSLogger>();
 	if( logger ) {
-		logger->append(u"LOGS/TMPS.TXT");
+		logger->append(u"tpms.txt");
 	}
 }
 
