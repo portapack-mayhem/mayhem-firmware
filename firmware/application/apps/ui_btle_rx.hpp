@@ -75,7 +75,7 @@ private:
 	};
 	
 	Button button_modem_setup {
-		{ 12 * 8, 1 * 16, 96, 24 },
+		{ 240 - 12 * 8, 1 * 16, 96, 24 },
 		"Modem setup"
 	};
 	

@@ -91,13 +91,7 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
 	};
-	Checkbox check_log {
-		{ 24 * 8, 21 },
-		3,
-		"LOG",
-		false
-	};
-	NumberField field_volume{
+		NumberField field_volume{
 		{ 28 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
@@ -106,15 +100,21 @@ private:
 	};
 	
 	Checkbox check_ignore {
-		{ 1 * 8, 21 },
-		12,
-		"Ignore addr:",
+		{ 0 * 8, 21 },
+		8,
+		"Ign addr",
 		false
 	};
 	SymField sym_ignore {
-		{ 16 * 8, 21 },
+		{ 13 * 8, 25 },
 		7,
 		SymField::SYMFIELD_DEC
+	};
+	Checkbox check_log {
+		{ 240 - 8 * 8, 21 },
+		3,
+		"LOG",
+		false
 	};
 
 	Console console {

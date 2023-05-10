@@ -61,6 +61,7 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		&field_vga,
 		&field_frequency,
 		&check_log,
+		&text_debug,
 		&button_modem_setup,
 		&console
 	});
@@ -163,9 +164,10 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
 			}
 		}
 		prev_value = value;
-	} else {
+	}
+    else {
 		// Baudrate estimation
-		text_debug.set("~" + to_string_dec_uint(value));
+		text_debug.set("Baudrate estimation: ~" + to_string_dec_uint(value));
 	}
 }
 
