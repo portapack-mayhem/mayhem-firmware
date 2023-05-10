@@ -109,7 +109,8 @@ public:
 		AudioSpectrum = 52,
 		APRSPacket = 53,
 		APRSRxConfigure = 54,
-		SpectrumPainterBufferConfigure = 55,
+		SpectrumPainterBufferRequestConfigure = 55,
+		SpectrumPainterBufferResponseConfigure = 56,
 		MAX
 	};
 
@@ -1149,7 +1150,7 @@ public:
 	constexpr SpectrumPainterBufferConfigureRequestMessage(
 		uint16_t width,
 		uint16_t height
-	) : Message { ID::SpectrumPainterBufferConfigure },
+	) : Message { ID::SpectrumPainterBufferRequestConfigure },
 		width { width },
 		height { height }
 	{
@@ -1166,7 +1167,7 @@ public:
 
 	constexpr SpectrumPainterBufferConfigureResponseMessage(
 		SpectrumPainterFIFO* fifo
-	) : Message { ID::SpectrumPainterBufferConfigure },
+	) : Message { ID::SpectrumPainterBufferResponseConfigure },
 		fifo { fifo }
 	{
 	}

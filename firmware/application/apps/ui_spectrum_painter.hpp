@@ -94,6 +94,9 @@ public:
 
 private:
 	NavigationView& nav_;
+	bool tx_active { false };
+	uint16_t tx_current_line { 0 };
+	uint16_t tx_current_max_lines { 0 };
 
 	SpectrumInputImageView input_image { nav_ };
 	SpectrumInputTextView input_text { nav_ };
@@ -118,10 +121,11 @@ private:
 	SpectrumPainterFIFO* fifo { nullptr };
 
 	void start_tx();
+	void frame_sync();
 
 	// TODO Add Message + hander for initial setup: M4 will send two buffer pointer
 	MessageHandlerRegistration message_handler_fifo_signal {
-		Message::ID::SpectrumPainterBufferConfigure,
+		Message::ID::SpectrumPainterBufferResponseConfigure,
 		[this](const Message* const p) {
 			const auto message = static_cast<const SpectrumPainterBufferConfigureResponseMessage*>(p);
 			this->fifo = message->fifo;
@@ -130,6 +134,13 @@ private:
 			// if (message->signal == RequestSignalMessage::Signal::FillRequest) {
 			// 	this->OnRequestSignal();
 			// }
+		}
+	};
+
+	MessageHandlerRegistration message_handler_sample {
+		Message::ID::DisplayFrameSync,
+		[this](const Message* const) {
+			this->frame_sync();
 		}
 	};
 };

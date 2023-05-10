@@ -31,11 +31,20 @@ public:
 	
 	void on_message(const Message* const p) override;
 
+	void run();
+
 private:
 	bool configured { false };
 	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
 
-	std::vector<uint8_t> fifo_data[1 << SpectrumPainterBufferConfigureResponseMessage::fifo_k] { };
-	SpectrumPainterFIFO fifo { fifo_data, SpectrumPainterBufferConfigureResponseMessage::fifo_k };
+	Thread* thread {nullptr};
+
+protected:
+	static msg_t fn(void* arg) {
+		auto obj = static_cast<SpectrumPainterProcessor*>(arg);
+		obj->run();
+
+		return 0;
+	}
 
 };

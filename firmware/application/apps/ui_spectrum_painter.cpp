@@ -23,6 +23,7 @@
 //#include "hackrf_hal.hpp"
 #include "cpld_update.hpp"
 #include "bmp.hpp"
+#include "baseband_api.hpp"
 
 namespace ui {
 
@@ -102,6 +103,11 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 	}
 
 	py = height + 16;
+
+
+	//TODO: enable
+	return true;
+
 
 	while(1) {
 		while(px < width) {
@@ -264,6 +270,7 @@ SpectrumPainterView::SpectrumPainterView(
 		&tab_view,
 		&input_image,
 		&input_text,
+		&progressbar
 	});
 
 	Rect view_rect = { 0, 3 * 8, 240, 80 };
@@ -284,19 +291,24 @@ SpectrumPainterView::SpectrumPainterView(
 		tx_view.set_transmitting(true);
 		tx_view.focus();
 
+		progressbar.set_max(tx_current_max_lines);
+		progressbar.set_value(0);
+
 		uint16_t height = input_image.get_height();
+		tx_current_max_lines = height;
 		uint16_t width = input_image.get_width();
 
-		SpectrumPainterBufferConfigureRequestMessage message { width, height };
-		EventDispatcher::send_message(message);
+		baseband::set_spectrum_painter_config(width, height);
 	};
 	
 	tx_view.on_stop = [this]() {
 		//baseband::set_sstv_data(0, 0);
 		tx_view.set_transmitting(false);
 		portapack::transmitter_model.disable();
+		tx_active = false;
+		tx_current_line = 0;
 		//options_bitmaps.set_focusable(true);
-		this->fifo->reset();
+		//this->fifo->reset();
 	};
 	//button_paint.on_select
 
@@ -309,20 +321,42 @@ SpectrumPainterView::SpectrumPainterView(
 
 void SpectrumPainterView::start_tx() {
 	// TODO: prepare first line
+	tx_current_line = 0;
 	static std::vector<uint8_t> line;
-	line = input_image.get_line(700);
-	fifo->in(line);
-	
-	// line = input_image.get_line(1);
-	// fifo->in(line);
-	
+	line = input_image.get_line(tx_current_line++);
 
-	// TODO: send message initial buffer ready
-	// TODO: calculate 2nd line
-	// TODO: wait delay
-	// TODO: send message switch buffer
-	// TODO: repeat
-	// TODO: end: send end message
+	if (fifo != nullptr)
+		fifo->in(line);
+	
+	line = input_image.get_line(tx_current_line++);
+	fifo->in(line);
+
+	tx_active = true;
+}
+
+void SpectrumPainterView::frame_sync() {
+	static std::vector<uint8_t> line;
+
+	if (tx_active) {
+		if (fifo->is_empty()) {
+			tx_current_line++;
+			progressbar.set_value(tx_current_line);
+
+			if (tx_current_line >= tx_current_max_lines) {
+				tx_active = false;
+				tx_current_line = 0;
+
+				//TODO: this cuts the last 2 lines
+				tx_view.set_transmitting(false);
+				portapack::transmitter_model.disable();
+
+				return;
+			}
+
+			line = input_image.get_line(tx_current_line);
+			fifo->in(line);
+		}
+	}
 }
 
 SpectrumPainterView::~SpectrumPainterView() {
