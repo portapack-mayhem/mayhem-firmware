@@ -610,6 +610,52 @@ private:
 	size_t selected_index_ { 0 };
 };
 
+// A TextField is bound to a string reference and allows the string
+// to be manipulated. The field itself does not provide the UI for
+// setting the value. It provides the UI of rendering the text,
+// a cursor, and an API to edit the string content.
+class TextField : public Widget {
+public:
+	TextField(std::string& str, Point position, uint32_t length = 30)
+		: TextField{str, 64, position, length} { }
+
+	// Str: the string containing the content to edit.
+	// Max_length: max length the string is allowed to use.
+	// Position: the top-left corner of the control.
+	// Length: the number of characters to display.
+	//   - Characters are 8 pixels wide.
+	//   - The screen can show 30 characters max.
+	//   - The control is 16 pixels tall.
+	TextField(std::string& str, size_t max_length, Point position, uint32_t length = 30);
+
+	TextField(const TextField&) = delete;
+	TextField(TextField&&) = delete;
+	TextField& operator=(const TextField&) = delete;
+	TextField& operator=(TextField&&) = delete;
+
+	const std::string& value() const;
+
+	void set_cursor(uint32_t pos);
+	void set_insert_mode();
+	void set_overwrite_mode();
+
+	void char_add(char c);
+	void char_delete();
+
+	void paint(Painter& painter) override;
+
+	bool on_key(const KeyEvent key) override;
+	bool on_encoder(const EncoderEvent delta) override;
+	bool on_touch(const TouchEvent event) override;
+
+protected:
+	std::string&   text_;
+	size_t         max_length_;
+	uint32_t       char_count_;
+	uint32_t       cursor_pos_;
+	bool           insert_mode_;
+};
+
 class NumberField : public Widget {
 public:
 	std::function<void(NumberField&)> on_select { };
