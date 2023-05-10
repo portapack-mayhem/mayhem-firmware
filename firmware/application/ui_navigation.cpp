@@ -367,11 +367,7 @@ void SystemStatusView::on_bias_tee() {
 }*/
 
 void SystemStatusView::on_camera() {
-
-	std::string folder = "SCREENSHOTS";
-	make_new_directory(folder);
-
-	auto path = next_filename_stem_matching_pattern(u"SCREENSHOTS/SCR_????");
+	auto path = next_filename_stem_matching_pattern(u"SCR_????");
 	if( path.empty() ) {
 		return;
 	}

@@ -107,11 +107,9 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		nav.push<ModemSetupView>();
 	};
 	
-	std::string folder = "LOGS";
-	make_new_directory(folder);
 	logger = std::make_unique<AFSKLogger>();
 	if (logger)
-		logger->append("LOGS/AFSK.TXT");
+		logger->append("AFSK_LOG.TXT");
 	
 	// Auto-configure modem for LCR RX (will be removed later)
 	baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);

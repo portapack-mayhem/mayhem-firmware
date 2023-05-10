@@ -130,11 +130,9 @@ ERTAppView::ERTAppView(NavigationView&) {
 		static_cast<int8_t>(receiver_model.vga()),
 	}); */
 
-	std::string folder = "LOGS";
-	make_new_directory(folder);
 	logger = std::make_unique<ERTLogger>();
 	if( logger ) {
-		logger->append(u"LOGS/ERT.TXT");
+		logger->append(u"ert.txt");
 	}
 }
 
