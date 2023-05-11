@@ -48,7 +48,7 @@ options_t freqman_entry_bandwidths[ 4 ] = {
     { //WFM
         { "200k" , 0 },
         { "180k" , 1 },
-        { "40k"  , 2 },
+        { " 40k" , 2 },
     }
 };
 

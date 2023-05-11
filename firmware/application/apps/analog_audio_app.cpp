@@ -53,7 +53,7 @@ AMOptionsView::AMOptionsView(
 		&options_config,
 	});
 
-	freqman_set_bandwidth_option( AM_MODULATION , options_config );
+	freqman_set_bandwidth_option( AM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.am_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_am_configuration(n);
@@ -75,7 +75,7 @@ NBFMOptionsView::NBFMOptionsView(
 		&field_squelch
 	});
 
-	freqman_set_bandwidth_option( NFM_MODULATION , options_config );
+	freqman_set_bandwidth_option( NFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_nbfm_configuration(n);
@@ -100,7 +100,7 @@ WFMOptionsView::WFMOptionsView(
 		&options_config,
 	});
 
-	freqman_set_bandwidth_option( WFM_MODULATION , options_config );
+	freqman_set_bandwidth_option( WFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.wfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_wfm_configuration(n);
