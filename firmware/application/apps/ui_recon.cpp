@@ -432,7 +432,7 @@ namespace ui {
                         // needed to stabilize consecutive match without skipping 
                         // the little the rest, the more reactive and more CPU hog
                         // the bigger the rest, less CPU and more delay when switching
-				        while( _freq_lock != -1 && _freq_lock < (int32_t)_lock_nb_match && !chThdShouldTerminate() )
+                        while( _freq_lock != -1 && _freq_lock < (int32_t)_lock_nb_match && !chThdShouldTerminate() )
                         {
                             chThdSleepMilliseconds( 10 );
 				            if( remaining_sleep >= 10 )
@@ -662,8 +662,8 @@ namespace ui {
 		if( recon_thread )
 		{
 			int32_t nb_match = recon_thread->is_freq_lock();
-            if( nb_match == -1 )
-                nb_match = 0 ;
+ 			if( nb_match == -1 )
+ 			nb_match = 0 ;
 			if( last_db != db )
 			{
 				last_db = db ;
