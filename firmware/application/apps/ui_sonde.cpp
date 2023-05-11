@@ -133,11 +133,10 @@ SondeView::SondeView(NavigationView& nav) {
 			999); //set a dummy heading out of range to draw a cross...probably not ideal?
 	};
 
-	std::string folder = "LOGS";
-	make_new_directory(folder);
+	make_new_directory(LOG_ROOT_DIR);
 	logger = std::make_unique<SondeLogger>();
 	if (logger)
-		logger->append(u"LOGS/SONDE.TXT");
+		logger->append( LOG_ROOT_DIR "/SONDE.TXT" );
 
 	// initialize audio:
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);

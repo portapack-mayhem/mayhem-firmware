@@ -98,11 +98,10 @@ ACARSAppView::ACARSAppView(NavigationView& nav) {
 		logging = v;
 	};
 	
-	std::string folder = "LOGS";
-	make_new_directory(folder);
+	make_new_directory(LOG_ROOT_DIR);
 	logger = std::make_unique<ACARSLogger>();
 	if (logger)
-		logger->append("LOGS/ACARS.TXT");
+		logger->append( LOG_ROOT_DIR "/ACARS.TXT" );
 }
 
 ACARSAppView::~ACARSAppView() {
