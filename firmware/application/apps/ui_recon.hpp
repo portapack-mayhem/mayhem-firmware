@@ -59,8 +59,8 @@ namespace ui {
 			void set_match_mode( const uint32_t v );
 			uint32_t get_lock_nb_match();
 
-			void set_freq_lock(const uint32_t v);
-			uint32_t is_freq_lock();
+			void set_freq_lock(const int32_t v);
+			int32_t is_freq_lock();
 			int64_t get_current_freq();
 
 			void set_stepper(const int64_t v);
