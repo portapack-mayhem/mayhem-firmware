@@ -435,6 +435,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		} // frame.get_DF() == DF_ADSB
 
         if (logger) {
+				logger->append( LOG_ROOT_DIR "/ADSB.TXT" );
                 // will log each frame in format:
                 // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
 				logger->log_str(logentry);
