@@ -197,12 +197,15 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
 	return directory_list;
 }
 
-uint32_t delete_file(const std::filesystem::path& file_path) {
-	return f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()));
+std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path) {
+	return { f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str())) };
 }
 
-uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name) {
-	return f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str()));
+std::filesystem::filesystem_error rename_file(
+	const std::filesystem::path& file_path,
+	const std::filesystem::path& new_name)
+{
+	return { f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str())) };
 }
 
 std::filesystem::filesystem_error copy_file(

@@ -22,7 +22,6 @@
 
 /* TODO:
  * - Paging menu items
- * - Copy/Move
  */
 
 #include <algorithm>
@@ -144,6 +143,22 @@ bool partner_file_prompt(
 	);
 
 	return true;
+}
+
+fs::path get_unique_filename(const fs::path& path, const fs::path& file) {
+	auto stem = file.stem();
+	auto ext = file.extension();
+	auto serial = 1;
+	fs::path new_path = file;
+
+	while (fs::file_exists(path / new_path)) {
+		new_path = stem;
+		new_path += fs::path{ u"_" };
+		new_path += to_string_dec_int(serial++);
+		new_path += ext;
+	}
+
+	return new_path;
 }
 
 }
@@ -466,25 +481,21 @@ void FileManagerView::on_new_dir() {
 }
 
 void FileManagerView::on_paste() {
-	auto stem = copy_path.stem();
-	auto ext = copy_path.extension();
-	auto serial = 1;
-	fs::path new_path = copy_path.filename();
-
-	// Create a unique name.
-	while (fs::file_exists(current_path / new_path)) {
-		new_path = stem;
-		new_path += fs::path{ u"_" };
-		new_path += to_string_dec_int(serial++);
-		new_path += ext;
-	}
-
 	// TODO: handle partner file. Need to fix nav stack first.
-	auto result = copy_file(copy_path, current_path / new_path);
+	auto new_name = get_unique_filename(current_path, clipboard_path.filename());
+	fs::filesystem_error result;
+
+	if (clipboard_mode == ClipboardMode::Cut)
+		result = rename_file(clipboard_path, current_path / new_name);
+
+	else if (clipboard_mode == ClipboardMode::Copy)
+		result = copy_file(clipboard_path, current_path / new_name);
+
 	if (result.code() != FR_OK)
 		nav_.display_modal("Paste Failed", result.what());
 	
-	copy_path = fs::path{ };
+	clipboard_path = fs::path{ };
+	clipboard_mode = ClipboardMode::None;
 	menu_view.focus();
 	reload_current();
 }
@@ -498,8 +509,10 @@ void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
 	button_delete.hidden(v);
 	button_new_dir.hidden(v);
+	button_cut.hidden(v);
 	button_copy.hidden(v);
 	button_paste.hidden(v);
+
 	set_dirty();
 }
 
@@ -522,12 +535,16 @@ FileManagerView::FileManagerView(
 		&button_rename,
 		&button_delete,
 		&button_new_dir,
+		&button_cut,
 		&button_copy,
 		&button_paste
 	});
+
+	button_cut.set_color(Color::dark_blue());
+	button_copy.set_color(Color::dark_blue());
+	button_paste.set_color(Color::dark_blue());
 	
 	menu_view.on_highlight = [this]() {
-	// TODO: enable/disable buttons.
 	if (selected_is_valid())
 		text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
 	else
@@ -558,18 +575,27 @@ FileManagerView::FileManagerView(
 		on_new_dir();
 	};
 
-	button_copy.on_select = [this](Button&) {
-		if (selected_is_valid() && !get_selected_entry().is_directory)
-			copy_path = get_selected_full_path();
-		else
+	button_cut.on_select = [this]() {
+		if (selected_is_valid() && !get_selected_entry().is_directory) {
+			clipboard_path = get_selected_full_path();
+			clipboard_mode = ClipboardMode::Cut;
+		} else
+			nav_.display_modal("Cut", "Can't cut that.");
+	};
+
+	button_copy.on_select = [this]() {
+		if (selected_is_valid() && !get_selected_entry().is_directory) {
+			clipboard_path = get_selected_full_path();
+			clipboard_mode = ClipboardMode::Copy;
+		} else
 			nav_.display_modal("Copy", "Can't copy that.");
 	};
 
-	button_paste.on_select = [this](Button&) {
-		if (!copy_path.empty())
+	button_paste.on_select = [this]() {
+		if (clipboard_mode != ClipboardMode::None)
 			on_paste();
 		else
-			nav_.display_modal("Paste", "Copy a file first.");
+			nav_.display_modal("Paste", "Cut or copy a file first.");
 	};
 }
 

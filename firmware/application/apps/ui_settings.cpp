@@ -446,7 +446,7 @@ namespace ui {
 			else
 			{
 				auto result = delete_file( pmem_flag_file );
-				if( result != 0 )
+				if( result.code() != FR_OK )
 				{
 					text_pmem_status.set("!err. deleting pmem flagfile!");
 				}

@@ -42,6 +42,12 @@ enum class EmptyReason : uint8_t {
 	NoSDC
 };
 
+enum class ClipboardMode : uint8_t {
+	None,
+	Cut,
+	Copy
+};
+
 class FileManBaseView : public View {
 public:
 	FileManBaseView(
@@ -194,7 +200,8 @@ public:
 private:
 	// Passed by ref to other views needing lifetime extension.
 	std::string name_buffer { };
-	std::filesystem::path copy_path { };
+	std::filesystem::path clipboard_path { };
+	ClipboardMode clipboard_mode { ClipboardMode::None }; 
 	
 	void refresh_widgets(const bool v);
 	void on_rename();
@@ -229,14 +236,22 @@ private:
 		"New Dir"
 	};
 
-	Button button_copy {
-		{ 0 * 8, 34 * 8, 9 * 8, 32 },
-		"Copy"
+	NewButton button_cut {
+		{ 0 * 8, 34 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_cut,
 	};
 
-	Button button_paste {
-		{ 21 * 4, 34 * 8, 9 * 8, 32 },
-		"Paste"
+	NewButton button_copy {
+		{ 4 * 8, 34 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_copy,
+	};
+
+	NewButton button_paste {
+		{ 8 * 8, 34 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_paste
 	};
 };
 
