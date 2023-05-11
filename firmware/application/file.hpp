@@ -252,11 +252,12 @@ struct FATTimestamp {
 	uint16_t FAT_time;
 };
 
-uint32_t delete_file(const std::filesystem::path& file_path);
-uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
+std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
-uint32_t make_new_directory(const std::filesystem::path& dir_path);
+std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
 std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);

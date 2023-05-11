@@ -167,6 +167,10 @@ void MenuView::clear() {
 	offset = 0;
 }
 
+size_t MenuView::item_count() const {
+	return menu_items.size();
+}
+
 void MenuView::add_item(MenuItem new_item) {
 	menu_items.push_back(new_item);
 	

@@ -466,6 +466,7 @@ public:
 	NewButton(const NewButton&) = delete;
 	NewButton& operator=(const NewButton&) = delete;
 	NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
+	NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color);
 	NewButton(
 	) : NewButton { { }, { }, { } }
 	{
@@ -486,8 +487,8 @@ public:
 
 private:
 	std::string text_;
-	Color color_ = Color::dark_cyan();
 	const Bitmap* bitmap_;
+	Color color_;
 };
 
 class Image : public Widget {

@@ -1143,9 +1143,18 @@ NewButton::NewButton(
 	Rect parent_rect,
 	std::string text,
 	const Bitmap* bitmap
+) : NewButton { parent_rect, text, bitmap, Color::dark_cyan() }
+{ }
+
+NewButton::NewButton(
+	Rect parent_rect,
+	std::string text,
+	const Bitmap* bitmap,
+	Color color
 ) : Widget { parent_rect },
 	text_ { text },
-	bitmap_ (bitmap)
+	bitmap_ { bitmap },
+	color_ { color }
 {
 	set_focusable(true);
 }
