@@ -735,9 +735,15 @@ namespace ui {
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
 		receiver_model.set_tuning_frequency( stored_freq );
-		frequency_range.min = stored_freq - 1000000;
+		if( stored_freq - 1000000 > 0 )
+			frequency_range.min = stored_freq - 1000000;
+		else
+			frequency_range.min = 0 ;
 		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-		frequency_range.max = stored_freq + 1000000;
+		if( stored_freq + 1000000 < MAX_UFREQ )
+			frequency_range.max = stored_freq + 1000000;
+		else
+			frequency_range.max = MAX_UFREQ ;
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 		// Loading settings
 		autostart = persistent_memory::recon_autostart_recon();
@@ -797,9 +803,9 @@ namespace ui {
 
 		button_manual_start.on_change = [this]() {
 			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * freqman_entry_get_step_value( def_step );
-			if( frequency_range.min < 1 )
+			if( frequency_range.min < 0 )
 			{
-				frequency_range.min = 1 ;
+				frequency_range.min = 0 ;
 			}
 			if( frequency_range.min > ( MAX_UFREQ - freqman_entry_get_step_value( def_step ) ) )
 			{
