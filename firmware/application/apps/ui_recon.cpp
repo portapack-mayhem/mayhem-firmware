@@ -1382,10 +1382,11 @@ namespace ui {
 
 		button_recon_setup.on_select = [this,&nav](Button&) {
 
-			ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+			audio::output::stop();
+			recon_thread->stop();	//STOP SCANNER THREAD
+			frequency_list.clear();
 
-			if( frequency_list.size() != 0 )
-				user_pause();
+            ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
 
 			auto open_view = nav.push<ReconSetupView>(input_file,output_file,recon_lock_duration,recon_lock_nb_match,recon_match_mode);
 			open_view -> on_changed = [this](std::vector<std::string> result) {
@@ -1406,61 +1407,57 @@ namespace ui {
 				load_hamradios = persistent_memory::recon_load_hamradios();
 
 				update_ranges = persistent_memory::recon_update_ranges_when_recon();
-
-				frequency_file_load( true );
+				frequency_file_load( false );
 				if( recon_thread )
 				{
 					recon_thread->set_lock_duration( recon_lock_duration );
 					recon_thread->set_lock_nb_match( recon_lock_nb_match );
 					recon_thread->set_continuous( continuous );
 					recon_thread->set_recon_direction( fwd );
-				}
-				if( autostart )
-				{
-					user_resume();
-				}
-				else
-				{
-					user_pause();
-				}
-
-				if( update_ranges )
-				{
-					button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-					frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-					if( frequency_list[ current_index ] . frequency_b != 0 )
+					if( autostart )
 					{
-						button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-						frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+						user_resume();
 					}
 					else
 					{
-						button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-						frequency_range.max = frequency_list[ current_index ] . frequency_a ;
+						user_pause();
+					}
+					if( update_ranges && frequency_list.size() != 0 )
+					{
+						current_index = 0 ;
+						button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+						frequency_range.min = frequency_list[ current_index ] . frequency_a ;
+						if( frequency_list[ current_index ] . frequency_b != 0 )
+						{
+							button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
+							frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+						}
+						else
+						{
+							button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+							frequency_range.max = frequency_list[ current_index ] . frequency_a ;
+						}
 					}
 				}
-
 				lock_wait = ( 4 * ( recon_lock_duration * recon_lock_nb_match ) ) / 100 ;
 				lock_wait = lock_wait * 100 ; // poor man's rounding
 				if( lock_wait < 400 )
 					lock_wait = 400 ;
 				field_lock_wait.set_value( lock_wait );
 				show_max();
-				return ;
+				if( userpause != true )
+				{
+					timer = 0 ;
+					user_resume();
+				}
+				else
+				{
+					RetuneMessage message { };
+					message.freq = recon_thread->get_current_freq();
+					message.range = current_index ;
+					EventDispatcher::send_message(message);
+				}
 			};
-
-			if( userpause != true )
-			{
-				timer = 0 ;
-				user_resume();
-			}
-			else
-			{
-				RetuneMessage message { };
-				message.freq = recon_thread->get_current_freq();
-				message.range = current_index ;
-				EventDispatcher::send_message(message);
-			}
 		};
 
 		field_wait.on_change = [this](int32_t v)
