@@ -735,13 +735,13 @@ namespace ui {
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
 		receiver_model.set_tuning_frequency( stored_freq );
-		if( stored_freq - 1000000 > 0 )
-			frequency_range.min = stored_freq - 1000000;
+		if( stored_freq - OneMHz > 0 )
+			frequency_range.min = stored_freq - OneMHz ;
 		else
 			frequency_range.min = 0 ;
 		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-		if( stored_freq + 1000000 < MAX_UFREQ )
-			frequency_range.max = stored_freq + 1000000;
+		if( stored_freq + OneMHz < MAX_UFREQ )
+			frequency_range.max = stored_freq + OneMHz ;
 		else
 			frequency_range.max = MAX_UFREQ ;
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
@@ -791,7 +791,7 @@ namespace ui {
 			{
 				auto new_view = nav_.push<FrequencyKeypadView>(current_index);
 				new_view->on_changed = [this, &button](rf::Frequency f) {
-					f = f / 1000000 ;
+					f = f / OneMHz ;
 					if( f >= 1 && f <= frequency_list.size() )
 					{
 						recon_thread-> set_index_stepper( f - 1 - current_index );

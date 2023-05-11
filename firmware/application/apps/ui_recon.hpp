@@ -42,6 +42,12 @@
 // maximum usable freq
 #define MAX_UFREQ 7200000000
 
+// 1Mhz helper
+#ifdef OneMHz
+    #undef OneMHz
+#endif
+#define OneMHz 1000000
+
 namespace ui {
 
 	class ReconThread {
