@@ -203,15 +203,15 @@ std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_
 
 std::filesystem::filesystem_error rename_file(
 	const std::filesystem::path& file_path,
-	const std::filesystem::path& new_name)
-{
+	const std::filesystem::path& new_name
+) {
 	return { f_rename(reinterpret_cast<const TCHAR*>(file_path.c_str()), reinterpret_cast<const TCHAR*>(new_name.c_str())) };
 }
 
 std::filesystem::filesystem_error copy_file(
 	const std::filesystem::path& file_path,
-	const std::filesystem::path& dest_path)
-{
+	const std::filesystem::path& dest_path
+) {
 	File src;
 	File dst;
 	constexpr size_t buffer_size = 512;
@@ -245,8 +245,20 @@ FATTimestamp file_created_date(const std::filesystem::path& file_path) {
 	return { filinfo.fdate, filinfo.ftime };
 }
 
-uint32_t make_new_directory(const std::filesystem::path& dir_path) {
-	return f_mkdir(reinterpret_cast<const TCHAR*>(dir_path.c_str()));
+std::filesystem::filesystem_error make_new_file(
+	const std::filesystem::path& file_path
+) {
+	File f;
+	auto result = f.create(file_path);
+	return result.is_valid()
+		? result.value()
+		: std::filesystem::filesystem_error{ };
+}
+
+std::filesystem::filesystem_error make_new_directory(
+	const std::filesystem::path& dir_path
+) {
+	return { f_mkdir(reinterpret_cast<const TCHAR*>(dir_path.c_str())) };
 }
 
 namespace std {

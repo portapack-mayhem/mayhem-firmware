@@ -62,6 +62,7 @@ public:
 	
 protected:
 	static constexpr size_t max_filename_length = 64;
+	static constexpr size_t max_items_shown = 128;
 
 	struct file_assoc_t {
 		std::filesystem::path extension;
@@ -114,6 +115,12 @@ protected:
 	MenuView menu_view {
 		{ 0, 2 * 8, 240, 26 * 8 },
 		true
+	};
+
+	// HACK: for item count limit.
+	Text text_info {
+		{ 1 * 8, 35 * 8, 15 * 8, 16 },
+		""
 	};
 	
 	Button button_exit {
@@ -206,8 +213,9 @@ private:
 	void refresh_widgets(const bool v);
 	void on_rename();
 	void on_delete();
-	void on_new_dir();
 	void on_paste();
+	void on_new_dir();
+	void on_new_file();
 
 	// True if the selected entry is a real file item.
 	bool selected_is_valid() const;
@@ -221,37 +229,53 @@ private:
 		""
 	};
 
-	Button button_rename {
-		{ 0 * 8, 29 * 8, 9 * 8, 32 },
-		"Rename"
+	NewButton button_rename {
+		{ 0 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_rename,
+		Color::dark_blue()
 	};
 
-	Button button_delete {
-		{ 21 * 4, 29 * 8, 9 * 8, 32 },
-		"Delete"
-	};
-
-	Button button_new_dir {
-		{ 21 * 8, 29 * 8, 9 * 8, 32 },
-		"New Dir"
+	NewButton button_delete {
+		{ 4 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_trash,
+		Color::red()
 	};
 
 	NewButton button_cut {
-		{ 0 * 8, 34 * 8, 4 * 8, 32 },
+		{ 9 * 8, 29 * 8, 4 * 8, 32 },
 		{ },
 		&bitmap_icon_cut,
+		Color::dark_grey()
 	};
 
 	NewButton button_copy {
-		{ 4 * 8, 34 * 8, 4 * 8, 32 },
+		{ 13 * 8, 29 * 8, 4 * 8, 32 },
 		{ },
 		&bitmap_icon_copy,
+		Color::dark_grey()
 	};
 
 	NewButton button_paste {
-		{ 8 * 8, 34 * 8, 4 * 8, 32 },
+		{ 17 * 8, 29 * 8, 4 * 8, 32 },
 		{ },
-		&bitmap_icon_paste
+		&bitmap_icon_paste,
+		Color::dark_grey()
+	};
+
+	NewButton button_new_dir {
+		{ 22 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_new_dir,
+		Color::green()
+	};
+
+	NewButton button_new_file {
+		{ 26 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_new_file,
+		Color::green()
 	};
 };
 

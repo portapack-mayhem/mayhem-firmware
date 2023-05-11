@@ -213,6 +213,7 @@ FileManBaseView::FileManBaseView(
 	add_children({
 		&labels,
 		&text_current,
+		&text_info,
 		&button_exit
 	});
 
@@ -302,8 +303,13 @@ void FileManBaseView::refresh_list() {
 				}
 			});
 		}
+
+		// HACK: Should page menu items instead of limiting the number. 
+		if (menu_view.item_count() >= max_items_shown)
+			break;
 	}
-	
+
+	text_info.set(menu_view.item_count() >= max_items_shown ? "Too many files!" : "");
 	menu_view.set_highlighted(prev_highlight);
 }
 
@@ -480,6 +486,14 @@ void FileManagerView::on_new_dir() {
 	});
 }
 
+void FileManagerView::on_new_file() {
+	name_buffer = "";
+	text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
+		make_new_file(current_path / file_name);
+		reload_current();
+	});
+}
+
 void FileManagerView::on_paste() {
 	// TODO: handle partner file. Need to fix nav stack first.
 	auto new_name = get_unique_filename(current_path, clipboard_path.filename());
@@ -508,10 +522,11 @@ bool FileManagerView::selected_is_valid() const {
 void FileManagerView::refresh_widgets(const bool v) {
 	button_rename.hidden(v);
 	button_delete.hidden(v);
-	button_new_dir.hidden(v);
 	button_cut.hidden(v);
 	button_copy.hidden(v);
 	button_paste.hidden(v);
+	button_new_dir.hidden(v);
+	button_new_file.hidden(v);
 
 	set_dirty();
 }
@@ -534,15 +549,12 @@ FileManagerView::FileManagerView(
 		&text_date,
 		&button_rename,
 		&button_delete,
-		&button_new_dir,
 		&button_cut,
 		&button_copy,
-		&button_paste
+		&button_paste,
+		&button_new_dir,
+		&button_new_file
 	});
-
-	button_cut.set_color(Color::dark_blue());
-	button_copy.set_color(Color::dark_blue());
-	button_paste.set_color(Color::dark_blue());
 	
 	menu_view.on_highlight = [this]() {
 	if (selected_is_valid())
@@ -561,18 +573,14 @@ FileManagerView::FileManagerView(
 		}
 	};
 	
-	button_rename.on_select = [this](Button&) {
+	button_rename.on_select = [this]() {
 		if (selected_is_valid())
 			on_rename();
 	};
 
-	button_delete.on_select = [this](Button&) {
+	button_delete.on_select = [this]() {
 		if (selected_is_valid())
 			on_delete();
-	};
-
-	button_new_dir.on_select = [this](Button&) {
-		on_new_dir();
 	};
 
 	button_cut.on_select = [this]() {
@@ -596,6 +604,14 @@ FileManagerView::FileManagerView(
 			on_paste();
 		else
 			nav_.display_modal("Paste", "Cut or copy a file first.");
+	};
+
+	button_new_dir.on_select = [this]() {
+		on_new_dir();
+	};
+
+	button_new_file.on_select = [this]() {
+		on_new_file();
 	};
 }
 
