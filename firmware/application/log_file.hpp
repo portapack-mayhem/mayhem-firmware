@@ -27,7 +27,10 @@
 #include "file.hpp"
 
 #include "lpc43xx_cpp.hpp"
+
 using namespace lpc43xx;
+
+#define LOG_ROOT_DIR "LOGS"
 
 class LogFile {
 public:
