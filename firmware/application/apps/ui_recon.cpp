@@ -1452,10 +1452,13 @@ namespace ui {
 				}
 				else
 				{
-					RetuneMessage message { };
-					message.freq = recon_thread->get_current_freq();
-					message.range = current_index ;
-					EventDispatcher::send_message(message);
+ 					if( recon_thread && frequency_list.size() != 0 )
+ 					{
+ 						RetuneMessage message { };
+ 						message.freq = recon_thread->get_current_freq();
+ 						message.range = current_index ;
+ 						EventDispatcher::send_message(message);
+ 					}
 				}
 			};
 		};
