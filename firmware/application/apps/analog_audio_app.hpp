@@ -54,7 +54,7 @@ private:
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		5,
-		{
+		{		// using  common messages from freqman.cpp
 		}
 	};
 };
@@ -71,7 +71,7 @@ private:
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		4,
-		{
+		{		// using  common messages from freqman.cpp
 		}
 	};
 	
@@ -101,7 +101,7 @@ private:
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		3,
-		{
+		{		// using  common messages from freqman.cpp
 		}
 	};
 };
