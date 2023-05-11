@@ -117,10 +117,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	
 	std::unique_ptr<ADSBLogger> logger { };
 
-    logger = std::make_unique<ADSBLogger>();
 	make_new_directory(LOG_ROOT_DIR);
-	if (logger)
-		logger->append( LOG_ROOT_DIR "/ADSB.TXT" );
 
 	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
@@ -356,6 +353,7 @@ void ADSBRxView::sort_entries_by_state()
 }
 
 void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
+   	logger = std::make_unique<ADSBLogger>();
 	rtc::RTC datetime;
 	std::string callsign;
 	std::string str_info;
@@ -426,6 +424,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
 				if (logger) {
+					logger->append( LOG_ROOT_DIR "/ADSB.TXT" );
 					logentry += "Type:" + to_string_dec_uint(msg_sub) +
 								" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 								" Spd: "+ to_string_dec_int(entry.velo.speed);
