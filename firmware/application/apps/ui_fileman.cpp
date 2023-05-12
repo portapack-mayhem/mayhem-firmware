@@ -444,7 +444,7 @@ void FileManagerView::on_rename() {
 				[this, renamed_path](const fs::path& partner, bool should_rename) mutable {
 					if (should_rename) {
 						auto new_name = renamed_path.replace_extension(partner.extension());
-						rename_file(current_path / partner, current_path / new_name);
+						rename_file(partner, current_path / new_name);
 					}
 					reload_current();
 				}
@@ -466,7 +466,7 @@ void FileManagerView::on_delete() {
 					nav_, get_selected_full_path(), "Delete",
 					[this](const fs::path& partner, bool should_delete) {
 						if (should_delete)
-							delete_file(current_path / partner);
+							delete_file(partner);
 						reload_current();
 					}
 				);
