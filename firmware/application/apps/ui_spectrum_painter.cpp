@@ -95,6 +95,8 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 
 	width = bmp_header.width;
 	height = bmp_header.height;
+	if (width != 2048)
+		chDbgPanic("width#5");
 
 	data_start = file_pos = bmp_header.image_data;
 
@@ -188,16 +190,24 @@ uint16_t SpectrumInputImageView::get_height(){
 
 std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 	File bmpimage;
-	auto result = bmpimage.open(this->file);
+	bmpimage.open(this->file);
+	if (width != 2048)
+		chDbgPanic("width#6");
+
 
 	//seek to line
-	uint16_t line_size = width * (type == 2 ? 4 : (type == 1 ? 3 : 2));
-	uint16_t line_offset = y * line_size;
+	uint32_t line_size = width * (type == 2 ? 4 : (type == 1 ? 3 : 2));
+	uint32_t line_offset = y * line_size;
 	bmpimage.seek(data_start + line_offset);
 
 	// allocate memory and read
 	auto buffer = new uint8_t[line_size];
-	auto read_size = bmpimage.read(buffer, line_size);
+	auto bytes_read = bmpimage.read(buffer, line_size);
+	if (bytes_read.is_error())
+		chDbgPanic("read#1");
+	if (bytes_read.value() != line_size)
+		chDbgPanic("read#2");
+
 
 	// greyscale
 	auto grey_buffer = new uint8_t[width];
@@ -232,9 +242,28 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 
 	delete buffer;
 
+
+	auto color2 = ui::Color(54, 33, 3);
+	if (color2.to_greyscale() == 0)
+		chDbgPanic("to_greyscale");
+
+	if (width != 2048)
+		chDbgPanic("width#3");
+
 	//return line
-	std::vector<uint8_t> values(grey_buffer, grey_buffer + width);
+	std::vector<uint8_t> values(width);
+	for(int i = 0; i < width; i++) {
+		values[i] = grey_buffer[i]; //, grey_buffer + 
+
+	}
+
+	if (width != 2048)
+		chDbgPanic("width#3b");
+
 	delete grey_buffer;
+
+	if (width != 2048)
+		chDbgPanic("width#3a");
 	return values;
 }
 
@@ -291,12 +320,16 @@ SpectrumPainterView::SpectrumPainterView(
 		tx_view.set_transmitting(true);
 		tx_view.focus();
 
+		uint16_t height = input_image.get_height();
+		uint16_t width = input_image.get_width();
+
+		tx_current_max_lines = height;
 		progressbar.set_max(tx_current_max_lines);
 		progressbar.set_value(0);
 
-		uint16_t height = input_image.get_height();
-		tx_current_max_lines = height;
-		uint16_t width = input_image.get_width();
+		if (width != 2048)
+			chDbgPanic("width#4");
+
 
 		baseband::set_spectrum_painter_config(width, height);
 	};
@@ -320,17 +353,26 @@ SpectrumPainterView::SpectrumPainterView(
 }
 
 void SpectrumPainterView::start_tx() {
+	uint16_t width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#7");
+
 	// TODO: prepare first line
 	tx_current_line = 0;
 	static std::vector<uint8_t> line;
 	line = input_image.get_line(tx_current_line++);
-
-	if (fifo != nullptr)
-		fifo->in(line);
-	
+	width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#10a");
+	fifo->in(line);
+	width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#10");
 	line = input_image.get_line(tx_current_line++);
 	fifo->in(line);
-
+	width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#11");
 	tx_active = true;
 }
 
@@ -338,10 +380,17 @@ void SpectrumPainterView::frame_sync() {
 	static std::vector<uint8_t> line;
 
 	if (tx_active) {
+
+		uint16_t width = input_image.get_width();
+		if (width != 2048)
+			chDbgPanic("width#8");
+
 		if (fifo->is_empty()) {
 			tx_current_line++;
 			progressbar.set_value(tx_current_line);
-
+width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#12");
 			if (tx_current_line >= tx_current_max_lines) {
 				tx_active = false;
 				tx_current_line = 0;
@@ -354,8 +403,24 @@ void SpectrumPainterView::frame_sync() {
 			}
 
 			line = input_image.get_line(tx_current_line);
-			fifo->in(line);
+width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#13");
+			//dont send silent
+			bool silent = true;
+			for (auto e:line) {
+				if (e != 0) {
+					silent = false;
+					break;
+				}
+			}
+			if (!silent)
+				fifo->in(line);
 		}
+
+		width = input_image.get_width();
+	if (width != 2048)
+		chDbgPanic("width#14");
 	}
 }
 

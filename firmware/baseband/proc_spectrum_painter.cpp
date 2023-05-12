@@ -26,8 +26,8 @@
 
 #include <cstdint>
 
-complex32_t *current_line_data = nullptr;
-complex32_t * volatile next_line_data = nullptr;
+complex16_t *current_line_data = nullptr;
+complex16_t * volatile next_line_data = nullptr;
 uint32_t current_line_index = 0;
 uint32_t current_line_width = 0;
 constexpr std::complex<int8_t> wave[4] = {{127, 0}, {0, 127}, {-127, 0}, {0, -127}};
@@ -112,48 +112,48 @@ int max_val = 127;
 // This is called at 3072000/2048 = 1500Hz
 void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 
-	if (!configured) return;
-
 	for (uint32_t i = 0; i < buffer.count; i++) {
-	 	if (current_line_data == nullptr)
-			if (((current_line_index++ >> 21) & 0x01) == 0x01) {
-				buffer.p[i] = {0,0}; // wave[(2048 - i) % 4];
-
-			}
-			else {
-				buffer.p[i] = wave[i % 4];
-
-			}
-
-	 	else {
-			// if (((current_line_index++ >> 21) & 0x01) == 0x01) {
-				int rampUp = current_line_index + 1;
-				if (rampUp > 100) {
-					rampUp = 100;
-				}
-				int rampDown = (current_line_index % current_line_width)-current_line_width;
-				if (rampDown > 100) {
-					rampDown = 100;
-				}
-				int ramp = rampUp * rampDown / 100;
-
-				auto data = current_line_data[current_line_index++ % current_line_width];
-				if (data.real() > 127)
-					max_val = data.real();
-				if (data.real() < -127)
-					max_val = - data.real();
-
-				if (data.imag() > 127 )
-					max_val = data.imag();
-				if (data.imag() < -128)
-					max_val = -data.imag();
-
-	 			buffer.p[i] = {(int8_t) (data.real() * 120 / max_val * ramp / 100), (int8_t) (data.imag() * 120 / max_val * ramp / 100)};
-			// }
-			// else
-			// 	buffer.p[i] = {0,0}; //wave[i % 4];
+	 	if (current_line_data != nullptr) {
+			auto data = current_line_data[current_line_index++ % current_line_width];
+			buffer.p[i] = {(int8_t) data.real(), (int8_t) data.imag()};
 		}
+		else
+			buffer.p[i] = {0, 0};
 	}
+
+
+// 	if (!configured) return;
+// max_val = 127;
+// 	for (uint32_t i = 0; i < buffer.count; i++) {
+// 	 	if (current_line_data != nullptr) {
+// 			// if (((current_line_index++ >> 21) & 0x01) == 0x01) {
+// 				// int rampUp = current_line_index + 1;
+// 				// if (rampUp > 100) {
+// 				// 	rampUp = 100;
+// 				// }
+// 				// int rampDown = (current_line_index % current_line_width)-current_line_width;
+// 				// if (rampDown > 100) {
+// 				// 	rampDown = 100;
+// 				// }
+// 				// int ramp = rampUp * rampDown / 100;
+
+// 				auto data = current_line_data[current_line_index++ % current_line_width];
+// 				if (data.real() > 127)
+// 					max_val = data.real();
+// 				if (data.real() < -127)
+// 					max_val = - data.real();
+
+// 				if (data.imag() > 127 )
+// 					max_val = data.imag();
+// 				if (data.imag() < -128)
+// 					max_val = -data.imag();
+
+// 	 			buffer.p[i] = {(int8_t) (data.real() * 120 / max_val), (int8_t) (data.imag() * 120 / max_val)};
+// 			// }
+// 			// else
+// 			// 	buffer.p[i] = {0,0}; //wave[i % 4];
+// 		}
+// 	}
 
 	if (next_line_data != nullptr) {
 		if (current_line_data != nullptr)
@@ -170,43 +170,60 @@ void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 WORKING_AREA(thread_wa, 4096);
 
 void SpectrumPainterProcessor::run() {
-int ui = 0;init_genrand(22267);
+	int ui = 0;
+	init_genrand(22267);
+
 	while (true) {
 		if (fifo.is_empty() == false && next_line_data == nullptr) {
 			std::vector<uint8_t> data;
 			fifo.out(data);
 
-			auto size = data.size() *2;
-			auto qu = size/4;
+			auto picture_width = data.size();
+			if (current_line_width != picture_width)
+				chDbgPanic("width");
 
-			complex32_t *v = new complex32_t[size];
-			complex32_t *tmp = new complex32_t[size];
+			auto fft_width = picture_width * 2;
+			auto qu = fft_width/4;
+			
+			complex16_t *v = new complex16_t[fft_width];
+			complex16_t *tmp = new complex16_t[fft_width];
 
-			for (std::size_t i = 0; i < data.size(); i++) {
-				if (i < qu) {
-					v[i] = {0, 0};
+			for (uint32_t fft_index = 0; fft_index < fft_width; fft_index++) {
+				if (fft_index < qu) {
+					//v[i] = {0, 0};
 				}
-				else if (i < qu*3) {
-					// auto phase_offset = std::exp(complex32_t({0, phase}));
+				else if (fft_index < qu*3) {
+					auto image_index = fft_index-qu;
+					// auto phase_offset = std::exp(complex16_t({0, phase}));
 
-					auto bin_power = data[i-qu]; // 0 to 255
-					auto bin_phase = genrand_int31() >> 23; // 0 to 255
+					//auto bin_power = ((i % 80) < 4) ? 12 : 0; //data[i-qu]; // 0 to 255
+					auto bin_power = data[image_index]; // 0 to 255
+					// auto bin_power = ((fft_index-qu) / 8)%64; // 0 to 255
+					 if (bin_power < 63)
+					 	bin_power = 0;
+
+					auto bin_phase = genrand_int31(); // 0 to 255
 
 					// rotate by random angle
 					auto phase_cos = (sine_table_i8[((int)(bin_phase + 0x40)) & 0xFF]); // -127 to 127
             		auto phase_sin = (sine_table_i8[((int)(bin_phase)) & 0xFF]);
 
+					auto real = (int16_t)((int16_t)phase_cos * bin_power / 255); // -127 to 127
+					auto imag = (int16_t)((int16_t)phase_sin * bin_power / 255); // -127 to 127
+
 					// do: fftshift
 					auto fftshift_index = 0;
-					if (i < qu*2)
-						fftshift_index = i + qu;
-					else
-						fftshift_index = i - qu;
+					if (fft_index < qu*2) // first half (fft_index = qu; fft_index < qu*2)
+						fftshift_index = fft_index + 2*qu; // goes to back
+					else	 // 2nd half (fft_index =  qu*2; fft_index < qu*3)
+						fftshift_index = fft_index - 2*qu; // goes to front
 
-					v[fftshift_index] = {(int16_t)phase_cos * bin_power / 255, (int16_t)phase_sin * bin_power / 255}; // -127 to 127
+					v[fftshift_index] = {real, imag};
+
+					//HALT_UNTIL_DEBUGGING();
 				}
 				else {
-					v[i] = {0, 0};
+					//v[i] = {0, 0};
 				}
 				
 
@@ -216,7 +233,36 @@ int ui = 0;init_genrand(22267);
 				// 	v[i] = {0, 0};
 			}
 
-			ifft<complex32_t>(v, size, tmp);
+			// 
+			ifft<complex16_t>(v, fft_width, tmp);
+
+			// normalize
+			volatile int32_t maximum = 1;
+			for (uint32_t i = 0; i < fft_width; i++) {
+				if (v[i].real() > maximum)
+					maximum = v[i].real();
+				if (v[i].real() < -maximum)
+					maximum = -v[i].real();
+				if (v[i].imag() > maximum)
+					maximum = v[i].imag();
+				if (v[i].imag() < -maximum)
+					maximum = -v[i].imag();
+			}
+
+
+			if (maximum == 1) { // a black line
+				//chDbgPanic("silent");
+				for (uint32_t i = 0; i < fft_width; i++)
+					v[i] = {0, 0};
+			}
+			else {
+				//HALT_UNTIL_DEBUGGING();
+				for (uint32_t i = 0; i < fft_width; i++) {
+					v[i] = { (int8_t)((int32_t)v[i].real() * 120 / maximum), (int8_t)((int32_t)v[i].imag() * 120 / maximum)};
+				}
+			}
+
+
 
 			delete tmp;
 			next_line_data = v;
@@ -235,6 +281,9 @@ void SpectrumPainterProcessor::on_message(const Message* const msg) {
 		{
 			const auto message = *reinterpret_cast<const SpectrumPainterBufferConfigureRequestMessage*>(msg);
 			current_line_width = message.width;
+
+			if (current_line_width != 2048)
+				chDbgPanic("width#2");
 
 			SpectrumPainterBufferConfigureResponseMessage response { &fifo };
 			shared_memory.application_queue.push(response);

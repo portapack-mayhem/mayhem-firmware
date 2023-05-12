@@ -59,11 +59,11 @@ struct Color {
 	}
 
 	uint8_t to_greyscale() {
-		uint8_t r = ((v >> 11) & 31U) << 3;
-		uint8_t g = ((v >> 5)  & 63U) << 2;
-		uint8_t b = (v         & 31U) << 3;
+		uint32_t r = ((v >> 11) & 31U) << 3;
+		uint32_t g = ((v >> 5)  & 63U) << 2;
+		uint32_t b = (v         & 31U) << 3;
 
-		auto grey = (r * 299 + g * 587 + b * 114) / 1000;
+		uint32_t grey = (r * 299 + g * 587 + b * 114) / 1000;
 
 		return (uint8_t)grey;
 	}
