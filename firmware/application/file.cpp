@@ -214,7 +214,7 @@ std::filesystem::filesystem_error copy_file(
 ) {
 	File src;
 	File dst;
-	constexpr size_t buffer_size = 512;
+	constexpr size_t buffer_size = 128;
 	uint8_t buffer[buffer_size];
 
 	auto error = src.open(file_path);

@@ -167,7 +167,8 @@ void RecordView::start() {
 								to_string_dec_uint(datetime.minute())        +
 								to_string_dec_uint(datetime.second());
 
-		base_path = filename_stem_pattern.string() + "_" + date_time + "_" + to_string_freq(receiver_model.tuning_frequency()) + "Hz";
+		base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
+			trim(to_string_freq(receiver_model.tuning_frequency())) + "Hz";
 	} else {
 		base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
 	}

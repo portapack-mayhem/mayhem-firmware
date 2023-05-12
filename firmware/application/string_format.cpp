@@ -256,8 +256,13 @@ double get_decimals(double num, int16_t mult, bool round) {
 	return intnum;
 }
 
-std::string trimr(std::string str)
-{
+std::string trim(const std::string& str) {
+	auto first = str.find_first_not_of(' ');
+	auto last = str.find_last_not_of(' ');
+	return str.substr(first, last - first);
+}
+
+std::string trimr(std::string str) {
 	size_t last = str.find_last_not_of(' ');
 	return (last!=std::string::npos) ? str.substr(0, last+1) : ""; // Remove the trailing spaces
 }
