@@ -367,13 +367,15 @@ void SystemStatusView::on_bias_tee() {
 }*/
 
 void SystemStatusView::on_camera() {
-	auto path = next_filename_stem_matching_pattern(u"SCR_????");
+	ensure_directory("SCREENSHOTS");
+	auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+
 	if( path.empty() ) {
 		return;
 	}
 
 	PNGWriter png;
-	auto create_error = png.create(path.replace_extension(u".PNG"));
+	auto create_error = png.create(path);
 	if( create_error.is_valid() ) {
 		return;
 	}

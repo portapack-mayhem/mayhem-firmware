@@ -266,3 +266,7 @@ std::string trimr(std::string str) {
 	size_t last = str.find_last_not_of(' ');
 	return (last!=std::string::npos) ? str.substr(0, last+1) : ""; // Remove the trailing spaces
 }
+
+std::string truncate(const std::string& str, size_t length) {
+	return str.length() <= length ? str : str.substr(0, length);
+}

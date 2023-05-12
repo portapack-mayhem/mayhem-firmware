@@ -267,8 +267,12 @@ std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
 std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
 
-/* Gets an auto incrementing filename. */
-std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
+/* Gets an auto incrementing filename stem.
+ * Pattern should be like "FOO_???.txt" where ??? will be replaced by digits.
+ * Pattern may also contain a folder path like "LOGS/FOO_???.txt".
+ * Pattern '?' must be contiguous (bad: "FOO?_??")
+ * Returns empty path if a filename could not be created. */
+std::filesystem::path next_filename_matching_pattern(const std::filesystem::path& pattern);
 
 /* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
 static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");

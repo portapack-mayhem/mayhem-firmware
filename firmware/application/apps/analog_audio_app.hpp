@@ -232,7 +232,7 @@ private:
 
 	RecordView record_view {
 		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		u"AUD",
+		u"AUD", u"AUDIO",
 		RecordView::FileType::WAV, 
 		4096, 
 		4
