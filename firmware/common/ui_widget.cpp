@@ -1700,7 +1700,7 @@ int32_t NumberField::value() const {
 
 void NumberField::set_value(int32_t new_value, bool trigger_change) {
 	if (can_loop) {
-		if (new_value >= 0)
+		if (new_value >= range.first)
 			new_value = new_value % (range.second + 1);
 		else
 			new_value = range.second + new_value + 1;
