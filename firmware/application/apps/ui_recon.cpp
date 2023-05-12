@@ -1816,9 +1816,9 @@ namespace ui {
 	}
 
 	void ReconView::user_resume() {
-		timer = 0 ; 	 				 // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-		button_pause.set_text("<PAUSE>");//Show button for pause
-		userpause=false;				 // Resume recon
+		timer = 0 ;                       // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("<PAUSE>"); //Show button for pause
+		userpause=false;                  // Resume recon
 		continuous_lock=false;
 		recon_resume();
 	}
