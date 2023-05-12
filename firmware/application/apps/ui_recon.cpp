@@ -438,13 +438,14 @@ namespace ui {
                             if( remaining_sleep >= 5 )
                                 remaining_sleep -= 5 ;
                             else
-                                remaining_sleep = 1 ; // leave some process time
+                                remaining_sleep = 0 ; // leave some process time
                         }
                         if( _freq_lock == -1 )
                             _freq_lock = 0 ;
 					} // if( _recon || _stepper != 0 || _index_stepper != 0 )
 				} // if( !freq_delete )
-				chThdSleepMilliseconds( remaining_sleep );	//Needed to (eventually) stabilize the receiver into new freq
+				if( remaining_sleep )
+					chThdSleepMilliseconds( remaining_sleep );	//Needed to (eventually) stabilize the receiver into new freq
 			} //while( !chThdShouldTerminate() && frequency_list_.size() > 0 )
 		}//if (frequency_list_.size() > 0 )		
 	} //ReconThread::run
