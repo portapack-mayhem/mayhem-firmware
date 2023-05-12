@@ -133,7 +133,6 @@ SondeView::SondeView(NavigationView& nav) {
 			999); //set a dummy heading out of range to draw a cross...probably not ideal?
 	};
 
-	make_new_directory(LOG_ROOT_DIR);
 	logger = std::make_unique<SondeLogger>();
 	if (logger)
 		logger->append( LOG_ROOT_DIR "/SONDE.TXT" );

@@ -261,6 +261,19 @@ std::filesystem::filesystem_error make_new_directory(
 	return { f_mkdir(reinterpret_cast<const TCHAR*>(dir_path.c_str())) };
 }
 
+std::filesystem::filesystem_error ensure_directory(
+	const std::filesystem::path& dir_path
+) {
+	if (dir_path.empty() || std::filesystem::file_exists(dir_path))
+		return { };
+
+	auto result = ensure_directory(dir_path.parent_path());
+	if (result.code())
+		return result;
+
+	return make_new_directory(dir_path);
+}
+
 namespace std {
 namespace filesystem {
 

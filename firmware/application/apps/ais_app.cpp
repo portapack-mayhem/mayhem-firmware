@@ -397,7 +397,6 @@ AISAppView::AISAppView(NavigationView& nav) : nav_ { nav } {
 		this->on_show_list();
 	};
 
-	make_new_directory(LOG_ROOT_DIR);
 	logger = std::make_unique<AISLogger>();
 	if( logger ) {
 		logger->append( LOG_ROOT_DIR "/AIS.TXT" );
