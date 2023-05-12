@@ -136,9 +136,6 @@ void fft_c_preswapped(std::array<T, N>& data, const size_t from, const size_t to
 	}
 }
 
-// template<typename T>
-// void ifft( T *v, int n, T *tmp );
-
 /* 
    ifft(v,N):
    [0] If N==1 then return.
@@ -155,7 +152,7 @@ void fft_c_preswapped(std::array<T, N>& data, const size_t from, const size_t to
 template<typename T>
 void ifft( T *v, int n, T *tmp )
 {
-    if(n>1) {			/* otherwise, do nothing and return */
+    if(n>1) {
         int k,m;
 		T z, w, *vo, *ve;
         ve = tmp; vo = tmp+n/2;

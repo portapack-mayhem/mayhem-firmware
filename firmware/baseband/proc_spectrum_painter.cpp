@@ -26,13 +26,11 @@
 
 #include <cstdint>
 
+// TODO move to class members SpectrumPainterProcessor
 complex16_t *current_line_data = nullptr;
 complex16_t * volatile next_line_data = nullptr;
 uint32_t current_line_index = 0;
 uint32_t current_line_width = 0;
-
-
-extern "C" void update_performance_counters();
 
 std::vector<uint8_t> fifo_data[1 << SpectrumPainterBufferConfigureResponseMessage::fifo_k] { };
 SpectrumPainterFIFO fifo { fifo_data, SpectrumPainterBufferConfigureResponseMessage::fifo_k };
@@ -51,6 +49,7 @@ void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 			buffer.p[i] = {0, 0};
 	}
 
+	// collect new data
 	if (next_line_data != nullptr) {
 		if (current_line_data != nullptr)
 			delete current_line_data;
@@ -58,8 +57,6 @@ void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 		current_line_data = next_line_data;
 		next_line_data = nullptr;
 	}
-	
-  	update_performance_counters();
 }
 
 WORKING_AREA(thread_wa, 4096);
