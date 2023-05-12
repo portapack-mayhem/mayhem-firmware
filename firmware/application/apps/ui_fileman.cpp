@@ -42,8 +42,7 @@ bool is_hidden_file(const fs::path& path) {
 
 // Gets a truncated name from a path for display.
 std::string truncate(const fs::path& path, size_t max_length) {
-	auto name = path.string();
-	return name.length() <= max_length ? name : name.substr(0, max_length);
+	return ::truncate(path.string(), max_length);
 }
 
 // Gets a human readable file size string.
