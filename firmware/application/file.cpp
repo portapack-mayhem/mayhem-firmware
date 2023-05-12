@@ -124,50 +124,85 @@ Optional<File::Error> File::sync() {
 	}
 }
 
-static std::filesystem::path find_last_file_matching_pattern(const std::filesystem::path& pattern) {
-	std::filesystem::path last_match;
-	for(const auto& entry : std::filesystem::directory_iterator(u"", pattern)) {
-		if( std::filesystem::is_regular_file(entry.status()) ) {
+/* Range used for filename matching.
+ * Start and end are inclusive positions of "???" */
+struct pattern_range {
+	size_t start;
+	size_t end;
+};
+
+/* Finds the last file matching the specified pattern that
+ * can be automatically incremented (digits in pattern).
+ * NB: assumes a patten with contiguous '?' like "FOO_???.txt". */
+static std::filesystem::path find_last_ordinal_match(
+	const std::filesystem::path& folder,
+	const std::filesystem::path& pattern,
+	pattern_range range
+) {
+	auto last_match = std::filesystem::path();
+	auto can_increment = [range](const auto& path) {
+		for (auto i = range.start; i <= range.end; ++i)
+			if (!isdigit(path.native()[i]))
+				return false;
+
+		return true;
+	};
+
+	for (const auto& entry : std::filesystem::directory_iterator(folder, pattern)) {
+		if (std::filesystem::is_regular_file(entry.status()) && can_increment(entry.path())) {
 			const auto& match = entry.path();
 			if( match > last_match ) {
 				last_match = match;
 			}
 		}
 	}
+
 	return last_match;
 }
 
-static std::filesystem::path increment_filename_stem_ordinal(std::filesystem::path path) {
-	auto t = path.replace_extension().native();
-	auto it = t.rbegin();
+/* Given a file path like "FOO_0001.txt" increment it to "FOO_0002.txt". */
+static std::filesystem::path increment_filename_ordinal(
+	const std::filesystem::path& path, pattern_range range
+) {
+	auto name = path.filename().native();
 
-	// Increment decimal number before the extension.
-	for(; it != t.rend(); ++it) {
-		const auto c = *it;
-		if( c < '0' ) {
+	for (auto i = range.end; i >= range.start; --i) {
+		auto& c = name[i];
+
+		// Not a digit or would overflow the counter.
+		if (c < u'0' || c > u'9' || (c == u'9' && i == range.start))
 			return { };
-		} else if( c < '9' ) {
-			*it += 1;
+
+		if (c == u'9')
+			c = '0';
+		else {
+			c++;
 			break;
-		} else if( c == '9' ) {
-			*it = '0';
-		} else {
-			return { };
 		}
 	}
 
-	return t;
+	return { name };
 }
 
-std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_pattern) {
-	const auto next_filename = find_last_file_matching_pattern(filename_pattern.replace_extension(u".*"));
-	if( next_filename.empty() ) {
-		auto pattern_s = filename_pattern.replace_extension().native();
-		std::replace(std::begin(pattern_s), std::end(pattern_s), '?', '0');
-		return pattern_s;
-	} else {
-		return increment_filename_stem_ordinal(next_filename);
+std::filesystem::path next_filename_matching_pattern(const std::filesystem::path& filename_pattern) {
+	auto path = filename_pattern.parent_path();
+	auto pattern = filename_pattern.filename();
+	auto range = pattern_range {
+		pattern.native().find_first_of(u'?'),
+		pattern.native().find_last_of(u'?')
+	};
+
+	const auto match = find_last_ordinal_match(path, pattern, range);
+
+	if (match.empty()) {
+		auto pattern_str = pattern.native();
+		for (auto i = range.start; i <= range.end; ++i)
+			pattern_str[i] = u'0';
+		return path / pattern_str;
 	}
+
+	auto next_name = increment_filename_ordinal(match, range);
+	return next_name.empty() ? next_name : path / next_name;
 }
 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory,
@@ -214,7 +249,7 @@ std::filesystem::filesystem_error copy_file(
 ) {
 	File src;
 	File dst;
-	constexpr size_t buffer_size = 512;
+	constexpr size_t buffer_size = 128;
 	uint8_t buffer[buffer_size];
 
 	auto error = src.open(file_path);
@@ -259,6 +294,19 @@ std::filesystem::filesystem_error make_new_directory(
 	const std::filesystem::path& dir_path
 ) {
 	return { f_mkdir(reinterpret_cast<const TCHAR*>(dir_path.c_str())) };
+}
+
+std::filesystem::filesystem_error ensure_directory(
+	const std::filesystem::path& dir_path
+) {
+	if (dir_path.empty() || std::filesystem::file_exists(dir_path))
+		return { };
+
+	auto result = ensure_directory(dir_path.parent_path());
+	if (result.code())
+		return result;
+
+	return make_new_directory(dir_path);
 }
 
 namespace std {
@@ -383,8 +431,10 @@ directory_iterator::directory_iterator(
 ) : pattern { wild }
 {
 	impl = std::make_shared<Impl>();
-	const auto result = f_findfirst(&impl->dir, &impl->filinfo, reinterpret_cast<const TCHAR*>(path.c_str()), reinterpret_cast<const TCHAR*>(pattern.c_str()));
-	if( result != FR_OK || impl->filinfo.fname[0] == (TCHAR)'\0') {
+	const auto result = f_findfirst(&impl->dir, &impl->filinfo,
+		reinterpret_cast<const TCHAR*>(path.c_str()),
+		reinterpret_cast<const TCHAR*>(pattern.c_str()));
+	if (result != FR_OK || impl->filinfo.fname[0] == (TCHAR)'\0') {
 		impl.reset();
 		// TODO: Throw exception if/when I enable exceptions...
 	}

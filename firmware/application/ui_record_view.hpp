@@ -46,7 +46,8 @@ public:
 
 	RecordView(
 		const Rect parent_rect,
-		std::filesystem::path filename_stem_pattern,
+		const std::filesystem::path& filename_stem_pattern,
+		const std::filesystem::path& folder,
 		FileType file_type,
 		const size_t write_size,
 		const size_t buffer_count
@@ -83,6 +84,7 @@ private:
     rtc::RTC datetime { };
 
 	const std::filesystem::path filename_stem_pattern;
+	const std::filesystem::path folder;
 	const FileType file_type;
 	const size_t write_size;
 	const size_t buffer_count;

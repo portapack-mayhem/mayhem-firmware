@@ -117,8 +117,6 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
 	
 	std::unique_ptr<ADSBLogger> logger { };
 
-	make_new_directory(LOG_ROOT_DIR);
-
 	icao_code = to_string_hex(entry_copy.ICAO_address, 6);
 	text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 

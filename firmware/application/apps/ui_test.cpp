@@ -79,7 +79,6 @@ TestView::TestView(NavigationView& nav) {
 		cal_value = raw_alt - 0x80;
 	};
 	
-
 	logger = std::make_unique<TestLogger>();
 	if (logger)
 		logger->append("saucepan.txt");

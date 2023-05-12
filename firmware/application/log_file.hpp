@@ -35,6 +35,10 @@ using namespace lpc43xx;
 class LogFile {
 public:
 	Optional<File::Error> append(const std::filesystem::path& filename) {
+		auto result = ensure_directory(filename.parent_path());
+		if (result.code())
+			return { result };
+		
 		return file.append(filename);
 	}
 
