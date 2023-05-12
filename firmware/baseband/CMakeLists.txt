@@ -140,6 +140,7 @@ set(CPPSRC
 	debug.cpp
 	${COMMON}/gcc.cpp
 	${COMMON}/performance_counter.cpp
+	${COMMON}/random.cpp
 	tone_gen.cpp
 )
 

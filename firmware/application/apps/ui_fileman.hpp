@@ -45,7 +45,8 @@ public:
 
 	void focus() override;	
 	std::string title() const override { return "Fileman"; };
-	
+	void push_dir(const std::filesystem::path& path);
+
 protected:
 	static constexpr size_t max_filename_length = 50;
 
@@ -69,7 +70,6 @@ protected:
 	std::filesystem::path get_selected_full_path() const;
 	const fileman_entry& get_selected_entry() const;
 
-	void push_dir(const std::filesystem::path& path);
 	void pop_dir();
 	void refresh_list();
 	void reload_current();

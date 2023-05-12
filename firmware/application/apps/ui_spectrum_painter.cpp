@@ -25,6 +25,10 @@
 #include "bmp.hpp"
 #include "baseband_api.hpp"
 
+#include "ui_fileman.hpp"
+#include "io_file.hpp"
+#include "file.hpp"
+
 namespace ui {
 
 SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
@@ -34,14 +38,19 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 		&button_load_image
 	});
 
-	button_load_image.on_select = [this](Button&) {
-		//TODO implement picture chooser
-		// "/SPECTRUM/smiley.bmp"
-		this->file = "/SPECTRUM/smiley.bmp";
-		painted = false;
-		this->set_dirty();
+	button_load_image.on_select = [this, &nav](Button&) {
+		auto open_view = nav.push<FileLoadView>(".bmp");
 
-		this->on_input_avaliable();
+		if (std::filesystem::is_directory(u"/SPECTRUM"))
+			open_view->push_dir(u"SPECTRUM");
+
+		open_view->on_changed = [this](std::filesystem::path new_file_path) {
+			this->file = new_file_path.string();
+			painted = false;
+			this->set_dirty();
+
+			this->on_input_avaliable();
+		};
 	};
 }
 
@@ -95,8 +104,6 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 
 	width = bmp_header.width;
 	height = bmp_header.height;
-	if (width != 2048)
-		chDbgPanic("width#5");
 
 	data_start = file_pos = bmp_header.image_data;
 
@@ -105,11 +112,6 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 	}
 
 	py = height + 16;
-
-
-	//TODO: enable
-	return true;
-
 
 	while(1) {
 		while(px < width) {
@@ -176,10 +178,6 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 	return true;
 }
 
-// std::string SpectrumInputImageView::get_filename() {
-// 	return this->file;
-// }
-
 uint16_t SpectrumInputImageView::get_width(){
 	return this->width;
 }
@@ -191,9 +189,6 @@ uint16_t SpectrumInputImageView::get_height(){
 std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 	File bmpimage;
 	bmpimage.open(this->file);
-	if (width != 2048)
-		chDbgPanic("width#6");
-
 
 	//seek to line
 	uint32_t line_size = width * (type == 2 ? 4 : (type == 1 ? 3 : 2));
@@ -203,11 +198,6 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 	// allocate memory and read
 	auto buffer = new uint8_t[line_size];
 	auto bytes_read = bmpimage.read(buffer, line_size);
-	if (bytes_read.is_error())
-		chDbgPanic("read#1");
-	if (bytes_read.value() != line_size)
-		chDbgPanic("read#2");
-
 
 	// greyscale
 	auto grey_buffer = new uint8_t[width];
@@ -242,28 +232,14 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 
 	delete buffer;
 
-
-	auto color2 = ui::Color(54, 33, 3);
-	if (color2.to_greyscale() == 0)
-		chDbgPanic("to_greyscale");
-
-	if (width != 2048)
-		chDbgPanic("width#3");
-
 	//return line
 	std::vector<uint8_t> values(width);
 	for(int i = 0; i < width; i++) {
-		values[i] = grey_buffer[i]; //, grey_buffer + 
-
+		values[i] = grey_buffer[i];
 	}
-
-	if (width != 2048)
-		chDbgPanic("width#3b");
 
 	delete grey_buffer;
 
-	if (width != 2048)
-		chDbgPanic("width#3a");
 	return values;
 }
 
@@ -280,6 +256,8 @@ SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
 	add_children({
 		&button_start
 	});
+
+	(void)nav;
 }
 
 SpectrumInputTextView::~SpectrumInputTextView() {
@@ -301,6 +279,8 @@ SpectrumPainterView::SpectrumPainterView(
 		&input_text,
 		&progressbar
 	});
+
+	tx_view.hidden(true);
 
 	Rect view_rect = { 0, 3 * 8, 240, 80 };
 	input_image.set_parent_rect(view_rect);
@@ -327,15 +307,10 @@ SpectrumPainterView::SpectrumPainterView(
 		progressbar.set_max(tx_current_max_lines);
 		progressbar.set_value(0);
 
-		if (width != 2048)
-			chDbgPanic("width#4");
-
-
 		baseband::set_spectrum_painter_config(width, height);
 	};
 	
 	tx_view.on_stop = [this]() {
-		//baseband::set_sstv_data(0, 0);
 		tx_view.set_transmitting(false);
 		portapack::transmitter_model.disable();
 		tx_active = false;
@@ -343,54 +318,21 @@ SpectrumPainterView::SpectrumPainterView(
 		//options_bitmaps.set_focusable(true);
 		//this->fifo->reset();
 	};
-	//button_paint.on_select
 
 	input_image.on_input_avaliable = [this]() {
-		// enable tx_view
-		// extract filename
-		//std::string filename = input_image.get_filename();
+		tx_view.hidden(false);
 	};
 }
 
 void SpectrumPainterView::start_tx() {
-	uint16_t width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#7");
-
-	// TODO: prepare first line
 	tx_current_line = 0;
-	static std::vector<uint8_t> line;
-	line = input_image.get_line(tx_current_line++);
-	width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#10a");
-	fifo->in(line);
-	width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#10");
-	line = input_image.get_line(tx_current_line++);
-	fifo->in(line);
-	width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#11");
 	tx_active = true;
 }
 
 void SpectrumPainterView::frame_sync() {
-	static std::vector<uint8_t> line;
-
 	if (tx_active) {
-
-		uint16_t width = input_image.get_width();
-		if (width != 2048)
-			chDbgPanic("width#8");
-
 		if (fifo->is_empty()) {
-			tx_current_line++;
 			progressbar.set_value(tx_current_line);
-width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#12");
 			if (tx_current_line >= tx_current_max_lines) {
 				tx_active = false;
 				tx_current_line = 0;
@@ -402,25 +344,9 @@ width = input_image.get_width();
 				return;
 			}
 
-			line = input_image.get_line(tx_current_line);
-width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#13");
-			//dont send silent
-			bool silent = true;
-			for (auto e:line) {
-				if (e != 0) {
-					silent = false;
-					break;
-				}
-			}
-			if (!silent)
-				fifo->in(line);
+			std::vector<uint8_t> line = input_image.get_line(tx_current_line++);
+			fifo->in(line);
 		}
-
-		width = input_image.get_width();
-	if (width != 2048)
-		chDbgPanic("width#14");
 	}
 }
 

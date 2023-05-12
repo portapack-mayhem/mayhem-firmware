@@ -22,7 +22,7 @@
 #include "proc_spectrum_painter.hpp"
 #include "event_m4.hpp"
 #include "dsp_fft.hpp"
-#include "debug.hpp"
+#include "random.hpp"
 
 #include <cstdint>
 
@@ -30,77 +30,7 @@ complex16_t *current_line_data = nullptr;
 complex16_t * volatile next_line_data = nullptr;
 uint32_t current_line_index = 0;
 uint32_t current_line_width = 0;
-constexpr std::complex<int8_t> wave[4] = {{127, 0}, {0, 127}, {-127, 0}, {0, -127}};
 
-
-/* Period parameters */
-#define N 624
-#define M 397
-#define MATRIX_A 0x9908b0dfUL		/* constant vector a */
-#define UMASK 0x80000000UL		/* most significant w-r bits */
-#define LMASK 0x7fffffffUL		/* least significant r bits */
-#define MIXBITS(u,v) ( ((u) & UMASK) | ((v) & LMASK) )
-#define TWIST(u,v) ((MIXBITS(u,v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
-
-static unsigned long state[N];		/* the array for the state vector  */
-static int left2 = 1;
-static int initf = 0;
-static unsigned long *next2;
-
-/* initializes state[N] with a seed */
-void    init_genrand(unsigned long s)
-{
-    int     j;
-
-    state[0] = s & 0xffffffffUL;
-    for (j = 1; j < N; j++) {
-	state[j] = (1812433253UL * (state[j - 1] ^ (state[j - 1] >> 30)) + j);
-	/* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-	/* In the previous versions, MSBs of the seed affect   */
-	/* only MSBs of the array state[].                        */
-	/* 2002/01/09 modified by Makoto Matsumoto             */
-	state[j] &= 0xffffffffUL;		/* for >32 bit machines */
-    }
-    left2 = 1;
-    initf = 1;
-}
-static void next_state(void)
-{
-    unsigned long *p = state;
-    int     j;
-
-    /* if init_genrand() has not been called, */
-    /* a default initial seed is used         */
-    if (initf == 0)
-	init_genrand(5489UL);
-
-    left2 = N;
-    next2 = state;
-
-    for (j = N - M + 1; --j; p++)
-	*p = p[M] ^ TWIST(p[0], p[1]);
-
-    for (j = M; --j; p++)
-	*p = p[M - N] ^ TWIST(p[0], p[1]);
-
-    *p = p[M - N] ^ TWIST(p[0], state[0]);
-}
-long    genrand_int31(void)
-{
-    unsigned long y;
-
-    if (--left2 == 0)
-	next_state();
-    y = *next2++;
-
-    /* Tempering */
-    y ^= (y >> 11);
-    y ^= (y << 7) & 0x9d2c5680UL;
-    y ^= (y << 15) & 0xefc60000UL;
-    y ^= (y >> 18);
-
-    return (long) (y >> 1);
-}
 
 extern "C" void update_performance_counters();
 
@@ -121,50 +51,15 @@ void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 			buffer.p[i] = {0, 0};
 	}
 
-
-// 	if (!configured) return;
-// max_val = 127;
-// 	for (uint32_t i = 0; i < buffer.count; i++) {
-// 	 	if (current_line_data != nullptr) {
-// 			// if (((current_line_index++ >> 21) & 0x01) == 0x01) {
-// 				// int rampUp = current_line_index + 1;
-// 				// if (rampUp > 100) {
-// 				// 	rampUp = 100;
-// 				// }
-// 				// int rampDown = (current_line_index % current_line_width)-current_line_width;
-// 				// if (rampDown > 100) {
-// 				// 	rampDown = 100;
-// 				// }
-// 				// int ramp = rampUp * rampDown / 100;
-
-// 				auto data = current_line_data[current_line_index++ % current_line_width];
-// 				if (data.real() > 127)
-// 					max_val = data.real();
-// 				if (data.real() < -127)
-// 					max_val = - data.real();
-
-// 				if (data.imag() > 127 )
-// 					max_val = data.imag();
-// 				if (data.imag() < -128)
-// 					max_val = -data.imag();
-
-// 	 			buffer.p[i] = {(int8_t) (data.real() * 120 / max_val), (int8_t) (data.imag() * 120 / max_val)};
-// 			// }
-// 			// else
-// 			// 	buffer.p[i] = {0,0}; //wave[i % 4];
-// 		}
-// 	}
-
 	if (next_line_data != nullptr) {
 		if (current_line_data != nullptr)
 			delete current_line_data;
+
 		current_line_data = next_line_data;
 		next_line_data = nullptr;
 	}
-
 	
   	update_performance_counters();
-
 }
 
 WORKING_AREA(thread_wa, 4096);
@@ -179,8 +74,6 @@ void SpectrumPainterProcessor::run() {
 			fifo.out(data);
 
 			auto picture_width = data.size();
-			if (current_line_width != picture_width)
-				chDbgPanic("width");
 
 			auto fft_width = picture_width * 2;
 			auto qu = fft_width/4;
@@ -190,16 +83,15 @@ void SpectrumPainterProcessor::run() {
 
 			for (uint32_t fft_index = 0; fft_index < fft_width; fft_index++) {
 				if (fft_index < qu) {
-					//v[i] = {0, 0};
 				}
 				else if (fft_index < qu*3) {
+					//TODO: Improve index handling
 					auto image_index = fft_index-qu;
-					// auto phase_offset = std::exp(complex16_t({0, phase}));
 
-					//auto bin_power = ((i % 80) < 4) ? 12 : 0; //data[i-qu]; // 0 to 255
+					//TODO: do logarithmic power
 					auto bin_power = data[image_index]; // 0 to 255
-					// auto bin_power = ((fft_index-qu) / 8)%64; // 0 to 255
-					 if (bin_power < 63)
+
+					if (bin_power < 63)
 					 	bin_power = 0;
 
 					auto bin_phase = genrand_int31(); // 0 to 255
@@ -211,7 +103,6 @@ void SpectrumPainterProcessor::run() {
 					auto real = (int16_t)((int16_t)phase_cos * bin_power / 255); // -127 to 127
 					auto imag = (int16_t)((int16_t)phase_sin * bin_power / 255); // -127 to 127
 
-					// do: fftshift
 					auto fftshift_index = 0;
 					if (fft_index < qu*2) // first half (fft_index = qu; fft_index < qu*2)
 						fftshift_index = fft_index + 2*qu; // goes to back
@@ -219,21 +110,12 @@ void SpectrumPainterProcessor::run() {
 						fftshift_index = fft_index - 2*qu; // goes to front
 
 					v[fftshift_index] = {real, imag};
-
-					//HALT_UNTIL_DEBUGGING();
 				}
 				else {
-					//v[i] = {0, 0};
 				}
 				
-
-				// if (i < (ui % 100))
-				// 	v[i] = {10, 255 - (genrand_int31() >> 23)};
-				// else
-				// 	v[i] = {0, 0};
 			}
 
-			// 
 			ifft<complex16_t>(v, fft_width, tmp);
 
 			// normalize
@@ -251,18 +133,14 @@ void SpectrumPainterProcessor::run() {
 
 
 			if (maximum == 1) { // a black line
-				//chDbgPanic("silent");
 				for (uint32_t i = 0; i < fft_width; i++)
 					v[i] = {0, 0};
 			}
 			else {
-				//HALT_UNTIL_DEBUGGING();
 				for (uint32_t i = 0; i < fft_width; i++) {
 					v[i] = { (int8_t)((int32_t)v[i].real() * 120 / maximum), (int8_t)((int32_t)v[i].imag() * 120 / maximum)};
 				}
 			}
-
-
 
 			delete tmp;
 			next_line_data = v;
@@ -282,9 +160,6 @@ void SpectrumPainterProcessor::on_message(const Message* const msg) {
 			const auto message = *reinterpret_cast<const SpectrumPainterBufferConfigureRequestMessage*>(msg);
 			current_line_width = message.width;
 
-			if (current_line_width != 2048)
-				chDbgPanic("width#2");
-
 			SpectrumPainterBufferConfigureResponseMessage response { &fifo };
 			shared_memory.application_queue.push(response);
 
@@ -302,7 +177,6 @@ void SpectrumPainterProcessor::on_message(const Message* const msg) {
 		default:
 			break;
 	}
-
 }
 
 int main() {
