@@ -146,17 +146,15 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
         // Reset line_start to beginning of buffer
         line_start = file_data;
 
-        if (!strstr(file_data, "f=") && !strstr(file_data, "a=") && !strstr(file_data, "r=") )
-            break;
-
         // Look for complete lines in buffer
         while ((line_end = strstr(line_start, "\x0A"))) {
 
+            *line_end = 0;      // Stop strstr() searches below at EOL
             modulation = -1 ;
             bandwidth = -1 ;
             step = -1 ;
             tone = -1 ;
-            type=SINGLE ;
+            type = ERROR_TYPE;
 
             frequency_a = frequency_b = 0;
             // Read frequency
@@ -164,6 +162,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             if(pos) {
                 pos += 2;
                 frequency_a = strtoll(pos, nullptr, 10);
+                type = SINGLE;
             } else {
                 // ...or range
                 pos = strstr(line_start, "a=");
