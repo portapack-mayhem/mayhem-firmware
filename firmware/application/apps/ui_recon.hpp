@@ -188,8 +188,8 @@ namespace ui {
 			int32_t squelch { 0 };
 			int32_t db { 0 };
 			int32_t timer { 0 };
-			int32_t wait { 5000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
-			uint32_t lock_wait { 500 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
+			int32_t wait { 1000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
+			uint32_t lock_wait { 1000 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
 			int32_t def_step { 0 };
 			freqman_db frequency_list  = { };
 			uint32_t current_index { 0 };
@@ -206,7 +206,7 @@ namespace ui {
 			bool load_hamradios = { true };
 			bool update_ranges = { true };
 			bool fwd = { true };
-			uint32_t recon_lock_nb_match = { 10 };
+			uint32_t recon_lock_nb_match = { 3 };
 			uint32_t recon_lock_duration = { 50 };
 			uint32_t recon_match_mode = { 0 };
 			bool scanner_mode { false };
