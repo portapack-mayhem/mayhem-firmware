@@ -60,6 +60,9 @@ CMakeFiles/
 *.sublime-workspace
 .vscode
 
+# VSCodium extensions
+.history
+
 # Host OS leftovers
 .DS_Store
 /firmware/CMakeCache.txt
