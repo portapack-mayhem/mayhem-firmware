@@ -103,7 +103,6 @@ namespace ui {
 
 	void ReconThread::change_recon_direction() {
 		_fwd = !_fwd;
-		//chThdSleepMilliseconds(300);	//Give some pause after reversing recon direction
 	}
 
 	bool ReconThread::get_recon_direction() {
@@ -429,22 +428,23 @@ namespace ui {
 								restart_recon = false ;
 							}
 						} // if( _freq_lock == 0 || _stepper != 0 || _index_stepper != 0 ) 
-                        // needed to stabilize consecutive match without skipping 
+
+                        // this while loop is needed to stabilize consecutive match without skipping
                         // the little the rest, the more reactive and more CPU hog
-                        // the bigger the rest, less CPU and more delay when switching
+                        // the bigger the rest, less CPU and more delay when switching. I choose 5 msecs.
                         while( _freq_lock != -1 && _freq_lock < (int32_t)_lock_nb_match && !chThdShouldTerminate() )
                         {
-                            chThdSleepMilliseconds( 10 );
-				            if( remaining_sleep >= 10 )
-                                remaining_sleep -= 10 ;
+                            chThdSleepMilliseconds( 5 );
+                            if( remaining_sleep >= 5 )
+                                remaining_sleep -= 5 ;
                             else
-                                remaining_sleep = 0 ;
+                                remaining_sleep = 0 ; // leave some process time
                         }
                         if( _freq_lock == -1 )
                             _freq_lock = 0 ;
 					} // if( _recon || _stepper != 0 || _index_stepper != 0 )
 				} // if( !freq_delete )
-				if( remaining_sleep > 0 )
+				if( remaining_sleep )
 					chThdSleepMilliseconds( remaining_sleep );	//Needed to (eventually) stabilize the receiver into new freq
 			} //while( !chThdShouldTerminate() && frequency_list_.size() > 0 )
 		}//if (frequency_list_.size() > 0 )		
@@ -645,7 +645,7 @@ namespace ui {
 
 	ReconView::~ReconView() {
 
-		ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+		ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , field_volume.value() );
 
 		// save app settings
 		settings.save("recon", &app_settings);
@@ -758,8 +758,6 @@ namespace ui {
 		field_volume.set_value( volume );
 		if( sd_card_mounted )
 		{
-			//Loading input and output file from settings
-			ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , volume );
 			// load auto common app settings
 			auto rc = settings.load("recon", &app_settings);
 			if(rc == SETTINGS_OK) {
@@ -1392,8 +1390,6 @@ namespace ui {
 			recon_thread->stop();	//STOP SCANNER THREAD
 			frequency_list.clear();
 
-            ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
-
 			auto open_view = nav.push<ReconSetupView>(input_file,output_file,recon_lock_duration,recon_lock_nb_match,recon_match_mode);
 			open_view -> on_changed = [this](std::vector<std::string> result) {
 				input_file = result[0];
@@ -1402,7 +1398,7 @@ namespace ui {
 				recon_lock_nb_match = strtol( result[3].c_str() , nullptr , 10 );
 				recon_match_mode	= strtol( result[4].c_str() , nullptr , 10 );
 
-				ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+				ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , field_volume.value() );
 
 				autosave = persistent_memory::recon_autosave_freqs();
 				autostart = persistent_memory::recon_autostart_recon();
@@ -1445,10 +1441,6 @@ namespace ui {
 						}
 					}
 				}
-				lock_wait = ( 4 * ( recon_lock_duration * recon_lock_nb_match ) ) / 100 ;
-				lock_wait = lock_wait * 100 ; // poor man's rounding
-				if( lock_wait < 400 )
-					lock_wait = 400 ;
 				field_lock_wait.set_value( lock_wait );
 				show_max();
 				if( userpause != true )
@@ -1529,13 +1521,12 @@ namespace ui {
 		button_scanner_mode.set_style( &style_blue );
 		button_scanner_mode.set_text( "RECON" );
 		file_name.set( "=>" );
-		field_squelch.set_value( squelch );
 
+		//Loading input and output file from settings
+		ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , volume );
+
+		field_squelch.set_value( squelch );
 		field_wait.set_value(wait);
-		lock_wait = ( 4 * ( recon_lock_duration * recon_lock_nb_match ) );
-		lock_wait = lock_wait / 100 ; lock_wait = lock_wait * 100 ; // poor man's rounding
-		if( lock_wait < 400 )
-			lock_wait = 400 ;
 		field_lock_wait.set_value(lock_wait);
 		field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
@@ -1818,17 +1809,17 @@ namespace ui {
 	}
 
 	void ReconView::user_pause() {
-		timer = 0 ; 	 				// Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-										//button_pause.set_text("<RESUME>");	//PAUSED, show resume
+		timer = 0 ; 	 				    // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("<RESUME>");	//PAUSED, show resume
 		userpause=true;
 		continuous_lock=false;
 		recon_pause();
 	}
 
 	void ReconView::user_resume() {
-		timer = 0 ; 	 				// Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-										//button_pause.set_text("<PAUSE>");		//Show button for pause
-		userpause=false;				// Resume recon
+		timer = 0 ;                       // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("<PAUSE>"); //Show button for pause
+		userpause=false;                  // Resume recon
 		continuous_lock=false;
 		recon_resume();
 	}
