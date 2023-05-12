@@ -95,7 +95,7 @@ namespace ui {
 			recon_lock_nb_match = 3 ;
 			recon_squelch_level = -14 ;
 			recon_match_mode = 0 ;
-			wait = 5000 ;
+			wait = 1000 ;
 			lock_wait = 1000 ;
 			volume = 40 ;
 			return false ;
@@ -134,7 +134,7 @@ namespace ui {
 		if( it > 6 )
 			wait = strtoll( params[ 6 ].c_str() , nullptr , 10 );
 		else
-			wait = 5000 ;
+			wait = 1000 ;
 
 		if( it > 7 )
 			lock_wait = strtoll( params[ 7 ].c_str() , nullptr , 10 );
