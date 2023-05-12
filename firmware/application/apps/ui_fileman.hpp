@@ -62,7 +62,7 @@ public:
 	
 protected:
 	static constexpr size_t max_filename_length = 64;
-	static constexpr size_t max_items_shown = 128;
+	static constexpr size_t max_items_shown = 100;
 
 	struct file_assoc_t {
 		std::filesystem::path extension;
