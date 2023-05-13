@@ -95,7 +95,7 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
 		};
 	};
 
-    check_log.set_value(logging);
+	check_log.set_value(logging);
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
 	};
@@ -162,7 +162,7 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
 		}
 		prev_value = value;
 	}
-    else {
+	else {
 		// Baudrate estimation
 		text_debug.set("Baudrate estimation: ~" + to_string_dec_uint(value));
 	}

@@ -67,7 +67,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 				// 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
 				// Periode 65535= 2^n-1, quite continuous .  
 				if (counter == 0) {		// we slow down the shift register, because the pseudo random noise clock freq was too high for modulator.
-					bit_16 = ((lfsr_16 >> 0) ^ (lfsr_16 >> 1) ^ (lfsr_16 >> 3) ^ (lfsr_16 >> 4) ^ ((lfsr_16 >> 12) & 1) );
+					bit_16 = ((lfsr_16 >> 0) ^ (lfsr_16 >> 1) ^ (lfsr_16 >> 3) ^ (lfsr_16 >> 4) ^ ((lfsr_16 >> 12) & 1));
         			lfsr_16 = (lfsr_16 >> 1) | (bit_16 << 15);
 					sample = (lfsr_16 & 0x00FF);					  // main pseudo random noise generator. 		
 				} 

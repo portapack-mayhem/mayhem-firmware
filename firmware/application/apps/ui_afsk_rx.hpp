@@ -86,14 +86,14 @@ private:
 		{ 0 * 8, 0 * 16 },
 	};
 	
-    Checkbox check_log {
+	Checkbox check_log {
 		{ 0 * 8, 1 * 16 },
 		3,
 		"LOG",
 		false
 	};
 
-    Text text_debug {
+	Text text_debug {
 		{ 0 * 8, 12 + 2 * 16, 240, 16 },
 		"DEBUG"
 	};
