@@ -31,6 +31,7 @@ complex16_t *current_line_data = nullptr;
 complex16_t * volatile next_line_data = nullptr;
 uint32_t current_line_index = 0;
 uint32_t current_line_width = 0;
+int32_t current_bw = 0;
 
 std::vector<uint8_t> fifo_data[1 << SpectrumPainterBufferConfigureResponseMessage::fifo_k] { };
 SpectrumPainterFIFO fifo { fifo_data, SpectrumPainterBufferConfigureResponseMessage::fifo_k };
@@ -42,7 +43,7 @@ void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
 
 	for (uint32_t i = 0; i < buffer.count; i++) {
 	 	if (current_line_data != nullptr) {
-			auto data = current_line_data[current_line_index++ % current_line_width];
+			auto data = current_line_data[(current_line_index++ * current_bw / 3072 ) % current_line_width];
 			buffer.p[i] = {(int8_t) data.real(), (int8_t) data.imag()};
 		}
 		else
@@ -85,11 +86,7 @@ void SpectrumPainterProcessor::run() {
 					//TODO: Improve index handling
 					auto image_index = fft_index-qu;
 
-					//TODO: do logarithmic power
 					auto bin_power = data[image_index]; // 0 to 255
-
-					if (bin_power < 63)
-					 	bin_power = 0;
 
 					auto bin_phase = genrand_int31(); // 0 to 255
 
@@ -108,9 +105,6 @@ void SpectrumPainterProcessor::run() {
 
 					v[fftshift_index] = {real, imag};
 				}
-				else {
-				}
-				
 			}
 
 			ifft<complex16_t>(v, fft_width, tmp);
@@ -127,7 +121,6 @@ void SpectrumPainterProcessor::run() {
 				if (v[i].imag() < -maximum)
 					maximum = -v[i].imag();
 			}
-
 
 			if (maximum == 1) { // a black line
 				for (uint32_t i = 0; i < fft_width; i++)
@@ -156,17 +149,20 @@ void SpectrumPainterProcessor::on_message(const Message* const msg) {
 		{
 			const auto message = *reinterpret_cast<const SpectrumPainterBufferConfigureRequestMessage*>(msg);
 			current_line_width = message.width;
+			current_bw = message.bw / 500;
 
-			SpectrumPainterBufferConfigureResponseMessage response { &fifo };
-			shared_memory.application_queue.push(response);
-
-			if (configured == false) {
-				thread = chThdCreateStatic(thread_wa, sizeof(thread_wa),
-					NORMALPRIO, SpectrumPainterProcessor::fn,
-					this
-				);
-		
-				configured = true;
+			if (message.update == false) {
+				SpectrumPainterBufferConfigureResponseMessage response { &fifo };
+				shared_memory.application_queue.push(response);
+			
+				if (configured == false) {
+					thread = chThdCreateStatic(thread_wa, sizeof(thread_wa),
+						NORMALPRIO, SpectrumPainterProcessor::fn,
+						this
+					);
+			
+					configured = true;
+				}
 			}
 			break;
 		}

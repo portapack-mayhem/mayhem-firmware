@@ -152,7 +152,7 @@ private:
 	NumberField field_duration {
 		{ 13 * 8, footer_location + 2 * 16 },
 		3,
-		{ 0, 999 },
+		{ 1, 999 },
 		1,
 		' '	
 	};

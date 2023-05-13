@@ -1149,15 +1149,21 @@ class SpectrumPainterBufferConfigureRequestMessage : public Message {
 public:
 	constexpr SpectrumPainterBufferConfigureRequestMessage(
 		uint16_t width,
-		uint16_t height
+		uint16_t height,
+		bool update,
+		int32_t bw
 	) : Message { ID::SpectrumPainterBufferRequestConfigure },
 		width { width },
-		height { height }
+		height { height },
+		update { update },
+		bw { bw }
 	{
 	}
 
 	uint16_t width;
 	uint16_t height;
+	bool update;
+	int32_t bw;
 };
 
 using SpectrumPainterFIFO = FIFO<std::vector<uint8_t>>;

@@ -43,10 +43,15 @@ public:
 	void paint(Painter&) override;
 	
 private:
-	Button button_start {
-		{ 0 * 8, 11 * 8, 11 * 8, 28 },
-		"s2"
+	// Button button_start {
+	// 	{ 0 * 8, 11 * 8, 11 * 8, 28 },
+	// 	"s2"
+	// };
+	Labels labels {
+		{ { 10 * 8, 80 + 1 * 16 }, "Text input is not", Color::light_grey() },
+		{ { 1 * 8, 80 + 2 * 16 }, "yet implemented", Color::light_grey() },
 	};
+
 };
 
 }

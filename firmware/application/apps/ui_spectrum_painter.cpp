@@ -117,12 +117,19 @@ SpectrumPainterView::SpectrumPainterView(
 			progressbar.set_max(tx_current_max_lines);
 			progressbar.set_value(0);
 
-			baseband::set_spectrum_painter_config(width, height);
+			baseband::set_spectrum_painter_config(width, height, false, option_bandwidth.selected_index_value());
 		}
 		else {
 			stop_tx();
 		}
 	};
+
+	option_bandwidth.on_change = [this](size_t index, ui::OptionsField::value_t value) {
+		//portapack::transmitter_model.set_channel_bandwidth(value);
+		baseband::set_spectrum_painter_config(tx_current_width, tx_current_max_lines, true, value);
+	};
+	// 
+
 
 	field_duration.set_value(10);
 	field_pause.set_value(5);
@@ -144,15 +151,6 @@ void SpectrumPainterView::stop_tx() {
 void SpectrumPainterView::frame_sync() {
 	if (tx_active) {
 		if (fifo->is_empty()) {
-			if (tx_current_line >= tx_current_max_lines) {
-				if (check_loop.value()) {
-					tx_current_line = 0;
-				}
-				else {
-					stop_tx();
-					return;
-				}
-			}
 
 			int32_t sequence_duration = (field_duration.value() + ( check_loop.value() ? field_pause.value() : 0)) * 1000;
 			int32_t sequence_time = tx_time_elapsed() % sequence_duration;
@@ -163,6 +161,14 @@ void SpectrumPainterView::frame_sync() {
 			} else {
 				auto current_time_line = sequence_time * tx_current_max_lines / (field_duration.value() * 1000);
 				
+				if (tx_current_line > current_time_line && !check_loop.value()) {
+					fifo->in(std::vector<uint8_t>(tx_current_width));
+					stop_tx();
+					return;
+				}
+
+				tx_current_line = current_time_line;
+
 				progressbar.set_value(current_time_line);
 				std::vector<uint8_t> line = input_image.get_line(current_time_line);
 				fifo->in(line);

@@ -34,9 +34,10 @@ namespace ui {
 SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
 	hidden(true);
 
-	add_children({
-		&button_start
-	});
+	 add_children({
+		&labels
+	// 	&button_start
+	 });
 
 	(void)nav;
 }
@@ -45,7 +46,7 @@ SpectrumInputTextView::~SpectrumInputTextView() {
 }
 
 void SpectrumInputTextView::focus() {
-    button_start.focus();
+    //button_start.focus();
 }
 
 void SpectrumInputTextView::paint(Painter& painter) {
