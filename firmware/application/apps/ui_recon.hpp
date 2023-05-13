@@ -104,13 +104,10 @@ namespace ui {
 			void show_max( bool refresh_display = false );
 			void recon_pause();
 			void recon_resume();
-			void user_pause();
-			void user_resume();
 			void frequency_file_load( bool stop_all_before = false);
 			void on_statistics_update(const ChannelStatistics& statistics);
 			void on_headphone_volume_changed(int32_t v);
-			void set_display_freq( int64_t freq );
-			void handle_retune( int64_t freq , uint32_t index );
+			void handle_retune();
 			bool check_sd_card();
 			void handle_coded_squelch(const uint32_t value);
 
