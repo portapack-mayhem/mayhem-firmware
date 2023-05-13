@@ -32,50 +32,11 @@
 #include "portapack.hpp"
 #include "message.hpp"
 
+#include "ui_spectrum_painter_image.hpp"
+#include "ui_spectrum_painter_text.hpp"
+
 namespace ui {
 
-class SpectrumInputImageView : public View {
-public:
-	SpectrumInputImageView(NavigationView& nav);
-	~SpectrumInputImageView();
-
-	void focus() override;
-	void paint(Painter&) override;
-
-	bool drawBMP_scaled(const ui::Rect r, const std::string file);
-	uint16_t get_width();
-	uint16_t get_height();
-	std::vector<uint8_t> get_line(uint16_t);
-
-	std::function<void()> on_input_avaliable { };
-
-private:
-	bool painted {false};
-	std::string file {""};
-	uint16_t width {0};
-	uint16_t height {0};
-	uint8_t type {0};
-	uint32_t data_start {0};
-	
-	Button button_load_image {
-		{ 0 * 8, 17 * 8, 18 * 8, 28 },
-		"Load Image ..."
-	};
-};
-
-class SpectrumInputTextView : public View {
-public:
-	SpectrumInputTextView(NavigationView& nav);
-	~SpectrumInputTextView();
-
-	void focus() override;
-	
-private:
-	Button button_start {
-		{ 0 * 8, 11 * 8, 11 * 8, 28 },
-		"s2"
-	};
-};
 
 class SpectrumPainterView : public View {
 public:
@@ -97,9 +58,6 @@ private:
 	void on_target_frequency_changed(rf::Frequency f);
 	void set_target_frequency(const rf::Frequency new_value);
 	rf::Frequency target_frequency() const;
-
-
-
 
 	NavigationView& nav_;
 	bool tx_active { false };
@@ -204,10 +162,7 @@ private:
 		' '	
 	};
 
-	// 
-
 	SpectrumPainterFIFO* fifo { nullptr };
-
 	void start_tx();
 	void frame_sync();
 	void stop_tx();

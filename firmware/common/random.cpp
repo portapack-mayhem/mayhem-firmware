@@ -21,6 +21,11 @@
 
 #include "random.hpp"
 
+static unsigned long state[N]; /* the array for the state vector  */
+static int rnd_left = 1;
+static int rnd_init = 0;
+static unsigned long *rnd_next;
+
 /* initializes state[N] with a seed */
 void init_genrand(unsigned long s)
 {

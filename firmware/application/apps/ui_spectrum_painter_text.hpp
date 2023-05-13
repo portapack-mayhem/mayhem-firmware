@@ -21,15 +21,31 @@
 
 #pragma once
 
-/* Period parameters */
-#define N 624
-#define M 397
-#define MATRIX_A 0x9908b0dfUL /* constant vector a */
-#define UMASK 0x80000000UL    /* most significant w-r bits */
-#define LMASK 0x7fffffffUL    /* least significant r bits */
-#define MIXBITS(u, v) (((u)&UMASK) | ((v)&LMASK))
-#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
+#include "ui.hpp"
+#include "ui_widget.hpp"
 
-/* initializes state[N] with a seed */
-extern void init_genrand(unsigned long s);
-extern long genrand_int31(void);
+#include "ui_navigation.hpp"
+#include "ui_tabview.hpp"
+#include "ui_transmitter.hpp"
+#include "baseband_api.hpp"
+
+#include "portapack.hpp"
+#include "message.hpp"
+
+namespace ui {
+
+class SpectrumInputTextView : public View {
+public:
+	SpectrumInputTextView(NavigationView& nav);
+	~SpectrumInputTextView();
+
+	void focus() override;
+	
+private:
+	Button button_start {
+		{ 0 * 8, 11 * 8, 11 * 8, 28 },
+		"s2"
+	};
+};
+
+}

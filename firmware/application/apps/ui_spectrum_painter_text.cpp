@@ -19,17 +19,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "ui_spectrum_painter_text.hpp"
+#include "cpld_update.hpp"
+#include "bmp.hpp"
+#include "baseband_api.hpp"
 
-/* Period parameters */
-#define N 624
-#define M 397
-#define MATRIX_A 0x9908b0dfUL /* constant vector a */
-#define UMASK 0x80000000UL    /* most significant w-r bits */
-#define LMASK 0x7fffffffUL    /* least significant r bits */
-#define MIXBITS(u, v) (((u)&UMASK) | ((v)&LMASK))
-#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
+#include "ui_fileman.hpp"
+#include "io_file.hpp"
+#include "file.hpp"
+#include "portapack_persistent_memory.hpp"
 
-/* initializes state[N] with a seed */
-extern void init_genrand(unsigned long s);
-extern long genrand_int31(void);
+namespace ui {
+
+SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
+	hidden(true);
+
+	add_children({
+		&button_start
+	});
+
+	(void)nav;
+}
+
+SpectrumInputTextView::~SpectrumInputTextView() {
+}
+
+void SpectrumInputTextView::focus() {
+    button_start.focus();
+}
+
+}
