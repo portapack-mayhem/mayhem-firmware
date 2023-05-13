@@ -210,7 +210,7 @@ namespace ui {
 			};
 
 			RSSI rssi {
-				{ 0 * 16, 2 * 16, 240 - 8 * 8 + 4 , 16 },
+				{ 0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4 , 16 },
 			}; 
 
 			ButtonWithEncoder text_cycle {
@@ -219,11 +219,11 @@ namespace ui {
 			};
 
 			Text text_max {
-				{ 4 * 8, 3 * 16, 240 - 7 * 8 - 4 * 8 , 16 },  
+				{ 4 * 8, 3 * 16, SCREEN_W - 7 * 8 - 4 * 8 , 16 },  
 			};
 
 			Text desc_cycle {
-				{0, 4 * 16, 240 , 16 },	   
+				{0, 4 * 16, SCREEN_W , 16 },	   
 			};
 
 			/* BigFrequency big_display {		//Show frequency in glamour
@@ -251,23 +251,23 @@ namespace ui {
 			};
 
 			Button button_recon_setup {
-				{ 240 - 7 * 8 , 2 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 2 * 16 , 7 * 8, 28 },
 					"CONFIG"
 			};
 
 			Button button_looking_glass {
-				{ 240 - 7 * 8 , 5 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 5 * 16 , 7 * 8, 28 },
 					"GLASS"
 			};
 
 			// Button can be RECON or SCANNER
 			Button button_scanner_mode {
-				{ 240 - 7 * 8 , 8 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 8 * 16 , 7 * 8, 28 },
 					"RECON"
 			};
 
 			Text file_name {		//Show file used
-				{ 0 , 8 * 16 + 6 , 240 - 7 * 8, 16 },
+				{ 0 , 8 * 16 + 6 , SCREEN_W - 7 * 8, 16 },
 			};
 
 			ButtonWithEncoder button_manual_start {
