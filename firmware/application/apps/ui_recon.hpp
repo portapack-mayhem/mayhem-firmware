@@ -38,15 +38,7 @@
 #include "string_format.hpp"
 #include "file.hpp"
 #include "app_settings.hpp"
-
-// maximum usable freq
-#define MAX_UFREQ 7200000000
-
-// 1Mhz helper
-#ifdef OneMHz
-    #undef OneMHz
-#endif
-#define OneMHz 1000000
+#include "ui_recon_settings.hpp"
 
 namespace ui {
 
@@ -118,7 +110,7 @@ namespace ui {
 			int32_t squelch { 0 };
 			int32_t db { 0 };
 			int32_t timer { 0 };
-			int32_t wait { 1000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
+			int32_t wait { RECON_DEF_WAIT_DURATION };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
 			freqman_db frequency_list  = { };
 			int32_t current_index { 0 };
 			bool userpause { false };
@@ -136,8 +128,8 @@ namespace ui {
 			bool fwd = { true };
             bool recon = true ;
 			uint32_t recon_lock_nb_match = { 3 };
-			uint32_t recon_lock_duration = { 100 };
-			uint32_t recon_match_mode = { 0 };
+			uint32_t recon_lock_duration = { RECON_DEF_LOCK_DURATION };
+			uint32_t recon_match_mode = { RECON_MATCH_CONTINUOUS };
 			bool scanner_mode { false };
 			bool manual_mode { false };
 			bool sd_card_mounted = false ;
@@ -203,16 +195,16 @@ namespace ui {
 			NumberField field_wait {
 				{ 20 * 8, 1 * 16 },
 					5,
-					{ -9000, 9000 },
-					100,
+					{ -(10000-RECON_DEF_WAIT_DURATION) , (10000-RECON_DEF_WAIT_DURATION) },
+					RECON_DEF_WAIT_DURATION,
 					' ',
 			};
 
 			NumberField field_lock_wait {
 				{ 26 * 8, 1 * 16 },
 					4,
-					{ 100 , 9900 },
-					100,
+					{ RECON_DEF_LOCK_DURATION , (10000-RECON_DEF_LOCK_DURATION) },
+					RECON_DEF_LOCK_DURATION,
 					' ',
 			};
 

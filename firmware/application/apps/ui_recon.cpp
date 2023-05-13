@@ -22,7 +22,6 @@
 
 #include "ui_recon.hpp"
 #include "ui_fileman.hpp"
-#include "ui_recon_settings.hpp"
 #include "file.hpp"
 
 using namespace portapack;
@@ -236,7 +235,7 @@ namespace ui {
 
     ReconView::~ReconView() {
 
-        ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+        ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , field_volume.value() );
 
         // save app settings
         settings.save("recon", &app_settings);
@@ -803,7 +802,7 @@ namespace ui {
                 recon_lock_nb_match = strtol( result[3].c_str() , nullptr , 10 );
                 recon_match_mode	= strtol( result[4].c_str() , nullptr , 10 );
 
-                ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+                ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , field_volume.value() );
 
                 autosave = persistent_memory::recon_autosave_freqs();
                 autostart = persistent_memory::recon_autostart_recon();
@@ -857,14 +856,20 @@ namespace ui {
         field_lock_wait.on_change = [this](uint32_t v)
         {
             recon_lock_duration = v ;
-
-            if( (v / 100 ) > recon_lock_nb_match )
+            if( recon_match_mode == RECON_MATCH_CONTINUOUS )
+            {
+                if( (v / STATS_UPDATE_INTERVAL ) > recon_lock_nb_match )
+                {
+                    field_lock_wait.set_style( &style_white );
+                }
+                else if( (v / STATS_UPDATE_INTERVAL ) == recon_lock_nb_match )
+                {
+                    field_lock_wait.set_style(&style_yellow);
+                }
+            }
+            else
             {
                 field_lock_wait.set_style( &style_white );
-            }
-            else if( (v / 100 ) == recon_lock_nb_match )
-            {
-                field_lock_wait.set_style(&style_yellow);
             }
         };
 
@@ -884,7 +889,7 @@ namespace ui {
         file_name.set( "=>" );
 
         //Loading input and output file from settings
-        ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , volume );
+        ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , volume );
 
         field_squelch.set_value( squelch );
         field_wait.set_value(wait);
@@ -1073,7 +1078,7 @@ namespace ui {
                 else
                 {
                     // continuous, direct cut it if not consecutive match after 1 first match
-                    if( recon_match_mode == 0 )
+                    if( recon_match_mode == RECON_MATCH_CONTINUOUS )
                     {
                         if( freq_lock > 0 )
                         {
@@ -1116,7 +1121,7 @@ namespace ui {
         if( timer )
         {
             if( !continuous_lock )
-                timer -= 100 ;
+                timer -= STATS_UPDATE_INTERVAL ;
             if( timer < 0 )
             {
                 timer = 0 ;

@@ -34,7 +34,7 @@ using namespace portapack;
 
 namespace ui {
 
-	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , uint32_t &lock_wait , int32_t &volume )
+	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume )
 	{
 		File settings_file;
 		size_t length, file_position = 0;
@@ -91,12 +91,11 @@ namespace ui {
 			/* bad number of params, signal defaults */
 			input_file  = "RECON" ;
 			output_file = "RECON_RESULTS" ;
-			recon_lock_duration = 100 ;
-			recon_lock_nb_match = 3 ;
+			recon_lock_duration = RECON_DEF_LOCK_DURATION ;
+			recon_lock_nb_match = RECON_DEF_NB_MATCH ;
 			recon_squelch_level = -14 ;
-			recon_match_mode = 0 ;
-			wait = 1000 ;
-			lock_wait = 1000 ;
+			recon_match_mode = RECON_MATCH_CONTINUOUS ;
+			wait = RECON_DEF_WAIT_DURATION ;
 			volume = 40 ;
 			return false ;
 		}
@@ -114,12 +113,12 @@ namespace ui {
 		if( it > 2 )
 			recon_lock_duration = strtoll( params[ 2 ].c_str() , nullptr , 10 );
 		else
-			recon_lock_duration = 100 ;
+			recon_lock_duration = RECON_DEF_LOCK_DURATION ;
 
 		if( it > 3 )
 			recon_lock_nb_match = strtoll( params[ 3 ].c_str() , nullptr , 10 );
 		else
-			recon_lock_nb_match = 3 ;
+			recon_lock_nb_match = RECON_DEF_NB_MATCH ;
 
 		if( it > 4 )
 			recon_squelch_level = strtoll( params[ 4 ].c_str() , nullptr , 10 );
@@ -129,17 +128,12 @@ namespace ui {
 		if( it > 5 )
 			recon_match_mode    = strtoll( params[ 5 ].c_str() , nullptr , 10 );
 		else
-			recon_match_mode = 0 ;
+			recon_match_mode = RECON_MATCH_CONTINUOUS ;
 
 		if( it > 6 )
 			wait = strtoll( params[ 6 ].c_str() , nullptr , 10 );
 		else
-			wait = 1000 ;
-
-		if( it > 7 )
-			lock_wait = strtoll( params[ 7 ].c_str() , nullptr , 10 );
-		else
-			lock_wait = 1000 ;
+			wait = RECON_DEF_WAIT_DURATION ;
 
 		if( it > 8 )
 			volume = strtoll( params[ 8 ].c_str() , nullptr , 10 );
@@ -149,7 +143,7 @@ namespace ui {
 		return true ;
 	}
 
-	bool ReconSetupSaveStrings( std::string dest, std::string input_file , std::string output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , uint32_t lock_wait , int32_t volume )
+	bool ReconSetupSaveStrings( std::string dest, std::string input_file , std::string output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume )
 	{
 		File settings_file;
 
@@ -163,7 +157,6 @@ namespace ui {
 		settings_file.write_line( to_string_dec_int( recon_squelch_level ) );
 		settings_file.write_line( to_string_dec_uint( recon_match_mode ) );
 		settings_file.write_line( to_string_dec_int( wait ) );
-		settings_file.write_line( to_string_dec_uint( lock_wait ) );
 		settings_file.write_line( to_string_dec_int( volume ) );
 		return true ;
 	}
