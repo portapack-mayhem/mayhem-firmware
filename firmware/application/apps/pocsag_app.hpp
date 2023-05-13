@@ -91,7 +91,7 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 0 * 8 },
 	};
-		NumberField field_volume{
+	NumberField field_volume {
 		{ 28 * 8, 0 * 16 },
 		2,
 		{ 0, 99 },
