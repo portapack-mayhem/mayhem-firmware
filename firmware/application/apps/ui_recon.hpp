@@ -119,7 +119,6 @@ namespace ui {
 			int32_t db { 0 };
 			int32_t timer { 0 };
 			int32_t wait { 1000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
-			uint32_t lock_wait { 1000 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
 			freqman_db frequency_list  = { };
 			int32_t current_index { 0 };
 			bool userpause { false };
@@ -157,8 +156,6 @@ namespace ui {
             int64_t minfreq = 0 ;
 			int64_t maxfreq = 0 ;
 			bool has_looped = false ;
-			RetuneMessage message { };
-            uint32_t remaining_time = 0 ;
 
 			Labels labels 
 			{ 
@@ -214,8 +211,8 @@ namespace ui {
 			NumberField field_lock_wait {
 				{ 26 * 8, 1 * 16 },
 					4,
-					{ 100 , 9000 },
-					100,
+					{ 50 , 9950 },
+					50,
 					' ',
 			};
 
@@ -351,14 +348,6 @@ namespace ui {
 					[this](const Message* const p) {
 						const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
 						this->handle_coded_squelch(message.value);
-					}
-			};
-
-			MessageHandlerRegistration message_handler_retune {
-				Message::ID::Retune,
-					[this](const Message* const p) {
-						const auto message = *reinterpret_cast<const RetuneMessage*>(p);
-						this->handle_retune(message.freq,message.range);
 					}
 			};
 

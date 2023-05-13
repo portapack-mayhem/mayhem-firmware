@@ -128,8 +128,8 @@ namespace ui {
 			NumberField field_recon_lock_duration {
 				{ 1 * 8, 132 },             // position X , Y
 					4,                      // number of displayed digits (even empty)
-					{ 50 , 990 },           // range of number
-					10,                     // rotary encoder increment
+					{ 50 , 9950 },           // range of number
+					50,                     // rotary encoder increment
 					' ',                    // filling character 
 					false                   // can loop
 			};
