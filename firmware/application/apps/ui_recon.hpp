@@ -50,75 +50,6 @@
 
 namespace ui {
 
-	class ReconThread {
-		public:
-			ReconThread(freqman_db *database );
-			~ReconThread();
-
-			void set_recon(const bool v);
-			void set_freq_delete(const bool v);
-			bool is_recon();
-
-			void set_lock_duration( const uint32_t v );
-			uint32_t get_lock_duration();
-			void set_lock_nb_match( const uint32_t v );
-			void set_match_mode( const uint32_t v );
-			uint32_t get_lock_nb_match();
-
-			void set_freq_lock(const int32_t v);
-			int32_t is_freq_lock();
-			int64_t get_current_freq();
-
-			void set_stepper(const int64_t v);
-			void set_index_stepper(const int64_t v);
-
-			void change_recon_direction();
-			bool get_recon_direction();
-			void set_recon_direction( const bool v);
-
-			void set_continuous(const bool v);
-
-			void set_default_modulation( freqman_index_t index );
-			freqman_index_t get_current_modulation();
-			void set_default_bandwidth( freqman_index_t index );
-			freqman_index_t get_current_bandwidth();
-			void set_default_step( freqman_index_t index );
-			void set_freq_index( int16_t index );
-			int16_t get_freq_index();
-
-			void run();
-			void stop();
-
-			ReconThread(const ReconThread&) = delete;
-			ReconThread(ReconThread&&) = delete;
-			ReconThread& operator=(const ReconThread&) = delete;
-			ReconThread& operator=(ReconThread&&) = delete;
-
-		private:
-			freqman_db &frequency_list_ ;
-			Thread* thread { nullptr };
-			int64_t freq = 0 ;
-			uint32_t step = 0 ;
-			freqman_index_t def_modulation  = 0 ;
-			freqman_index_t def_bandwidth = 0 ;
-			freqman_index_t def_step = 0 ;
-			tone_index tone = 0 ;
-			freqman_entry last_entry = { } ;
-			int16_t frequency_index = 0 ;
-
-			bool _recon { true };
-			bool _freq_delete { false };
-			bool _fwd { true };
-			bool _continuous { true };
-			bool entry_has_changed = false ;
-			int64_t _stepper { 0 };
-			int64_t _index_stepper { 0 };
-			int32_t _freq_lock { 0 };
-			uint32_t _lock_duration { 50 };
-			uint32_t _lock_nb_match { 10 };
-			static msg_t static_fn(void* arg);
-	};
-
 	class ReconView : public View {
 		public:
 			ReconView(NavigationView& nav);
@@ -169,7 +100,6 @@ namespace ui {
 		private:
 			NavigationView& nav_;
 
-			void start_recon_thread();
 			size_t change_mode( freqman_index_t mod_type);
 			void show_max( bool refresh_display = false );
 			void recon_pause();
@@ -190,9 +120,8 @@ namespace ui {
 			int32_t timer { 0 };
 			int32_t wait { 1000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
 			uint32_t lock_wait { 1000 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
-			int32_t def_step { 0 };
 			freqman_db frequency_list  = { };
-			uint32_t current_index { 0 };
+			int32_t current_index { 0 };
 			bool userpause { false };
 			bool continuous_lock { false };
 			std::string input_file = { "RECON" };
@@ -206,6 +135,7 @@ namespace ui {
 			bool load_hamradios = { true };
 			bool update_ranges = { true };
 			bool fwd = { true };
+            bool recon = true ;
 			uint32_t recon_lock_nb_match = { 3 };
 			uint32_t recon_lock_duration = { 50 };
 			uint32_t recon_match_mode = { 0 };
@@ -213,6 +143,22 @@ namespace ui {
 			bool manual_mode { false };
 			bool sd_card_mounted = false ;
 			int32_t volume = 40 ;
+            int32_t stepper = 0 ;
+            int32_t index_stepper = 0 ;
+			int64_t freq = 0 ;
+			uint32_t step = 0 ;
+			freqman_index_t def_modulation  = 0 ;
+			freqman_index_t def_bandwidth = 0 ;
+			freqman_index_t def_step = 0 ;
+			tone_index tone = 0 ;
+			freqman_entry last_entry = { } ;
+			bool entry_has_changed = false ;
+			uint32_t freq_lock { 0 };
+            int64_t minfreq = 0 ;
+			int64_t maxfreq = 0 ;
+			bool has_looped = false ;
+			RetuneMessage message { };
+            uint32_t remaining_time = 0 ;
 
 			Labels labels 
 			{ 
@@ -399,8 +345,6 @@ namespace ui {
 				{ 168, (35 * 8) - 4, 72, 28 },
 					"<REMOVE>"
 			};
-
-			std::unique_ptr<ReconThread> recon_thread { };
 
 			MessageHandlerRegistration message_handler_coded_squelch {
 				Message::ID::CodedSquelch,
