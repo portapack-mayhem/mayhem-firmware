@@ -598,7 +598,8 @@ namespace ui {
         button_manual_recon.on_select = [this](Button&) {
             scanner_mode = false ;
             manual_mode = true ;
-            current_index = 0 ;
+            recon_pause();
+
             if (!frequency_range.min || !frequency_range.max) {
                 nav_.display_modal("Error", "Both START and END freqs\nneed a value");
             } else if (frequency_range.min > frequency_range.max) {
@@ -638,6 +639,10 @@ namespace ui {
                 desc_cycle.set_style( &style_white );
                 desc_cycle.set( "MANUAL RANGE RECON" );
 
+                current_index = 0 ;
+                freq = manual_freq_entry . frequency_a ;
+                handle_retune();
+                recon_redraw();
                 recon_resume();
             }
         };
